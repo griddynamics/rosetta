@@ -11,6 +11,8 @@ permalink: /overview/
 
 ## What Rosetta Solves
 
+Modern AI coding agents require externalized, persistent context to maintain stable behavior across sessions and tasks. Creating and maintaining this context is typically manual, error-prone, and slow. Rosetta automates the initialization and ongoing maintenance of AI coding agent context for new and existing codebases — providing agent rules, skills, workflows, sub-agents, and instructions as explicit, versioned artifacts, managed centrally via MCP so teams across the organization can share and evolve agent context consistently.
+
 - Fragmented adoption and inconsistent execution across teams and tools.
 - Missing business and technical context in day-to-day AI-assisted development.
 - Weak governance, low visibility, and avoidable risk in AI-enabled SDLC.
@@ -19,10 +21,25 @@ permalink: /overview/
 ## Benefits By Role
 
 <div class="grid">
-  <article class="card"><h3>Engineers</h3><p>Get productive faster with standardized batteries-included flows, HITL gates, and automatic adaptation to different coding agents and stacks.</p></article>
-  <article class="card"><h3>Managers</h3><p>Maintain one common instruction foundation with project-level extensions, lower maintenance overhead, and stronger quality consistency.</p></article>
-  <article class="card"><h3>Directors</h3><p>Operate with governance at scale, usage visibility, and curated knowledge management that stays current and reusable.</p></article>
-  <article class="card"><h3>VP / Leadership</h3><p>Demonstrate delivery value, cost efficiency, and risk reduction while preserving flexibility for the changing AI landscape.</p></article>
+  <article class="card">
+    <h3>For Developers</h3>
+    <ul>
+      <li>Persistent, externalized agent context to keep behavior consistent across sessions</li>
+      <li>Automatic setup of agent rules, workflows, and coding conventions per project</li>
+      <li>Reduced manual prompt crafting and trial-and-error when switching tasks or repos</li>
+      <li>Explicit, versioned context that can be inspected, diffed, and updated</li>
+      <li>Shared context across teammates to avoid agent behavior drift</li>
+    </ul>
+  </article>
+  <article class="card">
+    <h3>For Managers</h3>
+    <ul>
+      <li>Security — no code is transferred, only rules</li>
+      <li>Standardized AI agent behavior and centralized management of agent instructions</li>
+      <li>Reduced onboarding time for new engineers and new codebases</li>
+      <li>Clear ownership and evolution of AI development practices</li>
+    </ul>
+  </article>
 </div>
 
 ## Core Principles
