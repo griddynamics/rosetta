@@ -890,14 +890,15 @@ h2.with-marker::before {
 .ov-principles {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0;
+  gap: 1rem;
   max-width: 720px;
   margin: 1.4rem 0;
 }
 
 .ov-principle {
-  padding: 1rem 1.5rem 1rem 0;
+  padding: 1rem 1.5rem 1rem 1rem;
   border-top: 1px solid var(--line);
+  border-left: 3px solid #ffc002;
   opacity: 0;
   transform: translateY(18px);
   transition: opacity .5s ease, transform .5s ease;

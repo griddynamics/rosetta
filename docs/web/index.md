@@ -22,17 +22,7 @@ permalink: /
     <h2 class="with-marker">Quick Start</h2>
     <p class="qs-sub">Add Rosetta MCP to your AI coding client in minutes. No source code sharing required.</p>
 
-    <div class="qs-tabs" role="tablist">
-      <button class="qs-tab active" data-tab="cli" role="tab">Rosetta CLI <span class="qs-tab-badge">Recommended</span></button>
-      <button class="qs-tab" data-tab="claude" role="tab">Claude Code</button>
-      <button class="qs-tab" data-tab="cursor" role="tab">Cursor / Windsurf</button>
-      <button class="qs-tab" data-tab="vscode" role="tab">VS Code / Copilot</button>
-      <button class="qs-tab" data-tab="other" role="tab">JetBrains / Other</button>
-    </div>
-
-    <!-- Tab: Rosetta CLI (Recommended) -->
-    <div class="qs-content active" id="qs-cli">
-      <p class="qs-step-label">Step 1 — Install uv</p>
+    <p class="qs-step-label">Step 1 — Install uv</p>
       <div class="qs-code-wrap">
         <pre class="qs-code"><span class="qs-prompt">$</span> brew install uv          <span class="qs-comment"># macOS</span>
 <span class="qs-prompt">$</span> curl -LsSf https://astral.sh/uv/install.sh | sh  <span class="qs-comment"># Linux / Windows (WSL)</span></pre>
@@ -52,147 +42,12 @@ permalink: /
         <pre class="qs-code"><span class="qs-comment"># Ask your assistant:</span>
 <span class="qs-comment"># "What can you do?"</span></pre>
       </div>
-    </div>
-
-    <!-- Tab: Claude Code -->
-    <div class="qs-content" id="qs-claude">
-      <p class="qs-step-label">Step 1 — Install uv</p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code"><span class="qs-prompt">$</span> brew install uv          <span class="qs-comment"># macOS</span>
-<span class="qs-prompt">$</span> curl -LsSf https://astral.sh/uv/install.sh | sh  <span class="qs-comment"># Linux</span></pre>
-      </div>
-      <p class="qs-step-label">Step 2 — Add Rosetta MCP</p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code"><span class="qs-prompt">$</span> claude mcp add --transport stdio KnowledgeBase \
-    --env R2R_API_BASE=https://ims-r2r-dev.evergreen.gcp.griddynamics.net/ \
-    --env R2R_COLLECTION=aia-r2 \
-    --env R2R_EMAIL=<span class="qs-comment">&lt;your-email&gt;</span> \
-    --env R2R_PASSWORD=<span class="qs-comment">&lt;your-password&gt;</span> \
-    -- uvx ims-mcp</pre>
-        <button class="qs-copy" data-copy="claude mcp add --transport stdio KnowledgeBase --env R2R_API_BASE=https://ims-r2r-dev.evergreen.gcp.griddynamics.net/ --env R2R_COLLECTION=aia-r2 --env R2R_EMAIL=<your-email> --env R2R_PASSWORD=<your-password> -- uvx ims-mcp">Copy</button>
-      </div>
-      <p class="qs-step-label">Step 3 — Initialize your repository</p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code"><span class="qs-comment"># Restart Claude Code, then ask your assistant:</span>
-<span class="qs-comment"># "Initialize this repository"</span></pre>
-      </div>
-      <p class="qs-step-label">Step 4 — Verify</p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code"><span class="qs-comment"># Ask your assistant:</span>
-<span class="qs-comment"># "What can you do?"</span></pre>
-      </div>
-    </div>
-
-    <!-- Tab: Cursor / Windsurf -->
-    <div class="qs-content" id="qs-cursor">
-      <p class="qs-step-label">Step 1 — Install uv</p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code"><span class="qs-prompt">$</span> brew install uv          <span class="qs-comment"># macOS</span>
-<span class="qs-prompt">$</span> curl -LsSf https://astral.sh/uv/install.sh | sh  <span class="qs-comment"># Linux</span></pre>
-      </div>
-      <p class="qs-step-label">Step 2 — Add to MCP config</p>
-      <p class="qs-sub" style="margin:.3rem 0 .6rem;font-size:.82rem;">Cursor: <code style="font-size:.82rem;">~/.cursor/mcp.json</code> &nbsp;·&nbsp; Windsurf: MCP settings in IDE</p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code">{
-  "mcpServers": {
-    "KnowledgeBase": {
-      "command": "uvx",
-      "args": ["ims-mcp@latest"],
-      "env": {
-        "R2R_API_BASE": "https://ims-r2r-dev.evergreen.gcp.griddynamics.net/",
-        "R2R_COLLECTION": "aia-r2",
-        "R2R_EMAIL": "&lt;your-email&gt;",
-        "R2R_PASSWORD": "&lt;your-password&gt;"
-      }
-    }
-  }
-}</pre>
-      </div>
-      <p class="qs-step-label">Step 3 — Initialize &amp; Verify</p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code"><span class="qs-comment"># Restart your IDE, then ask your assistant:</span>
-<span class="qs-comment"># "Initialize this repository"  →  "What can you do?"</span></pre>
-      </div>
-    </div>
-
-    <!-- Tab: VS Code / Copilot -->
-    <div class="qs-content" id="qs-vscode">
-      <p class="qs-step-label">Step 1 — Install uv</p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code"><span class="qs-prompt">$</span> brew install uv          <span class="qs-comment"># macOS</span>
-<span class="qs-prompt">$</span> curl -LsSf https://astral.sh/uv/install.sh | sh  <span class="qs-comment"># Linux</span></pre>
-      </div>
-      <p class="qs-step-label">Step 2 — Add to <code style="font-size:.82rem;">.vscode/mcp.json</code></p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code">{
-  "servers": {
-    "KnowledgeBase": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": ["ims-mcp@latest"],
-      "env": {
-        "R2R_API_BASE": "https://ims-r2r-dev.evergreen.gcp.griddynamics.net/",
-        "R2R_COLLECTION": "aia-r2",
-        "R2R_EMAIL": "&lt;your-email&gt;",
-        "R2R_PASSWORD": "&lt;your-password&gt;"
-      }
-    }
-  }
-}</pre>
-      </div>
-      <p class="qs-step-label">Step 3 — Initialize &amp; Verify</p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code"><span class="qs-comment"># Restart VS Code, then ask Copilot:</span>
-<span class="qs-comment"># "Initialize this repository"  →  "What can you do?"</span></pre>
-      </div>
-    </div>
-
-    <!-- Tab: JetBrains / Other -->
-    <div class="qs-content" id="qs-other">
-      <p class="qs-step-label">Step 1 — Install uv</p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code"><span class="qs-prompt">$</span> brew install uv          <span class="qs-comment"># macOS</span>
-<span class="qs-prompt">$</span> curl -LsSf https://astral.sh/uv/install.sh | sh  <span class="qs-comment"># Linux</span></pre>
-      </div>
-      <p class="qs-step-label">Step 2 — Add MCP config</p>
-      <p class="qs-sub" style="margin:.3rem 0 .6rem;font-size:.82rem;">JetBrains Copilot: <code style="font-size:.82rem;">~/.config/github-copilot/intellij/mcp.json</code></p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code">{
-  "servers": {
-    "KnowledgeBase": {
-      "command": "uvx",
-      "args": ["ims-mcp@latest"],
-      "type": "stdio",
-      "env": {
-        "R2R_API_BASE": "https://ims-r2r-dev.evergreen.gcp.griddynamics.net/",
-        "R2R_COLLECTION": "aia-r2",
-        "R2R_EMAIL": "&lt;your-email&gt;",
-        "R2R_PASSWORD": "&lt;your-password&gt;"
-      }
-    }
-  }
-}</pre>
-      </div>
-      <p class="qs-step-label">Step 3 — Initialize &amp; Verify</p>
-      <div class="qs-code-wrap">
-        <pre class="qs-code"><span class="qs-comment"># Restart your IDE, then ask your assistant:</span>
-<span class="qs-comment"># "Initialize this repository"  →  "What can you do?"</span></pre>
-      </div>
-    </div>
 
   </div>
 </section>
 
 <script>
 (function() {
-  document.querySelectorAll('.qs-tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.qs-tab').forEach(function(t) { t.classList.remove('active'); });
-      document.querySelectorAll('.qs-content').forEach(function(c) { c.classList.remove('active'); });
-      tab.classList.add('active');
-      document.getElementById('qs-' + tab.dataset.tab).classList.add('active');
-    });
-  });
   document.querySelectorAll('.qs-copy').forEach(function(btn) {
     btn.addEventListener('click', function() {
       navigator.clipboard.writeText(btn.dataset.copy).then(function() {
