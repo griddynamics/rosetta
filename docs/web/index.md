@@ -368,8 +368,11 @@ permalink: /
 
 <script>
 (function(){
-  // Only activate splash on home page
-  if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') return;
+  // Only activate splash on home page (works with baseurl like /rosetta/)
+  var path = window.location.pathname.replace(/\/+$/, '') || '/';
+  var base = (document.querySelector('base') || {}).href || '';
+  var baseUrl = '{{ site.baseurl }}'.replace(/\/+$/, '') || '';
+  if (path !== baseUrl && path !== baseUrl + '/index.html' && path !== '/' && path !== '/index.html') return;
 
   // Skip splash if navigated via anchor or returning from another page
   if (window.location.hash) return;
