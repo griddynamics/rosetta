@@ -7,10 +7,14 @@
   <script>
     (function(){
       var t = localStorage.getItem('rosetta-theme');
+      if (!t && window.matchMedia) {
+        t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      }
       if (t) document.documentElement.setAttribute('data-theme', t);
     })();
   </script>
   <title>{% if page.url == '/' %}{{ site.seo_title | default: site.title }}{% elsif page.title %}{{ page.title }} | {{ site.seo_title | default: site.title }}{% else %}{{ site.seo_title | default: site.title }}{% endif %}</title>
+  <meta name="description" content="Rosetta — Control plane for AI coding agents. Governs behavior, packages proven workflows, and delivers consistent engineering quality across your organization.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,19 +23,22 @@
   <link rel="apple-touch-icon" href="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}">
 </head>
 <body>
+<a href="#main-content" class="skip-to-content">Skip to content</a>
 {% include nav.html %}
-<main>
+<main id="main-content">
 {{ content }}
 </main>
 <footer>
   <div class="footer-wrap">
-    <span>&copy; Grid Dynamics &mdash; Rosetta</span>
+    <span>Copyright &copy; {{ 'now' | date: '%Y' }} Grid Dynamics. All rights reserved.</span>
     <nav class="footer-nav" aria-label="Footer navigation">
       <a href="{{ '/overview/' | relative_url }}">Overview</a>
-<a href="{{ '/usage/' | relative_url }}">Usage</a>
+      <a href="{{ '/usage/' | relative_url }}">Usage</a>
       <a href="{{ '/roadmap/' | relative_url }}">Roadmap</a>
       <a href="{{ '/contribute/' | relative_url }}">Contribute</a>
       <a href="https://github.com/griddynamics/rosetta" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://discord.gg/qRUfPGBwWT" target="_blank" rel="noopener noreferrer">Community</a>
+      <a href="mailto:rosetta-support@griddynamics.com">Contact Us</a>
     </nav>
   </div>
 </footer>
