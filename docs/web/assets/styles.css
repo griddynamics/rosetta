@@ -2061,197 +2061,115 @@ body.splash-exiting {
 }
 
 /* ===== PLAIN AI vs ROSETTA ===== */
-/* ===== CASE STUDY TIMELINE ===== */
-.cases {
+/* ===== WITHOUT vs WITH ROSETTA ===== */
+.vs-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: 1.2rem;
+  margin: 1.4rem 0;
 }
 
-.case {
-  background: var(--bg);
-  border: 1px solid rgba(255, 184, 0, .15);
-  border-radius: 20px;
-  padding: 1.8rem 1.6rem;
-  box-shadow:
-    0 2px 20px rgba(0, 0, 0, .25),
-    0 0 40px rgba(255, 184, 0, .04);
+.vs-card {
+  border-radius: 12px;
+  padding: 1.4rem 1.3rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
 }
 
-.case-tag {
-  display: inline-block;
-  font-size: .65rem;
+.vs-card--without {
+  border-left: 3px solid rgba(180, 80, 80, 0.5);
+}
+
+.vs-card--with {
+  border-left: 3px solid var(--gd-gold);
+}
+
+.vs-label {
+  font-size: .72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .08em;
-  color: var(--gd-gold);
-  background: rgba(255, 184, 0, .1);
-  padding: .3rem .7rem;
+  margin-bottom: .8rem;
+}
+
+.vs-card--without .vs-label { color: var(--muted); }
+.vs-card--with .vs-label { color: var(--gd-gold); }
+
+.vs-prompt {
+  font-size: .82rem;
+  color: var(--text);
+  font-family: 'Fira Mono', 'SF Mono', monospace;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line);
   border-radius: 6px;
-  margin-bottom: 1.4rem;
+  padding: .5rem .7rem;
+  margin-bottom: .8rem;
 }
 
-.case-step {
-  display: grid;
-  grid-template-columns: 36px 1fr;
-  grid-template-rows: auto 1fr;
-  gap: 0 .8rem;
-  margin-bottom: .2rem;
-}
-
-.case-step-icon {
-  grid-column: 1;
-  grid-row: 1;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.case-step-line {
-  grid-column: 1;
-  grid-row: 2;
-  width: 2px;
-  background: var(--line);
-  justify-self: center;
-  min-height: 100%;
-}
-
-.case-step-body {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  padding-bottom: 1.2rem;
-}
-
-.case-step-label {
-  font-size: .7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  margin-bottom: .4rem;
-}
-
-.case-step-body p {
-  font-size: .85rem;
-  color: var(--muted);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.case-step-body ul {
+.vs-list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 0 0 .8rem;
   display: flex;
   flex-direction: column;
-  gap: .35rem;
+  gap: .4rem;
 }
 
-.case-step-body ul li {
+.vs-list li {
   font-size: .82rem;
   color: var(--muted);
   line-height: 1.5;
-  padding-left: 1.2rem;
+  padding-left: 1.3rem;
   position: relative;
 }
 
-/* Challenge */
-.case-step--challenge .case-step-icon {
-  background: rgba(255, 184, 0, .12);
-  color: var(--gd-gold);
-}
-.case-step--challenge .case-step-label { color: var(--text); }
-.case-step--challenge .case-step-line { background: linear-gradient(180deg, rgba(255, 184, 0, .2), var(--line)); }
-
-/* Fail */
-.case-step--fail .case-step-icon {
-  background: rgba(220, 80, 80, .12);
-  color: #dc5050;
-}
-.case-step--fail .case-step-label { color: #dc5050; }
-.case-step--fail .case-step-line { background: linear-gradient(180deg, rgba(220, 80, 80, .15), var(--line)); }
-.case-step--fail ul li::before {
+.vs-card--without .vs-list li::before {
   content: '\2717';
   position: absolute;
   left: 0;
-  color: rgba(220, 80, 80, .6);
-  font-size: .78rem;
+  color: var(--muted);
+  font-size: .8rem;
 }
 
-/* Win */
-.case-step--win .case-step-icon {
-  background: rgba(80, 200, 120, .12);
-  color: #50c878;
-}
-.case-step--win .case-step-label { color: #50c878; }
-.case-step--win .case-step-line { background: linear-gradient(180deg, rgba(80, 200, 120, .15), var(--line)); }
-.case-step--win ul li::before {
+.vs-card--with .vs-list li::before {
   content: '\2713';
   position: absolute;
   left: 0;
-  color: #50c878;
-  font-weight: 700;
-  font-size: .78rem;
-}
-
-/* Verdict (inline result after Plain AI) */
-.case-step-verdict {
-  margin-top: .6rem;
-  font-size: .8rem;
-  font-weight: 600;
-  padding: .45rem .8rem;
-  border-radius: 8px;
-  display: inline-block;
-}
-
-.case-step-verdict--bad {
-  color: #dc5050;
-  background: rgba(220, 80, 80, .08);
-  border: 1px solid rgba(220, 80, 80, .15);
-}
-
-[data-theme="light"] .case-step-verdict--bad {
-  color: #c83c3c;
-  background: rgba(200, 60, 60, .06);
-  border-color: rgba(200, 60, 60, .12);
-}
-
-/* Result */
-.case-step--result { margin-bottom: 0; }
-.case-step--result .case-step-icon {
-  background: linear-gradient(135deg, rgba(255, 184, 0, .2), rgba(247, 147, 29, .15));
   color: var(--gd-gold);
+  font-weight: 700;
+  font-size: .8rem;
 }
-.case-step--result .case-step-label { color: var(--gd-gold); }
 
-.case-result-text {
-  font-size: .88rem !important;
+.vs-result {
+  font-size: .82rem;
   font-weight: 600;
-  color: var(--text) !important;
-  line-height: 1.5;
+  padding-top: .6rem;
+  border-top: 1px solid var(--line);
 }
 
-/* Light theme */
-[data-theme="light"] .case {
-  border-color: rgba(247, 147, 29, .18);
-  box-shadow:
-    0 2px 20px rgba(0, 0, 0, .06),
-    0 0 40px rgba(255, 184, 0, .06);
+.vs-result--bad { color: var(--muted); }
+.vs-result--good { color: var(--gd-gold); }
+
+[data-theme="light"] .vs-card {
+  background: #ffffff;
+  border-color: rgba(0,0,0,0.07);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
-[data-theme="light"] .case-step--fail .case-step-icon { background: rgba(200, 60, 60, .08); color: #c83c3c; }
-[data-theme="light"] .case-step--fail .case-step-label { color: #c83c3c; }
-[data-theme="light"] .case-step--fail ul li::before { color: rgba(200, 60, 60, .5); }
+[data-theme="light"] .vs-card--without {
+  border-left-color: rgba(0,0,0,0.15);
+}
 
-[data-theme="light"] .case-step--win .case-step-icon { background: rgba(40, 160, 80, .08); color: #28a050; }
-[data-theme="light"] .case-step--win .case-step-label { color: #28a050; }
-[data-theme="light"] .case-step--win ul li::before { color: #28a050; }
+[data-theme="light"] .vs-card--with {
+  border-left-color: var(--gd-gold);
+}
 
-@media (max-width: 768px) {
-  .cases { grid-template-columns: 1fr; }
+[data-theme="light"] .vs-prompt {
+  background: rgba(0,0,0,0.025);
+}
+
+@media (max-width: 760px) {
+  .vs-grid { grid-template-columns: 1fr; }
 }
 
 /* ===== WHY ROSETTA ROWS ===== */

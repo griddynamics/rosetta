@@ -332,131 +332,61 @@ permalink: /
   Agent-agnostic by design. Use <strong>Sonnet 4.6</strong>, <strong>GPT-5.3-codex-medium</strong>, <strong>gemini-3.1-pro</strong> or better models.
 </div>
 
-<!-- ===== REAL-WORLD CASES ===== -->
-<section class="section" id="real-world">
-  <h2 class="with-marker">Real-World Results</h2>
-  <p class="section-subtitle">How teams solved complex enterprise problems — plain AI vs Rosetta.</p>
+<!-- ===== WITHOUT vs WITH ROSETTA ===== -->
+<section class="section">
+  <h2 class="with-marker">Without Rosetta vs With Rosetta</h2>
+  <p class="section-subtitle">Real enterprise cases. Same task — different results.</p>
 
-  <div class="cases">
-
-    <!-- Case 1 -->
-    <div class="case">
-      <div class="case-tag">Enterprise Data Migration</div>
-
-      <div class="case-step case-step--challenge">
-        <div class="case-step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-        </div>
-        <div class="case-step-line"></div>
-        <div class="case-step-body">
-          <div class="case-step-label">Challenge</div>
-          <p>Implement data changes from an Excel spec across two interconnected databases — with dozens of dependent services, stored procedures, and legacy code.</p>
-        </div>
-      </div>
-
-      <div class="case-step case-step--fail">
-        <div class="case-step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
-        </div>
-        <div class="case-step-line"></div>
-        <div class="case-step-body">
-          <div class="case-step-label">Plain AI</div>
-          <ul>
-            <li>Started writing queries without understanding the full picture</li>
-            <li>Missed cross-schema relationships and dependent services</li>
-            <li>Ignored stored procedures, triggers, and legacy integrations</li>
-            <li>Produced partial SQL that would break downstream on deploy</li>
-          </ul>
-          <div class="case-step-verdict case-step-verdict--bad">Broken deploy. Hours of manual debugging.</div>
-        </div>
-      </div>
-
-      <div class="case-step case-step--win">
-        <div class="case-step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
-        </div>
-        <div class="case-step-line"></div>
-        <div class="case-step-body">
-          <div class="case-step-label">With Rosetta</div>
-          <ul>
-            <li>Loaded both database schemas and mapped every relationship</li>
-            <li>Identified all services and APIs depending on affected tables</li>
-            <li>Found missing fields and web services that needed updates</li>
-            <li>Discovered additional connections hidden in legacy COBOL code</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="case-step case-step--result">
-        <div class="case-step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        </div>
-        <div class="case-step-body">
-          <div class="case-step-label">Result</div>
-          <p class="case-result-text">Complete end-to-end implementation. Nothing missed — even legacy connections.</p>
-        </div>
-      </div>
+  <div class="vs-grid">
+    <!-- Case 1: Cross-database migration -->
+    <div class="vs-card vs-card--without">
+      <div class="vs-label">Without Rosetta</div>
+      <div class="vs-prompt">"Implement data changes from an Excel spec across two interconnected databases."</div>
+      <ul class="vs-list">
+        <li>Started writing queries without understanding the full picture</li>
+        <li>Missed cross-schema relationships and dependent services</li>
+        <li>Ignored stored procedures, triggers, and legacy integrations</li>
+        <li>Produced partial SQL that would break downstream on deploy</li>
+      </ul>
+      <div class="vs-result vs-result--bad">Broken deploy. Hours of manual debugging.</div>
+    </div>
+    <div class="vs-card vs-card--with">
+      <div class="vs-label">With Rosetta</div>
+      <div class="vs-prompt">"Implement data changes from an Excel spec across two interconnected databases."</div>
+      <ul class="vs-list">
+        <li>Loaded both database schemas and mapped every relationship</li>
+        <li>Identified all services and APIs depending on affected tables</li>
+        <li>Found missing fields and web services that needed updates</li>
+        <li>Discovered additional connections hidden in legacy COBOL code</li>
+        <li>Assembled full end-to-end implementation with all dependencies resolved</li>
+      </ul>
+      <div class="vs-result vs-result--good">Complete implementation. Nothing missed — even legacy connections.</div>
     </div>
 
-    <!-- Case 2 -->
-    <div class="case">
-      <div class="case-tag">Legacy Modernization</div>
-
-      <div class="case-step case-step--challenge">
-        <div class="case-step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-        </div>
-        <div class="case-step-line"></div>
-        <div class="case-step-body">
-          <div class="case-step-label">Challenge</div>
-          <p>Modernize a C++ service with Windows components and multiple dependencies into a new architecture — while preserving all business logic and edge cases.</p>
-        </div>
-      </div>
-
-      <div class="case-step case-step--fail">
-        <div class="case-step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
-        </div>
-        <div class="case-step-line"></div>
-        <div class="case-step-body">
-          <div class="case-step-label">Plain AI</div>
-          <ul>
-            <li>Scanned a few files and suggested a generic rewrite</li>
-            <li>Missed Windows-specific dependencies and COM components</li>
-            <li>Couldn't determine what to reuse vs replace</li>
-            <li>Produced a vague spec — team still had to reverse-engineer the original</li>
-          </ul>
-          <div class="case-step-verdict case-step-verdict--bad">Spec full of gaps. Team starts over manually.</div>
-        </div>
-      </div>
-
-      <div class="case-step case-step--win">
-        <div class="case-step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
-        </div>
-        <div class="case-step-line"></div>
-        <div class="case-step-body">
-          <div class="case-step-label">With Rosetta</div>
-          <ul>
-            <li>Systematically analyzed every class, method, and dependency</li>
-            <li>Mapped Windows components, libraries, and service boundaries</li>
-            <li>Created a target spec with interfaces, edge cases, and architecture decisions</li>
-            <li>Spec so precise that developers could ask AI follow-ups and get exact answers</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="case-step case-step--result">
-        <div class="case-step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        </div>
-        <div class="case-step-body">
-          <div class="case-step-label">Result</div>
-          <p class="case-result-text">Production-ready spec. Team moved straight to implementation.</p>
-        </div>
-      </div>
+    <!-- Case 2: C++ modernization -->
+    <div class="vs-card vs-card--without">
+      <div class="vs-label">Without Rosetta</div>
+      <div class="vs-prompt">"Modernize this C++ service with Windows components into a new architecture."</div>
+      <ul class="vs-list">
+        <li>Scanned a few files and suggested a generic rewrite</li>
+        <li>Missed Windows-specific dependencies and COM components</li>
+        <li>Couldn't determine what to reuse vs replace</li>
+        <li>Produced a vague spec — team still had to reverse-engineer the original</li>
+      </ul>
+      <div class="vs-result vs-result--bad">Spec full of gaps. Team starts over manually.</div>
     </div>
-
+    <div class="vs-card vs-card--with">
+      <div class="vs-label">With Rosetta</div>
+      <div class="vs-prompt">"Modernize this C++ service with Windows components into a new architecture."</div>
+      <ul class="vs-list">
+        <li>Systematically analyzed every class, method, and dependency</li>
+        <li>Mapped Windows components, libraries, and service boundaries</li>
+        <li>Determined what to reuse, what to replace, and what to drop</li>
+        <li>Created a target spec with interfaces, edge cases, and architecture decisions</li>
+        <li>Spec so precise that developers could ask AI follow-ups and get exact answers</li>
+      </ul>
+      <div class="vs-result vs-result--good">Production-ready spec. Team moved straight to implementation.</div>
+    </div>
   </div>
 </section>
 
