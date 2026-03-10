@@ -37,10 +37,11 @@
       <a href="{{ '/roadmap/' | relative_url }}">Roadmap</a>
       <a href="{{ '/contribute/' | relative_url }}">Contribute</a>
       <a href="https://github.com/griddynamics/rosetta" target="_blank" rel="noopener noreferrer">GitHub</a>
-      <a href="https://discord.gg/qRUfPGBwWT" target="_blank" rel="noopener noreferrer">Community</a>
+      <a href="https://discord.gg/QzZ2cWg36g" target="_blank" rel="noopener noreferrer">Community</a>
       <a href="mailto:rosetta-support@griddynamics.com">Contact Us</a>
     </nav>
   </div>
 </footer>
+{% if page.url == '/' %}{% include try-rosetta.html %}{% endif %}
 </body>
 </html>

@@ -147,7 +147,13 @@ permalink: /overview/
 })();
 </script>
 
+<div class="arch-output" style="margin-bottom:2rem">
+  <a href="{{ '/usage/' | relative_url }}" class="arch-output-cta">See what Rosetta generates and how to use it →</a>
+</div>
+
 ## Architecture
+
+<p>When you type a request in your IDE, the AI agent doesn't respond on its own — it first loads context and rules from Rosetta, then follows your organization's proven workflows.</p>
 
 <div class="arch-flow">
   <div class="arch-node">
@@ -161,7 +167,7 @@ permalink: /overview/
       </svg>
     </div>
     <div class="arch-node-label">Your IDE</div>
-    <div class="arch-node-sub">Claude Code, Cursor, Windsurf, VS Code, JetBrains</div>
+    <div class="arch-node-sub">Cursor, Claude Code, Windsurf, VS Code, JetBrains, Codex</div>
   </div>
   <div class="arch-connector" aria-hidden="true">
     <span class="arch-packet"></span>
@@ -190,10 +196,21 @@ permalink: /overview/
       </svg>
     </div>
     <div class="arch-node-label">Knowledge Base</div>
-    <div class="arch-node-sub">Curated instructions, coding conventions, and project-specific context files</div>
+    <div class="arch-node-sub">Workflows, guardrails, coding conventions, and project context</div>
   </div>
 </div>
 
-<div class="arch-output">
-  <a href="{{ '/usage/' | relative_url }}" class="arch-output-cta">See what Rosetta generates and how to use it →</a>
+<div class="arch-details">
+  <div class="arch-detail-card">
+    <h4>Bootstrap Process</h4>
+    <p>Every interaction starts automatically: load guardrails → read project context → classify your request → load the right workflow. Only then does the agent begin working.</p>
+  </div>
+  <div class="arch-detail-card">
+    <h4>Progressive Disclosure</h4>
+    <p>Instructions load on demand, not all at once. The agent gets only what it needs for your specific request — keeping context focused and responses precise.</p>
+  </div>
+  <div class="arch-detail-card">
+    <h4>MCP Tools</h4>
+    <p><code>get_context_instructions</code>, <code>query_instructions</code>, <code>list_instructions</code>, <code>submit_feedback</code>, <code>query/store_project_context</code>, <code>discover_projects</code></p>
+  </div>
 </div>
