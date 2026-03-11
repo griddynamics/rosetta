@@ -26,7 +26,7 @@
       messages: [
         { role: 'user', text: 'What workflows are available? How do I use Rosetta?' },
         { role: 'rosetta', text: '<strong>Mode: help</strong> — Here\'s what I can do for you:' },
-        { role: 'rosetta', text: '<strong>Free workflows:</strong><br>• <strong>Coding</strong> — full implementation with plan & approval<br>• <strong>Init</strong> — project setup & context generation<br>• <strong>Requirements</strong> — user stories & specs<br>• <strong>Ad-hoc</strong> — quick tasks<br>• <strong>Self-help</strong> — this guide' },
+        { role: 'rosetta', text: '<strong>Free workflows:</strong><br>• <strong>Coding</strong> — 11-phase implementation with subagents, reviews & two approval gates<br>• <strong>Init</strong> — 8-phase workspace setup: docs, patterns, shells & verification<br>• <strong>Requirements</strong> — structured authoring with 3 approval gates & traceability<br>• <strong>Ad-hoc</strong> — adaptive meta-workflow, builds a custom plan from building blocks<br>• <strong>Self-help</strong> — this guide' },
         { role: 'rosetta', text: '<strong>Pro workflows:</strong><br>• Research, Discovery, Code Analysis<br>• Testing, Validation, AQA<br>• Modernization, Data, External Libraries<br>• Context Engineering, Use Cases<br><br><a href="mailto:rosetta-support@griddynamics.com">Contact us</a> for Pro access.' },
         { role: 'cta', text: '' }
       ]
@@ -39,8 +39,10 @@
         { role: 'user', text: 'Initialize Rosetta for our notification microservice.' },
         { role: 'rosetta', text: '<strong>Mode: init</strong> — Loading initialization workflow...' },
         { role: 'rosetta', text: '<strong>Quick analysis:</strong> Scanned your repo — detected Go 1.22, gRPC, PostgreSQL, Docker. Monorepo structure under <code>services/</code>.' },
-        { role: 'rosetta', text: '<strong>Documentation:</strong> Generated:<br>• <code>CONTEXT.md</code> — project overview<br>• <code>TECHSTACK.md</code> — dependencies & versions<br>• <code>ARCHITECTURE.md</code> — system structure<br>• <code>CODEMAP.md</code> — file map with descriptions' },
-        { role: 'rosetta', text: '<strong>Verification:</strong> All files validated against your codebase. Your AI agent is now project-aware from the first prompt.' },
+        { role: 'rosetta', text: '<strong>Documentation:</strong> Generated:<br>• <code>TECHSTACK.md</code>, <code>CODEMAP.md</code>, <code>DEPENDENCIES.md</code><br>• <code>CONTEXT.md</code>, <code>ARCHITECTURE.md</code>, <code>IMPLEMENTATION.md</code><br>• <code>ASSUMPTIONS.md</code>, <code>MEMORY.md</code><br>• <code>PATTERNS/</code> — per-module pattern files with index' },
+        { role: 'rosetta', text: '<strong>Shells & config:</strong> Created IDE shell configs and bootstrap rule. Set up <code>load-context</code> shell for automatic context loading.' },
+        { role: 'rosetta', text: '<strong>Questions:</strong> Reviewed all generated docs for gaps — asking you to clarify 3 points before finalizing.' },
+        { role: 'rosetta', text: '<strong>Verification:</strong> All files validated against your codebase. Verification report generated. <em>Start a new chat session to use Rosetta with full project context.</em>' },
         { role: 'cta', text: '' }
       ]
     },
@@ -51,10 +53,13 @@
       messages: [
         { role: 'user', text: 'Write a user story for email notification preferences.' },
         { role: 'rosetta', text: '<strong>Mode: requirements</strong> — Loading requirements workflow...' },
-        { role: 'rosetta', text: '<strong>Discovery:</strong> Found existing notification module in <code>ARCHITECTURE.md</code>. Identified 3 related user stories in <code>docs/requirements/</code>.' },
-        { role: 'rosetta', text: '<strong>Research:</strong> Queried knowledge base for requirements conventions — your team uses Given/When/Then format with acceptance criteria matrix.' },
-        { role: 'rosetta', text: '<strong>Draft:</strong> Created user story with acceptance criteria, edge cases, and dependency mapping. Linked to existing auth and notification modules.<br><br><em>Waiting for your review.</em>' },
-        { role: 'rosetta', text: '<strong>Deliver:</strong> After approval — saved to <code>docs/requirements/notification-preferences.md</code> with full traceability.' },
+        { role: 'rosetta', text: '<strong>Discovery:</strong> <em>(requirements-engineer)</em> Found existing notification module in <code>ARCHITECTURE.md</code>. Identified 3 related user stories and existing constraints.' },
+        { role: 'rosetta', text: '<strong>Research:</strong> Queried knowledge base — your team uses Given/When/Then format with acceptance criteria matrix. Found reusable patterns from prior requirements.' },
+        { role: 'rosetta', text: '<strong>Intent Capture:</strong> Restated your intent, scope, goals, and assumptions.<br><br><em>Waiting for your approval before proceeding.</em>' },
+        { role: 'rosetta', text: '<strong>Outline:</strong> Requirement areas, file mapping, ID strategy, and traceability plan.<br><br><em>Waiting for your approval.</em>' },
+        { role: 'rosetta', text: '<strong>Draft:</strong> Created requirement units using EARS notation for functional requirements, measurable NFRs. Linked to auth and notification modules.' },
+        { role: 'rosetta', text: '<strong>Validate:</strong> <em>(requirements-reviewer)</em> Rubric check passed. No conflicts or gaps found. Traceability verified.' },
+        { role: 'rosetta', text: '<strong>Deliver:</strong> Final requirements set, validation pack, traceability matrix, and change log saved to <code>docs/requirements/notification-preferences.md</code>.' },
         { role: 'cta', text: '' }
       ]
     },
@@ -64,11 +69,14 @@
       paid: false,
       messages: [
         { role: 'user', text: 'Add password reset functionality to our auth module.' },
-        { role: 'rosetta', text: '<strong>Mode: coding</strong> — Loading workflow, guardrails, and project context...' },
-        { role: 'rosetta', text: '<strong>Prepare:</strong> Loaded <code>guardrails.md</code>, <code>coding.md</code>. Read your <code>ARCHITECTURE.md</code> and <code>TECHSTACK.md</code> — found existing auth module at <code>src/auth/</code>, uses JWT + bcrypt.' },
-        { role: 'rosetta', text: '<strong>Research:</strong> Queried knowledge base — found your team\'s security conventions: token expiry 15 min, rate limiting required, email service via SendGrid.' },
-        { role: 'rosetta', text: '<strong>Plan:</strong><br>1. Add <code>POST /auth/forgot-password</code><br>2. Add <code>POST /auth/reset-password</code><br>3. Create token store with 15 min expiry<br>4. Wire SendGrid email template<br>5. Add rate limiting (3 req/min)<br><br><em>Waiting for your approval before coding.</em>' },
-        { role: 'rosetta', text: '<strong>Act:</strong> After approval — implements exactly per plan, validates against your coding conventions, runs your test suite.' },
+        { role: 'rosetta', text: '<strong>Mode: coding</strong> — Loading workflow, guardrails, and project context. Classified as MEDIUM — full subagent pipeline.' },
+        { role: 'rosetta', text: '<strong>Discovery:</strong> <em>(discoverer)</em> Analyzed auth module at <code>src/auth/</code> — JWT + bcrypt, 4 existing endpoints. Saved discovery notes.' },
+        { role: 'rosetta', text: '<strong>Tech Plan:</strong> <em>(architect)</em> Produced <code>password-reset-SPECS.md</code> and <code>password-reset-PLAN.md</code>:<br>1. Add <code>POST /auth/forgot-password</code><br>2. Add <code>POST /auth/reset-password</code><br>3. Create token store with 15 min expiry<br>4. Wire SendGrid email template<br>5. Add rate limiting (3 req/min)' },
+        { role: 'rosetta', text: '<strong>Review Plan:</strong> <em>(reviewer)</em> Plan reviewed against project conventions. No issues found.' },
+        { role: 'rosetta', text: '<strong>Approve Plan:</strong> <em>Waiting for your approval before implementation.</em>' },
+        { role: 'rosetta', text: '<strong>Implementation:</strong> <em>(engineer)</em> Code implemented per specs. Build passes.' },
+        { role: 'rosetta', text: '<strong>Review & Validate:</strong> <em>(reviewer + validator)</em> Code reviewed against specs. Validation passed.<br><br><em>Waiting for your approval of implementation.</em>' },
+        { role: 'rosetta', text: '<strong>Tests:</strong> <em>(engineer)</em> After approval — test suite written and passing. <em>(reviewer)</em> Coverage and quality verified. Final validation complete.' },
         { role: 'cta', text: '' }
       ]
     },
@@ -78,9 +86,10 @@
       paid: false,
       messages: [
         { role: 'user', text: 'Rename userList to activeUsers across the project.' },
-        { role: 'rosetta', text: '<strong>Mode: ad-hoc</strong> — Small task, executing with project context...' },
-        { role: 'rosetta', text: '<strong>Context:</strong> Loaded your coding conventions — camelCase naming, no abbreviations. Found 12 occurrences of <code>userList</code> across 5 files.' },
-        { role: 'rosetta', text: '<strong>Done:</strong> Renamed all 12 occurrences to <code>activeUsers</code>. Updated imports and references. No tests broken.' },
+        { role: 'rosetta', text: '<strong>Mode: ad-hoc</strong> — Classified as SMALL. Building execution plan from building blocks...' },
+        { role: 'rosetta', text: '<strong>Plan:</strong> Selected blocks: <code>execute-track</code>, <code>modify-review</code>. Loaded coding conventions — camelCase naming, no abbreviations. Found 12 occurrences of <code>userList</code> across 5 files.' },
+        { role: 'rosetta', text: '<strong>Execute:</strong> Renamed all 12 occurrences to <code>activeUsers</code>. Updated imports and references. No tests broken.' },
+        { role: 'rosetta', text: '<strong>Summary:</strong> Verified result against original intent. All references updated, build clean.' },
         { role: 'cta', text: '' }
       ]
     },

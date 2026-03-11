@@ -45,7 +45,7 @@ permalink: /roadmap/
     <ul class="rm-list">
       <li>R2R vector store with centralized <code>aia-r1</code> instruction collection</li>
       <li>Rules, guardrails, workflows, and best practices</li>
-      <li>IMS CLI for publishing, dataset management, and change detection</li>
+      <li>Rosetta CLI for publishing, dataset management, and change detection</li>
     </ul>
   </div>
 
@@ -87,17 +87,16 @@ permalink: /roadmap/
   <div class="rm-group">
     <div class="rm-label">Skills &amp; Workflows</div>
     <ul class="rm-list">
-      <li>30+ structured skills including discovery, planning, code-review, security, and validation</li>
-      <li>15+ named workflows: <code>coding-flow</code>, <code>testing-flow</code>, <code>validation-flow</code>, <code>modernization-flow</code>, and more</li>
-      <li>Full subagent taxonomy — orchestrator, researcher, planner, architect, engineer, reviewer, validator</li>
+      <li>24 structured skills including coding, reasoning, planning, testing, requirements authoring, and reverse engineering</li>
+      <li>15 named workflows: <code>coding-flow</code>, <code>adhoc-flow</code>, <code>init-workspace-flow</code>, <code>requirements-authoring-flow</code>, <code>self-help-flow</code>, <code>research-flow</code>, <code>coding-agents-prompting-flow</code></li>
+      <li>Full subagent taxonomy — discoverer, architect, planner, engineer, executor, reviewer, validator, researcher, prompt-engineer</li>
     </ul>
   </div>
 
   <div class="rm-group">
     <div class="rm-label">Developer Experience</div>
     <ul class="rm-list">
-      <li><code>npx rosetta configure</code> — one command sets up MCP config across all supported IDEs</li>
-      <li>FastMCP v3 upgrade; CLI 3–77× faster via MD5 change detection and server-side filtering</li>
+      <li>FastMCP v3 upgrade; Rosetta CLI 3–77× faster via MD5 change detection and server-side filtering</li>
     </ul>
   </div>
 </div>

@@ -18,6 +18,34 @@ permalink: /
   <div class="splash-copyright">&copy; {{ 'now' | date: '%Y' }} Grid Dynamics. All rights reserved.</div>
 </section>
 
+<!-- ===== THE PROBLEM IN 2026 ===== -->
+<section class="section">
+  <h2 class="with-marker">The Problem in 2026</h2>
+  <p class="section-subtitle">AI coding agents are everywhere. Consistency and context are not.</p>
+
+  <div class="hiw-grid">
+    <div class="hiw-item">
+      <div class="hiw-num">1</div>
+      <h3>Agent Drift</h3>
+      <p>Every developer gets different AI behavior. No shared standards, no consistency across sessions or teammates.</p>
+    </div>
+    <div class="hiw-item">
+      <div class="hiw-num">2</div>
+      <h3>Multi-IDE Fragmentation</h3>
+      <p>Cursor, Claude Code, Copilot, Codex, Windsurf. Each has its own config. Context doesn't transfer.</p>
+    </div>
+    <div class="hiw-item">
+      <div class="hiw-num">3</div>
+      <h3>Hallucinations Without Context</h3>
+      <p>Agents guess architecture, invent APIs, ignore conventions. Without project context loaded first, output is unreliable.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Rosetta solves this.</strong> One control plane that gives every agent the same context, standards, and workflows — across any IDE. <a href="#try-rosetta-section">See how it works →</a>
+  </div>
+</section>
+
 <!-- ===== TRY ROSETTA (INLINE) ===== -->
 <section class="section" id="try-rosetta-section">
   <h2 class="with-marker">Try Rosetta</h2>
@@ -49,51 +77,14 @@ permalink: /
     <div class="qs-stepper">
 
       <!-- Step 1 -->
-      <div class="qs-step">
+      <div class="qs-step qs-step--large">
         <div class="qs-step-indicator">
           <span class="qs-step-num">1</span>
           <span class="qs-step-line"></span>
         </div>
         <div class="qs-step-body">
-          <h3 class="qs-step-title">Install uv</h3>
-          <p class="qs-step-desc">Fast Python package runner. Required for the MCP server.</p>
-
-          <div class="qs-os-tabs" role="tablist">
-            <button class="qs-os-tab active" data-os="mac" role="tab">macOS</button>
-            <button class="qs-os-tab" data-os="linux" role="tab">Linux / WSL</button>
-            <button class="qs-os-tab" data-os="win" role="tab">Windows</button>
-          </div>
-
-          <div class="qs-os-content active" id="qs-os-mac">
-            <div class="qs-code-wrap">
-              <pre class="qs-code"><span class="qs-prompt">$</span> brew install uv</pre>
-              <button class="qs-copy" data-copy="brew install uv">Copy</button>
-            </div>
-          </div>
-          <div class="qs-os-content" id="qs-os-linux">
-            <div class="qs-code-wrap">
-              <pre class="qs-code"><span class="qs-prompt">$</span> curl -LsSf https://astral.sh/uv/install.sh | sh</pre>
-              <button class="qs-copy" data-copy="curl -LsSf https://astral.sh/uv/install.sh | sh">Copy</button>
-            </div>
-          </div>
-          <div class="qs-os-content" id="qs-os-win">
-            <div class="qs-code-wrap">
-              <pre class="qs-code"><span class="qs-prompt">&gt;</span> winget install --id=astral-sh.uv -e</pre>
-              <button class="qs-copy" data-copy="winget install --id=astral-sh.uv -e">Copy</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 2 -->
-      <div class="qs-step qs-step--large">
-        <div class="qs-step-indicator">
-          <span class="qs-step-num">2</span>
-          <span class="qs-step-line"></span>
-        </div>
-        <div class="qs-step-body">
-          <h3 class="qs-step-title">Install Rosetta MCP in your IDE</h3>
-          <p class="qs-step-desc">Pick your editor and follow the instructions below.</p>
+          <h3 class="qs-step-title">Add Rosetta MCP to your IDE</h3>
+          <p class="qs-step-desc">Pick your editor. No local install needed — Rosetta connects over HTTP.</p>
 
           <div class="qs-tabs-scroll">
             <div class="qs-tabs" role="tablist">
@@ -114,19 +105,12 @@ permalink: /
             <div class="qs-code-wrap">
               <pre class="qs-code">{
   "mcpServers": {
-    "KnowledgeBase": {
-      "command": "uvx",
-      "args": ["ims-mcp@latest"],
-      "env": {
-        "R2R_API_BASE": "https://your-r2r-instance.example.com/",
-        "R2R_COLLECTION": "your-collection",
-        "R2R_EMAIL": "your-email@example.com",
-        "R2R_PASSWORD": "your-password"
-      }
+    "Rosetta": {
+      "url": "https://rosetta.evergreen.gcp.griddynamics.net/mcp"
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"mcpServers":{"KnowledgeBase":{"command":"uvx","args":["ims-mcp@latest"],"env":{"R2R_API_BASE":"https://your-r2r-instance.example.com/","R2R_COLLECTION":"your-collection","R2R_EMAIL":"your-email@example.com","R2R_PASSWORD":"your-password"}}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"url":"https://rosetta.evergreen.gcp.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
 
@@ -134,27 +118,20 @@ permalink: /
           <div class="qs-content" id="qs-claude">
             <p class="qs-content-hint">Run this command in your terminal:</p>
             <div class="qs-code-wrap">
-              <pre class="qs-code"><span class="qs-prompt">$</span> claude mcp add --transport stdio KnowledgeBase \
-    --env R2R_API_BASE=https://your-r2r-instance.example.com/ \
-    --env R2R_COLLECTION=your-collection \
-    --env R2R_EMAIL=your-email@example.com \
-    --env R2R_PASSWORD=your-password \
-    -- uvx ims-mcp@latest</pre>
-              <button class="qs-copy" data-copy="claude mcp add --transport stdio KnowledgeBase --env R2R_API_BASE=https://your-r2r-instance.example.com/ --env R2R_COLLECTION=your-collection --env R2R_EMAIL=your-email@example.com --env R2R_PASSWORD=your-password -- uvx ims-mcp@latest">Copy</button>
+              <pre class="qs-code"><span class="qs-prompt">$</span> claude mcp add --transport http Rosetta \
+    https://rosetta.evergreen.gcp.griddynamics.net/mcp</pre>
+              <button class="qs-copy" data-copy="claude mcp add --transport http Rosetta https://rosetta.evergreen.gcp.griddynamics.net/mcp">Copy</button>
             </div>
           </div>
 
           <!-- Tab: Codex -->
           <div class="qs-content" id="qs-codex">
-            <p class="qs-content-hint">Run this command in your terminal:</p>
+            <p class="qs-content-hint">Run these commands in your terminal:</p>
             <div class="qs-code-wrap">
-              <pre class="qs-code"><span class="qs-prompt">$</span> codex mcp add KnowledgeBase \
-    --env R2R_API_BASE=https://your-r2r-instance.example.com/ \
-    --env R2R_COLLECTION=your-collection \
-    --env R2R_EMAIL=your-email@example.com \
-    --env R2R_PASSWORD=your-password \
-    -- uvx ims-mcp@latest</pre>
-              <button class="qs-copy" data-copy="codex mcp add KnowledgeBase --env R2R_API_BASE=https://your-r2r-instance.example.com/ --env R2R_COLLECTION=your-collection --env R2R_EMAIL=your-email@example.com --env R2R_PASSWORD=your-password -- uvx ims-mcp@latest">Copy</button>
+              <pre class="qs-code"><span class="qs-prompt">$</span> codex mcp add Rosetta \
+    --url https://rosetta.evergreen.gcp.griddynamics.net/mcp
+<span class="qs-prompt">$</span> codex mcp login Rosetta</pre>
+              <button class="qs-copy" data-copy="codex mcp add Rosetta --url https://rosetta.evergreen.gcp.griddynamics.net/mcp">Copy</button>
             </div>
           </div>
 
@@ -164,20 +141,13 @@ permalink: /
             <div class="qs-code-wrap">
               <pre class="qs-code">{
   "servers": {
-    "KnowledgeBase": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": ["ims-mcp@latest"],
-      "env": {
-        "R2R_API_BASE": "https://your-r2r-instance.example.com/",
-        "R2R_COLLECTION": "your-collection",
-        "R2R_EMAIL": "your-email@example.com",
-        "R2R_PASSWORD": "your-password"
-      }
+    "Rosetta": {
+      "type": "http",
+      "url": "https://rosetta.evergreen.gcp.griddynamics.net/mcp"
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"servers":{"KnowledgeBase":{"type":"stdio","command":"uvx","args":["ims-mcp@latest"],"env":{"R2R_API_BASE":"https://your-r2r-instance.example.com/","R2R_COLLECTION":"your-collection","R2R_EMAIL":"your-email@example.com","R2R_PASSWORD":"your-password"}}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"servers":{"Rosetta":{"type":"http","url":"https://rosetta.evergreen.gcp.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
 
@@ -187,20 +157,13 @@ permalink: /
             <div class="qs-code-wrap">
               <pre class="qs-code">{
   "servers": {
-    "KnowledgeBase": {
-      "command": "uvx",
-      "args": ["ims-mcp@latest"],
-      "type": "stdio",
-      "env": {
-        "R2R_API_BASE": "https://your-r2r-instance.example.com/",
-        "R2R_COLLECTION": "your-collection",
-        "R2R_EMAIL": "your-email@example.com",
-        "R2R_PASSWORD": "your-password"
-      }
+    "Rosetta": {
+      "type": "http",
+      "url": "https://rosetta.evergreen.gcp.griddynamics.net/mcp"
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"servers":{"KnowledgeBase":{"command":"uvx","args":["ims-mcp@latest"],"type":"stdio","env":{"R2R_API_BASE":"https://your-r2r-instance.example.com/","R2R_COLLECTION":"your-collection","R2R_EMAIL":"your-email@example.com","R2R_PASSWORD":"your-password"}}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"servers":{"Rosetta":{"type":"http","url":"https://rosetta.evergreen.gcp.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
 
@@ -210,19 +173,12 @@ permalink: /
             <div class="qs-code-wrap">
               <pre class="qs-code">{
   "mcpServers": {
-    "KnowledgeBase": {
-      "command": "uvx",
-      "args": ["ims-mcp@latest"],
-      "env": {
-        "R2R_API_BASE": "https://your-r2r-instance.example.com/",
-        "R2R_COLLECTION": "your-collection",
-        "R2R_EMAIL": "your-email@example.com",
-        "R2R_PASSWORD": "your-password"
-      }
+    "Rosetta": {
+      "url": "https://rosetta.evergreen.gcp.griddynamics.net/mcp"
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"mcpServers":{"KnowledgeBase":{"command":"uvx","args":["ims-mcp@latest"],"env":{"R2R_API_BASE":"https://your-r2r-instance.example.com/","R2R_COLLECTION":"your-collection","R2R_EMAIL":"your-email@example.com","R2R_PASSWORD":"your-password"}}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"url":"https://rosetta.evergreen.gcp.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
 
@@ -232,19 +188,12 @@ permalink: /
             <div class="qs-code-wrap">
               <pre class="qs-code">{
   "mcpServers": {
-    "KnowledgeBase": {
-      "command": "uvx",
-      "args": ["ims-mcp@latest"],
-      "env": {
-        "R2R_API_BASE": "https://your-r2r-instance.example.com/",
-        "R2R_COLLECTION": "your-collection",
-        "R2R_EMAIL": "your-email@example.com",
-        "R2R_PASSWORD": "your-password"
-      }
+    "Rosetta": {
+      "url": "https://rosetta.evergreen.gcp.griddynamics.net/mcp"
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"mcpServers":{"KnowledgeBase":{"command":"uvx","args":["ims-mcp@latest"],"env":{"R2R_API_BASE":"https://your-r2r-instance.example.com/","R2R_COLLECTION":"your-collection","R2R_EMAIL":"your-email@example.com","R2R_PASSWORD":"your-password"}}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"url":"https://rosetta.evergreen.gcp.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
 
@@ -254,23 +203,29 @@ permalink: /
             <div class="qs-code-wrap">
               <pre class="qs-code">{
   "mcp": {
-    "KnowledgeBase": {
-      "type": "local",
-      "command": ["uvx", "ims-mcp@latest"],
-      "enabled": true,
-      "environment": {
-        "R2R_API_BASE": "https://your-r2r-instance.example.com/",
-        "R2R_COLLECTION": "your-collection",
-        "R2R_EMAIL": "your-email@example.com",
-        "R2R_PASSWORD": "your-password"
-      }
+    "Rosetta": {
+      "type": "http",
+      "url": "https://rosetta.evergreen.gcp.griddynamics.net/mcp",
+      "enabled": true
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"mcp":{"KnowledgeBase":{"type":"local","command":["uvx","ims-mcp@latest"],"enabled":true,"environment":{"R2R_API_BASE":"https://your-r2r-instance.example.com/","R2R_COLLECTION":"your-collection","R2R_EMAIL":"your-email@example.com","R2R_PASSWORD":"your-password"}}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"mcp":{"Rosetta":{"type":"http","url":"https://rosetta.evergreen.gcp.griddynamics.net/mcp","enabled":true}}}'>Copy</button>
             </div>
           </div>
 
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="qs-step">
+        <div class="qs-step-indicator">
+          <span class="qs-step-num">2</span>
+          <span class="qs-step-line"></span>
+        </div>
+        <div class="qs-step-body">
+          <h3 class="qs-step-title">Complete OAuth</h3>
+          <p class="qs-step-desc">Your IDE will open a browser window to authenticate. Complete the OAuth flow when prompted.</p>
         </div>
       </div>
 
@@ -298,16 +253,7 @@ permalink: /
 
 <script>
 (function() {
-  // OS tabs (Step 1)
-  document.querySelectorAll('.qs-os-tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.qs-os-tab').forEach(function(t) { t.classList.remove('active'); });
-      document.querySelectorAll('.qs-os-content').forEach(function(c) { c.classList.remove('active'); });
-      tab.classList.add('active');
-      document.getElementById('qs-os-' + tab.dataset.os).classList.add('active');
-    });
-  });
-  // IDE tabs (Step 2)
+  // IDE tabs (Step 1)
   document.querySelectorAll('.qs-tab').forEach(function(tab) {
     tab.addEventListener('click', function() {
       document.querySelectorAll('.qs-tab').forEach(function(t) { t.classList.remove('active'); });
@@ -329,7 +275,7 @@ permalink: /
 </script>
 
 <div class="qs-note">
-  Agent-agnostic by design. Use <strong>Sonnet 4.6</strong>, <strong>GPT-5.3-codex-medium</strong>, <strong>gemini-3.1-pro</strong> or better models.
+  Agent-agnostic by design. Use frontier-class models (<strong>Claude Sonnet/Opus</strong>, <strong>GPT-4o+</strong>, <strong>Gemini Pro</strong>) for best results.
 </div>
 
 <!-- ===== WITHOUT vs WITH ROSETTA ===== -->
@@ -405,12 +351,18 @@ permalink: /
 
   document.body.classList.add('is-splash');
 
+  // Mark splash as seen when ANY hero button is clicked
+  document.querySelectorAll('.hero-actions a').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      sessionStorage.setItem('rosetta-splash-seen', '1');
+    });
+  });
+
   var getStartedBtn = document.querySelector('.hero-actions .button');
   if (!getStartedBtn) return;
 
   getStartedBtn.addEventListener('click', function(e) {
     e.preventDefault();
-    sessionStorage.setItem('rosetta-splash-seen', '1');
     document.body.classList.remove('is-splash');
     document.body.classList.add('splash-exiting');
 
