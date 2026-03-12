@@ -26,9 +26,10 @@ The instructions repo defines *how agents should behave*. The target repo is *wh
 ┌─────────────────────────────────────────────────────────┐
 │              Target Repository + IDE                    │
 │  Cursor · Claude Code · VS Code · JetBrains · Codex     │
+│  Windsurf · Antigravity · OpenCode                      │
 │                         │                               │
 │                    MCP Protocol                         │
-│                   (HTTP + OAuth)                        │
+│             (Streamable HTTP + OAuth)                   │
 └────────────────────────┬────────────────────────────────┘
                          │
               ┌──────────▼──────────┐
@@ -72,15 +73,15 @@ Instructions flow up: files are published by the CLI into RAGFlow, served by Ros
 
 ## Rosetta MCP
 
-The MCP server is the interface between IDEs and the knowledge base. Published on PyPI as `ims-mcp`. Designed to be close to AI agent logic: it speaks in VFS resource paths, adds context headers describing what information means and how to use it, and controls context size automatically.
+The MCP server is the consulting layer between IDEs and the knowledge base. It does not just proxy requests: it transforms, bundles, and contextualizes instructions so agents know how to do things right. Published on PyPI as `ims-mcp`. Built on [FastMCP v3](https://gofastmcp.com/) (latest stable) with [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy) for authentication and [RAGFlow](https://ragflow.io/) as the document engine backend. Speaks in VFS resource paths, adds context headers describing what information means and how to use it, and controls context size automatically.
 
 **Endpoint:** `https://rosetta.evergreen.gcp.griddynamics.net/mcp`
 
 **Transport options:**
-- **HTTP with OAuth** (default). Zero local dependencies. Cursor, Claude Code, and Codex connect directly.
+- **Streamable HTTP with OAuth** (default). Stateful: the server holds session state and can issue callbacks to the IDE. Zero local dependencies. Cursor, Claude Code, and Codex connect directly. When scaling to multiple replicas, sticky sessions are required (see [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)).
 - **STDIO** for air-gapped environments. Runs `uvx ims-mcp` locally with API key auth.
 
-**Authentication:** HTTP uses OAuth via Keycloak (cached token introspection). STDIO uses `ROSETTA_API_KEY`. Policy-based authorization: `aia-*` read-only, `project-*` configurable.
+**Authentication:** HTTP uses OAuth 2.1 via [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy) (supports any provider: Keycloak, GitHub, Google, Azure). Cached token introspection. STDIO uses `ROSETTA_API_KEY`. Policy-based authorization: `aia-*` read-only, `project-*` configurable.
 
 ### VFS and Tags
 
@@ -100,7 +101,7 @@ Eight tools and one resource exposed to agents:
 | `query_project_context` | Search project-specific docs in a target repo dataset |
 | `store_project_context` | Create or update a document in a project dataset |
 | `discover_projects` | List readable project datasets |
-| `plan_manager` | Manage execution plans with phases, steps, dependencies, status. Has a `help` command for plan creators (subagents don't need it) |
+| `plan_manager` | Manage execution plans with phases, steps, dependencies, status. Has a `help` command for plan creators (subagents don't need it). Stores plan in REDIS. |
 | `submit_feedback` | Auto-submit structured feedback on agent sessions |
 
 **Resource:** `rosetta://{path}` reads bundled instruction documents by VFS resource path.
@@ -225,7 +226,9 @@ RAGFlow is the document storage and retrieval engine. Rosetta uses it for ingest
 | `aia-r2` | R2 release (current) |
 | `project-*` | Per-repository collections in target repos (per OAuth policy) |
 
-Dataset names auto-generated from template `aia-{release}`.
+Instruction dataset names auto-generated from template `aia-{release}`.
+
+All prefixes are internal only, it must not be exposed or received. This prevents cross-dataset security issues. Any user of MCP must not be aware of those existence.
 
 **Metadata per document:** tags, domain, release, content_hash (MD5), resource_path, sort_order, frontmatter, original_path, line_count.
 
@@ -260,9 +263,9 @@ The CLI (`tools/ims_cli.py`) publishes instructions from the instructions reposi
 - **Domain** (`core`), **release** (`r2`), **collection** (`aia-r2`): derived from folder structure.
 - **Title:** `[r2][core][skills][planning] SKILL.md` (tag-in-title format).
 
-**Environment:** `local.env` (Docker) or `remote.env` (production). Switch with `cp <config>.env .env`.
+**Environment:** `.env.dev` (dev RAGFlow) or `.env.prod` (production). Switch with `cp .env.dev .env`.
 
-For full CLI reference, see [TOOLS.md](TOOLS.md).
+For deployment details, see [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md).
 
 ---
 
@@ -297,7 +300,7 @@ Instructions live in `/instructions/r2/` in the instructions repository, using a
 
 **Layered customization.** Core provides the universal foundation. Organization folders extend or override it. Files at the same VFS resource path get **bundled together** by the Bundler. `INSTRUCTION_ROOT_FILTER` controls which layers are included (e.g., `CORE,GRID`).
 
-**Component relationships.** Workflows invoke subagents. Subagents use skills. All reference rules. Templates live inside skills. Guardrails are rules.
+**Component relationships.** Workflows invoke subagents. Subagents use skills. All reference rules. Templates live inside skills. Guardrails are rules. See [Overview — Key Concepts](../OVERVIEW.md#key-concepts) for definitions.
 
 **Naming.** Lowercase, dash-separated, globally unique filenames. Entry points: `SKILL.md` for skills, `<name>.md` for agents, workflows, and rules.
 
@@ -310,7 +313,7 @@ Rosetta initializes and maintains a standard file structure in **target reposito
 **Project documentation (`docs/`):**
 - `CONTEXT.md` — business context, target state (no technical details, no changelog)
 - `ARCHITECTURE.md` — architecture, technical requirements, modules, workspace structure
-- `REVIEW.md` — improvements, suggestions, large TODOs
+- `TODO.md` — improvements, feature requests, large TODOs
 - `ASSUMPTIONS.md` — assumptions and unknowns
 - `TECHSTACK.md` — tech stack of all modules
 - `DEPENDENCIES.md` — dependencies of all modules
@@ -332,7 +335,7 @@ Rosetta initializes and maintains a standard file structure in **target reposito
 - `refsrc/*` — reference source code for knowledge only (excluded from SCM except `refsrc/INDEX.md`)
 - `agents/TEMP/<FEATURE>` — temporary files during implementation (excluded from SCM)
 
-Prep step 2 loads `CONTEXT.md` and `ARCHITECTURE.md` from the target repository. The agent updates `IMPLEMENTATION.md` and `MEMORY.md` as it works.
+Prep step 2 loads `CONTEXT.md` and `ARCHITECTURE.md` from the target repository. The agent updates `IMPLEMENTATION.md` and `MEMORY.md` as it works. See [Installation — Workspace Files Created](../INSTALLATION.md#workspace-files-created) for the full list of committed and excluded files.
 
 **State management and recovery.** For medium and large tasks, workflows create plan, spec, and state files in `plans/` and `agents/`. These files persist execution state to disk, so if a failure occurs (context loss, crash, timeout), the agent or a new session can resume from the last recorded state rather than starting over.
 
@@ -352,22 +355,75 @@ Instructions Repo ──► CLI (publish) ──► RAGFlow ──► Rosetta MC
 
 ---
 
+## Development
+
+### Prerequisites
+
+- Python 3.12 (virtual environment at `tools/venv`)
+
+### MCP and Server
+
+MUST use the same venv in both cases: `tools/venv`.
+There are `tools/.env.dev` and `tools/.env.prod`.
+MUST not read any .env files.
+
+### Publishing Instructions
+
+Publish instructions to remote IMS server:
+
+```bash
+cd tools
+source venv/bin/activate
+cp .env.dev .env
+python ims_cli.py verify
+python ims_cli.py publish ../instructions
+```
+
+### Reference Sources (readonly)
+
+`refsrc/fastmcp-3.0.2` contains source code of FastMCP v3.
+`refsrc/python-sdk-1.26.0` contains source code of MCP Python SDK.
+`refsrc/ragflow` contains source code of RAGFlow Python SDK (v0.23.1+).
+
+This is for reference purposes only: do not change, do not copy.
+
+# Rosetta MCP (IMS MCP)
+
+MUST validate MCP changes using `.env.dev` and `ims-mcp-server/validation/verify_mcp.py` (testing harness of MCP itself).
+Integrate new features to this testing harness if needed and easy.
+Entire `verify_mcp.py` and ALL tests must work.
+Always run `verify_mcp.py`: with R1 and R2.
+If REDIS-dependent feature is affected RUN verify_mcp.py with and without REDIS_URL.
+Must run `./validate-types.sh` if code was changed.
+Do not tail or limit output of `verify_mcp.py`, it is short already.
+Read first 100 lines of `verify_mcp.py` to get instructions ON HOW exactly it should all be done.
+
+Validation notes discovered during real runs:
+- Main MCP unit suite from repo root: `tools/venv/bin/pytest ims-mcp-server/tests`
+- Tools test suite from `tools/`: `PYTHONPATH=. venv/bin/pytest tests`
+- `verify_mcp.py` flat-list validation must allow plain filenames for `r1` and hierarchical paths for `r2`.
+
+# RAGFlow
+
+RAGFlow is constantly updating, AI knowledge is stale.
+Grep TOC, read, and keep updated `docs/RAGFLOW.md` if task involves coding for it.
+
+---
+
 ## Pipelines
 
-**GitHub Actions (`.github/workflows/pages.yml`):**
-- Triggers on push to `main` (changes in `docs/web/`) or manual dispatch
-- Builds the Jekyll website from `docs/web/`
-- Deploys to GitHub Pages
+We use `.github/workflows` pipelines to build and release: MCP PyPi package, Docker Image, Publish Instructions, Publish website.
+Triggers on push to `main` or manual dispatch.
 
-**Publishing pipeline (manual or CI).** `python ims_cli.py publish ../instructions` from `tools/`. `RAGFLOW_API_KEY` secret for production. Idempotent.
+Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages.
 
 **Plugin distribution.** Three packages via marketplace:
 
-| Plugin | Contents | Footprint |
-|---|---|---|
-| `core@rosetta` | 20 skills, 7 agents, 4 workflows, 9 rules | Full OSS foundation |
-| `grid@rosetta` | 4 skills, 2 agents, 2 workflows, 2 rules | Enterprise extensions |
-| `rosetta@rosetta` | Bootstrap rule + MCP definition only | Minimal (fetches via MCP) |
+| Plugin | Contents, Footprint |
+|---|---|
+| `core@rosetta` | Full OSS foundation |
+| `grid@rosetta` | Enterprise extensions |
+| `rosetta@rosetta` | Bootstrap rule + MCP definition only, (fetches via MCP) |
 
 Plugins point to source folders in the instructions repository. No local file duplication.
 
@@ -387,7 +443,7 @@ Where contributors add or change things:
 - **CLI commands:** Add to `tools/commands/`
 - **Website:** Edit pages in `docs/web/`
 
-After adding or changing instructions, publish with the CLI to make them available via MCP.
+After adding or changing instructions, publish with the CLI to make them available via MCP. See the [Developer Guide — Where to Change What](../DEVELOPER_GUIDE.md#where-to-change-what) for the validation steps per change type.
 
 ---
 
@@ -396,15 +452,24 @@ After adding or changing instructions, publish with the CLI to make them availab
 - **Release-based versioning over branch-based.** Releases (r1, r2) coexist in the same repo. Enables A/B testing and rollback, but folder structure carries the version.
 - **RAGFlow as the knowledge layer.** Chunking, embedding, and search out of the box. Adds a deployment dependency (Docker or hosted). STDIO transport partially mitigates this.
 - **Tags as primary access, not search.** ACQUIRE by tag is faster and more precise than keyword search. But requires the auto-tagging scheme to produce useful tags from folder structure.
-- **XML bundling with threshold.** Structured `<rosetta:file>` output with metadata attributes. The threshold of 5 prevents context overflow by switching to listing mode. Requires agents to make follow-up requests for specific files.
+- **XML bundling with threshold.** Structured `<rosetta:file>` output with metadata attributes. The threshold of 5 prevents context overflow by switching to listing mode. Requires agents to make follow-up requests for specific files. Plus `<rosetta:folder>`
 - **Command aliases over direct tool calls.** Portable across IDEs, decoupled from MCP API changes. An indirection layer contributors must learn.
 - **Full-folder publishing only.** Prevents broken metadata extraction. Change detection keeps incremental publishes fast.
 - **Layered customization over multi-tenancy.** Org folders extend core, not replace it. Requires unique filenames across the tree.
+- **Subagent/Skills/Commands Shells.** Create small proxies with proper frontmatters. Proxies use `ACQUIRE FROM KB` commands to load actual content. Coding agents expect Subagents/Skills/Commands in specific format in specific locations in the repository. Copying to repo make them stale. Not copying - native features of coding agents don't work. Shells resolve that. Plugins resolve this issue as well, but it only works in claude code.
+- **Single API key as dataset owner.** `ROSETTA_API_KEY` must belong to the owner of all datasets. Simplifies access control (one key sees everything), but that key is a high-value secret. Rotate it through your secrets manager.
+- **Server-controlled VERSION.** `VERSION` is not set by clients. The server decides which release (r1, r2) to serve. Enables managed rollouts and prevents version drift across teams.
+- **Streamable HTTP as default transport.** Stateful connections allow server-to-IDE callbacks and richer interaction. Requires sticky sessions when scaling horizontally. STDIO remains the escape hatch for air-gapped or single-user setups.
+- **OAuthProxy over direct provider integration.** Bridges any OAuth provider to MCP's Dynamic Client Registration expectation. Adds a layer, but avoids coupling to a specific identity provider. `offline_access` scope enables authenticate-once behavior via refresh tokens.
+- **FERNET_KEY for token encryption at rest.** OAuth tokens in Redis are encrypted, not stored plain. Adds a required secret for production, but prevents token theft if Redis is compromised.
+- **Default model provisioning in RAGFlow.** Model API keys configured server-side via `local.service_conf.yaml`. Users get working models out of the box without individual setup. Centralizes API key management but means the server holds all provider credentials.
 
 ---
 
 ## Related Docs
 
-- [DEVELOPER_GUIDE.md](../DEVELOPER_GUIDE.md) — repo navigation, where to change what
-- [CONTRIBUTING.md](../CONTRIBUTING.md) — fastest path to a merged PR
-- [TROUBLESHOOTING.md](../TROUBLESHOOTING.md) — symptom-first diagnosis
+- [Developer Guide](../DEVELOPER_GUIDE.md) — repo navigation, where to change what
+- [Contributing](../CONTRIBUTING.md) — fastest path to a merged PR
+- [Usage Guide](../USAGE_GUIDE.md) — how to use Rosetta flows
+- [Deployment Guide](../DEPLOYMENT_GUIDE.md) — RAGFlow, MCP, Helm deployment
+- [Troubleshooting](../TROUBLESHOOTING.md) — symptom-first diagnosis

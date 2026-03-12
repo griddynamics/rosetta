@@ -107,7 +107,7 @@ Recommended sections:
 
 ---
 
-## `docs/REVIEW.md` — Review standards
+## `REVIEW.md` — Review standards
 
 **Source material:** `refsrc/tools/REVIEW.md`, `refsrc/bootstrap/bootstrap-guardrails.md`
 **Audience:** Reviewers and PR authors

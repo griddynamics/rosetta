@@ -173,7 +173,7 @@ It should use Rosetta MCP to retrieve agents, guardrails, and instructions:
 <img src="docs/images/Rosetta-ProperResponse1.png" alt="Rosetta proper response" width="355"/> <img src="docs/images/Rosetta-ProperResponse2.png" alt="Rosetta proper response" width="300"/>
 
 > [!WARNING]
-> If it does not work or works unreliably, download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r1/bootstrap.md?plain=1) and add it to your IDE's instruction file:
+> If it does not work or works unreliably, download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and add it to your IDE's instruction file:
 > - **Cursor:** `.cursor/rules/bootstrap.mdc` (keep YAML frontmatter)
 > - **Claude Code:** `.claude/claude.md`
 > - **Windsurf:** `AGENTS.md` (project root) or `.windsurf/AGENTS.md`
@@ -191,7 +191,7 @@ Ask the agent:
 Initialize this repository using Rosetta
 ```
 
-The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md, ARCHITECTURE.md, CONTEXT.md), and ask clarifying questions.
+The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md, ARCHITECTURE.md, CONTEXT.md), and ask clarifying questions. Read more about [workspace files](INSTALLATION.md#workspace-files-created) and [all workflows](USAGE_GUIDE.md#workflows).
 
 > [!NOTE]
 > **Composite workspaces:** init each repository separately, then init at the workspace level with "This is composite workspace" appended.
@@ -199,15 +199,17 @@ The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CO
 
 ## Common Issues
 
-- **OAuth prompt does not appear:** restart your IDE and retry the connection.
-- **Agent ignores Rosetta tools:** confirm the MCP server shows as connected in your IDE's MCP settings. Add a [bootstrap rule](INSTALLATION.md) if the agent still skips Rosetta.
-- **Slow or empty responses:** check your network can reach `rosetta.evergreen.gcp.griddynamics.net`. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+- **OAuth prompt does not appear:** restart your IDE and retry the connection. Read more in [Troubleshooting — Connection & Authentication](TROUBLESHOOTING.md#connection--authentication).
+- **Agent ignores Rosetta tools:** confirm the MCP server shows as connected in your IDE's MCP settings. Add a [bootstrap rule](INSTALLATION.md) if the agent still skips Rosetta. Read more in [Troubleshooting — Agent Not Using Rosetta](TROUBLESHOOTING.md#agent-not-using-rosetta).
+- **Slow or empty responses:** check your network can reach `rosetta.evergreen.gcp.griddynamics.net`. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#slow-or-empty-responses).
 
 ## Next Steps
 
-- [OVERVIEW.md](OVERVIEW.md) for the mental model and terminology
-- [CONTRIBUTING.md](CONTRIBUTING.md) to make your first contribution
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) for system internals
+- [Usage Guide](USAGE_GUIDE.md) — how to use Rosetta flows
+- [Overview](OVERVIEW.md) — mental model and terminology
+- [Deployment Guide](DEPLOYMENT_GUIDE.md) — org-wide deployment
+- [Contributing](CONTRIBUTING.md) — make your first contribution
+- [Architecture](docs/ARCHITECTURE.md) — system internals
 
 ## Video Tutorials
 
@@ -216,6 +218,3 @@ The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CO
 - [Initialize with Antigravity](https://drive.google.com/file/d/1BcloxAXzrvdY1Uc5rNF6b_g1MzePLYpn/view?usp=drive_link) — project initialization
 - [Subagents and Workflows in Claude Code](https://drive.google.com/file/d/1GnFLr6ljAV29e4lHPDj0u6qYNQat0CDk/view?usp=drive_link) — advanced configuration
 
----
-
-**Related docs:** [README](README.md) | [INSTALLATION](INSTALLATION.md) | [TROUBLESHOOTING](TROUBLESHOOTING.md)
