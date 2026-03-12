@@ -8,7 +8,7 @@ permalink: /
 <section class="hero-main">
   <img src="{{ '/assets/brand/rosetta-logo-full-color-white-text.png' | relative_url }}" alt="Rosetta logo" class="hero-logo logo-dark">
   <img src="{{ '/assets/brand/rosetta-logo-full-color-black-text.png' | relative_url }}" alt="Rosetta logo" class="hero-logo logo-light">
-  <h1 class="hero-headline">Control plane for AI coding agents</h1>
+  <h1 class="hero-headline">Consulting control plane for AI coding agents</h1>
   <p class="hero-sub">Your standards, versioned as code. Enforced across every agent and every IDE</p>
   <div class="hero-actions">
     <a href="#try-rosetta-section" class="button">Get Started</a>
