@@ -279,6 +279,78 @@ p a, li a { font-weight: 500; }
 
 .card h3 { margin: .2rem 0 .5rem; }
 
+.card--muted { opacity: .72; }
+.card--muted:hover { opacity: 1; }
+
+.card-badge { font-size: .7rem; vertical-align: middle; opacity: .7; }
+
+.wf-list { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.wf-list-group .try-section-label { margin-bottom: .6rem; }
+
+.wf-list-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+
+.wf-list-group li {
+  padding-left: 1.1rem;
+  position: relative;
+  font-size: .92rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.wf-list-group li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: .55em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gd-gold);
+}
+
+.wf-list-group li strong { color: var(--text); }
+
+.wf-pro-tag {
+  display: inline-block;
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--gd-gold);
+  border: 1px solid var(--gd-gold);
+  border-radius: 3px;
+  padding: 0 .35em;
+  vertical-align: middle;
+  opacity: .85;
+  margin-left: .2rem;
+}
+
+[data-theme="light"] .wf-pro-tag {
+  color: var(--gd-gold-text);
+  border-color: var(--gd-gold-text);
+}
+
+.card-hint {
+  margin-top: .6rem;
+  font-size: .78rem;
+  color: var(--muted);
+}
+.card-hint code {
+  font-size: .75rem;
+  background: rgba(255,255,255,0.05);
+  padding: .1rem .4rem;
+  border-radius: 4px;
+}
+[data-theme="light"] .card-hint code { background: rgba(0,0,0,0.05); }
+
 ul, ol { padding-left: 1.25rem; }
 
 li::marker { color: var(--gd-gold); }
@@ -1143,7 +1215,7 @@ h2.with-marker::before {
   left: 50%;
   width: 1px;
   height: 1rem;
-  background: var(--line);
+  background: rgba(255, 192, 2, 0.45);
 }
 
 .arch-anno h4 {
@@ -1570,6 +1642,29 @@ h2.with-marker::before {
   color: var(--gd-gold);
 }
 
+.workflow-num--circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: rgba(255, 192, 2, 0.1);
+  border: 2px solid var(--gd-gold);
+  color: var(--gd-gold);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  margin-bottom: .5rem;
+}
+
+[data-theme="light"] .workflow-num--circle {
+  color: var(--gd-gold-text);
+  border-color: var(--gd-gold-text);
+  background: rgba(184, 120, 0, 0.08);
+}
+
 .workflow-title {
   font-size: 1.05rem;
   font-weight: 700;
@@ -1587,9 +1682,9 @@ h2.with-marker::before {
 .workflow-points {
   list-style: none;
   padding: 0;
-  margin: .4rem 0 0;
+  margin: 0;
   border-top: 1px solid var(--line);
-  padding-top: .7rem;
+  padding-top: .5rem;
   display: flex;
   flex-direction: column;
   gap: .25rem;
@@ -2052,6 +2147,8 @@ body.splash-exiting {
   background: var(--panel);
   transform: rotateY(180deg);
   justify-content: center;
+  align-items: center;
+  text-align: center;
   border-color: var(--gd-gold);
 }
 

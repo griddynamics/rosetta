@@ -8,8 +8,8 @@ permalink: /
 <section class="hero-main">
   <img src="{{ '/assets/brand/rosetta-logo-full-color-white-text.png' | relative_url }}" alt="Rosetta logo" class="hero-logo logo-dark">
   <img src="{{ '/assets/brand/rosetta-logo-full-color-black-text.png' | relative_url }}" alt="Rosetta logo" class="hero-logo logo-light">
-  <h1 class="hero-headline">Make your AI actually understand your project.</h1>
-  <p class="hero-sub">No guessing. No hallucinations. Just your code, your standards, your way.</p>
+  <h1 class="hero-headline">Control plane for AI coding agents</h1>
+  <p class="hero-sub">Your standards, versioned as code. Enforced across every agent and every IDE</p>
   <div class="hero-actions">
     <a href="#try-rosetta-section" class="button">Get Started</a>
     <a href="{{ '/overview/' | relative_url }}" class="button-ghost">Learn More</a>
@@ -19,31 +19,71 @@ permalink: /
 </section>
 
 <!-- ===== THE PROBLEM IN 2026 ===== -->
-<section class="section">
-  <h2 class="with-marker">The Problem in 2026</h2>
+<section class="section" id="why-control-plane">
+  <h2 class="with-marker">Why AI Agents Need a Control Plane</h2>
   <p class="section-subtitle">AI coding agents are everywhere. Consistency and context are not.</p>
 
-  <div class="hiw-grid">
-    <div class="hiw-item">
-      <div class="hiw-num">1</div>
-      <h3>Agent Drift</h3>
-      <p>Every developer gets different AI behavior. No shared standards, no consistency across sessions or teammates.</p>
+  <div class="flip-grid">
+    <div class="flip-container" tabindex="0" role="button" aria-label="Missed Conventions — click to reveal details">
+      <div class="flip-card">
+        <div class="flip-front">
+          <h3>Missed Conventions</h3>
+          <span class="flip-hint">Click to explore</span>
+        </div>
+        <div class="flip-back">
+          <p>AI coding agents miss conventions, constraints, and business rules. Rejection rates are high.</p>
+        </div>
+      </div>
     </div>
-    <div class="hiw-item">
-      <div class="hiw-num">2</div>
-      <h3>Multi-IDE Fragmentation</h3>
-      <p>Cursor, Claude Code, Copilot, Codex, Windsurf. Each has its own config. Context doesn't transfer.</p>
+    <div class="flip-container" tabindex="0" role="button" aria-label="Instructions Don't Scale — click to reveal details">
+      <div class="flip-card">
+        <div class="flip-front">
+          <h3>Instructions Don't Scale</h3>
+          <span class="flip-hint">Click to explore</span>
+        </div>
+        <div class="flip-back">
+          <p>Writing effective instructions is hard. Keeping them current across evolving tools and models is harder.</p>
+        </div>
+      </div>
     </div>
-    <div class="hiw-item">
-      <div class="hiw-num">3</div>
-      <h3>Hallucinations Without Context</h3>
-      <p>Agents guess architecture, invent APIs, ignore conventions. Without project context loaded first, output is unreliable.</p>
+    <div class="flip-container" tabindex="0" role="button" aria-label="No Cross-IDE Reuse — click to reveal details">
+      <div class="flip-card">
+        <div class="flip-front">
+          <h3>No Cross-IDE Reuse</h3>
+          <span class="flip-hint">Click to explore</span>
+        </div>
+        <div class="flip-back">
+          <p>Reusable instructions across different IDEs and AI agents barely exist.</p>
+        </div>
+      </div>
+    </div>
+    <div class="flip-container" tabindex="0" role="button" aria-label="Siloed Knowledge — click to reveal details">
+      <div class="flip-card">
+        <div class="flip-front">
+          <h3>Siloed Knowledge</h3>
+          <span class="flip-hint">Click to explore</span>
+        </div>
+        <div class="flip-back">
+          <p>Knowledge stays siloed. No way to share proven patterns across projects or enforce consistent behavior at scale.</p>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="note">
     <strong>Rosetta solves this.</strong> One control plane that gives every agent the same context, standards, and workflows — across any IDE. <a href="#try-rosetta-section">See how it works →</a>
   </div>
+
+<script>
+(function(){
+  document.querySelectorAll('#why-control-plane .flip-container').forEach(function(card) {
+    card.addEventListener('click', function() { card.classList.toggle('is-flipped'); });
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('is-flipped'); }
+    });
+  });
+})();
+</script>
 </section>
 
 <!-- ===== TRY ROSETTA (INLINE) ===== -->
@@ -274,7 +314,7 @@ permalink: /
 })();
 </script>
 
-<div class="qs-note">
+<div class="qs-note" style="margin-bottom:2.2rem">
   Agent-agnostic by design. Use frontier-class models (<strong>Claude Sonnet/Opus</strong>, <strong>GPT-4o+</strong>, <strong>Gemini Pro</strong>) for best results.
 </div>
 

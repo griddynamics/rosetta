@@ -6,7 +6,7 @@ permalink: /overview/
 
 <section class="hero">
   <h1>Overview</h1>
-  <p>Rosetta is an open-source control plane for AI coding agents. It gives every agent the same context, standards, and workflows — across any IDE.</p>
+  <p>Rosetta is a consulting control plane for AI coding agents. It consults them with versioned, expert-prepared instructions so every agent follows your organization's rules, conventions, and knowledge — from day one.</p>
 </section>
 
 ## Architecture
@@ -73,168 +73,178 @@ permalink: /overview/
   </div>
 </div>
 
-## Why Rosetta Matters Now
 
-<div class="arch-annotations">
-  <div class="arch-anno">
-    <h4>Agents Everywhere, Standards Nowhere</h4>
-    <p>Teams run 3-5 AI tools. No shared control plane. Every agent invents its own understanding of your codebase.</p>
+## Design Principles
+
+<div class="flip-grid">
+  <div class="flip-container" tabindex="0" role="button" aria-label="Agent-agnostic — click to reveal details">
+    <div class="flip-card">
+      <div class="flip-front">
+        <h3>Agent-agnostic</h3>
+        <span class="flip-hint">Click to explore</span>
+      </div>
+      <div class="flip-back">
+        <p>Works across Cursor, Claude Code, VS Code, Windsurf, JetBrains, GitHub Copilot, Codex, and any MCP-compatible IDE. Adopts agent-specific features where available, simulates them where not.</p>
+      </div>
+    </div>
   </div>
-  <div class="arch-anno">
-    <h4>Context Is the Bottleneck</h4>
-    <p>Models are powerful enough. The constraint is input quality. Without structured context, agents produce plausible but wrong code at scale.</p>
+  <div class="flip-container" tabindex="0" role="button" aria-label="Progressive disclosure — click to reveal details">
+    <div class="flip-card">
+      <div class="flip-front">
+        <h3>Progressive disclosure</h3>
+        <span class="flip-hint">Click to explore</span>
+      </div>
+      <div class="flip-back">
+        <p>Instructions load in stages — bootstrap, classification, workflow-specific. The agent gets only what it needs for the current task. Prevents context overflow.</p>
+      </div>
+    </div>
   </div>
-  <div class="arch-anno">
-    <h4>Governance Gap</h4>
-    <p>No approval gates, no consistency enforcement, no audit trail. Enterprises have compliance exposure.</p>
+  <div class="flip-container" tabindex="0" role="button" aria-label="Classification-first — click to reveal details">
+    <div class="flip-card">
+      <div class="flip-front">
+        <h3>Classification-first</h3>
+        <span class="flip-hint">Click to explore</span>
+      </div>
+      <div class="flip-back">
+        <p>Every request is auto-classified into a workflow type before any work begins. Classification drives which instructions, skills, and rules load.</p>
+      </div>
+    </div>
+  </div>
+  <div class="flip-container" tabindex="0" role="button" aria-label="Release-based versioning — click to reveal details">
+    <div class="flip-card">
+      <div class="flip-front">
+        <h3>Release-based versioning</h3>
+        <span class="flip-hint">Click to explore</span>
+      </div>
+      <div class="flip-back">
+        <p>Instructions organized by release (r1, r2, r3). New instructions develop without breaking stable agents. Rollback is always possible.</p>
+      </div>
+    </div>
+  </div>
+  <div class="flip-container" tabindex="0" role="button" aria-label="Rules-as-code — click to reveal details">
+    <div class="flip-card">
+      <div class="flip-front">
+        <h3>Rules-as-code</h3>
+        <span class="flip-hint">Click to explore</span>
+      </div>
+      <div class="flip-back">
+        <p>AI behavior is authored, versioned, reviewed, and approved through standard engineering workflows — same rigor as application code.</p>
+      </div>
+    </div>
+  </div>
+  <div class="flip-container" tabindex="0" role="button" aria-label="Security by design — click to reveal details">
+    <div class="flip-card">
+      <div class="flip-front">
+        <h3>Security by design</h3>
+        <span class="flip-hint">Click to explore</span>
+      </div>
+      <div class="flip-back">
+        <p>No source code transfer. Air-gap capable. Runs inside the organization's perimeter.</p>
+      </div>
+    </div>
+  </div>
+  <div class="flip-container" tabindex="0" role="button" aria-label="Batteries included — click to reveal details">
+    <div class="flip-card">
+      <div class="flip-front">
+        <h3>Batteries included</h3>
+        <span class="flip-hint">Click to explore</span>
+      </div>
+      <div class="flip-back">
+        <p>Ships proven defaults from real-world projects. Makes the right thing the easy thing.</p>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="note">
-  Rosetta closes these gaps with a single control plane. <a href="#workflow">See the workflow →</a>
-</div>
+## How It Works
 
-## Workflow
-
-<p>Rosetta is a control plane for AI coding agents. It structures every AI task into four deliberate phases — so your team gets consistent, governed results instead of trial-and-error. Same rules, same context, same quality — across Claude Code, Cursor, Codex, Copilot, Windsurf, and every other tool.</p>
+<p>Rosetta structures every AI task into five deliberate phases. Reusable prompts apply without modification for each service — consistent, governed results across every IDE and every team. Human review at each transition is critically important.</p>
 
 <div class="workflow-schema">
   <div class="workflow-step">
     <div class="workflow-num">Phase 1</div>
-    <div class="workflow-title">Prepare</div>
-    <div class="workflow-desc">One-time repository initialization. Rosetta reverse-engineers your codebase and generates structured context docs.</div>
+    <div class="workflow-title">Preparation</div>
+    <div class="workflow-desc">Codify the task as reusable prompts. The task is repeatable and can be structured once, then applied everywhere.</div>
     <ul class="workflow-points">
-      <li>Generates TECHSTACK.md, CODEMAP.md</li>
-      <li>Generates CONTEXT.md, ARCHITECTURE.md</li>
-      <li>Configures agent rules per project</li>
+      <li>Business &amp; technology context</li>
+      <li>Replace old patterns with modern counterparts</li>
+      <li>Update tests, move components, update dependents</li>
     </ul>
   </div>
   <div class="workflow-arrow" aria-hidden="true"></div>
   <div class="workflow-step">
     <div class="workflow-num">Phase 2</div>
     <div class="workflow-title">Research</div>
-    <div class="workflow-desc">Semantically search the knowledge base for architecture decisions and prior solutions.</div>
+    <div class="workflow-desc">AI identifies all affected code parts needed to perform the task.</div>
     <ul class="workflow-points">
-      <li>Architecture decisions</li>
-      <li>Tech stack &amp; dependencies</li>
-      <li>Prior solutions</li>
+      <li>Dependencies &amp; dependents of migrated services</li>
+      <li>Project structure: modules, imports, libraries</li>
+      <li>Legacy code to rewrite, bridge between frameworks</li>
     </ul>
   </div>
   <div class="workflow-arrow" aria-hidden="true"></div>
   <div class="workflow-step">
     <div class="workflow-num">Phase 3</div>
     <div class="workflow-title">Plan</div>
-    <div class="workflow-desc">Produce an explicit, reviewable plan grounded in your actual codebase.</div>
+    <div class="workflow-desc">Generate a detailed, resilient step-by-step plan split into phases that mimic the engineer's workflow.</div>
     <ul class="workflow-points">
-      <li>Explicit step-by-step plan</li>
-      <li>Grounded in codebase</li>
-      <li>Reviewable before action</li>
+      <li>Small code changes per phase — review before they apply</li>
+      <li>Task description, motivation, and required change per step</li>
+      <li>Automated validation (e.g. unit tests) at end of each phase</li>
     </ul>
   </div>
   <div class="workflow-arrow" aria-hidden="true"></div>
   <div class="workflow-step">
     <div class="workflow-num">Phase 4</div>
     <div class="workflow-title">Act</div>
-    <div class="workflow-desc">Execute with full context. Outputs are traceable and validated against project standards.</div>
+    <div class="workflow-desc">Implement the plan one phase at a time. Resumable across sessions — same prompt continues where it left off.</div>
     <ul class="workflow-points">
-      <li>Context-aware execution</li>
-      <li>Standards validation</li>
-      <li>Traceable outputs</li>
+      <li>Phase completion tracked inside the prompt itself</li>
+      <li>Grounding rules enforced: tests run, commits after each phase</li>
+      <li>New session picks up with the same prompt if context fills</li>
     </ul>
   </div>
-</div>
-
-## Different Roles. Same Understanding.
-
-<p class="muted">Rosetta gives every role on your project the AI context they need. Same rules, same quality, every session — across every IDE.</p>
-
-<div class="flip-grid">
-  <div class="flip-container" tabindex="0" role="button" aria-label="Developers — click to reveal details">
-    <div class="flip-card">
-      <div class="flip-front">
-        <h3>Developers</h3>
-        <span class="flip-hint">Click to explore</span>
-      </div>
-      <div class="flip-back">
-        <ul>
-          <li>Describe intent naturally — auto-classified into the right workflow</li>
-          <li>Subagents handle planning, reviewing, and validating</li>
-          <li>Full context on any codebase from the first command</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <div class="flip-container" tabindex="0" role="button" aria-label="Architects & Tech Leads — click to reveal details">
-    <div class="flip-card">
-      <div class="flip-front">
-        <h3>Architects &amp; Tech Leads</h3>
-        <span class="flip-hint">Click to explore</span>
-      </div>
-      <div class="flip-back">
-        <ul>
-          <li>One command generates CONTEXT.md, ARCHITECTURE.md, TECHSTACK.md, CODEMAP.md</li>
-          <li>Write standards once — enforced on every AI request</li>
-          <li>Review plans before execution, not just code after</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <div class="flip-container" tabindex="0" role="button" aria-label="QA Engineers — click to reveal details">
-    <div class="flip-card">
-      <div class="flip-front">
-        <h3>QA Engineers</h3>
-        <span class="flip-hint">Click to explore</span>
-      </div>
-      <div class="flip-back">
-        <ul>
-          <li>Dedicated workflows for automated QA and test generation</li>
-          <li>Strategy, scenario design, implementation, and reporting</li>
-          <li>Tests grounded in real architecture and business rules</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <div class="flip-container" tabindex="0" role="button" aria-label="Managers — click to reveal details">
-    <div class="flip-card">
-      <div class="flip-front">
-        <h3>Managers</h3>
-        <span class="flip-hint">Click to explore</span>
-      </div>
-      <div class="flip-back">
-        <ul>
-          <li>Same AI behavior across all developers — no individual drift</li>
-          <li>Approval gates before any code change — full visibility</li>
-          <li>New hires productive immediately with full project context</li>
-        </ul>
-      </div>
-    </div>
+  <div class="workflow-arrow" aria-hidden="true"></div>
+  <div class="workflow-step">
+    <div class="workflow-num">Phase 5</div>
+    <div class="workflow-title">Validate</div>
+    <div class="workflow-desc">Integrated QA by AI — verifies the implementation against specs for the product's API and UI.</div>
+    <ul class="workflow-points">
+      <li>Systematically validates implementation against specs</li>
+      <li>Implements integration and E2E tests</li>
+      <li>Compatible with subagents and background agents</li>
+    </ul>
   </div>
 </div>
 
 <script>
 (function(){
   document.querySelectorAll('.flip-container').forEach(function(card) {
-    card.addEventListener('click', function() {
-      card.classList.toggle('is-flipped');
-    });
+    card.addEventListener('click', function() { card.classList.toggle('is-flipped'); });
     card.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        card.classList.toggle('is-flipped');
-      }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('is-flipped'); }
     });
   });
 })();
 </script>
 
-## Data & Privacy
+## What Rosetta Is Not
 
-<div class="note">
-  <strong>Source code never leaves your machine.</strong> Rosetta MCP runs locally alongside your IDE. Only document metadata and search queries reach the Rosetta Server. No code, no prompts, no proprietary content is transmitted.
+<div style="display:flex;flex-direction:column;gap:.5rem;max-width:720px">
+  <div class="note"><strong>Not a code executor.</strong> Rosetta guides coding agents. Coding agents plan and modify code.</div>
+  <div class="note"><strong>Not real-time monitoring.</strong> No continuous observation of agent behavior during execution.</div>
+  <div class="note"><strong>Not a project manager.</strong> No scheduling, assignment, or progress tracking.</div>
+  <div class="note"><strong>Not for non-SDLC work.</strong> Guardrails enforce this boundary.</div>
+  <div class="note"><strong>Not a replacement for thinking.</strong> HITL gates exist because human judgment matters at critical points.</div>
 </div>
 
-<div class="arch-output" style="margin-bottom:2rem">
-  <a href="{{ '/usage/' | relative_url }}" class="arch-output-cta">See what Rosetta generates →</a>
-  <span style="margin:0 .6rem;color:var(--muted)">·</span>
-  <a href="https://github.com/griddynamics/rosetta" class="arch-output-cta" target="_blank" rel="noopener noreferrer">GitHub →</a>
+<div class="rm-feedback" style="margin-top:3rem">
+  <div class="rm-feedback-text">
+    <strong>Want the full picture?</strong>
+    <p>Key concepts, session lifecycle, three-layer architecture, workflow patterns, and everything else in one place.</p>
+  </div>
+  <div class="rm-feedback-actions">
+    <a href="https://github.com/griddynamics/rosetta/blob/main/OVERVIEW.md" target="_blank" rel="noopener noreferrer" class="rm-feedback-btn">Read OVERVIEW.md</a>
+  </div>
 </div>
+
