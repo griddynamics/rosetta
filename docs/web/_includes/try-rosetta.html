@@ -20,14 +20,15 @@
   var scenarios = [
     // ── FREE WORKFLOWS ──
     {
-      title: 'What can Rosetta do?',
-      tag: 'Self-help',
+      title: 'What can Rosetta help with?',
+      tag: 'Self Help',
       paid: false,
       messages: [
-        { role: 'user', text: 'What workflows are available? How do I use Rosetta?' },
-        { role: 'rosetta', text: '<strong>Mode: help</strong> — Here\'s what I can do for you:' },
-        { role: 'rosetta', text: '<strong>Free workflows:</strong><br>• <strong>Coding</strong> — 11-phase implementation with subagents, reviews & two approval gates<br>• <strong>Init</strong> — 8-phase workspace setup: docs, patterns, shells & verification<br>• <strong>Requirements</strong> — structured authoring with 3 approval gates & traceability<br>• <strong>Ad-hoc</strong> — adaptive meta-workflow, builds a custom plan from building blocks<br>• <strong>Self-help</strong> — this guide' },
-        { role: 'rosetta', text: '<strong>Pro workflows:</strong><br>• Research, Discovery, Code Analysis<br>• Testing, Validation, AQA<br>• Modernization, Data, External Libraries<br>• Context Engineering, Use Cases<br><br><a href="mailto:rosetta-support@griddynamics.com">Contact us</a> for Pro access.' },
+        { role: 'user', text: 'What workflows are available? I need to set up a new project.' },
+        { role: 'rosetta', text: '<strong>Mode: self-help</strong> — Listing capabilities from knowledge base...' },
+        { role: 'rosetta', text: '<strong>Free workflows:</strong> Init, Self Help, Coding, Requirements, Research, Ad-hoc.<br><strong>Pro workflows:</strong> Code Analysis, Automated QA, Test Case Generation, Modernization, External Library, Coding Agents Prompting.<br><br>Describe what you need — Rosetta classifies and routes automatically.' },
+        { role: 'rosetta', text: '<strong>⏸ Guide:</strong> You asked about setting up a project. That maps to <strong>Init</strong>. It generates TECHSTACK.md, CODEMAP.md, CONTEXT.md, ARCHITECTURE.md, patterns, and IDE shells in 8 phases.<br><br>Ready to start?' },
+        { role: 'rosetta', text: '<strong>Handoff:</strong> Launching Init workflow now...' },
         { role: 'cta', text: '' }
       ]
     },
@@ -37,164 +38,137 @@
       paid: false,
       messages: [
         { role: 'user', text: 'Initialize Rosetta for our notification microservice.' },
-        { role: 'rosetta', text: '<strong>Mode: init</strong> — Loading initialization workflow...' },
-        { role: 'rosetta', text: '<strong>Quick analysis:</strong> Scanned your repo — detected Go 1.22, gRPC, PostgreSQL, Docker. Monorepo structure under <code>services/</code>.' },
-        { role: 'rosetta', text: '<strong>Documentation:</strong> Generated:<br>• <code>TECHSTACK.md</code>, <code>CODEMAP.md</code>, <code>DEPENDENCIES.md</code><br>• <code>CONTEXT.md</code>, <code>ARCHITECTURE.md</code>, <code>IMPLEMENTATION.md</code><br>• <code>ASSUMPTIONS.md</code>, <code>MEMORY.md</code><br>• <code>PATTERNS/</code> — per-module pattern files with index' },
-        { role: 'rosetta', text: '<strong>Shells & config:</strong> Created IDE shell configs and bootstrap rule. Set up <code>load-context</code> shell for automatic context loading.' },
-        { role: 'rosetta', text: '<strong>Questions:</strong> Reviewed all generated docs for gaps — asking you to clarify 3 points before finalizing.' },
-        { role: 'rosetta', text: '<strong>Verification:</strong> All files validated against your codebase. Verification report generated. <em>Start a new chat session to use Rosetta with full project context.</em>' },
+        { role: 'rosetta', text: '<strong>Mode: init</strong> — Context: Detected existing repo. Building file inventory...' },
+        { role: 'rosetta', text: '<strong>Shells:</strong> Generated IDE shell files for Claude Code, Cursor, Copilot, Windsurf.<br><strong>Discovery:</strong> Produced <code>TECHSTACK.md</code> (Go 1.22, gRPC, PostgreSQL), <code>CODEMAP.md</code>, <code>DEPENDENCIES.md</code>.' },
+        { role: 'rosetta', text: '<strong>Patterns:</strong> Extracted 8 recurring coding and architectural patterns.<br><strong>Documentation:</strong> Created <code>CONTEXT.md</code>, <code>ARCHITECTURE.md</code>, <code>IMPLEMENTATION.md</code>, <code>ASSUMPTIONS.md</code>.' },
+        { role: 'rosetta', text: '<strong>⏸ Questions:</strong> Reviewed all generated docs for gaps — asking you to clarify 3 points: deployment target, auth strategy, retry policy.<br><br>Waiting for your answers.' },
+        { role: 'rosetta', text: '<strong>Verification:</strong> All artifacts validated against your codebase. Catch-up complete. <em>Start a new session to use Rosetta with full project context.</em>' },
         { role: 'cta', text: '' }
       ]
     },
     {
-      title: 'Write user story for notifications',
+      title: 'Define requirements for a feature',
       tag: 'Requirements',
       paid: false,
       messages: [
-        { role: 'user', text: 'Write a user story for email notification preferences.' },
-        { role: 'rosetta', text: '<strong>Mode: requirements</strong> — Loading requirements workflow...' },
-        { role: 'rosetta', text: '<strong>Discovery:</strong> <em>(requirements-engineer)</em> Found existing notification module in <code>ARCHITECTURE.md</code>. Identified 3 related user stories and existing constraints.' },
-        { role: 'rosetta', text: '<strong>Research:</strong> Queried knowledge base — your team uses Given/When/Then format with acceptance criteria matrix. Found reusable patterns from prior requirements.' },
-        { role: 'rosetta', text: '<strong>Intent Capture:</strong> Restated your intent, scope, goals, and assumptions.<br><br><em>Waiting for your approval before proceeding.</em>' },
-        { role: 'rosetta', text: '<strong>Outline:</strong> Requirement areas, file mapping, ID strategy, and traceability plan.<br><br><em>Waiting for your approval.</em>' },
-        { role: 'rosetta', text: '<strong>Draft:</strong> Created requirement units using EARS notation for functional requirements, measurable NFRs. Linked to auth and notification modules.' },
-        { role: 'rosetta', text: '<strong>Validate:</strong> <em>(requirements-reviewer)</em> Rubric check passed. No conflicts or gaps found. Traceability verified.' },
-        { role: 'rosetta', text: '<strong>Deliver:</strong> Final requirements set, validation pack, traceability matrix, and change log saved to <code>docs/requirements/notification-preferences.md</code>.' },
+        { role: 'user', text: 'Write requirements for email notification preferences.' },
+        { role: 'rosetta', text: '<strong>Mode: requirements</strong> — Discovery: Found notification module in <code>ARCHITECTURE.md</code>. 3 related stories and existing constraints identified.' },
+        { role: 'rosetta', text: '<strong>Research:</strong> Located your team\'s Given/When/Then format and prior requirements decisions from knowledge base.' },
+        { role: 'rosetta', text: '<strong>⏸ Intent capture:</strong> Restating your intent, scope, goals, and surfacing assumptions.<br><br>Waiting for your confirmation before proceeding.' },
+        { role: 'rosetta', text: '<strong>Outline:</strong> MECE requirement layout proposed across functional, NFR, and constraint areas.<br><br>Waiting for your approval.' },
+        { role: 'rosetta', text: '<strong>⏸ Draft:</strong> Atomic requirement units authored in EARS notation. Per-requirement approval pass complete.' },
+        { role: 'rosetta', text: '<strong>Validate:</strong> Reviewer checked for conflicts, gaps, and contradictions. All clear.' },
+        { role: 'rosetta', text: '<strong>⏸ Deliver:</strong> Final set, traceability matrix, and change log saved to <code>docs/REQUIREMENTS/notification-preferences.md</code>.' },
         { role: 'cta', text: '' }
       ]
     },
     {
-      title: 'Add password reset feature',
+      title: 'Add a new feature',
       tag: 'Coding',
       paid: false,
       messages: [
         { role: 'user', text: 'Add password reset functionality to our auth module.' },
-        { role: 'rosetta', text: '<strong>Mode: coding</strong> — Loading workflow, guardrails, and project context. Classified as MEDIUM — full subagent pipeline.' },
+        { role: 'rosetta', text: '<strong>Mode: coding</strong> — Classified as MEDIUM — full subagent pipeline.' },
         { role: 'rosetta', text: '<strong>Discovery:</strong> <em>(discoverer)</em> Analyzed auth module at <code>src/auth/</code> — JWT + bcrypt, 4 existing endpoints. Saved discovery notes.' },
-        { role: 'rosetta', text: '<strong>Tech Plan:</strong> <em>(architect)</em> Produced <code>password-reset-SPECS.md</code> and <code>password-reset-PLAN.md</code>:<br>1. Add <code>POST /auth/forgot-password</code><br>2. Add <code>POST /auth/reset-password</code><br>3. Create token store with 15 min expiry<br>4. Wire SendGrid email template<br>5. Add rate limiting (3 req/min)' },
-        { role: 'rosetta', text: '<strong>Review Plan:</strong> <em>(reviewer)</em> Plan reviewed against project conventions. No issues found.' },
-        { role: 'rosetta', text: '<strong>Approve Plan:</strong> <em>Waiting for your approval before implementation.</em>' },
+        { role: 'rosetta', text: '<strong>Tech plan:</strong> <em>(architect)</em> Produced <code>password-reset-SPECS.md</code> and <code>password-reset-PLAN.md</code>:<br>1. <code>POST /auth/forgot-password</code><br>2. <code>POST /auth/reset-password</code><br>3. Token store with 15-min expiry<br>4. SendGrid email template<br>5. Rate limiting (3 req/min)' },
+        { role: 'rosetta', text: '<strong>Review plan:</strong> <em>(reviewer)</em> Plan reviewed against project conventions. No issues found.' },
+        { role: 'rosetta', text: '<strong>⏸ Approve plan:</strong> Waiting for your approval before implementation.' },
         { role: 'rosetta', text: '<strong>Implementation:</strong> <em>(engineer)</em> Code implemented per specs. Build passes.' },
-        { role: 'rosetta', text: '<strong>Review & Validate:</strong> <em>(reviewer + validator)</em> Code reviewed against specs. Validation passed.<br><br><em>Waiting for your approval of implementation.</em>' },
-        { role: 'rosetta', text: '<strong>Tests:</strong> <em>(engineer)</em> After approval — test suite written and passing. <em>(reviewer)</em> Coverage and quality verified. Final validation complete.' },
+        { role: 'rosetta', text: '<strong>Review code + Impl validation:</strong> <em>(reviewer + validator)</em> Code reviewed against specs. Validation passed.<br><br><strong>⏸ Approve implementation:</strong> Waiting for your review.' },
+        { role: 'rosetta', text: '<strong>Tests:</strong> <em>(engineer)</em> Test suite written and passing. <em>(reviewer)</em> Coverage verified. Final validation complete.' },
         { role: 'cta', text: '' }
       ]
     },
     {
-      title: 'Quick task — rename a variable',
+      title: 'Ad-hoc task — rename across project',
       tag: 'Ad-hoc',
       paid: false,
       messages: [
         { role: 'user', text: 'Rename userList to activeUsers across the project.' },
-        { role: 'rosetta', text: '<strong>Mode: ad-hoc</strong> — Classified as SMALL. Building execution plan from building blocks...' },
-        { role: 'rosetta', text: '<strong>Plan:</strong> Selected blocks: <code>execute-track</code>, <code>modify-review</code>. Loaded coding conventions — camelCase naming, no abbreviations. Found 12 occurrences of <code>userList</code> across 5 files.' },
-        { role: 'rosetta', text: '<strong>Execute:</strong> Renamed all 12 occurrences to <code>activeUsers</code>. Updated imports and references. No tests broken.' },
-        { role: 'rosetta', text: '<strong>Summary:</strong> Verified result against original intent. All references updated, build clean.' },
+        { role: 'rosetta', text: '<strong>Mode: ad-hoc</strong> — Classified as SMALL. Selecting building blocks: execute, review...' },
+        { role: 'rosetta', text: '<strong>Build plan:</strong> Loaded coding conventions — camelCase naming, no abbreviations. Found 12 occurrences of <code>userList</code> across 5 files.' },
+        { role: 'rosetta', text: '<strong>Execute plan:</strong> Renamed all 12 occurrences to <code>activeUsers</code>. Updated imports and references. No tests broken.' },
+        { role: 'rosetta', text: '<strong>Review and summarize:</strong> Result verified against original intent. All references updated, build clean.' },
         { role: 'cta', text: '' }
       ]
     },
-    // ── PAID WORKFLOWS ──
     {
-      title: 'Deep research on architecture options',
+      title: 'Research architecture options',
       tag: 'Research',
-      paid: true,
+      paid: false,
       messages: [
-        { role: 'user', text: 'Research options for migrating our message queue from RabbitMQ to something more scalable.' },
-        { role: 'rosetta', text: '<strong>Mode: research</strong> — Loading research workflow with meta-prompting...' },
-        { role: 'rosetta', text: '<strong>Prepare:</strong> Read <code>TECHSTACK.md</code> — current stack: RabbitMQ 3.12, 15 consumers, ~50k msg/day. Read <code>ARCHITECTURE.md</code> for integration points.' },
-        { role: 'rosetta', text: '<strong>Deep research:</strong> Analyzed 3 options against your constraints:<br>• <strong>Kafka</strong> — best throughput, but operational overhead<br>• <strong>NATS JetStream</strong> — lightweight, fits your Go stack<br>• <strong>AWS SQS/SNS</strong> — managed, but vendor lock-in<br><br>Each option scored on: throughput, ops complexity, migration effort, cost.' },
-        { role: 'rosetta', text: '<strong>Output:</strong> Comparative analysis saved to <code>docs/research/mq-migration.md</code> with decision matrix, migration risk assessment, and recommended approach.' },
+        { role: 'user', text: 'Research options for migrating our queue from RabbitMQ to something more scalable.' },
+        { role: 'rosetta', text: '<strong>Mode: research</strong> — Context load: Read <code>TECHSTACK.md</code> (RabbitMQ 3.12, 15 consumers, ~50k msg/day) and <code>ARCHITECTURE.md</code> for integration points.' },
+        { role: 'rosetta', text: '<strong>⏸ Prompt craft:</strong> Architect built an optimized research prompt targeting your stack constraints and scaling requirements.<br><br>Waiting for your approval before running the investigation.' },
+        { role: 'rosetta', text: '<strong>Execute research:</strong> Dedicated subagent investigated Kafka, NATS JetStream, and AWS SQS/SNS against your constraints — throughput, ops complexity, migration effort, cost.' },
+        { role: 'rosetta', text: '<strong>Finalize:</strong> Comparative analysis with decision matrix and recommended approach saved to <code>docs/research/mq-migration.md</code>.' },
         { role: 'cta', text: '' }
       ]
     },
+    // ── PRO WORKFLOWS ──
     {
       title: 'Analyze codebase and trace flows',
-      tag: 'Analysis',
+      tag: 'Code Analysis',
       paid: true,
       messages: [
-        { role: 'user', text: 'Explain how the payment processing works end-to-end.' },
-        { role: 'rosetta', text: '<strong>Mode: analysis</strong> — Loading code analysis workflow...' },
-        { role: 'rosetta', text: '<strong>Prepare:</strong> Read <code>CODEMAP.md</code> — identified payment-related files across 6 directories. No guessing file paths.' },
-        { role: 'rosetta', text: '<strong>Trace:</strong> Followed the real payment flow through your code:<br><code>CheckoutController \u2192 PaymentService \u2192 StripeGateway \u2192 OrderRepository \u2192 NotificationService</code><br><br>Found 3 middleware layers, 2 retry mechanisms, and 1 dead-letter queue.' },
-        { role: 'rosetta', text: '<strong>Output:</strong> Generated Mermaid sequence diagram, documented every error path, listed all webhook handlers. Saved to <code>docs/PAYMENT_ANALYSIS.md</code>.' },
+        { role: 'user', text: 'Explain how payment processing works end-to-end.' },
+        { role: 'rosetta', text: 'Launching code-analysis...' },
+        { role: 'rosetta', text: '...' },
         { role: 'cta', text: '' }
       ]
     },
     {
-      title: 'Generate end-to-end test suite',
-      tag: 'AQA',
+      title: 'Generate QA test suite',
+      tag: 'Automated QA',
       paid: true,
       messages: [
-        { role: 'user', text: 'Create an E2E test suite for the checkout flow.' },
-        { role: 'rosetta', text: '<strong>Mode: aqa</strong> — Loading automated QA workflow (6 phases)...' },
-        { role: 'rosetta', text: '<strong>Discovery:</strong> Analyzed checkout flow — 4 pages, 12 API calls, 3 payment methods. Read your testing conventions from knowledge base: Playwright, Page Object pattern, test data factories.' },
-        { role: 'rosetta', text: '<strong>Test plan:</strong><br>• 8 happy-path scenarios<br>• 5 error scenarios (card declined, timeout, invalid input)<br>• 3 edge cases (currency conversion, promo codes, guest checkout)<br><br><em>Waiting for approval.</em>' },
-        { role: 'rosetta', text: '<strong>Generate:</strong> After approval — creates test files following your Page Object structure, adds fixtures, wires into CI pipeline. All tests validated against your actual selectors.' },
+        { role: 'user', text: 'Create QA automation for the checkout flow.' },
+        { role: 'rosetta', text: 'Launching aqa...' },
+        { role: 'rosetta', text: '...' },
         { role: 'cta', text: '' }
       ]
     },
     {
-      title: 'Migrate from monolith to microservices',
+      title: 'Generate test cases from Jira',
+      tag: 'Test Case Gen',
+      paid: true,
+      messages: [
+        { role: 'user', text: 'Generate test cases for PROJ-123.' },
+        { role: 'rosetta', text: 'Launching test-case-gen...' },
+        { role: 'rosetta', text: '...' },
+        { role: 'cta', text: '' }
+      ]
+    },
+    {
+      title: 'Modernize legacy codebase',
       tag: 'Modernization',
       paid: true,
       messages: [
-        { role: 'user', text: 'Help us extract the billing module into a separate service.' },
-        { role: 'rosetta', text: '<strong>Mode: modernization</strong> — Loading modernization workflow (7 phases)...' },
-        { role: 'rosetta', text: '<strong>Assessment:</strong> Scanned billing module — 34 files, 12 database tables, 8 API consumers. Identified 5 coupling points with the monolith.' },
-        { role: 'rosetta', text: '<strong>Strategy:</strong> Recommended strangler fig pattern:<br>1. Extract billing domain models<br>2. Create billing API facade<br>3. Migrate consumers one by one<br>4. Split database with dual-write period<br>5. Cut over and decommission old code' },
-        { role: 'rosetta', text: '<strong>Plan:</strong> Generated migration plan with dependency graph, risk matrix, rollback strategy, and estimated blast radius for each phase.<br><br><em>Waiting for approval.</em>' },
+        { role: 'user', text: 'Migrate our billing module from monolith to microservice.' },
+        { role: 'rosetta', text: 'Launching modernization...' },
+        { role: 'rosetta', text: '...' },
         { role: 'cta', text: '' }
       ]
     },
     {
-      title: 'Onboard an external library',
+      title: 'Onboard an internal library',
       tag: 'External Library',
       paid: true,
       messages: [
-        { role: 'user', text: 'Integrate Stripe SDK v5 into our payment module.' },
-        { role: 'rosetta', text: '<strong>Mode: external-lib</strong> — Loading library onboarding workflow (4 phases)...' },
-        { role: 'rosetta', text: '<strong>Evaluate:</strong> Checked Stripe SDK v5 against your <code>TECHSTACK.md</code> — compatible with Node 20, no conflicting dependencies. Reviewed changelog for breaking changes from v4.' },
-        { role: 'rosetta', text: '<strong>Plan:</strong> Integration steps:<br>1. Update <code>package.json</code> + lock file<br>2. Migrate deprecated API calls (3 found)<br>3. Update webhook signature verification<br>4. Add new TypeScript types<br><br>Updated <code>DEPENDENCIES.md</code> with rationale.' },
-        { role: 'rosetta', text: '<strong>Validate:</strong> All existing payment tests pass. Added integration test for new webhook format. No security advisories found.' },
+        { role: 'user', text: 'Teach Rosetta our internal authentication library.' },
+        { role: 'rosetta', text: 'Launching external-lib...' },
+        { role: 'rosetta', text: '...' },
         { role: 'cta', text: '' }
       ]
     },
     {
-      title: 'Run validation & testing workflows',
-      tag: 'Testing & Validation',
+      title: 'Author a prompt for your AI agent',
+      tag: 'Agents Prompting',
       paid: true,
       messages: [
-        { role: 'user', text: 'Validate the auth module against our coding standards.' },
-        { role: 'rosetta', text: '<strong>Mode: validation</strong> — Loading validation workflow...' },
-        { role: 'rosetta', text: '<strong>Scan:</strong> Checked 18 files in <code>src/auth/</code> against your coding conventions and guardrails.' },
-        { role: 'rosetta', text: '<strong>Findings:</strong><br>• 2 functions missing error handling \u2717<br>• 1 hardcoded timeout (should use config) \u2717<br>• JWT secret loaded from env \u2713<br>• All endpoints have rate limiting \u2713<br>• Input validation on all routes \u2713' },
-        { role: 'rosetta', text: '<strong>Report:</strong> Validation report with 2 issues (auto-fixable), 14 passing checks. Generated fix suggestions grounded in your codebase patterns.' },
-        { role: 'cta', text: '' }
-      ]
-    },
-    {
-      title: 'Context engineering for your project',
-      tag: 'Context Engineering',
-      paid: true,
-      messages: [
-        { role: 'user', text: 'Our project context is outdated. Rebuild it.' },
-        { role: 'rosetta', text: '<strong>Mode: context-engineering</strong> — Loading context engineering workflow...' },
-        { role: 'rosetta', text: '<strong>Audit:</strong> Compared existing <code>CONTEXT.md</code>, <code>ARCHITECTURE.md</code>, <code>TECHSTACK.md</code> against actual codebase. Found 12 drift points — 3 new services undocumented, 2 deprecated deps still listed.' },
-        { role: 'rosetta', text: '<strong>Rebuild:</strong> Regenerated all context files from source code analysis:<br>• Updated dependency versions<br>• Added missing service descriptions<br>• Rebuilt code map with new modules<br>• Refreshed architecture diagram' },
-        { role: 'rosetta', text: '<strong>Verify:</strong> All context files validated against live codebase. Zero drift. Your AI agents now have accurate, up-to-date project understanding.' },
-        { role: 'cta', text: '' }
-      ]
-    },
-    {
-      title: 'Discovery & use case mapping',
-      tag: 'Discovery & Use Cases',
-      paid: true,
-      messages: [
-        { role: 'user', text: 'Map all use cases for the notification system.' },
-        { role: 'rosetta', text: '<strong>Mode: discovery</strong> — Loading discovery workflow...' },
-        { role: 'rosetta', text: '<strong>Scan:</strong> Analyzed notification module — found 4 channels (email, SMS, push, in-app), 11 event triggers, 3 user preference settings.' },
-        { role: 'rosetta', text: '<strong>Use case map:</strong><br>• 11 trigger-based notifications (order, auth, system)<br>• 4 delivery channels with fallback chains<br>• 3 user preference scenarios (opt-in, opt-out, digest)<br>• 2 admin use cases (broadcast, template management)' },
-        { role: 'rosetta', text: '<strong>Output:</strong> Use case matrix with actor mapping, priority scoring, and dependency graph. Saved to <code>docs/discovery/notifications.md</code>.' },
+        { role: 'user', text: 'Author a code review skill for our internal AI agent.' },
+        { role: 'rosetta', text: 'Launching coding-agents-prompting...' },
+        { role: 'rosetta', text: '...' },
         { role: 'cta', text: '' }
       ]
     }
@@ -305,7 +279,7 @@
           unlock.innerHTML = '<div class="try-pro-unlock-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 11V7a4 4 0 118 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>' +
             '<h4>Unlock full workflow</h4>' +
             '<p>See how Rosetta handles this end-to-end with your codebase context.</p>' +
-            '<a href="mailto:rosetta-support@griddynamics.com" class="try-pro-unlock-btn">Contact Us \u2192</a>';
+            '<a href="mailto:rosetta-support@griddynamics.com" class="try-pro-unlock-btn">Contact Us</a>';
           blurWrap.appendChild(unlock);
 
           chatEl.appendChild(blurWrap);
