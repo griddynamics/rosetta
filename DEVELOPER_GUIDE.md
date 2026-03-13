@@ -5,6 +5,48 @@
 
 ---
 
+## Overall Development Flow
+
+1. **Prepare repository.**
+   - Fork repository entirely and work in the `main` branch
+   - Clone and create feature branch from the `main` branch
+   - Rosetta uses `main` as target branch for PR
+   - See [Contributing Workflow](CONTRIBUTING.md#contributing-workflow) for git-related info
+
+2. **Develop using claude code / codex / cursor** or **Use the prompting flow.**
+   - Development: existing rules will kick in, we use HTTP MCP.
+   - Prompting: use the [`coding-agents-prompting-flow`](CONTRIBUTING.md#prompt-changes) to author, refactor, or harden prompts.
+
+3. **Check your output.**
+   - [General Review Criteria](REVIEW.md#general-review-criteria)
+   - [Core Principles](REVIEW.md#core-principles)
+   - [Code Review Criteria](REVIEW.md#code-review-criteria)
+   - [Instruction Review Criteria](REVIEW.md#instruction-review-criteria)
+
+4. **Test locally on a target repo.**
+   - Set up [Local Instructions Mode](#local-development-instructions) on **target** repository.
+   - Test your prompts against a real codebase.
+
+5. **Test on DEV environment.**
+   - Uninstall `local-files-mode.md` from target repository
+   - [Publish to dev](#dev-environment-integration-testing)
+   - Enable Rosetta MCP or follow [Quick Start Guide](QUICKSTART.md) to install it
+   - Use dev server URL `https://rosetta-dev.evergreen.gcp.griddynamics.net/mcp`
+   - Test end-to-end through the HTTP MCP
+
+6. **Open a PR.**
+   - Follow the [Pull Request Checklist](CONTRIBUTING.md#pull-request-checklist)
+   - Prompting: include a prompt brief, before/after examples, and validation evidence
+   - Coding: include tests and validation changes
+   - All: update documentation, including web site
+
+7. **Pipelines.**
+   - [Automated pipelines](CONTRIBUTING.md#prompt-changes) will execute
+   - Static AI review and scenario comparison
+   - Both must pass
+
+---
+
 ## Repository Layout
 
 ```
@@ -40,30 +82,17 @@ rosetta/
 
 Use this when editing prompts (skills, agents, workflows, rules, templates).
 
-Instructions run locally without MCP. Copy them into a target repository and point your IDE at the bootstrap file.
+Instructions run locally without MCP.
 
-1. Copy the `instructions/` folder into your target repo:
-  ```bash
-   cp -r instructions/ /path/to/target-repo/instructions/
-  ```
-2. Copy the `instructions/r2/core/rules/local-files-mode.md` bootstrap file to your IDE config location:
+Copy them into a target repository and point your IDE using the local-files-mode.md bootstrap file.
 
-  | IDE                        | Destination                                                           |
-  | -------------------------- | --------------------------------------------------------------------- |
-  | Cursor                     | `.cursor/rules/local.mdc` (keep YAML frontmatter)                     |
-  | Claude Code                | `.claude/claude.md`                                                   |
-  | VS Code / GitHub Copilot   | `.github/copilot-instructions.md`                                     |
-  | GitHub Copilot (JetBrains) | `.github/copilot-instructions.md`                                     |
-  | JetBrains Junie            | `.junie/guidelines.md`                                                |
-  | Windsurf                   | `.windsurf/AGENTS.md`                                                 |
-  | Antigravity                | `.agent/rules/agents.md` (keep YAML frontmatter, `trigger: always_on`)|
-  | OpenCode                   | `AGENTS.md`                                                           |
+Follow [Offline Installation](INSTALLATION.md#offline-installation-no-mcp), except you copy your new instructions files:
 
-3. Open your IDE in the target repo. The agent will execute prep steps from local files instead of calling MCP.
+```bash
+  cp -r instructions/ /path/to/target-repo/instructions/
+```
 
 No server, no API key, no network. Edit instructions, reload, test.
-
-Alternative source: use the published version from [releases](https://github.com/griddynamics/rosetta/releases/latest). See also [Installation — Offline Installation](INSTALLATION.md#offline-installation-no-mcp).
 
 ---
 
@@ -150,9 +179,11 @@ codex mcp add Rosetta \
 
 **API key:** Get yours from the RAGFlow UI. The dataset you test against must be **owned by user of this API key**.
 
-**VERSION:** Set explicitly here for local development testing. In production, do not set `VERSION` — the server controls it (see [INSTALLATION.md — Environment Variables](INSTALLATION.md#environment-variables-reference)). Always test with both `VERSION=r1` and `VERSION=r2`.
+**VERSION:** Set explicitly here for local development testing. Always test with both `VERSION=r1` and `VERSION=r2`.
 
 **Pre-release builds:** Version suffixes like `b00` trigger automatic pre-release publishing. Use `--prerelease=allow` with uvx to pull these builds.
+
+Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](QUICKSTART.md#step-2-add-bootstrap-rule).
 
 ---
 
@@ -217,6 +248,13 @@ Run this after any Python code change.
 
 After local validation passes, test end-to-end against the dev environment.
 
+**Environments (two separate servers):**
+
+- **Rosetta Server (RAGFlow) prod:** `https://ims.evergreen.gcp.griddynamics.net/` — document engine backend, dataset management, API keys
+- **Rosetta Server (RAGFlow) dev:** `https://ims-dev.evergreen.gcp.griddynamics.net/` — used by STDIO MCP and CLI for publishing
+- **Rosetta HTTP MCP prod:** `https://rosetta.evergreen.gcp.griddynamics.net/mcp` — production MCP endpoint for end users
+- **Rosetta HTTP MCP dev:** `https://rosetta-dev.evergreen.gcp.griddynamics.net/mcp` — dev MCP endpoint for integration testing
+
 ### 1. Publish instructions to dev
 
 ```bash
@@ -230,7 +268,8 @@ This publishes to the dev RAGFlow instance. Only changed files are uploaded (MD5
 
 ### 2. Test MCP (STDIO against dev)
 
-Connect your IDE using the STDIO configs from [Local Development: MCP](#local-development-mcp). This validates that your published instructions are served correctly through the MCP layer.
+Connect your IDE using the STDIO configs from [Local Development: MCP](#local-development-mcp).
+This validates that your published instructions are served correctly through the MCP layer.
 
 ### 3. Test Instructions from MCP (HTTP, default mode)
 
@@ -239,13 +278,13 @@ This is the mode end users run. Connect your IDE to the hosted dev MCP endpoint 
 **Claude Code:**
 
 ```bash
-claude mcp add --transport http Rosetta https://ims-dev.evergreen.gcp.griddynamics.net/mcp
+claude mcp add --transport http Rosetta https://rosetta-dev.evergreen.gcp.griddynamics.net/mcp
 ```
 
 **Codex:**
 
 ```bash
-codex mcp add Rosetta --url https://ims-dev.evergreen.gcp.griddynamics.net/mcp
+codex mcp add Rosetta --url https://rosetta-dev.evergreen.gcp.griddynamics.net/mcp
 ```
 
 **Cursor** (`.cursor/mcp.json`):
@@ -254,7 +293,7 @@ codex mcp add Rosetta --url https://ims-dev.evergreen.gcp.griddynamics.net/mcp
 {
   "mcpServers": {
     "Rosetta": {
-      "url": "https://ims-dev.evergreen.gcp.griddynamics.net/mcp"
+      "url": "https://rosetta-dev.evergreen.gcp.griddynamics.net/mcp"
     }
   }
 }
@@ -267,13 +306,15 @@ codex mcp add Rosetta --url https://ims-dev.evergreen.gcp.griddynamics.net/mcp
   "servers": {
     "Rosetta": {
       "type": "http",
-      "url": "https://ims-dev.evergreen.gcp.griddynamics.net/mcp"
+      "url": "https://rosetta-dev.evergreen.gcp.griddynamics.net/mcp"
     }
   }
 }
 ```
 
-Authenticate via OAuth when prompted. Ask the agent: "What can you do, Rosetta?" to verify the full pipeline.
+Authenticate via OAuth as required.
+
+Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](QUICKSTART.md#step-2-add-bootstrap-rule).
 
 ### 4. Test CLI changes
 
@@ -289,19 +330,17 @@ python ims_cli.py list-collection --collection aia-r2
 
 ## Where to Change What
 
-
-| Change type            | Location                                              | Validation                                    |
-| ---------------------- | ----------------------------------------------------- | --------------------------------------------- |
-| New/modified skill     | `instructions/r2/core/skills/<name>/SKILL.md`         | Publish, test via MCP                         |
-| New/modified agent     | `instructions/r2/core/agents/<name>.md`               | Publish, test via MCP                         |
-| New/modified workflow  | `instructions/r2/core/workflows/<name>.md`            | Publish, test via MCP                         |
-| New/modified rule      | `instructions/r2/core/rules/<name>.md`                | Publish, test via MCP                         |
-| Organization extension | `instructions/r2/<org>/` (same type structure)        | Publish, test via MCP                         |
-| MCP tool or prompt     | `ims-mcp-server/ims_mcp/server.py`, `tool_prompts.py` | verify_mcp.py, pytest, validate-types.sh      |
-| CLI command            | `tools/commands/`                                     | pytest, dry-run, publish to dev               |
-| Website                | `docs/web/`                                           | Local Jekyll build                            |
-| Documentation          | `docs/`, repo root `.md` files                        | Review against [plan/INDEX.md](plan/INDEX.md) |
-
+| Change type            | Location                                              | Validation                               |
+| ---------------------- | ----------------------------------------------------- | ---------------------------------------- |
+| New/modified skill     | `instructions/r2/core/skills/<name>/SKILL.md`         | Publish, test via MCP                    |
+| New/modified agent     | `instructions/r2/core/agents/<name>.md`               | Publish, test via MCP                    |
+| New/modified workflow  | `instructions/r2/core/workflows/<name>.md`            | Publish, test via MCP                    |
+| New/modified rule      | `instructions/r2/core/rules/<name>.md`                | Publish, test via MCP                    |
+| Organization extension | `instructions/r2/<org>/` (same type structure)        | Publish, test via MCP                    |
+| MCP tool or prompt     | `ims-mcp-server/ims_mcp/server.py`, `tool_prompts.py` | verify_mcp.py, pytest, validate-types.sh |
+| CLI command            | `tools/commands/`                                     | pytest, dry-run, publish to dev          |
+| Website                | `docs/web/`                                           | Local Jekyll build                       |
+| Documentation          | `docs/`, repo root `.md` files                        | Use AI to check consistency              |
 
 Always publish the **entire** `/instructions` folder. Never subfolders or single files (breaks tag extraction). See [Architecture — Rosetta CLI](docs/ARCHITECTURE.md#rosetta-cli) for details on auto-tagging and change detection.
 
@@ -334,4 +373,3 @@ See [plan/INDEX.md](plan/INDEX.md) for the full document routing map. The short 
 - [Usage Guide](USAGE_GUIDE.md) — how to use Rosetta flows
 - [Deployment Guide](DEPLOYMENT_GUIDE.md) — RAGFlow, MCP, Helm deployment
 - [Troubleshooting](TROUBLESHOOTING.md) — symptom-first diagnosis
-

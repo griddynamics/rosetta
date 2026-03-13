@@ -7,9 +7,9 @@
 
 ## Before You Start
 
-- Read the [README](README.md) to understand what Rosetta is
-- Follow the [Quickstart](QUICKSTART.md) to get a working setup
-- Skim the [Developer Guide](DEVELOPER_GUIDE.md) for repo layout and local workflows
+- Read the [OVERVIEW](OVERVIEW.md) to understand what Rosetta is
+- Understand the [Architecture](docs/ARCHITECTURE.md)
+- Follow the [Developer Guide](DEVELOPER_GUIDE.md)
 
 ## What Contributions Are Welcome
 
@@ -32,7 +32,7 @@ Not sure where your idea fits? Open an issue first.
 
 That's it. Small PRs get reviewed faster and merged sooner.
 
-## Development Workflow
+## Contributing Workflow
 
 ```
 fork/clone → branch → edit → validate → push → PR
@@ -40,14 +40,28 @@ fork/clone → branch → edit → validate → push → PR
 
 - Branch from `main`. Use descriptive branch names.
 - Commit messages: short summary line, body if needed. No special format enforced.
-- Run local validation before pushing. The [Developer Guide](DEVELOPER_GUIDE.md) covers build and test commands.
+- Run local validation before pushing.
 - Open a PR against `main`. Fill in the PR template.
+
+See [Overall Development Flow](DEVELOPER_GUIDE.md#overall-development-flow) on how to run, test, build, review, and validate.
 
 ## Prompt Changes
 
 Rosetta is a prompt engineering system. Prompt changes have outsized impact and need extra care.
 
 **Use the prompting flow.** The [`coding-agents-prompting-flow`](USAGE_GUIDE.md#workflows) with `coding-agents-prompt-authoring` skill helps you author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with Opus 4.6 model.
+
+Examples:
+
+1. Refactoring old rosetta prompt to new:
+   ```
+   MUST FULLY EXECUTE `instructions/r2/grid/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R2 prompt family in `grid` scope.
+   ```
+   
+2. Creating a new prompt:   
+   ```
+   MUST FULLY EXECUTE `instructions/r2/grid/workflows/coding-agents-prompting-flow.md` to author a new R2 Rosetta <skill/agent/workflow/rule/prompt family> `<name>` in `grid` scope: <description of what it should be>
+   ```
 
 **What to include in the PR:**
 

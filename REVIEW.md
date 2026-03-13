@@ -61,8 +61,8 @@ Instructions (skills, agents, workflows, rules, templates) define how AI agents 
 
 ### Agent and Tool Agnosticism
 
-- **No hardcoded tool names.** Instructions must not reference specific tools (`Read`, `Bash`, `grep`, etc.) by name. Use [command aliases](docs/ARCHITECTURE.md#command-aliases) (`ACQUIRE FROM KB`, `SEARCH IN KB`) or describe the action generically.
-- **No IDE-specific logic.** Instructions work across Cursor, Claude Code, VS Code, JetBrains, Codex, and any MCP-compatible agent. If a PR introduces IDE-specific behavior, it must be justified and isolated.
+- **No hardcoded tool names.** Instructions must not reference specific MCPs and tools, unless those are commonly available. Additionally, use [command aliases](docs/ARCHITECTURE.md#command-aliases) (`ACQUIRE FROM KB`, `SEARCH IN KB`) or describe the action generically.
+- **No IDE-specific logic.** Instructions work across Cursor, Claude Code, VS Code, JetBrains, Codex, and any MCP-compatible agent. If a PR introduces IDE-specific behavior, it must be justified and isolated. Target models: Sonnet, Opus, GPT-5.3-codex, GPT-5.4, Gemini-3.1-Pro.
 - **No hardcoded paths or env vars.** Unless the instruction explicitly manages configuration, paths and environment details belong in setup docs or deployment config.
 - **Flexible over rigid.** Prefer solutions that adapt to task complexity. Avoid brittle assumptions about project structure, language, or toolchain.
 
@@ -77,7 +77,7 @@ Instructions (skills, agents, workflows, rules, templates) define how AI agents 
 - **No non-operational content.** Remove history, rationale annotations, origin labels, change notes. Instructions describe current state.
 - **Structured over prose.** Prefer lists, tables, and short sections over paragraphs.
 - **Grep-friendly headers.** Topical, concise. Content must be discoverable via `grep ^#`.
-- **No mental overload.** Progressive disclosure: high-level first, details on demand. Classification and planning before execution.
+- **No mental overload.** Progressive disclosure: high-level first, details on demand. Classification and planning before execution. In general, avoid IF-THEN-ELSE: do not tell AI how to think instead give it information to think about to make right decision.
 
 ### Duplication Check
 

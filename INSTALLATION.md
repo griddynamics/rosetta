@@ -10,13 +10,13 @@
 
 ## Choose Your Mode
 
-| | HTTP (recommended) | STDIO | Plugin | Offline |
-|---|---|---|---|---|
-| Setup | Single URL, OAuth automatic | Env vars, API key per user | CLI marketplace commands (installs HTTP MCP) | Download zip, copy files |
-| Local dependencies | None | Python 3.12+, uvx | None | None |
-| Auth | OAuth via browser | API key from Rosetta Server | OAuth via browser (HTTP MCP) | None |
-| Network | Requires internet | Requires internet | Requires internet | No network needed (with local models) |
-| Best for | Most users | Custom configs, controlled environments | Claude Code, Cursor | Air-gapped or highly regulated environments |
+|                    | HTTP (recommended)          | STDIO                                   | Plugin                                       | Offline                                     |
+| ------------------ | --------------------------- | --------------------------------------- | -------------------------------------------- | ------------------------------------------- |
+| Setup              | Single URL, OAuth automatic | Env vars, API key per user              | CLI marketplace commands (installs HTTP MCP) | Download zip, copy files                    |
+| Local dependencies | None                        | Python 3.12+, uvx                       | None                                         | None                                        |
+| Auth               | OAuth via browser           | API key from Rosetta Server             | OAuth via browser (HTTP MCP)                 | None                                        |
+| Network            | Requires internet           | Requires internet                       | Requires internet                            | No network needed (with local models)       |
+| Best for           | Most users                  | Custom configs, controlled environments | Claude Code, Cursor                          | Air-gapped or highly regulated environments |
 
 ## Step 1: Install
 
@@ -178,7 +178,7 @@ STDIO runs Rosetta MCP as a local process. Your IDE launches it and communicates
 
 #### Get Your API Key
 
-1. Open [Rosetta Server](https://ims.evergreen.gcp.griddynamics.net/)
+1. Open [Rosetta Server (RAGFlow)](https://ims.evergreen.gcp.griddynamics.net/)
 2. Create an account or sign in
 3. Generate an API key from your profile
 
@@ -190,11 +190,11 @@ Your team lead shares Instructions and Project datasets. You must accept the inv
 
 Required environment variables:
 
-| Variable | Value |
-|---|---|
+| Variable             | Value                                         |
+| -------------------- | --------------------------------------------- |
 | `ROSETTA_SERVER_URL` | `https://ims.evergreen.gcp.griddynamics.net/` |
-| `ROSETTA_API_KEY` | Your personal API key |
-| `ROSETTA_USER_EMAIL` | Your email address |
+| `ROSETTA_API_KEY`    | Your personal API key                         |
+| `ROSETTA_USER_EMAIL` | Your email address                            |
 
 <details>
 <summary><b>Cursor</b></summary>
@@ -392,16 +392,16 @@ Add to `opencode.json`:
 
 Required for STDIO transport. Optional otherwise.
 
-| Variable | Default | Description |
-|---|---|---|
-| `ROSETTA_SERVER_URL` | `http://localhost:80` | Rosetta Server base URL. **Required.** |
-| `ROSETTA_API_KEY` | (empty) | API key for Rosetta Server access. **Required.** |
-| `ROSETTA_USER_EMAIL` | `rosetta@griddynamics.net` | User identity for authorization checks |
-| `ROSETTA_MODE` | `HARD` | `HARD` adds more content to context with stricter requirements. `SOFT` is lighter and allows more agent independence, better when bootstrap.md is also used |
-| `ROSETTA_INVITE_EMAILS` | (empty) | Comma-separated emails auto-invited on project dataset creation |
-| `INSTRUCTION_ROOT_FILTER` | (empty) | Comma-separated root tags filter for instructions |
-| `IMS_DEBUG` | disabled | Enable debug logs (`1`, `true`, `yes`, `on`) |
-| `POSTHOG_API_KEY` | (built-in) | Set to `""` to disable usage analytics |
+| Variable                  | Default                    | Description                                                                                                                                                 |
+| ------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ROSETTA_SERVER_URL`      | `http://localhost:80`      | Rosetta Server base URL. **Required.**                                                                                                                      |
+| `ROSETTA_API_KEY`         | (empty)                    | API key for Rosetta Server access. **Required.**                                                                                                            |
+| `ROSETTA_USER_EMAIL`      | `rosetta@griddynamics.net` | User identity for authorization checks                                                                                                                      |
+| `ROSETTA_MODE`            | `HARD`                     | `HARD` adds more content to context with stricter requirements. `SOFT` is lighter and allows more agent independence, better when bootstrap.md is also used |
+| `ROSETTA_INVITE_EMAILS`   | (empty)                    | Comma-separated emails auto-invited on project dataset creation                                                                                             |
+| `INSTRUCTION_ROOT_FILTER` | (empty)                    | Comma-separated root tags filter for instructions                                                                                                           |
+| `IMS_DEBUG`               | disabled                   | Enable debug logs (`1`, `true`, `yes`, `on`)                                                                                                                |
+| `POSTHOG_API_KEY`         | (built-in)                 | Set to `""` to disable usage analytics                                                                                                                      |
 
 Do not set `VERSION`. It uses a server-controlled default for managed upgrades. See [Architecture — Tradeoffs](docs/ARCHITECTURE.md#tradeoffs) for rationale.
 
@@ -437,22 +437,45 @@ Cursor uses `.cursor-plugin/plugin.json` and `.cursor-plugin/marketplace.json` m
 
 For environments without network access to Rosetta Server.
 
-1. Download `instructions.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
-2. Extract to `instructions/` in your repository
-3. Copy the contents of [local-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/local-files-mode.md?plain=1) into your IDE's instruction file:
+1. Disable or remove Rosetta MCP from your IDE configuration
+2. Download `instructions.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
+3. Extract to `instructions/` in your repository or workspace
+4. Copy the contents of [local-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/local-files-mode.md?plain=1) into your IDE's instruction file (keep frontmatter!):
 
-| IDE | File |
-|---|---|
-| Cursor | `.cursor/rules/local.mdc` (keep YAML frontmatter) |
-| Claude Code | `.claude/claude.md` |
-| Windsurf | `AGENTS.md` or `.windsurf/AGENTS.md` |
-| VS Code / GitHub Copilot | `.github/copilot-instructions.md` |
+| IDE                        | Destination                           |
+| -------------------------- | ------------------------------------- |
+| Cursor                     | `.cursor/rules/local-files-mode.mdc`  |
+| Claude Code                | `.claude/claude.md`                   |
+| Windsurf                   | `.windsurf/rules/local-files-mode.md` |
+| VS Code / GitHub Copilot   | `.github/copilot-instructions.md`     |
+| GitHub Copilot (JetBrains) | `.github/copilot-instructions.md`     |
+| JetBrains Junie            | `.junie/guidelines.md`                |
+| Antigravity                | `.agent/rules/local-files-mode.md`    |
+| OpenCode                   | `AGENTS.md`                           |
+
+## Step 2: Add Bootstrap Rule (HTTP and STDIO modes ONLY)
+
+Applies to HTTP and STDIO modes.
+
+Skip if using [Plugin](#plugin-based-installation) or [Offline](#offline-installation-no-mcp) installation.
+
+Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and add it to your IDE's instruction file (keep entire contents, including YAML frontmatter):
+
+| IDE                        | Destination                       |
+| -------------------------- | --------------------------------- |
+| Cursor                     | `.cursor/rules/bootstrap.mdc`     |
+| Claude Code                | `.claude/claude.md`               |
+| VS Code / GitHub Copilot   | `.github/copilot-instructions.md` |
 | GitHub Copilot (JetBrains) | `.github/copilot-instructions.md` |
-| JetBrains Junie | `.junie/guidelines.md` |
-| Antigravity | `.agent/rules/agents.md` (keep YAML frontmatter with `trigger: always_on`) |
-| OpenCode | `AGENTS.md` |
+| JetBrains Junie            | `.junie/guidelines.md`            |
+| Windsurf                   | `.windsurf/rules/bootstrap.md`    |
+| Antigravity                | `.agent/rules/bootstrap.md`       |
+| OpenCode                   | `AGENTS.md`                       |
 
-## Step 2: Verify
+> [!NOTE]
+> Some tools (Cline, Kilo) do not read MCP server prompts. For these, bootstrap.md is always required.
+
+## Step 3: Verify
 
 Applies to all installation modes. Ask the agent:
 
@@ -464,19 +487,7 @@ It should use Rosetta MCP to retrieve agents, guardrails, and instructions:
 
 <img src="docs/images/Rosetta-ProperResponse1.png" alt="Rosetta proper response" width="355"/> <img src="docs/images/Rosetta-ProperResponse2.png" alt="Rosetta proper response" width="300"/>
 
-> [!WARNING]
-> Some tools (Cline, Kilo) do not read MCP server prompts. For these, bootstrap.md is always required.
-> If it does not work or works unreliably, download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and add it to your IDE's instruction file:
-> - **Cursor:** `.cursor/rules/bootstrap.mdc` (keep YAML frontmatter)
-> - **Claude Code:** `.claude/claude.md`
-> - **Windsurf:** `AGENTS.md` or `.windsurf/AGENTS.md`
-> - **VS Code / GitHub Copilot:** `.github/copilot-instructions.md`
-> - **GitHub Copilot (JetBrains):** `.github/copilot-instructions.md`
-> - **JetBrains Junie:** `.junie/guidelines.md`
-> - **Antigravity:** `.agent/rules/agents.md` (keep YAML frontmatter with `trigger: always_on`)
-> - **OpenCode:** `AGENTS.md`
-
-## Step 3: Initialize Repository
+## Step 4: Initialize Repository
 
 Run once per repository after installation:
 

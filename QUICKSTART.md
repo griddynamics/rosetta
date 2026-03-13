@@ -160,7 +160,22 @@ Any MCP client that supports HTTP transport can connect using the endpoint URL. 
 
 STDIO transport is available for air-gapped environments. See [INSTALLATION.md](INSTALLATION.md).
 
-## Step 2: Verify
+## Step 2: Add Bootstrap Rule
+
+Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and add it to your IDE's instruction file (keep entire contents, including YAML frontmatter):
+
+| IDE                        | Destination                       |
+| -------------------------- | --------------------------------- |
+| Cursor                     | `.cursor/rules/bootstrap.mdc`     |
+| Claude Code                | `.claude/claude.md`               |
+| VS Code / GitHub Copilot   | `.github/copilot-instructions.md` |
+| GitHub Copilot (JetBrains) | `.github/copilot-instructions.md` |
+| JetBrains Junie            | `.junie/guidelines.md`            |
+| Windsurf                   | `.windsurf/rules/bootstrap.md`    |
+| Antigravity                | `.agent/rules/bootstrap.md`       |
+| OpenCode                   | `AGENTS.md`                       |
+
+## Step 3: Verify
 
 Ask the agent:
 
@@ -172,18 +187,7 @@ It should use Rosetta MCP to retrieve agents, guardrails, and instructions:
 
 <img src="docs/images/Rosetta-ProperResponse1.png" alt="Rosetta proper response" width="355"/> <img src="docs/images/Rosetta-ProperResponse2.png" alt="Rosetta proper response" width="300"/>
 
-> [!WARNING]
-> If it does not work or works unreliably, download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and add it to your IDE's instruction file:
-> - **Cursor:** `.cursor/rules/bootstrap.mdc` (keep YAML frontmatter)
-> - **Claude Code:** `.claude/claude.md`
-> - **Windsurf:** `AGENTS.md` (project root) or `.windsurf/AGENTS.md`
-> - **VS Code / GitHub Copilot:** `.github/copilot-instructions.md`
-> - **GitHub Copilot (JetBrains):** `.github/copilot-instructions.md`
-> - **JetBrains Junie:** `.junie/guidelines.md`
-> - **Antigravity:** `.agent/rules/agents.md` (keep YAML frontmatter with `trigger: always_on`)
-> - **OpenCode:** `AGENTS.md` (project root)
-
-## Step 3: Initialize (once per repository)
+## Step 4: Initialize (once per repository)
 
 Ask the agent:
 
@@ -217,4 +221,3 @@ The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CO
 - [Install without MCP](https://drive.google.com/file/d/1ClktG-QxZJr3nkCVHJ815ZJ1esp2WI6F/view?usp=drive_link) — air-gapped environments
 - [Initialize with Antigravity](https://drive.google.com/file/d/1BcloxAXzrvdY1Uc5rNF6b_g1MzePLYpn/view?usp=drive_link) — project initialization
 - [Subagents and Workflows in Claude Code](https://drive.google.com/file/d/1GnFLr6ljAV29e4lHPDj0u6qYNQat0CDk/view?usp=drive_link) — advanced configuration
-
