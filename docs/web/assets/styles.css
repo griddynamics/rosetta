@@ -3424,6 +3424,8 @@ body.docs-layout main {
   max-width: 1200px;
   margin: 0 auto;
   min-height: calc(100vh - 64px);
+  gap: 2rem;
+  padding-top: 2rem;
 }
 
 .docs-sidebar {
@@ -3715,3 +3717,49 @@ body.docs-layout main {
 [data-theme="light"] .docs-index-card:hover {
   background: #f7f9fc;
 }
+
+/* ===== DOCS CALLOUTS (GitHub-style admonitions) ===== */
+.docs-callout {
+  display: flex;
+  gap: .75rem;
+  border-radius: 8px;
+  padding: .85rem 1.1rem;
+  margin: 1.25rem 0;
+  border: 1px solid;
+  font-size: .9rem;
+  line-height: 1.55;
+}
+
+.docs-callout-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: .1rem;
+}
+
+.docs-callout-body { flex: 1; min-width: 0; }
+
+.docs-callout-title {
+  font-weight: 700;
+  font-size: .78rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: .25rem;
+}
+
+.docs-callout--note    { background: rgba(99,179,237,0.08);  border-color: rgba(99,179,237,0.35);  }
+.docs-callout--tip     { background: rgba(72,187,120,0.08);  border-color: rgba(72,187,120,0.35);  }
+.docs-callout--warning { background: rgba(255,192,2,0.08);   border-color: rgba(255,192,2,0.35);   }
+.docs-callout--important { background: rgba(237,100,166,0.08); border-color: rgba(237,100,166,0.35); }
+.docs-callout--caution { background: rgba(252,129,74,0.08);  border-color: rgba(252,129,74,0.35);  }
+
+.docs-callout--note .docs-callout-title    { color: #63b3ed; }
+.docs-callout--tip .docs-callout-title     { color: #48bb78; }
+.docs-callout--warning .docs-callout-title { color: var(--gd-gold); }
+.docs-callout--important .docs-callout-title { color: #ed64a6; }
+.docs-callout--caution .docs-callout-title { color: #fc814a; }
+
+[data-theme="light"] .docs-callout--note    { background: rgba(49,130,206,0.07);  border-color: rgba(49,130,206,0.3);  }
+[data-theme="light"] .docs-callout--tip     { background: rgba(47,133,90,0.07);   border-color: rgba(47,133,90,0.3);   }
+[data-theme="light"] .docs-callout--warning { background: rgba(180,120,0,0.07);   border-color: rgba(180,120,0,0.3);   }
+[data-theme="light"] .docs-callout--important { background: rgba(197,48,121,0.07); border-color: rgba(197,48,121,0.3); }
+[data-theme="light"] .docs-callout--caution { background: rgba(221,107,32,0.07);  border-color: rgba(221,107,32,0.3);  }

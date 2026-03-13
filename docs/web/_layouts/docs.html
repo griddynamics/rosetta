@@ -66,5 +66,46 @@
     </nav>
   </div>
 </footer>
+<script>
+(function(){
+  var calloutMap = {
+    'NOTE':      { cls: 'note',      icon: 'ℹ️',  label: 'Note' },
+    'TIP':       { cls: 'tip',       icon: '💡', label: 'Tip' },
+    'WARNING':   { cls: 'warning',   icon: '⚠️',  label: 'Warning' },
+    'IMPORTANT': { cls: 'important', icon: '📌', label: 'Important' },
+    'CAUTION':   { cls: 'caution',   icon: '🔥', label: 'Caution' }
+  };
+
+  // Transform GitHub-style callouts: > [!TYPE]
+  document.querySelectorAll('.docs-content blockquote').forEach(function(bq) {
+    var first = bq.querySelector('p:first-child');
+    if (!first) return;
+    var text = first.textContent.trim();
+    var match = text.match(/^\[!(NOTE|TIP|WARNING|IMPORTANT|CAUTION)\]/i);
+    if (!match) return;
+    var type = match[1].toUpperCase();
+    var cfg = calloutMap[type];
+    // Remove the [!TYPE] line
+    var rest = text.slice(match[0].length).trim();
+    if (rest) { first.textContent = rest; } else { first.remove(); }
+    // Build callout
+    var div = document.createElement('div');
+    div.className = 'docs-callout docs-callout--' + cfg.cls;
+    div.innerHTML = '<span class="docs-callout-icon">' + cfg.icon + '</span>'
+      + '<div class="docs-callout-body"><div class="docs-callout-title">' + cfg.label + '</div>'
+      + bq.innerHTML + '</div>';
+    bq.parentNode.replaceChild(div, bq);
+  });
+
+  // Remove duplicate h1 if it matches the page <title>
+  var h1 = document.querySelector('.docs-content h1:first-child');
+  if (h1) {
+    var titleText = document.title.split('|')[0].trim().toLowerCase();
+    if (h1.textContent.trim().toLowerCase() === titleText) {
+      h1.remove();
+    }
+  }
+})();
+</script>
 </body>
 </html>
