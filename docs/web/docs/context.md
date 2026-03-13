@@ -15,6 +15,8 @@ Read the [Introduction](/docs/introduction/) first. For technical details, see [
 
 **What this document is not.** Not architecture, not a user guide, not a changelog.
 
+---
+
 ## Why Rosetta Exists
 
 - Every engineer writes their own prompts, rules, and guardrails (or none at all)

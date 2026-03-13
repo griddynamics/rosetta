@@ -7,6 +7,7 @@ permalink: /docs/contributing/
 # Contributing to Rosetta
 
 **Who is this for?** First-time and returning contributors.
+
 **When should I read this?** Before your first PR, and as a checklist for every PR after.
 
 ---

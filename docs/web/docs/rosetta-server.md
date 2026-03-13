@@ -6,6 +6,12 @@ permalink: /docs/rosetta-server/
 
 # Rosetta Server (RAGFlow)
 
+**Who is this for?** Engineers and maintainers working with the RAGFlow-based knowledge retrieval layer.
+
+**When should I read this?** When you need to understand, configure, or debug the Rosetta Server API. For deployment, see [Deployment](/docs/deployment/).
+
+---
+
 ## RAGFlow Documentation (Tested)
 
 ### Maintenance Rule
@@ -312,3 +318,10 @@ Metadata Filters, see `refsrc/ragflow-*/common/metadata_utils.py`
 See APIs (note, that doc for method do not reflect actual implementation): `refsrc/ragflow-*/api/apps/sdk/doc.py` , `refsrc/ragflow-*/api/apps/sdk/dify_retrieval.py` ,
 `refsrc/ragflow-*/api/apps/document_app.py`
 And others.
+
+## Related Docs
+
+- [Deployment](/docs/deployment/) — deploying Rosetta Server infrastructure
+- [Architecture](/docs/architecture/) — how Rosetta Server fits in the system
+- [Troubleshooting](/docs/troubleshooting/) — debugging connection and retrieval issues
+- [Developer Guide](/docs/developer-guide/) — local development setup

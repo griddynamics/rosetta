@@ -7,6 +7,7 @@ permalink: /docs/deployment/
 # Deployment Guide
 
 **Who is this for?** Engineers deploying Rosetta infrastructure for their organization.
+
 **When should I read this?** When you need to stand up Rosetta Server (RAGFlow) and Rosetta MCP for your team. For single-user setup, see [Quick Start](/docs/quickstart/). For client/IDE configuration, see [Installation](/docs/installation/).
 
 > [!WARNING]

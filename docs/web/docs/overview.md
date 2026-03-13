@@ -10,6 +10,8 @@ permalink: /docs/overview/
 
 **When should I read this?** After the [Introduction](/docs/introduction/), before diving into [Architecture](/docs/architecture/) or [Contributing](/docs/contributing/).
 
+---
+
 ## Problem Rosetta Solves
 
 - AI coding agents miss conventions, constraints, and business rules. Rejection rates are high.

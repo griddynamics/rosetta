@@ -7,6 +7,7 @@ permalink: /docs/troubleshooting/
 # Troubleshooting
 
 **Who is this for?** Anyone blocked while using or developing Rosetta.
+
 **When should I read this?** When something isn't working and you need a quick fix.
 
 ---

@@ -7,6 +7,7 @@ permalink: /docs/developer-guide/
 # Developer Guide
 
 **Who is this for?** Active contributors and maintainers.
+
 **When should I read this?** After [Contributing](/docs/contributing/). Before making your first change.
 
 ---
