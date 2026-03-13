@@ -26,8 +26,8 @@
       messages: [
         { role: 'user', text: 'What workflows are available? I need to set up a new project.' },
         { role: 'rosetta', text: '<strong>Mode: self-help</strong> — Listing capabilities from knowledge base...' },
-        { role: 'rosetta', text: '<strong>Free workflows:</strong> Init, Self Help, Coding, Requirements, Research, Ad-hoc.<br><strong>Pro workflows:</strong> Code Analysis, Automated QA, Test Case Generation, Modernization, External Library, Coding Agents Prompting.<br><br>Describe what you need — Rosetta classifies and routes automatically.' },
-        { role: 'rosetta', text: '<strong>⏸ Guide:</strong> You asked about setting up a project. That maps to <strong>Init</strong>. It generates TECHSTACK.md, CODEMAP.md, CONTEXT.md, ARCHITECTURE.md, patterns, and IDE shells in 8 phases.<br><br>Ready to start?' },
+        { role: 'rosetta', text: '<strong>Free workflows:</strong> Init, Self Help, Coding, Requirements, Ad-hoc.<br><strong>Pro workflows:</strong> Research, Code Analysis, Automated QA, Test Case Generation, Modernization, External Library, Coding Agents Prompting.<br><br>Describe what you need — Rosetta classifies and routes automatically.' },
+        { role: 'rosetta', text: '<strong>Guide:</strong> You asked about setting up a project. That maps to <strong>Init</strong>. It generates TECHSTACK.md, CODEMAP.md, CONTEXT.md, ARCHITECTURE.md, patterns, and IDE shells in 8 phases.<br><br>Ready to start?' },
         { role: 'rosetta', text: '<strong>Handoff:</strong> Launching Init workflow now...' },
         { role: 'cta', text: '' }
       ]
@@ -41,7 +41,7 @@
         { role: 'rosetta', text: '<strong>Mode: init</strong> — Context: Detected existing repo. Building file inventory...' },
         { role: 'rosetta', text: '<strong>Shells:</strong> Generated IDE shell files for Claude Code, Cursor, Copilot, Windsurf.<br><strong>Discovery:</strong> Produced <code>TECHSTACK.md</code> (Go 1.22, gRPC, PostgreSQL), <code>CODEMAP.md</code>, <code>DEPENDENCIES.md</code>.' },
         { role: 'rosetta', text: '<strong>Patterns:</strong> Extracted 8 recurring coding and architectural patterns.<br><strong>Documentation:</strong> Created <code>CONTEXT.md</code>, <code>ARCHITECTURE.md</code>, <code>IMPLEMENTATION.md</code>, <code>ASSUMPTIONS.md</code>.' },
-        { role: 'rosetta', text: '<strong>⏸ Questions:</strong> Reviewed all generated docs for gaps — asking you to clarify 3 points: deployment target, auth strategy, retry policy.<br><br>Waiting for your answers.' },
+        { role: 'rosetta', text: '<strong>Questions:</strong> Reviewed all generated docs for gaps — asking you to clarify 3 points: deployment target, auth strategy, retry policy.<br><br>Waiting for your answers.' },
         { role: 'rosetta', text: '<strong>Verification:</strong> All artifacts validated against your codebase. Catch-up complete. <em>Start a new session to use Rosetta with full project context.</em>' },
         { role: 'cta', text: '' }
       ]
@@ -54,11 +54,11 @@
         { role: 'user', text: 'Write requirements for email notification preferences.' },
         { role: 'rosetta', text: '<strong>Mode: requirements</strong> — Discovery: Found notification module in <code>ARCHITECTURE.md</code>. 3 related stories and existing constraints identified.' },
         { role: 'rosetta', text: '<strong>Research:</strong> Located your team\'s Given/When/Then format and prior requirements decisions from knowledge base.' },
-        { role: 'rosetta', text: '<strong>⏸ Intent capture:</strong> Restating your intent, scope, goals, and surfacing assumptions.<br><br>Waiting for your confirmation before proceeding.' },
+        { role: 'rosetta', text: '<strong>Intent capture:</strong> Restating your intent, scope, goals, and surfacing assumptions.<br><br>Waiting for your confirmation before proceeding.' },
         { role: 'rosetta', text: '<strong>Outline:</strong> MECE requirement layout proposed across functional, NFR, and constraint areas.<br><br>Waiting for your approval.' },
-        { role: 'rosetta', text: '<strong>⏸ Draft:</strong> Atomic requirement units authored in EARS notation. Per-requirement approval pass complete.' },
+        { role: 'rosetta', text: '<strong>Draft:</strong> Atomic requirement units authored in EARS notation. Per-requirement approval pass complete.' },
         { role: 'rosetta', text: '<strong>Validate:</strong> Reviewer checked for conflicts, gaps, and contradictions. All clear.' },
-        { role: 'rosetta', text: '<strong>⏸ Deliver:</strong> Final set, traceability matrix, and change log saved to <code>docs/REQUIREMENTS/notification-preferences.md</code>.' },
+        { role: 'rosetta', text: '<strong>Deliver:</strong> Final set, traceability matrix, and change log saved to <code>docs/REQUIREMENTS/notification-preferences.md</code>.' },
         { role: 'cta', text: '' }
       ]
     },
@@ -72,9 +72,9 @@
         { role: 'rosetta', text: '<strong>Discovery:</strong> <em>(discoverer)</em> Analyzed auth module at <code>src/auth/</code> — JWT + bcrypt, 4 existing endpoints. Saved discovery notes.' },
         { role: 'rosetta', text: '<strong>Tech plan:</strong> <em>(architect)</em> Produced <code>password-reset-SPECS.md</code> and <code>password-reset-PLAN.md</code>:<br>1. <code>POST /auth/forgot-password</code><br>2. <code>POST /auth/reset-password</code><br>3. Token store with 15-min expiry<br>4. SendGrid email template<br>5. Rate limiting (3 req/min)' },
         { role: 'rosetta', text: '<strong>Review plan:</strong> <em>(reviewer)</em> Plan reviewed against project conventions. No issues found.' },
-        { role: 'rosetta', text: '<strong>⏸ Approve plan:</strong> Waiting for your approval before implementation.' },
+        { role: 'rosetta', text: '<strong>Approve plan:</strong> Waiting for your approval before implementation.' },
         { role: 'rosetta', text: '<strong>Implementation:</strong> <em>(engineer)</em> Code implemented per specs. Build passes.' },
-        { role: 'rosetta', text: '<strong>Review code + Impl validation:</strong> <em>(reviewer + validator)</em> Code reviewed against specs. Validation passed.<br><br><strong>⏸ Approve implementation:</strong> Waiting for your review.' },
+        { role: 'rosetta', text: '<strong>Review code + Impl validation:</strong> <em>(reviewer + validator)</em> Code reviewed against specs. Validation passed.<br><br><strong>Approve implementation:</strong> Waiting for your review.' },
         { role: 'rosetta', text: '<strong>Tests:</strong> <em>(engineer)</em> Test suite written and passing. <em>(reviewer)</em> Coverage verified. Final validation complete.' },
         { role: 'cta', text: '' }
       ]
@@ -95,11 +95,11 @@
     {
       title: 'Research architecture options',
       tag: 'Research',
-      paid: false,
+      paid: true,
       messages: [
         { role: 'user', text: 'Research options for migrating our queue from RabbitMQ to something more scalable.' },
-        { role: 'rosetta', text: '<strong>Mode: research</strong> — Context load: Read <code>TECHSTACK.md</code> (RabbitMQ 3.12, 15 consumers, ~50k msg/day) and <code>ARCHITECTURE.md</code> for integration points.' },
-        { role: 'rosetta', text: '<strong>⏸ Prompt craft:</strong> Architect built an optimized research prompt targeting your stack constraints and scaling requirements.<br><br>Waiting for your approval before running the investigation.' },
+        { role: 'rosetta', text: '<strong>Mode: research...</strong>' },
+        { role: 'rosetta', text: '<strong>Prompt craft:</strong> Architect built an optimized research prompt targeting your stack constraints and scaling requirements.<br><br>Waiting for your approval before running the investigation.' },
         { role: 'rosetta', text: '<strong>Execute research:</strong> Dedicated subagent investigated Kafka, NATS JetStream, and AWS SQS/SNS against your constraints — throughput, ops complexity, migration effort, cost.' },
         { role: 'rosetta', text: '<strong>Finalize:</strong> Comparative analysis with decision matrix and recommended approach saved to <code>docs/research/mq-migration.md</code>.' },
         { role: 'cta', text: '' }
@@ -298,7 +298,7 @@
         var el = document.createElement('div');
         if (msg.role === 'cta') {
           el.className = 'try-msg try-msg--cta';
-          el.innerHTML = '<a href="{{ "/" | relative_url }}#try-rosetta-section">Ready to try it yourself? \u2192 Get Started</a>';
+          el.innerHTML = '<a href="{{ "/" | relative_url }}#try-rosetta-section">Ready to try it yourself? Get Started</a>';
           el.querySelector('a').addEventListener('click', function() { closeDrawer(); });
         } else {
           el.className = 'try-msg try-msg--' + msg.role;

@@ -91,9 +91,11 @@
     // Build callout
     var div = document.createElement('div');
     div.className = 'docs-callout docs-callout--' + cfg.cls;
-    div.innerHTML = '<span class="docs-callout-icon">' + cfg.icon + '</span>'
-      + '<div class="docs-callout-body"><div class="docs-callout-title">' + cfg.label + '</div>'
-      + bq.innerHTML + '</div>';
+    div.innerHTML = '<div class="docs-callout-header">'
+      + '<span class="docs-callout-icon">' + cfg.icon + '</span>'
+      + '<span class="docs-callout-title">' + cfg.label + '</span>'
+      + '</div>'
+      + '<div class="docs-callout-body">' + bq.innerHTML + '</div>';
     bq.parentNode.replaceChild(div, bq);
   });
 

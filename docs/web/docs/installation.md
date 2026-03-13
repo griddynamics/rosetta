@@ -7,6 +7,7 @@ permalink: /docs/installation/
 # Installation
 
 **Who is this for?** Complete setup reference for all installation modes.
+
 **When should I read this?** When you need the full picture: HTTP, STDIO, plugins, offline, or environment variables. For the fastest path, see [Quick Start](/docs/quickstart/).
 
 > [!WARNING]

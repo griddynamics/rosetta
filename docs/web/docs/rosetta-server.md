@@ -38,7 +38,7 @@ For public API payloads/params, `metadata_condition` uses:
 ```
 
 Notes:
-- `logic`: `and` | `or`
+- `logic`: `and` or `or`
 - `conditions[*].name`: metadata field name
 - `conditions[*].comparison_operator`: operator
 - `conditions[*].value`: comparison value

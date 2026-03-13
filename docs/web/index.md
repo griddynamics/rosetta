@@ -31,7 +31,7 @@ permalink: /
           <span class="flip-hint">Click to explore</span>
         </div>
         <div class="flip-back">
-          <p>AI coding agents miss conventions, constraints, and business rules. Rejection rates are high.</p>
+          <p>Agents lack your architecture, business rules, and compliance requirements. They produce code that violates conventions, causing expensive rework and high rejection rates.</p>
         </div>
       </div>
     </div>
@@ -42,7 +42,7 @@ permalink: /
           <span class="flip-hint">Click to explore</span>
         </div>
         <div class="flip-back">
-          <p>Writing effective instructions is hard. Keeping them current across evolving tools and models is harder.</p>
+          <p>Every engineer writes their own prompts — or none at all. Crafting effective instructions takes hours of work per task, they go stale fast, and there's no way to version, review, or govern them.</p>
         </div>
       </div>
     </div>
@@ -53,7 +53,7 @@ permalink: /
           <span class="flip-hint">Click to explore</span>
         </div>
         <div class="flip-back">
-          <p>Reusable instructions across different IDEs and AI agents barely exist.</p>
+          <p>Prompt libraries are IDE-specific and fragile. Switch from Cursor to Claude Code? Rewrite everything. New model drops? Start over. The same problem gets solved differently on every team.</p>
         </div>
       </div>
     </div>
@@ -64,7 +64,7 @@ permalink: /
           <span class="flip-hint">Click to explore</span>
         </div>
         <div class="flip-back">
-          <p>Knowledge stays siloed. No way to share proven patterns across projects or enforce consistent behavior at scale.</p>
+          <p>Patterns proven in one project never reach others. Senior expertise stays in people's heads. Breaking changes cascade undetected across services because agents see one repo, not the system.</p>
         </div>
       </div>
     </div>
@@ -111,7 +111,7 @@ permalink: /
 <!-- ===== GET STARTED ===== -->
 <section class="section" id="quick-start">
   <h2 class="with-marker">Get Started</h2>
-  <p class="section-subtitle">Three steps to connect Rosetta to your IDE and start coding smarter.</p>
+  <p class="section-subtitle">Four steps to connect Rosetta to your IDE and start coding smarter.</p>
   <div class="qs-panel">
 
     <div class="qs-stepper">
@@ -270,19 +270,31 @@ permalink: /
       </div>
 
       <!-- Step 3 -->
+      <div class="qs-step">
+        <div class="qs-step-indicator">
+          <span class="qs-step-num">3</span>
+          <span class="qs-step-line"></span>
+        </div>
+        <div class="qs-step-body">
+          <h3 class="qs-step-title">Add Bootstrap Rule</h3>
+          <p class="qs-step-desc">Download <a href="https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1" target="_blank" rel="noopener noreferrer">bootstrap.md</a> and add it to your IDE's instruction file. See <a href="{{ '/docs/quickstart/#step-2-add-bootstrap-rule' | relative_url }}">Quick Start</a> for file paths per IDE.</p>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
       <div class="qs-step qs-step--last">
         <div class="qs-step-indicator">
           <span class="qs-step-num qs-step-num--done">&#10003;</span>
         </div>
         <div class="qs-step-body">
-          <h3 class="qs-step-title">Initialize &amp; Verify</h3>
-          <p class="qs-step-desc">Restart your IDE, then ask your assistant:</p>
-          <div class="qs-code-wrap">
-            <pre class="qs-code"><span class="qs-comment"># "Initialize this repository using Rosetta"</span></pre>
-          </div>
-          <p class="qs-step-desc" style="margin-top:.8rem;">Then verify everything works:</p>
+          <h3 class="qs-step-title">Verify &amp; Initialize</h3>
+          <p class="qs-step-desc">Restart your IDE, then verify Rosetta is connected:</p>
           <div class="qs-code-wrap">
             <pre class="qs-code"><span class="qs-comment"># "What can you do, Rosetta?"</span></pre>
+          </div>
+          <p class="qs-step-desc" style="margin-top:.8rem;">Then initialize your repository:</p>
+          <div class="qs-code-wrap">
+            <pre class="qs-code"><span class="qs-comment"># "Initialize this repository using Rosetta"</span></pre>
           </div>
         </div>
       </div>
@@ -543,3 +555,12 @@ permalink: /
 })();
 </script>
 
+<div class="rm-feedback" style="margin-top:3rem;flex-direction:column;align-items:flex-start;gap:.75rem">
+  <div class="rm-feedback-text">
+    <strong>Want the full picture?</strong>
+    <p>Key concepts, session lifecycle, three-layer architecture, workflow patterns, and everything else in one place.</p>
+  </div>
+  <div class="rm-feedback-actions">
+    <a href="{{ '/docs/introduction/' | relative_url }}" class="rm-feedback-btn rm-feedback-btn--lg">Docs</a>
+  </div>
+</div>

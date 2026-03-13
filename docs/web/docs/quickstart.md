@@ -7,6 +7,7 @@ permalink: /docs/quickstart/
 # Quick Start
 
 **Who is this for?** New users setting up Rosetta for the first time.
+
 **When should I read this?** When you want to go from zero to a working setup.
 
 ---

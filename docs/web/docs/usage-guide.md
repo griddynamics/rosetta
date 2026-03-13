@@ -160,7 +160,7 @@ Building blocks: discover, reason, plan, execute, review, validate.
 </details>
 
 <details markdown="1">
-<summary><b>Code Analysis 🚧</b></summary>
+<summary><b>Code Analysis <span class="badge-pro">PRO</span></b></summary>
 
 Systematic understanding of existing codebases. Distinguishes small and large analysis targets.
 
@@ -175,7 +175,7 @@ Systematic understanding of existing codebases. Distinguishes small and large an
 </details>
 
 <details markdown="1">
-<summary><b>Automated QA 🚧</b></summary>
+<summary><b>Automated QA <span class="badge-pro">PRO</span></b></summary>
 
 Test automation workflow with approval gate before implementation.
 
@@ -195,7 +195,7 @@ Test automation workflow with approval gate before implementation.
 </details>
 
 <details markdown="1">
-<summary><b>Test Case Generation 🚧</b></summary>
+<summary><b>Test Case Generation <span class="badge-pro">PRO</span></b></summary>
 
 Generates test cases from Jira tickets and Confluence documentation.
 
@@ -215,7 +215,7 @@ Generates test cases from Jira tickets and Confluence documentation.
 </details>
 
 <details markdown="1">
-<summary><b>Modernization 🚧</b></summary>
+<summary><b>Modernization <span class="badge-pro">PRO</span></b></summary>
 
 Large-scale code conversions, upgrades, and re-architecture.
 
@@ -239,7 +239,7 @@ Pattern detection drives consistency across the transformation.
 </details>
 
 <details markdown="1">
-<summary><b>External Library 🚧</b></summary>
+<summary><b>External Library <span class="badge-pro">PRO</span></b></summary>
 
 Onboards private or external libraries for AI understanding. Uses Repomix for codebase analysis, generates compressed documentation, publishes to the knowledge base, and extracts usage patterns.
 
@@ -251,7 +251,7 @@ Onboards private or external libraries for AI understanding. Uses Repomix for co
 </details>
 
 <details markdown="1">
-<summary><b>Coding Agents Prompting 🚧</b></summary>
+<summary><b>Coding Agents Prompting <span class="badge-pro">PRO</span></b></summary>
 
 Specialized workflow for authoring and adapting prompts for AI coding agents. Built for teams that create or maintain instruction sets for AI tools.
 
@@ -346,26 +346,26 @@ Reusable units of work that workflows and subagents invoke. Each skill focuses o
 | **Init Workspace Rules** | Create local cached agent rules configured for IDE/OS/project context |
 | **Init Workspace Shells** | Generate IDE/CodingAgent shell files from KB schemas |
 | **Init Workspace Verification** | Verify initialization completeness and run catch-up for missed artifacts |
-| **Backward Compatibility** 🚧 | Ensure changes preserve backward compatibility |
-| **Code Review** 🚧 | Structured code review against standards and intent |
-| **Context Engineering** 🚧 | Advanced context construction and optimization |
-| **Data Generation** 🚧 | Generate test data and synthetic datasets |
-| **Design** 🚧 | System and API design patterns |
-| **Discovery** 🚧 | Deep codebase and domain discovery |
-| **Documentation** 🚧 | Technical documentation authoring |
-| **Git** 🚧 | Git operations and workflow management |
-| **Large File Handling** 🚧 | Process files too large for single-pass context |
-| **Plan Review** 🚧 | Review execution plans for completeness and risk |
-| **Prompt Diagnosis** 🚧 | Diagnose and fix underperforming prompts |
-| **Research** 🚧 | Systematic deep research using meta-prompting with grounded references and self-validation |
-| **Scenarios Generation** 🚧 | Generate test scenarios from requirements |
-| **Security** 🚧 | Security analysis and vulnerability assessment |
-| **Simulation** 🚧 | Simulate prompt execution for validation |
-| **Technical Summarization** 🚧 | Concise technical summaries of complex content |
-| **Template Execution** 🚧 | Execute parameterized prompt templates |
-| **Coding Agents Prompt Authoring** 🚧 | Author, update, and validate prompts for AI coding agents with analytics artifacts |
-| **Coding Agents Farm** 🚧 | Orchestrate multiple coding agents in parallel on isolated git worktrees |
-| **Natural Writing** 🚧 | Clear, human-sounding text without AI cliches or marketing hype |
+| **Backward Compatibility** <span class="badge-pro">PRO</span> | Ensure changes preserve backward compatibility |
+| **Code Review** <span class="badge-pro">PRO</span> | Structured code review against standards and intent |
+| **Context Engineering** <span class="badge-pro">PRO</span> | Advanced context construction and optimization |
+| **Data Generation** <span class="badge-pro">PRO</span> | Generate test data and synthetic datasets |
+| **Design** <span class="badge-pro">PRO</span> | System and API design patterns |
+| **Discovery** <span class="badge-pro">PRO</span> | Deep codebase and domain discovery |
+| **Documentation** <span class="badge-pro">PRO</span> | Technical documentation authoring |
+| **Git** <span class="badge-pro">PRO</span> | Git operations and workflow management |
+| **Large File Handling** <span class="badge-pro">PRO</span> | Process files too large for single-pass context |
+| **Plan Review** <span class="badge-pro">PRO</span> | Review execution plans for completeness and risk |
+| **Prompt Diagnosis** <span class="badge-pro">PRO</span> | Diagnose and fix underperforming prompts |
+| **Research** <span class="badge-pro">PRO</span> | Systematic deep research using meta-prompting with grounded references and self-validation |
+| **Scenarios Generation** <span class="badge-pro">PRO</span> | Generate test scenarios from requirements |
+| **Security** <span class="badge-pro">PRO</span> | Security analysis and vulnerability assessment |
+| **Simulation** <span class="badge-pro">PRO</span> | Simulate prompt execution for validation |
+| **Technical Summarization** <span class="badge-pro">PRO</span> | Concise technical summaries of complex content |
+| **Template Execution** <span class="badge-pro">PRO</span> | Execute parameterized prompt templates |
+| **Coding Agents Prompt Authoring** <span class="badge-pro">PRO</span> | Author, update, and validate prompts for AI coding agents with analytics artifacts |
+| **Coding Agents Farm** <span class="badge-pro">PRO</span> | Orchestrate multiple coding agents in parallel on isolated git worktrees |
+| **Natural Writing** <span class="badge-pro">PRO</span> | Clear, human-sounding text without AI cliches or marketing hype |
 
 </details>
 
@@ -383,10 +383,10 @@ Workflows delegate phases to specialized subagents. Each has a focused role, its
 | **Engineer** | Executes implementation and testing tasks |
 | **Reviewer** | Inspects artifacts against intent and contracts, provides recommendations |
 | **Validator** | Verifies implementation through actual execution and evidence-based validation |
-| **Analyst** 🚧 | Business and technical requirements analysis |
-| **Orchestrator** 🚧 | Manages a team of subagents, owns delegation quality end-to-end |
-| **Researcher** 🚧 | Deep research with grounded references and systematic exploration |
-| **Prompt Engineer** 🚧 | Authors and adapts prompt artifacts under explicit HITL approvals |
+| **Analyst** <span class="badge-pro">PRO</span> | Business and technical requirements analysis |
+| **Orchestrator** <span class="badge-pro">PRO</span> | Manages a team of subagents, owns delegation quality end-to-end |
+| **Researcher** <span class="badge-pro">PRO</span> | Deep research with grounded references and systematic exploration |
+| **Prompt Engineer** <span class="badge-pro">PRO</span> | Authors and adapts prompt artifacts under explicit HITL approvals |
 
 </details>
 
@@ -530,4 +530,4 @@ These videos were recorded in different IDEs to show that Rosetta works everywhe
 
 ---
 
-> 🚧 In development or available with the enterprise edition.
+> <span class="badge-pro">PRO</span> In development or available with the enterprise edition.

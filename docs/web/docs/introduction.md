@@ -5,10 +5,8 @@ permalink: /docs/introduction/
 ---
 
 <div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/web/assets/brand/rosetta-logo-full-color-white-text.png">
-    <img src="docs/web/assets/brand/rosetta-logo-full-color-black-text.png" alt="Rosetta" width="200">
-  </picture>
+  <img class="intro-logo intro-logo--dark" src="{{ '/assets/brand/rosetta-logo-full-color-white-text.png' | relative_url }}" alt="Rosetta" width="200">
+  <img class="intro-logo intro-logo--light" src="{{ '/assets/brand/rosetta-logo-full-color-black-text.png' | relative_url }}" alt="Rosetta" width="200">
   <p><strong>Consulting control plane for AI coding agents</strong></p>
   <p>
     <a href="https://pypi.org/project/ims-mcp/"><img src="https://img.shields.io/pypi/v/ims-mcp.svg" alt="PyPI"></a>
@@ -71,7 +69,14 @@ STDIO transport is available for air-gapped environments. [All IDEs and detailed
 
 ## Supported IDEs and Agents
 
-Cursor | Claude Code | VS Code / GitHub Copilot | JetBrains (Copilot, Junie) | Windsurf | Codex | Antigravity | OpenCode
+- Cursor
+- Claude Code
+- VS Code / GitHub Copilot
+- JetBrains (Copilot, Junie)
+- Windsurf
+- Codex
+- Antigravity
+- OpenCode
 
 Works with any MCP-compatible tool.
 
@@ -95,7 +100,6 @@ Contributions welcome. See [Contributing](/docs/contributing/) for workflow and 
 ## Community
 
 - [Discord](https://discord.gg/QzZ2cWg36g)
-- [Website](https://griddynamics.github.io/rosetta/)
 - [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)
 
 ## License

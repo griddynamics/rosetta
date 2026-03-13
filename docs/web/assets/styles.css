@@ -999,6 +999,12 @@ h2.with-marker::before {
   transition: background .15s, border-color .15s, color .15s;
 }
 
+.rm-feedback-btn--lg {
+  padding: .4rem 1rem;
+  font-size: .88rem;
+  border-radius: 7px;
+}
+
 .rm-feedback-btn svg {
   width: 16px;
   height: 16px;
@@ -3445,8 +3451,19 @@ body.docs-layout main {
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--muted);
-  padding: 1rem 1.5rem .3rem;
+  padding: 1rem 1.5rem .4rem;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.docs-sidebar-cat::after {
+  content: '';
+  display: block;
+  width: 1.5rem;
+  height: 2px;
+  background: var(--gd-gold);
+  margin-top: .3rem;
 }
 
 .docs-sidebar-link {
@@ -3718,11 +3735,33 @@ body.docs-layout main {
   background: #f7f9fc;
 }
 
+/* ===== PRO BADGE ===== */
+.badge-pro {
+  display: inline-block;
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: #1a1a1a;
+  background: var(--gd-gold);
+  border-radius: 3px;
+  padding: .1em .45em;
+  vertical-align: middle;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+/* ===== INTRO LOGO (theme-aware) ===== */
+.intro-logo--light { display: none; }
+.intro-logo--dark  { display: inline; }
+[data-theme="light"] .intro-logo--light { display: inline; }
+[data-theme="light"] .intro-logo--dark  { display: none; }
+
 /* ===== DOCS CALLOUTS (GitHub-style admonitions) ===== */
 .docs-callout {
   display: flex;
-  align-items: flex-start;
-  gap: .75rem;
+  flex-direction: column;
+  gap: .4rem;
   border-radius: 8px;
   padding: .85rem 1.1rem;
   margin: 1.25rem 0;
@@ -3731,20 +3770,26 @@ body.docs-layout main {
   line-height: 1.55;
 }
 
+.docs-callout-header {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
 .docs-callout-icon {
   font-size: 1rem;
   flex-shrink: 0;
-  margin-top: .1rem;
+  line-height: 1;
 }
 
-.docs-callout-body { flex: 1; min-width: 0; }
+.docs-callout-body { min-width: 0; }
 
 .docs-callout-title {
   font-weight: 700;
   font-size: .78rem;
   letter-spacing: .08em;
   text-transform: uppercase;
-  margin-bottom: .25rem;
+  line-height: 1;
 }
 
 .docs-callout--note    { background: rgba(99,179,237,0.08);  border-color: rgba(99,179,237,0.35);  }

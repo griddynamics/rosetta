@@ -228,23 +228,12 @@ permalink: /overview/
 })();
 </script>
 
-## What Rosetta Is Not
-
-<div style="display:flex;flex-direction:column;gap:.5rem;max-width:720px">
-  <div class="note"><strong>Not a code executor.</strong> Rosetta guides coding agents. Coding agents plan and modify code.</div>
-  <div class="note"><strong>Not real-time monitoring.</strong> No continuous observation of agent behavior during execution.</div>
-  <div class="note"><strong>Not a project manager.</strong> No scheduling, assignment, or progress tracking.</div>
-  <div class="note"><strong>Not for non-SDLC work.</strong> Guardrails enforce this boundary.</div>
-  <div class="note"><strong>Not a replacement for thinking.</strong> HITL gates exist because human judgment matters at critical points.</div>
-</div>
-
-<div class="rm-feedback" style="margin-top:3rem">
+<div class="rm-feedback" style="margin-top:3rem;flex-direction:column;align-items:flex-start;gap:.75rem">
   <div class="rm-feedback-text">
     <strong>Want the full picture?</strong>
     <p>Key concepts, session lifecycle, three-layer architecture, workflow patterns, and everything else in one place.</p>
   </div>
   <div class="rm-feedback-actions">
-    <a href="https://github.com/griddynamics/rosetta/blob/main/OVERVIEW.md" target="_blank" rel="noopener noreferrer" class="rm-feedback-btn">Read OVERVIEW.md</a>
+    <a href="{{ '/docs/introduction/' | relative_url }}" class="rm-feedback-btn rm-feedback-btn--lg">Docs</a>
   </div>
 </div>
-

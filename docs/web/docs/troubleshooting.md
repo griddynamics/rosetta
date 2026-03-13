@@ -105,4 +105,3 @@ Common causes: unsupported file format, oversized documents, malformed markdown.
 - [Discord](https://discord.gg/QzZ2cWg36g)
 - [Open an issue](https://github.com/griddynamics/rosetta/issues)
 - [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)
-- [Website](https://griddynamics.github.io/rosetta/)

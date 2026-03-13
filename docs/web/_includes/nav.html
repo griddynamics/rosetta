@@ -8,11 +8,10 @@
       <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
       <ul>
         <li><a href="{{ '/' | relative_url }}" class="{% if page.url == '/' %}active{% endif %}">Home</a></li>
-        <li><a href="{{ '/docs/' | relative_url }}" class="{% if page.url contains '/docs/' %}active{% endif %}">Docs</a></li>
         <li><a href="{{ '/overview/' | relative_url }}" class="{% if page.url == '/overview/' %}active{% endif %}">Overview</a></li>
-        <li><a href="{{ '/usage/' | relative_url }}" class="{% if page.url == '/usage/' %}active{% endif %}">Usage</a></li>
-        <li><a href="{{ '/roadmap/' | relative_url }}" class="{% if page.url == '/roadmap/' %}active{% endif %}">Roadmap</a></li>
         <li><a href="{{ '/contribute/' | relative_url }}" class="{% if page.url == '/contribute/' %}active{% endif %}">Contribute</a></li>
+        <li><a href="{{ '/docs/introduction/' | relative_url }}" class="{% if page.url contains '/docs/' %}active{% endif %}">Docs</a></li>
+        <li><a href="{{ '/roadmap/' | relative_url }}" class="{% if page.url == '/roadmap/' %}active{% endif %}">Roadmap</a></li>
         <li>
           <a href="https://github.com/griddynamics/rosetta" target="_blank" rel="noopener noreferrer" class="github-link" aria-label="GitHub repository griddynamics/rosetta">
             <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
