@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <script>
+    (function(){
+      var t = localStorage.getItem('rosetta-theme');
+      if (!t && window.matchMedia) {
+        t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      }
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <title>{% if page.title %}{{ page.title }} | {{ site.seo_title | default: site.title }}{% else %}{{ site.seo_title | default: site.title }}{% endif %}</title>
+  <meta name="description" content="Rosetta documentation — consulting control plane for AI coding agents.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Sans:wght@400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ '/assets/styles.css' | relative_url }}">
+  <link rel="icon" type="image/png" href="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}">
+  <link rel="apple-touch-icon" href="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}">
+</head>
+<body class="docs-layout">
+<a href="#main-content" class="skip-to-content">Skip to content</a>
+{% include nav.html %}
+<div class="docs-wrap">
+  <aside class="docs-sidebar" aria-label="Documentation navigation">
+    <p class="docs-sidebar-cat">Getting Started</p>
+    <a href="{{ '/docs/introduction/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/introduction/' %} active{% endif %}">Introduction</a>
+    <a href="{{ '/docs/quickstart/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/quickstart/' %} active{% endif %}">Quick Start</a>
+    <a href="{{ '/docs/installation/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/installation/' %} active{% endif %}">Installation</a>
+
+    <p class="docs-sidebar-cat">Core Concepts</p>
+    <a href="{{ '/docs/overview/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/overview/' %} active{% endif %}">Overview</a>
+    <a href="{{ '/docs/architecture/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/architecture/' %} active{% endif %}">Architecture</a>
+    <a href="{{ '/docs/context/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/context/' %} active{% endif %}">Context</a>
+
+    <p class="docs-sidebar-cat">Guides</p>
+    <a href="{{ '/docs/usage-guide/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/usage-guide/' %} active{% endif %}">Usage Guide</a>
+    <a href="{{ '/docs/deployment/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/deployment/' %} active{% endif %}">Deployment</a>
+    <a href="{{ '/docs/troubleshooting/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/troubleshooting/' %} active{% endif %}">Troubleshooting</a>
+
+    <p class="docs-sidebar-cat">Development</p>
+    <a href="{{ '/docs/developer-guide/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/developer-guide/' %} active{% endif %}">Developer Guide</a>
+    <a href="{{ '/docs/contributing/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/contributing/' %} active{% endif %}">Contributing</a>
+    <a href="{{ '/docs/review/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/review/' %} active{% endif %}">Review Standards</a>
+    <a href="{{ '/docs/rosetta-server/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/rosetta-server/' %} active{% endif %}">Rosetta Server</a>
+  </aside>
+  <main id="main-content" class="docs-content">
+    {{ content }}
+  </main>
+</div>
+<footer>
+  <div class="footer-wrap">
+    <span>Copyright &copy; {{ 'now' | date: '%Y' }} Grid Dynamics. All rights reserved.</span>
+    <nav class="footer-nav" aria-label="Footer navigation">
+      <a href="{{ '/overview/' | relative_url }}">Overview</a>
+      <a href="{{ '/usage/' | relative_url }}">Usage</a>
+      <a href="{{ '/roadmap/' | relative_url }}">Roadmap</a>
+      <a href="{{ '/contribute/' | relative_url }}">Contribute</a>
+      <a href="https://github.com/griddynamics/rosetta" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://discord.gg/QzZ2cWg36g" target="_blank" rel="noopener noreferrer">Community</a>
+      <a href="mailto:rosetta-support@griddynamics.com">Contact Us</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
