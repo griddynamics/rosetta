@@ -29,7 +29,7 @@ No special syntax. No commands to memorize. [Progressive disclosure](/docs/overv
 
 Rosetta classifies your request and loads the matching workflow. Each workflow defines phases, produces traceable artifacts, and enforces approval gates (⏸) where decisions matter.
 
-<details>
+<details markdown="1">
 <summary><b>Init Workspace</b></summary>
 
 Sets up a new or existing repository for AI-assisted development. Handles fresh repos, upgrades, and plugin mode.
@@ -53,7 +53,7 @@ For composite workspaces, init each repository separately, then init at workspac
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Self Help</b></summary>
 
 Answers questions about Rosetta itself. If you decide to act, hands off to the real workflow without leaving the session.
@@ -72,7 +72,7 @@ Answers questions about Rosetta itself. If you decide to act, hands off to the r
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Coding</b></summary>
 
 The main development workflow. Scales with task size: small tasks skip phases marked (M,L).
@@ -98,7 +98,7 @@ The main development workflow. Scales with task size: small tasks skip phases ma
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Requirements Authoring</b></summary>
 
 Produces structured, testable, approved requirements. Saves to `docs/REQUIREMENTS/`.
@@ -119,7 +119,7 @@ Produces structured, testable, approved requirements. Saves to `docs/REQUIREMENT
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Research</b></summary>
 
 Deep, project-grounded investigation using meta-prompting. Every claim backed by evidence.
@@ -138,7 +138,7 @@ Deep, project-grounded investigation using meta-prompting. Every claim backed by
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Ad-hoc</b></summary>
 
 Adaptive meta-workflow for tasks that do not fit a fixed structure. Constructs a custom execution plan from building blocks and adapts mid-execution. Good for cross-cutting work, experiments, or anything that spans multiple concerns.
@@ -159,7 +159,7 @@ Building blocks: discover, reason, plan, execute, review, validate.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Code Analysis 🚧</b></summary>
 
 Systematic understanding of existing codebases. Distinguishes small and large analysis targets.
@@ -174,7 +174,7 @@ Systematic understanding of existing codebases. Distinguishes small and large an
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Automated QA 🚧</b></summary>
 
 Test automation workflow with approval gate before implementation.
@@ -194,7 +194,7 @@ Test automation workflow with approval gate before implementation.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Test Case Generation 🚧</b></summary>
 
 Generates test cases from Jira tickets and Confluence documentation.
@@ -214,7 +214,7 @@ Generates test cases from Jira tickets and Confluence documentation.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Modernization 🚧</b></summary>
 
 Large-scale code conversions, upgrades, and re-architecture.
@@ -238,7 +238,7 @@ Pattern detection drives consistency across the transformation.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>External Library 🚧</b></summary>
 
 Onboards private or external libraries for AI understanding. Uses Repomix for codebase analysis, generates compressed documentation, publishes to the knowledge base, and extracts usage patterns.
@@ -250,7 +250,7 @@ Onboards private or external libraries for AI understanding. Uses Repomix for co
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Coding Agents Prompting 🚧</b></summary>
 
 Specialized workflow for authoring and adapting prompts for AI coding agents. Built for teams that create or maintain instruction sets for AI tools.
@@ -319,7 +319,7 @@ MCPs give the AI eyes and hands beyond the codebase.
 
 Bold entries are strongly recommended. The rest depend on your project needs.
 
-<details>
+<details markdown="1">
 <summary><b>Skills</b></summary>
 
 Reusable units of work that workflows and subagents invoke. Each skill focuses on one type of task.
@@ -369,7 +369,7 @@ Reusable units of work that workflows and subagents invoke. Each skill focuses o
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Agents</b></summary>
 
 Workflows delegate phases to specialized subagents. Each has a focused role, its own context window, and access to relevant skills. The orchestrator coordinates sequence, state, and approvals.
@@ -390,7 +390,7 @@ Workflows delegate phases to specialized subagents. Each has a focused role, its
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>In Practice</b></summary>
 
 ### Feature Development
@@ -454,7 +454,7 @@ What happens:
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>How Rosetta Protects You</b></summary>
 
 These rules are always active. They cannot be turned off.
