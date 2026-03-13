@@ -3721,6 +3721,7 @@ body.docs-layout main {
 /* ===== DOCS CALLOUTS (GitHub-style admonitions) ===== */
 .docs-callout {
   display: flex;
+  align-items: flex-start;
   gap: .75rem;
   border-radius: 8px;
   padding: .85rem 1.1rem;
