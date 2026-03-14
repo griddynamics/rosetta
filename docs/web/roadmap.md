@@ -19,42 +19,32 @@ permalink: /roadmap/
 <div class="rm-panel" id="rm-r1">
   <div class="rm-panel-intro">
     <span class="release-badge release-badge--stable">Previous Release</span>
-    <p>Delivered the core Rosetta MCP experience — centralized knowledge retrieval, automated repo initialization, and the Prepare → Research → Plan → Act workflow across all major AI coding clients.</p>
+    <p>Delivered the core Rosetta experience — centralized knowledge delivery, automated repo initialization, and structured workflows across all major AI coding IDEs.</p>
   </div>
 
   <div class="rm-group">
-    <div class="rm-label">MCP &amp; Clients</div>
+    <div class="rm-label">IDE Integration</div>
     <ul class="rm-list">
-      <li>Single-command install via <code>uvx ims-mcp</code> with stdio transport</li>
-      <li>Supports Claude Code, Cursor, Windsurf, VS Code, JetBrains, OpenCode, and any MCP-compatible tool</li>
-      <li>Semantic knowledge retrieval and context injection into every AI session</li>
+      <li>One-command setup across Cursor, Claude Code, VS Code, Windsurf, JetBrains, and any MCP-compatible tool</li>
+      <li>Automatic knowledge retrieval and context injection into every AI session</li>
     </ul>
   </div>
 
   <div class="rm-group">
-    <div class="rm-label">Repository Initialization</div>
+    <div class="rm-label">Repository Onboarding</div>
     <ul class="rm-list">
       <li>Automated analysis of tech stack, dependencies, and architecture</li>
-      <li>Generates <code>TECHSTACK.md</code>, <code>CODEMAP.md</code>, <code>ARCHITECTURE.md</code>, and <code>CONTEXT.md</code></li>
-      <li>Configures agent rules and subagents per project</li>
+      <li>Project documentation generated in minutes, not days</li>
+      <li>Agent rules and workflows configured per project</li>
     </ul>
   </div>
 
   <div class="rm-group">
-    <div class="rm-label">Knowledge Base</div>
+    <div class="rm-label">Knowledge &amp; Workflows</div>
     <ul class="rm-list">
-      <li>R2R vector store with centralized <code>aia-r1</code> instruction collection</li>
-      <li>Rules, guardrails, workflows, and best practices</li>
-      <li>Rosetta CLI for publishing, dataset management, and change detection</li>
-    </ul>
-  </div>
-
-  <div class="rm-group">
-    <div class="rm-label">Workflow Engine</div>
-    <ul class="rm-list">
-      <li>Prepare → Research → Plan → Act execution model</li>
-      <li>Task classification across coding, QA, research, and modernization</li>
-      <li>Progressive disclosure and meta-prompting for project-adaptive context</li>
+      <li>Centralized knowledge base with rules, guardrails, and best practices</li>
+      <li>CLI for publishing and managing instructions as code</li>
+      <li>Prepare → Research → Plan → Act execution model with task classification</li>
     </ul>
   </div>
 </div>
@@ -63,40 +53,68 @@ permalink: /roadmap/
 <div class="rm-panel active" id="rm-r2">
   <div class="rm-panel-intro">
     <span class="release-badge release-badge--stable">Production · Stable</span>
-    <p>A major architectural evolution bringing enterprise security, scalable deployment, an expanded skill and workflow taxonomy, and a new automated setup CLI. Fully backwards-compatible with R1.</p>
+    <p>Enterprise-grade release with flexible deployment, built-in security, an expanded workflow library, and intelligent agent orchestration. Backwards-compatible with R1.</p>
   </div>
 
   <div class="rm-group">
-    <div class="rm-label">Infrastructure</div>
+    <div class="rm-label">Deploy Anywhere</div>
     <ul class="rm-list">
-      <li>RAGFlow backend replacing R2R — Docker Compose and Kubernetes Helm charts included</li>
-      <li>HTTP transport mode for remote and centralized MCP server deployment</li>
-      <li>Redis session store enabling horizontal scaling across multiple instances</li>
+      <li>Multiple connection modes — cloud, local, plugin, and fully offline</li>
+      <li>Scales horizontally for teams of any size</li>
+      <li>Air-gap capable — runs inside your perimeter with no external dependencies</li>
+      <li>Container-ready with Docker Compose and Kubernetes support</li>
     </ul>
   </div>
 
   <div class="rm-group">
-    <div class="rm-label">Security &amp; Access Control</div>
+    <div class="rm-label">Enterprise Security</div>
     <ul class="rm-list">
-      <li>OAuth 2.0 / Keycloak with token introspection and origin validation middleware</li>
-      <li>Role-based access control with read/write/create policies per dataset and team</li>
-      <li>Project-scoped collections (<code>project-{name}</code>) with auto-invite and team-based access</li>
+      <li>Industry-standard authentication with support for major identity providers</li>
+      <li>Tokens encrypted at rest; policy-based access control per team and project</li>
+      <li>Human-in-the-loop approval gates at every critical decision point</li>
+      <li>Sensitive data protection, risk assessment, and scope enforcement built in</li>
+      <li>No source code ever leaves your organization</li>
     </ul>
   </div>
 
   <div class="rm-group">
-    <div class="rm-label">Skills &amp; Workflows</div>
+    <div class="rm-label">Workflows &amp; Skills</div>
     <ul class="rm-list">
-      <li>24 structured skills including coding, reasoning, planning, testing, requirements authoring, and reverse engineering</li>
-      <li>15 named workflows: <code>coding-flow</code>, <code>adhoc-flow</code>, <code>init-workspace-flow</code>, <code>requirements-authoring-flow</code>, <code>self-help-flow</code>, <code>research-flow</code>, <code>coding-agents-prompting-flow</code></li>
-      <li>Full subagent taxonomy — discoverer, architect, planner, engineer, executor, reviewer, validator, researcher, prompt-engineer</li>
+      <li>14+ structured workflows covering the full SDLC — from initialization to validation</li>
+      <li>30 skills spanning coding, testing, planning, research, security, and documentation</li>
+      <li>Every request auto-classified and routed to the right workflow</li>
+      <li>Context loads progressively — agents get only what they need, when they need it</li>
+      <li>Five-phase execution: Prepare, Research, Plan, Act, Validate</li>
+    </ul>
+  </div>
+
+  <div class="rm-group">
+    <div class="rm-label">Intelligent Agents</div>
+    <ul class="rm-list">
+      <li>Specialized agents for discovery, planning, implementation, review, and validation</li>
+      <li>Persistent execution plans — resume where you left off, even across sessions</li>
+      <li>Parallel delegation with scoped context for large workspaces</li>
+      <li>Automatic bootstrapping — project context loads before the agent acts</li>
+    </ul>
+  </div>
+
+  <div class="rm-group">
+    <div class="rm-label">Knowledge Architecture</div>
+    <ul class="rm-list">
+      <li>Three-layer instructions: core standards + organization rules + project-specific context</li>
+      <li>Instructions versioned and published as code — rollback anytime</li>
+      <li>Automatic workspace documentation generated during onboarding</li>
+      <li>Incremental publishing — only changed instructions are updated</li>
     </ul>
   </div>
 
   <div class="rm-group">
     <div class="rm-label">Developer Experience</div>
     <ul class="rm-list">
-      <li>FastMCP v3 upgrade; Rosetta CLI 3–77× faster via MD5 change detection and server-side filtering</li>
+      <li>One-file bootstrap — single rule file gets any IDE connected</li>
+      <li>Works across 9 IDEs: Cursor, Claude Code, VS Code, Windsurf, JetBrains, Codex, Antigravity, OpenCode</li>
+      <li>CLI with dry-run, offline mode, and fast incremental updates</li>
+      <li>Works with any MCP-compatible tool — present and future</li>
     </ul>
   </div>
 </div>
@@ -104,33 +122,30 @@ permalink: /roadmap/
 <!-- Backlog -->
 <div class="rm-panel" id="rm-backlog">
   <div class="rm-panel-intro">
-    <p>Accepted into scope but not yet scheduled. Subject to change based on community feedback and delivery priorities.</p>
+    <p>We're focused on R2. The backlog captures directions we're exploring — not commitments. Priorities shift based on community feedback and production learnings.</p>
   </div>
 
   <div class="rm-group">
     <div class="rm-label">Quality</div>
     <ul class="rm-list">
-      <li>Instructions validation pipeline with comparative test-case evaluation</li>
-      <li>AI-assisted prompt and workflow authoring with HITL checkpoints</li>
-      <li>Advanced prompt refactoring and prompt diagnosis tooling</li>
+      <li>Automated quality scoring for instructions and workflows</li>
+      <li>Before-and-after evaluation when instructions change</li>
     </ul>
   </div>
 
   <div class="rm-group">
-    <div class="rm-label">Flows</div>
+    <div class="rm-label">Scale</div>
     <ul class="rm-list">
-      <li>Playwright self-healing test automation flow</li>
-      <li>Infrastructure-as-code generation and review flow</li>
-      <li>FR/NFR extraction and template generation flow</li>
+      <li>Multi-agent parallel execution for large tasks</li>
+      <li>Cross-project awareness — catch breaking changes before they ship</li>
     </ul>
   </div>
 
   <div class="rm-group">
-    <div class="rm-label">Adoption</div>
+    <div class="rm-label">Community</div>
     <ul class="rm-list">
-      <li>Self-hosting product guidance and documentation</li>
-      <li>Composite workspace best practices and usage templates</li>
-      <li>Community contribution model for prompts and flows</li>
+      <li>Open contribution model for workflows and skills</li>
+      <li>Self-hosting guides and expanded integrations</li>
     </ul>
   </div>
 
