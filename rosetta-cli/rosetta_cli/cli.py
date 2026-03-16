@@ -6,6 +6,7 @@ import sys
 from collections.abc import Callable
 from typing import TypeAlias
 
+from rosetta_cli import __version__ as _CLI_VERSION
 from .commands.base_command import BaseCommand
 from .commands.cleanup_command import CleanupCommand
 from .commands.list_command import ListCommand
@@ -347,6 +348,7 @@ Frontmatter Metadata (publish flow):
         # Validate configuration
         config.validate()
 
+        print(f"Rosetta Version: {_CLI_VERSION}")
         print(f"Rosetta Environment: {config.environment}")
         
         # Initialize RAGFlow client
