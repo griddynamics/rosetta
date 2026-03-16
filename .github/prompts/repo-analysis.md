@@ -49,10 +49,12 @@ For each improvement found:
 2. **Create** if new — use `mcp__atlassian__jira_create_issue`:
    - `project`: `CTORNDGAIN`
    - `parent`: `CTORNDGAIN-1174`
-   - `issuetype`: `Story`
+   - `issuetype`: `Story` or `Bug`
    - `summary`: `[ROSETTA] <concise title, max 80 chars>`
    - `description`: 2–3 sentences: what, why, where. No fluff.
    - `labels`: `["AI"]`
+   - `priority`: P1 (Highest) to P5 (Lowest)
+   - The rest of the fields initialize as you see fit (but keep unassigned)
 3. **Update** if existing story is stale or missing the `AI` label — use `mcp__atlassian__jira_update_issue`.
 
 ## Phase 4 — Update Confluence Automation Page
