@@ -331,7 +331,8 @@ class DocumentData:
 
         try:
             post = frontmatter.loads(content_str)
-        except Exception:
+        except Exception as e:
+            print(f"  ⚠️  Failed to parse frontmatter in {file_path}: {e}")
             return [], None, None
 
         fm_dict = dict(post.metadata) if post.metadata else None

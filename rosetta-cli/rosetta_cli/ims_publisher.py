@@ -665,6 +665,23 @@ class ContentPublisher:
                 new_name = f"{re.sub(r'\(\d+\)$', '', path.stem)}{path.suffix}"
                 return name[: -len(path.name)] + new_name
 
+            # Delete docs with no metadata (ims_doc_id absent) — these are RAGFlow
+            # auto-renamed leftovers (e.g. SKILL(1).md) from uploads where metadata
+            # was never written. They are unrecoverable and must be cleaned up first.
+            for doc in all_docs:
+                meta = getattr(doc, "meta_fields", {}) or {}
+                ims_doc_id = meta.get("ims_doc_id") if isinstance(meta, dict) else getattr(meta, "ims_doc_id", None)
+                if not ims_doc_id:
+                    doc_name = getattr(doc, "name", "") or doc.id
+                    if dry_run:
+                        print(f"  [DRY RUN] Would delete unmanaged (no metadata): {doc_name}")
+                    else:
+                        try:
+                            dataset.delete_documents([doc.id])
+                            print(f"  Deleted unmanaged (no metadata): {doc_name}")
+                        except Exception as e:
+                            print(f"  Warning: Failed to delete unmanaged doc '{doc_name}': {e}")
+
             managed_docs = []
             for doc in all_docs:
                 meta = getattr(doc, "meta_fields", {}) or {}

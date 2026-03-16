@@ -31,7 +31,7 @@ class ListCommand(BaseCommand):
         print()
         
         # Verify authentication
-        from services.auth_service import AuthService
+        from ..services.auth_service import AuthService
         AuthService.verify_or_exit(self.client, self.config)
         
         try:
