@@ -458,17 +458,17 @@ See [Installation — Plugin-Based Installation](/docs/installation/#plugin-base
 ## Video Tutorials
 
 **Setup:**
-- [Install Using MCP](https://drive.google.com/file/d/16N2h5R_0JYMiE_PhfPVRcaCcH_52_qvG/view?usp=drive_link) (3 min)
-- [Install without MCP](https://drive.google.com/file/d/1ClktG-QxZJr3nkCVHJ815ZJ1esp2WI6F/view?usp=drive_link) (2 min)
-- [Initialize Repo](https://drive.google.com/file/d/1BcloxAXzrvdY1Uc5rNF6b_g1MzePLYpn/view?usp=drive_link) (4 min)
+- [Install Using MCP](https://vimeo.com/1174124251/f38e017d8d?fl=ml&fe=ec) (3 min)
+- [Install without MCP](https://vimeo.com/1174124213/c50179147c?fl=ml&fe=ec) (2 min)
+- [Initialize Repo](https://vimeo.com/1174124165/8f5fbd7775?fl=ml&fe=ec) (4 min)
 
 **Configuration:**
-- [Subagents, Skills, Commands, and Workflows in Claude Code](https://drive.google.com/file/d/1GnFLr6ljAV29e4lHPDj0u6qYNQat0CDk/view?usp=drive_link)
+- [Subagents, Skills, Commands, and Workflows in Claude Code](https://vimeo.com/1174124272/96056d5cc5?fl=ml&fe=ec)
 
 **Workflows:**
-- [Code, Validate, QA, Integration Testing, E2E testing](https://drive.google.com/file/d/1FFgXYGT3A5OjLqjdKe6o07qAF1zz3Yi6/view?usp=drive_link)
-- [Code Comprehension](https://drive.google.com/file/d/1aSEjPSsD3M750t8WES4ExXdYeISW5v7Q/view?usp=drive_link)
-- [Help, Research, and Modernization](https://drive.google.com/file/d/1CjqqddtgCChM6TUyQZyuQ3xF-vpA5qyf/view?usp=drive_link)
+- [Code, Validate, QA, Integration Testing, E2E testing](https://vimeo.com/1174123935/07e3dd6e97?fl=ml&fe=ec)
+- [Code Comprehension](https://vimeo.com/1174124062/972091d57c?fl=ml&fe=ec)
+- [Help, Research, and Modernization](https://vimeo.com/1174124096/b928f43fcf?fl=ml&fe=ec)
 
 These videos were recorded in different IDEs to show that Rosetta works everywhere.
 

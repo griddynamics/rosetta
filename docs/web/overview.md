@@ -4,155 +4,159 @@ title: Overview
 permalink: /overview/
 ---
 
-<section class="hero">
-  <h1>Overview</h1>
-  <p>Rosetta is a consulting control plane for AI coding agents. It consults them with versioned, expert-prepared instructions so every agent follows your organization's rules, conventions, and knowledge — from day one.</p>
-</section>
-
 ## Architecture
 
+<p>Rosetta is a consulting control plane for AI coding agents. It consults them with versioned, expert-prepared instructions so every agent follows your organization's rules, conventions, and knowledge — from day one.</p>
 <p>When you type a request in your IDE, the agent loads context from Rosetta first — then follows your organization's proven workflows. Source code never leaves your machine.</p>
 
-<div class="arch-flow">
-  <div class="arch-node">
-    <div class="arch-node-icon">
-      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="4" y="6" width="40" height="28" rx="3" stroke="currentColor" stroke-width="2.5"/>
-        <path d="M16 38h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M24 34v4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M14 16l4 4-4 4" stroke="var(--gd-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M21 24h8" stroke="var(--gd-gold)" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+<div class="arch-v2" id="arch-v2">
+
+  <div class="arch-v2-flow">
+    <!-- Left: IDE -->
+    <div class="arch-v2-satellite">
+      <div class="arch-v2-sat-icon">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="6" width="40" height="28" rx="3" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M16 38h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M24 34v4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M14 16l4 4-4 4" stroke="var(--gd-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 24h8" stroke="var(--gd-gold)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="arch-v2-sat-label">Your IDE</div>
+      <div class="arch-v2-sat-sub">Cursor · Claude Code · VS Code<br>JetBrains · Windsurf · Codex<br>Antigravity · OpenCode</div>
     </div>
-    <div class="arch-node-label">Your IDE</div>
-    <div class="arch-node-sub">Cursor · Claude Code · VS Code · JetBrains · Codex</div>
-  </div>
-  <div class="arch-connector" aria-hidden="true">
-    <span class="arch-packet"></span>
-    <span class="arch-connector-label">HTTP + OAuth</span>
-  </div>
-  <div class="arch-node arch-node--accent">
-    <div class="arch-node-icon">
-      <img src="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}" alt="Rosetta" class="arch-node-img">
+
+    <!-- Connector left -->
+    <div class="arch-v2-conn">
+      <div class="arch-v2-conn-line">
+        <span class="arch-v2-particle"></span>
+        <span class="arch-v2-particle arch-v2-particle--delay"></span>
+      </div>
+      <span class="arch-v2-conn-label">HTTP + OAuth</span>
     </div>
-    <div class="arch-node-label">Rosetta MCP</div>
-    <div class="arch-node-sub">VFS · Bundler · Tags · Context headers</div>
-  </div>
-  <div class="arch-connector" aria-hidden="true">
-    <span class="arch-packet"></span>
-    <span class="arch-connector-label">Semantic search</span>
-  </div>
-  <div class="arch-node">
-    <div class="arch-node-icon">
-      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="24" cy="12" rx="16" ry="6" stroke="currentColor" stroke-width="2.5"/>
-        <path d="M8 12v12c0 3.3 7.2 6 16 6s16-2.7 16-6V12" stroke="currentColor" stroke-width="2.5"/>
-        <path d="M8 24v12c0 3.3 7.2 6 16 6s16-2.7 16-6V24" stroke="currentColor" stroke-width="2.5"/>
-        <ellipse cx="24" cy="24" rx="16" ry="6" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
-        <circle cx="32" cy="34" r="2" fill="var(--gd-gold)"/>
-        <circle cx="18" cy="16" r="2" fill="var(--gd-gold)"/>
-      </svg>
+
+    <!-- Center: Rosetta MCP (hero) -->
+    <div class="arch-v2-hub">
+      <div class="arch-v2-hub-glow"></div>
+      <div class="arch-v2-hub-inner">
+        <img src="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}" alt="Rosetta" class="arch-v2-hub-logo">
+        <div class="arch-v2-hub-title">Rosetta MCP</div>
+        <div class="arch-v2-hub-desc">VFS · Bundler · Tags · Context headers</div>
+        <div class="arch-v2-layers-label">Instruction Layers</div>
+        <div class="arch-v2-layers">
+          <span class="arch-v2-layer">Core</span>
+          <span class="arch-v2-layer">Organization</span>
+          <span class="arch-v2-layer">Project</span>
+        </div>
+        <div class="arch-v2-lifecycle">
+          <span class="arch-v2-lc-step" data-step="1">Start</span>
+          <span class="arch-v2-lc-arrow">→</span>
+          <span class="arch-v2-lc-step" data-step="2">Bootstrap</span>
+          <span class="arch-v2-lc-arrow">→</span>
+          <span class="arch-v2-lc-step" data-step="3">Classify</span>
+          <span class="arch-v2-lc-arrow">→</span>
+          <span class="arch-v2-lc-step" data-step="4">Load</span>
+          <span class="arch-v2-lc-arrow">→</span>
+          <span class="arch-v2-lc-step" data-step="5">Execute</span>
+          <span class="arch-v2-lc-arrow">→</span>
+          <span class="arch-v2-lc-step" data-step="6">Evolve</span>
+        </div>
+      </div>
     </div>
-    <div class="arch-node-label">Rosetta Server</div>
-    <div class="arch-node-sub">RAGFlow · parse · chunk · embed · retrieve</div>
+
+    <!-- Connector right -->
+    <div class="arch-v2-conn">
+      <div class="arch-v2-conn-line">
+        <span class="arch-v2-particle"></span>
+        <span class="arch-v2-particle arch-v2-particle--delay"></span>
+      </div>
+      <span class="arch-v2-conn-label">Tags + Search</span>
+    </div>
+
+    <!-- Right: Server -->
+    <div class="arch-v2-satellite">
+      <div class="arch-v2-sat-icon">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="24" cy="12" rx="16" ry="6" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M8 12v12c0 3.3 7.2 6 16 6s16-2.7 16-6V12" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M8 24v12c0 3.3 7.2 6 16 6s16-2.7 16-6V24" stroke="currentColor" stroke-width="2.5"/>
+          <ellipse cx="24" cy="24" rx="16" ry="6" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+          <circle cx="32" cy="34" r="2" fill="var(--gd-gold)"/>
+          <circle cx="18" cy="16" r="2" fill="var(--gd-gold)"/>
+        </svg>
+      </div>
+      <div class="arch-v2-sat-label">Rosetta Server</div>
+      <div class="arch-v2-sat-sub">RAGFlow · parse<br>chunk · embed · retrieve</div>
+    </div>
+  </div>
+
+  <!-- Annotations -->
+  <div class="arch-v2-annotations">
+    <div class="arch-v2-anno">
+      <h4>Progressive Disclosure</h4>
+      <p>Instructions load on demand. The agent gets only what it needs for your specific request — context stays focused, responses stay precise.</p>
+    </div>
+    <div class="arch-v2-anno">
+      <h4>Three-Layer Instructions</h4>
+      <p><strong>Core</strong> · <strong>Organization</strong> · <strong>Project</strong> — merged at runtime into a single resource path. Published via Rosetta CLI from your Instructions Repo.</p>
+    </div>
   </div>
 </div>
 
-<div class="arch-annotations">
-  <div class="arch-anno">
-    <h4>Session Lifecycle</h4>
-    <p>Bootstrap → Classify → Load → Execute. Guardrails and project context load automatically before the agent acts.</p>
-  </div>
-  <div class="arch-anno">
-    <h4>Progressive Disclosure</h4>
-    <p>Instructions load on demand. The agent gets only what it needs for your specific request — context stays focused, responses stay precise.</p>
-  </div>
-  <div class="arch-anno">
-    <h4>Three-Layer Instructions</h4>
-    <p><strong>Core</strong> · <strong>Organization</strong> · <strong>Project</strong> — merged at runtime into a single resource path. Published via Rosetta CLI from your Instructions Repo.</p>
-  </div>
-</div>
+<script>
+(function(){
+  var section = document.getElementById('arch-v2');
+  if (!section) return;
+  var steps = section.querySelectorAll('.arch-v2-lc-step');
+  var idx = 0;
+  function cycle() {
+    steps.forEach(function(s) { s.classList.remove('is-active'); });
+    steps[idx].classList.add('is-active');
+    idx = (idx + 1) % steps.length;
+  }
+  var obs = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting) {
+      cycle();
+      setInterval(cycle, 1200);
+      obs.unobserve(section);
+    }
+  }, { threshold: 0.3 });
+  obs.observe(section);
+})();
+</script>
 
 
 ## Design Principles
 
-<div class="flip-grid">
-  <div class="flip-container" tabindex="0" role="button" aria-label="Agent-agnostic — click to reveal details">
-    <div class="flip-card">
-      <div class="flip-front">
-        <h3>Agent-agnostic</h3>
-        <span class="flip-hint">Click to explore</span>
-      </div>
-      <div class="flip-back">
-        <p>Works across Cursor, Claude Code, VS Code, Windsurf, JetBrains, GitHub Copilot, Codex, and any MCP-compatible IDE. Adopts agent-specific features where available, simulates them where not.</p>
-      </div>
-    </div>
+<div class="principles-list">
+  <div class="principle">
+    <h4>Agent-agnostic</h4>
+    <p>Works across Cursor, Claude Code, VS Code, Windsurf, JetBrains, GitHub Copilot, Codex, and any MCP-compatible IDE. Adopts agent-specific features where available, simulates them where not.</p>
   </div>
-  <div class="flip-container" tabindex="0" role="button" aria-label="Progressive disclosure — click to reveal details">
-    <div class="flip-card">
-      <div class="flip-front">
-        <h3>Progressive disclosure</h3>
-        <span class="flip-hint">Click to explore</span>
-      </div>
-      <div class="flip-back">
-        <p>Instructions load in stages — bootstrap, classification, workflow-specific. The agent gets only what it needs for the current task. Prevents context overflow.</p>
-      </div>
-    </div>
+  <div class="principle">
+    <h4>Progressive disclosure</h4>
+    <p>Instructions load in stages — bootstrap, classification, workflow-specific. The agent gets only what it needs for the current task. Prevents context overflow.</p>
   </div>
-  <div class="flip-container" tabindex="0" role="button" aria-label="Classification-first — click to reveal details">
-    <div class="flip-card">
-      <div class="flip-front">
-        <h3>Classification-first</h3>
-        <span class="flip-hint">Click to explore</span>
-      </div>
-      <div class="flip-back">
-        <p>Every request is auto-classified into a workflow type before any work begins. Classification drives which instructions, skills, and rules load.</p>
-      </div>
-    </div>
+  <div class="principle">
+    <h4>Classification-first</h4>
+    <p>Every request is auto-classified into a workflow type before any work begins. Classification drives which instructions, skills, and rules load.</p>
   </div>
-  <div class="flip-container" tabindex="0" role="button" aria-label="Release-based versioning — click to reveal details">
-    <div class="flip-card">
-      <div class="flip-front">
-        <h3>Release-based versioning</h3>
-        <span class="flip-hint">Click to explore</span>
-      </div>
-      <div class="flip-back">
-        <p>Instructions organized by release (r1, r2, r3). New instructions develop without breaking stable agents. Rollback is always possible.</p>
-      </div>
-    </div>
+  <div class="principle">
+    <h4>Release-based versioning</h4>
+    <p>Instructions organized by release (r1, r2, r3). New instructions develop without breaking stable agents. Rollback is always possible.</p>
   </div>
-  <div class="flip-container" tabindex="0" role="button" aria-label="Rules-as-code — click to reveal details">
-    <div class="flip-card">
-      <div class="flip-front">
-        <h3>Rules-as-code</h3>
-        <span class="flip-hint">Click to explore</span>
-      </div>
-      <div class="flip-back">
-        <p>AI behavior is authored, versioned, reviewed, and approved through standard engineering workflows — same rigor as application code.</p>
-      </div>
-    </div>
+  <div class="principle">
+    <h4>Rules-as-code</h4>
+    <p>AI behavior is authored, versioned, reviewed, and approved through standard engineering workflows — same rigor as application code.</p>
   </div>
-  <div class="flip-container" tabindex="0" role="button" aria-label="Security by design — click to reveal details">
-    <div class="flip-card">
-      <div class="flip-front">
-        <h3>Security by design</h3>
-        <span class="flip-hint">Click to explore</span>
-      </div>
-      <div class="flip-back">
-        <p>No source code transfer. Air-gap capable. Runs inside the organization's perimeter.</p>
-      </div>
-    </div>
+  <div class="principle">
+    <h4>Security by design</h4>
+    <p>No source code transfer. Air-gap capable. Runs inside the organization's perimeter.</p>
   </div>
-  <div class="flip-container" tabindex="0" role="button" aria-label="Batteries included — click to reveal details">
-    <div class="flip-card">
-      <div class="flip-front">
-        <h3>Batteries included</h3>
-        <span class="flip-hint">Click to explore</span>
-      </div>
-      <div class="flip-back">
-        <p>Ships proven defaults from real-world projects. Makes the right thing the easy thing.</p>
-      </div>
-    </div>
+  <div class="principle">
+    <h4>Batteries included</h4>
+    <p>Ships proven defaults from real-world projects. Makes the right thing the easy thing.</p>
   </div>
 </div>
 
@@ -217,16 +221,6 @@ permalink: /overview/
   </div>
 </div>
 
-<script>
-(function(){
-  document.querySelectorAll('.flip-container').forEach(function(card) {
-    card.addEventListener('click', function() { card.classList.toggle('is-flipped'); });
-    card.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('is-flipped'); }
-    });
-  });
-})();
-</script>
 
 <div class="rm-feedback" style="margin-top:3rem;flex-direction:column;align-items:flex-start;gap:.75rem">
   <div class="rm-feedback-text">

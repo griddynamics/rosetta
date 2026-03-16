@@ -9,81 +9,75 @@ permalink: /
   <img src="{{ '/assets/brand/rosetta-logo-full-color-white-text.png' | relative_url }}" alt="Rosetta logo" class="hero-logo logo-dark">
   <img src="{{ '/assets/brand/rosetta-logo-full-color-black-text.png' | relative_url }}" alt="Rosetta logo" class="hero-logo logo-light">
   <h1 class="hero-headline">Consulting control plane for AI coding agents</h1>
-  <p class="hero-sub">Your standards, versioned as code. Enforced across every agent and every IDE</p>
+  <p class="hero-sub">Rosetta gives every agent the same context, standards, and guardrails — across any IDE, any team.</p>
   <div class="hero-actions">
-    <a href="#try-rosetta-section" class="button">Get Started</a>
-    <a href="{{ '/overview/' | relative_url }}" class="button-ghost">Learn More</a>
-    <a href="https://github.com/griddynamics/rosetta" class="button-ghost" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a href="#why-control-plane" class="button">Get Started</a>
+    <a href="{{ '/overview/' | relative_url }}" class="button-ghost">See it in action →</a>
   </div>
-  <div class="splash-copyright">&copy; {{ 'now' | date: '%Y' }} Grid Dynamics. All rights reserved.</div>
 </section>
 
 <!-- ===== THE PROBLEM IN 2026 ===== -->
-<section class="section" id="why-control-plane">
+<section class="section diag-section" id="why-control-plane">
   <h2 class="with-marker">Why AI Agents Need a Control Plane</h2>
   <p class="section-subtitle">AI coding agents are everywhere. Consistency and context are not.</p>
 
-  <div class="flip-grid">
-    <div class="flip-container" tabindex="0" role="button" aria-label="Missed Conventions — click to reveal details">
-      <div class="flip-card">
-        <div class="flip-front">
-          <h3>Missed Conventions</h3>
-          <span class="flip-hint">Click to explore</span>
-        </div>
-        <div class="flip-back">
-          <p>Agents lack your architecture, business rules, and compliance requirements. They produce code that violates conventions, causing expensive rework and high rejection rates.</p>
-        </div>
+  <div class="diag-header">
+    <span class="diag-dot diag-dot--amber"></span>
+    <span class="diag-header-text">System Status: Unmanaged AI Agents</span>
+  </div>
+
+  <div class="diag-rows" id="diag-rows">
+    <div class="diag-row">
+      <div class="diag-status"><span class="diag-dot diag-dot--red"></span></div>
+      <div class="diag-body">
+        <div class="diag-label">MISSED CONVENTIONS</div>
+        <div class="diag-desc">Agents lack your architecture, business rules, and compliance requirements. They produce code that violates conventions, causing expensive rework and high rejection rates.</div>
       </div>
     </div>
-    <div class="flip-container" tabindex="0" role="button" aria-label="Instructions Don't Scale — click to reveal details">
-      <div class="flip-card">
-        <div class="flip-front">
-          <h3>Instructions Don't Scale</h3>
-          <span class="flip-hint">Click to explore</span>
-        </div>
-        <div class="flip-back">
-          <p>Every engineer writes their own prompts — or none at all. Crafting effective instructions takes hours of work per task, they go stale fast, and there's no way to version, review, or govern them.</p>
-        </div>
+
+    <div class="diag-row">
+      <div class="diag-status"><span class="diag-dot diag-dot--red"></span></div>
+      <div class="diag-body">
+        <div class="diag-label">INSTRUCTIONS DON'T SCALE</div>
+        <div class="diag-desc">Every engineer writes their own prompts — or none at all. Crafting effective instructions takes hours of work per task, they go stale fast, and there's no way to version, review, or govern them.</div>
       </div>
     </div>
-    <div class="flip-container" tabindex="0" role="button" aria-label="No Cross-IDE Reuse — click to reveal details">
-      <div class="flip-card">
-        <div class="flip-front">
-          <h3>No Cross-IDE Reuse</h3>
-          <span class="flip-hint">Click to explore</span>
-        </div>
-        <div class="flip-back">
-          <p>Prompt libraries are IDE-specific and fragile. Switch from Cursor to Claude Code? Rewrite everything. New model drops? Start over. The same problem gets solved differently on every team.</p>
-        </div>
+
+    <div class="diag-row">
+      <div class="diag-status"><span class="diag-dot diag-dot--red"></span></div>
+      <div class="diag-body">
+        <div class="diag-label">NO CROSS-IDE REUSE</div>
+        <div class="diag-desc">Prompt libraries are IDE-specific and fragile. Switch from Cursor to Claude Code? Rewrite everything. New model drops? Start over. The same problem gets solved differently on every team.</div>
       </div>
     </div>
-    <div class="flip-container" tabindex="0" role="button" aria-label="Siloed Knowledge — click to reveal details">
-      <div class="flip-card">
-        <div class="flip-front">
-          <h3>Siloed Knowledge</h3>
-          <span class="flip-hint">Click to explore</span>
-        </div>
-        <div class="flip-back">
-          <p>Patterns proven in one project never reach others. Senior expertise stays in people's heads. Breaking changes cascade undetected across services because agents see one repo, not the system.</p>
-        </div>
+
+    <div class="diag-row">
+      <div class="diag-status"><span class="diag-dot diag-dot--red"></span></div>
+      <div class="diag-body">
+        <div class="diag-label">SILOED KNOWLEDGE</div>
+        <div class="diag-desc">Patterns proven in one project never reach others. Senior expertise stays in people's heads. Breaking changes cascade undetected across services because agents see one repo, not the system.</div>
       </div>
     </div>
   </div>
 
-  <div class="note">
-    <strong>Rosetta solves this.</strong> One control plane that gives every agent the same context, standards, and workflows — across any IDE. <a href="#try-rosetta-section">See how it works →</a>
-  </div>
+  <a href="#try-rosetta-section" class="diag-resolved">
+    <span class="diag-resolved-text">Rosetta solves this. See how ↓</span>
+  </a>
 
-<script>
-(function(){
-  document.querySelectorAll('#why-control-plane .flip-container').forEach(function(card) {
-    card.addEventListener('click', function() { card.classList.toggle('is-flipped'); });
-    card.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('is-flipped'); }
-    });
-  });
-})();
-</script>
+  <script>
+  (function(){
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('diag-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    var el = document.getElementById('diag-rows');
+    if (el) observer.observe(el);
+  })();
+  </script>
 </section>
 
 <!-- ===== TRY ROSETTA (INLINE) ===== -->
@@ -99,10 +93,13 @@ permalink: /
       </div>
       <div class="try-inline-list" id="try-inline-scenarios"></div>
     </div>
-    <div class="try-inline-chat" id="try-inline-chat">
-      <div class="try-inline-placeholder">
-        <img src="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}" alt="Rosetta" style="width:56px;height:56px;opacity:.6;">
-        <p>Select a scenario to start the demo</p>
+    <div class="try-inline-main">
+      <div class="try-inline-chat-header">Rosetta analyzing your request…</div>
+      <div class="try-inline-chat" id="try-inline-chat">
+        <div class="try-inline-placeholder">
+          <img src="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}" alt="Rosetta" style="width:56px;height:56px;opacity:.6;">
+          <p>Pick a scenario on the left to start</p>
+        </div>
       </div>
     </div>
   </div>
@@ -284,7 +281,7 @@ permalink: /
       <!-- Step 4 -->
       <div class="qs-step qs-step--last">
         <div class="qs-step-indicator">
-          <span class="qs-step-num qs-step-num--done">&#10003;</span>
+          <span class="qs-step-num">4</span>
         </div>
         <div class="qs-step-body">
           <h3 class="qs-step-title">Verify &amp; Initialize</h3>
@@ -299,6 +296,15 @@ permalink: /
         </div>
       </div>
 
+    </div>
+
+    <div class="qs-success">
+      <span class="qs-success-icon">&#10003;</span>
+      <div class="qs-success-body">
+        <strong>You're set. Rosetta is active.</strong>
+        <span>Talk naturally — Rosetta will pick the right workflow automatically.</span>
+      </div>
+      <a href="{{ '/docs/usage-guide/' | relative_url }}" class="qs-success-link">See all workflows →</a>
     </div>
   </div>
 </section>
@@ -385,6 +391,30 @@ permalink: /
       </ul>
       <div class="vs-result vs-result--good">Production-ready spec. Team moved straight to implementation.</div>
     </div>
+
+    <!-- Case 3: Cross-team feature -->
+    <div class="vs-card vs-card--without">
+      <div class="vs-label">Without Rosetta</div>
+      <div class="vs-prompt">"Add discount code support to checkout — requires changes across API gateway, pricing service, and order service."</div>
+      <ul class="vs-list">
+        <li>Agent modified the pricing service without seeing the API gateway contract</li>
+        <li>Broke the order service integration — different payload format expected</li>
+        <li>No awareness of shared validation rules or error handling conventions</li>
+        <li>Each service fixed separately, introducing new inconsistencies</li>
+      </ul>
+      <div class="vs-result vs-result--bad">Three services out of sync. Integration tests failing for days.</div>
+    </div>
+    <div class="vs-card vs-card--with">
+      <div class="vs-label">With Rosetta</div>
+      <div class="vs-prompt">"Add discount code support to checkout — requires changes across API gateway, pricing service, and order service."</div>
+      <ul class="vs-list">
+        <li>Rosetta loaded architecture, API contracts, and shared schemas across all three services</li>
+        <li>Agent produced a coordinated spec covering gateway routing, pricing logic, and order updates</li>
+        <li>Validation rules and error handling followed existing patterns automatically</li>
+        <li>Changes reviewed as a single coherent plan before any code was written</li>
+      </ul>
+      <div class="vs-result vs-result--good">All three services updated in sync. Integration tests green on first run.</div>
+    </div>
   </div>
 </section>
 
@@ -420,7 +450,7 @@ permalink: /
 
     setTimeout(function() {
       document.body.classList.remove('splash-exiting');
-      var target = document.getElementById('try-rosetta-section');
+      var target = document.getElementById('why-control-plane');
       if (target) target.scrollIntoView({ behavior: 'smooth' });
     }, 650);
   });
@@ -445,17 +475,27 @@ permalink: /
     card.className = 'try-inline-card';
     card.dataset.idx = idx;
     card.dataset.paid = s.paid ? '1' : '0';
-    card.innerHTML = '<span class="try-inline-card-tag">' + s.tag + '</span>' + s.title;
+    var badge = s.paid ? '<span class="try-inline-card-tier try-inline-card-tier--pro">Enterprise</span>' : '<span class="try-inline-card-tier try-inline-card-tier--free">Free</span>';
+    card.innerHTML = '<div class="try-inline-card-row"><span class="try-inline-card-tag">' + s.tag + '</span>' + badge + '</div>' + s.title;
     card.addEventListener('click', function() { playInline(idx); });
     sidebar.appendChild(card);
   });
 
   /* Tab switching */
   var tabs = document.querySelectorAll('.try-inline-tab');
+  var chatHeader = document.querySelector('.try-inline-chat-header');
   function filterCards(filter) {
     var isPro = filter === 'pro';
     sidebar.querySelectorAll('.try-inline-card').forEach(function(c) {
-      c.style.display = (c.dataset.paid === (isPro ? '1' : '0')) ? '' : 'none';
+      c.style.display = isPro ? '' : (c.dataset.paid === '0' ? '' : 'none');
+    });
+    if (chatHeader) {
+      chatHeader.textContent = isPro
+        ? 'Available with the enterprise edition'
+        : 'Rosetta analyzing your request\u2026';
+    }
+    sidebar.querySelectorAll('.try-inline-card-tier').forEach(function(t) {
+      t.style.display = isPro ? 'inline-block' : 'none';
     });
   }
   tabs.forEach(function(tab) {
@@ -537,6 +577,21 @@ permalink: /
         }
       }, delay);
     });
+  }
+
+  /* Auto-play first free scenario when section enters viewport */
+  var trySection = document.getElementById('try-rosetta-section');
+  if (trySection) {
+    var autoObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting && activeIdx === -1) {
+          var firstFree = sidebar.querySelector('.try-inline-card[data-paid="0"]');
+          if (firstFree) playInline(parseInt(firstFree.dataset.idx));
+          autoObserver.unobserve(trySection);
+        }
+      });
+    }, { threshold: 0.3 });
+    autoObserver.observe(trySection);
   }
 
   /* Hide FAB on homepage */

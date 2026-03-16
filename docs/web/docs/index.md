@@ -2,6 +2,7 @@
 layout: docs
 title: Documentation
 permalink: /docs/
+search_exclude: true
 ---
 
 # Documentation

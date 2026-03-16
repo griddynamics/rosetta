@@ -1,0 +1,5 @@
+---
+layout: null
+---
+{% assign docs = site.pages | where_exp: "item", "item.url contains '/docs/'" | where_exp: "item", "item.search_exclude != true" %}
+[{% for page in docs %}{% unless forloop.first %},{% endunless %}{"title":{{ page.title | jsonify }},"url":{{ page.url | relative_url | jsonify }},"content":{{ page.content | strip_html | normalize_whitespace | truncate: 1000 | jsonify }}}{% endfor %}]

@@ -27,6 +27,10 @@
 {% include nav.html %}
 <div class="docs-wrap">
   <aside class="docs-sidebar" aria-label="Documentation navigation">
+    <div class="docs-search">
+      <input type="search" id="docs-search-input" placeholder="Search docs…" autocomplete="off" aria-label="Search documentation">
+      <ul id="docs-search-results" class="docs-search-results" role="listbox" hidden></ul>
+    </div>
     <p class="docs-sidebar-cat">Getting Started</p>
     <a href="{{ '/docs/introduction/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/introduction/' %} active{% endif %}">Introduction</a>
     <a href="{{ '/docs/quickstart/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/quickstart/' %} active{% endif %}">Quick Start</a>
@@ -107,6 +111,56 @@
       h1.remove();
     }
   }
+})();
+</script>
+<script src="https://unpkg.com/lunr/lunr.js"></script>
+<script>
+(function() {
+  var input = document.getElementById('docs-search-input');
+  var results = document.getElementById('docs-search-results');
+  var index = null;
+  var data = null;
+  var pending = null;
+
+  fetch('{{ '/search.json' | relative_url }}')
+    .then(function(r) { return r.json(); })
+    .then(function(docs) {
+      data = docs;
+      index = lunr(function() {
+        this.ref('url');
+        this.field('title', { boost: 10 });
+        this.field('content');
+        docs.forEach(function(d) { this.add(d); }, this);
+      });
+      if (pending !== null) { render(pending); pending = null; }
+    });
+
+  function render(query) {
+    if (!query) { results.hidden = true; return; }
+    if (!index) { pending = query; return; }
+    var hits;
+    try {
+      var terms = query.split(/\s+/).filter(Boolean).map(function(t) { return t + '*'; }).join(' ');
+      hits = index.search(terms);
+    } catch(e) { hits = []; }
+    if (!hits.length) {
+      results.innerHTML = '<li class="docs-search-empty">No results</li>';
+    } else {
+      results.innerHTML = hits.slice(0, 8).map(function(h) {
+        var doc = data.find(function(d) { return d.url === h.ref; });
+        return '<li><a href="' + h.ref + '">' + doc.title + '</a></li>';
+      }).join('');
+    }
+    results.hidden = false;
+  }
+
+  input.addEventListener('input', function() { render(this.value.trim()); });
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { results.hidden = true; input.value = ''; }
+  });
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.docs-search')) results.hidden = true;
+  });
 })();
 </script>
 </body>
