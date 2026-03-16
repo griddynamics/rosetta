@@ -1,6 +1,6 @@
 ---
 name: init-workspace-flow-rules
-description: "Phase 4 of init-workspace-flow: create local agent rules for IDE/OS/project. Optional phase, disabled by default — runs only when explicitly enabled."
+description: "Phase 4 of init-workspace-flow, contains create local agent rules for IDE/OS/project. Optional phase, disabled by default — runs only when explicitly enabled."
 tags: ["init", "workspace", "rules", "phase", "optional"]
 baseSchema: docs/schemas/phase.md
 ---

@@ -1,6 +1,6 @@
 ---
 name: init-workspace-flow-questions
-description: "Phase 7 of init-workspace-flow: reflective gap-filling, user verification, and file updates."
+description: "Phase 7 of init-workspace-flow, contains reflective gap-filling, user verification, and file updates."
 tags: ["init", "workspace", "questions", "hitl", "phase"]
 baseSchema: docs/schemas/phase.md
 ---

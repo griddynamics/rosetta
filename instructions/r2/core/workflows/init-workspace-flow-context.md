@@ -1,6 +1,6 @@
 ---
 name: init-workspace-flow-context
-description: "Phase 1 of init-workspace-flow: detect workspace mode, composite status, and existing file inventory."
+description: "Phase 1 of init-workspace-flow, contains detect workspace mode, composite status, and existing file inventory."
 tags: ["init", "workspace", "context", "phase"]
 baseSchema: docs/schemas/phase.md
 ---

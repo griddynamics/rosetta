@@ -1,6 +1,6 @@
 ---
 name: init-workspace-flow-discovery
-description: "Phase 3 of init-workspace-flow: analyze tech stack and produce TECHSTACK, CODEMAP, DEPENDENCIES files."
+description: "Phase 3 of init-workspace-flow, contains analyze tech stack and produce TECHSTACK, CODEMAP, DEPENDENCIES files."
 tags: ["init", "workspace", "discovery", "phase"]
 baseSchema: docs/schemas/phase.md
 ---

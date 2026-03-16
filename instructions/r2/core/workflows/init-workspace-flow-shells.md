@@ -1,6 +1,6 @@
 ---
 name: init-workspace-flow-shells
-description: "Phase 2 of init-workspace-flow: generate shell files for IDE/CodingAgent from KB schemas. Skipped in plugin mode."
+description: "Phase 2 of init-workspace-flow, contains generate shell files for IDE/CodingAgent from KB schemas. Skipped in plugin mode."
 tags: ["init", "workspace", "shells", "phase"]
 baseSchema: docs/schemas/phase.md
 ---

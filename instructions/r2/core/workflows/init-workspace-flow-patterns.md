@@ -1,6 +1,6 @@
 ---
 name: init-workspace-flow-patterns
-description: "Phase 5 of init-workspace-flow: extract coding and architectural patterns into reusable templates."
+description: "Phase 5 of init-workspace-flow, contains extract coding and architectural patterns into reusable templates."
 tags: ["init", "workspace", "patterns", "phase"]
 baseSchema: docs/schemas/phase.md
 ---

@@ -1,6 +1,6 @@
 ---
 name: init-workspace-flow
-description: "Rosetta workflow to initialize or upgrade a workspace: identify context, init proxying shells for target skills/agents/commands, workspace discovery, copy rules (optional, not recommended), identify patterns used, generate documentation, clarify questions, verification."
+description: "Rosetta workflow to initialize or upgrade a workspace, includes identify context, init proxying shells for target skills/agents/commands, workspace discovery, copy rules (optional, not recommended), identify patterns used, generate documentation, clarify questions, verification."
 tags: ["workflow", "init", "workspace"]
 baseSchema: docs/schemas/workflow.md
 ---
