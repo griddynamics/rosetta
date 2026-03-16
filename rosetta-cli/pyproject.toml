@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rosetta-cli"
-version = "2.0.2"
+version = "2.0.3"
 description = "Rosetta CLI for publishing knowledge base content to RAGFlow"
 readme = "README.md"
 requires-python = ">=3.12"

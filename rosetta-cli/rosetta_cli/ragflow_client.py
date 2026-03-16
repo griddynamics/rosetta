@@ -537,19 +537,24 @@ class RAGFlowClient:
                 meta_fields["frontmatter"] = frontmatter_value
 
             doc.update({"meta_fields": meta_fields})
-            updated_meta = getattr(doc, 'meta_fields', None)
-            if updated_meta:
-                # SDK may return a Base object or a dict; handle both
-                if isinstance(updated_meta, dict):
-                    meta_tags = updated_meta.get('tags', [])
-                    meta_fm = updated_meta.get('frontmatter')
+            # SDK update() does not echo meta_fields back in the PUT response;
+            # re-fetch to get the actual stored state.
+            try:
+                refreshed = self.list_documents(dataset=dataset, id=doc.id, page_size=1)
+                updated_meta = getattr(refreshed[0], 'meta_fields', None) if refreshed else None
+                if updated_meta:
+                    if isinstance(updated_meta, dict):
+                        meta_tags = updated_meta.get('tags', [])
+                        meta_fm = updated_meta.get('frontmatter')
+                    else:
+                        meta_tags = getattr(updated_meta, 'tags', []) or []
+                        meta_fm = getattr(updated_meta, 'frontmatter', None)
+                    tag_count = len(meta_tags) if isinstance(meta_tags, list) else 0
+                    print(f"    ✅ Metadata set: {tag_count} tags, frontmatter={'yes' if meta_fm else 'no'}")
                 else:
-                    meta_tags = getattr(updated_meta, 'tags', []) or []
-                    meta_fm = getattr(updated_meta, 'frontmatter', None)
-                tag_count = len(meta_tags) if isinstance(meta_tags, list) else 0
-                print(f"    ✅ Metadata set: {tag_count} tags, frontmatter={'yes' if meta_fm else 'no'}")
-            else:
-                print(f"    ⚠️  Metadata update returned empty meta_fields!")
+                    print(f"    ⚠️  Metadata update returned empty meta_fields!")
+            except Exception as verify_err:
+                print(f"    ⚠️  Metadata update sent but could not verify: {verify_err}")
 
             elapsed = time.time() - start_time
             print(f"    ✅ Done ({elapsed:.2f}s): {title}")
