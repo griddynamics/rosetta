@@ -2,6 +2,23 @@
 
 ## ✅ Completed Implementation
 
+### Recent Operations (2026-03-16) — Jira story loader workflow recovery
+
+- Investigated failing GitHub Actions run `23168407313` for `.github/workflows/repo-implement.yml`.
+- Confirmed the shared `.github/scripts/load_stories.py` step failed before matrix expansion because Jira returned `HTTP 410 Gone` for the deprecated `GET /rest/api/3/search` endpoint.
+- Migrated the loader to Atlassian's enhanced JQL search endpoint:
+  - `POST /rest/api/3/search/jql?maxResults=50`
+- Preserved the existing workflow contract for both shared callers:
+  - `plan_matrix`, `impl_matrix`
+  - `has_plan`, `has_impl`
+  - `plan_count`, `impl_count`
+- Refactored the loader into small functions so the Jira request path and label/status filtering can be regression-tested locally.
+- Added a focused regression test file:
+  - `.github/scripts/test_load_stories.py`
+- Local validation completed successfully:
+  - `venv/bin/pytest .github/scripts/test_load_stories.py -q`
+  - `python3 -m py_compile .github/scripts/load_stories.py .github/scripts/test_load_stories.py`
+
 ### Recent Operations (2026-03-16) — Rosetta CLI domain-scoped orphan cleanup
 
 - Scoped `rosetta-cli` orphan cleanup to `managed_domains_by_dataset` during full-folder publishes.
