@@ -8,6 +8,7 @@ IMS publishing tools.
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
@@ -60,6 +61,16 @@ def find_env_file(env_name: str | None = None) -> Path | None:
     return None
 
 
+def _first_subdomain(url: str) -> str | None:
+    """Extract first subdomain from URL. 'https://ims-dev.example.com/' -> 'ims-dev'."""
+    try:
+        hostname = urlparse(url).hostname or ""
+        parts = hostname.split(".")
+        return parts[0] if len(parts) > 1 else None
+    except Exception:
+        return None
+
+
 @dataclass
 class IMSConfig:
     """
@@ -77,7 +88,7 @@ class IMSConfig:
         RAGFLOW_AUTO_KEYWORDS: Auto-generate keywords per chunk (default: 0)
         RAGFLOW_AUTO_QUESTIONS: Auto-generate questions per chunk (default: 0)
         RAGFLOW_PAGE_SIZE: Page size for listing operations (default: 1000)
-        RAGFLOW_PARSE_TIMEOUT: Timeout for parsing operations in seconds (default: 300)
+        RAGFLOW_PARSE_TIMEOUT: Timeout for parsing operations in seconds (default: 1200)
         ENVIRONMENT: Environment name (default: "local")
     
     Examples:
@@ -148,6 +159,9 @@ class IMSConfig:
             # Auto-discovery
             discovered_env_path = find_env_file(environment)
             if not discovered_env_path:
+                # Fall back to environment variables if already set (e.g., CI/CD)
+                if os.getenv("RAGFLOW_API_KEY"):
+                    return cls.from_env_vars(environment=environment)
                 env_hint = f" (tried .env.{environment} and .env)" if environment else " (tried .env)"
                 raise FileNotFoundError(
                     f"No .env file found{env_hint}\n"
@@ -190,7 +204,8 @@ class IMSConfig:
         dataset_default = os.getenv("RAGFLOW_DATASET_DEFAULT", "aia")
         dataset_template = os.getenv("RAGFLOW_DATASET_TEMPLATE", "aia-{release}")
         # fallback to ENVIRONMENT env var, or default to "local"
-        environment = environment or os.getenv("ENVIRONMENT", "local") or "local"
+        if not environment:
+            environment = os.getenv("ENVIRONMENT") or _first_subdomain(base_url) or "local"
         
         # Dataset creation settings
         embedding_model = os.getenv("RAGFLOW_EMBEDDING_MODEL") or None
@@ -198,7 +213,7 @@ class IMSConfig:
         
         # Pagination and timeout settings
         page_size = int(os.getenv("RAGFLOW_PAGE_SIZE", "1000"))
-        parse_timeout = int(os.getenv("RAGFLOW_PARSE_TIMEOUT", "300"))
+        parse_timeout = int(os.getenv("RAGFLOW_PARSE_TIMEOUT", "1200"))
         
         # Parser configuration for naive chunking
         parser_config: JsonDict | None = None
