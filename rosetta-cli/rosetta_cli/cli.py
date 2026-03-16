@@ -346,6 +346,8 @@ Frontmatter Metadata (publish flow):
         
         # Validate configuration
         config.validate()
+
+        print(f"Rosetta Environment: {config.environment}")
         
         # Initialize RAGFlow client
         client = RAGFlowClient(
