@@ -391,7 +391,7 @@ class ContentPublisher:
             
             
             if dry_run:
-                print(f"[DRY RUN] Would publish: {file.name}")
+                print(f"[DRY RUN] Would publish: {metadata.get('doc_title', metadata.get('original_path', file.name))}")
                 print(f"  Document ID: {ims_doc_id}")
                 print(f"  Dataset: {dataset_name}")
                 print(f"  File type: {'text' if is_text else 'binary'}")
@@ -665,22 +665,16 @@ class ContentPublisher:
                 new_name = f"{re.sub(r'\(\d+\)$', '', path.stem)}{path.suffix}"
                 return name[: -len(path.name)] + new_name
 
-            # Delete docs with no metadata (ims_doc_id absent) — these are RAGFlow
-            # auto-renamed leftovers (e.g. SKILL(1).md) from uploads where metadata
-            # was never written. They are unrecoverable and must be cleaned up first.
+            # Collect all docs to delete into one list: (doc, label)
+            # Start with unmanaged: incomplete metadata (ims_doc_id or original_path absent)
+            duplicates: list[tuple[DocumentLike, str]] = []
             for doc in all_docs:
                 meta = getattr(doc, "meta_fields", {}) or {}
                 ims_doc_id = meta.get("ims_doc_id") if isinstance(meta, dict) else getattr(meta, "ims_doc_id", None)
-                if not ims_doc_id:
+                doc_original_path = meta.get("original_path", "") if isinstance(meta, dict) else getattr(meta, "original_path", "")
+                if not ims_doc_id or not doc_original_path:
                     doc_name = getattr(doc, "name", "") or doc.id
-                    if dry_run:
-                        print(f"  [DRY RUN] Would delete unmanaged (no metadata): {doc_name}")
-                    else:
-                        try:
-                            dataset.delete_documents([doc.id])
-                            print(f"  Deleted unmanaged (no metadata): {doc_name}")
-                        except Exception as e:
-                            print(f"  Warning: Failed to delete unmanaged doc '{doc_name}': {e}")
+                    duplicates.append((doc, doc_name))
 
             managed_docs = []
             for doc in all_docs:
@@ -697,29 +691,12 @@ class ContentPublisher:
                 if original_path:
                     by_path[original_path].append(doc)
 
-            duplicates = []  # (doc, original_path) to delete
+            # All copies of a duplicated original_path are deleted; publish creates a fresh copy.
             for original_path, docs in by_path.items():
                 if len(docs) <= 1:
                     continue
-
-                canonical_ims_doc_id = canonical_ids.get(original_path)
-                # Find the authoritative doc (matching local ims_doc_id)
-                authoritative: DocumentLike | None = None
-                if canonical_ims_doc_id:
-                    for doc in docs:
-                        meta = getattr(doc, "meta_fields", {}) or {}
-                        doc_ims_id = meta.get("ims_doc_id", "") if isinstance(meta, dict) else getattr(meta, "ims_doc_id", "")
-                        if doc_ims_id == canonical_ims_doc_id:
-                            authoritative = doc
-                            break
-
-                # Fallback: keep most recent (first in desc order)
-                if authoritative is None:
-                    authoritative = docs[0]
-
                 for doc in docs:
-                    if doc.id != authoritative.id:
-                        duplicates.append((doc, original_path))
+                    duplicates.append((doc, original_path))
 
             # Name duplicates: foo.md + foo(1).md + foo(2).md ...
             name_groups: dict[str, list[DocumentLike]] = defaultdict(list)
