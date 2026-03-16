@@ -21,7 +21,7 @@ No special syntax. No commands to memorize. [Progressive disclosure](OVERVIEW.md
 
 ## Workflows
 
-Rosetta classifies your request and loads the matching workflow. Each workflow defines phases, produces traceable artifacts, and enforces approval gates (⏸) where decisions matter.
+Rosetta classifies your request and loads the matching workflow. Each workflow defines phases, produces traceable artifacts, and enforces approval gates where decisions matter.
 
 <details>
 <summary><b>Init Workspace</b></summary>
@@ -35,7 +35,7 @@ Sets up a new or existing repository for AI-assisted development. Handles fresh 
 4. Rules — configure local agent rules (optional, when explicit all-local rules requested)
 5. Patterns — extract recurring coding and architectural patterns
 6. Documentation — create CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md
-7. ⏸ Questions — clarifying questions about gaps and assumptions
+7. Questions — clarifying questions about gaps and assumptions
 8. Verification — completeness check and catch-up for missed artifacts
 
 ```
@@ -55,7 +55,7 @@ Answers questions about Rosetta itself. If you decide to act, hands off to the r
 **Phases:**
 1. List capabilities — catalog all workflows, skills, and agents from the KB
 2. Match and acquire — find capabilities matching your question, load their descriptions
-3. ⏸ Guide — explain matched capabilities and offer to launch the real workflow
+3. Guide — explain matched capabilities and offer to launch the real workflow
 4. Handoff — transfer to the matching workflow if you accept (optional)
 
 ```
@@ -75,11 +75,11 @@ The main development workflow. Scales with task size: small tasks skip phases ma
 1. Discovery — gather context, codebase, dependencies, affected areas (M,L)
 2. Tech plan — architect defines specs, contracts, interfaces, and execution plan (all)
 3. Review plan — reviewer inspects specs and plan against intent (M,L)
-4. ⏸ User review plan — you approve the plan before implementation (all)
+4. User review plan — you approve the plan before implementation (all)
 5. Implementation — engineer executes the approved plan (all)
 6. Review code — reviewer inspects implementation against specs (all)
 7. Impl validation — validator runs actual checks against specs (M,L)
-8. ⏸ User review impl — you review the implementation (all)
+8. User review impl — you review the implementation (all)
 9. Tests — engineer writes and runs tests, 80%+ coverage (all)
 10. Review tests — reviewer inspects test coverage and quality (M,L)
 11. Final validation — end-to-end verification (M,L)
@@ -100,34 +100,15 @@ Produces structured, testable, approved requirements. Saves to `docs/REQUIREMENT
 **Phases:**
 1. Discovery — collect project and scope signals
 2. Research — gather standards, prior decisions, and domain context
-3. ⏸ Intent capture — capture what you actually need, surface assumptions
+3. Intent capture — capture what you actually need, surface assumptions
 4. Outline — propose MECE (mutually exclusive, collectively exhaustive) requirement layout
-5. ⏸ Draft — author atomic requirement units with per-requirement approval
+5. Draft — author atomic requirement units with per-requirement approval
 6. Validate — check correctness, conflicts, gaps, and contradictions
-7. ⏸ Deliver — finalize requirement artifacts with traceability matrix
+7. Deliver — finalize requirement artifacts with traceability matrix
 
 ```
 "Define requirements for the checkout flow covering discount codes, tax, and retries"
 "Write requirements for the user onboarding experience"
-```
-
-</details>
-
-<details>
-<summary><b>Research</b></summary>
-
-Deep, project-grounded investigation using meta-prompting. Every claim backed by evidence.
-
-**Phases:**
-1. Context load — gather research scope from project context
-2. ⏸ Prompt craft — architect builds an optimized research prompt for your approval
-3. Execute research — dedicated subagent runs the investigation
-4. Finalize — deliver documented analysis with grounded references
-
-```
-"Research best practices for microservices authentication"
-"Investigate OAuth 2.0 implementation options for our stack"
-"Compare event sourcing vs CRUD for our order service"
 ```
 
 </details>
@@ -142,7 +123,7 @@ Building blocks: discover, reason, plan, execute, review, validate.
 **Phases:**
 1. Analyze — classify request and select building blocks
 2. Build plan — compose execution plan from selected blocks
-3. ⏸ Review plan — plan reviewer validates approach (medium, large tasks)
+3. Review plan — plan reviewer validates approach (medium, large tasks)
 4. Execute plan — run steps with plan manager tracking (loops until done)
 5. Review and summarize — final review and delivery
 
@@ -158,9 +139,6 @@ Building blocks: discover, reason, plan, execute, review, validate.
 
 Systematic understanding of existing codebases. Distinguishes small and large analysis targets.
 
-- **Small:** component identification, pattern analysis, logic flow, sequence diagrams, dependency mapping
-- **Large:** per-module deep analysis (business logic, architecture, design patterns, data, quality), then cross-module summary with business process mapping
-
 ```
 "Explain how the authentication system works"
 "What is the architecture of the payment module?"
@@ -169,17 +147,22 @@ Systematic understanding of existing codebases. Distinguishes small and large an
 </details>
 
 <details>
+<summary><b>Research 🚧</b></summary>
+
+Deep, project-grounded investigation using meta-prompting. Every claim backed by evidence.
+
+```
+"Research best practices for microservices authentication"
+"Investigate OAuth 2.0 implementation options for our stack"
+"Compare event sourcing vs CRUD for our order service"
+```
+
+</details>
+
+<details>
 <summary><b>Automated QA 🚧</b></summary>
 
 Test automation workflow with approval gate before implementation.
-
-**Phases:**
-1. Requirements analysis and existing code review
-2. Test framework identification (Jest, Playwright, JUnit, etc.)
-3. Test scenario generation (20-50 scenarios)
-4. Detailed test case specification (Given-When-Then)
-5. ⏸ Approve test cases before implementation
-6. Implementation and execution with coverage reporting
 
 ```
 "Write tests for the user registration feature"
@@ -193,14 +176,6 @@ Test automation workflow with approval gate before implementation.
 
 Generates test cases from Jira tickets and Confluence documentation.
 
-**Phases:**
-1. Data collection (Jira, Confluence via MCP)
-2. Gap, contradiction, and ambiguity analysis
-3. ⏸ Clarification questions
-4. Structured requirements document
-5. Test scenario generation
-6. TestRail export
-
 ```
 "Generate test cases for PROJ-123"
 "Create test scenarios from EPIC-789 and export to TestRail"
@@ -212,18 +187,6 @@ Generates test cases from Jira tickets and Confluence documentation.
 <summary><b>Modernization 🚧</b></summary>
 
 Large-scale code conversions, upgrades, and re-architecture.
-
-**Phases:**
-1. Reuse analysis
-2. Old code analysis
-3. Testing (optional)
-4. Grouping
-5. Cross-project analysis
-6. Implementation mapping
-7. Review
-8. Implementation
-
-Pattern detection drives consistency across the transformation.
 
 ```
 "Migrate from Java 8 to Java 21"
@@ -249,14 +212,11 @@ Onboards private or external libraries for AI understanding. Uses Repomix for co
 
 Specialized workflow for authoring and adapting prompts for AI coding agents. Built for teams that create or maintain instruction sets for AI tools.
 
-**Phases:**
-1. Discover — gather context about the target coding agent and its environment
-2. Extract intake — capture intent and requirements from the user
-3. Blueprint — design the prompt architecture and structure
-4. ⏸ Author — draft each prompt with iterative user approval (loop per prompt)
-5. ⏸ Harden — review and harden each prompt for edge cases (loop per prompt)
-6. Simulate — trace prompt execution to verify behavior
-7. Validate — quality validation of the complete prompt set
+```
+"Create a coding workflow prompt for our internal AI agent"
+"Adapt this Claude prompt for Cursor"
+"Write prompts for our onboarding automation agent"
+```
 
 </details>
 
@@ -398,7 +358,7 @@ What happens:
 3. Agent discovers existing auth code and email service
 4. Creates tech spec in plans/PASSWORD-RESET/
 5. Creates implementation plan
-6. ⏸ Waits for your approval
+6. Waits for your approval
 7. Implements the feature
 8. Separate reviewer inspects the code
 9. Writes tests (80%+ coverage)
@@ -414,7 +374,7 @@ What happens:
 1. Rosetta loads the requirements workflow
 2. Agent researches your codebase and asks clarifying questions
 3. Drafts atomic requirements in EARS format
-4. ⏸ You approve each requirement individually
+4. You approve each requirement individually
 5. Validates for conflicts, gaps, and contradictions
 6. Delivers to docs/REQUIREMENTS/ with traceability matrix
 ```
@@ -428,7 +388,7 @@ What happens:
 1. Agent scans your tech stack, dependencies, and project structure
 2. Generates TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md
 3. Creates CONTEXT.md and ARCHITECTURE.md
-4. ⏸ Asks clarifying questions about your project
+4. Asks clarifying questions about your project
 5. Verifies all generated docs
 ```
 
@@ -441,7 +401,7 @@ What happens:
 1. Rosetta loads the research workflow
 2. Agent reads your project context
 3. Crafts an optimized research prompt
-4. ⏸ You approve the research direction
+4. You approve the research direction
 5. Dedicated subagent runs the investigation
 6. Delivers documented analysis with grounded references
 ```
@@ -524,4 +484,4 @@ These videos were recorded in different IDEs to show that Rosetta works everywhe
 
 ---
 
-> 🚧 In development or available with the enterprise edition.
+> 🚧 Available with the enterprise edition. Please contact [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)

@@ -5,15 +5,15 @@
   </picture>
   <p><strong>Consulting control plane for AI coding agents</strong></p>
   <p>
-    [![MCP](https://img.shields.io/pypi/v/ims-mcp.svg)](https://pypi.org/project/ims-mcp/)
-    [![Downloads](https://img.shields.io/pypi/dm/ims-mcp.svg)](https://pypi.org/project/ims-mcp/)
-    [![CLI](https://img.shields.io/pypi/v/rosetta-cli.svg)](https://pypi.org/project/rosetta-cli/)
-    [![Downloads](https://img.shields.io/pypi/dm/rosetta-cli.svg)](https://pypi.org/project/rosetta-cli/)
-    [![Rosetta MCP](https://github.com/griddynamics/rosetta/actions/workflows/publish-ims-mcp.yml/badge.svg)](https://github.com/griddynamics/rosetta/actions/workflows/publish-ims-mcp.yml)
-    [![Rosetta CLI](https://github.com/griddynamics/rosetta/actions/workflows/publish-ims-mcp.yml/badge.svg)](https://github.com/griddynamics/rosetta/actions/workflows/publish-rosetta-cli.yml)
-    [![Instructions](https://github.com/griddynamics/rosetta/actions/workflows/publish-instructions.yml/badge.svg)](https://github.com/griddynamics/rosetta/actions/workflows/publish-instructions.yml)
-    [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-    [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+    <a href="https://pypi.org/project/ims-mcp/"><img src="https://img.shields.io/pypi/v/ims-mcp.svg" alt="MCP"></a>
+    <a href="https://pypi.org/project/ims-mcp/"><img src="https://img.shields.io/pypi/dm/ims-mcp.svg" alt="Downloads"></a>
+    <a href="https://pypi.org/project/rosetta-cli/"><img src="https://img.shields.io/pypi/v/rosetta-cli.svg" alt="CLI"></a>
+    <a href="https://pypi.org/project/rosetta-cli/"><img src="https://img.shields.io/pypi/dm/rosetta-cli.svg" alt="Downloads"></a>
+    <a href="https://github.com/griddynamics/rosetta/actions/workflows/publish-ims-mcp.yml"><img src="https://github.com/griddynamics/rosetta/actions/workflows/publish-ims-mcp.yml/badge.svg" alt="Rosetta MCP"></a>
+    <a href="https://github.com/griddynamics/rosetta/actions/workflows/publish-rosetta-cli.yml"><img src="https://github.com/griddynamics/rosetta/actions/workflows/publish-ims-mcp.yml/badge.svg" alt="Rosetta CLI"></a>
+    <a href="https://github.com/griddynamics/rosetta/actions/workflows/publish-instructions.yml"><img src="https://github.com/griddynamics/rosetta/actions/workflows/publish-instructions.yml/badge.svg" alt="Instructions"></a>
+    <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.12+-blue.svg" alt="Python 3.12+"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License: Apache-2.0"></a>
   </p>
 </div>
 
