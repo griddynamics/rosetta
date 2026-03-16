@@ -16,6 +16,12 @@ on:
       - 'instructions/**'
       - '.github/workflows/publish-instructions.yml'
   workflow_dispatch:
+    inputs:
+      deploy_to_prod:
+        description: 'Publish to production Rosetta Server'
+        type: boolean
+        default: false
+        required: false
 
 permissions:
   contents: write  # Required for creating releases
@@ -40,10 +46,13 @@ jobs:
 
       - name: Publish instructions to Rosetta Server
         env:
-          RAGFLOW_BASE_URL: ${{ secrets.RAGFLOW_BASE_URL || 'https://ims-dev.evergreen.gcp.griddynamics.net/' }}
-          RAGFLOW_API_KEY: ${{ secrets.RAGFLOW_API_KEY }}
+          RAGFLOW_BASE_URL: ${{ inputs.deploy_to_prod && secrets.PROD_RAGFLOW_BASE_URL || secrets.RAGFLOW_BASE_URL || 'https://ims-dev.evergreen.gcp.griddynamics.net/' }}
+          RAGFLOW_API_KEY: ${{ inputs.deploy_to_prod && secrets.PROD_RAGFLOW_API_KEY || secrets.RAGFLOW_API_KEY }}
+          ROSETTA_SERVER_URL: ${{ inputs.deploy_to_prod && secrets.PROD_RAGFLOW_BASE_URL || secrets.RAGFLOW_BASE_URL || 'https://ims-dev.evergreen.gcp.griddynamics.net/' }}
+          ROSETTA_API_KEY: ${{ inputs.deploy_to_prod && secrets.PROD_RAGFLOW_API_KEY || secrets.RAGFLOW_API_KEY }}
           RAGFLOW_DATASET_DEFAULT: aia
           RAGFLOW_DATASET_TEMPLATE: aia-{release}
+          VERSION: r2
         run: |
           echo "Publishing instructions to Rosetta Server..."
           echo "Server: $RAGFLOW_BASE_URL"
@@ -92,7 +101,7 @@ jobs:
         run: |
           echo "## Publishing Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Server:** Rosetta Server (RAGFlow)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Server:** Rosetta Server (${{ inputs.deploy_to_prod && 'PROD' || 'DEV' }})" >> $GITHUB_STEP_SUMMARY
           echo "- **Dataset:** aia (default), aia-r1, aia-r2, etc." >> $GITHUB_STEP_SUMMARY
           echo "- **Folders:** instructions/" >> $GITHUB_STEP_SUMMARY
           echo "- **Release Tag:** ${{ steps.date.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
