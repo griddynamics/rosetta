@@ -9,13 +9,12 @@ name: Publish Instructions
 # Server: https://ims-dev.evergreen.gcp.griddynamics.net/
 
 on:
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - 'instructions/**'
-#      - 'rosetta-cli/**'
-#      - '.github/workflows/publish-instructions.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'instructions/**'
+      - '.github/workflows/publish-instructions.yml'
   workflow_dispatch:
 
 permissions:
@@ -83,9 +82,9 @@ jobs:
 
           ### What's Included
           - All instructions from \`instructions/\` folder
-          - Release: r1 (current production)
+          - Release: r2 (pre-production)
 
-          See [README.md](https://github.com/griddynamics/cto-ims-kb/blob/main/README.md) for details." \
+          See [README.md](https://github.com/griddynamics/rosetta/blob/main/README.md) for details." \
             instructions.zip
 
       - name: Summary
