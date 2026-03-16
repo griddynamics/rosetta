@@ -13,7 +13,6 @@ permalink: /
   <div class="hero-actions">
     <a href="#hero" class="button">Get Started</a>
     <a href="{{ '/overview/' | relative_url }}" class="button-ghost">See it in action →</a>
-    <a href="https://github.com/griddynamics/rosetta" class="button-ghost" target="_blank" rel="noopener noreferrer">GitHub</a>
   </div>
 </section>
 
