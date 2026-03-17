@@ -17,7 +17,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Source and destination paths
-SOURCE_ICON="$PROJECT_ROOT/docs/Rosetta-Icon-Only.png"
+SOURCE_ICON="$PROJECT_ROOT/docs/images/Rosetta-Icon-Only.png"
 DEST_ICON="$SCRIPT_DIR/ims_mcp/resources/rosetta-icon.png"
 DEST_DIR="$SCRIPT_DIR/ims_mcp/resources"
 
