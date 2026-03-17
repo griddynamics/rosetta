@@ -1,12 +1,12 @@
-name: Publish IMS MCP
+name: Publish Rosetta MCP
 
 on:
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - 'ims-mcp-server/**'
-#      - '.github/workflows/publish-ims-mcp.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'ims-mcp-server/**'
+      - '.github/workflows/publish-ims-mcp.yml'
   workflow_dispatch:
 
 jobs:
