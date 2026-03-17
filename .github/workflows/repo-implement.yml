@@ -31,7 +31,7 @@ jobs:
       - name: Load stories from Jira
         id: load
         env:
-          JIRA_URL: https://griddynamics.atlassian.net
+          JIRA_URL: ${{ secrets.JIRA_URL }}
           JIRA_USERNAME: ${{ secrets.JIRA_CONFLUENCE_API_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_KEY }}
         run: python .github/scripts/load_stories.py
@@ -82,8 +82,8 @@ jobs:
             MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS: .github/prompts/repo-implement-code.md
           show_full_output: false
           claude_args: |
-            --allowedTools Read,Write,Edit,MultiEdit,Glob,Grep,Bash(*),mcp__atlassian__jira_get_issue,mcp__atlassian__jira_update_issue,mcp__atlassian__jira_add_comment,mcp__atlassian__jira_get_transitions,mcp__atlassian__jira_transition_issue
-            --mcp-config '{"mcpServers":{"atlassian":{"type":"stdio","command":"uvx","args":["mcp-atlassian"],"env":{"JIRA_URL":"https://griddynamics.atlassian.net","JIRA_USERNAME":"${{ secrets.JIRA_CONFLUENCE_API_EMAIL }}","JIRA_API_TOKEN":"${{ secrets.JIRA_API_KEY }}","CONFLUENCE_URL":"https://griddynamics.atlassian.net","CONFLUENCE_USERNAME":"${{ secrets.JIRA_CONFLUENCE_API_EMAIL }}","CONFLUENCE_API_TOKEN":"${{ secrets.CONFLUENCE_API_KEY }}"}}}}'
+            --allowedTools Read,Write,Edit,MultiEdit,Glob,Grep,Bash(*),mcp__atlassian__jira_get_issue,mcp__atlassian__jira_update_issue,mcp__atlassian__jira_add_comment,mcp__atlassian__jira_get_transitions,mcp__atlassian__jira_transition_issue,mcp__Rosetta__get_context_instructions,mcp__Rosetta__list_instructions,mcp__Rosetta__query_instructions,mcp__Rosetta__query_project_context,mcp__Rosetta__store_project_context
+            --mcp-config '{"mcpServers":{"atlassian":{"type":"stdio","command":"uvx","args":["mcp-atlassian"],"env":{"JIRA_URL":"${{ secrets.JIRA_URL }}","JIRA_USERNAME":"${{ secrets.JIRA_CONFLUENCE_API_EMAIL }}","JIRA_API_TOKEN":"${{ secrets.JIRA_API_KEY }}","CONFLUENCE_URL":"${{ secrets.CONFLUENCE_URL }}","CONFLUENCE_USERNAME":"${{ secrets.JIRA_CONFLUENCE_API_EMAIL }}","CONFLUENCE_API_TOKEN":"${{ secrets.CONFLUENCE_API_KEY }}"}},"Rosetta":{"type":"stdio","command":"uvx","args":["--prerelease=allow","ims-mcp@latest"],"env":{"ROSETTA_SERVER_URL":"${{ secrets.RAGFLOW_BASE_URL }}","ROSETTA_API_KEY":"${{ secrets.RAGFLOW_API_KEY }}","ROSETTA_USER_EMAIL":"${{ secrets.JIRA_CONFLUENCE_API_EMAIL }}","VERSION":"r2"}}}}'
             --model claude-sonnet-4-6
 
       - name: Upload Claude execution trace

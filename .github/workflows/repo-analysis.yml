@@ -41,9 +41,9 @@ jobs:
           show_full_output: false
           claude_args: >-
             --allowedTools
-            "Read,Glob,Grep,mcp__atlassian__jira_search,mcp__atlassian__jira_get_issue,mcp__atlassian__jira_create_issue,mcp__atlassian__jira_update_issue,mcp__atlassian__confluence_get_page,mcp__atlassian__confluence_update_page,mcp__atlassian__confluence_search"
+            "Read,Glob,Grep,mcp__atlassian__jira_search,mcp__atlassian__jira_get_issue,mcp__atlassian__jira_create_issue,mcp__atlassian__jira_update_issue,mcp__atlassian__confluence_get_page,mcp__atlassian__confluence_update_page,mcp__atlassian__confluence_search,mcp__Rosetta__get_context_instructions,mcp__Rosetta__list_instructions,mcp__Rosetta__query_instructions,mcp__Rosetta__query_project_context"
             --mcp-config
-            '{"mcpServers":{"atlassian":{"type":"stdio","command":"uvx","args":["mcp-atlassian"],"env":{"JIRA_URL":"https://griddynamics.atlassian.net","JIRA_USERNAME":"${{ secrets.JIRA_CONFLUENCE_API_EMAIL }}","JIRA_API_TOKEN":"${{ secrets.JIRA_API_KEY }}","CONFLUENCE_URL":"https://griddynamics.atlassian.net","CONFLUENCE_USERNAME":"${{ secrets.JIRA_CONFLUENCE_API_EMAIL }}","CONFLUENCE_API_TOKEN":"${{ secrets.CONFLUENCE_API_KEY }}"}}}}'
+            '{"mcpServers":{"atlassian":{"type":"stdio","command":"uvx","args":["mcp-atlassian"],"env":{"JIRA_URL":"${{ secrets.JIRA_URL }}","JIRA_USERNAME":"${{ secrets.JIRA_CONFLUENCE_API_EMAIL }}","JIRA_API_TOKEN":"${{ secrets.JIRA_API_KEY }}","CONFLUENCE_URL":"${{ secrets.CONFLUENCE_URL }}","CONFLUENCE_USERNAME":"${{ secrets.JIRA_CONFLUENCE_API_EMAIL }}","CONFLUENCE_API_TOKEN":"${{ secrets.CONFLUENCE_API_KEY }}"}},"Rosetta":{"type":"stdio","command":"uvx","args":["--prerelease=allow","ims-mcp@latest"],"env":{"ROSETTA_SERVER_URL":"${{ secrets.RAGFLOW_BASE_URL }}","ROSETTA_API_KEY":"${{ secrets.RAGFLOW_API_KEY }}","ROSETTA_USER_EMAIL":"${{ secrets.JIRA_CONFLUENCE_API_EMAIL }}","VERSION":"r2"}}}}'
             --model claude-sonnet-4-6
 
       - name: Upload Claude execution trace
