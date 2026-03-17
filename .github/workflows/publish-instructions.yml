@@ -59,6 +59,8 @@ jobs:
           echo "Dataset: $RAGFLOW_DATASET_DEFAULT (template: $RAGFLOW_DATASET_TEMPLATE)"
           echo ""
 
+          uvx rosetta-cli@latest version
+          
           uvx rosetta-cli@latest publish instructions
 
           echo ""
