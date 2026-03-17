@@ -5,13 +5,13 @@ permalink: /
 ---
 
 <!-- ===== HERO ===== -->
-<section class="hero-main" id="hero">
+<section class="hero-main">
   <img src="{{ '/assets/brand/rosetta-logo-full-color-white-text.png' | relative_url }}" alt="Rosetta logo" class="hero-logo logo-dark">
   <img src="{{ '/assets/brand/rosetta-logo-full-color-black-text.png' | relative_url }}" alt="Rosetta logo" class="hero-logo logo-light">
   <h1 class="hero-headline">Consulting control plane for AI coding agents</h1>
   <p class="hero-sub">Rosetta gives every agent the same context, standards, and guardrails — across any IDE, any team.</p>
   <div class="hero-actions">
-    <a href="#hero" class="button">Get Started</a>
+    <a href="#why-control-plane" class="button">Get Started</a>
     <a href="{{ '/overview/' | relative_url }}" class="button-ghost">See it in action →</a>
   </div>
 </section>
@@ -450,7 +450,7 @@ permalink: /
 
     setTimeout(function() {
       document.body.classList.remove('splash-exiting');
-      var target = document.getElementById('hero');
+      var target = document.getElementById('why-control-plane');
       if (target) target.scrollIntoView({ behavior: 'smooth' });
     }, 650);
   });
