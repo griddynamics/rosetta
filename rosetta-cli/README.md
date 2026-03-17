@@ -61,6 +61,7 @@ Complete setup instructions are in [docs/QUICKSTART.md](../docs/QUICKSTART.md). 
 ### Installed Usage
 
 ```bash
+uvx rosetta-cli@latest version
 uvx rosetta-cli@latest verify
 ```
 
@@ -76,6 +77,12 @@ venv/bin/rosetta-cli verify
 ## 🔧 CLI Commands
 
 All commands support `--env <environment>` flag to override the active environment.
+
+### Version
+
+```bash
+uvx rosetta-cli@latest version
+```
 
 ### Publishing Commands
 

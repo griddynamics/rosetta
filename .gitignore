@@ -73,3 +73,6 @@ _site/
 .jekyll-cache/
 .jekyll-metadata
 .sass-cache/
+
+# Rosetta
+agents/TEMP

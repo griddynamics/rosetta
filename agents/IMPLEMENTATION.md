@@ -2,6 +2,39 @@
 
 ## ✅ Completed Implementation
 
+### Recent Operations (2026-03-17) — Architecture note for local CLI testing
+
+- Added a short note to `docs/ARCHITECTURE.md` explaining how to test `rosetta-cli` locally without `uv` or `uvx`.
+- Documented repo-venv examples using `../venv/bin/python -m rosetta_cli ...` with `--env dev` for non-destructive local verification.
+- Added matching short guidance to `DEVELOPER_GUIDE.md` in the CLI local development and CLI testing sections, clarifying the intended two-step workflow: test the checkout first with the repo `venv`, then test the published package with `uvx` after push/merge.
+
+### Recent Operations (2026-03-17) — Rosetta CLI auth precheck ordering
+
+- Moved the explicit `AuthService.verify_or_exit(...)` precheck ahead of dataset resolution in the API-backed commands that can auto-detect datasets:
+  - `rosetta-cli/rosetta_cli/commands/list_command.py`
+  - `rosetta-cli/rosetta_cli/commands/parse_command.py`
+  - `rosetta-cli/rosetta_cli/commands/cleanup_command.py`
+- This prevents those commands from touching RAGFlow through dataset auto-detection before the intended auth gate runs.
+- Added focused regression tests for command ordering:
+  - `rosetta-cli/tests/test_command_auth_order.py`
+- Validation completed successfully with the repo virtual environment:
+  - `venv/bin/pytest rosetta-cli/tests/test_command_auth_order.py -q`
+  - `venv/bin/pytest rosetta-cli/tests -q`
+
+### Recent Operations (2026-03-17) — Rosetta CLI version command
+
+- Added an explicit `rosetta-cli version` subcommand that prints the package version and exits before any `.env` discovery, config validation, client creation, or auth checks.
+- Kept the existing version banner for authenticated commands by extracting the shared print logic into a small helper.
+- Updated CLI usage examples in `rosetta-cli/README.md` to document the new command.
+- Added a focused CLI regression test proving `version` does not load config:
+  - `rosetta-cli/tests/test_cli.py`
+- Investigated `AuthService` usage in `rosetta-cli` while implementing the command:
+  - Keep `AuthService`; it centralizes live API key verification and drives `verify` output.
+  - Found one auth ordering issue for future follow-up: `parse`, `list-dataset`, and `cleanup-dataset` can auto-detect datasets before their explicit auth gate when `--dataset` is omitted.
+- Validation completed successfully:
+  - `uv run --python 3.12 --with pytest python -m pytest rosetta-cli/tests`
+  - `uv run --python 3.12 python -m rosetta_cli version`
+
 ### Recent Operations (2026-03-16) — Jira story loader workflow recovery
 
 - Investigated failing GitHub Actions run `23168407313` for `.github/workflows/repo-implement.yml`.

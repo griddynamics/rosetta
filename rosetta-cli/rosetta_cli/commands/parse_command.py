@@ -27,6 +27,9 @@ class ParseCommand(BaseCommand):
 
         # CLI flag must override config default for this run.
         self.config.parse_timeout = args.parse_timeout
+
+        # Verify authentication before any dataset auto-detection touches the API.
+        AuthService.verify_or_exit(self.client, self.config)
         
         # Resolve dataset name
         dataset_service = DatasetService(self.client, self.config)
@@ -44,9 +47,6 @@ class ParseCommand(BaseCommand):
             print("DRY-RUN MODE - No parsing will be triggered")
         print(f"Environment: {self.config.environment}")
         print(f"RAGFlow Instance: {self.config.base_url}\n")
-        
-        # Verify authentication
-        AuthService.verify_or_exit(self.client, self.config)
         print()
         
         try:

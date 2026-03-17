@@ -32,6 +32,7 @@ Without factual inventory of tech stack, structure, and dependencies, subsequent
    - Implement as a single shell script in `agents/TEMP/` folder
 6. List direct dependencies (project, package, version) → write DEPENDENCIES
 7. Preserve human-added sections in existing files
+8. Update .gitignore according to bootstrap_rosetta_files
 
 </process>
 

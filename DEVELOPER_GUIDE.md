@@ -202,10 +202,22 @@ cp rosetta-cli/.env.dev .env  # Points at dev RAGFlow instance
 venv/bin/rosetta-cli verify
 ```
 
+Use two stages when developing the CLI: first test your checkout from the repo virtualenv, then test the packaged CLI with `uvx` after push/merge.
+
 Preview changes without publishing:
 
 ```bash
-uvx rosetta-cli@latest publish instructions --dry-run
+cd rosetta-cli
+../venv/bin/python -m rosetta_cli version
+../venv/bin/python -m rosetta_cli verify --env dev
+../venv/bin/python -m rosetta_cli publish ../instructions --dry-run --env dev
+```
+
+After the package is published, test the packaged CLI with `uvx`:
+
+```bash
+uvx rosetta-cli@latest verify --env dev
+uvx rosetta-cli@latest publish ../instructions --dry-run --env dev
 ```
 
 The `--dry-run` flag shows what would be published (new, changed, unchanged files) without writing anything to RAGFlow.
@@ -319,12 +331,21 @@ Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap 
 
 ### 4. Test CLI changes
 
-If you changed CLI commands, run them against dev with `--dry-run` first, then without:
+If you changed CLI commands, first test the checkout from source with the repo virtualenv:
 
 ```bash
-uvx rosetta-cli@latest publish instructions --dry-run
-uvx rosetta-cli@latest publish instructions
-venv/bin/rosetta-cli list-dataset --dataset aia-r2
+cd rosetta-cli
+../venv/bin/python -m rosetta_cli publish ../instructions --dry-run --env dev
+../venv/bin/python -m rosetta_cli publish ../instructions --env dev
+../venv/bin/python -m rosetta_cli list-dataset --dataset aia-r2 --env dev
+```
+
+After push/merge and package publish, repeat the same checks through the published package:
+
+```bash
+uvx rosetta-cli@latest publish instructions --dry-run --env dev
+uvx rosetta-cli@latest publish instructions --env dev
+uvx rosetta-cli@latest list-dataset --dataset aia-r2 --env dev
 ```
 
 ---

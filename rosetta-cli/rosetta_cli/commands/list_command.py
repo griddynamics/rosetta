@@ -15,6 +15,10 @@ class ListCommand(BaseCommand):
     def execute(self, args: CommandArgs) -> int:
         """Execute list-dataset command."""
         self._start_timing()
+
+        # Verify authentication before any dataset auto-detection touches the API.
+        from ..services.auth_service import AuthService
+        AuthService.verify_or_exit(self.client, self.config)
         
         # Resolve dataset name
         dataset_service = DatasetService(self.client, self.config)
@@ -29,10 +33,6 @@ class ListCommand(BaseCommand):
         print(f"Environment: {self.config.environment}")
         print(f"RAGFlow Instance: {self.config.base_url}")
         print()
-        
-        # Verify authentication
-        from ..services.auth_service import AuthService
-        AuthService.verify_or_exit(self.client, self.config)
         
         try:
             # Get dataset

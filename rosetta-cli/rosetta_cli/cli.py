@@ -30,6 +30,11 @@ COMMAND_REGISTRY: dict[str, CommandClass] = {
 }
 
 
+def _print_version() -> None:
+    """Print the CLI version."""
+    print(f"Rosetta Version: {_CLI_VERSION}")
+
+
 def execute_command(command_name: str, args: CommandArgs, client: RAGFlowClient, config: IMSConfig) -> int:
     """
     Execute a command by name using the command registry.
@@ -60,6 +65,9 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  # Print CLI version
+  rosetta-cli version
+
   # Publish knowledge base content from a folder (with timing)
   rosetta-cli publish ../instructions
 
@@ -217,6 +225,12 @@ Frontmatter Metadata (publish flow):
         default=None,
         help='Explicit path to a .env file'
     )
+
+    # Version command
+    subparsers.add_parser(
+        'version',
+        help='Print CLI version and exit'
+    )
     
     # List dataset command
     list_parser = subparsers.add_parser(
@@ -340,6 +354,10 @@ Frontmatter Metadata (publish flow):
     if not args.command:
         parser.print_help()
         return 1
+
+    if args.command == 'version':
+        _print_version()
+        return 0
     
     try:
         # Load configuration
@@ -348,7 +366,7 @@ Frontmatter Metadata (publish flow):
         # Validate configuration
         config.validate()
 
-        print(f"Rosetta Version: {_CLI_VERSION}")
+        _print_version()
         print(f"Rosetta Environment: {config.environment}")
         
         # Initialize RAGFlow client

@@ -300,6 +300,8 @@ The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instr
 
 **Environment:** `.env.dev` (dev RAGFlow) or `.env.prod` (production). Switch with `cp .env.dev .env`.
 
+For local testing use the repo virtualenv and run from `rosetta-cli/` the module directly, for example: `../venv/bin/python -m rosetta_cli version`, `../venv/bin/python -m rosetta_cli verify --env dev`, `../venv/bin/python -m rosetta_cli publish ../instructions --dry-run --env dev`, or `../venv/bin/python -m rosetta_cli parse --dataset aia-r2 --dry-run --env dev`.
+
 For deployment details, see [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md).
 
 ---
