@@ -11,14 +11,14 @@ baseSchema: docs/schemas/rule.md
 
 <must>
 
-1. MUST FULLY execute `Prep Step 2`. No Exceptions.
-2. MUST FULLY execute `Execution Planning Rules`. No Exceptions.
+1. MUST FULLY execute `Prep Step 2: initial context`. No Exceptions.
+2. MUST FULLY execute `Prep Step 3: Execution Planning Rules`. No Exceptions.
 3. Apply `Process Enforcement Rules`.
 4. MUST Always Use `Subagents Orchestration Rules`.
 
 </must>
 
-<prep_step_2>
+<prep_step_2:initial_context execute="always" modes="all">
 
 1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older.
 2. Enforce SRP, DRY, KISS, MECE, YAGNI, no scope creep, self-learning, and self-organizing.
@@ -29,9 +29,9 @@ baseSchema: docs/schemas/rule.md
 7. Use and validate REQUIREMENTS.
 8. MUST ALWAYS EXECUTE FULLY `Execution Planning Rules`.
 
-</prep_step_2>
+</prep_step_2:initial_context>
 
-<execution_planning_rules>
+<prep_step_3:execution_planning_rules execute="always" modes="all">
 
 Prep Step 3 for subagents:
 
@@ -41,15 +41,16 @@ Prep Step 3 for subagents:
 Prep Step 3 for orchestrator (primary/top agent):
 
 1. MUST LIST workflows FROM KB with XML format
-2. MUST ACQUIRE <guaranteed unique 3-part/2-part TAG> FROM KB and use as a template
+2. MUST ACQUIRE <guaranteed unique 2-part TAG> FROM KB and use as a template
 3. AFTER workflow IS ACQUIRED, scale workflow to request size:
-   - SMALL (1-2 file changes): MUST USE todo tasks planning, USE SKILL tech-specs (OUTPUT as message, no files);
-   - MEDIUM (up to ~10 file changes): USE SKILL planning, tech-specs; keep documentation concise, light, and short; must use subagents
-   - LARGE (more than 10 file changes): USE SKILL planning, tech-specs fully; must use subagents extensively for everything
-4. MUST execute the adapted workflow
-5. Adapt the plan continuously during execution or when scope changes
+   - SMALL (1-2 file changes): MUST USE todo tasks planning, USE SKILL `tech-specs` (OUTPUT as message, no files);
+   - MEDIUM (up to ~10 file changes): USE SKILL `planning` and `tech-specs`; keep documentation concise, light, and short; must use subagents
+   - LARGE (more than 10 file changes): USE SKILL `planning` and `tech-specs`; must use subagents extensively for everything
+4. MUST execute the adapted workflow according to the current mode
+5. In planning mode results of `planning` and `tech-specs` must be stored according to system prompt (NOT in `plans` folder)
+6. Adapt the plan continuously during execution or when scope changes
 
-</execution_planning_rules>
+</prep_step_3:execution_planning_rules>
 
 <process_enforcement_rules>
 

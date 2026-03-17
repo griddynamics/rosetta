@@ -14,10 +14,7 @@ This file contains grep compatible list of very concise improvements, suggestion
 
 **Action:** Confirm the expected user audience. If only internal Grid Dynamics employees on private SSO, keep `False`. Otherwise enable.
 
-## REVIEW: ROSETTA_MODE=SOFT in production
+## REVIEW: Split plugins from marketplace
 
-**Status:** Postponed — evaluate whether HARD mode should be default for prod.
+**What:** Have plugins.json extracted from marketplace and marketplace just references the file/folder. To make it reusable.
 
-**What:** Both `values-prod.yaml` and `values-dev.yaml` set `ROSETTA_MODE=SOFT`. SOFT mode generates less-strict agent instructions (reduced enforcement). Production deployments may benefit from HARD mode for stronger agent compliance.
-
-**Action:** Evaluate SOFT vs HARD mode semantics against production user base and switch prod to HARD if appropriate.
