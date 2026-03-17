@@ -8,7 +8,7 @@ permalink: /docs/deployment/
 
 **Who is this for?** Engineers deploying Rosetta infrastructure for their organization.
 
-**When should I read this?** When you need to stand up Rosetta Server (RAGFlow) and Rosetta MCP for your team. For single-user setup, see [Quick Start](/docs/quickstart/). For client/IDE configuration, see [Installation](/docs/installation/).
+**When should I read this?** When you need to stand up Rosetta Server (RAGFlow) and Rosetta MCP for your team. For single-user setup, see [Quick Start](/rosetta/docs/quickstart/). For client/IDE configuration, see [Installation](/rosetta/docs/installation/).
 
 > [!WARNING]
 > **Never expose RAGFlow or Rosetta MCP directly to the internet.** Always place an API gateway, reverse proxy, or firewall in front of both services. Both have application-level authentication (RAGFlow: user accounts, OIDC/SSO, API keys; Rosetta MCP: OAuth 2.1), but network-level protection is still required as a defense-in-depth measure.
@@ -29,7 +29,7 @@ Rosetta MCP connects to RAGFlow as its backend. Deploy RAGFlow first.
 
 ## Part 1: Rosetta Server (RAGFlow)
 
-RAGFlow provides document storage, embedding, retrieval, and the admin UI. It runs with Elasticsearch, Redis, and MinIO as supporting services, backed by an external MySQL database. For RAGFlow's role in the system, see [Architecture — RAGFlow](/docs/architecture/#ragflow-rosetta-server).
+RAGFlow provides document storage, embedding, retrieval, and the admin UI. It runs with Elasticsearch, Redis, and MinIO as supporting services, backed by an external MySQL database. For RAGFlow's role in the system, see [Architecture — RAGFlow](/rosetta/docs/architecture/#ragflow-rosetta-server).
 
 Upstream docs: [Configuration](https://ragflow.io/docs/dev/configurations) | [Helm Chart](https://github.com/infiniflow/ragflow/tree/main/helm) | [Build Docker Image](https://ragflow.io/docs/dev/build_docker_image) | [Admin UI](https://ragflow.io/docs/admin_ui) | [GitHub](https://github.com/infiniflow/ragflow)
 
@@ -170,7 +170,7 @@ Check the admin panel at `https://<your-host>/admin`. Verify document upload and
 
 ## Part 2: Rosetta MCP
 
-Rosetta MCP is the consulting layer between IDEs and the knowledge base. It transforms, bundles, and contextualizes instructions for AI coding agents, manages sessions via Redis, and handles OAuth authentication. See [Architecture — Rosetta MCP](/docs/architecture/#rosetta-mcp) for capabilities.
+Rosetta MCP is the consulting layer between IDEs and the knowledge base. It transforms, bundles, and contextualizes instructions for AI coding agents, manages sessions via Redis, and handles OAuth authentication. See [Architecture — Rosetta MCP](/rosetta/docs/architecture/#rosetta-mcp) for capabilities.
 
 ### Docker Compose
 
@@ -211,7 +211,7 @@ Rosetta MCP uses the Evergreen shared Helm chart (v1.17.x). Configuration is val
 
 **Deployment strategy:** RollingUpdate (maxSurge: 1, maxUnavailable: 0). Single replica by default, HPA available (2-10 replicas, 70% CPU / 80% memory targets).
 
-**Session affinity:** MCP uses [Streamable HTTP](/docs/architecture/#rosetta-mcp) (stateful). The server holds session state and can call back the IDE. When running multiple replicas, every request from a client must reach the same pod. Configure sticky sessions on the Kubernetes Service:
+**Session affinity:** MCP uses [Streamable HTTP](/rosetta/docs/architecture/#rosetta-mcp) (stateful). The server holds session state and can call back the IDE. When running multiple replicas, every request from a client must reach the same pod. Configure sticky sessions on the Kubernetes Service:
 
 ```yaml
 # Recommended: Service-level ClientIP affinity
@@ -298,7 +298,7 @@ kubectl get pods -n <namespace>
 curl -s https://<your-host>/mcp | head
 ```
 
-Connect an IDE client using [Installation](/docs/installation/) and run: "What can you do, Rosetta?"
+Connect an IDE client using [Installation](/rosetta/docs/installation/) and run: "What can you do, Rosetta?"
 
 ---
 
@@ -333,8 +333,8 @@ Production deploys require a manual image tag bump in `values-prod.yaml`.
 
 ## Related Docs
 
-- [Quick Start](/docs/quickstart/) - single-user setup (zero to working in minutes)
-- [Installation](/docs/installation/) - client/IDE configuration, all transport modes
-- [Architecture](/docs/architecture/) - system structure and component relationships
-- [Troubleshooting](/docs/troubleshooting/) - common issues and fixes
-- [Overview](/docs/overview/) - mental model and terminology
+- [Quick Start](/rosetta/docs/quickstart/) - single-user setup (zero to working in minutes)
+- [Installation](/rosetta/docs/installation/) - client/IDE configuration, all transport modes
+- [Architecture](/rosetta/docs/architecture/) - system structure and component relationships
+- [Troubleshooting](/rosetta/docs/troubleshooting/) - common issues and fixes
+- [Overview](/rosetta/docs/overview/) - mental model and terminology

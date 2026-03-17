@@ -8,7 +8,7 @@ permalink: /docs/developer-guide/
 
 **Who is this for?** Active contributors and maintainers.
 
-**When should I read this?** After [Contributing](/docs/contributing/). Before making your first change.
+**When should I read this?** After [Contributing](/rosetta/docs/contributing/). Before making your first change.
 
 ---
 
@@ -18,17 +18,17 @@ permalink: /docs/developer-guide/
    - Fork repository entirely and work in the `main` branch
    - Clone and create feature branch from the `main` branch
    - Rosetta uses `main` as target branch for PR
-   - See [Contributing Workflow](/docs/contributing/#contributing-workflow) for git-related info
+   - See [Contributing Workflow](/rosetta/docs/contributing/#contributing-workflow) for git-related info
 
 2. **Develop using claude code / codex / cursor** or **Use the prompting flow.**
    - Development: existing rules will kick in, we use HTTP MCP.
-   - Prompting: use the [`coding-agents-prompting-flow`](/docs/contributing/#prompt-changes) to author, refactor, or harden prompts.
+   - Prompting: use the [`coding-agents-prompting-flow`](/rosetta/docs/contributing/#prompt-changes) to author, refactor, or harden prompts.
 
 3. **Check your output.**
-   - [General Review Criteria](/docs/review/#general-review-criteria)
-   - [Core Principles](/docs/review/#core-principles)
-   - [Code Review Criteria](/docs/review/#code-review-criteria)
-   - [Instruction Review Criteria](/docs/review/#instruction-review-criteria)
+   - [General Review Criteria](/rosetta/docs/review/#general-review-criteria)
+   - [Core Principles](/rosetta/docs/review/#core-principles)
+   - [Code Review Criteria](/rosetta/docs/review/#code-review-criteria)
+   - [Instruction Review Criteria](/rosetta/docs/review/#instruction-review-criteria)
 
 4. **Test locally on a target repo.**
    - Set up [Local Instructions Mode](#local-development-instructions) on **target** repository.
@@ -37,18 +37,18 @@ permalink: /docs/developer-guide/
 5. **Test on DEV environment.**
    - Uninstall `local-files-mode.md` from target repository
    - [Publish to dev](#dev-environment-integration-testing)
-   - Enable Rosetta MCP or follow [Quick Start](/docs/quickstart/) to install it
+   - Enable Rosetta MCP or follow [Quick Start](/rosetta/docs/quickstart/) to install it
    - Use dev server URL `https://rosetta-dev.evergreen.gcp.griddynamics.net/mcp`
    - Test end-to-end through the HTTP MCP
 
 6. **Open a PR.**
-   - Follow the [Pull Request Checklist](/docs/contributing/#pull-request-checklist)
+   - Follow the [Pull Request Checklist](/rosetta/docs/contributing/#pull-request-checklist)
    - Prompting: include a prompt brief, before/after examples, and validation evidence
    - Coding: include tests and validation changes
    - All: update documentation, including web site
 
 7. **Pipelines.**
-   - [Automated pipelines](/docs/contributing/#prompt-changes) will execute
+   - [Automated pipelines](/rosetta/docs/contributing/#prompt-changes) will execute
    - Static AI review and scenario comparison
    - Both must pass
 
@@ -93,7 +93,7 @@ Instructions run locally without MCP.
 
 Copy them into a target repository and point your IDE using the local-files-mode.md bootstrap file.
 
-Follow [Offline Installation](/docs/installation/#offline-installation-no-mcp), except you copy your new instructions files:
+Follow [Offline Installation](/rosetta/docs/installation/#offline-installation-no-mcp), except you copy your new instructions files:
 
 ```bash
   cp -r instructions/ /path/to/target-repo/instructions/
@@ -190,7 +190,7 @@ codex mcp add Rosetta \
 
 **Pre-release builds:** Version suffixes like `b00` trigger automatic pre-release publishing. Use `--prerelease=allow` with uvx to pull these builds.
 
-Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](/docs/quickstart/#step-2-add-bootstrap-rule).
+Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](/rosetta/docs/quickstart/#step-2-add-bootstrap-rule).
 
 ---
 
@@ -318,7 +318,7 @@ codex mcp add Rosetta --url https://rosetta-dev.evergreen.gcp.griddynamics.net/m
 
 Authenticate via OAuth as required.
 
-Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](/docs/quickstart/#step-2-add-bootstrap-rule).
+Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](/rosetta/docs/quickstart/#step-2-add-bootstrap-rule).
 
 ### 4. Test CLI changes
 
@@ -346,7 +346,7 @@ venv/bin/rosetta-cli list-dataset --dataset aia-r2
 | Website                | `docs/web/`                                           | Local Jekyll build                       |
 | Documentation          | `docs/`, repo root `.md` files                        | Use AI to check consistency              |
 
-Always publish the **entire** `/instructions` folder. Never subfolders or single files (breaks tag extraction). See [Architecture — Rosetta CLI](/docs/architecture/#rosetta-cli) for details on auto-tagging and change detection.
+Always publish the **entire** `/instructions` folder. Never subfolders or single files (breaks tag extraction). See [Architecture — Rosetta CLI](/rosetta/docs/architecture/#rosetta-cli) for details on auto-tagging and change detection.
 
 ---
 
@@ -369,11 +369,11 @@ The short version:
 
 ## Related Docs
 
-- [Contributing](/docs/contributing/) — fastest path to a merged PR
-- [Architecture](/docs/architecture/) — system structure, components, data flow
-- [Quick Start](/docs/quickstart/) — zero to working setup
-- [Overview](/docs/overview/) — mental model, key concepts
-- [Review Standards](/docs/review/) — what reviewers verify
-- [Usage Guide](/docs/usage-guide/) — how to use Rosetta flows
-- [Deployment](/docs/deployment/) — RAGFlow, MCP, Helm deployment
-- [Troubleshooting](/docs/troubleshooting/) — symptom-first diagnosis
+- [Contributing](/rosetta/docs/contributing/) — fastest path to a merged PR
+- [Architecture](/rosetta/docs/architecture/) — system structure, components, data flow
+- [Quick Start](/rosetta/docs/quickstart/) — zero to working setup
+- [Overview](/rosetta/docs/overview/) — mental model, key concepts
+- [Review Standards](/rosetta/docs/review/) — what reviewers verify
+- [Usage Guide](/rosetta/docs/usage-guide/) — how to use Rosetta flows
+- [Deployment](/rosetta/docs/deployment/) — RAGFlow, MCP, Helm deployment
+- [Troubleshooting](/rosetta/docs/troubleshooting/) — symptom-first diagnosis

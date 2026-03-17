@@ -165,7 +165,7 @@ Add to `opencode.json`:
 
 Any MCP client that supports HTTP transport can connect using the endpoint URL. Complete the OAuth flow when prompted.
 
-STDIO transport is available for air-gapped environments. See [Installation](/docs/installation/).
+STDIO transport is available for air-gapped environments. See [Installation](/rosetta/docs/installation/).
 
 ## Step 2: Add Bootstrap Rule
 
@@ -200,7 +200,7 @@ Ask the agent:
 Initialize this repository using Rosetta
 ```
 
-The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md, ARCHITECTURE.md, CONTEXT.md), and ask clarifying questions. Read more about [workspace files](/docs/installation/#workspace-files-created) and [all workflows](/docs/usage-guide/#workflows).
+The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md, ARCHITECTURE.md, CONTEXT.md), and ask clarifying questions. Read more about [workspace files](/rosetta/docs/installation/#workspace-files-created) and [all workflows](/rosetta/docs/usage-guide/#workflows).
 
 > [!NOTE]
 > **Composite workspaces:** init each repository separately, then init at the workspace level with "This is composite workspace" appended.
@@ -208,17 +208,17 @@ The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CO
 
 ## Common Issues
 
-- **OAuth prompt does not appear:** restart your IDE and retry the connection. Read more in [Troubleshooting — Connection & Authentication](/docs/troubleshooting/#connection--authentication).
-- **Agent ignores Rosetta tools:** confirm the MCP server shows as connected in your IDE's MCP settings. Add a [bootstrap rule](/docs/installation/) if the agent still skips Rosetta. Read more in [Troubleshooting — Agent Not Using Rosetta](/docs/troubleshooting/#agent-not-using-rosetta).
-- **Slow or empty responses:** check your network can reach `rosetta.evergreen.gcp.griddynamics.net`. See [Troubleshooting](/docs/troubleshooting/#slow-or-empty-responses).
+- **OAuth prompt does not appear:** restart your IDE and retry the connection. Read more in [Troubleshooting — Connection & Authentication](/rosetta/docs/troubleshooting/#connection--authentication).
+- **Agent ignores Rosetta tools:** confirm the MCP server shows as connected in your IDE's MCP settings. Add a [bootstrap rule](/rosetta/docs/installation/) if the agent still skips Rosetta. Read more in [Troubleshooting — Agent Not Using Rosetta](/rosetta/docs/troubleshooting/#agent-not-using-rosetta).
+- **Slow or empty responses:** check your network can reach `rosetta.evergreen.gcp.griddynamics.net`. See [Troubleshooting](/rosetta/docs/troubleshooting/#slow-or-empty-responses).
 
 ## Next Steps
 
-- [Usage Guide](/docs/usage-guide/) — how to use Rosetta flows
-- [Overview](/docs/overview/) — mental model and terminology
-- [Deployment](/docs/deployment/) — org-wide deployment
-- [Contributing](/docs/contributing/) — make your first contribution
-- [Architecture](/docs/architecture/) — system internals
+- [Usage Guide](/rosetta/docs/usage-guide/) — how to use Rosetta flows
+- [Overview](/rosetta/docs/overview/) — mental model and terminology
+- [Deployment](/rosetta/docs/deployment/) — org-wide deployment
+- [Contributing](/rosetta/docs/contributing/) — make your first contribution
+- [Architecture](/rosetta/docs/architecture/) — system internals
 
 ## Video Tutorials
 

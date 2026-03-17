@@ -1,6 +1,7 @@
 title: Rosetta
 seo_title: Rosetta - Enterprise AI Coding Agents Control Plane and Best Practices
 description: Enterprise AI coding agents control plane and best practices
+baseurl: /rosetta
 markdown: kramdown
 theme: null
 plugins: []

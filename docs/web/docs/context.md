@@ -9,7 +9,7 @@ permalink: /docs/context/
 **Who is this for?** Contributors, architects, and stakeholders who need to understand the business purpose, domain, and requirements behind Rosetta.
 
 **When should I read this?** When you need to understand *why* Rosetta exists, who it serves, and what success looks like.
-Read the [Introduction](/docs/introduction/) first. For technical details, see [Architecture](/docs/architecture/).
+Read the [Introduction](/rosetta/docs/introduction/) first. For technical details, see [Architecture](/rosetta/docs/architecture/).
 
 **What this document is.** Business context, stakeholder perspective, and target state. Bulleted, concise, no technical implementation details. Source of truth for project purpose and business requirements.
 
@@ -84,7 +84,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 
 - One-command installation for any supported IDE
 - No local dependencies beyond a standard development environment
-- [Progressive disclosure](/docs/overview/#core-mental-model): agents load only what they need, when they need it
+- [Progressive disclosure](/rosetta/docs/overview/#core-mental-model): agents load only what they need, when they need it
 - Works with existing tools and workflows, no process overhaul required
 
 ### Scale
@@ -93,7 +93,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 - Organization-wide rollout from a single instructions repository
 - Release-based versioning (r1, r2, r3) for safe evolution and rollback
 - Layered customization: core baseline + organization overrides + project-specific tweaks
-- Plugin distribution via IDE marketplaces (Claude Code, Cursor) for instant installation across projects. See [Installation — Plugin-Based Installation](/docs/installation/#plugin-based-installation)
+- Plugin distribution via IDE marketplaces (Claude Code, Cursor) for instant installation across projects. See [Installation — Plugin-Based Installation](/rosetta/docs/installation/#plugin-based-installation)
 
 ### Governance
 
@@ -113,7 +113,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 
 - Rosetta operates across the full Software Development Lifecycle: planning, requirements, implementation, QA, release, and operations
 - Agent-agnostic: works with Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE
-- Integrates via [Model Context Protocol (MCP)](/docs/architecture/#rosetta-mcp), the standard transport for AI agent instructions
+- Integrates via [Model Context Protocol (MCP)](/rosetta/docs/architecture/#rosetta-mcp), the standard transport for AI agent instructions
 - Security model: Rosetta serves knowledge to agents. It never sees source code. No code leaves the organization's perimeter. No IP is shared with Rosetta by default. Project datasets and plan_manager (shared execution state) are opt-in features that must be enabled explicitly.
 - Grounded in production experience, not theory. Active feedback loop from real projects.
 
@@ -131,7 +131,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 - **OSS Edition:** Fully open-source, complete source code, self-hosted, community-driven. Includes core agents, workflows, skills, rules, and templates.
 - **Enterprise Edition:** Everything in OSS plus advanced capabilities: automated QA, modernization tools, cross-project knowledge sharing, specialized agents, and dedicated support.
 
-For a comparison of installation modes (HTTP, STDIO, Plugin, Offline), see the [Installation — Choose Your Mode](/docs/installation/#choose-your-mode) table.
+For a comparison of installation modes (HTTP, STDIO, Plugin, Offline), see the [Installation — Choose Your Mode](/rosetta/docs/installation/#choose-your-mode) table.
 
 ## Design Philosophy
 
@@ -139,7 +139,7 @@ These principles shape every product and architectural decision:
 
 - **Agent-agnostic.** Never lock users into one IDE or AI model.
 - **Progressive disclosure.** Load instructions in stages. Prevent context overflow. Give agents only what the current task requires.
-- **Classification-first.** Every request is auto-classified before work begins. Classification drives what loads. See [Usage Guide — Workflows](/docs/usage-guide/#workflows) for available request types.
+- **Classification-first.** Every request is auto-classified before work begins. Classification drives what loads. See [Usage Guide — Workflows](/rosetta/docs/usage-guide/#workflows) for available request types.
 - **Release-based versioning.** Develop new instructions without breaking agents on stable versions.
 - **Rules-as-code.** AI behavior is authored, versioned, reviewed, and approved through standard engineering workflows.
 - **Security by design.** No source code transfer. Air-gap capable. Runs inside the organization's perimeter.
@@ -147,14 +147,14 @@ These principles shape every product and architectural decision:
 
 ## Related Docs
 
-- [Introduction](/docs/introduction/): What Rosetta is and where to start
-- [Overview](/docs/overview/): Mental model, terminology, design principles
-- [Architecture](/docs/architecture/): System structure, components, data flow
-- [Developer Guide](/docs/developer-guide/): Repo navigation, where to change what
-- [Contributing](/docs/contributing/): Fastest path to merged PR
-- [Review Standards](/docs/review/): What reviewers verify, what authors provide
-- [Quick Start](/docs/quickstart/): Zero to working setup
-- [Usage Guide](/docs/usage-guide/): How to use Rosetta day-to-day
-- [Deployment](/docs/deployment/): Server and infrastructure setup
-- [Troubleshooting](/docs/troubleshooting/): Symptom-first diagnosis
-- [Installation](/docs/installation/): Full setup reference for complex environments
+- [Introduction](/rosetta/docs/introduction/): What Rosetta is and where to start
+- [Overview](/rosetta/docs/overview/): Mental model, terminology, design principles
+- [Architecture](/rosetta/docs/architecture/): System structure, components, data flow
+- [Developer Guide](/rosetta/docs/developer-guide/): Repo navigation, where to change what
+- [Contributing](/rosetta/docs/contributing/): Fastest path to merged PR
+- [Review Standards](/rosetta/docs/review/): What reviewers verify, what authors provide
+- [Quick Start](/rosetta/docs/quickstart/): Zero to working setup
+- [Usage Guide](/rosetta/docs/usage-guide/): How to use Rosetta day-to-day
+- [Deployment](/rosetta/docs/deployment/): Server and infrastructure setup
+- [Troubleshooting](/rosetta/docs/troubleshooting/): Symptom-first diagnosis
+- [Installation](/rosetta/docs/installation/): Full setup reference for complex environments

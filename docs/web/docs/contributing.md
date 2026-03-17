@@ -14,9 +14,9 @@ permalink: /docs/contributing/
 
 ## Before You Start
 
-- Read the [Overview](/docs/overview/) to understand what Rosetta is
-- Understand the [Architecture](/docs/architecture/)
-- Follow the [Developer Guide](/docs/developer-guide/)
+- Read the [Overview](/rosetta/docs/overview/) to understand what Rosetta is
+- Understand the [Architecture](/rosetta/docs/architecture/)
+- Follow the [Developer Guide](/rosetta/docs/developer-guide/)
 
 ## What Contributions Are Welcome
 
@@ -50,13 +50,13 @@ fork/clone → branch → edit → validate → push → PR
 - Run local validation before pushing.
 - Open a PR against `main`. Fill in the PR template.
 
-See [Overall Development Flow](/docs/developer-guide/#overall-development-flow) on how to run, test, build, review, and validate.
+See [Overall Development Flow](/rosetta/docs/developer-guide/#overall-development-flow) on how to run, test, build, review, and validate.
 
 ## Prompt Changes
 
 Rosetta is a prompt engineering system. Prompt changes have outsized impact and need extra care.
 
-**Use the prompting flow.** The [`coding-agents-prompting-flow`](/docs/usage-guide/#workflows) with `coding-agents-prompt-authoring` skill helps you author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with Opus 4.6 model.
+**Use the prompting flow.** The [`coding-agents-prompting-flow`](/rosetta/docs/usage-guide/#workflows) with `coding-agents-prompt-authoring` skill helps you author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with Opus 4.6 model.
 
 Examples:
 
@@ -119,10 +119,10 @@ By contributing to this project, you agree to the [Developer Certificate of Orig
 
 ## Related Docs
 
-- [Introduction](/docs/introduction/) — what Rosetta is, where to start
-- [Developer Guide](/docs/developer-guide/) — repo navigation, where to change what
-- [Architecture](/docs/architecture/) — system structure, components, data flow
-- [Review Standards](/docs/review/) — what reviewers verify, what authors provide
-- [Context](/docs/context/) — requirements and decisions
-- [Usage Guide](/docs/usage-guide/) — how to use Rosetta flows
-- [Troubleshooting](/docs/troubleshooting/) — symptom-first diagnosis
+- [Introduction](/rosetta/docs/introduction/) — what Rosetta is, where to start
+- [Developer Guide](/rosetta/docs/developer-guide/) — repo navigation, where to change what
+- [Architecture](/rosetta/docs/architecture/) — system structure, components, data flow
+- [Review Standards](/rosetta/docs/review/) — what reviewers verify, what authors provide
+- [Context](/rosetta/docs/context/) — requirements and decisions
+- [Usage Guide](/rosetta/docs/usage-guide/) — how to use Rosetta flows
+- [Troubleshooting](/rosetta/docs/troubleshooting/) — symptom-first diagnosis

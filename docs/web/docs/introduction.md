@@ -19,13 +19,13 @@ permalink: /docs/introduction/
 
 Rosetta is a consulting control plane for AI coding agents. It consults them with versioned, expert-prepared instructions so every agent follows your organization's rules, conventions, and knowledge. Works across IDEs, runs locally, and keeps instructions versioned as code.
 
-Every AI interaction follows four phases: **Prepare** (load guardrails and context), **Research** (search the knowledge base), **Plan** (produce a reviewable plan), **Act** (execute with full context). Read more in the [Usage Guide](/docs/usage-guide/#workflows).
+Every AI interaction follows four phases: **Prepare** (load guardrails and context), **Research** (search the knowledge base), **Plan** (produce a reviewable plan), **Act** (execute with full context). Read more in the [Usage Guide](/rosetta/docs/usage-guide/#workflows).
 
 ## Why use it
 
-- **Context engineering, not prompt hacking.** Agents receive your conventions, architecture, and business rules automatically — structured, versioned, and ready before the first line of code. See [how it fits your workflow](/docs/overview/#how-rosetta-fits-into-your-workflow).
+- **Context engineering, not prompt hacking.** Agents receive your conventions, architecture, and business rules automatically — structured, versioned, and ready before the first line of code. See [how it fits your workflow](/rosetta/docs/overview/#how-rosetta-fits-into-your-workflow).
 - **Write once, run everywhere.** Agent-agnostic design adapts to any IDE and any tech stack. No per-tool maintenance.
-- **Guardrails built in.** Approval gates, risk assessment, and data protection ensure consistent AI behavior across teams. See [how Rosetta protects you](/docs/usage-guide/#how-rosetta-protects-you).
+- **Guardrails built in.** Approval gates, risk assessment, and data protection ensure consistent AI behavior across teams. See [how Rosetta protects you](/rosetta/docs/usage-guide/#how-rosetta-protects-you).
 - **Cross-project intelligence.** Publish business and technical context from every project into a shared knowledge base. Agents see the system, not just one repo — trace flows across services, catch breaking API changes before they ship, and assess blast radius of any change across the portfolio.
 - **One-command onboarding.** New repo, new developer — productive immediately with best practices baked in.
 - **Instructions as code.** Prompts version-controlled with release management — single source of truth for all teams.
@@ -65,7 +65,7 @@ codex mcp login Rosetta
 
 Complete the OAuth flow when prompted. Then ask: *"Initialize this repository using Rosetta"*
 
-STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](/docs/installation/). Read more in the [Quickstart](/docs/quickstart/).
+STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](/rosetta/docs/installation/). Read more in the [Quickstart](/rosetta/docs/quickstart/).
 
 ## Supported IDEs and Agents
 
@@ -84,18 +84,18 @@ Works with any MCP-compatible tool.
 
 | I want to... | Read |
 |---|---|
-| Understand what Rosetta is and how to think about it | [Overview](/docs/overview/) |
-| Set up Rosetta | [Quick Start](/docs/quickstart/) |
-| Learn how to use Rosetta flows | [Usage Guide](/docs/usage-guide/) |
-| Deploy Rosetta for my organization | [Deployment](/docs/deployment/) |
-| Understand the system architecture | [Architecture](/docs/architecture/) |
-| Navigate the codebase | [Developer Guide](/docs/developer-guide/) |
-| Contribute a change | [Contributing](/docs/contributing/) |
-| Debug a problem | [Troubleshooting](/docs/troubleshooting/) |
+| Understand what Rosetta is and how to think about it | [Overview](/rosetta/docs/overview/) |
+| Set up Rosetta | [Quick Start](/rosetta/docs/quickstart/) |
+| Learn how to use Rosetta flows | [Usage Guide](/rosetta/docs/usage-guide/) |
+| Deploy Rosetta for my organization | [Deployment](/rosetta/docs/deployment/) |
+| Understand the system architecture | [Architecture](/rosetta/docs/architecture/) |
+| Navigate the codebase | [Developer Guide](/rosetta/docs/developer-guide/) |
+| Contribute a change | [Contributing](/rosetta/docs/contributing/) |
+| Debug a problem | [Troubleshooting](/rosetta/docs/troubleshooting/) |
 
 ## Contributing
 
-Contributions welcome. See [Contributing](/docs/contributing/) for workflow and expectations.
+Contributions welcome. See [Contributing](/rosetta/docs/contributing/) for workflow and expectations.
 
 ## Community
 

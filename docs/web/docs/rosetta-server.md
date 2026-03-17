@@ -8,7 +8,7 @@ permalink: /docs/rosetta-server/
 
 **Who is this for?** Engineers and maintainers working with the RAGFlow-based knowledge retrieval layer.
 
-**When should I read this?** When you need to understand, configure, or debug the Rosetta Server API. For deployment, see [Deployment](/docs/deployment/).
+**When should I read this?** When you need to understand, configure, or debug the Rosetta Server API. For deployment, see [Deployment](/rosetta/docs/deployment/).
 
 ---
 
@@ -321,7 +321,7 @@ And others.
 
 ## Related Docs
 
-- [Deployment](/docs/deployment/) — deploying Rosetta Server infrastructure
-- [Architecture](/docs/architecture/) — how Rosetta Server fits in the system
-- [Troubleshooting](/docs/troubleshooting/) — debugging connection and retrieval issues
-- [Developer Guide](/docs/developer-guide/) — local development setup
+- [Deployment](/rosetta/docs/deployment/) — deploying Rosetta Server infrastructure
+- [Architecture](/rosetta/docs/architecture/) — how Rosetta Server fits in the system
+- [Troubleshooting](/rosetta/docs/troubleshooting/) — debugging connection and retrieval issues
+- [Developer Guide](/rosetta/docs/developer-guide/) — local development setup

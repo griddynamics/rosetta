@@ -8,9 +8,9 @@ permalink: /docs/usage-guide/
 
 **Who is this for?** Engineers, leads, and architects using Rosetta in their daily work.
 
-**When should I read this?** After [Quick Start](/docs/quickstart/). When you want to understand what Rosetta offers and how to use each flow.
+**When should I read this?** After [Quick Start](/rosetta/docs/quickstart/). When you want to understand what Rosetta offers and how to use each flow.
 
-For terminology and mental model, see [Overview](/docs/overview/). For setup, see [Quick Start](/docs/quickstart/) or [Installation](/docs/installation/).
+For terminology and mental model, see [Overview](/rosetta/docs/overview/). For setup, see [Quick Start](/rosetta/docs/quickstart/) or [Installation](/rosetta/docs/installation/).
 
 ---
 
@@ -18,12 +18,12 @@ For terminology and mental model, see [Overview](/docs/overview/). For setup, se
 
 Describe what you need in plain language. Rosetta handles the rest.
 
-1. Your AI coding agent loads Rosetta's [bootstrap rules](/docs/architecture/#bootstrap-flow) automatically
+1. Your AI coding agent loads Rosetta's [bootstrap rules](/rosetta/docs/architecture/#bootstrap-flow) automatically
 2. Rosetta classifies your request (coding, research, init, etc.)
 3. The matching workflow, skills, and guardrails load into context
 4. The agent executes with the right instructions, approval gates, and safety constraints
 
-No special syntax. No commands to memorize. [Progressive disclosure](/docs/overview/#core-mental-model) keeps context clean: only what the current task needs gets loaded.
+No special syntax. No commands to memorize. [Progressive disclosure](/rosetta/docs/overview/#core-mental-model) keeps context clean: only what the current task needs gets loaded.
 
 ## Workflows
 
@@ -230,9 +230,9 @@ Specialized workflow for authoring and adapting prompts for AI coding agents. Bu
 
 Every request benefits from these regardless of workflow.
 
-- **Execution policies** enforce plan-driven work, incremental validation, and memory-based self-learning. The agent consults `agents/MEMORY.md` during planning and records lessons learned. See [Architecture — Workspace Files](/docs/architecture/#workspace-files) for the full file list.
+- **Execution policies** enforce plan-driven work, incremental validation, and memory-based self-learning. The agent consults `agents/MEMORY.md` during planning and records lessons learned. See [Architecture — Workspace Files](/rosetta/docs/architecture/#workspace-files) for the full file list.
 - **HITL and questioning rules** govern how the agent interacts with you. Questions are batched (5-10 per round), prioritized by impact, each targeting a single decision. If something is unclear, Rosetta stops and asks.
-- **[Subagent orchestration](/docs/architecture/#rosetta-mcp)** defines how work gets delegated. Subagents start with fresh context, receive explicit scope boundaries, and return concise results. Independent work runs in parallel.
+- **[Subagent orchestration](/rosetta/docs/architecture/#rosetta-mcp)** defines how work gets delegated. Subagents start with fresh context, receive explicit scope boundaries, and return concise results. Independent work runs in parallel.
 
 ## Customization
 
@@ -246,7 +246,7 @@ The single most effective way to improve AI output. These files tell the AI what
 - **`docs/ARCHITECTURE.md`** (the how) — system structure, component relationships, data flow, deployment
 - **`docs/TECHSTACK.md`** (the what) — technologies, frameworks, tools, and reasoning behind each choice
 
-The more your team invests in these three files, the fewer follow-up questions Rosetta asks and the better the output gets. See [Installation — Workspace Files Created](/docs/installation/#workspace-files-created) for the full list of files Rosetta manages.
+The more your team invests in these three files, the fewer follow-up questions Rosetta asks and the better the output gets. See [Installation — Workspace Files Created](/rosetta/docs/installation/#workspace-files-created) for the full list of files Rosetta manages.
 
 ### Custom Rules
 
@@ -440,7 +440,7 @@ Rosetta is distributed as plugins for Claude Code and Cursor.
 - **grid** — 4 skills, 2 agents, 2 workflows, 2 rules. Enterprise extensions (requires core).
 - **rosetta** — bootstrap rule and MCP connection only. Smallest footprint, all instructions loaded from MCP on demand.
 
-See [Installation — Plugin-Based Installation](/docs/installation/#plugin-based-installation) for install commands.
+See [Installation — Plugin-Based Installation](/rosetta/docs/installation/#plugin-based-installation) for install commands.
 
 ## Best Practices
 
@@ -480,12 +480,12 @@ These videos were recorded in different IDEs to show that Rosetta works everywhe
 
 ## Related Docs
 
-- [Overview](/docs/overview/) — mental model and terminology
-- [Quick Start](/docs/quickstart/) — zero to working setup
-- [Installation](/docs/installation/) — all setup modes and environment variables
-- [Architecture](/docs/architecture/) — system structure, components, data flow
-- [Deployment](/docs/deployment/) — org-wide deployment
-- [Contributing](/docs/contributing/) — fastest path to a merged PR
-- [Troubleshooting](/docs/troubleshooting/) — symptom-first diagnosis
+- [Overview](/rosetta/docs/overview/) — mental model and terminology
+- [Quick Start](/rosetta/docs/quickstart/) — zero to working setup
+- [Installation](/rosetta/docs/installation/) — all setup modes and environment variables
+- [Architecture](/rosetta/docs/architecture/) — system structure, components, data flow
+- [Deployment](/rosetta/docs/deployment/) — org-wide deployment
+- [Contributing](/rosetta/docs/contributing/) — fastest path to a merged PR
+- [Troubleshooting](/rosetta/docs/troubleshooting/) — symptom-first diagnosis
 
 ---

@@ -23,7 +23,7 @@ Every PR, regardless of type:
 - **No secrets or credentials.** No PII, API keys, passwords, tokens in code or config.
 - **Dangerous actions assessed.** Irreversible, destructive, or high-blast-radius changes require explicit justification.
 
-For the full author checklist, see [Contributing — Pull Request Checklist](/docs/contributing/#pull-request-checklist).
+For the full author checklist, see [Contributing — Pull Request Checklist](/rosetta/docs/contributing/#pull-request-checklist).
 
 ---
 
@@ -68,7 +68,7 @@ Instructions (skills, agents, workflows, rules, templates) define how AI agents 
 
 ### Agent and Tool Agnosticism
 
-- **No hardcoded tool names.** Instructions must not reference specific MCPs and tools, unless those are commonly available. Additionally, use [command aliases](/docs/architecture/#command-aliases) (`ACQUIRE FROM KB`, `SEARCH IN KB`) or describe the action generically.
+- **No hardcoded tool names.** Instructions must not reference specific MCPs and tools, unless those are commonly available. Additionally, use [command aliases](/rosetta/docs/architecture/#command-aliases) (`ACQUIRE FROM KB`, `SEARCH IN KB`) or describe the action generically.
 - **No IDE-specific logic.** Instructions work across Cursor, Claude Code, VS Code, JetBrains, Codex, and any MCP-compatible agent. If a PR introduces IDE-specific behavior, it must be justified and isolated. Target models: Sonnet, Opus, GPT-5.3-codex, GPT-5.4, Gemini-3.1-Pro.
 - **No hardcoded paths or env vars.** Unless the instruction explicitly manages configuration, paths and environment details belong in setup docs or deployment config.
 - **Flexible over rigid.** Prefer solutions that adapt to task complexity. Avoid brittle assumptions about project structure, language, or toolchain.
@@ -79,7 +79,7 @@ Instructions (skills, agents, workflows, rules, templates) define how AI agents 
 - **Precise wording.** No vague qualifiers ("approximately", "generally", "might"). Measurable and specific.
 - **Explicit over implicit.** State requirements directly. Do not assume the agent will infer intent.
 - **Imperative form.** "Do X", not "You should consider doing X". Target each rule line below 8 words.
-- **Use common and domain terms.** Avoid jargon unless defined in [Overview — Key Concepts](/docs/overview/#key-concepts). Consistent terminology across all instructions.
+- **Use common and domain terms.** Avoid jargon unless defined in [Overview — Key Concepts](/rosetta/docs/overview/#key-concepts). Consistent terminology across all instructions.
 - **No AI slop.** No filler, no em-dashes, no marketing language. If it sounds like a LinkedIn post, rewrite.
 - **No non-operational content.** Remove history, rationale annotations, origin labels, change notes. Instructions describe current state.
 - **Structured over prose.** Prefer lists, tables, and short sections over paragraphs.
@@ -92,7 +92,7 @@ Duplication in instructions is a maintenance and correctness hazard.
 
 - **Search for existing coverage.** Before approving a new instruction, verify no other file already covers the same topic.
 - **One canonical source.** If content exists in two places, pick one home and make the other a reference.
-- **Bundler-aware.** Core and org files at the same VFS resource path get [bundled](/docs/architecture/#bundler). Verify that overlapping paths complement, not contradict.
+- **Bundler-aware.** Core and org files at the same VFS resource path get [bundled](/rosetta/docs/architecture/#bundler). Verify that overlapping paths complement, not contradict.
 
 ### CI Pipeline Checks
 
@@ -136,9 +136,9 @@ When a PR is generated or co-authored by AI:
 
 ## Related Docs
 
-- [Contributing](/docs/contributing/) — PR workflow, author checklist
-- [Developer Guide](/docs/developer-guide/) — repo navigation, where to change what
-- [Architecture](/docs/architecture/) — system structure, components, data flow
-- [Overview](/docs/overview/) — terminology, key concepts
-- [Context](/docs/context/) — business requirements, decisions
-- [Usage Guide](/docs/usage-guide/) — how to use Rosetta flows
+- [Contributing](/rosetta/docs/contributing/) — PR workflow, author checklist
+- [Developer Guide](/rosetta/docs/developer-guide/) — repo navigation, where to change what
+- [Architecture](/rosetta/docs/architecture/) — system structure, components, data flow
+- [Overview](/rosetta/docs/overview/) — terminology, key concepts
+- [Context](/rosetta/docs/context/) — business requirements, decisions
+- [Usage Guide](/rosetta/docs/usage-guide/) — how to use Rosetta flows

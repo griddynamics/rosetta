@@ -8,7 +8,7 @@ permalink: /docs/installation/
 
 **Who is this for?** Complete setup reference for all installation modes.
 
-**When should I read this?** When you need the full picture: HTTP, STDIO, plugins, offline, or environment variables. For the fastest path, see [Quick Start](/docs/quickstart/).
+**When should I read this?** When you need the full picture: HTTP, STDIO, plugins, offline, or environment variables. For the fastest path, see [Quick Start](/rosetta/docs/quickstart/).
 
 > [!WARNING]
 > Use **Sonnet 4.6**, **GPT-5.3-codex-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
@@ -410,7 +410,7 @@ Required for STDIO transport. Optional otherwise.
 | `IMS_DEBUG`               | disabled                   | Enable debug logs (`1`, `true`, `yes`, `on`)                                                                                                                |
 | `POSTHOG_API_KEY`         | (built-in)                 | Set to `""` to disable usage analytics                                                                                                                      |
 
-Do not set `VERSION`. It uses a server-controlled default for managed upgrades. See [Architecture — Tradeoffs](/docs/architecture/#tradeoffs) for rationale.
+Do not set `VERSION`. It uses a server-controlled default for managed upgrades. See [Architecture — Tradeoffs](/rosetta/docs/architecture/#tradeoffs) for rationale.
 
 ### Plugin-Based Installation
 
@@ -421,7 +421,7 @@ Two modes:
 - **Lightweight (recommended):** bootstrap rule and MCP server definition only. Smallest footprint, behavior driven by MCP.
 - **Full:** core (20 skills, 7 agents, 4 workflows, bootstrap rules) plus optional grid enterprise extensions. Requires core 2.0.0+ for grid.
 
-Read more about plugin contents and capabilities in the [Usage Guide — Plugins](/docs/usage-guide/#plugins).
+Read more about plugin contents and capabilities in the [Usage Guide — Plugins](/rosetta/docs/usage-guide/#plugins).
 
 #### Claude Code
 
@@ -500,7 +500,7 @@ Run once per repository after installation:
 Initialize this repository using Rosetta
 ```
 
-The agent runs an eight-phase workflow (see [Usage Guide — Init Workspace](/docs/usage-guide/#workflows) for details):
+The agent runs an eight-phase workflow (see [Usage Guide — Init Workspace](/rosetta/docs/usage-guide/#workflows) for details):
 
 1. **Context** — detect workspace mode and build file inventory
 2. **Shells** — generate IDE/agent shell files from KB schemas
@@ -517,7 +517,7 @@ The agent runs an eight-phase workflow (see [Usage Guide — Init Workspace](/do
 
 ### Workspace Files Created
 
-After initialization, Rosetta maintains these files in your repository. Read more about their purpose in [Architecture — Workspace Files](/docs/architecture/#workspace-files).
+After initialization, Rosetta maintains these files in your repository. Read more about their purpose in [Architecture — Workspace Files](/rosetta/docs/architecture/#workspace-files).
 
 **Committed to SCM:**
 
@@ -568,7 +568,7 @@ After initialization, Rosetta maintains these files in your repository. Read mor
 
 ## Related Docs
 
-- [Quick Start](/docs/quickstart/) - fastest path to a working setup
-- [Overview](/docs/overview/) - mental model and terminology
-- [Troubleshooting](/docs/troubleshooting/) - common issues and fixes
-- [Deployment](/docs/deployment/) - org-wide server deployment
+- [Quick Start](/rosetta/docs/quickstart/) - fastest path to a working setup
+- [Overview](/rosetta/docs/overview/) - mental model and terminology
+- [Troubleshooting](/rosetta/docs/troubleshooting/) - common issues and fixes
+- [Deployment](/rosetta/docs/deployment/) - org-wide server deployment

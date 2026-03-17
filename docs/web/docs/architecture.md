@@ -8,9 +8,9 @@ permalink: /docs/architecture/
 
 **Who is this for?** Contributors who need to understand how Rosetta works before changing it.
 
-**When should I read this?** After [Overview](/docs/overview/). Before touching MCP tools, CLI publishing, instruction content, or folder structure.
+**When should I read this?** After [Overview](/rosetta/docs/overview/). Before touching MCP tools, CLI publishing, instruction content, or folder structure.
 
-For terminology (workflow, skill, rule, subagent, bootstrap, etc.), see [Overview — Key Concepts](/docs/overview/#key-concepts).
+For terminology (workflow, skill, rule, subagent, bootstrap, etc.), see [Overview — Key Concepts](/rosetta/docs/overview/#key-concepts).
 
 ---
 
@@ -91,7 +91,7 @@ Instructions flow up: files are published by the CLI into RAGFlow, served by Ros
 The MCP server is the consulting layer between IDEs and the knowledge base. It does not just proxy requests: it transforms, bundles, and contextualizes instructions so agents know how to do things right. Published on PyPI as `ims-mcp`. Built on [FastMCP v3](https://gofastmcp.com/) (latest stable) with [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy) for authentication and [RAGFlow](https://ragflow.io/) as the document engine backend. Speaks in VFS resource paths, adds context headers describing what information means and how to use it, and controls context size automatically.
 
 **Transport options:**
-- **Streamable HTTP with OAuth** (default). Stateful: the server holds session state and can issue callbacks to the IDE. Zero local dependencies. Cursor, Claude Code, and Codex connect directly. When scaling to multiple replicas, sticky sessions are required (see [Deployment](/docs/deployment/)).
+- **Streamable HTTP with OAuth** (default). Stateful: the server holds session state and can issue callbacks to the IDE. Zero local dependencies. Cursor, Claude Code, and Codex connect directly. When scaling to multiple replicas, sticky sessions are required (see [Deployment](/rosetta/docs/deployment/)).
 - **STDIO** for air-gapped environments. Runs `uvx ims-mcp` locally with API key auth.
 
 **Authentication:** HTTP uses OAuth 2.1 via [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy) (supports any provider: Keycloak, GitHub, Google, Azure). Cached token introspection. STDIO uses `ROSETTA_API_KEY`. Policy-based authorization: `aia-*` read-only, `project-*` configurable.
@@ -245,7 +245,7 @@ All prefixes are internal only, it must not be exposed or received. This prevent
 
 **Metadata per document:** tags, domain, release, content_hash (MD5), resource_path, sort_order, frontmatter, original_path, line_count.
 
-For RAGFlow internals, see [Rosetta Server](/docs/rosetta-server/).
+For RAGFlow internals, see [Rosetta Server](/rosetta/docs/rosetta-server/).
 
 ---
 
@@ -278,7 +278,7 @@ The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instr
 
 **Environment:** `.env.dev` (dev RAGFlow) or `.env.prod` (production). Switch with `cp .env.dev .env`.
 
-For deployment details, see [Deployment](/docs/deployment/).
+For deployment details, see [Deployment](/rosetta/docs/deployment/).
 
 ---
 
@@ -313,7 +313,7 @@ Instructions live in `/instructions/r2/` in the instructions repository, using a
 
 **Layered customization.** Core provides the universal foundation. Organization folders extend or override it. Files at the same VFS resource path get **bundled together** by the Bundler. `INSTRUCTION_ROOT_FILTER` controls which layers are included (e.g., `CORE,GRID`).
 
-**Component relationships.** Workflows invoke subagents. Subagents use skills. All reference rules. Templates live inside skills. Guardrails are rules. See [Overview — Key Concepts](/docs/overview/#key-concepts) for definitions.
+**Component relationships.** Workflows invoke subagents. Subagents use skills. All reference rules. Templates live inside skills. Guardrails are rules. See [Overview — Key Concepts](/rosetta/docs/overview/#key-concepts) for definitions.
 
 **Naming.** Lowercase, dash-separated, globally unique filenames. Entry points: `SKILL.md` for skills, `<name>.md` for agents, workflows, and rules.
 
@@ -348,7 +348,7 @@ Rosetta initializes and maintains a standard file structure in **target reposito
 - `refsrc/*` — reference source code for knowledge only (excluded from SCM except `refsrc/INDEX.md`)
 - `agents/TEMP/<FEATURE>` — temporary files during implementation (excluded from SCM)
 
-Prep step 2 loads `CONTEXT.md` and `ARCHITECTURE.md` from the target repository. The agent updates `IMPLEMENTATION.md` and `MEMORY.md` as it works. See [Installation — Workspace Files Created](/docs/installation/#workspace-files-created) for the full list of committed and excluded files.
+Prep step 2 loads `CONTEXT.md` and `ARCHITECTURE.md` from the target repository. The agent updates `IMPLEMENTATION.md` and `MEMORY.md` as it works. See [Installation — Workspace Files Created](/rosetta/docs/installation/#workspace-files-created) for the full list of committed and excluded files.
 
 **State management and recovery.** For medium and large tasks, workflows create plan, spec, and state files in `plans/` and `agents/`. These files persist execution state to disk, so if a failure occurs (context loss, crash, timeout), the agent or a new session can resume from the last recorded state rather than starting over.
 
@@ -418,7 +418,7 @@ Where contributors add or change things:
 - **CLI commands:** Add to `rosetta-cli/rosetta_cli/commands/`
 - **Website:** Edit pages in `docs/web/`
 
-After adding or changing instructions, publish with the CLI to make them available via MCP. See the [Developer Guide — Where to Change What](/docs/developer-guide/#where-to-change-what) for the validation steps per change type.
+After adding or changing instructions, publish with the CLI to make them available via MCP. See the [Developer Guide — Where to Change What](/rosetta/docs/developer-guide/#where-to-change-what) for the validation steps per change type.
 
 ---
 
@@ -443,8 +443,8 @@ After adding or changing instructions, publish with the CLI to make them availab
 
 ## Related Docs
 
-- [Developer Guide](/docs/developer-guide/) — repo navigation, where to change what
-- [Contributing](/docs/contributing/) — fastest path to a merged PR
-- [Usage Guide](/docs/usage-guide/) — how to use Rosetta flows
-- [Deployment](/docs/deployment/) — RAGFlow, MCP, Helm deployment
-- [Troubleshooting](/docs/troubleshooting/) — symptom-first diagnosis
+- [Developer Guide](/rosetta/docs/developer-guide/) — repo navigation, where to change what
+- [Contributing](/rosetta/docs/contributing/) — fastest path to a merged PR
+- [Usage Guide](/rosetta/docs/usage-guide/) — how to use Rosetta flows
+- [Deployment](/rosetta/docs/deployment/) — RAGFlow, MCP, Helm deployment
+- [Troubleshooting](/rosetta/docs/troubleshooting/) — symptom-first diagnosis
