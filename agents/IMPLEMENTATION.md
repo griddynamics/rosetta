@@ -250,7 +250,7 @@ All R2R tools have been implemented and are ready for use.
   - `ims_mcp/auth/oauth.py`: switched to `CachedIntrospectionTokenVerifier`; wired `extra_authorize_params` (scope override), `upstream_revocation_endpoint` (optional), `jwt_signing_key` (optional, decoupled from client secret).
   - `values-dev.yaml`, `values-prod.yaml`: added `ROSETTA_OAUTH_SCOPE=openid email offline_access`, `ROSETTA_OAUTH_REVOCATION_ENDPOINT`, `ROSETTA_JWT_SIGNING_KEY` (optional secret).
   - `tests/test_oauth.py`: added 8 new tests covering scope, revocation, JWT key, and cached verifier.
-  - `docs/REVIEW.md`: documented postponed items — REDIS_URL substitution bug, consent screen evaluation, ROSETTA_MODE=SOFT in prod.
+  - `docs/TODO.md`: documented postponed items — REDIS_URL substitution bug, consent screen evaluation, ROSETTA_MODE=SOFT in prod.
   - **Keycloak team action required**: enable `offline_access` scope on the client in both `evergreen` and `ims` realms; provision `ROSETTA_JWT_SIGNING_KEY` secret in ESO.
 
 ### Recent Operations (2026-03-07) — MCP contract hardening pass

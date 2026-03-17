@@ -15,7 +15,7 @@ It must be possible to grep by headers and receive useful information and ToC.
 1. `gain.json` defines and overrides general SDLC setup and locations of Rosetta files; this file wins in conflicts.
 2. `docs/CONTEXT.md`. Business and overall context, target state only, no technical details, no change log, no explanation of changes.
 3. `docs/ARCHITECTURE.md`. Architecture, and all technical requirements. Modules, workspace structure, testing architecture, styling, building blocks, etc.
-4. `docs/REVIEW.md`. Improvements, suggestions, large TODOs, etc. Create if missing.
+4. `docs/TODO.md`. Improvements, suggestions, large TODOs, etc. Create if missing.
 5. `docs/ASSUMPTIONS.md`. Assumptions, Unknowns, etc.
 6. `docs/TECHSTACK.md`. Tech stack of all modules.
 7. `docs/DEPENDENCIES.md`. Dependencies of all modules.
