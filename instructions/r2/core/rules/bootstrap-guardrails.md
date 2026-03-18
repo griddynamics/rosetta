@@ -80,7 +80,8 @@ Exceptions (after blast radius):
 - IF read it, report without exposing
 - IF it is needed as-is, MUST ask for explicit user approval
 - User can override (mocked data)
-- USE masking or substring
+- NEVER output, echo, print, log, summarize, or reference the raw value of any sensitive data in chat or in any file.
+- USE masking or substring. IF a secret value is encountered in any context (file read, tool output, code, logs), MASK it immediately using the format `[REDACTED:<type>]` (e.g. `[REDACTED:API_KEY]`, `[REDACTED:PASSWORD]`).
 
 </sensitive_information_handling>
 
