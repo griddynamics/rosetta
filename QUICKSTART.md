@@ -173,7 +173,7 @@ Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instru
 | JetBrains Junie            | `.junie/guidelines.md`            |
 | Windsurf                   | `.windsurf/rules/bootstrap.md`    |
 | Antigravity                | `.agent/rules/bootstrap.md`       |
-| OpenCode                   | `AGENTS.md`                       |
+| OpenCode/Cursor            | `AGENTS.md`                       |
 
 ## Step 3: Verify
 
