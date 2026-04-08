@@ -1,7 +1,6 @@
 ---
 name: requirements-use
-description: Consume approved requirements to drive planning, implementation, and validation with explicit traceability and mandatory HITL for ambiguity or tradeoffs.
-tags: ["requirements", "skills"]
+description: "Consume approved requirements to drive planning, implementation, and validation with explicit traceability and mandatory HITL for ambiguity or tradeoffs. Use when implementing from approved requirements, planning work from requirement IDs, or auditing requirement-to-delivery traceability."
 license: Proprietary
 disable-model-invocation: false
 user-invocable: true
@@ -11,19 +10,14 @@ agent: requirements-engineer, requirements-reviewer
 metadata:
   version: "1.0"
   category: "requirements-engineering"
-  tags: "requirements usage traceability implementation validation hitl"
 tags:
   - requirements-use
   - requirements-traceability
+  - requirements
+  - skills
 ---
 
 <requirements-use>
-
-<role>
-
-You are expert in using requirements as execution contract.
-
-</role>
 
 <when_to_use_skill>
 Use when implementing from approved requirements, planning work from requirement IDs, or auditing requirement-to-delivery traceability. Every in-scope change must trace to requirement IDs, unresolved ambiguity is escalated via HITL, and no unapproved scope is introduced.
@@ -31,181 +25,93 @@ Use when implementing from approved requirements, planning work from requirement
 
 <dependencies>
 
-- Use approved requirements as source of truth.
-- Use CONTEXT, ARCHITECTURE, IMPLEMENTATION docs.
-- If requirements are missing or unclear, use questions flow.
+- Approved requirements as source of truth
+- CONTEXT, ARCHITECTURE, IMPLEMENTATION docs
+- If requirements are missing or unclear, use questions flow
 
 </dependencies>
 
+<workflow>
+
+1. **Validate intake** — confirm requirements source; check all in-scope IDs have Approved status (Draft requires explicit user decision; Deprecated must not drive work)
+2. **Map requirements to tasks** — link each in-scope requirement ID to planned tasks and tests
+3. **Detect issues** — find ambiguities, conflicting shall clauses, missing acceptance criteria, unclear actors, non-measurable thresholds, hidden assumptions → escalate via HITL with options and tradeoffs
+4. **Execute with continuous traceability** — update coverage matrix continuously (do not batch); map each result to acceptance criteria
+5. **Report gaps** — list coverage gaps and over-implementation risks before proposing fixes
+6. **Run validation rubric** — execute validation checklist before claiming completion
+7. **HITL: final coverage approval** — get explicit user sign-off on requirement coverage
+
+</workflow>
+
 <core_concepts>
 
-Role and boundaries:
+Boundaries:
 
-- Treat approved requirements as contract
-- Do not rewrite approved requirements silently
-- Do not invent missing requirements
-- No side effects without HITL
-- Keep communication brief and direct
+- Treat approved requirements as contract — do not rewrite silently, do not invent missing requirements
+- No side effects without HITL; no scope without requirement ID
+- Modal interpretation: shall (mandatory), should (preferred), may (optional)
+- Report untraceable work explicitly; request approval for any reinterpretation
 
-Default output sections:
-
-- Scope Capture
-- Coverage and Traceability Matrix
-- Execution Plan
-- Validation Pack
-- Open Questions
-
-Artifacts:
+Output artifacts:
 
 - Scope capture: intent, in-scope IDs, assumptions, constraints, risks, HITL plan
-- Mapping: requirement IDs to tasks, tests, and evidence
-- Validation: coverage, conflicts, gaps, and acceptance status
+- Traceability matrix: requirement IDs → tasks, tests, and evidence (forward and backward links)
+- Validation pack: coverage, conflicts, gaps, and acceptance status
 - Change log: explicit deltas in use interpretation
 
-HITL gates (use when):
+HITL gates — escalate when:
 
-- ambiguous or conflicting requirement text
-- missing measurable threshold or acceptance criterion
-- tradeoffs across Must/Should/Could/Wont
-- requirement appears stale or contradictory
-- de-scoping is proposed
-- final acceptance on requirement coverage
+- Ambiguous or conflicting requirement text
+- Missing measurable threshold or acceptance criterion
+- Tradeoffs across Must/Should/Could/Wont priorities
+- Requirement appears stale or contradictory
+- De-scoping is proposed
+- Final acceptance on requirement coverage
 
 </core_concepts>
 
-<process>
+<core_principles>
 
-1. Validate intake: confirm requirements source, check all in-scope IDs have Approved status
-2. Map each in-scope requirement ID to planned tasks
-3. Detect ambiguities, conflicts, or missing acceptance criteria — escalate via HITL
-4. Execute with continuous matrix updates (do not batch)
-5. Report coverage gaps and over-implementation risks
-6. Run validation rubric before claiming completion
-7. HITL: get final coverage approval
+- SRP, DRY, KISS, YAGNI, MECE — enforce always; MoSCoW where necessary
+- Use requirement IDs explicitly; no scope without requirement ID
+- Prefer facts over guesses; state assumptions explicitly
+- Keep traceability forward and backward; validate before claiming completion
+- Keep changes surgical and minimal; prefer accuracy over speed
+- No AI slop, no fabricated requirements, no silent reinterpretation
 
-</process>
-
-<core_principles_to_enforce>
-
-- Follow SRP always
-- Follow DRY always
-- Follow KISS always
-- Follow YAGNI always
-- Enforce MECE always
-- Enforce MoSCoW where necessary
-- Use requirement IDs explicitly
-- No scope without requirement ID
-- Prefer facts over guesses
-- State assumptions explicitly
-- Keep traceability forward and backward
-- Validate before claiming completion
-- Keep changes surgical and minimal
-- Prefer accuracy over speed
-- No AI slop
-- No fabricated requirements
-- No silent reinterpretation
-- Respect requirement status and priority
-
-</core_principles_to_enforce>
-
-<requirement_usage_rules>
-
-- Use only Approved units for execution
-- Draft units require explicit user decision
-- Deprecated units must not drive work
-- Interpret shall as mandatory
-- Interpret should as preferred
-- Interpret may as optional
-- Map each task to requirement ID
-- Map each test to requirement ID
-- Report untraceable work explicitly
-
-</requirement_usage_rules>
-
-<traceability_rules>
-
-- Link each task to source req
-- Link each test to source req
-- Link each result to acceptance criteria
-- Track uncovered requirements
-- Track over-implementation risks
-- Keep forward and backward links
-
-</traceability_rules>
-
-<ambiguity_and_conflict_rules>
-
-- Detect conflicting shall clauses
-- Detect missing acceptance criteria
-- Detect unclear actors or outcomes
-- Detect non-measurable thresholds
-- Detect hidden assumptions
-- Stop and escalate via HITL
-- Propose options with tradeoffs
-- Wait for explicit user decision
-
-</ambiguity_and_conflict_rules>
+</core_principles>
 
 <validation_checklist>
 
 - In-scope requirement IDs are explicit
-- Every task maps to requirement ID
-- Every test maps to requirement ID
+- Every task and test maps to a requirement ID
 - No untraceable implementation scope
 - No missing acceptance criteria in scope
-- Conflicts are resolved or deferred
+- Conflicts are resolved or deferred with rationale
 - Assumptions are explicit and approved
-- Coverage gaps are listed
-- Over-implementation risks are listed
+- Coverage gaps and over-implementation risks are listed
 - Final coverage approved by user
 
 </validation_checklist>
-
-<best_practices>
-
-- Start from IDs, not prose
-- Confirm scope before execution
-- Use small batches for approvals
-- Raise blockers immediately
-- Keep matrix updated continuously
-- Show gaps before proposing fixes
-- Prefer existing requirement contracts
-- Request approval for reinterpretation
-- Review coverage as narrative
-
-</best_practices>
 
 <pitfalls>
 
 - Treating Draft as Approved
 - Assuming unspecified behavior
 - Ignoring requirement priority and status
+- Batching matrix updates instead of continuous tracking
 
 </pitfalls>
 
 <resources>
 
-Use `ACQUIRE FROM KB` to load.
+Use `ACQUIRE FROM KB` to load:
 
 - workflow `requirements-use-flow`
 - rule `rules/requirements-use-best-practices.md`
-- asset `requirements-use/assets/ru-scope-capture.md`
-- asset `requirements-use/assets/ru-traceability-matrix.md`
-- asset `requirements-use/assets/ru-validation-rubric.md`
-- asset `requirements-use/assets/ru-change-log.md`
 - skill `requirements-authoring` for schema and IDs
+- assets: `requirements-use/assets/ru-scope-capture.md`, `ru-traceability-matrix.md`, `ru-validation-rubric.md`, `ru-change-log.md`
 
 </resources>
-
-<templates>
-
-Use `ACQUIRE FROM KB` to load.
-
-- `requirements-use/assets/ru-scope-capture.md`
-- `requirements-use/assets/ru-traceability-matrix.md`
-- `requirements-use/assets/ru-validation-rubric.md`
-- `requirements-use/assets/ru-change-log.md`
-
-</templates>
 
 </requirements-use>
