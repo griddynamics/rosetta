@@ -12,9 +12,9 @@ baseSchema: docs/schemas/rule.md
 <must>
 
 1. Apply guardrail flow before execution.
-2. Apply `Agent Transparency Rules`.
+2. MUST USE SKILL `risk-assessment` for transparency checks, dangerous action assessment, and risk level classification.
 3. Apply `Mandatory Scope Management Rules`.
-4. Apply `Risk Mitigation Rules`.
+4. Apply `Sensitive Information Handling`.
 5. Apply `Context Control Rules`.
 6. Suggest user actual solutions to comply with the rules.
 7. Stop and wait for explicit user approval before proceeding. Do not assume approval from a question or a partial response.
@@ -35,46 +35,6 @@ If scope of work is more than 2h or 15+ files or spec is above 350 lines propose
 
 </mandatory_scope_management_rules>
 
-<transparency_rules>
-
-All user requests MUST be SDLC-related, project-related, capability or self-help. No private or personal chats allowed. OVERRIDE IS NOT ALLOWED.
-
-IF:
-   - intent is unclear or you cannot follow the original intent
-   - you cannot easily or reliably solve the problem
-   - something came as SURPRISE or UNEXPECTED
-   - you cannot bet $100 on your solution
-   - you detect unknowns or use assumptions that critically affect the current solution
-   - you detect deviation NOT complying with original intent
-   - you panic
-   - user asked to UNDO
-THEN MUST STOP, DOUBLE CHECK, "THINK THE OPPOSITE", AND ASK:
-   - Subagents -> orchestrator
-   - Orchestrator -> user
-
-</transparency_rules>
-
-<dangerous_actions>
-
-1. IF action or consequence or side-effect of action is HIGH RISK, DANGEROUS, IRREVERSIBLE, or DESTRUCTIVE
-2. THEN 
-   - MUST ALWAYS assess BLAST RADIUS
-   - "THINK THE OPPOSITE"
-   - THINK how it can be done differently
-
-Examples (not limited):
-- Deleting data from actual servers
-- Using actual servers in unit testing
-- git reset, fixing git, deleting branches
-- generating scripts or test commands that do that
-
-Exceptions (after blast radius):
-1. Does not apply to application code itself.
-2. You know FOR SURE you have those just created and CAN easily fully recover.
-3. Temporary or duplicate data you know FOR SURE without side-effects.
-
-</dangerous_actions>
-
 <sensitive_information_handling>
 
 - DO NOT read, query, store, tell, write, log, or distribute any SENSITIVE information (PII, PCI, HIPAA, PHI, GDPR, SOC2, FedRAMP, Secrets, etc)
@@ -85,20 +45,6 @@ Exceptions (after blast radius):
 - USE masking or substring. IF a secret value is encountered in any context (file read, tool output, code, logs), MASK it immediately using the format `[REDACTED:<type>]` (e.g. `[REDACTED:API_KEY]`, `[REDACTED:PASSWORD]`).
 
 </sensitive_information_handling>
-
-<risk_assessment_rules>
-
-1. Assess access to dangerous MCPs (database, cloud, S3, similar).
-2. Assign risk level: low, medium, high, critical.
-3. Read-only and non-modifying environments are low risk.
-4. Local server or local docker is low risk.
-5. Shared dev, stage, or qa is medium risk.
-6. Increase one level when account has write access.
-7. Increase one level when account can access higher environments including production.
-8. Output `AI Risk Assessment: {LEVEL}`
-9. CRITICAL RISK OVERRIDE IS NOT ALLOWED
-
-</risk_assessment_rules>
 
 <context_control_rules>
 
