@@ -1,7 +1,7 @@
 ---
 name: init-workspace-discovery
 description: "Rosetta skill to produce TECHSTACK, CODEMAP, DEPENDENCIES from workspace analysis."
-model: claude-haiku-4.5
+model: claude haiku 4.5
 tags: ["init", "workspace", "discovery", "techstack", "codemap"]
 baseSchema: docs/schemas/skill.md
 ---

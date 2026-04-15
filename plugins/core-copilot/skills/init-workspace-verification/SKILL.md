@@ -1,7 +1,7 @@
 ---
 name: init-workspace-verification
 description: "Rosetta skill to verify workspace initialization completeness and run catch-up for missed artifacts."
-model: claude-sonnet-4.6
+model: claude sonnet 4.6
 tags: ["init", "workspace", "verification", "validation"]
 baseSchema: docs/schemas/skill.md
 ---

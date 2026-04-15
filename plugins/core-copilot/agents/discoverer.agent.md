@@ -2,7 +2,7 @@
 name: discoverer
 description: Rosetta Lightweight subagent. Gather project context, existing patterns, affected areas, and dependencies.
 mode: subagent
-model: claude-sonnet-4.6
+model: claude sonnet 4.6
 readonly: true
 baseSchema: docs/schemas/agent.md
 ---

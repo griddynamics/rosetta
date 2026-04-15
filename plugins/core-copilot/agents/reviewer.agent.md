@@ -2,7 +2,7 @@
 name: reviewer
 description: Rosetta Full subagent. Inspect artifacts against intent and contracts, provides recommendations.
 mode: subagent
-model: claude-sonnet-4.6
+model: claude sonnet 4.6
 readonly: true
 baseSchema: docs/schemas/agent.md
 ---

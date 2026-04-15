@@ -25,6 +25,7 @@ Use when encountering errors, test failures, unexpected behavior, or when a prev
 
 For each issue provide:
 
+- OODA
 - Root cause explanation with supporting evidence
 - Specific code fix
 - Testing approach

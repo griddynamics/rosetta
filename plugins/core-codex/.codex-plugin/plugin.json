@@ -1,6 +1,6 @@
 {
   "name": "core",
-  "version": "2.0.17",
+  "version": "2.0.18",
   "description": "Rosetta Core 2.0 for Codex. Bundles reusable skills, Rosetta MCP, and local references for rules and workflows.",
   "author": {
     "name": "Grid Dynamics",

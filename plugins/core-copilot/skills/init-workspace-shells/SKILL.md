@@ -1,7 +1,7 @@
 ---
 name: init-workspace-shells
 description: "Rosetta skill to generate IDE/CodingAgent shell files from KB schemas."
-model: claude-sonnet-4.6
+model: claude sonnet 4.6
 tags: ["init", "workspace", "shells", "configure"]
 baseSchema: docs/schemas/skill.md
 ---

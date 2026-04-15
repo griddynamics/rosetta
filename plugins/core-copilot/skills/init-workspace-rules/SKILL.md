@@ -1,7 +1,7 @@
 ---
 name: init-workspace-rules
 description: "Rosetta skill to create local cached agent rules configured for IDE/OS/project context."
-model: claude-sonnet-4.6
+model: claude sonnet 4.6
 tags: ["init", "workspace", "rules"]
 baseSchema: docs/schemas/skill.md
 ---

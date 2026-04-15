@@ -2,7 +2,7 @@
 name: architect
 description: Rosetta Full subagent. Transform requirements into clear, testable tech specifications and architecture.
 mode: subagent
-model: claude-opus-4.6
+model: claude opus 4.6
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

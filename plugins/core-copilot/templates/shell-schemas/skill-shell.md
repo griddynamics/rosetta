@@ -15,7 +15,7 @@ argument-hint: [Hint shown during autocomplete to indicate expected arguments] [
 
 # Tools & Model Configuration (Optional)
 allowed-tools: [Tools Claude can use without asking permission when this skill is active, dangerous, only keep it when you know exactly] [string] [Claude Code] [ex: Bash(git diff:*)]
-model: claude-sonnet-4.6
+model: claude sonnet 4.6
 
 [Latest Models: Anthropic (claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5), OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high), Google (gemini-3.1-pro-preview, gemini-3-flash-preview), Z.ai (glm-5).]
 

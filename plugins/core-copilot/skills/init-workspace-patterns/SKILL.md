@@ -1,7 +1,7 @@
 ---
 name: init-workspace-patterns
 description: "Rosetta skill to extract recurring coding and architectural patterns from workspace code into reusable templates."
-model: claude-opus-4.6
+model: claude opus 4.6
 tags: ["init", "workspace", "patterns", "reverse-engineering"]
 baseSchema: docs/schemas/skill.md
 ---

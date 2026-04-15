@@ -1,7 +1,7 @@
 ---
 name: init-workspace-context
 description: "Rosetta skill to classify workspace initialization mode and build existing file inventory."
-model: claude-haiku-4.5
+model: claude haiku 4.5
 tags: ["init", "workspace", "context", "detection"]
 baseSchema: docs/schemas/skill.md
 ---

@@ -2,7 +2,7 @@
 name: validator
 description: Rosetta Full subagent. Verify implementation matches intent through actual execution and evidence-based validation.
 mode: subagent
-model: claude-sonnet-4.6
+model: claude sonnet 4.6
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

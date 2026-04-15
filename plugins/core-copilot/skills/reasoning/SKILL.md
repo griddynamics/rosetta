@@ -5,7 +5,7 @@ license: Proprietary
 disable-model-invocation: false
 user-invocable: true
 argument-hint: problem, context?, constraints?
-model: claude-opus-4.6
+model: claude opus 4.6
 context: default
 agent: planner, prompt-engineer
 metadata:

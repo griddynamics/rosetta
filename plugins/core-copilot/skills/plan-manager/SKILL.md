@@ -6,7 +6,7 @@ disable-model-invocation: false
 user-invocable: true
 argument-hint: feature-name plan-name
 allowed-tools: Bash(npx:*)
-model: claude-sonnet-4.6
+model: claude sonnet 4.6
 tags:
   - plan-manager
   - plan-manager-create

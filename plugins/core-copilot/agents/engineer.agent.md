@@ -2,7 +2,7 @@
 name: engineer
 description: Rosetta Full subagent. Execute implementation and testing tasks with high quality, assuming engineering identity provided by orchestrator.
 mode: subagent
-model: claude-sonnet-4.6
+model: claude sonnet 4.6
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---
