@@ -18,7 +18,6 @@
     "cursor",
     "claude-code"
   ],
-  "category": "productivity",
   "hooks": {
     "SessionStart": [
       {

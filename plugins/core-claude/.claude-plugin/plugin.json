@@ -19,7 +19,6 @@
     "coding",
     "knowledge-base"
   ],
-  "category": "productivity",
   "commands": "./workflows/",
   "hooks": {
     "SessionStart": [
