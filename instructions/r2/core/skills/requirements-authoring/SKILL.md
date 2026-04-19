@@ -1,7 +1,6 @@
 ---
 name: requirements-authoring
-description: Author, update, and validate functional and non-functional requirements as a source of truth using atomic requirement units with explicit user approval.
-tags: ["requirements", "skills"]
+description: "Author, update, and validate functional and non-functional requirements as a source of truth using atomic requirement units with explicit user approval. Use when creating, updating, reviewing, or refactoring requirements and building traceability coverage."
 license: Proprietary
 disable-model-invocation: false
 user-invocable: true
@@ -11,19 +10,14 @@ agent: requirements-engineer, requirements-reviewer
 metadata:
   version: "1.0"
   category: "requirements-engineering"
-  tags: "requirements functional non-functional traceability hitl"
 tags:
   - requirements-authoring
   - requirements-validation
+  - requirements
+  - skills
 ---
 
 <requirements-authoring>
-
-<role>
-
-You are expert in requirements engineering and requirement quality.
-
-</role>
 
 <when_to_use_skill>
 Use when creating, updating, reviewing, or refactoring requirements and building traceability coverage. Requirements must be atomic, testable, implementation-free, measurable, and explicitly approved by user in a HITL loop.
@@ -31,198 +25,72 @@ Use when creating, updating, reviewing, or refactoring requirements and building
 
 <dependencies>
 
-- ACQUIRE `questions.md` FROM KB for Q&A.
+- ACQUIRE `questions.md` FROM KB for Q&A
 - Prep steps completed
-- Use CONTEXT, ARCHITECTURE, IMPLEMENTATION, ASSUMPTIONS, TECHSTACK docs.
+- Use CONTEXT, ARCHITECTURE, IMPLEMENTATION, ASSUMPTIONS, TECHSTACK docs
 
 </dependencies>
 
+<workflow>
+
+1. **Initialize** — identify context, project structure, and requirements folder structure (HITL for folder decisions); reverse-engineer existing requirements if needed
+2. **Capture intent** — restate user intent succinctly; confirm scope, goals, and non-goals; list assumptions explicitly
+3. **Ask targeted questions** — ACQUIRE `questions.md` FROM KB; clarify ambiguities before drafting
+4. **Propose outline** — MECE requirement structure with FR/NFR separation
+5. **Draft requirements** — author atomic `<req>` units following schema and language rules below
+6. **Place and link** — file each req correctly; update INDEX.md and traceability links
+7. **Run quality gate** — execute validation checklist and conflict/gap checks
+8. **Present for review** — explain changes as narrative; seek explicit unit-level approval (HITL required)
+9. **Final approval** — get explicit user sign-off before delivery; proactively suggest next areas
+
+</workflow>
+
 <core_concepts>
 
-Role and boundaries:
+Boundaries:
 
-- Treat requirements as source of truth
-- Do not execute implementation tasks
-- No side effects without HITL
-- Only change after user approval
-- Keep language brief and direct
+- Treat requirements as source of truth — do not execute implementation tasks
+- No side effects without HITL; only change after user approval
+- Clearly define what requirements user told vs what AI generated
+- Spec statements contain only requirements — never explanations, revision history, or concept definitions
+- If a sentence would not survive in a spec that was never revised, delete it
 
-Default output sections:
-
-- Intent Capture
-- Draft Requirements
-- Validation Pack
-- Traceability Matrix
-- Open Questions
-
-Artifacts:
+Output artifacts:
 
 - Intent capture: intent, scope, goals, assumptions, questions, risks, HITL plan
 - Requirement units: atomic `<req>` entries with schema fields
-- Validation: correctness, conflicts, gaps, and quality checks
-- Traceability: links from sources to goals, requirements, and tests
+- Validation pack: correctness, conflicts, gaps, and quality checks
+- Traceability matrix: links from sources to goals, requirements, and tests
 
-HITL gates (use when):
+HITL gates — escalate when:
 
-- ambiguity or conflicts
-- structural changes in requirements tree
-- tradeoffs require MoSCoW decision
-- each requirement unit approval
-- final approval before delivery
-- if asked to review, explain as story + changelog
+- Ambiguity or conflicts arise
+- Structural changes in requirements tree
+- Tradeoffs require MoSCoW decision
+- Each requirement unit needs approval
+- Final approval before delivery
 
 </core_concepts>
 
-<core_principles_to_enforce>
+<core_principles>
 
-- Follow SRP always
-- Follow DRY always
-- Follow KISS always
-- Follow YAGNI always
-- Enforce MECE always
-- Enforce MoSCoW always
-- Keep requirement units short
-- Prefer explicit over implicit
-- Prefer root cause over symptoms
-- Prefer facts over guesses
-- Challenge new requirements reasonably
-- User is not always right
-- HITL Required with unit-level approval
-- Review new and updated requirements proactively
-- Defer by keeping Draft status
-- Clearly define what requirements user told and what AI generated
-- Explain reviews as narrative when asked
-- No AI slop
-- No scope creep
-- Prefer accuracy over speed
-- Think before writing
-- Simplicity first
-- Keep changes surgical
-- Use strong success criteria
-- Avoid implementation details unless requested
-- Keep project terms and contracts explicit
-- Spec statements contain only requirements — never explanations of why a previous draft was wrong, how the author arrived at the wording, or definitions of concepts the reader should already know.
-- If a sentence would not survive in a spec that was never revised, delete it.
+- SRP, DRY, KISS, YAGNI, MECE, MoSCoW — enforce always
+- Prefer explicit over implicit; prefer facts over guesses; prefer root cause over symptoms
+- Challenge new requirements reasonably — user is not always right
+- Keep requirement units short, changes surgical, and language unambiguous
+- No AI slop, no scope creep, no implementation details unless requested
 
-</core_principles_to_enforce>
+</core_principles>
 
-<initialization>
+<requirement_unit>
 
-- Identify context
-- Identify project structure
-- Search supporting documents
-- Identify requirements folder structure with HITL
-- Reverse engineer existing requirements if needed
-- Continue with user request
-- Proactively suggest next areas to work on
+Each requirement uses `<req>` as its atomic unit. One need, one outcome, one behavior, one actor per `<req>`. Must be independently testable and implementation-free. Check if a grouping of requirements is itself a requirement.
 
-</initialization>
+Schema fields (required): id, type, level, title, statement, rationale, source, priority (Must/Should/Could/Wont), status (Draft/Approved/Deprecated), acceptance criteria, verification method. Optional: dependencies, risks, notes, links.
 
-<srp_rules>
+ID format: `FR-[AREA]-####` (functional), `NFR-####` (non-functional), `INT-[AREA]-####` (interfaces), `DATA-[AREA]-####` (data). Never reuse retired IDs.
 
-- One purpose per file
-- One topic per section
-- One behavior per requirement
-- One actor per action
-
-</srp_rules>
-
-<dry_rules>
-
-- Avoid duplicated requirements or meaning
-- Reference IDs, not copies
-- Centralize shared definitions
-- Centralize shared constraints
-- Reuse patterns and templates
-
-</dry_rules>
-
-<kiss_rules>
-
-- Prefer short simple sentences
-- Use common domain words
-- Avoid nested conditionals
-- Split complex requirements early
-
-</kiss_rules>
-
-<mece_rules>
-
-- Use non-overlapping categories
-- Cover all in-scope needs
-- Keep scope boundaries explicit
-- Separate FRs from NFRs
-
-</mece_rules>
-
-<filesystem_rules>
-
-- Write only under REQUIREMENTS folder
-- Never edit outside folder
-- Keep folder structure stable
-- Keep INDEX.md current
-- Use relative markdown links
-- Add files when needed
-
-</filesystem_rules>
-
-<information_architecture>
-
-- Keep context separate
-- Keep scope separate
-- Keep glossary separate
-- Keep assumptions separate
-- Keep constraints separate
-- Keep FRs separate
-- Keep NFRs separate
-- Keep interfaces separate
-- Keep data separate
-- Keep traceability separate
-- Keep decisions separate
-- Keep questions separate
-- REQUIREMENTS/INDEX.md is index
-- REQUIREMENTS/CHANGES.md is change log
-- Each file defines one area abbreviation
-- All other documents are target-state only
-
-</information_architecture>
-
-<unit_of_requirement>
-
-- Use `<req>` as unit
-- One `<req>` per need
-- One outcome per `<req>`
-- Keep `<req>` atomic
-- Keep `<req>` independently testable
-- Keep `<req>` implementation free
-- Check if grouping of multiple requirements is a requirement itself
-
-</unit_of_requirement>
-
-<requirement_schema>
-
-- Require id, type, level
-- Require title and statement
-- Require rationale and source
-- Require priority and status
-- Require acceptance criteria
-- Require verification method
-- Optional dependencies and risks
-- Optional notes and links
-
-</requirement_schema>
-
-<id_rules>
-
-- Use stable unique IDs
-- Use `FR-[AREA]-####` for FRs
-- Use `NFR-####` for NFRs
-- Use `INT-[AREA]-####` for interfaces
-- Use `DATA-[AREA]-####` for data
-- Never reuse retired IDs
-- Never renumber existing IDs
-
-</id_rules>
+</requirement_unit>
 
 <requirement_unit_template>
 
@@ -246,211 +114,75 @@ HITL gates (use when):
 
 </requirement_unit_template>
 
-<language_constructs>
+<language_rules>
 
-- Use shall for mandatory
-- Use should for preferred
-- Use may for optional
-- Use shall not to forbid
-- Avoid will statements
-- Use active voice
-- Use present tense
-- Avoid vague adjectives
-- Avoid and or constructs
-- Avoid subjective qualifiers
-- Avoid ambiguous time words
-- Prefer measurable quantities
-- Quantify every threshold
-- Define terms in glossary
-- Use consistent terminology
-- Separate normative and informative
-- Specify outcomes, not designs
-- Avoid implementation details
-- Avoid UI-only descriptions
-- Avoid internal code names
-- Use one meaning per term
+Modal verbs: shall (mandatory), should (preferred), may (optional), shall not (forbidden). Use active voice, present tense, one meaning per term. Avoid: will statements, vague adjectives, and/or constructs, subjective qualifiers, ambiguous time words, implementation details, UI-only descriptions, internal code names. Prefer measurable quantities; quantify every threshold; define terms in glossary; separate normative from informative.
 
-</language_constructs>
+</language_rules>
 
 <functional_requirements>
 
-- Use EARS patterns
-- Pick one pattern
-- Avoid multiple triggers
-- Avoid multiple responses
-- Split compound requirements
-- Link FRs to scenarios
-- Include error behaviors
+Use EARS patterns — one pattern per requirement, one trigger, one response. Split compound requirements. Link FRs to scenarios including error behaviors.
 
-</functional_requirements>
-
-<ears_patterns>
-
+EARS patterns:
 - `<ubiq><S> shall <R>.</ubiq>`
 - `<event>When <T>, <S> shall <R>.</event>`
 - `<state>While <X>, <S> shall <R>.</state>`
 - `<optional>Where <O>, <S> shall <R>.</optional>`
 - `<unwanted>If <F>, <S> shall <M>.</unwanted>`
 
-</ears_patterns>
+</functional_requirements>
 
 <nonfunctional_requirements>
 
-- Use ISO 25010 buckets
-- Include metric and threshold
-- Include measurement conditions
-- Include measurement method
-- Prefer percentiles over averages
-- State limits and constraints
-- Tie NFRs to scenarios
-- Avoid subjective quality words
+Use ISO 25010 quality buckets. Each NFR must include: metric, threshold, measurement conditions, and measurement method. Prefer percentiles over averages. State limits and constraints. Tie NFRs to scenarios. Avoid subjective quality words.
 
 </nonfunctional_requirements>
 
-<acceptance_criteria>
+<acceptance_and_verification>
 
-- Use Given/When/Then format
-- Use `Given:<G> When:<W> Then:<T>.`
-- Keep criteria independently testable
-- Cover happy path
-- Cover unhappy path
-- Cover boundary conditions
-- Cover error handling
+Acceptance criteria: `Given:<G> When:<W> Then:<T>.` — independently testable, covering happy path, unhappy path, boundary conditions, and error handling.
 
-</acceptance_criteria>
+Verification methods: Test (preferred), Analysis (proofs), Inspection (artifacts), Demo (behaviors).
 
-<verification_methods>
-
-- Prefer Test where possible
-- Use Analysis for proofs
-- Use Inspection for artifacts
-- Use Demo for behaviors
-
-</verification_methods>
+</acceptance_and_verification>
 
 <traceability_rules>
 
-- Link each req to source
-- Link each req to goal
-- Link each req to tests
-- Update traceability matrix
+- Link each req to source, goal, and tests
+- Update traceability matrix continuously
 - Keep forward and backward links
+- Track uncovered requirements
 
 </traceability_rules>
 
-<authoring_flow>
+<filesystem_rules>
 
-- Capture user intent first
-- Restate intent succinctly
-- Confirm scope and goals
-- List assumptions explicitly
-- Ask targeted clarifying questions
-- Propose MECE requirement outline
-- Draft requirements as `<req>`
-- Place each req correctly
-- Update indexes and links
-- Run quality gate checks
-- Summarize changes clearly
-- Check against current best practices
-- Once drafting is done proactively seek user approval
-- Read (if needed), Review yourself, and Present to the user as a story (explaining how it will work)
-- Explicit approval, do not assume approval, user questions/comments do not mean it was approved
+- Write only under REQUIREMENTS folder; never edit outside
+- REQUIREMENTS/INDEX.md is index; REQUIREMENTS/CHANGES.md is change log
+- Keep files under 300 lines — split by capability or quality when exceeding; update links and indexes after split
+- Use relative markdown links; preserve stable requirement IDs across refactors
 
-</authoring_flow>
+</filesystem_rules>
 
-<validation_rules>
+<information_architecture>
 
-- Validate correctness with sources
-- Validate completeness against scope
-- Validate consistency across files
-- Validate non-redundancy across files
-- Validate feasibility with constraints
-- Validate atomicity per `<req>`
-- Validate verifiability per `<req>`
-- Validate unambiguity per `<req>`
-- Validate trace links present
-- Validate overall consistency
-- Validate groupings are not requirements in disguise
+Separate files for: context, scope, glossary, assumptions, constraints, FRs, NFRs, interfaces, data, traceability, decisions, questions. Each file defines one area abbreviation. All documents are target-state only.
 
-</validation_rules>
-
-<conflict_checks>
-
-- Detect duplicate IDs
-- Detect duplicate statements
-- Detect contradictory shall clauses
-- Detect incompatible thresholds
-- Detect circular dependencies
-- Detect mismatched terminology
-- Detect ordering issues
-- Detect actors and responsibilities
-- Detect ambiguity
-
-</conflict_checks>
-
-<gap_checks>
-
-- Ensure each goal traced
-- Ensure each actor covered
-- Ensure each scenario covered
-- Ensure each interface specified
-- Ensure each data entity defined
-- Ensure each NFR measurable
-- Ensure each risk recorded
-- Ensure questions tracked
-
-</gap_checks>
-
-<refactoring_rules>
-
-- Refactor above 300 lines
-- Keep files under 300 lines
-- Split by capability or quality
-- Create new files as needed
-- Update links after split
-- Update indexes after split
-- Preserve stable requirement IDs
-
-</refactoring_rules>
+</information_architecture>
 
 <validation_checklist>
 
-- Scope and goals are explicit
-- Non-goals are explicit
-- Actors are explicit
-- Requirement schema is complete
-- IDs are stable and unique
-- FRs and NFRs are separated
-- NFRs are measurable
-- Language is unambiguous
-- Acceptance uses Given/When/Then
-- Verification method exists per req
-- Trace links exist
-- Conflicts are resolved
-- Gap checks pass
-- User approved each req unit
-- Final user approval captured
+- Scope, goals, non-goals, and actors are explicit
+- Requirement schema is complete; IDs are stable and unique
+- FRs and NFRs are separated; NFRs are measurable
+- Language is unambiguous; acceptance uses Given/When/Then
+- Verification method exists per req; trace links exist
+- No duplicate IDs, contradictory shall clauses, incompatible thresholds, or circular dependencies
+- All goals, actors, scenarios, interfaces, data entities, and risks covered
+- User approved each req unit; final user approval captured
 
 </validation_checklist>
-
-<best_practices>
-
-- Capture intent first, draft second
-- Use EARS for FR statements
-- Use ISO 25010 for NFRs
-- Present small batches for review
-- Record assumptions and risks explicitly
-- Review results with user as narrative
-
-</best_practices>
-
-<requirements_graph>
-
-- Proactively ask to generate and show a graph of requirements, also suggest which perspectives to generate it on
-- Load all requirements and build graph of requirements
-- Use Graphviz to show the graph
-
-</requirements_graph>
 
 <pitfalls>
 
@@ -461,28 +193,20 @@ HITL gates (use when):
 
 </pitfalls>
 
+<requirements_graph>
+
+Proactively offer to generate and display a Graphviz requirements graph. Suggest relevant perspectives (dependency, traceability, priority). Load all requirements and build the graph.
+
+</requirements_graph>
+
 <resources>
 
-Use `ACQUIRE FROM KB` to load.
+Use `ACQUIRE FROM KB` to load:
 
 - workflow `requirements-flow`
 - rule `rules/requirements-best-practices.md`
-- asset `requirements-authoring/assets/ra-intent-capture.md`
-- asset `requirements-authoring/assets/ra-requirement-unit.xml`
-- asset `requirements-authoring/assets/ra-validation-rubric.md`
-- asset `requirements-authoring/assets/ra-change-log.md`
+- assets: `requirements-authoring/assets/ra-intent-capture.md`, `ra-requirement-unit.xml`, `ra-validation-rubric.md`, `ra-change-log.md`
 
 </resources>
-
-<templates>
-
-Use `ACQUIRE FROM KB` to load.
-
-- `requirements-authoring/assets/ra-intent-capture.md`
-- `requirements-authoring/assets/ra-requirement-unit.xml`
-- `requirements-authoring/assets/ra-validation-rubric.md`
-- `requirements-authoring/assets/ra-change-log.md`
-
-</templates>
 
 </requirements-authoring>

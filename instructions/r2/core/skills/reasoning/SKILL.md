@@ -1,6 +1,6 @@
 ---
 name: reasoning
-description: Apply structured meta-cognitive reasoning to complex problems using canonical 7D, then deliver a clear answer with caveats.
+description: "Apply structured meta-cognitive reasoning to complex problems using the canonical 7D flow (Discover, Deconstruct, Diagnose, Develop, Deliver, Design, Debrief), then deliver a clear answer with confidence score and caveats. Use when problems have multiple dependencies or tradeoffs and confidence must be explicit."
 license: Proprietary
 disable-model-invocation: false
 user-invocable: true
@@ -18,112 +18,58 @@ tags:
 
 <reasoning>
 
-<role>
-
-You are a meta-cognitive reasoning specialist for complex decisions.
-
-</role>
-
 <when_to_use_skill>
-Use when problems have multiple dependencies or tradeoffs and confidence must be explicit; skip for simple low-risk questions. Output includes answer, confidence, and key caveats grounded in explicit reasoning steps.
+Use when problems have multiple dependencies or tradeoffs and confidence must be explicit; skip for simple low-risk questions. Every output must include: answer, confidence score (0.0–1.0), and key caveats grounded in explicit reasoning steps.
 </when_to_use_skill>
 
-<core_concepts>
+<workflow>
 
-Canonical 7-point reasoning flow:
+Execute the canonical 7D reasoning flow in order. For simple questions, skip to step 5 (DELIVER) with a direct answer.
 
-1. DISCOVERY
-- Search relevant information
-- Affected areas
-- Existing patterns, standards, best practices, files, knowledge
+1. **DISCOVER** — search relevant information: affected areas, existing patterns, standards, best practices, files, and knowledge
+2. **DECONSTRUCT** — extract core intent, key entities, and context; identify output requirements and constraints; break into sub-problems; map provided vs missing information
+3. **DIAGNOSE** — audit for clarity gaps, ambiguity, and bias; check specificity, completeness, logic, and facts; assess structure and complexity needs
+4. **DEVELOP** — apply techniques (multi-perspective analysis, constraint-based precision, chain-of-thought frameworks); extract actors, actions, data, entities; identify dependencies, edge cases, and constraints; assign explicit confidence (0.0–1.0) per sub-problem; resolve assumptions tied to public facts; resolve high-impact uncertainties with targeted questions
+5. **DELIVER** — construct output artifact suited to task complexity; provide implementation guidance (what and why); define measurable, technology-agnostic success criteria verifiable without hidden assumptions; combine sub-results using weighted confidence: `overall = Σ(weight_i × confidence_i) / Σ(weight_i)` where weights reflect sub-problem impact
+6. **DESIGN** — define target artifact structure, constraints, and technical approach options; include NFR/quality attributes; clarify decisions with rationale and tradeoffs; define error handling and validation strategy
+7. **DEBRIEF** — if overall confidence < 0.8: identify the weakest sub-problem (lowest confidence × highest weight), re-execute steps 1–6 for that sub-problem only, then recompute overall confidence. If still < 0.8 after one retry, deliver with explicit caveat listing unresolved weaknesses.
 
-2. DECONSTRUCT
-- Extract core intent, key entities, and context
-- Identify output requirements and constraints
-- Break into sub-problems
-- Map what is provided vs what is missing
+</workflow>
 
-3. DIAGNOSE
-- Audit for clarity gaps and ambiguity
-- Check specificity and completeness
-- Assess structure and complexity needs
-- Check logic, facts, completeness, bias
+<boundaries>
 
-4. DEVELOP
-- Use techniques: Multi-perspective, Constraint-based + precision focus, Few-shot examples + clear structure, Chain-of-thought + systematic frameworks
-- Extract actors, actions, data, and entities
-- Identify dependencies, edge cases, and constraints
-- Address each sub-problem with explicit confidence (0.0-1.0)
-- Define acceptance criteria with EARS when relevant
-- Resolve assumptions and unknowns tied to public facts
-- Enhance context and shape a logical structure
-- Identify and define needed processes
-- Resolve high-impact uncertainties with targeted questions
-
-5. DELIVER
-- Construct resulting output artifact suited to task complexity
-- Provide implementation guidance with what and why
-- Generate scenarios, testing approach, and test data when relevant
-- Define measurable success criteria and feasibility checks
-- Use technology-agnostic measurable outcomes
-- Ensure criteria are verifiable without hidden assumptions
-- Combine sub-results using weighted confidence
-
-6. DESIGN
-- Define target artifact structure
-- Define constraints and technical approach options
-- Include NFR and quality attributes where relevant
-- Clarify decisions with rationale and tradeoffs
-- Define interactions, interfaces, and data flows when relevant
-- Define error handling and validation strategy
-- Apply relevant best practices for security, performance, reliability, maintainability, scalability, testability, observability, compliance, backward compatibility, and cost
-
-7. DEBRIEF
-- REFLECT If confidence <0.8: identify weakness and retry the whole process again
-
-Boundaries:
-
-- Do not fabricate missing facts
-- Label assumptions explicitly
+- Do not fabricate missing facts — label assumptions explicitly
 - Escalate blockers with targeted questions
 - Keep reasoning concise and decision-oriented
-- For simple questions, skip deep decomposition and answer directly
-- Always output answer, confidence, and caveats
+- Always output: answer, confidence score, and caveats
 
-</core_concepts>
+</boundaries>
 
 <validation_checklist>
 
-- Problem complexity was classified
+- Problem complexity was classified (simple → skip to DELIVER; complex → full 7D)
 - Discovery and decomposition were completed
 - Relevant facts and gaps were identified
-- Sub-problems were explicitly defined
+- Sub-problems were explicitly defined with individual confidence scores
 - Verification checks were performed
-- Confidence assigned per sub-problem
-- Weighted confidence synthesis was applied
-- Output includes answer, confidence level, and key caveats
+- Weighted confidence synthesis was applied with formula
+- Output includes answer, overall confidence score, and key caveats
+- If confidence < 0.8: weakest sub-problem was retried and result updated
 
 </validation_checklist>
 
-<best_practices>
-
-- Challenge first answer for blind spots
-- Separate evidence from inference
-- Keep final answer crisp and actionable
-
-</best_practices>
-
 <pitfalls>
 
-- Treating guesses as facts
-- Overstating confidence without evidence
-- Ignoring conflicting signals
+- Treating guesses as facts — always separate evidence from inference
+- Overstating confidence without evidence — ground scores in specific findings
+- Ignoring conflicting signals — explicitly address contradictions
+- Retrying the entire process instead of targeting the weakest sub-problem
 
 </pitfalls>
 
 <resources>
 
-Use `USE SKILL` to load.
+Use `USE SKILL` to load:
 
 - skill `planning`
 - skill `questioning`
