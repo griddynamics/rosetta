@@ -1,0 +1,12 @@
+{
+  "_source": "constructed-from-docs",
+  "_docs": "https://docs.github.com/en/copilot/tutorials/copilot-cli-hooks",
+  "timestamp": 1704614400000,
+  "cwd": "/proj",
+  "toolName": "write_file",
+  "toolArgs": "{\"file_path\":\"/proj/src/app.js\",\"content\":\"console.log('hello');\\n\"}",
+  "toolResult": {
+    "resultType": "success",
+    "textResultForLlm": "File written: /proj/src/app.js"
+  }
+}

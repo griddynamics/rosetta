@@ -1,0 +1,5 @@
+{
+  "action": "file_write",
+  "path": "/some/file.py",
+  "data": "content"
+}

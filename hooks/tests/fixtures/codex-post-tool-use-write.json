@@ -1,0 +1,20 @@
+{
+  "_source": "constructed-from-bash-capture-pattern",
+  "_note": "Shape matches real Codex E2E capture (codex-post-tool-use-bash.json). tool_name changed to Write with file-write tool_input/tool_response shapes matching Claude Code conventions.",
+  "session_id": "sanitized-session_id",
+  "turn_id": "sanitized-turn_id",
+  "transcript_path": "/Users/dev/.codex/sessions/2026/04/10/rollout-2026-04-10T14-31-52-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.jsonl",
+  "cwd": "/proj",
+  "hook_event_name": "PostToolUse",
+  "model": "gpt-5-codex",
+  "permission_mode": "bypassPermissions",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/proj/src/app.js",
+    "content": "console.log('hello');\n"
+  },
+  "tool_response": {
+    "filePath": "/proj/src/app.js"
+  },
+  "tool_use_id": "sanitized-tool_use_id"
+}
