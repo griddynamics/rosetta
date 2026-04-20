@@ -88,6 +88,7 @@ def test_oauth_configured_property():
         oauth_introspection_endpoint="https://kc/introspect",
         oauth_client_id="cid",
         oauth_client_secret="csec",
+        oauth_base_url="https://rosetta.example.com",
     )
     assert cfg.oauth_configured is True
 
@@ -113,6 +114,7 @@ def test_uses_callback_path_from_config():
         oauth_introspection_endpoint="https://kc.example.com/introspect",
         oauth_client_id="my-client",
         oauth_client_secret="my-secret",
+        oauth_base_url="https://rosetta.example.com",
         oauth_callback_path="oauth/cb",
     )
     provider = build_oauth_provider(cfg)
@@ -128,6 +130,7 @@ def _make_full_http_config(**overrides):
         oauth_introspection_endpoint="https://kc.example.com/introspect",
         oauth_client_id="my-client",
         oauth_client_secret="my-secret",
+        oauth_base_url="https://rosetta.example.com",
         **overrides,
     )
 
@@ -240,6 +243,7 @@ def test_oauth_configured_oidc_mode():
         oauth_oidc_config_url="https://idp.example.com/.well-known/openid-configuration",
         oauth_client_id="my-client",
         oauth_client_secret="my-secret",
+        oauth_base_url="https://rosetta.example.com",
     )
     assert cfg.oauth_configured is True
 
@@ -448,6 +452,35 @@ def test_oauth_configured_github_missing_client_secret():
     assert cfg.oauth_configured is False
 
 
+def test_oauth_configured_github_missing_base_url():
+    cfg = _make_github_config(oauth_base_url="")
+    assert cfg.oauth_configured is False
+
+
+def test_oauth_configured_missing_base_url():
+    """oauth_base_url is required for all modes including default oauth."""
+    cfg = _make_config(
+        oauth_authorization_endpoint="https://kc/auth",
+        oauth_token_endpoint="https://kc/token",
+        oauth_introspection_endpoint="https://kc/introspect",
+        oauth_client_id="cid",
+        oauth_client_secret="csec",
+        oauth_base_url="",
+    )
+    assert cfg.oauth_configured is False
+
+
+def test_oauth_configured_oidc_missing_base_url():
+    cfg = _make_config(
+        oauth_mode="oidc",
+        oauth_oidc_config_url="https://idp.example.com/.well-known/openid-configuration",
+        oauth_client_id="my-client",
+        oauth_client_secret="my-secret",
+        oauth_base_url="",
+    )
+    assert cfg.oauth_configured is False
+
+
 def test_github_mode_returns_github_provider():
     from fastmcp.server.auth.providers.github import GitHubProvider
     cfg = _make_github_config()
@@ -518,6 +551,7 @@ def test_unknown_oauth_mode_raises():
         oauth_mode="invalid_mode",
         oauth_client_id="cid",
         oauth_client_secret="csec",
+        oauth_base_url="https://rosetta.example.com",
         oauth_authorization_endpoint="https://example.com/auth",
         oauth_token_endpoint="https://example.com/token",
         oauth_introspection_endpoint="https://example.com/introspect",

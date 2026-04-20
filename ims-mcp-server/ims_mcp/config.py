@@ -399,24 +399,21 @@ class RosettaConfig:
 
     @property
     def oauth_configured(self) -> bool:
-        """True when all required OAuth fields are set."""
+        """True when all required OAuth fields are set.
+
+        ``oauth_base_url`` is checked for all modes so misconfigured
+        deployments fail fast with a clear error instead of crashing
+        inside the provider constructor.
+        """
+        base = bool(self.oauth_client_id and self.oauth_client_secret and self.oauth_base_url)
         if self.oauth_mode == OAUTH_MODE_OIDC:
-            return bool(
-                self.oauth_oidc_config_url
-                and self.oauth_client_id
-                and self.oauth_client_secret
-            )
+            return base and bool(self.oauth_oidc_config_url)
         if self.oauth_mode == OAUTH_MODE_GITHUB:
-            return bool(
-                self.oauth_client_id
-                and self.oauth_client_secret
-            )
-        return bool(
+            return base
+        return base and bool(
             self.oauth_authorization_endpoint
             and self.oauth_token_endpoint
             and self.oauth_introspection_endpoint
-            and self.oauth_client_id
-            and self.oauth_client_secret
         )
 
     def resolve_oauth_base_url(self) -> str:
