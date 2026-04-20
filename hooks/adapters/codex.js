@@ -8,21 +8,8 @@ const CODEX_EXTRA = ['model', 'turn_id'];
 
 module.exports = {
   name: 'codex',
-
-  detect(raw) {
-    return (
-      CC_SIGNATURE.every((f) => f in raw) &&
-      CODEX_EXTRA.every((f) => f in raw)
-    );
-  },
-
-  normalize(raw) {
-    // Codex is already in canonical format; extras (model, turn_id) are preserved as-is
-    return raw;
-  },
-
-  formatOutput(canonical) {
-    // Codex output is identity pass-through (same schema as Claude Code)
-    return canonical;
-  },
+  detect: (raw) =>
+    CC_SIGNATURE.every((f) => f in raw) && CODEX_EXTRA.every((f) => f in raw),
+  normalize: (raw) => raw,               // already canonical; extras preserved
+  formatOutput: (canonical) => canonical, // identity pass-through
 };

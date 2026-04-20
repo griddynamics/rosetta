@@ -14,87 +14,59 @@
 
 const COPILOT_SIGNATURE = ['toolName', 'timestamp', 'cwd'];
 
-/**
- * Infer canonical hook_event_name from the Copilot event shape.
- * Copilot does not send hook_event_name; we derive it from fields present.
- */
-function inferHookEventName(raw) {
-  if ('toolName' in raw) {
-    return 'toolResult' in raw ? 'PostToolUse' : 'PreToolUse';
-  }
+// Infer canonical hook_event_name from the Copilot event shape.
+// Copilot does not send hook_event_name; we derive it from fields present.
+const inferHookEventName = (raw) => {
+  if ('toolName' in raw) return 'toolResult' in raw ? 'PostToolUse' : 'PreToolUse';
   if ('reason' in raw) return 'SessionEnd';
   if ('source' in raw || 'initialPrompt' in raw) return 'SessionStart';
   if ('prompt' in raw) return 'PrePromptSubmit';
   if ('error' in raw) return 'Error';
   return 'Unknown';
-}
+};
 
-/**
- * Safely parse toolArgs — it arrives as a JSON string.
- * Returns empty object on failure rather than throwing.
- */
-function parseToolArgs(raw) {
-  if (!raw.toolArgs) return {};
+// Safely parse toolArgs — it arrives as a JSON string.
+// Returns empty object on failure rather than throwing.
+const parseToolArgs = ({ toolArgs }) => {
+  if (!toolArgs) return {};
   try {
-    const parsed = JSON.parse(raw.toolArgs);
-    return typeof parsed === 'object' && parsed !== null ? parsed : { _raw: raw.toolArgs };
+    const parsed = JSON.parse(toolArgs);
+    return typeof parsed === 'object' && parsed !== null ? parsed : { _raw: toolArgs };
   } catch {
-    return { _raw: raw.toolArgs };
+    return { _raw: toolArgs };
   }
-}
+};
 
 module.exports = {
   name: 'copilot',
 
-  detect(raw) {
-    // Copilot is the most minimal shape. Require toolName (camelCase) + timestamp + cwd.
-    // Also ensure hook_event_name is NOT present (to avoid matching CC).
-    return (
-      COPILOT_SIGNATURE.every((f) => f in raw) &&
-      !('hook_event_name' in raw)
-    );
-  },
+  // Require the Copilot minimal signature AND the absence of hook_event_name
+  // (to avoid matching Claude Code shapes).
+  detect: (raw) =>
+    COPILOT_SIGNATURE.every((f) => f in raw) && !('hook_event_name' in raw),
 
-  normalize(raw) {
-    const hook_event_name = inferHookEventName(raw);
-    const tool_input = parseToolArgs(raw);
-
+  normalize: (raw) => {
+    const { toolName, cwd, toolArgs, toolResult, timestamp } = raw;
     return {
-      // Canonical fields
-      hook_event_name,
+      hook_event_name: inferHookEventName(raw),
       session_id: undefined,       // Copilot has no session_id
-      tool_name: raw.toolName,
-      tool_input,
+      tool_name: toolName,
+      tool_input: parseToolArgs(raw),
       tool_use_id: undefined,
-      cwd: raw.cwd,
-      // Preserve result if present
-      tool_response: raw.toolResult || undefined,
-      // Copilot-specific extras preserved
-      _copilot: {
-        timestamp: raw.timestamp,
-        toolName: raw.toolName,
-        toolArgs: raw.toolArgs,
-        toolResult: raw.toolResult,
-      },
+      cwd,
+      tool_response: toolResult || undefined,
+      _copilot: { timestamp, toolName, toolArgs, toolResult },
     };
   },
 
-  formatOutput(canonical) {
-    // Copilot only processes preToolUse output: { permissionDecision, permissionDecisionReason }
-    // postToolUse output is ignored.
-    const hs = canonical.hookSpecificOutput || {};
+  // Copilot only consumes preToolUse output: { permissionDecision, permissionDecisionReason }
+  // PostToolUse output is ignored.
+  formatOutput: ({ hookSpecificOutput = {}, continue: cont } = {}) => {
+    const { permissionDecision, permissionDecisionReason } = hookSpecificOutput;
     const out = {};
-
-    if (hs.permissionDecision) {
-      out.permissionDecision = hs.permissionDecision;
-    }
-    if (hs.permissionDecisionReason) {
-      out.permissionDecisionReason = hs.permissionDecisionReason;
-    }
-    if (canonical.continue === false && !out.permissionDecision) {
-      out.permissionDecision = 'deny';
-    }
-
+    if (permissionDecision) out.permissionDecision = permissionDecision;
+    if (permissionDecisionReason) out.permissionDecisionReason = permissionDecisionReason;
+    if (cont === false && !out.permissionDecision) out.permissionDecision = 'deny';
     return out;
   },
 };

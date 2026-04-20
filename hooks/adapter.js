@@ -11,75 +11,50 @@
 //   4. windsurf     — agent_action_name + trajectory_id + tool_info
 //   5. copilot      — toolName + timestamp + cwd (no hook_event_name)
 //
-// Exports (for testability): detectIDE, normalize, formatOutput, readStdin
+// Public API:
+//   - readStdin, normalize, formatOutput — used by hook entrypoints (prod)
+//   - detectIDE — exposed for tests; prod callers should prefer normalize()
 
-const ADAPTERS = [
-  require('./adapters/codex'),
-  require('./adapters/cursor'),
-  require('./adapters/claude-code'),
-  require('./adapters/windsurf'),
-  require('./adapters/copilot'),
-];
+const ADAPTERS = {
+  codex: require('./adapters/codex'),
+  cursor: require('./adapters/cursor'),
+  'claude-code': require('./adapters/claude-code'),
+  windsurf: require('./adapters/windsurf'),
+  copilot: require('./adapters/copilot'),
+};
 
-/**
- * Detect which IDE sent the input.
- * @param {object} rawInput
- * @returns {string} IDE name
- * @throws {Error} for null/non-object input or unrecognized IDE shape
- */
-function detectIDE(rawInput) {
+// Detection is an ordered chain — a superset like codex must match before
+// claude-code, so this order is load-bearing and not derived from Object.keys.
+const DETECTION_ORDER = ['codex', 'cursor', 'claude-code', 'windsurf', 'copilot'];
+
+const detectIDE = (rawInput) => {
   if (rawInput === null || rawInput === undefined) {
     throw new Error('Invalid input: null or undefined');
   }
   if (typeof rawInput !== 'object' || Array.isArray(rawInput)) {
     throw new Error('Invalid input: expected a plain object');
   }
-  const adapter = ADAPTERS.find((a) => a.detect(rawInput));
-  if (!adapter) {
+  const ide = DETECTION_ORDER.find((name) => ADAPTERS[name].detect(rawInput));
+  if (!ide) {
     throw new Error(`Unsupported IDE: ${JSON.stringify(Object.keys(rawInput))}`);
   }
-  return adapter.name;
-}
+  return ide;
+};
 
-/**
- * Normalize any IDE input to Claude Code canonical format.
- * @param {object} rawInput
- * @returns {object} canonical input
- * @throws {Error} for unsupported IDE shapes
- */
-function normalize(rawInput) {
-  const ide = detectIDE(rawInput); // throws for unsupported
-  const adapter = ADAPTERS.find((a) => a.name === ide);
-  return adapter.normalize(rawInput);
-}
+const normalize = (rawInput) => ADAPTERS[detectIDE(rawInput)].normalize(rawInput);
 
-/**
- * Convert canonical output to IDE-specific output format.
- * @param {object} canonicalOutput
- * @param {string} ide
- * @returns {object}
- */
-function formatOutput(canonicalOutput, ide) {
-  const adapter = ADAPTERS.find((a) => a.name === ide);
-  if (!adapter) return canonicalOutput; // unknown IDE: identity pass-through
-  return adapter.formatOutput(canonicalOutput);
-}
+const formatOutput = (canonicalOutput, ide) => {
+  const adapter = ADAPTERS[ide];
+  return adapter ? adapter.formatOutput(canonicalOutput) : canonicalOutput;
+};
 
-/**
- * Read and parse JSON from stdin (or injected stream for testing).
- * @param {import('stream').Readable} [stream]
- * @returns {Promise<object>}
- * @throws {Error} on empty or invalid JSON
- */
-async function readStdin(stream = process.stdin) {
-  return new Promise((resolve, reject) => {
+const readStdin = (stream = process.stdin) =>
+  new Promise((resolve, reject) => {
     const chunks = [];
     stream.on('data', (chunk) => chunks.push(String(chunk)));
     stream.on('end', () => {
       const raw = chunks.join('').trim();
-      if (!raw) {
-        return reject(new Error('Invalid input: empty stdin'));
-      }
+      if (!raw) return reject(new Error('Invalid input: empty stdin'));
       try {
         resolve(JSON.parse(raw));
       } catch (err) {
@@ -88,6 +63,5 @@ async function readStdin(stream = process.stdin) {
     });
     stream.on('error', reject);
   });
-}
 
 module.exports = { readStdin, normalize, formatOutput, detectIDE };

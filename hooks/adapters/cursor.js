@@ -12,49 +12,29 @@
 const CC_SIGNATURE = ['hook_event_name', 'tool_input'];
 const CURSOR_EXTRA = ['conversation_id', 'cursor_version'];
 
+const toPascalCase = (name) =>
+  name ? name.charAt(0).toUpperCase() + name.slice(1) : name;
+
 module.exports = {
   name: 'cursor',
 
-  detect(raw) {
-    return (
-      CC_SIGNATURE.every((f) => f in raw) &&
-      CURSOR_EXTRA.every((f) => f in raw)
-    );
-  },
+  detect: (raw) =>
+    CC_SIGNATURE.every((f) => f in raw) && CURSOR_EXTRA.every((f) => f in raw),
 
-  normalize(raw) {
-    // Normalize camelCase hook_event_name → PascalCase
-    const hook_event_name = raw.hook_event_name
-      ? raw.hook_event_name.charAt(0).toUpperCase() + raw.hook_event_name.slice(1)
-      : raw.hook_event_name;
+  normalize: ({ hook_event_name, conversation_id, ...rest }) => ({
+    ...rest,
+    hook_event_name: toPascalCase(hook_event_name),
+    session_id: conversation_id, // canonical field name
+    conversation_id,             // preserved for downstream consumers
+  }),
 
-    return {
-      ...raw,
-      hook_event_name,
-      // Map conversation_id → session_id (canonical field name)
-      session_id: raw.conversation_id,
-    };
-  },
-
-  formatOutput(canonical) {
-    // Cursor postToolUse output: { additional_context, updated_mcp_tool_output }
-    // Cursor preToolUse output: { permission, user_message, agent_message, updated_input }
+  formatOutput: ({ hookSpecificOutput = {}, continue: cont } = {}) => {
+    const { additionalContext, permissionDecision, permissionDecisionReason } = hookSpecificOutput;
     const out = {};
-    const hs = canonical.hookSpecificOutput || {};
-
-    if (hs.additionalContext) {
-      out.additional_context = hs.additionalContext;
-    }
-    if (hs.permissionDecision) {
-      out.permission = hs.permissionDecision;
-    }
-    if (hs.permissionDecisionReason) {
-      out.user_message = hs.permissionDecisionReason;
-    }
-    if (canonical.continue === false) {
-      out.permission = out.permission || 'deny';
-    }
-
+    if (additionalContext) out.additional_context = additionalContext;
+    if (permissionDecision) out.permission = permissionDecision;
+    if (permissionDecisionReason) out.user_message = permissionDecisionReason;
+    if (cont === false) out.permission = out.permission || 'deny';
     return out;
   },
 };
