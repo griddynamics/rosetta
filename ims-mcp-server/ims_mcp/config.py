@@ -47,6 +47,7 @@ from ims_mcp.constants import (
     ENV_OAUTH_REQUIRED_SCOPES,
     ENV_OAUTH_SCOPE,
     ENV_OAUTH_TOKEN_ENDPOINT,
+    OAUTH_MODE_GITHUB,
     OAUTH_MODE_OAUTH,
     OAUTH_MODE_OIDC,
     ENV_PLAN_TTL_DAYS,
@@ -403,6 +404,11 @@ class RosettaConfig:
             return bool(
                 self.oauth_oidc_config_url
                 and self.oauth_client_id
+                and self.oauth_client_secret
+            )
+        if self.oauth_mode == OAUTH_MODE_GITHUB:
+            return bool(
+                self.oauth_client_id
                 and self.oauth_client_secret
             )
         return bool(

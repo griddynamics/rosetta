@@ -267,16 +267,52 @@ Environment overrides:
 
 ### Security
 
-**OAuth 2.1:** Rosetta MCP authenticates IDE clients via [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy), which bridges any OAuth provider (Keycloak, GitHub, Google, Azure, etc.) with MCP's authentication flow. Required environment variables:
+**OAuth 2.1:** Rosetta MCP authenticates IDE clients via [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy), which bridges any OAuth provider with MCP's authentication flow. Three modes are available, controlled by `ROSETTA_OAUTH_MODE`:
 
-- `ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT`
-- `ROSETTA_OAUTH_TOKEN_ENDPOINT`
-- `ROSETTA_OAUTH_INTROSPECTION_ENDPOINT`
-- `ROSETTA_OAUTH_REVOCATION_ENDPOINT`
-- `ROSETTA_OAUTH_BASE_URL`
-- `ROSETTA_OAUTH_SCOPE` (default: `openid email offline_access`)
+**`oauth` mode** (default) — generic OAuth 2.0 with token introspection:
+
+| Env var | Purpose |
+|---|---|
+| `ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT` | Upstream IdP authorization URL |
+| `ROSETTA_OAUTH_TOKEN_ENDPOINT` | Upstream IdP token URL |
+| `ROSETTA_OAUTH_INTROSPECTION_ENDPOINT` | Upstream IdP introspection URL |
+| `ROSETTA_OAUTH_CLIENT_ID` | Pre-registered IdP client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | IdP client secret |
+| `ROSETTA_OAUTH_BASE_URL` | Public URL of Rosetta MCP |
+| `ROSETTA_JWT_SIGNING_KEY` | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_REVOCATION_ENDPOINT` | *(optional)* Token revocation URL |
+| `ROSETTA_OAUTH_CALLBACK_PATH` | *(optional)* Callback path (default: `/auth/callback`) |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | *(optional)* Scopes required on tokens |
+| `ROSETTA_OAUTH_VALID_SCOPES` | *(optional)* Scopes advertised in `.well-known` |
+| `ROSETTA_OAUTH_EXTRA_SCOPES` | *(optional)* Scopes forwarded to IdP authorize endpoint |
 
 The `offline_access` scope is critical: it enables refresh tokens so users authenticate once instead of re-authenticating daily. Your OAuth provider must be configured to allow this scope.
+
+**`oidc` mode** — OIDC auto-discovery with local JWT verification:
+
+| Env var | Purpose |
+|---|---|
+| `ROSETTA_OAUTH_OIDC_CONFIG_URL` | IdP OIDC discovery URL (`.well-known/openid-configuration`) |
+| `ROSETTA_OAUTH_CLIENT_ID` | Pre-registered IdP client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | IdP client secret |
+| `ROSETTA_OAUTH_BASE_URL` | Public URL of Rosetta MCP |
+| `ROSETTA_JWT_SIGNING_KEY` | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_CALLBACK_PATH` | *(optional)* Callback path (default: `/auth/callback`) |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | *(optional)* Scopes required on tokens |
+| `ROSETTA_OAUTH_EXTRA_SCOPES` | *(optional)* Scopes forwarded to IdP authorize endpoint |
+
+**`github` mode** — [GitHub OAuth](https://gofastmcp.com/integrations/github) with API-based token verification:
+
+| Env var | Purpose |
+|---|---|
+| `ROSETTA_OAUTH_CLIENT_ID` | GitHub OAuth App Client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | GitHub OAuth App Client Secret |
+| `ROSETTA_OAUTH_BASE_URL` | Public URL of Rosetta MCP (HTTPS required) |
+| `ROSETTA_JWT_SIGNING_KEY` | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_CALLBACK_PATH` | *(optional)* Callback path (default: `/auth/callback`) |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | *(optional)* Required GitHub scopes (default: `user`) |
+
+GitHub endpoints are hardcoded. Create a GitHub OAuth App at [github.com/settings/developers](https://github.com/settings/developers) and set the callback URL to `<ROSETTA_OAUTH_BASE_URL>/auth/callback`.
 
 **Secrets** (use ESO, Vault, or manual Kubernetes secrets):
 

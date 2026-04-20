@@ -99,14 +99,56 @@ MCP changes are validated with `pytest`, `validate-types.sh`, and the end-to-end
 
 **Authentication:** HTTP uses OAuth 2.1 via FastMCP's proxy layer (supports any provider: Keycloak, GitHub, Google, Azure). STDIO uses `ROSETTA_API_KEY`. Policy-based authorization: `aia-*` read-only, `project-*` configurable. For the two-leg proxy architecture, scope separation, and token lifecycle details, see [AUTHENTICATION.md](AUTHENTICATION.md).
 
-Two OAuth modes controlled by `ROSETTA_OAUTH_MODE`:
+Three OAuth modes controlled by `ROSETTA_OAUTH_MODE`:
 
-| Mode | Env var | How it works |
-|---|---|---|
-| `oauth` (default) | Requires `ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT`, `TOKEN_ENDPOINT`, `INTROSPECTION_ENDPOINT` | Upstream IdP issues opaque tokens; Rosetta introspects them on each request via `IntrospectionTokenVerifier`. Cached 15 min. |
-| `oidc` | Requires `ROSETTA_OAUTH_OIDC_CONFIG_URL` (IdP discovery doc URL) | Rosetta fetches IdP endpoints automatically from the discovery doc; tokens are JWTs verified locally via JWKS. No per-request introspection calls. |
+**`oauth` mode** (default) — generic OAuth 2.0 with token introspection:
 
-Both modes issue FastMCP JWTs to MCP clients and store upstream tokens in Redis (encrypted with `FERNET_KEY`). MCP clients never see IdP tokens; the IdP never sees FastMCP JWTs.
+| Env var | Purpose |
+|---|---|
+| `ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT` | Upstream IdP authorization URL |
+| `ROSETTA_OAUTH_TOKEN_ENDPOINT` | Upstream IdP token URL |
+| `ROSETTA_OAUTH_INTROSPECTION_ENDPOINT` | Upstream IdP introspection URL |
+| `ROSETTA_OAUTH_CLIENT_ID` | Pre-registered IdP client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | IdP client secret |
+| `ROSETTA_OAUTH_BASE_URL` | Public URL of Rosetta MCP |
+| `ROSETTA_JWT_SIGNING_KEY` | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_REVOCATION_ENDPOINT` | *(optional)* Token revocation URL |
+| `ROSETTA_OAUTH_CALLBACK_PATH` | *(optional)* Callback path (default: `/auth/callback`) |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | *(optional)* Scopes required on tokens |
+| `ROSETTA_OAUTH_VALID_SCOPES` | *(optional)* Scopes advertised in `.well-known` |
+| `ROSETTA_OAUTH_EXTRA_SCOPES` | *(optional)* Scopes forwarded to IdP authorize endpoint |
+
+Upstream IdP issues opaque tokens; Rosetta introspects them on each request via `IntrospectionTokenVerifier`. Cached 15 min.
+
+**`oidc` mode** — OIDC auto-discovery with local JWT verification:
+
+| Env var | Purpose |
+|---|---|
+| `ROSETTA_OAUTH_OIDC_CONFIG_URL` | IdP OIDC discovery URL (`.well-known/openid-configuration`) |
+| `ROSETTA_OAUTH_CLIENT_ID` | Pre-registered IdP client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | IdP client secret |
+| `ROSETTA_OAUTH_BASE_URL` | Public URL of Rosetta MCP |
+| `ROSETTA_JWT_SIGNING_KEY` | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_CALLBACK_PATH` | *(optional)* Callback path (default: `/auth/callback`) |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | *(optional)* Scopes required on tokens |
+| `ROSETTA_OAUTH_EXTRA_SCOPES` | *(optional)* Scopes forwarded to IdP authorize endpoint |
+
+Rosetta fetches IdP endpoints automatically from the discovery doc; tokens are JWTs verified locally via JWKS. No per-request introspection calls.
+
+**`github` mode** — GitHub OAuth via [GitHubProvider](https://gofastmcp.com/integrations/github):
+
+| Env var | Purpose |
+|---|---|
+| `ROSETTA_OAUTH_CLIENT_ID` | GitHub OAuth App Client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | GitHub OAuth App Client Secret |
+| `ROSETTA_OAUTH_BASE_URL` | Public URL of Rosetta MCP (HTTPS required in production) |
+| `ROSETTA_JWT_SIGNING_KEY` | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_CALLBACK_PATH` | *(optional)* Callback path (default: `/auth/callback`) |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | *(optional)* Required GitHub scopes (default: `user`) |
+
+GitHub endpoints are hardcoded. Tokens are validated via the GitHub API (`https://api.github.com/user`). User identity is extracted from GitHub profile (login, name, email).
+
+All three modes issue FastMCP JWTs to MCP clients and store upstream tokens in Redis (encrypted with `FERNET_KEY`). MCP clients never see IdP tokens; the IdP never sees FastMCP JWTs.
 
 ### Redis Schema Migrations
 

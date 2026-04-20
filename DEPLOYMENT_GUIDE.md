@@ -281,21 +281,49 @@ Users must re-authenticate and in-flight plans are lost after any of these. Plan
 
 ### Security
 
-**OAuth 2.1:** Rosetta MCP authenticates IDE clients via [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy), which bridges any OAuth provider (Keycloak, GitHub, Google, Azure, etc.) with MCP's authentication flow. Required environment variables:
+**OAuth 2.1:** Rosetta MCP authenticates IDE clients via [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy), which bridges any OAuth provider with MCP's authentication flow. Three modes are available, controlled by `ROSETTA_OAUTH_MODE`:
 
-- `ROSETTA_OAUTH_MODE` — `oauth` (token introspection, default) or `oidc` (JWT validation via OIDC discovery doc)
-- `ROSETTA_OAUTH_OIDC_CONFIG_URL` — IdP OIDC discovery URL; required when `ROSETTA_OAUTH_MODE=oidc` - example: "https://idp.example.com/realms/<realm>/.well-known/openid-configuration"
-- `ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT` - example: "https://idp.example.com/realms/<realm>/protocol/openid-connect/auth"
-- `ROSETTA_OAUTH_TOKEN_ENDPOINT` - example: "https://idp.example.com/realms/<realm>/protocol/openid-connect/token"
-- `ROSETTA_OAUTH_INTROSPECTION_ENDPOINT` - example: "https://idp.example.com/realms/<realm>/protocol/openid-connect/token/introspect"
-- `ROSETTA_OAUTH_REVOCATION_ENDPOINT` - example: "https://idp.example.com/realms/<realm>/protocol/openid-connect/revoke"
-- `ROSETTA_OAUTH_BASE_URL` - example: "https://rosetta-dev.example.com"
-- `ROSETTA_OAUTH_REQUIRED_SCOPES` — scopes required by FastMCP OAuthProxy on inbound tokens from MCP clients, **must** include `offline_access`
-- `ROSETTA_OAUTH_VALID_SCOPES` — scopes advertised in `.well-known`; leave empty to derive from `ROSETTA_OAUTH_REQUIRED_SCOPES`
-- `ROSETTA_OAUTH_EXTRA_SCOPES` — scopes forwarded to upstream IdP authorization endpoint, **must** be `openid email profile offline_access`
+**`oauth` mode** (default) — generic OAuth 2.0 with token introspection:
 
-The `offline_access` scope is critical: it enables refresh tokens so users authenticate once instead of re-authenticating daily. 
-Your OAuth provider must be configured to allow this scope.
+| Env var | Example | Purpose |
+|---|---|---|
+| `ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT` | `https://idp.example.com/realms/<realm>/protocol/openid-connect/auth` | IdP authorize endpoint |
+| `ROSETTA_OAUTH_TOKEN_ENDPOINT` | `https://idp.example.com/realms/<realm>/protocol/openid-connect/token` | IdP token endpoint |
+| `ROSETTA_OAUTH_INTROSPECTION_ENDPOINT` | `https://idp.example.com/realms/<realm>/protocol/openid-connect/token/introspect` | IdP introspection endpoint |
+| `ROSETTA_OAUTH_CLIENT_ID` | | Pre-registered IdP client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | | IdP client secret |
+| `ROSETTA_OAUTH_BASE_URL` | `https://rosetta-dev.example.com` | Public URL of Rosetta MCP |
+| `ROSETTA_JWT_SIGNING_KEY` | | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_REVOCATION_ENDPOINT` | `https://idp.example.com/realms/<realm>/protocol/openid-connect/revoke` | *(optional)* Token revocation URL |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | `offline_access` | *(optional)* Scopes required on tokens; **must** include `offline_access` |
+| `ROSETTA_OAUTH_VALID_SCOPES` | | *(optional)* Scopes advertised in `.well-known`; leave empty to derive from `REQUIRED_SCOPES` |
+| `ROSETTA_OAUTH_EXTRA_SCOPES` | `openid email profile offline_access` | *(optional)* Scopes forwarded to IdP authorize endpoint |
+
+The `offline_access` scope is critical: it enables refresh tokens so users authenticate once instead of re-authenticating daily. Your OAuth provider must be configured to allow this scope.
+
+**`oidc` mode** — OIDC auto-discovery with local JWT verification:
+
+| Env var | Example | Purpose |
+|---|---|---|
+| `ROSETTA_OAUTH_OIDC_CONFIG_URL` | `https://idp.example.com/realms/<realm>/.well-known/openid-configuration` | IdP OIDC discovery URL |
+| `ROSETTA_OAUTH_CLIENT_ID` | | Pre-registered IdP client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | | IdP client secret |
+| `ROSETTA_OAUTH_BASE_URL` | `https://rosetta-dev.example.com` | Public URL of Rosetta MCP |
+| `ROSETTA_JWT_SIGNING_KEY` | | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | `offline_access` | *(optional)* Scopes required on tokens |
+| `ROSETTA_OAUTH_EXTRA_SCOPES` | `openid email profile offline_access` | *(optional)* Scopes forwarded to IdP authorize endpoint |
+
+**`github` mode** — [GitHub OAuth](https://gofastmcp.com/integrations/github) with API-based token verification:
+
+| Env var | Example | Purpose |
+|---|---|---|
+| `ROSETTA_OAUTH_CLIENT_ID` | `Ov23liAbcDefGhiJkLmN` | GitHub OAuth App Client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | | GitHub OAuth App Client Secret |
+| `ROSETTA_OAUTH_BASE_URL` | `https://rosetta.example.com` | Public URL of Rosetta MCP (HTTPS required) |
+| `ROSETTA_JWT_SIGNING_KEY` | | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | `user` | *(optional)* Required GitHub scopes (default: `user`) |
+
+GitHub endpoints are hardcoded. Create a GitHub OAuth App at [github.com/settings/developers](https://github.com/settings/developers) and set the callback URL to `<ROSETTA_OAUTH_BASE_URL>/auth/callback`.
 
 **Secrets** (use ESO, Vault, or manual Kubernetes secrets):
 
