@@ -1,0 +1,42 @@
+---
+name: ra-requirement-unit
+description: Canonical atomic requirement unit template
+---
+
+<ra-requirement-unit>
+
+<description>
+
+Atomic and independently testable requirement unit.
+
+</description>
+
+<guidelines>
+
+Use one unit per need, keep implementation-free wording, and set `Approved` only after explicit user approval.
+
+</guidelines>
+
+<template>
+
+```xml
+<req id="FR-AREA-0001" type="FR" level="System" ticketId="JIRA-0000" classification="business|technical">
+  <title>...</title>
+  <statement>...</statement>
+  <rationale>...</rationale>
+  <source>User|Inferred|Sources|Documentation</source>
+  <priority>Must|Should|Could|Wont</priority>
+  <status>Draft|Approved|Deprecated</status>
+  <approved_by>[user login approved]</approved_by>
+  <verification>Test|Analysis|Inspection|Demo</verification>
+  <acceptance>
+    <criteria>Given:<G> When:<W> Then:<T>.</criteria>
+  </acceptance>
+  <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
+  <notes>...</notes>
+</req>
+```
+
+</template>
+
+</ra-requirement-unit>
