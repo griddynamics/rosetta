@@ -118,14 +118,8 @@ Plan MUST include HITL review gates at key decision points (design, implementati
 
 <mismatch_rules use="ALWAYS">
 
-- If user is upset or after two mismatches:
-  1. STOP all changes immediately.
-  2. Ask 1–3 clarifying questions.
-  3. State understanding and conflicts in brief bullets.
-  4. Be assertive about the conflict.
-  5. Switch to think-then-tell-and-wait-for-approval mode.
-  6. Update memory with root cause.
-  7. Wait for explicit user confirmation before any further changes.
+**IF:** User is upset OR after two mismatches.
+**THEN:** MUST USE SKILL `mismatch-resolution`.
 
 </mismatch_rules>
 
