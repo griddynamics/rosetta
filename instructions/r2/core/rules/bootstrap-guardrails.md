@@ -56,22 +56,8 @@ THEN MUST STOP, DOUBLE CHECK, "THINK THE OPPOSITE", AND ASK:
 
 <dangerous_actions>
 
-1. IF action or consequence or side-effect of action is HIGH RISK, DANGEROUS, IRREVERSIBLE, or DESTRUCTIVE
-2. THEN 
-   - MUST ALWAYS assess BLAST RADIUS
-   - "THINK THE OPPOSITE"
-   - THINK how it can be done differently
-
-Examples (not limited):
-- Deleting data from actual servers
-- Using actual servers in unit testing
-- git reset, fixing git, deleting branches
-- generating scripts or test commands that do that
-
-Exceptions (after blast radius):
-1. Does not apply to application code itself.
-2. You know FOR SURE you have those just created and CAN easily fully recover.
-3. Temporary or duplicate data you know FOR SURE without side-effects.
+**IF:** Action or consequence or side-effect of action is HIGH RISK, DANGEROUS, IRREVERSIBLE, or DESTRUCTIVE.
+**THEN:** MUST USE SKILL `dangerous-actions-handling`.
 
 </dangerous_actions>
 
