@@ -14,7 +14,7 @@ baseSchema: docs/schemas/rule.md
 1. Apply `Planning and Documentation Sync Rules`.
 2. Apply `Task Management Rules`.
 3. Apply `Validation Rules`.
-4. Apply `Memory And Self-Learning Rules`.
+4. MUST USE SKILL `self-learning` on failures, mismatches, or unexpected results.
 5. MUST NOT IGNORE entire set of instructions if one or another activity of the set is impossible to execute. Those inconsistencies MUST BE REPORTED ALWAYS.
 6. When user directly provides via slash-command SKILL or COMMAND or WORKFLOW YOU MUST FULLY EXECUTE IT
 7. Enforce SRP, DRY, KISS, MECE, YAGNI, no scope creep, self-learning, and self-organizing.
@@ -52,18 +52,6 @@ baseSchema: docs/schemas/rule.md
 4. Keep final status grounded in observed evidence.
 
 </validation_rules>
-
-<memory_and_self_learning_rules>
-
-1. Consult AGENT MEMORY.md during planning and reasoning
-2. Init if missing, prefer agent memory over task memory
-3. Identify root cause for every failure or missed expectation
-4. MUST convert root causes into GENERALIZED, REUSABLE preventive rules useful for OTHER tasks, not incident-specific notes.
-5. Store preventive rules in memory
-6. Keep memory concise, organized
-7. Record what worked and failed logically, architecturally, and technically
-
-</memory_and_self_learning_rules>
 
 <should>
 
