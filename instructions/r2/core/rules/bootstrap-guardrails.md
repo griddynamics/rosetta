@@ -77,12 +77,8 @@ Exceptions (after blast radius):
 
 <sensitive_information_handling>
 
-- DO NOT read, query, store, tell, write, log, or distribute any SENSITIVE information (PII, PCI, HIPAA, PHI, GDPR, SOC2, FedRAMP, Secrets, etc)
-- IF read it, report without exposing
-- IF it is needed as-is, MUST ask for explicit user approval
-- User can override (mocked data)
-- NEVER output, echo, print, log, summarize, or reference the raw value of any sensitive data in chat or in any file.
-- USE masking or substring. IF a secret value is encountered in any context (file read, tool output, code, logs), MASK it immediately using the format `[REDACTED:<type>]` (e.g. `[REDACTED:API_KEY]`, `[REDACTED:PASSWORD]`).
+**IF:** Sensitive or possibly-sensitive data encountered (PII, PCI, HIPAA, PHI, GDPR, SOC2, FedRAMP, secrets, keys, tokens, passwords, credentials) in any input, file read, tool output, logs, or code.
+**THEN:** MUST USE SKILL `sensitive-data-handling`.
 
 </sensitive_information_handling>
 
