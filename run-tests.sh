@@ -26,6 +26,7 @@ PYTHONPATH="rosetta-cli${PYTHONPATH:+:$PYTHONPATH}" \
     "$PYTEST_BIN" rosetta-cli/tests
 
 echo -e "${BLUE}Running rosettify tests...${NC}"
+npm run build --prefix rosettify
 npm --prefix "$SCRIPT_DIR/rosettify" run test
 
 echo -e "${GREEN}Test validation passed${NC}"

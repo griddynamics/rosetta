@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-core-policy.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-execution-policy.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-guardrails.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-hitl-questioning.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-rosetta-files.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/plugin-files-mode.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/INDEX.md\" \"$(git rev-parse --show-toplevel)/.agents/workflows/INDEX.md\" && echo \"\" && echo \"Rosetta Core Plugin Path: $(git rev-parse --show-toplevel)/.agents\"",
+            "command": "workspace_root=\"$PWD\"; while [ \"$workspace_root\" != \"/\" ] && [ ! -f \"$workspace_root/.agents/rules/bootstrap-rosetta-files.md\" ]; do workspace_root=\"$(dirname \"$workspace_root\")\"; done; if [ -f \"$workspace_root/.agents/rules/bootstrap-rosetta-files.md\" ]; then for file in \"$workspace_root/.agents/rules/bootstrap-core-policy.md\" \"$workspace_root/.agents/rules/bootstrap-execution-policy.md\" \"$workspace_root/.agents/rules/bootstrap-guardrails.md\" \"$workspace_root/.agents/rules/bootstrap-hitl-questioning.md\" \"$workspace_root/.agents/rules/bootstrap-rosetta-files.md\" \"$workspace_root/.agents/rules/plugin-files-mode.md\" \"$workspace_root/.agents/rules/INDEX.md\" \"$workspace_root/.agents/workflows/INDEX.md\"; do printf '\\n'; cat \"$file\"; done; printf '\\nRosetta Core Plugin Path: %s\\n' \"$workspace_root/.agents\"; fi",
             "statusMessage": "Loading Rosetta Codex bootstrap",
             "timeout": 30
           }
