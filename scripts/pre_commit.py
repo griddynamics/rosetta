@@ -104,9 +104,11 @@ def copy_core_tree(destination: Path, normalize_models: bool) -> None:
         relative_path = source_file.relative_to(CORE_SOURCE)
         target = destination / relative_path
 
-        # Exclude hooks/ — distributed via symlink in each plugin dir
+        # Distribute only the self-contained adapter.js (and loose-files.js) from hooks/.
+        # Source modules (adapters/), tests/, and fixtures/ live in hooks/ at repo root.
         if relative_path.parts and relative_path.parts[0] == "hooks":
-            continue
+            if len(relative_path.parts) > 1:
+                continue  # skip adapters/, tests/, and any nested files
         # Exclude test artifacts — never distribute into plugins
         if source_file.name.endswith(".test.js"):
             continue
