@@ -424,3 +424,33 @@ def sync_generated_plugins(repo_root: Path) -> int:
             generate_codex_subagents(spec.destination, core_source)
             generate_codex_runtime_layout(spec.destination)
     return 0
+
+
+def sync_hooks_into_plugins(repo_root: Path) -> int:
+    hooks_src_dist = repo_root / "hooks" / "dist" / "src"
+    hooks_shell_dist = repo_root / "hooks" / "dist" / "shell"
+
+    if not hooks_src_dist.is_dir() or not hooks_shell_dist.is_dir():
+        print(
+            "ERROR: hooks build output missing — run `npm --prefix hooks run build`",
+            file=sys.stderr,
+        )
+        return 1
+
+    plugin_destinations = [
+        repo_root / "plugins" / "core-claude",
+        repo_root / "plugins" / "core-cursor",
+        repo_root / "plugins" / "core-copilot",
+        repo_root / "plugins" / "core-codex",
+    ]
+
+    for destination in plugin_destinations:
+        target = destination / "hooks"
+        if target.is_symlink():
+            target.unlink()  # remove old symlink into instructions/
+        shutil.rmtree(target, ignore_errors=True)
+        shutil.copytree(hooks_src_dist, target, dirs_exist_ok=True)
+        shutil.copytree(hooks_shell_dist, target, dirs_exist_ok=True)
+        print(f"      synced hooks into {destination.name}", flush=True)
+
+    return 0
