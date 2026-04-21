@@ -54,8 +54,8 @@ describe('normalize — Claude Code', () => {
 
   test('PreToolUse Bash — identity (no tool_response)', () => {
     const result = normalize(ccBash);
+    assert.equal(result.tool_response, undefined); // check before deepEqual narrows type
     assert.deepEqual(result, ccBash);
-    assert.equal(result.tool_response, undefined);
   });
 
   test('subagent — preserves agent_id and agent_type', () => {
