@@ -8,7 +8,7 @@
 // hook_event_name casing: Cursor uses camelCase ("postToolUse") vs CC PascalCase ("PostToolUse").
 // normalize() uppercases the first letter to produce the canonical PascalCase form.
 
-import type { NormalizedInput, CanonicalOutput } from '../adapter';
+import type { IdeAdapter, NormalizedInput, CanonicalOutput } from '../types';
 
 const CC_SIGNATURE = ['hook_event_name', 'tool_input'] as const;
 const CURSOR_EXTRA = ['conversation_id', 'cursor_version'] as const;
@@ -16,12 +16,10 @@ const CURSOR_EXTRA = ['conversation_id', 'cursor_version'] as const;
 const toPascalCase = (s: string): string =>
   s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
-export const name = 'cursor';
-
-export const detect = (raw: Record<string, unknown>): boolean =>
+const detect = (raw: Record<string, unknown>): boolean =>
   CC_SIGNATURE.every((f) => f in raw) && CURSOR_EXTRA.every((f) => f in raw);
 
-export const normalize = (raw: Record<string, unknown>): NormalizedInput => {
+const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   const { hook_event_name, conversation_id, ...rest } = raw;
   return {
     ...rest,
@@ -31,7 +29,7 @@ export const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   } as unknown as NormalizedInput;
 };
 
-export const formatOutput = (canonical?: CanonicalOutput): Record<string, unknown> => {
+const formatOutput = (canonical?: CanonicalOutput): Record<string, unknown> => {
   const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
   const { additionalContext, permissionDecision, permissionDecisionReason } = hookSpecificOutput;
   const out: Record<string, unknown> = {};
@@ -41,3 +39,5 @@ export const formatOutput = (canonical?: CanonicalOutput): Record<string, unknow
   if (cont === false) out.permission = out.permission ?? 'deny';
   return out;
 };
+
+export const cursor: IdeAdapter = { name: 'cursor', detect, normalize, formatOutput };

@@ -9,13 +9,11 @@
 // hook_event_name casing: Cursor uses camelCase ("postToolUse") vs CC PascalCase ("PostToolUse").
 // normalize() uppercases the first letter to produce the canonical PascalCase form.
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatOutput = exports.normalize = exports.detect = exports.name = void 0;
+exports.adapter = void 0;
 const CC_SIGNATURE = ['hook_event_name', 'tool_input'];
 const CURSOR_EXTRA = ['conversation_id', 'cursor_version'];
 const toPascalCase = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-exports.name = 'cursor';
 const detect = (raw) => CC_SIGNATURE.every((f) => f in raw) && CURSOR_EXTRA.every((f) => f in raw);
-exports.detect = detect;
 const normalize = (raw) => {
     const { hook_event_name, conversation_id, ...rest } = raw;
     return {
@@ -25,7 +23,6 @@ const normalize = (raw) => {
         conversation_id,
     };
 };
-exports.normalize = normalize;
 const formatOutput = (canonical) => {
     const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
     const { additionalContext, permissionDecision, permissionDecisionReason } = hookSpecificOutput;
@@ -40,4 +37,4 @@ const formatOutput = (canonical) => {
         out.permission = out.permission ?? 'deny';
     return out;
 };
-exports.formatOutput = formatOutput;
+exports.adapter = { name: 'cursor', detect, normalize, formatOutput };

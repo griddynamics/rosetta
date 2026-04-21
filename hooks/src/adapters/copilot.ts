@@ -11,7 +11,7 @@
 //   - Other events: sessionStart { source, initialPrompt }, sessionEnd { reason },
 //     userPromptSubmitted { prompt }, errorOccurred { error }
 
-import type { NormalizedInput, CanonicalOutput } from '../adapter';
+import type { IdeAdapter, NormalizedInput, CanonicalOutput } from '../types';
 
 const COPILOT_SIGNATURE = ['toolName', 'timestamp', 'cwd'] as const;
 
@@ -37,12 +37,10 @@ const parseToolArgs = (raw: Record<string, unknown>): Record<string, unknown> =>
   }
 };
 
-export const name = 'copilot';
-
-export const detect = (raw: Record<string, unknown>): boolean =>
+const detect = (raw: Record<string, unknown>): boolean =>
   COPILOT_SIGNATURE.every((f) => f in raw) && !('hook_event_name' in raw);
 
-export const normalize = (raw: Record<string, unknown>): NormalizedInput => {
+const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   const { toolName, cwd, toolArgs, toolResult, timestamp } = raw;
   return {
     hook_event_name: inferHookEventName(raw),
@@ -56,7 +54,7 @@ export const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   } as unknown as NormalizedInput;
 };
 
-export const formatOutput = (canonical?: CanonicalOutput): Record<string, unknown> => {
+const formatOutput = (canonical?: CanonicalOutput): Record<string, unknown> => {
   const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
   const { permissionDecision, permissionDecisionReason } = hookSpecificOutput;
   const out: Record<string, unknown> = {};
@@ -65,3 +63,5 @@ export const formatOutput = (canonical?: CanonicalOutput): Record<string, unknow
   if (cont === false && !out.permissionDecision) out.permissionDecision = 'deny';
   return out;
 };
+
+export const copilot: IdeAdapter = { name: 'copilot', detect, normalize, formatOutput };

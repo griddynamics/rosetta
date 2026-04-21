@@ -7,7 +7,8 @@
 
 import path from 'path';
 import { existsSync } from 'fs';
-import { readStdin, normalize, type NormalizedInput } from './adapter';
+import { readStdin, normalize } from './adapter';
+import type { NormalizedInput } from './types';
 
 const ALLOWED_EXTENSIONS = new Set(['.py', '.js']);
 const ALLOWED_TOOLS = new Set(['Write', 'Edit']);

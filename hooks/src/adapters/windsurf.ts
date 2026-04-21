@@ -8,7 +8,7 @@
 // 12 event types are mapped to canonical hook_event_name + tool_name + tool_input.
 // 4 events have no CC equivalent and use new canonical names (PrePromptSubmit, PostResponse, PostWorktree).
 
-import type { NormalizedInput, CanonicalOutput } from '../adapter';
+import type { IdeAdapter, NormalizedInput, CanonicalOutput } from '../types';
 
 const WINDSURF_SIGNATURE = ['agent_action_name', 'trajectory_id', 'tool_info'] as const;
 
@@ -43,12 +43,10 @@ const EVENT_MAP: Record<string, EventDef> = {
 const resolveToolName = (eventDef: EventDef, toolInfo: Record<string, unknown>): string | null =>
   typeof eventDef.tool_name === 'function' ? eventDef.tool_name(toolInfo) : eventDef.tool_name;
 
-export const name = 'windsurf';
-
-export const detect = (raw: Record<string, unknown>): boolean =>
+const detect = (raw: Record<string, unknown>): boolean =>
   WINDSURF_SIGNATURE.every((f) => f in raw);
 
-export const normalize = (raw: Record<string, unknown>): NormalizedInput => {
+const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   const { agent_action_name, trajectory_id, execution_id, timestamp, model_name, tool_info } = raw;
   const eventDef = EVENT_MAP[agent_action_name as string];
   const ti = (tool_info as Record<string, unknown>) || {};
@@ -63,7 +61,7 @@ export const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   } as unknown as NormalizedInput;
 };
 
-export const formatOutput = (canonical?: CanonicalOutput): Record<string, unknown> => {
+const formatOutput = (canonical?: CanonicalOutput): Record<string, unknown> => {
   const { hookSpecificOutput = {} } = canonical ?? {};
   const { additionalContext, permissionDecision } = hookSpecificOutput;
   const out: Record<string, unknown> = {};
@@ -71,3 +69,5 @@ export const formatOutput = (canonical?: CanonicalOutput): Record<string, unknow
   if (permissionDecision === 'deny') out._exitCode = 2;
   return out;
 };
+
+export const windsurf: IdeAdapter = { name: 'windsurf', detect, normalize, formatOutput };

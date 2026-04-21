@@ -14,52 +14,26 @@
 //   - readStdin, normalize, formatOutput — used by hook entrypoints (prod)
 //   - detectIDE — exposed for tests; prod callers should prefer normalize()
 
-import * as claudeCode from './adapters/claude-code';
-import * as codex from './adapters/codex';
-import * as cursor from './adapters/cursor';
-import * as windsurf from './adapters/windsurf';
-import * as copilot from './adapters/copilot';
+import { claudeCode } from './adapters/claude-code';
+import { codex } from './adapters/codex';
+import { cursor } from './adapters/cursor';
+import { windsurf } from './adapters/windsurf';
+import { copilot } from './adapters/copilot';
 
-export interface NormalizedInput {
-  hook_event_name: string;
-  session_id: string | undefined;
-  tool_name: string | null | undefined;
-  tool_input: Record<string, unknown>;
-  tool_use_id?: string;
-  cwd?: string;
-  tool_response?: unknown;
-  [key: string]: unknown;
-}
-
-export interface CanonicalOutput {
-  hookSpecificOutput?: {
-    hookEventName?: string;
-    additionalContext?: string;
-    permissionDecision?: string;
-    permissionDecisionReason?: string;
-  };
-  continue?: boolean;
-  suppressOutput?: boolean;
-}
-
-export interface IdeAdapter {
-  name: string;
-  detect: (raw: Record<string, unknown>) => boolean;
-  normalize: (raw: Record<string, unknown>) => NormalizedInput;
-  formatOutput: (canonical?: CanonicalOutput) => Record<string, unknown>;
-}
+import type { IdeAdapter, NormalizedInput, CanonicalOutput } from './types';
+export type { NormalizedInput, CanonicalOutput, IdeAdapter } from './types';
 
 // Detection is an ordered chain — a superset like codex must match before
 // claude-code, so this order is load-bearing and not derived from Object.keys.
 const DETECTION_ORDER = ['codex', 'cursor', 'claude-code', 'windsurf', 'copilot'] as const;
 
-const ADAPTERS: Record<string, IdeAdapter> = {
+const ADAPTERS = {
   codex,
   cursor,
   'claude-code': claudeCode,
   windsurf,
   copilot,
-};
+} as Record<string, IdeAdapter>;
 
 export const detectIDE = (rawInput: unknown): string => {
   if (rawInput === null || rawInput === undefined) {
@@ -83,7 +57,7 @@ export const formatOutput = (
   canonicalOutput: CanonicalOutput | Record<string, unknown>,
   ide: string,
 ): Record<string, unknown> => {
-  const adapter = ADAPTERS[ide];
+  const adapter = ADAPTERS[ide as keyof typeof ADAPTERS];
   return adapter
     ? adapter.formatOutput(canonicalOutput as CanonicalOutput)
     : (canonicalOutput as Record<string, unknown>);

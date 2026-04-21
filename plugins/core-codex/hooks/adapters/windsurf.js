@@ -9,7 +9,7 @@
 // 12 event types are mapped to canonical hook_event_name + tool_name + tool_input.
 // 4 events have no CC equivalent and use new canonical names (PrePromptSubmit, PostResponse, PostWorktree).
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatOutput = exports.normalize = exports.detect = exports.name = void 0;
+exports.adapter = void 0;
 const WINDSURF_SIGNATURE = ['agent_action_name', 'trajectory_id', 'tool_info'];
 // Maps Windsurf agent_action_name → { hook_event_name, tool_name, buildToolInput }
 const EVENT_MAP = {
@@ -28,9 +28,7 @@ const EVENT_MAP = {
     post_setup_worktree: { hook_event_name: 'PostWorktree', tool_name: null, buildToolInput: ({ worktree_path, root_workspace_path }) => ({ worktree_path, root_workspace_path }) },
 };
 const resolveToolName = (eventDef, toolInfo) => typeof eventDef.tool_name === 'function' ? eventDef.tool_name(toolInfo) : eventDef.tool_name;
-exports.name = 'windsurf';
 const detect = (raw) => WINDSURF_SIGNATURE.every((f) => f in raw);
-exports.detect = detect;
 const normalize = (raw) => {
     const { agent_action_name, trajectory_id, execution_id, timestamp, model_name, tool_info } = raw;
     const eventDef = EVENT_MAP[agent_action_name];
@@ -44,7 +42,6 @@ const normalize = (raw) => {
         _windsurf: { agent_action_name, execution_id, timestamp, model_name, tool_info: ti },
     };
 };
-exports.normalize = normalize;
 const formatOutput = (canonical) => {
     const { hookSpecificOutput = {} } = canonical ?? {};
     const { additionalContext, permissionDecision } = hookSpecificOutput;
@@ -55,4 +52,4 @@ const formatOutput = (canonical) => {
         out._exitCode = 2;
     return out;
 };
-exports.formatOutput = formatOutput;
+exports.adapter = { name: 'windsurf', detect, normalize, formatOutput };

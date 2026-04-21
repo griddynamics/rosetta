@@ -12,7 +12,7 @@
 //   - Other events: sessionStart { source, initialPrompt }, sessionEnd { reason },
 //     userPromptSubmitted { prompt }, errorOccurred { error }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatOutput = exports.normalize = exports.detect = exports.name = void 0;
+exports.adapter = void 0;
 const COPILOT_SIGNATURE = ['toolName', 'timestamp', 'cwd'];
 const inferHookEventName = (raw) => {
     if ('toolName' in raw)
@@ -41,9 +41,7 @@ const parseToolArgs = (raw) => {
         return { _raw: toolArgs };
     }
 };
-exports.name = 'copilot';
 const detect = (raw) => COPILOT_SIGNATURE.every((f) => f in raw) && !('hook_event_name' in raw);
-exports.detect = detect;
 const normalize = (raw) => {
     const { toolName, cwd, toolArgs, toolResult, timestamp } = raw;
     return {
@@ -57,7 +55,6 @@ const normalize = (raw) => {
         _copilot: { timestamp, toolName, toolArgs, toolResult },
     };
 };
-exports.normalize = normalize;
 const formatOutput = (canonical) => {
     const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
     const { permissionDecision, permissionDecisionReason } = hookSpecificOutput;
@@ -70,4 +67,4 @@ const formatOutput = (canonical) => {
         out.permissionDecision = 'deny';
     return out;
 };
-exports.formatOutput = formatOutput;
+exports.adapter = { name: 'copilot', detect, normalize, formatOutput };
