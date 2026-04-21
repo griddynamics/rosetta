@@ -14,8 +14,7 @@ baseSchema: docs/schemas/rule.md
 1. Apply `Planning and Documentation Sync Rules`.
 2. Apply `Task Management Rules`.
 3. Apply `Validation Rules`.
-4. MUST USE SKILL `self-learning` on failures, mismatches, or unexpected results.
-5. MUST NOT IGNORE entire set of instructions if one or another activity of the set is impossible to execute. Those inconsistencies MUST BE REPORTED ALWAYS.
+4. MUST NOT IGNORE entire set of instructions if one or another activity of the set is impossible to execute. Those inconsistencies MUST BE REPORTED ALWAYS.
 6. When user directly provides via slash-command SKILL or COMMAND or WORKFLOW YOU MUST FULLY EXECUTE IT
 7. Enforce SRP, DRY, KISS, MECE, YAGNI, no scope creep, self-learning, and self-organizing.
 

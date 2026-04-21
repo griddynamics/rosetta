@@ -11,7 +11,7 @@ baseSchema: docs/schemas/rule.md
 
 <must>
 
-1. MUST USE SKILL `hitl` — loaded RIGHT WITH IMPLEMENTATION for ALL tasks by default.
+1. HITL is MANDATORY for ALL tasks by default — planning, execution, validation, review.
 2. THE ONLY exception: user DIRECTLY EXPLICITLY requests with EXACTLY "fully autonomous" or "No HITL".
 
 </must>

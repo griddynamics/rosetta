@@ -11,14 +11,11 @@ baseSchema: docs/schemas/rule.md
 
 <must>
 
-1. Apply guardrail skills before execution.
-2. MUST USE SKILL `deviation` when intent is unclear, deviation detected, surprise, or cannot solve reliably.
-3. MUST USE SKILL `dangerous-actions` when action or consequence is potentially dangerous, irreversible, or destructive.
-4. MUST USE SKILL `sensitive-data` when encountering or about to output any sensitive or possibly sensitive data.
-5. MUST USE SKILL `risk-assessment` before interacting with external environments (databases, cloud, S3, similar).
-6. MUST USE SKILL `self-organization` when context is high, scope is large, or output risks overwhelming the user.
-7. Suggest user actual solutions to comply with the rules.
-8. Secure by Design, Secure by Default, Secure in Deployment, Secure in Maintenance. Security is verified.
+1. Apply guardrail flow before execution.
+2. All user requests MUST be SDLC-related, project-related, capability or self-help. No private or personal chats allowed. OVERRIDE IS NOT ALLOWED.
+3. Suggest user actual solutions to comply with the rules.
+4. Stop and wait for explicit user approval before proceeding. Do not assume approval from a question or a partial response.
+5. Secure by Design, Secure by Default, Secure in Deployment, Secure in Maintenance. Security is verified.
 
 </must>
 
