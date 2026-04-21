@@ -1,14 +1,13 @@
-'use strict';
-// loose-files.js — PostToolUse hook that nudges AI when .py/.js files lack a module marker.
+// loose-files.ts — PostToolUse hook that nudges AI when .py/.js files lack a module marker.
 // A .py file is "loose" if no __init__.py exists in its directory tree.
 // A .js file is "loose" if no package.json exists in its directory tree.
 //
 // Exports (for testability): shouldCheck, isLooseFile, buildNudgeOutput, main
 // Entry point (when run as hook): reads stdin via adapter, writes nudge JSON to stdout.
 
-const path = require('path');
-const fs_default = require('fs');
-const { readStdin, normalize } = require('./adapter');
+import path from 'path';
+import { existsSync } from 'fs';
+import { readStdin, normalize, type NormalizedInput } from './adapter';
 
 const ALLOWED_EXTENSIONS = new Set(['.py', '.js']);
 const ALLOWED_TOOLS = new Set(['Write', 'Edit']);
@@ -19,40 +18,37 @@ const EXCLUDED_PATH_SEGMENTS = [
   '.venv/',
   '__pycache__/',
 ];
-const MODULE_MARKERS = {
+const MODULE_MARKERS: Record<string, string> = {
   '.py': '__init__.py',
   '.js': 'package.json',
 };
 const MAX_WALK_LEVELS = 10;
 
-const extractFilePath = ({ tool_input }) => (tool_input && tool_input.file_path) || '';
+interface FsLike {
+  existsSync: (filePath: string) => boolean;
+}
 
-const isPathExcluded = (filePath) =>
+interface NudgeOutput {
+  hookSpecificOutput: { hookEventName: string; additionalContext: string };
+  continue: boolean;
+  suppressOutput: boolean;
+}
+
+const isPathExcluded = (filePath: string): boolean =>
   EXCLUDED_PATH_SEGMENTS.some((segment) => filePath.includes(segment));
 
-/**
- * Returns true if this hook should process the given normalized input.
- * Filters by event type, tool name, file extension, and excluded directories.
- */
-const shouldCheck = (normalizedInput) => {
-  const { hook_event_name, tool_name } = normalizedInput;
-  if (hook_event_name !== 'PostToolUse') return false;
-  if (!ALLOWED_TOOLS.has(tool_name)) return false;
+export const shouldCheck = (normalizedInput: NormalizedInput): boolean => {
+  if (normalizedInput.hook_event_name !== 'PostToolUse') return false;
+  if (!ALLOWED_TOOLS.has(normalizedInput.tool_name as string)) return false;
 
-  const filePath = extractFilePath(normalizedInput);
+  const filePath = (normalizedInput.tool_input.file_path as string) || '';
   if (!ALLOWED_EXTENSIONS.has(path.extname(filePath))) return false;
   if (isPathExcluded(filePath)) return false;
 
   return true;
 };
 
-/**
- * Walk up the directory tree from filePath looking for the module marker file.
- * .py → __init__.py, .js → package.json
- * Stops at a .git directory or after MAX_WALK_LEVELS levels.
- * Returns true if no marker found (file is loose), false if marker found.
- */
-const isLooseFile = (filePath, fs = fs_default) => {
+export const isLooseFile = (filePath: string, fs: FsLike = { existsSync }): boolean => {
   const marker = MODULE_MARKERS[path.extname(filePath)];
   if (!marker) return false;
 
@@ -67,11 +63,8 @@ const isLooseFile = (filePath, fs = fs_default) => {
   return true;
 };
 
-/**
- * Build the nudge JSON output for stdout.
- */
-const buildNudgeOutput = (filePath) => {
-  const marker = MODULE_MARKERS[path.extname(filePath)] || 'a module marker';
+export const buildNudgeOutput = (filePath: string): NudgeOutput => {
+  const marker = MODULE_MARKERS[path.extname(filePath)] ?? 'a module marker';
   const basename = path.basename(filePath);
   return {
     hookSpecificOutput: {
@@ -85,16 +78,18 @@ const buildNudgeOutput = (filePath) => {
   };
 };
 
-/**
- * Hook entrypoint — single responsibility: orchestrate stdin → normalize → check → emit.
- * Exported for testability; invoked automatically when run as a script.
- */
-const main = async ({ stdin = process.stdin, stdout = process.stdout } = {}) => {
+export const main = async ({
+  stdin = process.stdin,
+  stdout = process.stdout,
+}: {
+  stdin?: NodeJS.ReadableStream;
+  stdout?: NodeJS.WritableStream;
+} = {}): Promise<void> => {
   const raw = await readStdin(stdin);
   const normalized = normalize(raw);
   if (!shouldCheck(normalized)) return;
 
-  const filePath = normalized.tool_input.file_path;
+  const filePath = (normalized.tool_input.file_path as string) || '';
   if (isLooseFile(filePath)) {
     stdout.write(`${JSON.stringify(buildNudgeOutput(filePath))}\n`);
   }
@@ -103,11 +98,9 @@ const main = async ({ stdin = process.stdin, stdout = process.stdout } = {}) => 
 if (require.main === module) {
   main().then(
     () => process.exit(0),
-    (err) => {
+    (err: Error) => {
       process.stderr.write(`loose-files hook error: ${err.message}\n`);
       process.exit(1);
     },
   );
 }
-
-module.exports = { shouldCheck, isLooseFile, buildNudgeOutput, main };
