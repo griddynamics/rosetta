@@ -33,13 +33,13 @@ baseSchema: docs/schemas/rule.md
 
 <task_management_rules>
 
-1. Use provided task management tool when available.
-2. Create explicit and actionable tasks.
-3. Break complex work into manageable steps.
-4. Keep exactly one task in progress at a time.
-5. Mark tasks complete immediately after finishing.
-6. Do not mark tasks complete without verifiable tool evidence.
-7. Do not mark multiple tasks complete unless completed in the same tool call.
+1. Use plan-manager as the primary execution tracker; built-in todo tasks/planners are for tracking INSIDE a single plan step only.
+2. Create explicit and actionable plan steps.
+3. Break complex work into manageable steps via plan-manager `upsert`.
+4. Keep exactly one plan step in progress at a time.
+5. Call `update_status` immediately after finishing each step.
+6. Do not mark steps complete without verifiable tool evidence.
+7. Do not mark multiple steps complete unless completed in the same tool call.
 8. Treat completed as verified done, never assumed done.
 
 </task_management_rules>
@@ -69,7 +69,7 @@ baseSchema: docs/schemas/rule.md
 
 1. Keep plan and task wording concise and operational.
 2. Keep orchestration context complete but minimal.
-3. Include high-value execution hints in task descriptions.
+3. Include high-value execution hints in step prompts.
 
 </should>
 

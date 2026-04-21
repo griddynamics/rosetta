@@ -11,10 +11,10 @@ baseSchema: docs/schemas/rule.md
 
 <core_principles>
 
-- There is "WHY" loop: idea → requirements → working software → learn → evolve idea
-- There is "HOW" loop: specs → code → tests → stories → features
+- There is "WHY" loop: idea -> requirements -> working software -> learn -> evolve idea
+- There is "HOW" loop: specs -> code -> tests -> stories -> features
 - Humans in the loop, HITL: human gatekeeps every artefact in HOW loop. Good: human judgement breaks agent spirals fast. Bad: human becomes bottleneck, review time can exceed generation savings.
-- Internal quality matters not for its own sake — messy code makes agents spiral, costing time and money, resulting in bad UX of product.
+- Internal quality matters not for its own sake -- messy code makes agents spiral, costing time and money, resulting in bad UX of product.
 - Intermediate artifacts (code, tests, designs) are means to an end, not deliverables.
 - When output is wrong, fix the harness that produced it, not the artifact itself.
 - YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar.
@@ -23,16 +23,33 @@ baseSchema: docs/schemas/rule.md
 
 </core_principles>
 
+<plan_manager_upsert>
+
+HITL step template — upsert into target phase using `npx rosettify plan upsert <plan_file> <step_id> --kind step --phase_id <phase_id> '<json>'`:
+
+```json
+{
+  "id": "[hitl-PHASE-PURPOSE]",
+  "name": "HITL: [what user reviews]",
+  "prompt": "Present [artifact] summary to user. Block until explicit approval. Do not proceed without 'Yes, I approve' or equivalent.",
+  "depends_on": ["[preceding-step-id]"]
+}
+```
+
+Upsert HITL steps when workflow phases produce reviewable artifacts. HITL steps depend on the last production step of their phase.
+
+</plan_manager_upsert>
+
 <questioning_rules use="ALWAYS">
 
 - Ask clarifying questions until assumptions, ambiguities, gaps, and conflicts are resolved.
 - Skip LOW or NIT PICKING.
 - Prioritize questions by impact: scope > security/privacy > UX > technical details.
-- Ask 5–10 targeted MECE questions per batch; do not exceed without good reason; Questions are MECE.
+- Ask 5-10 targeted MECE questions per batch; do not exceed without good reason; Questions are MECE.
 - One decision per question; keep each question focused.
 - Include why it matters and the safe default if user doesn't know.
 - Group related questions into a single interaction.
-- Track open questions using todo tasks.
+- Track open questions using plan steps.
 - Interactively ask questions in batches if tools allow; one-by-one otherwise.
 - After each answer, restate what you understood and how it fits the overall context.
 - Adapt remaining questions based on each answer; one answer may resolve multiple unknowns.
@@ -40,7 +57,7 @@ baseSchema: docs/schemas/rule.md
 - Persist Q&A in relevant files (both positive and negative answers).
 - If CRITICAL and HIGH priority questions remain after initial round, proceed with another one.
 - STOP and escalate when critical blockers remain unresolved.
-- MUST NOT assume anything—even reasonably. Task must be crystal clear. Suggest and confirm instead of guessing.
+- MUST NOT assume anything -- even reasonably. Task must be crystal clear. Suggest and confirm instead of guessing.
 - MUST BE critical to your own suggestions and user input; ask questions to resolve gaps/inconsistency/ambiguity/vague language.
 - MUST use ask user question tools if available.
 
@@ -68,8 +85,8 @@ baseSchema: docs/schemas/rule.md
    - HIGH: require understanding the risk of possible data loss
    - CRITICAL: block execution and require risk reduction by external user activities
 - User provides approval ONLY for provided work, additional scope/changes require ADDITIONAL approval
-- HITL MUST ALWAYS BE EXECUTED according to request size:
-   - SMALL: MUST HITL after specs and for additional work
+- HITL according to request size:
+   - SMALL: HITL after specs and for additional work
    - MEDIUM: FULL HITL
    - LARGE: FULL HITL + HITL for major decisions
 - USER may review by directly providing comments in the files
@@ -136,7 +153,7 @@ Plan MUST include HITL review gates at key decision points (design, implementati
 
 - If user is upset or after two mismatches:
   1. STOP all changes immediately.
-  2. Ask 1–3 clarifying questions.
+  2. Ask 1-3 clarifying questions.
   3. State understanding and conflicts in brief bullets.
   4. Be assertive about the conflict.
   5. Switch to think-then-tell-and-wait-for-approval mode.

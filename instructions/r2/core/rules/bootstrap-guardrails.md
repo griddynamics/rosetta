@@ -11,29 +11,33 @@ baseSchema: docs/schemas/rule.md
 
 <must>
 
-1. Apply guardrail flow before execution.
+1. Guardrails and risk assessment are enforced via plan-manager step `s-guardrails`.
 2. Apply `Agent Transparency Rules`.
-3. Apply `Mandatory Scope Management Rules`.
-4. Apply `Risk Mitigation Rules`.
-5. Apply `Context Control Rules`.
-6. Suggest user actual solutions to comply with the rules.
-7. Stop and wait for explicit user approval before proceeding. Do not assume approval from a question or a partial response.
-8. Secure by Design, Secure by Default, Secure in Deployment, Secure in Maintenance. Security is verified.
+3. Apply `Context Control Rules`.
+4. Suggest user actual solutions to comply with the rules.
+5. Stop and wait for explicit user approval before proceeding. Do not assume approval from a question or a partial response.
+6. Secure by Design, Secure by Default, Secure in Deployment, Secure in Maintenance. Security is verified.
 
 </must>
 
-<core_concepts>
+<plan_manager_upsert>
 
-- Guardrails are the top-priority critical execution gate
-- Sensitive data handling is mandatory
+Upsert the following steps into the existing plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
 
-</core_concepts>
+```json
+{
+  "steps": [
+    {
+      "id": "s-guardrails",
+      "name": "Guardrails and risk assessment",
+      "prompt": "Assess access to dangerous MCPs (database, cloud, S3, similar). Assign risk level: read-only/local server/docker = low, shared dev/stage/qa = medium, +1 level for write access, +1 level for production access. Check scope (>2h or 15+ files or spec >350 lines => propose reduction to user; user may override). Output 'AI Risk Assessment: {LEVEL}'. CRITICAL risk blocks execution; override not allowed.",
+      "depends_on": ["s-read-docs"]
+    }
+  ]
+}
+```
 
-<mandatory_scope_management_rules>
-
-If scope of work is more than 2h or 15+ files or spec is above 350 lines propose scope reduction to user; user may explicitly override.
-
-</mandatory_scope_management_rules>
+</plan_manager_upsert>
 
 <transparency_rules>
 
@@ -86,19 +90,6 @@ Exceptions (after blast radius):
 
 </sensitive_information_handling>
 
-<risk_assessment_rules>
-
-1. Assess access to dangerous MCPs (database, cloud, S3, similar).
-2. Assign risk level: low, medium, high, critical.
-3. Read-only and non-modifying environments are low risk.
-4. Local server or local docker is low risk.
-5. Shared dev, stage, or qa is medium risk.
-6. Increase one level when account has write access.
-7. Increase one level when account can access higher environments including production.
-8. Output `AI Risk Assessment: {LEVEL}`
-9. CRITICAL RISK OVERRIDE IS NOT ALLOWED
-
-</risk_assessment_rules>
 
 <context_control_rules>
 
