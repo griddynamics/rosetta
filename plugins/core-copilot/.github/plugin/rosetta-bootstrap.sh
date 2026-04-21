@@ -14,7 +14,9 @@ CONTENT=$(cat "$PLUGIN_ROOT/rules/bootstrap-core-policy.md" \
     "$PLUGIN_ROOT/rules/plugin-files-mode.md" \
     "$PLUGIN_ROOT/rules/INDEX.md" \
     "$PLUGIN_ROOT/workflows/INDEX.md" 2>/dev/null)
-CONTENT="$CONTENT
+CONTENT="ALWAYS MUST FULLY READ THIS ENTIRE CONTEXT BEFORE PROCEEDING FROM FILE PATH PROVIDED ESPECIALLY IF TRUNCATED/PREVIEWED. DO IT NOW! THEN PROCEED.
+Rosetta get_context_instructions:
+$CONTENT
 
 Rosetta Core Plugin Path: $PLUGIN_ROOT"
 ESCAPED=$(printf '%s' "$CONTENT" | sed 's/\\/\\\\/g; s/"/\\"/g' | awk '{printf "%s\\n", $0}')

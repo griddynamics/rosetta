@@ -49,6 +49,15 @@ jobs:
           pip install -r requirements.txt
           echo "$GITHUB_WORKSPACE/venv/bin" >> $GITHUB_PATH
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install rosettify dependencies
+        working-directory: ./rosettify
+        run: npm ci
+
       - name: Run type validation
         run: |
           chmod +x validate-types.sh

@@ -1,7 +1,7 @@
 {
   "name": "core",
-  "version": "2.0.18",
-  "description": "Rosetta Core 2.0 for Codex. Bundles reusable skills, Rosetta MCP, and local references for rules and workflows.",
+  "version": "2.0.22",
+  "description": "Rosetta Core 2.0 for Codex. Bundles reusable skills and local references for rules and workflows.",
   "author": {
     "name": "Grid Dynamics",
     "email": "rosetta-support@griddynamics.com",
@@ -22,11 +22,10 @@
     "knowledge-base"
   ],
   "skills": "./.agents/skills/",
-  "mcpServers": "./.codex-plugin/.mcp.json",
   "interface": {
     "displayName": "Rosetta Core",
-    "shortDescription": "Rosetta core skills, MCP config, and bundled local references for Codex.",
-    "longDescription": "Rosetta Core 2.0 for Codex. Includes reusable skills, Rosetta MCP configuration, and bundled local rules and workflow references generated from the core instruction set.",
+    "shortDescription": "Rosetta core skills and bundled local references for Codex.",
+    "longDescription": "Rosetta Core 2.0 for Codex. Includes reusable skills and bundled local rules and workflow references generated from the core instruction set.",
     "developerName": "Grid Dynamics",
     "category": "Productivity",
     "capabilities": [

@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Rosetta 2.0 - Enterprise knowledge management system providing AI agents with unified access to instructions, workflows, skills, and business context",
-    "version": "2.0.4"
+    "version": "2.0.5"
   },
   "plugins": [
     {

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rosetta-mcp"
-version = "2.0.15"
+version = "2.0.16b00"
 description = "Model Context Protocol server for Rosetta (Enterprise Engineering Governance and Instructions Management System)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -25,7 +25,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ims-mcp==2.0.15",
+    "ims-mcp==2.0.16b00",
 ]
 
 [project.urls]

@@ -374,6 +374,35 @@ Instructions Repo ──► CLI (publish) ──► RAGFlow ──► Rosetta MC
 
 - Python 3.12 (virtual environment at repo root: `venv/`)
 
+### Plugins (pre-release)
+
+Instructions to `plugins` folder content must be copied with `venv/bin/python scripts/pre_commit.py` as it also adapts.
+Pre-commit hook is also created, but we must not rely on it.
+Do not directly modify instructions in `plugins` folder instead edit original files in `instructions` and use script to copy/adapt.
+
+Claude Code Plugin: only Anthropic `sonnet`/`opus`/`haiku` models are supported.
+Codex Plugin: only OpenAI `gpt-*` models are supported.
+
+Plugins are an alternative delivery mechanism to MCP. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
+
+Each plugin contains core instructions: 20 skills, 7 agents, 4 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
+
+| Plugin | IDE |
+|---|---|
+| `core-claude` | Claude Code |
+| `core-cursor` | Cursor |
+| `core-copilot` | VS Code Copilot, JetBrains Copilot |
+| `core-codex` | Codex |
+
+All four are generated from a single source tree (`instructions/r2/core/`) by the plugin generator (`scripts/plugin_generator.py`). The generator copies core instructions and adapts them for the target coding agent:
+
+- **Model rewriting** — normalizes frontmatter `model:` to the platform's format
+- **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)
+- **Directory layout** — restructures output to match IDE conventions (`.agents/` and `.codex/` for Codex, runtime configs at root for Copilot)
+- **Index generation** — produces `rules/INDEX.md` and `workflows/INDEX.md` listings
+
+Each plugin has a preserved config folder (`.claude-plugin/`, `.cursor-plugin/`, `.github/`, `.codex-plugin/`) containing the IDE-specific manifest (`plugin.json`) and any static configs. Everything outside that folder is generated — wiped and regenerated on each sync.
+
 ### Publishing Instructions
 
 Publish instructions to remote IMS server:
@@ -392,15 +421,7 @@ Triggers on push to `main` or manual dispatch.
 
 Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages.
 
-**Plugin distribution.** Three packages via marketplace:
-
-| Plugin | Contents, Footprint |
-|---|---|
-| `core@rosetta` | Full OSS foundation |
-| `grid@rosetta` | Enterprise extensions |
-| `rosetta@rosetta` | Bootstrap rule + MCP definition only, (fetches via MCP) |
-
-Plugins point to source folders in the instructions repository. No local file duplication.
+**Plugin distribution (pre-release).** The publish-instructions pipeline zips each plugin folder and attaches the archives to a GitHub Release alongside `instructions.zip`. See [Plugins](#plugins-pre-release) for how plugin files are generated.
 
 ---
 

@@ -184,6 +184,8 @@ HITL gates (use when):
 - REQUIREMENTS/CHANGES.md is change log
 - Each file defines one area abbreviation
 - All other documents are target-state only
+- Never write change explanations
+- Consider that user input maybe provided for your understanding for you to properly make changes
 
 </information_architecture>
 

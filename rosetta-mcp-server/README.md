@@ -76,7 +76,7 @@ Rosetta MCP supports two runtime modes:
 | `ROSETTA_HTTP_PORT` | Runtime (HTTP) | `8000` | HTTP bind port |
 | `REDIS_URL` | Runtime (HTTP) | Empty | Optional Redis session store; empty uses in-memory store |
 | `ROSETTA_ALLOWED_ORIGINS` | Runtime (HTTP) | Empty | Comma-separated `Origin` allowlist |
-| `ROSETTA_OAUTH_MODE` | Runtime (HTTP OAuth) | `oauth` | `oauth` (introspection) or `oidc` (JWT via discovery doc) |
+| `ROSETTA_OAUTH_MODE` | Runtime (HTTP OAuth) | `oauth` | `oauth` (introspection), `oidc` (JWT via discovery doc), or `github` (GitHub OAuth) |
 | `ROSETTA_OAUTH_OIDC_CONFIG_URL` | Runtime (HTTP OAuth, oidc) | Empty | IdP OIDC discovery URL (e.g. `https://keycloak.host/realms/x/.well-known/openid-configuration`) |
 | `ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT` | Runtime (HTTP OAuth, oauth) | Empty | IdP authorize endpoint |
 | `ROSETTA_OAUTH_TOKEN_ENDPOINT` | Runtime (HTTP OAuth, oauth) | Empty | IdP token endpoint |
@@ -155,20 +155,20 @@ OAuth variables for HTTP mode:
 
 | Variable | Mode | Description |
 |----------|------|-------------|
-| `ROSETTA_OAUTH_MODE` | both | `oauth` (default) or `oidc` |
+| `ROSETTA_OAUTH_MODE` | all | `oauth` (default), `oidc`, or `github` |
 | `ROSETTA_OAUTH_OIDC_CONFIG_URL` | oidc | IdP OIDC discovery URL |
 | `ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT` | oauth | IdP authorize URL |
 | `ROSETTA_OAUTH_TOKEN_ENDPOINT` | oauth | IdP token URL |
 | `ROSETTA_OAUTH_INTROSPECTION_ENDPOINT` | oauth | IdP introspection URL |
-| `ROSETTA_OAUTH_REVOCATION_ENDPOINT` | both | IdP revocation URL (optional) |
-| `ROSETTA_OAUTH_CLIENT_ID` | both | Client ID registered with IdP |
-| `ROSETTA_OAUTH_CLIENT_SECRET` | both | Client secret registered with IdP |
-| `ROSETTA_OAUTH_BASE_URL` | both | Our public MCP URL for OAuth callbacks |
-| `ROSETTA_OAUTH_CALLBACK_PATH` | both | Callback path (default `/auth/callback`) |
-| `ROSETTA_OAUTH_REQUIRED_SCOPES` | both | Space-separated scopes required on tokens |
+| `ROSETTA_OAUTH_REVOCATION_ENDPOINT` | oauth | IdP revocation URL (optional) |
+| `ROSETTA_OAUTH_CLIENT_ID` | all | Client ID (IdP or GitHub OAuth App) |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | all | Client secret (IdP or GitHub OAuth App) |
+| `ROSETTA_OAUTH_BASE_URL` | all | Our public MCP URL for OAuth callbacks |
+| `ROSETTA_OAUTH_CALLBACK_PATH` | all | Callback path (default `/auth/callback`) |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | all | Space-separated scopes required on tokens (github default: `user`) |
 | `ROSETTA_OAUTH_VALID_SCOPES` | oauth | Space-separated scopes advertised in `.well-known` |
-| `ROSETTA_OAUTH_EXTRA_SCOPES` | both | Space-separated scopes forwarded to IdP authorize |
-| `ROSETTA_JWT_SIGNING_KEY` | both | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_EXTRA_SCOPES` | oauth, oidc | Space-separated scopes forwarded to IdP authorize |
+| `ROSETTA_JWT_SIGNING_KEY` | all | Secret for signing FastMCP JWTs |
 | `FERNET_KEY` | both | Fernet key for encrypting token storage in Redis |
 
 Authorization policy variables (dataset-level):

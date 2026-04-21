@@ -12,6 +12,8 @@ from pathlib import Path
 
 ALLOWED_CLAUDE_MODELS = {"opus", "sonnet", "haiku", "inherit"}
 
+EXCLUDED_RULE_FILES = {"rules/bootstrap.md", "rules/local-files-mode.md"}
+
 COPILOT_MODEL_MAP: dict[str, str] = {
     "opus": "claude opus 4.6",
     "sonnet": "claude sonnet 4.6",
@@ -168,6 +170,9 @@ def copy_core_tree(spec: PluginSyncSpec, core_source: Path) -> None:
 
         if source_file.is_dir():
             target.mkdir(parents=True, exist_ok=True)
+            continue
+
+        if str(relative_path) in EXCLUDED_RULE_FILES:
             continue
 
         # Rename agents/*.md → agents/*.agent.md for Copilot
@@ -382,13 +387,13 @@ def sync_generated_plugins(repo_root: Path) -> int:
             destination=repo_root / "plugins" / "core-claude",
             preserved_folder=".claude-plugin",
             normalize_models=True,
-            generated_indexes=("rules",),
+            generated_indexes=("rules", "workflows"),
         ),
         PluginSyncSpec(
             name="core-cursor",
             destination=repo_root / "plugins" / "core-cursor",
             preserved_folder=".cursor-plugin",
-            generated_indexes=("rules",),
+            generated_indexes=("rules", "workflows"),
         ),
         PluginSyncSpec(
             name="core-copilot",
