@@ -3,7 +3,7 @@
     <source media="(prefers-color-scheme: dark)" srcset="docs/web/assets/brand/rosetta-logo-full-color-white-text.png">
     <img src="docs/web/assets/brand/rosetta-logo-full-color-black-text.png" alt="Rosetta" width="200">
   </picture>
-  <p><strong>Meta-prompting, context engineering, and centralized knowledge management for AI coding agents</strong></p>
+  <p><strong>Meta-prompting, context engineering, and centralized instructions management for AI coding agents</strong></p>
   <p>
     <a href="https://pypi.org/project/ims-mcp/"><img src="https://img.shields.io/pypi/v/ims-mcp.svg" alt="MCP"></a>
     <a href="https://pypi.org/project/ims-mcp/"><img src="https://img.shields.io/pypi/dm/ims-mcp.svg" alt="Downloads"></a>

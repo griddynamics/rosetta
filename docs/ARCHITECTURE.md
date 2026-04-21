@@ -99,14 +99,56 @@ MCP changes are validated with `pytest`, `validate-types.sh`, and the end-to-end
 
 **Authentication:** HTTP uses OAuth 2.1 via FastMCP's proxy layer (supports any provider: Keycloak, GitHub, Google, Azure). STDIO uses `ROSETTA_API_KEY`. Policy-based authorization: `aia-*` read-only, `project-*` configurable. For the two-leg proxy architecture, scope separation, and token lifecycle details, see [AUTHENTICATION.md](AUTHENTICATION.md).
 
-Two OAuth modes controlled by `ROSETTA_OAUTH_MODE`:
+Three OAuth modes controlled by `ROSETTA_OAUTH_MODE`:
 
-| Mode | Env var | How it works |
-|---|---|---|
-| `oauth` (default) | Requires `ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT`, `TOKEN_ENDPOINT`, `INTROSPECTION_ENDPOINT` | Upstream IdP issues opaque tokens; Rosetta introspects them on each request via `IntrospectionTokenVerifier`. Cached 15 min. |
-| `oidc` | Requires `ROSETTA_OAUTH_OIDC_CONFIG_URL` (IdP discovery doc URL) | Rosetta fetches IdP endpoints automatically from the discovery doc; tokens are JWTs verified locally via JWKS. No per-request introspection calls. |
+**`oauth` mode** (default) — generic OAuth 2.0 with token introspection:
 
-Both modes issue FastMCP JWTs to MCP clients and store upstream tokens in Redis (encrypted with `FERNET_KEY`). MCP clients never see IdP tokens; the IdP never sees FastMCP JWTs.
+| Env var | Purpose |
+|---|---|
+| `ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT` | Upstream IdP authorization URL |
+| `ROSETTA_OAUTH_TOKEN_ENDPOINT` | Upstream IdP token URL |
+| `ROSETTA_OAUTH_INTROSPECTION_ENDPOINT` | Upstream IdP introspection URL |
+| `ROSETTA_OAUTH_CLIENT_ID` | Pre-registered IdP client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | IdP client secret |
+| `ROSETTA_OAUTH_BASE_URL` | Public URL of Rosetta MCP |
+| `ROSETTA_JWT_SIGNING_KEY` | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_REVOCATION_ENDPOINT` | *(optional)* Token revocation URL |
+| `ROSETTA_OAUTH_CALLBACK_PATH` | *(optional)* Callback path (default: `/auth/callback`) |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | *(optional)* Scopes required on tokens |
+| `ROSETTA_OAUTH_VALID_SCOPES` | *(optional)* Scopes advertised in `.well-known` |
+| `ROSETTA_OAUTH_EXTRA_SCOPES` | *(optional)* Scopes forwarded to IdP authorize endpoint |
+
+Upstream IdP issues opaque tokens; Rosetta introspects them on each request via `IntrospectionTokenVerifier`. Cached 15 min.
+
+**`oidc` mode** — OIDC auto-discovery with local JWT verification:
+
+| Env var | Purpose |
+|---|---|
+| `ROSETTA_OAUTH_OIDC_CONFIG_URL` | IdP OIDC discovery URL (`.well-known/openid-configuration`) |
+| `ROSETTA_OAUTH_CLIENT_ID` | Pre-registered IdP client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | IdP client secret |
+| `ROSETTA_OAUTH_BASE_URL` | Public URL of Rosetta MCP |
+| `ROSETTA_JWT_SIGNING_KEY` | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_CALLBACK_PATH` | *(optional)* Callback path (default: `/auth/callback`) |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | *(optional)* Scopes required on tokens |
+| `ROSETTA_OAUTH_EXTRA_SCOPES` | *(optional)* Scopes forwarded to IdP authorize endpoint |
+
+Rosetta fetches IdP endpoints automatically from the discovery doc; tokens are JWTs verified locally via JWKS. No per-request introspection calls.
+
+**`github` mode** — GitHub OAuth via [GitHubProvider](https://gofastmcp.com/integrations/github):
+
+| Env var | Purpose |
+|---|---|
+| `ROSETTA_OAUTH_CLIENT_ID` | GitHub OAuth App Client ID |
+| `ROSETTA_OAUTH_CLIENT_SECRET` | GitHub OAuth App Client Secret |
+| `ROSETTA_OAUTH_BASE_URL` | Public URL of Rosetta MCP (HTTPS required in production) |
+| `ROSETTA_JWT_SIGNING_KEY` | Secret for signing FastMCP JWTs |
+| `ROSETTA_OAUTH_CALLBACK_PATH` | *(optional)* Callback path (default: `/auth/callback`) |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | *(optional)* Required GitHub scopes (default: `user`) |
+
+GitHub endpoints are hardcoded. Tokens are validated via the GitHub API (`https://api.github.com/user`). User identity is extracted from GitHub profile (login, name, email).
+
+All three modes issue FastMCP JWTs to MCP clients and store upstream tokens in Redis (encrypted with `FERNET_KEY`). MCP clients never see IdP tokens; the IdP never sees FastMCP JWTs.
 
 ### Redis Schema Migrations
 
@@ -315,6 +357,23 @@ For deployment details, see [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md).
 
 ---
 
+## Rosettify
+
+Local CLI/MCP utility for AI coding agents and users. Purpose: deterministic local AI coding workflow execution and single entry point for Rosetta tooling in any project. All data and IP stays local — zero network calls during operation.
+
+Published on npm as `rosettify`. Invoked via `npx rosettify <command> [subcommand] [args]` or as a local MCP server (`rosettify --mcp`) over stdio.
+
+**Key points:**
+- **Dual frontend.** One CLI and one MCP server backed by the same run delegates. Identical behavior in both modes.
+- **Plan management** (current feature). `npx rosettify plan <subcommand> <plan_file>` — create, track, and advance execution plans as local JSON files. Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`.
+- **Sequential phase enforcement.** `next` returns work from the earliest incomplete phase only; later phases are blocked until all earlier phases are done.
+- **Static tool registry.** Each command is a `ToolDef` with name, description, input/output schema, CLI and MCP flags, and a typed run delegate.
+- **No network calls.** All data stays local — safe for IP-sensitive projects.
+
+Validated with `npm run typecheck`, `npm run test` (vitest, 90% line + branch coverage). Published via `.github/workflows/publish-rosettify.yml`. Version managed via `scripts/bump_versions.sh`.
+
+---
+
 ## Instruction Structure
 
 Instructions live in `/instructions/r2/` in the instructions repository, using a layered folder structure.
@@ -423,6 +482,35 @@ cp .env.dev .env
 uvx rosetta-cli@latest publish instructions
 ```
 
+### Plugins (pre-release)
+
+Instructions to `plugins` folder content must be copied with `venv/bin/python scripts/pre_commit.py` as it also adapts.
+Pre-commit hook is also created, but we must not rely on it.
+Do not directly modify instructions in `plugins` folder instead edit original files in `instructions` and use script to copy/adapt.
+
+Claude Code Plugin: only Anthropic `sonnet`/`opus`/`haiku` models are supported.
+Codex Plugin: only OpenAI `gpt-*` models are supported.
+
+Plugins are an alternative delivery mechanism to MCP. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
+
+Each plugin contains core instructions: 20 skills, 7 agents, 4 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
+
+| Plugin | IDE |
+|---|---|
+| `core-claude` | Claude Code |
+| `core-cursor` | Cursor |
+| `core-copilot` | VS Code Copilot, JetBrains Copilot |
+| `core-codex` | Codex |
+
+All four are generated from a single source tree (`instructions/r2/core/`) by the plugin generator (`scripts/plugin_generator.py`). The generator copies core instructions and adapts them for the target coding agent:
+
+- **Model rewriting** — normalizes frontmatter `model:` to the platform's format
+- **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)
+- **Directory layout** — restructures output to match IDE conventions (`.agents/` and `.codex/` for Codex, runtime configs at root for Copilot)
+- **Index generation** — produces `rules/INDEX.md` and `workflows/INDEX.md` listings
+
+Each plugin has a preserved config folder (`.claude-plugin/`, `.cursor-plugin/`, `.github/`, `.codex-plugin/`) containing the IDE-specific manifest (`plugin.json`) and any static configs. Everything outside that folder is generated — wiped and regenerated on each sync.
+
 ### Reference Sources (readonly, packages currently used)
 
 `refsrc/fastmcp-3.1.1` contains source code of FastMCP v3.
@@ -467,15 +555,7 @@ Triggers on push to `main` or manual dispatch.
 
 Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages.
 
-**Plugin distribution.** Three packages via marketplace:
-
-| Plugin | Contents, Footprint |
-|---|---|
-| `core@rosetta` | Full OSS foundation |
-| `grid@rosetta` | Enterprise extensions |
-| `rosetta@rosetta` | Bootstrap rule + MCP definition only, (fetches via MCP) |
-
-Plugins point to source folders in the instructions repository. No local file duplication.
+**Plugin distribution (pre-release).** The publish-instructions pipeline zips each plugin folder and attaches the archives to a GitHub Release alongside `instructions.zip`. See [Plugins](#plugins-pre-release) for how plugin files are generated.
 
 ---
 

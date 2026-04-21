@@ -13,19 +13,19 @@
 
 ## Choose Your Mode
 
-|                    | HTTP (recommended)          | STDIO                                   | Plugin                                       | Offline                                     |
+|                    | HTTP          | STDIO                                   | Plugin                                       | Offline                                     |
 | ------------------ | --------------------------- | --------------------------------------- | -------------------------------------------- | ------------------------------------------- |
-| Setup              | Single URL, OAuth automatic | Env vars, API key per user              | CLI marketplace commands (installs HTTP MCP) | Download zip, copy files                    |
+| Setup              | Single URL, OAuth automatic | Env vars, API key per user              | IDE-specific install or extract zip          | Download zip, copy files                    |
 | Local dependencies | None                        | Python 3.12+, uvx                       | None                                         | None                                        |
-| Auth               | OAuth via browser           | API key from Rosetta Server             | OAuth via browser (HTTP MCP)                 | None                                        |
-| Network            | Requires internet           | Requires internet                       | Requires internet                            | No network needed (with local models)       |
-| Best for           | Most users                  | Custom configs, controlled environments | Claude Code, Cursor                          | Air-gapped or highly regulated environments |
+| Auth               | OAuth via browser           | API key from Rosetta Server             | None                                         | None                                        |
+| Network            | Requires internet           | Requires internet                       | Download only                                | No network needed (with local models)       |
+| Best for           | Most users                  | Custom configs, controlled environments | Claude Code, VS Code Copilot, Codex          | Air-gapped or highly regulated environments |
 
 ## Step 1: Install
 
 Pick one mode and follow its section.
 
-### HTTP Transport (Recommended)
+### HTTP Transport
 
 One URL, no local dependencies, OAuth handles authentication automatically.
 
@@ -409,14 +409,9 @@ Required for STDIO transport. Optional otherwise.
 
 Do not set `VERSION`. It uses a server-controlled default for managed upgrades. See [Architecture — Tradeoffs](docs/ARCHITECTURE.md#tradeoffs) for rationale.
 
-### Plugin-Based Installation
+### Plugin-Based Installation (pre-release)
 
-Rosetta publishes plugins for Claude Code and Cursor through the plugin marketplace. Install to your user profile for use across all projects.
-
-Two modes:
-
-- **Lightweight (recommended):** bootstrap rule and MCP server definition only. Smallest footprint, behavior driven by MCP.
-- **Full:** core (20 skills, 7 agents, 4 workflows, bootstrap rules) plus optional grid enterprise extensions. Requires core 2.0.0+ for grid.
+Rosetta publishes plugins for supported IDEs. Each plugin installs core (20 skills, 7 agents, 4 workflows, bootstrap rules).
 
 Read more about plugin contents and capabilities in the [Usage Guide — Plugins](USAGE_GUIDE.md#plugins).
 
@@ -424,18 +419,35 @@ Read more about plugin contents and capabilities in the [Usage Guide — Plugins
 
 ```sh
 claude plugin marketplace add griddynamics/rosetta
-
-# Lightweight (recommended)
-claude plugin install rosetta@rosetta
-
-# Full
 claude plugin install core@rosetta
-claude plugin install grid@rosetta           # Enterprise (optional, requires core)
 ```
 
-#### Cursor
+Updating after installation:
 
-Cursor uses `.cursor-plugin/plugin.json` and `.cursor-plugin/marketplace.json` manifests. See the plugin repository for Cursor-specific setup.
+```sh
+claude plugin marketplace update rosetta
+claude plugin update core@rosetta
+```
+
+#### VS Code / GitHub Copilot
+
+Install `core-copilot` via VS Code Copilot Plugins (not VS Code extensions).
+
+#### JetBrains / GitHub Copilot
+
+1. Download `core-copilot-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
+2. Create a `.github` folder in your repository and extract the archive contents into it
+3. Delete files not needed for JetBrains: `.github/.mcp.json`, `.github/hooks.json`, `.github/templates`, `.github/rules/bootstrap.md`
+4. Copy the contents of `.github/rules/plugin-files-mode.md` into `.github/copilot-instructions.md` and append before the closing `</plugin_files_mode>` tag: `Rosetta plugin root: ".github", get_context_instructions: must read fully all five "cat .github/rules/bootstrap-*.md" files all lines. You MUST FOLLOW ALL instructions and then MUST select workflow and execute it. All workflows are stored in ".github/rules/<workflowtag>.md".`
+5. Enable in JetBrains GitHub Copilot settings: Agent Mode, Custom Agent, Coding Agent, Subagent, Skills
+
+#### Codex
+
+Download `core-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest), extract on top of the repository, and enable hooks:
+
+```sh
+codex features enable codex_hooks
+```
 
 ### Offline Installation (No MCP)
 
@@ -561,8 +573,9 @@ After initialization, Rosetta maintains these files in your repository. Read mor
 
 **Plugins:**
 
-- **Claude Code:** `claude plugin uninstall rosetta@rosetta` (or `core@rosetta`, `grid@rosetta` for full install)
-- **Cursor:** Remove the `.cursor-plugin/` directory from your project
+- **Claude Code:** `claude plugin uninstall core@rosetta`
+- **VS Code / GitHub Copilot:** Remove the Copilot agent plugin
+- **Codex:** Delete the extracted plugin files from the repository
 
 **Offline:**
 

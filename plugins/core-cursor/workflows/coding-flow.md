@@ -62,7 +62,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 <implementation phase="5" applies="ALL" subagent="engineer" role="Senior engineer executing approved plan">
 
 1. Implement approved plan. Build MUST succeed. Tests excluded.
-2. Input: approved specs + plan. Output: working code, build passing, update relevant documentation briefly.
+2. Input: approved specs + plan. Output: working code, build passing, update relevant documentation briefly (CONTEXT.md, ARCHITECTURE.md, etc).
 3. MUST follow approved scope. MUST stop and escalate if blocked.
 4. Recommended skills: `coding`
 5. Update `agents/coding-flow-state.md`

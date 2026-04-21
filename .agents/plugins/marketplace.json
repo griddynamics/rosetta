@@ -1,0 +1,20 @@
+{
+  "name": "rosetta",
+  "interface": {
+    "displayName": "Rosetta"
+  },
+  "plugins": [
+    {
+      "name": "core",
+      "source": {
+        "source": "local",
+        "path": "./plugins/core-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

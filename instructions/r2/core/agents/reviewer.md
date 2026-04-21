@@ -2,7 +2,7 @@
 name: reviewer
 description: Rosetta Full subagent. Inspect artifacts against intent and contracts, provides recommendations.
 mode: subagent
-model: claude-4.6-sonnet, gpt-5.3-codex-medium, gemini-3.1-pro-preview
+model: claude-4.6-sonnet, gpt-5.4-medium, gemini-3.1-pro-preview
 readonly: true
 baseSchema: docs/schemas/agent.md
 ---

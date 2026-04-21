@@ -19,14 +19,15 @@ Rosetta MCP supports two transports, each with a different authentication model:
 
 STDIO is simple: the API key is passed directly. The rest of this document covers HTTP OAuth.
 
-Rosetta MCP supports two OAuth modes, controlled by `ROSETTA_OAUTH_MODE`:
+Rosetta MCP supports three OAuth modes, controlled by `ROSETTA_OAUTH_MODE`:
 
-| Mode    | Env var value | Provider class | Token verifier        | When to use                                                                        |
-| ------- | ------------- | -------------- | --------------------- | ---------------------------------------------------------------------------------- |
-| `oidc`  | `oidc`        | `OIDCProxy`    | `JWTVerifier` (auto)  | Any OIDC-compliant IdP (Keycloak, Okta, Auth0, Azure AD, etc.)                     |
-| `oauth` | `oauth`       | `OAuthProxy`   | `IntrospectionTokenVerifier` | Non-OIDC providers or when real-time token revocation is a hard requirement |
+| Mode     | Env var value | Provider class   | Token verifier                 | When to use                                                                        |
+| -------- | ------------- | ---------------- | ------------------------------ | ---------------------------------------------------------------------------------- |
+| `oidc`   | `oidc`        | `OIDCProxy`      | `JWTVerifier` (auto)           | Any OIDC-compliant IdP (Keycloak, Okta, Auth0, Azure AD, etc.)                     |
+| `oauth`  | `oauth`       | `OAuthProxy`     | `IntrospectionTokenVerifier`   | Non-OIDC providers or when real-time token revocation is a hard requirement         |
+| `github` | `github`      | `GitHubProvider` | `GitHubTokenVerifier` (auto)   | GitHub as the identity provider                                                    |
 
-Both modes use `build_oauth_provider()` in [`ims-mcp-server/ims_mcp/auth/oauth.py`](../ims-mcp-server/ims_mcp/auth/oauth.py). OAuth is only activated when `ROSETTA_TRANSPORT=http` and the required env vars are set.
+All modes use `build_oauth_provider()` in [`ims-mcp-server/ims_mcp/auth/oauth.py`](../ims-mcp-server/ims_mcp/auth/oauth.py). OAuth is only activated when `ROSETTA_TRANSPORT=http` and the required env vars are set.
 
 > [!NOTE]
 > Authentication applies exclusively to HTTP-based transport. STDIO transport relies on local execution environment security.
@@ -313,9 +314,76 @@ When the IDE sends a request with `Bearer PROXY_JWT` in OAuth mode:
 
 ---
 
+## GitHub Mode
+
+### Overview
+
+GitHub mode uses `GitHubProvider`, which extends `OAuthProxy` with hardcoded GitHub endpoints and a `GitHubTokenVerifier` that validates tokens via the GitHub API. No introspection endpoint or OIDC discovery URL is needed — just a GitHub OAuth App's client credentials.
+
+`GitHubProvider` is a built-in FastMCP provider ([docs](https://gofastmcp.com/integrations/github)). It creates a `GitHubTokenVerifier` that calls `https://api.github.com/user` to verify tokens and extract user identity (login, name, email, avatar).
+
+**Active when:** `ROSETTA_OAUTH_MODE=github`
+
+### GitHub Mode Configuration
+
+Required env vars:
+
+| Env var                          | Purpose                                                                   |
+| -------------------------------- | ------------------------------------------------------------------------- |
+| `ROSETTA_OAUTH_CLIENT_ID`       | GitHub OAuth App Client ID (e.g. `Ov23liAbcDefGhiJkLmN`)                 |
+| `ROSETTA_OAUTH_CLIENT_SECRET`   | GitHub OAuth App Client Secret                                            |
+| `ROSETTA_OAUTH_BASE_URL`        | Public URL of Rosetta MCP (HTTPS required for production)                 |
+| `ROSETTA_JWT_SIGNING_KEY`       | Secret for signing FastMCP JWTs                                           |
+
+Optional env vars:
+
+| Env var                          | Purpose                                                                   |
+| -------------------------------- | ------------------------------------------------------------------------- |
+| `ROSETTA_OAUTH_CALLBACK_PATH`   | Custom callback path (default: `/auth/callback`)                          |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | Required GitHub scopes (default: `user`). Use `user:email` to guarantee email availability. |
+
+> [!NOTE]
+> In GitHub mode, `ROSETTA_OAUTH_VALID_SCOPES`, `ROSETTA_OAUTH_EXTRA_SCOPES`, `ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT`, `ROSETTA_OAUTH_TOKEN_ENDPOINT`, `ROSETTA_OAUTH_INTROSPECTION_ENDPOINT`, and `ROSETTA_OAUTH_REVOCATION_ENDPOINT` are ignored. GitHub endpoints are hardcoded in `GitHubProvider`.
+
+### GitHub OAuth App Setup
+
+1. Go to **Settings → Developer settings → OAuth Apps** at [github.com/settings/developers](https://github.com/settings/developers)
+2. Click **"New OAuth App"** and fill in:
+   - **Application name**: e.g. "Rosetta MCP"
+   - **Homepage URL**: your Rosetta MCP public URL
+   - **Authorization callback URL**: `<ROSETTA_OAUTH_BASE_URL>/auth/callback` (must match `ROSETTA_OAUTH_CALLBACK_PATH`)
+3. Save the **Client ID** and generate a **Client Secret**
+
+> [!WARNING]
+> GitHub allows `http://localhost` for development but requires HTTPS for production callback URLs.
+
+### GitHubTokenVerifier
+
+`GitHubTokenVerifier` validates GitHub OAuth tokens by calling the GitHub API:
+
+1. `GET https://api.github.com/user` with `Bearer <token>` — verifies token and retrieves user profile
+2. `GET https://api.github.com/user/repos` — reads `X-OAuth-Scopes` header to determine granted scopes
+3. Checks `required_scopes ⊆ granted_scopes`
+4. Returns `AccessToken` with claims: `sub` (GitHub user ID), `login`, `name`, `email`, `avatar_url`
+
+> [!NOTE]
+> GitHub users with private email settings return `null` for the `email` claim. Rosetta falls back to `ROSETTA_USER_EMAIL` when `email` is not available. Consider requiring `user:email` scope if email-based identity is needed.
+
+### GitHub Mode Phase 4: Token Validation
+
+When the IDE sends a request with `Bearer PROXY_JWT` in GitHub mode:
+
+1. `JWTIssuer.verify_token(PROXY_JWT)` — checks signature, `exp`, `iss`, `aud`
+2. JTI → upstream token mapping
+3. Retrieve stored GitHub access token (GH_AT)
+4. `GitHubTokenVerifier.verify_token(GH_AT)` — calls GitHub API, checks scopes
+5. Valid → request proceeds; else → HTTP 401
+
+---
+
 ## Shared: Full Authentication Flow
 
-Phases 1–3 are identical in both OIDC and OAuth modes. Phase 4 differs (see mode-specific sections above).
+Phases 1–3 are identical in all three modes. Phase 4 differs (see mode-specific sections above).
 
 ```mermaid
 sequenceDiagram
@@ -653,7 +721,7 @@ PROXY_JWT `expires_in` mirrors the upstream `expires_in`. When the IdP always re
 
 | File                                                   | Purpose                                               |
 | ------------------------------------------------------ | ----------------------------------------------------- |
-| `ims-mcp-server/ims_mcp/auth/oauth.py`                 | `build_oauth_provider()` — constructs OIDCProxy or OAuthProxy based on mode |
+| `ims-mcp-server/ims_mcp/auth/oauth.py`                 | `build_oauth_provider()` — constructs OIDCProxy, OAuthProxy, or GitHubProvider based on mode |
 | `ims-mcp-server/ims_mcp/auth/__init__.py`              | Auth module exports                                   |
 | `ims-mcp-server/ims_mcp/config.py`                     | OAuth environment variable loading                    |
 | `ims-mcp-server/ims_mcp/constants.py`                  | TTL constants (`INTROSPECTION_CACHE_TTL_SECONDS=900`, `PROXY_SESSION_TTL_SECONDS=2592000`) |

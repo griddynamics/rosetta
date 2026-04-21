@@ -21,10 +21,23 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install dependencies
+    - name: Create venv and install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install build twine pytest pytest-asyncio mypy
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install build twine
+        echo "$GITHUB_WORKSPACE/venv/bin" >> $GITHUB_PATH
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+
+    - name: Install rosettify dependencies
+      working-directory: ./rosettify
+      run: npm ci
 
     - name: Run type validation
       run: |
@@ -46,10 +59,6 @@ jobs:
     - name: Run tests
       working-directory: ./ims-mcp-server
       run: |
-        # Install the package in development mode
-        pip install -e .
-
-        # Run tests if they exist
         if [ -d "tests" ]; then
           pytest tests/ -v
         else

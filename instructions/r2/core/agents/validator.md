@@ -2,7 +2,7 @@
 name: validator
 description: Rosetta Full subagent. Verify implementation matches intent through actual execution and evidence-based validation.
 mode: subagent
-model: claude-4.6-sonnet, gpt-5.3-codex-medium, gemini-3.1-pro-preview
+model: claude-4.6-sonnet, gpt-5.4-medium, gemini-3.1-pro-preview
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

@@ -63,6 +63,10 @@ import sys
 import uuid
 from typing import List
 
+# Suppress noisy DEBUG/INFO logs from FastMCP internals during verification.
+os.environ.setdefault("FASTMCP_LOG_LEVEL", "WARNING")
+os.environ.setdefault("FASTMCP_ENABLE_RICH_LOGGING", "false")
+
 # Ensure imports resolve to local ims-mcp-server sources, not an installed package.
 SERVER_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if SERVER_ROOT not in sys.path:

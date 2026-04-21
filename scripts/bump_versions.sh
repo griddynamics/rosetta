@@ -110,16 +110,20 @@ for f in \
     "$ROOT/rosetta-mcp-server/pyproject.toml"; do
     printf "  %-55s %s\n" "[toml]        ${f#$ROOT/}" "$(get_toml_version "$f")"
 done
+printf "  %-55s %s\n" "[package.json] rosettify/package.json" "$(get_json_version "$ROOT/rosettify/package.json")"
 for f in \
     "$ROOT/plugins/core-claude/.claude-plugin/plugin.json" \
     "$ROOT/plugins/core-cursor/.cursor-plugin/plugin.json" \
+    "$ROOT/plugins/core-copilot/.github/plugin/plugin.json" \
+    "$ROOT/plugins/core-codex/.codex-plugin/plugin.json" \
     "$ROOT/plugins/rosetta/.claude-plugin/plugin.json" \
     "$ROOT/plugins/rosetta/.cursor-plugin/plugin.json"; do
     printf "  %-55s %s\n" "[plugin.json] ${f#$ROOT/}" "$(get_json_version "$f")"
 done
 for f in \
     "$ROOT/.claude-plugin/marketplace.json" \
-    "$ROOT/.cursor-plugin/marketplace.json"; do
+    "$ROOT/.cursor-plugin/marketplace.json" \
+    "$ROOT/.github/plugin/marketplace.json"; do
     printf "  %-55s %s\n" "[marketplace] ${f#$ROOT/}" "$(get_json_version "$f")"
 done
 
@@ -177,9 +181,15 @@ else
 fi
 
 echo ""
+echo "--- rosettify/package.json ---"
+bump_file_json "$ROOT/rosettify/package.json" "y"
+
+echo ""
 echo "--- plugin.json files ---"
 bump_file_json "$ROOT/plugins/core-claude/.claude-plugin/plugin.json"  "y"
 bump_file_json "$ROOT/plugins/core-cursor/.cursor-plugin/plugin.json"  "y"
+bump_file_json "$ROOT/plugins/core-copilot/.github/plugin/plugin.json" "y"
+bump_file_json "$ROOT/plugins/core-codex/.codex-plugin/plugin.json"    "y"
 bump_file_json "$ROOT/plugins/rosetta/.claude-plugin/plugin.json"      "n"
 bump_file_json "$ROOT/plugins/rosetta/.cursor-plugin/plugin.json"      "n"
 
@@ -187,6 +197,7 @@ echo ""
 echo "--- marketplace.json files (default: N) ---"
 bump_file_json "$ROOT/.claude-plugin/marketplace.json" "n"
 bump_file_json "$ROOT/.cursor-plugin/marketplace.json" "n"
+bump_file_json "$ROOT/.github/plugin/marketplace.json" "n"
 
 echo ""
 echo -e "${GREEN}Done!${RESET}"

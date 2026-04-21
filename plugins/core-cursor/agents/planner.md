@@ -2,7 +2,7 @@
 name: planner
 description: Rosetta Full subagent. Execution planning from approved intent/specs, producing sequenced plans scaled to request size.
 mode: subagent
-model: claude-4.6-opus-high, gpt-5.3-codex-high, gemini-3.1-pro-high
+model: claude-4.6-opus-high, gpt-5.4-high, gemini-3.1-pro-high
 readonly: false
 tags: ["subagent", "agent", "planning"]
 baseSchema: docs/schemas/agent.md

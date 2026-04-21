@@ -32,6 +32,12 @@ Load all stories. Note their summaries to avoid duplicates.
 
 Also read Confluence KB page `3927834626` via `mcp__atlassian__confluence_get_page` for background context.
 
+Also load recently closed PRs created by this automation:
+```
+gh pr list --author app/github-actions --state closed --limit 20
+```
+For each closed PR, read any maintainer comments to understand rejection reasons. Use this to avoid repeating similar patterns in this run.
+
 ## Phase 2 — Review Codebase
 
 Use `Read`, `Glob`, `Grep` to review the repository for **small, easy, high-value improvements**.
@@ -48,6 +54,42 @@ Rules:
 - No nitpicking (style, formatting, minor wording)
 - No duplicates — cross-check against loaded stories
 - Aim for 3–8 improvements; skip if nothing meaningful found
+- Before flagging a CI/workflow issue, trace the full trigger chain to confirm the problem actually fires in practice. Don't flag theoretical failure scenarios.
+- Before proposing a new test or validation step, grep for existing scripts, CI steps, and test files that already cover the same concern. If covered, skip.
+
+## Validation Gate — Before Creating Stories
+
+For each candidate improvement found in Phase 2, verify all three before creating a story:
+
+1. **Is this actually broken?** — Read the relevant code, config, or CI file to confirm the issue exists on current `main`. Don't flag theoretical problems or scenarios that don't fire in practice.
+2. **Is there already a solution?** — Grep for existing tests, validation scripts, CI steps, or utilities that already cover this concern. If covered, drop the candidate.
+3. **Is someone already working on this?** — Run `gh pr list --state open` and scan recent branch names for overlapping work. If found, skip creating a story (or link to the existing PR instead).
+
+Drop any candidate that fails any of these checks.
+
+## Sub-Agent Validation — Independent Review
+
+After the Validation Gate, spawn a sub-agent to independently validate surviving candidates.
+The sub-agent acts as an independent reviewer — do NOT pass your reasoning about why each candidate was identified.
+
+**Input to sub-agent:**
+- List of candidate improvements (title + description + affected file path only)
+- All existing Jira story titles and priorities from Phase 1
+- Rejection reasons from recently closed PRs (Phase 1)
+
+**Sub-agent instructions:**
+
+For each candidate, evaluate independently:
+
+1. **Re-validate**: Read the affected code yourself. Is this a real issue worth fixing? Would a senior engineer agree this matters?
+2. **Compare priority**: Look at existing stories in the epic. Does this candidate belong alongside them in terms of importance? If existing stories are mostly P1-P3 bugs and this is a P4 cosmetic improvement, it likely doesn't belong.
+3. **Severity filter**: Drop low-priority improvements (P4-P5). Keep all bugs regardless of priority. Keep improvements only if P1-P3.
+
+**Output (structured):**
+- `approved`: list of candidates that passed all checks, with adjusted priority if needed
+- `rejected`: list of candidates with rejection reason
+
+**After sub-agent completes:** Use ONLY the `approved` list for Phase 3. Log rejected candidates in the final output summary.
 
 ## Phase 3 — Create or Update Stories
 
@@ -97,5 +139,7 @@ Improvements identified: <N>
 Created: <key list>
 Updated: <key list>
 Skipped (duplicate): <N>
+Rejected by validator: <N>
+Rejection reasons: <brief list>
 Confluence updated: yes/no
 ```

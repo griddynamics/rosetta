@@ -83,7 +83,7 @@ baseSchema: docs/schemas/rule.md
 
 ### Input Contract
 
-4. Subagent prompt MUST start with: assumed role/specialization, stated [lightweight|full] subagent, plan_name, phase&task id, SMART tasks, `MUST USE SKILL [required]`, and `RECOMMEND USE SKILL [recommended]`.
+4. Subagent prompt MUST start with: assumed role/specialization, stated [lightweight|full] subagent, full path to plan.json, phase&task id, SMART tasks, `MUST USE SKILL [required]`, and `RECOMMEND USE SKILL [recommended]`.
 5. Provide specific task, full context, and references. Subagents know nothing except shared bootstrap and prep steps and this contract, always provide original user request/intent throughout all steps.
 6. Define explicit scope, expected outputs, and clear expectations. Forbid out-of-scope work.
 7. Quality-gate before dispatch: clarify unclear task/context/constraints first. Never dispatch ambiguous instructions.

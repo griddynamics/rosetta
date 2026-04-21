@@ -69,7 +69,7 @@ README.md:
 6. Special cases:
    - Speckit: if `memory/constitution.md` and `specs` folder exist, add "MUST ACQUIRE speckit-integration-policy.md FROM KB and execute it" to CONTEXT.md
    - Composite (state.composite = true): create top-level docs as registries with workspace-relative paths to sub-repo docs
-   - If large project add "MUST USE SKILL `large-workspace-handling`"
+   - If large project add "MUST USE SKILL `large-workspace-handling`" to CONTEXT.md
 
 </process>
 

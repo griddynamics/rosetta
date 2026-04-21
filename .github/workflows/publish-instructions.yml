@@ -14,6 +14,7 @@ on:
       - main
     paths:
       - 'instructions/**'
+      - 'plugins/**'
       - '.github/workflows/publish-instructions.yml'
   workflow_dispatch:
     inputs:
@@ -74,30 +75,49 @@ jobs:
           echo "Archive size: $(du -h instructions.zip | cut -f1)"
           echo "Archive created: instructions.zip"
 
-      - name: Get current date and tag
-        id: date
+      - name: Create plugin archives
+        id: plugins
         run: |
-          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-          echo "tag=instructions-$(date +'%Y-%m-%d')-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          DATE=$(date +'%Y-%m-%d')
+          echo "date=${DATE}" >> $GITHUB_OUTPUT
+
+          ARCHIVES=""
+          for plugin_dir in plugins/*/; do
+            folder=$(basename "$plugin_dir")
+            plugin_json=$(find "$plugin_dir" -name "plugin.json" -maxdepth 3 | head -1)
+            if [ -z "$plugin_json" ]; then
+              echo "WARNING: No plugin.json found in $plugin_dir, skipping"
+              continue
+            fi
+            version=$(jq -r '.version' "$plugin_json")
+            zip_name="${folder}-${version}-${DATE}.zip"
+            echo "Creating archive: ${zip_name} (version: ${version})"
+            (cd "$plugin_dir" && zip -r "../../${zip_name}" . -x "*.git*")
+            echo "  Size: $(du -h "${zip_name}" | cut -f1)"
+            ARCHIVES="${ARCHIVES} ${zip_name}"
+          done
+
+          echo "archives=${ARCHIVES}" >> $GITHUB_OUTPUT
+          echo "All plugin archives created."
 
       - name: Create GitHub Release
         if: ${{ !inputs.deploy_to_prod }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ steps.date.outputs.tag }}" \
-            --title "Instructions ${{ steps.date.outputs.date }}" \
-            --notes "## Rosetta Instructions Release
+          DATE="${{ steps.plugins.outputs.date }}"
+          TAG="release-${DATE}-${GITHUB_SHA::7}"
 
-          **Date:** ${{ steps.date.outputs.date }}
-          **Commit:** ${{ github.sha }}
-
-          ### What's Included
-          - All instructions from \`instructions/\` folder
-          - Release: r2 (pre-production)
-
-          See [README.md](https://github.com/griddynamics/rosetta/blob/main/README.md) for details." \
-            instructions.zip
+          gh release create "${TAG}" \
+            --title "Release ${DATE}" \
+            --generate-notes \
+            --latest \
+            instructions.zip \
+            ${{ steps.plugins.outputs.archives }} \
+          || gh release upload "${TAG}" \
+            --clobber \
+            instructions.zip \
+            ${{ steps.plugins.outputs.archives }}
 
       - name: Summary
         if: always()
@@ -106,9 +126,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Server:** Rosetta Server (${{ inputs.deploy_to_prod && 'PROD' || 'DEV' }})" >> $GITHUB_STEP_SUMMARY
           echo "- **Dataset:** aia (default), aia-r1, aia-r2, etc." >> $GITHUB_STEP_SUMMARY
-          echo "- **Folders:** instructions/" >> $GITHUB_STEP_SUMMARY
-          echo "- **Release Tag:** ${{ steps.date.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Download:** [instructions.zip](https://github.com/${{ github.repository }}/releases/latest)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Folders:** instructions/, plugins/" >> $GITHUB_STEP_SUMMARY
+          echo "- **Plugin Archives:** ${{ steps.plugins.outputs.archives }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ job.status }}" == "success" ]; then
             echo "**Status:** Successfully published to Rosetta Server and GitHub Release" >> $GITHUB_STEP_SUMMARY

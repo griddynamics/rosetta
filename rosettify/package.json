@@ -1,0 +1,51 @@
+{
+  "name": "rosettify",
+  "version": "2.0.1",
+  "description": "Local utility for Rosetta — manage plans, install agents, and support AI coding workflows via CLI or MCP",
+  "license": "Apache-2.0",
+  "author": "Rosetta Team <rosetta-support@griddynamics.com>",
+  "homepage": "https://griddynamics.github.io/rosetta/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/griddynamics/rosetta.git"
+  },
+  "bugs": {
+    "url": "https://github.com/griddynamics/rosetta/issues"
+  },
+  "type": "module",
+  "bin": {
+    "rosettify": "./dist/bin/rosettify.js"
+  },
+  "main": "./dist/registry/index.js",
+  "exports": {
+    ".": "./dist/registry/index.js",
+    "./types": "./dist/registry/types.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "commander": "^14.0.3",
+    "pino": "^10.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "@vitest/coverage-v8": "^4.1.2",
+    "typescript": "^6.0.0",
+    "vitest": "^4.1.2"
+  }
+}

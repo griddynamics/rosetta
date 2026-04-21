@@ -1,0 +1,41 @@
+{
+  "name": "core",
+  "version": "2.0.22",
+  "description": "Rosetta Core 2.0 for Codex. Bundles reusable skills and local references for rules and workflows.",
+  "author": {
+    "name": "Grid Dynamics",
+    "email": "rosetta-support@griddynamics.com",
+    "url": "https://griddynamics.github.io/rosetta/"
+  },
+  "homepage": "https://griddynamics.github.io/rosetta/",
+  "repository": "https://github.com/griddynamics/rosetta",
+  "license": "Apache-2.0",
+  "keywords": [
+    "rosetta",
+    "codex",
+    "ai-agents",
+    "workflows",
+    "instructions",
+    "guardrails",
+    "planning",
+    "coding",
+    "knowledge-base"
+  ],
+  "skills": "./.agents/skills/",
+  "interface": {
+    "displayName": "Rosetta Core",
+    "shortDescription": "Rosetta core skills and bundled local references for Codex.",
+    "longDescription": "Rosetta Core 2.0 for Codex. Includes reusable skills and bundled local rules and workflow references generated from the core instruction set.",
+    "developerName": "Grid Dynamics",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use the load-context skill first, then consult rules/INDEX.md and workflows/INDEX.md from the Rosetta Core plugin bundle when you need local Rosetta guidance.",
+      "Use Rosetta Core for structured planning, coding, requirements, and validation workflows."
+    ],
+    "brandColor": "#0F766E"
+  }
+}

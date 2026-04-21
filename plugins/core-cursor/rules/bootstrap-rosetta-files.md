@@ -26,8 +26,9 @@ It must be possible to grep by headers and receive useful information and ToC.
 12. `agents/MEMORY.md`. Very brief root causes of errors and mistakes, brief actions tried and actions succeeded, both positive and negative. Create if missing.
 13. `plans/<FEATURE>/<FEATURE>-PLAN.md`. Execution plan.
 14. `plans/<FEATURE>/<FEATURE>-SPECS.md`. Tech specs.
-15. `plans/<FEATURE>/*`. Feature implementation supporting files.
+15. `plans/<FEATURE>/plan.json`. Plan manager execution tracking file.
+16. `plans/<FEATURE>/*`. Feature implementation supporting files.
 16. `refsrc/*`. Source code used only for knowledge! Exclude from SCM with single exception `refsrc/INDEX.md` to be committed.
-17. `agents/TEMP/<FEATURE>`. Temporary folder used during feature implementation. Exclude from SCM.
+17. `agents/TEMP/<FEATURE>`. Temporary folder used during feature implementation. Exclude `agents/TEMP` from SCM.
 
 </bootstrap_rosetta_files>

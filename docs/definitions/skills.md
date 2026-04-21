@@ -4,6 +4,7 @@
 - research
 - context-engineering
 - planning
+- plan-manager
 - reasoning
 - questioning
 - tech-specs

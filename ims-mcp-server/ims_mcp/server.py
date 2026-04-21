@@ -10,9 +10,12 @@ import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from importlib import resources as pkg_resources
-from typing import Annotated, Any, TypeAlias, cast
+from typing import Annotated, Any, TYPE_CHECKING, TypeAlias, cast
 
 from fastmcp import Context, FastMCP
+
+if TYPE_CHECKING:
+    from key_value.aio.protocols.key_value import AsyncKeyValue
 from mcp.types import Icon
 from pydantic import Field
 
@@ -81,6 +84,8 @@ from ims_mcp.typing_utils import JsonObject
 
 AsyncStringFactory: TypeAlias = Callable[[], Awaitable[str]]
 
+# MUST READ: docs/ARCHITECTURE.md, docs/CONTEXT.md, docs/SECURITY.md to understand the solution and how it works.
+
 _CONFIG = RosettaConfig.from_env()
 set_runtime_config(_CONFIG)
 register_signal_handlers()
@@ -96,13 +101,13 @@ if _CONFIG.debug:
     _logger.debug("Rosetta v%s debug mode enabled", _MCP_VERSION_TEXT)
 
 
-def _build_redis_store() -> object | None:
+def _build_redis_store() -> AsyncKeyValue | None:
     """Return a shared RedisStore if REDIS_URL is configured, else None."""
     if not _CONFIG.redis_url:
         return None
     try:
         from key_value.aio.stores.redis import RedisStore
-        return cast(object, RedisStore(url=_CONFIG.redis_url))
+        return RedisStore(url=_CONFIG.redis_url)
     except ImportError:
         _logger.debug("[ims-mcp] py-key-value-aio[redis] not installed; falling back to in-memory stores")
         return None
@@ -121,7 +126,7 @@ def _get_raw_redis_client(store: object) -> Any:
     return store._client  # type: ignore[attr-defined]
 
 
-def _build_oauth_client_storage() -> object | None:
+def _build_oauth_client_storage() -> AsyncKeyValue | None:
     """Wrap Redis store with Fernet encryption if FERNET_KEY is set."""
     if _REDIS_STORE is None:
         return None
@@ -130,13 +135,10 @@ def _build_oauth_client_storage() -> object | None:
     try:
         from cryptography.fernet import Fernet
         from key_value.aio.wrappers.encryption import FernetEncryptionWrapper
-        return cast(
-            object,
-            FernetEncryptionWrapper(
-                key_value=_REDIS_STORE,
-                fernet=Fernet(_CONFIG.fernet_key),
-                raise_on_decryption_error=False,
-            ),
+        return FernetEncryptionWrapper(
+            key_value=_REDIS_STORE,
+            fernet=Fernet(_CONFIG.fernet_key),
+            raise_on_decryption_error=False,
         )
     except ImportError:
         _logger.debug("[ims-mcp] cryptography not installed; OAuth client_storage unencrypted")
@@ -304,9 +306,10 @@ def _require_write_data_scope() -> str | None:
     return f"Error: this feature is not available for your user account!"
 
 
-async def _build_call_context(tool_name: str, params: dict[str, Any], ctx: Context) -> CallContext:
+async def _build_call_context(tool_name: str, params: dict[str, Any], ctx: Context | None) -> CallContext:
     assert _RAGFLOW is not None
     assert _DATASET_LOOKUP is not None
+    assert ctx is not None, "Context is required for building CallContext"
     return CallContext(
         config=_CONFIG,
         ragflow=_RAGFLOW,
@@ -668,9 +671,9 @@ def main() -> None:
         if _CONFIG.allowed_origins:
             middleware.append(Middleware(OriginValidationMiddleware, allowed_origins=_CONFIG.allowed_origins))
 
-        event_store: object | None = None
+        from fastmcp.server.event_store import EventStore
+        event_store: EventStore | None = None
         if _REDIS_STORE is not None:
-            from fastmcp.server.event_store import EventStore
             event_store = EventStore(storage=_REDIS_STORE, max_events_per_stream=100, ttl=3600)
 
             try:

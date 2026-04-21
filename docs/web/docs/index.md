@@ -7,7 +7,7 @@ search_exclude: true
 
 # Documentation
 
-Rosetta is a meta-prompting, context engineering, and centralized knowledge management for AI coding agents. These docs cover setup, concepts, usage, deployment, and contributing.
+Rosetta is a meta-prompting, context engineering, and centralized instructions management for AI coding agents. These docs cover setup, concepts, usage, deployment, and contributing.
 
 <div class="docs-index-grid">
   <a href="/rosetta/docs/introduction/" class="docs-index-card">

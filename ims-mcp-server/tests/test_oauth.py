@@ -88,6 +88,7 @@ def test_oauth_configured_property():
         oauth_introspection_endpoint="https://kc/introspect",
         oauth_client_id="cid",
         oauth_client_secret="csec",
+        oauth_base_url="https://rosetta.example.com",
     )
     assert cfg.oauth_configured is True
 
@@ -113,6 +114,7 @@ def test_uses_callback_path_from_config():
         oauth_introspection_endpoint="https://kc.example.com/introspect",
         oauth_client_id="my-client",
         oauth_client_secret="my-secret",
+        oauth_base_url="https://rosetta.example.com",
         oauth_callback_path="oauth/cb",
     )
     provider = build_oauth_provider(cfg)
@@ -128,6 +130,7 @@ def _make_full_http_config(**overrides):
         oauth_introspection_endpoint="https://kc.example.com/introspect",
         oauth_client_id="my-client",
         oauth_client_secret="my-secret",
+        oauth_base_url="https://rosetta.example.com",
         **overrides,
     )
 
@@ -240,6 +243,7 @@ def test_oauth_configured_oidc_mode():
         oauth_oidc_config_url="https://idp.example.com/.well-known/openid-configuration",
         oauth_client_id="my-client",
         oauth_client_secret="my-secret",
+        oauth_base_url="https://rosetta.example.com",
     )
     assert cfg.oauth_configured is True
 
@@ -414,3 +418,143 @@ def test_loopback_redirect_fix_does_not_relax_non_loopback_hosts():
 
     with pytest.raises(Exception, match="does not match CIMD redirect_uris"):
         client.validate_redirect_uri(AnyUrl("https://app.example.com:52605/callback"))
+
+
+# ---------------------------------------------------------------------------
+# GitHub OAuth provider builder tests
+# ---------------------------------------------------------------------------
+
+def _make_github_config(**overrides):
+    """Return a config suitable for GitHub mode."""
+    defaults = dict(
+        transport="http",
+        oauth_mode="github",
+        oauth_client_id="Ov23liAbcDefGhiJkLmN",
+        oauth_client_secret="github-secret-value",
+        oauth_base_url="https://rosetta.example.com",
+    )
+    defaults.update(overrides)
+    return _make_config(**defaults)
+
+
+def test_oauth_configured_github_mode():
+    cfg = _make_github_config()
+    assert cfg.oauth_configured is True
+
+
+def test_oauth_configured_github_missing_client_id():
+    cfg = _make_github_config(oauth_client_id="")
+    assert cfg.oauth_configured is False
+
+
+def test_oauth_configured_github_missing_client_secret():
+    cfg = _make_github_config(oauth_client_secret="")
+    assert cfg.oauth_configured is False
+
+
+def test_oauth_configured_github_missing_base_url():
+    cfg = _make_github_config(oauth_base_url="")
+    assert cfg.oauth_configured is False
+
+
+def test_oauth_configured_missing_base_url():
+    """oauth_base_url is required for all modes including default oauth."""
+    cfg = _make_config(
+        oauth_authorization_endpoint="https://kc/auth",
+        oauth_token_endpoint="https://kc/token",
+        oauth_introspection_endpoint="https://kc/introspect",
+        oauth_client_id="cid",
+        oauth_client_secret="csec",
+        oauth_base_url="",
+    )
+    assert cfg.oauth_configured is False
+
+
+def test_oauth_configured_oidc_missing_base_url():
+    cfg = _make_config(
+        oauth_mode="oidc",
+        oauth_oidc_config_url="https://idp.example.com/.well-known/openid-configuration",
+        oauth_client_id="my-client",
+        oauth_client_secret="my-secret",
+        oauth_base_url="",
+    )
+    assert cfg.oauth_configured is False
+
+
+def test_github_mode_returns_github_provider():
+    from fastmcp.server.auth.providers.github import GitHubProvider
+    cfg = _make_github_config()
+    provider = build_oauth_provider(cfg)
+    assert isinstance(provider, GitHubProvider)
+
+
+def test_github_mode_is_oauth_proxy_subclass():
+    from fastmcp.server.auth.oauth_proxy import OAuthProxy
+    cfg = _make_github_config()
+    provider = build_oauth_provider(cfg)
+    assert isinstance(provider, OAuthProxy)
+
+
+def test_github_mode_uses_callback_path():
+    cfg = _make_github_config(oauth_callback_path="/github/cb")
+    provider = build_oauth_provider(cfg)
+    assert provider is not None
+    assert getattr(provider, "_redirect_path", None) == "/github/cb"
+
+
+def test_github_mode_passes_required_scopes():
+    cfg = _make_github_config(oauth_required_scopes=["user", "user:email"])
+    provider = build_oauth_provider(cfg)
+    assert provider is not None
+    verifier = getattr(provider, "_token_validator", None)
+    assert verifier is not None
+    assert verifier.required_scopes == ["user", "user:email"]
+
+
+def test_github_mode_defaults_scopes_to_user_when_none():
+    cfg = _make_github_config(oauth_required_scopes=None)
+    provider = build_oauth_provider(cfg)
+    assert provider is not None
+    verifier = getattr(provider, "_token_validator", None)
+    assert verifier is not None
+    assert verifier.required_scopes == ["user"]
+
+
+def test_github_mode_jwt_signing_key():
+    cfg = _make_github_config(oauth_jwt_signing_key="github-jwt-key-32chars!!")
+    provider = build_oauth_provider(cfg)
+    assert provider is not None
+    assert getattr(provider, "_jwt_signing_key", None) is not None
+
+
+def test_github_mode_base_url():
+    cfg = _make_github_config(oauth_base_url="https://rosetta-prod.example.com")
+    provider = build_oauth_provider(cfg)
+    assert provider is not None
+    assert "rosetta-prod.example.com" in str(provider.base_url)
+
+
+def test_github_mode_raises_when_incomplete():
+    cfg = _make_config(
+        transport="http",
+        oauth_mode="github",
+        oauth_client_id="Ov23liAbcDefGhiJkLmN",
+        # missing client_secret
+    )
+    with pytest.raises(ValueError, match="requires.*configuration"):
+        build_oauth_provider(cfg)
+
+
+def test_unknown_oauth_mode_raises():
+    cfg = _make_config(
+        transport="http",
+        oauth_mode="invalid_mode",
+        oauth_client_id="cid",
+        oauth_client_secret="csec",
+        oauth_base_url="https://rosetta.example.com",
+        oauth_authorization_endpoint="https://example.com/auth",
+        oauth_token_endpoint="https://example.com/token",
+        oauth_introspection_endpoint="https://example.com/introspect",
+    )
+    with pytest.raises(ValueError, match="Unknown ROSETTA_OAUTH_MODE"):
+        build_oauth_provider(cfg)

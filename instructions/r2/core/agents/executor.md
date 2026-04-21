@@ -2,7 +2,7 @@
 name: executor
 description: Rosetta Lightweight subagent. Run simple commands, collect results, and summarize to prevent parent context overflow.
 mode: subagent
-model: claude-4.5-haiku, gpt-5.3-codex-medium, gemini-3-flash
+model: claude-4.5-haiku, gpt-5.4-low, gemini-3-flash
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

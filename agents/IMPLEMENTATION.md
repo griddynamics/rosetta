@@ -61,9 +61,19 @@ For detailed change history, use git history and PRs instead of expanding this f
 
 ### Hooks — IDE Input Normalization
 
-- Added `instructions/r2/core/hooks/adapter.js`: normalizes IDE stdin to Claude Code canonical format. Exports `detectIDE`, `normalize`, `formatOutput`, `readStdin`. Stub placeholders for Cursor/Codex/Windsurf/Copilot (activated when real fixtures are captured).
-- Added `instructions/r2/core/hooks/loose-files.js`: PostToolUse hook that nudges AI when `.py`/`.js` files lack a module marker (`__init__.py`/`package.json`). Exports `shouldCheck`, `isLooseFile`, `buildNudgeOutput` with injected `fs` for testability.
-- TDD: both modules have full test coverage in `*.test.js` using `node:test` (zero deps). Test files and `test-fixtures/` are excluded from plugin sync via `scripts/pre_commit.py`.
+- Added `hooks/src/adapter.ts`: normalizes IDE stdin to Claude Code canonical format. Exports `detectIDE`, `normalize`, `formatOutput`, `readStdin`. Per-IDE adapters in `hooks/src/adapters/`.
+- Added `hooks/src/loose-files.ts`: PostToolUse hook that nudges AI when `.py`/`.js` files lack a module marker (`__init__.py`/`package.json`). Exports `shouldCheck`, `isLooseFile`, `buildNudgeOutput` with injected `fs` for testability.
+- TDD: both modules have full test coverage in `hooks/tests/*.test.ts` using `node:test` (zero deps). TypeScript compiled to `hooks/dist/`; only `dist/src/` + `dist/shell/` ship to plugins.
+- Shared `hooks/shell/rosetta-bootstrap.sh` replaces 4 per-plugin copies; distributed to all plugin `hooks/` folders.
+- Build integrated into `scripts/pre_commit.py` via `build_hooks()` check before plugin sync.
+
+### Instructions and Skills
+
+- Added `plan-manager` skill under `instructions/r2/core/skills/plan-manager/` — primary plan manager for coding agents via local JSON files.
+- Skill assets: `plan_manager.js` (CLI, no npm deps), `pm-schema.md` (data structure reference), `plan_manager.test.js` (60 unit tests).
+- Key behaviors: resume-safe `next` command returns `in_progress` steps with `resume: true` before `open` steps; plans stored at `plans/<name>/plan.json`; self-describing `help` command.
+- Converted `adhoc-flow-with-plan-manager` workflow to `USE SKILL plan-manager`; data structure externalized to `pm-schema.md`.
+- Plugins (`core-claude`, `core-cursor`, `core-copilot`, `core-codex`) are auto-synced from core by `scripts/plugin_generator.py`.
 
 ### Workflows and Automation
 
@@ -73,7 +83,8 @@ For detailed change history, use git history and PRs instead of expanding this f
   - build/publish pipeline repairs
   - rosetta-mcp publish gating that waits for the matching `ims-mcp` version to appear on PyPI before upload
   - native Git pre-commit hook shim with a shared Python entrypoint under `scripts/`
-  - generated `plugins/core-claude` and `plugins/core-cursor` trees sourced from `instructions/r2/core`
+  - generated `plugins/core-claude`, `plugins/core-cursor`, `plugins/core-copilot`, and `plugins/core-codex` trees sourced from `instructions/r2/core`
+  - plugin-specific packaging transforms for model metadata, generated indexes, and local marketplace/manifests
   - Jira loader recovery after upstream API changes
   - shared type-validation entrypoint
 - Some GitHub Pages actions remain upstream-limited and may still depend on older Node runtimes until upstream changes.

@@ -1,6 +1,6 @@
 title: Rosetta
-seo_title: Rosetta - Meta-prompting, context engineering, and centralized knowledge management for AI coding agents
-description: Meta-prompting, context engineering, and centralized knowledge management for AI coding agents
+seo_title: Rosetta - Meta-prompting, context engineering, and centralized instructions management for AI coding agents
+description: Meta-prompting, context engineering, and centralized instructions management for AI coding agents
 baseurl: /rosetta
 markdown: kramdown
 theme: null

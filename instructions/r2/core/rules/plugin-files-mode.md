@@ -55,7 +55,7 @@ Prep Step 1:
 
 **Local File Operations** (overrides Rosetta MCP for these operations):
 
-- `get_context_instructions` => already loaded bootstrap-* instructions, continue with prep steps 2 and 3.
+- `get_context_instructions` => already loaded bootstrap-* instructions, continue with prep steps 2 and 3. Instruct subagents to not call MCP's `get_context_instructions`.
 
 - `ACQUIRE <file[.md]> FROM KB` => read local plugin files:
   - Search in: `{skills,/**/<file-name-with-extension>`

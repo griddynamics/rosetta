@@ -2,7 +2,7 @@
 name: engineer
 description: Rosetta Full subagent. Execute implementation and testing tasks with high quality, assuming engineering identity provided by orchestrator.
 mode: subagent
-model: claude-4.6-sonnet, gpt-5.3-codex-medium, gemini-3-flash
+model: claude-4.6-sonnet, gpt-5.4-medium, gemini-3-flash
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

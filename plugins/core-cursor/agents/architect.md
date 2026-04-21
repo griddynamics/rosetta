@@ -2,7 +2,7 @@
 name: architect
 description: Rosetta Full subagent. Transform requirements into clear, testable tech specifications and architecture.
 mode: subagent
-model: claude-4.6-opus-high, gpt-5.3-codex-high, gemini-3.1-pro-high
+model: claude-4.6-opus-high, gpt-5.4-high, gemini-3.1-pro-high
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---
