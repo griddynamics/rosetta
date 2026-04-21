@@ -1,22 +1,14 @@
-'use strict';
-// adapter.windsurf.test.js — Tests for Windsurf (Codeium) Cascade IDE adapter
-// Run: node --test hooks/tests/adapter.windsurf.test.js
-//
+// adapter.windsurf.test.ts — Tests for Windsurf (Codeium) Cascade IDE adapter
 // Fixture: constructed from docs at https://docs.windsurf.com/windsurf/cascade/hooks
 
-const { test, describe } = require('node:test');
-const assert = require('node:assert/strict');
-const path = require('path');
+import { test, describe } from 'node:test';
+import assert from 'node:assert/strict';
 
-const FIXTURES = path.join(__dirname, 'fixtures');
-const fx = (name) => require(path.join(FIXTURES, name));
+import fxWindsurf from './fixtures/windsurf-post-tool-use-write.json';
 
-const fxWindsurf = fx('windsurf-post-tool-use-write.json');
+import { detectIDE, normalize, formatOutput } from '../src/adapter';
 
-const { detectIDE, normalize, formatOutput } = require('../adapter');
-
-// Helper: build a Windsurf input for any event type
-function wsInput(agent_action_name, tool_info = {}) {
+function wsInput(agent_action_name: string, tool_info: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     agent_action_name,
     trajectory_id: 'traj-123',
@@ -50,8 +42,7 @@ describe('normalize — Windsurf write events', () => {
   });
 
   test('pre_write_code → hook_event_name PreToolUse, tool_name Write', () => {
-    const input = wsInput('pre_write_code', { file_path: '/proj/a.py' });
-    const result = normalize(input);
+    const result = normalize(wsInput('pre_write_code', { file_path: '/proj/a.py' }));
     assert.equal(result.hook_event_name, 'PreToolUse');
     assert.equal(result.tool_name, 'Write');
     assert.equal(result.tool_input.file_path, '/proj/a.py');
@@ -69,9 +60,10 @@ describe('normalize — Windsurf write events', () => {
 
   test('windsurf extras preserved in _windsurf', () => {
     const result = normalize(fxWindsurf);
-    assert.equal(result._windsurf.agent_action_name, 'post_write_code');
-    assert.ok(result._windsurf.execution_id);
-    assert.ok(result._windsurf.model_name);
+    const ws = result._windsurf as Record<string, unknown>;
+    assert.equal(ws.agent_action_name, 'post_write_code');
+    assert.ok(ws.execution_id);
+    assert.ok(ws.model_name);
   });
 
 });
@@ -80,16 +72,14 @@ describe('normalize — Windsurf write events', () => {
 describe('normalize — Windsurf command events', () => {
 
   test('post_run_command → tool_name Bash, tool_input.command from command_line', () => {
-    const input = wsInput('post_run_command', { command_line: 'npm test', cwd: '/proj' });
-    const result = normalize(input);
+    const result = normalize(wsInput('post_run_command', { command_line: 'npm test', cwd: '/proj' }));
     assert.equal(result.hook_event_name, 'PostToolUse');
     assert.equal(result.tool_name, 'Bash');
     assert.equal(result.tool_input.command, 'npm test');
   });
 
   test('pre_run_command → hook_event_name PreToolUse', () => {
-    const input = wsInput('pre_run_command', { command_line: 'git push', cwd: '/proj' });
-    const result = normalize(input);
+    const result = normalize(wsInput('pre_run_command', { command_line: 'git push', cwd: '/proj' }));
     assert.equal(result.hook_event_name, 'PreToolUse');
     assert.equal(result.tool_name, 'Bash');
   });
@@ -100,16 +90,14 @@ describe('normalize — Windsurf command events', () => {
 describe('normalize — Windsurf read events', () => {
 
   test('post_read_code → tool_name Read', () => {
-    const input = wsInput('post_read_code', { file_path: '/proj/utils.py' });
-    const result = normalize(input);
+    const result = normalize(wsInput('post_read_code', { file_path: '/proj/utils.py' }));
     assert.equal(result.hook_event_name, 'PostToolUse');
     assert.equal(result.tool_name, 'Read');
     assert.equal(result.tool_input.file_path, '/proj/utils.py');
   });
 
   test('pre_read_code → hook_event_name PreToolUse', () => {
-    const input = wsInput('pre_read_code', { file_path: '/proj/config.js' });
-    const result = normalize(input);
+    const result = normalize(wsInput('pre_read_code', { file_path: '/proj/config.js' }));
     assert.equal(result.hook_event_name, 'PreToolUse');
     assert.equal(result.tool_name, 'Read');
   });
@@ -120,13 +108,12 @@ describe('normalize — Windsurf read events', () => {
 describe('normalize — Windsurf MCP events', () => {
 
   test('post_mcp_tool_use → tool_name from mcp_tool_name', () => {
-    const input = wsInput('post_mcp_tool_use', {
+    const result = normalize(wsInput('post_mcp_tool_use', {
       mcp_server_name: 'github',
       mcp_tool_name: 'create_issue',
       mcp_tool_arguments: { owner: 'org', repo: 'repo' },
       mcp_result: 'created',
-    });
-    const result = normalize(input);
+    }));
     assert.equal(result.hook_event_name, 'PostToolUse');
     assert.equal(result.tool_name, 'create_issue');
     assert.deepEqual(result.tool_input, { owner: 'org', repo: 'repo' });
@@ -138,32 +125,28 @@ describe('normalize — Windsurf MCP events', () => {
 describe('normalize — Windsurf non-tool events', () => {
 
   test('pre_user_prompt → hook_event_name PrePromptSubmit', () => {
-    const input = wsInput('pre_user_prompt', { user_prompt: 'run the tests' });
-    const result = normalize(input);
+    const result = normalize(wsInput('pre_user_prompt', { user_prompt: 'run the tests' }));
     assert.equal(result.hook_event_name, 'PrePromptSubmit');
     assert.equal(result.tool_input.prompt, 'run the tests');
   });
 
   test('post_cascade_response → hook_event_name PostResponse', () => {
-    const input = wsInput('post_cascade_response', { response: 'Done!' });
-    const result = normalize(input);
+    const result = normalize(wsInput('post_cascade_response', { response: 'Done!' }));
     assert.equal(result.hook_event_name, 'PostResponse');
     assert.equal(result.tool_input.response, 'Done!');
   });
 
   test('post_cascade_response_with_transcript → transcript_path in tool_input', () => {
-    const input = wsInput('post_cascade_response_with_transcript', { transcript_path: '/tmp/t.jsonl' });
-    const result = normalize(input);
+    const result = normalize(wsInput('post_cascade_response_with_transcript', { transcript_path: '/tmp/t.jsonl' }));
     assert.equal(result.hook_event_name, 'PostResponse');
     assert.equal(result.tool_input.transcript_path, '/tmp/t.jsonl');
   });
 
   test('post_setup_worktree → hook_event_name PostWorktree', () => {
-    const input = wsInput('post_setup_worktree', {
+    const result = normalize(wsInput('post_setup_worktree', {
       worktree_path: '/tmp/wt',
       root_workspace_path: '/proj',
-    });
-    const result = normalize(input);
+    }));
     assert.equal(result.hook_event_name, 'PostWorktree');
     assert.equal(result.tool_input.worktree_path, '/tmp/wt');
     assert.equal(result.tool_input.root_workspace_path, '/proj');
@@ -175,16 +158,12 @@ describe('normalize — Windsurf non-tool events', () => {
 describe('formatOutput — Windsurf', () => {
 
   test('additionalContext preserved', () => {
-    const canonical = { hookSpecificOutput: { additionalContext: 'Test' } };
-    const result = formatOutput(canonical, 'windsurf');
+    const result = formatOutput({ hookSpecificOutput: { additionalContext: 'Test' } }, 'windsurf');
     assert.equal(result.additionalContext, 'Test');
   });
 
   test('deny decision → _exitCode 2', () => {
-    const canonical = {
-      hookSpecificOutput: { permissionDecision: 'deny' }
-    };
-    const result = formatOutput(canonical, 'windsurf');
+    const result = formatOutput({ hookSpecificOutput: { permissionDecision: 'deny' } }, 'windsurf');
     assert.equal(result._exitCode, 2);
   });
 

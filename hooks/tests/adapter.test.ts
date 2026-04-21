@@ -1,24 +1,17 @@
-'use strict';
-// adapter.test.js — Tests for the abstract adapter orchestrator (adapter.js)
-// Tests the registry, delegation, and error handling of the core adapter.
-// Run: node --test hooks/tests/adapter.test.js
+// adapter.test.ts — Tests for the abstract adapter orchestrator
 
-const { test, describe } = require('node:test');
-const assert = require('node:assert/strict');
-const path = require('path');
+import { test, describe } from 'node:test';
+import assert from 'node:assert/strict';
 
-const FIXTURES = path.join(__dirname, 'fixtures');
-const fx = (name) => require(path.join(FIXTURES, name));
+import ccWrite    from './fixtures/claude-code-post-tool-use-write.json';
+import ccBash     from './fixtures/claude-code-pre-tool-use-bash.json';
+import fxCodex    from './fixtures/codex-post-tool-use-bash.json';
+import fxCursor   from './fixtures/cursor-post-tool-use-write.json';
+import fxWindsurf from './fixtures/windsurf-post-tool-use-write.json';
+import fxCopilot  from './fixtures/copilot-post-tool-use-write.json';
+import fxUnknown  from './fixtures/unknown-ide-input.json';
 
-const ccWrite    = fx('claude-code-post-tool-use-write.json');
-const ccBash     = fx('claude-code-pre-tool-use-bash.json');
-const fxCodex    = fx('codex-post-tool-use-bash.json');
-const fxCursor   = fx('cursor-post-tool-use-write.json');
-const fxWindsurf = fx('windsurf-post-tool-use-write.json');
-const fxCopilot  = fx('copilot-post-tool-use-write.json');
-const fxUnknown  = fx('unknown-ide-input.json');
-
-const { detectIDE, normalize, formatOutput } = require('../adapter');
+import { detectIDE, normalize, formatOutput } from '../src/adapter';
 
 // ---------------------------------------------------------------------------
 describe('detectIDE — all IDEs', () => {
@@ -108,7 +101,7 @@ describe('formatOutput — delegates to correct adapter', () => {
 
   test('copilot → maps to permissionDecision', () => {
     const canonical = {
-      hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: 'no' }
+      hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: 'no' },
     };
     const result = formatOutput(canonical, 'copilot');
     assert.equal(result.permissionDecision, 'deny');

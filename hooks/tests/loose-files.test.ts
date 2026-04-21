@@ -1,45 +1,40 @@
-'use strict';
-// loose-files.test.js — TDD test suite for loose-files.js
-// Run: node --test hooks/tests/loose-files.test.js
+// loose-files.test.ts — TDD test suite for loose-files.ts
 
-const { test, describe } = require('node:test');
-const assert = require('node:assert/strict');
-const path = require('path');
+import { test, describe } from 'node:test';
+import assert from 'node:assert/strict';
 
-const FIXTURES = path.join(__dirname, 'fixtures');
-const fx = (name) => require(path.join(FIXTURES, name));
+import ccWrite from './fixtures/claude-code-post-tool-use-write.json';
+import ccEdit  from './fixtures/claude-code-post-tool-use-edit.json';
+import ccBash  from './fixtures/claude-code-pre-tool-use-bash.json';
 
-const ccWrite = fx('claude-code-post-tool-use-write.json');
-const ccEdit  = fx('claude-code-post-tool-use-edit.json');
-const ccBash  = fx('claude-code-pre-tool-use-bash.json');
+import { shouldCheck, isLooseFile, buildNudgeOutput } from '../src/loose-files';
+import { normalize } from '../src/adapter';
 
-const { shouldCheck, isLooseFile, buildNudgeOutput } = require('../loose-files');
-
-function mockFs(existingPaths) {
-  return { existsSync: (p) => existingPaths.includes(p) };
+function mockFs(existingPaths: string[]): { existsSync: (p: string) => boolean } {
+  return { existsSync: (p: string) => existingPaths.includes(p) };
 }
 
 // ---------------------------------------------------------------------------
 describe('shouldCheck — file extension filter', () => {
 
   test('.py file → true', () => {
-    assert.equal(shouldCheck({ ...ccWrite, tool_input: { file_path: '/proj/utils.py' } }), true);
+    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/utils.py' } })), true);
   });
 
   test('.js file → true', () => {
-    assert.equal(shouldCheck({ ...ccWrite, tool_input: { file_path: '/proj/app.js' } }), true);
+    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/app.js' } })), true);
   });
 
   test('.ts file → false', () => {
-    assert.equal(shouldCheck({ ...ccWrite, tool_input: { file_path: '/proj/app.ts' } }), false);
+    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/app.ts' } })), false);
   });
 
   test('.md file → false', () => {
-    assert.equal(shouldCheck({ ...ccWrite, tool_input: { file_path: '/proj/README.md' } }), false);
+    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/README.md' } })), false);
   });
 
   test('.json file → false', () => {
-    assert.equal(shouldCheck({ ...ccWrite, tool_input: { file_path: '/proj/config.json' } }), false);
+    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/config.json' } })), false);
   });
 
 });
@@ -48,23 +43,23 @@ describe('shouldCheck — file extension filter', () => {
 describe('shouldCheck — event + tool filter', () => {
 
   test('PostToolUse + Write → true', () => {
-    assert.equal(shouldCheck(ccWrite), true);
+    assert.equal(shouldCheck(normalize(ccWrite)), true);
   });
 
   test('PostToolUse + Edit → true', () => {
-    assert.equal(shouldCheck(ccEdit), true);
+    assert.equal(shouldCheck(normalize(ccEdit)), true);
   });
 
   test('PostToolUse + Bash → false', () => {
-    assert.equal(shouldCheck(ccBash), false);
+    assert.equal(shouldCheck(normalize(ccBash)), false);
   });
 
   test('PostToolUse + Read → false', () => {
-    assert.equal(shouldCheck({ ...ccWrite, tool_name: 'Read' }), false);
+    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_name: 'Read' })), false);
   });
 
   test('PreToolUse + Write → false (wrong event)', () => {
-    assert.equal(shouldCheck({ ...ccWrite, hook_event_name: 'PreToolUse' }), false);
+    assert.equal(shouldCheck(normalize({ ...ccWrite, hook_event_name: 'PreToolUse' })), false);
   });
 
 });
@@ -72,7 +67,8 @@ describe('shouldCheck — event + tool filter', () => {
 // ---------------------------------------------------------------------------
 describe('shouldCheck — exclusion paths', () => {
 
-  const makeInput = (filePath) => ({ ...ccWrite, tool_input: { file_path: filePath } });
+  const makeInput = (filePath: string) =>
+    normalize({ ...ccWrite, tool_input: { file_path: filePath } });
 
   test('path contains agents/TEMP/ → false', () => {
     assert.equal(shouldCheck(makeInput('/proj/agents/TEMP/debug.py')), false);
@@ -174,34 +170,33 @@ describe('buildNudgeOutput', () => {
 // ---------------------------------------------------------------------------
 describe('integration with adapter', () => {
 
-  const { normalize } = require('../adapter');
-
   test('Claude Code Write fixture (.py loose) → shouldCheck=true + isLooseFile=true', () => {
-    const input = {
+    const input = normalize({
       ...ccWrite,
       tool_input: { file_path: '/proj/orphan.py', content: 'pass\n' },
       tool_response: { filePath: '/proj/orphan.py' },
-    };
-    const normalized = normalize(input);
-    assert.equal(shouldCheck(normalized), true);
-    assert.equal(isLooseFile(normalized.tool_input.file_path, mockFs([])), true);
+    });
+    assert.equal(shouldCheck(input), true);
+    assert.equal(isLooseFile(input.tool_input.file_path as string, mockFs([])), true);
   });
 
   test('Claude Code Write fixture (.py inside module) → shouldCheck=true + isLooseFile=false', () => {
-    const input = {
+    const input = normalize({
       ...ccWrite,
       tool_input: { file_path: '/proj/src/mypackage/utils.py', content: 'pass\n' },
       tool_response: { filePath: '/proj/src/mypackage/utils.py' },
-    };
-    const normalized = normalize(input);
-    assert.equal(shouldCheck(normalized), true);
-    assert.equal(isLooseFile(normalized.tool_input.file_path, mockFs(['/proj/src/mypackage/__init__.py'])), false);
+    });
+    assert.equal(shouldCheck(input), true);
+    assert.equal(
+      isLooseFile(input.tool_input.file_path as string, mockFs(['/proj/src/mypackage/__init__.py'])),
+      false,
+    );
   });
 
   test('Claude Code Edit fixture (.js loose) → shouldCheck=true + isLooseFile=true', () => {
     const normalized = normalize(ccEdit);
     assert.equal(shouldCheck(normalized), true);
-    assert.equal(isLooseFile(normalized.tool_input.file_path, mockFs([])), true);
+    assert.equal(isLooseFile(normalized.tool_input.file_path as string, mockFs([])), true);
   });
 
   test('Claude Code Bash fixture → shouldCheck=false', () => {

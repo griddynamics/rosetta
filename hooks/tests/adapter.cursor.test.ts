@@ -1,19 +1,12 @@
-'use strict';
-// adapter.cursor.test.js — Tests for Cursor IDE adapter
-// Run: node --test hooks/tests/adapter.cursor.test.js
-//
+// adapter.cursor.test.ts — Tests for Cursor IDE adapter
 // Fixture: constructed from docs at https://cursor.com/docs/reference/hooks
 
-const { test, describe } = require('node:test');
-const assert = require('node:assert/strict');
-const path = require('path');
+import { test, describe } from 'node:test';
+import assert from 'node:assert/strict';
 
-const FIXTURES = path.join(__dirname, 'fixtures');
-const fx = (name) => require(path.join(FIXTURES, name));
+import fxCursor from './fixtures/cursor-post-tool-use-write.json';
 
-const fxCursor = fx('cursor-post-tool-use-write.json');
-
-const { detectIDE, normalize, formatOutput } = require('../adapter');
+import { detectIDE, normalize, formatOutput } from '../src/adapter';
 
 // ---------------------------------------------------------------------------
 describe('detectIDE — Cursor', () => {
@@ -33,7 +26,6 @@ describe('normalize — Cursor', () => {
 
   test('normalizes hook_event_name to PascalCase', () => {
     const result = normalize(fxCursor);
-    // Cursor sends "postToolUse" (camelCase), we normalize to "PostToolUse"
     assert.equal(result.hook_event_name, 'PostToolUse');
   });
 
@@ -70,19 +62,14 @@ describe('normalize — Cursor', () => {
 describe('formatOutput — Cursor', () => {
 
   test('maps additionalContext to additional_context', () => {
-    const canonical = {
-      hookSpecificOutput: { additionalContext: 'Test message' }
-    };
+    const canonical = { hookSpecificOutput: { additionalContext: 'Test message' } };
     const result = formatOutput(canonical, 'cursor');
     assert.equal(result.additional_context, 'Test message');
   });
 
   test('maps permissionDecision to permission', () => {
     const canonical = {
-      hookSpecificOutput: {
-        permissionDecision: 'deny',
-        permissionDecisionReason: 'Not allowed'
-      }
+      hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: 'Not allowed' },
     };
     const result = formatOutput(canonical, 'cursor');
     assert.equal(result.permission, 'deny');
@@ -104,9 +91,7 @@ describe('round-trip — Cursor', () => {
     assert.equal(normalized.hook_event_name, 'PostToolUse');
     assert.ok(normalized.session_id);
 
-    const output = formatOutput({
-      hookSpecificOutput: { additionalContext: 'x' }
-    }, 'cursor');
+    const output = formatOutput({ hookSpecificOutput: { additionalContext: 'x' } }, 'cursor');
     assert.ok(output.additional_context);
   });
 

@@ -1,22 +1,16 @@
-'use strict';
-// adapter.claude-code.test.js — Tests for Claude Code IDE adapter
-// Run: node --test hooks/tests/adapter.claude-code.test.js
+// adapter.claude-code.test.ts — Tests for Claude Code IDE adapter
 
-const { test, describe } = require('node:test');
-const assert = require('node:assert/strict');
-const path = require('path');
-const { Readable } = require('stream');
+import { test, describe } from 'node:test';
+import assert from 'node:assert/strict';
+import { Readable } from 'stream';
 
-const FIXTURES = path.join(__dirname, 'fixtures');
-const fx = (name) => require(path.join(FIXTURES, name));
+import ccWrite    from './fixtures/claude-code-post-tool-use-write.json';
+import ccEdit     from './fixtures/claude-code-post-tool-use-edit.json';
+import ccBash     from './fixtures/claude-code-pre-tool-use-bash.json';
+import ccSubagent from './fixtures/claude-code-post-tool-use-write-subagent.json';
+import fxUnknown  from './fixtures/unknown-ide-input.json';
 
-const ccWrite    = fx('claude-code-post-tool-use-write.json');
-const ccEdit     = fx('claude-code-post-tool-use-edit.json');
-const ccBash     = fx('claude-code-pre-tool-use-bash.json');
-const ccSubagent = fx('claude-code-post-tool-use-write-subagent.json');
-const fxUnknown  = fx('unknown-ide-input.json');
-
-const { detectIDE, normalize, formatOutput, readStdin } = require('../adapter');
+import { detectIDE, normalize, formatOutput, readStdin } from '../src/adapter';
 
 // ---------------------------------------------------------------------------
 describe('detectIDE — Claude Code', () => {
@@ -92,10 +86,7 @@ describe('formatOutput — Claude Code', () => {
 
   test('PostToolUse additionalContext only — correct hookSpecificOutput shape', () => {
     const canonical = {
-      hookSpecificOutput: {
-        hookEventName: 'PostToolUse',
-        additionalContext: 'Test message'
-      }
+      hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'Test message' },
     };
     const result = formatOutput(canonical, 'claude-code');
     assert.deepEqual(result, canonical);
@@ -103,14 +94,11 @@ describe('formatOutput — Claude Code', () => {
 
   test('PostToolUse with all optional top-level fields — preserved', () => {
     const canonical = {
-      hookSpecificOutput: {
-        hookEventName: 'PostToolUse',
-        additionalContext: 'Test'
-      },
+      hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'Test' },
       continue: true,
       stopReason: null,
       suppressOutput: false,
-      systemMessage: 'hello'
+      systemMessage: 'hello',
     };
     const result = formatOutput(canonical, 'claude-code');
     assert.deepEqual(result, canonical);
@@ -121,11 +109,14 @@ describe('formatOutput — Claude Code', () => {
       hookSpecificOutput: {
         hookEventName: 'PreToolUse',
         permissionDecision: 'deny',
-        permissionDecisionReason: 'Not allowed'
-      }
+        permissionDecisionReason: 'Not allowed',
+      },
     };
     const result = formatOutput(canonical, 'claude-code');
-    assert.equal(result.hookSpecificOutput.permissionDecision, 'deny');
+    assert.equal(
+      (result.hookSpecificOutput as Record<string, unknown>).permissionDecision,
+      'deny',
+    );
   });
 
 });
@@ -157,7 +148,10 @@ describe('round-trip — Claude Code', () => {
 
   test('Write: normalize → formatOutput → original shape', () => {
     const normalized = normalize(ccWrite);
-    const output = formatOutput({ hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'x' } }, 'claude-code');
+    const output = formatOutput(
+      { hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'x' } },
+      'claude-code',
+    );
     assert.deepEqual(normalized, ccWrite);
     assert.ok(output.hookSpecificOutput);
   });
