@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "tsc && mkdir -p dist/shell && cp -R shell/. dist/shell/",
-    "test": "npm run build && node --test dist/tests/",
+    "test": "npm run build && node --test 'dist/tests/*.test.js'",
     "check": "tsc --noEmit"
   },
   "devDependencies": {
