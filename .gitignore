@@ -80,3 +80,7 @@ _site/
 agents/TEMP/
 refsrc/
 !refsrc/INDEX.md
+
+# Hooks build output
+hooks/dist/
+hooks/node_modules/
