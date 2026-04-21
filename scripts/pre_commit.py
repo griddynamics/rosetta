@@ -85,8 +85,8 @@ def run_tests() -> int:
 def main() -> int:
     checks = [
         Check(name="hooks build",     runner=build_hooks),
-        Check(name="hooks sync",      runner=lambda: sync_hooks_into_plugins(REPO_ROOT)),
         Check(name="plugin sync",     runner=lambda: sync_generated_plugins(REPO_ROOT)),
+        Check(name="hooks sync",      runner=lambda: sync_hooks_into_plugins(REPO_ROOT)),
         Check(name="type validation", runner=run_type_validation),
         Check(name="tests",           runner=run_tests),
     ]
