@@ -1,0 +1,216 @@
+"use strict";
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/loose-files.ts
+var loose_files_exports = {};
+__export(loose_files_exports, {
+  buildNudgeOutput: () => buildNudgeOutput,
+  isLooseFile: () => isLooseFile,
+  main: () => main,
+  shouldCheck: () => shouldCheck
+});
+module.exports = __toCommonJS(loose_files_exports);
+var import_path2 = __toESM(require("path"));
+var import_fs2 = require("fs");
+
+// src/adapters/copilot.ts
+var COPILOT_SIGNATURE = ["toolName", "timestamp", "cwd"];
+var inferHookEventName = (raw) => {
+  if ("toolName" in raw) return "toolResult" in raw ? "PostToolUse" : "PreToolUse";
+  if ("reason" in raw) return "SessionEnd";
+  if ("source" in raw || "initialPrompt" in raw) return "SessionStart";
+  if ("prompt" in raw) return "PrePromptSubmit";
+  if ("error" in raw) return "Error";
+  return "Unknown";
+};
+var parseToolArgs = (raw) => {
+  const { toolArgs } = raw;
+  if (!toolArgs) return {};
+  try {
+    const parsed = JSON.parse(toolArgs);
+    return typeof parsed === "object" && parsed !== null ? parsed : { _raw: toolArgs };
+  } catch {
+    return { _raw: toolArgs };
+  }
+};
+var detect = (raw) => COPILOT_SIGNATURE.every((f) => f in raw) && !("hook_event_name" in raw);
+var normalize = (raw) => {
+  const { toolName, cwd, toolArgs, toolResult, timestamp } = raw;
+  return {
+    hook_event_name: inferHookEventName(raw),
+    session_id: void 0,
+    tool_name: toolName,
+    tool_input: parseToolArgs(raw),
+    tool_use_id: void 0,
+    cwd,
+    tool_response: toolResult ?? void 0,
+    _copilot: { timestamp, toolName, toolArgs, toolResult }
+  };
+};
+var formatOutput = (canonical) => {
+  const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
+  const { permissionDecision, permissionDecisionReason } = hookSpecificOutput;
+  const out = {};
+  if (permissionDecision) out.permissionDecision = permissionDecision;
+  if (permissionDecisionReason) out.permissionDecisionReason = permissionDecisionReason;
+  if (cont === false && !out.permissionDecision) out.permissionDecision = "deny";
+  return out;
+};
+var copilot = { name: "copilot", detect, normalize, formatOutput };
+
+// src/adapters/claude-code.ts
+var CC_SIGNATURE = ["hook_event_name", "tool_input", "session_id"];
+var detect2 = (raw) => CC_SIGNATURE.every((f) => f in raw);
+var normalize2 = (raw) => raw;
+var formatOutput2 = (canonical) => canonical ?? {};
+var claudeCode = { name: "claude-code", detect: detect2, normalize: normalize2, formatOutput: formatOutput2 };
+
+// src/entrypoints/adapter-copilot.ts
+var readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
+  const chunks = [];
+  stream.on("data", (chunk) => chunks.push(String(chunk)));
+  stream.on("end", () => {
+    const raw = chunks.join("").trim();
+    if (!raw) return reject(new Error("Invalid input: empty stdin"));
+    try {
+      resolve(JSON.parse(raw));
+    } catch (err) {
+      reject(new Error(`JSON parse error: ${err.message}`));
+    }
+  });
+  stream.on("error", reject);
+});
+var normalize3 = (rawInput) => {
+  const raw = rawInput;
+  return copilot.detect(raw) ? copilot.normalize(raw) : claudeCode.normalize(raw);
+};
+
+// src/lock.ts
+var import_fs = require("fs");
+var import_crypto = require("crypto");
+var import_path = __toESM(require("path"));
+var import_os = __toESM(require("os"));
+var LOCK_TTL_MS = 5e3;
+var acquireOnce = (input) => {
+  const fingerprint = (0, import_crypto.createHash)("sha256").update(`${input.session_id ?? "no-session"}:${input.hook_event_name}:${input.tool_name ?? ""}:${JSON.stringify(input.tool_input ?? {})}`).digest("hex").slice(0, 16);
+  const lockPath = import_path.default.join(import_os.default.tmpdir(), `rosetta-hooks-${fingerprint}.lock`);
+  try {
+    (0, import_fs.writeFileSync)(lockPath, String(Date.now()), { flag: "wx" });
+    return true;
+  } catch (err) {
+    if (err.code !== "EEXIST") throw err;
+    const age = Date.now() - (0, import_fs.statSync)(lockPath).mtimeMs;
+    if (age >= LOCK_TTL_MS) {
+      (0, import_fs.writeFileSync)(lockPath, String(Date.now()));
+      return true;
+    }
+    return false;
+  }
+};
+
+// src/loose-files.ts
+var ALLOWED_EXTENSIONS = /* @__PURE__ */ new Set([".py", ".js"]);
+var ALLOWED_TOOLS = /* @__PURE__ */ new Set(["Write", "Edit"]);
+var EXCLUDED_PATH_SEGMENTS = [
+  "agents/TEMP/",
+  "scripts/",
+  "node_modules/",
+  ".venv/",
+  "__pycache__/"
+];
+var MODULE_MARKERS = {
+  ".py": "__init__.py",
+  ".js": "package.json"
+};
+var MAX_WALK_LEVELS = 10;
+var isPathExcluded = (filePath) => EXCLUDED_PATH_SEGMENTS.some((segment) => filePath.includes(segment));
+var shouldCheck = (normalizedInput) => {
+  if (normalizedInput.hook_event_name !== "PostToolUse") return false;
+  if (!ALLOWED_TOOLS.has(normalizedInput.tool_name)) return false;
+  const filePath = normalizedInput.tool_input.file_path || "";
+  if (!ALLOWED_EXTENSIONS.has(import_path2.default.extname(filePath))) return false;
+  if (isPathExcluded(filePath)) return false;
+  return true;
+};
+var isLooseFile = (filePath, fs = { existsSync: import_fs2.existsSync }) => {
+  const marker = MODULE_MARKERS[import_path2.default.extname(filePath)];
+  if (!marker) return false;
+  let dir = import_path2.default.dirname(filePath);
+  for (let level = 0; level < MAX_WALK_LEVELS; level++) {
+    if (fs.existsSync(import_path2.default.join(dir, ".git"))) return true;
+    if (fs.existsSync(import_path2.default.join(dir, marker))) return false;
+    const parent = import_path2.default.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return true;
+};
+var buildNudgeOutput = (filePath) => {
+  const marker = MODULE_MARKERS[import_path2.default.extname(filePath)] ?? "a module marker";
+  const basename = import_path2.default.basename(filePath);
+  return {
+    hookSpecificOutput: {
+      hookEventName: "PostToolUse",
+      additionalContext: `${basename} appears to be a loose file outside a module. Consider adding ${marker} to its directory tree to make it part of a proper module.`
+    },
+    continue: true,
+    suppressOutput: false
+  };
+};
+var main = async ({
+  stdin = process.stdin,
+  stdout = process.stdout
+} = {}) => {
+  const raw = await readStdin(stdin);
+  const normalized = normalize3(raw);
+  if (!shouldCheck(normalized)) return;
+  if (!acquireOnce(normalized)) return;
+  const filePath = normalized.tool_input.file_path || "";
+  if (isLooseFile(filePath)) {
+    stdout.write(`${JSON.stringify(buildNudgeOutput(filePath))}
+`);
+  }
+};
+if (require.main === module) {
+  main().then(
+    () => process.exit(0),
+    (err) => {
+      process.stderr.write(`loose-files hook error: ${err.message}
+`);
+      process.exit(1);
+    }
+  );
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  buildNudgeOutput,
+  isLooseFile,
+  main,
+  shouldCheck
+});

@@ -436,10 +436,10 @@ def sync_generated_plugins(repo_root: Path) -> int:
 
 
 def sync_hooks_into_plugins(repo_root: Path) -> int:
-    hooks_src_dist = repo_root / "hooks" / "dist" / "src"
+    hooks_bundles_dist = repo_root / "hooks" / "dist" / "bundles"
     hooks_shell_dist = repo_root / "hooks" / "dist" / "shell"
 
-    if not hooks_src_dist.is_dir() or not hooks_shell_dist.is_dir():
+    if not hooks_bundles_dist.is_dir() or not hooks_shell_dist.is_dir():
         print(
             "ERROR: hooks build output missing — run `npm --prefix hooks run build`",
             file=sys.stderr,
@@ -449,11 +449,15 @@ def sync_hooks_into_plugins(repo_root: Path) -> int:
     for spec in _get_plugin_specs(repo_root):
         if spec.hook_subdir is None:
             continue
+        bundle_src = hooks_bundles_dist / spec.name
+        if not bundle_src.is_dir():
+            print(f"      skipped {spec.destination.name}: no bundle at dist/bundles/{spec.name}", flush=True)
+            continue
         target = spec.destination / spec.hook_subdir
         if target.is_symlink():
             target.unlink()  # remove old symlink into instructions/
         shutil.rmtree(target, ignore_errors=True)
-        shutil.copytree(hooks_src_dist, target, dirs_exist_ok=True)
+        shutil.copytree(bundle_src, target, dirs_exist_ok=True)
         shutil.copytree(hooks_shell_dist, target, dirs_exist_ok=True)
         print(f"      synced hooks into {spec.destination.name}/{spec.hook_subdir}", flush=True)
 
