@@ -370,7 +370,7 @@ def generate_codex_subagents(destination: Path, core_source: Path) -> None:
 def generate_copilot_runtime_layout(destination: Path) -> None:
     plugin_dir = destination / ".github" / "plugin"
     copied = 0
-    for filename in ("hooks.json", ".mcp.json", "rosetta-bootstrap.sh", "rosetta-bootstrap.ps1"):
+    for filename in ("hooks.json", ".mcp.json", "loose-files.js", "rosetta-bootstrap.sh", "rosetta-bootstrap.ps1"):
         source = plugin_dir / filename
         if source.is_file():
             shutil.copy2(source, destination / filename)
