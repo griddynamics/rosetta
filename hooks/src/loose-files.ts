@@ -7,7 +7,7 @@
 
 import path from 'path';
 import { existsSync } from 'fs';
-import { readStdin, normalize } from './adapter';
+import { readStdin, normalize, formatOutput } from './adapter';
 import { acquireOnce } from './lock';
 import { debugLog } from './debug-log';
 import type { NormalizedInput } from './types';
@@ -105,7 +105,7 @@ export const main = async ({
   if (isLooseFile(filePath)) {
     const output = buildNudgeOutput(filePath);
     debugLog('nudge emitted', { filePath });
-    stdout.write(`${JSON.stringify(output)}\n`);
+    stdout.write(`${JSON.stringify(formatOutput(output))}\n`);
   } else {
     debugLog('file is not loose', { filePath });
   }

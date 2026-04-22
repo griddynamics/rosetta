@@ -55,9 +55,9 @@ export const normalize = (rawInput: unknown): NormalizedInput =>
 
 export const formatOutput = (
   canonicalOutput: CanonicalOutput | Record<string, unknown>,
-  ide: string,
+  ide?: string,
 ): Record<string, unknown> => {
-  const adapter = ADAPTERS[ide as keyof typeof ADAPTERS];
+  const adapter = ide ? ADAPTERS[ide as keyof typeof ADAPTERS] : undefined;
   return adapter
     ? adapter.formatOutput(canonicalOutput as CanonicalOutput)
     : (canonicalOutput as Record<string, unknown>);

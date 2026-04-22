@@ -81,6 +81,7 @@ var readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
   stream.on("error", reject);
 });
 var normalize2 = (rawInput) => cursor.normalize(rawInput);
+var formatOutput2 = (canonical, _ide) => cursor.formatOutput(canonical);
 
 // src/lock.ts
 var import_fs = require("fs");
@@ -207,7 +208,7 @@ var main = async ({
   if (isLooseFile(filePath)) {
     const output = buildNudgeOutput(filePath);
     debugLog("nudge emitted", { filePath });
-    stdout.write(`${JSON.stringify(output)}
+    stdout.write(`${JSON.stringify(formatOutput2(output))}
 `);
   } else {
     debugLog("file is not loose", { filePath });

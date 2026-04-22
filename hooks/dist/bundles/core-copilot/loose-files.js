@@ -110,6 +110,7 @@ var normalize3 = (rawInput) => {
   const raw = rawInput;
   return copilot.detect(raw) ? copilot.normalize(raw) : claudeCode.normalize(raw);
 };
+var formatOutput3 = (canonical, _ide) => copilot.formatOutput(canonical);
 
 // src/lock.ts
 var import_fs = require("fs");
@@ -236,7 +237,7 @@ var main = async ({
   if (isLooseFile(filePath)) {
     const output = buildNudgeOutput(filePath);
     debugLog("nudge emitted", { filePath });
-    stdout.write(`${JSON.stringify(output)}
+    stdout.write(`${JSON.stringify(formatOutput3(output))}
 `);
   } else {
     debugLog("file is not loose", { filePath });

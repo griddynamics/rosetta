@@ -92,7 +92,7 @@ const main = async ({ stdin = process.stdin, stdout = process.stdout, } = {}) =>
     if ((0, exports.isLooseFile)(filePath)) {
         const output = (0, exports.buildNudgeOutput)(filePath);
         (0, debug_log_1.debugLog)('nudge emitted', { filePath });
-        stdout.write(`${JSON.stringify(output)}\n`);
+        stdout.write(`${JSON.stringify((0, adapter_1.formatOutput)(output))}\n`);
     }
     else {
         (0, debug_log_1.debugLog)('file is not loose', { filePath });

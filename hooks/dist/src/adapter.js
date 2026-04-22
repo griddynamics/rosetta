@@ -49,7 +49,7 @@ exports.detectIDE = detectIDE;
 const normalize = (rawInput) => ADAPTERS[(0, exports.detectIDE)(rawInput)].normalize(rawInput);
 exports.normalize = normalize;
 const formatOutput = (canonicalOutput, ide) => {
-    const adapter = ADAPTERS[ide];
+    const adapter = ide ? ADAPTERS[ide] : undefined;
     return adapter
         ? adapter.formatOutput(canonicalOutput)
         : canonicalOutput;
