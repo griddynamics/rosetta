@@ -67,7 +67,7 @@ def _get_plugin_specs(repo_root: Path) -> list[PluginSyncSpec]:
             preserved_folder=".codex-plugin",
             codex_models=True,
             generated_indexes=("rules", "workflows"),
-            hook_subdir=Path("hooks"),
+            hook_subdir=Path(".codex") / "hooks",
         ),
     ]
 
