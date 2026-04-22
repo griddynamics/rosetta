@@ -21,7 +21,7 @@ from pydantic import Field
 
 from ims_mcp import __version__ as _MCP_VERSION
 from ims_mcp.analytics.tracker import register_signal_handlers, set_runtime_config, track_tool_call
-from ims_mcp.analytics.user_context import get_repository_from_context, get_username
+from ims_mcp.analytics.user_context import get_authenticated_identity, get_repository_from_context
 from ims_mcp.auth import build_oauth_provider
 from ims_mcp.clients.dataset import DatasetLookup
 from ims_mcp.clients.doc_cache import InstructionDocCache
@@ -310,16 +310,17 @@ async def _build_call_context(tool_name: str, params: dict[str, Any], ctx: Conte
     assert _RAGFLOW is not None
     assert _DATASET_LOOKUP is not None
     assert ctx is not None, "Context is required for building CallContext"
+    _identity = get_authenticated_identity(ctx=ctx)
     return CallContext(
         config=_CONFIG,
         ragflow=_RAGFLOW,
         dataset_lookup=_DATASET_LOOKUP,
         ctx=ctx,
-        username=get_username(),
+        username=_identity,
         repository=await get_repository_from_context(ctx),
         tool_name=tool_name,
         params=params,
-        user_email=_resolve_user_email(),
+        user_email=_identity,
         authorizer=_AUTHORIZER,
     )
 

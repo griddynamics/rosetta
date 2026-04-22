@@ -17,6 +17,7 @@ import uuid7
 from ims_mcp import DEFAULT_POSTHOG_API_KEY, __version__
 from ims_mcp.analytics.user_context import (
     get_agent_info_from_context,
+    get_authenticated_identity,
     get_repository_from_context,
     get_username,
 )
@@ -136,7 +137,7 @@ def track_tool_call(func: Callable[P, Awaitable[str]]) -> Callable[P, Awaitable[
             duration_ms = (time.time() - start) * 1000
             is_error = isinstance(result, str) and result.startswith("Error:")
 
-            username = get_username(call_ctx)
+            username = get_authenticated_identity(call_ctx=call_ctx, ctx=ctx)
             client = get_posthog_client(config)
             if client:
                 props: dict[str, Any] = {
@@ -160,7 +161,7 @@ def track_tool_call(func: Callable[P, Awaitable[str]]) -> Callable[P, Awaitable[
             return result
         except Exception as exc:
             duration_ms = (time.time() - start) * 1000
-            username = get_username(call_ctx)
+            username = get_authenticated_identity(call_ctx=call_ctx, ctx=ctx)
             capture_error_to_posthog(
                 exc,
                 tool_name,
