@@ -36,8 +36,8 @@ __export(loose_files_exports, {
   shouldCheck: () => shouldCheck
 });
 module.exports = __toCommonJS(loose_files_exports);
-var import_path2 = __toESM(require("path"));
-var import_fs2 = require("fs");
+var import_path3 = __toESM(require("path"));
+var import_fs3 = require("fs");
 
 // src/adapters/claude-code.ts
 var CC_SIGNATURE = ["hook_event_name", "tool_input", "session_id"];
@@ -86,6 +86,39 @@ var acquireOnce = (input) => {
   }
 };
 
+// src/debug-log.ts
+var import_fs2 = require("fs");
+var import_path2 = __toESM(require("path"));
+var import_os2 = __toESM(require("os"));
+var LOG_DIR = import_path2.default.join(import_os2.default.homedir(), ".rosetta");
+var LOG_PATH = import_path2.default.join(LOG_DIR, "hooks-debug.log");
+var LOG_MAX_BYTES = 10 * 1024 * 1024;
+var ENABLED = process.env.ROSETTA_DEBUG === "1";
+var ensureDir = () => {
+  try {
+    (0, import_fs2.mkdirSync)(LOG_DIR, { recursive: true });
+  } catch {
+  }
+};
+var rotatIfNeeded = () => {
+  try {
+    if ((0, import_fs2.statSync)(LOG_PATH).size >= LOG_MAX_BYTES) {
+      (0, import_fs2.renameSync)(LOG_PATH, `${LOG_PATH.replace(/\.log$/, "")}.1.log`);
+    }
+  } catch {
+  }
+};
+var debugLog = (message, context) => {
+  if (!ENABLED) return;
+  ensureDir();
+  rotatIfNeeded();
+  const entry = JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), msg: message, ...context ?? {} }) + "\n";
+  try {
+    (0, import_fs2.appendFileSync)(LOG_PATH, entry);
+  } catch {
+  }
+};
+
 // src/loose-files.ts
 var ALLOWED_EXTENSIONS = /* @__PURE__ */ new Set([".py", ".js"]);
 var ALLOWED_TOOLS = /* @__PURE__ */ new Set(["Write", "Edit"]);
@@ -106,26 +139,26 @@ var shouldCheck = (normalizedInput) => {
   if (normalizedInput.hook_event_name !== "PostToolUse") return false;
   if (!ALLOWED_TOOLS.has(normalizedInput.tool_name)) return false;
   const filePath = normalizedInput.tool_input.file_path || "";
-  if (!ALLOWED_EXTENSIONS.has(import_path2.default.extname(filePath))) return false;
+  if (!ALLOWED_EXTENSIONS.has(import_path3.default.extname(filePath))) return false;
   if (isPathExcluded(filePath)) return false;
   return true;
 };
-var isLooseFile = (filePath, fs = { existsSync: import_fs2.existsSync }) => {
-  const marker = MODULE_MARKERS[import_path2.default.extname(filePath)];
+var isLooseFile = (filePath, fs = { existsSync: import_fs3.existsSync }) => {
+  const marker = MODULE_MARKERS[import_path3.default.extname(filePath)];
   if (!marker) return false;
-  let dir = import_path2.default.dirname(filePath);
+  let dir = import_path3.default.dirname(filePath);
   for (let level = 0; level < MAX_WALK_LEVELS; level++) {
-    if (fs.existsSync(import_path2.default.join(dir, ".git"))) return true;
-    if (fs.existsSync(import_path2.default.join(dir, marker))) return false;
-    const parent = import_path2.default.dirname(dir);
+    if (fs.existsSync(import_path3.default.join(dir, ".git"))) return true;
+    if (fs.existsSync(import_path3.default.join(dir, marker))) return false;
+    const parent = import_path3.default.dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
   return true;
 };
 var buildNudgeOutput = (filePath) => {
-  const marker = MODULE_MARKERS[import_path2.default.extname(filePath)] ?? "a module marker";
-  const basename = import_path2.default.basename(filePath);
+  const marker = MODULE_MARKERS[import_path3.default.extname(filePath)] ?? "a module marker";
+  const basename = import_path3.default.basename(filePath);
   return {
     hookSpecificOutput: {
       hookEventName: "PostToolUse",
@@ -140,13 +173,25 @@ var main = async ({
   stdout = process.stdout
 } = {}) => {
   const raw = await readStdin(stdin);
+  debugLog("raw input received", { hook_event_name: raw.hook_event_name });
   const normalized = normalize2(raw);
-  if (!shouldCheck(normalized)) return;
-  if (!acquireOnce(normalized)) return;
+  debugLog("normalized", { session_id: normalized.session_id, tool_name: normalized.tool_name });
+  if (!shouldCheck(normalized)) {
+    debugLog("skipped (shouldCheck=false)");
+    return;
+  }
+  if (!acquireOnce(normalized)) {
+    debugLog("skipped (duplicate)");
+    return;
+  }
   const filePath = normalized.tool_input.file_path || "";
   if (isLooseFile(filePath)) {
-    stdout.write(`${JSON.stringify(buildNudgeOutput(filePath))}
+    const output = buildNudgeOutput(filePath);
+    debugLog("nudge emitted", { filePath });
+    stdout.write(`${JSON.stringify(output)}
 `);
+  } else {
+    debugLog("file is not loose", { filePath });
   }
 };
 if (require.main === module) {

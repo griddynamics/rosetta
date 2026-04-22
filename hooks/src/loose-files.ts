@@ -9,6 +9,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { readStdin, normalize } from './adapter';
 import { acquireOnce } from './lock';
+import { debugLog } from './debug-log';
 import type { NormalizedInput } from './types';
 
 const ALLOWED_EXTENSIONS = new Set(['.py', '.js']);
@@ -88,13 +89,25 @@ export const main = async ({
   stdout?: NodeJS.WritableStream;
 } = {}): Promise<void> => {
   const raw = await readStdin(stdin);
+  debugLog('raw input received', { hook_event_name: (raw as Record<string, unknown>).hook_event_name });
   const normalized = normalize(raw);
-  if (!shouldCheck(normalized)) return;
-  if (!acquireOnce(normalized)) return;
+  debugLog('normalized', { session_id: normalized.session_id, tool_name: normalized.tool_name });
+  if (!shouldCheck(normalized)) {
+    debugLog('skipped (shouldCheck=false)');
+    return;
+  }
+  if (!acquireOnce(normalized)) {
+    debugLog('skipped (duplicate)');
+    return;
+  }
 
   const filePath = (normalized.tool_input.file_path as string) || '';
   if (isLooseFile(filePath)) {
-    stdout.write(`${JSON.stringify(buildNudgeOutput(filePath))}\n`);
+    const output = buildNudgeOutput(filePath);
+    debugLog('nudge emitted', { filePath });
+    stdout.write(`${JSON.stringify(output)}\n`);
+  } else {
+    debugLog('file is not loose', { filePath });
   }
 };
 

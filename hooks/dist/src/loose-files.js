@@ -14,6 +14,7 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = require("fs");
 const adapter_1 = require("./adapter");
 const lock_1 = require("./lock");
+const debug_log_1 = require("./debug-log");
 const ALLOWED_EXTENSIONS = new Set(['.py', '.js']);
 const ALLOWED_TOOLS = new Set(['Write', 'Edit']);
 const EXCLUDED_PATH_SEGMENTS = [
@@ -76,14 +77,25 @@ const buildNudgeOutput = (filePath) => {
 exports.buildNudgeOutput = buildNudgeOutput;
 const main = async ({ stdin = process.stdin, stdout = process.stdout, } = {}) => {
     const raw = await (0, adapter_1.readStdin)(stdin);
+    (0, debug_log_1.debugLog)('raw input received', { hook_event_name: raw.hook_event_name });
     const normalized = (0, adapter_1.normalize)(raw);
-    if (!(0, exports.shouldCheck)(normalized))
+    (0, debug_log_1.debugLog)('normalized', { session_id: normalized.session_id, tool_name: normalized.tool_name });
+    if (!(0, exports.shouldCheck)(normalized)) {
+        (0, debug_log_1.debugLog)('skipped (shouldCheck=false)');
         return;
-    if (!(0, lock_1.acquireOnce)(normalized))
+    }
+    if (!(0, lock_1.acquireOnce)(normalized)) {
+        (0, debug_log_1.debugLog)('skipped (duplicate)');
         return;
+    }
     const filePath = normalized.tool_input.file_path || '';
     if ((0, exports.isLooseFile)(filePath)) {
-        stdout.write(`${JSON.stringify((0, exports.buildNudgeOutput)(filePath))}\n`);
+        const output = (0, exports.buildNudgeOutput)(filePath);
+        (0, debug_log_1.debugLog)('nudge emitted', { filePath });
+        stdout.write(`${JSON.stringify(output)}\n`);
+    }
+    else {
+        (0, debug_log_1.debugLog)('file is not loose', { filePath });
     }
 };
 exports.main = main;
