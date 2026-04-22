@@ -11,21 +11,21 @@ if TYPE_CHECKING:
 
 from ims_mcp.auth.offline_refresh_fix import with_offline_refresh_fix
 from ims_mcp.auth.loopback_redirect_fix import with_loopback_redirect_fix
-from ims_mcp.constants import OAUTH_MODE_OIDC, TRANSPORT_HTTP
+from ims_mcp.constants import OAUTH_MODE_GITHUB, OAUTH_MODE_OAUTH, OAUTH_MODE_OIDC, TRANSPORT_HTTP
 
 
 def build_oauth_provider(
     config: "RosettaConfig",
     client_storage: "AsyncKeyValue | None" = None,
 ) -> "AuthProvider | None":
-    """Build a FastMCP ``OAuthProxy`` or ``OIDCProxy`` for HTTP transports.
+    """Build a FastMCP auth provider for HTTP transports.
 
     Returns ``None`` when the transport is not HTTP or when required OAuth
     environment variables are missing.  In that case the server runs without
     authentication (STDIO mode uses ``ROSETTA_API_KEY`` directly).
 
     Env vars:
-      ROSETTA_OAUTH_MODE             — "oauth" (default) or "oidc"
+      ROSETTA_OAUTH_MODE             — "oauth" (default), "oidc", or "github"
       ROSETTA_OAUTH_OIDC_CONFIG_URL  — IdP OIDC discovery URL (mode=oidc only)
       ROSETTA_OAUTH_VALID_SCOPES     — space-separated valid scopes advertised in
                                        .well-known/oauth-authorization-server
@@ -50,7 +50,7 @@ def build_oauth_provider(
     # 3. It is impossible to know in advance which redirect URI will be used by the client. Moreover, it is common practice to use http://localhost as the redirect URI.
     # 4. SECURITY.md contains recommendations for security features that are offloaded to the hosting environment.
 
-    # Security by default: require OAuth/OIDC configuration!
+    # Security by default: require authentication configuration!
     if not config.oauth_configured:
         raise ValueError("Rosetta HTTP mode requires OAuth configuration!")
 
@@ -76,6 +76,29 @@ def build_oauth_provider(
             jwt_signing_key=config.oauth_jwt_signing_key,
             redirect_path=config.oauth_callback_path,
             require_authorization_consent=True,
+        )
+
+    if config.oauth_mode == OAUTH_MODE_GITHUB:
+        from fastmcp.server.auth.providers.github import GitHubProvider
+
+        GitHubProvider = with_offline_refresh_fix(GitHubProvider)
+        GitHubProvider = with_loopback_redirect_fix(GitHubProvider)
+
+        return GitHubProvider(
+            client_id=config.oauth_client_id,
+            client_secret=config.oauth_client_secret,
+            base_url=base_url,
+            redirect_path=config.oauth_callback_path,
+            required_scopes=config.oauth_required_scopes,
+            client_storage=client_storage,
+            jwt_signing_key=config.oauth_jwt_signing_key,
+            require_authorization_consent=True,
+        )
+
+    if config.oauth_mode not in {OAUTH_MODE_OAUTH, OAUTH_MODE_OIDC, OAUTH_MODE_GITHUB}:
+        raise ValueError(
+            f"Unknown ROSETTA_OAUTH_MODE={config.oauth_mode!r}. "
+            "Supported: oauth, oidc, github."
         )
 
     # mode=oauth (default)

@@ -18,11 +18,11 @@ Initialization must behave differently for fresh, existing, or plugin workspaces
 
 <core_concepts>
 - Rosetta prep steps completed
-- Three modes: install (no files per `bootstrap_rosetta_files`), upgrade (some files per `bootstrap_rosetta_files` exist), plugin (LLM context contains "Rosetta plugin is already active")
+- Three modes: install (no files per `bootstrap_rosetta_files`), upgrade (some files per `bootstrap_rosetta_files` exist), plugin (LLM context contains "RUNNING AS A PLUGIN")
 </core_concepts>
 
 <process>
-1. Check LLM context for "Rosetta plugin is already active" — if found, set mode = plugin
+1. Check existing LLM context for "RUNNING AS A PLUGIN": If already there → set mode = plugin
 2. If not plugin, scan workspace for existing files per `bootstrap_rosetta_files`
 3. Any found → mode = upgrade; none → mode = install
 4. Scan for multiple sub-repositories with independent documentation roots → set composite flag, treat git repos as modules, requires use of `large-workspace-handling` skill

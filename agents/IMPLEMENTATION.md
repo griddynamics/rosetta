@@ -64,6 +64,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 ### Workflows and Automation
 
 - GitHub Actions were updated to remove most deprecated Node 20-era dependencies and align with newer action runtimes where upstream allowed it.
+- Init-workspace instructions now treat `rosetta@rosetta` as the MCP connector path rather than plugin mode, while any other plugin type is handled as plugin mode.
 - Workflow maintenance included:
   - Bun runtime override for Claude workflows
   - build/publish pipeline repairs

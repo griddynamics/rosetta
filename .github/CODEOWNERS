@@ -5,10 +5,10 @@
 docs/web/** @omaiesh
 
 # Granular code ownership
-/instructions/ @k-bieniek @scappuccino-grid @YevheniiaLementova
-/docs/ @k-bieniek @scappuccino-grid @YevheniiaLementova
-/plans/ @k-bieniek @scappuccino-grid @YevheniiaLementova
-/*.md @k-bieniek @scappuccino-grid @YevheniiaLementova
+/instructions/ @ElizaVetaFomka @YevheniiaLementova
+/docs/ @ElizaVetaFomka @YevheniiaLementova
+/plans/ @ElizaVetaFomka @YevheniiaLementova
+/*.md @ElizaVetaFomka @YevheniiaLementova
 
 .github/ @kkhristenko51 @omaiesh
 /tools @kkhristenko51 @omaiesh

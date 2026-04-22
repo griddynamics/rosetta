@@ -8,7 +8,7 @@ baseSchema: docs/schemas/workflow.md
 <requirements-flow>
 
 <description_and_purpose>
-Prevents premature drafting by enforcing HITL gates where every `<req>` unit receives explicit user approval before proceeding. Each phase produces traceable artifacts (Final Requirements Set, Validation Pack, Traceability Matrix). Input: user request for new requirements, edits, review, refactor, or validation; active skill is `requirements-authoring`.
+Prevents premature drafting by enforcing HITL gates where every `<req>` unit receives explicit user approval before proceeding. Each phase produces traceable artifacts (Final Requirements Set, Validation Pack, Traceability Matrix). Input: user request for new requirements, edits, review, refactor, or validation; USE SKILL `requirements-authoring` and PROACTIVELY REQUIRE its use in all phases and subagents.
 </description_and_purpose>
 
 <workflow_phases>

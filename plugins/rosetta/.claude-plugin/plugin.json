@@ -1,7 +1,7 @@
 {
   "name": "rosetta",
   "description": "Lightweight Rosetta plugin with bootstrap always enforced and Rosetta MCP for all instructions, workflows, skills, and project context.",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "author": {
     "name": "Grid Dynamics",
     "email": "rosetta-support@griddynamics.com"
@@ -18,7 +18,6 @@
     "cursor",
     "claude-code"
   ],
-  "category": "productivity",
   "hooks": {
     "SessionStart": [
       {
