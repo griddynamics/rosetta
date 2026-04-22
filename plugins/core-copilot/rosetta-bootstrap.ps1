@@ -10,7 +10,6 @@ $PluginRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Content = Get-Content -Raw -Path "$PluginRoot\rules\bootstrap-core-policy.md",
     "$PluginRoot\rules\bootstrap-execution-policy.md",
     "$PluginRoot\rules\bootstrap-guardrails.md",
-    "$PluginRoot\rules\bootstrap-hitl-questioning.md",
     "$PluginRoot\rules\bootstrap-rosetta-files.md",
     "$PluginRoot\rules\plugin-files-mode.md",
     "$PluginRoot\rules\INDEX.md",

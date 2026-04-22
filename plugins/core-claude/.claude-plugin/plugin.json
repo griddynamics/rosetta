@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat \"${CLAUDE_PLUGIN_ROOT}/rules/bootstrap-core-policy.md\" \"${CLAUDE_PLUGIN_ROOT}/rules/bootstrap-execution-policy.md\" \"${CLAUDE_PLUGIN_ROOT}/rules/bootstrap-guardrails.md\" \"${CLAUDE_PLUGIN_ROOT}/rules/bootstrap-hitl-questioning.md\" \"${CLAUDE_PLUGIN_ROOT}/rules/bootstrap-rosetta-files.md\" \"${CLAUDE_PLUGIN_ROOT}/rules/plugin-files-mode.md\" \"${CLAUDE_PLUGIN_ROOT}/rules/INDEX.md\" && echo \"\" && echo \"Rosetta Core Plugin Path: ${CLAUDE_PLUGIN_ROOT}\""
+            "command": "cat \"${CLAUDE_PLUGIN_ROOT}/rules/bootstrap-core-policy.md\" \"${CLAUDE_PLUGIN_ROOT}/rules/bootstrap-execution-policy.md\" \"${CLAUDE_PLUGIN_ROOT}/rules/bootstrap-guardrails.md\" \"${CLAUDE_PLUGIN_ROOT}/rules/bootstrap-rosetta-files.md\" \"${CLAUDE_PLUGIN_ROOT}/rules/plugin-files-mode.md\" \"${CLAUDE_PLUGIN_ROOT}/rules/INDEX.md\" && echo \"\" && echo \"Rosetta Core Plugin Path: ${CLAUDE_PLUGIN_ROOT}\""
           }
         ]
       }

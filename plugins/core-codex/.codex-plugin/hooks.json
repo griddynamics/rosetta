@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-core-policy.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-execution-policy.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-guardrails.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-hitl-questioning.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-rosetta-files.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/plugin-files-mode.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/INDEX.md\" \"$(git rev-parse --show-toplevel)/.agents/workflows/INDEX.md\" && echo \"\" && echo \"Rosetta Core Plugin Path: $(git rev-parse --show-toplevel)/.agents\"",
+            "command": "cat \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-core-policy.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-execution-policy.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-guardrails.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/bootstrap-rosetta-files.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/plugin-files-mode.md\" \"$(git rev-parse --show-toplevel)/.agents/rules/INDEX.md\" \"$(git rev-parse --show-toplevel)/.agents/workflows/INDEX.md\" && echo \"\" && echo \"Rosetta Core Plugin Path: $(git rev-parse --show-toplevel)/.agents\"",
             "statusMessage": "Loading Rosetta Codex bootstrap",
             "timeout": 30
           }

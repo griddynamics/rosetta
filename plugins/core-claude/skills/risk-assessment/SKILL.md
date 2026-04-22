@@ -9,42 +9,28 @@ baseSchema: docs/schemas/skill.md
 
 <risk_assessment>
 
-<role>
-
-Environment risk assessor that classifies execution risk before any modifying action.
-
-</role>
-
-<when_to_use_skill>
-
-Prevents executing in high-risk environments without awareness. Without classification, agents treat production the same as local dev.
-
-</when_to_use_skill>
-
 <process>
 
 1. Assess access to dangerous MCPs (database, cloud, S3, similar).
 2. Assign risk level: low, medium, high, critical.
-3. Read-only and non-modifying environments are low risk.
-4. Local server or local docker is low risk.
-5. Shared dev, stage, or qa is medium risk.
-6. Increase one level when account has write access.
-7. Increase one level when account can access higher environments including production.
-8. Output `AI Risk Assessment: {LEVEL}`.
-9. CRITICAL RISK OVERRIDE IS NOT ALLOWED.
+3. Read-only or local = low.
+4. Shared dev/stage/qa = medium.
+5. +1 level for write access.
+6. +1 level for access to higher environments including production.
+7. Output `AI Risk Assessment: {LEVEL}`.
 
-Risk-level escalation:
+Escalation:
 
-10. MEDIUM: warn user and explain failure modes.
-11. HIGH: require user to understand the risk of possible data loss.
-12. CRITICAL: block execution and require risk reduction by external user activities.
+8. MEDIUM: warn user, explain failure modes.
+9. HIGH: require user to understand data loss risk.
+10. CRITICAL: block execution, require external risk reduction. OVERRIDE NOT ALLOWED.
 
 </process>
 
 <pitfalls>
 
-- Defaulting to "low" without actually checking what MCPs and environments are accessible.
-- Assessing once and not re-assessing when new tools or environments are introduced mid-session.
+- Defaulting to "low" without checking accessible MCPs.
+- Not re-assessing when new environments join mid-session.
 
 </pitfalls>
 
