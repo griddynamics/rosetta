@@ -6,7 +6,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+/dist/
 downloads/
 eggs/
 .eggs/
@@ -81,15 +81,6 @@ agents/TEMP/
 refsrc/
 !refsrc/INDEX.md
 
-# Hooks build output
-hooks/dist/
-hooks/node_modules/
+# Hooks build output handled by hooks/.gitignore
 
 .claude
-gain.json
-agents/init-workspace-flow-state.md
-docs/ASSUMPTIONS.md
-docs/CODEMAP.md
-docs/DEPENDENCIES.md
-docs/TECHSTACK.md
-docs/PATTERNS

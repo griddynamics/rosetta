@@ -8,6 +8,7 @@
 import path from 'path';
 import { existsSync } from 'fs';
 import { readStdin, normalize } from './adapter';
+import { acquireOnce } from './lock';
 import type { NormalizedInput } from './types';
 
 const ALLOWED_EXTENSIONS = new Set(['.py', '.js']);
@@ -89,6 +90,7 @@ export const main = async ({
   const raw = await readStdin(stdin);
   const normalized = normalize(raw);
   if (!shouldCheck(normalized)) return;
+  if (!acquireOnce(normalized)) return;
 
   const filePath = (normalized.tool_input.file_path as string) || '';
   if (isLooseFile(filePath)) {

@@ -1,11 +1,20 @@
 {
-  "version": 1,
   "hooks": {
-    "sessionStart": [
+    "SessionStart": [
       {
         "type": "command",
-        "bash": "~/Library/Application\\ Support/Code/agentPlugins/github.com/griddynamics/rosetta/plugins/core-copilot/rosetta-bootstrap.sh",
-        "powershell": "& \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\\rosetta-bootstrap.ps1\""
+        "command": "bash \"${CLAUDE_PLUGIN_ROOT}/rosetta-bootstrap.sh\""
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/loose-files.js\""
+          }
+        ]
       }
     ]
   }

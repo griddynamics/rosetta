@@ -32,6 +32,44 @@ class PluginSyncSpec:
     codex_models: bool = False
     rename_agents: bool = False
     generated_indexes: tuple[str, ...] = ()
+    hook_subdir: Path | None = None
+
+
+def _get_plugin_specs(repo_root: Path) -> list[PluginSyncSpec]:
+    return [
+        PluginSyncSpec(
+            name="core-claude",
+            destination=repo_root / "plugins" / "core-claude",
+            preserved_folder=".claude-plugin",
+            normalize_models=True,
+            generated_indexes=("rules", "workflows"),
+            hook_subdir=Path("hooks"),
+        ),
+        PluginSyncSpec(
+            name="core-cursor",
+            destination=repo_root / "plugins" / "core-cursor",
+            preserved_folder=".cursor-plugin",
+            generated_indexes=("rules", "workflows"),
+            hook_subdir=None,
+        ),
+        PluginSyncSpec(
+            name="core-copilot",
+            destination=repo_root / "plugins" / "core-copilot",
+            preserved_folder=".github",
+            copilot_models=True,
+            rename_agents=True,
+            generated_indexes=("rules", "workflows"),
+            hook_subdir=Path(".github") / "plugin",
+        ),
+        PluginSyncSpec(
+            name="core-codex",
+            destination=repo_root / "plugins" / "core-codex",
+            preserved_folder=".codex-plugin",
+            codex_models=True,
+            generated_indexes=("rules", "workflows"),
+            hook_subdir=Path("hooks"),
+        ),
+    ]
 
 
 def normalize_claude_model(value: str) -> str:
@@ -381,36 +419,7 @@ def sync_generated_plugins(repo_root: Path) -> int:
         print(f"ERROR: Core source folder not found: {core_source}", file=sys.stderr)
         return 1
 
-    plugin_specs = [
-        PluginSyncSpec(
-            name="core-claude",
-            destination=repo_root / "plugins" / "core-claude",
-            preserved_folder=".claude-plugin",
-            normalize_models=True,
-            generated_indexes=("rules", "workflows"),
-        ),
-        PluginSyncSpec(
-            name="core-cursor",
-            destination=repo_root / "plugins" / "core-cursor",
-            preserved_folder=".cursor-plugin",
-            generated_indexes=("rules", "workflows"),
-        ),
-        PluginSyncSpec(
-            name="core-copilot",
-            destination=repo_root / "plugins" / "core-copilot",
-            preserved_folder=".github",
-            copilot_models=True,
-            rename_agents=True,
-            generated_indexes=("rules", "workflows"),
-        ),
-        PluginSyncSpec(
-            name="core-codex",
-            destination=repo_root / "plugins" / "core-codex",
-            preserved_folder=".codex-plugin",
-            codex_models=True,
-            generated_indexes=("rules", "workflows"),
-        ),
-    ]
+    plugin_specs = _get_plugin_specs(repo_root)
 
     for spec in plugin_specs:
         print(f"   syncing {spec.name}", flush=True)
@@ -437,20 +446,15 @@ def sync_hooks_into_plugins(repo_root: Path) -> int:
         )
         return 1
 
-    plugin_destinations = [
-        repo_root / "plugins" / "core-claude",
-        repo_root / "plugins" / "core-cursor",
-        repo_root / "plugins" / "core-copilot",
-        repo_root / "plugins" / "core-codex",
-    ]
-
-    for destination in plugin_destinations:
-        target = destination / "hooks"
+    for spec in _get_plugin_specs(repo_root):
+        if spec.hook_subdir is None:
+            continue
+        target = spec.destination / spec.hook_subdir
         if target.is_symlink():
             target.unlink()  # remove old symlink into instructions/
         shutil.rmtree(target, ignore_errors=True)
         shutil.copytree(hooks_src_dist, target, dirs_exist_ok=True)
         shutil.copytree(hooks_shell_dist, target, dirs_exist_ok=True)
-        print(f"      synced hooks into {destination.name}", flush=True)
+        print(f"      synced hooks into {spec.destination.name}/{spec.hook_subdir}", flush=True)
 
     return 0

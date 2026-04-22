@@ -1,0 +1,36 @@
+{
+  "rosetta": {
+    "version": "r2",
+    "workspace": {
+      "context": "docs/CONTEXT.md",
+      "architecture": "docs/ARCHITECTURE.md",
+      "assumptions": "docs/ASSUMPTIONS.md",
+      "todo": "docs/TODO.md",
+      "techstack": "docs/TECHSTACK.md",
+      "dependencies": "docs/DEPENDENCIES.md",
+      "codemap": "docs/CODEMAP.md",
+      "implementation": "agents/IMPLEMENTATION.md",
+      "memory": "agents/MEMORY.md",
+      "plans": "plans/",
+      "temp": "agents/TEMP/"
+    },
+    "instructions": {
+      "root": "instructions/r2/core/",
+      "skills": "instructions/r2/core/skills/",
+      "agents": "instructions/r2/core/agents/",
+      "workflows": "instructions/r2/core/workflows/",
+      "rules": "instructions/r2/core/rules/"
+    },
+    "shells": {
+      "skills": ".claude/skills/",
+      "agents": ".claude/agents/",
+      "commands": ".claude/commands/",
+      "rules": ".claude/rules/"
+    },
+    "sdlc": {
+      "mode": "upgrade",
+      "composite": false,
+      "exclude_from_scm": ["agents/TEMP/", "refsrc/", ".env", ".env.*"]
+    }
+  }
+}
