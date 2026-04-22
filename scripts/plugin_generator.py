@@ -456,9 +456,26 @@ def sync_hooks_into_plugins(repo_root: Path) -> int:
         target = spec.destination / spec.hook_subdir
         if target.is_symlink():
             target.unlink()  # remove old symlink into instructions/
+
+        # Preserve files not managed by the hook bundle (e.g. hooks.json, plugin.json).
+        # Compute the set of filenames the bundle + shell will supply, then save everything else.
+        managed_names = (
+            {f.name for f in bundle_src.rglob("*") if f.is_file()}
+            | {f.name for f in hooks_shell_dist.rglob("*") if f.is_file()}
+        )
+        preserved: dict[str, bytes] = {}
+        if target.is_dir():
+            for entry in target.iterdir():
+                if entry.is_file() and entry.name not in managed_names:
+                    preserved[entry.name] = entry.read_bytes()
+
         shutil.rmtree(target, ignore_errors=True)
         shutil.copytree(bundle_src, target, dirs_exist_ok=True)
         shutil.copytree(hooks_shell_dist, target, dirs_exist_ok=True)
+
+        for fname, content in preserved.items():
+            (target / fname).write_bytes(content)
+
         print(f"      synced hooks into {spec.destination.name}/{spec.hook_subdir}", flush=True)
 
     return 0

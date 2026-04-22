@@ -39,14 +39,59 @@ module.exports = __toCommonJS(loose_files_exports);
 var import_path3 = __toESM(require("path"));
 var import_fs3 = require("fs");
 
+// src/adapters/copilot.ts
+var COPILOT_SIGNATURE = ["toolName", "timestamp", "cwd"];
+var inferHookEventName = (raw) => {
+  if ("toolName" in raw) return "toolResult" in raw ? "PostToolUse" : "PreToolUse";
+  if ("reason" in raw) return "SessionEnd";
+  if ("source" in raw || "initialPrompt" in raw) return "SessionStart";
+  if ("prompt" in raw) return "PrePromptSubmit";
+  if ("error" in raw) return "Error";
+  return "Unknown";
+};
+var parseToolArgs = (raw) => {
+  const { toolArgs } = raw;
+  if (!toolArgs) return {};
+  try {
+    const parsed = JSON.parse(toolArgs);
+    return typeof parsed === "object" && parsed !== null ? parsed : { _raw: toolArgs };
+  } catch {
+    return { _raw: toolArgs };
+  }
+};
+var detect = (raw) => COPILOT_SIGNATURE.every((f) => f in raw) && !("hook_event_name" in raw);
+var normalize = (raw) => {
+  const { toolName, cwd, toolArgs, toolResult, timestamp } = raw;
+  return {
+    hook_event_name: inferHookEventName(raw),
+    session_id: void 0,
+    tool_name: toolName,
+    tool_input: parseToolArgs(raw),
+    tool_use_id: void 0,
+    cwd,
+    tool_response: toolResult ?? void 0,
+    _copilot: { timestamp, toolName, toolArgs, toolResult }
+  };
+};
+var formatOutput = (canonical) => {
+  const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
+  const { permissionDecision, permissionDecisionReason } = hookSpecificOutput;
+  const out = {};
+  if (permissionDecision) out.permissionDecision = permissionDecision;
+  if (permissionDecisionReason) out.permissionDecisionReason = permissionDecisionReason;
+  if (cont === false && !out.permissionDecision) out.permissionDecision = "deny";
+  return out;
+};
+var copilot = { name: "copilot", detect, normalize, formatOutput };
+
 // src/adapters/claude-code.ts
 var CC_SIGNATURE = ["hook_event_name", "tool_input", "session_id"];
-var detect = (raw) => CC_SIGNATURE.every((f) => f in raw);
-var normalize = (raw) => raw;
-var formatOutput = (canonical) => canonical ?? {};
-var claudeCode = { name: "claude-code", detect, normalize, formatOutput };
+var detect2 = (raw) => CC_SIGNATURE.every((f) => f in raw);
+var normalize2 = (raw) => raw;
+var formatOutput2 = (canonical) => canonical ?? {};
+var claudeCode = { name: "claude-code", detect: detect2, normalize: normalize2, formatOutput: formatOutput2 };
 
-// src/entrypoints/adapter-claude-code.ts
+// src/entrypoints/adapter-copilot.ts
 var readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
   const chunks = [];
   stream.on("data", (chunk) => chunks.push(String(chunk)));
@@ -61,7 +106,10 @@ var readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
   });
   stream.on("error", reject);
 });
-var normalize2 = (rawInput) => claudeCode.normalize(rawInput);
+var normalize3 = (rawInput) => {
+  const raw = rawInput;
+  return copilot.detect(raw) ? copilot.normalize(raw) : claudeCode.normalize(raw);
+};
 
 // src/lock.ts
 var import_fs = require("fs");
@@ -174,7 +222,7 @@ var main = async ({
 } = {}) => {
   const raw = await readStdin(stdin);
   debugLog("raw input received", { hook_event_name: raw.hook_event_name });
-  const normalized = normalize2(raw);
+  const normalized = normalize3(raw);
   debugLog("normalized", { session_id: normalized.session_id, tool_name: normalized.tool_name });
   if (!shouldCheck(normalized)) {
     debugLog("skipped (shouldCheck=false)");
