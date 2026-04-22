@@ -14,6 +14,7 @@ const BUNDLES = [
   { plugin: 'core-claude',  adapter: 'adapter-claude-code' },
   { plugin: 'core-codex',   adapter: 'adapter-codex' },
   { plugin: 'core-copilot', adapter: 'adapter-copilot' },
+  { plugin: 'core-cursor',  adapter: 'adapter-cursor' },
 ];
 
 for (const { plugin, adapter } of BUNDLES) {

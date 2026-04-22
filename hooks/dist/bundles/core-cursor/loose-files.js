@@ -39,15 +39,33 @@ module.exports = __toCommonJS(loose_files_exports);
 var import_path3 = __toESM(require("path"));
 var import_fs3 = require("fs");
 
-// src/adapters/codex.ts
-var CC_SIGNATURE = ["hook_event_name", "tool_input", "session_id"];
-var CODEX_EXTRA = ["model", "turn_id"];
-var detect = (raw) => CC_SIGNATURE.every((f) => f in raw) && CODEX_EXTRA.every((f) => f in raw);
-var normalize = (raw) => raw;
-var formatOutput = (canonical) => canonical ?? {};
-var codex = { name: "codex", detect, normalize, formatOutput };
+// src/adapters/cursor.ts
+var CC_SIGNATURE = ["hook_event_name", "tool_input"];
+var CURSOR_EXTRA = ["conversation_id", "cursor_version"];
+var toPascalCase = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+var detect = (raw) => CC_SIGNATURE.every((f) => f in raw) && CURSOR_EXTRA.every((f) => f in raw);
+var normalize = (raw) => {
+  const { hook_event_name, conversation_id, ...rest } = raw;
+  return {
+    ...rest,
+    hook_event_name: toPascalCase(hook_event_name),
+    session_id: conversation_id,
+    conversation_id
+  };
+};
+var formatOutput = (canonical) => {
+  const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
+  const { additionalContext, permissionDecision, permissionDecisionReason } = hookSpecificOutput;
+  const out = {};
+  if (additionalContext) out.additional_context = additionalContext;
+  if (permissionDecision) out.permission = permissionDecision;
+  if (permissionDecisionReason) out.user_message = permissionDecisionReason;
+  if (cont === false) out.permission = out.permission ?? "deny";
+  return out;
+};
+var cursor = { name: "cursor", detect, normalize, formatOutput };
 
-// src/entrypoints/adapter-codex.ts
+// src/entrypoints/adapter-cursor.ts
 var readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
   const chunks = [];
   stream.on("data", (chunk) => chunks.push(String(chunk)));
@@ -62,7 +80,7 @@ var readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
   });
   stream.on("error", reject);
 });
-var normalize2 = (rawInput) => codex.normalize(rawInput);
+var normalize2 = (rawInput) => cursor.normalize(rawInput);
 
 // src/lock.ts
 var import_fs = require("fs");

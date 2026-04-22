@@ -50,7 +50,7 @@ def _get_plugin_specs(repo_root: Path) -> list[PluginSyncSpec]:
             destination=repo_root / "plugins" / "core-cursor",
             preserved_folder=".cursor-plugin",
             generated_indexes=("rules", "workflows"),
-            hook_subdir=None,
+            hook_subdir=Path(".cursor") / "hooks",
         ),
         PluginSyncSpec(
             name="core-copilot",
@@ -378,6 +378,14 @@ def generate_copilot_runtime_layout(destination: Path) -> None:
     print(f"      copied {copied} config(s) from .github/plugin/ to plugin root", flush=True)
 
 
+def generate_cursor_runtime_layout(destination: Path) -> None:
+    source_hooks = destination / ".cursor-plugin" / "hooks.json"
+    cursor_hooks = destination / ".cursor" / "hooks.json"
+    if source_hooks.is_file():
+        _replace_tree(source_hooks, cursor_hooks)
+        print("      copied .cursor/hooks.json for core-cursor", flush=True)
+
+
 def generate_codex_runtime_layout(destination: Path) -> None:
     source_hooks = destination / ".codex-plugin" / "hooks.json"
     codex_hooks = destination / ".codex" / "hooks.json"
@@ -429,6 +437,8 @@ def sync_generated_plugins(repo_root: Path) -> int:
             generate_folder_index(spec.destination, folder_name)
         if spec.name == "core-copilot":
             generate_copilot_runtime_layout(spec.destination)
+        if spec.name == "core-cursor":
+            generate_cursor_runtime_layout(spec.destination)
         if spec.name == "core-codex":
             generate_codex_subagents(spec.destination, core_source)
             generate_codex_runtime_layout(spec.destination)
