@@ -22,3 +22,5 @@ export const formatOutput = (
   canonical: CanonicalOutput | Record<string, unknown>,
   _ide?: string,
 ): Record<string, unknown> => cursor.formatOutput(canonical as CanonicalOutput);
+
+export const detectIDE = (_raw: unknown): string => 'cursor';

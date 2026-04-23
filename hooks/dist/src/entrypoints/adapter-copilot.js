@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatOutput = exports.normalize = exports.readStdin = void 0;
+exports.detectIDE = exports.formatOutput = exports.normalize = exports.readStdin = void 0;
 // Slim adapter for core-copilot bundle — copilot detection with claude-code fallback.
 // VS Code may send either Copilot-specific format (toolName) or Claude-compatible format
 // (hook_event_name). The fallback handles both without including codex/cursor/windsurf.
@@ -30,3 +30,6 @@ const normalize = (rawInput) => {
 exports.normalize = normalize;
 const formatOutput = (canonical, _ide) => copilot_1.copilot.formatOutput(canonical);
 exports.formatOutput = formatOutput;
+// Dedup is active for this bundle: Copilot CLI fires PostToolUse twice per tool call.
+const detectIDE = (_raw) => 'copilot';
+exports.detectIDE = detectIDE;

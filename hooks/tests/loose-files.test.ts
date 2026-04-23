@@ -2,13 +2,19 @@
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
+import { Readable, Writable } from 'stream';
+import { existsSync, unlinkSync } from 'fs';
+import { createHash } from 'crypto';
+import path from 'path';
+import os from 'os';
 
 import ccWrite from './fixtures/claude-code-post-tool-use-write.json';
 import ccEdit  from './fixtures/claude-code-post-tool-use-edit.json';
 import ccBash  from './fixtures/claude-code-pre-tool-use-bash.json';
 
-import { shouldCheck, isLooseFile, buildNudgeOutput } from '../src/loose-files';
+import { shouldCheck, isLooseFile, buildNudgeOutput, main } from '../src/loose-files';
 import { normalize } from '../src/adapter';
+import type { NormalizedInput } from '../src/types';
 
 function mockFs(existingPaths: string[]): { existsSync: (p: string) => boolean } {
   return { existsSync: (p: string) => existingPaths.includes(p) };
@@ -201,6 +207,74 @@ describe('integration with adapter', () => {
 
   test('Claude Code Bash fixture → shouldCheck=false', () => {
     assert.equal(shouldCheck(normalize(ccBash)), false);
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// Integration helpers for main() tests
+const toStream = (obj: unknown): Readable => Readable.from([JSON.stringify(obj)]);
+
+const capture = () => {
+  const chunks: string[] = [];
+  const writable = new Writable({ write(chunk, _, cb) { chunks.push(chunk.toString()); cb(); } });
+  return { writable, output(): string { return chunks.join(''); } };
+};
+
+// Mirror lock.ts fingerprint to compute lock path for cleanup.
+const lockPathFor = (input: NormalizedInput): string => {
+  const fp = createHash('sha256')
+    .update(`${input.session_id ?? 'no-session'}:${input.hook_event_name}:${input.tool_name ?? ''}:${JSON.stringify(input.tool_input ?? {})}`)
+    .digest('hex')
+    .slice(0, 16);
+  return path.join(os.tmpdir(), `rosetta-hooks-${fp}.lock`);
+};
+
+// Builds a Copilot-shaped raw input where toolName='Write' to pass shouldCheck.
+const makeCopilotRaw = (filePath: string) => ({
+  timestamp: 1704614400000,
+  cwd: '/tmp',
+  toolName: 'Write',
+  toolArgs: JSON.stringify({ file_path: filePath, content: 'pass\n' }),
+  toolResult: { resultType: 'success', textResultForLlm: 'done' },
+});
+
+// ---------------------------------------------------------------------------
+describe('main() — dedup gate is Copilot-only', () => {
+
+  test('Copilot: second identical call within TTL is silenced', async () => {
+    const uniq = Math.random().toString(36).slice(2);
+    const filePath = `/tmp/rosetta-test-copilot-dedup-${uniq}.py`;
+    const raw = makeCopilotRaw(filePath);
+    const lp = lockPathFor(normalize(raw));
+    if (existsSync(lp)) unlinkSync(lp);
+
+    try {
+      const { writable: out1, output: get1 } = capture();
+      await main({ stdin: toStream(raw), stdout: out1 });
+      assert.ok(get1().length > 0, 'first Copilot call should emit nudge');
+
+      const { writable: out2, output: get2 } = capture();
+      await main({ stdin: toStream(raw), stdout: out2 });
+      assert.equal(get2(), '', 'second Copilot call within TTL must be silenced (dedup active)');
+    } finally {
+      if (existsSync(lp)) unlinkSync(lp);
+    }
+  });
+
+  test('Claude Code: duplicate call is NOT silenced (dedup inactive for non-Copilot)', async () => {
+    const uniq = Math.random().toString(36).slice(2);
+    const filePath = `/tmp/rosetta-test-cc-nodedup-${uniq}.py`;
+    const sessionId = `test-cc-${uniq}`;
+    const raw = { ...ccWrite, session_id: sessionId, tool_input: { file_path: filePath } };
+
+    const { writable: out1, output: get1 } = capture();
+    await main({ stdin: toStream(raw), stdout: out1 });
+    assert.ok(get1().length > 0, 'first Claude Code call should emit nudge');
+
+    const { writable: out2, output: get2 } = capture();
+    await main({ stdin: toStream(raw), stdout: out2 });
+    assert.ok(get2().length > 0, 'second Claude Code call must also emit nudge (no dedup for CC)');
   });
 
 });

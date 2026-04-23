@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatOutput = exports.normalize = exports.readStdin = void 0;
+exports.detectIDE = exports.formatOutput = exports.normalize = exports.readStdin = void 0;
 // Slim adapter for core-codex bundle — only codex detection, zero other IDE code.
 const codex_1 = require("../adapters/codex");
 const readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
@@ -24,3 +24,5 @@ const normalize = (rawInput) => codex_1.codex.normalize(rawInput);
 exports.normalize = normalize;
 const formatOutput = (canonical, _ide) => codex_1.codex.formatOutput(canonical);
 exports.formatOutput = formatOutput;
+const detectIDE = (_raw) => 'codex';
+exports.detectIDE = detectIDE;

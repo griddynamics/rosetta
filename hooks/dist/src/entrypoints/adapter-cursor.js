@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatOutput = exports.normalize = exports.readStdin = void 0;
+exports.detectIDE = exports.formatOutput = exports.normalize = exports.readStdin = void 0;
 // Slim adapter for core-cursor bundle — only cursor detection, zero other IDE code.
 const cursor_1 = require("../adapters/cursor");
 const readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
@@ -24,3 +24,5 @@ const normalize = (rawInput) => cursor_1.cursor.normalize(rawInput);
 exports.normalize = normalize;
 const formatOutput = (canonical, _ide) => cursor_1.cursor.formatOutput(canonical);
 exports.formatOutput = formatOutput;
+const detectIDE = (_raw) => 'cursor';
+exports.detectIDE = detectIDE;

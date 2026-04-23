@@ -27,3 +27,6 @@ export const formatOutput = (
   canonical: CanonicalOutput | Record<string, unknown>,
   _ide?: string,
 ): Record<string, unknown> => copilot.formatOutput(canonical as CanonicalOutput);
+
+// Dedup is active for this bundle: Copilot CLI fires PostToolUse twice per tool call.
+export const detectIDE = (_raw: unknown): string => 'copilot';

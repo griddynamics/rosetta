@@ -7,7 +7,7 @@
 
 import path from 'path';
 import { existsSync } from 'fs';
-import { readStdin, normalize, formatOutput } from './adapter';
+import { readStdin, normalize, formatOutput, detectIDE } from './adapter';
 import { acquireOnce } from './lock';
 import { debugLog } from './debug-log';
 import type { NormalizedInput } from './types';
@@ -90,14 +90,17 @@ export const main = async ({
 } = {}): Promise<void> => {
   const raw = await readStdin(stdin);
   debugLog('raw input received', { hook_event_name: (raw as Record<string, unknown>).hook_event_name });
+  const ide = detectIDE(raw);
   const normalized = normalize(raw);
-  debugLog('normalized', { session_id: normalized.session_id, tool_name: normalized.tool_name });
+  debugLog('normalized', { ide, session_id: normalized.session_id, tool_name: normalized.tool_name });
   if (!shouldCheck(normalized)) {
     debugLog('skipped (shouldCheck=false)');
     return;
   }
-  if (!acquireOnce(normalized)) {
-    debugLog('skipped (duplicate)');
+  // Copilot CLI invokes PostToolUse twice per tool call (known Microsoft bug).
+  // TODO(remove-when-fixed): drop this guard once the duplicate-invocation bug is fixed upstream.
+  if (ide === 'copilot' && !acquireOnce(normalized)) {
+    debugLog('skipped (duplicate, copilot-only dedup)');
     return;
   }
 

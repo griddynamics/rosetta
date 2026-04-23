@@ -78,14 +78,18 @@ exports.buildNudgeOutput = buildNudgeOutput;
 const main = async ({ stdin = process.stdin, stdout = process.stdout, } = {}) => {
     const raw = await (0, adapter_1.readStdin)(stdin);
     (0, debug_log_1.debugLog)('raw input received', { hook_event_name: raw.hook_event_name });
+    const ide = (0, adapter_1.detectIDE)(raw);
     const normalized = (0, adapter_1.normalize)(raw);
-    (0, debug_log_1.debugLog)('normalized', { session_id: normalized.session_id, tool_name: normalized.tool_name });
+    (0, debug_log_1.debugLog)('normalized', { ide, session_id: normalized.session_id, tool_name: normalized.tool_name });
     if (!(0, exports.shouldCheck)(normalized)) {
         (0, debug_log_1.debugLog)('skipped (shouldCheck=false)');
         return;
     }
-    if (!(0, lock_1.acquireOnce)(normalized)) {
-        (0, debug_log_1.debugLog)('skipped (duplicate)');
+    // Copilot CLI invokes PostToolUse twice per tool call (known Microsoft bug).
+    // TODO(remove-when-fixed): drop this guard once the duplicate-invocation bug is fixed upstream.
+    // Tracking: search https://github.com/github/gh-copilot/issues for "hook invoked twice" or "duplicate PostToolUse".
+    if (ide === 'copilot' && !(0, lock_1.acquireOnce)(normalized)) {
+        (0, debug_log_1.debugLog)('skipped (duplicate, copilot-only dedup)');
         return;
     }
     const filePath = normalized.tool_input.file_path || '';

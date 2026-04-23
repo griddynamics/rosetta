@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatOutput = exports.normalize = exports.readStdin = void 0;
+exports.detectIDE = exports.formatOutput = exports.normalize = exports.readStdin = void 0;
 // Slim adapter for core-claude bundle — only claude-code detection, zero other IDE code.
 const claude_code_1 = require("../adapters/claude-code");
 const readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
@@ -24,3 +24,5 @@ const normalize = (rawInput) => claude_code_1.claudeCode.normalize(rawInput);
 exports.normalize = normalize;
 const formatOutput = (canonical, _ide) => claude_code_1.claudeCode.formatOutput(canonical);
 exports.formatOutput = formatOutput;
+const detectIDE = (_raw) => 'claude-code';
+exports.detectIDE = detectIDE;
