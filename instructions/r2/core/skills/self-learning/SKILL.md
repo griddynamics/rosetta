@@ -22,7 +22,8 @@ Memory:
 6. Consult AGENT MEMORY.md during planning.
 7. Init if missing; prefer agent memory over task memory.
 8. Convert root causes into GENERALIZED, REUSABLE preventive rules — not incident-specific notes.
-9. Store in AGENT MEMORY.md concisely.
+9. Store in AGENT MEMORY.md concisely and organized.
+10. Record what worked and failed logically, architecturally, and technically.
 
 </process>
 

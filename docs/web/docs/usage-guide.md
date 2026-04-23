@@ -99,7 +99,7 @@ The main development workflow. Scales with task size: small tasks skip phases ma
 </details>
 
 <details markdown="1">
-<summary><b>Requirements Authoring</b></summary>
+<summary><b>Requirements Documentation Authoring</b></summary>
 
 Produces structured, testable, approved requirements. Saves to `docs/REQUIREMENTS/`.
 
@@ -295,7 +295,7 @@ Reusable units of work that workflows and subagents invoke. Each skill focuses o
 | **Debugging** | Root cause investigation before attempting fixes for errors, test failures, unexpected behavior |
 | **Load Context** | Fast, automated loading of current project context for planning and understanding user intent |
 | **Reverse Engineering** | Extract what a system does and why from source files, stripped of implementation details |
-| **Requirements Authoring** | Atomic requirement units with EARS format, explicit user approval, and traceability |
+| **Requirements Documentation Authoring** | Atomic requirement units with EARS format, explicit user approval, and traceability |
 | **Requirements Use** | Consume approved requirements to drive planning, implementation, and validation |
 | **Coding Agents Prompt Adaptation** | Adapt prompts from one coding agent/IDE to another while preserving intent and strategy |
 | **Large Workspace Handling** | Partition large workspaces (100+ files) into scoped subagent tasks |

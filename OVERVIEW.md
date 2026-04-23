@@ -60,7 +60,7 @@ These terms are defined here and referenced everywhere else.
 
 Your IDE and coding agent ask Rosetta for instructions on each request.
 
-**Request types.** Twelve workflow types cover the SDLC: coding, requirements authoring, automated QA, test generation, research, initialization, modernization, external library onboarding, code analysis, coding agents prompting, help, and ad-hoc. See the [Usage Guide — Workflows](USAGE_GUIDE.md#workflows) for details on each.
+**Request types.** Twelve workflow types cover the SDLC: coding, requirements documentation authoring, automated QA, test generation, research, initialization, modernization, external library onboarding, code analysis, coding agents prompting, help, and ad-hoc. See the [Usage Guide — Workflows](USAGE_GUIDE.md#workflows) for details on each.
 
 **Standard pattern (P-RPA).** Every workflow follows Prepare, Research, Plan, Act. Each phase can involve subagents, skills, and HITL approval gates.
 

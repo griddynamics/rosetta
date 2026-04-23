@@ -9,11 +9,12 @@ baseSchema: docs/schemas/skill.md
 
 <process>
 
-1. DO NOT read, query, store, write, log, or distribute sensitive information.
+1. DO NOT read, query, store, tell, write, log, or distribute sensitive information.
 2. IF encountered — report without exposing raw value.
 3. IF needed as-is — MUST ask explicit user approval first.
 4. User may override (mocked data).
-5. MASK immediately using `[REDACTED:<type>]` (e.g. `[REDACTED:API_KEY]`).
+5. NEVER output, echo, print, log, summarize, or reference the raw value of any sensitive data in chat or in any file.
+6. MASK immediately using `[REDACTED:<type>]` (e.g. `[REDACTED:API_KEY]`, `[REDACTED:PASSWORD]`).
 
 </process>
 

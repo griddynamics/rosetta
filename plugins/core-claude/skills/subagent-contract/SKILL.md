@@ -18,19 +18,23 @@ Identity:
 Input contract:
 
 4. Prompt starts with: role, [lightweight|full] type, plan.json path, phase/task id, SMART tasks, required and recommended skills.
-5. All context comes from orchestrator prompt.
+5. All context comes from orchestrator prompt. You know nothing except shared bootstrap, prep steps, and this contract. Expect original user request/intent to be provided.
 6. Lightweight = small clear tasks. Full = specialized, larger work with Rosetta prep steps.
+7. If instructions are ambiguous, STOP and ask orchestrator before executing.
 
 Output contract:
 
-7. Write to unique file path defined by orchestrator.
-8. Return: results, summary, side effects, anomalies, discoveries, deviations, insights.
+8. Write to unique file path defined by orchestrator.
+9. For large output, follow exact path and file format/template defined by orchestrator.
+10. Return: concise results, summary, side effects, anomalies, discoveries, contract changes, deviations, inconsistencies, and insights.
 
 Behavior:
 
-9. MUST STOP and EXPLAIN if cannot execute as requested.
-10. Do not improvise beyond scope.
-11. Subagents ask orchestrator; orchestrator asks user.
+11. MUST STOP and EXPLAIN if cannot execute as requested or off-plan.
+12. Do not improvise beyond scope.
+13. Keep standard agent tools available as required.
+14. Initialize required skills on start.
+15. Subagents ask orchestrator; orchestrator asks user.
 
 </process>
 

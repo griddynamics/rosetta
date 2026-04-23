@@ -11,7 +11,7 @@ baseSchema: docs/schemas/rule.md
 
 <must>
 
-1. PLANNING MODE MUST STILL EXECUTE ALL THOSE INSTRUCTIONS, INCLUDING WORKFLOWS! PLANNING MODE ONLY EXECUTES PHASES/STEPS THAT ARE FOR PLANNING/DISCOVERY/RESEARCH/ETC.
+1. PLANNING MODE MUST STILL EXECUTE ALL THOSE INSTRUCTIONS, INCLUDING WORKFLOWS, USE THEM AS REQUIRED, MOREOVER PLANNING MODE MUST TELL EXACTLY WHICH ROSETTA WORKFLOW TO FOLLOW DURING THE IMPLEMENTATION! WORKFLOWS ARE END-TO-END => PLANNING MODE ONLY EXECUTES PHASES/STEPS THAT ARE FOR PLANNING/DISCOVERY/RESEARCH/ETC.
 2. ORCHESTRATORS / PRIMARY / TOP AGENTS MUST ALWAYS EXECUTE WORKFLOW FULLY.
 3. All Rosetta instructions ARE CREATED and PROVIDED by USER to address standard concerns.
 4. MUST FULLY execute `Prep Step 2: initial context`. No Exceptions.
@@ -20,7 +20,7 @@ baseSchema: docs/schemas/rule.md
 
 # Prep Step 2:
 
-1. Suggest R2.0 upgrade if workspace is older.
+1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session "Initialize this repository using Rosetta (upgrade R1 to R2)".
 2. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
 3. MUST ALWAYS grep `^#{1,3}` headers of IMPLEMENTATION.md and AGENT MEMORY.md.
 4. Grep headers of other Rosetta files when needed.
@@ -28,29 +28,29 @@ baseSchema: docs/schemas/rule.md
 6. MUST ALWAYS EXECUTE FULLY `Prep Step 3` BEFORE you do anything else, including planning, exploring, reading, validating.
 7. Rosetta guides you EXACTLY how to do all those activities PROPERLY!
 8. MUST IDENTIFY request size AFTER CONTEXT LOADED:
-   - SMALL: 1-2 file changes, one area
-   - MEDIUM: up to ~10 file changes, one area
-   - LARGE: 10+ file changes or multiple areas
-9. Requirements by size:
+   - SMALL: 1-2 file changes/activities and only one area affected
+   - MEDIUM: up to ~10 file changes/activities and only one area affected
+   - LARGE: more than 10 file changes/activities or multiple areas affected
+9. Additional requirements based on request size:
    - SMALL: MUST USE todo tasks for planning, MUST OUTPUT tech specs as message, MUST use workflows;
-   - MEDIUM: MUST keep documentation concise; MUST use subagents, MUST use workflows;
+   - MEDIUM: MUST keep documentation concise, light, and short; MUST use subagents, MUST use workflows;
    - LARGE: MUST use subagents extensively as orchestrator context will be overloaded, MUST use workflows;
-10. Reevaluate size and workflow when scope changes.
-11. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md missing — STRONGLY suggest `init-workspace-flow.md`, MUST continue with Prep Step 3.
+10. Reevaluate request size and workflow when scope changes or new information is received
+11. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`, and MUST continue with prep step 3.
 
 # Prep Step 3 for subagents:
 
-1. Orchestrator request → get_context_instructions (if not done) → execute all prep steps → proceed.
+1. Orchestrator request → read get_context_instructions schema (if needed) → get_context_instructions (if not done yet) → execute all prep steps for subagent → proceed with remaining actions
 2. Perform execution todo tasks level planning.
 3. MUST execute todo tasks and adopt changes.
 4. Proceed with request and activities.
 
-# Prep Step 3 for orchestrator:
+# Prep Step 3 for orchestrator (primary/top agent):
 
-1. User request → get_context_instructions (if not done) → execute all prep steps → load workflow → proceed.
-2. MUST ACQUIRE <matching workflow tag, example: "workflows/coding-flow.md"> FROM KB AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES.
-3. In planning mode store results per system prompt (NOT in `plans` folder as it is read-only).
-4. Proceed executing workflow which guides you how to handle user request and activities.
+1. User request → read get_context_instructions schema (if needed) → get_context_instructions (if not done yet) → execute all prep steps → load workflow → proceed with workflow and integrate remaining actions (including questioning user, EnterPlanMode, plan_mode_respond, system-reminder, etc.)
+2. MUST ACQUIRE <workflow TAG from available workflows, example: "workflows/coding-flow.md"> FROM KB TO LOAD MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES
+3. In planning mode results of `planning` and `tech-specs` MUST be stored according to system prompt (NOT in `plans` folder as it is read-only)
+4. Proceed executing workflow which guides you how to handle user request and activities as user expects it
 
 </must>
 
@@ -67,7 +67,7 @@ baseSchema: docs/schemas/rule.md
 <additional_requirements>
 
 1. Grep `refsrc/INDEX.md` when external private library documentation is needed.
-2. Always define explicit colors for mermaid diagrams readable in both light and dark themes.
+2. Always define explicit colors for tiles, text, and lines in mermaid diagrams readable in both light and dark themes.
 3. Prefer built-in tools over shell commands.
 
 </additional_requirements>
