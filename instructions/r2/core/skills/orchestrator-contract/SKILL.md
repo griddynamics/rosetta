@@ -52,7 +52,10 @@ RECOMMEND USE SKILL [recommended skill].
 [specific task, full context, and references — subagents know nothing except shared bootstrap, prep steps, and this contract; provide everything needed]
 
 ## Output
-[unique output file path per subagent and format; for large output define exact path and required file format/template; or expected report-back summary — include only what applies]
+[output can be just response message or written to file (or both - based on the task and expected volume); unique output file path per subagent and format if output to file is needed; for large output define exact path and required file format/template; or expected report-back summary — include only what applies]
+
+## Evidence
+[require that all claims, findings, and recommendations include proofs, references, and deep links with line ranges; include brief source quotes; explicitly distinguish verified facts from assumptions]
 
 [additional information, requirements, specifications, context, etc.]
 """
