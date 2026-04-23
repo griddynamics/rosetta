@@ -49,6 +49,7 @@ Determines workspace state before any changes occur. Without accurate mode detec
 
 <pitfalls>
 - Plugin mode is a context-sentence check, not filesystem detection
+- `rosetta@rosetta` is not a plugin; any other plugin type falls into plugin mode
 - Do not assume install if state file is fresh — files may exist on disk
 - Composite requires sub-repository docs, not just multiple directories
 </pitfalls>

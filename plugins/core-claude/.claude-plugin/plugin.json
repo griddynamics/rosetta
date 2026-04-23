@@ -20,17 +20,5 @@
     "knowledge-base"
   ],
   "commands": "./workflows/",
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/.claude-plugin/rosetta-bootstrap.sh\""
-          }
-        ]
-      }
-    ]
-  }
+  "hooks": "./hooks/hooks.json"
 }

@@ -25,6 +25,12 @@ When a user explicitly approves a concrete workaround implementation shape, exec
 ### Wait For PyPI Visibility Before Publishing Dependent Packages [ACTIVE]
 When one package pins a just-published sibling package version, gate the dependent publish on the upstream PyPI JSON endpoint returning 200 for that exact version instead of trusting workflow completion timing alone.
 
+### Keep Generators Generic And Content-Agnostic [ACTIVE]
+When building template-based generators, separate the generic replacement engine from content production. Hardcoding domain logic inside the replacer blocks reuse and extensibility.
+
+### Verify Target Runtime Capabilities Before Generating Code That References Them [ACTIVE]
+Always confirm that assumed env vars, APIs, or runtime features actually exist in the target platform before generating code that depends on them.
+
 ## What Worked
 
 ### Inspecting Upstream `action.yml` With `gh api` Separates Repo Fixes From Upstream Limits [ACTIVE]
