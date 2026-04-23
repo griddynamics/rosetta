@@ -82,6 +82,7 @@ var readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
 });
 var normalize2 = (rawInput) => cursor.normalize(rawInput);
 var formatOutput2 = (canonical, _ide) => cursor.formatOutput(canonical);
+var detectIDE = (_raw) => "cursor";
 
 // src/lock.ts
 var import_fs = require("fs");
@@ -194,14 +195,15 @@ var main = async ({
 } = {}) => {
   const raw = await readStdin(stdin);
   debugLog("raw input received", { hook_event_name: raw.hook_event_name });
+  const ide = detectIDE(raw);
   const normalized = normalize2(raw);
-  debugLog("normalized", { session_id: normalized.session_id, tool_name: normalized.tool_name });
+  debugLog("normalized", { ide, session_id: normalized.session_id, tool_name: normalized.tool_name });
   if (!shouldCheck(normalized)) {
     debugLog("skipped (shouldCheck=false)");
     return;
   }
-  if (!acquireOnce(normalized)) {
-    debugLog("skipped (duplicate)");
+  if (ide === "copilot" && !acquireOnce(normalized)) {
+    debugLog("skipped (duplicate, copilot-only dedup)");
     return;
   }
   const filePath = normalized.tool_input.file_path || "";

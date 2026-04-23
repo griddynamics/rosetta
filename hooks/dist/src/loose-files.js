@@ -87,7 +87,6 @@ const main = async ({ stdin = process.stdin, stdout = process.stdout, } = {}) =>
     }
     // Copilot CLI invokes PostToolUse twice per tool call (known Microsoft bug).
     // TODO(remove-when-fixed): drop this guard once the duplicate-invocation bug is fixed upstream.
-    // Tracking: search https://github.com/github/gh-copilot/issues for "hook invoked twice" or "duplicate PostToolUse".
     if (ide === 'copilot' && !(0, lock_1.acquireOnce)(normalized)) {
         (0, debug_log_1.debugLog)('skipped (duplicate, copilot-only dedup)');
         return;
