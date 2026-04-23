@@ -354,18 +354,18 @@ def build_bootstrap_replacements(dest_dir: Path) -> tuple[dict[str, str], int]:
 
         claude_entries.append({
             "type": "command",
-            "command": f'{_bash_lock(n)}; printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{escaped}"}}}}\'',
+            "command": f'printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{escaped}"}}}}\'',
             "once": True,
         })
         codex_entries.append({
             "type": "command",
-            "command": f'{_bash_lock(n)}; printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{escaped}"}}}}\'',
+            "command": f'printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{escaped}"}}}}\'',
             "statusMessage": "Loading Rosetta bootstrap",
             "timeout": 30,
         })
         cursor_entries.append({
             "type": "command",
-            "command": f'{_bash_lock(n)}; printf \'%s\' \'{{"additional_context":"{escaped}"}}\'',
+            "command": f'printf \'%s\' \'{{"additional_context":"{escaped}"}}\'',
         })
         copilot_entries.append({
             "type": "command",
