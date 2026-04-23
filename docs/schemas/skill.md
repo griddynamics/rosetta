@@ -53,7 +53,7 @@ baseSchema: docs/schemas/skill.md
 
 <core_concepts>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 
 [Optional, KEEP THIS VERY SHORT, Describe the fundamental concepts, principles, definitions and explanations required to properly execute the skill]
 

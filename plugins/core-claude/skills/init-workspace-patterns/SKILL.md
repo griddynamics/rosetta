@@ -18,7 +18,7 @@ Codebases accumulate implicit recurring structures that drift without formal doc
 
 <core_concepts>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - ACQUIRE `reverse-engineering/SKILL.md` FROM KB — apply "Would we rebuild this?" test: pattern = recurring structure surviving a from-scratch rewrite; one-off = historical accident
 - Pattern qualifies only if found in 2+ places
 

@@ -20,7 +20,7 @@ Validation: all Rosetta content exists as local files, root entry point triggers
 
 <core_concepts>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Rules consumed by AI agents, not humans
 - **Full-copy mode** — copies complete file content from Rosetta to local workspace
 - **Adapt** — copy content AS-IS; adapt ONLY IDE format: extension, frontmatter, directory. Never rewrite instruction content.

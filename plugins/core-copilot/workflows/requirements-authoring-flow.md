@@ -13,7 +13,8 @@ Prevents premature drafting by enforcing HITL gates where every `<req>` unit rec
 
 <workflow_phases>
 
-Every phase MUST update `requirements-authoring-flow-state.md` in FEATURE TEMP with: phase name, status, artifact produced, and open questions.
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed (get_context_instructions called and all three prep steps completed).
+- Every phase MUST update `requirements-authoring-flow-state.md` in FEATURE TEMP with: phase name, status, artifact produced, and open questions.
 
 <discovery phase="1" priority="must" subagent="requirements-engineer" role="Context analyst collecting project and scope signals">
 

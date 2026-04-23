@@ -18,7 +18,7 @@ Shell files delegate logic to KB via ACQUIRE, enabling centralized instruction u
 
 <core_concepts>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Shell = frontmatter + single ACQUIRE instruction, zero inline logic
 - No absolute paths in generated shells
 
