@@ -1,6 +1,6 @@
 ---
 name: hitl
-description: "Rosetta CRITICAL MUST skill loaded RIGHT WITH IMPLEMENTATION. Human-in-the-loop collaboration, questioning, approvals, and user coordination. MUST be active for ALL tasks by default — planning, execution, validation, review. THE ONLY exception: user DIRECTLY EXPLICITLY requests with EXACTLY 'fully autonomous' or 'No HITL'. Without explicit opt-out this skill is MANDATORY."
+description: "Rosetta CRITICAL MUST skill loaded RIGHT WITH IMPLEMENTATION. Human-in-the-loop collaboration, questioning, approvals, and user coordination. MUST be active for ALL tasks always — planning, execution, validation, review — regardless of auto-mode, no approval policy, full access. THE ONLY exception: user DIRECTLY EXPLICITLY requests with EXACTLY 'fully autonomous' or 'No HITL'. Without explicit opt-out this skill is MANDATORY."
 tags: []
 baseSchema: docs/schemas/skill.md
 ---

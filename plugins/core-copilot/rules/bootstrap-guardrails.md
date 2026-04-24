@@ -28,15 +28,48 @@ baseSchema: docs/schemas/rule.md
 
 <skill_engagement_rules>
 
-MUST USE SKILL `hitl`. HITL is MANDATORY for ALL tasks by default — planning, execution, validation, review - no assumption or guessing. THE ONLY exception: user DIRECTLY EXPLICITLY requests with EXACTLY "fully autonomous" or "No HITL". YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar. MUST NOT assume anything—even reasonably. Do not assume approval from a question or a partial response.
-MUST USE SKILL `deviation` — on intent drift, surprise, unknowns, panic, UNDO.
-MUST USE SKILL `dangerous-actions` — on potentially dangerous or irreversible actions or consequences. MUST ALWAYS assess BLAST RADIUS first.
-MUST USE SKILL `sensitive-data` — on any sensitive or possibly sensitive data encountered. NEVER output, echo, print, log, summarize, or reference raw value of any sensitive data.
-MUST USE SKILL `risk-assessment` — before interacting with external environments.
-MUST USE SKILL `self-learning` — on failures, mismatches, or user unhappiness.
-MUST USE SKILL `orchestrator-contract` — when you are the orchestrator. Orchestrator is explicit and provides full context to user.
-MUST USE SKILL `subagent-contract` — when you are a subagent. Subagent knows nothing except shared bootstrap, prep steps, and this contract.
-SHOULD USE SKILL `self-organization` — on high context, large scope, or long conversations.
+"USE SKILL `X`" means calling the Skill with name `X`. Referencing the name or reconstructing behavior from memory does NOT satisfy this rule. If `X` is not loaded, discover it via ToolSearch or Skill.
+
+<prep_step_bound>
+<!-- Invoked as part of the numbered prep steps, not in parallel. -->
+
+- `load-context` — canonical current context loader, required by Prep Step 2
+- `orchestrator-contract` — required by Prep Step 3 (orchestrator), as FIRST action, before spawning any subagents, defines orchestrator role and required actions
+- `subagent-contract` — required by Prep Step 3 (subagent), as FIRST action, before reading inputs, defines subagent role and required actions
+- `hitl` — loaded by Prep Step 3 (orchestrator) for continuous enforcement
+
+</prep_step_bound>
+
+<always_on>
+<!-- Continuously active. Re-evaluate every turn. -->
+
+- MUST USE SKILL `hitl` ALWAYS. IT CHANGES HOW YOU ARE SUPPOSED TO WORK WITH USER. HITL is MANDATORY for ALL tasks by default — planning, execution, validation, review - no assumption or guessing. THE ONLY exception: user DIRECTLY EXPLICITLY requests with EXACTLY "fully autonomous" or "No HITL". YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar. MUST NOT assume anything—even reasonably. Do not assume approval from a question or a partial response.
+- MUST USE SKILL `sensitive-data` — on any sensitive or possibly sensitive data encountered or could be encountered. NEVER output, echo, print, log, summarize, or reference raw values.
+- MUST USE SKILL `self-learning` — on failures, mismatches, or user unhappiness.
+
+</always_on>
+
+<action_gated>
+<!-- Fire BEFORE the named action. -->
+
+- MUST USE SKILL `risk-assessment` — after discovery and before any implementation or changes, including any interaction with external environments (MCPs, CLIs, scripts, databases, cloud, S3, network beyond the local repo).
+- MUST USE SKILL `dangerous-actions` — on potentially dangerous, irreversible, or high-blast-radius actions. MUST ALWAYS assess BLAST RADIUS first.
+
+</action_gated>
+
+<event_triggered>
+<!-- Fire when the trigger condition is detected. -->
+
+- MUST USE SKILL `deviation` — on intent drift, surprise, unknowns, panic, UNDO request.
+- MUST USE SKILL `questioning` — when a high-impact unknown blocks safe execution AND cannot be reasonably assumed.
+
+</event_triggered>
+
+<self_monitoring>
+
+- SHOULD USE SKILL `self-organization` — see the skill for triggers (context thresholds, scope thresholds, proactive planning, large-file restructuring, cleanup, user communication of intent).
+
+</self_monitoring>
 
 </skill_engagement_rules>
 

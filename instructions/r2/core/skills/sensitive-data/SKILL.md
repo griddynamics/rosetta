@@ -1,6 +1,6 @@
 ---
 name: sensitive-data
-description: "Rosetta CRITICAL MUST skill. MUST activate when you encounter, read, process, or are about to output any sensitive or possibly sensitive data including PII, PCI, HIPAA, PHI, GDPR, SOC2, FedRAMP, secrets, API keys, passwords, credentials, tokens, certificates, or any data that could potentially be sensitive."
+description: "Rosetta CRITICAL MUST skill. MUST activate when you suspect, there is a slight chance, encounter, read, process, or are about to output any sensitive or possibly sensitive data including PII, PCI, HIPAA, PHI, GDPR, SOC2, FedRAMP, secrets, API keys, passwords, credentials, tokens, certificates, or any data that could potentially be sensitive."
 tags: []
 baseSchema: docs/schemas/skill.md
 ---
@@ -9,7 +9,7 @@ baseSchema: docs/schemas/skill.md
 
 <process>
 
-1. DO NOT read, query, store, tell, write, log, or distribute sensitive information.
+1. DO NOT read, query, store, tell, write, log, or distribute any SENSITIVE information (PII, PCI, HIPAA, PHI, GDPR, SOC2, FedRAMP, Secrets, etc).
 2. IF encountered — report without exposing raw value.
 3. IF needed as-is — MUST ask explicit user approval first.
 4. User may override (mocked data).
