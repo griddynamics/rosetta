@@ -1,0 +1,19 @@
+{
+  "_source": "constructed-from-docs",
+  "_docs": "https://cursor.com/docs/reference/hooks",
+  "hook_event_name": "postToolUse",
+  "conversation_id": "conv-abc123",
+  "generation_id": "gen-xyz789",
+  "session_id": "session-cursor-001",
+  "model": "claude-sonnet-4-20250514",
+  "cursor_version": "2.4.0",
+  "workspace_roots": ["/proj"],
+  "user_email": null,
+  "transcript_path": null,
+  "tool_name": "Write",
+  "tool_input": { "file_path": "/proj/src/app.js", "content": "console.log('hello');\n" },
+  "tool_output": "{\"filePath\":\"/proj/src/app.js\"}",
+  "tool_use_id": "cursor-tu-001",
+  "cwd": "/proj",
+  "duration": 42
+}

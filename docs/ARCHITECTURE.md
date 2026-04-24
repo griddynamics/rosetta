@@ -511,6 +511,27 @@ All four are generated from a single source tree (`instructions/r2/core/`) by th
 
 Each plugin has a preserved config folder (`.claude-plugin/`, `.cursor-plugin/`, `.github/`, `.codex-plugin/`) containing the IDE-specific manifest (`plugin.json`) and any static configs. Everything outside that folder is generated — wiped and regenerated on each sync.
 
+### Hooks Runtime
+
+Hooks are lightweight scripts that run in response to IDE tool calls (PostToolUse, PreToolUse). They inject advisory context into the AI's context window — nothing is displayed directly to the user.
+
+Source lives in `hooks/` and is compiled per-IDE before sync:
+
+| Folder | Contents |
+|---|---|
+| `hooks/src/` | TypeScript source — adapter, lock, debug-log, loose-files hook |
+| `hooks/tests/` | `node:test` unit and integration tests + fixtures |
+| `hooks/scripts/` | esbuild bundler (`build-bundles.mjs`) |
+| `hooks/dist/bundles/` | Compiled per-IDE bundles (generated, not committed) |
+
+Each hook is bundled separately per IDE via esbuild so each bundle contains only its adapter code.
+
+- **IDE normalization** — `src/adapter.ts` detects the IDE from stdin shape and normalizes to a canonical `NormalizedInput`; detection order: codex > cursor > claude-code > windsurf > copilot
+- **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema
+- **Dedup guard** — Copilot CLI has a known bug where PostToolUse fires twice per call; `src/lock.ts` suppresses the duplicate and is active only in the Copilot bundle
+
+Hooks are distributed by `scripts/pre_commit.py`, which builds, tests, and copies bundles into `plugins/core-*/hooks/`. Do not edit `plugins/core-*/hooks/` directly — edit source in `hooks/src/` and re-run the script.
+
 ### Reference Sources (readonly, packages currently used)
 
 `refsrc/fastmcp-3.1.1` contains source code of FastMCP v3.

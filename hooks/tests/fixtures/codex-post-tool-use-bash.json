@@ -1,0 +1,15 @@
+{
+  "session_id": "sanitized-session_id",
+  "turn_id": "sanitized-turn_id",
+  "transcript_path": "/Users/dev/.codex/sessions/2026/04/10/rollout-2026-04-10T14-31-52-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.jsonl",
+  "cwd": "/private/tmp/hook-e2e-test",
+  "hook_event_name": "PostToolUse",
+  "model": "gpt-5-codex",
+  "permission_mode": "bypassPermissions",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "cd /private/tmp/hook-e2e-test && echo codex_hook_test > /tmp/codex_hook_test.txt && echo done"
+  },
+  "tool_response": "done\n",
+  "tool_use_id": "sanitized-tool_use_id"
+}

@@ -6,7 +6,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+/dist/
 downloads/
 eggs/
 .eggs/
@@ -20,6 +20,9 @@ wheels/
 .installed.cfg
 *.egg
 .pytest_cache/
+.serena
+tmp/
+docs/plans/
 
 # Virtual Environment
 venv/
@@ -77,3 +80,7 @@ _site/
 agents/TEMP/
 refsrc/
 !refsrc/INDEX.md
+
+# Hooks build output handled by hooks/.gitignore
+
+.claude

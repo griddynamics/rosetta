@@ -1,0 +1,14 @@
+{
+  "name": "rosetta-hooks",
+  "private": true,
+  "scripts": {
+    "build": "tsc && node scripts/build-bundles.mjs && mkdir -p dist/shell && cp -R shell/. dist/shell/",
+    "test": "npm run build && node --test 'dist/tests/*.test.js'",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.28.0",
+    "typescript": "^5.4.0"
+  }
+}

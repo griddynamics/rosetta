@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "command": "node .cursor/hooks/loose-files.js"
+      }
+    ]
+  }
+}

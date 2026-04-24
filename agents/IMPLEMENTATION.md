@@ -53,13 +53,27 @@ For detailed change history, use git history and PRs instead of expanding this f
 - A dedicated `version` command was added so package version inspection does not require config loading or auth.
 - Package metadata and publish flows were repaired to keep CI/CD and PyPI publishing functional.
 
+### Workspace Initialization
+
+- Rosetta workspace initialized (upgrade mode, 512 files): proxy shells generated for 17 skills, 7 agents, and 12 workflow commands under `.claude/`.
+- `gain.json` created defining SDLC setup and Rosetta file locations.
+- Workspace docs created: `TECHSTACK.md`, `CODEMAP.md`, `DEPENDENCIES.md`, `ASSUMPTIONS.md`.
+
+### Hooks — IDE Input Normalization
+
+- Added `hooks/src/adapter.ts`: normalizes IDE stdin to Claude Code canonical format. Exports `detectIDE`, `normalize`, `formatOutput`, `readStdin`. Per-IDE adapters in `hooks/src/adapters/`.
+- Added `hooks/src/loose-files.ts`: PostToolUse hook that nudges AI when `.py`/`.js` files lack a module marker (`__init__.py`/`package.json`). Exports `shouldCheck`, `isLooseFile`, `buildNudgeOutput` with injected `fs` for testability.
+- TDD: both modules have full test coverage in `hooks/tests/*.test.ts` using `node:test` (zero deps). TypeScript compiled to `hooks/dist/`; only `dist/src/` + `dist/shell/` ship to plugins.
+- Shared `hooks/shell/rosetta-bootstrap.sh` replaces 4 per-plugin copies; distributed to all plugin `hooks/` folders.
+- Build integrated into `scripts/pre_commit.py` via `build_hooks()` check before plugin sync.
+
 ### Instructions and Skills
 
 - Added `plan-manager` skill under `instructions/r2/core/skills/plan-manager/` — primary plan manager for coding agents via local JSON files.
 - Skill assets: `plan_manager.js` (CLI, no npm deps), `pm-schema.md` (data structure reference), `plan_manager.test.js` (60 unit tests).
 - Key behaviors: resume-safe `next` command returns `in_progress` steps with `resume: true` before `open` steps; plans stored at `plans/<name>/plan.json`; self-describing `help` command.
 - Converted `adhoc-flow-with-plan-manager` workflow to `USE SKILL plan-manager`; data structure externalized to `pm-schema.md`.
-- Plugins (`core-claude`, `core-cursor`) are auto-synced from core by `scripts/pre_commit.py`.
+- Plugins (`core-claude`, `core-cursor`, `core-copilot`, `core-codex`) are auto-synced from core by `scripts/plugin_generator.py`.
 
 ### Workflows and Automation
 

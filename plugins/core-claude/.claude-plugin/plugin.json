@@ -27,7 +27,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/.claude-plugin/rosetta-bootstrap.sh\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rosetta-bootstrap.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/loose-files.js\""
           }
         ]
       }

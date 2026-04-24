@@ -1,0 +1,18 @@
+{
+  "session_id": "abc-123-def",
+  "transcript_path": "/Users/dev/.claude/sessions/abc-123-def/transcript.jsonl",
+  "cwd": "/Users/dev/my-project",
+  "permission_mode": "default",
+  "hook_event_name": "PostToolUse",
+  "agent_id": "agent-456",
+  "agent_type": "code-reviewer",
+  "tool_name": "Write",
+  "tool_use_id": "toolu_04JKL",
+  "tool_input": {
+    "file_path": "/Users/dev/my-project/orphan.py",
+    "content": "print('hello')\n"
+  },
+  "tool_response": {
+    "filePath": "/Users/dev/my-project/orphan.py"
+  }
+}

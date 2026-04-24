@@ -1,0 +1,18 @@
+{
+  "_source": "constructed-from-docs",
+  "_docs": "https://docs.windsurf.com/windsurf/cascade/hooks",
+  "agent_action_name": "post_write_code",
+  "trajectory_id": "traj-abc123",
+  "execution_id": "exec-xyz789",
+  "timestamp": "2025-06-15T10:30:00Z",
+  "model_name": "claude-sonnet-4-20250514",
+  "tool_info": {
+    "file_path": "/proj/src/app.js",
+    "edits": [
+      {
+        "old_string": "",
+        "new_string": "console.log('hello');\n"
+      }
+    ]
+  }
+}

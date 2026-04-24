@@ -32,6 +32,44 @@ class PluginSyncSpec:
     codex_models: bool = False
     rename_agents: bool = False
     generated_indexes: tuple[str, ...] = ()
+    hook_subdir: Path | None = None
+
+
+def _get_plugin_specs(repo_root: Path) -> list[PluginSyncSpec]:
+    return [
+        PluginSyncSpec(
+            name="core-claude",
+            destination=repo_root / "plugins" / "core-claude",
+            preserved_folder=".claude-plugin",
+            normalize_models=True,
+            generated_indexes=("rules", "workflows"),
+            hook_subdir=Path("hooks"),
+        ),
+        PluginSyncSpec(
+            name="core-cursor",
+            destination=repo_root / "plugins" / "core-cursor",
+            preserved_folder=".cursor-plugin",
+            generated_indexes=("rules", "workflows"),
+            hook_subdir=Path(".cursor") / "hooks",
+        ),
+        PluginSyncSpec(
+            name="core-copilot",
+            destination=repo_root / "plugins" / "core-copilot",
+            preserved_folder=".github",
+            copilot_models=True,
+            rename_agents=True,
+            generated_indexes=("rules", "workflows"),
+            hook_subdir=Path(".github") / "plugin",
+        ),
+        PluginSyncSpec(
+            name="core-codex",
+            destination=repo_root / "plugins" / "core-codex",
+            preserved_folder=".codex-plugin",
+            codex_models=True,
+            generated_indexes=("rules", "workflows"),
+            hook_subdir=Path(".codex") / "hooks",
+        ),
+    ]
 
 
 def normalize_claude_model(value: str) -> str:
@@ -332,12 +370,20 @@ def generate_codex_subagents(destination: Path, core_source: Path) -> None:
 def generate_copilot_runtime_layout(destination: Path) -> None:
     plugin_dir = destination / ".github" / "plugin"
     copied = 0
-    for filename in ("hooks.json", ".mcp.json", "rosetta-bootstrap.sh", "rosetta-bootstrap.ps1"):
+    for filename in ("hooks.json", ".mcp.json", "loose-files.js", "rosetta-bootstrap.sh", "rosetta-bootstrap.ps1"):
         source = plugin_dir / filename
         if source.is_file():
             shutil.copy2(source, destination / filename)
             copied += 1
     print(f"      copied {copied} config(s) from .github/plugin/ to plugin root", flush=True)
+
+
+def generate_cursor_runtime_layout(destination: Path) -> None:
+    source_hooks = destination / ".cursor-plugin" / "hooks.json"
+    cursor_hooks = destination / ".cursor" / "hooks.json"
+    if source_hooks.is_file():
+        _replace_tree(source_hooks, cursor_hooks)
+        print("      copied .cursor/hooks.json for core-cursor", flush=True)
 
 
 def generate_codex_runtime_layout(destination: Path) -> None:
@@ -381,36 +427,7 @@ def sync_generated_plugins(repo_root: Path) -> int:
         print(f"ERROR: Core source folder not found: {core_source}", file=sys.stderr)
         return 1
 
-    plugin_specs = [
-        PluginSyncSpec(
-            name="core-claude",
-            destination=repo_root / "plugins" / "core-claude",
-            preserved_folder=".claude-plugin",
-            normalize_models=True,
-            generated_indexes=("rules", "workflows"),
-        ),
-        PluginSyncSpec(
-            name="core-cursor",
-            destination=repo_root / "plugins" / "core-cursor",
-            preserved_folder=".cursor-plugin",
-            generated_indexes=("rules", "workflows"),
-        ),
-        PluginSyncSpec(
-            name="core-copilot",
-            destination=repo_root / "plugins" / "core-copilot",
-            preserved_folder=".github",
-            copilot_models=True,
-            rename_agents=True,
-            generated_indexes=("rules", "workflows"),
-        ),
-        PluginSyncSpec(
-            name="core-codex",
-            destination=repo_root / "plugins" / "core-codex",
-            preserved_folder=".codex-plugin",
-            codex_models=True,
-            generated_indexes=("rules", "workflows"),
-        ),
-    ]
+    plugin_specs = _get_plugin_specs(repo_root)
 
     for spec in plugin_specs:
         print(f"   syncing {spec.name}", flush=True)
@@ -420,7 +437,55 @@ def sync_generated_plugins(repo_root: Path) -> int:
             generate_folder_index(spec.destination, folder_name)
         if spec.name == "core-copilot":
             generate_copilot_runtime_layout(spec.destination)
+        if spec.name == "core-cursor":
+            generate_cursor_runtime_layout(spec.destination)
         if spec.name == "core-codex":
             generate_codex_subagents(spec.destination, core_source)
             generate_codex_runtime_layout(spec.destination)
+    return 0
+
+
+def sync_hooks_into_plugins(repo_root: Path) -> int:
+    hooks_bundles_dist = repo_root / "hooks" / "dist" / "bundles"
+    hooks_shell_dist = repo_root / "hooks" / "dist" / "shell"
+
+    if not hooks_bundles_dist.is_dir() or not hooks_shell_dist.is_dir():
+        print(
+            "ERROR: hooks build output missing — run `npm --prefix hooks run build`",
+            file=sys.stderr,
+        )
+        return 1
+
+    for spec in _get_plugin_specs(repo_root):
+        if spec.hook_subdir is None:
+            continue
+        bundle_src = hooks_bundles_dist / spec.name
+        if not bundle_src.is_dir():
+            print(f"      skipped {spec.destination.name}: no bundle at dist/bundles/{spec.name}", flush=True)
+            continue
+        target = spec.destination / spec.hook_subdir
+        if target.is_symlink():
+            target.unlink()  # remove old symlink into instructions/
+
+        # Preserve files not managed by the hook bundle (e.g. hooks.json, plugin.json).
+        # Compute the set of filenames the bundle + shell will supply, then save everything else.
+        managed_names = (
+            {f.name for f in bundle_src.rglob("*") if f.is_file()}
+            | {f.name for f in hooks_shell_dist.rglob("*") if f.is_file()}
+        )
+        preserved: dict[str, bytes] = {}
+        if target.is_dir():
+            for entry in target.iterdir():
+                if entry.is_file() and entry.name not in managed_names:
+                    preserved[entry.name] = entry.read_bytes()
+
+        shutil.rmtree(target, ignore_errors=True)
+        shutil.copytree(bundle_src, target, dirs_exist_ok=True)
+        shutil.copytree(hooks_shell_dist, target, dirs_exist_ok=True)
+
+        for fname, content in preserved.items():
+            (target / fname).write_bytes(content)
+
+        print(f"      synced hooks into {spec.destination.name}/{spec.hook_subdir}", flush=True)
+
     return 0
