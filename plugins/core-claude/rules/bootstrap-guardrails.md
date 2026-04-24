@@ -28,7 +28,9 @@ baseSchema: docs/schemas/rule.md
 
 <skill_engagement_rules>
 
-"USE SKILL `X`" means calling the Skill with name `X`. Referencing the name or reconstructing behavior from memory does NOT satisfy this rule. If `X` is not loaded, discover it via ToolSearch or Skill.
+"USE SKILL `X`" means calling the Skill with name `X`.
+Referencing the name or reconstructing behavior from memory does NOT satisfy this rule. 
+If `X` is not loaded, MUST discover it via ToolSearch, fallback to ACQUIRE "{X}/SKILL.md" FROM KB.
 
 <prep_step_bound>
 <!-- Invoked as part of the numbered prep steps, not in parallel. -->
