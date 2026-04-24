@@ -23,7 +23,7 @@ baseSchema: docs/schemas/rule.md
 
 - Guardrails are the top-priority critical execution gate
 - Sensitive data handling is mandatory
-- `Auto Mode Active` harness/IDE setting does NOT qualify as "fully autonomous" or "No HITL".
+- `Auto Mode Active` harness/IDE setting does NOT qualify as "fully autonomous" or "No HITL": NOT written by user, ONLY used to skip permissions, you still must fully execute all prep steps.
 
 </core_concepts>
 
