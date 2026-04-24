@@ -150,15 +150,39 @@ Internal architecture requirements for rosettify.
 
 <req id="FR-ARCH-0011" type="FR" level="System">
   <title>All run delegates return a common output envelope</title>
-  <statement>Every run delegate SHALL return a common JSON envelope: {ok: boolean, result: object|null, error: string|null, include_help: boolean}. On success: ok=true, result contains command-specific data, error=null, include_help=false. On failure: ok=false, result=null, error contains the error code (with optional detail), include_help=true when the error is related to incorrect usage (bad subcommand, invalid params, unrecognized input). Only the delegate knows what to return — it owns the envelope. Frontends (CLI, MCP) adapt the envelope to their transport format.</statement>
-  <rationale>Uniform contract between delegates and frontends.</rationale>
+  <statement>Every run delegate SHALL return a common JSON envelope: {ok: boolean, result: object|null, error: string|null, include_help: boolean}. On success: ok=true, result contains command-specific data, error=null, include_help=false. On failure: ok=false, result=null, error contains the error code (with optional detail), include_help=true when the error is related to incorrect usage (bad subcommand, invalid params, unrecognized input). Only the delegate knows what to return — it owns the envelope. The envelope is an INTERNAL contract between run delegates, the dispatch/enrichment layer, and frontends. It is never directly serialized and sent to the consumer. Frontends analyze the envelope and transform it into appropriate output per FR-ARCH-0014.</statement>
+  <rationale>Uniform contract between delegates and frontends. Keeping the envelope internal allows frontends to produce clean, consumer-appropriate output without exposing implementation internals.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: any run delegate returning success. Then: {ok: true, result: {...}, error: null, include_help: false}. Given: run delegate returning usage error. Then: {ok: false, result: null, error: "...", include_help: true}. Given: run delegate returning runtime error (e.g., plan_not_found). Then: {ok: false, result: null, error: "plan_not_found", include_help: false}.</criteria>
+    <criteria>Given: any run delegate returning success. Then: {ok: true, result: {...}, error: null, include_help: false}. Given: run delegate returning usage error. Then: {ok: false, result: null, error: "...", include_help: true}. Given: run delegate returning runtime error (e.g., plan_not_found). Then: {ok: false, result: null, error: "plan_not_found", include_help: false}. In all cases: the consumer-facing output never contains the envelope wrapper — only the extracted payload (FR-ARCH-0014).</criteria>
+  </acceptance>
+</req>
+
+## FR-ARCH-0014 Frontend Output Transformation
+
+<req id="FR-ARCH-0014" type="FR" level="System">
+  <title>Frontends transform EnrichedEnvelope into consumer-appropriate output</title>
+  <statement>Frontends (CLI, MCP) SHALL analyze the final EnrichedEnvelope produced by the dispatch layer and transform it into appropriate output. The envelope is INTERNAL — its structure ({ok, result, error, include_help, help}) SHALL NEVER be directly serialized as the output payload.
+
+Transformation rules:
+- ok=true: extract and output only the `result` field.
+- ok=false: extract and output a sanitized error payload containing: the `error` string and, if present, the `help` field. Output SHALL NOT include stack traces, internal implementation paths, or security-sensitive details. The error message SHALL be sufficient for an AI agent to understand what went wrong and how to correct its invocation.
+
+Additionally, regardless of outcome, all failures (ok=false) SHALL be logged by the frontend via the shared logger before output is written (FR-SHRD-0007).</statement>
+  <rationale>Exposing the envelope wrapper leaks internal implementation details to consumers and forces them to unwrap a layer that is meaningless to them. Clean output reduces AI agent parsing complexity and prevents accidental dependency on internal fields.</rationale>
+  <source>User</source>
+  <ticketId>CTORNDGAIN-1333</ticketId>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: dispatch returns {ok: true, result: {plan_file: "x.json", name: "plan", status: "open"}, error: null, include_help: false}. When: CLI or MCP outputs result. Then: consumer receives {plan_file: "x.json", name: "plan", status: "open"} — no ok, no error, no include_help fields.
+Given: dispatch returns {ok: false, result: null, error: "plan_not_found", include_help: false}. When: CLI or MCP outputs failure. Then: consumer receives {error: "plan_not_found"} — no ok, no result, no include_help fields. Failure also logged.
+Given: dispatch returns {ok: false, error: "unknown_command: foo | valid: ...", include_help: true, help: {...}}. When: CLI or MCP outputs failure. Then: consumer receives {error: "unknown_command: foo | valid: ...", help: {...}} — no ok, no result, no include_help fields. Failure also logged.</criteria>
   </acceptance>
 </req>
 

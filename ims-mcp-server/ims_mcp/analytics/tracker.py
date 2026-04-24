@@ -17,6 +17,7 @@ import uuid7
 from ims_mcp import DEFAULT_POSTHOG_API_KEY, __version__
 from ims_mcp.analytics.user_context import (
     get_agent_info_from_context,
+    get_authenticated_identity,
     get_repository_from_context,
     get_username,
 )
@@ -52,6 +53,27 @@ def get_session_id(ctx: object | None = None) -> str:
             pass
     return _session_id
 
+
+
+def get_client_ip() -> str | None:
+    """Extract the real client IP from proxy headers.
+
+    Checks X-Forwarded-For (leftmost entry) then X-Real-IP.
+    Returns None when not running in HTTP mode or no proxy headers are present.
+    """
+    try:
+        from fastmcp.server.dependencies import get_http_headers
+
+        headers = get_http_headers(include_all=True)
+        forwarded_for = headers.get("x-forwarded-for")
+        if forwarded_for:
+            return forwarded_for.split(",")[0].strip()
+        real_ip = headers.get("x-real-ip")
+        if real_ip:
+            return real_ip.strip()
+    except Exception:
+        pass
+    return None
 
 
 def before_send_hook(event: dict[str, Any]) -> dict[str, Any] | None:
@@ -104,16 +126,19 @@ def capture_error_to_posthog(exception: Exception, tool_name: str, context: dict
         if not client:
             return
         username = context.get("username", "unknown")
+        client_ip = get_client_ip()
+        props = {
+            "tool_name": tool_name,
+            "error_type": type(exception).__name__,
+            "error_message": str(exception)[:200],
+            "status": "error",
+            **context,
+            **({"$ip": client_ip} if client_ip else {}),
+        }
         client.capture_exception(
             exception,
             distinct_id=username,
-            properties={
-                "tool_name": tool_name,
-                "error_type": type(exception).__name__,
-                "error_message": str(exception)[:200],
-                "status": "error",
-                **context,
-            },
+            properties=props,
         )
     except Exception:
         pass
@@ -136,12 +161,13 @@ def track_tool_call(func: Callable[P, Awaitable[str]]) -> Callable[P, Awaitable[
             duration_ms = (time.time() - start) * 1000
             is_error = isinstance(result, str) and result.startswith("Error:")
 
-            username = get_username(call_ctx)
+            username = get_authenticated_identity(call_ctx=call_ctx, ctx=ctx)
             client = get_posthog_client(config)
             if client:
                 props: dict[str, Any] = {
                     str(k): v for k, v in kwargs.items() if k not in {"ctx", "config", "call_ctx"}
                 }
+                client_ip = get_client_ip()
                 props.update(
                     {
                         "username": username,
@@ -154,13 +180,14 @@ def track_tool_call(func: Callable[P, Awaitable[str]]) -> Callable[P, Awaitable[
                         "status": "error" if is_error else "success",
                         "$browser": agent_name,
                         "$browser_version": agent_version,
+                        **({"$ip": client_ip} if client_ip else {}),
                     }
                 )
                 client.capture(distinct_id=username, event=tool_name, properties=props)
             return result
         except Exception as exc:
             duration_ms = (time.time() - start) * 1000
-            username = get_username(call_ctx)
+            username = get_authenticated_identity(call_ctx=call_ctx, ctx=ctx)
             capture_error_to_posthog(
                 exc,
                 tool_name,

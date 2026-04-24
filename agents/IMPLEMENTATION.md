@@ -53,6 +53,14 @@ For detailed change history, use git history and PRs instead of expanding this f
 - A dedicated `version` command was added so package version inspection does not require config loading or auth.
 - Package metadata and publish flows were repaired to keep CI/CD and PyPI publishing functional.
 
+### rosettify (npm package)
+
+- Local CLI/MCP tool runner for Rosetta. Published on npm as `rosettify` (`rosettify/`).
+- Dual-frontend: same run delegates behind both `npx rosettify <cmd>` CLI and `rosettify --mcp` stdio server.
+- Current commands: `plan` (create, next, update_status, show_status, query, upsert), `help`.
+- Envelope is internal: frontends extract payload via `extractOutput` and log failures via `logFailure` before output — consumers never see the raw envelope wrapper.
+- Validated with `npm run typecheck` and `npm run test` (vitest, 90%+ line + branch coverage).
+
 ### Instructions and Skills
 
 - Added `plan-manager` skill under `instructions/r2/core/skills/plan-manager/` — primary plan manager for coding agents via local JSON files.
@@ -80,6 +88,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 ### Documentation and Public Surface
 
 - Installation, deployment, quickstart, troubleshooting, and README content were aligned with the current transport/auth model.
+- Usage guides describe workflow phases, expected subagents/artifacts, HITL gates, and user responsibilities for both OSS and PRO workflow families.
 - Internal/private environment details were replaced with public-safe placeholders where appropriate.
 - Public Docker Hub references remain intentionally visible because they are part of the OSS distribution surface.
 

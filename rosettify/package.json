@@ -1,6 +1,6 @@
 {
   "name": "rosettify",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Local utility for Rosetta — manage plans, install agents, and support AI coding workflows via CLI or MCP",
   "license": "Apache-2.0",
   "author": "Rosetta Team <rosetta-support@griddynamics.com>",
