@@ -11,10 +11,11 @@ const srcDir = path.resolve(__dirname, '..', 'src');
 const outDir = path.resolve(__dirname, '..', 'dist', 'bundles');
 
 const BUNDLES = [
-  { plugin: 'core-claude',  adapter: 'adapter-claude-code' },
-  { plugin: 'core-codex',   adapter: 'adapter-codex' },
-  { plugin: 'core-copilot', adapter: 'adapter-copilot' },
-  { plugin: 'core-cursor',  adapter: 'adapter-cursor' },
+  { plugin: 'core-claude',   adapter: 'adapter-claude-code' },
+  { plugin: 'core-codex',    adapter: 'adapter-codex' },
+  { plugin: 'core-copilot',  adapter: 'adapter-copilot' },
+  { plugin: 'core-cursor',   adapter: 'adapter-cursor' },
+  { plugin: 'core-windsurf', adapter: 'adapter-windsurf' },
 ];
 
 for (const { plugin, adapter } of BUNDLES) {

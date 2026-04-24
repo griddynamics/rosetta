@@ -49,10 +49,10 @@ const isLooseFile = (filePath, fs = { existsSync: fs_1.existsSync }) => {
         return false;
     let dir = path_1.default.dirname(filePath);
     for (let level = 0; level < MAX_WALK_LEVELS; level++) {
-        if (fs.existsSync(path_1.default.join(dir, '.git')))
-            return true;
         if (fs.existsSync(path_1.default.join(dir, marker)))
             return false;
+        if (fs.existsSync(path_1.default.join(dir, '.git')))
+            return true;
         const parent = path_1.default.dirname(dir);
         if (parent === dir)
             break; // reached filesystem root
@@ -85,10 +85,8 @@ const main = async ({ stdin = process.stdin, stdout = process.stdout, } = {}) =>
         (0, debug_log_1.debugLog)('skipped (shouldCheck=false)');
         return;
     }
-    // Copilot CLI invokes PostToolUse twice per tool call (known Microsoft bug).
-    // TODO(remove-when-fixed): drop this guard once the duplicate-invocation bug is fixed upstream.
-    if (ide === 'copilot' && !(0, lock_1.acquireOnce)(normalized)) {
-        (0, debug_log_1.debugLog)('skipped (duplicate, copilot-only dedup)');
+    if (!(0, lock_1.acquireOnce)(normalized)) {
+        (0, debug_log_1.debugLog)('skipped (duplicate)');
         return;
     }
     const filePath = normalized.tool_input.file_path || '';

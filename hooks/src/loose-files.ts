@@ -57,8 +57,8 @@ export const isLooseFile = (filePath: string, fs: FsLike = { existsSync }): bool
 
   let dir = path.dirname(filePath);
   for (let level = 0; level < MAX_WALK_LEVELS; level++) {
-    if (fs.existsSync(path.join(dir, '.git'))) return true;
     if (fs.existsSync(path.join(dir, marker))) return false;
+    if (fs.existsSync(path.join(dir, '.git'))) return true;
     const parent = path.dirname(dir);
     if (parent === dir) break; // reached filesystem root
     dir = parent;
@@ -97,10 +97,8 @@ export const main = async ({
     debugLog('skipped (shouldCheck=false)');
     return;
   }
-  // Copilot CLI invokes PostToolUse twice per tool call (known Microsoft bug).
-  // TODO(remove-when-fixed): drop this guard once the duplicate-invocation bug is fixed upstream.
-  if (ide === 'copilot' && !acquireOnce(normalized)) {
-    debugLog('skipped (duplicate, copilot-only dedup)');
+  if (!acquireOnce(normalized)) {
+    debugLog('skipped (duplicate)');
     return;
   }
 

@@ -119,6 +119,11 @@ describe('isLooseFile — Python module detection (.py)', () => {
     assert.equal(isLooseFile('/a/b/c/d/e/f/g/h/i/j/k/deep.py', mockFs([])), true);
   });
 
+  test('.py — __init__.py and .git coexist in same dir → false (marker wins over boundary)', () => {
+    const fs = mockFs(['/repo/__init__.py', '/repo/.git']);
+    assert.equal(isLooseFile('/repo/utils.py', fs), false);
+  });
+
 });
 
 // ---------------------------------------------------------------------------
@@ -140,6 +145,12 @@ describe('isLooseFile — JavaScript module detection (.js)', () => {
 
   test('.js at deep nesting — stops at 10 levels, returns true', () => {
     assert.equal(isLooseFile('/a/b/c/d/e/f/g/h/i/j/k/deep.js', mockFs([])), true);
+  });
+
+  test('.js — package.json and .git coexist in same dir → false (marker wins over boundary)', () => {
+    // Repo root has both package.json and .git/ — file in root must NOT be flagged as loose.
+    const fs = mockFs(['/repo/package.json', '/repo/.git']);
+    assert.equal(isLooseFile('/repo/app.js', fs), false);
   });
 
 });

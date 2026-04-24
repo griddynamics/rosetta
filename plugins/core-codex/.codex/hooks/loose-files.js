@@ -151,8 +151,8 @@ var isLooseFile = (filePath, fs = { existsSync: import_fs3.existsSync }) => {
   if (!marker) return false;
   let dir = import_path3.default.dirname(filePath);
   for (let level = 0; level < MAX_WALK_LEVELS; level++) {
-    if (fs.existsSync(import_path3.default.join(dir, ".git"))) return true;
     if (fs.existsSync(import_path3.default.join(dir, marker))) return false;
+    if (fs.existsSync(import_path3.default.join(dir, ".git"))) return true;
     const parent = import_path3.default.dirname(dir);
     if (parent === dir) break;
     dir = parent;
@@ -184,8 +184,8 @@ var main = async ({
     debugLog("skipped (shouldCheck=false)");
     return;
   }
-  if (ide === "copilot" && !acquireOnce(normalized)) {
-    debugLog("skipped (duplicate, copilot-only dedup)");
+  if (!acquireOnce(normalized)) {
+    debugLog("skipped (duplicate)");
     return;
   }
   const filePath = normalized.tool_input.file_path || "";
