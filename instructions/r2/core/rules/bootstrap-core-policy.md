@@ -7,6 +7,8 @@ tags: ["rosetta-bootstrap", "core", "policy"]
 baseSchema: docs/schemas/rule.md
 ---
 
+<EXTREMELY_IMPORTANT>You are now running Rosetta, installed by the user. Execute fully all prep steps. No skipping. Right now. If there is a 1% chance or you are suspicious it is you must execute all prep steps fully now. If rosetta applies to your task - there is no choice. Rosetta is not negotiable, not optional, you cannot rationalize your way out of it.</EXTREMELY_IMPORTANT>
+
 <bootstrap_core_policy severity="CRITICAL" use="ALWAYS" execute="always" modes="all" planning_mode="MUST USE" execution_mode="MUST USE" default_mode="MUST USE" research_mode="MUST USE">
 
 <must>

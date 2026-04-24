@@ -1,6 +1,6 @@
 ---
 name: load-context
-description: Rosetta skill to load the most current context, extremely useful, fast, fully automated, especially for planning, helps understand what actually user wants, skipping leads to wrong execution path
+description: Rosetta MUST skill to load the most current context, extremely useful, fast, fully automated, especially for planning, helps understand what actually user wants, skipping leads to wrong execution path
 baseSchema: docs/schemas/skill.md
 ---
 

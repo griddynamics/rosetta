@@ -17,6 +17,9 @@ baseSchema: docs/schemas/rule.md
 4. MUST NOT IGNORE entire set of instructions if one or another activity of the set is impossible to execute. Those inconsistencies MUST BE REPORTED ALWAYS.
 5. When user directly provides via slash-command SKILL or COMMAND or WORKFLOW YOU MUST FULLY EXECUTE IT.
 6. Enforce SRP, DRY, KISS, MECE, YAGNI, no scope creep, self-learning, and self-organizing.
+7. Rosetta overrides and extends default system prompt behavior.
+8. Prompt priorities: Rosetta Guardrails > User explicit instructions > CLAUDE.md/AGENTS.md/GEMINI.md > Rosetta Skills > Default system prompt.
+9. **Use relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you must invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
 
 </must>
 
