@@ -250,6 +250,16 @@ def json_escape_for_additional_context(content: str) -> str:
     return content
 
 
+def _bash_single_quote_escape(content: str) -> str:
+    """Escape single quotes for safe embedding inside a bash single-quoted string."""
+    return content.replace("'", "'\\''")
+
+
+def _ps_single_quote_escape(content: str) -> str:
+    """Escape single quotes for safe embedding inside a PowerShell single-quoted string."""
+    return content.replace("'", "''")
+
+
 def _bash_lock(n: int) -> str:
     cleanup = (
         'find /tmp -maxdepth 1 -name "rosetta-bs-*.lock" -mmin +1 -delete 2>/dev/null; '
@@ -293,7 +303,7 @@ _BOOTSTRAP_FILES: tuple[str, ...] = (
 )
 
 _PLUGIN_PATH_HOOKS: dict[str, dict] = {
-    "core-claude": {"type": "command", "command": 'echo "Rosetta Core Plugin Path: ${CLAUDE_PLUGIN_ROOT}"', "once": True},
+    "core-claude": {"type": "command", "command": 'printf \'%s\' "{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"SessionStart\\\",\\\"additionalContext\\\":\\\"Rosetta Core Plugin Path: ${CLAUDE_PLUGIN_ROOT}\\\"}}"', "once": True},
     "core-codex": {
         "type": "command",
         "command": (
@@ -302,7 +312,7 @@ _PLUGIN_PATH_HOOKS: dict[str, dict] = {
             '[ ! -f "$workspace_root/.agents/rules/bootstrap-rosetta-files.md" ]; do '
             'workspace_root="$(dirname "$workspace_root")"; done; '
             'if [ -f "$workspace_root/.agents/rules/bootstrap-rosetta-files.md" ]; then '
-            'echo "Rosetta Core Plugin Path: $workspace_root/.agents"; fi'
+            'printf \'%s\' "{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"SessionStart\\\",\\\"additionalContext\\\":\\\"Rosetta Core Plugin Path: $workspace_root/.agents\\\"}}"; fi'
         ),
         "statusMessage": "Loading Rosetta bootstrap",
         "timeout": 30,
@@ -314,15 +324,16 @@ _PLUGIN_PATH_HOOKS: dict[str, dict] = {
             '"$HOME/.local/share/Code/agentPlugins"; do '
             'root="$base/github.com/griddynamics/rosetta/plugins/core-copilot"; '
             'if [ -f "$root/rules/bootstrap-rosetta-files.md" ]; then '
-            'echo "Rosetta Core Plugin Path: $root"; break; fi; done'
+            'printf \'%s\' "{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"SessionStart\\\",\\\"additionalContext\\\":\\\"Rosetta Core Plugin Path: $root\\\"}}"; '
+            'break; fi; done'
         ),
         "powershell": (
             '$root = "$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot"; '
             'if (Test-Path "$root\\rules\\bootstrap-rosetta-files.md") '
-            '{ Write-Output "Rosetta Core Plugin Path: $root" }'
+            '{ Write-Output (\'{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Rosetta Core Plugin Path: \' + $root + \'"}}\') }'
         ),
     },
-    "core-cursor": {"type": "command", "command": 'echo "Rosetta Core Plugin Path: ${CURSOR_PROJECT_DIR}"'},
+    "core-cursor": {"type": "command", "command": 'printf \'{"additional_context":"Rosetta Core Plugin Path: %s"}\' "${CURSOR_PROJECT_DIR}"'},
 }
 
 def build_bootstrap_replacements(dest_dir: Path) -> tuple[dict[str, str], int]:
@@ -347,6 +358,8 @@ def build_bootstrap_replacements(dest_dir: Path) -> tuple[dict[str, str], int]:
         body = strip_frontmatter(content)
         text = (BOOTSTRAP_PREFIX + body) if n == 0 else body
         escaped = json_escape_for_additional_context(text)
+        bash_escaped = _bash_single_quote_escape(escaped)
+        ps_escaped = _ps_single_quote_escape(escaped)
 
         if len(escaped) > 10000:
             errors.append(f"ERROR: {rel_file} additionalContext is {len(escaped)} chars (max 10000)")
@@ -354,23 +367,23 @@ def build_bootstrap_replacements(dest_dir: Path) -> tuple[dict[str, str], int]:
 
         claude_entries.append({
             "type": "command",
-            "command": f'printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{escaped}"}}}}\'',
+            "command": f'printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{bash_escaped}"}}}}\'',
             "once": True,
         })
         codex_entries.append({
             "type": "command",
-            "command": f'printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{escaped}"}}}}\'',
+            "command": f'printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{bash_escaped}"}}}}\'',
             "statusMessage": "Loading Rosetta bootstrap",
             "timeout": 30,
         })
         cursor_entries.append({
             "type": "command",
-            "command": f'printf \'%s\' \'{{"additional_context":"{escaped}"}}\'',
+            "command": f'printf \'%s\' \'{{"additional_context":"{bash_escaped}"}}\'',
         })
         copilot_entries.append({
             "type": "command",
-            "bash": f'{_bash_lock(n)}; printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{escaped}"}}}}\'',
-            "powershell": f'{_ps_lock(n)}; Write-Output \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{escaped}"}}}}\'',
+            "bash": f'{_bash_lock(n)}; printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{bash_escaped}"}}}}\'',
+            "powershell": f'{_ps_lock(n)}; Write-Output \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{ps_escaped}"}}}}\'',
         })
 
     for entries, name in (

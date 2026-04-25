@@ -1,14 +1,25 @@
 # Claude Code
 
 ```
-# install once
+# install marketplace once
 claude plugin marketplace add ../../GAIN/rosetta/.claude-plugin/marketplace.json
 
-# update
+# update as many times as you make changes
 claude plugin marketplace update rosetta && claude plugin uninstall core@rosetta && claude plugin install core@rosetta
 ```
 
 # Copilot
+
+Add marketplace to `chat.plugins.marketplaces` in settings using using local files path. Example: `file:///Users/isolomatov/Sources/GAIN/rosetta`.
+Go to agent customizations screen (settings gear icon in Copliot chat plane), click `Browse Marketplaces`, click `install` for `core`.
+
+# Codex
+
+Copy `core-codex` content to the root of the repository.
+
+# Cursor
+
+Create `.cursor` folder in the repository. Copy contents of `core-cursor` to `.cursor` folder.
 
 # Prompts reliability
 

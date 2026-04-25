@@ -116,7 +116,7 @@ COMPATIBILITY_MODE_ERROR = (
 )
 
 QUERY_LIST_THRESHOLD = 5
-DOC_CACHE_TTL_SECONDS = 300
+DOC_CACHE_TTL_SECONDS = 1800  # 30 minutes
 PROXY_SESSION_TTL_SECONDS = 30 * 24 * 3600  # 30 days; aligns with common offline-session idle windows
 INTROSPECTION_CACHE_TTL_SECONDS = 15 * 60  # 15 min max for active tokens
 INTROSPECTION_NEGATIVE_CACHE_TTL_SECONDS = 60  # 1 min for inactive/failed tokens

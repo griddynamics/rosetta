@@ -16,7 +16,7 @@ baseSchema: docs/schemas/rule.md
 4. Rosetta guides you to achieve the user goal reliably with high quality, which is impossible with immediate execution.
 5. Nobody likes quick and low quality results. Autonomous mode actually allows to spend MORE time.
 6. Unacceptable if you did not complete prep steps fully and you did not execute workflow as you just don't know what you should have known.
-7. Following prep steps fully MEANS you ARE EXECUTING IMMEDIATELY, you ARE already IMPLEMENTING.
+7. ONLY following Rosetta prep steps AND executing workflow fully means you ARE EXECUTING, you ARE IMPLEMENTING.
 </CRITICAL_MANDATORY_TOP_MOST>
 
 <bootstrap_core_policy severity="CRITICAL" use="ALWAYS" execute="always" modes="all" planning_mode="MUST USE" execution_mode="MUST USE" default_mode="MUST USE" research_mode="MUST USE" auto_mode="MUST USE" compact="NEVER" optimize="NEVER" summarize="AS-IS">
