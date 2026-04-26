@@ -637,7 +637,7 @@ def _is_agent_file(relative_path: Path) -> bool:
 
 
 def sync_generated_plugins(repo_root: Path) -> int:
-    core_source = repo_root / "instructions" / "r2" / "core"
+    core_source = repo_root / "instructions" / "r3" / "core"
     if not core_source.is_dir():
         print(f"ERROR: Core source folder not found: {core_source}", file=sys.stderr)
         return 1
