@@ -112,7 +112,7 @@ Optional env vars:
 
 ### OIDCProxy Internals
 
-`OIDCProxy` extends `OAuthProxy` ([source](../refsrc/fastmcp-3.1.0/src/fastmcp/server/auth/oidc_proxy.py)). It does three things in `__init__`:
+`OIDCProxy` extends `OAuthProxy` ([source](../refsrc/fastmcp-3.2.4/src/fastmcp/server/auth/oidc_proxy.py)). It does three things in `__init__`:
 
 1. **Fetches** `config_url` → parses `OIDCConfiguration` containing all endpoints (`oidc_proxy.py:320–322`)
 2. **Creates** a `JWTVerifier` from `jwks_uri` + `issuer` + `required_scopes` (`oidc_proxy.py:346–351, 465–471`). This verifies upstream tokens locally using JWKS public keys — no introspection call per request.
@@ -260,7 +260,7 @@ flowchart TD
 
 
 
-**Source**: `refsrc/fastmcp-3.1.0/.../providers/introspection.py:300–404`
+**Source**: `refsrc/fastmcp-3.2.4/.../providers/introspection.py:300–404`
 
 Key behaviors:
 
@@ -729,12 +729,12 @@ PROXY_JWT `expires_in` mirrors the upstream `expires_in`. When the IdP always re
 
 | FastMCP / MCP SDK Reference                         | Key Lines                                                                                                                                           |
 | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `refsrc/fastmcp-3.1.0/.../oauth_proxy/proxy.py`     | `__init__` (228–534), `register_client` (644–691), `authorize` (697–810), `exchange_authorization_code` (855–1047), `load_access_token` (1384–1454) |
-| `refsrc/fastmcp-3.1.0/.../oauth_proxy/consent.py`   | `_build_upstream_authorize_url` (248–282)                                                                                                           |
-| `refsrc/fastmcp-3.1.0/.../oauth_proxy/models.py`    | `ProxyDCRClient` (136–253), `UpstreamTokenSet` (80–99), constants (25–29)                                                                           |
-| `refsrc/fastmcp-3.1.0/.../auth/cimd.py`             | `CIMDClientManager.get_client` (722–769), `default_scope` (693–704)                                                                                 |
-| `refsrc/fastmcp-3.1.0/.../auth/jwt_issuer.py`       | `verify_token` (205–244) — checks exp, iss, aud                                                                                                     |
-| `refsrc/fastmcp-3.1.0/.../auth/oidc_proxy.py`       | `__init__` (320–397), `JWTVerifier` creation (346–351, 465–471)                                                                                     |
+| `refsrc/fastmcp-3.2.4/.../oauth_proxy/proxy.py`     | `__init__` (228–534), `register_client` (644–691), `authorize` (697–810), `exchange_authorization_code` (855–1047), `load_access_token` (1384–1454) |
+| `refsrc/fastmcp-3.2.4/.../oauth_proxy/consent.py`   | `_build_upstream_authorize_url` (248–282)                                                                                                           |
+| `refsrc/fastmcp-3.2.4/.../oauth_proxy/models.py`    | `ProxyDCRClient` (136–253), `UpstreamTokenSet` (80–99), constants (25–29)                                                                           |
+| `refsrc/fastmcp-3.2.4/.../auth/cimd.py`             | `CIMDClientManager.get_client` (722–769), `default_scope` (693–704)                                                                                 |
+| `refsrc/fastmcp-3.2.4/.../auth/jwt_issuer.py`       | `verify_token` (205–244) — checks exp, iss, aud                                                                                                     |
+| `refsrc/fastmcp-3.2.4/.../auth/oidc_proxy.py`       | `__init__` (320–397), `JWTVerifier` creation (346–351, 465–471)                                                                                     |
 | `refsrc/python-sdk-1.26.0/.../shared/auth.py`       | `validate_scope` (74–82) — scope check against client.scope                                                                                         |
 | `refsrc/python-sdk-1.26.0/.../handlers/register.py` | DCR handler (34–136), `default_scopes` assignment (62–63), `valid_scopes` validation (64–75)                                                        |
 | `refsrc/python-sdk-1.26.0/.../auth/settings.py`     | `ClientRegistrationOptions` (4–8) — `valid_scopes` vs `default_scopes`                                                                              |

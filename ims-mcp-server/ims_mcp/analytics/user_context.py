@@ -43,6 +43,35 @@ def get_username(call_ctx: Any = None) -> str:
     return _cached_username
 
 
+def get_authenticated_identity(call_ctx: Any = None, ctx: Any = None) -> str:
+    """Resolve the authenticated user identity.
+
+    Priority:
+    1. call_ctx.user_email — when a fully-built CallContext is available
+    2. OAuth access-token claims: email → preferred_username → sub (HTTP mode)
+    3. OS user / whoami — STDIO fallback (single-user process, cached)
+    """
+    if call_ctx is not None:
+        email = getattr(call_ctx, "user_email", "") or ""
+        if email:
+            return email
+
+    if ctx is not None:
+        try:
+            from fastmcp.server.dependencies import get_access_token
+            token = get_access_token()
+            if token:
+                claims = getattr(token, "claims", {}) or {}
+                for key in ("email", "preferred_username", "sub"):
+                    value = claims.get(key)
+                    if isinstance(value, str) and value.strip():
+                        return value.strip()
+        except Exception:
+            pass
+
+    return get_username()
+
+
 async def get_repository_from_context(ctx: Any) -> str:
     global _cached_repository, _repository_cache_time
 

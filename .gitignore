@@ -84,3 +84,5 @@ refsrc/
 # Hooks build output handled by hooks/.gitignore
 
 .claude
+rosetta-cli/dist
+rosetta-mcp-server/dist

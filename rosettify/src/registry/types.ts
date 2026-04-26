@@ -78,3 +78,15 @@ export interface HelpCommandDetail {
   output_schema: Record<string, unknown>;
   subcommands?: HelpCommandEntry[];
 }
+
+/** Consumer-facing success payload: the result object itself. */
+export type SuccessPayload<T> = T;
+
+/** Consumer-facing failure payload — never includes envelope wrapper fields. */
+export interface FailurePayload {
+  error: string;
+  help?: HelpTopLevel | HelpCommandDetail;
+}
+
+/** Discriminated union returned by extractOutput. ok=true → result payload; ok=false → error payload. */
+export type OutputPayload<T> = { ok: true; payload: T } | { ok: false; payload: FailurePayload };

@@ -106,7 +106,7 @@ class McpClient {
   async callTool(name: string, args: Record<string, unknown>): Promise<{
     content: { type: string; text: string }[];
     isError: boolean;
-    envelope: { ok: boolean; result: unknown; error: string | null; include_help: boolean };
+    payload: unknown;
   }> {
     const resp = await this.send("tools/call", { name, arguments: args });
     if (resp.error) {
@@ -114,17 +114,12 @@ class McpClient {
       return {
         content: [],
         isError: true,
-        envelope: { ok: false, result: null, error: resp.error.message, include_help: false },
+        payload: { error: resp.error.message },
       };
     }
     const r = resp.result as { content: { type: string; text: string }[]; isError: boolean };
-    const envelope = JSON.parse(r.content[0]!.text) as {
-      ok: boolean;
-      result: unknown;
-      error: string | null;
-      include_help: boolean;
-    };
-    return { content: r.content, isError: r.isError, envelope };
+    const payload = JSON.parse(r.content[0]!.text) as unknown;
+    return { content: r.content, isError: r.isError, payload };
   }
 
   kill(): void {
@@ -188,17 +183,19 @@ describe("MCP — tools/list", () => {
 
 describe("MCP — help tool", () => {
   it("help with no args returns top-level listing", async () => {
-    const { envelope } = await client.callTool("help", {});
-    expect(envelope.ok).toBe(true);
-    const r = envelope.result as { tool: string; version: string; commands: { name: string }[] };
+    const { payload, isError } = await client.callTool("help", {});
+    expect(isError).toBe(false);
+    // Success: payload IS the result directly — no ok/envelope wrapper
+    expect((payload as any).ok).toBeUndefined();
+    const r = payload as { tool: string; version: string; commands: { name: string }[] };
     expect(r.tool).toBe("rosettify");
     expect(Array.isArray(r.commands)).toBe(true);
   });
 
   it("help with subcommand=plan returns plan detail with subcommands", async () => {
-    const { envelope } = await client.callTool("help", { subcommand: "plan" });
-    expect(envelope.ok).toBe(true);
-    const r = envelope.result as { name: string; subcommands: { name: string }[] };
+    const { payload, isError } = await client.callTool("help", { subcommand: "plan" });
+    expect(isError).toBe(false);
+    const r = payload as { name: string; subcommands: { name: string }[] };
     expect(r.name).toBe("plan");
     expect(Array.isArray(r.subcommands)).toBe(true);
     const subNames = r.subcommands.map((s) => s.name);
@@ -246,23 +243,25 @@ describe("MCP — plan lifecycle", () => {
         ],
       },
     });
-    expect(createRes.envelope.ok).toBe(true);
-    const created = createRes.envelope.result as { name: string; status: string };
+    expect(createRes.isError).toBe(false);
+    // Success: payload IS the result directly (no ok wrapper)
+    expect((createRes.payload as any).ok).toBeUndefined();
+    const created = createRes.payload as { name: string; status: string };
     expect(created.name).toBe("MCP E2E Plan");
     expect(created.status).toBe("open");
     expect(fs.existsSync(file)).toBe(true);
 
     // 2. next — phase 1 active, s1 should be ready
     const nextRes = await client.callTool("plan", { subcommand: "next", plan_file: file });
-    expect(nextRes.envelope.ok).toBe(true);
-    const nextResult = nextRes.envelope.result as { ready: { id: string }[]; count: number };
+    expect(nextRes.isError).toBe(false);
+    const nextResult = nextRes.payload as { ready: { id: string }[]; count: number };
     expect(nextResult.ready.some((s) => s.id === "s1")).toBe(true);
     expect(nextResult.ready.some((s) => s.id === "s3")).toBe(false); // phase 2 blocked
 
     // 3. show_status
     const showRes = await client.callTool("plan", { subcommand: "show_status", plan_file: file });
-    expect(showRes.envelope.ok).toBe(true);
-    const showResult = showRes.envelope.result as { name: string; status: string; steps: { total: number } };
+    expect(showRes.isError).toBe(false);
+    const showResult = showRes.payload as { name: string; status: string; steps: { total: number } };
     expect(showResult.name).toBe("MCP E2E Plan");
     expect(showResult.steps.total).toBe(3);
 
@@ -273,8 +272,8 @@ describe("MCP — plan lifecycle", () => {
       target_id: "s1",
       new_status: "complete",
     });
-    expect(upd1.envelope.ok).toBe(true);
-    const upd1Result = upd1.envelope.result as { id: string; status: string };
+    expect(upd1.isError).toBe(false);
+    const upd1Result = upd1.payload as { id: string; status: string };
     expect(upd1Result.status).toBe("complete");
 
     // 5. update_status s2 → complete (so phase 1 completes)
@@ -284,21 +283,21 @@ describe("MCP — plan lifecycle", () => {
       target_id: "s2",
       new_status: "complete",
     });
-    expect(upd2.envelope.ok).toBe(true);
-    const upd2Result = upd2.envelope.result as { plan_status: string };
+    expect(upd2.isError).toBe(false);
+    const upd2Result = upd2.payload as { plan_status: string };
     // Phase 1 complete now, phase 2 should become active
     expect(["in_progress", "open"]).toContain(upd2Result.plan_status);
 
     // 6. next — phase 2 now active, s3 should be ready (s1 dep complete)
     const nextRes2 = await client.callTool("plan", { subcommand: "next", plan_file: file });
-    expect(nextRes2.envelope.ok).toBe(true);
-    const nr2 = nextRes2.envelope.result as { ready: { id: string }[] };
+    expect(nextRes2.isError).toBe(false);
+    const nr2 = nextRes2.payload as { ready: { id: string }[] };
     expect(nr2.ready.some((s) => s.id === "s3")).toBe(true);
 
     // 7. query — full plan
     const qRes = await client.callTool("plan", { subcommand: "query", plan_file: file });
-    expect(qRes.envelope.ok).toBe(true);
-    const qResult = qRes.envelope.result as { name: string; phases: { id: string }[] };
+    expect(qRes.isError).toBe(false);
+    const qResult = qRes.payload as { name: string; phases: { id: string }[] };
     expect(qResult.name).toBe("MCP E2E Plan");
     expect(qResult.phases.length).toBe(2);
 
@@ -309,8 +308,8 @@ describe("MCP — plan lifecycle", () => {
       target_id: "entire_plan",
       data: { description: "Updated via upsert" },
     });
-    expect(upsertRes.envelope.ok).toBe(true);
-    const upsertResult = upsertRes.envelope.result as { id: string; plan_status: string };
+    expect(upsertRes.isError).toBe(false);
+    const upsertResult = upsertRes.payload as { id: string; plan_status: string };
     expect(upsertResult.id).toBe("entire_plan");
   });
 });
@@ -352,8 +351,8 @@ describe("MCP — plan next with target_id", () => {
       plan_file: file,
       target_id: "p2",
     });
-    expect(r.envelope.ok).toBe(true);
-    const res = r.envelope.result as { ready: { id: string }[] };
+    expect(r.isError).toBe(false);
+    const res = r.payload as { ready: { id: string }[] };
     expect(res.ready.some((s) => s.id === "s2")).toBe(true);
     expect(res.ready.some((s) => s.id === "s1")).toBe(false);
   });
@@ -370,8 +369,10 @@ describe("MCP — plan next with target_id", () => {
       plan_file: file,
       target_id: "nonexistent-phase",
     });
-    expect(r.envelope.ok).toBe(false);
-    expect(r.envelope.error).toBe("target_not_found");
+    expect(r.isError).toBe(true);
+    // Failure: payload IS the error payload {error: "..."}
+    expect((r.payload as any).ok).toBeUndefined();
+    expect((r.payload as { error: string }).error).toBe("target_not_found");
   });
 });
 
@@ -400,8 +401,10 @@ describe("MCP — error cases", () => {
       subcommand: "totally_unknown_subcmd",
       plan_file: file,
     });
-    expect(r.envelope.ok).toBe(false);
-    expect(r.envelope.error).toContain("unknown_command");
+    expect(r.isError).toBe(true);
+    // Failure: payload IS the error payload
+    expect((r.payload as any).ok).toBeUndefined();
+    expect((r.payload as { error: string }).error).toContain("unknown_command");
   });
 
   it("plan update_status with invalid status returns error", async () => {
@@ -422,8 +425,9 @@ describe("MCP — error cases", () => {
       target_id: "s1",
       new_status: "not-a-valid-status",
     });
-    expect(r.envelope.ok).toBe(false);
-    expect(r.envelope.error).toContain("invalid_status");
+    expect(r.isError).toBe(true);
+    expect((r.payload as any).ok).toBeUndefined();
+    expect((r.payload as { error: string }).error).toContain("invalid_status");
   });
 
   it("plan next for missing plan_file returns plan_not_found", async () => {
@@ -431,7 +435,8 @@ describe("MCP — error cases", () => {
       subcommand: "next",
       plan_file: "/tmp/mcp-nonexistent-plan.json",
     });
-    expect(r.envelope.ok).toBe(false);
-    expect(r.envelope.error).toBe("plan_not_found");
+    expect(r.isError).toBe(true);
+    expect((r.payload as any).ok).toBeUndefined();
+    expect((r.payload as { error: string }).error).toBe("plan_not_found");
   });
 });

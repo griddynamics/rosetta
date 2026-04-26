@@ -419,6 +419,176 @@ See [plan/INDEX.md](plan/INDEX.md) for the full document routing map. The short 
 
 ---
 
+## Upgrading workflows from R1 to R2
+
+### Step 1: Move and rename files
+
+Manual recommended; AI-assisted possible but less reliable.
+
+#### R1 structure
+
+```text
+agents/instructions/
+├── core/r1/
+│   ├── workflow_name.md
+│   ├── workflow_name-phase1.md
+│   ├── workflow_name-phase2.md
+│   └── ...
+├── advanced/r1/
+│   └── (same pattern)
+└── common/r1/
+    └── (shared rules and utilities)
+```
+
+#### R2 target structure
+
+```text
+instructions/r2/
+├── core/
+│   ├── workflows/
+│   │   ├── workflow-name-flow.md
+│   │   ├── workflow-name-flow-phase1-name.md
+│   │   └── workflow-name-flow-phase2-name.md
+│   ├── skills/
+│   │   └── skill-name/
+│   │       └── SKILL.md
+│   ├── agents/
+│   ├── rules/
+│   └── configure/
+└── grid/
+    ├── workflows/
+    │   ├── workflow-name-flow.md
+    │   ├── workflow-name-flow-phase1-name.md
+    │   └── workflow-name-flow-phase2-name.md
+    ├── skills/
+    │   └── skill-name/
+    │       ├── SKILL.md
+    │       ├── assets/
+    │       └── references/
+    ├── agents/
+    └── rules/
+```
+
+#### Naming conventions
+
+| R1 | R2 |
+|---|---|
+| `workflow_name.md` | `workflow-name-flow.md` |
+| `workflow_name-phaseN.md` | `workflow-name-flow-phase-name.md` |
+| (inline in workflow) | `skill-name/SKILL.md` (extracted) |
+
+Key changes:
+- Underscores replaced with dashes
+- Workflow files get `-flow` suffix
+- Phase files include descriptive name instead of just a number
+- Skills are extracted into their own folder with a `SKILL.md` entry point
+- Scope moved from `agents/instructions/{core,advanced,common}/r1/` to `instructions/r2/{core,grid}/`
+
+### Step 2: Add YAML frontmatter
+
+Manual recommended; AI-assisted possible but less reliable.
+
+#### For workflow files
+
+Add this frontmatter block at the top of each workflow file:
+
+```yaml
+---
+name: workflow-name-flow
+description: "Rosetta workflow for [brief description of WHEN/HOW to use and WHAT it does]"
+tags: ["relevant", "tags"]
+baseSchema: docs/schemas/workflow.md
+---
+```
+
+Full schema reference: [docs/schemas/workflow.md](https://github.com/griddynamics/rosetta/blob/main/docs/schemas/workflow.md)
+
+#### For phase files
+
+Add this frontmatter block at the top of each phase file:
+
+```yaml
+---
+name: workflow-name-flow-phase-name
+description: "Brief description of WHEN/HOW to use this phase and WHAT it does"
+tags: ["relevant", "tags"]
+baseSchema: docs/schemas/phase.md
+---
+```
+
+Full schema reference: [docs/schemas/phase.md](https://github.com/griddynamics/rosetta/blob/main/docs/schemas/phase.md)
+
+#### For skill files
+
+Add this frontmatter block at the top of each `SKILL.md`:
+
+```yaml
+---
+name: skill-name
+description: "Rosetta skill for [brief description of WHEN/WHY to use]"
+tags: ["relevant", "tags"]
+baseSchema: docs/schemas/skill.md
+---
+```
+
+Full schema reference: [docs/schemas/skill.md](https://github.com/griddynamics/rosetta/blob/main/docs/schemas/skill.md)
+
+### Step 3: Extract reusable skills
+
+AI-assisted only; manual is not practical for this step.
+
+Execute the following prompt to extract reusable skills from workflow phases:
+
+> MUST FULLY EXECUTE `instructions/r2/grid/workflows/coding-agents-prompting-flow.md` to refactor skills out of full Rosetta workflow with phases `[workflow_file]` as R2 prompt family in `grid` scope.
+
+#### Acceptance criteria
+
+- Skills were identified and extracted for relevant phases
+- Refactored files (`SKILL.md`, phase files) were reviewed for correctness
+- Main sections use XML tags per schema (`<context>`, `<workflow_phases>`, etc.)
+
+### Step 4: Convert content to R2 XML format
+
+AI-assisted recommended; manual also possible.
+
+Replace markdown sections in workflow and phase files with XML tags (`<context>`, `<critical_requirements>`, `<workflow_phases>`, `<validation_checklist>`, `<pitfalls>`, etc.) as defined by the respective schema.
+
+#### Reference examples
+
+| File type | Schema | Example |
+|---|---|---|
+| Workflow | `docs/schemas/workflow.md` | `instructions/r2/core/workflows/coding-flow.md` |
+| Phase | `docs/schemas/phase.md` | `instructions/r2/grid/workflows/testgen-flow-data-collection.md` |
+| Skill | `docs/schemas/skill.md` | `instructions/r2/grid/skills/coding-agents-prompt-authoring/SKILL.md` |
+
+#### AI-assisted prompt for workflows
+
+> There's an example of the format `instructions/r2/core/workflows/coding-flow.md`. There's a schema for workflows `docs/schemas/workflow.md`. Please use it for reformatting `[workflow_file]`.
+
+#### AI-assisted prompt for phases
+
+> There's an example of the format `instructions/r2/grid/workflows/testgen-flow-data-collection.md`. There's a schema for phases `docs/schemas/phase.md`. Please use it for reformatting `[phase_file]`.
+
+#### AI-assisted prompt for skills
+
+> There's a schema for skills `docs/schemas/skill.md`. Please use it for reformatting `[skill_file]`.
+
+### Step 5: Validate the refactored flow
+
+Manual only.
+
+After each step, run the refactored flow end-to-end and verify that output matches the original intent.
+
+### Common pitfalls
+
+Lessons learned from multiple transformation attempts:
+
+- **Missing subagent contracts** — if a subagent is defined in a workflow/phase file, its input and output must be defined as well
+- **Unnecessary skill proliferation** — double-check whether new skills are truly needed; reuse existing ones when possible
+- **Lost instructions** — refactoring can inadvertently delete content (examples, edge cases); test the refactored flow after each step to confirm output still meets expectations
+
+---
+
 ## Related Docs
 
 - [Contributing](CONTRIBUTING.md) — fastest path to a merged PR

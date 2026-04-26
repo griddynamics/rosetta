@@ -31,7 +31,7 @@ Primary plan manager for orchestrators and subagents. Creates, tracks, and execu
 
 <core_concepts>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Plan file lives in FEATURE PLAN folder: `<feature_plan_folder_full_path>/plan.json`
 - CLI: `npx rosettify plan <subcommand> <plan_file> [args...]`
 - Always use full absolute paths for the plan file

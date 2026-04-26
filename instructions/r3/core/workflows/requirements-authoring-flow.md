@@ -8,12 +8,13 @@ baseSchema: docs/schemas/workflow.md
 <requirements-flow>
 
 <description_and_purpose>
-Prevents premature drafting by enforcing HITL gates where every `<req>` unit receives explicit user approval before proceeding. Each phase produces traceable artifacts (Final Requirements Set, Validation Pack, Traceability Matrix). Input: user request for new requirements, edits, review, refactor, or validation; active skill is `requirements-authoring`.
+Prevents premature drafting by enforcing HITL gates where every `<req>` unit receives explicit user approval before proceeding. Each phase produces traceable artifacts (Final Requirements Set, Validation Pack, Traceability Matrix). Input: user request for new requirements, edits, review, refactor, or validation; USE SKILL `requirements-authoring` and PROACTIVELY REQUIRE its use in all phases and subagents.
 </description_and_purpose>
 
 <workflow_phases>
 
-Every phase MUST update `requirements-authoring-flow-state.md` in FEATURE TEMP with: phase name, status, artifact produced, and open questions.
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed (get_context_instructions called and all three prep steps completed).
+- Every phase MUST update `requirements-authoring-flow-state.md` in FEATURE TEMP with: phase name, status, artifact produced, and open questions.
 
 <discovery phase="1" priority="must" subagent="requirements-engineer" role="Context analyst collecting project and scope signals">
 

@@ -15,7 +15,7 @@ Final phase of workspace initialization. Consolidates all init-phase outputs int
 </when_to_use_skill>
 
 <core_concepts>
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 </core_concepts>
 
 <process>

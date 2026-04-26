@@ -8,6 +8,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { getMcpTools, getToolDef } from "../registry/index.js";
 import { dispatch } from "../shared/dispatch.js";
+import { extractOutput, logFailure } from "../shared/envelope.js";
 import { logger } from "../shared/logger.js";
 
 export async function runMcp(): Promise<void> {
@@ -39,13 +40,18 @@ export async function runMcp(): Promise<void> {
     }
 
     const envelope = await dispatch(toolDef, request.params.arguments ?? {});
-    logger.info({ tool: toolName, ok: envelope.ok }, "mcp tool call");
+    const output = extractOutput(envelope);
+    if (!output.ok) {
+      logFailure(logger, toolName, envelope.error ?? "unknown_error");
+    } else {
+      logger.info({ tool: toolName, ok: true }, "mcp tool call");
+    }
 
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify(envelope),
+          text: JSON.stringify(output.payload),
         },
       ],
       isError: !envelope.ok,

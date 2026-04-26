@@ -63,10 +63,6 @@ function run(args: string[]): SpawnResult {
   };
 }
 
-function asEnvelope(r: SpawnResult): { ok: boolean; result: unknown; error: string | null } {
-  return r.json as { ok: boolean; result: unknown; error: string | null };
-}
-
 // ---------------------------------------------------------------------------
 // help command
 // ---------------------------------------------------------------------------
@@ -75,9 +71,10 @@ describe("CLI — help command", () => {
   it("rosettify help returns top-level listing", () => {
     const r = run(["help"]);
     expect(r.status).toBe(0);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(true);
-    const res = env.result as { tool: string; version: string; commands: { name: string }[] };
+    // Success: r.json IS the result payload directly (no envelope wrapper)
+    expect((r.json as any).ok).toBeUndefined();
+    expect((r.json as any).include_help).toBeUndefined();
+    const res = r.json as { tool: string; version: string; commands: { name: string }[] };
     expect(res.tool).toBe("rosettify");
     expect(res.version).toBeDefined();
     expect(Array.isArray(res.commands)).toBe(true);
@@ -86,9 +83,9 @@ describe("CLI — help command", () => {
   it("rosettify help plan returns plan detail with subcommands", () => {
     const r = run(["help", "plan"]);
     expect(r.status).toBe(0);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(true);
-    const res = env.result as { name: string; subcommands: { name: string }[] };
+    // Success: r.json IS the result payload directly
+    expect((r.json as any).ok).toBeUndefined();
+    const res = r.json as { name: string; subcommands: { name: string }[] };
     expect(res.name).toBe("plan");
     expect(Array.isArray(res.subcommands)).toBe(true);
     const subNames = res.subcommands.map((s) => s.name);
@@ -99,9 +96,7 @@ describe("CLI — help command", () => {
   it("rosettify --help returns top-level help", () => {
     const r = run(["--help"]);
     expect(r.status).toBe(0);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(true);
-    const res = env.result as { tool: string };
+    const res = r.json as { tool: string };
     expect(res.tool).toBe("rosettify");
   });
 });
@@ -114,10 +109,11 @@ describe("CLI — plan no args", () => {
   it("rosettify plan returns plan help content", () => {
     const r = run(["plan"]);
     expect(r.status).toBe(0);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(true);
+    // Success: r.json IS the result payload directly (no envelope wrapper)
+    expect((r.json as any).ok).toBeUndefined();
+    expect((r.json as any).include_help).toBeUndefined();
     // planHelpContent must contain all required guidance fields (FR-PLAN-0022)
-    const res = env.result as {
+    const res = r.json as {
       plan_file?: unknown;
       concepts?: unknown;
       schema?: unknown;
@@ -148,9 +144,10 @@ describe("CLI — plan create", () => {
     const data = JSON.stringify({ name: "CLI Test Plan" });
     const r = run(["plan", "create", file, data]);
     expect(r.status).toBe(0);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(true);
-    const res = env.result as { name: string; status: string; plan_file: string };
+    // Success: r.json IS the result payload directly
+    expect((r.json as any).ok).toBeUndefined();
+    expect((r.json as any).include_help).toBeUndefined();
+    const res = r.json as { name: string; status: string; plan_file: string };
     expect(res.name).toBe("CLI Test Plan");
     expect(res.status).toBe("open");
     expect(res.plan_file).toBe(file);
@@ -190,9 +187,9 @@ describe("CLI — plan next", () => {
     createPlan(file);
     const r = run(["plan", "next", file]);
     expect(r.status).toBe(0);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(true);
-    const res = env.result as { ready: { id: string }[]; count: number };
+    // Success: r.json IS the result payload directly
+    expect((r.json as any).ok).toBeUndefined();
+    const res = r.json as { ready: { id: string }[]; count: number };
     expect(Array.isArray(res.ready)).toBe(true);
     expect(res.ready[0]!.id).toBe("s1");
     expect(res.count).toBe(1);
@@ -201,9 +198,10 @@ describe("CLI — plan next", () => {
   it("returns plan_not_found and exits 1 for missing file", () => {
     const r = run(["plan", "next", "/tmp/nonexistent-cli-next.json"]);
     expect(r.status).toBe(1);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(false);
-    expect(env.error).toBe("plan_not_found");
+    // Failure: r.json IS the error payload {error: "..."}
+    expect((r.json as any).ok).toBeUndefined();
+    const payload = r.json as { error: string };
+    expect(payload.error).toBe("plan_not_found");
   });
 });
 
@@ -232,9 +230,9 @@ describe("CLI — plan show_status", () => {
     createPlan(file);
     const r = run(["plan", "show_status", file]);
     expect(r.status).toBe(0);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(true);
-    const res = env.result as { name: string; status: string };
+    // Success: r.json IS the result payload directly
+    expect((r.json as any).ok).toBeUndefined();
+    const res = r.json as { name: string; status: string };
     expect(res.name).toBe("Status Test");
     expect(res.status).toBe("open");
   });
@@ -266,9 +264,9 @@ describe("CLI — plan update_status", () => {
     const file = createAndGetFile();
     const r = run(["plan", "update_status", file, "s1", "complete"]);
     expect(r.status).toBe(0);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(true);
-    const res = env.result as { id: string; status: string; plan_status: string };
+    // Success: r.json IS the result payload directly
+    expect((r.json as any).ok).toBeUndefined();
+    const res = r.json as { id: string; status: string; plan_status: string };
     expect(res.id).toBe("s1");
     expect(res.status).toBe("complete");
     expect(res.plan_status).toBe("complete");
@@ -278,8 +276,10 @@ describe("CLI — plan update_status", () => {
     const file = createAndGetFile();
     const r = run(["plan", "update_status", file, "s1", "invalid-status"]);
     expect(r.status).toBe(1);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(false);
+    // Failure: r.json IS the error payload {error: "..."}
+    expect((r.json as any).ok).toBeUndefined();
+    const payload = r.json as { error: string };
+    expect(typeof payload.error).toBe("string");
   });
 });
 
@@ -296,15 +296,16 @@ describe("CLI — error cases", () => {
   it("exits 1 for unknown plan subcommand", () => {
     const r = run(["plan", "badsubcmd"]);
     expect(r.status).toBe(1);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(false);
-    expect(env.error).toContain("unknown_command");
+    // Failure: r.json IS the error payload {error: "..."}
+    expect((r.json as any).ok).toBeUndefined();
+    const payload = r.json as { error: string };
+    expect(payload.error).toContain("unknown_command");
   });
 
   it("plan --help returns plan detail", () => {
     const r = run(["plan", "--help"]);
     expect(r.status).toBe(0);
-    const env = asEnvelope(r);
-    expect(env.ok).toBe(true);
+    // Success: r.json IS the result payload directly (no envelope)
+    expect((r.json as any).ok).toBeUndefined();
   });
 });

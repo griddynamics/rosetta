@@ -32,37 +32,46 @@ Rosetta classifies your request and loads the matching workflow. Each workflow d
 <details markdown="1">
 <summary><b>Init Workspace</b></summary>
 
-Sets up a new or existing repository for AI-assisted development. Handles fresh repos, upgrades, and plugin mode.
+Sets up a repository so AI coding agents can work with Rosetta context from the first real task. Use it for fresh repositories, upgrades, plugin-based setups, and composite workspaces that need a top-level documentation registry.
+
+**Use when:** initialize or upgrade a repo, generate IDE/agent shell files, create workspace documentation, extract patterns, or inspect an existing codebase before feature work.
 
 **Phases:**
-1. Context — detect workspace mode (fresh, upgrade, plugin) and build file inventory
-2. Shells — generate IDE/agent shell files from KB schemas
-3. Discovery — produce TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md
-4. Rules — configure local agent rules (optional, when explicit all-local rules requested)
-5. Patterns — extract recurring coding and architectural patterns
-6. Documentation — create CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md
-7. Questions — clarifying questions about gaps and assumptions
-8. Verification — completeness check and catch-up for missed artifacts
+1. Context — detect fresh, upgrade, plugin, or composite mode; inventory existing Rosetta files and create `agents/init-workspace-flow-state.md`
+2. Shells — generate shell files for skills, agents, and workflows unless plugin mode makes local shells unnecessary
+3. Discovery — analyze project structure and produce `docs/TECHSTACK.md`, `docs/CODEMAP.md`, and `docs/DEPENDENCIES.md`
+4. Rules — optional local rule configuration; present in the workflow but disabled by default
+5. Patterns — extract reusable coding and architecture patterns into `docs/PATTERNS/`
+6. Documentation — create or update `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md`, `docs/ASSUMPTIONS.md`, and memory
+7. Questions — ask targeted gap questions and update affected docs through subagents
+8. Verification — validate completeness, report remediation, and require a new chat session
+
+**Expect:** built-in subagents for mode detection, discovery, pattern extraction, documentation, gap filling, and verification. Your responsibility is to answer domain and architecture questions, review generated docs, and restart the chat after initialization so new shell/context files are loaded.
 
 ```
 "Initialize this repository using Rosetta"
+"Upgrade this repository from Rosetta R1 to R2"
 "Initialize subagents and workflows"
 ```
 
-For composite workspaces, init each repository separately, then init at workspace level.
+For composite workspaces, init each repository separately, then init at workspace level. The rules phase exists but is disabled by default.
 
 </details>
 
 <details markdown="1">
 <summary><b>Self Help</b></summary>
 
-Answers questions about Rosetta itself. If you decide to act, hands off to the real workflow without leaving the session.
+Explains what Rosetta can do and how to use it in the current workspace. It is a conversational discovery workflow, not an implementation workflow, but it can hand off to a real workflow when you decide to act.
+
+**Use when:** you want available workflows, help choosing the right workflow, an explanation of a Rosetta capability, or a handoff from guidance into execution.
 
 **Phases:**
-1. List capabilities — catalog all workflows, skills, and agents from the KB
-2. Match and acquire — find capabilities matching your question, load their descriptions
-3. Guide — explain matched capabilities and offer to launch the real workflow
-4. Handoff — transfer to the matching workflow if you accept (optional)
+1. List capabilities — catalog available workflows, skills, and agents
+2. Match and acquire — match your question to relevant Rosetta capabilities and load their descriptions
+3. Guide — explain when to use each matched capability, required inputs, artifacts, and approval gates
+4. Handoff — optionally switch into the selected workflow if you explicitly ask to proceed
+
+**Expect:** usually no files. A discoverer subagent may prepare the catalog and matching. Your responsibility is to state the outcome you want and explicitly approve any handoff into execution.
 
 ```
 "What workflows are available?"
@@ -75,20 +84,24 @@ Answers questions about Rosetta itself. If you decide to act, hands off to the r
 <details markdown="1">
 <summary><b>Coding</b></summary>
 
-The main development workflow. Scales with task size: small tasks skip phases marked (M,L).
+Use this for implementation work after you know what needs to change. Rosetta turns the request into specs, a plan, code, reviews, validation, and tests, with human approval before implementation and before test work continues.
+
+**Use when:** add, change, or fix application code; inspect the repo before implementation; or require reviewer and validator gates instead of one agent coding straight through.
 
 **Phases:**
-1. Discovery — gather context, codebase, dependencies, affected areas (M,L)
-2. Tech plan — architect defines specs, contracts, interfaces, and execution plan (all)
-3. Review plan — reviewer inspects specs and plan against intent (M,L)
-4. User review plan — you approve the plan before implementation (all)
-5. Implementation — engineer executes the approved plan (all)
-6. Review code — reviewer inspects implementation against specs (all)
-7. Impl validation — validator runs actual checks against specs (M,L)
-8. User review impl — you review the implementation (all)
-9. Tests — engineer writes and runs tests, 80%+ coverage (all)
-10. Review tests — reviewer inspects test coverage and quality (M,L)
-11. Final validation — end-to-end verification (M,L)
+1. Discovery — gather affected code, dependencies, constraints, requirements, and existing patterns for medium/large tasks
+2. Tech plan — architect writes specs and an implementation plan; small tasks may receive these in chat
+3. Review plan — reviewer checks specs and plan against intent for medium/large tasks
+4. User review plan — you approve the plan before implementation
+5. Implementation — engineer implements only the approved scope; build must succeed, tests are separate
+6. Review code — reviewer inspects implementation against approved specs
+7. Implementation validation — validator checks diff, coverage of specs, gaps, and execution evidence for medium/large tasks
+8. User review implementation — you approve implementation before tests continue
+9. Tests — engineer writes and runs isolated, idempotent tests
+10. Review tests — reviewer checks scenario coverage and mocking quality for medium/large tasks
+11. Final validation — validator performs final end-to-end verification for medium/large tasks
+
+**Expect:** discoverer, architect, engineer, executor, reviewer, and validator subagents. Artifacts can include discovery notes, specs, plans, review findings, validation findings, tests, and concise Rosetta doc updates. Your responsibility is to provide acceptance criteria, review plans before approving, and call out scope changes before implementation starts.
 
 ```
 "Add password reset functionality"
@@ -99,18 +112,22 @@ The main development workflow. Scales with task size: small tasks skip phases ma
 </details>
 
 <details markdown="1">
-<summary><b>Requirements Authoring</b></summary>
+<summary><b>Requirements Documentation Authoring</b></summary>
 
-Produces structured, testable, approved requirements. Saves to `docs/REQUIREMENTS/`.
+Use this before building when expected behavior is unclear, high impact, or needs traceability. Rosetta captures intent first, then drafts atomic requirements in small batches with explicit approval for each requirement unit.
+
+**Use when:** create, improve, review, or validate requirements for a feature, workflow, interface, or non-functional concern.
 
 **Phases:**
-1. Discovery — collect project and scope signals
-2. Research — gather standards, prior decisions, and domain context
-3. Intent capture — capture what you actually need, surface assumptions
-4. Outline — propose MECE (mutually exclusive, collectively exhaustive) requirement layout
-5. Draft — author atomic requirement units with per-requirement approval
-6. Validate — check correctness, conflicts, gaps, and contradictions
-7. Deliver — finalize requirement artifacts with traceability matrix
+1. Discovery — collect existing requirements, glossary terms, assumptions, constraints, affected files, and scope signals
+2. Research — gather standards, prior decisions, and reusable requirement patterns when local context is not enough
+3. Intent capture — restate intent, list assumptions and questions, then wait for approval before structure or drafting
+4. Outline — propose MECE requirement areas, file mapping, ID strategy, and traceability plan
+5. Draft — author atomic requirement units in small batches, using EARS for functional requirements and measurable NFR thresholds
+6. Validate — check correctness, conflicts, gaps, contradictions, and source-to-goal-to-requirement-to-test traceability
+7. Finalization — deliver approved requirements, validation pack, traceability matrix, index updates, and change log
+
+**Expect:** requirements-engineer and requirements-reviewer subagents. HITL gates approve intent, structure, each requirement unit, and validation findings. Your responsibility is to define actors, goals, scope boundaries, non-goals, priorities, measurable thresholds, and approval decisions.
 
 ```
 "Define requirements for the checkout flow covering discount codes, tax, and retries"
@@ -122,16 +139,18 @@ Produces structured, testable, approved requirements. Saves to `docs/REQUIREMENT
 <details markdown="1">
 <summary><b>Ad-hoc</b></summary>
 
-Adaptive meta-workflow for tasks that do not fit a fixed structure. Constructs a custom execution plan from building blocks and adapts mid-execution. Good for cross-cutting work, experiments, or anything that spans multiple concerns.
+Builds a custom workflow when no fixed Rosetta workflow fits the request. It composes building blocks such as discovery, requirements capture, reasoning, planning, execution, review, validation, HITL gates, and memory updates.
 
-Building blocks: discover, reason, plan, execute, review, validate.
+**Use when:** the task is small or unusual, spans several concerns, needs adaptive planning, or requires lightweight structure without forcing a specialized workflow.
 
 **Phases:**
-1. Analyze — classify request and select building blocks
-2. Build plan — compose execution plan from selected blocks
-3. Review plan — plan reviewer validates approach (medium, large tasks)
-4. Execute plan — run steps with plan manager tracking (loops until done)
-5. Review and summarize — final review and delivery
+1. Prep and classify — complete Rosetta prep, classify task size, and choose building blocks such as discover, requirements, reasoning, plan, execute, review, validate, simulate, or HITL
+2. Build plan — create a plan-manager plan with sequenced steps, roles, models, dependencies, and expected outputs
+3. Review plan — for medium/large tasks, reviewer checks completeness, sequencing, dependencies, and prompt clarity; you approve before execution
+4. Execute plan — loop through plan-manager steps, delegate to subagents or execute directly, and update status after each step
+5. Review and summarize — validate against original intent, update memory when needed, and summarize outcomes
+
+**Expect:** a tailored plan rather than a fixed artifact set. Depending on selected blocks, outputs may include a plan, specs, requirements notes, validation results, code changes, or memory updates. Your responsibility is to keep intent clear, approve or reject the plan, and decide when discoveries should change scope.
 
 ```
 "Ad-hoc: write a quick script to parse these CSV files"
@@ -141,13 +160,31 @@ Building blocks: discover, reason, plan, execute, review, validate.
 </details>
 
 <details markdown="1">
-<summary><b>Code Analysis <span class="badge-pro">PRO</span></b></summary>
+<summary><b>Code Analysis</b></summary>
 
-Systematic understanding of existing codebases. Distinguishes small and large analysis targets.
+Reverse-engineers an existing codebase into grounded architecture documentation before planning, refactoring, testing, onboarding, or modernization. The workflow scales from a single focused analysis document to parallel per-module analysis with a cross-module summary.
+
+**Use when:** analyze a repository, module, feature, or API; explain component responsibilities; document data flow and integrations; create an architecture baseline; or extract requirements from existing code when explicitly requested.
+
+**Phases:**
+1. Context load — read project context and identify entry points such as APIs, webhooks, CLIs, and cron jobs
+2. Scope and classify — classify SMALL vs LARGE, record paths, boundaries, non-goals, and module list when needed
+3. Clarify unknowns — ask only critical/high questions that affect analysis accuracy; persist resolved and unresolved assumptions
+4. Requirements branch — only when requested, extract SMART/MECE/EARS requirements into `docs/<feature>/REQUIREMENTS/`
+5. Analyze small — for SMALL scope, produce one `docs/<feature>/analysis.md` with components, data models, flows, edge cases, dependencies, and diagrams
+6. Analyze large parallel — for LARGE scope, partition modules and produce `docs/<feature>/module-<module>.md` files in parallel
+7. Summarize — for LARGE scope, combine modules into `docs/<feature>/summary.md`
+8. Review — check groundedness, scope coverage, assumptions, diagrams, and absence of implementation suggestions
+9. User review — you approve with "Yes, I reviewed the analysis" or provide feedback
+10. Finalize — update state and add a brief pointer to produced artifacts
+
+**Expect:** discoverer, architect, and reviewer subagents. Every claim should trace to code/docs; diagrams must be readable in light and dark themes; generated code and refactor suggestions are out of scope. Your responsibility is to define scope, answer high-impact questions, and review whether the explanation matches real system intent.
 
 ```
 "Explain how the authentication system works"
 "What is the architecture of the payment module?"
+"Analyze the REST API architecture and write the result to analysis.md"
+"Reverse-engineer requirements from the billing module"
 ```
 
 </details>
@@ -155,7 +192,17 @@ Systematic understanding of existing codebases. Distinguishes small and large an
 <details markdown="1">
 <summary><b>Research <span class="badge-pro">PRO</span></b></summary>
 
-Deep, project-grounded investigation using meta-prompting. Every claim backed by evidence.
+Use this for project-related research, investigation, or technical comparison that needs systematic exploration and grounded references. Rosetta first turns the request into a focused research prompt, then runs the approved prompt through a dedicated research pass.
+
+**Use when:** you need deep investigation before choosing an approach, research tied to current project context, or a documented answer rather than a quick opinion.
+
+**Phases:**
+1. Context load — researcher reads project context, architecture, and implementation state
+2. Prompt craft — researcher creates `research-prompt.md` in the feature plan folder; you approve the research direction
+3. Execute research — dedicated researcher executes the approved prompt using the research skill
+4. Finalize — produce `docs/<feature>-research.md` and mark `research-flow-state.md` complete
+
+**Expect:** a researcher subagent, a prompt artifact before the research runs, and grounded final analysis. Your responsibility is to review the prompt because it controls what the research will and will not answer.
 
 ```
 "Research best practices for microservices authentication"
@@ -168,7 +215,21 @@ Deep, project-grounded investigation using meta-prompting. Every claim backed by
 <details markdown="1">
 <summary><b>Automated QA <span class="badge-pro">PRO</span></b></summary>
 
-Test automation workflow with approval gate before implementation.
+Creates or updates automated UI tests from a TestRail case, Confluence context, and the project test architecture. The workflow reads requirements first, clarifies assertions, analyzes existing tests and Page Objects, identifies selectors from source or page HTML, implements the test, then waits for execution results before proposing fixes.
+
+**Use when:** automate a TestRail case or QA scenario, reuse existing Page Objects and helpers, avoid guessed selectors, or analyze a failing automated test report.
+
+**Phases:**
+1. Data Collection — collect TestRail, Confluence, project instructions, and create `agents/plans/aqa-<test-name>.md`
+2. Requirements Clarification — ask assertion and behavior questions; wait for answers before code analysis
+3. Code Analysis — inspect frontend code, Page Objects, existing tests, utilities, and project conventions
+4. Selector Identification — map steps to UI elements; request page source only when selectors cannot be found
+5. Selector Implementation — add or update selectors in Page Objects using project conventions
+6. Test Implementation — implement the automated test and stop so you can run it
+7. Test Report Analysis — read test report output, categorize failures, and identify root causes
+8. Test Corrections — prepare fixes and require approval before applying changes
+
+**Expect:** sequential state-driven execution with QA/frontend/test implementation focus. HITL gates occur in phases 2, 6, 7, and 8; phase 4 asks for page HTML only if needed. Your responsibility is to provide the TestRail case, Confluence context, answers, page HTML when requested, run the test, and provide the report.
 
 ```
 "Write tests for the user registration feature"
@@ -180,7 +241,20 @@ Test automation workflow with approval gate before implementation.
 <details markdown="1">
 <summary><b>Test Case Generation <span class="badge-pro">PRO</span></b></summary>
 
-Generates test cases from Jira tickets and Confluence documentation.
+Generates structured requirements and TestRail-ready test cases from Jira and Confluence. The workflow collects source material, identifies contradictions and gaps, asks targeted clarification questions, creates a requirements document, generates optimized test scenarios, and can export them to TestRail.
+
+**Use when:** a Jira ticket, epic, or story needs QA scenarios; requirements need traceability to Jira and Confluence; or gaps and contradictions must be resolved before tests are written.
+
+**Phases:**
+0. Project Config Loading — load/create project test generation config and initialize `agents/testgen/{TICKET-KEY}/`
+1. Data Collection — retrieve Jira fields, comments, linked docs, Confluence pages, and child pages into `raw-data.md`
+2. Gap and Contradiction Analysis — identify contradictions, gaps, ambiguities, risks, and source conflicts in `analysis.md`
+3. Question Generation and User Input — generate `questions.md`, wait for answers, and save `answers.md`
+4. Requirements Document Generation — produce `requirements.md` with stories, FRs, NFRs, constraints, assumptions, glossary, and traceability
+5. Test Case Generation — produce `test-scenarios.md` with priorities, steps, expected results, test data, and coverage matrix
+6. Test Case Export — optionally export to TestRail after you provide project, suite, and section details
+
+**Expect:** one phase at a time with `testgen-state.md` updated after each phase. The required HITL gate is phase 3 before requirements generation. Your responsibility is to provide Jira input, Confluence links when auto-search is insufficient, answers, review decisions, and TestRail destination details for export.
 
 ```
 "Generate test cases for PROJ-123"
@@ -192,7 +266,21 @@ Generates test cases from Jira tickets and Confluence documentation.
 <details markdown="1">
 <summary><b>Modernization <span class="badge-pro">PRO</span></b></summary>
 
-Large-scale code conversions, upgrades, and re-architecture.
+Large migration workflow for code conversions, platform upgrades, framework upgrades, containerization, Linux enablement, and rearchitecture. Rosetta documents what exists, validates behavior with evidence, maps the target design, gets approval, then implements from approved specs.
+
+**Use when:** migrating C++ to Java, .NET Framework to modern .NET, Java 8 to Java 21, Windows services to Linux containers, monolith to services, SQL-centric code to a new persistence model, or any change where skipping analysis risks lost behavior.
+
+**Phases:**
+1. Existing Library Analysis — inspect reusable target-state libraries and create `docs/reference-code-specs-<lib/project>.md`
+2. Old Code Analysis — document legacy behavior, tests, dependencies, public contracts, edge cases, and database usage in `docs/original-code-specs-<lib/project>.md`
+3. Test Coverage — optional; measure and fill original behavior coverage in `docs/original-test-coverage-<lib/project>.md`
+4. Class Group Analysis — identify bounded contexts, dependency chains, tightly coupled classes, and cross-group flows
+5. Cross-Project Analysis — compare projects, detect shared flows and inconsistencies, and create `docs/cross-project-analysis.md`
+6. Implementation Mapping — choose target approach and create `docs/target-code-specs-<lib/project>.md`
+7. Final Review — review all specs for consistency, unresolved unknowns, dependencies, and readiness
+8. Implementation — after explicit approval, implement one project at a time from approved specs and validate behavior
+
+**Expect:** heavy subagent use, often one focused subagent per phase or project. HITL confirms applicable phases, phase transitions, target-spec approval, public API changes, and implementation start. Your responsibility is to provide source/target expectations, compatibility requirements, test expectations, deployment constraints, and careful spec review.
 
 ```
 "Migrate from Java 8 to Java 21"
@@ -204,7 +292,17 @@ Large-scale code conversions, upgrades, and re-architecture.
 <details markdown="1">
 <summary><b>External Library <span class="badge-pro">PRO</span></b></summary>
 
-Onboards private or external libraries for AI understanding. Uses Repomix for codebase analysis, generates compressed documentation, publishes to the knowledge base, and extracts usage patterns.
+Onboards an external or private codebase so AI agents can use it in the current project without direct source access during later work. Rosetta packages the external project, extracts a compact learning flow, publishes reference material, and verifies that agents can find it.
+
+**Use when:** agents need to understand an internal SDK, shared library, external service client, or source outside the current workspace.
+
+**Phases:**
+1. Discovery — ask for project path, validate access, detect project name, version, and tech stack
+2. Analysis — package codebase with compressed Repomix XML, read README, identify entry points, and generate a short learning flow
+3. Publishing — publish `{project-name}.xml` and `{project-name}-onboarding.md`, confirm document IDs, and clean temporary files
+4. Verification — search by project name, verify tags, display the learning flow, and confirm onboarding
+
+**Expect:** sequential orchestration rather than named subagents. Artifacts include compressed XML for AI consumption, a short onboarding document, and an architecture rule telling agents to use the reference source. Your responsibility is to provide an accessible path and correct detected metadata if needed.
 
 ```
 "Teach AI about our internal authentication library"
@@ -216,7 +314,20 @@ Onboards private or external libraries for AI understanding. Uses Repomix for co
 <details markdown="1">
 <summary><b>Coding Agents Prompting <span class="badge-pro">PRO</span></b></summary>
 
-Specialized workflow for authoring and adapting prompts for AI coding agents. Built for teams that create or maintain instruction sets for AI tools.
+Authors or adapts prompts for AI coding agents. Rosetta keeps orchestration thin, records state after every phase, carries an approved Prompt Brief through the work, and validates that the final prompt set traces back to the original intent.
+
+**Use when:** creating prompts, rules, or instruction sets for coding agents; adapting a prompt from one IDE or agent to another; or validating prompt quality before persistence.
+
+**Phases:**
+1. Discover — collect local context, prompt-family artifacts, and required references; produce Discovery Notes and Reference Set
+2. Extract and Intake — extract source-prompt requirements, ask clarifications, and produce a Prompt Brief plus Open Questions
+3. Blueprint — design structure, actors, contracts, and boundaries for the target prompt set
+4. Draft Loop — draft target prompts from the approved Prompt Brief and Blueprint
+5. Hardening and Edit Loop — review and edit each target prompt until pass criteria or HITL decision
+6. Simulate — run realistic execution traces and check context/cognitive load across the prompt chain
+7. Validate — produce Final Prompt Set and Validation Pack with checklist results, tests, failure modes, and traceability
+
+**Expect:** discoverer and prompt-engineer subagents. Required artifacts include state, Discovery Notes, Reference Set, Prompt Brief, Blueprint, Draft Prompt Set, Prompt Set, Simulation Notes, and Validation Pack. HITL gates include Prompt Brief approval, ambiguous blueprint tradeoffs, stalled loops, major simulation risk, and final approval before persistence.
 
 ```
 "Create a coding workflow prompt for our internal AI agent"
@@ -295,7 +406,7 @@ Reusable units of work that workflows and subagents invoke. Each skill focuses o
 | **Debugging** | Root cause investigation before attempting fixes for errors, test failures, unexpected behavior |
 | **Load Context** | Fast, automated loading of current project context for planning and understanding user intent |
 | **Reverse Engineering** | Extract what a system does and why from source files, stripped of implementation details |
-| **Requirements Authoring** | Atomic requirement units with EARS format, explicit user approval, and traceability |
+| **Requirements Documentation Authoring** | Atomic requirement units with EARS format, explicit user approval, and traceability |
 | **Requirements Use** | Consume approved requirements to drive planning, implementation, and validation |
 | **Coding Agents Prompt Adaptation** | Adapt prompts from one coding agent/IDE to another while preserving intent and strategy |
 | **Large Workspace Handling** | Partition large workspaces (100+ files) into scoped subagent tasks |
@@ -304,7 +415,7 @@ Reusable units of work that workflows and subagents invoke. Each skill focuses o
 | **Init Workspace Documentation** | Create CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, MEMORY.md |
 | **Init Workspace Patterns** | Extract recurring coding and architectural patterns into reusable templates |
 | **Init Workspace Rules** | Create local cached agent rules configured for IDE/OS/project context |
-| **Init Workspace Shells** | Generate IDE/CodingAgent shell files from KB schemas |
+| **Init Workspace Shells** | Generate IDE/CodingAgent shell files from Rosetta schemas |
 | **Init Workspace Verification** | Verify initialization completeness and run catch-up for missed artifacts |
 | **Backward Compatibility** <span class="badge-pro">PRO</span> | Ensure changes preserve backward compatibility |
 | **Code Review** <span class="badge-pro">PRO</span> | Structured code review against standards and intent |

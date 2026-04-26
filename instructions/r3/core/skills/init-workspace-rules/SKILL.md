@@ -19,13 +19,14 @@ Validation: all Rosetta content exists as local files, root entry point triggers
 
 <core_concepts>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Rules consumed by AI agents, not humans
 - **Full-copy mode** — copies complete file content from Rosetta to local workspace
 - **Adapt** — copy content AS-IS; adapt ONLY IDE format: extension, frontmatter, directory. Never rewrite instruction content.
 - **Exclusion set** — `init-workspace-*` skills/workflows, `templates/shell-schemas/*`, `configure/*`, `rules/bootstrap.md` MUST NOT BE copied
 - **Bundled ACQUIRE** — when ACQUIRE returns multiple `<rosetta:file>` sections, strip tags, merge into one file with one frontmatter
 - **state.mode** — `init` creates all files; `upgrade` fills gaps only, never overwrites human-customized files
+- Make sure that you follow original activation conditions, MUST never make all rules to be ALWAYS activated/loaded (overflows context)
 
 </core_concepts>
 

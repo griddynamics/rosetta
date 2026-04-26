@@ -1,7 +1,7 @@
 {
   "name": "core",
   "description": "Rosetta Core 2.0 - OSS foundation for AI agent instructions, workflows, and guardrails.",
-  "version": "2.0.21",
+  "version": "2.0.22",
   "author": {
     "name": "Grid Dynamics",
     "email": "rosetta-support@griddynamics.com"
@@ -24,12 +24,12 @@
     "./rules/bootstrap-core-policy.md",
     "./rules/bootstrap-execution-policy.md",
     "./rules/bootstrap-guardrails.md",
-    "./rules/bootstrap-hitl-questioning.md",
     "./rules/bootstrap-rosetta-files.md",
     "./rules/plugin-files-mode.md",
     "./rules/requirements-best-practices.md",
     "./rules/requirements-use-best-practices.md",
     "./rules/speckit-integration-policy.md"
   ],
-  "commands": "./workflows/"
+  "commands": "./workflows/",
+  "hooks": "./hooks/hooks.json"
 }

@@ -67,6 +67,14 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Shared `hooks/shell/rosetta-bootstrap.sh` replaces 4 per-plugin copies; distributed to all plugin `hooks/` folders.
 - Build integrated into `scripts/pre_commit.py` via `build_hooks()` check before plugin sync.
 
+### rosettify (npm package)
+
+- Local CLI/MCP tool runner for Rosetta. Published on npm as `rosettify` (`rosettify/`).
+- Dual-frontend: same run delegates behind both `npx rosettify <cmd>` CLI and `rosettify --mcp` stdio server.
+- Current commands: `plan` (create, next, update_status, show_status, query, upsert), `help`.
+- Envelope is internal: frontends extract payload via `extractOutput` and log failures via `logFailure` before output — consumers never see the raw envelope wrapper.
+- Validated with `npm run typecheck` and `npm run test` (vitest, 90%+ line + branch coverage).
+
 ### Instructions and Skills
 
 - Added `plan-manager` skill under `instructions/r2/core/skills/plan-manager/` — primary plan manager for coding agents via local JSON files.
@@ -74,10 +82,12 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Key behaviors: resume-safe `next` command returns `in_progress` steps with `resume: true` before `open` steps; plans stored at `plans/<name>/plan.json`; self-describing `help` command.
 - Converted `adhoc-flow-with-plan-manager` workflow to `USE SKILL plan-manager`; data structure externalized to `pm-schema.md`.
 - Plugins (`core-claude`, `core-cursor`, `core-copilot`, `core-codex`) are auto-synced from core by `scripts/plugin_generator.py`.
+- `instructions/r3/core` is kept aligned with the current `instructions/r2/core` instruction set.
 
 ### Workflows and Automation
 
 - GitHub Actions were updated to remove most deprecated Node 20-era dependencies and align with newer action runtimes where upstream allowed it.
+- Init-workspace instructions now treat `rosetta@rosetta` as the MCP connector path rather than plugin mode, while any other plugin type is handled as plugin mode.
 - Workflow maintenance included:
   - Bun runtime override for Claude workflows
   - build/publish pipeline repairs
@@ -85,6 +95,7 @@ For detailed change history, use git history and PRs instead of expanding this f
   - native Git pre-commit hook shim with a shared Python entrypoint under `scripts/`
   - generated `plugins/core-claude`, `plugins/core-cursor`, `plugins/core-copilot`, and `plugins/core-codex` trees sourced from `instructions/r2/core`
   - plugin-specific packaging transforms for model metadata, generated indexes, and local marketplace/manifests
+  - bootstrap hooks inlined at build time via `hooks.json.tmpl` templates and generic `process_templates` engine; runtime shell scripts eliminated; 4 platform-specific placeholder formats (Claude, Codex, Cursor, Copilot) generated once per build
   - Jira loader recovery after upstream API changes
   - shared type-validation entrypoint
 - Some GitHub Pages actions remain upstream-limited and may still depend on older Node runtimes until upstream changes.
@@ -92,6 +103,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 ### Documentation and Public Surface
 
 - Installation, deployment, quickstart, troubleshooting, and README content were aligned with the current transport/auth model.
+- Usage guides describe workflow phases, expected subagents/artifacts, HITL gates, and user responsibilities for both OSS and PRO workflow families.
 - Internal/private environment details were replaced with public-safe placeholders where appropriate.
 - Public Docker Hub references remain intentionally visible because they are part of the OSS distribution surface.
 

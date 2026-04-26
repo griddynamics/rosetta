@@ -1,25 +1,26 @@
 import { Command } from "commander";
 import { registry } from "../registry/index.js";
 import { dispatch } from "../shared/dispatch.js";
+import { extractOutput, logFailure } from "../shared/envelope.js";
 import { planToolDef } from "../commands/plan/index.js";
 import { helpToolDef } from "../commands/help/index.js";
 import type { PlanInput } from "../commands/plan/core.js";
 import type { EnrichedEnvelope } from "../registry/types.js";
+import { logger } from "../shared/logger.js";
 
-function writeResult(envelope: EnrichedEnvelope<unknown>): void {
-  process.stdout.write(JSON.stringify(envelope, null, 2) + "\n");
+function writeResult(toolName: string, envelope: EnrichedEnvelope<unknown>): void {
+  const output = extractOutput(envelope);
+  if (!output.ok) {
+    logFailure(logger, toolName, envelope.error ?? "unknown_error");
+  }
+  process.stdout.write(JSON.stringify(output.payload, null, 2) + "\n");
 }
 
 export async function runCli(args: string[]): Promise<void> {
   // Check for --mcp before commander processes
   if (args.includes("--mcp")) {
     process.stderr.write(
-      JSON.stringify({
-        ok: false,
-        error: "--mcp is mutually exclusive with commands",
-        result: null,
-        include_help: false,
-      }) + "\n",
+      JSON.stringify({ error: "--mcp is mutually exclusive with commands" }) + "\n",
     );
     process.exit(1);
   }
@@ -54,7 +55,7 @@ export async function runCli(args: string[]): Promise<void> {
         data,
       };
       const envelope = await dispatch(planToolDef, input);
-      writeResult(envelope);
+      writeResult(planToolDef.name, envelope);
       process.exit(envelope.ok ? 0 : 1);
     });
 
@@ -73,7 +74,7 @@ export async function runCli(args: string[]): Promise<void> {
         target_id: opts.target,
       };
       const envelope = await dispatch(planToolDef, input);
-      writeResult(envelope);
+      writeResult(planToolDef.name, envelope);
       process.exit(envelope.ok ? 0 : 1);
     });
 
@@ -92,7 +93,7 @@ export async function runCli(args: string[]): Promise<void> {
         new_status: newStatus,
       };
       const envelope = await dispatch(planToolDef, input);
-      writeResult(envelope);
+      writeResult(planToolDef.name, envelope);
       process.exit(envelope.ok ? 0 : 1);
     });
 
@@ -109,7 +110,7 @@ export async function runCli(args: string[]): Promise<void> {
         target_id: targetId,
       };
       const envelope = await dispatch(planToolDef, input);
-      writeResult(envelope);
+      writeResult(planToolDef.name, envelope);
       process.exit(envelope.ok ? 0 : 1);
     });
 
@@ -126,7 +127,7 @@ export async function runCli(args: string[]): Promise<void> {
         target_id: targetId,
       };
       const envelope = await dispatch(planToolDef, input);
-      writeResult(envelope);
+      writeResult(planToolDef.name, envelope);
       process.exit(envelope.ok ? 0 : 1);
     });
 
@@ -155,7 +156,7 @@ export async function runCli(args: string[]): Promise<void> {
           phase_id: opts.phase_id,
         };
         const envelope = await dispatch(planToolDef, input);
-        writeResult(envelope);
+        writeResult(planToolDef.name, envelope);
         process.exit(envelope.ok ? 0 : 1);
       },
     );
@@ -164,18 +165,18 @@ export async function runCli(args: string[]): Promise<void> {
   planCmd.action(async (opts: { help?: boolean }, cmd: { args: string[] }) => {
     if (opts.help) {
       const envelope = await dispatch(helpToolDef, { subcommand: "plan" });
-      writeResult(envelope);
+      writeResult(helpToolDef.name, envelope);
       process.exit(0);
     } else if (cmd.args.length > 0) {
       // Unknown subcommand — pass to plan run delegate which returns structured error
       const input: PlanInput = { subcommand: cmd.args[0] };
       const envelope = await dispatch(planToolDef, input);
-      writeResult(envelope);
+      writeResult(planToolDef.name, envelope);
       process.exit(envelope.ok ? 0 : 1);
     } else {
       // No subcommand -> plan help
       const envelope = await dispatch(planToolDef, {});
-      writeResult(envelope);
+      writeResult(planToolDef.name, envelope);
       process.exit(envelope.ok ? 0 : 1);
     }
   });
@@ -187,14 +188,14 @@ export async function runCli(args: string[]): Promise<void> {
     .argument("[subcommand]", "Command to get help for")
     .action(async (subcommand?: string) => {
       const envelope = await dispatch(helpToolDef, { subcommand });
-      writeResult(envelope);
+      writeResult(helpToolDef.name, envelope);
       process.exit(0);
     });
 
   // Check for root-level --help before parsing
   if (args.includes("--help") && !args.some((a) => a !== "--help" && !a.startsWith("-"))) {
     const envelope = await dispatch(helpToolDef, {});
-    writeResult(envelope);
+    writeResult(helpToolDef.name, envelope);
     process.exit(0);
   }
 
@@ -208,7 +209,7 @@ export async function runCli(args: string[]): Promise<void> {
     )
   ) {
     const envelope = await dispatch(helpToolDef, { subcommand: "plan" });
-    writeResult(envelope);
+    writeResult(helpToolDef.name, envelope);
     process.exit(0);
   }
 
@@ -220,12 +221,7 @@ export async function runCli(args: string[]): Promise<void> {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     process.stderr.write(
-      JSON.stringify({
-        ok: false,
-        error: msg,
-        result: null,
-        include_help: false,
-      }) + "\n",
+      JSON.stringify({ error: msg }) + "\n",
     );
     process.exit(1);
   }

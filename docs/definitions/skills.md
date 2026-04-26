@@ -38,3 +38,12 @@
 - init-workspace-patterns
 - init-workspace-documentation
 - init-workspace-verification
+- deviation
+- self-organization
+- self-learning
+- sensitive-data
+- hitl
+- subagent-contract
+- orchestrator-contract
+- dangerous-actions
+- risk-assessment

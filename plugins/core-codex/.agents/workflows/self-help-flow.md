@@ -17,7 +17,7 @@ Provides: live overview of available skills, workflows, and agents; detailed gui
 
 <workflow_phases>
 
-Rosetta prep steps completed.
+All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
 Phases are sequential. Orchestrator coordinates; trust skills and subagents to execute.
 Scale: conversational — output is a message, no files, no state tracking.
 

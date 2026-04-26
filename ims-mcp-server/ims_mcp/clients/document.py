@@ -5,11 +5,17 @@ from __future__ import annotations
 import json
 from typing import Any, cast
 
+import logging
+import threading
+import time
+
 import requests
 from ragflow_sdk.modules.dataset import DataSet
 from ragflow_sdk.modules.document import Document
 
 from ims_mcp.typing_utils import DatasetLike, DocumentLike, JsonObject, as_json_object
+
+_logger = logging.getLogger("ims_mcp.tracing")
 
 
 class DocumentClient:
@@ -144,7 +150,33 @@ class DocumentClient:
             base_url = api_url.rstrip("/")
 
         url = f"{base_url}/v1/document/get/{doc.id}"
-        res = requests.get(url=url, headers=headers, timeout=30)
+
+        from ims_mcp.tracing import current_trace_id, SLOW_CALL_THRESHOLD_SECONDS, _log_prefix
+        trace_id = current_trace_id.get(None)
+        prefix = _log_prefix("ragflow", trace_id)
+        label = f"GET /v1/document/get/{doc.id}"
+        _logger.info("%s %s — started", prefix, label)
+        _start = time.monotonic()
+        _slow_fired = threading.Event()
+
+        def _slow() -> None:
+            _slow_fired.set()
+            _logger.error("%s %s — SLOW: still in-flight after %.1fs", prefix, label, time.monotonic() - _start)
+
+        _timer = threading.Timer(SLOW_CALL_THRESHOLD_SECONDS, _slow)
+        _timer.daemon = True
+        _timer.start()
+        try:
+            res = requests.get(url=url, headers=headers, timeout=30)
+            _elapsed = time.monotonic() - _start
+            _level = logging.WARNING if _slow_fired.is_set() else logging.INFO
+            _logger.log(_level, "%s %s — %s in %.3fs", prefix, label, res.status_code, _elapsed)
+        except Exception as _exc:
+            _elapsed = time.monotonic() - _start
+            _logger.error("%s %s — failed after %.3fs: %s", prefix, label, _elapsed, _exc)
+            raise
+        finally:
+            _timer.cancel()
 
         # Try to detect JSON error envelope.
         try:

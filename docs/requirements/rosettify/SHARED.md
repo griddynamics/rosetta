@@ -82,6 +82,28 @@ Cross-cutting concerns used by all commands. No command reimplements these.
   </acceptance>
 </req>
 
+## FR-SHRD-0007 Frontend Failure Logging
+
+<req id="FR-SHRD-0007" type="FR" level="System">
+  <title>Frontends log all failures via shared logger before output</title>
+  <statement>When a frontend (CLI or MCP) outputs a failure (ok=false from dispatch), it SHALL log the failure to the log file via the shared logger before writing output to the consumer. Log level rules:
+- Error code prefixed with "internal_error": log at ERROR level.
+- All other failures: log at WARN level.
+
+The log entry SHALL include at minimum: the tool name and the error string. It MAY include additional diagnostic context that is safe to log (e.g., subcommand, target_id) but SHALL NOT log sensitive input data. This ensures every failure is traceable in the log file regardless of whether the consumer persists or inspects the output.</statement>
+  <rationale>Failures that appear only in consumer output are hard to trace in production. Logging every failure independently of output format provides an always-available audit trail. Separating log level by error type (internal vs. usage) allows operators to filter noise from actionable alerts.</rationale>
+  <source>User</source>
+  <ticketId>CTORNDGAIN-1333</ticketId>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: CLI or MCP receives ok=false with error="plan_not_found". When: output is written. Then: log file contains a WARN entry for that tool. Consumer receives output before or after logging completes (logging is best-effort async).
+Given: ok=false with error="internal_error: ...". When: output is written. Then: log file contains an ERROR entry. Consumer receives the sanitized error message without the internal_error prefix detail in sensitive parts.
+Given: ok=true. When: output is written. Then: no additional log entry from the frontend (run delegate logging is separate).</criteria>
+  </acceptance>
+</req>
+
 ## FR-SHRD-0004 Error Handling
 
 <req id="FR-SHRD-0004" type="FR" level="System">

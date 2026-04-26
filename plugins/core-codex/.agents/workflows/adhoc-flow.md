@@ -67,7 +67,7 @@ Compose these into plan phases/steps to build any execution workflow.
 
 <workflow_phases>
 
-- Rosetta prep steps completed.
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
 - Use available skills and agents.
 - You will FOR SURE run out of LLM context, leading to loss of information, delegate to subagents!
 

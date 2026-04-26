@@ -18,7 +18,7 @@ Use when encountering errors, test failures, unexpected behavior, or when a prev
 
 <core_concepts>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - ALWAYS find root cause before attempting fixes; symptom fixes are failure
 - Make implicit become explicit — incorrect assumptions hide root causes
 - Execute phases sequentially

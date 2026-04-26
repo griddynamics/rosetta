@@ -17,7 +17,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 <workflow_phases>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL REQUIRED SCALING IS ALREADY PRE-DEFINED BY "applies" ATTRIBUTE.
 - Phases are sequential. Independent subagent tasks within a phase CAN run in parallel.
 - When debugging is needed, INVOKE SUBAGENT `engineer` separately to isolate debugging context from implementation.

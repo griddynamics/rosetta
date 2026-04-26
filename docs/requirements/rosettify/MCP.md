@@ -37,16 +37,24 @@ MCP stdio frontend requirements for rosettify.
 ## FR-MCP-0003 Tool Invocation via Common Envelope
 
 <req id="FR-MCP-0003" type="FR" level="System">
-  <title>MCP CallTool dispatches through run delegate and enrichment</title>
-  <statement>When an MCP CallTool request is received, the server SHALL look up the tool by name in the registry and invoke the run delegate. The run delegate returns the common output envelope (FR-ARCH-0011). The orchestration layer processes help enrichment if include_help=true (FR-ARCH-0012). The MCP frontend then formats the final envelope as MCP tool result content. Unknown tool names SHALL return an MCP protocol error (MethodNotFound) since the tool was never registered.</statement>
-  <rationale>MCP frontend adapts the common envelope to MCP protocol.</rationale>
+  <title>MCP CallTool dispatches through run delegate, enrichment, and output transformation</title>
+  <statement>When an MCP CallTool request is received, the server SHALL look up the tool by name in the registry and invoke the run delegate. The run delegate returns the common output envelope (FR-ARCH-0011). The orchestration layer processes help enrichment if include_help=true (FR-ARCH-0012). The MCP frontend then analyzes the final EnrichedEnvelope per FR-ARCH-0014 and formats a transformed payload as MCP tool result content — the raw envelope is never the content.
+
+- On success (ok=true): MCP content text contains the `result` object as JSON.
+- On failure (ok=false): MCP content text contains a sanitized error payload (error string and, if present, the help field) as JSON. No stack traces, no internal paths, no security-sensitive details. isError is set to true. Failures are also logged via the shared logger (FR-SHRD-0007).
+
+Unknown tool names SHALL return an MCP protocol error (MethodNotFound) since the tool was never registered.</statement>
+  <rationale>MCP content is consumed by AI agents. The envelope wrapper (ok, result, error, include_help) is internal plumbing that adds no value to the consumer and forces unnecessary unwrapping. Clean content reduces agent parsing complexity. Logging ensures failures are traceable even when MCP clients do not persist responses.</rationale>
   <source>Inferred</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: MCP CallTool "plan" with valid params. Then: run delegate executes, enrichment runs, MCP returns the final envelope as content. Given: run delegate returns include_help=true. Then: help field present in MCP result. Given: CallTool for unregistered tool name. Then: MCP protocol error (tool was never listed).</criteria>
+    <criteria>Given: MCP CallTool "plan" with valid params. Then: run delegate executes, enrichment runs, MCP content text is the result object JSON — no ok/error/include_help fields. isError=false.
+Given: run delegate returns include_help=true with help content. Then: MCP content text is {error: "...", help: {...}} — no envelope wrapper. isError=true. Failure logged.
+Given: run delegate returns ok=false, include_help=false. Then: MCP content text is {error: "..."} — no envelope wrapper. isError=true. Failure logged.
+Given: CallTool for unregistered tool name. Then: MCP protocol error (tool was never listed).</criteria>
   </acceptance>
 </req>
 
