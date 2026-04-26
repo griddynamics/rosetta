@@ -1,6 +1,17 @@
 {
   "version": 1,
   "hooks": {
-    "sessionStart": [{{BOOTSTRAP_HOOKS_COPILOT}}]
+    "sessionStart": [{{BOOTSTRAP_HOOKS_COPILOT}}],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/loose-files.js\""
+          }
+        ]
+      }
+    ]
   }
 }

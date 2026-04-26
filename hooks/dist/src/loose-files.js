@@ -85,7 +85,7 @@ const main = async ({ stdin = process.stdin, stdout = process.stdout, } = {}) =>
         (0, debug_log_1.debugLog)('skipped (shouldCheck=false)');
         return;
     }
-    if (!(0, lock_1.acquireOnce)(normalized)) {
+    if (ide === 'copilot' && !(0, lock_1.acquireOnce)(normalized)) {
         (0, debug_log_1.debugLog)('skipped (duplicate)');
         return;
     }

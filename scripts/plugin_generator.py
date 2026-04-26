@@ -41,6 +41,7 @@ class PluginSyncSpec:
     generated_indexes: tuple[str, ...] = ()
     templates: tuple[str, ...] = ()
     hook_subdir: Path | None = None
+    runtime_asset_subdirs: tuple[Path, ...] = ()
 
 
 def _get_plugin_specs(repo_root: Path) -> list[PluginSyncSpec]:
@@ -73,6 +74,7 @@ def _get_plugin_specs(repo_root: Path) -> list[PluginSyncSpec]:
             generated_indexes=("rules", "workflows"),
             templates=(".github/plugin/hooks.json.tmpl",),
             hook_subdir=Path(".github") / "plugin",
+            runtime_asset_subdirs=(Path("."),),
         ),
         PluginSyncSpec(
             name="core-codex",
@@ -583,7 +585,7 @@ def generate_codex_subagents(destination: Path, core_source: Path) -> None:
 def generate_copilot_runtime_layout(destination: Path) -> None:
     plugin_dir = destination / ".github" / "plugin"
     copied = 0
-    for filename in ("hooks.json", ".mcp.json", "loose-files.js", "rosetta-bootstrap.sh", "rosetta-bootstrap.ps1"):
+    for filename in ("hooks.json", ".mcp.json"):
         source = plugin_dir / filename
         if source.is_file():
             shutil.copy2(source, destination / filename)
@@ -592,7 +594,7 @@ def generate_copilot_runtime_layout(destination: Path) -> None:
 
 
 def generate_cursor_runtime_layout(destination: Path) -> None:
-    source_hooks = destination / ".cursor-plugin" / "hooks.json"
+    source_hooks = destination / "hooks" / "hooks.json"
     cursor_hooks = destination / ".cursor" / "hooks.json"
     if source_hooks.is_file():
         _replace_tree(source_hooks, cursor_hooks)
@@ -689,22 +691,31 @@ def sync_hooks_into_plugins(repo_root: Path) -> int:
         # Preserve files not managed by the hook bundle (e.g. hooks.json, plugin.json).
         # Compute the set of filenames the bundle + shell will supply, then save everything else.
         managed_names = (
-            {f.name for f in bundle_src.rglob("*") if f.is_file()}
-            | {f.name for f in hooks_shell_dist.rglob("*") if f.is_file()}
+            {f.name for f in bundle_src.rglob("*") if f.is_file() and f.name != ".gitkeep"}
+            | {f.name for f in hooks_shell_dist.rglob("*") if f.is_file() and f.name != ".gitkeep"}
         )
         preserved: dict[str, bytes] = {}
         if target.is_dir():
             for entry in target.iterdir():
-                if entry.is_file() and entry.name not in managed_names:
+                if entry.is_file() and entry.name not in managed_names and entry.name != ".gitkeep":
                     preserved[entry.name] = entry.read_bytes()
 
         shutil.rmtree(target, ignore_errors=True)
         shutil.copytree(bundle_src, target, dirs_exist_ok=True)
-        shutil.copytree(hooks_shell_dist, target, dirs_exist_ok=True)
+        shutil.copytree(hooks_shell_dist, target, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".gitkeep"))
 
         for fname, content in preserved.items():
             (target / fname).write_bytes(content)
 
         print(f"      synced hooks into {spec.destination.name}/{spec.hook_subdir}", flush=True)
+
+        for mirror_subdir in spec.runtime_asset_subdirs:
+            mirror_target = spec.destination / mirror_subdir
+            mirror_target.mkdir(parents=True, exist_ok=True)
+            for fname in managed_names:
+                src_file = target / fname
+                if src_file.is_file():
+                    shutil.copy2(src_file, mirror_target / fname)
+            print(f"      mirrored hook assets into {spec.destination.name}/{mirror_subdir}", flush=True)
 
     return 0

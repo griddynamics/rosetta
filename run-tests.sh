@@ -41,4 +41,12 @@ else
     echo -e "${YELLOW}To enable: npm --prefix rosettify install${NC}"
 fi
 
+if [ -d "$SCRIPT_DIR/hooks/node_modules" ]; then
+    echo -e "${BLUE}Running hooks tests...${NC}"
+    npm --prefix "$SCRIPT_DIR/hooks" run test
+else
+    echo -e "${YELLOW}WARNING: hooks/node_modules not found. Skipping hooks tests.${NC}"
+    echo -e "${YELLOW}To enable: npm --prefix hooks install${NC}"
+fi
+
 echo -e "${GREEN}Test validation passed${NC}"

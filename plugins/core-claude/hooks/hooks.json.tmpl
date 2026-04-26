@@ -5,6 +5,17 @@
         "matcher": "startup",
         "hooks": [{{BOOTSTRAP_HOOKS_CLAUDE}}]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/loose-files.js\""
+          }
+        ]
+      }
     ]
   }
 }

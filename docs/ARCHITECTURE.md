@@ -511,7 +511,7 @@ All four are generated from a single source tree (`instructions/r2/core/`) by th
 - **Template processing** — the generator supports `.tmpl` files inside preserved config folders: it substitutes platform-specific placeholders and writes the rendered output alongside the template (same path, `.tmpl` suffix removed). Currently used for `hooks.json`, which embeds the bootstrap payload at generation time and cannot be static. The mechanism is general-purpose and can be applied to any config that requires generated content.
 - **Copilot session locking** — Copilot has no native hook deduplication, so the generated hooks include a file-based lock ensuring each bootstrap entry fires exactly once per session. Other platforms use IDE-native mechanisms (Claude Code: `"once": true`; Codex and Cursor: built-in deduplication).
 
-Each plugin has a preserved config folder (`.claude-plugin/`, `.cursor-plugin/`, `.github/`, `.codex-plugin/`) containing the IDE-specific manifest (`plugin.json`), the `hooks.json.tmpl` template, and any static configs. Everything outside that folder is generated — wiped and regenerated on each sync. `hooks.json` is the rendered output of the template and is fully regenerated on every sync, not preserved as static content. Cursor does not need hooks to load bootstrap, because rules are supported (template placeholder still must be generated!)
+Each plugin has a preserved config folder (`.claude-plugin/`, `.cursor-plugin/`, `.github/`, `.codex-plugin/`) holding the IDE manifest (`plugin.json`) and static configs. The `hooks.json.tmpl` template is preserved per plugin spec — for Copilot and Codex inside the preserved config folder, for Claude and Cursor in a sibling `hooks/` folder also preserved via `preserved_files`. Everything outside preserved paths is wiped and regenerated on each sync. `hooks.json` is the rendered template output and is fully regenerated on every sync, not preserved as static content. All plugin hook templates carry custom runtime hooks (e.g., `loose-files.js`); Claude, Copilot, and Codex templates additionally embed the bootstrap payload, while Cursor relies on native rules for bootstrap.
 
 ### Hooks Runtime
 
@@ -530,7 +530,7 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 
 - **IDE normalization** — `src/adapter.ts` detects the IDE from stdin shape and normalizes to a canonical `NormalizedInput`; detection order: codex > cursor > claude-code > windsurf > copilot
 - **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema
-- **Dedup guard** — Copilot CLI has a known bug where PostToolUse fires twice per call; `src/lock.ts` suppresses the duplicate and is active only in the Copilot bundle
+- **Dedup guard** — GitHub Copilot CLI has a known bug where PostToolUse fires twice per call; `src/lock.ts` suppresses the duplicate and is activated at runtime only when the Copilot IDE is detected
 
 Hooks are distributed by `scripts/pre_commit.py`, which builds, tests, and copies bundles into `plugins/core-*/hooks/`. Do not edit `plugins/core-*/hooks/` directly — edit source in `hooks/src/` and re-run the script.
 

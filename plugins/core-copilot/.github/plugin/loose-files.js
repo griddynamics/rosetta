@@ -231,7 +231,7 @@ var main = async ({
     debugLog("skipped (shouldCheck=false)");
     return;
   }
-  if (!acquireOnce(normalized)) {
+  if (ide === "copilot" && !acquireOnce(normalized)) {
     debugLog("skipped (duplicate)");
     return;
   }

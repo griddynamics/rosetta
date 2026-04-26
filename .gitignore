@@ -81,7 +81,10 @@ agents/TEMP/
 refsrc/
 !refsrc/INDEX.md
 
-# Hooks build output handled by hooks/.gitignore
+# Hooks build output
+hooks/node_modules/
+hooks/dist/tests/
+hooks/dist/bundles/
 
 .claude
 rosetta-cli/dist

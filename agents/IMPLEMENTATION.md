@@ -63,8 +63,11 @@ For detailed change history, use git history and PRs instead of expanding this f
 
 - Added `hooks/src/adapter.ts`: normalizes IDE stdin to Claude Code canonical format. Exports `detectIDE`, `normalize`, `formatOutput`, `readStdin`. Per-IDE adapters in `hooks/src/adapters/`.
 - Added `hooks/src/loose-files.ts`: PostToolUse hook that nudges AI when `.py`/`.js` files lack a module marker (`__init__.py`/`package.json`). Exports `shouldCheck`, `isLooseFile`, `buildNudgeOutput` with injected `fs` for testability.
-- TDD: both modules have full test coverage in `hooks/tests/*.test.ts` using `node:test` (zero deps). TypeScript compiled to `hooks/dist/`; only `dist/src/` + `dist/shell/` ship to plugins.
-- Shared `hooks/shell/rosetta-bootstrap.sh` replaces 4 per-plugin copies; distributed to all plugin `hooks/` folders.
+- TDD: both modules have full test coverage in `hooks/tests/*.test.ts` using `node:test` (zero deps). TypeScript compiled to `hooks/dist/bundles/<plugin>/`; `hooks/dist/shell/` holds generic shell assets.
+- Bootstrap via `hooks.json.tmpl` templates only — `rosetta-bootstrap.sh` eliminated from all plugins. All 4 plugin templates carry `PostToolUse` blocks referencing `loose-files.js` at IDE-correct paths.
+- `PluginSyncSpec.runtime_asset_subdirs` field added for generic asset mirroring; Copilot uses it to mirror hook assets to plugin root (replacing hardcoded filename logic).
+- `hooks/dist/bundles/` is generated-only and untracked from git. `hooks/.gitignore` merged into root `.gitignore` with scoped `hooks/` prefixes.
+- Dedup guard in `loose-files.ts` gated on `ide === 'copilot'` — GitHub Copilot CLI fires PostToolUse twice per call; all other IDEs receive every nudge.
 - Build integrated into `scripts/pre_commit.py` via `build_hooks()` check before plugin sync.
 
 ### rosettify (npm package)

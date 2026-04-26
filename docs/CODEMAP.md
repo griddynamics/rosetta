@@ -97,12 +97,12 @@ architect.md discoverer.md engineer.md executor.md planner.md reviewer.md valida
 init-workspace-flow.md init-workspace-flow-discovery.md init-workspace-flow-shells.md
 init-workspace-flow-context.md init-workspace-flow-patterns.md init-workspace-flow-rules.md
 init-workspace-flow-documentation.md init-workspace-flow-questions.md init-workspace-flow-verification.md
-coding-flow.md adhoc-flow.md adhoc-flow-with-plan-manager.md requirements-authoring-flow.md self-help-flow.md
+coding-flow.md adhoc-flow.md code-analysis-flow.md requirements-authoring-flow.md self-help-flow.md
 
-#### instructions/r2/core/rules/ — 11 rule files
+#### instructions/r2/core/rules/ — 10 rule files
 
 bootstrap-core-policy.md bootstrap-execution-policy.md bootstrap-guardrails.md
-bootstrap-hitl-questioning.md bootstrap-rosetta-files.md bootstrap.md
+bootstrap-rosetta-files.md bootstrap.md
 local-files-mode.md plugin-files-mode.md requirements-best-practices.md
 requirements-use-best-practices.md speckit-integration-policy.md
 

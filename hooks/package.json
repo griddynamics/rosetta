@@ -2,7 +2,7 @@
   "name": "rosetta-hooks",
   "private": true,
   "scripts": {
-    "build": "tsc && node scripts/build-bundles.mjs && mkdir -p dist/shell && cp -R shell/. dist/shell/",
+    "build": "tsc && node scripts/build-bundles.mjs && rm -rf dist/shell && mkdir -p dist/shell && cp -R shell/. dist/shell/",
     "test": "npm run build && node --test 'dist/tests/*.test.js'",
     "check": "tsc --noEmit"
   },

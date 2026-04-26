@@ -5,6 +5,17 @@
         "matcher": "startup|resume",
         "hooks": [{{BOOTSTRAP_HOOKS_CODEX}}]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/loose-files.js"
+          }
+        ]
+      }
     ]
   }
 }
