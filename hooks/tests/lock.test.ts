@@ -1,5 +1,4 @@
-import { test, describe } from 'node:test';
-import assert from 'node:assert/strict';
+import { test, describe, expect } from 'vitest';
 import { existsSync, writeFileSync, utimesSync, unlinkSync } from 'fs';
 import { createHash } from 'crypto';
 import path from 'path';
@@ -35,8 +34,8 @@ describe('acquireOnce — basic lock lifecycle', () => {
     const input = makeInput();
     const lp = lockPathFor(input);
     try {
-      assert.equal(acquireOnce(input), true);
-      assert.ok(existsSync(lp));
+      expect(acquireOnce(input)).toBe(true);
+      expect(existsSync(lp)).toBeTruthy();
     } finally {
       if (existsSync(lp)) unlinkSync(lp);
     }
@@ -46,8 +45,8 @@ describe('acquireOnce — basic lock lifecycle', () => {
     const input = makeInput();
     const lp = lockPathFor(input);
     try {
-      assert.equal(acquireOnce(input), true);
-      assert.equal(acquireOnce(input), false);
+      expect(acquireOnce(input)).toBe(true);
+      expect(acquireOnce(input)).toBe(false);
     } finally {
       if (existsSync(lp)) unlinkSync(lp);
     }
@@ -65,8 +64,8 @@ describe('acquireOnce — parallel legitimacy', () => {
     const lpA = lockPathFor(inputA);
     const lpB = lockPathFor(inputB);
     try {
-      assert.equal(acquireOnce(inputA), true);
-      assert.equal(acquireOnce(inputB), true);
+      expect(acquireOnce(inputA)).toBe(true);
+      expect(acquireOnce(inputB)).toBe(true);
     } finally {
       if (existsSync(lpA)) unlinkSync(lpA);
       if (existsSync(lpB)) unlinkSync(lpB);
@@ -86,7 +85,7 @@ describe('acquireOnce — stale lock takeover', () => {
     const staleMtime = new Date(Date.now() - 10_000);
     utimesSync(lp, staleMtime, staleMtime);
     try {
-      assert.equal(acquireOnce(input), true);
+      expect(acquireOnce(input)).toBe(true);
     } finally {
       if (existsSync(lp)) unlinkSync(lp);
     }
@@ -102,7 +101,7 @@ describe('acquireOnce — race simulation', () => {
     const lp = lockPathFor(input);
     try {
       const results = Array.from({ length: 10 }, () => acquireOnce(input));
-      assert.equal(results.filter(Boolean).length, 1);
+      expect(results.filter(Boolean).length).toBe(1);
     } finally {
       if (existsSync(lp)) unlinkSync(lp);
     }

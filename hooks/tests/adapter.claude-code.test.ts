@@ -1,7 +1,6 @@
 // adapter.claude-code.test.ts — Tests for Claude Code IDE adapter
 
-import { test, describe } from 'node:test';
-import assert from 'node:assert/strict';
+import { test, describe, expect } from 'vitest';
 import { Readable } from 'stream';
 
 import ccWrite    from './fixtures/claude-code-post-tool-use-write.json';
@@ -16,27 +15,27 @@ import { detectIDE, normalize, formatOutput, readStdin } from '../src/adapter';
 describe('detectIDE — Claude Code', () => {
 
   test('returns "claude-code" for PostToolUse Write input', () => {
-    assert.equal(detectIDE(ccWrite), 'claude-code');
+    expect(detectIDE(ccWrite)).toBe('claude-code');
   });
 
   test('returns "claude-code" for PreToolUse Bash input', () => {
-    assert.equal(detectIDE(ccBash), 'claude-code');
+    expect(detectIDE(ccBash)).toBe('claude-code');
   });
 
   test('returns "claude-code" for subagent input (has agent_id)', () => {
-    assert.equal(detectIDE(ccSubagent), 'claude-code');
+    expect(detectIDE(ccSubagent)).toBe('claude-code');
   });
 
   test('throws for unknown IDE input shape', () => {
-    assert.throws(() => detectIDE(fxUnknown), /Unsupported IDE/);
+    expect(() => detectIDE(fxUnknown)).toThrow(/Unsupported IDE/);
   });
 
   test('throws for null input', () => {
-    assert.throws(() => detectIDE(null), /invalid|unsupported|null/i);
+    expect(() => detectIDE(null)).toThrow(/invalid|unsupported|null/i);
   });
 
   test('throws for empty object', () => {
-    assert.throws(() => detectIDE({}), /Unsupported IDE/);
+    expect(() => detectIDE({})).toThrow(/Unsupported IDE/);
   });
 
 });
@@ -45,38 +44,38 @@ describe('detectIDE — Claude Code', () => {
 describe('normalize — Claude Code', () => {
 
   test('PostToolUse Write — identity pass-through', () => {
-    assert.deepEqual(normalize(ccWrite), ccWrite);
+    expect(normalize(ccWrite)).toEqual(ccWrite);
   });
 
   test('PostToolUse Edit — identity pass-through', () => {
-    assert.deepEqual(normalize(ccEdit), ccEdit);
+    expect(normalize(ccEdit)).toEqual(ccEdit);
   });
 
   test('PreToolUse Bash — identity (no tool_response)', () => {
     const result = normalize(ccBash);
-    assert.equal(result.tool_response, undefined); // check before deepEqual narrows type
-    assert.deepEqual(result, ccBash);
+    expect(result.tool_response).toBe(undefined);
+    expect(result).toEqual(ccBash);
   });
 
   test('subagent — preserves agent_id and agent_type', () => {
     const result = normalize(ccSubagent);
-    assert.equal(result.agent_id, 'agent-456');
-    assert.equal(result.agent_type, 'code-reviewer');
+    expect(result.agent_id).toBe('agent-456');
+    expect(result.agent_type).toBe('code-reviewer');
   });
 
   test('canonical fields all present', () => {
     const result = normalize(ccWrite);
-    assert.ok(result.session_id, 'session_id missing');
-    assert.ok(result.hook_event_name, 'hook_event_name missing');
-    assert.ok(result.tool_name, 'tool_name missing');
-    assert.ok(result.tool_use_id, 'tool_use_id missing');
-    assert.ok(result.tool_input, 'tool_input missing');
-    assert.ok(result.cwd, 'cwd missing');
-    assert.ok(result.permission_mode, 'permission_mode missing');
+    expect(result.session_id, 'session_id missing').toBeTruthy();
+    expect(result.hook_event_name, 'hook_event_name missing').toBeTruthy();
+    expect(result.tool_name, 'tool_name missing').toBeTruthy();
+    expect(result.tool_use_id, 'tool_use_id missing').toBeTruthy();
+    expect(result.tool_input, 'tool_input missing').toBeTruthy();
+    expect(result.cwd, 'cwd missing').toBeTruthy();
+    expect(result.permission_mode, 'permission_mode missing').toBeTruthy();
   });
 
   test('unknown IDE — throws', () => {
-    assert.throws(() => normalize(fxUnknown), /Unsupported IDE/);
+    expect(() => normalize(fxUnknown)).toThrow(/Unsupported IDE/);
   });
 
 });
@@ -89,7 +88,7 @@ describe('formatOutput — Claude Code', () => {
       hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'Test message' },
     };
     const result = formatOutput(canonical, 'claude-code');
-    assert.deepEqual(result, canonical);
+    expect(result).toEqual(canonical);
   });
 
   test('PostToolUse with all optional top-level fields — preserved', () => {
@@ -101,7 +100,7 @@ describe('formatOutput — Claude Code', () => {
       systemMessage: 'hello',
     };
     const result = formatOutput(canonical, 'claude-code');
-    assert.deepEqual(result, canonical);
+    expect(result).toEqual(canonical);
   });
 
   test('PreToolUse deny decision — preserved', () => {
@@ -113,10 +112,9 @@ describe('formatOutput — Claude Code', () => {
       },
     };
     const result = formatOutput(canonical, 'claude-code');
-    assert.equal(
+    expect(
       (result.hookSpecificOutput as Record<string, unknown>).permissionDecision,
-      'deny',
-    );
+    ).toBe('deny');
   });
 
 });
@@ -128,17 +126,17 @@ describe('readStdin', () => {
     const input = JSON.stringify(ccWrite);
     const stream = Readable.from([input]);
     const result = await readStdin(stream);
-    assert.deepEqual(result, ccWrite);
+    expect(result).toEqual(ccWrite);
   });
 
   test('reads empty stdin — throws with clear message', async () => {
     const stream = Readable.from(['']);
-    await assert.rejects(readStdin(stream), /empty|no input|invalid/i);
+    await expect(readStdin(stream)).rejects.toThrow(/empty|no input|invalid/i);
   });
 
   test('reads invalid JSON — throws with clear message', async () => {
     const stream = Readable.from(['{ not valid json ']);
-    await assert.rejects(readStdin(stream), /JSON|parse|invalid/i);
+    await expect(readStdin(stream)).rejects.toThrow(/JSON|parse|invalid/i);
   });
 
 });
@@ -146,14 +144,15 @@ describe('readStdin', () => {
 // ---------------------------------------------------------------------------
 describe('round-trip — Claude Code', () => {
 
-  test('Write: normalize → formatOutput → original shape', () => {
+  test('Write: detect → normalize → formatOutput produces valid claude-code output', () => {
+    const ide = detectIDE(ccWrite);
+    expect(ide).toBe('claude-code');
     const normalized = normalize(ccWrite);
-    const output = formatOutput(
-      { hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'x' } },
-      'claude-code',
-    );
-    assert.deepEqual(normalized, ccWrite);
-    assert.ok(output.hookSpecificOutput);
+    expect(normalized.hook_event_name).toBe('PostToolUse');
+    const canonical = { hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'nudge context' } };
+    const output = formatOutput(canonical, ide);
+    // claude-code formatOutput is identity
+    expect(output).toEqual(canonical);
   });
 
 });

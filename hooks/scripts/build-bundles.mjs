@@ -37,6 +37,6 @@ for (const { plugin, adapter } of BUNDLES) {
       },
     ],
   });
-
-  console.log(`  bundled ${plugin} → dist/bundles/${plugin}/loose-files.js`);
 }
+
+console.log(`  built ${BUNDLES.length} bundles → dist/bundles/`);

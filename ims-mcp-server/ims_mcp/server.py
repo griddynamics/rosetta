@@ -450,6 +450,7 @@ async def get_context_instructions(
             query_builder=_QUERY_BUILDER,
             doc_cache=_DOC_CACHE,
             topic=None, # no topic, as it creates too many results and noise
+            include_frontmatter=False,
         ),
         operation="get_context_instructions",
     )

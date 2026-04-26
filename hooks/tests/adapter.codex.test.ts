@@ -1,7 +1,6 @@
 // adapter.codex.test.ts — Tests for Codex IDE adapter
 
-import { test, describe } from 'node:test';
-import assert from 'node:assert/strict';
+import { test, describe, expect } from 'vitest';
 
 import fxCodexBash  from './fixtures/codex-post-tool-use-bash.json';
 import fxCodexWrite from './fixtures/codex-post-tool-use-write.json';
@@ -12,11 +11,11 @@ import { detectIDE, normalize, formatOutput } from '../src/adapter';
 describe('detectIDE — Codex', () => {
 
   test('returns "codex" for Codex PostToolUse Bash input', () => {
-    assert.equal(detectIDE(fxCodexBash), 'codex');
+    expect(detectIDE(fxCodexBash)).toBe('codex');
   });
 
   test('returns "codex" for Codex PostToolUse Write input', () => {
-    assert.equal(detectIDE(fxCodexWrite), 'codex');
+    expect(detectIDE(fxCodexWrite)).toBe('codex');
   });
 
 });
@@ -26,39 +25,39 @@ describe('normalize — Codex', () => {
 
   test('Bash: identity pass-through, preserves model + turn_id', () => {
     const result = normalize(fxCodexBash);
-    assert.ok(result.hook_event_name, 'hook_event_name missing');
-    assert.ok(result.tool_name, 'tool_name missing');
-    assert.ok(result.tool_input, 'tool_input missing');
-    assert.equal(result.model, fxCodexBash.model);
-    assert.equal(result.turn_id, fxCodexBash.turn_id);
+    expect(result.hook_event_name, 'hook_event_name missing').toBeTruthy();
+    expect(result.tool_name, 'tool_name missing').toBeTruthy();
+    expect(result.tool_input, 'tool_input missing').toBeTruthy();
+    expect(result.model).toBe(fxCodexBash.model);
+    expect(result.turn_id).toBe(fxCodexBash.turn_id);
   });
 
   test('Write: tool_name is Write', () => {
     const result = normalize(fxCodexWrite);
-    assert.equal(result.tool_name, 'Write');
+    expect(result.tool_name).toBe('Write');
   });
 
   test('Write: tool_input preserves file_path', () => {
     const result = normalize(fxCodexWrite);
-    assert.equal(
-      result.tool_input.file_path,
+    expect(result.tool_input.file_path).toBe(
       (fxCodexWrite.tool_input as Record<string, unknown>).file_path,
     );
   });
 
   test('Write: tool_response preserved', () => {
     const result = normalize(fxCodexWrite);
-    assert.ok(result.tool_response, 'tool_response missing');
-    assert.equal(
+    expect(result.tool_response, 'tool_response missing').toBeTruthy();
+    expect(
       (result.tool_response as Record<string, unknown>).filePath,
+    ).toBe(
       (fxCodexWrite.tool_response as Record<string, unknown>).filePath,
     );
   });
 
   test('Write: model + turn_id preserved', () => {
     const result = normalize(fxCodexWrite);
-    assert.equal(result.model, fxCodexWrite.model);
-    assert.equal(result.turn_id, fxCodexWrite.turn_id);
+    expect(result.model).toBe(fxCodexWrite.model);
+    expect(result.turn_id).toBe(fxCodexWrite.turn_id);
   });
 
 });
@@ -71,7 +70,7 @@ describe('formatOutput — Codex', () => {
       hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'x' },
     };
     const result = formatOutput(canonical, 'codex');
-    assert.deepEqual(result, canonical);
+    expect(result).toEqual(canonical);
   });
 
 });
@@ -79,26 +78,28 @@ describe('formatOutput — Codex', () => {
 // ---------------------------------------------------------------------------
 describe('round-trip — Codex', () => {
 
-  test('Bash: normalize → formatOutput, model+turn_id preserved', () => {
+  test('Bash: detect → normalize → formatOutput produces valid codex output', () => {
+    const ide = detectIDE(fxCodexBash);
+    expect(ide).toBe('codex');
     const normalized = normalize(fxCodexBash);
-    const output = formatOutput(
-      { hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'x' } },
-      'codex',
-    );
-    assert.equal(normalized.model, fxCodexBash.model);
-    assert.equal(normalized.turn_id, fxCodexBash.turn_id);
-    assert.ok(output.hookSpecificOutput);
+    expect(normalized.model).toBe(fxCodexBash.model);
+    expect(normalized.turn_id).toBe(fxCodexBash.turn_id);
+    const canonical = { hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'x' } };
+    const output = formatOutput(canonical, ide);
+    // codex formatOutput is identity
+    expect(output).toEqual(canonical);
   });
 
-  test('Write: normalize → formatOutput round-trip', () => {
+  test('Write: detect → normalize → formatOutput produces valid codex output', () => {
+    const ide = detectIDE(fxCodexWrite);
+    expect(ide).toBe('codex');
     const normalized = normalize(fxCodexWrite);
-    assert.equal(normalized.tool_name, 'Write');
-    assert.equal(normalized.model, fxCodexWrite.model);
-    const output = formatOutput(
-      { hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'y' } },
-      'codex',
-    );
-    assert.ok(output.hookSpecificOutput);
+    expect(normalized.tool_name).toBe('Write');
+    expect(normalized.model).toBe(fxCodexWrite.model);
+    const canonical = { hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'y' } };
+    const output = formatOutput(canonical, ide);
+    // codex formatOutput is identity
+    expect(output).toEqual(canonical);
   });
 
 });

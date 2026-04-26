@@ -105,3 +105,82 @@ def test_query_builder_tags_and_query():
     assert params["keywords"] == "bootstrap"
     mc = json.loads(params["metadata_condition"])
     assert mc["conditions"][0]["value"] == "r1"
+
+
+# ── Frontmatter stripping ────────────────────────────────────────────────────
+
+class TestStripFrontmatter:
+    def test_strips_yaml_frontmatter(self):
+        content = "---\nname: test\ndescription: foo\n---\n\n# Title\ncontent here"
+        result = Bundler._strip_frontmatter(content)
+        assert result == "# Title\ncontent here"
+
+    def test_no_frontmatter_unchanged(self):
+        content = "# Title\ncontent here"
+        assert Bundler._strip_frontmatter(content) == content
+
+    def test_empty_frontmatter(self):
+        content = "---\n---\n\n# Title"
+        result = Bundler._strip_frontmatter(content)
+        assert result == "# Title"
+
+    def test_four_dashes(self):
+        content = "----\nname: test\n----\n\n# Title"
+        result = Bundler._strip_frontmatter(content)
+        assert result == "# Title"
+
+    def test_trailing_whitespace_on_delimiter(self):
+        content = "---  \nname: test\n---  \n\n# Title"
+        result = Bundler._strip_frontmatter(content)
+        assert result == "# Title"
+
+    def test_no_leading_newlines_after_strip(self):
+        content = "---\nname: test\n---\n\n\n\n# Title"
+        result = Bundler._strip_frontmatter(content)
+        assert result == "# Title"
+
+    def test_frontmatter_not_at_start_is_unchanged(self):
+        content = "some text\n---\nname: test\n---\n# Title"
+        result = Bundler._strip_frontmatter(content)
+        assert result == content
+
+    def test_bundle_strip_frontmatter_false_keeps_frontmatter(self):
+        bundler = Bundler(_DocClient())
+        docs = [
+            _Doc(
+                "1",
+                "a.md",
+                "---\nname: a\n---\n\n# Title",
+                {"sort_order": 1, "tags": ["t1"], "resource_path": "rules/a.md"},
+            )
+        ]
+        xml = bundler.bundle(docs, "ds", strip_frontmatter=False)
+        assert "---\nname: a\n---" in xml
+        assert "# Title" in xml
+
+    def test_bundle_strip_frontmatter_true_removes_frontmatter(self):
+        bundler = Bundler(_DocClient())
+        docs = [
+            _Doc(
+                "1",
+                "a.md",
+                "---\nname: a\n---\n\n# Title",
+                {"sort_order": 1, "tags": ["t1"], "resource_path": "rules/a.md"},
+            )
+        ]
+        xml = bundler.bundle(docs, "ds", strip_frontmatter=True)
+        assert "---\nname: a\n---" not in xml
+        assert "# Title" in xml
+
+    def test_bundle_default_does_not_strip(self):
+        bundler = Bundler(_DocClient())
+        docs = [
+            _Doc(
+                "1",
+                "a.md",
+                "---\nname: a\n---\n\n# Title",
+                {"sort_order": 1, "tags": ["t1"], "resource_path": "rules/a.md"},
+            )
+        ]
+        xml = bundler.bundle(docs, "ds")
+        assert "---\nname: a\n---" in xml

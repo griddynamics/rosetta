@@ -1,8 +1,7 @@
 // adapter.cursor.test.ts — Tests for Cursor IDE adapter
 // Fixture: constructed from docs at https://cursor.com/docs/reference/hooks
 
-import { test, describe } from 'node:test';
-import assert from 'node:assert/strict';
+import { test, describe, expect } from 'vitest';
 
 import fxCursor from './fixtures/cursor-post-tool-use-write.json';
 
@@ -12,11 +11,11 @@ import { detectIDE, normalize, formatOutput } from '../src/adapter';
 describe('detectIDE — Cursor', () => {
 
   test('returns "cursor" for Cursor PostToolUse Write input', () => {
-    assert.equal(detectIDE(fxCursor), 'cursor');
+    expect(detectIDE(fxCursor)).toBe('cursor');
   });
 
   test('does NOT match claude-code (conversation_id + cursor_version present)', () => {
-    assert.notEqual(detectIDE(fxCursor), 'claude-code');
+    expect(detectIDE(fxCursor)).not.toBe('claude-code');
   });
 
 });
@@ -26,34 +25,34 @@ describe('normalize — Cursor', () => {
 
   test('normalizes hook_event_name to PascalCase', () => {
     const result = normalize(fxCursor);
-    assert.equal(result.hook_event_name, 'PostToolUse');
+    expect(result.hook_event_name).toBe('PostToolUse');
   });
 
   test('maps conversation_id to session_id', () => {
     const result = normalize(fxCursor);
-    assert.equal(result.session_id, fxCursor.conversation_id);
+    expect(result.session_id).toBe(fxCursor.conversation_id);
   });
 
   test('canonical fields all present', () => {
     const result = normalize(fxCursor);
-    assert.ok(result.hook_event_name, 'hook_event_name missing');
-    assert.ok(result.tool_name, 'tool_name missing');
-    assert.ok(result.tool_input, 'tool_input missing');
-    assert.ok(result.session_id, 'session_id missing');
-    assert.ok(result.cwd, 'cwd missing');
+    expect(result.hook_event_name, 'hook_event_name missing').toBeTruthy();
+    expect(result.tool_name, 'tool_name missing').toBeTruthy();
+    expect(result.tool_input, 'tool_input missing').toBeTruthy();
+    expect(result.session_id, 'session_id missing').toBeTruthy();
+    expect(result.cwd, 'cwd missing').toBeTruthy();
   });
 
   test('preserves cursor-specific extras', () => {
     const result = normalize(fxCursor);
-    assert.equal(result.cursor_version, fxCursor.cursor_version);
-    assert.equal(result.conversation_id, fxCursor.conversation_id);
-    assert.equal(result.generation_id, fxCursor.generation_id);
-    assert.equal(result.duration, fxCursor.duration);
+    expect(result.cursor_version).toBe(fxCursor.cursor_version);
+    expect(result.conversation_id).toBe(fxCursor.conversation_id);
+    expect(result.generation_id).toBe(fxCursor.generation_id);
+    expect(result.duration).toBe(fxCursor.duration);
   });
 
   test('preserves tool_input with file_path', () => {
     const result = normalize(fxCursor);
-    assert.ok(result.tool_input.file_path, 'tool_input.file_path missing');
+    expect(result.tool_input.file_path, 'tool_input.file_path missing').toBeTruthy();
   });
 
 });
@@ -64,7 +63,7 @@ describe('formatOutput — Cursor', () => {
   test('maps additionalContext to additional_context', () => {
     const canonical = { hookSpecificOutput: { additionalContext: 'Test message' } };
     const result = formatOutput(canonical, 'cursor');
-    assert.equal(result.additional_context, 'Test message');
+    expect(result.additional_context).toBe('Test message');
   });
 
   test('maps permissionDecision to permission', () => {
@@ -72,13 +71,13 @@ describe('formatOutput — Cursor', () => {
       hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: 'Not allowed' },
     };
     const result = formatOutput(canonical, 'cursor');
-    assert.equal(result.permission, 'deny');
-    assert.equal(result.user_message, 'Not allowed');
+    expect(result.permission).toBe('deny');
+    expect(result.user_message).toBe('Not allowed');
   });
 
   test('empty canonical → empty output object', () => {
     const result = formatOutput({ hookSpecificOutput: {} }, 'cursor');
-    assert.deepEqual(result, {});
+    expect(result).toEqual({});
   });
 
 });
@@ -86,13 +85,17 @@ describe('formatOutput — Cursor', () => {
 // ---------------------------------------------------------------------------
 describe('round-trip — Cursor', () => {
 
-  test('normalize → formatOutput matches Cursor output shape', () => {
+  test('detect → normalize → formatOutput produces valid cursor output', () => {
+    const ide = detectIDE(fxCursor);
+    expect(ide).toBe('cursor');
     const normalized = normalize(fxCursor);
-    assert.equal(normalized.hook_event_name, 'PostToolUse');
-    assert.ok(normalized.session_id);
-
-    const output = formatOutput({ hookSpecificOutput: { additionalContext: 'x' } }, 'cursor');
-    assert.ok(output.additional_context);
+    expect(normalized.hook_event_name).toBe('PostToolUse');
+    expect(normalized.session_id).toBeTruthy();
+    const canonical = { hookSpecificOutput: { additionalContext: 'nudge context' } };
+    const output = formatOutput(canonical, ide);
+    // cursor maps additionalContext → additional_context
+    expect(output.additional_context).toBe('nudge context');
+    expect(output).not.toHaveProperty('hookSpecificOutput');
   });
 
 });

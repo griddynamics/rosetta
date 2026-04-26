@@ -17,6 +17,8 @@ const ALLOWED_TOOLS = new Set(['Write', 'Edit']);
 const EXCLUDED_PATH_SEGMENTS = [
   'agents/TEMP/',
   'scripts/',
+  'tests/',
+  'validation/',
   'node_modules/',
   '.venv/',
   '__pycache__/',
@@ -106,7 +108,7 @@ export const main = async ({
   if (isLooseFile(filePath)) {
     const output = buildNudgeOutput(filePath);
     debugLog('nudge emitted', { filePath });
-    stdout.write(`${JSON.stringify(formatOutput(output))}\n`);
+    stdout.write(`${JSON.stringify(formatOutput(output, ide))}\n`);
   } else {
     debugLog('file is not loose', { filePath });
   }

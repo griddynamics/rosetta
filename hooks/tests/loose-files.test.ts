@@ -1,7 +1,6 @@
 // loose-files.test.ts — TDD test suite for loose-files.ts
 
-import { test, describe } from 'node:test';
-import assert from 'node:assert/strict';
+import { test, describe, expect } from 'vitest';
 import { Readable, Writable } from 'stream';
 import { existsSync, unlinkSync } from 'fs';
 import { createHash } from 'crypto';
@@ -24,23 +23,23 @@ function mockFs(existingPaths: string[]): { existsSync: (p: string) => boolean }
 describe('shouldCheck — file extension filter', () => {
 
   test('.py file → true', () => {
-    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/utils.py' } })), true);
+    expect(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/utils.py' } }))).toBe(true);
   });
 
   test('.js file → true', () => {
-    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/app.js' } })), true);
+    expect(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/app.js' } }))).toBe(true);
   });
 
   test('.ts file → false', () => {
-    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/app.ts' } })), false);
+    expect(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/app.ts' } }))).toBe(false);
   });
 
   test('.md file → false', () => {
-    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/README.md' } })), false);
+    expect(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/README.md' } }))).toBe(false);
   });
 
   test('.json file → false', () => {
-    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/config.json' } })), false);
+    expect(shouldCheck(normalize({ ...ccWrite, tool_input: { file_path: '/proj/config.json' } }))).toBe(false);
   });
 
 });
@@ -49,23 +48,23 @@ describe('shouldCheck — file extension filter', () => {
 describe('shouldCheck — event + tool filter', () => {
 
   test('PostToolUse + Write → true', () => {
-    assert.equal(shouldCheck(normalize(ccWrite)), true);
+    expect(shouldCheck(normalize(ccWrite))).toBe(true);
   });
 
   test('PostToolUse + Edit → true', () => {
-    assert.equal(shouldCheck(normalize(ccEdit)), true);
+    expect(shouldCheck(normalize(ccEdit))).toBe(true);
   });
 
   test('PostToolUse + Bash → false', () => {
-    assert.equal(shouldCheck(normalize(ccBash)), false);
+    expect(shouldCheck(normalize(ccBash))).toBe(false);
   });
 
   test('PostToolUse + Read → false', () => {
-    assert.equal(shouldCheck(normalize({ ...ccWrite, tool_name: 'Read' })), false);
+    expect(shouldCheck(normalize({ ...ccWrite, tool_name: 'Read' }))).toBe(false);
   });
 
   test('PreToolUse + Write → false (wrong event)', () => {
-    assert.equal(shouldCheck(normalize({ ...ccWrite, hook_event_name: 'PreToolUse' })), false);
+    expect(shouldCheck(normalize({ ...ccWrite, hook_event_name: 'PreToolUse' }))).toBe(false);
   });
 
 });
@@ -77,23 +76,23 @@ describe('shouldCheck — exclusion paths', () => {
     normalize({ ...ccWrite, tool_input: { file_path: filePath } });
 
   test('path contains agents/TEMP/ → false', () => {
-    assert.equal(shouldCheck(makeInput('/proj/agents/TEMP/debug.py')), false);
+    expect(shouldCheck(makeInput('/proj/agents/TEMP/debug.py'))).toBe(false);
   });
 
   test('path contains scripts/ → false', () => {
-    assert.equal(shouldCheck(makeInput('/proj/scripts/runner.py')), false);
+    expect(shouldCheck(makeInput('/proj/scripts/runner.py'))).toBe(false);
   });
 
   test('path contains node_modules/ → false', () => {
-    assert.equal(shouldCheck(makeInput('/proj/node_modules/foo/bar.js')), false);
+    expect(shouldCheck(makeInput('/proj/node_modules/foo/bar.js'))).toBe(false);
   });
 
   test('path contains .venv/ → false', () => {
-    assert.equal(shouldCheck(makeInput('/proj/.venv/lib/site.py')), false);
+    expect(shouldCheck(makeInput('/proj/.venv/lib/site.py'))).toBe(false);
   });
 
   test('path contains __pycache__/ → false', () => {
-    assert.equal(shouldCheck(makeInput('/proj/src/__pycache__/util.py')), false);
+    expect(shouldCheck(makeInput('/proj/src/__pycache__/util.py'))).toBe(false);
   });
 
 });
@@ -103,25 +102,25 @@ describe('isLooseFile — Python module detection (.py)', () => {
 
   test('.py with __init__.py in same dir → false (not loose)', () => {
     const fs = mockFs(['/proj/src/mypackage/__init__.py']);
-    assert.equal(isLooseFile('/proj/src/mypackage/utils.py', fs), false);
+    expect(isLooseFile('/proj/src/mypackage/utils.py', fs)).toBe(false);
   });
 
   test('.py with __init__.py two levels up → false', () => {
     const fs = mockFs(['/proj/src/mypackage/__init__.py']);
-    assert.equal(isLooseFile('/proj/src/mypackage/sub/utils.py', fs), false);
+    expect(isLooseFile('/proj/src/mypackage/sub/utils.py', fs)).toBe(false);
   });
 
   test('.py with NO __init__.py anywhere → true (loose)', () => {
-    assert.equal(isLooseFile('/proj/orphan.py', mockFs([])), true);
+    expect(isLooseFile('/proj/orphan.py', mockFs([]))).toBe(true);
   });
 
   test('.py at root with no markers — stops at 10 levels max, returns true', () => {
-    assert.equal(isLooseFile('/a/b/c/d/e/f/g/h/i/j/k/deep.py', mockFs([])), true);
+    expect(isLooseFile('/a/b/c/d/e/f/g/h/i/j/k/deep.py', mockFs([]))).toBe(true);
   });
 
   test('.py — __init__.py and .git coexist in same dir → false (marker wins over boundary)', () => {
     const fs = mockFs(['/repo/__init__.py', '/repo/.git']);
-    assert.equal(isLooseFile('/repo/utils.py', fs), false);
+    expect(isLooseFile('/repo/utils.py', fs)).toBe(false);
   });
 
 });
@@ -131,26 +130,26 @@ describe('isLooseFile — JavaScript module detection (.js)', () => {
 
   test('.js with package.json in same dir → false (not loose)', () => {
     const fs = mockFs(['/proj/src/package.json']);
-    assert.equal(isLooseFile('/proj/src/app.js', fs), false);
+    expect(isLooseFile('/proj/src/app.js', fs)).toBe(false);
   });
 
   test('.js with package.json three levels up → false', () => {
     const fs = mockFs(['/proj/src/package.json']);
-    assert.equal(isLooseFile('/proj/src/lib/utils/helpers.js', fs), false);
+    expect(isLooseFile('/proj/src/lib/utils/helpers.js', fs)).toBe(false);
   });
 
   test('.js with NO package.json anywhere → true (loose)', () => {
-    assert.equal(isLooseFile('/proj/helper.js', mockFs([])), true);
+    expect(isLooseFile('/proj/helper.js', mockFs([]))).toBe(true);
   });
 
   test('.js at deep nesting — stops at 10 levels, returns true', () => {
-    assert.equal(isLooseFile('/a/b/c/d/e/f/g/h/i/j/k/deep.js', mockFs([])), true);
+    expect(isLooseFile('/a/b/c/d/e/f/g/h/i/j/k/deep.js', mockFs([]))).toBe(true);
   });
 
   test('.js — package.json and .git coexist in same dir → false (marker wins over boundary)', () => {
     // Repo root has both package.json and .git/ — file in root must NOT be flagged as loose.
     const fs = mockFs(['/repo/package.json', '/repo/.git']);
-    assert.equal(isLooseFile('/repo/app.js', fs), false);
+    expect(isLooseFile('/repo/app.js', fs)).toBe(false);
   });
 
 });
@@ -159,27 +158,28 @@ describe('isLooseFile — JavaScript module detection (.js)', () => {
 describe('buildNudgeOutput', () => {
 
   test('returns valid JSON-serializable object', () => {
-    JSON.parse(JSON.stringify(buildNudgeOutput('/proj/orphan.py')));
+    const result = buildNudgeOutput('/proj/orphan.py');
+    expect(JSON.parse(JSON.stringify(result))).toEqual(result);
   });
 
   test('has hookSpecificOutput.hookEventName === "PostToolUse"', () => {
-    assert.equal(buildNudgeOutput('/proj/orphan.py').hookSpecificOutput.hookEventName, 'PostToolUse');
+    expect(buildNudgeOutput('/proj/orphan.py').hookSpecificOutput.hookEventName).toBe('PostToolUse');
   });
 
   test('.py — additionalContext mentions file path', () => {
-    assert.ok(buildNudgeOutput('/proj/orphan.py').hookSpecificOutput.additionalContext.includes('orphan.py'));
+    expect(buildNudgeOutput('/proj/orphan.py').hookSpecificOutput.additionalContext.includes('orphan.py')).toBeTruthy();
   });
 
   test('.py — additionalContext mentions __init__.py', () => {
-    assert.ok(buildNudgeOutput('/proj/orphan.py').hookSpecificOutput.additionalContext.includes('__init__.py'));
+    expect(buildNudgeOutput('/proj/orphan.py').hookSpecificOutput.additionalContext.includes('__init__.py')).toBeTruthy();
   });
 
   test('.js — additionalContext mentions package.json', () => {
-    assert.ok(buildNudgeOutput('/proj/helper.js').hookSpecificOutput.additionalContext.includes('package.json'));
+    expect(buildNudgeOutput('/proj/helper.js').hookSpecificOutput.additionalContext.includes('package.json')).toBeTruthy();
   });
 
   test('has continue: true', () => {
-    assert.equal(buildNudgeOutput('/proj/orphan.py').continue, true);
+    expect(buildNudgeOutput('/proj/orphan.py').continue).toBe(true);
   });
 
 });
@@ -193,8 +193,8 @@ describe('integration with adapter', () => {
       tool_input: { file_path: '/proj/orphan.py', content: 'pass\n' },
       tool_response: { filePath: '/proj/orphan.py' },
     });
-    assert.equal(shouldCheck(input), true);
-    assert.equal(isLooseFile(input.tool_input.file_path as string, mockFs([])), true);
+    expect(shouldCheck(input)).toBe(true);
+    expect(isLooseFile(input.tool_input.file_path as string, mockFs([]))).toBe(true);
   });
 
   test('Claude Code Write fixture (.py inside module) → shouldCheck=true + isLooseFile=false', () => {
@@ -203,21 +203,20 @@ describe('integration with adapter', () => {
       tool_input: { file_path: '/proj/src/mypackage/utils.py', content: 'pass\n' },
       tool_response: { filePath: '/proj/src/mypackage/utils.py' },
     });
-    assert.equal(shouldCheck(input), true);
-    assert.equal(
+    expect(shouldCheck(input)).toBe(true);
+    expect(
       isLooseFile(input.tool_input.file_path as string, mockFs(['/proj/src/mypackage/__init__.py'])),
-      false,
-    );
+    ).toBe(false);
   });
 
   test('Claude Code Edit fixture (.js loose) → shouldCheck=true + isLooseFile=true', () => {
     const normalized = normalize(ccEdit);
-    assert.equal(shouldCheck(normalized), true);
-    assert.equal(isLooseFile(normalized.tool_input.file_path as string, mockFs([])), true);
+    expect(shouldCheck(normalized)).toBe(true);
+    expect(isLooseFile(normalized.tool_input.file_path as string, mockFs([]))).toBe(true);
   });
 
   test('Claude Code Bash fixture → shouldCheck=false', () => {
-    assert.equal(shouldCheck(normalize(ccBash)), false);
+    expect(shouldCheck(normalize(ccBash))).toBe(false);
   });
 
 });
@@ -263,11 +262,11 @@ describe('main() — dedup gate is Copilot-only', () => {
     try {
       const { writable: out1, output: get1 } = capture();
       await main({ stdin: toStream(raw), stdout: out1 });
-      assert.ok(get1().length > 0, 'first Copilot call should emit nudge');
+      expect(get1().length > 0, 'first Copilot call should emit nudge').toBeTruthy();
 
       const { writable: out2, output: get2 } = capture();
       await main({ stdin: toStream(raw), stdout: out2 });
-      assert.equal(get2(), '', 'second Copilot call within TTL must be silenced (dedup active)');
+      expect(get2()).toBe('');
     } finally {
       if (existsSync(lp)) unlinkSync(lp);
     }
@@ -281,11 +280,11 @@ describe('main() — dedup gate is Copilot-only', () => {
 
     const { writable: out1, output: get1 } = capture();
     await main({ stdin: toStream(raw), stdout: out1 });
-    assert.ok(get1().length > 0, 'first Claude Code call should emit nudge');
+    expect(get1().length > 0, 'first Claude Code call should emit nudge').toBeTruthy();
 
     const { writable: out2, output: get2 } = capture();
     await main({ stdin: toStream(raw), stdout: out2 });
-    assert.ok(get2().length > 0, 'second Claude Code call must also emit nudge (no dedup for CC)');
+    expect(get2().length > 0, 'second Claude Code call must also emit nudge (no dedup for CC)').toBeTruthy();
   });
 
 });

@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Sequence
 from typing import cast
 from xml.sax.saxutils import escape as xml_escape
+
+_FM_BOUNDARY = re.compile(r"^-{3,}\s*$", re.MULTILINE)
 
 from ims_mcp.clients.document import DocumentClient
 from ims_mcp.constants import (
@@ -25,6 +28,14 @@ from ims_mcp.typing_utils import DocumentLike, JsonObject, JsonValue, as_json_ob
 class Bundler:
     def __init__(self, document_client: DocumentClient):
         self._documents = document_client
+
+    @staticmethod
+    def _strip_frontmatter(content: str) -> str:
+        """Strip YAML frontmatter block (---...---) from the start of content."""
+        parts = _FM_BOUNDARY.split(content, 2)
+        if len(parts) == 3 and not parts[0].strip():
+            return parts[2].lstrip("\n")
+        return content
 
     @staticmethod
     def _unwrap_base(obj: object) -> JsonValue:
@@ -194,12 +205,14 @@ class Bundler:
             f'{lc_part}{fm_part} />'
         )
 
-    def bundle(self, documents: list[DocumentLike], dataset_name: str) -> str:
+    def bundle(self, documents: list[DocumentLike], dataset_name: str, *, strip_frontmatter: bool = False) -> str:
         chunks: list[str] = []
         for doc in sorted(documents, key=self._sort_key):
             tags_attr = self._tags_attr(doc)
             path = self._resource_path(doc)
             body = self._documents.download_content(doc)
+            if strip_frontmatter:
+                body = self._strip_frontmatter(body)
             chunks.append(
                 XML_FILE_OPEN.format(
                     id=self._xml_attr(doc.id),

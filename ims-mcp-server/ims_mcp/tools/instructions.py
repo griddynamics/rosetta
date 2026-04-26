@@ -130,6 +130,7 @@ async def get_context_instructions(
     query_builder: QueryBuilder,
     doc_cache: InstructionDocCache,
     topic: str | None = None,
+    include_frontmatter: bool = False,
 ) -> str:
     # Compatibility wrapper: get-context semantics are query-instructions
     # with predefined bootstrap tag.
@@ -142,6 +143,7 @@ async def get_context_instructions(
         tags=[TAG_BOOTSTRAP],
         topic=topic,
         _skip_list_threshold=True,
+        _strip_frontmatter_content=not include_frontmatter,
     )
     if result and not result.startswith("Error:"):
         workflows_listing = _build_workflows_listing(call_ctx, doc_cache)
@@ -161,6 +163,7 @@ async def query_instructions(
     tags: list[str] | None = None,
     topic: str | None = None,
     _skip_list_threshold: bool = False,
+    _strip_frontmatter_content: bool = False,
 ) -> str:
     normalized_query, query_err = normalize_query(query)
     if query_err:
@@ -234,7 +237,7 @@ async def query_instructions(
         )
         return header + "\n" + bundler.format_as_listing(docs, dataset_name)
 
-    return bundler.bundle(docs, dataset_name)
+    return bundler.bundle(docs, dataset_name, strip_frontmatter=_strip_frontmatter_content)
 
 
 async def list_instructions(

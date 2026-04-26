@@ -6,6 +6,7 @@ export default defineConfig({
     include: ["tests/**/*.test.ts", "tests/**/*.e2e.test.ts"],
     globals: false,
     passWithNoTests: true,
+    slowTestThreshold: 1000,
   },
   coverage: {
     provider: "v8",

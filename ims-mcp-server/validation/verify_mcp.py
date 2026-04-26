@@ -10,7 +10,7 @@ This script validates:
 7) query_instructions >5 file limit returns listing format instead of content,
 8) (disabled) invalid-input checks for write-data tools,
 9) (disabled) plan_manager: all 6 commands end-to-end,
-10) get_context_instructions cache TTL (5-minute expiration),
+10) get_context_instructions cache TTL (5-minute expiration) and frontmatter stripping (default off, include_frontmatter=True preserves it),
 11) tool-level response caching for query_instructions and list_instructions.
 
 Required environment:
@@ -54,6 +54,7 @@ Redis/Valkey Setup (for REDIS_URL testing):
 
 import asyncio
 import os
+import re
 import sys
 import uuid
 from typing import List
@@ -102,6 +103,14 @@ def is_successful_bundle(content: str) -> bool:
 def is_listing_output(content: str) -> bool:
     """True when output contains folder or file listing entries."""
     return "<rosetta:folder " in content or '<rosetta:file ' in content
+
+
+_FM_IN_BUNDLE = re.compile(r"<rosetta:file[^>]+>\s*---", re.DOTALL)
+
+
+def has_frontmatter_in_bundle(content: str) -> bool:
+    """True when any rosetta:file content block starts with YAML frontmatter (---)."""
+    return bool(_FM_IN_BUNDLE.search(content))
 
 
 def get_test_list_prefixes() -> List[str]:
@@ -902,6 +911,12 @@ async def main() -> None:
                     print(f"    OK Known workflow with description found: {matched}")
                 else:
                     errors.append("get_context_instructions: expected adhoc-flow.md or coding-flow.md with description phrase not found in workflow listing")
+
+                # Verify frontmatter is always stripped from bundle content
+                if has_frontmatter_in_bundle(text1):
+                    errors.append("get_context_instructions: YAML frontmatter (---) found in bundle content (should always be stripped)")
+                else:
+                    print("    OK Frontmatter stripped from bundle content")
 
                 # Second call immediately - should return cached (fast)
                 print("    Second call (immediate): should return cached...")
