@@ -53,6 +53,8 @@ Compose these into plan phases/steps to build any execution workflow.
 - **plan-wbs**: USE SKILL `planning` to build sequenced WBS; persist via `plan-manager upsert` with subagent/role/model
 - **tech-specs**: USE SKILL `tech-specs` to generate target technical implementation specs; makes AI to figure out entire solution, instead of discovering something as a surprise
 - **subagent-delegation**: provide role + context/refs; route parallel/sequential; enforce focus — report back if off-plan
+- **delegate-but-verify**: use subagent delegation, but verify both reasoning and results
+- **critically-review**: critically review inputs, outputs, reasoning, completeness, ambiguity, results of user, subagents, tools, scripts, etc.
 - **execute-track**: plan-manager next → execute → update_status; `upsert` to adapt mid-execution; loop
 - **modify-review**: modify then review with different agent/model
 - **review-validate**: review (static inspection against intent) + validate (run locally, call/use local, runtime evidence on real tasks)
