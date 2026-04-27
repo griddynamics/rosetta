@@ -35,9 +35,10 @@ Without factual inventory of tech stack, structure, and dependencies, subsequent
    - Use `git ls-files --cached --others --exclude-standard` in each repository or fallback to find/ls/etc with filters
 6. List direct dependencies (project, package, version) → write DEPENDENCIES
 7. Preserve human-added sections in existing files
-8. Create or update .gitignore in git root folders according to bootstrap_rosetta_files
+8. Update (or create only if missing) .gitignore in git root folder by adding lines according to bootstrap_rosetta_files
    Example:
    ```
+   ...
    # Rosetta
    agents/TEMP/
    refsrc/
