@@ -56,12 +56,12 @@ const normalize = (raw: Record<string, unknown>): NormalizedInput => {
 
 const formatOutput = (canonical?: CanonicalOutput): Record<string, unknown> => {
   const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
-  const { permissionDecision, permissionDecisionReason, additionalContext } = hookSpecificOutput;
+  const { permissionDecision, permissionDecisionReason, additionalContext, hookEventName } = hookSpecificOutput;
   const out: Record<string, unknown> = {};
   if (permissionDecision) out.permissionDecision = permissionDecision;
   if (permissionDecisionReason) out.permissionDecisionReason = permissionDecisionReason;
   if (cont === false && !out.permissionDecision) out.permissionDecision = 'deny';
-  if (additionalContext) out.additionalContext = additionalContext;
+  if (additionalContext) out.hookSpecificOutput = { hookEventName, additionalContext };
   return out;
 };
 

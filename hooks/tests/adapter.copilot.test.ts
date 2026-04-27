@@ -101,17 +101,19 @@ describe('formatOutput — Copilot', () => {
     expect(result).toEqual({});
   });
 
-  test('additionalContext → top-level additionalContext (Copilot CLI flat schema)', () => {
+  test('additionalContext → included in hookSpecificOutput', () => {
     const canonical = {
       hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'File appears to be loose' },
       continue: true,
     };
     const result = formatOutput(canonical, 'copilot');
-    expect(result.additionalContext).toBe('File appears to be loose');
-    expect(result.hookSpecificOutput).toBeUndefined();
+    expect(result.hookSpecificOutput).toEqual({
+      hookEventName: 'PostToolUse',
+      additionalContext: 'File appears to be loose',
+    });
   });
 
-  test('additionalContext + permissionDecision → both at top level', () => {
+  test('additionalContext + permissionDecision → both in output', () => {
     const canonical = {
       hookSpecificOutput: {
         hookEventName: 'PostToolUse',
@@ -123,13 +125,11 @@ describe('formatOutput — Copilot', () => {
     const result = formatOutput(canonical, 'copilot');
     expect(result.permissionDecision).toBe('deny');
     expect(result.permissionDecisionReason).toBe('Blocked');
-    expect(result.additionalContext).toBe('Loose file detected');
-    expect(result.hookSpecificOutput).toBeUndefined();
+    expect((result.hookSpecificOutput as Record<string, unknown>)?.additionalContext).toBe('Loose file detected');
   });
 
-  test('no additionalContext → additionalContext absent from output', () => {
+  test('no additionalContext → hookSpecificOutput absent from output', () => {
     const result = formatOutput({ hookSpecificOutput: { hookEventName: 'PostToolUse' } }, 'copilot');
-    expect(result.additionalContext).toBeUndefined();
     expect(result.hookSpecificOutput).toBeUndefined();
   });
 
