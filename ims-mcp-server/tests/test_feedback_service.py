@@ -49,3 +49,22 @@ def test_feedback_service_degrades_gracefully_on_capture_failure(monkeypatch):
     )
 
     assert result == "Feedback accepted (analytics unavailable)."
+
+
+def test_feedback_service_distinct_id_is_username_only(monkeypatch):
+    captured = []
+
+    class _CapturingPosthog:
+        def capture(self, distinct_id, event, properties):
+            captured.append({"distinct_id": distinct_id, "event": event})
+
+    monkeypatch.setattr(feedback_module, "get_posthog_client", lambda config: _CapturingPosthog())
+
+    FeedbackService().submit(
+        request_mode="coding.md",
+        feedback={"summary": "s"},
+        call_ctx=_call_ctx(),
+    )
+
+    assert captured[0]["distinct_id"] == "tester"
+    assert "@" not in captured[0]["distinct_id"]

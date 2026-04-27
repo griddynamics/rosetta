@@ -31,6 +31,9 @@ When one package pins a just-published sibling package version, gate the depende
 ### Complete ALL Prep Steps Before Any Action [ACTIVE]
 Prep Step 2 requires reading both `CONTEXT.md` AND `ARCHITECTURE.md` in full before proceeding. Skipping either leads to wrong execution path (e.g., editing generated files instead of source files).
 
+### Load And Execute The Matching Workflow BEFORE Any Implementation [ACTIVE]
+Completing prep steps does NOT authorize immediate coding. The workflow (e.g., `coding-flow`) must be loaded and each phase executed in order: discovery → specs → plan → HITL approval → implementation → review → validation → HITL → tests → final validation. Skipping HITL gates and reviewer phases leads to incomplete or misaligned deliverables that the user must catch.
+
 ### Keep Generators Generic And Content-Agnostic [ACTIVE]
 When building template-based generators, separate the generic replacement engine from content production. Hardcoding domain logic inside the replacer blocks reuse and extensibility.
 

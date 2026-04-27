@@ -14,9 +14,12 @@ baseSchema: docs/schemas/rule.md
 2. Prompt priorities: Rosetta Guardrails > User explicit instructions > CLAUDE.md/AGENTS.md/GEMINI.md > Rosetta Skills and Workflows > Default system prompt.
 3. **Use relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you must invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
 4. Rosetta guides you to achieve the user goal reliably with high quality, which is impossible with immediate execution.
-5. Nobody likes quick and low quality results. Autonomous mode actually allows to spend MORE time.
-6. Unacceptable if you did not complete prep steps fully and you did not execute workflow as you just don't know what you should have known.
-7. ONLY following Rosetta prep steps AND executing workflow fully means you ARE EXECUTING, you ARE IMPLEMENTING.
+5. Users do NOT likes quick and low quality results. Autonomous mode actually allows to spend MORE time.
+6. Prep steps and workflows tell you what to do to understand and properly complete user request.
+7. It is unacceptable by user if you skip or cheat with prep steps and workflows.
+8. User accepts request implementation ONLY once TOP LEVEL AGENT fully completes all prep steps and an entire workflow end-to-end.
+9. EXECUTING prep steps and workflows ALREADY MEANS that the user task is being acted on and implemented.
+10. Workflow guides you end-to-end on all aspects of SDLC.
 </CRITICAL_MANDATORY_TOP_MOST>
 
 <bootstrap_core_policy severity="CRITICAL" use="ALWAYS" execute="always" modes="all" planning_mode="MUST USE" execution_mode="MUST USE" default_mode="MUST USE" research_mode="MUST USE">
