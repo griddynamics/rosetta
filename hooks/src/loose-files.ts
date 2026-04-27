@@ -13,7 +13,8 @@ import { debugLog } from './debug-log';
 import type { NormalizedInput } from './types';
 
 const ALLOWED_EXTENSIONS = new Set(['.py', '.js']);
-const ALLOWED_TOOLS = new Set(['Write', 'Edit']);
+const ALLOWED_TOOLS = new Set(['Write', 'Edit', 'apply_patch', 'functions.apply_patch', 'create_file', 'replace_string_in_file', 'multi_replace_string_in_file']);
+const PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
 const EXCLUDED_PATH_SEGMENTS = [
   'agents/TEMP/',
   'scripts/',
@@ -42,13 +43,34 @@ interface NudgeOutput {
 const isPathExcluded = (filePath: string): boolean =>
   EXCLUDED_PATH_SEGMENTS.some((segment) => filePath.includes(segment));
 
-export const shouldCheck = (normalizedInput: NormalizedInput): boolean => {
-  if (normalizedInput.hook_event_name !== 'PostToolUse') return false;
-  if (!ALLOWED_TOOLS.has(normalizedInput.tool_name as string)) return false;
+const getFilePath = (toolName: string | null | undefined, toolInput: Record<string, unknown>): string => {
+  if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
+    const command = (toolInput.command as string) ?? '';
+    return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? '';
+  }
+  return (toolInput.file_path as string) ?? (toolInput.filePath as string) ?? '';
+};
 
-  const filePath = (normalizedInput.tool_input.file_path as string) || '';
-  if (!ALLOWED_EXTENSIONS.has(path.extname(filePath))) return false;
-  if (isPathExcluded(filePath)) return false;
+export const shouldCheck = (normalizedInput: NormalizedInput): boolean => {
+  if (normalizedInput.hook_event_name !== 'PostToolUse') {
+    debugLog('skip: not PostToolUse', { hook_event_name: normalizedInput.hook_event_name });
+    return false;
+  }
+  if (!ALLOWED_TOOLS.has(normalizedInput.tool_name as string)) {
+    debugLog('skip: tool not in ALLOWED_TOOLS', { tool_name: normalizedInput.tool_name });
+    return false;
+  }
+
+  const filePath = getFilePath(normalizedInput.tool_name, normalizedInput.tool_input);
+  const ext = path.extname(filePath);
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    debugLog('skip: extension not allowed', { filePath: filePath || null, ext: ext || null });
+    return false;
+  }
+  if (isPathExcluded(filePath)) {
+    debugLog('skip: path excluded', { filePath });
+    return false;
+  }
 
   return true;
 };
@@ -75,8 +97,7 @@ export const buildNudgeOutput = (filePath: string): NudgeOutput => {
     hookSpecificOutput: {
       hookEventName: 'PostToolUse',
       additionalContext:
-        `${basename} appears to be a loose file outside a module. ` +
-        `Consider adding ${marker} to its directory tree to make it part of a proper module.`,
+        `${basename} appears to be a loose file outside a module. Intended? A temporary file? ${marker}?`,
     },
     continue: true,
     suppressOutput: false,
@@ -104,11 +125,12 @@ export const main = async ({
     return;
   }
 
-  const filePath = (normalized.tool_input.file_path as string) || '';
+  const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
   if (isLooseFile(filePath)) {
     const output = buildNudgeOutput(filePath);
-    debugLog('nudge emitted', { filePath });
-    stdout.write(`${JSON.stringify(formatOutput(output, ide))}\n`);
+    const json = JSON.stringify(formatOutput(output, ide));
+    debugLog('nudge emitted', { filePath, output: json });
+    stdout.write(`${json}\n`);
   } else {
     debugLog('file is not loose', { filePath });
   }

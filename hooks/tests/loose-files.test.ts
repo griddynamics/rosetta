@@ -10,6 +10,7 @@ import os from 'os';
 import ccWrite from './fixtures/claude-code-post-tool-use-write.json';
 import ccEdit  from './fixtures/claude-code-post-tool-use-edit.json';
 import ccBash  from './fixtures/claude-code-pre-tool-use-bash.json';
+import codexApplyPatch from './fixtures/codex-post-tool-use-apply_patch.json';
 
 import { shouldCheck, isLooseFile, buildNudgeOutput, main } from '../src/loose-files';
 import { normalize } from '../src/adapter';
@@ -65,6 +66,30 @@ describe('shouldCheck — event + tool filter', () => {
 
   test('PreToolUse + Write → false (wrong event)', () => {
     expect(shouldCheck(normalize({ ...ccWrite, hook_event_name: 'PreToolUse' }))).toBe(false);
+  });
+
+  test('PostToolUse + apply_patch (.js) → true', () => {
+    expect(shouldCheck(normalize(codexApplyPatch))).toBe(true);
+  });
+
+  test('PostToolUse + apply_patch (.py) → true', () => {
+    const input = { ...codexApplyPatch, tool_input: { command: 'apply_patch\n*** Begin Patch\n*** Update File: src/utils.py\n*** End Patch' } };
+    expect(shouldCheck(normalize(input))).toBe(true);
+  });
+
+  test('PostToolUse + apply_patch (.ts) → false (extension not allowed)', () => {
+    const input = { ...codexApplyPatch, tool_input: { command: 'apply_patch\n*** Begin Patch\n*** Update File: src/utils.ts\n*** End Patch' } };
+    expect(shouldCheck(normalize(input))).toBe(false);
+  });
+
+  test('PostToolUse + functions.apply_patch (.js) → true', () => {
+    const input = { ...codexApplyPatch, tool_name: 'functions.apply_patch' };
+    expect(shouldCheck(normalize(input))).toBe(true);
+  });
+
+  test('PostToolUse + apply_patch with Add File → true', () => {
+    const input = { ...codexApplyPatch, tool_input: { command: 'apply_patch\n*** Begin Patch\n*** Add File: src/new.py\n+content\n*** End Patch' } };
+    expect(shouldCheck(normalize(input))).toBe(true);
   });
 
 });

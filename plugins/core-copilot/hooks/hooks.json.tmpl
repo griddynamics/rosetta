@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [{{BOOTSTRAP_HOOKS_COPILOT}}],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".github/hooks/loose-files.js\""
+          }
+        ]
+      }
+    ]
+  }
+}

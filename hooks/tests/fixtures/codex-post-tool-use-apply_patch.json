@@ -1,0 +1,13 @@
+{
+  "_source": "constructed",
+  "_note": "Shape matches Codex PostToolUse for apply_patch tool. File path is embedded in the command string.",
+  "session_id": "sanitized-session_id",
+  "turn_id": "sanitized-turn_id",
+  "hook_event_name": "PostToolUse",
+  "model": "gpt-5-codex",
+  "permission_mode": "bypassPermissions",
+  "tool_name": "apply_patch",
+  "tool_input": {
+    "command": "apply_patch\n*** Begin Patch\n*** Update File: src/app.js\n@@ -1,1 +1,1 @@\n-old\n+new\n*** End Patch"
+  }
+}

@@ -123,7 +123,8 @@ var debugLog = (message, context) => {
 
 // src/loose-files.ts
 var ALLOWED_EXTENSIONS = /* @__PURE__ */ new Set([".py", ".js"]);
-var ALLOWED_TOOLS = /* @__PURE__ */ new Set(["Write", "Edit"]);
+var ALLOWED_TOOLS = /* @__PURE__ */ new Set(["Write", "Edit", "apply_patch", "functions.apply_patch", "create_file", "replace_string_in_file", "multi_replace_string_in_file"]);
+var PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
 var EXCLUDED_PATH_SEGMENTS = [
   "agents/TEMP/",
   "scripts/",
@@ -139,12 +140,32 @@ var MODULE_MARKERS = {
 };
 var MAX_WALK_LEVELS = 10;
 var isPathExcluded = (filePath) => EXCLUDED_PATH_SEGMENTS.some((segment) => filePath.includes(segment));
+var getFilePath = (toolName, toolInput) => {
+  if (toolName === "apply_patch" || toolName === "functions.apply_patch") {
+    const command = toolInput.command ?? "";
+    return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? "";
+  }
+  return toolInput.file_path ?? toolInput.filePath ?? "";
+};
 var shouldCheck = (normalizedInput) => {
-  if (normalizedInput.hook_event_name !== "PostToolUse") return false;
-  if (!ALLOWED_TOOLS.has(normalizedInput.tool_name)) return false;
-  const filePath = normalizedInput.tool_input.file_path || "";
-  if (!ALLOWED_EXTENSIONS.has(import_path3.default.extname(filePath))) return false;
-  if (isPathExcluded(filePath)) return false;
+  if (normalizedInput.hook_event_name !== "PostToolUse") {
+    debugLog("skip: not PostToolUse", { hook_event_name: normalizedInput.hook_event_name });
+    return false;
+  }
+  if (!ALLOWED_TOOLS.has(normalizedInput.tool_name)) {
+    debugLog("skip: tool not in ALLOWED_TOOLS", { tool_name: normalizedInput.tool_name });
+    return false;
+  }
+  const filePath = getFilePath(normalizedInput.tool_name, normalizedInput.tool_input);
+  const ext = import_path3.default.extname(filePath);
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    debugLog("skip: extension not allowed", { filePath: filePath || null, ext: ext || null });
+    return false;
+  }
+  if (isPathExcluded(filePath)) {
+    debugLog("skip: path excluded", { filePath });
+    return false;
+  }
   return true;
 };
 var isLooseFile = (filePath, fs = { existsSync: import_fs3.existsSync }) => {
@@ -166,7 +187,7 @@ var buildNudgeOutput = (filePath) => {
   return {
     hookSpecificOutput: {
       hookEventName: "PostToolUse",
-      additionalContext: `${basename} appears to be a loose file outside a module. Consider adding ${marker} to its directory tree to make it part of a proper module.`
+      additionalContext: `${basename} appears to be a loose file outside a module. Intended? A temporary file? ${marker}?`
     },
     continue: true,
     suppressOutput: false
@@ -189,11 +210,12 @@ var main = async ({
     debugLog("skipped (duplicate)");
     return;
   }
-  const filePath = normalized.tool_input.file_path || "";
+  const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
   if (isLooseFile(filePath)) {
     const output = buildNudgeOutput(filePath);
-    debugLog("nudge emitted", { filePath });
-    stdout.write(`${JSON.stringify(formatOutput2(output, ide))}
+    const json = JSON.stringify(formatOutput2(output, ide));
+    debugLog("nudge emitted", { filePath, output: json });
+    stdout.write(`${json}
 `);
   } else {
     debugLog("file is not loose", { filePath });

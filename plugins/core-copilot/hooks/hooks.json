@@ -8,8 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/loose-files.js\" ]; then node \"$root/hooks/loose-files.js\"; break; fi; done",
-            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\loose-files.js\") { node \"$root\\hooks\\loose-files.js\" }"
+            "command": "node \".github/hooks/loose-files.js\""
           }
         ]
       }
