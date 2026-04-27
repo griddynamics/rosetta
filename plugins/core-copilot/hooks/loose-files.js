@@ -75,12 +75,12 @@ var normalize = (raw) => {
 };
 var formatOutput = (canonical) => {
   const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
-  const { permissionDecision, permissionDecisionReason, additionalContext, hookEventName } = hookSpecificOutput;
+  const { permissionDecision, permissionDecisionReason, additionalContext } = hookSpecificOutput;
   const out = {};
   if (permissionDecision) out.permissionDecision = permissionDecision;
   if (permissionDecisionReason) out.permissionDecisionReason = permissionDecisionReason;
   if (cont === false && !out.permissionDecision) out.permissionDecision = "deny";
-  if (additionalContext) out.hookSpecificOutput = { hookEventName, additionalContext };
+  if (additionalContext) out.additionalContext = additionalContext;
   return out;
 };
 var copilot = { name: "copilot", detect, normalize, formatOutput };
@@ -111,8 +111,11 @@ var normalize3 = (rawInput) => {
   const raw = rawInput;
   return copilot.detect(raw) ? copilot.normalize(raw) : claudeCode.normalize(raw);
 };
-var formatOutput3 = (canonical, _ide) => copilot.formatOutput(canonical);
-var detectIDE = (_raw) => "copilot";
+var formatOutput3 = (canonical, ide) => ide === "claude-code" ? claudeCode.formatOutput(canonical) : copilot.formatOutput(canonical);
+var detectIDE = (raw) => {
+  const r = raw;
+  return copilot.detect(r) ? "copilot" : "claude-code";
+};
 
 // src/lock.ts
 var import_fs = require("fs");
