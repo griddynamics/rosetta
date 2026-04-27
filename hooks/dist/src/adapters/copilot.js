@@ -57,7 +57,7 @@ const normalize = (raw) => {
 };
 const formatOutput = (canonical) => {
     const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
-    const { permissionDecision, permissionDecisionReason, additionalContext, hookEventName } = hookSpecificOutput;
+    const { permissionDecision, permissionDecisionReason, additionalContext } = hookSpecificOutput;
     const out = {};
     if (permissionDecision)
         out.permissionDecision = permissionDecision;
@@ -66,7 +66,7 @@ const formatOutput = (canonical) => {
     if (cont === false && !out.permissionDecision)
         out.permissionDecision = 'deny';
     if (additionalContext)
-        out.hookSpecificOutput = { hookEventName, additionalContext };
+        out.additionalContext = additionalContext;
     return out;
 };
 exports.copilot = { name: 'copilot', detect, normalize, formatOutput };

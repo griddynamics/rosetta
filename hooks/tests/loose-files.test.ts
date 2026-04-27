@@ -325,15 +325,14 @@ const makeCopilotRaw = (filePath: string) => ({
 // ---------------------------------------------------------------------------
 describe('main() — nudge output shape', () => {
 
-  test('old Copilot format → output is valid JSON with hookSpecificOutput.additionalContext', async () => {
+  test('old Copilot format → output is valid JSON with top-level additionalContext', async () => {
     const uniq = Math.random().toString(36).slice(2);
     const raw = makeCopilotRaw(`/tmp/rosetta-nudge-shape-${uniq}.py`);
     const { writable, output } = capture();
     await main({ stdin: toStream(raw), stdout: writable });
     const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
-    const hso = parsed.hookSpecificOutput as Record<string, unknown> | undefined;
-    expect(hso?.additionalContext).toBeTruthy();
-    expect(hso?.hookEventName).toBe('PostToolUse');
+    expect(parsed.additionalContext).toBeTruthy();
+    expect(parsed.hookSpecificOutput).toBeUndefined();
   });
 
   test('VS Code CC-shaped Copilot input with filePath → output has hookSpecificOutput.additionalContext', async () => {
