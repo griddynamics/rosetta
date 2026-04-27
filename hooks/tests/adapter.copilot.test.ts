@@ -96,9 +96,41 @@ describe('formatOutput — Copilot', () => {
     expect(result.permissionDecision).toBe('deny');
   });
 
-  test('empty canonical → empty output (postToolUse output is ignored)', () => {
+  test('empty canonical → empty output (no decision, no additionalContext)', () => {
     const result = formatOutput({ hookSpecificOutput: {} }, 'copilot');
     expect(result).toEqual({});
+  });
+
+  test('additionalContext → included in hookSpecificOutput', () => {
+    const canonical = {
+      hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'File appears to be loose' },
+      continue: true,
+    };
+    const result = formatOutput(canonical, 'copilot');
+    expect(result.hookSpecificOutput).toEqual({
+      hookEventName: 'PostToolUse',
+      additionalContext: 'File appears to be loose',
+    });
+  });
+
+  test('additionalContext + permissionDecision → both in output', () => {
+    const canonical = {
+      hookSpecificOutput: {
+        hookEventName: 'PostToolUse',
+        additionalContext: 'Loose file detected',
+        permissionDecision: 'deny',
+        permissionDecisionReason: 'Blocked',
+      },
+    };
+    const result = formatOutput(canonical, 'copilot');
+    expect(result.permissionDecision).toBe('deny');
+    expect(result.permissionDecisionReason).toBe('Blocked');
+    expect((result.hookSpecificOutput as Record<string, unknown>)?.additionalContext).toBe('Loose file detected');
+  });
+
+  test('no additionalContext → hookSpecificOutput absent from output', () => {
+    const result = formatOutput({ hookSpecificOutput: { hookEventName: 'PostToolUse' } }, 'copilot');
+    expect(result.hookSpecificOutput).toBeUndefined();
   });
 
 });

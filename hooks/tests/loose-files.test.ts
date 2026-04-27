@@ -11,6 +11,7 @@ import ccWrite from './fixtures/claude-code-post-tool-use-write.json';
 import ccEdit  from './fixtures/claude-code-post-tool-use-edit.json';
 import ccBash  from './fixtures/claude-code-pre-tool-use-bash.json';
 import codexApplyPatch from './fixtures/codex-post-tool-use-apply_patch.json';
+import copilotCC from './fixtures/copilot-post-tool-use-cc-format.json';
 
 import { shouldCheck, isLooseFile, buildNudgeOutput, main } from '../src/loose-files';
 import { normalize } from '../src/adapter';
@@ -118,6 +119,48 @@ describe('shouldCheck — exclusion paths', () => {
 
   test('path contains __pycache__/ → false', () => {
     expect(shouldCheck(makeInput('/proj/src/__pycache__/util.py'))).toBe(false);
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+describe('shouldCheck — filePath camelCase (VS Code Copilot CC-shaped input)', () => {
+
+  const makeCCCopilot = (toolName: string, toolInput: Record<string, unknown>) =>
+    normalize({ hook_event_name: 'PostToolUse', session_id: 'test-session', tool_name: toolName,
+                 tool_input: toolInput, tool_use_id: 'toolu__vscode-123', cwd: '/proj' });
+
+  test('create_file with filePath (.js) → true', () => {
+    expect(shouldCheck(makeCCCopilot('create_file', { filePath: '/proj/app.js', content: 'x' }))).toBe(true);
+  });
+
+  test('replace_string_in_file with filePath (.py) → true', () => {
+    expect(shouldCheck(makeCCCopilot('replace_string_in_file', { filePath: '/proj/utils.py', old_str: 'a', new_str: 'b' }))).toBe(true);
+  });
+
+  test('multi_replace_string_in_file with filePath (.js) → true', () => {
+    expect(shouldCheck(makeCCCopilot('multi_replace_string_in_file', { filePath: '/proj/app.js' }))).toBe(true);
+  });
+
+  test('create_file with filePath (.ts) → false (extension not allowed)', () => {
+    expect(shouldCheck(makeCCCopilot('create_file', { filePath: '/proj/app.ts', content: 'x' }))).toBe(false);
+  });
+
+  test('create_file with empty tool_input {} → false (no path)', () => {
+    expect(shouldCheck(makeCCCopilot('create_file', {}))).toBe(false);
+  });
+
+  test('file_path (snake_case) still resolves correctly', () => {
+    expect(shouldCheck(makeCCCopilot('create_file', { file_path: '/proj/app.js', content: 'x' }))).toBe(true);
+  });
+
+  test('file_path takes priority over filePath when both present', () => {
+    // file_path is .ts → false, even though filePath is .js
+    expect(shouldCheck(makeCCCopilot('create_file', { file_path: '/proj/app.ts', filePath: '/proj/app.js' }))).toBe(false);
+  });
+
+  test('VS Code CC fixture → shouldCheck=true (filePath is .js)', () => {
+    expect(shouldCheck(normalize(copilotCC))).toBe(true);
   });
 
 });
@@ -272,6 +315,47 @@ const makeCopilotRaw = (filePath: string) => ({
   toolName: 'Write',
   toolArgs: JSON.stringify({ file_path: filePath, content: 'pass\n' }),
   toolResult: { resultType: 'success', textResultForLlm: 'done' },
+});
+
+// ---------------------------------------------------------------------------
+describe('main() — nudge output shape', () => {
+
+  test('old Copilot format → output is valid JSON with hookSpecificOutput.additionalContext', async () => {
+    const uniq = Math.random().toString(36).slice(2);
+    const raw = makeCopilotRaw(`/tmp/rosetta-nudge-shape-${uniq}.py`);
+    const { writable, output } = capture();
+    await main({ stdin: toStream(raw), stdout: writable });
+    const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
+    const hso = parsed.hookSpecificOutput as Record<string, unknown> | undefined;
+    expect(hso?.additionalContext).toBeTruthy();
+    expect(hso?.hookEventName).toBe('PostToolUse');
+  });
+
+  test('VS Code CC-shaped Copilot input with filePath → output has hookSpecificOutput.additionalContext', async () => {
+    const uniq = Math.random().toString(36).slice(2);
+    const raw = { ...copilotCC, session_id: `test-${uniq}`,
+                   tool_input: { filePath: `/tmp/rosetta-cc-${uniq}.js`, content: 'x' } };
+    const { writable, output } = capture();
+    await main({ stdin: toStream(raw), stdout: writable });
+    const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
+    const hso = parsed.hookSpecificOutput as Record<string, unknown> | undefined;
+    expect(hso?.additionalContext).toBeTruthy();
+  });
+
+  test('non-JS/PY file → no stdout output at all', async () => {
+    const raw = { ...copilotCC, tool_input: { filePath: '/tmp/file.ts', content: 'x' } };
+    const { writable, output } = capture();
+    await main({ stdin: toStream(raw), stdout: writable });
+    expect(output()).toBe('');
+  });
+
+  test('excluded path → no stdout output at all', async () => {
+    const raw = { ...copilotCC, tool_input: { filePath: '/tmp/scripts/runner.js', content: 'x' } };
+    const { writable, output } = capture();
+    await main({ stdin: toStream(raw), stdout: writable });
+    expect(output()).toBe('');
+  });
+
 });
 
 // ---------------------------------------------------------------------------

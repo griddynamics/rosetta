@@ -1,0 +1,16 @@
+{
+  "_source": "constructed-from-vscode-log",
+  "_note": "VS Code Copilot now sends Claude Code-shaped input (hook_event_name, session_id, tool_name) with filePath camelCase in tool_input.",
+  "timestamp": "2026-04-27T02:33:55.114Z",
+  "hook_event_name": "PostToolUse",
+  "session_id": "a72ac323-eb38-4bfe-aecb-5a104bf144d9",
+  "transcript_path": "/tmp/transcript.jsonl",
+  "tool_name": "create_file",
+  "tool_input": {
+    "filePath": "/proj/src/app.js",
+    "content": "console.log('hello');\n"
+  },
+  "tool_response": "",
+  "tool_use_id": "toolu_bdrk_01S3vw3ndXfPopMtAUJgua6a__vscode-1777078255834",
+  "cwd": "/proj"
+}
