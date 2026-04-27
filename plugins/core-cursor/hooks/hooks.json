@@ -3,7 +3,7 @@
   "hooks": {
     "postToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Write",
         "command": "node .cursor/hooks/loose-files.js"
       }
     ]

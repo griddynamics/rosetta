@@ -13,8 +13,8 @@ import { debugLog } from './debug-log';
 import type { NormalizedInput } from './types';
 
 const ALLOWED_EXTENSIONS = new Set(['.py', '.js']);
-const ALLOWED_TOOLS = new Set(['Write', 'Edit', 'apply_patch', 'functions.apply_patch', 'create_file', 'replace_string_in_file', 'multi_replace_string_in_file']);
-const PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
+const ALLOWED_TOOLS = new Set(['Write', 'apply_patch', 'functions.apply_patch', 'create_file']);
+const PATCH_FILE_RE = /^\*\*\* (?:Add|Create) File: (.+)$/m;
 const EXCLUDED_PATH_SEGMENTS = [
   'agents/TEMP/',
   'scripts/',

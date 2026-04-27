@@ -172,8 +172,8 @@ var debugLog = (message, context) => {
 
 // src/loose-files.ts
 var ALLOWED_EXTENSIONS = /* @__PURE__ */ new Set([".py", ".js"]);
-var ALLOWED_TOOLS = /* @__PURE__ */ new Set(["Write", "Edit", "apply_patch", "functions.apply_patch", "create_file", "replace_string_in_file", "multi_replace_string_in_file"]);
-var PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
+var ALLOWED_TOOLS = /* @__PURE__ */ new Set(["Write", "apply_patch", "functions.apply_patch", "create_file"]);
+var PATCH_FILE_RE = /^\*\*\* (?:Add|Create) File: (.+)$/m;
 var EXCLUDED_PATH_SEGMENTS = [
   "agents/TEMP/",
   "scripts/",

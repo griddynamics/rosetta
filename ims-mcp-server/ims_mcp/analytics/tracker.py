@@ -67,10 +67,10 @@ def get_client_ip() -> str | None:
         headers = get_http_headers(include_all=True)
         forwarded_for = headers.get("x-forwarded-for")
         if forwarded_for:
-            return forwarded_for.split(",")[0].strip()
+            return str(forwarded_for.split(",")[0].strip())
         real_ip = headers.get("x-real-ip")
         if real_ip:
-            return real_ip.strip()
+            return str(real_ip.strip())
     except Exception:
         pass
     return None

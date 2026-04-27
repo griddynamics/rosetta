@@ -53,8 +53,8 @@ describe('shouldCheck — event + tool filter', () => {
     expect(shouldCheck(normalize(ccWrite))).toBe(true);
   });
 
-  test('PostToolUse + Edit → true', () => {
-    expect(shouldCheck(normalize(ccEdit))).toBe(true);
+  test('PostToolUse + Edit → false', () => {
+    expect(shouldCheck(normalize(ccEdit))).toBe(false);
   });
 
   test('PostToolUse + Bash → false', () => {
@@ -69,13 +69,13 @@ describe('shouldCheck — event + tool filter', () => {
     expect(shouldCheck(normalize({ ...ccWrite, hook_event_name: 'PreToolUse' }))).toBe(false);
   });
 
-  test('PostToolUse + apply_patch (.js) → true', () => {
-    expect(shouldCheck(normalize(codexApplyPatch))).toBe(true);
+  test('PostToolUse + apply_patch with Update File (.js) → false', () => {
+    expect(shouldCheck(normalize(codexApplyPatch))).toBe(false);
   });
 
-  test('PostToolUse + apply_patch (.py) → true', () => {
+  test('PostToolUse + apply_patch with Update File (.py) → false', () => {
     const input = { ...codexApplyPatch, tool_input: { command: 'apply_patch\n*** Begin Patch\n*** Update File: src/utils.py\n*** End Patch' } };
-    expect(shouldCheck(normalize(input))).toBe(true);
+    expect(shouldCheck(normalize(input))).toBe(false);
   });
 
   test('PostToolUse + apply_patch (.ts) → false (extension not allowed)', () => {
@@ -83,13 +83,18 @@ describe('shouldCheck — event + tool filter', () => {
     expect(shouldCheck(normalize(input))).toBe(false);
   });
 
-  test('PostToolUse + functions.apply_patch (.js) → true', () => {
+  test('PostToolUse + functions.apply_patch with Update File → false', () => {
     const input = { ...codexApplyPatch, tool_name: 'functions.apply_patch' };
-    expect(shouldCheck(normalize(input))).toBe(true);
+    expect(shouldCheck(normalize(input))).toBe(false);
   });
 
   test('PostToolUse + apply_patch with Add File → true', () => {
     const input = { ...codexApplyPatch, tool_input: { command: 'apply_patch\n*** Begin Patch\n*** Add File: src/new.py\n+content\n*** End Patch' } };
+    expect(shouldCheck(normalize(input))).toBe(true);
+  });
+
+  test('PostToolUse + apply_patch with Create File → true', () => {
+    const input = { ...codexApplyPatch, tool_input: { command: 'apply_patch\n*** Begin Patch\n*** Create File: src/new.py\n+content\n*** End Patch' } };
     expect(shouldCheck(normalize(input))).toBe(true);
   });
 
@@ -134,12 +139,12 @@ describe('shouldCheck — filePath camelCase (VS Code Copilot CC-shaped input)',
     expect(shouldCheck(makeCCCopilot('create_file', { filePath: '/proj/app.js', content: 'x' }))).toBe(true);
   });
 
-  test('replace_string_in_file with filePath (.py) → true', () => {
-    expect(shouldCheck(makeCCCopilot('replace_string_in_file', { filePath: '/proj/utils.py', old_str: 'a', new_str: 'b' }))).toBe(true);
+  test('replace_string_in_file with filePath (.py) → false', () => {
+    expect(shouldCheck(makeCCCopilot('replace_string_in_file', { filePath: '/proj/utils.py', old_str: 'a', new_str: 'b' }))).toBe(false);
   });
 
-  test('multi_replace_string_in_file with filePath (.js) → true', () => {
-    expect(shouldCheck(makeCCCopilot('multi_replace_string_in_file', { filePath: '/proj/app.js' }))).toBe(true);
+  test('multi_replace_string_in_file with filePath (.js) → false', () => {
+    expect(shouldCheck(makeCCCopilot('multi_replace_string_in_file', { filePath: '/proj/app.js' }))).toBe(false);
   });
 
   test('create_file with filePath (.ts) → false (extension not allowed)', () => {
@@ -277,9 +282,9 @@ describe('integration with adapter', () => {
     ).toBe(false);
   });
 
-  test('Claude Code Edit fixture (.js loose) → shouldCheck=true + isLooseFile=true', () => {
+  test('Claude Code Edit fixture (.js) → shouldCheck=false (Edit is not a creation tool)', () => {
     const normalized = normalize(ccEdit);
-    expect(shouldCheck(normalized)).toBe(true);
+    expect(shouldCheck(normalized)).toBe(false);
     expect(isLooseFile(normalized.tool_input.file_path as string, mockFs([]))).toBe(true);
   });
 
