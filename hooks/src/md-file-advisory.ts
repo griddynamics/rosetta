@@ -1,0 +1,107 @@
+// md-file-advisory.ts — PreToolUse/PostToolUse hook that advises AI when a .md file
+// is created outside standard Rosetta documentation locations.
+//
+// Standard locations: docs/, agents/, plans/, refsrc/, README.md, CHANGELOG.md
+// Temp dirs (agent-temp/, agents/TEMP/, .tmp/, tmp/) are silently skipped.
+//
+// Exports (for testability): shouldAdvisory, isMarkdown, isInTempDir,
+// matchesAllowedPattern, buildAdvisoryOutput, ADVISORY_MESSAGE
+
+import path from 'path';
+import { readStdin, normalize, formatOutput, detectIDE } from './adapter';
+import { debugLog } from './debug-log';
+import type { CanonicalOutput } from './types';
+
+export const ADVISORY_MESSAGE =
+  '[Rosetta Advisory] This Markdown file is outside standard Rosetta documentation locations ' +
+  '(docs/, agents/, plans/, refsrc/, README.md, CHANGELOG.md). ' +
+  'Think whether this file is truly needed or whether you should update an existing file instead.';
+
+const ALLOWED_PREFIXES = ['docs/', 'agents/', 'plans/', 'refsrc/'];
+const ALLOWED_BASENAMES = ['README.md', 'CHANGELOG.md'];
+
+// ---------------------------------------------------------------------------
+
+export const isMarkdown = (filePath: string): boolean =>
+  filePath.toLowerCase().endsWith('.md');
+
+export const isInTempDir = (normalizedPath: string): boolean => {
+  const segments = normalizedPath.toLowerCase().split('/');
+  return segments.some((seg) => {
+    const parts = seg.split(/[-_.]/);
+    return parts.some((p) => p === 'temp' || p === 'tmp');
+  });
+};
+
+export const matchesAllowedPattern = (normalizedPath: string): boolean => {
+  for (const prefix of ALLOWED_PREFIXES) {
+    if (normalizedPath.startsWith(prefix)) return true;
+  }
+  const basename = path.basename(normalizedPath);
+  return ALLOWED_BASENAMES.includes(basename);
+};
+
+// Strips leading slash and ./ to produce a repo-relative path for pattern matching.
+const toRelative = (filePath: string): string => {
+  let p = filePath.replace(/\\/g, '/');
+  if (p.startsWith('/')) p = p.slice(1);
+  if (p.startsWith('./')) p = p.slice(2);
+  return p;
+};
+
+export const shouldAdvisory = (filePath: string): boolean => {
+  if (!filePath) return false;
+  const rel = toRelative(filePath);
+  if (!isMarkdown(rel)) return false;
+  if (isInTempDir(rel)) return false;
+  if (matchesAllowedPattern(rel)) return false;
+  return true;
+};
+
+export const buildAdvisoryOutput = (hookEventName: string): CanonicalOutput => ({
+  hookSpecificOutput: {
+    hookEventName,
+    permissionDecision: 'allow',
+    additionalContext: ADVISORY_MESSAGE,
+  },
+});
+
+// ---------------------------------------------------------------------------
+
+export const main = async ({
+  stdin = process.stdin,
+  stdout = process.stdout,
+}: {
+  stdin?: NodeJS.ReadableStream;
+  stdout?: NodeJS.WritableStream;
+} = {}): Promise<void> => {
+  try {
+    const raw = await readStdin(stdin);
+    const ide = detectIDE(raw);
+    const normalized = normalize(raw);
+    const filePath =
+      (normalized.tool_input?.file_path as string) ||
+      (normalized.tool_input?.path as string) ||
+      '';
+    debugLog('md-file-advisory input', { ide, filePath });
+    if (shouldAdvisory(filePath)) {
+      const hookEventName = (normalized.hook_event_name as string) || 'PreToolUse';
+      const canonical = buildAdvisoryOutput(hookEventName);
+      const output = formatOutput(canonical, ide);
+      debugLog('md-file-advisory advisory emitted', { filePath });
+      stdout.write(JSON.stringify(output));
+    }
+  } catch (_) {
+    // Advisory-only — never block agent execution.
+  }
+};
+
+if (require.main === module) {
+  main().then(
+    () => process.exit(0),
+    (err: Error) => {
+      process.stderr.write(`md-file-advisory hook error: ${err.message}\n`);
+      process.exit(1);
+    },
+  );
+}

@@ -89,3 +89,6 @@ hooks/dist/bundles/
 .claude
 rosetta-cli/dist
 rosetta-mcp-server/dist
+
+#codex
+.codex
