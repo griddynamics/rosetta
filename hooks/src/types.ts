@@ -7,6 +7,7 @@ export interface NormalizedInput {
   session_id: string | undefined;
   tool_name: string | null | undefined;
   tool_input: Record<string, unknown>;
+  file_path?: string;
   tool_use_id?: string;
   cwd?: string;
   tool_response?: unknown;

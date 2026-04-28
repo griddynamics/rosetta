@@ -6,12 +6,12 @@
 // Temp dirs (agent-temp/, agents/TEMP/, .tmp/, tmp/) are silently skipped.
 //
 // Exports (for testability): shouldCheck, shouldAdvisory, isMarkdown, isInTempDir,
-// matchesAllowedPattern, buildAdvisoryOutput, advisoryMessage, getFilePath
+// matchesAllowedPattern, buildAdvisoryOutput, advisoryMessage
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.main = exports.buildAdvisoryOutput = exports.shouldAdvisory = exports.matchesAllowedPattern = exports.isInTempDir = exports.isMarkdown = exports.shouldCheck = exports.getFilePath = exports.advisoryMessage = void 0;
+exports.main = exports.buildAdvisoryOutput = exports.shouldAdvisory = exports.matchesAllowedPattern = exports.isInTempDir = exports.isMarkdown = exports.shouldCheck = exports.advisoryMessage = void 0;
 const path_1 = __importDefault(require("path"));
 const adapter_1 = require("./adapter");
 const debug_log_1 = require("./debug-log");
@@ -26,16 +26,7 @@ const ALLOWED_TOOLS = new Set([
     'Write', 'Edit', 'apply_patch', 'functions.apply_patch',
     'create_file', 'replace_string_in_file', 'multi_replace_string_in_file',
 ]);
-const PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
 // ---------------------------------------------------------------------------
-const getFilePath = (toolName, toolInput) => {
-    if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
-        const command = toolInput.command ?? '';
-        return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? '';
-    }
-    return toolInput.file_path ?? toolInput.filePath ?? toolInput.path ?? '';
-};
-exports.getFilePath = getFilePath;
 const shouldCheck = (normalizedInput) => {
     if (normalizedInput.hook_event_name !== 'PostToolUse') {
         (0, debug_log_1.debugLog)('skip: not PostToolUse', { hook_event_name: normalizedInput.hook_event_name });
@@ -109,7 +100,7 @@ const main = async ({ stdin = process.stdin, stdout = process.stdout, } = {}) =>
             (0, debug_log_1.debugLog)('skipped (shouldCheck=false)');
             return;
         }
-        const filePath = (0, exports.getFilePath)(normalized.tool_name, normalized.tool_input);
+        const filePath = normalized.file_path ?? '';
         if ((0, exports.shouldAdvisory)(filePath)) {
             const canonical = (0, exports.buildAdvisoryOutput)(normalized.hook_event_name, filePath);
             const output = (0, adapter_1.formatOutput)(canonical, ide);

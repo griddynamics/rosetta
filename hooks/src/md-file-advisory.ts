@@ -5,7 +5,7 @@
 // Temp dirs (agent-temp/, agents/TEMP/, .tmp/, tmp/) are silently skipped.
 //
 // Exports (for testability): shouldCheck, shouldAdvisory, isMarkdown, isInTempDir,
-// matchesAllowedPattern, buildAdvisoryOutput, advisoryMessage, getFilePath
+// matchesAllowedPattern, buildAdvisoryOutput, advisoryMessage
 
 import path from 'path';
 import { readStdin, normalize, formatOutput, detectIDE } from './adapter';
@@ -25,20 +25,7 @@ const ALLOWED_TOOLS = new Set([
   'create_file', 'replace_string_in_file', 'multi_replace_string_in_file',
 ]);
 
-const PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
-
 // ---------------------------------------------------------------------------
-
-export const getFilePath = (
-  toolName: string | null | undefined,
-  toolInput: Record<string, unknown>,
-): string => {
-  if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
-    const command = (toolInput.command as string) ?? '';
-    return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? '';
-  }
-  return (toolInput.file_path as string) ?? (toolInput.filePath as string) ?? (toolInput.path as string) ?? '';
-};
 
 export const shouldCheck = (normalizedInput: NormalizedInput): boolean => {
   if (normalizedInput.hook_event_name !== 'PostToolUse') {
@@ -116,7 +103,7 @@ export const main = async ({
       debugLog('skipped (shouldCheck=false)');
       return;
     }
-    const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
+    const filePath = normalized.file_path ?? '';
     if (shouldAdvisory(filePath)) {
       const canonical = buildAdvisoryOutput(normalized.hook_event_name, filePath);
       const output = formatOutput(canonical, ide);

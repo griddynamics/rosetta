@@ -13,7 +13,6 @@ import {
   matchesAllowedPattern,
   shouldAdvisory,
   shouldCheck,
-  getFilePath,
   buildAdvisoryOutput,
   advisoryMessage,
   main,
@@ -100,46 +99,6 @@ describe('shouldCheck — event + tool filter', () => {
 
   test('PreToolUse + Bash → false (wrong event + wrong tool)', () => {
     expect(shouldCheck(normalize(ccBash))).toBe(false);
-  });
-});
-
-describe('getFilePath', () => {
-  test('extracts file_path (snake_case)', () => {
-    expect(getFilePath('Write', { file_path: '/proj/notes.md' })).toBe('/proj/notes.md');
-  });
-
-  test('extracts filePath (camelCase, Copilot standard)', () => {
-    expect(getFilePath('Write', { filePath: '/proj/notes.md' })).toBe('/proj/notes.md');
-  });
-
-  test('extracts path fallback', () => {
-    expect(getFilePath('Write', { path: '/proj/notes.md' })).toBe('/proj/notes.md');
-  });
-
-  test('file_path takes priority over filePath', () => {
-    expect(getFilePath('Write', { file_path: '/a.md', filePath: '/b.md' })).toBe('/a.md');
-  });
-
-  test('filePath takes priority over path', () => {
-    expect(getFilePath('Write', { filePath: '/a.md', path: '/b.md' })).toBe('/a.md');
-  });
-
-  test('returns empty string for empty tool_input', () => {
-    expect(getFilePath('Write', {})).toBe('');
-  });
-
-  test('extracts path from apply_patch command', () => {
-    const command = 'apply_patch\n*** Begin Patch\n*** Update File: src/notes.md\n*** End Patch';
-    expect(getFilePath('apply_patch', { command })).toBe('src/notes.md');
-  });
-
-  test('extracts path from functions.apply_patch command', () => {
-    const command = 'apply_patch\n*** Begin Patch\n*** Add File: docs/new.md\n*** End Patch';
-    expect(getFilePath('functions.apply_patch', { command })).toBe('docs/new.md');
-  });
-
-  test('returns empty for apply_patch with no file header', () => {
-    expect(getFilePath('apply_patch', { command: 'no file here' })).toBe('');
   });
 });
 
