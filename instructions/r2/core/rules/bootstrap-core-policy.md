@@ -34,6 +34,7 @@ baseSchema: docs/schemas/rule.md
 6. Apply `Process Enforcement Rules`.
 7. MUST Always Use `Subagents Orchestration Rules`.
 8. Prep steps must be executed by all agents/subagents themselves.
+9. MUST ALWAYS create and update todo tasks according to all prep steps and loaded workflow to ensure high quality execution.
 
 # Prep Step 2:
 
