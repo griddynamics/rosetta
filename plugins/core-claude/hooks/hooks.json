@@ -15,6 +15,15 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/loose-files.js\""
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/gitnexus-refresh.js\""
+          }
+        ]
       }
     ]
   }

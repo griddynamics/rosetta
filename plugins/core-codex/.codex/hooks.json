@@ -15,6 +15,15 @@
             "command": "node .codex/hooks/loose-files.js"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/gitnexus-refresh.js"
+          }
+        ]
       }
     ]
   }

@@ -12,6 +12,16 @@
             "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\loose-files.js\") { node \"$root\\hooks\\loose-files.js\" }"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/gitnexus-refresh.js\" ]; then node \"$root/hooks/gitnexus-refresh.js\"; break; fi; done",
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\gitnexus-refresh.js\") { node \"$root\\hooks\\gitnexus-refresh.js\" }"
+          }
+        ]
       }
     ]
   }
