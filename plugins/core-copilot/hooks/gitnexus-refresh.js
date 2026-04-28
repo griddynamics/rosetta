@@ -30,6 +30,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/gitnexus-refresh.ts
 var gitnexus_refresh_exports = {};
 __export(gitnexus_refresh_exports, {
+  DEBOUNCE_MS: () => DEBOUNCE_MS,
   main: () => main
 });
 module.exports = __toCommonJS(gitnexus_refresh_exports);
@@ -136,27 +137,45 @@ var log = (cacheDir, message) => {
   } catch {
   }
 };
-var shouldTrigger = (cacheDir, repoRoot) => {
-  const key = Buffer.from(repoRoot).toString("base64").replace(/[/+=]/g, "_");
-  const stampFile = import_path.default.join(cacheDir, `${key}.lastrun`);
-  try {
-    const stat = import_fs.default.statSync(stampFile);
-    if (Date.now() - stat.mtimeMs < DEBOUNCE_MS) return false;
-  } catch {
-  }
-  import_fs.default.writeFileSync(stampFile, String(Date.now()));
-  return true;
+var stampKeyForRepo = (repoRoot) => Buffer.from(repoRoot).toString("base64").replace(/[/+=]/g, "_");
+var writePendingStamp = (cacheDir, repoRoot) => {
+  const key = stampKeyForRepo(repoRoot);
+  const stampFile = import_path.default.join(cacheDir, `${key}.pending`);
+  const token = String(Date.now());
+  import_fs.default.writeFileSync(stampFile, token);
+  return stampFile;
 };
-var spawnAnalyze = (repoRoot, cacheDir) => {
-  let hadEmbeddings = false;
+var getEmbeddingsFlag = (repoRoot) => {
   try {
     const meta = JSON.parse(
       import_fs.default.readFileSync(import_path.default.join(repoRoot, ".gitnexus", "meta.json"), "utf-8")
     );
-    hadEmbeddings = !!(meta.stats && meta.stats.embeddings > 0);
+    return !!(meta.stats && meta.stats.embeddings > 0);
   } catch {
+    return false;
   }
-  const args = hadEmbeddings ? ["gitnexus", "analyze", "--force", "--embeddings"] : ["gitnexus", "analyze", "--force"];
+};
+var spawnDeferredAnalyze = (repoRoot, cacheDir, stampFile) => {
+  const hadEmbeddings = getEmbeddingsFlag(repoRoot);
+  const extraFlags = hadEmbeddings ? " --embeddings" : "";
+  const debounceSeconds = Math.ceil(DEBOUNCE_MS / 1e3);
+  const script = [
+    `sleep ${debounceSeconds}`,
+    `node -e "`,
+    `const fs = require('fs');`,
+    `try {`,
+    `  const stamp = parseInt(fs.readFileSync('${stampFile}', 'utf-8'));`,
+    `  if (Date.now() - stamp < ${DEBOUNCE_MS}) process.exit(0);`,
+    `  require('child_process').execSync(`,
+    `    'npx gitnexus analyze --force${extraFlags}',`,
+    `    { cwd: '${repoRoot.replace(/'/g, "'\\''")}', stdio: ['ignore', 'pipe', 'pipe'] }`,
+    `  );`,
+    `} catch(e) {`,
+    `  fs.appendFileSync('${import_path.default.join(cacheDir, "refresh.log").replace(/'/g, "'\\''")}',`,
+    `    new Date().toISOString() + '  [gitnexus-refresh] deferred error: ' + (e.message||e) + '\\n');`,
+    `}`,
+    `"`
+  ].join(" && ");
   const logFile = import_path.default.join(cacheDir, "refresh.log");
   let out;
   try {
@@ -165,7 +184,7 @@ var spawnAnalyze = (repoRoot, cacheDir) => {
     return;
   }
   try {
-    const child = (0, import_child_process.spawn)("npx", args, {
+    const child = (0, import_child_process.spawn)("sh", ["-c", script], {
       cwd: repoRoot,
       detached: true,
       stdio: ["ignore", out, out]
@@ -192,9 +211,9 @@ var main = async () => {
   const repoRoot = findRepoRoot(cwd);
   if (!repoRoot) return;
   const cacheDir = ensureCacheDir();
-  if (!shouldTrigger(cacheDir, repoRoot)) return;
-  log(cacheDir, `[gitnexus-refresh] triggering analyze (tool=${tool}, cwd=${cwd})`);
-  spawnAnalyze(repoRoot, cacheDir);
+  const stampFile = writePendingStamp(cacheDir, repoRoot);
+  log(cacheDir, `[gitnexus-refresh] pending analyze (tool=${tool}, cwd=${cwd})`);
+  spawnDeferredAnalyze(repoRoot, cacheDir, stampFile);
 };
 if (require.main === module) {
   main().then(
@@ -208,5 +227,6 @@ if (require.main === module) {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  DEBOUNCE_MS,
   main
 });

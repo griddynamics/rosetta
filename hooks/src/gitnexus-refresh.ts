@@ -1,8 +1,10 @@
 // gitnexus-refresh.ts — PostToolUse hook that silently re-indexes GitNexus after file edits.
 //
 // Fires after every Edit / Write / MultiEdit tool call.
-// Spawns `gitnexus analyze` detached in the background with a 5-second
-// debounce so multi-file edit waves coalesce into one re-index.
+// Uses trailing-edge debounce: spawns a deferred process that sleeps for
+// DEBOUNCE_MS, then only runs `gitnexus analyze` if no newer invocation
+// has occurred. This ensures multi-file edit bursts coalesce into a single
+// re-index that fires after the burst ends.
 //
 // Rules:
 //  - No stdout output — the agent must never see this hook.
@@ -10,7 +12,7 @@
 //  - No-ops immediately if .gitnexus/ is not found in the repo tree.
 //  - Opt-in: only active when installed by the user (not auto-loaded).
 //
-// Exports (for testability): main
+// Exports (for testability): main, DEBOUNCE_MS
 
 import fs from 'fs';
 import path from 'path';
@@ -18,7 +20,7 @@ import os from 'os';
 import { spawn } from 'child_process';
 import { readStdin, normalize } from './adapter';
 
-const DEBOUNCE_MS = 5000;
+export const DEBOUNCE_MS = 5000;
 
 const findRepoRoot = (startDir: string): string | null => {
   let dir = startDir;
@@ -46,35 +48,57 @@ const log = (cacheDir: string, message: string): void => {
   }
 };
 
-const shouldTrigger = (cacheDir: string, repoRoot: string): boolean => {
-  const key = Buffer.from(repoRoot).toString('base64').replace(/[/+=]/g, '_');
-  const stampFile = path.join(cacheDir, `${key}.lastrun`);
+const stampKeyForRepo = (repoRoot: string): string =>
+  Buffer.from(repoRoot).toString('base64').replace(/[/+=]/g, '_');
 
-  try {
-    const stat = fs.statSync(stampFile);
-    if (Date.now() - stat.mtimeMs < DEBOUNCE_MS) return false;
-  } catch {
-    // stamp doesn't exist yet — first run
-  }
-
-  fs.writeFileSync(stampFile, String(Date.now()));
-  return true;
+const writePendingStamp = (cacheDir: string, repoRoot: string): string => {
+  const key = stampKeyForRepo(repoRoot);
+  const stampFile = path.join(cacheDir, `${key}.pending`);
+  const token = String(Date.now());
+  fs.writeFileSync(stampFile, token);
+  return stampFile;
 };
 
-const spawnAnalyze = (repoRoot: string, cacheDir: string): void => {
-  let hadEmbeddings = false;
+const getEmbeddingsFlag = (repoRoot: string): boolean => {
   try {
     const meta = JSON.parse(
       fs.readFileSync(path.join(repoRoot, '.gitnexus', 'meta.json'), 'utf-8'),
     );
-    hadEmbeddings = !!(meta.stats && meta.stats.embeddings > 0);
+    return !!(meta.stats && meta.stats.embeddings > 0);
   } catch {
-    // no meta — proceed without embeddings flag
+    return false;
   }
+};
 
-  const args = hadEmbeddings
-    ? ['gitnexus', 'analyze', '--force', '--embeddings']
-    : ['gitnexus', 'analyze', '--force'];
+const spawnDeferredAnalyze = (
+  repoRoot: string,
+  cacheDir: string,
+  stampFile: string,
+): void => {
+  const hadEmbeddings = getEmbeddingsFlag(repoRoot);
+  const extraFlags = hadEmbeddings ? ' --embeddings' : '';
+  const debounceSeconds = Math.ceil(DEBOUNCE_MS / 1000);
+
+  // The deferred script sleeps, then checks if this invocation's stamp is still
+  // the latest. Only if Date.now() - stampValue >= DEBOUNCE_MS (meaning no newer
+  // write reset the timer) does it proceed with analyze.
+  const script = [
+    `sleep ${debounceSeconds}`,
+    `node -e "`,
+    `const fs = require('fs');`,
+    `try {`,
+    `  const stamp = parseInt(fs.readFileSync('${stampFile}', 'utf-8'));`,
+    `  if (Date.now() - stamp < ${DEBOUNCE_MS}) process.exit(0);`,
+    `  require('child_process').execSync(`,
+    `    'npx gitnexus analyze --force${extraFlags}',`,
+    `    { cwd: '${repoRoot.replace(/'/g, "'\\''")}', stdio: ['ignore', 'pipe', 'pipe'] }`,
+    `  );`,
+    `} catch(e) {`,
+    `  fs.appendFileSync('${path.join(cacheDir, 'refresh.log').replace(/'/g, "'\\''")}',`,
+    `    new Date().toISOString() + '  [gitnexus-refresh] deferred error: ' + (e.message||e) + '\\n');`,
+    `}`,
+    `"`,
+  ].join(' && ');
 
   const logFile = path.join(cacheDir, 'refresh.log');
   let out: number;
@@ -85,7 +109,7 @@ const spawnAnalyze = (repoRoot: string, cacheDir: string): void => {
   }
 
   try {
-    const child = spawn('npx', args, {
+    const child = spawn('sh', ['-c', script], {
       cwd: repoRoot,
       detached: true,
       stdio: ['ignore', out, out],
@@ -104,7 +128,6 @@ export const main = async (): Promise<void> => {
     const raw = await readStdin();
     input = normalize(raw);
   } catch {
-    // Unknown IDE, empty stdin, or parse failure — exit silently
     return;
   }
 
@@ -117,10 +140,10 @@ export const main = async (): Promise<void> => {
   if (!repoRoot) return;
 
   const cacheDir = ensureCacheDir();
-  if (!shouldTrigger(cacheDir, repoRoot)) return;
+  const stampFile = writePendingStamp(cacheDir, repoRoot);
 
-  log(cacheDir, `[gitnexus-refresh] triggering analyze (tool=${tool}, cwd=${cwd})`);
-  spawnAnalyze(repoRoot, cacheDir);
+  log(cacheDir, `[gitnexus-refresh] pending analyze (tool=${tool}, cwd=${cwd})`);
+  spawnDeferredAnalyze(repoRoot, cacheDir, stampFile);
 };
 
 if (require.main === module) {

@@ -15,7 +15,7 @@ vi.mock('../src/adapter', async (importOriginal) => {
 vi.mock('child_process', () => ({ spawn: mockSpawn }));
 
 import { readStdin } from '../src/adapter';
-import { main } from '../src/gitnexus-refresh';
+import { main, DEBOUNCE_MS } from '../src/gitnexus-refresh';
 
 import ccWrite from './fixtures/claude-code-post-tool-use-write.json';
 import ccEdit  from './fixtures/claude-code-post-tool-use-edit.json';
@@ -34,6 +34,11 @@ const makeInput = (overrides: Record<string, unknown> = {}) => ({
 const mockRead = (raw: Record<string, unknown>) =>
   (readStdin as ReturnType<typeof vi.fn>).mockResolvedValue(raw);
 
+const getSpawnedScript = (): string => {
+  const [, args] = mockSpawn.mock.calls[0] as [string, string[]];
+  return args[1]; // sh -c "<script>"
+};
+
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
@@ -46,11 +51,6 @@ beforeEach(() => {
   vi.spyOn(fs, 'writeFileSync').mockReturnValue(undefined);
   vi.spyOn(fs, 'openSync').mockReturnValue(42 as ReturnType<typeof fs.openSync>);
   vi.spyOn(fs, 'closeSync').mockReturnValue(undefined);
-
-  // No stamp file → shouldTrigger returns true (first run)
-  vi.spyOn(fs, 'statSync').mockImplementation(() => {
-    throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
-  });
 
   // .gitnexus/ exists only at REPO_ROOT by default
   vi.spyOn(fs, 'existsSync').mockImplementation(
@@ -136,7 +136,6 @@ describe('main() — repo root detection', () => {
   });
 
   test('.gitnexus in cwd → spawn triggered', async () => {
-    // existsSync already returns true for REPO_ROOT/.gitnexus (default)
     await main();
     expect(mockSpawn).toHaveBeenCalledOnce();
   });
@@ -168,74 +167,92 @@ describe('main() — repo root detection', () => {
 });
 
 // ---------------------------------------------------------------------------
-describe('main() — debounce gate', () => {
+describe('main() — trailing-edge debounce', () => {
 
-  test('no stamp file (first run) → spawn triggered', async () => {
-    // Default: statSync throws → first run
-    await main();
-    expect(mockSpawn).toHaveBeenCalledOnce();
-  });
-
-  test('stamp mtime within 5 s → spawn suppressed', async () => {
-    vi.spyOn(fs, 'statSync').mockReturnValue({ mtimeMs: Date.now() - 100 } as fs.Stats);
-    await main();
-    expect(mockSpawn).not.toHaveBeenCalled();
-  });
-
-  test('stamp mtime older than 5 s → spawn triggered', async () => {
-    vi.spyOn(fs, 'statSync').mockReturnValue({ mtimeMs: Date.now() - 6000 } as fs.Stats);
-    await main();
-    expect(mockSpawn).toHaveBeenCalledOnce();
-  });
-
-  test('stamp file is written when hook fires', async () => {
+  test('every invocation writes a pending stamp file', async () => {
     const wfSpy = vi.spyOn(fs, 'writeFileSync');
     await main();
-    expect(wfSpy).toHaveBeenCalled();
+    const pendingWrite = wfSpy.mock.calls.find(
+      ([p]) => String(p).includes('.pending'),
+    );
+    expect(pendingWrite).toBeDefined();
+  });
+
+  test('every invocation spawns a deferred sleeper (no local suppression)', async () => {
+    await main();
+    expect(mockSpawn).toHaveBeenCalledOnce();
+    // Second call also spawns — debounce is in the spawned process
+    await main();
+    expect(mockSpawn).toHaveBeenCalledTimes(2);
+  });
+
+  test('spawned script sleeps for DEBOUNCE_MS before running analyze', async () => {
+    await main();
+    const script = getSpawnedScript();
+    const expectedSleep = Math.ceil(DEBOUNCE_MS / 1000);
+    expect(script).toContain(`sleep ${expectedSleep}`);
+  });
+
+  test('spawned script checks stamp age before executing analyze', async () => {
+    await main();
+    const script = getSpawnedScript();
+    expect(script).toContain(`Date.now() - stamp < ${DEBOUNCE_MS}`);
+  });
+
+  test('spawned script reads the pending stamp file', async () => {
+    await main();
+    const script = getSpawnedScript();
+    expect(script).toContain('.pending');
+    expect(script).toContain('readFileSync');
   });
 
 });
 
 // ---------------------------------------------------------------------------
-describe('main() — analyze spawn arguments', () => {
+describe('main() — analyze command in deferred script', () => {
 
-  test('no meta.json → args are [gitnexus, analyze, --force] without --embeddings', async () => {
+  test('no meta.json → script contains analyze --force without --embeddings', async () => {
     await main();
-    const [cmd, args] = mockSpawn.mock.calls[0] as [string, string[]];
-    expect(cmd).toBe('npx');
-    expect(args).toEqual(['gitnexus', 'analyze', '--force']);
-    expect(args).not.toContain('--embeddings');
+    const script = getSpawnedScript();
+    expect(script).toContain('npx gitnexus analyze --force');
+    expect(script).not.toContain('--embeddings');
   });
 
-  test('meta.json with embeddings=0 → no --embeddings flag', async () => {
+  test('meta.json with embeddings=0 → no --embeddings in script', async () => {
     vi.spyOn(fs, 'readFileSync').mockImplementation((p) => {
       if (String(p).includes('meta.json')) return JSON.stringify({ stats: { embeddings: 0 } });
       throw new Error('ENOENT');
     });
     await main();
-    const args = mockSpawn.mock.calls[0][1] as string[];
-    expect(args).not.toContain('--embeddings');
+    const script = getSpawnedScript();
+    expect(script).not.toContain('--embeddings');
   });
 
-  test('meta.json with embeddings>0 → --embeddings flag appended', async () => {
+  test('meta.json with embeddings>0 → --embeddings included in script', async () => {
     vi.spyOn(fs, 'readFileSync').mockImplementation((p) => {
       if (String(p).includes('meta.json')) return JSON.stringify({ stats: { embeddings: 42 } });
       throw new Error('ENOENT');
     });
     await main();
-    const args = mockSpawn.mock.calls[0][1] as string[];
-    expect(args).toContain('--embeddings');
-    expect(args).toEqual(['gitnexus', 'analyze', '--force', '--embeddings']);
+    const script = getSpawnedScript();
+    expect(script).toContain('--embeddings');
   });
 
-  test('malformed meta.json → no --embeddings flag (graceful fallback)', async () => {
+  test('malformed meta.json → no --embeddings in script (graceful fallback)', async () => {
     vi.spyOn(fs, 'readFileSync').mockImplementation((p) => {
       if (String(p).includes('meta.json')) return 'NOT_JSON{{{';
       throw new Error('ENOENT');
     });
     await main();
-    const args = mockSpawn.mock.calls[0][1] as string[];
-    expect(args).not.toContain('--embeddings');
+    const script = getSpawnedScript();
+    expect(script).not.toContain('--embeddings');
+  });
+
+  test('spawn is invoked as sh -c', async () => {
+    await main();
+    const [cmd, args] = mockSpawn.mock.calls[0] as [string, string[]];
+    expect(cmd).toBe('sh');
+    expect(args[0]).toBe('-c');
   });
 
   test('spawn is called with detached: true', async () => {

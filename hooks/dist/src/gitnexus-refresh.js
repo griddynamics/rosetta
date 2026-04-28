@@ -2,8 +2,10 @@
 // gitnexus-refresh.ts — PostToolUse hook that silently re-indexes GitNexus after file edits.
 //
 // Fires after every Edit / Write / MultiEdit tool call.
-// Spawns `gitnexus analyze` detached in the background with a 5-second
-// debounce so multi-file edit waves coalesce into one re-index.
+// Uses trailing-edge debounce: spawns a deferred process that sleeps for
+// DEBOUNCE_MS, then only runs `gitnexus analyze` if no newer invocation
+// has occurred. This ensures multi-file edit bursts coalesce into a single
+// re-index that fires after the burst ends.
 //
 // Rules:
 //  - No stdout output — the agent must never see this hook.
@@ -11,18 +13,18 @@
 //  - No-ops immediately if .gitnexus/ is not found in the repo tree.
 //  - Opt-in: only active when installed by the user (not auto-loaded).
 //
-// Exports (for testability): main
+// Exports (for testability): main, DEBOUNCE_MS
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.main = void 0;
+exports.main = exports.DEBOUNCE_MS = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const os_1 = __importDefault(require("os"));
 const child_process_1 = require("child_process");
 const adapter_1 = require("./adapter");
-const DEBOUNCE_MS = 5000;
+exports.DEBOUNCE_MS = 5000;
 const findRepoRoot = (startDir) => {
     let dir = startDir;
     for (let i = 0; i < 10; i++) {
@@ -49,32 +51,47 @@ const log = (cacheDir, message) => {
         // logging must never crash the hook
     }
 };
-const shouldTrigger = (cacheDir, repoRoot) => {
-    const key = Buffer.from(repoRoot).toString('base64').replace(/[/+=]/g, '_');
-    const stampFile = path_1.default.join(cacheDir, `${key}.lastrun`);
-    try {
-        const stat = fs_1.default.statSync(stampFile);
-        if (Date.now() - stat.mtimeMs < DEBOUNCE_MS)
-            return false;
-    }
-    catch {
-        // stamp doesn't exist yet — first run
-    }
-    fs_1.default.writeFileSync(stampFile, String(Date.now()));
-    return true;
+const stampKeyForRepo = (repoRoot) => Buffer.from(repoRoot).toString('base64').replace(/[/+=]/g, '_');
+const writePendingStamp = (cacheDir, repoRoot) => {
+    const key = stampKeyForRepo(repoRoot);
+    const stampFile = path_1.default.join(cacheDir, `${key}.pending`);
+    const token = String(Date.now());
+    fs_1.default.writeFileSync(stampFile, token);
+    return stampFile;
 };
-const spawnAnalyze = (repoRoot, cacheDir) => {
-    let hadEmbeddings = false;
+const getEmbeddingsFlag = (repoRoot) => {
     try {
         const meta = JSON.parse(fs_1.default.readFileSync(path_1.default.join(repoRoot, '.gitnexus', 'meta.json'), 'utf-8'));
-        hadEmbeddings = !!(meta.stats && meta.stats.embeddings > 0);
+        return !!(meta.stats && meta.stats.embeddings > 0);
     }
     catch {
-        // no meta — proceed without embeddings flag
+        return false;
     }
-    const args = hadEmbeddings
-        ? ['gitnexus', 'analyze', '--force', '--embeddings']
-        : ['gitnexus', 'analyze', '--force'];
+};
+const spawnDeferredAnalyze = (repoRoot, cacheDir, stampFile) => {
+    const hadEmbeddings = getEmbeddingsFlag(repoRoot);
+    const extraFlags = hadEmbeddings ? ' --embeddings' : '';
+    const debounceSeconds = Math.ceil(exports.DEBOUNCE_MS / 1000);
+    // The deferred script sleeps, then checks if this invocation's stamp is still
+    // the latest. Only if Date.now() - stampValue >= DEBOUNCE_MS (meaning no newer
+    // write reset the timer) does it proceed with analyze.
+    const script = [
+        `sleep ${debounceSeconds}`,
+        `node -e "`,
+        `const fs = require('fs');`,
+        `try {`,
+        `  const stamp = parseInt(fs.readFileSync('${stampFile}', 'utf-8'));`,
+        `  if (Date.now() - stamp < ${exports.DEBOUNCE_MS}) process.exit(0);`,
+        `  require('child_process').execSync(`,
+        `    'npx gitnexus analyze --force${extraFlags}',`,
+        `    { cwd: '${repoRoot.replace(/'/g, "'\\''")}', stdio: ['ignore', 'pipe', 'pipe'] }`,
+        `  );`,
+        `} catch(e) {`,
+        `  fs.appendFileSync('${path_1.default.join(cacheDir, 'refresh.log').replace(/'/g, "'\\''")}',`,
+        `    new Date().toISOString() + '  [gitnexus-refresh] deferred error: ' + (e.message||e) + '\\n');`,
+        `}`,
+        `"`,
+    ].join(' && ');
     const logFile = path_1.default.join(cacheDir, 'refresh.log');
     let out;
     try {
@@ -84,7 +101,7 @@ const spawnAnalyze = (repoRoot, cacheDir) => {
         return;
     }
     try {
-        const child = (0, child_process_1.spawn)('npx', args, {
+        const child = (0, child_process_1.spawn)('sh', ['-c', script], {
             cwd: repoRoot,
             detached: true,
             stdio: ['ignore', out, out],
@@ -105,7 +122,6 @@ const main = async () => {
         input = (0, adapter_1.normalize)(raw);
     }
     catch {
-        // Unknown IDE, empty stdin, or parse failure — exit silently
         return;
     }
     if (input.hook_event_name !== 'PostToolUse')
@@ -118,10 +134,9 @@ const main = async () => {
     if (!repoRoot)
         return;
     const cacheDir = ensureCacheDir();
-    if (!shouldTrigger(cacheDir, repoRoot))
-        return;
-    log(cacheDir, `[gitnexus-refresh] triggering analyze (tool=${tool}, cwd=${cwd})`);
-    spawnAnalyze(repoRoot, cacheDir);
+    const stampFile = writePendingStamp(cacheDir, repoRoot);
+    log(cacheDir, `[gitnexus-refresh] pending analyze (tool=${tool}, cwd=${cwd})`);
+    spawnDeferredAnalyze(repoRoot, cacheDir, stampFile);
 };
 exports.main = main;
 if (require.main === module) {
