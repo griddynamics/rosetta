@@ -19,6 +19,5 @@
     "coding",
     "knowledge-base"
   ],
-  "commands": "./workflows/",
-  "hooks": "./hooks/hooks.json"
+  "commands": "./workflows/"
 }
