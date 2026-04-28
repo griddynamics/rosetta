@@ -4,6 +4,7 @@ import { test, describe, expect } from 'vitest';
 import { Readable, Writable } from 'stream';
 
 import ccWrite from './fixtures/claude-code-post-tool-use-write.json';
+import ccBash from './fixtures/claude-code-pre-tool-use-bash.json';
 import cursorWrite from './fixtures/cursor-post-tool-use-write.json';
 
 import {
@@ -11,10 +12,13 @@ import {
   isInTempDir,
   matchesAllowedPattern,
   shouldAdvisory,
+  shouldCheck,
+  getFilePath,
   buildAdvisoryOutput,
   main,
   ADVISORY_MESSAGE,
 } from '../src/md-file-advisory';
+import { normalize } from '../src/adapter';
 
 // ---------------------------------------------------------------------------
 // Helper: run main() with an in-memory payload; returns stdout string.
@@ -48,6 +52,96 @@ const EXPECTED_CLAUDE = JSON.stringify({
 // ===========================================================================
 // Unit tests — pure functions
 // ===========================================================================
+
+describe('shouldCheck — event + tool filter', () => {
+  test('PostToolUse + Write → true', () => {
+    expect(shouldCheck(normalize(ccWrite))).toBe(true);
+  });
+
+  test('PostToolUse + Edit → true', () => {
+    expect(shouldCheck(normalize({ ...ccWrite, tool_name: 'Edit' }))).toBe(true);
+  });
+
+  test('PostToolUse + apply_patch → true', () => {
+    expect(shouldCheck(normalize({ ...ccWrite, tool_name: 'apply_patch' }))).toBe(true);
+  });
+
+  test('PostToolUse + functions.apply_patch → true', () => {
+    expect(shouldCheck(normalize({ ...ccWrite, tool_name: 'functions.apply_patch' }))).toBe(true);
+  });
+
+  test('PostToolUse + create_file → true', () => {
+    expect(shouldCheck(normalize({ ...ccWrite, tool_name: 'create_file' }))).toBe(true);
+  });
+
+  test('PostToolUse + replace_string_in_file → true', () => {
+    expect(shouldCheck(normalize({ ...ccWrite, tool_name: 'replace_string_in_file' }))).toBe(true);
+  });
+
+  test('PostToolUse + multi_replace_string_in_file → true', () => {
+    expect(shouldCheck(normalize({ ...ccWrite, tool_name: 'multi_replace_string_in_file' }))).toBe(true);
+  });
+
+  test('PostToolUse + Read → false', () => {
+    expect(shouldCheck(normalize({ ...ccWrite, tool_name: 'Read' }))).toBe(false);
+  });
+
+  test('PostToolUse + Bash → false', () => {
+    expect(shouldCheck(normalize({ ...ccWrite, tool_name: 'Bash' }))).toBe(false);
+  });
+
+  test('PostToolUse + Search → false', () => {
+    expect(shouldCheck(normalize({ ...ccWrite, tool_name: 'Search' }))).toBe(false);
+  });
+
+  test('PreToolUse + Write → false (wrong event)', () => {
+    expect(shouldCheck(normalize({ ...ccWrite, hook_event_name: 'PreToolUse' }))).toBe(false);
+  });
+
+  test('PreToolUse + Bash → false (wrong event + wrong tool)', () => {
+    expect(shouldCheck(normalize(ccBash))).toBe(false);
+  });
+});
+
+describe('getFilePath', () => {
+  test('extracts file_path (snake_case)', () => {
+    expect(getFilePath('Write', { file_path: '/proj/notes.md' })).toBe('/proj/notes.md');
+  });
+
+  test('extracts filePath (camelCase, Copilot standard)', () => {
+    expect(getFilePath('Write', { filePath: '/proj/notes.md' })).toBe('/proj/notes.md');
+  });
+
+  test('extracts path fallback', () => {
+    expect(getFilePath('Write', { path: '/proj/notes.md' })).toBe('/proj/notes.md');
+  });
+
+  test('file_path takes priority over filePath', () => {
+    expect(getFilePath('Write', { file_path: '/a.md', filePath: '/b.md' })).toBe('/a.md');
+  });
+
+  test('filePath takes priority over path', () => {
+    expect(getFilePath('Write', { filePath: '/a.md', path: '/b.md' })).toBe('/a.md');
+  });
+
+  test('returns empty string for empty tool_input', () => {
+    expect(getFilePath('Write', {})).toBe('');
+  });
+
+  test('extracts path from apply_patch command', () => {
+    const command = 'apply_patch\n*** Begin Patch\n*** Update File: src/notes.md\n*** End Patch';
+    expect(getFilePath('apply_patch', { command })).toBe('src/notes.md');
+  });
+
+  test('extracts path from functions.apply_patch command', () => {
+    const command = 'apply_patch\n*** Begin Patch\n*** Add File: docs/new.md\n*** End Patch';
+    expect(getFilePath('functions.apply_patch', { command })).toBe('docs/new.md');
+  });
+
+  test('returns empty for apply_patch with no file header', () => {
+    expect(getFilePath('apply_patch', { command: 'no file here' })).toBe('');
+  });
+});
 
 describe('isMarkdown', () => {
   test('detects .md extension', () => expect(isMarkdown('file.md')).toBe(true));
@@ -176,6 +270,38 @@ describe('main() — Claude Code format (integration)', () => {
   test('silent for non-.md file', async () => {
     const payload = { ...ccWrite, tool_input: { file_path: 'src/index.js' } };
     expect(await runHook(payload)).toBe('');
+  });
+});
+
+describe('main() — tool filter (integration)', () => {
+  test('silent for Read tool with non-standard .md path', async () => {
+    const payload = { ...ccWrite, tool_name: 'Read', tool_input: { file_path: 'src/notes.md' } };
+    expect(await runHook(payload)).toBe('');
+  });
+
+  test('silent for Bash tool with .md in command', async () => {
+    const payload = { ...ccWrite, tool_name: 'Bash', tool_input: { command: 'cat src/notes.md' } };
+    expect(await runHook(payload)).toBe('');
+  });
+
+  test('silent for Search tool referencing .md file', async () => {
+    const payload = { ...ccWrite, tool_name: 'Search', tool_input: { query: 'notes.md' } };
+    expect(await runHook(payload)).toBe('');
+  });
+
+  test('silent for PreToolUse event even with Write tool', async () => {
+    const payload = { ...ccWrite, hook_event_name: 'PreToolUse', tool_input: { file_path: 'src/notes.md' } };
+    expect(await runHook(payload)).toBe('');
+  });
+
+  test('emits advisory for Edit tool with non-standard .md', async () => {
+    const payload = { ...ccWrite, tool_name: 'Edit', tool_input: { file_path: 'src/notes.md' } };
+    expect(await runHook(payload)).toBe(EXPECTED_CLAUDE);
+  });
+
+  test('emits advisory for create_file tool with non-standard .md', async () => {
+    const payload = { ...ccWrite, tool_name: 'create_file', tool_input: { file_path: 'src/notes.md', content: '# Notes' } };
+    expect(await runHook(payload)).toBe(EXPECTED_CLAUDE);
   });
 });
 

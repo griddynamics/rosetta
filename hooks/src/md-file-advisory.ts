@@ -1,16 +1,16 @@
-// md-file-advisory.ts — PreToolUse/PostToolUse hook that advises AI when a .md file
+// md-file-advisory.ts — PostToolUse hook that advises AI when a .md file
 // is created outside standard Rosetta documentation locations.
 //
 // Standard locations: docs/, agents/, plans/, refsrc/, README.md, CHANGELOG.md
 // Temp dirs (agent-temp/, agents/TEMP/, .tmp/, tmp/) are silently skipped.
 //
-// Exports (for testability): shouldAdvisory, isMarkdown, isInTempDir,
-// matchesAllowedPattern, buildAdvisoryOutput, ADVISORY_MESSAGE
+// Exports (for testability): shouldCheck, shouldAdvisory, isMarkdown, isInTempDir,
+// matchesAllowedPattern, buildAdvisoryOutput, ADVISORY_MESSAGE, getFilePath
 
 import path from 'path';
 import { readStdin, normalize, formatOutput, detectIDE } from './adapter';
 import { debugLog } from './debug-log';
-import type { CanonicalOutput } from './types';
+import type { CanonicalOutput, NormalizedInput } from './types';
 
 export const ADVISORY_MESSAGE =
   '[Rosetta Advisory] This Markdown file is outside standard Rosetta documentation locations ' +
@@ -19,6 +19,38 @@ export const ADVISORY_MESSAGE =
 
 const ALLOWED_PREFIXES = ['docs/', 'agents/', 'plans/', 'refsrc/'];
 const ALLOWED_BASENAMES = ['README.md', 'CHANGELOG.md'];
+
+const ALLOWED_TOOLS = new Set([
+  'Write', 'Edit', 'apply_patch', 'functions.apply_patch',
+  'create_file', 'replace_string_in_file', 'multi_replace_string_in_file',
+]);
+
+const PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
+
+// ---------------------------------------------------------------------------
+
+export const getFilePath = (
+  toolName: string | null | undefined,
+  toolInput: Record<string, unknown>,
+): string => {
+  if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
+    const command = (toolInput.command as string) ?? '';
+    return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? '';
+  }
+  return (toolInput.file_path as string) ?? (toolInput.filePath as string) ?? (toolInput.path as string) ?? '';
+};
+
+export const shouldCheck = (normalizedInput: NormalizedInput): boolean => {
+  if (normalizedInput.hook_event_name !== 'PostToolUse') {
+    debugLog('skip: not PostToolUse', { hook_event_name: normalizedInput.hook_event_name });
+    return false;
+  }
+  if (!ALLOWED_TOOLS.has(normalizedInput.tool_name as string)) {
+    debugLog('skip: tool not in ALLOWED_TOOLS', { tool_name: normalizedInput.tool_name });
+    return false;
+  }
+  return true;
+};
 
 // ---------------------------------------------------------------------------
 
@@ -79,14 +111,14 @@ export const main = async ({
     const raw = await readStdin(stdin);
     const ide = detectIDE(raw);
     const normalized = normalize(raw);
-    const filePath =
-      (normalized.tool_input?.file_path as string) ||
-      (normalized.tool_input?.path as string) ||
-      '';
-    debugLog('md-file-advisory input', { ide, filePath });
+    debugLog('md-file-advisory input', { ide, tool_name: normalized.tool_name, hook_event_name: normalized.hook_event_name });
+    if (!shouldCheck(normalized)) {
+      debugLog('skipped (shouldCheck=false)');
+      return;
+    }
+    const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
     if (shouldAdvisory(filePath)) {
-      const hookEventName = (normalized.hook_event_name as string) || 'PreToolUse';
-      const canonical = buildAdvisoryOutput(hookEventName);
+      const canonical = buildAdvisoryOutput(normalized.hook_event_name);
       const output = formatOutput(canonical, ide);
       debugLog('md-file-advisory advisory emitted', { filePath });
       stdout.write(JSON.stringify(output));

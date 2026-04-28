@@ -32,11 +32,13 @@ var md_file_advisory_exports = {};
 __export(md_file_advisory_exports, {
   ADVISORY_MESSAGE: () => ADVISORY_MESSAGE,
   buildAdvisoryOutput: () => buildAdvisoryOutput,
+  getFilePath: () => getFilePath,
   isInTempDir: () => isInTempDir,
   isMarkdown: () => isMarkdown,
   main: () => main,
   matchesAllowedPattern: () => matchesAllowedPattern,
-  shouldAdvisory: () => shouldAdvisory
+  shouldAdvisory: () => shouldAdvisory,
+  shouldCheck: () => shouldCheck
 });
 module.exports = __toCommonJS(md_file_advisory_exports);
 var import_path2 = __toESM(require("path"));
@@ -123,6 +125,34 @@ var debugLog = (message, context) => {
 var ADVISORY_MESSAGE = "[Rosetta Advisory] This Markdown file is outside standard Rosetta documentation locations (docs/, agents/, plans/, refsrc/, README.md, CHANGELOG.md). Think whether this file is truly needed or whether you should update an existing file instead.";
 var ALLOWED_PREFIXES = ["docs/", "agents/", "plans/", "refsrc/"];
 var ALLOWED_BASENAMES = ["README.md", "CHANGELOG.md"];
+var ALLOWED_TOOLS = /* @__PURE__ */ new Set([
+  "Write",
+  "Edit",
+  "apply_patch",
+  "functions.apply_patch",
+  "create_file",
+  "replace_string_in_file",
+  "multi_replace_string_in_file"
+]);
+var PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
+var getFilePath = (toolName, toolInput) => {
+  if (toolName === "apply_patch" || toolName === "functions.apply_patch") {
+    const command = toolInput.command ?? "";
+    return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? "";
+  }
+  return toolInput.file_path ?? toolInput.filePath ?? toolInput.path ?? "";
+};
+var shouldCheck = (normalizedInput) => {
+  if (normalizedInput.hook_event_name !== "PostToolUse") {
+    debugLog("skip: not PostToolUse", { hook_event_name: normalizedInput.hook_event_name });
+    return false;
+  }
+  if (!ALLOWED_TOOLS.has(normalizedInput.tool_name)) {
+    debugLog("skip: tool not in ALLOWED_TOOLS", { tool_name: normalizedInput.tool_name });
+    return false;
+  }
+  return true;
+};
 var isMarkdown = (filePath) => filePath.toLowerCase().endsWith(".md");
 var isInTempDir = (normalizedPath) => {
   const segments = normalizedPath.toLowerCase().split("/");
@@ -167,11 +197,14 @@ var main = async ({
     const raw = await readStdin(stdin);
     const ide = detectIDE(raw);
     const normalized = normalize2(raw);
-    const filePath = normalized.tool_input?.file_path || normalized.tool_input?.path || "";
-    debugLog("md-file-advisory input", { ide, filePath });
+    debugLog("md-file-advisory input", { ide, tool_name: normalized.tool_name, hook_event_name: normalized.hook_event_name });
+    if (!shouldCheck(normalized)) {
+      debugLog("skipped (shouldCheck=false)");
+      return;
+    }
+    const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
     if (shouldAdvisory(filePath)) {
-      const hookEventName = normalized.hook_event_name || "PreToolUse";
-      const canonical = buildAdvisoryOutput(hookEventName);
+      const canonical = buildAdvisoryOutput(normalized.hook_event_name);
       const output = formatOutput2(canonical, ide);
       debugLog("md-file-advisory advisory emitted", { filePath });
       stdout.write(JSON.stringify(output));
@@ -193,9 +226,11 @@ if (require.main === module) {
 0 && (module.exports = {
   ADVISORY_MESSAGE,
   buildAdvisoryOutput,
+  getFilePath,
   isInTempDir,
   isMarkdown,
   main,
   matchesAllowedPattern,
-  shouldAdvisory
+  shouldAdvisory,
+  shouldCheck
 });
