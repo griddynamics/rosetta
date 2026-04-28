@@ -129,23 +129,21 @@ var spawnDeferredAnalyze = (repoRoot, cacheDir, stampFile) => {
   const hadEmbeddings = getEmbeddingsFlag(repoRoot);
   const extraFlags = hadEmbeddings ? " --embeddings" : "";
   const debounceSeconds = Math.ceil(DEBOUNCE_MS / 1e3);
-  const script = [
-    `sleep ${debounceSeconds}`,
-    `node -e "`,
+  const nodeScript = [
     `const fs = require('fs');`,
     `try {`,
     `  const stamp = parseInt(fs.readFileSync('${stampFile}', 'utf-8'));`,
     `  if (Date.now() - stamp < ${DEBOUNCE_MS}) process.exit(0);`,
     `  require('child_process').execSync(`,
     `    'npx gitnexus analyze --force${extraFlags}',`,
-    `    { cwd: '${repoRoot.replace(/'/g, "'\\''")}', stdio: ['ignore', 'pipe', 'pipe'] }`,
+    `    { cwd: '${repoRoot.replace(/'/g, "'\\''")}', stdio: 'inherit' }`,
     `  );`,
     `} catch(e) {`,
     `  fs.appendFileSync('${import_path.default.join(cacheDir, "refresh.log").replace(/'/g, "'\\''")}',`,
     `    new Date().toISOString() + '  [gitnexus-refresh] deferred error: ' + (e.message||e) + '\\n');`,
-    `}`,
-    `"`
-  ].join(" && ");
+    `}`
+  ].join(" ");
+  const script = `sleep ${debounceSeconds} && node -e "${nodeScript}"`;
   const logFile = import_path.default.join(cacheDir, "refresh.log");
   let out;
   try {

@@ -82,23 +82,21 @@ const spawnDeferredAnalyze = (
   // The deferred script sleeps, then checks if this invocation's stamp is still
   // the latest. Only if Date.now() - stampValue >= DEBOUNCE_MS (meaning no newer
   // write reset the timer) does it proceed with analyze.
-  const script = [
-    `sleep ${debounceSeconds}`,
-    `node -e "`,
+  const nodeScript = [
     `const fs = require('fs');`,
     `try {`,
     `  const stamp = parseInt(fs.readFileSync('${stampFile}', 'utf-8'));`,
     `  if (Date.now() - stamp < ${DEBOUNCE_MS}) process.exit(0);`,
     `  require('child_process').execSync(`,
     `    'npx gitnexus analyze --force${extraFlags}',`,
-    `    { cwd: '${repoRoot.replace(/'/g, "'\\''")}', stdio: ['ignore', 'pipe', 'pipe'] }`,
+    `    { cwd: '${repoRoot.replace(/'/g, "'\\''")}', stdio: 'inherit' }`,
     `  );`,
     `} catch(e) {`,
     `  fs.appendFileSync('${path.join(cacheDir, 'refresh.log').replace(/'/g, "'\\''")}',`,
     `    new Date().toISOString() + '  [gitnexus-refresh] deferred error: ' + (e.message||e) + '\\n');`,
     `}`,
-    `"`,
-  ].join(' && ');
+  ].join(' ');
+  const script = `sleep ${debounceSeconds} && node -e "${nodeScript}"`;
 
   const logFile = path.join(cacheDir, 'refresh.log');
   let out: number;
