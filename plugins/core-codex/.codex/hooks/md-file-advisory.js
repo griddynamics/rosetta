@@ -1,0 +1,183 @@
+"use strict";
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/md-file-advisory.ts
+var md_file_advisory_exports = {};
+__export(md_file_advisory_exports, {
+  ADVISORY_MESSAGE: () => ADVISORY_MESSAGE,
+  buildAdvisoryOutput: () => buildAdvisoryOutput,
+  isInTempDir: () => isInTempDir,
+  isMarkdown: () => isMarkdown,
+  main: () => main,
+  matchesAllowedPattern: () => matchesAllowedPattern,
+  shouldAdvisory: () => shouldAdvisory
+});
+module.exports = __toCommonJS(md_file_advisory_exports);
+var import_path2 = __toESM(require("path"));
+
+// src/adapters/codex.ts
+var CC_SIGNATURE = ["hook_event_name", "tool_input", "session_id"];
+var CODEX_EXTRA = ["model", "turn_id"];
+var detect = (raw) => CC_SIGNATURE.every((f) => f in raw) && CODEX_EXTRA.every((f) => f in raw);
+var normalize = (raw) => raw;
+var formatOutput = (canonical) => canonical ?? {};
+var codex = { name: "codex", detect, normalize, formatOutput };
+
+// src/entrypoints/adapter-codex.ts
+var readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
+  const chunks = [];
+  stream.on("data", (chunk) => chunks.push(String(chunk)));
+  stream.on("end", () => {
+    const raw = chunks.join("").trim();
+    if (!raw) return reject(new Error("Invalid input: empty stdin"));
+    try {
+      resolve(JSON.parse(raw));
+    } catch (err) {
+      reject(new Error(`JSON parse error: ${err.message}`));
+    }
+  });
+  stream.on("error", reject);
+});
+var normalize2 = (rawInput) => codex.normalize(rawInput);
+var formatOutput2 = (canonical, _ide) => codex.formatOutput(canonical);
+var detectIDE = (_raw) => "codex";
+
+// src/debug-log.ts
+var import_fs = require("fs");
+var import_path = __toESM(require("path"));
+var import_os = __toESM(require("os"));
+var LOG_DIR = import_path.default.join(import_os.default.homedir(), ".rosetta");
+var LOG_PATH = import_path.default.join(LOG_DIR, "hooks-debug.log");
+var LOG_MAX_BYTES = 10 * 1024 * 1024;
+var ENABLED = process.env.ROSETTA_DEBUG === "1";
+var ensureDir = () => {
+  try {
+    (0, import_fs.mkdirSync)(LOG_DIR, { recursive: true });
+  } catch {
+  }
+};
+var rotatIfNeeded = () => {
+  try {
+    if ((0, import_fs.statSync)(LOG_PATH).size >= LOG_MAX_BYTES) {
+      (0, import_fs.renameSync)(LOG_PATH, `${LOG_PATH.replace(/\.log$/, "")}.1.log`);
+    }
+  } catch {
+  }
+};
+var debugLog = (message, context) => {
+  if (!ENABLED) return;
+  ensureDir();
+  rotatIfNeeded();
+  const entry = JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), msg: message, ...context ?? {} }) + "\n";
+  try {
+    (0, import_fs.appendFileSync)(LOG_PATH, entry);
+  } catch {
+  }
+};
+
+// src/md-file-advisory.ts
+var ADVISORY_MESSAGE = "[Rosetta Advisory] This Markdown file is outside standard Rosetta documentation locations (docs/, agents/, plans/, refsrc/, README.md, CHANGELOG.md). Think whether this file is truly needed or whether you should update an existing file instead.";
+var ALLOWED_PREFIXES = ["docs/", "agents/", "plans/", "refsrc/"];
+var ALLOWED_BASENAMES = ["README.md", "CHANGELOG.md"];
+var isMarkdown = (filePath) => filePath.toLowerCase().endsWith(".md");
+var isInTempDir = (normalizedPath) => {
+  const segments = normalizedPath.toLowerCase().split("/");
+  return segments.some((seg) => {
+    const parts = seg.split(/[-_.]/);
+    return parts.some((p) => p === "temp" || p === "tmp");
+  });
+};
+var matchesAllowedPattern = (normalizedPath) => {
+  for (const prefix of ALLOWED_PREFIXES) {
+    if (normalizedPath.startsWith(prefix)) return true;
+  }
+  const basename = import_path2.default.basename(normalizedPath);
+  return ALLOWED_BASENAMES.includes(basename);
+};
+var toRelative = (filePath) => {
+  let p = filePath.replace(/\\/g, "/");
+  if (p.startsWith("/")) p = p.slice(1);
+  if (p.startsWith("./")) p = p.slice(2);
+  return p;
+};
+var shouldAdvisory = (filePath) => {
+  if (!filePath) return false;
+  const rel = toRelative(filePath);
+  if (!isMarkdown(rel)) return false;
+  if (isInTempDir(rel)) return false;
+  if (matchesAllowedPattern(rel)) return false;
+  return true;
+};
+var buildAdvisoryOutput = (hookEventName) => ({
+  hookSpecificOutput: {
+    hookEventName,
+    permissionDecision: "allow",
+    additionalContext: ADVISORY_MESSAGE
+  }
+});
+var main = async ({
+  stdin = process.stdin,
+  stdout = process.stdout
+} = {}) => {
+  try {
+    const raw = await readStdin(stdin);
+    const ide = detectIDE(raw);
+    const normalized = normalize2(raw);
+    const filePath = normalized.tool_input?.file_path || normalized.tool_input?.path || "";
+    debugLog("md-file-advisory input", { ide, filePath });
+    if (shouldAdvisory(filePath)) {
+      const hookEventName = normalized.hook_event_name || "PreToolUse";
+      const canonical = buildAdvisoryOutput(hookEventName);
+      const output = formatOutput2(canonical, ide);
+      debugLog("md-file-advisory advisory emitted", { filePath });
+      stdout.write(JSON.stringify(output));
+    }
+  } catch (_) {
+  }
+};
+if (require.main === module) {
+  main().then(
+    () => process.exit(0),
+    (err) => {
+      process.stderr.write(`md-file-advisory hook error: ${err.message}
+`);
+      process.exit(1);
+    }
+  );
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  ADVISORY_MESSAGE,
+  buildAdvisoryOutput,
+  isInTempDir,
+  isMarkdown,
+  main,
+  matchesAllowedPattern,
+  shouldAdvisory
+});
