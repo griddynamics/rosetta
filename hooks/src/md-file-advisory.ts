@@ -5,17 +5,17 @@
 // Temp dirs (agent-temp/, agents/TEMP/, .tmp/, tmp/) are silently skipped.
 //
 // Exports (for testability): shouldCheck, shouldAdvisory, isMarkdown, isInTempDir,
-// matchesAllowedPattern, buildAdvisoryOutput, ADVISORY_MESSAGE, getFilePath
+// matchesAllowedPattern, buildAdvisoryOutput, advisoryMessage, getFilePath
 
 import path from 'path';
 import { readStdin, normalize, formatOutput, detectIDE } from './adapter';
 import { debugLog } from './debug-log';
 import type { CanonicalOutput, NormalizedInput } from './types';
 
-export const ADVISORY_MESSAGE =
-  '[Rosetta Advisory] This Markdown file is outside standard Rosetta documentation locations ' +
-  '(docs/, agents/, plans/, refsrc/, README.md, CHANGELOG.md). ' +
-  'Think whether this file is truly needed or whether you should update an existing file instead.';
+export const advisoryMessage = (filePath: string): string => {
+  const name = path.basename(filePath);
+  return `[Rosetta Advisory] ${name} is created in non-standard location, think if it is truly needed or you should have updated existing file.`;
+};
 
 const ALLOWED_PREFIXES = ['docs/', 'agents/', 'plans/', 'refsrc/'];
 const ALLOWED_BASENAMES = ['README.md', 'CHANGELOG.md'];
@@ -90,11 +90,11 @@ export const shouldAdvisory = (filePath: string): boolean => {
   return true;
 };
 
-export const buildAdvisoryOutput = (hookEventName: string): CanonicalOutput => ({
+export const buildAdvisoryOutput = (hookEventName: string, filePath: string): CanonicalOutput => ({
   hookSpecificOutput: {
     hookEventName,
     permissionDecision: 'allow',
-    additionalContext: ADVISORY_MESSAGE,
+    additionalContext: advisoryMessage(filePath),
   },
 });
 
@@ -118,7 +118,7 @@ export const main = async ({
     }
     const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
     if (shouldAdvisory(filePath)) {
-      const canonical = buildAdvisoryOutput(normalized.hook_event_name);
+      const canonical = buildAdvisoryOutput(normalized.hook_event_name, filePath);
       const output = formatOutput(canonical, ide);
       debugLog('md-file-advisory advisory emitted', { filePath });
       stdout.write(JSON.stringify(output));

@@ -6,18 +6,20 @@
 // Temp dirs (agent-temp/, agents/TEMP/, .tmp/, tmp/) are silently skipped.
 //
 // Exports (for testability): shouldCheck, shouldAdvisory, isMarkdown, isInTempDir,
-// matchesAllowedPattern, buildAdvisoryOutput, ADVISORY_MESSAGE, getFilePath
+// matchesAllowedPattern, buildAdvisoryOutput, advisoryMessage, getFilePath
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.main = exports.buildAdvisoryOutput = exports.shouldAdvisory = exports.matchesAllowedPattern = exports.isInTempDir = exports.isMarkdown = exports.shouldCheck = exports.getFilePath = exports.ADVISORY_MESSAGE = void 0;
+exports.main = exports.buildAdvisoryOutput = exports.shouldAdvisory = exports.matchesAllowedPattern = exports.isInTempDir = exports.isMarkdown = exports.shouldCheck = exports.getFilePath = exports.advisoryMessage = void 0;
 const path_1 = __importDefault(require("path"));
 const adapter_1 = require("./adapter");
 const debug_log_1 = require("./debug-log");
-exports.ADVISORY_MESSAGE = '[Rosetta Advisory] This Markdown file is outside standard Rosetta documentation locations ' +
-    '(docs/, agents/, plans/, refsrc/, README.md, CHANGELOG.md). ' +
-    'Think whether this file is truly needed or whether you should update an existing file instead.';
+const advisoryMessage = (filePath) => {
+    const name = path_1.default.basename(filePath);
+    return `[Rosetta Advisory] ${name} is created in non-standard location, think if it is truly needed or you should have updated existing file.`;
+};
+exports.advisoryMessage = advisoryMessage;
 const ALLOWED_PREFIXES = ['docs/', 'agents/', 'plans/', 'refsrc/'];
 const ALLOWED_BASENAMES = ['README.md', 'CHANGELOG.md'];
 const ALLOWED_TOOLS = new Set([
@@ -88,11 +90,11 @@ const shouldAdvisory = (filePath) => {
     return true;
 };
 exports.shouldAdvisory = shouldAdvisory;
-const buildAdvisoryOutput = (hookEventName) => ({
+const buildAdvisoryOutput = (hookEventName, filePath) => ({
     hookSpecificOutput: {
         hookEventName,
         permissionDecision: 'allow',
-        additionalContext: exports.ADVISORY_MESSAGE,
+        additionalContext: (0, exports.advisoryMessage)(filePath),
     },
 });
 exports.buildAdvisoryOutput = buildAdvisoryOutput;
@@ -109,7 +111,7 @@ const main = async ({ stdin = process.stdin, stdout = process.stdout, } = {}) =>
         }
         const filePath = (0, exports.getFilePath)(normalized.tool_name, normalized.tool_input);
         if ((0, exports.shouldAdvisory)(filePath)) {
-            const canonical = (0, exports.buildAdvisoryOutput)(normalized.hook_event_name);
+            const canonical = (0, exports.buildAdvisoryOutput)(normalized.hook_event_name, filePath);
             const output = (0, adapter_1.formatOutput)(canonical, ide);
             (0, debug_log_1.debugLog)('md-file-advisory advisory emitted', { filePath });
             stdout.write(JSON.stringify(output));

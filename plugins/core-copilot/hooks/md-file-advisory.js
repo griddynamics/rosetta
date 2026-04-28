@@ -30,7 +30,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/md-file-advisory.ts
 var md_file_advisory_exports = {};
 __export(md_file_advisory_exports, {
-  ADVISORY_MESSAGE: () => ADVISORY_MESSAGE,
+  advisoryMessage: () => advisoryMessage,
   buildAdvisoryOutput: () => buildAdvisoryOutput,
   getFilePath: () => getFilePath,
   isInTempDir: () => isInTempDir,
@@ -152,7 +152,10 @@ var debugLog = (message, context) => {
 };
 
 // src/md-file-advisory.ts
-var ADVISORY_MESSAGE = "[Rosetta Advisory] This Markdown file is outside standard Rosetta documentation locations (docs/, agents/, plans/, refsrc/, README.md, CHANGELOG.md). Think whether this file is truly needed or whether you should update an existing file instead.";
+var advisoryMessage = (filePath) => {
+  const name = import_path2.default.basename(filePath);
+  return `[Rosetta Advisory] ${name} is created in non-standard location, think if it is truly needed or you should have updated existing file.`;
+};
 var ALLOWED_PREFIXES = ["docs/", "agents/", "plans/", "refsrc/"];
 var ALLOWED_BASENAMES = ["README.md", "CHANGELOG.md"];
 var ALLOWED_TOOLS = /* @__PURE__ */ new Set([
@@ -212,11 +215,11 @@ var shouldAdvisory = (filePath) => {
   if (matchesAllowedPattern(rel)) return false;
   return true;
 };
-var buildAdvisoryOutput = (hookEventName) => ({
+var buildAdvisoryOutput = (hookEventName, filePath) => ({
   hookSpecificOutput: {
     hookEventName,
     permissionDecision: "allow",
-    additionalContext: ADVISORY_MESSAGE
+    additionalContext: advisoryMessage(filePath)
   }
 });
 var main = async ({
@@ -234,7 +237,7 @@ var main = async ({
     }
     const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
     if (shouldAdvisory(filePath)) {
-      const canonical = buildAdvisoryOutput(normalized.hook_event_name);
+      const canonical = buildAdvisoryOutput(normalized.hook_event_name, filePath);
       const output = formatOutput3(canonical, ide);
       debugLog("md-file-advisory advisory emitted", { filePath });
       stdout.write(JSON.stringify(output));
@@ -254,7 +257,7 @@ if (require.main === module) {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  ADVISORY_MESSAGE,
+  advisoryMessage,
   buildAdvisoryOutput,
   getFilePath,
   isInTempDir,

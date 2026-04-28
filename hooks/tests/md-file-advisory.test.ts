@@ -15,8 +15,8 @@ import {
   shouldCheck,
   getFilePath,
   buildAdvisoryOutput,
+  advisoryMessage,
   main,
-  ADVISORY_MESSAGE,
 } from '../src/md-file-advisory';
 import { normalize } from '../src/adapter';
 
@@ -36,17 +36,17 @@ async function runHook(payload: unknown): Promise<string> {
   return output;
 }
 
-// Cursor advisory output (adapter maps additionalContext → additional_context, permissionDecision → permission).
-// Key order matches Cursor adapter's formatOutput insertion order.
-const EXPECTED_CURSOR = JSON.stringify({ additional_context: ADVISORY_MESSAGE, permission: 'allow' });
-
-// Claude Code advisory output (formatOutput is identity for claude-code)
-const EXPECTED_CLAUDE = JSON.stringify({
+const expectedClaude = (filePath: string) => JSON.stringify({
   hookSpecificOutput: {
     hookEventName: 'PostToolUse',
     permissionDecision: 'allow',
-    additionalContext: ADVISORY_MESSAGE,
+    additionalContext: advisoryMessage(filePath),
   },
+});
+
+const expectedCursor = (filePath: string) => JSON.stringify({
+  additional_context: advisoryMessage(filePath),
+  permission: 'allow',
 });
 
 // ===========================================================================
@@ -195,17 +195,38 @@ describe('shouldAdvisory', () => {
   test('returns false for empty path', () => expect(shouldAdvisory('')).toBe(false));
 });
 
+describe('advisoryMessage', () => {
+  test('includes basename without path', () => {
+    expect(advisoryMessage('/proj/src/notes.md')).toContain('notes.md');
+    expect(advisoryMessage('/proj/src/notes.md')).not.toContain('/proj/src/');
+  });
+
+  test('includes [Rosetta Advisory] prefix', () => {
+    expect(advisoryMessage('notes.md')).toMatch(/^\[Rosetta Advisory\]/);
+  });
+
+  test('mentions non-standard location', () => {
+    expect(advisoryMessage('notes.md')).toContain('non-standard location');
+  });
+});
+
 describe('buildAdvisoryOutput', () => {
-  test('returns canonical CanonicalOutput with allow + message', () => {
-    const out = buildAdvisoryOutput('PreToolUse');
+  test('returns canonical CanonicalOutput with allow + dynamic message', () => {
+    const out = buildAdvisoryOutput('PreToolUse', '/proj/notes.md');
     expect(out.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
     expect(out.hookSpecificOutput?.permissionDecision).toBe('allow');
-    expect(out.hookSpecificOutput?.additionalContext).toBe(ADVISORY_MESSAGE);
+    expect(out.hookSpecificOutput?.additionalContext).toBe(advisoryMessage('/proj/notes.md'));
   });
 
   test('preserves provided hookEventName', () => {
-    const out = buildAdvisoryOutput('PostToolUse');
+    const out = buildAdvisoryOutput('PostToolUse', 'src/draft.md');
     expect(out.hookSpecificOutput?.hookEventName).toBe('PostToolUse');
+  });
+
+  test('message includes file basename', () => {
+    const out = buildAdvisoryOutput('PostToolUse', '/deep/path/report.md');
+    expect(out.hookSpecificOutput?.additionalContext).toContain('report.md');
+    expect(out.hookSpecificOutput?.additionalContext).not.toContain('/deep/path/');
   });
 });
 
@@ -216,7 +237,7 @@ describe('buildAdvisoryOutput', () => {
 describe('main() — Claude Code format (integration)', () => {
   test('emits advisory for non-standard .md', async () => {
     const payload = { ...ccWrite, tool_input: { file_path: 'src/notes.md' } };
-    expect(await runHook(payload)).toBe(EXPECTED_CLAUDE);
+    expect(await runHook(payload)).toBe(expectedClaude('src/notes.md'));
   });
 
   test('output is valid JSON with correct structure', async () => {
@@ -224,7 +245,7 @@ describe('main() — Claude Code format (integration)', () => {
     const parsed = JSON.parse(await runHook(payload));
     expect(parsed.hookSpecificOutput.hookEventName).toBe('PostToolUse');
     expect(parsed.hookSpecificOutput.permissionDecision).toBe('allow');
-    expect(parsed.hookSpecificOutput.additionalContext.length).toBeGreaterThan(0);
+    expect(parsed.hookSpecificOutput.additionalContext).toContain('draft.md');
   });
 
   test('silent for docs/ path', async () => {
@@ -296,27 +317,26 @@ describe('main() — tool filter (integration)', () => {
 
   test('emits advisory for Edit tool with non-standard .md', async () => {
     const payload = { ...ccWrite, tool_name: 'Edit', tool_input: { file_path: 'src/notes.md' } };
-    expect(await runHook(payload)).toBe(EXPECTED_CLAUDE);
+    expect(await runHook(payload)).toBe(expectedClaude('src/notes.md'));
   });
 
   test('emits advisory for create_file tool with non-standard .md', async () => {
     const payload = { ...ccWrite, tool_name: 'create_file', tool_input: { file_path: 'src/notes.md', content: '# Notes' } };
-    expect(await runHook(payload)).toBe(EXPECTED_CLAUDE);
+    expect(await runHook(payload)).toBe(expectedClaude('src/notes.md'));
   });
 });
 
 describe('main() — Cursor format (integration)', () => {
   test('emits advisory for non-standard .md', async () => {
     const payload = { ...cursorWrite, tool_input: { ...cursorWrite.tool_input, file_path: 'src/notes.md' } };
-    expect(await runHook(payload)).toBe(EXPECTED_CURSOR);
+    expect(await runHook(payload)).toBe(expectedCursor('src/notes.md'));
   });
 
   test('output is valid JSON with correct Cursor fields', async () => {
     const payload = { ...cursorWrite, tool_input: { ...cursorWrite.tool_input, file_path: 'lib/draft.md' } };
     const parsed = JSON.parse(await runHook(payload));
     expect(parsed.permission).toBe('allow');
-    expect(typeof parsed.additional_context).toBe('string');
-    expect(parsed.additional_context.length).toBeGreaterThan(0);
+    expect(parsed.additional_context).toContain('draft.md');
   });
 
   test('silent for docs/ path', async () => {
