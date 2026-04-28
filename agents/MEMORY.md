@@ -36,6 +36,8 @@ Prep Step 2 requires reading both `CONTEXT.md` AND `ARCHITECTURE.md` in full bef
 
 ### Load And Execute The Matching Workflow BEFORE Any Implementation [ACTIVE]
 Completing prep steps does NOT authorize immediate coding. The workflow (e.g., `coding-flow`) must be loaded and each phase executed in order: discovery → specs → plan → HITL approval → implementation → review → validation → HITL → tests → final validation. Skipping HITL gates and reviewer phases leads to incomplete or misaligned deliverables that the user must catch.
+- Spec approval is NOT implementation approval. After implementation, reviewer + validator subagents (per phase 6/7/11 of `coding-flow`) must still run before the post-impl HITL gate, regardless of request size or how clear the change looks.
+- Even SMALL tasks under coding-flow require the reviewer phase (applies=ALL); skip only the phases marked applies=MEDIUM,LARGE.
 
 ### Keep Generators Generic And Content-Agnostic [ACTIVE]
 When building template-based generators, separate the generic replacement engine from content production. Hardcoding domain logic inside the replacer blocks reuse and extensibility.

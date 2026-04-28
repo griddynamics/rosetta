@@ -60,10 +60,11 @@ def get_request_trace_id() -> str | None:
         return None
 
 
-def _log_prefix(tag: str, trace_id: str | None) -> str:
+def _log_prefix(event: str, layer: str, trace_id: str | None) -> str:
+    base = f"[request-tracing] [request-tracing-{event}] [{layer}]"
     if trace_id:
-        return f"[{tag}] [trace={trace_id}]"
-    return f"[{tag}]"
+        return f"{base} [trace={trace_id}]"
+    return base
 
 
 # ── Layer 1: Outer execution timing ──────────────────────────────
@@ -79,8 +80,11 @@ async def traced_execution(operation: str, trace_id: str | None = None) -> Async
       the trace ID in their own log lines automatically.
     """
     token = current_trace_id.set(trace_id)
-    prefix = _log_prefix("mcp", trace_id)
-    _logger.info("%s %s — started", prefix, operation)
+    _logger.info(
+        "%s %s — started",
+        _log_prefix("started", "mcp", trace_id),
+        operation,
+    )
     start = time.monotonic()
 
     slow_logged = False
@@ -92,7 +96,7 @@ async def traced_execution(operation: str, trace_id: str | None = None) -> Async
         slow_logged = True
         _logger.error(
             "%s %s — SLOW: still running after %.1fs",
-            prefix,
+            _log_prefix("slow", "mcp", trace_id),
             operation,
             elapsed,
         )
@@ -102,8 +106,20 @@ async def traced_execution(operation: str, trace_id: str | None = None) -> Async
         yield
     except Exception as exc:
         elapsed = time.monotonic() - start
-        _logger.error("%s %s — failed after %.3fs: %s", prefix, operation, elapsed, exc)
+        _logger.error(
+            "%s %s — failed after %.3fs: %s",
+            _log_prefix("failed", "mcp", trace_id),
+            operation,
+            elapsed,
+            exc,
+        )
         raise
+    else:
+        _logger.info(
+            "%s %s — success",
+            _log_prefix("success", "mcp", trace_id),
+            operation,
+        )
     finally:
         watchdog.cancel()
         try:
@@ -111,8 +127,20 @@ async def traced_execution(operation: str, trace_id: str | None = None) -> Async
         except asyncio.CancelledError:
             pass
         elapsed = time.monotonic() - start
-        level = logging.WARNING if slow_logged else logging.INFO
-        _logger.log(level, "%s %s — completed in %.3fs", prefix, operation, elapsed)
+        if slow_logged:
+            _logger.warning(
+                "%s %s — completed in %.3fs",
+                _log_prefix("completed-slow", "mcp", trace_id),
+                operation,
+                elapsed,
+            )
+        else:
+            _logger.info(
+                "%s %s — completed in %.3fs",
+                _log_prefix("completed", "mcp", trace_id),
+                operation,
+                elapsed,
+            )
         current_trace_id.reset(token)
 
 
@@ -158,10 +186,13 @@ def _traced_http_method(
     @functools.wraps(original_method)
     def wrapper(path: str, *args: Any, **kwargs: Any) -> Any:
         trace_id = current_trace_id.get()
-        prefix = _log_prefix("ragflow", trace_id)
         label = f"{method_name.upper()} {path}"
 
-        _logger.info("%s %s — started", prefix, label)
+        _logger.info(
+            "%s %s — started",
+            _log_prefix("started", "ragflow", trace_id),
+            label,
+        )
         start = time.monotonic()
 
         slow_fired = threading.Event()
@@ -171,7 +202,7 @@ def _traced_http_method(
             elapsed = time.monotonic() - start
             _logger.error(
                 "%s %s — SLOW: still in-flight after %.1fs",
-                prefix,
+                _log_prefix("slow", "ragflow", trace_id),
                 label,
                 elapsed,
             )
@@ -184,21 +215,33 @@ def _traced_http_method(
             result = original_method(path, *args, **kwargs)
             elapsed = time.monotonic() - start
             status = getattr(result, "status_code", "?")
-            level = logging.WARNING if slow_fired.is_set() else logging.INFO
-            _logger.log(
-                level,
-                "%s %s — %s in %.3fs",
-                prefix,
+            _logger.info(
+                "%s %s — success",
+                _log_prefix("success", "ragflow", trace_id),
                 label,
-                status,
-                elapsed,
             )
+            if slow_fired.is_set():
+                _logger.warning(
+                    "%s %s — %s in %.3fs",
+                    _log_prefix("completed-slow", "ragflow", trace_id),
+                    label,
+                    status,
+                    elapsed,
+                )
+            else:
+                _logger.info(
+                    "%s %s — %s in %.3fs",
+                    _log_prefix("completed", "ragflow", trace_id),
+                    label,
+                    status,
+                    elapsed,
+                )
             return result
         except Exception as exc:
             elapsed = time.monotonic() - start
             _logger.error(
                 "%s %s — failed after %.3fs: %s",
-                prefix,
+                _log_prefix("failed", "ragflow", trace_id),
                 label,
                 elapsed,
                 exc,
@@ -222,4 +265,7 @@ def instrument_ragflow_client(ragflow: Any) -> None:
         original = getattr(ragflow, method_name, None)
         if original is not None:
             setattr(ragflow, method_name, _traced_http_method(original, method_name))
-    _logger.info("[ragflow] HTTP methods instrumented for tracing")
+    _logger.info(
+        "%s HTTP methods instrumented for tracing",
+        _log_prefix("init", "ragflow", None),
+    )
