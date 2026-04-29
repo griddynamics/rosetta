@@ -70,6 +70,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 - `hooks/dist/bundles/` is generated-only and untracked from git. `hooks/.gitignore` merged into root `.gitignore` with scoped `hooks/` prefixes.
 - Dedup guard in `loose-files.ts` gated on `ide === 'copilot'` — GitHub Copilot CLI fires PostToolUse twice per call; all other IDEs receive every nudge.
 - Build integrated into `scripts/pre_commit.py` via `build_hooks()` check before plugin sync.
+- Codex `md-file-advisory.js` hook installed in workspace `.codex/hooks.json` and wired into the `core-codex` hook template/generated configs.
 
 ### rosettify (npm package)
 

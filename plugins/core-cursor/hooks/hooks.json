@@ -5,6 +5,10 @@
       {
         "matcher": "Write|Edit",
         "command": "node .cursor/hooks/loose-files.js"
+      },
+      {
+        "matcher": "Write|Edit",
+        "command": "node .cursor/hooks/md-file-advisory.js"
       }
     ]
   }
