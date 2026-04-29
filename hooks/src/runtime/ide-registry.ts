@@ -87,3 +87,57 @@ export const reverseLookupToolKind = (ide: IdeName, raw: string): SemanticKind |
   }
   return null;
 };
+
+const PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
+
+const extractFromPatch = (raw: Record<string, unknown>): string | null => {
+  const command = (raw.tool_input as Record<string, unknown> | undefined)?.command as string ?? '';
+  return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? null;
+};
+
+const parseToolArgsFilePath = (raw: Record<string, unknown>): string | null => {
+  const { toolArgs } = raw;
+  if (!toolArgs) return null;
+  try {
+    const parsed = JSON.parse(toolArgs as string) as Record<string, unknown>;
+    return (parsed?.filePath as string) ?? (parsed?.file_path as string) ?? null;
+  } catch { return null; }
+};
+
+export const PROPERTIES = {
+  filePath: {
+    'claude-code': (raw: Record<string, unknown>): string | null => {
+      const ti = (raw.tool_input as Record<string, unknown>) ?? {};
+      return (ti.file_path as string) ?? (ti.filePath as string) ?? (ti.path as string) ?? null;
+    },
+    'codex': (raw: Record<string, unknown>): string | null => {
+      const tool = (raw.tool_name as string) ?? '';
+      if (tool === 'apply_patch' || tool === 'functions.apply_patch') return extractFromPatch(raw);
+      const ti = (raw.tool_input as Record<string, unknown>) ?? {};
+      return (ti.file_path as string) ?? null;
+    },
+    'cursor': (raw: Record<string, unknown>): string | null => {
+      const ti = (raw.tool_input as Record<string, unknown>) ?? {};
+      return (ti.file_path as string) ?? (ti.filePath as string) ?? (ti.path as string) ?? null;
+    },
+    'windsurf': (raw: Record<string, unknown>): string | null => {
+      const ti = (raw.tool_info as Record<string, unknown>) ?? {};
+      return (ti.file_path as string) ?? null;
+    },
+    'copilot': parseToolArgsFilePath,
+  },
+  cwd: {
+    'claude-code': (raw: Record<string, unknown>) => (raw.cwd as string) ?? null,
+    'codex':       (raw: Record<string, unknown>) => (raw.cwd as string) ?? null,
+    'cursor':      (raw: Record<string, unknown>) => (raw.cwd as string) ?? null,
+    'windsurf':    (raw: Record<string, unknown>) => ((raw.tool_info as Record<string, unknown> | undefined)?.cwd as string) ?? null,
+    'copilot':     (raw: Record<string, unknown>) => (raw.cwd as string) ?? null,
+  },
+  sessionId: {
+    'claude-code': (raw: Record<string, unknown>) => (raw.session_id as string) ?? null,
+    'codex':       (raw: Record<string, unknown>) => (raw.session_id as string) ?? null,
+    'cursor':      (raw: Record<string, unknown>) => (raw.conversation_id as string) ?? null,
+    'windsurf':    (raw: Record<string, unknown>) => (raw.trajectory_id as string) ?? null,
+    'copilot':     (_raw: Record<string, unknown>) => null,
+  },
+} as const satisfies Record<string, IdeMap<(raw: Record<string, unknown>) => string | null>>;

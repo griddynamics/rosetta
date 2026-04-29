@@ -1,5 +1,7 @@
 import { test, describe, expect } from 'vitest';
-import { EVENTS, reverseLookupEvent, TOOL_KINDS, reverseLookupToolKind } from '../../src/runtime/ide-registry';
+import { EVENTS, reverseLookupEvent, TOOL_KINDS, reverseLookupToolKind, PROPERTIES } from '../../src/runtime/ide-registry';
+import ccWrite from '../fixtures/claude-code-post-tool-use-write.json';
+import wsWrite from '../fixtures/windsurf-post-tool-use-write.json';
 
 const IDES = ['claude-code', 'codex', 'cursor', 'windsurf', 'copilot'] as const;
 
@@ -46,4 +48,17 @@ describe('reverseLookupToolKind', () => {
     expect(reverseLookupToolKind('codex', 'MultiEdit')).toBeNull());
   test('Bash → bash for claude-code', () =>
     expect(reverseLookupToolKind('claude-code', 'Bash')).toBe('bash'));
+});
+
+describe('PROPERTIES.filePath', () => {
+  test('claude-code extracts file_path from tool_input', () => {
+    expect(PROPERTIES.filePath['claude-code'](ccWrite as Record<string, unknown>)).toBeTruthy();
+  });
+  test('windsurf extracts from tool_info', () => {
+    const fp = PROPERTIES.filePath['windsurf'](wsWrite as Record<string, unknown>);
+    expect(typeof fp === 'string' || fp === null).toBe(true);
+  });
+  test('returns null (not undefined) when path absent', () => {
+    expect(PROPERTIES.filePath['claude-code']({})).toBeNull();
+  });
 });
