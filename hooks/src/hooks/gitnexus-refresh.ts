@@ -12,14 +12,14 @@
 //  - No-ops immediately if .gitnexus/ is not found in the repo tree.
 //  - Opt-in: only active when installed by the user (not auto-loaded).
 //
-// Exports (for testability): main, DEBOUNCE_MS
+// Exports (for testability): default (hook object), DEBOUNCE_MS
 
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { spawn } from 'child_process';
 import { defineHook } from '../runtime/define-hook';
-import { runHook, runAsCli } from '../runtime/run-hook';
+import { runAsCli } from '../runtime/run-hook';
 import { sideEffect } from '../runtime/result-helpers';
 import { debugLog } from '../runtime/debug-log';
 
@@ -131,5 +131,5 @@ const gitnexusRefreshHook = defineHook({
 });
 
 export default gitnexusRefreshHook;
-export const main = (): Promise<void> => runHook(gitnexusRefreshHook);
+
 runAsCli(gitnexusRefreshHook, module);
