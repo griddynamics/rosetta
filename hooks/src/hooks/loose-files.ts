@@ -44,7 +44,6 @@ const looseFilesHook = defineHook({
       },
     },
   },
-  throttle: { dedupBy: ['session', 'toolName', 'toolInput'], whenIde: ['copilot'] },
   run: (ctx) => {
     if (!isLooseFile(ctx.filePath)) return null;
     debugLog('[loose-files] nudge', { filePath: ctx.filePath });
@@ -53,4 +52,5 @@ const looseFilesHook = defineHook({
 });
 
 export default looseFilesHook;
+
 runAsCli(looseFilesHook, module);

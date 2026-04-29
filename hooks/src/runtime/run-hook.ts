@@ -1,5 +1,5 @@
 import path from 'path';
-import { readStdin, detectIDE, normalize, formatOutput } from '../adapter';
+import { readStdin, detectIDE, normalize, formatOutput, dedupKey } from '../adapter';
 import { acquireOnce } from './throttle';
 import { debugLog } from './debug-log';
 import { toRelative, walkUp } from './path-utils';
@@ -111,11 +111,12 @@ export const runHook = async (
 
     const ctx = markerRoot !== undefined ? { ...ctx0, markerRoot } : ctx0;
 
+    // Platform-level dedup: collapses duplicate events from IDEs that fire multiple times per call.
+    const platformKey = dedupKey(raw, def.name);
+    if (platformKey !== null && !acquireOnce(platformKey)) return;
+
     if (def.throttle && 'dedupBy' in def.throttle) {
-      const t = def.throttle;
-      if (!t.whenIde || t.whenIde.includes(ctx.ide)) {
-        if (!acquireOnce(makeDedupKey(t.dedupBy, ctx, def.name))) return;
-      }
+      if (!acquireOnce(makeDedupKey(def.throttle.dedupBy, ctx, def.name))) return;
     }
 
     const result = await def.run(ctx);

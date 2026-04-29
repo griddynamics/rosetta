@@ -47,10 +47,7 @@ export type HookActivation = {
 
 export type HookThrottle =
   | { debounceMs: number }
-  | {
-      dedupBy:  readonly ('session' | 'filePath' | 'ide' | 'toolName' | 'toolInput')[];
-      whenIde?: readonly IdeName[];
-    };
+  | { dedupBy: readonly ('session' | 'filePath' | 'ide' | 'toolName' | 'toolInput')[] };
 
 export interface HookDefinition {
   name:      string;

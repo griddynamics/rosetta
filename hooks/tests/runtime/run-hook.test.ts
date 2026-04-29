@@ -209,32 +209,28 @@ describe('runHook — fs.nearestMarker gate', () => {
   });
 });
 
-describe('runHook — HookThrottle whenIde conditional dedup', () => {
-  const DEDUP_HOOK = defineHook({
-    name: 'dedup-test',
-    on: { event: 'PostToolUse', toolKinds: ['write'] },
-    throttle: { dedupBy: ['session', 'toolName', 'toolInput'], whenIde: ['copilot'] },
-    run: () => advise('hit'),
+describe('runHook — platform dedup via adapter', () => {
+  test('Copilot raw sent twice — second call is silent (platform dedup)', async () => {
+    mockRead(copilotCreateFile);
+    const out1: string[] = [];
+    await runHook(ADVISE_HOOK, { stdout: { write: (s: string) => out1.push(s) } as unknown as NodeJS.WritableStream });
+    expect(out1).toHaveLength(1);
+
+    mockRead(copilotCreateFile);
+    const out2: string[] = [];
+    await runHook(ADVISE_HOOK, { stdout: { write: (s: string) => out2.push(s) } as unknown as NodeJS.WritableStream });
+    expect(out2).toHaveLength(0);
   });
 
-  const runWith = async (raw: Record<string, unknown>) => {
-    mockRead(raw);
-    const out: string[] = [];
-    await runHook(DEDUP_HOOK, { stdout: { write: (s: string) => out.push(s) } as unknown as NodeJS.WritableStream });
-    return out.length > 0;
-  };
+  test('Claude Code raw sent twice — both fire (no platform dedup for CC)', async () => {
+    mockRead(ccWrite);
+    const out1: string[] = [];
+    await runHook(ADVISE_HOOK, { stdout: { write: (s: string) => out1.push(s) } as unknown as NodeJS.WritableStream });
+    expect(out1).toHaveLength(1);
 
-  test('copilot: first call fires', async () => {
-    expect(await runWith(copilotCreateFile)).toBe(true);
-  });
-
-  test('copilot: second identical call is deduped → silent', async () => {
-    await runWith(copilotCreateFile);
-    expect(await runWith(copilotCreateFile)).toBe(false);
-  });
-
-  test('claude-code: whenIde=[copilot] → dedup skipped → both calls fire', async () => {
-    expect(await runWith(ccWrite)).toBe(true);
-    expect(await runWith(ccWrite)).toBe(true);
+    mockRead(ccWrite);
+    const out2: string[] = [];
+    await runHook(ADVISE_HOOK, { stdout: { write: (s: string) => out2.push(s) } as unknown as NodeJS.WritableStream });
+    expect(out2).toHaveLength(1);
   });
 });
