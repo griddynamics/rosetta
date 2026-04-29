@@ -23,6 +23,23 @@ export const toRelative = (filePath: string): string => {
   return p;
 };
 
+export const hasMarkerBeforeBoundary = (
+  startDir: string,
+  marker: string,
+  boundary: string,
+  maxLevels = 10,
+): boolean => {
+  let dir = startDir;
+  for (let i = 0; i < maxLevels; i++) {
+    if (fs.existsSync(path.join(dir, marker)))   return true;
+    if (fs.existsSync(path.join(dir, boundary))) return false;
+    const parent = path.dirname(dir);
+    if (parent === dir) return false;
+    dir = parent;
+  }
+  return false;
+};
+
 export const walkUp = (startDir: string, marker: string, maxLevels = 10): string | null => {
   let dir = startDir;
   for (let i = 0; i < maxLevels; i++) {

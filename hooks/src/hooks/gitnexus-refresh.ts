@@ -21,7 +21,6 @@ import { spawn } from 'child_process';
 import { defineHook } from '../runtime/define-hook';
 import { runHook, runAsCli } from '../runtime/run-hook';
 import { sideEffect } from '../runtime/result-helpers';
-import { walkUp } from '../runtime/path-utils';
 import { debugLog } from '../runtime/debug-log';
 
 export const DEBOUNCE_MS = 5000;
@@ -115,10 +114,13 @@ const spawnDeferredAnalyze = (
 
 const gitnexusRefreshHook = defineHook({
   name: 'gitnexus-refresh',
-  on: { event: 'PostToolUse', toolKinds: ['write', 'edit', 'multi-edit'] },
+  on: {
+    event: 'PostToolUse',
+    toolKinds: ['write', 'edit', 'multi-edit'],
+    fs: { nearestMarker: '.gitnexus' },
+  },
   run: (ctx) => {
-    const repoRoot = walkUp(ctx.cwd || process.cwd(), '.gitnexus');
-    if (!repoRoot) return null;
+    const repoRoot = ctx.markerRoot!;
     const cacheDir = ensureCacheDir();
     const stampFile = writePendingStamp(cacheDir, repoRoot);
     debugLog('[gitnexus-refresh] pending analyze', { tool: ctx.toolName, cwd: ctx.cwd });

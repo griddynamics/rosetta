@@ -1,6 +1,6 @@
-import { test, describe, expect } from 'vitest';
+import { test, describe, expect, vi, afterEach } from 'vitest';
 import { hasExtension, pathContainsAny, pathStartsWithAny, basenameIn,
-         isInTempDir, toRelative, walkUp } from '../../src/runtime/path-utils';
+         isInTempDir, toRelative, walkUp, hasMarkerBeforeBoundary } from '../../src/runtime/path-utils';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
@@ -28,6 +28,34 @@ describe('toRelative', () => {
   test('strips leading /', () => expect(toRelative('/foo/bar.ts')).toBe('foo/bar.ts'));
   test('strips leading ./', () => expect(toRelative('./foo/bar.ts')).toBe('foo/bar.ts'));
   test('normalizes backslash', () => expect(toRelative('foo\\bar.ts')).toBe('foo/bar.ts'));
+});
+
+describe('hasMarkerBeforeBoundary', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  test('marker found in startDir → true', () => {
+    vi.spyOn(fs, 'existsSync').mockImplementation((p) =>
+      (p as string).endsWith('/__init__.py'),
+    );
+    expect(hasMarkerBeforeBoundary('/proj/src', '__init__.py', '.git')).toBe(true);
+  });
+
+  test('boundary found before marker → false', () => {
+    vi.spyOn(fs, 'existsSync').mockImplementation((p) =>
+      (p as string).endsWith('/.git'),
+    );
+    expect(hasMarkerBeforeBoundary('/proj/src', '__init__.py', '.git')).toBe(false);
+  });
+
+  test('neither found within maxLevels → false', () => {
+    vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+    expect(hasMarkerBeforeBoundary('/proj/src', '__init__.py', '.git')).toBe(false);
+  });
+
+  test('marker one level up → true', () => {
+    vi.spyOn(fs, 'existsSync').mockImplementation((p) => (p as string) === '/proj/__init__.py');
+    expect(hasMarkerBeforeBoundary('/proj/src', '__init__.py', '.git')).toBe(true);
+  });
 });
 
 describe('walkUp', () => {
