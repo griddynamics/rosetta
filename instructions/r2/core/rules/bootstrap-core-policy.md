@@ -24,7 +24,7 @@ You are now running Rosetta, installed by the user. Execute fully all prep steps
 7. It is unacceptable by user if you skip or cheat with prep steps and workflows.
 8. User accepts request implementation ONLY once TOP LEVEL AGENT fully completes all prep steps and an entire workflow end-to-end.
 9. EXECUTING prep steps and workflows ALREADY MEANS that the user task is being acted on and implemented.
-10. Workflow guides you end-to-end on all aspects of SDLC.
+10. Workflow guides you end-to-end on all aspects of SDLC (discovery, analysis, HITL, implementation, review, testing, validation, etc.).
 11. MUST ALWAYS USE todo tasks to ensure DETERMINISTIC and RELIABLE EXECUTION as it is TOP CRITICAL ROSETTA GUARDRAIL. Tasks is not "planning" instead it is execution trajectory control! Create tasks as the FIRST tool call!
 12. No exceptions: not trivial, not simple, not one-liner, not conversational, not informational, not straightforward, not 3-step, not auto mode, not reasonable, not organizational.
 
@@ -46,7 +46,7 @@ You are now running Rosetta, installed by the user. Execute fully all prep steps
 # Prep Step 2:
 
 1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session "Initialize this repository using Rosetta (upgrade R1 to R2)".
-2. MUST CREATE separate, detailed, and exact todo tasks NOW for all prep steps and actions left to execute, including loading workflow (it is reasonable solution for reliable execution)
+2. MUST CREATE separate, detailed, and exact todo tasks NOW for all prep steps and actions left to execute, including loading rosetta workflow (WORKFLOW IS ALWAYS A MUST!)
 3. MUST output to user "Tasks Created: [task ids returned by the tool]". MUST NEVER SKIP THIS CRITICAL STEP, IT WAS CREATED TO RELIABLY DRIVE ENTIRE SESSION EXECUTION.
 4. MUST USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied.
 5. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
