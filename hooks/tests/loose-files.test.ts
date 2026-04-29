@@ -98,9 +98,9 @@ const capture = () => {
   return { writable, output(): string { return chunks.join(''); } };
 };
 
-// Mirror loose-files dedup key format (Copilot-only, runtime/throttle.acquireOnce).
-const lockPathFor = (sessionId: string, toolName: string, toolInput: unknown): string => {
-  const key = `loose-files:${sessionId ?? 'no-session'}:${toolName ?? ''}:${JSON.stringify(toolInput ?? {})}`;
+// Mirror Copilot platform-dedup key format (adapters/copilot.ts dedupKey).
+const lockPathFor = (hookName: string, toolName: string, toolArgs: string): string => {
+  const key = `copilot:${hookName}:${toolName}:${toolArgs}`;
   const fp = createHash('sha256').update(key).digest('hex').slice(0, 16);
   return path.join(os.tmpdir(), `rosetta-hooks-${fp}.lock`);
 };
@@ -175,14 +175,13 @@ describe('runHook — nudge output shape', () => {
 });
 
 // ---------------------------------------------------------------------------
-describe('runHook — dedup gate is Copilot-only', () => {
+describe('runHook — platform dedup silences Copilot duplicates', () => {
 
   test('Copilot: second identical call within TTL is silenced', async () => {
     const uniq = Math.random().toString(36).slice(2);
     const filePath = `/tmp/rosetta-test-copilot-dedup-${uniq}.py`;
     const raw = makeCopilotRaw(filePath);
-    const toolInput = JSON.parse(raw.toolArgs) as Record<string, unknown>;
-    const lp = lockPathFor('no-session', raw.toolName, toolInput);
+    const lp = lockPathFor('loose-files', raw.toolName, raw.toolArgs);
     if (existsSync(lp)) unlinkSync(lp);
 
     try {
@@ -198,7 +197,7 @@ describe('runHook — dedup gate is Copilot-only', () => {
     }
   });
 
-  test('Claude Code: duplicate call is NOT silenced (dedup inactive for non-Copilot)', async () => {
+  test('Claude Code: duplicate call is NOT silenced (no platform dedup for CC)', async () => {
     const uniq = Math.random().toString(36).slice(2);
     const filePath = `/tmp/rosetta-test-cc-nodedup-${uniq}.py`;
     const sessionId = `test-cc-${uniq}`;
@@ -206,11 +205,11 @@ describe('runHook — dedup gate is Copilot-only', () => {
 
     const { writable: out1, output: get1 } = capture();
     await runHook(looseFilesHook, { stdin: toStream(raw), stdout: out1 });
-    expect(get1().length > 0, 'first Claude Code call should emit nudge').toBeTruthy();
+    expect(get1().length > 0, 'first CC call should emit nudge').toBeTruthy();
 
     const { writable: out2, output: get2 } = capture();
     await runHook(looseFilesHook, { stdin: toStream(raw), stdout: out2 });
-    expect(get2().length > 0, 'second Claude Code call must also emit nudge (no dedup for CC)').toBeTruthy();
+    expect(get2().length > 0, 'second CC call must also emit nudge (no platform dedup)').toBeTruthy();
   });
 
 });
