@@ -63,6 +63,11 @@ export const formatOutput = (
     : (canonicalOutput as Record<string, unknown>);
 };
 
+export const dedupKey = (rawInput: unknown, hookName: string): string | null => {
+  const ide = detectIDE(rawInput);
+  return ADAPTERS[ide].dedupKey?.(rawInput as Record<string, unknown>, hookName) ?? null;
+};
+
 export const readStdin = (stream: NodeJS.ReadableStream = process.stdin): Promise<unknown> =>
   new Promise((resolve, reject) => {
     const chunks: string[] = [];

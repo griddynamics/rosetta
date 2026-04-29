@@ -37,3 +37,8 @@ export const detectIDE = (raw: unknown): string => {
   const r = raw as Record<string, unknown>;
   return copilot.detect(r) ? 'copilot' : 'claude-code';
 };
+
+export const dedupKey = (raw: unknown, hookName: string): string | null => {
+  const r = raw as Record<string, unknown>;
+  return copilot.detect(r) ? copilot.dedupKey!(r, hookName) : null;
+};
