@@ -21,7 +21,7 @@ baseSchema: docs/schemas/rule.md
 8. User accepts request implementation ONLY once TOP LEVEL AGENT fully completes all prep steps and an entire workflow end-to-end.
 9. EXECUTING prep steps and workflows ALREADY MEANS that the user task is being acted on and implemented.
 10. Workflow guides you end-to-end on all aspects of SDLC.
-11. MUST ALWAYS create todo tasks for all prep steps and actions, then update once workflow loaded or new information appears, to prevent expensive failures, reliability is the key.
+11. MUST ALWAYS USE todo tasks to ensure DETERMINISTIC and RELIABLE EXECUTION (especially critical in auto mode) as it is TOP GUARDRAIL, then output to user "Tasks Created/Updated: [list of ids]".
 
 </CRITICAL_MANDATORY_TOP_MOST>
 
@@ -41,7 +41,7 @@ baseSchema: docs/schemas/rule.md
 # Prep Step 2:
 
 1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session "Initialize this repository using Rosetta (upgrade R1 to R2)".
-2. MUST ALWAYS UNCONDITIONALLY CREATE todo tasks for steps and actions (fine-grained, creation is an action and part of execution, guarantees deterministic execution).
+2. MUST CREATE fine-grained todo tasks NOW for all prep steps and actions left to execute (it is reasonable solution for reliable execution).
 3. MUST USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied.
 4. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
 5. MUST ALWAYS grep `^#{1,3}` headers of the IMPLEMENTATION.md and agent MEMORY.md.
@@ -72,8 +72,9 @@ baseSchema: docs/schemas/rule.md
 
 1. user request -> read get_context_instructions schema (if needed) -> get_context_instructions (if not done yet) -> execute all prep steps -> load workflow -> proceed with workflow and integrate the rest of actions (including questioning user, EnterPlanMode, plan_mode_respond, system-reminder, etc.)
 2. MUST ACQUIRE <workflow TAG from available workflows, example "workflows/coding-flow.md"> FROM KB TO LOAD MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES
-3. In planning mode results of `planning` and `tech-specs` MUST be stored according to system prompt (NOT in `plans` folder as it is read-only)
-4. Proceed executing workflow which guides you how to handle user request and activities as user expects it
+3. MUST ADD/UPDATE todo tasks with loaded workflow phases NOW
+4. In planning mode results of `planning` and `tech-specs` MUST be stored according to system prompt (NOT in `plans` folder as it is read-only)
+5. Proceed executing workflow which guides you how to handle user request and activities as user expects it
 
 </must>
 
