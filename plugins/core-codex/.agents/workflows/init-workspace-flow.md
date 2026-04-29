@@ -89,7 +89,15 @@ DISABLED
 
 </questions>
 
-<verification phase="8" subagent="built-in" role="Completeness validator" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
+<gitnexus phase="8" type="HITL" role="Code-graph setup gate">
+
+1. Ask user exactly: "Install GitNexus for enhanced code-graph navigation? (recommended)"
+2. If yes: USE SKILL `gitnexus`; log as installed in state.
+3. If no: skip silently; log as skipped in state.
+
+</gitnexus>
+
+<verification phase="9" subagent="built-in" role="Completeness validator" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
 
 1. Verify all files exist, run validation checklist, suggest next steps.
 2. ACQUIRE `init-workspace-flow-verification.md` FROM KB
@@ -103,6 +111,8 @@ DISABLED
 <references>
 
 Phase files: `init-workspace-flow-context.md`, `init-workspace-flow-shells.md`, `init-workspace-flow-discovery.md`, `init-workspace-flow-rules.md`, `init-workspace-flow-patterns.md`, `init-workspace-flow-documentation.md`, `init-workspace-flow-questions.md`, `init-workspace-flow-verification.md`
+
+Skill: `gitnexus`
 
 State: `agents/init-workspace-flow-state.md`
 

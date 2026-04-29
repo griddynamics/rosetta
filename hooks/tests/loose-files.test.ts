@@ -12,6 +12,8 @@ import ccEdit  from './fixtures/claude-code-post-tool-use-edit.json';
 import ccBash  from './fixtures/claude-code-pre-tool-use-bash.json';
 import codexApplyPatch from './fixtures/codex-post-tool-use-apply_patch.json';
 import copilotCC from './fixtures/copilot-post-tool-use-cc-format.json';
+import cursorWrite from './fixtures/cursor-post-tool-use-write.json';
+import codexWrite from './fixtures/codex-post-tool-use-write.json';
 
 import { shouldCheck, isLooseFile, buildNudgeOutput, main } from '../src/loose-files';
 import { normalize } from '../src/adapter';
@@ -334,6 +336,7 @@ describe('main() — nudge output shape', () => {
     const hso = parsed.hookSpecificOutput as Record<string, unknown> | undefined;
     expect(hso?.additionalContext).toBeTruthy();
     expect(hso?.hookEventName).toBe('PostToolUse');
+    expect(hso?.additionalContext as string).toContain(`rosetta-nudge-shape-${uniq}.py`);
   });
 
   test('VS Code CC-shaped Copilot input with filePath → output has hookSpecificOutput.additionalContext', async () => {
@@ -345,6 +348,24 @@ describe('main() — nudge output shape', () => {
     const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
     const hso = parsed.hookSpecificOutput as Record<string, unknown> | undefined;
     expect(hso?.additionalContext).toBeTruthy();
+    expect(hso?.additionalContext as string).toContain(`rosetta-cc-${uniq}.js`);
+  });
+
+  test('Cursor Write fixture with file_path → nudge emitted with extracted path', async () => {
+    const { writable, output } = capture();
+    await main({ stdin: toStream(cursorWrite), stdout: writable });
+    const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
+    expect(parsed.additional_context as string).toBeTruthy();
+    expect(parsed.additional_context as string).toContain('app.js');
+  });
+
+  test('Codex Write fixture with file_path → nudge emitted with extracted path', async () => {
+    const { writable, output } = capture();
+    await main({ stdin: toStream(codexWrite), stdout: writable });
+    const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
+    const hso = parsed.hookSpecificOutput as Record<string, unknown> | undefined;
+    expect(hso?.additionalContext).toBeTruthy();
+    expect(hso?.additionalContext as string).toContain('app.js');
   });
 
   test('non-JS/PY file → no stdout output at all', async () => {

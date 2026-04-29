@@ -19,6 +19,15 @@
             "command": "node .codex/hooks/md-file-advisory.js"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/gitnexus-refresh.js"
+          }
+        ]
       }
     ]
   }

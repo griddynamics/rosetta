@@ -3,7 +3,7 @@
   "_docs": "https://docs.github.com/en/copilot/tutorials/copilot-cli-hooks",
   "timestamp": 1704614400000,
   "cwd": "/proj",
-  "toolName": "write_file",
+  "toolName": "Write",
   "toolArgs": "{\"file_path\":\"/proj/src/app.js\",\"content\":\"console.log('hello');\\n\"}",
   "toolResult": {
     "resultType": "success",

@@ -15,6 +15,15 @@
             "command": "node \".github/hooks/md-file-advisory.js\""
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".github/hooks/gitnexus-refresh.js\""
+          }
+        ]
       }
     ]
   }

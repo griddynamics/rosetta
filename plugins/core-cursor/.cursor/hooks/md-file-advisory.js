@@ -32,7 +32,6 @@ var md_file_advisory_exports = {};
 __export(md_file_advisory_exports, {
   advisoryMessage: () => advisoryMessage,
   buildAdvisoryOutput: () => buildAdvisoryOutput,
-  getFilePath: () => getFilePath,
   isInTempDir: () => isInTempDir,
   isMarkdown: () => isMarkdown,
   main: () => main,
@@ -137,14 +136,6 @@ var ALLOWED_TOOLS = /* @__PURE__ */ new Set([
   "replace_string_in_file",
   "multi_replace_string_in_file"
 ]);
-var PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
-var getFilePath = (toolName, toolInput) => {
-  if (toolName === "apply_patch" || toolName === "functions.apply_patch") {
-    const command = toolInput.command ?? "";
-    return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? "";
-  }
-  return toolInput.file_path ?? toolInput.filePath ?? toolInput.path ?? "";
-};
 var shouldCheck = (normalizedInput) => {
   if (normalizedInput.hook_event_name !== "PostToolUse") {
     debugLog("skip: not PostToolUse", { hook_event_name: normalizedInput.hook_event_name });
@@ -205,7 +196,7 @@ var main = async ({
       debugLog("skipped (shouldCheck=false)");
       return;
     }
-    const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
+    const filePath = normalized.file_path ?? "";
     if (shouldAdvisory(filePath)) {
       const canonical = buildAdvisoryOutput(normalized.hook_event_name, filePath);
       const output = formatOutput2(canonical, ide);
@@ -229,7 +220,6 @@ if (require.main === module) {
 0 && (module.exports = {
   advisoryMessage,
   buildAdvisoryOutput,
-  getFilePath,
   isInTempDir,
   isMarkdown,
   main,

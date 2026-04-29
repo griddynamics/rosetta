@@ -192,13 +192,6 @@ var MODULE_MARKERS = {
 };
 var MAX_WALK_LEVELS = 10;
 var isPathExcluded = (filePath) => EXCLUDED_PATH_SEGMENTS.some((segment) => filePath.includes(segment));
-var getFilePath = (toolName, toolInput) => {
-  if (toolName === "apply_patch" || toolName === "functions.apply_patch") {
-    const command = toolInput.command ?? "";
-    return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? "";
-  }
-  return toolInput.file_path ?? toolInput.filePath ?? "";
-};
 var shouldCheck = (normalizedInput) => {
   if (normalizedInput.hook_event_name !== "PostToolUse") {
     debugLog("skip: not PostToolUse", { hook_event_name: normalizedInput.hook_event_name });
@@ -208,7 +201,15 @@ var shouldCheck = (normalizedInput) => {
     debugLog("skip: tool not in ALLOWED_TOOLS", { tool_name: normalizedInput.tool_name });
     return false;
   }
-  const filePath = getFilePath(normalizedInput.tool_name, normalizedInput.tool_input);
+  const toolName = normalizedInput.tool_name;
+  if (toolName === "apply_patch" || toolName === "functions.apply_patch") {
+    const command = normalizedInput.tool_input?.command ?? "";
+    if (!PATCH_FILE_RE.test(command)) {
+      debugLog("skip: patch is not file creation (no Add/Create File marker)", { command: command.slice(0, 80) });
+      return false;
+    }
+  }
+  const filePath = normalizedInput.file_path ?? "";
   const ext = import_path3.default.extname(filePath);
   if (!ALLOWED_EXTENSIONS.has(ext)) {
     debugLog("skip: extension not allowed", { filePath: filePath || null, ext: ext || null });
@@ -262,7 +263,7 @@ var main = async ({
     debugLog("skipped (duplicate)");
     return;
   }
-  const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
+  const filePath = normalized.file_path ?? "";
   if (isLooseFile(filePath)) {
     const output = buildNudgeOutput(filePath);
     const json = JSON.stringify(formatOutput3(output, ide));
