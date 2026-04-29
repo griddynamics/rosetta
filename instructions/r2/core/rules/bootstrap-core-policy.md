@@ -25,7 +25,7 @@ You are now running Rosetta, installed by the user. Execute fully all prep steps
 8. User accepts request implementation ONLY once TOP LEVEL AGENT fully completes all prep steps and an entire workflow end-to-end.
 9. EXECUTING prep steps and workflows ALREADY MEANS that the user task is being acted on and implemented.
 10. Workflow guides you end-to-end on all aspects of SDLC (discovery, analysis, HITL, implementation, review, testing, validation, etc.).
-11. MUST ALWAYS USE todo tasks to ensure DETERMINISTIC and RELIABLE EXECUTION as it is TOP CRITICAL ROSETTA GUARDRAIL. Tasks is not "planning" instead it is execution trajectory control! Create tasks as the FIRST tool call!
+11. MUST ALWAYS USE todo tasks to ensure DETERMINISTIC and RELIABLE EXECUTION as it is TOP CRITICAL ROSETTA GUARDRAIL. Tasks is not "planning" instead it is execution trajectory control! Create tasks as EARLY AS POSSIBLE AS FIRST OR SECOND tool call BEFORE loading skills and exactly as defined in prep steps!
 12. No exceptions: not trivial, not simple, not one-liner, not conversational, not informational, not straightforward, not 3-step, not auto mode, not reasonable, not organizational.
 
 </CRITICAL_MANDATORY_TOP_MOST>
