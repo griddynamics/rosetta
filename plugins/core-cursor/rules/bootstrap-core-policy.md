@@ -21,7 +21,8 @@ baseSchema: docs/schemas/rule.md
 8. User accepts request implementation ONLY once TOP LEVEL AGENT fully completes all prep steps and an entire workflow end-to-end.
 9. EXECUTING prep steps and workflows ALREADY MEANS that the user task is being acted on and implemented.
 10. Workflow guides you end-to-end on all aspects of SDLC.
-11. MUST ALWAYS USE todo tasks to ensure DETERMINISTIC and RELIABLE EXECUTION (especially critical in auto mode) as it is TOP GUARDRAIL.
+11. MUST ALWAYS USE todo tasks to ensure DETERMINISTIC and RELIABLE EXECUTION as it is TOP CRITICAL ROSETTA GUARDRAIL. Tasks is not "planning" instead it is execution trajectory control! Create tasks as the FIRST tool call!
+12. No exceptions: not trivial, not simple, not one-liner, not conversational, not informational, not straightforward, not 3-step, not auto mode, not reasonable, not organizational.
 
 </CRITICAL_MANDATORY_TOP_MOST>
 
@@ -41,25 +42,26 @@ baseSchema: docs/schemas/rule.md
 # Prep Step 2:
 
 1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session "Initialize this repository using Rosetta (upgrade R1 to R2)".
-2. MUST CREATE fine-grained todo tasks NOW for all prep steps and actions left to execute (it is reasonable solution for reliable execution), MUST output to user "Tasks Created: [list of task ids]". MUST NEVER SKIP THIS CRITICAL STEP, IT WAS CREATED TO RELIABLY DRIVE EXECUTION.
-3. MUST USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied.
-4. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
-5. MUST ALWAYS grep `^#{1,3}` headers of IMPLEMENTATION.md and AGENT MEMORY.md.
-6. Grep headers of other Rosetta files when needed.
-7. MUST use and validate REQUIREMENTS (if exist).
-8. MUST ALWAYS EXECUTE FULLY `Prep Step 3` BEFORE you do anything else, including planning, exploring, reading, validating.
-9. Rosetta guides you EXACTLY how to do all those activities PROPERLY!
-10. MUST IDENTIFY request size AFTER CONTEXT LOADED:
+2. MUST CREATE fine-grained todo tasks NOW for all prep steps and actions left to execute (it is reasonable solution for reliable execution)
+3. MUST output to user "Tasks Created: [task ids returned by the tool]". MUST NEVER SKIP THIS CRITICAL STEP, IT WAS CREATED TO RELIABLY DRIVE ENTIRE SESSION EXECUTION.
+4. MUST USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied.
+5. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
+6. MUST ALWAYS grep `^#{1,3}` headers of IMPLEMENTATION.md and AGENT MEMORY.md.
+7. Grep headers of other Rosetta files when needed.
+8. MUST use and validate REQUIREMENTS (if exist).
+9. MUST ALWAYS EXECUTE FULLY `Prep Step 3` BEFORE you do anything else, including planning, exploring, reading, validating.
+10. Rosetta guides you EXACTLY how to do all those activities PROPERLY!
+11. MUST IDENTIFY request size AFTER CONTEXT LOADED:
     - SMALL: 1-2 file changes/activities and only one area affected
     - MEDIUM: up to ~10 file changes/activities and only one area affected
     - LARGE: more than 10 file changes/activities or multiple areas affected
-11. Additional requirements based on request size:
+12. Additional requirements based on request size:
     - SMALL: MUST USE todo tasks for planning, MUST OUTPUT tech specs as message;
     - MEDIUM: MUST keep documentation concise, light, and short; MUST use subagents;
     - LARGE: MUST use subagents extensively as orchestrator context will be overloaded;
     - ALL: load rosetta workflow, it contains proper handling of different request sizes too;
-12. Reevaluate request size and workflow when scope changes or new information is received
-13. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`, and MUST continue with prep step 3.
+13. Reevaluate request size and workflow when scope changes or new information is received and output user "Request size changed" or "Workflow changed"
+14. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`, and MUST continue with prep step 3.
 
 # Prep Step 3 for subagents:
 
@@ -75,7 +77,7 @@ baseSchema: docs/schemas/rule.md
 2. MUST USE SKILL `hitl` to load it for continuous enforcement throughout the session.
 3. User request → read get_context_instructions schema (if needed) → get_context_instructions (if not done yet) → execute all prep steps → load workflow → proceed with workflow and integrate remaining actions (including questioning user, EnterPlanMode, plan_mode_respond, system-reminder, etc.)
 4. MUST ACQUIRE <workflow TAG from available workflows, example: "workflows/coding-flow.md"> FROM KB TO LOAD MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES
-5. MUST ADD/UPDATE todo tasks with loaded workflow phases NOW, MUST output to user "Tasks Created: [list of task ids]"
+5. MUST ADD/UPDATE todo tasks with loaded workflow phases NOW, MUST output to user "Tasks Created: [task ids returned by the tool]"
 6. In planning mode results of `planning` and `tech-specs` MUST be stored according to system prompt (NOT in `plans` folder as it is read-only)
 7. Proceed executing workflow which guides you how to handle user request and activities as user expects it
 
