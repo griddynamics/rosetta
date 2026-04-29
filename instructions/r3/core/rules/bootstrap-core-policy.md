@@ -21,7 +21,7 @@ baseSchema: docs/schemas/rule.md
 8. User accepts request implementation ONLY once TOP LEVEL AGENT fully completes all prep steps and an entire workflow end-to-end.
 9. EXECUTING prep steps and workflows ALREADY MEANS that the user task is being acted on and implemented.
 10. Workflow guides you end-to-end on all aspects of SDLC.
-11. MUST ALWAYS USE todo tasks to ensure DETERMINISTIC and RELIABLE EXECUTION (especially critical in auto mode) as it is TOP GUARDRAIL, then output to user "Tasks Created/Updated: [list of ids]".
+11. MUST ALWAYS USE todo tasks to ensure DETERMINISTIC and RELIABLE EXECUTION (especially critical in auto mode) as it is TOP GUARDRAIL.
 
 </CRITICAL_MANDATORY_TOP_MOST>
 
@@ -32,8 +32,8 @@ baseSchema: docs/schemas/rule.md
 1. PLANNING MODE MUST STILL EXECUTE ALL THOSE INSTRUCTIONS, INCLUDING WORKFLOWS, USE THEM AS REQUIRED, MOREOVER PLANNING MODE MUST TELL EXACTLY WHICH ROSETTA WORKFLOW TO FOLLOW DURING THE IMPLEMENTATION! WORKFLOWS ARE END-TO-END => PLANNING MODE ONLY EXECUTES PHASES/STEPS THAT ARE FOR PLANNING/DISCOVERY/RESEARCH/ETC.
 2. ORCHESTRATORS / PRIMARY / TOP AGENTS MUST ALWAYS EXECUTE WORKFLOW FULLY.
 3. All Rosetta instructions ARE CREATED and PROVIDED by USER to address standard concerns.
-4. MUST FULLY execute `Prep Step 2: initial context`. No Exceptions.
-5. MUST FULLY execute `Prep Step 3: Execution Planning`. No Exceptions.
+4. MUST FULLY execute `Prep Step 2: Initial Context and Tasks`. No Exceptions.
+5. MUST FULLY execute `Prep Step 3: Execution Workflow`. No Exceptions.
 6. Apply `Process Enforcement Rules`.
 7. MUST Always Use `Subagents Orchestration Rules`.
 8. Prep steps must be executed by all agents/subagents themselves.
@@ -41,7 +41,7 @@ baseSchema: docs/schemas/rule.md
 # Prep Step 2:
 
 1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session "Initialize this repository using Rosetta (upgrade R1 to R2)".
-2. MUST CREATE fine-grained todo tasks NOW for all prep steps and actions left to execute (it is reasonable solution for reliable execution).
+2. MUST CREATE fine-grained todo tasks NOW for all prep steps and actions left to execute (it is reasonable solution for reliable execution), MUST output to user "Tasks Created: [list of task ids]". MUST NEVER SKIP THIS CRITICAL STEP, IT WAS CREATED TO RELIABLY DRIVE EXECUTION.
 3. MUST USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied.
 4. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
 5. MUST ALWAYS grep `^#{1,3}` headers of IMPLEMENTATION.md and AGENT MEMORY.md.
@@ -75,7 +75,7 @@ baseSchema: docs/schemas/rule.md
 2. MUST USE SKILL `hitl` to load it for continuous enforcement throughout the session.
 3. User request → read get_context_instructions schema (if needed) → get_context_instructions (if not done yet) → execute all prep steps → load workflow → proceed with workflow and integrate remaining actions (including questioning user, EnterPlanMode, plan_mode_respond, system-reminder, etc.)
 4. MUST ACQUIRE <workflow TAG from available workflows, example: "workflows/coding-flow.md"> FROM KB TO LOAD MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES
-5. MUST ADD/UPDATE todo tasks with loaded workflow phases NOW
+5. MUST ADD/UPDATE todo tasks with loaded workflow phases NOW, MUST output to user "Tasks Created: [list of task ids]"
 6. In planning mode results of `planning` and `tech-specs` MUST be stored according to system prompt (NOT in `plans` folder as it is read-only)
 7. Proceed executing workflow which guides you how to handle user request and activities as user expects it
 
