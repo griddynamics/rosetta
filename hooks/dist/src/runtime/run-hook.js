@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.runHook = void 0;
 const adapter_1 = require("../adapter");
 const throttle_1 = require("./throttle");
-const debug_log_1 = require("../debug-log");
+const debug_log_1 = require("./debug-log");
 const toHookContext = (norm) => ({
     ide: norm.ide,
     event: norm.event,
@@ -17,7 +17,7 @@ const toHookContext = (norm) => ({
 });
 const toCanonical = (result, ctx) => {
     if (result.kind === 'advise')
-        return { hookSpecificOutput: { hookEventName: ctx.event ?? '', additionalContext: result.message } };
+        return { hookSpecificOutput: { hookEventName: ctx.event ?? '', permissionDecision: 'allow', additionalContext: result.message } };
     if (result.kind === 'deny')
         return { hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: result.reason }, continue: false };
     if (result.kind === 'allow')

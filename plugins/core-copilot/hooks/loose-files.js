@@ -27,17 +27,20 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/loose-files.ts
+// src/hooks/loose-files.ts
 var loose_files_exports = {};
 __export(loose_files_exports, {
   buildNudgeOutput: () => buildNudgeOutput,
+  default: () => loose_files_default,
   isLooseFile: () => isLooseFile,
-  main: () => main,
   shouldCheck: () => shouldCheck
 });
 module.exports = __toCommonJS(loose_files_exports);
-var import_path3 = __toESM(require("path"));
+var import_path4 = __toESM(require("path"));
 var import_fs3 = require("fs");
+
+// src/runtime/define-hook.ts
+var defineHook = (def) => def;
 
 // src/runtime/ide-registry.ts
 var EVENTS = {
@@ -54,7 +57,7 @@ var reverseLookupEvent = (ide, raw) => {
 };
 var TOOL_KINDS = {
   write: {
-    "claude-code": ["Write"],
+    "claude-code": ["Write", "create_file"],
     "codex": ["Write", "apply_patch", "functions.apply_patch"],
     "cursor": ["Write"],
     "windsurf": ["Write"],
@@ -172,8 +175,123 @@ var PROPERTIES = {
   }
 };
 
+// src/adapters/claude-code.ts
+var IDE = "claude-code";
+var CC_SIGNATURE = ["hook_event_name", "tool_input", "session_id"];
+var detect = (raw) => CC_SIGNATURE.every((f) => f in raw);
+var normalize = (raw) => ({
+  ...raw,
+  ide: IDE,
+  event: reverseLookupEvent(IDE, raw.hook_event_name),
+  toolKind: reverseLookupToolKind(IDE, raw.tool_name),
+  file_path: PROPERTIES.filePath[IDE](raw) ?? "",
+  cwd: PROPERTIES.cwd[IDE](raw) ?? void 0,
+  session_id: PROPERTIES.sessionId[IDE](raw) ?? void 0
+});
+var formatOutput = (canonical) => canonical ?? {};
+var claudeCode = { name: "claude-code", detect, normalize, formatOutput };
+
+// src/adapters/codex.ts
+var IDE2 = "codex";
+var CC_SIGNATURE2 = ["hook_event_name", "tool_input", "session_id"];
+var CODEX_EXTRA = ["model", "turn_id"];
+var detect2 = (raw) => CC_SIGNATURE2.every((f) => f in raw) && CODEX_EXTRA.every((f) => f in raw);
+var normalize2 = (raw) => ({
+  ...raw,
+  ide: IDE2,
+  event: reverseLookupEvent(IDE2, raw.hook_event_name),
+  toolKind: reverseLookupToolKind(IDE2, raw.tool_name),
+  file_path: PROPERTIES.filePath[IDE2](raw) ?? "",
+  cwd: PROPERTIES.cwd[IDE2](raw) ?? void 0,
+  session_id: PROPERTIES.sessionId[IDE2](raw) ?? void 0
+});
+var formatOutput2 = (canonical) => canonical ?? {};
+var codex = { name: "codex", detect: detect2, normalize: normalize2, formatOutput: formatOutput2 };
+
+// src/adapters/cursor.ts
+var IDE3 = "cursor";
+var CC_SIGNATURE3 = ["hook_event_name", "tool_input"];
+var CURSOR_EXTRA = ["conversation_id", "cursor_version"];
+var toPascalCase = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+var detect3 = (raw) => CC_SIGNATURE3.every((f) => f in raw) && CURSOR_EXTRA.every((f) => f in raw);
+var normalize3 = (raw) => {
+  const { hook_event_name, conversation_id, ...rest } = raw;
+  const rawEventName = hook_event_name;
+  return {
+    ...rest,
+    ide: IDE3,
+    event: reverseLookupEvent(IDE3, rawEventName),
+    toolKind: reverseLookupToolKind(IDE3, raw.tool_name),
+    hook_event_name: toPascalCase(rawEventName),
+    session_id: conversation_id,
+    conversation_id,
+    file_path: PROPERTIES.filePath[IDE3](raw) ?? "",
+    cwd: PROPERTIES.cwd[IDE3](raw) ?? void 0
+  };
+};
+var formatOutput3 = (canonical) => {
+  const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
+  const { additionalContext, permissionDecision, permissionDecisionReason } = hookSpecificOutput;
+  const out = {};
+  if (additionalContext) out.additional_context = additionalContext;
+  if (permissionDecision) out.permission = permissionDecision;
+  if (permissionDecisionReason) out.user_message = permissionDecisionReason;
+  if (cont === false) out.permission = out.permission ?? "deny";
+  return out;
+};
+var cursor = { name: "cursor", detect: detect3, normalize: normalize3, formatOutput: formatOutput3 };
+
+// src/adapters/windsurf.ts
+var IDE4 = "windsurf";
+var WINDSURF_SIGNATURE = ["agent_action_name", "trajectory_id", "tool_info"];
+var EVENT_MAP = {
+  pre_read_code: { hook_event_name: "PreToolUse", tool_name: "Read", buildToolInput: ({ file_path }) => ({ file_path }) },
+  post_read_code: { hook_event_name: "PostToolUse", tool_name: "Read", buildToolInput: ({ file_path }) => ({ file_path }) },
+  pre_write_code: { hook_event_name: "PreToolUse", tool_name: "Write", buildToolInput: ({ file_path }) => ({ file_path }) },
+  post_write_code: { hook_event_name: "PostToolUse", tool_name: "Write", buildToolInput: ({ file_path }) => ({ file_path }) },
+  pre_run_command: { hook_event_name: "PreToolUse", tool_name: "Bash", buildToolInput: ({ command_line }) => ({ command: command_line }) },
+  post_run_command: { hook_event_name: "PostToolUse", tool_name: "Bash", buildToolInput: ({ command_line }) => ({ command: command_line }) },
+  pre_mcp_tool_use: { hook_event_name: "PreToolUse", tool_name: ({ mcp_tool_name }) => mcp_tool_name, buildToolInput: ({ mcp_tool_arguments }) => mcp_tool_arguments || {} },
+  post_mcp_tool_use: { hook_event_name: "PostToolUse", tool_name: ({ mcp_tool_name }) => mcp_tool_name, buildToolInput: ({ mcp_tool_arguments }) => mcp_tool_arguments || {} },
+  // Events without CC equivalent — use new canonical names
+  pre_user_prompt: { hook_event_name: "PrePromptSubmit", tool_name: null, buildToolInput: ({ user_prompt }) => ({ prompt: user_prompt }) },
+  post_cascade_response: { hook_event_name: "PostResponse", tool_name: null, buildToolInput: ({ response }) => ({ response }) },
+  post_cascade_response_with_transcript: { hook_event_name: "PostResponse", tool_name: null, buildToolInput: ({ transcript_path }) => ({ transcript_path }) },
+  post_setup_worktree: { hook_event_name: "PostWorktree", tool_name: null, buildToolInput: ({ worktree_path, root_workspace_path }) => ({ worktree_path, root_workspace_path }) }
+};
+var resolveToolName = (eventDef, toolInfo) => typeof eventDef.tool_name === "function" ? eventDef.tool_name(toolInfo) : eventDef.tool_name;
+var detect4 = (raw) => WINDSURF_SIGNATURE.every((f) => f in raw);
+var normalize4 = (raw) => {
+  const { agent_action_name, trajectory_id, execution_id, timestamp, model_name, tool_info } = raw;
+  const eventDef = EVENT_MAP[agent_action_name];
+  const ti = tool_info || {};
+  const mappedHookEventName = eventDef ? eventDef.hook_event_name : agent_action_name;
+  const mappedToolName = eventDef ? resolveToolName(eventDef, ti) : null;
+  return {
+    ide: IDE4,
+    event: reverseLookupEvent(IDE4, mappedHookEventName),
+    toolKind: reverseLookupToolKind(IDE4, mappedToolName ?? ""),
+    hook_event_name: mappedHookEventName,
+    session_id: trajectory_id,
+    tool_name: mappedToolName,
+    tool_input: eventDef ? eventDef.buildToolInput(ti) : ti,
+    file_path: PROPERTIES.filePath[IDE4](raw) ?? "",
+    cwd: PROPERTIES.cwd[IDE4](raw) ?? void 0,
+    _windsurf: { agent_action_name, execution_id, timestamp, model_name, tool_info: ti }
+  };
+};
+var formatOutput4 = (canonical) => {
+  const { hookSpecificOutput = {} } = canonical ?? {};
+  const { additionalContext, permissionDecision } = hookSpecificOutput;
+  const out = {};
+  if (additionalContext) out.additionalContext = additionalContext;
+  if (permissionDecision === "deny") out._exitCode = 2;
+  return out;
+};
+var windsurf = { name: "windsurf", detect: detect4, normalize: normalize4, formatOutput: formatOutput4 };
+
 // src/adapters/copilot.ts
-var IDE = "copilot";
+var IDE5 = "copilot";
 var COPILOT_SIGNATURE = ["toolName", "timestamp", "cwd"];
 var inferEvent = (raw) => {
   if ("toolName" in raw) return "toolResult" in raw ? "PostToolUse" : "PreToolUse";
@@ -198,13 +316,13 @@ var parseToolArgs = (raw) => {
     return { _raw: toolArgs };
   }
 };
-var detect = (raw) => COPILOT_SIGNATURE.every((f) => f in raw) && !("hook_event_name" in raw);
-var normalize = (raw) => {
+var detect5 = (raw) => COPILOT_SIGNATURE.every((f) => f in raw) && !("hook_event_name" in raw);
+var normalize5 = (raw) => {
   const { toolName, cwd, toolArgs, toolResult, timestamp } = raw;
   return {
-    ide: IDE,
+    ide: IDE5,
     event: inferEvent(raw),
-    toolKind: reverseLookupToolKind(IDE, toolName),
+    toolKind: reverseLookupToolKind(IDE5, toolName),
     hook_event_name: inferHookEventName(raw),
     session_id: void 0,
     tool_name: toolName,
@@ -212,11 +330,11 @@ var normalize = (raw) => {
     tool_use_id: void 0,
     cwd,
     tool_response: toolResult ?? void 0,
-    file_path: PROPERTIES.filePath[IDE](raw) ?? "",
+    file_path: PROPERTIES.filePath[IDE5](raw) ?? "",
     _copilot: { timestamp, toolName, toolArgs, toolResult }
   };
 };
-var formatOutput = (canonical) => {
+var formatOutput5 = (canonical) => {
   const { hookSpecificOutput = {}, continue: cont } = canonical ?? {};
   const { permissionDecision, permissionDecisionReason, additionalContext, hookEventName } = hookSpecificOutput;
   const out = {};
@@ -226,25 +344,36 @@ var formatOutput = (canonical) => {
   if (additionalContext) out.hookSpecificOutput = { hookEventName, additionalContext };
   return out;
 };
-var copilot = { name: "copilot", detect, normalize, formatOutput };
+var copilot = { name: "copilot", detect: detect5, normalize: normalize5, formatOutput: formatOutput5 };
 
-// src/adapters/claude-code.ts
-var IDE2 = "claude-code";
-var CC_SIGNATURE = ["hook_event_name", "tool_input", "session_id"];
-var detect2 = (raw) => CC_SIGNATURE.every((f) => f in raw);
-var normalize2 = (raw) => ({
-  ...raw,
-  ide: IDE2,
-  event: reverseLookupEvent(IDE2, raw.hook_event_name),
-  toolKind: reverseLookupToolKind(IDE2, raw.tool_name),
-  file_path: PROPERTIES.filePath[IDE2](raw) ?? "",
-  cwd: PROPERTIES.cwd[IDE2](raw) ?? void 0,
-  session_id: PROPERTIES.sessionId[IDE2](raw) ?? void 0
-});
-var formatOutput2 = (canonical) => canonical ?? {};
-var claudeCode = { name: "claude-code", detect: detect2, normalize: normalize2, formatOutput: formatOutput2 };
-
-// src/entrypoints/adapter-copilot.ts
+// src/adapter.ts
+var DETECTION_ORDER = ["codex", "cursor", "claude-code", "windsurf", "copilot"];
+var ADAPTERS = {
+  codex,
+  cursor,
+  "claude-code": claudeCode,
+  windsurf,
+  copilot
+};
+var detectIDE = (rawInput) => {
+  if (rawInput === null || rawInput === void 0) {
+    throw new Error("Invalid input: null or undefined");
+  }
+  if (typeof rawInput !== "object" || Array.isArray(rawInput)) {
+    throw new Error("Invalid input: expected a plain object");
+  }
+  const raw = rawInput;
+  const ide = DETECTION_ORDER.find((name) => ADAPTERS[name].detect(raw));
+  if (!ide) {
+    throw new Error(`Unsupported IDE: ${JSON.stringify(Object.keys(raw))}`);
+  }
+  return ide;
+};
+var normalize6 = (rawInput) => ADAPTERS[detectIDE(rawInput)].normalize(rawInput);
+var formatOutput6 = (canonicalOutput, ide) => {
+  const adapter = ide ? ADAPTERS[ide] : void 0;
+  return adapter ? adapter.formatOutput(canonicalOutput) : canonicalOutput;
+};
 var readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
   const chunks = [];
   stream.on("data", (chunk) => chunks.push(String(chunk)));
@@ -259,25 +388,17 @@ var readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
   });
   stream.on("error", reject);
 });
-var normalize3 = (rawInput) => {
-  const raw = rawInput;
-  return copilot.detect(raw) ? copilot.normalize(raw) : claudeCode.normalize(raw);
-};
-var formatOutput3 = (canonical, ide) => ide === "claude-code" ? claudeCode.formatOutput(canonical) : copilot.formatOutput(canonical);
-var detectIDE = (raw) => {
-  const r = raw;
-  return copilot.detect(r) ? "copilot" : "claude-code";
-};
 
-// src/lock.ts
+// src/runtime/throttle.ts
 var import_fs = require("fs");
 var import_crypto = require("crypto");
 var import_path = __toESM(require("path"));
 var import_os = __toESM(require("os"));
+var DEFAULT_DIR = import_os.default.tmpdir();
 var LOCK_TTL_MS = 5e3;
-var acquireOnce = (input) => {
-  const fingerprint = (0, import_crypto.createHash)("sha256").update(`${input.session_id ?? "no-session"}:${input.hook_event_name}:${input.tool_name ?? ""}:${JSON.stringify(input.tool_input ?? {})}`).digest("hex").slice(0, 16);
-  const lockPath = import_path.default.join(import_os.default.tmpdir(), `rosetta-hooks-${fingerprint}.lock`);
+var acquireOnce = (key, dir = DEFAULT_DIR) => {
+  const hash = (0, import_crypto.createHash)("sha256").update(key).digest("hex").slice(0, 16);
+  const lockPath = import_path.default.join(dir, `rosetta-hooks-${hash}.lock`);
   try {
     (0, import_fs.writeFileSync)(lockPath, String(Date.now()), { flag: "wx" });
     return true;
@@ -292,7 +413,7 @@ var acquireOnce = (input) => {
   }
 };
 
-// src/debug-log.ts
+// src/runtime/debug-log.ts
 var import_fs2 = require("fs");
 var import_path2 = __toESM(require("path"));
 var import_os2 = __toESM(require("os"));
@@ -325,8 +446,65 @@ var debugLog = (message, context) => {
   }
 };
 
-// src/loose-files.ts
-var ALLOWED_EXTENSIONS = /* @__PURE__ */ new Set([".py", ".js"]);
+// src/runtime/run-hook.ts
+var toHookContext = (norm) => ({
+  ide: norm.ide,
+  event: norm.event,
+  toolKind: norm.toolKind,
+  toolName: norm.tool_name ?? "",
+  filePath: norm.file_path ?? "",
+  cwd: norm.cwd ?? "",
+  sessionId: norm.session_id ?? null,
+  toolInput: norm.tool_input,
+  toolResponse: norm.tool_response
+});
+var toCanonical = (result, ctx) => {
+  if (result.kind === "advise")
+    return { hookSpecificOutput: { hookEventName: ctx.event ?? "", permissionDecision: "allow", additionalContext: result.message } };
+  if (result.kind === "deny")
+    return { hookSpecificOutput: { permissionDecision: "deny", permissionDecisionReason: result.reason }, continue: false };
+  if (result.kind === "allow")
+    return { hookSpecificOutput: { permissionDecision: "allow" } };
+  return {};
+};
+var makeDedupKey = (dedupBy, ctx, name) => [
+  name,
+  ...dedupBy.includes("session") ? [ctx.sessionId ?? "no-session"] : [],
+  ...dedupBy.includes("filePath") ? [ctx.filePath] : [],
+  ...dedupBy.includes("ide") ? [ctx.ide] : []
+].join(":");
+var runHook = async (def, opts = {}) => {
+  const { stdin = process.stdin, stdout = process.stdout } = opts;
+  try {
+    const raw = await readStdin(stdin);
+    const ide = detectIDE(raw);
+    const norm = normalize6(raw);
+    debugLog(`[runHook:${def.name}]`, { ide, event: norm.event, toolKind: norm.toolKind });
+    if (norm.event !== def.on.event) return;
+    if (!def.on.toolKinds.includes(norm.toolKind)) return;
+    if (def.throttle && "dedupBy" in def.throttle) {
+      const ctx0 = toHookContext(norm);
+      if (!acquireOnce(makeDedupKey(def.throttle.dedupBy, ctx0, def.name))) return;
+    }
+    const ctx = toHookContext(norm);
+    const result = await def.run(ctx);
+    if (!result || result.kind === "side-effect") return;
+    stdout.write(JSON.stringify(formatOutput6(toCanonical(result, ctx), ide)));
+  } catch (err) {
+    debugLog(`[runHook:${def.name}] error`, { err: err.message });
+  }
+};
+
+// src/runtime/result-helpers.ts
+var advise = (message) => ({ kind: "advise", message });
+
+// src/runtime/path-utils.ts
+var import_path3 = __toESM(require("path"));
+var hasExtension = (filePath, exts) => !!filePath && exts.includes(import_path3.default.extname(filePath));
+var pathContainsAny = (filePath, segments) => segments.some((s) => filePath.includes(s));
+
+// src/hooks/loose-files.ts
+var ALLOWED_EXTENSIONS = [".py", ".js"];
 var ALLOWED_TOOLS = /* @__PURE__ */ new Set(["Write", "apply_patch", "functions.apply_patch", "create_file"]);
 var PATCH_FILE_RE2 = /^\*\*\* (?:Add|Create) File: (.+)$/m;
 var EXCLUDED_PATH_SEGMENTS = [
@@ -343,7 +521,6 @@ var MODULE_MARKERS = {
   ".js": "package.json"
 };
 var MAX_WALK_LEVELS = 10;
-var isPathExcluded = (filePath) => EXCLUDED_PATH_SEGMENTS.some((segment) => filePath.includes(segment));
 var shouldCheck = (normalizedInput) => {
   if (normalizedInput.hook_event_name !== "PostToolUse") {
     debugLog("skip: not PostToolUse", { hook_event_name: normalizedInput.hook_event_name });
@@ -362,72 +539,65 @@ var shouldCheck = (normalizedInput) => {
     }
   }
   const filePath = normalizedInput.file_path ?? "";
-  const ext = import_path3.default.extname(filePath);
-  if (!ALLOWED_EXTENSIONS.has(ext)) {
-    debugLog("skip: extension not allowed", { filePath: filePath || null, ext: ext || null });
+  if (!hasExtension(filePath, ALLOWED_EXTENSIONS)) {
+    debugLog("skip: extension not allowed", { filePath: filePath || null, ext: import_path4.default.extname(filePath) || null });
     return false;
   }
-  if (isPathExcluded(filePath)) {
+  if (pathContainsAny(filePath, EXCLUDED_PATH_SEGMENTS)) {
     debugLog("skip: path excluded", { filePath });
     return false;
   }
   return true;
 };
 var isLooseFile = (filePath, fs = { existsSync: import_fs3.existsSync }) => {
-  const marker = MODULE_MARKERS[import_path3.default.extname(filePath)];
+  const marker = MODULE_MARKERS[import_path4.default.extname(filePath)];
   if (!marker) return false;
-  let dir = import_path3.default.dirname(filePath);
+  let dir = import_path4.default.dirname(filePath);
   for (let level = 0; level < MAX_WALK_LEVELS; level++) {
-    if (fs.existsSync(import_path3.default.join(dir, marker))) return false;
-    if (fs.existsSync(import_path3.default.join(dir, ".git"))) return true;
-    const parent = import_path3.default.dirname(dir);
+    if (fs.existsSync(import_path4.default.join(dir, marker))) return false;
+    if (fs.existsSync(import_path4.default.join(dir, ".git"))) return true;
+    const parent = import_path4.default.dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
   return true;
 };
-var buildNudgeOutput = (filePath) => {
-  const marker = MODULE_MARKERS[import_path3.default.extname(filePath)] ?? "a module marker";
-  const basename = import_path3.default.basename(filePath);
-  return {
-    hookSpecificOutput: {
-      hookEventName: "PostToolUse",
-      additionalContext: `${basename} appears to be a loose file outside a module. Intended? A temporary file? ${marker}?`
-    },
-    continue: true,
-    suppressOutput: false
-  };
+var nudgeMessage = (filePath) => {
+  const marker = MODULE_MARKERS[import_path4.default.extname(filePath)] ?? "a module marker";
+  const basename = import_path4.default.basename(filePath);
+  return `${basename} appears to be a loose file outside a module. Intended? A temporary file? ${marker}?`;
 };
-var main = async ({
-  stdin = process.stdin,
-  stdout = process.stdout
-} = {}) => {
-  const raw = await readStdin(stdin);
-  debugLog("raw input received", { hook_event_name: raw.hook_event_name });
-  const ide = detectIDE(raw);
-  const normalized = normalize3(raw);
-  debugLog("normalized", { ide, session_id: normalized.session_id, tool_name: normalized.tool_name });
-  if (!shouldCheck(normalized)) {
-    debugLog("skipped (shouldCheck=false)");
-    return;
+var buildNudgeOutput = (filePath) => ({
+  hookSpecificOutput: {
+    hookEventName: "PostToolUse",
+    additionalContext: nudgeMessage(filePath)
+  },
+  continue: true,
+  suppressOutput: false
+});
+var looseFilesHook = defineHook({
+  name: "loose-files",
+  on: { event: "PostToolUse", toolKinds: ["write"] },
+  run: (ctx) => {
+    const toolName = ctx.toolName;
+    if (toolName === "apply_patch" || toolName === "functions.apply_patch") {
+      const command = ctx.toolInput.command ?? "";
+      if (!PATCH_FILE_RE2.test(command)) return null;
+    }
+    if (!hasExtension(ctx.filePath, ALLOWED_EXTENSIONS)) return null;
+    if (pathContainsAny(ctx.filePath, EXCLUDED_PATH_SEGMENTS)) return null;
+    if (ctx.ide === "copilot") {
+      const dedupKey = `loose-files:${ctx.sessionId ?? "no-session"}:${ctx.toolName}:${JSON.stringify(ctx.toolInput)}`;
+      if (!acquireOnce(dedupKey)) return null;
+    }
+    if (!isLooseFile(ctx.filePath)) return null;
+    debugLog("[loose-files] nudge", { filePath: ctx.filePath });
+    return advise(nudgeMessage(ctx.filePath));
   }
-  if (ide === "copilot" && !acquireOnce(normalized)) {
-    debugLog("skipped (duplicate)");
-    return;
-  }
-  const filePath = normalized.file_path ?? "";
-  if (isLooseFile(filePath)) {
-    const output = buildNudgeOutput(filePath);
-    const json = JSON.stringify(formatOutput3(output, ide));
-    debugLog("nudge emitted", { filePath, output: json });
-    stdout.write(`${json}
-`);
-  } else {
-    debugLog("file is not loose", { filePath });
-  }
-};
+});
+var loose_files_default = looseFilesHook;
 if (require.main === module) {
-  main().then(
+  runHook(looseFilesHook).then(
     () => process.exit(0),
     (err) => {
       process.stderr.write(`loose-files hook error: ${err.message}
@@ -440,6 +610,5 @@ if (require.main === module) {
 0 && (module.exports = {
   buildNudgeOutput,
   isLooseFile,
-  main,
   shouldCheck
 });

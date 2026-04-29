@@ -18,7 +18,7 @@ exports.reverseLookupEvent = reverseLookupEvent;
 // IMPORTANT: Verify exact tool names against hooks/tests/fixtures/*.json before finalizing.
 exports.TOOL_KINDS = {
     write: {
-        'claude-code': ['Write'],
+        'claude-code': ['Write', 'create_file'],
         'codex': ['Write', 'apply_patch', 'functions.apply_patch'],
         'cursor': ['Write'],
         'windsurf': ['Write'],
