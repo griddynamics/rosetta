@@ -40,24 +40,25 @@ baseSchema: docs/schemas/rule.md
 
 # Prep Step 2:
 
-1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session "Initialize this repository using Rosetta (upgrade R1 to R2)". Todo tasks created.
-2. MUST USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied.
-3. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
-3. MUST ALWAYS grep `^#{1,3}` headers of the IMPLEMENTATION.md and agent MEMORY.md.
-4. Grep headers of rest Rosetta file when needed.
-5. MUST use and validate REQUIREMENTS (if exist)
-6. MUST ALWAYS EXECUTE FULLY `Prep Step 3` BEFORE you do anything else, including planning, exploring, reading, validating.
-7. Rosetta guides you EXACTLY how to do all those activities PROPERLY!
-8. MUST IDENTIFY request size AFTER CONTEXT LOADED:
-   - SMALL: 1-2 file changes/activities and only one area affected
-   - MEDIUM: up to ~10 file changes/activities and only one area affected
-   - LARGE: more than 10 file changes/activities or multiple areas affected
-9. Additional requirements based on request size:
-   - SMALL: MUST USE todo tasks for planning, MUST OUTPUT tech specs as message, MUST use workflows;
-   - MEDIUM: MUST keep documentation concise, light, and short; MUST use subagents, MUST use workflows;
-   - LARGE: MUST use subagents extensively as orchestrator context will be overloaded, MUST use workflows;
-10. Reevaluate request size and workflow when scope changes or new information is received
-11. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`, and MUST continue with the prep steps 3.
+1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session "Initialize this repository using Rosetta (upgrade R1 to R2)".
+2. MUST CREATE todo tasks for steps and actions (yes, fine-grained).
+3. MUST USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied.
+4. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
+5. MUST ALWAYS grep `^#{1,3}` headers of the IMPLEMENTATION.md and agent MEMORY.md.
+6. Grep headers of rest Rosetta file when needed.
+7. MUST use and validate REQUIREMENTS (if exist)
+8. MUST ALWAYS EXECUTE FULLY `Prep Step 3` BEFORE you do anything else, including planning, exploring, reading, validating.
+9. Rosetta guides you EXACTLY how to do all those activities PROPERLY!
+10. MUST IDENTIFY request size AFTER CONTEXT LOADED:
+    - SMALL: 1-2 file changes/activities and only one area affected
+    - MEDIUM: up to ~10 file changes/activities and only one area affected
+    - LARGE: more than 10 file changes/activities or multiple areas affected
+11. Additional requirements based on request size:
+    - SMALL: MUST USE todo tasks for planning, MUST OUTPUT tech specs as message, MUST use workflows;
+    - MEDIUM: MUST keep documentation concise, light, and short; MUST use subagents, MUST use workflows;
+    - LARGE: MUST use subagents extensively as orchestrator context will be overloaded, MUST use workflows;
+12. Reevaluate request size and workflow when scope changes or new information is received
+13. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`, and MUST continue with the prep steps 3.
 
 # Prep Step 3 for subagents:
 
