@@ -1,5 +1,5 @@
 import { test, describe, expect } from 'vitest';
-import { EVENTS, reverseLookupEvent } from '../../src/runtime/ide-registry';
+import { EVENTS, reverseLookupEvent, TOOL_KINDS, reverseLookupToolKind } from '../../src/runtime/ide-registry';
 
 const IDES = ['claude-code', 'codex', 'cursor', 'windsurf', 'copilot'] as const;
 
@@ -23,4 +23,27 @@ describe('reverseLookupEvent', () => {
     expect(reverseLookupEvent('cursor', 'postToolUse')).toBe('PostToolUse'));
   test('unknown raw value returns null', () =>
     expect(reverseLookupEvent('claude-code', 'SomeRandomEvent')).toBeNull());
+});
+
+describe('TOOL_KINDS — completeness', () => {
+  test('every kind has every IDE mapped or explicit null', () => {
+    for (const [kind, map] of Object.entries(TOOL_KINDS)) {
+      IDES.forEach(ide =>
+        expect(map[ide], `TOOL_KINDS.${kind}['${ide}'] must not be undefined`).not.toBeUndefined()
+      );
+    }
+  });
+});
+
+describe('reverseLookupToolKind', () => {
+  test('claude-code Write → write', () =>
+    expect(reverseLookupToolKind('claude-code', 'Write')).toBe('write'));
+  test('copilot create_file → write', () =>
+    expect(reverseLookupToolKind('copilot', 'create_file')).toBe('write'));
+  test('copilot replace_string_in_file → edit', () =>
+    expect(reverseLookupToolKind('copilot', 'replace_string_in_file')).toBe('edit'));
+  test('MultiEdit for codex → null (not supported)', () =>
+    expect(reverseLookupToolKind('codex', 'MultiEdit')).toBeNull());
+  test('Bash → bash for claude-code', () =>
+    expect(reverseLookupToolKind('claude-code', 'Bash')).toBe('bash'));
 });
