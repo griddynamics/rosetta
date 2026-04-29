@@ -15,12 +15,24 @@
 //   - readStdin, normalize, formatOutput — used by hook entrypoints (prod)
 //   - detectIDE — exposed for tests; prod callers should prefer normalize()
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.readStdin = exports.formatOutput = exports.normalize = exports.detectIDE = void 0;
+exports.readStdin = exports.formatOutput = exports.normalize = exports.detectIDE = exports.extractFilePath = void 0;
 const claude_code_1 = require("./adapters/claude-code");
 const codex_1 = require("./adapters/codex");
 const cursor_1 = require("./adapters/cursor");
 const windsurf_1 = require("./adapters/windsurf");
 const copilot_1 = require("./adapters/copilot");
+const PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
+const extractFilePath = (toolName, toolInput) => {
+    if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
+        const command = toolInput.command ?? '';
+        return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? '';
+    }
+    return toolInput.file_path
+        ?? toolInput.filePath
+        ?? toolInput.path
+        ?? '';
+};
+exports.extractFilePath = extractFilePath;
 // Detection is an ordered chain — a superset like codex must match before
 // claude-code, so this order is load-bearing and not derived from Object.keys.
 const DETECTION_ORDER = ['codex', 'cursor', 'claude-code', 'windsurf', 'copilot'];
@@ -46,7 +58,11 @@ const detectIDE = (rawInput) => {
     return ide;
 };
 exports.detectIDE = detectIDE;
-const normalize = (rawInput) => ADAPTERS[(0, exports.detectIDE)(rawInput)].normalize(rawInput);
+const normalize = (rawInput) => {
+    const result = ADAPTERS[(0, exports.detectIDE)(rawInput)].normalize(rawInput);
+    result.file_path = (0, exports.extractFilePath)(result.tool_name, result.tool_input);
+    return result;
+};
 exports.normalize = normalize;
 const formatOutput = (canonicalOutput, ide) => {
     const adapter = ide ? ADAPTERS[ide] : undefined;

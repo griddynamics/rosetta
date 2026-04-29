@@ -18,25 +18,31 @@ const BUNDLES = [
   { plugin: 'core-windsurf', adapter: 'adapter-windsurf' },
 ];
 
+// Hook source files to bundle per plugin.
+const HOOK_SOURCES = ['loose-files.ts', 'md-file-advisory.ts'];
+
 for (const { plugin, adapter } of BUNDLES) {
   const adapterPath = path.join(srcDir, 'entrypoints', `${adapter}.ts`);
 
-  await esbuild.build({
-    entryPoints: [path.join(srcDir, 'loose-files.ts')],
-    bundle: true,
-    platform: 'node',
-    format: 'cjs',
-    outfile: path.join(outDir, plugin, 'loose-files.js'),
-    plugins: [
-      {
-        name: 'adapter-alias',
-        setup(build) {
-          // Intercept `./adapter` import in loose-files.ts and redirect to slim adapter.
-          build.onResolve({ filter: /^\.\/adapter$/ }, () => ({ path: adapterPath }));
+  for (const hookSource of HOOK_SOURCES) {
+    const outName = hookSource.replace('.ts', '.js');
+    await esbuild.build({
+      entryPoints: [path.join(srcDir, hookSource)],
+      bundle: true,
+      platform: 'node',
+      format: 'cjs',
+      outfile: path.join(outDir, plugin, outName),
+      plugins: [
+        {
+          name: 'adapter-alias',
+          setup(build) {
+            // Intercept `./adapter` import and redirect to the slim per-IDE adapter.
+            build.onResolve({ filter: /^\.\/adapter$/ }, () => ({ path: adapterPath }));
+          },
         },
-      },
-    ],
-  });
-}
+      ],
+    });
 
-console.log(`  built ${BUNDLES.length} bundles → dist/bundles/`);
+    console.log(`  bundled ${plugin} → dist/bundles/${plugin}/${outName}`);
+  }
+}

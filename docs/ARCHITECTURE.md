@@ -526,7 +526,7 @@ Source lives in `hooks/` and is compiled per-IDE before sync:
 | `hooks/scripts/` | esbuild bundler (`build-bundles.mjs`) |
 | `hooks/dist/bundles/` | Compiled per-IDE bundles (generated, not committed) |
 
-Each hook is bundled separately per IDE via esbuild so each bundle contains only its adapter code.
+Each hook is bundled separately per IDE via esbuild so each bundle contains only its adapter code. To add a new hook: create the `.ts` source in `hooks/src/`, then add its filename to the `HOOK_SOURCES` array in `hooks/scripts/build-bundles.mjs`.
 
 - **IDE normalization** — `src/adapter.ts` detects the IDE from stdin shape and normalizes to a canonical `NormalizedInput`; detection order: codex > cursor > claude-code > windsurf > copilot
 - **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema

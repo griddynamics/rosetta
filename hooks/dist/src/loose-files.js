@@ -33,13 +33,6 @@ const MODULE_MARKERS = {
 };
 const MAX_WALK_LEVELS = 10;
 const isPathExcluded = (filePath) => EXCLUDED_PATH_SEGMENTS.some((segment) => filePath.includes(segment));
-const getFilePath = (toolName, toolInput) => {
-    if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
-        const command = toolInput.command ?? '';
-        return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? '';
-    }
-    return toolInput.file_path ?? toolInput.filePath ?? '';
-};
 const shouldCheck = (normalizedInput) => {
     if (normalizedInput.hook_event_name !== 'PostToolUse') {
         (0, debug_log_1.debugLog)('skip: not PostToolUse', { hook_event_name: normalizedInput.hook_event_name });
@@ -49,7 +42,15 @@ const shouldCheck = (normalizedInput) => {
         (0, debug_log_1.debugLog)('skip: tool not in ALLOWED_TOOLS', { tool_name: normalizedInput.tool_name });
         return false;
     }
-    const filePath = getFilePath(normalizedInput.tool_name, normalizedInput.tool_input);
+    const toolName = normalizedInput.tool_name;
+    if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
+        const command = normalizedInput.tool_input?.command ?? '';
+        if (!PATCH_FILE_RE.test(command)) {
+            (0, debug_log_1.debugLog)('skip: patch is not file creation (no Add/Create File marker)', { command: command.slice(0, 80) });
+            return false;
+        }
+    }
+    const filePath = normalizedInput.file_path ?? '';
     const ext = path_1.default.extname(filePath);
     if (!ALLOWED_EXTENSIONS.has(ext)) {
         (0, debug_log_1.debugLog)('skip: extension not allowed', { filePath: filePath || null, ext: ext || null });
@@ -107,7 +108,7 @@ const main = async ({ stdin = process.stdin, stdout = process.stdout, } = {}) =>
         (0, debug_log_1.debugLog)('skipped (duplicate)');
         return;
     }
-    const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
+    const filePath = normalized.file_path ?? '';
     if ((0, exports.isLooseFile)(filePath)) {
         const output = (0, exports.buildNudgeOutput)(filePath);
         const json = JSON.stringify((0, adapter_1.formatOutput)(output, ide));

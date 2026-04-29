@@ -43,14 +43,6 @@ interface NudgeOutput {
 const isPathExcluded = (filePath: string): boolean =>
   EXCLUDED_PATH_SEGMENTS.some((segment) => filePath.includes(segment));
 
-const getFilePath = (toolName: string | null | undefined, toolInput: Record<string, unknown>): string => {
-  if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
-    const command = (toolInput.command as string) ?? '';
-    return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? '';
-  }
-  return (toolInput.file_path as string) ?? (toolInput.filePath as string) ?? '';
-};
-
 export const shouldCheck = (normalizedInput: NormalizedInput): boolean => {
   if (normalizedInput.hook_event_name !== 'PostToolUse') {
     debugLog('skip: not PostToolUse', { hook_event_name: normalizedInput.hook_event_name });
@@ -61,7 +53,16 @@ export const shouldCheck = (normalizedInput: NormalizedInput): boolean => {
     return false;
   }
 
-  const filePath = getFilePath(normalizedInput.tool_name, normalizedInput.tool_input);
+  const toolName = normalizedInput.tool_name as string;
+  if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
+    const command = (normalizedInput.tool_input?.command as string) ?? '';
+    if (!PATCH_FILE_RE.test(command)) {
+      debugLog('skip: patch is not file creation (no Add/Create File marker)', { command: command.slice(0, 80) });
+      return false;
+    }
+  }
+
+  const filePath = normalizedInput.file_path ?? '';
   const ext = path.extname(filePath);
   if (!ALLOWED_EXTENSIONS.has(ext)) {
     debugLog('skip: extension not allowed', { filePath: filePath || null, ext: ext || null });
@@ -125,7 +126,7 @@ export const main = async ({
     return;
   }
 
-  const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
+  const filePath = normalized.file_path ?? '';
   if (isLooseFile(filePath)) {
     const output = buildNudgeOutput(filePath);
     const json = JSON.stringify(formatOutput(output, ide));
