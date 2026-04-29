@@ -1,5 +1,5 @@
 import { test, describe, expect, vi, beforeEach } from 'vitest';
-import { runHook } from '../../src/runtime/run-hook';
+import { runHook, runAsCli } from '../../src/runtime/run-hook';
 import { defineHook } from '../../src/runtime/define-hook';
 import { advise, sideEffect } from '../../src/runtime/result-helpers';
 import { readStdin } from '../../src/adapter';
@@ -19,6 +19,18 @@ const ADVISE_HOOK = defineHook({
   name: 'test-advise',
   on: { event: 'PostToolUse', toolKinds: ['write'] },
   run: (ctx) => advise(`hello from ${ctx.filePath}`),
+});
+
+describe('runAsCli', () => {
+  test('does nothing when require.main !== mod', () => {
+    const fakeMod = {} as NodeModule;
+    const hook = defineHook({
+      name: 'test',
+      on: { event: 'PostToolUse', toolKinds: ['write'] },
+      run: () => null,
+    });
+    expect(() => runAsCli(hook, fakeMod)).not.toThrow();
+  });
 });
 
 describe('runHook — activation gate', () => {

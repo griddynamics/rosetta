@@ -7,7 +7,7 @@
 import path from 'path';
 import { existsSync } from 'fs';
 import { defineHook } from '../runtime/define-hook';
-import { runHook } from '../runtime/run-hook';
+import { runHook, runAsCli } from '../runtime/run-hook';
 import { advise } from '../runtime/result-helpers';
 import { acquireOnce } from '../runtime/throttle';
 import { hasExtension, pathContainsAny } from '../runtime/path-utils';
@@ -126,13 +126,4 @@ const looseFilesHook = defineHook({
 });
 
 export default looseFilesHook;
-
-if (require.main === module) {
-  runHook(looseFilesHook).then(
-    () => process.exit(0),
-    (err: Error) => {
-      process.stderr.write(`loose-files hook error: ${err.message}\n`);
-      process.exit(1);
-    },
-  );
-}
+runAsCli(looseFilesHook, module);

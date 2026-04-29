@@ -4,6 +4,17 @@ import { debugLog } from './debug-log';
 import type { HookDefinition, HookContext, HookResult } from './types';
 import type { NormalizedInput, CanonicalOutput } from '../types';
 
+export const runAsCli = (def: HookDefinition, mod: NodeModule): void => {
+  if (require.main !== mod) return;
+  runHook(def).then(
+    () => process.exit(0),
+    (err: Error) => {
+      process.stderr.write(`${def.name} hook error: ${err.message}\n`);
+      process.exit(1);
+    },
+  );
+};
+
 const toHookContext = (norm: NormalizedInput): HookContext => ({
   ide:          norm.ide,
   event:        norm.event,

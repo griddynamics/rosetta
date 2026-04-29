@@ -19,7 +19,7 @@ import path from 'path';
 import os from 'os';
 import { spawn } from 'child_process';
 import { defineHook } from '../runtime/define-hook';
-import { runHook } from '../runtime/run-hook';
+import { runHook, runAsCli } from '../runtime/run-hook';
 import { sideEffect } from '../runtime/result-helpers';
 import { walkUp } from '../runtime/path-utils';
 import { debugLog } from '../runtime/debug-log';
@@ -129,15 +129,5 @@ const gitnexusRefreshHook = defineHook({
 });
 
 export default gitnexusRefreshHook;
-
 export const main = (): Promise<void> => runHook(gitnexusRefreshHook);
-
-if (require.main === module) {
-  main().then(
-    () => process.exit(0),
-    (err: Error) => {
-      process.stderr.write(`gitnexus-refresh hook error: ${err.message}\n`);
-      process.exit(1);
-    },
-  );
-}
+runAsCli(gitnexusRefreshHook, module);

@@ -9,7 +9,7 @@
 
 import path from 'path';
 import { defineHook } from '../runtime/define-hook';
-import { runHook } from '../runtime/run-hook';
+import { runHook, runAsCli } from '../runtime/run-hook';
 import { advise } from '../runtime/result-helpers';
 import { debugLog } from '../runtime/debug-log';
 import type { CanonicalOutput, NormalizedInput } from '../types';
@@ -99,13 +99,4 @@ const mdFileAdvisoryHook = defineHook({
 });
 
 export default mdFileAdvisoryHook;
-
-if (require.main === module) {
-  runHook(mdFileAdvisoryHook).then(
-    () => process.exit(0),
-    (err: Error) => {
-      process.stderr.write(`md-file-advisory hook error: ${err.message}\n`);
-      process.exit(1);
-    },
-  );
-}
+runAsCli(mdFileAdvisoryHook, module);
