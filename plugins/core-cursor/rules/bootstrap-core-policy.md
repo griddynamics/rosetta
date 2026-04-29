@@ -80,7 +80,7 @@ You are now running Rosetta, installed by the user. Execute fully all prep steps
 1. MUST USE SKILL `orchestrator-contract` as the FIRST action, before spawning any subagents.
 2. MUST USE SKILL `hitl` to load it for continuous enforcement throughout the session.
 3. User request → read get_context_instructions schema (if needed) → get_context_instructions (if not done yet) → execute all prep steps → load workflow → proceed with workflow and integrate remaining actions (including questioning user, EnterPlanMode, plan_mode_respond, system-reminder, etc.)
-4. MUST ACQUIRE <workflow TAG from available workflows, example: "workflows/coding-flow.md"> FROM KB TO LOAD MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES
+4. MUST ACQUIRE <workflow TAG from available workflows, example: "workflows/coding-flow.md"> FROM KB TO LOAD THE MOST MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES
 5. MUST ADD/UPDATE todo tasks with loaded workflow phases NOW, MUST output to user "Tasks Created: [task ids returned by the tool]"
 6. In planning mode results of `planning` and `tech-specs` MUST be stored according to system prompt (NOT in `plans` folder as it is read-only)
 7. Proceed executing workflow which guides you how to handle user request and activities as user expects it
