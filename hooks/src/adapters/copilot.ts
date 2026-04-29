@@ -81,4 +81,9 @@ const formatOutput = (canonical?: CanonicalOutput): Record<string, unknown> => {
   return out;
 };
 
-export const copilot: IdeAdapter = { name: 'copilot', detect, normalize, formatOutput };
+export const dedupKey = (raw: Record<string, unknown>, hookName: string): string | null => {
+  if (!detect(raw)) return null; // VS Code CC-fallback shape — no dedup needed
+  return `copilot:${hookName}:${raw.toolName as string}:${(raw.toolArgs as string) ?? ''}`;
+};
+
+export const copilot: IdeAdapter = { name: 'copilot', detect, normalize, formatOutput, dedupKey };
