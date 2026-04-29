@@ -8,7 +8,7 @@
 // hook_event_name casing: Cursor uses camelCase ("postToolUse") vs CC PascalCase ("PostToolUse").
 // normalize() derives the semantic event via registry (which handles the casing difference).
 
-import { reverseLookupEvent, reverseLookupToolKind, PROPERTIES } from '../runtime/ide-registry';
+import { lookupEvent, lookupToolKind, getFilePath, getCwd } from '../runtime/ide-rows/cursor';
 import type { IdeAdapter, NormalizedInput, CanonicalOutput } from '../types';
 
 const IDE = 'cursor' as const;
@@ -27,13 +27,13 @@ const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   return {
     ...rest,
     ide:          IDE,
-    event:        reverseLookupEvent(IDE, rawEventName),
-    toolKind:     reverseLookupToolKind(IDE, raw.tool_name as string),
+    event:        lookupEvent(rawEventName),
+    toolKind:     lookupToolKind(raw.tool_name as string),
     hook_event_name: toPascalCase(rawEventName),
     session_id:   conversation_id as string,
     conversation_id,
-    file_path:    PROPERTIES.filePath[IDE](raw) ?? '',
-    cwd:          PROPERTIES.cwd[IDE](raw) ?? undefined,
+    file_path:    getFilePath(raw) ?? '',
+    cwd:          getCwd(raw) ?? undefined,
   } as unknown as NormalizedInput;
 };
 

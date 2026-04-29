@@ -8,7 +8,7 @@
 // 12 event types are mapped to canonical hook_event_name + tool_name + tool_input.
 // 4 events have no CC equivalent and use new canonical names (PrePromptSubmit, PostResponse, PostWorktree).
 
-import { reverseLookupEvent, reverseLookupToolKind, PROPERTIES } from '../runtime/ide-registry';
+import { lookupEvent, lookupToolKind, getFilePath, getCwd } from '../runtime/ide-rows/windsurf';
 import type { IdeAdapter, NormalizedInput, CanonicalOutput } from '../types';
 
 const IDE = 'windsurf' as const;
@@ -57,14 +57,14 @@ const normalize = (raw: Record<string, unknown>): NormalizedInput => {
 
   return {
     ide:             IDE,
-    event:           reverseLookupEvent(IDE, mappedHookEventName),
-    toolKind:        reverseLookupToolKind(IDE, mappedToolName ?? ''),
+    event:           lookupEvent(mappedHookEventName),
+    toolKind:        lookupToolKind(mappedToolName ?? ''),
     hook_event_name: mappedHookEventName,
     session_id:      trajectory_id as string,
     tool_name:       mappedToolName,
     tool_input:      eventDef ? eventDef.buildToolInput(ti) : ti,
-    file_path:       PROPERTIES.filePath[IDE](raw) ?? '',
-    cwd:             PROPERTIES.cwd[IDE](raw) ?? undefined,
+    file_path:       getFilePath(raw) ?? '',
+    cwd:             getCwd(raw) ?? undefined,
     _windsurf:       { agent_action_name, execution_id, timestamp, model_name, tool_info: ti },
   } as unknown as NormalizedInput;
 };

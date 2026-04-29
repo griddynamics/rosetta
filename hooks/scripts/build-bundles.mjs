@@ -38,8 +38,8 @@ for (const { plugin, adapter } of PLUGINS) {
         {
           name: 'adapter-alias',
           setup(build) {
-            // Intercept `./adapter` import and redirect to the slim per-IDE adapter.
-            build.onResolve({ filter: /^\.\/adapter$/ }, () => ({ path: adapterPath }));
+            // Intercept `../adapter` (from run-hook.ts) and redirect to the slim per-IDE adapter.
+            build.onResolve({ filter: /^\.{1,2}\/adapter$/ }, () => ({ path: adapterPath }));
           },
         },
       ],

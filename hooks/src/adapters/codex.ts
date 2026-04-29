@@ -2,7 +2,7 @@
 // Codex shares the Claude Code signature but adds model + turn_id at top level.
 // Detection: must check Codex extras BEFORE claude-code (it's a superset).
 
-import { reverseLookupEvent, reverseLookupToolKind, PROPERTIES } from '../runtime/ide-registry';
+import { lookupEvent, lookupToolKind, getFilePath, getCwd, getSessionId } from '../runtime/ide-rows/codex';
 import type { IdeAdapter, NormalizedInput, CanonicalOutput } from '../types';
 
 const IDE = 'codex' as const;
@@ -15,11 +15,11 @@ const detect = (raw: Record<string, unknown>): boolean =>
 const normalize = (raw: Record<string, unknown>): NormalizedInput => ({
   ...(raw as unknown as NormalizedInput),
   ide:        IDE,
-  event:      reverseLookupEvent(IDE, raw.hook_event_name as string),
-  toolKind:   reverseLookupToolKind(IDE, raw.tool_name as string),
-  file_path:  PROPERTIES.filePath[IDE](raw) ?? '',
-  cwd:        PROPERTIES.cwd[IDE](raw) ?? undefined,
-  session_id: PROPERTIES.sessionId[IDE](raw) ?? undefined,
+  event:      lookupEvent(raw.hook_event_name as string),
+  toolKind:   lookupToolKind(raw.tool_name as string),
+  file_path:  getFilePath(raw) ?? '',
+  cwd:        getCwd(raw) ?? undefined,
+  session_id: getSessionId(raw) ?? undefined,
 });
 
 const formatOutput = (canonical?: CanonicalOutput): Record<string, unknown> =>

@@ -11,7 +11,7 @@
 //   - Other events: sessionStart { source, initialPrompt }, sessionEnd { reason },
 //     userPromptSubmitted { prompt }, errorOccurred { error }
 
-import { reverseLookupToolKind, PROPERTIES } from '../runtime/ide-registry';
+import { lookupToolKind, getFilePath } from '../runtime/ide-rows/copilot';
 import type { SemanticEvent } from '../runtime/ide-registry';
 import type { IdeAdapter, NormalizedInput, CanonicalOutput } from '../types';
 
@@ -57,7 +57,7 @@ const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   return {
     ide:             IDE,
     event:           inferEvent(raw),
-    toolKind:        reverseLookupToolKind(IDE, toolName as string),
+    toolKind:        lookupToolKind(toolName as string),
     hook_event_name: inferHookEventName(raw),
     session_id:      undefined,
     tool_name:       toolName as string,
@@ -65,7 +65,7 @@ const normalize = (raw: Record<string, unknown>): NormalizedInput => {
     tool_use_id:     undefined,
     cwd:             cwd as string | undefined,
     tool_response:   toolResult ?? undefined,
-    file_path:       PROPERTIES.filePath[IDE](raw) ?? '',
+    file_path:       getFilePath(raw) ?? '',
     _copilot:        { timestamp, toolName, toolArgs, toolResult },
   } as unknown as NormalizedInput;
 };
