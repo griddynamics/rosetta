@@ -21,7 +21,7 @@ baseSchema: docs/schemas/rule.md
 8. User accepts request implementation ONLY once TOP LEVEL AGENT fully completes all prep steps and an entire workflow end-to-end.
 9. EXECUTING prep steps and workflows ALREADY MEANS that the user task is being acted on and implemented.
 10. Workflow guides you end-to-end on all aspects of SDLC.
-11. MUST ALWAYS create todo tasks for all prep steps and actions, then update once workflow loaded, to prevent expensive failures, reliability is the key.
+11. MUST ALWAYS create todo tasks for all prep steps and actions, then update once workflow loaded or new information appears, to prevent expensive failures, reliability is the key.
 
 </CRITICAL_MANDATORY_TOP_MOST>
 
@@ -41,7 +41,7 @@ baseSchema: docs/schemas/rule.md
 # Prep Step 2:
 
 1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session "Initialize this repository using Rosetta (upgrade R1 to R2)".
-2. MUST ALWAYS UNCONDITIONALLY CREATE todo tasks for steps and actions (yes, fine-grained).
+2. MUST ALWAYS UNCONDITIONALLY CREATE todo tasks for steps and actions (fine-grained, creation is an action and part of execution, guarantees deterministic execution).
 3. MUST USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied.
 4. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
 5. MUST ALWAYS grep `^#{1,3}` headers of IMPLEMENTATION.md and AGENT MEMORY.md.
