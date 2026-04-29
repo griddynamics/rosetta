@@ -39,13 +39,152 @@ var import_path = __toESM(require("path"));
 var import_os = __toESM(require("os"));
 var import_child_process = require("child_process");
 
+// src/runtime/ide-registry.ts
+var EVENTS = {
+  PostToolUse: { "claude-code": "PostToolUse", "codex": "PostToolUse", "cursor": "postToolUse", "windsurf": "PostToolUse", "copilot": null },
+  PreToolUse: { "claude-code": "PreToolUse", "codex": "PreToolUse", "cursor": "preToolUse", "windsurf": "PreToolUse", "copilot": null },
+  SessionStart: { "claude-code": "SessionStart", "codex": null, "cursor": "sessionStart", "windsurf": null, "copilot": "SessionStart" },
+  PrePromptSubmit: { "claude-code": null, "codex": null, "cursor": "userPromptSubmitted", "windsurf": "PrePromptSubmit", "copilot": "userPromptSubmitted" }
+};
+var reverseLookupEvent = (ide, raw) => {
+  for (const [key, map] of Object.entries(EVENTS)) {
+    if (map[ide] === raw) return key;
+  }
+  return null;
+};
+var TOOL_KINDS = {
+  write: {
+    "claude-code": ["Write"],
+    "codex": ["Write", "apply_patch", "functions.apply_patch"],
+    "cursor": ["Write"],
+    "windsurf": ["Write"],
+    "copilot": ["create_file"]
+  },
+  edit: {
+    "claude-code": ["Edit"],
+    "codex": ["apply_patch", "functions.apply_patch"],
+    "cursor": ["Edit"],
+    "windsurf": ["Write"],
+    // Windsurf post_write_code covers both write+edit
+    "copilot": ["replace_string_in_file"]
+  },
+  "multi-edit": {
+    "claude-code": ["MultiEdit"],
+    "codex": null,
+    "cursor": null,
+    "windsurf": null,
+    "copilot": ["multi_replace_string_in_file"]
+  },
+  patch: {
+    "claude-code": null,
+    "codex": ["apply_patch", "functions.apply_patch"],
+    "cursor": null,
+    "windsurf": null,
+    "copilot": null
+  },
+  create: {
+    "claude-code": ["Write"],
+    "codex": ["Write", "apply_patch", "functions.apply_patch"],
+    "cursor": ["Write"],
+    "windsurf": ["Write"],
+    "copilot": ["create_file"]
+  },
+  replace: {
+    "claude-code": ["Edit"],
+    "codex": ["apply_patch", "functions.apply_patch"],
+    "cursor": ["Edit"],
+    "windsurf": ["Write"],
+    "copilot": ["replace_string_in_file", "multi_replace_string_in_file"]
+  },
+  bash: {
+    "claude-code": ["Bash"],
+    "codex": ["Bash", "shell"],
+    "cursor": ["Bash"],
+    "windsurf": ["Bash"],
+    "copilot": null
+  },
+  read: {
+    "claude-code": ["Read"],
+    "codex": ["Read"],
+    "cursor": ["Read"],
+    "windsurf": ["Read"],
+    "copilot": null
+  }
+};
+var reverseLookupToolKind = (ide, raw) => {
+  for (const [key, map] of Object.entries(TOOL_KINDS)) {
+    const names = map[ide];
+    if (Array.isArray(names) && names.includes(raw))
+      return key;
+  }
+  return null;
+};
+var PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
+var extractFromPatch = (raw) => {
+  const command = raw.tool_input?.command ?? "";
+  return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? null;
+};
+var parseToolArgsFilePath = (raw) => {
+  const { toolArgs } = raw;
+  if (!toolArgs) return null;
+  try {
+    const parsed = JSON.parse(toolArgs);
+    return parsed?.filePath ?? parsed?.file_path ?? null;
+  } catch {
+    return null;
+  }
+};
+var PROPERTIES = {
+  filePath: {
+    "claude-code": (raw) => {
+      const ti = raw.tool_input ?? {};
+      return ti.file_path ?? ti.filePath ?? ti.path ?? null;
+    },
+    "codex": (raw) => {
+      const tool = raw.tool_name ?? "";
+      if (tool === "apply_patch" || tool === "functions.apply_patch") return extractFromPatch(raw);
+      const ti = raw.tool_input ?? {};
+      return ti.file_path ?? null;
+    },
+    "cursor": (raw) => {
+      const ti = raw.tool_input ?? {};
+      return ti.file_path ?? ti.filePath ?? ti.path ?? null;
+    },
+    "windsurf": (raw) => {
+      const ti = raw.tool_info ?? {};
+      return ti.file_path ?? null;
+    },
+    "copilot": parseToolArgsFilePath
+  },
+  cwd: {
+    "claude-code": (raw) => raw.cwd ?? null,
+    "codex": (raw) => raw.cwd ?? null,
+    "cursor": (raw) => raw.cwd ?? null,
+    "windsurf": (raw) => raw.tool_info?.cwd ?? null,
+    "copilot": (raw) => raw.cwd ?? null
+  },
+  sessionId: {
+    "claude-code": (raw) => raw.session_id ?? null,
+    "codex": (raw) => raw.session_id ?? null,
+    "cursor": (raw) => raw.conversation_id ?? null,
+    "windsurf": (raw) => raw.trajectory_id ?? null,
+    "copilot": (_raw) => null
+  }
+};
+
 // src/adapters/copilot.ts
+var IDE = "copilot";
 var COPILOT_SIGNATURE = ["toolName", "timestamp", "cwd"];
-var inferHookEventName = (raw) => {
+var inferEvent = (raw) => {
   if ("toolName" in raw) return "toolResult" in raw ? "PostToolUse" : "PreToolUse";
-  if ("reason" in raw) return "SessionEnd";
   if ("source" in raw || "initialPrompt" in raw) return "SessionStart";
   if ("prompt" in raw) return "PrePromptSubmit";
+  return null;
+};
+var inferHookEventName = (raw) => {
+  const event = inferEvent(raw);
+  if (event) return event;
+  if ("reason" in raw) return "SessionEnd";
   if ("error" in raw) return "Error";
   return "Unknown";
 };
@@ -63,6 +202,9 @@ var detect = (raw) => COPILOT_SIGNATURE.every((f) => f in raw) && !("hook_event_
 var normalize = (raw) => {
   const { toolName, cwd, toolArgs, toolResult, timestamp } = raw;
   return {
+    ide: IDE,
+    event: inferEvent(raw),
+    toolKind: reverseLookupToolKind(IDE, toolName),
     hook_event_name: inferHookEventName(raw),
     session_id: void 0,
     tool_name: toolName,
@@ -70,6 +212,7 @@ var normalize = (raw) => {
     tool_use_id: void 0,
     cwd,
     tool_response: toolResult ?? void 0,
+    file_path: PROPERTIES.filePath[IDE](raw) ?? "",
     _copilot: { timestamp, toolName, toolArgs, toolResult }
   };
 };
@@ -86,9 +229,18 @@ var formatOutput = (canonical) => {
 var copilot = { name: "copilot", detect, normalize, formatOutput };
 
 // src/adapters/claude-code.ts
+var IDE2 = "claude-code";
 var CC_SIGNATURE = ["hook_event_name", "tool_input", "session_id"];
 var detect2 = (raw) => CC_SIGNATURE.every((f) => f in raw);
-var normalize2 = (raw) => raw;
+var normalize2 = (raw) => ({
+  ...raw,
+  ide: IDE2,
+  event: reverseLookupEvent(IDE2, raw.hook_event_name),
+  toolKind: reverseLookupToolKind(IDE2, raw.tool_name),
+  file_path: PROPERTIES.filePath[IDE2](raw) ?? "",
+  cwd: PROPERTIES.cwd[IDE2](raw) ?? void 0,
+  session_id: PROPERTIES.sessionId[IDE2](raw) ?? void 0
+});
 var formatOutput2 = (canonical) => canonical ?? {};
 var claudeCode = { name: "claude-code", detect: detect2, normalize: normalize2, formatOutput: formatOutput2 };
 

@@ -10,6 +10,8 @@
 // 4 events have no CC equivalent and use new canonical names (PrePromptSubmit, PostResponse, PostWorktree).
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.windsurf = void 0;
+const ide_registry_1 = require("../runtime/ide-registry");
+const IDE = 'windsurf';
 const WINDSURF_SIGNATURE = ['agent_action_name', 'trajectory_id', 'tool_info'];
 // Maps Windsurf agent_action_name → { hook_event_name, tool_name, buildToolInput }
 const EVENT_MAP = {
@@ -33,12 +35,18 @@ const normalize = (raw) => {
     const { agent_action_name, trajectory_id, execution_id, timestamp, model_name, tool_info } = raw;
     const eventDef = EVENT_MAP[agent_action_name];
     const ti = tool_info || {};
+    const mappedHookEventName = eventDef ? eventDef.hook_event_name : agent_action_name;
+    const mappedToolName = eventDef ? resolveToolName(eventDef, ti) : null;
     return {
-        hook_event_name: eventDef ? eventDef.hook_event_name : agent_action_name,
+        ide: IDE,
+        event: (0, ide_registry_1.reverseLookupEvent)(IDE, mappedHookEventName),
+        toolKind: (0, ide_registry_1.reverseLookupToolKind)(IDE, mappedToolName ?? ''),
+        hook_event_name: mappedHookEventName,
         session_id: trajectory_id,
-        tool_name: eventDef ? resolveToolName(eventDef, ti) : null,
+        tool_name: mappedToolName,
         tool_input: eventDef ? eventDef.buildToolInput(ti) : ti,
-        cwd: ti.cwd ?? undefined,
+        file_path: ide_registry_1.PROPERTIES.filePath[IDE](raw) ?? '',
+        cwd: ide_registry_1.PROPERTIES.cwd[IDE](raw) ?? undefined,
         _windsurf: { agent_action_name, execution_id, timestamp, model_name, tool_info: ti },
     };
 };

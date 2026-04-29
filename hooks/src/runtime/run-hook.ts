@@ -1,6 +1,6 @@
 import { readStdin, detectIDE, normalize, formatOutput } from '../adapter';
 import { acquireOnce } from './throttle';
-import { debugLog } from '../debug-log';
+import { debugLog } from './debug-log';
 import type { HookDefinition, HookContext, HookResult } from './types';
 import type { NormalizedInput, CanonicalOutput } from '../types';
 
@@ -18,7 +18,7 @@ const toHookContext = (norm: NormalizedInput): HookContext => ({
 
 const toCanonical = (result: NonNullable<HookResult>, ctx: HookContext): CanonicalOutput => {
   if (result.kind === 'advise')
-    return { hookSpecificOutput: { hookEventName: ctx.event ?? '', additionalContext: result.message } };
+    return { hookSpecificOutput: { hookEventName: ctx.event ?? '', permissionDecision: 'allow', additionalContext: result.message } };
   if (result.kind === 'deny')
     return { hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: result.reason }, continue: false };
   if (result.kind === 'allow')
@@ -39,7 +39,7 @@ const makeDedupKey = (
 
 export const runHook = async (
   def: HookDefinition,
-  opts: { stdin?: NodeJS.ReadableStream; stdout?: NodeJS.WriteStream } = {},
+  opts: { stdin?: NodeJS.ReadableStream; stdout?: NodeJS.WritableStream } = {},
 ): Promise<void> => {
   const { stdin = process.stdin, stdout = process.stdout } = opts;
   try {

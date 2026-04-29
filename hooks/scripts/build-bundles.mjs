@@ -4,10 +4,12 @@
 // Each bundle includes only the IDE-specific adapter code; other adapters are excluded.
 import * as esbuild from 'esbuild';
 import { fileURLToPath } from 'url';
+import { readdirSync } from 'fs';
 import path from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const srcDir = path.resolve(__dirname, '..', 'src');
+const hooksDir = path.join(srcDir, 'hooks');
 const outDir = path.resolve(__dirname, '..', 'dist', 'bundles');
 
 const PLUGINS = [
@@ -18,8 +20,8 @@ const PLUGINS = [
   { plugin: 'core-windsurf', adapter: 'adapter-windsurf' },
 ];
 
-// Hook source files to bundle per plugin.
-const HOOK_SOURCES = ['loose-files.ts', 'md-file-advisory.ts', 'gitnexus-refresh.ts'];
+// Auto-discover hook entry points: every .ts file in src/hooks/.
+const HOOK_SOURCES = readdirSync(hooksDir).filter(f => f.endsWith('.ts'));
 
 for (const { plugin, adapter } of PLUGINS) {
   const adapterPath = path.join(srcDir, 'entrypoints', `${adapter}.ts`);
@@ -27,7 +29,7 @@ for (const { plugin, adapter } of PLUGINS) {
   for (const hookSource of HOOK_SOURCES) {
     const outName = hookSource.replace('.ts', '.js');
     await esbuild.build({
-      entryPoints: [path.join(srcDir, hookSource)],
+      entryPoints: [path.join(hooksDir, hookSource)],
       bundle: true,
       platform: 'node',
       format: 'cjs',

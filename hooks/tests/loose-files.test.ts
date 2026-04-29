@@ -15,9 +15,9 @@ import copilotCC from './fixtures/copilot-post-tool-use-cc-format.json';
 import cursorWrite from './fixtures/cursor-post-tool-use-write.json';
 import codexWrite from './fixtures/codex-post-tool-use-write.json';
 
-import { shouldCheck, isLooseFile, buildNudgeOutput, main } from '../src/loose-files';
+import looseFilesHook, { shouldCheck, isLooseFile, buildNudgeOutput } from '../src/hooks/loose-files';
+import { runHook } from '../src/runtime/run-hook';
 import { normalize } from '../src/adapter';
-import type { NormalizedInput } from '../src/types';
 
 function mockFs(existingPaths: string[]): { existsSync: (p: string) => boolean } {
   return { existsSync: (p: string) => existingPaths.includes(p) };
@@ -306,32 +306,30 @@ const capture = () => {
   return { writable, output(): string { return chunks.join(''); } };
 };
 
-// Mirror lock.ts fingerprint to compute lock path for cleanup.
-const lockPathFor = (input: NormalizedInput): string => {
-  const fp = createHash('sha256')
-    .update(`${input.session_id ?? 'no-session'}:${input.hook_event_name}:${input.tool_name ?? ''}:${JSON.stringify(input.tool_input ?? {})}`)
-    .digest('hex')
-    .slice(0, 16);
+// Mirror loose-files dedup key format (Copilot-only, runtime/throttle.acquireOnce).
+const lockPathFor = (input: ReturnType<typeof normalize>): string => {
+  const key = `loose-files:${(input.session_id as string | undefined) ?? 'no-session'}:${(input.tool_name as string) ?? ''}:${JSON.stringify(input.tool_input ?? {})}`;
+  const fp = createHash('sha256').update(key).digest('hex').slice(0, 16);
   return path.join(os.tmpdir(), `rosetta-hooks-${fp}.lock`);
 };
 
-// Builds a Copilot-shaped raw input where toolName='Write' to pass shouldCheck.
+// Builds a Copilot-shaped raw input (old format, no hook_event_name).
 const makeCopilotRaw = (filePath: string) => ({
   timestamp: 1704614400000,
   cwd: '/tmp',
-  toolName: 'Write',
+  toolName: 'create_file',
   toolArgs: JSON.stringify({ file_path: filePath, content: 'pass\n' }),
   toolResult: { resultType: 'success', textResultForLlm: 'done' },
 });
 
 // ---------------------------------------------------------------------------
-describe('main() — nudge output shape', () => {
+describe('runHook — nudge output shape', () => {
 
   test('old Copilot format → output is valid JSON with hookSpecificOutput.additionalContext', async () => {
     const uniq = Math.random().toString(36).slice(2);
     const raw = makeCopilotRaw(`/tmp/rosetta-nudge-shape-${uniq}.py`);
     const { writable, output } = capture();
-    await main({ stdin: toStream(raw), stdout: writable });
+    await runHook(looseFilesHook, { stdin: toStream(raw), stdout: writable });
     const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
     const hso = parsed.hookSpecificOutput as Record<string, unknown> | undefined;
     expect(hso?.additionalContext).toBeTruthy();
@@ -344,7 +342,7 @@ describe('main() — nudge output shape', () => {
     const raw = { ...copilotCC, session_id: `test-${uniq}`,
                    tool_input: { filePath: `/tmp/rosetta-cc-${uniq}.js`, content: 'x' } };
     const { writable, output } = capture();
-    await main({ stdin: toStream(raw), stdout: writable });
+    await runHook(looseFilesHook, { stdin: toStream(raw), stdout: writable });
     const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
     const hso = parsed.hookSpecificOutput as Record<string, unknown> | undefined;
     expect(hso?.additionalContext).toBeTruthy();
@@ -353,7 +351,7 @@ describe('main() — nudge output shape', () => {
 
   test('Cursor Write fixture with file_path → nudge emitted with extracted path', async () => {
     const { writable, output } = capture();
-    await main({ stdin: toStream(cursorWrite), stdout: writable });
+    await runHook(looseFilesHook, { stdin: toStream(cursorWrite), stdout: writable });
     const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
     expect(parsed.additional_context as string).toBeTruthy();
     expect(parsed.additional_context as string).toContain('app.js');
@@ -361,7 +359,7 @@ describe('main() — nudge output shape', () => {
 
   test('Codex Write fixture with file_path → nudge emitted with extracted path', async () => {
     const { writable, output } = capture();
-    await main({ stdin: toStream(codexWrite), stdout: writable });
+    await runHook(looseFilesHook, { stdin: toStream(codexWrite), stdout: writable });
     const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
     const hso = parsed.hookSpecificOutput as Record<string, unknown> | undefined;
     expect(hso?.additionalContext).toBeTruthy();
@@ -371,21 +369,21 @@ describe('main() — nudge output shape', () => {
   test('non-JS/PY file → no stdout output at all', async () => {
     const raw = { ...copilotCC, tool_input: { filePath: '/tmp/file.ts', content: 'x' } };
     const { writable, output } = capture();
-    await main({ stdin: toStream(raw), stdout: writable });
+    await runHook(looseFilesHook, { stdin: toStream(raw), stdout: writable });
     expect(output()).toBe('');
   });
 
   test('excluded path → no stdout output at all', async () => {
     const raw = { ...copilotCC, tool_input: { filePath: '/tmp/scripts/runner.js', content: 'x' } };
     const { writable, output } = capture();
-    await main({ stdin: toStream(raw), stdout: writable });
+    await runHook(looseFilesHook, { stdin: toStream(raw), stdout: writable });
     expect(output()).toBe('');
   });
 
 });
 
 // ---------------------------------------------------------------------------
-describe('main() — dedup gate is Copilot-only', () => {
+describe('runHook — dedup gate is Copilot-only', () => {
 
   test('Copilot: second identical call within TTL is silenced', async () => {
     const uniq = Math.random().toString(36).slice(2);
@@ -396,11 +394,11 @@ describe('main() — dedup gate is Copilot-only', () => {
 
     try {
       const { writable: out1, output: get1 } = capture();
-      await main({ stdin: toStream(raw), stdout: out1 });
+      await runHook(looseFilesHook, { stdin: toStream(raw), stdout: out1 });
       expect(get1().length > 0, 'first Copilot call should emit nudge').toBeTruthy();
 
       const { writable: out2, output: get2 } = capture();
-      await main({ stdin: toStream(raw), stdout: out2 });
+      await runHook(looseFilesHook, { stdin: toStream(raw), stdout: out2 });
       expect(get2()).toBe('');
     } finally {
       if (existsSync(lp)) unlinkSync(lp);
@@ -414,11 +412,11 @@ describe('main() — dedup gate is Copilot-only', () => {
     const raw = { ...ccWrite, session_id: sessionId, tool_input: { file_path: filePath } };
 
     const { writable: out1, output: get1 } = capture();
-    await main({ stdin: toStream(raw), stdout: out1 });
+    await runHook(looseFilesHook, { stdin: toStream(raw), stdout: out1 });
     expect(get1().length > 0, 'first Claude Code call should emit nudge').toBeTruthy();
 
     const { writable: out2, output: get2 } = capture();
-    await main({ stdin: toStream(raw), stdout: out2 });
+    await runHook(looseFilesHook, { stdin: toStream(raw), stdout: out2 });
     expect(get2().length > 0, 'second Claude Code call must also emit nudge (no dedup for CC)').toBeTruthy();
   });
 

@@ -18,20 +18,13 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { spawn } from 'child_process';
-import { readStdin, normalize } from './adapter';
+import { defineHook } from '../runtime/define-hook';
+import { runHook } from '../runtime/run-hook';
+import { sideEffect } from '../runtime/result-helpers';
+import { walkUp } from '../runtime/path-utils';
+import { debugLog } from '../runtime/debug-log';
 
 export const DEBOUNCE_MS = 5000;
-
-const findRepoRoot = (startDir: string): string | null => {
-  let dir = startDir;
-  for (let i = 0; i < 10; i++) {
-    if (fs.existsSync(path.join(dir, '.gitnexus'))) return dir;
-    const parent = path.dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  return null;
-};
 
 const ensureCacheDir = (): string => {
   const dir = path.join(os.homedir(), '.cache', 'gitnexus');
@@ -120,29 +113,24 @@ const spawnDeferredAnalyze = (
   }
 };
 
-export const main = async (): Promise<void> => {
-  let input;
-  try {
-    const raw = await readStdin();
-    input = normalize(raw);
-  } catch {
-    return;
-  }
+const gitnexusRefreshHook = defineHook({
+  name: 'gitnexus-refresh',
+  on: { event: 'PostToolUse', toolKinds: ['write', 'edit', 'multi-edit'] },
+  run: (ctx) => {
+    const repoRoot = walkUp(ctx.cwd || process.cwd(), '.gitnexus');
+    if (!repoRoot) return null;
+    const cacheDir = ensureCacheDir();
+    const stampFile = writePendingStamp(cacheDir, repoRoot);
+    debugLog('[gitnexus-refresh] pending analyze', { tool: ctx.toolName, cwd: ctx.cwd });
+    log(cacheDir, `[gitnexus-refresh] pending analyze (tool=${ctx.toolName}, cwd=${ctx.cwd})`);
+    spawnDeferredAnalyze(repoRoot, cacheDir, stampFile);
+    return sideEffect();
+  },
+});
 
-  if (input.hook_event_name !== 'PostToolUse') return;
-  const tool = input.tool_name ?? '';
-  if (!/^(Edit|Write|MultiEdit)$/.test(tool)) return;
+export default gitnexusRefreshHook;
 
-  const cwd = input.cwd ?? process.cwd();
-  const repoRoot = findRepoRoot(cwd);
-  if (!repoRoot) return;
-
-  const cacheDir = ensureCacheDir();
-  const stampFile = writePendingStamp(cacheDir, repoRoot);
-
-  log(cacheDir, `[gitnexus-refresh] pending analyze (tool=${tool}, cwd=${cwd})`);
-  spawnDeferredAnalyze(repoRoot, cacheDir, stampFile);
-};
+export const main = (): Promise<void> => runHook(gitnexusRefreshHook);
 
 if (require.main === module) {
   main().then(

@@ -8,9 +8,11 @@
 // matchesAllowedPattern, buildAdvisoryOutput, advisoryMessage
 
 import path from 'path';
-import { readStdin, normalize, formatOutput, detectIDE } from './adapter';
-import { debugLog } from './debug-log';
-import type { CanonicalOutput, NormalizedInput } from './types';
+import { defineHook } from '../runtime/define-hook';
+import { runHook } from '../runtime/run-hook';
+import { advise } from '../runtime/result-helpers';
+import { debugLog } from '../runtime/debug-log';
+import type { CanonicalOutput, NormalizedInput } from '../types';
 
 export const advisoryMessage = (filePath: string): string => {
   const name = path.basename(filePath);
@@ -60,7 +62,6 @@ export const matchesAllowedPattern = (normalizedPath: string): boolean => {
   return ALLOWED_BASENAMES.includes(basename);
 };
 
-// Strips leading slash and ./ to produce a repo-relative path for pattern matching.
 const toRelative = (filePath: string): string => {
   let p = filePath.replace(/\\/g, '/');
   if (p.startsWith('/')) p = p.slice(1);
@@ -87,36 +88,20 @@ export const buildAdvisoryOutput = (hookEventName: string, filePath: string): Ca
 
 // ---------------------------------------------------------------------------
 
-export const main = async ({
-  stdin = process.stdin,
-  stdout = process.stdout,
-}: {
-  stdin?: NodeJS.ReadableStream;
-  stdout?: NodeJS.WritableStream;
-} = {}): Promise<void> => {
-  try {
-    const raw = await readStdin(stdin);
-    const ide = detectIDE(raw);
-    const normalized = normalize(raw);
-    debugLog('md-file-advisory input', { ide, tool_name: normalized.tool_name, hook_event_name: normalized.hook_event_name });
-    if (!shouldCheck(normalized)) {
-      debugLog('skipped (shouldCheck=false)');
-      return;
-    }
-    const filePath = normalized.file_path ?? '';
-    if (shouldAdvisory(filePath)) {
-      const canonical = buildAdvisoryOutput(normalized.hook_event_name, filePath);
-      const output = formatOutput(canonical, ide);
-      debugLog('md-file-advisory advisory emitted', { filePath });
-      stdout.write(JSON.stringify(output));
-    }
-  } catch (_) {
-    // Advisory-only — never block agent execution.
-  }
-};
+const mdFileAdvisoryHook = defineHook({
+  name: 'md-file-advisory',
+  on: { event: 'PostToolUse', toolKinds: ['write', 'edit', 'multi-edit', 'patch', 'create', 'replace'] },
+  run: (ctx) => {
+    if (!shouldAdvisory(ctx.filePath)) return null;
+    debugLog('md-file-advisory advisory', { filePath: ctx.filePath });
+    return advise(advisoryMessage(ctx.filePath));
+  },
+});
+
+export default mdFileAdvisoryHook;
 
 if (require.main === module) {
-  main().then(
+  runHook(mdFileAdvisoryHook).then(
     () => process.exit(0),
     (err: Error) => {
       process.stderr.write(`md-file-advisory hook error: ${err.message}\n`);

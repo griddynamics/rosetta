@@ -2,17 +2,19 @@
 // A .py file is "loose" if no __init__.py exists in its directory tree.
 // A .js file is "loose" if no package.json exists in its directory tree.
 //
-// Exports (for testability): shouldCheck, isLooseFile, buildNudgeOutput, main
-// Entry point (when run as hook): reads stdin via adapter, writes nudge JSON to stdout.
+// Exports (for testability): shouldCheck, isLooseFile, buildNudgeOutput
 
 import path from 'path';
 import { existsSync } from 'fs';
-import { readStdin, normalize, formatOutput, detectIDE } from './adapter';
-import { acquireOnce } from './lock';
-import { debugLog } from './debug-log';
-import type { NormalizedInput } from './types';
+import { defineHook } from '../runtime/define-hook';
+import { runHook } from '../runtime/run-hook';
+import { advise } from '../runtime/result-helpers';
+import { acquireOnce } from '../runtime/throttle';
+import { hasExtension, pathContainsAny } from '../runtime/path-utils';
+import { debugLog } from '../runtime/debug-log';
+import type { NormalizedInput } from '../types';
 
-const ALLOWED_EXTENSIONS = new Set(['.py', '.js']);
+const ALLOWED_EXTENSIONS = ['.py', '.js'] as const;
 const ALLOWED_TOOLS = new Set(['Write', 'apply_patch', 'functions.apply_patch', 'create_file']);
 const PATCH_FILE_RE = /^\*\*\* (?:Add|Create) File: (.+)$/m;
 const EXCLUDED_PATH_SEGMENTS = [
@@ -40,9 +42,6 @@ interface NudgeOutput {
   suppressOutput: boolean;
 }
 
-const isPathExcluded = (filePath: string): boolean =>
-  EXCLUDED_PATH_SEGMENTS.some((segment) => filePath.includes(segment));
-
 export const shouldCheck = (normalizedInput: NormalizedInput): boolean => {
   if (normalizedInput.hook_event_name !== 'PostToolUse') {
     debugLog('skip: not PostToolUse', { hook_event_name: normalizedInput.hook_event_name });
@@ -63,12 +62,11 @@ export const shouldCheck = (normalizedInput: NormalizedInput): boolean => {
   }
 
   const filePath = normalizedInput.file_path ?? '';
-  const ext = path.extname(filePath);
-  if (!ALLOWED_EXTENSIONS.has(ext)) {
-    debugLog('skip: extension not allowed', { filePath: filePath || null, ext: ext || null });
+  if (!hasExtension(filePath, ALLOWED_EXTENSIONS)) {
+    debugLog('skip: extension not allowed', { filePath: filePath || null, ext: path.extname(filePath) || null });
     return false;
   }
-  if (isPathExcluded(filePath)) {
+  if (pathContainsAny(filePath, EXCLUDED_PATH_SEGMENTS)) {
     debugLog('skip: path excluded', { filePath });
     return false;
   }
@@ -91,54 +89,46 @@ export const isLooseFile = (filePath: string, fs: FsLike = { existsSync }): bool
   return true;
 };
 
-export const buildNudgeOutput = (filePath: string): NudgeOutput => {
+const nudgeMessage = (filePath: string): string => {
   const marker = MODULE_MARKERS[path.extname(filePath)] ?? 'a module marker';
   const basename = path.basename(filePath);
-  return {
-    hookSpecificOutput: {
-      hookEventName: 'PostToolUse',
-      additionalContext:
-        `${basename} appears to be a loose file outside a module. Intended? A temporary file? ${marker}?`,
-    },
-    continue: true,
-    suppressOutput: false,
-  };
+  return `${basename} appears to be a loose file outside a module. Intended? A temporary file? ${marker}?`;
 };
 
-export const main = async ({
-  stdin = process.stdin,
-  stdout = process.stdout,
-}: {
-  stdin?: NodeJS.ReadableStream;
-  stdout?: NodeJS.WritableStream;
-} = {}): Promise<void> => {
-  const raw = await readStdin(stdin);
-  debugLog('raw input received', { hook_event_name: (raw as Record<string, unknown>).hook_event_name });
-  const ide = detectIDE(raw);
-  const normalized = normalize(raw);
-  debugLog('normalized', { ide, session_id: normalized.session_id, tool_name: normalized.tool_name });
-  if (!shouldCheck(normalized)) {
-    debugLog('skipped (shouldCheck=false)');
-    return;
-  }
-  if (ide === 'copilot' && !acquireOnce(normalized)) {
-    debugLog('skipped (duplicate)');
-    return;
-  }
+export const buildNudgeOutput = (filePath: string): NudgeOutput => ({
+  hookSpecificOutput: {
+    hookEventName: 'PostToolUse',
+    additionalContext: nudgeMessage(filePath),
+  },
+  continue: true,
+  suppressOutput: false,
+});
 
-  const filePath = normalized.file_path ?? '';
-  if (isLooseFile(filePath)) {
-    const output = buildNudgeOutput(filePath);
-    const json = JSON.stringify(formatOutput(output, ide));
-    debugLog('nudge emitted', { filePath, output: json });
-    stdout.write(`${json}\n`);
-  } else {
-    debugLog('file is not loose', { filePath });
-  }
-};
+const looseFilesHook = defineHook({
+  name: 'loose-files',
+  on: { event: 'PostToolUse', toolKinds: ['write'] },
+  run: (ctx) => {
+    const toolName = ctx.toolName;
+    if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
+      const command = (ctx.toolInput.command as string) ?? '';
+      if (!PATCH_FILE_RE.test(command)) return null;
+    }
+    if (!hasExtension(ctx.filePath, ALLOWED_EXTENSIONS)) return null;
+    if (pathContainsAny(ctx.filePath, EXCLUDED_PATH_SEGMENTS)) return null;
+    if (ctx.ide === 'copilot') {
+      const dedupKey = `loose-files:${ctx.sessionId ?? 'no-session'}:${ctx.toolName}:${JSON.stringify(ctx.toolInput)}`;
+      if (!acquireOnce(dedupKey)) return null;
+    }
+    if (!isLooseFile(ctx.filePath)) return null;
+    debugLog('[loose-files] nudge', { filePath: ctx.filePath });
+    return advise(nudgeMessage(ctx.filePath));
+  },
+});
+
+export default looseFilesHook;
 
 if (require.main === module) {
-  main().then(
+  runHook(looseFilesHook).then(
     () => process.exit(0),
     (err: Error) => {
       process.stderr.write(`loose-files hook error: ${err.message}\n`);

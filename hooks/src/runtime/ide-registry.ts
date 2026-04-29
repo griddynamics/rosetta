@@ -20,7 +20,7 @@ export const reverseLookupEvent = (ide: IdeName, raw: string): SemanticEvent | n
 // IMPORTANT: Verify exact tool names against hooks/tests/fixtures/*.json before finalizing.
 export const TOOL_KINDS = {
   write: {
-    'claude-code': ['Write'],
+    'claude-code': ['Write', 'create_file'],
     'codex':       ['Write', 'apply_patch', 'functions.apply_patch'],
     'cursor':      ['Write'],
     'windsurf':    ['Write'],
