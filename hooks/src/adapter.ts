@@ -23,22 +23,6 @@ import { copilot } from './adapters/copilot';
 import type { IdeAdapter, NormalizedInput, CanonicalOutput } from './types';
 export type { NormalizedInput, CanonicalOutput, IdeAdapter } from './types';
 
-const PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
-
-export const extractFilePath = (
-  toolName: string | null | undefined,
-  toolInput: Record<string, unknown>,
-): string => {
-  if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
-    const command = (toolInput.command as string) ?? '';
-    return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? '';
-  }
-  return (toolInput.file_path as string)
-    ?? (toolInput.filePath as string)
-    ?? (toolInput.path as string)
-    ?? '';
-};
-
 // Detection is an ordered chain — a superset like codex must match before
 // claude-code, so this order is load-bearing and not derived from Object.keys.
 const DETECTION_ORDER = ['codex', 'cursor', 'claude-code', 'windsurf', 'copilot'] as const;
@@ -66,11 +50,8 @@ export const detectIDE = (rawInput: unknown): string => {
   return ide;
 };
 
-export const normalize = (rawInput: unknown): NormalizedInput => {
-  const result = ADAPTERS[detectIDE(rawInput)].normalize(rawInput as Record<string, unknown>);
-  result.file_path = extractFilePath(result.tool_name, result.tool_input);
-  return result;
-};
+export const normalize = (rawInput: unknown): NormalizedInput =>
+  ADAPTERS[detectIDE(rawInput)].normalize(rawInput as Record<string, unknown>);
 
 export const formatOutput = (
   canonicalOutput: CanonicalOutput | Record<string, unknown>,

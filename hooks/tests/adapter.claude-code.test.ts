@@ -43,18 +43,29 @@ describe('detectIDE — Claude Code', () => {
 // ---------------------------------------------------------------------------
 describe('normalize — Claude Code', () => {
 
-  test('PostToolUse Write — identity pass-through', () => {
-    expect(normalize(ccWrite)).toEqual(ccWrite);
+  test('PostToolUse Write — enriched with registry fields', () => {
+    const result = normalize(ccWrite);
+    expect(result).toMatchObject(ccWrite);
+    expect(result.ide).toBe('claude-code');
+    expect(result.event).toBe('PostToolUse');
+    expect(result.toolKind).toBe('write');
   });
 
-  test('PostToolUse Edit — identity pass-through', () => {
-    expect(normalize(ccEdit)).toEqual(ccEdit);
+  test('PostToolUse Edit — enriched with registry fields', () => {
+    const result = normalize(ccEdit);
+    expect(result).toMatchObject(ccEdit);
+    expect(result.ide).toBe('claude-code');
+    expect(result.event).toBe('PostToolUse');
+    expect(result.toolKind).toBe('edit');
   });
 
-  test('PreToolUse Bash — identity (no tool_response)', () => {
+  test('PreToolUse Bash — enriched, no tool_response', () => {
     const result = normalize(ccBash);
     expect(result.tool_response).toBe(undefined);
-    expect(result).toEqual(ccBash);
+    expect(result).toMatchObject(ccBash);
+    expect(result.ide).toBe('claude-code');
+    expect(result.event).toBe('PreToolUse');
+    expect(result.toolKind).toBe('bash');
   });
 
   test('subagent — preserves agent_id and agent_type', () => {

@@ -13,9 +13,9 @@ export interface NormalizedInput {
   tool_use_id?: string;
   cwd?: string;
   tool_response?: unknown;
-  ide?: IdeName;
-  event?: SemanticEvent | null;
-  toolKind?: SemanticKind | null;
+  ide: IdeName;
+  event: SemanticEvent | null;
+  toolKind: SemanticKind | null;
   [key: string]: unknown;
 }
 

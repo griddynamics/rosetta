@@ -23,6 +23,9 @@ function makeInput(overrides: Partial<NormalizedInput> = {}): NormalizedInput {
     session_id: `test-${Math.random().toString(36).slice(2, 10)}`,
     tool_name: 'Write',
     tool_input: { file_path: '/proj/foo.py' },
+    ide: 'claude-code',
+    event: 'PostToolUse',
+    toolKind: 'write',
     ...overrides,
   };
 }
