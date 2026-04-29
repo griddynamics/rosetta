@@ -17,6 +17,7 @@ baseSchema: docs/schemas/skill.md
 3. Locate and execute ALL prep steps defined in the loaded bootstrap rules in full
 4. DO NOT proceed to any action until all prep steps are confirmed complete
 5. Identify and load the most matching workflow — a must if you are not subagent
+6. Create and update all todo tasks per workflow
 
 **MCP mode:**
 
@@ -26,6 +27,7 @@ baseSchema: docs/schemas/skill.md
 4. Execute ALL prep steps returned — no skipping, no partial execution
 5. DO NOT proceed to any action until all prep steps are confirmed complete
 6. Identify and load the most matching workflow — a must if you are not subagent
+7. Create and update all todo tasks per workflow
 
 **Adhoc mode:**
 
