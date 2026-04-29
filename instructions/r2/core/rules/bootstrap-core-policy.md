@@ -46,7 +46,7 @@ You are now running Rosetta, installed by the user. Execute fully all prep steps
 # Prep Step 2:
 
 1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session "Initialize this repository using Rosetta (upgrade R1 to R2)".
-2. MUST CREATE separate, detailed, and exact todo tasks NOW for all prep steps and actions left to execute, including loading rosetta workflow (TASKS AND WORKFLOW IS ALWAYS A MUST!). No Exceptions!
+2. MUST CREATE separate, dedicated, detailed, and specific todo tasks NOW for all actions of prep steps 2 and 3, to load workflow, to create tasks based on the workflow (TASKS AND WORKFLOW IS ALWAYS A MUST!). No Exceptions! Non-negotiable!
 3. MUST output to user "Tasks Created: [task ids returned by the tool]". MUST NEVER SKIP THIS CRITICAL STEP, IT WAS CREATED TO RELIABLY DRIVE ENTIRE SESSION EXECUTION.
 4. MUST USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied.
 5. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
