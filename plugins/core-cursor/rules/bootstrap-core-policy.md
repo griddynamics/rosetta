@@ -21,7 +21,7 @@ baseSchema: docs/schemas/rule.md
 8. User accepts request implementation ONLY once TOP LEVEL AGENT fully completes all prep steps and an entire workflow end-to-end.
 9. EXECUTING prep steps and workflows ALREADY MEANS that the user task is being acted on and implemented.
 10. Workflow guides you end-to-end on all aspects of SDLC.
-11. MUST ALWAYS create todo tasks for all prep steps and actions, then update once workflow loaded, to prevent expensive failures.
+11. MUST ALWAYS create todo tasks for all prep steps and actions, then update once workflow loaded, to prevent expensive failures, reliability is the key.
 
 </CRITICAL_MANDATORY_TOP_MOST>
 
