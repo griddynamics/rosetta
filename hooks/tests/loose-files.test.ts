@@ -13,7 +13,7 @@ import copilotCC from './fixtures/copilot-post-tool-use-cc-format.json';
 import cursorWrite from './fixtures/cursor-post-tool-use-write.json';
 import codexWrite from './fixtures/codex-post-tool-use-write.json';
 
-import looseFilesHook, { isLooseFile } from '../src/hooks/loose-files';
+import { looseFilesHook, isLooseFile } from '../src/hooks/loose-files';
 import { runHook } from '../src/runtime/run-hook';
 
 // ---------------------------------------------------------------------------

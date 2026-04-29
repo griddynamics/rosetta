@@ -12,8 +12,8 @@
 //   - Other events: sessionStart { source, initialPrompt }, sessionEnd { reason },
 //     userPromptSubmitted { prompt }, errorOccurred { error }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.copilot = void 0;
-const ide_registry_1 = require("../runtime/ide-registry");
+exports.copilot = exports.dedupKey = void 0;
+const copilot_1 = require("../runtime/ide-rows/copilot");
 const IDE = 'copilot';
 const COPILOT_SIGNATURE = ['toolName', 'timestamp', 'cwd'];
 // Copilot sends no explicit hook_event_name — infer semantic event from raw shape.
@@ -58,7 +58,7 @@ const normalize = (raw) => {
     return {
         ide: IDE,
         event: inferEvent(raw),
-        toolKind: (0, ide_registry_1.reverseLookupToolKind)(IDE, toolName),
+        toolKind: (0, copilot_1.lookupToolKind)(toolName),
         hook_event_name: inferHookEventName(raw),
         session_id: undefined,
         tool_name: toolName,
@@ -66,7 +66,7 @@ const normalize = (raw) => {
         tool_use_id: undefined,
         cwd: cwd,
         tool_response: toolResult ?? undefined,
-        file_path: ide_registry_1.PROPERTIES.filePath[IDE](raw) ?? '',
+        file_path: (0, copilot_1.getFilePath)(raw) ?? '',
         _copilot: { timestamp, toolName, toolArgs, toolResult },
     };
 };
@@ -84,4 +84,10 @@ const formatOutput = (canonical) => {
         out.hookSpecificOutput = { hookEventName, additionalContext };
     return out;
 };
-exports.copilot = { name: 'copilot', detect, normalize, formatOutput };
+const dedupKey = (raw, hookName) => {
+    if (!detect(raw))
+        return null; // VS Code CC-fallback shape — no dedup needed
+    return `copilot:${hookName}:${raw.toolName}:${raw.toolArgs ?? ''}`;
+};
+exports.dedupKey = dedupKey;
+exports.copilot = { name: 'copilot', detect, normalize, formatOutput, dedupKey: exports.dedupKey };

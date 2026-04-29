@@ -8,7 +8,7 @@ export const advisoryMessage = (filePath: string): string => {
   return `[Rosetta Advisory] ${name} is created in non-standard location, think if it is truly needed or you should have updated existing file.`;
 };
 
-const mdFileAdvisoryHook = defineHook({
+export const mdFileAdvisoryHook = defineHook({
   name: 'md-file-advisory',
   on: {
     event: 'PostToolUse',
@@ -22,7 +22,5 @@ const mdFileAdvisoryHook = defineHook({
   },
   run: (ctx) => advise(advisoryMessage(ctx.filePath)),
 });
-
-export default mdFileAdvisoryHook;
 
 runAsCli(mdFileAdvisoryHook, module);

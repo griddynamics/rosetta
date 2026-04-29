@@ -6,7 +6,7 @@ import { Readable, Writable } from 'stream';
 import ccWrite from './fixtures/claude-code-post-tool-use-write.json';
 import cursorWrite from './fixtures/cursor-post-tool-use-write.json';
 
-import mdFileAdvisoryHook, { advisoryMessage } from '../src/hooks/md-file-advisory';
+import { mdFileAdvisoryHook, advisoryMessage } from '../src/hooks/md-file-advisory';
 import { runHook } from '../src/runtime/run-hook';
 
 // ---------------------------------------------------------------------------

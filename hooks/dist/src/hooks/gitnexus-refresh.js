@@ -13,12 +13,12 @@
 //  - No-ops immediately if .gitnexus/ is not found in the repo tree.
 //  - Opt-in: only active when installed by the user (not auto-loaded).
 //
-// Exports (for testability): main, DEBOUNCE_MS
+// Exports (for testability): gitnexusRefreshHook, DEBOUNCE_MS
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.main = exports.DEBOUNCE_MS = void 0;
+exports.gitnexusRefreshHook = exports.DEBOUNCE_MS = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const os_1 = __importDefault(require("os"));
@@ -26,7 +26,6 @@ const child_process_1 = require("child_process");
 const define_hook_1 = require("../runtime/define-hook");
 const run_hook_1 = require("../runtime/run-hook");
 const result_helpers_1 = require("../runtime/result-helpers");
-const path_utils_1 = require("../runtime/path-utils");
 const debug_log_1 = require("../runtime/debug-log");
 exports.DEBOUNCE_MS = 5000;
 const ensureCacheDir = () => {
@@ -105,13 +104,15 @@ const spawnDeferredAnalyze = (repoRoot, cacheDir, stampFile) => {
         fs_1.default.closeSync(out);
     }
 };
-const gitnexusRefreshHook = (0, define_hook_1.defineHook)({
+exports.gitnexusRefreshHook = (0, define_hook_1.defineHook)({
     name: 'gitnexus-refresh',
-    on: { event: 'PostToolUse', toolKinds: ['write', 'edit', 'multi-edit'] },
+    on: {
+        event: 'PostToolUse',
+        toolKinds: ['write', 'edit', 'multi-edit'],
+        fs: { nearestMarker: '.gitnexus' },
+    },
     run: (ctx) => {
-        const repoRoot = (0, path_utils_1.walkUp)(ctx.cwd || process.cwd(), '.gitnexus');
-        if (!repoRoot)
-            return null;
+        const repoRoot = ctx.markerRoot;
         const cacheDir = ensureCacheDir();
         const stampFile = writePendingStamp(cacheDir, repoRoot);
         (0, debug_log_1.debugLog)('[gitnexus-refresh] pending analyze', { tool: ctx.toolName, cwd: ctx.cwd });
@@ -120,12 +121,4 @@ const gitnexusRefreshHook = (0, define_hook_1.defineHook)({
         return (0, result_helpers_1.sideEffect)();
     },
 });
-exports.default = gitnexusRefreshHook;
-const main = () => (0, run_hook_1.runHook)(gitnexusRefreshHook);
-exports.main = main;
-if (require.main === module) {
-    (0, exports.main)().then(() => process.exit(0), (err) => {
-        process.stderr.write(`gitnexus-refresh hook error: ${err.message}\n`);
-        process.exit(1);
-    });
-}
+(0, run_hook_1.runAsCli)(exports.gitnexusRefreshHook, module);

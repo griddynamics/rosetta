@@ -15,7 +15,7 @@ vi.mock('../src/adapter', async (importOriginal) => {
 vi.mock('child_process', () => ({ spawn: mockSpawn }));
 
 import { readStdin } from '../src/adapter';
-import gitnexusRefreshHook, { DEBOUNCE_MS } from '../src/hooks/gitnexus-refresh';
+import { gitnexusRefreshHook, DEBOUNCE_MS } from '../src/hooks/gitnexus-refresh';
 import { runHook } from '../src/runtime/run-hook';
 
 import ccWrite from './fixtures/claude-code-post-tool-use-write.json';

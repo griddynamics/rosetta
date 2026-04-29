@@ -12,7 +12,7 @@
 //  - No-ops immediately if .gitnexus/ is not found in the repo tree.
 //  - Opt-in: only active when installed by the user (not auto-loaded).
 //
-// Exports (for testability): default (hook object), DEBOUNCE_MS
+// Exports (for testability): gitnexusRefreshHook, DEBOUNCE_MS
 
 import fs from 'fs';
 import path from 'path';
@@ -112,7 +112,7 @@ const spawnDeferredAnalyze = (
   }
 };
 
-const gitnexusRefreshHook = defineHook({
+export const gitnexusRefreshHook = defineHook({
   name: 'gitnexus-refresh',
   on: {
     event: 'PostToolUse',
@@ -129,7 +129,5 @@ const gitnexusRefreshHook = defineHook({
     return sideEffect();
   },
 });
-
-export default gitnexusRefreshHook;
 
 runAsCli(gitnexusRefreshHook, module);

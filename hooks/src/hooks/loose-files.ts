@@ -25,7 +25,7 @@ export const nudgeMessage = (filePath: string): string => {
   return `${basename} appears to be a loose file outside a module. Intended? A temporary file? ${marker}?`;
 };
 
-const looseFilesHook = defineHook({
+export const looseFilesHook = defineHook({
   name: 'loose-files',
   on: {
     event: 'PostToolUse',
@@ -50,7 +50,5 @@ const looseFilesHook = defineHook({
     return advise(nudgeMessage(ctx.filePath));
   },
 });
-
-export default looseFilesHook;
 
 runAsCli(looseFilesHook, module);

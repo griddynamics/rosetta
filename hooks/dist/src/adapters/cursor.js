@@ -10,7 +10,7 @@
 // normalize() derives the semantic event via registry (which handles the casing difference).
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cursor = void 0;
-const ide_registry_1 = require("../runtime/ide-registry");
+const cursor_1 = require("../runtime/ide-rows/cursor");
 const IDE = 'cursor';
 const CC_SIGNATURE = ['hook_event_name', 'tool_input'];
 const CURSOR_EXTRA = ['conversation_id', 'cursor_version'];
@@ -22,13 +22,13 @@ const normalize = (raw) => {
     return {
         ...rest,
         ide: IDE,
-        event: (0, ide_registry_1.reverseLookupEvent)(IDE, rawEventName),
-        toolKind: (0, ide_registry_1.reverseLookupToolKind)(IDE, raw.tool_name),
+        event: (0, cursor_1.lookupEvent)(rawEventName),
+        toolKind: (0, cursor_1.lookupToolKind)(raw.tool_name),
         hook_event_name: toPascalCase(rawEventName),
         session_id: conversation_id,
         conversation_id,
-        file_path: ide_registry_1.PROPERTIES.filePath[IDE](raw) ?? '',
-        cwd: ide_registry_1.PROPERTIES.cwd[IDE](raw) ?? undefined,
+        file_path: (0, cursor_1.getFilePath)(raw) ?? '',
+        cwd: (0, cursor_1.getCwd)(raw) ?? undefined,
     };
 };
 const formatOutput = (canonical) => {
