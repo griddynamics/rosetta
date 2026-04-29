@@ -57,7 +57,7 @@ const writePendingStamp = (cacheDir, repoRoot) => {
     const stampFile = path_1.default.join(cacheDir, `${key}.pending`);
     const token = String(Date.now());
     fs_1.default.writeFileSync(stampFile, token);
-    return stampFile;
+    return { stampFile, token };
 };
 const getEmbeddingsFlag = (repoRoot) => {
     try {
@@ -68,18 +68,18 @@ const getEmbeddingsFlag = (repoRoot) => {
         return false;
     }
 };
-const spawnDeferredAnalyze = (repoRoot, cacheDir, stampFile) => {
+const spawnDeferredAnalyze = (repoRoot, cacheDir, stampFile, token) => {
     const hadEmbeddings = getEmbeddingsFlag(repoRoot);
     const extraFlags = hadEmbeddings ? ' --embeddings' : '';
     const debounceSeconds = Math.ceil(exports.DEBOUNCE_MS / 1000);
-    // The deferred script sleeps, then checks if this invocation's stamp is still
-    // the latest. Only if Date.now() - stampValue >= DEBOUNCE_MS (meaning no newer
-    // write reset the timer) does it proceed with analyze.
+    // The deferred script sleeps, then checks if the stamp file still holds the
+    // token written at spawn time. A newer invocation overwrites the file with a
+    // different token, so all but the last deferred process exit early.
     const nodeScript = [
         `const fs = require('fs');`,
         `try {`,
-        `  const stamp = parseInt(fs.readFileSync('${stampFile}', 'utf-8'));`,
-        `  if (Date.now() - stamp < ${exports.DEBOUNCE_MS}) process.exit(0);`,
+        `  const current = fs.readFileSync('${stampFile}', 'utf-8').trim();`,
+        `  if (current !== '${token}') process.exit(0);`,
         `  require('child_process').execSync(`,
         `    'npx gitnexus analyze --force${extraFlags}',`,
         `    { cwd: '${repoRoot.replace(/'/g, "'\\''")}', stdio: 'inherit' }`,
@@ -132,9 +132,9 @@ const main = async () => {
     if (!repoRoot)
         return;
     const cacheDir = ensureCacheDir();
-    const stampFile = writePendingStamp(cacheDir, repoRoot);
+    const { stampFile, token } = writePendingStamp(cacheDir, repoRoot);
     log(cacheDir, `[gitnexus-refresh] pending analyze (tool=${tool}, cwd=${cwd})`);
-    spawnDeferredAnalyze(repoRoot, cacheDir, stampFile);
+    spawnDeferredAnalyze(repoRoot, cacheDir, stampFile, token);
 };
 exports.main = main;
 if (require.main === module) {

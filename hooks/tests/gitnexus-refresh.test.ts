@@ -193,10 +193,11 @@ describe('main() — trailing-edge debounce', () => {
     expect(script).toContain(`sleep ${expectedSleep}`);
   });
 
-  test('spawned script checks stamp age before executing analyze', async () => {
+  test('spawned script checks token identity before executing analyze', async () => {
     await main();
     const script = getSpawnedScript();
-    expect(script).toContain(`Date.now() - stamp < ${DEBOUNCE_MS}`);
+    expect(script).toContain(`current !== '`);
+    expect(script).toContain(`process.exit(0)`);
   });
 
   test('spawned script reads the pending stamp file', async () => {
