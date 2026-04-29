@@ -21,7 +21,7 @@ baseSchema: docs/schemas/rule.md
 8. User accepts request implementation ONLY once TOP LEVEL AGENT fully completes all prep steps and an entire workflow end-to-end.
 9. EXECUTING prep steps and workflows ALREADY MEANS that the user task is being acted on and implemented.
 10. Workflow guides you end-to-end on all aspects of SDLC.
-11. MUST ALWAYS create todo tasks for all prep steps and actions, then update once workflow loaded, as you always forget to do an action or step.
+11. MUST ALWAYS create todo tasks for all prep steps and actions, then update once workflow loaded, to prevent expensive failures.
 
 </CRITICAL_MANDATORY_TOP_MOST>
 
@@ -41,7 +41,7 @@ baseSchema: docs/schemas/rule.md
 # Prep Step 2:
 
 1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session "Initialize this repository using Rosetta (upgrade R1 to R2)".
-2. MUST CREATE todo tasks for steps and actions (yes, fine-grained).
+2. MUST ALWAYS UNCONDITIONALLY CREATE todo tasks for steps and actions (yes, fine-grained).
 3. MUST USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied.
 4. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
 5. MUST ALWAYS grep `^#{1,3}` headers of IMPLEMENTATION.md and AGENT MEMORY.md.
@@ -54,9 +54,10 @@ baseSchema: docs/schemas/rule.md
     - MEDIUM: up to ~10 file changes/activities and only one area affected
     - LARGE: more than 10 file changes/activities or multiple areas affected
 11. Additional requirements based on request size:
-    - SMALL: MUST USE todo tasks for planning, MUST OUTPUT tech specs as message, MUST use workflows;
-    - MEDIUM: MUST keep documentation concise, light, and short; MUST use subagents, MUST use workflows;
-    - LARGE: MUST use subagents extensively as orchestrator context will be overloaded, MUST use workflows;
+    - SMALL: MUST USE todo tasks for planning, MUST OUTPUT tech specs as message;
+    - MEDIUM: MUST keep documentation concise, light, and short; MUST use subagents;
+    - LARGE: MUST use subagents extensively as orchestrator context will be overloaded;
+    - ALL: load rosetta workflow, it contains proper handling of different request sizes too;
 12. Reevaluate request size and workflow when scope changes or new information is received
 13. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`, and MUST continue with prep step 3.
 
