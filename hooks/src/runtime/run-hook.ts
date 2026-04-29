@@ -1,7 +1,9 @@
+import path from 'path';
 import { readStdin, detectIDE, normalize, formatOutput } from '../adapter';
 import { acquireOnce } from './throttle';
 import { debugLog } from './debug-log';
-import type { HookDefinition, HookContext, HookResult } from './types';
+import { toRelative, walkUp } from './path-utils';
+import type { HookDefinition, HookContext, HookResult, FilePathPredicate, ToolInputPredicate } from './types';
 import type { NormalizedInput, CanonicalOutput } from '../types';
 
 export const runAsCli = (def: HookDefinition, mod: NodeModule): void => {
@@ -38,15 +40,47 @@ const toCanonical = (result: NonNullable<HookResult>, ctx: HookContext): Canonic
 };
 
 const makeDedupKey = (
-  dedupBy: readonly ('session' | 'filePath' | 'ide')[],
+  dedupBy: readonly ('session' | 'filePath' | 'ide' | 'toolName' | 'toolInput')[],
   ctx: HookContext,
   name: string,
 ): string => [
   name,
-  ...(dedupBy.includes('session') ? [ctx.sessionId ?? 'no-session'] : []),
-  ...(dedupBy.includes('filePath') ? [ctx.filePath] : []),
-  ...(dedupBy.includes('ide') ? [ctx.ide] : []),
+  ...(dedupBy.includes('session')   ? [ctx.sessionId ?? 'no-session'] : []),
+  ...(dedupBy.includes('filePath')  ? [ctx.filePath]                  : []),
+  ...(dedupBy.includes('ide')       ? [ctx.ide]                       : []),
+  ...(dedupBy.includes('toolName')  ? [ctx.toolName]                  : []),
+  ...(dedupBy.includes('toolInput') ? [JSON.stringify(ctx.toolInput)] : []),
 ].join(':');
+
+const evalFilePath = (fp: FilePathPredicate, filePath: string): boolean => {
+  const p  = filePath;
+  const pl = p.toLowerCase();
+  const rel = toRelative(p);
+  if (fp.extOneOf        && !fp.extOneOf.some(e => p.endsWith(e)))                  return false;
+  if (fp.extOneOfCi      && !fp.extOneOfCi.some(e => pl.endsWith(e.toLowerCase()))) return false;
+  if (fp.notContainsAny  &&  fp.notContainsAny.some(s => p.includes(s)))            return false;
+  if (fp.notTokenSegmentAny) {
+    const segs = pl.split('/');
+    const blocked = segs.some(seg =>
+      seg.split(/[-_.]/).some(tok => fp.notTokenSegmentAny!.includes(tok)),
+    );
+    if (blocked) return false;
+  }
+  if (fp.notStartsWithAny && fp.notStartsWithAny.some(s => rel.startsWith(s) || p.includes('/' + s))) return false;
+  if (fp.notBasenameOneOf && fp.notBasenameOneOf.includes(path.basename(p)))    return false;
+  return true;
+};
+
+const evalToolInput = (ti: ToolInputPredicate, ctx: HookContext): boolean => {
+  if (ti.commandMatchWhen) {
+    const { tools, re } = ti.commandMatchWhen;
+    if (tools.includes(ctx.toolName)) {
+      const command = (ctx.toolInput.command as string) ?? '';
+      if (!re.test(command)) return false;
+    }
+  }
+  return true;
+};
 
 export const runHook = async (
   def: HookDefinition,
@@ -63,12 +97,27 @@ export const runHook = async (
     if (norm.event !== def.on.event) return;
     if (!def.on.toolKinds.includes(norm.toolKind as never)) return;
 
-    if (def.throttle && 'dedupBy' in def.throttle) {
-      const ctx0 = toHookContext(norm);
-      if (!acquireOnce(makeDedupKey(def.throttle.dedupBy, ctx0, def.name))) return;
+    const ctx0 = toHookContext(norm);
+
+    if (def.on.filePath  && !evalFilePath(def.on.filePath, ctx0.filePath)) return;
+    if (def.on.toolInput && !evalToolInput(def.on.toolInput, ctx0))        return;
+
+    let markerRoot: string | undefined;
+    if (def.on.fs?.nearestMarker) {
+      const found = walkUp(ctx0.cwd || process.cwd(), def.on.fs.nearestMarker);
+      if (!found) return;
+      markerRoot = found;
     }
 
-    const ctx    = toHookContext(norm);
+    const ctx = markerRoot !== undefined ? { ...ctx0, markerRoot } : ctx0;
+
+    if (def.throttle && 'dedupBy' in def.throttle) {
+      const t = def.throttle;
+      if (!t.whenIde || t.whenIde.includes(ctx.ide)) {
+        if (!acquireOnce(makeDedupKey(t.dedupBy, ctx, def.name))) return;
+      }
+    }
+
     const result = await def.run(ctx);
 
     if (!result || result.kind === 'side-effect') return;

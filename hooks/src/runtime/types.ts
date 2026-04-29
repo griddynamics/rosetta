@@ -10,6 +10,7 @@ export interface HookContext {
   sessionId: string | null;
   toolInput: Readonly<Record<string, unknown>>;
   toolResponse?: unknown;
+  markerRoot?: string;
 }
 
 export type HookResult =
@@ -19,18 +20,41 @@ export type HookResult =
   | { kind: 'side-effect' }
   | null;
 
+export type FilePathPredicate = {
+  extOneOf?:           readonly string[];
+  extOneOfCi?:         readonly string[];
+  notContainsAny?:     readonly string[];
+  notTokenSegmentAny?: readonly string[];
+  notStartsWithAny?:   readonly string[];
+  notBasenameOneOf?:   readonly string[];
+};
+
+export type ToolInputPredicate = {
+  commandMatchWhen?: { tools: readonly string[]; re: RegExp };
+};
+
+export type FsPredicate = {
+  nearestMarker?: string;
+};
+
 export type HookActivation = {
-  event: SemanticEvent;
-  toolKinds: readonly SemanticKind[];
+  event:      SemanticEvent;
+  toolKinds:  readonly SemanticKind[];
+  filePath?:  FilePathPredicate;
+  toolInput?: ToolInputPredicate;
+  fs?:        FsPredicate;
 };
 
 export type HookThrottle =
   | { debounceMs: number }
-  | { dedupBy: readonly ('session' | 'filePath' | 'ide')[] };
+  | {
+      dedupBy:  readonly ('session' | 'filePath' | 'ide' | 'toolName' | 'toolInput')[];
+      whenIde?: readonly IdeName[];
+    };
 
 export interface HookDefinition {
-  name: string;
-  on: HookActivation;
+  name:      string;
+  on:        HookActivation;
   throttle?: HookThrottle;
   run: (ctx: HookContext) => HookResult | Promise<HookResult>;
 }
