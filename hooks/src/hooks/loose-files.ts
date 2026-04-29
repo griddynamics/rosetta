@@ -1,7 +1,7 @@
 import path from 'path';
 import { existsSync } from 'fs';
 import { defineHook } from '../runtime/define-hook';
-import { runHook, runAsCli } from '../runtime/run-hook';
+import { runAsCli } from '../runtime/run-hook';
 import { advise } from '../runtime/result-helpers';
 import { hasMarkerBeforeBoundary } from '../runtime/path-utils';
 import { debugLog } from '../runtime/debug-log';

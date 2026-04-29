@@ -1,7 +1,7 @@
 import path from 'path';
 import { defineHook } from '../runtime/define-hook';
-import { runHook, runAsCli } from '../runtime/run-hook';
-import { advise } from '../runtime/result-helpers';
+import { runAsCli } from '../runtime/run-hook';
+import { advise  } from '../runtime/result-helpers';
 
 export const advisoryMessage = (filePath: string): string => {
   const name = path.basename(filePath);
@@ -24,4 +24,5 @@ const mdFileAdvisoryHook = defineHook({
 });
 
 export default mdFileAdvisoryHook;
+
 runAsCli(mdFileAdvisoryHook, module);

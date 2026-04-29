@@ -1,5 +1,5 @@
 import { test, describe, expect, vi, afterEach } from 'vitest';
-import { hasExtension, pathContainsAny, pathStartsWithAny, basenameIn,
+import { hasExtension, pathContainsAny,
          isInTempDir, toRelative, walkUp, hasMarkerBeforeBoundary } from '../../src/runtime/path-utils';
 import path from 'path';
 import os from 'os';
