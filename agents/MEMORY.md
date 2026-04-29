@@ -53,6 +53,17 @@ Updating only the visible workflow file can leave hidden Node 20 actions in nest
 ### `mailto:` Values In `project.urls` Break Modern Packaging Validation [ACTIVE]
 Using email links directly in package metadata can fail publish/install validation even when the project otherwise builds correctly.
 
+## Hooks Runtime Abstraction — Baseline Notes (2026-04-29)
+
+### adapter.ts Imports — Files Requiring Update When adapter.ts Is Split [ACTIVE]
+Src: `loose-files.ts`, `md-file-advisory.ts`, `gitnexus-refresh.ts`. Tests: `adapter.*.test.ts` (×5), `loose-files.test.ts`, `md-file-advisory.test.ts`, `gitnexus-refresh.test.ts`. Entrypoints re-export via their own stubs and need no changes.
+
+### hooks.json Is Generated From .tmpl By plugin_generator.py [ACTIVE]
+`scripts/plugin_generator.py` reads `hooks.json.tmpl` and copies result to `.cursor/hooks.json`, `.codex/hooks.json`, etc. during pre-commit plugin-sync. Never edit generated hooks.json directly.
+
+### Test Runner Is vitest [ACTIVE]
+Canonical: `npx vitest run` (not `node --test`). All tests: `cd hooks && npm test`.
+
 ## Discoveries
 
 ### Official GitHub Pages Setup And Deploy Actions Are Still Node 20 Upstream [ACTIVE]
