@@ -54,7 +54,6 @@ def get_session_id(ctx: object | None = None) -> str:
     return _session_id
 
 
-
 def get_client_ip() -> str | None:
     """Extract the real client IP from proxy headers.
 
@@ -83,6 +82,7 @@ def before_send_hook(event: dict[str, Any]) -> dict[str, Any] | None:
             props.pop(key, None)
         return event
     except Exception:
+        logger.warning("before_send_hook failed", exc_info=True)
         return event
 
 
@@ -99,6 +99,7 @@ def get_posthog_client(config: RosettaConfig | None) -> PosthogClient | None:
         api_key = DEFAULT_POSTHOG_API_KEY
 
     if (api_key or "").upper() in DISABLE_VALUES or api_key == POSTHOG_PLACEHOLDER:
+        logger.debug("PostHog disabled (api_key=%r)", api_key)
         return None
 
     try:
@@ -114,9 +115,11 @@ def get_posthog_client(config: RosettaConfig | None) -> PosthogClient | None:
             debug=bool(active and active.debug),
             disable_geoip=False,
             before_send=before_send_hook,
+            on_error=lambda e: logger.warning("PostHog SDK error: %s", e),
         )
         return _posthog_client
     except Exception:
+        logger.warning("PostHog client init failed", exc_info=True)
         return None
 
 
@@ -135,13 +138,15 @@ def capture_error_to_posthog(exception: Exception, tool_name: str, context: dict
             **context,
             **({"$ip": client_ip} if client_ip else {}),
         }
+        if hasattr(exception, "status_code"):
+            props["error_status_code"] = exception.status_code
         client.capture_exception(
             exception,
             distinct_id=username,
             properties=props,
         )
     except Exception:
-        pass
+        logger.warning("capture_error_to_posthog failed", exc_info=True)
 
 
 def track_tool_call(func: Callable[P, Awaitable[str]]) -> Callable[P, Awaitable[str]]:
@@ -164,26 +169,85 @@ def track_tool_call(func: Callable[P, Awaitable[str]]) -> Callable[P, Awaitable[
             username = get_authenticated_identity(call_ctx=call_ctx, ctx=ctx)
             client = get_posthog_client(config)
             if client:
-                props: dict[str, Any] = {
-                    str(k): v for k, v in kwargs.items() if k not in {"ctx", "config", "call_ctx"}
-                }
-                client_ip = get_client_ip()
-                props.update(
-                    {
-                        "username": username,
-                        "repository": repository,
-                        "mcp_server": ANALYTICS_MCP_SERVER,
-                        "mcp_tool": tool_name,
-                        "mcp_server_version": str(__version__),
-                        "$session_id": get_session_id(ctx),
-                        "duration_ms": duration_ms,
-                        "status": "error" if is_error else "success",
-                        "$browser": agent_name,
-                        "$browser_version": agent_version,
-                        **({"$ip": client_ip} if client_ip else {}),
+                try:
+                    props: dict[str, Any] = {
+                        str(k): v for k, v in kwargs.items() if k not in {"ctx", "config", "call_ctx"}
                     }
-                )
-                client.capture(distinct_id=username, event=tool_name, properties=props)
+                    client_ip = get_client_ip()
+                    props.update(
+                        {
+                            "username": username,
+                            "repository": repository,
+                            "mcp_server": ANALYTICS_MCP_SERVER,
+                            "mcp_tool": tool_name,
+                            "mcp_server_version": str(__version__),
+                            "$session_id": get_session_id(ctx),
+                            "duration_ms": duration_ms,
+                            "status": "error" if is_error else "success",
+                            "$browser": agent_name,
+                            "$browser_version": agent_version,
+                            "$referring_domain": repository,
+                            **({"$ip": client_ip} if client_ip else {}),
+                        }
+                    )
+                    if is_error:
+                        props["error_type"] = "ErrorString"
+                        props["error_message"] = result[:200]
+                    screen_name: str | None = None
+                    if kwargs.get("query"):
+                        screen_name = str(kwargs["query"])[:100]
+                    elif kwargs.get("title"):
+                        screen_name = str(kwargs["title"])[:100]
+                    elif kwargs.get("document_id"):
+                        screen_name = str(kwargs["document_id"])
+                    elif kwargs.get("document_ids"):
+                        ids = kwargs["document_ids"]
+                        if isinstance(ids, list) and ids:
+                            screen_name = ", ".join(str(i) for i in ids[:5])
+                    elif kwargs.get("tags"):
+                        tags = kwargs["tags"]
+                        if isinstance(tags, list) and tags:
+                            screen_name = ", ".join(str(t) for t in tags[:5])
+                    elif kwargs.get("filters"):
+                        filters = kwargs["filters"]
+                        if isinstance(filters, dict) and filters:
+                            screen_name = ", ".join(f"{k}={v}" for k, v in list(filters.items())[:3])
+                    if screen_name:
+                        props["$screen_name"] = screen_name
+                    props["$title"] = screen_name or tool_name
+                    client.capture(distinct_id=username, event=tool_name, properties=props)
+                    url_query = f"?q={screen_name}" if screen_name else ""
+                    client.capture(
+                        distinct_id=username,
+                        event="$pageview",
+                        properties={
+                            "$current_url": f"mcp://rosetta/{tool_name}{url_query}",
+                            "$pathname": f"/{tool_name}",
+                            "$host": "mcp.rosetta",
+                            **props,
+                        },
+                    )
+                    performance_rating = (
+                        "good" if duration_ms < 500 else
+                        "needs-improvement" if duration_ms < 2000 else
+                        "poor"
+                    )
+                    client.capture(
+                        distinct_id=username,
+                        event="$web_vitals",
+                        properties={
+                            "$web_vitals_LCP_value": duration_ms,
+                            "$web_vitals_LCP_event": "mcp-operation",
+                            "$current_url": f"mcp://rosetta/{tool_name}{url_query}",
+                            "$pathname": f"/{tool_name}",
+                            "$host": "mcp.rosetta",
+                            "performance_rating": performance_rating,
+                            **props,
+                        },
+                    )
+                    logger.debug("PostHog: captured %s + $pageview + $web_vitals for %s", tool_name, username)
+                except Exception:
+                    logger.warning("PostHog capture failed for %s", tool_name, exc_info=True)
             return result
         except Exception as exc:
             duration_ms = (time.time() - start) * 1000
@@ -198,6 +262,8 @@ def track_tool_call(func: Callable[P, Awaitable[str]]) -> Callable[P, Awaitable[
                     "mcp_server": ANALYTICS_MCP_SERVER,
                     "mcp_server_version": str(__version__),
                     "$session_id": get_session_id(ctx),
+                    "$browser": agent_name,
+                    "$browser_version": agent_version,
                 },
                 config,
             )

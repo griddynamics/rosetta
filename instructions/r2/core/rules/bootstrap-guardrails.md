@@ -29,6 +29,12 @@ baseSchema: docs/schemas/rule.md
 
 </core_concepts>
 
+<reasonable-definition must-follow>
+
+Reasonable = a one-line justification you can defend to a senior reviewer (architect, security, owner) under ALARP-weighted stakes — supported by a case-specific Toulmin-Warrant, with Bayesian-Undo identified, Simon-Limits named, and shared acceptability across those reviewers. Concretely: basis is retrievable and case-specific; stakes assessed high by default in enterprise and the bar scales with consequence; a bounded, identified rollback path exists before acting; the action survives audit even if the outcome was bad because the reasoning was sound; uncertainty is stated, not glossed. Default state is unreasonable; earn reasonable by producing the justification — otherwise ask, naming and explaining the missing tag. Apply this whenever asked to make a reasonable decision, assumption, or question: state the passing Toulmin-Warrant inline, or convert to a targeted question naming and explaining the missing tag.
+
+</reasonable-definition>
+
 <mandatory_scope_management_rules>
 
 If scope of work is more than 2h or 15+ files or spec is above 350 lines propose scope reduction to user; user may explicitly override.

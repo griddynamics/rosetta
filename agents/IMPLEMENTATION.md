@@ -22,6 +22,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 ### MCP Server
 
 - Refactored into a modular package structure with dedicated `config`, `context`, `services`, `tools`, `auth`, and `analytics` modules.
+- PostHog analytics parity restored in `ims_mcp/analytics/tracker.py`: added `$referring_domain`, `$screen_name`, `$title`, `error_type`/`error_message` on soft errors, `$pageview` and `$web_vitals` events, `error_status_code` on HTTP exceptions, `$browser`/`$browser_version` in exception context, `on_error` logging on Posthog constructor, inner try/except isolating analytics failures from tool results; all exception sites use `logger.warning`. Fixed `feedback.py` `distinct_id` to `call_ctx.username` (was composite `username@repository`). 18 new test cases added covering all acceptance criteria including boundary conditions.
 - Core MCP tools are implemented, including:
   - `get_context_instructions`
   - `query_instructions`
@@ -69,6 +70,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 - `hooks/dist/bundles/` is generated-only and untracked from git. `hooks/.gitignore` merged into root `.gitignore` with scoped `hooks/` prefixes.
 - Dedup guard in `loose-files.ts` gated on `ide === 'copilot'` — GitHub Copilot CLI fires PostToolUse twice per call; all other IDEs receive every nudge.
 - Build integrated into `scripts/pre_commit.py` via `build_hooks()` check before plugin sync.
+- Codex `md-file-advisory.js` hook installed in workspace `.codex/hooks.json` and wired into the `core-codex` hook template/generated configs.
 
 ### rosettify (npm package)
 

@@ -153,15 +153,23 @@ class DocumentClient:
 
         from ims_mcp.tracing import current_trace_id, SLOW_CALL_THRESHOLD_SECONDS, _log_prefix
         trace_id = current_trace_id.get(None)
-        prefix = _log_prefix("ragflow", trace_id)
         label = f"GET /v1/document/get/{doc.id}"
-        _logger.info("%s %s — started", prefix, label)
+        _logger.info(
+            "%s %s — started",
+            _log_prefix("started", "ragflow", trace_id),
+            label,
+        )
         _start = time.monotonic()
         _slow_fired = threading.Event()
 
         def _slow() -> None:
             _slow_fired.set()
-            _logger.error("%s %s — SLOW: still in-flight after %.1fs", prefix, label, time.monotonic() - _start)
+            _logger.error(
+                "%s %s — SLOW: still in-flight after %.1fs",
+                _log_prefix("slow", "ragflow", trace_id),
+                label,
+                time.monotonic() - _start,
+            )
 
         _timer = threading.Timer(SLOW_CALL_THRESHOLD_SECONDS, _slow)
         _timer.daemon = True
@@ -169,11 +177,36 @@ class DocumentClient:
         try:
             res = requests.get(url=url, headers=headers, timeout=30)
             _elapsed = time.monotonic() - _start
-            _level = logging.WARNING if _slow_fired.is_set() else logging.INFO
-            _logger.log(_level, "%s %s — %s in %.3fs", prefix, label, res.status_code, _elapsed)
+            _logger.info(
+                "%s %s — success",
+                _log_prefix("success", "ragflow", trace_id),
+                label,
+            )
+            if _slow_fired.is_set():
+                _logger.warning(
+                    "%s %s — %s in %.3fs",
+                    _log_prefix("completed-slow", "ragflow", trace_id),
+                    label,
+                    res.status_code,
+                    _elapsed,
+                )
+            else:
+                _logger.info(
+                    "%s %s — %s in %.3fs",
+                    _log_prefix("completed", "ragflow", trace_id),
+                    label,
+                    res.status_code,
+                    _elapsed,
+                )
         except Exception as _exc:
             _elapsed = time.monotonic() - _start
-            _logger.error("%s %s — failed after %.3fs: %s", prefix, label, _elapsed, _exc)
+            _logger.error(
+                "%s %s — failed after %.3fs: %s",
+                _log_prefix("failed", "ragflow", trace_id),
+                label,
+                _elapsed,
+                _exc,
+            )
             raise
         finally:
             _timer.cancel()

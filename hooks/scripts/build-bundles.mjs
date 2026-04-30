@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const srcDir = path.resolve(__dirname, '..', 'src');
 const outDir = path.resolve(__dirname, '..', 'dist', 'bundles');
 
-const PLUGINS = [
+const BUNDLES = [
   { plugin: 'core-claude',   adapter: 'adapter-claude-code' },
   { plugin: 'core-codex',    adapter: 'adapter-codex' },
   { plugin: 'core-copilot',  adapter: 'adapter-copilot' },
@@ -18,32 +18,31 @@ const PLUGINS = [
   { plugin: 'core-windsurf', adapter: 'adapter-windsurf' },
 ];
 
-// Hooks that are bundled per plugin (adapter inlined, no external deps).
-const HOOKS = ['loose-files', 'gitnexus-refresh'];
+// Hook source files to bundle per plugin.
+const HOOK_SOURCES = ['loose-files.ts', 'md-file-advisory.ts', 'gitnexus-refresh.ts'];
 
-let count = 0;
-for (const { plugin, adapter } of PLUGINS) {
+for (const { plugin, adapter } of BUNDLES) {
   const adapterPath = path.join(srcDir, 'entrypoints', `${adapter}.ts`);
 
-  for (const hook of HOOKS) {
+  for (const hookSource of HOOK_SOURCES) {
+    const outName = hookSource.replace('.ts', '.js');
     await esbuild.build({
-      entryPoints: [path.join(srcDir, `${hook}.ts`)],
+      entryPoints: [path.join(srcDir, hookSource)],
       bundle: true,
       platform: 'node',
       format: 'cjs',
-      outfile: path.join(outDir, plugin, `${hook}.js`),
+      outfile: path.join(outDir, plugin, outName),
       plugins: [
         {
           name: 'adapter-alias',
           setup(build) {
-            // Intercept `./adapter` import and redirect to slim IDE-specific adapter.
+            // Intercept `./adapter` import and redirect to the slim per-IDE adapter.
             build.onResolve({ filter: /^\.\/adapter$/ }, () => ({ path: adapterPath }));
           },
         },
       ],
     });
-    count++;
+
+    console.log(`  bundled ${plugin} → dist/bundles/${plugin}/${outName}`);
   }
 }
-
-console.log(`  built ${count} bundles → dist/bundles/`);
