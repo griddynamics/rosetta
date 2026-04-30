@@ -80,6 +80,7 @@ For detailed change history, use git history and PRs instead of expanding this f
   - native Git pre-commit hook shim with a shared Python entrypoint under `scripts/`
   - generated `plugins/core-claude`, `plugins/core-cursor`, `plugins/core-copilot`, and `plugins/core-codex` trees sourced from `instructions/r2/core`
   - plugin-specific packaging transforms for model metadata, generated indexes, and local marketplace/manifests
+  - bootstrap hooks inlined at build time via `hooks.json.tmpl` templates and generic `process_templates` engine; runtime shell scripts eliminated; 4 platform-specific placeholder formats (Claude, Codex, Cursor, Copilot) generated once per build
   - Jira loader recovery after upstream API changes
   - shared type-validation entrypoint
 - Some GitHub Pages actions remain upstream-limited and may still depend on older Node runtimes until upstream changes.
@@ -87,6 +88,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 ### Documentation and Public Surface
 
 - Installation, deployment, quickstart, troubleshooting, and README content were aligned with the current transport/auth model.
+- Usage guides describe workflow phases, expected subagents/artifacts, HITL gates, and user responsibilities for both OSS and PRO workflow families.
 - Internal/private environment details were replaced with public-safe placeholders where appropriate.
 - Public Docker Hub references remain intentionally visible because they are part of the OSS distribution surface.
 

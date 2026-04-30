@@ -5,19 +5,19 @@
     "email": "rosetta-support@griddynamics.com"
   },
   "metadata": {
-    "description": "Rosetta 2.0 - Enterprise knowledge management system providing AI agents with unified access to instructions, workflows, skills, and business context",
+    "description": "Rosetta - Software Engineering Accelerator providing AI agents with unified access to instructions, workflows, skills, and business context",
     "version": "2.0.5"
   },
   "plugins": [
     {
       "name": "core",
       "source": "./plugins/core-claude",
-      "description": "Rosetta Core 2.0 - OSS foundation for AI agent instructions, workflows, and guardrails. Includes Rosetta MCP for knowledge base access."
+      "description": "Rosetta Core - Software Engineering Accelerator OSS foundation for AI agent instructions, workflows, and guardrails."
     },
     {
       "name": "rosetta",
       "source": "./plugins/rosetta",
-      "description": "Lightweight Rosetta plugin with bootstrap always enforced and Rosetta MCP for all instructions, workflows, skills, and project context."
+      "description": "Lightweight Rosetta plugin with bootstrap always enforced and Rosetta MCP for all instructions, workflows, skills, and project context. Must get approval from the client to use MCP."
     }
   ]
 }

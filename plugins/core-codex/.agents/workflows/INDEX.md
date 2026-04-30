@@ -3,6 +3,7 @@
 All paths are relative to Rosetta Core Plugin Path.
 
 - `workflows/adhoc-flow.md`: "Rosetta ad-hoc adaptive meta-workflow that constructs, tracks, reviews, and executes a tailored execution plan per user request using building blocks and available instructions. Useful for small or simple tasks if none other workflows matches. Lightweight."
+- `workflows/code-analysis-flow.md`: "Rosetta workflow for reverse-engineering an existing codebase into grounded architecture documentation. Use when user asks to analyze, document, or reverse-engineer a code module, repository, or feature. Scales to SMALL (single doc) or LARGE (per-module + summary). Optional requirements branch captures SMART/MECE/EARS functional and non-functional requirements from code."
 - `workflows/coding-flow.md`: "Rosetta coding and implementation workflow, includes discovery, tech specs, tech plan, subagent plan review, user plan review, implementation, subagent review implementation, validation, user review, and final validation with reviewer gates, HITL gates, and subagent delegation."
 - `workflows/init-workspace-flow-context.md`: "Phase 1 of init-workspace-flow, contains detect workspace mode, composite status, and existing file inventory."
 - `workflows/init-workspace-flow-discovery.md`: "Phase 3 of init-workspace-flow, contains analyze tech stack and produce TECHSTACK, CODEMAP, DEPENDENCIES files."

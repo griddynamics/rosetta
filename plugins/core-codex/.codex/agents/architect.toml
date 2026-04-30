@@ -21,7 +21,7 @@ Validation: Specifications are testable, architecture is explicit, and every req
 
 <prerequisites>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Discovery phase complete with context and affected areas identified
 - Requirements and constraints provided by orchestrator
 

@@ -400,8 +400,10 @@ All four are generated from a single source tree (`instructions/r2/core/`) by th
 - **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)
 - **Directory layout** — restructures output to match IDE conventions (`.agents/` and `.codex/` for Codex, runtime configs at root for Copilot)
 - **Index generation** — produces `rules/INDEX.md` and `workflows/INDEX.md` listings
+- **Template processing** — the generator supports `.tmpl` files inside preserved config folders: it substitutes platform-specific placeholders and writes the rendered output alongside the template (same path, `.tmpl` suffix removed). Currently used for `hooks.json`, which embeds the bootstrap payload at generation time and cannot be static. The mechanism is general-purpose and can be applied to any config that requires generated content.
+- **Copilot session locking** — Copilot has no native hook deduplication, so the generated hooks include a file-based lock ensuring each bootstrap entry fires exactly once per session. Other platforms use IDE-native mechanisms (Claude Code: `"once": true`; Codex and Cursor: built-in deduplication).
 
-Each plugin has a preserved config folder (`.claude-plugin/`, `.cursor-plugin/`, `.github/`, `.codex-plugin/`) containing the IDE-specific manifest (`plugin.json`) and any static configs. Everything outside that folder is generated — wiped and regenerated on each sync.
+Each plugin has a preserved config folder (`.claude-plugin/`, `.cursor-plugin/`, `.github/`, `.codex-plugin/`) containing the IDE-specific manifest (`plugin.json`), the `hooks.json.tmpl` template, and any static configs. Everything outside that folder is generated — wiped and regenerated on each sync. `hooks.json` is the rendered output of the template and is fully regenerated on every sync, not preserved as static content. Cursor does not need hooks to load bootstrap, because rules are supported (template placeholder still must be generated!)
 
 ### Publishing Instructions
 

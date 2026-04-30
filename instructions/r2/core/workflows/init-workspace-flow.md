@@ -16,7 +16,7 @@ Validation: State file tracks every phase with file inventory; verification conf
 
 <workflow_phases>
 
-- Rosetta prep steps completed (get_context_instructions called and all three prep steps completed).
+- All Rosetta prep steps MUST be FULLY completed (get_context_instructions called and all three prep steps completed).
 - MUST FOLLOW THIS WORKFLOW EXACTLY AND FULLY.
 - MUST extensively use subagents as this is a large workflow.
 - Sequential phases. Each updates `agents/init-workspace-flow-state.md`. Optional phases marked as skipped. Keep state file very brief.

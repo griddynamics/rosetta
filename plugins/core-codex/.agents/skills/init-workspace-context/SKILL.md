@@ -16,8 +16,8 @@ Initialization must behave differently for fresh, existing, or plugin workspaces
 </when_to_use_skill>
 
 <core_concepts>
-- Rosetta prep steps completed
-- Three modes: install (no files per `bootstrap_rosetta_files`), upgrade (some files per `bootstrap_rosetta_files` exist), plugin (LLM context contains "RUNNING AS A PLUGIN")
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- Three modes: install (no files per `bootstrap_rosetta_files`), upgrade (some files per `bootstrap_rosetta_files` exist), plugin (LLM context already contains "RUNNING AS A PLUGIN")
 </core_concepts>
 
 <process>

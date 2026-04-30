@@ -6,12 +6,12 @@ import base64
 import logging
 import os
 import sys
-import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from importlib import resources as pkg_resources
 from typing import Annotated, Any, TYPE_CHECKING, TypeAlias, cast
 
+from cachetools import TTLCache
 from fastmcp import Context, FastMCP
 
 if TYPE_CHECKING:
@@ -80,6 +80,7 @@ from ims_mcp.tools.projects import (
 from ims_mcp.tools.resources import read_instruction_resource
 from ims_mcp.tools.plan_manager import plan_manager_tool
 from ims_mcp.services.plan_store import build_plan_store
+from ims_mcp.tracing import get_request_trace_id, instrument_ragflow_client, traced_execution
 from ims_mcp.typing_utils import JsonObject
 
 AsyncStringFactory: TypeAlias = Callable[[], Awaitable[str]]
@@ -93,11 +94,15 @@ register_signal_handlers()
 _logger = logging.getLogger("ims_mcp")
 _MCP_VERSION_TEXT = str(_MCP_VERSION)
 
+# IMS_DEBUG controls log level: DEBUG when set, INFO otherwise.
+# Handler always attached so tracing output is visible in all modes.
+_logger.setLevel(logging.DEBUG if _CONFIG.debug else logging.INFO)
+if not _logger.handlers:
+    _handler = logging.StreamHandler(sys.stderr)
+    _handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    _logger.addHandler(_handler)
+
 if _CONFIG.debug:
-    _logger.setLevel(logging.DEBUG)
-    if _CONFIG.transport == TRANSPORT_STDIO:
-        _handler = logging.StreamHandler(sys.stderr)
-        _logger.addHandler(_handler)
     _logger.debug("Rosetta v%s debug mode enabled", _MCP_VERSION_TEXT)
 
 
@@ -146,14 +151,39 @@ def _build_oauth_client_storage() -> AsyncKeyValue | None:
 
 
 _RAGFLOW = RagflowClient(_CONFIG).client if _CONFIG.api_key else None
+instrument_ragflow_client(_RAGFLOW)
 _DATASET_LOOKUP = DatasetLookup(_RAGFLOW) if _RAGFLOW else None
 _DOCUMENT_CLIENT = DocumentClient()
 _QUERY_BUILDER = QueryBuilder()
 _BUNDLER = Bundler(_DOCUMENT_CLIENT)
 _DOC_CACHE = InstructionDocCache(_DOCUMENT_CLIENT)
 _FEEDBACK = FeedbackService()
-_CONTEXT_INSTRUCTIONS_CACHE: str | None = None
-_CONTEXT_INSTRUCTIONS_CACHE_TIME: float = 0.0
+
+# ── Tool-level response cache ─────────────────────────────────────
+# Caches the final response string of read tools so that identical
+# calls (same params + dataset version + server URL) skip RAGFlow
+# entirely.  Errors are never cached.
+#
+# Key: tuple(config_fingerprint, tool_name, sorted_params)
+# Value: response string
+#
+# Thread safety: TTLCache is not thread-safe, but all access happens
+# on the asyncio event loop thread.  The worst-case race between
+# concurrent .get() and []= for the same key is a harmless duplicate
+# computation — no data corruption or loss is possible.
+_TOOL_CACHE: TTLCache[tuple, str] = TTLCache(maxsize=256, ttl=DOC_CACHE_TTL_SECONDS)
+_CONFIG_FINGERPRINT = (_CONFIG.server_url, _CONFIG.instruction_dataset)
+
+
+def _tool_cache_key(tool_name: str, **params: object) -> tuple[Any, ...]:
+    """Build a stable, hashable cache key from tool name and all inputs."""
+    sorted_params = tuple(sorted(
+        (k, tuple(v) if isinstance(v, list) else v)
+        for k, v in params.items()
+    ))
+    return (_CONFIG_FINGERPRINT, tool_name, sorted_params)
+
+
 _AUTHORIZER = Authorizer(_CONFIG.read_policy, _CONFIG.write_policy, config=_CONFIG)
 _OAUTH_PROVIDER = build_oauth_provider(_CONFIG, client_storage=_build_oauth_client_storage())
 
@@ -197,13 +227,6 @@ def _load_mcp_server_instructions() -> str:
 _ROSETTA_ICON = load_rosetta_icon()
 
 
-def _is_context_instructions_stale() -> bool:
-    """Check if context instructions cache is stale (older than TTL)."""
-    if _CONTEXT_INSTRUCTIONS_CACHE is None:
-        return True
-    return (time.time() - _CONTEXT_INSTRUCTIONS_CACHE_TIME) > DOC_CACHE_TTL_SECONDS
-
-
 # Select prompt mode based on ROSETTA_MODE environment variable
 # HARD is the default mode
 _rosetta_mode = os.getenv(ENV_ROSETTA_MODE, "HARD").upper()
@@ -242,16 +265,18 @@ mcp = FastMCP(
     auth=_OAUTH_PROVIDER,
 )
 
-# Write-data tool visibility:
-# - HTTP: hide by default, reveal per-session in get_context_instructions
-#   based on OAuth token scopes.
-# - STDIO: single user — decide once at startup from env var.
-if _CONFIG.transport == TRANSPORT_HTTP:
-    mcp.disable(tags={TAG_WRITE_DATA})
-    _logger.info("Write-data tools hidden by default (HTTP mode, revealed per-session via scopes)")
-elif SCOPE_ALLOW_WRITE_DATA not in _CONFIG.allowed_scopes:
-    mcp.disable(tags={TAG_WRITE_DATA})
-    _logger.info("Write-data tools disabled (STDIO mode, allow_write_data scope not present)")
+# Write-data tools are permanently disabled (feature no longer used).
+# The tool functions and their implementations are kept intact so we can
+# re-enable them later if needed — only the @mcp.tool registrations are
+# commented out below.
+#
+# Previously this block dynamically enabled/disabled write tools:
+# if _CONFIG.transport == TRANSPORT_HTTP:
+#     mcp.disable(tags={TAG_WRITE_DATA})
+#     _logger.info("Write-data tools hidden by default (HTTP mode, revealed per-session via scopes)")
+# elif SCOPE_ALLOW_WRITE_DATA not in _CONFIG.allowed_scopes:
+#     mcp.disable(tags={TAG_WRITE_DATA})
+#     _logger.info("Write-data tools disabled (STDIO mode, allow_write_data scope not present)")
 
 
 async def _log(ctx: Context | None, level: str, message: str) -> None:
@@ -347,11 +372,14 @@ def _normalize_tags(tags: list[str] | str | None) -> tuple[list[str] | None, str
     return (tags if tags else None), None
 
 
-async def _retry_once(fn: AsyncStringFactory) -> str:
+async def _retry_once(fn: AsyncStringFactory, *, operation: str = "ragflow_call") -> str:
+    """Execute fn with one retry, wrapping each attempt in RAGFlow tracing."""
+    trace_id = get_request_trace_id()
     last_exc: Exception | None = None
-    for _ in range(2):
+    for attempt in range(2):
         try:
-            return await fn()
+            async with traced_execution(f"{operation} (attempt={attempt + 1})", trace_id=trace_id):
+                return await fn()
         except Exception as exc:
             last_exc = exc
             if _RAGFLOW is None:
@@ -368,14 +396,25 @@ async def _retry_once(fn: AsyncStringFactory) -> str:
 async def _read_resource(path: str, ctx: Context | None = None) -> str:
     if not _RAGFLOW:
         return "Error: ROSETTA_API_KEY is required"
+
+    cache_key = _tool_cache_key("resource_read", path=path)
+    cached: str | None = _TOOL_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     call_ctx = await _build_call_context("resource_read", {"path": path}, ctx)
-    return await read_instruction_resource(
-        path=path,
-        call_ctx=call_ctx,
-        document_client=_DOCUMENT_CLIENT,
-        bundler=_BUNDLER,
-        doc_cache=_DOC_CACHE,
-    )
+    trace_id = get_request_trace_id()
+    async with traced_execution(f"resource_read path={path}", trace_id=trace_id):
+        result = await read_instruction_resource(
+            path=path,
+            call_ctx=call_ctx,
+            document_client=_DOCUMENT_CLIENT,
+            bundler=_BUNDLER,
+            doc_cache=_DOC_CACHE,
+        )
+    if result and not result.startswith("Error:"):
+        _TOOL_CACHE[cache_key] = result
+    return result
 
 
 @mcp.tool(name=TOOL_GET_CONTEXT_INSTRUCTIONS, description=PROMPT_GET_CONTEXT_INSTRUCTIONS)
@@ -383,23 +422,23 @@ async def _read_resource(path: str, ctx: Context | None = None) -> str:
 async def get_context_instructions(
     ctx: Context | None = None,
 ) -> str:
-    # HTTP only: reveal write_data tools for this session if the user
-    # has the scope.  STDIO visibility is decided once at startup.
-    if (
-        _CONFIG.transport == TRANSPORT_HTTP
-        and ctx is not None
-        and SCOPE_ALLOW_WRITE_DATA in _resolve_allowed_scopes()
-    ):
-        await ctx.enable_components(tags={TAG_WRITE_DATA})
-        await _log(ctx, "info", "Write-data tools enabled for this session (allow_write_data scope present)")
+    # Write-data tool visibility is permanently disabled.
+    # Previously this block revealed write_data tools per-session:
+    # if (
+    #     _CONFIG.transport == TRANSPORT_HTTP
+    #     and ctx is not None
+    #     and SCOPE_ALLOW_WRITE_DATA in _resolve_allowed_scopes()
+    # ):
+    #     await ctx.enable_components(tags={TAG_WRITE_DATA})
+    #     await _log(ctx, "info", "Write-data tools enabled for this session (allow_write_data scope present)")
 
     if not _RAGFLOW:
         return "Error: ROSETTA_API_KEY is required"
 
-    global _CONTEXT_INSTRUCTIONS_CACHE, _CONTEXT_INSTRUCTIONS_CACHE_TIME
-    if not _is_context_instructions_stale():
-        assert _CONTEXT_INSTRUCTIONS_CACHE is not None
-        return _CONTEXT_INSTRUCTIONS_CACHE
+    cache_key = _tool_cache_key(TOOL_GET_CONTEXT_INSTRUCTIONS)
+    cached: str | None = _TOOL_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
 
     await _log(ctx, "info", "Loading context instructions")
     call_ctx = await _build_call_context(TOOL_GET_CONTEXT_INSTRUCTIONS, {}, ctx)
@@ -411,11 +450,11 @@ async def get_context_instructions(
             query_builder=_QUERY_BUILDER,
             doc_cache=_DOC_CACHE,
             topic=None, # no topic, as it creates too many results and noise
-        )
+        ),
+        operation="get_context_instructions",
     )
     if result and not result.startswith("Error:"):
-        _CONTEXT_INSTRUCTIONS_CACHE = result
-        _CONTEXT_INSTRUCTIONS_CACHE_TIME = time.time()
+        _TOOL_CACHE[cache_key] = result
     return result
 
 
@@ -432,13 +471,19 @@ async def query_instructions(
     normalized_tags, tags_err = _normalize_tags(tags)
     if tags_err:
         return tags_err
+
+    cache_key = _tool_cache_key(TOOL_QUERY_INSTRUCTIONS, query=query, tags=normalized_tags)
+    cached: str | None = _TOOL_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     await _log(ctx, "info", "Querying instructions")
     call_ctx = await _build_call_context(
         TOOL_QUERY_INSTRUCTIONS,
         {"query": query, "tags": normalized_tags},
         ctx,
     )
-    return await _retry_once(
+    result = await _retry_once(
         lambda: query_instructions_tool(
             call_ctx=call_ctx,
             document_client=_DOCUMENT_CLIENT,
@@ -447,8 +492,12 @@ async def query_instructions(
             query=query,
             tags=normalized_tags,
             topic=None, # no topic, as it creates too many results and noise
-        )
+        ),
+        operation="query_instructions",
     )
+    if result and not result.startswith("Error:"):
+        _TOOL_CACHE[cache_key] = result
+    return result
 
 
 @mcp.tool(name=TOOL_LIST_INSTRUCTIONS, description=PROMPT_LIST_INSTRUCTIONS)
@@ -461,25 +510,41 @@ async def list_instructions(
     if not _RAGFLOW:
         return "Error: ROSETTA_API_KEY is required"
 
+    cache_key = _tool_cache_key(TOOL_LIST_INSTRUCTIONS, full_path_from_root=full_path_from_root, format=format)
+    cached: str | None = _TOOL_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     await _log(ctx, "info", f"Listing instructions at {full_path_from_root}")
     call_ctx = await _build_call_context(
         TOOL_LIST_INSTRUCTIONS,
         {"full_path_from_root": full_path_from_root, "format": format},
         ctx,
     )
-    return await _retry_once(
+    result = await _retry_once(
         lambda: list_instructions_tool(
             call_ctx=call_ctx,
             doc_cache=_DOC_CACHE,
             bundler=_BUNDLER,
             full_path_from_root=full_path_from_root,
             format=format,
-        )
+        ),
+        operation="list_instructions",
     )
+    if result and not result.startswith("Error:"):
+        _TOOL_CACHE[cache_key] = result
+    return result
 
 
-@mcp.tool(name=TOOL_SUBMIT_FEEDBACK, description=PROMPT_SUBMIT_FEEDBACK, tags={TAG_WRITE_DATA})
-@track_tool_call
+# ── Write-data tools ──────────────────────────────────────────────
+# These tools are permanently disabled (feature no longer used).
+# The @mcp.tool annotations are commented out so the tools are not
+# registered with the MCP server.  All function bodies, imports, and
+# logic are kept intact so we can re-enable them later if needed.
+# To re-enable: uncomment the @mcp.tool and @track_tool_call lines.
+
+# @mcp.tool(name=TOOL_SUBMIT_FEEDBACK, description=PROMPT_SUBMIT_FEEDBACK, tags={TAG_WRITE_DATA})
+# @track_tool_call
 async def submit_feedback(
     request_mode: Annotated[str, Field(description='Workflow classification. Examples: "coding.md", "help.md", "research.md", "aqa.md".')],
     feedback: Annotated[JsonObject, Field(description="Structured brief feedback payload.")],
@@ -503,12 +568,13 @@ async def submit_feedback(
             feedback_service=_FEEDBACK,
             request_mode=request_mode,
             feedback=feedback,
-        )
+        ),
+        operation="submit_feedback",
     )
 
 
-@mcp.tool(name=TOOL_QUERY_PROJECT_CONTEXT, description=PROMPT_QUERY_PROJECT_CONTEXT, tags={TAG_WRITE_DATA})
-@track_tool_call
+# @mcp.tool(name=TOOL_QUERY_PROJECT_CONTEXT, description=PROMPT_QUERY_PROJECT_CONTEXT, tags={TAG_WRITE_DATA})
+# @track_tool_call
 async def query_project_context(
     repository_name: Annotated[str, Field(description="Project/workspace name.")],
     query: Annotated[str | None, Field(description="Keyword search text for project context documents.")] = None,
@@ -541,12 +607,13 @@ async def query_project_context(
             query=query,
             tags=normalized_tags,
             topic=None, # no topic, as it creates too many results and noise
-        )
+        ),
+        operation="query_project_context",
     )
 
 
-@mcp.tool(name=TOOL_STORE_PROJECT_CONTEXT, description=PROMPT_STORE_PROJECT_CONTEXT, tags={TAG_WRITE_DATA})
-@track_tool_call
+# @mcp.tool(name=TOOL_STORE_PROJECT_CONTEXT, description=PROMPT_STORE_PROJECT_CONTEXT, tags={TAG_WRITE_DATA})
+# @track_tool_call
 async def store_project_context(
     repository_name: Annotated[str, Field(description="Project/workspace name.")],
     document: Annotated[str, Field(description='Document name. Examples: "ARCHITECTURE.md"')],
@@ -585,12 +652,13 @@ async def store_project_context(
             tags=normalized_tags,
             content=content,
             force=force,
-        )
+        ),
+        operation="store_project_context",
     )
 
 
-@mcp.tool(name=TOOL_DISCOVER_PROJECTS, description=PROMPT_DISCOVER_PROJECTS, tags={TAG_WRITE_DATA})
-@track_tool_call
+# @mcp.tool(name=TOOL_DISCOVER_PROJECTS, description=PROMPT_DISCOVER_PROJECTS, tags={TAG_WRITE_DATA})
+# @track_tool_call
 async def discover_projects(
     query: Annotated[str | None, Field(description="Optional search term to filter projects by name.")] = None,
     ctx: Context | None = None,
@@ -603,11 +671,14 @@ async def discover_projects(
         return "Error: ROSETTA_API_KEY is required"
     await _log(ctx, "info", "Discovering project datasets")
     call_ctx = await _build_call_context(TOOL_DISCOVER_PROJECTS, {"query": query}, ctx)
-    return await _retry_once(lambda: discover_projects_tool(call_ctx=call_ctx, query=query))
+    return await _retry_once(
+        lambda: discover_projects_tool(call_ctx=call_ctx, query=query),
+        operation="discover_projects",
+    )
 
 
-@mcp.tool(name=TOOL_PLAN_MANAGER, description=PROMPT_PLAN_MANAGER, tags={TAG_WRITE_DATA})
-@track_tool_call
+# @mcp.tool(name=TOOL_PLAN_MANAGER, description=PROMPT_PLAN_MANAGER, tags={TAG_WRITE_DATA})
+# @track_tool_call
 async def plan_manager(
     command: Annotated[str, Field(description="Command to execute.")],
     plan_name: Annotated[str, Field(description="Plan identifier string.")] = "",
@@ -696,6 +767,9 @@ def main() -> None:
             stateless_http=False,
             middleware=middleware,
             event_store=event_store,
+            # Recommend 10s client reconnection delay to reduce SSE Conflict (409)
+            # errors when clients drop and reconnect before server cleans up.
+            retry_interval=10000,
         )
 
         config = uvicorn.Config(

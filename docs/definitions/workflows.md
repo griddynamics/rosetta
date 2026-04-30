@@ -3,14 +3,14 @@
 - init-workspace-flow
 - discovery-flow
 - research-flow
-- context engineering-flow
+- context-engineering-flow
 - coding-flow
 - testing-flow
 - validation-flow
-- analysis-flow
-- use cases-flow
+- code-analysis-flow
+- use-cases-flow
 - data-flow
-- external lib-flow
+- external-lib-flow
 - aqa-flow
 - modernization-flow
 - adhoc-flow

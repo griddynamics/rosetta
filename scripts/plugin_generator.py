@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import sys
@@ -13,6 +14,12 @@ from pathlib import Path
 ALLOWED_CLAUDE_MODELS = {"opus", "sonnet", "haiku", "inherit"}
 
 EXCLUDED_RULE_FILES = {"rules/bootstrap.md", "rules/local-files-mode.md"}
+
+BOOTSTRAP_PREFIX = (
+    "ALWAYS MUST FULLY READ THIS ENTIRE CONTEXT BEFORE PROCEEDING FROM FILE PATH PROVIDED"
+    " ESPECIALLY IF TRUNCATED/PREVIEWED. DO IT NOW! THEN PROCEED.\n"
+    "Rosetta get_context_instructions:\n"
+)
 
 COPILOT_MODEL_MAP: dict[str, str] = {
     "opus": "claude opus 4.6",
@@ -32,6 +39,7 @@ class PluginSyncSpec:
     codex_models: bool = False
     rename_agents: bool = False
     generated_indexes: tuple[str, ...] = ()
+    templates: tuple[str, ...] = ()
 
 
 def normalize_claude_model(value: str) -> str:
@@ -228,6 +236,205 @@ def _extract_frontmatter_and_body(content: str) -> tuple[str, str]:
     return content[4:end], content[end + len("\n---\n") :]
 
 
+def strip_frontmatter(content: str) -> str:
+    _, body = _extract_frontmatter_and_body(content)
+    return body
+
+
+def json_escape_for_additional_context(content: str) -> str:
+    content = content.replace("\\", "\\\\")
+    content = content.replace('"', '\\"')
+    content = content.replace("\n", "\\n")
+    content = content.replace("\r", "\\r")
+    content = content.replace("\t", "\\t")
+    return content
+
+
+def _bash_single_quote_escape(content: str) -> str:
+    """Escape single quotes for safe embedding inside a bash single-quoted string."""
+    return content.replace("'", "'\\''")
+
+
+def _ps_single_quote_escape(content: str) -> str:
+    """Escape single quotes for safe embedding inside a PowerShell single-quoted string."""
+    return content.replace("'", "''")
+
+
+def _bash_lock(n: int) -> str:
+    cleanup = (
+        'find /tmp -maxdepth 1 -name "rosetta-bs-*.lock" -mmin +1 -delete 2>/dev/null; '
+        if n == 0 else ""
+    )
+    return (
+        f"{cleanup}"
+        f"INPUT=$(cat); "
+        f"SESSION_ID=$(printf '%s' \"$INPUT\" | sed -n 's/.*\"session_id\":\"\\([^\"]*\\)\".*/\\1/p'); "
+        f'LOCK="/tmp/rosetta-bs-${{SESSION_ID:-$$}}-{n}.lock"; '
+        f'if [ -f "$LOCK" ]; then exit 0; fi; touch "$LOCK"'
+    )
+
+
+def _ps_lock(n: int) -> str:
+    cleanup = (
+        'Get-ChildItem "$env:TEMP\\rosetta-bs-*-0.lock" -ErrorAction SilentlyContinue | '
+        'Where-Object { $_.LastWriteTime -lt (Get-Date).AddMinutes(-1) } | '
+        'Remove-Item -Force -ErrorAction SilentlyContinue; '
+        if n == 0 else ""
+    )
+    return (
+        f"{cleanup}"
+        f"$Inp = [Console]::In.ReadToEnd(); "
+        f'$Sid = if ($Inp -match \'"session_id":"([^"]*)"\') {{ $Matches[1] }} '
+        f"else {{ [System.Diagnostics.Process]::GetCurrentProcess().Id }}; "
+        f'$Lk = "$env:TEMP\\rosetta-bs-$Sid-{n}.lock"; '
+        f"if (Test-Path $Lk) {{ exit 0 }}; "
+        f"New-Item -Path $Lk -ItemType File -Force | Out-Null"
+    )
+
+
+_BOOTSTRAP_FILES: tuple[str, ...] = (
+    "rules/plugin-files-mode.md",
+    "rules/bootstrap-core-policy.md",
+    "rules/bootstrap-execution-policy.md",
+    "rules/bootstrap-guardrails.md",
+    "rules/bootstrap-rosetta-files.md",
+    "rules/INDEX.md",
+    "workflows/INDEX.md",
+)
+
+_PLUGIN_PATH_HOOKS: dict[str, dict] = {
+    "core-claude": {"type": "command", "command": 'printf \'%s\' "{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"SessionStart\\\",\\\"additionalContext\\\":\\\"Rosetta Core Plugin Path: ${CLAUDE_PLUGIN_ROOT}\\\"}}"', "once": True},
+    "core-codex": {
+        "type": "command",
+        "command": (
+            'workspace_root="$PWD"; '
+            'while [ "$workspace_root" != "/" ] && '
+            '[ ! -f "$workspace_root/.agents/rules/bootstrap-rosetta-files.md" ]; do '
+            'workspace_root="$(dirname "$workspace_root")"; done; '
+            'if [ -f "$workspace_root/.agents/rules/bootstrap-rosetta-files.md" ]; then '
+            'printf \'%s\' "{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"SessionStart\\\",\\\"additionalContext\\\":\\\"Rosetta Core Plugin Path: $workspace_root/.agents\\\"}}"; fi'
+        ),
+        "statusMessage": "Loading Rosetta bootstrap",
+        "timeout": 30,
+    },
+    "core-copilot": {
+        "type": "command",
+        "bash": (
+            'for base in "$HOME/Library/Application Support/Code/agentPlugins" '
+            '"$HOME/.local/share/Code/agentPlugins"; do '
+            'root="$base/github.com/griddynamics/rosetta/plugins/core-copilot"; '
+            'if [ -f "$root/rules/bootstrap-rosetta-files.md" ]; then '
+            'printf \'%s\' "{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"SessionStart\\\",\\\"additionalContext\\\":\\\"Rosetta Core Plugin Path: $root\\\"}}"; '
+            'break; fi; done'
+        ),
+        "powershell": (
+            '$root = "$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot"; '
+            'if (Test-Path "$root\\rules\\bootstrap-rosetta-files.md") '
+            '{ Write-Output (\'{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Rosetta Core Plugin Path: \' + $root + \'"}}\') }'
+        ),
+    },
+    "core-cursor": {"type": "command", "command": 'printf \'{"additional_context":"Rosetta Core Plugin Path: %s"}\' "${CURSOR_PROJECT_DIR}"'},
+}
+
+def build_bootstrap_replacements(dest_dir: Path) -> tuple[dict[str, str], int]:
+    """Read bootstrap files once, build all platform-specific placeholder values.
+
+    Returns (replacements dict, violation count).
+    """
+    violations = 0
+    errors: list[str] = []
+    claude_entries: list[dict] = []
+    codex_entries: list[dict] = []
+    cursor_entries: list[dict] = []
+    copilot_entries: list[dict] = []
+
+    for n, rel_file in enumerate(_BOOTSTRAP_FILES):
+        src = dest_dir / rel_file
+        if not src.is_file():
+            print(f"WARNING: {src} not found, skipping", file=sys.stderr)
+            continue
+
+        content = src.read_text(encoding="utf-8")
+        body = strip_frontmatter(content)
+        text = (BOOTSTRAP_PREFIX + body) if n == 0 else body
+        escaped = json_escape_for_additional_context(text)
+        bash_escaped = _bash_single_quote_escape(escaped)
+        ps_escaped = _ps_single_quote_escape(escaped)
+
+        if len(escaped) > 10000:
+            errors.append(f"ERROR: {rel_file} additionalContext is {len(escaped)} chars (max 10000)")
+            violations += 1
+
+        claude_entries.append({
+            "type": "command",
+            "command": f'printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{bash_escaped}"}}}}\'',
+            "once": True,
+        })
+        codex_entries.append({
+            "type": "command",
+            "command": f'printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{bash_escaped}"}}}}\'',
+            "statusMessage": "Loading Rosetta bootstrap",
+            "timeout": 30,
+        })
+        cursor_entries.append({
+            "type": "command",
+            "command": f'printf \'%s\' \'{{"additional_context":"{bash_escaped}"}}\'',
+        })
+        copilot_entries.append({
+            "type": "command",
+            "bash": f'{_bash_lock(n)}; printf \'%s\' \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{bash_escaped}"}}}}\'',
+            "powershell": f'{_ps_lock(n)}; Write-Output \'{{"hookSpecificOutput":{{"hookEventName":"SessionStart","additionalContext":"{ps_escaped}"}}}}\'',
+        })
+
+    for entries, name in (
+        (claude_entries, "core-claude"),
+        (codex_entries, "core-codex"),
+        (copilot_entries, "core-copilot"),
+        (cursor_entries, "core-cursor"),
+    ):
+        path_hook = _PLUGIN_PATH_HOOKS.get(name)
+        if path_hook:
+            entries.append(path_hook)
+
+    def _inner(entries: list[dict]) -> str:
+        return json.dumps(entries, ensure_ascii=False)[1:-1]
+
+    replacements = {
+        "{{BOOTSTRAP_HOOKS_CLAUDE}}": _inner(claude_entries),
+        "{{BOOTSTRAP_HOOKS_CODEX}}": _inner(codex_entries),
+        "{{BOOTSTRAP_HOOKS_CURSOR}}": _inner(cursor_entries),
+        "{{BOOTSTRAP_HOOKS_COPILOT}}": _inner(copilot_entries),
+    }
+
+    for err in errors:
+        print(err, file=sys.stderr)
+
+    print(f"      built {len(replacements)} template replacements from {len(_BOOTSTRAP_FILES)} bootstrap files", flush=True)
+    return replacements, violations
+
+
+def process_templates(
+    dest_dir: Path,
+    templates: tuple[str, ...],
+    replacements: dict[str, str],
+) -> None:
+    """Replace all known placeholders in .tmpl files, write output (path minus .tmpl suffix)."""
+    for tmpl_rel in templates:
+        tmpl_path = dest_dir / tmpl_rel
+        if not tmpl_path.is_file():
+            print(f"WARNING: {tmpl_path} not found, skipping", file=sys.stderr)
+            continue
+
+        text = tmpl_path.read_text(encoding="utf-8")
+        for placeholder, value in replacements.items():
+            text = text.replace(placeholder, value)
+
+        output_path = tmpl_path.with_suffix("")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(text, encoding="utf-8")
+        print(f"      processed {tmpl_rel}", flush=True)
+
+
 def _toml_quote(value: str) -> str:
     escaped = value.replace("\\", "\\\\").replace('"', '\\"')
     return f'"{escaped}"'
@@ -332,7 +539,7 @@ def generate_codex_subagents(destination: Path, core_source: Path) -> None:
 def generate_copilot_runtime_layout(destination: Path) -> None:
     plugin_dir = destination / ".github" / "plugin"
     copied = 0
-    for filename in ("hooks.json", ".mcp.json", "rosetta-bootstrap.sh", "rosetta-bootstrap.ps1"):
+    for filename in ("hooks.json", ".mcp.json"):
         source = plugin_dir / filename
         if source.is_file():
             shutil.copy2(source, destination / filename)
@@ -386,14 +593,18 @@ def sync_generated_plugins(repo_root: Path) -> int:
             name="core-claude",
             destination=repo_root / "plugins" / "core-claude",
             preserved_folder=".claude-plugin",
+            preserved_files=("hooks",),
             normalize_models=True,
             generated_indexes=("rules", "workflows"),
+            templates=("hooks/hooks.json.tmpl",),
         ),
         PluginSyncSpec(
             name="core-cursor",
             destination=repo_root / "plugins" / "core-cursor",
             preserved_folder=".cursor-plugin",
+            preserved_files=("hooks",),
             generated_indexes=("rules", "workflows"),
+            templates=("hooks/hooks.json.tmpl",),
         ),
         PluginSyncSpec(
             name="core-copilot",
@@ -402,6 +613,7 @@ def sync_generated_plugins(repo_root: Path) -> int:
             copilot_models=True,
             rename_agents=True,
             generated_indexes=("rules", "workflows"),
+            templates=(".github/plugin/hooks.json.tmpl",),
         ),
         PluginSyncSpec(
             name="core-codex",
@@ -409,18 +621,25 @@ def sync_generated_plugins(repo_root: Path) -> int:
             preserved_folder=".codex-plugin",
             codex_models=True,
             generated_indexes=("rules", "workflows"),
+            templates=(".codex-plugin/hooks.json.tmpl",),
         ),
     ]
 
+    replacements: dict[str, str] | None = None
+    total_violations = 0
     for spec in plugin_specs:
         print(f"   syncing {spec.name}", flush=True)
         reset_generated_tree(spec.destination, spec.preserved_folder, spec.preserved_files)
         copy_core_tree(spec, core_source)
         for folder_name in spec.generated_indexes:
             generate_folder_index(spec.destination, folder_name)
+        if replacements is None:
+            replacements, total_violations = build_bootstrap_replacements(spec.destination)
+        if spec.templates:
+            process_templates(spec.destination, spec.templates, replacements)
         if spec.name == "core-copilot":
             generate_copilot_runtime_layout(spec.destination)
         if spec.name == "core-codex":
             generate_codex_subagents(spec.destination, core_source)
             generate_codex_runtime_layout(spec.destination)
-    return 0
+    return 1 if total_violations else 0

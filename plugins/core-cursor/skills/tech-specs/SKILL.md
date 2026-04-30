@@ -18,9 +18,10 @@ Use when requirements need translation into specs, architecture needs documentat
 
 <core_concepts>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Discovery MUST be completed before writing specs
 - MCPs and external sources MUST be used to acquire context (DeepWiki, Context7, Web Search)
+- ULTRATHINK
 
 Tech specs define target state; plan defines steps to reach it.
 Split with companion `planning` skill: specs own WHAT, plan owns HOW. Do NOT repeat across both. Keep consistent. When one changes, verify the other.
@@ -31,21 +32,6 @@ Tech Spec Flow:
 2. Write section by section (do NOT write entire document at once)
 3. Verify integrity as separate step (do not combine with writing)
 4. Insert TLDR at the beginning (up to 10 lines)
-
-<request_size_scaling>
-
-Scale per request size classification:
-
-| | SMALL | MEDIUM | LARGE |
-|---|---|---|---|
-| Output | message, no files | concise specs file, light and short | full specs document |
-| Sections | overview + affected areas | core sections | all sections |
-| Detail | concise, signatures only | signatures + contracts | full specs |
-| Length | up to 100 lines | 100-200 lines | 200-500 lines |
-| Diagrams | none | key interfaces | sequence + component |
-| Security | skip unless critical | threat summary | full STRIDE |
-
-</request_size_scaling>
 
 Spec sections (adapt per request):
 
@@ -62,6 +48,21 @@ Spec sections (adapt per request):
 11. Tech Summary: files and services affected
 
 </core_concepts>
+
+<request_size_scaling>
+
+Scale per request size classification:
+
+| | SMALL | MEDIUM | LARGE |
+|---|---|---|---|
+| Output | message, no files | concise specs file, light and short | full specs document |
+| Sections | overview + affected areas | core sections | all sections |
+| Detail | concise, signatures only | signatures + contracts | full specs |
+| Length | up to 100 lines | 100-200 lines | 200-500 lines |
+| Diagrams | none | key interfaces | sequence + component |
+| Security | skip unless critical | threat summary | full STRIDE |
+
+</request_size_scaling>
 
 <spec_rules>
 

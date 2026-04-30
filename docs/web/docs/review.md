@@ -61,7 +61,7 @@ Instructions (skills, agents, workflows, rules, templates) define how AI agents 
 ### Boundaries and Separation
 
 - **Each file has one job.** A skill is not a workflow. A rule is not an agent. If boundaries blur, request a split.
-- **No cross-cutting logic embedded.** HITL rules live only in `bootstrap-hitl-questioning.md`. Guardrails live only in `bootstrap-guardrails.md`. Individual instructions must not duplicate or reimplement these. This separation enables fully autonomous execution modes.
+- **No cross-cutting logic embedded.** HITL rules live in skill `hitl` with engagement in `bootstrap-guardrails.md`. Guardrails live only in `bootstrap-guardrails.md`. Individual instructions must not duplicate or reimplement these. This separation enables fully autonomous execution modes.
 - **Respect instruction hierarchy.** Bootstrap rules, workflows, skills, and rules form a layered system. Each layer has defined authority. Do not bypass or redefine upstream constraints in downstream files.
 - **Define roles and contracts.** Each instruction must define who acts, what inputs are expected, and what outputs are produced. No implicit handoffs.
 - **No logical conflicts.** Instructions must not contradict each other. If a new instruction overlaps with an existing one, reconcile or merge.

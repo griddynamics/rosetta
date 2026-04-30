@@ -18,7 +18,7 @@ Use when implementing features, bug fixes, refactors, or any code changes includ
 
 <core_concepts>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 
 Principles:
 

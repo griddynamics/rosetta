@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ims-mcp"
-version = "2.0.16b03"
+version = "2.0.18"
 description = "Model Context Protocol server for Rosetta (Instruction Management System)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,10 +27,11 @@ classifiers = [
 dependencies = [
     "ragflow-sdk>=0.24.0,<0.25.0",
     "mcp>=1.26.0,<2.0.0",
-    "fastmcp>=3.1.0,<4",
+    "fastmcp>=3.2.4,<4",
     "posthog>=7.0.0,<8.0.0",
     "cryptography>=43.0.0",
     "uuid7-standard>=1.0.0,<2.0.0",
+    "cachetools>=5.5.0,<6.0.0",
 ]
 
 [project.optional-dependencies]

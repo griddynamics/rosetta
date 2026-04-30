@@ -6,7 +6,7 @@ RAGFlow queries for the same dataset.
 
 from __future__ import annotations
 
-import time
+from cachetools import TTLCache
 
 from ims_mcp.clients.document import DocumentClient
 from ims_mcp.constants import DOC_CACHE_TTL_SECONDS
@@ -14,32 +14,25 @@ from ims_mcp.typing_utils import DatasetLike, DocumentLike
 
 
 class InstructionDocCache:
-    """Cache all documents from an instruction dataset with TTL."""
+    """Cache all documents from an instruction dataset with TTL.
+
+    Uses ``cachetools.TTLCache`` keyed by dataset name.
+    """
 
     def __init__(self, document_client: DocumentClient, ttl: int = DOC_CACHE_TTL_SECONDS):
         self._document_client = document_client
-        self._ttl = ttl
-        self._docs: list[DocumentLike] = []
-        self._dataset_name: str = ""
-        self._last_refresh: float = 0.0
-
-    def _is_stale(self, dataset_name: str) -> bool:
-        if dataset_name != self._dataset_name:
-            return True
-        return (time.time() - self._last_refresh) > self._ttl
+        self._cache: TTLCache[str, list[DocumentLike]] = TTLCache(maxsize=32, ttl=ttl)
 
     def get_all_docs(self, dataset: DatasetLike, dataset_name: str) -> list[DocumentLike]:
         """Return cached full doc list, refreshing if stale."""
-        if not self._is_stale(dataset_name):
-            return self._docs
-        self._docs = self._document_client.list_docs(
+        cached: list[DocumentLike] | None = self._cache.get(dataset_name)
+        if cached is not None:
+            return cached
+        docs = self._document_client.list_docs(
             dataset=dataset, page_size=10000,
         )
-        self._dataset_name = dataset_name
-        self._last_refresh = time.time()
-        return self._docs
+        self._cache[dataset_name] = docs
+        return docs
 
     def invalidate(self) -> None:
-        self._docs = []
-        self._dataset_name = ""
-        self._last_refresh = 0.0
+        self._cache.clear()

@@ -7,7 +7,7 @@ tags: ["rosetta-bootstrap", "rosetta", "policy"]
 baseSchema: docs/schemas/rule.md
 ---
 
-<bootstrap_rosetta_files attribution="DO NOT COMPACT/OPTIMIZE/SUMMARIZE/REPHRASE, PASS IT AS-IS, CRITICALLY IMPORT TO KEEP, INCLUDING THIS TAG">
+<bootstrap_rosetta_files compact="NEVER" optimize="NEVER" summarize="AS-IS">
 
 All rosetta files below: SRP, DRY, MECE, very concise. Each file starts with a self-describing sentence of its purpose. Grep-friendly topical headers. Headers include status. No explicit ToC. All committed to SCM unless stated otherwise.
 It must be possible to grep by headers and receive useful information and ToC.

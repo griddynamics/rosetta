@@ -70,7 +70,7 @@ Rosetta MCP supports two runtime modes:
 |----------|-------|---------|-------|
 | `ROSETTA_SERVER_URL` | Runtime (all modes) | `https://<production server URL>/` | Rosetta Server base URL |
 | `ROSETTA_API_KEY` | Runtime (all modes) | Empty | Required for Rosetta Server access |
-| `VERSION` | Runtime (all modes) | `r1` | Used for instruction dataset resolution (`aia-{version}`) |
+| `VERSION` | Runtime (all modes) | `r2` | Used for instruction dataset resolution (`aia-{version}`) |
 | `ROSETTA_TRANSPORT` | Runtime (all modes) | `stdio` | `stdio` or `http` |
 | `ROSETTA_HTTP_HOST` | Runtime (HTTP) | `0.0.0.0` | HTTP bind host |
 | `ROSETTA_HTTP_PORT` | Runtime (HTTP) | `8000` | HTTP bind port |
@@ -114,7 +114,7 @@ Rosetta MCP supports two runtime modes:
 |----------|-------------|---------|
 | `ROSETTA_SERVER_URL` | Rosetta Server base URL | `https://<production server URL>/` |
 | `ROSETTA_API_KEY` | API key used by Rosetta MCP to access Rosetta Server | Required |
-| `VERSION` | Instruction release used for instruction dataset resolution (`aia-{version}`) | `r1` |
+| `VERSION` | Instruction release used for instruction dataset resolution (`aia-{version}`) | `r2` |
 | `IMS_DEBUG` | Enable debug logging to stderr (`1/true/yes/on`) | Disabled |
 | `FASTMCP_LOG_LEVEL` | Set to `DEBUG` alongside `IMS_DEBUG=1` for full FastMCP internals | `INFO` |
 | `FASTMCP_ENABLE_RICH_LOGGING` | Set to `false` to disable Rich formatting (use in production/Grafana) | `true` |

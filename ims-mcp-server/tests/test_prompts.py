@@ -194,8 +194,8 @@ def test_prompt_markup_is_balanced_for_wrapped_sections():
     assert PROMPT_SERVER_INSTRUCTIONS_SOFT.count("</resources>") == 1
     assert PROMPT_SERVER_INSTRUCTIONS_HARD.count("<resources>") == 1
     assert PROMPT_SERVER_INSTRUCTIONS_HARD.count("</resources>") == 1
-    assert "<critical_prerequisite" in PROMPT_GET_CONTEXT_INSTRUCTIONS_SOFT
-    assert "</critical_prerequisite>" in PROMPT_GET_CONTEXT_INSTRUCTIONS_SOFT
+    assert "<rosetta_workflow_policy" in PROMPT_GET_CONTEXT_INSTRUCTIONS_SOFT
+    assert "</rosetta_workflow_policy>" in PROMPT_GET_CONTEXT_INSTRUCTIONS_SOFT
 
 
 def test_readme_documents_full_tool_surface():

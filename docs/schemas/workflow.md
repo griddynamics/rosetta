@@ -27,7 +27,7 @@ baseSchema: docs/schemas/workflow.md
 
 <workflow_phases>
 
-- Rosetta prep steps completed
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 
 [Orchestrator may not have clear picture, instruct it to trust the system, skills define that, and it should NOT try to execute those itself]
 [Tell how phases and steps are executed: sequentially or parallel]
