@@ -4,8 +4,8 @@ fullnameOverride: ""
 replicaCount: 1
 
 image:
-  repository: rosetta/rosetta-mcp
-  tag: "2.0.0"
+  repository: griddynamics/rosetta-mcp
+  tag: "latest"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []

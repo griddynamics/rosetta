@@ -48,6 +48,8 @@ env:
       value: ""
     - name: ROSETTA_OAUTH_EXTRA_SCOPES
       value: "openid email profile offline_access"
+    - name: REDIS_URL
+      value: "redis://:$(REDIS_PASSWORD)@redis.example.svc.cluster.local:6379/$(REDIS_DB)"
   secrets:
     - name: ROSETTA_API_KEY
       valueFrom:
@@ -87,5 +89,3 @@ env:
           name: rosetta-mcp-secrets
           key: POSTHOG_API_KEY
           optional: true
-    - name: REDIS_URL
-      value: "redis://:$(REDIS_PASSWORD)@redis.example.svc.cluster.local:6379/$(REDIS_DB)"

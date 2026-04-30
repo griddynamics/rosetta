@@ -53,6 +53,8 @@ env:
       value: "1"
     - name: FASTMCP_LOG_LEVEL
       value: "DEBUG"
+    - name: REDIS_URL
+      value: "redis://:$(REDIS_PASSWORD)@redis-dev.example.svc.cluster.local:6379/$(REDIS_DB)"
   secrets:
     - name: ROSETTA_API_KEY
       valueFrom:
@@ -86,5 +88,4 @@ env:
           name: rosetta-mcp-secrets
           key: FERNET_KEY
           optional: true
-    - name: REDIS_URL
-      value: "redis://:$(REDIS_PASSWORD)@redis-dev.example.svc.cluster.local:6379/$(REDIS_DB)"
+
