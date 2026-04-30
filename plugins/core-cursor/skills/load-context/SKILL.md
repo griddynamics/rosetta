@@ -12,22 +12,18 @@ baseSchema: docs/schemas/skill.md
 
 **Plugin mode:**
 
-1. Bootstrap rules are loaded via startup hook — do NOT assume prep steps are done
+1. Bootstrap rules are loaded via startup hook — do NOT assume plan steps are complete
 2. Create todo tasks (search/discover the tool if needed)
-3. Locate and execute ALL prep steps defined in the loaded bootstrap rules in full
-4. DO NOT proceed to any action until all prep steps are confirmed complete
-5. Identify and load the most matching workflow — a must if you are not subagent
-6. Create and update all todo tasks per workflow
+3. Locate and execute ALL plan steps in `ph-prep` defined in the loaded bootstrap rules in full
+4. DO NOT proceed to any action until all plan steps are confirmed complete
 
 **MCP mode:**
 
 1. Call `get_context_instructions` (blocking gate — do not proceed until complete)
 2. If output truncated and file path provided — read entire file, preview is NOT enough
 3. Create todo tasks (search/discover the tool if needed)
-4. Execute ALL prep steps returned — no skipping, no partial execution
-5. DO NOT proceed to any action until all prep steps are confirmed complete
-6. Identify and load the most matching workflow — a must if you are not subagent
-7. Create and update all todo tasks per workflow
+4. Execute ALL plan steps upserted into `ph-prep` — no skipping, no partial execution
+5. DO NOT proceed to any action until all plan steps are confirmed complete
 
 **Adhoc mode:**
 
@@ -37,5 +33,5 @@ baseSchema: docs/schemas/skill.md
 **All modes:**
 
 - Treat context loading as a hard blocking gate, not a background task
-- Explicitly confirm all prep steps complete before responding, planning, or executing anything
+- Explicitly confirm all plan steps complete before responding, planning, or executing anything
 - If anything fails or is unclear — stop and ask user
