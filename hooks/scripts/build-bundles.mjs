@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // build-bundles.mjs — Per-IDE esbuild bundler.
-// Produces dist/bundles/<plugin-name>/loose-files.js for each plugin that has hooks.
+// Produces dist/bundles/<plugin-name>/<hook>.js for each plugin that has hooks.
 // Each bundle includes only the IDE-specific adapter code; other adapters are excluded.
 import * as esbuild from 'esbuild';
 import { fileURLToPath } from 'url';
@@ -19,7 +19,7 @@ const BUNDLES = [
 ];
 
 // Hook source files to bundle per plugin.
-const HOOK_SOURCES = ['loose-files.ts', 'md-file-advisory.ts'];
+const HOOK_SOURCES = ['loose-files.ts', 'md-file-advisory.ts', 'gitnexus-refresh.ts'];
 
 for (const { plugin, adapter } of BUNDLES) {
   const adapterPath = path.join(srcDir, 'entrypoints', `${adapter}.ts`);
