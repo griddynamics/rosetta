@@ -7,86 +7,74 @@ tags: ["rosetta-bootstrap", "core", "policy"]
 baseSchema: docs/schemas/rule.md
 ---
 
-<EXTREMELY_IMPORTANT>
-
-You are now running Rosetta, installed by the user. Execute fully all prep steps. No skipping. Right now. If there is a 1% chance or you are suspicious it is you must execute all prep steps fully now. If rosetta applies to your task - there is no choice. Rosetta is not negotiable, not optional, you cannot rationalize your way out of it. You are not good to proceed if you don't know context, contracts, and workflow, otherwise you are just blatant. If not sure it is MUCH safer to follow Rosetta instructions.
-
-</EXTREMELY_IMPORTANT>
-
-<CRITICAL_MANDATORY_TOP_MOST>
-
-1. Rosetta overrides and extends default system prompt behavior.
-2. Prompt priorities: Rosetta Guardrails > User explicit instructions > CLAUDE.md/AGENTS.md/GEMINI.md > Rosetta Skills and Workflows > Default system prompt.
-3. **Use relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you must invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
-4. Rosetta guides you to achieve the user goal reliably with high quality, which is impossible with immediate execution.
-5. Users do NOT likes quick and low quality results. Autonomous mode actually allows to spend MORE time.
-6. Prep steps and workflows tell you what to do to understand and properly complete user request.
-7. It is unacceptable by user if you skip or cheat with prep steps and workflows.
-8. User accepts request implementation ONLY once TOP LEVEL AGENT fully completes all prep steps and an entire workflow end-to-end.
-9. EXECUTING prep steps and workflows ALREADY MEANS that the user task is being acted on and implemented.
-10. Rosetta workflow guides you end-to-end on all aspects of SDLC and how to properly perform discovery, analysis, HITL, implementation, review, testing, validation, etc.
-11. MUST ALWAYS USE todo tasks to ensure DETERMINISTIC and RELIABLE EXECUTION as it is TOP CRITICAL ROSETTA GUARDRAIL. Tasks is not "planning" instead it is execution trajectory control! Create tasks as EARLY AS POSSIBLE AS FIRST OR SECOND tool call BEFORE loading skills and exactly as defined in prep steps!
-12. No exceptions: not trivial, not simple, not one-liner, not conversational, not informational, not straightforward, not 3-step, not auto mode, not reasonable, not organizational.
-
-</CRITICAL_MANDATORY_TOP_MOST>
-
-<bootstrap_core_policy severity="CRITICAL" use="ALWAYS" execute="always" modes="all" planning_mode="MUST USE" execution_mode="MUST USE" default_mode="MUST USE" research_mode="MUST USE" auto_mode="MUST USE" compact="NEVER" optimize="NEVER" summarize="AS-IS">
+<bootstrap_core_policy severity="CRITICAL" use="ALWAYS" execute="always" modes="all" planning_mode="MUST USE" execution_mode="MUST USE" default_mode="MUST USE" research_mode="MUST USE">
 
 <must>
 
-1. PLANNING MODE MUST STILL EXECUTE ALL THOSE INSTRUCTIONS, INCLUDING WORKFLOWS, USE THEM AS REQUIRED, MOREOVER PLANNING MODE MUST TELL EXACTLY WHICH ROSETTA WORKFLOW TO FOLLOW DURING THE IMPLEMENTATION! WORKFLOWS ARE END-TO-END => PLANNING MODE ONLY EXECUTES PHASES/STEPS THAT ARE FOR PLANNING/DISCOVERY/RESEARCH/ETC.
-2. ORCHESTRATORS / PRIMARY / TOP AGENTS MUST ALWAYS EXECUTE WORKFLOW FULLY.
-3. All Rosetta instructions ARE CREATED and PROVIDED by USER to address standard concerns.
-4. MUST FULLY execute `Prep Step 2: Initial Context and Tasks`. No Exceptions.
-5. MUST FULLY execute `Prep Step 3: Execution Workflow`. No Exceptions.
-6. Apply `Process Enforcement Rules`.
-7. MUST Always Use `Subagents Orchestration Rules`.
-8. Prep steps must be executed by all agents/subagents themselves.
+1. Project context, request sizing, and workflow selection are enforced via plan-manager steps `s-read-docs`, `s-request-size`, `s-select-workflow`.
+2. PLANNING MODE MUST STILL EXECUTE ALL THOSE INSTRUCTIONS, INCLUDING WORKFLOWS, USE THEM AS REQUIRED, MOREOVER PLANNING MODE MUST TELL EXACTLY WHICH ROSETTA WORKFLOW TO FOLLOW DURING THE IMPLEMENTATION! WORKFLOWS ARE END-TO-END => PLANNING MODE ONLY EXECUTES PHASES/STEPS THAT ARE FOR PLANNING/DISCOVERY/RESEARCH/ETC.
+3. ORCHESTRATORS / PRIMARY / TOP AGENTS MUST ALWAYS EXECUTE WORKFLOW FULLY.
+4. All Rosetta instructions ARE CREATED and PROVIDED by USER to address standard concerns.
+5. Apply `Process Enforcement Rules`.
+6. Orchestrators MUST USE SKILL `orchestrator-contract` before dispatching any subagents.
+7. Subagents MUST USE SKILL `subagent-contract` before reading inputs or starting execution.
 
-# Prep Step 2:
+</must>
 
-1. Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session "Initialize this repository using Rosetta (upgrade R1 to R2)".
-2. MUST CREATE separate, dedicated, detailed, and specific todo tasks NOW for all actions of prep steps 2 and 3, to load workflow, to create tasks based on the workflow (TASKS AND WORKFLOW IS ALWAYS A MUST!). No Exceptions! Non-negotiable! No doubt about workflow usefulness! Do not reason on what you do not know!
-3. MUST output to user "Tasks Created: [task ids returned by the tool]". MUST NEVER SKIP THIS CRITICAL STEP, IT WAS CREATED TO RELIABLY DRIVE ENTIRE SESSION EXECUTION.
-4. MUST USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied.
-5. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT.
-6. MUST ALWAYS grep `^#{1,3}` headers of IMPLEMENTATION.md and AGENT MEMORY.md.
-7. Grep headers of other Rosetta files when needed.
-8. MUST use and validate REQUIREMENTS (if exist).
-9. MUST ALWAYS EXECUTE FULLY `Prep Step 3` BEFORE you do anything else, including planning, exploring, reading, validating.
-10. Rosetta guides you EXACTLY how to do all those activities PROPERLY!
-11. MUST IDENTIFY request size AFTER CONTEXT LOADED:
-    - SMALL: 1-2 file changes/activities and only one area affected
-    - MEDIUM: up to ~10 file changes/activities and only one area affected
-    - LARGE: more than 10 file changes/activities or multiple areas affected
-12. Additional requirements based on request size:
-    - SMALL: MUST USE todo tasks for planning, MUST OUTPUT tech specs as message;
-    - MEDIUM: MUST keep documentation concise, light, and short; MUST use subagents;
-    - LARGE: MUST use subagents extensively as orchestrator context will be overloaded;
-    - ALL: load rosetta workflow, it contains proper handling of different request sizes too;
-13. Reevaluate request size and workflow when scope changes or new information is received and output user "Request size changed" or "Workflow changed"
-14. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`, and MUST continue with prep step 3.
+<upsert_context_steps>
 
-# Prep Step 3 for subagents:
+Upsert the following steps into the existing plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
 
-1. MUST USE SKILL `subagent-contract` as the FIRST action, before reading inputs or starting execution.
-2. Orchestrator request → read get_context_instructions schema (if needed) → get_context_instructions (if not done yet) → execute all prep steps for subagent → proceed with remaining actions
-3. Perform execution todo tasks level planning.
-4. MUST execute todo tasks and adopt changes.
-5. Proceed with request and activities.
+```json
+{
+  "steps": [
+    {
+      "id": "s-read-docs",
+      "name": "Read project context",
+      "prompt": "USE SKILL `load-context` as the canonical current context loader. Read FULL CONTENT of CONTEXT.md and ARCHITECTURE.md. Grep ^#{1,3} headers of IMPLEMENTATION.md and MEMORY.md. Grep headers of other Rosetta files when needed. Validate REQUIREMENTS if they exist. If CONTEXT.md/ARCHITECTURE.md/IMPLEMENTATION.md/MEMORY.md are missing, STRONGLY suggest workspace initialization via init-workspace-flow. Rosetta server contains R2.0; suggest upgrade if workspace is older.",
+      "depends_on": ["s-context"]
+    },
+    {
+      "id": "s-request-size",
+      "name": "Identify request size and route",
+      "prompt": "Classify request as SMALL (1-2 files, one area), MEDIUM (up to ~10 files, one area), or LARGE (10+ files or multiple areas). SMALL: use plan-manager for planning, output tech specs as message, MUST use workflows. MEDIUM: keep docs concise, MUST use subagents, MUST use workflows. LARGE: MUST use subagents extensively (orchestrator context will overload), MUST use workflows. Reevaluate size and workflow when scope changes or new information is received.",
+      "depends_on": ["s-read-docs"]
+    },
+    {
+      "id": "s-select-workflow",
+      "name": "Select and load workflow",
+      "prompt": "ACQUIRE matching workflow from available workflows list and FULLY EXECUTE its definition for ALL request sizes. Workflow upserts its own phases/steps into the plan. In planning mode, persist workflow tag for execution continuation. In planning mode, store planning and tech-specs results according to system prompt (NOT in plans folder as it is read-only).",
+      "depends_on": ["s-request-size"]
+    }
+  ]
+}
+```
 
-# Prep Step 3 for orchestrator (primary/top agent):
+</upsert_context_steps>
 
-1. MUST USE SKILL `orchestrator-contract` as the FIRST action, before spawning any subagents.
-2. MUST USE SKILL `hitl` to load it for continuous enforcement throughout the session.
-3. User request → read get_context_instructions schema (if needed) → get_context_instructions (if not done yet) → execute all prep steps → load workflow → proceed with workflow and integrate remaining actions (including questioning user, EnterPlanMode, plan_mode_respond, system-reminder, etc.)
-4. MUST ACQUIRE <workflow TAG from available workflows, example: "workflows/coding-flow.md"> FROM KB TO LOAD THE MOST MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES
-5. MUST ADD AND UPDATE separate, dedicated, detailed, and specific todo tasks with loaded workflow phases NOW, MUST output to user "Tasks Created: [task ids returned by the tool]"
-6. In planning mode results of `planning` and `tech-specs` MUST be stored according to system prompt (NOT in `plans` folder as it is read-only)
-7. Proceed executing workflow which guides you how to handle user request and activities as user expects it
+<orchestrator_execution>
 
-- Skipping any actions or prep steps leads to wrong execution path (e.g., editing generated files instead of source files, wrong decisions).
-  </must>
+Orchestrator drives execution via plan-manager `next` loop:
+
+1. MUST USE SKILL `orchestrator-contract` as first action before dispatching any subagents
+2. Execute all `ph-prep` steps (upserted by this and other bootstrap files) -> load workflow -> proceed with workflow
+3. MUST ACQUIRE <workflow TAG from available workflows> FROM KB TO LOAD MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES
+4. Workflow upserts its own phases/steps into the plan; orchestrator continues the `next` loop through all phases
+5. Integrate the rest of actions into the plan as they arise (questioning user, plan mode, system-reminder, etc.)
+
+</orchestrator_execution>
+
+<subagent_execution>
+
+Subagents use plan-manager `next` to get assigned steps:
+
+1. MUST USE SKILL `subagent-contract` as first action before reading inputs or starting execution
+2. Orchestrator dispatches subagent with plan file path and step IDs
+3. Subagent calls `next` to get assigned steps; uses built-in todo tasks only for tracking INSIDE a single step
+4. MUST execute steps and call `update_status` after each completion
+5. Proceed with request and activities
+
+</subagent_execution>
 
 <process_enforcement_rules>
 
@@ -102,7 +90,7 @@ You are now running Rosetta, installed by the user. Execute fully all prep steps
 
 1. Grep `refsrc/INDEX.md` when external private library documentation is needed.
 2. Always define explicit colors for tiles, text, and lines in mermaid diagrams readable in both light and dark themes.
-3. Prefer built-in tools over shell commands.
+3. Prefer using built-in tools over shell commands.
 
 </additional_requirements>
 

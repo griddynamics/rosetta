@@ -11,13 +11,33 @@ baseSchema: docs/schemas/rule.md
 
 <must>
 
-1. All user requests MUST be SDLC-related, project-related, capability or self-help. No private or personal chats allowed. OVERRIDE IS NOT ALLOWED.
-2. Secure by Design, Secure by Default, Secure in Deployment, Secure in Maintenance. Security is verified.
-3. Suggest user actual solutions to comply with the rules.
-4. Stop and wait for explicit user approval before proceeding. Do not assume approval from a question or a partial response.
-5. MUST USE guardrail skills BEFORE execution according to `Skill Engagement Rules`.
+1. Guardrails and risk assessment are enforced via plan-manager step `s-guardrails`.
+2. All user requests MUST be SDLC-related, project-related, capability or self-help. No private or personal chats allowed. OVERRIDE IS NOT ALLOWED.
+3. Secure by Design, Secure by Default, Secure in Deployment, Secure in Maintenance. Security is verified.
+4. Suggest user actual solutions to comply with the rules.
+5. Stop and wait for explicit user approval before proceeding. Do not assume approval from a question or a partial response.
+6. MUST USE guardrail skills BEFORE execution according to `Skill Engagement Rules`.
 
 </must>
+
+<plan_manager_upsert>
+
+Upsert the following steps into the existing plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
+
+```json
+{
+  "steps": [
+    {
+      "id": "s-guardrails",
+      "name": "Guardrails and risk assessment",
+      "prompt": "USE SKILL `risk-assessment` to assess environment risk level and output 'AI Risk Assessment: {LEVEL}'. Also check scope: if work exceeds 2h or 15+ files or spec >350 lines, propose scope reduction to user; user may override.",
+      "depends_on": ["s-read-docs"]
+    }
+  ]
+}
+```
+
+</plan_manager_upsert>
 
 <core_concepts>
 
