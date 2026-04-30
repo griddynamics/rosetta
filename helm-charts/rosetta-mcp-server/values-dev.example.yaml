@@ -32,15 +32,15 @@ env:
     - name: ROSETTA_OAUTH_MODE
       value: "oauth"
     - name: ROSETTA_OAUTH_OIDC_CONFIG_URL
-      value: "https://keycloak.example.com/realms/evergreen/.well-known/openid-configuration"
+      value: "https://keycloak.example.com/realms/dev/.well-known/openid-configuration"
     - name: ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT
-      value: "https://keycloak.example.com/realms/evergreen/protocol/openid-connect/auth"
+      value: "https://keycloak.example.com/realms/dev/protocol/openid-connect/auth"
     - name: ROSETTA_OAUTH_TOKEN_ENDPOINT
-      value: "https://keycloak.example.com/realms/evergreen/protocol/openid-connect/token"
+      value: "https://keycloak.example.com/realms/dev/protocol/openid-connect/token"
     - name: ROSETTA_OAUTH_INTROSPECTION_ENDPOINT
-      value: "https://keycloak.example.com/realms/evergreen/protocol/openid-connect/token/introspect"
+      value: "https://keycloak.example.com/realms/dev/protocol/openid-connect/token/introspect"
     - name: ROSETTA_OAUTH_REVOCATION_ENDPOINT
-      value: "https://keycloak.example.com/realms/evergreen/protocol/openid-connect/revoke"
+      value: "https://keycloak.example.com/realms/dev/protocol/openid-connect/revoke"
     - name: ROSETTA_OAUTH_BASE_URL
       value: "https://rosetta-dev.example.com"
     - name: ROSETTA_OAUTH_REQUIRED_SCOPES
