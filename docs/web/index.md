@@ -64,7 +64,7 @@ permalink: /
     </div>
   </div>
 
-  <a href="#try-rosetta-section" class="diag-resolved">
+  <a href="#what-rosetta-adds" class="diag-resolved">
     <span class="diag-resolved-text">Rosetta solves this. See how ↓</span>
   </a>
 
@@ -82,6 +82,100 @@ permalink: /
     if (el) observer.observe(el);
   })();
   </script>
+</section>
+
+<!-- ===== WHAT ROSETTA ADDS ===== -->
+<section class="section" id="what-rosetta-adds">
+  <h2 class="with-marker">What Rosetta Adds to AI Coding Agents</h2>
+  <p class="section-subtitle">Coding agent system prompts handle tool calls and output formatting. They contain no engineering process, no guardrails, no project awareness. They can't — the system prompt doesn't know if you're building a PoC or enterprise software with regulated data. Rosetta fills that gap with instructions that guide the agent through everything it would otherwise skip.</p>
+
+  <div class="adds-grid">
+
+    <div class="adds-item">
+      <div class="adds-num">1</div>
+      <div class="adds-body">
+        <strong>Project context before every task.</strong>
+        Without Rosetta, agents read a few lines around the problem and guess the rest. With Rosetta, the agent reverse-engineers your architecture, tech stack, and business context during initialization — and reads it before every task. No more blind guessing.
+      </div>
+    </div>
+
+    <div class="adds-item">
+      <div class="adds-num">2</div>
+      <div class="adds-body">
+        <strong>Guardrails that actually enforce.</strong>
+        Agents don't assess risk, don't protect sensitive data, don't question dangerous actions. Rosetta instructions require the agent to assess risk, mask sensitive data, detect dangerous operations, and follow behavior boundaries — loaded at startup, always active.
+      </div>
+    </div>
+
+    <div class="adds-item">
+      <div class="adds-num">3</div>
+      <div class="adds-body">
+        <strong>Human-in-the-loop at decision points.</strong>
+        Agents trust user input unconditionally and never stop once started. Rosetta workflows define approval gates after specs, after plans, and before risky actions. The agent stops, asks targeted questions, and waits — instead of getting carried away.
+      </div>
+    </div>
+
+    <div class="adds-item">
+      <div class="adds-num">4</div>
+      <div class="adds-body">
+        <strong>Request classification and source of truth.</strong>
+        Agents treat every request the same. Rosetta auto-classifies each request into one of twelve workflow types — coding, testing, research, requirements, modernization, and others — loading entirely different instructions for each. The agent maintains requirements traceability instead of mixing everything together.
+      </div>
+    </div>
+
+    <div class="adds-item">
+      <div class="adds-num">5</div>
+      <div class="adds-body">
+        <strong>Analysis before execution.</strong>
+        Most agents rush straight to code. Rosetta workflows define preparation, research, planning, and approval phases before a single line is written. Plans and specs are separate artifacts. The process scales by task size.
+      </div>
+    </div>
+
+    <div class="adds-item">
+      <div class="adds-num">6</div>
+      <div class="adds-body">
+        <strong>Review and validation by separate agents.</strong>
+        Self-review doesn't work — the model rubber-stamps its own decisions. Rosetta instructs the agent to delegate review and validation to separate subagents with fresh context windows. They've never seen the implementation struggles. They catch what the implementer can't.
+      </div>
+    </div>
+
+    <div class="adds-item">
+      <div class="adds-num">7</div>
+      <div class="adds-body">
+        <strong>Workflows built from real failure modes.</strong>
+        Ask any AI to design a coding workflow from scratch — it produces 2-3 steps and forgets everything else. Rosetta contains workflows created by humans who observed every category of AI failure and encoded the solutions. The agent stops skipping the steps that matter.
+      </div>
+    </div>
+
+    <div class="adds-item">
+      <div class="adds-num">8</div>
+      <div class="adds-body">
+        <strong>Self-learning and crash recovery.</strong>
+        Agents don't learn from mistakes and don't survive session loss. Rosetta instructs the agent to maintain a memory of errors and lessons, and to write execution state to disk. If a session fails, the next one resumes from the last checkpoint.
+      </div>
+    </div>
+
+    <div class="adds-item">
+      <div class="adds-num">9</div>
+      <div class="adds-body">
+        <strong>Security by design.</strong>
+        Rosetta never sees your code. Instruction delivery is deterministic — the agent requests by tag, not by sending source code. No semantic search over your codebase. Air-gap capable. Runs inside your perimeter.
+      </div>
+    </div>
+
+    <div class="adds-item">
+      <div class="adds-num">10</div>
+      <div class="adds-body">
+        <strong>One investment, every AI tool.</strong>
+        Works across Cursor, Claude Code, VS Code, JetBrains, Codex, Windsurf, and more. Write instructions once. Three layers merge at runtime — core, organization, project — so teams customize without forking. Version-controlled with instant rollback.
+      </div>
+    </div>
+
+  </div>
+
+  <p style="text-align:center;margin-top:1.5rem;opacity:.7;font-size:.95rem">
+    A typical coding task drops from ~75 min to ~25 min. Repository onboarding drops from weeks to minutes. Production teams report 3x–5x productivity gains.
+  </p>
 </section>
 
 <!-- ===== TRY ROSETTA (INLINE) ===== -->

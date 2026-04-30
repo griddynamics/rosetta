@@ -4832,3 +4832,65 @@ body.docs-layout main {
   color: var(--muted);
 }
 [data-theme="light"] .docs-callout--caution { background: rgba(221,107,32,0.07);  border-color: rgba(221,107,32,0.3);  }
+
+/* ===== WHAT ROSETTA ADDS GRID ===== */
+.adds-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 1.6rem 0 0;
+}
+
+.adds-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+
+.adds-item:hover {
+  border-color: var(--gd-gold);
+}
+
+.adds-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--gd-gold);
+  color: #000;
+  font-weight: 700;
+  font-size: 0.82rem;
+  line-height: 1;
+  margin-top: 0.1rem;
+}
+
+.adds-body {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.adds-body strong {
+  color: var(--heading);
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.95rem;
+}
+
+[data-theme="light"] .adds-item {
+  background: rgba(255,255,255,0.6);
+}
+
+@media (max-width: 600px) {
+  .adds-item { padding: 0.85rem 1rem; }
+  .adds-num { width: 24px; height: 24px; font-size: 0.75rem; }
+  .adds-body { font-size: 0.88rem; }
+}
