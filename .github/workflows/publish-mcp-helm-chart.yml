@@ -1,0 +1,63 @@
+name: Publish Rosetta MCP Helm chart
+
+on:
+  push:
+    branches:
+      - main
+      - feature/mcp-helm-chart
+    paths:
+      - 'helm-charts/rosetta-mcp-server/**'
+      - '.github/workflows/publish-mcp-helm-chart.yml'
+  workflow_dispatch:
+
+jobs:
+  package-helm-chart:
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.17.4
+
+      - name: Set environment variables
+        id: vars
+        run: |
+          CHART_PATH=./helm-charts/rosetta-mcp-server
+          VERSION="$(grep -E '^version:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
+          REPOSITORY="ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "chart_path=${CHART_PATH}" >> "$GITHUB_OUTPUT"
+          echo "repository=${REPOSITORY}" >> "$GITHUB_OUTPUT"
+          echo "Package version: ${VERSION}"
+          echo "OCI registry prefix: oci://${REPOSITORY}"
+
+      - name: Lint and syntax check chart
+        run: |
+          helm lint "${{ steps.vars.outputs.chart_path }}"
+          helm template helm-test "${{ steps.vars.outputs.chart_path }}" >/dev/null
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        # if: github.ref_name == 'main'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package and push Helm chart (OCI / GHCR)
+        # if: github.ref_name == 'main'
+        run: |
+          set -euo pipefail
+          CHART="${{ steps.vars.outputs.chart_path }}"
+          VERSION="${{ steps.vars.outputs.version }}"
+          REPOSITORY="${{ steps.vars.outputs.repository }}"
+          helm package "$CHART" --version "${VERSION}"
+          # Chart name matches Chart.yaml "name:", not the directory name
+          PKG="rosetta-mcp-${VERSION}.tgz"
+          helm push "./${PKG}" "oci://${REPOSITORY}"

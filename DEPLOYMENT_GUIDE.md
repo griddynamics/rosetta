@@ -200,53 +200,125 @@ Required env vars: `ROSETTA_API_KEY`, `ROSETTA_SERVER_URL`, `REDIS_PASSWORD`.
 
 ### Kubernetes / Helm
 
-Rosetta MCP uses a shared Helm chart (v1.17.x). Configuration is values-only (no custom chart).
+The repository ships the chart at [`helm-charts/rosetta-mcp-server/`](helm-charts/rosetta-mcp-server/). It deploys [rosetta-mcp](rosetta-mcp-server/README.md) in **HTTP** transport with ClusterIP Service, optional Ingress, optional HorizontalPodAutoscaler, and optional [External Secrets Operator](https://external-secrets.io/) wiring. Use this path when you want a shared MCP endpoint behind your ingress and identity provider (see [Architecture — Rosetta MCP](docs/ARCHITECTURE.md#rosetta-mcp)).
 
-**Image:** `https://hub.docker.com/repository/docker/griddynamics/rosetta-mcp/general`
+**Docker image:** [griddynamics/rosetta-mcp](https://hub.docker.com/r/griddynamics/rosetta-mcp) ([repository](https://hub.docker.com/repository/docker/griddynamics/rosetta-mcp/general)).
 
-**Resources:**
+#### Prerequisites
 
-| | Requests | Limits |
-|---|---|---|
-| CPU | 250m | 1000m |
-| Memory | 512Mi | 1Gi |
+- Kubernetes 1.25+ (for `autoscaling/v2` HPA)
+- Rosetta Server (for example RAGFlow) reachable from the cluster ([Part 1](#part-1-rosetta-server-ragflow))
+- A Kubernetes `Secret` (or ExternalSecret) containing at least `ROSETTA_API_KEY`
+- If using the chart's ESO toggle (`eso.enabled`), External Secrets Operator and a `ClusterSecretStore` / `SecretStore` that match `eso.secretStoreRef`
 
-**Deployment strategy:** RollingUpdate (maxSurge: 1, maxUnavailable: 0). Single replica by default, HPA available (2-10 replicas, 70% CPU / 80% memory targets).
+#### Install
 
-**Session affinity:** MCP uses [Streamable HTTP](docs/ARCHITECTURE.md#rosetta-mcp) (stateful). The server holds session state and can call back the IDE. When running multiple replicas, every request from a client must reach the same pod. Configure sticky sessions on the Kubernetes Service:
+##### From OCI (GitHub Container Registry)
+
+After the workflow [Publish Rosetta MCP Helm chart](.github/workflows/publish-mcp-helm-chart.yml) runs on `main`, the chart is published as an OCI artifact on GHCR for this repository.
+
+```bash
+helm registry login ghcr.io
+export CHART_REPO="oci://ghcr.io/<org>/rosetta"   # lowercase owner/repo — same path as github.repository
+helm pull "${CHART_REPO}" --version 0.1.0         # match chart version in helm-charts/rosetta-mcp-server/Chart.yaml
+```
+
+Or install without pulling first:
+
+```bash
+helm install rosetta-mcp "${CHART_REPO}" \
+  --version 0.1.0 \
+  -f my-values.yaml
+```
+
+Values must set `ROSETTA_SERVER_URL`, image pull credentials if needed, and secrets such as `ROSETTA_API_KEY`. Replace `<org>/rosetta` with your GitHub `owner/name` in lowercase (the workflow pushes to `oci://ghcr.io/<owner>/<repo>`).
+
+##### From a local clone
+
+```bash
+helm dependency update    # chart has no subcharts today; optional
+helm install rosetta-mcp ./helm-charts/rosetta-mcp-server \
+  -f ./helm-charts/rosetta-mcp-server/values.yaml \
+  -f ./helm-charts/rosetta-mcp-server/values-prod.example.yaml   # adapt or use your overlay
+```
+
+#### Required chart configuration
+
+1. **Image** — Set `image.repository` and `image.tag` in values to match your registry (defaults use `rosetta/rosetta-mcp` and align with Chart `appVersion`).
+2. **Rosetta backend** — Set `env.vars` so `ROSETTA_SERVER_URL` resolves to Rosetta Server (in-cluster DNS or ingress URL).
+3. **API key** — Supply `ROSETTA_API_KEY` via `env.secrets` (`secretKeyRef`). Create the Kubernetes Secret first or use `eso` to sync it.
+4. **Ingress** — Set `ingress.host`, TLS, and annotations. Defaults assume an NGINX-style ingress controller and placeholder host (`rosetta-mcp.local` in base values).
+
+Full environment-variable semantics for OAuth, Redis, analytics, and modes are the same as the application runtime; see [rosetta-mcp-server — Configuration](rosetta-mcp-server/README.md#configuration).
+
+#### Example values overlays
+
+The chart directory includes overlays you can copy and customize outside the repo:
+
+- [`helm-charts/rosetta-mcp-server/values-dev.example.yaml`](helm-charts/rosetta-mcp-server/values-dev.example.yaml)
+- [`helm-charts/rosetta-mcp-server/values-prod.example.yaml`](helm-charts/rosetta-mcp-server/values-prod.example.yaml)
+
+```bash
+helm upgrade --install rosetta-mcp ./helm-charts/rosetta-mcp-server \
+  -f ./helm-charts/rosetta-mcp-server/values.yaml \
+  -f my-prod.yaml
+```
+
+#### Chart layout
+
+| Path | Purpose |
+|---|---|
+| [`templates/deployment.yaml`](helm-charts/rosetta-mcp-server/templates/deployment.yaml) | Deployment, env, resources |
+| [`templates/service.yaml`](helm-charts/rosetta-mcp-server/templates/service.yaml) | ClusterIP and session affinity |
+| [`templates/ingress.yaml`](helm-charts/rosetta-mcp-server/templates/ingress.yaml) | Optional Ingress |
+| [`templates/hpa.yaml`](helm-charts/rosetta-mcp-server/templates/hpa.yaml) | Optional HPA |
+| [`templates/external-secret.yaml`](helm-charts/rosetta-mcp-server/templates/external-secret.yaml) | Optional ExternalSecret (`eso.*`) |
+| [`templates/serviceaccount.yaml`](helm-charts/rosetta-mcp-server/templates/serviceaccount.yaml) | ServiceAccount |
+
+#### Deployment characteristics & defaults
+
+The chart applies these behaviors by default unless you override values:
+
+| Topic | Detail |
+|---|---|
+| **Resources** | Requests: CPU 250m, memory 512Mi. Limits: CPU 1000m, memory 1Gi. |
+| **Replicas & HPA** | With `autoscaling.enabled: false`, `replicaCount` is honored. With HPA enabled, the Deployment initially uses `autoscaling.minReplicas`. When HPA is on, scaling is commonly 2–10 replicas (~70% CPU / ~80% memory targets). |
+| **Rolling updates** | `RollingUpdate` with `maxSurge: 1`, `maxUnavailable: 0`. |
+| **Security context** | Non-root UID/GID/fsGroup `1000`, capabilities dropped, `allowPrivilegeEscalation: false`. |
+
+**Session affinity:** The Service defaults to `ClientIP` with ~1h stickiness — important for [Streamable HTTP](docs/ARCHITECTURE.md#rosetta-mcp) when you run multiple replicas:
 
 ```yaml
-# Recommended: Service-level ClientIP affinity
 sessionAffinity: ClientIP
 sessionAffinityConfig:
   clientIP:
-    timeoutSeconds: 3600  # 1h stickiness
+    timeoutSeconds: 3600
 ```
 
-Alternative: ingress-level stickiness using the MCP session ID header:
+If `ClientIP` is insufficient behind certain proxies or high fan-out IPs, try ingress affinity on the MCP session header:
 
 ```yaml
-# Ingress annotation (NGINX)
+# NGINX Ingress (optional alternative)
 nginx.ingress.kubernetes.io/upstream-hash-by: "$http_mcp_session_id"
 ```
 
-Start with `ClientIP` affinity. It covers most deployments without extra ingress configuration.
+Start with chart defaults (`ClientIP`); introduce hash-by only when justified. Use shared Redis (`REDIS_URL` + secrets) for multi-replica OAuth and sessions ([Redis](#redis) below).
 
-**Security context:** Runs as non-root user `rosetta` (UID 1000), all capabilities dropped.
+#### Helm Values Reference
 
-### Helm Values Reference
-
-Base values (`values.yaml`):
+Base keys in [`helm-charts/rosetta-mcp-server/values.yaml`](helm-charts/rosetta-mcp-server/values.yaml):
 
 | Key | Default | Description |
 |---|---|---|
-| `ports` | `[8000]` | Container port |
-| `image.tag` | (per release) | Image version |
-| `replicaCount` | `1` | Pod replicas |
+| `ports` | `[8000]` | Container/service port |
+| `image.repository` / `image.tag` | `rosetta/rosetta-mcp`, Chart `appVersion` | Override for your registry and release |
+| `replicaCount` | `1` | Static replicas when HPA disabled |
 | `autoscaling.enabled` | `false` | HPA toggle |
-| `ingress.enabled` | `true` | NGINX ingress |
+| `ingress.enabled` | `true` | Ingress resource |
+| `service.sessionAffinity` | `ClientIP` | Pod stickiness |
+| `eso.enabled` | `false` | External Secrets Operator sync |
 
-Environment overrides:
+Representative environment-specific overrides:
 
 | Setting | Dev | Prod |
 |---|---|---|
