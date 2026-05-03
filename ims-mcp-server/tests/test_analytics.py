@@ -5,7 +5,7 @@ import pytest
 import ims_mcp.analytics.tracker as tracker_module
 import ims_mcp.analytics.user_context as user_context_module
 from ims_mcp.analytics.tracker import get_client_ip, track_tool_call
-from ims_mcp.analytics.user_context import get_authenticated_identity
+from ims_mcp.analytics.user_context import get_authenticated_identity, get_repository_from_context
 
 
 # ---------------------------------------------------------------------------
@@ -25,7 +25,91 @@ class _FakePosthog:
         self.captured.append({"distinct_id": distinct_id, "event": event, "properties": properties})
 
 
+class _FakeRoot:
+    def __init__(self, uri: str):
+        self.uri = uri
+
+
+class _FakeRootsResult:
+    def __init__(self, roots: list[_FakeRoot]):
+        self.roots = roots
+
+
+class _FakeRootsSession:
+    def __init__(self, roots: list[str]):
+        self.roots = roots
+        self.calls = 0
+
+    async def list_roots(self):
+        self.calls += 1
+        return _FakeRootsResult([_FakeRoot(uri) for uri in self.roots])
+
+
+class _FakeRequestContext:
+    def __init__(self, session: _FakeRootsSession, request=None):
+        self.session = session
+        self.request = request
+
+
+class _FakeRequest:
+    def __init__(self, session_id: str):
+        self.headers = {"mcp-session-id": session_id}
+
+
+class _FakeRootsContext:
+    def __init__(self, session: _FakeRootsSession, session_id: str | None = None, http: bool = False):
+        self.request_context = _FakeRequestContext(
+            session=session,
+            request=_FakeRequest(session_id or "missing") if http else None,
+        )
+        self._session_id = session_id
+
+    @property
+    def session_id(self) -> str:
+        if self._session_id is None:
+            raise RuntimeError("no session id")
+        return self._session_id
+
+
 _SENTINEL_CTX = object()  # non-None; signals "we are in an HTTP request context"
+
+
+# ---------------------------------------------------------------------------
+# get_repository_from_context — roots cache tests
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(autouse=True)
+def _clear_repository_cache():
+    user_context_module._repository_cache.clear()
+
+
+@pytest.mark.asyncio
+async def test_repository_roots_cache_is_keyed_by_http_session():
+    session_a = _FakeRootsSession(["file:///work/repo-a"])
+    session_b = _FakeRootsSession(["file:///work/repo-b"])
+    ctx_a = _FakeRootsContext(session_a, session_id="session-a", http=True)
+    ctx_b = _FakeRootsContext(session_b, session_id="session-b", http=True)
+
+    assert await get_repository_from_context(ctx_a) == "repo-a"
+    assert await get_repository_from_context(ctx_a) == "repo-a"
+    assert await get_repository_from_context(ctx_b) == "repo-b"
+
+    assert session_a.calls == 1
+    assert session_b.calls == 1
+
+
+@pytest.mark.asyncio
+async def test_repository_roots_cache_uses_singleton_key_for_stdio():
+    session_a = _FakeRootsSession(["file:///work/repo-a"])
+    session_b = _FakeRootsSession(["file:///work/repo-b"])
+    ctx_a = _FakeRootsContext(session_a, http=False)
+    ctx_b = _FakeRootsContext(session_b, http=False)
+
+    assert await get_repository_from_context(ctx_a) == "repo-a"
+    assert await get_repository_from_context(ctx_b) == "repo-a"
+
+    assert session_a.calls == 1
+    assert session_b.calls == 0
 
 
 # ---------------------------------------------------------------------------

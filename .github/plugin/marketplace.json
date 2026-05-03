@@ -2,7 +2,7 @@
   "name": "rosetta",
   "metadata": {
     "description": "Rosetta 2.0 - Enterprise instructions management system providing AI agents with unified access to instructions, workflows, skills, and business context",
-    "version": "2.0.4",
+    "version": "2.0.5",
     "pluginRoot": "./plugins"
   },
   "owner": {

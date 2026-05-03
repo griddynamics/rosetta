@@ -1,7 +1,7 @@
 {
   "name": "core",
   "description": "Rosetta Core - Software Engineering Accelerator OSS foundation for AI agent instructions, workflows, and guardrails.",
-  "version": "2.0.28",
+  "version": "2.0.29",
   "author": {
     "name": "Grid Dynamics",
     "email": "rosetta-support@griddynamics.com"

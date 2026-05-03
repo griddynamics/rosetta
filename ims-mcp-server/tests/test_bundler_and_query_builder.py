@@ -105,3 +105,138 @@ def test_query_builder_tags_and_query():
     assert params["keywords"] == "bootstrap"
     mc = json.loads(params["metadata_condition"])
     assert mc["conditions"][0]["value"] == "r1"
+
+
+# --- dual-key reader tests (fm rename) ---
+
+
+def test_listing_reads_fm_key_as_json_string():
+    """New write shape: frontmatter stored under 'fm' as a JSON string."""
+    import json
+    bundler = Bundler(_DocClient())
+    fm_dict = {"title": "New Key Title", "description": "A description"}
+    docs = [
+        _Doc(
+            "1",
+            "a.md",
+            "A",
+            {
+                "sort_order": 1,
+                "tags": ["t1", "skills/a.md"],
+                "resource_path": "skills/a.md",
+                "fm": json.dumps(fm_dict),
+            },
+        ),
+    ]
+    xml = bundler.format_as_listing(docs, "aia-r2")
+    assert 'frontmatter="title: New Key Title' in xml
+
+
+def test_listing_falls_back_to_legacy_frontmatter_dict():
+    """Legacy read shape: frontmatter stored under 'frontmatter' as a dict."""
+    bundler = Bundler(_DocClient())
+    docs = [
+        _Doc(
+            "1",
+            "a.md",
+            "A",
+            {
+                "sort_order": 1,
+                "tags": ["t1"],
+                "resource_path": "agents/a.md",
+                "frontmatter": {"title": "Legacy Dict Title"},
+            },
+        ),
+    ]
+    xml = bundler.format_as_listing(docs, "aia-r2")
+    assert 'frontmatter="title: Legacy Dict Title' in xml
+
+
+def test_listing_falls_back_to_legacy_frontmatter_str():
+    """Legacy read shape: frontmatter stored under 'frontmatter' as a JSON string."""
+    import json
+    bundler = Bundler(_DocClient())
+    fm_dict = {"title": "Legacy String Title"}
+    docs = [
+        _Doc(
+            "1",
+            "a.md",
+            "A",
+            {
+                "sort_order": 1,
+                "tags": ["t1"],
+                "resource_path": "agents/a.md",
+                "frontmatter": json.dumps(fm_dict),
+            },
+        ),
+    ]
+    xml = bundler.format_as_listing(docs, "aia-r2")
+    assert 'frontmatter="title: Legacy String Title' in xml
+
+
+def test_listing_fm_key_takes_precedence_over_legacy_frontmatter():
+    """When both 'fm' and 'frontmatter' are present, 'fm' wins."""
+    import json
+    bundler = Bundler(_DocClient())
+    docs = [
+        _Doc(
+            "1",
+            "a.md",
+            "A",
+            {
+                "sort_order": 1,
+                "tags": ["t1"],
+                "resource_path": "agents/a.md",
+                "fm": json.dumps({"title": "FM Wins"}),
+                "frontmatter": {"title": "Legacy Loses"},
+            },
+        ),
+    ]
+    xml = bundler.format_as_listing(docs, "aia-r2")
+    assert 'frontmatter="title: FM Wins' in xml
+    assert "Legacy Loses" not in xml
+
+
+class _BaseLikeMeta:
+    """Mimics the RAGFlow SDK ragflow_sdk.modules.base.Base object that backs
+    Document.meta_fields in real responses: attribute access only, not a dict.
+    Bundler._meta must extract both 'fm' and 'frontmatter' from this shape.
+    """
+
+    def __init__(self, **fields):
+        for k, v in fields.items():
+            setattr(self, k, v)
+
+
+def test_listing_reads_fm_from_sdk_base_object():
+    """Regression: when meta_fields is a SDK Base (attr-only, not dict),
+    Bundler._meta must still pick up the 'fm' key. Previously it extracted
+    only 'frontmatter' from Base objects, so fm-stored docs lost the
+    frontmatter attribute in listing output.
+    """
+    import json
+    bundler = Bundler(_DocClient())
+    fm_dict = {"title": "Base FM Title", "description": "From Base object"}
+    base_meta = _BaseLikeMeta(
+        sort_order=1,
+        tags=["t1"],
+        resource_path="skills/a.md",
+        fm=json.dumps(fm_dict),
+    )
+    docs = [_Doc("1", "a.md", "A", base_meta)]
+    xml = bundler.format_as_listing(docs, "aia-r2")
+    assert 'frontmatter="title: Base FM Title' in xml
+
+
+def test_listing_reads_legacy_frontmatter_from_sdk_base_object():
+    """Mirror of the above for the legacy 'frontmatter' key on a Base object."""
+    bundler = Bundler(_DocClient())
+    base_meta = _BaseLikeMeta(
+        sort_order=1,
+        tags=["t1"],
+        resource_path="agents/a.md",
+        frontmatter={"title": "Base Legacy Title"},
+    )
+    docs = [_Doc("1", "a.md", "A", base_meta)]
+    xml = bundler.format_as_listing(docs, "aia-r2")
+    assert 'frontmatter="title: Base Legacy Title' in xml

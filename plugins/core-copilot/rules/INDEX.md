@@ -5,6 +5,7 @@ All paths are relative to Rosetta Core Plugin Path.
 - `rules/bootstrap-core-policy.md`: Bootstrap prerequisites, request routing, and process-level operating constraints.
 - `rules/bootstrap-execution-policy.md`: Defines planning, task execution, validation, orchestration, and memory behavior for bootstrap flow.
 - `rules/bootstrap-guardrails.md`: Global guardrails for transparency, scope control, safety, risk mitigation, and context safety before execution.
+- `rules/bootstrap-hitl-questioning.md`: Rules for human-in-the-loop (HITL), user communication, questioning, approvals, and coordination during agent execution.
 - `rules/bootstrap-rosetta-files.md`: Defines workspace rosetta files.
 - `rules/plugin-files-mode.md`: Rosetta bootstrap rule, top SKILL to understand user request and properly work on it
 - `rules/requirements-best-practices.md`: Rules for authoring reliable, explicit, and traceable requirements with mandatory user back-and-forth and per-unit approval.

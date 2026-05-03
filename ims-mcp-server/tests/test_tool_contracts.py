@@ -43,11 +43,31 @@ class _InstructionDocCache:
 
 
 class _DatasetLookup:
-    def __init__(self, mapping: dict[str, str] | None = None):
-        self.mapping = mapping or {}
+    def __init__(self, mapping: dict[str, str] | None = None, datasets=None):
+        self.datasets = {ds.name: ds for ds in (datasets or [])}
+        self.mapping = {name: ds.id for name, ds in self.datasets.items()}
+        self.mapping.update(mapping or {})
+        for name, dataset_id in self.mapping.items():
+            self.datasets.setdefault(name, SimpleNamespace(id=dataset_id, name=name))
 
     def get_id(self, name: str) -> str | None:
         return self.mapping.get(name)
+
+    def get_dataset(self, name: str | None = None, dataset_id: str | None = None):
+        if name:
+            return self.datasets.get(name)
+        if dataset_id:
+            for dataset in self.datasets.values():
+                if dataset.id == dataset_id:
+                    return dataset
+        return None
+
+    def list_datasets(self):
+        return list(self.datasets.values())
+
+    def remember(self, dataset) -> None:
+        self.mapping[dataset.name] = dataset.id
+        self.datasets[dataset.name] = dataset
 
     def invalidate(self) -> None:
         return None
@@ -55,7 +75,7 @@ class _DatasetLookup:
 
 class _Ragflow:
     def __init__(self, datasets=None):
-        self._datasets = datasets or []
+        self._datasets = datasets or [SimpleNamespace(id="instruction-dataset", name="aia-r2")]
         self.created = []
 
     def list_datasets(self, page=1, page_size=1000):
@@ -108,10 +128,11 @@ class _SelectiveAuthorizer:
 
 def make_call_ctx(*, authorizer=None, ragflow=None, dataset_lookup=None) -> CallContext:
     config = RosettaConfig.from_env()
+    ragflow = ragflow or _Ragflow()
     return CallContext(
         config=config,
-        ragflow=ragflow or _Ragflow(),
-        dataset_lookup=dataset_lookup or _DatasetLookup(),
+        ragflow=ragflow,
+        dataset_lookup=dataset_lookup or _DatasetLookup(datasets=getattr(ragflow, "_datasets", [])),
         ctx=None,
         username="tester",
         repository="RulesOfPower",

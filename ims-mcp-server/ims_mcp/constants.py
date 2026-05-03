@@ -116,6 +116,12 @@ COMPATIBILITY_MODE_ERROR = (
 )
 
 QUERY_LIST_THRESHOLD = 5
+# Defensive ceiling: when a tag/keyword query returns more docs than this, we
+# assume the server-side metadata_condition filter was bypassed (RAGFlow 0.25.x
+# silently drops the filter when it matches zero docs and returns every doc in
+# the dataset) and refuse to bundle. Set well above QUERY_LIST_THRESHOLD so
+# legitimately large listings still pass through the listing path.
+QUERY_TOO_MANY_THRESHOLD = 25
 DOC_CACHE_TTL_SECONDS = 1800  # 30 minutes
 PROXY_SESSION_TTL_SECONDS = 30 * 24 * 3600  # 30 days; aligns with common offline-session idle windows
 INTROSPECTION_CACHE_TTL_SECONDS = 15 * 60  # 15 min max for active tokens

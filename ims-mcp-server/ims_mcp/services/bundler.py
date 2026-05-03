@@ -42,9 +42,11 @@ class Bundler:
         meta = getattr(doc, "meta_fields", {}) or {}
         if isinstance(meta, dict):
             return as_json_object(meta)
-        # SDK object — extract all known fields, unwrapping nested Base objects
+        # SDK object — extract all known fields, unwrapping nested Base objects.
+        # Both "fm" (current key) and "frontmatter" (legacy) are extracted so
+        # docs published before and after the key rename remain readable.
         result: JsonObject = {}
-        for key in ("tags", "sort_order", "resource_path", "frontmatter",
+        for key in ("tags", "sort_order", "resource_path", "fm", "frontmatter",
                      "domain", "release", "content_hash", "ims_doc_id",
                      "original_path", "doc_title", "line_count"):
             val = getattr(meta, key, None)
@@ -170,7 +172,10 @@ class Bundler:
     @staticmethod
     def _frontmatter_value(doc: DocumentLike) -> object:
         meta = Bundler._meta(doc)
-        fm = meta.get("frontmatter")
+        # Prefer "fm" (written since the key rename; "frontmatter" had a sticky
+        # ES object mapping that rejected string writes). Fall back to the legacy
+        # "frontmatter" key so docs written before the rename remain readable.
+        fm = meta.get("fm") if meta.get("fm") is not None else meta.get("frontmatter")
         if isinstance(fm, str):
             try:
                 return json.loads(fm)

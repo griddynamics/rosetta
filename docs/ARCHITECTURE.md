@@ -484,7 +484,7 @@ uvx rosetta-cli@latest publish instructions
 
 ### Plugins (pre-release)
 
-Instructions to `plugins` folder content must be copied with `venv/bin/python scripts/pre_commit.py` as it also adapts.
+Instructions to `plugins` folder content must be copied with `venv/bin/python scripts/pre_commit.py` as it also adapts (implemented in `scripts/plugin_generator.py`).
 Pre-commit hook is also created, but we must not rely on it.
 Do not directly modify instructions in `plugins` folder instead edit original files in `instructions` and use script to copy/adapt.
 
@@ -517,11 +517,11 @@ Each plugin has a preserved config folder (`.claude-plugin/`, `.cursor-plugin/`,
 
 `refsrc/fastmcp-3.2.4` contains source code of FastMCP v3. Use `https://gofastmcp.com/llms.txt` - fastmcp index of all dev docs. There is also `https://gofastmcp.com/llms-full.txt` but it is extremely large, it will not fit entirely your context window at all.
 `refsrc/python-sdk-1.26.0` contains source code of MCP Python SDK.
-`refsrc/ragflow-0.24.0` contains source code of RAGFlow Python SDK (v0.23.1+).
+`refsrc/ragflow-0.25.1` contains source code of RAGFlow Python SDK (v0.25.1+).
 
 This is for reference purposes only: do not change, do not copy.
 
-# Rosetta MCP (IMS MCP)
+# Rosetta MCP (IMS MCP) and Rosetta CLI
 
 MUST validate MCP changes using `.env.dev` and `ims-mcp-server/validation/verify_mcp.py` (testing harness of MCP itself).
 Integrate new features to this testing harness if needed and easy.
@@ -542,6 +542,13 @@ Validation notes discovered during real runs:
 - MCP unit tests: `cd ims-mcp-server && PYTHONPATH=. ../venv/bin/pytest tests/` or `PYTHONPATH=ims-mcp-server venv/bin/pytest ims-mcp-server/tests`
 - CLI unit tests: `cd rosetta-cli && PYTHONPATH=. ../venv/bin/pytest tests/` or `PYTHONPATH=rosetta-cli venv/bin/pytest rosetta-cli/tests`
 - `verify_mcp.py` flat-list validation must allow plain filenames for `r1` and hierarchical paths for `r2`.
+
+Publishing instructions:
+- `cp .env.dev .env && PYTHONPATH=rosetta-cli venv/bin/python -m rosetta_cli publish ./instructions --dry-run`
+- `cp .env.dev .env && PYTHONPATH=rosetta-cli venv/bin/python -m rosetta_cli publish ./instructions`
+- DO NOT FILTER OUT THE OUTPUT AS YOU WILL MISS IMPORTANT INFORMATION 
+
+Must read `docs/RAGFLOW.md` fully to understand RAGFlow actual implementation and known issues if CLI or MCP changes involve RAGFlow.
 
 # RAGFlow
 

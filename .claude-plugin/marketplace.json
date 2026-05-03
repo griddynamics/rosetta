@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Rosetta - Software Engineering Accelerator providing AI agents with unified access to instructions, workflows, skills, and business context",
-    "version": "2.0.5"
+    "version": "2.0.6"
   },
   "plugins": [
     {

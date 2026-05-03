@@ -60,14 +60,20 @@ jobs:
           echo "Dataset: $RAGFLOW_DATASET_DEFAULT (template: $RAGFLOW_DATASET_TEMPLATE)"
           echo ""
 
-          uvx rosetta-cli@latest version
-          
-          uvx rosetta-cli@latest publish instructions
+          PRERELEASE_FLAG=""
+          if [ "${{ inputs.deploy_to_prod }}" != "true" ]; then
+            PRERELEASE_FLAG="--prerelease=allow"
+          fi
+
+          uvx $PRERELEASE_FLAG rosetta-cli@latest version
+
+          uvx $PRERELEASE_FLAG rosetta-cli@latest publish instructions
 
           echo ""
           echo "Publishing complete!"
 
       - name: Create instructions archive
+        if: ${{ !inputs.deploy_to_prod }}
         run: |
           cd instructions
           zip -r ../instructions.zip . -x "*.git*"
@@ -77,6 +83,7 @@ jobs:
 
       - name: Create plugin archives
         id: plugins
+        if: ${{ !inputs.deploy_to_prod }}
         run: |
           DATE=$(date +'%Y-%m-%d')
           echo "date=${DATE}" >> $GITHUB_OUTPUT
