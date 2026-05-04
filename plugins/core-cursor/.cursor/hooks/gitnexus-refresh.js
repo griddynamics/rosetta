@@ -329,7 +329,7 @@ var writePendingStamp = (cacheDir, repoRoot) => {
   const stampFile = import_path5.default.join(cacheDir, `${key}.pending`);
   const token = String(Date.now());
   import_fs4.default.writeFileSync(stampFile, token);
-  return stampFile;
+  return { stampFile, token };
 };
 var getEmbeddingsFlag = (repoRoot) => {
   try {
@@ -341,15 +341,15 @@ var getEmbeddingsFlag = (repoRoot) => {
     return false;
   }
 };
-var spawnDeferredAnalyze = (repoRoot, cacheDir, stampFile) => {
+var spawnDeferredAnalyze = (repoRoot, cacheDir, stampFile, token) => {
   const hadEmbeddings = getEmbeddingsFlag(repoRoot);
   const extraFlags = hadEmbeddings ? " --embeddings" : "";
   const debounceSeconds = Math.ceil(DEBOUNCE_MS / 1e3);
   const nodeScript = [
     `const fs = require('fs');`,
     `try {`,
-    `  const stamp = parseInt(fs.readFileSync('${stampFile}', 'utf-8'));`,
-    `  if (Date.now() - stamp < ${DEBOUNCE_MS}) process.exit(0);`,
+    `  const current = fs.readFileSync('${stampFile}', 'utf-8').trim();`,
+    `  if (current !== '${token}') process.exit(0);`,
     `  require('child_process').execSync(`,
     `    'npx gitnexus analyze --force${extraFlags}',`,
     `    { cwd: '${repoRoot.replace(/'/g, "'\\''")}', stdio: 'inherit' }`,
@@ -390,10 +390,10 @@ var gitnexusRefreshHook = defineHook({
   run: (ctx) => {
     const repoRoot = ctx.markerRoot;
     const cacheDir = ensureCacheDir();
-    const stampFile = writePendingStamp(cacheDir, repoRoot);
+    const { stampFile, token } = writePendingStamp(cacheDir, repoRoot);
     debugLog("[gitnexus-refresh] pending analyze", { tool: ctx.toolName, cwd: ctx.cwd });
     log(cacheDir, `[gitnexus-refresh] pending analyze (tool=${ctx.toolName}, cwd=${ctx.cwd})`);
-    spawnDeferredAnalyze(repoRoot, cacheDir, stampFile);
+    spawnDeferredAnalyze(repoRoot, cacheDir, stampFile, token);
     return sideEffect();
   }
 });
