@@ -44,14 +44,6 @@ jobs:
           helm lint "${{ steps.vars.outputs.chart_path }}"
           helm template helm-test "${{ steps.vars.outputs.chart_path }}" >/dev/null
 
-      - name: Log in to Docker Hub (Helm OCI)
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121
-        # if: github.ref_name == 'main'
-        with:
-          registry: registry-1.docker.io
-          username: ${{ secrets.DOCKERHUB_LOGIN }}
-          password: ${{ secrets.DOCKERHUB_OAT }}
-
       - name: Package and push Helm chart (OCI / Docker Hub)
         # if: github.ref_name == 'main'
         run: |
