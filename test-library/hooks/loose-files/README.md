@@ -17,6 +17,7 @@ Per-IDE test prompts for the `loose-files` PostToolUse hook
 | [`prompt-codex.md`](./prompt-codex.md) | Test the hook installed at `.codex/hooks/loose-files.js` (Codex CLI / Codex IDE) |
 | [`prompt-copilot.md`](./prompt-copilot.md) | Test the hook installed at `.github/hooks/loose-files.js` (GitHub Copilot Agent / CLI) |
 | [`prompt-cursor.md`](./prompt-cursor.md) | Test the hook installed at `.cursor/hooks/loose-files.js` (Cursor) |
+| [`prompt-windsurf.md`](./prompt-windsurf.md) | Test the hook installed at `.windsurf/hooks/loose-files.js` (Windsurf Cascade) — bundle exists, plugin not yet packaged |
 
 Each per-IDE prompt is **self-contained**: it has its own prerequisites, setup, tests, cleanup,
 and report template inline. Feed the file directly to an AI agent in the matching IDE — no
@@ -24,20 +25,23 @@ companion files needed.
 
 ## Per-IDE test inventory
 
-| Test group | claude-code | codex | copilot | cursor |
-|------------|:-----------:|:-----:|:-------:|:------:|
-| Tests 1-4 — module detection | ✔ | ✔ | ✔ | ✔ |
-| Tests 5, 7 — tool filter (Edit/Bash silent) | ✔ | ✔ | ✔ | ✔ |
-| Test 6 — `create_file` fires | — | — | ✔ | — |
-| Tests 8-9 — extension filter | ✔ | ✔ | ✔ | ✔ |
-| Test 10 — excluded paths | ✔ | ✔ | ✔ | ✔ |
-| C1/C2/C3 — `apply_patch` creation-only gate | — | ✔ | — | — |
-| **Total checks (incl. setup + cleanup)** | **11** | **14** | **12** | **11** |
+| Test group | claude-code | codex | copilot | cursor | windsurf |
+|------------|:-----------:|:-----:|:-------:|:------:|:--------:|
+| Tests 1-4 — module detection | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Tests 5, 7 — tool filter (Edit/Bash silent) | ✔ | ✔ | ✔ | ✔ | — |
+| Test 5b — edit fires on loose path (Windsurf-specific) | — | — | — | — | ✔ |
+| Test 6 — `create_file` fires | — | — | ✔ | — | — |
+| Test 7 — Bash silent | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Tests 8-9 — extension filter | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Test 10 — excluded paths | ✔ | ✔ | ✔ | ✔ | ✔ |
+| C1/C2/C3 — `apply_patch` creation-only gate | — | ✔ | — | — | — |
+| **Total checks (incl. setup + cleanup)** | **11** | **14** | **12** | **11** | **12** |
 
 **Test 6 is Copilot-only** because only `core-copilot` outer-gate matcher includes `create_file`
 (alongside `Write`). **C1/C2/C3 are Codex-only** because `apply_patch` is the Codex creation
-tool. Tests 11/12 (adapter shape edge cases — camelCase `filePath`, Copilot CLI
-`toolName`/`toolArgs`) are covered by Vitest unit tests in
+tool. **Test 5b is Windsurf-only** because Windsurf maps both file creation and file
+modification to `post_write_code → Write` — there is no distinct Edit event, so the hook fires
+on edits too. Tests 11/12 (adapter shape edge cases) are covered by Vitest unit tests in
 `hooks/tests/adapter.<ide>.test.ts`, not E2E.
 
 ## How to run
@@ -71,7 +75,7 @@ not collide because:
 - **Separate `$ROOT`:** each test project has its own `git rev-parse` — `package.json`
   manipulation is isolated.
 
-The four IDE sessions run independently and emit four independent Reports.
+The five IDE sessions run independently and emit five independent Reports.
 
 ## Prerequisites (per IDE / test project)
 
@@ -96,6 +100,7 @@ Outer-gate matchers (per IDE):
 - [`plugins/core-codex/.codex/hooks.json`](../../../plugins/core-codex/.codex/hooks.json)
 - [`plugins/core-copilot/hooks/hooks.json`](../../../plugins/core-copilot/hooks/hooks.json)
 - [`plugins/core-cursor/hooks/hooks.json`](../../../plugins/core-cursor/hooks/hooks.json)
+- Windsurf: `plugins/core-windsurf/` not yet created — see `prompt-windsurf.md` for the assumed hooks.json shape
 
 Compiled bundles:
 [`hooks/dist/bundles/core-<ide>/loose-files.js`](../../../hooks/dist/bundles/)
