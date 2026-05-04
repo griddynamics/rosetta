@@ -43,12 +43,15 @@ const log = (cacheDir: string, message: string): void => {
 const stampKeyForRepo = (repoRoot: string): string =>
   Buffer.from(repoRoot).toString('base64').replace(/[/+=]/g, '_');
 
-const writePendingStamp = (cacheDir: string, repoRoot: string): string => {
+const writePendingStamp = (
+  cacheDir: string,
+  repoRoot: string,
+): { stampFile: string; token: string } => {
   const key = stampKeyForRepo(repoRoot);
   const stampFile = path.join(cacheDir, `${key}.pending`);
   const token = String(Date.now());
   fs.writeFileSync(stampFile, token);
-  return stampFile;
+  return { stampFile, token };
 };
 
 const getEmbeddingsFlag = (repoRoot: string): boolean => {
@@ -66,19 +69,20 @@ const spawnDeferredAnalyze = (
   repoRoot: string,
   cacheDir: string,
   stampFile: string,
+  token: string,
 ): void => {
   const hadEmbeddings = getEmbeddingsFlag(repoRoot);
   const extraFlags = hadEmbeddings ? ' --embeddings' : '';
   const debounceSeconds = Math.ceil(DEBOUNCE_MS / 1000);
 
-  // The deferred script sleeps, then checks if this invocation's stamp is still
-  // the latest. Only if Date.now() - stampValue >= DEBOUNCE_MS (meaning no newer
-  // write reset the timer) does it proceed with analyze.
+  // The deferred script sleeps, then checks if the stamp file still holds the
+  // token written at spawn time. A newer invocation overwrites the file with a
+  // different token, so all but the last deferred process exit early.
   const nodeScript = [
     `const fs = require('fs');`,
     `try {`,
-    `  const stamp = parseInt(fs.readFileSync('${stampFile}', 'utf-8'));`,
-    `  if (Date.now() - stamp < ${DEBOUNCE_MS}) process.exit(0);`,
+    `  const current = fs.readFileSync('${stampFile}', 'utf-8').trim();`,
+    `  if (current !== '${token}') process.exit(0);`,
     `  require('child_process').execSync(`,
     `    'npx gitnexus analyze --force${extraFlags}',`,
     `    { cwd: '${repoRoot.replace(/'/g, "'\\''")}', stdio: 'inherit' }`,
@@ -122,10 +126,10 @@ export const gitnexusRefreshHook = defineHook({
   run: (ctx) => {
     const repoRoot = ctx.markerRoot!;
     const cacheDir = ensureCacheDir();
-    const stampFile = writePendingStamp(cacheDir, repoRoot);
+    const { stampFile, token } = writePendingStamp(cacheDir, repoRoot);
     debugLog('[gitnexus-refresh] pending analyze', { tool: ctx.toolName, cwd: ctx.cwd });
     log(cacheDir, `[gitnexus-refresh] pending analyze (tool=${ctx.toolName}, cwd=${ctx.cwd})`);
-    spawnDeferredAnalyze(repoRoot, cacheDir, stampFile);
+    spawnDeferredAnalyze(repoRoot, cacheDir, stampFile, token);
     return sideEffect();
   },
 });

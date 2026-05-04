@@ -194,10 +194,11 @@ describe('gitnexus-refresh — trailing-edge debounce', () => {
     expect(script).toContain(`sleep ${expectedSleep}`);
   });
 
-  test('spawned script checks stamp age before executing analyze', async () => {
+  test('spawned script uses token-identity check before executing analyze', async () => {
     await runHook(gitnexusRefreshHook);
     const script = getSpawnedScript();
-    expect(script).toContain(`Date.now() - stamp < ${DEBOUNCE_MS}`);
+    expect(script).toContain(`current !== '`);
+    expect(script).not.toContain('Date.now() - stamp');
   });
 
   test('spawned script reads the pending stamp file', async () => {
