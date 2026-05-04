@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/mcp-helm-chart
     paths:
       - 'helm-charts/rosetta-mcp-server/**'
       - '.github/workflows/publish-mcp-helm-chart.yml'
@@ -44,7 +45,7 @@ jobs:
           helm template helm-test "${{ steps.vars.outputs.chart_path }}" >/dev/null
 
       - name: Package and push Helm chart (OCI / Docker Hub)
-        if: github.ref_name == 'main'
+        # if: github.ref_name == 'main'
         run: |
           set -euo pipefail
           CHART="${{ steps.vars.outputs.chart_path }}"
