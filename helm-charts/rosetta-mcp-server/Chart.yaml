@@ -1,5 +1,5 @@
 apiVersion: v2
-name: rosetta-mcp
+name: rosetta-mcp-helm-chart
 description: Helm chart for Rosetta MCP server - the consulting layer between IDEs and Rosetta knowledge base (RAGFlow)
 type: application
 version: 0.1.0

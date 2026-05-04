@@ -71,18 +71,18 @@ env:
         secretKeyRef:
           name: rosetta-mcp-secrets
           key: ROSETTA_OAUTH_CLIENT_SECRET
+    # Required to be set for production-safe configuration:
     - name: ROSETTA_JWT_SIGNING_KEY
       valueFrom:
         secretKeyRef:
           name: rosetta-mcp-secrets
           key: ROSETTA_JWT_SIGNING_KEY
-          optional: true
+    # Required to be set for production-safe configuration:
     - name: FERNET_KEY
       valueFrom:
         secretKeyRef:
           name: rosetta-mcp-secrets
           key: FERNET_KEY
-          optional: true
     - name: POSTHOG_API_KEY
       valueFrom:
         secretKeyRef:
