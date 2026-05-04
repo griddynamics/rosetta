@@ -24,3 +24,5 @@ export const formatOutput = (
 ): Record<string, unknown> => windsurf.formatOutput(canonical as CanonicalOutput);
 
 export const detectIDE = (_raw: unknown): string => 'windsurf';
+
+export const dedupKey = (_raw: unknown, _hookName: string): string | null => null;

@@ -16,7 +16,8 @@ const adapter_1 = require("./adapter");
 const lock_1 = require("./lock");
 const debug_log_1 = require("./debug-log");
 const ALLOWED_EXTENSIONS = new Set(['.py', '.js']);
-const ALLOWED_TOOLS = new Set(['Write', 'Edit', 'apply_patch', 'functions.apply_patch', 'create_file', 'replace_string_in_file', 'multi_replace_string_in_file']);
+const ALLOWED_TOOLS = new Set(['Write', 'apply_patch', 'functions.apply_patch', 'create_file']);
+const PATCH_FILE_RE = /^\*\*\* (?:Add|Create) File: (.+)$/m;
 const EXCLUDED_PATH_SEGMENTS = [
     'agents/TEMP/',
     'scripts/',
@@ -40,6 +41,14 @@ const shouldCheck = (normalizedInput) => {
     if (!ALLOWED_TOOLS.has(normalizedInput.tool_name)) {
         (0, debug_log_1.debugLog)('skip: tool not in ALLOWED_TOOLS', { tool_name: normalizedInput.tool_name });
         return false;
+    }
+    const toolName = normalizedInput.tool_name;
+    if (toolName === 'apply_patch' || toolName === 'functions.apply_patch') {
+        const command = normalizedInput.tool_input?.command ?? '';
+        if (!PATCH_FILE_RE.test(command)) {
+            (0, debug_log_1.debugLog)('skip: patch is not file creation (no Add/Create File marker)', { command: command.slice(0, 80) });
+            return false;
+        }
     }
     const filePath = normalizedInput.file_path ?? '';
     const ext = path_1.default.extname(filePath);

@@ -1,0 +1,20 @@
+{
+  "_source": "constructed-from-docs",
+  "_docs": "https://cursor.com/docs/reference/hooks",
+  "hook_event_name": "userPromptSubmit",
+  "conversation_id": "conv-abc123",
+  "generation_id": null,
+  "session_id": "session-cursor-001",
+  "model": "claude-sonnet-4-20250514",
+  "cursor_version": "2.4.0",
+  "workspace_roots": ["/proj"],
+  "user_email": "dev@example.com",
+  "transcript_path": "/tmp/cursor-transcript.jsonl",
+  "tool_name": null,
+  "tool_input": {},
+  "tool_output": null,
+  "tool_use_id": null,
+  "cwd": "/proj",
+  "duration": null,
+  "prompt": "Fix the null pointer exception in the data processor"
+}

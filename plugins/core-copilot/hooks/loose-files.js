@@ -27,25 +27,60 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/loose-files.ts
+// src/hooks/loose-files.ts
 var loose_files_exports = {};
 __export(loose_files_exports, {
-  buildNudgeOutput: () => buildNudgeOutput,
   isLooseFile: () => isLooseFile,
-  main: () => main,
-  shouldCheck: () => shouldCheck
+  looseFilesHook: () => looseFilesHook,
+  nudgeMessage: () => nudgeMessage
 });
 module.exports = __toCommonJS(loose_files_exports);
-var import_path3 = __toESM(require("path"));
-var import_fs3 = require("fs");
+var import_path5 = __toESM(require("path"));
+var import_fs4 = require("fs");
+
+// src/runtime/define-hook.ts
+var defineHook = (def) => def;
+
+// src/runtime/run-hook.ts
+var import_path4 = __toESM(require("path"));
+
+// src/runtime/ide-rows/copilot.ts
+var TOOL_KINDS = {
+  write: ["create_file"],
+  edit: ["replace_string_in_file"],
+  "multi-edit": ["multi_replace_string_in_file"],
+  create: ["create_file"],
+  replace: ["replace_string_in_file", "multi_replace_string_in_file"]
+};
+var lookupToolKind = (raw) => {
+  for (const [k, v] of Object.entries(TOOL_KINDS))
+    if (v.includes(raw)) return k;
+  return null;
+};
+var getFilePath = (raw) => {
+  const toolArgs = raw.toolArgs;
+  if (!toolArgs) return null;
+  try {
+    const parsed = JSON.parse(toolArgs);
+    return parsed?.filePath ?? parsed?.file_path ?? null;
+  } catch {
+    return null;
+  }
+};
 
 // src/adapters/copilot.ts
+var IDE = "copilot";
 var COPILOT_SIGNATURE = ["toolName", "timestamp", "cwd"];
-var inferHookEventName = (raw) => {
+var inferEvent = (raw) => {
   if ("toolName" in raw) return "toolResult" in raw ? "PostToolUse" : "PreToolUse";
-  if ("reason" in raw) return "SessionEnd";
   if ("source" in raw || "initialPrompt" in raw) return "SessionStart";
   if ("prompt" in raw) return "PrePromptSubmit";
+  return null;
+};
+var inferHookEventName = (raw) => {
+  const event = inferEvent(raw);
+  if (event) return event;
+  if ("reason" in raw) return "SessionEnd";
   if ("error" in raw) return "Error";
   return "Unknown";
 };
@@ -63,6 +98,9 @@ var detect = (raw) => COPILOT_SIGNATURE.every((f) => f in raw) && !("hook_event_
 var normalize = (raw) => {
   const { toolName, cwd, toolArgs, toolResult, timestamp } = raw;
   return {
+    ide: IDE,
+    event: inferEvent(raw),
+    toolKind: lookupToolKind(toolName),
     hook_event_name: inferHookEventName(raw),
     session_id: void 0,
     tool_name: toolName,
@@ -70,6 +108,7 @@ var normalize = (raw) => {
     tool_use_id: void 0,
     cwd,
     tool_response: toolResult ?? void 0,
+    file_path: getFilePath(raw) ?? "",
     _copilot: { timestamp, toolName, toolArgs, toolResult }
   };
 };
@@ -83,12 +122,56 @@ var formatOutput = (canonical) => {
   if (additionalContext) out.hookSpecificOutput = { hookEventName, additionalContext };
   return out;
 };
-var copilot = { name: "copilot", detect, normalize, formatOutput };
+var dedupKey = (raw, hookName) => {
+  if (!detect(raw)) return null;
+  return `copilot:${hookName}:${raw.toolName}:${raw.toolArgs ?? ""}`;
+};
+var copilot = { name: "copilot", detect, normalize, formatOutput, dedupKey };
+
+// src/runtime/ide-rows/claude-code.ts
+var EVENTS = {
+  PostToolUse: "PostToolUse",
+  PreToolUse: "PreToolUse",
+  SessionStart: "SessionStart"
+};
+var TOOL_KINDS2 = {
+  write: ["Write", "create_file"],
+  edit: ["Edit"],
+  "multi-edit": ["MultiEdit"],
+  create: ["Write"],
+  replace: ["Edit"],
+  bash: ["Bash"],
+  read: ["Read"]
+};
+var lookupEvent = (raw) => {
+  for (const [k, v] of Object.entries(EVENTS)) if (v === raw) return k;
+  return null;
+};
+var lookupToolKind2 = (raw) => {
+  for (const [k, v] of Object.entries(TOOL_KINDS2))
+    if (v.includes(raw)) return k;
+  return null;
+};
+var getFilePath2 = (raw) => {
+  const ti = raw.tool_input ?? {};
+  return ti.file_path ?? ti.filePath ?? ti.path ?? null;
+};
+var getCwd = (raw) => raw.cwd ?? null;
+var getSessionId = (raw) => raw.session_id ?? null;
 
 // src/adapters/claude-code.ts
+var IDE2 = "claude-code";
 var CC_SIGNATURE = ["hook_event_name", "tool_input", "session_id"];
 var detect2 = (raw) => CC_SIGNATURE.every((f) => f in raw);
-var normalize2 = (raw) => raw;
+var normalize2 = (raw) => ({
+  ...raw,
+  ide: IDE2,
+  event: lookupEvent(raw.hook_event_name),
+  toolKind: lookupToolKind2(raw.tool_name),
+  file_path: getFilePath2(raw) ?? "",
+  cwd: getCwd(raw) ?? void 0,
+  session_id: getSessionId(raw) ?? void 0
+});
 var formatOutput2 = (canonical) => canonical ?? {};
 var claudeCode = { name: "claude-code", detect: detect2, normalize: normalize2, formatOutput: formatOutput2 };
 
@@ -111,18 +194,26 @@ var normalize3 = (rawInput) => {
   const raw = rawInput;
   return copilot.detect(raw) ? copilot.normalize(raw) : claudeCode.normalize(raw);
 };
-var formatOutput3 = (canonical, _ide) => copilot.formatOutput(canonical);
-var detectIDE = (_raw) => "copilot";
+var formatOutput3 = (canonical, ide) => ide === "claude-code" ? claudeCode.formatOutput(canonical) : copilot.formatOutput(canonical);
+var detectIDE = (raw) => {
+  const r = raw;
+  return copilot.detect(r) ? "copilot" : "claude-code";
+};
+var dedupKey2 = (raw, hookName) => {
+  const r = raw;
+  return copilot.detect(r) ? copilot.dedupKey(r, hookName) : null;
+};
 
-// src/lock.ts
+// src/runtime/throttle.ts
 var import_fs = require("fs");
 var import_crypto = require("crypto");
 var import_path = __toESM(require("path"));
 var import_os = __toESM(require("os"));
+var DEFAULT_DIR = import_os.default.tmpdir();
 var LOCK_TTL_MS = 5e3;
-var acquireOnce = (input) => {
-  const fingerprint = (0, import_crypto.createHash)("sha256").update(`${input.session_id ?? "no-session"}:${input.hook_event_name}:${input.tool_name ?? ""}:${JSON.stringify(input.tool_input ?? {})}`).digest("hex").slice(0, 16);
-  const lockPath = import_path.default.join(import_os.default.tmpdir(), `rosetta-hooks-${fingerprint}.lock`);
+var acquireOnce = (key, dir = DEFAULT_DIR) => {
+  const hash = (0, import_crypto.createHash)("sha256").update(key).digest("hex").slice(0, 16);
+  const lockPath = import_path.default.join(dir, `rosetta-hooks-${hash}.lock`);
   try {
     (0, import_fs.writeFileSync)(lockPath, String(Date.now()), { flag: "wx" });
     return true;
@@ -137,7 +228,7 @@ var acquireOnce = (input) => {
   }
 };
 
-// src/debug-log.ts
+// src/runtime/debug-log.ts
 var import_fs2 = require("fs");
 var import_path2 = __toESM(require("path"));
 var import_os2 = __toESM(require("os"));
@@ -170,120 +261,189 @@ var debugLog = (message, context) => {
   }
 };
 
-// src/loose-files.ts
-var ALLOWED_EXTENSIONS = /* @__PURE__ */ new Set([".py", ".js"]);
-var ALLOWED_TOOLS = /* @__PURE__ */ new Set(["Write", "Edit", "apply_patch", "functions.apply_patch", "create_file", "replace_string_in_file", "multi_replace_string_in_file"]);
-var PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
-var EXCLUDED_PATH_SEGMENTS = [
-  "agents/TEMP/",
-  "scripts/",
-  "tests/",
-  "validation/",
-  "node_modules/",
-  ".venv/",
-  "__pycache__/"
-];
-var MODULE_MARKERS = {
-  ".py": "__init__.py",
-  ".js": "package.json"
+// src/runtime/path-utils.ts
+var import_path3 = __toESM(require("path"));
+var import_fs3 = __toESM(require("fs"));
+var toRelative = (filePath) => {
+  let p = filePath.replace(/\\/g, "/");
+  if (p.startsWith("/")) p = p.slice(1);
+  if (p.startsWith("./")) p = p.slice(2);
+  return p;
 };
-var MAX_WALK_LEVELS = 10;
-var isPathExcluded = (filePath) => EXCLUDED_PATH_SEGMENTS.some((segment) => filePath.includes(segment));
-var getFilePath = (toolName, toolInput) => {
-  if (toolName === "apply_patch" || toolName === "functions.apply_patch") {
-    const command = toolInput.command ?? "";
-    return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? "";
+var hasMarkerBeforeBoundary = (startDir, marker, boundary, maxLevels = 10) => {
+  let dir = startDir;
+  for (let i = 0; i < maxLevels; i++) {
+    if (import_fs3.default.existsSync(import_path3.default.join(dir, marker))) return true;
+    if (import_fs3.default.existsSync(import_path3.default.join(dir, boundary))) return false;
+    const parent = import_path3.default.dirname(dir);
+    if (parent === dir) return false;
+    dir = parent;
   }
-  return toolInput.file_path ?? toolInput.filePath ?? "";
+  return false;
 };
-var shouldCheck = (normalizedInput) => {
-  if (normalizedInput.hook_event_name !== "PostToolUse") {
-    debugLog("skip: not PostToolUse", { hook_event_name: normalizedInput.hook_event_name });
-    return false;
-  }
-  if (!ALLOWED_TOOLS.has(normalizedInput.tool_name)) {
-    debugLog("skip: tool not in ALLOWED_TOOLS", { tool_name: normalizedInput.tool_name });
-    return false;
-  }
-  const filePath = getFilePath(normalizedInput.tool_name, normalizedInput.tool_input);
-  const ext = import_path3.default.extname(filePath);
-  if (!ALLOWED_EXTENSIONS.has(ext)) {
-    debugLog("skip: extension not allowed", { filePath: filePath || null, ext: ext || null });
-    return false;
-  }
-  if (isPathExcluded(filePath)) {
-    debugLog("skip: path excluded", { filePath });
-    return false;
-  }
-  return true;
-};
-var isLooseFile = (filePath, fs = { existsSync: import_fs3.existsSync }) => {
-  const marker = MODULE_MARKERS[import_path3.default.extname(filePath)];
-  if (!marker) return false;
-  let dir = import_path3.default.dirname(filePath);
-  for (let level = 0; level < MAX_WALK_LEVELS; level++) {
-    if (fs.existsSync(import_path3.default.join(dir, marker))) return false;
-    if (fs.existsSync(import_path3.default.join(dir, ".git"))) return true;
+var walkUp = (startDir, marker, maxLevels = 10) => {
+  let dir = startDir;
+  for (let i = 0; i < maxLevels; i++) {
+    if (import_fs3.default.existsSync(import_path3.default.join(dir, marker))) return dir;
     const parent = import_path3.default.dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
-  return true;
+  return null;
 };
-var buildNudgeOutput = (filePath) => {
-  const marker = MODULE_MARKERS[import_path3.default.extname(filePath)] ?? "a module marker";
-  const basename = import_path3.default.basename(filePath);
-  return {
-    hookSpecificOutput: {
-      hookEventName: "PostToolUse",
-      additionalContext: `${basename} appears to be a loose file outside a module. Intended? A temporary file? ${marker}?`
-    },
-    continue: true,
-    suppressOutput: false
-  };
-};
-var main = async ({
-  stdin = process.stdin,
-  stdout = process.stdout
-} = {}) => {
-  const raw = await readStdin(stdin);
-  debugLog("raw input received", { hook_event_name: raw.hook_event_name });
-  const ide = detectIDE(raw);
-  const normalized = normalize3(raw);
-  debugLog("normalized", { ide, session_id: normalized.session_id, tool_name: normalized.tool_name });
-  if (!shouldCheck(normalized)) {
-    debugLog("skipped (shouldCheck=false)");
-    return;
-  }
-  if (ide === "copilot" && !acquireOnce(normalized)) {
-    debugLog("skipped (duplicate)");
-    return;
-  }
-  const filePath = getFilePath(normalized.tool_name, normalized.tool_input);
-  if (isLooseFile(filePath)) {
-    const output = buildNudgeOutput(filePath);
-    const json = JSON.stringify(formatOutput3(output, ide));
-    debugLog("nudge emitted", { filePath, output: json });
-    stdout.write(`${json}
-`);
-  } else {
-    debugLog("file is not loose", { filePath });
-  }
-};
-if (require.main === module) {
-  main().then(
+
+// src/runtime/run-hook.ts
+var runAsCli = (def, mod) => {
+  if (require.main !== mod) return;
+  runHook(def).then(
     () => process.exit(0),
     (err) => {
-      process.stderr.write(`loose-files hook error: ${err.message}
+      process.stderr.write(`${def.name} hook error: ${err.message}
 `);
       process.exit(1);
     }
   );
-}
+};
+var toHookContext = (norm) => ({
+  ide: norm.ide,
+  event: norm.event,
+  toolKind: norm.toolKind,
+  toolName: norm.tool_name ?? "",
+  filePath: norm.file_path ?? "",
+  cwd: norm.cwd ?? "",
+  sessionId: norm.session_id ?? null,
+  toolInput: norm.tool_input,
+  toolResponse: norm.tool_response
+});
+var toCanonical = (result, ctx) => {
+  if (result.kind === "advise")
+    return { hookSpecificOutput: { hookEventName: ctx.event ?? "", permissionDecision: "allow", additionalContext: result.message } };
+  if (result.kind === "deny")
+    return { hookSpecificOutput: { permissionDecision: "deny", permissionDecisionReason: result.reason }, continue: false };
+  if (result.kind === "allow")
+    return { hookSpecificOutput: { permissionDecision: "allow" } };
+  return {};
+};
+var makeDedupKey = (dedupBy, ctx, name) => [
+  name,
+  ...dedupBy.includes("session") ? [ctx.sessionId ?? "no-session"] : [],
+  ...dedupBy.includes("filePath") ? [ctx.filePath] : [],
+  ...dedupBy.includes("ide") ? [ctx.ide] : [],
+  ...dedupBy.includes("toolName") ? [ctx.toolName] : [],
+  ...dedupBy.includes("toolInput") ? [JSON.stringify(ctx.toolInput)] : []
+].join(":");
+var evalFilePath = (fp, filePath) => {
+  const p = filePath;
+  const pl = p.toLowerCase();
+  const rel = toRelative(p);
+  if (fp.extOneOf && !fp.extOneOf.some((e) => p.endsWith(e))) return false;
+  if (fp.extOneOfCi && !fp.extOneOfCi.some((e) => pl.endsWith(e.toLowerCase()))) return false;
+  if (fp.notContainsAny && fp.notContainsAny.some((s) => p.includes(s))) return false;
+  if (fp.notTokenSegmentAny) {
+    const segs = pl.split("/");
+    const blocked = segs.some(
+      (seg) => seg.split(/[-_.]/).some((tok) => fp.notTokenSegmentAny.includes(tok))
+    );
+    if (blocked) return false;
+  }
+  if (fp.notStartsWithAny && fp.notStartsWithAny.some((s) => rel.startsWith(s) || p.includes("/" + s))) return false;
+  if (fp.notBasenameOneOf && fp.notBasenameOneOf.includes(import_path4.default.basename(p))) return false;
+  return true;
+};
+var evalToolInput = (ti, ctx) => {
+  if (ti.commandMatchWhen) {
+    const { tools, re } = ti.commandMatchWhen;
+    if (tools.includes(ctx.toolName)) {
+      const command = ctx.toolInput.command ?? "";
+      if (!re.test(command)) return false;
+    }
+  }
+  return true;
+};
+var runHook = async (def, opts = {}) => {
+  const { stdin = process.stdin, stdout = process.stdout } = opts;
+  try {
+    const raw = await readStdin(stdin);
+    const ide = detectIDE(raw);
+    const norm = normalize3(raw);
+    debugLog(`[runHook:${def.name}]`, { ide, event: norm.event, toolKind: norm.toolKind });
+    if (norm.event !== def.on.event) return;
+    if (!def.on.toolKinds.includes(norm.toolKind)) return;
+    const ctx0 = toHookContext(norm);
+    if (def.on.filePath && !evalFilePath(def.on.filePath, ctx0.filePath)) return;
+    if (def.on.toolInput && !evalToolInput(def.on.toolInput, ctx0)) return;
+    let markerRoot;
+    if (def.on.fs?.nearestMarker) {
+      const found = walkUp(ctx0.cwd || process.cwd(), def.on.fs.nearestMarker);
+      if (!found) return;
+      markerRoot = found;
+    }
+    const ctx = markerRoot !== void 0 ? { ...ctx0, markerRoot } : ctx0;
+    const platformKey = dedupKey2(raw, def.name);
+    if (platformKey !== null && !acquireOnce(platformKey)) return;
+    if (def.throttle && "dedupBy" in def.throttle) {
+      if (!acquireOnce(makeDedupKey(def.throttle.dedupBy, ctx, def.name))) return;
+    }
+    const result = await def.run(ctx);
+    if (!result || result.kind === "side-effect") return;
+    stdout.write(JSON.stringify(formatOutput3(toCanonical(result, ctx), ide)));
+  } catch (err) {
+    debugLog(`[runHook:${def.name}] error`, { err: err.message });
+  }
+};
+
+// src/runtime/result-helpers.ts
+var advise = (message) => ({ kind: "advise", message });
+
+// src/hooks/loose-files.ts
+var MODULE_MARKERS = {
+  ".py": "__init__.py",
+  ".js": "package.json"
+};
+var isLooseFile = (filePath, _fs = { existsSync: import_fs4.existsSync }) => {
+  const marker = MODULE_MARKERS[import_path5.default.extname(filePath)];
+  if (!marker) return false;
+  return !hasMarkerBeforeBoundary(import_path5.default.dirname(filePath), marker, ".git");
+};
+var nudgeMessage = (filePath) => {
+  const marker = MODULE_MARKERS[import_path5.default.extname(filePath)] ?? "a module marker";
+  const basename = import_path5.default.basename(filePath);
+  return `${basename} appears to be a loose file outside a module. Intended? A temporary file? ${marker}?`;
+};
+var looseFilesHook = defineHook({
+  name: "loose-files",
+  on: {
+    event: "PostToolUse",
+    toolKinds: ["write"],
+    filePath: {
+      extOneOf: [".py", ".js"],
+      notContainsAny: [
+        "agents/TEMP/",
+        "scripts/",
+        "tests/",
+        "validation/",
+        "node_modules/",
+        ".venv/",
+        "__pycache__/"
+      ]
+    },
+    toolInput: {
+      commandMatchWhen: {
+        tools: ["apply_patch", "functions.apply_patch"],
+        re: /^\*\*\* (?:Add|Create) File:/m
+      }
+    }
+  },
+  run: (ctx) => {
+    if (!isLooseFile(ctx.filePath)) return null;
+    debugLog("[loose-files] nudge", { filePath: ctx.filePath });
+    return advise(nudgeMessage(ctx.filePath));
+  }
+});
+runAsCli(looseFilesHook, module);
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  buildNudgeOutput,
   isLooseFile,
-  main,
-  shouldCheck
+  looseFilesHook,
+  nudgeMessage
 });

@@ -15,7 +15,8 @@ vi.mock('../src/adapter', async (importOriginal) => {
 vi.mock('child_process', () => ({ spawn: mockSpawn }));
 
 import { readStdin } from '../src/adapter';
-import { main, DEBOUNCE_MS } from '../src/gitnexus-refresh';
+import { gitnexusRefreshHook, DEBOUNCE_MS } from '../src/hooks/gitnexus-refresh';
+import { runHook } from '../src/runtime/run-hook';
 
 import ccWrite from './fixtures/claude-code-post-tool-use-write.json';
 import ccEdit  from './fixtures/claude-code-post-tool-use-edit.json';
@@ -69,74 +70,74 @@ beforeEach(() => {
 });
 
 // ---------------------------------------------------------------------------
-describe('main() — event filter', () => {
+describe('gitnexus-refresh — event filter', () => {
 
   test('PreToolUse → no spawn', async () => {
     mockRead(makeInput({ hook_event_name: 'PreToolUse' }));
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).not.toHaveBeenCalled();
   });
 
   test('Stop event → no spawn', async () => {
     mockRead(makeInput({ hook_event_name: 'Stop' }));
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).not.toHaveBeenCalled();
   });
 
 });
 
 // ---------------------------------------------------------------------------
-describe('main() — tool filter', () => {
+describe('gitnexus-refresh — tool filter', () => {
 
   test('PostToolUse + Write → spawn triggered', async () => {
     mockRead(makeInput({ tool_name: 'Write' }));
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).toHaveBeenCalledOnce();
   });
 
   test('PostToolUse + Edit → spawn triggered', async () => {
     mockRead({ ...ccEdit, cwd: REPO_ROOT });
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).toHaveBeenCalledOnce();
   });
 
   test('PostToolUse + MultiEdit → spawn triggered', async () => {
     mockRead(makeInput({ tool_name: 'MultiEdit' }));
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).toHaveBeenCalledOnce();
   });
 
   test('PostToolUse + Bash → no spawn', async () => {
     mockRead(makeInput({ tool_name: 'Bash' }));
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).not.toHaveBeenCalled();
   });
 
   test('PostToolUse + Read → no spawn', async () => {
     mockRead(makeInput({ tool_name: 'Read' }));
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).not.toHaveBeenCalled();
   });
 
   test('PostToolUse + Glob → no spawn', async () => {
     mockRead(makeInput({ tool_name: 'Glob' }));
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).not.toHaveBeenCalled();
   });
 
 });
 
 // ---------------------------------------------------------------------------
-describe('main() — repo root detection', () => {
+describe('gitnexus-refresh — repo root detection', () => {
 
   test('no .gitnexus anywhere → no spawn', async () => {
     vi.spyOn(fs, 'existsSync').mockReturnValue(false);
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).not.toHaveBeenCalled();
   });
 
   test('.gitnexus in cwd → spawn triggered', async () => {
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).toHaveBeenCalledOnce();
   });
 
@@ -145,7 +146,7 @@ describe('main() — repo root detection', () => {
     vi.spyOn(fs, 'existsSync').mockImplementation(
       (p) => String(p) === `${REPO_ROOT}/.gitnexus`,
     );
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).toHaveBeenCalledOnce();
   });
 
@@ -154,12 +155,12 @@ describe('main() — repo root detection', () => {
     vi.spyOn(fs, 'existsSync').mockImplementation(
       (p) => String(p) === `${REPO_ROOT}/.gitnexus`,
     );
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).toHaveBeenCalledOnce();
   });
 
   test('spawn is called with repoRoot as cwd option', async () => {
-    await main();
+    await runHook(gitnexusRefreshHook);
     const callOpts = mockSpawn.mock.calls[0][2] as { cwd: string };
     expect(callOpts.cwd).toBe(REPO_ROOT);
   });
@@ -167,11 +168,11 @@ describe('main() — repo root detection', () => {
 });
 
 // ---------------------------------------------------------------------------
-describe('main() — trailing-edge debounce', () => {
+describe('gitnexus-refresh — trailing-edge debounce', () => {
 
   test('every invocation writes a pending stamp file', async () => {
     const wfSpy = vi.spyOn(fs, 'writeFileSync');
-    await main();
+    await runHook(gitnexusRefreshHook);
     const pendingWrite = wfSpy.mock.calls.find(
       ([p]) => String(p).includes('.pending'),
     );
@@ -179,29 +180,29 @@ describe('main() — trailing-edge debounce', () => {
   });
 
   test('every invocation spawns a deferred sleeper (no local suppression)', async () => {
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).toHaveBeenCalledOnce();
     // Second call also spawns — debounce is in the spawned process
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(mockSpawn).toHaveBeenCalledTimes(2);
   });
 
   test('spawned script sleeps for DEBOUNCE_MS before running analyze', async () => {
-    await main();
+    await runHook(gitnexusRefreshHook);
     const script = getSpawnedScript();
     const expectedSleep = Math.ceil(DEBOUNCE_MS / 1000);
     expect(script).toContain(`sleep ${expectedSleep}`);
   });
 
-  test('spawned script checks token identity before executing analyze', async () => {
-    await main();
+  test('spawned script uses token-identity check before executing analyze', async () => {
+    await runHook(gitnexusRefreshHook);
     const script = getSpawnedScript();
     expect(script).toContain(`current !== '`);
-    expect(script).toContain(`process.exit(0)`);
+    expect(script).not.toContain('Date.now() - stamp');
   });
 
   test('spawned script reads the pending stamp file', async () => {
-    await main();
+    await runHook(gitnexusRefreshHook);
     const script = getSpawnedScript();
     expect(script).toContain('.pending');
     expect(script).toContain('readFileSync');
@@ -210,10 +211,10 @@ describe('main() — trailing-edge debounce', () => {
 });
 
 // ---------------------------------------------------------------------------
-describe('main() — analyze command in deferred script', () => {
+describe('gitnexus-refresh — analyze command in deferred script', () => {
 
   test('no meta.json → script contains analyze --force without --embeddings', async () => {
-    await main();
+    await runHook(gitnexusRefreshHook);
     const script = getSpawnedScript();
     expect(script).toContain('npx gitnexus analyze --force');
     expect(script).not.toContain('--embeddings');
@@ -224,7 +225,7 @@ describe('main() — analyze command in deferred script', () => {
       if (String(p).includes('meta.json')) return JSON.stringify({ stats: { embeddings: 0 } });
       throw new Error('ENOENT');
     });
-    await main();
+    await runHook(gitnexusRefreshHook);
     const script = getSpawnedScript();
     expect(script).not.toContain('--embeddings');
   });
@@ -234,7 +235,7 @@ describe('main() — analyze command in deferred script', () => {
       if (String(p).includes('meta.json')) return JSON.stringify({ stats: { embeddings: 42 } });
       throw new Error('ENOENT');
     });
-    await main();
+    await runHook(gitnexusRefreshHook);
     const script = getSpawnedScript();
     expect(script).toContain('--embeddings');
   });
@@ -244,20 +245,20 @@ describe('main() — analyze command in deferred script', () => {
       if (String(p).includes('meta.json')) return 'NOT_JSON{{{';
       throw new Error('ENOENT');
     });
-    await main();
+    await runHook(gitnexusRefreshHook);
     const script = getSpawnedScript();
     expect(script).not.toContain('--embeddings');
   });
 
   test('spawn is invoked as sh -c', async () => {
-    await main();
+    await runHook(gitnexusRefreshHook);
     const [cmd, args] = mockSpawn.mock.calls[0] as [string, string[]];
     expect(cmd).toBe('sh');
     expect(args[0]).toBe('-c');
   });
 
   test('spawn is called with detached: true', async () => {
-    await main();
+    await runHook(gitnexusRefreshHook);
     const opts = mockSpawn.mock.calls[0][2] as { detached: boolean };
     expect(opts.detached).toBe(true);
   });
@@ -265,18 +266,18 @@ describe('main() — analyze command in deferred script', () => {
   test('child.unref() is called so hook does not block the agent', async () => {
     const unrefSpy = vi.fn();
     mockSpawn.mockReturnValue({ unref: unrefSpy });
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(unrefSpy).toHaveBeenCalledOnce();
   });
 
 });
 
 // ---------------------------------------------------------------------------
-describe('main() — error resilience', () => {
+describe('gitnexus-refresh — error resilience', () => {
 
   test('empty stdin (readStdin rejects) → no crash, no spawn', async () => {
     (readStdin as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('empty stdin'));
-    await expect(main()).resolves.toBeUndefined();
+    await expect(runHook(gitnexusRefreshHook)).resolves.toBeUndefined();
     expect(mockSpawn).not.toHaveBeenCalled();
   });
 
@@ -284,30 +285,30 @@ describe('main() — error resilience', () => {
     (readStdin as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error('Unsupported IDE: [foo]'),
     );
-    await expect(main()).resolves.toBeUndefined();
+    await expect(runHook(gitnexusRefreshHook)).resolves.toBeUndefined();
     expect(mockSpawn).not.toHaveBeenCalled();
   });
 
   test('spawn throwing → hook resolves without propagating error', async () => {
     mockSpawn.mockImplementation(() => { throw new Error('spawn failed'); });
-    await expect(main()).resolves.toBeUndefined();
+    await expect(runHook(gitnexusRefreshHook)).resolves.toBeUndefined();
   });
 
 });
 
 // ---------------------------------------------------------------------------
-describe('main() — never writes to stdout', () => {
+describe('gitnexus-refresh — never writes to stdout', () => {
 
   test('happy path (trigger fires) → nothing written to process.stdout', async () => {
     const writeSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true);
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(writeSpy).not.toHaveBeenCalled();
   });
 
   test('no-op path (wrong tool) → nothing written to process.stdout', async () => {
     mockRead(makeInput({ tool_name: 'Bash' }));
     const writeSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true);
-    await main();
+    await runHook(gitnexusRefreshHook);
     expect(writeSpy).not.toHaveBeenCalled();
   });
 

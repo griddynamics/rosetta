@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sideEffect = exports.deny = exports.allow = exports.advise = void 0;
+const advise = (message) => ({ kind: 'advise', message });
+exports.advise = advise;
+const allow = () => ({ kind: 'allow' });
+exports.allow = allow;
+const deny = (reason) => ({ kind: 'deny', reason });
+exports.deny = deny;
+const sideEffect = () => ({ kind: 'side-effect' });
+exports.sideEffect = sideEffect;
