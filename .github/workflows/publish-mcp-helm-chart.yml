@@ -62,4 +62,7 @@ jobs:
           REPOSITORY="${{ steps.vars.outputs.repository }}"
           helm package "$CHART" --version "${VERSION}"
           PKG="${CHART_NAME}-${VERSION}.tgz"
+          echo "${{ secrets.DOCKERHUB_OAT }}" | helm registry login registry-1.docker.io \
+            -u "${DOCKERHUB_LOGIN}" \
+            --password-stdin
           helm push "./${PKG}" "oci://${REPOSITORY}"
