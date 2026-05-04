@@ -228,7 +228,7 @@ Or install without pulling first (pin `--version` to the chart release you verif
 
 ```bash
 helm install rosetta-mcp "${CHART_OCI}" \
-  --version 0.1.0 \
+  --version 0.2.0 \
   -f my-values.yaml
 ```
 
