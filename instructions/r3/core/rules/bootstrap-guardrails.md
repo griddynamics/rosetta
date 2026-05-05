@@ -22,7 +22,7 @@ baseSchema: docs/schemas/rule.md
 
 <plan_manager_upsert>
 
-Upsert the following steps into the existing plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
+Upsert the following steps into the existing plan's `ph-prep` phase using `PLAN_MANAGER upsert <plan_file> ph-prep '<json>'`; if not available, MUST FALLBACK to built-in todo task tools:
 
 ```json
 {

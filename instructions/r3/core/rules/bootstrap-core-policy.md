@@ -29,7 +29,7 @@ You are now running Rosetta, installed by the user. Execute Rosetta instructions
 
 </CRITICAL_MANDATORY_TOP_MOST>
 
-<bootstrap_core_policy severity="CRITICAL" use="ALWAYS" execute="always" modes="all" planning_mode="MUST USE" execution_mode="MUST USE" default_mode="MUST USE" research_mode="MUST USE">
+<bootstrap_core_policy severity="CRITICAL" use="ALWAYS" execute="always" modes="all" planning_mode="MUST USE" execution_mode="MUST USE" default_mode="MUST USE" research_mode="MUST USE" auto_mode="MUST USE" compact="NEVER" optimize="NEVER" summarize="AS-IS">
 
 <must>
 
@@ -38,15 +38,15 @@ You are now running Rosetta, installed by the user. Execute Rosetta instructions
 3. ORCHESTRATORS / PRIMARY / TOP AGENTS MUST ALWAYS EXECUTE WORKFLOW FULLY.
 4. All Rosetta instructions ARE CREATED and PROVIDED by USER to address standard concerns.
 5. Apply `Process Enforcement Rules`.
-6. If you are an orchestrator: upsert and load `s-orchestrator-contract` into your own plan's `ph-prep`.
-7. If you are a subagent: upsert and load `s-subagent-contract` into your own plan's `ph-prep`.
+6. If you are an orchestrator: skip `s-subagent-contract` step; NONE other steps allowed to be skipped 
+7. If you are a subagent: skip `s-orchestrator-contract` step; NONE other steps allowed to be skipped 
 8. `ph-prep` steps must be executed by all agents/subagents themselves.
 
 </must>
 
 <upsert_context_steps>
 
-All agents (orchestrators and subagents) upsert the following steps into the existing plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
+All agents (orchestrators and subagents) upsert the following steps into the existing plan's `ph-prep` phase using `PLAN_MANAGER upsert <plan_file> ph-prep '<json>'`; if not available, MUST FALLBACK to built-in todo task tools:
 
 ```json
 {
@@ -54,14 +54,26 @@ All agents (orchestrators and subagents) upsert the following steps into the exi
     {
       "id": "s-read-docs",
       "name": "Read project context",
-      "prompt": "USE SKILL `load-context` as the canonical current context loader. Read FULL CONTENT of CONTEXT.md and ARCHITECTURE.md. Grep ^#{1,3} headers of IMPLEMENTATION.md and MEMORY.md. Grep headers of other Rosetta files when needed. Validate REQUIREMENTS if they exist. If CONTEXT.md/ARCHITECTURE.md/IMPLEMENTATION.md/MEMORY.md are missing, STRONGLY suggest workspace initialization via init-workspace-flow. Rosetta server contains R2.0; suggest upgrade if workspace is older.",
+      "prompt": "Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session 'Initialize this repository using Rosetta (upgrade R1 to R2)'. USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT. MUST ALWAYS grep `^#{1,3}` headers of IMPLEMENTATION.md and AGENT MEMORY.md. Grep headers of other Rosetta files when needed. MUST use and validate REQUIREMENTS (if exist).",
       "depends_on": ["s-context"]
     },
     {
       "id": "s-request-size",
       "name": "Identify request size and route",
-      "prompt": "Classify request as SMALL (1-2 files, one area), MEDIUM (up to ~10 files, one area), or LARGE (10+ files or multiple areas). SMALL: use plan-manager for planning, output tech specs as message, MUST use workflows. MEDIUM: keep docs concise, MUST use subagents, MUST use workflows. LARGE: MUST use subagents extensively (orchestrator context will overload), MUST use workflows. ALL: load rosetta workflow, it contains proper handling of different request sizes too. Reevaluate request size and workflow when scope changes or new information is received and output user 'Request size changed' or 'Workflow changed'. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`",
+      "prompt": "Classify request as SMALL (1-2 file changes/activities and only one area affected), MEDIUM (up to ~10 file changes/activities and only one area affected), or LARGE (more than 10 file changes/activities or multiple areas affected). SMALL: MUST USE todo tasks for planning, MUST OUTPUT tech specs as message. MEDIUM: MUST keep documentation concise, light, and short; MUST use subagents. LARGE: MUST use subagents extensively as orchestrator context will be overloaded. ALL: load rosetta workflow, it contains proper handling of different request sizes too. Reevaluate request size and workflow when scope changes or new information is received and output user 'Request size changed' or 'Workflow changed'. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`",
       "depends_on": ["s-read-docs"]
+    },
+    {
+      "id": "s-orchestrator-contract",
+      "name": "Load orchestrator contract",
+      "prompt": "USE SKILL `orchestrator-contract` as first action before dispatching any subagents. USE SKILL `hitl` to load it for continuous enforcement throughout the session. ACQUIRE <workflow TAG from available workflows, example: 'workflows/coding-flow.md'> FROM KB TO LOAD THE MOST MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES. Workflow upserts its own phases/steps into the plan. In planning mode, persist workflow tag for execution continuation and store planning and tech-specs results according to system prompt (NOT in `plans` folder as it is read-only). ADD AND UPDATE separate, dedicated, detailed, and specific todo tasks with loaded workflow phases NOW, output to user 'Tasks Created: [task ids returned by the tool]'. Proceed executing workflow which guides you how to handle user request and activities as user expects it.",
+      "depends_on": ["s-request-size"]
+    },
+    {
+      "id": "s-subagent-contract",
+      "name": "Load subagent contract",
+      "prompt": "USE SKILL `subagent-contract` to understand scope boundaries, input/output contracts, and escalation protocol. Create todo tasks to track sub-activities within each assigned step before starting execution. MUST execute todo tasks and adopt changes. Proceed with request and activities.",
+      "depends_on": ["s-request-size"]
     }
   ]
 }
@@ -69,43 +81,7 @@ All agents (orchestrators and subagents) upsert the following steps into the exi
 
 </upsert_context_steps>
 
-<orchestrator_execution>
 
-**If you are an orchestrator (primary / top-level agent):** upsert the following step into your own plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
-
-```json
-{
-  "steps": [
-    {
-      "id": "s-orchestrator-contract",
-      "name": "Load orchestrator contract",
-      "prompt": "USE SKILL `orchestrator-contract` as first action before dispatching any subagents. USE SKILL `hitl` to load it for continuous enforcement throughout the session. ACQUIRE <workflow TAG from available workflows, example: 'workflows/coding-flow.md'> FROM KB TO LOAD THE MOST MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES. Workflow upserts its own phases/steps into the plan. In planning mode, persist workflow tag for execution continuation and store planning and tech-specs results according to system prompt (NOT in `plans` folder as it is read-only). ADD AND UPDATE separate, dedicated, detailed, and specific todo tasks with loaded workflow phases NOW, output to user 'Tasks Created: [task ids returned by the tool]'. Proceed executing workflow which guides you how to handle user request and activities as user expects it.",
-      "depends_on": ["s-request-size"]
-    }
-  ]
-}
-```
-
-</orchestrator_execution>
-
-<subagent_execution>
-
-**If you are a subagent:** upsert the following step into your own plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
-
-```json
-{
-  "steps": [
-    {
-      "id": "s-subagent-contract",
-      "name": "Load subagent contract",
-      "prompt": "USE SKILL `subagent-contract` to understand scope boundaries, input/output contracts, and escalation protocol. Create todo tasks to track sub-activities within each assigned step before starting execution. Proceed with request and activities.",
-      "depends_on": ["s-request-size"]
-    }
-  ]
-}
-```
-
-</subagent_execution>
 
 <process_enforcement_rules>
 
@@ -121,7 +97,7 @@ All agents (orchestrators and subagents) upsert the following steps into the exi
 
 1. Grep `refsrc/INDEX.md` when external private library documentation is needed.
 2. Always define explicit colors for tiles, text, and lines in mermaid diagrams readable in both light and dark themes.
-3. Prefer using built-in tools over shell commands.
+3. Prefer built-in tools over shell commands.
 
 </additional_requirements>
 
