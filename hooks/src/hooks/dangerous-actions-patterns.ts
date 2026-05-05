@@ -5,12 +5,12 @@ export interface DangerPattern {
 }
 
 export const DANGEROUS_BASH: readonly DangerPattern[] = [
-  { id: 'rm-rf-root',          re: /\brm\s+(?:-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b.*\s\/(?:\s|$)/, label: 'rm -rf /' },
-  { id: 'rm-rf-home',          re: /\brm\s+-[rf]+\b.*(?:\s~\b|\s\$HOME\b)/,                                    label: 'rm -rf $HOME' },
-  { id: 'rm-rf-recursive',     re: /\brm\s+-[rf]{2,}\b/,                                                        label: 'rm -rf (generic)' },
-  { id: 'sql-drop-table',      re: /\bdrop\s+(?:table|database|schema)\b/i,                                     label: 'DDL DROP' },
-  { id: 'sql-truncate',        re: /\btruncate\s+(?:table\s+)?\w+/i,                                            label: 'TRUNCATE TABLE' },
-  { id: 'git-force-push',      re: /\bgit\s+push\s+(?:--force(?!-with-lease)|-f\b)/,                           label: 'git push --force' },
+  { id: 'rm-rf-root',          re: /\brm\s+(?:-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b.*\s\/(?:\*|\s|$)/, label: 'rm -rf /' },
+  { id: 'rm-rf-home',          re: /\brm\s+-[rf]+\b.*(?:\s~\b|\s\$HOME\b)/,                                       label: 'rm -rf $HOME' },
+  { id: 'rm-rf-recursive',     re: /\brm\s+-[rf]{2,}\b/,                                                           label: 'rm -rf (generic)' },
+  { id: 'sql-drop-table',      re: /\bdrop\s+(?:table|database|schema)\b/i,                                        label: 'DDL DROP' },
+  { id: 'sql-truncate',        re: /\btruncate\s+(?:table\s+)?\w+/i,                                               label: 'TRUNCATE TABLE' },
+  { id: 'git-force-push',      re: /\bgit\s+push\b(?:\s+\S+)*\s+(?:--force(?!-with-lease)|-f\b)/,                label: 'git push --force' },
   { id: 'git-reset-hard',      re: /\bgit\s+reset\s+--hard\b/,                                                  label: 'git reset --hard' },
   { id: 'git-clean-force',     re: /\bgit\s+clean\s+-[a-z]*[fd]/,                                               label: 'git clean -fd' },
   { id: 'git-branch-delete',   re: /\bgit\s+branch\s+-D\b/,                                                     label: 'git branch -D' },
@@ -23,7 +23,9 @@ export const DANGEROUS_BASH: readonly DangerPattern[] = [
   { id: 'curl-pipe-shell',     re: /\bcurl\s.*\s\|\s*(?:sh|bash)\b/,                                           label: 'curl | sh' },
 ] as const;
 
+// Matched against full normalized path (except secret-env which is matched against path basename)
 export const DANGEROUS_PATHS: readonly DangerPattern[] = [
+  // Matched against path basename (caller responsibility)
   { id: 'secret-env',       re: /^\.env(?:\..+)?$/,                                              label: '.env* file' },
   { id: 'ssh-private-key',  re: /^(?:id_rsa|id_ed25519|id_ecdsa|id_dsa)$/,                       label: 'SSH private key' },
   { id: 'aws-credentials',  re: /\/\.aws\/(?:credentials|config)/,                               label: 'AWS credentials' },
@@ -35,8 +37,8 @@ export const DANGEROUS_PATHS: readonly DangerPattern[] = [
 ] as const;
 
 export const DANGEROUS_CONTENT: readonly DangerPattern[] = [
-  { id: 'sql-drop-table',     re: /\bdrop\s+(?:table|database|schema)\b/i,                         label: 'DROP in payload' },
-  { id: 'sql-truncate',       re: /\btruncate\s+(?:table\s+)?\w+/i,                                label: 'TRUNCATE in payload' },
+  { id: 'content-sql-drop-table', re: /\bdrop\s+(?:table|database|schema)\b/i,                     label: 'DROP in payload' },
+  { id: 'content-sql-truncate',   re: /\btruncate\s+(?:table\s+)?\w+/i,                            label: 'TRUNCATE in payload' },
   { id: 'inline-aws-key',     re: /\bAKIA[0-9A-Z]{16}\b/,                                          label: 'AWS access key id' },
   { id: 'inline-private-key', re: /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/,   label: 'PEM private key' },
 ] as const;
