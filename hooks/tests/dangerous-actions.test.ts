@@ -2,6 +2,20 @@ import { DANGEROUS_BASH, DANGEROUS_PATHS, DANGEROUS_CONTENT } from '../src/hooks
 import { describe, test, expect } from 'vitest';
 import type { HookContext } from '../src/runtime/types';
 import { evaluateDangerous } from '../src/hooks/dangerous-actions-evaluate';
+import ccBash from './fixtures/claude-code-pre-tool-use-bash.json';
+import ccWrite from './fixtures/claude-code-pre-tool-use-write.json';
+import ccEdit from './fixtures/claude-code-pre-tool-use-edit.json';
+import ccMultiEdit from './fixtures/claude-code-pre-tool-use-multi-edit.json';
+import { dangerousActionsHook } from '../src/hooks/dangerous-actions';
+import { runHook } from '../src/runtime/run-hook';
+import { Readable, Writable } from 'stream';
+
+const toStream = (obj: unknown): Readable => Readable.from([JSON.stringify(obj)]);
+const captureOutput = () => {
+  const chunks: string[] = [];
+  const writable = new Writable({ write(chunk, _, cb) { chunks.push(chunk.toString()); cb(); } });
+  return { writable, output(): string { return chunks.join(''); } };
+};
 
 describe('patterns — structure', () => {
   test('DANGEROUS_BASH has at least 10 entries', () => {
@@ -259,4 +273,90 @@ describe('evaluateDangerous — excluded tool kinds', () => {
     };
     expect(evaluateDangerous(ctx)).toBeNull();
   });
+});
+
+describe('dangerousActionsHook — integration (runHook)', () => {
+
+  test('Bash fixture with safe command → no stdout output', async () => {
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(ccBash), stdout: writable });
+    expect(output()).toBe('');
+  });
+
+  test('Bash fixture with rm -rf / → deny with permissionDecision=deny and continue=false', async () => {
+    const raw = { ...ccBash, tool_input: { command: 'rm -rf /' } };
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
+    const hso = parsed.hookSpecificOutput as Record<string, unknown>;
+    expect(hso.permissionDecision).toBe('deny');
+    expect((hso.permissionDecisionReason as string)).toContain('rm-rf-root');
+    expect(parsed.continue).toBe(false);
+  });
+
+  test('Bash fixture with rm -rf /tmp/x # reviewed → no output (override)', async () => {
+    const raw = { ...ccBash, tool_input: { command: 'rm -rf /tmp/x # reviewed' } };
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    expect(output()).toBe('');
+  });
+
+  test('Write fixture with safe content → no stdout output', async () => {
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(ccWrite), stdout: writable });
+    expect(output()).toBe('');
+  });
+
+  test('Write fixture with DROP TABLE content → deny', async () => {
+    const raw = { ...ccWrite, tool_input: { file_path: '/proj/001.sql', content: 'DROP TABLE users;' } };
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
+    const hso = parsed.hookSpecificOutput as Record<string, unknown>;
+    expect(hso.permissionDecision).toBe('deny');
+    expect((hso.permissionDecisionReason as string)).toContain('content-sql-drop-table');
+  });
+
+  test('Write fixture targeting .env → deny', async () => {
+    const raw = { ...ccWrite, tool_input: { file_path: '/home/user/.env', content: 'FOO=bar' } };
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
+    expect((parsed.hookSpecificOutput as Record<string, unknown>).permissionDecision).toBe('deny');
+  });
+
+  test('Edit fixture with safe new_string → no stdout output', async () => {
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(ccEdit), stdout: writable });
+    expect(output()).toBe('');
+  });
+
+  test('Edit fixture with DROP TABLE in new_string → deny', async () => {
+    const raw = { ...ccEdit, tool_input: { file_path: '/proj/db.sql', old_string: 'x', new_string: 'DROP TABLE orders;' } };
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
+    expect((parsed.hookSpecificOutput as Record<string, unknown>).permissionDecision).toBe('deny');
+  });
+
+  test('MultiEdit fixture with safe edits → no stdout output', async () => {
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(ccMultiEdit), stdout: writable });
+    expect(output()).toBe('');
+  });
+
+  test('PostToolUse Bash event → no output (wrong event)', async () => {
+    const raw = { ...ccBash, hook_event_name: 'PostToolUse', tool_input: { command: 'rm -rf /' } };
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    expect(output()).toBe('');
+  });
+
+  test('PreToolUse Read event → no output (Read excluded from toolKinds)', async () => {
+    const raw = { ...ccBash, tool_name: 'Read', tool_input: { file_path: '/home/user/.env' } };
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    expect(output()).toBe('');
+  });
+
 });
