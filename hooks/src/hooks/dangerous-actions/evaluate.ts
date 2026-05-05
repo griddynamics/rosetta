@@ -13,6 +13,10 @@ const REVIEWED_RE = /(?:^|\s)#\s*reviewed(?:\s|:|$)/;
 /** Max length of the evidence snippet shown in deny messages. */
 const EVIDENCE_MAX = 120;
 
+const MCP_SHELL_FIELDS   = ['command', 'cmd', 'shell_command'] as const;
+const MCP_PATH_FIELDS    = ['path', 'file_path', 'filePath', 'target', 'target_path'] as const;
+const MCP_CONTENT_FIELDS = ['content', 'text', 'new_string', 'query', 'sql'] as const;
+
 function buildDenyMessage(
   pattern: DangerPattern,
   toolKind: string,
@@ -125,6 +129,39 @@ function evalMultiEdit(ctx: HookContext): HookResult {
   return null;
 }
 
+function evalMcpCall(ctx: HookContext): HookResult {
+  const input = ctx.toolInput;
+
+  for (const f of MCP_SHELL_FIELDS) {
+    const v = input[f];
+    if (typeof v === 'string') {
+      const m = matchPatterns(DANGEROUS_BASH, v);
+      if (m) {
+        if (REVIEWED_RE.test(v)) return null;
+        return deny(buildDenyMessage(m, ctx.toolName, v));
+      }
+    }
+  }
+
+  for (const f of MCP_PATH_FIELDS) {
+    const v = input[f];
+    if (typeof v === 'string') {
+      const m = matchDangerousPath(v);
+      if (m) return deny(buildDenyMessage(m, ctx.toolName, v));
+    }
+  }
+
+  for (const f of MCP_CONTENT_FIELDS) {
+    const v = input[f];
+    if (typeof v === 'string') {
+      const m = matchPatterns(DANGEROUS_CONTENT, v);
+      if (m) return deny(buildDenyMessage(m, ctx.toolName, v, true));
+    }
+  }
+
+  return null;
+}
+
 /**
  * Pure evaluation function for the dangerous-actions hook.
  * Returns a HookResult (deny) if the context is dangerous, or null if safe.
@@ -136,6 +173,7 @@ export function evaluateDangerous(ctx: HookContext): HookResult {
     case 'write':      return evalWrite(ctx);
     case 'edit':       return evalEdit(ctx);
     case 'multi-edit': return evalMultiEdit(ctx);
+    case 'mcp-call':   return evalMcpCall(ctx);
     default:           return null;
   }
 }

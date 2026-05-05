@@ -6,7 +6,7 @@ export const dangerousActionsHook = defineHook({
   name: 'dangerous-actions',
   on: {
     event: 'PreToolUse',
-    toolKinds: ['bash', 'write', 'edit', 'multi-edit'],
+    toolKinds: ['bash', 'write', 'edit', 'multi-edit', 'mcp-call'],
   },
   run: (ctx) => evaluateDangerous(ctx),
 });

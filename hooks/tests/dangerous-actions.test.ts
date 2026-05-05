@@ -419,3 +419,75 @@ describe('Bug fixes — PR #79 review', () => {
     expect(reason).not.toContain('Did you consider this as a dangerous activity?');
   });
 });
+
+// --- MCP helper ---
+const mcpCtx = (toolName: string, toolInput: Record<string, unknown>): HookContext => ({
+  ide: 'claude-code', event: 'PreToolUse', toolKind: 'mcp-call',
+  toolName, filePath: '', cwd: '/proj', sessionId: null,
+  toolInput,
+});
+
+describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
+  test('serena execute_shell_command with rm -rf / → deny rm-rf-root', () => {
+    const r = evaluateDangerous(mcpCtx(
+      'mcp__plugin_serena_serena__execute_shell_command',
+      { command: 'rm -rf /' }
+    ));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('rm-rf-root');
+  });
+
+  test('mcp filesystem write_file to .aws/credentials → deny aws-credentials', () => {
+    const r = evaluateDangerous(mcpCtx(
+      'mcp__filesystem__write_file',
+      { path: '/home/u/.aws/credentials', content: '[default]\nkey=value' }
+    ));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('aws-credentials');
+  });
+
+  test('mcp filesystem edit_file with AWS key in new_string → deny with redacted evidence', () => {
+    const awsKey = 'AKIAIOSFODNN7EXAMPLE';
+    const r = evaluateDangerous(mcpCtx(
+      'mcp__filesystem__edit_file',
+      { path: 'config.ts', new_string: `const key = "${awsKey}";` }
+    ));
+    expect(r?.kind).toBe('deny');
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('<redacted:');
+    expect(reason).not.toContain(awsKey);
+  });
+
+  test('mcp postgres execute_query with DROP TABLE → deny with redacted evidence', () => {
+    const r = evaluateDangerous(mcpCtx(
+      'mcp__postgres__execute_query',
+      { query: 'DROP TABLE users;' }
+    ));
+    expect(r?.kind).toBe('deny');
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('content-sql-drop-table');
+    expect(reason).toContain('<redacted:');
+    expect(reason).not.toContain('DROP TABLE');
+  });
+
+  test('mcp filesystem write safe content → null', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__filesystem__write_file',
+      { path: '/tmp/foo.txt', content: 'hello world' }
+    ))).toBeNull();
+  });
+
+  test('mcp tool with no recognized fields → null', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__random__noop',
+      { unknown_field: 'value' }
+    ))).toBeNull();
+  });
+
+  test('mcp serena safe shell command → null', () => {
+    expect(evaluateDangerous(mcpCtx(
+      'mcp__plugin_serena_serena__execute_shell_command',
+      { command: 'ls -la /tmp' }
+    ))).toBeNull();
+  });
+});
