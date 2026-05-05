@@ -1,7 +1,7 @@
-import { DANGEROUS_BASH, DANGEROUS_PATHS, DANGEROUS_CONTENT } from '../src/hooks/dangerous-actions-patterns';
+import { DANGEROUS_BASH, DANGEROUS_PATHS, DANGEROUS_CONTENT } from '../src/hooks/dangerous-actions/patterns';
 import { describe, test, expect } from 'vitest';
 import type { HookContext } from '../src/runtime/types';
-import { evaluateDangerous } from '../src/hooks/dangerous-actions-evaluate';
+import { evaluateDangerous } from '../src/hooks/dangerous-actions/evaluate';
 import ccBash from './fixtures/claude-code-pre-tool-use-bash.json';
 import ccWrite from './fixtures/claude-code-pre-tool-use-write.json';
 import ccEdit from './fixtures/claude-code-pre-tool-use-edit.json';

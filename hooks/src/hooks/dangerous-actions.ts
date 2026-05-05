@@ -1,6 +1,6 @@
 import { defineHook } from '../runtime/define-hook';
 import { runAsCli } from '../runtime/run-hook';
-import { evaluateDangerous } from './dangerous-actions-evaluate';
+import { evaluateDangerous } from './dangerous-actions/evaluate';
 
 export const dangerousActionsHook = defineHook({
   name: 'dangerous-actions',
