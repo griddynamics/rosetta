@@ -73,8 +73,17 @@ exports.TOOL_KINDS = {
         'windsurf': ['Read'],
         'copilot': null,
     },
+    'mcp-call': {
+        'claude-code': ['__mcp_sentinel__'],
+        'codex': null,
+        'cursor': null,
+        'windsurf': null,
+        'copilot': null,
+    },
 };
 const reverseLookupToolKind = (ide, raw) => {
+    if (raw.startsWith('mcp__'))
+        return 'mcp-call';
     for (const [key, map] of Object.entries(exports.TOOL_KINDS)) {
         const names = map[ide];
         if (Array.isArray(names) && names.includes(raw))
