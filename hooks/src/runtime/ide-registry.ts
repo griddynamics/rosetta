@@ -75,6 +75,13 @@ export const TOOL_KINDS = {
     'windsurf':    ['Read'],
     'copilot':     null,
   },
+  'mcp-call': {
+    'claude-code': ['__mcp_sentinel__'],
+    'codex':       null,
+    'cursor':      null,
+    'windsurf':    null,
+    'copilot':     null,
+  },
 } as const satisfies Record<string, IdeMap<readonly string[]>>;
 
 export type SemanticKind = keyof typeof TOOL_KINDS;
