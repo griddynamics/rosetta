@@ -22,6 +22,12 @@ const CANONICAL_HOOKS_JSONS: { plugin: string; jsonPath: string }[] = [
 const isLibraryModule = (name: string): boolean =>
   name.endsWith('-patterns') || name.endsWith('-evaluate');
 
+// Hooks that use PreToolUse are scoped to Claude Code only for initial rollout.
+// Cursor, Copilot, and Codex do not expose a PreToolUse event.
+const CLAUDE_CODE_ONLY_HOOKS: ReadonlySet<string> = new Set([
+  'dangerous-actions',
+]);
+
 const discoverHooks = (): string[] =>
   readdirSync(HOOKS_DIR)
     .filter(f => f.endsWith('.ts'))
@@ -45,6 +51,9 @@ describe('hooks-registered — all src hooks appear in every plugin hooks.json',
       });
 
       for (const hookName of hookNames) {
+        // Skip claude-code-only hooks for non-claude plugins
+        if (CLAUDE_CODE_ONLY_HOOKS.has(hookName) && plugin !== 'core-claude') continue;
+
         test(`${hookName}.js is referenced`, () => {
           if (!rawJson) return; // file-missing case handled above
           expect(rawJson).toContain(`${hookName}.js`);
