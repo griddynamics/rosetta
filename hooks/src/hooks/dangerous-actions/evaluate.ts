@@ -137,7 +137,6 @@ function evalMcpCall(ctx: HookContext): HookResult {
     if (typeof v === 'string') {
       const m = matchPatterns(DANGEROUS_BASH, v);
       if (m) {
-        if (REVIEWED_RE.test(v)) return null;
         return deny(buildDenyMessage(m, ctx.toolName, v));
       }
     }

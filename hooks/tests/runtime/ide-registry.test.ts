@@ -48,6 +48,10 @@ describe('reverseLookupToolKind', () => {
     expect(reverseLookupToolKind('codex', 'MultiEdit')).toBeNull());
   test('Bash → bash for claude-code', () =>
     expect(reverseLookupToolKind('claude-code', 'Bash')).toBe('bash'));
+  test('mcp__ prefixed tool name → mcp-call for claude-code', () =>
+    expect(reverseLookupToolKind('claude-code', 'mcp__filesystem__write_file')).toBe('mcp-call'));
+  test('mcp__ prefix works regardless of ide', () =>
+    expect(reverseLookupToolKind('cursor', 'mcp__anything')).toBe('mcp-call'));
 });
 
 describe('PROPERTIES.filePath', () => {

@@ -490,4 +490,12 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
       { command: 'ls -la /tmp' }
     ))).toBeNull();
   });
+
+  test('mcp serena execute_shell_command with rm -rf # reviewed → still deny (no bypass for MCP)', () => {
+    const r = evaluateDangerous(mcpCtx(
+      'mcp__plugin_serena_serena__execute_shell_command',
+      { command: 'rm -rf /tmp/x # reviewed' }
+    ));
+    expect(r?.kind).toBe('deny');
+  });
 });
