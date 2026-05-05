@@ -9,7 +9,8 @@
   "tool_input": {
     "file_path": "/Users/dev/my-project/src/app.ts",
     "edits": [
-      { "old_string": "foo", "new_string": "bar" }
+      { "old_string": "foo", "new_string": "bar" },
+      { "old_string": "baz", "new_string": "qux" }
     ]
   }
 }
