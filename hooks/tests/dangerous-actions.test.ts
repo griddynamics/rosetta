@@ -360,3 +360,62 @@ describe('dangerousActionsHook — integration (runHook)', () => {
   });
 
 });
+
+describe('Bug fixes — PR #79 review', () => {
+
+  // Bug 1: trailing slash bypasses kube-config $ anchor
+  test('Write kube-config with trailing slash → deny (normalizedPath fix)', () => {
+    const r = evaluateDangerous(writeCtx('/home/u/.kube/config/', 'apiVersion: v1'));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('kube-config');
+  });
+
+  // Bug 3: rm-rf-recursive false positives
+  test('bash rm -rr /tmp/x → null (no f flag, false positive eliminated)', () => {
+    expect(evaluateDangerous(bashCtx('rm -rr /tmp/x'))).toBeNull();
+  });
+  test('bash rm -ff /tmp/x → null (no r flag, false positive eliminated)', () => {
+    expect(evaluateDangerous(bashCtx('rm -ff /tmp/x'))).toBeNull();
+  });
+  // Regression guard: rm -rf must still work after tightening
+  test('bash rm -rf /tmp/x → deny (still matches)', () => {
+    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x'))?.kind).toBe('deny');
+  });
+  test('bash rm -fr /tmp/x → deny (flag order reversed, still matches)', () => {
+    expect(evaluateDangerous(bashCtx('rm -fr /tmp/x'))?.kind).toBe('deny');
+  });
+  test('bash rm -rfv /tmp/x → deny (extra flag, still matches)', () => {
+    expect(evaluateDangerous(bashCtx('rm -rfv /tmp/x'))?.kind).toBe('deny');
+  });
+  test('bash rm -Rf /tmp/x → deny (uppercase R, still matches)', () => {
+    expect(evaluateDangerous(bashCtx('rm -Rf /tmp/x'))?.kind).toBe('deny');
+  });
+
+  // Bug 2: AWS key must be redacted in deny reason
+  test('Write with AWS key — deny reason must not expose raw key', () => {
+    const awsKey = 'AKIAIOSFODNN7EXAMPLE';
+    const r = evaluateDangerous(writeCtx('/proj/config.ts', `const key = "${awsKey}";`));
+    expect(r?.kind).toBe('deny');
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('<redacted:');
+    expect(reason).not.toContain(awsKey);
+  });
+
+  // Bug 2: PEM key must be redacted
+  test('Write with PEM private key — deny reason must not expose PEM header', () => {
+    const pem = '-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAK...';
+    const r = evaluateDangerous(writeCtx('/proj/key.pem', pem));
+    expect(r?.kind).toBe('deny');
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('<redacted:');
+    expect(reason).not.toContain('BEGIN RSA PRIVATE KEY');
+  });
+
+  // Bug 4: Grammar
+  test('deny message grammar — "Did you consider this a dangerous activity?" (no "as")', () => {
+    const r = evaluateDangerous(bashCtx('rm -rf /'));
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('Did you consider this a dangerous activity?');
+    expect(reason).not.toContain('Did you consider this as a dangerous activity?');
+  });
+});
