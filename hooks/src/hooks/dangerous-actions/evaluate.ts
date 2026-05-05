@@ -17,19 +17,20 @@ function buildDenyMessage(
   pattern: DangerPattern,
   toolKind: string,
   evidence: string,
+  redact = false,
 ): string {
-  const snippet = evidence.length > EVIDENCE_MAX
-    ? evidence.slice(0, EVIDENCE_MAX) + '…'
-    : evidence;
+  const evidenceLine = redact
+    ? `<redacted: ${pattern.id}>`
+    : (evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence);
 
   return [
     'Blocked by rosetta dangerous-actions hook.',
     '',
     `Rule:     ${pattern.id} — ${pattern.label}`,
     `Tool:     ${toolKind}`,
-    `Evidence: ${snippet}`,
+    `Evidence: ${evidenceLine}`,
     '',
-    'Did you consider this as a dangerous activity?',
+    'Did you consider this a dangerous activity?',
     '',
     'To proceed (Bash only): re-issue the command with a `# reviewed` shell',
     'comment, e.g. `<command> # reviewed: <one-line reason>`. Doing so asserts',
@@ -61,7 +62,7 @@ function matchDangerousPath(filePath: string): DangerPattern | null {
   const basename = normalizedPath.split('/').pop() ?? normalizedPath;
   for (const p of DANGEROUS_PATHS) {
     // Test full path first (covers patterns with / in them like aws-credentials)
-    if (p.re.test(filePath)) return p;
+    if (p.re.test(normalizedPath)) return p;
     // Test basename for patterns anchored at start (e.g. ^\.env)
     if (p.re.test(basename)) return p;
   }
@@ -89,7 +90,7 @@ function evalWrite(ctx: HookContext): HookResult {
   if (pathMatch) return deny(buildDenyMessage(pathMatch, 'write', filePath));
 
   const contentMatch = matchPatterns(DANGEROUS_CONTENT, content);
-  if (contentMatch) return deny(buildDenyMessage(contentMatch, 'write', content));
+  if (contentMatch) return deny(buildDenyMessage(contentMatch, 'write', content, true));
 
   return null;
 }
@@ -103,7 +104,7 @@ function evalEdit(ctx: HookContext): HookResult {
   if (pathMatch) return deny(buildDenyMessage(pathMatch, 'edit', filePath));
 
   const contentMatch = matchPatterns(DANGEROUS_CONTENT, newString);
-  if (contentMatch) return deny(buildDenyMessage(contentMatch, 'edit', newString));
+  if (contentMatch) return deny(buildDenyMessage(contentMatch, 'edit', newString, true));
 
   return null;
 }
@@ -118,7 +119,7 @@ function evalMultiEdit(ctx: HookContext): HookResult {
 
   for (const edit of edits) {
     const contentMatch = matchPatterns(DANGEROUS_CONTENT, edit.new_string);
-    if (contentMatch) return deny(buildDenyMessage(contentMatch, 'multi-edit', edit.new_string));
+    if (contentMatch) return deny(buildDenyMessage(contentMatch, 'multi-edit', edit.new_string, true));
   }
 
   return null;

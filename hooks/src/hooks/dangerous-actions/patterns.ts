@@ -7,7 +7,7 @@ export interface DangerPattern {
 export const DANGEROUS_BASH: readonly DangerPattern[] = [
   { id: 'rm-rf-root',          re: /\brm\s+(?:-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b.*\s\/(?:\*|\s|$)/, label: 'rm -rf /' },
   { id: 'rm-rf-home',          re: /\brm\s+-[rf]+\b.*(?:\s~\b|\s\$HOME\b)/,                                       label: 'rm -rf $HOME' },
-  { id: 'rm-rf-recursive',     re: /\brm\s+-[rf]{2,}\b/,                                                           label: 'rm -rf (generic)' },
+  { id: 'rm-rf-recursive',     re: /\brm\s+-(?=[a-zA-Z]*[rR])(?=[a-zA-Z]*[fF])[a-zA-Z]+\b/,                     label: 'rm -rf (generic)' },
   { id: 'sql-drop-table',      re: /\bdrop\s+(?:table|database|schema)\b/i,                                        label: 'DDL DROP' },
   { id: 'sql-truncate',        re: /\btruncate\s+(?:table\s+)?\w+/i,                                               label: 'TRUNCATE TABLE' },
   { id: 'git-force-push',      re: /\bgit\s+push\b(?:\s+\S+)*\s+(?:--force(?!-with-lease)|-f\b)/,                label: 'git push --force' },
