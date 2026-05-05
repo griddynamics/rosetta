@@ -307,7 +307,7 @@ var deny = (reason) => ({ kind: "deny", reason });
 var DANGEROUS_BASH = [
   { id: "rm-rf-root", re: /\brm\s+(?:-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b.*\s\/(?:\*|\s|$)/, label: "rm -rf /" },
   { id: "rm-rf-home", re: /\brm\s+-[rf]+\b.*(?:\s~\b|\s\$HOME\b)/, label: "rm -rf $HOME" },
-  { id: "rm-rf-recursive", re: /\brm\s+-[rf]{2,}\b/, label: "rm -rf (generic)" },
+  { id: "rm-rf-recursive", re: /\brm\s+-(?=[a-zA-Z]*[rR])(?=[a-zA-Z]*[fF])[a-zA-Z]+\b/, label: "rm -rf (generic)" },
   { id: "sql-drop-table", re: /\bdrop\s+(?:table|database|schema)\b/i, label: "DDL DROP" },
   { id: "sql-truncate", re: /\btruncate\s+(?:table\s+)?\w+/i, label: "TRUNCATE TABLE" },
   { id: "git-force-push", re: /\bgit\s+push\b(?:\s+\S+)*\s+(?:--force(?!-with-lease)|-f\b)/, label: "git push --force" },
@@ -343,16 +343,19 @@ var DANGEROUS_CONTENT = [
 // src/hooks/dangerous-actions/evaluate.ts
 var REVIEWED_RE = /(?:^|\s)#\s*reviewed(?:\s|:|$)/;
 var EVIDENCE_MAX = 120;
-function buildDenyMessage(pattern, toolKind, evidence) {
-  const snippet = evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + "\u2026" : evidence;
+var MCP_SHELL_FIELDS = ["command", "cmd", "shell_command"];
+var MCP_PATH_FIELDS = ["path", "file_path", "filePath", "target", "target_path"];
+var MCP_CONTENT_FIELDS = ["content", "text", "new_string", "query", "sql"];
+function buildDenyMessage(pattern, toolKind, evidence, redact = false) {
+  const evidenceLine = redact ? `<redacted: ${pattern.id}>` : evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + "\u2026" : evidence;
   return [
     "Blocked by rosetta dangerous-actions hook.",
     "",
     `Rule:     ${pattern.id} \u2014 ${pattern.label}`,
     `Tool:     ${toolKind}`,
-    `Evidence: ${snippet}`,
+    `Evidence: ${evidenceLine}`,
     "",
-    "Did you consider this as a dangerous activity?",
+    "Did you consider this a dangerous activity?",
     "",
     "To proceed (Bash only): re-issue the command with a `# reviewed` shell",
     "comment, e.g. `<command> # reviewed: <one-line reason>`. Doing so asserts",
@@ -373,7 +376,7 @@ function matchDangerousPath(filePath) {
   const normalizedPath = filePath.replace(/\/+$/, "");
   const basename = normalizedPath.split("/").pop() ?? normalizedPath;
   for (const p of DANGEROUS_PATHS) {
-    if (p.re.test(filePath)) return p;
+    if (p.re.test(normalizedPath)) return p;
     if (p.re.test(basename)) return p;
   }
   return null;
@@ -393,7 +396,7 @@ function evalWrite(ctx) {
   const pathMatch = matchDangerousPath(filePath);
   if (pathMatch) return deny(buildDenyMessage(pathMatch, "write", filePath));
   const contentMatch = matchPatterns(DANGEROUS_CONTENT, content);
-  if (contentMatch) return deny(buildDenyMessage(contentMatch, "write", content));
+  if (contentMatch) return deny(buildDenyMessage(contentMatch, "write", content, true));
   return null;
 }
 function evalEdit(ctx) {
@@ -403,7 +406,7 @@ function evalEdit(ctx) {
   const pathMatch = matchDangerousPath(filePath);
   if (pathMatch) return deny(buildDenyMessage(pathMatch, "edit", filePath));
   const contentMatch = matchPatterns(DANGEROUS_CONTENT, newString);
-  if (contentMatch) return deny(buildDenyMessage(contentMatch, "edit", newString));
+  if (contentMatch) return deny(buildDenyMessage(contentMatch, "edit", newString, true));
   return null;
 }
 function evalMultiEdit(ctx) {
@@ -414,7 +417,34 @@ function evalMultiEdit(ctx) {
   if (pathMatch) return deny(buildDenyMessage(pathMatch, "multi-edit", filePath));
   for (const edit of edits) {
     const contentMatch = matchPatterns(DANGEROUS_CONTENT, edit.new_string);
-    if (contentMatch) return deny(buildDenyMessage(contentMatch, "multi-edit", edit.new_string));
+    if (contentMatch) return deny(buildDenyMessage(contentMatch, "multi-edit", edit.new_string, true));
+  }
+  return null;
+}
+function evalMcpCall(ctx) {
+  const input = ctx.toolInput;
+  for (const f of MCP_SHELL_FIELDS) {
+    const v = input[f];
+    if (typeof v === "string") {
+      const m = matchPatterns(DANGEROUS_BASH, v);
+      if (m) {
+        return deny(buildDenyMessage(m, ctx.toolName, v));
+      }
+    }
+  }
+  for (const f of MCP_PATH_FIELDS) {
+    const v = input[f];
+    if (typeof v === "string") {
+      const m = matchDangerousPath(v);
+      if (m) return deny(buildDenyMessage(m, ctx.toolName, v));
+    }
+  }
+  for (const f of MCP_CONTENT_FIELDS) {
+    const v = input[f];
+    if (typeof v === "string") {
+      const m = matchPatterns(DANGEROUS_CONTENT, v);
+      if (m) return deny(buildDenyMessage(m, ctx.toolName, v, true));
+    }
   }
   return null;
 }
@@ -428,6 +458,8 @@ function evaluateDangerous(ctx) {
       return evalEdit(ctx);
     case "multi-edit":
       return evalMultiEdit(ctx);
+    case "mcp-call":
+      return evalMcpCall(ctx);
     default:
       return null;
   }
@@ -438,7 +470,7 @@ var dangerousActionsHook = defineHook({
   name: "dangerous-actions",
   on: {
     event: "PreToolUse",
-    toolKinds: ["bash", "write", "edit", "multi-edit"]
+    toolKinds: ["bash", "write", "edit", "multi-edit", "mcp-call"]
   },
   run: (ctx) => evaluateDangerous(ctx)
 });
