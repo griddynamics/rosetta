@@ -38,4 +38,13 @@ Exceptions (only after blast radius):
 
 </pitfalls>
 
+<hook>
+
+An automated PreToolUse hook backs this skill for the highest-blast-radius patterns (Bash destructive commands, file writes to secret paths, DDL payloads in content). The hook is a deterministic tripwire — it does not replace this skill's reasoning process. Use this skill to reason about danger; the hook enforces a last-resort gate if that reasoning is skipped.
+
+Bash: override with `# reviewed` shell comment (e.g. `rm -rf /tmp/scratch # reviewed: intentional cleanup`).
+Write/Edit/MultiEdit: no inline override — ask the user to confirm in chat, then retry.
+
+</hook>
+
 </dangerous_actions>
