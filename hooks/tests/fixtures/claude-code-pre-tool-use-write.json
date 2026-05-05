@@ -7,7 +7,7 @@
   "tool_name": "Write",
   "tool_use_id": "toolu_01ABC",
   "tool_input": {
-    "file_path": "/Users/dev/my-project/migrations/001.sql",
-    "content": "-- safe migration\nSELECT 1;"
+    "file_path": "/Users/dev/my-project/src/config.ts",
+    "content": "export const MAX_RETRIES = 3;"
   }
 }
