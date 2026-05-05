@@ -57,7 +57,8 @@ function matchPatterns(
  * All patterns are also tested against the full path.
  */
 function matchDangerousPath(filePath: string): DangerPattern | null {
-  const basename = filePath.split('/').pop() ?? filePath;
+  const normalizedPath = filePath.replace(/\/+$/, '');
+  const basename = normalizedPath.split('/').pop() ?? normalizedPath;
   for (const p of DANGEROUS_PATHS) {
     // Test full path first (covers patterns with / in them like aws-credentials)
     if (p.re.test(filePath)) return p;
@@ -68,7 +69,8 @@ function matchDangerousPath(filePath: string): DangerPattern | null {
 }
 
 function evalBash(ctx: HookContext): HookResult {
-  const command = ctx.toolInput.command as string;
+  const command = ctx.toolInput.command;
+  if (typeof command !== 'string') return null;
   const matched = matchPatterns(DANGEROUS_BASH, command);
   if (!matched) return null;
 
@@ -79,8 +81,9 @@ function evalBash(ctx: HookContext): HookResult {
 }
 
 function evalWrite(ctx: HookContext): HookResult {
-  const filePath = ctx.toolInput.file_path as string;
-  const content  = ctx.toolInput.content as string;
+  const filePath = ctx.toolInput.file_path;
+  const content  = ctx.toolInput.content;
+  if (typeof filePath !== 'string' || typeof content !== 'string') return null;
 
   const pathMatch = matchDangerousPath(filePath);
   if (pathMatch) return deny(buildDenyMessage(pathMatch, 'write', filePath));
@@ -92,8 +95,9 @@ function evalWrite(ctx: HookContext): HookResult {
 }
 
 function evalEdit(ctx: HookContext): HookResult {
-  const filePath  = ctx.toolInput.file_path  as string;
-  const newString = ctx.toolInput.new_string as string;
+  const filePath  = ctx.toolInput.file_path;
+  const newString = ctx.toolInput.new_string;
+  if (typeof filePath !== 'string' || typeof newString !== 'string') return null;
 
   const pathMatch = matchDangerousPath(filePath);
   if (pathMatch) return deny(buildDenyMessage(pathMatch, 'edit', filePath));
@@ -105,8 +109,9 @@ function evalEdit(ctx: HookContext): HookResult {
 }
 
 function evalMultiEdit(ctx: HookContext): HookResult {
-  const filePath = ctx.toolInput.file_path as string;
-  const edits    = ctx.toolInput.edits as Array<{ old_string: string; new_string: string }>;
+  const filePath = ctx.toolInput.file_path;
+  const edits    = ctx.toolInput.edits;
+  if (typeof filePath !== 'string' || !Array.isArray(edits)) return null;
 
   const pathMatch = matchDangerousPath(filePath);
   if (pathMatch) return deny(buildDenyMessage(pathMatch, 'multi-edit', filePath));
