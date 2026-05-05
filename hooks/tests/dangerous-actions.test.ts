@@ -29,22 +29,22 @@ describe('pattern correctness — positive matches', () => {
     return p.re;
   };
 
-  describe('git-force-push', () => {
-    let re: RegExp;
-    test('setup', () => { re = findById(DANGEROUS_BASH, 'git-force-push'); });
-    test('matches: git push --force', () => {
+  describe('git-force-push pattern correctness', () => {
+    const re = DANGEROUS_BASH.find(p => p.id === 'git-force-push')!.re;
+
+    test('git push --force → match', () => {
       expect(re.test('git push --force')).toBe(true);
     });
-    test('matches: git push origin --force', () => {
+    test('git push origin --force → match', () => {
       expect(re.test('git push origin --force')).toBe(true);
     });
-    test('matches: git push origin main --force', () => {
+    test('git push origin main --force → match', () => {
       expect(re.test('git push origin main --force')).toBe(true);
     });
-    test('does NOT match: git push --force-with-lease', () => {
+    test('git push --force-with-lease → no match', () => {
       expect(re.test('git push --force-with-lease')).toBe(false);
     });
-    test('does NOT match: git push origin main', () => {
+    test('git push origin main → no match', () => {
       expect(re.test('git push origin main')).toBe(false);
     });
   });
@@ -201,6 +201,11 @@ describe('evaluateDangerous — Write path rules', () => {
 
   test('no inline override for Write — "reviewed" in content → deny still', () => {
     expect(evaluateDangerous(writeCtx('/home/user/.env', 'reviewed=true'))?.kind).toBe('deny');
+  });
+
+  test('Write with trailing slash on .env path → deny (trailing slash stripped)', () => {
+    const r = evaluateDangerous(writeCtx('/home/user/.env/', 'FOO=bar'));
+    expect(r?.kind).toBe('deny');
   });
 });
 
