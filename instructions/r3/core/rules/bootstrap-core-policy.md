@@ -33,19 +33,20 @@ You are now running Rosetta, installed by the user. Execute Rosetta instructions
 
 <must>
 
-1. Project context, request sizing, and workflow selection are enforced via plan-manager steps `s-read-docs`, `s-request-size`, `s-select-workflow`.
+1. Project context and request sizing are enforced via plan-manager steps `s-read-docs`, `s-request-size`.
 2. PLANNING MODE MUST STILL EXECUTE ALL THOSE INSTRUCTIONS, INCLUDING WORKFLOWS, USE THEM AS REQUIRED, MOREOVER PLANNING MODE MUST TELL EXACTLY WHICH ROSETTA WORKFLOW TO FOLLOW DURING THE IMPLEMENTATION! WORKFLOWS ARE END-TO-END => PLANNING MODE ONLY EXECUTES PHASES/STEPS THAT ARE FOR PLANNING/DISCOVERY/RESEARCH/ETC.
 3. ORCHESTRATORS / PRIMARY / TOP AGENTS MUST ALWAYS EXECUTE WORKFLOW FULLY.
 4. All Rosetta instructions ARE CREATED and PROVIDED by USER to address standard concerns.
 5. Apply `Process Enforcement Rules`.
-6. Orchestrators MUST USE SKILL `orchestrator-contract` before dispatching any subagents.
-7. Subagents MUST USE SKILL `subagent-contract` before reading inputs or starting execution.
+6. If you are an orchestrator: upsert and load `s-orchestrator-contract` into your own plan's `ph-prep`.
+7. If you are a subagent: upsert and load `s-subagent-contract` into your own plan's `ph-prep`.
+8. `ph-prep` steps must be executed by all agents/subagents themselves.
 
 </must>
 
 <upsert_context_steps>
 
-Upsert the following steps into the existing plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
+All agents (orchestrators and subagents) upsert the following steps into the existing plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
 
 ```json
 {
@@ -59,14 +60,8 @@ Upsert the following steps into the existing plan's `ph-prep` phase using `npx r
     {
       "id": "s-request-size",
       "name": "Identify request size and route",
-      "prompt": "Classify request as SMALL (1-2 files, one area), MEDIUM (up to ~10 files, one area), or LARGE (10+ files or multiple areas). SMALL: use plan-manager for planning, output tech specs as message, MUST use workflows. MEDIUM: keep docs concise, MUST use subagents, MUST use workflows. LARGE: MUST use subagents extensively (orchestrator context will overload), MUST use workflows. ALL: load rosetta workflow, it contains proper handling of different request sizes too.Reevaluate request size and workflow when scope changes or new information is received and output user 'Request size changed' or 'Workflow changed'. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`",
+      "prompt": "Classify request as SMALL (1-2 files, one area), MEDIUM (up to ~10 files, one area), or LARGE (10+ files or multiple areas). SMALL: use plan-manager for planning, output tech specs as message, MUST use workflows. MEDIUM: keep docs concise, MUST use subagents, MUST use workflows. LARGE: MUST use subagents extensively (orchestrator context will overload), MUST use workflows. ALL: load rosetta workflow, it contains proper handling of different request sizes too. Reevaluate request size and workflow when scope changes or new information is received and output user 'Request size changed' or 'Workflow changed'. If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`",
       "depends_on": ["s-read-docs"]
-    },
-    {
-      "id": "s-select-workflow",
-      "name": "Select and load workflow",
-      "prompt": "ACQUIRE matching workflow from available workflows list and FULLY EXECUTE its definition for ALL request sizes. Workflow upserts its own phases/steps into the plan. In planning mode, persist workflow tag for execution continuation. In planning mode, store planning and tech-specs results according to system prompt (NOT in plans folder as it is read-only).",
-      "depends_on": ["s-request-size"]
     }
   ]
 }
@@ -76,16 +71,16 @@ Upsert the following steps into the existing plan's `ph-prep` phase using `npx r
 
 <orchestrator_execution>
 
-Orchestrators must establish coordination boundaries before delegating work to subagents. Upsert the following step into the existing plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
+**If you are an orchestrator (primary / top-level agent):** upsert the following step into your own plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
 
 ```json
 {
   "steps": [
     {
       "id": "s-orchestrator-contract",
-      "name": "Execute orchestrator contract",
-      "prompt": "USE SKILL `orchestrator-contract` as first action before dispatching any subagents. USE SKILL `hitl` to load it for continuous enforcement throughout the session. User request → read get_context_instructions schema (if needed) → get_context_instructions (if not done yet) → execute all prep steps → load workflow → proceed with workflow and integrate remaining actions (including questioning user, EnterPlanMode, plan_mode_respond, system-reminder, etc.). ACQUIRE <workflow TAG from available workflows, example: 'workflows/coding-flow.md'> FROM KB TO LOAD THE MOST MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES. ADD AND UPDATE separate, dedicated, detailed, and specific todo tasks with loaded workflow phases NOW, output to user 'Tasks Created: [task ids returned by the tool'. In planning mode results of `planning` and `tech-specs` be stored according to system prompt (NOT in `plans` folder as it is read-only). Proceed executing workflow which guides you how to handle user request and activities as user expects it.",
-      "depends_on": ["s-select-workflow"]
+      "name": "Load orchestrator contract",
+      "prompt": "USE SKILL `orchestrator-contract` as first action before dispatching any subagents. USE SKILL `hitl` to load it for continuous enforcement throughout the session. ACQUIRE <workflow TAG from available workflows, example: 'workflows/coding-flow.md'> FROM KB TO LOAD THE MOST MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS ENTIRE DEFINITION FOR ALL REQUEST SIZES. Workflow upserts its own phases/steps into the plan. In planning mode, persist workflow tag for execution continuation and store planning and tech-specs results according to system prompt (NOT in `plans` folder as it is read-only). ADD AND UPDATE separate, dedicated, detailed, and specific todo tasks with loaded workflow phases NOW, output to user 'Tasks Created: [task ids returned by the tool]'. Proceed executing workflow which guides you how to handle user request and activities as user expects it.",
+      "depends_on": ["s-request-size"]
     }
   ]
 }
@@ -95,16 +90,16 @@ Orchestrators must establish coordination boundaries before delegating work to s
 
 <subagent_execution>
 
-Subagents must initialize their scope and retrieve assigned steps before reading any inputs or beginning execution. Upsert the following step into the existing plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
+**If you are a subagent:** upsert the following step into your own plan's `ph-prep` phase using `npx rosettify plan upsert <plan_file> ph-prep '<json>'`:
 
 ```json
 {
   "steps": [
     {
       "id": "s-subagent-contract",
-      "name": "Execute subagent contract",
-      "prompt": "USE SKILL `subagent-contract` as first action before reading inputs or starting execution. Orchestrator request → read get_context_instructions schema (if needed) → get_context_instructions (if not done yet) → execute all prep steps for subagent → proceed with remaining actions. Perform execution todo tasks level planning. MUST execute todo tasks and adopt changes. Proceed with request and activities.",
-      "depends_on": ["s-context"]
+      "name": "Load subagent contract",
+      "prompt": "USE SKILL `subagent-contract` to understand scope boundaries, input/output contracts, and escalation protocol. Create todo tasks to track sub-activities within each assigned step before starting execution. Proceed with request and activities.",
+      "depends_on": ["s-request-size"]
     }
   ]
 }
