@@ -380,7 +380,7 @@ var runHook = async (def, opts = {}) => {
 // src/runtime/result-helpers.ts
 var deny = (reason) => ({ kind: "deny", reason });
 
-// src/hooks/dangerous-actions-patterns.ts
+// src/hooks/dangerous-actions/patterns.ts
 var DANGEROUS_BASH = [
   { id: "rm-rf-root", re: /\brm\s+(?:-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b.*\s\/(?:\*|\s|$)/, label: "rm -rf /" },
   { id: "rm-rf-home", re: /\brm\s+-[rf]+\b.*(?:\s~\b|\s\$HOME\b)/, label: "rm -rf $HOME" },
@@ -417,7 +417,7 @@ var DANGEROUS_CONTENT = [
   { id: "inline-private-key", re: /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/, label: "PEM private key" }
 ];
 
-// src/hooks/dangerous-actions-evaluate.ts
+// src/hooks/dangerous-actions/evaluate.ts
 var REVIEWED_RE = /(?:^|\s)#\s*reviewed(?:\s|:|$)/;
 var EVIDENCE_MAX = 120;
 function buildDenyMessage(pattern, toolKind, evidence) {
