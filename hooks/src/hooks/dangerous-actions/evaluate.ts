@@ -1,11 +1,11 @@
-import { deny } from '../runtime/result-helpers';
-import type { HookContext, HookResult } from '../runtime/types';
+import { deny } from '../../runtime/result-helpers';
+import type { HookContext, HookResult } from '../../runtime/types';
 import {
   DANGEROUS_BASH,
   DANGEROUS_CONTENT,
   DANGEROUS_PATHS,
   type DangerPattern,
-} from './dangerous-actions-patterns';
+} from './patterns';
 
 /** Regex that matches `# reviewed` as a standalone shell comment token. */
 const REVIEWED_RE = /(?:^|\s)#\s*reviewed(?:\s|:|$)/;
