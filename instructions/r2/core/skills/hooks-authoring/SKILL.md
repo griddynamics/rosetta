@@ -29,7 +29,7 @@ Adding a top-level `.ts` without `runAsCli` produces a dead bundle for all 5 IDE
 When a hook needs a new tool category (e.g. `mcp-call`):
 
 1. **`hooks/src/runtime/ide-registry.ts`** — add a row to `TOOL_KINDS` with all 5 IDE columns (`null` where the event doesn't exist). `SemanticKind = keyof typeof TOOL_KINDS` so TypeScript enforces coverage.
-2. **`hooks/src/runtime/ide-rows/<ide>.ts`** — if the kind requires special logic (e.g. prefix-match for `mcp__.*`), override `lookupToolKind` in the IDE-row file. Table-driven lookup alone cannot handle open-ended tool name patterns.
+2. **`hooks/src/runtime/ide-rows/<ide>.ts`** — if the kind requires special logic (e.g. prefix-match for `mcp__.*`), add a conditional branch at the top of `lookupToolKind` in the IDE-row file before the table loop. Table-driven lookup alone cannot handle open-ended tool name patterns.
 3. **Hook entry** — add the new kind to `def.on.toolKinds`.
 4. **Matcher in `hooks.json.tmpl`** — widen to include new tool names/patterns.
 
@@ -44,6 +44,7 @@ Paths by plugin:
 - `plugins/core-copilot/hooks/hooks.json.tmpl` → `hooks/hooks.json`
 - `plugins/core-cursor/.cursor/hooks/hooks.json.tmpl` → `hooks.json`
 - `plugins/core-codex/.codex/hooks/hooks.json.tmpl` → `hooks.json`
+- `plugins/core-windsurf/` — bundles are distributed but hooks.json registration is not covered by the regression test (`hooks-registered.test.ts`); register manually if needed.
 
 ### Platform-scoped events
 
