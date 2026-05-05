@@ -17,10 +17,15 @@ const CANONICAL_HOOKS_JSONS: { plugin: string; jsonPath: string }[] = [
   { plugin: 'core-codex',   jsonPath: path.join(PLUGINS_DIR, 'core-codex',   '.codex', 'hooks.json') },
 ];
 
+// Library modules (pure data/utils imported by hook entry points) are excluded.
+// Pattern: files ending in -patterns.ts are not runnable hook entries.
+const LIBRARY_MODULES = /^dangerous-actions-patterns$/;
+
 const discoverHooks = (): string[] =>
   readdirSync(HOOKS_DIR)
     .filter(f => f.endsWith('.ts'))
-    .map(f => f.replace('.ts', ''));
+    .map(f => f.replace('.ts', ''))
+    .filter(name => !LIBRARY_MODULES.test(name));
 
 describe('hooks-registered — all src hooks appear in every plugin hooks.json', () => {
   const hookNames = discoverHooks();
