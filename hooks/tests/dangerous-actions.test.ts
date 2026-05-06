@@ -167,7 +167,7 @@ describe('evaluateDangerous — Bash patterns', () => {
     expect(reason).toContain('Rule:');
     expect(reason).toContain('Tool:');
     expect(reason).toContain('Evidence:');
-    expect(reason).toContain('# reviewed');
+    expect(reason).toContain('add `reviewed` keyword to still execute');
   });
 });
 
@@ -180,15 +180,15 @@ describe('evaluateDangerous — Bash override semantics', () => {
     expect(evaluateDangerous(bashCtx('git reset --hard HEAD~1 # reviewed: safe on feature branch'))).toBeNull();
   });
 
-  test('`# reviewedlater` → deny (substring not a token)', () => {
+  test('`reviewedlater` → deny (word boundary rejects prefix)', () => {
     const r = evaluateDangerous(bashCtx('rm -rf /tmp/x # reviewedlater'));
     expect(r?.kind).toBe('deny');
   });
 
-  test('description contains "reviewed" → deny (description ignored, only command checked)', () => {
+  test('description field containing "reviewed" → null (override via any string field)', () => {
     const ctx = bashCtx('rm -rf /tmp/x');
     const r = evaluateDangerous({ ...ctx, toolInput: { ...ctx.toolInput, description: 'I have reviewed this' } });
-    expect(r?.kind).toBe('deny');
+    expect(r).toBeNull();
   });
 });
 
@@ -213,8 +213,8 @@ describe('evaluateDangerous — Write path rules', () => {
     expect(evaluateDangerous(writeCtx('/proj/src/app.ts', 'const x = 1;'))).toBeNull();
   });
 
-  test('no inline override for Write — "reviewed" in content → deny still', () => {
-    expect(evaluateDangerous(writeCtx('/home/user/.env', 'reviewed=true'))?.kind).toBe('deny');
+  test('Write: "reviewed" in content → null (override applies to all tool kinds)', () => {
+    expect(evaluateDangerous(writeCtx('/home/user/.env', 'reviewed=true'))).toBeNull();
   });
 
   test('Write with trailing slash on .env path → deny (trailing slash stripped)', () => {
@@ -412,11 +412,62 @@ describe('Bug fixes — PR #79 review', () => {
   });
 
   // Bug 4: Grammar
-  test('deny message grammar — "Did you consider this a dangerous activity?" (no "as")', () => {
+  test('deny message contains spec-required phrase with reviewed keyword', () => {
     const r = evaluateDangerous(bashCtx('rm -rf /'));
     const reason = (r as {kind:'deny';reason:string}).reason;
-    expect(reason).toContain('Did you consider this a dangerous activity?');
+    expect(reason).toContain('Did you consider this a dangerous activity and add `reviewed` keyword to still execute?');
     expect(reason).not.toContain('Did you consider this as a dangerous activity?');
+  });
+});
+
+describe('reviewed-keyword override — spec-compliant (word anywhere in tool call)', () => {
+  test('Bash: bare word "reviewed" in command → null', () => {
+    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x reviewed'))).toBeNull();
+  });
+
+  test('Bash: description field containing "reviewed" → null', () => {
+    const ctx = bashCtx('rm -rf /tmp/x');
+    (ctx.toolInput as Record<string, unknown>).description = 'reviewed: cleanup';
+    expect(evaluateDangerous(ctx)).toBeNull();
+  });
+
+  test('Bash: word "unreviewed" → deny (word boundary)', () => {
+    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x # unreviewed'))).not.toBeNull();
+  });
+
+  test('Write: .env file with content="reviewed" → null', () => {
+    expect(evaluateDangerous(writeCtx('/home/user/.env', 'reviewed'))).toBeNull();
+  });
+
+  test('Edit: dangerous new_string containing reviewed → null', () => {
+    expect(evaluateDangerous(editCtx('schema.sql', 'DROP TABLE x; -- reviewed'))).toBeNull();
+  });
+
+  test('MultiEdit: one edit.new_string contains reviewed → null', () => {
+    const ctx: HookContext = {
+      ide: 'claude-code', event: 'PreToolUse', toolKind: 'multi-edit',
+      toolName: 'MultiEdit', filePath: 'schema.sql', cwd: '/proj', sessionId: null,
+      toolInput: {
+        file_path: 'schema.sql',
+        edits: [
+          { old_string: 'a', new_string: 'DROP TABLE foo' },
+          { old_string: 'b', new_string: 'reviewed: intentional' },
+        ],
+      },
+    };
+    expect(evaluateDangerous(ctx)).toBeNull();
+  });
+
+  test('MCP: any string field contains reviewed → null', () => {
+    const ctx: HookContext = {
+      ide: 'claude-code', event: 'PreToolUse', toolKind: 'mcp-call',
+      toolName: 'mcp__serena__execute_shell_command', filePath: '', cwd: '/proj', sessionId: null,
+      toolInput: {
+        command: 'rm -rf /tmp/x',
+        reason: 'reviewed: intentional cleanup',
+      },
+    };
+    expect(evaluateDangerous(ctx)).toBeNull();
   });
 });
 
@@ -491,11 +542,11 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
     ))).toBeNull();
   });
 
-  test('mcp serena execute_shell_command with rm -rf # reviewed → still deny (no bypass for MCP)', () => {
+  test('mcp serena execute_shell_command with rm -rf # reviewed → null (override applies to MCP)', () => {
     const r = evaluateDangerous(mcpCtx(
       'mcp__plugin_serena_serena__execute_shell_command',
       { command: 'rm -rf /tmp/x # reviewed' }
     ));
-    expect(r?.kind).toBe('deny');
+    expect(r).toBeNull();
   });
 });
