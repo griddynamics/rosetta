@@ -72,6 +72,24 @@ Src: `loose-files.ts`, `md-file-advisory.ts`, `gitnexus-refresh.ts`. Tests: `ada
 ### Test Runner Is vitest [ACTIVE]
 Canonical: `npx vitest run` (not `node --test`). All tests: `cd hooks && npm test`.
 
+### instructions/r3 Is The Actual Plugin Generator Source [ACTIVE]
+`scripts/plugin_generator.py` reads from `instructions/r3/core/`, not `r2`. Edit `r3` to affect plugin output; always sync both `r2` and `r3` when updating shared skills/workflows.
+
+### Hook Build Auto-Discovers All *.ts In hooks/src/hooks/ [ACTIVE]
+`hooks/scripts/build-bundles.mjs` uses `readdirSync` — no explicit list. Adding a new `.ts` file is sufficient to include it in the build. The regression test (`hooks-registered.test.ts`) performs the same discovery and cross-checks `hooks.json` registration.
+
+### Regression Test Requires All Discovered Hooks In ALL Plugin hooks.json [ACTIVE]
+When scoping a hook to a single platform (e.g. claude-code only), add it to the `CLAUDE_CODE_ONLY_HOOKS` Set in `hooks-registered.test.ts` AND add a `isLibraryModule()` exclusion for any helper/data files (files ending in `-patterns`, `-evaluate`). Omitting either causes false regression failures.
+
+### DANGEROUS_PATHS Patterns Are Basename-Matched — Caller Must Extract Basename [ACTIVE]
+`DANGEROUS_PATHS` regexes (secret-env, ssh-private-key, netrc, etc.) are anchored with `^` and designed for basenames. The evaluation layer must extract basename from `file_path` before testing. Strip trailing slashes first: `filePath.replace(/\/+$/, '').split('/').pop()`. Full-path patterns (aws-credentials, kube-config) also exist in the same array — test against both full path and basename.
+
+### ID Namespace Collisions Across Pattern Arrays [ACTIVE]
+`DANGEROUS_BASH` and `DANGEROUS_CONTENT` may share conceptually similar patterns (both have DROP TABLE). Use namespaced IDs (`sql-drop-table` vs `content-sql-drop-table`) to avoid silent collisions when IDs are used in error messages or audit logs.
+
+### Pre-commit Hook Runs Full Test Suite — Unrelated Failures Block Commits [ACTIVE]
+`scripts/pre_commit.py` triggers `pnpm test` which includes the regression test. Any new hook source file instantly triggers a regression test failure for plugins that lack registration. Plan registration updates (hooks.json, CLAUDE_CODE_ONLY_HOOKS) in the same commit as the new hook source file, not a later commit.
+
 ## Discoveries
 
 ### Official GitHub Pages Setup And Deploy Actions Are Still Node 20 Upstream [ACTIVE]
