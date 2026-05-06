@@ -13,6 +13,10 @@
       {
         "matcher": "Write|Edit",
         "command": "node .cursor/hooks/gitnexus-refresh.js"
+      },
+      {
+        "matcher": "Write|Edit",
+        "command": "node .cursor/hooks/lint-format-advisory.js"
       }
     ]
   }

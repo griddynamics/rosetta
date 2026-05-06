@@ -24,6 +24,15 @@
             "command": "node \".github/hooks/gitnexus-refresh.js\""
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".github/hooks/lint-format-advisory.js\""
+          }
+        ]
       }
     ]
   }
