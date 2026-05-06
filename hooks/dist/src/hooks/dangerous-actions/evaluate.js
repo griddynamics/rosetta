@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.evaluateDangerous = evaluateDangerous;
 const result_helpers_1 = require("../../runtime/result-helpers");
 const patterns_1 = require("./patterns");
-/** Regex that matches `# reviewed` as a standalone shell comment token. */
-const REVIEWED_RE = /(?:^|\s)#\s*reviewed(?:\s|:|$)/;
+/** Regex that matches the word `reviewed` at a word boundary. */
+const REVIEWED_RE = /\breviewed\b/;
 /** Max length of the evidence snippet shown in deny messages. */
 const EVIDENCE_MAX = 120;
 const MCP_SHELL_FIELDS = ['command', 'cmd', 'shell_command'];
@@ -21,15 +21,12 @@ function buildDenyMessage(pattern, toolKind, evidence, redact = false) {
         `Tool:     ${toolKind}`,
         `Evidence: ${evidenceLine}`,
         '',
-        'Did you consider this a dangerous activity?',
+        'Did you consider this a dangerous activity and add `reviewed` keyword to still execute?',
         '',
-        'To proceed (Bash only): re-issue the command with a `# reviewed` shell',
-        'comment, e.g. `<command> # reviewed: <one-line reason>`. Doing so asserts',
-        'on behalf of the user that this destructive operation is intentional.',
-        '',
-        'For Write/Edit/MultiEdit there is no inline override — ask the user to',
-        'confirm in chat, then retry. Consider also: is there a non-destructive',
-        'alternative (soft delete, dry-run, --force-with-lease, staging env)?',
+        'To proceed: include the word `reviewed` anywhere in the tool call (e.g. command,',
+        'description, content, or any string argument). Doing so asserts on behalf of the user',
+        'that this destructive operation is intentional. Consider also: is there a',
+        'non-destructive alternative (soft delete, dry-run, --force-with-lease, staging env)?',
     ].join('\n');
 }
 function matchPatterns(patterns, value) {
@@ -48,14 +45,37 @@ function matchDangerousPath(filePath) {
     const normalizedPath = filePath.replace(/\/+$/, '');
     const basename = normalizedPath.split('/').pop() ?? normalizedPath;
     for (const p of patterns_1.DANGEROUS_PATHS) {
-        // Test full path first (covers patterns with / in them like aws-credentials)
         if (p.re.test(normalizedPath))
             return p;
-        // Test basename for patterns anchored at start (e.g. ^\.env)
         if (p.re.test(basename))
             return p;
     }
     return null;
+}
+/**
+ * Returns true if any string value in toolInput (including nested array items)
+ * contains the word `reviewed` at a word boundary.
+ */
+function hasReviewedOverride(input) {
+    for (const v of Object.values(input)) {
+        if (typeof v === 'string') {
+            if (REVIEWED_RE.test(v))
+                return true;
+        }
+        else if (Array.isArray(v)) {
+            for (const item of v) {
+                if (typeof item === 'string' && REVIEWED_RE.test(item))
+                    return true;
+                if (item && typeof item === 'object') {
+                    for (const inner of Object.values(item)) {
+                        if (typeof inner === 'string' && REVIEWED_RE.test(inner))
+                            return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
 }
 function evalBash(ctx) {
     const command = ctx.toolInput.command;
@@ -63,9 +83,6 @@ function evalBash(ctx) {
         return null;
     const matched = matchPatterns(patterns_1.DANGEROUS_BASH, command);
     if (!matched)
-        return null;
-    // Allow inline override: `# reviewed` as a shell comment token
-    if (REVIEWED_RE.test(command))
         return null;
     return (0, result_helpers_1.deny)(buildDenyMessage(matched, 'bash', command));
 }
@@ -116,9 +133,8 @@ function evalMcpCall(ctx) {
         const v = input[f];
         if (typeof v === 'string') {
             const m = matchPatterns(patterns_1.DANGEROUS_BASH, v);
-            if (m) {
+            if (m)
                 return (0, result_helpers_1.deny)(buildDenyMessage(m, ctx.toolName, v));
-            }
         }
     }
     for (const f of MCP_PATH_FIELDS) {
@@ -145,12 +161,19 @@ function evalMcpCall(ctx) {
  * No IO or side effects.
  */
 function evaluateDangerous(ctx) {
-    switch (ctx.toolKind) {
-        case 'bash': return evalBash(ctx);
-        case 'write': return evalWrite(ctx);
-        case 'edit': return evalEdit(ctx);
-        case 'multi-edit': return evalMultiEdit(ctx);
-        case 'mcp-call': return evalMcpCall(ctx);
-        default: return null;
-    }
+    const result = (() => {
+        switch (ctx.toolKind) {
+            case 'bash': return evalBash(ctx);
+            case 'write': return evalWrite(ctx);
+            case 'edit': return evalEdit(ctx);
+            case 'multi-edit': return evalMultiEdit(ctx);
+            case 'mcp-call': return evalMcpCall(ctx);
+            default: return null;
+        }
+    })();
+    if (result === null)
+        return null;
+    if (hasReviewedOverride(ctx.toolInput))
+        return null;
+    return result;
 }
