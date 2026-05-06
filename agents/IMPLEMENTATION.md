@@ -105,6 +105,16 @@ For detailed change history, use git history and PRs instead of expanding this f
   - shared type-validation entrypoint
 - Some GitHub Pages actions remain upstream-limited and may still depend on older Node runtimes until upstream changes.
 
+### Hooks — dangerous-actions PreToolUse Hook
+
+- Added first `PreToolUse` hook: `hooks/src/hooks/dangerous-actions.ts` — blocks `Bash`, `Write`, `Edit`, `MultiEdit` on a hardcoded catalogue of dangerous patterns.
+- Three-file split: `dangerous-actions-patterns.ts` (28 pure-data patterns), `dangerous-actions-evaluate.ts` (pure `evaluateDangerous()` fn, unit-testable), `dangerous-actions.ts` (hook entry).
+- Pattern catalogues: 16 Bash patterns (rm-rf, git force-push, DDL, aws s3 rm, curl|sh, etc.), 8 path patterns (.env*, SSH keys, cloud credentials), 4 content patterns (DDL in payload, AWS key ID, PEM).
+- Override: `# reviewed` shell comment disarms Bash gate; no inline override for Write/Edit/MultiEdit.
+- Registered in `plugins/core-claude/hooks/hooks.json` under `PreToolUse` with matcher `Bash|Write|Edit|MultiEdit`. Other plugins receive bundles but no registration (follow-up PR).
+- Regression test updated: `CLAUDE_CODE_ONLY_HOOKS` Set + `isLibraryModule()` suffix filter handles scoped rollout without false failures for copilot/cursor/codex.
+- 54 new Vitest tests; all 407 hooks tests pass. PR #79 → `v3`.
+
 ### Documentation and Public Surface
 
 - Installation, deployment, quickstart, troubleshooting, and README content were aligned with the current transport/auth model.
