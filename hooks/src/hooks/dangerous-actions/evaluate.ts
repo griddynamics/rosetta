@@ -7,8 +7,8 @@ import {
   type DangerPattern,
 } from './patterns';
 
-/** Regex that matches `# reviewed` as a standalone shell comment token. */
-const REVIEWED_RE = /(?:^|\s)#\s*reviewed(?:\s|:|$)/;
+/** Regex that matches the word `reviewed` at a word boundary. */
+const REVIEWED_RE = /\breviewed\b/;
 
 /** Max length of the evidence snippet shown in deny messages. */
 const EVIDENCE_MAX = 120;
@@ -34,15 +34,12 @@ function buildDenyMessage(
     `Tool:     ${toolKind}`,
     `Evidence: ${evidenceLine}`,
     '',
-    'Did you consider this a dangerous activity?',
+    'Did you consider this a dangerous activity and add `reviewed` keyword to still execute?',
     '',
-    'To proceed (Bash only): re-issue the command with a `# reviewed` shell',
-    'comment, e.g. `<command> # reviewed: <one-line reason>`. Doing so asserts',
-    'on behalf of the user that this destructive operation is intentional.',
-    '',
-    'For Write/Edit/MultiEdit there is no inline override — ask the user to',
-    'confirm in chat, then retry. Consider also: is there a non-destructive',
-    'alternative (soft delete, dry-run, --force-with-lease, staging env)?',
+    'To proceed: include the word `reviewed` anywhere in the tool call (e.g. command,',
+    'description, content, or any string argument). Doing so asserts on behalf of the user',
+    'that this destructive operation is intentional. Consider also: is there a',
+    'non-destructive alternative (soft delete, dry-run, --force-with-lease, staging env)?',
   ].join('\n');
 }
 
@@ -65,12 +62,32 @@ function matchDangerousPath(filePath: string): DangerPattern | null {
   const normalizedPath = filePath.replace(/\/+$/, '');
   const basename = normalizedPath.split('/').pop() ?? normalizedPath;
   for (const p of DANGEROUS_PATHS) {
-    // Test full path first (covers patterns with / in them like aws-credentials)
     if (p.re.test(normalizedPath)) return p;
-    // Test basename for patterns anchored at start (e.g. ^\.env)
     if (p.re.test(basename)) return p;
   }
   return null;
+}
+
+/**
+ * Returns true if any string value in toolInput (including nested array items)
+ * contains the word `reviewed` at a word boundary.
+ */
+function hasReviewedOverride(input: Readonly<Record<string, unknown>>): boolean {
+  for (const v of Object.values(input)) {
+    if (typeof v === 'string') {
+      if (REVIEWED_RE.test(v)) return true;
+    } else if (Array.isArray(v)) {
+      for (const item of v) {
+        if (typeof item === 'string' && REVIEWED_RE.test(item)) return true;
+        if (item && typeof item === 'object') {
+          for (const inner of Object.values(item as Record<string, unknown>)) {
+            if (typeof inner === 'string' && REVIEWED_RE.test(inner)) return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
 }
 
 function evalBash(ctx: HookContext): HookResult {
@@ -78,10 +95,6 @@ function evalBash(ctx: HookContext): HookResult {
   if (typeof command !== 'string') return null;
   const matched = matchPatterns(DANGEROUS_BASH, command);
   if (!matched) return null;
-
-  // Allow inline override: `# reviewed` as a shell comment token
-  if (REVIEWED_RE.test(command)) return null;
-
   return deny(buildDenyMessage(matched, 'bash', command));
 }
 
@@ -136,9 +149,7 @@ function evalMcpCall(ctx: HookContext): HookResult {
     const v = input[f];
     if (typeof v === 'string') {
       const m = matchPatterns(DANGEROUS_BASH, v);
-      if (m) {
-        return deny(buildDenyMessage(m, ctx.toolName, v));
-      }
+      if (m) return deny(buildDenyMessage(m, ctx.toolName, v));
     }
   }
 
@@ -167,12 +178,17 @@ function evalMcpCall(ctx: HookContext): HookResult {
  * No IO or side effects.
  */
 export function evaluateDangerous(ctx: HookContext): HookResult {
-  switch (ctx.toolKind) {
-    case 'bash':       return evalBash(ctx);
-    case 'write':      return evalWrite(ctx);
-    case 'edit':       return evalEdit(ctx);
-    case 'multi-edit': return evalMultiEdit(ctx);
-    case 'mcp-call':   return evalMcpCall(ctx);
-    default:           return null;
-  }
+  const result = (() => {
+    switch (ctx.toolKind) {
+      case 'bash':       return evalBash(ctx);
+      case 'write':      return evalWrite(ctx);
+      case 'edit':       return evalEdit(ctx);
+      case 'multi-edit': return evalMultiEdit(ctx);
+      case 'mcp-call':   return evalMcpCall(ctx);
+      default:           return null;
+    }
+  })();
+  if (result === null) return null;
+  if (hasReviewedOverride(ctx.toolInput)) return null;
+  return result;
 }
