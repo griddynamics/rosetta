@@ -40,7 +40,7 @@ function saveStore(cwd: string, store: DenyStore, now: number): void {
  */
 export function hashCall(toolName: string, toolInput: Record<string, unknown>): string {
   const normalized = JSON.stringify(toolInput, (_, v) =>
-    typeof v === 'string'
+    typeof v === 'string' && /\breviewed\b/i.test(v)
       ? v.replace(/\s*#\s*\breviewed\b\s*/gi, '').replace(/\breviewed\b/gi, '').trim()
       : v,
   );
