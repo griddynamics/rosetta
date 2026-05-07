@@ -13,6 +13,17 @@ const REVIEWED_RE = /\breviewed\b/;
 /** Max length of the evidence snippet shown in deny messages. */
 const EVIDENCE_MAX = 120;
 
+/** User-visible fields accepted for the `reviewed` override, by tool name. */
+const OVERRIDE_FIELDS_BY_TOOL: Readonly<Record<string, readonly string[]>> = {
+  Bash:      ['command'],
+  Write:     ['content', 'file_path'],
+  Edit:      ['new_string', 'old_string', 'file_path'],
+  MultiEdit: ['file_path', 'edits'],
+};
+
+/** Fields scanned for `reviewed` in MCP tool calls. */
+const MCP_OVERRIDE_FIELDS = ['command', 'sql', 'query', 'new_string', 'content'] as const;
+
 const MCP_SHELL_FIELDS   = ['command', 'cmd', 'shell_command'] as const;
 const MCP_PATH_FIELDS    = ['path', 'file_path', 'filePath', 'target', 'target_path'] as const;
 const MCP_CONTENT_FIELDS = ['content', 'new_string', 'query', 'sql'] as const;
@@ -62,25 +73,36 @@ function matchDangerousPath(filePath: string): DangerPattern | null {
 }
 
 /**
- * Returns true if any string value in toolInput (including nested array items)
- * contains the word `reviewed` at a word boundary.
+ * Returns true if any user-visible string field for the given tool name
+ * contains `reviewed` at a word boundary.
+ *
+ * Intentionally restricted to fields rendered in the IDE UI so the agent
+ * cannot silently self-assert the override via hidden metadata fields
+ * such as `description`.
  */
-function hasReviewedOverride(input: Readonly<Record<string, unknown>>): boolean {
-  for (const v of Object.values(input)) {
-    if (typeof v === 'string') {
-      if (REVIEWED_RE.test(v)) return true;
-    } else if (Array.isArray(v)) {
-      for (const item of v) {
-        if (typeof item === 'string' && REVIEWED_RE.test(item)) return true;
+export function hasReviewedOverride(
+  input: Readonly<Record<string, unknown>>,
+  toolName: string,
+): boolean {
+  const fields = toolName.startsWith('mcp__')
+    ? MCP_OVERRIDE_FIELDS
+    : (OVERRIDE_FIELDS_BY_TOOL[toolName] ?? MCP_OVERRIDE_FIELDS);
+
+  return fields.some(f => {
+    const v = input[f];
+    if (typeof v === 'string') return REVIEWED_RE.test(v);
+    if (Array.isArray(v)) {
+      return v.some(item => {
+        if (typeof item === 'string') return REVIEWED_RE.test(item);
         if (item && typeof item === 'object') {
-          for (const inner of Object.values(item as Record<string, unknown>)) {
-            if (typeof inner === 'string' && REVIEWED_RE.test(inner)) return true;
-          }
+          return Object.values(item as Record<string, unknown>)
+            .some(inner => typeof inner === 'string' && REVIEWED_RE.test(inner));
         }
-      }
+        return false;
+      });
     }
-  }
-  return false;
+    return false;
+  });
 }
 
 function evalBash(ctx: HookContext): HookResult {
@@ -165,23 +187,35 @@ function evalMcpCall(ctx: HookContext): HookResult {
   return null;
 }
 
+/** Inner pattern-only evaluation — no override check, no IO. */
+function evalPatternRaw(ctx: HookContext): HookResult {
+  switch (ctx.toolKind) {
+    case 'bash':       return evalBash(ctx);
+    case 'write':      return evalWrite(ctx);
+    case 'edit':       return evalEdit(ctx);
+    case 'multi-edit': return evalMultiEdit(ctx);
+    case 'mcp-call':   return evalMcpCall(ctx);
+    default:           return null;
+  }
+}
+
 /**
  * Pure evaluation function for the dangerous-actions hook.
- * Returns a HookResult (deny) if the context is dangerous, or null if safe.
+ * Returns a deny HookResult if dangerous, null if safe.
  * No IO or side effects.
  */
 export function evaluateDangerous(ctx: HookContext): HookResult {
-  const result = (() => {
-    switch (ctx.toolKind) {
-      case 'bash':       return evalBash(ctx);
-      case 'write':      return evalWrite(ctx);
-      case 'edit':       return evalEdit(ctx);
-      case 'multi-edit': return evalMultiEdit(ctx);
-      case 'mcp-call':   return evalMcpCall(ctx);
-      default:           return null;
-    }
-  })();
+  const result = evalPatternRaw(ctx);
   if (result === null) return null;
-  if (hasReviewedOverride(ctx.toolInput)) return null;
+  if (hasReviewedOverride(ctx.toolInput as Record<string, unknown>, ctx.toolName)) return null;
   return result;
+}
+
+/**
+ * Pattern-only evaluation — no override check.
+ * Used by the hook entry point so cooldown logic can interpose between
+ * pattern detection and override resolution.
+ */
+export function evalPatternOnly(ctx: HookContext): HookResult {
+  return evalPatternRaw(ctx);
 }
