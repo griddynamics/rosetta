@@ -33,9 +33,9 @@ const toCanonical = (result: NonNullable<HookResult>, ctx: HookContext): Canonic
   if (result.kind === 'advise')
     return { hookSpecificOutput: { hookEventName: ctx.event ?? '', permissionDecision: 'allow', additionalContext: result.message } };
   if (result.kind === 'deny')
-    return { hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: result.reason }, continue: false };
+    return { hookSpecificOutput: { hookEventName: ctx.event ?? '', permissionDecision: 'deny', permissionDecisionReason: result.reason }, continue: false };
   if (result.kind === 'allow')
-    return { hookSpecificOutput: { permissionDecision: 'allow' } };
+    return { hookSpecificOutput: { hookEventName: ctx.event ?? '', permissionDecision: 'allow' } };
   return {};
 };
 
