@@ -61,6 +61,14 @@ describe('pattern correctness — positive matches', () => {
     test('git push origin main → no match', () => {
       expect(re.test('git push origin main')).toBe(false);
     });
+    test('git push -f origin main → match (flag before positionals)', () => {
+      const re = DANGEROUS_BASH.find(p => p.id === 'git-force-push')!.re;
+      expect(re.test('git push -f origin main')).toBe(true);
+    });
+    test('git push origin -f main → match (flag between positionals)', () => {
+      const re = DANGEROUS_BASH.find(p => p.id === 'git-force-push')!.re;
+      expect(re.test('git push origin -f main')).toBe(true);
+    });
   });
 
   describe('secret-env (matched against basename)', () => {
@@ -99,6 +107,10 @@ describe('pattern correctness — positive matches', () => {
       for (const p of DANGEROUS_BASH) {
         expect(p.re.test(cmd), `Pattern "${p.id}" should not match safe command`).toBe(false);
       }
+    });
+    test('kubectl delete pod product-svc-7c4 → no match (F1 false-positive regression)', () => {
+      const re = DANGEROUS_BASH.find(p => p.id === 'kubectl-delete-prod')!.re;
+      expect(re.test('kubectl delete pod product-svc-7c4')).toBe(false);
     });
   });
 });
