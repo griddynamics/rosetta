@@ -74,11 +74,11 @@ For detailed change history, use git history and PRs instead of expanding this f
 
 ### Hooks — lint-format-advisory PostToolUse Hook
 
-- Added `hooks/src/hooks/lint-format-advisory.ts`: PostToolUse advisory hook that nudges AI agents to add a plan step for syntax, type, lint, and format checks after editing a code file.
+- Added `hooks/src/hooks/lint-format-advisory.ts`: PostToolUse advisory that emits `[Rosetta Advisory]` text nudging the agent to plan a syntax/type/lint/format check step after editing a code file.
 - Monitored extensions: `.html`, `.css`, `.js`, `.ts`, `.jsx`, `.tsx`, `.py`, `.cs`, `.ps1`, `.cmd`, `.java`, `.go`, `.rs`, `.md`.
-- Throttle: `dedupBy: ['session','filePath']` — one advisory per (session, file) within a 5-second window; Copilot double-fire deduped automatically.
-- No plan_manager coupling (deferred to future PR alongside actual linter execution).
-- Registered in all four plugins via `.tmpl` templates. Full vitest suite (42 tests).
+- Throttle: 5-second tmp-file lock keyed by `(session, filePath)`; Copilot platform double-fire absorbed by the same key. Session-long TTL deferred.
+- No `plan_manager` coupling (deferred to a follow-up PR alongside actual linter execution).
+- Registered in all four plugins via `hooks.json.tmpl` (workspace) and the GitHub Marketplace tmpl for Copilot; generated `hooks.json` checked into each plugin tree. vitest suite (43 tests).
 
 ### rosettify (npm package)
 
