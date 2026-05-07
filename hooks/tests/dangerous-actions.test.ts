@@ -359,6 +359,16 @@ describe('dangerousActionsHook — integration (runHook)', () => {
     expect(output()).toBe('');
   });
 
+  test('deny output contains hookEventName field (Claude Code 2.1.131 compat)', async () => {
+    const raw = { ...ccBash, tool_input: { command: 'rm -rf /' } };
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    const parsed = JSON.parse(output().trim()) as Record<string, unknown>;
+    const hso = parsed.hookSpecificOutput as Record<string, unknown>;
+    expect(hso.hookEventName).toBe('PreToolUse');
+    expect(hso.permissionDecision).toBe('deny');
+  });
+
 });
 
 describe('Bug fixes — PR #79 review', () => {
