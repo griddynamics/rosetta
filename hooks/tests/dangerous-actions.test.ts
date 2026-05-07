@@ -196,10 +196,10 @@ describe('evaluateDangerous — Bash override semantics', () => {
     expect(r?.kind).toBe('deny');
   });
 
-  test('description field containing "reviewed" → null (override via any string field)', () => {
+  test('description field containing "reviewed" → DENY (not a user-visible field)', () => {
     const ctx = bashCtx('rm -rf /tmp/x');
     const r = evaluateDangerous({ ...ctx, toolInput: { ...ctx.toolInput, description: 'I have reviewed this' } });
-    expect(r).toBeNull();
+    expect(r).not.toBeNull();
   });
 });
 
@@ -446,10 +446,10 @@ describe('reviewed-keyword override — spec-compliant (word anywhere in tool ca
     expect(evaluateDangerous(bashCtx('rm -rf /tmp/x reviewed'))).toBeNull();
   });
 
-  test('Bash: description field containing "reviewed" → null', () => {
+  test('Bash: description field containing "reviewed" → DENY (not a user-visible field)', () => {
     const ctx = bashCtx('rm -rf /tmp/x');
     (ctx.toolInput as Record<string, unknown>).description = 'reviewed: cleanup';
-    expect(evaluateDangerous(ctx)).toBeNull();
+    expect(evaluateDangerous(ctx)).not.toBeNull();
   });
 
   test('Bash: word "unreviewed" → deny (word boundary)', () => {
@@ -479,13 +479,12 @@ describe('reviewed-keyword override — spec-compliant (word anywhere in tool ca
     expect(evaluateDangerous(ctx)).toBeNull();
   });
 
-  test('MCP: any string field contains reviewed → null', () => {
+  test('MCP: command field contains reviewed → null (whitelist field)', () => {
     const ctx: HookContext = {
       ide: 'claude-code', event: 'PreToolUse', toolKind: 'mcp-call',
       toolName: 'mcp__serena__execute_shell_command', filePath: '', cwd: '/proj', sessionId: null,
       toolInput: {
-        command: 'rm -rf /tmp/x',
-        reason: 'reviewed: intentional cleanup',
+        command: 'rm -rf /tmp/x # reviewed: intentional cleanup',
       },
     };
     expect(evaluateDangerous(ctx)).toBeNull();
