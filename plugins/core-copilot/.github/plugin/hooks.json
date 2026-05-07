@@ -27,6 +27,16 @@
             "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\gitnexus-refresh.js\") { node \"$root\\hooks\\gitnexus-refresh.js\" }"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file",
+        "hooks": [
+          {
+            "type": "command",
+            "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/lint-format-advisory.js\" ]; then node \"$root/hooks/lint-format-advisory.js\"; break; fi; done",
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\lint-format-advisory.js\") { node \"$root\\hooks\\lint-format-advisory.js\" }"
+          }
+        ]
       }
     ]
   }

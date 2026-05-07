@@ -34,6 +34,7 @@ __export(lint_format_advisory_exports, {
   lintFormatAdvisoryHook: () => lintFormatAdvisoryHook
 });
 module.exports = __toCommonJS(lint_format_advisory_exports);
+var import_path5 = __toESM(require("path"));
 
 // src/runtime/define-hook.ts
 var defineHook = (def) => def;
@@ -321,7 +322,10 @@ var MONITORED_EXTENSIONS = [
   ".rs",
   ".md"
 ];
-var advisoryMessage = (filePath) => `Files were modified. Add a plan step (if not already present) to run syntax, type, lint, and format checks on: ${filePath}.`;
+var advisoryMessage = (filePath) => {
+  const name = import_path5.default.basename(filePath);
+  return `[Rosetta Advisory] ${name} modified. If not already planned, add a step to run syntax, type, lint, and format checks before commit.`;
+};
 var lintFormatAdvisoryHook = defineHook({
   name: "lint-format-advisory",
   on: {
