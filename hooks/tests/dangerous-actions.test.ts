@@ -1,5 +1,5 @@
 import { DANGEROUS_BASH, DANGEROUS_PATHS, DANGEROUS_CONTENT } from '../src/hooks/dangerous-actions/patterns';
-import { describe, test, expect, beforeEach, afterEach } from 'vitest';
+import { describe, test, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import type { HookContext } from '../src/runtime/types';
 import { evaluateDangerous } from '../src/hooks/dangerous-actions/evaluate';
 import ccBash from './fixtures/claude-code-pre-tool-use-bash.json';
@@ -76,7 +76,7 @@ describe('pattern correctness — positive matches', () => {
 
   describe('secret-env (matched against basename)', () => {
     let re: RegExp;
-    test('setup', () => { re = findById(DANGEROUS_PATHS, 'secret-env'); });
+    beforeAll(() => { re = findById(DANGEROUS_PATHS, 'secret-env'); });
     test('matches basename: .env', () => {
       expect(re.test('.env')).toBe(true);
     });
@@ -90,7 +90,7 @@ describe('pattern correctness — positive matches', () => {
 
   describe('content-sql-drop-table', () => {
     let re: RegExp;
-    test('setup', () => { re = findById(DANGEROUS_CONTENT, 'content-sql-drop-table'); });
+    beforeAll(() => { re = findById(DANGEROUS_CONTENT, 'content-sql-drop-table'); });
     test('matches: DROP TABLE users', () => {
       expect(re.test('DROP TABLE users')).toBe(true);
     });
@@ -98,7 +98,7 @@ describe('pattern correctness — positive matches', () => {
 
   describe('inline-aws-key', () => {
     let re: RegExp;
-    test('setup', () => { re = findById(DANGEROUS_CONTENT, 'inline-aws-key'); });
+    beforeAll(() => { re = findById(DANGEROUS_CONTENT, 'inline-aws-key'); });
     test('matches: AKIAIOSFODNN7EXAMPLE', () => {
       expect(re.test('AKIAIOSFODNN7EXAMPLE')).toBe(true);
     });
