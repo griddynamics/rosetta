@@ -1,4 +1,5 @@
 // hooks/src/hooks/lint-format-advisory.ts
+import path from 'path';
 import { defineHook } from '../runtime/define-hook';
 import { runAsCli } from '../runtime/run-hook';
 import { advise } from '../runtime/result-helpers';
@@ -8,8 +9,10 @@ const MONITORED_EXTENSIONS = [
   '.py', '.cs', '.ps1', '.cmd', '.java', '.go', '.rs', '.md',
 ] as const;
 
-export const advisoryMessage = (filePath: string): string =>
-  `Files were modified. Add a plan step (if not already present) to run syntax, type, lint, and format checks on: ${filePath}.`;
+export const advisoryMessage = (filePath: string): string => {
+  const name = path.basename(filePath);
+  return `[Rosetta Advisory] ${name} modified. If not already planned, add a step to run syntax, type, lint, and format checks before commit.`;
+};
 
 export const lintFormatAdvisoryHook = defineHook({
   name: 'lint-format-advisory',

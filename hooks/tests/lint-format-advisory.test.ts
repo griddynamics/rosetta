@@ -32,12 +32,19 @@ const expectedClaude = (filePath: string) => JSON.stringify({
 describe('advisoryMessage', () => {
   test('matches spec wording exactly', () => {
     expect(advisoryMessage('src/app.ts')).toBe(
-      'Files were modified. Add a plan step (if not already present) to run syntax, type, lint, and format checks on: src/app.ts.'
+      '[Rosetta Advisory] app.ts modified. If not already planned, add a step to run syntax, type, lint, and format checks before commit.'
     );
   });
 
-  test('embeds filePath verbatim', () => {
-    expect(advisoryMessage('/abs/path/to/foo.py')).toContain('/abs/path/to/foo.py');
+  test('uses basename, not full path', () => {
+    const msg = advisoryMessage('/abs/path/to/foo.py');
+    expect(msg).toContain('foo.py');
+    expect(msg).not.toContain('/abs/path/to/');
+  });
+
+  test('works for bare filename with no directory', () => {
+    const msg = advisoryMessage('bare-file.ts');
+    expect(msg).toContain('bare-file.ts');
   });
 });
 
@@ -157,7 +164,7 @@ describe('Cursor format', () => {
     expect(out).not.toBe('');
     const parsed = JSON.parse(out);
     expect(parsed.permission).toBe('allow');
-    expect(parsed.additional_context).toContain('src/app.ts');
+    expect(parsed.additional_context).toContain('app.ts');
   });
 
   test('silent for .json — Cursor', async () => {
