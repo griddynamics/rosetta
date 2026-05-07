@@ -179,6 +179,9 @@ function evalPatternRaw(ctx) {
  * Pure evaluation function for the dangerous-actions hook.
  * Returns a deny HookResult if dangerous, null if safe.
  * No IO or side effects.
+ *
+ * @internal Used by unit tests. Production entry point is `dangerousActionsHook`
+ * in `dangerous-actions.ts`, which adds cooldown (Layer B) and audit (Layer C).
  */
 function evaluateDangerous(ctx) {
     const result = evalPatternRaw(ctx);
