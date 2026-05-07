@@ -39,7 +39,7 @@ function saveStore(cwd, store, now) {
  * command is retried with the override added.
  */
 function hashCall(toolName, toolInput) {
-    const normalized = JSON.stringify(toolInput, (_, v) => typeof v === 'string'
+    const normalized = JSON.stringify(toolInput, (_, v) => typeof v === 'string' && /\breviewed\b/i.test(v)
         ? v.replace(/\s*#\s*\breviewed\b\s*/gi, '').replace(/\breviewed\b/gi, '').trim()
         : v);
     return crypto_1.default.createHash('sha1').update(`${toolName}:${normalized}`).digest('hex');

@@ -510,7 +510,7 @@ function saveStore(cwd, store, now) {
 function hashCall(toolName, toolInput) {
   const normalized = JSON.stringify(
     toolInput,
-    (_, v) => typeof v === "string" ? v.replace(/\s*#\s*\breviewed\b\s*/gi, "").replace(/\breviewed\b/gi, "").trim() : v
+    (_, v) => typeof v === "string" && /\breviewed\b/i.test(v) ? v.replace(/\s*#\s*\breviewed\b\s*/gi, "").replace(/\breviewed\b/gi, "").trim() : v
   );
   return import_crypto2.default.createHash("sha1").update(`${toolName}:${normalized}`).digest("hex");
 }
