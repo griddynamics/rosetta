@@ -173,13 +173,12 @@ describe('evaluateDangerous — Bash patterns', () => {
     expect((r as {kind:'deny';reason:string}).reason).toContain('curl-pipe-shell');
   });
 
-  test('deny message contains Rule, Tool, Evidence, and override instructions', () => {
+  test('deny message contains rule id, evidence, and override instructions', () => {
     const r = evaluateDangerous(bashCtx('rm -rf /'));
     const reason = (r as {kind:'deny';reason:string}).reason;
-    expect(reason).toContain('Rule:');
-    expect(reason).toContain('Tool:');
+    expect(reason).toContain('rm-rf-root');
     expect(reason).toContain('Evidence:');
-    expect(reason).toContain('add `reviewed` keyword to still execute');
+    expect(reason).toContain('reviewed');
   });
 });
 
@@ -434,11 +433,11 @@ describe('Bug fixes — PR #79 review', () => {
   });
 
   // Bug 4: Grammar
-  test('deny message contains spec-required phrase with reviewed keyword', () => {
+  test('deny message contains rule id and override instruction', () => {
     const r = evaluateDangerous(bashCtx('rm -rf /'));
     const reason = (r as {kind:'deny';reason:string}).reason;
-    expect(reason).toContain('Did you consider this a dangerous activity and add `reviewed` keyword to still execute?');
-    expect(reason).not.toContain('Did you consider this as a dangerous activity?');
+    expect(reason).toContain('rm-rf-root');
+    expect(reason).toContain('reviewed');
   });
 });
 

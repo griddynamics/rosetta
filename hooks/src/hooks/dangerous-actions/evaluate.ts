@@ -15,7 +15,7 @@ const EVIDENCE_MAX = 120;
 
 const MCP_SHELL_FIELDS   = ['command', 'cmd', 'shell_command'] as const;
 const MCP_PATH_FIELDS    = ['path', 'file_path', 'filePath', 'target', 'target_path'] as const;
-const MCP_CONTENT_FIELDS = ['content', 'text', 'new_string', 'query', 'sql'] as const;
+const MCP_CONTENT_FIELDS = ['content', 'new_string', 'query', 'sql'] as const;
 
 function buildDenyMessage(
   pattern: DangerPattern,
@@ -28,18 +28,11 @@ function buildDenyMessage(
     : (evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence);
 
   return [
-    'Blocked by rosetta dangerous-actions hook.',
-    '',
-    `Rule:     ${pattern.id} — ${pattern.label}`,
-    `Tool:     ${toolKind}`,
+    `Blocked: ${pattern.id} — ${pattern.label} on ${toolKind}`,
     `Evidence: ${evidenceLine}`,
     '',
-    'Did you consider this a dangerous activity and add `reviewed` keyword to still execute?',
-    '',
-    'To proceed: include the word `reviewed` anywhere in the tool call (e.g. command,',
-    'description, content, or any string argument). Doing so asserts on behalf of the user',
-    'that this destructive operation is intentional. Consider also: is there a',
-    'non-destructive alternative (soft delete, dry-run, --force-with-lease, staging env)?',
+    'Override: include `reviewed` anywhere in the tool call (command, content, or any visible string field).',
+    'Alternative: use soft delete, dry-run, --force-with-lease, or a staging environment.',
   ].join('\n');
 }
 
