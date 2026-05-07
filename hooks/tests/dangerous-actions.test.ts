@@ -1,5 +1,5 @@
 import { DANGEROUS_BASH, DANGEROUS_PATHS, DANGEROUS_CONTENT } from '../src/hooks/dangerous-actions/patterns';
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import type { HookContext } from '../src/runtime/types';
 import { evaluateDangerous } from '../src/hooks/dangerous-actions/evaluate';
 import ccBash from './fixtures/claude-code-pre-tool-use-bash.json';
@@ -9,6 +9,9 @@ import ccMultiEdit from './fixtures/claude-code-pre-tool-use-multi-edit.json';
 import { dangerousActionsHook } from '../src/hooks/dangerous-actions';
 import { runHook } from '../src/runtime/run-hook';
 import { Readable, Writable } from 'stream';
+import { mkdtempSync, rmSync, readFileSync } from 'fs';
+import path from 'path';
+import os from 'os';
 
 const toStream = (obj: unknown): Readable => Readable.from([JSON.stringify(obj)]);
 const captureOutput = () => {
@@ -568,5 +571,42 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
       { command: 'rm -rf /tmp/x # reviewed' }
     ));
     expect(r).toBeNull();
+  });
+});
+
+describe('F12 A+B+C — override hardening integration', () => {
+  let tmp: string;
+  beforeEach(() => { tmp = mkdtempSync(os.tmpdir() + '/da-f12-'); });
+  afterEach(() => rmSync(tmp, { recursive: true, force: true }));
+
+  test('F12-B: immediate retry of denied command with override → still denied (cooldown)', async () => {
+    const base = { ...ccBash, cwd: tmp };
+    const dangerous = { ...base, tool_input: { command: 'rm -rf /tmp/test-cooldown' } };
+    const withOverride = { ...base, tool_input: { command: 'rm -rf /tmp/test-cooldown  # reviewed' } };
+
+    // First call — no override → deny (records in cooldown store)
+    const { writable: w1, output: o1 } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(dangerous), stdout: w1 });
+    expect(JSON.parse(o1()).hookSpecificOutput.permissionDecision).toBe('deny');
+
+    // Immediate retry with override in command (within 5s) → still deny
+    const { writable: w2, output: o2 } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(withOverride), stdout: w2 });
+    const parsed2 = JSON.parse(o2());
+    expect(parsed2.hookSpecificOutput.permissionDecision).toBe('deny');
+    expect(parsed2.hookSpecificOutput.permissionDecisionReason).toContain('cooldown');
+  });
+
+  test('F12-C: allowed override appends JSON line to hook-overrides.jsonl', async () => {
+    // Use a fresh tmp dir with no prior deny — so cooldown is not active
+    const raw = { ...ccBash, cwd: tmp, tool_input: { command: 'rm -rf /tmp/x # reviewed' } };
+    const { writable } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    const auditPath = path.join(tmp, '.claude', 'audit', 'hook-overrides.jsonl');
+    const line = readFileSync(auditPath, 'utf8').trim();
+    const entry = JSON.parse(line);
+    expect(entry.toolName).toBe('Bash');
+    expect(entry.blockedByCooldown).toBe(false);
+    expect(typeof entry.ts).toBe('string');
   });
 });
