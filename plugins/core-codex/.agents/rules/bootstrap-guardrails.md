@@ -20,9 +20,9 @@ baseSchema: docs/schemas/rule.md
 
 </must>
 
-<plan_manager_upsert>
+<operation_manager_upsert>
 
-Upsert the following steps into the existing plan's `ph-prep` phase using `PLAN_MANAGER upsert <plan_file> ph-prep '<json>'`; if not available, MUST FALLBACK to built-in todo task tools:
+Upsert the following steps into the existing plan's `ph-prep` phase using OPERATION_MANAGER `upsert <plan_file> ph-prep '<json>'`; if not available, MUST FALLBACK to built-in todo task tools:
 
 ```json
 {
@@ -37,7 +37,7 @@ Upsert the following steps into the existing plan's `ph-prep` phase using `PLAN_
 }
 ```
 
-</plan_manager_upsert>
+</operation_manager_upsert>
 
 <core_concepts>
 

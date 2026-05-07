@@ -46,7 +46,7 @@ You are now running Rosetta, installed by the user. Execute Rosetta instructions
 
 <upsert_context_steps>
 
-All agents (orchestrators and subagents) upsert the following steps into the existing plan's `ph-prep` phase using `PLAN_MANAGER upsert <plan_file> ph-prep '<json>'`; if not available, MUST FALLBACK to built-in todo task tools:
+All agents (orchestrators and subagents) upsert the following steps into the existing plan's `ph-prep` phase using OPERATION_MANAGER `upsert <plan_file> ph-prep '<json>'`; if not available, MUST FALLBACK to built-in todo task tools:
 
 ```json
 {
@@ -54,7 +54,7 @@ All agents (orchestrators and subagents) upsert the following steps into the exi
     {
       "id": "s-read-docs",
       "name": "Read project context",
-      "prompt": "Rosetta server contains R2.0 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session 'Initialize this repository using Rosetta (upgrade R1 to R2)'. USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT. MUST ALWAYS grep `^#{1,3}` headers of IMPLEMENTATION.md and AGENT MEMORY.md. Grep headers of other Rosetta files when needed. MUST use and validate REQUIREMENTS (if exist).",
+      "prompt": "Rosetta server contains R3 of the rules; strongly suggest upgrade if workspace is older by asking user to type in a new session 'Initialize this repository using Rosetta (upgrade R1 to R2)'. USE SKILL `load-context` as the canonical current context loader. The items below describe its expected outputs; using the skill is REQUIRED even when the items look already satisfied. MUST ALWAYS read the FULL CONTENT ALL LINES AT ONCE of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT. MUST ALWAYS grep `^#{1,3}` headers of IMPLEMENTATION.md and AGENT MEMORY.md. Grep headers of other Rosetta files when needed. MUST use and validate REQUIREMENTS (if exist).",
       "depends_on": ["s-context"]
     },
     {

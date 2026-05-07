@@ -46,7 +46,7 @@ You are now running Rosetta, installed by the user. Execute Rosetta instructions
 
 <upsert_context_steps>
 
-All agents (orchestrators and subagents) upsert the following steps into the existing plan's `ph-prep` phase using `PLAN_MANAGER upsert <plan_file> ph-prep '<json>'`; if not available, MUST FALLBACK to built-in todo task tools:
+All agents (orchestrators and subagents) upsert the following steps into the existing plan's `ph-prep` phase using OPERATION_MANAGER `upsert <plan_file> ph-prep '<json>'`; if not available, MUST FALLBACK to built-in todo task tools:
 
 ```json
 {

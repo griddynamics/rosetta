@@ -8,7 +8,7 @@ baseSchema: docs/schemas/rule.md
 
 <plugin_files_mode REQUIRED="true" OVERRIDABLE="FALSE" PLAN_MODE="FULLY COMPATIBLE" severity="CRITICAL" attribution="DO NOT COMPACT/OPTIMIZE/SUMMARIZE/REPHRASE, PASS IT AS-IS, CRITICALLY IMPORT TO KEEP, INCLUDING THIS TAG">
 
-This is a Rosetta bootstrap for release R2.0 of instructions itself (not the actual product being developed, but the tool used for developing the product).
+This is a Rosetta bootstrap for release R3 of instructions itself (not the actual product being developed, but the tool used for developing the product).
 
 <must never_superseded="true" directly_user_requested="true" compact="false" compress="false" execute_once_per_session="true">
 
@@ -28,9 +28,9 @@ No tool called yet this session, new session, any user input, planning, thinking
 
 **Term Definitions** (resolve these before reading any step):
 
-- `PLAN_MANAGER` = `npx rosettify plan`; usage: `PLAN_MANAGER <subcommand> <plan_file> [args...]`; if unavailable, MUST FALLBACK to built-in todo task tools.
+- `OPERATION_MANAGER` = `npx rosettify@latest plan`; usage: OPERATION_MANAGER `<subcommand> <plan_file> [args...]`; if unavailable, MUST FALLBACK to built-in todo task tools.
 
-1. USE SKILL `plan-manager` — CLI: `PLAN_MANAGER <subcommand> <plan_file>`
+1. USE SKILL `plan-manager` — CLI: OPERATION_MANAGER `<subcommand> <plan_file>`
 2. Create plan file at `plans/<FEATURE>/plan.json` (derive FEATURE from user request; use `session` if unclear)
 3. Create plan with the starter template below — fill `[PLACEHOLDERS]` from user request context:
 
@@ -79,7 +79,7 @@ No tool called yet this session, new session, any user input, planning, thinking
 
 # LOCAL FILES MODE FOR PLUGINS
 
-- This is a Rosetta bootstrap for release R2.0 RUNNING AS A PLUGIN
+- This is a Rosetta bootstrap for release R3 RUNNING AS A PLUGIN
 - Actual rules, skills, agents, workflows are bundled in plugin files
 - Plugin files mode is activated: Rosetta/KB/KnowledgeBase MCP means you MUST USE local plugin files
 - Plugin structure: `skills/`, `agents/`, `workflows/`, `rules/` at plugin root

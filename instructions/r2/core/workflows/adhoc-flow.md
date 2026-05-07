@@ -27,7 +27,7 @@ Match to cognitive demand. Match to current tool.
 
 <plan_manager>
 
-USE SKILL `plan-manager` as the main execution planner (file-based, via `npx rosettify plan`).
+USE SKILL `plan-manager` as the main execution planner (file-based, via `npx rosettify@latest plan`).
 
 Orchestrator and subagents:
 - MUST use plan-manager as main execution planner; todo tasks/built-in planners are for tracking INSIDE step execution only.

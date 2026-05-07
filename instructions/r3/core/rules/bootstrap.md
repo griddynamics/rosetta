@@ -10,11 +10,26 @@ baseSchema: docs/schemas/rule.md
 
 This is a Rosetta bootstrap for release R3 of instructions itself (not the actual product being developed, but the tool used for developing the product).
 
+<operation_manager>
+
+- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx rosettify@latest <command> <subcommand> <plan_file>`, if it fails MUST FALLBACK to built-in todo task tools.
+- Commands:
+  - `help`, subcommand `plan`, to get full information
+  - `plan`, subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`
+- To create call with `plan create <plan_file> '<json>'`
+- To upsert call with `plan upsert <plan_file> [target: entire_plan|<phase-id>] [phase|step] '<json>'`
+- To get next steps call with `plan next <plan_file> [limit]`
+- To update step status call with `plan update_status <plan_file> <step-id> [open|in_progress|complete|blocked|failed]`
+- Upsert follows RFC 7396: null removes keys, nested objects are merged not replaced, scalars are replaced, status field silently ignored to enforce use of `update_status`.
+- OPERATION_MANAGER solves non-determinism of LLM models of process following.
+
+</operation_manager>
+
 <must never_superseded="true" directly_user_requested="true" compact="false" compress="false" execute_once_per_session="true">
 
 # Phase 0: Initialize Plan Manager
 
-BEFORE any other action, tool call, or response — create a plan using plan-manager and execute its first step.
+BEFORE any other action, tool call, or response — create a plan using OPERATION_MANAGER and execute its first step.
 
 MANDATORY: Even if the user's question seems generic or unrelated to the project (generic question -> contextual answer), you MUST create a plan first to get straight to the point as simplest and as reliable way as possible.
 
@@ -28,7 +43,7 @@ No tool called yet this session, new session, any user input, planning, thinking
 
 **Term Definitions** (resolve these before reading any step):
 
-- `PLAN_MANAGER` = Use `rosettify` MCP (if already installed), fallback to `npx rosettify plan <subcommand> <plan_file>`, if not available MUST FALLBACK to built-in todo task tools.
+- `OPERATION_MANAGER` = Use `rosettify` MCP (if already installed), fallback to `npx rosettify@latest plan <subcommand> <plan_file>`, if it fails MUST FALLBACK to built-in todo task tools.
 - 
 
 1. USE SKILL `plan-manager`

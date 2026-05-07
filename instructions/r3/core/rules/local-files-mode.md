@@ -20,9 +20,9 @@ No tool called yet this session, new session, any user input, planning, thinking
 
 **Term Definitions** (resolve these before reading any step):
 
-- `PLAN_MANAGER` = `npx rosettify plan`; usage: `PLAN_MANAGER <subcommand> <plan_file> [args...]`; if unavailable, MUST FALLBACK to built-in todo task tools.
+- `OPERATION_MANAGER` = `npx rosettify@latest plan`; usage: OPERATION_MANAGER `<subcommand> <plan_file> [args...]`; if unavailable, MUST FALLBACK to built-in todo task tools.
 
-1. USE SKILL `plan-manager` — CLI: `PLAN_MANAGER <subcommand> <plan_file>`
+1. USE SKILL `plan-manager` — CLI: OPERATION_MANAGER `<subcommand> <plan_file>`
 2. Create plan file at `plans/<FEATURE>/plan.json` (derive FEATURE from user request; use `session` if unclear)
 3. Create plan with the starter template below — fill `[PLACEHOLDERS]` from user request context:
 
