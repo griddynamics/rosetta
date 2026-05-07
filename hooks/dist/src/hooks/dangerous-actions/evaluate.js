@@ -1,32 +1,36 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.hasReviewedOverride = hasReviewedOverride;
 exports.evaluateDangerous = evaluateDangerous;
+exports.evalPatternOnly = evalPatternOnly;
 const result_helpers_1 = require("../../runtime/result-helpers");
 const patterns_1 = require("./patterns");
 /** Regex that matches the word `reviewed` at a word boundary. */
 const REVIEWED_RE = /\breviewed\b/;
 /** Max length of the evidence snippet shown in deny messages. */
 const EVIDENCE_MAX = 120;
+/** User-visible fields accepted for the `reviewed` override, by tool name. */
+const OVERRIDE_FIELDS_BY_TOOL = {
+    Bash: ['command'],
+    Write: ['content', 'file_path'],
+    Edit: ['new_string', 'old_string', 'file_path'],
+    MultiEdit: ['file_path', 'edits'],
+};
+/** Fields scanned for `reviewed` in MCP tool calls. */
+const MCP_OVERRIDE_FIELDS = ['command', 'sql', 'query', 'new_string', 'content'];
 const MCP_SHELL_FIELDS = ['command', 'cmd', 'shell_command'];
 const MCP_PATH_FIELDS = ['path', 'file_path', 'filePath', 'target', 'target_path'];
-const MCP_CONTENT_FIELDS = ['content', 'text', 'new_string', 'query', 'sql'];
+const MCP_CONTENT_FIELDS = ['content', 'new_string', 'query', 'sql'];
 function buildDenyMessage(pattern, toolKind, evidence, redact = false) {
     const evidenceLine = redact
         ? `<redacted: ${pattern.id}>`
         : (evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence);
     return [
-        'Blocked by rosetta dangerous-actions hook.',
-        '',
-        `Rule:     ${pattern.id} — ${pattern.label}`,
-        `Tool:     ${toolKind}`,
+        `Blocked: ${pattern.id} — ${pattern.label} on ${toolKind}`,
         `Evidence: ${evidenceLine}`,
         '',
-        'Did you consider this a dangerous activity and add `reviewed` keyword to still execute?',
-        '',
-        'To proceed: include the word `reviewed` anywhere in the tool call (e.g. command,',
-        'description, content, or any string argument). Doing so asserts on behalf of the user',
-        'that this destructive operation is intentional. Consider also: is there a',
-        'non-destructive alternative (soft delete, dry-run, --force-with-lease, staging env)?',
+        'Override: include `reviewed` anywhere in the tool call (command, content, or any visible string field).',
+        'Alternative: use soft delete, dry-run, --force-with-lease, or a staging environment.',
     ].join('\n');
 }
 function matchPatterns(patterns, value) {
@@ -53,29 +57,34 @@ function matchDangerousPath(filePath) {
     return null;
 }
 /**
- * Returns true if any string value in toolInput (including nested array items)
- * contains the word `reviewed` at a word boundary.
+ * Returns true if any user-visible string field for the given tool name
+ * contains `reviewed` at a word boundary.
+ *
+ * Intentionally restricted to fields rendered in the IDE UI so the agent
+ * cannot silently self-assert the override via hidden metadata fields
+ * such as `description`.
  */
-function hasReviewedOverride(input) {
-    for (const v of Object.values(input)) {
-        if (typeof v === 'string') {
-            if (REVIEWED_RE.test(v))
-                return true;
-        }
-        else if (Array.isArray(v)) {
-            for (const item of v) {
-                if (typeof item === 'string' && REVIEWED_RE.test(item))
-                    return true;
+function hasReviewedOverride(input, toolName) {
+    const fields = toolName.startsWith('mcp__')
+        ? MCP_OVERRIDE_FIELDS
+        : (OVERRIDE_FIELDS_BY_TOOL[toolName] ?? MCP_OVERRIDE_FIELDS);
+    return fields.some(f => {
+        const v = input[f];
+        if (typeof v === 'string')
+            return REVIEWED_RE.test(v);
+        if (Array.isArray(v)) {
+            return v.some(item => {
+                if (typeof item === 'string')
+                    return REVIEWED_RE.test(item);
                 if (item && typeof item === 'object') {
-                    for (const inner of Object.values(item)) {
-                        if (typeof inner === 'string' && REVIEWED_RE.test(inner))
-                            return true;
-                    }
+                    return Object.values(item)
+                        .some(inner => typeof inner === 'string' && REVIEWED_RE.test(inner));
                 }
-            }
+                return false;
+            });
         }
-    }
-    return false;
+        return false;
+    });
 }
 function evalBash(ctx) {
     const command = ctx.toolInput.command;
@@ -155,25 +164,35 @@ function evalMcpCall(ctx) {
     }
     return null;
 }
+/** Inner pattern-only evaluation — no override check, no IO. */
+function evalPatternRaw(ctx) {
+    switch (ctx.toolKind) {
+        case 'bash': return evalBash(ctx);
+        case 'write': return evalWrite(ctx);
+        case 'edit': return evalEdit(ctx);
+        case 'multi-edit': return evalMultiEdit(ctx);
+        case 'mcp-call': return evalMcpCall(ctx);
+        default: return null;
+    }
+}
 /**
  * Pure evaluation function for the dangerous-actions hook.
- * Returns a HookResult (deny) if the context is dangerous, or null if safe.
+ * Returns a deny HookResult if dangerous, null if safe.
  * No IO or side effects.
  */
 function evaluateDangerous(ctx) {
-    const result = (() => {
-        switch (ctx.toolKind) {
-            case 'bash': return evalBash(ctx);
-            case 'write': return evalWrite(ctx);
-            case 'edit': return evalEdit(ctx);
-            case 'multi-edit': return evalMultiEdit(ctx);
-            case 'mcp-call': return evalMcpCall(ctx);
-            default: return null;
-        }
-    })();
+    const result = evalPatternRaw(ctx);
     if (result === null)
         return null;
-    if (hasReviewedOverride(ctx.toolInput))
+    if (hasReviewedOverride(ctx.toolInput, ctx.toolName))
         return null;
     return result;
+}
+/**
+ * Pattern-only evaluation — no override check.
+ * Used by the hook entry point so cooldown logic can interpose between
+ * pattern detection and override resolution.
+ */
+function evalPatternOnly(ctx) {
+    return evalPatternRaw(ctx);
 }

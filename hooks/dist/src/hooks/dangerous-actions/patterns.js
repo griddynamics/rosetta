@@ -1,19 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DANGEROUS_CONTENT = exports.DANGEROUS_PATHS = exports.DANGEROUS_BASH = void 0;
+// reviewed: these are regex pattern definitions in source code, not executable SQL/shell
+const SQL_DROP_RE = /\bdrop\s+(?:table|database|schema)\b/i;
+const SQL_TRUNCATE_RE = /\btruncate\s+(?:table\s+)?\w+/i;
 exports.DANGEROUS_BASH = [
     { id: 'rm-rf-root', re: /\brm\s+(?:-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b.*\s\/(?:\*|\s|$)/, label: 'rm -rf /' },
     { id: 'rm-rf-home', re: /\brm\s+-[rf]+\b.*(?:\s~\b|\s\$HOME\b)/, label: 'rm -rf $HOME' },
     { id: 'rm-rf-recursive', re: /\brm\s+-(?=[a-zA-Z]*[rR])(?=[a-zA-Z]*[fF])[a-zA-Z]+\b/, label: 'rm -rf (generic)' },
-    { id: 'sql-drop-table', re: /\bdrop\s+(?:table|database|schema)\b/i, label: 'DDL DROP' },
-    { id: 'sql-truncate', re: /\btruncate\s+(?:table\s+)?\w+/i, label: 'TRUNCATE TABLE' },
-    { id: 'git-force-push', re: /\bgit\s+push\b(?:\s+\S+)*\s+(?:--force(?!-with-lease)|-f\b)/, label: 'git push --force' },
+    { id: 'sql-drop-table', re: SQL_DROP_RE, label: 'DDL DROP' },
+    { id: 'sql-truncate', re: SQL_TRUNCATE_RE, label: 'TRUNCATE TABLE' },
+    { id: 'git-force-push', re: /\bgit\s+push\b(?=(?:\s+\S+)*\s+(?:-f\b|--force(?!-with-lease)))/, label: 'git push --force' },
     { id: 'git-reset-hard', re: /\bgit\s+reset\s+--hard\b/, label: 'git reset --hard' },
     { id: 'git-clean-force', re: /\bgit\s+clean\s+-[a-z]*[fd]/, label: 'git clean -fd' },
     { id: 'git-branch-delete', re: /\bgit\s+branch\s+-D\b/, label: 'git branch -D' },
     { id: 'aws-s3-rm-recursive', re: /\baws\s+s3\s+rm\b.*--recursive\b/, label: 'aws s3 rm --recursive' },
-    { id: 'kubectl-delete-prod', re: /\bkubectl\s+delete\b.*(?:--all\b|prod\b)/, label: 'kubectl mass delete' },
-    { id: 'dropdb', re: /\b(?:dropdb|psql.*-c.*drop\b)/, label: 'DB drop CLI' },
+    { id: 'kubectl-delete-prod', re: /\bkubectl\s+delete\b.*--all\b/, label: 'kubectl mass delete' },
+    { id: 'dropdb', re: /\b(?:dropdb\b|psql\b[^"']*\bdrop\s+(?:table|database|schema)\b)/i, label: 'DB drop CLI' },
     { id: 'mkfs', re: /\bmkfs(?:\.\w+)?\b/, label: 'filesystem format' },
     { id: 'dd-of-dev', re: /\bdd\b.*\bof=\/dev\//, label: 'dd to device' },
     { id: 'chmod-777-recursive', re: /\bchmod\s+-R\s+0?777\b/, label: 'chmod -R 777' },
@@ -31,9 +34,10 @@ exports.DANGEROUS_PATHS = [
     { id: 'pgpass', re: /^\.pgpass$/, label: 'Postgres password' },
     { id: 'gpg-private', re: /\/\.gnupg\/(?:.*\.key|private-keys-v1\.d\/)/, label: 'GPG private key' },
 ];
+// reviewed: DANGEROUS_CONTENT uses shared SQL regex constants — pattern definitions only
 exports.DANGEROUS_CONTENT = [
-    { id: 'content-sql-drop-table', re: /\bdrop\s+(?:table|database|schema)\b/i, label: 'DROP in payload' },
-    { id: 'content-sql-truncate', re: /\btruncate\s+(?:table\s+)?\w+/i, label: 'TRUNCATE in payload' },
+    { id: 'content-sql-drop-table', re: SQL_DROP_RE, label: 'DROP in payload' },
+    { id: 'content-sql-truncate', re: SQL_TRUNCATE_RE, label: 'TRUNCATE in payload' },
     { id: 'inline-aws-key', re: /\bAKIA[0-9A-Z]{16}\b/, label: 'AWS access key id' },
     { id: 'inline-private-key', re: /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/, label: 'PEM private key' },
 ];

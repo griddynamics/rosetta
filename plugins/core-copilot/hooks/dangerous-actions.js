@@ -383,19 +383,21 @@ var runHook = async (def, opts = {}) => {
 var deny = (reason) => ({ kind: "deny", reason });
 
 // src/hooks/dangerous-actions/patterns.ts
+var SQL_DROP_RE = /\bdrop\s+(?:table|database|schema)\b/i;
+var SQL_TRUNCATE_RE = /\btruncate\s+(?:table\s+)?\w+/i;
 var DANGEROUS_BASH = [
   { id: "rm-rf-root", re: /\brm\s+(?:-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b.*\s\/(?:\*|\s|$)/, label: "rm -rf /" },
   { id: "rm-rf-home", re: /\brm\s+-[rf]+\b.*(?:\s~\b|\s\$HOME\b)/, label: "rm -rf $HOME" },
   { id: "rm-rf-recursive", re: /\brm\s+-(?=[a-zA-Z]*[rR])(?=[a-zA-Z]*[fF])[a-zA-Z]+\b/, label: "rm -rf (generic)" },
-  { id: "sql-drop-table", re: /\bdrop\s+(?:table|database|schema)\b/i, label: "DDL DROP" },
-  { id: "sql-truncate", re: /\btruncate\s+(?:table\s+)?\w+/i, label: "TRUNCATE TABLE" },
-  { id: "git-force-push", re: /\bgit\s+push\b(?:\s+\S+)*\s+(?:--force(?!-with-lease)|-f\b)/, label: "git push --force" },
+  { id: "sql-drop-table", re: SQL_DROP_RE, label: "DDL DROP" },
+  { id: "sql-truncate", re: SQL_TRUNCATE_RE, label: "TRUNCATE TABLE" },
+  { id: "git-force-push", re: /\bgit\s+push\b(?=(?:\s+\S+)*\s+(?:-f\b|--force(?!-with-lease)))/, label: "git push --force" },
   { id: "git-reset-hard", re: /\bgit\s+reset\s+--hard\b/, label: "git reset --hard" },
   { id: "git-clean-force", re: /\bgit\s+clean\s+-[a-z]*[fd]/, label: "git clean -fd" },
   { id: "git-branch-delete", re: /\bgit\s+branch\s+-D\b/, label: "git branch -D" },
   { id: "aws-s3-rm-recursive", re: /\baws\s+s3\s+rm\b.*--recursive\b/, label: "aws s3 rm --recursive" },
-  { id: "kubectl-delete-prod", re: /\bkubectl\s+delete\b.*(?:--all\b|prod\b)/, label: "kubectl mass delete" },
-  { id: "dropdb", re: /\b(?:dropdb|psql.*-c.*drop\b)/, label: "DB drop CLI" },
+  { id: "kubectl-delete-prod", re: /\bkubectl\s+delete\b.*--all\b/, label: "kubectl mass delete" },
+  { id: "dropdb", re: /\b(?:dropdb\b|psql\b[^"']*\bdrop\s+(?:table|database|schema)\b)/i, label: "DB drop CLI" },
   { id: "mkfs", re: /\bmkfs(?:\.\w+)?\b/, label: "filesystem format" },
   { id: "dd-of-dev", re: /\bdd\b.*\bof=\/dev\//, label: "dd to device" },
   { id: "chmod-777-recursive", re: /\bchmod\s+-R\s+0?777\b/, label: "chmod -R 777" },
@@ -413,8 +415,8 @@ var DANGEROUS_PATHS = [
   { id: "gpg-private", re: /\/\.gnupg\/(?:.*\.key|private-keys-v1\.d\/)/, label: "GPG private key" }
 ];
 var DANGEROUS_CONTENT = [
-  { id: "content-sql-drop-table", re: /\bdrop\s+(?:table|database|schema)\b/i, label: "DROP in payload" },
-  { id: "content-sql-truncate", re: /\btruncate\s+(?:table\s+)?\w+/i, label: "TRUNCATE in payload" },
+  { id: "content-sql-drop-table", re: SQL_DROP_RE, label: "DROP in payload" },
+  { id: "content-sql-truncate", re: SQL_TRUNCATE_RE, label: "TRUNCATE in payload" },
   { id: "inline-aws-key", re: /\bAKIA[0-9A-Z]{16}\b/, label: "AWS access key id" },
   { id: "inline-private-key", re: /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/, label: "PEM private key" }
 ];
@@ -422,24 +424,24 @@ var DANGEROUS_CONTENT = [
 // src/hooks/dangerous-actions/evaluate.ts
 var REVIEWED_RE = /\breviewed\b/;
 var EVIDENCE_MAX = 120;
+var OVERRIDE_FIELDS_BY_TOOL = {
+  Bash: ["command"],
+  Write: ["content", "file_path"],
+  Edit: ["new_string", "old_string", "file_path"],
+  MultiEdit: ["file_path", "edits"]
+};
+var MCP_OVERRIDE_FIELDS = ["command", "sql", "query", "new_string", "content"];
 var MCP_SHELL_FIELDS = ["command", "cmd", "shell_command"];
 var MCP_PATH_FIELDS = ["path", "file_path", "filePath", "target", "target_path"];
-var MCP_CONTENT_FIELDS = ["content", "text", "new_string", "query", "sql"];
+var MCP_CONTENT_FIELDS = ["content", "new_string", "query", "sql"];
 function buildDenyMessage(pattern, toolKind, evidence, redact = false) {
   const evidenceLine = redact ? `<redacted: ${pattern.id}>` : evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + "\u2026" : evidence;
   return [
-    "Blocked by rosetta dangerous-actions hook.",
-    "",
-    `Rule:     ${pattern.id} \u2014 ${pattern.label}`,
-    `Tool:     ${toolKind}`,
+    `Blocked: ${pattern.id} \u2014 ${pattern.label} on ${toolKind}`,
     `Evidence: ${evidenceLine}`,
     "",
-    "Did you consider this a dangerous activity and add `reviewed` keyword to still execute?",
-    "",
-    "To proceed: include the word `reviewed` anywhere in the tool call (e.g. command,",
-    "description, content, or any string argument). Doing so asserts on behalf of the user",
-    "that this destructive operation is intentional. Consider also: is there a",
-    "non-destructive alternative (soft delete, dry-run, --force-with-lease, staging env)?"
+    "Override: include `reviewed` anywhere in the tool call (command, content, or any visible string field).",
+    "Alternative: use soft delete, dry-run, --force-with-lease, or a staging environment."
   ].join("\n");
 }
 function matchPatterns(patterns, value) {
@@ -457,22 +459,22 @@ function matchDangerousPath(filePath) {
   }
   return null;
 }
-function hasReviewedOverride(input) {
-  for (const v of Object.values(input)) {
-    if (typeof v === "string") {
-      if (REVIEWED_RE.test(v)) return true;
-    } else if (Array.isArray(v)) {
-      for (const item of v) {
-        if (typeof item === "string" && REVIEWED_RE.test(item)) return true;
+function hasReviewedOverride(input, toolName) {
+  const fields = toolName.startsWith("mcp__") ? MCP_OVERRIDE_FIELDS : OVERRIDE_FIELDS_BY_TOOL[toolName] ?? MCP_OVERRIDE_FIELDS;
+  return fields.some((f) => {
+    const v = input[f];
+    if (typeof v === "string") return REVIEWED_RE.test(v);
+    if (Array.isArray(v)) {
+      return v.some((item) => {
+        if (typeof item === "string") return REVIEWED_RE.test(item);
         if (item && typeof item === "object") {
-          for (const inner of Object.values(item)) {
-            if (typeof inner === "string" && REVIEWED_RE.test(inner)) return true;
-          }
+          return Object.values(item).some((inner) => typeof inner === "string" && REVIEWED_RE.test(inner));
         }
-      }
+        return false;
+      });
     }
-  }
-  return false;
+    return false;
+  });
 }
 function evalBash(ctx) {
   const command = ctx.toolInput.command;
@@ -538,26 +540,80 @@ function evalMcpCall(ctx) {
   }
   return null;
 }
-function evaluateDangerous(ctx) {
-  const result = (() => {
-    switch (ctx.toolKind) {
-      case "bash":
-        return evalBash(ctx);
-      case "write":
-        return evalWrite(ctx);
-      case "edit":
-        return evalEdit(ctx);
-      case "multi-edit":
-        return evalMultiEdit(ctx);
-      case "mcp-call":
-        return evalMcpCall(ctx);
-      default:
-        return null;
-    }
-  })();
-  if (result === null) return null;
-  if (hasReviewedOverride(ctx.toolInput)) return null;
-  return result;
+function evalPatternRaw(ctx) {
+  switch (ctx.toolKind) {
+    case "bash":
+      return evalBash(ctx);
+    case "write":
+      return evalWrite(ctx);
+    case "edit":
+      return evalEdit(ctx);
+    case "multi-edit":
+      return evalMultiEdit(ctx);
+    case "mcp-call":
+      return evalMcpCall(ctx);
+    default:
+      return null;
+  }
+}
+function evalPatternOnly(ctx) {
+  return evalPatternRaw(ctx);
+}
+
+// src/hooks/dangerous-actions/cooldown-store.ts
+var import_fs4 = __toESM(require("fs"));
+var import_path5 = __toESM(require("path"));
+var import_crypto2 = __toESM(require("crypto"));
+var COOLDOWN_MS = 5e3;
+function storePath(cwd) {
+  return import_path5.default.join(cwd, ".claude", "state", "dangerous-actions-cooldown.json");
+}
+function loadStore(cwd) {
+  try {
+    return JSON.parse(import_fs4.default.readFileSync(storePath(cwd), "utf8"));
+  } catch {
+    return {};
+  }
+}
+function saveStore(cwd, store, now) {
+  const p = storePath(cwd);
+  try {
+    import_fs4.default.mkdirSync(import_path5.default.dirname(p), { recursive: true });
+    const pruned = Object.fromEntries(
+      Object.entries(store).filter(([, v]) => now - v.ts < COOLDOWN_MS * 4)
+    );
+    import_fs4.default.writeFileSync(p, JSON.stringify(pruned));
+  } catch {
+  }
+}
+function hashCall(toolName, toolInput) {
+  const normalized = JSON.stringify(
+    toolInput,
+    (_, v) => typeof v === "string" ? v.replace(/\s*#\s*\breviewed\b\s*/gi, "").replace(/\breviewed\b/gi, "").trim() : v
+  );
+  return import_crypto2.default.createHash("sha1").update(`${toolName}:${normalized}`).digest("hex");
+}
+function recordDeny(cwd, hash, now = Date.now()) {
+  const store = loadStore(cwd);
+  store[hash] = { ts: now };
+  saveStore(cwd, store, now);
+}
+function isWithinCooldown(cwd, hash, now = Date.now()) {
+  const store = loadStore(cwd);
+  const rec = store[hash];
+  return !!rec && now - rec.ts < COOLDOWN_MS;
+}
+
+// src/hooks/dangerous-actions/audit-log.ts
+var import_fs5 = __toESM(require("fs"));
+var import_path6 = __toESM(require("path"));
+function appendOverrideAudit(cwd, entry) {
+  const p = import_path6.default.join(cwd, ".claude", "audit", "hook-overrides.jsonl");
+  try {
+    import_fs5.default.mkdirSync(import_path6.default.dirname(p), { recursive: true });
+    import_fs5.default.appendFileSync(p, JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), ...entry }) + "\n");
+  } catch {
+  }
 }
 
 // src/hooks/dangerous-actions.ts
@@ -567,7 +623,26 @@ var dangerousActionsHook = defineHook({
     event: "PreToolUse",
     toolKinds: ["bash", "write", "edit", "multi-edit", "mcp-call"]
   },
-  run: (ctx) => evaluateDangerous(ctx)
+  run: (ctx) => {
+    const patternResult = evalPatternOnly(ctx);
+    if (patternResult === null) return null;
+    const cwd = ctx.cwd || process.cwd();
+    const input = ctx.toolInput;
+    const hash = hashCall(ctx.toolName, input);
+    const hasOverride = hasReviewedOverride(input, ctx.toolName);
+    if (isWithinCooldown(cwd, hash) && hasOverride) {
+      appendOverrideAudit(cwd, { toolName: ctx.toolName, blockedByCooldown: true, sessionId: ctx.sessionId });
+      return deny(
+        "Blocked: repeated dangerous call within 5-second cooldown \u2014 override ignored.\nWait 5 seconds before retrying with the override, or confirm the action explicitly."
+      );
+    }
+    if (hasOverride) {
+      appendOverrideAudit(cwd, { toolName: ctx.toolName, blockedByCooldown: false, sessionId: ctx.sessionId });
+      return null;
+    }
+    recordDeny(cwd, hash);
+    return patternResult;
+  }
 });
 runAsCli(dangerousActionsHook, module);
 // Annotate the CommonJS export names for ESM import in node:

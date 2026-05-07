@@ -44,7 +44,26 @@ Currently active in Claude Code only; rollout to other IDEs is a follow-up.
 
 An automated PreToolUse hook backs this skill for the highest-blast-radius patterns (Bash destructive commands, file writes to secret paths, DDL payloads in content). The hook is a deterministic tripwire — it does not replace this skill's reasoning process. Use this skill to reason about danger; the hook enforces a last-resort gate if that reasoning is skipped.
 
-Override: include the word `reviewed` anywhere in the tool call (command, description, content, or any string argument). Works for Bash, Write, Edit, MultiEdit, and MCP tools. Doing so asserts that the destructive operation is intentional.
+## Threat model
+
+This hook is a **deterministic safety net against typos and accidental destructive intent** — not a security boundary against the agent itself.
+
+| Protects against | Does not protect against |
+|-----------------|--------------------------|
+| Accidental `rm -rf /` by AI on the way to its real task | A determined AI with explicit instructions to bypass |
+| Human typos in command strings | Prompt injection targeting the override word |
+| Unintentional secret file writes | Agents with OS-level shell access granted by the user |
+
+## Override mechanism
+
+Include `reviewed` in a **user-visible field** of the tool call to bypass the block:
+- `Bash`: in the `command` field — e.g. `rm -rf /tmp/test  # reviewed`
+- `Write`/`Edit`: in `content`, `new_string`, or `file_path`
+- `MCP`: in `command`, `sql`, `query`, `new_string`, or `content`
+
+**Not accepted**: `description`, `comment`, `metadata`, or any other field not rendered in the IDE UI. This restriction prevents the agent from silently self-asserting the override via hidden fields.
+
+A 5-second cooldown prevents immediate re-assertion of the override after a deny. Override events are logged to `.claude/audit/hook-overrides.jsonl` for post-hoc review.
 
 </hook>
 
