@@ -51,19 +51,34 @@ This hook is a **deterministic safety net against typos and accidental destructi
 | Protects against | Does not protect against |
 |-----------------|--------------------------|
 | Accidental `rm -rf /` by AI on the way to its real task | A determined AI with explicit instructions to bypass |
-| Human typos in command strings | Prompt injection targeting the override word |
+| Human typos in command strings | Prompt injection targeting the override token |
 | Unintentional secret file writes | Agents with OS-level shell access granted by the user |
+| AI self-asserting `# Rosetta-reviewed` post-deny (mitigated by cooldown + brand-prefix + HITL norm) | — |
 
 ## Override mechanism
 
-Include `reviewed` in a **user-visible field** of the tool call to bypass the block:
-- `Bash`: in the `command` field — e.g. `rm -rf /tmp/test  # reviewed`
-- `Write`/`Edit`: in `content`, `new_string`, or `file_path`
+Append `# Rosetta-reviewed` to a **user-visible field** of the tool call to bypass the block:
+- `Bash`: in the `command` field — e.g. `rm -rf /tmp/test  # Rosetta-reviewed`
+- `Write`/`Edit`: in `content`, `new_string`, or `file_path` — e.g. `# Rosetta-reviewed` anywhere in the value
 - `MCP`: in `command`, `sql`, `query`, `new_string`, or `content`
 
 **Not accepted**: `description`, `comment`, `metadata`, or any other field not rendered in the IDE UI. This restriction prevents the agent from silently self-asserting the override via hidden fields.
 
+**Format requirements**: `# Rosetta-reviewed` must be preceded by whitespace or appear at the start of the string; exactly one `#` followed by one or more spaces; exact case (`Rosetta` capitalised). The following are rejected: bare `reviewed`, `# reviewed` (legacy), `# rosetta-reviewed` (lowercase), `#Rosetta-reviewed` (no space after `#`).
+
 A 5-second cooldown prevents immediate re-assertion of the override after a deny. Override events are logged to `.claude/audit/hook-overrides.jsonl` for post-hoc review.
+
+## HITL boundary
+
+**Only the human user may add `# Rosetta-reviewed`.** The AI agent MUST NEVER add this marker autonomously — even when reasoning suggests the action is safe, necessary, or that the user "would have approved anyway". Adding the marker without explicit human authorisation is a HITL violation.
+
+When the hook denies a call, the AI agent must:
+1. Stop and explain the block to the human user.
+2. Describe the proposed action and its blast radius.
+3. Wait for the human to either approve (by typing `# Rosetta-reviewed` into the tool call) or decline.
+4. Never re-issue the same call with the marker added by itself.
+
+Existing safeguards reinforce this boundary: the 5-second cooldown blocks immediate self-retry; the audit log captures every override; the brand-prefix makes accidental self-insertion impossible.
 
 </hook>
 

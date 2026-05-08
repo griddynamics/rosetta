@@ -30,9 +30,9 @@ describe('cooldown-store', () => {
     expect(isWithinCooldown(tmp, 'xyz789', now + 1_000)).toBe(false);
   });
 
-  test('hashCall strips `reviewed` — same logical command hashes equally', () => {
+  test('hashCall strips `# Rosetta-reviewed` — same logical command hashes equally', () => {
     const input1 = { command: 'rm -rf /tmp/test' };
-    const input2 = { command: 'rm -rf /tmp/test  # reviewed' };
+    const input2 = { command: 'rm -rf /tmp/test  # Rosetta-reviewed' };
     expect(hashCall('Bash', input1)).toBe(hashCall('Bash', input2));
   });
 

@@ -33,15 +33,15 @@ function saveStore(cwd: string, store: DenyStore, now: number): void {
 }
 
 /**
- * Hash a tool call, stripping `reviewed` from all string values so that
- * "rm -rf /tmp" and "rm -rf /tmp # reviewed" produce the same hash.
+ * Hash a tool call, stripping `# Rosetta-reviewed` from all string values so that
+ * "rm -rf /tmp" and "rm -rf /tmp # Rosetta-reviewed" produce the same hash.
  * This allows detecting the self-bypass pattern where the same dangerous
  * command is retried with the override added.
  */
 export function hashCall(toolName: string, toolInput: Record<string, unknown>): string {
   const normalized = JSON.stringify(toolInput, (_, v) =>
-    typeof v === 'string' && /\breviewed\b/i.test(v)
-      ? v.replace(/\s*#\s*\breviewed\b\s*/gi, '').replace(/\breviewed\b/gi, '').trim()
+    typeof v === 'string' && /(?:^|\s)#\s+Rosetta-reviewed\b/.test(v)
+      ? v.replace(/\s*#\s+Rosetta-reviewed\b/g, '').trim()
       : v,
   );
   return crypto.createHash('sha1').update(`${toolName}:${normalized}`).digest('hex');

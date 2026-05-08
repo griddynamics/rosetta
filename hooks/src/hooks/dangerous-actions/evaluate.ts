@@ -7,13 +7,13 @@ import {
   type DangerPattern,
 } from './patterns';
 
-/** Regex that matches the word `reviewed` at a word boundary. */
-const REVIEWED_RE = /\breviewed\b/;
+/** Regex that matches the override marker `# Rosetta-reviewed` (must follow whitespace or line start). */
+const OVERRIDE_RE = /(?:^|\s)#\s+Rosetta-reviewed\b/;
 
 /** Max length of the evidence snippet shown in deny messages. */
 const EVIDENCE_MAX = 120;
 
-/** User-visible fields accepted for the `reviewed` override, by tool name. */
+/** User-visible fields accepted for the `# Rosetta-reviewed` override, by tool name. */
 const OVERRIDE_FIELDS_BY_TOOL: Readonly<Record<string, readonly string[]>> = {
   Bash:      ['command'],
   Write:     ['content', 'file_path'],
@@ -21,7 +21,7 @@ const OVERRIDE_FIELDS_BY_TOOL: Readonly<Record<string, readonly string[]>> = {
   MultiEdit: ['file_path', 'edits'],
 };
 
-/** Fields scanned for `reviewed` in MCP tool calls. */
+/** Fields scanned for `# Rosetta-reviewed` in MCP tool calls. */
 const MCP_OVERRIDE_FIELDS = ['command', 'sql', 'query', 'new_string', 'content'] as const;
 
 const MCP_SHELL_FIELDS   = ['command', 'cmd', 'shell_command'] as const;
@@ -42,7 +42,8 @@ function buildDenyMessage(
     `Blocked: ${pattern.id} — ${pattern.label} on ${toolKind}`,
     `Evidence: ${evidenceLine}`,
     '',
-    'Override: include `reviewed` anywhere in the tool call (command, content, or any visible string field).',
+    'Override: append `# Rosetta-reviewed` to the tool call (Bash command, content, or any visible field).',
+    'HITL: only the human user may add this marker. AI agents MUST NOT add it autonomously — wait for explicit human approval.',
     'Alternative: use soft delete, dry-run, --force-with-lease, or a staging environment.',
   ].join('\n');
 }
@@ -74,13 +75,13 @@ function matchDangerousPath(filePath: string): DangerPattern | null {
 
 /**
  * Returns true if any user-visible string field for the given tool name
- * contains `reviewed` at a word boundary.
+ * contains the override marker `# Rosetta-reviewed`.
  *
  * Intentionally restricted to fields rendered in the IDE UI so the agent
  * cannot silently self-assert the override via hidden metadata fields
  * such as `description`.
  */
-export function hasReviewedOverride(
+export function hasRosettaReviewedOverride(
   input: Readonly<Record<string, unknown>>,
   toolName: string,
 ): boolean {
@@ -90,13 +91,13 @@ export function hasReviewedOverride(
 
   return fields.some(f => {
     const v = input[f];
-    if (typeof v === 'string') return REVIEWED_RE.test(v);
+    if (typeof v === 'string') return OVERRIDE_RE.test(v);
     if (Array.isArray(v)) {
       return v.some(item => {
-        if (typeof item === 'string') return REVIEWED_RE.test(item);
+        if (typeof item === 'string') return OVERRIDE_RE.test(item);
         if (item && typeof item === 'object') {
           return Object.values(item as Record<string, unknown>)
-            .some(inner => typeof inner === 'string' && REVIEWED_RE.test(inner));
+            .some(inner => typeof inner === 'string' && OVERRIDE_RE.test(inner));
         }
         return false;
       });
@@ -210,7 +211,7 @@ function evalPatternRaw(ctx: HookContext): HookResult {
 export function evaluateDangerous(ctx: HookContext): HookResult {
   const result = evalPatternRaw(ctx);
   if (result === null) return null;
-  if (hasReviewedOverride(ctx.toolInput as Record<string, unknown>, ctx.toolName)) return null;
+  if (hasRosettaReviewedOverride(ctx.toolInput as Record<string, unknown>, ctx.toolName)) return null;
   return result;
 }
 

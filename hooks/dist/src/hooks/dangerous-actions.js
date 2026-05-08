@@ -20,11 +20,11 @@ exports.dangerousActionsHook = (0, define_hook_1.defineHook)({
         const cwd = ctx.cwd || process.cwd();
         const input = ctx.toolInput;
         const hash = (0, cooldown_store_1.hashCall)(ctx.toolName, input);
-        const hasOverride = (0, evaluate_1.hasReviewedOverride)(input, ctx.toolName);
+        const hasOverride = (0, evaluate_1.hasRosettaReviewedOverride)(input, ctx.toolName);
         // Layer B: cooldown — block immediate self-retry with override.
         if ((0, cooldown_store_1.isWithinCooldown)(cwd, hash) && hasOverride) {
             (0, audit_log_1.appendOverrideAudit)(cwd, { toolName: ctx.toolName, blockedByCooldown: true, sessionId: ctx.sessionId });
-            return (0, result_helpers_1.deny)('Blocked: repeated dangerous call within 5-second cooldown — override ignored.\n' +
+            return (0, result_helpers_1.deny)('Blocked: repeated dangerous call within 5-second cooldown — `# Rosetta-reviewed` override ignored.\n' +
                 'Wait 5 seconds before retrying with the override, or confirm the action explicitly.');
         }
         // Layer A: override in user-visible fields → allow and log.

@@ -343,7 +343,7 @@ var DANGEROUS_CONTENT = [
 ];
 
 // src/hooks/dangerous-actions/evaluate.ts
-var REVIEWED_RE = /\breviewed\b/;
+var OVERRIDE_RE = /(?:^|\s)#\s+Rosetta-reviewed\b/;
 var EVIDENCE_MAX = 120;
 var OVERRIDE_FIELDS_BY_TOOL = {
   Bash: ["command"],
@@ -361,7 +361,8 @@ function buildDenyMessage(pattern, toolKind, evidence, redact = false) {
     `Blocked: ${pattern.id} \u2014 ${pattern.label} on ${toolKind}`,
     `Evidence: ${evidenceLine}`,
     "",
-    "Override: include `reviewed` anywhere in the tool call (command, content, or any visible string field).",
+    "Override: append `# Rosetta-reviewed` to the tool call (Bash command, content, or any visible field).",
+    "HITL: only the human user may add this marker. AI agents MUST NOT add it autonomously \u2014 wait for explicit human approval.",
     "Alternative: use soft delete, dry-run, --force-with-lease, or a staging environment."
   ].join("\n");
 }
@@ -380,16 +381,16 @@ function matchDangerousPath(filePath) {
   }
   return null;
 }
-function hasReviewedOverride(input, toolName) {
+function hasRosettaReviewedOverride(input, toolName) {
   const fields = toolName.startsWith("mcp__") ? MCP_OVERRIDE_FIELDS : OVERRIDE_FIELDS_BY_TOOL[toolName] ?? MCP_OVERRIDE_FIELDS;
   return fields.some((f) => {
     const v = input[f];
-    if (typeof v === "string") return REVIEWED_RE.test(v);
+    if (typeof v === "string") return OVERRIDE_RE.test(v);
     if (Array.isArray(v)) {
       return v.some((item) => {
-        if (typeof item === "string") return REVIEWED_RE.test(item);
+        if (typeof item === "string") return OVERRIDE_RE.test(item);
         if (item && typeof item === "object") {
-          return Object.values(item).some((inner) => typeof inner === "string" && REVIEWED_RE.test(inner));
+          return Object.values(item).some((inner) => typeof inner === "string" && OVERRIDE_RE.test(inner));
         }
         return false;
       });
@@ -510,7 +511,7 @@ function saveStore(cwd, store, now) {
 function hashCall(toolName, toolInput) {
   const normalized = JSON.stringify(
     toolInput,
-    (_, v) => typeof v === "string" && /\breviewed\b/i.test(v) ? v.replace(/\s*#\s*\breviewed\b\s*/gi, "").replace(/\breviewed\b/gi, "").trim() : v
+    (_, v) => typeof v === "string" && /(?:^|\s)#\s+Rosetta-reviewed\b/.test(v) ? v.replace(/\s*#\s+Rosetta-reviewed\b/g, "").trim() : v
   );
   return import_crypto2.default.createHash("sha1").update(`${toolName}:${normalized}`).digest("hex");
 }
@@ -550,11 +551,11 @@ var dangerousActionsHook = defineHook({
     const cwd = ctx.cwd || process.cwd();
     const input = ctx.toolInput;
     const hash = hashCall(ctx.toolName, input);
-    const hasOverride = hasReviewedOverride(input, ctx.toolName);
+    const hasOverride = hasRosettaReviewedOverride(input, ctx.toolName);
     if (isWithinCooldown(cwd, hash) && hasOverride) {
       appendOverrideAudit(cwd, { toolName: ctx.toolName, blockedByCooldown: true, sessionId: ctx.sessionId });
       return deny(
-        "Blocked: repeated dangerous call within 5-second cooldown \u2014 override ignored.\nWait 5 seconds before retrying with the override, or confirm the action explicitly."
+        "Blocked: repeated dangerous call within 5-second cooldown \u2014 `# Rosetta-reviewed` override ignored.\nWait 5 seconds before retrying with the override, or confirm the action explicitly."
       );
     }
     if (hasOverride) {
