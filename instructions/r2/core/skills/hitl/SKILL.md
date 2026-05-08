@@ -20,6 +20,7 @@ Invoke as
 - When output is wrong, fix the harness — not the artifact
 - YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar.
 - The cost of mistakes is VERY HIGH, assumptions are the top contributor — show to user for prior approval
+- When `dangerous-actions` hook denies a tool call, the override marker `# Rosetta-reviewed` MUST come from the human user. The AI agent MUST NEVER add this marker itself — wait for explicit human approval. See the `dangerous-actions` skill.
 
 </core_concepts>
 

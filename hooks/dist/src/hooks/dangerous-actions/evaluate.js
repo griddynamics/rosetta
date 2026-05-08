@@ -1,22 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hasReviewedOverride = hasReviewedOverride;
+exports.hasRosettaReviewedOverride = hasRosettaReviewedOverride;
 exports.evaluateDangerous = evaluateDangerous;
 exports.evalPatternOnly = evalPatternOnly;
 const result_helpers_1 = require("../../runtime/result-helpers");
 const patterns_1 = require("./patterns");
-/** Regex that matches the word `reviewed` at a word boundary. */
-const REVIEWED_RE = /\breviewed\b/;
+/** Regex that matches the override marker `# Rosetta-reviewed` (must follow whitespace or line start). */
+const OVERRIDE_RE = /(?:^|\s)#\s+Rosetta-reviewed\b/;
 /** Max length of the evidence snippet shown in deny messages. */
 const EVIDENCE_MAX = 120;
-/** User-visible fields accepted for the `reviewed` override, by tool name. */
+/** User-visible fields accepted for the `# Rosetta-reviewed` override, by tool name. */
 const OVERRIDE_FIELDS_BY_TOOL = {
     Bash: ['command'],
     Write: ['content', 'file_path'],
     Edit: ['new_string', 'old_string', 'file_path'],
     MultiEdit: ['file_path', 'edits'],
 };
-/** Fields scanned for `reviewed` in MCP tool calls. */
+/** Fields scanned for `# Rosetta-reviewed` in MCP tool calls. */
 const MCP_OVERRIDE_FIELDS = ['command', 'sql', 'query', 'new_string', 'content'];
 const MCP_SHELL_FIELDS = ['command', 'cmd', 'shell_command'];
 const MCP_PATH_FIELDS = ['path', 'file_path', 'filePath', 'target', 'target_path'];
@@ -29,7 +29,8 @@ function buildDenyMessage(pattern, toolKind, evidence, redact = false) {
         `Blocked: ${pattern.id} — ${pattern.label} on ${toolKind}`,
         `Evidence: ${evidenceLine}`,
         '',
-        'Override: include `reviewed` anywhere in the tool call (command, content, or any visible string field).',
+        'Override: append `# Rosetta-reviewed` to the tool call (Bash command, content, or any visible field).',
+        'HITL: only the human user may add this marker. AI agents MUST NOT add it autonomously — wait for explicit human approval.',
         'Alternative: use soft delete, dry-run, --force-with-lease, or a staging environment.',
     ].join('\n');
 }
@@ -58,27 +59,27 @@ function matchDangerousPath(filePath) {
 }
 /**
  * Returns true if any user-visible string field for the given tool name
- * contains `reviewed` at a word boundary.
+ * contains the override marker `# Rosetta-reviewed`.
  *
  * Intentionally restricted to fields rendered in the IDE UI so the agent
  * cannot silently self-assert the override via hidden metadata fields
  * such as `description`.
  */
-function hasReviewedOverride(input, toolName) {
+function hasRosettaReviewedOverride(input, toolName) {
     const fields = toolName.startsWith('mcp__')
         ? MCP_OVERRIDE_FIELDS
         : (OVERRIDE_FIELDS_BY_TOOL[toolName] ?? MCP_OVERRIDE_FIELDS);
     return fields.some(f => {
         const v = input[f];
         if (typeof v === 'string')
-            return REVIEWED_RE.test(v);
+            return OVERRIDE_RE.test(v);
         if (Array.isArray(v)) {
             return v.some(item => {
                 if (typeof item === 'string')
-                    return REVIEWED_RE.test(item);
+                    return OVERRIDE_RE.test(item);
                 if (item && typeof item === 'object') {
                     return Object.values(item)
-                        .some(inner => typeof inner === 'string' && REVIEWED_RE.test(inner));
+                        .some(inner => typeof inner === 'string' && OVERRIDE_RE.test(inner));
                 }
                 return false;
             });
@@ -187,7 +188,7 @@ function evaluateDangerous(ctx) {
     const result = evalPatternRaw(ctx);
     if (result === null)
         return null;
-    if (hasReviewedOverride(ctx.toolInput, ctx.toolName))
+    if (hasRosettaReviewedOverride(ctx.toolInput, ctx.toolName))
         return null;
     return result;
 }
