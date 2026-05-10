@@ -7,7 +7,7 @@ tags: ["rosetta-bootstrap", "guardrails", "policy"]
 baseSchema: docs/schemas/rule.md
 ---
 
-<bootstrap_guardrails severity="CRITICAL" use="ALWAYS" compact="NEVER" optimize="NEVER" summarize="AS-IS">
+<rosetta:bootstrap_guardrails severity="CRITICAL" use="ALWAYS" compact="NEVER" optimize="NEVER" summarize="AS-IS">
 
 <must>
 
@@ -96,4 +96,4 @@ If `X` is not loaded, MUST discover it via ToolSearch, fallback to ACQUIRE "<X>/
 
 </skill_engagement_rules>
 
-</bootstrap_guardrails>
+</rosetta:bootstrap_guardrails>

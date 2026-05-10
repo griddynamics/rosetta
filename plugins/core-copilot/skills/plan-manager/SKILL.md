@@ -24,7 +24,7 @@ Senior execution planner and tracker for plan-driven workflows.
 
 <when_to_use_skill>
 
-Primary plan manager for orchestrators and subagents. Creates, tracks, and executes plans as local JSON files.
+Primary operation manager for orchestrators and subagents. Creates, tracks, and executes plans as local JSON files.
 
 </when_to_use_skill>
 

@@ -1,0 +1,25 @@
+{
+  "name": "session",
+  "description": "Debug and fix venv/bin/python ./scripts/pre_commit.py failure",
+  "status": "open",
+  "created_at": "2026-05-10T22:43:06.100Z",
+  "updated_at": "2026-05-10T22:43:06.101Z",
+  "phases": [
+    {
+      "status": "open",
+      "depends_on": [],
+      "id": "ph-prep",
+      "name": "Preparation",
+      "description": "Load context, apply guardrails, and select workflow",
+      "steps": [
+        {
+          "status": "open",
+          "depends_on": [],
+          "id": "s-context",
+          "name": "Load context instructions",
+          "prompt": "Call get_context_instructions(). Execute ALL returned prep steps."
+        }
+      ]
+    }
+  ]
+}

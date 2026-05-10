@@ -32,6 +32,26 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </discovery>
 
+<design phase="2" applies="SMALL,MEDIUM,LARGE" subagent="architect" role="Design architecture requirements and solution">
+
+1. First: design architecture requirements to address user request fully.
+2. Second: design 3 best architecture solutions with pro/cons analysis.
+3. Third: select the best solution.
+2. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: concise architecture-notes.md in FEATURE PLAN folder.
+3. Recommended skills: `reasoning`
+4. Update `agents/coding-flow-state.md`
+
+</design>
+
+<user_review_design phase="3" applies="ALL" type="HITL">
+
+1. Present main solution first and then alternatives, do not assume user is in context, give him full information with TLDR.
+1. Present specs, plan, and review findings. User MUST approve: "Yes, I reviewed the plan" or "Approve, the plan and specs were reviewed".
+2. Do NOT assume approval. Anything else = review feedback, iterate.
+3. SMALL: may combine with Phase 8 into single checkpoint.
+
+</user_review_design>
+
 <tech_plan phase="2" applies="ALL" subagent="architect" role="Senior architect defining specs and plan">
 
 1. USE SKILL `tech-specs` and USE SKILL `planning` together. Split: specs own WHAT, plan owns HOW.
@@ -44,7 +64,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 <review_plan phase="3" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting specs and plan against intent">
 
-1. Review specs and plan against user request and discovery notes.
+1. Review specs and plan against user request and discovery notes, do not assume user is in context, give him full information with TLDR.
 2. Input: specs, plan, user request. Output: review findings and recommendations.
 3. Recommended skills: `reasoning`
 4. Update `agents/coding-flow-state.md`
