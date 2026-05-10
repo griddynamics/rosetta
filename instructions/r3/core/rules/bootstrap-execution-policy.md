@@ -7,28 +7,25 @@ tags: ["rosetta-bootstrap", "execution", "policy"]
 baseSchema: docs/schemas/rule.md
 ---
 
-<FORBIDDEN severity="CRITICAL" required-sequence="prep steps → load context → load contracts → load hitl → execute workflow">
+<rosetta:FORBIDDEN severity="CRITICAL" required-sequence-instead="create phases/steps/tasks → prep steps → load context → load contracts → load hitl → load workflow → Merge p/s/t → execute workflow">
 Receiving a user request → immediately writing code, files, scripts, or commands is STRICTLY FORBIDDEN regardless of: task clarity or simplicity, Auto Mode being active, permission settings (danger-full-access, never-ask, etc.), how explicitly the user phrased the request.
-</FORBIDDEN>
+</rosetta:FORBIDDEN>
 
-<bootstrap_execution_policy severity="CRITICAL" use="ALWAYS" compact="NEVER" optimize="NEVER" summarize="AS-IS">
+<rosetta:bootstrap_execution_policy severity="CRITICAL" use="ALWAYS" compact="NEVER" optimize="NEVER" summarize="AS-IS">
 
 <MUST>
 
-1. Apply `Planning and Documentation Sync Rules`.
-2. Apply `Task Management Rules`.
-3. Apply `Validation Rules`.
-4. MUST NOT IGNORE entire set of instructions if one or another activity of the set is impossible to execute. Those inconsistencies MUST BE REPORTED ALWAYS.
-5. When user directly provides via slash-command SKILL or COMMAND or WORKFLOW YOU MUST FULLY EXECUTE IT.
-6. Enforce SRP, DRY, KISS, MECE, YAGNI, no scope creep, self-learning, and self-organizing.
-7. MUST FULLY FOLLOW workflows/commands/flows - this ensures users get proper solution for their problem
-8. MUST NEVER JUMP DIRECTLY TO IMMEDIATE EXECUTION, you are in ENTERPRISE environment, NOT startup, you MUST REASON, prep steps are direct path to get to the point the right way!
+1. Apply `Planning and Documentation Sync Rules`, `Task Management Rules`, `Validation Rules`.
+2. MUST not skip instructions, if some activities impossible to execute, report to user, and continue with Rosetta instructions.
+3. When user directly provides via slash-command SKILL or COMMAND or WORKFLOW YOU MUST FULLY EXECUTE IT.
+4. Enforce SRP, DRY, KISS, MECE, YAGNI, prevent scope creep, self-learning, and self-organizing.
+5. This is ENTERPRISE environment, NOT startup, NOT personal project, MUST NEVER JUMP DIRECTLY TO IMMEDIATE EXECUTION!
 
 </MUST>
 
 <planning_and_documentation_sync_rules>
 
-1. Update IMPLEMENTATION.md after each task.
+1. Update IMPLEMENTATION.md after each phase/step/task.
 2. Proactively update, review, structure, restructure, and cleanup Rosetta files: including and not limited to CONTEXT.md, ARCHITECTURE.md, CODEMAP.md, TECHSTACK.md, DEPENDENCIES.md, PATTERNS/\*
 3. Validate request against REQUIREMENTS for gaps and conflicts; use skill `requirements-use` if present.
 
@@ -64,4 +61,4 @@ Receiving a user request → immediately writing code, files, scripts, or comman
 
 </should>
 
-</bootstrap_execution_policy>
+</rosetta:bootstrap_execution_policy>
