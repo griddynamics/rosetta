@@ -35,7 +35,7 @@ def build_hooks() -> int:
     if npm is None:
         print("ERROR: npm not found — install Node.js to build hooks", file=sys.stderr)
         return 1
-    return run_command([npm, "--prefix", "hooks", "run", "build", "--silent"])
+    return run_command([npm, "--prefix", "hooks", "run", "build:quiet", "--silent"])
 
 
 def run_type_validation() -> int:

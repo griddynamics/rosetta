@@ -9,6 +9,7 @@ import path from 'path';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const srcDir = path.resolve(__dirname, '..', 'src');
 const outDir = path.resolve(__dirname, '..', 'dist', 'bundles');
+const quiet = process.argv.includes('--quiet');
 
 const BUNDLES = [
   { plugin: 'core-claude',   adapter: 'adapter-claude-code' },
@@ -21,6 +22,7 @@ const BUNDLES = [
 // Hook source files to bundle per plugin.
 const HOOK_SOURCES = ['loose-files.ts', 'md-file-advisory.ts'];
 
+let bundleCount = 0;
 for (const { plugin, adapter } of BUNDLES) {
   const adapterPath = path.join(srcDir, 'entrypoints', `${adapter}.ts`);
 
@@ -43,6 +45,11 @@ for (const { plugin, adapter } of BUNDLES) {
       ],
     });
 
-    console.log(`  bundled ${plugin} → dist/bundles/${plugin}/${outName}`);
+    bundleCount++;
+    if (!quiet) {
+      console.log(`  bundled ${plugin} → dist/bundles/${plugin}/${outName}`);
+    }
   }
 }
+
+console.log(`  built ${bundleCount} bundle(s) for ${BUNDLES.length} plugin(s)`);
