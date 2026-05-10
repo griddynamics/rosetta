@@ -75,6 +75,9 @@ _site/
 .jekyll-cache/
 .jekyll-metadata
 .sass-cache/
+.playwright-mcp/
+.bundle/
+vendor/
 
 # Rosetta
 agents/TEMP/
