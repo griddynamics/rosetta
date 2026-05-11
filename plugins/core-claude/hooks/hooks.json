@@ -28,6 +28,15 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/gitnexus-refresh.js\""
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lint-format-advisory.js\""
+          }
+        ]
       }
     ]
   }

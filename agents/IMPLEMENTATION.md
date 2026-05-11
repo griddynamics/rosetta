@@ -72,6 +72,14 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Build integrated into `scripts/pre_commit.py` via `build_hooks()` check before plugin sync.
 - Codex `md-file-advisory.js` hook installed in workspace `.codex/hooks.json` and wired into the `core-codex` hook template/generated configs.
 
+### Hooks — lint-format-advisory PostToolUse Hook
+
+- Added `hooks/src/hooks/lint-format-advisory.ts`: PostToolUse advisory that emits `[Rosetta Advisory]` text nudging the agent to plan a syntax/type/lint/format check step after editing a code file.
+- Monitored extensions: `.html`, `.css`, `.js`, `.ts`, `.jsx`, `.tsx`, `.py`, `.cs`, `.ps1`, `.cmd`, `.java`, `.go`, `.rs`, `.md`.
+- Throttle: 5-second tmp-file lock keyed by `(session, filePath)`; Copilot platform double-fire absorbed by the same key. Session-long TTL deferred.
+- No `plan_manager` coupling (deferred to a follow-up PR alongside actual linter execution).
+- Registered in all four plugins via `hooks.json.tmpl` (workspace) and the GitHub Marketplace tmpl for Copilot; generated `hooks.json` checked into each plugin tree. vitest suite (43 tests).
+
 ### rosettify (npm package)
 
 - Local CLI/MCP tool runner for Rosetta. Published on npm as `rosettify` (`rosettify/`).

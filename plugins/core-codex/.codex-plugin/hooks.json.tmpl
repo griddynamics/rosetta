@@ -28,6 +28,15 @@
             "command": "node .codex/hooks/gitnexus-refresh.js"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|apply_patch|functions.apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/lint-format-advisory.js"
+          }
+        ]
       }
     ]
   }
