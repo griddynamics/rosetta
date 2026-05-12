@@ -13,7 +13,7 @@ Topology:
 
 1. MUST delegate to subagents when platform supports them. Orchestrator makes decisions and orchestrates.
 2. Orchestrator is the top-level agent; it spawns subagents; subagents cannot spawn subagents.
-3. Subagents start with fresh context every run.
+3. Subagents start with fresh context every run. User can not see orchestrator and subagent communication.
 
 Dispatch:
 
