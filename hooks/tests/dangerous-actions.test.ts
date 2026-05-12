@@ -556,11 +556,11 @@ describe('# Rosetta-AI-reviewed — retry marker', () => {
     expect(r?.kind).toBe('deny');
   });
 
-  test('Bash: reconsider deny message contains retry instruction', () => {
+  test('Bash: reconsider deny message contains override instruction', () => {
     const r = evaluateDangerous(bashCtx('rm -rf /tmp/cache'));
     const reason = (r as {kind:'deny';reason:string}).reason;
     expect(reason).toContain('# Rosetta-AI-reviewed');
-    expect(reason).toContain('retry');
+    expect(reason).toContain('override');
   });
 
   test('Bash: hard-deny message does NOT contain retry instruction', () => {

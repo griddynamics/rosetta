@@ -44,33 +44,30 @@ function buildReconsiderDenyMessage(
     ? `<redacted: ${pattern.id}>`
     : (evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence);
 
-  const retryLines =
+  const overrideExample =
     toolKind === 'bash'
       ? [
-          'retry with `# Rosetta-AI-reviewed` appended to the command.',
-          '',
           'Example: `rm -rf /tmp/cache  # Rosetta-AI-reviewed`',
-          '(SQL via bash: use `-- # Rosetta-AI-reviewed`; spaces around `#` are required)',
+          '(SQL via bash: use `-- # Rosetta-AI-reviewed`; one space after `#` required)',
         ]
       : toolKind === 'write' || toolKind === 'edit' || toolKind === 'multi-edit'
       ? [
-          'retry with `# Rosetta-AI-reviewed` added as a trailing comment in `new_string`.',
-          '',
           'Example: `DROP TABLE old_events; -- # Rosetta-AI-reviewed`',
-          '(spaces around `#` are required)',
+          '(add as trailing comment in `new_string`; one space after `#` required)',
         ]
       : [
-          'retry with `# Rosetta-AI-reviewed` appended to the relevant string field.',
-          '(spaces around `#` are required)',
+          'Append `# Rosetta-AI-reviewed` to the relevant string field.',
+          '(one space after `#` required)',
         ];
 
   return [
-    `Blocked: ${pattern.id} — ${pattern.label} on ${toolKind}`,
+    `Dangerous action detected: ${pattern.label} [${pattern.id}]`,
+    'Did you use the skill? Did you analyse blast radius and whether you can recover it back? Did you intend dry run?',
     `Evidence: ${evidenceLine}`,
     `Reason: ${pattern.reason}`,
     '',
-    'If you have considered the blast radius and confirm this is intentional,',
-    ...retryLines,
+    'If you are sure and confirmed with the user, you can override by appending `# Rosetta-AI-reviewed` to the tool call:',
+    ...overrideExample,
   ].join('\n');
 }
 

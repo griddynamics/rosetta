@@ -40,7 +40,7 @@ Exceptions (only after blast radius):
 
 <hook>
 
-Active in Claude Code, Cursor, Copilot, Codex, and Windsurf.
+Active in Claude Code, Cursor, Copilot, and Codex. Windsurf: adapter ships but no plugin yet.
 
 An automated PreToolUse hook backs this skill for the highest-blast-radius patterns (Bash destructive commands, file writes to secret paths, DDL payloads in content). The hook is a deterministic tripwire — it does not replace this skill's reasoning process. Use this skill to reason about danger; the hook enforces a last-resort gate if that reasoning is skipped.
 
