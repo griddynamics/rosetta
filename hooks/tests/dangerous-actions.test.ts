@@ -519,6 +519,19 @@ describe('Rosetta-AI-reviewed override — token detection (no # required)', () 
     expect(evaluateDangerous(editCtx('schema.sql', 'DROP TABLE x; -- # Rosetta-AI-reviewed'))).toBeNull();
   });
 
+  test('Edit: marker in old_string (non-whitelisted field) → deny (whitelist boundary locked)', () => {
+    const ctx: HookContext = {
+      ide: 'claude-code', event: 'PreToolUse', toolKind: 'edit',
+      toolName: 'Edit', filePath: 'schema.sql', cwd: '/proj', sessionId: null,
+      toolInput: {
+        file_path: 'schema.sql',
+        old_string: 'DROP TABLE x; -- Rosetta-AI-reviewed',
+        new_string: 'DROP TABLE x;',
+      },
+    };
+    expect(evaluateDangerous(ctx)).not.toBeNull();
+  });
+
   test('MultiEdit: one edit.new_string contains `# Rosetta-AI-reviewed` → null', () => {
     const ctx: HookContext = {
       ide: 'claude-code', event: 'PreToolUse', toolKind: 'multi-edit',
