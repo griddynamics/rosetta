@@ -12,7 +12,7 @@ baseSchema: docs/schemas/skill.md
 1. Assess BLAST RADIUS before execution.
 2. "THINK THE OPPOSITE" — what if this goes wrong?
 3. Consider safer alternatives.
-4. MUST REQUIRE EXPLICIT user approval.
+4. MUST REQUIRE EXPLICIT user approval for hard-deny tier (see below).
 
 Examples (not limited):
 
@@ -40,45 +40,54 @@ Exceptions (only after blast radius):
 
 <hook>
 
-Currently active in Claude Code only; rollout to other IDEs is a follow-up.
+Active in Claude Code, Cursor, Copilot, Codex, and Windsurf.
 
 An automated PreToolUse hook backs this skill for the highest-blast-radius patterns (Bash destructive commands, file writes to secret paths, DDL payloads in content). The hook is a deterministic tripwire — it does not replace this skill's reasoning process. Use this skill to reason about danger; the hook enforces a last-resort gate if that reasoning is skipped.
 
+## Two-tier policy
+
+All patterns are classified as either **reconsider** (dangerous but recoverable) or **hard-deny** (catastrophic, no bypass exists):
+
+| Tier | Examples | AI behaviour on deny |
+|------|---------|----------------------|
+| `reconsider` | `rm -rf ./cache`, `git reset --hard`, `git branch -D`, `aws s3 rm --recursive`, DDL in content | Deny with retry instruction; AI may add `# Rosetta-AI-reviewed` after reconsidering blast radius |
+| `hard-deny` | `rm -rf /`, `rm -rf $HOME`, `mkfs`, `dd of=/dev/`, `curl \| sh`, writes to `.env` / SSH keys / AWS credentials / kubeconfig | Permanent block; human review required |
+
 ## Threat model
 
-This hook is a **deterministic safety net against typos and accidental destructive intent** — not a security boundary against the agent itself.
+This hook is a **deterministic safety net against accidental destructive intent** — not a security boundary against a determined adversary.
 
 | Protects against | Does not protect against |
 |-----------------|--------------------------|
 | Accidental `rm -rf /` by AI on the way to its real task | A determined AI with explicit instructions to bypass |
 | Human typos in command strings | Prompt injection targeting the override token |
-| Unintentional secret file writes | Agents with OS-level shell access granted by the user |
-| AI self-asserting `# Rosetta-reviewed` post-deny (mitigated by cooldown + brand-prefix + HITL norm) | — |
+| Unintentional secret file writes | Novel MCP tools with non-standard field names |
+| AI self-approving supply-chain attacks (`curl \| sh` is hard-deny) | Agents with OS-level shell access granted by the user |
 
-## Override mechanism
+## Override mechanism — reconsider tier
 
-Append `# Rosetta-reviewed` to a **user-visible field** of the tool call to bypass the block:
-- `Bash`: in the `command` field — e.g. `rm -rf /tmp/test  # Rosetta-reviewed`
-- `Write`/`Edit`: in `content`, `new_string`, or `file_path` — e.g. `# Rosetta-reviewed` anywhere in the value
-- `MCP`: in `command`, `sql`, `query`, `new_string`, or `content`
+When the hook denies a `reconsider`-tier pattern:
 
-**Not accepted**: `description`, `comment`, `metadata`, or any other field not rendered in the IDE UI. This restriction prevents the agent from silently self-asserting the override via hidden fields.
+1. Read the deny message: it explains the pattern, blast radius reason, and retry instructions.
+2. Reconsider the blast radius: is the target actually safe? Is there a safer alternative?
+3. If the action is genuinely necessary, append `# Rosetta-AI-reviewed` to a **user-visible field** and retry:
+   - `Bash`: in the `command` field — e.g. `rm -rf /tmp/test  # Rosetta-AI-reviewed`
+   - `Write`/`Edit`: in `new_string` — e.g. `ALTER TABLE x; -- # Rosetta-AI-reviewed`
+   - `MCP`: in `command`, `sql`, `query`, `new_string`, or `content`
+4. If unsure about blast radius, stop and ask the user before proceeding.
 
-**Format requirements**: `# Rosetta-reviewed` must be preceded by whitespace or appear at the start of the string; exactly one `#` followed by one or more spaces; exact case (`Rosetta` capitalised). The following are rejected: bare `reviewed`, `# reviewed` (legacy), `# rosetta-reviewed` (lowercase), `#Rosetta-reviewed` (no space after `#`).
+**Not accepted**: `description`, `comment`, `metadata`, or any field not rendered in the IDE UI. This prevents silent self-assertion via hidden fields.
 
-A 5-second cooldown prevents immediate re-assertion of the override after a deny. Override events are logged to `.claude/audit/hook-overrides.jsonl` for post-hoc review.
+**Format requirements**: `# Rosetta-AI-reviewed` must be preceded by whitespace or appear at the start of the string; exactly one `#` followed by one or more spaces; exact case. Rejected: `# Rosetta-reviewed` (old token), `# rosetta-ai-reviewed` (lowercase), `#Rosetta-AI-reviewed` (no space after `#`).
 
-## HITL boundary
+## Hard-deny tier
 
-**Only the human user may add `# Rosetta-reviewed`.** The AI agent MUST NEVER add this marker autonomously — even when reasoning suggests the action is safe, necessary, or that the user "would have approved anyway". Adding the marker without explicit human authorisation is a HITL violation.
+`hard-deny` patterns **cannot be bypassed by `# Rosetta-AI-reviewed`**. When the hook returns `HARD-DENY`:
 
-When the hook denies a call, the AI agent must:
-1. Stop and explain the block to the human user.
-2. Describe the proposed action and its blast radius.
-3. Wait for the human to either approve (by typing `# Rosetta-reviewed` into the tool call) or decline.
-4. Never re-issue the same call with the marker added by itself.
-
-Existing safeguards reinforce this boundary: the 5-second cooldown blocks immediate self-retry; the audit log captures every override; the brand-prefix makes accidental self-insertion impossible.
+1. Stop immediately — do not retry with the marker.
+2. Explain the block and blast radius to the user.
+3. Propose a safer alternative if one exists.
+4. Wait for the human to explicitly confirm before taking any equivalent action.
 
 </hook>
 
