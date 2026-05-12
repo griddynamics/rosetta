@@ -3,23 +3,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasAIReviewedMarker = hasAIReviewedMarker;
 exports.evalPatternAndPolicy = evalPatternAndPolicy;
 exports.evaluateDangerous = evaluateDangerous;
-// # Rosetta-AI-reviewed: pattern definitions only — not executable SQL/shell
+// Rosetta-AI-reviewed: pattern definitions only — not executable SQL/shell
 const result_helpers_1 = require("../../runtime/result-helpers");
 const debug_log_1 = require("../../runtime/debug-log");
 const patterns_1 = require("./patterns");
 /**
- * Matches `# Rosetta-AI-reviewed` preceded by whitespace or at line start.
- * Both `#` and `Rosetta-AI-reviewed` must be separated by at least one space.
- * Examples: `rm -rf /tmp  # Rosetta-AI-reviewed`, `-- # Rosetta-AI-reviewed`
+ * Matches the `Rosetta-AI-reviewed` brand token with word boundaries on both sides.
+ * Accepts any surrounding context: `# Rosetta-AI-reviewed`, `-- Rosetta-AI-reviewed`,
+ * plain `Rosetta-AI-reviewed`. Rejects merged words like `XRosetta-AI-reviewedY`.
  */
-const MARKER_RE = /(?:^|\s)#\s+Rosetta-AI-reviewed\b/;
+const MARKER_RE = /\bRosetta-AI-reviewed\b/;
 const EVIDENCE_MAX = 120;
-/** User-visible fields accepted for the `# Rosetta-AI-reviewed` marker, by tool name. */
+/** User-visible payload fields where the `Rosetta-AI-reviewed` marker is accepted, by tool name.
+ *  Restricted to write-time content fields only — path fields and pattern-match fields
+ *  (file_path, old_string) are excluded to prevent changing the operation target. */
 const MARKER_FIELDS_BY_TOOL = {
     Bash: ['command'],
-    Write: ['content', 'file_path'],
-    Edit: ['new_string', 'old_string', 'file_path'],
-    MultiEdit: ['file_path', 'edits'],
+    Write: ['content'],
+    Edit: ['new_string'],
+    MultiEdit: ['edits'],
 };
 const MCP_MARKER_FIELDS = ['command', 'sql', 'query', 'new_string', 'content'];
 const MCP_SHELL_FIELDS = ['command', 'cmd', 'shell_command'];
@@ -29,31 +31,23 @@ function buildReconsiderDenyMessage(pattern, toolKind, evidence, redact = false)
     const evidenceLine = redact
         ? `<redacted: ${pattern.id}>`
         : (evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence);
-    const retryLines = toolKind === 'bash'
-        ? [
-            'retry with `# Rosetta-AI-reviewed` appended to the command.',
-            '',
-            'Example: `rm -rf /tmp/cache  # Rosetta-AI-reviewed`',
-            '(SQL via bash: use `-- # Rosetta-AI-reviewed`; spaces around `#` are required)',
-        ]
-        : toolKind === 'write' || toolKind === 'edit' || toolKind === 'multi-edit'
-            ? [
-                'retry with `# Rosetta-AI-reviewed` added as a trailing comment in `new_string`.',
-                '',
-                'Example: `DROP TABLE old_events; -- # Rosetta-AI-reviewed`',
-                '(spaces around `#` are required)',
-            ]
-            : [
-                'retry with `# Rosetta-AI-reviewed` appended to the relevant string field.',
-                '(spaces around `#` are required)',
-            ];
+    const overrideExample = toolKind === 'bash'
+        ? ['Append `Rosetta-AI-reviewed` as a comment in the `command` field.']
+        : toolKind === 'write'
+            ? ['Append `Rosetta-AI-reviewed` as a comment in the `content` field.']
+            : toolKind === 'edit'
+                ? ['Append `Rosetta-AI-reviewed` as a comment in the `new_string` field.']
+                : toolKind === 'multi-edit'
+                    ? ['Append `Rosetta-AI-reviewed` as a comment in `new_string` inside the relevant `edits[]` entry.']
+                    : ['Append `Rosetta-AI-reviewed` as a comment to the relevant string field.'];
     return [
-        `Blocked: ${pattern.id} — ${pattern.label} on ${toolKind}`,
+        `Dangerous action detected: ${pattern.label} [${pattern.id}]`,
+        'Did you use the skill? Did you analyse blast radius and whether you can recover it back? Did you intend dry run?',
         `Evidence: ${evidenceLine}`,
         `Reason: ${pattern.reason}`,
         '',
-        'If you have considered the blast radius and confirm this is intentional,',
-        ...retryLines,
+        'If you are sure and confirmed with the user, you can override by appending `Rosetta-AI-reviewed` comment to the tool call:',
+        ...overrideExample,
     ].join('\n');
 }
 function buildHardDenyMessage(pattern, toolKind, evidence, redact = false) {
@@ -65,7 +59,7 @@ function buildHardDenyMessage(pattern, toolKind, evidence, redact = false) {
         `Evidence: ${evidenceLine}`,
         `Reason: ${pattern.reason}`,
         '',
-        'This pattern cannot be bypassed by `# Rosetta-AI-reviewed`. Human review required.',
+        'This pattern cannot be bypassed by the `Rosetta-AI-reviewed` marker. Human review required.',
         'AI agent: stop and ask the user to confirm this operation with full blast-radius analysis.',
         'Do not proceed until the user explicitly confirms with full blast-radius analysis.',
     ].join('\n');
@@ -96,7 +90,7 @@ function matchDangerousPath(filePath) {
 }
 /**
  * Returns true if any user-visible string field for the given tool name
- * contains the retry marker `# Rosetta-AI-reviewed`.
+ * contains the retry marker `Rosetta-AI-reviewed`.
  *
  * Restricted to fields rendered in the IDE UI to prevent silent self-assertion
  * via hidden metadata fields such as `description`.

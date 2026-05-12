@@ -421,13 +421,13 @@ var DANGEROUS_CONTENT = [
 ];
 
 // src/hooks/dangerous-actions/evaluate.ts
-var MARKER_RE = /(?:^|\s)#\s+Rosetta-AI-reviewed\b/;
+var MARKER_RE = /\bRosetta-AI-reviewed\b/;
 var EVIDENCE_MAX = 120;
 var MARKER_FIELDS_BY_TOOL = {
   Bash: ["command"],
-  Write: ["content", "file_path"],
-  Edit: ["new_string", "old_string", "file_path"],
-  MultiEdit: ["file_path", "edits"]
+  Write: ["content"],
+  Edit: ["new_string"],
+  MultiEdit: ["edits"]
 };
 var MCP_MARKER_FIELDS = ["command", "sql", "query", "new_string", "content"];
 var MCP_SHELL_FIELDS = ["command", "cmd", "shell_command"];
@@ -435,27 +435,15 @@ var MCP_PATH_FIELDS = ["path", "file_path", "filePath", "target", "target_path"]
 var MCP_CONTENT_FIELDS = ["content", "new_string", "query", "sql"];
 function buildReconsiderDenyMessage(pattern, toolKind, evidence, redact = false) {
   const evidenceLine = redact ? `<redacted: ${pattern.id}>` : evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + "\u2026" : evidence;
-  const retryLines = toolKind === "bash" ? [
-    "retry with `# Rosetta-AI-reviewed` appended to the command.",
-    "",
-    "Example: `rm -rf /tmp/cache  # Rosetta-AI-reviewed`",
-    "(SQL via bash: use `-- # Rosetta-AI-reviewed`; spaces around `#` are required)"
-  ] : toolKind === "write" || toolKind === "edit" || toolKind === "multi-edit" ? [
-    "retry with `# Rosetta-AI-reviewed` added as a trailing comment in `new_string`.",
-    "",
-    "Example: `DROP TABLE old_events; -- # Rosetta-AI-reviewed`",
-    "(spaces around `#` are required)"
-  ] : [
-    "retry with `# Rosetta-AI-reviewed` appended to the relevant string field.",
-    "(spaces around `#` are required)"
-  ];
+  const overrideExample = toolKind === "bash" ? ["Append `Rosetta-AI-reviewed` as a comment in the `command` field."] : toolKind === "write" ? ["Append `Rosetta-AI-reviewed` as a comment in the `content` field."] : toolKind === "edit" ? ["Append `Rosetta-AI-reviewed` as a comment in the `new_string` field."] : toolKind === "multi-edit" ? ["Append `Rosetta-AI-reviewed` as a comment in `new_string` inside the relevant `edits[]` entry."] : ["Append `Rosetta-AI-reviewed` as a comment to the relevant string field."];
   return [
-    `Blocked: ${pattern.id} \u2014 ${pattern.label} on ${toolKind}`,
+    `Dangerous action detected: ${pattern.label} [${pattern.id}]`,
+    "Did you use the skill? Did you analyse blast radius and whether you can recover it back? Did you intend dry run?",
     `Evidence: ${evidenceLine}`,
     `Reason: ${pattern.reason}`,
     "",
-    "If you have considered the blast radius and confirm this is intentional,",
-    ...retryLines
+    "If you are sure and confirmed with the user, you can override by appending `Rosetta-AI-reviewed` comment to the tool call:",
+    ...overrideExample
   ].join("\n");
 }
 function buildHardDenyMessage(pattern, toolKind, evidence, redact = false) {
@@ -465,7 +453,7 @@ function buildHardDenyMessage(pattern, toolKind, evidence, redact = false) {
     `Evidence: ${evidenceLine}`,
     `Reason: ${pattern.reason}`,
     "",
-    "This pattern cannot be bypassed by `# Rosetta-AI-reviewed`. Human review required.",
+    "This pattern cannot be bypassed by the `Rosetta-AI-reviewed` marker. Human review required.",
     "AI agent: stop and ask the user to confirm this operation with full blast-radius analysis.",
     "Do not proceed until the user explicitly confirms with full blast-radius analysis."
   ].join("\n");
