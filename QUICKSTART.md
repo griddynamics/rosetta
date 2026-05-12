@@ -194,12 +194,6 @@ The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CO
 > **Composite workspaces:** init each repository separately, then init at the workspace level with "This is composite workspace" appended.
 > **Dead code or existing specs:** mention their location in the prompt to save time.
 
-## Common Issues
-
-- **OAuth prompt does not appear:** restart your IDE and retry the connection. Read more in [Troubleshooting — Connection & Authentication](TROUBLESHOOTING.md#connection--authentication).
-- **Agent ignores Rosetta tools:** confirm the MCP server shows as connected in your IDE's MCP settings. Add a [bootstrap rule](INSTALLATION.md) if the agent still skips Rosetta. Read more in [Troubleshooting — Agent Not Using Rosetta](TROUBLESHOOTING.md#agent-not-using-rosetta).
-- **Slow or empty responses:** check your network can reach your Rosetta MCP host. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#slow-or-empty-responses).
-
 ## Step 4: Add Bootstrap Rule (optional)
 
 If something does not work.
@@ -216,6 +210,23 @@ Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instru
 | Windsurf                   | `.windsurf/rules/bootstrap.md`    |
 | Antigravity                | `.agent/rules/bootstrap.md`       |
 | OpenCode/Cursor            | `AGENTS.md`                       |
+
+## Rosetta Prompt Examples
+
+- "Use Rosetta `coding-flow.md` to implement/fix/identify ..."
+
+- "Extract business and technical requirements from community id ... name ... (name of community is similar to controller name, but you include all community controllers) using `requirements-authoring-flow.md` and appropriate available subagents."
+
+- "Perform modernization phase 1 for library refsrc/... using `modernization-flow.md` and appropriate available subagents. Must use `coding-flow.md` as the main flow for `Phase 8 - Implementation`. As the very last spawn subagent to review and validate outputs." 
+  Note, during migration all phases are must. All phases to be implemented one-by-one with proper review. Phase 3: Pre-Modernization Test Coverage is a must (and must include both unit and integration tests)
+
+- "Perform modernization of community id ... named ... (name of community is similar to controller name, but you include all community controllers) using `modernization-flow.md` and appropriate available subagents. Microservice name is ... . As the very last spawn subagent to review and validate outputs."
+
+## Common Issues
+
+- **OAuth prompt does not appear:** restart your IDE and retry the connection. Read more in [Troubleshooting — Connection & Authentication](TROUBLESHOOTING.md#connection--authentication).
+- **Agent ignores Rosetta tools:** confirm the MCP server shows as connected in your IDE's MCP settings. Add a [bootstrap rule](INSTALLATION.md) if the agent still skips Rosetta. Read more in [Troubleshooting — Agent Not Using Rosetta](TROUBLESHOOTING.md#agent-not-using-rosetta).
+- **Slow or empty responses:** check your network can reach your Rosetta MCP host. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#slow-or-empty-responses).
 
 ## Next Steps
 
