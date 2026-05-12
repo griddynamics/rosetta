@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasAIReviewedMarker = hasAIReviewedMarker;
 exports.evalPatternAndPolicy = evalPatternAndPolicy;
 exports.evaluateDangerous = evaluateDangerous;
-// # Rosetta-reviewed: pattern definitions only — not executable SQL/shell
+// # Rosetta-AI-reviewed: pattern definitions only — not executable SQL/shell
 const result_helpers_1 = require("../../runtime/result-helpers");
 const debug_log_1 = require("../../runtime/debug-log");
 const patterns_1 = require("./patterns");

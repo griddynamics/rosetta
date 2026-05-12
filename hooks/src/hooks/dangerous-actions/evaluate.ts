@@ -1,4 +1,4 @@
-// # Rosetta-reviewed: pattern definitions only — not executable SQL/shell
+// # Rosetta-AI-reviewed: pattern definitions only — not executable SQL/shell
 import { deny } from '../../runtime/result-helpers';
 import { debugLog } from '../../runtime/debug-log';
 import type { HookContext, HookResult } from '../../runtime/types';
