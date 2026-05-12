@@ -1,7 +1,7 @@
 import { DANGEROUS_BASH, DANGEROUS_PATHS, DANGEROUS_CONTENT } from '../src/hooks/dangerous-actions/patterns';
 import { describe, test, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import type { HookContext } from '../src/runtime/types';
-import { evaluateDangerous } from '../src/hooks/dangerous-actions/evaluate';
+import { evaluateDangerous, hasAIReviewedMarker } from '../src/hooks/dangerous-actions/evaluate';
 import ccBash from './fixtures/claude-code-pre-tool-use-bash.json';
 import ccWrite from './fixtures/claude-code-pre-tool-use-write.json';
 import ccEdit from './fixtures/claude-code-pre-tool-use-edit.json';
@@ -9,9 +9,6 @@ import ccMultiEdit from './fixtures/claude-code-pre-tool-use-multi-edit.json';
 import { dangerousActionsHook } from '../src/hooks/dangerous-actions';
 import { runHook } from '../src/runtime/run-hook';
 import { Readable, Writable } from 'stream';
-import { mkdtempSync, rmSync, readFileSync } from 'fs';
-import path from 'path';
-import os from 'os';
 
 const toStream = (obj: unknown): Readable => Readable.from([JSON.stringify(obj)]);
 const captureOutput = () => {
@@ -194,21 +191,21 @@ describe('evaluateDangerous — Bash patterns', () => {
     const reason = (r as {kind:'deny';reason:string}).reason;
     expect(reason).toContain('rm-rf-root');
     expect(reason).toContain('Evidence:');
-    expect(reason).toContain('Rosetta-reviewed');
+    expect(reason).toContain('HARD-DENY');
   });
 });
 
 describe('evaluateDangerous — Bash override semantics', () => {
-  test('dangerous command + `# Rosetta-reviewed` → null', () => {
-    expect(evaluateDangerous(bashCtx('rm -rf /tmp/scratch  # Rosetta-reviewed'))).toBeNull();
+  test('dangerous command + `# Rosetta-AI-reviewed` → null', () => {
+    expect(evaluateDangerous(bashCtx('rm -rf /tmp/scratch  # Rosetta-AI-reviewed'))).toBeNull();
   });
 
-  test('dangerous command + `# Rosetta-reviewed: reason` → null', () => {
-    expect(evaluateDangerous(bashCtx('git reset --hard HEAD~1  # Rosetta-reviewed: safe on feature branch'))).toBeNull();
+  test('dangerous command + `# Rosetta-AI-reviewed: reason` → null', () => {
+    expect(evaluateDangerous(bashCtx('git reset --hard HEAD~1  # Rosetta-AI-reviewed: safe on feature branch'))).toBeNull();
   });
 
-  test('`# Rosetta-reviewedX` → deny (word boundary rejects suffix)', () => {
-    const r = evaluateDangerous(bashCtx('rm -rf /tmp/x  # Rosetta-reviewedX'));
+  test('`# Rosetta-AI-reviewedX` → deny (word boundary rejects suffix)', () => {
+    const r = evaluateDangerous(bashCtx('rm -rf /tmp/x  # Rosetta-AI-reviewedX'));
     expect(r?.kind).toBe('deny');
   });
 
@@ -240,8 +237,8 @@ describe('evaluateDangerous — Write path rules', () => {
     expect(evaluateDangerous(writeCtx('/proj/src/app.ts', 'const x = 1;'))).toBeNull();
   });
 
-  test('Write: `# Rosetta-reviewed` in content → null (override applies to all tool kinds)', () => {
-    expect(evaluateDangerous(writeCtx('/home/user/.env', '# Rosetta-reviewed'))).toBeNull();
+  test('Write: `.env` with `# Rosetta-AI-reviewed` in content → DENY (hard-deny path overrides marker)', () => {
+    expect(evaluateDangerous(writeCtx('/home/user/.env', '# Rosetta-AI-reviewed'))).not.toBeNull();
   });
 
   test('Write with trailing slash on .env path → deny (trailing slash stripped)', () => {
@@ -321,8 +318,8 @@ describe('dangerousActionsHook — integration (runHook)', () => {
     expect(parsed.continue).toBe(false);
   });
 
-  test('Bash fixture with rm -rf /tmp/x # Rosetta-reviewed → no output (override)', async () => {
-    const raw = { ...ccBash, tool_input: { command: 'rm -rf /tmp/x  # Rosetta-reviewed' } };
+  test('Bash fixture with rm -rf /tmp/x # Rosetta-AI-reviewed → no output (marker honored)', async () => {
+    const raw = { ...ccBash, tool_input: { command: 'rm -rf /tmp/x  # Rosetta-AI-reviewed' } };
     const { writable, output } = captureOutput();
     await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
     expect(output()).toBe('');
@@ -453,18 +450,18 @@ describe('Bug fixes — PR #79 review', () => {
     const r = evaluateDangerous(bashCtx('rm -rf /'));
     const reason = (r as {kind:'deny';reason:string}).reason;
     expect(reason).toContain('rm-rf-root');
-    expect(reason).toContain('Rosetta-reviewed');
+    expect(reason).toContain('# Rosetta-AI-reviewed');
   });
 });
 
-describe('# Rosetta-reviewed override — strict format (brand-prefix + # + space)', () => {
-  test('Bash: `# Rosetta-reviewed` in command → null', () => {
-    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  # Rosetta-reviewed'))).toBeNull();
+describe('# Rosetta-AI-reviewed override — strict format (brand-prefix + # + space)', () => {
+  test('Bash: `# Rosetta-AI-reviewed` in command → null', () => {
+    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  # Rosetta-AI-reviewed'))).toBeNull();
   });
 
-  test('Bash: description field containing `# Rosetta-reviewed` → DENY (not a user-visible field)', () => {
+  test('Bash: description field containing `# Rosetta-AI-reviewed` → DENY (not a user-visible field)', () => {
     const ctx = bashCtx('rm -rf /tmp/x');
-    (ctx.toolInput as Record<string, unknown>).description = '# Rosetta-reviewed: cleanup';
+    (ctx.toolInput as Record<string, unknown>).description = '# Rosetta-AI-reviewed: cleanup';
     expect(evaluateDangerous(ctx)).not.toBeNull();
   });
 
@@ -476,23 +473,23 @@ describe('# Rosetta-reviewed override — strict format (brand-prefix + # + spac
     expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  # reviewed'))).not.toBeNull();
   });
 
-  test('Bash: `# rosetta-reviewed` (lowercase) → deny (case-sensitive)', () => {
-    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  # rosetta-reviewed'))).not.toBeNull();
+  test('Bash: `# rosetta-ai-reviewed` (lowercase) → deny (case-sensitive)', () => {
+    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  # rosetta-ai-reviewed'))).not.toBeNull();
   });
 
-  test('Bash: `#Rosetta-reviewed` (no space after #) → deny (strict format requires space)', () => {
-    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  #Rosetta-reviewed'))).not.toBeNull();
+  test('Bash: `#Rosetta-AI-reviewed` (no space after #) → deny (strict format requires space)', () => {
+    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  #Rosetta-AI-reviewed'))).not.toBeNull();
   });
 
-  test('Write: .env file with `# Rosetta-reviewed` in content → null', () => {
-    expect(evaluateDangerous(writeCtx('/home/user/.env', '# Rosetta-reviewed'))).toBeNull();
+  test('Write: .env file with `# Rosetta-AI-reviewed` in content → DENY (hard-deny path, marker not honored)', () => {
+    expect(evaluateDangerous(writeCtx('/home/user/.env', '# Rosetta-AI-reviewed'))).not.toBeNull();
   });
 
-  test('Edit: dangerous new_string with `# Rosetta-reviewed` → null', () => {
-    expect(evaluateDangerous(editCtx('schema.sql', 'DROP TABLE x; -- # Rosetta-reviewed'))).toBeNull();
+  test('Edit: dangerous new_string with `# Rosetta-AI-reviewed` → null', () => {
+    expect(evaluateDangerous(editCtx('schema.sql', 'DROP TABLE x; -- # Rosetta-AI-reviewed'))).toBeNull();
   });
 
-  test('MultiEdit: one edit.new_string contains `# Rosetta-reviewed` → null', () => {
+  test('MultiEdit: one edit.new_string contains `# Rosetta-AI-reviewed` → null', () => {
     const ctx: HookContext = {
       ide: 'claude-code', event: 'PreToolUse', toolKind: 'multi-edit',
       toolName: 'MultiEdit', filePath: 'schema.sql', cwd: '/proj', sessionId: null,
@@ -500,22 +497,84 @@ describe('# Rosetta-reviewed override — strict format (brand-prefix + # + spac
         file_path: 'schema.sql',
         edits: [
           { old_string: 'a', new_string: 'DROP TABLE foo' },
-          { old_string: 'b', new_string: '# Rosetta-reviewed: intentional' },
+          { old_string: 'b', new_string: '# Rosetta-AI-reviewed: intentional' },
         ],
       },
     };
     expect(evaluateDangerous(ctx)).toBeNull();
   });
 
-  test('MCP: command field contains `# Rosetta-reviewed` → null (whitelist field)', () => {
+  test('MCP: command field contains `# Rosetta-AI-reviewed` → null (whitelist field)', () => {
     const ctx: HookContext = {
       ide: 'claude-code', event: 'PreToolUse', toolKind: 'mcp-call',
       toolName: 'mcp__serena__execute_shell_command', filePath: '', cwd: '/proj', sessionId: null,
       toolInput: {
-        command: 'rm -rf /tmp/x  # Rosetta-reviewed',
+        command: 'rm -rf /tmp/x  # Rosetta-AI-reviewed',
       },
     };
     expect(evaluateDangerous(ctx)).toBeNull();
+  });
+});
+
+describe('# Rosetta-AI-reviewed — retry marker', () => {
+  test('Bash: `# Rosetta-AI-reviewed` in command → null (marker honored)', () => {
+    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  # Rosetta-AI-reviewed'))).toBeNull();
+  });
+
+  test('Bash: hard-deny pattern with marker → still deny', () => {
+    const r = evaluateDangerous(bashCtx('mkfs.ext4 /dev/sda  # Rosetta-AI-reviewed'));
+    expect(r?.kind).toBe('deny');
+  });
+
+  test('Bash: reconsider deny message contains retry instruction', () => {
+    const r = evaluateDangerous(bashCtx('rm -rf /tmp/cache'));
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('# Rosetta-AI-reviewed');
+    expect(reason).toContain('retry');
+  });
+
+  test('Bash: hard-deny message does NOT contain retry instruction', () => {
+    const r = evaluateDangerous(bashCtx('mkfs.ext4 /dev/sda'));
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('HARD-DENY');
+    expect(reason).not.toContain('retry with');
+  });
+
+  test('Bash: `# Rosetta-reviewed` (old marker) → DENY (legacy rejected)', () => {
+    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  # Rosetta-reviewed'))).not.toBeNull();
+  });
+
+  test('Bash: description field with marker → DENY (not user-visible field)', () => {
+    const ctx = bashCtx('rm -rf /tmp/x');
+    (ctx.toolInput as Record<string, unknown>).description = '# Rosetta-AI-reviewed';
+    expect(evaluateDangerous(ctx)).not.toBeNull();
+  });
+
+  test('Edit: dangerous new_string with marker → null', () => {
+    expect(evaluateDangerous(editCtx('schema.sql', 'dangerous content  -- # Rosetta-AI-reviewed'))).toBeNull();
+  });
+
+  test('MultiEdit: marker in one edit.new_string → null', () => {
+    const ctx: HookContext = {
+      ide: 'claude-code', event: 'PreToolUse', toolKind: 'multi-edit',
+      toolName: 'MultiEdit', filePath: 'schema.sql', cwd: '/proj', sessionId: null,
+      toolInput: {
+        file_path: 'schema.sql',
+        edits: [
+          { old_string: 'a', new_string: 'dangerous content' },
+          { old_string: 'b', new_string: '# Rosetta-AI-reviewed: intentional' },
+        ],
+      },
+    };
+    expect(evaluateDangerous(ctx)).toBeNull();
+  });
+
+  test('hasAIReviewedMarker: tab-separated marker → true', () => {
+    expect(hasAIReviewedMarker({ command: 'rm -rf /tmp/x\t# Rosetta-AI-reviewed' }, 'Bash')).toBe(true);
+  });
+
+  test('hasAIReviewedMarker: marker at end of content block → true', () => {
+    expect(hasAIReviewedMarker({ content: 'some content\n# Rosetta-AI-reviewed' }, 'Write')).toBe(true);
   });
 });
 
@@ -590,48 +649,45 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
     ))).toBeNull();
   });
 
-  test('mcp serena execute_shell_command with `# Rosetta-reviewed` → null (override applies to MCP)', () => {
+  test('mcp serena execute_shell_command with `# Rosetta-AI-reviewed` → null (marker applies to MCP)', () => {
     const r = evaluateDangerous(mcpCtx(
       'mcp__plugin_serena_serena__execute_shell_command',
-      { command: 'rm -rf /tmp/x  # Rosetta-reviewed' }
+      { command: 'rm -rf /tmp/x  # Rosetta-AI-reviewed' }
     ));
     expect(r).toBeNull();
   });
 });
 
-describe('F12 A+B+C — override hardening integration', () => {
-  let tmp: string;
-  beforeEach(() => { tmp = mkdtempSync(os.tmpdir() + '/da-f12-'); });
-  afterEach(() => rmSync(tmp, { recursive: true, force: true }));
-
-  test('F12-B: immediate retry of denied command with override → still denied (cooldown)', async () => {
-    const base = { ...ccBash, cwd: tmp };
-    const dangerous = { ...base, tool_input: { command: 'rm -rf /tmp/test-cooldown' } };
-    const withOverride = { ...base, tool_input: { command: 'rm -rf /tmp/test-cooldown  # Rosetta-reviewed' } };
-
-    // First call — no override → deny (records in cooldown store)
-    const { writable: w1, output: o1 } = captureOutput();
-    await runHook(dangerousActionsHook, { stdin: toStream(dangerous), stdout: w1 });
-    expect(JSON.parse(o1()).hookSpecificOutput.permissionDecision).toBe('deny');
-
-    // Immediate retry with override in command (within 5s) → still deny
-    const { writable: w2, output: o2 } = captureOutput();
-    await runHook(dangerousActionsHook, { stdin: toStream(withOverride), stdout: w2 });
-    const parsed2 = JSON.parse(o2());
-    expect(parsed2.hookSpecificOutput.permissionDecision).toBe('deny');
-    expect(parsed2.hookSpecificOutput.permissionDecisionReason).toContain('cooldown');
+describe('retry-pattern integration — full hook via runHook', () => {
+  test('first call: dangerous command → deny with retry instruction', async () => {
+    const raw = { ...ccBash, tool_input: { command: 'rm -rf /tmp/test-retry' } };
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    const parsed = JSON.parse(output());
+    expect(parsed.hookSpecificOutput.permissionDecision).toBe('deny');
+    expect(parsed.hookSpecificOutput.permissionDecisionReason).toContain('# Rosetta-AI-reviewed');
   });
 
-  test('F12-C: allowed override appends JSON line to hook-overrides.jsonl', async () => {
-    // Use a fresh tmp dir with no prior deny — so cooldown is not active
-    const raw = { ...ccBash, cwd: tmp, tool_input: { command: 'rm -rf /tmp/x  # Rosetta-reviewed' } };
-    const { writable } = captureOutput();
+  test('retry with marker → allow (no output written)', async () => {
+    const raw = { ...ccBash, tool_input: { command: 'rm -rf /tmp/test-retry  # Rosetta-AI-reviewed' } };
+    const { writable, output } = captureOutput();
     await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
-    const auditPath = path.join(tmp, '.claude', 'audit', 'hook-overrides.jsonl');
-    const line = readFileSync(auditPath, 'utf8').trim();
-    const entry = JSON.parse(line);
-    expect(entry.toolName).toBe('Bash');
-    expect(entry.blockedByCooldown).toBe(false);
-    expect(typeof entry.ts).toBe('string');
+    expect(output()).toBe('');
+  });
+
+  test('hard-deny: blocked even with marker', async () => {
+    const raw = { ...ccBash, tool_input: { command: 'mkfs.ext4 /dev/sda  # Rosetta-AI-reviewed' } };
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    const parsed = JSON.parse(output());
+    expect(parsed.hookSpecificOutput.permissionDecision).toBe('deny');
+    expect(parsed.hookSpecificOutput.permissionDecisionReason).toContain('HARD-DENY');
+  });
+
+  test('safe command → allow (no output written)', async () => {
+    const raw = { ...ccBash, tool_input: { command: 'echo hello' } };
+    const { writable, output } = captureOutput();
+    await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
+    expect(output()).toBe('');
   });
 });
