@@ -105,15 +105,21 @@ For detailed change history, use git history and PRs instead of expanding this f
   - shared type-validation entrypoint
 - Some GitHub Pages actions remain upstream-limited and may still depend on older Node runtimes until upstream changes.
 
-### Hooks — dangerous-actions PreToolUse Hook
+### Hooks — dangerous-actions PreToolUse Hook (F13: two-tier retry pattern)
 
-- Added first `PreToolUse` hook: `hooks/src/hooks/dangerous-actions.ts` — blocks `Bash`, `Write`, `Edit`, `MultiEdit` on a hardcoded catalogue of dangerous patterns.
-- Three-file split: `dangerous-actions-patterns.ts` (28 pure-data patterns), `dangerous-actions-evaluate.ts` (pure `evaluateDangerous()` fn, unit-testable), `dangerous-actions.ts` (hook entry).
-- Pattern catalogues: 16 Bash patterns (rm-rf, git force-push, DDL, aws s3 rm, curl|sh, etc.), 8 path patterns (.env*, SSH keys, cloud credentials), 4 content patterns (DDL in payload, AWS key ID, PEM).
-- Override: `# Rosetta-reviewed` (brand-prefixed shell-comment label) disarms the gate across all tool kinds; strict regex `(?:^|\s)#\s+Rosetta-reviewed\b` (case-sensitive); legacy `# reviewed` and bare `reviewed` no longer accepted. HITL boundary enforced: only the human user may add the marker; AI agents must never add it autonomously (documented in SKILL.md + HITL skill cross-link + deny-message).
-- Registered in `plugins/core-claude/hooks/hooks.json` under `PreToolUse` with matcher `Bash|Write|Edit|MultiEdit`. Other plugins receive bundles but no registration (follow-up PR).
-- Regression test updated: `CLAUDE_CODE_ONLY_HOOKS` Set + `isLibraryModule()` suffix filter handles scoped rollout without false failures for copilot/cursor/codex.
-- 448 hooks tests pass (including 4 new negative format cases: bare reviewed, legacy # reviewed, lowercase, no-space). PR #79 → `v3`.
+> F12 superseded. The original single-gate HITL model is replaced by the two-tier retry pattern below.
+
+- `PreToolUse` hook covers `Bash`, `Write`, `Edit`, `MultiEdit`, `mcp-call` across all five IDE bundles (Claude Code, Cursor, Copilot, Codex, Windsurf).
+- **Two-tier policy**: every `DangerPattern` carries `reason` and `policy` fields:
+  - `reconsider` — deny on first call; AI may append `# Rosetta-AI-reviewed` and retry after reconsidering blast radius.
+  - `hard-deny` — permanently blocked; `# Rosetta-AI-reviewed` has no effect; human review required.
+- **Marker token**: renamed to `# Rosetta-AI-reviewed`. Strict regex `(?:^|\s)#\s+Rosetta-AI-reviewed\b`. Legacy `# Rosetta-reviewed` rejected.
+- **Single traversal**: `detectDanger(ctx)` replaces the previous parallel `evalPatternRaw` + `findMatchedPattern`, eliminating potential hard-deny bypass via divergence.
+- **Stateless**: `cooldown-store.ts` and `audit-log.ts` deleted; safe across worktrees, CI runners, and parallel sessions.
+- **`curl | sh` reclassified to `hard-deny`**: supply-chain execution is treated as catastrophic, not self-approvable.
+- **Windsurf adapter**: `permissionDecisionReason` surfaced as `additionalContext` so agents receive actionable feedback.
+- **SKILL.md alignment**: `dangerous-actions/SKILL.md` documents two-tier model and correct token; `hitl/SKILL.md` removes the now-incorrect AI-marker prohibition.
+- 461 hooks tests pass (7 new coverage additions: Edit/MultiEdit dangerous path, partial Write, reconsider+marker retry, MCP query field, curl|sh hard-deny).
 
 ### Documentation and Public Surface
 

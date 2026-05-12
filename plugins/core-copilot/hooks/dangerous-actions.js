@@ -386,64 +386,93 @@ var deny = (reason) => ({ kind: "deny", reason });
 var SQL_DROP_RE = /\bdrop\s+(?:table|database|schema)\b/i;
 var SQL_TRUNCATE_RE = /\btruncate\s+(?:table\s+)?\w+/i;
 var DANGEROUS_BASH = [
-  { id: "rm-rf-root", re: /\brm\s+(?:-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b.*\s\/(?:\*|\s|$)/, label: "rm -rf /" },
-  { id: "rm-rf-home", re: /\brm\s+-[rf]+\b.*(?:\s~\b|\s\$HOME\b)/, label: "rm -rf $HOME" },
-  { id: "rm-rf-recursive", re: /\brm\s+-(?=[a-zA-Z]*[rR])(?=[a-zA-Z]*[fF])[a-zA-Z]+\b/, label: "rm -rf (generic)" },
-  { id: "sql-drop-table", re: SQL_DROP_RE, label: "DDL DROP" },
-  { id: "sql-truncate", re: SQL_TRUNCATE_RE, label: "TRUNCATE TABLE" },
-  { id: "git-force-push", re: /\bgit\s+push\b(?=(?:\s+\S+)*\s+(?:-f\b|--force(?!-with-lease)))/, label: "git push --force" },
-  { id: "git-reset-hard", re: /\bgit\s+reset\s+--hard\b/, label: "git reset --hard" },
-  { id: "git-clean-force", re: /\bgit\s+clean\s+-[a-z]*[fd]/, label: "git clean -fd" },
-  { id: "git-branch-delete", re: /\bgit\s+branch\s+-D\b/, label: "git branch -D" },
-  { id: "aws-s3-rm-recursive", re: /\baws\s+s3\s+rm\b.*--recursive\b/, label: "aws s3 rm --recursive" },
-  { id: "kubectl-delete-prod", re: /\bkubectl\s+delete\b.*--all\b/, label: "kubectl mass delete" },
-  { id: "dropdb", re: /\b(?:dropdb\b|psql\b[^"']*\bdrop\s+(?:table|database|schema)\b)/i, label: "DB drop CLI" },
-  { id: "mkfs", re: /\bmkfs(?:\.\w+)?\b/, label: "filesystem format" },
-  { id: "dd-of-dev", re: /\bdd\b.*\bof=\/dev\//, label: "dd to device" },
-  { id: "chmod-777-recursive", re: /\bchmod\s+-R\s+0?777\b/, label: "chmod -R 777" },
-  { id: "curl-pipe-shell", re: /\bcurl\s.*\s\|\s*(?:sh|bash)\b/, label: "curl | sh" }
+  { id: "rm-rf-root", re: /\brm\s+(?:-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b.*\s\/(?:\*|\s|$)/, label: "rm -rf /", reason: "Recursive forced removal of root filesystem \u2014 unrecoverable data loss.", policy: "hard-deny" },
+  { id: "rm-rf-home", re: /\brm\s+-[rf]+\b.*(?:\s~\b|\s\$HOME\b)/, label: "rm -rf $HOME", reason: "Recursive forced removal of home directory \u2014 deletes all user files.", policy: "hard-deny" },
+  { id: "rm-rf-recursive", re: /\brm\s+-(?=[a-zA-Z]*[rR])(?=[a-zA-Z]*[fF])[a-zA-Z]+\b/, label: "rm -rf (generic)", reason: "Recursive forced file removal \u2014 verify target path before proceeding.", policy: "reconsider" },
+  { id: "sql-drop-table", re: SQL_DROP_RE, label: "DDL DROP", reason: "Destructive DDL statement that permanently removes a table or database.", policy: "reconsider" },
+  { id: "sql-truncate", re: SQL_TRUNCATE_RE, label: "TRUNCATE TABLE", reason: "Truncates all rows from a table \u2014 non-transactional in some databases.", policy: "reconsider" },
+  { id: "git-force-push", re: /\bgit\s+push\b(?=(?:\s+\S+)*\s+(?:-f\b|--force(?!-with-lease)))/, label: "git push --force", reason: "Force-push rewrites remote history and may discard teammates' commits.", policy: "reconsider" },
+  { id: "git-reset-hard", re: /\bgit\s+reset\s+--hard\b/, label: "git reset --hard", reason: "Hard reset discards all uncommitted changes and cannot be undone.", policy: "reconsider" },
+  { id: "git-clean-force", re: /\bgit\s+clean\s+-[a-z]*[fd]/, label: "git clean -fd", reason: "Permanently removes untracked files and directories from the working tree.", policy: "reconsider" },
+  { id: "git-branch-delete", re: /\bgit\s+branch\s+-D\b/, label: "git branch -D", reason: "Force-deletes a local branch including unmerged commits.", policy: "reconsider" },
+  { id: "aws-s3-rm-recursive", re: /\baws\s+s3\s+rm\b.*--recursive\b/, label: "aws s3 rm --recursive", reason: "Recursively deletes objects from S3 \u2014 irreversible without versioning.", policy: "reconsider" },
+  { id: "kubectl-delete-prod", re: /\bkubectl\s+delete\b.*--all\b/, label: "kubectl mass delete", reason: "Deletes all resources of a type \u2014 may affect running production workloads.", policy: "reconsider" },
+  { id: "dropdb", re: /\b(?:dropdb\b|psql\b[^"']*\bdrop\s+(?:table|database|schema)\b)/i, label: "DB drop CLI", reason: "CLI command that permanently removes a PostgreSQL database or table.", policy: "reconsider" },
+  { id: "mkfs", re: /\bmkfs(?:\.\w+)?\b/, label: "filesystem format", reason: "Formats a block device, destroying all data on it \u2014 unrecoverable.", policy: "hard-deny" },
+  { id: "dd-of-dev", re: /\bdd\b.*\bof=\/dev\//, label: "dd to device", reason: "Writes raw bytes directly to a block device \u2014 can corrupt OS or data.", policy: "hard-deny" },
+  { id: "chmod-777-recursive", re: /\bchmod\s+-R\s+0?777\b/, label: "chmod -R 777", reason: "Makes all files world-writable \u2014 severe security risk in shared environments.", policy: "hard-deny" },
+  { id: "curl-pipe-shell", re: /\bcurl\s.*\s\|\s*(?:sh|bash)\b/, label: "curl | sh", reason: "Executes arbitrary remote code without inspection \u2014 supply-chain risk.", policy: "hard-deny" }
 ];
 var DANGEROUS_PATHS = [
-  // Matched against path basename (caller responsibility)
-  { id: "secret-env", re: /^\.env(?:\..+)?$/, label: ".env* file" },
-  { id: "ssh-private-key", re: /^(?:id_rsa|id_ed25519|id_ecdsa|id_dsa)$/, label: "SSH private key" },
-  { id: "aws-credentials", re: /\/\.aws\/(?:credentials|config)/, label: "AWS credentials" },
-  { id: "gcp-credentials", re: /(?:application_default_credentials\.json|\/\.config\/gcloud\/)/, label: "GCP credentials" },
-  { id: "kube-config", re: /\/\.kube\/config$/, label: "kubeconfig" },
-  { id: "netrc", re: /^[._]netrc$/, label: "netrc" },
-  { id: "pgpass", re: /^\.pgpass$/, label: "Postgres password" },
-  { id: "gpg-private", re: /\/\.gnupg\/(?:.*\.key|private-keys-v1\.d\/)/, label: "GPG private key" }
+  { id: "secret-env", re: /^\.env(?:\..+)?$/, label: ".env* file", reason: "Contains application secrets and credentials \u2014 never overwrite blindly.", policy: "hard-deny" },
+  { id: "ssh-private-key", re: /^(?:id_rsa|id_ed25519|id_ecdsa|id_dsa)$/, label: "SSH private key", reason: "Writing to an SSH private key path would replace your authentication key.", policy: "hard-deny" },
+  { id: "aws-credentials", re: /\/\.aws\/(?:credentials|config)/, label: "AWS credentials", reason: "Overwrites AWS access credentials \u2014 could lock out cloud access.", policy: "hard-deny" },
+  { id: "gcp-credentials", re: /(?:application_default_credentials\.json|\/\.config\/gcloud\/)/, label: "GCP credentials", reason: "Overwrites GCP application credentials used for cloud API access.", policy: "hard-deny" },
+  { id: "kube-config", re: /\/\.kube\/config$/, label: "kubeconfig", reason: "Overwrites Kubernetes config \u2014 could disrupt cluster access for all contexts.", policy: "hard-deny" },
+  { id: "netrc", re: /^[._]netrc$/, label: "netrc", reason: "Contains plaintext credentials for network services (git, ftp, curl).", policy: "hard-deny" },
+  { id: "pgpass", re: /^\.pgpass$/, label: "Postgres password", reason: "Contains PostgreSQL connection passwords in plaintext.", policy: "hard-deny" },
+  { id: "gpg-private", re: /\/\.gnupg\/(?:.*\.key|private-keys-v1\.d\/)/, label: "GPG private key", reason: "Writing to GPG private key storage could destroy cryptographic identity.", policy: "hard-deny" }
 ];
 var DANGEROUS_CONTENT = [
-  { id: "content-sql-drop-table", re: SQL_DROP_RE, label: "DROP in payload" },
-  { id: "content-sql-truncate", re: SQL_TRUNCATE_RE, label: "TRUNCATE in payload" },
-  { id: "inline-aws-key", re: /\bAKIA[0-9A-Z]{16}\b/, label: "AWS access key id" },
-  { id: "inline-private-key", re: /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/, label: "PEM private key" }
+  { id: "content-sql-drop-table", re: SQL_DROP_RE, label: "DROP in payload", reason: "Payload contains a destructive DDL statement that removes a table or database.", policy: "reconsider" },
+  { id: "content-sql-truncate", re: SQL_TRUNCATE_RE, label: "TRUNCATE in payload", reason: "Payload contains a statement that removes all rows from a table.", policy: "reconsider" },
+  { id: "inline-aws-key", re: /\bAKIA[0-9A-Z]{16}\b/, label: "AWS access key id", reason: "Hardcoded AWS access key detected \u2014 use environment variables or secrets manager.", policy: "hard-deny" },
+  { id: "inline-private-key", re: /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/, label: "PEM private key", reason: "PEM private key embedded in content \u2014 store in secrets manager, not in files.", policy: "hard-deny" }
 ];
 
 // src/hooks/dangerous-actions/evaluate.ts
-var OVERRIDE_RE = /(?:^|\s)#\s+Rosetta-reviewed\b/;
+var MARKER_RE = /(?:^|\s)#\s+Rosetta-AI-reviewed\b/;
 var EVIDENCE_MAX = 120;
-var OVERRIDE_FIELDS_BY_TOOL = {
+var MARKER_FIELDS_BY_TOOL = {
   Bash: ["command"],
   Write: ["content", "file_path"],
   Edit: ["new_string", "old_string", "file_path"],
   MultiEdit: ["file_path", "edits"]
 };
-var MCP_OVERRIDE_FIELDS = ["command", "sql", "query", "new_string", "content"];
+var MCP_MARKER_FIELDS = ["command", "sql", "query", "new_string", "content"];
 var MCP_SHELL_FIELDS = ["command", "cmd", "shell_command"];
 var MCP_PATH_FIELDS = ["path", "file_path", "filePath", "target", "target_path"];
 var MCP_CONTENT_FIELDS = ["content", "new_string", "query", "sql"];
-function buildDenyMessage(pattern, toolKind, evidence, redact = false) {
+function buildReconsiderDenyMessage(pattern, toolKind, evidence, redact = false) {
   const evidenceLine = redact ? `<redacted: ${pattern.id}>` : evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + "\u2026" : evidence;
+  const retryLines = toolKind === "bash" ? [
+    "retry with `# Rosetta-AI-reviewed` appended to the command.",
+    "",
+    "Example: `rm -rf /tmp/cache  # Rosetta-AI-reviewed`",
+    "(SQL via bash: use `-- # Rosetta-AI-reviewed`; spaces around `#` are required)"
+  ] : toolKind === "write" || toolKind === "edit" || toolKind === "multi-edit" ? [
+    "retry with `# Rosetta-AI-reviewed` added as a trailing comment in `new_string`.",
+    "",
+    "Example: `DROP TABLE old_events; -- # Rosetta-AI-reviewed`",
+    "(spaces around `#` are required)"
+  ] : [
+    "retry with `# Rosetta-AI-reviewed` appended to the relevant string field.",
+    "(spaces around `#` are required)"
+  ];
   return [
     `Blocked: ${pattern.id} \u2014 ${pattern.label} on ${toolKind}`,
     `Evidence: ${evidenceLine}`,
+    `Reason: ${pattern.reason}`,
     "",
-    "Override: append `# Rosetta-reviewed` to the tool call (Bash command, content, or any visible field).",
-    "HITL: only the human user may add this marker. AI agents MUST NOT add it autonomously \u2014 wait for explicit human approval.",
-    "Alternative: use soft delete, dry-run, --force-with-lease, or a staging environment."
+    "If you have considered the blast radius and confirm this is intentional,",
+    ...retryLines
   ].join("\n");
+}
+function buildHardDenyMessage(pattern, toolKind, evidence, redact = false) {
+  const evidenceLine = redact ? `<redacted: ${pattern.id}>` : evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + "\u2026" : evidence;
+  return [
+    `HARD-DENY: ${pattern.id} \u2014 ${pattern.label} on ${toolKind}`,
+    `Evidence: ${evidenceLine}`,
+    `Reason: ${pattern.reason}`,
+    "",
+    "This pattern cannot be bypassed by `# Rosetta-AI-reviewed`. Human review required.",
+    "AI agent: stop and ask the user to confirm this operation with full blast-radius analysis.",
+    "Do not proceed until the user explicitly confirms with full blast-radius analysis."
+  ].join("\n");
+}
+function buildDenyForPattern(pattern, toolKind, evidence, redact = false) {
+  const msg = pattern.policy === "hard-deny" ? buildHardDenyMessage(pattern, toolKind, evidence, redact) : buildReconsiderDenyMessage(pattern, toolKind, evidence, redact);
+  return deny(msg);
 }
 function matchPatterns(patterns, value) {
   for (const p of patterns) {
@@ -460,16 +489,16 @@ function matchDangerousPath(filePath) {
   }
   return null;
 }
-function hasRosettaReviewedOverride(input, toolName) {
-  const fields = toolName.startsWith("mcp__") ? MCP_OVERRIDE_FIELDS : OVERRIDE_FIELDS_BY_TOOL[toolName] ?? MCP_OVERRIDE_FIELDS;
+function hasAIReviewedMarker(input, toolName) {
+  const fields = toolName.startsWith("mcp__") ? MCP_MARKER_FIELDS : MARKER_FIELDS_BY_TOOL[toolName] ?? MCP_MARKER_FIELDS;
   return fields.some((f) => {
     const v = input[f];
-    if (typeof v === "string") return OVERRIDE_RE.test(v);
+    if (typeof v === "string") return MARKER_RE.test(v);
     if (Array.isArray(v)) {
       return v.some((item) => {
-        if (typeof item === "string") return OVERRIDE_RE.test(item);
+        if (typeof item === "string") return MARKER_RE.test(item);
         if (item && typeof item === "object") {
-          return Object.values(item).some((inner) => typeof inner === "string" && OVERRIDE_RE.test(inner));
+          return Object.values(item).some((inner) => typeof inner === "string" && MARKER_RE.test(inner));
         }
         return false;
       });
@@ -479,69 +508,83 @@ function hasRosettaReviewedOverride(input, toolName) {
 }
 function evalBash(ctx) {
   const command = ctx.toolInput.command;
-  if (typeof command !== "string") return null;
-  const matched = matchPatterns(DANGEROUS_BASH, command);
-  if (!matched) return null;
-  return deny(buildDenyMessage(matched, "bash", command));
+  if (typeof command !== "string") return { result: null, pattern: null };
+  const pattern = matchPatterns(DANGEROUS_BASH, command);
+  if (!pattern) return { result: null, pattern: null };
+  return { result: buildDenyForPattern(pattern, "bash", command), pattern };
 }
 function evalWrite(ctx) {
   const filePath = ctx.toolInput.file_path;
+  if (typeof filePath === "string") {
+    const pattern = matchDangerousPath(filePath);
+    if (pattern) return { result: buildDenyForPattern(pattern, "write", filePath), pattern };
+  }
   const content = ctx.toolInput.content;
-  if (typeof filePath !== "string" || typeof content !== "string") return null;
-  const pathMatch = matchDangerousPath(filePath);
-  if (pathMatch) return deny(buildDenyMessage(pathMatch, "write", filePath));
-  const contentMatch = matchPatterns(DANGEROUS_CONTENT, content);
-  if (contentMatch) return deny(buildDenyMessage(contentMatch, "write", content, true));
-  return null;
+  if (typeof content === "string") {
+    const pattern = matchPatterns(DANGEROUS_CONTENT, content);
+    if (pattern) return { result: buildDenyForPattern(pattern, "write", content, true), pattern };
+  }
+  return { result: null, pattern: null };
 }
 function evalEdit(ctx) {
   const filePath = ctx.toolInput.file_path;
+  if (typeof filePath === "string") {
+    const pattern = matchDangerousPath(filePath);
+    if (pattern) return { result: buildDenyForPattern(pattern, "edit", filePath), pattern };
+  }
   const newString = ctx.toolInput.new_string;
-  if (typeof filePath !== "string" || typeof newString !== "string") return null;
-  const pathMatch = matchDangerousPath(filePath);
-  if (pathMatch) return deny(buildDenyMessage(pathMatch, "edit", filePath));
-  const contentMatch = matchPatterns(DANGEROUS_CONTENT, newString);
-  if (contentMatch) return deny(buildDenyMessage(contentMatch, "edit", newString, true));
-  return null;
+  if (typeof newString === "string") {
+    const pattern = matchPatterns(DANGEROUS_CONTENT, newString);
+    if (pattern) return { result: buildDenyForPattern(pattern, "edit", newString, true), pattern };
+  }
+  return { result: null, pattern: null };
 }
 function evalMultiEdit(ctx) {
   const filePath = ctx.toolInput.file_path;
-  const edits = ctx.toolInput.edits;
-  if (typeof filePath !== "string" || !Array.isArray(edits)) return null;
-  const pathMatch = matchDangerousPath(filePath);
-  if (pathMatch) return deny(buildDenyMessage(pathMatch, "multi-edit", filePath));
-  for (const edit of edits) {
-    const contentMatch = matchPatterns(DANGEROUS_CONTENT, edit.new_string);
-    if (contentMatch) return deny(buildDenyMessage(contentMatch, "multi-edit", edit.new_string, true));
+  if (typeof filePath === "string") {
+    const pattern = matchDangerousPath(filePath);
+    if (pattern) return { result: buildDenyForPattern(pattern, "multi-edit", filePath), pattern };
   }
-  return null;
+  const edits = ctx.toolInput.edits;
+  if (Array.isArray(edits)) {
+    for (const edit of edits) {
+      if (edit && typeof edit === "object") {
+        const ns = edit.new_string;
+        if (typeof ns === "string") {
+          const pattern = matchPatterns(DANGEROUS_CONTENT, ns);
+          if (pattern) return { result: buildDenyForPattern(pattern, "multi-edit", ns, true), pattern };
+        }
+      }
+    }
+  }
+  return { result: null, pattern: null };
 }
 function evalMcpCall(ctx) {
   const input = ctx.toolInput;
   for (const f of MCP_SHELL_FIELDS) {
     const v = input[f];
     if (typeof v === "string") {
-      const m = matchPatterns(DANGEROUS_BASH, v);
-      if (m) return deny(buildDenyMessage(m, ctx.toolName, v));
+      const pattern = matchPatterns(DANGEROUS_BASH, v);
+      if (pattern) return { result: buildDenyForPattern(pattern, ctx.toolName, v), pattern };
     }
   }
   for (const f of MCP_PATH_FIELDS) {
     const v = input[f];
     if (typeof v === "string") {
-      const m = matchDangerousPath(v);
-      if (m) return deny(buildDenyMessage(m, ctx.toolName, v));
+      const pattern = matchDangerousPath(v);
+      if (pattern) return { result: buildDenyForPattern(pattern, ctx.toolName, v), pattern };
     }
   }
   for (const f of MCP_CONTENT_FIELDS) {
     const v = input[f];
     if (typeof v === "string") {
-      const m = matchPatterns(DANGEROUS_CONTENT, v);
-      if (m) return deny(buildDenyMessage(m, ctx.toolName, v, true));
+      const pattern = matchPatterns(DANGEROUS_CONTENT, v);
+      if (pattern) return { result: buildDenyForPattern(pattern, ctx.toolName, v, true), pattern };
     }
   }
-  return null;
+  return { result: null, pattern: null };
 }
-function evalPatternRaw(ctx) {
+function detectDanger(ctx) {
   switch (ctx.toolKind) {
     case "bash":
       return evalBash(ctx);
@@ -554,67 +597,22 @@ function evalPatternRaw(ctx) {
     case "mcp-call":
       return evalMcpCall(ctx);
     default:
-      return null;
+      return { result: null, pattern: null };
   }
 }
-function evalPatternOnly(ctx) {
-  return evalPatternRaw(ctx);
+function evalPatternAndPolicy(ctx) {
+  return detectDanger(ctx);
 }
-
-// src/hooks/dangerous-actions/cooldown-store.ts
-var import_fs4 = __toESM(require("fs"));
-var import_path5 = __toESM(require("path"));
-var import_crypto2 = __toESM(require("crypto"));
-var COOLDOWN_MS = 5e3;
-function storePath(cwd) {
-  return import_path5.default.join(cwd, ".claude", "state", "dangerous-actions-cooldown.json");
-}
-function loadStore(cwd) {
-  try {
-    return JSON.parse(import_fs4.default.readFileSync(storePath(cwd), "utf8"));
-  } catch {
-    return {};
+function evaluateDangerous(ctx) {
+  const { result, pattern } = evalPatternAndPolicy(ctx);
+  if (result === null) return null;
+  if (pattern?.policy === "hard-deny") return result;
+  const input = ctx.toolInput;
+  if (hasAIReviewedMarker(input, ctx.toolName)) {
+    debugLog("[dangerous-actions] AI-reviewed marker honored", { toolName: ctx.toolName });
+    return null;
   }
-}
-function saveStore(cwd, store, now) {
-  const p = storePath(cwd);
-  try {
-    import_fs4.default.mkdirSync(import_path5.default.dirname(p), { recursive: true });
-    const pruned = Object.fromEntries(
-      Object.entries(store).filter(([, v]) => now - v.ts < COOLDOWN_MS * 4)
-    );
-    import_fs4.default.writeFileSync(p, JSON.stringify(pruned));
-  } catch {
-  }
-}
-function hashCall(toolName, toolInput) {
-  const normalized = JSON.stringify(
-    toolInput,
-    (_, v) => typeof v === "string" && /(?:^|\s)#\s+Rosetta-reviewed\b/.test(v) ? v.replace(/\s*#\s+Rosetta-reviewed\b/g, "").trim() : v
-  );
-  return import_crypto2.default.createHash("sha1").update(`${toolName}:${normalized}`).digest("hex");
-}
-function recordDeny(cwd, hash, now = Date.now()) {
-  const store = loadStore(cwd);
-  store[hash] = { ts: now };
-  saveStore(cwd, store, now);
-}
-function isWithinCooldown(cwd, hash, now = Date.now()) {
-  const store = loadStore(cwd);
-  const rec = store[hash];
-  return !!rec && now - rec.ts < COOLDOWN_MS;
-}
-
-// src/hooks/dangerous-actions/audit-log.ts
-var import_fs5 = __toESM(require("fs"));
-var import_path6 = __toESM(require("path"));
-function appendOverrideAudit(cwd, entry) {
-  const p = import_path6.default.join(cwd, ".claude", "audit", "hook-overrides.jsonl");
-  try {
-    import_fs5.default.mkdirSync(import_path6.default.dirname(p), { recursive: true });
-    import_fs5.default.appendFileSync(p, JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), ...entry }) + "\n");
-  } catch {
-  }
+  return result;
 }
 
 // src/hooks/dangerous-actions.ts
@@ -624,26 +622,7 @@ var dangerousActionsHook = defineHook({
     event: "PreToolUse",
     toolKinds: ["bash", "write", "edit", "multi-edit", "mcp-call"]
   },
-  run: (ctx) => {
-    const patternResult = evalPatternOnly(ctx);
-    if (patternResult === null) return null;
-    const cwd = ctx.cwd || process.cwd();
-    const input = ctx.toolInput;
-    const hash = hashCall(ctx.toolName, input);
-    const hasOverride = hasRosettaReviewedOverride(input, ctx.toolName);
-    if (isWithinCooldown(cwd, hash) && hasOverride) {
-      appendOverrideAudit(cwd, { toolName: ctx.toolName, blockedByCooldown: true, sessionId: ctx.sessionId });
-      return deny(
-        "Blocked: repeated dangerous call within 5-second cooldown \u2014 `# Rosetta-reviewed` override ignored.\nWait 5 seconds before retrying with the override, or confirm the action explicitly."
-      );
-    }
-    if (hasOverride) {
-      appendOverrideAudit(cwd, { toolName: ctx.toolName, blockedByCooldown: false, sessionId: ctx.sessionId });
-      return null;
-    }
-    recordDeny(cwd, hash);
-    return patternResult;
-  }
+  run: (ctx) => evaluateDangerous(ctx)
 });
 runAsCli(dangerousActionsHook, module);
 // Annotate the CommonJS export names for ESM import in node:

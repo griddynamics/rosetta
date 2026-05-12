@@ -52,10 +52,14 @@ const normalize = (raw) => {
 };
 const formatOutput = (canonical) => {
     const { hookSpecificOutput = {} } = canonical ?? {};
-    const { additionalContext, permissionDecision } = hookSpecificOutput;
+    const { additionalContext, permissionDecision, permissionDecisionReason } = hookSpecificOutput;
     const out = {};
-    if (additionalContext)
+    if (additionalContext) {
         out.additionalContext = additionalContext;
+    }
+    else if (permissionDecision === 'deny' && permissionDecisionReason) {
+        out.additionalContext = permissionDecisionReason;
+    }
     if (permissionDecision === 'deny')
         out._exitCode = 2;
     return out;
