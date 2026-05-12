@@ -1,6 +1,6 @@
 ---
 name: coding
-description: Rosetta coding skill for implementation with KISS/SOLID/DRY principles, zero-tolerance quality, multi-environment awareness, and systematic validation. Use when implementing features, fixing bugs, or making code changes.
+description: "Implement features, fix bugs, and refactor code with environment-aware configuration (local/dev/test/prod), dependency-ordered validation (databases → APIs → browser → mobile), and project documentation updates. Use when making code changes in a Rosetta-managed workspace, including application code, DevOps scripts, or CI/CD pipelines."
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -13,54 +13,59 @@ Senior software engineer and implementation specialist. Writes clean, minimal, p
 </role>
 
 <when_to_use_skill>
-Use when implementing features, bug fixes, refactors, or any code changes including DevOps, IaC, and pipelines.
+
+Use when implementing features, fixing bugs, refactoring code, updating DevOps scripts, or modifying CI/CD pipelines in a Rosetta-managed workspace. Also use for code review, impact analysis, and validation of existing changes.
+
 </when_to_use_skill>
 
 <core_concepts>
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-
-Principles:
-
-- KISS, SOLID, SRP, DRY, YAGNI, MECE — always
-- Scope creep prevention: apply ONLY what was requested, do not add non-requested features, refactors, or improvements
-- Multi-environment: all code MUST be configurable for local, dev, test, production
-- Minimal changes: simpler is better
-- Zero tolerance: no cheating, no pre-existing excuses, no warnings, no errors. All tests MUST succeed, all code MUST compile (including pre-existing), all requirements MUST be fulfilled — unless user explicitly asks to skip
-- SRP for files: each file has single purpose, no duplicate or similar content across files
+- Apply minimal, scope-limited changes — no unrequested features, refactors, or improvements
+- All code MUST be configurable for local, dev, test, and production environments
+- Zero tolerance: all tests MUST pass, all code MUST compile, all requirements MUST be fulfilled — unless user explicitly asks to skip
+- Each file has a single purpose — no duplicate or similar content across files
 - MUST ensure data safety per bootstrap guardrails
 - Documentation: ONLY as instructed by rules or user
 
-Project documentation — MUST keep current in target project:
-- `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`, `DEPENDENCIES.md`, `TECHSTACK.md`, `CODEMAP.md`
-
-Validation methodology:
-
-- Systematic, logical, dependency-ordered: databases (queries/statements) → APIs (curl/similar) → Web (Chrome DevTools/Playwright) → Mobile (Appium/similar)
-- Check logs and running services locally
-- Clean up after validation, ALWAYS consider consequences of validation actions
-- CLI testing harness for libraries/packages: CLI commands outputting intermediate results including requests/responses
-- Code review: check git changes against tech plan, identify gaps and missing pieces, fact-check with MCPs
-
 </core_concepts>
+
+<process>
+
+## Implementation workflow
+
+1. **Load context** — run load-context skill; read `CONTEXT.md`, `ARCHITECTURE.md`, `CODEMAP.md`
+2. **Analyse impact** — identify affected methods, files, and downstream dependencies; check existing code and patterns before writing new
+3. **Implement changes** — exhaust existing patterns before introducing new; remove old implementation if replaced; keep files under 300 LOC
+4. **Validate** — follow dependency order:
+   - Databases: run queries/statements, verify schema changes
+   - APIs: `curl` or equivalent against local endpoints
+   - Browser: use Playwright MCP or Chrome DevTools MCP
+   - Mobile: use Appium or similar
+   - Check logs and running services; clean up after validation
+5. **Review** — diff git changes against tech plan, identify gaps, fact-check with MCPs
+6. **Update docs** — keep current: `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`, `DEPENDENCIES.md`, `TECHSTACK.md`, `CODEMAP.md`
+
+If validation fails → diagnose root cause using skill `debugging` → fix → re-validate from step 4.
+
+</process>
 
 <files>
 
 # DEPENDENCIES.md
 
-- MUST create, use, and maintain flat list of direct project dependencies (project, package, version)
+- Flat list of direct project dependencies (project, package, version)
 
 # TECHSTACK.md
 
-- MUST create, use, and maintain project stack and key stack decisions
+- Project stack and key stack decisions
 
 # CODEMAP.md
 
-- MUST create, use, and maintain list of all folders and files with code base
-- Contains 3-4 levels deep folder structure
+- 3-4 levels deep folder structure
 - Markdown headers = workspace-relative path + recursive children count + <10 words description
-- Lists only immediate children files and only with file names
-- Excludes noise/cache/build files, files excluded by .gitignore, etc.
+- Lists only immediate children files by name
+- Excludes noise/cache/build files and .gitignore entries
 
 </files>
 
@@ -68,27 +73,19 @@ Validation methodology:
 
 - Code compiles without errors or warnings
 - All tests pass (including pre-existing)
-- Environment configuration works across all targets
+- Environment configuration works across local, dev, test, production
 - No mock/stub/fake data in dev or prod code paths
 - Files stay under 300 LOC
 - Impact analysis performed for affected methods and areas
 
 </validation_checklist>
 
-<best_practices>
-
-- Search and check existing code and dependencies before writing new
-- Exhaust existing patterns before introducing new; iterate on existing code; remove old implementation if replaced
-- Verify current folder when using relative paths in scripts or commands
-- Keep temporary scripts in SCRIPTS folder at workspace root
-- Keep codebase clean and organized
-- Prefer tools for scripting; use MCP tools for verification
-
-</best_practices>
-
 <pitfalls>
 
-- Skipping impact analysis for seemingly small changes
+- Skipping impact analysis for seemingly small changes — a one-line fix can break callers
+- Introducing new patterns when existing codebase patterns already solve the problem
+- Forgetting to validate across all target environments after changes
+- Using relative paths in scripts without verifying current working directory
 
 </pitfalls>
 
