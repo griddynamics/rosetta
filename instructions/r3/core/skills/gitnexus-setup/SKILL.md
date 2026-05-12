@@ -22,7 +22,7 @@ Use ONLY during workspace initialization (Phase 6 of init-workspace-flow) or whe
 
 **Step 1 — Index the repository:**
 ```bash
-npx gitnexus analyze
+npx gitnexus analyze --skip-agents-md
 ```
 Indexes the codebase into `.gitnexus/` and auto-provisions editor-specific skills, hooks, and context files where supported.
 
