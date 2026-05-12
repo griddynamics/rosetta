@@ -12,6 +12,7 @@ const TOOL_KINDS: Partial<Record<SemanticKind, readonly string[]>> = {
   replace:      ['Edit'],
   bash:         ['Bash'],
   read:         ['Read'],
+  'mcp-call':   ['__mcp_sentinel__'],
 };
 
 export const lookupEvent = (raw: string): SemanticEvent | null => {
@@ -20,6 +21,7 @@ export const lookupEvent = (raw: string): SemanticEvent | null => {
 };
 
 export const lookupToolKind = (raw: string): SemanticKind | null => {
+  if (raw.startsWith('mcp__')) return 'mcp-call';
   for (const [k, v] of Object.entries(TOOL_KINDS) as [SemanticKind, readonly string[]][])
     if (v.includes(raw)) return k;
   return null;

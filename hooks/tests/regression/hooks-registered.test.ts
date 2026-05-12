@@ -17,6 +17,13 @@ const CANONICAL_HOOKS_JSONS: { plugin: string; jsonPath: string }[] = [
   { plugin: 'core-codex',   jsonPath: path.join(PLUGINS_DIR, 'core-codex',   '.codex', 'hooks.json') },
 ];
 
+// Hooks registered only on a subset of IDEs. Add entries here only for hooks using
+// a platform-exclusive event unavailable on certain IDEs.
+// Note: Cursor uses `preToolUse` (lowercase), Codex `PreToolUse` — both mapped in
+// ide-registry.ts. Copilot infers PreToolUse from payload shape (registry entry is null
+// but the event is processed). All current hooks are registered across every IDE.
+const CLAUDE_CODE_ONLY_HOOKS: ReadonlySet<string> = new Set<string>();
+
 const discoverHooks = (): string[] =>
   readdirSync(HOOKS_DIR)
     .filter(f => f.endsWith('.ts'))
@@ -39,6 +46,9 @@ describe('hooks-registered — all src hooks appear in every plugin hooks.json',
       });
 
       for (const hookName of hookNames) {
+        // Skip claude-code-only hooks for non-claude plugins
+        if (CLAUDE_CODE_ONLY_HOOKS.has(hookName) && plugin !== 'core-claude') continue;
+
         test(`${hookName}.js is referenced`, () => {
           if (!rawJson) return; // file-missing case handled above
           expect(rawJson).toContain(`${hookName}.js`);

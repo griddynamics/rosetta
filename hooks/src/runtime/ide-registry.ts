@@ -75,11 +75,19 @@ export const TOOL_KINDS = {
     'windsurf':    ['Read'],
     'copilot':     null,
   },
+  'mcp-call': {
+    'claude-code': ['__mcp_sentinel__'],
+    'codex':       null,
+    'cursor':      null,
+    'windsurf':    null,
+    'copilot':     null,
+  },
 } as const satisfies Record<string, IdeMap<readonly string[]>>;
 
 export type SemanticKind = keyof typeof TOOL_KINDS;
 
 export const reverseLookupToolKind = (ide: IdeName, raw: string): SemanticKind | null => {
+  if (raw.startsWith('mcp__')) return 'mcp-call';
   for (const [key, map] of Object.entries(TOOL_KINDS)) {
     const names = map[ide];
     if (Array.isArray(names) && (names as readonly string[]).includes(raw))

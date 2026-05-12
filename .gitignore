@@ -92,4 +92,4 @@ node_modules/.vite/
 .claude
 rosetta-cli/dist
 rosetta-mcp-server/dist
-/.worktrees/
+.worktrees/

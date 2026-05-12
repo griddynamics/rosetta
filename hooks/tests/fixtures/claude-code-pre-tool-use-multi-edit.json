@@ -1,0 +1,16 @@
+{
+  "session_id": "abc-123-def",
+  "transcript_path": "/Users/dev/.claude/sessions/abc-123-def/transcript.jsonl",
+  "cwd": "/Users/dev/my-project",
+  "permission_mode": "auto",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "MultiEdit",
+  "tool_use_id": "toolu_04JKL",
+  "tool_input": {
+    "file_path": "/Users/dev/my-project/src/app.ts",
+    "edits": [
+      { "old_string": "foo", "new_string": "bar" },
+      { "old_string": "baz", "new_string": "qux" }
+    ]
+  }
+}

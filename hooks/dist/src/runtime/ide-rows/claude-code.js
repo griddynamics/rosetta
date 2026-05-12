@@ -12,6 +12,7 @@ const TOOL_KINDS = {
     replace: ['Edit'],
     bash: ['Bash'],
     read: ['Read'],
+    'mcp-call': ['__mcp_sentinel__'],
 };
 const lookupEvent = (raw) => {
     for (const [k, v] of Object.entries(EVENTS))
@@ -21,6 +22,8 @@ const lookupEvent = (raw) => {
 };
 exports.lookupEvent = lookupEvent;
 const lookupToolKind = (raw) => {
+    if (raw.startsWith('mcp__'))
+        return 'mcp-call';
     for (const [k, v] of Object.entries(TOOL_KINDS))
         if (v.includes(raw))
             return k;
