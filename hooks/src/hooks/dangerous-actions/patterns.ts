@@ -1,4 +1,4 @@
-// # Rosetta-reviewed: pattern definitions only — not executable SQL/shell
+// # Rosetta-AI-reviewed: pattern definitions only — not executable SQL/shell
 export interface DangerPattern {
   id: string;
   re: RegExp;
