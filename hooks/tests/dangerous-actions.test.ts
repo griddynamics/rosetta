@@ -37,6 +37,19 @@ describe('patterns — structure', () => {
       expect(typeof p.label).toBe('string');
     }
   });
+
+  test('each entry has a non-empty reason string (> 10 chars)', () => {
+    for (const p of [...DANGEROUS_BASH, ...DANGEROUS_PATHS, ...DANGEROUS_CONTENT]) {
+      expect(typeof p.reason, `${p.id}.reason must be string`).toBe('string');
+      expect(p.reason.length, `${p.id}.reason too short`).toBeGreaterThan(10);
+    }
+  });
+
+  test('each entry has policy: "hard-deny" | "reconsider"', () => {
+    for (const p of [...DANGEROUS_BASH, ...DANGEROUS_PATHS, ...DANGEROUS_CONTENT]) {
+      expect(['hard-deny', 'reconsider'], `${p.id}.policy invalid`).toContain(p.policy);
+    }
+  });
 });
 
 describe('pattern correctness — positive matches', () => {
