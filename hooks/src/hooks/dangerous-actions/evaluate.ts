@@ -18,12 +18,14 @@ const MARKER_RE = /(?:^|\s)#\s+Rosetta-AI-reviewed\b/;
 
 const EVIDENCE_MAX = 120;
 
-/** User-visible fields accepted for the `# Rosetta-AI-reviewed` marker, by tool name. */
+/** User-visible payload fields accepted for the `# Rosetta-AI-reviewed` marker, by tool name.
+ *  Restricted to write-time content fields only — path fields and pattern-match fields
+ *  (file_path, old_string) are excluded to prevent changing the operation target. */
 const MARKER_FIELDS_BY_TOOL: Readonly<Record<string, readonly string[]>> = {
   Bash:      ['command'],
-  Write:     ['content', 'file_path'],
-  Edit:      ['new_string', 'old_string', 'file_path'],
-  MultiEdit: ['file_path', 'edits'],
+  Write:     ['content'],
+  Edit:      ['new_string'],
+  MultiEdit: ['edits'],
 };
 
 const MCP_MARKER_FIELDS = ['command', 'sql', 'query', 'new_string', 'content'] as const;
@@ -50,10 +52,20 @@ function buildReconsiderDenyMessage(
           'Example: `rm -rf /tmp/cache  # Rosetta-AI-reviewed`',
           '(SQL via bash: use `-- # Rosetta-AI-reviewed`; one space after `#` required)',
         ]
-      : toolKind === 'write' || toolKind === 'edit' || toolKind === 'multi-edit'
+      : toolKind === 'write'
       ? [
-          'Example: `DROP TABLE old_events; -- # Rosetta-AI-reviewed`',
-          '(add as trailing comment in `new_string`; one space after `#` required)',
+          'Append to the `content` field: `DROP TABLE old_events; -- # Rosetta-AI-reviewed`',
+          '(one space after `#` required)',
+        ]
+      : toolKind === 'edit'
+      ? [
+          'Append to `new_string`: `DROP TABLE old_events; -- # Rosetta-AI-reviewed`',
+          '(one space after `#` required)',
+        ]
+      : toolKind === 'multi-edit'
+      ? [
+          'Append to `new_string` inside the relevant `edits[]` entry.',
+          '(one space after `#` required)',
         ]
       : [
           'Append `# Rosetta-AI-reviewed` to the relevant string field.',

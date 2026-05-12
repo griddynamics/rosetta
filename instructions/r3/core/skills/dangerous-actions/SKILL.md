@@ -70,9 +70,11 @@ When the hook denies a `reconsider`-tier pattern:
 
 1. Read the deny message: it explains the pattern, blast radius reason, and retry instructions.
 2. Reconsider the blast radius: is the target actually safe? Is there a safer alternative?
-3. If the action is genuinely necessary, append `# Rosetta-AI-reviewed` to a **user-visible field** and retry:
+3. If the action is genuinely necessary, append `# Rosetta-AI-reviewed` to a **user-visible payload field** and retry:
    - `Bash`: in the `command` field — e.g. `rm -rf /tmp/test  # Rosetta-AI-reviewed`
-   - `Write`/`Edit`: in `new_string` — e.g. `ALTER TABLE x; -- # Rosetta-AI-reviewed`
+   - `Write`: in the `content` field — e.g. `ALTER TABLE x; -- # Rosetta-AI-reviewed`
+   - `Edit`: in the `new_string` field — e.g. `ALTER TABLE x; -- # Rosetta-AI-reviewed`
+   - `MultiEdit`: in the `new_string` of the relevant `edits[]` entry
    - `MCP`: in `command`, `sql`, `query`, `new_string`, or `content`
 4. If unsure about blast radius, stop and ask the user before proceeding.
 
