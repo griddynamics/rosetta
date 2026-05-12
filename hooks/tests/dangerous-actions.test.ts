@@ -480,11 +480,11 @@ describe('Bug fixes — PR #79 review', () => {
     const r = evaluateDangerous(bashCtx('rm -rf /'));
     const reason = (r as {kind:'deny';reason:string}).reason;
     expect(reason).toContain('rm-rf-root');
-    expect(reason).toContain('# Rosetta-AI-reviewed');
+    expect(reason).toContain('Rosetta-AI-reviewed');
   });
 });
 
-describe('# Rosetta-AI-reviewed override — strict format (brand-prefix + # + space)', () => {
+describe('Rosetta-AI-reviewed override — token detection (no # required)', () => {
   test('Bash: `# Rosetta-AI-reviewed` in command → null', () => {
     expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  # Rosetta-AI-reviewed'))).toBeNull();
   });
@@ -507,8 +507,8 @@ describe('# Rosetta-AI-reviewed override — strict format (brand-prefix + # + s
     expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  # rosetta-ai-reviewed'))).not.toBeNull();
   });
 
-  test('Bash: `#Rosetta-AI-reviewed` (no space after #) → deny (strict format requires space)', () => {
-    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  #Rosetta-AI-reviewed'))).not.toBeNull();
+  test('Bash: `#Rosetta-AI-reviewed` (no space) → null (word boundary between # and R is enough)', () => {
+    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  #Rosetta-AI-reviewed'))).toBeNull();
   });
 
   test('Write: .env file with `# Rosetta-AI-reviewed` in content → DENY (hard-deny path, marker not honored)', () => {
@@ -546,9 +546,13 @@ describe('# Rosetta-AI-reviewed override — strict format (brand-prefix + # + s
   });
 });
 
-describe('# Rosetta-AI-reviewed — retry marker', () => {
+describe('Rosetta-AI-reviewed — retry marker', () => {
   test('Bash: `# Rosetta-AI-reviewed` in command → null (marker honored)', () => {
     expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  # Rosetta-AI-reviewed'))).toBeNull();
+  });
+
+  test('Bash: bare `Rosetta-AI-reviewed` (no # prefix) → null (token alone is accepted)', () => {
+    expect(evaluateDangerous(bashCtx('rm -rf /tmp/x  Rosetta-AI-reviewed'))).toBeNull();
   });
 
   test('Bash: hard-deny pattern with marker → still deny', () => {
@@ -559,7 +563,7 @@ describe('# Rosetta-AI-reviewed — retry marker', () => {
   test('Bash: reconsider deny message contains override instruction', () => {
     const r = evaluateDangerous(bashCtx('rm -rf /tmp/cache'));
     const reason = (r as {kind:'deny';reason:string}).reason;
-    expect(reason).toContain('# Rosetta-AI-reviewed');
+    expect(reason).toContain('Rosetta-AI-reviewed');
     expect(reason).toContain('override');
   });
 
@@ -717,7 +721,7 @@ describe('retry-pattern integration — full hook via runHook', () => {
     await runHook(dangerousActionsHook, { stdin: toStream(raw), stdout: writable });
     const parsed = JSON.parse(output());
     expect(parsed.hookSpecificOutput.permissionDecision).toBe('deny');
-    expect(parsed.hookSpecificOutput.permissionDecisionReason).toContain('# Rosetta-AI-reviewed');
+    expect(parsed.hookSpecificOutput.permissionDecisionReason).toContain('Rosetta-AI-reviewed');
   });
 
   test('retry with marker → allow (no output written)', async () => {

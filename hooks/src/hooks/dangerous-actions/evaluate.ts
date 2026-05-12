@@ -1,4 +1,4 @@
-// # Rosetta-AI-reviewed: pattern definitions only — not executable SQL/shell
+// Rosetta-AI-reviewed: pattern definitions only — not executable SQL/shell
 import { deny } from '../../runtime/result-helpers';
 import { debugLog } from '../../runtime/debug-log';
 import type { HookContext, HookResult } from '../../runtime/types';
@@ -10,15 +10,15 @@ import {
 } from './patterns';
 
 /**
- * Matches `# Rosetta-AI-reviewed` preceded by whitespace or at line start.
- * Both `#` and `Rosetta-AI-reviewed` must be separated by at least one space.
- * Examples: `rm -rf /tmp  # Rosetta-AI-reviewed`, `-- # Rosetta-AI-reviewed`
+ * Matches the `Rosetta-AI-reviewed` brand token with word boundaries on both sides.
+ * Accepts any surrounding context: `# Rosetta-AI-reviewed`, `-- Rosetta-AI-reviewed`,
+ * plain `Rosetta-AI-reviewed`. Rejects merged words like `XRosetta-AI-reviewedY`.
  */
-const MARKER_RE = /(?:^|\s)#\s+Rosetta-AI-reviewed\b/;
+const MARKER_RE = /\bRosetta-AI-reviewed\b/;
 
 const EVIDENCE_MAX = 120;
 
-/** User-visible payload fields accepted for the `# Rosetta-AI-reviewed` marker, by tool name.
+/** User-visible payload fields where the `Rosetta-AI-reviewed` marker is accepted, by tool name.
  *  Restricted to write-time content fields only — path fields and pattern-match fields
  *  (file_path, old_string) are excluded to prevent changing the operation target. */
 const MARKER_FIELDS_BY_TOOL: Readonly<Record<string, readonly string[]>> = {
@@ -48,29 +48,14 @@ function buildReconsiderDenyMessage(
 
   const overrideExample =
     toolKind === 'bash'
-      ? [
-          'Example: `rm -rf /tmp/cache  # Rosetta-AI-reviewed`',
-          '(SQL via bash: use `-- # Rosetta-AI-reviewed`; one space after `#` required)',
-        ]
+      ? ['Append `Rosetta-AI-reviewed` as a comment in the `command` field.']
       : toolKind === 'write'
-      ? [
-          'Append to the `content` field: `DROP TABLE old_events; -- # Rosetta-AI-reviewed`',
-          '(one space after `#` required)',
-        ]
+      ? ['Append `Rosetta-AI-reviewed` as a comment in the `content` field.']
       : toolKind === 'edit'
-      ? [
-          'Append to `new_string`: `DROP TABLE old_events; -- # Rosetta-AI-reviewed`',
-          '(one space after `#` required)',
-        ]
+      ? ['Append `Rosetta-AI-reviewed` as a comment in the `new_string` field.']
       : toolKind === 'multi-edit'
-      ? [
-          'Append to `new_string` inside the relevant `edits[]` entry.',
-          '(one space after `#` required)',
-        ]
-      : [
-          'Append `# Rosetta-AI-reviewed` to the relevant string field.',
-          '(one space after `#` required)',
-        ];
+      ? ['Append `Rosetta-AI-reviewed` as a comment in `new_string` inside the relevant `edits[]` entry.']
+      : ['Append `Rosetta-AI-reviewed` as a comment to the relevant string field.'];
 
   return [
     `Dangerous action detected: ${pattern.label} [${pattern.id}]`,
@@ -78,7 +63,7 @@ function buildReconsiderDenyMessage(
     `Evidence: ${evidenceLine}`,
     `Reason: ${pattern.reason}`,
     '',
-    'If you are sure and confirmed with the user, you can override by appending `# Rosetta-AI-reviewed` to the tool call:',
+    'If you are sure and confirmed with the user, you can override by appending `Rosetta-AI-reviewed` comment to the tool call:',
     ...overrideExample,
   ].join('\n');
 }
@@ -98,7 +83,7 @@ function buildHardDenyMessage(
     `Evidence: ${evidenceLine}`,
     `Reason: ${pattern.reason}`,
     '',
-    'This pattern cannot be bypassed by `# Rosetta-AI-reviewed`. Human review required.',
+    'This pattern cannot be bypassed by the `Rosetta-AI-reviewed` marker. Human review required.',
     'AI agent: stop and ask the user to confirm this operation with full blast-radius analysis.',
     'Do not proceed until the user explicitly confirms with full blast-radius analysis.',
   ].join('\n');
@@ -138,7 +123,7 @@ function matchDangerousPath(filePath: string): DangerPattern | null {
 
 /**
  * Returns true if any user-visible string field for the given tool name
- * contains the retry marker `# Rosetta-AI-reviewed`.
+ * contains the retry marker `Rosetta-AI-reviewed`.
  *
  * Restricted to fields rendered in the IDE UI to prevent silent self-assertion
  * via hidden metadata fields such as `description`.
