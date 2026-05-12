@@ -127,27 +127,29 @@ Run once per repo. For composite workspaces, init each repo first, then run init
 > *A **workflow** is what Rosetta runs to do the work — coding, init, requirements, etc. Rosetta picks the workflow from your request automatically.*
 
 ```
-You: "Add password reset functionality"
+You: "Add password reset support to the customer portal.
+      I want to review the plan first."
 
-Rosetta routes this to the coding workflow:
+Rosetta loads the coding workflow:
 
   • Discovery        – discoverer subagent gathers affected code,
-                       dependencies, conventions
-  • Specs + plan     – architect writes SPECS.md (the what) and
-                       PLAN.md (the how) in plans/PASSWORD-RESET/
-  • Plan review      – reviewer inspects them against your request
+                       dependencies, constraints
+  • Tech plan        – architect writes <FEATURE>-SPECS.md (the what)
+                       and <FEATURE>-PLAN.md (the how) in the feature
+                       plan folder (e.g. plans/PASSWORD-RESET/)
+  • Review plan      – reviewer inspects them against your request
   → Your approval    – say "Yes, I reviewed the plan"
   • Implementation   – engineer codes only the approved scope;
-                       build must pass
-  • Code review      – reviewer inspects the diff against specs
-  • Validation       – validator checks coverage & gaps
+                       build must pass (tests are separate)
+  • Review code      – reviewer inspects the diff against the specs
+  • Validation       – validator checks spec coverage and gaps
   → Your approval    – say "Yes, I approve the implementation"
-  • Tests            – engineer writes and runs tests
-  • Tests review     – reviewer checks scenarios and coverage
-  • Final validation – end-to-end pass
+  • Tests            – engineer writes and runs isolated tests
+  • Review tests     – reviewer checks coverage and scenarios
+  • Final validation – end-to-end dependency check
 ```
 
-Small tasks collapse into fewer phases and a single approval gate. You always know what's about to happen — Rosetta stops at the gates and waits for your explicit go-ahead.
+Phases scale by task size: small tasks handle discovery, reviews, and validation inline, and may combine the two approval gates into one. Approval is still always explicit. See [Coding Flow](/rosetta/docs/coding-flow/) for the full canonical phase list with scaling rules.
 
 ## Common requests
 
