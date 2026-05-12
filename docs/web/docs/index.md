@@ -45,6 +45,11 @@ Rosetta is a meta-prompting, context engineering, and centralized instructions m
     <p class="docs-index-card-title">Usage Guide</p>
     <p class="docs-index-card-desc">Workflows, skills, agents, customization, and best practices.</p>
   </a>
+  <a href="/rosetta/docs/customize/" class="docs-index-card">
+    <p class="docs-index-card-cat">Guides</p>
+    <p class="docs-index-card-title">Customize</p>
+    <p class="docs-index-card-desc">Adapt Rosetta to your project: context files, project rules, helper MCPs — with examples.</p>
+  </a>
   <a href="/rosetta/docs/deployment/" class="docs-index-card">
     <p class="docs-index-card-cat">Guides</p>
     <p class="docs-index-card-title">Deployment</p>
