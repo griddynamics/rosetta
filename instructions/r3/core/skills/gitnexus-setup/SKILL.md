@@ -1,18 +1,18 @@
 ---
-name: gitnexus
+name: gitnexus-setup
 description: "Opt-in skill: install GitNexus code-graph intelligence. After installation, GitNexus auto-provisions its own skills, hooks, and CLAUDE.md section — this skill only handles setup."
 tags: ["gitnexus", "code-graph", "installation", "opt-in"]
 baseSchema: docs/schemas/skill.md
 ---
 
-<gitnexus>
+<gitnexus_setup>
 
 <role>
 Installation gate for GitNexus — runs two commands, verifies the MCP connection, and hands off to GitNexus's own auto-provisioned skills and documentation.
 </role>
 
 <when_to_use_skill>
-Use ONLY during workspace initialization (Phase 8 of init-workspace-flow) or when the user explicitly asks to install GitNexus.
+Use ONLY during workspace initialization (Phase 6 of init-workspace-flow) or when the user explicitly asks to install GitNexus.
 
 </when_to_use_skill>
 
@@ -51,4 +51,4 @@ GitNexus should appear as `gitnexus · ✔ connected`.
 
 </troubleshooting>
 
-</gitnexus>
+</gitnexus-setup>
