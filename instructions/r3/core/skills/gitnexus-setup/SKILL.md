@@ -51,4 +51,4 @@ GitNexus should appear as `gitnexus · ✔ connected`.
 
 </troubleshooting>
 
-</gitnexus-setup>
+</gitnexus_setup>
