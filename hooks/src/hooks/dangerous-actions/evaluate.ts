@@ -9,7 +9,11 @@ import {
   type DangerPattern,
 } from './patterns';
 
-/** Regex that matches `# Rosetta-AI-reviewed` (must follow whitespace or appear at line start). */
+/**
+ * Matches `# Rosetta-AI-reviewed` preceded by whitespace or at line start.
+ * Both `#` and `Rosetta-AI-reviewed` must be separated by at least one space.
+ * Examples: `rm -rf /tmp  # Rosetta-AI-reviewed`, `-- # Rosetta-AI-reviewed`
+ */
 const MARKER_RE = /(?:^|\s)#\s+Rosetta-AI-reviewed\b/;
 
 const EVIDENCE_MAX = 120;
@@ -28,6 +32,8 @@ const MCP_SHELL_FIELDS   = ['command', 'cmd', 'shell_command'] as const;
 const MCP_PATH_FIELDS    = ['path', 'file_path', 'filePath', 'target', 'target_path'] as const;
 const MCP_CONTENT_FIELDS = ['content', 'new_string', 'query', 'sql'] as const;
 
+type PatternHit = { result: HookResult; pattern: DangerPattern | null };
+
 function buildReconsiderDenyMessage(
   pattern: DangerPattern,
   toolKind: string,
@@ -38,18 +44,33 @@ function buildReconsiderDenyMessage(
     ? `<redacted: ${pattern.id}>`
     : (evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence);
 
+  const retryLines =
+    toolKind === 'bash'
+      ? [
+          'retry with `# Rosetta-AI-reviewed` appended to the command.',
+          '',
+          'Example: `rm -rf /tmp/cache  # Rosetta-AI-reviewed`',
+          '(SQL via bash: use `-- # Rosetta-AI-reviewed`; spaces around `#` are required)',
+        ]
+      : toolKind === 'write' || toolKind === 'edit' || toolKind === 'multi-edit'
+      ? [
+          'retry with `# Rosetta-AI-reviewed` added as a trailing comment in `new_string`.',
+          '',
+          'Example: `DROP TABLE old_events; -- # Rosetta-AI-reviewed`',
+          '(spaces around `#` are required)',
+        ]
+      : [
+          'retry with `# Rosetta-AI-reviewed` appended to the relevant string field.',
+          '(spaces around `#` are required)',
+        ];
+
   return [
     `Blocked: ${pattern.id} — ${pattern.label} on ${toolKind}`,
     `Evidence: ${evidenceLine}`,
     `Reason: ${pattern.reason}`,
     '',
     'If you have considered the blast radius and confirm this is intentional,',
-    'retry with `# Rosetta-AI-reviewed` appended to the command.',
-    '',
-    'Example: `rm -rf /tmp/cache  # Rosetta-AI-reviewed`',
-    '(SQL fields: use `-- # Rosetta-AI-reviewed` or `/* # Rosetta-AI-reviewed */`)',
-    '',
-    'See `skills/dangerous-actions` for the retry protocol.',
+    ...retryLines,
   ].join('\n');
 }
 
@@ -69,8 +90,8 @@ function buildHardDenyMessage(
     `Reason: ${pattern.reason}`,
     '',
     'This pattern cannot be bypassed by `# Rosetta-AI-reviewed`. Human review required.',
-    'If you genuinely need this operation, ask the user explicitly with full blast-radius',
-    'analysis before retrying.',
+    'AI agent: stop and ask the user to confirm this operation with full blast-radius analysis.',
+    'Do not proceed until the user explicitly confirms with full blast-radius analysis.',
   ].join('\n');
 }
 
@@ -106,75 +127,6 @@ function matchDangerousPath(filePath: string): DangerPattern | null {
   return null;
 }
 
-/** Finds the first matched DangerPattern for a given context, mirroring evalPatternRaw logic. */
-function findMatchedPattern(ctx: HookContext): DangerPattern | null {
-  const input = ctx.toolInput;
-  switch (ctx.toolKind) {
-    case 'bash': {
-      const cmd = input.command;
-      return typeof cmd === 'string' ? matchPatterns(DANGEROUS_BASH, cmd) : null;
-    }
-    case 'write': {
-      const fp = input.file_path;
-      if (typeof fp === 'string') {
-        const m = matchDangerousPath(fp);
-        if (m) return m;
-      }
-      const content = input.content;
-      return typeof content === 'string' ? matchPatterns(DANGEROUS_CONTENT, content) : null;
-    }
-    case 'edit': {
-      const fp = input.file_path;
-      if (typeof fp === 'string') {
-        const m = matchDangerousPath(fp);
-        if (m) return m;
-      }
-      const ns = input.new_string;
-      return typeof ns === 'string' ? matchPatterns(DANGEROUS_CONTENT, ns) : null;
-    }
-    case 'multi-edit': {
-      const fp = input.file_path;
-      if (typeof fp === 'string') {
-        const m = matchDangerousPath(fp);
-        if (m) return m;
-      }
-      const edits = input.edits;
-      if (Array.isArray(edits)) {
-        for (const e of edits) {
-          const m = matchPatterns(DANGEROUS_CONTENT, e.new_string);
-          if (m) return m;
-        }
-      }
-      return null;
-    }
-    case 'mcp-call': {
-      for (const f of MCP_SHELL_FIELDS) {
-        const v = input[f];
-        if (typeof v === 'string') {
-          const m = matchPatterns(DANGEROUS_BASH, v);
-          if (m) return m;
-        }
-      }
-      for (const f of MCP_PATH_FIELDS) {
-        const v = input[f];
-        if (typeof v === 'string') {
-          const m = matchDangerousPath(v);
-          if (m) return m;
-        }
-      }
-      for (const f of MCP_CONTENT_FIELDS) {
-        const v = input[f];
-        if (typeof v === 'string') {
-          const m = matchPatterns(DANGEROUS_CONTENT, v);
-          if (m) return m;
-        }
-      }
-      return null;
-    }
-    default: return null;
-  }
-}
-
 /**
  * Returns true if any user-visible string field for the given tool name
  * contains the retry marker `# Rosetta-AI-reviewed`.
@@ -207,97 +159,105 @@ export function hasAIReviewedMarker(
   });
 }
 
-function evalBash(ctx: HookContext): HookResult {
+function evalBash(ctx: HookContext): PatternHit {
   const command = ctx.toolInput.command;
-  if (typeof command !== 'string') return null;
-  const matched = matchPatterns(DANGEROUS_BASH, command);
-  if (!matched) return null;
-  return buildDenyForPattern(matched, 'bash', command);
+  if (typeof command !== 'string') return { result: null, pattern: null };
+  const pattern = matchPatterns(DANGEROUS_BASH, command);
+  if (!pattern) return { result: null, pattern: null };
+  return { result: buildDenyForPattern(pattern, 'bash', command), pattern };
 }
 
-function evalWrite(ctx: HookContext): HookResult {
+function evalWrite(ctx: HookContext): PatternHit {
   const filePath = ctx.toolInput.file_path;
-  const content  = ctx.toolInput.content;
-  if (typeof filePath !== 'string' || typeof content !== 'string') return null;
-
-  const pathMatch = matchDangerousPath(filePath);
-  if (pathMatch) return buildDenyForPattern(pathMatch, 'write', filePath);
-
-  const contentMatch = matchPatterns(DANGEROUS_CONTENT, content);
-  if (contentMatch) return buildDenyForPattern(contentMatch, 'write', content, true);
-
-  return null;
-}
-
-function evalEdit(ctx: HookContext): HookResult {
-  const filePath  = ctx.toolInput.file_path;
-  const newString = ctx.toolInput.new_string;
-  if (typeof filePath !== 'string' || typeof newString !== 'string') return null;
-
-  const pathMatch = matchDangerousPath(filePath);
-  if (pathMatch) return buildDenyForPattern(pathMatch, 'edit', filePath);
-
-  const contentMatch = matchPatterns(DANGEROUS_CONTENT, newString);
-  if (contentMatch) return buildDenyForPattern(contentMatch, 'edit', newString, true);
-
-  return null;
-}
-
-function evalMultiEdit(ctx: HookContext): HookResult {
-  const filePath = ctx.toolInput.file_path;
-  const edits    = ctx.toolInput.edits;
-  if (typeof filePath !== 'string' || !Array.isArray(edits)) return null;
-
-  const pathMatch = matchDangerousPath(filePath);
-  if (pathMatch) return buildDenyForPattern(pathMatch, 'multi-edit', filePath);
-
-  for (const edit of edits) {
-    const contentMatch = matchPatterns(DANGEROUS_CONTENT, edit.new_string);
-    if (contentMatch) return buildDenyForPattern(contentMatch, 'multi-edit', edit.new_string, true);
+  if (typeof filePath === 'string') {
+    const pattern = matchDangerousPath(filePath);
+    if (pattern) return { result: buildDenyForPattern(pattern, 'write', filePath), pattern };
   }
-
-  return null;
+  const content = ctx.toolInput.content;
+  if (typeof content === 'string') {
+    const pattern = matchPatterns(DANGEROUS_CONTENT, content);
+    if (pattern) return { result: buildDenyForPattern(pattern, 'write', content, true), pattern };
+  }
+  return { result: null, pattern: null };
 }
 
-function evalMcpCall(ctx: HookContext): HookResult {
+function evalEdit(ctx: HookContext): PatternHit {
+  const filePath = ctx.toolInput.file_path;
+  if (typeof filePath === 'string') {
+    const pattern = matchDangerousPath(filePath);
+    if (pattern) return { result: buildDenyForPattern(pattern, 'edit', filePath), pattern };
+  }
+  const newString = ctx.toolInput.new_string;
+  if (typeof newString === 'string') {
+    const pattern = matchPatterns(DANGEROUS_CONTENT, newString);
+    if (pattern) return { result: buildDenyForPattern(pattern, 'edit', newString, true), pattern };
+  }
+  return { result: null, pattern: null };
+}
+
+function evalMultiEdit(ctx: HookContext): PatternHit {
+  const filePath = ctx.toolInput.file_path;
+  if (typeof filePath === 'string') {
+    const pattern = matchDangerousPath(filePath);
+    if (pattern) return { result: buildDenyForPattern(pattern, 'multi-edit', filePath), pattern };
+  }
+  const edits = ctx.toolInput.edits;
+  if (Array.isArray(edits)) {
+    for (const edit of edits) {
+      if (edit && typeof edit === 'object') {
+        const ns = (edit as Record<string, unknown>).new_string;
+        if (typeof ns === 'string') {
+          const pattern = matchPatterns(DANGEROUS_CONTENT, ns);
+          if (pattern) return { result: buildDenyForPattern(pattern, 'multi-edit', ns, true), pattern };
+        }
+      }
+    }
+  }
+  return { result: null, pattern: null };
+}
+
+function evalMcpCall(ctx: HookContext): PatternHit {
   const input = ctx.toolInput;
 
   for (const f of MCP_SHELL_FIELDS) {
     const v = input[f];
     if (typeof v === 'string') {
-      const m = matchPatterns(DANGEROUS_BASH, v);
-      if (m) return buildDenyForPattern(m, ctx.toolName, v);
+      const pattern = matchPatterns(DANGEROUS_BASH, v);
+      if (pattern) return { result: buildDenyForPattern(pattern, ctx.toolName, v), pattern };
     }
   }
-
   for (const f of MCP_PATH_FIELDS) {
     const v = input[f];
     if (typeof v === 'string') {
-      const m = matchDangerousPath(v);
-      if (m) return buildDenyForPattern(m, ctx.toolName, v);
+      const pattern = matchDangerousPath(v);
+      if (pattern) return { result: buildDenyForPattern(pattern, ctx.toolName, v), pattern };
     }
   }
-
   for (const f of MCP_CONTENT_FIELDS) {
     const v = input[f];
     if (typeof v === 'string') {
-      const m = matchPatterns(DANGEROUS_CONTENT, v);
-      if (m) return buildDenyForPattern(m, ctx.toolName, v, true);
+      const pattern = matchPatterns(DANGEROUS_CONTENT, v);
+      if (pattern) return { result: buildDenyForPattern(pattern, ctx.toolName, v, true), pattern };
     }
   }
-
-  return null;
+  return { result: null, pattern: null };
 }
 
-function evalPatternRaw(ctx: HookContext): HookResult {
+/** Single traversal: detects the first matching pattern and returns both deny result and pattern. */
+function detectDanger(ctx: HookContext): PatternHit {
   switch (ctx.toolKind) {
     case 'bash':       return evalBash(ctx);
     case 'write':      return evalWrite(ctx);
     case 'edit':       return evalEdit(ctx);
     case 'multi-edit': return evalMultiEdit(ctx);
     case 'mcp-call':   return evalMcpCall(ctx);
-    default:           return null;
+    default:           return { result: null, pattern: null };
   }
+}
+
+/** Returns both the deny result and the matched pattern for policy-aware callers. */
+export function evalPatternAndPolicy(ctx: HookContext): { result: HookResult; pattern: DangerPattern | null } {
+  return detectDanger(ctx);
 }
 
 /**
@@ -308,10 +268,9 @@ function evalPatternRaw(ctx: HookContext): HookResult {
  * @internal Used by unit tests.
  */
 export function evaluateDangerous(ctx: HookContext): HookResult {
-  const result = evalPatternRaw(ctx);
+  const { result, pattern } = evalPatternAndPolicy(ctx);
   if (result === null) return null;
 
-  const pattern = findMatchedPattern(ctx);
   if (pattern?.policy === 'hard-deny') return result;
 
   const input = ctx.toolInput as Record<string, unknown>;
@@ -320,9 +279,4 @@ export function evaluateDangerous(ctx: HookContext): HookResult {
     return null;
   }
   return result;
-}
-
-/** Returns both the deny result and the matched pattern for policy-aware callers. */
-export function evalPatternAndPolicy(ctx: HookContext): { result: HookResult; pattern: DangerPattern | null } {
-  return { result: evalPatternRaw(ctx), pattern: findMatchedPattern(ctx) };
 }

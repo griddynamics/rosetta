@@ -26,7 +26,7 @@ export const DANGEROUS_BASH: readonly DangerPattern[] = [
   { id: 'mkfs',                re: /\bmkfs(?:\.\w+)?\b/,                                                         label: 'filesystem format',     reason: 'Formats a block device, destroying all data on it — unrecoverable.',           policy: 'hard-deny'  },
   { id: 'dd-of-dev',           re: /\bdd\b.*\bof=\/dev\//,                                                       label: 'dd to device',          reason: 'Writes raw bytes directly to a block device — can corrupt OS or data.',        policy: 'hard-deny'  },
   { id: 'chmod-777-recursive', re: /\bchmod\s+-R\s+0?777\b/,                                                     label: 'chmod -R 777',          reason: 'Makes all files world-writable — severe security risk in shared environments.', policy: 'hard-deny'  },
-  { id: 'curl-pipe-shell',     re: /\bcurl\s.*\s\|\s*(?:sh|bash)\b/,                                            label: 'curl | sh',             reason: 'Executes arbitrary remote code without inspection — supply-chain risk.',        policy: 'reconsider' },
+  { id: 'curl-pipe-shell',     re: /\bcurl\s.*\s\|\s*(?:sh|bash)\b/,                                            label: 'curl | sh',             reason: 'Executes arbitrary remote code without inspection — supply-chain risk.',        policy: 'hard-deny'  },
 ] as const;
 
 export const DANGEROUS_PATHS: readonly DangerPattern[] = [
