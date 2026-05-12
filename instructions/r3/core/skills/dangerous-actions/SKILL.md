@@ -50,7 +50,7 @@ All patterns are classified as either **reconsider** (dangerous but recoverable)
 
 | Tier | Examples | AI behaviour on deny |
 |------|---------|----------------------|
-| `reconsider` | `rm -rf ./cache`, `git reset --hard`, `git branch -D`, `aws s3 rm --recursive`, DDL in content | Deny with retry instruction; AI may add `# Rosetta-AI-reviewed` after reconsidering blast radius |
+| `reconsider` | `rm -rf ./cache`, `git reset --hard`, `git branch -D`, `aws s3 rm --recursive`, DDL in content | Deny with retry instruction; AI may add `Rosetta-AI-reviewed` comment after reconsidering blast radius |
 | `hard-deny` | `rm -rf /`, `rm -rf $HOME`, `mkfs`, `dd of=/dev/`, `curl \| sh`, writes to `.env` / SSH keys / AWS credentials / kubeconfig | Permanent block; human review required |
 
 ## Threat model
@@ -70,21 +70,21 @@ When the hook denies a `reconsider`-tier pattern:
 
 1. Read the deny message: it explains the pattern, blast radius reason, and retry instructions.
 2. Reconsider the blast radius: is the target actually safe? Is there a safer alternative?
-3. If the action is genuinely necessary, append `# Rosetta-AI-reviewed` to a **user-visible payload field** and retry:
-   - `Bash`: in the `command` field — e.g. `rm -rf /tmp/test  # Rosetta-AI-reviewed`
-   - `Write`: in the `content` field — e.g. `ALTER TABLE x; -- # Rosetta-AI-reviewed`
-   - `Edit`: in the `new_string` field — e.g. `ALTER TABLE x; -- # Rosetta-AI-reviewed`
+3. If the action is genuinely necessary, append `Rosetta-AI-reviewed` as a comment to a **user-visible payload field** and retry:
+   - `Bash`: in the `command` field (append as a bash comment)
+   - `Write`: in the `content` field (append as an appropriate comment)
+   - `Edit`: in the `new_string` field (append as an appropriate comment)
    - `MultiEdit`: in the `new_string` of the relevant `edits[]` entry
    - `MCP`: in `command`, `sql`, `query`, `new_string`, or `content`
 4. If unsure about blast radius, stop and ask the user before proceeding.
 
 **Not accepted**: `description`, `comment`, `metadata`, or any field not rendered in the IDE UI. This prevents silent self-assertion via hidden fields.
 
-**Format requirements**: `# Rosetta-AI-reviewed` must be preceded by whitespace or appear at the start of the string; exactly one `#` followed by one or more spaces; exact case. Rejected: `# Rosetta-reviewed` (old token), `# rosetta-ai-reviewed` (lowercase), `#Rosetta-AI-reviewed` (no space after `#`).
+**Detection**: any occurrence of `Rosetta-AI-reviewed` with word boundaries in a whitelisted field is accepted. Exact case required. Rejected: `Rosetta-reviewed` (old token), `rosetta-ai-reviewed` (lowercase), `Rosetta-AI-reviewedX` (suffix word char).
 
 ## Hard-deny tier
 
-`hard-deny` patterns **cannot be bypassed by `# Rosetta-AI-reviewed`**. When the hook returns `HARD-DENY`:
+`hard-deny` patterns **cannot be bypassed by the `Rosetta-AI-reviewed` marker**. When the hook returns `HARD-DENY`:
 
 1. Stop immediately — do not retry with the marker.
 2. Explain the block and blast radius to the user.
