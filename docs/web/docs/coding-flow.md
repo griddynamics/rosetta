@@ -4,48 +4,15 @@ title: Coding Flow
 permalink: /docs/coding-flow/
 ---
 
-# Coding Flow
+# Coding workflow
 
-## Availability
+When you ask Rosetta to **add, change, or fix code**, this is the workflow it runs. It produces a spec and plan first (which you approve), then the code, then tests — with explicit gates at the two points where you decide whether to continue.
 
-OSS. This workflow lives in the core Rosetta instruction set.
+> Available in: OSS core.
 
-## TL;DR
+## When to use it
 
-Use Coding Flow for implementation work when coding is the main job, including feature work, changes, and bug fixes.
-Rosetta structures that work through specs, a plan, review gates, validation, and tests.
-It is the workflow Rosetta uses for adding, changing, or fixing code when coding is the main job.
-It produces a plan package first, then code, review findings, validation findings, tests, and final validation evidence.
-You must explicitly approve the plan before implementation starts.
-You must explicitly approve the implementation before tests continue.
-The workflow applies at all request sizes. What changes by size is phase scaling, not whether the workflow should be used.
-Medium and large tasks add separate discovery, review, and validator work where the source marks those phases as `MEDIUM,LARGE`.
-For small tasks, the source says the plan-review and implementation-review checkpoints may be combined. This page keeps that conservative: approval is still explicit and tests still do not continue without it, but the source does not define a more detailed small-task checkpoint shape than that.
-
-## When To Use This Workflow
-
-- Add, change, or fix application code.
-- Implement work that needs an explicit spec and plan before coding.
-- Use reviewer and validator gates to catch drift before you approve work.
-- Handle code changes of any size when coding is the main job.
-- Expect the workflow to scale by request size instead of switching to a different coding workflow.
-
-## When Not To Use This Workflow
-
-- Use [Requirements Documentation Authoring Flow](/rosetta/docs/requirements-authoring-flow/) when expected behavior is still unclear and you need requirements before planning code.
-- Use [Code Analysis Flow](/rosetta/docs/code-analysis-flow/) when the goal is to understand existing code, not change it.
-- Use [Ad-hoc Flow](/rosetta/docs/adhoc-flow/) when no fixed workflow fits the task and you need a lighter custom sequence.
-- Use [Research Flow](/rosetta/docs/research-flow/) when the main deliverable is grounded investigation rather than implementation.
-
-## Before You Start
-
-- Prepare a concrete change request with scope and acceptance criteria.
-- Make sure `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` are current enough to guide implementation.
-- Point the agent to existing requirements, API contracts, design notes, or issue links if they define non-negotiable behavior.
-- Provide workflow-specific implementation context that materially changes the result, especially business rules, edge cases, auth behavior, schema and DDL constraints, config switches, and internal library references under `refsrc/`.
-- For shared setup and general Rosetta customization, use [Usage Guide](/rosetta/docs/usage-guide/) instead of repeating that setup here.
-
-## How To Start
+Say something like:
 
 ```text
 Add password reset support for the customer portal. I want to review the plan before implementation starts.
@@ -63,13 +30,14 @@ Implement notification delivery using the existing queue abstraction. The auth r
 Change the billing retry logic to match the approved requirements in docs/REQUIREMENTS. Stop for approval before coding.
 ```
 
-## How Rosetta Shapes This Workflow
+Don't use it for:
 
-Rosetta changes the user experience before any code is touched. The coding agent must load Rosetta bootstrap rules, then read project context files, then load the coding workflow. That means the session starts with context loading, classification, and planning instead of immediate edits.
+- Understanding existing code without changing it → use [Code Analysis](/rosetta/docs/code-analysis-flow/)
+- Writing requirements before the behavior is settled → use [Requirements Authoring](/rosetta/docs/requirements-authoring-flow/)
+- One-off odd jobs that don't need full planning → use [Ad-hoc](/rosetta/docs/adhoc-flow/)
+- Investigation rather than implementation → use [Research](/rosetta/docs/research-flow/)
 
-Rosetta also forces explicit approvals and role separation. The workflow stays active for all request sizes, but medium and large tasks route more phases through specialized subagents for discovery, review, validation, build, and test work, so the same agent is not trusted to invent, implement, and approve in one pass. Questions are supposed to appear early when requirements, scope, or constraints are unclear.
-
-Rosetta provides instructions. Coding agents act on them. Rosetta itself does not see user requests, code, or project data.
+> **Quality of output depends on `docs/CONTEXT.md` and `docs/ARCHITECTURE.md`.** Rosetta reads them before planning — stale or missing context means the plan will ask more questions or miss conventions. If the change touches auth, the database schema, or external contracts, point the agent at the relevant files in your prompt.
 
 ## Workflow At A Glance
 
