@@ -1,39 +1,44 @@
 ---
 name: gitnexus-cli
-description: "Use when running GitNexus via npx: index/analyze a repo, check status, clean the index, generate a wiki, or list indexed repos."
+description: "GitNexus CLI reference for npx commands — analyze, status, clean, wiki, list — with flags, effects, and when to run each."
+tags: ["gitnexus", "cli", "indexing"]
+baseSchema: docs/schemas/skill.md
 ---
 
-# GitNexus CLI Commands
+<gitnexus-cli>
 
-All commands work via `npx` — no global install required.
+<role>
+CLI reference for GitNexus — maps commands to their flags, effects, and when to run them.
+</role>
 
-## Commands
+<when_to_use_skill>
+Use when GitNexus CLI command should be run directly, needs to know which flags to pass, or must trigger indexing, cleanup, or wiki generation outside of an automated hook.
+</when_to_use_skill>
 
-### analyze — Build or refresh the index
+<commands>
 
+**analyze — Build or refresh the index**
 ```bash
 npx gitnexus@latest analyze
 ```
 
-Run from the project root. This parses all source files, builds the knowledge graph, writes it to `.gitnexus/`, and generates CLAUDE.md / AGENTS.md context files.
+Run from the project root. This parses all source files, builds the knowledge graph, writes it to `.gitnexus/`.
 
 | Flag           | Effect                                                           |
 | -------------- | ---------------------------------------------------------------- |
 | `--force`      | Force full re-index even if up to date                           |
 | `--embeddings` | Enable embedding generation for semantic search (off by default) |
 
-**When to run:** First time in a project, after major code changes, or when `gitnexus://repo/{name}/context` reports the index is stale. In Claude Code, a PostToolUse hook runs `analyze` automatically after `git commit` and `git merge`, preserving embeddings if previously generated.
+**When to run:** First time in a project, after major code changes, or when `gitnexus://repo/{name}/context` reports the index is stale.
 
-### status — Check index freshness
-
+**status — Check index freshness**
 ```bash
 npx gitnexus@latest status
 ```
 
 Shows whether the current repo has a GitNexus index, when it was last updated, and symbol/relationship counts. Use this to check if re-indexing is needed.
 
-### clean — Delete the index
-
+**clean — Delete the index**
 ```bash
 npx gitnexus@latest clean
 ```
@@ -45,8 +50,7 @@ Deletes the `.gitnexus/` directory and unregisters the repo from the global regi
 | `--force` | Skip confirmation prompt                          |
 | `--all`   | Clean all indexed repos, not just the current one |
 
-### wiki — Generate documentation from the graph
-
+**wiki — Generate documentation from the graph**
 ```bash
 npx gitnexus@latest wiki
 ```
@@ -62,21 +66,21 @@ Generates repository documentation from the knowledge graph using an LLM. Requir
 | `--concurrency <n>` | Parallel LLM calls (default: 3)           |
 | `--gist`            | Publish wiki as a public GitHub Gist      |
 
-### list — Show all indexed repos
-
+**list — Show all indexed repos**
 ```bash
 npx gitnexus@latest list
 ```
 
 Lists all repositories registered in `~/.gitnexus/registry.json`. The MCP `list_repos` tool provides the same information.
 
-## After Indexing
+</commands>
 
-1. **Read `gitnexus://repo/{name}/context`** to verify the index loaded
-2. Use the other GitNexus skills (`exploring`, `debugging`, `impact-analysis`, `refactoring`) for your task
-
-## Troubleshooting
+<troubleshooting>
 
 - **"Not inside a git repository"**: Run from a directory inside a git repo
-- **Index is stale after re-analyzing**: Restart Claude Code to reload the MCP server
+- **Index is stale after re-analyzing**: Restart Editor to reload the MCP server
 - **Embeddings slow**: Omit `--embeddings` (it's off by default) or set `OPENAI_API_KEY` for faster API-based embedding
+
+</troubleshooting>
+
+</gitnexus-cli>
