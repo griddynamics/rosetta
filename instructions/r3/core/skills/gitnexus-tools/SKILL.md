@@ -1,11 +1,11 @@
 ---
-name: gitnexus-usage
+name: gitnexus-tools
 description: Use when you need to select or call a GitNexus MCP tool and want the right tool with the right parameters. Consult before any GitNexus tool call.
 tags: ["gitnexus", "pattern-matching", "code-intelligence"]
 baseSchema: docs/schemas/skill.md
 ---
 
-<gitnexus-usage>
+<gitnexus-tools>
 
 <role>
 Pattern-match user intent to the appropriate GitNexus MCP tool or resource. Provides a quick-reference map of tools, resources, parameters, and worked examples.
@@ -52,4 +52,4 @@ Use `ACQUIRE FROM KB` to load.
 </templates>
 
 
-</gitnexus-usage>
+</gitnexus-tools>
