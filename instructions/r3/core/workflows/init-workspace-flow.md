@@ -72,7 +72,7 @@ DISABLED
 
 </patterns>
 
-<gitnexus phase="6" type="HITL" role="Code-graph setup gate">
+<gitnexus phase="6" subagent="built-in" type="HITL" role="Code-graph setup gate" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro-preview">
 
 1. Ask user exactly: "Install GitNexus for enhanced code-graph navigation? (recommended)"
 2. If yes: USE SKILL `gitnexus-setup`; log as installed in state.
