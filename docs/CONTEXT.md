@@ -137,18 +137,6 @@ These principles shape every product and architectural decision:
 - **Security by design.** No source code transfer. Air-gap capable. Runs inside the organization's perimeter.
 - **Batteries included.** Ship proven defaults. Make the right thing the easy thing.
 
-## Optional Integrations
-
-### GitNexus (opt-in)
-
-GitNexus builds a semantic code graph (call graph, class hierarchy, cross-module dependencies) to improve AI refactoring quality and navigation accuracy.
-
-- **Enable during workspace init:** answer yes to "Install GitNexus for enhanced code-graph navigation? (recommended)"
-- **Skill:** `instructions/r3/core/skills/gitnexus/SKILL.md` — installation gate only (two commands + verify). 
-- **Hook:** `hooks/src/gitnexus-refresh.ts` — silent PostToolUse re-index with 5-second debounce; bundled in plugin `hooks.json`, no-ops if `.gitnexus/` is absent
-- **MCP:** stdio server (`gitnexus mcp`); registered by `npx gitnexus setup` in the user's global editor config 
-- **Not activated without user action** — requires explicit install and `.gitnexus/` index in the repo
-
 ## Related Docs
 
 - [README](../README.md): What Rosetta is and where to start
