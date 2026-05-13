@@ -579,7 +579,6 @@ These videos were recorded in different IDEs to show that Rosetta works everywhe
 
 ## Getting Help
 
-- [Discord](https://discord.gg/QzZ2cWg36g)
 - [Website](https://griddynamics.github.io/rosetta/)
 - [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)
 

@@ -99,7 +99,6 @@ Contributions welcome. See [Contributing](/rosetta/docs/contributing/) for workf
 
 ## Community
 
-- [Discord](https://discord.gg/QzZ2cWg36g)
 - [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)
 
 ## License

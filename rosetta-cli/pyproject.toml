@@ -37,7 +37,6 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/griddynamics/rosetta"
-Discord = "https://discord.gg/QzZ2cWg36g"
 Website = "https://griddynamics.github.io/rosetta/"
 Support = "https://github.com/griddynamics/rosetta/issues"
 

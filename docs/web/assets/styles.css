@@ -156,48 +156,6 @@ nav a.github-link svg {
   flex: 0 0 auto;
 }
 
-nav a.discord-link {
-  display: inline-flex;
-  align-items: center;
-  gap: .35rem;
-  padding: .28rem .7rem;
-  margin-left: .75rem;
-  border-radius: 6px;
-  border: 1px solid rgba(88, 101, 242, 0.4);
-  color: #7289da;
-  font-size: .82rem;
-  font-weight: 600;
-  text-decoration: none;
-  background: rgba(88, 101, 242, 0.08);
-  transition: background .15s, border-color .15s, color .15s;
-}
-
-nav a.discord-link:hover {
-  background: rgba(88, 101, 242, 0.18);
-  border-color: rgba(88, 101, 242, 0.7);
-  color: #99aab5;
-  text-decoration: none;
-  border-bottom-color: rgba(88, 101, 242, 0.7);
-}
-
-nav a.discord-link svg {
-  width: 15px;
-  height: 15px;
-  flex: 0 0 auto;
-}
-
-[data-theme="light"] nav a.discord-link {
-  border-color: rgba(88, 101, 242, 0.3);
-  color: #5865f2;
-  background: rgba(88, 101, 242, 0.06);
-}
-
-[data-theme="light"] nav a.discord-link:hover {
-  background: rgba(88, 101, 242, 0.12);
-  border-color: rgba(88, 101, 242, 0.5);
-  color: #4752c4;
-}
-
 /* ===== LAYOUT ===== */
 main {
   max-width: 1200px;
@@ -1200,19 +1158,6 @@ h2.with-marker::before {
   text-decoration: none;
 }
 
-.rm-feedback-btn--discord {
-  border-color: rgba(88, 101, 242, 0.45);
-  color: #7289da;
-  background: rgba(88, 101, 242, 0.07);
-}
-
-.rm-feedback-btn--discord:hover {
-  background: rgba(88, 101, 242, 0.14);
-  border-color: rgba(88, 101, 242, 0.7);
-  color: #7289da;
-  text-decoration: none;
-}
-
 [data-theme="light"] .rm-feedback {
   background: #ffffff;
   border-color: rgba(0,0,0,0.08);
@@ -1230,18 +1175,6 @@ h2.with-marker::before {
   background: rgba(255, 192, 2, 0.10);
   border-color: rgba(184, 120, 0, 0.50);
   color: #7a5000;
-}
-
-[data-theme="light"] .rm-feedback-btn--discord {
-  border-color: rgba(88, 101, 242, 0.3);
-  color: #5865f2;
-  background: rgba(88, 101, 242, 0.05);
-}
-
-[data-theme="light"] .rm-feedback-btn--discord:hover {
-  background: rgba(88, 101, 242, 0.1);
-  border-color: rgba(88, 101, 242, 0.5);
-  color: #4752c4;
 }
 
 @media (max-width: 600px) {
@@ -3298,12 +3231,6 @@ nav a:focus-visible {
     border-bottom: none;
   }
 
-  nav a.discord-link {
-    margin-left: 0;
-    margin-top: .5rem;
-    width: fit-content;
-  }
-
   .nav-wrap {
     flex-wrap: wrap;
   }
@@ -4337,14 +4264,11 @@ tr:hover td { background: rgba(255,192,2,0.03); }
 }
 
 /* ===== NAV: DISABLE SLIDE UNDERLINE ON SPECIAL LINKS ===== */
-nav a.github-link,
-nav a.discord-link {
+nav a.github-link {
   background-image: none;
 }
 nav a.github-link:hover,
-nav a.github-link.active,
-nav a.discord-link:hover,
-nav a.discord-link.active {
+nav a.github-link.active {
   background-size: 0 0;
 }
 
