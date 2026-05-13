@@ -47,7 +47,7 @@ Use whenever a GitNexus MCP tool call is needed: debugging errors, exploring cod
 
 Use `ACQUIRE FROM KB` to load.
 
-- `gitnexus-usage/assets/gn-examples.md`
+- `gitnexus-tools/assets/gn-examples.md`
 
 </templates>
 
