@@ -1,6 +1,6 @@
 ---
 name: gitnexus-setup
-description: "Opt-in skill: install GitNexus code-graph intelligence. After installation, GitNexus auto-provisions its own skills, hooks, and CLAUDE.md section — this skill only handles setup."
+description: "Use when directly requested to install GitNexus."
 tags: ["gitnexus", "code-graph", "installation", "opt-in"]
 baseSchema: docs/schemas/skill.md
 ---
