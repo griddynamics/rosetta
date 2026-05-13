@@ -29,17 +29,17 @@ Use whenever a GitNexus MCP tool call is needed: debugging errors, exploring cod
 
 **Tools:**
 
-**`gitnexus_query({query, repo?, limit?, max_symbols?, task_context?, goal?})`** — search by error text, symptom, concept, or feature area; use to find related execution flows when debugging, exploring, or identifying a refactoring scope; or to locate string/dynamic references that are not graph-tracked; narrow with `repo` when multiple repos are indexed, `limit` to cap the number of processes returned, or `max_symbols` to cap symbols per process; add `task_context` and `goal` to improve ranking.
+**`query({query, repo?, limit?, max_symbols?, task_context?, goal?})`** — search by error text, symptom, concept, or feature area; use to find related execution flows when debugging, exploring, or identifying a refactoring scope; or to locate string/dynamic references that are not graph-tracked; narrow with `repo` when multiple repos are indexed, `limit` to cap the number of processes returned, or `max_symbols` to cap symbols per process; add `task_context` and `goal` to improve ranking.
 
-**`gitnexus_context({name})`** — 360° view of a symbol: callers, callees, processes it participates in; use before modifying, extracting, or tracing data flow through a function; for performance issues, find symbols with many callers (hot paths); if multiple symbols share the same name, the tool returns candidates — rerun with `uid` from the candidate list for a zero-ambiguity lookup, or pass `file_path` to narrow the match.
+**`context({name})`** — 360° view of a symbol: callers, callees, processes it participates in; use before modifying, extracting, or tracing data flow through a function; for performance issues, find symbols with many callers (hot paths); if multiple symbols share the same name, the tool returns candidates — rerun with `uid` from the candidate list for a zero-ambiguity lookup, or pass `file_path` to narrow the match.
 
-**`gitnexus_impact({target, direction: "upstream|downstream"})`** — blast radius: what depends on X (upstream), what X depends on (downstream); use before any non-trivial change to assess risk; default `maxDepth` is 3 — increase it for deeper transitive analysis on large codebases.
+**`impact({target, direction: "upstream|downstream"})`** — blast radius: what depends on X (upstream), what X depends on (downstream); use before any non-trivial change to assess risk; default `maxDepth` is 3 — increase it for deeper transitive analysis on large codebases.
 
-**`gitnexus_detect_changes()`** — map current git diff to affected execution flows; use pre-commit to understand scope, post-refactor to verify only expected files changed, or when a change touches cross-area references; `scope` values: `"unstaged"` (default — working tree), `"staged"` (git index only), `"all"` (staged + unstaged), `"compare"` (diff against a branch/commit via `base_ref`).
+**`detect_changes()`** — map current git diff to affected execution flows; use pre-commit to understand scope, post-refactor to verify only expected files changed, or when a change touches cross-area references; `scope` values: `"unstaged"` (default — working tree), `"staged"` (git index only), `"all"` (staged + unstaged), `"compare"` (diff against a branch/commit via `base_ref`).
 
-**`gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})`** — graph-aware multi-file rename; preferred whenever a symbol appears across more than one file; always run with `dry_run: true` first; `text_search` edits are string matches the graph cannot verify — inspect each one: if it is a dynamic reference (config key, string literal, reflection), apply manually or skip; if it is a genuine code reference missed by the graph, apply it; then set `dry_run: false` to apply all confirmed edits.
+**`rename({symbol_name: "old", new_name: "new", dry_run: true})`** — graph-aware multi-file rename; preferred whenever a symbol appears across more than one file; always run with `dry_run: true` first; `text_search` edits are string matches the graph cannot verify — inspect each one: if it is a dynamic reference (config key, string literal, reflection), apply manually or skip; if it is a genuine code reference missed by the graph, apply it; then set `dry_run: false` to apply all confirmed edits.
 
-**`gitnexus_cypher({query: "MATCH ..."})`** — raw Cypher graph queries; use when tools above are insufficient (read `gitnexus://repo/{name}/schema` first).
+**`cypher({query: "MATCH ..."})`** — raw Cypher graph queries; use when tools above are insufficient (read `gitnexus://repo/{name}/schema` first).
 
 </core_concepts>
 
@@ -47,7 +47,7 @@ Use whenever a GitNexus MCP tool call is needed: debugging errors, exploring cod
 
 Use `ACQUIRE FROM KB` to load.
 
-- `gitnexus-tools/assets/gn-examples.md`
+- `gitnexus-usage/assets/gn-examples.md`
 
 </templates>
 
