@@ -19,9 +19,11 @@
 
 ## What is Rosetta
 
-Rosetta is a meta-prompting, context engineering, and centralized knowledge management for AI coding agents. It provides structured context - rules, skills, workflows, and sub-agents - guiding AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards. Rosetta also accelerates project onboarding by reverse-engineering architecture and domain context, improving the reliability and consistency of AI-generated code.
+Rosetta gives your AI coding agent your team's context — architecture, conventions, business rules — automatically, in every IDE.
 
-Every AI interaction follows four phases: **Prepare** (load guardrails and context), **Research** (search the knowledge base), **Plan** (produce a reviewable plan), **Act** (execute with full context). Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).
+After installing it, you type something like *"Add password reset to the customer portal"*. Instead of a generic implementation, you get a spec + plan that already understands your codebase, with explicit approval gates before any code is written.
+
+Works with Claude Code, Cursor, VS Code Copilot, JetBrains, Codex, Windsurf, OpenCode, and any MCP-compatible tool.
 
 ## Supported IDEs and Agents
 
@@ -31,37 +33,38 @@ Works with any MCP-compatible tool.
 
 ## Why use it
 
-- **Context engineering, not prompt hacking.** Agents receive your conventions, architecture, and business rules automatically — structured, versioned, and ready before the first line of code. See [how it fits your workflow](OVERVIEW.md#how-rosetta-fits-into-your-workflow).
-- **Write once, run everywhere.** Agent-agnostic design adapts to any IDE and any tech stack. No per-tool maintenance.
-- **Guardrails built in.** Approval gates, risk assessment, and data protection ensure consistent AI behavior across teams. See [how Rosetta protects you](USAGE_GUIDE.md#how-rosetta-protects-you).
-- **Cross-project intelligence** *(opt-in).* Publish business and technical context from every project into a shared knowledge base. Agents see the system, not just one repo — trace flows across services, catch breaking API changes before they ship, and assess blast radius of any change across the portfolio.
-- **One-command onboarding.** New repo, new developer — productive immediately with best practices baked in.
-- **Instructions as code.** Prompts version-controlled with release management — single source of truth for all teams.
+- **Plan first, code after approval.** Before any code is written, Rosetta produces a spec + plan you explicitly approve. Same goes before tests run. No autonomous runaway.
+- **One config, every IDE.** Add one MCP endpoint (or install the plugin) — same conventions and guardrails apply in Claude Code, Cursor, Copilot, JetBrains, and the rest.
+- **Conventions enforced automatically.** Your `CONTEXT.md`, `ARCHITECTURE.md`, and project rules load into every relevant request. The agent stops fabricating patterns and starts following yours.
+- **Designed not to see your code.** Rosetta serves instructions only — source code never reaches it. See [How it works](#how-it-works) below for the architectural controls.
+
+*Need cross-repo intelligence (trace flows across services, catch breaking API changes early)? See [Cross-Project Context](USAGE_GUIDE.md#cross-project-context) — opt-in via your Rosetta server.*
 
 ## How it works
 
-Your IDE connects to the Rosetta MCP server. The server exposes guardrails and common best practices, and provides a menu of available instructions — workflows and coding conventions. The coding agent selects only what it needs for the current task; Rosetta delivers just those, keeping the agent's context lean. By design, no source code or project data reaches Rosetta.
+Rosetta provides a menu of instructions — workflows, guardrails, project conventions. Your AI agent picks only what the current task needs, loads it, and runs. Rosetta never sees your source code or project data.
 
-Rosetta is designed to not see your source code. It only serves knowledge and instructions to the agent. The agent loads only what it needs per request (progressive disclosure) and follows your organization's workflows.
+Two delivery paths, same content:
 
-Rosetta is engineered to prevent the unintentional transmission of sensitive data through the following architectural controls:
-- **Deterministic Instruction Serving**: Instructions are delivered as MCP resources in a strictly deterministic manner. By eliminating the need for semantic search, coding agents are never required to transmit source code or sensitive context to Rosetta to retrieve instructions.
-- **Read-Only Default State**: "Write" mode is disabled and hidden by default. Enabling write capabilities requires an explicit, intentional configuration at deployment, ensuring that data persistence remains entirely outside of the end-user's control.
-- **Schema-Strict Input Validation**: All MCP tool inputs undergo rigorous validation against predefined schemas. This ensures the system rejects any unexpected payloads or "over-sharing" of data that does not match the required parameters.
+- **Plugin (preferred — most clients prefer this).** Bundles instructions directly into your IDE or repo. No live connection to Rosetta needed at request time. Available for Claude Code, VS Code Copilot, JetBrains, Codex.
+- **MCP server (fallback).** Your IDE connects to Rosetta over HTTP and pulls instructions on demand. Works with any MCP-compatible IDE.
+
+For architectural controls and the threat model, see [SECURITY.md](SECURITY.md).
 
 ## Get Started
 
-**Cursor** — add to `~/.cursor/mcp.json` or `.cursor/mcp.json`:
+> **Use a strong model.** Sonnet 4.6, GPT-5.3-codex-medium, gemini-3.1-pro, or better. Avoid Auto — weaker models silently skip Rosetta's tools.
 
-```json
-{
-  "mcpServers": {
-    "Rosetta": {
-      "url": "https://mcp.rosetta.griddynamics.net/mcp"
-    }
-  }
-}
-```
+### Option A — Install the plugin (recommended)
+
+| IDE                          | Command                                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Claude Code**              | `claude plugin marketplace add griddynamics/rosetta` then `claude plugin install core@rosetta`                      |
+| **VS Code / GitHub Copilot** | Install `core-copilot` via VS Code Copilot Plugins                                                                  |
+| **JetBrains / Copilot**      | Zip + manual config — see [INSTALLATION.md](INSTALLATION.md#plugin-based-installation)                              |
+| **Codex**                    | Zip + `codex features enable codex_hooks` — see [INSTALLATION.md](INSTALLATION.md#plugin-based-installation)        |
+
+### Option B — Connect via MCP (fallback for IDEs without a plugin)
 
 **Claude Code:**
 
@@ -69,31 +72,62 @@ Rosetta is engineered to prevent the unintentional transmission of sensitive dat
 claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp
 ```
 
+Then run `claude`, type `/mcp` → Rosetta → **Authenticate**.
+
+**Cursor / Windsurf** — `~/.cursor/mcp.json`:
+
+```json
+{ "mcpServers": { "Rosetta": { "url": "https://mcp.rosetta.griddynamics.net/mcp" } } }
+```
+
+**VS Code / Copilot** — `.vscode/mcp.json`:
+
+```json
+{ "servers": { "Rosetta": { "url": "https://mcp.rosetta.griddynamics.net/mcp" } } }
+```
+
 **Codex:**
 
 ```sh
-codex mcp add Rosetta --url https://mcp.rosetta.griddynamics.net/mcp
-codex mcp login Rosetta
+codex mcp add Rosetta --url https://mcp.rosetta.griddynamics.net/mcp && codex mcp login Rosetta
 ```
 
-Complete the OAuth flow when prompted. Then ask: *"Initialize this repository using Rosetta"*
+Other IDEs and STDIO transport: see [INSTALLATION.md](INSTALLATION.md). Any MCP-compatible tool can connect using the same endpoint.
 
-STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](INSTALLATION.md). Read more in the [Quickstart](QUICKSTART.md).
+**Then add the bootstrap rule (MCP mode only).** Some IDEs don't reliably invoke MCP tools on their own. Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and place it where your IDE looks for instructions (e.g. `.claude/claude.md`, `.cursor/rules/bootstrap.mdc`, `.github/copilot-instructions.md`). Full path table in [QUICKSTART.md](QUICKSTART.md).
+
+### Verify and initialize
+
+In your IDE, ask:
+
+```text
+What can you do, Rosetta?
+```
+
+You should see Rosetta's workflow list. Then, once per repo:
+
+```text
+Initialize this repository using Rosetta
+```
+
+This generates your `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and friends. Restart the chat after init so the new context loads.
+
+For details and troubleshooting, see [QUICKSTART.md](QUICKSTART.md) and [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
 ## Documentation
 
 | I want to... | Read |
 |---|---|
 | Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md) |
-| Set up Rosetta | [QUICKSTART.md](QUICKSTART.md) |
-| Learn how to use Rosetta flows | [USAGE_GUIDE.md](USAGE_GUIDE.md) |
+| See the full setup guide (all IDEs, troubleshooting) | [QUICKSTART.md](QUICKSTART.md) |
+| Learn how to use Rosetta workflows | [USAGE_GUIDE.md](USAGE_GUIDE.md) |
 | Deploy Rosetta for my organization | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) |
 | Understand the system architecture | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Navigate the codebase | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) |
 | Contribute a change | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Debug a problem | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
+| Read the security policy | [SECURITY.md](SECURITY.md) |
 | See release history | [CHANGELOG.md](CHANGELOG.md) |
-| Security Policy | [SECURITY.md](SECURITY.md) |
 
 ## Contributing
 
