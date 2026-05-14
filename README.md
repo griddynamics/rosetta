@@ -23,6 +23,12 @@ Rosetta is a meta-prompting, context engineering, and centralized knowledge mana
 
 Every AI interaction follows four phases: **Prepare** (load guardrails and context), **Research** (search the knowledge base), **Plan** (produce a reviewable plan), **Act** (execute with full context). Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).
 
+## Supported IDEs and Agents
+
+Cursor | Claude Code | VS Code / GitHub Copilot | JetBrains (Copilot, Junie) | Windsurf | Codex | Antigravity | OpenCode
+
+Works with any MCP-compatible tool.
+
 ## Why use it
 
 - **Context engineering, not prompt hacking.** Agents receive your conventions, architecture, and business rules automatically — structured, versioned, and ready before the first line of code. See [how it fits your workflow](OVERVIEW.md#how-rosetta-fits-into-your-workflow).
@@ -73,12 +79,6 @@ codex mcp login Rosetta
 Complete the OAuth flow when prompted. Then ask: *"Initialize this repository using Rosetta"*
 
 STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](INSTALLATION.md). Read more in the [Quickstart](QUICKSTART.md).
-
-## Supported IDEs and Agents
-
-Cursor | Claude Code | VS Code / GitHub Copilot | JetBrains (Copilot, Junie) | Windsurf | Codex | Antigravity | OpenCode
-
-Works with any MCP-compatible tool.
 
 ## Documentation
 
