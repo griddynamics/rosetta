@@ -14,8 +14,30 @@
    - See [Contributing Workflow](CONTRIBUTING.md#contributing-workflow) for git-related info
 
 2. **Develop Rosetta using claude code / codex / cursor** or **Use the prompting flow.**
-   - Development: existing rules will kick in, we use HTTP MCP, everything is preconfigured using claude standards. The repo's `.mcp.json` pre-configures Claude Code to connect to the **dev** MCP endpoint (`rosetta-dev.example.com/mcp`) — this is intentional so contributors see their in-progress instruction changes reflected immediately. End users connect to the production endpoint instead.
-   - Prompting: use the [`coding-agents-prompting-flow` (description + examples)](CONTRIBUTING.md#prompt-changes) to author, refactor, or harden prompts.
+   - **Development:** existing rules kick in, HTTP MCP is preconfigured. The repo's `.mcp.json` pre-configures Claude Code to connect to the **dev** MCP endpoint (`rosetta-dev.example.com/mcp`) — this is intentional so contributors see their in-progress instruction changes reflected immediately. End users connect to the production endpoint instead.
+   - **Prompting:** use the [`coding-agents-prompting-flow`](USAGE_GUIDE.md#workflows) with the `coding-agents-prompt-authoring` skill to author, refactor, or harden prompts (agents, skills, workflows, rules, templates). Use Opus 4.6 or newer.
+
+     Concrete invocations:
+
+     Refactor an old prompt to R2 format:
+
+     ```text
+     MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R2 prompt family in Rosetta.
+     ```
+
+     Create a new prompt:
+
+     ```text
+     MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to author a new R2 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+     ```
+
+     Via Rosetta MCP (instead of file path):
+
+     ```text
+     MUST ACQUIRE coding-agents-prompting-flow.md FROM KB AND FULLY EXECUTE IT to author a new R2 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+     ```
+
+     For PR submission requirements (brief, before/after, validation evidence), see [CONTRIBUTING → Prompt Change PRs](CONTRIBUTING.md#prompt-change-prs).
 
 3. **Check your output.**
    - [General Review Criteria](REVIEW.md#general-review-criteria)
@@ -45,7 +67,7 @@
    - All: update documentation, including web site
 
 7. **Pipelines.**
-   - [Automated pipelines](CONTRIBUTING.md#prompt-changes) will execute
+   - [Automated pipelines](CONTRIBUTING.md#prompt-change-prs) will execute
    - Static AI review and scenario comparison
    - Both must pass
 

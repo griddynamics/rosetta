@@ -131,7 +131,7 @@ For details and troubleshooting, see [QUICKSTART.md](QUICKSTART.md) and [TROUBLE
 
 ## Contributing
 
-Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and expectations.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and expectations.
 
 ## Community
 

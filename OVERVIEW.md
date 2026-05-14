@@ -25,7 +25,7 @@ Design principles:
 
 **Release-based versioning.** Instructions are organized by release (r1, r2, r3). New instructions can be developed without breaking agents on stable versions. Rollback is always possible. See [Architecture — Tradeoffs](docs/ARCHITECTURE.md#tradeoffs) for rationale.
 
-**Rules-as-code.** AI behavior is authored, versioned, reviewed, and approved through standard engineering workflows. Same rigor as application code. See [Contributing — Prompt Changes](CONTRIBUTING.md#prompt-changes) for the authoring process.
+**Rules-as-code.** AI behavior is authored, versioned, reviewed, and approved through standard engineering workflows. Same rigor as application code. See [Developer Guide — Overall Development Flow](DEVELOPER_GUIDE.md#overall-development-flow) for the authoring process, and [Contributing — Prompt Change PRs](CONTRIBUTING.md#prompt-change-prs) for PR requirements.
 
 **Security by design.** No source code transfer. Air-gap capable. Runs inside the organization's perimeter. See [Context — Design Philosophy](docs/CONTEXT.md#design-philosophy) for the full set.
 
