@@ -25,7 +25,7 @@ Match to cognitive demand. Match to current tool.
 
 </models>
 
-<plan_manager>
+<operation_manager>
 
 USE SKILL `plan-manager` as the main execution planner (file-based, via `npx rosettify@latest plan`).
 
@@ -41,7 +41,7 @@ Orchestrator:
 
 ACQUIRE `plan-manager/assets/pm-schema.md` FROM KB for data structure reference.
 
-</plan_manager>
+</operation_manager>
 
 <building_blocks>
 
