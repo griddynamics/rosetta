@@ -43,6 +43,8 @@ Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project):
   }
 }
 ```
+Then restart Cursor, go to 'Settings', enable Rosetta MCP, and authenticate it.
+![cursor-config.jpg](docs/images/installation/cursor-config.jpg)
 
 </details>
 
