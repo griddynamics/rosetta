@@ -34,7 +34,7 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 - Plan file lives in FEATURE PLAN folder: `<feature_plan_folder_full_path>/plan.json`
 - CLI: `npx rosettify@latest plan <subcommand> <plan_file> [args...]`
 - Always use full absolute paths for the plan file
-- Seven subcommands for `plan` command: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`
+- Six subcommands for `plan` command: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`
 - Resume behavior: `next` returns four groups: (1) in_progress steps (resume=true), (2) open eligible steps, (3) blocked steps (previously_blocked=true), (4) failed steps (previously_failed=true)
 - Phases are sequential: steps from a later phase do not appear until all steps in earlier phases are complete
 - Status propagation: bottom-up only (steps -> phases -> plan); plan root status is always derived, never set directly
