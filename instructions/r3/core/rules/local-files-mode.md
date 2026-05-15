@@ -108,7 +108,7 @@ Step 2+ are provided by `get_context_instructions`.
 - `ACQUIRE <file[.md]> ABOUT <PROJECT>` => read local file in `docs/<PROJECT>` folder
 - `QUERY <KEYWORDS> IN <PROJECT>` => use grep or codebase search in `docs/<PROJECT>` with KEYWORDS as a query or file name
 - `STORE <file[.md]> TO <PROJECT>` => upsert file in `docs/<PROJECT>`
-- `call "get_context_instructions"` or `execute prep steps` => read all `instructions/r2/core/rules/bootstrap-*.md` files as one bundle
+- `call "get_context_instructions"` or `execute prep steps` => read all `instructions/r3/core/rules/bootstrap-*.md` files as one bundle
 
 # ADDITIONAL SOURCES
 
