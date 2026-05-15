@@ -58,13 +58,15 @@ var TOOL_KINDS = {
   create: ["Write"],
   replace: ["Edit"],
   bash: ["Bash"],
-  read: ["Read"]
+  read: ["Read"],
+  "mcp-call": ["__mcp_sentinel__"]
 };
 var lookupEvent = (raw) => {
   for (const [k, v] of Object.entries(EVENTS)) if (v === raw) return k;
   return null;
 };
 var lookupToolKind = (raw) => {
+  if (raw.startsWith("mcp__")) return "mcp-call";
   for (const [k, v] of Object.entries(TOOL_KINDS))
     if (v.includes(raw)) return k;
   return null;
@@ -216,9 +218,9 @@ var toCanonical = (result, ctx) => {
   if (result.kind === "advise")
     return { hookSpecificOutput: { hookEventName: ctx.event ?? "", permissionDecision: "allow", additionalContext: result.message } };
   if (result.kind === "deny")
-    return { hookSpecificOutput: { permissionDecision: "deny", permissionDecisionReason: result.reason }, continue: false };
+    return { hookSpecificOutput: { hookEventName: ctx.event ?? "", permissionDecision: "deny", permissionDecisionReason: result.reason }, continue: false };
   if (result.kind === "allow")
-    return { hookSpecificOutput: { permissionDecision: "allow" } };
+    return { hookSpecificOutput: { hookEventName: ctx.event ?? "", permissionDecision: "allow" } };
   return {};
 };
 var makeDedupKey = (dedupBy, ctx, name) => [

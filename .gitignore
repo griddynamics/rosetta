@@ -89,6 +89,10 @@ hooks/node_modules/
 hooks/dist/tests/
 hooks/dist/bundles/
 
+# Vitest cache (root-level node_modules/.vite/)
+node_modules/.vite/
+
 .claude
 rosetta-cli/dist
 rosetta-mcp-server/dist
+.worktrees/

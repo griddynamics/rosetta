@@ -25,8 +25,20 @@ export const normalize = (rawInput: unknown): NormalizedInput => {
 
 export const formatOutput = (
   canonical: CanonicalOutput | Record<string, unknown>,
-  _ide?: string,
-): Record<string, unknown> => copilot.formatOutput(canonical as CanonicalOutput);
+  ide?: string,
+): Record<string, unknown> =>
+  ide === 'claude-code'
+    ? claudeCode.formatOutput(canonical as CanonicalOutput)
+    : copilot.formatOutput(canonical as CanonicalOutput);
 
-// Dedup is active for this bundle: Copilot CLI fires PostToolUse twice per tool call.
-export const detectIDE = (_raw: unknown): string => 'copilot';
+// Dedup is active only for old Copilot CLI format (fires PostToolUse twice per call).
+// VS Code Agent sends CC-shaped input and does not need dedup.
+export const detectIDE = (raw: unknown): string => {
+  const r = raw as Record<string, unknown>;
+  return copilot.detect(r) ? 'copilot' : 'claude-code';
+};
+
+export const dedupKey = (raw: unknown, hookName: string): string | null => {
+  const r = raw as Record<string, unknown>;
+  return copilot.detect(r) ? copilot.dedupKey!(r, hookName) : null;
+};

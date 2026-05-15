@@ -27,25 +27,67 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/md-file-advisory.ts
+// src/hooks/md-file-advisory.ts
 var md_file_advisory_exports = {};
 __export(md_file_advisory_exports, {
   advisoryMessage: () => advisoryMessage,
-  buildAdvisoryOutput: () => buildAdvisoryOutput,
-  isInTempDir: () => isInTempDir,
-  isMarkdown: () => isMarkdown,
-  main: () => main,
-  matchesAllowedPattern: () => matchesAllowedPattern,
-  shouldAdvisory: () => shouldAdvisory,
-  shouldCheck: () => shouldCheck
+  mdFileAdvisoryHook: () => mdFileAdvisoryHook
 });
 module.exports = __toCommonJS(md_file_advisory_exports);
-var import_path2 = __toESM(require("path"));
+var import_path5 = __toESM(require("path"));
+
+// src/runtime/define-hook.ts
+var defineHook = (def) => def;
+
+// src/runtime/run-hook.ts
+var import_path4 = __toESM(require("path"));
+
+// src/runtime/ide-rows/claude-code.ts
+var EVENTS = {
+  PostToolUse: "PostToolUse",
+  PreToolUse: "PreToolUse",
+  SessionStart: "SessionStart"
+};
+var TOOL_KINDS = {
+  write: ["Write", "create_file"],
+  edit: ["Edit"],
+  "multi-edit": ["MultiEdit"],
+  create: ["Write"],
+  replace: ["Edit"],
+  bash: ["Bash"],
+  read: ["Read"],
+  "mcp-call": ["__mcp_sentinel__"]
+};
+var lookupEvent = (raw) => {
+  for (const [k, v] of Object.entries(EVENTS)) if (v === raw) return k;
+  return null;
+};
+var lookupToolKind = (raw) => {
+  if (raw.startsWith("mcp__")) return "mcp-call";
+  for (const [k, v] of Object.entries(TOOL_KINDS))
+    if (v.includes(raw)) return k;
+  return null;
+};
+var getFilePath = (raw) => {
+  const ti = raw.tool_input ?? {};
+  return ti.file_path ?? ti.filePath ?? ti.path ?? null;
+};
+var getCwd = (raw) => raw.cwd ?? null;
+var getSessionId = (raw) => raw.session_id ?? null;
 
 // src/adapters/claude-code.ts
+var IDE = "claude-code";
 var CC_SIGNATURE = ["hook_event_name", "tool_input", "session_id"];
 var detect = (raw) => CC_SIGNATURE.every((f) => f in raw);
-var normalize = (raw) => raw;
+var normalize = (raw) => ({
+  ...raw,
+  ide: IDE,
+  event: lookupEvent(raw.hook_event_name),
+  toolKind: lookupToolKind(raw.tool_name),
+  file_path: getFilePath(raw) ?? "",
+  cwd: getCwd(raw) ?? void 0,
+  session_id: getSessionId(raw) ?? void 0
+});
 var formatOutput = (canonical) => canonical ?? {};
 var claudeCode = { name: "claude-code", detect, normalize, formatOutput };
 
@@ -67,25 +109,50 @@ var readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
 var normalize2 = (rawInput) => claudeCode.normalize(rawInput);
 var formatOutput2 = (canonical, _ide) => claudeCode.formatOutput(canonical);
 var detectIDE = (_raw) => "claude-code";
+var dedupKey = (_raw, _hookName) => null;
 
-// src/debug-log.ts
+// src/runtime/throttle.ts
 var import_fs = require("fs");
+var import_crypto = require("crypto");
 var import_path = __toESM(require("path"));
 var import_os = __toESM(require("os"));
-var LOG_DIR = import_path.default.join(import_os.default.homedir(), ".rosetta");
-var LOG_PATH = import_path.default.join(LOG_DIR, "hooks-debug.log");
+var DEFAULT_DIR = import_os.default.tmpdir();
+var LOCK_TTL_MS = 5e3;
+var acquireOnce = (key, dir = DEFAULT_DIR) => {
+  const hash = (0, import_crypto.createHash)("sha256").update(key).digest("hex").slice(0, 16);
+  const lockPath = import_path.default.join(dir, `rosetta-hooks-${hash}.lock`);
+  try {
+    (0, import_fs.writeFileSync)(lockPath, String(Date.now()), { flag: "wx" });
+    return true;
+  } catch (err) {
+    if (err.code !== "EEXIST") throw err;
+    const age = Date.now() - (0, import_fs.statSync)(lockPath).mtimeMs;
+    if (age >= LOCK_TTL_MS) {
+      (0, import_fs.writeFileSync)(lockPath, String(Date.now()));
+      return true;
+    }
+    return false;
+  }
+};
+
+// src/runtime/debug-log.ts
+var import_fs2 = require("fs");
+var import_path2 = __toESM(require("path"));
+var import_os2 = __toESM(require("os"));
+var LOG_DIR = import_path2.default.join(import_os2.default.homedir(), ".rosetta");
+var LOG_PATH = import_path2.default.join(LOG_DIR, "hooks-debug.log");
 var LOG_MAX_BYTES = 10 * 1024 * 1024;
 var ENABLED = process.env.ROSETTA_DEBUG === "1";
 var ensureDir = () => {
   try {
-    (0, import_fs.mkdirSync)(LOG_DIR, { recursive: true });
+    (0, import_fs2.mkdirSync)(LOG_DIR, { recursive: true });
   } catch {
   }
 };
 var rotatIfNeeded = () => {
   try {
-    if ((0, import_fs.statSync)(LOG_PATH).size >= LOG_MAX_BYTES) {
-      (0, import_fs.renameSync)(LOG_PATH, `${LOG_PATH.replace(/\.log$/, "")}.1.log`);
+    if ((0, import_fs2.statSync)(LOG_PATH).size >= LOG_MAX_BYTES) {
+      (0, import_fs2.renameSync)(LOG_PATH, `${LOG_PATH.replace(/\.log$/, "")}.1.log`);
     }
   } catch {
   }
@@ -96,115 +163,156 @@ var debugLog = (message, context) => {
   rotatIfNeeded();
   const entry = JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), msg: message, ...context ?? {} }) + "\n";
   try {
-    (0, import_fs.appendFileSync)(LOG_PATH, entry);
+    (0, import_fs2.appendFileSync)(LOG_PATH, entry);
   } catch {
   }
 };
 
-// src/md-file-advisory.ts
-var advisoryMessage = (filePath) => {
-  const name = import_path2.default.basename(filePath);
-  return `[Rosetta Advisory] ${name} is created in non-standard location, think if it is truly needed or you should have updated existing file.`;
-};
-var ALLOWED_PREFIXES = ["docs/", "agents/", "plans/", "refsrc/"];
-var ALLOWED_BASENAMES = ["README.md", "CHANGELOG.md"];
-var ALLOWED_TOOLS = /* @__PURE__ */ new Set([
-  "Write",
-  "Edit",
-  "apply_patch",
-  "functions.apply_patch",
-  "create_file",
-  "replace_string_in_file",
-  "multi_replace_string_in_file"
-]);
-var shouldCheck = (normalizedInput) => {
-  if (normalizedInput.hook_event_name !== "PostToolUse") {
-    debugLog("skip: not PostToolUse", { hook_event_name: normalizedInput.hook_event_name });
-    return false;
-  }
-  if (!ALLOWED_TOOLS.has(normalizedInput.tool_name)) {
-    debugLog("skip: tool not in ALLOWED_TOOLS", { tool_name: normalizedInput.tool_name });
-    return false;
-  }
-  return true;
-};
-var isMarkdown = (filePath) => filePath.toLowerCase().endsWith(".md");
-var isInTempDir = (normalizedPath) => {
-  const segments = normalizedPath.toLowerCase().split("/");
-  return segments.some((seg) => {
-    const parts = seg.split(/[-_.]/);
-    return parts.some((p) => p === "temp" || p === "tmp");
-  });
-};
-var matchesAllowedPattern = (normalizedPath) => {
-  for (const prefix of ALLOWED_PREFIXES) {
-    if (normalizedPath.startsWith(prefix)) return true;
-  }
-  const basename = import_path2.default.basename(normalizedPath);
-  return ALLOWED_BASENAMES.includes(basename);
-};
+// src/runtime/path-utils.ts
+var import_path3 = __toESM(require("path"));
+var import_fs3 = __toESM(require("fs"));
 var toRelative = (filePath) => {
   let p = filePath.replace(/\\/g, "/");
   if (p.startsWith("/")) p = p.slice(1);
   if (p.startsWith("./")) p = p.slice(2);
   return p;
 };
-var shouldAdvisory = (filePath) => {
-  if (!filePath) return false;
-  const rel = toRelative(filePath);
-  if (!isMarkdown(rel)) return false;
-  if (isInTempDir(rel)) return false;
-  if (matchesAllowedPattern(rel)) return false;
-  return true;
-};
-var buildAdvisoryOutput = (hookEventName, filePath) => ({
-  hookSpecificOutput: {
-    hookEventName,
-    permissionDecision: "allow",
-    additionalContext: advisoryMessage(filePath)
+var walkUp = (startDir, marker, maxLevels = 10) => {
+  let dir = startDir;
+  for (let i = 0; i < maxLevels; i++) {
+    if (import_fs3.default.existsSync(import_path3.default.join(dir, marker))) return dir;
+    const parent = import_path3.default.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
   }
-});
-var main = async ({
-  stdin = process.stdin,
-  stdout = process.stdout
-} = {}) => {
-  try {
-    const raw = await readStdin(stdin);
-    const ide = detectIDE(raw);
-    const normalized = normalize2(raw);
-    debugLog("md-file-advisory input", { ide, tool_name: normalized.tool_name, hook_event_name: normalized.hook_event_name });
-    if (!shouldCheck(normalized)) {
-      debugLog("skipped (shouldCheck=false)");
-      return;
-    }
-    const filePath = normalized.file_path ?? "";
-    if (shouldAdvisory(filePath)) {
-      const canonical = buildAdvisoryOutput(normalized.hook_event_name, filePath);
-      const output = formatOutput2(canonical, ide);
-      debugLog("md-file-advisory advisory emitted", { filePath });
-      stdout.write(JSON.stringify(output));
-    }
-  } catch (_) {
-  }
+  return null;
 };
-if (require.main === module) {
-  main().then(
+
+// src/runtime/run-hook.ts
+var runAsCli = (def, mod) => {
+  if (require.main !== mod) return;
+  runHook(def).then(
     () => process.exit(0),
     (err) => {
-      process.stderr.write(`md-file-advisory hook error: ${err.message}
+      process.stderr.write(`${def.name} hook error: ${err.message}
 `);
       process.exit(1);
     }
   );
-}
+};
+var toHookContext = (norm) => ({
+  ide: norm.ide,
+  event: norm.event,
+  toolKind: norm.toolKind,
+  toolName: norm.tool_name ?? "",
+  filePath: norm.file_path ?? "",
+  cwd: norm.cwd ?? "",
+  sessionId: norm.session_id ?? null,
+  toolInput: norm.tool_input,
+  toolResponse: norm.tool_response
+});
+var toCanonical = (result, ctx) => {
+  if (result.kind === "advise")
+    return { hookSpecificOutput: { hookEventName: ctx.event ?? "", permissionDecision: "allow", additionalContext: result.message } };
+  if (result.kind === "deny")
+    return { hookSpecificOutput: { hookEventName: ctx.event ?? "", permissionDecision: "deny", permissionDecisionReason: result.reason }, continue: false };
+  if (result.kind === "allow")
+    return { hookSpecificOutput: { hookEventName: ctx.event ?? "", permissionDecision: "allow" } };
+  return {};
+};
+var makeDedupKey = (dedupBy, ctx, name) => [
+  name,
+  ...dedupBy.includes("session") ? [ctx.sessionId ?? "no-session"] : [],
+  ...dedupBy.includes("filePath") ? [ctx.filePath] : [],
+  ...dedupBy.includes("ide") ? [ctx.ide] : [],
+  ...dedupBy.includes("toolName") ? [ctx.toolName] : [],
+  ...dedupBy.includes("toolInput") ? [JSON.stringify(ctx.toolInput)] : []
+].join(":");
+var evalFilePath = (fp, filePath) => {
+  const p = filePath;
+  const pl = p.toLowerCase();
+  const rel = toRelative(p);
+  if (fp.extOneOf && !fp.extOneOf.some((e) => p.endsWith(e))) return false;
+  if (fp.extOneOfCi && !fp.extOneOfCi.some((e) => pl.endsWith(e.toLowerCase()))) return false;
+  if (fp.notContainsAny && fp.notContainsAny.some((s) => p.includes(s))) return false;
+  if (fp.notTokenSegmentAny) {
+    const segs = pl.split("/");
+    const blocked = segs.some(
+      (seg) => seg.split(/[-_.]/).some((tok) => fp.notTokenSegmentAny.includes(tok))
+    );
+    if (blocked) return false;
+  }
+  if (fp.notStartsWithAny && fp.notStartsWithAny.some((s) => rel.startsWith(s) || p.includes("/" + s))) return false;
+  if (fp.notBasenameOneOf && fp.notBasenameOneOf.includes(import_path4.default.basename(p))) return false;
+  return true;
+};
+var evalToolInput = (ti, ctx) => {
+  if (ti.commandMatchWhen) {
+    const { tools, re } = ti.commandMatchWhen;
+    if (tools.includes(ctx.toolName)) {
+      const command = ctx.toolInput.command ?? "";
+      if (!re.test(command)) return false;
+    }
+  }
+  return true;
+};
+var runHook = async (def, opts = {}) => {
+  const { stdin = process.stdin, stdout = process.stdout } = opts;
+  try {
+    const raw = await readStdin(stdin);
+    const ide = detectIDE(raw);
+    const norm = normalize2(raw);
+    debugLog(`[runHook:${def.name}]`, { ide, event: norm.event, toolKind: norm.toolKind });
+    if (norm.event !== def.on.event) return;
+    if (!def.on.toolKinds.includes(norm.toolKind)) return;
+    const ctx0 = toHookContext(norm);
+    if (def.on.filePath && !evalFilePath(def.on.filePath, ctx0.filePath)) return;
+    if (def.on.toolInput && !evalToolInput(def.on.toolInput, ctx0)) return;
+    let markerRoot;
+    if (def.on.fs?.nearestMarker) {
+      const found = walkUp(ctx0.cwd || process.cwd(), def.on.fs.nearestMarker);
+      if (!found) return;
+      markerRoot = found;
+    }
+    const ctx = markerRoot !== void 0 ? { ...ctx0, markerRoot } : ctx0;
+    const platformKey = dedupKey(raw, def.name);
+    if (platformKey !== null && !acquireOnce(platformKey)) return;
+    if (def.throttle && "dedupBy" in def.throttle) {
+      if (!acquireOnce(makeDedupKey(def.throttle.dedupBy, ctx, def.name))) return;
+    }
+    const result = await def.run(ctx);
+    if (!result || result.kind === "side-effect") return;
+    stdout.write(JSON.stringify(formatOutput2(toCanonical(result, ctx), ide)));
+  } catch (err) {
+    debugLog(`[runHook:${def.name}] error`, { err: err.message });
+  }
+};
+
+// src/runtime/result-helpers.ts
+var advise = (message) => ({ kind: "advise", message });
+
+// src/hooks/md-file-advisory.ts
+var advisoryMessage = (filePath) => {
+  const name = import_path5.default.basename(filePath);
+  return `[Rosetta Advisory] ${name} is created in non-standard location, think if it is truly needed or you should have updated existing file.`;
+};
+var mdFileAdvisoryHook = defineHook({
+  name: "md-file-advisory",
+  on: {
+    event: "PostToolUse",
+    toolKinds: ["write", "edit", "multi-edit", "patch", "create", "replace"],
+    filePath: {
+      extOneOfCi: [".md"],
+      notTokenSegmentAny: ["tmp", "temp"],
+      notStartsWithAny: ["docs/", "agents/", "plans/", "refsrc/"],
+      notBasenameOneOf: ["README.md", "CHANGELOG.md"]
+    }
+  },
+  run: (ctx) => advise(advisoryMessage(ctx.filePath))
+});
+runAsCli(mdFileAdvisoryHook, module);
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   advisoryMessage,
-  buildAdvisoryOutput,
-  isInTempDir,
-  isMarkdown,
-  main,
-  matchesAllowedPattern,
-  shouldAdvisory,
-  shouldCheck
+  mdFileAdvisoryHook
 });

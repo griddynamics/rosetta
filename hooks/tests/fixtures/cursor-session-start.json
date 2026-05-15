@@ -1,0 +1,19 @@
+{
+  "_source": "constructed-from-docs",
+  "_docs": "https://cursor.com/docs/reference/hooks",
+  "hook_event_name": "sessionStart",
+  "conversation_id": "conv-session-abc",
+  "generation_id": null,
+  "session_id": "session-cursor-002",
+  "model": "claude-sonnet-4-20250514",
+  "cursor_version": "2.4.0",
+  "workspace_roots": ["/proj"],
+  "user_email": "dev@example.com",
+  "transcript_path": null,
+  "tool_name": null,
+  "tool_input": {},
+  "tool_output": null,
+  "tool_use_id": null,
+  "cwd": "/proj",
+  "duration": null
+}

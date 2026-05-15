@@ -23,7 +23,7 @@ Validation: State file tracks every phase with file inventory; verification conf
 - ACCURACY > SPEED
 - Dual-mode: every phase reads `state.mode` → check-exists → identify-gaps → create/update → preserve-human-content → report-changes.
 - Composite workspace: documentation phases create top-level registry referencing sub-repository docs.
-- IF state.file_count >= 50 (set by Phase 3): pass "ACQUIRE `large-workspace-handling/SKILL.md` FROM KB" to Phase 5, 6, 8 subagents.
+- IF state.file_count >= 50 (set by Phase 3): pass "ACQUIRE `large-workspace-handling/SKILL.md` FROM KB" to Phase 5, 7, 8 subagents.
 - Before Phase 1: create `agents/init-workspace-flow-state.md`.
 - Conditional phases:
   - If you have already in context "RUNNING AS A PLUGIN": MUST NOT EXECUTE "shells" phase 2
@@ -68,20 +68,28 @@ DISABLED
 1. Extract coding and architectural patterns into reusable templates.
 2. Output: PATTERNS folder (one .md per pattern, INDEX.md, CHANGES.md).
 3. ACQUIRE `init-workspace-flow-patterns.md` FROM KB
-4. Update state. Log gaps for Phase 7.
+4. Update state. Log gaps for Phase 8.
 
 </patterns>
 
-<documentation phase="6" subagent="built-in" role="Documentation analyst" subagent_recommended_model="claude-opus-4-6, gpt-5.4-high, gemini-3.1-pro-preview">
+<gitnexus phase="6" subagent="built-in" type="HITL" role="Code-graph setup gate" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro-preview">
+
+1. Ask user exactly: "Install GitNexus for enhanced code-graph navigation? (recommended)"
+2. If yes: USE SKILL `gitnexus-setup`; log as installed in state.
+3. If no: skip silently; log as skipped in state.
+
+</gitnexus>
+
+<documentation phase="7" subagent="built-in" role="Documentation analyst" subagent_recommended_model="claude-opus-4-6, gpt-5.4-high, gemini-3.1-pro-preview">
 
 1. Create project documentation from workspace analysis.
 2. Output: CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md.
 3. ACQUIRE `init-workspace-flow-documentation.md` FROM KB
-4. Update state. Log gaps for Phase 7.
+4. Update state. Log gaps for Phase 8.
 
 </documentation>
 
-<questions phase="7" type="HITL" role="Reflective gap-filler">
+<questions phase="8" type="HITL" role="Reflective gap-filler">
 
 1. Review all docs, identify gaps, ask user reflective questions, update affected files via subagents.
 2. ACQUIRE `init-workspace-flow-questions.md` FROM KB
@@ -89,7 +97,7 @@ DISABLED
 
 </questions>
 
-<verification phase="8" subagent="built-in" role="Completeness validator" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
+<verification phase="9" subagent="built-in" role="Completeness validator" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
 
 1. Verify all files exist, run validation checklist, suggest next steps.
 2. ACQUIRE `init-workspace-flow-verification.md` FROM KB
@@ -104,6 +112,8 @@ DISABLED
 
 Phase files: `init-workspace-flow-context.md`, `init-workspace-flow-shells.md`, `init-workspace-flow-discovery.md`, `init-workspace-flow-rules.md`, `init-workspace-flow-patterns.md`, `init-workspace-flow-documentation.md`, `init-workspace-flow-questions.md`, `init-workspace-flow-verification.md`
 
+Skills: `gitnexus-setup`
+
 State: `agents/init-workspace-flow-state.md`
 
 </references>
@@ -111,7 +121,7 @@ State: `agents/init-workspace-flow-state.md`
 <pitfalls>
 
 - Phase 4 (rules) is optional — disabled by default.
-- Phase 7 must update files via subagents, not just collect answers.
+- Phase 8 must update files via subagents, not just collect answers.
 - Shells and rules take effect only after new chat session.
 
 </pitfalls>

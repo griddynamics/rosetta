@@ -6,9 +6,20 @@
         "hooks": [{{BOOTSTRAP_HOOKS_CODEX}}]
       }
     ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|apply_patch|functions.apply_patch|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/dangerous-actions.js"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit|apply_patch|functions.apply_patch",
+        "matcher": "Write|apply_patch|functions.apply_patch",
         "hooks": [
           {
             "type": "command",
@@ -17,6 +28,24 @@
           {
             "type": "command",
             "command": "node .codex/hooks/md-file-advisory.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|apply_patch|functions.apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/gitnexus-refresh.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|apply_patch|functions.apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/lint-format-advisory.js"
           }
         ]
       }

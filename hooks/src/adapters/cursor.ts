@@ -6,10 +6,12 @@
 // extras: generation_id, cursor_version, workspace_roots, user_email, transcript_path, duration.
 //
 // hook_event_name casing: Cursor uses camelCase ("postToolUse") vs CC PascalCase ("PostToolUse").
-// normalize() uppercases the first letter to produce the canonical PascalCase form.
+// normalize() derives the semantic event via registry (which handles the casing difference).
 
+import { lookupEvent, lookupToolKind, getFilePath, getCwd } from '../runtime/ide-rows/cursor';
 import type { IdeAdapter, NormalizedInput, CanonicalOutput } from '../types';
 
+const IDE = 'cursor' as const;
 const CC_SIGNATURE = ['hook_event_name', 'tool_input'] as const;
 const CURSOR_EXTRA = ['conversation_id', 'cursor_version'] as const;
 
@@ -21,11 +23,17 @@ const detect = (raw: Record<string, unknown>): boolean =>
 
 const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   const { hook_event_name, conversation_id, ...rest } = raw;
+  const rawEventName = hook_event_name as string;
   return {
     ...rest,
-    hook_event_name: toPascalCase(hook_event_name as string),
-    session_id: conversation_id as string,
+    ide:          IDE,
+    event:        lookupEvent(rawEventName),
+    toolKind:     lookupToolKind(raw.tool_name as string),
+    hook_event_name: toPascalCase(rawEventName),
+    session_id:   conversation_id as string,
     conversation_id,
+    file_path:    getFilePath(raw) ?? '',
+    cwd:          getCwd(raw) ?? undefined,
   } as unknown as NormalizedInput;
 };
 

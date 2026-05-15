@@ -44,3 +44,11 @@ Rosetta is a meta-prompting, context engineering, and centralized knowledge mana
 - **Requirements documentation authoring.** A structured workflow produces testable, atomic requirements with traceability. Those requirements then drive planning, implementation, and validation.
 - **Prompt authoring.** Teams that create and maintain AI agent instruction sets now have a dedicated workflow with specialized subagents for each phase.
 - **Debugging skill.** The agent investigates root cause before attempting a fix, which makes debugging more systematic and less dependent on guesswork.
+
+#### Safety and Hook Hardening
+
+- **Two-tier dangerous-actions hook.** The `PreToolUse` hook now classifies every pattern as either `reconsider` (dangerous but recoverable, AI may self-approve after blast-radius analysis) or `hard-deny` (catastrophic, human confirmation required). `curl | sh` is hard-deny. Previously all denies were permanent HITL gates.
+- **AI-autonomous retry via `# Rosetta-AI-reviewed`.** For `reconsider`-tier patterns, the AI may append the marker token to a user-visible field and retry after reconsidering blast radius. The marker is validated by strict regex; legacy `# Rosetta-reviewed` is rejected.
+- **Single-traversal pattern evaluation.** Pattern matching and policy lookup now share one traversal (`detectDanger`), eliminating the structural divergence risk where a hard-deny pattern could slip through if the two parallel scans returned different results.
+- **Stateless hook design.** Cooldown store and audit log removed. The hook is safe across worktrees, CI runners, and parallel sessions without shared state.
+- **Windsurf adapter deny feedback.** `permissionDecisionReason` is surfaced as `additionalContext` so Windsurf agents receive actionable denial explanations.

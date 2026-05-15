@@ -8,8 +8,10 @@
 // 12 event types are mapped to canonical hook_event_name + tool_name + tool_input.
 // 4 events have no CC equivalent and use new canonical names (PrePromptSubmit, PostResponse, PostWorktree).
 
+import { lookupEvent, lookupToolKind, getFilePath, getCwd } from '../runtime/ide-rows/windsurf';
 import type { IdeAdapter, NormalizedInput, CanonicalOutput } from '../types';
 
+const IDE = 'windsurf' as const;
 const WINDSURF_SIGNATURE = ['agent_action_name', 'trajectory_id', 'tool_info'] as const;
 
 type ToolNameResolver =
@@ -50,22 +52,32 @@ const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   const { agent_action_name, trajectory_id, execution_id, timestamp, model_name, tool_info } = raw;
   const eventDef = EVENT_MAP[agent_action_name as string];
   const ti = (tool_info as Record<string, unknown>) || {};
+  const mappedHookEventName = eventDef ? eventDef.hook_event_name : (agent_action_name as string);
+  const mappedToolName = eventDef ? resolveToolName(eventDef, ti) : null;
 
   return {
-    hook_event_name: eventDef ? eventDef.hook_event_name : (agent_action_name as string),
-    session_id: trajectory_id as string,
-    tool_name: eventDef ? resolveToolName(eventDef, ti) : null,
-    tool_input: eventDef ? eventDef.buildToolInput(ti) : ti,
-    cwd: (ti.cwd as string) ?? undefined,
-    _windsurf: { agent_action_name, execution_id, timestamp, model_name, tool_info: ti },
+    ide:             IDE,
+    event:           lookupEvent(mappedHookEventName),
+    toolKind:        lookupToolKind(mappedToolName ?? ''),
+    hook_event_name: mappedHookEventName,
+    session_id:      trajectory_id as string,
+    tool_name:       mappedToolName,
+    tool_input:      eventDef ? eventDef.buildToolInput(ti) : ti,
+    file_path:       getFilePath(raw) ?? '',
+    cwd:             getCwd(raw) ?? undefined,
+    _windsurf:       { agent_action_name, execution_id, timestamp, model_name, tool_info: ti },
   } as unknown as NormalizedInput;
 };
 
 const formatOutput = (canonical?: CanonicalOutput): Record<string, unknown> => {
   const { hookSpecificOutput = {} } = canonical ?? {};
-  const { additionalContext, permissionDecision } = hookSpecificOutput;
+  const { additionalContext, permissionDecision, permissionDecisionReason } = hookSpecificOutput;
   const out: Record<string, unknown> = {};
-  if (additionalContext) out.additionalContext = additionalContext;
+  if (additionalContext) {
+    out.additionalContext = additionalContext;
+  } else if (permissionDecision === 'deny' && permissionDecisionReason) {
+    out.additionalContext = permissionDecisionReason;
+  }
   if (permissionDecision === 'deny') out._exitCode = 2;
   return out;
 };

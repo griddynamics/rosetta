@@ -10,6 +10,8 @@
 // 4 events have no CC equivalent and use new canonical names (PrePromptSubmit, PostResponse, PostWorktree).
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.windsurf = void 0;
+const windsurf_1 = require("../runtime/ide-rows/windsurf");
+const IDE = 'windsurf';
 const WINDSURF_SIGNATURE = ['agent_action_name', 'trajectory_id', 'tool_info'];
 // Maps Windsurf agent_action_name → { hook_event_name, tool_name, buildToolInput }
 const EVENT_MAP = {
@@ -33,21 +35,31 @@ const normalize = (raw) => {
     const { agent_action_name, trajectory_id, execution_id, timestamp, model_name, tool_info } = raw;
     const eventDef = EVENT_MAP[agent_action_name];
     const ti = tool_info || {};
+    const mappedHookEventName = eventDef ? eventDef.hook_event_name : agent_action_name;
+    const mappedToolName = eventDef ? resolveToolName(eventDef, ti) : null;
     return {
-        hook_event_name: eventDef ? eventDef.hook_event_name : agent_action_name,
+        ide: IDE,
+        event: (0, windsurf_1.lookupEvent)(mappedHookEventName),
+        toolKind: (0, windsurf_1.lookupToolKind)(mappedToolName ?? ''),
+        hook_event_name: mappedHookEventName,
         session_id: trajectory_id,
-        tool_name: eventDef ? resolveToolName(eventDef, ti) : null,
+        tool_name: mappedToolName,
         tool_input: eventDef ? eventDef.buildToolInput(ti) : ti,
-        cwd: ti.cwd ?? undefined,
+        file_path: (0, windsurf_1.getFilePath)(raw) ?? '',
+        cwd: (0, windsurf_1.getCwd)(raw) ?? undefined,
         _windsurf: { agent_action_name, execution_id, timestamp, model_name, tool_info: ti },
     };
 };
 const formatOutput = (canonical) => {
     const { hookSpecificOutput = {} } = canonical ?? {};
-    const { additionalContext, permissionDecision } = hookSpecificOutput;
+    const { additionalContext, permissionDecision, permissionDecisionReason } = hookSpecificOutput;
     const out = {};
-    if (additionalContext)
+    if (additionalContext) {
         out.additionalContext = additionalContext;
+    }
+    else if (permissionDecision === 'deny' && permissionDecisionReason) {
+        out.additionalContext = permissionDecisionReason;
+    }
     if (permissionDecision === 'deny')
         out._exitCode = 2;
     return out;

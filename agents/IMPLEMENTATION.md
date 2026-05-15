@@ -72,6 +72,14 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Build integrated into `scripts/pre_commit.py` via `build_hooks()` check before plugin sync.
 - Codex `md-file-advisory.js` hook installed in workspace `.codex/hooks.json` and wired into the `core-codex` hook template/generated configs.
 
+### Hooks — lint-format-advisory PostToolUse Hook
+
+- Added `hooks/src/hooks/lint-format-advisory.ts`: PostToolUse advisory that emits `[Rosetta Advisory]` text nudging the agent to plan a syntax/type/lint/format check step after editing a code file.
+- Monitored extensions: `.html`, `.css`, `.js`, `.ts`, `.jsx`, `.tsx`, `.py`, `.cs`, `.ps1`, `.cmd`, `.java`, `.go`, `.rs`, `.md`.
+- Throttle: 5-second tmp-file lock keyed by `(session, filePath)`; Copilot platform double-fire absorbed by the same key. Session-long TTL deferred.
+- No `plan_manager` coupling (deferred to a follow-up PR alongside actual linter execution).
+- Registered in all four plugins via `hooks.json.tmpl` (workspace) and the GitHub Marketplace tmpl for Copilot; generated `hooks.json` checked into each plugin tree. vitest suite (43 tests).
+
 ### rosettify (npm package)
 
 - Local CLI/MCP tool runner for Rosetta. Published on npm as `rosettify` (`rosettify/`).
@@ -104,6 +112,22 @@ For detailed change history, use git history and PRs instead of expanding this f
   - Jira loader recovery after upstream API changes
   - shared type-validation entrypoint
 - Some GitHub Pages actions remain upstream-limited and may still depend on older Node runtimes until upstream changes.
+
+### Hooks — dangerous-actions PreToolUse Hook (F13: two-tier retry pattern)
+
+> F12 superseded. The original single-gate HITL model is replaced by the two-tier retry pattern below.
+
+- `PreToolUse` hook covers `Bash`, `Write`, `Edit`, `MultiEdit`, `mcp-call` across all five IDE bundles (Claude Code, Cursor, Copilot, Codex, Windsurf).
+- **Two-tier policy**: every `DangerPattern` carries `reason` and `policy` fields:
+  - `reconsider` — deny on first call; AI may append `# Rosetta-AI-reviewed` and retry after reconsidering blast radius.
+  - `hard-deny` — permanently blocked; `# Rosetta-AI-reviewed` has no effect; human review required.
+- **Marker token**: renamed to `# Rosetta-AI-reviewed`. Strict regex `(?:^|\s)#\s+Rosetta-AI-reviewed\b`. Legacy `# Rosetta-reviewed` rejected.
+- **Single traversal**: `detectDanger(ctx)` replaces the previous parallel `evalPatternRaw` + `findMatchedPattern`, eliminating potential hard-deny bypass via divergence.
+- **Stateless**: `cooldown-store.ts` and `audit-log.ts` deleted; safe across worktrees, CI runners, and parallel sessions.
+- **`curl | sh` reclassified to `hard-deny`**: supply-chain execution is treated as catastrophic, not self-approvable.
+- **Windsurf adapter**: `permissionDecisionReason` surfaced as `additionalContext` so agents receive actionable feedback.
+- **SKILL.md alignment**: `dangerous-actions/SKILL.md` documents two-tier model and correct token; `hitl/SKILL.md` removes the now-incorrect AI-marker prohibition.
+- 461 hooks tests pass (7 new coverage additions: Edit/MultiEdit dangerous path, partial Write, reconsider+marker retry, MCP query field, curl|sh hard-deny).
 
 ### Documentation and Public Surface
 

@@ -2,9 +2,21 @@
   "version": 1,
   "hooks": {
     "sessionStart": [{{BOOTSTRAP_HOOKS_COPILOT}}],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/dangerous-actions.js\" ]; then node \"$root/hooks/dangerous-actions.js\"; break; fi; done",
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\dangerous-actions.js\") { node \"$root\\hooks\\dangerous-actions.js\" }"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file",
+        "matcher": "Write|create_file",
         "hooks": [
           {
             "type": "command",
@@ -15,6 +27,26 @@
             "type": "command",
             "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/md-file-advisory.js\" ]; then node \"$root/hooks/md-file-advisory.js\"; break; fi; done",
             "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\md-file-advisory.js\") { node \"$root\\hooks\\md-file-advisory.js\" }"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file",
+        "hooks": [
+          {
+            "type": "command",
+            "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/gitnexus-refresh.js\" ]; then node \"$root/hooks/gitnexus-refresh.js\"; break; fi; done",
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\gitnexus-refresh.js\") { node \"$root\\hooks\\gitnexus-refresh.js\" }"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file",
+        "hooks": [
+          {
+            "type": "command",
+            "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/lint-format-advisory.js\" ]; then node \"$root/hooks/lint-format-advisory.js\"; break; fi; done",
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\lint-format-advisory.js\") { node \"$root\\hooks\\lint-format-advisory.js\" }"
           }
         ]
       }

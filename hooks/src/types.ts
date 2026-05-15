@@ -2,6 +2,8 @@
 // Lives in its own file to keep the module graph acyclic:
 // adapter.ts imports adapter values, adapters import these types.
 
+import type { IdeName, SemanticEvent, SemanticKind } from './runtime/ide-registry';
+
 export interface NormalizedInput {
   hook_event_name: string;
   session_id: string | undefined;
@@ -11,6 +13,9 @@ export interface NormalizedInput {
   tool_use_id?: string;
   cwd?: string;
   tool_response?: unknown;
+  ide: IdeName;
+  event: SemanticEvent | null;
+  toolKind: SemanticKind | null;
   [key: string]: unknown;
 }
 
@@ -26,8 +31,11 @@ export interface CanonicalOutput {
 }
 
 export interface IdeAdapter {
-  name: string;
-  detect: (raw: Record<string, unknown>) => boolean;
-  normalize: (raw: Record<string, unknown>) => NormalizedInput;
+  name:         string;
+  detect:       (raw: Record<string, unknown>) => boolean;
+  normalize:    (raw: Record<string, unknown>) => NormalizedInput;
   formatOutput: (canonical?: CanonicalOutput) => Record<string, unknown>;
+  // Platform-level dedup: return a stable key per logical tool call to collapse duplicate
+  // events emitted by the IDE. Return null to disable dedup for this adapter.
+  dedupKey?:    (raw: Record<string, unknown>, hookName: string) => string | null;
 }
