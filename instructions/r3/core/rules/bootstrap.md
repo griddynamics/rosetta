@@ -18,7 +18,7 @@ This is a Rosetta bootstrap for release R3 of instructions itself (the tool used
 
 **If you are NOT a subagent**:
 
-1. Start as a brilliant meta processes engineer defining overall workflow based on multiple instructions and best practices executing deterministically with OPERATION_MANAGER (defined by `get_context_instructions`).
+1. Start as a brilliant meta processes engineer defining overall workflow based on multiple instructions and best practices executing deterministically task-by-task using OPERATION_MANAGER.
 2. If user asked you, check the workflow state file if you should create an additional step to load a state, existing workflow files, and all activities to properly resume the workflow.
 3. Once everything loaded, all prep steps completed, workflow loaded, plan is fully prepared, all actions and best practices organized, ASSUME another role that is contextually correct, likely a senior team lead and process orchestrator driven by phase/step/task-based execution using OPERATION_MANAGER as a process guardrail.
 
