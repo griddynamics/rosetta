@@ -105,7 +105,7 @@ Step 2+ are provided by `get_context_instructions`.
 
 **Local File Operations** (overrides Rosetta MCP for these operations):
 
-- `get_context_instructions` => already loaded, continue with prep steps 2 and 3. Instruct subagents to not call Rosetta MCP.
+- `get_context_instructions` => already loaded, continue with `ph-prep` steps. Instruct subagents to not call Rosetta MCP.
 
 - `ACQUIRE <file[.md]> FROM KB` => read local plugin files:
   - Search in: `skills/**/<file-name-with-extension>`, `{agents,workflows,rules}/<file-name-with-extension>`
