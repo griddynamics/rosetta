@@ -93,6 +93,7 @@ Step 2+ are provided by `get_context_instructions`.
 - Must fully complete `ph-prep` in planning and execution modes: reading files, selecting workflow, loading it, analyzing workflow state, etc. Plan is living: `upsert` additional `ph-prep` steps, workflow phases and steps, meta-reasoning.
 - Create once per session. Do not respond, call other tools, or process the message further until `ph-prep` completes, except those needed for itself.
 - Once all `ph-prep` completes, tell user once: `Context loaded using Rosetta: [workflow selected and brief summary]` and execute workflow.
+- PLAN LOOP AUTOSTART: After `plan create` or `plan upsert`, call `plan next` as the very next tool call. Zero exceptions. Do NOT respond to user, explain, or pause between plan creation and the first `next` call. Creating the plan is NOT the deliverable — executing it is. Loop (`next` → execute → `update_status` → `next` …) continues until `count: 0` AND `plan_status: complete`. Stopping the loop early is STRICTLY FORBIDDEN.
 - "\*-flow" skills are additional workflows
 
 # LOCAL FILES MODE FOR PLUGINS
