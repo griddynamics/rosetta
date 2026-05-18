@@ -31,11 +31,17 @@ After installing it, you type something like *"Add password reset to the custome
 
 Works with Claude Code, Cursor, VS Code Copilot, JetBrains, Codex, Windsurf, OpenCode, and any MCP-compatible tool.
 
-## Supported IDEs and Agents
+## Who is Rosetta for
 
-Cursor | Claude Code | VS Code / GitHub Copilot | JetBrains (Copilot, Junie) | Windsurf | Codex | Antigravity | OpenCode | Gemini CLI
+Mid-level, senior engineers and team-leads working in a multi-user environment with enterprise codebases. Team size doesn't matter — 1 person or 10+. What matters is that the codebase is large enough that one person can't hold all of it, and you ship to real environments where mistakes have real consequences.
 
-Works with any MCP-compatible tool.
+You've used AI coding agents but haven't built your own harness of skills, workflows, and guardrails around them. You want to ship product, not maintain your own prompts.
+
+**Not for:**
+
+- Personal projects where mistakes don't matter
+- Engineers who've already built a sophisticated AI harness
+- Architects looking for architecture-specific workflows (not supported yet)
 
 ## Why use it
 
@@ -122,6 +128,7 @@ For details and troubleshooting, see [QUICKSTART.md](QUICKSTART.md) and [TROUBLE
 | I want to... | Read |
 |---|---|
 | Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md) |
+| Onboard as a new contributor (what to read in what order) | [LEARNING_PATH.md](LEARNING_PATH.md) |
 | Look up a Rosetta-specific term | [TERMINOLOGY.md](TERMINOLOGY.md) |
 | See the full setup guide (all IDEs, troubleshooting) | [QUICKSTART.md](QUICKSTART.md) |
 | Learn how to use Rosetta workflows | [USAGE_GUIDE.md](USAGE_GUIDE.md) |

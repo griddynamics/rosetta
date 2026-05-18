@@ -1,6 +1,6 @@
 # Overview
 
-**Who is this for?** Engineers, leads, and architects who want to understand how Rosetta works before contributing or evaluating it.
+**Who is this for?** Engineers and leads who want to understand how Rosetta works before contributing or evaluating it.
 
 **When should I read this?** After the [README](README.md), before diving into [Architecture](docs/ARCHITECTURE.md) or [Contributing](CONTRIBUTING.md).
 
@@ -13,15 +13,15 @@
 
 ## Core Mental Model
 
-Rosetta is a **meta-prompting, context engineering, and centralized instructions management** for AI coding agents. It provides structured context - rules, skills, workflows, and sub-agents - guiding AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards. Rosetta also accelerates project onboarding by reverse-engineering architecture and domain context, improving the reliability and consistency of AI-generated code.
+Rosetta gives your AI coding agent the right instructions for each request — the rules, skills, workflows, and subagents it needs — so the agent knows your architecture, conventions, and engineering standards. On a new project, Rosetta can read the code first and extract that context into files the agent uses on every later request, so it doesn't have to re-learn the project each time.
 
 Design principles:
 
 **Agent-agnostic.** Works across Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Adopts agent-specific features where available, simulates them where not.
 
-**Progressive disclosure.** Instructions load in stages (bootstrap, classification, workflow-specific, sub-instructions) to [prevent context overflow](docs/ARCHITECTURE.md#context-overflow-prevention). The agent gets only what it needs for the current task.
+**Stage-by-stage loading.** Instructions load in stages — universal policies first, then the workflow for your specific request, then anything else as needed. The agent never gets the full instruction set; it gets only what the current task needs. This [prevents context overflow](docs/ARCHITECTURE.md#context-overflow-prevention).
 
-**Classification-first.** Every request is auto-classified into a [workflow type](USAGE_GUIDE.md#workflows) before any work begins. Classification drives which instructions, skills, and rules load. Provided workflows are used as templates.
+**Classification-first.** Every request is auto-classified into a [workflow type](USAGE_GUIDE.md#workflows) before any work begins. The classification drives which instructions, skills, and rules load.
 
 **Release-based versioning.** Instructions are organized by release (r1, r2, r3). New instructions can be developed without breaking agents on stable versions. Rollback is always possible. See [Architecture — Tradeoffs](docs/ARCHITECTURE.md#tradeoffs) for rationale.
 
@@ -44,9 +44,9 @@ Your IDE and coding agent ask Rosetta for instructions on each request.
 
 **Request types.** Twelve workflow types cover the SDLC: coding, requirements documentation authoring, automated QA, test generation, research, initialization, modernization, external library onboarding, code analysis, coding agents prompting, help, and ad-hoc. See the [Usage Guide — Workflows](USAGE_GUIDE.md#workflows) for details on each.
 
-**Standard pattern (P-RPA).** Every workflow follows Prepare, Research, Plan, Act. Each phase can involve subagents, skills, and HITL approval gates.
+**Four-phase pattern.** Every workflow has four phases: Prepare, Research, Plan, Act. Each phase can use subagents, skills, and HITL approval gates.
 
-**Prepare** is executed once during repository initialization and maintained automatically by AI. It reverse-engineers business context, architecture, tech stack, and coding patterns into workspace files that every subsequent workflow uses. See [Usage Guide — Init Workspace](USAGE_GUIDE.md#workflows) for the full phase breakdown.
+**Prepare** runs once when you first initialize the repository. The agent reads your code and extracts your business context, architecture, tech stack, and conventions into workspace files. Every later workflow uses those files. See [Usage Guide — Init Workspace](USAGE_GUIDE.md#workflows) for the full phase breakdown.
 
 **Scaling by size:**
 
@@ -80,7 +80,7 @@ Instructions are organized in three layers that merge at runtime:
 - **Organization** — your company's conventions and policies
 - **Project** — local repo docs and configs
 
-Layers at the same resource path get [bundled together](docs/ARCHITECTURE.md#bundler). This is layered customization, not multi-tenancy. See [Architecture](docs/ARCHITECTURE.md) for component details and data flow.
+When the same file path exists in multiple layers, Rosetta merges them at runtime. It's customization by layer, not separate tenants. See [Architecture](docs/ARCHITECTURE.md) for component details and data flow.
 
 ## What Rosetta Does Not Do
 

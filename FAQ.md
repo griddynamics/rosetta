@@ -25,9 +25,17 @@ If none of these are true, Rosetta is not active for this session. See [INSTALLA
 
 See the [Get Started section in README.md](README.md#get-started) for the fastest path, or [INSTALLATION.md](INSTALLATION.md) for the full setup including the fallback bootstrap rule. Once installed, [QUICKSTART.md](QUICKSTART.md) walks you through your first session.
 
+**Which Rosetta release should I use?**
+
+**R2** is the current stable release — use it for production work.
+
+**R3** is in active development and not for production use yet. (Internal contributors testing R3 do so by switching to the `V3` branch — see [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md).)
+
+Rosetta uses release-based versioning so new instructions can be developed without breaking agents on stable releases, and rollback is always possible. See [OVERVIEW.md](OVERVIEW.md) for the rationale.
+
 **How do I upgrade from R1 to R2?**
 
-Open a new chat in your IDE and type: `Initialize this repository using Rosetta (upgrade R1 to R2)`. Rosetta will detect the existing R1 layout and migrate it. <!-- TODO: confirm exact wording and link to migration notes if any -->
+Open a new chat in your IDE and type: `Initialize this repository using Rosetta (upgrade R1 to R2)`. Rosetta will detect the existing R1 layout and migrate it.
 
 ---
 
@@ -70,6 +78,14 @@ Most likely an expired MCP OAuth token. See [TROUBLESHOOTING.md](TROUBLESHOOTING
 ---
 
 ## Concepts
+
+**How does Rosetta compare to other AI agent tools (superpowers, GSD, etc.)?**
+
+Most similar tools focus on one meta-flow — usually coding. Rosetta covers ~12 SDLC workflows: coding, test generation, AQA, modernization, research, code analysis, requirements authoring, external library onboarding, workspace init, prompt authoring, and more. See [USAGE_GUIDE.md](USAGE_GUIDE.md) for the full list.
+
+Rosetta also adds guardrails, HITL approval gates, sensitive-data handling, and risk assessment that apply across all workflows.
+
+If you already have a sophisticated harness for the one workflow you care about, you may not need Rosetta. If you want a broad, consistent foundation across many engineering activities, that's where Rosetta fits.
 
 **What's the difference between a skill, workflow, agent, and rule?**
 

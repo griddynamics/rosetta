@@ -1,6 +1,6 @@
 # Usage Guide
 
-**Who is this for?** Engineers, leads, and architects using Rosetta in their daily work.
+**Who is this for?** Engineers and leads using Rosetta in their daily work.
 
 **When should I read this?** After [QUICKSTART.md](QUICKSTART.md). When you want to understand what Rosetta offers and how to use each flow.
 
