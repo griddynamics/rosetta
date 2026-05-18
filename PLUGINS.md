@@ -1,43 +1,56 @@
+# Plugins
+
+Rosetta plugins bundle the bootstrap rule, skills, agents, workflows, and other instructions directly into your IDE. The agent loads them locally — no live connection to Rosetta is needed at request time.
+
+Two install modes per IDE:
+
+- **Marketplace** — managed install from a plugin marketplace. Easier; preferred when available.
+- **Standalone** — manual zip extraction into your repo. For IDEs without a marketplace path, or environments that block external marketplaces.
+
 > [!CAUTION]
-> You must receive a prior approval from your manager and company to use it.
+> You must receive prior approval from your manager and company to use Rosetta.
 
 > [!WARNING]
-> Use **Sonnet 4.6**, **GPT-5.3-codex-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
+> Use **Sonnet 4.6**, **GPT-5.3-codex-medium**, **gemini-3.1-pro**, or better. Avoid Auto.
 
->[!NOTE]
-> This is pre-release, but it already works.
+> [!NOTE]
+> Plugins are pre-release. They install and run; report bugs at <https://github.com/griddynamics/rosetta/issues>.
 
-## Claude Code Full Plugin Installation
+## Claude Code
 
 ```sh
-
 claude plugin marketplace add griddynamics/rosetta
 claude plugin install rosetta@rosetta
-
 ```
 
-## Cursor Standalone
+To update later:
 
-1. Download `core-cursor-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
-2. Extract the archive contents directly into the repository.
-3. Verify you can see a file `.cursor/agents/architect.md`. Ensure there are no `.cursor/.cursor` folders.
+```sh
+claude plugin marketplace update rosetta
+claude plugin update rosetta@rosetta
+```
 
-## Cursor Team Marketplace
+## Cursor
 
-If you have respective edition of Cursor you can add it as plugin to your corporate marketplace. See https://cursor.com/docs/plugins#team-marketplaces
+### Marketplace (recommended)
 
-You can also install plugin to claude code and it will appear in Cursor :)
+If you have a Cursor edition that supports plugins, add `https://github.com/griddynamics/rosetta` to your team marketplace. See <https://cursor.com/docs/plugins#team-marketplaces> for the setup steps on the Cursor side.
 
-`https://github.com/griddynamics/rosetta` provides marketplace and plugin for Cursor.
+Cursor also sees plugins installed via Claude Code. If you've already installed via `claude plugin install`, do **not** install again in Cursor — the same content would be duplicated in Cursor's context.
 
-> [!WARNING]
-> Cursor sees and uses all claude code plugins, so you should not install plugins to claude code and cursor, just install to claude code. Otherwise everything will be duplicated in Cursor context!
+### Standalone
 
-## VS Code Github Copilot
+1. Download `core-cursor-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+2. Extract the archive contents into your repository.
+3. Verify `.cursor/agents/architect.md` exists. Ensure there is no nested `.cursor/.cursor/` folder.
 
-Add marketplace to `chat.plugins.marketplaces` in settings using using local files path: `https://github.com/griddynamics/rosetta`.
+## VS Code (GitHub Copilot)
 
-Go to agent customizations screen (settings gear icon in Copilot chat plane), click `Browse Marketplaces`, click `install` for `rosetta`.
+### Marketplace (recommended)
+
+1. In VS Code settings, add `https://github.com/griddynamics/rosetta` to `chat.plugins.marketplaces`.
+2. Open the Copilot chat panel, click the settings gear icon to open agent customizations.
+3. Click **Browse Marketplaces**, then **install** for `rosetta`.
 
 <img src="docs/images/vscode-add-marketplaces.png" alt="Add marketplaces to VS Code" width="710"/>
 
@@ -45,79 +58,26 @@ Go to agent customizations screen (settings gear icon in Copilot chat plane), cl
 
 <img src="docs/images/vscode-install-plugins.png" alt="Install plugins" width="710"/>
 
-## Github Copilot Standalone (JetBrains and VS Code)
+### Standalone
 
-1. Download `core-copilot-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
-2. Extract the archive contents directly into the repository, if `.github/copilot-instructions.md` you will have to merge contents: first from Rosetta, then the original content.
-3. Verify you can see a file `.github/agents/architect.agent.md`. Ensure there are no `.github/.github` folders.
+See [GitHub Copilot Standalone](#github-copilot-standalone-jetbrains-and-vs-code) below — same procedure for VS Code and JetBrains.
 
-## Codex plugins (standalone only)
+## GitHub Copilot Standalone (JetBrains and VS Code)
 
-Codex plugins only allow to pass hooks, MCPs and skills as of now (Apr 2026).
+Use this when the marketplace path isn't available — JetBrains Copilot (no marketplace), or VS Code environments that block external marketplaces.
 
-Download `core-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest), extract on top of the repository, and enable hooks:
+1. Download `core-copilot-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+2. Extract the archive contents into your repository. If `.github/copilot-instructions.md` already exists, merge contents — Rosetta first, then the original content.
+3. Verify `.github/agents/architect.agent.md` exists. Ensure there is no nested `.github/.github/` folder.
 
-```sh
-codex features enable hooks
-```
+## Codex
 
-## Next Steps
+Codex plugins currently support hooks, MCPs, and skills only (as of April 2026).
 
-### Onboarding Repository (One-Time Initialization)
+1. Download `core-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+2. Extract the archive contents into your repository.
+3. Enable hooks:
 
-```
-Initialize this repository using Rosetta
-```
-
-The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md, ARCHITECTURE.md, CONTEXT.md), and ask clarifying questions. Read more about [workspace files](INSTALLATION.md#workspace-files-created) and [all workflows](USAGE_GUIDE.md#workflows).
-
-> [!NOTE]
-> **Prefer medium models:** High reasoning and Opus models consume too much token on reasoning.
-> **Composite workspaces:** init each repository separately, then init at the workspace level with "This is composite workspace" appended.
-> **Dead code or existing specs:** mention their location in the prompt to save time.
-
-### Coding Workflow
-
-**WHAT**: Majority of tasks are actually coding tasks, including unit tests. Just ask exactly what is required.
-
-```
-/coding-flow Implement side bar on the home page, ...
-```
-
-```
-/coding-flow Identify and implement fix, ...
-```
-
-```
-/coding-flow Improve unit tests coverage to 85% for ...
-```
-
-### Business and Technical Requirements
-
-**WHY**: Requirements - is the source of truth for code and tests. Going requirements first is the most effective. In brownfield start with extracting.
-
-```
-/requirements-authoring-flow extract detailed business and technical requirements from community of ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected.
-```
-
-```
-/requirements-authoring-flow extract high-level business and technical requirements at end-point level for controllers according to glob ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected.
-```
-
-### Modernization
-
-**FIRST**: Document modernization goals in CONTEXT.md, document target services technical aspects in ARCHITECTURE.md, document where source code should be created, keep refsrc populated with reference code source (old code, new code, reusable libraries, configuration and documentation files, and similar).
-
-**NOTE**: All phases are must. All phases to be implemented one-by-one with proper review. Phase 3: Pre-Modernization Test Coverage is a must (and must include both unit and integration/e2e tests).
-
-```
-/modernization-flow Perform modernization phase 1 to reuse library refsrc/... using subagents. 
-```
-
-```
-/modernization-flow Perform modernization phase 2 to analyze service module ... using subagents. Target microservice name is ... .
-```
-
-```
-/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must use `coding-flow.md` to actually implement and as the main flow. Once done spawn subagent to validate and repeat an entire loop until there are no issues detected.
-```
+   ```sh
+   codex features enable hooks
+   ```

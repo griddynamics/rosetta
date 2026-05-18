@@ -4,7 +4,7 @@
 
 **When should I read this?** After [OVERVIEW.md](../OVERVIEW.md). Before touching MCP tools, CLI publishing, instruction content, or folder structure.
 
-For terminology (workflow, skill, rule, subagent, bootstrap, etc.), see [OVERVIEW.md — Key Concepts](../OVERVIEW.md#key-concepts).
+For terminology (workflow, skill, rule, subagent, bootstrap, etc.), see [TERMINOLOGY.md](../TERMINOLOGY.md).
 
 ---
 
@@ -407,7 +407,7 @@ Instructions live in `/instructions/r2/` in the instructions repository, using a
 
 **Layered customization.** Core provides the universal foundation. Organization folders extend or override it. Files at the same VFS resource path get **bundled together** by the Bundler. `INSTRUCTION_ROOT_FILTER` controls which layers are included (e.g., `CORE,GRID`).
 
-**Component relationships.** Workflows invoke subagents. Subagents use skills. All reference rules. Templates live inside skills. Guardrails are rules. See [Overview — Key Concepts](../OVERVIEW.md#key-concepts) for definitions.
+**Component relationships.** Workflows invoke subagents. Subagents use skills. All reference rules. Templates live inside skills. Guardrails are rules. See [TERMINOLOGY.md](../TERMINOLOGY.md) for definitions.
 
 **Naming.** Lowercase, dash-separated, globally unique filenames. Entry points: `SKILL.md` for skills, `<name>.md` for agents, workflows, and rules.
 
@@ -439,8 +439,8 @@ Rosetta initializes and maintains a standard file structure in **target reposito
 
 **Other:**
 - `gain.json` — general SDLC setup and Rosetta file locations (wins in conflicts)
-- `refsrc/*` — reference source code for knowledge only (excluded from SCM except `refsrc/INDEX.md`)
-- `agents/TEMP/<FEATURE>` — temporary files during implementation (excluded from SCM)
+- `refsrc/*` — reference source code for knowledge only (excluded from Git except `refsrc/INDEX.md`)
+- `agents/TEMP/<FEATURE>` — temporary files during implementation (excluded from Git)
 
 Prep step 2 loads `CONTEXT.md` and `ARCHITECTURE.md` from the target repository. The agent updates `IMPLEMENTATION.md` and `MEMORY.md` as it works. See [Installation — Workspace Files Created](../INSTALLATION.md#workspace-files-created) for the full list of committed and excluded files.
 

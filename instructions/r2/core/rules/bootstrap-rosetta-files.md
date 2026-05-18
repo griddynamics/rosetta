@@ -10,7 +10,7 @@ baseSchema: docs/schemas/rule.md
 
 <bootstrap_rosetta_files compact="NEVER" optimize="NEVER" summarize="AS-IS">
 
-All rosetta files below: SRP, DRY, MECE, very concise. Each file starts with a self-describing sentence of its purpose. Grep-friendly topical headers. Headers include status. No explicit ToC. All committed to SCM unless stated otherwise.
+All rosetta files below: SRP, DRY, MECE, very concise. Each file starts with a self-describing sentence of its purpose. Grep-friendly topical headers. Headers include status. No explicit ToC. All committed to Git unless stated otherwise.
 It must be possible to grep by headers and receive useful information and ToC.
 
 1. `gain.json` defines and overrides general SDLC setup and locations of Rosetta files; this file wins in conflicts.
@@ -29,8 +29,8 @@ It must be possible to grep by headers and receive useful information and ToC.
 14. `plans/<FEATURE>/<FEATURE>-SPECS.md`. Tech specs.
 15. `plans/<FEATURE>/plan.json`. Plan manager execution tracking file.
 16. `plans/<FEATURE>/*`. Feature implementation supporting files.
-16. `refsrc/*`. Source code used only for knowledge! Exclude from SCM with single exception `refsrc/INDEX.md` to be committed.
-17. `agents/TEMP/<FEATURE>`. Temporary folder used during feature implementation. Exclude `agents/TEMP` from SCM.
+16. `refsrc/*`. Source code used only for knowledge! Exclude from Git with single exception `refsrc/INDEX.md` to be committed.
+17. `agents/TEMP/<FEATURE>`. Temporary folder used during feature implementation. Exclude `agents/TEMP` from Git.
 18. `docs/raw`. Folder with raw input files for requirements.
 
 </bootstrap_rosetta_files>

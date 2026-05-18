@@ -73,7 +73,7 @@ Instructions (skills, agents, workflows, rules, templates) define how AI agents 
 - **Precise wording.** No vague qualifiers ("approximately", "generally", "might"). Measurable and specific.
 - **Explicit over implicit.** State requirements directly. Do not assume the agent will infer intent.
 - **Imperative form.** "Do X", not "You should consider doing X". Target each rule line below 8 words.
-- **Use common and domain terms.** Avoid jargon unless defined in [OVERVIEW.md — Key Concepts](OVERVIEW.md#key-concepts). Consistent terminology across all instructions.
+- **Use common and domain terms.** Avoid jargon unless defined in [TERMINOLOGY.md](TERMINOLOGY.md). Consistent terminology across all instructions.
 - **No AI slop.** No filler, no em-dashes, no marketing language. If it sounds like a LinkedIn post, rewrite.
 - **No non-operational content.** Remove history, rationale annotations, origin labels, change notes. Instructions describe current state.
 - **Structured over prose.** Prefer lists, tables, and short sections over paragraphs.

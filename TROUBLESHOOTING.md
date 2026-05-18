@@ -1,7 +1,7 @@
 # Troubleshooting
 
 **Who is this for?** Anyone blocked while using or developing Rosetta.
-**When should I read this?** When something isn't working and you need a quick fix.
+**When should I read this?** When something isn't working and you need a quick fix. For meta-questions ("how does X work", "does Rosetta do Y"), see [FAQ.md](FAQ.md) first.
 
 ---
 
@@ -96,6 +96,7 @@ Common causes: unsupported file format, oversized documents, malformed markdown.
 
 ## Still Stuck?
 
+- [FAQ.md](FAQ.md) — common questions about behavior, token usage, and concepts
 - [Open an issue](https://github.com/griddynamics/rosetta/issues)
 - [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)
 - [Website](https://griddynamics.github.io/rosetta/)

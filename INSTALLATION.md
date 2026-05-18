@@ -1,7 +1,7 @@
 # Installation
 
 **Who is this for?** Complete setup reference for all installation modes.
-**When should I read this?** When you need the full picture: HTTP, STDIO, plugins, offline, or environment variables. For the fastest path, see [QUICKSTART.md](QUICKSTART.md).
+**When should I read this?** When you need the full picture: plugins, HTTP, STDIO, offline, or environment variables. For the fastest path, see the [Get Started section in README.md](README.md#get-started).
 
 > [!CAUTION]
 > You must receive a prior approval from your manager and company to use it.
@@ -13,17 +13,21 @@
 
 ## Choose Your Mode
 
-|                    | HTTP          | STDIO                                   | Plugin                                       | Offline                                     |
-| ------------------ | --------------------------- | --------------------------------------- | -------------------------------------------- | ------------------------------------------- |
-| Setup              | Single URL, OAuth automatic | Env vars, API key per user              | IDE-specific install or extract zip          | Download zip, copy files                    |
-| Local dependencies | None                        | Python 3.12+, uvx                       | None                                         | None                                        |
-| Auth               | OAuth via browser           | API key from Rosetta Server             | None                                         | None                                        |
-| Network            | Requires internet           | Requires internet                       | Download only                                | No network needed (with local models)       |
-| Best for           | Most users                  | Custom configs, controlled environments | Claude Code, VS Code Copilot, Codex          | Air-gapped or highly regulated environments |
+|                    | Plugin                                            | HTTP                                 | STDIO                                   | Offline                                     |
+| ------------------ | ------------------------------------------------- | ------------------------------------ | --------------------------------------- | ------------------------------------------- |
+| Setup              | IDE-specific install or extract zip               | Single URL, OAuth automatic          | Env vars, API key per user              | Download zip, copy files                    |
+| Local dependencies | None                                              | None                                 | Python 3.12+, uvx                       | None                                        |
+| Auth               | None                                              | OAuth via browser                    | API key from Rosetta Server             | None                                        |
+| Network            | Download only                                     | Requires internet                    | Requires internet                       | No network needed (with local models)       |
+| Best for           | Most users (Claude Code, VS Code Copilot, Codex)  | MCP-compatible IDEs without a plugin | Custom configs, controlled environments | Air-gapped or highly regulated environments |
 
 ## Step 1: Install
 
 Pick one mode and follow its section.
+
+### Plugin-Based Installation (recommended)
+
+See [PLUGINS.md](PLUGINS.md) to install Rosetta in your IDE (Claude Code, Cursor, VS Code Copilot, JetBrains Copilot, Codex).
 
 ### HTTP Transport
 
@@ -411,46 +415,6 @@ Required for STDIO transport. Optional otherwise.
 
 Do not set `VERSION`. It uses a server-controlled default for managed upgrades. See [Architecture — Tradeoffs](docs/ARCHITECTURE.md#tradeoffs) for rationale.
 
-### Plugin-Based Installation (pre-release)
-
-Rosetta publishes plugins for supported IDEs. Each plugin installs the full Rosetta instruction set locally.
-
-Read more about plugin contents and capabilities in [PLUGINS.md](PLUGINS.md).
-
-#### Claude Code
-
-```sh
-claude plugin marketplace add griddynamics/rosetta
-claude plugin install rosetta@rosetta
-```
-
-Updating after installation:
-
-```sh
-claude plugin marketplace update rosetta
-claude plugin update rosetta@rosetta
-```
-
-#### VS Code / GitHub Copilot
-
-Install `rosetta` via VS Code Copilot Plugins (not VS Code extensions).
-
-#### JetBrains / GitHub Copilot
-
-1. Download `core-copilot-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
-2. Create a `.github` folder in your repository and extract the archive contents into it
-3. Delete files not needed for JetBrains: `.github/.mcp.json`, `.github/hooks.json`, `.github/templates`, `.github/rules/bootstrap.md`
-4. Copy the contents of `.github/rules/plugin-files-mode.md` into `.github/copilot-instructions.md` and append before the closing `</plugin_files_mode>` tag: `Rosetta plugin root: ".github", get_context_instructions: must read fully all five "cat .github/rules/bootstrap-*.md" files all lines. You MUST FOLLOW ALL instructions and then MUST select workflow and execute it. All workflows are stored in ".github/rules/<workflowtag>.md".`
-5. Enable in JetBrains GitHub Copilot settings: Agent Mode, Custom Agent, Coding Agent, Subagent, Skills
-
-#### Codex
-
-Download `core-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest), extract on top of the repository, and enable hooks:
-
-```sh
-codex features enable hooks
-```
-
 ### Offline Installation (No MCP)
 
 For environments without network access to Rosetta Server.
@@ -533,9 +497,9 @@ The agent runs an eight-phase workflow (see [Usage Guide — Init Workspace](USA
 
 ### Workspace Files Created
 
-After initialization, Rosetta maintains these files in your repository. Read more about their purpose in [Architecture — Workspace Files](docs/ARCHITECTURE.md#workspace-files).
+After initialization, Rosetta maintains the following files in your repository. Read more about their purpose in [Architecture — Workspace Files](docs/ARCHITECTURE.md#workspace-files).
 
-**Committed to SCM:**
+**Committed to Git:**
 
 - `gain.json` - SDLC setup and Rosetta file locations
 - `docs/CONTEXT.md` - business context (no technical details)
@@ -553,7 +517,7 @@ After initialization, Rosetta maintains these files in your repository. Read mor
 - `plans/<FEATURE>/<FEATURE>-SPECS.md` - tech specs
 - `refsrc/INDEX.md` - index of reference documentation (only refsrc file committed)
 
-**Excluded from SCM:**
+**Excluded from Git:**
 
 - `refsrc/*` (except INDEX.md) - reference knowledge files
 - `agents/TEMP/<FEATURE>` - temporary implementation files

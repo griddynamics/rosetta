@@ -19,9 +19,15 @@
 
 ## What is Rosetta
 
+Rosetta is an open-source instruction-management system for AI coding agents. It plugs into your IDE and delivers the workflows, guardrails, and project conventions your agent needs on each request.
+
 Rosetta gives your AI coding agent your team's context — architecture, conventions, business rules — automatically, in every IDE.
 
-After installing it, you type something like *"Add password reset to the customer portal"*. Instead of a generic implementation, you get a spec + plan that already understands your codebase, with explicit approval gates before any code is written.
+After installing it, you type something like *"Add password reset to the customer portal"*. Instead of a generic implementation, the agent:
+
+1. Drafts a **spec** at `plans/password-reset/password-reset-SPECS.md` — components touched, contracts, acceptance criteria — informed by your existing `CONTEXT.md`, `ARCHITECTURE.md`, and conventions
+2. Drafts a **plan** at `plans/password-reset/password-reset-PLAN.md` — phased tasks, subagent delegation, HITL checkpoints
+3. Stops at each **approval gate** and waits for explicit confirmation, e.g. `"Yes, I reviewed the plan"` before implementation, `"Yes, I approve the implementation"` before finalizing
 
 Works with Claude Code, Cursor, VS Code Copilot, JetBrains, Codex, Windsurf, OpenCode, and any MCP-compatible tool.
 
@@ -57,12 +63,9 @@ For architectural controls and the threat model, see [SECURITY.md](SECURITY.md).
 
 ### Option A — Install the plugin (recommended)
 
-| IDE                          | Command                                                                                                            |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **Claude Code**              | `claude plugin marketplace add griddynamics/rosetta` then `claude plugin install core@rosetta`                      |
-| **VS Code / GitHub Copilot** | Install `core-copilot` via VS Code Copilot Plugins                                                                  |
-| **JetBrains / Copilot**      | Zip + manual config — see [INSTALLATION.md](INSTALLATION.md#plugin-based-installation)                              |
-| **Codex**                    | Zip + `codex features enable codex_hooks` — see [INSTALLATION.md](INSTALLATION.md#plugin-based-installation)        |
+A plugin bundles Rosetta's bootstrap rule, skills, agents, and workflows directly into your IDE. No MCP wiring, no manual bootstrap file.
+
+See [PLUGINS.md](PLUGINS.md) to install Rosetta in your IDE (Claude Code, Cursor, VS Code Copilot, JetBrains Copilot, Codex).
 
 ### Option B — Connect via MCP (fallback for IDEs without a plugin)
 
@@ -110,7 +113,7 @@ You should see Rosetta's workflow list. Then, once per repo:
 Initialize this repository using Rosetta
 ```
 
-This generates your `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and friends. Restart the chat after init so the new context loads.
+This generates your `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and associated files. Restart the chat after init so the new context loads.
 
 For details and troubleshooting, see [QUICKSTART.md](QUICKSTART.md) and [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
@@ -119,12 +122,14 @@ For details and troubleshooting, see [QUICKSTART.md](QUICKSTART.md) and [TROUBLE
 | I want to... | Read |
 |---|---|
 | Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md) |
+| Look up a Rosetta-specific term | [TERMINOLOGY.md](TERMINOLOGY.md) |
 | See the full setup guide (all IDEs, troubleshooting) | [QUICKSTART.md](QUICKSTART.md) |
 | Learn how to use Rosetta workflows | [USAGE_GUIDE.md](USAGE_GUIDE.md) |
 | Deploy Rosetta for my organization | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) |
 | Understand the system architecture | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Navigate the codebase | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) |
 | Contribute a change | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Get answers to common questions | [FAQ.md](FAQ.md) |
 | Debug a problem | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
 | Read the security policy | [SECURITY.md](SECURITY.md) |
 | See release history | [CHANGELOG.md](CHANGELOG.md) |
