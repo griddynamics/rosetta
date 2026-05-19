@@ -25,7 +25,7 @@ Every AI interaction follows four phases: **Prepare** (load guardrails and conte
 
 ## Supported IDEs and Agents
 
-Cursor | Claude Code | VS Code / GitHub Copilot | JetBrains (Copilot, Junie) | Windsurf | Codex | Antigravity | OpenCode
+Cursor | Claude Code | VS Code / GitHub Copilot | JetBrains (Copilot, Junie) | Windsurf | Codex | Antigravity | OpenCode | Gemini CLI
 
 Works with any MCP-compatible tool.
 
