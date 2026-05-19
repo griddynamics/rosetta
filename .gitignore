@@ -54,6 +54,7 @@ logs/
 *.swo
 *~
 .cursor/mcp.json
+.claude/settings.local.json
 
 # OS
 .DS_Store
