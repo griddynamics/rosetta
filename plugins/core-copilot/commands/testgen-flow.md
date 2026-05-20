@@ -14,6 +14,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 ### Critical Requirements
 
+- **MCP ROUTING (B + A)**: Phases 1 and 6 may call external MCPs only when **`agents/mcp-capability.yaml`** and **`mcp-capability-interaction.md`** resolve **guided** for that integration. Otherwise use **questionnaire** or manual export paths documented in those phases. Optional **`agents/user-instructions/mcp-guidance.md`** for IDs and guardrails when guided.
 - **ONE PHASE AT A TIME**: Read phase file, execute, update state, move to next.
 - **DO NOT SKIP PHASES**: Each builds on previous.
 - **STATE TRACKING**: Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
@@ -31,9 +32,10 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 **Phase 1: Data Collection** [testgen-flow-data-collection.md]
 1. ACQUIRE testgen-flow-data-collection.md FROM KB
-2. Execute phase instructions
-3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
-4. Validate by listing raw-data.md file
+2. ACQUIRE mcp-capability-interaction.md FROM KB (MCP guided vs questionnaire before Jira/Confluence calls)
+3. Execute phase instructions
+4. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+5. Validate by listing raw-data.md file
 
 **Phase 2: Gap & Contradiction Analysis** [testgen-flow-gap-and-contradiction-analysis.md]
 1. ACQUIRE testgen-flow-gap-and-contradiction-analysis.md FROM KB
@@ -61,8 +63,9 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 **Phase 6: Test Case Export** [testgen-flow-test-case-export.md] ⭐
 1. ACQUIRE testgen-flow-test-case-export.md FROM KB
-4. Execute phase instructions
-5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+2. ACQUIRE mcp-capability-interaction.md FROM KB (guided vs questionnaire for TestRail export)
+3. Execute phase instructions
+4. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 ## State File Format
 
@@ -136,9 +139,9 @@ agents/testgen/{TICKET-KEY}/
 
 ## Prerequisites
 
-- **Jira MCP**: Configured and accessible
-- **Jira Ticket**: User provides ticket key or link
-- **Confluence Access**: Via Jira MCP (same authentication)
+- **MCP routing (B + A):** `agents/mcp-capability.yaml` (see `instructions/r2/core/templates/mcp-capability.example.yaml`) plus optional `agents/user-instructions/mcp-guidance.md` control **guided** vs **questionnaire** per integration. Phases 1 and 6 embed the branching rules.
+- **Jira ticket**: User provides ticket key or link (Phase 1)
+- **Confluence**: Either MCP-guided discovery (Phase 1) or user-provided content when **questionnaire**
 - **Output Directory**: Created at start (`agents/testgen/{TICKET-KEY}/`)
 
 ## Common Patterns

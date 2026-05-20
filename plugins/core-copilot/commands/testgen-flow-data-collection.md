@@ -11,7 +11,7 @@ baseSchema: docs/schemas/phase.md
 
 - MUST be starting new test generation flow
 - User provided Jira ticket key or URL
-- Jira MCP configured and accessible
+- **MCP routing (B + A):** Resolve **guided** vs **questionnaire** per **`mcp-capability-interaction.md`** using **`agents/mcp-capability.yaml`** (copy from `instructions/r2/core/templates/mcp-capability.example.yaml` in Rosetta) and any **user override** in the task text. Do **not** call Jira/Confluence MCPs until Step 2b is complete. **Questionnaire** means no MCP for that integration; user answers supply `raw-data.md` content.
 
 ## Objective
 
@@ -22,8 +22,8 @@ Extract all relevant data from Jira ticket and related Confluence documentation 
 ### Step 1: Parse Initial User Input
 
 **Extract from user's initial prompt**:
-1. **Jira ticket**: Key or URL (REQUIRED)
-2. **Confluence URLs**: List of URLs (REQUIRED)
+1. **Jira ticket**: Key or URL (REQUIRED).
+2. **Confluence URLs**: Optional. If present, parse them and use the guided Confluence path (direct page retrieval; skip auto-search where Step 4 says so). If absent, continue: **guided** Confluence uses auto-search in Step 4; **questionnaire** Confluence uses Step 4Q (user pastes or answers without prior URLs).
 
 **Supported formats**:
 ```
@@ -57,9 +57,31 @@ agents/testgen/{TICKET-KEY}/
 └── testgen-state.md (initialize)
 ```
 
+### Step 2b: Resolve MCP interaction (B + A)
+
+1. ACQUIRE **mcp-capability-interaction.md** FROM KB.
+2. Read **`agents/mcp-capability.yaml`** at workspace root if it exists; apply **user override** rules from that fragment (task text wins over file).
+3. If the YAML file is **missing** and the user message does not override MCP usage, ask **one** question: “Use live MCP for Jira and Confluence in this workspace?” — **STOP** and **WAIT**. **No** → treat both integrations as **questionnaire** for this run. **Yes** → treat both as **guided** and recommend creating `agents/mcp-capability.yaml`.
+4. Derive and record in `agents/testgen/{TICKET-KEY}/testgen-state.md` under Phase 1:
+   - `Jira source: guided | questionnaire`
+   - `Confluence source: guided | questionnaire`
+   - `MCP interaction source:` (`agents/mcp-capability.yaml` | user override | default question`)
+   Rules: if `mcp.mode` is `absent`, both are **questionnaire**. If `mcp.mode` is `capable`, each integration uses `mcp.jira` / `mcp.confluence` when present (`false` → questionnaire for that integration only); if a key is **omitted**, default that integration to **guided**.
+5. If **`agents/user-instructions/mcp-guidance.md`** exists and at least one source is **guided**, read it before the first MCP call for a **guided** source in Steps 3–4.
+
 ### Step 3: Extract Jira Ticket Data
 
-**Use**: Jira and/or Confluence MCPs respectively, snippets below will contain example pseudo-function calls for better understanding `mcp_Jira_MCP_jira_get_issue`, `mcp_Jira_MCP_confluence_get_page`, `mcp_Jira_MCP_confluence_search`, `mcp_Jira_MCP_confluence_get_page_children`.
+**If `Jira source` is `questionnaire` (from Step 2b):** Run **Step 3Q** only; **do not** call `mcp_Jira_MCP_jira_get_issue`.
+
+#### Step 3Q: Jira questionnaire (no MCP)
+
+1. Ask **numbered** questions so you can build the Jira section of `raw-data.md`: ticket summary, description (or ask user to paste export), status, priority, labels, components, key links, and any acceptance criteria they rely on.
+2. **STOP** and **WAIT** for answers.
+3. Write `agents/testgen/{TICKET-KEY}/raw-data.md` (create if needed) with `## Jira (user-provided, MCP absent)` containing merged answers. Then continue to Step 4 (Confluence may still be guided).
+
+**If `Jira source` is `guided`:** Follow all MCP steps below.
+
+**Use** (guided path only): Jira and/or Confluence MCPs respectively, snippets below will contain example pseudo-function calls for better understanding `mcp_Jira_MCP_jira_get_issue`, `mcp_Jira_MCP_confluence_get_page`, `mcp_Jira_MCP_confluence_search`, `mcp_Jira_MCP_confluence_get_page_children`.
 
 **Extract ticket key** from user input:
 - Format: "PROJ-123" or URL "https://jira.company.com/browse/PROJ-123"
@@ -85,6 +107,17 @@ mcp_Jira_MCP_jira_get_issue(
 - Custom fields if present (epic link, story points, etc.)
 
 ### Step 4: Get Confluence Documentation
+
+**If `Confluence source` is `questionnaire` (from Step 2b):** Run **Step 4Q** only; **do not** call `mcp_Jira_MCP_confluence_*`.
+
+#### Step 4Q: Confluence questionnaire (no MCP)
+
+1. Ask **numbered** questions: paste each page body (or export), or provide URLs plus authorized excerpts, parent/child relationships if relevant.
+2. **STOP** and **WAIT**.
+3. Append to `agents/testgen/{TICKET-KEY}/raw-data.md` under `## Confluence (user-provided, MCP absent)` with merged answers. If Jira questionnaire already created the file, append; otherwise create the file with this section.
+4. Continue to **Step 5** so `raw-data.md` matches the full template (headings, metadata). Then run **Validation**.
+
+**If `Confluence source` is `guided`:** Follow the **Decision Point** and MCP steps below (guided path only).
 
 **Decision Point**: Did user provide Confluence URLs in initial prompt?
 

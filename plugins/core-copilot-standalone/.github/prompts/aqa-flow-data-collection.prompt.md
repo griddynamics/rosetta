@@ -14,8 +14,12 @@ Gather everything needed for later phases: either from **TestRail and Confluence
 ## Prerequisites
 
 - User intent is clear enough to start Phase 1 (IDs, URLs, or a plain-language automation goal).
-- **Integrated AQA path**: TestRail MCP and Atlassian (Confluence) MCP available when you will pull case/docs from those systems.
-- **Minimal-input path**: No MCP requirement for TestRail/Confluence; the user will supply the **minimal-input checklist** (see Path B). If something on that checklist is missing, **ask** — do not guess.
+- **Integrated AQA path**: For **guided** MCP interaction (see Task 0b), TestRail MCP and Atlassian (Confluence) MCP must be usable when you run Path A MCP steps. For **questionnaire** interaction, do **not** call those MCPs; collect the same facts via user answers and paste into the test plan.
+- **Minimal-input path**: No MCP requirement for TestRail/Confluence; Task 0b **does not apply** to Path B for those integrations. If something on the checklist is missing, **ask** — do not guess.
+
+## MCP capability reference
+
+Resolve **guided vs questionnaire** per **`mcp-capability-interaction.md`** (ACQUIRE FROM KB). Config file: **`agents/mcp-capability.yaml`** (copy from `instructions/r2/core/templates/mcp-capability.example.yaml` in Rosetta repo). Optional guidance: **`agents/user-instructions/mcp-guidance.md`**.
 
 ## Phase Tasks
 
@@ -34,6 +38,22 @@ Gather everything needed for later phases: either from **TestRail and Confluence
 
 ---
 
+### Task 0b: Resolve MCP interaction (Path A only)
+
+**Skip this entire task for Path B (minimal-input).**
+
+**Actions**:
+1. ACQUIRE **mcp-capability-interaction.md** FROM KB (if not already loaded this phase).
+2. Read **`agents/mcp-capability.yaml`** if it exists; apply **user override** rules from that fragment (task text beats file). If file missing and user has not overridden, ask **one** yes/no: “Use live MCP for TestRail/Confluence in this workspace?” — **WAIT**; treat **No** as questionnaire, **Yes** as guided for both integrations until a YAML file exists.
+3. Derive **per integration** (TestRail vs Confluence) whether the source is **guided** (MCP allowed) or **questionnaire** (no MCP): if `mcp.mode` is `absent`, both are **questionnaire**; if `capable`, use `mcp.testrail` / `mcp.atlassian_confluence` when present (boolean); if a key is **omitted** under `capable`, default that integration to **guided**.
+4. Record in the test plan and `agents/aqa-state.md` Phase 1 notes: `TestRail source: guided|questionnaire`, `Confluence source: guided|questionnaire`, plus `MCP interaction source:` (`agents/mcp-capability.yaml` | user override | default question`).
+5. **Questionnaire leg:** For each integration still **questionnaire** and not yet documented in the plan, run **one** numbered questionnaire (combine TestRail + Confluence in a single message if both need data). **STOP** and **WAIT**. Merge answers under **User-provided (MCP absent) — TestRail** and/or **User-provided (MCP absent) — Confluence** in the working plan (or append to the plan draft before Task A3).
+6. **Guided leg:** If **`agents/user-instructions/mcp-guidance.md`** exists and at least one integration is **guided**, read it before the first MCP call for a **guided** integration. Then continue to Task A1 / A2 and follow the **guided** branches there only.
+
+**Expected Output**: TestRail and Confluence are each classified **guided** or **questionnaire**; questionnaire content is captured before MCP calls; no MCP call runs for a **questionnaire** integration.
+
+---
+
 ### Path A — Integrated AQA (TestRail + Confluence)
 
 **Prerequisite:** Task 0 already set execution mode to **integrated** (step 1 keyword match or step 3 user reply). Do not enter Path A without that.
@@ -41,6 +61,9 @@ Gather everything needed for later phases: either from **TestRail and Confluence
 ### Task A1: Read TestRail Test Case
 
 **Actions**:
+- **If Task 0b resolved questionnaire for TestRail:** Ensure the test plan already contains **User-provided (MCP absent) — TestRail** content from Task 0b. If missing, **STOP**, ask numbered questions (case ID for traceability, title, steps, expected results, preconditions), **WAIT**, merge into the plan. **Do not** call `user-testrail-get_case`. Skip the guided-only steps below for TestRail.
+- **If Task 0b resolved guided for TestRail:** Perform steps 1–4.
+
 1. Ask user for TestRail test case ID if not provided
 2. Use TestRail MCP to retrieve test case details:
    ```
@@ -61,6 +84,9 @@ Gather everything needed for later phases: either from **TestRail and Confluence
 ### Task A2: Read Confluence Documentation
 
 **Actions**:
+- **If Task 0b resolved questionnaire for Confluence:** Ensure the test plan contains **User-provided (MCP absent) — Confluence** content from Task 0b. If missing, **STOP**, ask numbered questions (URLs, pasted excerpts, or summaries the user authorizes), **WAIT**, merge into the plan. **Do not** call `user-mcp-atlassian-confluence_*`. Skip guided-only steps below for Confluence.
+- **If Task 0b resolved guided for Confluence:** Perform steps 1–5.
+
 1. Ask user for Confluence page ID/URL or search terms if not provided
 2. Use Atlassian Confluence MCP to find related documentation:
    ```

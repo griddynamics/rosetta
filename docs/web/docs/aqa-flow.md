@@ -14,7 +14,7 @@ Use AQA Flow when you need Rosetta-guided automated UI test work: either **integ
 
 Phase 1 records the chosen **execution mode** in the test plan and `agents/aqa-state.md`. Later phases still run in order; only what Phase 1 captures changes.
 
-This is a strict sequential workflow. Phases build on each other, `agents/aqa-state.md` is updated after each phase, and the coding agent must not skip ahead. Mandatory user interaction happens in Phase 2, Phase 6, Phase 7, and Phase 8. Phase 4 asks for page HTML only when frontend code or stable selectors are not available.
+This is a strict sequential workflow. Phases build on each other, `agents/aqa-state.md` is updated after each phase, and the coding agent must not skip ahead. Mandatory user interaction happens in **Phase 1** (**Mandatory** until mode is explicit in text or after your reply to the mode question—see Phase 1 row in the table below), Phase 2, Phase 6, Phase 7, and Phase 8. Phase 4 asks for page HTML only when frontend code or stable selectors are not available.
 
 ## When To Use This Workflow
 
@@ -54,6 +54,8 @@ Prepare inputs by **execution mode** (the agent confirms this in Phase 1 if you 
 - Any files under `agents/user-instructions/` that define test creation rules, test report locations, or team-specific conventions.
 
 **Execution mode.** Phase 1 **must not infer** integrated vs minimal-input from context (missing TestRail, attachments, etc.). The agent **must not** create `agents/plans/aqa-*.md` or write `**AQA execution mode**` until your message contains `integrated` or `minimal-input` (or spelled equivalents) **or** you have answered the agent’s one-time mode question. If your first message does not **literally** include those keywords, the agent **asks once** and **waits** until you pick. Add one of those words to your opening message when you already know the mode and want to skip the question.
+
+**Integrated Path A and MCP routing.** On the integrated path, live pulls from TestRail, Confluence, or Jira are gated by **`agents/mcp-capability.yaml`** plus optional **`agents/user-instructions/mcp-guidance.md`** and any **user override** in your message (see [`mcp-capability-interaction.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/mcp-capability-interaction.md) and the example [`mcp-capability.example.yaml`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/templates/mcp-capability.example.yaml)). When an integration is **questionnaire**, you paste or answer for that source instead of MCP calls.
 
 You also get better results when the project already has strong shared Rosetta context. Keep shared setup in [Usage Guide](/rosetta/docs/usage-guide/#customization), especially `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and `docs/TECHSTACK.md`.
 

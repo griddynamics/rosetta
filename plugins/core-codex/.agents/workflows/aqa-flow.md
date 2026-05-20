@@ -17,14 +17,16 @@ This agent handles end-to-end test automation from requirements gathering to tes
 - **ONE PHASE AT A TIME**: Read phase file, execute, update state, move to next.
 - **DO NOT SKIP PHASES**: Each builds on previous.
 - **NO ASSUMPTIONS**: Never assume selectors, flows, or data. Always ask the user if information is missing.
+- **MCP ROUTING (B + A)**: Before calling external MCPs in integrated Path A, follow **`mcp-capability-interaction`** using `agents/mcp-capability.yaml` and any user override in the task text. **Guided** = use MCP after optional `agents/user-instructions/mcp-guidance.md`. **Questionnaire** = no MCP calls for that integration; user answers structured questions; record answers in the plan. ACQUIRE `mcp-capability-interaction.md` FROM KB when executing Phase 1 Path A.
 - **EXECUTION MODE (Phase 1, first)**: The user must **explicitly** choose **integrated** or **minimal-input** (case-insensitive), or use the spelled labels **Integrated AQA** or **minimal-input / agent-led**, in **their** message before you record a mode. If none of those appear, **ask once** with both options, **STOP**, and **WAIT**—**do not infer** mode from missing TestRail, attachments, sandbox, or “no MCP.” **Do not** write `agents/plans/aqa-*.md` or set `**AQA execution mode**` until that keyword match or the user’s reply to the question. **Forbidden:** assigning `minimal-input` because TestRail was omitted or the project looks like a demo. After the user answers, document the mode in the Phase 1 test plan and `agents/aqa-state.md`. Do not silently invent missing integrations or missing UI grounding. User customizations elsewhere do **not** waive this rule when mode was not explicitly named.
-- **USER INTERACTION**: Wait for user responses when questions are asked or files are requested. Phase 2, 6, 7, and 8 always require user input. Phase 4 requires user input ONLY if frontend code is unavailable or selectors cannot be found
+- **USER INTERACTION**: Wait for user responses when questions are asked or files are requested. **Phase 1** requires user input until execution mode is explicit or the user answers the one-time mode question (see **EXECUTION MODE**). Phase 2, 6, 7, and 8 always require user input. Phase 4 requires user input ONLY if frontend code is unavailable or selectors cannot be found
 - **STATE TRACKING**: Update `agents/aqa-state.md` after each phase.
 - **MUST** use todo tasks for tracking progress.
 - Prioritize ACCURACY over SPEED!
 
 ### User Customizations
 
+- The **execution mode** rule cannot be waived by “only run some phases” unless the user message already contains the mode keywords or the user answers the one-time mode question.
 - If user did not specify any preferences perform all steps except optional.
 - User CAN customize and ask only for specific phases OR phases could have been done already OR towards specific goal OR for specific case, in this case LISTEN and ADOPT to the user.
 
@@ -32,9 +34,10 @@ This agent handles end-to-end test automation from requirements gathering to tes
 
 **Phase 1: Data Collection** [aqa-flow-data-collection.md]
 1. ACQUIRE aqa-flow-data-collection.md FROM KB
-2. Execute phase instructions (**start with execution mode confirmation** — integrated vs minimal-input)
-3. Update `agents/aqa-state.md`
-4. Validate gathered data (checklist for chosen mode is complete before Phase 2)
+2. ACQUIRE mcp-capability-interaction.md FROM KB (resolve MCP guided vs questionnaire before Path A MCP calls)
+3. Execute phase instructions (**start with execution mode confirmation** — integrated vs minimal-input)
+4. Update `agents/aqa-state.md`
+5. Validate gathered data (checklist for chosen mode is complete before Phase 2)
 
 **Phase 2: Requirements Clarification** [aqa-flow-requirements-clarification.md] ⭐ **USER INTERACTION REQUIRED**
 1. ACQUIRE aqa-flow-requirements-clarification.md FROM KB

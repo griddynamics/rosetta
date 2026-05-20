@@ -1,0 +1,14 @@
+# Copy to workspace root as: agents/mcp-capability.yaml
+# See: instructions/r2/core/workflows/mcp-capability-interaction.md
+
+mcp:
+  # "capable" = agent may call MCPs for true integrations after reading mcp-guidance.md
+  # "absent" = use questionnaire + user paste; do not call external MCPs
+  mode: capable
+
+  # Per-integration toggles (optional). If omitted, agent may still try when mode is capable
+  # and workflow needs that integration—unless workflow says otherwise.
+  jira: true
+  confluence: true
+  testrail: true
+  atlassian_confluence: true

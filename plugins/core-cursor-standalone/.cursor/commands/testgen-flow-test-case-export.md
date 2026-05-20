@@ -12,13 +12,17 @@ baseSchema: docs/schemas/phase.md
 - Phase 5 MUST be complete
 - `agents/testgen/{TICKET-KEY}/test-scenarios.md` exists with test cases
 - User has reviewed and edited test cases
-- TestRail MCP configured and accessible
-- TestRail project_id and suite_id known
+- **TestRail export path (B + A):** Either **guided** (TestRail MCP allowed per `mcp-capability-interaction.md` and `agents/mcp-capability.yaml`) or **questionnaire** (no TestRail MCP; user supplies IDs and performs or confirms manual import). Optional **`agents/user-instructions/mcp-guidance.md`** when guided.
+- For **guided** runs: TestRail MCP configured and accessible; `project_id` and `suite_id` known (from guidance, state, or user).
 
 ## Objective
 
-Export test cases from test-scenarios.md to TestRail using MCP, creating a new section (folder) for the Jira ticket and adding all test cases.
-If MCP is not available, ask user how to proceed and provide possible options.
+Export test cases from `test-scenarios.md` to TestRail.
+
+- **Guided:** Use TestRail MCP to verify the project, resolve `section_id`, and create cases.
+- **Questionnaire:** Do **not** call `mcp_testrail_*`. Collect `project_id`, `suite_id`, and `section_id` from the user, write a **manual export pack** (copy-paste / CSV-friendly), and record completion when the user confirms import or pastes back TestRail case IDs.
+
+If the interaction mode is unclear, resolve it in **Step 0** before any MCP call.
 
 ## TestRail Configuration
 
@@ -27,11 +31,34 @@ If MCP is not available, ask user how to proceed and provide possible options.
 
 ## Requirements
 
-### Step 1: Verify TestRail Connection
+### Step 0: Resolve TestRail MCP interaction (B + A)
 
-**Test connection** using:
+1. ACQUIRE **mcp-capability-interaction.md** FROM KB.
+2. Read **`agents/mcp-capability.yaml`** if present; apply **user override** from the current task text (same rules as Phase 1).
+3. Derive **`TestRail export: guided | questionnaire`**:
+   - **`mcp.mode: absent`** → questionnaire.
+   - **`mcp.mode: capable`** and **`mcp.testrail: false`** (when the key is present) → questionnaire.
+   - **`mcp.mode: capable`** and (`testrail` omitted or `true`) → guided.
+   - Missing YAML: use **user override** if any; else **one** short question (“Use TestRail MCP for export?”). **No** → questionnaire; **Yes** → guided and recommend adding `agents/mcp-capability.yaml`.
+4. Record in `agents/testgen/{TICKET-KEY}/testgen-state.md` (Phase 6):
+   - `TestRail export: guided | questionnaire`
+   - `MCP interaction source:` (`agents/mcp-capability.yaml` | user override | default question`)
+5. If **guided** and **`agents/user-instructions/mcp-guidance.md`** exists, read it before the first `mcp_testrail_*` call.
+
+### Step 1: Verify TestRail connection (guided only)
+
+**If `TestRail export` is `questionnaire`:** Run **Step 1Q** instead of this step.
+
+#### Step 1Q: Questionnaire — no MCP verification
+
+1. Ask **numbered** questions: `project_id`, `suite_id` (for links and documentation), and confirm the user will import cases manually or paste back IDs after import.
+2. **STOP** and **WAIT**.
+3. Skip to **Step 2** (section_id flow is unchanged; user may already know `section_id`).
+
+**Guided path — test connection** using (replace `project_id` with value from guidance/state/user; **do not** hard-code example IDs unless the user confirmed them):
+
 ```python
-mcp_testrail_get_project(project_id=69)
+mcp_testrail_get_project(project_id=<project_id>)
 ```
 
 If fails, tell user:
@@ -39,7 +66,7 @@ If fails, tell user:
 ❌ TestRail connection failed. Please verify:
 1. TestRail MCP is configured
 2. Credentials are correct
-3. Project ID 69 exists and you have access
+3. Project ID exists and you have access
 ```
 
 ### Step 2: Create Section in TestRail
@@ -224,9 +251,20 @@ Execute this test case for EACH row in the table below:
 - Just include original preconditions normally
 - No "Execute for EACH row" note
 
-### Step 5: Add Test Cases to TestRail
+### Step 5: Add Test Cases to TestRail (guided only)
 
-**For each mapped test case**:
+**If `TestRail export` is `questionnaire`:** Run **Step 5Q** only; **do not** call `mcp_testrail_add_case`.
+
+#### Step 5Q: Manual export pack (no MCP)
+
+1. After **Step 4** mapping, write **`agents/testgen/{TICKET-KEY}/testrail-manual-export.md`** containing:
+   - User-supplied `project_id`, `suite_id`, `section_id` (if known)
+   - One block per test case: title, priority, type, refs, preconditions text, and steps (content + expected) in plain text or markdown tables suitable for copy-paste into TestRail.
+2. Optionally add **`agents/testgen/{TICKET-KEY}/testrail-import-hints.csv`** (title, priority, type, refs, preconditions, steps_json) if the team uses CSV import.
+3. **STOP** and **WAIT**: ask the user to confirm either (a) they created cases manually / imported the pack, or (b) they paste back a mapping `TC-001 → C12345` (or URLs).
+4. **After the user replies**, execute **Step 6** to merge IDs into `test-scenarios.md`. Until then you may leave placeholders (e.g. `Pending`) only if the workflow must save intermediate files; do **not** mark Phase 6 complete in state until Step 6 reflects the user’s answer.
+
+**Guided path — for each mapped test case**:
 
 ```python
 result = mcp_testrail_add_case(
@@ -260,6 +298,8 @@ results = {
 ### Step 6: Update Test Scenarios Document
 
 **Update**: `agents/testgen/{TICKET-KEY}/test-scenarios.md`
+
+For **questionnaire** exports, use user-pasted IDs when available; otherwise keep **`TestRail ID`**: `Manual (see testrail-manual-export.md)`** until the user confirms. Use real `project` / `suite` / base URL values from Step 1Q or guidance — **do not** invent instance hostnames.
 
 **Add TestRail IDs to each test case**:
 
@@ -339,21 +379,30 @@ results = {
 ## Validation
 
 Before completing Phase 6, verify:
-- ✅ TestRail connection successful
-- ✅ Section exists in TestRail
+
+**Guided path:**
+- ✅ TestRail connection successful (`mcp_testrail_get_project` or equivalent)
+- ✅ Section exists in TestRail (or user provided valid `section_id`)
 - ✅ All test cases parsed from markdown
-- ✅ At least 80% of test cases exported successfully
-- ✅ test-scenarios.md updated with TestRail IDs
+- ✅ At least 80% of test cases exported successfully via MCP (or failures documented)
+- ✅ `test-scenarios.md` updated with TestRail IDs
 - ✅ State file updated with Phase 6 complete
 - ✅ TestRail link provided to user
 
+**Questionnaire path:**
+- ✅ Step 0 recorded `TestRail export: questionnaire` and source line
+- ✅ User confirmed `project_id` / `suite_id` / `section_id` as needed
+- ✅ `testrail-manual-export.md` (and optional CSV) written
+- ✅ User confirmed manual import or pasted ID mapping
+- ✅ `test-scenarios.md` updated with IDs or explicit “manual / pending” notes
+- ✅ State file updated with Phase 6 complete
+
 ## Tools Used
 
-- `mcp_testrail_get_project(project_id)` - Verify connection
-- `mcp_testrail_get_cases(project_id, suite_id)` - Check existing cases
-- `mcp_testrail_add_case(section_id, title, ...)` - Create test cases
-- `read_file()` - Read test-scenarios.md
-- `write()` / `search_replace()` - Update files
+- **Guided:** `mcp_testrail_get_project(project_id)` — verify connection; `mcp_testrail_get_cases(project_id, suite_id)` — optional dedup; `mcp_testrail_add_case(section_id, title, ...)` — create test cases
+- **Questionnaire:** `read_file()` / `write()` / `search_replace()` only — build `testrail-manual-export.md` and update docs; **no** `mcp_testrail_*`
+- `read_file()` — read `test-scenarios.md`
+- `write()` / `search_replace()` — update files
 
 ## Common Issues
 

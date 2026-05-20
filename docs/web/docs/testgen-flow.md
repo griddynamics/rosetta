@@ -35,8 +35,8 @@ Prepare the minimum inputs that materially affect output quality:
 
 - A Jira ticket key or Jira ticket URL.
 - Confluence page URLs if you already know the relevant pages. This lets the workflow skip weak auto-search results.
-- Access to the Jira and Confluence retrieval path used in your project.
-- If you want Phase 6, access to TestRail and the ability to provide or create the target section and share its `section_id`. Project and suite details may also be needed when your setup cannot detect them from the current ticket and user profile.
+- Access to the Jira and Confluence retrieval path used in your project **when Phase 1 is guided**; otherwise be ready to paste ticket and wiki content (questionnaire path).
+- If you want Phase 6 with **guided** TestRail export, TestRail MCP access and the ability to provide or create the target section and share its `section_id`. For **questionnaire** export, be ready to supply `project_id`, `suite_id`, and `section_id`, then import manually or paste back TestRail case IDs.
 - Time to review every phase result, especially `questions.md`, `requirements.md`, and `test-scenarios.md`.
 
 Workflow-specific preparation that improves results:
@@ -47,6 +47,16 @@ Workflow-specific preparation that improves results:
 - If your project relies on custom source systems beyond default Jira and Confluence retrieval, define that explicitly in the project config instead of expecting the agent to infer it.
 
 For shared Rosetta setup and project-context customization, see [Usage Guide](/rosetta/docs/usage-guide/).
+
+## MCP capability file and questionnaire path
+
+Some workspaces do not attach Jira, Confluence, or TestRail MCP servers to the agent. TestGen (and AQA integrated Path A) still run if you add **`agents/mcp-capability.yaml`** at the repo root (copy the shape from [`mcp-capability.example.yaml`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/templates/mcp-capability.example.yaml)) and optionally **`agents/user-instructions/mcp-guidance.md`** for stable IDs and naming rules.
+
+- **`mcp.mode: absent`** — use structured questionnaires in Phase 1 and Phase 6; no live MCP calls.
+- **`mcp.mode: capable`** with per-integration `true`/`false` — mix guided and questionnaire per system (for example Jira guided, Confluence paste-only).
+- **User override** in the task text (for example “no MCP” or “use MCP”) wins for that run over the YAML file.
+
+Workflow details live in [`mcp-capability-interaction.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/mcp-capability-interaction.md), [`testgen-flow-data-collection.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-data-collection.md), and [`testgen-flow-test-case-export.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-test-case-export.md).
 
 ## How To Start
 
