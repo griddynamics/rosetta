@@ -56,6 +56,24 @@ On session start if thinking one of these or similar thoughts → rationalizing,
 
 </CRITICAL_RED_FLAGS>
 
+<OPERATION_MANAGER>
+
+- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools.
+- Commands:
+  - `help plan` provides full information
+  - `plan next <plan_file> [limit]` lists next steps
+  - `plan create <plan_file> '<json>'`, `plan upsert <plan_file> [target: entire_plan|<phase-id>] [phase|step] '<json>'`, `plan update_status <plan_file> <step-id> [open|in_progress|complete|blocked|failed]`, `query <plan-file> [id|entire_plan]`, `show_status <plan-file> [id|entire_plan]`
+- Upsert follows RFC 7396: null removes keys, nested objects are merged not replaced, scalars are replaced, status field silently ignored to enforce use of `update_status`.
+- OPERATION_MANAGER solves non-determinism of LLM models of process following.
+- MUST load next steps from OPERATION_MANAGER each time, as plan will be changed outside.
+- MUST execute plan via loop: call `next`, execute, `update_status`.
+- AUTOSTART REQUIRED: after `plan create` or `plan upsert`, call `next` as the literal next tool call. Zero exceptions. No response to user, no explanation, no other tool calls in between. Creating the plan is NOT the deliverable — executing it is.
+- LOOP IS NEVER DONE until `plan_status: complete` AND `count: 0` in `next` output. Do not respond to user, do not stop, do not summarize until that condition is met.
+- MUST upsert a plan because of new tasks, inputs, findings.
+- Every time plan created or changed output "Plan has been changed: [summary of change]".
+
+</OPERATION_MANAGER>
+
 <MUST never_superseded="true" directly_user_requested="true" compact="false" compress="false" execute_once_per_session="true">
 
 # Phase 0: Initialize Operation manager
@@ -77,7 +95,7 @@ Step 1: Create and use an execution plan file at `plans/<FEATURE>/plan.json` usi
         {
           "id": "s-context",
           "name": "Load context instructions",
-          "prompt": "Follow Rosetta instructions returned by `get_context_instructions`. Execute ALL returned prep steps.",
+          "prompt": "USE SKILL `load-context-instruction`. Execute ALL returned prep steps.",
           "status": "open"
         }
       ]
