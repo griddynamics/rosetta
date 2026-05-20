@@ -13,13 +13,16 @@ Create automated test following project standards, integrating all Page Objects 
 
 ## Prerequisites
 
-- All previous phases (1-5) completed
-- Test plan fully documented with all details
-- Page Objects updated with all required selectors
+- All previous phases (1-5) completed **for the chosen execution mode** (see below)
+- Test plan fully documented with all details **including** `AQA execution mode` and, if `minimal-input`, the **minimal-input checklist** from Phase 1 (and any Phase 2 resolutions of deferrals)
+- Page Objects updated with all required selectors **or** a clear plan from Phases 4–5 that matches user-supplied grounding (minimal-input)
 - Explicit assertions defined
 - Code architecture understood
 
-## Phase Tasks
+### Execution modes and prerequisites
+
+- **Integrated AQA (default)**: The bullets above mean phases 1–5 were completed in full with TestRail/Confluence-backed Phase 1 where applicable.
+- **Minimal-input / agent-led** (recorded in Phase 1): Phases 1–5 count as satisfied only if the test plan contains the **minimal-input checklist** (scenario, URLs/navigation, UI grounding or approved Phase 2 deferrals) and **explicit assertions from Phase 2**. **Before writing code**, re-read that checklist and Phase 2 assertions; if anything material is still missing, **STOP**, ask the user, and do not invent selectors, pages, or flows.
 
 ### Task 1: Review Test Implementation Plan
 

@@ -46,6 +46,9 @@
     "vfs": "Virtual File System, after stripping release and org prefix from the physical file path",
     "bundling": "Multiple documents at the same VFS resource path are merged into a single XML response"
   },
+  "rosettaInstructionUpdates": {
+    "aqaFlowPhase1ExecutionMode": "AQA workflow: new Phase 1 Task 0 locks execution mode to integrated (TestRail+Confluence Path A) or minimal-input / agent-led (Path B). Until the user message contains explicit mode keywords (integrated, minimal-input, Integrated AQA, or minimal-input / agent-led) or the user answers the one-time mode question, the agent must not create agents/plans/aqa-*.md, must not write **AQA execution mode**, and must not mark Phase 1 complete in agents/aqa-state.md. Inferring minimal-input from missing TestRail or local HTML alone is forbidden. Phase 2 and Phase 6 instructions aligned; docs/web/docs/aqa-flow.md updated; mirrored under plugins (Cursor, Copilot, Codex)."
+  },
   "versions": {
     "rosetta": "2.0.19"
   }

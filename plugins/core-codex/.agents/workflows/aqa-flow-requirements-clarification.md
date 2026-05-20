@@ -13,16 +13,23 @@ Fill gaps in understanding, clarify unknowns, and define explicit assertions bef
 
 ## Prerequisites
 
-- Phase 1 completed
-- Test plan file created with TestRail and Confluence data
-- Initial understanding of test requirements
+- Phase 1 completed with a test plan file
+- Phase 1 documents either **integrated** sources (TestRail + Confluence as used) **or** **minimal-input** execution mode with the checklist from Phase 1 (scenario, URLs, UI grounding or explicit deferral)
+- Initial understanding of test requirements (may be draft in minimal-input mode)
 
 ## Phase Tasks
+
+### Minimal-input mode (read first)
+
+If the test plan shows **`AQA execution mode: minimal-input`**:
+- Treat Phase 1's checklist as authoritative for what the user already supplied; **do not** re-demand TestRail/Confluence data unless the user wants it for traceability.
+- Still run gap analysis: anything deferred from Phase 1 **must** be resolved or explicitly re-deferred here with user text.
+- Assertions must still be explicit and measurable before Phase 3; **never** invent selectors the user did not supply, defer, or point to in repo/page source.
 
 ### Task 1: Review Gathered Information for Gaps
 
 **Actions**:
-1. Read the test plan file from Phase 1
+1. Read the test plan file from Phase 1 and note **AQA execution mode** (`integrated` vs `minimal-input`).
 2. Analyze information for completeness:
    - Are test steps clear and unambiguous?
    - Are expected results specific and measurable?
@@ -197,3 +204,4 @@ ACQUIRE aqa-phase3-md FROM KB
 - **Explicit Over Implicit**: Every assertion must be measurable and verifiable
 - **User Authority**: User has final say on requirements and expected behavior
 - **Document Everything**: Record all questions and answers for traceability
+- **Minimal-input mode**: Questions should close gaps in the Phase 1 checklist (especially UI grounding and test data), not re-litigate integrated AQA unless the user switches mode explicitly

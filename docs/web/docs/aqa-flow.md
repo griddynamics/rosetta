@@ -10,15 +10,17 @@ permalink: /docs/aqa-flow/
 
 ## TL;DR
 
-Use AQA Flow when you need Rosetta-guided automated UI test work tied to a real TestRail case or QA scenario. The workflow gathers TestRail and Confluence context, clarifies assertions, analyzes existing test architecture, identifies selectors without guessing, implements the test, then stops so you can run it and return the report.
+Use AQA Flow when you need Rosetta-guided automated UI test work: either **integrated** (TestRail + Confluence as primary sources when you use that path) or **minimal-input / agent-led** (you supply URLs, page source or a selector map, scenario summary, and expectations so the agent can implement without pulling case data from integrations). In both cases the workflow clarifies assertions, analyzes existing test architecture, identifies selectors without guessing, implements the test, then stops so you can run it and return the report.
+
+Phase 1 records the chosen **execution mode** in the test plan and `agents/aqa-state.md`. Later phases still run in order; only what Phase 1 captures changes.
 
 This is a strict sequential workflow. Phases build on each other, `agents/aqa-state.md` is updated after each phase, and the coding agent must not skip ahead. Mandatory user interaction happens in Phase 2, Phase 6, Phase 7, and Phase 8. Phase 4 asks for page HTML only when frontend code or stable selectors are not available.
 
 ## When To Use This Workflow
 
-- Automate a TestRail case against an existing UI.
+- Automate a TestRail case against an existing UI (**integrated** path), or implement UI automation from **explicit** user-supplied pages, DOM or selector maps, and scenario context (**minimal-input / agent-led** path).
 - Add or update UI automation while reusing existing Page Objects and helpers.
-- Build a test from TestRail steps plus Confluence context instead of starting from code guesses.
+- Build a test from TestRail steps plus Confluence context instead of starting from code guesses (integrated), or from a documented minimal-input package you provide (minimal-input).
 - Diagnose failing automated test output and prepare grounded fixes.
 - Add selectors to Page Objects before test implementation when the current test layer is incomplete.
 
@@ -31,14 +33,27 @@ This is a strict sequential workflow. Phases build on each other, `agents/aqa-st
 
 ## Before You Start
 
-Prepare the inputs this workflow explicitly depends on:
+Prepare inputs by **execution mode** (the agent confirms this in Phase 1 if you have not already stated it):
 
-- A TestRail case ID or another precise QA target.
-- Confluence page IDs, URLs, or search terms for the feature under test.
+**Integrated AQA**
+
+- A TestRail case ID or another precise QA target the agent will read via integrations.
+- Confluence page IDs, URLs, or search terms for the feature under test (when Confluence is in scope).
+
+**Minimal-input / agent-led**
+
+- A clear scenario goal (what the test must prove).
+- Entry URLs or navigation to the UI under test.
+- UI grounding you will not let the agent invent: e.g. page source or DOM snapshots, a selector map, pointers to existing Page Objects in the repo, and/or frontend paths the agent will use in Phase 3. Anything deferred here must be resolved or explicitly re-deferred in Phase 2 with your text.
+
+**All modes**
+
 - Access to the target repository test code.
 - Access to existing Page Objects, similar tests, helper utilities, and project test conventions.
 - `agents/user-app/project_description.md` if the project uses it as the coding-standards source.
 - Any files under `agents/user-instructions/` that define test creation rules, test report locations, or team-specific conventions.
+
+**Execution mode.** Phase 1 **must not infer** integrated vs minimal-input from context (missing TestRail, attachments, etc.). The agent **must not** create `agents/plans/aqa-*.md` or write `**AQA execution mode**` until your message contains `integrated` or `minimal-input` (or spelled equivalents) **or** you have answered the agent’s one-time mode question. If your first message does not **literally** include those keywords, the agent **asks once** and **waits** until you pick. Add one of those words to your opening message when you already know the mode and want to skip the question.
 
 You also get better results when the project already has strong shared Rosetta context. Keep shared setup in [Usage Guide](/rosetta/docs/usage-guide/#customization), especially `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and `docs/TECHSTACK.md`.
 
@@ -62,6 +77,10 @@ Analyze this failing automated test report for case C9012 and prepare correction
 Extend the existing checkout automation with a new TestRail scenario and reuse current Page Objects.
 ```
 
+```text
+Minimal-input: automate checkout success on staging. I will provide the URL, a selector map, and saved HTML under agents/aqa/.../page-sources/. No TestRail MCP.
+```
+
 ## How Rosetta Shapes This Workflow
 
 Rosetta provides the instructions. The coding agent executes them. Rosetta itself does not read your source code or test data.
@@ -73,12 +92,13 @@ For this workflow, the always-active Rosetta behavior changes the user experienc
 - Human review is built into the workflow, not added later. The agent must stop for answers, test execution, report handoff, and approval before corrections.
 - The workflow is state-driven. After each phase, the agent updates `agents/aqa-state.md` so the work can resume cleanly after interruptions.
 - Existing project architecture wins over convenience. The agent must inspect existing tests, Page Objects, utilities, and coding standards before writing new automation.
+- Phase 1 establishes **execution mode**; the agent must not silently assume TestRail/Confluence when you chose minimal-input, must not invent pages or selectors you did not supply or defer with consent, and must **not infer** mode when your message lacks explicit `integrated` or `minimal-input` keywords (or spelled equivalents)—it **asks and waits** instead.
 
 ## Workflow At A Glance
 
 | Phase | What you provide | What the coding agent does | What you get | Mandatory workflow stop |
 |---|---|---|---|---|
-| 1. Data Collection | TestRail case, Confluence reference | Reads external QA/business context and creates the test plan | `agents/plans/aqa-<test-name>.md`, initial `agents/aqa-state.md` | None |
+| 1. Data Collection | **Integrated:** TestRail case, Confluence reference. **Minimal-input:** scenario, URLs/navigation, UI grounding (or explicit deferral to Phase 2). **Either:** include `integrated` or `minimal-input` (or spelled equivalents) in your first message if you already know the mode | If those keywords are missing, **asks once** for integrated vs minimal-input and **waits**; then pulls TestRail/Confluence **or** records your minimal-input package | `agents/plans/aqa-<test-name>.md` (includes `AQA execution mode`), initial `agents/aqa-state.md` | **Mandatory** until mode is explicit in text or after your reply to the mode question |
 | 2. Requirements Clarification | Answers about assertions, data, edge cases, scope | Turns vague steps into explicit, measurable assertions | Updated test plan with assertions, edge cases, test data rules | Mandatory user answers before Phase 3 |
 | 3. Code Analysis | Repository test code, project docs, user instruction files | Analyzes framework, conventions, Page Objects, similar tests, helpers, optional frontend code | Updated test plan with architecture findings and target test location | None |
 | 4. Selector Identification | Frontend code if available, otherwise page HTML when requested | Maps test steps to UI elements and identifies missing selectors without guessing | Selector map, page-source request if needed, updated plan/state | Mandatory user input only if selectors cannot be grounded from code |
@@ -94,7 +114,7 @@ Recommended review still matters throughout the workflow, but those checks are a
 ```mermaid
 flowchart TD
 
-    A[Start AQA request]:::start --> B[Phase 1 Data Collection]:::phase
+    A[Start AQA request]:::start --> B[Phase 1: execution mode + data collection]:::phase
     B --> C[Phase 2 Requirements Clarification]:::phase
     C --> C1{User answered?}:::hitl
     C1 -- No --> C2[Wait for answers]:::action
@@ -132,7 +152,12 @@ sequenceDiagram
 
     U->>A: Request automated QA work
     R-->>A: Enforce sequential phases, no assumptions, state tracking
-    A->>X: Read TestRail case and Confluence context
+    alt Integrated AQA
+        A->>X: Read TestRail case and Confluence context
+    else Minimal-input
+        A->>U: Confirm mode; collect URLs, page source or selector map, scenario
+        U->>A: Provide agreed minimal-input package
+    end
     A->>F: Create agents/plans/aqa-test-name.md and agents/aqa-state.md
     A->>U: Ask clarification questions for assertions, scope, data, edge cases
     U->>A: Provide answers
@@ -160,36 +185,39 @@ sequenceDiagram
 ### Phase 1: Data Collection
 
 Goal:
-- Gather the external requirement sources before any code analysis starts.
+- Record **execution mode** and gather everything later phases need: either **integrated** (TestRail + Confluence) or **minimal-input** (your explicit package), before code analysis starts.
 
 What you provide:
-- TestRail case ID if it was not already in the request.
-- Confluence page ID, URL, or search terms if they were not already in the request.
+- **Integrated:** TestRail case ID if not already in the request; Confluence page ID, URL, or search terms if not already in the request.
+- **Minimal-input:** Scenario goal; entry URLs or navigation; UI grounding (page source paths, selector map, repo pointers to Page Objects/components, and/or frontend paths for Phase 3). Optional TestRail/Confluence IDs for traceability only, without pretending MCP data exists when you did not pull it.
+- If the agent asks you to choose a mode, reply with **`integrated`** or **`minimal-input`** (or the spelled labels). If you already know the mode, put one of those words in your **first** message so Phase 1 can skip the question.
 
 What the coding agent does:
-- Reads the TestRail case through TestRail MCP.
-- Reads Confluence documentation through Atlassian Confluence MCP.
-- Extracts test steps, expected results, business context, user flow, and technical details.
+- If the opening request lacks explicit mode keywords (`integrated`, `minimal-input`, `minimal input`, `Integrated AQA`, or `minimal-input / agent-led`), **asks once**, **stops**, and **waits**—**does not infer** mode from missing TestRail, attachments, or environment.
+- Confirms **integrated** vs **minimal-input** and documents `AQA execution mode` in the plan and state.
+- **Integrated:** reads TestRail via TestRail MCP and Confluence via Atlassian MCP; extracts steps, expected results, and feature context.
+- **Minimal-input:** records your checklist in the plan (no inventing pages or selectors); may defer specific items to Phase 2 only with your explicit consent, noted in the plan.
 - Creates `agents/plans/aqa-<test-name>.md` as the main working test plan.
-- Starts `agents/aqa-state.md`.
+- Starts or updates `agents/aqa-state.md`.
 
 Artifacts:
 - `agents/plans/aqa-<test-name>.md`
 - `agents/aqa-state.md`
 
 Recommended review:
-- Check that the right TestRail case and Confluence sources were used.
-- Check that the test goal and expected result summary reflect the real scenario.
+- **Integrated:** Check that the right TestRail case and Confluence sources were used and that the goal matches the scenario.
+- **Minimal-input:** Check that the plan’s checklist is complete enough that later phases will not force the agent to guess DOM or flows; resolve or approve deferrals before Phase 3.
 
 ### Phase 2: Requirements Clarification
 
 Goal:
-- Turn collected test steps into explicit, measurable assertions before implementation starts.
+- Turn collected test steps (or draft steps from minimal-input) into explicit, measurable assertions before implementation starts.
 
 What you provide:
 - Answers about success criteria, exact assertions, test data, timing constraints, edge cases, and out-of-scope cases.
 
 What the coding agent does:
+- Reads **AQA execution mode** from the plan. In **minimal-input**, closes gaps in the Phase 1 checklist (especially UI grounding and test data) instead of re-demanding TestRail/Confluence unless you want traceability.
 - Reviews Phase 1 for gaps and ambiguities.
 - Defines assertion types for each step: presence, state, content, and behavior.
 - Prepares targeted clarification questions.
@@ -291,10 +319,11 @@ Goal:
 - Implement the automated test using the approved assertions, Page Objects, and local project conventions.
 
 What you provide:
-- Usually no new business input if earlier phases were complete.
+- Usually no new business input if earlier phases were complete (for **integrated**, full 1–5; for **minimal-input**, checklist + Phase 2 assertions satisfied per the instruction workflow).
 - Later in the phase, you must execute the test yourself.
 
 What the coding agent does:
+- Re-checks execution mode and, for **minimal-input**, the documented checklist and Phase 2 assertions before coding; stops and asks if material inputs are still missing.
 - Reviews the full test plan.
 - Chooses the target test file or confirms the planned location.
 - Sets up imports, suite structure, hooks, setup steps, actions, assertions, and cleanup using the current project style.
@@ -368,7 +397,7 @@ Recommended review:
 
 Review each handoff like a QA and test-automation lead, not like a passive approver. These are recommended review checkpoints, not additional mandatory workflow stops beyond the ones listed in the summary table.
 
-- After Phase 1, verify the workflow is anchored to the right TestRail case and the right Confluence context.
+- After Phase 1, verify **execution mode** is recorded correctly. **Integrated:** right TestRail case and Confluence context. **Minimal-input:** the plan’s checklist (URLs, UI grounding, scenario) matches what you intend; no silent substitutes for missing sources.
 - After Phase 2, verify assertions are measurable and complete. Weak assertions or missing edge cases here will corrupt every later phase.
 - After Phase 3, verify the agent found the right Page Objects, similar tests, helpers, and coding standards.
 - After Phase 4, verify selectors came from real frontend code or supplied HTML. Reject any invented locator strategy.
@@ -383,6 +412,7 @@ If the page-source request, test plan, or correction proposal is vague, stop the
 
 These customizations materially improve AQA Flow:
 
+- State **integrated** or **minimal-input** in your **first** message when you already know the mode (saves one round-trip); otherwise the agent **must** ask before Path A or Path B.
 - Keep `agents/user-app/project_description.md` accurate. This workflow treats it as the single source of truth for coding standards.
 - Use `agents/user-instructions/` for team-specific test creation rules, report locations, naming conventions, setup rules, and assertion preferences.
 - If frontend source code is available, keep it accessible so Phase 3 and Phase 4 can ground selectors there first.
@@ -402,7 +432,7 @@ Common artifacts from this workflow:
 
 Common artifact content:
 
-- external requirement capture from TestRail and Confluence
+- external requirement capture from TestRail and Confluence (**integrated**), or a documented **minimal-input package** in the plan (**minimal-input**)
 - explicit assertions and edge cases
 - framework and project-structure analysis
 - selector inventory and source tracking
@@ -417,7 +447,7 @@ Conditional outputs:
 
 ## Common Mistakes
 
-- Starting without a real TestRail case or equivalent QA source.
+- Starting **integrated** AQA without a real TestRail case (or equivalent) and Confluence context when those are the agreed sources, or starting **minimal-input** without enough UI grounding and expecting the agent to invent selectors.
 - Letting Phase 2 stay vague and then expecting correct assertions later.
 - Skipping `agents/user-instructions/` even though it may define report locations or team-specific rules.
 - Guessing selectors instead of grounding them from frontend code or provided HTML.

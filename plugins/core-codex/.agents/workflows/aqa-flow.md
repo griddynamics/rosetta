@@ -10,13 +10,14 @@ baseSchema: docs/schemas/workflow.md
 
 ## Context
 
-This agent handles end-to-end test automation from requirements gathering to test implementation. It uses TestRail, Confluence, and project documentation to create automated tests following existing architecture and coding standards.
+This agent handles end-to-end test automation from requirements gathering to test implementation. It uses TestRail, Confluence, and project documentation when you run **integrated AQA**; in **minimal-input / agent-led** mode the user supplies pages, DOM or selector details, and scenario context instead (see Phase 1). In all modes, tests follow existing architecture and coding standards.
 
 ### Critical Requirements
 
 - **ONE PHASE AT A TIME**: Read phase file, execute, update state, move to next.
 - **DO NOT SKIP PHASES**: Each builds on previous.
 - **NO ASSUMPTIONS**: Never assume selectors, flows, or data. Always ask the user if information is missing.
+- **EXECUTION MODE (Phase 1, first)**: The user must **explicitly** choose **integrated** or **minimal-input** (case-insensitive), or use the spelled labels **Integrated AQA** or **minimal-input / agent-led**, in **their** message before you record a mode. If none of those appear, **ask once** with both options, **STOP**, and **WAIT**—**do not infer** mode from missing TestRail, attachments, sandbox, or “no MCP.” **Do not** write `agents/plans/aqa-*.md` or set `**AQA execution mode**` until that keyword match or the user’s reply to the question. **Forbidden:** assigning `minimal-input` because TestRail was omitted or the project looks like a demo. After the user answers, document the mode in the Phase 1 test plan and `agents/aqa-state.md`. Do not silently invent missing integrations or missing UI grounding. User customizations elsewhere do **not** waive this rule when mode was not explicitly named.
 - **USER INTERACTION**: Wait for user responses when questions are asked or files are requested. Phase 2, 6, 7, and 8 always require user input. Phase 4 requires user input ONLY if frontend code is unavailable or selectors cannot be found
 - **STATE TRACKING**: Update `agents/aqa-state.md` after each phase.
 - **MUST** use todo tasks for tracking progress.
@@ -31,9 +32,9 @@ This agent handles end-to-end test automation from requirements gathering to tes
 
 **Phase 1: Data Collection** [aqa-flow-data-collection.md]
 1. ACQUIRE aqa-flow-data-collection.md FROM KB
-2. Execute phase instructions
+2. Execute phase instructions (**start with execution mode confirmation** — integrated vs minimal-input)
 3. Update `agents/aqa-state.md`
-4. Validate gathered data
+4. Validate gathered data (checklist for chosen mode is complete before Phase 2)
 
 **Phase 2: Requirements Clarification** [aqa-flow-requirements-clarification.md] ⭐ **USER INTERACTION REQUIRED**
 1. ACQUIRE aqa-flow-requirements-clarification.md FROM KB
@@ -91,7 +92,8 @@ Create/update `agents/aqa-state.md` after each phase:
 
 **Last Updated**: [DateTime]
 **Current Phase**: [1-8 or COMPLETE]
-**TestRail Case**: [Test Case ID/URL]
+**AQA execution mode**: [integrated | minimal-input]
+**TestRail Case**: [Test Case ID/URL or N/A in minimal-input]
 **Feature**: [Feature Name]
 
 ## Phase Completion Status
@@ -109,8 +111,10 @@ Create/update `agents/aqa-state.md` after each phase:
 
 ### Phase 1: Data Collection
 - Completed: [DateTime]
-- TestRail Case: [ID/URL]
-- Confluence Pages: [URLs]
+- Execution mode: [integrated | minimal-input]
+- TestRail Case: [ID/URL or N/A]
+- Confluence Pages: [URLs or N/A]
+- Minimal-input checklist: [summary or N/A — see Phase 1 test plan]
 - Test Goal: [Brief description]
 - Expected Result: [Brief description]
 
@@ -158,6 +162,7 @@ Create/update `agents/aqa-state.md` after each phase:
 ## Important Notes
 
 - **Sequential Execution**: Phases build on each other, must execute in order.
+- **Execution modes**: **Integrated AQA** uses TestRail and Confluence in Phase 1 when those tools are in scope. **Minimal-input / agent-led** uses the Phase 1 checklist (pages, DOM or selectors, scenario context); later phases still run in order, but Phase 1 documents what substitutes for external case management. Without an **explicit** user mode label (`integrated` or `minimal-input` / spelled equivalents), Phase 1 must obtain that label by asking—never infer from context alone.
 - **No Assumptions Rule**: Always ask user when information is missing - never guess selectors, flows, or test data.
 - **Architecture First**: Always analyze existing code structure before implementing new tests.
 - **Reuse Over Creation**: Prefer adding to existing files and using existing Page Objects over creating new ones.

@@ -9,17 +9,36 @@ baseSchema: docs/schemas/phase.md
 
 ## Objective
 
-Gather all required information from external sources (TestRail and Confluence) to understand test requirements and expected behavior.
+Gather everything needed for later phases: either from **TestRail and Confluence** (**integrated AQA**) or from **user-supplied artifacts** (**minimal-input / agent-led**). Always record the chosen **execution mode** in the test plan and state file.
 
 ## Prerequisites
 
-- TestRail MCP configured and accessible
-- Atlassian (Confluence) MCP configured and accessible
-- Test case ID or requirement provided by user
+- User intent is clear enough to start Phase 1 (IDs, URLs, or a plain-language automation goal).
+- **Integrated AQA path**: TestRail MCP and Atlassian (Confluence) MCP available when you will pull case/docs from those systems.
+- **Minimal-input path**: No MCP requirement for TestRail/Confluence; the user will supply the **minimal-input checklist** (see Path B). If something on that checklist is missing, **ask** — do not guess.
 
 ## Phase Tasks
 
-### Task 1: Read TestRail Test Case
+### Task 0: Confirm execution mode
+
+**Actions**:
+1. Check whether the **current task text** (or a prior user message in the same session the user instructs you to treat as binding) already names the mode **explicitly**, using any of these (case-insensitive): `integrated`, `minimal-input`, `minimal input`, `Integrated AQA`, or `minimal-input / agent-led`. The token must be **user-authored** in that message (not something you paraphrase or infer). If yes, set the mode to `integrated` or `minimal-input` accordingly and **skip steps 2–3**; go directly to **Path A** or **Path B** matching that mode.
+2. If **not** explicit: **Do not infer** mode from clues such as missing TestRail IDs, presence of HTML attachments, “sandbox,” “no MCP,” or vague phrases like “I don’t have TestRail yet.” **Forbidden:** choosing `minimal-input` because TestRail was omitted, the repo looks small, or the user only supplied local HTML—those are **not** mode labels. Informal phrases (“lightweight,” “without TestRail,” “bring my own selectors”) **do not** count as explicit; they still require steps 2–3. **Ask once** with both options, for example:
+   - **Integrated AQA**: "We pull the official case and docs from TestRail/Confluence and follow the full chain."
+   - **Minimal-input / agent-led**: "You provide URLs, page source or a selector map, scenario and expectations; we still run phases 2–8 in order but Phase 1 records your package instead of MCP pulls."
+3. **STOP** and **WAIT** until the user replies with a clear **integrated** or **minimal-input** (or the spelled labels in step 1). If the reply is still ambiguous, ask **one** narrowing question that still requires those labels; **do not** choose a path without those words from the user.
+4. **Hard gate — before Path A or Path B:** Do **not** create or update `agents/plans/aqa-*.md`, do **not** write `**AQA execution mode**` in any artifact, and do **not** mark Phase 1 complete in `agents/aqa-state.md` until step **1** matched or step **3** completed. If you already started Path A/B without satisfying Task 0, **stop**, discard partial mode lines, run steps 2–3, then continue.
+5. Ensure the Phase 1 test plan created in Path A or Path B includes `**AQA execution mode**` and that `agents/aqa-state.md` reflects the mode when Phase 1 is marked complete (see **Update State File** below).
+
+**Expected Output**: Mode is either read from **explicit user keywords** (step 1) or obtained only after **mandatory** ask-and-wait (steps 2–3); then proceed with **Path A** or **Path B** (not both).
+
+---
+
+### Path A — Integrated AQA (TestRail + Confluence)
+
+**Prerequisite:** Task 0 already set execution mode to **integrated** (step 1 keyword match or step 3 user reply). Do not enter Path A without that.
+
+### Task A1: Read TestRail Test Case
 
 **Actions**:
 1. Ask user for TestRail test case ID if not provided
@@ -39,7 +58,7 @@ Gather all required information from external sources (TestRail and Confluence) 
 
 **Expected Output**: Complete understanding of what needs to be tested according to TestRail.
 
-### Task 2: Read Confluence Documentation
+### Task A2: Read Confluence Documentation
 
 **Actions**:
 1. Ask user for Confluence page ID/URL or search terms if not provided
@@ -60,10 +79,11 @@ Gather all required information from external sources (TestRail and Confluence) 
 
 **Expected Output**: Business and technical context for the feature being tested.
 
-### Task 3: Create Initial Test Plan Document
+### Task A3: Create initial test plan document (integrated)
 
 **Actions**:
 1. Create `agents/plans/aqa-<test-name>.md` file with:
+   - **AQA execution mode**: `integrated`
    - Test case reference (TestRail ID and link)
    - Feature name and description
    - Test goal
@@ -77,6 +97,7 @@ Gather all required information from external sources (TestRail and Confluence) 
 # AQA Test Plan - <Test Name>
 
 **Created**: [DateTime]
+**AQA execution mode**: integrated
 **TestRail Case**: [ID/URL]
 **Feature**: [Feature Name]
 **Status**: Phase 1 Complete
@@ -134,14 +155,112 @@ Gather all required information from external sources (TestRail and Confluence) 
 [To be filled in Phase 6]
 ```
 
+---
+
+### Path B — Minimal-input / agent-led
+
+**Prerequisite:** Task 0 already set execution mode to **minimal-input** (step 1 keyword match or step 3 user reply). Do not enter Path B because TestRail was missing or files were attached—only because the user chose **minimal-input** in text.
+
+### Task B1: Offer agent-led implementation and required artifacts
+
+**Actions**:
+1. Tell the user clearly that the agent **can** implement the test **without** TestRail/Confluence **if** they provide enough grounded detail — but the agent **must not** invent pages, selectors, or flows.
+2. List what you still need at minimum (see Task B2 checklist). **WAIT** until the user either supplies items or explicitly defers an item to Phase 2 (then note "open in Phase 2" in the plan).
+
+**Expected Output**: User understands the tradeoff and what to supply (or what is deferred to Phase 2 with explicit consent).
+
+### Task B2: Collect minimal-input package
+
+**Actions**:
+1. Capture the following in the test plan (fill or mark *deferred to Phase 2* with user agreement):
+   - **Scenario / goal**: What behavior the automated test must prove (plain language).
+   - **Entry / URLs**: Starting URL(s) or navigation path to reach the UI under test.
+   - **UI grounding** (at least one required before ending Phase 1 unless user explicitly defers to Phase 2): e.g. saved page source or DOM snapshot paths, a **selector map** (purpose → locator), pointers to existing Page Objects in the repo, and/or frontend file paths the agent will use in Phase 3.
+   - **Preconditions and test data**: Accounts, feature flags, seed data — or *unknown — Phase 2*.
+   - **Optional**: TestRail/Confluence IDs "for traceability only" without MCP — record as references, not as substitute for missing UI grounding.
+2. **Do not** mark Phase 1 complete if UI grounding and scenario goal are both missing and the user has not agreed to defer.
+
+**Expected Output**: Minimal-input checklist documented in the test plan.
+
+### Task B3: Create initial test plan document (minimal-input)
+
+**Actions**:
+1. Create `agents/plans/aqa-<test-name>.md` using the template below (adapt section headings if the scenario is small).
+2. For TestRail/Confluence fields, use `N/A` or optional reference links — do not pretend MCP data exists.
+
+**Template**:
+```markdown
+# AQA Test Plan - <Test Name>
+
+**Created**: [DateTime]
+**AQA execution mode**: minimal-input
+**TestRail Case**: [N/A or ID for traceability only]
+**Confluence**: [N/A or links for traceability only]
+**Feature**: [Feature Name]
+**Status**: Phase 1 Complete
+
+## Minimal-input package
+
+### Scenario / goal
+[What the test must validate]
+
+### Entry and navigation
+- URLs: [...]
+- Steps to reach the UI: [...]
+
+### UI grounding
+- Page source / DOM snapshots: [paths or attach instructions]
+- Selector map or locators: [...]
+- Repo pointers (Page Objects / components): [...]
+
+### Preconditions and test data
+[Or: deferred to Phase 2 — user confirmed]
+
+### Notes and open questions
+- [...]
+
+## Test Case Information (synthetic)
+
+### Test Steps (draft)
+1. [Step — can be refined in Phase 2]
+...
+
+### Expected Overall Result
+[Draft — refined in Phase 2]
+
+---
+## Phase 2: Requirements Clarification
+[To be filled in Phase 2]
+
+## Phase 3: Code Analysis
+[To be filled in Phase 3]
+
+## Phase 4: Selector Identification
+[To be filled in Phase 4]
+
+## Phase 5: Selector Implementation
+[To be filled in Phase 5]
+
+## Phase 6: Test Implementation
+[To be filled in Phase 6]
+```
+
 ## Completion Criteria
 
+**All modes**
+- [ ] Task 0 complete: execution mode is **either** named by explicit user keywords (`integrated` / `minimal-input` / spelled equivalents) **or** obtained after the mandatory ask-and-wait; mode recorded in test plan and state
+- [ ] Test plan file `agents/plans/aqa-<test-name>.md` created
+- [ ] Test goal clearly understood (or explicitly deferred to Phase 2 with user consent)
+- [ ] `agents/aqa-state.md` updated with Phase 1 completion
+
+**Integrated AQA only**
 - [ ] TestRail test case retrieved and documented
 - [ ] Confluence documentation retrieved and documented
-- [ ] Test plan file created with all Phase 1 information
-- [ ] Test goal clearly understood
-- [ ] Expected results documented
-- [ ] `agents/aqa-state.md` updated with Phase 1 completion
+- [ ] Expected results from sources documented
+
+**Minimal-input only**
+- [ ] Minimal-input checklist captured in the test plan
+- [ ] UI grounding present or explicitly deferred to Phase 2 with user approval
 
 ## Update State File
 
@@ -150,8 +269,10 @@ After completing Phase 1, update `agents/aqa-state.md`:
 ```markdown
 ### Phase 1: Data Collection
 - Completed: [DateTime]
-- TestRail Case: [ID/URL]
-- Confluence Pages: [URLs]
+- Execution mode: [integrated | minimal-input]
+- TestRail Case: [ID/URL or N/A]
+- Confluence Pages: [URLs or N/A]
+- Minimal-input checklist: [brief summary or N/A]
 - Test Goal: [Brief description]
 - Expected Result: [Brief description]
 - Test Plan File: agents/plans/aqa-<test-name>.md
@@ -168,7 +289,9 @@ ACQUIRE aqa-phase2-md FROM KB
 
 ## Important Notes
 
-- **No Assumptions**: If TestRail or Confluence data is incomplete, note it in the test plan
-- **Ask Questions**: If user hasn't provided IDs/URLs, ask for them
-- **Document Everything**: Capture all details even if they seem minor
-- **Cross-Reference**: Ensure TestRail and Confluence information aligns
+- **No Assumptions**: If data is incomplete for the chosen mode, note it in the test plan and ask — never guess selectors or flows.
+- **Ask Questions**: If user hasn't provided IDs/URLs (integrated) or checklist items (minimal-input), ask for them.
+- **Document Everything**: Capture all details even if they seem minor.
+- **Integrated path only**: Cross-reference TestRail and Confluence information for alignment.
+- **Minimal-input path**: Prefer an explicit **selector map** or page source over vague descriptions; deferrals must be user-visible in the plan.
+- **Task 0**: Never infer execution mode from context; only explicit keywords or a user reply after the mandatory question count.
