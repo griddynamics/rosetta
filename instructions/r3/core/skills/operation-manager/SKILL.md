@@ -1,5 +1,5 @@
 ---
-name: plan-manager
+name: operation-manager
 description: "Rosetta skill for reliable execution: plan creation, tracking, and execution coordination via local JSON files."
 dependencies: node.js
 disable-model-invocation: false
@@ -8,13 +8,13 @@ argument-hint: feature-name plan-name
 allowed-tools: Bash(npx:*)
 model: claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro-preview
 tags:
-  - plan-manager
-  - plan-manager-create
-  - plan-manager-use
+  - operation-manager
+  - operation-manager-create
+  - operation-manager-use
 baseSchema: docs/schemas/skill.md
 ---
 
-<plan-manager>
+<operation-manager>
 
 <role>
 
@@ -32,7 +32,7 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Plan file lives in FEATURE PLAN folder: `<feature_plan_folder_full_path>/plan.json`
-- Try `rosettify` MCP first (if already available), fallback to CLI: `npx rosettify@latest plan <subcommand> <plan_file> [args...]`, fallback to todo tasks (if none available)
+- Try `rosettify` MCP first (if already available), fallback to CLI: `npx rosettify@latest <command> <subcommand> <plan_file`>, if it fails too MUST FALLBACK to built-in todo task tools
 - Always use full absolute paths for the plan file
 - Seven subcommands: `help`, `create`, `next`, `update_status`, `show_status`, `query`, `upsert`
 - Resume behavior: `next` returns four groups: (1) in_progress steps (resume=true), (2) open eligible steps, (3) blocked steps (previously_blocked=true), (4) failed steps (previously_failed=true)
@@ -40,7 +40,7 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 - Status propagation: bottom-up only (steps -> phases -> plan); plan root status is always derived, never set directly
 - Phase status updates are rejected (phase_status_is_derived); `entire_plan` target is rejected for update_status (invalid_target)
 - `upsert` silently ignores status fields in patch -- only `update_status` modifies status
-- ACQUIRE `plan-manager/assets/pm-schema.md` FROM KB for data structure reference
+- ACQUIRE `operation-manager/assets/om-schema.md` FROM KB for data structure reference
 
 </core_concepts>
 
@@ -83,9 +83,9 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 
 <resources>
 
-- Asset: ACQUIRE `plan-manager/assets/pm-schema.md` FROM KB -- plan JSON structure
+- Asset: ACQUIRE `operation-manager/assets/om-schema.md` FROM KB -- plan JSON structure
 - Flow: USE FLOW `adhoc-flow`
 
 </resources>
 
-</plan-manager>
+</operation-manager>
