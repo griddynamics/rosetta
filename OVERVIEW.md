@@ -63,13 +63,18 @@ Read more about the [bootstrap flow](docs/ARCHITECTURE.md#bootstrap-flow) in the
                 ↓
 2. Bootstrap   Agent receives universal policies and guardrails
                 ↓
-3. Classify    Request type auto-detected from your input
+               [Users describe what they need]
                 ↓
-4. Load        Workflow-specific instructions, skills, and rules load progressively
+3. Classify    Rosetta classifies users request (coding, research, init, etc.)
                 ↓
-5. Execute     Plan, approve (HITL gate), execute with subagents, validate, loop
+4. Load        The matching workflow, skills, and guardrails load progressively
                 ↓
-6. Evolve      New releases developed safely; rollback if needed
+5. Execute     The workflow runs its four phases:
+                  • Prepare  — load context (CONTEXT.md, ARCHITECTURE.md), guardrails
+                  • Research — investigate code, requirements, prior decisions
+                  • Plan     — produce reviewable spec and plan (HITL approval gate)
+                  • Act      — implement with subagents, validate, loop
+
 ```
 
 ## Three-Layer Architecture

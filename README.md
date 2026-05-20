@@ -19,7 +19,7 @@
 
 ## What is Rosetta
 
-Rosetta is an open-source instruction-management system for AI coding agents. It plugs into your IDE and delivers the workflows, guardrails, and project conventions your agent needs on each request.
+Rosetta is an open-source instruction-management system for AI coding agents. It plugs into your IDE and delivers the rules, skills, workflows, guardrails, and project conventions your agent needs on each request.
 
 Rosetta gives your AI coding agent your team's context — architecture, conventions, business rules — automatically, in every IDE.
 
@@ -36,12 +36,6 @@ Works with Claude Code, Cursor, VS Code Copilot, JetBrains, Codex, Windsurf, Ope
 Mid-level, senior engineers and team-leads working in a multi-user environment with enterprise codebases. Team size doesn't matter — 1 person or 10+. What matters is that the codebase is large enough that one person can't hold all of it, and you ship to real environments where mistakes have real consequences.
 
 You've used AI coding agents but haven't built your own harness of skills, workflows, and guardrails around them. You want to ship product, not maintain your own prompts.
-
-**Not for:**
-
-- Personal projects where mistakes don't matter
-- Engineers who've already built a sophisticated AI harness
-- Architects looking for architecture-specific workflows (not supported yet)
 
 ## Why use it
 
@@ -123,11 +117,20 @@ This generates your `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and associated fi
 
 For details and troubleshooting, see [QUICKSTART.md](QUICKSTART.md) and [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
+## Where to go next
+
+Pick a path based on your role:
+
+- **Engineer using Rosetta day-to-day** → [QUICKSTART.md](QUICKSTART.md) (first session), then [USAGE_GUIDE.md](USAGE_GUIDE.md) (workflows you'll use), then [FAQ.md](FAQ.md) when stuck.
+- **Lead evaluating Rosetta for your team** → [OVERVIEW.md](OVERVIEW.md) (mental model and what Rosetta does *not* do), [SECURITY.md](SECURITY.md) (privacy and threat model), [CONTEXT.md](docs/CONTEXT.md) (business case), and [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) if you're self-hosting infrastructure.
+- **Contributor** → [LEARNING_PATH.md](LEARNING_PATH.md) (what to read in what order), then [CONTRIBUTING.md](CONTRIBUTING.md) (PR workflow).
+
 ## Documentation
 
 | I want to... | Read |
 |---|---|
 | Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md) |
+| Read the business case (why Rosetta exists, value per role) | [CONTEXT.md](docs/CONTEXT.md) |
 | Onboard as a new contributor (what to read in what order) | [LEARNING_PATH.md](LEARNING_PATH.md) |
 | Look up a Rosetta-specific term | [TERMINOLOGY.md](TERMINOLOGY.md) |
 | See the full setup guide (all IDEs, troubleshooting) | [QUICKSTART.md](QUICKSTART.md) |
