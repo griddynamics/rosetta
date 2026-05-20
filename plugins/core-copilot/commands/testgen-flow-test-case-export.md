@@ -20,7 +20,7 @@ baseSchema: docs/schemas/phase.md
 Export test cases from `test-scenarios.md` to TestRail.
 
 - **Guided:** Use TestRail MCP to verify the project, resolve `section_id`, and create cases.
-- **Questionnaire:** Do **not** call `mcp_testrail_*`. Collect `project_id`, `suite_id`, and `section_id` from the user, write a **manual export pack** (copy-paste / CSV-friendly), and record completion when the user confirms import or pastes back TestRail case IDs.
+- **Questionnaire:** Do **not** run any **`{integration-action:testrail-*}`** call. Collect `project_id`, `suite_id`, and `section_id` from the user, write a **manual export pack** (copy-paste / CSV-friendly), and record completion when the user confirms import or pastes back TestRail case IDs.
 
 If the interaction mode is unclear, resolve it in **Step 0** before any MCP call.
 
@@ -28,6 +28,20 @@ If the interaction mode is unclear, resolve it in **Step 0** before any MCP call
 
 **Default Configuration**: detect using current ticket and user profile.
 **Section Name**: [TICKET-KEY] (e.g., "PROJ-123")
+**Web URL placeholders:** `{testrail-suite-view-url}`, `{testrail-case-view-url}`, and `{testrail-suite-cases-grouped-url}` stand in for full TestRail browser links (`https://` + host + `index.php?` paths + ids). Compose from `{TestRail instance host}`, `suite_id`, case id, and section grouping as in Step 1Q or `mcp-guidance.md`.
+
+### Guided TestRail and workspace file actions (placeholders)
+
+| Token | Intent |
+|-------|--------|
+| `{integration-action:testrail-get-project}` | Verify TestRail project access by `project_id` |
+| `{integration-action:testrail-get-cases}` | List cases in a project/suite (optional dedup before add) |
+| `{integration-action:testrail-add-case}` | Create a test case in a `section_id` with title, priority, type, refs, separated steps |
+| `{agent-action:read-file}` | Read a workspace file (host-specific file tool) |
+| `{agent-action:write-file}` | Create or overwrite a workspace file |
+| `{agent-action:patch-file}` | Apply targeted edits to a workspace file (includes search-and-replace style edits) |
+
+Resolve **`{integration-action:…}`** tokens to the workspace **TestRail MCP** tool that implements the same behavior. Resolve **`{agent-action:…}`** to the coding agent’s host file tools (names differ by IDE).
 
 ## Requirements
 
@@ -43,7 +57,7 @@ If the interaction mode is unclear, resolve it in **Step 0** before any MCP call
 4. Record in `agents/testgen/{TICKET-KEY}/testgen-state.md` (Phase 6):
    - `TestRail export: guided | questionnaire`
    - `MCP interaction source:` (`agents/mcp-capability.yaml` | user override | default question`)
-5. If **guided** and **`agents/user-instructions/mcp-guidance.md`** exists, read it before the first `mcp_testrail_*` call.
+5. If **guided** and **`agents/user-instructions/mcp-guidance.md`** exists, read it before the first **`{integration-action:testrail-*}`** call.
 
 ### Step 1: Verify TestRail connection (guided only)
 
@@ -57,8 +71,10 @@ If the interaction mode is unclear, resolve it in **Step 0** before any MCP call
 
 **Guided path — test connection** using (replace `project_id` with value from guidance/state/user; **do not** hard-code example IDs unless the user confirmed them):
 
-```python
-mcp_testrail_get_project(project_id=<project_id>)
+```text
+Action: {integration-action:testrail-get-project}
+Parameters:
+  project_id: <project_id>
 ```
 
 If fails, tell user:
@@ -84,7 +100,7 @@ If you already have a section, provide the section_id.
 You can find it in the URL when viewing a section (e.g., group_id=94686 or section_id=94686)
 
 **Option B: Create new section**
-1. Go to: https://griddynamics.testrail.io/index.php?/suites/view/3300
+1. Go to: {testrail-suite-view-url}
 2. Click "Add Section" 
 3. Name it: [TICKET-KEY] (e.g., "PROJ-456")
 4. After creating, find the section_id in the URL or section details
@@ -253,7 +269,7 @@ Execute this test case for EACH row in the table below:
 
 ### Step 5: Add Test Cases to TestRail (guided only)
 
-**If `TestRail export` is `questionnaire`:** Run **Step 5Q** only; **do not** call `mcp_testrail_add_case`.
+**If `TestRail export` is `questionnaire`:** Run **Step 5Q** only; **do not** run **`{integration-action:testrail-add-case}`**.
 
 #### Step 5Q: Manual export pack (no MCP)
 
@@ -264,17 +280,27 @@ Execute this test case for EACH row in the table below:
 3. **STOP** and **WAIT**: ask the user to confirm either (a) they created cases manually / imported the pack, or (b) they paste back a mapping `TC-001 → C12345` (or URLs).
 4. **After the user replies**, execute **Step 6** to merge IDs into `test-scenarios.md`. Until then you may leave placeholders (e.g. `Pending`) only if the workflow must save intermediate files; do **not** mark Phase 6 complete in state until Step 6 reflects the user’s answer.
 
+**Optional (guided only) — list existing cases before add:** If duplicate titles, re-exports, or unclear existing coverage are a concern, run **`{integration-action:testrail-get-cases}`** once against the target `project_id` / `suite_id` (and use section or other filters when your MCP supports them) to compare with parsed markdown. **Not required** for a first-time export or when the user accepts duplicates.
+
+```text
+Action: {integration-action:testrail-get-cases}
+Parameters:
+  project_id: <project_id>
+  suite_id: <suite_id>
+```
+
 **Guided path — for each mapped test case**:
 
-```python
-result = mcp_testrail_add_case(
-    section_id=section_id,
-    title=testrail_case["title"],
-    priority_id=testrail_case["priority_id"],
-    type_id=testrail_case["type_id"],
-    refs=testrail_case["refs"],
-    custom_steps_separated=testrail_case["custom_steps_separated"]
-)
+```text
+Action: {integration-action:testrail-add-case}
+Parameters:
+  section_id: <section_id>
+  title: <from testrail_case>
+  priority_id: <from testrail_case>
+  type_id: <from testrail_case>
+  refs: <from testrail_case>
+  custom_steps_separated: <from testrail_case>
+Outcome: capture returned case id for results tracking
 ```
 
 **Track results**:
@@ -306,7 +332,7 @@ For **questionnaire** exports, use user-pasted IDs when available; otherwise kee
 ```markdown
 ### TC-001: User Login with Valid Credentials (Happy Path)
 **TestRail ID**: C12345 ✅
-**TestRail Link**: https://griddynamics.testrail.io/index.php?/cases/view/12345
+**TestRail Link**: {testrail-case-view-url}
 **Related Requirement**: US-1, FR-1
 ...
 ```
@@ -323,11 +349,11 @@ For **questionnaire** exports, use user-pasted IDs when available; otherwise kee
 ## TestRail Export Summary
 
 **Exported**: [DateTime]
-**Project**: 69
-**Suite**: 3300
+**Project**: {project_id}
+**Suite**: {suite_id}
 **Section**: [TICKET-KEY] (ID: [section_id])
 **Total Exported**: [X] test cases
-**TestRail Link**: https://griddynamics.testrail.io/index.php?/suites/view/3300&group_by=cases:section_id
+**TestRail Link**: {testrail-suite-cases-grouped-url}
 
 | TC ID | TestRail ID | Status |
 |-------|-------------|--------|
@@ -366,8 +392,8 @@ For **questionnaire** exports, use user-pasted IDs when available; otherwise kee
 
 ### Phase 6: TestRail Export
 - **Completed**: [DateTime]
-- **Project ID**: 69
-- **Suite ID**: 3300
+- **Project ID**: {project_id}
+- **Suite ID**: {suite_id}
 - **Section ID**: [section_id]
 - **Section Name**: [TICKET-KEY]
 - **Test Cases Created**: [Count]
@@ -381,7 +407,7 @@ For **questionnaire** exports, use user-pasted IDs when available; otherwise kee
 Before completing Phase 6, verify:
 
 **Guided path:**
-- ✅ TestRail connection successful (`mcp_testrail_get_project` or equivalent)
+- ✅ TestRail connection successful (`{integration-action:testrail-get-project}` or equivalent)
 - ✅ Section exists in TestRail (or user provided valid `section_id`)
 - ✅ All test cases parsed from markdown
 - ✅ At least 80% of test cases exported successfully via MCP (or failures documented)
@@ -399,10 +425,10 @@ Before completing Phase 6, verify:
 
 ## Tools Used
 
-- **Guided:** `mcp_testrail_get_project(project_id)` — verify connection; `mcp_testrail_get_cases(project_id, suite_id)` — optional dedup; `mcp_testrail_add_case(section_id, title, ...)` — create test cases
-- **Questionnaire:** `read_file()` / `write()` / `search_replace()` only — build `testrail-manual-export.md` and update docs; **no** `mcp_testrail_*`
-- `read_file()` — read `test-scenarios.md`
-- `write()` / `search_replace()` — update files
+- **Guided:** `{integration-action:testrail-get-project}` — verify connection; `{integration-action:testrail-get-cases}` — optional dedup; `{integration-action:testrail-add-case}` — create test cases
+- **Questionnaire:** `{agent-action:read-file}` / `{agent-action:write-file}` / `{agent-action:patch-file}` only — build `testrail-manual-export.md` and update docs; **no** `{integration-action:testrail-*}` calls
+- `{agent-action:read-file}` — read `test-scenarios.md`
+- `{agent-action:write-file}` / `{agent-action:patch-file}` — update files
 
 ## Common Issues
 
@@ -424,6 +450,9 @@ Before completing Phase 6, verify:
 **Issue**: Rate limit exceeded  
 **Solution**: Add delay between API calls, batch requests
 
+**Issue**: Risk of duplicate titles or unclear existing coverage  
+**Solution**: Optionally run **`{integration-action:testrail-get-cases}`** (Step 5 optional block) before **`{integration-action:testrail-add-case}`** — optional discovery of existing cases, not a mandatory gate.
+
 **Issue**: Test case already exists  
 **Solution**: Create anyway (TestRail allows duplicates), note in report
 
@@ -442,7 +471,7 @@ All 6 phases finished successfully:
 ✅ Phase 6: TestRail Export ([R] cases exported)
 
 **TestRail Section**: [TICKET-KEY]
-**TestRail Link**: https://griddynamics.testrail.io/index.php?/suites/view/3300
+**TestRail Link**: {testrail-suite-view-url}
 
 **Deliverables**:
 📄 requirements.md - Use for implementation
@@ -460,8 +489,8 @@ All 6 phases finished successfully:
 
 - TestRail MCP currently lacks section creation - user must create manually
 - Test case IDs in TestRail are prefixed with "C" (e.g., C12345)
-- Suite ID 3300 is from user's TestRail URL
-- Project ID 69 is user's default project
+- `{suite_id}` comes from the user, `mcp-guidance.md`, or the suite view URL on their instance
+- `{project_id}` comes from the user, `mcp-guidance.md`, or the TestRail project settings
 - Parameterized test data is included in step content or expected results
 - Re-running export creates duplicate test cases (by design, to preserve history)
 - Consider creating test run after export for immediate execution

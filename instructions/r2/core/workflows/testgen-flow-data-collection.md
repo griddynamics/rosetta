@@ -12,6 +12,7 @@ baseSchema: docs/schemas/phase.md
 - MUST be starting new test generation flow
 - User provided Jira ticket key or URL
 - **MCP routing (B + A):** Resolve **guided** vs **questionnaire** per **`mcp-capability-interaction.md`** using **`agents/mcp-capability.yaml`** (copy from `instructions/r2/core/templates/mcp-capability.example.yaml` in Rosetta) and any **user override** in the task text. Do **not** call Jira/Confluence MCPs until Step 2b is complete. **Questionnaire** means no MCP for that integration; user answers supply `raw-data.md` content.
+- **URL placeholders:** In examples below, `{jira-host}` and `{confluence-host}` mean the workspace Jira/Confluence web hostnames (including subdomain); substitute the customer’s real hosts, not fixed vendor domains.
 
 ## Objective
 
@@ -28,26 +29,26 @@ Extract all relevant data from Jira ticket and related Confluence documentation 
 **Supported formats**:
 ```
 "Analyze requirements for PROJ-123"
-"Analyze requirements for PROJ-123 with Confluence: https://confluence.com/display/PROJ/Page"
+"Analyze requirements for PROJ-123 with Confluence: https://{confluence-host}/display/PROJ/Page"
 "Analyze PROJ-123, Confluence pages: URL1, URL2, URL3"
-"PROJ-123 + https://confluence.com/display/PROJ/Auth"
+"PROJ-123 + https://{confluence-host}/display/PROJ/Auth"
 ```
 
 **Parse Confluence URLs**:
 - Extract from patterns: "with Confluence", "Confluence:", "Confluence docs:", "Confluence pages:"
 - Accept comma-separated or line-separated URLs
 - URLs may be:
-  - Display format: `https://confluence.company.com/display/SPACE/Page+Title`
-  - Direct format: `https://confluence.company.com/pages/viewpage.action?pageId=123456`
-  - Short format: `https://confluence.company.com/x/AbCdEf`
+  - Display format: `https://{confluence-host}/display/SPACE/Page+Title`
+  - Direct format: `https://{confluence-host}/pages/viewpage.action?pageId=123456`
+  - Short format: `https://{confluence-host}/x/AbCdEf`
 
 **If Confluence URLs provided**:
 - Extract page IDs from URLs
-- Skip automatic search (Step 3)
+- Skip automatic search (Step 4)
 - Go directly to retrieving specified pages
 
 **If no Confluence URLs provided**:
-- Proceed with automatic search (Step 3)
+- Proceed with automatic search (Step 4)
 
 ### Step 2: Setup Output Directory
 
@@ -71,7 +72,19 @@ agents/testgen/{TICKET-KEY}/
 
 ### Step 3: Extract Jira Ticket Data
 
-**If `Jira source` is `questionnaire` (from Step 2b):** Run **Step 3Q** only; **do not** call `mcp_Jira_MCP_jira_get_issue`.
+#### Guided Jira / Confluence actions (placeholders)
+
+Tokens are **placeholders**. Resolve each to the workspace Jira/Confluence **MCP** capability that matches the intent (exact tool identifiers differ by installation).
+
+| Token | Intent |
+|-------|--------|
+| `{integration-action:jira-get-issue}` | Load one issue by key with field list, expand flags, comment limit |
+| `{integration-action:jira-search-fields}` | Discover Jira field IDs / API names (custom fields) |
+| `{integration-action:confluence-get-page}` | Load one Confluence page by id (markdown/metadata options) |
+| `{integration-action:confluence-search-pages}` | Search Confluence pages (query + limit) |
+| `{integration-action:confluence-list-child-pages}` | List child pages for a parent (content options) |
+
+**If `Jira source` is `questionnaire` (from Step 2b):** Run **Step 3Q** only; **do not** run **`{integration-action:jira-get-issue}`** (or any equivalent Jira “get issue” MCP call).
 
 #### Step 3Q: Jira questionnaire (no MCP)
 
@@ -81,20 +94,20 @@ agents/testgen/{TICKET-KEY}/
 
 **If `Jira source` is `guided`:** Follow all MCP steps below.
 
-**Use** (guided path only): Jira and/or Confluence MCPs respectively, snippets below will contain example pseudo-function calls for better understanding `mcp_Jira_MCP_jira_get_issue`, `mcp_Jira_MCP_confluence_get_page`, `mcp_Jira_MCP_confluence_search`, `mcp_Jira_MCP_confluence_get_page_children`.
+**Use** (guided path only): resolve **`{integration-action:jira-get-issue}`**, **`{integration-action:confluence-get-page}`**, **`{integration-action:confluence-search-pages}`**, **`{integration-action:confluence-list-child-pages}`** via your configured Jira/Confluence MCPs.
 
 **Extract ticket key** from user input:
-- Format: "PROJ-123" or URL "https://jira.company.com/browse/PROJ-123"
+- Format: "PROJ-123" or URL "https://{jira-host}/browse/PROJ-123"
 - Parse key from URL if needed
 
 **Retrieve issue** with comprehensive fields:
-```python
-mcp_Jira_MCP_jira_get_issue(
-    issue_key="PROJ-123",
-    fields="summary,description,status,issuetype,assignee,priority,reporter,labels,components,created,updated",
-    expand="renderedFields",
-    comment_limit=10
-)
+```text
+Action: {integration-action:jira-get-issue}
+Parameters:
+  issue_key: PROJ-123
+  fields: summary,description,status,issuetype,assignee,priority,reporter,labels,components,created,updated
+  expand: renderedFields
+  comment_limit: 10
 ```
 
 **Capture**:
@@ -108,7 +121,7 @@ mcp_Jira_MCP_jira_get_issue(
 
 ### Step 4: Get Confluence Documentation
 
-**If `Confluence source` is `questionnaire` (from Step 2b):** Run **Step 4Q** only; **do not** call `mcp_Jira_MCP_confluence_*`.
+**If `Confluence source` is `questionnaire` (from Step 2b):** Run **Step 4Q** only; **do not** run any **`{integration-action:confluence-*}`** call (no Confluence read/search via MCP for this integration on this run).
 
 #### Step 4Q: Confluence questionnaire (no MCP)
 
@@ -128,7 +141,7 @@ mcp_Jira_MCP_jira_get_issue(
 2. For each URL, extract:
    - Page ID from URL parameters (pageId=123456)
    - Or use space + title from display URL
-3. Retrieve pages directly using `mcp_Jira_MCP_confluence_get_page()`
+3. Retrieve pages directly using **`{integration-action:confluence-get-page}`**
 4. Check each page for child pages (REQUIRED)
 5. Skip automatic search
 
@@ -142,7 +155,7 @@ mcp_Jira_MCP_jira_get_issue(
 
 #### Option B: No URLs Provided - Auto-Search
 
-**Use**: `mcp_Jira_MCP_confluence_search()`
+**Use**: **`{integration-action:confluence-search-pages}`**
 
 **Extract search terms** from Jira ticket:
 - Project key (from ticket key)
@@ -156,11 +169,11 @@ type=page AND space={PROJECT_KEY} AND (text ~ "{term1}" OR text ~ "{term2}")
 ```
 
 **Search Confluence**:
-```python
-mcp_Jira_MCP_confluence_search(
-    query=cql_query,
-    limit=10
-)
+```text
+Action: {integration-action:confluence-search-pages}
+Parameters:
+  query: <cql_query>
+  limit: 10
 ```
 
 **Rank results** by relevance:
@@ -169,22 +182,22 @@ mcp_Jira_MCP_confluence_search(
 - Content matches key terms
 
 **Get top 3-5 pages**:
-```python
-mcp_Jira_MCP_confluence_get_page(
-    page_id=page_id,
-    convert_to_markdown=True,
-    include_metadata=True
-)
+```text
+Action: {integration-action:confluence-get-page}
+Parameters:
+  page_id: <page_id>
+  convert_to_markdown: true
+  include_metadata: true
 ```
 
 **IMPORTANT: Check for child pages** (nested documents often missed by search):
-```python
-mcp_Jira_MCP_confluence_get_page_children(
-    parent_id=page_id,
-    include_content=True,
-    convert_to_markdown=True,
-    limit=10
-)
+```text
+Action: {integration-action:confluence-list-child-pages}
+Parameters:
+  parent_id: <page_id>
+  include_content: true
+  convert_to_markdown: true
+  limit: 10
 ```
 
 For each parent page found:
@@ -369,11 +382,11 @@ Before completing Phase 1, verify:
 
 ## Tools Used
 
-- `mcp_Jira_MCP_jira_get_issue()` - Jira ticket extraction
-- `mcp_Jira_MCP_confluence_search()` - Confluence page search
-- `mcp_Jira_MCP_confluence_get_page()` - Confluence page content retrieval
-- `mcp_Jira_MCP_confluence_get_page_children()` - Confluence child page discovery
-- `write()` - File creation
+- **`{integration-action:jira-get-issue}`** — Jira ticket extraction
+- **`{integration-action:confluence-search-pages}`** — Confluence page search
+- **`{integration-action:confluence-get-page}`** — Confluence page content retrieval
+- **`{integration-action:confluence-list-child-pages}`** — Confluence child page discovery
+- **`{agent-action:write-file}`** — Create or update files (map to the host agent’s write/patch capability)
 
 ## Common Issues
 
@@ -387,10 +400,10 @@ Before completing Phase 1, verify:
 **Solution**: Include first 5000 words, note truncation in raw-data.md
 
 **Issue**: Custom fields not recognized  
-**Solution**: Use `mcp_Jira_MCP_jira_search_fields()` to discover field names
+**Solution**: Run **`{integration-action:jira-search-fields}`** (or equivalent) to discover field names
 
 **Issue**: Confluence search finds parent but misses child pages  
-**Solution**: Always check for child pages using `confluence_get_page_children()` for each found page
+**Solution**: Always check for child pages using **`{integration-action:confluence-list-child-pages}`** for each found page
 
 **Issue**: User provided invalid Confluence URL  
 **Solution**: Try to parse page ID, if fails ask user for correct URL or page ID
