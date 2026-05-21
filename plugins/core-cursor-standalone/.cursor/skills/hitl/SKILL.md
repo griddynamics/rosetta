@@ -6,7 +6,7 @@ baseSchema: docs/schemas/skill.md
 ---
 
 
-Invoke as 
+Invoke as
 
 <hitl>
 
@@ -20,6 +20,7 @@ Invoke as
 - When output is wrong, fix the harness — not the artifact
 - YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar.
 - The cost of mistakes is VERY HIGH, assumptions are the top contributor — show to user for prior approval
+- When `dangerous-actions` hook denies a `reconsider`-tier call, the AI may retry by appending `# Rosetta-AI-reviewed` after reconsidering blast radius. For `hard-deny` patterns, human approval is required before any equivalent action. See the `dangerous-actions` skill.
 
 </core_concepts>
 

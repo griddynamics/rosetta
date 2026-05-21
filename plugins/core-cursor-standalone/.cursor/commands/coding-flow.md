@@ -1,6 +1,6 @@
 ---
 name: coding-flow
-description: "Rosetta coding and implementation workflow, includes discovery, tech specs, tech plan, subagent plan review, user plan review, implementation, subagent review implementation, validation, user review, and final validation with reviewer gates, HITL gates, and subagent delegation."
+description: "Rosetta fixing, improvements, coding, and implementation workflow, includes discovery, tech specs, tech plan, subagent plan review, user plan review, implementation, subagent review implementation, validation, user review, and final validation with reviewer gates, HITL gates, and subagent delegation. Adopts to request size from small to large."
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---
@@ -29,12 +29,13 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 2. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: discovery-notes.md in FEATURE PLAN folder.
 3. Recommended skills: `load-context`
 4. Update `agents/coding-flow-state.md`
+5. Do not stop until 100% clear
 
 </discovery>
 
 <tech_plan phase="2" applies="ALL" subagent="architect" role="Senior architect defining specs and plan">
 
-1. USE SKILL `tech-specs` and USE SKILL `planning` together. Split: specs own WHAT, plan owns HOW.
+1. MUST USE SKILL `tech-specs` and `planning` together. Split: specs own WHAT, plan owns HOW. Target: 100% clarity.
 2. Input: discovery notes, user request, `ARCHITECTURE.md`. Output: `<FEATURE>-SPECS.md` + `<FEATURE>-PLAN.md` in FEATURE PLAN folder.
 3. SMALL: output as message, no files. MEDIUM: concise. LARGE: full.
 4. Recommended skills: `tech-specs`, `planning`, `reasoning`, `questioning`

@@ -12,7 +12,7 @@ Creates IDE-specific and tech-specific rule files that customize agent behavior 
 </description_and_purpose>
 
 <workflow_context>
-- Phase 4 of 8 in init-workspace-flow
+- Phase 4 of 9 in init-workspace-flow
 - Input: TECHSTACK (from P3), state.mode, IDE/OS detection
 - Output: core agents file, tech-specific rule files
 - Prerequisite: Phase 3 complete (TECHSTACK exists on disk)
@@ -46,7 +46,7 @@ Creates IDE-specific and tech-specific rule files that customize agent behavior 
 1. Write to `agents/init-workspace-flow-state.md`:
    - Rule files status (created | updated | skipped | disabled)
    - Phase 4 completion timestamp
-2. Log gaps identified for Phase 7
+2. Log gaps identified for Phase 8
 </update_state>
 
 <validation_checklist>

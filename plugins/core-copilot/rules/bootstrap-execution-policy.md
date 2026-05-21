@@ -22,18 +22,18 @@ Receiving a user request → immediately writing code, files, scripts, or comman
 4. Apply `Memory And Self-Learning Rules`.
 5. MUST Always Use `Subagents Orchestration Rules`.
 6. MUST NOT IGNORE entire set of instructions if one or another activity of the set is impossible to execute. Those inconsistencies MUST BE REPORTED ALWAYS.
-7. When user directly provides via slash-command SKILL or COMMAND or WORKFLOW YOU MUST FULLY EXECUTE IT
+7. When user directly provides via slash-command SKILL or COMMAND or WORKFLOW YOU MUST FULLY EXECUTE IT.
 8. Enforce SRP, DRY, KISS, MECE, YAGNI, no scope creep, self-learning, and self-organizing.
+9. MUST FULLY FOLLOW commands/commands/flows - this ensures users get proper solution for their problem
+10. MUST NEVER JUMP DIRECTLY TO IMMEDIATE EXECUTION, you are in ENTERPRISE environment, NOT startup, you MUST REASON, prep steps are direct path to get to the point the right way!
 
 </MUST>
 
 <planning_and_documentation_sync_rules>
 
 1. Update IMPLEMENTATION.md after each task.
-2. MUST FULLY FOLLOW workflows - this ensures users get proper solution for their problem
-3. MUST NOT NEVER JUMP DIRECTLY TO IMMEDIATE EXECUTION, you are in ENTERPRISE environment, NOT startup, you MUST REASON, prep steps are direct path to get to the point the right way!
-4. Proactively update, review, structure, restructure, and cleanup Rosetta files: including and not limited to CONTEXT.md, ARCHITECTURE.md, CODEMAP.md, TECHSTACK.md, DEPENDENCIES.md, PATTERNS/\*
-5. Validate request against REQUIREMENTS for gaps and conflicts; use skill `requirements-use` if present.
+2. Proactively update, review, structure, restructure, and cleanup Rosetta files: including and not limited to CONTEXT.md, ARCHITECTURE.md, CODEMAP.md, TECHSTACK.md, DEPENDENCIES.md, PATTERNS/\*
+3. Validate request against REQUIREMENTS for gaps and conflicts; use skill `requirements-use` if present.
 
 </planning_and_documentation_sync_rules>
 
@@ -52,7 +52,7 @@ Receiving a user request → immediately writing code, files, scripts, or comman
 
 <validation_rules>
 
-1. Create recurrent validation task at the end of execution flow.
+1. Create recurrent validation task at end of execution flow.
 2. Validate incrementally and at flow end.
 3. Raise questions when findings conflict with request or intent.
 4. Keep final status grounded in observed evidence.

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [{{BOOTSTRAP_HOOKS_COPILOT}}],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".github/hooks/dangerous-actions.js\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|create_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".github/hooks/loose-files.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \".github/hooks/md-file-advisory.js\""
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".github/hooks/gitnexus-refresh.js\""
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".github/hooks/lint-format-advisory.js\""
+          }
+        ]
+      }
+    ]
+  }
+}
