@@ -22,15 +22,32 @@ Help is a command with a run delegate, like any other. It is the single entry po
 
 <req id="FR-HELP-0002" type="FR" level="System">
   <title>Help with subcommand returns full command details</title>
-  <statement>The help run delegate called with a subcommand (e.g., {subcommand: "plan"}) SHALL return full details for that command: brief, description, input schema, output schema, and subcommands (if any) with their briefs. If the subcommand does not match a registered command, the help delegate SHALL treat it as if no subcommand was provided (return top-level help per FR-HELP-0001). The help delegate SHALL never return include_help=true.</statement>
-  <rationale>AI agents need full schemas to construct valid invocations.</rationale>
+  <statement>The help run delegate called with a subcommand (e.g., {subcommand: "plan"}) SHALL return full details for that command. The returned shape SHALL be:
+
+```
+{
+  name: <string>,
+  brief: <string>,
+  description: <string>,
+  schemas: { <key>: <JSONSchema> },
+  subcommands?: [ { name, brief } ],
+  notes: [ <string> ]
+}
+```
+
+`schemas` SHALL be a flat dictionary mapping a key name to a JSON Schema object. Each registered subcommand of the command SHALL declare its own input and output schemas alongside its handler; the help delegate SHALL compose `schemas` by aggregating these per-subcommand declarations, keyed by subcommand name, plus entries for any other reusable shapes the command exposes (e.g. shared result shapes). The help delegate SHALL NOT hand-author or duplicate per-subcommand schemas.
+
+`notes` SHALL be a string array of behavioral notes contributed by the command; commands declare their notes alongside their help content.
+
+If the subcommand does not match a registered command, the help delegate SHALL treat it as if no subcommand was provided (return top-level help per FR-HELP-0001). The help delegate SHALL never return include_help=true.</statement>
+  <rationale>A flat schema dictionary lets a single help response surface multiple model schemas (one per subcommand, plus shared shapes) without imposing an input/output partition that does not match how callers think about subcommands. Composing schemas from per-subcommand declarations prevents drift between code and help.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: help with {subcommand: "plan"}. Then: returns {ok: true, result: {name, brief, description, input_schema, output_schema, subcommands: [...]}}. Given: help with {subcommand: "nonexistent"}. Then: returns top-level help (same as FR-HELP-0001), ok: true, include_help: false.</criteria>
+    <criteria>Given: help with {subcommand: "plan"}. Then: returns {ok: true, result: {name, brief, description, schemas: {<subcommand-key>: <JSONSchema>, ...}, subcommands: [...], notes: [...]}}. Given: each subcommand defined under plan declares its own schemas in code. Then: the schemas dictionary contains an entry for every declared subcommand and matches the code-declared content exactly. Given: help with {subcommand: "nonexistent"}. Then: returns top-level help (same as FR-HELP-0001), ok: true, include_help: false.</criteria>
   </acceptance>
 </req>
 

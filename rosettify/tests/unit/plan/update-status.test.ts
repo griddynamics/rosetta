@@ -1,5 +1,6 @@
 /**
- * Unit tests for cmdUpdateStatus (FR-PLAN-0012).
+ * Unit tests for cmdUpdateStatus (FR-PLAN-0012 / FR-PLAN-0024).
+ * Updated for Phase 9: verifies .bakNNN file created after status update.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
@@ -29,7 +30,7 @@ function writePlan(name = "plan.json") {
   return file;
 }
 
-describe("cmdUpdateStatus", () => {
+describe("cmdUpdateStatus — FR-PLAN-0012", () => {
   it("updates a step status to complete", async () => {
     const file = writePlan();
     const result = await cmdUpdateStatus(file, "s1", "complete");
@@ -45,6 +46,19 @@ describe("cmdUpdateStatus", () => {
     const result = await cmdUpdateStatus(file, "s1", "complete");
     expect(result.ok).toBe(true);
     expect(result.result!.plan_status).toBe("complete");
+  });
+
+  // FR-PLAN-0024 — .bakNNN file created after status update
+  it("creates .bak000 file after status update (FR-PLAN-0024)", async () => {
+    const file = writePlan();
+    await cmdUpdateStatus(file, "s1", "complete");
+
+    // Backup must exist
+    const dir = path.dirname(file);
+    const basename = path.basename(file);
+    const backups = fs.readdirSync(dir).filter((e) => e.startsWith(basename + ".bak"));
+    expect(backups.length).toBeGreaterThan(0);
+    expect(backups[0]).toMatch(/\.bak\d+$/);
   });
 
   it("returns plan_not_found when file missing", async () => {
@@ -106,5 +120,4 @@ describe("cmdUpdateStatus", () => {
     expect(result.ok).toBe(false);
     expect(result.error).toContain("missing_new_status");
   });
-
 });

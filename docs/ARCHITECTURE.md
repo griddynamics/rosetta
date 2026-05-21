@@ -171,7 +171,7 @@ All three modes issue FastMCP JWTs to MCP clients and store upstream tokens in R
 
 ### VFS and Tags
 
-Everything MCP works with is VFS (virtual file system) resource paths. The CLI strips `core/` and `grid/` prefixes during publishing, so `core/skills/planning/SKILL.md` and `grid/skills/planning/SKILL.md` both become `skills/planning/SKILL.md`. Files at the same resource path get bundled together.
+Everything MCP works with is VFS (virtual file system) resource paths. The CLI strips instruction root prefixes during publishing, so `core/skills/planning/SKILL.md` becomes `skills/planning/SKILL.md`. Files at the same resource path get bundled together.
 
 **Tags are the primary access mechanism.** `ACQUIRE <path> FROM KB` queries by tags, which provides the most direct and fastest access. The CLI's auto-tagging was designed specifically for this: every folder name, filename, and composite pair/triple becomes a tag, so agents can request exactly what they need. Keyword search via `SEARCH` is the fallback for discovery.
 
@@ -365,7 +365,9 @@ Published on npm as `rosettify`. Invoked via `npx rosettify <command> [subcomman
 
 **Key points:**
 - **Dual frontend.** One CLI and one MCP server backed by the same run delegates. Identical behavior in both modes.
-- **Plan management** (current feature). `npx rosettify plan <subcommand> <plan_file>` — create, track, and advance execution plans as local JSON files. Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`.
+- **Plan management** (current feature). `npx rosettify plan <subcommand> <plan_file>` — create, track, and advance execution plans as local JSON files. Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`.
+- **Atomic write cycle with backup chain.** Every plan mutation uses a rename-as-guard cycle: rename the plan file to `<file>.bakNNN` as the atomic lock, then write the new content. The plan's `previous_version` field tracks the prior backup path. Up to 5 backups retained; bounded to 50 retries.
+- **Template registry.** Two compiled-in template kinds (`create`, `upsert`) with strict bidirectional placeholder matching. Seed templates ship with the package.
 - **Sequential phase enforcement.** `next` returns work from the earliest incomplete phase only; later phases are blocked until all earlier phases are done.
 - **Static tool registry.** Each command is a `ToolDef` with name, description, input/output schema, CLI and MCP flags, and a typed run delegate.
 - **No network calls.** All data stays local — safe for IP-sensitive projects.
@@ -380,7 +382,7 @@ Instructions live in `/instructions/r2/` in the instructions repository, using a
 
 ```
 /instructions/r2/
-├── core/                  ← OSS foundation (ships with Rosetta)
+├── core/                  ← Rosetta instruction source
 │   ├── skills/
 │   │   └── <name>/
 │   │       ├── SKILL.md
@@ -395,7 +397,7 @@ Instructions live in `/instructions/r2/` in the instructions repository, using a
 │   │   └── <name>.md
 │   └── commands/
 │
-└── <org>/                 ← Organization extensions (e.g., grid/)
+└── <org>/                 ← Optional organization extensions (e.g., acme/)
     ├── skills/
     ├── agents/
     ├── workflows/
@@ -484,7 +486,7 @@ uvx rosetta-cli@latest publish instructions
 
 ### Plugins (pre-release)
 
-Instructions to `plugins` folder content must be copied with `venv/bin/python scripts/pre_commit.py` as it also adapts.
+Instructions to `plugins` folder content must be copied with `venv/bin/python scripts/pre_commit.py` as it also adapts (implemented in `scripts/plugin_generator.py`).
 Pre-commit hook is also created, but we must not rely on it.
 Do not directly modify instructions in `plugins` folder instead edit original files in `instructions` and use script to copy/adapt.
 
@@ -495,23 +497,29 @@ Plugins are an alternative delivery mechanism to MCP. They deliver instructions 
 
 Each plugin contains core instructions: 20 skills, 7 agents, 4 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
 
-| Plugin | IDE |
-|---|---|
-| `core-claude` | Claude Code |
-| `core-cursor` | Cursor |
-| `core-copilot` | VS Code Copilot, JetBrains Copilot |
-| `core-codex` | Codex |
+| Plugin | IDE | Mode |
+|---|---|---|
+| `core-claude` | Claude Code | Plugin marketplace |
+| `core-cursor` | Cursor | Plugin marketplace |
+| `core-copilot` | VS Code Copilot, JetBrains Copilot | Plugin marketplace |
+| `core-codex` | Codex | Plugin marketplace |
+| `core-cursor-standalone` | Cursor | Direct extraction into repo (`.cursor/`) |
+| `core-copilot-standalone` | VS Code Copilot, JetBrains Copilot | Direct extraction into repo (`.github/`) |
 
-All four are generated from a single source tree (`instructions/r2/core/`) by the plugin generator (`scripts/plugin_generator.py`). The generator copies core instructions and adapts them for the target coding agent:
+All plugins are generated from a single source tree (`instructions/r2/core/`) by the plugin generator (`scripts/plugin_generator.py`). The generator copies core instructions and adapts them for the target coding agent:
 
-- **Model rewriting** — normalizes frontmatter `model:` to the platform's format
+- **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor uses `CURSOR_MODEL_MAP` (e.g. `claude-sonnet-4-6`, `gpt-5.4`); Copilot uses `COPILOT_MODEL_MAP` (e.g. `Claude Sonnet 4.6`, `GPT-5.4`); Claude Code uses short names (`sonnet`, `opus`, `haiku`).
 - **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)
-- **Directory layout** — restructures output to match IDE conventions (`.agents/` and `.codex/` for Codex, runtime configs at root for Copilot)
-- **Index generation** — produces `rules/INDEX.md` and `workflows/INDEX.md` listings
+- **Directory layout** — restructures output to match IDE conventions (`.agents/` and `.codex/` for Codex, runtime configs at root for Copilot). Cursor uses `commands/` instead of `workflows/` for workflow files; Copilot uses `prompts/` with files renamed from `*.md` to `*.prompt.md`. Content references are rewritten using precise full-path replacement (`workflows/coding-flow.md` → `commands/coding-flow.md` / `prompts/coding-flow.prompt.md`) to avoid accidental partial-word matches. `PluginSyncSpec` fields `rename_folders` and `rename_files` (suffix pairs) drive both file renaming and content rewriting; the generator builds exact `path_renames` dicts at sync time.
+- **Index generation** — produces `rules/INDEX.md` and `workflows/INDEX.md` (or `commands/INDEX.md` for Cursor, `prompts/INDEX.md` for Copilot) listings. Only files with `tags: ["workflow"]` appear in the workflow index; phase files are excluded. `commands/`, `prompts/`, and `workflows/` folders all use the heading `# Rosetta Workflows Index` via `_FOLDER_TITLE_ALIASES`.
 - **Template processing** — the generator supports `.tmpl` files inside preserved config folders: it substitutes platform-specific placeholders and writes the rendered output alongside the template (same path, `.tmpl` suffix removed). Currently used for `hooks.json`, which embeds the bootstrap payload at generation time and cannot be static. The mechanism is general-purpose and can be applied to any config that requires generated content.
 - **Copilot session locking** — Copilot has no native hook deduplication, so the generated hooks include a file-based lock ensuring each bootstrap entry fires exactly once per session. Other platforms use IDE-native mechanisms (Claude Code: `"once": true`; Codex and Cursor: built-in deduplication).
 
-Each plugin has a preserved config folder (`.claude-plugin/`, `.cursor-plugin/`, `.github/`, `.codex-plugin/`) holding the IDE manifest (`plugin.json`) and static configs. The `hooks.json.tmpl` template is preserved per plugin spec — for Copilot and Codex inside the preserved config folder, for Claude and Cursor in a sibling `hooks/` folder also preserved via `preserved_files`. Everything outside preserved paths is wiped and regenerated on each sync. `hooks.json` is the rendered template output and is fully regenerated on every sync, not preserved as static content. All plugin hook templates carry custom runtime hooks (e.g., `loose-files.js`); Claude, Copilot, and Codex templates additionally embed the bootstrap payload, while Cursor relies on native rules for bootstrap.
+Each standard plugin has a preserved config folder (`.claude-plugin/`, `.cursor-plugin/`, `.github/`, `.codex-plugin/`) containing the IDE-specific manifest (`plugin.json`), the `hooks.json.tmpl` template, and any static configs. For Claude and Cursor, a sibling `hooks/` folder is also preserved (via `preserved_files`) and carries `hooks.json.tmpl`. Everything outside preserved paths is wiped and regenerated on each sync. `hooks.json` is the rendered template output and is fully regenerated on every sync, not preserved as static content. All plugin hook templates carry custom runtime hooks (e.g., `loose-files.js`); Claude, Copilot, and Codex templates additionally embed the bootstrap payload, while Cursor relies on native rules for bootstrap.
+
+**Standalone plugins** (`core-cursor-standalone`, `core-copilot-standalone`) are a second-pass derivative: generated from the already-built main plugins and placed entirely under the IDE's expected subfolder (`.cursor/` or `.github/`), ready to be extracted directly into any repository without an IDE plugin installer. Standalone folders are fully wiped and recreated on each sync. Standalones own the IDE-specific transforms that don't apply to the marketplace plugin format. Key differences from main plugins:
+- **Cursor standalone** — copies main plugin content (excluding `.cursor-plugin/`) into `.cursor/`; injects `commands/INDEX.md` content before `</plugin_files_mode>` in `rules/plugin-files-mode.mdc`. Cursor uses `rules/` and `commands/` in both plugin and standalone, so no folder renaming is needed.
+- **Copilot standalone** — copies main plugin content (excluding `.github/`) into `.github/`; strips `hooks.json`, `.mcp.json`, `templates/`. Then moves `rules/bootstrap-*.md` and `rules/plugin-files-mode.md` to `instructions/*.instructions.md` (Copilot workspace auto-loads these via `applyTo: "**"`); renames `commands/` → `prompts/` and `*.md` → `*.prompt.md` (Copilot workspace recognizes only `.github/prompts/*.prompt.md` for slash-prompts). All cross-references inside markdown are rewritten by an exact-string pass. No hooks in standalone — instructions auto-load instead. `plugin.json` (excluded from the zip) and version inheritance from the main plugin are handled automatically by the generator.
 
 ### Hooks Runtime
 
@@ -532,21 +540,21 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 - **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema
 - **Dedup guard** — GitHub Copilot CLI has a known bug where PostToolUse fires twice per call; `src/lock.ts` suppresses the duplicate and is activated at runtime only when the Copilot IDE is detected
 
-Hooks are distributed by `scripts/pre_commit.py`, which builds, tests, and copies bundles into `plugins/core-*/hooks/`. Do not edit `plugins/core-*/hooks/` directly — edit source in `hooks/src/` and re-run the script.
+Hooks are distributed by `scripts/pre_commit.py`, which builds, tests, and copies bundles into each plugin's `hook_subdir` (e.g. `plugins/core-claude/hooks/`, `plugins/core-cursor/.cursor/hooks/`, `plugins/core-codex/.codex/hooks/`). Do not edit those bundle locations directly — edit source in `hooks/src/` and re-run the script.
 
 ### Reference Sources (readonly, packages currently used)
 
 `refsrc/fastmcp-3.2.4` contains source code of FastMCP v3. Use `https://gofastmcp.com/llms.txt` - fastmcp index of all dev docs. There is also `https://gofastmcp.com/llms-full.txt` but it is extremely large, it will not fit entirely your context window at all.
 `refsrc/python-sdk-1.26.0` contains source code of MCP Python SDK.
-`refsrc/ragflow-0.24.0` contains source code of RAGFlow Python SDK (v0.23.1+).
+`refsrc/ragflow-0.25.1` contains source code of RAGFlow Python SDK (v0.25.1+).
 
 This is for reference purposes only: do not change, do not copy.
 
-# Rosetta MCP (IMS MCP)
+# Rosetta MCP (IMS MCP) and Rosetta CLI
 
 MUST validate MCP changes using `.env.dev` and `ims-mcp-server/validation/verify_mcp.py` (testing harness of MCP itself).
 Integrate new features to this testing harness if needed and easy.
-MUST execute `venv/bin/python scripts/pre_commit.py` from repository root.
+MUST execute `venv/bin/python scripts/pre_commit.py` from repository root. Never filter/grep/tail its output.
 Entire `verify_mcp.py` and ALL tests must work.
 Always run `verify_mcp.py`: with R2 only.
 If REDIS-dependent feature is affected RUN verify_mcp.py with and without REDIS_URL (example: `plan_manager` tool).
@@ -563,6 +571,13 @@ Validation notes discovered during real runs:
 - MCP unit tests: `cd ims-mcp-server && PYTHONPATH=. ../venv/bin/pytest tests/` or `PYTHONPATH=ims-mcp-server venv/bin/pytest ims-mcp-server/tests`
 - CLI unit tests: `cd rosetta-cli && PYTHONPATH=. ../venv/bin/pytest tests/` or `PYTHONPATH=rosetta-cli venv/bin/pytest rosetta-cli/tests`
 - `verify_mcp.py` flat-list validation must allow plain filenames for `r1` and hierarchical paths for `r2`.
+
+Publishing instructions:
+- `cp .env.dev .env && PYTHONPATH=rosetta-cli venv/bin/python -m rosetta_cli publish ./instructions --dry-run`
+- `cp .env.dev .env && PYTHONPATH=rosetta-cli venv/bin/python -m rosetta_cli publish ./instructions`
+- DO NOT FILTER OUT THE OUTPUT AS YOU WILL MISS IMPORTANT INFORMATION 
+
+Must read `docs/RAGFLOW.md` fully to understand RAGFlow actual implementation and known issues if CLI or MCP changes involve RAGFlow.
 
 # RAGFlow
 

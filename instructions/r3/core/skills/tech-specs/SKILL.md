@@ -1,6 +1,7 @@
 ---
 name: tech-specs
 description: Rosetta skill for defining clear, testable tech specifications from requirements. Use when creating implementation-ready documentation that defines the target state architecture, contracts, and interfaces.
+license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
 

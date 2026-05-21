@@ -1,9 +1,9 @@
 ---
 name: risk-assessment
 description: "Rosetta MUST skill. MUST activate before execution when environment has access to databases, cloud services, S3, or similar external systems. MUST activate when assessing environment risk level. SHOULD be invoked manually before any new environment interaction."
+license: Apache-2.0
 user-invocable: true
 argument-hint: environment-name
-tags: []
 baseSchema: docs/schemas/skill.md
 ---
 

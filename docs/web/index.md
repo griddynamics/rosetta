@@ -186,8 +186,7 @@ permalink: /
   <div class="try-inline">
     <div class="try-inline-sidebar">
       <div class="try-inline-tabs">
-        <button class="try-inline-tab is-active" data-filter="free">Free</button>
-        <button class="try-inline-tab" data-filter="pro">Pro</button>
+        <button class="try-inline-tab is-active" data-filter="all">All Workflows</button>
       </div>
       <div class="try-inline-list" id="try-inline-scenarios"></div>
     </div>
@@ -249,11 +248,11 @@ permalink: /
               <pre class="qs-code">{
   "mcpServers": {
     "Rosetta": {
-      "url": "[rosetta MCP production server URL]"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"url":"[rosetta MCP production server URL]"}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"url":"https://mcp.rosetta.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
 
@@ -262,8 +261,8 @@ permalink: /
             <p class="qs-content-hint">Run this command in your terminal:</p>
             <div class="qs-code-wrap">
               <pre class="qs-code"><span class="qs-prompt">$</span> claude mcp add --transport http Rosetta \
-    [rosetta MCP production server URL]</pre>
-              <button class="qs-copy" data-copy="claude mcp add --transport http Rosetta [rosetta MCP production server URL]">Copy</button>
+    https://mcp.rosetta.griddynamics.net/mcp</pre>
+              <button class="qs-copy" data-copy="claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp">Copy</button>
             </div>
           </div>
 
@@ -272,9 +271,9 @@ permalink: /
             <p class="qs-content-hint">Run these commands in your terminal:</p>
             <div class="qs-code-wrap">
               <pre class="qs-code"><span class="qs-prompt">$</span> codex mcp add Rosetta \
-    --url [rosetta MCP production server URL]
+    --url https://mcp.rosetta.griddynamics.net/mcp
 <span class="qs-prompt">$</span> codex mcp login Rosetta</pre>
-              <button class="qs-copy" data-copy="codex mcp add Rosetta --url [rosetta MCP production server URL]">Copy</button>
+              <button class="qs-copy" data-copy="codex mcp add Rosetta --url https://mcp.rosetta.griddynamics.net/mcp">Copy</button>
             </div>
           </div>
 
@@ -286,11 +285,11 @@ permalink: /
   "servers": {
     "Rosetta": {
       "type": "http",
-      "url": "[rosetta MCP production server URL]"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"servers":{"Rosetta":{"type":"http","url":"[rosetta MCP production server URL]"}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"servers":{"Rosetta":{"type":"http","url":"https://mcp.rosetta.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
 
@@ -302,11 +301,11 @@ permalink: /
   "servers": {
     "Rosetta": {
       "type": "http",
-      "url": "[rosetta MCP production server URL]"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"servers":{"Rosetta":{"type":"http","url":"[rosetta MCP production server URL]"}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"servers":{"Rosetta":{"type":"http","url":"https://mcp.rosetta.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
 
@@ -317,11 +316,11 @@ permalink: /
               <pre class="qs-code">{
   "mcpServers": {
     "Rosetta": {
-      "url": "[rosetta MCP production server URL]"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"url":"[rosetta MCP production server URL]"}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"url":"https://mcp.rosetta.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
 
@@ -332,11 +331,11 @@ permalink: /
               <pre class="qs-code">{
   "mcpServers": {
     "Rosetta": {
-      "url": "[rosetta MCP production server URL]"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"url":"[rosetta MCP production server URL]"}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"url":"https://mcp.rosetta.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
 
@@ -348,12 +347,12 @@ permalink: /
   "mcp": {
     "Rosetta": {
       "type": "http",
-      "url": "[rosetta MCP production server URL]",
+      "url": "https://mcp.rosetta.griddynamics.net/mcp",
       "enabled": true
     }
   }
 }</pre>
-              <button class="qs-copy" data-copy='{"mcp":{"Rosetta":{"type":"http","url":"[rosetta MCP production server URL]","enabled":true}}}'>Copy</button>
+              <button class="qs-copy" data-copy='{"mcp":{"Rosetta":{"type":"http","url":"https://mcp.rosetta.griddynamics.net/mcp","enabled":true}}}'>Copy</button>
             </div>
           </div>
 
@@ -581,7 +580,7 @@ permalink: /
     card.className = 'try-inline-card';
     card.dataset.idx = idx;
     card.dataset.paid = s.paid ? '1' : '0';
-    var badge = s.paid ? '<span class="try-inline-card-tier try-inline-card-tier--pro">Enterprise</span>' : '<span class="try-inline-card-tier try-inline-card-tier--free">Free</span>';
+    var badge = '';
     card.innerHTML = '<div class="try-inline-card-row"><span class="try-inline-card-tag">' + s.tag + '</span>' + badge + '</div>' + s.title;
     card.addEventListener('click', function() { playInline(idx); });
     sidebar.appendChild(card);
@@ -591,17 +590,14 @@ permalink: /
   var tabs = document.querySelectorAll('.try-inline-tab');
   var chatHeader = document.querySelector('.try-inline-chat-header');
   function filterCards(filter) {
-    var isPro = filter === 'pro';
     sidebar.querySelectorAll('.try-inline-card').forEach(function(c) {
-      c.style.display = isPro ? '' : (c.dataset.paid === '0' ? '' : 'none');
+      c.style.display = '';
     });
     if (chatHeader) {
-      chatHeader.textContent = isPro
-        ? 'Available with the enterprise edition'
-        : 'Rosetta analyzing your request\u2026';
+      chatHeader.textContent = 'Rosetta analyzing your request\u2026';
     }
     sidebar.querySelectorAll('.try-inline-card-tier').forEach(function(t) {
-      t.style.display = isPro ? 'inline-block' : 'none';
+      t.style.display = 'none';
     });
   }
   tabs.forEach(function(tab) {
@@ -611,7 +607,7 @@ permalink: /
       filterCards(tab.dataset.filter);
     });
   });
-  filterCards('free');
+  filterCards('all');
 
   function playInline(idx) {
     activeIdx = idx;
@@ -691,8 +687,8 @@ permalink: /
     var autoObserver = new IntersectionObserver(function(entries) {
       entries.forEach(function(entry) {
         if (entry.isIntersecting && activeIdx === -1) {
-          var firstFree = sidebar.querySelector('.try-inline-card[data-paid="0"]');
-          if (firstFree) playInline(parseInt(firstFree.dataset.idx));
+          var firstCard = sidebar.querySelector('.try-inline-card');
+          if (firstCard) playInline(parseInt(firstCard.dataset.idx));
           autoObserver.unobserve(trySection);
         }
       });

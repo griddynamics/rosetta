@@ -41,7 +41,7 @@ permalink: /overview/
       <div class="arch-v2-hub-glow"></div>
       <div class="arch-v2-hub-inner">
         <img src="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}" alt="Rosetta" class="arch-v2-hub-logo">
-        <div class="arch-v2-hub-title">Rosetta MCP</div>
+        <div class="arch-v2-hub-title">Rosetta MCP or Plugin</div>
         <div class="arch-v2-hub-desc">VFS · Bundler · Tags · Context headers</div>
         <div class="arch-v2-layers-label">Instruction Layers</div>
         <div class="arch-v2-layers">

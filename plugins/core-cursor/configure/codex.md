@@ -18,9 +18,9 @@ Codex is OpenAI's AI-powered terminal-based coding CLI assistant. Supports custo
 - `.codex/hooks.json` - Lifecycle hooks
 - `.agents/skills/` - Agent skills (SKILL.md directories)
 - `.agents/plugins/` - Plugins (bundled skills, MCP servers, apps)
-- `.agents/rules/` - Agent rules/workflows/commands *.md files(not standard - our decision)
+- `.agents/rules/` - Agent rules/commands/commands *.md files(not standard - our decision)
 
-Because regular *.md rules/workflows/commands are not supported directly, we should copy *.md files to `.agents/rules/` as-is and then we reference them in `AGENTS.md` using INDEX style (template: "- `.agents/rules/file.md`: [Description from frontmatter verbatim, or description of why/when to use it inferred from the content] [Glob: if glob pattern used in frontmatter]").
+Because regular *.md rules/commands/commands are not supported directly, we should copy *.md files to `.agents/rules/` as-is and then we reference them in `AGENTS.md` using INDEX style (template: "- `.agents/rules/file.md`: [Description from frontmatter verbatim, or description of why/when to use it inferred from the content] [Glob: if glob pattern used in frontmatter]").
 
 ---
 
@@ -144,7 +144,7 @@ You are a senior code reviewer.
 | `description` | Yes | string | Human-facing guidance for when to use |
 | `developer_instructions` | Yes | string | Core behavioral directives (system prompt) |
 | `nickname_candidates` | No | string[] | Display name pool for spawned instances |
-| `model` | No | string | LLM selection (inherits from parent if omitted) |
+| `model` | No | string | LLM selection (inherits from parent if omitted), gpt-5.3-codex and  gpt-5.4 (workhorse with medium, and a little more expensive with high reasoning), gpt-5.5 (twice expensive, opus level, high reasoning is only applicable) |
 | `model_reasoning_effort` | No | string | `"minimal"`, `"low"`, `"medium"`, `"high"`, `"xhigh"` |
 | `sandbox_mode` | No | string | `"read-only"`, `"workspace-write"`, `"danger-full-access"` |
 | `mcp_servers` | No | table | MCP server configuration for this agent |
@@ -277,7 +277,7 @@ enabled = false
 
 ```toml
 [features]
-codex_hooks = true
+hooks = true
 ```
 
 ### Supported Events
@@ -398,7 +398,7 @@ View active servers: `/mcp` in the Codex TUI
 ### Key Settings
 
 ```toml
-model = "gpt-5-codex"
+model = "gpt-5.3-codex"
 model_reasoning_effort = "medium"         # minimal|low|medium|high|xhigh
 sandbox_mode = "workspace-write"          # read-only|workspace-write|danger-full-access
 approval_policy = "on-request"            # untrusted|on-request|never
@@ -408,7 +408,7 @@ personality = "pragmatic"                 # none|friendly|pragmatic
 [features]
 shell_tool = true
 multi_agent = true
-codex_hooks = true
+hooks = true
 ```
 
 ### Profiles
@@ -417,7 +417,7 @@ codex_hooks = true
 profile = "default"
 
 [profiles.careful]
-model = "gpt-5-codex"
+model = "gpt-5.4"
 personality = "pragmatic"
 plan_mode_reasoning_effort = "high"
 ```

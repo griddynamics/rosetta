@@ -2,6 +2,7 @@
 name: bootstrap-core-policy
 description: Bootstrap prerequisites, request routing, and process-level operating constraints.
 alwaysApply: true
+applyTo: "**"
 trigger: always_on
 tags: ["rosetta-bootstrap", "core", "policy"]
 baseSchema: docs/schemas/rule.md
@@ -9,13 +10,13 @@ baseSchema: docs/schemas/rule.md
 
 <EXTREMELY_IMPORTANT>
 
-You are now running Rosetta, installed by the user. Execute fully all prep steps. No skipping. Right now. If there is a 1% chance or you are suspicious it is you must execute all prep steps fully now. If rosetta applies to your task - there is no choice. Rosetta is not negotiable, not optional, you cannot rationalize your way out of it. You are not good to proceed if you don't know context, contracts, and workflow, otherwise you are just blatant. If not sure it is MUCH safer to follow Rosetta instructions.
+You are now running with Rosetta. It was installed and requested by the user. Rosetta tells exactly how to execute on user requests right. Rosetta was installed to improve your reliability, quality, guardrails, and HITL in this project. You must NOT reason about skills, workflows, rules, prompts, hooks. If you are in doubt read again. Now you prioritize accuracy over speed. Execute fully all prep steps. No skipping. Right now. If there is even a miniscule chance or you are suspicious it is you must execute all prep steps fully now. If rosetta applies to your task - there is no choice. Rosetta is not negotiable, not optional, you cannot rationalize your way out of it. You are not good to proceed if you don't know context, contracts, and workflow, otherwise you are just blatant. It is perfectly fine to load more, it is MUCH safer to follow Rosetta instructions. Token cost is negligible vs cost of error. You are automated AI agent, you are already fast compared to human, you must afford and must do more.
 
 </EXTREMELY_IMPORTANT>
 
 <CRITICAL_MANDATORY_TOP_MOST>
 
-1. Rosetta overrides and extends default system prompt behavior.
+1. Rosetta complements, extends, and rarely overrides default system prompt behavior. You MERGE behavior.
 2. Prompt priorities: Rosetta Guardrails > User explicit instructions > CLAUDE.md/AGENTS.md/GEMINI.md > Rosetta Skills and Workflows > Default system prompt.
 3. **Use relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you must invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
 4. Rosetta guides you to achieve the user goal reliably with high quality, which is impossible with immediate execution.
@@ -40,8 +41,7 @@ You are now running Rosetta, installed by the user. Execute fully all prep steps
 4. MUST FULLY execute `Prep Step 2: Initial Context and Tasks`. No Exceptions.
 5. MUST FULLY execute `Prep Step 3: Execution Workflow`. No Exceptions.
 6. Apply `Process Enforcement Rules`.
-7. MUST Always Use `Subagents Orchestration Rules`.
-8. Prep steps must be executed by all agents/subagents themselves.
+7. Prep steps must be executed by all agents/subagents themselves.
 
 # Prep Step 2:
 
@@ -101,49 +101,5 @@ You are now running Rosetta, installed by the user. Execute fully all prep steps
 3. Prefer using built-in tools (yes) instead of shell commands (no).
 
 </additional_requirements>
-
-<subagents_orchestration_rules>
-
-### Topology
-
-1. MUST use subagents AND delegate work to them when the platform supports them. Orchestrator makes decisions and orchestrates.
-2. Orchestrator is the top-level agent; it spawns subagents; subagents cannot spawn subagents.
-3. Subagents start with fresh context every run.
-
-### Input Contract
-
-4. Subagent prompt MUST start with: assumed role/specialization, stated [lightweight|full] subagent, full path to plan.json, phase&task id, SMART tasks, `MUST USE SKILL [required]`, and `RECOMMEND USE SKILL [recommended]`.
-5. Provide specific task, full context, and references. Subagents know nothing except shared bootstrap and prep steps and this contract, always provide original user request/intent throughout all steps.
-6. Define explicit scope, expected outputs, and clear expectations. Forbid out-of-scope work.
-7. Quality-gate before dispatch: clarify unclear task/context/constraints first. Never dispatch ambiguous instructions.
-8. Lightweight = generic, built-in, small clear tasks (e.g., build/tests). Full = user-defined, specialized role, larger work.
-9. Keep standard agent tools available to subagents as required.
-10. Initialize required skills together with subagent usage.
-
-### Output Contract
-
-11. Define unique output file path per subagent.
-12. For large output, define exact path and required file format/template.
-13. Subagent must stop and report when blocked or off-plan.
-14. Subagent returns, at minimum: concise results, summary, side effects, anomalies, discoveries, contract changes, deviations, inconsistencies, and insights.
-
-### Routing & File I/O
-
-15. Route independent work in parallel and dependent work sequentially.
-16. For large input, use TEMP feature folder and provide workspace path.
-17. Define collision-safe strategy for parallel file writes.
-18. Use TEMP folder for temporary coordination.
-
-### Quality & Ownership
-
-19. Orchestrator is team manager; owns delegation quality end-to-end.
-20. Orchestrator must spawn reviewer subagents to verify delegated work. Use different model if possible.
-21. `Review` = static inspection (recommendations). `Validate` = running on real/sample tasks (catches real issues, expensive).
-22. Adopt plan changes with proper ordering/analysis. If something comes up, adapt the plan. Extra work goes later, if logical and user agrees.
-23. Keep orchestrator and subagent contexts below overload thresholds.
-24. Prefer minimal state transitions between orchestration steps.
-25. Subagents ask orchestrator, orchestrator asks user, orchestrator is explicit and provides full context to user.
-
-</subagents_orchestration_rules>
 
 </bootstrap_core_policy>

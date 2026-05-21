@@ -1,0 +1,91 @@
+# Example dev environment overrides.
+# Use with: helm install -f values.yaml -f values-dev.yaml ...
+# Replace placeholder hostnames and URLs with your dev environment values.
+
+image:
+  tag: "2.0.0"
+
+ingress:
+  host: rosetta-dev.example.com
+
+env:
+  enabled: true
+  vars:
+    - name: ROSETTA_SERVER_URL
+      value: "http://ragflow-dev.example.svc.cluster.local:80"
+    - name: VERSION
+      value: "r2"
+    - name: ROSETTA_TRANSPORT
+      value: "http"
+    - name: ROSETTA_HTTP_HOST
+      value: "0.0.0.0"
+    - name: ROSETTA_HTTP_PORT
+      value: "8000"
+    - name: ROSETTA_MODE
+      value: "SOFT"
+    - name: FASTMCP_ENABLE_RICH_LOGGING
+      value: "false"
+    - name: POSTHOG_HOST
+      value: "https://eu.i.posthog.com"
+    - name: REDIS_DB
+      value: "2"
+    - name: ROSETTA_OAUTH_MODE
+      value: "oauth"
+    - name: ROSETTA_OAUTH_OIDC_CONFIG_URL
+      value: "https://keycloak.example.com/realms/dev/.well-known/openid-configuration"
+    - name: ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT
+      value: "https://keycloak.example.com/realms/dev/protocol/openid-connect/auth"
+    - name: ROSETTA_OAUTH_TOKEN_ENDPOINT
+      value: "https://keycloak.example.com/realms/dev/protocol/openid-connect/token"
+    - name: ROSETTA_OAUTH_INTROSPECTION_ENDPOINT
+      value: "https://keycloak.example.com/realms/dev/protocol/openid-connect/token/introspect"
+    - name: ROSETTA_OAUTH_REVOCATION_ENDPOINT
+      value: "https://keycloak.example.com/realms/dev/protocol/openid-connect/revoke"
+    - name: ROSETTA_OAUTH_BASE_URL
+      value: "https://rosetta-dev.example.com"
+    - name: ROSETTA_OAUTH_REQUIRED_SCOPES
+      value: "offline_access"
+    - name: ROSETTA_OAUTH_VALID_SCOPES
+      value: ""
+    - name: ROSETTA_OAUTH_EXTRA_SCOPES
+      value: "openid email profile offline_access"
+    - name: IMS_DEBUG
+      value: "1"
+    - name: FASTMCP_LOG_LEVEL
+      value: "DEBUG"
+    - name: REDIS_URL
+      value: "redis://:$(REDIS_PASSWORD)@redis-dev.example.svc.cluster.local:6379/$(REDIS_DB)"
+  secrets:
+    - name: ROSETTA_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: rosetta-mcp-secrets
+          key: ROSETTA_API_KEY
+    - name: REDIS_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: redis-secret
+          key: REDIS_PASSWORD
+    - name: ROSETTA_OAUTH_CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          name: rosetta-mcp-secrets
+          key: ROSETTA_OAUTH_CLIENT_ID
+    - name: ROSETTA_OAUTH_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: rosetta-mcp-secrets
+          key: ROSETTA_OAUTH_CLIENT_SECRET
+    - name: ROSETTA_JWT_SIGNING_KEY
+      valueFrom:
+        secretKeyRef:
+          name: rosetta-mcp-secrets
+          key: ROSETTA_JWT_SIGNING_KEY
+          optional: true
+    - name: FERNET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: rosetta-mcp-secrets
+          key: FERNET_KEY
+          optional: true
+

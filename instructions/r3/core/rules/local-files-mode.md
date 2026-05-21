@@ -45,13 +45,13 @@ Prep Step 1:
 
 - `ACQUIRE <file[.md]> FROM KB` => read local files `instructions/r2/**/<file-name-with-extension>`
 - `SEARCH <KEYWORDS> IN KB` => use grep or codebase search in `instructions/r2/` folder with KEYWORDS as a query or file name
-- `LIST <path> IN KB` => list immediate children of `instructions/r2/{core,grid}/<path>/` (folders and files, no content)
-- `USE SKILL <skill-name>` => use SKILL from `instructions/r2/{core,grid}/skills/<skill-name>/SKILL.md`, all relative references in skill are relative to skill folder itself
+- `LIST <path> IN KB` => list immediate children of `instructions/r2/core/<path>/` (folders and files, no content)
+- `USE SKILL <skill-name>` => use SKILL from `instructions/r2/core/skills/<skill-name>/SKILL.md`, all relative references in skill are relative to skill folder itself
 - `INVOKE SUBAGENT <agent-name>[.md]` => Call/Execute/Start/Spawn/Invoke <agent-name> subagent:
-  - Definition location `instructions/r2/{core,grid}/agents/<agent-name>.md`
+  - Definition location `instructions/r2/core/agents/<agent-name>.md`
   - Always prepend `Must fully assume agent from "{path to <agent-name>.md file}"`
   - If subagent not available, use generic task executor agent
-- `USE FLOW <flow-name>[.md]` => use command or workflow from `instructions/r2/{core,grid}/workflows/<flow-name>.md`
+- `USE FLOW <flow-name>[.md]` => use command or workflow from `instructions/r2/core/workflows/<flow-name>.md`
 - `ACQUIRE <file[.md]> ABOUT <PROJECT>` => read local file in `docs/<PROJECT>` folder
 - `QUERY <KEYWORDS> IN <PROJECT>` => use grep or codebase search in `docs/<PROJECT>` with KEYWORDS as a query or file name
 - `STORE <file[.md]> TO <PROJECT>` => upsert file in `docs/<PROJECT>`
@@ -59,18 +59,10 @@ Prep Step 1:
 
 # ADDITIONAL SOURCES
 
-- RULE in `instructions/r2/{core,grid}/rules/*.md`
-- SKILL in `instructions/r2/{core,grid}/skills/*/SKILL.md`
-- AGENT, SUBAGENT in `instructions/r2/{core,grid}/agent/*.md`
-- WORKFLOW, COMMAND in `instructions/r2/{core,grid}/workflows/*.md`
-
-# Available Workflows (format: `Tag` - Description)
-
-- `coding-flow` - Rosetta coding and implementation workflow, includes discovery, tech specs, tech plan, subagent plan review, user plan review, implementation, subagent review implementation, validation, user review, and final validation with reviewer gates, HITL gates, and subagent delegation.
-- `init-workspace-flow` - Rosetta workflow to initialize or upgrade a workspace, includes identify context, init proxying shells for target skills/agents/commands, workspace discovery, copy rules (optional, not recommended), identify patterns used, generate documentation, clarify questions, verification.
-- `requirements-authoring-flow` - Rosetta workflow for requirements authoring (creating, updating, improving, reviewing). Guides AI through discovery, intent capture, iterative requirement drafting with mandatory user approvals, validation, and delivery. Contains discovery, research, intent capture, outline, drafting, validating, and finalization
-- `self-help-flow` - Rosetta self-help. Ask about capabilities, learn how to use them, get guidance on developing with Rosetta, or seamlessly switch to executing any discovered workflow. Answers "what can you do", "how do I use X", "how modernization works", "what workflows are available", etc.
-- `adhoc-flow` - Rosetta ad-hoc adaptive meta-workflow that constructs, tracks, reviews, and executes a tailored execution plan per user request using building blocks and available instructions. If none other matches start here.
+- RULE in `instructions/r2/core/rules/*.md`
+- SKILL in `instructions/r2/core/skills/*/SKILL.md`
+- AGENT, SUBAGENT in `instructions/r2/core/agent/*.md`
+- WORKFLOW, COMMAND in `instructions/r2/core/workflows/*.md`
 
 # PREP STEP 1:
 

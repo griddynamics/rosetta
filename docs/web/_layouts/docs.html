@@ -35,6 +35,7 @@
     <a href="{{ '/docs/introduction/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/introduction/' %} active{% endif %}">Introduction</a>
     <a href="{{ '/docs/quickstart/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/quickstart/' %} active{% endif %}">Quick Start</a>
     <a href="{{ '/docs/installation/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/installation/' %} active{% endif %}">Installation</a>
+    <a href="{{ '/docs/plugins/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/plugins/' %} active{% endif %}">Plugins</a>
 
     <p class="docs-sidebar-cat">Core Concepts</p>
     <a href="{{ '/docs/overview/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/overview/' %} active{% endif %}">Overview</a>
@@ -45,6 +46,20 @@
     <a href="{{ '/docs/usage-guide/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/usage-guide/' %} active{% endif %}">Usage Guide</a>
     <a href="{{ '/docs/deployment/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/deployment/' %} active{% endif %}">Deployment</a>
     <a href="{{ '/docs/troubleshooting/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/troubleshooting/' %} active{% endif %}">Troubleshooting</a>
+
+    <p class="docs-sidebar-cat">Workflows</p>
+    <a href="{{ '/docs/init-workspace-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/init-workspace-flow/' %} active{% endif %}">Init Workspace</a>
+    <a href="{{ '/docs/self-help-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/self-help-flow/' %} active{% endif %}">Self Help</a>
+    <a href="{{ '/docs/coding-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/coding-flow/' %} active{% endif %}">Coding</a>
+    <a href="{{ '/docs/requirements-authoring-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/requirements-authoring-flow/' %} active{% endif %}">Requirements Authoring</a>
+    <a href="{{ '/docs/adhoc-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/adhoc-flow/' %} active{% endif %}">Ad-hoc</a>
+    <a href="{{ '/docs/code-analysis-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/code-analysis-flow/' %} active{% endif %}">Code Analysis</a>
+    <a href="{{ '/docs/research-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/research-flow/' %} active{% endif %}">Research</a>
+    <a href="{{ '/docs/aqa-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/aqa-flow/' %} active{% endif %}">AQA</a>
+    <a href="{{ '/docs/testgen-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/testgen-flow/' %} active{% endif %}">Test Case Generation</a>
+    <a href="{{ '/docs/modernization-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/modernization-flow/' %} active{% endif %}">Modernization</a>
+    <a href="{{ '/docs/external-lib-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/external-lib-flow/' %} active{% endif %}">External Library</a>
+    <a href="{{ '/docs/coding-agents-prompting-flow/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/coding-agents-prompting-flow/' %} active{% endif %}">Coding Agents Prompting</a>
 
     <p class="docs-sidebar-cat">Development</p>
     <a href="{{ '/docs/developer-guide/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/docs/developer-guide/' %} active{% endif %}">Developer Guide</a>
@@ -61,15 +76,208 @@
     <span>Copyright &copy; {{ 'now' | date: '%Y' }} Grid Dynamics. All rights reserved.</span>
     <nav class="footer-nav" aria-label="Footer navigation">
       <a href="{{ '/overview/' | relative_url }}">Overview</a>
-      <a href="{{ '/usage/' | relative_url }}">Usage</a>
+      <a href="{{ '/docs/usage-guide/' | relative_url }}">Usage</a>
       <a href="{{ '/roadmap/' | relative_url }}">Roadmap</a>
       <a href="{{ '/contribute/' | relative_url }}">Contribute</a>
       <a href="https://github.com/griddynamics/rosetta" target="_blank" rel="noopener noreferrer">GitHub</a>
-      <a href="https://discord.gg/QzZ2cWg36g" target="_blank" rel="noopener noreferrer">Community</a>
       <a href="mailto:rosetta-support@griddynamics.com">Contact Us</a>
     </nav>
   </div>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.2/dist/svg-pan-zoom.min.js"></script>
+<style>
+  .docs-mermaid { position: relative; }
+  .docs-mermaid-expand {
+    position: absolute; top: .5rem; right: .5rem; z-index: 2;
+    width: 32px; height: 32px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(15,23,42,.55); color: #fff;
+    border: 1px solid rgba(255,255,255,.25); border-radius: 6px;
+    cursor: pointer; font-size: 16px; line-height: 1;
+    opacity: 0; transition: opacity .15s ease, background .15s ease;
+  }
+  [data-theme="light"] .docs-mermaid-expand {
+    background: rgba(255,255,255,.85); color: #111827;
+    border-color: rgba(0,0,0,.18);
+  }
+  .docs-mermaid:hover .docs-mermaid-expand,
+  .docs-mermaid:focus-within .docs-mermaid-expand,
+  .docs-mermaid-expand:focus { opacity: 1; }
+  .docs-mermaid-expand:hover { background: rgba(15,23,42,.85); }
+  [data-theme="light"] .docs-mermaid-expand:hover { background: #ffffff; }
+
+  .docs-mermaid-modal {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,.78);
+    display: flex; align-items: stretch; justify-content: stretch;
+    padding: 2rem;
+  }
+  .docs-mermaid-modal-inner {
+    position: relative;
+    flex: 1;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  [data-theme="dark"] .docs-mermaid-modal-inner { background: #0f172a; }
+  .docs-mermaid-modal-close {
+    position: absolute; top: .5rem; right: .5rem; z-index: 3;
+    width: 36px; height: 36px;
+    background: transparent; color: inherit;
+    border: 1px solid currentColor; border-radius: 50%;
+    cursor: pointer; font-size: 20px; line-height: 1;
+    opacity: .7;
+  }
+  .docs-mermaid-modal-close:hover { opacity: 1; }
+  .docs-mermaid-modal-stage {
+    flex: 1; min-height: 0; min-width: 0;
+    display: flex; align-items: stretch; justify-content: stretch;
+  }
+  .docs-mermaid-modal-stage svg { display: block; width: 100%; height: 100%; }
+</style>
+<script>
+(function() {
+  var content = document.querySelector('.docs-content');
+  if (!content || !window.mermaid) return;
+
+  var lastTheme = null;
+  var renderToken = 0;
+
+  function getPageTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+  }
+
+  function ensureWrappers() {
+    var codes = content.querySelectorAll('pre > code.language-mermaid');
+    Array.prototype.forEach.call(codes, function(code) {
+      var pre = code.parentElement;
+      if (!pre || pre.closest('.docs-mermaid')) return;
+      var source = code.textContent.replace(/^(?:\s*\n)+/, '').replace(/(?:\n\s*)+$/, '');
+      var wrapper = document.createElement('div');
+      wrapper.className = 'docs-mermaid';
+      wrapper.dataset.mermaidSource = source;
+      pre.replaceWith(wrapper);
+    });
+  }
+
+  function attachExpandButton(wrapper) {
+    if (wrapper.querySelector('.docs-mermaid-expand')) return;
+    var svg = wrapper.querySelector('svg');
+    if (!svg) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'docs-mermaid-expand';
+    btn.setAttribute('aria-label', 'Open diagram in larger view');
+    btn.title = 'Open larger (pan and zoom)';
+    btn.textContent = '⤢';
+    btn.addEventListener('click', function() { openLightbox(svg); });
+    wrapper.appendChild(btn);
+  }
+
+  function openLightbox(originalSvg) {
+    var overlay = document.createElement('div');
+    overlay.className = 'docs-mermaid-modal';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+
+    var inner = document.createElement('div');
+    inner.className = 'docs-mermaid-modal-inner';
+
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'docs-mermaid-modal-close';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.textContent = '×';
+
+    var stage = document.createElement('div');
+    stage.className = 'docs-mermaid-modal-stage';
+
+    inner.appendChild(closeBtn);
+    inner.appendChild(stage);
+    overlay.appendChild(inner);
+    document.body.appendChild(overlay);
+    var prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    var svgClone = originalSvg.cloneNode(true);
+    svgClone.removeAttribute('width');
+    svgClone.removeAttribute('height');
+    svgClone.style.maxWidth = '';
+    svgClone.style.height = '';
+    stage.appendChild(svgClone);
+
+    var pz = null;
+    if (window.svgPanZoom) {
+      try {
+        pz = window.svgPanZoom(svgClone, {
+          controlIconsEnabled: true,
+          zoomEnabled: true,
+          panEnabled: true,
+          fit: true,
+          center: true,
+          minZoom: 0.2,
+          maxZoom: 20
+        });
+      } catch (e) {
+        (console.error || console.log).call(console, e);
+      }
+    }
+
+    function close() {
+      document.removeEventListener('keydown', onKey);
+      if (pz) { try { pz.destroy(); } catch (_) {} }
+      overlay.remove();
+      document.body.style.overflow = prevOverflow;
+    }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+
+    document.addEventListener('keydown', onKey);
+    closeBtn.addEventListener('click', close);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
+    closeBtn.focus();
+  }
+
+  function render() {
+    var theme = getPageTheme();
+    var token = ++renderToken;
+    var wrappers = content.querySelectorAll('.docs-mermaid[data-mermaid-source]');
+    var targets = [];
+
+    Array.prototype.forEach.call(wrappers, function(wrapper) {
+      var target = document.createElement('pre');
+      target.className = 'mermaid';
+      target.textContent = wrapper.dataset.mermaidSource;
+      wrapper.replaceChildren(target);
+      targets.push(target);
+    });
+
+    if (!targets.length) return Promise.resolve();
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose',
+      theme: theme
+    });
+
+    return Promise.resolve(window.mermaid.run({ nodes: targets })).then(function() {
+      if (token !== renderToken) return;
+      lastTheme = theme;
+      Array.prototype.forEach.call(wrappers, attachExpandButton);
+    });
+  }
+
+  ensureWrappers();
+  render().catch(function(e) { (console.error || console.log).call(console, e); });
+
+  new MutationObserver(function() {
+    if (getPageTheme() === lastTheme) return;
+    render().catch(function(e) { (console.error || console.log).call(console, e); });
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+</script>
 <script>
 (function(){
   var calloutMap = {

@@ -1,6 +1,7 @@
 ---
 name: load-context
 description: Rosetta MUST skill to load the most current context, extremely useful, fast, fully automated, especially for planning, helps understand what actually user wants, skipping leads to wrong execution path
+license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
 

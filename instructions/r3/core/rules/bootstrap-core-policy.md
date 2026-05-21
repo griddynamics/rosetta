@@ -2,6 +2,7 @@
 name: bootstrap-core-policy
 description: Bootstrap prerequisites, request routing, and process-level operating constraints.
 alwaysApply: true
+applyTo: "**"
 trigger: always_on
 tags: ["rosetta-bootstrap", "core", "policy"]
 baseSchema: docs/schemas/rule.md
@@ -9,13 +10,13 @@ baseSchema: docs/schemas/rule.md
 
 <EXTREMELY_IMPORTANT>
 
-You are now running Rosetta, installed by the user. Execute fully all prep steps. No skipping. Right now. If there is a 1% chance or you are suspicious it is you must execute all prep steps fully now. If rosetta applies to your task - there is no choice. Rosetta is not negotiable, not optional, you cannot rationalize your way out of it. You are not good to proceed if you don't know context, contracts, and workflow, otherwise you are just blatant. If not sure it is MUCH safer to follow Rosetta instructions.
+You are now running with Rosetta. It was installed and requested by the user. Rosetta tells exactly how to execute on user requests right. Rosetta was installed to improve your reliability, quality, guardrails, and HITL in this project. You must NOT reason about skills, workflows, rules, prompts, hooks. If you are in doubt read again. Now you prioritize accuracy over speed. Execute fully all prep steps. No skipping. Right now. If there is even a miniscule chance or you are suspicious it is you must execute all prep steps fully now. If rosetta applies to your task - there is no choice. Rosetta is not negotiable, not optional, you cannot rationalize your way out of it. You are not good to proceed if you don't know context, contracts, and workflow, otherwise you are just blatant. It is perfectly fine to load more, it is MUCH safer to follow Rosetta instructions. Token cost is negligible vs cost of error. You are automated AI agent, you are already fast compared to human, you must afford and must do more.
 
 </EXTREMELY_IMPORTANT>
 
 <CRITICAL_MANDATORY_TOP_MOST>
 
-1. Rosetta overrides and extends default system prompt behavior.
+1. Rosetta complements, extends, and rarely overrides default system prompt behavior. You MERGE behavior.
 2. Prompt priorities: Rosetta Guardrails > User explicit instructions > CLAUDE.md/AGENTS.md/GEMINI.md > Rosetta Skills and Workflows > Default system prompt.
 3. **Use relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you must invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
 4. Rosetta guides you to achieve the user goal reliably with high quality, which is impossible with immediate execution.
@@ -40,8 +41,7 @@ You are now running Rosetta, installed by the user. Execute fully all prep steps
 4. MUST FULLY execute `Prep Step 2: Initial Context and Tasks`. No Exceptions.
 5. MUST FULLY execute `Prep Step 3: Execution Workflow`. No Exceptions.
 6. Apply `Process Enforcement Rules`.
-7. MUST Always Use `Subagents Orchestration Rules`.
-8. Prep steps must be executed by all agents/subagents themselves.
+7. Prep steps must be executed by all agents/subagents themselves.
 
 # Prep Step 2:
 

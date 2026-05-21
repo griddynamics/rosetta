@@ -23,6 +23,12 @@ Rosetta is a meta-prompting, context engineering, and centralized knowledge mana
 
 Every AI interaction follows four phases: **Prepare** (load guardrails and context), **Research** (search the knowledge base), **Plan** (produce a reviewable plan), **Act** (execute with full context). Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).
 
+## Supported IDEs and Agents
+
+Cursor | Claude Code | VS Code / GitHub Copilot | JetBrains (Copilot, Junie) | Windsurf | Codex | Antigravity | OpenCode | Gemini CLI
+
+Works with any MCP-compatible tool.
+
 ## What Rosetta Adds to AI Coding Agents
 
 AI coding agents can read code, generate code, and run commands. That is where it ends. They are missing nearly everything that makes a professional software engineer reliable. Each point below addresses a real, repeatedly observed failure mode — not a theoretical concern.
@@ -105,7 +111,7 @@ Rosetta is engineered to prevent the unintentional transmission of sensitive dat
 {
   "mcpServers": {
     "Rosetta": {
-      "url": "<rosetta MCP production server URL>"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }
@@ -114,25 +120,19 @@ Rosetta is engineered to prevent the unintentional transmission of sensitive dat
 **Claude Code:**
 
 ```sh
-claude mcp add --transport http Rosetta <rosetta MCP production server URL>
+claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp
 ```
 
 **Codex:**
 
 ```sh
-codex mcp add Rosetta --url <rosetta MCP production server URL>
+codex mcp add Rosetta --url https://mcp.rosetta.griddynamics.net/mcp
 codex mcp login Rosetta
 ```
 
 Complete the OAuth flow when prompted. Then ask: *"Initialize this repository using Rosetta"*
 
 STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](INSTALLATION.md). Read more in the [Quickstart](QUICKSTART.md).
-
-## Supported IDEs and Agents
-
-Cursor | Claude Code | VS Code / GitHub Copilot | JetBrains (Copilot, Junie) | Windsurf | Codex | Antigravity | OpenCode
-
-Works with any MCP-compatible tool.
 
 ## Documentation
 
@@ -155,7 +155,6 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and e
 
 ## Community
 
-- [Discord](https://discord.gg/QzZ2cWg36g)
 - [Website](https://griddynamics.github.io/rosetta/)
 - [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)
 

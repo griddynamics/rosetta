@@ -44,7 +44,7 @@ Rosetta is designed to not see your source code or IP. It only serves knowledge 
 {
   "mcpServers": {
     "Rosetta": {
-      "url": "[rosetta MCP production server URL]"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }
@@ -53,13 +53,13 @@ Rosetta is designed to not see your source code or IP. It only serves knowledge 
 **Claude Code:**
 
 ```sh
-claude mcp add --transport http Rosetta [rosetta MCP production server URL]
+claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp
 ```
 
 **Codex:**
 
 ```sh
-codex mcp add Rosetta --url [rosetta MCP production server URL]
+codex mcp add Rosetta --url https://mcp.rosetta.griddynamics.net/mcp
 codex mcp login Rosetta
 ```
 
@@ -99,7 +99,6 @@ Contributions welcome. See [Contributing](/rosetta/docs/contributing/) for workf
 
 ## Community
 
-- [Discord](https://discord.gg/QzZ2cWg36g)
 - [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)
 
 ## License

@@ -6,7 +6,13 @@ import json
 from typing import cast
 
 from ims_mcp.clients.document import DocumentClient
-from ims_mcp.constants import COMPATIBILITY_MODE_ERROR, POLICY_ALL, PROJECT_DATASET_PREFIX, XML_DATASET
+from ims_mcp.constants import (
+    COMPATIBILITY_MODE_ERROR,
+    POLICY_ALL,
+    PROJECT_DATASET_PREFIX,
+    QUERY_TOO_MANY_THRESHOLD,
+    XML_DATASET,
+)
 from ims_mcp.context import CallContext
 from ims_mcp.services.bundler import Bundler
 from ims_mcp.services.invite import auto_invite
@@ -126,7 +132,7 @@ async def query_project_context(
         return f"Error: project '{normalized_repo}' not found"
 
     try:
-        dataset = call_ctx.ragflow.get_dataset(name=dataset_name)
+        dataset = call_ctx.dataset_lookup.get_dataset(name=dataset_name)
     except Exception as exc:
         return f"Error: could not open project '{normalized_repo}': {exc}"
 
@@ -171,6 +177,10 @@ async def query_project_context(
     docs = _filter_docs_by_all_tags(_unique_docs(docs), normalized_tags)
     if not docs:
         return "No project context found"
+    # Defensive ceiling: a server-side metadata_condition filter bypass on
+    # RAGFlow 0.25.x can dump every doc in the dataset; refuse to bundle.
+    if len(docs) > QUERY_TOO_MANY_THRESHOLD:
+        return "Error: No documents found or too many documents found"
     return bundler.bundle(docs, normalized_repo)
 
 
@@ -222,6 +232,7 @@ async def store_project_context(
         except Exception as exc:
             return f"Error: could not create project '{normalized_repo}': {exc}"
         call_ctx.dataset_lookup.invalidate()
+        call_ctx.dataset_lookup.remember(dataset)
         if _should_auto_invite(call_ctx):
             await auto_invite(
                 ragflow=call_ctx.ragflow,
@@ -232,7 +243,7 @@ async def store_project_context(
             )
     else:
         try:
-            dataset = call_ctx.ragflow.get_dataset(name=dataset_name)
+            dataset = call_ctx.dataset_lookup.get_dataset(name=dataset_name)
         except Exception as exc:
             return f"Error: could not open project '{normalized_repo}': {exc}"
 
@@ -275,7 +286,7 @@ async def discover_projects(call_ctx: CallContext, query: str | None = None) -> 
     if query_err:
         return query_err
 
-    datasets = call_ctx.ragflow.list_datasets(page=1, page_size=1000)
+    datasets = call_ctx.dataset_lookup.list_datasets()
     matches: list[tuple[str, str]] = []
     for ds in datasets:
         if not ds.name.startswith(PROJECT_DATASET_PREFIX):

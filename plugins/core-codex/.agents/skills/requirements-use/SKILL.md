@@ -2,7 +2,7 @@
 name: requirements-use
 description: Consume approved requirements to drive planning, implementation, and validation with explicit traceability and mandatory HITL for ambiguity or tradeoffs.
 tags: ["requirements", "skills"]
-license: Proprietary
+license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: request, requirements-set?, target-scope?, constraints?, delivery-goal?

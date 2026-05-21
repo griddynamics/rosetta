@@ -47,6 +47,27 @@ def test_get_name():
     assert lookup.get_name("missing") is None
 
 
+def test_get_dataset_reuses_cached_dataset_object():
+    dataset = _Dataset("d1", "known")
+    rag = _Rag(datasets=[dataset])
+    lookup = DatasetLookup(ragflow=rag, ttl_seconds=300)
+
+    assert lookup.get_dataset(name="known") is dataset
+    assert lookup.get_dataset(dataset_id="d1") is dataset
+    assert lookup.get_id("known") == "d1"
+    assert rag.calls == 1
+
+
+def test_list_datasets_reuses_cached_refresh():
+    dataset = _Dataset("d1", "known")
+    rag = _Rag(datasets=[dataset])
+    lookup = DatasetLookup(ragflow=rag, ttl_seconds=300)
+
+    assert lookup.list_datasets() == [dataset]
+    assert lookup.get_id("known") == "d1"
+    assert rag.calls == 1
+
+
 def test_api_error_propagates():
     """Real API errors must propagate, not be silently swallowed."""
     class _BrokenRag:

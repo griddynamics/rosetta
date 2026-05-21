@@ -46,6 +46,6 @@ Validation: Outputs contain sequenced plan, risk controls, and measurable accept
 
 </planner>
 """
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"

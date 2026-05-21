@@ -1,12 +1,12 @@
 name: Publish Instructions
 
 # This workflow publishes instructions to the Rosetta Server (RAGFlow)
-# when changes are pushed to the main branch in instructions/ or rosetta-cli/ folders
+# when changes are pushed to the main branch in instructions/ or plugins/ folders.
 #
 # Required GitHub Secrets:
-#   - RAGFLOW_API_KEY: API key for Rosetta Server authentication
-#
-# Server: https://ims-dev.evergreen.gcp.griddynamics.net/
+#   DEV:  RAGFLOW_API_KEY, RAGFLOW_BASE_URL (optional, falls back to default)
+#   OSS:  OSS_RAGFLOW_API_KEY, OSS_RAGFLOW_BASE_URL
+#   PROD: PROD_RAGFLOW_API_KEY, PROD_RAGFLOW_BASE_URL
 
 on:
   push:
@@ -18,8 +18,23 @@ on:
       - '.github/workflows/publish-instructions.yml'
   workflow_dispatch:
     inputs:
+      deploy_to_dev:
+        description: 'Publish to DEV Rosetta Server'
+        type: boolean
+        default: true
+        required: false
+      deploy_to_oss:
+        description: 'Publish to OSS Rosetta Server'
+        type: boolean
+        default: false
+        required: false
       deploy_to_prod:
-        description: 'Publish to production Rosetta Server'
+        description: 'Publish to PROD Rosetta Server'
+        type: boolean
+        default: false
+        required: false
+      create_release:
+        description: 'Create GitHub Release and archives'
         type: boolean
         default: false
         required: false
@@ -45,29 +60,44 @@ jobs:
           python -m pip install --upgrade pip
           pip install uv
 
-      - name: Publish instructions to Rosetta Server
-        env:
-          RAGFLOW_BASE_URL: ${{ inputs.deploy_to_prod && secrets.PROD_RAGFLOW_BASE_URL || secrets.RAGFLOW_BASE_URL || 'https://ims-dev.evergreen.gcp.griddynamics.net/' }}
-          RAGFLOW_API_KEY: ${{ inputs.deploy_to_prod && secrets.PROD_RAGFLOW_API_KEY || secrets.RAGFLOW_API_KEY }}
-          ROSETTA_SERVER_URL: ${{ inputs.deploy_to_prod && secrets.PROD_RAGFLOW_BASE_URL || secrets.RAGFLOW_BASE_URL || 'https://ims-dev.evergreen.gcp.griddynamics.net/' }}
-          ROSETTA_API_KEY: ${{ inputs.deploy_to_prod && secrets.PROD_RAGFLOW_API_KEY || secrets.RAGFLOW_API_KEY }}
-          RAGFLOW_DATASET_DEFAULT: aia
-          RAGFLOW_DATASET_TEMPLATE: aia-{release}
-          VERSION: r2
-        run: |
-          echo "Publishing instructions to Rosetta Server..."
-          echo "Server: $RAGFLOW_BASE_URL"
-          echo "Dataset: $RAGFLOW_DATASET_DEFAULT (template: $RAGFLOW_DATASET_TEMPLATE)"
-          echo ""
+      - name: Publish to DEV
+        if: ${{ github.event_name == 'push' || inputs.deploy_to_dev }}
+        uses: ./.github/actions/publish-to-server
+        with:
+          environment: dev
+          api_key: ${{ secrets.RAGFLOW_API_KEY }}
+          base_url: ${{ secrets.RAGFLOW_BASE_URL || 'https://ims-dev.evergreen.gcp.griddynamics.net/' }}
+          prerelease: 'true'
+          version: r2
+          dataset_default: aia
+          dataset_template: aia-{release}
 
-          uvx rosetta-cli@latest version
-          
-          uvx rosetta-cli@latest publish instructions
+      - name: Publish to OSS
+        if: ${{ inputs.deploy_to_oss }}
+        uses: ./.github/actions/publish-to-server
+        with:
+          environment: oss
+          api_key: ${{ secrets.OSS_RAGFLOW_API_KEY }}
+          base_url: ${{ secrets.OSS_RAGFLOW_BASE_URL }}
+          prerelease: 'false'
+          version: r2
+          dataset_default: aia
+          dataset_template: aia-{release}
 
-          echo ""
-          echo "Publishing complete!"
+      - name: Publish to PROD
+        if: ${{ inputs.deploy_to_prod }}
+        uses: ./.github/actions/publish-to-server
+        with:
+          environment: prod
+          api_key: ${{ secrets.PROD_RAGFLOW_API_KEY }}
+          base_url: ${{ secrets.PROD_RAGFLOW_BASE_URL }}
+          prerelease: 'false'
+          version: r2
+          dataset_default: aia
+          dataset_template: aia-{release}
 
       - name: Create instructions archive
+        if: ${{ github.event_name == 'push' || inputs.create_release }}
         run: |
           cd instructions
           zip -r ../instructions.zip . -x "*.git*"
@@ -77,11 +107,13 @@ jobs:
 
       - name: Create plugin archives
         id: plugins
+        if: ${{ github.event_name == 'push' || inputs.create_release }}
         run: |
           DATE=$(date +'%Y-%m-%d')
           echo "date=${DATE}" >> $GITHUB_OUTPUT
 
           ARCHIVES=""
+          # Includes standard plugins and standalone variants (core-cursor-standalone, core-copilot-standalone)
           for plugin_dir in plugins/*/; do
             folder=$(basename "$plugin_dir")
             plugin_json=$(find "$plugin_dir" -name "plugin.json" -maxdepth 3 | head -1)
@@ -92,7 +124,11 @@ jobs:
             version=$(jq -r '.version' "$plugin_json")
             zip_name="${folder}-${version}-${DATE}.zip"
             echo "Creating archive: ${zip_name} (version: ${version})"
-            (cd "$plugin_dir" && zip -r "../../${zip_name}" . -x "*.git*")
+            if [[ "$folder" == *-standalone ]]; then
+              (cd "$plugin_dir" && zip -r "../../${zip_name}" . -x ".git" -x ".git/*" -x "plugin.json")
+            else
+              (cd "$plugin_dir" && zip -r "../../${zip_name}" . -x "*.git*")
+            fi
             echo "  Size: $(du -h "${zip_name}" | cut -f1)"
             ARCHIVES="${ARCHIVES} ${zip_name}"
           done
@@ -101,7 +137,7 @@ jobs:
           echo "All plugin archives created."
 
       - name: Create GitHub Release
-        if: ${{ !inputs.deploy_to_prod }}
+        if: ${{ github.event_name == 'push' || inputs.create_release }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -124,13 +160,16 @@ jobs:
         run: |
           echo "## Publishing Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Server:** Rosetta Server (${{ inputs.deploy_to_prod && 'PROD' || 'DEV' }})" >> $GITHUB_STEP_SUMMARY
-          echo "- **Dataset:** aia (default), aia-r1, aia-r2, etc." >> $GITHUB_STEP_SUMMARY
+          TARGETS=""
+          if [ "${{ github.event_name }}" == "push" ] || [ "${{ inputs.deploy_to_dev }}" == "true" ]; then TARGETS="${TARGETS} DEV"; fi
+          if [ "${{ inputs.deploy_to_oss }}" == "true" ]; then TARGETS="${TARGETS} OSS"; fi
+          if [ "${{ inputs.deploy_to_prod }}" == "true" ]; then TARGETS="${TARGETS} PROD"; fi
+          echo "- **Targets:**${TARGETS:-none}" >> $GITHUB_STEP_SUMMARY
           echo "- **Folders:** instructions/, plugins/" >> $GITHUB_STEP_SUMMARY
           echo "- **Plugin Archives:** ${{ steps.plugins.outputs.archives }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ job.status }}" == "success" ]; then
-            echo "**Status:** Successfully published to Rosetta Server and GitHub Release" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** Successfully published" >> $GITHUB_STEP_SUMMARY
           else
             echo "**Status:** Publishing failed" >> $GITHUB_STEP_SUMMARY
           fi

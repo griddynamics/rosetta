@@ -60,8 +60,8 @@ permalink: /docs/developer-guide/
 rosetta/
 ├── instructions/         ← Prompts: skills, agents, workflows, rules, templates
 │   └── r2/
-│       ├── core/         ← OSS foundation
-│       └── <org>/        ← Organization extensions (e.g., grid/)
+│       ├── core/         ← Rosetta instruction source
+│       └── <org>/        ← Optional organization extensions (e.g., acme/)
 ├── ims-mcp-server/       ← Rosetta MCP server (PyPI: ims-mcp)
 │   ├── ims_mcp/          ← Server source code
 │   ├── tests/            ← Unit tests (pytest)

@@ -1,6 +1,7 @@
 ---
 name: large-workspace-handling
 description: "Rosetta skill to partition large workspaces or folders (100+ files recursively) into scoped subagent tasks when single-agent context is insufficient."
+license: Apache-2.0
 tags: ["skill", "workspace", "large-workspace", "delegation"]
 baseSchema: docs/schemas/skill.md
 ---

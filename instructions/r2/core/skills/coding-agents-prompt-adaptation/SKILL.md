@@ -2,7 +2,7 @@
 name: coding-agents-prompt-adaptation
 description: Adapt skills, agents, subagents, workflows, commands, rules, templates, or any generic prompt from one coding agent/IDE/context to another while preserving original intent, hooks, meaning, and strategy (Claude Code, Cursor, Copilot, Windsurf, OpenCode, or current project context). `ADAPT <files>` is alias command.
 tags: ["prompting", "skills"]
-license: Proprietary
+license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: source-prompt, target-agent?, target-context?

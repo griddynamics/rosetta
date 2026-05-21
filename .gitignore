@@ -24,6 +24,17 @@ wheels/
 tmp/
 docs/plans/
 
+# Node.js
+node_modules/
+dist/
+
+# JS/TS test & build artifacts
+coverage/
+.nyc_output/
+.vitest/
+*.tsbuildinfo
+*.lcov
+
 # Virtual Environment
 venv/
 ENV/
@@ -71,10 +82,13 @@ rosetta-cli/test-remote-*.sh
 
 # Jekyll / GitHub Pages
 docs/web/_site/
+docs/web/.bundle/
+docs/web/vendor/
 _site/
 .jekyll-cache/
 .jekyll-metadata
 .sass-cache/
+.playwright-mcp/
 
 # Rosetta
 agents/TEMP/

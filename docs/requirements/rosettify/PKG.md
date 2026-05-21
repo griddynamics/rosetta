@@ -65,3 +65,27 @@ Packaging and distribution requirements for rosettify.
     <criteria>Given: the repo root. When: inspected. Then: rosettify/ exists as a top-level directory containing package.json, tsconfig.json, src/, and tests.</criteria>
   </acceptance>
 </req>
+
+## FR-PKG-0005 Semantic Versioning
+
+<req id="FR-PKG-0005" type="FR" level="System">
+  <title>Follow Semantic Versioning 2.0.0 (MAJOR.MINOR.PATCH)</title>
+  <statement>The rosettify package version SHALL follow Semantic Versioning 2.0.0 (https://semver.org). The version string in `rosettify/package.json` SHALL match the regex `^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$` and increment according to:
+
+- **MAJOR**: incremented for backwards-incompatible changes to the CLI command surface, MCP tool input/output schemas, plan-file JSON schema (FR-PLAN-0017), envelope shape (FR-ARCH-0011), or any documented run-delegate contract. Examples: removing a subcommand, changing a CLI positional-argument order, renaming a field in the plan JSON schema, removing an error code, breaking the help response shape.
+- **MINOR**: incremented for backwards-compatible additions. Examples: a new subcommand, a new optional input field, a new error code, a new template registered in the registry, a new help-content key.
+- **PATCH**: incremented for backwards-compatible bug fixes that do not alter any documented contract. Examples: fixing a concurrent-write race, correcting an error message, improving log content, fixing a non-contract regression.
+
+Pre-1.0.0 versions are permitted during early development; once the package reaches 1.0.0 the rules above apply strictly. Pre-release identifiers (`-alpha.N`, `-beta.N`, `-rc.N`) and build metadata (`+sha.abc1234`) are permitted per the semver spec.
+
+Every release that changes published behavior SHALL be accompanied by a CHANGELOG entry (or equivalent release-notes mechanism) stating which contract surface changed and at which level.</statement>
+  <rationale>AI agents and human consumers must be able to predict compatibility from the version string alone. Without an explicit semver contract, the previous FR-PLAN-0024 contract loophole (rewriting the rename-vs-mutex semantics without a major bump) could ship as a silent patch and break callers depending on the older surface. A documented semver rule pins the meaning of every digit and forces release notes when behavior changes.</rationale>
+  <source>User</source>
+  <ticketId>CTORNDGAIN-1333</ticketId>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <verification>Inspection</verification>
+  <acceptance>
+    <criteria>Given: the version field in rosettify/package.json. When: inspected. Then: it matches the semver regex above. Given: a release that removes or breaks a documented contract (CLI surface, MCP tool schema, plan schema, envelope, error code). Then: the new version's MAJOR digit is greater than the previous release's MAJOR. Given: a release that adds a new subcommand, optional field, error code, or template without breaking any existing contract. Then: MAJOR is unchanged and MINOR is incremented. Given: a release that fixes a bug without altering any documented contract. Then: MAJOR and MINOR are unchanged and PATCH is incremented. Given: any release that changes published behavior. Then: a CHANGELOG or release-notes entry exists for it.</criteria>
+  </acceptance>
+</req>

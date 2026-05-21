@@ -10,7 +10,7 @@ mode: [Defines agent type] [string] [OpenCode] [ex: primary, subagent]
 model: [Specifies which LLM model to use, any thinking/reasoning must be done with stronger models and high reasoning efforts, while execution with cheaper] [string] [Cursor, OpenCode, Claude Code] [ex: claude-4.6-sonnet]
 temperature: [Controls response randomness] [float] [OpenCode] [ex: 0.7]
 
-[Latest Models: Anthropic (claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5), OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high, gpt-5.4-medium, gpt-5.4-high), Google (gemini-3.1-pro-preview, gemini-3-flash-preview), Z.ai (glm-5).]
+[Latest Models: Anthropic (claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5), OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high, gpt-5.4-medium, gpt-5.4-high, gpt-5.5-high), Google (gemini-3.1-pro-preview, gemini-3-flash-preview), Z.ai (glm-5).]
 
 [Model families: large (smart and slow) {opus, high, pro}, medium (workhorse) {sonnet, medium, glm-5, kimi-k2.5, minimax-m2.5}, small (fast, not smart) {haiku, glm-4.7, flash, mini, low} ]
 

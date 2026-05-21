@@ -226,9 +226,11 @@ class DocumentClient:
             return None
 
         try:
-            return cast(str, res.content.decode("utf-8"))
+            decoded: str = res.content.decode("utf-8")
+            return decoded
         except UnicodeDecodeError:
-            return cast(str, res.content.decode("utf-8", errors="ignore"))
+            decoded_ignore_errors: str = res.content.decode("utf-8", errors="ignore")
+            return decoded_ignore_errors
 
     def upload_doc(self, dataset: DatasetLike, name: str, content: bytes) -> DocumentLike:
         docs = dataset.upload_documents([{"display_name": name, "blob": content}])

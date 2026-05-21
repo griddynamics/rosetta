@@ -1,7 +1,7 @@
 ---
 name: self-learning
 description: "Rosetta MUST skill. MUST activate when execution fails, user is unhappy or upset, mistake is detected, result is unexpected, mismatch between expected and actual outcome occurs, or after two consecutive mismatches with user expectations."
-tags: []
+license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
 

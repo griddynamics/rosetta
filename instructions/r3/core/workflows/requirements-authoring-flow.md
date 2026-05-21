@@ -72,6 +72,7 @@ Done when: every in-scope requirement has schema-complete draft and explicit use
 1. Draft in small batches using `<req>` schema
 2. Use EARS for FRs and measurable metrics for NFRs
 3. Keep unresolved or deferred units as `Draft`
+4. Modify files directly, do not show to user
 
 </draft>
 
@@ -83,11 +84,22 @@ Done when: checklist passes and unresolved issues are either fixed or explicitly
 1. ACQUIRE `requirements-authoring/assets/ra-validation-rubric.md` FROM KB and run validation
 2. Run conflict checks and gap checks
 3. Verify traceability source -> goal -> req -> test
-4. HITL: review findings with user as narrative
+4. HITL: review findings with user as a narrative / story /walk-through
 
 </validate>
 
-<finalization phase="7" priority="must" subagent="requirements-engineer" role="Business analyst finalizing requirement artifacts">
+<user_review phase="7" priority="must" subagent="HITL" role="HITL">
+
+1. Review all drafts requirements with user by providing a clear and exact story as a narrative/walk-through of a functionality of the application that this affected, use simple words and sentences. If possible you can also do that from point of view of the actor that this requirements affect (user of the app, admin of the dashboard, etc)
+2. You should combine affected and existing requirements for the proper narrative/story
+3. If there are multiple stories - create todo task to review each story separately
+4. Review story-by-story with user for approval
+5. The narrative must still be very specific so that it allows to fully approve every aspect of requirements
+6. Do not assume user has a context, explain like user sees this first time
+
+</user_review>
+
+<finalization phase="8" priority="must" subagent="requirements-engineer" role="Business analyst finalizing requirement artifacts">
 
 Artifact: Final Requirements Set, Validation Pack, Traceability Matrix, Change Log.
 Done when: artifacts are stored in target location and state file is complete.
@@ -106,9 +118,11 @@ Done when: artifacts are stored in target location and state file is complete.
 Use `USE SKILL` for skills, `ACQUIRE FROM KB` for rules.
 
 Skills:
+
 - skill `requirements-authoring` - authoring, reviewing, validating requirements
 
 Rules:
+
 - rule `rules/requirements-best-practices.md` - requirements quality and process rules
 
 </references>

@@ -1,15 +1,40 @@
+// Implements FR-PLAN-0011 (next subcommand).
+// Uses FR-SHRD-0009 (readPlanWithRetry) for read resilience.
+
 import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
+import { readPlanWithRetry } from "../../shared/plan-io.js";
+import { ERR_PLAN_FILE_CORRUPTED } from "./errors.js";
 import {
+  type Plan,
   type NextResult,
   type NextStep,
   type Phase,
   type Step,
-  loadPlan,
   buildStepStatusMap,
   depsSatisfied,
 } from "./core.js";
+
+export const nextInputSchema = {
+  type: "object" as const,
+  properties: {
+    plan_file: { type: "string", description: "Path to the plan JSON file" },
+    limit: { type: "integer", minimum: 0, description: "Max steps to return (default: 10)" },
+    target_id: { type: "string", description: "Scope to a specific phase ID" },
+  },
+  required: [],
+};
+
+export const nextOutputSchema = {
+  type: "object" as const,
+  description: "FR-PLAN-0011 — next steps result",
+  properties: {
+    ready: { type: "array" },
+    count: { type: "integer" },
+    plan_status: { type: "string" },
+  },
+};
 
 export async function cmdNext(
   planFile: string,
@@ -19,7 +44,13 @@ export async function cmdNext(
   try {
     if (limit < 0) return err("invalid_limit", true);
 
-    const plan = loadPlan(planFile);
+    // FR-SHRD-0009 — read with resilience (retries if plan file missing but backup exists)
+    let plan: Plan | null;
+    try {
+      plan = await readPlanWithRetry<Plan>(planFile);
+    } catch {
+      return err(ERR_PLAN_FILE_CORRUPTED);
+    }
     if (!plan) return err("plan_not_found");
 
     // Validate target_id if provided — must reference an existing phase
@@ -56,7 +87,6 @@ export async function cmdNext(
         if (st === "in_progress") {
           inProgress.push(buildNextStep(step, phase, { resume: true }));
         } else if (st === "open") {
-          // Check step deps satisfied
           if (depsSatisfied(step, stepStatusMap)) {
             openReady.push(buildNextStep(step, phase, { resume: false }));
           }

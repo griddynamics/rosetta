@@ -20,7 +20,7 @@ baseSchema: docs/schemas/workflow.md
 </prerequisites>
 
 <instructions>
-MUST ACQUIRE `workflows/<workflow-name>.md` FROM KB and FULLY EXECUTE EXACTLY, ALL PHASES AND STEPS, USING SUBAGENTS AS DEFINED
+MUST ACQUIRE `commands/<workflow-name>.md` FROM KB and FULLY EXECUTE EXACTLY, ALL PHASES AND STEPS, USING SUBAGENTS AS DEFINED
 </instructions>
 
 </[workflow_name]>

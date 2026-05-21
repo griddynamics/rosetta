@@ -36,6 +36,8 @@ describe("planToolDef.run — no subcommand returns help", () => {
     expect(result.ok).toBe(true);
     const res = result.result as { subcommands?: unknown[] };
     expect(Array.isArray(res.subcommands)).toBe(true);
+    // FR-PLAN-0016 — help has 9 subcommand entries
+    expect((res.subcommands as unknown[]).length).toBe(9);
   });
 });
 
@@ -164,5 +166,68 @@ describe("planToolDef.run — full subcommand happy paths", () => {
       new_status: "complete",
     });
     expect(result.ok).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// FR-PLAN-0023 — unknown subcommand message lists ALL 9 valid subcommands
+// ---------------------------------------------------------------------------
+
+describe("planToolDef.run — unknown subcommand lists all 9 (FR-PLAN-0023)", () => {
+  it("unknown_command message includes all 3 new subcommands", async () => {
+    const result = await planToolDef.run({ subcommand: "totally_bogus" });
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("create-with-template");
+    expect(result.error).toContain("upsert-with-template");
+    expect(result.error).toContain("list-templates");
+  });
+
+  it("unknown_command message lists all original 6 subcommands too", async () => {
+    const result = await planToolDef.run({ subcommand: "totally_bogus" });
+    expect(result.error).toContain("create");
+    expect(result.error).toContain("next");
+    expect(result.error).toContain("update_status");
+    expect(result.error).toContain("show_status");
+    expect(result.error).toContain("query");
+    expect(result.error).toContain("upsert");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// FR-PLAN-0030 / FR-PLAN-0031 / FR-PLAN-0032 — new subcommand guards
+// ---------------------------------------------------------------------------
+
+describe("planToolDef.run — missing plan_file guard for new subcommands", () => {
+  it("returns error for create-with-template without plan_file", async () => {
+    const result = await planToolDef.run({
+      subcommand: "create-with-template",
+      template: "for-orchestrator",
+      "plan-name": "X",
+      "plan-description": "Y",
+    });
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("missing plan_file");
+  });
+
+  it("returns error for upsert-with-template without plan_file", async () => {
+    const result = await planToolDef.run({
+      subcommand: "upsert-with-template",
+      "phase-id": "ph-impl",
+      template: "for-subagent",
+      "phase-name": "Impl",
+      "phase-description": "desc",
+    });
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("missing plan_file");
+  });
+});
+
+describe("planToolDef.run — list-templates needs no plan_file", () => {
+  it("list-templates returns catalog without plan_file", async () => {
+    const result = await planToolDef.run({ subcommand: "list-templates" });
+    expect(result.ok).toBe(true);
+    const catalog = result.result as { create: unknown[]; upsert: unknown[] };
+    expect(Array.isArray(catalog.create)).toBe(true);
+    expect(Array.isArray(catalog.upsert)).toBe(true);
   });
 });

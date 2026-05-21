@@ -1,6 +1,7 @@
 ---
 name: reverse-engineering
 description: Rosetta skill to reverse-engineer existing code to a specification, to extract a behavior, distill domain logic from implementation, or produce a clean system-level description from source files, captures WHAT a system does and WHY, stripped of HOW.
+license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
 

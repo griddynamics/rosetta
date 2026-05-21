@@ -1,6 +1,7 @@
 ---
 name: init-workspace-discovery
 description: "Rosetta skill to produce TECHSTACK, CODEMAP, DEPENDENCIES from workspace analysis."
+license: Apache-2.0
 model: claude-haiku-4-5, gemini-3-flash-preview
 tags: ["init", "workspace", "discovery", "techstack", "codemap"]
 baseSchema: docs/schemas/skill.md
