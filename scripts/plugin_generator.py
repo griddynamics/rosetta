@@ -103,13 +103,13 @@ def _get_plugin_specs(repo_root: Path) -> list[PluginSyncSpec]:
             name="core-cursor",
             destination=repo_root / "plugins" / "core-cursor",
             preserved_folder=".cursor-plugin",
-            preserved_files=("hooks",),
+            preserved_files=("hooks", "hooks.json.tmpl"),
             cursor_models=True,
             rename_folders=(("workflows", "commands"),),
             rename_files=((r"rules/(.+)\.md", r"\1.mdc"),),
             generated_indexes=("rules", "commands"),
-            templates=("hooks/hooks.json.tmpl",),
-            hook_subdir=Path(".cursor") / "hooks",
+            templates=("hooks/hooks.json.tmpl", "hooks.json.tmpl"),
+            hook_subdir=Path("hooks"),
         ),
         PluginSyncSpec(
             name="core-copilot",
@@ -766,14 +766,6 @@ def generate_copilot_runtime_layout(destination: Path) -> None:
     print(f"      copied {copied} config(s) from .github/plugin/ to plugin root", flush=True)
 
 
-def generate_cursor_runtime_layout(destination: Path) -> None:
-    source_hooks = destination / "hooks" / "hooks.json"
-    cursor_hooks = destination / ".cursor" / "hooks.json"
-    if source_hooks.is_file():
-        _replace_tree(source_hooks, cursor_hooks)
-        print("      copied .cursor/hooks.json for core-cursor", flush=True)
-
-
 def generate_codex_runtime_layout(destination: Path) -> None:
     source_hooks = destination / ".codex-plugin" / "hooks.json"
     codex_hooks = destination / ".codex" / "hooks.json"
@@ -873,10 +865,17 @@ def generate_standalone_plugin(spec: StandaloneSpec, plugins_root: Path) -> None
     for item in sorted(source.iterdir()):
         if item.name == spec.excluded_source_folder:
             continue
-        target = subfolder_path / item.name
-        if item.is_dir():
-            shutil.copytree(item, target)
+        if item.is_dir() and item.name == spec.subfolder:
+            # Source plugin contains a directory matching the standalone's subfolder name
+            # (e.g. core-cursor has .cursor/ from generate_cursor_runtime_layout, and the
+            # standalone's subfolder is also .cursor/). Merge its contents directly into
+            # subfolder_path instead of nesting it as <subfolder>/<subfolder>/.
+            shutil.copytree(item, subfolder_path, dirs_exist_ok=True)
+        elif item.is_dir():
+            target = subfolder_path / item.name
+            shutil.copytree(item, target, dirs_exist_ok=True)
         else:
+            target = subfolder_path / item.name
             shutil.copy2(item, target)
         copied += 1
 
@@ -1029,11 +1028,15 @@ def sync_generated_plugins(repo_root: Path) -> int:
             process_templates(spec.destination, spec.templates, plugin_replacements)
         if spec.name == "core-copilot":
             generate_copilot_runtime_layout(spec.destination)
-        if spec.name == "core-cursor":
-            generate_cursor_runtime_layout(spec.destination)
         if spec.name == "core-codex":
             generate_codex_subagents(spec.destination, core_source)
             generate_codex_runtime_layout(spec.destination)
+
+    # Sync hook bundles into main plugins BEFORE generating standalones so the bundles
+    # are present in source plugins when generate_standalone_plugin reads from them.
+    hook_sync_result = sync_hooks_into_plugins(repo_root)
+    if hook_sync_result != 0:
+        return hook_sync_result
 
     standalone_specs = [
         StandaloneSpec(
@@ -1042,7 +1045,7 @@ def sync_generated_plugins(repo_root: Path) -> int:
             destination=repo_root / "plugins" / "core-cursor-standalone",
             subfolder=".cursor",
             excluded_source_folder=".cursor-plugin",
-            pre_cleanup=("templates",),
+            pre_cleanup=("templates", "hooks/hooks.json.tmpl", "hooks/hooks.json", "hooks.json.tmpl"),
             cursor_instructions=True,
             inject_indexes=(
                 ("commands", "rules/plugin-files-mode.mdc"),
@@ -1054,7 +1057,7 @@ def sync_generated_plugins(repo_root: Path) -> int:
             destination=repo_root / "plugins" / "core-copilot-standalone",
             subfolder=".github",
             excluded_source_folder=".github",
-            pre_cleanup=(".mcp.json", "hooks.json", "templates"),
+            pre_cleanup=(".mcp.json", "hooks.json", "templates", "hooks/hooks.json.tmpl"),
             pre_move_files=(
                 ("rules/bootstrap-*.md",       "instructions", r"(.+)\.md", r"\1.instructions.md"),
                 ("rules/plugin-files-mode.md", "instructions", r"(.+)\.md", r"\1.instructions.md"),
