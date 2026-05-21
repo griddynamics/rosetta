@@ -1,3 +1,7 @@
+// CLI frontend for rosettify.
+// Implements FR-CLI-0001 (standard CLI), FR-SHRD-0008 (dense JSON output).
+// All new plan subcommands: create-with-template, upsert-with-template, list-templates.
+
 import { Command } from "commander";
 import { registry } from "../registry/index.js";
 import { dispatch } from "../shared/dispatch.js";
@@ -8,12 +12,14 @@ import type { PlanInput } from "../commands/plan/core.js";
 import type { EnrichedEnvelope } from "../registry/types.js";
 import { logger } from "../shared/logger.js";
 
+// FR-ARCH-0007 — all command output is valid JSON; FR-SHRD-0008 — dense (no indent)
 function writeResult(toolName: string, envelope: EnrichedEnvelope<unknown>): void {
   const output = extractOutput(envelope);
   if (!output.ok) {
     logFailure(logger, toolName, envelope.error ?? "unknown_error");
   }
-  process.stdout.write(JSON.stringify(output.payload, null, 2) + "\n");
+  // FR-SHRD-0008 — dense JSON output (no indent, no whitespace between elements)
+  process.stdout.write(JSON.stringify(output.payload) + "\n");
 }
 
 export async function runCli(args: string[]): Promise<void> {
@@ -160,6 +166,63 @@ export async function runCli(args: string[]): Promise<void> {
         process.exit(envelope.ok ? 0 : 1);
       },
     );
+
+  // FR-PLAN-0030 — plan create-with-template <plan_file> <template> <plan-name> <plan-description>
+  planCmd
+    .command("create-with-template")
+    .description("Create a plan from a registered create-kind template")
+    .argument("<plan_file>", "Path to plan file")
+    .argument("<template>", "Template name from create-kind collection")
+    .argument("<plan-name>", "Value for [plan-name] placeholder")
+    .argument("<plan-description>", "Value for [plan-description] placeholder")
+    .action(async (planFile: string, template: string, planName: string, planDescription: string) => {
+      const input: PlanInput = {
+        subcommand: "create-with-template",
+        plan_file: planFile,
+        template,
+        "plan-name": planName,
+        "plan-description": planDescription,
+      };
+      const envelope = await dispatch(planToolDef, input);
+      writeResult(planToolDef.name, envelope);
+      process.exit(envelope.ok ? 0 : 1);
+    });
+
+  // FR-PLAN-0031 — plan upsert-with-template <plan_file> <phase-id> <template> <phase-name> <phase-description>
+  planCmd
+    .command("upsert-with-template")
+    .description("Upsert a phase using a registered upsert-kind template")
+    .argument("<plan_file>", "Path to plan file")
+    .argument("<phase-id>", "Target phase ID and [phase-id] placeholder value")
+    .argument("<template>", "Template name from upsert-kind collection")
+    .argument("<phase-name>", "Value for [phase-name] placeholder")
+    .argument("<phase-description>", "Value for [phase-description] placeholder")
+    .action(async (planFile: string, phaseId: string, template: string, phaseName: string, phaseDescription: string) => {
+      const input: PlanInput = {
+        subcommand: "upsert-with-template",
+        plan_file: planFile,
+        "phase-id": phaseId,
+        template,
+        "phase-name": phaseName,
+        "phase-description": phaseDescription,
+      };
+      const envelope = await dispatch(planToolDef, input);
+      writeResult(planToolDef.name, envelope);
+      process.exit(envelope.ok ? 0 : 1);
+    });
+
+  // FR-PLAN-0032 — plan list-templates
+  planCmd
+    .command("list-templates")
+    .description("List all registered templates grouped by kind")
+    .action(async () => {
+      const input: PlanInput = {
+        subcommand: "list-templates",
+      };
+      const envelope = await dispatch(planToolDef, input);
+      writeResult(planToolDef.name, envelope);
+      process.exit(envelope.ok ? 0 : 1);
+    });
 
   // Handle plan with no subcommand, --help, or unknown subcommand
   planCmd.action(async (opts: { help?: boolean }, cmd: { args: string[] }) => {

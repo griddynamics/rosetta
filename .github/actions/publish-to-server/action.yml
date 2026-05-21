@@ -1,0 +1,56 @@
+name: Publish to Rosetta Server
+description: Publishes instructions to a Rosetta Server instance
+
+inputs:
+  environment:
+    description: 'Target label shown in logs (dev/oss/prod)'
+    required: true
+  api_key:
+    description: 'Rosetta Server API key'
+    required: true
+  base_url:
+    description: 'Rosetta Server base URL'
+    required: false
+    default: 'https://ims-dev.evergreen.gcp.griddynamics.net/'
+  prerelease:
+    description: 'Allow prerelease CLI versions'
+    required: false
+    default: 'false'
+  version:
+    description: 'Instructions release version (e.g. r2)'
+    required: false
+    default: 'r2'
+  dataset_default:
+    description: 'Default dataset name'
+    required: false
+    default: 'aia'
+  dataset_template:
+    description: 'Dataset name template with release placeholder'
+    required: false
+    default: 'aia-{release}'
+
+runs:
+  using: composite
+  steps:
+    - name: Publish to ${{ inputs.environment }}
+      shell: bash
+      env:
+        RAGFLOW_BASE_URL: ${{ inputs.base_url }}
+        RAGFLOW_API_KEY: ${{ inputs.api_key }}
+        ROSETTA_SERVER_URL: ${{ inputs.base_url }}
+        ROSETTA_API_KEY: ${{ inputs.api_key }}
+        RAGFLOW_DATASET_DEFAULT: ${{ inputs.dataset_default }}
+        RAGFLOW_DATASET_TEMPLATE: ${{ inputs.dataset_template }}
+        VERSION: ${{ inputs.version }}
+      run: |
+        PRERELEASE_FLAG=""
+        if [ "${{ inputs.prerelease }}" == "true" ]; then
+          PRERELEASE_FLAG="--prerelease=allow"
+        fi
+        echo "Publishing instructions to ${{ inputs.environment }} ($RAGFLOW_BASE_URL)..."
+        echo "Dataset: $RAGFLOW_DATASET_DEFAULT (template: $RAGFLOW_DATASET_TEMPLATE)"
+        echo ""
+        uvx $PRERELEASE_FLAG rosetta-cli@latest version
+        uvx $PRERELEASE_FLAG rosetta-cli@latest publish instructions
+        echo ""
+        echo "Publishing complete!"

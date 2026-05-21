@@ -35,6 +35,21 @@ export interface CommandInput {
   kind?: string;
   /** Parent phase ID for new steps (FR-PLAN-0015). */
   phase_id?: string;
+
+  // FR-PLAN-0030 / FR-PLAN-0031 / FR-PLAN-0034 — kebab-case template parameter fields.
+  // Uniform naming across CLI positionals, MCP named fields, and template placeholder names.
+  /** FR-PLAN-0030 / FR-PLAN-0034 — value for the [plan-name] placeholder (create-with-template). */
+  "plan-name"?: string;
+  /** FR-PLAN-0030 / FR-PLAN-0034 — value for the [plan-description] placeholder (create-with-template). */
+  "plan-description"?: string;
+  /** FR-PLAN-0031 / FR-PLAN-0034 — value for the [phase-id] placeholder (upsert-with-template). */
+  "phase-id"?: string;
+  /** FR-PLAN-0031 / FR-PLAN-0034 — value for the [phase-name] placeholder (upsert-with-template). */
+  "phase-name"?: string;
+  /** FR-PLAN-0031 / FR-PLAN-0034 — value for the [phase-description] placeholder (upsert-with-template). */
+  "phase-description"?: string;
+  /** FR-PLAN-0030 / FR-PLAN-0031 — template name to look up in the kind-scoped registry. */
+  template?: string;
 }
 
 // --- Run Delegate (FR-ARCH-0004) ---
@@ -54,6 +69,11 @@ export interface ToolDef<TInput extends CommandInput = CommandInput, TResult = u
   cli: boolean; // FR-ARCH-0005
   mcp: boolean; // FR-ARCH-0005
   run: RunDelegate<TInput, TResult>; // FR-ARCH-0004
+  // FR-HELP-0002 — optional per-command help payload merged into HelpCommandDetail.
+  // Carries the full content authored by the command (schemas, notes, plus
+  // command-specific extensions like FR-PLAN-0016 plan_file/concepts/limits/templates/etc).
+  // Tool's canonical name/brief/description always win over keys in this payload.
+  helpContent?: Record<string, unknown>;
 }
 
 // --- Help output shapes (FR-HELP-0001, FR-HELP-0002) ---
@@ -70,13 +90,22 @@ export interface HelpTopLevel {
   guidance: string;
 }
 
+// FR-HELP-0002 — required minimum shape: {name, brief, description, schemas, subcommands?, notes}.
+// Commands may extend with additional fields per their own FRs (e.g. FR-PLAN-0016 adds plan_file,
+// concepts, subagent_fields, limits, templates, plan_authoring_guidance, next_steps_for_ai).
+// The index signature accepts these without breaking the strict base shape.
 export interface HelpCommandDetail {
   name: string;
   brief: string;
   description: string;
-  input_schema: Record<string, unknown>;
-  output_schema: Record<string, unknown>;
-  subcommands?: HelpCommandEntry[];
+  /** FR-HELP-0002 — flat dictionary: subcommand name → JSON Schema (sourced from per-subcommand declarations). */
+  schemas?: Record<string, unknown>;
+  /** FR-HELP-0002 — subcommand listing. Each entry may carry richer per-command fields (examples, usage, args, description) per FR-PLAN-0016. */
+  subcommands?: Array<Record<string, unknown>>;
+  /** FR-HELP-0002 — string array of behavioral notes declared alongside the command's help content. */
+  notes?: string[];
+  /** Per-command extensions (FR-PLAN-0016 etc.). */
+  [key: string]: unknown;
 }
 
 /** Consumer-facing success payload: the result object itself. */

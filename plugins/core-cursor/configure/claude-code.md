@@ -122,7 +122,7 @@ Filename becomes command name. Content is the prompt to execute. Commands must b
 - `description`: Command description (helps Claude decide when to use)
 - `argument-hint`: Hint for expected arguments
 - `allowed-tools`: Tools Claude can use without permission when this command is active. Dangerous.
-- `model`: Specific Claude model to use
+- `model`: Specific Claude model to use (haiku, sonnet, opus, claude-opus-4-5, claude-opus-4-5-20251101)
 - `disable-model-invocation`: Set to `true` to prevent Claude from automatically invoking (only manual `/command`)
 - `user-invocable`: Set to `false` to hide from `/` menu (only Claude can invoke)
 - `context`: Set to `fork` to run in forked subagent context

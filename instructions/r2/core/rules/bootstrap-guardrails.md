@@ -3,6 +3,7 @@ name: bootstrap-guardrails
 description: Global guardrails for transparency, scope control, safety, risk mitigation, and context safety before execution.
 trigger: always_on
 alwaysApply: true
+applyTo: "**"
 tags: ["rosetta-bootstrap", "guardrails", "policy"]
 baseSchema: docs/schemas/rule.md
 ---

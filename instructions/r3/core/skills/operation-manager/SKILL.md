@@ -1,12 +1,13 @@
 ---
 name: operation-manager
 description: "Rosetta skill for reliable execution: plan creation, tracking, and execution coordination via local JSON files."
+license: Apache-2.0
 dependencies: node.js
 disable-model-invocation: false
 user-invocable: true
 argument-hint: feature-name plan-name
 allowed-tools: Bash(npx:*)
-model: claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro-preview
+model: claude-sonnet-4-6
 tags:
   - operation-manager
   - operation-manager-create

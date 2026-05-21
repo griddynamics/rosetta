@@ -2,6 +2,7 @@
 name: plugin-files-mode
 description: Rosetta bootstrap rule, top SKILL to understand user request and properly work on it
 alwaysApply: true
+applyTo: "**"
 trigger: always_on
 baseSchema: docs/schemas/rule.md
 ---
@@ -126,7 +127,8 @@ Step 2+ are provided by `get_context_instructions`.
 - `get_context_instructions` => already loaded, continue with `ph-prep` steps. Instruct subagents to not call Rosetta MCP.
 
 - `ACQUIRE <file[.md]> FROM KB` => read local plugin files:
-  - Search in: `skills/**/<file-name-with-extension>`, `{agents,workflows,rules}/<file-name-with-extension>`
+  - Search in: `skills/**/<file-name-with-extension>`
+  - Search in `agents/`, `workflows/`, and `rules/` for `<file-name-with-extension>`
   - Use glob/find to locate file in plugin structure
 
 - `SEARCH <KEYWORDS> IN KB` => use grep or codebase search in plugin root with KEYWORDS as query or file name:

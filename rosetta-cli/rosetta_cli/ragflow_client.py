@@ -22,7 +22,30 @@ from typing import Any, Dict, List, Optional, cast
 from ragflow_sdk import RAGFlow
 from ragflow_sdk.modules.dataset import DataSet
 from ragflow_sdk.modules.document import Document
+from .ims_utils import retry_call
 from .typing_utils import DatasetLike, DocumentLike, JsonDict
+
+
+class _Timer:
+    """Context manager that prints elapsed time for an SDK call."""
+
+    def __init__(self, label: str) -> None:
+        self.label = label
+        self.t0 = 0.0
+
+    def __enter__(self) -> "_Timer":
+        self.t0 = time.perf_counter()
+        return self
+
+    def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        elapsed_ms = (time.perf_counter() - self.t0) * 1000.0
+        tag = "FAILED" if exc_type else "ok"
+        print(f"      ⏱️  {self.label}: {elapsed_ms:.0f}ms [{tag}]")
+
+
+def _timed(label: str) -> _Timer:
+    """Wrap an SDK call to print its elapsed wall time."""
+    return _Timer(label)
 
 
 
@@ -128,6 +151,88 @@ class RAGFlowClient:
         # Initialize RAGFlow SDK client
         self._client = RAGFlow(api_key=api_key, base_url=base_url, version=version)
 
+        # Per-dataset index of {ims_doc_id: doc}, lazily built and reused across
+        # the publish session. RAGFlow 0.25.0 ignores `metadata_condition` server-
+        # side, so we cannot rely on filtered list_documents to find an existing
+        # doc by ims_doc_id; we list once and index in memory instead.
+        self._doc_index_by_dataset: dict[str, dict[str, DocumentLike]] = {}
+        # Per-client dataset lookup cache. Publishing resolves the same release
+        # dataset for every file; keep those list_datasets calls in-process.
+        self._dataset_by_id: dict[str, DataSet] = {}
+        self._dataset_by_name: dict[str, DataSet] = {}
+
+    def _clear_dataset_cache(self) -> None:
+        self._dataset_by_id.clear()
+        self._dataset_by_name.clear()
+
+    def _remember_dataset(self, dataset: DataSet) -> DataSet:
+        dataset_id = getattr(dataset, "id", None)
+        dataset_name = getattr(dataset, "name", None)
+        if dataset_id:
+            self._dataset_by_id[str(dataset_id)] = dataset
+        if dataset_name:
+            self._dataset_by_name[str(dataset_name)] = dataset
+        return dataset
+
+    def _get_doc_index(self, dataset: DatasetLike) -> dict[str, DocumentLike]:
+        """Return a {ims_doc_id: doc} index for the dataset, building it once.
+
+        Reuses across calls in the same client. Mutate via `_remember_doc` after
+        upload and `_forget_doc` after delete to keep it consistent.
+
+        Tolerates ownership/permission errors from list_documents — RAGFlow can
+        return those for team-shared datasets where the API key holder is not the
+        owner. We treat them as "no existing docs visible" so the publish flow
+        proceeds with fresh uploads.
+        """
+        ds_id = str(dataset.id)
+        cached = self._doc_index_by_dataset.get(ds_id)
+        if cached is not None:
+            return cached
+
+        try:
+            all_docs = self.list_documents(dataset, page_size=self.page_size)
+        except RAGFlowClientError as e:
+            msg = str(e).lower()
+            if (
+                "you don't own" in msg
+                or "you do not own" in msg
+                or "lacks permission" in msg
+            ):
+                self._doc_index_by_dataset[ds_id] = {}
+                return {}
+            raise
+
+        index: dict[str, DocumentLike] = {}
+        for doc in all_docs:
+            meta = getattr(doc, "meta_fields", {}) or {}
+            ims_doc_id = (
+                meta.get("ims_doc_id") if isinstance(meta, dict)
+                else getattr(meta, "ims_doc_id", None)
+            )
+            if ims_doc_id:
+                index[str(ims_doc_id)] = doc
+        self._doc_index_by_dataset[ds_id] = index
+        print(f"      📚 doc-index built for dataset {ds_id}: {len(index)} indexed of {len(all_docs)} listed")
+        return index
+
+    def get_existing_doc(self, dataset: DatasetLike, ims_doc_id: str) -> DocumentLike | None:
+        """Return the doc with this ims_doc_id, or None.
+
+        Uses the per-dataset index. Required because RAGFlow 0.25.0 ignores
+        metadata_condition filters server-side.
+        """
+        return self._get_doc_index(dataset).get(str(ims_doc_id))
+
+    def _remember_doc(self, dataset: DatasetLike, ims_doc_id: str, doc: DocumentLike) -> None:
+        ds_id = str(dataset.id)
+        self._doc_index_by_dataset.setdefault(ds_id, {})[str(ims_doc_id)] = doc
+
+    def _forget_doc(self, dataset: DatasetLike, ims_doc_id: str) -> None:
+        ds_id = str(dataset.id)
+        if ds_id in self._doc_index_by_dataset:
+            self._doc_index_by_dataset[ds_id].pop(str(ims_doc_id), None)
+
     def _handle_response_error(self, response: Any, operation: str) -> None:
         """
         Handle API response errors uniformly.
@@ -172,8 +277,9 @@ class RAGFlowClient:
         embedding_model: str | None = None,
         permission: str = "team",
         chunk_method: str | None = None,
-        parser_config: JsonDict | None = None
-    ) -> DataSet:
+        parser_config: JsonDict | None = None,
+        dry_run: bool = False
+    ) -> DataSet | None:
         """
         Create a new dataset.
         
@@ -212,11 +318,17 @@ class RAGFlowClient:
             # Convert parser_config dict to DataSet.ParserConfig object if needed
             if parser_cfg:
                 kwargs["parser_config"] = DataSet.ParserConfig(self._client, parser_cfg)
-            
-            dataset = self._client.create_dataset(**kwargs)
-            
-            return dataset
-            
+
+            if dry_run:
+                print(f"    [DRY RUN] would self._client.create_dataset({json.dumps({k: v for k, v in kwargs.items() if k != 'parser_config'})})")
+                return None
+
+            with _timed(f"create_dataset(name={name})"):
+                dataset = self._client.create_dataset(**kwargs)
+
+            self._clear_dataset_cache()
+            return self._remember_dataset(cast(DataSet, dataset))
+
         except Exception as e:
             raise RAGFlowClientError(f"Failed to create dataset '{name}': {str(e)}")
     
@@ -247,15 +359,16 @@ class RAGFlowClient:
             RAGFlowClientError: If listing fails
         """
         try:
-            datasets = self._client.list_datasets(
-                page=page,
-                page_size=page_size,
-                orderby=orderby,
-                desc=desc,
-                id=id,
-                name=name
-            )
-            
+            with _timed(f"list_datasets(name={name},id={id})"):
+                datasets = self._client.list_datasets(
+                    page=page,
+                    page_size=page_size,
+                    orderby=orderby,
+                    desc=desc,
+                    id=id,
+                    name=name
+                )
+
             return cast(list[DataSet], datasets)
             
         except Exception as e:
@@ -281,18 +394,28 @@ class RAGFlowClient:
         """
         try:
             if id:
+                cached = self._dataset_by_id.get(str(id))
+                if cached is not None:
+                    return cached
+
                 # Filter by ID
-                datasets = self._client.list_datasets(id=id, page_size=1)
+                with _timed(f"list_datasets(id={id})"):
+                    datasets = self._client.list_datasets(id=id, page_size=1)
             elif name:
+                cached = self._dataset_by_name.get(str(name))
+                if cached is not None:
+                    return cached
+
                 # Filter by name (RAGFlow does substring, we verify exact match)
-                datasets = self._client.list_datasets(name=name, page_size=10)
+                with _timed(f"list_datasets(name={name})"):
+                    datasets = self._client.list_datasets(name=name, page_size=10)
                 # Filter for exact match
                 datasets = [ds for ds in datasets if ds.name == name]
             else:
                 return None
             
             if datasets and len(datasets) > 0:
-                return datasets[0]
+                return self._remember_dataset(cast(DataSet, datasets[0]))
             return None
             
         except Exception as e:
@@ -302,39 +425,46 @@ class RAGFlowClient:
                 return None
             raise RAGFlowClientError(f"Failed to get dataset: {str(e)}")
     
-    def delete_datasets(self, ids: list[str]) -> None:
+    def delete_datasets(self, ids: list[str], dry_run: bool = False) -> None:
         """
         Delete datasets by IDs.
-        
+
         Args:
             ids: List of dataset IDs to delete
-            
+            dry_run: If True, print would-be call and skip the SDK write.
+
         Raises:
             RAGFlowClientError: If deletion fails
         """
         try:
-            self._client.delete_datasets(ids=ids)
-            
+            if dry_run:
+                print(f"    [DRY RUN] would self._client.delete_datasets(ids={json.dumps(ids)})")
+                return
+            with _timed(f"delete_datasets(n={len(ids)})"):
+                self._client.delete_datasets(ids=ids)
+            self._clear_dataset_cache()
+
         except Exception as e:
             raise RAGFlowClientError(f"Failed to delete datasets: {str(e)}")
     
-    def _ensure_dataset(self, name: str, description: str = "") -> DataSet:
+    def _ensure_dataset(self, name: str, description: str = "", dry_run: bool = False) -> DataSet | None:
         """
         Get dataset if exists, create if not.
-        
+
         Args:
             name: Dataset name
             description: Dataset description (used if creating)
-            
+            dry_run: If True and dataset is missing, print would-be create and return None.
+
         Returns:
-            DataSet object
+            DataSet object, or None when dry_run skips a needed create.
         """
         dataset = self.get_dataset(name=name)
         if dataset is not None:
             return dataset
-        
-        # Dataset doesn't exist, create it
-        return self.create_dataset(name, description)
+
+        # Dataset doesn't exist, create it (gated by dry_run)
+        return self.create_dataset(name, description, dry_run=dry_run)
     
     def _resolve_dataset_name(self, template: str, release: str | None) -> str:
         """
@@ -379,7 +509,8 @@ class RAGFlowClient:
         dataset_name: str | None = None,
         dataset_template: str = "aia-{release}",
         force: bool = False,
-        content: bytes | None = None  # NEW: Pre-read content from cache
+        content: bytes | None = None,  # NEW: Pre-read content from cache
+        dry_run: bool = False
     ) -> tuple[DocumentLike, str] | None:
         """
         Upload document with upsert semantics and change detection.
@@ -438,11 +569,20 @@ class RAGFlowClient:
             metadata.release
         )
         
-        # Ensure dataset exists
+        # Ensure dataset exists (dry_run gates the underlying create_dataset call)
         dataset = self._ensure_dataset(
             resolved_name,
-            f"IMS Knowledge - Release {metadata.release}" if metadata.release else "IMS Knowledge"
+            f"IMS Knowledge - Release {metadata.release}" if metadata.release else "IMS Knowledge",
+            dry_run=dry_run,
         )
+        if dataset is None:
+            # dry_run path where dataset would have been created but wasn't.
+            # Return a sentinel so the publisher reports "would-publish", not "skipped".
+            # dataset.id is unavailable here; use resolved_name as the dataset identifier.
+            # Publisher only consumes the dataset_id for parsing (guarded by not dry_run).
+            print(f"    [DRY RUN] dataset '{resolved_name}' missing; would be created.")
+            from types import SimpleNamespace
+            return (cast(DocumentLike, SimpleNamespace(id=metadata.ims_doc_id)), resolved_name)
         
         # Build display name from normalized doc title when available.
         # For R1, doc_title is filename; for R2, doc_title is logical path.
@@ -450,37 +590,11 @@ class RAGFlowClient:
         filename = metadata.doc_title or (file_path.name if file_path else "")
         title = self._build_title_with_tags(metadata.tags, filename)
         
-        # Check if document exists by searching for ims_doc_id in metadata
+        # Check if document exists by ims_doc_id via the per-dataset index.
+        # RAGFlow 0.25.0 ignores metadata_condition server-side, so the index
+        # (built from a single list-all per dataset) is the authoritative lookup.
         start_time = time.time()
-        
-        # Use server-side metadata filtering to find document by ims_doc_id.
-        # RAGFlow may return ownership-style errors when the filtered lookup
-        # misses a document in team-shared datasets; treat that as "not found".
-        try:
-            existing_docs = self.list_documents(
-                dataset=dataset,
-                metadata_condition={
-                    "logic": "and",
-                    "conditions": [{
-                        "name": "ims_doc_id",
-                        "comparison_operator": "is",
-                        "value": metadata.ims_doc_id
-                    }]
-                },
-                page_size=1
-            )
-        except RAGFlowClientError as e:
-            msg = str(e).lower()
-            if (
-                "you don't own" in msg
-                or "you do not own" in msg
-                or "lacks permission" in msg
-            ):
-                existing_docs = []
-            else:
-                raise
-
-        existing_doc = existing_docs[0] if existing_docs else None
+        existing_doc = self.get_existing_doc(dataset, metadata.ims_doc_id)
         
         if existing_doc:
             # Check if content changed by comparing hashes
@@ -500,24 +614,36 @@ class RAGFlowClient:
                 return None
             
             # Content changed, delete old version
-            dataset.delete_documents([existing_doc.id])
+            if dry_run:
+                print(f"    [DRY RUN] would dataset.delete_documents({json.dumps([existing_doc.id])})")
+            else:
+                with _timed(f"dataset.delete_documents(id={existing_doc.id})"):
+                    dataset.delete_documents([existing_doc.id])
+                self._forget_doc(dataset, metadata.ims_doc_id)
             print(f"    🔄 Updating: {title}")
         else:
             print(f"    ⬆️  Uploading: {title}")
-        
+
         # Upload document
         try:
-            documents = dataset.upload_documents([{
-                "display_name": title,
-                "blob": content
-            }])
+            upload_payload = [{"display_name": title, "blob_bytes": len(content)}]
+            if dry_run:
+                print(f"    [DRY RUN] would dataset.upload_documents({json.dumps(upload_payload)})  (blob_bytes shown instead of raw blob)")
+                doc = None
+            else:
+                with _timed(f"dataset.upload_documents(bytes={len(content)})"):
+                    documents = dataset.upload_documents([{
+                        "display_name": title,
+                        "blob": content
+                    }])
+                if not documents:
+                    raise RAGFlowClientError("Upload returned no documents")
+                doc = documents[0]
 
-            if not documents:
-                raise RAGFlowClientError("Upload returned no documents")
-
-            doc = documents[0]
-
-            # Update metadata
+            # RAGFlow 0.25.x rejects None and dict values in meta_fields
+            # (validate_document_meta_fields). Drop None entries; JSON-stringify
+            # the frontmatter dict in place under the same key so the validator
+            # accepts it. The MCP read side already json.loads it on the way back.
             meta_fields: JsonDict = {
                 "ims_doc_id": metadata.ims_doc_id,
                 "tags": metadata.tags,
@@ -525,18 +651,47 @@ class RAGFlowClient:
                 "release": metadata.release,
                 "content_hash": metadata.content_hash,
                 "original_path": metadata.original_path,
-                "sort_order": metadata.sort_order,
                 "doc_title": metadata.doc_title,
             }
+            if metadata.sort_order is not None:
+                meta_fields["sort_order"] = metadata.sort_order
             if metadata.line_count is not None:
                 meta_fields["line_count"] = metadata.line_count
             if metadata.resource_path is not None:
                 meta_fields["resource_path"] = metadata.resource_path
-            frontmatter_value = getattr(metadata, 'frontmatter', None)
-            if frontmatter_value is not None:
-                meta_fields["frontmatter"] = frontmatter_value
+            if metadata.frontmatter is not None:
+                # Stored under "fm" (not "frontmatter") because the per-tenant
+                # ES doc-meta index (ragflow_doc_meta_{tenant_id}) commits a
+                # sticky "object" dynamic mapping for any key that was first
+                # written as a dict. Dropping datasets does NOT reset the index;
+                # the "frontmatter" key is permanently typed as object in
+                # existing deployments, so any string write to it is rejected.
+                # Using "fm" gets a fresh dynamic mapping as "text/keyword".
+                # MCP readers fall back to the legacy "frontmatter" key so old
+                # documents written before this rename remain readable.
+                meta_fields["fm"] = json.dumps(
+                    metadata.frontmatter,
+                    sort_keys=True,
+                    ensure_ascii=False,
+                    default=str,
+                )
 
-            doc.update({"meta_fields": meta_fields})
+            if dry_run:
+                print(f"    [DRY RUN] would doc.update({json.dumps({'meta_fields': meta_fields}, ensure_ascii=False, default=str)})")
+                elapsed = time.time() - start_time
+                print(f"    [DRY RUN] would Done ({elapsed:.2f}s): {title}")
+                # Return a sentinel doc so the publisher reports this file as
+                # "would-publish" rather than "skipped (unchanged)".
+                from types import SimpleNamespace
+                return (cast(DocumentLike, SimpleNamespace(id=metadata.ims_doc_id)), dataset.id)
+            assert doc is not None
+            def _do_update() -> None:
+                with _timed(f"doc.update(id={doc.id})"):
+                    doc.update({"meta_fields": meta_fields})
+            retry_call(
+                _do_update,
+                label=f"doc.update({doc.id})",
+            )
             # SDK update() does not echo meta_fields back in the PUT response;
             # re-fetch to get the actual stored state.
             try:
@@ -545,10 +700,10 @@ class RAGFlowClient:
                 if updated_meta:
                     if isinstance(updated_meta, dict):
                         meta_tags = updated_meta.get('tags', [])
-                        meta_fm = updated_meta.get('frontmatter')
+                        meta_fm = updated_meta.get('fm') or updated_meta.get('frontmatter')
                     else:
                         meta_tags = getattr(updated_meta, 'tags', []) or []
-                        meta_fm = getattr(updated_meta, 'frontmatter', None)
+                        meta_fm = getattr(updated_meta, 'fm', None) or getattr(updated_meta, 'frontmatter', None)
                     tag_count = len(meta_tags) if isinstance(meta_tags, list) else 0
                     print(f"    ✅ Metadata set: {tag_count} tags, frontmatter={'yes' if meta_fm else 'no'}")
                 else:
@@ -558,7 +713,10 @@ class RAGFlowClient:
 
             elapsed = time.time() - start_time
             print(f"    ✅ Done ({elapsed:.2f}s): {title}")
-            
+
+            # Remember the new doc so subsequent lookups in this session find it.
+            self._remember_doc(dataset, metadata.ims_doc_id, cast(DocumentLike, doc))
+
             # Return doc object and dataset ID for parsing
             # doc.id is RAGFlow's internal document ID needed for parsing
             return (cast(DocumentLike, doc), dataset.id)
@@ -566,30 +724,36 @@ class RAGFlowClient:
         except Exception as e:
             raise RAGFlowClientError(f"Failed to upload document '{title}': {str(e)}")
     
-    def trigger_parse(self, dataset_id: str, document_ids: list[str]) -> None:
+    def trigger_parse(self, dataset_id: str, document_ids: list[str], dry_run: bool = False) -> None:
         """
         Trigger async parsing for documents.
-        
+
         Args:
             dataset_id: Dataset ID containing documents
             document_ids: List of document IDs to parse
-        
+            dry_run: If True, print would-be call and skip the SDK write.
+
         Raises:
             RAGFlowClientError: If parsing trigger fails
         """
+        if dry_run:
+            print(f"    [DRY RUN] would dataset({json.dumps(dataset_id)}).async_parse_documents({json.dumps(document_ids)})")
+            return
         dataset = self.get_dataset(id=dataset_id)
         if not dataset:
             raise NotFoundError(f"Dataset not found: {dataset_id}")
-        
+
         try:
-            dataset.async_parse_documents(document_ids)
+            with _timed(f"async_parse_documents(n={len(document_ids)})"):
+                dataset.async_parse_documents(document_ids)
         except Exception as e:
             raise RAGFlowClientError(f"Failed to trigger parsing: {str(e)}")
     
     def parse_documents_batch(
         self,
         documents: list[JsonDict],
-        silent: bool = False
+        silent: bool = False,
+        dry_run: bool = False
     ) -> dict[str, list[str]]:
         """
         Trigger parsing for multiple documents across datasets.
@@ -636,7 +800,7 @@ class RAGFlowClient:
                 print(f"  → Document IDs: {doc_ids[:3]}{'...' if len(doc_ids) > 3 else ''}")
             
             try:
-                self.trigger_parse(dataset_id, doc_ids)
+                self.trigger_parse(dataset_id, doc_ids, dry_run=dry_run)
                 success_datasets.append(dataset_id)
             except Exception as e:
                 failed_datasets.append(dataset_id)
@@ -797,7 +961,9 @@ class RAGFlowClient:
             
             # Bypass SDK and call HTTP API directly
             # SDK doesn't support run, suffix, metadata_condition parameters
-            res = dataset.get(f"/datasets/{dataset.id}/documents", params=params)
+            cond_keys = sorted(params.keys())
+            with _timed(f"list_documents({','.join(cond_keys)})"):
+                res = dataset.get(f"/datasets/{dataset.id}/documents", params=params)
             res_json = cast(JsonDict, cast(Any, res).json())
             
             if res_json.get("code") != 0:

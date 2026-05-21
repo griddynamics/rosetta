@@ -1,7 +1,7 @@
 ---
 name: subagent-contract
 description: "Rosetta MUST skill. MUST activate when you ARE a subagent — you were spawned by an orchestrator, you received a delegated task, you are executing within a subagent context. Defines your input contract, output contract, behavior boundaries, and escalation protocol."
-tags: []
+license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
 

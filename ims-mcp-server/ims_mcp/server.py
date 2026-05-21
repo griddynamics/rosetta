@@ -207,7 +207,9 @@ def _load_mcp_server_instructions() -> str:
         dataset_id = _DATASET_LOOKUP.get_id(dataset_name)
         if not dataset_id:
             return ""
-        dataset = _RAGFLOW.get_dataset(name=dataset_name)
+        dataset = _DATASET_LOOKUP.get_dataset(name=dataset_name)
+        if not dataset:
+            return ""
         params = _QUERY_BUILDER.build_list_params(tags=[TAG_MCP_SERVER_INSTRUCTIONS])
         docs = _DOCUMENT_CLIENT.list_docs(
             dataset=dataset,

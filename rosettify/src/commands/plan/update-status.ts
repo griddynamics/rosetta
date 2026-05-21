@@ -1,17 +1,41 @@
+// Implements FR-PLAN-0012 (update_status subcommand).
+// Uses FR-PLAN-0024 write cycle (atomicWriteWithBackup) for all plan writes.
+// FR-PLAN-0025 — plan writes go through FR-PLAN-0024, NOT the FR-SHRD-0006 optimistic-concurrency function.
+
 import type { RunEnvelope } from "../../registry/types.js";
+import { err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
-import { atomicWritePlan } from "../../shared/concurrency.js";
+import { atomicWriteWithBackup } from "../../shared/plan-io.js";
 import {
   type Plan,
   type Status,
   type UpdateStatusResult,
   VALID_STATUSES,
-  loadPlan,
   savePlan,
   propagateStatuses,
   findPhase,
   findStep,
 } from "./core.js";
+
+export const updateStatusInputSchema = {
+  type: "object" as const,
+  properties: {
+    plan_file: { type: "string", description: "Path to the plan JSON file" },
+    target_id: { type: "string", description: "Step ID to update" },
+    new_status: { type: "string", description: "New status: open | in_progress | complete | blocked | failed" },
+  },
+  required: [],
+};
+
+export const updateStatusOutputSchema = {
+  type: "object" as const,
+  description: "FR-PLAN-0012 — result of update_status",
+  properties: {
+    id: { type: "string" },
+    status: { type: "string" },
+    plan_status: { type: "string" },
+  },
+};
 
 export async function cmdUpdateStatus(
   planFile: string,
@@ -19,9 +43,8 @@ export async function cmdUpdateStatus(
   newStatus: string,
 ): Promise<RunEnvelope<UpdateStatusResult>> {
   try {
-    return atomicWritePlan<Plan, UpdateStatusResult>(
-      loadPlan,
-      savePlan,
+    // FR-PLAN-0024 — use rename-as-guard write cycle
+    const writeResult = await atomicWriteWithBackup<Plan, UpdateStatusResult>(
       planFile,
       (plan) => {
         if (targetId === "entire_plan") {
@@ -49,7 +72,14 @@ export async function cmdUpdateStatus(
           updated: plan,
         };
       },
+      savePlan,
     );
+
+    if (!writeResult.ok) {
+      return { ok: false, result: null, error: writeResult.error, include_help: writeResult.include_help };
+    }
+
+    return { ok: true, result: writeResult.result!.result, error: null, include_help: false };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return { ok: false, result: null, error: `internal_error: ${msg}`, include_help: false };

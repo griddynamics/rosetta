@@ -3,6 +3,7 @@ name: bootstrap-hitl-questioning
 description: Rules for human-in-the-loop (HITL), user communication, questioning, approvals, and coordination during agent execution.
 trigger: always_on
 alwaysApply: true
+applyTo: "**"
 tags: ["rosetta-bootstrap", "guardrails", "hitl", "policy"]
 baseSchema: docs/schemas/rule.md
 ---

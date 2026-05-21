@@ -1,16 +1,42 @@
+// Implements FR-PLAN-0013 (show_status subcommand).
+// Uses FR-SHRD-0009 (readPlanWithRetry) for read resilience.
+
 import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
+import { readPlanWithRetry } from "../../shared/plan-io.js";
+import { ERR_PLAN_FILE_CORRUPTED } from "./errors.js";
 import {
+  type Plan,
   type Status,
   type StatusTotals,
   type ShowStatusPlanResult,
   type ShowStatusPhaseResult,
   type ShowStatusStepResult,
-  loadPlan,
   findPhase,
   findStep,
 } from "./core.js";
+
+export const showStatusInputSchema = {
+  type: "object" as const,
+  properties: {
+    plan_file: { type: "string", description: "Path to the plan JSON file" },
+    target_id: { type: "string", description: "entire_plan | phase-id | step-id (default: entire_plan)" },
+  },
+  required: [],
+};
+
+export const showStatusOutputSchema = {
+  type: "object" as const,
+  description: "FR-PLAN-0013 — status summary for plan, phase, or step",
+  properties: {
+    name: { type: "string" },
+    status: { type: "string" },
+    phases: { type: "object" },
+    steps: { type: "object" },
+    phase_summary: { type: "array" },
+  },
+};
 
 function computeTotals(statuses: Status[]): StatusTotals {
   const t: StatusTotals = {
@@ -43,7 +69,13 @@ export async function cmdShowStatus(
   >
 > {
   try {
-    const plan = loadPlan(planFile);
+    // FR-SHRD-0009 — read with resilience
+    let plan: Plan | null;
+    try {
+      plan = await readPlanWithRetry<Plan>(planFile);
+    } catch {
+      return err(ERR_PLAN_FILE_CORRUPTED);
+    }
     if (!plan) return err("plan_not_found");
 
     if (!targetId || targetId === "entire_plan") {
@@ -74,7 +106,6 @@ export async function cmdShowStatus(
       return ok(result);
     }
 
-    // Check phase
     const phase = findPhase(plan, targetId);
     if (phase) {
       const result: ShowStatusPhaseResult = {
@@ -91,7 +122,6 @@ export async function cmdShowStatus(
       return ok(result);
     }
 
-    // Check step
     const found = findStep(plan, targetId);
     if (found) {
       const { step } = found;

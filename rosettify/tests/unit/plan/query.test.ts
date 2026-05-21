@@ -104,12 +104,14 @@ describe("cmdQuery — target_not_found", () => {
   });
 });
 
-describe("cmdQuery — internal_error catch path", () => {
-  it("returns internal_error when file contains invalid JSON", async () => {
+describe("cmdQuery — plan_file_corrupted on invalid JSON (FR-SHRD-0009)", () => {
+  // FR-SHRD-0009 / FR-PLAN-0021 — readPlanWithRetry throws on parse failure;
+  // query.ts catches and returns plan_file_corrupted
+  it("returns plan_file_corrupted when file contains invalid JSON", async () => {
     const file = planFile("bad.json");
     fs.writeFileSync(file, "{{invalid json{{");
     const result = await cmdQuery(file);
     expect(result.ok).toBe(false);
-    expect(result.error).toContain("internal_error");
+    expect(result.error).toBe("plan_file_corrupted");
   });
 });

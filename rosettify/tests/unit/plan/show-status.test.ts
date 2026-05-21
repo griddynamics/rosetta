@@ -249,13 +249,15 @@ describe("cmdShowStatus — nullish status fields (branch coverage)", () => {
   });
 });
 
-describe("cmdShowStatus — internal_error catch path", () => {
-  it("returns internal_error when file contains invalid JSON", async () => {
+describe("cmdShowStatus — plan_file_corrupted on invalid JSON (FR-SHRD-0009)", () => {
+  // FR-SHRD-0009 / FR-PLAN-0021 — readPlanWithRetry throws on parse failure;
+  // show-status.ts catches and returns plan_file_corrupted
+  it("returns plan_file_corrupted when file contains invalid JSON", async () => {
     const file = planFile("bad.json");
     fs.writeFileSync(file, "{{invalid json{{");
     const result = await cmdShowStatus(file);
     expect(result.ok).toBe(false);
-    expect(result.error).toContain("internal_error");
+    expect(result.error).toBe("plan_file_corrupted");
   });
 });
 

@@ -126,10 +126,9 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 - Organizations govern AI behavior with the same rigor they govern code
 - Instruction authoring, review, and publishing is a standard engineering workflow
 
-## Editions
+## Edition
 
-- **OSS Edition:** Fully open-source, complete source code, self-hosted, community-driven. Includes core agents, workflows, skills, rules, and templates.
-- **Enterprise Edition:** Everything in OSS plus advanced capabilities: automated QA, modernization tools, cross-project knowledge sharing, specialized agents, and dedicated support.
+- **Rosetta:** Fully open-source, complete source code, self-hosted, community-driven. Includes all public agents, workflows, skills, rules, and templates.
 
 For a comparison of installation modes (HTTP, STDIO, Plugin, Offline), see the [Installation — Choose Your Mode](/rosetta/docs/installation/#choose-your-mode) table.
 

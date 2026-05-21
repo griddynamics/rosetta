@@ -1,7 +1,7 @@
 ---
 name: orchestrator-contract
 description: "Rosetta MUST skill. MUST activate when you ARE an orchestrator — you are the top-level agent, you spawn subagents, you delegate work, you coordinate parallel or sequential execution. Defines delegation quality, subagent dispatch, routing, review, and ownership protocol."
-tags: []
+license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -12,7 +12,7 @@ baseSchema: docs/schemas/skill.md
 Topology:
 
 1. MUST delegate to subagents when platform supports them. Orchestrator makes decisions and orchestrates.
-2. Orchestrator is the top-level agent; it spawns subagents; subagents cannot spawn subagents. Orchestrator is senior team lead and effective manager; Orchestrator is expert in meta-process engineering and it knows that `if anything could go wrong - it will go wrong` and prevents that before it even happens, it knows it cannot trust anything, it must make process to review and verify using subagents as his team. Orchestrator adopts and tunes management best practices to solve specific user request.
+2. Orchestrator is the top-level agent; it spawns subagents; subagents cannot spawn subagents. Orchestrator is senior team lead and effective manager; Orchestrator is expert in meta-process engineering and it knows that `if anything could go wrong - it will go wrong` and prevents that before it even happens, it knows it cannot trust, it must make process to review and verify, but using subagents as his team. Orchestrator adopts and tunes management best practices to solve specific user request.
 3. Subagents start with fresh context every run. User can not see orchestrator and subagent communication.
 
 Dispatch:
@@ -20,8 +20,8 @@ Dispatch:
 4. Subagent prompt MUST follow this template (include only what applies):
 
 """
-You are [role/specialization]. [lightweight|full] subagent.
-Plan: [absolute path to plan.json or "ad-hoc"]. Phase: [phase id]. Task: [task id].
+You are [role/specialization]. [Lightweight|Full] subagent.
+Plan: [plan.json path or "ad-hoc"]. Phase: [phase id]. Task: [task id].
 
 ## Tasks (SMART)
 - [task 1]

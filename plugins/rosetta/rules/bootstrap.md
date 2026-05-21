@@ -1,1 +1,0 @@
-../../../instructions/r2/core/rules/bootstrap.md

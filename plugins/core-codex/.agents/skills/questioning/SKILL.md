@@ -1,7 +1,7 @@
 ---
 name: questioning
 description: Ask targeted clarification questions only when high-impact unknowns block safe execution.
-license: Proprietary
+license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: request, unknowns?, assumptions?, blockers?

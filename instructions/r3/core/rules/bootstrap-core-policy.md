@@ -2,6 +2,7 @@
 name: bootstrap-core-policy
 description: Bootstrap prerequisites, request routing, and process-level operating constraints.
 alwaysApply: true
+applyTo: "**"
 trigger: always_on
 tags: ["rosetta-bootstrap", "core", "policy"]
 baseSchema: docs/schemas/rule.md

@@ -13,7 +13,7 @@ Windsurf supports custom configuration through repository-committed files. These
 - `AGENTS.md` - Cascade behavior instructions
 - `.windsurf/rules/` - Path-specific rules for Cascade
 - `.windsurf/commands/` - Slash commands for Cascade
-- `.windsurf/workflows/` - Automation workflows for Cascade
+- `.windsurf/commands/` - Automation workflows for Cascade
 - `.windsurf/skills/` - Multi-step tasks with supporting resources
 
 ---
@@ -297,7 +297,7 @@ Agent: [Deploys to staging environment]
 
 Automation workflows for multi-step tasks.
 
-**Location:** `.windsurf/workflows/`
+**Location:** `.windsurf/commands/`
 
 **File Format:** Markdown with YAML frontmatter
 
@@ -314,7 +314,7 @@ Automation workflows for multi-step tasks.
 
 ### Example Workflow Files
 
-**`.windsurf/workflows/setup.md`:**
+**`.windsurf/commands/setup.md`:**
 
 ```markdown
 ---
@@ -329,7 +329,7 @@ description: Setup development environment for new developers
 6. Run tests to verify setup
 ```
 
-**`.windsurf/workflows/deploy.md`:**
+**`.windsurf/commands/deploy.md`:**
 
 ```markdown
 ---
@@ -418,7 +418,7 @@ your-project/
     │   ├── review.md
     │   ├── test.md
     │   └── deploy.md
-    ├── workflows/
+    ├── commands/
     │   ├── setup.md
     │   └── deploy.md
     └── skills/

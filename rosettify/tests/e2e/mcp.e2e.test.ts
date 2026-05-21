@@ -244,11 +244,13 @@ describe("MCP — plan lifecycle", () => {
       },
     });
     expect(createRes.isError).toBe(false);
-    // Success: payload IS the result directly (no ok wrapper)
+    // Success: payload IS the result directly (compressed-tree shape, no ok wrapper)
     expect((createRes.payload as any).ok).toBeUndefined();
-    const created = createRes.payload as { name: string; status: string };
-    expect(created.name).toBe("MCP E2E Plan");
-    expect(created.status).toBe("open");
+    const created = createRes.payload as { plan: { name: string; status: string }; previous_version: null; phases: unknown[] };
+    expect(created.plan.name).toBe("MCP E2E Plan");
+    expect(created.plan.status).toBe("open");
+    expect(created.previous_version).toBeNull();
+    expect(Array.isArray(created.phases)).toBe(true);
     expect(fs.existsSync(file)).toBe(true);
 
     // 2. next — phase 1 active, s1 should be ready
@@ -309,8 +311,10 @@ describe("MCP — plan lifecycle", () => {
       data: { description: "Updated via upsert" },
     });
     expect(upsertRes.isError).toBe(false);
-    const upsertResult = upsertRes.payload as { id: string; plan_status: string };
-    expect(upsertResult.id).toBe("entire_plan");
+    // upsert returns compressed-tree: {plan:{name,status}, previous_version, phases}
+    const upsertResult = upsertRes.payload as { plan: { name: string; status: string }; previous_version: string; phases: unknown[] };
+    expect(upsertResult.plan).toBeDefined();
+    expect(upsertResult.previous_version).toBeDefined();
   });
 });
 
@@ -373,6 +377,176 @@ describe("MCP — plan next with target_id", () => {
     // Failure: payload IS the error payload {error: "..."}
     expect((r.payload as any).ok).toBeUndefined();
     expect((r.payload as { error: string }).error).toBe("target_not_found");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tools/call — list-templates (FR-PLAN-0032)
+// ---------------------------------------------------------------------------
+
+describe("MCP — plan list-templates (FR-PLAN-0032)", () => {
+  it("list-templates returns catalog without plan_file", async () => {
+    const { content, payload, isError } = await client.callTool("plan", { subcommand: "list-templates" });
+    expect(isError).toBe(false);
+    expect((payload as any).ok).toBeUndefined();
+    const catalog = payload as { create: { name: string; brief: string; placeholders: string[] }[]; upsert: { name: string; brief: string; placeholders: string[] }[] };
+    expect(Array.isArray(catalog.create)).toBe(true);
+    expect(Array.isArray(catalog.upsert)).toBe(true);
+    const createNames = catalog.create.map((e) => e.name);
+    const upsertNames = catalog.upsert.map((e) => e.name);
+    expect(createNames).toContain("for-orchestrator");
+    expect(upsertNames).toContain("for-subagent");
+    // FR-SHRD-0008 — MCP content text must be densest JSON: equals JSON.stringify(payload)
+    // (no indentation, no line breaks). Stronger than substring checks — catches any indent style.
+    expect(content[0]!.text).toBe(JSON.stringify(payload));
+    expect(content[0]!.text).not.toContain("\n");
+  });
+
+  it("each catalog entry has name, brief, and placeholders array", async () => {
+    const { payload, isError } = await client.callTool("plan", { subcommand: "list-templates" });
+    expect(isError).toBe(false);
+    const catalog = payload as { create: unknown[]; upsert: unknown[] };
+    for (const entry of [...catalog.create, ...catalog.upsert]) {
+      const e = entry as { name: string; brief: string; placeholders: string[] };
+      expect(typeof e.name).toBe("string");
+      expect(typeof e.brief).toBe("string");
+      expect(Array.isArray(e.placeholders)).toBe(true);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tools/call — create-with-template (FR-PLAN-0030)
+// ---------------------------------------------------------------------------
+
+describe("MCP — plan create-with-template (FR-PLAN-0030)", () => {
+  it("creates plan from for-orchestrator template with placeholder substitution", async () => {
+    const file = planFile("template-create.json");
+
+    const { payload, isError } = await client.callTool("plan", {
+      subcommand: "create-with-template",
+      plan_file: file,
+      template: "for-orchestrator",
+      "plan-name": "MCP Template Plan",
+      "plan-description": "Created via MCP template",
+    });
+
+    expect(isError).toBe(false);
+    expect((payload as any).ok).toBeUndefined();
+    // Result is compressed-tree
+    const tree = payload as { plan: { name: string; status: string }; previous_version: null; phases: unknown[] };
+    expect(tree.plan.name).toBe("MCP Template Plan");
+    expect(tree.plan.status).toBe("open");
+    expect(tree.previous_version).toBeNull();
+    expect(Array.isArray(tree.phases)).toBe(true);
+    // Plan file exists on disk
+    expect(fs.existsSync(file)).toBe(true);
+    // Placeholder substitution appears in file
+    const raw = fs.readFileSync(file, "utf8");
+    expect(raw).toContain("MCP Template Plan");
+  });
+
+  it("returns invalid_template for unknown template name", async () => {
+    const file = planFile("bad-template.json");
+    const { payload, isError } = await client.callTool("plan", {
+      subcommand: "create-with-template",
+      plan_file: file,
+      template: "no-such-template",
+      "plan-name": "X",
+      "plan-description": "Y",
+    });
+    expect(isError).toBe(true);
+    expect((payload as { error: string }).error).toContain("invalid_template");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tools/call — upsert-with-template (FR-PLAN-0031)
+// ---------------------------------------------------------------------------
+
+describe("MCP — plan upsert-with-template (FR-PLAN-0031)", () => {
+  async function createBasePlan(file: string): Promise<void> {
+    await client.callTool("plan", {
+      subcommand: "create",
+      plan_file: file,
+      data: { name: "MCP Upsert Base" },
+    });
+  }
+
+  it("upserts phase from for-subagent template with .bak file created", async () => {
+    const file = planFile("template-upsert.json");
+    await createBasePlan(file);
+
+    const { payload, isError } = await client.callTool("plan", {
+      subcommand: "upsert-with-template",
+      plan_file: file,
+      template: "for-subagent",
+      "phase-id": "ph-impl",
+      "phase-name": "Implementation",
+      "phase-description": "Implement features",
+    });
+
+    expect(isError).toBe(false);
+    expect((payload as any).ok).toBeUndefined();
+    // Result is compressed-tree
+    const tree = payload as { plan: { name: string }; previous_version: string; phases: unknown[] };
+    expect(tree.plan).toBeDefined();
+    expect(typeof tree.previous_version).toBe("string");
+    expect(Array.isArray(tree.phases)).toBe(true);
+    // .bak* file exists on disk (FR-PLAN-0031 atomic write cycle)
+    const dir = path.dirname(file);
+    const base = path.basename(file);
+    const bakFiles = fs.readdirSync(dir).filter((f) => f.startsWith(base + ".bak"));
+    expect(bakFiles.length).toBeGreaterThan(0);
+    // Placeholder substitution in file
+    const raw = fs.readFileSync(file, "utf8");
+    expect(raw).toContain("ph-impl");
+  });
+
+  it("two upserts produce unique step IDs per phase-id prefix", async () => {
+    const file = planFile("template-upsert2.json");
+    await createBasePlan(file);
+
+    await client.callTool("plan", {
+      subcommand: "upsert-with-template",
+      plan_file: file,
+      template: "for-subagent",
+      "phase-id": "ph-a",
+      "phase-name": "Phase A",
+      "phase-description": "desc a",
+    });
+
+    await client.callTool("plan", {
+      subcommand: "upsert-with-template",
+      plan_file: file,
+      template: "for-subagent",
+      "phase-id": "ph-b",
+      "phase-name": "Phase B",
+      "phase-description": "desc b",
+    });
+
+    const raw = fs.readFileSync(file, "utf8");
+    // Both phase-ids should appear
+    expect(raw).toContain("ph-a");
+    expect(raw).toContain("ph-b");
+    // Step IDs should have different prefixes, no collisions
+    expect(raw).toContain("ph-a-s-");
+    expect(raw).toContain("ph-b-s-");
+  });
+
+  it("returns invalid_template for unknown template name", async () => {
+    const file = planFile("bad-upsert.json");
+    await createBasePlan(file);
+    const { payload, isError } = await client.callTool("plan", {
+      subcommand: "upsert-with-template",
+      plan_file: file,
+      template: "no-such-template",
+      "phase-id": "ph-x",
+      "phase-name": "X",
+      "phase-description": "Y",
+    });
+    expect(isError).toBe(true);
+    expect((payload as { error: string }).error).toContain("invalid_template");
   });
 });
 

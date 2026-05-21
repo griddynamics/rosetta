@@ -54,4 +54,4 @@ Validation: Every recommendation traces to a specific contract or intent element
 """
 model = "gpt-5.4"
 model_reasoning_effort = "medium"
-sandbox_mode = "read-only"
+sandbox_mode = "workspace-write"

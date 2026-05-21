@@ -205,16 +205,16 @@ Given: dispatch returns {ok: false, error: "unknown_command: foo | valid: ...", 
 ## FR-ARCH-0007 AI-First Output Design
 
 <req id="FR-ARCH-0007" type="FR" level="System">
-  <title>AI-first output format</title>
-  <statement>All tool outputs SHALL be JSON. Outputs SHALL include a brief explanation of what is returned (unless self-evident) and suggested next actions where applicable. This applies to all commands except install, uninstall, and upgrade which are human-friendly.</statement>
-  <rationale>Primary consumers are AI coding agents that need structured, actionable responses.</rationale>
+  <title>All command output is JSON</title>
+  <statement>All command output SHALL be valid JSON for both CLI and MCP frontends. Output structure SHALL be machine-readable so it can be consumed by AI agents and pluggable automation. Outputs SHALL include a brief explanation of what is returned (unless self-evident) and suggested next actions where applicable. This rule applies to every command without exception.</statement>
+  <rationale>Primary consumers are AI coding agents and automation pipelines that need structured, parseable responses. A single uniform output contract simplifies integration and avoids special cases.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: any AI-first tool. When: invoked successfully. Then: output is valid JSON containing the result and, where applicable, a next_steps field. When: invoked with an error. Then: output is valid JSON with an error field.</criteria>
+    <criteria>Given: any command invoked via CLI or MCP. When: it completes successfully or fails. Then: stdout output parses as valid JSON. No command emits non-JSON output to the consumer.</criteria>
   </acceptance>
 </req>
 
@@ -229,7 +229,7 @@ Given: dispatch returns {ok: false, error: "unknown_command: foo | valid: ...", 
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
-  <status>Draft</status>
+  <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: rosettify uninstall without --force. Then: error explaining the action and requiring --force. Given: rosettify uninstall --force. Then: proceeds with uninstall.</criteria>

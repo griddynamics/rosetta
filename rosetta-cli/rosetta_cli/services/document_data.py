@@ -6,12 +6,14 @@ from dataclasses import dataclass
 from pathlib import Path
 import hashlib
 import uuid
-from typing import List, Optional, cast
+from typing import Any, List, Optional, cast
 
 from ..typing_utils import JsonDict, JsonValue
 
+frontmatter: Any
 try:
-    import frontmatter
+    import frontmatter as _frontmatter_module
+    frontmatter = _frontmatter_module
 except Exception:  # pragma: no cover - guarded at runtime
     frontmatter = None
 
@@ -347,7 +349,7 @@ class DocumentData:
 
         sort_order_raw = post.metadata.get("sort_order")
         sort_order: Optional[int] = None
-        if sort_order_raw is not None:
+        if isinstance(sort_order_raw, (int, float, str)):
             try:
                 sort_order = int(sort_order_raw)
             except (TypeError, ValueError):

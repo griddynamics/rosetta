@@ -1,6 +1,7 @@
 ---
 name: plan-manager
 description: "Rosetta skill for reliable execution: plan creation, tracking, and execution coordination via local JSON files."
+license: Apache-2.0
 dependencies: node.js
 disable-model-invocation: false
 user-invocable: true
@@ -24,7 +25,7 @@ Senior execution planner and tracker for plan-driven workflows.
 
 <when_to_use_skill>
 
-Primary operation manager for orchestrators and subagents. Creates, tracks, and executes plans as local JSON files.
+Primary plan manager for orchestrators and subagents. Creates, tracks, and executes plans as local JSON files.
 
 </when_to_use_skill>
 

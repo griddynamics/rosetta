@@ -66,19 +66,19 @@ Cross-cutting concerns used by all commands. No command reimplements these.
   </acceptance>
 </req>
 
-## FR-SHRD-0006 Optimistic Concurrency for File Writes
+## FR-SHRD-0006 Optimistic Concurrency for Non-Plan File Writes
 
 <req id="FR-SHRD-0006" type="FR" level="System">
   <title>Common optimistic concurrency via updated_at</title>
-  <statement>The common layer SHALL provide a read-modify-write function that checks updated_at before writing. If updated_at changed since read, retry (re-read, re-apply, re-write). After max retries (default 3), return {error: "concurrent_write_conflict"}. Commands that write JSON files SHALL use this function.</statement>
-  <rationale>Parallel subagents write to the same files without coordination.</rationale>
+  <statement>The common layer SHALL provide a read-modify-write function that checks updated_at before writing. If updated_at changed since read, retry (re-read, re-apply, re-write). After max retries (default 3), return {error: "concurrent_write_conflict"}. Commands that write JSON files other than the plan file SHALL use this function. Plan-file writes are governed exclusively by FR-PLAN-0024 (rename-as-guard with backup chain) and SHALL NOT use this function.</statement>
+  <rationale>Parallel subagents write to the same files without coordination. Plan writes have stronger semantics (atomic guard + backup chain per FR-PLAN-0024) and a different retry budget and error code; this function remains the general utility for any other JSON file rosettify may write in the future.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: two concurrent writes to the same file. When: both complete. Then: file is valid, no data loss. Given: 4 consecutive mismatches. Then: {error: "concurrent_write_conflict"}.</criteria>
+    <criteria>Given: two concurrent writes to the same non-plan JSON file via this function. When: both complete. Then: file is valid, no data loss. Given: 4 consecutive mismatches. Then: {error: "concurrent_write_conflict"}. Given: plan-file writes. When: inspected. Then: they go through FR-PLAN-0024 (rename-as-guard), not this function.</criteria>
   </acceptance>
 </req>
 
@@ -101,6 +101,38 @@ The log entry SHALL include at minimum: the tool name and the error string. It M
     <criteria>Given: CLI or MCP receives ok=false with error="plan_not_found". When: output is written. Then: log file contains a WARN entry for that tool. Consumer receives output before or after logging completes (logging is best-effort async).
 Given: ok=false with error="internal_error: ...". When: output is written. Then: log file contains an ERROR entry. Consumer receives the sanitized error message without the internal_error prefix detail in sensitive parts.
 Given: ok=true. When: output is written. Then: no additional log entry from the frontend (run delegate logging is separate).</criteria>
+  </acceptance>
+</req>
+
+## FR-SHRD-0008 Dense JSON Output
+
+<req id="FR-SHRD-0008" type="FR" level="System">
+  <title>Command output payloads serialized in densest JSON form</title>
+  <statement>All command output payloads SHALL be serialized as the densest possible JSON: no whitespace indentation, no line breaks between elements, and no human-readable formatting. The plan file on the filesystem is governed by FR-PLAN-0026 and is exempt from this rule.</statement>
+  <rationale>Output is consumed by AI agents and automation pipelines; dense JSON minimizes token cost and bandwidth without changing semantics.</rationale>
+  <source>User</source>
+  <ticketId>CTORNDGAIN-1333</ticketId>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: any command output written to stdout by CLI or MCP. When: inspected. Then: the payload contains no newlines or indentation between JSON elements. Given: the plan file on disk. Then: dense rule does not apply; FR-PLAN-0026 applies instead.</criteria>
+  </acceptance>
+</req>
+
+## FR-SHRD-0009 Read Resilience for Plan File
+
+<req id="FR-SHRD-0009" type="FR" level="System">
+  <title>Read retries when plan file missing but a backup exists</title>
+  <statement>When a read attempt observes the plan file is missing AND at least one matching backup file (per FR-PLAN-0024 naming convention) exists in the same directory, the read SHALL wait 100 milliseconds and retry, up to a maximum of 50 retries. If the plan file is still missing after retries are exhausted, the read SHALL return `plan_not_found`. If the plan file is missing AND no backup file exists, the read SHALL return `plan_not_found` immediately without retrying.</statement>
+  <rationale>The atomic rename-as-guard write cycle (FR-PLAN-0024) has a brief window during which the plan file is renamed to its backup before the new content is written; concurrent reads tolerating this window avoid spurious not-found failures and provide resilience against crash-recovery states.</rationale>
+  <source>User</source>
+  <ticketId>CTORNDGAIN-1333</ticketId>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: plan file missing AND a matching backup file exists. When: a read subcommand is invoked. Then: it retries every 100 ms up to 50 times before returning `plan_not_found`. Given: plan file missing AND no backup file exists. When: a read subcommand is invoked. Then: it returns `plan_not_found` immediately. Given: plan file appears between retries. Then: the read completes successfully.</criteria>
   </acceptance>
 </req>
 

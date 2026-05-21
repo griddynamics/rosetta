@@ -45,6 +45,12 @@ When building template-based generators, separate the generic replacement engine
 ### Verify Target Runtime Capabilities Before Generating Code That References Them [ACTIVE]
 Always confirm that assumed env vars, APIs, or runtime features actually exist in the target platform before generating code that depends on them.
 
+### Cross-Process Mutex Requires An Atomic-Create Primitive, Not Rename Or Hardlink [ACTIVE]
+When implementing concurrent-writer safety for shared files, plain `fs.renameSync` (POSIX rename overwrites the destination) and `fs.linkSync` (atomic per-name but doesn't serialize the read-mutate-write window) both fail under real multi-process load. Verified by spawning N≥10 concurrent processes: rename lost ~10% of writes; hardlink lost ~10% at N=30. Use an atomic-create primitive (`fs.mkdirSync` on a `.lock` directory, or `O_CREAT|O_EXCL` file marker) to wrap the entire cycle, with a stale-lock timeout (~30 s) so crashed holders don't deadlock followers. Always validate concurrency-sensitive code with real spawned processes, not in-process async or mocked filesystems — single-process tests cannot reproduce cross-process races.
+
+### Validate Concurrency Claims With Real Multi-Process Tests Before Shipping [ACTIVE]
+Unit tests that mock filesystem races (vi.spyOn, in-process Promise.all) cannot catch cross-process write conflicts on real filesystems. When a requirement promises concurrent-write safety, the validation MUST include a multi-process test that spawns N independent OS processes against a single shared resource and asserts (a) no lost writes, (b) no corrupted state, (c) no leaked lock artifacts. The cost is one bash/node script and ~5 seconds of CI time; it catches an entire class of bugs that pass every other gate. Build this test before claiming the feature is done.
+
 ## What Worked
 
 ### Inspecting Upstream `action.yml` With `gh api` Separates Repo Fixes From Upstream Limits [ACTIVE]

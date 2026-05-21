@@ -1,5 +1,7 @@
 /**
- * Unit tests for cmdUpsert (FR-PLAN-0015).
+ * Unit tests for cmdUpsert (FR-PLAN-0015 / FR-PLAN-0040 / FR-PLAN-0024).
+ * Updated for Phase 9: expects compressed-tree result, .bakNNN file after upsert,
+ * previous_version non-null after write, status-strip via plan show_status.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
@@ -9,6 +11,7 @@ import { cmdUpsert } from "../../../src/commands/plan/upsert.js";
 import { savePlan, loadPlan } from "../../../src/commands/plan/core.js";
 import { planToolDef } from "../../../src/commands/plan/index.js";
 import { fullPlan, minimalPlan } from "../../fixtures/plans.js";
+import type { CompressedPlanTree } from "../../../src/commands/plan/output.js";
 
 let tmpDir: string;
 
@@ -30,12 +33,66 @@ function writePlan(name = "plan.json"): string {
   return file;
 }
 
+// ---------------------------------------------------------------------------
+// FR-PLAN-0015 / FR-PLAN-0040 — compressed-tree result shape
+// ---------------------------------------------------------------------------
+
+describe("cmdUpsert — FR-PLAN-0040 compressed-tree result", () => {
+  // FR-PLAN-0040 — upsert returns compressed-tree shape
+  it("returns compressed-tree shape after upsert", async () => {
+    const file = writePlan();
+    const result = await cmdUpsert(file, "entire_plan", { description: "Updated desc" });
+    expect(result.ok).toBe(true);
+    const tree = result.result as CompressedPlanTree;
+
+    expect(tree.plan).toBeDefined();
+    expect(tree.plan.status).toBeDefined();
+    expect(Array.isArray(tree.phases)).toBe(true);
+
+    // No old-shape fields
+    expect((tree as Record<string, unknown>)["id"]).toBeUndefined();
+    expect((tree as Record<string, unknown>)["plan_status"]).toBeUndefined();
+    expect((tree as Record<string, unknown>)["message"]).toBeUndefined();
+  });
+
+  // FR-PLAN-0024 — .bakNNN file created after upsert on existing plan
+  it("creates .bak000 file after upsert on existing plan", async () => {
+    const file = writePlan();
+    const result = await cmdUpsert(file, "entire_plan", { description: "Updated" });
+    expect(result.ok).toBe(true);
+    const tree = result.result as CompressedPlanTree;
+
+    // previous_version is non-null
+    expect(tree.previous_version).not.toBeNull();
+    expect(typeof tree.previous_version).toBe("string");
+
+    // The backup file must exist
+    expect(fs.existsSync(tree.previous_version!)).toBe(true);
+    expect(tree.previous_version).toContain(".bak000");
+  });
+
+  // FR-PLAN-0017 — previous_version is non-null after upsert on existing file
+  it("previous_version is non-null after upsert on existing file", async () => {
+    const file = writePlan();
+    const result = await cmdUpsert(file, "entire_plan", { description: "x" });
+    expect(result.ok).toBe(true);
+    expect((result.result as CompressedPlanTree).previous_version).not.toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// FR-PLAN-0015 — existing subcommand behaviors (updated assertions)
+// ---------------------------------------------------------------------------
+
 describe("cmdUpsert — entire_plan on missing file (create)", () => {
-  it("creates new plan file when it does not exist", async () => {
+  it("creates new plan file when it does not exist and returns compressed-tree", async () => {
     const file = planFile("new.json");
     const result = await cmdUpsert(file, "entire_plan", { name: "Created" });
     expect(result.ok).toBe(true);
-    expect(result.result!.id).toBe("entire_plan");
+    const tree = result.result as CompressedPlanTree;
+
+    // Compressed-tree shape
+    expect(tree.plan).toBeDefined();
     expect(fs.existsSync(file)).toBe(true);
     const plan = loadPlan(file)!;
     expect(plan.name).toBe("Created");
@@ -153,18 +210,31 @@ describe("cmdUpsert — insert new step", () => {
   });
 });
 
-describe("cmdUpsert — status field stripping", () => {
-  it("silently ignores status field in patch data", async () => {
+// ---------------------------------------------------------------------------
+// FR-PLAN-0015 — status field stripping (silently dropped)
+// ---------------------------------------------------------------------------
+
+describe("cmdUpsert — status field stripping (FR-PLAN-0015)", () => {
+  // FR-PLAN-0015 — status fields in patch are silently stripped;
+  // verify via show_status afterwards (per approved resolution from validator-phase7)
+  it("silently ignores status field in patch data — status unchanged on disk", async () => {
     const file = writePlan();
     const result = await cmdUpsert(file, "s1", { name: "Step 1 Renamed", status: "complete" });
     expect(result.ok).toBe(true);
-    // status should NOT be changed via upsert
+
+    // status should NOT be changed via upsert — verify on disk
     const plan = loadPlan(file)!;
     expect(plan.phases[0]!.steps[0]!.status).toBe("open");
-    // result should carry a message about ignored status
-    expect(result.result!.message).toContain("update_status");
+
+    // The compressed-tree result should have no message field (it was removed in Phase 5)
+    const tree = result.result as CompressedPlanTree;
+    expect((tree as Record<string, unknown>)["message"]).toBeUndefined();
   });
 });
+
+// ---------------------------------------------------------------------------
+// FR-PLAN-0015 — plan_not_found
+// ---------------------------------------------------------------------------
 
 describe("cmdUpsert — plan_not_found", () => {
   it("returns plan_not_found for missing file on non-entire_plan target", async () => {
@@ -174,30 +244,28 @@ describe("cmdUpsert — plan_not_found", () => {
   });
 });
 
-describe("cmdUpsert — returns plan_status", () => {
-  it("returns plan_status in result", async () => {
-    const file = writePlan();
-    const result = await cmdUpsert(file, "entire_plan", { description: "x" });
-    expect(result.ok).toBe(true);
-    expect(result.result!.plan_status).toBeDefined();
+// ---------------------------------------------------------------------------
+// FR-PLAN-0015 — internal_error catch path
+// ---------------------------------------------------------------------------
+
+describe("cmdUpsert — FR-PLAN-0021 plan_file_corrupted (entire_plan path)", () => {
+  // FR-PLAN-0021 — invalid JSON on existing file SHALL return plan_file_corrupted (not internal_error).
+  it("returns plan_file_corrupted when plan file contains invalid JSON on entire_plan target", async () => {
+    const file = path.join(tmpDir, "bad-plan.json");
+    fs.writeFileSync(file, "{{invalid json{{");
+    const result = await cmdUpsert(file, "entire_plan", { name: "x" });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("plan_file_corrupted");
   });
 });
 
-describe("cmdUpsert — internal_error catch path (entire_plan path)", () => {
-  it("returns internal_error when plan file contains invalid JSON on entire_plan target", async () => {
-    const file = path.join(tmpDir, "bad-plan.json");
-    fs.writeFileSync(file, "{{invalid json{{");
-    // Use entire_plan target — triggers loadPlan synchronously in the try block
-    const result = await cmdUpsert(file, "entire_plan", { name: "x" });
-    expect(result.ok).toBe(false);
-    expect(result.error).toContain("internal_error");
-  });
-});
+// ---------------------------------------------------------------------------
+// FR-PLAN-0015 — invalid_data
+// ---------------------------------------------------------------------------
 
 describe("cmdUpsert — invalid_data (FR-PLAN-0015)", () => {
   it("returns invalid_data error when data is malformed JSON string", async () => {
     const file = writePlan();
-    // Call via the plan run delegate which parses JSON strings
     const result = await planToolDef.run({
       subcommand: "upsert",
       plan_file: file,
@@ -208,6 +276,10 @@ describe("cmdUpsert — invalid_data (FR-PLAN-0015)", () => {
     expect(result.error).toContain("invalid_data");
   });
 });
+
+// ---------------------------------------------------------------------------
+// FR-PLAN-0015 — immutable_id
+// ---------------------------------------------------------------------------
 
 describe("cmdUpsert — immutable_id (FR-PLAN-0015)", () => {
   it("returns immutable_id when patch contains different id than target_id", async () => {

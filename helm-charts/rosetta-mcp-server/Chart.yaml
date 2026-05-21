@@ -1,0 +1,17 @@
+apiVersion: v2
+name: rosetta-mcp-helm-chart
+description: Helm chart for Rosetta MCP server - the consulting layer between IDEs and Rosetta knowledge base (RAGFlow)
+type: application
+version: 0.2.0
+appVersion: "2.0.0"
+keywords:
+  - rosetta
+  - mcp
+  - mcp-server
+  - ai
+home: https://github.com/griddynamics/rosetta
+sources:
+  - https://github.com/griddynamics/rosetta
+maintainers:
+  - name: Rosetta Team
+    url: https://github.com/griddynamics/rosetta

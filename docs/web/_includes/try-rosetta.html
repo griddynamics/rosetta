@@ -18,7 +18,7 @@
 <script>
 (function(){
   var scenarios = [
-    // ── FREE WORKFLOWS ──
+    // ── WORKFLOWS ──
     {
       title: 'What can Rosetta help with?',
       tag: 'Self Help',
@@ -26,7 +26,7 @@
       messages: [
         { role: 'user', text: 'What workflows are available? I need to set up a new project.' },
         { role: 'rosetta', text: '<strong>Mode: self-help</strong> — Listing capabilities from knowledge base...' },
-        { role: 'rosetta', text: '<strong>Free workflows:</strong> Init, Self Help, Coding, Requirements, Ad-hoc.<br><strong>Pro workflows:</strong> Research, Code Analysis, Automated QA, Test Case Generation, Modernization, External Library, Coding Agents Prompting.<br><br>Describe what you need — Rosetta classifies and routes automatically.' },
+        { role: 'rosetta', text: '<strong>Workflows:</strong> Init, Self Help, Coding, Requirements, Ad-hoc, Research, Code Analysis, Automated QA, Test Case Generation, Modernization, External Library, Coding Agents Prompting.<br><br>Describe what you need — Rosetta classifies and routes automatically.' },
         { role: 'rosetta', text: '<strong>Guide:</strong> You asked about setting up a project. That maps to <strong>Init</strong>. It generates TECHSTACK.md, CODEMAP.md, CONTEXT.md, ARCHITECTURE.md, patterns, and IDE shells in 8 phases.<br><br>Ready to start?' },
         { role: 'rosetta', text: '<strong>Handoff:</strong> Launching Init workflow now...' },
         { role: 'cta', text: '' }
@@ -95,7 +95,7 @@
     {
       title: 'Research architecture options',
       tag: 'Research',
-      paid: true,
+      paid: false,
       messages: [
         { role: 'user', text: 'Research options for migrating our queue from RabbitMQ to something more scalable.' },
         { role: 'rosetta', text: '<strong>Mode: research...</strong>' },
@@ -105,11 +105,11 @@
         { role: 'cta', text: '' }
       ]
     },
-    // ── PRO WORKFLOWS ──
+    // ── ADVANCED WORKFLOWS ──
     {
       title: 'Analyze codebase and trace flows',
       tag: 'Code Analysis',
-      paid: true,
+      paid: false,
       messages: [
         { role: 'user', text: 'Explain how payment processing works end-to-end.' },
         { role: 'rosetta', text: 'Launching code-analysis...' },
@@ -120,7 +120,7 @@
     {
       title: 'Generate QA test suite',
       tag: 'Automated QA',
-      paid: true,
+      paid: false,
       messages: [
         { role: 'user', text: 'Create QA automation for the checkout flow.' },
         { role: 'rosetta', text: 'Launching aqa...' },
@@ -131,7 +131,7 @@
     {
       title: 'Generate test cases from Jira',
       tag: 'Test Case Gen',
-      paid: true,
+      paid: false,
       messages: [
         { role: 'user', text: 'Generate test cases for PROJ-123.' },
         { role: 'rosetta', text: 'Launching test-case-gen...' },
@@ -142,7 +142,7 @@
     {
       title: 'Modernize legacy codebase',
       tag: 'Modernization',
-      paid: true,
+      paid: false,
       messages: [
         { role: 'user', text: 'Migrate our billing module from monolith to microservice.' },
         { role: 'rosetta', text: 'Launching modernization...' },
@@ -153,7 +153,7 @@
     {
       title: 'Onboard an internal library',
       tag: 'External Library',
-      paid: true,
+      paid: false,
       messages: [
         { role: 'user', text: 'Teach Rosetta our internal authentication library.' },
         { role: 'rosetta', text: 'Launching external-lib...' },
@@ -164,7 +164,7 @@
     {
       title: 'Author a prompt for your AI agent',
       tag: 'Agents Prompting',
-      paid: true,
+      paid: false,
       messages: [
         { role: 'user', text: 'Author a code review skill for our internal AI agent.' },
         { role: 'rosetta', text: 'Launching coding-agents-prompting...' },
@@ -205,30 +205,16 @@
     scenariosEl.style.display = '';
     scenariosEl.innerHTML = '';
 
-    var freeLabel = document.createElement('div');
-    freeLabel.className = 'try-section-label';
-    freeLabel.textContent = 'Free';
-    scenariosEl.appendChild(freeLabel);
+    var label = document.createElement('div');
+    label.className = 'try-section-label';
+    label.textContent = 'Workflows';
+    scenariosEl.appendChild(label);
 
-    scenarios.filter(function(s) { return !s.paid; }).forEach(function(s) {
+    scenarios.forEach(function(s) {
       var idx = scenarios.indexOf(s);
       var card = document.createElement('div');
       card.className = 'try-scenario-card';
       card.innerHTML = '<div class="try-scenario-tag">' + s.tag + '</div><div class="try-scenario-title">' + s.title + '</div>';
-      card.addEventListener('click', function() { playScenario(idx); });
-      scenariosEl.appendChild(card);
-    });
-
-    var proLabel = document.createElement('div');
-    proLabel.className = 'try-section-label try-section-label--pro';
-    proLabel.textContent = 'Pro';
-    scenariosEl.appendChild(proLabel);
-
-    scenarios.filter(function(s) { return s.paid; }).forEach(function(s) {
-      var idx = scenarios.indexOf(s);
-      var card = document.createElement('div');
-      card.className = 'try-scenario-card try-scenario-card--pro';
-      card.innerHTML = '<div class="try-scenario-tag">' + s.tag + '</div><div class="try-scenario-title">' + s.title + '</div><div class="try-scenario-pro-badge">Pro</div>';
       card.addEventListener('click', function() { playScenario(idx); });
       scenariosEl.appendChild(card);
     });

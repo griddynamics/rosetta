@@ -1,6 +1,7 @@
 ---
 name: init-workspace-verification
 description: "Rosetta skill to verify workspace initialization completeness and run catch-up for missed artifacts."
+license: Apache-2.0
 model: claude-sonnet-4-6, gpt-5.4-medium
 tags: ["init", "workspace", "verification", "validation"]
 baseSchema: docs/schemas/skill.md

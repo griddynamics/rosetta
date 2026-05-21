@@ -36,3 +36,8 @@ Requirements for rosettify npm package: a unified tool runner for Rosetta with d
 - 8 approved requirement files, 1 draft (FUTURE.md — intentional placeholders)
 - Batch 1 (now): architecture, plan, help, CLI, MCP, packaging, shared, NFR
 - Batch 2+ (future): install, uninstall, upgrade, generate, handle
+
+## Assets
+
+- `assets/templates/create-for-orchestrator.json` — canonical content for the `for-orchestrator` create template (FR-PLAN-0035)
+- `assets/templates/upsert-for-subagent.json` — canonical content for the `for-subagent` upsert template (FR-PLAN-0036)

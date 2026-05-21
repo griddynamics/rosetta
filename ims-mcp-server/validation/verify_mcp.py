@@ -237,7 +237,7 @@ async def main() -> None:
                         )
                     break
 
-                if content.startswith("No documents found for resource path:"):
+                if content.startswith("Error: No documents found for resource path:"):
                     no_docs_count += 1
                     print("  Result: dataset reachable, no matching resource_path")
                 elif content.startswith("Error:"):
@@ -663,34 +663,54 @@ async def main() -> None:
         except Exception as exc:
             errors.append(f'list_instructions invalid format check failed: {exc}')
 
-        # 7. Verify query_instructions >5 file limit returns listing format
-        print("\n=== Query Instructions >5 File Limit Verification ===")
-        # Use a broad query that should match many documents
-        broad_tags = ["r2"]
+        # 7a. Verify query_instructions listing path (>QUERY_LIST_THRESHOLD,
+        #     <=QUERY_TOO_MANY_THRESHOLD) → header + listing.
+        print("\n=== Query Instructions Listing Threshold Verification (>5 and <=25) ===")
+        # 'workflow' (singular) lands in the listing band on aia-r2 with both
+        # core and grid overlays published (~12 docs). 'workflows' (plural)
+        # exceeds the ceiling once grid is included.
+        listing_tags = ["workflow"]
         try:
-            result = await client.call_tool("query_instructions", {"tags": broad_tags})
+            result = await client.call_tool("query_instructions", {"tags": listing_tags})
             limit_text = extract_text(result)
             print(f"    Result ({len(limit_text)} chars): {limit_text[:300]}...")
 
             if "Query matched" in limit_text and "without content" in limit_text:
                 print("    Result: >5 LIMIT TRIGGERED (listing format)")
                 if not is_listing_output(limit_text):
-                    errors.append("query_instructions >5 limit: header present but no listing entries found")
+                    errors.append("query_instructions listing: header present but no listing entries found")
                 if 'path=""' in limit_text:
-                    errors.append("query_instructions >5 limit: has entries with empty path")
+                    errors.append("query_instructions listing: has entries with empty path")
                 if 'frontmatter="' not in limit_text:
-                    errors.append("query_instructions >5 limit: missing frontmatter attribute")
-            elif is_successful_bundle(limit_text):
-                # Could be <=5 docs matched - not necessarily an error
-                print("    Result: bundled content returned (<=5 docs matched, limit not triggered)")
-            elif limit_text.startswith("No instructions found"):
-                print("    Result: no instructions found for broad tag")
-            elif limit_text.startswith("Error:"):
-                errors.append(f"query_instructions broad query failed: {limit_text[:100]}")
+                    errors.append("query_instructions listing: missing frontmatter attribute")
             else:
-                print(f"    Result: unexpected format")
+                errors.append(
+                    f"query_instructions listing path expected for tags={listing_tags} "
+                    f"(>5 and <=25 docs) but got: {limit_text[:120]}"
+                )
         except Exception as exc:
-            errors.append(f"query_instructions >5 limit check failed: {exc}")
+            errors.append(f"query_instructions listing threshold check failed: {exc}")
+
+        # 7b. Verify query_instructions defensive ceiling (>QUERY_TOO_MANY_THRESHOLD)
+        #     → non-cacheable Error refusing to bundle.
+        print("\n=== Query Instructions Defensive Ceiling Verification (>25) ===")
+        # 'r2' tags every doc in the release — guaranteed to exceed the
+        # defensive ceiling regardless of dataset size.
+        ceiling_tags = ["r2"]
+        try:
+            result = await client.call_tool("query_instructions", {"tags": ceiling_tags})
+            ceiling_text = extract_text(result)
+            print(f"    Result ({len(ceiling_text)} chars): {ceiling_text[:300]}...")
+
+            if ceiling_text.startswith("Error: No documents found or too many documents found"):
+                print("    Result: >25 DEFENSIVE CEILING TRIGGERED (refusing to bundle)")
+            else:
+                errors.append(
+                    f"query_instructions defensive ceiling expected for tags={ceiling_tags} "
+                    f"(>25 docs) but got: {ceiling_text[:120]}"
+                )
+        except Exception as exc:
+            errors.append(f"query_instructions defensive ceiling check failed: {exc}")
 
         # ── Plan Manager Verification ──────────────────────────────────
         # Write-data tools are permanently disabled (@mcp.tool commented out).

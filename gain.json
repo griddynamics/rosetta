@@ -1,36 +1,52 @@
 {
-  "rosetta": {
-    "version": "r2",
-    "workspace": {
-      "context": "docs/CONTEXT.md",
-      "architecture": "docs/ARCHITECTURE.md",
-      "assumptions": "docs/ASSUMPTIONS.md",
-      "todo": "docs/TODO.md",
-      "techstack": "docs/TECHSTACK.md",
-      "dependencies": "docs/DEPENDENCIES.md",
-      "codemap": "docs/CODEMAP.md",
-      "implementation": "agents/IMPLEMENTATION.md",
-      "memory": "agents/MEMORY.md",
-      "plans": "plans/",
-      "temp": "agents/TEMP/"
-    },
-    "instructions": {
-      "root": "instructions/r2/core/",
-      "skills": "instructions/r2/core/skills/",
-      "agents": "instructions/r2/core/agents/",
-      "workflows": "instructions/r2/core/workflows/",
-      "rules": "instructions/r2/core/rules/"
-    },
-    "shells": {
-      "skills": ".claude/skills/",
-      "agents": ".claude/agents/",
-      "commands": ".claude/commands/",
-      "rules": ".claude/rules/"
-    },
-    "sdlc": {
-      "mode": "upgrade",
-      "composite": false,
-      "exclude_from_scm": ["agents/TEMP/", "refsrc/", ".env", ".env.*"]
-    }
+  "description": "Grid Dynamics AI Native service suite. This file describes shared context for services.",
+  "servicesDescription": {
+    "rosetta": "Rosetta is a meta-prompting, context engineering, and centralized instructions management for AI coding agents. Also utilized by SpecFlow."
+  },
+  "codingAgents": [
+    "cursor",
+    "claude-code",
+    "codex",
+    "copilot"
+  ],
+  "sdlc": {
+    "issue_tracker": "Jira",
+    "issue_tracker_project": "https://griddynamics.atlassian.net/jira/software/c/projects/CTORNDGAIN/boards/6077",
+    "wiki": "Confluence",
+    "wiki_project": "https://griddynamics.atlassian.net/wiki/spaces/RNDM/pages/3927834626/Rosetta+Knowledge+Base",
+    "test_management": "TestRail",
+    "test_management_project": "CTORNDGAIN",
+    "scm": "GitHub",
+    "scm_project": "https://github.com/griddynamics/rosetta",
+    "build_management": "Github Actions",
+    "build_management_project": "https://github.com/griddynamics/rosetta/actions",
+    "ux": "Figma",
+    "ux_project": "ROSETTA",
+    "infrastructure": "Kubernetes",
+    "infrastructure_project": "ROSETTA",
+    "iac": "Terraform",
+    "iac_project": "ROSETTA",
+    "hosting": "GCP",
+    "hosting_project": "ROSETTA",
+    "monitoring": "Prometheus",
+    "monitoring_project": "ROSETTA",
+    "logging": "Grafana",
+    "logging_project": "ROSETTA",
+    "security": "Vault",
+    "security_project": "ROSETTA",
+    "collaboration_project": "Rosetta Community",
+    "unit_tests": "in-repository",
+    "integration_tests": "in-repository",
+    "e2e_tests": "din-repository",
+    "performance_tests": "in-repository",
+    "testing_harness": "verify_mcp.py",
+    "code_graph": "GitNexus"
+  },
+  "vocabulary": {
+    "vfs": "Virtual File System, after stripping release and org prefix from the physical file path",
+    "bundling": "Multiple documents at the same VFS resource path are merged into a single XML response"
+  },
+  "versions": {
+    "rosetta": "2.0.19"
   }
 }

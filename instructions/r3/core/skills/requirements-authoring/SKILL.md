@@ -2,7 +2,7 @@
 name: requirements-authoring
 description: Author, update, and validate functional and non-functional requirements as a source of truth using atomic requirement units with explicit user approval.
 tags: ["requirements", "skills"]
-license: Proprietary
+license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: request, existing-requirements?, scope?, constraints?, stakeholders?
@@ -239,7 +239,8 @@ HITL gates (use when):
   <approved_by>[user login approved]</approved_by>
   <verification>Test|Analysis|Inspection|Demo</verification>
   <acceptance>
-    <criteria>Given:<G> When:<W> Then:<T>.</criteria>
+    <criteria>Given: A When: B Then: C.</criteria>
+    <criteria>Given: X When: Y Then: Z.</criteria>
   </acceptance>
   <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
   <notes>...</notes>

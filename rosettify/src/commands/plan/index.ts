@@ -1,3 +1,7 @@
+// Plan command entry point.
+// Routes all plan subcommands and exposes the ToolDef for CLI/MCP registration.
+// Implements FR-PLAN-0022 (no-args returns help), FR-PLAN-0023 (unknown subcommand error).
+
 import type { ToolDef, RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
 import { type PlanInput } from "./core.js";
@@ -7,8 +11,13 @@ import { cmdUpdateStatus } from "./update-status.js";
 import { cmdShowStatus } from "./show-status.js";
 import { cmdQuery } from "./query.js";
 import { cmdUpsert } from "./upsert.js";
+import { cmdCreateWithTemplate } from "./create-with-template.js";
+import { cmdUpsertWithTemplate } from "./upsert-with-template.js";
+import { cmdListTemplates } from "./list-templates.js";
 import { planHelpContent } from "./help-content.js";
+import { ERR_MISSING_TEMPLATE_PARAM } from "./errors.js";
 
+// FR-PLAN-0023 — valid subcommand list includes all new subcommands
 const VALID_SUBCOMMANDS = [
   "create",
   "next",
@@ -16,21 +25,40 @@ const VALID_SUBCOMMANDS = [
   "show_status",
   "query",
   "upsert",
+  "create-with-template",
+  "upsert-with-template",
+  "list-templates",
 ] as const;
 
-async function runPlan(input: PlanInput): Promise<RunEnvelope<unknown>> {
-  const { subcommand, plan_file, data, target_id, new_status, limit, kind, phase_id } =
-    input;
+const VALID_SUBCOMMANDS_STR = VALID_SUBCOMMANDS.join(", ");
 
-  // No subcommand -> return help content (FR-PLAN-0022)
+async function runPlan(input: PlanInput): Promise<RunEnvelope<unknown>> {
+  const {
+    subcommand,
+    plan_file,
+    data,
+    target_id,
+    new_status,
+    limit,
+    kind,
+    phase_id,
+    template,
+    "plan-name": planName,
+    "plan-description": planDescription,
+    "phase-id": phaseId,
+    "phase-name": phaseName,
+    "phase-description": phaseDescription,
+  } = input;
+
+  // FR-PLAN-0022 — no subcommand returns help content
   if (!subcommand) {
     return ok(planHelpContent);
   }
 
-  // Unknown subcommand (FR-PLAN-0023)
+  // FR-PLAN-0023 — unknown subcommand: return error with valid list and include_help=true
   if (!(VALID_SUBCOMMANDS as readonly string[]).includes(subcommand)) {
     return err(
-      `unknown_command: ${subcommand} | valid: create, next, update_status, show_status, query, upsert`,
+      `unknown_command: ${subcommand} | valid: ${VALID_SUBCOMMANDS_STR}`,
       true,
     );
   }
@@ -84,6 +112,32 @@ async function runPlan(input: PlanInput): Promise<RunEnvelope<unknown>> {
       return cmdUpsert(plan_file, target_id, parsedData, kind, phase_id);
     }
 
+    // FR-PLAN-0030 — create-with-template
+    case "create-with-template": {
+      if (!plan_file) return err("missing plan_file", true);
+      if (template === undefined || template === null) return err(`${ERR_MISSING_TEMPLATE_PARAM}: template`, true);
+      // FR-PLAN-0034 — provided=present. Empty string is a value; only undefined/null = absent.
+      if (planName === undefined || planName === null) return err(`${ERR_MISSING_TEMPLATE_PARAM}: plan-name`, true);
+      if (planDescription === undefined || planDescription === null) return err(`${ERR_MISSING_TEMPLATE_PARAM}: plan-description`, true);
+      return cmdCreateWithTemplate(plan_file, template, planName, planDescription);
+    }
+
+    // FR-PLAN-0031 — upsert-with-template
+    case "upsert-with-template": {
+      if (!plan_file) return err("missing plan_file", true);
+      // phase-id is also the upsert target_id, so it must be a non-empty string.
+      if (!phaseId) return err(`${ERR_MISSING_TEMPLATE_PARAM}: phase-id`, true);
+      if (template === undefined || template === null) return err(`${ERR_MISSING_TEMPLATE_PARAM}: template`, true);
+      if (phaseName === undefined || phaseName === null) return err(`${ERR_MISSING_TEMPLATE_PARAM}: phase-name`, true);
+      if (phaseDescription === undefined || phaseDescription === null) return err(`${ERR_MISSING_TEMPLATE_PARAM}: phase-description`, true);
+      return cmdUpsertWithTemplate(plan_file, phaseId, template, phaseName, phaseDescription);
+    }
+
+    // FR-PLAN-0032 — list-templates
+    case "list-templates": {
+      return cmdListTemplates();
+    }
+
     default:
       return err(`unknown_command: ${subcommand}`, true);
   }
@@ -91,16 +145,16 @@ async function runPlan(input: PlanInput): Promise<RunEnvelope<unknown>> {
 
 export const planToolDef: ToolDef<PlanInput, unknown> = {
   name: "plan",
-  brief: "Manage execution plans (create, query, update, upsert)",
+  brief: "Manage execution plans (create, query, update, upsert, templates)",
   description:
     "Manages two-level execution plans stored as JSON files. " +
-    "Subcommands: create, next, update_status, show_status, query, upsert.",
+    `Subcommands: ${VALID_SUBCOMMANDS_STR}.`,
   inputSchema: {
     type: "object",
     properties: {
       subcommand: {
         type: "string",
-        description: "Subcommand: create | next | update_status | show_status | query | upsert",
+        description: `Subcommand: ${VALID_SUBCOMMANDS_STR}`,
       },
       plan_file: {
         type: "string",
@@ -133,6 +187,31 @@ export const planToolDef: ToolDef<PlanInput, unknown> = {
         type: "string",
         description: "Parent phase for new step (upsert)",
       },
+      // FR-PLAN-0030 / FR-PLAN-0034 — template parameters (kebab-case, uniform across CLI/MCP)
+      template: {
+        type: "string",
+        description: "FR-PLAN-0030 / FR-PLAN-0031 — template name",
+      },
+      "plan-name": {
+        type: "string",
+        description: "FR-PLAN-0030 / FR-PLAN-0034 — value for [plan-name] placeholder",
+      },
+      "plan-description": {
+        type: "string",
+        description: "FR-PLAN-0030 / FR-PLAN-0034 — value for [plan-description] placeholder",
+      },
+      "phase-id": {
+        type: "string",
+        description: "FR-PLAN-0031 / FR-PLAN-0034 — value for [phase-id] placeholder",
+      },
+      "phase-name": {
+        type: "string",
+        description: "FR-PLAN-0031 / FR-PLAN-0034 — value for [phase-name] placeholder",
+      },
+      "phase-description": {
+        type: "string",
+        description: "FR-PLAN-0031 / FR-PLAN-0034 — value for [phase-description] placeholder",
+      },
     },
     required: [],
   },
@@ -148,4 +227,9 @@ export const planToolDef: ToolDef<PlanInput, unknown> = {
   cli: true,
   mcp: true,
   run: runPlan,
+  // FR-HELP-0002 / FR-PLAN-0016 — forward the full plan help content payload through
+  // help/index.ts. Includes plan_file, concepts, subagent_fields, subcommands with
+  // dual-form examples, schemas, limits, templates, notes, plan_authoring_guidance,
+  // next_steps_for_ai.
+  helpContent: planHelpContent as unknown as Record<string, unknown>,
 };

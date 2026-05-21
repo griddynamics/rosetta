@@ -388,26 +388,7 @@ class ContentPublisher:
             # Add file size for binary files
             if not is_text:
                 metadata['file_size'] = len(content)
-            
-            
-            if dry_run:
-                print(f"[DRY RUN] Would publish: {metadata.get('doc_title', metadata.get('original_path', file.name))}")
-                print(f"  Document ID: {ims_doc_id}")
-                print(f"  Dataset: {dataset_name}")
-                print(f"  File type: {'text' if is_text else 'binary'}")
-                print(f"  Metadata: {metadata}")
-                if is_text and content_str:
-                    print(f"  Content size: {len(content_str)} characters")
-                else:
-                    print(f"  File size: {metadata.get('file_size', 0)} bytes")
-                
-                return PublishResult(
-                    success=True,
-                    document_id=ims_doc_id,
-                    file_path=str(file),
-                    tags=metadata.get('tags', [])
-                )
-            
+
             original_path = metadata.get("original_path", "")
 
             # Create DocumentMetadata for RAGFlow
@@ -426,13 +407,16 @@ class ContentPublisher:
             )
             
             # Upload to RAGFlow using pre-read content from cache (no re-reading!)
+            # In dry_run, upload_document gates each SDK write at the call site,
+            # prints the would-be payloads, and returns None (treated as skipped).
             result = self.client.upload_document(
                 file_path=file,
                 metadata=doc_metadata,
                 dataset_name=dataset_name,
                 dataset_template=self.dataset_template,
                 force=force,
-                content=content  # Pass pre-read content from cache
+                content=content,  # Pass pre-read content from cache
+                dry_run=dry_run,
             )
             
             # None means document was skipped (unchanged)
@@ -542,10 +526,14 @@ class ContentPublisher:
     def _has_content_changed_cached(self, cache: DocumentData) -> bool:
         """
         Check if document content has changed using pre-calculated hash.
-        
+
+        Looks up the existing doc through the client's per-dataset index
+        (RAGFlow 0.25.0 ignores server-side metadata_condition, so the index
+        is the authoritative lookup).
+
         Args:
             cache: DocumentData with pre-calculated hash
-        
+
         Returns:
             True if changed or new, False if unchanged
         """
@@ -556,46 +544,28 @@ class ContentPublisher:
                 'tags': cache.tags,
                 'domain': cache.domain
             })
-            
+
             # Get dataset
             dataset = self.client.get_dataset(name=dataset_name)
             if not dataset:
                 return True  # New dataset = new document
-            
-            # Search for existing document by ims_doc_id
-            metadata_filter = {
-                "logic": "and",
-                "conditions": [{
-                    "name": "ims_doc_id",
-                    "comparison_operator": "is",
-                    "value": cache.ims_doc_id
-                }]
-            }
-            
-            docs = self.client.list_documents(
-                dataset,
-                page_size=1,
-                metadata_condition=metadata_filter
-            )
-            
-            if not docs:
+
+            existing_doc = self.client.get_existing_doc(dataset, cache.ims_doc_id)
+            if existing_doc is None:
                 return True  # Document doesn't exist
-            
-            # Compare hashes (use pre-calculated hash from cache)
-            existing_doc = docs[0]
+
             existing_meta = getattr(existing_doc, 'meta_fields', {}) or {}
-            
             if isinstance(existing_meta, dict):
                 existing_hash = existing_meta.get("content_hash")
             else:
                 existing_hash = getattr(existing_meta, 'content_hash', None)
-            
+
             if not existing_hash:
                 return True  # No hash = changed
 
             # Compare: cache.content_hash was already calculated in DocumentData
             return cache.content_hash != str(existing_hash)
-            
+
         except Exception as e:
             print(f"  Warning: Could not check existing document: {e}")
             return True  # Assume changed on error

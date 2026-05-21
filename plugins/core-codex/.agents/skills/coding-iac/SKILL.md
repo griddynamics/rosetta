@@ -1,6 +1,7 @@
 ---
 name: coding-iac
 description: Rosetta planning, coding, and reviewing skill for IaC implementation (Terraform, Polumi, CloudFormation, ARM, Bicep, Crossplane, CDK, Helm, Kustomize, etc). MUST use when implementing features, fixing bugs, or making code changes to any IaC.
+license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
 

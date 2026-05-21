@@ -1,3 +1,5 @@
+// Implements FR-HELP-0001 (top-level help), FR-HELP-0002 (command detail with schemas and notes).
+
 import type { ToolDef, RunEnvelope, HelpTopLevel, HelpCommandDetail, CommandInput } from "../../registry/types.js";
 import { ok } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
@@ -21,7 +23,7 @@ async function runHelp(
   const { subcommand } = input;
   const registry = await getRegistry();
 
-  // No subcommand (FR-HELP-0001): top-level listing
+  // FR-HELP-0001 — no subcommand: top-level listing (brief only, no full schemas)
   if (!subcommand) {
     const commands = [...registry.values()].map((t) => ({
       name: t.name,
@@ -37,36 +39,25 @@ async function runHelp(
     return ok(result);
   }
 
-  // Known subcommand (FR-HELP-0002): return detailed help
+  // FR-HELP-0002 — known subcommand: return full command detail
   const tool = registry.get(subcommand);
   if (tool) {
-    // Check if the command has subcommands (via its help content)
-    let subcommands: Array<{ name: string; brief: string }> | undefined;
-    if (subcommand === "plan") {
-      try {
-        const { planHelpContent } = await import("../plan/help-content.js");
-        subcommands = planHelpContent.subcommands.map((s) => ({
-          name: s.name,
-          brief: s.brief,
-        }));
-      } catch {
-        // ignore
-      }
-    }
-
+    // FR-HELP-0002 — forward the entire helpContent payload authored by the command,
+    // then overlay canonical name/brief/description from ToolDef. Per-command extensions
+    // (e.g. FR-PLAN-0016: plan_file, concepts, subagent_fields, limits, templates,
+    // plan_authoring_guidance, next_steps_for_ai, and subcommand entries with examples)
+    // flow through unchanged.
     const result: HelpCommandDetail = {
+      ...(tool.helpContent ?? {}),
       name: tool.name,
       brief: tool.brief,
       description: tool.description,
-      input_schema: tool.inputSchema,
-      output_schema: tool.outputSchema,
-      ...(subcommands ? { subcommands } : {}),
     };
     logger.info({ subcommand }, "help command detail");
     return ok(result);
   }
 
-  // Unknown subcommand: fall back to top-level listing, ok:true, include_help:false
+  // FR-HELP-0002 — unknown subcommand: fall back to top-level listing, ok:true, include_help:false
   const commands = [...registry.values()].map((t) => ({
     name: t.name,
     brief: t.brief,

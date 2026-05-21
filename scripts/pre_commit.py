@@ -11,7 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from plugin_generator import sync_generated_plugins, sync_hooks_into_plugins
+from plugin_generator import sync_generated_plugins
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TYPECHECK_SCRIPT = REPO_ROOT / "validate-types.sh"
@@ -86,7 +86,6 @@ def main() -> int:
     checks = [
         Check(name="hooks build",     runner=build_hooks),
         Check(name="plugin sync",     runner=lambda: sync_generated_plugins(REPO_ROOT)),
-        Check(name="hooks sync",      runner=lambda: sync_hooks_into_plugins(REPO_ROOT)),
         Check(name="type validation", runner=run_type_validation),
         Check(name="tests",           runner=run_tests),
     ]

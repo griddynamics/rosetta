@@ -1,40 +1,42 @@
 ---
 name: load-context
-description: Rosetta MUST skill to load the most current project context.
+description: Rosetta MUST skill to load the most current context, extremely useful, fast, fully automated, especially for planning, helps understand what actually user wants, skipping leads to wrong execution path
+license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
-<load-context>
 
-<prerequisites>
+**Mode detection:**
 
-- Rosetta context instructions already loaded USING SKILL `load-context-instructions` 
-- OPERATION_MANAGER is in use for deterministic execution
+- If `RUNNING AS A PLUGIN` is in context → Plugin mode
+- Else if `get_context_instructions` tool is available → MCP mode
+- Else → Adhoc mode
 
-</prerequisites>
+**Plugin mode:**
 
-<project-files>
-Execute in order:
+1. Bootstrap rules are loaded via startup hook — do NOT assume prep steps are done
+2. Create todo tasks (search/discover the tool if needed)
+3. Locate and execute ALL prep steps defined in the loaded bootstrap rules in full
+4. DO NOT proceed to any action until all prep steps are confirmed complete
+5. Identify and load the most matching workflow — a must if you are not subagent
+6. Create and update all todo tasks per workflow
 
-1. Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` — FULL CONTENT, ALL LINES
-2. Grep `^#{1,3}` headers of `agents/IMPLEMENTATION.md`, `agents/MEMORY.md`, `docs/PATTERNS/INDEX.md`, and `docs/REQUIREMENTS/INDEX.md`
-   ```bash
-   grep -n "^#{1,3}" agents/IMPLEMENTATION.md agents/MEMORY.md docs/PATTERNS/INDEX.md docs/REQUIREMENTS/INDEX.md
-   ```
-3. Use built-in tools instead of bash grep if available 
+**MCP mode:**
 
-</project-files>
+1. Call `get_context_instructions` (blocking gate — do not proceed until complete)
+2. If output truncated and file path provided — read entire file, preview is NOT enough
+3. Create todo tasks (search/discover the tool if needed)
+4. Execute ALL prep steps returned — no skipping, no partial execution
+5. DO NOT proceed to any action until all prep steps are confirmed complete
+6. Identify and load the most matching workflow — a must if you are not subagent
+7. Create and update all todo tasks per workflow
 
-<troubleshooting>
+**Adhoc mode:**
 
-If any file is unavailable (not found) — it simply does not exist yet. Continue without it, do NOT stop or treat this as an error, and STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`.
+1. Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` in full
+2. List `docs/*.md` and workspace root `*.md` files to gather context
 
-</troubleshooting>
+**All modes:**
 
-<next-steps>
-
-- Load and fully execute the selected workflow.
-- MUST USE SKILL `load-workflow`
-
-</next-steps>
-
-</load-context>
+- Treat context loading as a hard blocking gate, not a background task
+- Explicitly confirm all prep steps complete before responding, planning, or executing anything
+- If anything fails or is unclear — stop and ask user

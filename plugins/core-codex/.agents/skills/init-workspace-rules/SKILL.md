@@ -1,6 +1,7 @@
 ---
 name: init-workspace-rules
 description: "Rosetta skill to create local cached agent rules configured for IDE/OS/project context."
+license: Apache-2.0
 model: gpt-5.4
 model_reasoning_effort: medium
 tags: ["init", "workspace", "rules"]

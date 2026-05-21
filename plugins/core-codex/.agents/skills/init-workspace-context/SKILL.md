@@ -1,6 +1,7 @@
 ---
 name: init-workspace-context
 description: "Rosetta skill to classify workspace initialization mode and build existing file inventory."
+license: Apache-2.0
 tags: ["init", "workspace", "context", "detection"]
 baseSchema: docs/schemas/skill.md
 ---

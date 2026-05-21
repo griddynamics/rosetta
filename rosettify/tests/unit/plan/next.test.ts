@@ -328,13 +328,15 @@ describe("cmdNext — step optional fields", () => {
   });
 });
 
-describe("cmdNext — internal_error catch path", () => {
-  it("returns internal_error when file contains invalid JSON", async () => {
+describe("cmdNext — plan_file_corrupted on invalid JSON (FR-SHRD-0009)", () => {
+  // FR-SHRD-0009 / FR-PLAN-0021 — readPlanWithRetry throws on parse failure;
+  // next.ts catches and returns plan_file_corrupted (ERR_PLAN_FILE_CORRUPTED)
+  it("returns plan_file_corrupted when file contains invalid JSON", async () => {
     const file = planFile("bad.json");
     fs.writeFileSync(file, "{{invalid json{{");
     const result = await cmdNext(file);
     expect(result.ok).toBe(false);
-    expect(result.error).toContain("internal_error");
+    expect(result.error).toBe("plan_file_corrupted");
   });
 });
 

@@ -1,6 +1,6 @@
 ---
 name: bootstrap-speckit-policy
-description: Define mandatory SpecKit detection and hybrid-execution rules in bootstrap flow.
+description: Invoke if directly requested, provides integration with the speckit
 alwaysApply: false
 trigger: model_decision
 tags: ["speckit", "integration", "policy"]

@@ -29,6 +29,7 @@ def _make_client():
     client = object.__new__(RAGFlowClient)
     client._client = None
     client.page_size = 1000
+    client._doc_index_by_dataset = {}
     return client
 
 

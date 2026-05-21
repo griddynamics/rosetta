@@ -1,0 +1,78 @@
+// Implements FR-PLAN-0035 (seed create template: for-orchestrator).
+// Content is byte-equivalent to docs/requirements/rosettify/assets/templates/create-for-orchestrator.json.
+
+/**
+ * FR-PLAN-0035 — create-kind template for bootstrapping an orchestrator plan.
+ * Placeholders: [plan-name], [plan-description].
+ * Content byte-equivalent to create-for-orchestrator.json (verified in Phase 9 tests).
+ */
+export const forOrchestrator = {
+  name: "for-orchestrator",
+  brief: "Bootstrap a new plan with the Rosetta orchestrator preparation phase.",
+  placeholders: ["plan-name", "plan-description"] as const,
+  content: {
+    name: "[plan-name]",
+    description: "[plan-description]",
+    previous_version: null,
+    phases: [
+      {
+        id: "ph-prep",
+        name: "Preparation",
+        description: "Mandatory Rosetta preparation steps for the orchestrator. Execute every step sequentially. No skipping.",
+        depends_on: [],
+        steps: [
+          {
+            id: "ph-prep-s-load-context-instructions",
+            name: "Load bootstrap context",
+            prompt: "Call get_context_instructions exactly once to load the bundled bootstrap rules (core policy, execution policy, guardrails, HITL, rosetta files). This is the blocking prerequisite gate (Prep Step 1). Do not call any other tool first.",
+          },
+          {
+            id: "ph-prep-s-create-todo-tasks",
+            name: "Create todo tasks for prep and workflow",
+            prompt: "Create separate, dedicated, detailed todo tasks covering all actions of Prep Step 2 and Prep Step 3 (loading workflow, creating workflow-phase tasks, executing the workflow). Output to the user: 'Tasks Created: [task ids returned by the tool]'.",
+          },
+          {
+            id: "ph-prep-s-use-load-context-skill",
+            name: "Use load-context skill",
+            prompt: "USE SKILL load-context as the canonical current-context loader. The skill is required even when its expected outputs already look satisfied.",
+          },
+          {
+            id: "ph-prep-s-read-context-architecture",
+            name: "Read CONTEXT.md and ARCHITECTURE.md in full",
+            prompt: "Read docs/CONTEXT.md and docs/ARCHITECTURE.md in full. Read all lines at once. These files carry critical project context.",
+          },
+          {
+            id: "ph-prep-s-grep-implementation-memory",
+            name: "Grep headers of IMPLEMENTATION.md and MEMORY.md",
+            prompt: "Grep '^#{1,3}' headers of agents/IMPLEMENTATION.md and agents/MEMORY.md. Read further sections only as needed.",
+          },
+          {
+            id: "ph-prep-s-validate-requirements",
+            name: "Use and validate requirements",
+            prompt: "If docs/REQUIREMENTS exists, use and validate the relevant requirement set. Apply the requirements-use skill when present.",
+          },
+          {
+            id: "ph-prep-s-identify-request-size",
+            name: "Identify request size",
+            prompt: "Classify the user request as SMALL (1-2 file changes, single area), MEDIUM (up to ~10 file changes, single area), or LARGE (more than 10 file changes or multiple areas). Re-evaluate and announce if the size changes later.",
+          },
+          {
+            id: "ph-prep-s-acquire-workflow",
+            name: "Acquire matching workflow",
+            prompt: "ACQUIRE the most matching workflow tag from KB (for example workflows/coding-flow.md) and load its full definition. The workflow guides the end-to-end execution for the request size.",
+          },
+          {
+            id: "ph-prep-s-add-workflow-tasks",
+            name: "Add todo tasks for workflow phases",
+            prompt: "Add and update separate, dedicated todo tasks reflecting the loaded workflow's phases. Output to the user: 'Tasks Created: [task ids returned by the tool]'.",
+          },
+          {
+            id: "ph-prep-s-execute-workflow",
+            name: "Execute the workflow",
+            prompt: "Proceed executing the loaded workflow end-to-end, integrating questioning, planning, implementation, review, validation, and HITL gates as the workflow prescribes.",
+          },
+        ],
+      },
+    ],
+  },
+} as const;

@@ -1,7 +1,7 @@
 ---
 name: planning
 description: Build execution-ready implementation plans from approved intent/specs using EARS requirements, sequenced WBS, and explicit HITL checkpoints.
-license: Proprietary
+license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: request, tech-spec?, constraints?, scope?

@@ -1,0 +1,203 @@
+nameOverride: "rosetta-mcp"
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: griddynamics/rosetta-mcp
+  # Uncomment and set the image tag. Defaults to .Chart.AppVersion if not set:
+  # tag: "2.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+ports:
+  - 8000
+
+# Rolling update strategy - required for stateful Streamable HTTP sessions
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+serviceAccount:
+  create: true
+  name: ""
+
+# Session affinity - REQUIRED when running multiple replicas (Streamable HTTP is stateful)
+# ClientIP affinity ensures requests from same client reach the same pod
+service:
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 3600  # 1h stickiness
+
+ingress:
+  enabled: true
+  className: nginx
+  host: rosetta-mcp.local
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  paths:
+    - /
+  # Production: enable TLS below (or terminate TLS upstream). Defaults leave MCP on HTTP at the Ingress until configured.
+  # tls:
+  #   - secretName: rosetta-mcp-tls
+  #     hosts:
+  #       - rosetta-mcp.example.com
+
+env:
+  enabled: true
+  vars:
+    - name: ROSETTA_SERVER_URL
+      value: ""  # Required. e.g. http://ragflow.example.svc.cluster.local:80
+    - name: VERSION
+      value: "r2"
+    - name: ROSETTA_TRANSPORT
+      value: "http"
+    - name: ROSETTA_HTTP_HOST
+      value: "0.0.0.0"
+    - name: ROSETTA_HTTP_PORT
+      value: "8000"
+    - name: ROSETTA_MODE
+      value: "SOFT"  # HARD or SOFT
+    - name: FASTMCP_ENABLE_RICH_LOGGING
+      value: "false"
+    - name: POSTHOG_HOST
+      value: "https://eu.i.posthog.com"
+    # Redis DB index (used when REDIS_URL references $(REDIS_DB))
+    - name: REDIS_DB
+      value: "2"
+    # OAuth (HTTP transport) - configure for your IdP
+    - name: ROSETTA_OAUTH_MODE
+      value: "oauth"  # oauth or oidc
+    # - name: ROSETTA_OAUTH_OIDC_CONFIG_URL
+    #   value: "https://keycloak.example.com/realms/my-realm/.well-known/openid-configuration"
+    # - name: ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT
+    #   value: "https://keycloak.example.com/realms/my-realm/protocol/openid-connect/auth"
+    # - name: ROSETTA_OAUTH_TOKEN_ENDPOINT
+    #   value: "https://keycloak.example.com/realms/my-realm/protocol/openid-connect/token"
+    # - name: ROSETTA_OAUTH_INTROSPECTION_ENDPOINT
+    #   value: "https://keycloak.example.com/realms/my-realm/protocol/openid-connect/token/introspect"
+    # - name: ROSETTA_OAUTH_REVOCATION_ENDPOINT
+    #   value: "https://keycloak.example.com/realms/my-realm/protocol/openid-connect/revoke"
+    # - name: ROSETTA_OAUTH_BASE_URL
+    #   value: "https://rosetta.example.com"
+    # - name: ROSETTA_OAUTH_REQUIRED_SCOPES
+    #   value: "offline_access"
+    # - name: ROSETTA_OAUTH_VALID_SCOPES
+    #   value: ""
+    # - name: ROSETTA_OAUTH_EXTRA_SCOPES
+    #   value: "openid email profile offline_access"
+    # Optional: IMS_DEBUG, FASTMCP_LOG_LEVEL
+    # - name: IMS_DEBUG
+    #   value: "1"
+    # - name: FASTMCP_LOG_LEVEL
+    #   value: "DEBUG"
+  secrets:
+    # Required: RAGFlow API key
+    - name: ROSETTA_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: rosetta-mcp-secrets  # Override in env-specific values
+          key: ROSETTA_API_KEY
+    # Required when using Redis: password and URL (URL uses $(REDIS_PASSWORD) and $(REDIS_DB) expansion)
+    # - name: REDIS_PASSWORD
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: redis-secret
+    #       key: REDIS_PASSWORD
+    # - name: REDIS_URL
+    #   value: "redis://:$(REDIS_PASSWORD)@redis-host.svc.cluster.local:6379/$(REDIS_DB)"
+    # OAuth (HTTP transport)
+    # - name: ROSETTA_OAUTH_CLIENT_ID
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: rosetta-mcp-secrets
+    #       key: ROSETTA_OAUTH_CLIENT_ID
+    # - name: ROSETTA_OAUTH_CLIENT_SECRET
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: rosetta-mcp-secrets
+    #       key: ROSETTA_OAUTH_CLIENT_SECRET
+    # Optional: for production
+    # - name: ROSETTA_JWT_SIGNING_KEY
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: rosetta-mcp-secrets
+    #       key: ROSETTA_JWT_SIGNING_KEY
+    #       optional: true
+    # - name: FERNET_KEY
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: rosetta-mcp-secrets
+    #       key: FERNET_KEY
+    #       optional: true
+    # - name: POSTHOG_API_KEY
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: rosetta-mcp-secrets
+    #       key: POSTHOG_API_KEY
+    #       optional: true
+
+# --- External Secrets Operator ---
+# When enabled, secrets are synced from external store (GCP Secret Manager, Vault, etc.)
+eso:
+  enabled: false
+  secretName: rosetta-mcp-secrets
+  namespace: ""  # Defaults to Release.Namespace
+  secretStoreRef:
+    name: gsm-store
+    kind: ClusterSecretStore
+  refreshInterval: 1h
+  # dataFrom or data - configure for your external secret store
+  dataFrom: []
+  # data: []
+
+# --- Affinity ---
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - rosetta-mcp  # Override with nameOverride when using custom release names
+          topologyKey: kubernetes.io/hostname
+
+nodeSelector: {}
+tolerations: []
+
+# Pod annotations
+annotations: {}

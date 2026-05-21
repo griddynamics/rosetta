@@ -116,7 +116,7 @@ describe("CLI — plan no args", () => {
     const res = r.json as {
       plan_file?: unknown;
       concepts?: unknown;
-      schema?: unknown;
+      schemas?: unknown;
       limits?: unknown;
       next_steps_for_ai?: unknown;
       plan_authoring_guidance?: unknown;
@@ -125,7 +125,7 @@ describe("CLI — plan no args", () => {
     expect(res).toBeDefined();
     expect(res.plan_file).toBeDefined();
     expect(res.concepts).toBeDefined();
-    expect(res.schema).toBeDefined();
+    expect(res.schemas).toBeDefined();
     expect(res.limits).toBeDefined();
     expect(res.next_steps_for_ai).toBeDefined();
     expect(res.plan_authoring_guidance).toBeDefined();
@@ -144,13 +144,14 @@ describe("CLI — plan create", () => {
     const data = JSON.stringify({ name: "CLI Test Plan" });
     const r = run(["plan", "create", file, data]);
     expect(r.status).toBe(0);
-    // Success: r.json IS the result payload directly
+    // Success: r.json IS the result payload directly (compressed-tree shape)
     expect((r.json as any).ok).toBeUndefined();
     expect((r.json as any).include_help).toBeUndefined();
-    const res = r.json as { name: string; status: string; plan_file: string };
-    expect(res.name).toBe("CLI Test Plan");
-    expect(res.status).toBe("open");
-    expect(res.plan_file).toBe(file);
+    const res = r.json as { plan: { name: string; status: string }; previous_version: null; phases: unknown[] };
+    expect(res.plan.name).toBe("CLI Test Plan");
+    expect(res.plan.status).toBe("open");
+    expect(res.previous_version).toBeNull();
+    expect(Array.isArray(res.phases)).toBe(true);
     expect(fs.existsSync(file)).toBe(true);
   });
 
@@ -284,6 +285,137 @@ describe("CLI — plan update_status", () => {
 });
 
 // ---------------------------------------------------------------------------
+// plan list-templates (FR-PLAN-0032)
+// ---------------------------------------------------------------------------
+
+describe("CLI — plan list-templates (FR-PLAN-0032)", () => {
+  it("returns template catalog without plan_file and exits 0", () => {
+    const r = run(["plan", "list-templates"]);
+    expect(r.status).toBe(0);
+    // FR-SHRD-0008 — densest JSON: stdout trimmed must equal JSON.stringify(parsed) exactly.
+    // Catches ANY indentation (spaces, tabs, multi-space) — the previous .not.toContain("\n  ")
+    // assertion would have missed tab or 4-space indents. Stdout has a trailing newline from
+    // the CLI's println; rtrim before comparing, but assert no INTERNAL newlines.
+    expect(r.stdout.trim()).toBe(JSON.stringify(r.json));
+    expect(r.stdout.trimEnd()).not.toContain("\n");
+    expect((r.json as any).ok).toBeUndefined();
+    const catalog = r.json as { create: { name: string; brief: string; placeholders: string[] }[]; upsert: { name: string; brief: string; placeholders: string[] }[] };
+    expect(Array.isArray(catalog.create)).toBe(true);
+    expect(Array.isArray(catalog.upsert)).toBe(true);
+    const createNames = catalog.create.map((e) => e.name);
+    const upsertNames = catalog.upsert.map((e) => e.name);
+    expect(createNames).toContain("for-orchestrator");
+    expect(upsertNames).toContain("for-subagent");
+  });
+
+  it("each catalog entry has name, brief, and placeholders", () => {
+    const r = run(["plan", "list-templates"]);
+    expect(r.status).toBe(0);
+    const catalog = r.json as { create: unknown[]; upsert: unknown[] };
+    for (const entry of [...catalog.create, ...catalog.upsert]) {
+      const e = entry as { name: string; brief: string; placeholders: string[] };
+      expect(typeof e.name).toBe("string");
+      expect(typeof e.brief).toBe("string");
+      expect(Array.isArray(e.placeholders)).toBe(true);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// plan create-with-template (FR-PLAN-0030)
+// ---------------------------------------------------------------------------
+
+describe("CLI — plan create-with-template (FR-PLAN-0030)", () => {
+  it("creates a plan file from for-orchestrator template and exits 0", () => {
+    const file = planFile();
+    // CLI positional args: create-with-template <plan_file> <template> <plan-name> <plan-description>
+    const r = run([
+      "plan", "create-with-template", file,
+      "for-orchestrator", "CLI Template Plan", "Created via template",
+    ]);
+    expect(r.status).toBe(0);
+    // Success: dense JSON output (FR-SHRD-0008) — single line (no trailing newline in payload JSON)
+    expect((r.json as any).ok).toBeUndefined();
+    // Result is compressed-tree: {plan, previous_version, phases}
+    const tree = r.json as { plan: { name: string; status: string }; previous_version: null; phases: unknown[] };
+    expect(tree.plan.name).toBe("CLI Template Plan");
+    expect(tree.plan.status).toBe("open");
+    expect(tree.previous_version).toBeNull();
+    expect(Array.isArray(tree.phases)).toBe(true);
+    // Plan file is created on disk
+    expect(fs.existsSync(file)).toBe(true);
+    // .bak* files should NOT exist yet (first write)
+    const bakFiles = fs.readdirSync(path.dirname(file)).filter((f) => f.includes(".bak"));
+    expect(bakFiles.length).toBe(0);
+  });
+
+  it("placeholder substitution: plan-name appears in file on disk", () => {
+    const file = planFile();
+    run(["plan", "create-with-template", file, "for-orchestrator", "SubstTest", "desc"]);
+    const raw = fs.readFileSync(file, "utf8");
+    expect(raw).toContain("SubstTest");
+  });
+
+  it("returns error for unknown template name", () => {
+    const file = planFile();
+    const r = run(["plan", "create-with-template", file, "no-such-template", "X", "Y"]);
+    expect(r.status).toBe(1);
+    const payload = r.json as { error: string };
+    expect(payload.error).toContain("invalid_template");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// plan upsert-with-template (FR-PLAN-0031)
+// ---------------------------------------------------------------------------
+
+describe("CLI — plan upsert-with-template (FR-PLAN-0031)", () => {
+  function createBasePlan(file: string): void {
+    const data = JSON.stringify({ name: "Template Upsert Base" });
+    run(["plan", "create", file, data]);
+  }
+
+  it("upserts phases from for-subagent template and exits 0", () => {
+    const file = planFile();
+    createBasePlan(file);
+    // CLI positional args: upsert-with-template <plan_file> <phase-id> <template> <phase-name> <phase-description>
+    const r = run([
+      "plan", "upsert-with-template", file,
+      "ph-impl", "for-subagent", "Implementation", "Implement features",
+    ]);
+    expect(r.status).toBe(0);
+    expect((r.json as any).ok).toBeUndefined();
+    // Result is compressed-tree
+    const tree = r.json as { plan: { name: string; status: string }; previous_version: string; phases: unknown[] };
+    expect(tree.plan).toBeDefined();
+    expect(typeof tree.previous_version).toBe("string");
+    expect(Array.isArray(tree.phases)).toBe(true);
+    // .bak* file exists (FR-PLAN-0031 write cycle)
+    const dir = path.dirname(file);
+    const base = path.basename(file);
+    const bakFiles = fs.readdirSync(dir).filter((f) => f.startsWith(base + ".bak"));
+    expect(bakFiles.length).toBeGreaterThan(0);
+  });
+
+  it("placeholder substitution: phase-id appears in plan on disk", () => {
+    const file = planFile();
+    createBasePlan(file);
+    run(["plan", "upsert-with-template", file, "ph-test", "for-subagent", "Testing", "Run all tests"]);
+    const raw = fs.readFileSync(file, "utf8");
+    expect(raw).toContain("ph-test");
+  });
+
+  it("returns error for unknown template name", () => {
+    const file = planFile();
+    createBasePlan(file);
+    const r = run(["plan", "upsert-with-template", file, "ph-x", "no-such-template", "X", "Y"]);
+    expect(r.status).toBe(1);
+    const payload = r.json as { error: string };
+    expect(payload.error).toContain("invalid_template");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // error cases
 // ---------------------------------------------------------------------------
 
@@ -308,4 +440,69 @@ describe("CLI — error cases", () => {
     // Success: r.json IS the result payload directly (no envelope)
     expect((r.json as any).ok).toBeUndefined();
   });
+});
+
+// ---------------------------------------------------------------------------
+// Multi-process concurrent writers (FR-PLAN-0024, FR-PLAN-0025)
+// ---------------------------------------------------------------------------
+
+// FR-PLAN-0025 / FR-PLAN-0024 acceptance: parallel writers must not lose data.
+// This regression test exists because earlier implementations using POSIX rename
+// (overwrite semantics) and hardlink-claim (no exclusion across the read-mutate-write
+// window) both exhibited lost writes under real multi-process load (verified at 30
+// and 50 concurrent CLI invocations). The mkdir-lock implementation passes; this
+// test asserts that contract end-to-end through the actual binary.
+describe("CLI — concurrent writers (FR-PLAN-0024 / FR-PLAN-0025)", () => {
+  // 10 concurrent processes is enough to surface the bug consistently; the unit-style
+  // suite covers single-process write-cycle paths.
+  it("10 concurrent upsert-with-template processes against one plan: no lost writes", async () => {
+    const N = 10;
+    const file = planFile("concurrent.json");
+
+    // Seed plan first (sequential, single process).
+    const seed = run(["plan", "create-with-template", file, "for-orchestrator", "Concurrent", "MPP test"]);
+    expect(seed.status).toBe(0);
+
+    // Spawn N processes in parallel via Node child_process.spawn (non-blocking).
+    const { spawn } = await import("child_process");
+    const exitCodes: number[] = await Promise.all(
+      Array.from({ length: N }, (_, i) => {
+        const phaseId = `ph-mpp-${i + 1}`;
+        const args = [BIN, "plan", "upsert-with-template", file, phaseId, "for-subagent", `Phase ${i + 1}`, `Worker ${i + 1}`];
+        return new Promise<number>((resolve) => {
+          const child = spawn(NODE, args, { stdio: "pipe" });
+          child.on("close", (code) => resolve(code ?? -1));
+        });
+      }),
+    );
+
+    // Every process must report success — the FR-PLAN-0024 cycle has 50 retries so contention alone
+    // cannot exhaust it at N=10.
+    expect(exitCodes.every((c) => c === 0)).toBe(true);
+
+    // Final plan must be valid JSON.
+    const finalPlan = JSON.parse(fs.readFileSync(file, "utf8"));
+
+    // Every successfully-reported upsert MUST be present in the final plan (no silent loss).
+    const phaseIds = new Set(finalPlan.phases.map((p: { id: string }) => p.id));
+    for (let i = 1; i <= N; i++) {
+      const id = `ph-mpp-${i}`;
+      expect(phaseIds.has(id), `lost write: ${id} reported success but not in final plan`).toBe(true);
+    }
+
+    // Retention enforced (default 5): at most 5 .bak* files remain in the same directory.
+    const bakFiles = fs
+      .readdirSync(path.dirname(file))
+      .filter((name) => name.startsWith(path.basename(file) + ".bak"));
+    expect(bakFiles.length).toBeLessThanOrEqual(5);
+
+    // Every retained bak file is valid JSON (no corruption mid-write).
+    for (const bak of bakFiles) {
+      const bakPath = path.join(path.dirname(file), bak);
+      expect(() => JSON.parse(fs.readFileSync(bakPath, "utf8"))).not.toThrow();
+    }
+
+    // No leftover lock directory.
+    expect(fs.existsSync(file + ".lock")).toBe(false);
+  }, 60_000);
 });

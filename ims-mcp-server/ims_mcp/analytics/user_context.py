@@ -5,16 +5,17 @@ from __future__ import annotations
 import logging
 import os
 import subprocess
-import time
-from typing import Any
+from typing import Any, cast
+
+from cachetools import TTLCache
 
 from ims_mcp.constants import REPOSITORY_CACHE_TTL_SECONDS
 
 logger = logging.getLogger(__name__)
 
 _cached_username: str | None = None
-_cached_repository: str | None = None
-_repository_cache_time: float | None = None
+_STDIO_REPOSITORY_CACHE_KEY = "stdio"
+_repository_cache: TTLCache[str, str] = TTLCache(maxsize=1024, ttl=REPOSITORY_CACHE_TTL_SECONDS)
 _cached_agent_name: str | None = None
 _cached_agent_version: str | None = None
 
@@ -72,12 +73,29 @@ def get_authenticated_identity(call_ctx: Any = None, ctx: Any = None) -> str:
     return get_username()
 
 
-async def get_repository_from_context(ctx: Any) -> str:
-    global _cached_repository, _repository_cache_time
+def _repository_cache_key(ctx: Any) -> str:
+    """Return a session-scoped cache key for roots-derived repository metadata.
 
-    now = time.time()
-    if _cached_repository and _repository_cache_time and now - _repository_cache_time < REPOSITORY_CACHE_TTL_SECONDS:
-        return _cached_repository
+    HTTP requests use the MCP session id. STDIO/local transports intentionally
+    share a singleton key to preserve the previous single-user cache behavior.
+    """
+    try:
+        request_ctx = getattr(ctx, "request_context", None)
+        request = getattr(request_ctx, "request", None)
+        if request is not None:
+            session_id = getattr(ctx, "session_id", None)
+            if session_id:
+                return f"session:{session_id}"
+    except Exception:
+        pass
+    return _STDIO_REPOSITORY_CACHE_KEY
+
+
+async def get_repository_from_context(ctx: Any) -> str:
+    cache_key = _repository_cache_key(ctx)
+    cached = _repository_cache.get(cache_key)
+    if cached is not None:
+        return cast(str, cached)
 
     result = "unknown"
     try:
@@ -104,8 +122,7 @@ async def get_repository_from_context(ctx: Any) -> str:
         except Exception:
             pass
 
-    _cached_repository = result
-    _repository_cache_time = now
+    _repository_cache[cache_key] = result
     return result
 
 

@@ -36,50 +36,26 @@ async def read_instruction_resource(
     if not call_ctx.authorizer.can_read(dataset_name, call_ctx.user_email):
         return "Error: reading instructions is not permitted"
     try:
-        dataset = call_ctx.ragflow.get_dataset(name=dataset_name)
+        dataset = call_ctx.dataset_lookup.get_dataset(name=dataset_name)
     except Exception as exc:
         return f"Error: failed to open instruction dataset '{dataset_name}': {exc}"
 
     if not dataset:
         return f"Error: instruction dataset not found: {dataset_name}"
 
-    # Try cache-based lookup first
-    if doc_cache is not None:
-        try:
-            all_docs = doc_cache.get_all_docs(dataset, dataset_name)
-            docs = [
-                doc for doc in all_docs
-                if (Bundler._resource_path(doc) == normalized_path)
-            ]
-            if docs:
-                return bundler.bundle(docs, dataset_name)
-            # Fall through to direct query if cache miss
-        except Exception:
-            pass
-
-    # Direct query fallback (also used when no cache provided)
-    import json
-    metadata_condition = json.dumps({
-        "logic": "and",
-        "conditions": [
-            {
-                "name": "resource_path",
-                "comparison_operator": "=",
-                "value": normalized_path,
-            }
-        ],
-    })
+    # Resource_path lookup goes through the cache and filters client-side.
+    # The server-side metadata_condition filter is unreliable on RAGFlow 0.25.x
+    # (silently returns all docs when the filter matches zero), so we never use
+    # it here.
+    if doc_cache is None:
+        return f"Error: doc cache unavailable for resource lookup '{normalized_path}'"
 
     try:
-        docs = document_client.list_docs(
-            dataset=dataset,
-            page_size=1000,
-            metadata_condition=metadata_condition,
-        )
+        all_docs = doc_cache.get_all_docs(dataset, dataset_name)
     except Exception as exc:
-        return f"Error: failed to query documents for resource_path '{normalized_path}': {exc}"
+        return f"Error: failed to load documents for resource_path '{normalized_path}': {exc}"
 
+    docs = [doc for doc in all_docs if Bundler._resource_path(doc) == normalized_path]
     if not docs:
-        return f"No documents found for resource path: {normalized_path}"
-
+        return f"Error: No documents found for resource path: {normalized_path}"
     return bundler.bundle(docs, dataset_name)

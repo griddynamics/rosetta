@@ -1,0 +1,52 @@
+// Implements FR-PLAN-0036 (seed upsert template: for-subagent).
+// Content is byte-equivalent to docs/requirements/rosettify/assets/templates/upsert-for-subagent.json.
+
+/**
+ * FR-PLAN-0036 — upsert-kind template for bootstrapping a subagent preparation phase.
+ * Placeholders: [phase-id], [phase-name], [phase-description].
+ * Step IDs are prefixed with [phase-id]-s- to ensure plan-wide uniqueness (FR-PLAN-0001).
+ * Content byte-equivalent to upsert-for-subagent.json (verified in Phase 9 tests).
+ */
+export const forSubagent = {
+  name: "for-subagent",
+  brief: "Bootstrap a subagent preparation phase with standard Rosetta load-context steps.",
+  placeholders: ["phase-id", "phase-name", "phase-description"] as const,
+  content: {
+    id: "[phase-id]",
+    name: "[phase-name]",
+    description: "[phase-description]",
+    depends_on: [],
+    steps: [
+      {
+        id: "[phase-id]-s-load-context-instructions",
+        name: "Load bootstrap context",
+        prompt: "Call get_context_instructions exactly once to load the bundled bootstrap rules. This is the blocking prerequisite gate (Prep Step 1). Do not call any other tool first.",
+      },
+      {
+        id: "[phase-id]-s-execution-planning",
+        name: "Plan execution at the task level",
+        prompt: "Perform execution-level planning using todo tasks for this phase's scope. Identify dependencies and the right order before acting.",
+      },
+      {
+        id: "[phase-id]-s-read-context-architecture",
+        name: "Read CONTEXT.md and ARCHITECTURE.md in full",
+        prompt: "Read docs/CONTEXT.md and docs/ARCHITECTURE.md in full. Read all lines at once. These files carry critical project context.",
+      },
+      {
+        id: "[phase-id]-s-grep-implementation-memory",
+        name: "Grep headers of IMPLEMENTATION.md and MEMORY.md",
+        prompt: "Grep '^#{1,3}' headers of agents/IMPLEMENTATION.md and agents/MEMORY.md. Read further sections only as needed.",
+      },
+      {
+        id: "[phase-id]-s-execute-tasks",
+        name: "Execute todo tasks and adopt changes",
+        prompt: "Execute the planned todo tasks and adopt the resulting changes. Update task status as work progresses.",
+      },
+      {
+        id: "[phase-id]-s-proceed-with-request",
+        name: "Proceed with the assigned request",
+        prompt: "Proceed with the original assigned request and its activities, following all guardrails and HITL rules.",
+      },
+    ],
+  },
+} as const;

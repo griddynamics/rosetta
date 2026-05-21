@@ -56,6 +56,8 @@ export interface Plan {
   status: Status;
   created_at: string; // ISO 8601
   updated_at: string; // ISO 8601
+  /** FR-PLAN-0017 — path of the immediately prior version captured at write time. null on first create. */
+  previous_version: string | null;
   phases: Phase[];
 }
 
@@ -141,10 +143,10 @@ export interface ShowStatusStepResult {
   model?: string;
 }
 
+// FR-PLAN-0015 — compressed-tree is the sole return shape; message? field removed
 export interface UpsertResult {
   id: string;
   plan_status: Status;
-  message?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -429,7 +431,12 @@ export function validateSizeLimits(plan: Plan): string | null {
 
 export function loadPlan(file: string): Plan | null {
   if (!fs.existsSync(file)) return null;
-  return JSON.parse(fs.readFileSync(file, "utf8")) as Plan;
+  const raw = JSON.parse(fs.readFileSync(file, "utf8")) as Plan;
+  // FR-PLAN-0017 — back-compat: inject previous_version:null for legacy plans missing the field
+  if (!("previous_version" in raw)) {
+    (raw as Record<string, unknown>)["previous_version"] = null;
+  }
+  return raw;
 }
 
 export function savePlan(file: string, plan: Plan): void {

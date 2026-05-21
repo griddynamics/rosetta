@@ -5,7 +5,7 @@
   },
   "plugins": [
     {
-      "name": "core",
+      "name": "rosetta",
       "source": {
         "source": "local",
         "path": "./plugins/core-codex"

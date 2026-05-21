@@ -139,27 +139,29 @@ Focus on fixing the underlying issue, not symptoms.
 |-------|----------|------|-------------|
 | `name` | No | string | Unique identifier (lowercase, hyphens). Defaults to filename without extension. |
 | `description` | No | string | Explains when to use this subagent. Agent reads this to decide delegation. |
-| `model` | No | string | Model to use: `fast`, `inherit`, or specific model ID. Defaults to `inherit`. See Models section below. |
+| `model` | No | string | Only one specific model to use: `composer-2-fast` or model id below or (omitted). Omitted means `inherit`. See Models section below. Only one model is allowed. |
 | `readonly` | No | boolean | If `true`, subagent runs with restricted write permissions. |
 | `is_background` | No | boolean | If `true`, subagent runs in background without waiting for completion. |
 
 #### Models
 
-The `model` field accepts the following values:
-- `fast` - Uses a faster/cheaper model (default for explore subagent)
-- `inherit` - Inherits model from parent agent (default)
-- `composer-1` - Cursor's proprietary model
-- `claude-4.5-opus-high-thinking` - Anthropic Claude 4.5 Opus (most capable, with extended reasoning)
-- `claude-4.5-sonnet` - Anthropic Claude 4.5 Sonnet
-- `claude-4.5-sonnet-thinking` - Anthropic Claude 4.5 Sonnet with extended reasoning
+The `model` field accepts the following model id values:
+- (omitted) - Inherits model from parent agent (default)
+- `auto` - Selects cheapest matching model, avoid use of it!
+- `composer-2-fast` - Uses a very fast and cheap model (for simple tasks, like executing a predefined set of scripts and analyzing the output)
+- `claude-4.7-opus-high-thinking` - Anthropic Claude 4.7 Opus (most capable, with extended reasoning, expensive)
+- `claude-4.6-sonnet` - Anthropic Claude 4.6 Sonnet
+- `claude-4.6-sonnet-thinking` - Anthropic Claude 4.6 Sonnet with extended reasoning
 - `claude-4.5-haiku` - Anthropic Claude 4.5 Haiku
 - `claude-4.5-haiku-thinking` - Anthropic Claude 4.5 Haiku with thinking
 - `gpt-5.1-codex-max` - OpenAI GPT 5.1 Codex Max
 - `gpt-5.1-codex-mini` - OpenAI GPT 5.1 Codex Mini
-- `gpt-5.2-codex-max` - OpenAI GPT 5.2 Codex Max
-- `gpt-5.2-codex-max-high` - OpenAI GPT 5.2 Codex Max High
 - `gpt-5.3-codex-medium` - OpenAI GPT 5.3 Codex Medium
 - `gpt-5.3-codex-max-high` - OpenAI GPT 5.3 Codex Max High
+- `gpt-5.4-medium` - OpenAI GPT 5.4 model, better than 5.3 (combined codex and regular), medium reasoning efforts
+- `gpt-5.4-high` - OpenAI GPT 5.4 with high reasoning efforts (ex: planning, tech specs)
+- `gpt-5.5-medium` - OpenAI GPT 5.5 better than 5.4 and Opus 4.7, medium efforts, expensive (overall planner)
+- `gpt-5.5-high` - OpenAI GPT 5.5 with high reasoning efforts (architect)
 - `grok-code-fast-1` - xAI Grok Code Fast
 - `gemini-3.1-pro` - Google Gemini 3 Pro
 

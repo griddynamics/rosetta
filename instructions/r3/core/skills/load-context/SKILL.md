@@ -1,6 +1,7 @@
 ---
 name: load-context
 description: Rosetta MUST skill to load the most current project context.
+license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
 <load-context>

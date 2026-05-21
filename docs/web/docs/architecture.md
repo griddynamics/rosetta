@@ -98,7 +98,7 @@ The MCP server is the guiding layer between IDEs and the knowledge base. It expo
 
 ### VFS and Tags
 
-Everything MCP works with is VFS (virtual file system) resource paths. The CLI strips `core/` and `grid/` prefixes during publishing, so `core/skills/planning/SKILL.md` and `grid/skills/planning/SKILL.md` both become `skills/planning/SKILL.md`. Files at the same resource path get bundled together.
+Everything MCP works with is VFS (virtual file system) resource paths. The CLI strips instruction root prefixes during publishing, so `core/skills/planning/SKILL.md` becomes `skills/planning/SKILL.md`. Files at the same resource path get bundled together.
 
 **Tags are the primary access mechanism.** `ACQUIRE <path> FROM KB` queries by tags, which provides the most direct and fastest access. The CLI's auto-tagging was designed specifically for this: every folder name, filename, and composite pair/triple becomes a tag, so agents can request exactly what they need. Keyword search via `SEARCH` is the fallback for discovery.
 
@@ -288,7 +288,7 @@ Instructions live in `/instructions/r2/` in the instructions repository, using a
 
 ```
 /instructions/r2/
-├── core/                  ← OSS foundation (ships with Rosetta)
+├── core/                  ← Rosetta instruction source
 │   ├── skills/
 │   │   └── <name>/
 │   │       ├── SKILL.md
@@ -303,7 +303,7 @@ Instructions live in `/instructions/r2/` in the instructions repository, using a
 │   │   └── <name>.md
 │   └── commands/
 │
-└── <org>/                 ← Organization extensions (e.g., grid/)
+└── <org>/                 ← Optional organization extensions (e.g., acme/)
     ├── skills/
     ├── agents/
     ├── workflows/

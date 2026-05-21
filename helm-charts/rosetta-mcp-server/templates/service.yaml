@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rosetta-mcp.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "rosetta-mcp.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  {{- with .Values.service.sessionAffinity }}
+  sessionAffinity: {{ . }}
+  {{- end }}
+  {{- with .Values.service.sessionAffinityConfig }}
+  sessionAffinityConfig:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  ports:
+    {{- range .Values.ports }}
+    - port: {{ . }}
+      targetPort: port{{ . }}
+      protocol: TCP
+      name: port{{ . }}
+    {{- end }}
+  selector:
+    {{- include "rosetta-mcp.selectorLabels" . | nindent 4 }}

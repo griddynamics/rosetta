@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 from ims_mcp.config import RosettaConfig
 from ims_mcp.context import CallContext
+from ims_mcp.clients.dataset import DatasetLookup
 from ims_mcp.tools.projects import _to_dataset_name, _to_project_name
 from ims_mcp.tools.validation import normalize_project_name
 
@@ -25,10 +26,11 @@ class _SelectiveAuthorizer:
 
 
 def make_call_ctx(*, authorizer=None, ragflow=None) -> CallContext:
+    ragflow = ragflow or _Ragflow()
     return CallContext(
         config=RosettaConfig.from_env(),
-        ragflow=ragflow or _Ragflow(),
-        dataset_lookup=None,
+        ragflow=ragflow,
+        dataset_lookup=DatasetLookup(ragflow=ragflow),
         ctx=None,
         username="tester",
         repository="RulesOfPower",

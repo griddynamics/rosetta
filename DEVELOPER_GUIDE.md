@@ -57,8 +57,8 @@
 rosetta/
 ├── instructions/         ← Prompts: skills, agents, workflows, rules, templates
 │   └── r2/
-│       ├── core/         ← OSS foundation
-│       └── <org>/        ← Organization extensions (e.g., grid/)
+│       ├── core/         ← Rosetta instruction source
+│       └── <org>/        ← Optional organization extensions (e.g., acme/)
 ├── ims-mcp-server/       ← Rosetta MCP server (PyPI: ims-mcp)
 │   ├── ims_mcp/          ← Server source code
 │   ├── tests/            ← Unit tests (pytest)
@@ -455,18 +455,6 @@ instructions/r2/
 │   ├── agents/
 │   ├── rules/
 │   └── configure/
-└── grid/
-    ├── workflows/
-    │   ├── workflow-name-flow.md
-    │   ├── workflow-name-flow-phase1-name.md
-    │   └── workflow-name-flow-phase2-name.md
-    ├── skills/
-    │   └── skill-name/
-    │       ├── SKILL.md
-    │       ├── assets/
-    │       └── references/
-    ├── agents/
-    └── rules/
 ```
 
 #### Naming conventions
@@ -482,7 +470,7 @@ Key changes:
 - Workflow files get `-flow` suffix
 - Phase files include descriptive name instead of just a number
 - Skills are extracted into their own folder with a `SKILL.md` entry point
-- Scope moved from `agents/instructions/{core,advanced,common}/r1/` to `instructions/r2/{core,grid}/`
+- Scope moved from `agents/instructions/{core,advanced,common}/r1/` to `instructions/r2/core/`
 
 ### Step 2: Add YAML frontmatter
 
@@ -539,7 +527,7 @@ AI-assisted only; manual is not practical for this step.
 
 Execute the following prompt to extract reusable skills from workflow phases:
 
-> MUST FULLY EXECUTE `instructions/r2/grid/workflows/coding-agents-prompting-flow.md` to refactor skills out of full Rosetta workflow with phases `[workflow_file]` as R2 prompt family in `grid` scope.
+> MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to refactor skills out of full Rosetta workflow with phases `[workflow_file]` as R2 prompt family.
 
 #### Acceptance criteria
 
@@ -558,8 +546,8 @@ Replace markdown sections in workflow and phase files with XML tags (`<context>`
 | File type | Schema | Example |
 |---|---|---|
 | Workflow | `docs/schemas/workflow.md` | `instructions/r2/core/workflows/coding-flow.md` |
-| Phase | `docs/schemas/phase.md` | `instructions/r2/grid/workflows/testgen-flow-data-collection.md` |
-| Skill | `docs/schemas/skill.md` | `instructions/r2/grid/skills/coding-agents-prompt-authoring/SKILL.md` |
+| Phase | `docs/schemas/phase.md` | `instructions/r2/core/workflows/testgen-flow-data-collection.md` |
+| Skill | `docs/schemas/skill.md` | `instructions/r2/core/skills/coding-agents-prompt-authoring/SKILL.md` |
 
 #### AI-assisted prompt for workflows
 
@@ -567,7 +555,7 @@ Replace markdown sections in workflow and phase files with XML tags (`<context>`
 
 #### AI-assisted prompt for phases
 
-> There's an example of the format `instructions/r2/grid/workflows/testgen-flow-data-collection.md`. There's a schema for phases `docs/schemas/phase.md`. Please use it for reformatting `[phase_file]`.
+> There's an example of the format `instructions/r2/core/workflows/testgen-flow-data-collection.md`. There's a schema for phases `docs/schemas/phase.md`. Please use it for reformatting `[phase_file]`.
 
 #### AI-assisted prompt for skills
 

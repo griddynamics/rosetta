@@ -2,6 +2,7 @@
 name: bootstrap-rosetta-files
 description: Defines workspace rosetta files.
 alwaysApply: true
+applyTo: "**"
 trigger: always_on
 tags: ["rosetta-bootstrap", "rosetta", "policy"]
 baseSchema: docs/schemas/rule.md

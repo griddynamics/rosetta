@@ -8,7 +8,6 @@ This directory contains the Python package for publishing knowledge base content
 
 ## Community
 
-- [Discord](https://discord.gg/QzZ2cWg36g)
 - [Website](https://griddynamics.github.io/rosetta/)
 - [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)
 

@@ -10,7 +10,7 @@ When evaluating a Rosetta prompt, simulate the perspective of an agent running i
 
 Rosetta is invoked by AI coding agent on new request input. Rosetta provides bootstrap (guardrails.md and agents.md). According to agents.md coding agent makes a decision to use one or another flow, and Rosetta provides those related instructions. Rosetta is implemented as MCP server to RAGFlow.
 
-## Rosetta Core Principles
+## Rosetta Principles
 
 - **Agent-Agnostic** - Works across Cursor, Claude Code, GitHub Copilot, JetBrains AI, and any MCP-compatible IDE
 - **Progressive Disclosure** - Instructions load progressively to prevent context overflow and guarantee proper execution

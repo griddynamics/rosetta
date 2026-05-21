@@ -1,7 +1,7 @@
 ---
 name: orchestrator-contract
 description: "Rosetta MUST skill. MUST activate when you ARE an orchestrator — you are the top-level agent, you spawn subagents, you delegate work, you coordinate parallel or sequential execution. Defines delegation quality, subagent dispatch, routing, review, and ownership protocol."
-tags: []
+license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -20,7 +20,7 @@ Dispatch:
 4. Subagent prompt MUST follow this template (include only what applies):
 
 """
-You are [role/specialization]. [lightweight|full] subagent.
+You are [role/specialization]. [Lightweight|Full] subagent.
 Plan: [absolute path to plan.json or "ad-hoc"]. Phase: [phase id]. Task: [task id].
 
 ## Tasks (SMART)

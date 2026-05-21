@@ -1,7 +1,7 @@
 ---
 name: reasoning
 description: Apply structured meta-cognitive reasoning to complex problems using canonical 7D, then deliver a clear answer with caveats.
-license: Proprietary
+license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: problem, context?, constraints?

@@ -148,11 +148,25 @@ applyTo: "src/api/**/*.ts"
 | `"*"` | All tools |
 | `"github/*"` | All GitHub MCP server tools |
 | `"playwright/navigate"` | Specific MCP tool |
+| etc | any new from mcp or new version |
 
 **Out-of-box MCP servers:**
 
 - `github` - Read-only tools scoped to source repository
 - `playwright` - Browser automation limited to localhost
+
+**Models:**
+- (omitted) - Inherits model from parent agent (default)
+- `Claude Opus 4.7` - Anthropic Claude 4.7 Opus (most capable, with extended reasoning)
+- `Claude Opus 4.6` - Anthropic Claude 4.6 Opus prev gen
+- `Claude Opus 4.5` - Anthropic Claude 4.5 Opus prev gen
+- `Claude Sonnet 4.6` - Anthropic Claude 4.6 Sonnet with thinking
+- `Claude Haiku 4.5` - Anthropic Claude 4.5 Haiku with thinking
+- `GPT-5.3-Codex` - OpenAI GPT 5.3 Codex
+- `GPT-5.4` - OpenAI GPT 5.4 model, better than 5.3 (combined codex and regular), medium reasoning efforts
+- `gpt-5.5` - OpenAI GPT 5.5 with medium reasoning efforts, better than opus 4.7 (architect)
+- `Grok Code Fast 1` - xAI Grok Code Fast
+- `Gemini 3.1 Pro (Preview)` - Google Gemini 3 Pro
 
 **Structure:**
 
@@ -160,7 +174,7 @@ applyTo: "src/api/**/*.ts"
 ---
 description: Expert code reviewer for quality, security, and maintainability
 tools: ["read", "search"]
-model: ["claude-sonnet-4-5", "gpt-4o"]
+model: ["Claude Sonnet 4.6", "GPT-5.4"]
 handoffs:
   - label: "Send to Implementation"
     agent: implementer

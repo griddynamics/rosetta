@@ -1,13 +1,16 @@
+// Implements FR-PLAN-0015 (upsert subcommand) and FR-PLAN-0040 (compressed-tree output).
+// Uses FR-PLAN-0024 write cycle (atomicWriteWithBackup) for all writes.
+// FR-PLAN-0025 — plan writes go through FR-PLAN-0024, NOT the FR-SHRD-0006 optimistic-concurrency function.
+
+import * as fs from "fs";
 import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
-import { atomicWritePlan } from "../../shared/concurrency.js";
+import { atomicWriteWithBackup } from "../../shared/plan-io.js";
 import {
   type Plan,
   type Phase,
   type Step,
-  type UpsertResult,
-  loadPlan,
   savePlan,
   mergePatch,
   mergeById,
@@ -19,34 +22,57 @@ import {
   findPhase,
   findStep,
 } from "./core.js";
+import { buildCompressedTree, type CompressedPlanTree } from "./output.js";
 
+// FR-PLAN-0015 — upsert returns compressed-tree shape (FR-PLAN-0040)
+export const upsertInputSchema = {
+  type: "object" as const,
+  properties: {
+    plan_file: { type: "string", description: "Path to the plan JSON file" },
+    target_id: { type: "string", description: "Phase or step ID, or 'entire_plan'" },
+    data: {
+      oneOf: [
+        { type: "string", description: "JSON string of patch data" },
+        { type: "object", description: "Patch data object" },
+      ],
+    },
+    kind: { type: "string", description: "Type for new items: phase | step" },
+    phase_id: { type: "string", description: "Parent phase for new step" },
+  },
+  required: [],
+};
+
+export const upsertOutputSchema = {
+  type: "object" as const,
+  description: "FR-PLAN-0040 — compressed-tree shape after upsert",
+  properties: {
+    plan: { type: "object" },
+    previous_version: { type: ["string", "null"] },
+    phases: { type: "array" },
+  },
+};
+
+// FR-PLAN-0015 — status fields are silently dropped from patch data;
+// FR-PLAN-0016 — this behavior is documented in help notes, not per-call output.
 const STATUS_FIELDS = new Set(["status"]);
 
 function stripStatusFields(
   data: Record<string, unknown>,
-): { stripped: Record<string, unknown>; anyStripped: boolean } {
-  let anyStripped = false;
+): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
     if (STATUS_FIELDS.has(key)) {
-      anyStripped = true;
+      // FR-PLAN-0015 / FR-PLAN-0016 — silently drop status fields; surfaced via help notes
+      continue;
     } else if (key === "phases" && Array.isArray(value)) {
-      result[key] = (value as Record<string, unknown>[]).map((p) => {
-        const { stripped: ps, anyStripped: pa } = stripStatusFields(p);
-        if (pa) anyStripped = true;
-        return ps;
-      });
+      result[key] = (value as Record<string, unknown>[]).map((p) => stripStatusFields(p));
     } else if (key === "steps" && Array.isArray(value)) {
-      result[key] = (value as Record<string, unknown>[]).map((s) => {
-        const { stripped: ss, anyStripped: sa } = stripStatusFields(s);
-        if (sa) anyStripped = true;
-        return ss;
-      });
+      result[key] = (value as Record<string, unknown>[]).map((s) => stripStatusFields(s));
     } else {
       result[key] = value;
     }
   }
-  return { stripped: result, anyStripped };
+  return result;
 }
 
 export async function cmdUpsert(
@@ -55,18 +81,18 @@ export async function cmdUpsert(
   data: Record<string, unknown>,
   kind?: string,
   phaseId?: string,
-): Promise<RunEnvelope<UpsertResult>> {
+): Promise<RunEnvelope<CompressedPlanTree>> {
   try {
     const resolvedTargetId = targetId ?? "entire_plan";
 
-    // Strip status fields silently (before any file I/O)
-    const { stripped: cleanData, anyStripped } = stripStatusFields(data);
-    const statusMessage = anyStripped
-      ? "status fields ignored -- use update_status to update status one-by-one after each task completion"
-      : undefined;
+    // FR-PLAN-0015 — strip status fields silently before any file I/O
+    const cleanData = stripStatusFields(data);
 
-    // Special case: entire_plan on missing file — create new plan, no concurrency needed
-    if (resolvedTargetId === "entire_plan" && !loadPlan(planFile)) {
+    // Special case: entire_plan on missing file — create new plan (first-create path).
+    // FR-PLAN-0024 — no rename needed for first create.
+    // Use fs.existsSync (NOT loadPlan) so a corrupted file falls through to the write cycle,
+    // which translates parse failure to FR-PLAN-0021 plan_file_corrupted via readPlanWithRetry.
+    if (resolvedTargetId === "entire_plan" && !fs.existsSync(planFile)) {
       const now = new Date().toISOString();
       let plan: Plan = {
         name: "Unnamed Plan",
@@ -74,6 +100,7 @@ export async function cmdUpsert(
         status: "open",
         created_at: now,
         updated_at: now,
+        previous_version: null, // FR-PLAN-0017 — null on first create
         phases: [],
       };
       const idCheck = validateImmutableId(cleanData["id"] as string | undefined, resolvedTargetId);
@@ -84,15 +111,15 @@ export async function cmdUpsert(
       const depsErr = validateDependencies(plan); if (depsErr) return err(depsErr);
       const sizeErr = validateSizeLimits(plan); if (sizeErr) return err(sizeErr);
       propagateStatuses(plan);
+      // FR-PLAN-0026 — savePlan writes 2-space pretty-formatted JSON
       savePlan(planFile, plan);
-      const result: UpsertResult = { id: resolvedTargetId, plan_status: plan.status };
-      if (statusMessage) result.message = statusMessage;
-      return ok(result);
+      logger.info({ planFile, targetId: resolvedTargetId }, "upsert created new plan");
+      // FR-PLAN-0040 — return compressed-tree; previous_version=null (first create)
+      return ok(buildCompressedTree(plan, null));
     }
 
-    return atomicWritePlan<Plan, UpsertResult>(
-      loadPlan,
-      savePlan,
+    // FR-PLAN-0024 — use rename-as-guard write cycle for existing plans
+    const writeResult = await atomicWriteWithBackup<Plan, CompressedPlanTree>(
       planFile,
       (plan) => {
         let mutated = plan;
@@ -152,11 +179,21 @@ export async function cmdUpsert(
         propagateStatuses(mutated);
 
         logger.info({ planFile, targetId: resolvedTargetId }, "upsert complete");
-        const result: UpsertResult = { id: resolvedTargetId, plan_status: mutated.status };
-        if (statusMessage) result.message = statusMessage;
-        return { ok: true, result, updated: mutated };
+        // FR-PLAN-0040 — result is compressed-tree; backupPath injected by atomicWriteWithBackup
+        return { ok: true, result: buildCompressedTree(mutated, null), updated: mutated };
       },
+      savePlan,
     );
+
+    if (!writeResult.ok) {
+      return { ok: false, result: null, error: writeResult.error, include_help: writeResult.include_help };
+    }
+
+    // Patch the compressed tree's previous_version with the actual backup path from write cycle
+    const tree = writeResult.result!.result;
+    const actualBackupPath = writeResult.result!.backupPath;
+    const finalTree: CompressedPlanTree = { ...tree, previous_version: actualBackupPath };
+    return ok(finalTree);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return err(`internal_error: ${msg}`);

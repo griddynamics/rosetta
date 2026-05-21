@@ -8,7 +8,6 @@ This package provides a FastMCP server that connects to Rosetta servers for adva
 
 ## Community
 
-- [Discord](https://discord.gg/QzZ2cWg36g)
 - [Website](https://griddynamics.github.io/rosetta/)
 - [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)
 

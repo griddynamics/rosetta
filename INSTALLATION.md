@@ -38,11 +38,13 @@ Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project):
 {
   "mcpServers": {
     "Rosetta": {
-      "url": "<rosetta MCP production server URL>"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }
 ```
+Then restart Cursor, go to 'Settings', enable Rosetta MCP, and authenticate it.
+![cursor-config.jpg](docs/images/installation/cursor-config.jpg)
 
 </details>
 
@@ -50,7 +52,7 @@ Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project):
 <summary><b>Claude Code</b></summary>
 
 ```sh
-claude mcp add --transport http Rosetta <rosetta MCP production server URL>
+claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp
 ```
 
 Authenticate inside a claude session with `/mcp`, select Rosetta, Authenticate, and complete the OAuth flow.
@@ -61,7 +63,7 @@ Authenticate inside a claude session with `/mcp`, select Rosetta, Authenticate, 
 <summary><b>Codex</b></summary>
 
 ```sh
-codex mcp add Rosetta --url <rosetta MCP production server URL>
+codex mcp add Rosetta --url https://mcp.rosetta.griddynamics.net/mcp
 codex mcp login Rosetta
 ```
 
@@ -76,7 +78,7 @@ Add to `.vscode/mcp.json` or `~/.mcp.json`:
 {
   "servers": {
     "Rosetta": {
-      "url": "<rosetta MCP production server URL>"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }
@@ -93,7 +95,7 @@ Add to `.vscode/mcp.json` or `~/.mcp.json`:
 {
   "servers": {
     "Rosetta": {
-      "url": "<rosetta MCP production server URL>"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }
@@ -112,7 +114,7 @@ Restart IDE after changes.
 {
   "mcpServers": {
     "Rosetta": {
-      "url": "<rosetta MCP production server URL>"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }
@@ -129,7 +131,7 @@ Add to your Windsurf MCP config:
 {
   "mcpServers": {
     "Rosetta": {
-      "url": "<rosetta MCP production server URL>"
+      "url": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }
@@ -146,7 +148,7 @@ Add to your Antigravity MCP config:
 {
   "mcpServers": {
     "Rosetta": {
-      "serverUrl": "<rosetta MCP production server URL>"
+      "serverUrl": "https://mcp.rosetta.griddynamics.net/mcp"
     }
   }
 }
@@ -164,7 +166,7 @@ Add to `opencode.json`:
   "mcp": {
     "Rosetta": {
       "type": "http",
-      "url": "<rosetta MCP production server URL>",
+      "url": "https://mcp.rosetta.griddynamics.net/mcp",
       "enabled": true
     }
   }
@@ -411,27 +413,27 @@ Do not set `VERSION`. It uses a server-controlled default for managed upgrades. 
 
 ### Plugin-Based Installation (pre-release)
 
-Rosetta publishes plugins for supported IDEs. Each plugin installs core (20 skills, 7 agents, 4 workflows, bootstrap rules).
+Rosetta publishes plugins for supported IDEs. Each plugin installs the full Rosetta instruction set locally.
 
-Read more about plugin contents and capabilities in the [Usage Guide — Plugins](USAGE_GUIDE.md#plugins).
+Read more about plugin contents and capabilities in [PLUGINS.md](PLUGINS.md).
 
 #### Claude Code
 
 ```sh
 claude plugin marketplace add griddynamics/rosetta
-claude plugin install core@rosetta
+claude plugin install rosetta@rosetta
 ```
 
 Updating after installation:
 
 ```sh
 claude plugin marketplace update rosetta
-claude plugin update core@rosetta
+claude plugin update rosetta@rosetta
 ```
 
 #### VS Code / GitHub Copilot
 
-Install `core-copilot` via VS Code Copilot Plugins (not VS Code extensions).
+Install `rosetta` via VS Code Copilot Plugins (not VS Code extensions).
 
 #### JetBrains / GitHub Copilot
 
@@ -446,7 +448,7 @@ Install `core-copilot` via VS Code Copilot Plugins (not VS Code extensions).
 Download `core-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest), extract on top of the repository, and enable hooks:
 
 ```sh
-codex features enable codex_hooks
+codex features enable hooks
 ```
 
 ### Offline Installation (No MCP)
@@ -573,7 +575,7 @@ After initialization, Rosetta maintains these files in your repository. Read mor
 
 **Plugins:**
 
-- **Claude Code:** `claude plugin uninstall core@rosetta`
+- **Claude Code:** `claude plugin uninstall rosetta@rosetta`
 - **VS Code / GitHub Copilot:** Remove the Copilot agent plugin
 - **Codex:** Delete the extracted plugin files from the repository
 

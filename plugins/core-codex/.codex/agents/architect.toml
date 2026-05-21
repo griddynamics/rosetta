@@ -56,6 +56,6 @@ Validation: Specifications are testable, architecture is explicit, and every req
 
 </architect>
 """
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
