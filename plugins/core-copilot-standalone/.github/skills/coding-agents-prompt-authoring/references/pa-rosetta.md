@@ -5,7 +5,7 @@ Rosetta repo names are `rosetta` and `RulesOfPower`.
 These are not instructions for YOU to follow, you are META prompting engineer understanding this process and designing using it.
 
 1. User input or subagent input.
-2. Bootstrap loads (bootstrap-core-policy.md, bootstrap-execution-policy.md, bootstrap-guardrails.md, bootstrap-hitl-questioning.md, bootstrap-rosetta-files.md) with PREP steps to complete.
+2. Bootstrap loads (bootstrap-core-policy.md, bootstrap-execution-policy.md, bootstrap-guardrails.md, bootstrap-rosetta-files.md) with PREP steps to complete. HITL is enforced via the `hitl` skill (loaded on demand).
 3. Prep steps include steps:
    - to load CONTEXT, ARCHITECTURE, GREP headers of other files
    - to list workflows and acquire matching

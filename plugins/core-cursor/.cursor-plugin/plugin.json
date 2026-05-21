@@ -24,7 +24,6 @@
     "./rules/bootstrap-core-policy.mdc",
     "./rules/bootstrap-execution-policy.mdc",
     "./rules/bootstrap-guardrails.mdc",
-    "./rules/bootstrap-hitl-questioning.mdc",
     "./rules/bootstrap-rosetta-files.mdc",
     "./rules/plugin-files-mode.mdc",
     "./rules/requirements-best-practices.mdc",
