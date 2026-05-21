@@ -439,8 +439,8 @@ Rosetta initializes and maintains a standard file structure in **target reposito
 
 **Other:**
 - `gain.json` — general SDLC setup and Rosetta file locations (wins in conflicts)
-- `refsrc/*` — reference source code for knowledge only (excluded from Git except `refsrc/INDEX.md`)
-- `agents/TEMP/<FEATURE>` — temporary files during implementation (excluded from Git)
+- `refsrc/*` — reference source code for knowledge only (excluded from SCM except `refsrc/INDEX.md`)
+- `agents/TEMP/<FEATURE>` — temporary files during implementation (excluded from SCM)
 
 Prep step 2 loads `CONTEXT.md` and `ARCHITECTURE.md` from the target repository. The agent updates `IMPLEMENTATION.md` and `MEMORY.md` as it works. See [Installation — Workspace Files Created](../INSTALLATION.md#workspace-files-created) for the full list of committed and excluded files.
 
