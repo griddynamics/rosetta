@@ -866,10 +866,10 @@ def generate_standalone_plugin(spec: StandaloneSpec, plugins_root: Path) -> None
         if item.name == spec.excluded_source_folder:
             continue
         if item.is_dir() and item.name == spec.subfolder:
-            # Source plugin contains a directory matching the standalone's subfolder name
-            # (e.g. core-cursor has .cursor/ from generate_cursor_runtime_layout, and the
-            # standalone's subfolder is also .cursor/). Merge its contents directly into
-            # subfolder_path instead of nesting it as <subfolder>/<subfolder>/.
+            # Source plugin contains a directory matching the standalone's subfolder name.
+            # Merge its contents directly into subfolder_path instead of nesting them as
+            # <subfolder>/<subfolder>/. Defensive: handles any future runtime-layout step
+            # that might place files in a folder whose name equals the standalone target.
             shutil.copytree(item, subfolder_path, dirs_exist_ok=True)
         elif item.is_dir():
             target = subfolder_path / item.name
