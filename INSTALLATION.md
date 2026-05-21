@@ -19,7 +19,7 @@
 | Local dependencies | None                                              | None                                 | Python 3.12+, uvx                       | None                                        |
 | Auth               | None                                              | OAuth via browser                    | API key from Rosetta Server             | None                                        |
 | Network            | Download only                                     | Requires internet                    | Requires internet                       | No network needed (with local models)       |
-| Best for           | Most users (Claude Code, VS Code Copilot, Codex)  | MCP-compatible IDEs without a plugin | Custom configs, controlled environments | Air-gapped or highly regulated environments |
+| Best for           | Claude Code, VS Code Copilot, Codex  | Most users | Custom configs, controlled environments | Air-gapped or highly regulated environments |
 
 ## Step 1: Install
 
@@ -499,7 +499,7 @@ The agent runs an eight-phase workflow (see [Usage Guide — Init Workspace](USA
 
 After initialization, Rosetta maintains the following files in your repository. Read more about their purpose in [Architecture — Workspace Files](docs/ARCHITECTURE.md#workspace-files).
 
-**Committed to Git:**
+**Committed to SCM:**
 
 - `gain.json` - SDLC setup and Rosetta file locations
 - `docs/CONTEXT.md` - business context (no technical details)
@@ -517,7 +517,7 @@ After initialization, Rosetta maintains the following files in your repository. 
 - `plans/<FEATURE>/<FEATURE>-SPECS.md` - tech specs
 - `refsrc/INDEX.md` - index of reference documentation (only refsrc file committed)
 
-**Excluded from Git:**
+**Excluded from SCM:**
 
 - `refsrc/*` (except INDEX.md) - reference knowledge files
 - `agents/TEMP/<FEATURE>` - temporary implementation files
