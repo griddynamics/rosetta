@@ -7,7 +7,9 @@
 
 ## Before You Start
 
-If you haven't already, read [OVERVIEW.md](OVERVIEW.md) to understand what Rosetta is. The [Architecture](docs/ARCHITECTURE.md) is useful background but not required for most contributions. For local dev setup and where things live in the repo, the [Developer Guide](DEVELOPER_GUIDE.md) is the next stop after you've read this file.
+- Read the [OVERVIEW](OVERVIEW.md) to understand what Rosetta is
+- Understand the [Architecture](docs/ARCHITECTURE.md)
+- Follow the [Developer Guide](DEVELOPER_GUIDE.md)
 
 ## What Contributions Are Welcome
 
@@ -19,9 +21,7 @@ If you haven't already, read [OVERVIEW.md](OVERVIEW.md) to understand what Roset
 - **Feature requests** — open an issue describing the problem and your proposed solution
 - **Feedback** — positive or negative, both matter. Tell us what works well, what frustrates you, what confuses you. File an issue or start a discussion.
 
-Not sure where your idea fits? Open an issue first.
-
-## Fast Path to Your First PR
+## How to Contribute
 
 1. Pick a small, scoped issue (or open one with your proposal)
 2. Make focused edits. One concern per PR.
@@ -30,35 +30,14 @@ Not sure where your idea fits? Open an issue first.
 
 That's it. Small PRs get reviewed faster and merged sooner.
 
-## Contributing Workflow
+See [Overall Development Flow](DEVELOPER_GUIDE.md#overall-development-flow) for the full sequence: setup, development, testing, validation, and PR submission.
 
-```
-fork/clone → branch → edit → validate → push → PR
-```
+## Changing Prompts
 
-- Branch from `main`. Use descriptive branch names.
-- Commit messages: short summary line, body if needed. No special format enforced.
-- Run local validation before pushing.
-- Open a PR against `main`. Fill in the PR template.
+Prompt changes have outsized impact and need extra care.
+A prompt change modifies how AI agents behave across every project that uses Rosetta.
 
-See [Overall Development Flow](DEVELOPER_GUIDE.md#overall-development-flow) on how to run, test, build, review, and validate.
-
-## Prompt Change PRs
-
-A prompt change changes how AI agents behave across every project that uses Rosetta. There's no compile error and no failing test if you break something — regressions are silent. That's why prompt PRs need evidence of behavior, not just a code-style review.
-
-The PR must include:
-
-1. **A prompt brief** — goal, non-goals, constraints.
-2. **Before/after behavior examples** — a prompt run on the old version, the same prompt on the new version, both outputs in the PR.
-3. **Validation evidence** — what you ran to confirm the new prompt doesn't regress what the old one did. Attach to the PR description.
-
-Two automated gates run on prompt PRs. Both must pass before merge:
-
-- **Static AI review** — checks the prompt file for structural problems (missing schema sections, broken frontmatter, missing required tags) before a human reviews it.
-- **Scenario comparison** — runs the same scenarios against the old prompt and your new prompt, then shows the behavioral diff so the reviewer can see what actually changed.
-
-For *how* to author the prompt change itself (which workflow to use, which model, concrete invocations), see [Developer Guide → step 2 of Overall Development Flow](DEVELOPER_GUIDE.md#overall-development-flow).
+For details on the prompt change (which workflow to use, which model, concrete invocations), see [Developer Guide → step 2 of Overall Development Flow](DEVELOPER_GUIDE.md#overall-development-flow).
 
 ## AI-Assisted Contributions
 
