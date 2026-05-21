@@ -20,7 +20,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL REQUIRED SCALING IS ALREADY PRE-DEFINED BY "applies" ATTRIBUTE.
 - Phases are sequential. Independent subagent tasks within a phase CAN run in parallel.
-- When debugging is needed, INVOKE SUBAGENT `engineer` separately to isolate debugging context from implementation.
+- When debugging is needed, INVOKE SUBAGENT `engineer` and USE SKILL `debugging` to isolate debugging context from implementation.
 - Use INVOKE SUBAGENT `executor` for building, running tests, installing packages, and similar mechanical actions.
 
 <discovery phase="1" applies="MEDIUM,LARGE" subagent="discoverer" role="Context discoverer">

@@ -9,25 +9,6 @@ baseSchema: docs/schemas/rule.md
 
 <rosetta:bootstrap_core_policy severity="CRITICAL" use="ALWAYS" execute="always" modes="all" planning_mode="MUST USE" execution_mode="MUST USE" default_mode="MUST USE" research_mode="MUST USE" auto_mode="MUST USE" compact="NEVER" optimize="NEVER" summarize="AS-IS">
 
-<OPERATION_MANAGER>
-
-- MUST USE SKILL `plan-manager`
-- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools.
-- Commands:
-  - `help plan` provides full information
-  - `plan next <plan_file> [limit]` lists next steps
-  - `plan create <plan_file> '<json>'`, `plan upsert <plan_file> [target: entire_plan|<phase-id>] [phase|step] '<json>'`, `plan update_status <plan_file> <step-id> [open|in_progress|complete|blocked|failed]`, `query <plan-file> [id|entire_plan]`, `show_status <plan-file> [id|entire_plan]`
-- Upsert follows RFC 7396: null removes keys, nested objects are merged not replaced, scalars are replaced, status field silently ignored to enforce use of `update_status`.
-- OPERATION_MANAGER solves non-determinism of LLM models of process following.
-- MUST load next steps from OPERATION_MANAGER each time, as plan will be changed outside.
-- MUST execute plan via loop: call `next`, execute, `update_status`.
-- AUTOSTART REQUIRED: after `plan create` or `plan upsert`, call `next` as the literal next tool call. Zero exceptions. No response to user, no explanation, no other tool calls in between. Creating the plan is NOT the deliverable — executing it is.
-- LOOP IS NEVER DONE until `plan_status: complete` AND `count: 0` in `next` output. Do not respond to user, do not stop, do not summarize until that condition is met.
-- MUST upsert a plan because of new tasks, inputs, findings.
-- Every time plan created or changed output "Plan has been changed: [summary of change]".
-
-</OPERATION_MANAGER>
-
 <upsert_context_steps>
 
 All agents (orchestrators and subagents) upsert the following steps into the existing plan's `ph-prep` phase using OPERATION_MANAGER `upsert <plan_file> ph-prep '<json>'`; if not available, MUST FALLBACK to built-in todo task tools:
@@ -44,7 +25,7 @@ All agents (orchestrators and subagents) upsert the following steps into the exi
     {
       "id": "s-read-docs",
       "name": "Read project context",
-      "prompt": "USE SKILL `load-context` as the canonical current context loader. Using the skill is REQUIRED. MUST ALWAYS read the FULL CONTENT ALL LINES of CONTEXT.md and ARCHITECTURE.md, IT HAS CRITICAL CONTEXT. MUST ALWAYS grep `^#{1,3}` headers of IMPLEMENTATION.md and AGENT MEMORY.md. Grep headers of other Rosetta files when needed. MUST use and validate REQUIREMENTS (if exist). If CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, or MEMORY.md files are missing, STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`.",
+      "prompt": "USE SKILL `load-context` as the canonical current context loader. Using the skill is REQUIRED.",
       "depends_on": ["s-upgrade-check"]
     },
     {
@@ -62,7 +43,7 @@ All agents (orchestrators and subagents) upsert the following steps into the exi
     {
       "id": "s-orchestrator-only-load-workflow",
       "name": "Load orchestrator-only workflow and check state",
-      "prompt": "MUST ACQUIRE <workflow TAG from available workflows, example: workflows/coding-flow.md> FROM KB TO LOAD THE MOST MATCHING WORKFLOW AND FULLY EXECUTE FOLLOWING ITS DEFINITION FOR ALL REQUEST SIZES. Load workflow state if requested to continue. Handle planning and auto mode correctly (distinguish auto vs No HITL). OPERATION_MANAGER upsert workflow phases/steps into the plan with separate, dedicated, detailed, and specific todo tasks based on loaded workflow phases, steps to restore state, steps to resume NOW. Proceed executing all accumulated phases/steps.",
+      "prompt": "MUST USE SKILL `load-workflow`.",
       "depends_on": ["s-orchestrator-only-contract"]
     },
     {
@@ -96,10 +77,9 @@ Attention:
 
 <additional_requirements>
 
-1. Grep headers of REFSRC, PATTERNS, and REQUIREMENTS INDEX.md, CODEMAP.md, and TECHSTACK.md files, if available.
-2. Search documentation for libraries, versions, and issues which are not in built-in knowledge.
-3. Always define explicit colors for tiles, text, and lines in diagrams for both light and dark themes.
-4. Prefer built-in tools over shell commands.
+1. Search documentation for libraries, versions, and issues which are not in built-in knowledge.
+2. Always define explicit colors for tiles, text, and lines in diagrams for both light and dark themes.
+3. Prefer built-in tools over shell commands.
 
 </additional_requirements>
 
