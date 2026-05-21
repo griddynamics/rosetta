@@ -9,6 +9,11 @@ mcp:
   # Per-integration toggles (optional). If omitted, agent may still try when mode is capable
   # and workflow needs that integration—unless workflow says otherwise.
   jira: true
+  # Confluence: one product, two YAML key names used by different workflows (not two layers):
+  # - TestGen (`testgen-flow-data-collection.md`, etc.) reads `confluence`.
+  # - AQA (`aqa-flow-data-collection.md`) reads `atlassian_confluence` (Atlassian MCP naming).
+  # If you use both workflow families, keep both booleans in sync. If you use only one family,
+  # you may omit the key the other family reads (omitted + capable → guided per that workflow).
   confluence: true
   testrail: true
   atlassian_confluence: true

@@ -22,6 +22,8 @@ mcp:
   atlassian_confluence: true
 ```
 
+- **`confluence` vs `atlassian_confluence`:** **Not aliases** — both refer to **Confluence** MCP on/off for **guided vs questionnaire**, but **different workflows read different keys** (TestGen uses `confluence`; AQA data collection uses `atlassian_confluence`). If you use **both** families, set **both** to the same boolean. If you use **one** family, you may omit the key the other workflow reads. Template: `instructions/r2/core/templates/mcp-capability.example.yaml`.
+
 - **`mode: capable`** — MCP allowed. Per integration: **`true`** or key omitted → **guided**. **`false`** → **questionnaire** (no MCP; user text). Read **`agents/user-instructions/mcp-guidance.md`** first when it exists. Do not re-ask values already in that file unless missing.
 - **`mode: absent`** — Do not invoke MCP. Parent workflow runs questionnaire (**STOP**, **WAIT**), merges into plan / `raw-data.md` / agreed artifact. Never fabricate MCP output.
 - **File missing** — Apply **A** if the user message overrides; else **one** question whose **scope** (which integrations) is defined by the **parent workflow**, not this fragment. **Example — TestGen Phase 1:** when `agents/mcp-capability.yaml` is absent, **Step 2b** asks once for **Jira and Confluence together** (`testgen-flow-data-collection.md`); **TestRail** is resolved again in **TestGen Phase 6**. **No** → questionnaire for the integrations that question covers. **Yes** → capable for that run; recommend adding YAML.
