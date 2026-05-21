@@ -15,29 +15,38 @@
 
 2. **Develop Rosetta using claude code / codex / cursor** or **Use the prompting flow.**
    - **Development:** existing rules kick in, HTTP MCP is preconfigured. The repo's `.mcp.json` pre-configures Claude Code to connect to the **dev** MCP endpoint (`rosetta-dev.example.com/mcp`) — this is intentional so contributors see their in-progress instruction changes reflected immediately. End users connect to the production endpoint instead.
-   - **Prompting:** use the [`coding-agents-prompting-flow`](USAGE_GUIDE.md#workflows) with the `coding-agents-prompt-authoring` skill to author, refactor, or harden prompts (agents, skills, workflows, rules, templates). Use Opus 4.6 or newer.
+   - **Prompting:** use the [`coding-agents-prompting-flow`](USAGE_GUIDE.md#workflows) with the `coding-agents-prompt-authoring` skill to author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with Opus 4.6 model.
 
-     Concrete invocations:
+    Examples:
 
-     Refactor an old prompt to R2 format:
+1. Refactoring old rosetta prompt to new:
+   ```
+   MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R2 prompt family in Rosetta.
+   ```
+   
+2. Creating a new prompt:   
+   ```
+   MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to author a new R2 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+   ```
+   
+3. Using Rosetta MCP:
+   ```
+   MUST ACQUIRE coding-agents-prompting-flow.md FROM KB AND FULLY EXECUTE IT to author a new R2 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+   ```
 
-     ```text
-     MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R2 prompt family in Rosetta.
-     ```
+**What to include in the PR:**
 
-     Create a new prompt:
+1. A prompt brief: goal, non-goals, constraints
+2. Before/after behavior examples
+3. Validation evidence (attach to PR description)
 
-     ```text
-     MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to author a new R2 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
-     ```
+**Automated review pipelines will run on your PR:**
 
-     Via Rosetta MCP (instead of file path):
+- **Static AI review** validates prompt changes for structure, quality, correctness, and governance
+- **Scenario comparison** runs scenarios with old and new prompts, then validates the behavioral difference
 
-     ```text
-     MUST ACQUIRE coding-agents-prompting-flow.md FROM KB AND FULLY EXECUTE IT to author a new R2 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
-     ```
+Both must pass before merge.
 
-     For PR submission requirements (brief, before/after, validation evidence), see [CONTRIBUTING → Prompt Change PRs](CONTRIBUTING.md#prompt-change-prs).
 
 3. **Check your output.**
    - [General Review Criteria](REVIEW.md#general-review-criteria)
