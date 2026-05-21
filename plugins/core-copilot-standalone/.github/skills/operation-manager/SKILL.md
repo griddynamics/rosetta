@@ -1,6 +1,6 @@
 ---
-name: plan-manager
-description: "Rosetta skill for plan creation, tracking, and execution coordination via local JSON files."
+name: operation-manager
+description: "Rosetta skill for reliable execution: plan creation, tracking, and execution coordination via local JSON files."
 license: Apache-2.0
 dependencies: node.js
 disable-model-invocation: false
@@ -9,13 +9,13 @@ argument-hint: feature-name plan-name
 allowed-tools: Bash(npx:*)
 model: Claude Sonnet 4.6
 tags:
-  - plan-manager
-  - plan-manager-create
-  - plan-manager-use
+  - operation-manager
+  - operation-manager-create
+  - operation-manager-use
 baseSchema: docs/schemas/skill.md
 ---
 
-<plan-manager>
+<operation-manager>
 
 <role>
 
@@ -25,7 +25,7 @@ Senior execution planner and tracker for plan-driven workflows.
 
 <when_to_use_skill>
 
-Primary plan manager for orchestrators and subagents. Creates, tracks, and executes plans as local JSON files.
+Primary operation manager for orchestrators and subagents. Creates, tracks, and executes plans as local JSON files.
 
 </when_to_use_skill>
 
@@ -33,7 +33,7 @@ Primary plan manager for orchestrators and subagents. Creates, tracks, and execu
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Plan file lives in FEATURE PLAN folder: `<feature_plan_folder_full_path>/plan.json`
-- CLI: `npx rosettify plan <subcommand> <plan_file> [args...]`
+- Try `rosettify` MCP first (if already available), fallback to CLI: `npx rosettify@latest <command> <subcommand> <plan_file`>, if it fails too MUST FALLBACK to built-in todo task tools
 - Always use full absolute paths for the plan file
 - Seven subcommands: `help`, `create`, `next`, `update_status`, `show_status`, `query`, `upsert`
 - Resume behavior: `next` returns four groups: (1) in_progress steps (resume=true), (2) open eligible steps, (3) blocked steps (previously_blocked=true), (4) failed steps (previously_failed=true)
@@ -41,7 +41,7 @@ Primary plan manager for orchestrators and subagents. Creates, tracks, and execu
 - Status propagation: bottom-up only (steps -> phases -> plan); plan root status is always derived, never set directly
 - Phase status updates are rejected (phase_status_is_derived); `entire_plan` target is rejected for update_status (invalid_target)
 - `upsert` silently ignores status fields in patch -- only `update_status` modifies status
-- ACQUIRE `plan-manager/assets/pm-schema.md` FROM KB for data structure reference
+- ACQUIRE `operation-manager/assets/om-schema.md` FROM KB for data structure reference
 
 </core_concepts>
 
@@ -49,24 +49,24 @@ Primary plan manager for orchestrators and subagents. Creates, tracks, and execu
 
 **Orchestrator flow:**
 
-1. Create plan: `npx rosettify plan create <plan_file> '<json>'` -- see pm-schema.md for JSON structure
-2. Upsert phases and steps: `npx rosettify plan upsert <plan_file> entire_plan [kind] '<json>'`
+1. Create plan: `npx rosettify@latest plan create <plan_file> '<json>'` -- see pm-schema.md for JSON structure
+2. Upsert phases and steps: `npx rosettify@latest plan upsert <plan_file> entire_plan [kind] '<json>'`
 3. Delegate steps to subagents -- pass plan file path and step IDs
 4. Loop: call `next` until `plan_status: complete` and `count: 0`
 
 **Subagent flow:**
 
-1. Get next steps: `npx rosettify plan next <plan_file> [limit]`
+1. Get next steps: `npx rosettify@latest plan next <plan_file> [limit]`
 2. Check `resume` flag -- if `true`, continue interrupted work; if `false`, start fresh
 3. Execute step
-4. Update: `npx rosettify plan update_status <plan_file> <step-id> complete`
+4. Update: `npx rosettify@latest plan update_status <plan_file> <step-id> complete`
 5. Repeat from step 1
 
 </process>
 
 <validation_checklist>
 
-- `npx rosettify plan help` exits without error and returns structured help JSON
+- `npx rosettify@latest plan help` exits without error and returns structured help JSON
 - `show_status` output: plan root status is derived (never manually set)
 - `next` output: in_progress steps appear before open steps; blocked and failed steps are included with flags
 - `show_status` phase status matches aggregate of its steps after `update_status`
@@ -84,9 +84,9 @@ Primary plan manager for orchestrators and subagents. Creates, tracks, and execu
 
 <resources>
 
-- Asset: ACQUIRE `plan-manager/assets/pm-schema.md` FROM KB -- plan JSON structure
+- Asset: ACQUIRE `operation-manager/assets/om-schema.md` FROM KB -- plan JSON structure
 - Flow: USE FLOW `adhoc-flow`
 
 </resources>
 
-</plan-manager>
+</operation-manager>

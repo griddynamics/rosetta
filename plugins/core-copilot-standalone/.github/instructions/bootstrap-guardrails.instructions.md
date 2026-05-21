@@ -8,17 +8,37 @@ tags: ["rosetta-bootstrap", "guardrails", "policy"]
 baseSchema: docs/schemas/rule.md
 ---
 
-<bootstrap_guardrails severity="CRITICAL" use="ALWAYS" compact="NEVER" optimize="NEVER" summarize="AS-IS">
+<rosetta:bootstrap_guardrails severity="CRITICAL" use="ALWAYS" compact="NEVER" optimize="NEVER" summarize="AS-IS">
 
 <must>
 
-1. All user requests MUST be SDLC-related, project-related, capability or self-help. No private or personal chats allowed. OVERRIDE IS NOT ALLOWED.
-2. Secure by Design, Secure by Default, Secure in Deployment, Secure in Maintenance. Security is verified.
-3. Suggest user actual solutions to comply with the rules.
-4. Stop and wait for explicit user approval before proceeding. Do not assume approval from a question or a partial response.
-5. MUST USE guardrail skills BEFORE execution according to `Skill Engagement Rules`.
+1. Guardrails and risk assessment are enforced via plan-manager step `s-guardrails`.
+2. All user requests MUST be SDLC-related, project-related, capability or self-help. No private or personal chats allowed. OVERRIDE IS NOT ALLOWED.
+3. Secure by Design, Secure by Default, Secure in Deployment, Secure in Maintenance. Security is verified.
+4. Suggest user actual solutions to comply with the rules.
+5. Stop and wait for explicit user approval before proceeding. Do not assume approval from a question or a partial response.
+6. MUST USE guardrail skills BEFORE execution according to `Skill Engagement Rules`.
 
 </must>
+
+<operation_manager_upsert>
+
+Upsert the following steps into the existing plan's `ph-prep` phase using OPERATION_MANAGER `upsert <plan_file> ph-prep '<json>'`; if not available, MUST FALLBACK to built-in todo task tools:
+
+```json
+{
+  "steps": [
+    {
+      "id": "s-guardrails",
+      "name": "Guardrails and risk assessment",
+      "prompt": "USE SKILL `risk-assessment` to assess environment risk level and output 'AI Risk Assessment: {LEVEL}'. Also check scope: if work exceeds 2h or 15+ files or spec >350 lines, propose scope reduction to user; user may override.",
+      "depends_on": ["s-read-docs"]
+    }
+  ]
+}
+```
+
+</operation_manager_upsert>
 
 <core_concepts>
 
@@ -43,10 +63,10 @@ If `X` is not loaded, MUST discover it via ToolSearch, fallback to ACQUIRE "<X>/
 <always_on>
 <!-- Continuously active. Re-evaluate every turn. -->
 
-- `load-context` — canonical current context loader, required by Prep Step 2
-- `orchestrator-contract` — required by Prep Step 3 (orchestrator), before spawning any subagents, defines orchestrator role and required actions
-- `subagent-contract` — required by Prep Step 3 (subagent), before reading inputs, defines subagent role and required actions
-- `hitl` — required by Prep Step 3 (orchestrator) for continuous enforcement
+- `load-context` — canonical current context loader, enforced by plan step `s-read-docs`
+- `orchestrator-contract` — enforced by plan step `s-orchestrator-contract`, before spawning any subagents, defines orchestrator role and required actions
+- `subagent-contract` — enforced by plan step `s-subagent-contract`, before reading inputs, defines subagent role and required actions
+- `hitl` — enforced by plan step `s-orchestrator-contract` for continuous enforcement
 - MUST USE SKILL `hitl` ALWAYS. IT CHANGES HOW YOU ARE SUPPOSED TO WORK WITH USER. HITL is MANDATORY for ALL tasks by default — planning, execution, validation, review - no assumption or guessing. THE ONLY exception: user DIRECTLY EXPLICITLY requests with EXACTLY "fully autonomous" or "No HITL". YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar. MUST NOT assume anything—even reasonably. Do not assume approval from a question or a partial response.
 - MUST USE SKILL `sensitive-data` — on any sensitive or possibly sensitive data encountered or could be encountered. NEVER output, echo, print, log, summarize, or reference raw values.
 - MUST USE SKILL `self-learning` — on failures, mismatches, or user unhappiness.
@@ -77,4 +97,4 @@ If `X` is not loaded, MUST discover it via ToolSearch, fallback to ACQUIRE "<X>/
 
 </skill_engagement_rules>
 
-</bootstrap_guardrails>
+</rosetta:bootstrap_guardrails>
