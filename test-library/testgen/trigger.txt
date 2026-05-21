@@ -4,3 +4,8 @@ instructions/agents/core/r1/testgen-phase2.md
 instructions/agents/core/r1/testgen-phase3.md
 instructions/agents/core/r1/testgen-phase4.md
 instructions/agents/core/r1/testgen-phase5.md
+# R2 TestGen + MCP capability workflows (scenario comparison when these change)
+instructions/r2/core/workflows/testgen-flow
+instructions/r2/core/workflows/mcp-capability-interaction
+instructions/r2/core/workflows/mcp-tool-resolution
+instructions/r2/core/workflows/agent-action-resolution

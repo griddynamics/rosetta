@@ -1,5 +1,6 @@
 # Copy to workspace root as: agents/mcp-capability.yaml
 # See: instructions/r2/core/workflows/mcp-capability-interaction.md
+# Placeholder binding (when workflows use tokens): mcp-tool-resolution.md, agent-action-resolution.md
 
 mcp:
   # "capable" = agent may call MCPs for true integrations after reading mcp-guidance.md

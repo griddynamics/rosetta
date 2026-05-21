@@ -9,10 +9,12 @@ baseSchema: docs/schemas/phase.md
 
 ## Prerequisites
 
-- MUST be starting new test generation flow
-- User provided Jira ticket key or URL
-- **MCP routing (B + A):** Resolve **guided** vs **questionnaire** per **`mcp-capability-interaction.md`** using **`agents/mcp-capability.yaml`** (copy from `instructions/r2/core/templates/mcp-capability.example.yaml` in Rosetta) and any **user override** in the task text. Do **not** call Jira/Confluence MCPs until Step 2b is complete. **Questionnaire** means no MCP for that integration; user answers supply `raw-data.md` content.
-- **URL placeholders:** In examples below, `{jira-host}` and `{confluence-host}` mean the workspace Jira/Confluence web hostnames (including subdomain); substitute the customer’s real hosts, not fixed vendor domains.
+- MUST be starting new test generation flow.
+- User provided Jira ticket key or URL.
+- **Acquire workflows:** ACQUIRE **`mcp-capability-interaction.md`** FROM KB (MCP guided vs questionnaire; always for Phase 1). Before the first guided **`{integration-action:*}`** call in Steps 3–4, ACQUIRE **`mcp-tool-resolution.md`**. Before **Persist** blocks using **`{agent-action:*}`** in Steps 5–6, ACQUIRE **`agent-action-resolution.md`**. If an alias fails, use canonical paths under **`instructions/r2/core/workflows/`** with the same basename.
+- **Step 2b only:** Run the numbered **Step 2b checklist** in this file (not the whole fragment for later steps unless needed).
+- **Before MCP calls:** Do **not** call Jira/Confluence MCPs until Step **2b** completes.
+- **URL placeholders:** `{jira-host}` and `{confluence-host}` in examples mean the customer’s real web hostnames (including subdomain), not fixed vendor domains.
 
 ## Objective
 
@@ -20,11 +22,13 @@ Extract all relevant data from Jira ticket and related Confluence documentation 
 
 ## Requirements
 
+**Token resolution (canonical):** **`{integration-action:*}`** → **`mcp-tool-resolution.md`**. **`{agent-action:*}`** → **`agent-action-resolution.md`**. MCP guided vs questionnaire and recording → **`mcp-capability-interaction.md`** (ACQUIRE per **Prerequisites**). Later steps say **see Token resolution** instead of repeating this.
+
 ### Step 1: Parse Initial User Input
 
 **Extract from user's initial prompt**:
 1. **Jira ticket**: Key or URL (REQUIRED).
-2. **Confluence URLs**: Optional. If present, parse them and use the guided Confluence path (direct page retrieval; skip auto-search where Step 4 says so). If absent, continue: **guided** Confluence uses auto-search in Step 4; **questionnaire** Confluence uses Step 4Q (user pastes or answers without prior URLs).
+2. **Confluence URLs** (optional): Parse and store for later steps. How they affect routing is defined **only** in the **Step 2b** matrix (after `Jira source` / `Confluence source` exist).
 
 **Supported formats**:
 ```
@@ -42,14 +46,6 @@ Extract all relevant data from Jira ticket and related Confluence documentation 
   - Direct format: `https://{confluence-host}/pages/viewpage.action?pageId=123456`
   - Short format: `https://{confluence-host}/x/AbCdEf`
 
-**If Confluence URLs provided**:
-- Extract page IDs from URLs
-- Skip automatic search (Step 4)
-- Go directly to retrieving specified pages
-
-**If no Confluence URLs provided**:
-- Proceed with automatic search (Step 4)
-
 ### Step 2: Setup Output Directory
 
 Create output directory structure:
@@ -58,23 +54,36 @@ agents/testgen/{TICKET-KEY}/
 └── testgen-state.md (initialize)
 ```
 
-### Step 2b: Resolve MCP interaction (B + A)
+### Step 2b: Resolve MCP routing (user message vs capability file)
 
-1. ACQUIRE **mcp-capability-interaction.md** FROM KB.
-2. Read **`agents/mcp-capability.yaml`** at workspace root if it exists; apply **user override** rules from that fragment (task text wins over file).
-3. If the YAML file is **missing** and the user message does not override MCP usage, ask **one** question: “Use live MCP for Jira and Confluence in this workspace?” — **STOP** and **WAIT**. **No** → treat both integrations as **questionnaire** for this run. **Yes** → treat both as **guided** and recommend creating `agents/mcp-capability.yaml`.
-4. Derive and record in `agents/testgen/{TICKET-KEY}/testgen-state.md` under Phase 1:
-   - `Jira source: guided | questionnaire`
-   - `Confluence source: guided | questionnaire`
-   - `MCP interaction source:` (`agents/mcp-capability.yaml` | user override | default question`)
-   Rules: if `mcp.mode` is `absent`, both are **questionnaire**. If `mcp.mode` is `capable`, each integration uses `mcp.jira` / `mcp.confluence` when present (`false` → questionnaire for that integration only); if a key is **omitted**, default that integration to **guided**.
-5. If **`agents/user-instructions/mcp-guidance.md`** exists and at least one source is **guided**, read it before the first MCP call for a **guided** source in Steps 3–4.
+**Precedence:** **A first** — fragment **section A** (user / task text **wins** over the file). **B second** — fragment **section B** (`agents/mcp-capability.yaml`). Full rules: **`mcp-capability-interaction.md`** (ACQUIRE per **Prerequisites**).
 
-### Step 3: Extract Jira Ticket Data
+**Checklist (execute in order before any Jira/Confluence MCP call in Phase 1):**
 
-#### Guided Jira / Confluence actions (placeholders)
+1. Confirm **Prerequisites** ACQUIRE list for this phase is loaded (**`mcp-capability-interaction.md`**, and before guided MCP / Persist: **`mcp-tool-resolution.md`**, **`agent-action-resolution.md`** as listed there).
+2. Read **`agents/mcp-capability.yaml`** at workspace root if present; if absent, treat capability config as **missing** (see **`mcp-capability-interaction.md`** Path conventions).
+3. Apply fragment **§ A — user message** (task text wins over file).
+4. If YAML is **missing** and the task text does not override MCP usage: ask **one** question — “Use live MCP for Jira and Confluence in this workspace?” — **STOP**, **WAIT**. **No** → both integrations **questionnaire** for this run. **Yes** → both **guided**; recommend adding `agents/mcp-capability.yaml`.
+5. Derive **`Jira source`** and **`Confluence source`** using fragment **§ B** (`mode`, `mcp.jira`, `mcp.confluence`, omitted-key defaults).
+6. Record in `agents/testgen/{TICKET-KEY}/testgen-state.md` under Phase 1: `Jira source`, `Confluence source`, and **MCP interaction source:** `agents/mcp-capability.yaml` **or** `user override` **or** `default question`.
+7. If **`agents/user-instructions/mcp-guidance.md`** exists and at least one source is **guided**, read it before the first Jira/Confluence MCP call in Phase 1.
 
-Tokens are **placeholders**. Resolve each to the workspace Jira/Confluence **MCP** capability that matches the intent (exact tool identifiers differ by installation).
+#### Routing matrix (after Step 2b)
+
+Use `Jira source` and `Confluence source` from state. **Step labels:** **3Q** = Jira questionnaire (no Jira MCP); **3A** = Jira guided MCP; **4Q** = Confluence questionnaire; **4A** = Confluence guided MCP. **“URLs in Step 1?”** = Confluence URL(s) were parsed from the **initial** user prompt in Step 1.
+
+| Jira source | Confluence source | URLs in Step 1? | Execute |
+|-------------|-------------------|-----------------|---------|
+| guided | guided | yes | **3A** → **4A** Option A |
+| guided | guided | no | **3A** → **4A** Option B |
+| guided | questionnaire | — | **3A** → **4Q** |
+| questionnaire | guided | yes | **3Q** → **4A** Option A |
+| questionnaire | guided | no | **3Q** → **4A** Option B |
+| questionnaire | questionnaire | — | **3Q** → **4Q** |
+
+#### `{integration-action:…}` intent reference (Phase 1)
+
+Use with **Token resolution** and **`mcp-tool-resolution.md`** when mapping tokens to host MCP tools.
 
 | Token | Intent |
 |-------|--------|
@@ -84,23 +93,25 @@ Tokens are **placeholders**. Resolve each to the workspace Jira/Confluence **MCP
 | `{integration-action:confluence-search-pages}` | Search Confluence pages (query + limit) |
 | `{integration-action:confluence-list-child-pages}` | List child pages for a parent (content options) |
 
-**If `Jira source` is `questionnaire` (from Step 2b):** Run **Step 3Q** only; **do not** run **`{integration-action:jira-get-issue}`** (or any equivalent Jira “get issue” MCP call).
+### Step 3: Extract Jira Ticket Data
+
+Pick **exactly one** subsection below using the **Step 2b** matrix (`Jira source` column). **Do not** read, summarize, or execute the other subsection (**progressive disclosure**).
 
 #### Step 3Q: Jira questionnaire (no MCP)
 
+**Jira MCP:** **off** — no **`{integration-action:jira-*}`** calls; user-provided content only.
+
 1. Ask **numbered** questions so you can build the Jira section of `raw-data.md`: ticket summary, description (or ask user to paste export), status, priority, labels, components, key links, and any acceptance criteria they rely on.
 2. **STOP** and **WAIT** for answers.
-3. Write `agents/testgen/{TICKET-KEY}/raw-data.md` (create if needed) with `## Jira (user-provided, MCP absent)` containing merged answers. Then continue to Step 4 (Confluence may still be guided).
+3. Write `agents/testgen/{TICKET-KEY}/raw-data.md` (create if needed) with `## Jira (user-provided, MCP absent)` containing merged answers. For any field the user could not supply or was unsure about, add an explicit **`unknown`**, **`unverified`**, or short **why missing** note next to that item (do not imply MCP-grade certainty). Then continue per the **Step 2b** matrix to Step 4.
 
-**If `Jira source` is `guided`:** Follow all MCP steps below.
+#### Step 3A: Guided Jira (MCP)
 
-**Use** (guided path only): resolve **`{integration-action:jira-get-issue}`**, **`{integration-action:confluence-get-page}`**, **`{integration-action:confluence-search-pages}`**, **`{integration-action:confluence-list-child-pages}`** via your configured Jira/Confluence MCPs.
+1. **Extract ticket key** from user input:
+   - Format: "PROJ-123" or URL "https://{jira-host}/browse/PROJ-123"
+   - Parse key from URL if needed
 
-**Extract ticket key** from user input:
-- Format: "PROJ-123" or URL "https://{jira-host}/browse/PROJ-123"
-- Parse key from URL if needed
-
-**Retrieve issue** with comprehensive fields:
+2. **Retrieve issue** — see **Token resolution**, **`mcp-tool-resolution.md`**, and **Intent reference** above for **`{integration-action:jira-get-issue}`**. Then call the resolved tool; logical parameters:
 ```text
 Action: {integration-action:jira-get-issue}
 Parameters:
@@ -110,40 +121,54 @@ Parameters:
   comment_limit: 10
 ```
 
-**Capture**:
-- Summary, description (both raw and rendered)
-- Issue type, status, priority
-- Labels, components
-- Assignee, reporter
-- Comments (up to 10 recent)
-- Created/updated dates
-- Custom fields if present (epic link, story points, etc.)
+**Example (mapping only):** On a common Atlassian host the resolved tool is `mcp__atlassian__jira_get_issue`; rename keys from the block above as required (e.g. `issue_key` → `issueKey`, `comment_limit` → `commentLimit`). Other tokens: see **Token resolution**.
+
+3. **Capture** (for Step 5 / `raw-data.md`):
+   - Summary, description (both raw and rendered)
+   - Issue type, status, priority
+   - Labels, components
+   - Assignee, reporter
+   - Comments (up to 10 recent)
+   - Created/updated dates
+   - Custom fields if present (epic link, story points, etc.)
+
+#### Step 3A.4 — Jira field schema (optional)
+
+Run **only** when substep **3** leaves custom-field **API names or ids** ambiguous for `raw-data.md`.
+
+1. **Invoke** **`{integration-action:jira-search-fields}`** **once** (see **Token resolution**).
+2. **Output:** merge the returned field metadata into working notes and into **`### Custom Fields`** (and related) when executing **Step 5** (`raw-data.md`). If substep 3 was sufficient, **skip** this entire **3A.4** subsection.
 
 ### Step 4: Get Confluence Documentation
 
-**If `Confluence source` is `questionnaire` (from Step 2b):** Run **Step 4Q** only; **do not** run any **`{integration-action:confluence-*}`** call (no Confluence read/search via MCP for this integration on this run).
+Pick **exactly one** subsection below using the **Step 2b** matrix (`Confluence source` column; for **4A**, use the **URLs in Step 1?** column for Option A vs B). **Do not** read, summarize, or execute the other subsection (**progressive disclosure**).
 
 #### Step 4Q: Confluence questionnaire (no MCP)
 
+**Confluence MCP:** **off** — no **`{integration-action:confluence-*}`** calls; user-provided content only.
+
 1. Ask **numbered** questions: paste each page body (or export), or provide URLs plus authorized excerpts, parent/child relationships if relevant.
 2. **STOP** and **WAIT**.
-3. Append to `agents/testgen/{TICKET-KEY}/raw-data.md` under `## Confluence (user-provided, MCP absent)` with merged answers. If Jira questionnaire already created the file, append; otherwise create the file with this section.
+3. Append to `agents/testgen/{TICKET-KEY}/raw-data.md` under `## Confluence (user-provided, MCP absent)` with merged answers. Mark gaps, pasted excerpts of unknown completeness, or user-stated uncertainty the same way as Step 3Q (**`unknown` / `unverified` / reason**). If Jira questionnaire already created the file, append; otherwise create the file with this section.
 4. Continue to **Step 5** so `raw-data.md` matches the full template (headings, metadata). Then run **Validation**.
 
-**If `Confluence source` is `guided`:** Follow the **Decision Point** and MCP steps below (guided path only).
+#### Step 4A: Guided Confluence (MCP)
 
-**Decision Point**: Did user provide Confluence URLs in initial prompt?
+**Option A vs B:** From the **Step 2b** matrix (**URLs in Step 1?** column).
 
-#### Option A: User Provided Confluence URLs
+Resolve each **`{integration-action:confluence-*}`** (see **Token resolution**; e.g. `confluence-get-page` → `mcp__atlassian__confluence_get_page` with `pageId` / `convertToMarkdown` when the host uses that idiom).
 
-**If URLs provided in initial prompt**:
+##### Option A: User-provided Confluence URLs
+
 1. Parse page IDs from URLs
 2. For each URL, extract:
    - Page ID from URL parameters (pageId=123456)
    - Or use space + title from display URL
-3. Retrieve pages directly using **`{integration-action:confluence-get-page}`**
+3. Retrieve pages using **`{integration-action:confluence-get-page}`**
 4. Check each page for child pages (REQUIRED)
 5. Skip automatic search
+
+**Illustrative resolved call (Atlassian-style host, not mandatory):** `mcp__atlassian__confluence_get_page` with arguments such as `{ "pageId": "123456", "convertToMarkdown": true }` (exact keys per host mapping).
 
 **Tell user**:
 ```
@@ -153,7 +178,7 @@ Parameters:
 🔍 Checking for child pages...
 ```
 
-#### Option B: No URLs Provided - Auto-Search
+##### Option B: No URLs — auto-search
 
 **Use**: **`{integration-action:confluence-search-pages}`**
 
@@ -175,6 +200,8 @@ Parameters:
   query: <cql_query>
   limit: 10
 ```
+
+**Illustrative resolved call (Atlassian-style host, not mandatory):** `mcp__atlassian__confluence_search_pages` (or host-equivalent) with CQL in the query argument, e.g. `type=page AND space=PROJ AND (text ~ "auth" OR text ~ "login")`.
 
 **Rank results** by relevance:
 - Title matches ticket terms
@@ -232,6 +259,19 @@ For each parent page found:
 
 **File**: `agents/testgen/{TICKET-KEY}/raw-data.md`
 
+**Persist** — see **Token resolution** for **`{agent-action:write-file}`** / **`{agent-action:patch-file}`**:
+
+```text
+Action: {agent-action:write-file}
+Parameters:
+  path: agents/testgen/{TICKET-KEY}/raw-data.md
+  content: <markdown from template below, filled from Steps 3–4>
+```
+
+**Illustrative host mapping (Cursor-style agent, not mandatory):** tool `Write` with `file_path` / `contents` (or host-equivalent keys after resolution).
+
+If the file already exists and you are only appending, you may use **`{agent-action:patch-file}`** instead (see **Token resolution**).
+
 **Format**:
 ```markdown
 # Raw Data - [TICKET-KEY]
@@ -239,6 +279,7 @@ For each parent page found:
 **Extracted**: [DateTime]
 **Phase**: 1 - Data Collection
 **Confluence Source**: [User-provided URLs / Auto-search / User-provided after search / Skipped]
+**Confidence / Unknowns**: [If either source was questionnaire: list unverified, missing, or user-uncertain items; else `MCP-backed` or `n/a`]
 
 ---
 
@@ -325,11 +366,21 @@ For each parent page found:
 - **Total Content Size**: [Approximate word count]
 - **Search Terms Used**: [List]
 - **Notes**: [Any issues during extraction]
+- **Confidence / Unknowns**: [Same as header line; required when any questionnaire path ran]
 ```
 
 ### Step 6: Update State File
 
 **File**: `agents/testgen/{TICKET-KEY}/testgen-state.md`
+
+**Persist** — same as Step 5 (**see Token resolution**):
+
+```text
+Action: {agent-action:write-file}
+Parameters:
+  path: agents/testgen/{TICKET-KEY}/testgen-state.md
+  content: <markdown from template below, filled for this ticket>
+```
 
 **Create initial state**:
 ```markdown
@@ -375,18 +426,26 @@ For each parent page found:
 
 Before completing Phase 1, verify:
 - ✅ `agents/testgen/{TICKET-KEY}/` directory exists
-- ✅ `raw-data.md` created with Jira section populated
+- ✅ Phase 1 block in `testgen-state.md` contains lines **`Jira source`**, **`Confluence source`**, and **`MCP interaction source`**
+- ✅ If **`Jira source` is `questionnaire`**: `raw-data.md` contains `## Jira (user-provided, MCP absent)`
+- ✅ If **`Confluence source` is `questionnaire`**: `raw-data.md` contains `## Confluence (user-provided, MCP absent)`
+- ✅ If any **questionnaire** path ran: `raw-data.md` **Data Collection Summary** includes **`Confidence / Unknowns`**
+- ✅ `raw-data.md` created with Jira section populated (MCP or questionnaire path)
 - ✅ Confluence section has at least 1 page OR user confirmed skip
 - ✅ `testgen-state.md` created with Phase 1 marked complete
 - ✅ All key Jira fields captured (summary, description, status, priority)
 
 ## Tools Used
 
-- **`{integration-action:jira-get-issue}`** — Jira ticket extraction
-- **`{integration-action:confluence-search-pages}`** — Confluence page search
-- **`{integration-action:confluence-get-page}`** — Confluence page content retrieval
-- **`{integration-action:confluence-list-child-pages}`** — Confluence child page discovery
-- **`{agent-action:write-file}`** — Create or update files (map to the host agent’s write/patch capability)
+| Token / use | Where |
+|---------------|--------|
+| `{integration-action:jira-get-issue}` | Step 3A.2 |
+| `{integration-action:jira-search-fields}` | Step 3A.4 (conditional) |
+| `{integration-action:confluence-search-pages}` | Step 4A Option B |
+| `{integration-action:confluence-get-page}` | Step 4A Options A / B |
+| `{integration-action:confluence-list-child-pages}` | Step 4A Option B |
+| `{agent-action:write-file}` | Steps 5–6 (**Persist** blocks) |
+| `{agent-action:patch-file}` | Steps 5–6 (optional append / edit) |
 
 ## Common Issues
 
@@ -400,7 +459,7 @@ Before completing Phase 1, verify:
 **Solution**: Include first 5000 words, note truncation in raw-data.md
 
 **Issue**: Custom fields not recognized  
-**Solution**: Run **`{integration-action:jira-search-fields}`** (or equivalent) to discover field names
+**Solution**: Run **Step 3A.4** — **`{integration-action:jira-search-fields}`** (or equivalent) to discover field names
 
 **Issue**: Confluence search finds parent but misses child pages  
 **Solution**: Always check for child pages using **`{integration-action:confluence-list-child-pages}`** for each found page
@@ -424,8 +483,6 @@ After Phase 1 completion:
 - Confluence search may need tuning based on organization's Confluence structure
 - Some Jira instances have custom fields - capture all available
 - Confluence pages may be in different spaces - search broadly initially
-- **User can provide Confluence URLs in initial prompt** - this skips auto-search
-- If user provides specific page URLs/IDs, use those directly instead of search
 - **CRITICAL**: Always check for child pages - nested documentation often contains the most relevant details
 - Example: "Job Post" parent may have children "Create a Job Post", "Edit a Job Post", etc.
 - Retrieve up to 10 child pages per parent, prioritize by relevance to ticket

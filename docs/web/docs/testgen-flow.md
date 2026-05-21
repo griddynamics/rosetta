@@ -56,7 +56,7 @@ Some workspaces do not attach Jira, Confluence, or TestRail MCP servers to the a
 - **`mcp.mode: capable`** with per-integration `true`/`false` — mix guided and questionnaire per system (for example Jira guided, Confluence paste-only).
 - **User override** in the task text (for example “no MCP” or “use MCP”) wins for that run over the YAML file.
 
-Workflow details live in [`mcp-capability-interaction.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/mcp-capability-interaction.md), [`testgen-flow-data-collection.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-data-collection.md), and [`testgen-flow-test-case-export.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-test-case-export.md).
+Workflow details live in [`mcp-capability-interaction.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/mcp-capability-interaction.md) (routing), [`mcp-tool-resolution.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/mcp-tool-resolution.md) and [`agent-action-resolution.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/agent-action-resolution.md) (placeholder binding), [`testgen-flow-data-collection.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-data-collection.md), and [`testgen-flow-test-case-export.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-test-case-export.md).
 
 ## How To Start
 

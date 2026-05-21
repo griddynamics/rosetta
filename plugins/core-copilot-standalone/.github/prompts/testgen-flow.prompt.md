@@ -14,7 +14,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 ### Critical Requirements
 
-- **MCP ROUTING (B + A)**: Phases 1 and 6 may call external MCPs only when **`agents/mcp-capability.yaml`** and **`mcp-capability-interaction.md`** resolve **guided** for that integration. Otherwise use **questionnaire** or manual export paths documented in those phases. Optional **`agents/user-instructions/mcp-guidance.md`** for IDs and guardrails when guided.
+- **MCP ROUTING (B + A)**: Phases 1 and 6 may call external MCPs only when **`agents/mcp-capability.yaml`** and **`mcp-capability-interaction.md`** resolve **guided** for that integration. Otherwise use **questionnaire** or manual export paths documented in those phases. Optional **`agents/user-instructions/mcp-guidance.md`** for IDs and guardrails when guided. **`{integration-action:*}`** / **`{agent-action:*}`** binding: follow each phase file’s **Prerequisites** (**`mcp-tool-resolution.md`**, **`agent-action-resolution.md`**).
 - **ONE PHASE AT A TIME**: Read phase file, execute, update state, move to next.
 - **DO NOT SKIP PHASES**: Each builds on previous.
 - **STATE TRACKING**: Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
@@ -32,7 +32,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 **Phase 1: Data Collection** [testgen-flow-data-collection.md]
 1. ACQUIRE testgen-flow-data-collection.md FROM KB
-2. ACQUIRE mcp-capability-interaction.md FROM KB (MCP guided vs questionnaire before Jira/Confluence calls)
+2. ACQUIRE **`mcp-capability-interaction.md`**, and per that phase’s **Prerequisites** also **`mcp-tool-resolution.md`** / **`agent-action-resolution.md`** when placeholders are used
 3. Execute phase instructions
 4. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 5. Validate by listing raw-data.md file
@@ -63,7 +63,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 **Phase 6: Test Case Export** [testgen-flow-test-case-export.md] ⭐
 1. ACQUIRE testgen-flow-test-case-export.md FROM KB
-2. ACQUIRE mcp-capability-interaction.md FROM KB (guided vs questionnaire for TestRail export)
+2. ACQUIRE **`mcp-capability-interaction.md`** and per that phase’s **Step 0** / **Prerequisites** also **`mcp-tool-resolution.md`** / **`agent-action-resolution.md`** when placeholders are used (guided vs questionnaire for TestRail export)
 3. Execute phase instructions
 4. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 

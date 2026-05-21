@@ -51,6 +51,6 @@
     "mcpCapabilityBPlusATestgenAqa": "Shared fragment mcp-capability-interaction.md: workspace agents/mcp-capability.yaml (see instructions/r2/core/templates/mcp-capability.example.yaml) plus user-message overrides route guided MCP vs questionnaire. AQA Path A and TestGen Phases 1 and 6 acquire this fragment; TestGen adds Step 4Q (Confluence questionnaire), Phase 6 Step 0/1Q/5Q for TestRail without MCP; plugin mirrors updated."
   },
   "versions": {
-    "rosetta": "2.0.19"
+    "rosetta": "2.0.20"
   }
 }

@@ -13,6 +13,7 @@ baseSchema: docs/schemas/phase.md
 - `agents/testgen/{TICKET-KEY}/test-scenarios.md` exists with test cases
 - User has reviewed and edited test cases
 - **TestRail export path (B + A):** Either **guided** (TestRail MCP allowed per `mcp-capability-interaction.md` and `agents/mcp-capability.yaml`) or **questionnaire** (no TestRail MCP; user supplies IDs and performs or confirms manual import). Optional **`agents/user-instructions/mcp-guidance.md`** when guided.
+- **Placeholder binding:** Before first guided **`{integration-action:*}`** call, ACQUIRE **`mcp-tool-resolution.md`**. For **`{agent-action:*}`** file steps, ACQUIRE **`agent-action-resolution.md`**. Canonical: **`instructions/r2/core/workflows/<basename>.md`** if KB alias fails.
 - For **guided** runs: TestRail MCP configured and accessible; `project_id` and `suite_id` known (from guidance, state, or user).
 
 ## Objective
@@ -41,13 +42,13 @@ If the interaction mode is unclear, resolve it in **Step 0** before any MCP call
 | `{agent-action:write-file}` | Create or overwrite a workspace file |
 | `{agent-action:patch-file}` | Apply targeted edits to a workspace file (includes search-and-replace style edits) |
 
-Resolve **`{integration-action:…}`** tokens to the workspace **TestRail MCP** tool that implements the same behavior. Resolve **`{agent-action:…}`** to the coding agent’s host file tools (names differ by IDE).
+Resolve **`{integration-action:…}`** using **`mcp-tool-resolution.md`** (guided only). Resolve **`{agent-action:…}`** using **`agent-action-resolution.md`**.
 
 ## Requirements
 
 ### Step 0: Resolve TestRail MCP interaction (B + A)
 
-1. ACQUIRE **mcp-capability-interaction.md** FROM KB.
+1. ACQUIRE **`mcp-capability-interaction.md`** FROM KB. ACQUIRE **`mcp-tool-resolution.md`** before any **`{integration-action:*}`** MCP call (when **guided**). ACQUIRE **`agent-action-resolution.md`** before any **`{agent-action:*}`** workspace step. If KB alias fails, use **`instructions/r2/core/workflows/<basename>.md`**.
 2. Read **`agents/mcp-capability.yaml`** if present; apply **user override** from the current task text (same rules as Phase 1).
 3. Derive **`TestRail export: guided | questionnaire`**:
    - **`mcp.mode: absent`** → questionnaire.
