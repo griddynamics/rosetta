@@ -1,70 +1,105 @@
 ---
 name: testgen-flow
-description: MUST apply when test case generation task is assigned. (e.g if a user asks to generate test cases for TICKET-123, create test scenarios from Jira, analyze requirements and generate tests, export tests to TestRail)
+description: MUST apply when test case generation task is assigned. (e.g if a user asks to generate test cases for TICKET-123, create test scenarios from Jira, analyze requirements and generate tests, export tests to Test Management System)
 alwaysApply: false
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---
 
-# Test Case Generation Flow - Execute Phases Sequentially
+<testgen_flow>
 
-## Context
+<description_and_purpose>
 
-Systematic requirements analysis from Jira tickets and Confluence documentation to structured requirements and test scenarios. Designed for BA/QA engineers and requirements engineers.
+Systematic requirements analysis from Jira tickets and Confluence documentation to structured requirements and test scenarios. Extracts data, identifies gaps, clarifies unknowns via HITL, generates requirements document, and produces test cases with optional export to a Test Management System. Designed for BA/QA engineers and requirements engineers.
 
-### Critical Requirements
+</description_and_purpose>
 
-- **ONE PHASE AT A TIME**: Read phase file, execute, update state, move to next.
-- **DO NOT SKIP PHASES**: Each builds on previous.
-- **STATE TRACKING**: Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
-- **USER CONFIRMATION**: Wait for approval before next phase.
-- **HITL GATE**: Phase 3 (Questions & Answers) requires user input before Phase 4.
-- **MUST** use todo tasks for each phase.
-- **MUST** create output directory `agents/testgen/{TICKET-KEY}/` at start.
+<workflow_phases>
 
-## Test Generation Flow - Phase Overview
+- Rosetta prep steps completed
+- MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL PHASES ARE SEQUENTIAL.
+- ONE PHASE AT A TIME: Acquire phase file, execute, update state, move to next.
+- DO NOT SKIP PHASES: Each builds on previous.
+- STATE TRACKING: Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
+- USER CONFIRMATION: Wait for approval before next phase.
+- MUST use todo tasks for tracking progress.
+- MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
 
-**Phase 0: Project Config Loading** [testgen-flow-project-config-loading.md]
-1. ACQUIRE testgen-flow-project-config-loading.md FROM KB
-2. Execute phase instructions
-3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+<project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
 
-**Phase 1: Data Collection** [testgen-flow-data-collection.md]
-1. ACQUIRE testgen-flow-data-collection.md FROM KB
-2. Execute phase instructions
-3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
-4. Validate by listing raw-data.md file
-
-**Phase 2: Gap & Contradiction Analysis** [testgen-flow-gap-and-contradiction-analysis.md]
-1. ACQUIRE testgen-flow-gap-and-contradiction-analysis.md FROM KB
-2. Execute phase instructions
-3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
-4. Validate analysis.md with identified gaps
-
-**Phase 3: Question Generation & User Input** [testgen-flow-question-generation.md] ⭐ **HITL APPROVAL GATE**
-1. ACQUIRE testgen-flow-question-generation.md FROM KB
-2. Execute phase instructions
-3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
-4. **WAIT FOR USER** to fill answers in questions.md
-
-**Phase 4: Requirements Document Generation** [testgen-flow-requirements-document-generation.md]
-1. ACQUIRE testgen-flow-requirements-document-generation.md FROM KB
-2. Execute phase instructions (requires completed answers.md)
-3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
-4. Validate requirements.md structure
-
-**Phase 5: Test Case Generation** [testgen-flow-test-case-generation.md]
-1. ACQUIRE testgen-flow-test-case-generation.md FROM KB
-2. Execute phase instructions
-3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
-4. Validate test-scenarios.md (10-30 test cases typical)
-
-**Phase 6: Test Case Export** [testgen-flow-test-case-export.md] ⭐
-1. ACQUIRE testgen-flow-test-case-export.md FROM KB
-4. Execute phase instructions
+1. ACQUIRE `testgen-flow-project-config-loading.md` FROM KB
+2. Execute phase instructions.
+3. Input: user request with Jira ticket key/URL. Output: `agents/testgen/{TICKET-KEY}/initial-data.md`, project config file.
+4. Recommended skills: `questioning`
 5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
-## State File Format
+</project_config_loading>
+
+<data_collection phase="1" subagent="discoverer" role="Requirements data collector" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
+
+1. ACQUIRE `testgen-flow-data-collection.md` FROM KB
+2. Execute phase instructions.
+3. Input: initial user request, initial-data.md. Output: `agents/testgen/{TICKET-KEY}/raw-data.md` with Jira + Confluence data.
+4. Recommended skills: `mcp-jira-data-collection`, `mcp-confluence-data-collection`
+5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+
+</data_collection>
+
+<gap_and_contradiction_analysis phase="2" subagent="architect" role="Requirements gap analyst" subagent_recommended_model="claude-opus-4-6, gpt-5.4-high">
+
+1. ACQUIRE `testgen-flow-gap-and-contradiction-analysis.md` FROM KB
+2. Execute phase instructions.
+3. Input: raw-data.md. Output: `agents/testgen/{TICKET-KEY}/analysis.md` with contradictions, gaps, ambiguities.
+4. Recommended skills: `gap-and-contradiction-analysis`
+5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+
+</gap_and_contradiction_analysis>
+
+<question_generation phase="3" subagent="architect" role="Requirements clarification analyst" subagent_recommended_model="claude-opus-4-6, gpt-5.4-high" type="HITL">
+
+1. ACQUIRE `testgen-flow-question-generation.md` FROM KB
+2. Execute phase instructions.
+3. Input: analysis.md. Output: `agents/testgen/{TICKET-KEY}/questions.md`, `agents/testgen/{TICKET-KEY}/answers.md`.
+4. **WAIT FOR USER** to fill answers in questions.md. Explicit approval required.
+5. Recommended skills: `questioning`
+6. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+
+</question_generation>
+
+<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_recommended_model="claude-opus-4-6, gpt-5.4-high">
+
+1. ACQUIRE `testgen-flow-requirements-document-generation.md` FROM KB
+2. Execute phase instructions.
+3. Input: raw-data.md + analysis.md + answers.md. Output: `agents/testgen/{TICKET-KEY}/requirements.md`.
+4. Recommended skills: `requirements-synthesis`
+5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+
+</requirements_document_generation>
+
+<test_case_generation phase="5" subagent="engineer" role="Test case design engineer" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
+
+1. ACQUIRE `testgen-flow-test-case-generation.md` FROM KB
+2. Execute phase instructions.
+3. Input: requirements.md. Output: `agents/testgen/{TICKET-KEY}/test-scenarios.md`
+4. Recommended skills: `testrail-test-case-authoring`
+5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+
+</test_case_generation>
+
+<test_case_export phase="6" subagent="engineer" role="Test case export specialist" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium" type="HITL">
+
+1. ACQUIRE `testgen-flow-test-case-export.md` FROM KB
+2. Execute phase instructions.
+3. Input: test-scenarios.md. Output: test cases exported to Test Management System.
+4. **WAIT FOR USER** to provide target location and confirm export.
+5. Recommended skills: `testrail-test-case-export` 
+6. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+
+</test_case_export>
+
+</workflow_phases>
+
+<state_file>
 
 Create/update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase:
 
@@ -72,29 +107,18 @@ Create/update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase:
 # Test Generation State - <Ticket ID>
 
 **Last Updated**: [DateTime]
-**Current Phase**: [1-5 or COMPLETE]
-**Jira Ticket**: [TICKET-123]
-**Confluence Pages**: [URLs or page IDs]
+**Current Phase**: [0-6 or COMPLETE]
+**Jira Ticket**: [TICKET-KEY]
 
 ## Phase Completion Status
 
-- [x] Phase 0: Data Collection - Completed [Date]
-- [] Phase 1: Data Collection - Not started
+- [x] Phase 0: Project Config Loading - Completed [Date]
+- [ ] Phase 1: Data Collection - Not started
 - [ ] Phase 2: Gap Analysis - Not Started
 - [ ] Phase 3: Question Generation - Not Started
 - [ ] Phase 4: Requirements Generation - Not Started
 - [ ] Phase 5: Test Scenarios - Not Started
-- [ ] Phase 6: TestRail Export - Not Started
-
-## Metrics
-
-- Jira Fields Extracted: X
-- Confluence Pages Analyzed: Y
-- Contradictions Found: Z
-- Gaps Identified: N
-- Questions Generated: M
-- User Stories Created: P
-- Test Scenarios: Q
+- [ ] Phase 6: Test Case Export - Not Started
 
 ## Phase Details
 
@@ -108,13 +132,16 @@ Create/update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase:
 [Add sections for each completed phase]
 ```
 
-## Output Directory Structure
+</state_file>
+
+<output_directory>
 
 All phase outputs stored in `agents/testgen/{TICKET-KEY}/`:
 
 ```
 agents/testgen/{TICKET-KEY}/
 ├── testgen-state.md        # State tracking (updated each phase)
+├── initial-data.md         # Phase 0: Initial user input + project config ref
 ├── raw-data.md             # Phase 1: Jira + Confluence data
 ├── analysis.md             # Phase 2: Gap analysis
 ├── questions.md            # Phase 3: Generated questions
@@ -123,126 +150,55 @@ agents/testgen/{TICKET-KEY}/
 └── test-scenarios.md       # Phase 5: Test cases
 ```
 
-## Important Notes
+</output_directory>
 
-- **Sequential Execution**: Phases build on each other, must execute in order.
-- **No Assumptions**: Document all unknowns and ambiguities.
-- **Evidence-Based**: All requirements reference actual Jira/Confluence content.
-- **Structured Output**: Follow document templates in phase instructions.
-- **Traceability**: Link requirements to source (Jira fields, Confluence sections).
-- **Clarity**: Questions must be specific and actionable.
-- **Completeness**: Requirements must cover functional, non-functional, constraints.
-- **Test Coverage**: Scenarios must include happy path, edge cases, negative tests.
+<references>
 
-## Prerequisites
+Subagents:
+- `discoverer` (Lightweight): external MCP data gathering, project setup
+- `architect` (Full): gap analysis, question generation, requirements engineering
+- `engineer` (Full): test case generation, TMS export
 
-- **Jira MCP**: Configured and accessible
-- **Jira Ticket**: User provides ticket key or link
-- **Confluence Access**: Via Jira MCP (same authentication)
-- **Output Directory**: Created at start (`agents/testgen/{TICKET-KEY}/`)
+Skills:
+- `questioning`, `reverse-engineering`, `requirements-synthesis`, `testrail-test-case-authoring`
+- `mcp-jira-data-collection`, `mcp-confluence-data-collection`
+- `gap-and-contradiction-analysis`
+- `testrail-test-case-export` 
 
-## Common Patterns
+MCPs:
+- `Atlassian Jira` — ticket data extraction
+- `Atlassian Confluence` — documentation retrieval
+- `TestRail` — test case export (Phase 6, when TMS is TestRail)
+- `Google Drive` — additional documentation (if configured)
 
-### Initial Prompt Formats
+</references>
 
-**Format 1: Jira Only**
-```
-Analyze requirements for PROJ-123
-```
+<best_practices>
 
-**Format 2: Jira + Confluence URLs**
-```
-Analyze requirements for PROJ-123 with Confluence pages:
-- https://confluence.company.com/display/PROJ/Job+Post
-- https://confluence.company.com/pages/viewpage.action?pageId=123456
-```
+- Sequential execution only: each phase builds on the previous
+- No assumptions: document all unknowns, ask user via HITL gates
+- Evidence-based: all requirements reference actual Jira/Confluence content
+- Traceability: link requirements to source and test cases to requirements
 
-**Format 3: Jira URL + Confluence URLs**
-```
-Analyze requirements for https://jira.company.com/browse/PROJ-123
-Confluence docs:
-- https://confluence.company.com/display/PROJ/Authentication
-- https://confluence.company.com/display/PROJ/Security+Requirements
-```
+</best_practices>
 
-### Jira Ticket Input
-Accept any format:
-- Ticket key: "PROJ-123"
-- Jira URL: "https://jira.company.com/browse/PROJ-123"
-- Extract key from URL if needed
+<validation_checklist>
 
-### Confluence Input
-Accept multiple formats:
-- **Confluence URLs**: Full page URLs (preferred)
-- **Page IDs**: Numeric IDs (e.g., "123456")
-- **Page Titles + Space**: "Authentication" in space "PROJ"
-- **Or none**: Agent will auto-search based on ticket
+- Each phase has corresponding output file in output directory
+- State file reflects accurate phase completion status
+- HITL gates (Phase 3, 6) have explicit user approval evidence
+- Requirements trace back to Jira/Confluence sources
+- Test cases trace back to requirements
 
-### Confluence Search Strategy
-1. **If user provided Confluence URLs**: Use those directly, skip search
-2. **If no URLs provided**: Auto-search using ticket labels, components, project key
-3. Search CQL: `type=page AND space=PROJ AND text ~ 'feature'`
-4. Get top 3-5 most relevant pages
-5. Always check for child pages (nested documents)
-6. Fallback: Ask user for specific page IDs/titles if needed
+</validation_checklist>
 
-### Contradiction Types
-- **Value Mismatch**: Same field, different values (e.g., priority High vs Medium)
-- **Logic Conflict**: Incompatible requirements (e.g., must be fast AND detailed)
-- **Scope Conflict**: Different understanding of feature boundaries
+<pitfalls>
 
-### Gap Types
-- **Missing Info**: Required field/detail not present
-- **Incomplete Spec**: Partial information, needs clarification
-- **Undefined Behavior**: Edge cases not specified
-- **Missing Dependencies**: Referenced components/systems not documented
+- Skipping Phase 3 HITL gate leads to assumptions in requirements
+- Confluence child pages often contain critical detail — always check for children
+- TMS MCP may lack container creation — user may need to create target locations manually in TMS UI
+- Merging redundant test cases too aggressively can lose coverage
 
-## User Interaction Points
+</pitfalls>
 
-1. **Start**: User provides Jira ticket key (optionally with Confluence URLs)
-2. **Phase 1**: Agent extracts data; asks for more Confluence pages only if needed
-3. **Phase 3**: User fills answers in questions.md, notifies agent
-4. **Phase 4**: User reviews and approves requirements.md
-5. **Phase 5**: User reviews test-scenarios.md
-6. **Phase 6**: User creates TestRail section, confirms export
-
-## Validation Rules
-
-- **Phase 1**: raw-data.md must contain both Jira and Confluence sections
-- **Phase 2**: analysis.md must list specific contradictions/gaps with evidence
-- **Phase 3**: questions.md must have at least 1 question; answers.md validated before Phase 4
-- **Phase 4**: requirements.md must have user stories with acceptance criteria
-- **Phase 5**: test-scenarios.md must have TestRail-compatible format with priorities
-- **Phase 6**: At least 80% of test cases exported to TestRail successfully
-
-## Error Handling
-
-- **Jira ticket not found**: Ask user to verify ticket key
-- **No Confluence results**: Ask user for specific page IDs or proceed with Jira only
-- **User doesn't answer questions**: Remind user, cannot proceed to Phase 4
-- **Incomplete requirements**: Identify gaps, add to questions for clarification
-
-## Next Steps After Completion
-
-1. Use `requirements.md` for development implementation
-2. **Phase 6**: Export test cases to TestRail
-4. Link both documents to Jira ticket (as attachments or comments)
-5. Archive testgen-state.md and all outputs for traceability
-
-## TestRail Export (Phase 6)
-
-**When to use Phase 6**:
-- You want test cases in TestRail for execution tracking
-- Your team uses TestRail for test management
-- You need integration with TestRail test runs
-
-**Configuration** (default):
-- **Project ID**: <clarify with user>
-- **Suite ID**: <clarify with user>
-- **Section**: New section created per Jira ticket
-
-**To trigger Phase 6**, after Phase 5 say:
-- "Export to TestRail"
-- "Upload test cases to TestRail"
-- "Continue to Phase 6"
-
+</testgen_flow>

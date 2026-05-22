@@ -1,22 +1,22 @@
 ---
-name: aqa-flow-test-correction
-description: Phase 8 of AQA workflow - Test Corrections (USER APPROVAL REQUIRED)
+name: api-qa-flow-test-correction
+description: Phase 7 of API QA workflow - Test Corrections (USER APPROVAL REQUIRED)
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
 ---
 
-<aqa_flow_test_correction>
+<api_qa_flow_test_correction>
 
 <description_and_purpose>
-Fix identified test failures based on Phase 7 analysis. Requires explicit user approval before applying changes.
+Fix identified test failures based on Phase 6 analysis. Requires explicit user approval before applying changes.
 </description_and_purpose>
 
 <workflow_context>
-- Phase 8 of 8 in `aqa-flow`
-- Input: failure analysis from Phase 7
+- Phase 7 of 8 in `api-qa-flow`
+- Input: execution report from Phase 6
 - Output: corrected test code, ready for re-testing
-- Prerequisite: Phase 7 complete
+- Prerequisite: Phase 6 complete
 - HITL: explicit user approval required before applying changes
 </workflow_context>
 
@@ -27,15 +27,15 @@ Fix identified test failures based on Phase 7 analysis. Requires explicit user a
 4. Update state
 </phase_steps>
 
-<execute_corrections step="8.1" subagent="engineer" role="Test correction engineer">
+<execute_corrections step="7.1" subagent="engineer" role="API test correction engineer">
 1. USE SKILL `debugging`
 2. USE SKILL `coding`
-3. USE SKILL `aqa-test-debugging`
+3. USE SKILL `api-qa-test-debugging`
 4. Execute Part B (Corrections) — prepare proposed changes only
 5. Do NOT apply changes yet
 </execute_corrections>
 
-<present_for_approval step="8.2">
+<present_for_approval step="7.2">
 1. Present all proposed changes with before/after code
 2. **WAIT** for explicit user approval
 3. User must type "approved" or "yes" — do not assume approval
@@ -43,27 +43,27 @@ Fix identified test failures based on Phase 7 analysis. Requires explicit user a
 5. If user rejects specific changes: remove from plan
 </present_for_approval>
 
-<apply_changes step="8.3">
+<apply_changes step="7.3">
 1. Apply approved changes one at a time
 2. Validate linting after each change
 3. Verify changes address root causes
 </apply_changes>
 
-<update_state step="8.4">
-1. Update `agents/aqa-state.md`:
+<update_state step="7.4">
+1. Update `agents/api-qa-state.md`:
    - Issues Fixed: [count]
    - Changes Applied: [count]
    - User Approval: [datetime]
    - Files Modified: [list]
    - Status: Ready for re-testing
-   - Phase 8 completion timestamp
-2. Mark Phase 8 complete
+   - Phase 7 completion timestamp
+2. Mark Phase 7 complete
 3. Inform user to re-run tests
-4. If tests still fail: return to Phase 7
+4. If tests still fail: return to Phase 6
 </update_state>
 
 <validation_checklist>
-- Phase 7 analysis reviewed
+- Phase 6 analysis reviewed
 - Proposed changes prepared with before/after code
 - User approval explicitly received
 - All approved changes applied
@@ -71,4 +71,4 @@ Fix identified test failures based on Phase 7 analysis. Requires explicit user a
 - Changes address identified root causes
 </validation_checklist>
 
-</aqa_flow_test_correction>
+</api_qa_flow_test_correction>
