@@ -1,21 +1,21 @@
 ---
-name: api-qa-flow-api-spec-analysis
+name: qa-flow-api-spec-analysis
 description: Phase 2 of API QA workflow - Swagger/OpenAPI Spec Analysis
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
 ---
 
-<api_qa_flow_api_spec_analysis>
+<qa_flow_api_spec_analysis>
 
 <description_and_purpose>
 Analyze Swagger/OpenAPI specification or codebase API definitions to extract endpoint contracts, auth requirements, and data dependencies.
 </description_and_purpose>
 
 <workflow_context>
-- Phase 2 of 8 in `api-qa-flow`
+- Phase 2 of 8 in `qa-flow`
 - Input: raw data from Phase 1 + project config (Swagger URL if available)
-- Output: `agents/api-qa/{IDENTIFIER}/api-analysis.md` with endpoint contracts, auth details, data dependencies
+- Output: `agents/qa/{IDENTIFIER}/api-analysis.md` with endpoint contracts, auth details, data dependencies
 - Prerequisite: Phase 1 complete, `raw-data.md` exists with identified endpoints
 </workflow_context>
 
@@ -28,11 +28,11 @@ Analyze Swagger/OpenAPI specification or codebase API definitions to extract end
 
 <determine_spec_source step="2.1">
 
-Determine `{backend-source-path}` from Phase 1 raw data "Backend Source Code Analysis" section, or from project config "Backend Source Code" section, or from Rosetta docs at `RefSrc/{project-name}/docs/` (see `api-qa-data-collection` skill, step 4 for full discovery logic). If Rosetta docs exist for the backend project, read `ARCHITECTURE.md` and `CODEMAP.md` from `RefSrc/{project-name}/docs/` to understand API architecture before searching source code.
+Determine `{backend-source-path}` from Phase 1 raw data "Backend Source Code Analysis" section, or from project config "Backend Source Code" section, or from Rosetta docs at `RefSrc/{project-name}/docs/` (see `qa-data-collection` skill, step 4 for full discovery logic). If Rosetta docs exist for the backend project, read `ARCHITECTURE.md` and `CODEMAP.md` from `RefSrc/{project-name}/docs/` to understand API architecture before searching source code.
 
 Determine spec source in order:
 
-1. **Swagger URL from project config** (`api-qa-project-config.md`)
+1. **Swagger URL from project config** (`qa-project-config.md`)
 2. **Swagger/OpenAPI in backend source** (if `{backend-source-path}` configured):
    - Search within `{backend-source-path}` for: `swagger.json`, `swagger.yaml`, `openapi.json`, `openapi.yaml`, `api-docs`
    - If `{backend-source-path}` is NOT configured, search entire codebase instead.
@@ -54,7 +54,7 @@ Decision point: Swagger available -> full spec analysis. No Swagger -> code-base
 
 <produce_output step="2.3">
 
-Create `agents/api-qa/{IDENTIFIER}/api-analysis.md` using the following template:
+Create `agents/qa/{IDENTIFIER}/api-analysis.md` using the following template:
 
 ```markdown
 # API Analysis - [IDENTIFIER]
@@ -182,7 +182,7 @@ Create `agents/api-qa/{IDENTIFIER}/api-analysis.md` using the following template
 </validate_findings>
 
 <update_state step="2.5">
-1. Update `agents/api-qa-state.md`:
+1. Update `agents/qa-state.md`:
    - Endpoints Analyzed: [count]
    - HTTP Methods: [GET/POST/PUT/DELETE/PATCH counts]
    - Auth Required Endpoints: [count]
@@ -201,4 +201,4 @@ Create `agents/api-qa/{IDENTIFIER}/api-analysis.md` using the following template
 - `api-analysis.md` created with all sections
 </validation_checklist>
 
-</api_qa_flow_api_spec_analysis>
+</qa_flow_api_spec_analysis>

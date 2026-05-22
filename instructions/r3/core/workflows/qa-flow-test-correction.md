@@ -1,19 +1,19 @@
 ---
-name: api-qa-flow-test-correction
+name: qa-flow-test-correction
 description: Phase 7 of API QA workflow - Test Corrections (USER APPROVAL REQUIRED)
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
 ---
 
-<api_qa_flow_test_correction>
+<qa_flow_test_correction>
 
 <description_and_purpose>
 Fix identified test failures based on Phase 6 analysis. Requires explicit user approval before applying changes.
 </description_and_purpose>
 
 <workflow_context>
-- Phase 7 of 8 in `api-qa-flow`
+- Phase 7 of 8 in `qa-flow`
 - Input: execution report from Phase 6
 - Output: corrected test code, ready for re-testing
 - Prerequisite: Phase 6 complete
@@ -30,7 +30,7 @@ Fix identified test failures based on Phase 6 analysis. Requires explicit user a
 <execute_corrections step="7.1" subagent="engineer" role="API test correction engineer">
 1. USE SKILL `debugging`
 2. USE SKILL `coding`
-3. USE SKILL `api-qa-test-debugging`
+3. USE SKILL `qa-test-debugging`
 4. Execute Part B (Corrections) — prepare proposed changes only
 5. Do NOT apply changes yet
 </execute_corrections>
@@ -50,7 +50,7 @@ Fix identified test failures based on Phase 6 analysis. Requires explicit user a
 </apply_changes>
 
 <update_state step="7.4">
-1. Update `agents/api-qa-state.md`:
+1. Update `agents/qa-state.md`:
    - Issues Fixed: [count]
    - Changes Applied: [count]
    - User Approval: [datetime]
@@ -71,4 +71,4 @@ Fix identified test failures based on Phase 6 analysis. Requires explicit user a
 - Changes address identified root causes
 </validation_checklist>
 
-</api_qa_flow_test_correction>
+</qa_flow_test_correction>

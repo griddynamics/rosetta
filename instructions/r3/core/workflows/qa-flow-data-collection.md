@@ -1,22 +1,22 @@
 ---
-name: api-qa-flow-data-collection
+name: qa-flow-data-collection
 description: Phase 1 of API QA workflow - Data Collection from test cases, documentation, and codebase
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
 ---
 
-<api_qa_flow_data_collection>
+<qa_flow_data_collection>
 
 <description_and_purpose>
 Gather test case details from TMS, search documentation, and discover existing API test patterns in the codebase to establish baseline for automation.
 </description_and_purpose>
 
 <workflow_context>
-- Phase 1 of 8 in `api-qa-flow`
+- Phase 1 of 8 in `qa-flow`
 - Input: project config + initial data from Phase 0
-- Output: `agents/api-qa/{IDENTIFIER}/raw-data.md` with test cases, documentation, and existing test patterns
-- Prerequisite: Phase 0 complete, `api-qa-project-config.md` and `initial-data.md` exist
+- Output: `agents/qa/{IDENTIFIER}/raw-data.md` with test cases, documentation, and existing test patterns
+- Prerequisite: Phase 0 complete, `qa-project-config.md` and `initial-data.md` exist
 </workflow_context>
 
 <phase_steps>
@@ -32,12 +32,12 @@ Gather test case details from TMS, search documentation, and discover existing A
 </confirm_inputs>
 
 <execute_collection step="1.2" subagent="discoverer" role="API QA data collector">
-1. USE SKILL `api-qa-data-collection`
-2. Verify raw data file created at `agents/api-qa/{IDENTIFIER}/raw-data.md`
+1. USE SKILL `qa-data-collection`
+2. Verify raw data file created at `agents/qa/{IDENTIFIER}/raw-data.md`
 </execute_collection>
 
 <update_state step="1.3">
-1. Update `agents/api-qa-state.md`:
+1. Update `agents/qa-state.md`:
    - Test Cases Retrieved: [count]
    - Documentation Pages Found: [count]
    - API Endpoints Identified: [count]
@@ -57,4 +57,4 @@ Gather test case details from TMS, search documentation, and discover existing A
 - API endpoints identified from test cases
 </validation_checklist>
 
-</api_qa_flow_data_collection>
+</qa_flow_data_collection>

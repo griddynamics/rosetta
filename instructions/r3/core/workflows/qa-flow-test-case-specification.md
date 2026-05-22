@@ -1,21 +1,21 @@
 ---
-name: api-qa-flow-test-case-specification
+name: qa-flow-test-case-specification
 description: Phase 4 of API QA workflow - Detailed API Test Case Specification (HITL APPROVAL GATE)
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
 ---
 
-<api_qa_flow_test_case_specification>
+<qa_flow_test_case_specification>
 
 <description_and_purpose>
 Convert test cases into detailed, implementation-ready API test specifications using Given-When-Then format. User approval required before implementation.
 </description_and_purpose>
 
 <workflow_context>
-- Phase 4 of 8 in `api-qa-flow`
+- Phase 4 of 8 in `qa-flow`
 - Input: all phase 1-3 outputs (raw data, API analysis, gap analysis)
-- Output: `agents/api-qa/{IDENTIFIER}/test-specs.md` with Given-When-Then scenarios, file mapping, shared utilities
+- Output: `agents/qa/{IDENTIFIER}/test-specs.md` with Given-When-Then scenarios, file mapping, shared utilities
 - Prerequisite: Phase 3 complete, all user clarifications received
 - HITL: explicit user approval required before Phase 5
 </workflow_context>
@@ -31,9 +31,9 @@ Convert test cases into detailed, implementation-ready API test specifications u
 <load_inputs step="4.1">
 
 Read completely:
-1. `agents/api-qa/{IDENTIFIER}/raw-data.md` — original test cases and patterns
-2. `agents/api-qa/{IDENTIFIER}/api-analysis.md` — endpoint contracts
-3. `agents/api-qa/{IDENTIFIER}/analysis.md` — clarifications and resolved gaps
+1. `agents/qa/{IDENTIFIER}/raw-data.md` — original test cases and patterns
+2. `agents/qa/{IDENTIFIER}/api-analysis.md` — endpoint contracts
+3. `agents/qa/{IDENTIFIER}/analysis.md` — clarifications and resolved gaps
 
 </load_inputs>
 
@@ -46,7 +46,7 @@ Read completely:
 
 <produce_output step="4.3">
 
-Create `agents/api-qa/{IDENTIFIER}/test-specs.md` using the following template:
+Create `agents/qa/{IDENTIFIER}/test-specs.md` using the following template:
 
 ```markdown
 # API QA Test Specifications - [IDENTIFIER]
@@ -98,7 +98,7 @@ Create `agents/api-qa/{IDENTIFIER}/test-specs.md` using the following template:
 </present_for_approval>
 
 <update_state step="4.5">
-1. Update `agents/api-qa-state.md`:
+1. Update `agents/qa-state.md`:
    - Test Cases Specified: [count]
    - Priority Breakdown: P0: [N], P1: [N], P2: [N], P3: [N]
    - Endpoints Covered: [count]
@@ -118,4 +118,4 @@ Create `agents/api-qa/{IDENTIFIER}/test-specs.md` using the following template:
 - User approval received
 </validation_checklist>
 
-</api_qa_flow_test_case_specification>
+</qa_flow_test_case_specification>
