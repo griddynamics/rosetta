@@ -15,22 +15,27 @@ End-to-end test automation from requirements gathering to test implementation. U
 <workflow_phases>
 
 - Rosetta prep steps completed
-- MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL PHASES ARE SEQUENTIAL.
-- ONE PHASE AT A TIME: Acquire phase file, execute, update state, move to next.
-- DO NOT SKIP PHASES: Each builds on previous.
+- **Phase orchestration:** USE the **workflow orchestration skill** whose KB tag is listed under **Workflow KB tags** in `<references>` below (`sequential-workflow-execution`) — ACQUIRE from KB when needed. That skill owns **skip/customization gates**, **phase ordering**, and **transition prompts** (what to ACQUIRE next, when to pause for HITL) so runs stay inside documented gates instead of ad-hoc shortcuts.
+- **Orchestration unavailable:** If ACQUIRE for **that tag** returns **zero** documents, use only the per-phase pattern in phases 1–8 (ACQUIRE phase doc → execute → update `agents/aqa-state.md`) — no invented shortcuts. **Sequencing:** phases **1–8 are strict order**; each consumes prior artifacts and must not start until the previous phase is marked done in `agents/aqa-state.md` (same rule with or without the orchestration skill).
+- **Skip policy:** Use only the skip/customization gates from the orchestration skill when it is loaded; any other skip needs explicit user confirmation (HITL).
+- **Canonical workflow skill names:** Rosetta ACQUIRE / USE SKILL tags are listed under **Skills** in `<references>` (plus any skill named inside a phase block).
+- **Missing KB document:** If ACQUIRE for a **required** dependency returns **zero** documents, stop, record in `agents/aqa-state.md`, ask the user to fix Rosetta/KB — do not substitute silently.
 - NO ASSUMPTIONS: Never assume selectors, flows, or data. Always ask the user if information is missing.
 - STATE TRACKING: Update `agents/aqa-state.md` after each phase.
 - MUST use todo tasks for tracking progress. Prioritize ACCURACY over SPEED.
 - If user did not specify preferences, perform all steps except optional.
 - User CAN customize: specific phases, already-done phases, specific goals, specific cases — LISTEN and ADOPT.
-- Prefer existing files and page objects over creating new ones. Use `project_description.md`, `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md` as source of truth for coding standards.
+- USE SKILL `repository-implementation-standards` before implementation or correction work that touches repository tests, page objects, or shared helpers (ACQUIRE from KB if needed).
+- Treat `project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, and `IMPLEMENTATION.md` as source of truth together with `repository-implementation-standards`.
+- **On conflict:** repository documents win; use `repository-implementation-standards` to apply conventions, not to contradict those files.
+- Prefer extending existing files and page objects over creating new ones.
 
 <data_collection phase="1" applies="ALL" subagent="discoverer" role="AQA data collector">
 
 1. ACQUIRE `aqa-flow-data-collection.md` FROM KB
 2. Execute phase instructions.
 3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: test plan file created at `agents/plans/aqa-<test-name>.md`
-4. Recommended skills: `mcp-testrail-data-collection`, `mcp-confluence-data-collection`
+4. Recommended skills: `mcp-testrail-data-collection`, `mcp-confluence-data-collection`, `confluence-source-harvesting`
 5. Update `agents/aqa-state.md`
 
 </data_collection>
@@ -49,7 +54,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 
 1. ACQUIRE `aqa-flow-code-analysis.md` FROM KB
 2. Execute phase instructions.
-3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md` + test plan file `agents/plans/aqa-<test-name>.md`. Output: code analysis report (architecture patterns, existing page objects, test patterns). [TODO define name of the file?]
+3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md` + test plan file `agents/plans/aqa-<test-name>.md`. Output: code analysis report at `agents/plans/aqa-<test-name>-code-analysis.md` (architecture patterns, existing page objects, test patterns).
 4. Recommended skills: `aqa-codebase-analysis`
 5. Update `agents/aqa-state.md`
 
@@ -59,7 +64,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 
 1. ACQUIRE `aqa-flow-selector-identification.md` FROM KB
 2. Execute phase instructions.
-3. Input: code analysis report + frontend code (or user-provided page source). Output: identified selectors for test targets.
+3. Input: code analysis report `agents/plans/aqa-<test-name>-code-analysis.md` + frontend code (or user-provided page source). Output: identified selectors for test targets.
 4. **WAIT FOR USER TO PROVIDE PAGE SOURCE** only if frontend code unavailable or selectors not found.
 5. Recommended skills: `aqa-selector-management` (Part A)
 6. Update `agents/aqa-state.md`
@@ -71,7 +76,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 1. ACQUIRE `aqa-flow-selector-implementation.md` FROM KB
 2. Execute phase instructions.
 3. Input: identified selectors + existing page objects. Output: implemented/updated page object files with selectors.
-4. Recommended skills: `aqa-selector-management` (Part B)
+4. Recommended skills: `aqa-selector-management` (Part B), `repository-implementation-standards`
 5. Update `agents/aqa-state.md`
 
 </selector_implementation>
@@ -80,9 +85,9 @@ End-to-end test automation from requirements gathering to test implementation. U
 
 1. ACQUIRE `aqa-flow-test-implementation.md` FROM KB
 2. Execute phase instructions.
-3. Input: page objects + clarified requirements + code analysis report. Output: implemented test files.
+3. Input: page objects + clarified requirements + code analysis report `agents/plans/aqa-<test-name>-code-analysis.md`. Output: implemented test files.
 4. **STOP AND WAIT** for user to execute test.
-5. Recommended skills: `coding`, `testing`, `aqa-test-authoring`
+5. Recommended skills: `coding`, `testing`, `aqa-test-authoring`, `automation-test-implementation-handoff`
 6. Update `agents/aqa-state.md`
 
 </test_implementation>
@@ -93,7 +98,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 2. Execute phase instructions.
 3. Input: test execution report (user-provided or from `agents/user-instructions/`). Output: failure analysis with root causes and fix recommendations.
 4. **WAIT FOR USER TO PROVIDE TEST REPORT** (if not in `agents/user-instructions/`).
-5. Recommended skills: `debugging`, `aqa-test-debugging` (Part A)
+5. Recommended skills: `debugging`, `aqa-test-debugging` (Part A), `automation-test-execution-analysis`
 6. Update `agents/aqa-state.md`
 
 </test_report_analysis>
@@ -103,13 +108,18 @@ End-to-end test automation from requirements gathering to test implementation. U
 1. ACQUIRE `aqa-flow-test-correction.md` FROM KB
 2. Execute phase instructions.
 3. Input: failure analysis + test files + page objects. Output: corrected test files and page objects.
-4. **WAIT FOR USER APPROVAL** before applying changes.
-5. Recommended skills: `debugging`, `coding`, `aqa-test-debugging` (Part B)
+4. **WAIT FOR USER APPROVAL** before applying changes. **Approval** means an explicit written go-ahead for the presented diff (same token rule as the Phase 8 doc, e.g. user types `approved` / `yes`). Emoji-only, silence, or off-topic replies are **not** approval — refuse to apply and ask again.
+5. Recommended skills: `debugging`, `coding`, `aqa-test-debugging` (Part B), `user-approved-code-changes`
 6. Update `agents/aqa-state.md`
 
 </test_corrections>
 
 </workflow_phases>
+
+<workflow_success_criteria>
+- **Overall run complete** when every negotiated phase is marked done in `agents/aqa-state.md` and the artifacts those phases reference exist (e.g. `agents/plans/aqa-<test-name>.md`, `agents/plans/aqa-<test-name>-code-analysis.md` when Phase 3 ran, test file paths after Phase 6, failure analysis before Phase 8), and the user accepts the last test outcome or explicitly stops.
+- **Spot checks:** Phase 1 — plan file exists; Phase 3 — code analysis report path populated with architecture + page object inventory + test location; Phase 6 — test file path + lint-clean per phase doc; Phase 7 — failure analysis recorded; Phase 8 — user-approved edits applied when that phase runs.
+</workflow_success_criteria>
 
 <state_file>
 
@@ -146,6 +156,7 @@ Subagents:
 - `executor` (Lightweight): optional for mechanical actions (builds, installs)
 
 Skills:
+- **Workflow KB tags (ACQUIRE / USE SKILL by these names):** `sequential-workflow-execution`, `repository-implementation-standards`, `automation-test-implementation-handoff`, `automation-test-execution-analysis`, `user-approved-code-changes`, `confluence-source-harvesting`
 - `questioning`, `reverse-engineering`, `coding`, `testing`, `debugging`
 - `aqa-requirements-elicitation`, `aqa-codebase-analysis`, `aqa-selector-management`, `aqa-test-authoring`, `aqa-test-debugging`
 - `mcp-testrail-data-collection`, `mcp-confluence-data-collection`

@@ -1,0 +1,93 @@
+---
+name: sequential-workflow-execution
+description: "Rosetta MUST-apply process shell for multi-phase workflows: one phase at a time, acquire phase instructions, execute, update state, track todos, no skipping without explicit user agreement."
+license: Apache-2.0
+tags: ["workflow", "orchestration", "multi-phase"]
+baseSchema: docs/schemas/skill.md
+---
+
+<sequential_workflow_execution>
+
+<role>
+
+Process steward for long-running, phase-based work. Keeps execution linear, traceable, and state-aligned.
+
+</role>
+
+<when_to_use_skill>
+
+Use when running any Rosetta workflow split into ordered phases (QA, AQA, TestGen, or new flows). Prevents silent phase skips, lost state, and parallel edits across phases.
+
+</when_to_use_skill>
+
+<core_concepts>
+
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- Phase document is source of truth for that phase; this skill governs how phases are chained, not domain content
+- User may reorder, skip, or stop early only after explicit confirmation; document the decision in the workflow state file
+
+</core_concepts>
+
+<process>
+
+1. Confirm current phase id and its ACQUIRE target (phase markdown) from the parent workflow.
+2. ACQUIRE the phase file FROM KB before executing that phase.
+3. Execute only that phase until its exit criteria are met.
+4. Update the workflow state file path provided by the parent workflow (create if missing).
+5. Maintain todo tasks for the active phase; close items when done.
+6. GATE: if the next phase depends on outputs of this phase, verify required files or sections exist before advancing.
+7. GATE: do not start the next phase until user explicitly approves when the parent workflow marks the transition as HITL.
+8. If the user requests skipping a phase, restate blast radius, get explicit approval, record skip reason and timestamp in state.
+9. If spawning subagents for the phase, optionally USE SKILL `orchestrator-contract` for dispatch and review rules.
+
+</process>
+
+<validation_checklist>
+
+- Exactly one active phase executed at a time; no parallel phase work without documented exception
+- Phase file was ACQUIRE'd before work began
+- State file reflects current phase, completion markers, and timestamps after each phase
+- Todo list matches actual remaining work for the active phase
+- Any skip/customization is user-approved and recorded in state
+
+</validation_checklist>
+
+<best_practices>
+
+- Name output paths and identifiers in state the first time they appear; reuse them in later phases
+- Summarize phase outcomes in 3–6 bullets before asking to continue
+- When uncertain whether a gate applies, default to asking the user
+
+</best_practices>
+
+<pitfalls>
+
+- Assuming approval from a partial answer or a question the user did not answer
+- Marking a phase complete while required artifacts are empty or placeholder-only
+- Advancing because "the next phase looks easy" without satisfying prerequisites
+
+</pitfalls>
+
+<resources>
+
+- skill `hitl` — approval, questioning, escalation when blockers remain
+- skill `orchestrator-contract` — optional subagent dispatch, review, ownership when the active platform supports it
+- skill `questioning` — structured clarification batches when the phase or user is ambiguous
+
+</resources>
+
+<templates>
+
+- State delta snippet (append to workflow state):
+
+```markdown
+## Phase [N] — [Phase title]
+- Status: complete | blocked | skipped (user-approved)
+- Completed: [ISO-8601 datetime]
+- Outputs: [paths]
+- Notes: [risks, assumptions, follow-ups]
+```
+
+</templates>
+
+</sequential_workflow_execution>

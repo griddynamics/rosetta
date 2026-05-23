@@ -17,6 +17,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 <workflow_phases>
 
 - Rosetta prep steps completed
+- USE SKILL `sequential-workflow-execution` — enforce one phase at a time, ACQUIRE each phase doc before work, update `agents/testgen/{TICKET-KEY}/testgen-state.md` and todos; see skill for skip/customization gates.
 - MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL PHASES ARE SEQUENTIAL.
 - ONE PHASE AT A TIME: Acquire phase file, execute, update state, move to next.
 - DO NOT SKIP PHASES: Each builds on previous.
@@ -24,6 +25,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 - USER CONFIRMATION: Wait for approval before next phase.
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
+- USE SKILL `repository-implementation-standards` before phases 5–6 when writing or updating tracked repository files (for example TMS ID traceability in markdown under version control); skip when outputs stay only under `agents/testgen/{TICKET-KEY}/` and the user confirmed no repo edits.
 
 <project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
 
@@ -40,7 +42,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 1. ACQUIRE `testgen-flow-data-collection.md` FROM KB
 2. Execute phase instructions.
 3. Input: initial user request, initial-data.md. Output: `agents/testgen/{TICKET-KEY}/raw-data.md` with Jira + Confluence data.
-4. Recommended skills: `mcp-jira-data-collection`, `mcp-confluence-data-collection`
+4. Recommended skills: `mcp-jira-data-collection`, `mcp-confluence-data-collection`, `confluence-source-harvesting`
 5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </data_collection>
@@ -81,7 +83,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 1. ACQUIRE `testgen-flow-test-case-generation.md` FROM KB
 2. Execute phase instructions.
 3. Input: requirements.md. Output: `agents/testgen/{TICKET-KEY}/test-scenarios.md`
-4. Recommended skills: `testrail-test-case-authoring`
+4. Recommended skills: `testrail-test-case-authoring`, `repository-implementation-standards`
 5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </test_case_generation>
@@ -92,7 +94,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 2. Execute phase instructions.
 3. Input: test-scenarios.md. Output: test cases exported to Test Management System.
 4. **WAIT FOR USER** to provide target location and confirm export.
-5. Recommended skills: `testrail-test-case-export` 
+5. Recommended skills: `testrail-test-case-export`, `repository-implementation-standards`
 6. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </test_case_export>
@@ -161,6 +163,7 @@ Subagents:
 
 Skills:
 - `questioning`, `reverse-engineering`, `requirements-synthesis`, `testrail-test-case-authoring`
+- `sequential-workflow-execution`, `repository-implementation-standards`, `confluence-source-harvesting`
 - `mcp-jira-data-collection`, `mcp-confluence-data-collection`
 - `gap-and-contradiction-analysis`
 - `testrail-test-case-export` 

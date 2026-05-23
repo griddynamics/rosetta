@@ -18,7 +18,14 @@ Implement all approved API test specifications as executable automated tests fol
 - Output: implemented test files, lint-clean
 - Prerequisite: Phase 4 complete with user approval
 - HITL: must stop and wait for user to execute tests
+- Implementation handoff (KB tag): `automation-test-implementation-handoff` — routing in step 5.1 follows `<skill_handoff>`.
 </workflow_context>
+
+<skill_handoff>
+1. If `automation-test-implementation-handoff` is not already in the loaded skill set: ACQUIRE `automation-test-implementation-handoff` FROM KB. If that ACQUIRE returns **zero** documents: stop Phase 5, record the failure in `agents/qa-state.md`, ask the user to fix Rosetta/KB access — **do not** run `<execute_implementation>` steps after this block.
+2. USE SKILL `automation-test-implementation-handoff` only.
+3. **Delegation policy:** do not USE SKILL or ACQUIRE `coding`, `testing`, `repository-implementation-standards`, or `qa-test-implementation` from this phase file — the handoff delegates to them internally. Step 5.3 remains user test execution only.
+</skill_handoff>
 
 <phase_steps>
 1. Execute test implementation
@@ -28,10 +35,8 @@ Implement all approved API test specifications as executable automated tests fol
 </phase_steps>
 
 <execute_implementation step="5.1" subagent="engineer" role="API test automation engineer">
-1. USE SKILL `coding`
-2. USE SKILL `testing`
-3. USE SKILL `qa-test-implementation`
-4. Verify test files created and lint-clean
+1. Execute **all** numbered steps in `<skill_handoff>` in order (ACQUIRE guard, USE handoff skill, respect delegation policy).
+2. Verify test files created and lint-clean.
 </execute_implementation>
 
 <validate step="5.2">

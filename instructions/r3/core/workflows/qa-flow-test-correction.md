@@ -18,6 +18,7 @@ Fix identified test failures based on Phase 6 analysis. Requires explicit user a
 - Output: corrected test code, ready for re-testing
 - Prerequisite: Phase 6 complete
 - HITL: explicit user approval required before applying changes
+- Primary orchestration skill: `user-approved-code-changes` — KB ACQUIRE tag and USE SKILL name are both `user-approved-code-changes`.
 </workflow_context>
 
 <phase_steps>
@@ -28,11 +29,20 @@ Fix identified test failures based on Phase 6 analysis. Requires explicit user a
 </phase_steps>
 
 <execute_corrections step="7.1" subagent="engineer" role="API test correction engineer">
-1. USE SKILL `debugging`
-2. USE SKILL `coding`
-3. USE SKILL `qa-test-debugging`
-4. Execute Part B (Corrections) — prepare proposed changes only
-5. Do NOT apply changes yet
+1. ACQUIRE `user-approved-code-changes` FROM KB.
+2. If the ACQUIRE in step 1 returned **zero** documents, run this **fallback sequence in order** (all preparation-only; no file writes until step 7.3): USE SKILL `debugging` → USE SKILL `coding` → execute `qa-test-debugging` Part B (Corrections) preparation only.
+3. If the ACQUIRE in step 1 returned **one or more** documents: USE SKILL `user-approved-code-changes` — produce **preparation-only** output for step 7.2: proposed edits with before/after snippets or file-level diffs per the skill document; **no** file writes until step 7.3.
+
+**Preparation-only shape (concrete example for step 7.2):**
+
+```text
+File: tests/api/orders_spec.rb
+-    expect(response.code).to eq("200")
++    expect(response).to have_http_status(:ok)
+Rationale: execution-report ERR-3 — response is Rack::Response; comparing .code to string "200" failed.
+```
+4. Do NOT apply file changes yet.
+5. If orchestrator guidance conflicts with steps 7.2–7.3 below, follow 7.2–7.3.
 </execute_corrections>
 
 <present_for_approval step="7.2">

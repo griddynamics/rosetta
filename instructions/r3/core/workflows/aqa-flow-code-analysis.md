@@ -15,9 +15,23 @@ Understand existing test architecture, identify reusable components, and determi
 <workflow_context>
 - Phase 3 of 8 in `aqa-flow`
 - Input: test plan with assertions and clarifications
-- Output: architecture analysis, page object inventory, test location decision
+- Output: code analysis report at `agents/plans/aqa-<test-name>-code-analysis.md` (architecture analysis, page object inventory, test location decision)
 - Prerequisite: Phases 1 and 2 complete
 </workflow_context>
+
+<naming_convention>
+**`<test-name>` slug:** lowercase ASCII kebab-case, taken from the Phase 1 plan filename `agents/plans/aqa-<test-name>.md` (the segment after the `aqa-` prefix and before `.md`). If that file is missing or the slug is ambiguous, read the active test identifier from `agents/aqa-state.md` or ask the user once to pick the canonical slug before writing Phase 3 outputs.
+
+**User-supplied slug:** any answer from the user MUST match the same lowercase ASCII kebab-case rule (letters, digits, hyphens only; no spaces or paths). If the user refuses, gives a non-conforming slug, or repeats ambiguity after one attempt, stop Phase 3 per `<plan_path_guards>`: record the gap in `agents/aqa-state.md` and ask the user to restore a valid plan filename or slug before continuing.
+
+**Priority if sources disagree:** when the Phase 1 plan file exists, the slug parsed from its filename is **authoritative**. If `agents/aqa-state.md` disagrees, prefer the plan filename, record the mismatch in `agents/aqa-state.md`, then continue. If the plan file is missing, use `agents/aqa-state.md` or the user's answer as the tie-breaker.
+
+**Worked example:** plan path `agents/plans/aqa-login-happy-path.md` → `<test-name>` = `login-happy-path` → Phase 3 report path `agents/plans/aqa-login-happy-path-code-analysis.md`.
+</naming_convention>
+
+<plan_path_guards>
+If the Phase 1 plan path is still missing after resolving `<test-name>`, or `<test-name>` cannot be resolved to a valid lowercase ASCII kebab-case slug per `<naming_convention>` (including after a user attempt): stop Phase 3, record the gap in `agents/aqa-state.md`, and ask the user to restore or re-run Phase 1 before continuing.
+</plan_path_guards>
 
 <phase_steps>
 1. Read project description
@@ -57,6 +71,7 @@ Understand existing test architecture, identify reusable components, and determi
 - Similar tests found and patterns documented
 - Test location determined with rationale
 - Reusable utilities identified
+- Code analysis report written to `agents/plans/aqa-<test-name>-code-analysis.md` with `<test-name>` resolved per `<naming_convention>` and file non-empty
 </validation_checklist>
 
 </aqa_flow_code_analysis>

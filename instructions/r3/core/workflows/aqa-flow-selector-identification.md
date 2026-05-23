@@ -14,7 +14,7 @@ Identify missing selectors from frontend source code or page source HTML. Condit
 
 <workflow_context>
 - Phase 4 of 8 in `aqa-flow`
-- Input: test plan with assertions, page object inventory from Phase 3
+- Input: test plan with assertions; Phase 3 code analysis report at `agents/plans/aqa-<test-name>-code-analysis.md` (architecture + page object inventory + test location; produced in Phase 3). `<test-name>` matches the Phase 1 plan `agents/plans/aqa-<test-name>.md`; use `agents/aqa-state.md` if the slug is unclear. **Resolved example:** `agents/plans/aqa-login-redirect-code-analysis.md` means `<test-name>` = `login-redirect` for this phase's inputs. **If the code-analysis file is missing, `agents/aqa-state.md` still leaves the slug ambiguous, or more than one plausible `agents/plans/aqa-*-code-analysis.md` exists:** stop Phase 4, record the gap in `agents/aqa-state.md`, and ask the user once for the canonical `<test-name>` or to re-run Phase 3 — do not guess a slug.
 - Output: complete selector map with values and strategy
 - Prerequisite: Phases 1-3 complete
 - HITL: conditional — only if frontend code unavailable or selectors not found

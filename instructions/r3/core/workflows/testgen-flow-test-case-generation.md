@@ -15,7 +15,7 @@ Generate comprehensive test cases from the requirements document, covering all r
 - Phase 5 of 7 in `testgen-flow`
 - Input: `requirements.md` from Phase 4
 - Output: `test-scenarios.md` — test cases 
-- Skills: `testrail-test-case-authoring`, `testing`
+- Skills: `testrail-test-case-authoring`, `testing`, `repository-implementation-standards`
 - Prerequisite: Phase 0-4 complete with validated requirements
 </workflow_context>
 
@@ -32,9 +32,10 @@ Generate comprehensive test cases from the requirements document, covering all r
 </phase_steps>
 
 <load_requirements step="5.1">
-1. Read `agents/testgen/{TICKET-KEY}/requirements.md`
-2. Extract all user stories (US-N), functional requirements (FR-N), non-functional requirements (NFR-N) with acceptance criteria
-3. Extract constraints and dependencies that affect test design
+1. USE SKILL `repository-implementation-standards` when this phase updates tracked repository files outside `agents/testgen/{TICKET-KEY}/` (for example repository-root `requirements.md`); otherwise skip with a one-line note in state.
+2. Read `agents/testgen/{TICKET-KEY}/requirements.md`
+3. Extract all user stories (US-N), functional requirements (FR-N), non-functional requirements (NFR-N) with acceptance criteria
+4. Extract constraints and dependencies that affect test design
 </load_requirements>
 
 <identify_test_types step="5.2">

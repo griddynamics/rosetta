@@ -16,8 +16,8 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 - Input: initial user request + `initial-data.md`
 - Output: `raw-data.md` with extracted Jira and Confluence data
 - Prerequisite: Phase 0 complete
-- Skills: `mcp-jira-data-collection`, `mcp-confluence-data-collection`
-- MCPs: Atlassian Jira, Confluence (or equivalent)
+- Skills: `mcp-jira-data-collection`, `mcp-confluence-data-collection`, `confluence-source-harvesting`
+- MCPs: Jira, Confluence (or equivalent)
 </workflow_context>
 
 <phase_steps>
@@ -36,16 +36,17 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 </extract_jira>
 
 <get_confluence step="1.2">
-1. USE SKILL `mcp-confluence-data-collection`
-2. **If user provided Confluence/documentation URLs**: retrieve those pages directly using using `mcp_Jira_MCP_confluence_get_page()`, then check for child pages 
-2. **If no URLs provided**: 
-2.1. Extract search terms from Jira ticket:
+1. USE SKILL `confluence-source-harvesting` — URL shapes, child pages, truncation, permission fallbacks.
+2. USE SKILL `mcp-confluence-data-collection` — authenticated reads and searches.
+3. **If user provided Confluence/documentation URLs**: retrieve those pages directly using using `mcp_Jira_MCP_confluence_get_page()`, then check for child pages 
+4. **If no URLs provided**: 
+4.1. Extract search terms from Jira ticket:
 - Project key (from ticket key)
 - Labels (if present)
 - Component names (if present)
 - Key terms from summary/description
-2.2. Retrieve relevant Confluence pages
-3. **Fallback**: If no results, ask user for specific page URLs/IDs or proceed with Jira only
+4.2. Retrieve relevant Confluence pages
+5. **Fallback**: If no results, ask user for specific page URLs/IDs or proceed with Jira only
 </get_confluence>
 
 <create_raw_data step="1.3">

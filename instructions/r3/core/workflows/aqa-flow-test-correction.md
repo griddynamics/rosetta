@@ -18,6 +18,7 @@ Fix identified test failures based on Phase 7 analysis. Requires explicit user a
 - Output: corrected test code, ready for re-testing
 - Prerequisite: Phase 7 complete
 - HITL: explicit user approval required before applying changes
+- Primary orchestration skill: `user-approved-code-changes` — **HITL-gated** edit orchestration (preparation-only proposals, explicit user approval, then writes). Resolve the live skill body only via **ACQUIRE `user-approved-code-changes` FROM KB** (step 8.1); do not rely on hardcoded repository paths in this workflow file.
 </workflow_context>
 
 <phase_steps>
@@ -27,12 +28,18 @@ Fix identified test failures based on Phase 7 analysis. Requires explicit user a
 4. Update state
 </phase_steps>
 
+<correction_output_shapes>
+Minimal shapes for step 8.2 input (use what `user-approved-code-changes` prescribes; if unspecified, use **snippet** for small edits and **diff** for multi-hunk changes):
+- **Snippet example:** `File: tests/e2e/login.spec.ts` — **Before:** `await expect(page).toHaveURL(/dashboard/)` — **After:** `await expect(page).toHaveURL(/home/)` — **Reason:** assertion matched obsolete route after rename.
+- **Diff example:** one unified-diff hunk scoped to a single file, e.g. lines prefixed with `-`/`+` for that path only (full layout in the skill document returned by ACQUIRE `user-approved-code-changes`).
+</correction_output_shapes>
+
 <execute_corrections step="8.1" subagent="engineer" role="Test correction engineer">
-1. USE SKILL `debugging`
-2. USE SKILL `coding`
-3. USE SKILL `aqa-test-debugging`
-4. Execute Part B (Corrections) — prepare proposed changes only
-5. Do NOT apply changes yet
+1. ACQUIRE `user-approved-code-changes` FROM KB. If multiple non-empty documents return, prefer the one whose frontmatter `name:` (or primary tag) is exactly `user-approved-code-changes`; if still ambiguous, stop and ask the user which document is canonical.
+2. If the ACQUIRE in step 1 returned **zero** documents, run this **fallback sequence in order** (all preparation-only; no file writes until step 8.3): USE SKILL `debugging` → USE SKILL `coding` → execute `aqa-test-debugging` Part B (Corrections) preparation only.
+3. If the ACQUIRE in step 1 returned **one or more** documents: USE SKILL `user-approved-code-changes` — produce **preparation-only** output for step 8.2: proposed edits with before/after snippets or file-level diffs per the skill document (minimal shapes in `correction_output_shapes` above); **no** file writes until step 8.3.
+4. Do NOT apply file changes yet.
+5. If orchestrator guidance conflicts with steps 8.2–8.3 below, follow 8.2–8.3.
 </execute_corrections>
 
 <present_for_approval step="8.2">
