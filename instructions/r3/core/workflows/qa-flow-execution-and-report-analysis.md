@@ -21,7 +21,7 @@ Analyze test execution results provided by user. Identify failures, categorize r
 - **Canonical analysis skill KB tag:** the exact string in `<pinned_analysis_skill_tag>` immediately below; when renaming the skill in Rosetta, update **`qa-flow.md` Phase 6** recommended skills in the same edit.
 </workflow_context>
 
-<pinned_analysis_skill_tag>automation-test-execution-analysis</pinned_analysis_skill_tag>
+<pinned_analysis_skill_tag>See skill `automation-test-execution-analysis` (ACQUIRE from KB when not already loaded)</pinned_analysis_skill_tag>
 
 <phase_steps>
 1. Obtain test execution results

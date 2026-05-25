@@ -26,7 +26,7 @@ End-to-end backend API test automation from test case input to working automated
 </skip_rules>
 - If user did not specify preferences, perform all steps except optional.
 - User CAN customize: specific phases, already-done phases, specific goals, specific cases — LISTEN and ADOPT.
-- USE the repository implementation standards skill from `<references>` before implementation or correction work that touches repository test code or shared utilities (ACQUIRE from KB if needed).
+- USE SKILL `repository-implementation-standards` before implementation or correction work that touches repository test code or shared utilities (if not already loaded: ACQUIRE `repository-implementation-standards` FROM KB).
 - **Repository coding standards:** follow `<coding_standards_precedence>`.
 - Prefer extending existing test files and utilities over creating new ones.
 - **Overall workflow done when:** every phase required for this run is marked complete in `agents/qa-state.md`, expected artifacts for those phases exist under `agents/qa/{IDENTIFIER}/` (and related paths named in phase docs), and the user accepts the last test outcome or explicitly stops the run.
@@ -124,7 +124,7 @@ Conflict rule is binary: if guidance from a loaded skill conflicts with reposito
 </coding_standards_precedence>
 
 <failure_handling>
-- **Zero-doc ACQUIRE** for a required phase workflow: stop, record in `agents/qa-state.md`, ask the user — no undocumented prompts (see also `sequential-workflow-execution` when loaded).
+- **Zero-doc ACQUIRE** for a required phase workflow: stop, record in `agents/qa-state.md`, ask the user — no undocumented prompts (see also `sequential-workflow-execution` skill when loaded).
 - **Missing prior artifact:** do not fabricate; with user agreement re-run the producing phase, or stop and ask the user to restore it.
 - **Unreadable `agents/qa-state.md`:** pause, rebuild minimal phase pointers from `agents/qa/{IDENTIFIER}/` when possible, then ask the user to confirm.
 </failure_handling>

@@ -22,7 +22,7 @@ Use when running any Rosetta workflow split into ordered phases (QA, AQA, TestGe
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- Run only after Rosetta prep is complete (`load-context` included)
 - Phase document is source of truth for that phase; this skill governs how phases are chained, not domain content
 - User may reorder, skip, or stop early only after explicit confirmation; document the decision in the workflow state file
 
@@ -36,9 +36,9 @@ Use when running any Rosetta workflow split into ordered phases (QA, AQA, TestGe
 4. Update the workflow state file path provided by the parent workflow (create if missing).
 5. Maintain todo tasks for the active phase; close items when done.
 6. GATE: if the next phase depends on outputs of this phase, verify required files or sections exist before advancing.
-7. GATE: do not start the next phase until user explicitly approves when the parent workflow marks the transition as HITL.
+7. GATE: when the parent workflow marks a transition as HITL, do not advance until the user explicitly approves.
 8. If the user requests skipping a phase, restate blast radius, get explicit approval, record skip reason and timestamp in state.
-9. If spawning subagents for the phase, optionally USE SKILL `orchestrator-contract` for dispatch and review rules.
+9. If spawning subagents, follow the active platform dispatch/review contract.
 
 </process>
 
@@ -56,13 +56,13 @@ Use when running any Rosetta workflow split into ordered phases (QA, AQA, TestGe
 
 - Name output paths and identifiers in state the first time they appear; reuse them in later phases
 - Summarize phase outcomes in 3–6 bullets before asking to continue
-- When uncertain whether a gate applies, default to asking the user
+- When uncertain whether prerequisites are met, stop and verify required artifacts before advancing
 
 </best_practices>
 
 <pitfalls>
 
-- Assuming approval from a partial answer or a question the user did not answer
+- Treating unclear replies as approval for a HITL transition or phase skip
 - Marking a phase complete while required artifacts are empty or placeholder-only
 - Advancing because "the next phase looks easy" without satisfying prerequisites
 
