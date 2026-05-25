@@ -33,12 +33,14 @@ Use after automated tests were executed and the workflow needs execution evidenc
 1. Resolve report location: user message, workflow default path, or `agents/user-instructions/` per parent workflow.
 2. GATE: if no report is available, ask once with a concrete file path or paste format; **WAIT** for user input.
 3. USE SKILL `debugging` while interpreting failures.
-4. USE the parent-specified domain analysis skill; execute only **Part A** (report analysis) when that skill defines A/B parts.
-5. Categorize each failure: environment, data, product regression, test bug, flakiness, infra timeout, auth/session, selector/locator (UI flows), contract mismatch (API flows), unknown.
-6. For each category, tie to evidence: log lines, stack snippets, or request/response identifiers — distinguish verified facts from hypotheses.
-7. Produce or update the parent workflow's analysis artifact (path and template from phase file).
-8. Update workflow state with counts, root-cause summary list, report path, and phase completion timestamp.
-9. GATE: confirm recommendations are actionable for a correction phase (owner file, suspected fix type).
+4. Resolve the parent-specified domain analysis skill (and Part A boundary when applicable).
+5. GATE: if the parent-specified domain analysis skill cannot be resolved/loaded, stop this phase, record the missing skill/tag in workflow state, and ask the user to fix Rosetta/KB access or provide explicit fallback approval before continuing.
+6. USE the resolved domain analysis skill; execute only **Part A** (report analysis) when that skill defines A/B parts.
+7. Categorize each failure: environment, data, product regression, test bug, flakiness, infra timeout, auth/session, selector/locator (UI flows), contract mismatch (API flows), unknown.
+8. For each category, tie to evidence: log lines, stack snippets, or request/response identifiers — distinguish verified facts from hypotheses.
+9. Produce or update the parent workflow's analysis artifact (path and template from phase file).
+10. Update workflow state with counts, root-cause summary list, report path, and phase completion timestamp.
+11. GATE: confirm recommendations are actionable for a correction phase (owner file, suspected fix type).
 
 </process>
 

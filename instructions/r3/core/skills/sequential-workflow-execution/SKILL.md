@@ -32,13 +32,14 @@ Use when running any Rosetta workflow split into ordered phases (QA, AQA, TestGe
 
 1. Confirm current phase id and its ACQUIRE target (phase markdown) from the parent workflow.
 2. ACQUIRE the phase file FROM KB before executing that phase.
-3. Execute only that phase until its exit criteria are met.
-4. Update the workflow state file path provided by the parent workflow (create if missing).
-5. Maintain todo tasks for the active phase; close items when done.
-6. GATE: if the next phase depends on outputs of this phase, verify required files or sections exist before advancing.
-7. GATE: when the parent workflow marks a transition as HITL, do not advance until the user explicitly approves.
-8. If the user requests skipping a phase, restate blast radius, get explicit approval, record skip reason and timestamp in state.
-9. If spawning subagents, follow the active platform dispatch/review contract.
+3. GATE: if ACQUIRE in step 2 returns zero documents, stop this phase, record the failed phase tag and timestamp in the workflow state file, and ask the user to fix Rosetta/KB access before continuing.
+4. Execute only that phase until its exit criteria are met.
+5. Update the workflow state file path provided by the parent workflow (create if missing).
+6. Maintain todo tasks for the active phase; close items when done.
+7. GATE: if the next phase depends on outputs of this phase, verify required files or sections exist before advancing.
+8. GATE: when the parent workflow marks a transition as HITL, do not advance until the user explicitly approves.
+9. If the user requests skipping a phase, restate blast radius, get explicit approval, record skip reason and timestamp in state.
+10. If spawning subagents, follow the active platform dispatch/review contract.
 
 </process>
 

@@ -31,10 +31,11 @@ Use before implementing or refactoring automated tests, shared test utilities, p
 <process>
 
 1. Locate and read, when present: `project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md` (repo root or paths given by the workflow or user).
-2. Extract explicit rules: test layout, naming, fixtures, auth/session handling, logging, lint/format commands, forbidden patterns.
-3. Search the codebase for the closest existing examples (same framework, same layer) before writing new files.
-4. GATE: if standard docs disagree with dominant code patterns, flag the conflict to the user and pick the documented rule unless the user directs otherwise.
-5. Record in the phase artifact which files were used as references (paths only, no large quotes).
+2. GATE: if none of the standard docs in step 1 exist or are readable, stop implementation and ask the user to provide substitute standards before continuing.
+3. Extract explicit rules: test layout, naming, fixtures, auth/session handling, logging, lint/format commands, forbidden patterns.
+4. Search the codebase for the closest existing examples (same framework, same layer) before writing new files.
+5. GATE: if standard docs disagree with dominant code patterns, flag the conflict to the user and pick the documented rule unless the user directs otherwise.
+6. Record in the phase artifact which files were used as references (paths only, no large quotes).
 
 </process>
 

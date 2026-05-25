@@ -32,13 +32,14 @@ Use whenever a workflow enriches tickets or tests with Confluence pages (alone o
 
 1. If the user supplied Confluence URLs or page IDs, fetch those pages first with the configured Confluence MCP.
 2. Fetch child pages recursively when exposed by the API, stopping at leaves or the parent workflow depth cap.
-3. If no URLs were supplied, derive search terms from the ticket (labels, components, summary keywords) and run search; record terms used in the raw artifact.
-4. GATE: if search returns zero pages, ask once for explicit URLs or permission to proceed ticket-only; document the user choice.
-5. Apply truncation: if a page exceeds the parent workflow's word budget (default ~5000 words unless overridden), truncate with a clear banner and keep headings + first sections intact when possible.
-6. Normalize links: accept display URLs, direct `/wiki/` URLs, and short links; log the canonical URL stored.
-7. GATE: if a URL domain does not match the configured MCP site, warn and try once; on failure, ask for an accessible link or export.
-8. Deduplicate by canonical URL; merge parents before children unless the parent workflow overrides.
-9. Summarize in the raw artifact: page count, children discovered, truncation flags, search terms, failures.
+3. GATE: if the API does not expose child relationships for a parent page and children are still plausible, ask once for child-page links (or approval to continue parent-only), then record that decision in the artifact.
+4. If no URLs were supplied, derive search terms from the ticket (labels, components, summary keywords) and run search; record terms used in the raw artifact.
+5. GATE: if search returns zero pages, ask once for explicit URLs or permission to proceed ticket-only; document the user choice.
+6. Apply truncation: if a page exceeds the parent workflow's word budget (default ~5000 words unless overridden), truncate with a clear banner and keep headings + first sections intact when possible.
+7. Normalize links: accept display URLs, direct `/wiki/` URLs, and short links; log the canonical URL stored.
+8. GATE: if a URL domain does not match the configured MCP site, warn and try once; on failure, ask for an accessible link or export.
+9. Deduplicate by canonical URL; merge parents before children unless the parent workflow overrides.
+10. Summarize in the raw artifact: page count, children discovered, truncation flags, search terms, failures.
 
 </process>
 

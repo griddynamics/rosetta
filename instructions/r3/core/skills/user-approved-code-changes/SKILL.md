@@ -34,7 +34,7 @@ Use whenever a workflow applies fixes after analysis (test corrections, small re
 2. USE SKILL `coding` for patch quality and consistency.
 3. If the parent names a domain correction skill (e.g. test-debugging Part B), run only the **prepare / Part B planning** portion first — produce proposals, not silent writes.
 4. Present each proposed change with before/after snippets and file paths; batch if small, otherwise chunk for review.
-5. GATE: **WAIT** for explicit approval phrases per `hitl` (e.g. user confirms they reviewed and approve application); do not infer approval from questions or partial agreement.
+5. GATE: **WAIT** for explicit approval phrases per `hitl`; if the parent workflow defines an exact approval token set, require those exact tokens and re-ask otherwise. Do not infer approval from questions or partial agreement.
 6. If the user requests edits to the plan, revise proposals and re-present from step 4.
 7. Apply approved changes one at a time or in small approved batches; run lint/format after each batch.
 8. GATE: if lint fails, stop applying further changes until the failure is resolved or the user approves a revised approach.

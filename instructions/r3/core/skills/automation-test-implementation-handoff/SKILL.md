@@ -30,7 +30,7 @@ Use in any phase whose job is to turn approved specs/plans into executable autom
 
 <process>
 
-1. USE SKILL `repository-implementation-standards` unless the parent workflow already did in this session.
+1. USE SKILL `repository-implementation-standards` unless the parent workflow state/artifact for this run already records it as completed for the current implementation phase; if that proof is missing, apply it by default.
 2. USE SKILL `coding` for implementation work.
 3. USE SKILL `testing` for test design constraints (isolation, idempotency, mocking policy) as applicable to this suite type.
 4. Apply the workflow-specific authoring skill or instructions the parent names (e.g. domain test implementation skill); do not substitute a different domain skill silently.
