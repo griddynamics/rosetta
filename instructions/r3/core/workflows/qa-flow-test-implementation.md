@@ -18,19 +18,7 @@ Implement all approved API test specifications as executable automated tests fol
 - Output: implemented test files, lint-clean
 - Prerequisite: Phase 4 complete with user approval
 - HITL: must stop and wait for user to execute tests
-- Implementation handoff (KB tag): `automation-test-implementation-handoff` — routing in step 5.1 follows `<skill_handoff>`.
 </workflow_context>
-
-<skill_handoff>
-**Canonical call shape**
-- **Allowed:** ACQUIRE `automation-test-implementation-handoff` FROM KB (when not loaded) → USE SKILL `automation-test-implementation-handoff` — then follow only that skill's orchestration.
-- **Forbidden:** USE SKILL `coding`, `testing`, or `qa-test-implementation` (or ACQUIRE them) **directly from this phase file**; the handoff pulls them in when needed.
-- **Ambiguous document example (treat as non-match in step 1):** returned markdown has `name: some-other-skill`, or `name:` matches but the body is empty / boilerplate only, or there are **no** explicit `ACQUIRE`/`USE SKILL` lines delegating to `coding` / `testing` / `qa-test-implementation` — in those cases do **not** run step 2 until the user confirms or you ACQUIRE a valid handoff doc.
-
-1. If `automation-test-implementation-handoff` is not already in the loaded skill set: ACQUIRE `automation-test-implementation-handoff` FROM KB. If that ACQUIRE returns **zero** documents: stop Phase 5, record the failure in `agents/qa-state.md`, ask the user to fix Rosetta/KB access — **do not** run `<execute_implementation>` steps after this block. If ACQUIRE returns **one or more** documents but none clearly match this handoff (wrong `name:`, empty body, or missing orchestration/delegation sections): record the uncertainty in `agents/qa-state.md`, summarize to the user, and **ask the user** before running step 2.
-2. USE SKILL `automation-test-implementation-handoff` only.
-3. **Delegation policy:** do not USE SKILL or ACQUIRE `coding`, `testing`, `repository-implementation-standards`, or `qa-test-implementation` from this phase file — the handoff delegates to them internally. Step 5.3 remains user test execution only.
-</skill_handoff>
 
 <phase_steps>
 1. Execute test implementation
@@ -40,8 +28,18 @@ Implement all approved API test specifications as executable automated tests fol
 </phase_steps>
 
 <execute_implementation step="5.1" subagent="engineer" role="API test automation engineer">
-1. Execute **all** numbered steps in `<skill_handoff>` in order (ACQUIRE guard, USE handoff skill, respect delegation policy).
-2. Verify test files created and lint-clean.
+1. If `automation-test-implementation-handoff` is not already loaded: ACQUIRE `automation-test-implementation-handoff` FROM KB.
+2. ACQUIRE decision gate:
+   - Zero documents: stop Phase 5, record the failure in `agents/qa-state.md`, and ask the user to fix Rosetta/KB access.
+   - One or more documents but ambiguous match (wrong `name:`, empty body, or missing orchestration/delegation sections): record uncertainty in `agents/qa-state.md`, summarize to the user, and ask before continuing.
+   - **Unclear match example** (treat as non-match and ask user):
+     ```text
+     name: other-skill  # wrong name: expected automation-test-implementation-handoff
+     <!-- missing ACQUIRE/USE routing for implementation -->
+     ```
+3. USE SKILL `automation-test-implementation-handoff` only.
+4. **Delegation policy:** do not USE SKILL or ACQUIRE `coding`, `testing`, `repository-implementation-standards` (KB standards skill), or `qa-test-implementation` from this phase file — the handoff delegates to them internally. Step 5.3 remains user test execution only.
+5. Verify test files created and lint-clean.
 </execute_implementation>
 
 <validate step="5.2">

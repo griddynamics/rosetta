@@ -15,16 +15,15 @@ End-to-end test automation from requirements gathering to test implementation. U
 <workflow_phases>
 
 - Rosetta prep steps completed
-- Per-phase cadence: ACQUIRE phase file → execute phase instructions → update `agents/aqa-state.md` → next phase.
-- Phases **1–8** run in strict order; do not start a phase until the previous one is marked done in `agents/aqa-state.md`.
-- **Orchestration:** when loaded, USE SKILL `sequential-workflow-execution` (ACQUIRE FROM KB when needed) for skip gates and transition prompts; any other skip needs explicit user confirmation (HITL).
-- **Missing KB document:** zero-document ACQUIRE for a required dependency → stop, record in `agents/aqa-state.md`, ask the user — do not substitute silently.
+- You MUST execute every in-scope phase in strict 1-8 order (never skip without explicit HITL confirmation) using this cadence: ACQUIRE phase file → execute phase instructions → update `agents/aqa-state.md` → next phase; do not start a phase until the previous one is marked done in `agents/aqa-state.md`.
+- **Orchestration and escalation:** follow `<orchestration_and_escalation>`.
 - NO ASSUMPTIONS: Never assume selectors, flows, or data. Always ask the user if information is missing.
 - STATE TRACKING: Update `agents/aqa-state.md` after each phase.
 - MUST use todo tasks for tracking progress. Prioritize ACCURACY over SPEED.
 - If user did not specify preferences, perform all steps except optional.
 - User CAN customize: specific phases, already-done phases, specific goals, specific cases — LISTEN and ADOPT.
 - USE SKILL `repository-implementation-standards` before implementation or correction work that touches repository tests, page objects, or shared helpers (ACQUIRE from KB if needed); it is authoritative for conventions and repository docs win on conflicts with skill snippets.
+- Default behavior: reuse existing page objects/tests first, and create new files only when no suitable match exists.
 
 <data_collection phase="1" applies="ALL" subagent="discoverer" role="AQA data collector">
 
@@ -104,7 +103,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 1. ACQUIRE `aqa-flow-test-correction.md` FROM KB
 2. Execute phase instructions.
 3. Input: failure analysis + test files + page objects. Output: corrected test files and page objects.
-4. **WAIT FOR USER APPROVAL** before applying changes. Authoritative approval tokens and presentation rules live in `aqa-flow-test-correction.md` step **8.2**; the tokens listed here are illustrative only, not exhaustive. (Current examples: user must type `approved` or `yes`; emoji-only, silence, off-topic replies, and paraphrases like `ok` / `lgtm` / `go ahead` / `no objections` are not approval unless step 8.2 explicitly allows them.)
+4. **WAIT FOR USER APPROVAL** before applying changes; authoritative approval tokens and presentation rules are defined in `aqa-flow-test-correction.md` section `<present_for_approval>`.
 5. Recommended skills: `debugging`, `coding`, `aqa-test-debugging` (Part B), `user-approved-code-changes`
 6. Update `agents/aqa-state.md`
 
@@ -112,9 +111,17 @@ End-to-end test automation from requirements gathering to test implementation. U
 
 </workflow_phases>
 
+<orchestration_and_escalation>
+- When loaded, USE SKILL `sequential-workflow-execution` (ACQUIRE FROM KB when needed) for skip gates and transition prompts.
+- Any skip outside those gates requires explicit user confirmation (HITL).
+- Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user, and do not substitute silently.
+</orchestration_and_escalation>
+
 <workflow_success_criteria>
-- **Overall run complete** when every negotiated phase is marked done in `agents/aqa-state.md` and the artifacts those phases reference exist (e.g. `agents/plans/aqa-<test-name>.md`, `agents/plans/aqa-<test-name>-code-analysis.md` when Phase 3 ran, test file paths after Phase 6, failure analysis before Phase 8), and the user accepts the last test outcome or explicitly stops.
-- **Spot checks:** Phase 1 — plan file exists; Phase 3 — code analysis report path populated with architecture + page object inventory + test location; Phase 6 — test file path + lint-clean per phase doc; Phase 7 — failure analysis recorded; Phase 8 — user-approved edits applied when that phase runs.
+- **Overall run complete** when every in-scope phase is marked done in `agents/aqa-state.md` and the artifacts those phases reference exist (e.g. `agents/plans/aqa-<test-name>.md`, `agents/plans/aqa-<test-name>-code-analysis.md` when Phase 3 ran, test file paths after Phase 6, failure analysis before Phase 8), and the user accepts the last test outcome or explicitly stops.
+- **In-scope phase** means any phase required by default execution plus user-approved customization/skip decisions under `<orchestration_and_escalation>`.
+- **Spot checks:** Phase 1 — plan file exists; Phase 3 — code analysis report path populated with architecture + page object inventory + test location; Phase 6 — test file path + lint-clean per phase doc (example: `tests/e2e/login.spec.ts` exists and lint passes as required by `aqa-flow-test-implementation.md`); Phase 7 — failure analysis recorded; Phase 8 — user-approved edits applied when that phase runs.
+- If a required spot-check artifact is missing or partial, that phase is not done: record the gap in `agents/aqa-state.md`, flag uncertainty, and stop for user guidance before continuing.
 </workflow_success_criteria>
 
 <state_file>
@@ -152,7 +159,7 @@ Subagents:
 - `executor` (Lightweight): optional for mechanical actions (builds, installs)
 
 Skills:
-- **Workflow KB tags (ACQUIRE / USE SKILL by these names):** `sequential-workflow-execution`, `repository-implementation-standards`, `automation-test-implementation-handoff`, `automation-test-execution-analysis`, `user-approved-code-changes`, `confluence-source-harvesting`
+- Workflow orchestration tags: `sequential-workflow-execution`, `automation-test-implementation-handoff`, `automation-test-execution-analysis`, `user-approved-code-changes`, `confluence-source-harvesting`
 - **`sequential-workflow-execution`:** phase ordering, skip/customization gates, and transition prompts for multi-phase runs.
 - **`repository-implementation-standards`:** project coding conventions for tests, page objects, and shared helpers — derived from repo docs (`project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`); on conflict, repo docs win.
 - `questioning`, `reverse-engineering`, `coding`, `testing`, `debugging`
@@ -160,9 +167,9 @@ Skills:
 - `mcp-testrail-data-collection`, `mcp-confluence-data-collection`
 
 MCPs:
-- `TestRail` — test case management
-- `Atlassian Confluence` — feature documentation
-- `Playwright` — browser-based test execution
+- Test case management MCP (default: `TestRail`)
+- Documentation MCP (default: `Atlassian Confluence`)
+- Browser automation MCP (default: `Playwright`)
 
 </references>
 

@@ -14,6 +14,7 @@ End-to-end backend API test automation from test case input to working automated
 
 <workflow_phases>
 
+- **Phases 0→7 MUST run in order; skipping is permitted only via `<skip_rules>` below.**
 - Rosetta prep steps completed
 - NO ASSUMPTIONS: Never assume endpoints, payloads, auth mechanisms, or response schemas. Always ask the user if information is missing.
 - STATE TRACKING: Update `agents/qa-state.md` after each phase.
@@ -21,7 +22,13 @@ End-to-end backend API test automation from test case input to working automated
 - MUST use todo tasks for tracking progress. Prioritize ACCURACY over SPEED.
 <skip_rules>
 - **Mandatory order.** Phases **0→7** run sequentially.
-- **Skip gate (only exception for phases 0–2).** Treat Phases 0–2 as already done only when all conditions are met: (a) user explicitly says those phases were completed, (b) `agents/qa-state.md` marks them complete, and (c) matching `{IDENTIFIER}` artifacts (at least `raw-data.md` + `api-analysis.md`) exist under `agents/qa/{IDENTIFIER}/`. Otherwise continue from the earliest incomplete phase.
+- **Skip gate (only exception for phases 0–2).** Treat Phases 0–2 as already done only when all conditions are met: (a) user explicitly says those phases were completed, (b) `agents/qa-state.md` marks them complete, and (c) matching `{IDENTIFIER}` artifacts (at least `raw-data.md` + `api-analysis.md`) exist under `agents/qa/{IDENTIFIER}/`. Independently verify each of (a), (b), (c) by reading `agents/qa-state.md` and listing `agents/qa/{IDENTIFIER}/` artifacts; do not rely solely on user assertion. Otherwise continue from the earliest incomplete phase.
+- **Skip gate example (`agents/qa-state.md`):**
+  ```markdown
+  - [x] Phase 0: Project Config Loading
+  - [x] Phase 1: Data Collection
+  - [x] Phase 2: API Spec Analysis
+  ```
 - **Execution aid.** If the sequencing skill in `<references>` is available, use it for ACQUIRE cadence, todo discipline, and state updates.
 </skip_rules>
 - If user did not specify preferences, perform all steps except optional.
@@ -121,12 +128,14 @@ End-to-end backend API test automation from test case input to working automated
 
 <coding_standards_precedence>
 Conflict rule is binary: if guidance from a loaded skill conflicts with repository markdown (`project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`) on naming, structure/layout, tooling, or test patterns, repository markdown wins and the conflicting skill snippet is ignored for that decision. If there is no conflict, apply both.
+Example: if a skill suggests `/tests/api/` but `ARCHITECTURE.md` requires `/qa/api/tests/`, use `/qa/api/tests/`.
 </coding_standards_precedence>
 
 <failure_handling>
 - **Zero-doc ACQUIRE** for a required phase workflow: stop, record in `agents/qa-state.md`, ask the user — no undocumented prompts (see also `sequential-workflow-execution` skill when loaded).
 - **Missing prior artifact:** do not fabricate; with user agreement re-run the producing phase, or stop and ask the user to restore it.
 - **Unreadable `agents/qa-state.md`:** pause, rebuild minimal phase pointers from `agents/qa/{IDENTIFIER}/` when possible, then ask the user to confirm.
+- **State-note example (zero-doc ACQUIRE):** `Phase 5 blocked: ACQUIRE automation-test-implementation-handoff returned zero documents at 2026-05-25T15:00Z; awaiting user action.`
 </failure_handling>
 
 <state_file>
@@ -165,14 +174,9 @@ Subagents:
 - `executor` (Lightweight): optional for mechanical actions (builds, installs)
 
 Skills:
-- Skill tags by role:
-  - Sequencing: `sequential-workflow-execution`
-  - Repository implementation standards: `repository-implementation-standards`
-  - Phase 5 handoff: `automation-test-implementation-handoff`
-  - Phase 6 analysis: `automation-test-execution-analysis`
-  - Phase 7 orchestration: `user-approved-code-changes`
-  - Documentation harvesting (Phase 1 optional): `confluence-source-harvesting`
-- Phase-recommended skills:
+- Cross-phase orchestration: `sequential-workflow-execution`
+- Repository standards: `repository-implementation-standards`
+- Phase-recommended skills (canonical list):
   - Phase 0: `qa-project-config`
   - Phase 1: `qa-data-collection`, `confluence-source-harvesting` (when documentation MCP is in scope)
   - Phase 2: `swagger-contracts-analysis`
@@ -183,12 +187,14 @@ Skills:
   - Phase 7: `debugging`, `coding`, `qa-test-debugging` (Part B), `user-approved-code-changes`
 
 **Rosetta KB:** Backticked names are ACQUIRE tags; if ACQUIRE returns zero documents, follow `<failure_handling>`.
+All backticked skill names in this file are expected to resolve as valid KB tags at runtime.
 
 Note: `qa-test-debugging` is a standalone ad-hoc skill (no dedicated workflow file). It is invoked on-demand during Phase 6 (failure analysis) and Phase 7 (corrections).
 
 MCPs:
 - `TestRail` — test case management
 - `Jira MCP` — Jira issues + Confluence documentation
+- MCP names are illustrative; equivalent configured providers are acceptable when mapped in project config.
 
 </references>
 
