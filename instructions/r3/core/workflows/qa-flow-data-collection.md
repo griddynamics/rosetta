@@ -17,8 +17,13 @@ Gather test case details from TMS, search documentation, and discover existing A
 - Input: project config + initial data from Phase 0
 - Output: `agents/qa/{IDENTIFIER}/raw-data.md` with test cases, documentation, and existing test patterns
 - Prerequisite: Phase 0 complete, `qa-project-config.md` and `initial-data.md` exist
-- Optional **documentation MCP** when `qa-project-config.md` scopes it — procedure only in `<execute_collection>` step **1.2b**. **Config binding:** use the **literal field values** in `qa-project-config.md` and Phase 0 artifacts for documentation URLs/spaces and for **which Rosetta ACQUIRE tag** runs MCP collection (field names are defined in the acquired `qa-flow-documentation-mcp-subflow.md` fragment — do not invent keys here).
+- Optional **documentation MCP** when `qa-project-config.md` scopes it — binding note in `<config_binding>`; procedure in `<execute_collection>` step **1.2b**.
 </workflow_context>
+
+<config_binding>
+Documentation MCP scope comes from **`qa-project-config.md`** and Phase 0 only.
+**Subflow ACQUIRE tag (exact string):** `qa-flow-documentation-mcp-subflow`. The acquired fragment is the single source of truth for collection-skill key precedence, in-scope signals, branch rules, and `<execute_documentation_mcp>` steps.
+</config_binding>
 
 <phase_steps>
 1. Confirm data sources from project config
@@ -42,14 +47,16 @@ Gather test case details from TMS, search documentation, and discover existing A
 <documentation_mcp_optional step="1.2b">
 1.2b.1. If documentation MCP collection is **not** in scope per `qa-project-config.md`, skip this entire sub-block.
 1.2b.2. ACQUIRE `qa-flow-documentation-mcp-subflow.md` FROM KB (once per session if not already loaded).
-1.2b.3. If the ACQUIRE in **1.2b.2** returned **zero** documents:
-   - Skip the documentation MCP subflow for this run.
-   - Record the failure and KB tag in `agents/qa-state.md`.
-   - Notify the user the subflow document is missing from Rosetta/KB.
-   - Under `## Documentation / Confluence` in `agents/qa/{IDENTIFIER}/raw-data.md`, write `**Outcome:** skipped — ACQUIRE failed` plus the subflow filename and a short error summary.
-   - **Continue** Phase 1 (core collection in 1.2a already completed).
-1.2b.4. If the ACQUIRE in **1.2b.2** returned **one or more** documents: (a) **Verify** the acquired markdown defines an `<execute_documentation_mcp>` block containing at least one numbered step. (b) If verification **fails**, apply the **same** record / notify / `raw-data` outcome bullets as **1.2b.3**, then continue Phase 1. (c) If verification **passes**, execute **all** numbered steps inside `<execute_documentation_mcp>` in document order.
+1.2b.3. If ACQUIRE returned **zero** documents, or the acquired markdown does not define `<execute_documentation_mcp>` with at least one numbered step: apply `<documentation_mcp_skip_path>`.
+1.2b.4. Otherwise execute **all** numbered steps inside `<execute_documentation_mcp>` in document order.
 </documentation_mcp_optional>
+
+<documentation_mcp_skip_path>
+- Skip the documentation MCP subflow for this run.
+- Record failure + KB tag in `agents/qa-state.md`, then notify the user.
+- Under `## Documentation / Confluence` in `agents/qa/{IDENTIFIER}/raw-data.md`, write `**Outcome:** skipped — ACQUIRE failed` plus subflow filename + short error.
+- Continue Phase 1 (`1.2a` already completed).
+</documentation_mcp_skip_path>
 
 </execute_collection>
 
@@ -69,7 +76,7 @@ Gather test case details from TMS, search documentation, and discover existing A
 - Test case data retrieved and documented
 - `agents/qa/{IDENTIFIER}/raw-data.md` exists (verified in step 1.2a) with core collection sections populated per `qa-data-collection`
 - Documentation searched (results found OR user confirmed skip)
-- Documentation MCP subsection in `raw-data.md` verified per `qa-flow-documentation-mcp-subflow.md` when that subflow ran, **or** documented `**Outcome:** skipped — ACQUIRE failed` / same outcome path when the subflow doc was missing from KB **or** the acquired fragment failed **1.2b.4** verification
+- Documentation MCP outcome in `raw-data.md` matches **successful 1.2b.4** execution **or** `<documentation_mcp_skip_path>`
 - Existing test patterns analyzed
 - Backend source code searched (if path configured in project config)
 - API endpoints identified from test cases
