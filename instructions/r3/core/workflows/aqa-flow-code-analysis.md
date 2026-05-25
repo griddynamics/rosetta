@@ -20,17 +20,19 @@ Understand existing test architecture, identify reusable components, and determi
 </workflow_context>
 
 <naming_convention>
-**`<test-name>` slug:** lowercase ASCII kebab-case, taken from the Phase 1 plan filename `agents/plans/aqa-<test-name>.md` (the segment after the `aqa-` prefix and before `.md`). If that file is missing or the slug is ambiguous, read the active test identifier from `agents/aqa-state.md` or ask the user once to pick the canonical slug before writing Phase 3 outputs.
+**Slug format:** lowercase ASCII kebab-case — letters, digits, hyphens only; no spaces or paths.
 
-**User-supplied slug:** any answer from the user MUST match the same lowercase ASCII kebab-case rule (letters, digits, hyphens only; no spaces or paths). If the user refuses, gives a non-conforming slug, or repeats ambiguity after one attempt, stop Phase 3 per `<plan_path_guards>`: record the gap in `agents/aqa-state.md` and ask the user to restore a valid plan filename or slug before continuing.
+**`<test-name>` slug:** parse from Phase 1 plan filename `agents/plans/aqa-<test-name>.md` (segment after `aqa-` and before `.md`). If missing or ambiguous, read `agents/aqa-state.md` or ask the user once for the canonical slug before writing Phase 3 outputs.
 
-**Priority if sources disagree:** when the Phase 1 plan file exists, the slug parsed from its filename is **authoritative**. If `agents/aqa-state.md` disagrees, prefer the plan filename, record the mismatch in `agents/aqa-state.md`, then continue. If the plan file is missing, use `agents/aqa-state.md` or the user's answer as the tie-breaker.
+**User-supplied slug:** must match the slug format above. If the user refuses, gives a non-conforming slug, or ambiguity persists after one attempt, stop Phase 3 per `<plan_path_guards>`.
 
-**Worked example:** plan path `agents/plans/aqa-login-happy-path.md` → `<test-name>` = `login-happy-path` → Phase 3 report path `agents/plans/aqa-login-happy-path-code-analysis.md`.
+**Priority if sources disagree:** when the Phase 1 plan file exists, its filename slug is **authoritative**. If `agents/aqa-state.md` disagrees, prefer the plan filename, record the mismatch in `agents/aqa-state.md`, then continue. If the plan file is missing, use `agents/aqa-state.md` or the user's answer.
+
+**Worked example:** `agents/plans/aqa-login-happy-path.md` → `<test-name>` = `login-happy-path` → report `agents/plans/aqa-login-happy-path-code-analysis.md`.
 </naming_convention>
 
 <plan_path_guards>
-If the Phase 1 plan path is still missing after resolving `<test-name>`, or `<test-name>` cannot be resolved to a valid lowercase ASCII kebab-case slug per `<naming_convention>` (including after a user attempt): stop Phase 3, record the gap in `agents/aqa-state.md`, and ask the user to restore or re-run Phase 1 before continuing.
+If the Phase 1 plan path is still missing after resolving `<test-name>`, or `<test-name>` cannot be resolved to a valid slug per `<naming_convention>` (including after a user attempt): stop Phase 3, record the gap in `agents/aqa-state.md`, and ask the user to restore or re-run Phase 1 before continuing.
 </plan_path_guards>
 
 <phase_steps>

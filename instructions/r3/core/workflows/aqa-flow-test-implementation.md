@@ -22,9 +22,7 @@ Create automated test integrating all page objects and assertions. Stops for use
 </workflow_context>
 
 <skill_handoff>
-- **Single routing rule for step 6.1:** ACQUIRE `automation-test-implementation-handoff` FROM KB when it is **not** already in the loaded skill set, then USE SKILL `automation-test-implementation-handoff`. Do not USE SKILL or ACQUIRE `coding`, `testing`, `repository-implementation-standards`, or `aqa-test-authoring` from this phase file — the handoff delegates to them internally.
-
-**Handoff completeness (for the USE SKILL step in 6.1, step 4 below):**
+**Handoff completeness (for step 6.1 item 3):**
 - **Acceptable (minimal positive):** the acquired handoff doc contains explicit orchestration — e.g. numbered `ACQUIRE … FROM KB` / `USE SKILL …` lines, or bullets that name **which** of `coding`, `testing`, `aqa-test-authoring`, or related implementation skills run next and in what order.
 - **Unacceptable (negative example):** the file is only narrative (goals, context, marketing) with **no** ACQUIRE/USE/delegation lines pointing at implementation, testing, or authoring skills — treat as missing orchestration sections and run the warning path in that same USE SKILL step (6.1 step 4).
 </skill_handoff>
@@ -37,11 +35,11 @@ Create automated test integrating all page objects and assertions. Stops for use
 </phase_steps>
 
 <execute_authoring step="6.1" subagent="engineer" role="Test automation engineer">
-1. Follow `<skill_handoff>` for all implementation routing in this step, then continue with ACQUIRE/USE below.
-2. ACQUIRE `automation-test-implementation-handoff` FROM KB.
-3. If the ACQUIRE in step 2 returned zero documents: stop Phase 6, record the failure in `agents/aqa-state.md`, ask the user to fix Rosetta/KB — **do not run steps 4–5 below.**
-4. USE SKILL `automation-test-implementation-handoff`. If the handoff document from step 2 is missing expected orchestration sections (e.g. no clear delegation to implementation/testing/authoring skills), record a warning in `agents/aqa-state.md`, ask the user whether the KB copy is stale or incomplete, and **do not** treat the gap as silently acceptable.
-5. Verify test file created and lint-clean
+Routing: ACQUIRE `automation-test-implementation-handoff` FROM KB when not already loaded, then USE SKILL it. Do not ACQUIRE or USE `coding`, `testing`, `repository-implementation-standards`, or `aqa-test-authoring` from this phase file — the handoff delegates internally.
+1. ACQUIRE `automation-test-implementation-handoff` FROM KB when not already in the loaded skill set.
+2. If step 1 returned zero documents: stop Phase 6, record the failure in `agents/aqa-state.md`, ask the user to fix Rosetta/KB — **do not run steps 3–4 below.**
+3. USE SKILL `automation-test-implementation-handoff`. If the handoff document is missing expected orchestration sections per `<skill_handoff>`, record a warning in `agents/aqa-state.md`, ask the user whether the KB copy is stale or incomplete, and **do not** treat the gap as silently acceptable.
+4. Verify test file created and lint-clean
 </execute_authoring>
 
 <validate step="6.2">

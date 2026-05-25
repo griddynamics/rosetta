@@ -46,7 +46,9 @@ Analyze test execution reports, identify failure root causes, and prepare for co
    - **Assumption:** partial evidence only (e.g., time correlation without stack, single flaky run, or symptom-based guess) — label the root cause **Assumption** and say what evidence is missing.
    - **Unknown:** no usable supporting evidence — label **Unknown** and list what evidence would be needed to confirm.
    - **Ambiguous evidence:** if a case could reasonably be tagged as both **Confirmed** and **Assumption**, choose **Assumption** (weaker label). If it could be both **Assumption** and **Unknown**, choose **Unknown** unless at least one concrete partial fact exists — then **Assumption**.
-6. Re-read every failure entry and confirm each has exactly one of **Confirmed**, **Assumption**, or **Unknown**; if any lack a label or violate the ambiguity rule, repeat steps 1–5, but **at most two** full cycles. After two cycles with remaining gaps, record unresolved rows in `agents/aqa-state.md`, **ask the user once** for how to label them (or approval to leave borderline items as **Assumption** per the rule above), then continue only after the user replies or explicitly approves proceeding with those documented defaults — only then `update_state`.
+6a. Re-read every failure entry and confirm each has exactly one of **Confirmed**, **Assumption**, or **Unknown**.
+6b. If any entry lacks a label or violates the ambiguity rule in step 5, repeat steps 1–5 — **at most two** full cycles.
+6c. After two cycles with remaining gaps: record unresolved rows in `agents/aqa-state.md`, ask the user once how to label them (or approval to leave borderline items as **Assumption**), then continue only after the user replies or explicitly approves proceeding with those documented defaults — only then run `update_state`.
 </review_findings>
 
 <update_state step="7.3">

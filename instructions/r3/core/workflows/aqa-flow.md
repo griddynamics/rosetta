@@ -15,11 +15,10 @@ End-to-end test automation from requirements gathering to test implementation. U
 <workflow_phases>
 
 - Rosetta prep steps completed
-- **Phase orchestration:** USE the **workflow orchestration skill** whose KB tag is listed under **Workflow KB tags** in `<references>` below (`sequential-workflow-execution`) — ACQUIRE from KB when needed. That skill owns **skip/customization gates**, **phase ordering**, and **transition prompts** (what to ACQUIRE next, when to pause for HITL) so runs stay inside documented gates instead of ad-hoc shortcuts.
-- **Orchestration unavailable:** If ACQUIRE for **that tag** returns **zero** documents, use only the per-phase pattern in phases 1–8 (ACQUIRE phase doc → execute → update `agents/aqa-state.md`) — no invented shortcuts. **Sequencing:** phases **1–8 are strict order**; each consumes prior artifacts and must not start until the previous phase is marked done in `agents/aqa-state.md` (same rule with or without the orchestration skill).
-- **Skip policy:** Use only the skip/customization gates from the orchestration skill when it is loaded; any other skip needs explicit user confirmation (HITL).
-- **Canonical workflow skill names:** Rosetta ACQUIRE / USE SKILL tags are listed under **Skills** in `<references>` (plus any skill named inside a phase block).
-- **Missing KB document:** If ACQUIRE for a **required** dependency returns **zero** documents, stop, record in `agents/aqa-state.md`, ask the user to fix Rosetta/KB — do not substitute silently.
+- Per-phase cadence: ACQUIRE phase file → execute phase instructions → update `agents/aqa-state.md` → next phase.
+- Phases **1–8** run in strict order; do not start a phase until the previous one is marked done in `agents/aqa-state.md`.
+- **Orchestration:** when loaded, USE SKILL `sequential-workflow-execution` (ACQUIRE FROM KB when needed) for skip gates and transition prompts; any other skip needs explicit user confirmation (HITL).
+- **Missing KB document:** zero-document ACQUIRE for a required dependency → stop, record in `agents/aqa-state.md`, ask the user — do not substitute silently.
 - NO ASSUMPTIONS: Never assume selectors, flows, or data. Always ask the user if information is missing.
 - STATE TRACKING: Update `agents/aqa-state.md` after each phase.
 - MUST use todo tasks for tracking progress. Prioritize ACCURACY over SPEED.
@@ -108,7 +107,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 1. ACQUIRE `aqa-flow-test-correction.md` FROM KB
 2. Execute phase instructions.
 3. Input: failure analysis + test files + page objects. Output: corrected test files and page objects.
-4. **WAIT FOR USER APPROVAL** before applying changes. **Approval** means an explicit written go-ahead for the presented diff (same token rule as the Phase 8 doc, e.g. user types `approved` / `yes`). Emoji-only, silence, or off-topic replies are **not** approval — refuse to apply and ask again.
+4. **WAIT FOR USER APPROVAL** before applying changes. Authoritative approval tokens and presentation rules: `aqa-flow-test-correction.md` step **8.2** (user must type `approved` or `yes`; emoji-only, silence, or off-topic replies are not approval).
 5. Recommended skills: `debugging`, `coding`, `aqa-test-debugging` (Part B), `user-approved-code-changes`
 6. Update `agents/aqa-state.md`
 
@@ -157,6 +156,8 @@ Subagents:
 
 Skills:
 - **Workflow KB tags (ACQUIRE / USE SKILL by these names):** `sequential-workflow-execution`, `repository-implementation-standards`, `automation-test-implementation-handoff`, `automation-test-execution-analysis`, `user-approved-code-changes`, `confluence-source-harvesting`
+- **`sequential-workflow-execution`:** phase ordering, skip/customization gates, and transition prompts for multi-phase runs.
+- **`repository-implementation-standards`:** project coding conventions for tests, page objects, and shared helpers — derived from repo docs (`project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`); on conflict, repo docs win.
 - `questioning`, `reverse-engineering`, `coding`, `testing`, `debugging`
 - `aqa-requirements-elicitation`, `aqa-codebase-analysis`, `aqa-selector-management`, `aqa-test-authoring`, `aqa-test-debugging`
 - `mcp-testrail-data-collection`, `mcp-confluence-data-collection`

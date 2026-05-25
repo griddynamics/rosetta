@@ -14,17 +14,32 @@ Identify missing selectors from frontend source code or page source HTML. Condit
 
 <workflow_context>
 - Phase 4 of 8 in `aqa-flow`
-- Input: test plan with assertions; Phase 3 code analysis report at `agents/plans/aqa-<test-name>-code-analysis.md` (architecture + page object inventory + test location; produced in Phase 3). `<test-name>` matches the Phase 1 plan `agents/plans/aqa-<test-name>.md`; use `agents/aqa-state.md` if the slug is unclear. **Resolved example:** `agents/plans/aqa-login-redirect-code-analysis.md` means `<test-name>` = `login-redirect` for this phase's inputs. **If the code-analysis file is missing, `agents/aqa-state.md` still leaves the slug ambiguous, or more than one plausible `agents/plans/aqa-*-code-analysis.md` exists:** stop Phase 4, record the gap in `agents/aqa-state.md`, and ask the user once for the canonical `<test-name>` or to re-run Phase 3 — do not guess a slug.
+- Input: test plan with assertions; Phase 3 code analysis report at `agents/plans/aqa-<test-name>-code-analysis.md`
 - Output: complete selector map with values and strategy
 - Prerequisite: Phases 1-3 complete
 - HITL: conditional — only if frontend code unavailable or selectors not found
 </workflow_context>
 
+<input_resolution>
+`<test-name>` matches the Phase 1 plan `agents/plans/aqa-<test-name>.md`; use `agents/aqa-state.md` if the slug is unclear. **Example:** `agents/plans/aqa-login-redirect-code-analysis.md` → `<test-name>` = `login-redirect`.
+</input_resolution>
+
+<failure_handling>
+If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-state.md`, or more than one plausible `agents/plans/aqa-*-code-analysis.md` exists: stop Phase 4, record the gap in `agents/aqa-state.md`, ask the user once for the canonical `<test-name>` or to re-run Phase 3 — do not guess.
+</failure_handling>
+
 <phase_steps>
-1. Execute selector identification (Part A of skill)
-2. Handle page source request if needed
-3. Update state
+1. Resolve `<test-name>` and verify the Phase 3 code-analysis file (see `<input_resolution>` / `<failure_handling>`)
+2. Execute selector identification (Part A of skill)
+3. Handle page source request if needed
+4. Update state
 </phase_steps>
+
+<resolve_inputs step="4.0">
+1. Resolve `<test-name>` per `<input_resolution>`.
+2. Verify `agents/plans/aqa-<test-name>-code-analysis.md` exists and is the single canonical input for this run.
+3. If verification fails: apply `<failure_handling>`.
+</resolve_inputs>
 
 <execute_identification step="4.1" subagent="engineer" role="Selector identification specialist">
 1. USE SKILL `aqa-selector-management`
