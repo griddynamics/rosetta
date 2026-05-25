@@ -19,13 +19,9 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 - Rosetta prep steps completed
 - USE SKILL `sequential-workflow-execution` — enforce one phase at a time, ACQUIRE each phase doc before work, update `agents/testgen/{TICKET-KEY}/testgen-state.md` and todos; see skill for skip/customization gates.
 - MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL PHASES ARE SEQUENTIAL.
-- ONE PHASE AT A TIME: Acquire phase file, execute, update state, move to next.
-- DO NOT SKIP PHASES: Each builds on previous.
-- STATE TRACKING: Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
 - USER CONFIRMATION: Wait for approval before next phase.
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
-- USE SKILL `repository-implementation-standards` before phases 5–6 when writing or updating tracked repository files (for example TMS ID traceability in markdown under version control); skip when outputs stay only under `agents/testgen/{TICKET-KEY}/` and the user confirmed no repo edits.
 
 <project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
 
@@ -84,7 +80,8 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 2. Execute phase instructions.
 3. Input: requirements.md. Output: `agents/testgen/{TICKET-KEY}/test-scenarios.md`
 4. Recommended skills: `testrail-test-case-authoring`, `repository-implementation-standards`
-5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+5. Apply `repository-implementation-standards` per `<phase_5_6_standards_gate>`.
+6. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </test_case_generation>
 
@@ -95,11 +92,20 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 3. Input: test-scenarios.md. Output: test cases exported to Test Management System.
 4. **WAIT FOR USER** to provide target location and confirm export.
 5. Recommended skills: `testrail-test-case-export`, `repository-implementation-standards`
-6. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+6. Apply `repository-implementation-standards` per `<phase_5_6_standards_gate>`.
+7. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </test_case_export>
 
 </workflow_phases>
+
+<phase_5_6_standards_gate>
+- Applies to phases 5-6: apply `repository-implementation-standards` when a phase writes any file outside `agents/testgen/{TICKET-KEY}/`.
+- **mixed outputs** means one phase writes both inside and outside `agents/testgen/{TICKET-KEY}/`.
+- **missing/partial repo-edit confirmation** means the user did not explicitly confirm repository edit scope in chat for that phase.
+- Default behavior: if confirmation is missing/partial or outputs are mixed, apply the skill.
+- Examples: apply when writing `cypress/e2e/login.spec.ts`; skip when writing only `agents/testgen/JIRA-123/test-scenarios.md`.
+</phase_5_6_standards_gate>
 
 <state_file>
 

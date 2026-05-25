@@ -24,10 +24,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 - MUST use todo tasks for tracking progress. Prioritize ACCURACY over SPEED.
 - If user did not specify preferences, perform all steps except optional.
 - User CAN customize: specific phases, already-done phases, specific goals, specific cases — LISTEN and ADOPT.
-- USE SKILL `repository-implementation-standards` before implementation or correction work that touches repository tests, page objects, or shared helpers (ACQUIRE from KB if needed).
-- Treat `project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, and `IMPLEMENTATION.md` as source of truth together with `repository-implementation-standards`.
-- **On conflict:** repository documents win; use `repository-implementation-standards` to apply conventions, not to contradict those files.
-- Prefer extending existing files and page objects over creating new ones.
+- USE SKILL `repository-implementation-standards` before implementation or correction work that touches repository tests, page objects, or shared helpers (ACQUIRE from KB if needed); it is authoritative for conventions and repository docs win on conflicts with skill snippets.
 
 <data_collection phase="1" applies="ALL" subagent="discoverer" role="AQA data collector">
 
@@ -107,7 +104,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 1. ACQUIRE `aqa-flow-test-correction.md` FROM KB
 2. Execute phase instructions.
 3. Input: failure analysis + test files + page objects. Output: corrected test files and page objects.
-4. **WAIT FOR USER APPROVAL** before applying changes. Authoritative approval tokens and presentation rules: `aqa-flow-test-correction.md` step **8.2** (user must type `approved` or `yes`; emoji-only, silence, or off-topic replies are not approval).
+4. **WAIT FOR USER APPROVAL** before applying changes. Authoritative approval tokens and presentation rules live in `aqa-flow-test-correction.md` step **8.2**; the tokens listed here are illustrative only, not exhaustive. (Current examples: user must type `approved` or `yes`; emoji-only, silence, off-topic replies, and paraphrases like `ok` / `lgtm` / `go ahead` / `no objections` are not approval unless step 8.2 explicitly allows them.)
 5. Recommended skills: `debugging`, `coding`, `aqa-test-debugging` (Part B), `user-approved-code-changes`
 6. Update `agents/aqa-state.md`
 
