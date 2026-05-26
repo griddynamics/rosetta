@@ -6,9 +6,6 @@
 > [!CAUTION]
 > You must receive a prior approval from your manager and company to use it.
 
-> [!WARNING]
-> Use **Sonnet 4.6**, **GPT-5.3-codex-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
-
 ---
 
 ## Choose Your Mode
@@ -526,7 +523,15 @@ After initialization, Rosetta maintains the following files in your repository. 
 
 - **HTTP:** No action needed. Server-side upgrades apply automatically.
 - **STDIO:** `uvx ims-mcp@latest` always pulls the newest published version. No manual step needed.
-- **Plugins:** Plugins auto-upgrade or can be updated via `claude plugin update`.
+- **Plugins:**
+  - **Claude Code:**
+    ```sh
+    claude plugin marketplace update rosetta
+    claude plugin update rosetta@rosetta
+    ```
+  - **Cursor (Marketplace):** Plugins auto-upgrade from the team marketplace.
+  - **GitHub Copilot (VS Code Marketplace):** Re-open agent customizations in the Copilot chat panel and install when an update is offered.
+  - **Standalone (Cursor, GitHub Copilot, Codex):** Re-download the latest zip from [releases](https://github.com/griddynamics/rosetta/releases/latest) and extract over the existing files.
 - **Offline:** Download the latest `instructions.zip` from [releases](https://github.com/griddynamics/rosetta/releases/latest) and replace the contents of `instructions/`.
 
 ## Uninstalling

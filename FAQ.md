@@ -37,6 +37,15 @@ Rosetta uses release-based versioning so new instructions can be developed witho
 
 Open a new chat in your IDE and type: `Initialize this repository using Rosetta (upgrade R1 to R2)`. Rosetta will detect the existing R1 layout and migrate it.
 
+**Plugin install or MCP install — which should I use?**
+
+Use the **plugin** when one is available for your IDE. Plugins bundle the bootstrap rule, skills, agents, and workflows directly into the IDE and the agent loads them locally — no live connection to a Rosetta server at request time. In practice this means:
+
+- Faster session start, no MCP OAuth expirations dropping the agent mid-task, no dependency on the Rosetta server being reachable from your network.
+- No outbound calls to an external service means no data-egress or privacy review — you're installing static instruction files into the repo. That's a much shorter conversation with security and compliance than authorizing a new external MCP endpoint.
+
+Use the **MCP** install when no plugin path exists for your IDE — e.g. Windsurf, Antigravity, OpenCode, or JetBrains Junie. See [PLUGINS.md](PLUGINS.md) for the IDEs that currently ship a plugin, and [INSTALLATION.md](INSTALLATION.md) for MCP setup.
+
 ---
 
 ## Token Usage & Performance

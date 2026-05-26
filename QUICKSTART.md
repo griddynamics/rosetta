@@ -1,7 +1,7 @@
 # Quick Start — your first session with Rosetta
 
 **Who is this for?** You've just installed Rosetta and want to do your first real task.
-**When should I read this?** Right after install. For install steps, see [README](README.md) (Get Started section) or [PLUGINS.md](PLUGINS.md). For troubleshooting setup itself, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+**When should I read this?** Right after install. For install steps, see [README](README.md) (Get started section) or [PLUGINS.md](PLUGINS.md). For troubleshooting setup itself, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
 ---
 
@@ -84,7 +84,7 @@ Rosetta routes to the coding workflow. You'll see:
 
 Two explicit gates. You can always reject and iterate. Small tasks may collapse the phases and combine the gates — approval is still always explicit. See [USAGE_GUIDE.md](USAGE_GUIDE.md#workflows) for the full phase breakdown of every workflow.
 
-## 5. Common first-hour gotchas
+## 5. Common first-hour pitfalls
 
 - **"Agent ignores Rosetta tools."** Check `/mcp` status (MCP mode) or `claude plugin list` (plugin mode). If MCP shows disconnected, re-authenticate. If the plugin is missing, reinstall via [PLUGINS.md](PLUGINS.md).
 - **Generic output, no workflow phases visible.** Wrong model — switch off Auto and use Sonnet 4.6 / Opus / GPT-5.3-codex-medium.
@@ -94,6 +94,23 @@ Two explicit gates. You can always reject and iterate. Small tasks may collapse 
 
 Full diagnostics: [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
+## Fallback: add a bootstrap rule
+
+If the agent still ignores Rosetta after addressing the pitfalls above, give your IDE an explicit instruction file. Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) (keep the YAML frontmatter) and save it under the path your IDE reads:
+
+| IDE                        | Destination                       |
+| -------------------------- | --------------------------------- |
+| Cursor                     | `.cursor/rules/bootstrap.mdc`     |
+| Claude Code                | `.claude/claude.md`               |
+| VS Code / GitHub Copilot   | `.github/copilot-instructions.md` |
+| GitHub Copilot (JetBrains) | `.github/copilot-instructions.md` |
+| JetBrains Junie            | `.junie/guidelines.md`            |
+| Windsurf                   | `.windsurf/rules/bootstrap.md`    |
+| Antigravity                | `.agent/rules/bootstrap.md`       |
+| OpenCode                   | `AGENTS.md`                       |
+
+Restart the IDE after adding the file.
+
 ## Where to next
 
 - [USAGE_GUIDE.md](USAGE_GUIDE.md) — every workflow and skill in detail
@@ -102,3 +119,10 @@ Full diagnostics: [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 - [INSTALLATION.md](INSTALLATION.md) — MCP / STDIO / offline, env vars
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — symptom-first diagnosis
 - [CONTRIBUTING.md](CONTRIBUTING.md) — making your first Rosetta contribution
+
+## Video tutorials
+
+- [Install using MCP](https://vimeo.com/1174124251/f38e017d8d?fl=ml&fe=ec) — step-by-step setup
+- [Install without MCP](https://vimeo.com/1174124213/c50179147c?fl=ml&fe=ec) — air-gapped environments
+- [Initialize with Antigravity](https://vimeo.com/1174124165/8f5fbd7775?fl=ml&fe=ec) — project initialization
+- [Subagents and workflows in Claude Code](https://vimeo.com/1174124272/96056d5cc5?fl=ml&fe=ec) — advanced configuration

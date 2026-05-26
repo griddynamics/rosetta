@@ -19,17 +19,33 @@
 
 ## What is Rosetta
 
-Rosetta is an open-source instruction-management system for AI coding agents. It plugs into your IDE and delivers the rules, skills, workflows, guardrails, and project conventions your agent needs on each request.
-
-Rosetta gives your AI coding agent your team's context — architecture, conventions, business rules — automatically, in every IDE.
+Rosetta is an open-source instruction-management system for AI coding agents. It plugs into your IDE and delivers your team's context — architecture, conventions, business rules, workflows, guardrails — automatically, on every request.
 
 After installing it, you type something like *"Add password reset to the customer portal"*. Instead of a generic implementation, the agent:
 
-1. Drafts a **spec** at `plans/password-reset/password-reset-SPECS.md` — components touched, contracts, acceptance criteria — informed by your existing `CONTEXT.md`, `ARCHITECTURE.md`, and conventions
-2. Drafts a **plan** at `plans/password-reset/password-reset-PLAN.md` — phased tasks, subagent delegation, HITL checkpoints
-3. Stops at each **approval gate** and waits for explicit confirmation, e.g. `"Yes, I reviewed the plan"` before implementation, `"Yes, I approve the implementation"` before finalizing
+1. Drafts a **spec** at `plans/password-reset/password-reset-SPECS.md` describing what to build: which files change, the APIs and data involved, and how you'll know it's done — using your team's architecture and conventions, not generic patterns.
+2. Drafts a **plan** at `plans/password-reset/password-reset-PLAN.md` describing how to build it: ordered steps and review checkpoints.
+3. Stops at each **approval gate** and waits for explicit confirmation. Say `"Yes, I reviewed the plan"` to start implementation, `"Yes, I approve the implementation"` to finalize.
 
-Works with Claude Code, Cursor, VS Code Copilot, JetBrains, Codex, Windsurf, OpenCode, and any MCP-compatible tool.
+## Supported coding agents
+
+| Coding agent | Plugin | MCP |
+|---|---|---|
+| Claude Code | ✓ | ✓ |
+| Cursor | ✓ | ✓ |
+| GitHub Copilot | ✓ | ✓ |
+| Junie | ✓ | ✓ |
+| Codex | ✓ | ✓ |
+| Windsurf | — | ✓ |
+| Antigravity | — | ✓ |
+| OpenCode | — | ✓ |
+| Gemini CLI | — | ✓ |
+| AWS Code | — | ✓ |
+
+> [!NOTE]
+> Plugin is bundled locally, no live connection needed. 
+> MCP connects to Rosetta over HTTP on each request. 
+> Any other MCP-compatible tool can connect using the same endpoint.
 
 ## Who is Rosetta for
 
@@ -40,11 +56,11 @@ You've used AI coding agents but haven't built your own harness of skills, workf
 ## Why use it
 
 - **Plan first, code after approval.** Before any code is written, Rosetta produces a spec + plan you explicitly approve. Same goes before tests run. No autonomous runaway.
-- **One config, every IDE.** Add one MCP endpoint (or install the plugin) — same conventions and guardrails apply in Claude Code, Cursor, Copilot, JetBrains, and the rest.
-- **Conventions enforced automatically.** Your `CONTEXT.md`, `ARCHITECTURE.md`, and project rules load into every relevant request. The agent stops fabricating patterns and starts following yours.
-- **Designed not to see your code.** Rosetta serves instructions only — source code never reaches it. See [How it works](#how-it-works) below for the architectural controls.
+- **One config, every agent.** Add one MCP endpoint (or install the plugin) — same conventions and guardrails apply in Claude Code, Cursor, Copilot, Junie, Codex, and the rest.
+- **Conventions enforced automatically.** Your team's architecture, patterns, and project rules load into every relevant request. The agent stops fabricating patterns and starts following yours.
+- **Designed not to see your code.** Rosetta serves instructions only — source code never reaches it. See How it works below for the architectural controls.
 
-*Need cross-repo intelligence (trace flows across services, catch breaking API changes early)? See [Cross-Project Context](USAGE_GUIDE.md#cross-project-context) — opt-in via your Rosetta server.*
+*Need cross-repo intelligence (trace flows across services, catch breaking API changes early)? See [USAGE_GUIDE.md](USAGE_GUIDE.md) — opt-in via your Rosetta server.*
 
 ## How it works
 
@@ -52,78 +68,16 @@ Rosetta provides a menu of instructions — workflows, guardrails, project conve
 
 Two delivery paths, same content:
 
-- **Plugin (preferred — most clients prefer this).** Bundles instructions directly into your IDE or repo. No live connection to Rosetta needed at request time. Available for Claude Code, VS Code Copilot, JetBrains, Codex.
-- **MCP server (fallback).** Your IDE connects to Rosetta over HTTP and pulls instructions on demand. Works with any MCP-compatible IDE.
+- **Plugin (preferred).** Bundles instructions directly into your IDE or repo. No live connection to Rosetta needed at request time. Available for Claude Code, Cursor, GitHub Copilot, Junie, and Codex.
+- **MCP server (fallback).** Your client connects to Rosetta over HTTP and pulls instructions on demand. Works with any MCP-compatible client.
 
 For architectural controls and the threat model, see [SECURITY.md](SECURITY.md).
 
-## Get Started
+## Get started
 
-> **Use a strong model.** Sonnet 4.6, GPT-5.3-codex-medium, gemini-3.1-pro, or better. Avoid Auto — weaker models silently skip Rosetta's tools.
-
-### Option A — Install the plugin (recommended)
-
-A plugin bundles Rosetta's bootstrap rule, skills, agents, and workflows directly into your IDE. No MCP wiring, no manual bootstrap file.
-
-See [PLUGINS.md](PLUGINS.md) to install Rosetta in your IDE (Claude Code, Cursor, VS Code Copilot, JetBrains Copilot, Codex).
-
-### Option B — Connect via MCP (fallback for IDEs without a plugin)
-
-**Claude Code:**
-
-```sh
-claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp
-```
-
-Then run `claude`, type `/mcp` → Rosetta → **Authenticate**.
-
-**Cursor / Windsurf** — `~/.cursor/mcp.json`:
-
-```json
-{ "mcpServers": { "Rosetta": { "url": "https://mcp.rosetta.griddynamics.net/mcp" } } }
-```
-
-**VS Code / Copilot** — `.vscode/mcp.json`:
-
-```json
-{ "servers": { "Rosetta": { "url": "https://mcp.rosetta.griddynamics.net/mcp" } } }
-```
-
-**Codex:**
-
-```sh
-codex mcp add Rosetta --url https://mcp.rosetta.griddynamics.net/mcp && codex mcp login Rosetta
-```
-
-Other IDEs and STDIO transport: see [INSTALLATION.md](INSTALLATION.md). Any MCP-compatible tool can connect using the same endpoint.
-
-**Then add the bootstrap rule (MCP mode only).** Some IDEs don't reliably invoke MCP tools on their own. Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and place it where your IDE looks for instructions (e.g. `.claude/claude.md`, `.cursor/rules/bootstrap.mdc`, `.github/copilot-instructions.md`). Full path table in [QUICKSTART.md](QUICKSTART.md).
-
-### Verify and initialize
-
-In your IDE, ask:
-
-```text
-What can you do, Rosetta?
-```
-
-You should see Rosetta's workflow list. Then, once per repo:
-
-```text
-Initialize this repository using Rosetta
-```
-
-This generates your `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and associated files. Restart the chat after init so the new context loads.
-
-For details and troubleshooting, see [QUICKSTART.md](QUICKSTART.md) and [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
-
-## Where to go next
-
-Pick a path based on your role:
-
-- **Engineer using Rosetta day-to-day** → [QUICKSTART.md](QUICKSTART.md) (first session), then [USAGE_GUIDE.md](USAGE_GUIDE.md) (workflows you'll use), then [FAQ.md](FAQ.md) when stuck.
-- **Lead evaluating Rosetta for your team** → [OVERVIEW.md](OVERVIEW.md) (mental model and what Rosetta does *not* do), [SECURITY.md](SECURITY.md) (privacy and threat model), [CONTEXT.md](docs/CONTEXT.md) (business case), and [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) if you're self-hosting infrastructure.
-- **Contributor** → [LEARNING_PATH.md](LEARNING_PATH.md) (what to read in what order), then [CONTRIBUTING.md](CONTRIBUTING.md) (PR workflow).
+1. **Install** — plugin is recommended ([PLUGINS.md](PLUGINS.md)). For MCP, STDIO, and offline modes, refer to [INSTALLATION.md](INSTALLATION.md).
+2. **First session** — to verify Rosetta loaded, initialize the repo, and complete a task, refer to [QUICKSTART.md](QUICKSTART.md).
+3. **Contribute** — to make your first contribution, refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Documentation
 
@@ -131,9 +85,8 @@ Pick a path based on your role:
 |---|---|
 | Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md) |
 | Read the business case (why Rosetta exists, value per role) | [CONTEXT.md](docs/CONTEXT.md) |
-| Onboard as a new contributor (what to read in what order) | [LEARNING_PATH.md](LEARNING_PATH.md) |
 | Look up a Rosetta-specific term | [TERMINOLOGY.md](TERMINOLOGY.md) |
-| See the full setup guide (all IDEs, troubleshooting) | [QUICKSTART.md](QUICKSTART.md) |
+| Run my first session (verify, init, first task) | [QUICKSTART.md](QUICKSTART.md) |
 | Learn how to use Rosetta workflows | [USAGE_GUIDE.md](USAGE_GUIDE.md) |
 | Deploy Rosetta for my organization | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) |
 | Understand the system architecture | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
@@ -143,10 +96,6 @@ Pick a path based on your role:
 | Debug a problem | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
 | Read the security policy | [SECURITY.md](SECURITY.md) |
 | See release history | [CHANGELOG.md](CHANGELOG.md) |
-
-## Contributing
-
-Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and expectations.
 
 ## Community
 
