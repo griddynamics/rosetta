@@ -40,8 +40,8 @@ Use this rule when `rosettify` MCP fails AND `npx rosettify@latest` also fails.
 
 1. MUST USE SKILL `load-context-instructions`
 2. MUST USE SKILL `load-context`
-3. Create todo tasks for this phase's scope. Identify dependencies and order before acting.
-4. MUST USE SKILL `subagent-contract`
+3. MUST USE SKILL `subagent-contract`
+4. Create todo tasks for this phase's scope. Identify dependencies and order before acting.
 5. Execute planned todo tasks and adopt changes. Update task status as work progresses.
 6. Proceed with the original assigned request, following all guardrails and HITL rules.
 

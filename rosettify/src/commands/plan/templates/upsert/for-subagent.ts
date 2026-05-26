@@ -20,22 +20,22 @@ export const forSubagent = {
       {
         id: "[phase-id]-s-load-context-instructions",
         name: "Load bootstrap context",
-        prompt: "Call get_context_instructions exactly once to load the bundled bootstrap rules. This is the blocking prerequisite gate (Prep Step 1). Do not call any other tool first.",
+        prompt: "USE SKILL `load-context-instructions`. Execute ALL returned prep steps.",
+      },
+      {
+        id: "[phase-id]-s-read-docs",
+        name: "Read project context",
+        prompt: "SE SKILL `load-context` as the canonical current context loader. The skill is required even when its expected outputs already look satisfied.",
+      },
+      {
+        id: "[phase-id]-s-subagent-contract",
+        name: "Load subagent-only contract",
+        prompt: "MUST USE SKILL `subagent-contract` to understand and to follow scope boundaries, input/output contracts, and escalation protocol.",
       },
       {
         id: "[phase-id]-s-execution-planning",
         name: "Plan execution at the task level",
-        prompt: "Perform execution-level planning using todo tasks for this phase's scope. Identify dependencies and the right order before acting.",
-      },
-      {
-        id: "[phase-id]-s-read-context-architecture",
-        name: "Read CONTEXT.md and ARCHITECTURE.md in full",
-        prompt: "Read docs/CONTEXT.md and docs/ARCHITECTURE.md in full. Read all lines at once. These files carry critical project context.",
-      },
-      {
-        id: "[phase-id]-s-grep-implementation-memory",
-        name: "Grep headers of IMPLEMENTATION.md and MEMORY.md",
-        prompt: "Grep '^#{1,3}' headers of agents/IMPLEMENTATION.md and agents/MEMORY.md. Read further sections only as needed.",
+        prompt: "Perform execution-level planning using todo tasksfor this phase's scope. Identify dependencies and the right order before acting.",
       },
       {
         id: "[phase-id]-s-execute-tasks",
@@ -46,7 +46,7 @@ export const forSubagent = {
         id: "[phase-id]-s-proceed-with-request",
         name: "Proceed with the assigned request",
         prompt: "Proceed with the original assigned request and its activities, following all guardrails and HITL rules.",
-      },
+      }
     ],
   },
 } as const;
