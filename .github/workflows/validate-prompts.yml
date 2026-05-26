@@ -15,21 +15,22 @@ name: Validate Prompts
 # - Creates a PR comment with table of all issues
 
 on:
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - 'instructions/r2/**'
-#      - '.github/workflows/validate-prompts.yml'
-#  pull_request:
-#    types: [opened, synchronize, reopened, ready_for_review]
-#    paths:
-#      - 'instructions/r2/**'
+  push:
+    branches:
+      - main
+    paths:
+      - "instructions/r*/**"
+      - ".github/workflows/validate-prompts.yml"
+      - ".github/prompts/prompt-comparison.md"
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "instructions/r*/**"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write  # Required for creating PR comments
+  pull-requests: write # Required for creating PR comments
 
 jobs:
   validate:
@@ -47,7 +48,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0  # Fetch all history to compare with base branch
+          fetch-depth: 0 # Fetch all history to compare with base branch
 
       - name: Install Claude Code CLI
         run: |
@@ -155,7 +156,7 @@ jobs:
 
           ### Summary by File
 
-          | File | :red_circle: Critical | :orange_circle: High | :yellow_circle: Low | Status |
+          | File | :red_circle: Critical | :orange_circle: High | :yellow_circle: Medium | Status |
           |------|-------------|---------|--------|--------|
           EOF
 
@@ -169,7 +170,7 @@ jobs:
               ISSUES=$(echo "$result" | jq '[.issues | sort_by(.severity) | reverse[]]')
               CRITICAL=$(echo "$ISSUES" | jq '[.[] | select(.severity == 5)] | length')
               HIGH=$(echo "$ISSUES" | jq '[.[] | select(.severity == 3 or .severity == 4)] | length')
-              LOW=$(echo "$ISSUES" | jq '[.[] | select(.severity == 1 or .severity == 2)] | length')
+              MEDIUM=$(echo "$ISSUES" | jq '[.[] | select(.severity == 1 or .severity == 2)] | length')
               TOTAL=$(echo "$ISSUES" | jq 'length')
 
               if [ "$TOTAL" -eq 0 ]; then
@@ -180,7 +181,7 @@ jobs:
                 STATUS=":warning: Warning"
               fi
 
-              echo "| \`$FILE\` | $CRITICAL | $HIGH | $LOW | $STATUS |" >> $PR_COMMENT_FILE
+              echo "| \`$FILE\` | $CRITICAL | $HIGH | $MEDIUM | $STATUS |" >> $PR_COMMENT_FILE
             fi
           done
 
@@ -213,7 +214,7 @@ jobs:
               echo "$ISSUES" | jq -r '.[] | [
                 (if .severity == 5 then ":red_circle: Critical"
                  elif (.severity == 4 or .severity == 3) then ":orange_circle: High"
-                 elif (.severity == 2 or .severity == 1) then ":yellow_circle: Low"
+                 elif (.severity == 2 or .severity == 1) then ":yellow_circle: Medium"
                  else ":white_circle: Unknown" end),
                 .gate, .problem, .reason, .solution] | @tsv' | \
               while IFS=$'\t' read -r sev gate prob reason sol; do
