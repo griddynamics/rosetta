@@ -19,13 +19,15 @@
 
 ## What is Rosetta
 
-Rosetta is an open-source instruction-management system for AI coding agents. It plugs into your IDE and delivers your team's context — architecture, conventions, business rules, workflows, guardrails — automatically, on every request.
+Rosetta is an open-source instruction layer for AI-assisted work. It loads your team's architecture, standards, business rules, workflows, and constraints into every AI request so the AI agents your team uses could operate from the shared context.
 
-After installing it, you type something like *"Add password reset to the customer portal"*. Instead of a generic implementation, the agent:
+Teams move from ad-hoc prompts to a single, versioned source of truth they own and maintain. The AI pauses at key checkpoints and waits for human approval before proceeding, keeping every change under team oversight. This makes AI outputs more consistent and reliable, aligned with internal practices, and suitable for real work across development, analysis, documentation, and management tasks.
 
-1. Drafts a **spec** at `plans/password-reset/password-reset-SPECS.md` describing what to build: which files change, the APIs and data involved, and how you'll know it's done — using your team's architecture and conventions, not generic patterns.
-2. Drafts a **plan** at `plans/password-reset/password-reset-PLAN.md` describing how to build it: ordered steps and review checkpoints.
-3. Stops at each **approval gate** and waits for explicit confirmation. Say `"Yes, I reviewed the plan"` to start implementation, `"Yes, I approve the implementation"` to finalize.
+After installing Rosetta, you type something like *"Add password reset to the customer portal"* and the agent:
+
+1. Drafts a **spec** describing what to build: which files change, the APIs and data involved using your team's architecture and conventions, not generic patterns.
+2. Drafts a **plan** describing how to build it: ordered steps and review checkpoints.
+3. Stops at each **approval gate** and waits for explicit confirmation.
 
 ## Supported coding agents
 
@@ -59,8 +61,6 @@ You've used AI coding agents but haven't built your own harness of skills, workf
 - **One config, every agent.** Add one MCP endpoint (or install the plugin) — same conventions and guardrails apply in Claude Code, Cursor, Copilot, Junie, Codex, and the rest.
 - **Conventions enforced automatically.** Your team's architecture, patterns, and project rules load into every relevant request. The agent stops fabricating patterns and starts following yours.
 - **Designed not to see your code.** Rosetta serves instructions only — source code never reaches it. See How it works below for the architectural controls.
-
-*Need cross-repo intelligence (trace flows across services, catch breaking API changes early)? See [USAGE_GUIDE.md](USAGE_GUIDE.md) — opt-in via your Rosetta server.*
 
 ## How it works
 
