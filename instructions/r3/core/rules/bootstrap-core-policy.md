@@ -28,7 +28,7 @@ baseSchema: docs/schemas/rule.md
 3. Subagent prompt MUST follow the template in SKILL `orchestrator-contract`.
 4. Subagents cannot spawn subagents.
 
-MUST USE SKILL `orchestrator-contract` for full dispatch protocol.
+MUST USE SKILL `orchestrator-contract` for full dispatch protocol and template use is required.
 
 </subagents_orchestration_rules>
 
