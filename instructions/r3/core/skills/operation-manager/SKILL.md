@@ -60,14 +60,14 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
    - If `previously_blocked:true` or `previously_failed:true` on a returned step
   → orchestrator has cleared the path; attempt carefully, verify preconditions first, go to 3a step
    - If open, go to 3a step
-   - If `count:0` and `plan_status:complete` → phase is complete; go to step 5.
+   - If `count:0` and `plan_status:complete` → phase is complete; go to step 4.
 3. For the returned step:
    a. `npx rosettify@latest plan update_status <plan_file> <step_id> in_progress`
    b. Execute the step's prompt.
    c. `npx rosettify@latest plan update_status <plan_file> <step_id> <status>`:
       - `complete` — done with verifiable evidence; return to step 2
-      - `blocked` — cannot proceed; go to step 5 and report reason to orchestrator
-      - `failed` — execution failed; go to step 5 and report error and root cause
+      - `blocked` — cannot proceed; go to step 4 and report reason to orchestrator
+      - `failed` — execution failed; go to step 4 and report error and root cause
 4. Report back to orchestrator: results, side effects, anomalies, deviations.
 
 </process>
