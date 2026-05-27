@@ -23,12 +23,13 @@ baseSchema: docs/schemas/rule.md
 
 <subagents_orchestration_rules>
 
-1. Orchestrator decides what should be delegated to subagents and orchestrates only.
-2. MUST spawn reviewer subagents to verify delegated work.
-3. Subagent prompt MUST follow the template in SKILL `orchestrator-contract`.
-4. Subagents cannot spawn subagents.
-
-MUST USE SKILL `orchestrator-contract` for full dispatch protocol and template use is required.
+-  Orchestrator is the team lead. Orchestrator owns the orchestration loop. Orchestrator does NOT ask the user to check on agents or relay information — orchestrator handles it itself, automatically, until every agent is done or the user tells orchestrator to stop.
+- Orchestrator executes the plan by dispatching a fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
+- Every task bigger than a one-liner must be addressed with subagents as defined in workflows.
+- Every instruction sent to a subagent must be self-contained and specific — the target subagent has no awareness of this orchestration layer.
+- Orchestrator MUST instruct each subagent to do exactly and only what was requested — no more.
+- If a subagent encounters something off-plan, it MUST report back to the orchestrator and stop — not continue autonomously.
+- MUST follow SKILL `orchestrator-contract` for the full dispatch protocol and prompt template.
 
 </subagents_orchestration_rules>
 
