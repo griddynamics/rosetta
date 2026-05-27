@@ -32,11 +32,6 @@ export const forOrchestrator = {
             prompt: "USE SKILL `load-context` as the canonical current context loader. The skill is required even when its expected outputs already look satisfied.",
           },
           {
-            id: "ph-prep-s-identify-request-size",
-            name: "request size",
-            prompt: "Classify the user request as SMALL (1-2 file changes, single area), MEDIUM (up to ~10 file changes, single area), or LARGE (more than 10 file changes or multiple areas). Re-evaluate and announce if the size changes later.",
-          },
-          {
             id: "ph-prep-s-orchestrator-contract",
             name: "Load orchestrator contract",
             prompt: "MUST USE SKILL `orchestrator-contract` as first action before dispatching any subagents. MUST USE SKILL `hitl` unless explicitly requested in prompt with exactly `No HITL`.",
@@ -49,7 +44,7 @@ export const forOrchestrator = {
           {
             id: "ph-prep-s-add-workflow-phases",
             name: "Add workflow phases",
-            prompt: "Add workflow phases into the plan — each as a separate, dedicated, detailed, and specific plan step based on the loaded workflow phases, including state-restore and resume steps if applicable.",
+            prompt:"Add workflow phases from the loaded workflow into this plan — one plan phase per workflow phase, each with dedicated, detailed, and specific steps. Must add phase to identify request size after intial discovery. Include state-restore and resume steps if applicable.",
           },
         ],
       },
