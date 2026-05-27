@@ -13,27 +13,28 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-05-25 | AI Agent | Generated from validated requirements (Phases 0-4) |
+| 1.1 | 2026-05-27 | AI Agent | PR #92 review fixes: removed gain.json tests (TC-009, TC-011, TC-012), added MCP config verification, broadened GitNexus tool checks, added local/plugin mode tests (TC-021, TC-022), specified supported AI tools |
 
 ---
 
 ## Executive Summary
 
-**Total Test Cases**: 20
-**Merged/Optimized**: 26 → 20 (reduced by 23%)
+**Total Test Cases**: 19
+**Merged/Optimized**: 26 → 19 (reduced by 27%)
 **Coverage**:
-- User Stories: 7 / 7 covered
-- Functional Requirements: 9 / 9 covered
+- User Stories: 6 / 6 covered (US-5 removed — `gain.json` integration not implemented)
+- Functional Requirements: 8 / 8 covered (FR-5 removed — `gain.json` integration not implemented)
 - Non-Functional Requirements: 4 / 4 covered
 
 **Priority Breakdown**:
 - P0 (Critical): 7
-- P1 (High): 8
-- P2 (Medium): 4
+- P1 (High): 5
+- P2 (Medium): 6
 - P3 (Low): 1
 
 **Test Types**:
 - Happy Path: 9
-- Negative Tests: 5
+- Negative Tests: 4
 - Edge Cases: 3
 - Integration Tests: 3
 
@@ -51,7 +52,6 @@
 | **`.gitnexus/`** | Local directory containing the code index. Not committed to git |
 | **init-workspace-flow** | Rosetta's 9-phase workspace initialization workflow |
 | **PostToolUse hook** | Auto-installed hook that triggers graph refresh after agent edits a file |
-| **`gain.json`** | Rosetta configuration file declaring enabled integrations |
 | **CONTEXT.md** | Documentation file telling AI agents what tools/skills are available |
 | **Debounce** | Mechanism that coalesces rapid events into a single action after a delay (5 seconds) |
 
@@ -68,23 +68,27 @@ Run test cases in this order to build up the required preconditions naturally:
 3. **TC-007** — Cold install end-to-end (alternative to TC-001, tests full flow)
 4. **TC-002** — MCP auto-start verification
 5. **TC-003** — Graph query verification
-6. **TC-011** — `gain.json` entry verification
-7. **TC-013** — CONTEXT.md self-discovery
-8. **TC-014** — `--skip-agents-md` verification
-9. **TC-004** — Hook trigger + graph update
-10. **TC-005** — Async non-blocking
-11. **TC-010** — Debounce coalescing
-12. **TC-019** — Rename flow
-13. **TC-020** — detect_changes flow
-14. **TC-006** — Failure isolation (kills GitNexus — do last among runtime tests)
-15. **TC-009** — Clean shutdown
-16. **TC-012** — `gain.json` removal disables integration
-17. **TC-017, TC-018** — CLI status and clean commands
-18. **TC-008** — Opt-in decline (needs clean state)
+6. **TC-013** — CONTEXT.md self-discovery
+7. **TC-014** — `--skip-agents-md` verification
+8. **TC-004** — Hook trigger + graph update
+9. **TC-005** — Async non-blocking
+10. **TC-010** — Debounce coalescing
+11. **TC-019** — Rename flow
+12. **TC-020** — detect_changes flow
+13. **TC-006** — Failure isolation (kills GitNexus — do last among runtime tests)
+14. **TC-017, TC-018** — CLI status and clean commands
+15. **TC-021** — Local mode: index updates only after commits
+16. **TC-022** — Plugin mode: index updates immediately after code modifications
+17. **TC-008** — Opt-in decline (needs clean state)
 
-### Agent-agnostic execution
+### Rosetta mode execution
 
-Per user requirement: run the entire suite on each supported AI agent tool. Do NOT modify test steps for different tools. If a test fails on one tool but passes on another, log as a defect with the specific tool name.
+Each test case must also be validated in both Rosetta operating modes:
+
+- **Local mode**: Rosetta runs locally via init-workspace-flow. GitNexus index updates only after git commits.
+- **Plugin mode**: Rosetta runs as an IDE plugin. GitNexus index updates immediately after any code modifications.
+
+See TC-021 and TC-022 for dedicated mode-specific test cases.
 
 ## Environment Requirements
 
@@ -138,6 +142,7 @@ Per user requirement: run the entire suite on each supported AI agent tool. Do N
 - After step 5: Agent runs `npx gitnexus@latest setup`
 - After step 6: Both commands complete without errors
 - After step 7: `.gitnexus/` directory exists in PROJECT (verify with `ls -la .gitnexus/`). Phase 6 logged as "installed" in state file
+- After step 7: GitNexus is added to MCP config. Running `/mcp` shows `gitnexus · ✔ connected`
 
 **Traceability**:
 - **User Story**: US-1 (GitNexus opt-in)
@@ -170,7 +175,7 @@ Per user requirement: run the entire suite on each supported AI agent tool. Do N
 **Expected Results**:
 - After step 4: GitNexus appears in the MCP server list
 - After step 5: Status shows GitNexus as connected/active
-- After step 8: `gitnexus_query()` returns results (symbols, processes) without errors. This confirms healthy handshake (Assumption A-1)
+- After step 8: Any GitNexus tool (e.g., `query`, `context`, `impact`, `detect_changes`, `rename`, or `cypher`) returns results without errors. This confirms healthy handshake (Assumption A-1)
 
 **Traceability**:
 - **User Story**: US-1
@@ -316,7 +321,7 @@ Per user requirement: run the entire suite on each supported AI agent tool. Do N
 
 ### TC-007: Cold install from zero — full end-to-end (Happy Path)
 
-**Related Requirement**: FR-1, FR-2, FR-5, FR-6, US-7
+**Related Requirement**: FR-1, FR-2, FR-6, US-7
 **Type**: Integration
 **Priority**: P0
 
@@ -336,23 +341,21 @@ Per user requirement: run the entire suite on each supported AI agent tool. Do N
 5. When Phase 6 asks about GitNexus — answer **Yes**
 6. Wait for all phases to complete (through Phase 9 — Verification)
 7. Verify `.gitnexus/` exists: `ls -la .gitnexus/`
-8. Open `gain.json` and look for a GitNexus integration entry
-9. Open `CONTEXT.md` and search for "GitNexus"
-10. Start a NEW agent chat session (as recommended by Phase 9)
-11. Ask the new agent: "Use GitNexus query to search for [a known function in PROJECT]"
+8. Open `CONTEXT.md` and search for "GitNexus"
+9. Start a NEW agent chat session (as recommended by Phase 9)
+10. Ask the new agent: "Use GitNexus query to search for [a known function in PROJECT]"
 
 **Expected Results**:
 - After step 5: Agent executes `npx gitnexus@latest analyze --skip-agents-md` and `npx gitnexus@latest setup`
 - After step 6: Phase 9 verification passes
 - After step 7: `.gitnexus/` directory exists with index files
-- After step 8: `gain.json` contains a GitNexus integration entry
-- After step 9: CONTEXT.md contains "GitNexus is installed. USE SKILL `gitnexus-tools`... USE SKILL `gitnexus-cli`..."
-- After step 11: Query returns results — entire flow works end-to-end from zero with no manual steps beyond answering "Yes"
+- After step 8: CONTEXT.md contains "GitNexus is installed. USE SKILL `gitnexus-tools`... USE SKILL `gitnexus-cli`..."
+- After step 10: Query returns results — entire flow works end-to-end from zero with no manual steps beyond answering "Yes"
 
 **Traceability**:
 - **User Story**: US-7
 - **Acceptance Criterion**: AC1, AC2, AC3
-- **Functional Requirement**: FR-1, FR-2, FR-5, FR-6
+- **Functional Requirement**: FR-1, FR-2, FR-6
 
 **Notes**: Most comprehensive test. Validates the full documented install path from a clean checkout.
 
@@ -379,49 +382,17 @@ Per user requirement: run the entire suite on each supported AI agent tool. Do N
 4. Wait for Phase 7 (Documentation) to complete
 5. Check if `.gitnexus/` exists: `ls .gitnexus/`
 6. Open `CONTEXT.md` and search for "GitNexus", "gitnexus-tools", "gitnexus-cli"
-7. Open `gain.json` and search for "gitnexus"
 
 **Expected Results**:
 - After step 3: Agent logs GitNexus as "skipped" in state, moves to Phase 7
 - After step 5: `.gitnexus/` directory does NOT exist
 - After step 6: NONE of the GitNexus strings appear in CONTEXT.md
-- After step 7: `gain.json` does NOT contain a GitNexus entry (or entry is marked as disabled/skipped)
 
 **Traceability**:
 - **User Story**: US-1 (AC3), US-6 (AC3)
 - **Functional Requirement**: FR-6
 
 **Notes**: Validates the opt-in nature — declining leaves zero trace.
-
----
-
-### TC-009: MCP clean shutdown — no orphaned processes (Happy Path)
-
-**Related Requirement**: FR-1, US-1
-**Type**: Happy Path
-**Priority**: P1
-
-**Preconditions**:
-- TC-002 passed (GitNexus MCP is connected)
-- An agent chat session has used GitNexus tools at least once
-
-**Steps**:
-1. Open terminal and run `ps aux | grep gitnexus` — note the PID(s) of running GitNexus processes
-2. Close the AI agent tool completely (full quit)
-3. Wait 5 seconds
-4. Run `ps aux | grep gitnexus` again
-5. Check for leftover lock files: `ls -la .gitnexus/*.lock 2>/dev/null`
-6. Check for leftover temp files: `ls -la /tmp/*gitnexus* 2>/dev/null`
-
-**Expected Results**:
-- After step 1: One or more `gitnexus` processes are running
-- After step 4: No `gitnexus` processes are running (all PIDs from step 1 are gone)
-- After step 5: No `.lock` files in `.gitnexus/`
-- After step 6: No temp files left behind
-
-**Traceability**:
-- **User Story**: US-1
-- **Functional Requirement**: FR-1
 
 ---
 
@@ -454,69 +425,6 @@ Per user requirement: run the entire suite on each supported AI agent tool. Do N
 - **Non-Functional Requirement**: NFR-4
 
 **Notes**: The debounce window is 5 seconds. Edits within this window should coalesce. If 3 separate refreshes fire, log as a defect. Use `.gitnexus/` file modification timestamps as secondary verification if debug logs are insufficient (Risk R-2).
-
----
-
-### TC-011: `gain.json` contains GitNexus entry after opt-in (Happy Path)
-
-**Related Requirement**: FR-5, US-5
-**Type**: Happy Path
-**Priority**: P1
-
-**Preconditions**:
-- TC-007 passed (full init-workspace-flow completed with GitNexus enabled)
-
-**Steps**:
-1. Open `gain.json` in PROJECT (location may be in project root or `agents/` directory)
-2. Search for "gitnexus" or "GitNexus" in the file
-3. Verify the entry is valid JSON (no syntax errors)
-4. Verify Rosetta loads without schema warnings by triggering any Rosetta skill or workflow in a new agent chat session
-
-**Expected Results**:
-- After step 2: A GitNexus integration entry exists in `gain.json`
-- After step 3: The entry is valid JSON
-- After step 4: Rosetta loads and operates normally — no schema warnings related to `gain.json`
-
-**Traceability**:
-- **User Story**: US-5
-- **Acceptance Criterion**: AC1, AC2
-- **Functional Requirement**: FR-5
-
-**Notes**: Risk R-1 applies — the actual `gain.json` format may differ from expectations since PR #84 does not modify `gain.json` directly. Document the actual format found.
-
----
-
-### TC-012: Removing GitNexus from `gain.json` disables integration (Negative)
-
-**Related Requirement**: FR-5, US-5
-**Type**: Negative
-**Priority**: P1
-
-**Preconditions**:
-- TC-011 passed (`gain.json` has GitNexus entry)
-- GitNexus MCP is connected and working
-
-**Steps**:
-1. Verify GitNexus works: ask agent "Use GitNexus query to search for [a known function]"
-2. Confirm query returns results
-3. Open `gain.json` and remove or comment out the GitNexus integration entry
-4. Save the file
-5. Close and reopen the AI agent tool on PROJECT
-6. Start a new agent chat session
-7. Ask: "Use GitNexus query to search for [same function]"
-8. Observe the result
-
-**Expected Results**:
-- After step 2: GitNexus works normally
-- After step 7-8: GitNexus is disabled — either MCP does not connect, or the tool is not available. The agent cannot use GitNexus tools
-- No other Rosetta functionality is affected
-
-**Traceability**:
-- **User Story**: US-5
-- **Acceptance Criterion**: AC3
-- **Functional Requirement**: FR-5
-
-**Notes**: After test, restore `gain.json` to its original state for subsequent tests.
 
 ---
 
@@ -715,15 +623,85 @@ Per user requirement: run the entire suite on each supported AI agent tool. Do N
 
 ---
 
+### TC-021: GitNexus in Rosetta local mode — index updates only after commits (Happy Path)
+
+**Related Requirement**: FR-2, FR-3, US-2, US-3
+**Type**: Happy Path
+**Priority**: P2
+
+**Preconditions**:
+- Rosetta is running in **local mode** (via init-workspace-flow)
+- TC-001 passed (GitNexus installed and MCP connected)
+- PROJECT has source code files in the index
+
+**Steps**:
+1. Open a new agent chat session on PROJECT
+2. Verify GitNexus is connected: ask "Use GitNexus query to search for [a known function in PROJECT]"
+3. Confirm the query returns results — GitNexus installed successfully and indexed codebase
+4. Add a new function `localModeTestFn` to a source file using the agent
+5. Do NOT commit the change
+6. Wait 15 seconds (debounce + processing time)
+7. Ask: "Use GitNexus context for `localModeTestFn`"
+8. Observe whether the new function appears in the graph
+9. Commit the change: `git add . && git commit -m "test: local mode index update"`
+10. Wait 15 seconds for index to update
+11. Ask: "Use GitNexus context for `localModeTestFn`"
+12. Observe whether the new function now appears in the graph
+
+**Expected Results**:
+- After step 3: GitNexus tools are functional — confirms successful installation and indexing
+- After step 7-8: `localModeTestFn` does NOT appear in the graph (index not yet updated — uncommitted changes are not reflected in local mode)
+- After step 11-12: `localModeTestFn` appears in the graph with its relationships (index updated after commit)
+
+**Traceability**:
+- **User Story**: US-2, US-3
+- **Functional Requirement**: FR-2, FR-3
+
+**Notes**: After test, revert the commit to preserve PROJECT state: `git revert HEAD --no-edit`
+
+---
+
+### TC-022: GitNexus in Rosetta plugin mode — index updates immediately after modifications (Happy Path)
+
+**Related Requirement**: FR-2, FR-3, US-2, US-3
+**Type**: Happy Path
+**Priority**: P2
+
+**Preconditions**:
+- Rosetta is running in **plugin mode** (IDE plugin)
+- GitNexus is installed and MCP connected
+- PROJECT has source code files in the index
+
+**Steps**:
+1. Open a new agent chat session on PROJECT
+2. Verify GitNexus is connected: ask "Use GitNexus query to search for [a known function in PROJECT]"
+3. Confirm the query returns results — GitNexus installed successfully and indexed codebase
+4. Add a new function `pluginModeTestFn` to a source file using the agent
+5. Do NOT commit the change
+6. Wait 15 seconds (debounce + processing time)
+7. Ask: "Use GitNexus context for `pluginModeTestFn`"
+8. Observe whether the new function appears in the graph
+
+**Expected Results**:
+- After step 3: GitNexus tools are functional — confirms successful installation and indexing
+- After step 7-8: `pluginModeTestFn` appears in the graph with its relationships (index updated immediately after code modification, no commit required)
+
+**Traceability**:
+- **User Story**: US-2, US-3
+- **Functional Requirement**: FR-2, FR-3
+
+**Notes**: This is the key behavioral difference from local mode (TC-021). In plugin mode, the index reflects code changes in real time without waiting for a commit. After test, revert the change to preserve PROJECT state.
+
+---
+
 ## Coverage Matrix
 
 | Requirement ID | Test Case IDs | Count | Status |
 |---|---|---|---|
-| FR-1 (MCP lifecycle) | TC-001, TC-002, TC-009 | 3 | Covered |
-| FR-2 (Graph build) | TC-003, TC-017, TC-018 | 3 | Covered |
-| FR-3 (Hook refresh) | TC-004, TC-005, TC-010, TC-019, TC-020 | 5 | Covered |
+| FR-1 (MCP lifecycle) | TC-001, TC-002 | 2 | Covered |
+| FR-2 (Graph build) | TC-003, TC-017, TC-018, TC-021, TC-022 | 5 | Covered |
+| FR-3 (Hook refresh) | TC-004, TC-005, TC-010, TC-019, TC-020, TC-021, TC-022 | 7 | Covered |
 | FR-4 (Failure isolation) | TC-006 | 1 | Covered |
-| FR-5 (`gain.json`) | TC-011, TC-012 | 2 | Covered |
 | FR-6 (CONTEXT.md) | TC-008, TC-013 | 2 | Covered |
 | FR-7 (`--skip-agents-md`) | TC-014 | 1 | Covered |
 | FR-8 (Skill decomposition) | TC-015 | 1 | Covered |
@@ -733,31 +711,30 @@ Per user requirement: run the entire suite on each supported AI agent tool. Do N
 | NFR-3 (Agent-agnostic) | TC-002 | 1 | Covered |
 | NFR-4 (Debounce) | TC-010 | 1 | Covered |
 | US-1 (Opt-in) | TC-001, TC-002, TC-008 | 3 | Covered |
-| US-2 (Query graph) | TC-003, TC-019, TC-020 | 3 | Covered |
-| US-3 (Auto refresh) | TC-004, TC-005, TC-010 | 3 | Covered |
+| US-2 (Query graph) | TC-003, TC-019, TC-020, TC-021, TC-022 | 5 | Covered |
+| US-3 (Auto refresh) | TC-004, TC-005, TC-010, TC-021, TC-022 | 5 | Covered |
 | US-4 (Failure isolation) | TC-006 | 1 | Covered |
-| US-5 (`gain.json`) | TC-011, TC-012 | 2 | Covered |
 | US-6 (CONTEXT.md discovery) | TC-008, TC-013, TC-015 | 3 | Covered |
 | US-7 (Cold install) | TC-007 | 1 | Covered |
 
 ---
 
-## Jira Test Area Traceability
+## Test Area Traceability
 
-| Jira Test Area | Test Case IDs |
+| Test Area | Test Case IDs |
 |---|---|
 | 1. STDIO startup | TC-002 |
-| 2. STDIO shutdown | TC-009 |
-| 3. Initial graph build | TC-001, TC-003 |
-| 4. File edit triggers hook | TC-004 |
-| 5. Async refresh non-blocking | TC-005 |
-| 6. Refresh reflects changes | TC-004 |
-| 7. Debounce / coalescing | TC-010 |
-| 8. Failure isolation | TC-006 |
-| 9. `gain.json` declaration | TC-011, TC-012 |
-| 10. CONTEXT.md discoverability | TC-008, TC-013 |
-| 11. Cold reinstall / full build | TC-007 |
-| 12. Multi-agent compatibility | All TCs (agent-agnostic by design) |
+| 2. Initial graph build | TC-001, TC-003 |
+| 3. File edit triggers hook | TC-004 |
+| 4. Async refresh non-blocking | TC-005 |
+| 5. Refresh reflects changes | TC-004 |
+| 6. Debounce / coalescing | TC-010 |
+| 7. Failure isolation | TC-006 |
+| 8. CONTEXT.md discoverability | TC-008, TC-013 |
+| 9. Cold reinstall / full build | TC-007 |
+| 10. Multi-agent compatibility | All TCs (agent-agnostic by design) |
+| 11. Local mode index behavior | TC-021 |
+| 12. Plugin mode index behavior | TC-022 |
 
 ---
 
@@ -766,21 +743,9 @@ Per user requirement: run the entire suite on each supported AI agent tool. Do N
 | Acceptance Criterion | Validated by |
 |---|---|
 | AC-1: New contributor can clone, follow CONTEXT.md, have GitNexus running | TC-007 |
-| AC-2: File edits reflected without restart | TC-004 |
+| AC-2: File edits reflected without restart | TC-004, TC-021, TC-022 |
 | AC-3: GitNexus failure never blocks Rosetta | TC-006 |
-| AC-4: `gain.json` is single source of truth | TC-011, TC-012 |
 | AC-5: CONTEXT.md sufficient for agent discovery | TC-013 |
-| AC-6: Consistent across agents | All TCs (agent-agnostic by design — run suite on each agent tool) |
-
----
-
-## Merged Test Cases Log
-
-| Original concepts | Merged into | Reason |
-|---|---|---|
-| "File edit triggers hook" + "Refresh reflects changes" | TC-004 | Same flow: edit → hook fires → graph updates. Sequential steps in one test |
-| "STDIO startup" + "Healthy handshake" + "First tool call" | TC-002 | Same session: reopen → check connection → verify with query |
-| "Multi-agent test" (was a separate TC) | Removed | Per user answer Q7: entire suite is agent-agnostic, runs on each tool |
-| "Status with index" + "Status without index" | TC-017 | Same command, parameterized with state |
+| AC-6: Consistent across agents | All TCs (agent-agnostic by design — run full suite on each supported AI tool: Cursor, Windsurf, GitHub Copilot, Claude Code, OpenAI Codex) |
 
 ---
