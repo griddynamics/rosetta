@@ -18,14 +18,16 @@ Analyze test execution results provided by user. Identify failures, categorize r
 - Output: `agents/qa/{IDENTIFIER}/execution-report.md` with failure analysis and recommendations
 - Prerequisite: Phase 5 complete, tests executed by user
 - HITL: may need to ask user for test execution results
-- **Canonical analysis skill KB tag:** the exact string in `<pinned_analysis_skill_tag>` immediately below; when renaming the skill in Rosetta, update **`qa-flow.md` Phase 6** recommended skills in the same edit.
+- Analysis skill: `<pinned_analysis_skill_tag>` (single source of truth for the skill identifier used below).
 </workflow_context>
 
-<pinned_analysis_skill_tag>See skill `automation-test-execution-analysis` (ACQUIRE from KB when not already loaded)</pinned_analysis_skill_tag>
+<pinned_analysis_skill_tag>automation-test-execution-analysis</pinned_analysis_skill_tag>
+
+<!-- Maintainer note: when renaming this skill in Rosetta, update qa-flow.md Phase 6 recommended skills in the same edit. -->
 
 <phase_steps>
 1. Obtain test execution results
-2. Run failure analysis using the KB tag in `<pinned_analysis_skill_tag>` (produces `execution-report.md`)
+2. Run failure analysis using the pinned skill (produces `execution-report.md`)
 3. Review findings
 4. Update state
 </phase_steps>
@@ -36,15 +38,15 @@ Analyze test execution results provided by user. Identify failures, categorize r
 </execute_analysis_policy>
 
 <execution_report_contract>
-`execution-report.md` must be non-empty and include at minimum: **Summary** (run scope), **Failures** (one entry per failed test with observed vs expected), **Root causes** (each tied to evidence), and **Recommendations** for Phase 7. If the ACQUIREd skill prescribes extra sections, add them without dropping these four. If KB returns a document whose `name:` (or primary tag) is not exactly the UTF-8 string inside `<pinned_analysis_skill_tag>`, stop and ask the user — do not substitute a different skill.
+`execution-report.md` must be non-empty and include at minimum: **Summary** (run scope), **Failures** (one entry per failed test with observed vs expected), **Root causes** (each tied to evidence), and **Recommendations** for Phase 7. If the ACQUIREd skill prescribes extra sections, add them without dropping these four. If KB returns a document whose `name:` (or primary tag) is not exactly the pinned identifier, stop and ask the user — do not substitute a different skill.
 </execution_report_contract>
 
 <execute_analysis step="6.1" subagent="engineer" role="API test failure analyst">
 1. If test report location unknown: ask user
 2. **WAIT** for user to provide results if not found in `agents/user-instructions/`
-3. If the identifier in `<pinned_analysis_skill_tag>` is not already in the loaded skill set: ACQUIRE that exact string FROM KB.
+3. If the pinned skill is not already in the loaded skill set: ACQUIRE it FROM KB using the bound identifier.
 4. If step 3 did not yield the skill document: record the failure in `agents/qa-state.md`, stop this phase, and ask the user to fix Rosetta/KB access.
-5. USE SKILL — target is the exact string inside `<pinned_analysis_skill_tag>` (same identifier as step 3).
+5. USE SKILL the pinned skill.
 </execute_analysis>
 
 <review_findings step="6.2">

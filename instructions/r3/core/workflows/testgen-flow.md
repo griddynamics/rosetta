@@ -17,7 +17,11 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 <workflow_phases>
 
 - Rosetta prep steps completed
-- USE SKILL `sequential-workflow-execution` — enforce one phase at a time, ACQUIRE each phase doc before work, update `agents/testgen/{TICKET-KEY}/testgen-state.md` and todos; see skill for skip/customization gates.
+- **ONE PHASE AT A TIME:** ACQUIRE phase file, execute, update state, move to next.
+- **DO NOT SKIP PHASES:** Each builds on the previous. Skip gates: only with **explicit user instruction**, **or** when `testgen-state.md` marks the phase complete **and** its expected output file exists under `agents/testgen/{TICKET-KEY}/`; otherwise resume from the earliest incomplete phase.
+- **STATE TRACKING:** Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
+- **SELF-CHECK BETWEEN PHASES:** Before advancing, verify the state file row was updated, the expected output file exists and is non-empty, and any HITL approval (Phase 3, 6) is recorded.
+- USE SKILL `sequential-workflow-execution` for the canonical implementation of the bullets above (ACQUIRE if not already loaded). The inline bullets remain authoritative if the SKILL fails to load.
 - MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL PHASES ARE SEQUENTIAL.
 - USER CONFIRMATION: Wait for approval before next phase.
 - MUST use todo tasks for tracking progress.

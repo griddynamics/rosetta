@@ -11,6 +11,8 @@ baseSchema: docs/schemas/phase.md
 
 Analyze test execution reports to identify failures, errors, and areas for improvement. This phase requires **USER INTERACTION** if test report location is not specified in user instructions.
 
+**Scope**: This phase is report triage only. Do not edit production code, test code, or other product/test source files; document findings and recommendations, then proceed to Phase 8 for corrections.
+
 ## Prerequisites
 
 - Phase 6 completed
@@ -118,6 +120,8 @@ Analyze test execution reports to identify failures, errors, and areas for impro
    **Error Message**: [Full error message]
    **Stack Trace**: [If available]
    **Likely Cause**: [Analysis of root cause]
+   **Evidence Label**: [Confirmed / Assumption / Unknown]
+   **Evidence Rationale**: [One-line reason for the label]
    **Page Source Analysis**: [If selector/locator error]
      - Page Source File: [Path]
      - Selector Used: [Selector from test]
@@ -171,13 +175,19 @@ Analyze test execution reports to identify failures, errors, and areas for impro
    - Is it an application bug? (not test issue)
    - Is it a test data problem? (Phase 2 issue)
    - Is it an environment issue? (infrastructure)
-3. Prioritize issues:
+3. Classify each root cause by evidence strength:
+   - **Confirmed**: Logs, stack traces, page source, artifacts, or reproducible steps directly tie the failure to this cause
+   - **Assumption**: Partial evidence supports the cause, but confirmation is missing (for example, time correlation without a stack trace, a single flaky run, or a symptom-based inference)
+   - **Unknown**: No usable supporting evidence is available yet
+   - **Ambiguous evidence**: If a case could reasonably be tagged as both Confirmed and Assumption, choose **Assumption**. If it could be both Assumption and Unknown, choose **Unknown** unless at least one concrete partial fact exists, then choose **Assumption**
+   - Document exactly one evidence label and one-line rationale for every root cause
+4. Prioritize issues:
    - **Critical**: Tests completely broken, blocking
    - **High**: Major functionality not working
    - **Medium**: Some assertions failing, partial functionality
    - **Low**: Minor issues, edge cases
 
-**Expected Output**: Root cause analysis with prioritized issues.
+**Expected Output**: Root cause analysis with evidence labels and prioritized issues.
 
 ### Task 6: Update Test Plan with Analysis
 
@@ -203,7 +213,7 @@ Analyze test execution reports to identify failures, errors, and areas for impro
    [List of all failures from Task 3]
    
    ### Root Cause Analysis
-   [Analysis from Task 5]
+   [Analysis from Task 5, including Confirmed/Assumption/Unknown labels and evidence rationale]
    
    ### Performance Analysis
    [Findings from Task 4]
@@ -225,6 +235,7 @@ Analyze test execution reports to identify failures, errors, and areas for impro
 - [ ] Test report read and parsed
 - [ ] All failures identified and categorized
 - [ ] Root causes analyzed
+- [ ] Each root cause labeled Confirmed, Assumption, or Unknown with a one-line evidence rationale
 - [ ] Performance issues identified (if applicable)
 - [ ] Test plan updated with Phase 7 analysis
 - [ ] `agents/aqa-state.md` updated with Phase 7 completion
@@ -243,7 +254,7 @@ After completing Phase 7, update `agents/aqa-state.md`:
 - Tests Passed: [Count]
 - Tests Failed: [Count]
 - Critical Issues: [Count]
-- Root Causes Identified: [List]
+- Root Causes Identified: [List with Confirmed/Assumption/Unknown labels]
 ```
 
 Mark Phase 7 as completed and Phase 8 as current.
@@ -257,8 +268,10 @@ ACQUIRE aqa-flow-test-correction.md FROM KB
 
 ## Important Notes
 
+- **No Code Writes**: Phase 7 is analysis-only; do not edit production code, test code, selectors, fixtures, or product/test source files
 - **Report Location Priority**: Always check all files in agents/user-instructions/ directory first, then ask user if not found
 - **Comprehensive Analysis**: Don't just list failures - analyze root causes
+- **Evidence Labels**: Every root cause must have exactly one evidence label: **Confirmed**, **Assumption**, or **Unknown**, plus a one-line rationale
 - **Page Source Analysis**: **MUST** analyze page sources when encountering selector/locator errors (element not found, selector not visible, etc.) to identify actual DOM structure and suggest correct selectors
 - **Pattern Recognition**: Look for common issues across multiple failures
 - **User Context**: Consider user's test execution environment when analyzing failures

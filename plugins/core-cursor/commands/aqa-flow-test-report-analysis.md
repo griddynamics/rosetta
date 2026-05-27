@@ -1,265 +1,74 @@
 ---
-name: modernization-flow-reuse
-description: Phase 7 of AQA workflow - Test Report Analysis
+name: aqa-flow-test-report-analysis
+description: Phase 7 of AQA workflow - Test Report Analysis (USER INTERACTION REQUIRED if report location unknown)
 alwaysApply: false
+tags: []
 baseSchema: docs/schemas/phase.md
 ---
 
-# Phase 7: Test Report Analysis
+<aqa_flow_test_report_analysis>
 
-## Objective
+<description_and_purpose>
+Analyze test execution reports, identify failure root causes, and prepare for corrections.
+</description_and_purpose>
 
-Analyze test execution reports to identify failures, errors, and areas for improvement. This phase requires **USER INTERACTION** if test report location is not specified in user instructions.
+<workflow_context>
+- Phase 7 of 8 in `aqa-flow`
+- Input: test report or execution output, test plan, page sources
+- Output: failure analysis with root causes and recommendations
+- Prerequisite: Phase 6 complete, test executed by user
+- HITL: may need to ask user for report location
+- Failure-analysis skill: see `<failure_analysis_skill_binding>` (single source of truth for the skill identifier used below).
+- **Scope:** parse the report, categorize failures, identify root causes, assign evidence strength, and document recommendations for correction — **no** production code edits and **no** writes to test or product source files; exact steps are in the SKILL.
+</workflow_context>
 
-## Prerequisites
+<failure_analysis_skill_binding>
+`failure_analysis_skill` = `automation-test-execution-analysis`. Canonical match is the KB document whose frontmatter `name:` (or primary tag) is exactly that identifier. References to "the failure-analysis skill" below resolve via this binding; downstream packagers swapping providers override only this block.
+</failure_analysis_skill_binding>
 
-- Phase 6 completed
-- Test executed by user
-- Test report generated (or test execution output available)
+<phase_steps>
+1. Obtain or locate the test report
+2. Run failure analysis via the failure-analysis skill (see binding)
+3. Review findings
+4. Update state
+</phase_steps>
 
-## Phase Tasks
+<execute_analysis step="7.1" subagent="engineer" role="Test failure analyst">
+1. If the test report is not under a known path and not in `agents/user-instructions/`: ask user; **WAIT** until a report artifact is available or the user confirms none.
+2. If the failure-analysis skill (per `<failure_analysis_skill_binding>`) is not already in the loaded skill set: ACQUIRE it FROM KB using the bound identifier.
+3. If step 2 did not yield the skill document: record the failure in `agents/aqa-state.md`, stop this phase, and ask the user to fix Rosetta/KB access.
+4. USE SKILL the failure-analysis skill — keep scope to report triage only: no code writes in this phase.
+</execute_analysis>
 
-### Task 1: Determine Test Report Location
+<review_findings step="7.2">
+1. Verify all failures categorized
+2. Verify root causes identified
+3. Verify page source analyzed for selector errors
+4. Confirm recommendations are actionable
+5. Classify each root cause by evidence strength:
+   - **Confirmed:** logs, stack traces, or reproducible steps tie the failure to this cause — no Assumption/Unknown tag.
+   - **Assumption:** partial evidence only (e.g., time correlation without stack, single flaky run, or symptom-based guess) — label the root cause **Assumption** and say what evidence is missing.
+   - **Unknown:** no usable supporting evidence — label **Unknown** and list what evidence would be needed to confirm.
+   - **Ambiguous evidence:** if a case could reasonably be tagged as both **Confirmed** and **Assumption**, choose **Assumption** (weaker label). If it could be both **Assumption** and **Unknown**, choose **Unknown** unless at least one concrete partial fact exists — then **Assumption**.
+6. Validation loop (max two cycles): confirm each failure has exactly one label with evidence rationale; if any entry is unlabeled or violates step 5 rules, repeat steps 1–5 once more. After two cycles with remaining gaps, record unresolved rows in `agents/aqa-state.md`, ask the user once how to label them (or approval to leave borderline items as **Assumption**), then continue only after user response or explicit approval.
+</review_findings>
 
-**Actions**:
-1. Check if `agents/user-instructions/` directory exists
-2. If directory exists:
-   - Read all files in `agents/user-instructions/` directory
-   - Extract test report location/path from user instructions (check all files)
-   - Look for keywords: "test report", "report location", "test output", "report path", "test results"
-   - Document found location and which file(s) contained it
-3. If directory does NOT exist OR location not found in user instructions:
-   - **ASK USER** for test report location:
-     ```
-     I need to analyze the test execution report. Please provide:
-     
-     - Test report file path (if report was saved to file)
-     - OR test execution output/logs
-     - OR directory where test reports are stored
-     
-     Common locations:
-     - Test framework output directories (e.g., test-results/, reports/, coverage/)
-     - CI/CD artifact locations
-     - Console output/logs
-     ```
-   - **WAIT** for user to provide test report location
-   - Document provided location
-4. Verify report location exists and is accessible
+<update_state step="7.3">
+1. Update `agents/aqa-state.md`:
+   - Test Report Location: [path]
+   - Tests Executed: [count]
+   - Tests Failed: [count]
+   - Root Causes: [list]
+   - Phase 7 completion timestamp
+2. Mark Phase 7 complete, Phase 8 current
+</update_state>
 
-**Expected Output**: Test report location determined and verified.
+<validation_checklist>
+- Test report located and parsed
+- All failures identified and categorized
+- Root causes analyzed (including page source for selector errors)
+- Each root cause tagged **Confirmed**, **Assumption**, or **Unknown** with a one-line evidence rationale
+- Recommendations documented
+</validation_checklist>
 
-### Task 2: Read Test Report
-
-**Actions**:
-1. Read test report file(s) from determined location:
-   - Use Read tool for text-based reports
-   - Use appropriate tool for JSON/XML/HTML reports
-   - If multiple files, read all relevant reports
-2. If report is in console/log format:
-   - Ask user to provide test execution output
-   - Or read from log files if available
-3. Extract key information:
-   - Test execution status (passed/failed/skipped)
-   - Number of tests executed
-   - Number of failures
-   - Error messages and stack traces
-   - Test duration
-   - Screenshots or artifacts (if available)
-   - Coverage information (if available)
-
-**Expected Output**: Complete test report data extracted and ready for analysis.
-
-### Task 3: Analyze Test Failures
-
-**Actions**:
-1. Identify all failed tests:
-   - Test names that failed
-   - Failure reasons
-   - Error types (assertion failures, timeouts, element not found, etc.)
-2. Categorize failures:
-   - **Selector Issues**: Element not found, selector incorrect
-   - **Timing Issues**: Timeouts, race conditions, waits needed
-   - **Assertion Failures**: Expected vs actual mismatches
-   - **Setup Issues**: Preconditions not met, test data issues
-   - **Application Issues**: Bugs in application under test
-   - **Test Code Issues**: Logic errors, incorrect implementation
-3. **For selector/locator errors, analyze page sources**:
-   - If error message contains patterns like:
-     - "selector did not become visible"
-     - "locator did not become visible"
-     - "selector not found"
-     - "locator not found"
-     - "element not found"
-     - "NoSuchElementException"
-     - "ElementNotFoundError"
-     - "TimeoutException" (when waiting for element visibility)
-   - **MUST analyze page source**:
-     1. Locate page source files from Phase 4 (`agents/aqa/{TICKET-KEY}/page-sources/`)
-     2. Read relevant page source file(s) for the failing test
-     3. Search for the selector/locator in page source:
-        - Check if element exists with different attributes
-        - Verify selector syntax matches actual HTML structure
-        - Identify if element is in iframe or shadow DOM
-        - Check if element is dynamically generated
-        - Verify element visibility conditions (display:none, visibility:hidden, etc.)
-     4. Compare expected selector with actual DOM structure
-     5. Identify potential fixes:
-        - Correct selector if syntax is wrong
-        - Use different locator strategy if element exists but selector is incorrect
-        - Add waits if element loads dynamically
-        - Handle iframe/shadow DOM if applicable
-        - Check for element state (hidden, disabled, etc.)
-   - Document page source analysis findings
-4. For each failure, document:
-   ```markdown
-   ### Failure: [Test Name]
-   
-   **Error Type**: [Category]
-   **Error Message**: [Full error message]
-   **Stack Trace**: [If available]
-   **Likely Cause**: [Analysis of root cause]
-   **Page Source Analysis**: [If selector/locator error]
-     - Page Source File: [Path]
-     - Selector Used: [Selector from test]
-     - Element Found in DOM: [Yes/No/Partial]
-     - Actual Element Structure: [If found, describe]
-     - Visibility State: [Visible/Hidden/Not rendered]
-     - Suggested Selector Fix: [If applicable]
-   **Suggested Fix**: [Initial suggestion]
-   **Priority**: [High/Medium/Low]
-   ```
-
-**Expected Output**: Categorized list of all failures with analysis, including page source analysis for selector/locator errors.
-
-### Task 4: Analyze Test Performance
-
-**Actions**:
-1. Review test execution time:
-   - Total execution time
-   - Individual test durations
-   - Slow tests (if duration data available)
-2. Identify performance issues:
-   - Tests taking unusually long
-   - Potential flakiness indicators
-   - Resource-intensive operations
-3. Document performance findings:
-   ```markdown
-   ### Performance Analysis
-   
-   - Total Execution Time: [Duration]
-   - Average Test Duration: [Duration]
-   - Slowest Tests: [List]
-   - Performance Concerns: [List]
-   ```
-
-**Expected Output**: Performance analysis documented.
-
-### Task 5: Identify Patterns and Root Causes
-
-**Actions**:
-1. Look for patterns across failures:
-   - Multiple failures with same error type
-   - Failures in related tests
-   - Common selectors causing issues
-   - Recurring timing problems
-2. Determine root causes:
-   - Is it a selector problem? (Phase 4/5 issue)
-     - **If selector/locator errors**: Use page source analysis from Task 3 to verify if selector matches actual DOM structure
-     - Check if page source shows element exists but selector is incorrect
-     - Verify if element structure changed since Phase 4/5
-   - Is it a test implementation problem? (Phase 6 issue)
-   - Is it an application bug? (not test issue)
-   - Is it a test data problem? (Phase 2 issue)
-   - Is it an environment issue? (infrastructure)
-3. Prioritize issues:
-   - **Critical**: Tests completely broken, blocking
-   - **High**: Major functionality not working
-   - **Medium**: Some assertions failing, partial functionality
-   - **Low**: Minor issues, edge cases
-
-**Expected Output**: Root cause analysis with prioritized issues.
-
-### Task 6: Update Test Plan with Analysis
-
-**Actions**:
-1. Add Phase 7 section to test plan:
-   ```markdown
-   ## Phase 7: Test Report Analysis
-   
-   ### Test Execution Summary
-   - Execution Date: [DateTime]
-   - Total Tests: [Count]
-   - Passed: [Count]
-   - Failed: [Count]
-   - Skipped: [Count]
-   - Execution Time: [Duration]
-   
-   ### Test Report Location
-   - Source: [agents/user-instructions/ files / User provided]
-   - Files Checked: [List of files checked]
-   - Path: [Report file path]
-   
-   ### Failures Identified
-   [List of all failures from Task 3]
-   
-   ### Root Cause Analysis
-   [Analysis from Task 5]
-   
-   ### Performance Analysis
-   [Findings from Task 4]
-   
-   ### Recommended Actions
-   - [Action 1 with priority]
-   - [Action 2 with priority]
-   - [Action 3 with priority]
-   
-   ### Next Steps
-   - Proceed to Phase 8 to correct identified issues
-   ```
-
-**Expected Output**: Test plan updated with comprehensive analysis.
-
-## Completion Criteria
-
-- [ ] Test report location determined (from agents/user-instructions/ files or user provided)
-- [ ] Test report read and parsed
-- [ ] All failures identified and categorized
-- [ ] Root causes analyzed
-- [ ] Performance issues identified (if applicable)
-- [ ] Test plan updated with Phase 7 analysis
-- [ ] `agents/aqa-state.md` updated with Phase 7 completion
-
-## Update State File
-
-After completing Phase 7, update `agents/aqa-state.md`:
-
-```markdown
-### Phase 7: Test Report Analysis
-- Completed: [DateTime]
-- Test Report Location: [Path or source]
-- Report Source: [agents/user-instructions/ files / User provided]
-- Files Checked: [List of files checked]
-- Tests Executed: [Count]
-- Tests Passed: [Count]
-- Tests Failed: [Count]
-- Critical Issues: [Count]
-- Root Causes Identified: [List]
-```
-
-Mark Phase 7 as completed and Phase 8 as current.
-
-## Next Phase
-
-After analysis is complete, proceed to **Phase 8: Test Corrections** by executing:
-```
-ACQUIRE aqa-flow-test-correction.md FROM KB
-```
-
-## Important Notes
-
-- **Report Location Priority**: Always check all files in agents/user-instructions/ directory first, then ask user if not found
-- **Comprehensive Analysis**: Don't just list failures - analyze root causes
-- **Page Source Analysis**: **MUST** analyze page sources when encountering selector/locator errors (element not found, selector not visible, etc.) to identify actual DOM structure and suggest correct selectors
-- **Pattern Recognition**: Look for common issues across multiple failures
-- **User Context**: Consider user's test execution environment when analyzing failures
-- **Actionable Insights**: Provide clear, actionable recommendations for fixes
+</aqa_flow_test_report_analysis>

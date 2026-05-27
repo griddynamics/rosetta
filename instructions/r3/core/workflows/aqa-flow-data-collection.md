@@ -62,7 +62,14 @@ Stop Phase 1, record the failed KB tag in `agents/aqa-state.md`, notify the user
 </harvest_and_fetch>
 
 <merge_policy>
-Merge harvesting and MCP facts using the outcome categories and conflict rules in the acquired `confluence-source-harvesting` SKILL (truncation, permission/access fallbacks, clean reads). When harvesting and MCP disagree, prefer harvesting signals from that skill for the page. Record conflicts in **Access / Truncation Notes** (see template in `<cross_reference_and_assemble>`).
+Per-signal tie-breaks when harvesting and MCP disagree:
+
+- **Body text mismatch:** prefer the MCP body (authenticated, canonical source); record the harvested variant in **Access / Truncation Notes**.
+- **Truncation flag mismatch:** prefer the harvesting signal (harvesting is the conservative gate — if either source says truncated, the page is truncated). Note the MCP claim in the same field.
+- **Access / permission status mismatch:** prefer the more restrictive status (e.g., harvesting says denied, MCP says reachable → record as **partial / denied** and require the user to confirm scope before relying on MCP body).
+- **Any other disagreement:** apply the rule named in `confluence-source-harvesting`; if the SKILL is silent, fall back to MCP body + note the conflict.
+
+Record every conflict in **Access / Truncation Notes** (see template in `<cross_reference_and_assemble>`).
 </merge_policy>
 
 <extract_context>
@@ -120,6 +127,8 @@ Output template for `agents/plans/aqa-<test-name>.md`:
 
 ## Access / Truncation Notes
 - [Per-page: full read, truncated, permission denied, or fallback used — cite URLs; if none, write: None — all cited Confluence pages read in full]
+- Example (truncation): `https://confluence.example/x/AbCd123` — **truncated at ~5000 words** by harvesting; MCP returned full body (used MCP body, kept harvesting truncation note for audit).
+- Example (access mismatch): `https://confluence.example/x/EfGh456` — harvesting reported **403 denied**, MCP returned 200 — recorded as **partial / denied**; awaiting user confirmation of scope before using body.
 
 ## Cross-Reference Notes
 - [Gaps, contradictions, or observations between TestRail and Confluence]

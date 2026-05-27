@@ -20,7 +20,7 @@ Understand existing test architecture, identify reusable components, and determi
 </workflow_context>
 
 <naming_convention>
-**Slug format:** lowercase ASCII kebab-case — letters, digits, hyphens only; no spaces or paths.
+**Slug format:** lowercase ASCII kebab-case — letters, digits, hyphens only; no spaces or paths. **Max length 80 characters.** **Reserved names rejected:** `state`, `index`, `aqa-state` (collide with existing agent state files); if the user supplies one, treat as a non-conforming slug per `<plan_path_guards>`.
 
 **`<test-name>` slug:** parse from Phase 1 plan filename `agents/plans/aqa-<test-name>.md` (segment after `aqa-` and before `.md`). If missing or ambiguous, read `agents/aqa-state.md` or ask the user once for the canonical slug before writing Phase 3 outputs.
 
@@ -33,13 +33,14 @@ Understand existing test architecture, identify reusable components, and determi
 
 <plan_path_guards>
 If the Phase 1 plan path is still missing after resolving `<test-name>`, or `<test-name>` cannot be resolved to a valid slug per `<naming_convention>` (including after a user attempt): stop Phase 3, record the gap in `agents/aqa-state.md`, and ask the user to restore or re-run Phase 1 before continuing.
+
+**Disclosure requirement:** if `<test-name>` is resolved with any caveat (slug mismatch between Phase 1 plan filename and `agents/aqa-state.md`, ambiguity resolved via fallback, user override of a malformed slug), surface this in the Phase 3 user-facing summary before continuing — name the chosen slug, the rejected alternative, and the source that won the tie-break.
 </plan_path_guards>
 
 <phase_steps>
-1. Read project description
-2. Execute codebase analysis
-3. Validate findings
-4. Update state
+1. Execute codebase analysis (reads project description, page objects, similar tests)
+2. Validate findings
+3. Update state
 </phase_steps>
 
 <execute_analysis step="3.1" subagent="discoverer" role="Test architecture analyst">
