@@ -54,7 +54,7 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 
 **Subagent flow:**
 
-1. Receive `plan_file` (absolute path) and `phase_id` from the orchestrator prompt. Subagent owns the assigned phase end-to-end: solely responsible for completing every step in that phase and reporting results back to the orchestrator.
+1. Receive `plan_file` (absolute path) and `phase_id` from the orchestrator prompt. Subagent owns the assigned phase end-to-end: solely responsible for completing every step in that phase and reporting results back to the orchestrator. Use `npx rosettify@latest help plan` if more information is required.
 2. Call `npx rosettify@latest plan next <plan_file> --target <phase_id>`.
    - If `resume:true` on a returned step → that step is already `in_progress`; skip step 3a, go directly to 3b.
    - If `previously_blocked:true` or `previously_failed:true` on a returned step
@@ -76,6 +76,7 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 
 - `npx rosettify@latest help plan` exits without error and returns structured help JSON
 - `show_status` phase status matches aggregate of its steps after `update_status`
+- use `plan query <plan_file> [entire_plan | phase-id | step-id]` to verify the entire plan, a phase, or a step
 
 </validation_checklist>
 
