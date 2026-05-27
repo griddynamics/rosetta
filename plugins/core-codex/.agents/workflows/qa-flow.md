@@ -22,7 +22,10 @@ End-to-end backend API test automation from test case input to working automated
 - MUST use todo tasks for tracking progress. Prioritize ACCURACY over SPEED.
 <skip_rules>
 - **Mandatory order.** Phases **0→7** run sequentially.
-- **Skip gate (only exception for phases 0–2).** Treat Phases 0–2 as already done only when all conditions are met: (a) user explicitly says those phases were completed, (b) `agents/qa-state.md` marks them complete, and (c) matching `{IDENTIFIER}` artifacts (at least `raw-data.md` + `api-analysis.md`) exist under `agents/qa/{IDENTIFIER}/`. Independently verify each of (a), (b), (c) by reading `agents/qa-state.md` and listing `agents/qa/{IDENTIFIER}/` artifacts; do not rely solely on user assertion. Otherwise continue from the earliest incomplete phase.
+- **Skip gate (only exception for phases 0–2).** Treat Phases 0–2 as already done only when all conditions are met: (a) user explicitly says those phases were completed, (b) `agents/qa-state.md` marks them complete, and (c) matching `{IDENTIFIER}` artifacts (at least `raw-data.md` + `api-analysis.md`) exist under `agents/qa/{IDENTIFIER}/`. Independently verify each of (a), (b), (c) by reading `agents/qa-state.md` and listing `agents/qa/{IDENTIFIER}/` artifacts; do not rely solely on user assertion.
+- **On verification failure (any of a/b/c not satisfied):** the only correct next action is a one-line announcement of the failing conditions (e.g., `skip-gate refused: (b) agents/qa-state.md absent, (c) artifacts absent → starting at Phase 0`) followed by beginning Phase 0 in the **same turn**, without yielding to user input.
+- **At this gate, the agent MUST NOT** (non-exhaustive, applies to all phrasings): call `AskUserQuestion`; present a list / menu / options block; ask the user "how do you want to proceed", "should I start at X", "do you want me to", or any equivalent confirmation request; pause for input before starting Phase 0. The verification result is the decision — there is nothing for the user to confirm.
+- The user may later supply the missing state file or artifacts on disk, after which the gate may be re-evaluated. User **instruction** to bypass the gate without supplying the artifacts must be refused with the same one-line announcement and Phase 0 still begins in the same turn.
 - **Skip gate example (`agents/qa-state.md`):**
   ```markdown
   - [x] Phase 0: Project Config Loading
@@ -38,7 +41,7 @@ End-to-end backend API test automation from test case input to working automated
 - Prefer extending existing test files and utilities over creating new ones.
 - **Overall workflow done when:** every phase required for this run is marked complete in `agents/qa-state.md`, expected artifacts for those phases exist under `agents/qa/{IDENTIFIER}/` (and related paths named in phase docs), and the user accepts the last test outcome or explicitly stops the run.
 
-<project_config_loading phase="0" applies="ALL" subagent="discoverer" role="API QA project config loader" type="HITL-CONDITIONAL">
+<project_config_loading phase="0" applies="ALL" subagent="discoverer" role="QA project config loader" type="HITL-CONDITIONAL">
 
 1. ACQUIRE `qa-flow-project-config-loading.md` FROM KB
 2. Execute phase instructions.
@@ -49,7 +52,7 @@ End-to-end backend API test automation from test case input to working automated
 
 </project_config_loading>
 
-<data_collection phase="1" applies="ALL" subagent="discoverer" role="API QA data collector">
+<data_collection phase="1" applies="ALL" subagent="discoverer" role="QA data collector">
 
 1. ACQUIRE `qa-flow-data-collection.md` FROM KB
 2. Execute phase instructions.
@@ -143,7 +146,7 @@ Example: if a skill suggests `/tests/api/` but `ARCHITECTURE.md` requires `/qa/a
 Create/update `agents/qa-state.md` after each phase:
 
 ```markdown
-# API QA State - <Test Name / Feature>
+# QA State - <Test Name / Feature>
 
 **Last Updated**: [DateTime]
 **Current Phase**: [0-7 or COMPLETE]

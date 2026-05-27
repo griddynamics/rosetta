@@ -32,10 +32,13 @@ Generate comprehensive test cases from the requirements document, covering all r
 </phase_steps>
 
 <load_requirements step="5.1">
-1. USE SKILL `repository-implementation-standards` when this phase updates tracked repository files outside `agents/testgen/{TICKET-KEY}/` (for example repository-root `requirements.md`); otherwise skip with a one-line note in state.
-2. Read `agents/testgen/{TICKET-KEY}/requirements.md`
-3. Extract all user stories (US-N), functional requirements (FR-N), non-functional requirements (NFR-N) with acceptance criteria
-4. Extract constraints and dependencies that affect test design
+1. List every planned output path for this phase.
+2. Check whether every path begins with `agents/testgen/{TICKET-KEY}/` (default flow: `test-scenarios.md` and the in-folder `requirements.md` traceability update in step 5.8).
+3. If yes: do **not** invoke `repository-implementation-standards`. Record in `agents/testgen/{TICKET-KEY}/testgen-state.md`: `5.1 repository-implementation-standards: skipped — writes scoped to agents/testgen/{TICKET-KEY}/`.
+4. If any path falls outside that folder: USE SKILL `repository-implementation-standards` before any such write.
+5. Read `agents/testgen/{TICKET-KEY}/requirements.md`
+6. Extract all user stories (US-N), functional requirements (FR-N), non-functional requirements (NFR-N) with acceptance criteria
+7. Extract constraints and dependencies that affect test design
 </load_requirements>
 
 <identify_test_types step="5.2">

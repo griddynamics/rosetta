@@ -1,6 +1,6 @@
 ---
 name: qa-flow-test-case-specification
-description: Phase 4 of API QA workflow - Detailed API Test Case Specification (HITL APPROVAL GATE)
+description: Phase 4 of QA workflow - Detailed API Test Case Specification (HITL APPROVAL GATE)
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
@@ -49,7 +49,7 @@ Read completely:
 Create `agents/qa/{IDENTIFIER}/test-specs.md` using the following template:
 
 ```markdown
-# API QA Test Specifications - [IDENTIFIER]
+# QA Test Specifications - [IDENTIFIER]
 
 **Created**: [DateTime]
 **Phase**: 4 - Test Case Specification

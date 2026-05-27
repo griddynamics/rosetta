@@ -1,6 +1,6 @@
 ---
 name: qa-flow-data-collection
-description: Phase 1 of API QA workflow - Data Collection from test cases, documentation, and codebase
+description: Phase 1 of QA workflow - Data Collection from test cases, documentation, and codebase
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
@@ -37,7 +37,7 @@ Documentation MCP scope comes from **`qa-project-config.md`** and Phase 0 only.
 3. Identify TMS, documentation, and codebase sources to query
 </confirm_inputs>
 
-<execute_collection step="1.2" subagent="discoverer" role="API QA data collector">
+<execute_collection step="1.2" subagent="discoverer" role="QA data collector">
 
 <verify_primary_raw_data step="1.2a">
 1. USE SKILL `qa-data-collection`

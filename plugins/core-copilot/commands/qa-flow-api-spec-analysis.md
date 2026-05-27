@@ -1,6 +1,6 @@
 ---
 name: qa-flow-api-spec-analysis
-description: Phase 2 of API QA workflow - Swagger/OpenAPI Spec Analysis
+description: Phase 2 of QA workflow - Swagger/OpenAPI Spec Analysis
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md

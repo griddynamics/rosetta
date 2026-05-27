@@ -38,7 +38,8 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 <get_confluence step="1.2">
 1. USE SKILL `confluence-source-harvesting` — URL shapes, child pages, truncation, permission fallbacks.
 2. USE SKILL `mcp-confluence-data-collection` — authenticated reads and searches.
-3. **If user provided Confluence/documentation URLs**: retrieve those pages directly using using `mcp_Jira_MCP_confluence_get_page()`, then check for child pages 
+   - **Precedence on conflict:** `confluence-source-harvesting` defines URL parsing, child-page traversal, and truncation/permission rules (wins on those). `mcp-confluence-data-collection` defines authenticated read/search operations (wins on those). If both touch the same concern, prefer `confluence-source-harvesting` and record the conflict in the **Notes** field of the data collection summary.
+3. **If user provided Confluence/documentation URLs**: retrieve those pages via the `confluence_get_page` operation exposed by `mcp-confluence-data-collection` (or equivalent MCP), then check for child pages
 4. **If no URLs provided**: 
 4.1. Extract search terms from Jira ticket:
 - Project key (from ticket key)
@@ -178,7 +179,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 **Solution**: Include first 5000 words, note truncation in raw-data.md
 
 **Issue**: Custom fields not recognized  
-**Solution**: Use `mcp_Jira_MCP_jira_search_fields()` to discover field names
+**Solution**: Invoke the `jira_search_fields` operation exposed by `mcp-jira-data-collection` (or equivalent MCP) to enumerate available field names
 
 **Issue**: Confluence search finds parent but misses child pages  
 **Solution**: Always check for child pages using `confluence_get_page_children()` for each found page

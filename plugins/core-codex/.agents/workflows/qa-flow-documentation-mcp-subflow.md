@@ -1,6 +1,6 @@
 ---
 name: qa-flow-documentation-mcp-subflow
-description: Documentation MCP collection branch for API QA Phase 1 — invoked when qa-project-config scopes a documentation MCP
+description: Documentation MCP collection branch for QA Phase 1 — invoked when qa-project-config scopes a documentation MCP
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
@@ -9,7 +9,7 @@ baseSchema: docs/schemas/phase.md
 <qa_flow_documentation_mcp_subflow>
 
 <description_and_purpose>
-Write exactly one documentation MCP outcome under the API QA raw-data file and verify it. Parent phase: `qa-flow-data-collection` ACQUIREs this fragment when config scopes documentation MCP collection.
+Write exactly one documentation MCP outcome under the QA raw-data file and verify it. Parent phase: `qa-flow-data-collection` ACQUIREs this fragment when config scopes documentation MCP collection.
 </description_and_purpose>
 
 <workflow_context>
@@ -23,7 +23,7 @@ Write exactly one documentation MCP outcome under the API QA raw-data file and v
 3. Verify raw-data documentation subsection
 </phase_steps>
 
-<execute_documentation_mcp step="1.2b" subagent="discoverer" role="API QA data collector">
+<execute_documentation_mcp step="1.2b" subagent="discoverer" role="QA data collector">
 **Early-exit rule:** whenever you must finish **without** running the MCP collection USE in step 9 below, write the branch row under the raw-data heading (see **Output contract** table), run **only** step 10 (verify), then **stop this subflow**.
 
 1. **Resolved MCP collection skill:** pick the first non-empty string from the config keys listed in `<workflow_context>` (`documentation_mcp_collection_skill`, `documentation.mcp_collection_skill`, `mcp_documentation_collection_skill`, `confluence_mcp_collection_skill`). If none are set but documentation MCP scope is clearly active per other config fields, re-read `qa-project-config.md` and Phase 0 notes from `qa-flow-project-config-loading` for a default tag; if still absent, apply **SKIPPED_NO_CONFIG** row from the table → **Early-exit rule**.

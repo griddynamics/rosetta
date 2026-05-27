@@ -1,6 +1,6 @@
 ---
 name: qa-flow-test-implementation
-description: Phase 5 of API QA workflow - API Test Implementation (USER INTERACTION REQUIRED after implementation)
+description: Phase 5 of QA workflow - API Test Implementation (USER INTERACTION REQUIRED after implementation)
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
@@ -64,7 +64,7 @@ Implement all approved API test specifications as executable automated tests fol
    - Shared Utilities Created: [list]
    - Status: Ready for execution
    - Phase 5 completion timestamp
-2. Mark Phase 5 complete (do NOT mark overall API QA as COMPLETE)
+2. Mark Phase 5 complete (do NOT mark overall QA as COMPLETE)
 </update_state>
 
 <validation_checklist>

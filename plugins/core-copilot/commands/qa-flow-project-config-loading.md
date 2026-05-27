@@ -1,6 +1,6 @@
 ---
 name: qa-flow-project-config-loading
-description: Phase 0 of API QA workflow - Project Config Loading (USER INTERACTION CONDITIONALLY REQUIRED)
+description: Phase 0 of QA workflow - Project Config Loading (USER INTERACTION CONDITIONALLY REQUIRED)
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
@@ -9,14 +9,14 @@ baseSchema: docs/schemas/phase.md
 <qa_flow_project_config_loading>
 
 <description_and_purpose>
-Initialize API QA session directory, load existing project config or collect project-specific information from user for backend API test automation.
+Initialize QA session directory, load existing project config or collect project-specific information from user for backend API test automation.
 </description_and_purpose>
 
 <workflow_context>
 - Phase 0 of 8 in `qa-flow`
 - Input: user request with test case reference (TestRail ID, Jira ticket, or direct description)
 - Output: `agents/qa/{IDENTIFIER}/` directory with `initial-data.md` and `qa-project-config.md`; `agents/qa-state.md` initialized
-- Prerequisite: starting new API QA flow
+- Prerequisite: starting new QA flow
 - HITL: conditional — only if project config does not already exist
 </workflow_context>
 
@@ -26,7 +26,7 @@ Initialize API QA session directory, load existing project config or collect pro
 3. Create initial data file and update state
 </phase_steps>
 
-<execute_config step="0.1" subagent="discoverer" role="API QA project config loader">
+<execute_config step="0.1" subagent="discoverer" role="QA project config loader">
 1. USE SKILL `qa-project-config`
 2. Verify `agents/qa/{IDENTIFIER}/` directory created
 3. Verify `qa-project-config.md` exists with non-empty content

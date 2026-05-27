@@ -17,11 +17,11 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 - Output: test cases created in TMS
 - Prerequisite: Phase 5 complete, user reviewed test cases, TMS MCP configured
 - HITL: user must provide target location in TMS (e.g., section, folder, suite)
-- Skills: `testrail-test-case-export`, `repository-implementation-standards` (when updating tracked repository markdown such as `test-scenarios.md` with TMS IDs)
+- Skills: **USE** TMS-specific export skill (e.g., `testrail-test-case-export`) for connection, field mappings, and API details; **USE** `repository-implementation-standards` when updating tracked repository markdown such as `test-scenarios.md` with TMS IDs.
 </workflow_context>
 
 <phase_steps>
-1. Identify and activate TMS-specific export skill
+1. Activate `repository-implementation-standards` (if updating tracked files) and identify TMS-specific export skill
 2. Verify TMS connection via MCP
 3. Get target location from user
 4. Parse test cases from markdown

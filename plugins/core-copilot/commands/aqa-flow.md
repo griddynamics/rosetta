@@ -114,6 +114,8 @@ End-to-end test automation from requirements gathering to test implementation. U
 <orchestration_and_escalation>
 - When loaded, USE SKILL `sequential-workflow-execution` (ACQUIRE FROM KB when needed) for skip gates and transition prompts.
 - Any skip outside those gates requires explicit user confirmation (HITL).
+- **Verification-failure unilateral start:** if the user asserts phases are complete but `agents/aqa-state.md` does not mark them complete or the matching artifacts (see `<workflow_success_criteria>` spot checks) are absent, the only correct next action is a one-line announcement of the failing conditions (e.g., `skip refused: state file absent → starting at Phase 1`) followed by beginning the earliest incomplete phase in the **same turn**, without yielding to user input.
+- **At this gate, the agent MUST NOT** (non-exhaustive, applies to all phrasings): call `AskUserQuestion`; present a list / menu / options block; ask the user "how do you want to proceed", "should I start at X", "do you want me to", or any equivalent confirmation request; pause for input before starting the earliest incomplete phase. The verification result is the decision — there is nothing for the user to confirm. User input is only acceptable if it produces the missing state rows or artifacts on disk.
 - Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user, and do not substitute silently.
 </orchestration_and_escalation>
 
