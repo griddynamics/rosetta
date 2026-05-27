@@ -19,7 +19,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 <prerequisites phase="0" applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context-instructions` loaded and fully executed.
+1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
 2. MUST USE OPERATION_MANAGER for deterministic execution
 3. MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL REQUIRED SCALING IS ALREADY PRE-DEFINED BY "applies" ATTRIBUTE.
 4. Phases are sequential. Independent subagent tasks within a phase CAN run in parallel.

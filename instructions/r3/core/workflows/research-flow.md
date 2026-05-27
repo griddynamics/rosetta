@@ -15,7 +15,7 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 <prerequisites phase="0", applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context-instructions` loaded and fully executed.
+1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
 2. MUST USE OPERATION_MANAGER for deterministic execution
 3. Orchestrator trusts the system and skills; coordinates sequence, artifacts, state, and approvals only.
 4. Execute phases sequentially.

@@ -15,7 +15,7 @@ Prevents premature drafting by enforcing HITL gates where every `<req>` unit rec
 
 <prerequisites phase="0", applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed, load-context-instructions skill loaded and fully executed.
+1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
 2. MUST USE OPERATION_MANAGER for deterministic execution
 3. Every phase MUST update `requirements-authoring-flow-state.md` in FEATURE TEMP with: phase name, status, artifact produced, and open questions.
 

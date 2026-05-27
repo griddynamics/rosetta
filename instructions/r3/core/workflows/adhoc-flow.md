@@ -71,7 +71,7 @@ Compose these into plan phases/steps to build any execution workflow.
 
 <prerequisites phase="1" applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context-instructions` loaded and fully executed.
+1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
 2. MUST USE OPERATION_MANAGER for deterministic execution
 3. Use available skills and agents.
 4. You will FOR SURE run out of LLM context, leading to loss of information, delegate to subagents!
