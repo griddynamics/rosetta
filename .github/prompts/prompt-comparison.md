@@ -54,6 +54,7 @@ Only flag a Reference Integrity issue if a reference points to a file or term th
 8. Do NOT rewrite the prompt — describe what to add, change, or remove.
 9. You MUST NOT flag stylistic preferences, wording choices, formatting variations, or nitpicks that do not affect agent behavior, reliability, or safety. Focus exclusively on behavioral regressions, safety gaps, contract violations, and structural degradation.
 10. You MUST NOT skip deleted or newly created files. Deleted files may indicate loss of critical functionality. New files must meet all quality gates. Both are essential for reasoning about the PR's impact.
+11. Use simple language in problem, solution, reason, and the rest of user-facing.
 
 ## Input Contract
 

@@ -15,7 +15,10 @@ Enforce that target prompt:
 - Skills can't call skills, Phase can't call phases, Subagents can't call subagents, Workflows can, and Rules can.
 - No lateral/sibling awareness, no reverse awareness, no cross-skill deep linking (exception: frontmatters, and keywords)
 - Always check those prompts vs their schema (critical, as you must not break contract)
-- If prompt is for rosetta itself (repo with target prompt is rosetta or RulesOfPower), ACQUIRE `coding-agents-prompt-authoring/references/pa-rosetta.md` FROM KB and validate prompt uses it
+- If rosetta prompt, MUST ACQUIRE `coding-agents-prompt-authoring/references/pa-rosetta.md` FROM KB and validate prompt uses it
+- Coding-agent-agnostic
+- Clear separation of concerns, actors, events, models, actions
+- Sequential activities use numbered list
 
 </hardening>
 
@@ -98,6 +101,7 @@ Enforce that target prompt:
 - Remove non-operational clarifications (history, rationale, origin labels, change annotations), provenance, or explanatory meta-notes
 - Prompt size target: <300 ideal, 300-500 acceptable
 - If 500+, split by layers/phases using progressive disclosure
+- Harsh, direct, and short brilliant comparisons (task coded ≠ task completed, trust but verify)
 
 </core_principles_to_enforce_in_target_prompt>
 

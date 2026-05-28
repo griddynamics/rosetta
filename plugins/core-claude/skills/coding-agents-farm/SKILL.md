@@ -65,7 +65,7 @@ Known auto-approve issues:
 YOUR INTERNAL KNOWLEDGE ABOUT MODEL NAMES, CLI FLAGS, AND TOOL VERSIONS IS STALE. Use ONLY the names and flags listed in this skill. Do NOT substitute from memory. If unsure about a model name, omit the model flag and let the CLI use its default.
 
 Model selection guidance:
-- Anthropic: `claude-sonnet-4-6` (workhorse), `claude-opus-4-6` (complex), `claude-haiku-4-5` (fast)
+- Anthropic: `claude-sonnet-4-6` (workhorse), `claude-opus-4-8` (complex), `claude-haiku-4-5` (fast)
 - OpenAI: `gpt-5.4` (workhorse), `gpt-5.3-codex-high` (agentic, complex)
 - Google: `gemini-3.1-pro-preview` (workhorse), `gemini-3-flash-preview` (fast)
 - Copilot: select via `--model`; supports claude, gpt, gemini families through GitHub

@@ -72,7 +72,7 @@ DISABLED
 
 </patterns>
 
-<documentation phase="6" subagent="built-in" role="Documentation analyst" subagent_recommended_model="claude-opus-4-6, gpt-5.4-high, gemini-3.1-pro-preview">
+<documentation phase="6" subagent="built-in" role="Documentation analyst" subagent_recommended_model="claude-opus-4-8, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-preview">
 
 1. Create project documentation from workspace analysis.
 2. Output: CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md.

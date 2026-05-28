@@ -125,7 +125,7 @@ Standard sections used in real skills:
 
 ### Plugin Model Name Differences
 
-Core uses full model descriptors: `model: claude-4.6-opus-high, gpt-5.3-codex-high, gemini-3.1-pro-high`
+Core uses full model descriptors: `model: claude-4.8-opus-high, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-high`
 Claude plugin (`core-claude`) uses short Anthropic-only names: `model: opus` (or `sonnet`, `haiku`)
 Cursor plugin uses full multi-vendor names (same as core).
 

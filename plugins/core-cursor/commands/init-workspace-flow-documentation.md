@@ -35,7 +35,7 @@ Agents without workspace documentation re-discover facts, repeat mistakes, and m
 1. ACQUIRE `init-workspace-documentation/SKILL.md` FROM KB
 </acquire_skills>
 
-<execute_documentation step="6.3" subagent="built-in" role="Senior technical writer synthesizing workspace documentation" subagent_recommended_model="claude-opus-4-6,gpt-5.4-high,gemini-3.1-pro-preview">
+<execute_documentation step="6.3" subagent="built-in" role="Senior technical writer synthesizing workspace documentation" subagent_recommended_model="claude-opus-4-8,gpt-5.5-high,gemini-3.1-pro-preview">
 1. Execute skill with state.mode, state.composite, state.file_count as inputs
 </execute_documentation>
 

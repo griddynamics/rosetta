@@ -178,14 +178,16 @@ jobs:
           jq -c '.[]' $ALL_RESULTS_FILE | while read -r result; do
             FILE=$(echo "$result" | jq -r '.file')
 
+            # Show file name first
+            echo -e "### :page_facing_up: \`$FILE\`\n" >> $PR_COMMENT_FILE
+
             if echo "$result" | jq -e '.error' > /dev/null 2>&1; then
-              echo -e "### :page_facing_up: \`$FILE\`\n" >> $PR_COMMENT_FILE
               echo "**Error:** $(echo "$result" | jq -r '.error')" >> $PR_COMMENT_FILE
               echo -e "\n---\n" >> $PR_COMMENT_FILE
               continue
             fi
 
-            # Show issues first
+            # Show issues
             ISSUES=$(echo "$result" | jq '[.issues | sort_by(.severity) | reverse[]]')
 
             if [ "$(echo "$ISSUES" | jq 'length')" -eq 0 ]; then
@@ -212,10 +214,7 @@ jobs:
               echo "" >> $PR_COMMENT_FILE
             fi
 
-            # Then show file name
-            echo -e "### :page_facing_up: \`$FILE\`\n" >> $PR_COMMENT_FILE
-
-            # Then show gates comparison with scores
+            # Show gates comparison with scores
             echo "$result" | jq -e '.gates' > /dev/null 2>&1 && {
               echo "#### :bar_chart: Gates Comparison" >> $PR_COMMENT_FILE
               echo "" >> $PR_COMMENT_FILE

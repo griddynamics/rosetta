@@ -17,7 +17,7 @@ argument-hint: [Hint shown during autocomplete to indicate expected arguments] [
 allowed-tools: [Tools Claude can use without asking permission when this skill is active, dangerous, only keep it when you know exactly] [string] [Claude Code] [ex: Bash(git diff:*)]
 model: sonnet
 
-[Latest Models: Anthropic (claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5), OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high), Google (gemini-3.1-pro-preview, gemini-3-flash-preview), Z.ai (glm-5).]
+[Latest Models: Anthropic (claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5), OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high, gpt-5.4-medium, gpt-5.5-high), Google (gemini-3.1-pro-preview, gemini-3-flash-preview), Z.ai (glm-5).]
 
 # Execution Context (Optional)
 context: [Set to 'fork' to run in a forked subagent context] [string] [Claude Code]

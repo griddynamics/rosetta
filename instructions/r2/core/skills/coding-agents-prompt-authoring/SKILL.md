@@ -5,7 +5,7 @@ license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: request, existing-prompt?, constraints?, audience?
-model: claude-4.6-opus-high, gpt-5.3-codex-high, gemini-3.1-pro-high
+model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high
 context: default
 agent: prompt-engineer, reviewer, validator
 metadata:

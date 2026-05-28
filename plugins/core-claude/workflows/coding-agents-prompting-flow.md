@@ -25,6 +25,7 @@ Execute phases sequentially, do not skip!
 1. Preparation steps are mandatory prerequisites and must be completed before phase 1.
 2. Workflow execution starts only after prerequisites are satisfied.
 3. Orchestrator and subagents MUST USE SKILL `coding-agents-prompt-authoring`.
+4. MUST load all skills as provided in phases when subagents are not used (thus better to use subagents).
 
 </prerequisites>
 

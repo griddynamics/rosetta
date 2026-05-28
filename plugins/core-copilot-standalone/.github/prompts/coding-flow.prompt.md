@@ -22,6 +22,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 - Phases are sequential. Independent subagent tasks within a phase CAN run in parallel.
 - When debugging is needed, INVOKE SUBAGENT `engineer` separately to isolate debugging context from implementation.
 - Use INVOKE SUBAGENT `executor` for building, running tests, installing packages, and similar mechanical actions.
+- MUST load all skills as provided in phases when subagents are not used (thus better to use subagents).
 
 <discovery phase="1" applies="MEDIUM,LARGE" subagent="discoverer" role="Context discoverer">
 
