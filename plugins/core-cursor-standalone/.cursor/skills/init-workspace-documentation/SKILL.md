@@ -2,7 +2,7 @@
 name: init-workspace-documentation
 description: "Rosetta skill to create CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, and AGENT MEMORY.md from workspace analysis."
 license: Apache-2.0
-model: claude-sonnet-4-6
+model: claude-opus-4-6
 tags: ["init", "workspace", "documentation", "context", "architecture"]
 baseSchema: docs/schemas/skill.md
 ---
@@ -41,33 +41,41 @@ Workspaces lack structured documentation, forcing every session to re-discover f
 5. Create or update documents:
 
 CONTEXT.md:
+- What this doc is for and what it should contain, self-defining style
+- Self-defines purpose, content type, style
 - Bulleted business context, purpose, domain — stakeholder perspective
 - No technical details
-- Self-defines purpose, content type, style
 
 ARCHITECTURE.md:
+- What this doc is for and what it should contain, self-defining style
+- Self-defines purpose, content type, style
 - Architecture, modules, workspace structure, testing, styling, building blocks
 - No business context — reference CONTEXT.md
 - Reference CODEMAP.md for file structure
-- Self-defines purpose, content type, style
 
 IMPLEMENTATION.md:
-- Current state only VERY BRIEFLY, no change log
-- DRY — reference other docs
+- What this doc is for and what it should contain, self-defining style
 - Self-defines purpose, content type, style
+- Current state only VERY BRIEFLY
+- DRY — reference other docs
+- High-level change log, each change separate header with date and description
+- The only implementation change log
 
 ASSUMPTIONS.md:
+- What this doc is for and what it should contain, self-defining style
+- Self-defines purpose, content type, style
 - Each entry: assumption, confidence level, target file when resolved
 - Revalidate all assumptions after other documents complete
 
 AGENT MEMORY.md:
+- What this doc is for and what it should contain, self-defining style
 - Self-defines purpose, content type, style
-- Should be empty by default - it will be updated during use
-- Must follow the template exactly
+- Must follow the template exactly - it will be updated during use
 - Keep template entries so that AI knows how to fill them in later on
+- It is for agent operational notes, not a duplicate of CONTEXT.md/ARCHITECTURE.md
 
 README.md:
-- Create workspace and in each repository root README.md files if missing
+- Create in workspace and in each repository root README.md files if missing
 
 6. Special cases:
    - Speckit: if `memory/constitution.md` and `specs` folder exist, add "MUST ACQUIRE speckit-integration-policy.md FROM KB and execute it" to CONTEXT.md
@@ -81,6 +89,7 @@ README.md:
 - Documents complement without repeating each other
 - ASSUMPTIONS.md entries have forward references to target documents
 - Upgrade mode: human content preserved, only gaps filled
+- Files can be grepped by headers for useful information and ToC
 </validation_checklist>
 
 <templates>

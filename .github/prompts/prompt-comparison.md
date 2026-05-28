@@ -33,6 +33,7 @@ Each instance of orchestrator/subagent can only handle up to 10 prompt files: if
    - **Large changes** (>7 files OR >1000 changed lines): spawn parallel subagents using the Task tool. Provide each subagent with the FULL and EXACT context: diff file path, base ref, their assigned file subset, and their output path in `.tmp/agents/`. Group files by release folder, then by prompt family. MUST USE SKILL `orchestrator-contract` for every subagent dispatch. Each subagent writes its JSON results to `.tmp/agents/{subagent-id}.json`.
    - Distinguish this repo vs target repo (only instructions are present in target repo, you and subagents always forget that!)
    - Always extend context to remove blind sports (example: changes made to skill asset only, but you still load unmodified SKILL.md to understand full context; same with workflows, phases, rules, bootstraps)
+   - Do not report the same issue multiple times
 3. **Recombine**: Merge all subagent JSON outputs (or your own results) into a single JSON array.
 4. **Prompt engineer review**: Spawn a subagent (prompt engineer role) to review the combined JSON results. Allow the subagent to read repository files for additional context. The reviewer verifies findings are grounded, removes false positives, and flags missed regressions. MUST USE SKILL `orchestrator-contract`.
 5. **Behavioral simulation**: Spawn a subagent to simulate how coding agents would behave with the new prompt versions versus the base versions. Identify behavioral regressions, safety gaps, or improvements. MUST USE SKILL `orchestrator-contract`.
@@ -174,7 +175,7 @@ Comparison is NOT two independent evaluations. It is a **change-focused** analys
 
 ### Category: efficiency
 
-**Bloat Control** — Is the prompt concise with high information density?  Checks: (1) functional content, (2) no redundant instructions, (3) style does not dominate.
+**Bloat Control** — Is the prompt concise with high information density?  Checks: (1) functional content, (2) no redundant instructions, (3) style does not dominate, (4) text can be compressed without loosing value.
 **Cognitive Budget** — Does the prompt fit within LLM cognitive and context limits? Checks: (1) directives without decomposition, (2) prompt + input + reasoning + output < 60% context window.
 
 ### Category: portability

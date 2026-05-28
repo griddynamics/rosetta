@@ -149,7 +149,7 @@ The `model` field accepts the following model id values:
 - (omitted) - Inherits model from parent agent (default)
 - `auto` - Selects cheapest matching model, avoid use of it!
 - `composer-2-fast` - Uses a very fast and cheap model (for simple tasks, like executing a predefined set of scripts and analyzing the output)
-- `claude-4.8-opus-high-thinking` - Anthropic Claude 4.7 Opus (most capable, with extended reasoning, expensive)
+- `claude-4.8-opus-high-thinking` - Anthropic Claude 4.8 Opus (most capable, with extended reasoning, expensive)
 - `claude-4.6-sonnet` - Anthropic Claude 4.6 Sonnet
 - `claude-4.6-sonnet-thinking` - Anthropic Claude 4.6 Sonnet with extended reasoning
 - `claude-4.5-haiku` - Anthropic Claude 4.5 Haiku

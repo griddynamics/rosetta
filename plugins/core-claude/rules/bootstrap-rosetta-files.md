@@ -23,7 +23,7 @@ It must be possible to grep by headers and receive useful information and ToC.
 8. `docs/CODEMAP.md`. Code map of the workspace.
 9. `docs/REQUIREMENTS/*`. Original requirements. May be missing. `docs/REQUIREMENTS/INDEX.md` is index. `docs/REQUIREMENTS/CHANGES.md` is change log.
 10. `docs/PATTERNS/*`. Coding and architectural patterns. May be missing. `docs/PATTERNS/INDEX.md` is index. `docs/PATTERNS/CHANGES.md` is change log.
-11. `agents/IMPLEMENTATION.md`. Current state of implementation very concise. Structure to prevent git conflicts. The only change log.
+11. `agents/IMPLEMENTATION.md`. Current state of implementation very concise. Structure to prevent git conflicts. The only implementation change log.
 12. `agents/MEMORY.md`. Very brief root causes of errors and mistakes, brief actions tried and actions succeeded, both positive and negative. Create if missing.
 13. `plans/<FEATURE>/<FEATURE>-PLAN.md`. Execution plan.
 14. `plans/<FEATURE>/<FEATURE>-SPECS.md`. Tech specs.

@@ -19,6 +19,7 @@ Enforce that target prompt:
 - Coding-agent-agnostic
 - Clear separation of concerns, actors, events, models, actions
 - Sequential activities use numbered list
+- Look for text compression opportunity without loosing value, including but not limited to using unicode characters and icons, phrases instead of full sentences
 
 </hardening>
 
@@ -93,7 +94,7 @@ Enforce that target prompt:
 - Feature-alignment to polyfill missing features
 - Avoid tautology
 - Serve intended purpose
-- Target each rule line below 8 words
+- Target each rule line below 8 words, short phrases preferred
 - If longer, split into progressive layers
 - Prefer imperative/infinitive form
 - Prefer simplicity over complexity as long as original intent is met

@@ -157,9 +157,8 @@ applyTo: "src/api/**/*.ts"
 
 **Models:**
 - (omitted) - Inherits model from parent agent (default)
-- `Claude Opus 4.8` - Anthropic Claude 4.7 Opus (most capable, with extended reasoning)
-- `Claude Opus 4.8` - Anthropic Claude 4.6 Opus prev gen
-- `Claude Opus 4.5` - Anthropic Claude 4.5 Opus prev gen
+- `Claude Opus 4.8` - Anthropic Claude 4.8 Opus (most capable, with extended reasoning)
+- `Claude Opus 4.6` - Anthropic Claude 4.6 Opus prev gen (4.7 existed but was not good)
 - `Claude Sonnet 4.6` - Anthropic Claude 4.6 Sonnet with thinking
 - `Claude Haiku 4.5` - Anthropic Claude 4.5 Haiku with thinking
 - `GPT-5.3-Codex` - OpenAI GPT 5.3 Codex

@@ -180,9 +180,10 @@ HITL gates (use when):
 - Keep traceability separate
 - Keep decisions separate
 - Keep questions separate
-- REQUIREMENTS/INDEX.md is index
+- REQUIREMENTS/INDEX.md is index, for each file has one md header with its title, short description, serves as ToC grepable by headers
 - REQUIREMENTS/CHANGES.md is change log
 - Each file defines one area abbreviation
+- Each file uses grep-friendly headers for sections and requirements
 - All other documents are target-state only
 - Never write change explanations
 - Consider that user input maybe provided for your understanding for you to properly make changes
