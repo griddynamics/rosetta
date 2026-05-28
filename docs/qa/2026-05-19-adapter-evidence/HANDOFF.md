@@ -51,14 +51,40 @@ mkdir -p /tmp/qa-rosetta-cc/.claude \
   /tmp/qa-rosetta-copilot/.github/plugin
 ```
 
-Then copy dump.js and hook configs from the plan steps below.
+### dump.js — готовый скрипт в репо
+
+**Не нужно создавать dump.js вручную.** Используй уже существующий скрипт:
+
+```
+hooks/tests/fixtures/dump-stdin.js
+```
+
+Он записывает stdin в `/tmp/hook-stdin-dump.jsonl` (JSON Lines, append-режим — каждый вызов добавляет строку с timestamp). Просто укажи абсолютный путь в hook config:
+
+```json
+"command": "node /Users/<YOU>/dev/gd/rosetta/hooks/tests/fixtures/dump-stdin.js"
+```
+
+После срабатывания хука читай последнюю запись:
+```bash
+tail -1 /tmp/hook-stdin-dump.jsonl | python3 -m json.tool | jq '.input'
+```
+
+> Альтернативно: ниже приведены inline-команды для создания per-IDE dump.js с таймаутом (план M13). Используй их если хочешь изолированные per-IDE файлы вместо общего `.jsonl`.
 
 ---
 
 ## Task 4: Live E2E — Claude Code
 
-### Step 1: Create dump.js
+### Step 1: Hook command (dump.js)
 
+**Вариант A — рекомендуемый:** используй готовый скрипт из репо (см. Prerequisites выше):
+```
+"command": "node /Users/<YOU>/dev/gd/rosetta/hooks/tests/fixtures/dump-stdin.js"
+```
+Результат будет в `/tmp/hook-stdin-dump.jsonl`. Читай последнюю строку: `tail -1 /tmp/hook-stdin-dump.jsonl | jq '.input'`
+
+**Вариант B — per-IDE изолированный файл с таймаутом:**
 ```bash
 cat > /tmp/qa-rosetta-cc/dump.js << 'EOF'
 const fs = require('fs');
@@ -174,6 +200,8 @@ sed -i '' 's/Task4: claude-code (actual: pending).*/Task4: claude-code (actual: 
 
 Same pattern. Key differences:
 
+**dump.js:** используй `hooks/tests/fixtures/dump-stdin.js` (вариант A) или создай per-IDE файл (вариант B):
+
 **Hook config** (`.cursor/hooks.json` — lowercase event, flat structure, no nested hooks array):
 ```bash
 mkdir -p /tmp/qa-rosetta-cursor/.cursor/hooks
@@ -219,6 +247,8 @@ grep "Task5.*codex" docs/qa/2026-05-19-adapter-evidence/e2e-ide-matrix.txt \
   && echo "BLOCKED: Task 5 already used Codex. Task 6 cannot also fall back to Copilot. Escalate."
 ```
 
+**dump.js:** используй `hooks/tests/fixtures/dump-stdin.js` (вариант A) или создай per-IDE файл (вариант B):
+
 **Hook config** (PascalCase, same as Claude Code, but nested under `.codex/`):
 ```bash
 mkdir -p /tmp/qa-rosetta-codex/.codex/hooks
@@ -259,6 +289,8 @@ Evidence file: `docs/qa/2026-05-19-adapter-evidence/e2e-codex.md`
 grep -c "copilot" docs/qa/2026-05-19-adapter-evidence/e2e-ide-matrix.txt
 # If >= 2: STOP. File coverage-gap issue.
 ```
+
+**dump.js:** используй `hooks/tests/fixtures/dump-stdin.js` (вариант A) или создай per-IDE файл (вариант B):
 
 **Hook config** (`.github/plugin/hooks.json` — paired bash/powershell):
 > **Important:** In `plugins/core-copilot/` there are 3 different hooks.json files. Use `.github/plugin/hooks.json` — that is the production path.
