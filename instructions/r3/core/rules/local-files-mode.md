@@ -81,17 +81,17 @@ On session start if thinking one of these or similar thoughts → rationalizing,
 
 # Phase 0: Initialize Operation manager
 
-Step 0: Load `get_context_instructions`
+# Phase 0: Initialize Operation manager
 
 Step 1:
 
 - **Orchestrator** → OPERATION_MANAGER `create-with-template plans/<FEATURE>/plan.json for-orchestrator "<FEATURE_OR_SESSION_ID>" "<USER_REQUEST_SUMMARY>"` — derive FEATURE from user request; use `session` if unclear.
 
-- **Subagent** → Plan is already created. Call OPERATION_MANAGER `next <plan_file>` to receive assigned steps. Do not create a new plan.
+- **Subagent** → Plan is already created. Call OPERATION_MANAGER `next <plan_file> --target <phase_id>` to receive assigned steps. Do not create a new plan.
 
 **Orchestrator — when delegating to subagents**: before handing off each phase, add the subagent prep steps first: OPERATION_MANAGER `upsert-with-template <plan_file> <phase-id> for-subagent "<phase-name>" "<phase-description>"`.
 
-Step 2+ are provided by `get_context_instructions`.
+Step 2+: Call OPERATION_MANAGER `next <plan_file> [limit] [--target <phase_id>]`
 
 - Must fully complete `ph-prep` in planning and execution modes: reading files, selecting workflow, loading it, analyzing workflow state, etc. Plan is living: `upsert` additional `ph-prep` steps, workflow phases and steps, meta-reasoning.
 - Create once per session. Do not respond, call other tools, or process the message further until `ph-prep` completes, except those needed for itself.
