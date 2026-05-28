@@ -16,7 +16,7 @@ Receiving a user request → immediately writing code, files, scripts, or comman
 
 <MUST>
 
-1. Apply `Planning and Documentation Sync Rules`, `Task Management Rules`, `Validation Rules`, `Memory And Self-Learning Rules`, `Subagents Orchestration Rules`.
+1. Apply `Planning and Documentation Sync Rules`, `Operation Manager Rules`, `Validation Rules`, `Memory And Self-Learning Rules`, `Subagents Orchestration Rules`.
 2. MUST not skip instructions, if some activities impossible to execute, report to user, and continue with Rosetta instructions.
 3. When user directly provides via slash-command SKILL or COMMAND or WORKFLOW YOU MUST FULLY EXECUTE IT.
 4. Enforce SRP, DRY, KISS, MECE, YAGNI, prevent scope creep, self-learning, and self-organizing.
@@ -32,18 +32,18 @@ Receiving a user request → immediately writing code, files, scripts, or comman
 
 </planning_and_documentation_sync_rules>
 
-<task_management_rules>
+<operation_manager_rules>
 
-1. Use plan-manager as the primary execution tracker; built-in todo tasks/planners are for tracking INSIDE a single plan step only.
+1. Use OPERATION_MANAGER as the primary execution tracker; built-in todo tasks/planners are for tracking INSIDE a single plan step only.
 2. Create explicit and actionable plan steps.
-3. Break complex work into manageable steps via plan-manager `upsert`.
+3. Break complex work into manageable steps via OPERATION_MANAGER `upsert`.
 4. Keep exactly one plan step in progress at a time.
 5. Call `update_status` immediately after finishing each step.
 6. Do not mark steps complete without verifiable tool evidence.
 7. Do not mark multiple steps complete unless completed in the same tool call.
 8. Treat completed as verified done, never assumed done.
 
-</task_management_rules>
+</operation_manager_rules>
 
 <validation_rules>
 
@@ -65,50 +65,6 @@ Receiving a user request → immediately writing code, files, scripts, or comman
 7. Record what worked and failed logically, architecturally, and technically
 
 </memory_and_self_learning_rules>
-
-<subagents_orchestration_rules>
-
-### Topology
-
-1. MUST use subagents AND delegate work to them when the platform supports them. Orchestrator makes decisions and orchestrates.
-2. Orchestrator is the top-level agent; it spawns subagents; subagents cannot spawn subagents.
-3. Subagents start with fresh context every run.
-
-### Input Contract
-
-4. Subagent prompt MUST start with: assumed role/specialization, stated [lightweight|full] subagent, full path to plan.json, phase&task id, SMART tasks, `MUST USE SKILL [required]`, and `RECOMMEND USE SKILL [recommended]`.
-5. Provide specific task, full context, and references. Subagents know nothing except shared bootstrap and prep steps and this contract, always provide original user request/intent throughout all steps.
-6. Define explicit scope, expected outputs, and clear expectations. Forbid out-of-scope work.
-7. Quality-gate before dispatch: clarify unclear task/context/constraints first. Never dispatch ambiguous instructions.
-8. Lightweight = generic, built-in, small clear tasks (e.g., build/tests). Full = user-defined, specialized role, larger work.
-9. Keep standard agent tools available to subagents as required.
-10. Initialize required skills together with subagent usage.
-
-### Output Contract
-
-11. Define unique output file path per subagent.
-12. For large output, define exact path and required file format/template.
-13. Subagent must stop and report when blocked or off-plan.
-14. Subagent returns, at minimum: concise results, summary, side effects, anomalies, discoveries, contract changes, deviations, inconsistencies, and insights.
-
-### Routing & File I/O
-
-15. Route independent work in parallel and dependent work sequentially.
-16. For large input, use TEMP feature folder and provide workspace path.
-17. Define collision-safe strategy for parallel file writes.
-18. Use TEMP folder for temporary coordination.
-
-### Quality & Ownership
-
-19. Orchestrator is team manager; owns delegation quality end-to-end.
-20. Orchestrator must spawn reviewer subagents to verify delegated work. Use different model if possible.
-21. `Review` = static inspection (recommendations). `Validate` = running on real/sample tasks (catches real issues, expensive).
-22. Adopt plan changes with proper ordering/analysis. If something comes up, adapt the plan. Extra work goes later, if logical and user agrees.
-23. Keep orchestrator and subagent contexts below overload thresholds.
-24. Prefer minimal state transitions between orchestration steps.
-25. Subagents ask orchestrator, orchestrator asks user, orchestrator is explicit and provides full context to user.
-
-</subagents_orchestration_rules>
 
 <should>
 

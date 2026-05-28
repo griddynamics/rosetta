@@ -18,8 +18,7 @@ baseSchema: docs/schemas/skill.md
 1. ACQUIRE `<workflow TAG from available workflows>` FROM KB — load the most matching workflow; fully execute following its definition for ALL request sizes
 2. If user asked to continue or resume: load workflow state file, extract completed steps, current phase, and pending work
 3. Handle planning and auto mode correctly — distinguish auto vs `No HITL`
-4. OPERATION_MANAGER `upsert` workflow phases/steps into the plan with separate, dedicated, detailed, and specific todo tasks based on loaded workflow phases, steps to restore state, steps to resume
-5. Proceed executing all accumulated phases/steps
+4. USE OPERATION_MANAGER to upsert todo tasks 
 
 </process>
 

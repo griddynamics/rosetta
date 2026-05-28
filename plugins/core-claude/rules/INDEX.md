@@ -12,3 +12,4 @@ All paths are relative to Rosetta Plugin Path.
 - `rules/requirements-best-practices.md`: Rules for authoring reliable, explicit, and traceable requirements with mandatory user back-and-forth and per-unit approval.
 - `rules/requirements-use-best-practices.md`: Rules for consuming requirements with strict traceability, explicit approvals, and no unapproved scope.
 - `rules/speckit-integration-policy.md`: Invoke if directly requested, provides integration with the speckit
+- `rules/todo-tasks-fallback.md`: Fallback execution guardrail when OPERATION_MANAGER (rosettify) is unavailable — use built-in todo task tools instead.

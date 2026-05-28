@@ -7,6 +7,13 @@ baseSchema: docs/schemas/skill.md
 
 <orchestrator_contract>
 
+<prerequisites>
+
+- OPERATION_MANAGER is active
+- Project context is loaded USING SKILL `load-context`
+
+</prerequisites>
+
 <process>
 
 Topology:
@@ -21,7 +28,7 @@ Dispatch:
 
 """
 You are [role/specialization]. [Lightweight|Full] subagent.
-Plan: [absolute path to plan.json or "ad-hoc"]. Phase: [phase id]. Task: [task id].
+Plan: [absolute path to plan.json or "ad-hoc"]. Phase: [phase id]. [Step: [step id].]
 
 ## Tasks (SMART)
 - [task 1]
@@ -42,6 +49,7 @@ DO NOT: [what is explicitly out of scope, what not to touch — forbid out-of-sc
 - [stop and report when: condition]
 
 ## Skills
+MUST USE SKILL `subagent-contract`, `operation-manager`.
 MUST USE SKILL [required skill].
 RECOMMEND USE SKILL [recommended skill].
 
