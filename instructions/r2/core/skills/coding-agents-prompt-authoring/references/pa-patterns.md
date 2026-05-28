@@ -206,7 +206,11 @@
 - AI removes important clarifiers, specifiers, explanations ("just", "only", "constantly", minor explanations, etc)
 - AI constantly keeps inserting non-operational clarifications (history, rationale, origin labels, change annotations), but target documents must be source-agnostic, state-only, action-only. All change logs must be directed to a separate file.
 - AI constantly badly over-engineers instead of simplifying, simplification is a king
-- AI constantly brings new ideas instead of following existing
+- AI constantly brings new ideas instead of following existing, constantly overly complicates
+- AI never looks around to think "What else is used? What could be the better solution? How this pattern or issue was resolved in other places? What web search can find? What else is affected in any direction?"
+- AI prioritizes action over analysis leading to not known unknowns
+- AI needs harsh, direct, MoSCoW style rules + short brilliant comparisons (task coded ≠ task completed, trust but verify)
+- AI produces a TON of AI generated content (AI slop)
 
 </ai-issues>
 
