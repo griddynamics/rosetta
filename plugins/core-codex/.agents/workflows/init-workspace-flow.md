@@ -96,7 +96,7 @@ DISABLED
 3. Mark state as COMPLETE.
 4. Notify user: delete `init-rosetta-shells-flow.md`. MUST start new chat session (highly visible message, red icon, bold, ASCII art, it must standout).
 5. Request user to study https://griddynamics.github.io/rosetta/docs/usage-guide/
-5. Suggest examples for the next steps for user and make sure to emphasis on "/slash-commands":
+6. Suggest examples for the next steps for user and make sure to emphasis on "/slash-commands":
    ```
    # Coding Workflow
  

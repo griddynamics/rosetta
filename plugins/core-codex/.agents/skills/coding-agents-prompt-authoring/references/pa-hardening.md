@@ -15,7 +15,7 @@ Enforce that target prompt:
 - Skills can't call skills, Phase can't call phases, Subagents can't call subagents, Workflows can, and Rules can.
 - No lateral/sibling awareness, no reverse awareness, no cross-skill deep linking (exception: frontmatters, and keywords)
 - Always check those prompts vs their schema (critical, as you must not break contract)
-- If rosetta prompt, MUST ACQUIRE `coding-agents-prompt-authoring/references/pa-rosetta.md` FROM KB and validate prompt uses it
+- If prompt is for rosetta itself, MUST ACQUIRE `coding-agents-prompt-authoring/references/pa-rosetta.md` FROM KB and validate prompt uses it
 - Coding-agent-agnostic
 - Clear separation of concerns, actors, events, models, actions
 - Sequential activities use numbered list

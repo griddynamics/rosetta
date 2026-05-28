@@ -17,7 +17,7 @@ When evaluating a Rosetta prompt, simulate the perspective of an agent running i
 The target project is assumed to have Rosetta-defined folder structure.
 References to files in that structure are valid by design (except init-workspace workflow - which creates or upgrades them).
 
-Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` in current rosetta repo to better understand rosetta implementation itself.
+Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` in current rosetta repo to better understand rosetta implementation itself. Remember that current and target repositories ARE DIFFERENT (this content is only available in this repo!).
 
 MUST USE SKILL `orchestrator-contract` for all subagent dispatches.
 MUST USE SKILL `coding-agents-prompt-authoring` to review and to harden the changes and at least must include pa-rosetta.md, pa-patterns, pa-hardening.md, pa-schemas.md.
@@ -31,6 +31,8 @@ Each instance of orchestrator/subagent can only handle up to 10 prompt files: if
 2. **Evaluate prompts**:
    - **Small changes** (≤7 files AND ≤1000 changed lines total): evaluate all files yourself.
    - **Large changes** (>7 files OR >1000 changed lines): spawn parallel subagents using the Task tool. Provide each subagent with the FULL and EXACT context: diff file path, base ref, their assigned file subset, and their output path in `.tmp/agents/`. Group files by release folder, then by prompt family. MUST USE SKILL `orchestrator-contract` for every subagent dispatch. Each subagent writes its JSON results to `.tmp/agents/{subagent-id}.json`.
+   - Distinguish this repo vs target repo (only instructions are present in target repo, you and subagents always forget that!)
+   - Always extend context to remove blind sports (example: changes made to skill asset only, but you still load unmodified SKILL.md to understand full context; same with workflows, phases, rules, bootstraps)
 3. **Recombine**: Merge all subagent JSON outputs (or your own results) into a single JSON array.
 4. **Prompt engineer review**: Spawn a subagent (prompt engineer role) to review the combined JSON results. Allow the subagent to read repository files for additional context. The reviewer verifies findings are grounded, removes false positives, and flags missed regressions. MUST USE SKILL `orchestrator-contract`.
 5. **Behavioral simulation**: Spawn a subagent to simulate how coding agents would behave with the new prompt versions versus the base versions. Identify behavioral regressions, safety gaps, or improvements. MUST USE SKILL `orchestrator-contract`.
