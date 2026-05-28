@@ -19,9 +19,9 @@
 
 ## What is Rosetta
 
-Rosetta is an open-source instruction layer for AI-assisted work. It loads your team's architecture, standards, business rules, workflows, and constraints into every AI request so the AI agents your team uses could operate from the shared context.
+Rosetta is an open-source instruction layer for AI coding agents. It loads your team's architecture, standards, business rules, workflows, and constraints into every AI request, so every agent your team uses operates from the same context.
 
-Teams move from ad-hoc prompts to a single, versioned source of truth they own and maintain. The AI pauses at key checkpoints and waits for human approval before proceeding, keeping every change under team oversight. This makes AI outputs more consistent and reliable, aligned with internal practices, and suitable for real work across development, analysis, documentation, and management tasks.
+Teams move from ad-hoc prompts to a single, versioned source of truth they own and maintain. The AI pauses at key checkpoints and waits for human approval before proceeding, keeping every change under team oversight. Unlike reactive gateways or static prompt libraries, Rosetta delivers verified, project-specific instructions that work across tools and agents.
 
 After installing Rosetta, you type something like *"Add password reset to the customer portal"* and the agent:
 

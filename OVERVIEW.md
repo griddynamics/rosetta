@@ -7,7 +7,7 @@
 ## Problem Rosetta Solves
 
 - AI coding agents miss conventions, constraints, and business rules. Rejection rates are high.
-- Writing effective instructions is hard. Keeping them current across evolving tools and models is harder.
+- Writing effective instructions and keeping them current across evolving projects is hard.
 - Reusable instructions across different IDEs and AI agents barely exist.
 - Knowledge stays siloed. No way to share proven patterns across projects or enforce consistent behavior at scale.
 
@@ -17,7 +17,7 @@ Rosetta gives your AI coding agent the right instructions for each request — t
 
 Design principles:
 
-**Agent-agnostic.** Works across Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Adopts agent-specific features where available, simulates them where not.
+**Agent-agnostic.** Works across Cursor, Claude Code, Windsurf, Junie, GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Adopts agent-specific features where available, simulates them where not.
 
 **Stage-by-stage loading.** Instructions load in stages — universal policies first, then the workflow for your specific request, then anything else as needed. The agent never gets the full instruction set; it gets only what the current task needs. This [prevents context overflow](docs/ARCHITECTURE.md#context-overflow-prevention).
 
@@ -93,7 +93,7 @@ When the same file path exists in multiple layers, Rosetta merges them at runtim
 - **Not real-time monitoring.** No continuous observation of agent behavior during execution.
 - **Not a project manager.** No scheduling, assignment, or progress tracking.
 - **Not for non-SDLC work.** Guardrails enforce this.
-- **Not a replacement for thinking.** HITL gates exist because human judgment matters at critical points.
+- **Not a replacement for thinking.** HITL gates exist because human judgment is required at critical points.
 
 ## Related Docs
 
