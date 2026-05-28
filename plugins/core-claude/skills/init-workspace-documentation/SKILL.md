@@ -115,6 +115,27 @@ Content: brief, grep-friendly, MECE across sections. Style: one-liner per entry,
 [Usage, Reasons, Problems]
 ```
 
+### IMPLEMENTATION.md
+
+```markdown
+# Rosetta Implementation Summary
+
+This file is a brief and durable summary of the current implementation state.
+It is intentionally concise and should not be used as a chronological work log.
+
+For detailed change history, use git history and PRs instead of expanding this file.
+
+## Current State
+
+- [List what is implemented briefly]
+
+## Major Implemented Workstreams
+
+### [Workstream 1]: [status], [modified date]
+
+- [Brief changes with keywords and references]
+```
+
 </templates>
 
 </init_workspace_documentation>

@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "build": "tsc && node scripts/build-bundles.mjs && rm -rf dist/shell && mkdir -p dist/shell && cp -R shell/. dist/shell/",
-    "test": "npm run build && vitest run",
+    "build:quiet": "tsc && node scripts/build-bundles.mjs --quiet && rm -rf dist/shell && mkdir -p dist/shell && cp -R shell/. dist/shell/",
+    "test": "npm run build:quiet && vitest run",
     "check": "tsc --noEmit"
   },
   "devDependencies": {

@@ -1034,9 +1034,9 @@ def sync_generated_plugins(repo_root: Path) -> int:
 
     # Sync hook bundles into main plugins BEFORE generating standalones so the bundles
     # are present in source plugins when generate_standalone_plugin reads from them.
+    # If hook sync fails, record the error and continue — generation must run to completion
+    # so all problems surface in a single run rather than one-at-a-time across reruns.
     hook_sync_result = sync_hooks_into_plugins(repo_root)
-    if hook_sync_result != 0:
-        return hook_sync_result
 
     standalone_specs = [
         StandaloneSpec(
@@ -1080,7 +1080,9 @@ def sync_generated_plugins(repo_root: Path) -> int:
         print(f"   generating {spec.name}", flush=True)
         generate_standalone_plugin(spec, repo_root / "plugins")
 
-    return 1 if total_violations else 0
+    # Non-zero exit reflects any error from any phase (bootstrap-payload violations
+    # or hook-sync failure). Generation always runs to completion regardless.
+    return 1 if (total_violations or hook_sync_result != 0) else 0
 
 
 def sync_hooks_into_plugins(repo_root: Path) -> int:

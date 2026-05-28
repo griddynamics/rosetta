@@ -11,6 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const srcDir = path.resolve(__dirname, '..', 'src');
 const hooksDir = path.join(srcDir, 'hooks');
 const outDir = path.resolve(__dirname, '..', 'dist', 'bundles');
+const quiet = process.argv.includes('--quiet');
 
 const PLUGINS = [
   { plugin: 'core-claude',   adapter: 'adapter-claude-code' },
@@ -23,6 +24,7 @@ const PLUGINS = [
 // Auto-discover hook entry points: every .ts file in src/hooks/.
 const HOOK_SOURCES = readdirSync(hooksDir).filter(f => f.endsWith('.ts'));
 
+let bundleCount = 0;
 for (const { plugin, adapter } of PLUGINS) {
   const adapterPath = path.join(srcDir, 'entrypoints', `${adapter}.ts`);
 
@@ -45,6 +47,11 @@ for (const { plugin, adapter } of PLUGINS) {
       ],
     });
 
-    console.log(`  bundled ${plugin} → dist/bundles/${plugin}/${outName}`);
+    bundleCount++;
+    if (!quiet) {
+      console.log(`  bundled ${plugin} → dist/bundles/${plugin}/${outName}`);
+    }
   }
 }
+
+console.log(`  built ${bundleCount} bundle(s) for ${PLUGINS.length} plugin(s)`);
