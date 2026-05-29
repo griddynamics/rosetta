@@ -85,44 +85,6 @@ DEPRECATED ARTIFACTS (notify user, do NOT auto-delete):
 - `agents/init-rosetta-shells-flow-state.md` — r1 state file
 - Local `init-rosetta-shells-flow.md` — replaced by init-workspace-shells skill
 
----
-
-DEMAND user (and orchestrator to demand too) to study <https://griddynamics.github.io/rosetta/docs/usage-guide/>
-
-DEMAND user (and orchestrator to demand too) to review examples for the next steps for user and make sure to emphasis on "/slash-commands":
-
-```md
-# Coding Workflow
-
-**WHAT**: Majority of tasks are actually coding tasks, including unit tests. Just ask exactly what is required.
-
-"/coding-flow Implement left navigation sidebar on the home page, ..."
-
-"/coding-flow Identify and implement fix, ..."
-
-"/coding-flow Improve unit tests coverage to 85% for ..."
-
-# Business and Technical Requirements
-
-**WHY**: Requirements - is the source of truth for code and tests. Going requirements first is the most effective. In brownfield start with extracting.
-
-"/requirements-authoring-flow extract detailed business and technical requirements from community of ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."
-
-"/requirements-authoring-flow extract high-level business and technical requirements at end-point level for controllers according to glob ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."
-
-# Modernization
-
-**FIRST**: Document modernization goals in CONTEXT.md, document target services technical aspects in ARCHITECTURE.md, document where source code should be created, keep refsrc populated with reference code source (old code, new code, reusable libraries, configuration and documentation files, and similar).
-
-**NOTE**: All phases are must. All phases to be implemented one-by-one with proper review. Phase 3: Pre-Modernization Test Coverage is a must (and must include both unit and integration/e2e tests).
-
-"/modernization-flow Perform modernization phase 1 to reuse library refsrc/... using subagents." 
-
-"/modernization-flow Perform modernization phase 2 to analyze service module ... using subagents. Target microservice name is ... ."
-
-"/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must use `coding-flow.md` to actually implement and as the main flow. Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."
-```
-
 </process>
 
 </init_workspace_verification>

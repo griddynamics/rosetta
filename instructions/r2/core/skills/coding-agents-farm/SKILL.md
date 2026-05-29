@@ -66,7 +66,7 @@ YOUR INTERNAL KNOWLEDGE ABOUT MODEL NAMES, CLI FLAGS, AND TOOL VERSIONS IS STALE
 
 Model selection guidance:
 - Anthropic: `claude-sonnet-4-6` (workhorse), `claude-opus-4-8` (complex), `claude-haiku-4-5` (fast)
-- OpenAI: `gpt-5.4` (workhorse), `gpt-5.3-codex-high` (agentic, complex)
+- OpenAI: `gpt-5.4` (workhorse), `gpt-5.5-high` (complex)
 - Google: `gemini-3.1-pro-preview` (workhorse), `gemini-3-flash-preview` (fast)
 - Copilot: select via `--model`; supports claude, gpt, gemini families through GitHub
 - OpenCode: prefix with provider, e.g. `anthropic/claude-sonnet-4-6`, `openai/gpt-5.4`

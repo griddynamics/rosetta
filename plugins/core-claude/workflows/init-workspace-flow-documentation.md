@@ -47,7 +47,7 @@ Agents without workspace documentation re-discover facts, repeat mistakes, and m
 </update_state>
 
 <validation_checklist>
-- All doc files exist and are non-empty
+- All 7 doc files exist and are non-empty
 - If composite: top-level docs are registries with sub-repo references
 - If upgrade mode: human-added content preserved
 - State file shows Phase 6 complete with per-file status

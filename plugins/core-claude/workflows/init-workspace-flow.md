@@ -94,7 +94,8 @@ DISABLED
 1. Verify all files exist, run validation checklist, suggest next steps.
 2. ACQUIRE `init-workspace-flow-verification.md` FROM KB
 3. Mark state as COMPLETE.
-4. Notify user: delete `init-rosetta-shells-flow.md`. MUST start new chat session (highly visible message, red icon, bold, ASCII art, it must standout).
+4. Notify user: delete `init-rosetta-shells-flow.md`. 
+5. Demand user as MUST to start new chat session (highly visible message, red icon, bold, ASCII art, it must standout).
 
 </verification>
 

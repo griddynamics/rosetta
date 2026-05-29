@@ -11,10 +11,9 @@ These artifacts are deployed via plugins (preferred) or MCP into a target real s
 Coding agents will always be exposed to the same Rosetta bootstrap as you are now (always injected in context): 
 bootstrap_guardrails, bootstrap_core_policy, bootstrap_execution_policy, bootstrap_hitl_questioning, bootstrap_rosetta_files. Plus either bootstrap.md (mcp mode) or plugin-files-mode.md (plugins/standalone mode).
 
-Rosetta predefine key folders and files using that bootstrap_rosetta_files.
+Rosetta predefine key folders and files using that bootstrap_rosetta_files XML tag that will be present in target project.
 
 When evaluating a Rosetta prompt, simulate the perspective of an agent running inside a real target project.
-The target project is assumed to have Rosetta-defined folder structure.
 References to files in that structure are valid by design (except init-workspace workflow - which creates or upgrades them).
 
 Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` in current rosetta repo to better understand rosetta implementation itself. Remember that current and target repositories ARE DIFFERENT (this content is only available in this repo!).
@@ -23,7 +22,24 @@ MUST USE SKILL `orchestrator-contract` for all subagent dispatches.
 MUST USE SKILL `coding-agents-prompt-authoring` to review and to harden the changes and at least must include pa-rosetta.md, pa-patterns, pa-hardening.md, pa-schemas.md.
 Subagents MUST USE SKILL `coding-agents-prompt-authoring` with references listed above (and more if they determine additional references are needed).
 
-Each instance of orchestrator/subagent can only handle up to 10 prompt files: if more you must split work in parallel subagents by logically grouping prompts by release (instructions/r*), then by their prompt families or usage patterns.
+Each orchestrator/subagent instance can handle at most 7 prompt files (hard cap). Apply the small/large split thresholds defined in the Workflow section; when splitting, group prompts by release (instructions/r*), then by their prompt families or usage patterns.
+
+## How to think about Rosetta
+
+`instructions` folder has folders for releases (r1, r2, r3, etc).
+One agent works with only one release (no cross refs), upgrades switch releases to latest. 
+N-1 is supported.
+Instructions are uploaded to RAGFlow (all releases as separate datasets), where MCP reads it from latest stable dataset only.
+Instructions are also copied and adapted by plugin generator to generate coding agent plugins (to avoid MCP altogether).
+Instructions (skills, rules, templates, prompts, workflows, commands, agents, subagents) are used by AI coding agents themselves, those are not user facing.
+We only support large SOTA models (by Anthropic, OpenAI, Google, z.ai, DeepSeek, Kimi) of different tiers (fast, workhorse, complex) minding overall cost. AI coding agent on every call passes the entire conversation history and we pay for all of those tokens every time (this is how LLMs work, cached tokens though payed with 80% discount), thus reducing history by using progressive disclosure, utilizing subagents and by compressing text especially in bootstraps is very important to reduce the actual cost. Note, every action (to load skill, to read files, to write file, to execute tool call, etc, and results of those) is full round trip. AI coding agents can only handle 5 steps at once (if more - LLM skip steps, etc) and our primary goal is reliability.
+Other engineers install Rosetta plugins (preferred) or MCP to their TARGET repos (so no rosetta repo context available), those plugins/mcp then internally pass instructions to coding agents on how to do things right. Since instructions are not user facing we can and should take compression shortcuts (terms, phrases, intermediate documents, etc). Exception: parts of instructions for user facing results (messages and user facing documents).
+AI coding agents support subagents feature: the top agent assumes orchestrator role and executes subagents sequentially or in parallel, basically managing its own team. Very small tasks do not need subagent overhead, but medium to large require use of subagents to reduce cost and prevent context compaction.
+If conversation history runs for long or loads too many files/calls it overflows. AI coding agents perform context compaction.
+Context compaction destroys majority of knowledge (bootstraps, reasoning, original code) and renders coding agent fully unreliable.
+You review original instructions so that they work properly within coding agents on the target repository. 
+Must distinguish repos, actors, prompts, etc as defined above.
+Use references `rosetta`, `cto-ims-kb`, `RulesOfPower` (all must be).
 
 ## Workflow
 
@@ -31,8 +47,8 @@ Each instance of orchestrator/subagent can only handle up to 10 prompt files: if
 2. **Evaluate prompts**:
    - **Small changes** (≤7 files AND ≤1000 changed lines total): evaluate all files yourself.
    - **Large changes** (>7 files OR >1000 changed lines): spawn parallel subagents using the Task tool. Provide each subagent with the FULL and EXACT context: diff file path, base ref, their assigned file subset, and their output path in `.tmp/agents/`. Group files by release folder, then by prompt family. MUST USE SKILL `orchestrator-contract` for every subagent dispatch. Each subagent writes its JSON results to `.tmp/agents/{subagent-id}.json`.
-   - Distinguish this repo vs target repo (only instructions are present in target repo, you and subagents always forget that!)
-   - Always extend context to remove blind sports (example: changes made to skill asset only, but you still load unmodified SKILL.md to understand full context; same with workflows, phases, rules, bootstraps)
+   - Pass "How to think about Rosetta to subagents"
+   - Always extend context to remove blind spots (example: changes made to skill asset only, but you still load unmodified SKILL.md to understand full context; same with workflows, phases, rules, bootstraps)
    - Do not report the same issue multiple times
 3. **Recombine**: Merge all subagent JSON outputs (or your own results) into a single JSON array.
 4. **Prompt engineer review**: Spawn a subagent (prompt engineer role) to review the combined JSON results. Allow the subagent to read repository files for additional context. The reviewer verifies findings are grounded, removes false positives, and flags missed regressions. MUST USE SKILL `orchestrator-contract`.
@@ -41,9 +57,7 @@ Each instance of orchestrator/subagent can only handle up to 10 prompt files: if
 
 ## File Reference Validation Rules
 
-Read files that exist in the Rosetta repository by their exact name if required (e.g., the prompt files under evaluation).
-
-Only flag a Reference Integrity issue if a reference points to a file or term that is neither defined within the prompt itself nor part of the standard target project structure above.
+Read repository files by their exact name when needed (e.g., the prompt under evaluation). Only flag a Reference Integrity issue if a reference points to a file or term that is neither defined within the prompt itself nor part of the standard target project structure above.
 
 ## Constraints (priority order, highest first)
 
@@ -53,7 +67,7 @@ Only flag a Reference Integrity issue if a reference points to a file or term th
 4. You MUST NOT hallucinate nor nitpick issues. If the diff does not degrade a gate, score `comparison: 3` or higher and move on.
 5. You MUST ground every issue in a specific change from the diff. No speculation.
 6. You MUST score every gate for every prompt provided. No skipping. Gates untouched by the diff get `comparison: 3` or higher.
-7. For each regression found, propose a concrete solution referencing the specific change. Take into AI and human issues into account (from pa-patterns.md)
+7. For each regression found, propose a concrete solution referencing the specific change. Take both AI and human issues into account (from pa-patterns.md).
 8. Do NOT rewrite the prompt — describe what to add, change, or remove.
 9. You MUST NOT flag stylistic preferences, wording choices, formatting variations, or nitpicks that do not affect agent behavior, reliability, or safety. Focus exclusively on behavioral regressions, safety gaps, contract violations, and structural degradation.
 10. You MUST NOT skip deleted or newly created files. Deleted files may indicate loss of critical functionality. New files must meet all quality gates. Both are essential for reasoning about the PR's impact.
@@ -73,11 +87,11 @@ The user provides a structured prompt with semicolon-separated fields:
 Steps:
 1. Parse all fields from the prompt.
 2. Read the diff file to understand all changes at once.
-3. **Rosetta Context Review (mandatory)**: Read the context files to understand Rosetta structure, load order, and file responsibilities (see "Rosetta Context Loading" section above).
+3. **Rosetta Context Review (mandatory)**: Read the context files to understand Rosetta structure, load order, and file responsibilities (see `pa-rosetta.md`).
 4. For each changed file, determine its change type and retrieve content:
    - **Modified file** (exists on disk AND in base ref): Read the NEW version from disk (Read tool). Get the BASE version via `git show <base_ref>:<file_path>` (Bash tool). Compare both.
    - **Deleted file** (not on disk, exists in base ref): Get the BASE version via `git show <base_ref>:<file_path>`. Evaluate what was lost — deleted prompts may remove critical agent capabilities, safety guardrails, or workflow steps. This is essential regression signal.
-   - **New file** (exists on disk, not in base ref): Read the NEW version from disk. Evaluate the new prompt against all quality gates from scratch — new prompts must meet the same standards as existing ones. For comparison scoring, the baseline is the absence of this file: compare each gate against what a reasonable prompt architect would assume if the file did not exist (e.g., if a new safety skill is added, the comparison baseline is "no safety skill existed"). Avoid bias from having already read the file — score the delta between "not having it" and "having it."
+   - **New file** (exists on disk, not in base ref): Read the NEW version from disk. If a similar file existed in a previous release, compare against that predecessor. Otherwise evaluate the new prompt against all quality gates from scratch — new prompts must meet the same standards as existing ones — and for comparison scoring use the baseline of the file not existing: compare each gate against what a reasonable prompt architect would assume if the file did not exist (e.g., if a new safety skill is added, the comparison baseline is "no safety skill existed"). Avoid bias from having already read the file — score the delta between "not having it" and "having it."
 5. Use workspace-relative paths in all output (e.g., `instructions/r2/core/rules/example.md`).
 
 ## Success Criteria
@@ -192,7 +206,7 @@ The output is a JSON **array** written to the output file path provided in the p
 
 3. **`gates{}`** — object mapping every gate name to a score object. All 20 gates MUST appear. Use the exact gate names from the Quality Gates section (e.g., "Goal Specification", "Input Contract"). Each gate contains:
    - `score`: integer 1-5, the absolute score for the NEW prompt (for deleted files: score the impact of the deletion; for new files: absolute quality from scratch)
-   - `comparison`: integer 1-5, the relative comparison score showing the impact of changes from base to new (1=much worse, 2=slightly worse, 3=no change, 4=slightly better, 5=much better). For new files: compare against the baseline assumption of the file not existing — a well-written new prompt that fills a real gap scores 4-5, a poorly written one that adds noise without value scores 2-3. Avoid anchoring bias from having read the file.
+   - `comparison`: integer 1-5, the relative comparison score showing the impact of changes from base to new (1=much worse, 2=slightly worse, 3=no change, 4=slightly better, 5=much better). For new files: if a similar file existed in a previous release, compare against that predecessor; otherwise compare against the baseline assumption of the file not existing — a well-written new prompt that fills a real gap scores 4-5, a poorly written one that adds noise without value scores 2-3. Avoid anchoring bias from having read the file.
 
 4. **`issues[]`** — array of issues for gates. Each issue MUST have all fields:
    - `severity`: integer 1-5. 5=critical (agent breaks, becomes unsafe, or chain fails), 4=very high (agent reliably does the wrong thing), 3=high (agent behavior degraded or inconsistent), 2=medium (subtle quality loss, agent still works), 1=low (cosmetic, minimal behavioral impact).

@@ -57,16 +57,24 @@ ARCHITECTURE.md:
 IMPLEMENTATION.md:
 - What this doc is for and what it should contain, self-defining style
 - Self-defines purpose, content type, style
-- Current state only VERY BRIEFLY
+- Baseline state VERY BRIEFLY (first part, use word "Baseline" in header, not word "current" - misleading later on)
+- High-level change log, each change separate header with date and description (second part)
 - DRY — reference other docs
-- High-level change log, each change separate header with date and description
 - The only implementation change log
+- If nothing to add - add template
 
 ASSUMPTIONS.md:
 - What this doc is for and what it should contain, self-defining style
 - Self-defines purpose, content type, style
 - Each entry: assumption, confidence level, target file when resolved
 - Revalidate all assumptions after other documents complete
+- If nothing to add - add template
+
+TODO.md:
+- What this doc is for and what it should contain, self-defining style
+- Self-defines purpose, content type, style
+- Each entry comes with header containing "priority when what where" and body with details
+- If nothing to add - add template
 
 AGENT MEMORY.md:
 - What this doc is for and what it should contain, self-defining style

@@ -19,7 +19,7 @@ Enforce that target prompt:
 - Coding-agent-agnostic
 - Clear separation of concerns, actors, events, models, actions
 - Sequential activities use numbered list
-- Look for text compression opportunity without loosing value, including but not limited to using unicode characters and icons, phrases instead of full sentences
+- Look for text compression opportunity without loosing value, including but not limited to using unicode characters and icons, phrases instead of full sentences (except user facing)
 
 </hardening>
 
