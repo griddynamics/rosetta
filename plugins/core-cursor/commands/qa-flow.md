@@ -185,7 +185,7 @@ Skills:
   - Phase 2: `swagger-contracts-analysis`
   - Phase 3: `qa-gap-analysis`, `gap-and-contradiction-analysis`, `aqa-requirements-elicitation`, `questioning`
   - Phase 4: `api-test-spec-authoring`, `repository-implementation-standards`
-  - Phase 5: `coding`, `testing`, `qa-test-implementation`, `automation-test-implementation-handoff`
+  - Phase 5: `automation-test-implementation-handoff` (primary entrypoint). Reachable only via the handoff (do not ACQUIRE/USE directly from the phase file): `coding`, `testing`, `qa-test-implementation`. See `qa-flow-test-implementation.md` step 5.1.4 delegation policy.
   - Phase 6: `debugging`, `qa-test-debugging` (Part A), `automation-test-execution-analysis`
   - Phase 7: `debugging`, `coding`, `qa-test-debugging` (Part B), `user-approved-code-changes`
 

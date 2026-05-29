@@ -47,6 +47,10 @@ Analyze test execution results provided by user. Identify failures, categorize r
 3. If the pinned skill is not already in the loaded skill set: ACQUIRE it FROM KB using the bound identifier.
 4. If step 3 did not yield the skill document: record the failure in `agents/qa-state.md`, stop this phase, and ask the user to fix Rosetta/KB access.
 5. USE SKILL the pinned skill.
+6. **Post-SKILL verification:** confirm `agents/qa/{IDENTIFIER}/execution-report.md` exists and contains the four required sections per `<execution_report_contract>` (Summary, Failures, Root causes, Recommendations).
+   - **Missing file** (skill ran but no file written): re-invoke the pinned skill once with the same inputs. If still missing, stop Phase 6, record `Phase 6 blocked: execution-report.md not produced` in `agents/qa-state.md`, and ask the user to check the skill's output.
+   - **Missing required sections** (file exists but is incomplete): re-invoke the pinned skill once and ask it to fill the gap. If still incomplete after re-invocation, stop, record the gap, and escalate to the user.
+   - **Contract conformance success:** proceed to `<review_findings>`.
 </execute_analysis>
 
 <review_findings step="6.2">

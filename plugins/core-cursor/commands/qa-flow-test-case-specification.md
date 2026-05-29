@@ -46,6 +46,8 @@ Read completely:
 
 <produce_output step="4.3">
 
+**Before presenting:** every item in `<validation_checklist>` below must be satisfied for the produced file. Items that are not yet verifiable at this step (e.g., user approval) are checked at step 4.5.
+
 Create `agents/qa/{IDENTIFIER}/test-specs.md` using the following template:
 
 ```markdown
@@ -71,21 +73,48 @@ Create `agents/qa/{IDENTIFIER}/test-specs.md` using the following template:
 
 ### Endpoint: [METHOD] [PATH]
 
-[All ATC-NNN specifications for this endpoint]
+[All ATC-NNN specifications for this endpoint — one per scenario]
+
+**ATC-NNN naming:** `ATC` = API Test Case, `NNN` = zero-padded sequence (`ATC-001`, `ATC-002`, …). Use a continuous sequence across all endpoints in this file.
+
+**Worked example of one ATC-NNN GWT specification:**
+
+```markdown
+#### ATC-001: GET /api/v1/orders/{orderId} returns order when ID exists
+
+**Priority:** P0  **Type:** Happy Path  **Source:** TC-42 (raw-data.md), FR-7 (analysis.md)
+
+**Given:**
+- Authenticated user with role `customer`
+- Order `o-12345` exists in the system with status `PAID`, customer_id matches authenticated user
+
+**When:**
+- `GET /api/v1/orders/o-12345`
+- Headers: `Authorization: Bearer <token>`, `Accept: application/json`
+- Body: (none)
+
+**Then:**
+- Status: `200 OK`
+- Response body matches schema `Order` (per api-analysis.md)
+- `body.id == "o-12345"`
+- `body.status == "PAID"`
+- `body.customer_id == <authenticated user id>`
+- Response time < 500ms (NFR target from analysis.md)
+```
 
 ---
 
 ## Test File Mapping
-[From skill step 4]
+**Required content:** for each ATC-NNN, the planned target test file (e.g., `tests/api/orders.test.js`), the test name (function/describe block), and any reusable fixtures. One row per ATC-NNN.
 
 ## Shared Utilities
-[From skill step 5]
+**Required content:** auth helpers, request builders, response validators, data factories, and teardown utilities to be created or reused. List each with its purpose and target file path.
 
 ## Execution Order
-[From skill step 6]
+**Required content:** ordered list of test groups including any dependencies (e.g., create-then-read flows must run sequentially). Mark each as independent / sequential / setup-required.
 
 ## Assumptions
-[List any assumptions from Phase 3 that affect these specs]
+List any assumptions from Phase 3 that affect these specs **plus any new assumptions introduced during specification** (e.g., guessed boundary values, default headers, fixture sizes). Cite source for each.
 ```
 
 </produce_output>
@@ -93,18 +122,26 @@ Create `agents/qa/{IDENTIFIER}/test-specs.md` using the following template:
 <present_for_approval step="4.4">
 1. Present summary to user: total scenarios, priority breakdown, endpoints covered
 2. **WAIT FOR USER APPROVAL** — "Yes", "Approve", or similar
-3. If user requests modifications: update specs and re-present
-4. **DO NOT PROCEED** to Phase 5 without explicit approval
+3. **User response branches:**
+   - **Approve:** proceed to step 4.5.
+   - **Modify (specific changes requested):** update specs and re-present from step 4.3.
+   - **Reject (full rejection):** record rationale in `agents/qa-state.md`, return to Phase 3 to revisit gap analysis.
+   - **Partial approve (some scenarios approved, others rejected):** drop rejected ones, keep approved, re-present narrowed plan.
+   - **Drop request (remove specific scenarios):** remove and re-present.
+   - **Add request (more scenarios needed):** add and re-present.
+   - **Repeated rejection (≥3 cycles on the same scope):** stop, ask user whether to re-open Phase 3 or escalate scope to a project decision.
+4. **DO NOT PROCEED** to Phase 5 without explicit approval.
 </present_for_approval>
 
 <update_state step="4.5">
-1. Update `agents/qa-state.md`:
+1. **Before marking complete:** re-run `<validation_checklist>` and confirm every item is checked off (the agent must report `Phase 4 checklist: N/N items satisfied` in chat output).
+2. Update `agents/qa-state.md`:
    - Test Cases Specified: [count]
    - Priority Breakdown: P0: [N], P1: [N], P2: [N], P3: [N]
    - Endpoints Covered: [count]
    - User Approval: [datetime]
    - Phase 4 completion timestamp
-2. Mark Phase 4 complete, Phase 5 current
+3. Mark Phase 4 complete, Phase 5 current
 </update_state>
 
 <validation_checklist>
@@ -117,5 +154,12 @@ Create `agents/qa/{IDENTIFIER}/test-specs.md` using the following template:
 - Shared utilities identified
 - User approval received
 </validation_checklist>
+
+<failure_handling>
+- **Missing input file** (`raw-data.md`, `api-analysis.md`, or `analysis.md` absent or empty): stop Phase 4, record `Phase 4 blocked: missing [artifact]` in `agents/qa-state.md`, ask user to re-run the producing phase.
+- **Unresolved Phase 3 gaps** (analysis.md still has `BLOCKING ASSUMPTION` entries): stop, record `Phase 4 blocked: Phase 3 has open Critical questions`, send user back to Phase 3.
+- **Skill produces zero scenarios** (api-test-spec-authoring returns empty): stop, record skill failure, ask user to verify inputs and re-run.
+- **Repeated rejection cycle:** after the 3rd cycle of reject-and-re-present per `<present_for_approval>` step 3, stop and ask the user whether to re-open Phase 3 or escalate scope.
+</failure_handling>
 
 </qa_flow_test_case_specification>

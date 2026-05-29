@@ -17,7 +17,7 @@ Gather test case details from TestRail and feature context from Confluence, cros
 - Output: `agents/plans/aqa-<test-name>.md` with test case info and feature context
 - MCP skills: `mcp-testrail-data-collection`, `mcp-confluence-data-collection`
 - Discipline skill (Rosetta KB): `confluence-source-harvesting` — required for step 1.3; ACQUIRE before USE if not already loaded.
-- Session guardrails (Rosetta KB): `bootstrap-guardrails` — global safety/scope rule pack; ACQUIRE in step 1.3 only when not already in the agent's loaded context.
+- Session guardrails: `bootstrap-guardrails` is a **rule** (not a skill) loaded session-wide via Rosetta bootstrap (Prep Step 3); no per-phase ACQUIRE needed. If for any reason the rule is absent from the session context, treat that as a session-bootstrap failure and stop the phase (do not silently proceed).
 - Zero-document ACQUIRE for any required tag in step 1.3: apply `<zero_doc_protocol>`.
 - **KB catalog / ACQUIRE success:** Tags above resolve to Rosetta markdown in this repository (`instructions/r3/core/skills/confluence-source-harvesting/SKILL.md`, `instructions/r3/core/rules/bootstrap-guardrails.md`). Broader taxonomy: `docs/definitions/skills.md`, `docs/definitions/rules.md`. **Successful ACQUIRE** means Rosetta returns **≥1 non-empty** instruction document for the tag.
 - Prerequisite: TestRail and Confluence MCPs configured; Rosetta/KB access sufficient to resolve the tags above when needed.
@@ -52,7 +52,7 @@ Stop Phase 1, record the failed KB tag in `agents/aqa-state.md`, notify the user
 </zero_doc_protocol>
 
 <acquire_skills>
-1. If `bootstrap-guardrails` is not already in the agent's loaded context: ACQUIRE `bootstrap-guardrails` FROM KB. On zero documents: apply `<zero_doc_protocol>`.
+1. Verify `bootstrap-guardrails` rule is present in session context (loaded via Rosetta bootstrap, not per-phase). If absent, stop and report bootstrap failure to user; do not apply `<zero_doc_protocol>` (which is for skill ACQUIRE), do not silently proceed.
 2. ACQUIRE `confluence-source-harvesting` FROM KB if not already loaded. On zero documents: apply `<zero_doc_protocol>`.
 </acquire_skills>
 

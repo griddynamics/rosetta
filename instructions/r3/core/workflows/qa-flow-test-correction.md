@@ -31,7 +31,7 @@ Fix identified test failures based on Phase 6 analysis. Requires explicit user a
 **Preparation-only:** nothing in this block modifies workspace files until **7.3** after explicit approval in **7.2**.
 1. ACQUIRE `user-approved-code-changes` FROM KB. If multiple non-empty documents return, prefer the one whose frontmatter `name:` (or primary tag) is exactly `user-approved-code-changes`; if still ambiguous, stop and ask the user which document is canonical.
 2. **Phase wins over orchestrator copy:** if text inside the acquired skill conflicts with steps **7.2**–**7.3** in this phase file, follow **7.2**–**7.3** and note the conflict in `agents/qa-state.md`.
-3. If the ACQUIRE in step **1** returned **zero** documents, run this **fallback sequence in order**: USE SKILL `debugging` → USE SKILL `coding` → execute only the subsection headed exactly **`Part B (Corrections)`** in `qa-test-debugging`. If that exact heading is absent, stop and ask the user before proceeding. In fallback preparation, extract text/snippets only (see the **Preparation-only** rule above).
+3. If the ACQUIRE in step **1** returned **zero** documents, run this **fallback sequence in order**: USE SKILL `debugging` → USE SKILL `coding` → execute only the subsection headed exactly **`Part B: Corrections`** (with a colon, matching `instructions/r3/core/skills/qa-test-debugging/SKILL.md` line 127) in `qa-test-debugging`. **Accept either of these heading forms as a match:** `## Part B: Corrections` or `## Part B (Corrections)` (legacy variant). If neither is present, stop and ask the user before proceeding. In fallback preparation, extract text/snippets only (see the **Preparation-only** rule above).
 4. If the ACQUIRE in step **1** returned **one or more** documents: USE SKILL `user-approved-code-changes` — produce output for step **7.2** (snippets or file-level diffs per the skill document).
 5. **Transparency before 7.2:** state whether preparation used **Primary** (item **4**) or **Fallback** (item **3**), list document **title(s) / `name:`** from step **1**, and flag **uncertainty** if the hit document looks incomplete or off-topic — ask the user once before `present_for_approval` if unsure.
 </execute_corrections>
@@ -50,15 +50,17 @@ Rationale: execution-report ERR-3 — response is Rack::Response; comparing .cod
 <present_for_approval step="7.2">
 1. Present all proposed changes with before/after code
 2. **WAIT** for explicit user approval
-3. User must type "approved" or "yes" — do not assume approval
+3. User must type one of these **exactly** (case-insensitive: `approved`, `Approved`, `APPROVED` etc. all match): `approved`, `approve`, `yes`. Do not assume approval. **Loose phrasings such as "looks good", "ship it", "LGTM", "sounds good", "go ahead", "OK", "go", or paraphrases that imply but do not state approval must be treated as REVIEW (not approval). Re-prompt the user for one of the exact tokens. The acceptable token list is closed; "or similar" / "etc." wording in other loaded rules (e.g. `hitl` skill line 18) does NOT extend it for this gate.**
+3a. **Max-retry escalation:** if the user has been re-prompted ≥3 times in this Phase 7 cycle without supplying an exact approval token, stop the approval loop and ask the user explicitly: "are you trying to approve (please type `approved` or `yes`) or trying to reject/modify the plan?" Do not continue silently re-prompting beyond 3 cycles.
 4. If user requests modifications: update proposals, re-present
 5. If user rejects specific changes: remove from plan
 </present_for_approval>
 
 <apply_changes step="7.3">
 1. Apply approved changes one at a time
-2. Validate linting after each change
-3. Verify changes address root causes
+2. Validate linting after each change. **On lint failure:** revert that specific change (do not leave the file in a broken state), re-prepare a corrected version, and re-present that single change to the user via `<present_for_approval>`. Do not silently leave the lint failure in place.
+3. Verify changes address root causes by cross-referencing each applied change to the matching root-cause entry in `agents/qa/{IDENTIFIER}/execution-report.md` (cite the entry ID, e.g., `ERR-3`). **On root-cause mismatch** (change does not map to any reported root cause, or maps but does not address it): return to step 7.1 with a note in `agents/qa-state.md` describing the mismatch; do not silently leave unmapped changes applied.
+4. **Max retries:** cap step 7.3 in-phase retries at 3 cycles per failure. After 3 failed cycles on the same change, stop, record `Phase 7 blocked: in-phase apply retry cap reached` in `agents/qa-state.md`, and escalate to the user.
 </apply_changes>
 
 <update_state step="7.4">

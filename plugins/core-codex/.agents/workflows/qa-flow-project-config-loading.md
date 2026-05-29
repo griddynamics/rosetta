@@ -14,7 +14,9 @@ Initialize QA session directory, load existing project config or collect project
 
 <workflow_context>
 - Phase 0 of 8 in `qa-flow`
-- Input: user request with test case reference (TestRail ID, Jira ticket, or direct description)
+- Input (REQUIRED): user request with test case reference (TestRail ID, Jira ticket, or direct description)
+- Input (OPTIONAL, when provided by user): Swagger/OpenAPI spec URL or path, Confluence/docs page URLs, backend source code locations
+- `{IDENTIFIER}` derivation rule: prefer Jira key (e.g. `PROJ-123`) → TestRail case ID (e.g. `C12345`) → sanitized kebab-case feature name (e.g. `order-lookup`). First non-empty wins; recorded in `qa-state.md` on session init.
 - Output: `agents/qa/{IDENTIFIER}/` directory with `initial-data.md` and `qa-project-config.md`; `agents/qa-state.md` initialized
 - Prerequisite: starting new QA flow
 - HITL: conditional — only if project config does not already exist

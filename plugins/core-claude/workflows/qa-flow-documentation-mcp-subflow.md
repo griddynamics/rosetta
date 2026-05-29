@@ -35,7 +35,11 @@ Write exactly one documentation MCP outcome under the QA raw-data file and verif
 7. USE SKILL `confluence-source-harvesting`.
 8. If step 7 produced no harvestable sources: apply **EMPTY_HARVEST** → go to step 10 only (**do not** run step 9).
 9. USE SKILL with the **Resolved MCP collection skill** tag; when done, apply **COMPLETED**.
-10. Verify `agents/qa/{IDENTIFIER}/raw-data.md` exists and the documentation heading holds **exactly one** outcome matching **one row** of the **Output contract** table, consistent with the branch taken above.
+10. Verify `agents/qa/{IDENTIFIER}/raw-data.md` exists and the documentation heading holds **exactly one** outcome matching **one row** of the **Output contract** table, consistent with the branch taken above. **Verification-failure remediation:**
+    - **Zero outcomes found under the heading:** append the appropriate row for the branch taken; re-run step 10.
+    - **Duplicate outcomes (multiple rows under the heading, typically from a re-run):** keep only the most recent matching row (latest by `agents/qa-state.md` Phase 1 timestamp), delete earlier rows; re-run step 10.
+    - **Heading missing entirely:** create the fixed heading from `<workflow_context>`, then append the appropriate row; re-run step 10.
+    - **After remediation:** if verification still fails on a third pass, stop, record `Phase 1 subflow verification failed after remediation` in `agents/qa-state.md`, and ask the user to inspect `raw-data.md` manually.
 </execute_documentation_mcp>
 
 <output_contract>

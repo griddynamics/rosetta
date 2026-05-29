@@ -39,7 +39,7 @@ Determine spec source in order:
 3. **API route definitions in backend source** (if `{backend-source-path}` configured):
    - Search within `{backend-source-path}` for framework-specific route patterns
    - If `{backend-source-path}` is NOT configured, search entire codebase instead.
-4. **If none found**: Proceed with documentation from Phase 1 only; ask user for endpoint details
+4. **If none found**: Proceed with documentation from Phase 1 only; ask user for endpoint details. **Zero-doc fallback:** if the user is unavailable, refuses, or supplies only partial info: mark each missing template field (request schema, response schema, auth, data dependencies) as `TBD` and add an explicit `## Assumptions` section in `api-analysis.md` listing every unknown field and the reason it is unknown. Flag Phase 2 as `partial — N/M endpoints fully analyzed` in `agents/qa-state.md` so downstream phases know not to treat the analysis as authoritative.
 
 Decision point: Swagger available -> full spec analysis. No Swagger -> code-based analysis + user input.
 

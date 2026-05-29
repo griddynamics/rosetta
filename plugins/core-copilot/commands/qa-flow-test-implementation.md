@@ -43,6 +43,8 @@ Implement all approved API test specifications as executable automated tests fol
 </execute_implementation>
 
 <validate step="5.2">
+This block lists **in-progress validation items**. The final phase-exit gate is `<validation_checklist>` below, which is authoritative; every item there must be checked off before step 5.4 marks the phase complete.
+
 1. All assertions from Phase 4 specs implemented
 2. Existing project patterns followed
 3. Auth setup follows project conventions
@@ -69,13 +71,23 @@ Implement all approved API test specifications as executable automated tests fol
 </update_state>
 
 <validation_checklist>
-- All approved test specifications implemented
-- Shared utilities created (auth, factories, validators)
-- Tests follow existing project patterns
+**Authoritative exit gate for Phase 5.** Every item must be checked off before step 5.4 marks the phase complete. Supersedes any divergence with `<validate>` step 5.2 in-progress items.
+
+- All assertions from Phase 4 specs implemented (includes `<validate>` item 1)
+- Shared utilities created (auth, factories, validators) — covers `<validate>` item 3 (Auth setup)
+- Tests follow existing project patterns (covers `<validate>` item 2)
 - All tests isolated and idempotent
+- Test data lifecycle managed: create + cleanup verified (covers `<validate>` item 4)
 - Project coding standards followed
-- Linting passed
+- Linting passed (covers `<validate>` item 5)
 - User informed and execution command provided
 </validation_checklist>
+
+<failure_handling>
+- **Missing Phase 4 specs or approval:** if `agents/qa/{IDENTIFIER}/test-specs.md` is absent, empty, or `User Approval` is unset in `agents/qa-state.md`, stop Phase 5, record `Phase 5 blocked: missing Phase 4 spec/approval`, and return to Phase 4.
+- **Missing `agents/qa-state.md`:** stop Phase 5, record the failure in chat output, and ask the user to restore the state file (do not auto-recreate without consent).
+- **Lint failures the handoff cannot auto-fix:** stop step 5.1 at item 5, list the unfixable lint errors in chat output, ask the user whether to (a) edit manually before continuing, (b) suppress with project-approved overrides, or (c) abort Phase 5 to revisit specs. Do not silently accept lint failures.
+- **Handoff partial/error return:** if `automation-test-implementation-handoff` returns a partial result (some test files created, others failed) or errors mid-execution, record what was produced + what failed in `agents/qa-state.md`, do not mark Phase 5 complete, and ask the user how to proceed (retry, narrow scope, or abort).
+</failure_handling>
 
 </qa_flow_test_implementation>

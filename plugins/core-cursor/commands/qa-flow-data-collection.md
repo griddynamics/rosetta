@@ -35,13 +35,14 @@ Documentation MCP scope comes from **`qa-project-config.md`** and Phase 0 only.
 1. Verify project config loaded with data source information
 2. Verify initial data file exists with test case reference
 3. Identify TMS, documentation, and codebase sources to query
+4. **Failure path:** if (1) or (2) is missing, stop Phase 1, record `Phase 1 blocked: missing prerequisite [config | initial-data]` in `agents/qa-state.md`, and ask the user to re-run Phase 0. If (3) finds no usable sources, record the gap and ask the user to confirm proceeding with empty data sources before continuing.
 </confirm_inputs>
 
 <execute_collection step="1.2" subagent="discoverer" role="QA data collector">
 
 <verify_primary_raw_data step="1.2a">
 1. USE SKILL `qa-data-collection`
-2. Verify `agents/qa/{IDENTIFIER}/raw-data.md` exists after step 1. If it is missing, follow remediation from `qa-data-collection` or stop Phase 1, record the gap in `agents/qa-state.md`, and notify the user — **do not** run `<documentation_mcp_optional>` until the primary raw-data artifact exists.
+2. Verify `agents/qa/{IDENTIFIER}/raw-data.md` exists after step 1. If it is missing: **first** attempt the remediation path defined inside `qa-data-collection`. **If remediation still produces no `raw-data.md`** after one attempt, stop Phase 1, record the gap in `agents/qa-state.md`, and notify the user — **do not** run `<documentation_mcp_optional>` until the primary raw-data artifact exists.
 </verify_primary_raw_data>
 
 <documentation_mcp_optional step="1.2b">
@@ -70,6 +71,7 @@ Documentation MCP scope comes from **`qa-project-config.md`** and Phase 0 only.
    - Backend Source: [path or N/A]
    - Phase 1 completion timestamp
 2. Mark Phase 1 complete, Phase 2 current
+3. **Failure path:** if `agents/qa-state.md` cannot be written (permission denied, disk full, file locked), do not mark Phase 1 complete; record the write error in chat output, ask the user to resolve the filesystem issue, and pause before Phase 2.
 </update_state>
 
 <validation_checklist>
