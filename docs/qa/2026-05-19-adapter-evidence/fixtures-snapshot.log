@@ -1,0 +1,8 @@
+PASS | cc-post-write | ide=claude-code | event=PostToolUse | toolKind=write
+PASS | cc-pre-bash | ide=claude-code | event=PreToolUse | toolKind=bash
+PASS | cc-multi-edit | ide=claude-code | event=PreToolUse | toolKind=multi-edit
+PASS | codex-bash | ide=codex | event=PostToolUse | toolKind=bash
+PASS | codex-patch | ide=codex | event=PostToolUse | toolKind=write
+PASS | cursor-write | ide=cursor | event=PostToolUse | toolKind=write
+PASS | copilot-write | ide=copilot | event=PostToolUse | toolKind=null
+PASS | windsurf-write | ide=windsurf | event=PostToolUse | toolKind=write

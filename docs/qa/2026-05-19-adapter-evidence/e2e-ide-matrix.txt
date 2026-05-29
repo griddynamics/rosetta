@@ -1,0 +1,11 @@
+# E2E IDE Coverage Matrix
+# Format: Task: <ide> (actual: <ide_used>) | status: PENDING/PASS/PARTIAL
+
+Task4: claude-code (actual: pending) | status: PENDING — live capture required
+Task5: cursor (actual: pending)      | status: PENDING — live capture required
+Task6: codex (actual: pending)       | status: PENDING — live capture required
+Task7: copilot (actual: pending)     | status: PENDING — live capture required
+
+# Update this file as each live capture completes.
+# Mutual-exclusion rule (M6): no IDE can appear twice across Task5/Task6/Task7 fallbacks.
+# Windsurf: offline-only (fixture + unit tests). No live capture. Waiver: no plugins/core-windsurf hook config exists yet.

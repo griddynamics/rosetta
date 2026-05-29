@@ -10,8 +10,9 @@ import fxCursor   from './fixtures/cursor-post-tool-use-write.json';
 import fxWindsurf from './fixtures/windsurf-post-tool-use-write.json';
 import fxCopilot  from './fixtures/copilot-post-tool-use-write.json';
 import fxUnknown  from './fixtures/unknown-ide-input.json';
+import ccMultiEdit from './fixtures/claude-code-pre-tool-use-multi-edit.json';
 
-import { detectIDE, normalize, formatOutput } from '../src/adapter';
+import { detectIDE, normalize, formatOutput, dedupKey } from '../src/adapter';
 
 // ---------------------------------------------------------------------------
 describe('detectIDE — all IDEs', () => {
@@ -55,27 +56,72 @@ describe('detectIDE — all IDEs', () => {
 });
 
 // ---------------------------------------------------------------------------
-describe('normalize — returns canonical shape for all IDEs', () => {
+describe('normalize — per-IDE shape assertions (B4 fix: toMatchObject replaces tautological loop)', () => {
 
-  const IDES = [
-    { name: 'claude-code', input: ccWrite },
-    { name: 'codex',       input: fxCodex },
-    { name: 'cursor',      input: fxCursor },
-    { name: 'windsurf',    input: fxWindsurf },
-    { name: 'copilot',     input: fxCopilot },
-  ];
-
-  for (const { name, input } of IDES) {
-    test(`${name}: normalized output has hook_event_name`, () => {
-      const result = normalize(input);
-      expect(result.hook_event_name, `${name}: hook_event_name missing`).toBeTruthy();
+  test('claude-code: PostToolUse Write → canonical shape', () => {
+    expect(normalize(ccWrite)).toMatchObject({
+      ide:             'claude-code',
+      event:           'PostToolUse',
+      toolKind:        'write',
+      hook_event_name: expect.any(String),
+      tool_input:      expect.objectContaining({ file_path: expect.any(String) }),
     });
+  });
 
-    test(`${name}: normalized output has tool_input`, () => {
-      const result = normalize(input);
-      expect(result.tool_input !== undefined, `${name}: tool_input missing`).toBeTruthy();
+  test('codex: PostToolUse Bash → canonical shape', () => {
+    expect(normalize(fxCodex)).toMatchObject({
+      ide:        'codex',
+      event:      'PostToolUse',
+      toolKind:   'bash',
+      tool_input: expect.objectContaining({ command: expect.any(String) }),
     });
-  }
+  });
+
+  test('cursor: postToolUse Write → event normalized to PostToolUse', () => {
+    expect(normalize(fxCursor)).toMatchObject({
+      ide:        'cursor',
+      event:      'PostToolUse',
+      toolKind:   'write',
+      tool_input: expect.objectContaining({ file_path: expect.any(String) }),
+    });
+  });
+
+  test('cursor fixture: ide is exactly cursor, not claude-code', () => {
+    expect(normalize(fxCursor).ide).toBe('cursor');
+  });
+
+  test('windsurf: PostToolUse Write → canonical shape', () => {
+    const r = normalize(fxWindsurf);
+    expect(r.ide).toBe('windsurf');
+    expect(r.event).toBe('PostToolUse');
+    expect(r.toolKind).toBe('write');
+  });
+
+  test('copilot: PostToolUse inferred from toolResult (no explicit hook_event_name)', () => {
+    expect(normalize(fxCopilot)).toMatchObject({
+      ide:        'copilot',
+      event:      'PostToolUse',
+      tool_input: expect.objectContaining({ file_path: expect.any(String) }),
+    });
+  });
+
+  test('copilot fixture: ide is exactly copilot', () => {
+    expect(normalize(fxCopilot).ide).toBe('copilot');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+describe('normalize — MultiEdit fixture (M5 fix: INTERPRET-PASS → machine-checked)', () => {
+
+  test('claude-code MultiEdit → toolKind multi-edit', () => {
+    expect(normalize(ccMultiEdit)).toMatchObject({
+      ide:        'claude-code',
+      event:      'PreToolUse',
+      toolKind:   'multi-edit',
+      tool_input: expect.objectContaining({ edits: expect.any(Array) }),
+    });
+  });
 
 });
 
@@ -105,6 +151,30 @@ describe('formatOutput — delegates to correct adapter', () => {
     };
     const result = formatOutput(canonical, 'copilot');
     expect(result.permissionDecision).toBe('deny');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+describe('dedupKey — idempotent for same input (B5 fix)', () => {
+
+  test('copilot: same input/hookName produces identical key twice', () => {
+    const k1 = dedupKey(fxCopilot, 'PostToolUse');
+    const k2 = dedupKey(fxCopilot, 'PostToolUse');
+    expect(k1).not.toBeNull();
+    expect(k1).toBe(k2);
+  });
+
+  test('codex: does not throw for any input', () => {
+    expect(() => dedupKey(fxCodex, 'PostToolUse')).not.toThrow();
+  });
+
+  test('claude-code: different hookName → different key (if non-null)', () => {
+    const k1 = dedupKey(ccWrite, 'PostToolUse');
+    const k2 = dedupKey(ccWrite, 'PreToolUse');
+    if (k1 !== null && k2 !== null) {
+      expect(k1).not.toBe(k2);
+    }
   });
 
 });

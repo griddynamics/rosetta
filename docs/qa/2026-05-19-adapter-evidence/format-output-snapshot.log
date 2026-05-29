@@ -1,0 +1,5 @@
+claude-code: {"hookSpecificOutput":{"additionalContext":"test-context","permissionDecision":"allow","permissionDecisionReason":"safe"}}
+codex: {"hookSpecificOutput":{"additionalContext":"test-context","permissionDecision":"allow","permissionDecisionReason":"safe"}}
+cursor: {"additional_context":"test-context","permission":"allow","user_message":"safe"}
+windsurf: {"additionalContext":"test-context"}
+copilot: {"permissionDecision":"allow","permissionDecisionReason":"safe","hookSpecificOutput":{"additionalContext":"test-context"}}
