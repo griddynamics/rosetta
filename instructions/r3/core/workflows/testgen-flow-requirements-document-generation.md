@@ -90,12 +90,18 @@ All requirements must follow SMART criteria: Specific, Measurable, Achievable, R
 
 <validation_checklist>
 - `requirements.md` created with all required sections
-- At least 1 user story, 3 functional requirements, 2 non-functional requirements
+- Requirement counts **appropriate to ticket scope**: aim for at least 1 user story, 3 functional requirements, 2 non-functional requirements. **Escape clause for trivial tickets:** if the ticket genuinely warrants fewer (e.g., a config-only change, a typo fix, a single-endpoint patch), record the rationale in the Assumptions section and proceed with the smaller count. The minimums are guidance for default-scope tickets, not hard floors for trivial ones.
 - All user answers from Phase 3 incorporated
 - Unresolved items documented as assumptions with impact assessment
 - Traceability matrix present linking requirements to sources
 - State file updated with Phase 4 complete
 </validation_checklist>
+
+<failure_handling>
+- **Missing or empty inputs** (`raw-data.md`, `analysis.md`, or `answers.md` absent or empty): stop Phase 4, record which input is missing in `testgen-state.md`, and announce which earlier phase to resume. Note: if Phase 3 was marked `SKIPPED — no questions`, an empty `answers.md` is acceptable; proceed without it.
+- **Contradictions unresolved by user answers** (the requirements skill identifies a contradiction whose mapping question was either unanswered or whose answer is itself contradictory): record the unresolved contradiction as an explicit **Risk (R-N)** in `requirements.md` with full source citations (Jira quote, Confluence quote, user answer if any). Do not invent a resolution. Proceed with the rest of Phase 4 but flag the risk in the Executive Summary.
+- **Skill execution failure** (`requirements-synthesis` errors or returns empty): re-invoke once with the same inputs; if still failing, stop, record the skill failure, and ask the user to verify input quality.
+</failure_handling>
 
 <pitfalls>
 - Don't copy Jira/Confluence verbatim — synthesize and structure into proper requirements

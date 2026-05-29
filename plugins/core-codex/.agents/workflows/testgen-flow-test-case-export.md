@@ -40,7 +40,11 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 
 <verify_connection step="6.2">
 1. Test TMS MCP connection using the method defined in the TMS export skill
-2. If fails: inform user, verify MCP config and credentials
+2. **On connection failure:** inform user, verify MCP config and credentials. Retry once. On a second failure, present the **documented alternatives** below and let the user choose; do not silently abort:
+   - **Manual copy:** export the test cases as plain markdown for the user to paste into the TMS UI. Artifact: keep `agents/testgen/{TICKET-KEY}/test-scenarios.md` as-is; record the user's confirmation of manual export in `export-report.md` (see step 6.6).
+   - **CSV export:** generate `agents/testgen/{TICKET-KEY}/test-scenarios.csv` with one row per test case (columns: `TC_ID,Title,Priority,Type,Source_Requirements,Preconditions,Steps,Expected_Result,Tags`). Record the CSV path + row count in `export-report.md`.
+   - **Defer:** mark Phase 6 as `BLOCKED — TMS unavailable` in `testgen-state.md` and stop, awaiting user to fix MCP access.
+3. **On chosen fallback:** the corresponding artifact path becomes the on-disk evidence of Phase 6 (replacing the TMS-IDs receipt section of `export-report.md`).
 </verify_connection>
 
 <get_target_location step="6.3">
@@ -71,12 +75,13 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 </update_documents>
 
 <validation_checklist>
-- TMS connection verified
-- Target location exists in TMS
+- TMS connection verified (or documented fallback executed per step 6.2)
+- Target location exists in TMS (or fallback artifact path recorded)
 - All test cases parsed from markdown
-- At least 80% of test cases exported successfully
-- `test-scenarios.md` updated with TMS IDs and links
-- State file updated with Phase 6 complete
+- **Success threshold:** at least 80% of test cases exported successfully. **If below 80%:** mark Phase 6 incomplete in `testgen-state.md` (`Phase 6: PARTIAL — N/M exported`), list every failed TC-NNN with the per-case error in `export-report.md`, and HALT for user decision. Do not auto-advance. The user must choose one of: (a) retry failed exports, (b) accept partial export and mark Phase 6 complete with documented gaps, or (c) abort Phase 6 entirely.
+- `test-scenarios.md` updated with TMS IDs and links (or fallback artifact identifiers)
+- `export-report.md` exists with TMS IDs/URLs, per-case status, timestamp
+- State file updated with Phase 6 complete (or PARTIAL per the threshold rule)
 </validation_checklist>
 
 <pitfalls>

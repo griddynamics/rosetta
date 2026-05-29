@@ -29,8 +29,8 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 
 <extract_jira step="1.1">
 1. USE SKILL `mcp-jira-data-collection`
-2. Read initial user request 
-3. Extract ticket key from user input (parse from URL if needed)
+2. **Read `agents/testgen/{TICKET-KEY}/initial-data.md`** (contributes the original user prompt and a pointer to the project config) and the original user request.
+3. Extract ticket key from user input (parse from URL if needed). **Ticket-key extraction failure path:** if no key can be parsed (no URL, malformed input, ambiguous candidates): stop Phase 1, ask the user once for the exact ticket key (`PROJ-NNN` form), do not proceed until the user provides it. After 2 unsuccessful re-asks, record `Phase 1 blocked: ticket key unresolvable` in `testgen-state.md` and stop.
 4. Retrieve issue with fields: summary, description, status, issuetype, priority, labels, components, assignee, reporter, comments (up to 10)
 
 </extract_jira>
@@ -39,15 +39,18 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 1. USE SKILL `confluence-source-harvesting` — URL shapes, child pages, truncation, permission fallbacks.
 2. USE SKILL `mcp-confluence-data-collection` — authenticated reads and searches.
    - **Precedence on conflict:** `confluence-source-harvesting` defines URL parsing, child-page traversal, and truncation/permission rules (wins on those). `mcp-confluence-data-collection` defines authenticated read/search operations (wins on those). If both touch the same concern, prefer `confluence-source-harvesting` and record the conflict in the **Notes** field of the data collection summary.
-3. **If user provided Confluence/documentation URLs**: retrieve those pages via the `confluence_get_page` operation exposed by `mcp-confluence-data-collection` (or equivalent MCP), then check for child pages
-4. **If no URLs provided**: 
-4.1. Extract search terms from Jira ticket:
-- Project key (from ticket key)
-- Labels (if present)
-- Component names (if present)
-- Key terms from summary/description
-4.2. Retrieve relevant Confluence pages
-5. **Fallback**: If no results, ask user for specific page URLs/IDs or proceed with Jira only
+3. **URL-handling branches (exhaustive; try in order):**
+   - **All URLs provided AND resolved cleanly:** retrieve those pages via the `confluence_get_page` operation exposed by `mcp-confluence-data-collection` (or equivalent MCP), then check for child pages. Skip the search step.
+   - **Some URLs provided, some failed to resolve (or coverage insufficient — fewer pages than the ticket suggests):** retrieve the resolved URLs first, then run the keyword search in step 4 to fill gaps. Record which URLs failed and why in the data collection summary.
+   - **No URLs provided:** proceed to step 4 (keyword search).
+4. **Keyword search (when triggered by step 3 branches):**
+   4.1. Extract search terms from Jira ticket:
+   - Project key (from ticket key)
+   - Labels (if present)
+   - Component names (if present)
+   - Key terms from summary/description
+   4.2. Retrieve relevant Confluence pages
+5. **Fallback**: If neither URL retrieval nor keyword search produced results, ask user for specific page URLs/IDs or proceed with Jira only.
 </get_confluence>
 
 <create_raw_data step="1.3">

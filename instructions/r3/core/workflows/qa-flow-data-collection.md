@@ -42,7 +42,7 @@ Documentation MCP scope comes from **`qa-project-config.md`** and Phase 0 only.
 
 <verify_primary_raw_data step="1.2a">
 1. USE SKILL `qa-data-collection`
-2. Verify `agents/qa/{IDENTIFIER}/raw-data.md` exists after step 1. If it is missing: **first** attempt the remediation path defined inside `qa-data-collection`. **If remediation still produces no `raw-data.md`** after one attempt, stop Phase 1, record the gap in `agents/qa-state.md`, and notify the user — **do not** run `<documentation_mcp_optional>` until the primary raw-data artifact exists.
+2. Verify `agents/qa/{IDENTIFIER}/raw-data.md` exists after step 1. If it is missing: **re-run the `qa-data-collection` skill once with the same inputs**. If the file is still missing after the re-run, stop Phase 1, record the gap in `agents/qa-state.md`, and notify the user — **do not** run `<documentation_mcp_optional>` until the primary raw-data artifact exists.
 </verify_primary_raw_data>
 
 <documentation_mcp_optional step="1.2b">

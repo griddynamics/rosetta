@@ -29,6 +29,10 @@ Analyze Jira ticket and Confluence documentation to identify contradictions, gap
 <load_raw_data step="2.1">
 1. Read `agents/testgen/{TICKET-KEY}/raw-data.md` completely
 2. Extract key sections: Jira description and acceptance criteria, labels, components, priority, each Confluence page content, comments from both sources
+3. **Failure paths:**
+   - **`raw-data.md` missing:** stop Phase 2, record `Phase 2 blocked: raw-data.md missing` in `testgen-state.md`, and ask user to rerun Phase 1.
+   - **`raw-data.md` exists but key sections empty** (no Jira description / no Confluence content): record the empty sections as gaps for Phase 3 to surface, and proceed — do not silently fabricate content.
+   - **`raw-data.md` corrupt / unparseable:** stop Phase 2, record the parse error, and ask user to inspect the file.
 </load_raw_data>
 
 <run_analysis step="2.2" subagent="architect" role="Requirements gap analyst">
@@ -66,9 +70,8 @@ If NO issues found, still create document with "No issues found" statement in ea
 
 <update_state step="2.4">
 1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 2 complete and metrics (contradictions, gaps, ambiguities counts, risk level)
-2. Tell user: "Phase 2 complete. Found [X] contradictions, [Y] gaps, [Z] ambiguities."
-3. Show high-risk issues requiring urgent clarification
-4. Ask: "Ready to proceed to Phase 3 (Question Generation)?"
+2. **Zero-issues branch:** if total issues = 0 (no contradictions, no gaps, no ambiguities), tell the user: "Phase 2 complete. No issues found — recommend skipping Phase 3 (Question Generation) and advancing to Phase 4 (Requirements Document)." Mark Phase 3 as `SKIPPED — no issues from Phase 2` in `testgen-state.md` if the user agrees, then proceed to Phase 4.
+3. **Issues-found branch:** Tell user: "Phase 2 complete. Found [X] contradictions, [Y] gaps, [Z] ambiguities." Show high-risk issues requiring urgent clarification. Ask: "Ready to proceed to Phase 3 (Question Generation)?"
 </update_state>
 
 <validation_checklist>

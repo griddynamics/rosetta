@@ -70,6 +70,8 @@ Cross-reference test cases, documentation, and API spec to identify gaps, contra
    - Questions Asked: [count]
    - Answers Received: [count]
    - Open Assumptions: [count]
+   - Skipped: [count]
+   - Deferred: [count]
    - Phase 3 completion timestamp
 2. Mark Phase 3 complete, Phase 4 current
 </update_state>

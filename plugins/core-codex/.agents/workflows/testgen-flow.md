@@ -95,7 +95,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 1. ACQUIRE `testgen-flow-test-case-export.md` FROM KB
 2. Execute phase instructions.
-3. Input: test-scenarios.md. Output: test cases exported to Test Management System.
+3. Input: test-scenarios.md. Output: test cases exported to Test Management System **and** a local export receipt at `agents/testgen/{TICKET-KEY}/export-report.md` (TMS IDs/URLs, per-case status, timestamp). The local receipt is the on-disk evidence Phase 6 ran successfully.
 4. **WAIT FOR USER** to provide target location and confirm export.
 5. Recommended skills: `testrail-test-case-export`, `repository-implementation-standards`
 6. Apply `repository-implementation-standards` per `<phase_5_6_standards_gate>`.
@@ -161,7 +161,8 @@ agents/testgen/{TICKET-KEY}/
 ├── questions.md            # Phase 3: Generated questions
 ├── answers.md              # Phase 3: User answers (HITL)
 ├── requirements.md         # Phase 4: Final requirements
-└── test-scenarios.md       # Phase 5: Test cases
+├── test-scenarios.md       # Phase 5: Test cases
+└── export-report.md        # Phase 6: TMS export receipt (IDs/URLs, per-case status, timestamp)
 ```
 
 </output_directory>
@@ -174,7 +175,7 @@ Subagents:
 - `engineer` (Full): test case generation, TMS export
 
 Skills:
-- `questioning`, `reverse-engineering`, `requirements-synthesis`, `testrail-test-case-authoring`
+- `questioning`, `requirements-synthesis`, `testrail-test-case-authoring`
 - `sequential-workflow-execution`, `repository-implementation-standards`, `confluence-source-harvesting`
 - `mcp-jira-data-collection`, `mcp-confluence-data-collection`
 - `gap-and-contradiction-analysis`

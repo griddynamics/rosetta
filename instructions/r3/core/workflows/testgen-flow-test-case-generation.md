@@ -31,14 +31,18 @@ Generate comprehensive test cases from the requirements document, covering all r
 9. Update state file
 </phase_steps>
 
-<load_requirements step="5.1">
+<scope_check step="5.0">
+**Path-scope gating** (runs before loading requirements so the agent knows whether `repository-implementation-standards` is needed for any planned writes):
 1. List every planned output path for this phase.
 2. Check whether every path begins with `agents/testgen/{TICKET-KEY}/` (default flow: `test-scenarios.md` and the in-folder `requirements.md` traceability update in step 5.8).
-3. If yes: do **not** invoke `repository-implementation-standards`. Record in `agents/testgen/{TICKET-KEY}/testgen-state.md`: `5.1 repository-implementation-standards: skipped — writes scoped to agents/testgen/{TICKET-KEY}/`.
+3. If yes: do **not** invoke `repository-implementation-standards`. Record in `agents/testgen/{TICKET-KEY}/testgen-state.md`: `5.0 repository-implementation-standards: skipped — writes scoped to agents/testgen/{TICKET-KEY}/`.
 4. If any path falls outside that folder: USE SKILL `repository-implementation-standards` before any such write.
-5. Read `agents/testgen/{TICKET-KEY}/requirements.md`
-6. Extract all user stories (US-N), functional requirements (FR-N), non-functional requirements (NFR-N) with acceptance criteria
-7. Extract constraints and dependencies that affect test design
+</scope_check>
+
+<load_requirements step="5.1">
+1. Read `agents/testgen/{TICKET-KEY}/requirements.md`
+2. Extract all user stories (US-N), functional requirements (FR-N), non-functional requirements (NFR-N) with acceptance criteria
+3. Extract constraints and dependencies that affect test design
 </load_requirements>
 
 <identify_test_types step="5.2">
@@ -78,6 +82,42 @@ Common patterns for minimum coverage:
 <generate_test_cases step="5.3" subagent="engineer" role="Test case design engineer">
 1. USE SKILL `testrail-test-case-authoring` for test case format
 2. Create 2-5 test cases per requirement covering different test types from step 5.2
+
+<test_case_entry_template>
+**Inline TC schema** — every test case (TC-NNN) created by this step must have these fields, in this order. If `testrail-test-case-authoring` is unavailable or returns an incompatible shape, use this template so Phase 5 output is self-contained:
+
+```markdown
+### TC-NNN: [Concise test case title]
+
+**Priority:** P0 | P1 | P2 | P3
+**Type:** Happy Path | Edge Case | Negative | Integration | Performance | Security
+**Source Requirement(s):** US-N, FR-N, NFR-N (one or more)
+
+**Preconditions:**
+- [Precondition 1]
+- [Precondition 2]
+
+**Test Data:**
+| Field | Value | Notes |
+|-------|-------|-------|
+| [field] | [value] | [optional notes] |
+
+**Steps:**
+1. [Action] → [observable system response]
+2. [Action] → [observable system response]
+3. [Action] → [observable system response]
+
+**Expected Result:**
+- [Specific, observable, testable outcome — concrete values, not "works correctly"]
+
+**Tags / Suite:** [optional taxonomy hooks for TMS]
+```
+
+**Notes:**
+- `TC-NNN` is a continuous zero-padded sequence across the whole `test-scenarios.md` file (`TC-001`, `TC-002`, …).
+- "Steps" must be observable user/system actions paired with observable responses — not paraphrased intent.
+- "Expected Result" must be objectively verifiable; avoid "should work", "as expected", "appropriate response".
+</test_case_entry_template>
 </generate_test_cases>
 
 <prioritize step="5.4">

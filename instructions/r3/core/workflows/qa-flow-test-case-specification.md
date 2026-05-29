@@ -48,9 +48,9 @@ Read completely:
 
 **Before presenting:** every item in `<validation_checklist>` below must be satisfied for the produced file. Items that are not yet verifiable at this step (e.g., user approval) are checked at step 4.5.
 
-Create `agents/qa/{IDENTIFIER}/test-specs.md` using the following template:
+Create `agents/qa/{IDENTIFIER}/test-specs.md` using the following template (outer fence uses 4 backticks so the inner `markdown` example with 3 backticks does not terminate it):
 
-```markdown
+````markdown
 # QA Test Specifications - [IDENTIFIER]
 
 **Created**: [DateTime]
@@ -115,21 +115,18 @@ Create `agents/qa/{IDENTIFIER}/test-specs.md` using the following template:
 
 ## Assumptions
 List any assumptions from Phase 3 that affect these specs **plus any new assumptions introduced during specification** (e.g., guessed boundary values, default headers, fixture sizes). Cite source for each.
-```
+````
 
 </produce_output>
 
 <present_for_approval step="4.4">
 1. Present summary to user: total scenarios, priority breakdown, endpoints covered
 2. **WAIT FOR USER APPROVAL** — "Yes", "Approve", or similar
-3. **User response branches:**
-   - **Approve:** proceed to step 4.5.
-   - **Modify (specific changes requested):** update specs and re-present from step 4.3.
-   - **Reject (full rejection):** record rationale in `agents/qa-state.md`, return to Phase 3 to revisit gap analysis.
-   - **Partial approve (some scenarios approved, others rejected):** drop rejected ones, keep approved, re-present narrowed plan.
-   - **Drop request (remove specific scenarios):** remove and re-present.
-   - **Add request (more scenarios needed):** add and re-present.
-   - **Repeated rejection (≥3 cycles on the same scope):** stop, ask user whether to re-open Phase 3 or escalate scope to a project decision.
+3. **User response branches** (mutually exclusive; classify the user's response into exactly one):
+   - **Full approve:** user types an exact approval token (per the strict-token rule shared with step 7.2). Proceed to step 4.5.
+   - **Full reject:** user rejects the entire plan with no path to fix in-place. Record rationale in `agents/qa-state.md`, return to Phase 3 to revisit gap analysis.
+   - **Change request** (covers all in-place changes — modify wording, add scenarios, drop scenarios, partial scope narrowing): collect every requested change in one batch, update specs, re-present from step 4.3. Treat partial approve as a change request that drops the rejected scenarios.
+   - **Repeated change-request cycle (≥3 cycles on overlapping scope):** stop, ask user whether to re-open Phase 3 or escalate scope to a project decision.
 4. **DO NOT PROCEED** to Phase 5 without explicit approval.
 </present_for_approval>
 

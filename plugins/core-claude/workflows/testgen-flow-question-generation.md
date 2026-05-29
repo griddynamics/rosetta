@@ -21,13 +21,11 @@ Generate specific, actionable clarification questions based on analysis findings
 </workflow_context>
 
 <phase_steps>
-1. Load analysis data
-2. Generate clarification questions
-3. Prioritize and create questions document
-4. Wait for user input
-5. Validate user answers
-6. Create answers document
-7. Update state file
+1. Generate clarification questions (loads analysis + formats by issue type) → step 3.1
+2. Prioritize and create questions document → step 3.2
+3. Validate user answers → step 3.3
+4. Create answers document → step 3.4
+5. Update state file → step 3.5
 </phase_steps>
 
 <generate_questions step="3.1">
@@ -104,18 +102,63 @@ Generate specific, actionable clarification questions based on analysis findings
 
 <create_questions_document step="3.2">
 1. Group questions by priority: P0 (Critical, MUST answer), P1 (High), P2 (Medium), P3 (Low)
-2. Create `agents/testgen/{TICKET-KEY}/questions.md` using template below
+2. Create `agents/testgen/{TICKET-KEY}/questions.md` using the `questions.md` template defined in `<questions_template>` below
 3. Update state to "AWAITING USER INPUT"
 4. Notify user with file location and instructions
 5. **PAUSE — WAIT FOR USER INPUT**
 
+<questions_template>
+`questions.md` template:
+````markdown
+# Clarification Questions - [TICKET-KEY]
 
+**Created**: [DateTime]
+**Phase**: 3 - Question Generation
+**Source Analysis**: agents/testgen/[TICKET-KEY]/analysis.md
 
+---
+
+## Summary
+
+- **Total Questions**: [Count]
+- **P0 (Critical, MUST answer)**: [Count]
+- **P1 (High)**: [Count]
+- **P2 (Medium)**: [Count]
+- **P3 (Low)**: [Count]
+
+---
+
+## How to Answer
+
+For each question below, replace `[Leave blank for user]` with your answer (or `UNKNOWN — need to research with [stakeholder]` if you cannot answer right now). All **P0** must be answered before Phase 4 proceeds; P1 must be answered or marked UNKNOWN.
+
+---
+
+## P0 Questions (Critical)
+
+[Insert Q-entries here using `<question_format_for_contradictions>` / `<question_format_for_gaps>` / `<question_format_for_ambiguities>` formats above, grouped under this section]
+
+## P1 Questions (High)
+
+[Same; if none, omit the section]
+
+## P2 Questions (Medium)
+
+[Same; optional, may remain blank per `<validate_answers>` rule]
+
+## P3 Questions (Low)
+
+[Same; optional, may remain blank per `<validate_answers>` rule]
+````
+</questions_template>
 </create_questions_document>
 
 <validate_answers step="3.3">
 1. When user notifies answers are ready, read `questions.md`
-2. Verify: all P0 questions answered (not blank), all P1 answered or marked "UNKNOWN"
+2. Verify per-priority acceptance criteria:
+   - **P0:** every P0 question must be answered (not blank). UNKNOWN is **not** acceptable for P0 — Phase 3 stays open until a P0 answer is provided.
+   - **P1:** every P1 question must be answered OR explicitly marked `UNKNOWN — need to research with [stakeholder]`.
+   - **P2 and P3:** may remain blank; proceed regardless. Blank P2/P3 entries are recorded as deferred but do not block Phase 4.
 3. Verify answers are substantive (not just "yes" or "ok")
 4. If validation fails: tell user which questions still need answers, wait again
 5. If validation passes: proceed to create answers document
@@ -200,6 +243,13 @@ Generate specific, actionable clarification questions based on analysis findings
 - `answers.md` created with structured answers
 - State file updated with Phase 3 complete
 </validation_checklist>
+
+<failure_handling>
+- **Missing `analysis.md`:** stop Phase 3, record `Phase 3 blocked: analysis.md missing` in `testgen-state.md`, ask user to rerun Phase 2.
+- **Zero questions to generate** (Phase 2 produced no contradictions / gaps / ambiguities): inform the user, mark Phase 3 as `SKIPPED — no questions` in `testgen-state.md`, and advance to Phase 4 directly (do not create an empty `questions.md`).
+- **Unparseable user answers** (file structurally broken — missing Q-entries, malformed markdown, answers in wrong fields): tell the user which entries are unparseable, ask them to re-edit the file. Cap at 2 re-asks. After 2 unsuccessful cycles, stop Phase 3, record `Phase 3 blocked: unparseable answers after 2 retries`, and ask the user whether to re-do `questions.md` from scratch or escalate.
+- **User explicitly declines to answer** (says "skip", "I don't know any of these", or similar): treat as a stall — do not silently downgrade P0 to UNKNOWN; stop, record `Phase 3 blocked: user-declined-answers on P0`, ask whether to re-open Phase 2 or escalate scope.
+</failure_handling>
 
 <pitfalls>
 - Do NOT assume user approved — messages with questions or suggestions mean reviewing, not approval

@@ -30,7 +30,7 @@ Fill gaps in understanding, clarify unknowns. Requires user interaction.
 
 <execute_elicitation step="2.1">
 1. USE SKILL `aqa-requirements-elicitation`
-2. Prepare list unknowns and ambiguities
+2. Prepare a list of unknowns and ambiguities
 </execute_elicitation>
 
 <execute_elicitation step="2.2">

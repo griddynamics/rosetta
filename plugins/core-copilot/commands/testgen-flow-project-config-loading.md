@@ -38,9 +38,10 @@ Find or create the project config file, obtain project-specific data retrieval c
 </setup_directory>
 
 <load_project_config step="0.3">
-1. Search for `testgen-project-config.md` in the repo's agent-specific directory
-2. If found and non-empty → skip to step 0.5
-3. If not found → create empty file, proceed to step 0.4
+1. Search for `testgen-project-config.md` at the canonical path `agents/testgen/testgen-project-config.md` (project-wide, **not** per-ticket — the same config is shared across all tickets).
+2. **Branches (exhaustive):**
+   - **File exists AND non-empty:** skip to step 0.5.
+   - **File missing OR exists but empty:** proceed to step 0.4 (do NOT create an empty placeholder file — step 0.4 will write the populated file).
 </load_project_config>
 
 <obtain_project_info step="0.4">
@@ -68,8 +69,15 @@ you can provide them here as well.
 
 
 2. Ask user to confirm or customize the data retrieval process
-3. Validate answer provides sufficient information
-4. Save configuration to `testgen-project-config.md`
+3. **Validate answer provides sufficient information.** Minimum required fields:
+   - **Data sources** (which of: Jira, Confluence, attached docs, other URLs)
+   - **Retrieval method** per source (MCP-based / direct URL / search-by-keywords)
+   - **Auth assumptions** (MCP already configured / token in env / requires per-call OAuth)
+   
+   **Validation failure paths:**
+   - If user said YES to default but the default cannot run in the environment (no MCP, no auth): re-ask for the missing field(s), naming exactly which are absent.
+   - If user said NO but did not name source / method / auth: re-prompt up to 2 times naming the missing fields explicitly. After 2 unsuccessful re-prompts, stop Phase 0, record `Phase 0 blocked: incomplete config answer` in `testgen-state.md`, and ask the user to supply a complete answer before continuing.
+4. Save configuration to `agents/testgen/testgen-project-config.md` (canonical path per step 0.3).
 </obtain_project_info>
 
 <create_initial_data step="0.5">
@@ -91,9 +99,9 @@ you can provide them here as well.
 
 <validation_checklist>
 - `agents/testgen/{TICKET-KEY}/` directory exists
-- `testgen-project-config.md` exists with non-empty content
-- `initial-data.md` created with user prompt and config reference
-- `testgen-state.md` created with Phase 0 marked complete
+- `agents/testgen/testgen-project-config.md` (project-wide, not per-ticket) exists with non-empty content covering data sources, retrieval method, and auth assumptions
+- `agents/testgen/{TICKET-KEY}/initial-data.md` created with user prompt and config reference
+- `agents/testgen/{TICKET-KEY}/testgen-state.md` created with Phase 0 marked complete
 </validation_checklist>
 
 </testgen_flow_project_config_loading>
