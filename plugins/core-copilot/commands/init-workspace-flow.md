@@ -16,22 +16,27 @@ Validation: State file tracks every phase with file inventory; verification conf
 
 <workflow_phases>
 
-- All Rosetta prep steps MUST be FULLY completed (get_context_instructions called and all three prep steps completed).
-- MUST FOLLOW THIS WORKFLOW EXACTLY AND FULLY.
-- MUST extensively use subagents as this is a large workflow.
-- Sequential phases. Each updates `agents/init-workspace-flow-state.md`. Optional phases marked as skipped. Keep state file very brief.
-- ACCURACY > SPEED
-- Dual-mode: every phase reads `state.mode` → check-exists → identify-gaps → create/update → preserve-human-content → report-changes.
-- Composite workspace: documentation phases create top-level registry referencing sub-repository docs.
-- IF state.file_count >= 50 (set by Phase 3): pass "ACQUIRE `large-workspace-handling/SKILL.md` FROM KB" to Phase 5, 7, 8 subagents.
-- Before Phase 1: create `agents/init-workspace-flow-state.md`.
-- Conditional phases:
+<prerequisites phase="0", applies="ALL">
+
+1. All Rosetta prep steps MUST be FULLY completed
+2. MUST USE OPERATION_MANAGER for deterministic execution
+3. MUST FOLLOW THIS WORKFLOW EXACTLY AND FULLY.
+4. MUST extensively use subagents as this is a large workflow.
+5. Sequential phases. Each updates `agents/init-workspace-flow-state.md`. Optional phases marked as skipped. Keep state file very brief.
+6. ACCURACY > SPEED
+7. Dual-mode: every phase reads `state.mode` → check-exists → identify-gaps → create/update → preserve-human-content → report-changes.
+8. Composite workspace: documentation phases create top-level registry referencing sub-repository docs.
+9. IF state.file_count >= 50 (set by Phase 3): pass "ACQUIRE `large-workspace-handling/SKILL.md` FROM KB" to Phase 5, 7, 8 subagents.
+10. Create `agents/init-workspace-flow-state.md`.
+11. Conditional phases:
   - If you have already in context "RUNNING AS A PLUGIN": MUST NOT EXECUTE "shells" phase 2
   - Else MUST EXECUTE "shells" phase 2
-- Note: `rosetta@rosetta` is an MCP connector, not a plugin — it follows the normal path (shells phase 2 executes)
-- If user says to initialize rules, subagents, agents, workflows, commands it ONLY means to execute "shells" phase 2.
-- Upgrade from R1 to R2 is exactly the same process as define here, but you already have some files available, which you can reuse.
-- Additionally tell subagents: "If you want to use shell commands, prefer to combine individual shell commands into single **simple** shell script in `agents/TEMP` and execute it, but already available tools ALWAYS take precedence."
+12. Note: `rosetta@rosetta` is an MCP connector, not a plugin — it follows the normal path (shells phase 2 executes)
+13. If user says to initialize rules, subagents, agents, workflows, commands it ONLY means to execute "shells" phase 2.
+14. Upgrade from R1 to R2 is exactly the same process as define here, but you already have some files available, which you can reuse.
+15. Additionally tell subagents: "If you want to use shell commands, prefer to combine individual shell commands into single **simple** shell script in `agents/TEMP` and execute it, but already available tools ALWAYS take precedence."
+
+</prerequisites>
 
 <context phase="1" subagent="built-in" role="Workspace mode detector" subagent_recommended_model="claude-haiku-4-5, gemini-3-flash-preview">
 
