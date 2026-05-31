@@ -182,7 +182,7 @@ Handle AI flaws:
 - Label assumptions explicitly
 - Prefer schemas + examples
 - Include checklist + tests + failure modes
-- Insert Human-in-the-Loop gates, if not covered already by `hitl` skill
+- Insert Human-in-the-Loop gates, if not covered already by `bootstrap-hitl-questioning.md`
 - Keep diffs surgical
 - Prefer existing standards, patterns, simple solutions
 - Time and temporal references and relationships explicit

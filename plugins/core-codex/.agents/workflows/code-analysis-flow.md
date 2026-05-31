@@ -17,16 +17,11 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 <workflow_phases>
 
-<prerequisites phase="0" applies="ALL">
-
-1. All Rosetta prep steps MUST be FULLY completed
-2. MUST USE OPERATION_MANAGER for deterministic execution
-3. Phases are sequential; module analysis in LARGE codebases runs in parallel via `large-workspace-handling`.
-4. Orchestrator trusts skills to own execution internals; coordinates sequence, artifacts, state, and approvals only.
-5. State file: `agents/code-analysis-flow-state.md` updated after each phase.
-6. Documentation principle: ground with links; no code generation, no suggestions, no speculation. See `best_practices` for sizing and diagram rules.
-
-</prerequisites>
+- Rosetta prep steps completed.
+- Phases are sequential; module analysis in LARGE codebases runs in parallel via `large-workspace-handling`.
+- Orchestrator trusts skills to own execution internals; coordinates sequence, artifacts, state, and approvals only.
+- State file: `agents/code-analysis-flow-state.md` updated after each phase.
+- Documentation principle: ground with links; no code generation, no suggestions, no speculation. See `best_practices` for sizing and diagram rules.
 
 <context_load phase="1" applies="ALL" subagent="discoverer" role="Context gatherer for analysis scope">
 

@@ -42,6 +42,15 @@ Completing prep steps does NOT authorize immediate coding. The workflow (e.g., `
 ### Keep Generators Generic And Content-Agnostic [ACTIVE]
 When building template-based generators, separate the generic replacement engine from content production. Hardcoding domain logic inside the replacer blocks reuse and extensibility.
 
+### Implement The User's Stated Mechanism — Do Not Substitute Your Own Abstraction [ACTIVE]
+When the user names the exact mechanism/wording (e.g. "condition the templates by `release`"), implement that literally. Do NOT swap in a "cleaner" abstraction (e.g. a capability flag) justified by an internal rule — that is silent reinterpretation and confuses the user, who then can't follow the explanation. If you believe a different shape is better, propose it explicitly and get approval; never assume. Root cause of a real session derailment: substituted `advisory_hooks` for the requested release condition, then explained in terms the user never asked for. (User later chose a semantic flag themselves — the lesson is who decides, not which shape.)
+
+### Don't Surface Internal Implementation Findings To Non-Code Stakeholders [ACTIVE]
+Reviewer/agent findings about internal mechanics (loop crashes, escaping nuances, "what a template contains") are your problem to fix silently. Keep user-facing communication about THEIR decisions and observable behavior, not code internals — unless a finding changes a user decision.
+
+### Handlebars/pybars3: Triple-Stache For Raw JSON, Comma Inside The Conditional [ACTIVE]
+`pybars3` (Python Handlebars, cross-language twin of `handlebars.js`) double-stache `{{x}}` HTML-escapes (`"`→`&quot;`) and corrupts JSON; use triple-stache `{{{x}}}` for raw injection. `{{#if}}` takes a single truthy value (no `==`); for comparisons register an `eq` helper (`{{#if (eq a "b")}}`). When gating a JSON object member with `{{#if}}` on its own line, put the separating comma INSIDE the block as a leading comma on the conditional member, else the non-conditional branch emits a trailing comma → invalid JSON. `scripts/` is excluded from `mypy.ini` `files`, so untyped third-party imports there don't break type validation.
+
 ### Verify Target Runtime Capabilities Before Generating Code That References Them [ACTIVE]
 Always confirm that assumed env vars, APIs, or runtime features actually exist in the target platform before generating code that depends on them.
 

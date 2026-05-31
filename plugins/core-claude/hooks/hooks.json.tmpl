@@ -3,9 +3,10 @@
     "SessionStart": [
       {
         "matcher": "startup",
-        "hooks": [{{BOOTSTRAP_HOOKS_CLAUDE}}]
+        "hooks": [{{{bootstrap_hooks_claude}}}]
       }
-    ],
+    ]{{#if deterministic_hooks}},{{/if}}
+{{#if deterministic_hooks}}
     "PreToolUse": [
       {
         "matcher": "Bash|Write|Edit|MultiEdit|mcp__.*",
@@ -50,5 +51,6 @@
         ]
       }
     ]
+{{/if}}
   }
 }

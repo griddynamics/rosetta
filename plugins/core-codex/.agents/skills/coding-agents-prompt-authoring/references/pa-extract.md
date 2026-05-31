@@ -15,7 +15,7 @@
 - Label every assumption and unknown explicitly
 - Replace means with ends when intent is unchanged
 - Keep domain terminology; remove irrelevant jargon
-- Add Human-in-the-Loop checkpoints for ambiguity, assumptions, or risk, if not covered already by `hitl` skill
+- Add Human-in-the-Loop checkpoints for ambiguity, assumptions, or risk, if not covered already by `bootstrap-hitl-questioning.md`
 - Capture failure modes and recovery expectations
 - Add concrete temporal references when time matters
 - Enforce minimal, MECE, non-duplicative rule set

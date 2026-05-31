@@ -17,14 +17,9 @@ Provides: live overview of available skills, workflows, and agents; detailed gui
 
 <workflow_phases>
 
-<prerequisites phase="0", applies="ALL">
-
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
-2. MUST USE OPERATION_MANAGER for deterministic execution
-3. Phases are sequential. Orchestrator coordinates; trust skills and subagents to execute.
-4. Scale: conversational — output is a message, no files, no state tracking.
-
-<prerequisites phase="0", applies="ALL">
+All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
+Phases are sequential. Orchestrator coordinates; trust skills and subagents to execute.
+Scale: conversational — output is a message, no files, no state tracking.
 
 <list_capabilities phase="1" subagent="discoverer" role="KB catalog lister">
 

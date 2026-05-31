@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import shutil
@@ -10,6 +11,8 @@ import sys
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+
+from pybars import Compiler
 
 ALLOWED_CLAUDE_MODELS = {"opus", "sonnet", "haiku", "inherit"}
 
@@ -44,6 +47,39 @@ COPILOT_MODEL_MAP: dict[str, str] = {
     "gemini-3.1-pro":         "Gemini 3.1 Pro (Preview)",
     "gemini-3-flash":         "Gemini 3 Flash",
 }
+
+
+DEFAULT_RELEASE = "r2"
+
+
+@dataclass(frozen=True)
+class Release:
+    """A Rosetta instructions release: its name, instruction source, and the
+    key-values handed verbatim to the template engine when generating from it.
+
+    `template_vars` is the single source of per-release truth. Adding a future
+    release (e.g. r4) is one entry here — the generator code stays release-agnostic.
+    """
+
+    name: str
+    source: Path
+    template_vars: dict[str, object]
+
+
+def _get_releases(repo_root: Path) -> dict[str, Release]:
+    instructions = repo_root / "instructions"
+    return {
+        "r2": Release(
+            "r2",
+            instructions / "r2" / "core",
+            {"release": "r2", "deterministic_hooks": False},
+        ),
+        "r3": Release(
+            "r3",
+            instructions / "r3" / "core",
+            {"release": "r3", "deterministic_hooks": True},
+        ),
+    }
 
 
 @dataclass(frozen=True)
@@ -87,11 +123,12 @@ class PluginSyncSpec:
     runtime_asset_subdirs: tuple[Path, ...] = ()
 
 
-def _get_plugin_specs(repo_root: Path) -> list[PluginSyncSpec]:
+def _get_plugin_specs(repo_root: Path, plugins_dir: Path | None = None) -> list[PluginSyncSpec]:
+    plugins_dir = plugins_dir if plugins_dir is not None else repo_root / "plugins"
     return [
         PluginSyncSpec(
             name="core-claude",
-            destination=repo_root / "plugins" / "core-claude",
+            destination=plugins_dir / "core-claude",
             preserved_folder=".claude-plugin",
             preserved_files=("hooks",),
             normalize_models=True,
@@ -101,7 +138,7 @@ def _get_plugin_specs(repo_root: Path) -> list[PluginSyncSpec]:
         ),
         PluginSyncSpec(
             name="core-cursor",
-            destination=repo_root / "plugins" / "core-cursor",
+            destination=plugins_dir / "core-cursor",
             preserved_folder=".cursor-plugin",
             preserved_files=("hooks", "hooks.json.tmpl"),
             cursor_models=True,
@@ -113,7 +150,7 @@ def _get_plugin_specs(repo_root: Path) -> list[PluginSyncSpec]:
         ),
         PluginSyncSpec(
             name="core-copilot",
-            destination=repo_root / "plugins" / "core-copilot",
+            destination=plugins_dir / "core-copilot",
             preserved_folder=".github",
             preserved_files=("hooks",),
             copilot_models=True,
@@ -125,7 +162,7 @@ def _get_plugin_specs(repo_root: Path) -> list[PluginSyncSpec]:
         ),
         PluginSyncSpec(
             name="core-codex",
-            destination=repo_root / "plugins" / "core-codex",
+            destination=plugins_dir / "core-codex",
             preserved_folder=".codex-plugin",
             codex_models=True,
             generated_indexes=("rules", "workflows"),
@@ -608,11 +645,13 @@ def build_bootstrap_replacements(
     def _inner(entries: list[dict]) -> str:
         return json.dumps(entries, ensure_ascii=False)[1:-1]
 
+    # Keys are template-engine context variables (brace-free, lowercase). Templates
+    # inject them raw with triple-stache, e.g. {{{bootstrap_hooks_claude}}}.
     replacements = {
-        "{{BOOTSTRAP_HOOKS_CLAUDE}}":  _inner(plugin_entries.get("core-claude", [])),
-        "{{BOOTSTRAP_HOOKS_CODEX}}":   _inner(plugin_entries.get("core-codex", [])),
-        "{{BOOTSTRAP_HOOKS_CURSOR}}":  _inner(plugin_entries.get("core-cursor", [])),
-        "{{BOOTSTRAP_HOOKS_COPILOT}}": _inner(plugin_entries.get("core-copilot", [])),
+        "bootstrap_hooks_claude":  _inner(plugin_entries.get("core-claude", [])),
+        "bootstrap_hooks_codex":   _inner(plugin_entries.get("core-codex", [])),
+        "bootstrap_hooks_cursor":  _inner(plugin_entries.get("core-cursor", [])),
+        "bootstrap_hooks_copilot": _inner(plugin_entries.get("core-copilot", [])),
     }
 
     for err in errors:
@@ -626,25 +665,32 @@ def build_bootstrap_replacements(
     return replacements, violations
 
 
+_TEMPLATE_COMPILER = Compiler()
+
+
 def process_templates(
     dest_dir: Path,
     templates: tuple[str, ...],
-    replacements: dict[str, str],
+    context: dict[str, object],
 ) -> None:
-    """Replace all known placeholders in .tmpl files, write output (path minus .tmpl suffix)."""
+    """Render Handlebars .tmpl files with `context`, write output (path minus .tmpl suffix).
+
+    Templates use triple-stache for raw JSON injection (e.g. {{{bootstrap_hooks_claude}}})
+    and release-driven conditionals (e.g. {{#if deterministic_hooks}} … {{/if}}). `context`
+    carries the release `template_vars` plus the per-plugin bootstrap-hook JSON values.
+    """
     for tmpl_rel in templates:
         tmpl_path = dest_dir / tmpl_rel
         if not tmpl_path.is_file():
             print(f"WARNING: {tmpl_path} not found, skipping", file=sys.stderr)
             continue
 
-        text = tmpl_path.read_text(encoding="utf-8")
-        for placeholder, value in replacements.items():
-            text = text.replace(placeholder, value)
+        template = _TEMPLATE_COMPILER.compile(tmpl_path.read_text(encoding="utf-8"))
+        rendered = str(template(context))
 
         output_path = tmpl_path.with_suffix("")
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(text, encoding="utf-8")
+        output_path.write_text(rendered, encoding="utf-8")
         print(f"      processed {tmpl_rel}", flush=True)
 
 
@@ -977,13 +1023,30 @@ def generate_standalone_plugin(spec: StandaloneSpec, plugins_root: Path) -> None
     print(f"      copied {copied} item(s) into {spec.subfolder}/", flush=True)
 
 
-def sync_generated_plugins(repo_root: Path) -> int:
-    core_source = repo_root / "instructions" / "r3" / "core"
+def sync_generated_plugins(
+    repo_root: Path,
+    release: str = DEFAULT_RELEASE,
+    output_dir: Path | None = None,
+) -> int:
+    plugins_dir = output_dir if output_dir is not None else repo_root / "plugins"
+    releases = _get_releases(repo_root)
+    if release not in releases:
+        print(
+            f"ERROR: unknown release '{release}' (known: {', '.join(sorted(releases))})",
+            file=sys.stderr,
+        )
+        return 1
+    release_cfg = releases[release]
+
+    core_source = release_cfg.source
     if not core_source.is_dir():
         print(f"ERROR: Core source folder not found: {core_source}", file=sys.stderr)
         return 1
 
-    plugin_specs = _get_plugin_specs(repo_root)
+    deterministic_hooks = bool(release_cfg.template_vars.get("deterministic_hooks", False))
+    print(f"   release={release_cfg.name} source={core_source} output={plugins_dir} deterministic_hooks={deterministic_hooks}", flush=True)
+
+    plugin_specs = _get_plugin_specs(repo_root, plugins_dir)
 
     plugin_flags = {
         spec.name: (spec.include_bootstrap_in_hooks, spec.include_indexes_in_hooks)
@@ -1014,18 +1077,22 @@ def sync_generated_plugins(repo_root: Path) -> int:
     plugin_destinations = {spec.name: spec.destination for spec in plugin_specs}
     replacements, total_violations = build_bootstrap_replacements(plugin_destinations, plugin_flags)
 
-    # Pass 2: process templates (using each plugin's captured path_renames) and run runtime layouts.
+    # Pass 2: render templates (using each plugin's captured path_renames) and run runtime layouts.
+    # `replacements` holds only string bootstrap values, so path_renames apply cleanly to them;
+    # the release `template_vars` (release name, deterministic_hooks bool) are merged in afterward
+    # and never passed through string rewriting.
     for spec in plugin_specs:
         if spec.templates:
             path_renames = path_renames_by_spec.get(spec.name, {})
-            plugin_replacements = replacements
+            bootstrap_values = dict(replacements)
             if path_renames:
-                plugin_replacements = {}
+                bootstrap_values = {}
                 for k, v in replacements.items():
                     for old, new in path_renames.items():
                         v = v.replace(old, new)
-                    plugin_replacements[k] = v
-            process_templates(spec.destination, spec.templates, plugin_replacements)
+                    bootstrap_values[k] = v
+            context: dict[str, object] = {**release_cfg.template_vars, **bootstrap_values}
+            process_templates(spec.destination, spec.templates, context)
         if spec.name == "core-copilot":
             generate_copilot_runtime_layout(spec.destination)
         if spec.name == "core-codex":
@@ -1034,15 +1101,21 @@ def sync_generated_plugins(repo_root: Path) -> int:
 
     # Sync hook bundles into main plugins BEFORE generating standalones so the bundles
     # are present in source plugins when generate_standalone_plugin reads from them.
-    # If hook sync fails, record the error and continue — generation must run to completion
-    # so all problems surface in a single run rather than one-at-a-time across reruns.
-    hook_sync_result = sync_hooks_into_plugins(repo_root)
+    # Releases without deterministic hooks (e.g. r2) reference no .js, so the bundle sync
+    # is skipped entirely for them. If hook sync fails, record the error and continue —
+    # generation must run to completion so all problems surface in a single run.
+    if deterministic_hooks:
+        hook_sync_result = sync_hooks_into_plugins(repo_root, plugins_dir)
+    else:
+        hook_sync_result = 0
+        _clean_hook_bundles(repo_root, plugins_dir)
+        print("      skipped hook-bundle sync (deterministic_hooks=false)", flush=True)
 
     standalone_specs = [
         StandaloneSpec(
             name="core-cursor-standalone",
             source_plugin="core-cursor",
-            destination=repo_root / "plugins" / "core-cursor-standalone",
+            destination=plugins_dir / "core-cursor-standalone",
             subfolder=".cursor",
             excluded_source_folder=".cursor-plugin",
             pre_cleanup=("templates", "hooks/hooks.json.tmpl", "hooks/hooks.json", "hooks.json.tmpl"),
@@ -1054,7 +1127,7 @@ def sync_generated_plugins(repo_root: Path) -> int:
         StandaloneSpec(
             name="core-copilot-standalone",
             source_plugin="core-copilot",
-            destination=repo_root / "plugins" / "core-copilot-standalone",
+            destination=plugins_dir / "core-copilot-standalone",
             subfolder=".github",
             excluded_source_folder=".github",
             pre_cleanup=(".mcp.json", "hooks.json", "templates", "hooks/hooks.json.tmpl"),
@@ -1078,14 +1151,37 @@ def sync_generated_plugins(repo_root: Path) -> int:
 
     for spec in standalone_specs:
         print(f"   generating {spec.name}", flush=True)
-        generate_standalone_plugin(spec, repo_root / "plugins")
+        generate_standalone_plugin(spec, plugins_dir)
 
     # Non-zero exit reflects any error from any phase (bootstrap-payload violations
     # or hook-sync failure). Generation always runs to completion regardless.
     return 1 if (total_violations or hook_sync_result != 0) else 0
 
 
-def sync_hooks_into_plugins(repo_root: Path) -> int:
+def _clean_hook_bundles(repo_root: Path, plugins_dir: Path | None = None) -> None:
+    """Remove compiled hook bundle ``.js`` from each plugin's hook dir.
+
+    Releases without deterministic hooks (e.g. r2) reference no ``.js``, but the hook
+    folder is preserved across resync — so stale bundles from a prior deterministic
+    generation must be cleared to keep the plugin lean. ``hooks.json`` / ``hooks.json.tmpl``
+    are kept (not ``.js``).
+    """
+    removed = 0
+    for spec in _get_plugin_specs(repo_root, plugins_dir):
+        if spec.hook_subdir is None:
+            continue
+        targets = [spec.destination / spec.hook_subdir]
+        targets += [spec.destination / sub for sub in spec.runtime_asset_subdirs]
+        for target in targets:
+            if not target.is_dir():
+                continue
+            for js_file in target.glob("*.js"):
+                js_file.unlink()
+                removed += 1
+    print(f"      removed {removed} stale hook bundle(s) for non-deterministic release", flush=True)
+
+
+def sync_hooks_into_plugins(repo_root: Path, plugins_dir: Path | None = None) -> int:
     hooks_bundles_dist = repo_root / "hooks" / "dist" / "bundles"
     hooks_shell_dist = repo_root / "hooks" / "dist" / "shell"
 
@@ -1096,7 +1192,7 @@ def sync_hooks_into_plugins(repo_root: Path) -> int:
         )
         return 1
 
-    for spec in _get_plugin_specs(repo_root):
+    for spec in _get_plugin_specs(repo_root, plugins_dir):
         if spec.hook_subdir is None:
             continue
         bundle_src = hooks_bundles_dist / spec.name
@@ -1138,3 +1234,33 @@ def sync_hooks_into_plugins(repo_root: Path) -> int:
             print(f"      mirrored hook assets into {spec.destination.name}/{mirror_subdir}", flush=True)
 
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="plugin_generator",
+        description="Generate IDE plugin folders from a Rosetta instructions release.",
+    )
+    parser.add_argument(
+        "--release",
+        default=DEFAULT_RELEASE,
+        help=f"Instructions release to generate from (default: {DEFAULT_RELEASE}).",
+    )
+    parser.add_argument(
+        "--repo-root",
+        type=Path,
+        default=Path(__file__).resolve().parent.parent,
+        help="Repository root (default: the repo containing this script).",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Directory to write generated plugins into (default: <repo-root>/plugins).",
+    )
+    args = parser.parse_args(argv)
+    return sync_generated_plugins(args.repo_root, release=args.release, output_dir=args.output_dir)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

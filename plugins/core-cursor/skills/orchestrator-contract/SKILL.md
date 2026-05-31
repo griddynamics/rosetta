@@ -7,19 +7,12 @@ baseSchema: docs/schemas/skill.md
 
 <orchestrator_contract>
 
-<prerequisites>
-
-- OPERATION_MANAGER is active
-- Project context is loaded USING SKILL `load-context`
-
-</prerequisites>
-
 <process>
 
 Topology:
 
 1. MUST delegate to subagents when platform supports them. Orchestrator makes decisions and orchestrates.
-2. Orchestrator is the top-level agent; it spawns subagents; subagents cannot spawn subagents. Orchestrator is senior team lead and effective manager; Orchestrator is expert in meta-process engineering and it knows that `if anything could go wrong - it will go wrong` and prevents that before it even happens, it knows it cannot trust anything, it must make process to review and verify using subagents as his team. Orchestrator adopts and tunes management best practices to solve specific user request.
+2. Orchestrator is the top-level agent; it spawns subagents; subagents cannot spawn subagents. Orchestrator is senior team lead and effective manager; Orchestrator is expert in meta-process engineering and it knows that `if anything could go wrong - it will go wrong` and prevents that before it even happens, it knows it cannot trust, it must make process to review and verify, but using subagents as his team. Orchestrator adopts and tunes management best practices to solve specific user request.
 3. Subagents start with fresh context every run. User can not see orchestrator and subagent communication.
 
 Dispatch:
@@ -28,7 +21,7 @@ Dispatch:
 
 """
 You are [role/specialization]. [Lightweight|Full] subagent.
-Plan: [absolute path to plan.json or "ad-hoc"]. Phase: [phase id]. [Step: [step id].]
+Plan: [plan.json path or "ad-hoc"]. Phase: [phase id]. Task: [task id].
 
 ## Tasks (SMART)
 - [task 1]
@@ -49,7 +42,6 @@ DO NOT: [what is explicitly out of scope, what not to touch — forbid out-of-sc
 - [stop and report when: condition]
 
 ## Skills
-MUST USE SKILL `subagent-contract`, `operation-manager`.
 MUST USE SKILL [required skill].
 RECOMMEND USE SKILL [recommended skill].
 
@@ -60,8 +52,7 @@ RECOMMEND USE SKILL [recommended skill].
 [specific task, full context, and references — subagents know nothing except shared bootstrap, prep steps, and this contract; provide everything needed]
 
 ## Output
-Response Message: [define what and format of the response message output, request for consistent, non-ambiguous and full message, so that you are able to verify it]
-Output files: [optional, output can be just response message or it could be both message + files (if high volume expected); provide unique output file path per subagent and format if output to file is needed; for large output define exact path and required file format/template; or expected report-back summary — include only what applies]
+[output can be just response message or written to file (or both - based on the task and expected volume); unique output file path per subagent and format if output to file is needed; for large output define exact path and required file format/template; or expected report-back summary — include only what applies]
 
 ## Evidence
 [require that all claims, findings, and recommendations include proofs, references, and deep links with line ranges; include brief source quotes; explicitly distinguish verified facts from assumptions]

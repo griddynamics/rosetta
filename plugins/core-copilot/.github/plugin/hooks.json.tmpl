@@ -1,7 +1,8 @@
 {
   "version": 1,
   "hooks": {
-    "sessionStart": [{{BOOTSTRAP_HOOKS_COPILOT}}],
+    "sessionStart": [{{{bootstrap_hooks_copilot}}}]{{#if deterministic_hooks}},{{/if}}
+{{#if deterministic_hooks}}
     "PreToolUse": [
       {
         "matcher": "Bash|Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file|mcp__.*",
@@ -51,5 +52,6 @@
         ]
       }
     ]
+{{/if}}
   }
 }

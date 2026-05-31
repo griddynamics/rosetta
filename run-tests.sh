@@ -30,6 +30,10 @@ if [ ${#PYTEST_CMD[@]} -gt 0 ]; then
     echo -e "${BLUE}Running rosetta-cli tests...${NC}"
     PYTHONPATH="rosetta-cli${PYTHONPATH:+:$PYTHONPATH}" \
         "${PYTEST_CMD[@]}" --no-header -qq --tb=short -o console_output_style=classic rosetta-cli/tests
+
+    echo -e "${BLUE}Running scripts tests...${NC}"
+    PYTHONPATH="scripts${PYTHONPATH:+:$PYTHONPATH}" \
+        "${PYTEST_CMD[@]}" --no-header -qq --tb=short -o console_output_style=classic scripts/tests
 fi
 
 if [ -d "$SCRIPT_DIR/rosettify/node_modules" ]; then
