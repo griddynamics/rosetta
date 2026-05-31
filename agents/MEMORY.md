@@ -87,8 +87,8 @@ Src: `loose-files.ts`, `md-file-advisory.ts`, `gitnexus-refresh.ts`. Tests: `ada
 ### Test Runner Is vitest [ACTIVE]
 Canonical: `npx vitest run` (not `node --test`). All tests: `cd hooks && npm test`.
 
-### instructions/r3 Is The Actual Plugin Generator Source [ACTIVE]
-`scripts/plugin_generator.py` reads from `instructions/r3/core/`, not `r2`. Edit `r3` to affect plugin output; always sync both `r2` and `r3` when updating shared skills/workflows.
+### Plugin Generator Source Is Release-Selected (Default r2) [ACTIVE]
+`scripts/plugin_generator.py` is release-aware: `--release` selects `instructions/<release>/core` and defaults to **r2** (`DEFAULT_RELEASE`), matching ims-mcp's `DEFAULT_VERSION = "r2"`. r3 is opt-in via `--release r3`. To affect plugin output for a given release, edit that release's `instructions/<release>/core`; sync shared skills/workflows across `r2` and `r3` when they are meant to stay aligned.
 
 ### Hook Build Auto-Discovers All *.ts In hooks/src/hooks/ [ACTIVE]
 `hooks/scripts/build-bundles.mjs` uses `readdirSync` — no explicit list. Adding a new `.ts` file is sufficient to include it in the build. The regression test (`hooks-registered.test.ts`) performs the same discovery and cross-checks `hooks.json` registration.

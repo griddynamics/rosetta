@@ -101,7 +101,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Key behaviors: resume-safe `next` command returns `in_progress` steps with `resume: true` before `open` steps; plans stored at `plans/<name>/plan.json`; self-describing `help` command.
 - Converted `adhoc-flow-with-plan-manager` workflow to `USE SKILL plan-manager`; data structure externalized to `pm-schema.md`.
 - All plugins (`core-claude`, `core-cursor`, `core-copilot`, `core-codex`, `core-cursor-standalone`, `core-copilot-standalone`) are auto-synced from core by `scripts/pre_commit.py`.
-- `instructions/r3/core` is kept aligned with the current `instructions/r2/core` instruction set, and is the source tree used by `scripts/plugin_generator.py` to materialize plugin trees.
+- `scripts/plugin_generator.py` materializes plugin trees from the **release-selected** source `instructions/<release>/core` (`--release`, default **r2**; r3 opt-in). `instructions/r2/core` and `instructions/r3/core` are maintained per release (shared skills/workflows kept aligned where intended).
 
 ### Plugin Generator
 
