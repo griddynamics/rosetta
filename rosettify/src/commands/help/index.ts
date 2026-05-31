@@ -3,13 +3,11 @@
 import type { ToolDef, RunEnvelope, HelpTopLevel, HelpCommandDetail, CommandInput } from "../../registry/types.js";
 import { ok } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
+import { VERSION } from "../../shared/version.js";
 
 export interface HelpInput extends CommandInput {
   subcommand?: string;
 }
-
-// Version from package — hardcoded to keep implementation simple
-const VERSION = "0.1.0";
 
 // Lazy registry to avoid circular imports
 async function getRegistry() {

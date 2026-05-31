@@ -13,27 +13,33 @@ export const upsertTemplates = {
   "for-subagent": forSubagent,
 } as const;
 
-// Helper types for template entries in the catalog (FR-PLAN-0032)
-export interface TemplateCatalogEntry {
+// FR-PLAN-0032 / FR-HELP-0002 — named exported type for template catalog entries (includes produces)
+export interface PlanTemplateCatalogEntry {
   name: string;
   brief: string;
   placeholders: readonly string[];
+  produces: string;
 }
+
+// Alias for backwards compatibility within this module
+export type TemplateCatalogEntry = PlanTemplateCatalogEntry;
 
 /** Returns the catalog for list-templates (FR-PLAN-0032). */
 export function buildTemplateCatalog(): {
-  create: TemplateCatalogEntry[];
-  upsert: TemplateCatalogEntry[];
+  create: PlanTemplateCatalogEntry[];
+  upsert: PlanTemplateCatalogEntry[];
 } {
-  const create: TemplateCatalogEntry[] = Object.values(createTemplates).map((t) => ({
+  const create: PlanTemplateCatalogEntry[] = Object.values(createTemplates).map((t) => ({
     name: t.name,
     brief: t.brief,
     placeholders: t.placeholders,
+    produces: t.produces,
   }));
-  const upsert: TemplateCatalogEntry[] = Object.values(upsertTemplates).map((t) => ({
+  const upsert: PlanTemplateCatalogEntry[] = Object.values(upsertTemplates).map((t) => ({
     name: t.name,
     brief: t.brief,
     placeholders: t.placeholders,
+    produces: t.produces,
   }));
   return { create, upsert };
 }

@@ -5,7 +5,7 @@ license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: request, tech-spec?, constraints?, scope?
-model: gpt-5.3-codex
+model: gpt-5.5
 model_reasoning_effort: high
 context: default
 agent: planner

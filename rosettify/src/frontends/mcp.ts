@@ -10,10 +10,11 @@ import { getMcpTools, getToolDef } from "../registry/index.js";
 import { dispatch } from "../shared/dispatch.js";
 import { extractOutput, logFailure } from "../shared/envelope.js";
 import { logger } from "../shared/logger.js";
+import { VERSION } from "../shared/version.js";
 
 export async function runMcp(): Promise<void> {
   const server = new Server(
-    { name: "rosettify", version: "0.1.0" },
+    { name: "rosettify", version: VERSION },
     { capabilities: { tools: {} } },
   );
 

@@ -14,7 +14,7 @@ import {
   propagateStatuses,
   savePlan,
 } from "./core.js";
-import { buildCompressedTree, type CompressedPlanTree } from "./output.js";
+import { buildPlanWriteResult, type PlanWriteResult } from "./output.js";
 
 // FR-PLAN-0010 — create returns compressed-tree shape (FR-PLAN-0040)
 export const createInputSchema = {
@@ -28,50 +28,16 @@ export const createInputSchema = {
       ],
     },
   },
-  required: [],
 };
 
 export const createOutputSchema = {
-  type: "object" as const,
-  description: "FR-PLAN-0040 — compressed-tree shape after create",
-  properties: {
-    plan: {
-      type: "object",
-      properties: {
-        name: { type: "string" },
-        status: { type: "string" },
-      },
-    },
-    previous_version: { type: ["string", "null"] },
-    phases: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          name: { type: "string" },
-          status: { type: "string" },
-          steps: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                id: { type: "string" },
-                name: { type: "string" },
-                status: { type: "string" },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
+  $ref: "PlanWriteResult" as const,
 };
 
 export async function cmdCreate(
   planFile: string,
   data: Record<string, unknown>,
-): Promise<RunEnvelope<CompressedPlanTree>> {
+): Promise<RunEnvelope<PlanWriteResult>> {
   try {
     const now = new Date().toISOString();
 
@@ -122,8 +88,8 @@ export async function cmdCreate(
     savePlan(planFile, plan);
 
     logger.info({ planFile, name: plan.name }, "plan created");
-    // FR-PLAN-0040 — return compressed-tree shape; previous_version=null on first create
-    return ok(buildCompressedTree(plan, null));
+    // FR-PLAN-0040 — return PlanWriteResult shape (plan + phases); previous_version=null on first create (FR-PLAN-0010)
+    return ok(buildPlanWriteResult(plan, null));
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return err(`internal_error: ${msg}`);

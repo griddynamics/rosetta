@@ -9,7 +9,7 @@ import * as os from "os";
 import * as path from "path";
 import { cmdCreate } from "../../../src/commands/plan/create.js";
 import { loadPlan } from "../../../src/commands/plan/core.js";
-import type { CompressedPlanTree } from "../../../src/commands/plan/output.js";
+import type { PlanWriteResult } from "../../../src/commands/plan/output.js";
 
 let tmpDir: string;
 
@@ -32,7 +32,7 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
     const result = await cmdCreate(file, { name: "My Plan" });
 
     expect(result.ok).toBe(true);
-    const tree = result.result as CompressedPlanTree;
+    const tree = result.result as PlanWriteResult;
 
     // FR-PLAN-0040 — root fields
     expect(tree.plan).toBeDefined();
@@ -46,14 +46,21 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
     expect((tree as Record<string, unknown>)["status"]).toBeUndefined();
   });
 
-  // FR-PLAN-0017 — previous_version=null on first create
-  it("previous_version is null on first create", async () => {
+  // FR-PLAN-0040 — plan summary previous_version is null on first create (FR-PLAN-0010)
+  it("plan.previous_version is null on first create (FR-PLAN-0010)", async () => {
     const file = planFile();
     const result = await cmdCreate(file, { name: "My Plan" });
 
     expect(result.ok).toBe(true);
-    const tree = result.result as CompressedPlanTree;
-    expect(tree.previous_version).toBeNull();
+    const tree = result.result as PlanWriteResult;
+    // FR-PLAN-0040 — previous_version is null on first create, surfaced in plan summary
+    expect(tree.plan.previous_version).toBeNull();
+    // No previous_version at result root level
+    expect((tree as Record<string, unknown>)["previous_version"]).toBeUndefined();
+
+    // FR-PLAN-0017 — plan FILE on disk has previous_version=null on first create
+    const plan = loadPlan(file)!;
+    expect(plan.previous_version).toBeNull();
   });
 
   // FR-PLAN-0026 — plan file is pretty-formatted on disk
@@ -87,7 +94,7 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
     };
     const result = await cmdCreate(file, data);
     expect(result.ok).toBe(true);
-    const tree = result.result as CompressedPlanTree;
+    const tree = result.result as PlanWriteResult;
 
     expect(tree.phases.length).toBe(1);
     const phase = tree.phases[0]!;
@@ -113,7 +120,7 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
     const file = planFile();
     const result = await cmdCreate(file, {});
     expect(result.ok).toBe(true);
-    const tree = result.result as CompressedPlanTree;
+    const tree = result.result as PlanWriteResult;
     expect(tree.plan.name).toBe("Unnamed Plan");
   });
 
@@ -204,7 +211,7 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
     };
     const result = await cmdCreate(file, data);
     expect(result.ok).toBe(true);
-    const tree = result.result as CompressedPlanTree;
+    const tree = result.result as PlanWriteResult;
     expect(tree.plan.status).toBe("open");
     expect(tree.phases[0]!.status).toBe("open");
   });
@@ -248,11 +255,11 @@ describe("cmdCreate — FR-PLAN-0010 / FR-PLAN-0040", () => {
 
     const first = await cmdCreate(file, { name: "Original Plan" });
     expect(first.ok).toBe(true);
-    expect((first.result as CompressedPlanTree).plan.name).toBe("Original Plan");
+    expect((first.result as PlanWriteResult).plan.name).toBe("Original Plan");
 
     const second = await cmdCreate(file, { name: "Replaced Plan" });
     expect(second.ok).toBe(true);
-    expect((second.result as CompressedPlanTree).plan.name).toBe("Replaced Plan");
+    expect((second.result as PlanWriteResult).plan.name).toBe("Replaced Plan");
 
     const plan = loadPlan(file)!;
     expect(plan.name).toBe("Replaced Plan");

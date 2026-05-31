@@ -246,19 +246,22 @@ describe("MCP — plan lifecycle", () => {
     expect(createRes.isError).toBe(false);
     // Success: payload IS the result directly (compressed-tree shape, no ok wrapper)
     expect((createRes.payload as any).ok).toBeUndefined();
-    const created = createRes.payload as { plan: { name: string; status: string }; previous_version: null; phases: unknown[] };
+    const created = createRes.payload as { plan: { name: string; status: string; previous_version: unknown }; phases: unknown[] };
     expect(created.plan.name).toBe("MCP E2E Plan");
     expect(created.plan.status).toBe("open");
-    expect(created.previous_version).toBeNull();
+    // FR-PLAN-0040 — previous_version=null on first create (FR-PLAN-0010)
+    expect(created.plan.previous_version).toBeNull();
+    // No previous_version at result root level
+    expect((created as Record<string, unknown>)["previous_version"]).toBeUndefined();
     expect(Array.isArray(created.phases)).toBe(true);
     expect(fs.existsSync(file)).toBe(true);
 
-    // 2. next — phase 1 active, s1 should be ready
+    // 2. next — phase 1 active, s1 should be actionable
     const nextRes = await client.callTool("plan", { subcommand: "next", plan_file: file });
     expect(nextRes.isError).toBe(false);
-    const nextResult = nextRes.payload as { ready: { id: string }[]; count: number };
-    expect(nextResult.ready.some((s) => s.id === "s1")).toBe(true);
-    expect(nextResult.ready.some((s) => s.id === "s3")).toBe(false); // phase 2 blocked
+    const nextResult = nextRes.payload as { next: { id: string }[]; count: number };
+    expect(nextResult.next.some((s) => s.id === "s1")).toBe(true);
+    expect(nextResult.next.some((s) => s.id === "s3")).toBe(false); // phase 2 blocked
 
     // 3. show_status
     const showRes = await client.callTool("plan", { subcommand: "show_status", plan_file: file });
@@ -290,11 +293,11 @@ describe("MCP — plan lifecycle", () => {
     // Phase 1 complete now, phase 2 should become active
     expect(["in_progress", "open"]).toContain(upd2Result.plan_status);
 
-    // 6. next — phase 2 now active, s3 should be ready (s1 dep complete)
+    // 6. next — phase 2 now active, s3 should be actionable (s1 dep complete)
     const nextRes2 = await client.callTool("plan", { subcommand: "next", plan_file: file });
     expect(nextRes2.isError).toBe(false);
-    const nr2 = nextRes2.payload as { ready: { id: string }[] };
-    expect(nr2.ready.some((s) => s.id === "s3")).toBe(true);
+    const nr2 = nextRes2.payload as { next: { id: string }[] };
+    expect(nr2.next.some((s) => s.id === "s3")).toBe(true);
 
     // 7. query — full plan
     const qRes = await client.callTool("plan", { subcommand: "query", plan_file: file });
@@ -311,10 +314,13 @@ describe("MCP — plan lifecycle", () => {
       data: { description: "Updated via upsert" },
     });
     expect(upsertRes.isError).toBe(false);
-    // upsert returns compressed-tree: {plan:{name,status}, previous_version, phases}
-    const upsertResult = upsertRes.payload as { plan: { name: string; status: string }; previous_version: string; phases: unknown[] };
+    // upsert returns PlanWriteResult: {plan, phases}
+    const upsertResult = upsertRes.payload as { plan: { name: string; status: string; previous_version: unknown }; phases: unknown[] };
     expect(upsertResult.plan).toBeDefined();
-    expect(upsertResult.previous_version).toBeDefined();
+    // FR-PLAN-0040 — result.plan.previous_version is the backup path (non-null after write)
+    expect(upsertResult.plan.previous_version).not.toBeNull();
+    // No previous_version at result root level
+    expect((upsertResult as Record<string, unknown>)["previous_version"]).toBeUndefined();
   });
 });
 
@@ -356,9 +362,9 @@ describe("MCP — plan next with target_id", () => {
       target_id: "p2",
     });
     expect(r.isError).toBe(false);
-    const res = r.payload as { ready: { id: string }[] };
-    expect(res.ready.some((s) => s.id === "s2")).toBe(true);
-    expect(res.ready.some((s) => s.id === "s1")).toBe(false);
+    const res = r.payload as { next: { id: string }[] };
+    expect(res.next.some((s) => s.id === "s2")).toBe(true);
+    expect(res.next.some((s) => s.id === "s1")).toBe(false);
   });
 
   it("returns target_not_found for nonexistent phase", async () => {
@@ -433,11 +439,14 @@ describe("MCP — plan create-with-template (FR-PLAN-0030)", () => {
 
     expect(isError).toBe(false);
     expect((payload as any).ok).toBeUndefined();
-    // Result is compressed-tree
-    const tree = payload as { plan: { name: string; status: string }; previous_version: null; phases: unknown[] };
+    // Result is PlanWriteResult: {plan, phases}
+    const tree = payload as { plan: { name: string; status: string; previous_version: unknown }; phases: unknown[] };
     expect(tree.plan.name).toBe("MCP Template Plan");
     expect(tree.plan.status).toBe("open");
-    expect(tree.previous_version).toBeNull();
+    // FR-PLAN-0040 — previous_version=null on first create (FR-PLAN-0010)
+    expect(tree.plan.previous_version).toBeNull();
+    // No previous_version at result root level
+    expect((tree as Record<string, unknown>)["previous_version"]).toBeUndefined();
     expect(Array.isArray(tree.phases)).toBe(true);
     // Plan file exists on disk
     expect(fs.existsSync(file)).toBe(true);
@@ -488,10 +497,13 @@ describe("MCP — plan upsert-with-template (FR-PLAN-0031)", () => {
 
     expect(isError).toBe(false);
     expect((payload as any).ok).toBeUndefined();
-    // Result is compressed-tree
-    const tree = payload as { plan: { name: string }; previous_version: string; phases: unknown[] };
+    // Result is PlanWriteResult: {plan, phases}
+    const tree = payload as { plan: { name: string; previous_version: unknown }; phases: unknown[] };
     expect(tree.plan).toBeDefined();
-    expect(typeof tree.previous_version).toBe("string");
+    // FR-PLAN-0040 — result.plan.previous_version is the backup path (non-null after write)
+    expect(tree.plan.previous_version).not.toBeNull();
+    // No previous_version at result root level
+    expect((tree as Record<string, unknown>)["previous_version"]).toBeUndefined();
     expect(Array.isArray(tree.phases)).toBe(true);
     // .bak* file exists on disk (FR-PLAN-0031 atomic write cycle)
     const dir = path.dirname(file);

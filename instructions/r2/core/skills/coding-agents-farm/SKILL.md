@@ -5,7 +5,7 @@ license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: tasks-or-plan, cli-selection?, model-preferences?
-model: claude-4.6-opus-high
+model: claude-4.8-opus-high, gpt-5.5-high
 context: default
 metadata:
   version: "1.0"
@@ -65,8 +65,8 @@ Known auto-approve issues:
 YOUR INTERNAL KNOWLEDGE ABOUT MODEL NAMES, CLI FLAGS, AND TOOL VERSIONS IS STALE. Use ONLY the names and flags listed in this skill. Do NOT substitute from memory. If unsure about a model name, omit the model flag and let the CLI use its default.
 
 Model selection guidance:
-- Anthropic: `claude-sonnet-4-6` (workhorse), `claude-opus-4-6` (complex), `claude-haiku-4-5` (fast)
-- OpenAI: `gpt-5.4` (workhorse), `gpt-5.3-codex-high` (agentic, complex)
+- Anthropic: `claude-sonnet-4-6` (workhorse), `claude-opus-4-8` (complex), `claude-haiku-4-5` (fast)
+- OpenAI: `gpt-5.4` (workhorse), `gpt-5.5-high` (complex)
 - Google: `gemini-3.1-pro-preview` (workhorse), `gemini-3-flash-preview` (fast)
 - Copilot: select via `--model`; supports claude, gpt, gemini families through GitHub
 - OpenCode: prefix with provider, e.g. `anthropic/claude-sonnet-4-6`, `openai/gpt-5.4`

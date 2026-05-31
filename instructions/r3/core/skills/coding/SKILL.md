@@ -33,13 +33,14 @@ Principles:
 - Documentation: ONLY as instructed by rules or user
 - Address root cause, if you think you found it, investigate more
 - Prefer consistent and reliable solutions
+- Use background terminal when starting services to prevent getting stuck, MUST for copilot. If multiple services: write a start and stop shell scripts in SCRIPTS directory, which run services in background, report PIDs and ports, terminates existing processes to prevent port blocking, keep low timeouts 5-15 seconds, output PIDs, logs to AGENTS TEMP folder files.
 
 Project documentation — MUST keep current in target project:
 - `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`, `DEPENDENCIES.md`, `TECHSTACK.md`, `CODEMAP.md`
 
 Validation methodology:
 
-- Systematic, logical, dependency-ordered: databases (queries/statements) → APIs (curl/similar) → Web (Chrome DevTools/Playwright) → Mobile (Appium/similar)
+- Systematic, logical, dependency-ordered: databases (queries/statements) → APIs (curl/similar) → Web (Chrome DevTools/Playwright) → Mobile (Appium/similar), solid foundation first.
 - Check logs and running services locally
 - Clean up after validation, ALWAYS consider consequences of validation actions
 - CLI testing harness for libraries/packages: CLI commands outputting intermediate results including requests/responses

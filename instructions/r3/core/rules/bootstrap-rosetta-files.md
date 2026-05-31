@@ -23,14 +23,14 @@ It must be possible to grep by headers and receive useful information and ToC.
 8. `docs/CODEMAP.md`. Code map of the workspace.
 9. `docs/REQUIREMENTS/*`. Original requirements. May be missing. `docs/REQUIREMENTS/INDEX.md` is index. `docs/REQUIREMENTS/CHANGES.md` is change log.
 10. `docs/PATTERNS/*`. Coding and architectural patterns. May be missing. `docs/PATTERNS/INDEX.md` is index. `docs/PATTERNS/CHANGES.md` is change log.
-11. `agents/IMPLEMENTATION.md`. Current state of implementation very concise. Structure to prevent git conflicts. The only change log.
+11. `agents/IMPLEMENTATION.md`. Current state of implementation very concise. Structure to prevent git conflicts. The only implementation change log.
 12. `agents/MEMORY.md`. Very brief root causes of errors and mistakes, brief actions tried and actions succeeded, both positive and negative. Create if missing.
 13. `plans/<FEATURE>/<FEATURE>-PLAN.md`. Execution plan.
 14. `plans/<FEATURE>/<FEATURE>-SPECS.md`. Tech specs.
 15. `plans/<FEATURE>/plan.json`. Operation manager execution tracking file.
 16. `plans/<FEATURE>/*`. Feature implementation supporting files.
-16. `refsrc/*`. Source code used only for knowledge! Exclude from SCM with single exception `refsrc/INDEX.md` to be committed.
-17. `agents/TEMP/<FEATURE>`. Temporary folder used during feature implementation. Exclude `agents/TEMP` from SCM.
-18. `docs/raw`. Folder with raw input files for requirements.
+17. `refsrc/*`. Source code used only for knowledge! Exclude from SCM with single exception `refsrc/INDEX.md` to be committed.
+18. `agents/TEMP/<FEATURE>`. Temporary folder used during feature implementation. Exclude `agents/TEMP` from SCM.
+19. `docs/raw`. Folder with raw input files for requirements.
 
 </bootstrap_rosetta_files>

@@ -1,5 +1,5 @@
 /**
- * Unit tests for cmdNext (FR-PLAN-0011 — sequential phase logic).
+ * Unit tests for cmdNext (sequential phase logic).
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
@@ -8,7 +8,7 @@ import * as path from "path";
 import { cmdNext } from "../../../src/commands/plan/next.js";
 import { savePlan } from "../../../src/commands/plan/core.js";
 import { fullPlan, minimalPlan, completedPlan, singleStepPlan } from "../../fixtures/plans.js";
-import type { Plan } from "../../../src/commands/plan/core.js";
+import type { Plan, PlanNextStep, PlanPhaseContext } from "../../../src/commands/plan/core.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -50,17 +50,17 @@ describe("cmdNext — plan_not_found", () => {
 // ---------------------------------------------------------------------------
 
 describe("cmdNext — empty plan", () => {
-  it("returns empty ready array for plan with no phases", async () => {
+  it("returns empty next array for plan with no phases", async () => {
     const file = writePlan(minimalPlan());
     const result = await cmdNext(file);
     expect(result.ok).toBe(true);
-    expect(result.result!.ready).toEqual([]);
+    expect(result.result!.next).toEqual([]);
     expect(result.result!.count).toBe(0);
   });
 });
 
 // ---------------------------------------------------------------------------
-// sequential phase logic (FR-PLAN-0011)
+// sequential phase logic
 // ---------------------------------------------------------------------------
 
 describe("cmdNext — sequential phase logic", () => {
@@ -70,7 +70,7 @@ describe("cmdNext — sequential phase logic", () => {
     const result = await cmdNext(file);
     expect(result.ok).toBe(true);
     // Only s1 is ready (s2 depends on s1 which is open)
-    const ids = result.result!.ready.map((s) => s.id);
+    const ids = result.result!.next.map((s) => s.id);
     expect(ids).toContain("s1");
     expect(ids).not.toContain("s3"); // s3 is in phase 2
   });
@@ -83,17 +83,17 @@ describe("cmdNext — sequential phase logic", () => {
     const file = writePlan(plan);
     const result = await cmdNext(file);
     expect(result.ok).toBe(true);
-    const ids = result.result!.ready.map((s) => s.id);
+    const ids = result.result!.next.map((s) => s.id);
     // Phase 2 is now active; s3 depends on s1 which is complete
     expect(ids).toContain("s3");
     expect(ids).not.toContain("s1");
   });
 
-  it("returns empty ready when all phases complete", async () => {
+  it("returns empty next when all phases complete", async () => {
     const file = writePlan(completedPlan());
     const result = await cmdNext(file);
     expect(result.ok).toBe(true);
-    expect(result.result!.ready).toEqual([]);
+    expect(result.result!.next).toEqual([]);
   });
 });
 
@@ -104,10 +104,10 @@ describe("cmdNext — sequential phase logic", () => {
 describe("cmdNext — step dependency filtering", () => {
   it("excludes steps whose dependencies are not complete", async () => {
     const plan = fullPlan();
-    // s2 depends on s1 (which is open) — s2 must not be in ready
+    // s2 depends on s1 (which is open) — s2 must not be in next
     const file = writePlan(plan);
     const result = await cmdNext(file);
-    const ids = result.result!.ready.map((s) => s.id);
+    const ids = result.result!.next.map((s) => s.id);
     expect(ids).not.toContain("s2");
   });
 
@@ -116,45 +116,45 @@ describe("cmdNext — step dependency filtering", () => {
     plan.phases[0]!.steps[0]!.status = "complete"; // s1 complete
     const file = writePlan(plan);
     const result = await cmdNext(file);
-    const ids = result.result!.ready.map((s) => s.id);
+    const ids = result.result!.next.map((s) => s.id);
     expect(ids).toContain("s2");
   });
 });
 
 // ---------------------------------------------------------------------------
-// in_progress / blocked / failed grouping
+// status grouping — NO flags (resume / previously_* removed)
 // ---------------------------------------------------------------------------
 
 describe("cmdNext — status grouping", () => {
-  it("includes in_progress steps with resume:true", async () => {
+  it("includes in_progress steps (no resume flag)", async () => {
     const plan = singleStepPlan();
     plan.phases[0]!.steps[0]!.status = "in_progress";
     const file = writePlan(plan);
     const result = await cmdNext(file);
     expect(result.ok).toBe(true);
-    const step = result.result!.ready[0]!;
+    const step = result.result!.next[0]!;
     expect(step.status).toBe("in_progress");
-    expect(step.resume).toBe(true);
+    expect((step as Record<string, unknown>)["resume"]).toBeUndefined();
   });
 
-  it("includes blocked steps with previously_blocked:true", async () => {
+  it("includes blocked steps (no previously_blocked flag)", async () => {
     const plan = singleStepPlan();
     plan.phases[0]!.steps[0]!.status = "blocked";
     const file = writePlan(plan);
     const result = await cmdNext(file);
-    const step = result.result!.ready[0]!;
+    const step = result.result!.next[0]!;
     expect(step.status).toBe("blocked");
-    expect(step.previously_blocked).toBe(true);
+    expect((step as Record<string, unknown>)["previously_blocked"]).toBeUndefined();
   });
 
-  it("includes failed steps with previously_failed:true", async () => {
+  it("includes failed steps (no previously_failed flag)", async () => {
     const plan = singleStepPlan();
     plan.phases[0]!.steps[0]!.status = "failed";
     const file = writePlan(plan);
     const result = await cmdNext(file);
-    const step = result.result!.ready[0]!;
+    const step = result.result!.next[0]!;
     expect(step.status).toBe("failed");
-    expect(step.previously_failed).toBe(true);
+    expect((step as Record<string, unknown>)["previously_failed"]).toBeUndefined();
   });
 
   it("orders: in_progress first, then open, then blocked, then failed", async () => {
@@ -164,6 +164,7 @@ describe("cmdNext — status grouping", () => {
       status: "open",
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
+      previous_version: null,
       phases: [
         {
           id: "p1",
@@ -181,9 +182,9 @@ describe("cmdNext — status grouping", () => {
       ],
     };
     const file = writePlan(plan);
-    const result = await cmdNext(file);
+    const result = await cmdNext(file, undefined, 10);
     expect(result.ok).toBe(true);
-    const ids = result.result!.ready.map((s) => s.id);
+    const ids = result.result!.next.map((s) => s.id);
     expect(ids[0]).toBe("si"); // in_progress first
     expect(ids[1]).toBe("so"); // open second
     expect(ids[2]).toBe("sb"); // blocked third
@@ -205,7 +206,7 @@ describe("cmdNext — target_id scoping", () => {
     const file = writePlan(plan);
     const result = await cmdNext(file, "p2");
     expect(result.ok).toBe(true);
-    const ids = result.result!.ready.map((s) => s.id);
+    const ids = result.result!.next.map((s) => s.id);
     expect(ids).toContain("s3");
     expect(ids).not.toContain("s1");
     expect(ids).not.toContain("s2");
@@ -217,10 +218,215 @@ describe("cmdNext — target_id scoping", () => {
     expect(result.ok).toBe(false);
     expect(result.error).toBe("target_not_found");
   });
+
+  // parent present iff target_id
+  it("parent is present when target_id is given", async () => {
+    const plan = fullPlan();
+    const file = writePlan(plan);
+    const result = await cmdNext(file, "p1");
+    expect(result.ok).toBe(true);
+    expect(result.result!.parent).toBeDefined();
+    const parent = result.result!.parent!;
+    expect(parent.id).toBe("p1");
+    expect(parent.name).toBeDefined();
+    expect(parent.description).toBeDefined();
+    expect(parent.status).toBeDefined();
+    expect(parent.depends_on).toBeDefined();
+    // parent must NOT include steps
+    expect((parent as Record<string, unknown>)["steps"]).toBeUndefined();
+  });
+
+  it("parent is absent when no target_id", async () => {
+    const file = writePlan(fullPlan());
+    const result = await cmdNext(file);
+    expect(result.ok).toBe(true);
+    expect(result.result!.parent).toBeUndefined();
+  });
+
+  it("parent includes subagent/role/model when set on the phase", async () => {
+    const plan = fullPlan();
+    plan.phases[0]!.subagent = "coding";
+    plan.phases[0]!.role = "engineer";
+    plan.phases[0]!.model = "sonnet";
+    const file = writePlan(plan);
+    const result = await cmdNext(file, "p1");
+    expect(result.ok).toBe(true);
+    const parent = result.result!.parent!;
+    expect(parent.subagent).toBe("coding");
+    expect(parent.role).toBe("engineer");
+    expect(parent.model).toBe("sonnet");
+  });
 });
 
 // ---------------------------------------------------------------------------
-// limit
+// Overall*Count fields
+// ---------------------------------------------------------------------------
+
+describe("cmdNext — Overall*Count fields", () => {
+  it("reports counts for whole plan when no target_id", async () => {
+    const plan: Plan = {
+      name: "Count Test",
+      description: "",
+      status: "open",
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      previous_version: null,
+      phases: [
+        {
+          id: "p1",
+          name: "P1",
+          description: "",
+          status: "open",
+          depends_on: [],
+          steps: [
+            { id: "s1", name: "S1", prompt: "p", status: "open",        depends_on: [] },
+            { id: "s2", name: "S2", prompt: "p", status: "in_progress", depends_on: [] },
+            { id: "s3", name: "S3", prompt: "p", status: "blocked",     depends_on: [] },
+            { id: "s4", name: "S4", prompt: "p", status: "failed",      depends_on: [] },
+            { id: "s5", name: "S5", prompt: "p", status: "complete",    depends_on: [] },
+          ],
+        },
+        {
+          id: "p2",
+          name: "P2",
+          description: "",
+          status: "open",
+          depends_on: [],
+          steps: [
+            { id: "s6", name: "S6", prompt: "p", status: "open", depends_on: [] },
+          ],
+        },
+      ],
+    };
+    const file = writePlan(plan);
+    const result = await cmdNext(file);
+    expect(result.ok).toBe(true);
+    const r = result.result!;
+    // Whole-plan counts
+    expect(r.OverallOpenCount).toBe(2);      // s1, s6
+    expect(r.OverallInProgressCount).toBe(1); // s2
+    expect(r.OverallBlockedCount).toBe(1);    // s3
+    expect(r.OverallFailedCount).toBe(1);     // s4
+    expect(r.OverallCompleteCount).toBe(1);   // s5
+  });
+
+  it("scopes Overall*Count to target phase when target_id given", async () => {
+    const plan: Plan = {
+      name: "Scoped Count Test",
+      description: "",
+      status: "open",
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      previous_version: null,
+      phases: [
+        {
+          id: "p1",
+          name: "P1",
+          description: "",
+          status: "open",
+          depends_on: [],
+          steps: [
+            { id: "s1", name: "S1", prompt: "p", status: "open",     depends_on: [] },
+            { id: "s2", name: "S2", prompt: "p", status: "complete", depends_on: [] },
+          ],
+        },
+        {
+          id: "p2",
+          name: "P2",
+          description: "",
+          status: "open",
+          depends_on: [],
+          steps: [
+            { id: "s3", name: "S3", prompt: "p", status: "blocked", depends_on: [] },
+            { id: "s4", name: "S4", prompt: "p", status: "failed",  depends_on: [] },
+          ],
+        },
+      ],
+    };
+    const file = writePlan(plan);
+    const result = await cmdNext(file, "p2");
+    expect(result.ok).toBe(true);
+    const r = result.result!;
+    // Only p2 steps
+    expect(r.OverallOpenCount).toBe(0);
+    expect(r.OverallInProgressCount).toBe(0);
+    expect(r.OverallBlockedCount).toBe(1);
+    expect(r.OverallFailedCount).toBe(1);
+    expect(r.OverallCompleteCount).toBe(0);
+  });
+
+  it("blocked/failed truncated by limit but Overall*Count still reports them", async () => {
+    const plan: Plan = {
+      name: "Truncation Test",
+      description: "",
+      status: "open",
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      previous_version: null,
+      phases: [
+        {
+          id: "p1",
+          name: "P1",
+          description: "",
+          status: "open",
+          depends_on: [],
+          steps: [
+            { id: "s1", name: "S1", prompt: "p", status: "in_progress", depends_on: [] },
+            { id: "s2", name: "S2", prompt: "p", status: "open",        depends_on: [] },
+            { id: "s3", name: "S3", prompt: "p", status: "blocked",     depends_on: [] },
+            { id: "s4", name: "S4", prompt: "p", status: "failed",      depends_on: [] },
+          ],
+        },
+      ],
+    };
+    const file = writePlan(plan);
+    // limit=3: s1, s2, s3 returned; s4 truncated
+    const result = await cmdNext(file, undefined, 3);
+    expect(result.ok).toBe(true);
+    const r = result.result!;
+    expect(r.next.length).toBe(3);
+    expect(r.count).toBe(3);
+    // But OverallFailedCount still reports s4
+    expect(r.OverallFailedCount).toBe(1);
+    expect(r.OverallBlockedCount).toBe(1);
+  });
+
+  it("zero-actionable phase (only blocked) returns blocked steps + correct counts", async () => {
+    const plan: Plan = {
+      name: "All Blocked",
+      description: "",
+      status: "open",
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      previous_version: null,
+      phases: [
+        {
+          id: "p1",
+          name: "P1",
+          description: "",
+          status: "open",
+          depends_on: [],
+          steps: [
+            { id: "s1", name: "S1", prompt: "p", status: "blocked", depends_on: [] },
+            { id: "s2", name: "S2", prompt: "p", status: "blocked", depends_on: [] },
+          ],
+        },
+      ],
+    };
+    const file = writePlan(plan);
+    const result = await cmdNext(file, undefined, 3);
+    expect(result.ok).toBe(true);
+    const r = result.result!;
+    expect(r.next.length).toBe(2);
+    expect(r.count).toBe(2);
+    expect(r.OverallBlockedCount).toBe(2);
+    expect(r.OverallOpenCount).toBe(0);
+    expect(r.OverallInProgressCount).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// limit — default 3
 // ---------------------------------------------------------------------------
 
 describe("cmdNext — limit", () => {
@@ -231,6 +437,7 @@ describe("cmdNext — limit", () => {
       status: "open",
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
+      previous_version: null,
       phases: [
         {
           id: "p1",
@@ -249,7 +456,7 @@ describe("cmdNext — limit", () => {
     const file = writePlan(plan);
     const result = await cmdNext(file, undefined, 2);
     expect(result.ok).toBe(true);
-    expect(result.result!.ready.length).toBe(2);
+    expect(result.result!.next.length).toBe(2);
     expect(result.result!.count).toBe(2);
   });
 
@@ -260,9 +467,9 @@ describe("cmdNext — limit", () => {
     expect(result.error).toBe("invalid_limit");
   });
 
-  it("defaults to 10 steps", async () => {
-    // Build a plan with 11 open steps in phase 1
-    const steps = Array.from({ length: 11 }, (_, i) => ({
+  it("defaults to 3 steps", async () => {
+    // Build a plan with 5 open steps in phase 1
+    const steps = Array.from({ length: 5 }, (_, i) => ({
       id: `s${i + 1}`,
       name: `Step ${i + 1}`,
       prompt: "do it",
@@ -275,18 +482,19 @@ describe("cmdNext — limit", () => {
       status: "open",
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
+      previous_version: null,
       phases: [{ id: "p1", name: "P1", description: "", status: "open", depends_on: [], steps }],
     };
     const file = writePlan(plan);
     const result = await cmdNext(file);
-    expect(result.result!.ready.length).toBe(10);
+    expect(result.result!.next.length).toBe(3);
   });
 
-  it("handles limit=0 returning empty ready", async () => {
+  it("handles limit=0 returning empty next", async () => {
     const file = writePlan(singleStepPlan());
     const result = await cmdNext(file, undefined, 0);
     expect(result.ok).toBe(true);
-    expect(result.result!.ready).toEqual([]);
+    expect(result.result!.next).toEqual([]);
   });
 });
 
@@ -321,16 +529,14 @@ describe("cmdNext — step optional fields", () => {
     plan.phases[0]!.steps[0]!.model = "sonnet";
     const file = writePlan(plan);
     const result = await cmdNext(file);
-    const step = result.result!.ready[0]!;
+    const step = result.result!.next[0]!;
     expect(step.subagent).toBe("coding");
     expect(step.role).toBe("engineer");
     expect(step.model).toBe("sonnet");
   });
 });
 
-describe("cmdNext — plan_file_corrupted on invalid JSON (FR-SHRD-0009)", () => {
-  // FR-SHRD-0009 / FR-PLAN-0021 — readPlanWithRetry throws on parse failure;
-  // next.ts catches and returns plan_file_corrupted (ERR_PLAN_FILE_CORRUPTED)
+describe("cmdNext — plan_file_corrupted on invalid JSON", () => {
   it("returns plan_file_corrupted when file contains invalid JSON", async () => {
     const file = planFile("bad.json");
     fs.writeFileSync(file, "{{invalid json{{");
@@ -343,7 +549,7 @@ describe("cmdNext — plan_file_corrupted on invalid JSON (FR-SHRD-0009)", () =>
 describe("cmdNext — nullish status branches", () => {
   it("handles phase with undefined status (defaults to open, included as active phase)", async () => {
     const plan = singleStepPlan();
-    // Force phase status to undefined — triggers the ?? 'open' branch on line 42
+    // Force phase status to undefined — triggers the ?? 'open' branch
     (plan.phases[0]! as Record<string, unknown>)["status"] = undefined;
     const file = writePlan(plan);
     const result = await cmdNext(file);
@@ -354,13 +560,13 @@ describe("cmdNext — nullish status branches", () => {
 
   it("handles step with undefined status (defaults to open)", async () => {
     const plan = singleStepPlan();
-    // Force step status to undefined — triggers the ?? 'open' branch on line 54
+    // Force step status to undefined — triggers the ?? 'open' branch
     (plan.phases[0]!.steps[0]! as Record<string, unknown>)["status"] = undefined;
     const file = writePlan(plan);
     const result = await cmdNext(file);
     expect(result.ok).toBe(true);
-    // Step with undefined status treated as 'open', so it's a ready step
-    expect(result.result!.ready.length).toBeGreaterThan(0);
+    // Step with undefined status treated as 'open', so it's a next step
+    expect(result.result!.next.length).toBeGreaterThan(0);
   });
 
   it("handles phase with undefined steps (nullish branch)", async () => {
@@ -370,5 +576,76 @@ describe("cmdNext — nullish status branches", () => {
     const result = await cmdNext(file);
     expect(result.ok).toBe(true);
     expect(result.result!.count).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PlanNextStep field-shape assertions (FR-PLAN-0011 / FR-HELP-0002)
+// ---------------------------------------------------------------------------
+
+describe("cmdNext — PlanNextStep field-shape assertions", () => {
+  it("every element in next is a PlanNextStep with required fields", async () => {
+    const plan = fullPlan();
+    const file = writePlan(plan);
+    const result = await cmdNext(file, undefined, 10);
+    expect(result.ok).toBe(true);
+    for (const step of result.result!.next as PlanNextStep[]) {
+      expect(typeof step.id).toBe("string");
+      expect(typeof step.name).toBe("string");
+      expect(typeof step.prompt).toBe("string");
+      expect(typeof step.status).toBe("string");
+      expect(Array.isArray(step.depends_on)).toBe(true);
+      expect(typeof step.phase_id).toBe("string");
+      expect(typeof step.phase_name).toBe("string");
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PlanPhaseContext field-shape assertions (FR-PLAN-0011 / FR-HELP-0002)
+// ---------------------------------------------------------------------------
+
+describe("cmdNext — PlanPhaseContext (parent) field-shape assertions", () => {
+  it("parent is a PlanPhaseContext with required scalar fields and no steps", async () => {
+    const plan = fullPlan();
+    const file = writePlan(plan);
+    const result = await cmdNext(file, "p1", 10);
+    expect(result.ok).toBe(true);
+    const parent = result.result!.parent as PlanPhaseContext;
+    expect(parent).toBeDefined();
+    expect(typeof parent.id).toBe("string");
+    expect(typeof parent.name).toBe("string");
+    expect(typeof parent.description).toBe("string");
+    expect(typeof parent.status).toBe("string");
+    expect(Array.isArray(parent.depends_on)).toBe(true);
+    // PlanPhaseContext must NOT include steps
+    expect((parent as Record<string, unknown>)["steps"]).toBeUndefined();
+  });
+
+  // FR-PLAN-0011 — no-limit case with --target
+  it("next --target <phase-id> without explicit limit applies default limit (3) and returns phase-scoped result", async () => {
+    const plan = fullPlan();
+    const file = writePlan(plan);
+    // Default limit = 3; call with target but no explicit limit
+    const result = await cmdNext(file, "p1");
+    expect(result.ok).toBe(true);
+    // parent must be present (target_id given)
+    expect(result.result!.parent).toBeDefined();
+    expect(result.result!.parent!.id).toBe("p1");
+    // count <= 3 (default limit)
+    expect(result.result!.count).toBeLessThanOrEqual(3);
+  });
+
+  // FR-PLAN-0011 — count=0 and parent.status=complete when phase complete
+  it("count=0 and parent.status=complete when all phase steps are complete", async () => {
+    const plan = fullPlan();
+    // Complete all phase-1 steps
+    plan.phases[0]!.steps.forEach((s) => (s.status = "complete"));
+    plan.phases[0]!.status = "complete";
+    const file = writePlan(plan);
+    const result = await cmdNext(file, "p1");
+    expect(result.ok).toBe(true);
+    expect(result.result!.count).toBe(0);
+    expect(result.result!.parent!.status).toBe("complete");
   });
 });

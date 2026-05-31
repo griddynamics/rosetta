@@ -190,30 +190,29 @@ export const planToolDef: ToolDef<PlanInput, unknown> = {
       // FR-PLAN-0030 / FR-PLAN-0034 — template parameters (kebab-case, uniform across CLI/MCP)
       template: {
         type: "string",
-        description: "FR-PLAN-0030 / FR-PLAN-0031 — template name",
+        description: "Template name",
       },
       "plan-name": {
         type: "string",
-        description: "FR-PLAN-0030 / FR-PLAN-0034 — value for [plan-name] placeholder",
+        description: "Value for [plan-name] placeholder",
       },
       "plan-description": {
         type: "string",
-        description: "FR-PLAN-0030 / FR-PLAN-0034 — value for [plan-description] placeholder",
+        description: "Value for [plan-description] placeholder",
       },
       "phase-id": {
         type: "string",
-        description: "FR-PLAN-0031 / FR-PLAN-0034 — value for [phase-id] placeholder",
+        description: "Value for [phase-id] placeholder",
       },
       "phase-name": {
         type: "string",
-        description: "FR-PLAN-0031 / FR-PLAN-0034 — value for [phase-name] placeholder",
+        description: "Value for [phase-name] placeholder",
       },
       "phase-description": {
         type: "string",
-        description: "FR-PLAN-0031 / FR-PLAN-0034 — value for [phase-description] placeholder",
+        description: "Value for [phase-description] placeholder",
       },
     },
-    required: [],
   },
   outputSchema: {
     type: "object",

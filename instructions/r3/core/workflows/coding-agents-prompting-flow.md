@@ -18,7 +18,7 @@ Orchestrates prompt authoring/adaptation via `discover -> extract+intake -> blue
 1. All Rosetta prep steps MUST be FULLY completed
 2. MUST USE OPERATION_MANAGER for deterministic execution
 3. Orchestrator must trust the system and skills; coordinate only sequence, artifacts, state, and approvals.
-4. Load only references needed for the current phase.
+4. Load only references needed for the current phase; load each phase's skills just-in-time when entering it (when subagents are not used).
 5. Agent state tracker file `coding-agents-prompting-flow-state.md` is stored in FEATURE TEMP folder.
 
 </prerequisites>

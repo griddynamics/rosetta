@@ -10,6 +10,7 @@ export const forOrchestrator = {
   name: "for-orchestrator",
   brief: "Bootstrap a new plan with the Rosetta orchestrator preparation phase.",
   placeholders: ["plan-name", "plan-description"] as const,
+  produces: "A new plan with one preparation phase (ph-prep) of 5 Rosetta orchestrator bootstrap steps.",
   content: {
     name: "[plan-name]",
     description: "[plan-description]",

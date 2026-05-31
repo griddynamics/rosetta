@@ -22,7 +22,7 @@ import {
   findPhase,
   findStep,
 } from "./core.js";
-import { buildCompressedTree, type CompressedPlanTree } from "./output.js";
+import { buildPlanWriteResult, type PlanWriteResult } from "./output.js";
 
 // FR-PLAN-0015 — upsert returns compressed-tree shape (FR-PLAN-0040)
 export const upsertInputSchema = {
@@ -39,17 +39,10 @@ export const upsertInputSchema = {
     kind: { type: "string", description: "Type for new items: phase | step" },
     phase_id: { type: "string", description: "Parent phase for new step" },
   },
-  required: [],
 };
 
 export const upsertOutputSchema = {
-  type: "object" as const,
-  description: "FR-PLAN-0040 — compressed-tree shape after upsert",
-  properties: {
-    plan: { type: "object" },
-    previous_version: { type: ["string", "null"] },
-    phases: { type: "array" },
-  },
+  $ref: "PlanWriteResult" as const,
 };
 
 // FR-PLAN-0015 — status fields are silently dropped from patch data;
@@ -81,7 +74,7 @@ export async function cmdUpsert(
   data: Record<string, unknown>,
   kind?: string,
   phaseId?: string,
-): Promise<RunEnvelope<CompressedPlanTree>> {
+): Promise<RunEnvelope<PlanWriteResult>> {
   try {
     const resolvedTargetId = targetId ?? "entire_plan";
 
@@ -114,12 +107,12 @@ export async function cmdUpsert(
       // FR-PLAN-0026 — savePlan writes 2-space pretty-formatted JSON
       savePlan(planFile, plan);
       logger.info({ planFile, targetId: resolvedTargetId }, "upsert created new plan");
-      // FR-PLAN-0040 — return compressed-tree; previous_version=null (first create)
-      return ok(buildCompressedTree(plan, null));
+      // FR-PLAN-0040 — return PlanWriteResult; previous_version=null on first create (FR-PLAN-0010)
+      return ok(buildPlanWriteResult(plan, null));
     }
 
     // FR-PLAN-0024 — use rename-as-guard write cycle for existing plans
-    const writeResult = await atomicWriteWithBackup<Plan, CompressedPlanTree>(
+    const writeResult = await atomicWriteWithBackup<Plan, PlanWriteResult>(
       planFile,
       (plan) => {
         let mutated = plan;
@@ -179,8 +172,8 @@ export async function cmdUpsert(
         propagateStatuses(mutated);
 
         logger.info({ planFile, targetId: resolvedTargetId }, "upsert complete");
-        // FR-PLAN-0040 — result is compressed-tree; backupPath injected by atomicWriteWithBackup
-        return { ok: true, result: buildCompressedTree(mutated, null), updated: mutated };
+        // FR-PLAN-0040 — placeholder result; real backup path injected at the call site after atomicWriteWithBackup
+        return { ok: true, result: buildPlanWriteResult(mutated, null), updated: mutated };
       },
       savePlan,
     );
@@ -189,11 +182,10 @@ export async function cmdUpsert(
       return { ok: false, result: null, error: writeResult.error, include_help: writeResult.include_help };
     }
 
-    // Patch the compressed tree's previous_version with the actual backup path from write cycle
+    // FR-PLAN-0040 — inject real backup path into plan summary (FR-PLAN-0024 / FR-PLAN-0010)
     const tree = writeResult.result!.result;
-    const actualBackupPath = writeResult.result!.backupPath;
-    const finalTree: CompressedPlanTree = { ...tree, previous_version: actualBackupPath };
-    return ok(finalTree);
+    const bak = writeResult.result!.backupPath;
+    return ok({ ...tree, plan: { ...tree.plan, previous_version: bak } });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return err(`internal_error: ${msg}`);

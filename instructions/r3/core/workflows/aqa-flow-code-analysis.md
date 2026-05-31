@@ -309,9 +309,9 @@ Mark Phase 3 as completed and Phase 4 as current.
 
 ## Next Phase
 
-Proceed to **Phase 4: Selector Identification** by reading:
+Proceed to **Phase 4: Selector Identification** by executing:
 ```
-agents/instructions/agents/advanced/r1/aqa-phase4.md
+ACQUIRE aqa-flow-selector-identification.md FROM KB
 ```
 
 ## Important Notes

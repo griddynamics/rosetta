@@ -7,6 +7,15 @@ Content: brief, grep-friendly, MECE across sections. Style: one-liner per entry,
 
 ## Preventive Rules
 
+### Do Not Manufacture Approval Questions For Unrequested, Unchanged Details [ACTIVE]
+Only surface decisions the user actually owns. Pre-existing behavior the user did not ask to change (e.g. existing `next` step flags resume/previously_blocked/previously_failed) must be left untouched and NOT raised as "needs your nod." Re-raising settled or out-of-scope items reads as churn and erodes trust. Before listing an item as open, check: did the user ask to change THIS? If no, leave it as-is and stay silent.
+
+### Emitted Recommendations Are Directive — No Optionality/Internal Qualifiers [ACTIVE]
+In emitted guidance/notes, state the recommended action directly ("call show_status with --target <id>"), never qualify it with optionality or internal mechanics ("optionally", "not required", "technically"). Whether a parameter is optional belongs in that parameter's own spec/args doc, not in a recommendation note. Adding the qualifier silently turns a recommendation into "you may skip this." Same root family as leaking author rationale into outputs: keep author-facing facts out of caller-facing directives.
+
+### Answer "How Does The Caller Get X" With Caller-Visible Commands Only [ACTIVE]
+When a user asks how a CALLER/USER obtains something from a command, answer only with caller-visible invocations, parameters, output fields, and a concrete example. Never cite internal code flags, variable names, or file internals — not part of the caller contract, only confuse. Read the implementation first to ground behavior, then translate to the caller's vocabulary. Root cause of a real incident: explained `plan next` retrieval using internal `resume`/`previously_*` flags instead of the caller-facing `next`→`show_status`→`query` flow, and re-derived behavior from a self-proposed option instead of the code.
+
 ### Prefer HTTPS Metadata Links Over `mailto:` Package URLs [ACTIVE]
 Modern package validation can reject `mailto:` entries in `project.urls`; keep support links as HTTPS URLs and put raw email addresses in docs instead.
 

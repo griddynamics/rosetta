@@ -149,7 +149,7 @@ The `model` field accepts the following model id values:
 - (omitted) - Inherits model from parent agent (default)
 - `auto` - Selects cheapest matching model, avoid use of it!
 - `composer-2-fast` - Uses a very fast and cheap model (for simple tasks, like executing a predefined set of scripts and analyzing the output)
-- `claude-4.7-opus-high-thinking` - Anthropic Claude 4.7 Opus (most capable, with extended reasoning, expensive)
+- `claude-4.8-opus-high-thinking` - Anthropic Claude 4.8 Opus (most capable, with extended reasoning, expensive)
 - `claude-4.6-sonnet` - Anthropic Claude 4.6 Sonnet
 - `claude-4.6-sonnet-thinking` - Anthropic Claude 4.6 Sonnet with extended reasoning
 - `claude-4.5-haiku` - Anthropic Claude 4.5 Haiku
@@ -160,7 +160,7 @@ The `model` field accepts the following model id values:
 - `gpt-5.3-codex-max-high` - OpenAI GPT 5.3 Codex Max High
 - `gpt-5.4-medium` - OpenAI GPT 5.4 model, better than 5.3 (combined codex and regular), medium reasoning efforts
 - `gpt-5.4-high` - OpenAI GPT 5.4 with high reasoning efforts (ex: planning, tech specs)
-- `gpt-5.5-medium` - OpenAI GPT 5.5 better than 5.4 and Opus 4.7, medium efforts, expensive (overall planner)
+- `gpt-5.5-medium` - OpenAI GPT 5.5 better than 5.4 and Opus 4.8, medium efforts, expensive (overall planner)
 - `gpt-5.5-high` - OpenAI GPT 5.5 with high reasoning efforts (architect)
 - `grok-code-fast-1` - xAI Grok Code Fast
 - `gemini-3.1-pro` - Google Gemini 3 Pro

@@ -157,14 +157,13 @@ applyTo: "src/api/**/*.ts"
 
 **Models:**
 - (omitted) - Inherits model from parent agent (default)
-- `Claude Opus 4.7` - Anthropic Claude 4.7 Opus (most capable, with extended reasoning)
-- `Claude Opus 4.6` - Anthropic Claude 4.6 Opus prev gen
-- `Claude Opus 4.5` - Anthropic Claude 4.5 Opus prev gen
+- `Claude Opus 4.8` - Anthropic Claude 4.8 Opus (most capable, with extended reasoning)
+- `Claude Opus 4.6` - Anthropic Claude 4.6 Opus prev gen (4.7 existed but was not good)
 - `Claude Sonnet 4.6` - Anthropic Claude 4.6 Sonnet with thinking
 - `Claude Haiku 4.5` - Anthropic Claude 4.5 Haiku with thinking
 - `GPT-5.3-Codex` - OpenAI GPT 5.3 Codex
 - `GPT-5.4` - OpenAI GPT 5.4 model, better than 5.3 (combined codex and regular), medium reasoning efforts
-- `gpt-5.5` - OpenAI GPT 5.5 with medium reasoning efforts, better than opus 4.7 (architect)
+- `gpt-5.5` - OpenAI GPT 5.5 with medium reasoning efforts, better than opus 4.8 (architect)
 - `Grok Code Fast 1` - xAI Grok Code Fast
 - `Gemini 3.1 Pro (Preview)` - Google Gemini 3 Pro
 

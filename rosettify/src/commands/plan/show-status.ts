@@ -9,10 +9,10 @@ import { ERR_PLAN_FILE_CORRUPTED } from "./errors.js";
 import {
   type Plan,
   type Status,
-  type StatusTotals,
+  type PlanStatusTotals,
   type ShowStatusPlanResult,
-  type ShowStatusPhaseResult,
-  type ShowStatusStepResult,
+  type PlanPhaseSummary,
+  type PlanStepDetail,
   findPhase,
   findStep,
 } from "./core.js";
@@ -23,23 +23,18 @@ export const showStatusInputSchema = {
     plan_file: { type: "string", description: "Path to the plan JSON file" },
     target_id: { type: "string", description: "entire_plan | phase-id | step-id (default: entire_plan)" },
   },
-  required: [],
 };
 
 export const showStatusOutputSchema = {
-  type: "object" as const,
-  description: "FR-PLAN-0013 — status summary for plan, phase, or step",
-  properties: {
-    name: { type: "string" },
-    status: { type: "string" },
-    phases: { type: "object" },
-    steps: { type: "object" },
-    phase_summary: { type: "array" },
-  },
+  oneOf: [
+    { $ref: "ShowStatusPlanResult" as const },
+    { $ref: "PlanPhaseSummary" as const },
+    { $ref: "PlanStepDetail" as const },
+  ],
 };
 
-function computeTotals(statuses: Status[]): StatusTotals {
-  const t: StatusTotals = {
+function computeTotals(statuses: Status[]): PlanStatusTotals {
+  const t: PlanStatusTotals = {
     open: 0,
     in_progress: 0,
     complete: 0,
@@ -63,11 +58,7 @@ function computeTotals(statuses: Status[]): StatusTotals {
 export async function cmdShowStatus(
   planFile: string,
   targetId?: string,
-): Promise<
-  RunEnvelope<
-    ShowStatusPlanResult | ShowStatusPhaseResult | ShowStatusStepResult
-  >
-> {
+): Promise<RunEnvelope<ShowStatusPlanResult | PlanPhaseSummary | PlanStepDetail>> {
   try {
     // FR-SHRD-0009 — read with resilience
     let plan: Plan | null;
@@ -108,7 +99,8 @@ export async function cmdShowStatus(
 
     const phase = findPhase(plan, targetId);
     if (phase) {
-      const result: ShowStatusPhaseResult = {
+      // FR-PLAN-0013 — phase-target returns PlanPhaseSummary (DRY reuse)
+      const result: PlanPhaseSummary = {
         id: phase.id,
         name: phase.name,
         status: phase.status ?? "open",
@@ -125,7 +117,8 @@ export async function cmdShowStatus(
     const found = findStep(plan, targetId);
     if (found) {
       const { step } = found;
-      const result: ShowStatusStepResult = {
+      // FR-PLAN-0013 — step-target returns PlanStepDetail
+      const result: PlanStepDetail = {
         id: step.id,
         name: step.name,
         status: step.status ?? "open",

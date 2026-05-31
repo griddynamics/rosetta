@@ -198,15 +198,21 @@
 
 - System prompts (out of our control) require immediate execution, deny back-and-forth with user, also models always jump to conclusions
 - Our prompts should encourage co-working and co-authoring
-- AI forgets to give proper context
+- AI forgets to give proper context, forgets that subagents, tool calls outputs are only available to orchestrator, user can not see those, etc.
 - AI forgets to validate, reorganize, persist root causes, learn (persist discovered knowledge), and cleanup
 - AI mixes aspects, actors, and responsibilities if not clearly separated
 - AI is prone to carry away and generate a huge amounts of content based on assumptions, rendering it useless or impossible to review
-- AI overly relies on internal knowledge (train set is >1Y old), AI does not proactively research
+- AI overly relies on internal knowledge (but train sets are >1Y old), AI does not proactively research
 - AI removes important clarifiers, specifiers, explanations ("just", "only", "constantly", minor explanations, etc)
 - AI constantly keeps inserting non-operational clarifications (history, rationale, origin labels, change annotations), but target documents must be source-agnostic, state-only, action-only. All change logs must be directed to a separate file.
 - AI constantly badly over-engineers instead of simplifying, simplification is a king
-- AI constantly brings new ideas instead of following existing
+- AI constantly brings new ideas instead of following existing, constantly overly complicates
+- AI never looks around to think "What else is used? What could be the better solution? How this pattern or issue was resolved in other places? What web search can find? What else is affected in any direction?"
+- AI prioritizes action over analysis leading to not known unknowns
+- AI needs harsh, direct, MoSCoW style rules + short brilliant comparisons (task coded ≠ task completed, trust but verify)
+- AI produces an unmanageable amount of AI generated content with a lot of non-matching assumptions (AI slop)
+- AI "feels overloaded" and skips steps if we provide more than 5 at once
+- AI constantly injects instructions/reasoning/information given to him into final outputs, even though those for its own reasoning only (examples: AI makes mistakes - user tells to fix because of X - AI applies correct fix and additionally adds that X to the final document - instead of just fixing - producing useless slop; AI reads requirements and specifications - implements changes - internal requirement identifiers slip in output to user; etc.)
 
 </ai-issues>
 
@@ -214,7 +220,7 @@
 
 - Proactively ask to generate and show a graph visually, also suggest which perspectives to generate it on
 - Load and process source data programmatically or AI-driven semi-programmatically to build a graph data
-- Use Graphviz to build/show the UI for graph and configure it for best visual presentation
+- Use GitNexus for coding graph or Graphviz to build/show the UI for any graph and configure it for best visual presentation
 
 </visual_graph>
 

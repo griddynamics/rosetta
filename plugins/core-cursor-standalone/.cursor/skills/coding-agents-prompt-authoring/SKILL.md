@@ -96,7 +96,7 @@ Based on the task `ACQUIRE FROM KB` and apply:
 - ACQUIRE `coding-agents-prompt-authoring/references/pa-best-practices.md` FROM KB for standard prompting best practices during review
 - ACQUIRE `coding-agents-prompt-authoring/references/pa-patterns.md` FROM KB for patterns to use in prompt architecture during review
 - ACQUIRE `coding-agents-prompt-authoring/references/pa-schemas.md` FROM KB for prompt classification, specific templates, relationships during design and final formatting
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-rosetta.md` FROM KB for Rosetta prompts (repos: `rosetta`, `RulesOfPower`, `instructions` folder) during design and review
+- ACQUIRE `coding-agents-prompt-authoring/references/pa-rosetta.md` FROM KB for Rosetta prompts (repos: `rosetta`, `cto-ims-kb`, `RulesOfPower`, `instructions` folder) during design and review
 - ACQUIRE `coding-agents-prompt-authoring/references/pa-simulation.md` FROM KB for tracing and simulation of target prompt execution
 
 Example logical flow: discover → extract+intake → blueprint → for_each_prompt_loop(draft → hardening → edit) → simulate → validate

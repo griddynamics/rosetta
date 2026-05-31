@@ -180,9 +180,10 @@ HITL gates (use when):
 - Keep traceability separate
 - Keep decisions separate
 - Keep questions separate
-- REQUIREMENTS/INDEX.md is index
+- REQUIREMENTS/INDEX.md is index, for each file has one md header with its title, short description, serves as ToC grepable by headers
 - REQUIREMENTS/CHANGES.md is change log
 - Each file defines one area abbreviation
+- Each file uses grep-friendly headers for sections and requirements
 - All other documents are target-state only
 - Never write change explanations
 - Consider that user input maybe provided for your understanding for you to properly make changes
@@ -237,12 +238,14 @@ HITL gates (use when):
   <priority>Must|Should|Could|Wont</priority>
   <status>Draft|Approved|Deprecated</status>
   <approved_by>[user login approved]</approved_by>
+  <changed>[YYYY-MM-DD]</changed>
   <verification>Test|Analysis|Inspection|Demo</verification>
   <acceptance>
     <criteria>Given: A When: B Then: C.</criteria>
     <criteria>Given: X When: Y Then: Z.</criteria>
   </acceptance>
   <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
+  <implementation>[Implemented|Todo|Modify] [Additional Notes: files affected for implemented, notes without duplication for what changed for todo and modify]</implementation>
   <notes>...</notes>
 </req>
 ```
@@ -307,6 +310,7 @@ HITL gates (use when):
 - State limits and constraints
 - Tie NFRs to scenarios
 - Avoid subjective quality words
+- Update existing requirements with new schema
 
 </nonfunctional_requirements>
 

@@ -218,6 +218,22 @@ Given: dispatch returns {ok: false, error: "unknown_command: foo | valid: ...", 
   </acceptance>
 </req>
 
+## FR-ARCH-0016 No Internal Traceability Leakage in Outputs
+
+<req id="FR-ARCH-0016" type="FR" level="System">
+  <title>Emitted outputs SHALL NOT leak internal traceability or implementation references</title>
+  <statement>Every output emitted to a consumer — success results, error responses, and help payloads (including command/subcommand descriptions, schema descriptions, examples, and notes) — SHALL NOT contain internal traceability or implementation references. Forbidden tokens in emitted output include: requirement identifiers (`FR-*`, `NFR-*`), ticket identifiers (e.g. `CTORNDGAIN-*`), internal source file paths, internal-only module names, and internal dataset or collection prefixes. These references MAY appear only in source code (comments, traceability annotations) and in requirement documents — never in emitted output. Emitted guidance SHALL be self-contained and directive: it states what the consumer must do or what is returned, and SHALL NOT include authoring rationale, cross-references to requirements, or design history. Meaningful public type names that double as schema keys (e.g. a result type name) are NOT internal references and are permitted.</statement>
+  <rationale>Consumers are AI agents and humans who must not be confused or misled by Rosetta-internal bookkeeping. Requirement IDs, ticket numbers, and internal paths are authoring artifacts that carry no actionable meaning for a caller and erode trust in the output. Keeping them in code and requirement docs preserves traceability without leaking it. The directive-only rule mirrors spec hygiene: emitted notes must teach the caller what to do, not why the author wrote them that way.</rationale>
+  <source>User</source>
+  <ticketId>CTORNDGAIN-1333</ticketId>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: any command output (result, error, or help payload) emitted via CLI or MCP. When: the serialized output is scanned. Then: it contains no token matching a requirement identifier (`FR-`/`NFR-` followed by digits), no ticket identifier, no internal source path, and no internal dataset/collection prefix. Given: any command's help payload (including plan). When: every subcommand description, schema description, example, and note is inspected. Then: none contains a requirement identifier or authoring rationale; each reads as standalone directive guidance. Given: a schema dictionary key equal to a public result type name. Then: it is permitted (not treated as a leak).</criteria>
+  </acceptance>
+</req>
+
 ## Safety
 
 ### FR-ARCH-0015 Dangerous Commands Require --force

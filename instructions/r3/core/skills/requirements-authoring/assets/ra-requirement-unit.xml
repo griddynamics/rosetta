@@ -28,12 +28,14 @@ Use one unit per need, keep implementation-free wording, and set `Approved` only
   <priority>Must|Should|Could|Wont</priority>
   <status>Draft|Approved|Deprecated</status>
   <approved_by>[user login approved]</approved_by>
+  <changed>[YYYY-MM-DD]</changed>
   <verification>Test|Analysis|Inspection|Demo</verification>
   <acceptance>
     <criteria>Given: A When: B Then: C.</criteria>
     <criteria>Given: X When: Y Then: Z.</criteria>
   </acceptance>
   <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
+  <implementation>[Implemented|Todo|Modify] [Additional Notes: files affected for implemented, notes without duplication for what changed for todo and modify]</implementation>
   <notes>...</notes>
 </req>
 ```

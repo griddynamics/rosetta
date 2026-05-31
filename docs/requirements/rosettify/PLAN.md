@@ -92,15 +92,15 @@ Note: All "Output:" references in this file describe the `result` field contents
 
 <req id="FR-PLAN-0010" type="FR" level="System">
   <title>plan create subcommand</title>
-  <statement>plan create SHALL accept a plan JSON object and a file path. It SHALL create the plan file with: status defaults (open for all phases/steps), depends_on defaults ([]), timestamps (created_at, updated_at set to current ISO8601), default name "Unnamed Plan" when not provided, and previous_version set to null. It SHALL create parent directories if they don't exist. All validations (unique IDs, dependencies, size limits, cycles) SHALL run before writing. The result SHALL conform to the compressed-tree shape defined in FR-PLAN-0040.</statement>
-  <rationale>Compressed-tree output gives AI agents an immediate post-write snapshot without a follow-up query.</rationale>
+  <statement>plan create SHALL accept a plan JSON object and a file path. It SHALL create the plan file with: status defaults (open for all phases/steps), depends_on defaults ([]), timestamps (created_at, updated_at set to current ISO8601), default name "Unnamed Plan" when not provided, and previous_version set to null. It SHALL create parent directories if they don't exist. All validations (unique IDs, dependencies, size limits, cycles) SHALL run before writing. The result SHALL conform to the PlanWriteResult shape defined in FR-PLAN-0040.</statement>
+  <rationale>PlanWriteResult output gives AI agents an immediate post-write snapshot without a follow-up query.</rationale>
   <source>Sources</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: create with {name: "My Plan", phases: []}. When: executed. Then: file exists with status=open, created_at and updated_at set, previous_version=null, result matches the compressed-tree shape from FR-PLAN-0040 with previous_version=null. Given: no name provided. Then: name="Unnamed Plan". Given: nested path that doesn't exist. Then: parent dirs are created.</criteria>
+    <criteria>Given: create with {name: "My Plan", phases: []}. When: executed. Then: file exists with status=open, created_at and updated_at set, and the plan document's previous_version=null; the result matches the PlanWriteResult shape from FR-PLAN-0040 with result.plan.previous_version=null. Given: no name provided. Then: name="Unnamed Plan". Given: nested path that doesn't exist. Then: parent dirs are created.</criteria>
   </acceptance>
 </req>
 
@@ -108,15 +108,29 @@ Note: All "Output:" references in this file describe the `result` field contents
 
 <req id="FR-PLAN-0011" type="FR" level="System">
   <title>plan next subcommand</title>
-  <statement>plan next SHALL return steps organized by execution relevance, respecting sequential phase ordering. Phases are sequential: steps from a later phase SHALL NOT appear in next results until ALL steps in all earlier phases are complete (status=complete). The active phase is the earliest phase that is not yet fully complete. next returns work from the active phase only (unless target_id overrides this). The result SHALL contain four groups in order: (1) in_progress steps (resume=true) — interrupted work to continue; (2) open steps with all dependencies satisfied and parent phase dependencies satisfied — new work; (3) blocked steps (previously_blocked=true); (4) failed steps (previously_failed=true) — surfaced so the AI agent can reason about them. Each returned step SHALL include phase_id, phase_name, and applicable flags (resume, previously_blocked, previously_failed). The optional target_id parameter acts as a filter: when provided, results are scoped to that specific phase only (overriding the active-phase selection), explicitly identifying which phase to work on. When target_id is omitted, next automatically determines the active phase per sequential ordering. Accepts optional limit parameter (default 10). Negative limit SHALL be rejected with `invalid_limit`. Result: {ready: [...], count, plan_status}.</statement>
-  <rationale>Phases are sequential by design: an AI agent must not start later-phase work until earlier phases are fully done. target_id is a filter that explicitly overrides phase selection when provided, enabling the caller to target a specific phase. Resume behavior from JS. Blocked/failed surfacing for AI session recovery reasoning. Diverges from both JS and Python sources, which do not enforce sequential phase ordering or surface blocked/failed steps.</rationale>
+  <statement>plan next SHALL return the steps that are actionable now plus scope-wide status counts, respecting sequential phase ordering. Phases are sequential: steps from a later phase SHALL NOT appear in next results until ALL steps in all earlier phases are complete (status=complete). The active phase is the earliest phase that is not yet fully complete. next operates on the active phase only, unless target_id overrides this.
+
+The `next` array SHALL contain steps in priority order, then truncated to the limit: (1) in_progress steps — interrupted work to continue; (2) open steps whose step dependencies and parent-phase dependencies are all satisfied — new work; (3) blocked steps; (4) failed steps — surfaced so the caller can reason about them. Each returned step carries its own `status` (in_progress, open, blocked, or failed), which the caller reads to decide what to do. Because groups (1) and (2) come first, when there is enough actionable work to fill the limit the blocked and failed groups are truncated and do not appear in that call; the `Overall*` count fields still report that they exist. To list all blocked/failed/in_progress steps regardless of the limit, the caller uses show_status (which lists every step with its status and is not bounded by limit), then query for a single step's full detail. Each returned step SHALL be the named exported type `PlanNextStep` carrying id, name, prompt, status, depends_on, phase_id, phase_name, and any set subagent, role, and model. `PlanNextStep` SHALL be the declared `items` type of the `next` array per the recursive naming rule (FR-HELP-0002).
+
+The result SHALL be the named type `PlanNextResult` with fields:
+
+- `parent` (the named exported type `PlanPhaseContext`, present ONLY when target_id is provided): the scalar fields of the targeted phase — id, name, description, status, depends_on, and any set subagent/role/model — and SHALL NOT include the phase's steps. It gives the caller the context of the steps it is working on. Its `status` is the phase-scoped completion signal: under target_id the phase is finished when `count` is 0 and `parent.status` is complete; without target_id the caller relies on `plan_status` instead. `PlanPhaseContext` SHALL be a named exported type per the recursive naming rule (FR-HELP-0002).
+- `next` (array of `PlanNextStep`): the steps described above, in priority order and truncated to the limit.
+- `count` (integer): the number of steps returned in `next` (the array length after any limit is applied), not the total actionable count.
+- `plan_status` (StatusEnum): the derived status of the whole plan.
+- `OverallOpenCount`, `OverallInProgressCount`, `OverallBlockedCount`, `OverallFailedCount`, `OverallCompleteCount` (integers): the number of steps in each status within the current scope.
+
+The optional target_id parameter acts as a filter. When provided: results and all `Overall*` counts are scoped to that phase only, and the `parent` block is included. When omitted: next selects the active phase per sequential ordering, the `Overall*` counts cover the entire plan, and the `parent` block is absent.
+
+next SHALL accept an optional limit parameter (default 3) bounding the number of steps in the `next` array; callers MAY pass a larger explicit limit, and when no limit is supplied by any means the default 3 SHALL apply on every frontend. On the CLI the limit is supplied as a positional argument, which is the only documented form. For compatibility with callers that reflexively pass a flag, the CLI SHALL ALSO accept the limit via a `--limit <n>` option; this option is an undocumented compatibility alias ONLY and SHALL NOT appear in help, schemas, usage strings, examples, notes, or any emitted output. When both the positional limit and the `--limit` alias are supplied, the positional value SHALL take precedence. A negative limit SHALL be rejected with `invalid_limit`. Errors: plan_not_found (file missing), target_not_found (target_id references a nonexistent phase).</statement>
+  <rationale>Phases are sequential by design: an AI agent must not start later-phase work until earlier phases are fully done. The `Overall*` counts give the AI a recovery signal that is independent of the limit: a non-zero blocked/failed count, or an in_progress count that does not fall across calls (a stuck step), tells the agent to look — and because the limit can truncate the blocked/failed groups out of a given call, show_status is the reliable way to list them all. target_id remains a filter (not globally required) so the same command serves whole-plan orchestration and phase-scoped subagent execution; the `parent` block lets a filtered subagent see its phase context without a second call. Default limit 3 matches the intended small-batch subagent cadence while remaining overridable. The undocumented `--limit` alias absorbs the common reflex of passing a flag — a model that types `--limit` should not hit an error — without advertising a second way to do the same thing; the positional form stays the single documented surface and wins on conflict, so the documented form remains authoritative. Diverges from both JS and Python sources, which do not enforce sequential phase ordering, scope counts, or a parent block.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: phase-1 has steps [complete, complete], phase-2 has steps [open, open]. When: next called (no target_id). Then: steps from phase-2 returned (phase-1 fully done). Given: phase-1 has steps [complete, open], phase-2 has steps [open]. When: next called. Then: only steps from phase-1 returned (phase-1 not fully complete). Given: step s1 in_progress, s2 open, s3 blocked, s4 failed, all in active phase. When: next called. Then: s1 appears first (resume=true), s2 second, s3 third (previously_blocked=true), s4 fourth (previously_failed=true). Given: limit=2, 5 eligible steps. Then: only 2 returned. Given: target_id=phase-2. Then: only steps from phase-2 returned regardless of phase-1 completion state. Given: limit=-1. Then: {error: "invalid_limit"}. Given: file missing. Then: {error: "plan_not_found"}. Given: target_id referencing nonexistent phase. Then: {error: "target_not_found"}.</criteria>
+    <criteria>Given: phase-1 steps [complete, complete], phase-2 steps [open, open]. When: next called (no target_id). Then: next contains phase-2 open steps; parent absent; Overall* counts cover the whole plan. Given: phase-1 steps [complete, open], phase-2 steps [open]. When: next called. Then: only phase-1 actionable steps returned (phase-1 not fully complete). Given: active phase has s1 in_progress, s2 open, s3 blocked, s4 failed, limit=10. When: next called. Then: next=[s1, s2, s3, s4] in that order, each carrying its own status. OverallInProgressCount≥1, OverallBlockedCount≥1, OverallFailedCount≥1. Given: the same four steps with limit=3. When: next called. Then: next=[s1, s2, s3] and s4 is truncated, but OverallFailedCount still reports it. Given: target_id=phase-2. Then: next scoped to phase-2; parent present with phase-2 id/name/description/status/depends_on and no steps array; Overall* counts cover phase-2 only. Given: no target_id. Then: parent absent and Overall* counts cover the entire plan. Given: limit omitted, 5 actionable steps. Then: at most 3 returned. Given: limit=5, 6 actionable. Then: 5 returned. Given: limit=-1. Then: {error: "invalid_limit"}. Given: file missing. Then: {error: "plan_not_found"}. Given: target_id referencing nonexistent phase. Then: {error: "target_not_found"}. Given: 6 actionable steps and limit=3. When: next called. Then: next.length=3 and count=3 (count is the returned array length, not the total actionable). Given: active phase has 2 blocked steps and no open or in_progress steps, limit=3. When: next called. Then: next=[the 2 blocked steps], count=2, OverallBlockedCount=2, OverallOpenCount=0, OverallInProgressCount=0, plan_status reflects the derived status, and no error is returned. Given: any successful result. Then: it is PlanNextResult with count == next.length and all five Overall* fields present, and every element of next is the named type PlanNextStep carrying id, name, prompt, status, depends_on, phase_id, and phase_name. Given: a result with target_id provided. Then: parent is the named type PlanPhaseContext (phase scalar fields, no steps). Given: target_id=phase-2 and all of phase-2's steps complete. When: next called. Then: count=0 and parent.status=complete (the phase-scoped completion signal). Given: the CLI invocation `plan next <file> --target <phase-id>` with no limit argument. Then: it parses without error, applies the default limit (3), and returns the phase-scoped result (the limit is not required alongside --target). Given: the CLI invocation `plan next <file>` with no limit and 5 actionable steps. Then: the default 3 is applied (not 10). Given: the CLI invocation `plan next <file> --limit 5`. Then: it parses without error and applies limit 5. Given: the CLI invocation `plan next <file> 2 --limit 5` (both forms). Then: the positional value 2 takes precedence. Given: the full emitted help payload and schemas are scanned. Then: no `--limit` token appears anywhere — the alias is not advertised.</criteria>
   </acceptance>
 </req>
 
@@ -124,8 +138,8 @@ Note: All "Output:" references in this file describe the `result` field contents
 
 <req id="FR-PLAN-0012" type="FR" level="System">
   <title>plan update_status subcommand</title>
-  <statement>plan update_status SHALL set the status of a step by ID, then propagate statuses bottom-up. Phase status updates SHALL be rejected — phase status is always derived from steps. If target_id is "entire_plan", the operation SHALL be rejected. Result: {id, status, plan_status}. Errors: {error: "invalid_status: <value>"} for invalid status, {error: "target_not_found"} for unknown ID, {error: "plan_not_found"} for missing file, {error: "phase_status_is_derived"} when targeting a phase ID, {error: "invalid_target"} when targeting entire_plan, {error: "missing_new_status"} when status parameter is absent.</statement>
-  <rationale>Step-only status updates enforce that phase status is always derived. Diverges from both JS and Python which allow phase status updates.</rationale>
+  <statement>plan update_status SHALL set the status of a step by ID, then propagate statuses bottom-up. Phase status updates SHALL be rejected — phase status is always derived from steps. If target_id is "entire_plan", the operation SHALL be rejected. Result: the named type `PlanUpdateStatusResult` = {id, status, plan_status}. Errors: {error: "invalid_status: <value>"} for invalid status, {error: "target_not_found"} for unknown ID, {error: "plan_not_found"} for missing file, {error: "phase_status_is_derived"} when targeting a phase ID, {error: "invalid_target"} when targeting entire_plan, {error: "missing_new_status"} when status parameter is absent.</statement>
+  <rationale>Step-only status updates enforce that phase status is always derived. Diverges from both JS and Python which allow phase status updates. Result named PlanUpdateStatusResult per the SRP+DRY type rule (FR-HELP-0002).</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
@@ -140,15 +154,21 @@ Note: All "Output:" references in this file describe the `result` field contents
 
 <req id="FR-PLAN-0013" type="FR" level="System">
   <title>plan show_status subcommand</title>
-  <statement>plan show_status SHALL return status summary. For entire_plan (default): {name, status, phases: {totals with progress_pct}, steps: {totals with progress_pct}, phase_summary: [{id, name, status, steps: [{id, name, status}]}]}. Totals include: open, in_progress, complete, blocked, failed, total, progress_pct. progress_pct = round(complete/total * 1000) / 10. For phase ID: {id, name, status, steps: [...]}. For step ID: {id, name, status, depends_on, subagent?, role?, model?}. Errors: target_not_found, plan_not_found.</statement>
-  <rationale>Base structure from JS cmdShowStatus. Step-level detail enriched from Python (depends_on, optional subagent fields).</rationale>
+  <statement>plan show_status SHALL return a status summary as the named result type `PlanShowStatusResult`, whose shape depends on the target:
+
+- For entire_plan (default): {name, status, phases: `PlanStatusTotals`, steps: `PlanStatusTotals`, phase_summary: array of `PlanPhaseSummary`}.
+- For a phase ID: a `PlanPhaseSummary` ({id, name, status, steps: array of `PlanStepSummary`}).
+- For a step ID: the named type `PlanStepDetail` ({id, name, status, depends_on, and any set subagent/role/model}).
+
+`PlanStatusTotals` SHALL be {open, in_progress, complete, blocked, failed, total, progress_pct}. `total` is the count of all items in scope regardless of status (including blocked and failed); progress_pct = round(complete / total * 1000) / 10, i.e. the percentage of in-scope items that are complete, to one decimal place, and 0 when total is 0. `PlanPhaseSummary` ({id, name, status, steps: array of `PlanStepSummary`}) and `PlanStepSummary` ({id, name, status}) SHALL be named exported types reused wherever the same phase/step status summary appears (e.g. PlanWriteResult), per the recursive naming and SRP+DRY rules (FR-HELP-0002). `PlanStepDetail` SHALL likewise be a named exported type; it is distinct from `PlanStepSummary` (it adds depends_on and the optional subagent fields) and from the full `Step` (it omits prompt). No nested shape in PlanShowStatusResult SHALL be anonymous. Errors: target_not_found, plan_not_found.</statement>
+  <rationale>Base structure from JS cmdShowStatus. Step-level detail enriched from Python (depends_on, optional subagent fields). Result named PlanShowStatusResult per the SRP+DRY type rule (FR-HELP-0002); the reusable totals and phase/step summary shapes are named once and shared so a caller resolves every field without encountering an anonymous shape. Stating the progress_pct denominator removes ambiguity about whether blocked/failed steps count toward the total.</rationale>
   <source>Sources</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: 3 steps, 1 complete. When: show_status entire_plan. Then: steps.total=3, steps.complete=1, progress_pct between 33 and 34. Given: all complete. Then: progress_pct=100. Given: show_status step-1a. Then: result includes id, name, status, depends_on.</criteria>
+    <criteria>Given: 3 steps, 1 complete. When: show_status entire_plan. Then: steps.total=3, steps.complete=1, progress_pct between 33 and 34. Given: 4 steps, 1 complete and 1 failed and 1 blocked and 1 open. When: show_status entire_plan. Then: steps.total=4 (blocked and failed counted in total) and progress_pct=25. Given: all complete. Then: progress_pct=100. Given: show_status step-1a. Then: result is the named type PlanStepDetail including id, name, status, depends_on. Given: the totals, phase-summary, step-summary, and step-detail shapes in the result. Then: each is the named type PlanStatusTotals, PlanPhaseSummary, PlanStepSummary, or PlanStepDetail respectively, with no anonymous nested shape.</criteria>
   </acceptance>
 </req>
 
@@ -156,8 +176,8 @@ Note: All "Output:" references in this file describe the `result` field contents
 
 <req id="FR-PLAN-0014" type="FR" level="System">
   <title>plan query subcommand</title>
-  <statement>plan query SHALL return full JSON of the target. For entire_plan or no target: returns full plan object. For phase ID: returns full phase with steps. For step ID: returns full step. Errors: target_not_found, plan_not_found.</statement>
-  <rationale>From cmdQuery in JS.</rationale>
+  <statement>plan query SHALL return full JSON of the target. For entire_plan or no target: returns full plan object. For phase ID: returns full phase with steps. For step ID: returns full step. The result type SHALL be named `PlanQueryResult` (the full JSON of the target: a Plan, Phase, or Step). Errors: target_not_found, plan_not_found.</statement>
+  <rationale>From cmdQuery in JS. Result named PlanQueryResult per the SRP+DRY type rule (FR-HELP-0002).</rationale>
   <source>Sources</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
@@ -172,8 +192,8 @@ Note: All "Output:" references in this file describe the `result` field contents
 
 <req id="FR-PLAN-0015" type="FR" level="System">
   <title>plan upsert subcommand</title>
-  <statement>plan upsert SHALL create or merge-patch plan, phase, or step by ID. Behaviors: (1) entire_plan with missing file: creates new plan with defaults. (2) entire_plan with existing file: merges top-level fields; merges phases array by ID (existing patched, new appended). (3) Existing phase/step ID: merge-patches that item; if patch contains steps array, merges steps by ID. (4) New ID with kind=phase: appends new phase. (5) New ID with kind=step + phase_id: appends step to that phase. (6) New ID without kind: rejected with `missing_kind`. (6a) New ID with kind other than "phase" or "step": rejected with `invalid_kind`. (7) Patch data with id field differing from target_id: rejected with `immutable_id`. (8) Missing or invalid data payload: rejected with `invalid_data` or `missing_data`. (9) Missing phase_id for new step: rejected with `missing_phase_id`. (10) Missing ID in phases array: rejected with `missing_id`. (11) Nonexistent phase_id for new step: rejected with `phase_not_found`. Merge follows RFC 7396: null removes keys, nested objects are merged not replaced, scalars are replaced. Status fields in patch data SHALL be silently dropped — status is only modifiable via update_status (one step at a time after each task completion). The silent-drop behavior SHALL be documented in plan help (FR-PLAN-0016). All validations (unique IDs, dependencies, cycles, size limits) SHALL run after merge and before writing. Statuses are propagated after every upsert. updated_at is set on every save. The result SHALL conform to the compressed-tree shape defined in FR-PLAN-0040.</statement>
-  <rationale>Compressed-tree output gives AI agents an immediate post-write snapshot. Silent-drop is surfaced via help instead of per-call output so commands have a uniform result shape.</rationale>
+  <statement>plan upsert SHALL create or merge-patch plan, phase, or step by ID. Behaviors: (1) entire_plan with missing file: creates new plan with defaults. (2) entire_plan with existing file: merges top-level fields; merges phases array by ID (existing patched, new appended). (3) Existing phase/step ID: merge-patches that item; if patch contains steps array, merges steps by ID. (4) New ID with kind=phase: appends new phase. (5) New ID with kind=step + phase_id: appends step to that phase. (6) New ID without kind: rejected with `missing_kind`. (6a) New ID with kind other than "phase" or "step": rejected with `invalid_kind`. (7) Patch data with id field differing from target_id: rejected with `immutable_id`. (8) Missing or invalid data payload: rejected with `invalid_data` or `missing_data`. (9) Missing phase_id for new step: rejected with `missing_phase_id`. (10) Missing ID in phases array: rejected with `missing_id`. (11) Nonexistent phase_id for new step: rejected with `phase_not_found`. Merge follows RFC 7396: null removes keys, nested objects are merged not replaced, scalars are replaced. Status fields in patch data SHALL be silently dropped — status is only modifiable via update_status (one step at a time after each task completion). The silent-drop behavior SHALL be documented in plan help (FR-PLAN-0016). All validations (unique IDs, dependencies, cycles, size limits) SHALL run after merge and before writing. Statuses are propagated after every upsert. updated_at is set on every save. The result SHALL conform to the PlanWriteResult shape defined in FR-PLAN-0040.</statement>
+  <rationale>PlanWriteResult output gives AI agents an immediate post-write snapshot. Silent-drop is surfaced via help instead of per-call output so commands have a uniform result shape.</rationale>
   <source>Sources</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
@@ -243,24 +263,24 @@ The subcommand SHALL look up `template` in the upsert-kind template collection (
 
 <req id="FR-PLAN-0032" type="FR" level="System">
   <title>plan list-templates subcommand</title>
-  <statement>plan list-templates SHALL return the catalog of registered templates grouped by kind. The result SHALL be:
+  <statement>plan list-templates SHALL return the catalog of registered templates grouped by kind, as the named result type `PlanTemplateCatalog`. The result SHALL be:
 
 ```
 {
-  "create": [ { "name": <string>, "brief": <string>, "placeholders": [ <string> ] } ],
-  "upsert": [ { "name": <string>, "brief": <string>, "placeholders": [ <string> ] } ]
+  "create": [ PlanTemplateCatalogEntry ],
+  "upsert": [ PlanTemplateCatalogEntry ]
 }
 ```
 
-Each template entry SHALL contain the template's registered name, a one-line brief authored alongside the template, and the exact set of declared placeholder names the template consumes. The same catalog content SHALL also appear in the plan help content (FR-PLAN-0016) under the `templates` section.</statement>
-  <rationale>Programmatic discovery lets callers (especially AI agents) inspect available templates and their parameter requirements before invoking create-with-template or upsert-with-template, avoiding trial-and-error and `missing_template_param` errors.</rationale>
+Each entry SHALL be the named exported type `PlanTemplateCatalogEntry` = { name: <string>, brief: <string>, placeholders: [ <string> ], produces: <string> }, where `name` is the template's registered name, `brief` is a one-line summary authored alongside the template, `placeholders` is the exact set of declared placeholder names the template consumes, and `produces` is a short one-line description of the structure the template generates when rendered (e.g. how many phases/steps and their purpose). `PlanTemplateCatalogEntry` SHALL be the declared `items` type of both arrays per the recursive naming rule (FR-HELP-0002). The same catalog content SHALL also appear in the plan help content (FR-PLAN-0016) under the `templates` section.</statement>
+  <rationale>Programmatic discovery lets callers (especially AI agents) inspect available templates and their parameter requirements before invoking create-with-template or upsert-with-template, avoiding trial-and-error and `missing_template_param` errors. The `produces` summary lets a caller judge whether a template fits its need before rendering it, without a separate dry-run.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: list-templates invoked. Then: returns {create: [...], upsert: [...]} where each entry has name, brief, and placeholders. Given: a template registered with declared placeholders [plan-name, plan-description]. Then: its entry's placeholders array equals exactly those names. Given: rosettify help plan. Then: the templates section in help contains the same catalog.</criteria>
+    <criteria>Given: list-templates invoked. Then: returns {create: [...], upsert: [...]} where each entry is a PlanTemplateCatalogEntry with name, brief, placeholders, and a non-empty produces string. Given: a template registered with declared placeholders [plan-name, plan-description]. Then: its entry's placeholders array equals exactly those names. Given: rosettify help plan. Then: the templates section in help contains the same catalog, including produces.</criteria>
   </acceptance>
 </req>
 
@@ -271,9 +291,9 @@ Each template entry SHALL contain the template's registered name, a one-line bri
   <statement>The plan command SHALL register help content in the tool registry that the help system (FR-HELP-0002) returns when queried. The content SHALL include:
 
 - plan_file convention
-- core concepts (hierarchy, statuses, depends_on, status_propagation, resume)
+- core concepts (hierarchy, statuses, depends_on, status_propagation). The status_propagation concept SHALL state the derivation precedence: a parent is complete only when all children are complete; otherwise failed outranks blocked, blocked outranks in_progress, and in_progress outranks open (FR-PLAN-0003)
 - subagent_fields (subagent, role, model on phases and steps)
-- subcommands: one entry per registered subcommand (create, next, update_status, show_status, query, upsert, create-with-template, upsert-with-template, list-templates), each with name, brief, usage, args, description, and an examples block. Every examples block SHALL contain at least two example invocations for the subcommand:
+- subcommands: one entry per registered subcommand (create, next, update_status, show_status, query, upsert, create-with-template, upsert-with-template, list-templates), each with name, brief, usage, args, description, an examples block, and a statement of which inputs are required. Required-ness SHALL be expressed per subcommand rather than as a single global required set; where it is conditional, the condition SHALL be stated — in particular, for upsert `kind` is required only when the target id does not already exist, and `phase_id` is required only when `kind` is `step`. Every examples block SHALL contain at least two example invocations for the subcommand:
   - a **tip example** using bracketed self-explanatory hints in place of each argument. The bracketed hints describe what each argument represents in plain words and SHALL NOT be confused with template placeholder names (which match JSON field names per FR-PLAN-0034). Where a placeholder name is already self-explanatory it may be reused as-is (e.g. `[plan-name]`); where it is too generic it SHALL be expanded into a longer human hint (e.g. `[user-request-description-one-sentence]` rather than `[plan-description]`).
   - a **real example** using concrete quoted values that would produce a working invocation.
 
@@ -288,28 +308,68 @@ Real form:
 ```
 
 The two forms together teach the caller what each argument is for AND show a runnable instance
-- schemas: a flat dictionary mapping a key name to a JSON Schema; the dictionary SHALL include one entry per subcommand keyed by subcommand name and entries for any other reusable shapes (e.g. compressed-tree, plan); each value SHALL be sourced from the per-subcommand schema declaration described in FR-HELP-0002 — not hand-authored duplicates
+- schemas: the schema dictionary defined in FR-PLAN-0041
 - limits per FR-PLAN-0005
 - templates: the catalog returned by list-templates (FR-PLAN-0032), grouped by kind
-- notes: a string array documenting behaviors that affect the caller upfront. The notes SHALL include at minimum:
-  - status fields in upsert patches are silently dropped — use update_status to change status one-by-one after each task completion
-  - write-cycle process (high level): read with retries → modify in memory → rename old file as backup → write new file
-  - every successful write atomically renames the plan file to `<plan_file>.bakNNN` before writing the new plan; the plan's `previous_version` field points to the immediately prior version (the backup captured at write time)
-  - backup retention is bounded; the oldest backups beyond the configured limit (default 5) are pruned
-  - if the plan file is missing but at least one backup exists, reads retry briefly before returning `plan_not_found`
-  - templates have two kinds (create, upsert); a template of one kind cannot be used with the other kind
-  - placeholder syntax in templates is `[placeholder-name]`; provided params and declared placeholders must match exactly
+- notes: the notes array defined in FR-PLAN-0042
 - plan_authoring_guidance: "the last step in each phase should verify all work in that phase was actually completed; the last phase should verify all work across the entire plan was completed"
-- next_steps_for_ai
+- next_steps_for_ai: directive guidance covering the three outcomes of a next call — work the returned steps when count is greater than 0; treat the scope as done when count is 0 and the scope is complete (parent.status under --target, otherwise plan_status); and stop looping and recover when count is 0 but blocked or failed steps remain, by re-reviewing, re-verifying, and retrying those steps with a status reset (show_status to find them, query for detail, update_status to reset)
 </statement>
-  <rationale>AI agents need a single self-describing help payload that conveys behavior, structure, examples, and surprising rules upfront, so they can construct correct invocations without trial and error.</rationale>
+  <rationale>AI agents need a single self-describing help payload that conveys behavior, structure, examples, and surprising rules upfront, so they can construct correct invocations without trial and error. The payload must teach the caller what to do without leaking the authoring artifacts (requirement IDs, internal paths, rationale) that produced it.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: rosettify help plan. When: the help run delegate executes. Then: the returned content contains plan_file, concepts, subagent_fields, subcommands (one per registered subcommand with at least one example each), schemas (flat dictionary sourced from per-subcommand declarations), limits, templates catalog, notes array containing every behavior listed above, plan_authoring_guidance, and next_steps_for_ai.</criteria>
+    <criteria>Given: rosettify help plan. When: the help run delegate executes. Then: the returned content contains plan_file, concepts, subagent_fields, subcommands (one per registered subcommand with at least one example each and a statement of required inputs), schemas (per FR-PLAN-0041), limits, templates catalog, notes (per FR-PLAN-0042), plan_authoring_guidance, and next_steps_for_ai. Given: the upsert subcommand entry. Then: it states that kind is required only for a new target id and phase_id only when kind is step. Given: the status_propagation concept. Then: it states the precedence (all-complete is complete; otherwise failed > blocked > in_progress > open). Given: next_steps_for_ai. Then: it distinguishes all three outcomes of a next call — (a) count greater than 0 → work the returned steps, (b) count 0 and scope complete (parent.status under --target, else plan_status) → done, (c) count 0 with blocked or failed steps remaining → stop and recover — and it names show_status, query, and update_status as the recovery path that resets status to retry. Given: the full emitted help payload is scanned. Then: no key, description, example, or note contains a requirement identifier, internal path, or internal module name. Given: any note. Then: it reads as standalone directive guidance with no authoring rationale.</criteria>
+  </acceptance>
+</req>
+
+### FR-PLAN-0041 Plan Help Schemas Content
+
+<req id="FR-PLAN-0041" type="FR" level="System">
+  <title>Schema dictionary content for plan help</title>
+  <statement>The plan command's help content SHALL include a `schemas` dictionary, keyed by exported type name per FR-HELP-0002: one entry per distinct named type. The dictionary SHALL contain the input type and the result type of every subcommand (including `PlanNextResult`, `PlanUpdateStatusResult`, `PlanShowStatusResult`, `PlanQueryResult`, `PlanTemplateCatalog`, and the shared write-result type `PlanWriteResult`), plus the shared reusable shapes. The shared reusable shapes SHALL include at least `Plan`, `Phase`, `Step`, the plan summary `PlanSummary`, the next-step item type `PlanNextStep`, the next-phase context `PlanPhaseContext`, the status-summary shapes `PlanStatusTotals`, `PlanPhaseSummary`, and `PlanStepSummary`, the step-detail shape `PlanStepDetail`, and the template-catalog entry type `PlanTemplateCatalogEntry`. Per the recursive naming rule (FR-HELP-0002), every array `items` shape and every nested object property shape exposed anywhere in `schemas` SHALL itself be one of these named entries, referenced by name; no shape at any depth SHALL be anonymous. Types that are identical in shape and purpose SHALL be defined once and reused (SRP+DRY), so the dictionary contains no two entries with an identical shape and purpose. Each value SHALL be sourced from the code's named type declaration, never a hand-authored duplicate. No schema key or description SHALL contain a requirement identifier or other internal reference (FR-ARCH-0016).</statement>
+  <rationale>Splitting the schema obligation out of the help-content manifest makes it independently testable and gives the SRP+DRY type rule a single home. Type-name keys make each schema self-identifying and locatable in code. Naming the nested item and summary shapes lets a caller resolve every field of next, show_status, the write result, and the template catalog without meeting an anonymous shape.</rationale>
+  <source>User</source>
+  <ticketId>CTORNDGAIN-1333</ticketId>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: rosettify help plan. When: the help run delegate executes. Then: result.schemas is a flat dictionary keyed by exported type name with one entry per distinct type, including PlanWriteResult, Plan, Phase, Step, PlanSummary, PlanNextStep, PlanPhaseContext, PlanStatusTotals, PlanPhaseSummary, PlanStepSummary, PlanStepDetail, PlanTemplateCatalogEntry, and the per-subcommand input and result types (PlanNextResult, PlanUpdateStatusResult, PlanShowStatusResult, PlanQueryResult, PlanTemplateCatalog, and the input types), each sourced from a code type declaration. Given: the schemas dictionary is walked to any depth. Then: every array `items` and every nested object property references a named entry present in the dictionary, and no shape at any depth is anonymous. Given: two subcommands returning a shape identical in structure and purpose. Then: a single shared entry is reused with no duplicate. Given: any schema key or description. Then: it contains no requirement identifier or internal reference.</criteria>
+  </acceptance>
+</req>
+
+### FR-PLAN-0042 Plan Help Notes Content
+
+<req id="FR-PLAN-0042" type="FR" level="System">
+  <title>Notes array content for plan help</title>
+  <statement>The plan command's help content SHALL include a `notes` string array documenting behaviors that affect the caller upfront. The notes SHALL include at minimum:
+
+- status fields in upsert patches are silently dropped — use update_status to change status one-by-one after each task completion
+- write-cycle process (high level): read with retries → modify in memory → rename old file as backup → write new file
+- every successful write atomically renames the plan file to `<plan_file>.bakNNN` before writing the new plan; the plan's `previous_version` field points to the immediately prior version (the backup captured at write time)
+- backup retention is bounded; the oldest backups beyond the configured limit (default 5) are pruned
+- if the plan file is missing but at least one backup exists, reads retry briefly before returning `plan_not_found`
+- templates have two kinds (create, upsert); a template of one kind cannot be used with the other kind
+- placeholder syntax in templates is `[placeholder-name]`; provided params and declared placeholders must match exactly
+- end-to-end usage: (1) build the whole plan from a create-kind template with create-with-template; (2) for each phase, seed the subagent's first steps from an upsert-kind template with upsert-with-template before delegating that phase; (3) hand the phase to its subagent; (4) the subagent works the phase in a loop — call next with --target <its phase id> for the next small batch, call update_status <step_id> in_progress before starting a step and update_status <step_id> complete once it passes; (5) the phase is finished when next returns count 0 and parent.status is complete; if blocked or failed steps remain, recover them before finishing
+- phase-scoped next: when working a single phase always call next with --target <that phase id> so the batch and all the counts cover only that phase; --target may be passed with or without a limit
+- what next returns: next lists steps in priority order — in_progress, then ready open, then blocked, then failed — and cuts the list off at limit (default 3). Because in_progress and open steps come first, when there is enough work to do the blocked and failed steps get cut off and won't appear in that call. The Overall*Count fields are a headcount of every status in scope (open, in_progress, blocked, failed, complete) — a reminder of what exists even when the limit hid some
+- three outcomes of a next call: if count is greater than 0, work the returned steps; if count is 0 and the scope is complete (parent.status complete under --target, otherwise plan_status complete), the scope is done; if count is 0 but blocked or failed steps remain, stop looping and recover them
+- recover blocked, failed, or stuck steps: when OverallBlockedCount or OverallFailedCount is non-zero, or OverallInProgressCount does not fall across calls (a stuck in_progress step), call show_status with --target <phase id> to list every step with its status — it has no limit, so it scales to any number of steps — then for each blocked, failed, or stuck step call query <step_id> for full detail, re-review and re-verify the work, and retry it by resetting its status with update_status <step_id> open (or in_progress) so next surfaces it again; do not finish the phase while any blocked or failed step remains
+
+Every note SHALL be standalone directive guidance for the caller and SHALL NOT contain requirement identifiers, internal paths, internal module names, or authoring rationale (FR-ARCH-0016).</statement>
+  <rationale>Splitting the notes obligation out of the help-content manifest makes the note set independently testable and is the home for the caller-facing behavior the AI must understand: the end-to-end build-and-execute flow, what next returns, what the counts mean, the three outcomes of a next call, and how to recover blocked/failed/stuck steps by resetting their status at any scale.</rationale>
+  <source>User</source>
+  <ticketId>CTORNDGAIN-1333</ticketId>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: rosettify help plan. When: the help run delegate executes. Then: result.notes contains every behavior listed above, including the silent-drop note, the write-cycle/backup notes, the template notes, the end-to-end usage note covering all five steps, the phase-scoped-next note (including that --target works with or without a limit), the what-next-returns note, the three-outcomes note, and the recovery note that directs re-review, re-verification, and retry by resetting status via show_status/query/update_status. Given: any note. Then: it is standalone directive guidance containing no requirement identifier, internal path, internal module name, or authoring rationale.</criteria>
   </acceptance>
 </req>
 
@@ -391,16 +451,15 @@ The two forms together teach the caller what each argument is for AND show a run
 
 ## Output Shapes
 
-### FR-PLAN-0040 Compressed-Tree Output for Write Subcommands
+### FR-PLAN-0040 PlanWriteResult Output for Write Subcommands
 
 <req id="FR-PLAN-0040" type="FR" level="System">
-  <title>Compressed-tree output shape for write subcommands</title>
-  <statement>Write subcommands (create, upsert, create-with-template, upsert-with-template) SHALL return a compressed-tree shape that summarizes the plan after the write. The shape SHALL be:
+  <title>PlanWriteResult output shape shared by all write subcommands</title>
+  <statement>All write subcommands (create, upsert, create-with-template, upsert-with-template) SHALL return the same named type `PlanWriteResult` — a single shared shape (per the SRP+DRY type rule in FR-HELP-0002), defined once and reused, that summarizes the plan after the write. There SHALL NOT be a separate per-subcommand write-result type. The shape SHALL be:
 
 ```
 {
-  "plan": { "name": <string>, "status": <StatusEnum> },
-  "previous_version": <string | null>,
+  "plan": { "name": <string>, "status": <StatusEnum>, "previous_version": <string | null> },
   "phases": [
     {
       "id": <string>,
@@ -414,15 +473,15 @@ The two forms together teach the caller what each argument is for AND show a run
 }
 ```
 
-Field `previous_version` SHALL contain the absolute or relative path of the backup file captured at write time per FR-PLAN-0024, or `null` when the write produced the first version. The shape SHALL contain only the fields above and no other plan, phase, or step properties.</statement>
-  <rationale>AI agents need a compact post-write snapshot to reason about plan state without re-reading the full plan; including `previous_version` exposes the backup link without a follow-up call.</rationale>
+The plan summary SHALL carry `previous_version`: the filesystem path of the backup captured at this write (FR-PLAN-0024), or `null` when the write produced the first version (no backup yet). It is surfaced inside the plan summary of every write result so a caller discovers the backup link directly from the output it already reads, without a follow-up query. The plan document's own `previous_version` field (FR-PLAN-0017, FR-PLAN-0024) remains the source of truth and the backwards-traversable recovery chain; the value in the write result equals the plan document's value for that write. The write result SHALL contain only `plan` and `phases` (with `steps`) and no other top-level properties. Each nested shape SHALL be a named exported type per the recursive naming rule in FR-HELP-0002: the plan summary is the named type `PlanSummary` ({name, status, previous_version}), each phase summary is `PlanPhaseSummary`, and each step summary is `PlanStepSummary`. Where these summaries are structurally identical to summaries returned by other subcommands (the phase/step status summaries in show_status), the same shared types SHALL be reused (SRP+DRY).</statement>
+  <rationale>AI agents need a compact post-write snapshot to reason about plan state without re-reading the full plan, and they act on outputs rather than on documentation — so the backup link belongs in the write result where it is self-discoverable, not only on the plan file reachable via a separate query. Placing `previous_version` inside the plan summary keeps the plan's current state (name, status, prior-version link) cohesive in one object and consistent with the field name on the plan document. The plan document remains the canonical recovery chain. One shared PlanWriteResult type (SRP+DRY) avoids four structurally identical result types.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: any successful write subcommand. When: the result is inspected. Then: it matches the compressed-tree shape exactly and contains no fields beyond plan, previous_version, and phases (with steps). Given: the first ever create of a plan. Then: previous_version is null. Given: any subsequent write. Then: previous_version is the path of the just-created backup file.</criteria>
+    <criteria>Given: any successful write subcommand. When: the result is inspected. Then: it matches the PlanWriteResult shape exactly — plan ({name, status, previous_version}) and phases (with steps) — and contains no other top-level properties. Given: a first create. Then: result.plan.previous_version is null. Given: any subsequent write on an existing file. Then: result.plan.previous_version is the just-created backup path and equals the plan document's previous_version read back from the file. Given: all four write subcommands. When: their result types are compared. Then: they are the one shared PlanWriteResult type, not four separate types. Given: the nested shapes in PlanWriteResult. Then: the plan summary is the named type PlanSummary ({name, status, previous_version}) and the phase/step summaries are the named types PlanPhaseSummary and PlanStepSummary; no nested shape is anonymous. Given: the phase and step summaries in PlanWriteResult. When: compared with the phase/step status summaries returned by show_status. Then: they are the same shared named types, not duplicates.</criteria>
   </acceptance>
 </req>
 
@@ -474,7 +533,7 @@ All input parameters for the template-using subcommands (FR-PLAN-0030, FR-PLAN-0
 
 <req id="FR-PLAN-0035" type="FR" level="System">
   <title>Seed create template `for-orchestrator`</title>
-  <statement>The create-kind template collection (FR-PLAN-0033) SHALL include a template registered under the name `for-orchestrator`. The template SHALL declare the placeholders `[plan-name]` and `[plan-description]`. The template's JSON content SHALL be byte-equivalent to the canonical asset stored at `assets/templates/create-for-orchestrator.json` (relative to this requirements directory). The rendered output SHALL be a complete plan whose single phase `ph-prep` encodes the Rosetta orchestrator preparation steps drawn from `rules/bootstrap.md` and `rules/bootstrap-core-policy.md` (subagent-only prep step content is excluded).</statement>
+  <statement>The create-kind template collection (FR-PLAN-0033) SHALL include a template registered under the name `for-orchestrator`. The template SHALL declare the placeholders `[plan-name]` and `[plan-description]`. The template's JSON content SHALL be byte-equivalent to the canonical asset stored at `assets/templates/create-for-orchestrator.json` (relative to this requirements directory). The rendered output SHALL be a complete plan whose single phase `ph-prep` encodes the Rosetta orchestrator preparation steps drawn from `rules/bootstrap.md` and `rules/bootstrap-core-policy.md` (subagent-only prep step content is excluded). The template SHALL declare a one-line `produces` summary (FR-PLAN-0032) describing this rendered output.</statement>
   <rationale>An orchestrator that needs a fresh plan can bootstrap a Rosetta-compliant preparation phase deterministically without hand-authoring repetitive boilerplate. The canonical asset file makes the byte-exact template content reviewable and version-controlled.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -482,7 +541,7 @@ All input parameters for the template-using subcommands (FR-PLAN-0030, FR-PLAN-0
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: list-templates. Then: the `create` array contains an entry with name="for-orchestrator" and placeholders=["plan-name", "plan-description"]. Given: create-with-template invoked with this template and both required values. Then: the resulting plan contains exactly one phase with id="ph-prep" whose steps match the canonical asset content with placeholders replaced. Given: the template JSON content as registered in code. When: byte-compared with `assets/templates/create-for-orchestrator.json`. Then: the two are byte-equivalent.</criteria>
+    <criteria>Given: list-templates. Then: the `create` array contains an entry with name="for-orchestrator", placeholders=["plan-name", "plan-description"], and a non-empty produces summary. Given: create-with-template invoked with this template and both required values. Then: the resulting plan contains exactly one phase with id="ph-prep" whose steps match the canonical asset content with placeholders replaced. Given: the template JSON content as registered in code. When: byte-compared with `assets/templates/create-for-orchestrator.json`. Then: the two are byte-equivalent.</criteria>
   </acceptance>
 </req>
 
@@ -490,7 +549,7 @@ All input parameters for the template-using subcommands (FR-PLAN-0030, FR-PLAN-0
 
 <req id="FR-PLAN-0036" type="FR" level="System">
   <title>Seed upsert template `for-subagent`</title>
-  <statement>The upsert-kind template collection (FR-PLAN-0033) SHALL include a template registered under the name `for-subagent`. The template SHALL declare the placeholders `[phase-id]`, `[phase-name]`, and `[phase-description]`. The template's JSON content SHALL be byte-equivalent to the canonical asset stored at `assets/templates/upsert-for-subagent.json` (relative to this requirements directory). The rendered output SHALL be a single phase whose step IDs are prefixed by `[phase-id]-s-` (e.g. `[phase-id]-s-load-context-instructions`) so that the template can be upserted to multiple phases in the same plan without producing duplicate step IDs.</statement>
+  <statement>The upsert-kind template collection (FR-PLAN-0033) SHALL include a template registered under the name `for-subagent`. The template SHALL declare the placeholders `[phase-id]`, `[phase-name]`, and `[phase-description]`. The template's JSON content SHALL be byte-equivalent to the canonical asset stored at `assets/templates/upsert-for-subagent.json` (relative to this requirements directory). The rendered output SHALL be a single phase whose step IDs are prefixed by `[phase-id]-s-` (e.g. `[phase-id]-s-load-context-instructions`) so that the template can be upserted to multiple phases in the same plan without producing duplicate step IDs. The template SHALL declare a one-line `produces` summary (FR-PLAN-0032) describing this rendered output.</statement>
   <rationale>A subagent's prep phase content is consistent across most tasks; a registered template lets an orchestrator inject a Rosetta-compliant prep phase under any phase id deterministically. Step-id prefixing with `[phase-id]` preserves the plan-wide unique-id invariant (FR-PLAN-0001) under repeated use of the template.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -498,7 +557,7 @@ All input parameters for the template-using subcommands (FR-PLAN-0030, FR-PLAN-0
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: list-templates. Then: the `upsert` array contains an entry with name="for-subagent" and placeholders=["phase-id", "phase-name", "phase-description"]. Given: upsert-with-template invoked with this template and all required values targeting a new phase id. Then: the plan gains a phase with the provided id, name, and description, and steps whose IDs begin with the provided phase id followed by `-s-`. Given: upsert-with-template invoked twice with different phase ids in the same plan. Then: no duplicate-id error occurs. Given: the template JSON content as registered in code. When: byte-compared with `assets/templates/upsert-for-subagent.json`. Then: the two are byte-equivalent.</criteria>
+    <criteria>Given: list-templates. Then: the `upsert` array contains an entry with name="for-subagent", placeholders=["phase-id", "phase-name", "phase-description"], and a non-empty produces summary. Given: upsert-with-template invoked with this template and all required values targeting a new phase id. Then: the plan gains a phase with the provided id, name, and description, and steps whose IDs begin with the provided phase id followed by `-s-`. Given: upsert-with-template invoked twice with different phase ids in the same plan. Then: no duplicate-id error occurs. Given: the template JSON content as registered in code. When: byte-compared with `assets/templates/upsert-for-subagent.json`. Then: the two are byte-equivalent.</criteria>
   </acceptance>
 </req>
 

@@ -24,6 +24,19 @@ ROOT_ZIP="${ROOT_ZIP:-$TEST_LIB/spring-boot-react-mysql.zip}"
 PR_COMMENT_FILE="${PR_COMMENT_FILE:-$REPO_ROOT/.tmp/pr-comment.md}"
 VALIDATOR_AGENT="${VALIDATOR_AGENT:-$REPO_ROOT/.github/prompts/test-case-result-validator.md}"
 
+# Python 3.10+ is required
+if ! command -v python3 &>/dev/null; then
+    echo "ERROR: python3 not found. Python 3.10+ is required." >&2
+    exit 1
+fi
+_py_ver=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>/dev/null || echo "0.0")
+_py_major=$(echo "$_py_ver" | cut -d. -f1)
+_py_minor=$(echo "$_py_ver" | cut -d. -f2)
+if [[ "$_py_major" -lt 3 ]] || { [[ "$_py_major" -eq 3 ]] && [[ "$_py_minor" -lt 10 ]]; }; then
+    echo "ERROR: Python 3.10+ is required (found: $_py_ver). Please upgrade Python." >&2
+    exit 1
+fi
+
 # 1. Parse CHANGED_FILES into array
 echo "[1/6] Parsing CHANGED_FILES..."
 changed=()

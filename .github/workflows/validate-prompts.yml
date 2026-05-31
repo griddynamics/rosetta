@@ -10,26 +10,27 @@ name: Validate Prompts
 # - Detects changed files in instructions/ folder
 # - Compares base (target branch) vs new (PR branch) versions
 # - Uses Claude Code CLI to run the Prompt Quality Auditor agent
-# - Outputs issues sorted by severity (high first)
-# - Blocks PR if HIGH+ issues found (severity >= 3)
-# - Creates a PR comment with table of all issues
+# - Outputs issues sorted by severity (critical first)
+# - Blocks PR if HIGH+ issues found (severity >= 3: high, very high, critical)
+# - Creates a PR comment with all issues by severity
 
 on:
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - 'instructions/r2/**'
-#      - '.github/workflows/validate-prompts.yml'
-#  pull_request:
-#    types: [opened, synchronize, reopened, ready_for_review]
-#    paths:
-#      - 'instructions/r2/**'
+  push:
+    branches:
+      - main
+    paths:
+      - "instructions/r*/**"
+      - ".github/workflows/validate-prompts.yml"
+      - ".github/prompts/prompt-comparison.md"
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "instructions/r*/**"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write  # Required for creating PR comments
+  pull-requests: write # Required for creating PR comments
 
 jobs:
   validate:
@@ -38,22 +39,25 @@ jobs:
 
     env:
       TMP_DIR: .tmp
-      BASE_VERSIONS_DIR: .tmp/base-versions
       ALL_RESULTS_FILE: .tmp/all-results.json
       PR_COMMENT_FILE: .tmp/pr-comment.md
+      DIFF_FILE: .tmp/instructions.diff
       MODEL: opus
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0  # Fetch all history to compare with base branch
+          fetch-depth: 0 # Fetch all history to compare with base branch
 
       - name: Install Claude Code CLI
         run: |
           echo "Installing Claude Code CLI..."
           npm install -g @anthropic-ai/claude-code
           claude --version
+          echo "Installing Rosetta plugin..."
+          claude plugin marketplace add griddynamics/rosetta
+          claude plugin install rosetta@rosetta
 
       - name: Get changed files in instructions folder
         id: changed-files
@@ -71,7 +75,7 @@ jobs:
           echo "Base ref: $BASE_REF"
 
           # Get changed files in instructions/ folder
-          CHANGED_FILES=$(git diff --name-only "$BASE_REF"...HEAD -- 'instructions/**/*.md' 2>/dev/null | tr '\n' ' ' || true)
+          CHANGED_FILES=$(git diff --name-only "$BASE_REF"...HEAD -- 'instructions/r*/**' 2>/dev/null | tr '\n' ' ' || true)
 
           echo "Changed files: $CHANGED_FILES"
           echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
@@ -85,6 +89,15 @@ jobs:
             echo "count=$COUNT" >> $GITHUB_OUTPUT
           fi
 
+      - name: Generate diff
+        if: steps.changed-files.outputs.count > 0
+        env:
+          BASE_REF: ${{ steps.changed-files.outputs.base_ref }}
+        run: |
+          mkdir -p $TMP_DIR
+          git diff "$BASE_REF"...HEAD -- 'instructions/r*/**' > $DIFF_FILE 2>/dev/null || true
+          echo "::notice::Diff generated: $(wc -l < $DIFF_FILE) lines"
+
       - name: Validate prompts
         id: validate
         if: steps.changed-files.outputs.count > 0
@@ -95,46 +108,19 @@ jobs:
           echo "Validating prompts..."
 
           CHANGED_FILES="${{ steps.changed-files.outputs.files }}"
-          mkdir -p $TMP_DIR $BASE_VERSIONS_DIR
+          COUNT="${{ steps.changed-files.outputs.count }}"
+          mkdir -p $TMP_DIR/agents
 
-          for FILE in $CHANGED_FILES; do
-            echo ""
-            echo "Validating: $FILE"
+          PROMPT="Changed files: $CHANGED_FILES ; Git base ref=$BASE_REF ; Changed count=$COUNT ; Output file=$ALL_RESULTS_FILE ; Diff file=$DIFF_FILE"
+          echo "Prompt: $PROMPT"
 
-            [ ! -f "$FILE" ] && echo "::warning::File deleted, skipping" && continue
+          claude --model $MODEL \
+            --allowedTools "Write(.tmp/**), Edit(.tmp/**), Read(.tmp/**), Read(instructions/**), Read(docs/**), Read(agents/**), Bash, Task" \
+            --system-prompt-file ./.github/prompts/prompt-comparison.md \
+            -p "$PROMPT"
 
-            # Get base version - REQUIRED for comparison
-            BASE_FILE="$BASE_VERSIONS_DIR/$(basename "$FILE")"
-            if git show "$BASE_REF:$FILE" > "$BASE_FILE" 2>/dev/null; then
-              echo "::notice::Base version found, running comparison"
-              PROMPT="Compare and evaluate the prompt file versions: 
-                NEW: $FILE
-                BASE: $BASE_FILE."
-            else
-              echo "::warning::New file (no base version), skipping - comparison requires both versions"
-              continue
-            fi
-
-            # Run Claude CLI - it will write directly to .tmp/{filename}.json
-            claude --model $MODEL --allowedTools "Edit(.tmp/**), Read(.tmp/**), Read(instructions/**/*.md), Read(docs/**/*.md), Read(agents/**/*.md)" --system-prompt-file ./.github/prompts/prompt-comparison.md  -p "$PROMPT"
-
-            # Add file name to result
-            RESULT_FILE="$TMP_DIR/$(basename "$FILE" .md).json"
-            if [ -f "$RESULT_FILE" ]; then
-              jq --arg file "$FILE" '. + {file: $file}' "$RESULT_FILE" > "${RESULT_FILE}.tmp" && mv "${RESULT_FILE}.tmp" "$RESULT_FILE"
-              echo "::notice::Result written to $RESULT_FILE"
-            else
-              echo "::warning::Expected result file not found: $RESULT_FILE"
-            fi
-          done
-
-          # Merge all results
-          # Remove old all-results.json if it exists to avoid circular inclusion
-          rm -f $ALL_RESULTS_FILE
-          # Merge all result files
-          if ls $TMP_DIR/*.json 1> /dev/null 2>&1; then
-            jq -s '.' $TMP_DIR/*.json > $ALL_RESULTS_FILE
-          else
+          if [ ! -f "$ALL_RESULTS_FILE" ]; then
+            echo "::warning::Output file not produced, creating empty result"
             echo '[]' > $ALL_RESULTS_FILE
           fi
 
@@ -142,7 +128,7 @@ jobs:
           HIGH_COUNT=$(jq '[.[] | .issues[]? | select(.severity >= 3)] | length' $ALL_RESULTS_FILE)
           echo "has_high_severity=$( [ "$HIGH_COUNT" -gt 0 ] && echo true || echo false )" >> $GITHUB_OUTPUT
 
-          [ "$HIGH_COUNT" -gt 0 ] && echo "::error::Found $HIGH_COUNT high/critical issues" && exit 1
+          [ "$HIGH_COUNT" -gt 0 ] && echo "::error::Found $HIGH_COUNT high/very high/critical issues" && exit 1
           echo "::notice::No high/critical issues found"
 
       - name: Generate PR comment
@@ -155,8 +141,8 @@ jobs:
 
           ### Summary by File
 
-          | File | :red_circle: Critical | :orange_circle: High | :yellow_circle: Low | Status |
-          |------|-------------|---------|--------|--------|
+          | File | :red_circle: Critical | :orange_circle: Very High | :yellow_circle: High | :large_blue_circle: Medium | :white_circle: Low | Status |
+          |------|----------|-----------|------|----------|------|--------|
           EOF
 
           # Generate summary table
@@ -164,23 +150,25 @@ jobs:
             FILE=$(echo "$result" | jq -r '.file')
 
             if echo "$result" | jq -e '.error' > /dev/null 2>&1; then
-              echo "| \`$FILE\` | - | - | - | :x: Error |" >> $PR_COMMENT_FILE
+              echo "| \`$FILE\` | - | - | - | - | - | :x: Error |" >> $PR_COMMENT_FILE
             else
               ISSUES=$(echo "$result" | jq '[.issues | sort_by(.severity) | reverse[]]')
               CRITICAL=$(echo "$ISSUES" | jq '[.[] | select(.severity == 5)] | length')
-              HIGH=$(echo "$ISSUES" | jq '[.[] | select(.severity == 3 or .severity == 4)] | length')
-              LOW=$(echo "$ISSUES" | jq '[.[] | select(.severity == 1 or .severity == 2)] | length')
+              VERY_HIGH=$(echo "$ISSUES" | jq '[.[] | select(.severity == 4)] | length')
+              HIGH=$(echo "$ISSUES" | jq '[.[] | select(.severity == 3)] | length')
+              MEDIUM=$(echo "$ISSUES" | jq '[.[] | select(.severity == 2)] | length')
+              LOW=$(echo "$ISSUES" | jq '[.[] | select(.severity == 1)] | length')
               TOTAL=$(echo "$ISSUES" | jq 'length')
 
               if [ "$TOTAL" -eq 0 ]; then
                 STATUS=":white_check_mark: Pass"
-              elif [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
+              elif [ "$CRITICAL" -gt 0 ] || [ "$VERY_HIGH" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
                 STATUS=":x: Fail"
               else
                 STATUS=":warning: Warning"
               fi
 
-              echo "| \`$FILE\` | $CRITICAL | $HIGH | $LOW | $STATUS |" >> $PR_COMMENT_FILE
+              echo "| \`$FILE\` | $CRITICAL | $VERY_HIGH | $HIGH | $MEDIUM | $LOW | $STATUS |" >> $PR_COMMENT_FILE
             fi
           done
 
@@ -190,14 +178,16 @@ jobs:
           jq -c '.[]' $ALL_RESULTS_FILE | while read -r result; do
             FILE=$(echo "$result" | jq -r '.file')
 
+            # Show file name first
+            echo -e "### :page_facing_up: \`$FILE\`\n" >> $PR_COMMENT_FILE
+
             if echo "$result" | jq -e '.error' > /dev/null 2>&1; then
-              echo -e "### :page_facing_up: \`$FILE\`\n" >> $PR_COMMENT_FILE
               echo "**Error:** $(echo "$result" | jq -r '.error')" >> $PR_COMMENT_FILE
               echo -e "\n---\n" >> $PR_COMMENT_FILE
               continue
             fi
 
-            # Show issues first
+            # Show issues
             ISSUES=$(echo "$result" | jq '[.issues | sort_by(.severity) | reverse[]]')
 
             if [ "$(echo "$ISSUES" | jq 'length')" -eq 0 ]; then
@@ -212,9 +202,11 @@ jobs:
           EOF
               echo "$ISSUES" | jq -r '.[] | [
                 (if .severity == 5 then ":red_circle: Critical"
-                 elif (.severity == 4 or .severity == 3) then ":orange_circle: High"
-                 elif (.severity == 2 or .severity == 1) then ":yellow_circle: Low"
-                 else ":white_circle: Unknown" end),
+                 elif .severity == 4 then ":orange_circle: Very High"
+                 elif .severity == 3 then ":yellow_circle: High"
+                 elif .severity == 2 then ":large_blue_circle: Medium"
+                 elif .severity == 1 then ":white_circle: Low"
+                 else ":black_circle: Unknown" end),
                 .gate, .problem, .reason, .solution] | @tsv' | \
               while IFS=$'\t' read -r sev gate prob reason sol; do
                 echo "| $sev | $gate | **Problem:**<br> $prob<br>**Reason:**<br> $reason<br>**Solution:**<br> $sol |" >> $PR_COMMENT_FILE
@@ -222,10 +214,7 @@ jobs:
               echo "" >> $PR_COMMENT_FILE
             fi
 
-            # Then show file name
-            echo -e "### :page_facing_up: \`$FILE\`\n" >> $PR_COMMENT_FILE
-
-            # Then show gates comparison with scores
+            # Show gates comparison with scores
             echo "$result" | jq -e '.gates' > /dev/null 2>&1 && {
               echo "#### :bar_chart: Gates Comparison" >> $PR_COMMENT_FILE
               echo "" >> $PR_COMMENT_FILE

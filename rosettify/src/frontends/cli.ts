@@ -2,7 +2,7 @@
 // Implements FR-CLI-0001 (standard CLI), FR-SHRD-0008 (dense JSON output).
 // All new plan subcommands: create-with-template, upsert-with-template, list-templates.
 
-import { Command } from "commander";
+import { Command, Option } from "commander";
 import { registry } from "../registry/index.js";
 import { dispatch } from "../shared/dispatch.js";
 import { extractOutput, logFailure } from "../shared/envelope.js";
@@ -11,6 +11,7 @@ import { helpToolDef } from "../commands/help/index.js";
 import type { PlanInput } from "../commands/plan/core.js";
 import type { EnrichedEnvelope } from "../registry/types.js";
 import { logger } from "../shared/logger.js";
+import { VERSION } from "../shared/version.js";
 
 // FR-ARCH-0007 — all command output is valid JSON; FR-SHRD-0008 — dense (no indent)
 function writeResult(toolName: string, envelope: EnrichedEnvelope<unknown>): void {
@@ -32,7 +33,7 @@ export async function runCli(args: string[]): Promise<void> {
   }
 
   const program = new Command("rosettify");
-  program.version("0.1.0");
+  program.version(VERSION);
 
   // Suppress commander's default help output
   program.helpOption(false);
@@ -70,13 +71,16 @@ export async function runCli(args: string[]): Promise<void> {
     .command("next")
     .description("Get next steps")
     .argument("<plan_file>", "Path to plan file")
-    .argument("[limit]", "Max steps to return", "10")
+    .argument("[limit]", "Max steps to return (default: 3)")
     .option("--target <id>", "Scope to phase")
-    .action(async (planFile: string, limitStr: string, opts: { target?: string }) => {
+    .addOption(new Option("--limit <n>", "compatibility alias for the positional limit").hideHelp())
+    .action(async (planFile: string, limitStr: string | undefined, opts: { target?: string; limit?: string }) => {
+      const rawLimit = limitStr !== undefined ? limitStr : opts.limit;
+      const limit = rawLimit !== undefined ? parseInt(rawLimit, 10) : undefined;
       const input: PlanInput = {
         subcommand: "next",
         plan_file: planFile,
-        limit: parseInt(limitStr, 10),
+        ...(limit !== undefined ? { limit } : {}),
         target_id: opts.target,
       };
       const envelope = await dispatch(planToolDef, input);

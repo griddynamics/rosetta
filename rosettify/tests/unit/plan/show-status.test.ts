@@ -8,7 +8,7 @@ import * as path from "path";
 import { cmdShowStatus } from "../../../src/commands/plan/show-status.js";
 import { savePlan } from "../../../src/commands/plan/core.js";
 import { fullPlan, minimalPlan } from "../../fixtures/plans.js";
-import type { ShowStatusPlanResult, ShowStatusPhaseResult, ShowStatusStepResult } from "../../../src/commands/plan/core.js";
+import type { ShowStatusPlanResult, PlanPhaseSummary, PlanStepDetail } from "../../../src/commands/plan/core.js";
 
 let tmpDir: string;
 
@@ -88,30 +88,79 @@ describe("cmdShowStatus — entire plan", () => {
     expect(r.steps.progress_pct).toBe(0);
     expect(r.steps.total).toBe(0);
   });
+
+  // FR-PLAN-0013 — blocked and failed count in total; progress_pct = complete/total
+  it("blocked and failed steps count in total, progress_pct=25 for 1/4 complete", async () => {
+    const file = planFile("mixed.json");
+    const plan: import("../../../src/commands/plan/core.js").Plan = {
+      name: "Mixed Status",
+      description: "",
+      status: "open",
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      previous_version: null,
+      phases: [
+        {
+          id: "p1",
+          name: "P1",
+          description: "",
+          status: "open",
+          depends_on: [],
+          steps: [
+            { id: "s1", name: "S1", prompt: "p", status: "complete",  depends_on: [] },
+            { id: "s2", name: "S2", prompt: "p", status: "failed",    depends_on: [] },
+            { id: "s3", name: "S3", prompt: "p", status: "blocked",   depends_on: [] },
+            { id: "s4", name: "S4", prompt: "p", status: "open",      depends_on: [] },
+          ],
+        },
+      ],
+    };
+    savePlan(file, plan);
+    const result = await cmdShowStatus(file);
+    expect(result.ok).toBe(true);
+    const r = result.result as ShowStatusPlanResult;
+    // total = 4 (blocked and failed count in total)
+    expect(r.steps.total).toBe(4);
+    expect(r.steps.complete).toBe(1);
+    expect(r.steps.failed).toBe(1);
+    expect(r.steps.blocked).toBe(1);
+    expect(r.steps.open).toBe(1);
+    // progress_pct = round(1/4 * 1000) / 10 = 25.0
+    expect(r.steps.progress_pct).toBe(25);
+  });
 });
 
 describe("cmdShowStatus — phase target", () => {
-  it("returns phase status for known phase id", async () => {
+  it("returns PlanPhaseSummary for known phase id", async () => {
     const file = writePlan();
     const result = await cmdShowStatus(file, "p1");
     expect(result.ok).toBe(true);
-    const r = result.result as ShowStatusPhaseResult;
+    const r = result.result as PlanPhaseSummary;
     expect(r.id).toBe("p1");
     expect(r.name).toBe("Phase 1");
     expect(Array.isArray(r.steps)).toBe(true);
+    // PlanPhaseSummary steps are PlanStepSummary (id, name, status)
+    if (r.steps.length > 0) {
+      const step = r.steps[0]!;
+      expect(step.id).toBeDefined();
+      expect(step.name).toBeDefined();
+      expect(step.status).toBeDefined();
+    }
   });
 });
 
 describe("cmdShowStatus — step target", () => {
-  it("returns step status for known step id", async () => {
+  it("returns PlanStepDetail for known step id", async () => {
     const file = writePlan();
     const result = await cmdShowStatus(file, "s1");
     expect(result.ok).toBe(true);
-    const r = result.result as ShowStatusStepResult;
+    const r = result.result as PlanStepDetail;
     expect(r.id).toBe("s1");
     expect(r.name).toBe("Step 1");
     expect(r.status).toBe("open");
     expect(Array.isArray(r.depends_on)).toBe(true);
+    // PlanStepDetail has depends_on and optional subagent fields — no prompt
+    expect((r as Record<string, unknown>)["prompt"]).toBeUndefined();
   });
 });
 
@@ -202,7 +251,7 @@ describe("cmdShowStatus — nullish status fields (branch coverage)", () => {
     fs.writeFileSync(file, JSON.stringify(planJson, null, 2));
     const result = await cmdShowStatus(file, "p1");
     expect(result.ok).toBe(true);
-    const r = result.result as ShowStatusPhaseResult;
+    const r = result.result as PlanPhaseSummary;
     expect(r.status).toBe("open");
   });
 
@@ -219,7 +268,7 @@ describe("cmdShowStatus — nullish status fields (branch coverage)", () => {
     fs.writeFileSync(file, JSON.stringify(planJson, null, 2));
     const result = await cmdShowStatus(file, "p1");
     expect(result.ok).toBe(true);
-    const r = result.result as ShowStatusPhaseResult;
+    const r = result.result as PlanPhaseSummary;
     expect(r.steps).toEqual([]);
   });
 
@@ -244,7 +293,7 @@ describe("cmdShowStatus — nullish status fields (branch coverage)", () => {
     fs.writeFileSync(file, JSON.stringify(planJson, null, 2));
     const result = await cmdShowStatus(file, "s1");
     expect(result.ok).toBe(true);
-    const r = result.result as ShowStatusStepResult;
+    const r = result.result as PlanStepDetail;
     expect(r.status).toBe("open");
   });
 });
@@ -271,9 +320,12 @@ describe("cmdShowStatus — step with subagent/role/model fields", () => {
     savePlan(file, plan);
     const result = await cmdShowStatus(file, "s1");
     expect(result.ok).toBe(true);
-    const r = result.result as ShowStatusStepResult;
+    const r = result.result as PlanStepDetail;
     expect(r.subagent).toBe("my-agent");
     expect(r.role).toBe("engineer");
     expect(r.model).toBe("claude-opus");
+    // PlanStepDetail shape: has depends_on, no prompt
+    expect(Array.isArray(r.depends_on)).toBe(true);
+    expect((r as Record<string, unknown>)["prompt"]).toBeUndefined();
   });
 });

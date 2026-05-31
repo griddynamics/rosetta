@@ -73,6 +73,7 @@ Done when: every in-scope requirement has schema-complete draft and explicit use
 2. Use EARS for FRs and measurable metrics for NFRs
 3. Keep unresolved or deferred units as `Draft`
 4. Modify files directly, do not show to user
+5. Update `<req>` schema if older/missing fields
 
 </draft>
 
@@ -90,7 +91,7 @@ Done when: checklist passes and unresolved issues are either fixed or explicitly
 
 <user_review phase="7" priority="must" subagent="HITL" role="HITL">
 
-1. Review all drafts requirements with user by providing a clear and exact story as a narrative/walk-through of a functionality of the application that this affected, use simple words and sentences. If possible you can also do that from point of view of the actor that this requirements affect (user of the app, admin of the dashboard, etc)
+1. Review all drafts requirements with user by providing a clear and exact story as a narrative/walk-through of a functionality of the application that this affected, use simple words and sentences (consider human doesn't know internal implementation). If possible you can also do that from point of view of the actor that this requirements affect (user of the app, admin of the dashboard, etc)
 2. You should combine affected and existing requirements for the proper narrative/story
 3. If there are multiple stories - create todo task to review each story separately
 4. Review story-by-story with user for approval

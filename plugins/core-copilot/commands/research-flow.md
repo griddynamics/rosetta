@@ -28,7 +28,7 @@ Agent state tracker file `research-flow-state.md` is stored in FEATURE TEMP fold
 
 </context_load>
 
-<prompt_craft phase="2" subagent="researcher" role="Research prompt architect" subagent_recommended_model="claude-opus-4-6, gpt-5.3-codex-high, gemini-3.1-pro-high">
+<prompt_craft phase="2" subagent="researcher" role="Research prompt architect" subagent_recommended_model="claude-opus-4-8, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Create an optimized research prompt for the user request.
 2. Save as `research-prompt.md` in FEATURE PLAN folder. Output ONLY the optimized prompt.
@@ -39,7 +39,7 @@ Agent state tracker file `research-flow-state.md` is stored in FEATURE TEMP fold
 
 </prompt_craft>
 
-<execute_research phase="3" subagent="researcher" role="Deep research executor" subagent_recommended_model="claude-sonnet-4-6, gpt-5.3-codex-medium, gemini-3.1-pro">
+<execute_research phase="3" subagent="researcher" role="Deep research executor" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Execute the approved research prompt as a separate subagent.
 2. Input: approved `research-prompt.md`. Output: `docs/<feature>-research.md`.

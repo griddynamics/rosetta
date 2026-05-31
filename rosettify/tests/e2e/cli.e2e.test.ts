@@ -147,10 +147,13 @@ describe("CLI — plan create", () => {
     // Success: r.json IS the result payload directly (compressed-tree shape)
     expect((r.json as any).ok).toBeUndefined();
     expect((r.json as any).include_help).toBeUndefined();
-    const res = r.json as { plan: { name: string; status: string }; previous_version: null; phases: unknown[] };
+    const res = r.json as { plan: { name: string; status: string; previous_version: unknown }; phases: unknown[] };
     expect(res.plan.name).toBe("CLI Test Plan");
     expect(res.plan.status).toBe("open");
-    expect(res.previous_version).toBeNull();
+    // FR-PLAN-0040 — previous_version=null on first create (FR-PLAN-0010)
+    expect(res.plan.previous_version).toBeNull();
+    // No previous_version at result root level
+    expect((res as Record<string, unknown>)["previous_version"]).toBeUndefined();
     expect(Array.isArray(res.phases)).toBe(true);
     expect(fs.existsSync(file)).toBe(true);
   });
@@ -183,16 +186,36 @@ describe("CLI — plan next", () => {
     run(["plan", "create", file, data]);
   }
 
-  it("returns ready steps and exits 0", () => {
+  function createPlanWithManySteps(file: string): void {
+    const steps = Array.from({ length: 6 }, (_, i) => ({
+      id: `s${i + 1}`,
+      name: `Step ${i + 1}`,
+      prompt: `Do step ${i + 1}`,
+    }));
+    const data = JSON.stringify({
+      name: "Many Steps Test",
+      phases: [
+        {
+          id: "p1",
+          name: "Phase 1",
+          description: "",
+          steps,
+        },
+      ],
+    });
+    run(["plan", "create", file, data]);
+  }
+
+  it("returns steps and exits 0", () => {
     const file = planFile();
     createPlan(file);
     const r = run(["plan", "next", file]);
     expect(r.status).toBe(0);
     // Success: r.json IS the result payload directly
     expect((r.json as any).ok).toBeUndefined();
-    const res = r.json as { ready: { id: string }[]; count: number };
-    expect(Array.isArray(res.ready)).toBe(true);
-    expect(res.ready[0]!.id).toBe("s1");
+    const res = r.json as { next: { id: string }[]; count: number };
+    expect(Array.isArray(res.next)).toBe(true);
+    expect(res.next[0]!.id).toBe("s1");
     expect(res.count).toBe(1);
   });
 
@@ -203,6 +226,50 @@ describe("CLI — plan next", () => {
     expect((r.json as any).ok).toBeUndefined();
     const payload = r.json as { error: string };
     expect(payload.error).toBe("plan_not_found");
+  });
+
+  it("next <file> with >3 actionable steps returns exactly 3 (default is 3, not 10)", () => {
+    const file = planFile();
+    createPlanWithManySteps(file);
+    const r = run(["plan", "next", file]);
+    expect(r.status).toBe(0);
+    expect((r.json as any).ok).toBeUndefined();
+    const res = r.json as { next: unknown[]; count: number };
+    expect(res.count).toBe(3);
+    expect(res.next.length).toBe(3);
+  });
+
+  it("next <file> 2 (positional) returns 2", () => {
+    const file = planFile();
+    createPlanWithManySteps(file);
+    const r = run(["plan", "next", file, "2"]);
+    expect(r.status).toBe(0);
+    expect((r.json as any).ok).toBeUndefined();
+    const res = r.json as { next: unknown[]; count: number };
+    expect(res.count).toBe(2);
+    expect(res.next.length).toBe(2);
+  });
+
+  it("next <file> --limit 2 (hidden flag) returns 2", () => {
+    const file = planFile();
+    createPlanWithManySteps(file);
+    const r = run(["plan", "next", file, "--limit", "2"]);
+    expect(r.status).toBe(0);
+    expect((r.json as any).ok).toBeUndefined();
+    const res = r.json as { next: unknown[]; count: number };
+    expect(res.count).toBe(2);
+    expect(res.next.length).toBe(2);
+  });
+
+  it("next <file> 2 --limit 5 (both given) positional wins: returns 2", () => {
+    const file = planFile();
+    createPlanWithManySteps(file);
+    const r = run(["plan", "next", file, "2", "--limit", "5"]);
+    expect(r.status).toBe(0);
+    expect((r.json as any).ok).toBeUndefined();
+    const res = r.json as { next: unknown[]; count: number };
+    expect(res.count).toBe(2);
+    expect(res.next.length).toBe(2);
   });
 });
 
@@ -336,11 +403,14 @@ describe("CLI — plan create-with-template (FR-PLAN-0030)", () => {
     expect(r.status).toBe(0);
     // Success: dense JSON output (FR-SHRD-0008) — single line (no trailing newline in payload JSON)
     expect((r.json as any).ok).toBeUndefined();
-    // Result is compressed-tree: {plan, previous_version, phases}
-    const tree = r.json as { plan: { name: string; status: string }; previous_version: null; phases: unknown[] };
+    // Result is PlanWriteResult: {plan, phases}
+    const tree = r.json as { plan: { name: string; status: string; previous_version: unknown }; phases: unknown[] };
     expect(tree.plan.name).toBe("CLI Template Plan");
     expect(tree.plan.status).toBe("open");
-    expect(tree.previous_version).toBeNull();
+    // FR-PLAN-0040 — previous_version=null on first create (FR-PLAN-0010)
+    expect(tree.plan.previous_version).toBeNull();
+    // No previous_version at result root level
+    expect((tree as Record<string, unknown>)["previous_version"]).toBeUndefined();
     expect(Array.isArray(tree.phases)).toBe(true);
     // Plan file is created on disk
     expect(fs.existsSync(file)).toBe(true);
@@ -385,12 +455,15 @@ describe("CLI — plan upsert-with-template (FR-PLAN-0031)", () => {
     ]);
     expect(r.status).toBe(0);
     expect((r.json as any).ok).toBeUndefined();
-    // Result is compressed-tree
-    const tree = r.json as { plan: { name: string; status: string }; previous_version: string; phases: unknown[] };
+    // Result is PlanWriteResult: {plan, phases}
+    const tree = r.json as { plan: { name: string; status: string; previous_version: unknown }; phases: unknown[] };
     expect(tree.plan).toBeDefined();
-    expect(typeof tree.previous_version).toBe("string");
+    // FR-PLAN-0040 — result.plan.previous_version is the backup path (non-null after write)
+    expect(tree.plan.previous_version).not.toBeNull();
+    // No previous_version at result root level
+    expect((tree as Record<string, unknown>)["previous_version"]).toBeUndefined();
     expect(Array.isArray(tree.phases)).toBe(true);
-    // .bak* file exists (FR-PLAN-0031 write cycle)
+    // .bak* file exists on disk (FR-PLAN-0031 atomic write cycle)
     const dir = path.dirname(file);
     const base = path.basename(file);
     const bakFiles = fs.readdirSync(dir).filter((f) => f.startsWith(base + ".bak"));

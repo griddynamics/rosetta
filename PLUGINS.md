@@ -2,7 +2,7 @@
 > You must receive a prior approval from your manager and company to use it.
 
 > [!WARNING]
-> Use **Sonnet 4.6**, **GPT-5.3-codex-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
+> Use **Sonnet 4.6**, **Gpt-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
 
 >[!NOTE]
 > This is pre-release, but it already works.
@@ -86,6 +86,10 @@ The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CO
 
 ```
 /coding-flow Identify and implement fix, ...
+```
+
+```
+/coding-flow Improve unit tests coverage to 85% for ...
 ```
 
 ### Business and Technical Requirements

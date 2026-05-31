@@ -340,9 +340,9 @@ Mark Phase 4 as completed and Phase 5 as current.
 
 ## Next Phase
 
-After selectors are identified (either from frontend code or page source), proceed to **Phase 5: Selector Implementation** by reading:
+After selectors are identified (either from frontend code or page source), proceed to **Phase 5: Selector Implementation** by executing:
 ```
-agents/instructions/agents/advanced/r1/aqa-phase5.md
+ACQUIRE aqa-flow-selector-implementation.md FROM KB
 ```
 
 ## Important Notes

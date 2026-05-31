@@ -11,6 +11,7 @@ export const forSubagent = {
   name: "for-subagent",
   brief: "Bootstrap a subagent preparation phase with standard Rosetta load-context steps.",
   placeholders: ["phase-id", "phase-name", "phase-description"] as const,
+  produces: "One phase seeded with 6 Rosetta subagent load-context bootstrap steps, step ids prefixed by the phase id.",
   content: {
     id: "[phase-id]",
     name: "[phase-name]",
@@ -25,7 +26,7 @@ export const forSubagent = {
       {
         id: "[phase-id]-s-read-docs",
         name: "Read project context",
-        prompt: "SE SKILL `load-context` as the canonical current context loader. The skill is required even when its expected outputs already look satisfied.",
+        prompt: "USE SKILL `load-context` as the canonical current context loader. The skill is required even when its expected outputs already look satisfied.",
       },
       {
         id: "[phase-id]-s-subagent-contract",
@@ -35,7 +36,7 @@ export const forSubagent = {
       {
         id: "[phase-id]-s-execution-planning",
         name: "Plan execution at the task level",
-        prompt: "Perform execution-level planning using todo tasksfor this phase's scope. Identify dependencies and the right order before acting.",
+        prompt: "Perform execution-level planning using todo tasks for this phase's scope. Identify dependencies and the right order before acting.",
       },
       {
         id: "[phase-id]-s-execute-tasks",

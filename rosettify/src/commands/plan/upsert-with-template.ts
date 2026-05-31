@@ -8,7 +8,7 @@ import { logger } from "../../shared/logger.js";
 import { upsertTemplates } from "./templates/index.js";
 import { renderTemplate } from "./templates/render.js";
 import { cmdUpsert } from "./upsert.js";
-import type { CompressedPlanTree } from "./output.js";
+import type { PlanWriteResult } from "./output.js";
 import { ERR_INVALID_TEMPLATE } from "./errors.js";
 
 // FR-PLAN-0031 — input schema for upsert-with-template
@@ -16,22 +16,15 @@ export const upsertWithTemplateInputSchema = {
   type: "object" as const,
   properties: {
     plan_file: { type: "string", description: "Path to the plan JSON file" },
-    "phase-id": { type: "string", description: "FR-PLAN-0031 / FR-PLAN-0034 — value for the [phase-id] placeholder and upsert target ID" },
-    template: { type: "string", description: "FR-PLAN-0031 / FR-PLAN-0034 — template name from upsert-kind collection" },
-    "phase-name": { type: "string", description: "FR-PLAN-0031 / FR-PLAN-0034 — value for the [phase-name] placeholder" },
-    "phase-description": { type: "string", description: "FR-PLAN-0031 / FR-PLAN-0034 — value for the [phase-description] placeholder" },
+    "phase-id": { type: "string", description: "Value for the [phase-id] placeholder and upsert target ID" },
+    template: { type: "string", description: "Template name from upsert-kind collection" },
+    "phase-name": { type: "string", description: "Value for the [phase-name] placeholder" },
+    "phase-description": { type: "string", description: "Value for the [phase-description] placeholder" },
   },
-  required: [],
 };
 
 export const upsertWithTemplateOutputSchema = {
-  type: "object" as const,
-  description: "FR-PLAN-0040 — compressed-tree shape after upsert-with-template",
-  properties: {
-    plan: { type: "object" },
-    previous_version: { type: ["string", "null"] },
-    phases: { type: "array" },
-  },
+  $ref: "PlanWriteResult" as const,
 };
 
 export async function cmdUpsertWithTemplate(
@@ -40,7 +33,7 @@ export async function cmdUpsertWithTemplate(
   templateName: string,
   phaseName: string,
   phaseDescription: string,
-): Promise<RunEnvelope<CompressedPlanTree>> {
+): Promise<RunEnvelope<PlanWriteResult>> {
   // FR-PLAN-0031 — look up template in upsert-kind collection only
   const template = upsertTemplates[templateName as keyof typeof upsertTemplates];
   if (!template) {

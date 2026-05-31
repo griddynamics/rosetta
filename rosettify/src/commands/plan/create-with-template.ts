@@ -8,7 +8,7 @@ import { logger } from "../../shared/logger.js";
 import { createTemplates } from "./templates/index.js";
 import { renderTemplate } from "./templates/render.js";
 import { cmdCreate } from "./create.js";
-import type { CompressedPlanTree } from "./output.js";
+import type { PlanWriteResult } from "./output.js";
 import { ERR_INVALID_TEMPLATE } from "./errors.js";
 
 // FR-PLAN-0030 — input schema for create-with-template
@@ -16,21 +16,14 @@ export const createWithTemplateInputSchema = {
   type: "object" as const,
   properties: {
     plan_file: { type: "string", description: "Path to the plan JSON file" },
-    template: { type: "string", description: "FR-PLAN-0030 / FR-PLAN-0034 — template name from create-kind collection" },
-    "plan-name": { type: "string", description: "FR-PLAN-0030 / FR-PLAN-0034 — value for the [plan-name] placeholder" },
-    "plan-description": { type: "string", description: "FR-PLAN-0030 / FR-PLAN-0034 — value for the [plan-description] placeholder" },
+    template: { type: "string", description: "Template name from create-kind collection" },
+    "plan-name": { type: "string", description: "Value for the [plan-name] placeholder" },
+    "plan-description": { type: "string", description: "Value for the [plan-description] placeholder" },
   },
-  required: [],
 };
 
 export const createWithTemplateOutputSchema = {
-  type: "object" as const,
-  description: "FR-PLAN-0040 — compressed-tree shape after create-with-template",
-  properties: {
-    plan: { type: "object" },
-    previous_version: { type: ["string", "null"] },
-    phases: { type: "array" },
-  },
+  $ref: "PlanWriteResult" as const,
 };
 
 export async function cmdCreateWithTemplate(
@@ -38,7 +31,7 @@ export async function cmdCreateWithTemplate(
   templateName: string,
   planName: string,
   planDescription: string,
-): Promise<RunEnvelope<CompressedPlanTree>> {
+): Promise<RunEnvelope<PlanWriteResult>> {
   // FR-PLAN-0030 — look up template in create-kind collection only
   const template = createTemplates[templateName as keyof typeof createTemplates];
   if (!template) {

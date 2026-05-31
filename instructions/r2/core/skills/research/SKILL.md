@@ -5,7 +5,7 @@ license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: feature, request, scope?
-model: claude-opus-4-6, gpt-5.3-codex-high, gemini-3.1-pro-high
+model: claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high
 context: default
 agent: researcher
 baseSchema: docs/schemas/skill.md

@@ -33,7 +33,7 @@ Validation: State file tracks every phase with file inventory; verification conf
   - Else MUST EXECUTE "shells" phase 2
 12. Note: `rosetta@rosetta` is an MCP connector, not a plugin — it follows the normal path (shells phase 2 executes)
 13. If user says to initialize rules, subagents, agents, workflows, commands it ONLY means to execute "shells" phase 2.
-14. Upgrade from R1 to R2 is exactly the same process as define here, but you already have some files available, which you can reuse.
+14. Upgrade from R2 to R3 is exactly the same process as define here, but you already have some files available, which you can reuse.
 15. Additionally tell subagents: "If you want to use shell commands, prefer to combine individual shell commands into single **simple** shell script in `agents/TEMP` and execute it, but already available tools ALWAYS take precedence."
 
 </prerequisites>
@@ -85,7 +85,7 @@ DISABLED
 
 </gitnexus>
 
-<documentation phase="7" subagent="built-in" role="Documentation analyst" subagent_recommended_model="claude-opus-4-6, gpt-5.4-high, gemini-3.1-pro-preview">
+<documentation phase="7" subagent="built-in" role="Documentation analyst" subagent_recommended_model="claude-opus-4-8, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-preview">
 
 1. Create project documentation from workspace analysis.
 2. Output: CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md.
@@ -107,7 +107,7 @@ DISABLED
 1. Verify all files exist, run validation checklist, suggest next steps.
 2. ACQUIRE `init-workspace-flow-verification.md` FROM KB
 3. Mark state as COMPLETE.
-4. Notify user: delete `init-rosetta-shells-flow.md`. MUST start new chat session (highly visible message, red icon, bold, ASCII art, it must standout).
+4. Demand user as MUST to start new chat session (highly visible message, red icon, bold, ASCII art, it must standout).
 
 </verification>
 

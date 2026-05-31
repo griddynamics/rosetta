@@ -73,7 +73,8 @@ export interface CreateResult {
   status: Status;
 }
 
-export interface NextStep {
+// FR-PLAN-0011 / FR-HELP-0002 — named exported type for next step items
+export interface PlanNextStep {
   id: string;
   name: string;
   prompt: string;
@@ -81,27 +82,44 @@ export interface NextStep {
   depends_on: string[];
   phase_id: string;
   phase_name: string;
-  resume?: boolean;
-  previously_blocked?: boolean;
-  previously_failed?: boolean;
   subagent?: string;
   role?: string;
   model?: string;
 }
 
-export interface NextResult {
-  ready: NextStep[];
-  count: number;
-  plan_status: Status;
+// FR-PLAN-0011 / FR-HELP-0002 — named exported type for phase context in next result
+export interface PlanPhaseContext {
+  id: string;
+  name: string;
+  description: string;
+  status: Status;
+  depends_on: string[];
+  subagent?: string;
+  role?: string;
+  model?: string;
 }
 
-export interface UpdateStatusResult {
+export interface PlanNextResult {
+  parent?: PlanPhaseContext;
+  next: PlanNextStep[];
+  count: number;
+  plan_status: Status;
+  OverallOpenCount: number;
+  OverallInProgressCount: number;
+  OverallBlockedCount: number;
+  OverallFailedCount: number;
+  OverallCompleteCount: number;
+}
+
+// FR-PLAN-0015 / FR-PLAN-0012 — update_status result (id, status, plan_status)
+export interface PlanUpdateStatusResult {
   id: string;
   status: Status;
   plan_status: Status;
 }
 
-export interface StatusTotals {
+// FR-PLAN-0013 / FR-HELP-0002 — named exported type for status totals
+export interface PlanStatusTotals {
   open: number;
   in_progress: number;
   complete: number;
@@ -111,29 +129,23 @@ export interface StatusTotals {
   progress_pct: number;
 }
 
-export interface PhaseSummaryEntry {
+// FR-PLAN-0013 / FR-HELP-0002 — named exported type for step summary (id, name, status)
+export interface PlanStepSummary {
   id: string;
   name: string;
   status: Status;
-  steps: Array<{ id: string; name: string; status: Status }>;
 }
 
-export interface ShowStatusPlanResult {
-  name: string;
-  status: Status;
-  phases: StatusTotals;
-  steps: StatusTotals;
-  phase_summary: PhaseSummaryEntry[];
-}
-
-export interface ShowStatusPhaseResult {
+// FR-PLAN-0013 / FR-HELP-0002 — named exported type for phase summary (reused in write result and show_status)
+export interface PlanPhaseSummary {
   id: string;
   name: string;
   status: Status;
-  steps: Array<{ id: string; name: string; status: Status }>;
+  steps: PlanStepSummary[];
 }
 
-export interface ShowStatusStepResult {
+// FR-PLAN-0013 / FR-HELP-0002 — named exported type for step detail (from show_status step target)
+export interface PlanStepDetail {
   id: string;
   name: string;
   status: Status;
@@ -143,10 +155,26 @@ export interface ShowStatusStepResult {
   model?: string;
 }
 
-// FR-PLAN-0015 — compressed-tree is the sole return shape; message? field removed
-export interface UpsertResult {
-  id: string;
-  plan_status: Status;
+export interface ShowStatusPlanResult {
+  name: string;
+  status: Status;
+  phases: PlanStatusTotals;
+  steps: PlanStatusTotals;
+  phase_summary: PlanPhaseSummary[];
+}
+
+// Named result types per SRP+DRY type rule (FR-PLAN-0013 / FR-HELP-0002)
+// PlanPhaseSummary reused for phase-target result (DRY — same shape)
+// PlanStepDetail used for step-target result
+export type PlanShowStatusResult = ShowStatusPlanResult | PlanPhaseSummary | PlanStepDetail;
+export type PlanQueryResult = Plan | Phase | Step;
+
+// FR-PLAN-0040 / FR-HELP-0002 — named exported type for plan summary in write result
+export interface PlanSummary {
+  name: string;
+  status: Status;
+  // FR-PLAN-0040 — backup path of the just-replaced version; null on first create (FR-PLAN-0010)
+  previous_version: string | null;
 }
 
 // ---------------------------------------------------------------------------

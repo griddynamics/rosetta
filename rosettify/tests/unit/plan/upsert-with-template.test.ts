@@ -1,7 +1,8 @@
 /**
  * Unit tests for cmdUpsertWithTemplate — FR-PLAN-0031.
- * Acceptance criteria: phase upserted; compressed-tree returned; previous_version non-null;
- * second invocation with different phase-id produces unique step IDs (FR-PLAN-0036).
+ * Acceptance criteria: phase upserted; compressed-tree returned (no previous_version on result);
+ * plan FILE's previous_version advances with each write; second invocation with different
+ * phase-id produces unique step IDs (FR-PLAN-0036).
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
@@ -9,10 +10,9 @@ import * as os from "os";
 import * as path from "path";
 import { cmdUpsertWithTemplate } from "../../../src/commands/plan/upsert-with-template.js";
 import { planToolDef } from "../../../src/commands/plan/index.js";
-import { loadPlan, savePlan } from "../../../src/commands/plan/core.js";
+import { loadPlan } from "../../../src/commands/plan/core.js";
 import { cmdCreate } from "../../../src/commands/plan/create.js";
-import type { CompressedPlanTree } from "../../../src/commands/plan/output.js";
-import type { Plan } from "../../../src/commands/plan/core.js";
+import type { PlanWriteResult } from "../../../src/commands/plan/output.js";
 
 let tmpDir: string;
 
@@ -37,7 +37,7 @@ async function createPlanFile(file: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 describe("cmdUpsertWithTemplate — FR-PLAN-0031 happy path", () => {
-  // FR-PLAN-0031 — phase upserted; result is compressed-tree; previous_version non-null
+  // FR-PLAN-0031 — phase upserted; result is compressed-tree (no previous_version on result)
   it("upserts a phase from for-subagent template and returns compressed-tree", async () => {
     const file = planFile();
     await createPlanFile(file);
@@ -45,16 +45,17 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 happy path", () => {
     const result = await cmdUpsertWithTemplate(file, "ph-impl", "for-subagent", "Implementation", "Implement the feature");
 
     expect(result.ok).toBe(true);
-    const tree = result.result as CompressedPlanTree;
+    const tree = result.result as PlanWriteResult;
 
-    // FR-PLAN-0040 — compressed-tree shape
+    // FR-PLAN-0040 — compressed-tree shape: plan + phases
     expect(tree.plan).toBeDefined();
     expect(tree.plan.status).toBeDefined();
     expect(Array.isArray(tree.phases)).toBe(true);
 
-    // FR-PLAN-0024 — previous_version is set (non-null) after write
-    expect(tree.previous_version).not.toBeNull();
-    expect(typeof tree.previous_version).toBe("string");
+    // FR-PLAN-0040 — result.plan.previous_version is the backup path (non-null after write)
+    expect(tree.plan.previous_version).not.toBeNull();
+    // No previous_version at result root level
+    expect((tree as Record<string, unknown>)["previous_version"]).toBeUndefined();
 
     // Phase appears in the plan
     const phase = tree.phases.find((p) => p.id === "ph-impl");
@@ -62,7 +63,7 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 happy path", () => {
     expect(phase!.name).toBe("Implementation");
   });
 
-  // FR-PLAN-0024 — .bak file created after upsert
+  // FR-PLAN-0024 — .bak file created after upsert (visible on plan FILE, not on result)
   it("creates a .bak file after upsert", async () => {
     const file = planFile();
     await createPlanFile(file);
@@ -70,8 +71,11 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 happy path", () => {
     const result = await cmdUpsertWithTemplate(file, "ph-impl", "for-subagent", "Implementation", "Impl desc");
 
     expect(result.ok).toBe(true);
-    const tree = result.result as CompressedPlanTree;
-    expect(fs.existsSync(tree.previous_version!)).toBe(true);
+    // FR-PLAN-0024 — the plan FILE on disk has previous_version pointing to backup
+    const planOnDisk = loadPlan(file)!;
+    expect(planOnDisk.previous_version).not.toBeNull();
+    expect(typeof planOnDisk.previous_version).toBe("string");
+    expect(fs.existsSync(planOnDisk.previous_version!)).toBe(true);
   });
 
   // FR-PLAN-0031 — placeholder values substituted in upserted phase
@@ -178,23 +182,36 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 error: missing_template_param v
   });
 });
 
-describe("cmdUpsertWithTemplate — FR-PLAN-0031 previous_version tracking", () => {
-  // FR-PLAN-0017 — previous_version advances with each write
-  it("previous_version advances on each successive upsert", async () => {
+describe("cmdUpsertWithTemplate — FR-PLAN-0031 previous_version tracking on FILE", () => {
+  // FR-PLAN-0017 — plan FILE's previous_version advances with each write
+  it("plan file's previous_version advances on each successive upsert", async () => {
     const file = planFile();
     await createPlanFile(file);
 
     const r1 = await cmdUpsertWithTemplate(file, "ph-impl", "for-subagent", "Impl", "desc1");
     expect(r1.ok).toBe(true);
-    const v1 = (r1.result as CompressedPlanTree).previous_version;
-    expect(v1).toContain(".bak000");
+    const tree1 = r1.result as PlanWriteResult;
+    // FR-PLAN-0040 — result.plan.previous_version is the backup path (non-null)
+    expect(tree1.plan.previous_version).not.toBeNull();
+    expect(tree1.plan.previous_version).toContain(".bak000");
+    // No previous_version at result root level
+    expect((r1.result as Record<string, unknown>)["previous_version"]).toBeUndefined();
+    // FR-PLAN-0024 — plan FILE has previous_version pointing to .bak000; equals result.plan.previous_version
+    const planV1 = loadPlan(file)!;
+    expect(planV1.previous_version).toContain(".bak000");
+    expect(tree1.plan.previous_version).toBe(planV1.previous_version);
 
     const r2 = await cmdUpsertWithTemplate(file, "ph-test", "for-subagent", "Test", "desc2");
     expect(r2.ok).toBe(true);
-    const v2 = (r2.result as CompressedPlanTree).previous_version;
-    expect(v2).toContain(".bak001");
+    const tree2 = r2.result as PlanWriteResult;
+    // FR-PLAN-0040 — result.plan.previous_version advances to .bak001
+    expect(tree2.plan.previous_version).toContain(".bak001");
+    // FR-PLAN-0024 — plan FILE has previous_version advancing to .bak001; equals result.plan.previous_version
+    const planV2 = loadPlan(file)!;
+    expect(planV2.previous_version).toContain(".bak001");
+    expect(tree2.plan.previous_version).toBe(planV2.previous_version);
 
     // Each backup is a different file
-    expect(v1).not.toBe(v2);
+    expect(planV1.previous_version).not.toBe(planV2.previous_version);
   });
 });

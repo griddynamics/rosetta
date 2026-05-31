@@ -72,7 +72,7 @@ DISABLED
 
 </patterns>
 
-<documentation phase="6" subagent="built-in" role="Documentation analyst" subagent_recommended_model="claude-opus-4-6, gpt-5.4-high, gemini-3.1-pro-preview">
+<documentation phase="6" subagent="built-in" role="Documentation analyst" subagent_recommended_model="claude-opus-4-8, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-preview">
 
 1. Create project documentation from workspace analysis.
 2. Output: CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md.
@@ -94,7 +94,8 @@ DISABLED
 1. Verify all files exist, run validation checklist, suggest next steps.
 2. ACQUIRE `init-workspace-flow-verification.md` FROM KB
 3. Mark state as COMPLETE.
-4. Notify user: delete `init-rosetta-shells-flow.md`. MUST start new chat session (highly visible message, red icon, bold, ASCII art, it must standout).
+4. Notify user: delete `init-rosetta-shells-flow.md`. 
+5. Demand user as MUST to start new chat session (highly visible message, red icon, bold, ASCII art, it must standout).
 
 </verification>
 

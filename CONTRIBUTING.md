@@ -49,7 +49,7 @@ See [Overall Development Flow](DEVELOPER_GUIDE.md#overall-development-flow) on h
 
 Rosetta is a prompt engineering system. Prompt changes have outsized impact and need extra care.
 
-**Use the prompting flow.** The [`coding-agents-prompting-flow`](USAGE_GUIDE.md#workflows) with `coding-agents-prompt-authoring` skill helps you author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with Opus 4.6 model.
+**Use the prompting flow.** The [`coding-agents-prompting-flow`](USAGE_GUIDE.md#workflows) with `coding-agents-prompt-authoring` skill helps you author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with Opus 4.8 model.
 
 Examples:
 

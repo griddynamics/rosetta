@@ -89,3 +89,19 @@ Every release that changes published behavior SHALL be accompanied by a CHANGELO
     <criteria>Given: the version field in rosettify/package.json. When: inspected. Then: it matches the semver regex above. Given: a release that removes or breaks a documented contract (CLI surface, MCP tool schema, plan schema, envelope, error code). Then: the new version's MAJOR digit is greater than the previous release's MAJOR. Given: a release that adds a new subcommand, optional field, error code, or template without breaking any existing contract. Then: MAJOR is unchanged and MINOR is incremented. Given: a release that fixes a bug without altering any documented contract. Then: MAJOR and MINOR are unchanged and PATCH is incremented. Given: any release that changes published behavior. Then: a CHANGELOG or release-notes entry exists for it.</criteria>
   </acceptance>
 </req>
+
+## FR-PKG-0006 Single-Source Version Reporting
+
+<req id="FR-PKG-0006" type="FR" level="System">
+  <title>Reported version is read from package.json</title>
+  <statement>The version reported by every frontend SHALL be read from `rosettify/package.json` at runtime; no version string SHALL be hardcoded or duplicated in source. This applies to the CLI version flag/command, the MCP server's advertised `version`, and the `version` field of the help payload. All three SHALL report the exact value of `package.json`'s `version` field, so bumping `package.json` (FR-PKG-0005) is the single action that updates every reported version.</statement>
+  <rationale>A version hardcoded separately from package.json drifts — the package can claim one version while the CLI, MCP server, and help payload still report a stale literal (observed: package.json at 2.3.0 while all three reported 0.1.0). Reading from package.json makes that field the single source of truth and removes a class of silent inconsistency that misleads AI and human consumers about which surface they are on.</rationale>
+  <source>User</source>
+  <ticketId>CTORNDGAIN-1333</ticketId>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: package.json version V. When: the CLI version flag/command runs. Then: it reports V. Given: the MCP server initializes. Then: its advertised version equals V. Given: rosettify help (top-level or for a command). When: the help payload is returned. Then: its version field equals V. Given: the source is inspected. Then: no frontend hardcodes a version literal; each derives it from package.json.</criteria>
+  </acceptance>
+</req>

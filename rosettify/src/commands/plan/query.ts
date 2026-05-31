@@ -20,12 +20,15 @@ export const queryInputSchema = {
     plan_file: { type: "string", description: "Path to the plan JSON file" },
     target_id: { type: "string", description: "entire_plan | phase-id | step-id (default: entire_plan)" },
   },
-  required: [],
 };
 
 export const queryOutputSchema = {
-  type: "object" as const,
-  description: "FR-PLAN-0014 — full JSON of the target (plan, phase, or step)",
+  oneOf: [
+    { $ref: "Plan" as const },
+    { $ref: "Phase" as const },
+    { $ref: "Step" as const },
+  ],
+  description: "Full JSON of the target — a Plan, Phase, or Step",
 };
 
 export async function cmdQuery(

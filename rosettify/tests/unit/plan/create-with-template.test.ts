@@ -11,7 +11,7 @@ import * as path from "path";
 import { cmdCreateWithTemplate } from "../../../src/commands/plan/create-with-template.js";
 import { planToolDef } from "../../../src/commands/plan/index.js";
 import { loadPlan } from "../../../src/commands/plan/core.js";
-import type { CompressedPlanTree } from "../../../src/commands/plan/output.js";
+import type { PlanWriteResult } from "../../../src/commands/plan/output.js";
 
 let tmpDir: string;
 
@@ -38,13 +38,16 @@ describe("cmdCreateWithTemplate — FR-PLAN-0030 happy path", () => {
     const result = await cmdCreateWithTemplate(file, "for-orchestrator", "My Plan", "My plan description");
 
     expect(result.ok).toBe(true);
-    const tree = result.result as CompressedPlanTree;
+    const tree = result.result as PlanWriteResult;
 
-    // FR-PLAN-0040 — compressed-tree shape
+    // FR-PLAN-0040 — compressed-tree shape: plan + phases
     expect(tree.plan).toBeDefined();
     expect(tree.plan.name).toBe("My Plan");
     expect(tree.plan.status).toBe("open");
-    expect(tree.previous_version).toBeNull(); // first create
+    // FR-PLAN-0040 — previous_version=null on first create (FR-PLAN-0010)
+    expect(tree.plan.previous_version).toBeNull();
+    // No previous_version at result root level
+    expect((tree as Record<string, unknown>)["previous_version"]).toBeUndefined();
     expect(Array.isArray(tree.phases)).toBe(true);
     expect(tree.phases.length).toBeGreaterThan(0);
 

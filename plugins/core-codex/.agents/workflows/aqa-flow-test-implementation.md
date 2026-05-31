@@ -386,7 +386,7 @@ Please execute the test and let me know when you're ready to proceed to Phase 7 
 
 After user executes test and confirms readiness, proceed to **Phase 7: Test Report Analysis** by executing:
 ```
-ACQUIRE aqa-phase7-md FROM KB
+ACQUIRE aqa-flow-test-report-analysis.md FROM KB
 ```
 
 ## Important Notes

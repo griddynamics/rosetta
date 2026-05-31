@@ -8,7 +8,7 @@ baseSchema: docs/schemas/phase.md
 <init_workspace_flow_patterns>
 
 <description_and_purpose>
-Extract recurring code structures into explicit reusable pattern templates. Without them, agents reinvent conventions per task. Proof: docs/PATTERNS/ contains INDEX.md, per-module files, and CHANGES.md referenced by downstream coding tasks.
+Extract recurring code structures into explicit reusable pattern templates. Without them, agents reinvent conventions per task. Proof: docs/PATTERNS/ contains INDEX.md, per-module files, and CHANGES.md referenced by downstream coding tasks. Use workhorse model to handle large amounts of content cheaper and faster.
 </description_and_purpose>
 
 <workflow_context>

@@ -22,22 +22,28 @@ describe("cmdListTemplates — FR-PLAN-0032 acceptance", () => {
     expect(Array.isArray(catalog.upsert)).toBe(true);
   });
 
-  // FR-PLAN-0032 — each entry has name, brief, placeholders
-  it("each create entry has name, brief, placeholders", async () => {
+  // FR-PLAN-0032 — each entry has name, brief, placeholders, produces
+  it("each create entry has name, brief, placeholders, and non-empty produces", async () => {
     const result = await cmdListTemplates();
     for (const entry of result.result!.create) {
       expect(typeof entry.name).toBe("string");
       expect(typeof entry.brief).toBe("string");
       expect(Array.isArray(entry.placeholders)).toBe(true);
+      // FR-PLAN-0032 — produces is a non-empty string
+      expect(typeof entry.produces).toBe("string");
+      expect((entry.produces as string).length).toBeGreaterThan(0);
     }
   });
 
-  it("each upsert entry has name, brief, placeholders", async () => {
+  it("each upsert entry has name, brief, placeholders, and non-empty produces", async () => {
     const result = await cmdListTemplates();
     for (const entry of result.result!.upsert) {
       expect(typeof entry.name).toBe("string");
       expect(typeof entry.brief).toBe("string");
       expect(Array.isArray(entry.placeholders)).toBe(true);
+      // FR-PLAN-0032 — produces is a non-empty string
+      expect(typeof entry.produces).toBe("string");
+      expect((entry.produces as string).length).toBeGreaterThan(0);
     }
   });
 

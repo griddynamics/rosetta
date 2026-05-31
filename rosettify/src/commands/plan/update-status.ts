@@ -9,7 +9,7 @@ import { atomicWriteWithBackup } from "../../shared/plan-io.js";
 import {
   type Plan,
   type Status,
-  type UpdateStatusResult,
+  type PlanUpdateStatusResult,
   VALID_STATUSES,
   savePlan,
   propagateStatuses,
@@ -24,12 +24,11 @@ export const updateStatusInputSchema = {
     target_id: { type: "string", description: "Step ID to update" },
     new_status: { type: "string", description: "New status: open | in_progress | complete | blocked | failed" },
   },
-  required: [],
 };
 
 export const updateStatusOutputSchema = {
   type: "object" as const,
-  description: "FR-PLAN-0012 — result of update_status",
+  description: "PlanUpdateStatusResult — result of update_status",
   properties: {
     id: { type: "string" },
     status: { type: "string" },
@@ -41,10 +40,10 @@ export async function cmdUpdateStatus(
   planFile: string,
   targetId: string,
   newStatus: string,
-): Promise<RunEnvelope<UpdateStatusResult>> {
+): Promise<RunEnvelope<PlanUpdateStatusResult>> {
   try {
-    // FR-PLAN-0024 — use rename-as-guard write cycle
-    const writeResult = await atomicWriteWithBackup<Plan, UpdateStatusResult>(
+    // Use rename-as-guard write cycle
+    const writeResult = await atomicWriteWithBackup<Plan, PlanUpdateStatusResult>(
       planFile,
       (plan) => {
         if (targetId === "entire_plan") {

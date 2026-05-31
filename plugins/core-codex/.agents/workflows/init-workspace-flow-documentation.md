@@ -8,7 +8,7 @@ baseSchema: docs/schemas/phase.md
 <init_workspace_flow_documentation>
 
 <description_and_purpose>
-Agents without workspace documentation re-discover facts, repeat mistakes, and make incorrect assumptions every session. This phase creates the shared understanding layer all subsequent agent work depends on. Proof: five doc files exist and every prepped-workspace skill reads them.
+Agents without workspace documentation re-discover facts, repeat mistakes, and make incorrect assumptions every session. This phase creates the shared understanding layer all subsequent agent work depends on. Proof: five doc files exist and every prepped-workspace skill reads them. Use top tier model, as this documentation will be loaded every signle time in every single user session with AI.
 </description_and_purpose>
 
 <workflow_context>
@@ -35,8 +35,9 @@ Agents without workspace documentation re-discover facts, repeat mistakes, and m
 1. ACQUIRE `init-workspace-documentation/SKILL.md` FROM KB
 </acquire_skills>
 
-<execute_documentation step="6.3" subagent="built-in" role="Senior technical writer synthesizing workspace documentation" subagent_recommended_model="claude-opus-4-6,gpt-5.4-high,gemini-3.1-pro-preview">
-1. Execute skill with state.mode, state.composite, state.file_count as inputs
+<execute_documentation step="6.3" subagent="built-in" role="Senior technical writer synthesizing workspace documentation" subagent_recommended_model="claude-opus-4-8,gpt-5.5-high,gemini-3.1-pro-preview">
+1. Look around for any additional documentation and verify findings
+2. Execute skill with state.mode, state.composite, state.file_count as inputs
 </execute_documentation>
 
 <update_state step="6.4">
@@ -46,7 +47,7 @@ Agents without workspace documentation re-discover facts, repeat mistakes, and m
 </update_state>
 
 <validation_checklist>
-- All 5 doc files exist and are non-empty
+- All 7 doc files exist and are non-empty
 - If composite: top-level docs are registries with sub-repo references
 - If upgrade mode: human-added content preserved
 - State file shows Phase 6 complete with per-file status

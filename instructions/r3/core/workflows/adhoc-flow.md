@@ -17,7 +17,7 @@ Solution: Meta-workflow — construct a bespoke plan from building blocks, persi
 
 <models>
 
-- large (smart, slow): claude-opus-4-6, gpt-5.3-codex-high, gpt-5.4-high, gemini-3.1-pro-preview
+- large (smart, slow): claude-opus-4-8, gpt-5.3-codex-high, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-preview
 - medium (workhorse): claude-sonnet-4-6, gpt-5.3-codex-medium, gpt-5.4-medium, glm-5, kimi-k2.5, minimax-m2.5
 - small (fast): claude-haiku-4-5, gpt-5-mini, gemini-3-flash-preview
 

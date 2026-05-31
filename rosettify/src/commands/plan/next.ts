@@ -8,10 +8,12 @@ import { readPlanWithRetry } from "../../shared/plan-io.js";
 import { ERR_PLAN_FILE_CORRUPTED } from "./errors.js";
 import {
   type Plan,
-  type NextResult,
-  type NextStep,
+  type PlanNextResult,
+  type PlanPhaseContext,
+  type PlanNextStep,
   type Phase,
   type Step,
+  type Status,
   buildStepStatusMap,
   depsSatisfied,
 } from "./core.js";
@@ -20,27 +22,20 @@ export const nextInputSchema = {
   type: "object" as const,
   properties: {
     plan_file: { type: "string", description: "Path to the plan JSON file" },
-    limit: { type: "integer", minimum: 0, description: "Max steps to return (default: 10)" },
+    limit: { type: "integer", minimum: 0, description: "Max steps to return (default: 3)" },
     target_id: { type: "string", description: "Scope to a specific phase ID" },
   },
-  required: [],
 };
 
 export const nextOutputSchema = {
-  type: "object" as const,
-  description: "FR-PLAN-0011 — next steps result",
-  properties: {
-    ready: { type: "array" },
-    count: { type: "integer" },
-    plan_status: { type: "string" },
-  },
+  $ref: "PlanNextResult" as const,
 };
 
 export async function cmdNext(
   planFile: string,
   targetId?: string,
-  limit = 10,
-): Promise<RunEnvelope<NextResult>> {
+  limit = 3,
+): Promise<RunEnvelope<PlanNextResult>> {
   try {
     if (limit < 0) return err("invalid_limit", true);
 
@@ -54,8 +49,9 @@ export async function cmdNext(
     if (!plan) return err("plan_not_found");
 
     // Validate target_id if provided — must reference an existing phase
+    let targetPhase: Phase | undefined;
     if (targetId) {
-      const targetPhase = plan.phases.find((p) => p.id === targetId);
+      targetPhase = plan.phases.find((p) => p.id === targetId);
       if (!targetPhase) return err("target_not_found");
     }
 
@@ -75,36 +71,66 @@ export async function cmdNext(
       phasesToScan = activePhase ? [activePhase] : [];
     }
 
-    const inProgress: NextStep[] = [];
-    const openReady: NextStep[] = [];
-    const blocked: NextStep[] = [];
-    const failed: NextStep[] = [];
+    const inProgress: PlanNextStep[] = [];
+    const openReady: PlanNextStep[] = [];
+    const blocked: PlanNextStep[] = [];
+    const failed: PlanNextStep[] = [];
 
     for (const phase of phasesToScan) {
       for (const step of phase.steps ?? []) {
         const st = step.status ?? "open";
 
         if (st === "in_progress") {
-          inProgress.push(buildNextStep(step, phase, { resume: true }));
+          inProgress.push(buildNextStep(step, phase));
         } else if (st === "open") {
           if (depsSatisfied(step, stepStatusMap)) {
-            openReady.push(buildNextStep(step, phase, { resume: false }));
+            openReady.push(buildNextStep(step, phase));
           }
         } else if (st === "blocked") {
-          blocked.push(buildNextStep(step, phase, { previously_blocked: true }));
+          blocked.push(buildNextStep(step, phase));
         } else if (st === "failed") {
-          failed.push(buildNextStep(step, phase, { previously_failed: true }));
+          failed.push(buildNextStep(step, phase));
         }
       }
     }
 
-    const ready = [...inProgress, ...openReady, ...blocked, ...failed].slice(
+    const next = [...inProgress, ...openReady, ...blocked, ...failed].slice(
       0,
       limit,
     );
 
-    logger.info({ planFile, count: ready.length }, "next steps retrieved");
-    return ok({ ready, count: ready.length, plan_status: plan.status });
+    // Compute Overall*Count — scoped to target phase when target_id given, else whole plan
+    const countScope: Phase[] = targetId
+      ? (plan.phases.filter((p) => p.id === targetId))
+      : plan.phases;
+
+    const overallCounts = computeOverallCounts(countScope);
+
+    // Build parent block if target_id is given (FR-PLAN-0011 — PlanPhaseContext)
+    let parent: PlanPhaseContext | undefined;
+    if (targetId && targetPhase) {
+      parent = {
+        id: targetPhase.id,
+        name: targetPhase.name,
+        description: targetPhase.description,
+        status: targetPhase.status,
+        depends_on: targetPhase.depends_on ?? [],
+      };
+      if (targetPhase.subagent) parent.subagent = targetPhase.subagent;
+      if (targetPhase.role) parent.role = targetPhase.role;
+      if (targetPhase.model) parent.model = targetPhase.model;
+    }
+
+    const result: PlanNextResult = {
+      ...(parent !== undefined ? { parent } : {}),
+      next,
+      count: next.length,
+      plan_status: plan.status,
+      ...overallCounts,
+    };
+
+    logger.info({ planFile, count: next.length }, "next steps retrieved");
+    return ok(result);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return err(`internal_error: ${msg}`);
@@ -114,13 +140,8 @@ export async function cmdNext(
 function buildNextStep(
   step: Step,
   phase: Phase,
-  flags: {
-    resume?: boolean;
-    previously_blocked?: boolean;
-    previously_failed?: boolean;
-  },
-): NextStep {
-  const result: NextStep = {
+): PlanNextStep {
+  const result: PlanNextStep = {
     id: step.id,
     name: step.name,
     prompt: step.prompt,
@@ -129,11 +150,35 @@ function buildNextStep(
     phase_id: phase.id,
     phase_name: phase.name,
   };
-  if (flags.resume) result.resume = true;
-  if (flags.previously_blocked) result.previously_blocked = true;
-  if (flags.previously_failed) result.previously_failed = true;
   if (step.subagent) result.subagent = step.subagent;
   if (step.role) result.role = step.role;
   if (step.model) result.model = step.model;
   return result;
+}
+
+function computeOverallCounts(phases: Phase[]): {
+  OverallOpenCount: number;
+  OverallInProgressCount: number;
+  OverallBlockedCount: number;
+  OverallFailedCount: number;
+  OverallCompleteCount: number;
+} {
+  let open = 0, inProgress = 0, blocked = 0, failed = 0, complete = 0;
+  for (const phase of phases) {
+    for (const step of phase.steps ?? []) {
+      const st: Status = step.status ?? "open";
+      if (st === "open") open++;
+      else if (st === "in_progress") inProgress++;
+      else if (st === "blocked") blocked++;
+      else if (st === "failed") failed++;
+      else if (st === "complete") complete++;
+    }
+  }
+  return {
+    OverallOpenCount: open,
+    OverallInProgressCount: inProgress,
+    OverallBlockedCount: blocked,
+    OverallFailedCount: failed,
+    OverallCompleteCount: complete,
+  };
 }

@@ -2,7 +2,7 @@
 name: init-workspace-patterns
 description: "Rosetta skill to extract recurring coding and architectural patterns from workspace code into reusable templates."
 license: Apache-2.0
-model: claude-opus-4-6
+model: claude-sonnet-4-6
 tags: ["init", "workspace", "patterns", "reverse-engineering"]
 baseSchema: docs/schemas/skill.md
 ---
@@ -22,6 +22,7 @@ Codebases accumulate implicit recurring structures that drift without formal doc
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - ACQUIRE `reverse-engineering/SKILL.md` FROM KB — apply "Would we rebuild this?" test: pattern = recurring structure surviving a from-scratch rewrite; one-off = historical accident
 - Pattern qualifies only if found in 2+ places
+- INDEX.md and CHANGES.md must be possible to grep by md headers (top 3 levels). Must not use tables. Instructions ask to grep files to populate list of those items in context.
 
 </core_concepts>
 
@@ -42,8 +43,8 @@ Codebases accumulate implicit recurring structures that drift without formal doc
    - **Name**: short identifier (e.g., "REST Controller Endpoint")
    - **Description**: what it solves, when to use
    - **Template/Example**: generalizable code skeleton with extension-point comments
-4. Write docs/PATTERNS/INDEX.md — all patterns with one-line descriptions
-5. Write docs/PATTERNS/CHANGES.md — created/updated/skipped
+4. Write docs/PATTERNS/INDEX.md — all patterns with one-line descriptions, one header per each pattern `## Pattern Name - short description`
+5. Write docs/PATTERNS/CHANGES.md — created/updated/skipped, one header per each change `## [YYYY-MM-DD] Brief changes made`
 6. If state.composite = true, extract per sub-repository; top-level INDEX.md references sub-repo folders
 
 </process>
