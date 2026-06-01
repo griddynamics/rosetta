@@ -24,7 +24,7 @@ Create automated test integrating all page objects and assertions. Stops for use
 <skill_handoff>
 **Handoff completeness (for step 6.1 item 3):**
 - **Acceptable:** the acquired handoff doc contains explicit orchestration — e.g. numbered `ACQUIRE … FROM KB` / `USE SKILL …` lines, or bullets that name **which** of `coding`, `testing`, `aqa-test-authoring`, or related implementation skills run next and in what order.
-- **Unacceptable:** the file is only narrative (goals, context) with **no** ACQUIRE/USE/delegation lines pointing at implementation, testing, or authoring skills — treat as missing orchestration sections and run the warning path in that same USE SKILL step (6.1 step 4).
+- **Unacceptable:** the file is only narrative (goals, context) with **no** ACQUIRE/USE/delegation lines pointing at implementation, testing, or authoring skills — treat as missing orchestration sections and run the warning path inside the USE SKILL action (step 6.1 sub-step 3, which already includes the `agents/aqa-state.md` warning + user-ask branch).
 </skill_handoff>
 
 <phase_steps>

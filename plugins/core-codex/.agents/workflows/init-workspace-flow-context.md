@@ -12,7 +12,7 @@ Determines workspace state before any changes occur. Without accurate mode detec
 </description_and_purpose>
 
 <workflow_context>
-- Phase 1 of 8 in init-workspace-flow
+- Phase 1 of 9 in init-workspace-flow
 - Input: filesystem, LLM context (bootstrap markers)
 - Output: state.mode, state.plugin_active, state.composite, state.existing_files
 - Prerequisite: state file created by workflow orchestrator (empty template)
@@ -33,7 +33,7 @@ Determines workspace state before any changes occur. Without accurate mode detec
 <detect step="1.2">
 1. ACQUIRE `init-workspace-context/SKILL.md` FROM KB and EXECUTE
 2. Write detection results to `agents/init-workspace-flow-state.md` per output contract
-3. Log gaps identified for Phase 7
+3. Log gaps identified for Phase 8
 </detect>
 
 <report_mode step="1.3">

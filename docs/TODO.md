@@ -85,6 +85,23 @@ This file contains grep compatible list of very concise improvements, suggestion
 
 **Action:** Same as the QA/AQA polish backlog — defer until the hardening + phantom-skill churn settles, then triage together.
 
+## TODO: plugin-files-mode.md exceeds per-rule 10000-char limit on r3
+
+**Status:** Deferred — surfaced 2026-06-01 after `DEFAULT_RELEASE` was flipped from `r2` to `r3` in `scripts/plugin_generator.py`
+
+**What:** With `release="r3"`, `python3 scripts/plugin_generator.py` reports:
+
+```
+ERROR: core-claude  rules/plugin-files-mode.md  additionalContext is 11104 chars (max 10000)
+ERROR: core-cursor  rules/plugin-files-mode.mdc additionalContext is 11100 chars (max 10000)
+ERROR: core-copilot rules/plugin-files-mode.md  additionalContext is 11100 chars (max 10000)
+ERROR: core-codex   rules/plugin-files-mode.md  additionalContext is 11104 chars (max 10000)
+```
+
+The r3 source file at `instructions/r3/core/rules/plugin-files-mode.md` is ~11% over the per-rule `additionalContext` size limit. Affects all 4 IDE plugin trees. The errors do not abort the sync (other content still copies) but cause non-zero exit, which masks real failures in CI/pre-commit and forced earlier debugging this session to ignore the exit code.
+
+**Action:** Either (a) trim `instructions/r3/core/rules/plugin-files-mode.md` to fit the 10000-char budget (current target: ~9500 chars to leave headroom for template expansion), or (b) raise the per-rule limit in `plugin_generator.py` if the long content is intentional. Option (a) is the conservative call — examine which sections can be split out into sub-rules.
+
 ## TODO: Hooks adapter gaps (from QA 2026-05-23)
 
 - **Gemini CLI hook validation** — https://github.com/griddynamics/rosetta/issues/93

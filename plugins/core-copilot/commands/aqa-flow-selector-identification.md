@@ -48,7 +48,7 @@ If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-st
 </execute_identification>
 
 <handle_page_source step="4.2" condition="selectors still missing">
-1. Create directory `agents/aqa/{TICKET-KEY}/page-sources/`
+1. Create directory `agents/plans/aqa-<test-name>-page-sources/` (using the same `<test-name>` slug resolved in step 4.0 per `<input_resolution>`)
 2. Provide clear instructions to user for capturing HTML
 3. **WAIT** for user to add page source files
 4. Verify files exist, then continue Part A analysis

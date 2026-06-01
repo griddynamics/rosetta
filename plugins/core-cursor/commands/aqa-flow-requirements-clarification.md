@@ -21,19 +21,19 @@ Fill gaps in understanding, clarify unknowns. Requires user interaction.
 </workflow_context>
 
 <phase_steps>
-1. Define gaps in test case understanding
-2. Ask user for clarification gaps
-3. Wait for user answers
-4. Update test plan file `agents/plans/aqa-<test-name>.md` according to clarifications from user
-5. Document and update state
+1. Identify gaps in test case understanding → step 2.1
+2. Ask user for clarification → step 2.2
+3. Wait for user answers → step 2.3
+4. Update test plan file `agents/plans/aqa-<test-name>.md` according to user answers → step 2.4
+5. Document and update state → step 2.5
 </phase_steps>
 
-<execute_elicitation step="2.1">
+<identify_gaps step="2.1">
 1. USE SKILL `aqa-requirements-elicitation`
 2. Prepare a list of unknowns and ambiguities
-</execute_elicitation>
+</identify_gaps>
 
-<execute_elicitation step="2.2">
+<ask_questions step="2.2">
 1. USE SKILL `questioning`
 2. Present structured questions to user
 
@@ -59,7 +59,7 @@ I need clarification on the following to ensure accurate test implementation:
 Please provide answers so I can proceed with test implementation.
 ```
 </user_interaction_format>
-</execute_elicitation>
+</ask_questions>
 
 
 <wait_for_user step="2.3">

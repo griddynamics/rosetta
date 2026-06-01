@@ -13,19 +13,13 @@ Orchestrates prompt authoring/adaptation via `discover -> extract+intake -> blue
 
 <workflow_phases>
 
-Orchestrator must trust the system and skills; coordinate only sequence, artifacts, state, and approvals.
-Load only references needed for the current phase.
+<prerequisites step="0", applies="ALL">
 
-Agent state tracker file `coding-agents-prompting-flow-state.md` is stored in FEATURE TEMP folder.
-
-Execute phases sequentially, do not skip!
-
-<prerequisites>
-
-1. Preparation steps are mandatory prerequisites and must be completed before phase 1.
-2. Workflow execution starts only after prerequisites are satisfied.
-3. Orchestrator and subagents MUST USE SKILL `coding-agents-prompt-authoring`.
-4. MUST load each phase's skills when entering that phase (just-in-time) when subagents are not used.
+1. All Rosetta prep steps MUST be FULLY completed
+2. MUST USE OPERATION_MANAGER for deterministic execution
+3. Orchestrator must trust the system and skills; coordinate only sequence, artifacts, state, and approvals.
+4. Load only references needed for the current phase; load each phase's skills just-in-time when entering it (when subagents are not used).
+5. Agent state tracker file `coding-agents-prompting-flow-state.md` is stored in FEATURE TEMP folder.
 
 </prerequisites>
 

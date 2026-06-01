@@ -31,6 +31,8 @@ Principles:
 - SRP for files: each file has single purpose, no duplicate or similar content across files
 - MUST ensure data safety per bootstrap guardrails
 - Documentation: ONLY as instructed by rules or user
+- Address root cause, if you think you found it, investigate more
+- Prefer consistent and reliable solutions
 - Use background terminal when starting services to prevent getting stuck, MUST for copilot. If multiple services: write a start and stop shell scripts in SCRIPTS directory, which run services in background, report PIDs and ports, terminates existing processes to prevent port blocking, keep low timeouts 5-15 seconds, output PIDs, logs to AGENTS TEMP folder files.
 
 Project documentation — MUST keep current in target project:

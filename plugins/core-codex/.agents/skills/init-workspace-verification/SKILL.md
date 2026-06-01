@@ -80,11 +80,6 @@ ASSUMPTIONS REVALIDATION:
 - Forward references: verify target files exist
 - New assumptions: track any discovered during verification
 
-DEPRECATED ARTIFACTS (notify user, do NOT auto-delete):
-
-- `agents/init-rosetta-shells-flow-state.md` — r1 state file
-- Local `init-rosetta-shells-flow.md` — replaced by init-workspace-shells skill
-
 </process>
 
 </init_workspace_verification>

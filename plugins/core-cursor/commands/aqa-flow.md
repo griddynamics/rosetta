@@ -164,7 +164,7 @@ Skills:
 - Workflow orchestration tags: `sequential-workflow-execution`, `automation-test-implementation-handoff`, `automation-test-execution-analysis`, `user-approved-code-changes`, `confluence-source-harvesting`
 - **`sequential-workflow-execution`:** phase ordering, skip/customization gates, and transition prompts for multi-phase runs.
 - **`repository-implementation-standards`:** project coding conventions for tests, page objects, and shared helpers — derived from repo docs (`project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`); on conflict, repo docs win.
-- `questioning`, `reverse-engineering`, `coding`, `testing`, `debugging`
+- `questioning`, `coding`, `testing`, `debugging`
 - `aqa-requirements-elicitation`, `aqa-codebase-analysis`, `aqa-selector-management`, `aqa-test-authoring`, `aqa-test-debugging`
 - `mcp-testrail-data-collection`, `mcp-confluence-data-collection`
 
