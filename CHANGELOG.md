@@ -1,5 +1,76 @@
 # Changelog
 
+## R3 Migration Guide
+
+**Release:** R3 (2026-06-01)
+
+This guide covers breaking changes between R2 and R3 for prompt and workflow authors, plugin packagers, and anyone who ACQUIRE's Rosetta instructions by name. No compatibility shims are provided; cutover is hard at the R3 release boundary.
+
+---
+
+### 1. `plan-manager` skill renamed to `operation-manager`
+
+- **What changed.** The R2 skill `plan-manager` is removed in R3 and replaced by `operation-manager` at `instructions/r3/core/skills/operation-manager/`. The skill scope is unchanged (plan create / next / update_status / query / show_status / upsert), but the canonical name, command alias (`OPERATION_MANAGER`), and bootstrap references all use the new name. The schema asset was renamed `pm-schema.md` → `om-schema.md`.
+- **Who is affected.** Prompt authors, workflow authors, and any rule/skill that ACQUIRE's `plan-manager` by name or references the `PLAN_MANAGER` alias.
+- **Required action.** Replace name and alias across authored content:
+  ```text
+  ACQUIRE plan-manager FROM KB        ->  ACQUIRE operation-manager FROM KB
+  PLAN_MANAGER                        ->  OPERATION_MANAGER
+  plan-manager next <plan_file>       ->  operation-manager next <plan_file>
+  plan-manager upsert ...             ->  operation-manager upsert-with-template ...
+  pm-schema.md                        ->  om-schema.md
+  ```
+  Recommended grep before merging:
+  ```bash
+  grep -rn -e 'plan-manager' -e 'PLAN_MANAGER' -e 'pm-schema.md' .
+  ```
+- **Rollout / cutover note.** Hard cutover at R3. No alias, no deprecation window, no shim. R2 consumers stay on the `plan-manager` skill until they upgrade. Any residual `plan-manager` reference in an R3 authored prompt is a bug and will fail to resolve through Rosetta MCP `query_instructions`.
+
+---
+
+### 2. `bootstrap-hitl-questioning.md` removed
+
+- **What changed.** The bootstrap rule `bootstrap-hitl-questioning.md` (present in R2 at `instructions/r2/core/rules/`) is removed in R3. HITL enforcement is now consolidated into the on-demand `hitl` skill at `instructions/r3/core/skills/hitl/`, and the entry point is `bootstrap-guardrails.md`, which references the skill. This is part of the bootstrap size reduction shipped in R3.
+- **Who is affected.** Authors who linked to `bootstrap-hitl-questioning.md` by path or filename, plugin packagers who copied the rule file into IDE bundles, and any rule/workflow that ACQUIRE's HITL questioning content by the old filename.
+- **Required action.** Replace direct references to the deleted rule with a skill invocation:
+  ```text
+  ACQUIRE bootstrap-hitl-questioning FROM KB
+      ->  USE SKILL `hitl`
+
+  instructions/.../rules/bootstrap-hitl-questioning.md
+      ->  instructions/r3/core/skills/hitl/SKILL.md  (load via the skill, not by path)
+  ```
+  The guardrails entry point already wires this in — authors typically only need to remove the explicit reference and trust `bootstrap-guardrails.md` to route to the skill on demand.
+- **Known coverage gaps** to be aware of when migrating: six items from the R2 `bootstrap-hitl-questioning.md` were not fully ported into the R3 `hitl` skill — see [docs/TODO.md](docs/TODO.md) "hitl skill — R2 coverage gaps" for the enumerated list. None of these block R3 release, but downstream consumers relying on R2-specific HITL phrasing (graduated MEDIUM/HIGH/CRITICAL escalation, cognitive-load limits, mismatch root-cause memory update) should review before upgrading.
+- **Rollout / cutover note.** Hard removal in R3. No file at the old path. Plugin bundles that still ship the R2 file should drop it on their next sync; the `hitl` skill folder is included in every R3 plugin under `skills/hitl/`.
+
+---
+
+### 3. New skill families added in R3
+
+- **What changed.** R3 introduces three new skill families under `instructions/r3/core/skills/`. Plugin packagers must include these folders in downstream bundles or the corresponding workflows will fail to resolve at runtime.
+  - **QA workflow family.** Skills supporting the QA, AQA, and TestGen workflows: `qa-*`, `aqa-*`, `automation-*`, `api-test-spec-authoring`, `testrail-*`, `mcp-jira-data-collection`, `mcp-confluence-data-collection`, `mcp-testrail-data-collection`, `swagger-contracts-analysis`, `confluence-source-harvesting`, `aqa-requirements-elicitation`, `gap-and-contradiction-analysis`.
+  - **Utility skills.** General process and authoring skills new in R3: `sequential-workflow-execution`, `requirements-synthesis`, `user-approved-code-changes`, `repository-implementation-standards`, `load-context-instructions`, `load-workflow`.
+  - **GitNexus tools.** Code-graph integration skills: `gitnexus-setup`, `gitnexus-cli`, `gitnexus-tools`.
+- **Who is affected.** Plugin packagers (`core-claude`, `core-cursor`, `core-cursor-standalone`, `core-copilot`, `core-copilot-standalone`, `core-codex`) and any downstream distribution that copies skill folders selectively rather than mirroring `instructions/r3/core/skills/` wholesale.
+- **Required action.** Re-run the plugin sync so the new skill folders are picked up. After sync, verify each plugin's `skills/` directory contains the three new families above. For selective packagers, add the family prefixes (`qa-*`, `aqa-*`, `automation-*`, `mcp-*-data-collection`, `testrail-*`, `gitnexus-*`) to the include list.
+- **Rollout / cutover note.** Additive only — no removals in this item. Workflows that depend on these skills (QA, AQA, TestGen, GitNexus-enabled flows) will not function in a plugin that lacks the folders. Mirror the full `skills/` tree if in doubt.
+
+---
+
+### How to apply
+
+1. **Re-run plugin sync.** Regenerate every plugin bundle so the renamed `operation-manager` skill, the removed `bootstrap-hitl-questioning.md`, and the new skill families are picked up consistently. Note that `plugin_generator.py` `DEFAULT_RELEASE` is now `r3` (was `r2`); existing CI / pre-commit invocations no longer need to pass `--release r3` explicitly.
+2. **Grep for stale names.** From the repo root:
+   ```bash
+   grep -rn -e 'plan-manager' -e 'PLAN_MANAGER' -e 'bootstrap-hitl-questioning' -e 'pm-schema.md' .
+   ```
+   Any hit in R3 authored content or in a plugin bundle is a defect — fix before release.
+3. **ACQUIRE re-check.** For each authored prompt or workflow that previously ran `ACQUIRE plan-manager` or `ACQUIRE bootstrap-hitl-questioning`, re-resolve against the R3 KB and confirm the new name (`operation-manager`) or the new path (`hitl` skill) returns a document.
+4. **Smoke test workflows.** Run one workflow per affected family (operation-manager driven plan, a HITL gated step, one QA workflow, one GitNexus enabled session) to confirm end-to-end resolution before announcing the cutover.
+
+---
+
 ## R2
 
 ### Overview

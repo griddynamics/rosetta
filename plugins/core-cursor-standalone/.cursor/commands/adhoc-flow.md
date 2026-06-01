@@ -11,7 +11,7 @@ baseSchema: docs/schemas/workflow.md
 <description_and_purpose>
 
 Problem: Fixed workflows cannot cover the combinatorial space of real requests; orchestrators lock into rigid classification.
-Solution: Meta-workflow — construct a bespoke plan from building blocks, persist via `plan-manager` skill, review, execute with tracking. Each user turn can extend, adapt, or restart.
+Solution: Meta-workflow — construct a bespoke plan from building blocks, persist via `operation-manager` skill, review, execute with tracking. Each user turn can extend, adapt, or restart.
 
 </description_and_purpose>
 
@@ -53,12 +53,12 @@ Compose these into plan phases/steps to build any execution workflow.
 - **discover-research**: scan project context and KB; research external knowledge if needed; deliver summarized references
 - **requirements-capture**: reverse-engineer or interrogate requirements; persist intent as source of truth
 - **reasoning-decomposition**: USE SKILL `reasoning` (7D) to decompose into sub-problems with decisions and trade-offs
-- **plan-wbs**: USE SKILL `planning` to build sequenced WBS; persist via `plan-manager upsert` with subagent/role/model
+- **plan-wbs**: USE SKILL `planning` to build sequenced WBS; persist via `operation-manager upsert` with subagent/role/model
 - **tech-specs**: USE SKILL `tech-specs` to generate target technical implementation specs; makes AI to figure out entire solution, instead of discovering something as a surprise
 - **subagent-delegation**: provide role + context/refs; route parallel/sequential; enforce focus — report back if off-plan
 - **delegate-but-verify**: use subagent delegation, but verify both reasoning and results
 - **critically-review**: critically review inputs, outputs, reasoning, completeness, ambiguity, results of user, subagents, tools, scripts, etc.
-- **execute-track**: plan-manager next → execute → update_status; `upsert` to adapt mid-execution; loop
+- **execute-track**: operation-manager next → execute → update_status; `upsert` to adapt mid-execution; loop
 - **modify-review**: modify then review with different agent/model
 - **review-validate**: review (static inspection against intent) + validate (run locally, call/use local, runtime evidence on real tasks)
 - **memory-learn**: root-cause failures → reusable preventive rules → update AGENT MEMORY.md

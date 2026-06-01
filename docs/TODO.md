@@ -85,6 +85,21 @@ This file contains grep compatible list of very concise improvements, suggestion
 
 **Action:** Same as the QA/AQA polish backlog — defer until the hardening + phantom-skill churn settles, then triage together.
 
+## TODO: hitl skill — R2 coverage gaps from removed `bootstrap-hitl-questioning.md`
+
+**Status:** Deferred — surfaced 2026-06-01 during PR triage review of the R2→R3 migration. User has historically deferred edits to the `hitl` skill ("can be used in many other places I am not aware of"); this entry tracks what's missing for a future review.
+
+**What:** The R2 file `instructions/r2/core/rules/bootstrap-hitl-questioning.md` was removed in R3 and its content was meant to be absorbed by the `hitl` skill at `instructions/r3/core/skills/hitl/SKILL.md`. A cross-version diff (R2 file → R3 skill) found six topics from the R2 rule that did not fully port over:
+
+- MEDIUM/HIGH/CRITICAL risk-level escalation matrix dropped — old file specified per-level consequences (MEDIUM=warn and explain failure modes, HIGH=require understanding risk of possible data loss, CRITICAL=block execution and require external risk reduction); current `hitl` only says "High+ risk: require EXACT sentence to type", losing the graduated response.
+- User cognitive-load limits dropped — "~2 pages of simple text per review pass" guidance and "Provide TLDR or summary hooks for long outputs" rules are absent from the current skill.
+- Mismatch step "Update memory with root cause" dropped — old mismatch flow had 6 steps including memory update; current skill has only 5 steps and omits the root-cause memory update (may overlap with `self-learning` but is not cross-referenced).
+- Q&A persistence specificity reduced — old file said "Persist Q&A in relevant files (both positive and negative answers)"; current skill drops the "positive and negative" clarification.
+- Interactive batching nuance trimmed — old file said "Interactively ask questions in batches if tools allow; one-by-one otherwise"; current skill replaces with the looser "Group related questions into a single interaction".
+- Explicit "Dangerous actions MUST ALWAYS REQUIRE EXPLICIT approval" line removed — partially mitigated by new cross-reference to `dangerous-actions` skill but loses the standalone imperative inside `hitl`.
+
+**Action:** Review each gap individually. Some may be intentional simplifications (the graduated risk matrix may now live in `dangerous-actions`); others may be genuine regressions worth restoring (cognitive-load limits, "positive and negative" Q&A persistence). Because `hitl` is loaded session-wide and edits propagate everywhere, batch any restorations into a single focused PR rather than scattered edits.
+
 ## TODO: plugin-files-mode.md exceeds per-rule 10000-char limit on r3
 
 **Status:** Deferred — surfaced 2026-06-01 after `DEFAULT_RELEASE` was flipped from `r2` to `r3` in `scripts/plugin_generator.py`

@@ -13,9 +13,9 @@ OSS
 ## TL;DR
 
 Use Ad-hoc Flow when no fixed Rosetta workflow matches the task cleanly.
-The coding agent builds a custom plan from Rosetta building blocks, tracks it through plan-manager, and executes that plan step by step.
+The coding agent builds a custom plan from Rosetta building blocks, tracks it through operation-manager, and executes that plan step by step.
 Use it for small mixed tasks, unusual requests, or work that needs a custom sequence of discovery, planning, execution, review, and validation.
-The constant artifact is the tracked plan managed through `plan-manager`. Other artifacts depend on the chosen building blocks.
+The constant artifact is the tracked plan managed through `operation-manager`. Other artifacts depend on the chosen building blocks.
 For medium and large requests, plan review and explicit user approval happen before execution.
 The final gate is a review against the original intent, not only against the latest edited plan.
 
@@ -79,7 +79,7 @@ Prep, context loading, and workflow routing happen before the phase model below.
 
 | Phase | What you provide | What agents do | What artifacts appear | Review gate |
 |---|---|---|---|---|
-| Build plan | Desired outcome, boundaries, expected checks | Sequence building blocks into a tracked execution plan and upsert it as needed | Tracked plan artifact managed by `plan-manager` | No user gate defined here for small work |
+| Build plan | Desired outcome, boundaries, expected checks | Sequence building blocks into a tracked execution plan and upsert it as needed | Tracked plan artifact managed by `operation-manager` | No user gate defined here for small work |
 | Review plan | Feedback and approval decision | Review completeness, sequencing, dependencies, and prompt clarity | Reviewed plan summary and plan fixes | Required for medium and large requests |
 | Execute plan | Answers to questions, approvals, newly discovered facts | Pull next step, execute or delegate, update status, adapt the plan | Task-specific artifacts defined by the chosen building blocks | Any HITL gate included in the plan |
 | Review and summarize | Final comments if needed | Validate against original intent and summarize completion | Final summary, optional memory update after failures | Final user review of results |
@@ -157,13 +157,13 @@ Create a custom execution plan instead of forcing the task into a fixed phase te
 **Agent actions**
 
 - Use the chosen building blocks to define phases and steps
-- Use `plan-manager` as the main planner
+- Use `operation-manager` as the main planner
 - Create or update the tracked plan artifact
 - Use reasoning for larger or more complex work when needed
 
 **Produced artifacts**
 
-- A tracked execution plan managed by `plan-manager`
+- A tracked execution plan managed by `operation-manager`
 - Plan phases and steps with dependencies, assigned roles, and expected prompts
 
 **Review and approval expectations**
@@ -260,7 +260,7 @@ Check final completion against the original request, not only against the latest
 Review Ad-hoc Flow in the same order the workflow uses it.
 
 1. Review the tracked plan first.
-   For plans managed through `plan-manager`, this tracked artifact is a local `plan.json` file.
+   For plans managed through `operation-manager`, this tracked artifact is a local `plan.json` file.
    Check that the selected building blocks fit the actual task.
    Check that phases and steps have clear boundaries, dependencies, and expected artifacts.
    Check that approval gates appear before risky or scope-shaping work.
@@ -295,10 +295,10 @@ Failure modes to challenge immediately:
 
 Always:
 
-- A tracked plan artifact managed through `plan-manager`
+- A tracked plan artifact managed through `operation-manager`
 - A final summary checked against the original intent
 
-When the workflow uses `plan-manager`:
+When the workflow uses `operation-manager`:
 
 - The tracked plan artifact is a local `plan.json` plan file
 
@@ -327,7 +327,7 @@ Ad-hoc Flow does not define one fixed artifact set beyond the tracked plan. The 
 ## Source Files
 
 - [adhoc-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/adhoc-flow.md)
-- [plan-manager SKILL.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/skills/plan-manager/SKILL.md)
-- [plan-manager pm-schema.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/skills/plan-manager/assets/pm-schema.md)
+- [operation-manager SKILL.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/operation-manager/SKILL.md)
+- [operation-manager om-schema.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/operation-manager/assets/om-schema.md)
 
 This workflow does not define separate phase files. The authoritative phase definitions live in the main workflow file above.
