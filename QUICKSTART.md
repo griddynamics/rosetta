@@ -5,167 +5,20 @@
 
 ---
 
-## Step 1: Connect Rosetta MCP
-
 > [!CAUTION]
 > You must receive a prior approval from your manager and company to use it.
 
 > [!WARNING]
-> Use **Sonnet 4.6**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
+> Use **Sonnet 4.6**, **GPT-5.3-codex-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
 
 > [!NOTE]
 > Rosetta is designed to never use or see data or IP.
 > Instead it uses inversion of control, by providing a "menu" to AI coding agents.
 
-Rosetta uses HTTP MCP transport with OAuth. Pick your IDE and add the configuration.
+## Step 1: Install Rosetta
 
-<details>
-<summary><b>Cursor</b></summary>
-
-Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project):
-
-```json
-{
-  "mcpServers": {
-    "Rosetta": {
-      "url": "https://mcp.rosetta.griddynamics.net/mcp"
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>Claude Code</b></summary>
-
-```sh
-claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp
-```
-
-Authenticate inside a claude session with `/mcp`, select Rosetta, Authenticate, and complete the OAuth flow.
-
-</details>
-
-<details>
-<summary><b>Codex</b></summary>
-
-```sh
-codex mcp add Rosetta --url https://mcp.rosetta.griddynamics.net/mcp
-codex mcp login Rosetta
-```
-
-</details>
-
-<details>
-<summary><b>VS Code / GitHub Copilot</b></summary>
-
-Add to `.vscode/mcp.json` or `~/.mcp.json`:
-
-```json
-{
-  "servers": {
-    "Rosetta": {
-      "url": "https://mcp.rosetta.griddynamics.net/mcp"
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>GitHub Copilot (JetBrains)</b></summary>
-
-`Settings` > `Tools` > `GitHub Copilot` > `MCP Settings`. Add to `~/.config/github-copilot/intellij/mcp.json`:
-
-```json
-{
-  "servers": {
-    "Rosetta": {
-      "url": "https://mcp.rosetta.griddynamics.net/mcp"
-    }
-  }
-}
-```
-
-Restart IDE after changes.
-
-</details>
-
-<details>
-<summary><b>JetBrains Junie</b></summary>
-
-`Settings` > `Tools` > `Junie` > `MCP Settings` > `+ Add` > `As JSON`:
-
-```json
-{
-  "mcpServers": {
-    "Rosetta": {
-      "url": "https://mcp.rosetta.griddynamics.net/mcp"
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>Windsurf</b></summary>
-
-Add to your Windsurf MCP config:
-
-```json
-{
-  "mcpServers": {
-    "Rosetta": {
-      "url": "https://mcp.rosetta.griddynamics.net/mcp"
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>Antigravity</b></summary>
-
-Add to your Antigravity MCP config:
-
-```json
-{
-  "mcpServers": {
-    "Rosetta": {
-      "serverUrl": "https://mcp.rosetta.griddynamics.net/mcp"
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>OpenCode</b></summary>
-
-Add to `opencode.json`:
-
-```json
-{
-  "mcp": {
-    "Rosetta": {
-      "type": "http",
-      "url": "https://mcp.rosetta.griddynamics.net/mcp",
-      "enabled": true
-    }
-  }
-}
-```
-
-</details>
-
-Any MCP client that supports HTTP transport can connect using the endpoint URL. Complete the OAuth flow when prompted.
-
-STDIO transport is available for air-gapped environments. See [INSTALLATION.md](INSTALLATION.md).
+We recommend installing Rosetta using [PLUGINS](PLUGINS.md).
+If AI coding agent does not support plugins, use [MCPs](MCPs.md).
 
 ## Step 2: Verify
 
@@ -194,34 +47,6 @@ The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CO
 > **Composite workspaces:** init each repository separately, then init at the workspace level with "This is composite workspace" appended.
 > **Dead code or existing specs:** mention their location in the prompt to save time.
 
-## Step 4: Add Bootstrap Rule (optional)
-
-If something does not work.
-
-Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and add it to your IDE's instruction file (keep entire contents, including YAML frontmatter):
-
-| IDE                        | Destination                       |
-| -------------------------- | --------------------------------- |
-| Cursor                     | `.cursor/rules/bootstrap.mdc`     |
-| Claude Code                | `.claude/claude.md`               |
-| VS Code / GitHub Copilot   | `.github/copilot-instructions.md` |
-| GitHub Copilot (JetBrains) | `.github/copilot-instructions.md` |
-| JetBrains Junie            | `.junie/guidelines.md`            |
-| Windsurf                   | `.windsurf/rules/bootstrap.md`    |
-| Antigravity                | `.agent/rules/bootstrap.md`       |
-| OpenCode/Cursor            | `AGENTS.md`                       |
-
-## Rosetta Prompt Examples
-
-- "Use Rosetta `coding-flow.md` to implement/fix/identify ..."
-
-- "Extract business and technical requirements from community id ... name ... (name of community is similar to controller name, but you include all community controllers) using `requirements-authoring-flow.md` and appropriate available subagents."
-
-- "Perform modernization phase 1 for library refsrc/... using `modernization-flow.md` and appropriate available subagents. Must use `coding-flow.md` as the main flow for `Phase 8 - Implementation`. As the very last spawn subagent to review and validate outputs." 
-  Note, during migration all phases are must. All phases to be implemented one-by-one with proper review. Phase 3: Pre-Modernization Test Coverage is a must (and must include both unit and integration tests)
-
-- "Perform modernization of community id ... named ... (name of community is similar to controller name, but you include all community controllers) using `modernization-flow.md` and appropriate available subagents. Microservice name is ... . As the very last spawn subagent to review and validate outputs."
-
 ## Common Issues
 
 - **OAuth prompt does not appear:** restart your IDE and retry the connection. Read more in [Troubleshooting — Connection & Authentication](TROUBLESHOOTING.md#connection--authentication).
@@ -230,7 +55,57 @@ Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instru
 
 ## Next Steps
 
-- [Usage Guide](USAGE_GUIDE.md) — how to use Rosetta flows
+### Coding Workflow
+
+**WHAT**: Majority of tasks are actually coding tasks, including unit tests. Just ask exactly what is required.
+
+```
+/coding-flow Implement side bar on the home page, ...
+```
+
+```
+/coding-flow Identify and implement fix, ...
+```
+
+```
+/coding-flow Improve unit tests coverage to 85% for ...
+```
+
+### Business and Technical Requirements
+
+**WHY**: Requirements - is the source of truth for code and tests. Going requirements first is the most effective. In brownfield start with extracting.
+
+```
+/requirements-authoring-flow extract detailed business and technical requirements from community of ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected.
+```
+
+```
+/requirements-authoring-flow extract high-level business and technical requirements at end-point level for controllers according to glob ... using subagents. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected.
+```
+
+### Modernization
+
+**FIRST**: Document modernization goals in CONTEXT.md, document target services technical aspects in ARCHITECTURE.md, document where source code should be created, keep refsrc populated with reference code source (old code, new code, reusable libraries, configuration and documentation files, and similar).
+
+**NOTE**: All phases are must. All phases to be implemented one-by-one with proper review. Phase 3: Pre-Modernization Test Coverage is a must (and must include both unit and integration/e2e tests).
+
+```
+/modernization-flow Perform modernization phase 1 to reuse library refsrc/... using subagents. 
+```
+
+```
+/modernization-flow Perform modernization phase 2 to analyze service module ... using subagents. Target microservice name is ... .
+```
+
+```
+/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must use `coding-flow.md` to actually implement and as the main flow. Once done spawn subagent to validate and repeat an entire loop until there are no issues detected.
+```
+
+To explore all workflows (coding, requirements authoring, modernization, and more), refer to [USAGE_GUIDE.md — Workflows](USAGE_GUIDE.md#workflows).
+
+## Links
+
+- [Usage Guide](USAGE_GUIDE.md) — see all Rosetta workflows
 - [Overview](OVERVIEW.md) — mental model and terminology
 - [Deployment Guide](DEPLOYMENT_GUIDE.md) — org-wide deployment
 - [Contributing](CONTRIBUTING.md) — make your first contribution
