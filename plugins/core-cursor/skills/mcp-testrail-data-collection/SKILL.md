@@ -69,4 +69,23 @@ Extract structured test case data from TestRail when test case ID or URL is prov
 - Custom fields vary per project — use `get_case_fields` if field names are unclear
 </pitfalls>
 
+<vendor_replacement>
+This skill is TestRail-specific. To support a different TMS (Zephyr, Xray, qTest, Polarion, etc.), fork this SKILL.md and replace only the items below — the rest of the structure (role / when_to_use_skill / prerequisites shape / output_format / pitfalls discipline) is vendor-agnostic and should stay.
+
+**TestRail-specific items that must be re-bound per vendor:**
+
+- **MCP tool calls** in `<process>`:
+  - `get_case` (step 2) → vendor's equivalent "fetch single test case by ID" operation
+  - `get_case_fields` (mentioned in pitfalls) → vendor's equivalent "discover custom-field schema" operation
+- **Identifier format** in `<prerequisites>` and `<process>`:
+  - TestRail accepts numeric case IDs and `https://*.testrail.io/index.php?/cases/view/N` URL form. Other vendors use different ID schemes (e.g., Xray uses `XRAY-NNN`, Zephyr uses prefixed keys).
+- **Field semantics** in `<process>` step 3:
+  - "Section path" is TestRail-specific terminology — other vendors call this Folder / Suite / Component / Module.
+  - "Priority / test type" enum values map to TestRail's `priority_id` / `type_id` numeric tables; other vendors use string enums or different ID ranges.
+- **Output template label** in `<output_format>`:
+  - `## TestRail Test Case` heading and `**Case ID**:` field naming. Rename to the target vendor's nomenclature so downstream phases can route by vendor.
+
+**Pattern for swapping:** copy this file to `mcp-<vendor>-data-collection/SKILL.md`, edit only the items above, keep the rest. Do not abstract into a shared parent skill until a third vendor binding is needed (YAGNI; two bindings are not enough to validate the abstraction boundary).
+</vendor_replacement>
+
 </mcp-testrail-data-collection>
