@@ -156,7 +156,7 @@ For each question below, replace `[Leave blank for user]` with your answer (or `
 <validate_answers step="3.3">
 1. When user notifies answers are ready, read `questions.md`
 2. Verify per-priority acceptance criteria:
-   - **P0:** every P0 question must be answered (not blank). UNKNOWN is **not** acceptable for P0 — Phase 3 stays open until a P0 answer is provided.
+   - **P0:** every P0 question must be answered with a substantive, factual answer (not blank). **UNKNOWN is rejected outright for P0** — no exceptions: do NOT accept UNKNOWN paired with a "default", "best guess", "placeholder", or "we'll figure out later". The only ways to close a P0 are (a) an actual answer from the user, or (b) the user explicitly authorizing a priority downgrade of the question (which the agent must record as `P0 → P1 (user-authorized downgrade)` in `answers.md` before treating UNKNOWN as acceptable). Phase 3 stays open until every P0 is resolved by (a) or (b).
    - **P1:** every P1 question must be answered OR explicitly marked `UNKNOWN — need to research with [stakeholder]`.
    - **P2 and P3:** may remain blank; proceed regardless. Blank P2/P3 entries are recorded as deferred but do not block Phase 4.
 3. Verify answers are substantive (not just "yes" or "ok")
