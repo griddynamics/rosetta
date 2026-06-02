@@ -63,6 +63,7 @@ On session start if thinking one of these or similar thoughts → rationalizing,
   - `help plan` provides full information
   - `plan next <plan_file> [limit] [--target <phase_id>]` — get next steps to execute
   - `plan create-with-template <plan_file> for-orchestrator '<plan-name>' '<plan-description>'` — bootstrap a new orchestrator plan
+  - `plan upsert <plan_file> <target_id> '<patch-json>' [--kind phase|step] [--phase_id <parent-id>]` — orchestrator MUST USE for adding new phase/step by id when done by orchestrator; patch-json is an INLINE JSON string (not a file path), `--kind` flag is required for new items (e.g. `plan upsert plan.json ph-review '{"name":"Review","steps":[]}' --kind phase`); `--phase_id` required when kind is step
   - `plan upsert-with-template <plan_file> <phase-id> for-subagent '<phase-name>' '<phase-description>'` — orchestrator MUST USE for adding prep steps for subagent
   - `plan update_status <plan_file> <step-id> [open|in_progress|complete|blocked|failed]` 
   - `plan query <plan_file> [id|entire_plan]` 
