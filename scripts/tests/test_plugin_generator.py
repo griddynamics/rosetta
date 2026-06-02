@@ -78,7 +78,7 @@ def test_releases_table() -> None:
 
 
 def test_default_release_is_r2() -> None:
-    assert pg.DEFAULT_RELEASE == "r2"
+    assert pg.DEFAULT_RELEASE == "r3"
 
 
 def test_unknown_release_errors() -> None:
