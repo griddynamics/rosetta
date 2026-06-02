@@ -11,6 +11,13 @@ baseSchema: docs/schemas/skill.md
 
 <when_to_use_skill>
 Analyze API test execution results, categorize failures, identify root causes, prepare targeted corrections for approval, and apply approved fixes.
+
+**Part A / Part B usage boundary.** The skill bundles two responsibilities with materially different risk profiles:
+
+- **Part A — Report Analysis** (steps 1–5): **read-only**. Parses the execution report, categorizes failures, identifies root causes, produces `execution-report.md`. No file mutation outside the analysis artifact.
+- **Part B — Corrections** (steps 6–8): **writes test source files + runs lint**. Prepares proposed changes, applies them after explicit user approval per `<safety_boundaries>`, validates with linting.
+
+A caller may invoke **Part A only** (analysis without correction mandate) — useful when the calling workflow wants to surface failure categories without authorizing code changes. Part B requires Part A's output as input AND the explicit approval signals enumerated in `<safety_boundaries>`. The parts must not be conflated: a Part-A-only invocation MUST NOT execute steps 6–8.
 </when_to_use_skill>
 
 <prerequisites>
@@ -18,6 +25,42 @@ Analyze API test execution results, categorize failures, identify root causes, p
 - Test report or execution output available
 - Test specifications and API analysis available for cross-reference
 </prerequisites>
+
+<safety_boundaries>
+
+`execution-report.md` is a tracked artifact and may end up in version control, shared review, or downstream prompt contexts. Treat it as **PUBLIC by default**. Failure stack traces and captured request/response data are a common secret-leak vector — redact before writing, not after.
+
+**Targets to redact** (replace with placeholders + describe presence/mechanism in prose, never the literal value):
+
+- **Auth headers** — `Authorization: Bearer <jwt>`, `Authorization: Basic <base64>`, `X-Api-Key: <key>`, `Cookie: session=<id>`, `Set-Cookie` response headers. Replace with `<redacted: bearer token>` / `<redacted: basic credentials>` / `<redacted: api key>` / `<redacted: session cookie>` and add a one-line description (e.g., "Bearer token from `AuthHelper.get_token('admin')`").
+- **Credentialed URLs** (`https://user:pass@host/...`) — redact the `user:pass@` portion before recording.
+- **Query-string secrets** — `?api_key=...`, `?token=...`, `?access_token=...`, signed-URL signatures (`?X-Amz-Signature=...`, `?sig=...`) — redact the secret-bearing parameter values.
+- **Request bodies** containing credentials, tokens, password fields, payment data — redact those fields specifically; keep structural fields (field names, non-sensitive values, schema shape) verbatim.
+- **Response bodies** containing tokens (`access_token`, `refresh_token`, `id_token`), session identifiers, PII (real customer emails / names / phone numbers / account IDs / payment data) — redact the sensitive values; keep structural fields verbatim.
+- **Stack traces / error messages** sometimes embed credentials (e.g., a logged HTTP request line in a connection-error stack). Scan and redact before pasting.
+- **Environment Info** (step 2) — record `auth method = OAuth2 client-credentials` / `JWT Bearer` / `Basic Auth via env var BASIC_AUTH_USER:BASIC_AUTH_PASS` — never the literal token or password. Base URLs are usually safe (e.g., `https://api.staging.example.com`); credentialed base URLs are not.
+
+**Structural content stays verbatim.** Endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, response status text are functional and recorded as-is. Redaction targets sensitive **values**, not the structural failure spec.
+
+If a real production value would be the natural example in a failure entry, replace with a clearly-fake placeholder of the same shape — better an obviously-fake example than a leaked real token committed to the repo.
+
+This boundary applies to BOTH Part A (writing `execution-report.md`) AND Part B (any debug logging the agent emits while applying corrections).
+
+</safety_boundaries>
+
+<failure_handling>
+
+Consolidated stop / route behaviors. Inline references in step 1 (locate report) and step 8 (iteration cap) point here.
+
+- **Test report path not provided after step-1 ask** (user does not respond with a path, or explicitly declines to supply one): stop the skill, report `qa-test-debugging: test report path not provided after ask — cannot analyze` to the calling workflow, do NOT fabricate analysis. Acceptable resumption: the user later supplies a path; Part A then restarts at step 1.
+- **Report present but unparseable** (binary blob without recognizable text, malformed JSON/XML/JUnit, encoding error): stop Part A at step 2, report the parse error with the file path and parser identifier (e.g., `JUnit XML parse error at line N`), ask the user to verify the report format. Do NOT guess at content.
+- **Report present but empty** (file exists with zero bytes OR the parser returns zero per-test results): record this fact in `execution-report.md` Execution Summary as `Tests Executed: 0 — empty report; no analysis possible`. Skip Part B entirely (no failures to correct). Mark the skill complete; surface to the calling workflow that nothing was analyzed.
+- **Zero failures found** (report parses cleanly AND every test passed): write `execution-report.md` with the passing summary and `Failures by Category: None — all tests passed`. **Skip Part B** (steps 6–8) — there are no corrections to propose. Mark the skill complete.
+- **Iteration cap reached at step 8** (3 iterations with failures remaining): escalate per step 8's policy (stop and ask user; do NOT auto-start a 4th iteration). The skill is complete only after the user provides explicit waiver OR accepts the failures as application defects.
+- **API analysis or test specifications missing** (referenced by step 3 for cross-checking expected vs actual): proceed with degraded analysis, record `Cross-reference degraded: test-specs / api-analysis not loaded` in the Failure entry's Notes. Do not stop the whole skill — selector/locator analysis and pattern identification can still run.
+- **`execution-report.md` unwritable** at the supplied path (permission denied, disk full): pause, report the filesystem error with the file path. Do not mark complete.
+
+</failure_handling>
 
 <process>
 
@@ -221,28 +264,6 @@ After user approval:
 - Pasting auth headers (`Authorization: Bearer ...`), cookies, API keys, or PII verbatim into `execution-report.md` — apply `<safety_boundaries>` redaction before writing, not after
 - Recording an environment's auth tokens or DB connection strings in the `Environment Info` section instead of `mechanism + source` description
 </pitfalls>
-
-<safety_boundaries>
-
-`execution-report.md` is a tracked artifact and may end up in version control, shared review, or downstream prompt contexts. Treat it as **PUBLIC by default**. Failure stack traces and captured request/response data are a common secret-leak vector — redact before writing, not after.
-
-**Targets to redact** (replace with placeholders + describe presence/mechanism in prose, never the literal value):
-
-- **Auth headers** — `Authorization: Bearer <jwt>`, `Authorization: Basic <base64>`, `X-Api-Key: <key>`, `Cookie: session=<id>`, `Set-Cookie` response headers. Replace with `<redacted: bearer token>` / `<redacted: basic credentials>` / `<redacted: api key>` / `<redacted: session cookie>` and add a one-line description (e.g., "Bearer token from `AuthHelper.get_token('admin')`").
-- **Credentialed URLs** (`https://user:pass@host/...`) — redact the `user:pass@` portion before recording.
-- **Query-string secrets** — `?api_key=...`, `?token=...`, `?access_token=...`, signed-URL signatures (`?X-Amz-Signature=...`, `?sig=...`) — redact the secret-bearing parameter values.
-- **Request bodies** containing credentials, tokens, password fields, payment data — redact those fields specifically; keep structural fields (field names, non-sensitive values, schema shape) verbatim.
-- **Response bodies** containing tokens (`access_token`, `refresh_token`, `id_token`), session identifiers, PII (real customer emails / names / phone numbers / account IDs / payment data) — redact the sensitive values; keep structural fields verbatim.
-- **Stack traces / error messages** sometimes embed credentials (e.g., a logged HTTP request line in a connection-error stack). Scan and redact before pasting.
-- **Environment Info** (step 2) — record `auth method = OAuth2 client-credentials` / `JWT Bearer` / `Basic Auth via env var BASIC_AUTH_USER:BASIC_AUTH_PASS` — never the literal token or password. Base URLs are usually safe (e.g., `https://api.staging.example.com`); credentialed base URLs are not.
-
-**Structural content stays verbatim.** Endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, response status text are functional and recorded as-is. Redaction targets sensitive **values**, not the structural failure spec.
-
-If a real production value would be the natural example in a failure entry, replace with a clearly-fake placeholder of the same shape — better an obviously-fake example than a leaked real token committed to the repo.
-
-This boundary applies to BOTH Part A (writing `execution-report.md`) AND Part B (any debug logging the agent emits while applying corrections).
-
-</safety_boundaries>
 
 <validation_checklist>
 

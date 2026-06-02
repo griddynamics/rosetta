@@ -190,7 +190,7 @@ Run as part of step 5 before emission. Proof-oriented items only — section-pre
 - **API-level auth strategy summarized:** if endpoints share one mechanism, state it once in the handoff note; if mechanism varies per endpoint, summarize the variance for the calling workflow.
 - **Undocumented error responses surfaced as gaps:** a `200`-only entry is acceptable only when both sources truly lack other status codes; otherwise the absence of `401`/`403`/`404`/`500` is recorded in Notes as a documentation gap, not silently omitted.
 - **N/A discipline:** every `N/A` in any field has a one-line reason; bare `N/A` is forbidden.
-- **Redaction scan ran per `<safety_boundaries>`:** the assembled artifact was grepped for credential-shaped patterns (`Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, JWT shape `eyJ...`, `BEGIN PRIVATE KEY`, `postgres://user:pass@`) and PII-shaped patterns; every match was replaced with a placeholder AND the redaction is recorded inline in the entry's `Notes / Discrepancies` section. No literal credentials, tokens, or real PII remain in the artifact.
+- **Redaction scan ran** per `<safety_boundaries>` (single source of truth for the credential + PII grep pattern list); every match was replaced with a placeholder AND the redaction is recorded inline in the entry's `Notes / Discrepancies` section. No literal credentials, tokens, or real PII remain in the artifact.
 
 </validation_checklist>
 
@@ -208,18 +208,43 @@ The contract artifact this skill produces (commonly `agents/qa/{IDENTIFIER}/api-
 
 **Structural content stays verbatim** — endpoint paths, HTTP methods, status codes, content types, field names, schema shapes, validation rules (min/max/pattern/enum), header names, response codes, JSONPath citations, code file:line citations, auth-mechanism names. Redaction targets sensitive **values**, not the structural contract spec.
 
-**Re-scan before emit.** As part of step 5's `<validation_checklist>`, re-grep the assembled artifact for credential-shaped patterns (`Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, JWT shape `eyJ...`, `BEGIN PRIVATE KEY`, `postgres://user:pass@`) and PII-shaped patterns before declaring complete; any hits were replaced with placeholders. Record the redaction inline in the `Notes / Discrepancies` section so reviewers know what was hidden.
+**Grep pattern list (canonical — single source of truth referenced from step 5's re-scan and `<validation_checklist>`):** `Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, JWT shape `eyJ...`, `BEGIN PRIVATE KEY`, `postgres://user:pass@`, plus PII-shaped patterns (real-looking emails outside `example.com`/`example.org`, real phone numbers outside `+1-555-0100`–`+1-555-0199`, card-number shapes).
+
+**Re-scan before emit.** Step 5's `<validation_checklist>` re-grep targets this list; any hits are replaced with placeholders and the redaction recorded inline in `Notes / Discrepancies` so reviewers know what was hidden.
 
 If a real production value would be the natural example in the contract, replace it with a clearly-fake placeholder of the same shape — better an obviously-fake placeholder than a leaked real one committed alongside the api-analysis artifact and propagated to test-spec, test-implementation, and debug phases.
 
 </safety_boundaries>
+
+<success_criteria>
+
+High-level done-condition. Item-level checks live in `<validation_checklist>` (single source of truth — referenced here, not restated).
+
+**Complete when:** every endpoint in the calling workflow's target list has a contract entry OR is flagged back as a gap with reason; every entry has ≥1 citation (Swagger JSONPath OR code `file:line`); every entry marked `Source: hybrid` has a non-empty `Notes / Discrepancies` section (either a recorded mismatch OR explicit `None.`); the `<safety_boundaries>` redaction scan passed (no literal credentials/PII remain); every `<validation_checklist>` item holds.
+
+**NOT complete** if any target endpoint is silently dropped (must be flagged as a gap with reason — see `<failure_handling>`); any entry lacks a citation; any hybrid entry has empty `Notes / Discrepancies`; literal credentials/PII remain in the artifact; any `N/A` is bare (without one-line reason).
+
+</success_criteria>
+
+<failure_handling>
+
+Consolidated stop/ask/route behaviors. Inline references in step 1.4 (locate failure) and step 5.2 (coverage flag) point here.
+
+- **Endpoint not found in spec OR code** (step 1 exhausted Swagger spec, code-based route definitions, and Swagger-in-source patterns; the target endpoint is in neither): flag the endpoint back to the calling workflow with reason `not-found-in-spec-or-code` AND request user input for endpoint details (per step 1.4). Do NOT fabricate an entry. Do NOT silently drop — record it in the coverage gap list per step 5.2.
+- **Ambiguous routing** (the spec or code returns multiple candidate routes for one logical endpoint — e.g., overlapping path prefixes, versioned duplicates, conflicting method handlers): flag back with reason `ambiguous-routing: <candidate-1> | <candidate-2>` and ask the calling workflow which route is the intended target. Do NOT pick one silently — record both candidates.
+- **Parsing failure** (Swagger spec file is malformed JSON/YAML, OR a code file can't be parsed for route definitions): flag back with reason `parse-failure: <path> — <parser error>`. Continue with the remaining endpoints; the failed endpoint is recorded as a gap. Do NOT guess at contents.
+- **Spec-vs-code reconciliation conflict beyond Notes** (step 1.5/2.4-equivalent: spec and code declare structurally different contracts — e.g., method differs, required-field set differs by >50%, status-code list disagrees on success semantics): record both sides in `Notes / Discrepancies`, mark the entry's `Source: hybrid` with `Reconciliation: unresolved — see Notes`, AND surface to the calling workflow as a Critical follow-up rather than picking the documented or coded side as definitive.
+- **GraphQL API** (target endpoint set is a GraphQL schema, not REST): the REST-shaped output template does not fit. Adapt by using schema introspection (query the `__schema` introspection field via the GraphQL endpoint, OR read the SDL file if shipped). Per query/mutation, write a contract entry with: operation name, arguments + types, return type shape, auth/directives, and citation. Use the per-endpoint template's structural fields (Method = `POST` to `/graphql`; Path = the operation name; Request Body = the operation's variables; Response = the operation's return type). Record in `Notes / Discrepancies` that the entry is GraphQL-shaped.
+- **Citation source unavailable** (entry would be a `Source: hybrid` but the second source is intentionally not consulted — e.g., code is closed-source / out of scope): mark as `Source: swagger` (or `Source: code`) with a single citation; do NOT mark as `hybrid` and do NOT leave Notes empty if the user-asked partial-source scope is recorded — note the scope decision in Notes.
+
+</failure_handling>
 
 <pitfalls>
 - Trusting Swagger spec blindly without cross-referencing with actual code — spec can be outdated; the reconciliation step exists to catch this
 - Skipping code-based analysis when Swagger is available — code may have additional validation not in spec; record the discrepancy in Notes
 - Not documenting auth requirements per endpoint — leads to 401/403 failures during testing
 - Ignoring data dependencies and creation order — leads to 404s and FK violations in tests
-- Not handling GraphQL APIs — adapt analysis to use schema introspection for queries/mutations
+- Treating GraphQL APIs as plain REST without switching to the GraphQL branch — see `<failure_handling>` "GraphQL API" for the handled adaptation
 - Silently dropping an endpoint the calling workflow asked about because it could not be analyzed — flag it as a gap with reason instead
 - Fabricating schema fields or status codes not present in either source — every field must trace to spec or code, or be marked as `N/A — <reason>`
 - Leaving the Notes / Discrepancies section blank when both spec and code were consulted but no reconciliation note was recorded — explicit "None." is required, not absence

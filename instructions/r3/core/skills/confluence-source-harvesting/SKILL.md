@@ -36,11 +36,13 @@ All inputs are supplied by the parent workflow phase file. This skill does not i
 |---|---|---|---|
 | Confluence MCP skill name | **required** | Parent workflow phase file (e.g. `mcp-confluence-data-collection`) | Step 1 (fetch by URL/ID) + step 4 (search) — the underlying MCP transport |
 | Output artifact path | **required** | Parent workflow phase file | Step 10 summary write + every page-entry embedding (see `<templates>`) |
-| Configured Confluence site / base URL | **required** | The MCP skill's configuration (NOT this skill — but step 8 GATE relies on it being knowable) | Step 8 (domain-match gate) |
+| Configured Confluence site / base URL | **required** | The MCP skill's configuration | Step 8 (domain-match gate) |
 | User-supplied Confluence URLs / page IDs | optional | User prompt OR parent-supplied artifact | Step 1 (direct fetch); when present, search path is secondary |
 | Ticket fields (labels, components, summary, keywords) | optional but **required if no URLs supplied** | Upstream Jira / TestRail extraction OR user prompt | Step 4 (derive search terms) |
 | Word / depth budget | optional (default `~5000 words per page`, depth = follow children to leaves) | Parent workflow phase file | Step 6 truncation + step 2 recursion cap |
 | Permission to proceed without documentation | required if step 5 returns zero pages | User answer to the step 5 ask-once GATE | Records ticket-only continuation in the artifact |
+
+**Note on the configured site/base URL:** the value lives in the MCP skill's own configuration, not in this skill. Step 8's domain-match gate consults whatever the MCP exposes for its target site.
 
 **Required-input failure rule.** If the parent did not name a Confluence MCP skill, or did not supply an output path, this skill cannot run — apply `<failure_handling>` "missing required input". Do NOT pick a default MCP name and do NOT write to a guessed path.
 
@@ -55,8 +57,8 @@ All inputs are supplied by the parent workflow phase file. This skill does not i
 3. GATE: if the API does not expose child relationships for a parent page and children are still plausible, ask once for child-page links (or approval to continue parent-only), then record that decision in the artifact.
 4. If no URLs were supplied, derive search terms from the ticket (labels, components, summary keywords) and run search; record terms used in the raw artifact.
 5. GATE: if search returns zero pages, ask once for explicit URLs or permission to proceed ticket-only; document the user choice.
-6. Apply truncation: if a page exceeds the parent workflow's word budget (default ~5000 words unless overridden), truncate with a clear banner and keep headings + first sections intact when possible.
-7. Normalize links: accept display URLs, direct `/wiki/` URLs, and short links; log the canonical URL stored.
+6. Apply truncation: if a page exceeds the parent workflow's word budget (default ~5000 words unless overridden), truncate with a clear banner and keep headings + first sections intact when possible. **Banner example** (one line, inserted at the truncation point): `<!-- truncated: 5000-word budget reached at section 'Deployment Steps'; remaining 3 sections omitted: 'Monitoring', 'Rollback', 'Appendix' -->`.
+7. Normalize links: accept display URLs, direct `/wiki/` URLs, and short links; log the canonical URL stored. **Canonical-vs-display example pair**: display URL `https://acme.atlassian.net/wiki/display/PROJ/Checkout+Flow` and tinyurl `https://acme.atlassian.net/wiki/x/AwAB` both normalize to the canonical form `https://acme.atlassian.net/wiki/spaces/PROJ/pages/12345678` (the `/spaces/<KEY>/pages/<numeric-id>` shape) — store the canonical form in the artifact and record the original received form in metadata if it differs.
 8. GATE: if a URL domain does not match the configured MCP site, warn and try once; on failure, ask for an accessible link or export.
 9. Deduplicate by canonical URL; merge parents before children unless the parent workflow overrides.
 10. Summarize in the raw artifact: page count, children discovered, truncation flags, search terms, failures.
@@ -80,17 +82,16 @@ If a real production value would be the natural example, replace it with a clear
 
 <failure_handling>
 
-Single source of truth for stop / ask behaviors. The inline GATEs in `<process>` (steps 3, 5, 8) point here; this block names all branches.
+Single source of truth for stop / ask behaviors. The process-step GATEs (3, 5, 8) point here; this block names all branches. Redaction is owned by `<safety_boundaries>` — not restated here.
 
 - **MCP not configured / not authenticated** (the MCP skill the parent named cannot connect, returns an unauthenticated error, or is absent from the loaded skill set): stop, report `confluence-source-harvesting: Confluence MCP not configured or not authenticated — verify parent's named MCP skill (<name>) is loaded and authenticated` to the parent workflow, ask the user to fix MCP configuration. Do NOT emit a zero-page artifact and call the phase done.
-- **MCP authorization failure on a specific page** (401/403 mid-harvest): record the failure in the artifact for that page as `Permission denied: <URL> — credential lacks access; page MAY exist with content this skill could not retrieve`. Do NOT replace permission errors with empty content (reinforces `<pitfalls>`). Continue with the remaining pages. If ALL fetches fail with auth errors, treat as the "MCP not authenticated" case above.
+- **MCP authorization failure on a specific page** (401/403 mid-harvest): record the failure in the artifact for that page as `Permission denied: <URL> — credential lacks access; page MAY exist with content this skill could not retrieve` (per the `<safety_boundaries>` "permission errors are not empty content" rule). Continue with the remaining pages. If ALL fetches fail with auth errors, treat as the "MCP not authenticated" case above.
 - **Parent did not name a Confluence MCP skill:** stop, report `confluence-source-harvesting: parent workflow did not bind a Confluence MCP skill — see <input_contract>`, ask the user / parent to specify. Do NOT pick a default like `mcp-confluence-data-collection` silently.
 - **Output artifact path missing** from parent inputs: stop, report `confluence-source-harvesting: output artifact path not supplied — see <input_contract>`. Do NOT pick a default path; downstream phases will read this from the location the parent named.
-- **Step 3 GATE — children plausible but API doesn't expose them:** apply the inline ask-once rule (already in process step 3); record the user's decision (waive children vs supply explicit child links) in the artifact's `Children fetched: yes | no (reason)` field.
+- **Step 3 GATE — children plausible but API doesn't expose them:** apply the inline ask-once rule; record the user's decision (waive children vs supply explicit child links) in the artifact's `Children fetched: yes | no (reason)` field.
 - **Step 5 GATE — search returns zero pages:** apply the inline ask-once rule. Acceptable outcomes: user supplies explicit URLs (resume step 1 with those), or user approves ticket-only continuation (record `Documentation: not available — user approved ticket-only continuation` in the artifact summary). If neither user URLs nor ticket fields are available, this branch cannot run at all — apply `<input_contract>` optional-input branching rule.
 - **Step 8 GATE — URL domain doesn't match configured MCP site:** apply the inline warn-and-retry-once rule. On retry failure, ask the user for an accessible in-site link or an export. Do NOT bypass to a cross-site fetch.
 - **Truncation budget exceeded for every retrieved page:** the parent's word budget was set unreasonably low (every page is being truncated to near-zero). Continue with truncation but record a summary note: `Truncation budget warning: <N>/<total> pages truncated — parent budget may be too restrictive`.
-- **Page contains material requiring redaction** (per `<safety_boundaries>`): redact at store time, do not defer; the artifact is downstream-fed and silent verbatim storage is a leak.
 
 </failure_handling>
 
@@ -101,8 +102,8 @@ Single source of truth for stop / ask behaviors. The inline GATEs in `<process>`
 - Truncated pages are labeled with what was omitted
 - Zero-result/no-documentation paths end in explicit user decision (ticket-only continuation) recorded in the artifact
 - **Required `<input_contract>` inputs verified:** MCP skill name + output artifact path were both supplied by the parent and resolved before step 1 ran. Either of them missing means the phase should have stopped per `<failure_handling>`, not produced this artifact.
-- **`<safety_boundaries>` redaction scan ran** against every stored page body — credentials / tokens / PII / credentialed URLs were replaced with placeholders BEFORE writing the page entry; any applied redaction is noted inline. Pages with no matches require no annotation.
-- **Permission errors are recorded, not hidden:** any page returning 401/403 appears in the artifact with `Permission denied: ...` rather than as an empty-content entry.
+- **`<safety_boundaries>` redaction scan ran** against every stored page body; applied redactions noted inline.
+- **Permission errors recorded, not hidden** per `<safety_boundaries>` "permission errors are not empty content" — any 401/403 page appears with `Permission denied: ...` rather than empty content.
 
 </validation_checklist>
 
@@ -117,7 +118,6 @@ Single source of truth for stop / ask behaviors. The inline GATEs in `<process>`
 
 - Assuming Confluence HTML renders identically to markdown — note rendering gaps
 - Stopping at the first parent when children hold acceptance criteria
-- Hiding MCP permission errors as empty content
 
 </pitfalls>
 

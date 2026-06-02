@@ -13,6 +13,24 @@ baseSchema: docs/schemas/skill.md
 Use during test case export when the target TMS is TestRail. Provides TestRail-specific connection check, field mappings, MCP tool signatures, preconditions formatting, and post-export ID handling.
 </when_to_use_skill>
 
+<input_contract>
+
+This skill performs **irreversible external writes** to a shared TestRail project. The bindings below MUST be supplied by the calling workflow — undeclared inputs raise the risk of exporting against the wrong project or suite. Mirrors the sibling `testrail-test-case-authoring` `<input_contract>` shape.
+
+| Input | Required? | Source | Used by |
+|---|---|---|---|
+| Authored case set | **required** | Source document the calling workflow names — typically `test-scenarios.md` (per `<validation_checklist>`) or `agents/qa/{IDENTIFIER}/test-specs.md` | Step 5 (custom_steps_separated build), step 7 (sensitive-value scan + dedup pre-scan + confirmation gate), step 8 (per-case `mcp_testrail_add_case` calls), step 9 (post-export ID write-back) |
+| `project_id` | **required** | Parent workflow's TMS config (e.g. `agents/qa/qa-project-config.md` `Test Case Management` → `project_id`, or testgen `testgen-project-config.md`) | Step 1 (`mcp_testrail_get_project`) + step 7 (dedup pre-scan `mcp_testrail_get_cases`) |
+| `suite_id` | **required** | Parent workflow's TMS config (same source as `project_id`) | Step 7 dedup pre-scan (`mcp_testrail_get_cases(project_id, suite_id)`) |
+| `section_id` | **required** (collected from user at step 2 if not pre-supplied) | User response per `<user_prompt_section_id>` template OR parent workflow's TMS config when pre-bound | Step 7 confirmation gate (echoed to user) + step 8 (`mcp_testrail_add_case(section_id, …)`) |
+| Workflow state file path | **required** | Parent workflow phase file (e.g. `agents/qa-state.md`, `agents/testgen-state.md`) | Step 7's `(c) cancel` path (records the cancellation), step 9 (records C-prefixed IDs + per-case approval evidence) |
+| Project's TestRail base URL | optional | Parent workflow's TMS config | `<user_prompt_section_id>` template (used to construct the suite URL when asking for section_id) |
+| Per-case `priority_id` / `type_id` overrides | optional | Parent workflow may supply per-TestRail-instance mappings | Steps 3 + 4 (override the default P0–P3 / type-name mappings) |
+
+**Required-input failure rule.** If `project_id`, `suite_id`, or the authored case set source path is missing, this skill cannot run — stop, report `testrail-test-case-export: required input missing — <name>` to the calling workflow, ask the user/parent to supply. Do NOT pick defaults for these — the safety gate against exporting to the wrong project depends on these bindings being explicit. `section_id` may be collected from the user during step 2 if it wasn't pre-supplied.
+
+</input_contract>
+
 <process>
 
 1. **Verify connection**: call `mcp_testrail_get_project(project_id)` — if fails, inform user to verify MCP config, credentials, and project access

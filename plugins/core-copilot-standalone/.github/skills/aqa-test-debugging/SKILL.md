@@ -11,26 +11,33 @@ baseSchema: docs/schemas/skill.md
 
 <when_to_use_skill>
 Analyze test execution results, categorize failures, identify root causes, and prepare targeted corrections for approval.
+
+**Part A / Part B usage boundary.** The skill bundles two responsibilities with materially different risk profiles:
+
+- **Part A — Report Analysis** (steps 1–6): **read-only**. Parses the report, categorizes failures, identifies root causes, produces the analysis artifact.
+- **Part B — Corrections** (steps 7–9): **writes test source files + runs lint + tracks iteration count**. Prepares proposed changes, applies them after explicit user approval per `<safety_boundaries>`, validates with linting.
+
+A caller may invoke **Part A only** (analysis without correction mandate). Part B requires Part A's output AND the explicit approval signals enumerated in `<safety_boundaries>`. A Part-A-only invocation MUST NOT execute steps 7–9. The split is preserved so future SRP tightening (extracting Part B to a sibling skill) is a one-step refactor.
 </when_to_use_skill>
 
 <prerequisites>
-- Test implemented (Phase 6 complete) and executed by the user (Phase 7 prerequisite)
+- Test implemented and executed by the user (this skill runs as the report-analysis phase, after the implementation + execution phases)
 - Test report or execution output available — see `<input_contract>` for canonical paths
 - Test plan and page sources available for cross-reference — see `<input_contract>`
-- `<test-name>` slug resolved per `aqa-flow-code-analysis.md` `<naming_convention>` (parsed from Phase 1 plan filename or read from `agents/aqa-state.md`)
+- `<test-name>` slug resolved per the AQA workflow's naming convention (parsed from the test plan filename or read from `agents/aqa-state.md`)
 </prerequisites>
 
 <input_contract>
 
 All input paths use the AQA workflow's canonical `<test-name>` slug — **not** `{TICKET-KEY}`, which is a TestGen convention and does not exist in the AQA naming scheme.
 
-| Input | Canonical path | Required by | Producing phase / step |
+| Input | Canonical path | Required by | Producing phase (logical) |
 |---|---|---|---|
-| Test plan | `agents/plans/aqa-<test-name>.md` | Cross-reference during failure categorization | Phase 1 (data collection) |
-| Code analysis report | `agents/plans/aqa-<test-name>-code-analysis.md` | Cross-reference for selector / page-object context | Phase 3 (code analysis) |
-| Page sources directory | `agents/plans/aqa-<test-name>-page-sources/` | Part A step 4 (selector-error analysis) | Phase 4 (selector identification), step 4.2 of `aqa-flow-selector-identification.md` |
-| State file | `agents/aqa-state.md` | Slug resolution + state updates | Phase 0 onward |
-| Test report | User-supplied path, OR file under `agents/user-instructions/` discovered by keyword scan in Part A step 1 | Part A step 1 | User (after Phase 6 stop-for-execution) |
+| Test plan | `agents/plans/aqa-<test-name>.md` | Cross-reference during failure categorization | the data-collection phase |
+| Code analysis report | `agents/plans/aqa-<test-name>-code-analysis.md` | Cross-reference for selector / page-object context | the code-analysis phase |
+| Page sources directory | `agents/plans/aqa-<test-name>-page-sources/` | Part A step 4 (selector-error analysis) | the selector-identification phase |
+| State file | `agents/aqa-state.md` | Slug resolution + state updates | initialized at workflow start |
+| Test report | User-supplied path, OR file under `agents/user-instructions/` discovered by keyword scan in Part A step 1 | Part A step 1 | User (after the test-implementation phase's stop-for-execution) |
 
 **Existence validation** happens at the point of use:
 - Test plan + code analysis report: opportunistic — used for cross-reference; absence degrades but does not block.
@@ -79,7 +86,7 @@ Downstream sections reference this list by name — do not introduce additional 
 
 When error matches patterns: "selector did not become visible", "locator did not become visible", "selector not found", "locator not found", "element not found", "NoSuchElementException", "ElementNotFoundError", "TimeoutException" on element visibility:
 
-0. **Validate page-sources directory exists** at the canonical path `agents/plans/aqa-<test-name>-page-sources/` (per `<input_contract>` — same `<test-name>` slug used by the Phase 1 plan filename and Phase 4 selector-identification step 4.2). If missing, apply the `<failure_handling>` "page sources missing" rule — do **not** silently degrade to non-page-source analysis.
+0. **Validate page-sources directory exists** at the canonical path `agents/plans/aqa-<test-name>-page-sources/` (per `<input_contract>` — same `<test-name>` slug used by the test plan filename and the selector-identification phase's page-sources directory). If missing, apply the `<failure_handling>` "page sources missing" rule — do **not** silently degrade to non-page-source analysis.
 1. Locate page source files in `agents/plans/aqa-<test-name>-page-sources/`
 2. Search for selector in page source
 3. Check if element exists with different attributes
@@ -111,24 +118,7 @@ Prioritize:
 
 ### 7. Prepare Proposed Changes
 
-For each issue, document:
-
-```markdown
-### Proposed Change: [Issue]
-
-**File**: [path]
-**Current Code**: [snippet]
-**Proposed Code**: [snippet]
-**Reason**: [why this fixes the issue]
-**Impact**: [what this affects]
-```
-
-Match fixes to root cause categories:
-- Selector issues → update page objects
-- Timing issues → add waits or adjust timing
-- Assertion failures → fix logic or expected values
-- Setup issues → fix preconditions
-- Test code issues → fix implementation
+Emit one Proposed Change entry per issue, using the **canonical Proposed Change template** in [references/part-b-mechanics.md](references/part-b-mechanics.md#proposed-change-record-template-referenced-from-skillmd-step-7--output_format--part-b-validation_checklist). Required fields: **File, Current Code, Proposed Code, Reason, Impact, Risk** (6 fields — single source of truth referenced by `<output_format>` and the Part-B `<validation_checklist>`). The reference also holds the per-category fix-matching guidance.
 
 ### 8. Apply Approved Changes
 
@@ -141,13 +131,9 @@ After user approval:
 
 ### 9. Track Iteration Count and Escalate at the 3-Iteration Cap
 
-This Part A → Part B cycle may loop (Phase 7 analysis → Phase 8 corrections → re-execution → Phase 7 analysis again on still-failing tests). The cycle is **capped at 3 iterations** to prevent runaway diagnose/patch loops that mask deeper application bugs or fundamental spec mismatches.
+The Part A → Part B cycle is **capped at 3 iterations** to prevent runaway diagnose/patch loops. Counter mechanics + state-file field schema + cap-enforcement protocol (read counter → increment after Part B → branch on re-execution outcome → escalate at iteration 3) live in [references/part-b-mechanics.md](references/part-b-mechanics.md#step-9-iteration-cap-state-file-protocol-referenced-from-skillmd-step-9).
 
-1. **Read the iteration counter** from the parent workflow state file (default field `Phase 7/8 iteration: N`; counter starts at `1` on the first Part A → Part B pass). If the field is absent, treat as iteration `1` and initialize it.
-2. **Increment the counter** when this skill completes Part B (one full apply pass = one iteration) and write it back to the state file.
-3. **Cap enforcement.** After the 3rd iteration completes:
-   - If the most recent test re-execution shows **all tests pass** → mark the AQA flow as **COMPLETE** in state and stop.
-   - If failures still remain → **STOP** the iterate-on-corrections cycle. Write the **verbatim escalation-note template** from [references/escalation-template.md](references/escalation-template.md) into both the analysis artifact's `## Escalation` section AND `agents/aqa-state.md`, then ask the user how to proceed. **Do NOT auto-start a 4th iteration** without an explicit user waiver recorded in the state file.
+**Governance (canonical):** Do NOT auto-start a 4th iteration without an explicit user waiver recorded in the state file. When the cap is reached with failures remaining, write the verbatim escalation-note template from [references/escalation-template.md](references/escalation-template.md).
 
 </process>
 
@@ -169,7 +155,7 @@ This Part A → Part B cycle may loop (Phase 7 analysis → Phase 8 corrections 
 - Priority: [level]
 
 ### Proposed Corrections
-[Change list with before/after code]
+[Change list — each entry uses the 6-field Proposed Change template (File / Current Code / Proposed Code / Reason / Impact / Risk) from references/part-b-mechanics.md]
 
 ### Applied Corrections (after approval)
 - Files Modified: [list]
@@ -183,8 +169,8 @@ This Part A → Part B cycle may loop (Phase 7 analysis → Phase 8 corrections 
 
 - **Test report missing** (no file in `agents/user-instructions/`, user does not supply path after one ask): stop Part A, record `aqa-test-debugging: test report not provided` in the parent workflow state, do not proceed.
 - **Test report unparseable** (binary, corrupted, unknown format): stop, report the parse error with the file path, ask the user for an alternative format.
-- **Page sources missing** (`agents/plans/aqa-<test-name>-page-sources/` does not exist when Part A step 4 needs it): do **not** silently skip selector analysis. Record `aqa-test-debugging: page sources missing — selector-error root causes degraded to "evidence missing"` in the workflow state, and tag every selector-category failure entry with `Root Cause: Unknown — page sources not available; would need Phase 4 selector identification re-run`. Continue with the remaining failure categories that don't depend on page sources.
-- **`<test-name>` unresolved or ambiguous:** stop, ask the parent phase to resolve the slug per `aqa-flow-code-analysis.md` `<naming_convention>`, do not guess at the page-sources path.
+- **Page sources missing** (`agents/plans/aqa-<test-name>-page-sources/` does not exist when Part A step 4 needs it): do **not** silently skip selector analysis. Record `aqa-test-debugging: page sources missing — selector-error root causes degraded to "evidence missing"` in the workflow state, and tag every selector-category failure entry with `Root Cause: Unknown — page sources not available; would need the selector-identification phase re-run`. Continue with the remaining failure categories that don't depend on page sources.
+- **`<test-name>` unresolved or ambiguous:** stop, ask the parent phase to resolve the slug per the AQA workflow's naming convention, do not guess at the page-sources path.
 - **Test plan or code-analysis report missing** (used for cross-reference only): record the absence in the analysis output, proceed with degraded cross-reference (the test report alone can still drive categorization and selector analysis).
 
 </failure_handling>
@@ -222,8 +208,8 @@ Run before declaring complete. Items apply per the part(s) that ran.
 
 **Part A (report analysis):**
 - Every failed test from the report has a Failure entry — partial coverage of the failure list is a regression.
-- Every Failure entry has a Category picked from the canonical taxonomy in step 3 (Selector / Locator | Timing / Visibility | Assertion failure | Setup / Data | Application bug | Test code | Unknown) AND a Root Cause.
-- Every selector-category Failure either cites page-source evidence (`agents/plans/aqa-<test-name>-page-sources/<file>` + the selector lookup) OR carries `Root Cause: Unknown — page sources not available; would need Phase 4 selector identification re-run` per `<failure_handling>` "page sources missing" rule.
+- Every Failure entry has a Category picked from the canonical taxonomy in step 3 AND a Root Cause.
+- Every selector-category Failure either cites page-source evidence (`agents/plans/aqa-<test-name>-page-sources/<file>` + the selector lookup) OR carries `Root Cause: Unknown — page sources not available; would need the selector-identification phase re-run` per `<failure_handling>` "page sources missing" rule.
 - Execution Summary counts (Total / Passed / Failed / Skipped) match the Failure entry count actually emitted.
 - Patterns section names cross-failure patterns OR explicitly says `No cross-failure patterns identified`.
 - `<safety_boundaries>` redaction scan ran — auth headers, tokens, request/response capture were grepped for credential/PII shapes and replaced with placeholders before writing.

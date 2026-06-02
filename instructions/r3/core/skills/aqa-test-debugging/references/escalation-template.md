@@ -19,4 +19,4 @@ Recommended next steps (the user picks one):
   - User decides whether to continue with a 4th iteration under explicit waiver.
 ```
 
-After writing the note, ask the user how to proceed. **Do NOT auto-start a 4th iteration without an explicit user waiver recorded in `agents/aqa-state.md`** (the Track-iteration step 9 rule in SKILL.md governs this).
+After writing the note, ask the user how to proceed. Governance of the 4th-iteration / waiver rule lives in `SKILL.md` step 9 — not restated here.
