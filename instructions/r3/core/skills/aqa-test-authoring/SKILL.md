@@ -44,7 +44,7 @@ The calling workflow supplies paths. Defaults this skill recognizes when paths a
 1. **Repo docs** — `project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`. Win on every conflict.
 2. **User instructions** — `agents/user-instructions/`. Apply on top of repo docs only where repo docs are silent; never override repo docs.
 3. **This skill's authoring patterns** — apply only where 1 and 2 are silent.
-4. **Test plan's recorded decisions** (test location, file mapping, similar-test patterns) — informational; if they conflict with repo docs, repo docs win and the conflict is recorded in step 9's Uncovered/Conflicts section.
+4. **Test plan's recorded decisions** (test location, file mapping, similar-test patterns) — informational; if they conflict with repo docs, repo docs win and the conflict is recorded in step 4's `### Conflicts and Precedence` section.
 
 When this skill detects a conflict between user instructions and repo docs, follow repo docs and record the override in the implementation notes — do not silently apply either.
 
@@ -91,10 +91,16 @@ This step encompasses the entire authoring pass — structure, setup, actions, a
 
 ## 4. Validate and Record Uncovered Assertions
 
-Run the `<validation_checklist>` below. Then, **before declaring complete**:
+Run the `<validation_checklist>` below. Then, **before proceeding to step 5**:
 
 - For every assertion from the test plan's requirements that this skill could **not** implement (no available page-object method to express it, no observable signal in the UI, the assertion needs a precondition the test can't establish, etc.) record it in the output's `### Uncovered Assertions` section with the reason. **Do NOT silently drop unimplementable assertions** — overstating coverage to downstream phases is the failure mode this rule guards against.
 - For every place where user instructions conflicted with repo docs (per `<input_contract>` precedence): record the override in `### Conflicts and Precedence`. Empty section is acceptable; absence of the section is not.
+
+## 5. Emit Hand-off Output
+
+Append the `## Test Implementation` section to the test plan per `<output_format>` (template in [references/test-implementation-template.md](references/test-implementation-template.md)). Populate every required subsection (**Test File**, **Implementation Summary**, **Uncovered Assertions**, **Conflicts and Precedence**, **Validation**) with the values produced by steps 1–4. Empty subsections use the explicit `None — <reason>` line from the template — never left blank.
+
+The skill is complete after step 5 emits and only after step 4's validation passed.
 
 </process>
 
@@ -133,14 +139,14 @@ If the test plan's selector inventory turns out to be incomplete during authorin
 
 <validation_checklist>
 
-Run as part of step 9 before declaring complete. All items must hold:
+Run as part of step 4 before step 5 emits. All items must hold:
 
 - **Imports correct and follow project order** (framework → pages → utilities → types, or whatever the existing patterns dictate).
 - **Every assertion from the plan is either implemented OR listed in `### Uncovered Assertions`** with a reason. Silent drops are forbidden.
 - **Page objects used for all UI interactions** — no direct selector use in test code (safety boundary).
 - **No application source or page-object files were modified** by this skill. The only writes are the test file and the test plan's `## Test Implementation` section.
 - **Coding standards followed** per `<input_contract>` precedence (repo docs win). Any user-instruction override is recorded in `### Conflicts and Precedence`.
-- **No hardcoded sleeps/timeouts** — proper wait strategies only (per step 5).
+- **No hardcoded sleeps/timeouts** — proper wait strategies only (per step 3c).
 - **Lint/format clean** on touched files; record the exact command run in the implementation notes.
 - **Hand-off output emitted** per `<output_format>` — Test File / Implementation Summary / Uncovered Assertions / Conflicts and Precedence / Validation all populated (or `None` with reason).
 

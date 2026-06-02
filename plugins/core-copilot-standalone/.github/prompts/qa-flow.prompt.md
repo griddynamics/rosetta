@@ -1,5 +1,6 @@
 ---
 name: qa-flow
+description: MUST apply when a backend API test-automation task is assigned (e.g. user asks to write API tests, automate endpoints from a TestRail / Jira test case, add coverage for a REST/GraphQL service, extend a pytest / Jest / JUnit / RestAssured / SuperTest API suite, debug or correct failing API tests). End-to-end backend API test automation from test case input through API-spec analysis, requirements clarification, test specification, implementation, execution, and corrections — uses TestRail / Jira test cases, Swagger/OpenAPI specs, Confluence documentation, and project code to produce automated tests aligned with existing architecture and standards.
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---

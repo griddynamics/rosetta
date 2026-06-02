@@ -1,11 +1,43 @@
-# Selector Strategy + Output Template — aqa-selector-management
+# Selector Strategy + Output Template + Part B Mechanics — aqa-selector-management
 
 Loaded on demand from `SKILL.md`:
 
 - **Part A** loads this file at step 4 to consult the 4-tier strategy table + worked example.
-- **Part B** loads this file when emitting the implementation subsection of the output template.
+- **Part B** loads this file at steps 5–6 to consult the page-object-extension and new-page-object-creation mechanics; and when emitting the implementation subsection of the output template.
 
-The base `SKILL.md` keeps the orchestration, contracts, safety boundaries, failure handling, and validation checklist; the heavier content (the tier table, the good/fragile example pair, and the full output template) lives here so neither invoking phase carries the other phase's detail in active context unless it actually needs it.
+The base `SKILL.md` keeps the orchestration, contracts, safety boundaries, failure handling, validation checklist, and the step-7 Validate Implementation gate (Part B's exit gate). The heavier content (tier table, good/fragile example pair, full output template, Part B steps 5–6 mechanics, and the "why one file" design rationale) lives here so neither invoking phase carries the other phase's detail in active context unless it actually needs it.
+
+---
+
+## Why one file (design rationale — maintainer-facing)
+
+Parts A and B share three tightly-coupled contracts that change together: the 4-tier selector strategy taxonomy (Part A flags fragility; Part B's step-7 gate refuses to implement what A flagged), the selector-inventory shape (Part A writes it; Part B reads exactly that shape), and the fragile-selector handoff semantics (A → B approval flow). Splitting into two skills would force these contracts to be duplicated and kept in sync, and drift would be a real regression risk for tests that already passed identification. Single-file design + per-phase scope binding in `<input_contract>` + lazy-loading of part-specific detail via this reference resolves the cognitive-budget cost.
+
+---
+
+## Part B Step 5 — Extend Existing Page Objects (referenced from SKILL.md step 5)
+
+For each page object needing new selectors:
+
+- Read existing file, match its exact patterns
+- Same access modifiers, data types, formatting
+- Same naming convention (camelCase, UPPER_CASE, etc.)
+- Add selectors in logical grouping
+- Add helper methods if page object uses them:
+  - Getters for text content
+  - Click/action methods
+  - Visibility checks
+
+---
+
+## Part B Step 6 — Create New Page Objects (referenced from SKILL.md step 6)
+
+When the inventory marks a page object as "to create":
+
+- Use existing page object as structural template
+- Copy constructor, import, and class patterns exactly
+- Follow project naming convention for file and class
+- Add to barrel/index exports if project uses them
 
 ---
 

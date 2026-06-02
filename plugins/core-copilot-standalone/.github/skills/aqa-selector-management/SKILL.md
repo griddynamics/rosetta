@@ -12,13 +12,7 @@ baseSchema: docs/schemas/skill.md
 <when_to_use_skill>
 Map test steps to required UI interactions, identify missing selectors, find selectors from source code or page HTML (Part A), and implement them in page objects (Part B).
 
-**Part A / Part B usage boundary.** This skill is consumed by two separate AQA phases:
-- **Part A — Selector Identification** (steps 1–4): invoked by `aqa-flow-selector-identification`. Read-only analysis; produces the interaction map and selector inventory.
-- **Part B — Selector Implementation** (steps 5–7): invoked by `aqa-flow-selector-implementation`. Writes to page-object files only.
-
-The parts may run independently and **must not be conflated in a single phase**. An invocation that loads this skill for the identification phase MUST NOT execute Part B; an invocation for the implementation phase MUST NOT re-execute Part A from scratch (it consumes Part A's recorded inventory). The calling workflow names which part runs; this skill respects that scope.
-
-**Why one file (not two skills).** Parts A and B share three tightly-coupled contracts that change together: the **4-tier selector strategy taxonomy** (Part A flags fragility; Part B's step-7 gate refuses to implement what A flagged), the **selector-inventory shape** (Part A writes it; Part B reads exactly that shape), and the **fragile-selector handoff semantics** (A → B approval flow). Splitting into two skills would force these contracts to be duplicated and kept in sync across files, and a drift between the two halves would be a real regression risk for tests that already passed identification. Keeping one file with explicit Part-A/Part-B scoping (this section + each phase's `<input_contract>` row) preserves the contract single-source-of-truth at the cost of one skill carrying both parts' instructions; the heavier per-part detail (tier table + worked example + output template) is offloaded to [references/strategy-and-template.md](references/strategy-and-template.md) so each invoking phase loads only what it actually needs.
+**Part A / Part B scope rule (canonical — referenced from `<input_contract>` and `<safety_boundaries>`):** Part A (steps 1–4) is **read-only identification**, invoked by `aqa-flow-selector-identification`. Part B (steps 5–7) **writes page-object files only**, invoked by `aqa-flow-selector-implementation`. The calling workflow names which part runs; the parts must not be conflated in one phase. Design rationale for the single-file design is in [references/strategy-and-template.md](references/strategy-and-template.md#why-one-file-design-rationale--maintainer-facing).
 </when_to_use_skill>
 
 <prerequisites>
@@ -96,22 +90,11 @@ Single source of truth: the tier ordering, the example pair, and the fragile-pat
 
 ### 5. Extend Existing Page Objects
 
-For each page object needing new selectors:
-- Read existing file, match its exact patterns
-- Same access modifiers, data types, formatting
-- Same naming convention (camelCase, UPPER_CASE, etc.)
-- Add selectors in logical grouping
-- Add helper methods if page object uses them:
-  - Getters for text content
-  - Click/action methods
-  - Visibility checks
+For each page object needing new selectors, follow the mechanics in [references/strategy-and-template.md](references/strategy-and-template.md#part-b-step-5--extend-existing-page-objects-referenced-from-skillmd-step-5) — match existing patterns (access modifiers, naming, formatting), add selectors in logical grouping, add helper methods (getters, click/action, visibility checks) if the page object uses them.
 
 ### 6. Create New Page Objects (if needed)
 
-- Use existing page object as structural template
-- Copy constructor, import, and class patterns exactly
-- Follow project naming convention for file and class
-- Add to barrel/index exports if project uses them
+When the Part A inventory marks a page object as "to create", follow the mechanics in [references/strategy-and-template.md](references/strategy-and-template.md#part-b-step-6--create-new-page-objects-referenced-from-skillmd-step-6) — use an existing page object as the structural template, copy constructor/import/class patterns exactly, follow project naming, add to barrel/index exports if used.
 
 ### 7. Validate Implementation
 
@@ -142,7 +125,7 @@ This skill writes **only** to page-object files (and to the test plan's `## Sele
 - Edit the code-analysis report, project description, or repo docs
 - Commit fragile selectors flagged in Part A step 4 without explicit approval recorded in the output (per Part B step 7's fragile-selector gate)
 
-**Scope boundary between Part A and Part B:** Part A is read-only (analysis + recording). Part B is the only part that writes page-object files. An invocation scoped to Part A MUST NOT create or modify page-object files; an invocation scoped to Part B consumes Part A's recorded inventory rather than re-running the analysis.
+**Part A / Part B scope** is governed by the canonical rule in `<when_to_use_skill>` — not restated here. Enforcement: a Part A invocation MUST NOT create or modify page-object files; a Part B invocation consumes Part A's recorded inventory rather than re-running the analysis.
 
 **Fragile-selector discipline.** Any selector tagged fragile in Part A is surfaced for approval, not silently implemented. Silently committing a fragile selector is a safety-boundary violation and is the primary failure mode this rule guards against.
 

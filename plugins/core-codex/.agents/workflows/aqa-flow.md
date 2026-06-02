@@ -1,5 +1,6 @@
 ---
 name: aqa-flow
+description: MUST apply when an automated QA / UI test-automation task is assigned (e.g. user asks to write automation tests, add E2E coverage, fix failing automation, extend a Playwright/Selenium/Cypress suite, debug a flaky UI test). End-to-end orchestration from requirements gathering through test implementation, execution analysis, and correction.
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---
@@ -114,10 +115,13 @@ End-to-end test automation from requirements gathering to test implementation. U
 <orchestration_and_escalation>
 - When loaded, USE SKILL `sequential-workflow-execution` (ACQUIRE FROM KB when needed) for skip gates and transition prompts.
 - Any skip outside those gates requires explicit user confirmation (HITL).
-- **Verification-failure unilateral start:** if the user asserts phases are complete but `agents/aqa-state.md` does not mark them complete or the matching artifacts (see `<workflow_success_criteria>` spot checks) are absent, the only correct next action is a one-line announcement of the failing conditions (e.g., `skip refused: state file absent → starting at Phase 1`) followed by beginning the earliest incomplete phase in the **same turn**, without yielding to user input.
-- **Precedence (scope of the no-HITL override):** the same-turn-start rule above and the MUST NOT clause below apply **only** to this narrow decision — "user has just asserted phases are complete AND state/artifact verification has just failed." For that single decision, this block explicitly overrides (a) the workflow's general `NO ASSUMPTIONS: ... always ask the user if information is missing` rule in `<workflow_context>` and (b) the session-wide Rosetta `hitl` bootstrap's ask-before-action default. Everywhere else — every other branch of the workflow, every other unknown, every other ambiguous user instruction — the general HITL defaults and `<hitl>` skill's wait/approve semantics remain in force. Cross-reference: `hitl` skill (single source of truth for ask-before-action) and `<workflow_context>` NO-ASSUMPTIONS rule (still authoritative outside this gate). Rationale: at this specific gate, "ask the user how to proceed" creates a contradictory loop — the user has already asserted, the artifacts disagree, so the verification result IS the decision; there is nothing for the user to confirm short of producing the missing artifacts.
-- **At this gate, the agent MUST NOT** (non-exhaustive, applies to all phrasings): call `AskUserQuestion`; present a list / menu / options block; ask the user "how do you want to proceed", "should I start at X", "do you want me to", or any equivalent confirmation request; pause for input before starting the earliest incomplete phase. The verification result is the decision — there is nothing for the user to confirm. User input is only acceptable if it produces the missing state rows or artifacts on disk.
-- Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user, and do not substitute silently. (This branch is NOT covered by the no-HITL override — the override is scoped to the verification-failure-after-user-assertion case only.)
+- **Verification-failure unilateral-start override** (single-rule form):
+  - **Precondition (ALL must be true):** (a) user has explicitly asserted phases are complete in this turn, AND (b) `agents/aqa-state.md` does NOT mark the asserted phases complete (rows missing or not-checked), AND (c) the matching artifacts named in `<workflow_success_criteria>` spot checks are absent on disk.
+  - **If precondition holds:** print one line naming the failing conditions (e.g., `skip refused: state file absent → starting at Phase 1`), then start the earliest incomplete phase in the **same turn** — do NOT call `AskUserQuestion`, present options, or ask "how do you want to proceed".
+  - **If any precondition is uncertain or only partially true** (state file partially present, ambiguous user assertion, artifacts present but stale): fall back to the normal HITL ask path. Ambiguity defaults to ASK, not auto-start.
+  - **Scope:** this override applies ONLY at this gate; every other branch follows HITL defaults. Authority on ask-before-action elsewhere: `hitl` skill + `<workflow_context>` NO-ASSUMPTIONS rule.
+  - *Rationale (one line): at this gate the verification result IS the decision — the user has already asserted; asking again creates a contradictory loop until artifacts exist.*
+- Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user, and do not substitute silently. (Follows normal HITL — the override does not apply outside the gate above.)
 </orchestration_and_escalation>
 
 <workflow_success_criteria>

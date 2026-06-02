@@ -135,6 +135,25 @@ After user approval:
 4. Check linting after each file modification
 5. Validate changes address root causes
 
+### 9. Track Iteration Count and Escalate at the 3-Iteration Cap
+
+This Part A → Part B cycle may loop (Phase 7 analysis → Phase 8 corrections → re-execution → Phase 7 analysis again on still-failing tests). The cycle is **capped at 3 iterations** to prevent runaway diagnose/patch loops that mask deeper application bugs or fundamental spec mismatches.
+
+1. **Read the iteration counter** from the parent workflow state file (default field `Phase 7/8 iteration: N`; counter starts at `1` on the first Part A → Part B pass). If the field is absent, treat as iteration `1` and initialize it.
+2. **Increment the counter** when this skill completes Part B (one full apply pass = one iteration) and write it back to the state file.
+3. **Cap enforcement.** After the 3rd iteration completes:
+   - If the most recent test re-execution shows **all tests pass** → mark the AQA flow as **COMPLETE** in state and stop.
+   - If failures still remain → **STOP** the iterate-on-corrections cycle. Record an **escalation note** in the analysis artifact's `## Escalation` section AND in `agents/aqa-state.md`:
+     ```
+     Escalation: 3-iteration cap reached with N failure(s) remaining.
+     Likely cause: application defect under test (Application Bug category dominates) OR fundamental test-spec mismatch (Response Assertion / Request Issue patterns persist across iterations).
+     Recommended next steps: <one of>
+       - Surface remaining failures as application defects to the product team (do NOT continue patching tests around them).
+       - Revisit Phase 2 (Requirements Clarification) to verify the test plan's assertions match current API/UI behavior.
+       - User decides whether to continue with a 4th iteration under explicit waiver.
+     ```
+   - Ask the user how to proceed; **do NOT auto-start a 4th iteration** without an explicit user waiver recorded in the state file.
+
 </process>
 
 <output_format>

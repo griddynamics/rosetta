@@ -59,7 +59,7 @@ Read `project_description.md` (and any repo docs supplied by the calling workflo
 - Test patterns (AAA, Given-When-Then, setup/teardown)
 - Dependencies
 
-If multiple sources name the same field with different values, repo docs win — record the conflict in the report.
+Conflicts between sources: apply `<input_contract>` "Path precedence on conflict" — record in the report's `## Conflicts and Precedence` subsection.
 
 ## 3. Read Common User Instructions
 
@@ -73,7 +73,7 @@ If `agents/user-instructions/` exists, read all files and extract:
 
 Categorize: **Must Follow** | **Should Follow** | **Nice to Have**.
 
-If directory is missing or empty: record `User instructions: not available` in the report's coverage block (epistemic-honesty rule, step 7).
+If missing or empty: apply the Coverage epistemic-honesty rule in step 8.
 
 ## 4. Analyze Frontend Source Code (if available)
 
@@ -84,7 +84,7 @@ If a frontend source path is supplied by the workflow or discoverable in the rep
 - Document API calls and data models
 - Record available test identifiers
 
-If absent: record `Frontend source: not available` in the report's coverage block.
+If absent: apply the Coverage epistemic-honesty rule in step 8.
 
 ## 5. Identify Existing Page Objects
 
@@ -125,6 +125,8 @@ Search utility dirs (`**/utils/**`, `**/helpers/**`, `**/lib/**`, `**/fixtures/*
 Write the report to **`agents/plans/aqa-<test-name>-code-analysis.md`** (resolving `<test-name>` per step 1) — or to the path the calling workflow specified.
 
 Use the **9-section report template** in [references/report-template.md](references/report-template.md#code-analysis-report-template-referenced-from-skill-step-8). The template defines: Sources header, then sections (1) Framework and Standards, (2) User Instructions categorized Must/Should/Nice, (3) Frontend Analysis, (4) Page Object Inventory table, (5) Similar Tests and Patterns, (6) Test Location Decision, (7) Reusable Utilities, (8) Conflicts and Precedence, (9) Coverage and Confidence. All 9 sections are required; empty optional sections say `not available — see Coverage section` per the template's conventions.
+
+**Coverage epistemic-honesty rule (canonical — referenced from steps 3, 4, `<failure_handling>`):** every optional input from `<input_contract>` MUST appear in section 9 (Coverage and Confidence) as `available` or `not available — <impact>`. Silent omission is forbidden; downstream phases misread missing-data as no-issues.
 
 Then update the test plan's `## Code Analysis` section with a one-paragraph summary that links to the full report — do NOT duplicate the report contents into the test plan.
 
@@ -171,8 +173,8 @@ If a finding implies code work is needed, surface it in the report's relevant se
 - **`project_description.md` missing AND no `CONTEXT.md` / `ARCHITECTURE.md` / `IMPLEMENTATION.md`:** stop, report `cannot determine framework/structure from any authoritative source`. Do not infer framework from incidental file extensions.
 - **Codebase root unreadable:** stop with the IO error path.
 - **Test plan exists but no `<test-name>` resolvable** (filename does not match the workflow's naming convention): stop, ask the calling workflow to supply the test name explicitly.
-- **Partial reads** (e.g., one repo doc parses, another is corrupt): proceed with the readable sources, record the unreadable ones in the Coverage section, mark affected findings with a `Partial source: <what was missing>` note.
-- **Optional inputs absent** (no `agents/user-instructions/`, no frontend source): proceed; record `not available` in the Coverage section and lower confidence on the dependent findings per step 7's epistemic-honesty rule.
+- **Partial reads** (e.g., one repo doc parses, another is corrupt): proceed with the readable sources, record the unreadable ones per the Coverage epistemic-honesty rule (step 8), mark affected findings with a `Partial source: <what was missing>` note.
+- **Optional inputs absent** (no `agents/user-instructions/`, no frontend source): proceed; apply the Coverage epistemic-honesty rule (step 8) — lower confidence on dependent findings.
 - **Output path already exists** with content: do NOT silently overwrite. Append a `<!-- regenerated YYYY-MM-DD -->` marker and replace the report; surface the regeneration in the hand-off summary so the calling workflow can decide whether the prior report's state mattered.
 
 </failure_handling>
