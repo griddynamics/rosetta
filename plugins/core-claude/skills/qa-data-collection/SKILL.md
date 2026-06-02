@@ -285,18 +285,44 @@ If a section in the `<output_format>` template would naturally require sensitive
 
 </safety_boundaries>
 
+<success_criteria>
+
+Complete when **all of** the following hold:
+
+- `agents/qa/{IDENTIFIER}/raw-data.md` written with every `<output_format>` template section present-or-`N/A — <reason>` (silent omission is forbidden).
+- At least one test-case source captured (TestRail / Jira / User Provided) per step 2 — a raw-data.md with zero test-case data is incomplete.
+- Every gap from incomplete TMS / docs / codebase retrieval is recorded as an explicit `Gap: ...` note, NOT silently filled with assumptions (per step 6.2 anti-assumption re-check).
+- Step 6.1 secret-scan passed: `raw-data.md` carries paths and mechanism descriptions only, no literal credentials/tokens/PII.
+- API endpoints table has every row with Method + Source populated (partial rows tagged as Notes gaps).
+
+The skill is **NOT complete** if it emits a raw-data.md with silently missing sections, with inferred values where gaps belong, or with literal credentials/PII — OR if a `<failure_handling>` stop path was reached and not followed (paused phase, not complete).
+
+</success_criteria>
+
+<failure_handling>
+
+- **Project config missing or unreadable** at `agents/qa/qa-project-config.md` (step 1 prerequisite): stop, report `qa-data-collection: project config missing/unreadable at <path>`, ask the user to rerun Phase 0 (qa-flow-project-config-loading). Do NOT proceed with assumed defaults.
+- **Initial-data file missing or unreadable** at `agents/qa/{IDENTIFIER}/initial-data.md`: stop, report the missing/unreadable path, ask user to rerun Phase 0. Do NOT pick a default identifier.
+- **Delegated MCP skill stops with a failure** (`mcp-testrail-data-collection`, `mcp-jira-data-collection`, `mcp-confluence-data-collection` returns a stop report — auth failure, ticket/case/page not found, MCP not configured, transport error per the sub-skill's own `<failure_handling>`):
+  - Record the sub-skill's failure message verbatim in the corresponding `raw-data.md` section's `## Notes / Gaps` as `Gap: <sub-skill-name> stopped — <verbatim message>`.
+  - Do NOT fabricate substitute content for the failed source — the gap is the data point.
+  - Continue collection with the **remaining sources** unless the failed source was the **only** test-case source (step 2). If the only test-case source failed, stop the whole skill and surface to the calling workflow — `<success_criteria>` requires at least one test-case source.
+- **No TMS source resolvable** (step 2 — project config names a TMS but the user supplied no ticket/case ID AND the delegated MCP skill cannot infer one): stop, ask the user once for the ticket/case ID. After one re-ask still missing, stop the skill, record `Phase 1 blocked: no resolvable test-case source — TMS configured but identifier not supplied` in `agents/qa-state.md`. Do NOT invent an ID.
+- **Documentation step user response missing** (step 3 ask-once: no documentation found AND user supplies neither URLs nor explicit `skip`): re-ask once. If still no response, treat as explicit `skip` AND record `Documentation: not available — no user response after re-ask` in `## Documentation`. Continue with the remaining steps.
+- **Backend source code path set in config but absent on disk** (step 4): record `Gap: backend source path <path> set in qa-project-config.md but not found on disk` in the Backend Source Code Analysis section's Notes. Continue with the remaining steps; do NOT silently mark `N/A`.
+- **`raw-data.md` unwritable** (permission denied, disk full): pause, report the filesystem error with the file path, do not mark Phase 1 complete.
+
+</failure_handling>
+
 <validation_checklist>
 
-Before declaring this skill complete, all of the following must hold:
+Proof-oriented checks only — section presence is enforced by `<success_criteria>`; this checklist verifies things the success contract cannot directly grep.
 
-- `agents/qa/{IDENTIFIER}/raw-data.md` was written with every section from the `<output_format>` template present (or explicitly marked "N/A" with a one-line reason — not silently skipped)
-- **Test cases section:** at least one source identified (TestRail / Jira / User Provided); gaps from incomplete TMS / Jira / Confluence retrieval are recorded as explicit `Gap: ...` notes, NOT silently filled with assumptions
-- **Documentation section:** if no documentation was found, the user was asked and the response (URLs supplied OR explicit `skip` decision) is recorded
-- **Existing test patterns section:** if a test framework was identified, the file naming convention, test structure example, and auth-setup pattern (described, not pasted) are filled in (not "TBD"); if no existing tests, the section explicitly says so with a reason
-- **Backend source code section:** populated when backend path was set in project config OR discovered via `RefSrc/`; explicitly marked "N/A" with a reason when no source was available — NOT skipped silently
-- **API endpoints table:** every row has Method + Source columns populated; partial rows (e.g., method unknown) are tagged as gaps in the Notes section
-- **Safety re-check (per step 6.1):** `raw-data.md` was scanned for literal secrets (passwords, tokens, API keys, full `.env` contents, connection strings, private keys); none are present — only paths and mechanism descriptions
-- **Anti-assumption re-check (per step 6.2):** every pitfall in `<pitfalls>` was reviewed against the artifact before declaring complete; gaps in TMS / Confluence / codebase analysis are recorded as gaps, not filled by inference
+- **Every output section present-or-N/A** per `<output_format>` (verify by section-header grep before emit; silent omission is forbidden).
+- **API endpoints table grep:** every row has non-blank Method + Source columns; partial rows are tagged as Notes gaps.
+- **Safety re-check (per step 6.1):** `raw-data.md` was grepped for the credential/PII patterns enumerated in `<safety_boundaries>` (single source of truth for the target list); none are present — only paths and mechanism descriptions.
+- **Anti-assumption re-check (per step 6.2):** every pitfall in `<pitfalls>` was reviewed against the artifact before declaring complete; gaps in TMS / Confluence / codebase analysis are recorded as `Gap: ...` notes, not filled by inference.
+- **Sub-skill failure surfacing:** if any delegated MCP skill stopped per `<failure_handling>`, its verbatim failure message appears in the relevant section's `## Notes / Gaps`. No silent absorption of stop reports.
 
 </validation_checklist>
 

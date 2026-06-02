@@ -45,8 +45,22 @@ Find or create the project config file, obtain project-specific data retrieval c
 </load_project_config>
 
 <obtain_project_info step="0.4">
-1. ACQUIRE `questioning/SKILL.md` FROM KB
-2. Ask user about knowledge base and data retrieval setup
+
+Contiguous 1–5 sequence. The `<example_format_of_question>` block below is the verbatim question text used by step 2 — it is **not** a numbered step and the sequence does not restart after it.
+
+1. ACQUIRE `questioning/SKILL.md` FROM KB.
+2. Ask the user about knowledge base and data retrieval setup using the verbatim question text in `<example_format_of_question>` below.
+3. Process the user's answer — confirm the default scheme OR capture their customization.
+4. **Validate the answer provides sufficient information.** Minimum required fields:
+   - **Data sources** (which of: Jira, Confluence, attached docs, other URLs)
+   - **Retrieval method** per source (MCP-based / direct URL / search-by-keywords)
+   - **Auth assumptions** (MCP already configured / token in env / requires per-call OAuth)
+
+   **Validation failure paths:**
+   - If user said YES to default but the default cannot run in the environment (no MCP, no auth): re-ask for the missing field(s), naming exactly which are absent.
+   - If user said NO but did not name source / method / auth: re-prompt up to 2 times naming the missing fields explicitly. After 2 unsuccessful re-prompts, stop Phase 0, record `Phase 0 blocked: incomplete config answer` in `testgen-state.md`, and ask the user to supply a complete answer before continuing.
+5. Save the validated configuration to `agents/testgen/testgen-project-config.md` (canonical path per step 0.3).
+
 <example_format_of_question>
 ```markdown
 According to test generation process rules, I require more details related to your project - How should I retrieve the information necessary for test case generation?
@@ -57,27 +71,14 @@ As a reference, I provide the default Data Retrieval scheme below:
 - search for Confluence pages using keywords extracted from the ticket
 - combine all the information as a basis for test case generation
 
-Is the above accurate for your project? 
+Is the above accurate for your project?
 Please answer YES or NO
 - If your answer is NO then please provide details about data retrieval for your project.
-- If you have links to any additional documentation or materials that need to be considered, 
+- If you have links to any additional documentation or materials that need to be considered,
 you can provide them here as well.
 ```
 </example_format_of_question>
 
-
-
-
-2. Ask user to confirm or customize the data retrieval process
-3. **Validate answer provides sufficient information.** Minimum required fields:
-   - **Data sources** (which of: Jira, Confluence, attached docs, other URLs)
-   - **Retrieval method** per source (MCP-based / direct URL / search-by-keywords)
-   - **Auth assumptions** (MCP already configured / token in env / requires per-call OAuth)
-   
-   **Validation failure paths:**
-   - If user said YES to default but the default cannot run in the environment (no MCP, no auth): re-ask for the missing field(s), naming exactly which are absent.
-   - If user said NO but did not name source / method / auth: re-prompt up to 2 times naming the missing fields explicitly. After 2 unsuccessful re-prompts, stop Phase 0, record `Phase 0 blocked: incomplete config answer` in `testgen-state.md`, and ask the user to supply a complete answer before continuing.
-4. Save configuration to `agents/testgen/testgen-project-config.md` (canonical path per step 0.3).
 </obtain_project_info>
 
 <create_initial_data step="0.5">

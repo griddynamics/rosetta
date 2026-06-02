@@ -247,18 +247,27 @@ This boundary is consistent with `qa-data-collection`'s `<safety_boundaries>` fo
 
 </safety_boundaries>
 
+<failure_handling>
+
+- **`raw-data.md` missing or empty** at `agents/qa/{IDENTIFIER}/raw-data.md`: stop, report `qa-gap-analysis: raw-data.md missing/empty at <path>` to the calling workflow, ask the user to rerun Phase 1 (data collection). Do NOT proceed — step 1's cross-reference has nothing to read from.
+- **`api-analysis.md` missing or empty** at `agents/qa/{IDENTIFIER}/api-analysis.md`: stop, report `qa-gap-analysis: api-analysis.md missing/empty at <path>`, ask the user to rerun Phase 2 (API spec analysis). Do NOT invent endpoints to fill the cross-reference table — that's the exact fabrication mode this skill is built to surface.
+- **`api-analysis.md` exists but contains zero endpoints** (the artifact was produced but is structurally empty — Phase 2 found no endpoints to record): treat as a **blocking gap**. Record one `G[N]` entry in `analysis.md` of type **Endpoint** with `Missing Information: api-analysis.md has zero endpoints — cross-reference impossible without source-of-truth endpoint inventory` and `Impact: blocks test specification entirely`. Stop step 1, surface as a Critical question to the user (`Should Phase 2 re-run with a different spec source, or proceed with manual endpoint discovery?`), do NOT emit a vacuous Cross-Reference Results section with no entries.
+- **`raw-data.md` or `api-analysis.md` unreadable / corrupt** (parse error, permission denied): stop, report the IO/parse error with the file path, ask the user to inspect.
+- **Test case has zero test steps to cross-reference** (raw-data.md captures a test case description but the steps section is empty): stop, surface as a Critical question (`Test case provides no steps to cross-reference — please supply the step sequence or confirm the test is intentionally exploratory`). Do not emit an empty Cross-Reference Results section.
+- **User does not respond to Critical question prompts** after one re-ask: apply `<success_criteria>` Assumption-with-Deferred-tag rule — record the Critical question's assumption + impact-if-wrong + `Deferred: no user response after re-ask` and surface to the calling workflow so downstream phases see the gap. Do NOT proceed silently.
+
+</failure_handling>
+
 <validation_checklist>
 
-Run before declaring the skill complete. All items must hold:
+Proof-oriented items only — section-presence and Critical-question resolution are enforced by `<success_criteria>`; this checklist verifies things `<success_criteria>` cannot directly assert.
 
-- **`analysis.md` written** at `agents/qa/{IDENTIFIER}/analysis.md` with every `<output_format>` section present (Executive Summary, Cross-Reference Results, Gaps, Contradictions, Ambiguities, Questions & Answers, Assumptions Made, Resolved Items). No section omitted; empty sections explicitly say `None — <reason>` rather than left blank.
-- **Every test step from step 1 has a Cross-Reference entry** in the `## Cross-Reference Results` section — partial coverage of the test case is a regression (pitfall 1).
-- **Executive Summary counts match the body** — `Gaps Found` count equals the number of `G[N]` entries; same for Contradictions (`C[N]`) and Ambiguities (`A[N]`). `Questions Asked` matches the number of Critical + Important + Optional entries combined. If counts disagree, fix the count or the body before emitting.
-- **Every Critical question is resolved** per `<success_criteria>` — answered, recorded as Assumption with default + impact-if-wrong, or recorded as Deferred with reason. No "Open" / "Pending" status on a Critical question.
-- **Every Assumption has Default + Impact-if-Wrong** — no Assumption entry with those fields blank; this is the contract the calling workflow consumes.
-- **Safety re-scan ran per `<safety_boundaries>`** — `analysis.md` was grepped for credential-shaped patterns (`Bearer `, `Authorization:`, `password:`, `api_key=`, JWT shape, `BEGIN PRIVATE KEY`) and PII-shaped patterns before declaring complete; any hits were replaced with placeholders AND the redaction was noted inline.
-- **No fabricated quotes** in Contradiction / Ambiguity entries — every `"[Quote]"` traces verbatim to a real source (with redaction where sensitive); paraphrased "the source said X" without the quote is not acceptable.
-- **Question count ≤ 20 per batch** (pitfall 2). If more than 20 Critical+Important questions surfaced, they are batched into multiple rounds; the artifact records the current batch and the deferred batches.
+- **Cross-Reference entry-per-step grep:** every test step from step 1 produced a `### Cross-Reference: Test Case Step [N]` entry in `## Cross-Reference Results` — verify by grep before emit; the per-step count = total test step count (pitfall 1).
+- **Executive Summary counts match the body** — `Gaps Found` count = `G[N]` entry count in section 2; same for Contradictions (`C[N]`) and Ambiguities (`A[N]`). `Questions Asked` count = Critical + Important + Optional entries combined. Re-grep before emit; if counts disagree, fix the count or the body.
+- **Every Assumption has Default + Impact-if-Wrong populated** — no `A-N` entry with those fields blank (this is the contract the calling workflow consumes; `<success_criteria>` requires the assumption to exist, this checklist verifies the fields).
+- **No fabricated quotes** in Contradiction / Ambiguity entries — every `"[Quote]"` traces verbatim to a real source line (with redaction where sensitive per `<safety_boundaries>`); re-grep for paraphrased "the source said X" forms and fail emit on any match.
+- **Safety re-scan grep** per `<safety_boundaries>` (the authoritative target list + patterns live there): `analysis.md` was grepped for the patterns enumerated in `<safety_boundaries>`; any hits were replaced with placeholders AND the redaction was noted inline. If no matches: no annotation required.
+- **Question count ≤ 20 per batch** (pitfall 2). If more than 20 Critical+Important questions surfaced, they are batched; the artifact records the current batch and the deferred batches.
 
 </validation_checklist>
 
@@ -268,7 +277,7 @@ Run before declaring the skill complete. All items must hold:
 - Proceeding to test specification with unresolved critical gaps
 - Assuming answers when user doesn't respond — document as assumption instead
 - Ignoring contradictions between documentation sources
-- Pasting verbatim quotes from test cases / Swagger / docs without scanning for credentials / tokens / PII — apply `<safety_boundaries>` redaction BEFORE writing into `analysis.md`
+- Pasting verbatim quotes without applying `<safety_boundaries>` redaction (the target list + grep patterns live there) — redact BEFORE writing into `analysis.md`, not after
 - Emitting `analysis.md` with Executive Summary counts that disagree with the body — re-check counts in step 5 before declaring complete
 </pitfalls>
 

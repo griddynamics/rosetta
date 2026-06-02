@@ -48,9 +48,9 @@ Complete when the Jira issue was retrieved via `jira_get_issue`, normalized into
 
 4. **Pre-emit validation.** Before writing the output, re-check against `<validation_checklist>`. Fix any failing item before step 5.
 
-5. **Apply `<safety_boundaries>` redaction one final time** as a re-scan against the assembled artifact. Description and the comments block are the highest-risk fields — Jira tickets routinely contain pasted stack traces, environment dumps, and customer reports that embed Bearer tokens, connection strings, and PII. Any match found here is replaced with a placeholder AND recorded in the Sensitive-content redactions section. If none found: write `None.` in that section.
+5. **Apply `<safety_boundaries>` redaction one final time** as a re-scan against the assembled artifact (Description + Comments are the highest-risk fields — stack traces, environment dumps, customer-report pastes). The target list + grep patterns + placeholder vocabulary live in `<safety_boundaries>` (single source of truth). Any match here is replaced with a placeholder AND recorded in Sensitive-content redactions. If none: write `None.` in that section.
 
-6. **Fallback (ticket key resolvable but custom-field names unknown):** use `jira_search_fields()` to discover custom field names. See step 3 custom-fields branch above.
+6. **Custom-field discovery fallback:** see step 3 custom-fields branch (canonical) — no separate procedure.
 
 </process>
 
@@ -138,7 +138,7 @@ Before declaring this skill complete, all of the following must hold:
 - **Every empty / restricted required field is in the Gaps section:** Summary, Description are required; if either is empty or restricted in Jira, it appears in Gaps with the field name. No field was silently left blank in the output.
 - **Comments cap respected:** at most 10 comments recorded (the most recent 10). If Jira had >10 comments, a Gaps entry notes `Comments: showing 10 most recent; <total> total exist in Jira`.
 - **Custom-field discovery attempted when needed:** if any returned field used a cryptic `customfield_NNNNN` ID, `jira_search_fields` was called (and its result OR failure recorded).
-- **Redaction scan completed:** every field — especially description and comments — was scanned for credentials / tokens / PII / credentialed URLs / connection strings per `<safety_boundaries>`; any matches were replaced with placeholders AND recorded in the Sensitive-content redactions section. If no matches: that section says `None.` — not blank.
+- **Redaction scan completed** per `<safety_boundaries>` (single source of truth for targets, grep patterns, and placeholders) — especially against Description and Comments; any matches were replaced and recorded in Sensitive-content redactions. If no matches: that section says `None.` — not blank.
 - **No fabricated content:** no field of the output describes content not actually present in the Jira issue object. Inference, paraphrase-without-quote, or guessed values are forbidden — gaps are recorded, not filled.
 - **Read-only contract honored:** no Jira MCP write operations were called (`jira_create_issue`, `jira_update_issue`, `jira_transition_issue`, `jira_add_comment`, etc.).
 
@@ -149,7 +149,7 @@ Before declaring this skill complete, all of the following must hold:
 - Custom fields vary per project — use `jira_search_fields()` to discover names
 - Rendered HTML description may need markdown conversion
 - Some fields (assignee, reporter, description) may be restricted by permissions — record as `<restricted by permissions>` + Gaps note; do NOT silently leave blank
-- Pasting verbatim description or comments into the artifact without scanning for credentials / PII — Jira tickets routinely contain stack-trace dumps with Bearer tokens, connection strings, and customer-report PII. Apply `<safety_boundaries>` redaction BEFORE writing, not after.
+- Pasting verbatim description or comments without applying `<safety_boundaries>` redaction (the target list + grep patterns live there) — Jira tickets routinely embed credentials and PII in stack-trace dumps and customer reports; redact BEFORE writing, not after.
 - Capping comments at >10 silently — record the cap in Gaps if there were more
 - Emitting a partial artifact on auth/transport failure instead of stopping per `<failure_handling>` — silent partial emit hides the failure from downstream phases
 </pitfalls>

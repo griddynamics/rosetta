@@ -24,22 +24,37 @@ Write exactly one documentation MCP outcome under the QA raw-data file and verif
 </phase_steps>
 
 <execute_documentation_mcp step="1.2b" subagent="discoverer" role="QA data collector">
-**Early-exit rule:** whenever you must finish **without** running the MCP collection USE in step 9 below, write the branch row under the raw-data heading (see **Output contract** table), run **only** step 10 (verify), then **stop this subflow**.
 
-1. **Resolved MCP collection skill:** pick the first non-empty string from the config keys listed in `<workflow_context>` (`documentation_mcp_collection_skill`, `documentation.mcp_collection_skill`, `mcp_documentation_collection_skill`, `confluence_mcp_collection_skill`). If none are set but documentation MCP scope is clearly active per other config fields, re-read `qa-project-config.md` and Phase 0 notes from `qa-flow-project-config-loading` for a default tag; if still absent, apply **SKIPPED_NO_CONFIG** row from the table → **Early-exit rule**.
-2. If **all** documentation MCP signals listed in `<workflow_context>` are absent (no URLs/spaces/types/MCP entries/skill tags for documentation): apply **SKIPPED_NO_CONFIG** → **Early-exit rule**.
-3. ACQUIRE `confluence-source-harvesting` FROM KB if not already loaded.
-4. If step 3 returned **zero** documents: apply **ACQUIRE_FAILED** with skill `confluence-source-harvesting` → **Early-exit rule**.
-5. ACQUIRE the **Resolved MCP collection skill** tag from step 1 FROM KB if not already loaded.
-6. If step 5 returned **zero** documents: apply **ACQUIRE_FAILED** with the **Resolved MCP collection skill** tag → **Early-exit rule**.
-7. USE SKILL `confluence-source-harvesting`.
-8. If step 7 produced no harvestable sources: apply **EMPTY_HARVEST** → go to step 10 only (**do not** run step 9).
-9. USE SKILL with the **Resolved MCP collection skill** tag; when done, apply **COMPLETED**.
-10. Verify `agents/qa/{IDENTIFIER}/raw-data.md` exists and the documentation heading holds **exactly one** outcome matching **one row** of the **Output contract** table, consistent with the branch taken above. **Verification-failure remediation:**
-    - **Zero outcomes found under the heading:** append the appropriate row for the branch taken; re-run step 10.
-    - **Duplicate outcomes (multiple rows under the heading, typically from a re-run):** keep only the most recent matching row (latest by `agents/qa-state.md` Phase 1 timestamp), delete earlier rows; re-run step 10.
-    - **Heading missing entirely:** create the fixed heading from `<workflow_context>`, then append the appropriate row; re-run step 10.
-    - **After remediation:** if verification still fails on a third pass, stop, record `Phase 1 subflow verification failed after remediation` in `agents/qa-state.md`, and ask the user to inspect `raw-data.md` manually.
+Three sub-blocks executed in order: **resolve** → **harvest_and_collect** → **verify**. Each sub-block carries only its own directives; branch triggers live in `<output_contract>` and are referenced by name (e.g. "apply **SKIPPED_NO_CONFIG**") rather than restated. Config-key precedence lives in `<workflow_context>` and is referenced, not relisted.
+
+**Early-exit rule:** whenever any sub-block applies a branch from `<output_contract>` **other than COMPLETED**, write the row under the raw-data heading and **jump directly to `<verify>` (skip the rest of harvest_and_collect)**.
+
+<resolve>
+1. Pick the **Resolved MCP collection skill** = first non-empty config key per `<workflow_context>` precedence list. If none of those keys are set but documentation MCP scope is clearly active per the in-scope signals in `<workflow_context>`, re-read `qa-project-config.md` and Phase 0 notes for a default tag; if still absent, apply **SKIPPED_NO_CONFIG** → early-exit.
+2. If **all** documentation MCP signals from `<workflow_context>` are absent: apply **SKIPPED_NO_CONFIG** → early-exit.
+</resolve>
+
+<harvest_and_collect>
+1. ACQUIRE `confluence-source-harvesting` FROM KB if not loaded. Zero documents returned → apply **ACQUIRE_FAILED** (skill `confluence-source-harvesting`) → early-exit.
+2. ACQUIRE the **Resolved MCP collection skill** (from `<resolve>` step 1) FROM KB if not loaded. Zero documents returned → apply **ACQUIRE_FAILED** (Resolved MCP collection skill) → early-exit.
+3. USE SKILL `confluence-source-harvesting`. No harvestable sources → apply **EMPTY_HARVEST** → jump to `<verify>` (do NOT run the next step).
+4. USE SKILL with the **Resolved MCP collection skill**; when done, apply **COMPLETED**.
+</harvest_and_collect>
+
+<verify>
+1. Verify `agents/qa/{IDENTIFIER}/raw-data.md` exists and the documentation heading (per `<workflow_context>`) holds **exactly one** outcome line matching the row of `<output_contract>` for the branch taken above.
+2. On verification failure: apply the matching case in `<verify_remediation>`, then re-run verify. After three failed passes total, stop and escalate per `<verify_remediation>` "terminal" rule.
+</verify>
+
+<verify_remediation>
+Triggered from `<verify>` step 2. Each case is a one-step remediation followed by re-running `<verify>`.
+
+- **Zero outcomes under the heading** → append the row for the branch taken (per `<output_contract>`); re-run verify.
+- **Duplicate outcomes** (multiple rows from a re-run) → keep only the most recent matching row (latest by `agents/qa-state.md` Phase 1 timestamp), delete earlier rows; re-run verify.
+- **Heading missing entirely** → create the fixed heading from `<workflow_context>`, then append the appropriate row; re-run verify.
+- **Terminal (third pass still fails)** → stop; record `Phase 1 subflow verification failed after remediation` in `agents/qa-state.md`; ask the user to inspect `raw-data.md` manually.
+</verify_remediation>
+
 </execute_documentation_mcp>
 
 <output_contract>

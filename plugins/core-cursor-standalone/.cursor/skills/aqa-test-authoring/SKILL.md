@@ -67,8 +67,11 @@ Create outline: test name, setup requirements, dependencies, structure.
 
 ## 2. Determine File Location
 
-- **Add to existing**: closely related test exists, file not too large
-- **Create new**: new feature area or logical separation needed
+Deterministic branch — evaluate in order, first match wins:
+
+1. **Add to existing** — IF a closely related test (same feature area, same setup pattern, same page-object scope) exists AND the file is **under the project's per-file size threshold** (from `<input_contract>` repo standards — `project_description.md` / `CONTEXT.md`; if no project threshold is documented, fall back to **≤ 400 lines** as the closest-aligned default with sibling `aqa-codebase-analysis` step 6's location rule).
+2. **Create new** — IF (a) the feature is a new area, OR (b) no closely related test exists, OR (c) the closest related file would exceed the threshold after addition, OR (d) the existing file's structure does not accommodate the new test's setup/teardown shape.
+3. **Ambiguous (tie-break: prefer Create new)** — IF the rules above leave the decision unclear (related-but-not-closely, file near the threshold, structural fit unclear), default to **Create new**. Record the ambiguity reason in step 5's `### Conflicts and Precedence` section so the test plan reflects the placement decision.
 
 If existing: read file, find appropriate insertion point.
 If new: follow file naming convention from project standards.
@@ -100,9 +103,19 @@ Run the `<validation_checklist>` below. Then, **before proceeding to step 5**:
 
 Append the `## Test Implementation` section to the test plan per `<output_format>` (template in [references/test-implementation-template.md](references/test-implementation-template.md)). Populate every required subsection (**Test File**, **Implementation Summary**, **Uncovered Assertions**, **Conflicts and Precedence**, **Validation**) with the values produced by steps 1–4. Empty subsections use the explicit `None — <reason>` line from the template — never left blank.
 
-The skill is complete after step 5 emits and only after step 4's validation passed.
+The skill is complete after step 5 emits and only after step 4's validation passed — full done-condition + NOT-complete clauses live in `<success_criteria>` below.
 
 </process>
+
+<success_criteria>
+
+High-level done-condition. Item-level checks live in `<validation_checklist>` (single source of truth — referenced here, not restated; mirrors the sibling `aqa-test-debugging` pattern).
+
+**Complete when:** step 4 validation passed → step 5 emitted the `## Test Implementation` section to the test plan → every `<validation_checklist>` item is satisfied. Specifically: test file written at the chosen path; every plan assertion was either implemented OR recorded in `### Uncovered Assertions` with reason; no application source or page-object files were modified (safety boundary); the hand-off section has all five required subsections (Test File, Implementation Summary, Uncovered Assertions, Conflicts and Precedence, Validation); lint/format clean on touched files.
+
+**NOT complete** if step 5 emitted before step 4's validation passed; any plan assertion is missing from both the test file AND the `### Uncovered Assertions` section (silent drop); any application source or page-object file was modified by this skill (Phase 5 owns page-object edits — escalate per `<failure_handling>`); the hand-off section has a blank required subsection instead of `None — <reason>`; or lint failed on a touched file with no recorded resolution.
+
+</success_criteria>
 
 <output_format>
 

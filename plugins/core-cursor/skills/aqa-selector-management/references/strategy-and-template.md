@@ -100,3 +100,37 @@ Written into the test plan (or the artifact the calling workflow names):
 - Methods Added: [count]
 - Fragile selectors implemented after explicit approval: [list with approval evidence, or `None`]
 ```
+
+---
+
+## Part B `<failure_handling>` extensions (referenced from SKILL.md `<failure_handling>`)
+
+Loaded only when running Part B. Part A invocations do not pay the resident cost.
+
+- **Page object file not found in step 5** (Part B): if the target page-object file path from Part A's inventory does not exist when Part B tries to extend it, decide between (a) creating a new page object per step 6 if the inventory marked it as "to create" — proceed, or (b) stopping if the inventory marked it as "to extend" — file should exist; report `aqa-selector-management: target page object missing at <path> but Part A expected to extend it` to the calling workflow.
+- **Part A inventory missing** (Part B): if the test plan's `## Selector Management` section (or the artifact the calling workflow names) is absent/empty when Part B starts, stop — report `aqa-selector-management: Part A inventory missing — Phase 4 (selector identification) must run first`. Do NOT re-run Part A inside a Part B invocation; that's a phase-scope violation.
+
+---
+
+## Part B `<validation_checklist>` (referenced from SKILL.md `<validation_checklist>`)
+
+Loaded only when running Part B. Part A invocations carry only the Part A half inline.
+
+- Part A inventory was loaded before any page-object write
+- Every page object modified/created matches the project's existing patterns (naming, imports, structure, helper conventions)
+- Lint/format clean on touched files
+- No fragile selector implemented without an approval record in the "Fragile selectors implemented after explicit approval" section
+- No files outside the page-object layer were modified (safety boundary)
+- The test plan's `## Selector Management` section's Implementation subsection is updated with paths + counts
+
+---
+
+## Part B `<pitfalls>` extensions (referenced from SKILL.md `<pitfalls>`)
+
+Loaded only when running Part B. Part A invocations do not pay the resident cost.
+
+- Silently committing a flagged fragile selector in Part B without explicit approval — safety-boundary violation
+- Breaking existing page object patterns (different naming, style)
+- Re-running Part A from scratch inside a Part B invocation — phase-scope violation; consume the recorded inventory instead
+- Modifying test files, fixtures, or frontend source during selector implementation — only page objects are written
+- Not validating linting after implementation

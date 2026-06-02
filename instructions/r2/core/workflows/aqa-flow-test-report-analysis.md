@@ -120,8 +120,8 @@ Analyze test execution reports to identify failures, errors, and areas for impro
    **Error Message**: [Full error message]
    **Stack Trace**: [If available]
    **Likely Cause**: [Analysis of root cause]
-   **Evidence Label**: [Confirmed / Assumption / Unknown]
-   **Evidence Rationale**: [One-line reason for the label]
+   **Evidence Label**: [pick from Task 5 — Confirmed / Assumption / Unknown]
+   **Evidence Rationale**: [one-line reason per Task 5 output rule]
    **Page Source Analysis**: [If selector/locator error]
      - Page Source File: [Path]
      - Selector Used: [Selector from test]
@@ -175,12 +175,16 @@ Analyze test execution reports to identify failures, errors, and areas for impro
    - Is it an application bug? (not test issue)
    - Is it a test data problem? (Phase 2 issue)
    - Is it an environment issue? (infrastructure)
-3. Classify each root cause by evidence strength:
-   - **Confirmed**: Logs, stack traces, page source, artifacts, or reproducible steps directly tie the failure to this cause
-   - **Assumption**: Partial evidence supports the cause, but confirmation is missing (for example, time correlation without a stack trace, a single flaky run, or a symptom-based inference)
-   - **Unknown**: No usable supporting evidence is available yet
-   - **Ambiguous evidence**: If a case could reasonably be tagged as both Confirmed and Assumption, choose **Assumption**. If it could be both Assumption and Unknown, choose **Unknown** unless at least one concrete partial fact exists, then choose **Assumption**
-   - Document exactly one evidence label and one-line rationale for every root cause
+3. Classify each root cause by evidence strength. **This is the single source of truth for evidence labels — Task 3, Task 6, Completion Criteria, Update State, and Important Notes all reference this block by name rather than restating the definitions.**
+
+   - **Confirmed**: Logs, stack traces, page source, artifacts, or reproducible steps directly tie the failure to this cause.
+   - **Assumption**: Partial evidence supports the cause, but confirmation is missing (for example, time correlation without a stack trace, a single flaky run, or a symptom-based inference).
+   - **Unknown**: No usable supporting evidence is available yet.
+   - **Ambiguous evidence (tie-break):** If a case could reasonably be tagged as both Confirmed and Assumption, choose **Assumption**. If it could be both Assumption and Unknown, choose **Unknown** unless at least one concrete partial fact exists — then choose **Assumption**.
+
+   **Output rule:** every root cause carries exactly one label + a one-line rationale.
+
+   **Undecidable fallback (terminal):** if a single pass cannot confidently classify a root cause, default it to the **weaker** label per the tie-break rule above — **Unknown** when no concrete partial fact exists, **Assumption** when at least one does. Record the **open question** (what additional evidence would upgrade the label) in `agents/aqa-state.md` under `Phase 7 Open Questions`. Never leave a root cause unlabeled, and never loop indefinitely seeking certainty — record the open question and move on.
 4. Prioritize issues:
    - **Critical**: Tests completely broken, blocking
    - **High**: Major functionality not working
@@ -213,7 +217,7 @@ Analyze test execution reports to identify failures, errors, and areas for impro
    [List of all failures from Task 3]
    
    ### Root Cause Analysis
-   [Analysis from Task 5, including Confirmed/Assumption/Unknown labels and evidence rationale]
+   [Analysis from Task 5 — every root cause carries an evidence label + rationale per Task 5's rule]
    
    ### Performance Analysis
    [Findings from Task 4]
@@ -235,7 +239,7 @@ Analyze test execution reports to identify failures, errors, and areas for impro
 - [ ] Test report read and parsed
 - [ ] All failures identified and categorized
 - [ ] Root causes analyzed
-- [ ] Each root cause labeled Confirmed, Assumption, or Unknown with a one-line evidence rationale
+- [ ] Each root cause labeled per Task 5's evidence-strength rule (every cause carries exactly one label + a one-line rationale; undecidable cases default per Task 5's terminal fallback and the open question is recorded in `agents/aqa-state.md`)
 - [ ] Performance issues identified (if applicable)
 - [ ] Test plan updated with Phase 7 analysis
 - [ ] `agents/aqa-state.md` updated with Phase 7 completion
@@ -254,7 +258,8 @@ After completing Phase 7, update `agents/aqa-state.md`:
 - Tests Passed: [Count]
 - Tests Failed: [Count]
 - Critical Issues: [Count]
-- Root Causes Identified: [List with Confirmed/Assumption/Unknown labels]
+- Root Causes Identified: [list with evidence labels per Task 5]
+- Phase 7 Open Questions: [list of undecidable-fallback open questions per Task 5, or `None`]
 ```
 
 Mark Phase 7 as completed and Phase 8 as current.
@@ -271,7 +276,7 @@ ACQUIRE aqa-flow-test-correction.md FROM KB
 - **No Code Writes**: Phase 7 is analysis-only; do not edit production code, test code, selectors, fixtures, or product/test source files
 - **Report Location Priority**: Always check all files in agents/user-instructions/ directory first, then ask user if not found
 - **Comprehensive Analysis**: Don't just list failures - analyze root causes
-- **Evidence Labels**: Every root cause must have exactly one evidence label: **Confirmed**, **Assumption**, or **Unknown**, plus a one-line rationale
+- **Evidence Labels**: applied per Task 5 (single source of truth — definitions, tie-break, output rule, undecidable fallback all live there)
 - **Page Source Analysis**: **MUST** analyze page sources when encountering selector/locator errors (element not found, selector not visible, etc.) to identify actual DOM structure and suggest correct selectors
 - **Pattern Recognition**: Look for common issues across multiple failures
 - **User Context**: Consider user's test execution environment when analyzing failures

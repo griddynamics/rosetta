@@ -63,13 +63,17 @@ Extract:
 
 ### 3. Categorize Failures
 
-For each failure, classify:
-- **Selector issues**: element not found, selector incorrect
-- **Timing issues**: timeouts, race conditions
-- **Assertion failures**: expected vs actual mismatches
-- **Setup issues**: preconditions not met, data problems
-- **Application issues**: bugs in app under test
-- **Test code issues**: logic errors, incorrect implementation
+**Canonical taxonomy (single source of truth — referenced by step 4, `<success_criteria>`, `<validation_checklist>`, `<failure_handling>`).** Assign **exactly one** category per failure; the seven are exhaustive + mutually exclusive (pick the most proximate cause):
+
+1. **Selector / Locator** — element not found, selector incorrect, element-not-visible (patterns in step 4)
+2. **Timing / Visibility** — timeouts, race conditions, animation not settled, wait too short
+3. **Assertion failure** — expected vs actual mismatch (status / content / count / attribute)
+4. **Setup / Data** — preconditions / fixtures / test data / session not established
+5. **Application bug** — defect in app under test (escalates per `<safety_boundaries>`)
+6. **Test code** — logic error, wrong helper API, missing await/async
+7. **Unknown** — failure occurred but no usable evidence (explicit catch-all per `<failure_handling>`)
+
+Downstream sections reference this list by name — do not introduce additional categories or rename them.
 
 ### 4. Analyze Selector/Locator Errors
 
@@ -143,16 +147,7 @@ This Part A → Part B cycle may loop (Phase 7 analysis → Phase 8 corrections 
 2. **Increment the counter** when this skill completes Part B (one full apply pass = one iteration) and write it back to the state file.
 3. **Cap enforcement.** After the 3rd iteration completes:
    - If the most recent test re-execution shows **all tests pass** → mark the AQA flow as **COMPLETE** in state and stop.
-   - If failures still remain → **STOP** the iterate-on-corrections cycle. Record an **escalation note** in the analysis artifact's `## Escalation` section AND in `agents/aqa-state.md`:
-     ```
-     Escalation: 3-iteration cap reached with N failure(s) remaining.
-     Likely cause: application defect under test (Application Bug category dominates) OR fundamental test-spec mismatch (Response Assertion / Request Issue patterns persist across iterations).
-     Recommended next steps: <one of>
-       - Surface remaining failures as application defects to the product team (do NOT continue patching tests around them).
-       - Revisit Phase 2 (Requirements Clarification) to verify the test plan's assertions match current API/UI behavior.
-       - User decides whether to continue with a 4th iteration under explicit waiver.
-     ```
-   - Ask the user how to proceed; **do NOT auto-start a 4th iteration** without an explicit user waiver recorded in the state file.
+   - If failures still remain → **STOP** the iterate-on-corrections cycle. Write the **verbatim escalation-note template** from [references/escalation-template.md](references/escalation-template.md) into both the analysis artifact's `## Escalation` section AND `agents/aqa-state.md`, then ask the user how to proceed. **Do NOT auto-start a 4th iteration** without an explicit user waiver recorded in the state file.
 
 </process>
 
@@ -213,22 +208,11 @@ Part B applies real code changes to the repository's test files. The Part A anal
 
 <success_criteria>
 
-The skill is complete when **all of** the following hold:
+High-level done-condition. Item-level checks live in `<validation_checklist>` (single source of truth — referenced here, not restated).
 
-**Part A (always required):**
-- Every failed test from the report has a Failure entry with Category + Root Cause populated.
-- Every selector-category failure cites page-source evidence OR carries the `Root Cause: Unknown — page sources not available` tag per `<failure_handling>`.
-- Execution Summary counts match the body Failure entry count.
-- `<safety_boundaries>` redaction was applied to every credential/PII pattern in the artifact.
+**Complete when:** Part A's analysis artifact has been emitted with every `<validation_checklist>` Part-A item satisfied; AND if Part B ran, every `<validation_checklist>` Part-B item is satisfied; AND if iteration 3 left failures, the verbatim escalation template from [references/escalation-template.md](references/escalation-template.md) was written per step 9.
 
-**Part B (when corrections were applied):**
-- Every applied change carries an explicit approval record per `<safety_boundaries>` approval discipline — no inferred-approval applications.
-- Every applied change is lint/format clean on the touched file.
-- No test intent was silently altered; spec updates (when required) are recorded as such.
-- No application/product source file was modified.
-- If iterations reached 3 with failures remaining, the escalation note is recorded per Part B step 9.
-
-The skill is **NOT complete** if Part A emits a partial Failure list, a selector failure lacks both evidence and the Unknown tag, Part B applied a change without explicit approval, or Part B touched application source.
+**NOT complete** if any `<validation_checklist>` item is unmet — partial Failure list, selector failure missing both page-source evidence AND the `Unknown` tag (per the canonical taxonomy in step 3), Part B applied a change without explicit approval, or Part B touched application source.
 
 </success_criteria>
 
@@ -238,7 +222,7 @@ Run before declaring complete. Items apply per the part(s) that ran.
 
 **Part A (report analysis):**
 - Every failed test from the report has a Failure entry — partial coverage of the failure list is a regression.
-- Every Failure entry has a Category (Connection / Auth / Request / Response / Data / Timing / App Bug / Selector-Locator / Contract-Mismatch / Unknown) and a Root Cause.
+- Every Failure entry has a Category picked from the canonical taxonomy in step 3 (Selector / Locator | Timing / Visibility | Assertion failure | Setup / Data | Application bug | Test code | Unknown) AND a Root Cause.
 - Every selector-category Failure either cites page-source evidence (`agents/plans/aqa-<test-name>-page-sources/<file>` + the selector lookup) OR carries `Root Cause: Unknown — page sources not available; would need Phase 4 selector identification re-run` per `<failure_handling>` "page sources missing" rule.
 - Execution Summary counts (Total / Passed / Failed / Skipped) match the Failure entry count actually emitted.
 - Patterns section names cross-failure patterns OR explicitly says `No cross-failure patterns identified`.

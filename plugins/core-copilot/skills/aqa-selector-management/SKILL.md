@@ -137,9 +137,8 @@ This skill writes **only** to page-object files (and to the test plan's `## Sele
 - **Page sources missing** (frontend source IS available, page sources missing): proceed with frontend-only analysis (step 3), record `Page sources: not available — selectors derived from frontend source only` in the output, mark any selector that would benefit from DOM verification (dynamic state, conditional rendering, iframe/shadow DOM) with `Confidence: low — page-source verification recommended`.
 - **Frontend source missing** (page sources ARE available, frontend missing): proceed with page-source-only analysis (step 4), record the partial-coverage fact in the output. Acceptable confidence; page sources are the more authoritative DOM source.
 - **Selector cannot be resolved in any available source** (interaction maps to an element neither source contains): do NOT invent a selector. Stop Part A for that specific element, record it in the Selector Availability section as `❌ <PageObject.selector> — UNRESOLVABLE: <reason>`, and ask the calling workflow whether to (a) request additional source/page captures, (b) defer the assertion, or (c) drop the test step.
-- **Page object file not found in step 5** (Part B): if the target page-object file path from Part A's inventory does not exist when Part B tries to extend it, decide between (a) creating a new page object per step 6 if the inventory marked it as "to create" — proceed, or (b) stopping if the inventory marked it as "to extend" — file should exist; report `aqa-selector-management: target page object missing at <path> but Part A expected to extend it` to the calling workflow.
-- **Part A inventory missing** (Part B): if the test plan's `## Selector Management` section (or the artifact the calling workflow names) is absent/empty when Part B starts, stop — report `aqa-selector-management: Part A inventory missing — Phase 4 (selector identification) must run first`. Do NOT re-run Part A inside a Part B invocation; that's a phase-scope violation.
 - **`<test-name>` unresolved or ambiguous:** stop, ask the calling workflow to resolve the slug per `aqa-flow-code-analysis.md` `<naming_convention>`. Do not guess at the page-sources path.
+- **Part B-only failure branches** (page-object file not found in step 5, Part A inventory missing): load on Part B invocations from [references/strategy-and-template.md](references/strategy-and-template.md#part-b-failure_handling-extensions-referenced-from-skillmd-failure_handling) — Part A invocations do not carry these.
 
 </failure_handling>
 
@@ -147,7 +146,7 @@ This skill writes **only** to page-object files (and to the test plan's `## Sele
 
 Run before declaring complete. Items conditional on Part A vs Part B scope.
 
-**Part A (identification phase):**
+**Part A (identification phase) — inline:**
 - Interaction Map populated for every test step + assertion in the plan
 - Every interaction has a Selector Availability entry (✅ EXISTS, ❌ MISSING, or ❌ UNRESOLVABLE with reason)
 - Every identified selector has Type, Source (with file/line citation), Usage, and Stability fields
@@ -155,26 +154,21 @@ Run before declaring complete. Items conditional on Part A vs Part B scope.
 - Source-availability accounted for: if page sources OR frontend source was missing, the output records `not available` for that source — no silent omissions
 - No source files modified (Part A is read-only)
 
-**Part B (implementation phase):**
-- Part A inventory was loaded before any page-object write
-- Every page object modified/created matches the project's existing patterns (naming, imports, structure, helper conventions)
-- Lint/format clean on touched files
-- No fragile selector implemented without an approval record in the "Fragile selectors implemented after explicit approval" section
-- No files outside the page-object layer were modified (safety boundary)
-- The test plan's `## Selector Management` section's Implementation subsection is updated with paths + counts
+**Part B (implementation phase) — load on Part B invocations only:** see [references/strategy-and-template.md](references/strategy-and-template.md#part-b-validation_checklist-referenced-from-skillmd-validation_checklist). Part A invocations do not carry the Part B checklist.
 
 </validation_checklist>
 
 <pitfalls>
+
+Shared + Part A pitfalls — inline:
+
 - Guessing selectors without verifying in source code or HTML — fabrication
 - Using fragile selectors (dynamic IDs, deep structural paths, framework-generated classes) without flagging them per step 4
-- Silently committing a flagged fragile selector in Part B without explicit approval — safety-boundary violation
-- Breaking existing page object patterns (different naming, style)
 - Skipping frontend code search and going straight to page source request
-- Re-running Part A from scratch inside a Part B invocation — phase-scope violation; consume the recorded inventory instead
-- Modifying test files, fixtures, or frontend source during selector implementation — only page objects are written
 - Using a `{TICKET-KEY}` path instead of `<test-name>` — `{TICKET-KEY}` is a TestGen convention not present in AQA naming
-- Not validating linting after implementation
+
+**Part B-only pitfalls** (silent fragile commit, breaking page-object patterns, re-running Part A in Part B, modifying non-page-object files, skipping lint): load on Part B invocations from [references/strategy-and-template.md](references/strategy-and-template.md#part-b-pitfalls-extensions-referenced-from-skillmd-pitfalls). Part A invocations do not carry these.
+
 </pitfalls>
 
 </aqa-selector-management>

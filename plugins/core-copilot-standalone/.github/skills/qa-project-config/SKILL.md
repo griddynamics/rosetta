@@ -212,7 +212,7 @@ This boundary is consistent with `qa-gap-analysis` and `qa-test-debugging` `<saf
 - **`{IDENTIFIER}` ambiguous** (multiple references supplied — e.g., both a Jira key and a TestRail ID): apply the same precedence as `qa-flow.md` Phase 0 (Jira key → TestRail ID → kebab-case feature name; first non-empty wins). Record the chosen value AND the rejected candidates in the initial-data file's `Additional links provided` section. Do not silently drop the rejected candidate.
 - **Step-4 minimum-info follow-up loop:** if after the first prompt the response is missing one of the three required fields (document storage, Swagger availability, test case source), ask **one** follow-up question naming exactly the missing fields. Do NOT exceed two total rounds (initial + one follow-up).
 - **Step-4 follow-up still incomplete** (after one follow-up the user still cannot/will not provide the minimum required info): **stop** rather than fabricate. Record `Phase 0 blocked: minimum project info not obtained after follow-up — missing: <list>` in `agents/qa-state.md` and tell the user the phase is paused pending the information. Do NOT proceed with TBD-marked config for fields where the user explicitly declined to answer — that's silent progression that breaks downstream phases. (`TBD — will discover from codebase/spec` IS acceptable when the user explicitly opts into discovery; it is NOT acceptable as a default fallback when the user simply didn't answer.)
-- **User-pasted literal credential in step-4 answer:** apply `<safety_boundaries>` redaction at capture — replace with mechanism+source description, record the redaction in `## Additional Notes`, do not persist the literal value to disk anywhere. If env-var name is unknown, ask once for it.
+- **User-pasted literal credential in step-4 answer:** apply the `<safety_boundaries>` "Redaction at intake" rule (single source of truth for targets + procedure). If env-var name is unknown, ask once for it.
 - **`agents/qa-state.md` or `qa-project-config.md` unwritable** (permission denied, file locked, disk full): pause, report the filesystem error with the file path, do not mark Phase 0 complete.
 - **Existing config file present but malformed/corrupt** (step 3 finds a non-empty file but it doesn't parse or is missing required sections): treat as `config-incomplete` — go to step 4 for the missing sections only, then step 5 writes a corrected file (preserving any clean sections). Surface the corruption to the user in the initial-data file's notes.
 
@@ -222,10 +222,9 @@ This boundary is consistent with `qa-gap-analysis` and `qa-test-debugging` `<saf
 - Proceeding without asking the user when project config doesn't exist
 - Overwriting an existing, valid project config
 - Not validating that minimum required info (doc storage, Swagger availability, test case source) is collected
-- Using inconsistent IDENTIFIER naming (must match across all phase artifacts)
 - Writing the project config under `agents/qa/{IDENTIFIER}/qa-project-config.md` instead of the canonical project-wide path `agents/qa/qa-project-config.md` — the config is shared across all tickets, not per-ticket
 - Skipping the `agents/qa-state.md` initial stub or writing it with an unspecified `IDENTIFIER` field
-- Persisting a literal user-pasted token / password / API key / service-account JSON into the saved config — apply `<safety_boundaries>` redaction at intake, before step 5 writes
+- Persisting a literal credential into the saved config — apply the `<safety_boundaries>` "Redaction at intake" rule before step 5 writes
 - Fabricating an `{IDENTIFIER}` when the test case reference is unparseable — stop and ask per `<failure_handling>`, do not invent
 - Looping indefinitely on step-4 follow-up questions — cap at one follow-up per `<failure_handling>`
 </pitfalls>
@@ -241,7 +240,7 @@ Before declaring this skill complete, all of the following must hold:
 - **IDENTIFIER consistency:** the same `{IDENTIFIER}` value appears in (a) the `agents/qa/{IDENTIFIER}/` directory name, (b) the `IDENTIFIER:` field of `agents/qa-state.md`, and (c) the directory portion of the `initial-data.md` path. If any of the three differ, the skill is NOT complete — re-run step 2 and propagate the corrected value.
 - **No empty placeholders:** project config has real values (or explicit `TBD` where optional + explanation), not blank fields.
 - **Canonical paths only:** no use of the deprecated `<agent_folder>` placeholder anywhere in the produced files; all paths follow the canonical scheme documented in step 2 and step 5.
-- **No literal credentials persisted:** `agents/qa/qa-project-config.md` was scanned for credential-shaped patterns (`Bearer `, `password:`, `api_key=`, JWT shape `eyJ...`, `BEGIN PRIVATE KEY`, OAuth `client_secret`, `postgres://user:pass@`) per `<safety_boundaries>` — auth fields carry mechanism + source descriptions only; any literal value from the user's step-4 answer was redacted at intake and the redaction is noted in `## Additional Notes`.
+- **No literal credentials persisted:** `agents/qa/qa-project-config.md` was grepped per the `<safety_boundaries>` "Redaction at intake" pattern list (single source of truth); auth fields carry mechanism + source descriptions only; any redaction from step 4 is noted in `## Additional Notes`.
 - **No fabricated `{IDENTIFIER}`:** the chosen value traces to a real TestRail ID / Jira key / feature reference from the user's prompt; if the prompt was unparseable, the failure path in `<failure_handling>` was followed (stop + ask) rather than guessing.
 
 </validation_checklist>

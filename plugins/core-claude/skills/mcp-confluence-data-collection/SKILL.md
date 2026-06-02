@@ -51,7 +51,7 @@ Complete when target pages were retrieved via `confluence_get_page` (or via sear
    - **On exhausted (URL-and-search) zero-result case**: stop per `<failure_handling>` ("zero-pages" case).
 6. Truncate pages exceeding ~5000 words, note truncation with what was omitted.
 7. **Pre-emit validation.** Before writing the output, re-check against `<validation_checklist>`. Fix any failing item.
-8. **Apply `<safety_boundaries>` redaction one final time** as a re-scan against every page body — Confluence pages routinely embed Bearer tokens, connection strings, signed URLs, and customer PII pasted from runbooks / onboarding docs. Replace literal matches with placeholders AND record each redaction in the Sensitive-content redactions section. If none found: write `None.` there.
+8. **Apply `<safety_boundaries>` redaction one final time** as a re-scan against every page body — the canonical target list + grep patterns + placeholder vocabulary live in `<safety_boundaries>` (single source of truth). Replace literal matches with placeholders AND record each redaction in the Sensitive-content redactions section. If none found: write `None.` there.
 
 </process>
 
@@ -134,7 +134,7 @@ Before declaring this skill complete, all of the following must hold:
 - **Truncation noted** on every page exceeding the ~5000-word budget, with a description of what was omitted. Silent truncation is forbidden.
 - **Permission errors recorded, not hidden:** any page returning 401/403 appears with `<restricted by permissions>` + a Gaps entry, never as `[empty]`.
 - **Search Provenance recorded** when step 2 ran — the exact CQL query, top-N page IDs in ranked order, and the ranking rule applied (title > label > body). Without this, the search run is not reproducible.
-- **Redaction scan completed:** every page body was scanned for credentials / tokens / PII / credentialed URLs / connection strings per `<safety_boundaries>`; any matches were replaced with placeholders AND recorded in Sensitive-content redactions. If no matches: that section says `None.` — not blank.
+- **Redaction scan completed** per `<safety_boundaries>` (single source of truth for targets, grep patterns, and placeholders): every page body was scanned; any matches were replaced with placeholders AND recorded in Sensitive-content redactions. If no matches: that section says `None.` — not blank.
 - **No fabricated content:** every page entry describes content actually returned by `confluence_get_page`. Inference, paraphrase-without-source, or guessed values are forbidden — gaps are recorded.
 - **Read-only contract honored:** no Confluence MCP write operations were called.
 
@@ -146,7 +146,7 @@ Before declaring this skill complete, all of the following must hold:
 - URL formats vary (display, direct, short) — parse flexibly
 - User-provided URLs from different Confluence domains may not be accessible via configured MCP — stop per `<failure_handling>` "cross-domain URL"; do NOT silently fetch elsewhere
 - Search may miss pages — always offer user a chance to provide direct URLs
-- Pasting verbatim page bodies into the artifact without scanning for credentials / PII — Confluence runbooks and incident pages routinely embed Bearer tokens, connection strings, and customer PII. Apply `<safety_boundaries>` redaction BEFORE writing, not after.
+- Pasting verbatim page bodies into the artifact without applying `<safety_boundaries>` redaction (target list + patterns are there) — redact BEFORE writing, not after.
 - Hiding MCP permission errors as empty content — record `<restricted by permissions>` + Gaps entry; do NOT silently emit empty bodies
 - Skipping the CQL query / ranking record in Search Provenance — the search run is unreproducible without it
 </pitfalls>
@@ -174,7 +174,7 @@ This skill is Atlassian-Confluence-specific. To support a different documentatio
   - "User-provided URLs from different Confluence domains may not be accessible via configured MCP" is Confluence-specific. Other vendors have analogous but differently-shaped multi-tenant constraints (Notion workspace boundaries, SharePoint tenant/site boundaries, GitBook organization boundaries).
 - **Failure-handling error message identifiers** in `<failure_handling>` (`Confluence rejected the request`, `URL belongs to a different Confluence host`): vendor-branded; rewrite for the target.
 
-**Pattern for swapping:** copy this file to `mcp-<vendor>-data-collection/SKILL.md`, edit only the items above, keep the rest. **Redaction discipline (`<safety_boundaries>`), failure-handling shape, validation checklist structure, and the truncation rule (~5000 words) are generic** and should stay verbatim — they are not vendor-specific.
+**Pattern for swapping:** copy this file to `mcp-<vendor>-data-collection/SKILL.md`, edit only the items enumerated above, keep the rest verbatim (the "vendor-agnostic structure" list at the top of this block defines what "the rest" is — do not re-enumerate it here).
 
 Do not abstract into a shared parent skill until a third vendor binding is needed (YAGNI; two bindings are not enough to validate the abstraction boundary).
 </vendor_replacement>
