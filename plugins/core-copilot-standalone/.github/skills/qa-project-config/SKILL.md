@@ -133,7 +133,7 @@ If critical information is missing, ask follow-up questions.
 
 ## 5. Save Project Config
 
-Save to the canonical path `agents/qa/qa-project-config.md` (project-wide; same file referenced by step 3 above and by `qa-data-collection`'s prerequisites):
+Save to the same canonical path as step 3 (`agents/qa/qa-project-config.md`):
 
 ```markdown
 # QA Project Config
@@ -222,7 +222,7 @@ This boundary is consistent with `qa-gap-analysis` and `qa-test-debugging` `<saf
 - Proceeding without asking the user when project config doesn't exist
 - Overwriting an existing, valid project config
 - Not validating that minimum required info (doc storage, Swagger availability, test case source) is collected
-- Writing the project config under `agents/qa/{IDENTIFIER}/qa-project-config.md` instead of the canonical project-wide path `agents/qa/qa-project-config.md` — the config is shared across all tickets, not per-ticket
+- Writing the project config under `agents/qa/{IDENTIFIER}/...` instead of the canonical path — see step 3
 - Skipping the `agents/qa-state.md` initial stub or writing it with an unspecified `IDENTIFIER` field
 - Persisting a literal credential into the saved config — apply the `<safety_boundaries>` "Redaction at intake" rule before step 5 writes
 - Fabricating an `{IDENTIFIER}` when the test case reference is unparseable — stop and ask per `<failure_handling>`, do not invent
@@ -237,11 +237,11 @@ Before declaring this skill complete, all of the following must hold:
 - **State file initialized:** `agents/qa-state.md` exists with the initial stub from step 2 (Last Updated / Current Phase: 0 / IDENTIFIER / Phase Completion Status table with Phase 0 checked).
 - **Project config present:** `agents/qa/qa-project-config.md` (canonical project-wide path) exists and is non-empty — either pre-existing (step 3 path A) or freshly saved by step 5 (path B).
 - **Initial-data file written:** `agents/qa/{IDENTIFIER}/initial-data.md` exists with all four template fields populated (Initial user prompt / Project config file / Test case reference / Additional links).
-- **IDENTIFIER consistency:** the same `{IDENTIFIER}` value appears in (a) the `agents/qa/{IDENTIFIER}/` directory name, (b) the `IDENTIFIER:` field of `agents/qa-state.md`, and (c) the directory portion of the `initial-data.md` path. If any of the three differ, the skill is NOT complete — re-run step 2 and propagate the corrected value.
+- **IDENTIFIER consistency** per step 2 — same value in (a) `agents/qa/{IDENTIFIER}/` directory name, (b) `agents/qa-state.md` IDENTIFIER field, (c) `initial-data.md` path. Any mismatch → re-run step 2.
 - **No empty placeholders:** project config has real values (or explicit `TBD` where optional + explanation), not blank fields.
-- **Canonical paths only:** no use of the deprecated `<agent_folder>` placeholder anywhere in the produced files; all paths follow the canonical scheme documented in step 2 and step 5.
-- **No literal credentials persisted:** `agents/qa/qa-project-config.md` was grepped per the `<safety_boundaries>` "Redaction at intake" pattern list (single source of truth); auth fields carry mechanism + source descriptions only; any redaction from step 4 is noted in `## Additional Notes`.
-- **No fabricated `{IDENTIFIER}`:** the chosen value traces to a real TestRail ID / Jira key / feature reference from the user's prompt; if the prompt was unparseable, the failure path in `<failure_handling>` was followed (stop + ask) rather than guessing.
+- **Canonical paths only:** no deprecated `<agent_folder>` placeholders; paths follow the scheme in steps 2 + 3 + 5.
+- **No literal credentials persisted** per `<safety_boundaries>` Redaction-at-intake rule; any redaction noted in `## Additional Notes`.
+- **No fabricated `{IDENTIFIER}`** per `<failure_handling>` — chosen value traces to a real TestRail ID / Jira key / feature reference.
 
 </validation_checklist>
 

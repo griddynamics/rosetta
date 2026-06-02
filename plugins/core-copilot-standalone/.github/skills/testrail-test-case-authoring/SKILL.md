@@ -19,7 +19,7 @@ A test case is complete when **all of** the following hold:
 - Every `<format_rules>` MUST / MUST NOT rule holds (Steps + Expected Results format; no BDD; no Post-conditions; no Automation field; sequential numbering; expected results reference their step).
 - The title includes the test type in parentheses per `<naming_conventions>`.
 - For parameterized cases: `<format_rules>` parameterization requirements hold (preconditions state execution count + reference Test Data); max 5 parameter sets per case.
-- No literal credentials / tokens / real PII appear in the case body per `<safety_boundaries>` — placeholders only.
+- `<safety_boundaries>` redaction discipline holds (no literal credentials / PII).
 The case is NOT complete if any required field carries an inferred value to "fill" the template, BDD phrasing is used, or a literal credential appears in Test Data / Steps / Expected Results.
 </success_criteria>
 
@@ -120,7 +120,7 @@ Three worked entries — **Happy Path**, **Negative with parameterized test data
 - For parameterized tests, preconditions must state how many times to execute and reference Test Data
 - Maximum 5 parameter sets per test case — split into multiple test cases if more
 - Inventing requirement / user-story / acceptance-criterion IDs to fill the template when none were supplied — fabrication. Mark as a gap per `<epistemic_honesty>` instead.
-- Pasting literal real-account passwords, API keys, or production PII into Steps / Expected Results / Test Data — apply `<safety_boundaries>` placeholders. The TestRail content downstream (`testrail-test-case-export`) writes this verbatim to an external shared system.
+- Pasting literal credentials / PII into the case body — see `<safety_boundaries>`. (Downstream `testrail-test-case-export` writes this verbatim to TestRail — irreversible if leaked.)
 </pitfalls>
 
 <epistemic_honesty>

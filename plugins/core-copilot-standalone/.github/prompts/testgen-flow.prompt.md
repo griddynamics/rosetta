@@ -19,17 +19,20 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 - Rosetta prep steps completed
 - **ONE PHASE AT A TIME:** ACQUIRE phase file, execute, update state, move to next.
 - **DO NOT SKIP PHASES:** Each builds on the previous. Skip gates: only with **explicit user instruction**, **or** when `testgen-state.md` marks the phase complete **and** its expected output file exists under `agents/testgen/{TICKET-KEY}/`; otherwise resume from the earliest incomplete phase.
-- **On verification failure (user asserts complete but state row missing or output file absent):** the only correct next action is a one-line announcement of the failing conditions (e.g., `skip refused: testgen-state.md row missing → starting at Phase 0`) followed by beginning the earliest incomplete phase in the **same turn**, without yielding to user input.
-- **At this gate, the agent MUST NOT** (non-exhaustive, applies to all phrasings): call `AskUserQuestion`; present a list / menu / options block; ask the user "how do you want to proceed", "should I start at X", "do you want me to", or any equivalent confirmation request; pause for input before starting the earliest incomplete phase. The verification result is the decision — there is nothing for the user to confirm. User input is only acceptable if it produces the missing state row or output file on disk.
+- **Verification-failure resume:** see `<orchestration_and_escalation>` — single canonical home for the unilateral-start override; scope-locked to the missing-state + missing-output case. Does NOT override the per-phase USER CONFIRMATION below (happy path), the Phase 3 / Phase 6 HITL approval gates, or any safety/destructive confirmation.
 - **STATE TRACKING:** Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
 - **SELF-CHECK BETWEEN PHASES:** Before advancing, verify the state file row was updated, the expected output file exists and is non-empty, and any HITL approval (Phase 3, 6) is recorded.
 - USE SKILL `sequential-workflow-execution` for the canonical implementation of the bullets above (ACQUIRE if not already loaded). The inline bullets remain authoritative if the SKILL fails to load.
 - MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL PHASES ARE SEQUENTIAL.
-- USER CONFIRMATION: Wait for approval before next phase.
+- **USER CONFIRMATION:** Wait for approval before next phase. (Happy-path governance — applies to every phase transition that is NOT the verification-failure resume case above; that single carve-out lives in `<orchestration_and_escalation>` and does not generalize.)
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
+- **Model tier vocabulary** (centralized — phase headers reference tiers, not dated model IDs, so vendor/release churn does not rot the phase definitions):
+  - `tier: complex` — heavy reasoning / multi-source synthesis / gap-and-contradiction analysis / requirements engineering. Current recommended: Anthropic Opus-class, OpenAI GPT high-tier.
+  - `tier: workhorse` — structured execution / data extraction / test-case generation + export. Current recommended: Anthropic Sonnet-class, OpenAI GPT medium-tier.
+  - The tier hint is the agent-agnostic anchor. Rosetta or the session bootstrap may override the concrete model mapping; phase headers should be edited only when adding a tier, not when models churn.
 
-<project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
+<project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_recommended_model="tier: workhorse">
 
 1. ACQUIRE `testgen-flow-project-config-loading.md` FROM KB
 2. Execute phase instructions.
@@ -39,7 +42,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 </project_config_loading>
 
-<data_collection phase="1" subagent="discoverer" role="Requirements data collector" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
+<data_collection phase="1" subagent="discoverer" role="Requirements data collector" subagent_recommended_model="tier: workhorse">
 
 1. ACQUIRE `testgen-flow-data-collection.md` FROM KB
 2. Execute phase instructions.
@@ -49,7 +52,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 </data_collection>
 
-<gap_and_contradiction_analysis phase="2" subagent="architect" role="Requirements gap analyst" subagent_recommended_model="claude-opus-4-6, gpt-5.4-high">
+<gap_and_contradiction_analysis phase="2" subagent="architect" role="Requirements gap analyst" subagent_recommended_model="tier: complex">
 
 1. ACQUIRE `testgen-flow-gap-and-contradiction-analysis.md` FROM KB
 2. Execute phase instructions.
@@ -59,7 +62,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 </gap_and_contradiction_analysis>
 
-<question_generation phase="3" subagent="architect" role="Requirements clarification analyst" subagent_recommended_model="claude-opus-4-6, gpt-5.4-high" type="HITL">
+<question_generation phase="3" subagent="architect" role="Requirements clarification analyst" subagent_recommended_model="tier: complex" type="HITL">
 
 1. ACQUIRE `testgen-flow-question-generation.md` FROM KB
 2. Execute phase instructions.
@@ -70,7 +73,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 </question_generation>
 
-<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_recommended_model="claude-opus-4-6, gpt-5.4-high">
+<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_recommended_model="tier: complex">
 
 1. ACQUIRE `testgen-flow-requirements-document-generation.md` FROM KB
 2. Execute phase instructions.
@@ -80,7 +83,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 </requirements_document_generation>
 
-<test_case_generation phase="5" subagent="engineer" role="Test case design engineer" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium">
+<test_case_generation phase="5" subagent="engineer" role="Test case design engineer" subagent_recommended_model="tier: workhorse">
 
 1. ACQUIRE `testgen-flow-test-case-generation.md` FROM KB
 2. Execute phase instructions.
@@ -91,7 +94,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 </test_case_generation>
 
-<test_case_export phase="6" subagent="engineer" role="Test case export specialist" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium" type="HITL">
+<test_case_export phase="6" subagent="engineer" role="Test case export specialist" subagent_recommended_model="tier: workhorse" type="HITL">
 
 1. ACQUIRE `testgen-flow-test-case-export.md` FROM KB
 2. Execute phase instructions.
@@ -104,6 +107,22 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 </test_case_export>
 
 </workflow_phases>
+
+<orchestration_and_escalation>
+
+- **Verification-failure unilateral-start override** (single-rule form):
+  - **Deference (scope-lock).** This is the **only** sanctioned no-ask deviation from the per-phase USER CONFIRMATION rule in `<workflow_phases>` and from session-wide `hitl` skill defaults. It applies **only** when ALL three preconditions below hold AND **only** at this verification-failure gate. Do **NOT** generalize the no-ask behavior to any other branch. **Explicit carve-outs that remain in force at all times** — the override never suppresses these:
+    - **Per-phase USER CONFIRMATION** (`<workflow_phases>` happy-path rule) — still governs every phase transition that is not the verification-failure resume case.
+    - **Phase 3 HITL approval gate** — user MUST answer `questions.md`; this is genuine HITL, not a confirmation request that can be elided.
+    - **Phase 6 HITL approval gate** — user MUST confirm target TMS location + export scope; this is genuine HITL.
+    - **Safety / destructive confirmations** — any prompt before file deletion, repository edits outside `agents/testgen/{TICKET-KEY}/`, TMS write scope changes, or comparable destructive/irreversible actions. The `<phase_5_6_standards_gate>` confirmation discipline for outside-output-dir writes also remains in force.
+  - **Precondition (ALL must be true):** (a) user has explicitly asserted phase(s) are complete in this turn, AND (b) `agents/testgen/{TICKET-KEY}/testgen-state.md` does NOT mark the asserted phases complete (row missing or `[ ]` unchecked), AND (c) the matching expected output file (per `<state_file>` / `<output_directory>`) is absent under `agents/testgen/{TICKET-KEY}/`.
+  - **If precondition holds:** print one line naming the failing conditions (e.g., `skip refused: testgen-state.md row missing → starting at Phase 0`), then start the earliest incomplete phase in the **same turn** — do NOT call `AskUserQuestion`, present options, or pause for input. The verification result IS the decision at this specific gate.
+  - **If any precondition is uncertain or only partially true** (state file partially present, ambiguous user assertion, output file present but stale): fall back to the normal HITL ask path. **Ambiguity defaults to ASK, not auto-start.**
+  - **Scope:** applies ONLY at this verification-failure gate. Authority on ask-before-action elsewhere: the per-phase USER CONFIRMATION rule in `<workflow_phases>` for happy-path transitions, the `hitl` skill defaults for all other branches, the explicit carve-outs above for genuine HITL + safety confirmations.
+  - *Rationale (one line): at this gate the verification result IS the decision — the user has already asserted; asking again creates a contradictory loop until artifacts exist.*
+
+</orchestration_and_escalation>
 
 <phase_5_6_standards_gate>
 - Applies to phases 5-6: apply `repository-implementation-standards` when a phase writes any file outside `agents/testgen/{TICKET-KEY}/`.

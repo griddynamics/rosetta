@@ -44,26 +44,11 @@ Analyze Jira ticket and Confluence documentation to identify contradictions, gap
 
 <create_analysis_document step="2.3">
 
-Create `agents/testgen/{TICKET-KEY}/analysis.md` in **two passes** — execute Pass 1 first, then Pass 2. Each pass is atomic and the order is fixed.
+Create `agents/testgen/{TICKET-KEY}/analysis.md`:
 
----
+1. **Sections 1–6** (Contradictions, Gaps, Ambiguities, Cross-Reference Analysis, Positive Findings, Risk Assessment) — produced by `gap-and-contradiction-analysis` per its `<output_format>`.
 
-### Pass 1 — Skill-owned sections (authoritative template lives in the skill)
-
-Sections 1–6 (Contradictions, Gaps, Ambiguities, Cross-Reference Analysis, Positive Findings, Risk Assessment) are produced by `gap-and-contradiction-analysis` per its `<output_format>`. This phase does NOT duplicate that template — refer to the skill for section structure, per-finding entry shape, and risk-tier conventions.
-
----
-
-### Pass 2 — Testgen-specific append-only delta
-
-Append **exactly two sections** to the END of the file produced by Pass 1, in this order:
-
-1. **`## 7. Next Steps`** — three-bullet block about Phase 3 routing
-2. **`## Analysis Metadata`** — bullet list of analysis provenance fields
-
-Both sections together are shown verbatim in the fenced block below. The fence is the **complete append-only target** — copy everything between the fence markers verbatim (then fill the `[bracketed]` slots from the analysis). The fence is a **delta on top of the skill's output**, NOT the whole document template; do not duplicate sections 1–6 here.
-
-**Append-only block (Pass 2 — COMPLETE verbatim target, both sections):**
+2. **Append the two sections below verbatim** to the end of the file produced by step 1, then fill the `[bracketed]` slots from the analysis:
 
 ```markdown
 ## 7. Next Steps
@@ -83,28 +68,17 @@ Both sections together are shown verbatim in the fenced block below. The fence i
 - **Manual Review**: [Areas requiring human judgment]
 ```
 
-**End of Pass 2 append-only block.** Nothing else is appended in Pass 2. If you find yourself adding a section here, it belongs to Pass 1's skill-owned set and is misplaced.
+Nothing else is appended — sections 1–6 are owned by the skill, not by this phase.
 
----
+**Zero-issues rule:** if total issues = 0, the skill's sections 1–6 carry explicit `No issues found.` per its zero-issues rule; inside the append-only block above, set `Total questions expected: 0` and replace the `Recommended: ...` line with `Proceed directly to Phase 4 — no clarification needed (per Phase 2 zero-issues outcome).`
 
-### Modifiers (apply to the document assembled by Pass 1 + Pass 2)
-
-These are **not** additional sections to append — they are rules that modify how Pass 1's findings and Pass 2's append-only block are filled in.
-
-**Modifier 1 — Zero-issues rule** (applies to Pass 1 + Pass 2 together):
-
-- Pass 1 side: still produce sections 1–6 with explicit `No issues found.` text in each per the skill's `<output_format>` zero-issues rule. Do NOT omit empty sections.
-- Pass 2 side: the append-only block is still appended; inside it, set `Total questions expected: 0` and replace the `Recommended: ...` line with `Proceed directly to Phase 4 — no clarification needed (per Phase 2 zero-issues outcome).`
-
-**Modifier 2 — Finding-quality grounding** (applies to every entry inside Pass 1's sections 1–3 — Contradictions / Gaps / Ambiguities):
-
-One positive / one negative pair kept inline so the rule survives even when the skill is not loaded; the skill's `<analysis_guidelines>` "Be Specific" rule remains authoritative.
+**Finding-quality grounding** (applies to every Contradiction / Gap / Ambiguity entry):
 
 | ❌ Vague | ✅ Specific |
 |---|---|
 | `Some details missing.` | `User authentication method not specified — Jira mentions "secure login" but does not name OAuth, SAML, or basic auth; needed for Phase 4 requirements.` |
 
-Apply the same shape to every contradiction / gap / ambiguity entry: name the specific concept that's missing or conflicting, quote the source text, and explain why the gap blocks the next phase.
+Name the specific concept that's missing or conflicting, quote the source text, explain why the gap blocks the next phase.
 
 </create_analysis_document>
 

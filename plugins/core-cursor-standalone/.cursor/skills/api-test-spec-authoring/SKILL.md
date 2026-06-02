@@ -19,6 +19,21 @@ Convert test cases into detailed, implementation-ready API test specifications u
 - Gap analysis and user clarifications completed
 </prerequisites>
 
+<input_contract>
+
+The calling workflow supplies all paths. **No defaults** — this skill is general-purpose and does not assume project structure (mirrors the workflow-supplied-only stance documented in `<when_to_use_skill>`).
+
+| Input | Expected format | Supplied by |
+|---|---|---|
+| Raw test cases | Markdown (or structured: JSON / CSV) — one identifiable test case per section; minimum fields per case are **objective**, **inputs / parameters**, **expected outcome** | Calling workflow (e.g. from a test-case authoring / import phase) |
+| Endpoint contracts | Markdown OR structured (OpenAPI / Swagger JSON or YAML) — per endpoint must list **HTTP method**, **path**, **request body schema**, **response body schema**, **status codes**, **auth mechanism** | Calling workflow (from the API analysis phase — e.g. `swagger-contracts-analysis` output) |
+| Gap analysis + user clarifications | Markdown — resolved-clarification entries keyed to test cases / endpoints / scenarios; outstanding gaps flagged | Calling workflow (from a gap-and-requirements-clarification phase) |
+| Output destination | Calling-workflow-supplied path (e.g. `test-specs.md` or workflow-specific) | Calling workflow |
+
+**Existence + minimum-fields validation** runs as the step 1 GATE — that is the single canonical site for "what stops us before authoring"; this table is the input shape only.
+
+</input_contract>
+
 <process>
 
 ## 1. Load All Inputs
@@ -105,8 +120,8 @@ Identify reusable elements across test scenarios and document them using the **S
 - Generating too many scenarios (>50) without prioritization — scope creep
 - Missing precondition data setup requirements — leads to 404 failures
 - Embedding real credentials, tokens, passwords, or production PII in the spec artifact — `test-specs.md` is tracked and may be shared
-- Confidently emitting an invented field value without marking it as `[ASSUMED: ...]` — epistemic-honesty violation
-- Silently dropping unmappable test cases instead of recording them in the `## Excluded Test Cases` section per step 1 GATE
+- Confident fabrication of values — see Per-value honesty rule (step 3)
+- Silently dropping unmappable test cases — see step 1 GATE Partial-completeness rule
 </pitfalls>
 
 <safety_boundaries>
@@ -125,7 +140,7 @@ Identify reusable elements across test scenarios and document them using the **S
 - **Test cases reference endpoints not present in contracts**: per-test-case `unmappable` flag back to calling workflow; mappable subset still authored.
 - **Gap analysis incomplete for material questions**: stop, route to Phase 3 (gap-and-requirements-clarification) before retrying.
 - **Test case lacks enough detail to author even one scenario** (no objective, no inputs, no expected outcome): per-test-case `insufficient-detail` flag back; record in `## Excluded Test Cases`.
-- **Contract specifies endpoint but with empty / placeholder schemas** (request body declared but schema is `{}`, response schema only declares status code): proceed if the test case's intent is testable against the partial contract; record every inferred field as `[ASSUMED: ...]` per the Assumptions rule. Do not silently fill the empty schema with invented fields.
+- **Contract specifies endpoint with empty / placeholder schemas** (request body declared but schema is `{}`, response schema only declares status code): proceed if the test case's intent is testable against the partial contract; record every inferred field per the Per-value honesty rule (step 3). Do not silently fill the empty schema.
 - **Scenario count exceeds 50 across all test cases**: stop, ask the calling workflow whether to (a) deprioritize P2/P3 scenarios, (b) split the spec across multiple files, or (c) accept the volume. Do NOT auto-prune scenarios — that's a scope decision the calling workflow owns.
 
 </failure_handling>
@@ -136,7 +151,7 @@ Run as a final pass before emission. All items must hold:
 
 - **Test-case coverage:** every test case from the input maps to ≥1 ATC entry, OR appears in the `## Excluded Test Cases` section with a reason. No silent drops.
 - **ATC completeness:** every ATC has Source, Priority, Type, Endpoint, Given, When, Then, Test Data, Dependencies, Assumptions — none blank.
-- **Exact-value rule:** no ATC contains the literal placeholder string `"valid data"`, `"sample input"`, `"normal request"`, `"appropriate value"`, or equivalent vague filler. Every concrete value either traces to a contract/clarification OR is tagged `[ASSUMED: ...]`.
+- **Exact-value rule** satisfied per the Per-value honesty rule (step 3) — no vague filler (`"valid data"` / `"sample input"` / `"normal request"` / `"appropriate value"`); every concrete value traces to a contract/clarification or carries `[ASSUMED: ...]`.
 - **Priority and endpoint set on every ATC:** P0/P1/P2/P3 assigned; HTTP method + path filled.
 - **Assertion specificity:** every Then block names a concrete status code AND at least one body or header assertion with exact expected value (or `[ASSUMED: ...]` marker).
 - **Auth coverage on protected endpoints:** every endpoint requiring auth has at least one auth-failure ATC (401 missing token, 401 invalid token, and 403 insufficient permissions when role-based access applies).

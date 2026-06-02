@@ -2,7 +2,7 @@
 
 Loaded on demand from SKILL.md when actively authoring a non-obvious case shape (field-shape questions) or applying redaction (sensitive value at write time). The base SKILL.md keeps the template + format_rules + success_criteria + gap-marker rules + the operational safety-boundaries rules inline; this file holds the worked examples and the detailed redaction catalog.
 
-Mirrors the same lazy-loading pattern the sibling `swagger-contracts-analysis` skill uses (`references/redaction-catalog.md` + `references/canonical-example.md`).
+Split per progressive-disclosure best practice — heavy reference content loads only when actively needed.
 
 ---
 
@@ -158,8 +158,6 @@ Never embed in the case body. Describe the source (env var name, secret-manager 
 ### Structural-content rule (canonical)
 
 Endpoint paths, HTTP methods, status codes, error message templates (e.g., `"Invalid credentials"` — that's a UI string, not a secret), field names, and feature names are functional content and recorded **as-is**. Redaction targets sensitive **values**, not the structural test description.
-
-If a real production value would be the natural example, replace it with a clearly-fake placeholder of the same shape — better an obviously-fake placeholder in TestRail than a leaked real one that downstream phases or human testers act on.
 
 ### Safety re-scan grep targets (referenced from `<validation_checklist>` "Safety re-scan")
 

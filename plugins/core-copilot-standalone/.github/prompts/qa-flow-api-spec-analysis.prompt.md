@@ -28,7 +28,7 @@ Analyze Swagger/OpenAPI specification or codebase API definitions to extract end
 
 <determine_spec_source step="2.1">
 
-Determine `{backend-source-path}` from Phase 1 raw data "Backend Source Code Analysis" section, or from project config "Backend Source Code" section, or from Rosetta docs at `RefSrc/{project-name}/docs/` (see `qa-data-collection` skill, step 4 for full discovery logic). If Rosetta docs exist for the backend project, read `ARCHITECTURE.md` and `CODEMAP.md` from `RefSrc/{project-name}/docs/` to understand API architecture before searching source code.
+Determine `{backend-source-path}` from Phase 1 raw data "Backend Source Code Analysis" section, or from project config "Backend Source Code" section, or from Rosetta docs at `refsrc/{project-name}/docs/` (full discovery logic lives in the `qa-data-collection` skill's "Analyze Backend Source Code" process step). If Rosetta docs exist for the backend project, read `ARCHITECTURE.md` and `CODEMAP.md` from `refsrc/{project-name}/docs/` to understand API architecture before searching source code.
 
 Determine spec source in order:
 

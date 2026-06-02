@@ -185,7 +185,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 </validation_checklist>
 
 <pitfalls>
-- Confluence search may miss child pages — always use `get_page_children` for each found page
+- Confluence search may miss child pages — always perform child-page traversal per `confluence-source-harvesting` for each found page
 - Large Confluence pages should be truncated at ~5000 words with truncation noted
 - Confluence URL formats vary (display, direct, short) — be flexible in parsing
 - User-provided URLs from different Confluence domains may not be accessible via configured MCP
@@ -205,7 +205,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 **Solution**: Invoke the `jira_search_fields` operation exposed by `mcp-jira-data-collection` (or equivalent MCP) to enumerate available field names
 
 **Issue**: Confluence search finds parent but misses child pages  
-**Solution**: Always check for child pages using `confluence_get_page_children()` for each found page
+**Solution**: Always perform the child-page traversal operation per `confluence-source-harvesting` (via `mcp-confluence-data-collection` or equivalent MCP) for each found page
 
 **Issue**: User provided invalid Confluence URL  
 **Solution**: Try to parse page ID, if fails ask user for correct URL or page ID

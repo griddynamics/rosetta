@@ -22,11 +22,20 @@ End-to-end backend API test automation from test case input to working automated
 - Per-phase cadence: ACQUIRE phase file → execute phase instructions → update `agents/qa-state.md` → move to next phase.
 - MUST use todo tasks for tracking progress. Prioritize ACCURACY over SPEED.
 <skip_rules>
+
 - **Mandatory order.** Phases **0→7** run sequentially.
-- **Skip gate (only exception for phases 0–2).** Treat Phases 0–2 as already done only when all conditions are met: (a) user explicitly says those phases were completed, (b) `agents/qa-state.md` marks them complete, and (c) matching `{IDENTIFIER}` artifacts (at least `raw-data.md` + `api-analysis.md`) exist under `agents/qa/{IDENTIFIER}/`. Independently verify each of (a), (b), (c) by reading `agents/qa-state.md` and listing `agents/qa/{IDENTIFIER}/` artifacts; do not rely solely on user assertion.
-- **On verification failure (any of a/b/c not satisfied):** the only correct next action is a one-line announcement of the failing conditions (e.g., `skip-gate refused: (b) agents/qa-state.md absent, (c) artifacts absent → starting at Phase 0`) followed by beginning Phase 0 in the **same turn**, without yielding to user input.
-- **At this gate, the agent MUST NOT** (non-exhaustive, applies to all phrasings): call `AskUserQuestion`; present a list / menu / options block; ask the user "how do you want to proceed", "should I start at X", "do you want me to", or any equivalent confirmation request; pause for input before starting Phase 0. The verification result is the decision — there is nothing for the user to confirm.
-- The user may later supply the missing state file or artifacts on disk, after which the gate may be re-evaluated. User **instruction** to bypass the gate without supplying the artifacts must be refused with the same one-line announcement and Phase 0 still begins in the same turn.
+- **Verification-failure unilateral-start override** (single-rule form):
+  - **Deference (scope-lock).** This is the **only** sanctioned no-ask deviation from session-wide `hitl` skill defaults and per-phase HITL gates in this workflow. It applies **only** when verifying a phases-0–2-already-complete claim AND **only** when all three preconditions below evaluate. Do **NOT** generalize the no-ask behavior to any other branch. **Explicit carve-outs that remain in force at all times** — the override never suppresses these:
+    - **Per-phase HITL gates** (Phases 3, 4, 5, 6, 7 marked `type="HITL"`) — still require explicit user approval per the `hitl` skill at their normal trigger points.
+    - **NO ASSUMPTIONS rule** (above) — still governs every decision that is not this skip-verification gate.
+    - **Safety / destructive confirmations** — file deletion, repository edits outside `agents/qa/{IDENTIFIER}/`, comparable irreversible actions.
+  - **Precondition (ALL must be true) — independently verified by reading `agents/qa-state.md` and listing `agents/qa/{IDENTIFIER}/`; do not rely solely on user assertion:** (a) user explicitly says Phases 0–2 were completed, AND (b) `agents/qa-state.md` marks them complete (rows present and checked), AND (c) matching `{IDENTIFIER}` artifacts (at least `raw-data.md` + `api-analysis.md`) exist under `agents/qa/{IDENTIFIER}/`.
+  - **If precondition holds:** skip Phases 0–2 and resume at Phase 3.
+  - **If verification fails (any of a/b/c not satisfied) AND the user's instruction was unambiguous:** print one line naming the failing conditions (e.g., `skip-gate refused: (b) agents/qa-state.md absent, (c) artifacts absent → starting at Phase 0`), then begin Phase 0 in the **same turn**. The announcement frames this as evidence-driven start, not as refusing a user instruction — the verification result IS the decision at this specific gate.
+  - **If any precondition is uncertain or only partially true** (state file partially present, ambiguous user assertion, artifacts present but stale, user-supplied evidence the agent cannot independently confirm on disk): fall back to the normal HITL ask path. **Ambiguity defaults to ASK, not auto-start.**
+  - **Scope:** applies ONLY at this skip-verification gate. Authority on ask-before-action elsewhere: the per-phase HITL gates listed above for phase transitions, the `hitl` skill defaults for all other branches, the explicit carve-outs above for genuine HITL + safety confirmations.
+  - *Rationale (one line): at this gate the verification result IS the decision — the user has asserted "0–2 complete" but state and disk evidence contradict; asking again creates a contradictory loop until artifacts exist.*
+
 - **Skip gate example (`agents/qa-state.md`):**
   ```markdown
   - [x] Phase 0: Project Config Loading
@@ -34,6 +43,7 @@ End-to-end backend API test automation from test case input to working automated
   - [x] Phase 2: API Spec Analysis
   ```
 - **Execution aid.** If the sequencing skill in `<references>` is available, use it for ACQUIRE cadence, todo discipline, and state updates.
+
 </skip_rules>
 - If user did not specify preferences, perform all steps except optional.
 - User CAN customize: specific phases, already-done phases, specific goals, specific cases — LISTEN and ADOPT.

@@ -260,14 +260,14 @@ This boundary is consistent with `qa-data-collection`'s `<safety_boundaries>` fo
 
 <validation_checklist>
 
-Proof-oriented items only — section-presence and Critical-question resolution are enforced by `<success_criteria>`; this checklist verifies things `<success_criteria>` cannot directly assert.
+**Grep-proof layer only.** The rules (contracts) live in `<success_criteria>`; items below verify those contracts by grep before emit. Items unique to this checklist (no `<success_criteria>` counterpart) carry no pointer.
 
-- **Cross-Reference entry-per-step grep:** every test step from step 1 produced a `### Cross-Reference: Test Case Step [N]` entry in `## Cross-Reference Results` — verify by grep before emit; the per-step count = total test step count (pitfall 1).
-- **Executive Summary counts match the body** — `Gaps Found` count = `G[N]` entry count in section 2; same for Contradictions (`C[N]`) and Ambiguities (`A[N]`). `Questions Asked` count = Critical + Important + Optional entries combined. Re-grep before emit; if counts disagree, fix the count or the body.
-- **Every Assumption has Default + Impact-if-Wrong populated** — no `A-N` entry with those fields blank (this is the contract the calling workflow consumes; `<success_criteria>` requires the assumption to exist, this checklist verifies the fields).
-- **No fabricated quotes** in Contradiction / Ambiguity entries — every `"[Quote]"` traces verbatim to a real source line (with redaction where sensitive per `<safety_boundaries>`); re-grep for paraphrased "the source said X" forms and fail emit on any match.
-- **Safety re-scan grep** per `<safety_boundaries>` (the authoritative target list + patterns live there): `analysis.md` was grepped for the patterns enumerated in `<safety_boundaries>`; any hits were replaced with placeholders AND the redaction was noted inline. If no matches: no annotation required.
-- **Question count ≤ 20 per batch** (pitfall 2). If more than 20 Critical+Important questions surfaced, they are batched; the artifact records the current batch and the deferred batches.
+- **Cross-Reference grep:** `### Cross-Reference: Test Case Step [N]` entry count in `## Cross-Reference Results` = total test step count from step 1. *(verifies `<success_criteria>` cross-reference rule)*
+- **Executive Summary counts grep:** `Gaps Found` = `G[N]` count; `Contradictions Found` = `C[N]` count; `Ambiguities Found` = `A[N]` count; `Questions Asked` = Critical+Important+Optional combined. If counts disagree, fix the count or the body. *(verifies `<success_criteria>` counts-match-body rule)*
+- **Assumption-fields grep:** every `A-N` entry has Default + Impact-if-Wrong populated. *(verifies `<success_criteria>` Assumption rule)*
+- **Safety re-scan grep** per `<safety_boundaries>` Targets list; hits replaced + noted inline; no-match = no annotation. *(verifies `<success_criteria>` redaction-applied rule)*
+- **No fabricated quotes** in Contradiction / Ambiguity entries — every `"[Quote]"` traces verbatim to a real source line; re-grep for paraphrased "the source said X" forms and fail emit on any match. *(unique to checklist — no `<success_criteria>` counterpart)*
+- **Question count ≤ 20 per batch** (pitfall 2). If more than 20 Critical+Important questions surfaced, they are batched; the artifact records the current batch and the deferred batches. *(unique to checklist — no `<success_criteria>` counterpart)*
 
 </validation_checklist>
 

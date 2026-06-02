@@ -46,6 +46,8 @@ If a real production value would be the natural example in a failure entry, repl
 
 This boundary applies to BOTH Part A (writing `execution-report.md`) AND Part B (any debug logging the agent emits while applying corrections).
 
+**Part B (write-path) boundaries** — approval discipline, stay-inside-scope, never-alter-test-intent, test-code-only writes: see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-safety_boundaries-referenced-from-skillmd-safety_boundaries) — loaded only when Part B runs.
+
 </safety_boundaries>
 
 <failure_handling>
@@ -84,77 +86,9 @@ Extract:
 
 ### 3. Categorize Failures
 
-For each failure, classify:
+**Canonical 7-category taxonomy.** Assign **exactly one** category per failure; the seven are exhaustive + mutually exclusive: **Connection / Environment**, **Authentication**, **Request**, **Response Assertion**, **Test Data**, **Timing / Race Condition**, **Application Bug**. Full catalog (Symptoms / Root Cause / Action per category) + the per-failure entry template the agent emits live in [references/failure-catalog.md](references/failure-catalog.md) — load when actively classifying failures.
 
-#### Connection / Environment Issues
-- **Symptoms**: ConnectionError, TimeoutError, DNS resolution failure
-- **Root Cause**: API server not running, wrong base URL, network issues
-- **Action**: Verify environment setup, not a test code issue
-
-#### Authentication Failures
-- **Symptoms**: 401 Unauthorized when expecting success, token errors
-- **Root Cause**: Auth helper misconfigured, expired credentials, wrong token endpoint
-- **Action**: Fix auth setup in test utilities
-
-#### Request Issues
-- **Symptoms**: 400/422 on happy path tests, validation errors
-- **Root Cause**: Wrong request body, missing required fields, wrong content type, incorrect endpoint path
-- **Action**: Fix request construction to match API spec
-
-#### Response Assertion Failures
-- **Symptoms**: AssertionError on status code or body, unexpected response structure
-- **Root Cause**: Expected values differ from actual API response
-- **Subcategories**:
-  - Status code mismatch (expects 200, gets 201)
-  - Schema mismatch (response body structure differs)
-  - Value mismatch (field values differ)
-  - Missing fields (expected field not in response)
-- **Action**: Fix assertions OR update test specs if API behavior is correct
-
-#### Test Data Issues
-- **Symptoms**: 404 on resources that should exist, foreign key violations, duplicate key errors
-- **Root Cause**: Precondition data not set up correctly, data from previous test not cleaned up
-- **Action**: Fix test data setup/teardown
-
-#### Timing / Race Condition Issues
-- **Symptoms**: Intermittent failures, tests pass individually but fail in suite
-- **Root Cause**: Async operations not awaited, concurrent test interference
-- **Action**: Add proper waits, improve test isolation
-
-#### Application Bug
-- **Symptoms**: API returns unexpected error, behavior doesn't match spec
-- **Root Cause**: Bug in the API under test, not in test code
-- **Action**: Report as application defect, may need test adjustment or skip
-
-Document each failure (apply `<safety_boundaries>` redaction to headers, bodies, URLs, and stack traces BEFORE writing):
-
-```markdown
-### Failure: [Test Name] (ATC-[NNN])
-
-**Status**: FAIL / ERROR
-**Category**: [Connection / Auth / Request / Response / Data / Timing / App Bug]
-**Error Message**: [Full error message — credentials/PII redacted]
-**Stack Trace**: [Key lines — credentials/PII redacted]
-
-**Request Sent** (if available):
-- Method: [HTTP method]
-- URL: [Full URL — query params / credentialed URL portions redacted]
-- Headers: [Key headers — `Authorization`, `Cookie`, `X-Api-Key` values replaced with `<redacted: bearer token>` / `<redacted: session cookie>` / `<redacted: api key>`; presence + mechanism described, not literal value]
-- Body: [Request body — credentials/tokens/PII fields redacted; structural fields verbatim]
-
-**Response Received** (if available):
-- Status: [Status code]
-- Body: [Response body or excerpt — `Set-Cookie`, response tokens, PII fields redacted; structural fields verbatim]
-
-**Expected vs Actual**:
-- Expected: [What test expected]
-- Actual: [What API returned — redacted per the same rules above]
-
-**Root Cause Analysis**: [Why this failed]
-**Suggested Fix**: [Specific code change or approach]
-**Priority**: Critical / High / Medium / Low
-**Affects Other Tests**: [Yes/No — list if yes]
-```
+Apply `<safety_boundaries>` redaction to headers, bodies, URLs, and stack traces BEFORE writing each entry — never after.
 
 ### 4. Identify Patterns
 
@@ -172,53 +106,17 @@ Create `agents/qa/{IDENTIFIER}/execution-report.md` with: execution summary, res
 
 ### 6. Prepare Proposed Changes
 
-For each issue, document:
-
-```markdown
-### Proposed Change [N]: [Issue Description]
-
-**Affected Tests**: [ATC-NNN, ATC-NNN, ...]
-**File**: [File path]
-**Root Cause**: [From analysis]
-
-**Current Code**:
-[Current code snippet]
-
-**Proposed Code**:
-[Proposed code snippet]
-
-**Reason**: [Why this change fixes the issue]
-**Impact**: [What this change affects]
-**Risk**: [Low / Medium / High]
-```
-
-Match fixes to root cause categories:
-- Auth issues -> update auth helper configuration
-- Request issues -> correct request body, fix endpoint paths, add headers
-- Assertion failures -> update expected values, fix field names
-- Data setup issues -> fix factory methods, correct setup order, add cleanup
-- Config issues -> update base URL, fix env var references
-
-Prioritize:
-- Pattern fixes (resolve multiple failures) first
-- Then critical/high priority individual fixes
-- Then medium/low priority
+Emit one Proposed Change entry per issue using the **canonical Proposed Change template** in [references/part-b-mechanics.md](references/part-b-mechanics.md#proposed-change-template-referenced-from-skillmd-step-6). Required fields: **Affected Tests, File, Root Cause, Current Code, Proposed Code, Reason, Impact, Risk**. The reference also holds the per-category fix-matching mapping + prioritization order.
 
 ### 7. Apply Approved Changes
 
-After user approval:
-1. Apply changes one at a time
-2. Verify each change is syntactically correct
-3. Follow project coding standards
-4. Check linting after each file modification
-5. Verify no unintended side effects on passing tests
-6. If specs were incorrect, update `test-specs.md`
+After explicit user approval per `<safety_boundaries>`: apply changes one at a time, verify syntax, follow project standards, lint after each modification, verify no regressions on passing tests, update `test-specs.md` when a correction required a spec change. Step-by-step mechanics in [references/part-b-mechanics.md](references/part-b-mechanics.md#step-7--apply-approved-changes-referenced-from-skillmd-step-7).
 
 ### 8. Iteration Policy
 
-- If tests pass after corrections -> mark QA flow as COMPLETE
-- If tests still fail -> return to Part A with new results
-- Maximum recommended iterations: 3 (after that, escalate — likely application issue or fundamental spec mismatch)
+The Part A → Part B cycle is **capped at 3 iterations**. Counter mechanics + state-file field schema + cap-enforcement protocol (read counter → increment after Part B → branch on re-execution → escalate at iteration 3) live in [references/part-b-mechanics.md](references/part-b-mechanics.md#step-8--iteration-cap-referenced-from-skillmd-step-8).
+
+**Governance (canonical):** Do NOT auto-start a 4th iteration without an explicit user waiver recorded in the state file. When the cap is reached with failures remaining, the escalation is recorded in `execution-report.md`'s `## Escalation` section + the workflow state file.
 
 </process>
 
@@ -254,15 +152,14 @@ After user approval:
 </output_format>
 
 <pitfalls>
+
+**Part A pitfalls:**
 - Listing failures without analyzing root causes — not actionable
-- Applying changes without user approval
-- Making unrelated changes alongside fixes
-- Not re-validating linting after corrections
-- Changing test intent while fixing implementation
-- Not separating test code bugs from application bugs
-- Spiraling beyond 3 correction iterations without escalating
 - Pasting auth headers (`Authorization: Bearer ...`), cookies, API keys, or PII verbatim into `execution-report.md` — apply `<safety_boundaries>` redaction before writing, not after
 - Recording an environment's auth tokens or DB connection strings in the `Environment Info` section instead of `mechanism + source` description
+
+**Part B pitfalls:** see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-pitfalls-referenced-from-skillmd-pitfalls).
+
 </pitfalls>
 
 <success_criteria>
@@ -284,15 +181,9 @@ Run before declaring the skill complete. Items apply per the part(s) that ran (P
 - **Every failure entry has a Category and Root Cause Analysis populated** — no entry left as `TBD` or with placeholder fields.
 - **Every failure entry has a Priority** (Critical / High / Medium / Low) — never blank.
 - **Patterns section populated** with either a real cross-failure pattern OR an explicit `No cross-failure patterns identified` line if none — not silently empty.
-- **Safety re-scan ran per `<safety_boundaries>`** — `execution-report.md` was grepped for `Bearer `, `Authorization:`, `Cookie:`, `Set-Cookie:`, `api_key=`, JWT shape, `BEGIN PRIVATE KEY`, and obvious PII shapes; any hits were replaced with placeholders before declaring Part A complete.
+- **Safety re-scan ran per `<safety_boundaries>`** — `execution-report.md` was grepped against the `<safety_boundaries>` Targets list; any hits were replaced with placeholders before declaring Part A complete.
 
-**Part B (corrections — when applied):**
-- **Each applied change was lint-checked** (step 7.4) and the result is recorded in the `Applied Corrections` section.
-- **Each applied change was side-effect-verified** (step 7.5) — passing tests were re-checked and no regression was introduced, OR the regression is documented for re-test.
-- **Test intent unchanged.** No applied change altered the assertion semantics of an ATC; only implementation was corrected. Spec changes (when API behavior is correct and the test was wrong) were recorded as updates to `test-specs.md`, not silent assertion changes.
-- **`test-specs.md` updates recorded** when corrections required spec changes (step 7.6).
-- **Iteration count tracked** against the 3-iteration cap (step 8). The current iteration number is recorded in the `Applied Corrections` section; if this is iteration 3 and tests still fail, the escalation note is also recorded.
-- **No unrelated changes** — every modified file appears in `Files Modified` and traces to a Proposed Change entry approved in step 6/7.
+**Part B (corrections — when applied):** see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-validation_checklist-referenced-from-skillmd-validation_checklist).
 
 </validation_checklist>
 

@@ -17,7 +17,9 @@ Analyze test execution results, categorize failures, identify root causes, and p
 - **Part A — Report Analysis** (steps 1–6): **read-only**. Parses the report, categorizes failures, identifies root causes, produces the analysis artifact.
 - **Part B — Corrections** (steps 7–9): **writes test source files + runs lint + tracks iteration count**. Prepares proposed changes, applies them after explicit user approval per `<safety_boundaries>`, validates with linting.
 
-A caller may invoke **Part A only** (analysis without correction mandate). Part B requires Part A's output AND the explicit approval signals enumerated in `<safety_boundaries>`. A Part-A-only invocation MUST NOT execute steps 7–9. The split is preserved so future SRP tightening (extracting Part B to a sibling skill) is a one-step refactor.
+A caller may invoke **Part A only** (analysis without correction mandate). Part B requires Part A's output AND the explicit approval signals enumerated in `<safety_boundaries>`. A Part-A-only invocation MUST NOT execute steps 7–9.
+
+**Load-split convention** (stated once; later blocks omit the qualifier): Part A halves of `<safety_boundaries>`, `<validation_checklist>`, `<pitfalls>` are inline. Part B halves live in [references/part-b-mechanics.md](references/part-b-mechanics.md) and load only when Part B runs. Later blocks use bare `see [references/...]` pointers without re-explaining the split.
 </when_to_use_skill>
 
 <prerequisites>
@@ -70,7 +72,7 @@ Extract:
 
 ### 3. Categorize Failures
 
-**Canonical taxonomy (single source of truth).** Assign **exactly one** category per failure; the seven are exhaustive + mutually exclusive (pick the most proximate cause):
+**Canonical taxonomy.** Assign **exactly one** category per failure; the seven are exhaustive + mutually exclusive (pick the most proximate cause):
 
 1. **Selector / Locator** — element not found, selector incorrect, element-not-visible (patterns in step 4)
 2. **Timing / Visibility** — timeouts, race conditions, animation not settled, wait too short
@@ -177,15 +179,15 @@ The Part A → Part B cycle is **capped at 3 iterations** to prevent runaway dia
 
 <safety_boundaries>
 
-**Part B (write-path) boundaries — canonical statement** in [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-safety_boundaries-referenced-from-skillmd-safety_boundaries): approval discipline, stay-inside-scope, never-alter-test-intent, test-code-only writes. Loaded only when Part B runs.
+**Part B (write-path) boundaries:** see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-safety_boundaries-referenced-from-skillmd-safety_boundaries) — approval discipline, stay-inside-scope, never-alter-test-intent, test-code-only writes.
 
-**Part A analysis-artifact redaction (always-loaded):** The Part A output (`execution-report.md` / parent-supplied analysis artifact path) is tracked and downstream-fed. If failure stack traces, request/response captures, or environment info embed credentials / tokens / PII, redact before writing: `Authorization: Bearer <jwt>` → `<redacted: bearer token>`; `X-Api-Key: <key>` → `<redacted: api key>`; real customer emails/names/phone numbers → synthetic placeholders. Structural content (status codes, endpoint paths, error message templates, framework stack frames) stays verbatim.
+**Part A analysis-artifact redaction:** The Part A output (`execution-report.md` / parent-supplied analysis artifact path) is tracked and downstream-fed. If failure stack traces, request/response captures, or environment info embed credentials / tokens / PII, redact before writing: `Authorization: Bearer <jwt>` → `<redacted: bearer token>`; `X-Api-Key: <key>` → `<redacted: api key>`; real customer emails/names/phone numbers → synthetic placeholders. Structural content (status codes, endpoint paths, error message templates, framework stack frames) stays verbatim.
 
 </safety_boundaries>
 
 <success_criteria>
 
-High-level done-condition. Item-level checks live in `<validation_checklist>` (canonical).
+High-level done-condition. Item-level checks: `<validation_checklist>`.
 
 **Complete when:** Part A's analysis artifact has been emitted with every `<validation_checklist>` Part-A item satisfied; AND if Part B ran, every Part-B item is satisfied; AND if iteration 3 left failures, the verbatim escalation template from [references/escalation-template.md](references/escalation-template.md) was written per step 9.
 
@@ -197,7 +199,7 @@ High-level done-condition. Item-level checks live in `<validation_checklist>` (c
 
 Run before declaring complete. Items apply per the part(s) that ran.
 
-**Part A (report analysis — always-loaded):**
+**Part A (report analysis):**
 - Every failed test from the report has a Failure entry — partial coverage of the failure list is a regression.
 - Every Failure entry has a Category picked from the canonical taxonomy in step 3 AND a Root Cause.
 - Every selector-category Failure either cites page-source evidence OR carries the Unknown tag per `<failure_handling>` "page sources missing" rule.
@@ -205,18 +207,18 @@ Run before declaring complete. Items apply per the part(s) that ran.
 - Patterns section names cross-failure patterns OR explicitly says `No cross-failure patterns identified`.
 - Redaction scan completed per `<safety_boundaries>` Part A clause.
 
-**Part B (corrections — when applied):** items live in [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-validation_checklist-referenced-from-skillmd-validation_checklist). Loaded only when Part B runs.
+**Part B (corrections — when applied):** see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-validation_checklist-referenced-from-skillmd-validation_checklist).
 
 </validation_checklist>
 
 <pitfalls>
 
-**Part A pitfalls (always-loaded):**
+**Part A pitfalls:**
 - Listing failures without analyzing root causes
 - Silently skipping page-source analysis when page sources are missing (see `<failure_handling>` "page sources missing")
 - Using a `{TICKET-KEY}` path instead of `<test-name>` — `{TICKET-KEY}` is a TestGen convention not present in AQA naming
 
-**Part B pitfalls (loaded with Part B):** see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-pitfalls-referenced-from-skillmd-pitfalls).
+**Part B pitfalls:** see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-pitfalls-referenced-from-skillmd-pitfalls).
 
 </pitfalls>
 

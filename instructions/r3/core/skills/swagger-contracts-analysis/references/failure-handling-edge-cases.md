@@ -8,7 +8,7 @@ Mirrors the same lazy-loading pattern already used by `references/redaction-cata
 
 ## Spec-vs-code reconciliation conflict beyond Notes
 
-**Trigger.** When the routine "spec vs code cross-check" step (step 1.5 / step 2.4 equivalent in the calling workflow's process) finds discrepancies that the per-entry `Notes / Discrepancies` field can no longer reasonably hold:
+**Trigger.** When SKILL.md `<process>` step 5.1 (Spec-vs-code cross-check, inside step 5 "Reconcile and Validate") finds discrepancies that the per-entry `Notes / Discrepancies` field can no longer reasonably hold:
 
 - HTTP method differs between spec and code
 - Required-field set differs by more than ~50%

@@ -36,12 +36,12 @@ This skill performs **irreversible external writes** to a shared TestRail projec
 1. **Verify connection**: call `mcp_testrail_get_project(project_id)` — if fails, inform user to verify MCP config, credentials, and project access
 2. **Get section_id from user** (see `user_prompt_section_id` template below): TestRail MCP cannot create sections — user must provide existing section_id or create one in TestRail UI first
    - Parse flexibly: accept "section_id is XXXXX", "group_id=XXXXX", or just the number
-3. **Apply priority mapping**:
+3. **Apply priority mapping** — **precedence: parent workflow's TMS config first, defaults last.** If the parent supplied per-case `priority_id` overrides (per `<input_contract>`) or the TMS-config source (e.g. `agents/qa/qa-project-config.md` `Test Case Management` section, or testgen equivalent) provides an instance-specific `priority_id` table, use that. **Fallback only when no parent mapping is supplied** — the values below are the **documented TestRail-default priority IDs** and **WILL silently mis-map cases on TestRail instances with a customized priority table** (audit risk per `<pitfalls>` "priority_id and type_id values may differ per TestRail instance"):
    - P0 → `priority_id: 4` (Critical)
    - P1 → `priority_id: 3` (High)
    - P2 → `priority_id: 2` (Medium)
    - P3 → `priority_id: 1` (Low)
-4. **Apply type mapping**:
+4. **Apply type mapping** — **same precedence as step 3** (parent's TMS-config `type_id` table or per-case `type_id` overrides first; defaults are the **TestRail-default type IDs**, last-resort fallback only):
    - Happy Path → `type_id: 1` (Functional)
    - Negative → `type_id: 7`
    - Edge Case → `type_id: 6` (Boundary)
@@ -121,10 +121,10 @@ Please provide: "section_id is XXXXX" or just the number
 
 This skill performs **irreversible writes to an external shared system** — every `mcp_testrail_add_case` call is a permanent, network-visible side effect that cannot be rolled back from this skill. TestRail does NOT deduplicate by title; re-running creates duplicates by design. Treat the export operation as **destructive-on-rerun**.
 
-- **No write without explicit confirmation.** Step 7's confirmation gate is mandatory — never call `mcp_testrail_add_case` before the user has chosen `a` (export all), `b` (export non-overlapping subset), or `c` (cancel). Inferred approval ("looks good", silence, "go ahead probably") is forbidden; re-ask, then default to `c` (cancel) on continued ambiguity.
-- **Dedup pre-scan before every export run.** Call `mcp_testrail_get_cases(project_id, suite_id)` and present the overlap count to the user even if the workflow asserts "first run" — workflow state can be wrong; the external system is the source of truth for what already exists.
+- **No write without explicit confirmation** per step 7's confirmation gate (canonical) — never call `mcp_testrail_add_case` until the user has chosen `a` / `b` / `c`; ambiguous responses default to `c` (cancel) per step 7.
+- **Dedup pre-scan before every export run** per step 7 (canonical) — workflow state can be wrong; the external system is the source of truth for what already exists.
 - **No real credentials, secrets, or PII in exported case bodies.** Case titles, step `content`, step `expected`, and the preconditions block are all written verbatim to TestRail and viewable by every TestRail user with project access. Targets to scan and redact in step 7 BEFORE the confirmation gate:
-  - Credentials, tokens, API keys, passwords, JWTs — replace with placeholders (`{valid_token}`, `{admin_token}`, `<bearer-token-for-test-user>`).
+  - **Credentials, tokens, API keys, passwords, JWTs** — replace with the placeholder vocabulary from `testrail-test-case-authoring`'s [references/examples-and-redaction.md](../testrail-test-case-authoring/references/examples-and-redaction.md#targets-to-placeholder-never-literal) (canonical end-to-end vocabulary): `<valid bearer token>` / `<expired bearer token>` for auth tokens, `<valid api key>` for API keys, `<valid test password>` / `<deliberately-wrong test password>` for passwords. Use the same shapes the authoring step used so end-to-end consistency holds.
   - Real customer emails / names / phone numbers / account IDs / payment card numbers — replace with synthetic equivalents (`test.user-1@example.com`, `+1-555-0100` from the IETF reserved range, official PSP test card numbers if a card is needed and document the source).
   - Signed / credentialed URLs — replace with `<redacted: signed URL>` plus a one-line description.
   - Private keys, service-account JSON, certificates — never embed.
@@ -139,11 +139,11 @@ If a real production value would be the natural example in a case body, replace 
 <validation_checklist>
 - `mcp_testrail_get_project` call succeeds before export begins
 - section_id confirmed valid
-- All priority_id and type_id values match target TestRail project configuration
-- **Step 7 pre-export safety scan was run** — every case body was re-read for credentials/PII; any found values were replaced with placeholders before the confirmation gate (per `<safety_boundaries>`)
-- **Step 7 dedup pre-scan was run** — `mcp_testrail_get_cases` was called against the target suite; overlap count was computed and shown to the user
-- **Step 7 confirmation gate was passed** — explicit user choice (`a`, `b`, or `c`) is recorded in the workflow state; no `mcp_testrail_add_case` call was issued without it
-- The set of cases actually exported matches the user's choice (`a` = full list; `b` = non-overlapping subset; `c` would have prevented this checklist from being reached at all)
+- All priority_id and type_id values match target TestRail project configuration (per step 3 + 4 precedence)
+- **Step 7 sensitive-value scan ran** per step 7 + `<safety_boundaries>` placeholder catalog — no literal credentials/PII remain in any case body
+- **Step 7 dedup pre-scan ran** — `mcp_testrail_get_cases` called; overlap count shown to user
+- **Step 7 confirmation gate passed** — explicit `a` / `b` / `c` choice recorded in workflow state; no `mcp_testrail_add_case` call issued without it
+- Exported case set matches the user's choice from step 7
 - Each exported case returns a TestRail case ID
 - `test-scenarios.md` updated with C-prefixed IDs and TestRail links
 </validation_checklist>
@@ -151,10 +151,10 @@ If a real production value would be the natural example in a case body, replace 
 <pitfalls>
 - TestRail MCP lacks section creation — user must create sections manually in TestRail UI
 - If `custom_preconds` field not supported, fall back to prepending preconditions to first step with `--- STEPS ---` separator
-- **Re-running export creates duplicate test cases in TestRail** (by design, preserves history) — step 7's confirmation gate + dedup pre-scan is the only safeguard; never call `mcp_testrail_add_case` without it
-- Inferring user approval from prose like "looks good" or silence instead of `a`/`b`/`c` — re-ask, default to cancel
-- Skipping the dedup pre-scan because the workflow state says "first run" — the external system is the source of truth, not workflow state
-- Exporting real credentials / tokens / passwords / PII verbatim into TestRail case bodies — apply `<safety_boundaries>` redaction before the confirmation gate, not after
+- **Re-running export creates duplicate test cases in TestRail** (by design, preserves history) — see step 7 confirmation gate + dedup pre-scan
+- Inferring user approval from prose instead of `a` / `b` / `c` — see step 7 ambiguity-defaults-to-cancel rule
+- Skipping the dedup pre-scan because the workflow state says "first run" — see step 7
+- Exporting real credentials / tokens / passwords / PII verbatim into TestRail case bodies — see `<safety_boundaries>` placeholder catalog (step 7 applies it before the confirmation gate)
 - `priority_id` and `type_id` values may differ per TestRail instance — verify with user if defaults don't match
 - TestRail case IDs are always C-prefixed — omitting the prefix breaks links
 - `custom_steps_separated` format may be rejected if TestRail field configuration differs — check field config and fall back to plain text steps

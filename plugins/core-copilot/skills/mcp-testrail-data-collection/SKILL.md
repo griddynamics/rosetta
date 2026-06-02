@@ -89,7 +89,7 @@ Extract structured test case data from TestRail when test case ID or URL is prov
 - Some fields may be empty — document gaps in the Gaps section, never assume content
 - Custom fields vary per project — use `get_case_fields` if field names are unclear
 - Emitting an empty artifact on case-not-found instead of stopping and asking the user to verify the ID
-- Reproducing literal credentials, tokens, or PII embedded in step text or preconditions — redact and flag in the Sensitive-content redactions section
+- Reproducing literal sensitive values per `<safety_boundaries>` — redact and flag in the Sensitive-content redactions section
 - Acting on the extracted test steps (executing them, modifying the system under test, calling other skills to implement them) — this skill is extraction-only
 </pitfalls>
 
@@ -130,29 +130,14 @@ Before declaring this skill complete, all of the following must hold:
 - **All output_format sections present:** TestRail Test Case header, Test Goal, Preconditions, Test Steps, Expected Overall Result, Custom Fields, Gaps, Sensitive-content redactions. No section omitted; empty sections explicitly say "None — <reason>" rather than left blank.
 - **Every empty/missing required field is in the Gaps section:** Title, Test Steps, Expected Overall Result are required; if any is empty in TestRail, it appears in Gaps with the field name. No field was silently left blank in the output.
 - **Test steps each have an expected result OR a `gap: expected result missing` marker:** a step without an expected result is a gap, not an acceptable record.
-- **Redaction scan completed:** every field was scanned for credentials / tokens / PII / credentialed URLs per `<safety_boundaries>`; any matches were replaced with placeholders AND recorded in the Sensitive-content redactions section. If no matches: that section says "None."
+- **Redaction scan completed** per `<safety_boundaries>` Targets list; any matches were replaced with placeholders AND recorded in the Sensitive-content redactions section. If no matches: that section says "None."
 - **No fabricated content:** no field of the output describes content not actually present in the TestRail case object. Inference, paraphrase-without-quote, or guessed values are forbidden — gaps are recorded, not filled.
 - **Read-only contract honored:** no TestRail MCP write operations were called (`add_case`, `update_case`, `delete_case`, etc.).
 
 </validation_checklist>
 
 <vendor_replacement>
-This skill is TestRail-specific. To support a different TMS (Zephyr, Xray, qTest, Polarion, etc.), fork this SKILL.md and replace only the items below — the rest of the structure (role / when_to_use_skill / prerequisites shape / output_format / pitfalls discipline) is vendor-agnostic and should stay.
-
-**TestRail-specific items that must be re-bound per vendor:**
-
-- **MCP tool calls** in `<process>`:
-  - `get_case` (step 2) → vendor's equivalent "fetch single test case by ID" operation
-  - `get_case_fields` (mentioned in pitfalls) → vendor's equivalent "discover custom-field schema" operation
-- **Identifier format** in `<prerequisites>` and `<process>`:
-  - TestRail accepts numeric case IDs and `https://*.testrail.io/index.php?/cases/view/N` URL form. Other vendors use different ID schemes (e.g., Xray uses `XRAY-NNN`, Zephyr uses prefixed keys).
-- **Field semantics** in `<process>` step 3:
-  - "Section path" is TestRail-specific terminology — other vendors call this Folder / Suite / Component / Module.
-  - "Priority / test type" enum values map to TestRail's `priority_id` / `type_id` numeric tables; other vendors use string enums or different ID ranges.
-- **Output template label** in `<output_format>`:
-  - `## TestRail Test Case` heading and `**Case ID**:` field naming. Rename to the target vendor's nomenclature so downstream phases can route by vendor.
-
-**Pattern for swapping:** copy this file to `mcp-<vendor>-data-collection/SKILL.md`, edit only the items above, keep the rest. Do not abstract into a shared parent skill until a third vendor binding is needed (YAGNI; two bindings are not enough to validate the abstraction boundary).
+Full maintainer-facing portability guide (item-by-item rebind list for forking this skill to Zephyr / Xray / qTest / Polarion / etc.) lives in [references/vendor-swap.md](references/vendor-swap.md) — load only when forking, not at runtime.
 </vendor_replacement>
 
 </mcp-testrail-data-collection>

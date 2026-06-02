@@ -185,9 +185,9 @@ Run before declaring complete. All items must hold:
 
 - **Report file written** at `agents/plans/aqa-<test-name>-code-analysis.md` (or workflow-supplied path) and is non-empty.
 - **Test plan summary added.** The test plan now contains a `## Code Analysis` section linking to the report.
-- **All 9 report sections populated** per step 8 — Framework, User Instructions, Frontend, Page Objects, Similar Tests, Test Location, Utilities, Conflicts, Coverage. No section blank or `TBD`.
+- **All 9 report sections populated** per the step 8 template — no section blank or `TBD`.
 - **Test location decision is one of `add-to-existing` or `new-file`** with explicit rationale citing the rule from step 6.
-- **Coverage section enumerates every optional input** with `available` or `not available — <impact>` — no silent omission.
+- **Coverage section** satisfies the Coverage epistemic-honesty rule (step 8) — every optional input listed with status, no silent omission.
 - **Conflicts subsection populated** — either lists conflicts with `repo docs won` resolution, or explicit `None — sources consistent.`
 - **No source files were modified** outside the report and the test plan summary (safety boundary).
 - **Hand-off summary emitted** per `<output_format>` with all fields populated.
@@ -202,7 +202,7 @@ Run before declaring complete. All items must hold:
 - Creating new page objects when existing ones can be extended
 - Not searching for similar tests — misses established patterns
 - Assuming project structure without verification
-- Silently omitting absent optional inputs from the Coverage section — downstream phases misread missing-data as no-issues
+- Silent omission from the Coverage section — see Coverage epistemic-honesty rule (step 8)
 - Overwriting an existing report without surfacing the regeneration
 - Modifying source files during "analysis" — the only writes are the report and the test plan's summary subsection
 </pitfalls>

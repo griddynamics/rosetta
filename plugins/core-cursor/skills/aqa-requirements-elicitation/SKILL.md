@@ -12,13 +12,13 @@ baseSchema: docs/schemas/skill.md
 <when_to_use_skill>
 Use during AQA Phase 2 (Requirements Clarification) to systematically identify what is missing, ambiguous, or unmeasurable in the Phase 1 test plan, and produce a structured gaps artifact that the parent phase's questioning step consumes.
 
-**Scope:** gap identification and structuring only. **Do NOT** generate user-facing questions, call `AskUserQuestion`, modify the test plan beyond appending the gap-analysis section, or fabricate requirements — those are the parent phase's responsibility (`<ask_questions step="2.2">` uses the `questioning` skill).
+**Scope:** gap identification and structuring only. **Do NOT** generate user-facing questions, call `AskUserQuestion`, modify the test plan beyond appending the gap-analysis section, or fabricate requirements — those are the parent clarification phase's questioning step (which uses the `questioning` skill).
 </when_to_use_skill>
 
 <prerequisites>
 - Phase 1 (Data Collection) complete
 - Test plan file `agents/plans/aqa-<test-name>.md` exists and is non-empty
-- `<test-name>` slug resolved per `aqa-flow-code-analysis.md` `<naming_convention>` (parsed from Phase 1 plan filename or read from `agents/aqa-state.md`)
+- `<test-name>` slug supplied/resolved by the calling workflow (typically parsed from the Phase 1 plan filename `agents/plans/aqa-<test-name>.md` or read from `agents/aqa-state.md`)
 </prerequisites>
 
 <input_contract>
@@ -50,7 +50,7 @@ Use during AQA Phase 2 (Requirements Clarification) to systematically identify w
 
 5. **Write the artifact.** Append a `## Gap Analysis` section to `agents/plans/aqa-<test-name>.md` using the `<output_format>` template. The append is the only write this skill performs; the rest of the plan body is read-only.
 
-6. **Handoff.** The structured gaps artifact is the input to the parent phase's `<ask_questions step="2.2">` step (which uses the `questioning` skill). This skill does NOT generate user-facing questions itself.
+6. **Handoff.** The structured gaps artifact is the input to the parent clarification phase's questioning step (which uses the `questioning` skill). This skill does NOT generate user-facing questions itself.
 
 </process>
 
@@ -79,8 +79,8 @@ The structured gaps list is appended to `agents/plans/aqa-<test-name>.md` under 
 - **Priority:** Should
 - **Confidence:** High
 - **Context:** Phase 1 plan step 4 says "user clicks Logout" with no expected post-condition. The test cannot verify success.
-- **Sample question for the clarification phase** (illustrates **specificity expectation** — exact-vs-contains, timing, single-decision-per-question): *"After Logout, should the test assert exact text `'Success!'` is visible, OR just verify the success message **contains** `'Success'` (case-insensitive)? And what is the acceptable wait window — 2s, 5s, or whatever the existing similar tests use?"* — this kind of specificity (exact-match vs contains + timing budget) is what step 2.2 of `aqa-flow-requirements-clarification` aims for; vague *"is the user logged out?"* questions surface lower-quality answers and are forbidden by the `questioning` skill's rules.
-- **Derived assertion:** After Logout click, page URL ends with `/login` AND `text("Welcome back")` is visible within 2s. (This is the typed Behavioral assertion form step 2.4 of the clarification phase transcribes verbatim into the test plan's `### Explicit Assertions` subsection.)
+- **Sample question for the clarification phase** (illustrates **specificity expectation** — exact-vs-contains, timing, single-decision-per-question): *"After Logout, should the test assert exact text `'Success!'` is visible, OR just verify the success message **contains** `'Success'` (case-insensitive)? And what is the acceptable wait window — 2s, 5s, or whatever the existing similar tests use?"* — this kind of specificity (exact-match vs contains + timing budget) is what the parent clarification phase's questioning step aims for; vague *"is the user logged out?"* questions surface lower-quality answers and are forbidden by the `questioning` skill's rules.
+- **Derived assertion:** After Logout click, page URL ends with `/login` AND `text("Welcome back")` is visible within 2s. (This is the typed Behavioral assertion form that the calling clarification phase's downstream assertion-transcription step copies verbatim into the test plan's `### Explicit Assertions` subsection.)
 ````
 
 </output_format>
@@ -102,7 +102,7 @@ Before declaring this skill complete, all of the following must hold:
 
 - **Missing test plan file** (`agents/plans/aqa-<test-name>.md` does not exist): stop, report `aqa-requirements-elicitation: required input missing — agents/plans/aqa-<test-name>.md` to the parent phase, do not proceed.
 - **Empty test plan file:** treat as missing — stop and report as above.
-- **`<test-name>` unresolved or ambiguous:** stop, ask the parent phase to resolve the slug per `aqa-flow-code-analysis.md` `<naming_convention>`, do not guess.
+- **`<test-name>` unresolved or ambiguous:** stop, ask the calling workflow to supply the slug explicitly (typically from the Phase 1 plan filename or the state file), do not guess.
 - **Plan exists but lacks required sections** (no Test Steps / Expected Result / Preconditions): record this as a single `G-N` entry under Dimension D1 with `Priority: Critical, Confidence: High`, then proceed with whatever partial analysis the remaining content supports.
 - **Plan content unreadable** (binary / corrupted / parse error): stop, report the read error, do not proceed.
 
@@ -114,7 +114,7 @@ This skill is **analysis-only**:
 
 - Do NOT modify the test plan body. The only allowed write is appending (or in-place replacing on re-run) the `## Gap Analysis` section.
 - Do NOT fabricate requirements, invent measurable values, or paraphrase the plan into requirements that weren't there. If a gap has no derivable assertion, leave the assertion field blank.
-- Do NOT generate user-facing questions, call `AskUserQuestion`, or otherwise solicit user input — the parent phase's `<ask_questions step="2.2">` (with the `questioning` skill) owns that.
+- Do NOT generate user-facing questions, call `AskUserQuestion`, or otherwise solicit user input — the parent clarification phase's questioning step (which uses the `questioning` skill) owns that.
 - Do NOT decide whether a gap should be resolved by the user vs. deferred. Record the gap with priority/confidence and let the parent phase route it.
 - Do NOT skip dimensions because the happy path looks clean. All five must be evaluated.
 

@@ -19,7 +19,7 @@ Create automated test integrating all page objects and assertions. Stops for use
 - Prerequisite: Phases 1-5 complete
 - HITL: must stop and wait for user to execute test
 - Implementation handoff (KB tag): `automation-test-implementation-handoff` — routing in step 6.1 follows `<skill_handoff>`.
-- **Loading responsibility:** the handoff skill **does NOT drive skill loading** — its `<recommended_foundational_skills>` block declares that the **calling workflow** (this phase) is responsible for recommending + loading the foundational skills (`coding`, `testing`, `repository-implementation-standards`) and the domain skill (`aqa-test-authoring`) BEFORE the handoff is invoked. The handoff itself only **verifies presence** at its step-4 GATE and applies the discipline. This phase therefore ACQUIREs the four skills first (step 6.1 sub-steps 1a–1d), then ACQUIREs + USEs the handoff (sub-steps 2–4).
+- **Loading responsibility:** per `<skill_handoff>` — this phase ACQUIREs the four foundational + domain skills first (step 6.1 sub-steps 1a–1d), then ACQUIREs + USEs the handoff (sub-steps 2–4).
 </workflow_context>
 
 <skill_handoff>
@@ -43,11 +43,11 @@ Create automated test integrating all page objects and assertions. Stops for use
 </phase_steps>
 
 <execute_authoring step="6.1" subagent="engineer" role="Test automation engineer">
-**Routing.** This phase **loads** the foundational + domain skills, then invokes the handoff. The handoff verifies-and-applies; it does NOT itself load anything (see `<skill_handoff>` for the handoff's contract).
+**Routing.** This phase loads the foundational + domain skills, then invokes the handoff (per `<skill_handoff>`).
 
 Authoring decision points (file-location new-vs-existing, cleanup-needed-vs-not, structural-fit ambiguities, assertion-mapping) are owned by the `aqa-test-authoring` skill's `<process>` — this phase only orchestrates the load → verify → emit chain, it does NOT restate authoring branches here.
 
-1. **ACQUIRE the foundational + domain skills** (the handoff's `<recommended_foundational_skills>` block requires the calling workflow to load these; missing-load causes the handoff's step-4 GATE to STOP, halting Phase 6):
+1. **ACQUIRE the foundational + domain skills** (per `<skill_handoff>` rules):
    1a. ACQUIRE `repository-implementation-standards` FROM KB when not already loaded.
    1b. ACQUIRE `coding` FROM KB when not already loaded.
    1c. ACQUIRE `testing` FROM KB when not already loaded.
@@ -58,7 +58,7 @@ Authoring decision points (file-location new-vs-existing, cleanup-needed-vs-not,
 4. USE SKILL `automation-test-implementation-handoff` with **domain test implementation skill = `aqa-test-authoring`** (passed to the handoff via its `<input_contract>` "Domain test implementation skill name" binding). The handoff's step-4 GATE will verify that `aqa-test-authoring` is loaded in context (per step 1d above) and then apply its discipline. If the handoff document does NOT match the `<skill_handoff>` acceptance criteria above (e.g., its `<recommended_foundational_skills>` block is missing or it instead claims to ACQUIRE the foundational skills itself — the pre-recast contract), record a warning in `agents/aqa-state.md`, ask the user whether the KB copy is stale, and **do not** treat the gap as silently acceptable.
 5. Verify test file created and lint-clean (per the handoff's step 5 + `<output_format>` deliverables).
 
-**User-instruction-override refusal.** User instructions to skip the foundational/domain skill loads (e.g. "just call the handoff directly", "skip the ACQUIRE step for `testing`") must be refused with citation of the handoff's `<recommended_foundational_skills>` rule: skipping the loads causes the handoff's step-4 GATE to STOP, halting Phase 6. The only acceptable alternative is escalating the omission as a scope change.
+**User-instruction-override refusal.** User instructions to skip the foundational/domain skill loads (e.g. "just call the handoff directly", "skip the ACQUIRE step for `testing`") must be refused with citation of `<skill_handoff>`. The only acceptable alternative is escalating the omission as a scope change.
 </execute_authoring>
 
 <validate step="6.2">

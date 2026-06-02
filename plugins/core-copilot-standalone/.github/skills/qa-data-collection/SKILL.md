@@ -124,7 +124,7 @@ If no backend source path is discoverable, skip this step entirely.
 
 Before writing `raw-data.md`, re-verify against `<safety_boundaries>` and `<pitfalls>`:
 
-1. **Secret scan.** Review every section that will be written. No literal credentials, API keys, tokens, passwords, full `.env` contents, connection strings, or private keys may appear. Replace with `<source: env var X / config Y>` placeholders.
+1. **Secret scan per `<safety_boundaries>`.** Review every section that will be written; replace any literal credentials/tokens/PII with the path + mechanism placeholders from the `<safety_boundaries>` Targets list.
 2. **Anti-assumption scan.** For each pitfall in `<pitfalls>`, confirm the corresponding section either has real data OR explicitly records the gap. Do not silently fill missing TMS / docs / codebase info with inferences.
 3. **Endpoint table completeness.** Every row in the API Endpoints table must have Method + Source populated; partial rows are tagged as gaps in the Notes section.
 
@@ -132,7 +132,7 @@ If any of (1) (2) (3) fails, fix the draft before proceeding to step 7.
 
 ## 7. Produce Raw Data Document
 
-Create `agents/qa/{IDENTIFIER}/raw-data.md` using the template in `<output_format>`.
+Create `agents/qa/{IDENTIFIER}/raw-data.md` using the verbatim template in [references/output-template.md](references/output-template.md) — load on demand at this step. Populate each section with the data collected in steps 2–5 per `<output_format>` (which is itself a thin pointer to the same reference).
 
 </process>
 
@@ -140,108 +140,7 @@ Create `agents/qa/{IDENTIFIER}/raw-data.md` using the template in `<output_forma
 
 File: `agents/qa/{IDENTIFIER}/raw-data.md`
 
-```markdown
-# Raw Data - [IDENTIFIER]
-
-**Extracted**: [DateTime]
-**Phase**: 1 - Data Collection
-
----
-
-## Test Case Data
-
-### Source: [TestRail TC-1234 / Jira PROJ-123 / User Provided]
-**URL**: [Source URL if applicable]
-**Title**: [Test case title]
-**Priority**: [Priority]
-
-### Test Objective
-[What is being tested and why]
-
-### Preconditions
-[List preconditions]
-
-### Test Steps
-1. [Step 1]
-   - Expected: [Result]
-2. [Step 2]
-   - Expected: [Result]
-
-### Expected Overall Result
-[Final expected outcome]
-
----
-
-## Documentation
-
-### Page 1: [Page Title]
-**URL**: [URL]
-**Relevance**: [Why this page is relevant]
-
-#### Key Information
-[Extracted relevant content — API contracts, business rules, constraints]
-
----
-
-## Existing Test Patterns
-
-### Test Framework
-- **Framework**: [Name and version]
-- **HTTP Client**: [Library name]
-- **Location**: [Test directory path]
-
-### File Naming Convention
-- Pattern: [e.g., `*.api.test.ts`, `test_*.py`]
-- Example: [Existing file path]
-
-### Test Structure Pattern
-[Example of existing test structure from codebase]
-
-### Auth Setup Pattern
-[How existing tests handle authentication]
-
-### Shared Utilities
-- [Utility 1]: [Purpose and file path]
-- [Utility 2]: [Purpose and file path]
-
-### Environment Config
-- Base URL source: [env var, config file, hardcoded]
-- Test env file: [path or N/A]
-
----
-
-## Backend Source Code Analysis
-
-Vocabulary for every field below is sourced from [references/backend-source-analysis.md](references/backend-source-analysis.md) (single source of truth — do not re-enumerate options here):
-
-- **Source Location**: [path / `N/A — <reason>`]
-- **Rosetta Docs**: [`RefSrc/{project-name}/docs/` files read, or `N/A — <reason>`]
-- **Backend Framework**: [pick from "Framework Markers" table, or `N/A`]
-- **Language**: [pick from "Framework Markers" table, or `N/A`]
-- **Route Definition Pattern**: [pick from "Route Definition Patterns" table, or `N/A`]
-- **Swagger/OpenAPI in Source**: [path found, or `Not found`, or `N/A`]
-- **Validation Library**: [as detected, or `N/A`]
-- **Key Directories**: [paths matched against "Key Directory Layout" table, or actual layout if non-standard, or `N/A`]
-
----
-
-## API Endpoints Identified
-
-| Endpoint | Method | Source | Description |
-|----------|--------|--------|-------------|
-| [Path] | [GET/POST/...] | [TestCase/Docs/Code] | [Brief description] |
-
----
-
-## Data Collection Summary
-
-- **Test Cases Retrieved**: [Count]
-- **Documentation Pages Found**: [Count]
-- **API Endpoints Identified**: [Count]
-- **Existing Test Files Found**: [Count]
-- **Test Framework**: [Name]
-- **Notes**: [Any issues during extraction]
-```
+Verbatim template + section structure (Test Case Data, Documentation, Existing Test Patterns, Backend Source Code Analysis, API Endpoints Identified, Data Collection Summary): [references/output-template.md](references/output-template.md) — loaded on demand at step 7 (same lazy-loading pattern step 4 + step 5 use).
 
 </output_format>
 
@@ -252,7 +151,7 @@ Vocabulary for every field below is sourced from [references/backend-source-anal
 - Not asking user for IDs/URLs when missing from config
 - Ignoring existing test patterns and conventions in the codebase
 - Skipping backend source code analysis when path is configured in project config — leads to less accurate API spec analysis in Phase 2
-- **Copying literal `.env` values, API keys, tokens, or passwords into `raw-data.md` — this artifact is tracked and may be shared; record source + mechanism only (see `<safety_boundaries>`)**
+- **Copying literal `.env` values, tokens, or passwords into `raw-data.md` — see `<safety_boundaries>`**
 - Marking sections "TBD" or skipping them silently instead of explicitly recording the gap with a reason
 </pitfalls>
 
@@ -277,7 +176,7 @@ Complete when **all of** the following hold:
 - `agents/qa/{IDENTIFIER}/raw-data.md` written with every `<output_format>` template section present-or-`N/A — <reason>` (silent omission is forbidden).
 - At least one test-case source captured (TestRail / Jira / User Provided) per step 2 — a raw-data.md with zero test-case data is incomplete.
 - Every gap from incomplete TMS / docs / codebase retrieval is recorded as an explicit `Gap: ...` note, NOT silently filled with assumptions (per step 6.2 anti-assumption re-check).
-- Step 6.1 secret-scan passed: `raw-data.md` carries paths and mechanism descriptions only, no literal credentials/tokens/PII.
+- Step 6.1 secret-scan passed per `<safety_boundaries>`.
 - API endpoints table has every row with Method + Source populated (partial rows tagged as Notes gaps).
 
 The skill is **NOT complete** if it emits a raw-data.md with silently missing sections, with inferred values where gaps belong, or with literal credentials/PII — OR if a `<failure_handling>` stop path was reached and not followed (paused phase, not complete).
@@ -305,7 +204,7 @@ Proof-oriented checks only — section presence is enforced by `<success_criteri
 
 - **Every output section present-or-N/A** per `<output_format>` (verify by section-header grep before emit; silent omission is forbidden).
 - **API endpoints table grep:** every row has non-blank Method + Source columns; partial rows are tagged as Notes gaps.
-- **Safety re-check (per step 6.1):** `raw-data.md` was grepped for the credential/PII patterns enumerated in `<safety_boundaries>` (single source of truth for the target list); none are present — only paths and mechanism descriptions.
+- **Safety re-check (per step 6.1):** `raw-data.md` grepped per `<safety_boundaries>` Targets list; no hits.
 - **Anti-assumption re-check (per step 6.2):** every pitfall in `<pitfalls>` was reviewed against the artifact before declaring complete; gaps in TMS / Confluence / codebase analysis are recorded as `Gap: ...` notes, not filled by inference.
 - **Sub-skill failure surfacing:** if any delegated MCP skill stopped per `<failure_handling>`, its verbatim failure message appears in the relevant section's `## Notes / Gaps`. No silent absorption of stop reports.
 

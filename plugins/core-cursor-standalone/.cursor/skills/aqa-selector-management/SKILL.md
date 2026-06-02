@@ -98,13 +98,7 @@ When the Part A inventory marks a page object as "to create", follow the mechani
 
 ### 7. Validate Implementation
 
-For each modified/created file:
-- Selectors match the values identified in Part A
-- Naming follows project conventions
-- Imports correct and organized
-- No syntax or linting errors
-- Helper methods follow existing patterns
-- **Fragile-selector gate:** any selector flagged in Part A step 4 as fragile MUST either (a) have been replaced with a stable alternative agreed with the user, or (b) be surfaced to the calling workflow for explicit approval before commit — NOT silently implemented.
+Validation mechanics + the canonical **fragile-selector gate** live in [references/strategy-and-template.md](references/strategy-and-template.md#part-b-step-7--validate-implementation-referenced-from-skillmd-step-7) — load on Part B invocations only.
 
 </process>
 
@@ -125,9 +119,9 @@ This skill writes **only** to page-object files (and to the test plan's `## Sele
 - Edit the code-analysis report, project description, or repo docs
 - Commit fragile selectors flagged in Part A step 4 without explicit approval recorded in the output (per Part B step 7's fragile-selector gate)
 
-**Part A / Part B scope** is governed by the canonical rule in `<when_to_use_skill>` — not restated here. Enforcement: a Part A invocation MUST NOT create or modify page-object files; a Part B invocation consumes Part A's recorded inventory rather than re-running the analysis.
+**Part A / Part B scope** is governed by the canonical rule in `<when_to_use_skill>` — not restated here.
 
-**Fragile-selector discipline.** Any selector tagged fragile in Part A is surfaced for approval, not silently implemented. Silently committing a fragile selector is a safety-boundary violation and is the primary failure mode this rule guards against.
+**Fragile-selector discipline** — canonical rule lives in Part B step 7's fragile-selector gate (see [references/strategy-and-template.md](references/strategy-and-template.md#part-b-step-7--validate-implementation-referenced-from-skillmd-step-7)). Silently committing a fragile selector is a safety-boundary violation.
 
 </safety_boundaries>
 

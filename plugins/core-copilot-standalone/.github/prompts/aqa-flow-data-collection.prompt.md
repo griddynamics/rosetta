@@ -19,7 +19,7 @@ Gather test case details from TestRail and feature context from Confluence, cros
 - Discipline skill (Rosetta KB): `confluence-source-harvesting` — required for step 1.3; ACQUIRE before USE if not already loaded.
 - Session guardrails: `bootstrap-guardrails` is a **rule** (not a skill) loaded session-wide via Rosetta bootstrap (Prep Step 3); no per-phase ACQUIRE needed. If for any reason the rule is absent from the session context, treat that as a session-bootstrap failure and stop the phase (do not silently proceed).
 - Zero-document ACQUIRE for any required tag in step 1.3: apply `<zero_doc_protocol>`.
-- **KB catalog / ACQUIRE success:** Tags above resolve to Rosetta markdown in this repository (`instructions/r3/core/skills/confluence-source-harvesting/SKILL.md`, `instructions/r3/core/instructions/bootstrap-guardrails.instructions.md`). Broader taxonomy: `docs/definitions/skills.md`, `docs/definitions/rules.md`. **Successful ACQUIRE** means Rosetta returns **≥1 non-empty** instruction document for the tag.
+- **ACQUIRE success:** Rosetta returns **≥1 non-empty** instruction document for the tag.
 - Prerequisite: TestRail and Confluence MCPs configured; Rosetta/KB access sufficient to resolve the tags above when needed.
 </workflow_context>
 

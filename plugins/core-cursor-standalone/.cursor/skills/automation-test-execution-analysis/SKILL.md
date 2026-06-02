@@ -35,7 +35,7 @@ The parent workflow phase file supplies all bindings below. This skill does not 
 | Input | Source | Required content / format |
 |---|---|---|
 | Test execution report | Parent workflow's report path, OR user message, OR file under `agents/user-instructions/` discovered by keyword scan in step 1 | One of: framework HTML/XML report (JUnit XML, Playwright HTML, Cypress JSON, pytest JUnit), CI logs (plain text / Markdown), raw stdout/stderr capture, JSON test result export. The format is detected at step 1; if undetectable, treated as plain text. |
-| Domain analysis skill name | Parent workflow phase file (e.g. `aqa-test-debugging`, `qa-test-debugging`) | Exact KB identifier this skill resolves at step 4. The domain skill is invoked under its **analysis-only / read-only output contract** — its job here is to emit the categorized analysis artifact, not to mutate source. Missing or unresolvable → step 5 GATE stops the phase. |
+| Domain analysis skill name | Parent workflow phase file (e.g. `aqa-test-debugging`, `qa-test-debugging`) | Exact KB identifier this skill resolves at step 4. Invoked under the read-only domain-skill contract in `<core_concepts>`. Missing or unresolvable → step 5 GATE stops the phase. |
 | Output artifact path | Parent workflow phase file | Absolute or workspace-relative path where step 9 writes/updates the analysis artifact. Missing → step 9 cannot complete; stop and ask the parent phase. |
 | Output schema (optional) | Parent workflow phase file's `<output_format>` block | If parent supplies a schema, follow it. If absent, this skill's `<output_format>` template is the default. |
 | Workflow state file | Parent workflow (e.g. `agents/aqa-state.md`, `agents/qa-state.md`) | Where step 10 records counts, root-cause summary, report path, and timestamp. |
@@ -57,7 +57,7 @@ The parent workflow phase file supplies all bindings below. This skill does not 
 3. USE SKILL `debugging` while interpreting failures.
 4. Resolve the parent-specified domain analysis skill.
 5. GATE: if the parent-specified domain analysis skill cannot be resolved/loaded, stop this phase, record the missing skill/tag in workflow state, and ask the user to fix Rosetta/KB access or provide explicit fallback approval before continuing.
-6. USE the resolved domain analysis skill **under its analysis-only / read-only output contract** — it MUST emit the categorized analysis artifact and MUST NOT mutate source files. (This skill does not depend on the domain skill's internal section structure; it consumes only the contracted output. If the domain skill's loaded form does not honor the read-only contract for this phase, stop and report to the parent workflow.)
+6. USE the resolved domain analysis skill under the read-only contract from `<core_concepts>`. If the domain skill's loaded form does not honor that contract for this phase, stop and report to the parent workflow.
 7. Categorize each failure using the canonical category enum from `<output_format>` (`environment | data | product-regression | test-bug | flakiness | infra-timeout | auth-session | selector-locator` (UI flows) `| contract-mismatch` (API flows) `| unknown`). The hyphenated forms in `<output_format>` are the single source of truth — do not introduce variants (e.g. `product regression` vs `product-regression`).
 8. For each category, tie to evidence: log lines, stack snippets, or request/response identifiers — distinguish verified facts from hypotheses.
 

@@ -18,7 +18,7 @@ Implement all approved API test specifications as executable automated tests fol
 - Output: implemented test files, lint-clean
 - Prerequisite: Phase 4 complete with user approval
 - HITL: must stop and wait for user to execute tests
-- **Loading responsibility:** the bound handoff skill `automation-test-implementation-handoff` **does NOT drive skill loading** — its `<recommended_foundational_skills>` block declares that the **calling workflow** (this phase) is responsible for recommending + loading the foundational skills (`coding`, `testing`, `repository-implementation-standards`) and the domain skill (`qa-test-implementation`) BEFORE the handoff is invoked. The handoff verifies presence at its step-4 GATE and applies the discipline; it does NOT itself ACQUIRE/USE other skills. This phase therefore ACQUIREs the four skills first (step 5.1 sub-steps 1a–1d), then ACQUIREs + USEs the handoff (sub-steps 2–4).
+- **Loading responsibility:** per `<skill_handoff>` — this phase ACQUIREs the four foundational + domain skills first (step 5.1 sub-steps 1a–1d), then ACQUIREs + USEs the handoff (sub-steps 2–4).
 </workflow_context>
 
 <skill_handoff>
@@ -42,11 +42,11 @@ Implement all approved API test specifications as executable automated tests fol
 </phase_steps>
 
 <execute_implementation step="5.1" subagent="engineer" role="API test automation engineer">
-**Routing.** This phase **loads** the foundational + domain skills, then invokes the handoff. The handoff verifies-and-applies; it does NOT itself load anything (see `<skill_handoff>` for the handoff's contract).
+**Routing.** This phase loads the foundational + domain skills, then invokes the handoff (per `<skill_handoff>`).
 
 Implementation decision points (test-file mapping, fixture organization, factory/utility placement, assertion-style choice, auth helper extension vs new) are owned by the `qa-test-implementation` skill's `<process>` — this phase only orchestrates the load → verify → emit chain, it does NOT restate implementation branches here.
 
-1. **ACQUIRE the foundational + domain skills** (the handoff's `<recommended_foundational_skills>` block requires the calling workflow to load these; missing-load causes the handoff's step-4 GATE to STOP, halting Phase 5):
+1. **ACQUIRE the foundational + domain skills** (per `<skill_handoff>` rules):
    1a. ACQUIRE `repository-implementation-standards` FROM KB when not already loaded.
    1b. ACQUIRE `coding` FROM KB when not already loaded.
    1c. ACQUIRE `testing` FROM KB when not already loaded.
@@ -61,20 +61,14 @@ Implementation decision points (test-file mapping, fixture organization, factory
      name: other-skill  # wrong name: expected automation-test-implementation-handoff
      <!-- missing <recommended_foundational_skills> block / verify-presence step -->
      ```
-4. USE SKILL `automation-test-implementation-handoff` with **domain test implementation skill = `qa-test-implementation`** (passed via the handoff's `<input_contract>` "Domain test implementation skill name" binding). The handoff's step-4 GATE will verify that `qa-test-implementation` is loaded in context (per step 1d above) and then apply its discipline. If the handoff document does NOT match the `<skill_handoff>` acceptance criteria (e.g., its `<recommended_foundational_skills>` block is missing or it instead claims to ACQUIRE the foundational skills itself — the pre-recast contract), record a warning in `agents/qa-state.md`, ask the user whether the KB copy is stale, and **do not** treat the gap as silently acceptable.
+4. USE SKILL `automation-test-implementation-handoff` with **domain test implementation skill = `qa-test-implementation`** (passed via the handoff's `<input_contract>` "Domain test implementation skill name" binding). The handoff verifies presence and applies the discipline per `<skill_handoff>`. If the handoff document does NOT match the `<skill_handoff>` acceptance criteria, record a warning in `agents/qa-state.md`, ask the user whether the KB copy is stale, and **do not** treat the gap as silently acceptable.
 5. Verify test files created and lint-clean (per the handoff's step 5 + `<output_format>` deliverables).
 
-**User-instruction-override refusal.** User instructions to skip the foundational/domain skill loads (e.g. "just call the handoff directly", "skip the ACQUIRE step for `testing`") must be refused with citation of the handoff's `<recommended_foundational_skills>` rule: skipping the loads causes the handoff's step-4 GATE to STOP, halting Phase 5. The only acceptable alternative is escalating the omission as a scope change.
+**User-instruction-override refusal.** User instructions to skip the foundational/domain skill loads (e.g. "just call the handoff directly", "skip the ACQUIRE step for `testing`") must be refused with citation of `<skill_handoff>`. The only acceptable alternative is escalating the omission as a scope change.
 </execute_implementation>
 
 <validate step="5.2">
-This block lists **in-progress validation items**. The final phase-exit gate is `<validation_checklist>` below, which is authoritative; every item there must be checked off before step 5.4 marks the phase complete.
-
-1. All assertions from Phase 4 specs implemented
-2. Existing project patterns followed
-3. Auth setup follows project conventions
-4. Test data lifecycle managed (create + cleanup)
-5. Linting errors checked and fixed
+Run `<validation_checklist>` (single canonical list — every item must be checked off before step 5.4 marks the phase complete). No separate in-progress vs exit lists; this step IS the validation pass.
 </validate>
 
 <stop_for_execution step="5.3">
@@ -96,15 +90,15 @@ This block lists **in-progress validation items**. The final phase-exit gate is 
 </update_state>
 
 <validation_checklist>
-**Authoritative exit gate for Phase 5.** Every item must be checked off before step 5.4 marks the phase complete. Supersedes any divergence with `<validate>` step 5.2 in-progress items.
+**Authoritative exit gate for Phase 5** — every item must be checked off before step 5.4 marks the phase complete. Step 5.2 runs this list; there is no separate in-progress validation list.
 
-- All assertions from Phase 4 specs implemented (includes `<validate>` item 1)
-- Shared utilities created (auth, factories, validators) — covers `<validate>` item 3 (Auth setup)
-- Tests follow existing project patterns (covers `<validate>` item 2)
+- All assertions from Phase 4 specs implemented
+- Shared utilities created (auth, factories, validators)
+- Tests follow existing project patterns
 - All tests isolated and idempotent
-- Test data lifecycle managed: create + cleanup verified (covers `<validate>` item 4)
+- Test data lifecycle managed: create + cleanup verified
 - Project coding standards followed
-- Linting passed (covers `<validate>` item 5)
+- Linting passed
 - User informed and execution command provided
 </validation_checklist>
 

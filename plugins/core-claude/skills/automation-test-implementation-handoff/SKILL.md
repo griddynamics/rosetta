@@ -31,14 +31,14 @@ Use in any phase whose job is to turn approved specs/plans into executable autom
 
 <recommended_foundational_skills>
 
-The calling workflow is expected to have already recommended + loaded these foundational skills before invoking this skill. Each is the canonical source for one slice of discipline this skill applies; this skill does NOT acquire/use them — it verifies they are loaded at the gates in `<process>` and applies their discipline.
+The calling workflow is expected to have already recommended + loaded these foundational skills before invoking this skill — see `<core_concepts>` for the verify-don't-load contract. Each is the canonical source for one slice of discipline this skill applies.
 
 | Skill | Discipline this skill applies | Verified at | If not loaded |
 |---|---|---|---|
 | `repository-implementation-standards` | Doc-first alignment with `project_description.md` / `CONTEXT.md` / `ARCHITECTURE.md` / `IMPLEMENTATION.md` | Step 1 | Apply `<failure_handling>` "foundational skill not loaded" |
 | `coding` | General implementation patterns + project style | Step 2 | Same |
 | `testing` | Test design constraints (isolation, idempotency, mocking policy) | Step 3 | Same |
-| **Domain test implementation skill** (parent-named, e.g. `aqa-test-authoring` / `qa-test-implementation`) | Workflow-specific authoring patterns (selectors, page objects, ATC traceability) | Step 4 GATE | Stop per the canonical step-4 GATE — no silent fallback |
+| **Domain test implementation skill** (parent-named, e.g. `aqa-test-authoring` / `qa-test-implementation`) | Workflow-specific authoring patterns (selectors, page objects, ATC traceability) | Step 4 GATE | Stop per step 4 GATE |
 | `hitl` | Wait/approve semantics for the STOP-AND-WAIT at step 8 | Step 8 | Apply `<failure_handling>` "foundational skill not loaded" |
 
 </recommended_foundational_skills>
@@ -64,13 +64,13 @@ The parent workflow phase file supplies all inputs below. This skill does not in
 
 <process>
 
-1. **Verify `repository-implementation-standards` is loaded** (per `<recommended_foundational_skills>`) and apply its doc-first alignment discipline. If absent from context AND the parent workflow state does not record it as already applied for this implementation phase, stop per `<failure_handling>` "foundational skill not loaded". This skill does NOT load it; the calling workflow recommends + loads it.
+1. **Verify `repository-implementation-standards` is loaded** (per `<recommended_foundational_skills>`) and apply its doc-first alignment discipline. If absent from context AND the parent workflow state does not record it as already applied for this implementation phase, stop per `<failure_handling>` "foundational skill not loaded".
 2. **Verify `coding` is loaded** (per `<recommended_foundational_skills>`) and apply its implementation patterns. If absent, stop per `<failure_handling>`.
 3. **Verify `testing` is loaded** (per `<recommended_foundational_skills>`) and apply its test-design constraints (isolation, idempotency, mocking policy) as applicable to this suite type. If absent, stop per `<failure_handling>`.
 4. **Verify the parent-named domain test implementation skill is loaded** (per `<recommended_foundational_skills>` + `<input_contract>`; e.g. `aqa-test-authoring`, `qa-test-implementation`) and apply its workflow-specific authoring patterns.
 
    - **GATE — domain skill required (canonical).** If the parent did NOT name a domain skill AND no conventional name is discoverable from the parent workflow's identifier (e.g. parent `aqa-flow-*` → try `aqa-test-authoring`; parent `qa-flow-*` → try `qa-test-implementation`), STOP. Report `automation-test-implementation-handoff: no domain test implementation skill named by parent and no conventional fallback discoverable` to the parent workflow and ask the user/parent to supply the name. **Silent fallback to `coding` + `testing` alone is forbidden** — the domain skill carries the workflow-specific authoring patterns (selectors, page objects, ATC traceability, etc.) and skipping it produces weaker tests than intended.
-   - If a conventional name was named but the skill is not loaded in context, follow `<failure_handling>` "domain skill named but not loaded" — ask the parent to recommend + load it (do not load it from this skill).
+   - If a conventional name was named but the skill is not loaded in context, follow `<failure_handling>` "domain skill named but not loaded".
    - Do NOT substitute a different domain skill silently. If the named domain skill cannot be loaded by the parent, stop per `<failure_handling>`.
 5. Validate: project formatter/linter commands run clean; tests compile or parse; obvious import/path errors fixed. If a lint/compile error is unresolvable, follow `<failure_handling>` "unresolvable lint/compile error" — do NOT proceed to step 6.
 6. GATE: enumerate created or changed file paths and primary entry test files.
@@ -147,9 +147,8 @@ Do NOT emit a generic framework name only (e.g. just "run Playwright" or "use py
 
 <validation_checklist>
 
-- Approved upstream artifact (spec/plan) was referenced during implementation per `<input_contract>` pre-check
-- Approval signal was present and explicit, not inferred
-- Domain test implementation skill was loaded (parent-named OR conventional fallback) per **step 4 GATE**
+Outcomes verified after step 7 (gate-preconditions like spec/approval/domain-skill presence are enforced earlier by `<process>` GATEs and not re-checked here):
+
 - Lint/format (or repo equivalent) ran with no unresolved errors on touched files; any unresolved error follows `<failure_handling>` and is recorded
 - User received a concrete, copy-pasteable test command — not a generic framework name only (per `<output_format>` handoff template)
 - State file updated per `<output_format>` state-update template — fields populated, no `TBD`
@@ -165,16 +164,6 @@ Do NOT emit a generic framework name only (e.g. just "run Playwright" or "use py
 - When the parent names a domain skill, the calling workflow should have it loaded BEFORE this skill writes test code so the domain skill's authoring patterns inform the implementation — not as a post-hoc check
 
 </best_practices>
-
-<pitfalls>
-
-- Proceeding to failure triage without user-confirmed test run completion when the workflow requires it
-- Marking the whole workflow done because tests "should" pass
-- Silently proceeding when the parent did not name a domain skill — see **step 4 GATE**
-- Emitting a generic framework name (e.g. "run Playwright") instead of a copy-pasteable command
-- Inferring approval from prose ("looks good") instead of an explicit signal recorded by the parent's HITL step
-
-</pitfalls>
 
 <resources>
 

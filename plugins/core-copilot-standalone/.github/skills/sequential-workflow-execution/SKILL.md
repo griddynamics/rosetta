@@ -128,9 +128,7 @@ Steps 8, 9, and 10 govern three distinct transition shapes. They never apply to 
 | 9 — Legitimate skip request | Forward path: user explicitly asks to skip a phase (the parent workflow does not require it). | User initiates the skip and gives a reason. | Required — restate blast radius, get explicit approval per `hitl`. |
 | 10 — Falsified-skip-claim verification | Backward path: user claims phases 0..N are already complete, but the state file / artifacts on disk do not corroborate that claim. | Disk evidence contradicts the asserted skip. | NOT solicited — the disk evidence already decided the outcome. Step 10d forbids AskUserQuestion. The only acceptable user input is supplying the missing artifacts. |
 
-**Precedence rule.** If a transition seems to match both step 8 (HITL approval) and step 10 (falsified-skip-claim), **step 8 wins**: the parent workflow's HITL contract is authoritative, and step 10's no-questions rule does NOT override a genuine approval gate. Step 10 fires only when the workflow is *not* in a parent-declared HITL state and the user is trying to bypass an unverified prior-completion claim.
-
-**Reconciliation with `hitl` skill.** The `hitl` skill governs approval semantics for genuine HITL gates (step 8). Step 10 is not an approval gate — it is a verification gate where the evidence is already complete. The two skills are not in conflict because they apply to different transition shapes; step 10 explicitly defers to step 8 / `hitl` whenever both seem to apply.
+**Precedence rule.** If a transition seems to match both step 8 (HITL approval) and step 10 (falsified-skip-claim), **step 8 wins** — the parent workflow's HITL contract is authoritative.
 
 </gate_priority>
 
@@ -157,7 +155,7 @@ Steps 8, 9, and 10 govern three distinct transition shapes. They never apply to 
 - Treating unclear replies as approval for a HITL transition or phase skip
 - Marking a phase complete while required artifacts are empty or placeholder-only
 - Advancing because "the next phase looks easy" without satisfying prerequisites
-- Confusing step 10 (falsified-skip verification) with step 8 (HITL approval) and applying step 10's no-questions rule where the parent workflow legitimately requires approval — when in doubt, `<gate_priority>` says step 8 wins
+- Confusing step 10 (falsified-skip verification) with step 8 (HITL approval) — see `<gate_priority>` precedence rule
 - Asking `AskUserQuestion` to "confirm" a falsified-skip refusal — the verification is the decision; the announcement-then-begin sequence in 10b/10c is the only correct action
 
 </pitfalls>

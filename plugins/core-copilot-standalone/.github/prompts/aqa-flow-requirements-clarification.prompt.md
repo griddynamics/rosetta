@@ -9,7 +9,7 @@ baseSchema: docs/schemas/phase.md
 <aqa_flow_requirements_clarification>
 
 <description_and_purpose>
-Fill gaps in understanding, clarify unknowns, AND transcribe the typed assertion list produced by `aqa-requirements-elicitation` into the test plan as the mandatory `### Explicit Assertions` subsection so downstream authoring (Phase 6) has a complete, validatable input. Assertion derivation happens inside the bound skill at step 2.1; this phase's step 2.4 is responsible for the transcription.
+Fill gaps in understanding, clarify unknowns, and transcribe the typed assertion list (derived in step 2.1, written to the test plan in step 2.4 — canonical owner of the typed format + mandatory subsection + None-clause) so Phase 6 has a validatable input.
 </description_and_purpose>
 
 <workflow_context>
@@ -18,7 +18,7 @@ Fill gaps in understanding, clarify unknowns, AND transcribe the typed assertion
 - Output: user answers + explicit typed assertion list, written into the test plan
 - Prerequisite: Phase 1 complete
 - HITL: user answers required before Phase 3
-- **Assertion authority chain:** `aqa-requirements-elicitation` derives assertions (typed: presence / state / content / behavioral) → step 2.4 transcribes them into the test plan's `### Explicit Assertions` subsection → Phase 6 (`aqa-test-authoring`) validates that every transcribed assertion is implemented OR listed as Uncovered. If transcription is skipped, Phase 6 validation has no anchor and tests may silently under-assert.
+- **Assertion authority chain:** elicitation (step 2.1) → transcription per step 2.4 (canonical typed format + mandatory `### Explicit Assertions` subsection + None-clause) → Phase 6 (`aqa-test-authoring`) validates implemented OR Uncovered. If transcription is skipped, Phase 6 validation has no anchor and tests may silently under-assert.
 </workflow_context>
 
 <phase_steps>
@@ -76,7 +76,7 @@ Please provide answers so I can proceed with test implementation.
 
 <update_test_plan step="2.4">
 1. Process user answers from step 2.3.
-2. **Collect every assertion the `aqa-requirements-elicitation` skill derived in step 2.1** — including its `Derived assertion (if applicable)` field on each elicited item — and assemble the typed assertion list. Every derived assertion MUST be carried forward; if the elicitation skill produced zero derived assertions, record `None — no observable behavior derivable from current clarifications; Phase 6 will surface this as Uncovered` rather than omitting the section.
+2. **Collect every assertion the `aqa-requirements-elicitation` skill derived in step 2.1** — including its `Derived assertion (if applicable)` field on each elicited item — and assemble the typed assertion list. Every derived assertion MUST be carried forward; if the elicitation skill produced zero derived assertions, emit the **None-clause** (literal text in the template below) rather than omitting the section.
 3. Add the section below to the test plan `agents/plans/aqa-<test-name>.md`. The `### Explicit Assertions` subsection is **mandatory** — Phase 6 (`aqa-test-authoring`) validates that every assertion here is implemented OR listed in Uncovered:
 
 ```markdown
@@ -123,8 +123,7 @@ Each assertion carries a **type** (Presence / State / Content / Behavioral) and 
 - Test plan updated with clarifications
 - Edge cases identified
 - Test data requirements specified
-- **`### Explicit Assertions` subsection present** in the test plan under `## Phase 2: Requirements Clarification`, with every assertion derived by `aqa-requirements-elicitation` transcribed verbatim — typed (Presence / State / Content / Behavioral) with the subject + trigger. If the elicitation skill produced no derivable assertions, the section explicitly says so per step 2.4's None-clause; absence of the section is not acceptable.
-- **Per-assertion granularity:** each assertion is one bullet — no `A AND B` composite assertions; multiple observables are split into separate bullets so Phase 6's per-assertion implementation tracking works.
+- **`### Explicit Assertions` subsection present per step 2.4** (canonical typed format + per-bullet granularity + None-clause for the zero-assertion case). Absence of the section is not acceptable.
 </validation_checklist>
 
 </aqa_flow_requirements_clarification>

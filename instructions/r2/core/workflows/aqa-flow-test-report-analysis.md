@@ -121,7 +121,7 @@ Analyze test execution reports to identify failures, errors, and areas for impro
    **Stack Trace**: [If available]
    **Likely Cause**: [Analysis of root cause]
    **Evidence Label**: [pick from Task 5 — Confirmed / Assumption / Unknown]
-   **Evidence Rationale**: [one-line reason per Task 5 output rule]
+   **Evidence Rationale**: [one-line reason]
    **Page Source Analysis**: [If selector/locator error]
      - Page Source File: [Path]
      - Selector Used: [Selector from test]
@@ -175,7 +175,7 @@ Analyze test execution reports to identify failures, errors, and areas for impro
    - Is it an application bug? (not test issue)
    - Is it a test data problem? (Phase 2 issue)
    - Is it an environment issue? (infrastructure)
-3. Classify each root cause by evidence strength. **This is the single source of truth for evidence labels — Task 3, Task 6, Completion Criteria, Update State, and Important Notes all reference this block by name rather than restating the definitions.**
+3. Classify each root cause by evidence strength:
 
    - **Confirmed**: Logs, stack traces, page source, artifacts, or reproducible steps directly tie the failure to this cause.
    - **Assumption**: Partial evidence supports the cause, but confirmation is missing (for example, time correlation without a stack trace, a single flaky run, or a symptom-based inference).
@@ -217,7 +217,7 @@ Analyze test execution reports to identify failures, errors, and areas for impro
    [List of all failures from Task 3]
    
    ### Root Cause Analysis
-   [Analysis from Task 5 — every root cause carries an evidence label + rationale per Task 5's rule]
+   [Analysis from Task 5]
    
    ### Performance Analysis
    [Findings from Task 4]
@@ -239,7 +239,7 @@ Analyze test execution reports to identify failures, errors, and areas for impro
 - [ ] Test report read and parsed
 - [ ] All failures identified and categorized
 - [ ] Root causes analyzed
-- [ ] Each root cause labeled per Task 5's evidence-strength rule (every cause carries exactly one label + a one-line rationale; undecidable cases default per Task 5's terminal fallback and the open question is recorded in `agents/aqa-state.md`)
+- [ ] Each root cause labeled per Task 5
 - [ ] Performance issues identified (if applicable)
 - [ ] Test plan updated with Phase 7 analysis
 - [ ] `agents/aqa-state.md` updated with Phase 7 completion
@@ -276,7 +276,7 @@ ACQUIRE aqa-flow-test-correction.md FROM KB
 - **No Code Writes**: Phase 7 is analysis-only; do not edit production code, test code, selectors, fixtures, or product/test source files
 - **Report Location Priority**: Always check all files in agents/user-instructions/ directory first, then ask user if not found
 - **Comprehensive Analysis**: Don't just list failures - analyze root causes
-- **Evidence Labels**: applied per Task 5 (single source of truth — definitions, tie-break, output rule, undecidable fallback all live there)
+- **Evidence Labels**: applied per Task 5
 - **Page Source Analysis**: **MUST** analyze page sources when encountering selector/locator errors (element not found, selector not visible, etc.) to identify actual DOM structure and suggest correct selectors
 - **Pattern Recognition**: Look for common issues across multiple failures
 - **User Context**: Consider user's test execution environment when analyzing failures

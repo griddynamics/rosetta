@@ -121,12 +121,13 @@ List any assumptions from Phase 3 that affect these specs **plus any new assumpt
 
 <present_for_approval step="4.4">
 1. Present summary to user: total scenarios, priority breakdown, endpoints covered
-2. **WAIT FOR USER APPROVAL** — "Yes", "Approve", or similar
+2. **WAIT FOR USER APPROVAL** — explicit approval token per the strict-token rule in sub-step 3 below.
 3. **User response branches** (mutually exclusive; classify the user's response into exactly one):
-   - **Full approve:** user types an exact approval token (per the strict-token rule shared with step 7.2). Proceed to step 4.5.
+   - **Full approve:** user types one of these tokens **exactly** (case-insensitive — `APPROVED`, `Approve`, `yes` etc. all match): `approved`, `approve`, `yes`. **The acceptable token list is closed.** Loose phrasings such as *"looks good"*, *"ship it"*, *"LGTM"*, *"sounds good"*, *"go ahead"*, *"OK"*, *"go"*, or paraphrases that imply but do not state approval are NOT approval — re-prompt the user for one of the exact tokens. "Or similar" / "etc." extension language present in other loaded rules does NOT extend this list — this phase file's token list is authoritative here. Proceed to step 4.5 only on an exact token match.
    - **Full reject:** user rejects the entire plan with no path to fix in-place. Record rationale in `agents/qa-state.md`, return to Phase 3 to revisit gap analysis.
    - **Change request** (covers all in-place changes — modify wording, add scenarios, drop scenarios, partial scope narrowing): collect every requested change in one batch, update specs, re-present from step 4.3. Treat partial approve as a change request that drops the rejected scenarios.
    - **Repeated change-request cycle (≥3 cycles on overlapping scope):** stop, ask user whether to re-open Phase 3 or escalate scope to a project decision.
+   - **Max-retry escalation for strict-token re-prompts:** if the user has been re-prompted for an exact approval token ≥3 times in this Phase 4 cycle without supplying one, stop the approval loop and ask the user explicitly: *"are you trying to approve (please type `approved` or `yes`) or trying to request changes / reject the plan?"* Do not continue silently re-prompting beyond 3 cycles.
 4. **DO NOT PROCEED** to Phase 5 without explicit approval.
 </present_for_approval>
 

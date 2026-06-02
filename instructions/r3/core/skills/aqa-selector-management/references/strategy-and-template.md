@@ -41,6 +41,21 @@ When the inventory marks a page object as "to create":
 
 ---
 
+## Part B Step 7 — Validate Implementation (referenced from SKILL.md step 7)
+
+Loaded only when Part B runs. Part A invocations do not pay the resident cost.
+
+For each modified/created file:
+
+- Selectors match the values identified in Part A
+- Naming follows project conventions
+- Imports correct and organized
+- No syntax or linting errors
+- Helper methods follow existing patterns
+- **Fragile-selector gate (canonical — Part B safety rule):** any selector flagged in Part A step 4 as fragile MUST either (a) have been replaced with a stable alternative agreed with the user, or (b) be surfaced to the calling workflow for explicit approval before commit — NOT silently implemented. Silently committing a fragile selector is a safety-boundary violation and is the primary failure mode this rule guards against. SKILL.md's `<safety_boundaries>` "Fragile-selector discipline" cross-references this gate; do not restate the rule there.
+
+---
+
 ## Selector Strategy — 4-Tier Table
 
 For each missing selector, determine the best strategy using this priority order:
