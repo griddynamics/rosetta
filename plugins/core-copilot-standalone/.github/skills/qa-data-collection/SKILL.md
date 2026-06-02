@@ -93,38 +93,22 @@ No documentation found for [feature/endpoint]. Please provide:
 
 ## 4. Analyze Backend Source Code (if available)
 
-Determine backend source path using this priority:
+This step is **orchestration only**. The detailed framework markers, route-definition patterns, Swagger-discovery rules, and per-framework directory layouts live in [references/backend-source-analysis.md](references/backend-source-analysis.md) — load that file on demand when running this step. Do **not** restate its enumerations here or in the output template.
+
+Determine the backend source path using this priority:
 
 1. Read `Backend Source Code` section from project config (`qa-project-config.md`) — use if path is explicitly set.
-2. If NOT set in project config, check for `RefSrc/` projects that have Rosetta docs at `RefSrc/{project-name}/docs/`. Look for these key files:
-   - `ARCHITECTURE.md` — system architecture, component relationships, API design
-   - `CODEMAP.md` — file/directory structure, module organization
-   - `CONTEXT.md` — project purpose, domain context, key concepts
-   - `TECHSTACK.md` — frameworks, languages, libraries, dependencies
+2. If NOT set in project config, check for `RefSrc/` projects that have Rosetta docs at `RefSrc/{project-name}/docs/` (key files: `ARCHITECTURE.md`, `CODEMAP.md`, `CONTEXT.md`, `TECHSTACK.md`).
 3. The workspace-level `ARCHITECTURE.md` may also reference `RefSrc/` paths (added by `external-lib-flow` during onboarding).
 
-If backend source path is found (e.g., `RefSrc/{project-name}/` or a workspace path):
+If a path is found:
 
-1. Verify the path exists using Glob
-2. Read Rosetta docs first (if `RefSrc/{project-name}/docs/` exists):
-   - `ARCHITECTURE.md` — extract API design, endpoint patterns, auth architecture
-   - `CODEMAP.md` — identify controller/route/model directories and key files
-   - `TECHSTACK.md` — identify backend framework, language, and dependencies
-   - This gives a high-level map before searching source code
-3. Identify backend framework and language (if not already determined from docs):
-   - Search for framework markers: `pom.xml` / `build.gradle` (Spring), `package.json` (Express/Koa/NestJS), `requirements.txt` / `pyproject.toml` (FastAPI/Flask/Django), `*.csproj` (.NET)
-4. If path contains a Repomix XML file (`RefSrc/{project-name}.xml`), search within that file for API route definitions and Swagger references
-5. If path points to a source directory, search within it for:
-   - Swagger/OpenAPI spec files: `swagger.json`, `swagger.yaml`, `openapi.json`, `openapi.yaml`
-   - API route definitions:
-     - Express/Koa: `router.get()`, `router.post()`, `app.get()`, `app.post()`
-     - Spring: `@GetMapping`, `@PostMapping`, `@RequestMapping`
-     - FastAPI/Flask: `@app.get()`, `@app.post()`, route decorators
-     - .NET: `[HttpGet]`, `[HttpPost]`, controller endpoints
-6. Note key directories (controllers/, routes/, models/, dto/, middleware/, validators/)
-7. Record findings in raw data under "Backend Source Code Analysis" section
+1. Verify the path exists (Glob).
+2. Read Rosetta docs first if `RefSrc/{project-name}/docs/` exists — `TECHSTACK.md` for framework/language, `CODEMAP.md` for directory structure, `ARCHITECTURE.md` for endpoint patterns/auth.
+3. Identify framework + language + route patterns + key directories per the tables in [references/backend-source-analysis.md](references/backend-source-analysis.md). If a Repomix XML file (`RefSrc/{project-name}.xml`) is present, grep within that file rather than walking the tree.
+4. Record findings in raw data under "Backend Source Code Analysis" — fields use the same vocabulary as the references file (single source of truth).
 
-If backend source path is NOT found in any of the sources above, skip this step entirely.
+If no backend source path is discoverable, skip this step entirely.
 
 ## 5. Discover Existing Test Patterns
 
@@ -243,14 +227,16 @@ File: `agents/qa/{IDENTIFIER}/raw-data.md`
 
 ## Backend Source Code Analysis
 
-- **Source Location**: [RefSrc/{project-name}/ or workspace path or N/A]
-- **Rosetta Docs**: [RefSrc/{project-name}/docs/ — ARCHITECTURE.md, CODEMAP.md, CONTEXT.md, TECHSTACK.md / N/A]
-- **Backend Framework**: [Spring / Express / FastAPI / .NET / Other / N/A]
-- **Language**: [Java / TypeScript / Python / C# / Other / N/A]
-- **Route Definition Pattern**: [e.g., @GetMapping, router.get(), @app.get() / N/A]
-- **Swagger/OpenAPI in Source**: [Found at path / Not found / N/A]
-- **Validation Library**: [Joi / Zod / Pydantic / Bean Validation / Other / N/A]
-- **Key Directories**: [controllers/, routes/, models/, dto/, middleware/ / N/A]
+Vocabulary for every field below is sourced from [references/backend-source-analysis.md](references/backend-source-analysis.md) (single source of truth — do not re-enumerate options here):
+
+- **Source Location**: [path / `N/A — <reason>`]
+- **Rosetta Docs**: [`RefSrc/{project-name}/docs/` files read, or `N/A — <reason>`]
+- **Backend Framework**: [pick from "Framework Markers" table, or `N/A`]
+- **Language**: [pick from "Framework Markers" table, or `N/A`]
+- **Route Definition Pattern**: [pick from "Route Definition Patterns" table, or `N/A`]
+- **Swagger/OpenAPI in Source**: [path found, or `Not found`, or `N/A`]
+- **Validation Library**: [as detected, or `N/A`]
+- **Key Directories**: [paths matched against "Key Directory Layout" table, or actual layout if non-standard, or `N/A`]
 
 ---
 

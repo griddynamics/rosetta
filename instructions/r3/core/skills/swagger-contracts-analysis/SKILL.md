@@ -175,81 +175,21 @@ One contract entry per target endpoint, written in markdown, using the template 
 [Spec-vs-code mismatches, deprecated markers, missing field schemas, auth differences between spec and code. If none: `None.`]
 ````
 
-**Canonical example** (one complete entry):
-
-````markdown
-## Endpoint Contract: GET /api/v1/orders/{orderId}
-
-**Source:** hybrid
-**Summary:** Retrieve a single order by ID for the authenticated user.
-**Tags / Groups:** Orders
-
-### Parameters
-
-**Path parameters:**
-| Name    | Type   | Required | Constraints                     |
-|---------|--------|----------|---------------------------------|
-| orderId | string | yes      | UUID v4; pattern `[0-9a-f-]{36}` |
-
-**Query parameters:** None
-
-**Header parameters:**
-| Name          | Type   | Required | Constraints                |
-|---------------|--------|----------|----------------------------|
-| Authorization | string | yes      | `Bearer <jwt>`             |
-| Accept        | string | no       | defaults to `application/json` |
-
-### Request Body
-
-**Content-Type:** N/A — no body
-
-### Responses
-
-| Status | Content-Type                  | Schema      | Example                                                                 |
-|--------|-------------------------------|-------------|-------------------------------------------------------------------------|
-| 200    | application/json              | `Order`     | `{"id":"o-123","status":"PAID","customer_id":"c-1","total":42.00}`     |
-| 401    | application/problem+json      | `AuthError` | `{"type":"unauthorized","title":"Missing or invalid token"}`            |
-| 403    | application/problem+json      | `AuthError` | `{"type":"forbidden","title":"Order belongs to another customer"}`     |
-| 404    | application/problem+json      | `NotFound`  | `{"type":"not_found","title":"Order o-123 does not exist"}`            |
-
-### Auth
-
-- **Mechanism:** Bearer JWT
-- **Required scopes / permissions:** `orders:read`
-- **Public endpoint:** no
-
-### Data Dependencies
-
-- **Preconditions:** Order with `orderId` exists in `orders` table; `orders.customer_id` matches the authenticated user's `customer_id` (otherwise 403).
-- **Side effects:** None — GET is read-only.
-- **Idempotent:** yes (GET semantics).
-
-### Source Citations
-
-- Swagger: `paths./api/v1/orders/{orderId}.get`
-- Code: `src/controllers/orders.controller.ts:42` (handler), `src/dto/order.dto.ts` (response model)
-
-### Notes / Discrepancies
-
-Code rejects `orderId` shorter than 36 chars with a 400 before reaching the handler; Swagger declares only the 200/401/403/404 responses. Treat 400 as undocumented-but-real.
-````
+**Canonical example.** Load `references/canonical-example.md` on demand to see one complete worked entry — covers the `Source: hybrid` path with a real spec-vs-code discrepancy in the Notes section. Use it when authoring the first contract entry of a new project, or when the template above leaves field-shape questions ambiguous. The example is **one entry**, not the schema; the per-endpoint template above remains authoritative.
 
 </output_format>
 
 <validation_checklist>
 
-Run as part of step 5 before emission. All items must hold:
+Run as part of step 5 before emission. Proof-oriented items only — section-presence is enforced by `<output_format>` itself; this checklist verifies things the template can't.
 
-- **Coverage:** every endpoint in the calling workflow's target list has a contract entry — OR is explicitly flagged back to the calling workflow as a gap with reason (not found in spec, parsing failed, ambiguous route, etc.). No endpoint silently dropped.
-- **Every contract entry has all required sections** from `<output_format>`: Endpoint header (METHOD + path), Source label, Parameters, Request Body, Responses, Auth, Data Dependencies, Source Citations, Notes / Discrepancies. Sections that don't apply are explicitly marked `None` or `N/A — <reason>`, not blank.
-- **Every endpoint has a Method + Path** — no entry with placeholder header.
-- **Every Response section has at least one status code with schema + example** — `200`-only entries are acceptable when that's truly all the endpoint documents, but the absence of error responses (401/403/404/500) is recorded in Notes as a documentation gap, not silently omitted.
-- **Auth section is filled per endpoint** — Mechanism specified (even if "None"); Public-endpoint flag set explicitly.
-- **API-level auth strategy identified** — at least one endpoint's Auth section reflects the system-wide mechanism; if mechanism varies per endpoint, that variance is summarized in the calling workflow's hand-off note.
-- **Data dependencies recorded** — Preconditions / Side effects / Idempotent fields populated; "None" is acceptable but blank is not.
-- **Spec-vs-code reconciliation done** when both sources are available — discrepancies recorded in Notes per endpoint; entries marked `Source: hybrid` show the reconciliation work, entries marked `Source: swagger` or `Source: code` indicate the other source was unavailable.
-- **No fabricated content** — every field traces to the spec, the code, or is explicitly marked as "N/A — <reason>" / "Gap: <reason>".
-- **Source Citations populated** — every entry has at least one citation (Swagger JSONPath OR code file:line); citation-less entries are gaps.
+- **Coverage:** every endpoint in the calling workflow's target list has a contract entry OR is flagged back as a gap with reason. No silent drops.
+- **Source Citations populated:** every entry has at least one citation (Swagger JSONPath OR code file:line). Citation-less entries are gaps, not entries.
+- **No fabricated content:** every field traces to the spec, to the code, or is explicitly marked `N/A — <reason>` / `Gap: <reason>`. No invented schema fields, no invented status codes, no inferred auth requirements without source.
+- **Reconciliation evidence:** entries marked `Source: hybrid` have a non-empty Notes / Discrepancies section (either a recorded mismatch OR an explicit `None.` confirming reconciliation ran). Empty Notes on a hybrid entry means the reconciliation step was skipped.
+- **API-level auth strategy summarized:** if endpoints share one mechanism, state it once in the handoff note; if mechanism varies per endpoint, summarize the variance for the calling workflow.
+- **Undocumented error responses surfaced as gaps:** a `200`-only entry is acceptable only when both sources truly lack other status codes; otherwise the absence of `401`/`403`/`404`/`500` is recorded in Notes as a documentation gap, not silently omitted.
+- **N/A discipline:** every `N/A` in any field has a one-line reason; bare `N/A` is forbidden.
 
 </validation_checklist>
 

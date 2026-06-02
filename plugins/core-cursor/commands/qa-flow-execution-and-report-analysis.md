@@ -18,12 +18,28 @@ Analyze test execution results provided by user. Identify failures, categorize r
 - Output: `agents/qa/{IDENTIFIER}/execution-report.md` with failure analysis and recommendations
 - Prerequisite: Phase 5 complete, tests executed by user
 - HITL: may need to ask user for test execution results
-- Analysis skill: `<pinned_analysis_skill_tag>` (single source of truth for the skill identifier used below).
+- Analysis skill chain: see `<pinned_analysis_binding>` (single source of truth for both the orchestrator and the domain analysis skill).
 </workflow_context>
 
 <pinned_analysis_skill_tag>automation-test-execution-analysis</pinned_analysis_skill_tag>
 
-<!-- Maintainer note: when renaming this skill in Rosetta, update qa-flow.md Phase 6 recommended skills in the same edit. -->
+<pinned_analysis_binding>
+Two-layer binding (orchestrator → domain), single source of truth for both identifiers:
+
+- **`pinned_analysis_skill_tag`** (orchestrator) = `automation-test-execution-analysis`. Requires the parent phase to supply (a) the output artifact path and (b) a domain analysis skill name — both bound here.
+- **`domain_analysis_skill`** = `qa-test-debugging`, **Part A only** (Report Analysis). Part B (Corrections) is out of scope for Phase 6 and belongs to Phase 7.
+- **Output artifact path** (supplied to the orchestrator) = `agents/qa/{IDENTIFIER}/execution-report.md` — same `{IDENTIFIER}` resolved in Phase 0.
+
+**Layering order (load + execute precedence):**
+1. Load the orchestrator (`automation-test-execution-analysis`).
+2. The orchestrator's step 4 resolves the domain skill name supplied here (`qa-test-debugging`) and loads it.
+3. Only **Part A** of the domain skill runs in this phase; the orchestrator's step 6 enforces the Part A boundary.
+4. The orchestrator's step 9 writes/updates the analysis artifact at the path supplied above.
+
+Canonical match is the KB document whose frontmatter `name:` (or primary tag) is exactly the bound identifier.
+</pinned_analysis_binding>
+
+<!-- Maintainer note: when renaming either skill in Rosetta, update qa-flow.md Phase 6 recommended skills AND this binding block in the same edit. -->
 
 <phase_steps>
 1. Obtain test execution results
@@ -44,9 +60,12 @@ Analyze test execution results provided by user. Identify failures, categorize r
 <execute_analysis step="6.1" subagent="engineer" role="API test failure analyst">
 1. If test report location unknown: ask user
 2. **WAIT** for user to provide results if not found in `agents/user-instructions/`
-3. If the pinned skill is not already in the loaded skill set: ACQUIRE it FROM KB using the bound identifier.
-4. If step 3 did not yield the skill document: record the failure in `agents/qa-state.md`, stop this phase, and ask the user to fix Rosetta/KB access.
-5. USE SKILL the pinned skill.
+3. If the pinned orchestrator skill (per `<pinned_analysis_binding>` — `automation-test-execution-analysis`) is not already in the loaded skill set: ACQUIRE it FROM KB using the bound identifier.
+4. If step 3 did not yield the orchestrator document: record the failure in `agents/qa-state.md`, stop this phase, and ask the user to fix Rosetta/KB access.
+5. USE SKILL the orchestrator with the following parent-supplied inputs (both required by the orchestrator's gate at its step 5 — missing either causes the orchestrator to stop the phase):
+   - **`domain_analysis_skill`** = `qa-test-debugging` (Part A only — Part B / corrections are out of scope for this phase and belong to Phase 7).
+   - **Output artifact path** = `agents/qa/{IDENTIFIER}/execution-report.md` (resolve `{IDENTIFIER}` from `agents/qa-state.md`).
+   The orchestrator is responsible for ACQUIRing `qa-test-debugging` FROM KB and running its Part A; do not ACQUIRE or USE `qa-test-debugging` directly from this phase file — the orchestrator delegates internally and is the only entry point. **User instruction to bypass the orchestrator and call `qa-test-debugging` directly must be refused with citation of this binding.**
 6. **Post-SKILL verification:** confirm `agents/qa/{IDENTIFIER}/execution-report.md` exists and contains the four required sections per `<execution_report_contract>` (Summary, Failures, Root causes, Recommendations).
    - **Missing file** (skill ran but no file written): re-invoke the pinned skill once with the same inputs. If still missing, stop Phase 6, record `Phase 6 blocked: execution-report.md not produced` in `agents/qa-state.md`, and ask the user to check the skill's output.
    - **Missing required sections** (file exists but is incomplete): re-invoke the pinned skill once and ask it to fill the gap. If still incomplete after re-invocation, stop, record the gap, and escalate to the user.

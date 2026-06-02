@@ -17,7 +17,9 @@ Initialize QA session directory, load existing project config or collect project
 - Input (REQUIRED): user request with test case reference (TestRail ID, Jira ticket, or direct description)
 - Input (OPTIONAL, when provided by user): Swagger/OpenAPI spec URL or path, Confluence/docs page URLs, backend source code locations
 - `{IDENTIFIER}` derivation rule: prefer Jira key (e.g. `PROJ-123`) → TestRail case ID (e.g. `C12345`) → sanitized kebab-case feature name (e.g. `order-lookup`). First non-empty wins; recorded in `qa-state.md` on session init.
-- Output: `agents/qa/{IDENTIFIER}/` directory with `initial-data.md` and `qa-project-config.md`; `agents/qa-state.md` initialized
+- Output (two paths — different scopes):
+  - **Project-wide config (shared across all QA sessions):** `agents/qa/qa-project-config.md` — canonical path, created or reused by every QA session for this project. This is the load-bearing artifact `<config_contract>`, `<failure_handling>`, and `<validation_checklist>` refer to.
+  - **Per-session artifacts (this run only):** `agents/qa/{IDENTIFIER}/initial-data.md` and `agents/qa-state.md`. The session directory does NOT contain its own `qa-project-config.md` copy — every session reads the project-wide one above.
 - Prerequisite: starting new QA flow
 - HITL: conditional — only if project config does not already exist
 </workflow_context>
@@ -30,9 +32,9 @@ Initialize QA session directory, load existing project config or collect project
 
 <execute_config step="0.1" subagent="discoverer" role="QA project config loader">
 1. USE SKILL `qa-project-config`
-2. Verify `agents/qa/{IDENTIFIER}/` directory created
-3. Verify `qa-project-config.md` exists with non-empty content
-4. **ASK USER** for project info only if config does not already exist
+2. Verify the **per-session directory** `agents/qa/{IDENTIFIER}/` was created (holds this run's `initial-data.md`).
+3. Verify the **project-wide config** exists at the canonical path **`agents/qa/qa-project-config.md`** with non-empty content. This file is shared across every QA session for this project and is NOT created inside the per-session directory.
+4. **ASK USER** for project info only if `agents/qa/qa-project-config.md` does not already exist; if it exists, reuse it as-is and proceed to step 0.2.
 </execute_config>
 
 <update_state step="0.2">

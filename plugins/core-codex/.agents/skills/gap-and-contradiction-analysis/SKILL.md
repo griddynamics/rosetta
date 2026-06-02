@@ -246,41 +246,28 @@ If NO issues found, still produce document with "No issues found" in each sectio
 
 <analysis_guidelines>
 
-**Be Specific**:
-- Bad: "Some details missing"
-- Good: "User authentication method not specified (OAuth, SAML, basic auth?)"
+Authoring guidance for each finding entry. Prohibitions live in `<safety_boundaries>` — not restated here.
 
-**Quote Sources**: Always include exact quotes; cite field names or page sections.
-
-**Assess Impact**: Explain why each issue matters; link to implementation blockers.
-
-**Avoid Assumptions**: Don't guess answers; document what's explicitly missing; don't infer requirements not stated.
-
-**Prioritize**: use the three-tier `<risk_assessment>` taxonomy (High / Medium / Low) — that block is the single source of truth for tier definitions. Do not introduce a parallel scheme here.
+- **Be Specific.** Bad: "Some details missing". Good: "User authentication method not specified (OAuth, SAML, basic auth?)".
+- **Quote Sources.** Verbatim quote + field/section/page citation in every entry.
+- **Assess Impact.** State why the issue matters; link to a concrete downstream blocker.
+- **Avoid Assumptions.** Document what's explicitly missing; do not infer requirements not stated.
 
 </analysis_guidelines>
 
 <pitfalls>
-- Being too vague in findings — always quote exact source text
-- Guessing answers instead of documenting unknowns
 - Over-analyzing minor details at the expense of critical blockers
 - Skipping cross-reference between sources (legitimately skip-with-note only when there is exactly one source — see `<failure_handling>`)
 - Not producing a document when no issues found
-- Acting on findings (proposing edits to the sources, asking the user to fix items, executing downstream work) — this skill is analysis-only; the parent workflow owns follow-up actions
-- Reproducing sensitive source content verbatim instead of redacting and flagging it
-- Inventing a parallel priority scheme that diverges from `<risk_assessment>` (3 tiers; no Critical layer)
 </pitfalls>
 
 <safety_boundaries>
 
-This skill is **analysis-only**:
+This skill is **analysis-only**. The three rules below are the authoritative source — every other block defers to this section.
 
-- **Do NOT act on findings.** Do not propose code edits, do not modify the sources, do not call any other skill to "fix" identified gaps, do not ask the user directly to resolve items (the parent workflow's questioning/clarification step owns user interaction).
-- **Do NOT execute or implement** anything based on what you analyzed. If a finding implies code or test work is needed, surface it as a finding (Gap or Contradiction) and stop.
-- **Treat the analysis output as PUBLIC by default.** It may end up tracked in version control, shared with reviewers, or fed to downstream prompts. Therefore:
-  - If a source contains a credential, token, API key, password, secret URL, signed link, private key, or PII (real names / emails / phone numbers / account IDs / payment data), **redact** before quoting. Use placeholders like `<redacted: bearer token>`, `<redacted: customer email>`, `<redacted: PII>`. Flag the redaction in the finding so reviewers know what was hidden.
-  - Do not infer or expose information not present in the sources (e.g., guessing what a token "probably is" or what a redacted name "might be").
-- **Boundaries with `<risk_assessment>`:** the three-tier scheme (High/Medium/Low) is the single source of truth. Do not introduce Critical/Urgent/Blocker as a fourth tier, and do not silently drop a finding because it doesn't fit your preferred tier — every finding must receive exactly one tier.
+1. **Do NOT act on findings.** Do not propose code edits, modify sources, call other skills to "fix" gaps, or ask the user directly to resolve items. The parent workflow owns follow-up. If a finding implies downstream work, surface it as a finding and stop.
+2. **Output is PUBLIC by default.** It may be tracked, shared with reviewers, or fed to downstream prompts. If a source contains credentials, tokens, API keys, passwords, signed URLs, private keys, or PII (real names / emails / phone numbers / account IDs / payment data), **redact before quoting** using placeholders like `<redacted: bearer token>`, `<redacted: customer email>`, `<redacted: PII>` and flag the redaction in the finding. Do not infer redacted content.
+3. **Risk-tier discipline.** The three-tier scheme in `<risk_assessment>` (High / Medium / Low) is the single source of truth. Do not introduce Critical/Urgent/Blocker as a fourth tier. Every finding receives exactly one tier.
 
 </safety_boundaries>
 
