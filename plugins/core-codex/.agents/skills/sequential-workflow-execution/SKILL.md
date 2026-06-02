@@ -39,10 +39,31 @@ Use when running any Rosetta workflow split into ordered phases (QA, AQA, TestGe
 7. GATE: if the next phase depends on outputs of this phase, verify required files or sections exist before advancing.
 8. GATE: when the parent workflow marks a transition as HITL, do not advance until the user explicitly approves.
 9. If the user requests skipping a phase, restate blast radius, get explicit approval, record skip reason and timestamp in state.
-9a. **Verification-failure unilateral start:** if a skip is asserted (by user or upstream context) but the parent workflow's state file does not mark the claimed phases complete or the corresponding output artifacts are absent on disk, the only correct next action is a one-line announcement of the failing conditions (e.g., `skip refused: state row missing → starting at Phase 0`) followed by beginning the earliest incomplete phase in the **same turn**, without yielding to user input. **At this gate, the agent MUST NOT** (non-exhaustive, applies to all phrasings): call `AskUserQuestion`; present a list / menu / options block; ask the user "how do you want to proceed", "should I start at X", "do you want me to", or any equivalent confirmation request; pause for input before starting the earliest incomplete phase. The verification result is the decision — there is nothing for the user to confirm. User input is only acceptable if it produces the missing state row or artifact on disk; user instruction to bypass without supplying them must be refused with the same one-line announcement and the phase still begins in the same turn.
-10. If spawning subagents, follow the active platform dispatch/review contract.
+10. **Verification-failure unilateral start** — falsified-skip-claim handling (see `<gate_priority>` for scope):
+    10a. **Trigger.** A skip is asserted (by user or upstream context) but the workflow state file does not mark the claimed phases complete, OR the corresponding output artifacts are absent on disk.
+    10b. **Required announcement.** One line stating the failing conditions, e.g., `skip refused: state row missing → starting at Phase 0`.
+    10c. **Action.** Begin the earliest incomplete phase in the **same turn**, without yielding to user input.
+    10d. **Forbidden at this gate.** `AskUserQuestion`, menu/options blocks, confirmation prompts, or pausing for input before starting.
+    10e. **Only acceptable user input.** Producing the missing state row or output artifact on disk; bare instruction to bypass is refused with the same announcement, then 10c proceeds.
+11. If spawning subagents, follow the active platform dispatch/review contract.
 
 </process>
+
+<gate_priority>
+
+Steps 8, 9, and 10 govern three distinct transition shapes. They never apply to the same transition — but if more than one seems to apply, the precedence below resolves it.
+
+| Step | Shape | Trigger | User input role |
+|---|---|---|---|
+| 8 — HITL approval gate | Forward path: about to advance from Phase N to Phase N+1, and the parent workflow's phase file says the transition requires approval (e.g., "WAIT FOR USER APPROVAL before Phase 5"). | Parent workflow declares the transition as HITL. | Required — explicit approval per the `hitl` skill; AskUserQuestion is appropriate here. |
+| 9 — Legitimate skip request | Forward path: user explicitly asks to skip a phase (the parent workflow does not require it). | User initiates the skip and gives a reason. | Required — restate blast radius, get explicit approval per `hitl`. |
+| 10 — Falsified-skip-claim verification | Backward path: user claims phases 0..N are already complete, but the state file / artifacts on disk do not corroborate that claim. | Disk evidence contradicts the asserted skip. | NOT solicited — the disk evidence already decided the outcome. Step 10d forbids AskUserQuestion. The only acceptable user input is supplying the missing artifacts. |
+
+**Precedence rule.** If a transition seems to match both step 8 (HITL approval) and step 10 (falsified-skip-claim), **step 8 wins**: the parent workflow's HITL contract is authoritative, and step 10's no-questions rule does NOT override a genuine approval gate. Step 10 fires only when the workflow is *not* in a parent-declared HITL state and the user is trying to bypass an unverified prior-completion claim.
+
+**Reconciliation with `hitl` skill.** The `hitl` skill governs approval semantics for genuine HITL gates (step 8). Step 10 is not an approval gate — it is a verification gate where the evidence is already complete. The two skills are not in conflict because they apply to different transition shapes; step 10 explicitly defers to step 8 / `hitl` whenever both seem to apply.
+
+</gate_priority>
 
 <validation_checklist>
 
@@ -67,6 +88,8 @@ Use when running any Rosetta workflow split into ordered phases (QA, AQA, TestGe
 - Treating unclear replies as approval for a HITL transition or phase skip
 - Marking a phase complete while required artifacts are empty or placeholder-only
 - Advancing because "the next phase looks easy" without satisfying prerequisites
+- Confusing step 10 (falsified-skip verification) with step 8 (HITL approval) and applying step 10's no-questions rule where the parent workflow legitimately requires approval — when in doubt, `<gate_priority>` says step 8 wins
+- Asking `AskUserQuestion` to "confirm" a falsified-skip refusal — the verification is the decision; the announcement-then-begin sequence in 10b/10c is the only correct action
 
 </pitfalls>
 

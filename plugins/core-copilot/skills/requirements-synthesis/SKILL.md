@@ -21,15 +21,18 @@ Use when raw data has been collected from multiple sources (Jira, Confluence, Te
 
 <process>
 
-1. Load all source data
-2. Resolve conflicts using source priority
-3. Generate user stories
-4. Generate functional requirements
-5. Generate non-functional requirements
-6. Document constraints, dependencies, out-of-scope
-7. Document assumptions and risks
-8. Build traceability matrix
-9. Assemble requirements document
+Each step names the schema block it uses, so the agent loads one block at a time rather than holding all eight schemas in working memory at once.
+
+1. Load all source data (raw-data files, analysis output, user answers if present). Surface gaps per `<failure_handling>`.
+2. Resolve conflicts per `<source_priority>`. Apply `<failure_handling>` branches for single-source / missing-answers / intra-source-contradiction cases.
+3. Generate user stories per `<user_stories>` schema.
+4. Generate functional requirements per `<functional_requirements>` schema.
+5. Generate non-functional requirements per `<non_functional_requirements>` schema.
+6. Document constraints, dependencies, out-of-scope per `<constraints_and_dependencies>` schema.
+7. Document assumptions and risks per `<assumptions_and_risks>` schema.
+8. Build traceability matrix per `<traceability_matrix>` schema.
+9. Assemble requirements document per `<output_format>`.
+10. Run `<validation_checklist>` — fix any failing item before declaring complete.
 
 </process>
 
@@ -108,29 +111,7 @@ Specific system capabilities. Use active voice, present tense.
 **Assumptions** (if any): [From unresolved issues]
 ```
 
-Categories to cover:
-- **User Management**: authentication, authorization, profiles
-- **Data Management**: CRUD operations, validation rules
-- **Business Logic**: calculations, workflows, rules
-- **Integrations**: external systems, APIs
-- **Reporting**: data export, dashboards
-- **Notifications**: email, in-app, SMS
-
-Example:
-```markdown
-### FR-1: Password Validation
-**Description**: System must validate passwords meet security criteria
-**Priority**: P0 Critical
-**Source**: Confluence - Security Policy page
-
-**Details**:
-- Minimum 8 characters
-- At least 1 uppercase letter
-- At least 1 number
-- At least 1 special character
-
-**Related User Stories**: US-1
-```
+**Coverage guidance:** include FRs from every capability class actually present in the project's scope (auth, data management, business logic, integrations, reporting, notifications, etc. — only those that apply). Do not pad with FRs for capability classes the sources don't mention.
 
 </functional_requirements>
 
@@ -147,24 +128,9 @@ Quality attributes with measurable criteria. Every NFR must have a threshold.
 **Source**: [Reference or "Industry Standard"]
 ```
 
-Categories and what to specify:
+**Threshold rule:** every NFR MUST include a concrete numeric or categorical threshold in `Measurement` (e.g., `p95 < 200ms`, `WCAG 2.1 AA`, `uptime ≥ 99.9%`, `1000 concurrent users`). NFRs without a verifiable threshold are gaps, not requirements — record them in `<assumptions_and_risks>` with the missing-threshold flag instead.
 
-- **Performance**: response time (p95), throughput (rps), resource usage
-- **Security**: auth method, authorization model, encryption, audit logging, compliance
-- **Scalability**: concurrent users, data volume, transaction volume
-- **Usability**: accessibility (WCAG level), mobile responsiveness, browser support
-- **Reliability**: uptime (e.g. 99.9%), error handling, backup/recovery
-- **Maintainability**: code quality standards, monitoring, deployment frequency
-
-Example:
-```markdown
-### NFR-1: Performance - API Response Time
-**Category**: Performance
-**Description**: All API endpoints must respond within 200ms for 95th percentile under normal load
-**Measurement**: Monitor p95 latency with 1000 concurrent users
-**Priority**: P1 High
-**Source**: User Answer Q5
-```
+**Coverage guidance:** for each category (Performance / Security / Scalability / Usability / Reliability / Maintainability), include an NFR only if the source data or user answers actually specify a constraint in that category. Do not invent NFRs to look thorough.
 
 </non_functional_requirements>
 
@@ -314,6 +280,35 @@ Link every requirement back to its source and forward to test scenarios:
 - Each user story must be independently valuable
 - Don't skip traceability — every requirement must link to a source
 - Document all assumptions from unresolved questions with impact-if-wrong
+- Padding FRs or NFRs by category to look thorough — only include what the sources actually specify
+- Emitting NFRs without thresholds — they're gaps, not requirements; record under assumptions/risks instead
+- Inventing comparisons across sources when only one source exists — see `<failure_handling>` single-source branch
 </pitfalls>
+
+<failure_handling>
+
+- **Zero supporting docs** (only the primary source present, no Confluence / docs / additional context): proceed with synthesis from the primary source alone. Record in the Executive Summary: `Sources: <primary only> — no supporting documentation available`. Tag every assumption derived solely from the primary source with `Confidence: Single-source` so reviewers know it lacks cross-validation. Do NOT fabricate supporting content.
+- **No user answers collected** (Phase 3 was skipped, no `answers.md`, or `answers.md` is empty): proceed with synthesis from the available sources. For every gap that *would have been* resolved by a user answer, create an `A-N` assumption entry per `<assumptions_and_risks>` with `Based On: missing user clarification (Phase 3 skipped or empty)` and a clear `Validation Plan` for later. Do NOT proceed silently — explicitly mark each missing-answer-driven assumption.
+- **Intra-source contradiction** (Jira ticket contradicts itself, or one Confluence page contradicts another section of the same page): record both quotes as a contradiction entry, do NOT auto-resolve by recency / position / paragraph order. Surface as an `A-N` assumption with `Impact if Wrong: <both branches>` and require parent-workflow attention before treating the requirement as final.
+- **Primary source missing** (no Jira ticket, no TestRail case, no direct user description — nothing to synthesize from): stop, report `requirements-synthesis: no primary source provided — cannot generate requirements from empty input`, do NOT emit a document with placeholder requirements.
+- **Unresolved cross-source conflict after `<source_priority>` applied** (priority ladder did not break the tie because both sources are at the same priority tier and disagree): record as `A-N` assumption per the existing source_priority rule, AND list under the Risks section with `Probability: High` to ensure reviewer attention.
+
+</failure_handling>
+
+<validation_checklist>
+
+Run as process step 10 before declaring the document complete. All items must hold:
+
+- **Every requirement has a Source field populated** — no FR/NFR/US/C/D entry with `Source: [Reference]` placeholder unfilled.
+- **Every NFR has a concrete Measurement threshold** — numeric (latency, RPS, percentile) or categorical (WCAG level, compliance standard). NFRs without thresholds were moved to `<assumptions_and_risks>` per the threshold rule.
+- **No vague adjectives in any requirement body** — `fast`, `user-friendly`, `secure`, `scalable`, `robust`, `intuitive` etc. are forbidden; each must be quantified or removed. Re-grep the assembled document before emitting.
+- **Traceability matrix is complete** — every `FR-N` / `NFR-N` / `US-N` from sections 1-3 appears as a row; Source column populated; Test Scenario column either populated or marked `[placeholder for test phase]`.
+- **Every Assumption has Impact-if-Wrong and Validation Plan** — no `A-N` entry with those fields blank.
+- **Every Risk has Probability + Impact + Mitigation** — no `R-N` entry with any of those fields blank.
+- **Executive Summary lists every source actually consulted** — and explicitly marks single-source / no-user-answers / intra-source-contradiction states when they apply per `<failure_handling>`.
+- **No fabricated content** — every requirement traces to a quoted or paraphrased item in a source; padding requirements to look thorough is forbidden.
+- **One behavior per requirement** — composite "must do A AND B" requirements are split into separate entries.
+
+</validation_checklist>
 
 </requirements-synthesis>

@@ -148,10 +148,20 @@ Analyze codebase for existing API test patterns:
    - Test file naming conventions
    - Test directory structure
    - Shared utilities and helpers
-   - Environment configuration (`.env.test`, test config files)
+   - Environment configuration (`.env.test`, test config files) — **record path and variable names only, NEVER copy literal values** (see `<safety_boundaries>`)
    - Mock/stub patterns for external services
 
-## 6. Produce Raw Data Document
+## 6. Pre-write Safety + Completeness Re-check
+
+Before writing `raw-data.md`, re-verify against `<safety_boundaries>` and `<pitfalls>`:
+
+1. **Secret scan.** Review every section that will be written. No literal credentials, API keys, tokens, passwords, full `.env` contents, connection strings, or private keys may appear. Replace with `<source: env var X / config Y>` placeholders.
+2. **Anti-assumption scan.** For each pitfall in `<pitfalls>`, confirm the corresponding section either has real data OR explicitly records the gap. Do not silently fill missing TMS / docs / codebase info with inferences.
+3. **Endpoint table completeness.** Every row in the API Endpoints table must have Method + Source populated; partial rows are tagged as gaps in the Notes section.
+
+If any of (1) (2) (3) fails, fix the draft before proceeding to step 7.
+
+## 7. Produce Raw Data Document
 
 Create `agents/qa/{IDENTIFIER}/raw-data.md` using the template in `<output_format>`.
 
@@ -271,6 +281,37 @@ File: `agents/qa/{IDENTIFIER}/raw-data.md`
 - Not asking user for IDs/URLs when missing from config
 - Ignoring existing test patterns and conventions in the codebase
 - Skipping backend source code analysis when path is configured in project config — leads to less accurate API spec analysis in Phase 2
+- **Copying literal `.env` values, API keys, tokens, or passwords into `raw-data.md` — this artifact is tracked and may be shared; record source + mechanism only (see `<safety_boundaries>`)**
+- Marking sections "TBD" or skipping them silently instead of explicitly recording the gap with a reason
 </pitfalls>
+
+<safety_boundaries>
+
+`raw-data.md` is a tracked artifact and may end up in version control, shared review, or downstream prompt contexts. Treat it as **PUBLIC by default**. This skill MUST NOT capture sensitive values verbatim:
+
+- **Credentials / API keys / tokens / passwords / OAuth secrets:** record only the **source** (env var name, secret-manager path, config-file path) and the **mechanism** (Bearer token, Basic Auth, OAuth client-credentials flow, API key header `X-Api-Key`, etc.). NEVER copy the literal value.
+- **`.env`, `.env.test`, `.env.local`, `secrets.yaml`, or similar files:** record their **path** and the **variable names** that test/auth/base-URL logic depends on. Do NOT copy values. If a file is gitignored, note that fact instead of opening it for content capture.
+- **Database connection strings, service-account JSONs, private keys, certificates, signed URLs:** record presence and path only. Do not paste contents into `raw-data.md`.
+- **Base URLs and endpoint paths** are usually safe to record verbatim (e.g., `https://api.staging.example.com/v1/orders`). Exception: if a URL embeds credentials in the form `https://user:pass@host/...`, redact the `user:pass@` portion before recording.
+- **Test data fixtures with PII** (real names, real emails, real phone numbers, real account IDs of production users): use the pattern's structure only, not the values. Replace with placeholders if needed for shape demonstration.
+
+If a section in the `<output_format>` template would naturally require sensitive content (e.g., an auth-setup snippet that includes a hardcoded token), describe the pattern in prose with a placeholder rather than reproduce the literal code.
+
+</safety_boundaries>
+
+<validation_checklist>
+
+Before declaring this skill complete, all of the following must hold:
+
+- `agents/qa/{IDENTIFIER}/raw-data.md` was written with every section from the `<output_format>` template present (or explicitly marked "N/A" with a one-line reason — not silently skipped)
+- **Test cases section:** at least one source identified (TestRail / Jira / User Provided); gaps from incomplete TMS / Jira / Confluence retrieval are recorded as explicit `Gap: ...` notes, NOT silently filled with assumptions
+- **Documentation section:** if no documentation was found, the user was asked and the response (URLs supplied OR explicit `skip` decision) is recorded
+- **Existing test patterns section:** if a test framework was identified, the file naming convention, test structure example, and auth-setup pattern (described, not pasted) are filled in (not "TBD"); if no existing tests, the section explicitly says so with a reason
+- **Backend source code section:** populated when backend path was set in project config OR discovered via `RefSrc/`; explicitly marked "N/A" with a reason when no source was available — NOT skipped silently
+- **API endpoints table:** every row has Method + Source columns populated; partial rows (e.g., method unknown) are tagged as gaps in the Notes section
+- **Safety re-check (per step 6.1):** `raw-data.md` was scanned for literal secrets (passwords, tokens, API keys, full `.env` contents, connection strings, private keys); none are present — only paths and mechanism descriptions
+- **Anti-assumption re-check (per step 6.2):** every pitfall in `<pitfalls>` was reviewed against the artifact before declaring complete; gaps in TMS / Confluence / codebase analysis are recorded as gaps, not filled by inference
+
+</validation_checklist>
 
 </qa-data-collection>

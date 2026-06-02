@@ -44,11 +44,96 @@ Initialize QA session directory, load existing project config or collect project
 2. Mark Phase 0 complete, Phase 1 current
 </update_state>
 
+<config_contract>
+
+`qa-project-config.md` is the load-bearing artifact every downstream phase reads. The full template lives in the `qa-project-config` skill. This block lists the **fields downstream phases bind to by exact name** — Phase 0 is not complete until every required key below is either populated with a real value or explicitly marked `N/A — <reason>`.
+
+**Required keys (consumed by later phases):**
+
+| Section / Key | Consumed by | Required value or accepted N/A reason |
+|---|---|---|
+| `Document Storage` — `documentation_type` | `qa-flow-documentation-mcp-subflow.md` (Phase 1) | One of: `confluence` / `google-drive` / `local` / `none`. `N/A` only when `none`. |
+| `Document Storage` — `documentation_mcp_collection_skill` | documentation subflow step 1 (resolved MCP collection skill tag) | Skill tag string (e.g. `mcp-confluence-data-collection`) or `N/A — documentation_type: none` |
+| `Document Storage` — `confluence_base_url` / `documentation_base_url` | documentation subflow scope detection | Base URL or `N/A — documentation_type: <non-confluence-value>` |
+| `API Specification` — `swagger_url` (or path) | `qa-flow-api-spec-analysis.md` step 2.1 | URL/path, or `N/A — no Swagger spec available; code-based analysis will run` |
+| `API Specification` — `spec_format` | `qa-flow-api-spec-analysis.md` step 2.1 | One of: `OpenAPI 3.x` / `Swagger 2.0` / `N/A` |
+| `Backend Source Code` — `backend_source_path` | `qa-data-collection` step 4, `qa-flow-api-spec-analysis.md` step 2.1 | Path (e.g. `RefSrc/my-backend/` or `src/`) or `N/A — work from Swagger/docs only` |
+| `Test Case Management` — `system` | `qa-data-collection` step 2 (branch selector) | One of: `testrail` / `jira` / `confluence` / `manual` / `other` |
+| `Test Case Management` — `project_id` / `suite_id` | `qa-data-collection` step 2 (when system is `testrail`) | IDs, or `N/A — system: <non-testrail-value>` |
+| `Test Framework` — `framework` | `qa-data-collection` step 5 (validates discovery) | Name (`pytest` / `Jest` / etc.) or `TBD — will discover from codebase` |
+| `Authentication` — `mechanism` | `qa-flow-api-spec-analysis.md` step 3 cross-check | One of: `oauth2` / `jwt` / `api-key` / `basic` / `none` / `TBD — will discover from spec/code` |
+
+**Brief illustrative snippet** (representative shape; full template lives in the `qa-project-config` skill):
+
+```markdown
+# QA Project Config
+
+## Document Storage
+- documentation_type: confluence
+- documentation_mcp_collection_skill: mcp-confluence-data-collection
+- confluence_base_url: https://acme.atlassian.net/wiki
+
+## API Specification
+- swagger_url: https://api.acme.example.com/v1/swagger.json
+- spec_format: OpenAPI 3.x
+
+## Backend Source Code
+- backend_source_path: RefSrc/acme-orders-api/
+- framework: Spring Boot
+
+## Test Case Management
+- system: testrail
+- project_id: 42
+- suite_id: 117
+
+## Test Framework
+- framework: RestAssured
+
+## Authentication
+- mechanism: jwt
+- test_auth_strategy: service_account
+```
+
+**Empty-field rule.** If the user is unsure or the project genuinely lacks one of the optional inputs, write `N/A — <reason>` for that key. Do NOT leave the key absent — Phase 1 grepping for the key by name will silently miss it and degrade analysis without flagging the gap.
+
+</config_contract>
+
+<initial_data_contract>
+
+`agents/qa/{IDENTIFIER}/initial-data.md` is a thin handoff artifact for downstream phases. Required shape:
+
+```markdown
+# Initial Data — [IDENTIFIER]
+
+**Initial user prompt:** [verbatim user text that started this QA run]
+**Project config file:** agents/qa/qa-project-config.md
+**Test case reference:** [TestRail ID / Jira key / direct description summary]
+**Additional links provided:** [list URLs verbatim, or `None`]
+```
+
+All four fields are required. Use `None` only for the additional-links field; the other three must have content.
+
+</initial_data_contract>
+
+<failure_handling>
+
+- **`qa-project-config` skill ACQUIRE returns zero documents:** stop Phase 0 immediately, record in `agents/qa-state.md`: `Phase 0 blocked: ACQUIRE qa-project-config returned zero documents at <ISO timestamp> — awaiting user action`, and ask the user to fix Rosetta/KB access. Apply parent `qa-flow.md` `<failure_handling>` zero-doc rule. Do NOT attempt to write a placeholder config — the skill owns the template.
+- **Skill ran but `qa-project-config.md` not created at the canonical path `agents/qa/qa-project-config.md`:** retry the skill once with the same inputs; if still missing, stop, record `Phase 0 blocked: qa-project-config.md not produced after retry`, and ask the user to inspect the skill's output. Do NOT mark Phase 0 complete.
+- **Skill ran but session directory `agents/qa/{IDENTIFIER}/` not created:** create the directory directly (this is a simple mkdir, not a skill responsibility), then re-run the verification. If the create fails (permission denied, disk full, file lock), stop and report the filesystem error.
+- **`{IDENTIFIER}` underivable** (no Jira key in the request, no TestRail ID, and no usable feature name): stop, ask the user once for an explicit identifier (Jira key preferred, then TestRail ID, then a kebab-case feature slug — name the three preference levels in the question). After one unsuccessful re-ask, record `Phase 0 blocked: IDENTIFIER unresolvable — awaiting user supply` and stop. Do NOT pick a default like `unknown` or `tmp-N` — `{IDENTIFIER}` is referenced in every downstream phase's paths and a guess pollutes the entire QA session.
+- **Config exists but is missing required keys from `<config_contract>`:** treat as `config-incomplete`. Re-run the `qa-project-config` skill's collect-from-user branch for only the missing keys, then re-verify. Do NOT advance to Phase 1 with an incomplete config — Phase 1's documentation subflow will silently degrade if `documentation_mcp_collection_skill` is absent rather than `N/A`-tagged.
+- **`agents/qa-state.md` unwritable** (permission denied, file locked): pause, report the write error to the user with the file path, do not mark Phase 0 complete.
+
+</failure_handling>
+
 <validation_checklist>
 - `agents/qa/{IDENTIFIER}/` directory exists
-- `qa-project-config.md` exists with non-empty content
-- `initial-data.md` created with initial prompt and config reference
-- `agents/qa-state.md` created with Phase 0 marked complete
+- `qa-project-config.md` exists at the canonical path `agents/qa/qa-project-config.md` with non-empty content
+- **Every required key from `<config_contract>` is present** — populated with a real value OR explicitly marked `N/A — <reason>`; no key absent / blank / `TBD` without a documented next-step
+- `initial-data.md` created per `<initial_data_contract>` with all four required fields populated
+- `agents/qa-state.md` created with Phase 0 marked complete and `IDENTIFIER:` field matching the `agents/qa/{IDENTIFIER}/` directory name
+- `{IDENTIFIER}` value identical across (a) directory name, (b) qa-state.md IDENTIFIER field, (c) initial-data.md path
+- No failure-handling condition from `<failure_handling>` is currently active — every listed failure scenario has either not been triggered or has been remediated
 </validation_checklist>
 
 </qa_flow_project_config_loading>

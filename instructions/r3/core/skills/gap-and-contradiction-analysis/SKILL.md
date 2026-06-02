@@ -256,40 +256,57 @@ If NO issues found, still produce document with "No issues found" in each sectio
 
 **Avoid Assumptions**: Don't guess answers; document what's explicitly missing; don't infer requirements not stated.
 
-**Prioritize**:
-- Critical: Blocks implementation entirely
-- High: Significant quality impact
-- Medium: Affects implementation approach
-- Low: Minor clarification
+**Prioritize**: use the three-tier `<risk_assessment>` taxonomy (High / Medium / Low) — that block is the single source of truth for tier definitions. Do not introduce a parallel scheme here.
 
 </analysis_guidelines>
-
-<common_patterns>
-
-**Typical Contradictions**:
-- Priority/urgency mismatches across sources
-- Scope described differently in ticket vs documentation
-- Owner/assignee conflicts
-
-**Typical Gaps**:
-- Error handling not specified
-- Edge cases not covered
-- Non-functional requirements missing
-- Integration details incomplete
-
-**Typical Ambiguities**:
-- "Fast response" (how fast?)
-- "Secure" (what security level?)
-- "User-friendly" (measured how?)
-
-</common_patterns>
 
 <pitfalls>
 - Being too vague in findings — always quote exact source text
 - Guessing answers instead of documenting unknowns
 - Over-analyzing minor details at the expense of critical blockers
-- Skipping cross-reference between sources
+- Skipping cross-reference between sources (legitimately skip-with-note only when there is exactly one source — see `<failure_handling>`)
 - Not producing a document when no issues found
+- Acting on findings (proposing edits to the sources, asking the user to fix items, executing downstream work) — this skill is analysis-only; the parent workflow owns follow-up actions
+- Reproducing sensitive source content verbatim instead of redacting and flagging it
+- Inventing a parallel priority scheme that diverges from `<risk_assessment>` (3 tiers; no Critical layer)
 </pitfalls>
+
+<safety_boundaries>
+
+This skill is **analysis-only**:
+
+- **Do NOT act on findings.** Do not propose code edits, do not modify the sources, do not call any other skill to "fix" identified gaps, do not ask the user directly to resolve items (the parent workflow's questioning/clarification step owns user interaction).
+- **Do NOT execute or implement** anything based on what you analyzed. If a finding implies code or test work is needed, surface it as a finding (Gap or Contradiction) and stop.
+- **Treat the analysis output as PUBLIC by default.** It may end up tracked in version control, shared with reviewers, or fed to downstream prompts. Therefore:
+  - If a source contains a credential, token, API key, password, secret URL, signed link, private key, or PII (real names / emails / phone numbers / account IDs / payment data), **redact** before quoting. Use placeholders like `<redacted: bearer token>`, `<redacted: customer email>`, `<redacted: PII>`. Flag the redaction in the finding so reviewers know what was hidden.
+  - Do not infer or expose information not present in the sources (e.g., guessing what a token "probably is" or what a redacted name "might be").
+- **Boundaries with `<risk_assessment>`:** the three-tier scheme (High/Medium/Low) is the single source of truth. Do not introduce Critical/Urgent/Blocker as a fourth tier, and do not silently drop a finding because it doesn't fit your preferred tier — every finding must receive exactly one tier.
+
+</safety_boundaries>
+
+<failure_handling>
+
+- **Input missing** (`raw-data.md` or whatever the parent workflow points at does not exist): stop, report `gap-and-contradiction-analysis: required input missing — <path>` to the parent workflow, do not proceed and do not fabricate an analysis.
+- **Input unreadable** (binary / corrupted / parse error): stop, report the parse error with the file path, do not guess at content.
+- **Input empty** (file exists but no source data inside): treat as missing — stop and report.
+- **Single-source case** (prerequisites name "at least one source"; exactly one source is present): proceed with contradictions / gaps / ambiguities sections **within that single source**, but **skip the `<cross_reference_sources>` step**. Record in the Cross-Reference Analysis section: `Skipped — only one source available (<source name>); no cross-reference possible.` Do NOT fabricate comparisons against absent sources.
+- **Source loads partially** (e.g., Confluence MCP truncated a page, TestRail returned without custom fields): record the partial-load fact in the Analysis Metadata section, mark affected findings with a `Partial source: <what was missing>` note, and proceed. Do not silently treat a partial load as complete.
+- **All sources empty / no content to analyze**: produce the output document with "No content available" in every finding section and an Executive Summary stating "Cannot analyze — sources empty or unloaded." Do not return a confident "no issues found" verdict from empty input.
+
+</failure_handling>
+
+<validation_checklist>
+
+Before declaring this skill complete, all of the following must hold:
+
+- **Sources loaded:** every source listed in `<prerequisites>` (or in the parent workflow's input path) was actually opened and read — not summarized from memory; the Sources field of the output document enumerates them.
+- **All four finding sections written:** Contradictions, Gaps, Ambiguities, Cross-Reference Analysis are each present with real findings OR an explicit "None found" / "Skipped — only one source" line. No section is left as a placeholder or `TBD`.
+- **Every finding quotes exact source text:** each C-N, G-N, A-N entry includes a verbatim quote with field/section/page citation. No paraphrased "the source said X" claims without the quote.
+- **Every finding has a single risk tier from `<risk_assessment>`:** High, Medium, or Low — not Critical, not multi-tier, not blank.
+- **Executive Summary counts match the body:** the Contradictions count equals the number of C-N entries in section 1; same for Gaps (G-N) and Ambiguities (A-N). If they don't match, fix the count before emitting.
+- **Sensitive content redacted per `<safety_boundaries>`:** the document was scanned for credentials/tokens/PII; any such content is replaced with `<redacted: ...>` placeholders and noted in the relevant finding.
+- **No fabricated cross-references:** if only one source was available, the Cross-Reference Analysis section says so explicitly rather than inventing comparisons.
+
+</validation_checklist>
 
 </gap-and-contradiction-analysis>

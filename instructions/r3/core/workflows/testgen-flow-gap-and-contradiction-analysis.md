@@ -44,7 +44,11 @@ Analyze Jira ticket and Confluence documentation to identify contradictions, gap
 
 <create_analysis_document step="2.3">
 
-Create `agents/testgen/{TICKET-KEY}/analysis.md` using the output format from the skill, with the following testgen-specific additions:
+Create `agents/testgen/{TICKET-KEY}/analysis.md` in two passes:
+
+**Pass 1 — Skill-owned sections (authoritative template lives in the skill).** Sections 1–6 (Contradictions, Gaps, Ambiguities, Cross-Reference Analysis, Positive Findings, Risk Assessment) are produced by `gap-and-contradiction-analysis` per its `<output_format>`. This phase does NOT duplicate that template — refer to the skill for section structure, per-finding entry shape, and risk-tier conventions.
+
+**Pass 2 — Testgen-specific additions, appended AFTER the skill's sections.** Append the two sections below verbatim. The fence is a **delta on top of the skill's output**, not the whole document template:
 
 ```markdown
 ## 7. Next Steps
@@ -64,7 +68,17 @@ Create `agents/testgen/{TICKET-KEY}/analysis.md` using the output format from th
 - **Manual Review**: [Areas requiring human judgment]
 ```
 
-If NO issues found, still create document with "No issues found" statement in each section.
+**Zero-issues rule** (separate atomic instruction, applies to Pass 1 + Pass 2):
+- Pass 1: still produce sections 1–6 with explicit `No issues found.` text in each per the skill's `<output_format>` zero-issues rule.
+- Pass 2: append the same two sections above, with `Total questions expected: 0` and the Recommended line replaced by `Proceed directly to Phase 4 — no clarification needed (per Phase 2 zero-issues outcome).`
+
+**Finding-quality grounding** (one positive / one negative pair kept inline so the rule survives even when the skill is not loaded; the skill's `<analysis_guidelines>` "Be Specific" rule remains authoritative):
+
+| ❌ Vague | ✅ Specific |
+|---|---|
+| `Some details missing.` | `User authentication method not specified — Jira mentions "secure login" but does not name OAuth, SAML, or basic auth; needed for Phase 4 requirements.` |
+
+Apply the same shape to every contradiction / gap / ambiguity entry: name the specific concept that's missing or conflicting, quote the source text, and explain why the gap blocks the next phase.
 
 </create_analysis_document>
 

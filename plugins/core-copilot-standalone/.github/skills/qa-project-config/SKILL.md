@@ -34,25 +34,54 @@ Supported formats:
 "Automate TC-1234, TC-1235 with Swagger: https://api.example.com/swagger"
 ```
 
-## 2. Setup Output Directory
+## 2. Setup Output Directory and State File
 
-Create output directory and initialize state file:
+Create output directory and initialize state file at these canonical paths:
+
 ```
-agents/qa-state.md           (initialize at agents/ root)
-agents/qa/{IDENTIFIER}/      (create session directory)
+agents/qa-state.md           (workflow state file — sibling to agents/qa/)
+agents/qa/{IDENTIFIER}/      (per-ticket session directory)
 ```
 
 Where `{IDENTIFIER}` is:
 - Ticket key if from Jira (e.g., `PROJ-123`)
 - Test case ID if from TestRail (e.g., `TC-1234`)
-- Sanitized feature name if direct description (e.g., `user-registration`)
+- Sanitized kebab-case feature name if direct description (e.g., `user-registration`)
+
+The same `{IDENTIFIER}` value MUST be used in every artifact this skill produces (state file, project config, initial-data file) and in every downstream phase's artifacts under `agents/qa/{IDENTIFIER}/`. Pick once, reuse everywhere.
+
+**Initial state-file content.** Write the following minimum stub to `agents/qa-state.md`; the schema and per-phase update conventions are owned by `qa-flow.md` `<state_file>` (the workflow file updates this file after every phase):
+
+```markdown
+# API QA State - <Test Name / Feature>
+
+**Last Updated**: [DateTime]
+**Current Phase**: 0
+**Test Case Source**: [TestRail ID / Jira Ticket / Manual]
+**Feature**: [Feature Name]
+**IDENTIFIER**: [the {IDENTIFIER} value chosen above — must match agents/qa/{IDENTIFIER}/ directory]
+
+## Phase Completion Status
+
+- [x] Phase 0: Project Config Loading
+- [ ] Phase 1: Data Collection
+- [ ] Phase 2: API Spec Analysis
+- [ ] Phase 3: Gap & Requirements Clarification
+- [ ] Phase 4: Test Case Specification
+- [ ] Phase 5: Test Implementation
+- [ ] Phase 6: Execution & Report Analysis
+- [ ] Phase 7: Test Corrections
+```
+
+Refer to `qa-flow.md` `<state_file>` for the full schema. Downstream phases append per-phase detail; this skill only writes the initial stub above.
 
 ## 3. Load or Create Project Config
 
-Find `qa-project-config.md` in the repo's agent-specific directory.
+Search for `qa-project-config.md` at the **canonical path** `agents/qa/qa-project-config.md` (project-wide, **not** per-`{IDENTIFIER}` — the same config is shared across all tickets in the project).
 
-- If found and non-empty: skip to step 5
-- If not found: proceed to step 4
+**Branches (exhaustive):**
+- **File exists AND non-empty:** skip to step 5 (loaded; nothing to collect).
+- **File missing OR exists but empty:** proceed to step 4. Do NOT create an empty placeholder file at this point — step 5 will write the populated file.
 
 ## 4. Collect Project Info From User
 
@@ -104,7 +133,7 @@ If critical information is missing, ask follow-up questions.
 
 ## 5. Save Project Config
 
-Save to `<agent_folder>/qa-project-config.md`:
+Save to the canonical path `agents/qa/qa-project-config.md` (project-wide; same file referenced by step 3 above and by `qa-data-collection`'s prerequisites):
 
 ```markdown
 # QA Project Config
@@ -164,6 +193,22 @@ File: `agents/qa/{IDENTIFIER}/initial-data.md`
 - Overwriting an existing, valid project config
 - Not validating that minimum required info (doc storage, Swagger availability, test case source) is collected
 - Using inconsistent IDENTIFIER naming (must match across all phase artifacts)
+- Writing the project config under `agents/qa/{IDENTIFIER}/qa-project-config.md` instead of the canonical project-wide path `agents/qa/qa-project-config.md` — the config is shared across all tickets, not per-ticket
+- Skipping the `agents/qa-state.md` initial stub or writing it with an unspecified `IDENTIFIER` field
 </pitfalls>
+
+<validation_checklist>
+
+Before declaring this skill complete, all of the following must hold:
+
+- **Session directory created:** `agents/qa/{IDENTIFIER}/` exists.
+- **State file initialized:** `agents/qa-state.md` exists with the initial stub from step 2 (Last Updated / Current Phase: 0 / IDENTIFIER / Phase Completion Status table with Phase 0 checked).
+- **Project config present:** `agents/qa/qa-project-config.md` (canonical project-wide path) exists and is non-empty — either pre-existing (step 3 path A) or freshly saved by step 5 (path B).
+- **Initial-data file written:** `agents/qa/{IDENTIFIER}/initial-data.md` exists with all four template fields populated (Initial user prompt / Project config file / Test case reference / Additional links).
+- **IDENTIFIER consistency:** the same `{IDENTIFIER}` value appears in (a) the `agents/qa/{IDENTIFIER}/` directory name, (b) the `IDENTIFIER:` field of `agents/qa-state.md`, and (c) the directory portion of the `initial-data.md` path. If any of the three differ, the skill is NOT complete — re-run step 2 and propagate the corrected value.
+- **No empty placeholders:** project config has real values (or explicit `TBD` where optional + explanation), not blank fields.
+- **Canonical paths only:** no use of the deprecated `<agent_folder>` placeholder anywhere in the produced files; all paths follow the canonical scheme documented in step 2 and step 5.
+
+</validation_checklist>
 
 </qa-project-config>

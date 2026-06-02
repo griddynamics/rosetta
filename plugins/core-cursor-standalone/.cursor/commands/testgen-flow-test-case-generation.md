@@ -83,6 +83,13 @@ Common patterns for minimum coverage:
 1. USE SKILL `testrail-test-case-authoring` for test case format
 2. Create 2-5 test cases per requirement covering different test types from step 5.2
 
+**Format constraint (applies on both paths — skill available AND skill-unavailable fallback):** test cases MUST use the `Steps + Expected Result` shape so they map cleanly to TestRail's `custom_steps_separated` / `custom_expected` fields used by Phase 6 export. **NOT permitted:**
+- BDD / Gherkin / Given-When-Then format (breaks TMS field mapping)
+- `Post-conditions` field (not a TMS-supported field; encode any teardown into the test framework or note in Expected Result)
+- `Automation` field (automation status lives in TMS metadata or test framework, not in the case body)
+
+This constraint is enforced by `testrail-test-case-authoring` on the normal path; the inline template below repeats it so the rule survives if the skill cannot load.
+
 <test_case_entry_template>
 **Inline TC schema** — every test case (TC-NNN) created by this step must have these fields, in this order. If `testrail-test-case-authoring` is unavailable or returns an incompatible shape, use this template so Phase 5 output is self-contained:
 
@@ -117,6 +124,20 @@ Common patterns for minimum coverage:
 - `TC-NNN` is a continuous zero-padded sequence across the whole `test-scenarios.md` file (`TC-001`, `TC-002`, …).
 - "Steps" must be observable user/system actions paired with observable responses — not paraphrased intent.
 - "Expected Result" must be objectively verifiable; avoid "should work", "as expected", "appropriate response".
+- **No BDD / Given-When-Then format.** Use plain numbered Steps. `When the user submits the form` / `Then the system displays...` is forbidden as a step shape.
+- **No `Post-conditions` field.** Encode teardown into the test framework or note residual side effects in the Expected Result; do not add a separate field.
+- **No `Automation` field.** Automation status is TMS metadata or framework concern, not part of the case body.
+
+**Test-case title quality** — titles must be specific enough that a reader can guess scope without opening the case:
+
+| Good (specific) | Bad (vague) |
+|---|---|
+| `User Login with Valid Credentials (Happy Path)` | `Test Login` |
+| `User Login Fails on 6th Wrong Password (Lockout)` | `Check Login` |
+| `Search Returns Results for Partial Match` | `Check Search` |
+| `Create Order with Out-of-Stock Item (Negative)` | `Test Order` |
+
+Title-level anti-pattern: creating multiple TCs (`TC-001`, `TC-002`, `TC-003`) with identical steps and only the role or input value differing — that's a merge candidate per step 5.5 with role/input as parameter, not separate TCs.
 </test_case_entry_template>
 </generate_test_cases>
 
@@ -259,12 +280,17 @@ TC-003: Viewer cannot create Job Post
 - Coverage matrix shows all requirements covered
 - Traceability matrix in requirements.md updated with test IDs
 - State file updated with Phase 5 complete
+- **Format compliance (TMS/TestRail-compatible):** every test case uses `Steps + Expected Result` shape (no BDD / Given-When-Then), and contains no `Post-conditions` field and no `Automation` field. Re-grep the produced `test-scenarios.md` before declaring complete — any `Given `/`When `/`Then `/`**Post-conditions**:`/`**Automation**:` occurrence is a defect that breaks Phase 6 export.
+- **Title quality:** no vague case titles like `Test X` / `Check Y` / `Verify Z`; every TC title names the scenario specifics (action + condition or outcome). Spot-check the lowest-priority cases (P2/P3) where vague titles tend to slip in.
 </validation_checklist>
 
 <pitfalls>
 - Don't generate test cases without covering all requirement types (happy path alone is insufficient)
 - Don't skip merging — duplicate test cases with same steps but different inputs must be parameterized
 - Ensure every requirement has at least 1 test case — check coverage matrix before completing
+- Emitting BDD / Given-When-Then format — breaks Phase 6 TMS export. Use Steps + Expected Result only.
+- Adding `Post-conditions` or `Automation` fields — not TMS-supported; teardown goes in the test framework, automation status is TMS metadata
+- Vague test case titles (`Test Login`, `Check Search`) — title must name the specific scenario (`User Login with Valid Credentials (Happy Path)`)
 </pitfalls>
 
 </testgen_flow_test_case_generation>

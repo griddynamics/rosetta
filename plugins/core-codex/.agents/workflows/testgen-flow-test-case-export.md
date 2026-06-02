@@ -28,7 +28,8 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 5. Map to TMS format using skill mappings
 6. Export test cases via TMS MCP
 7. Update documents with TMS IDs
-8. Update state file
+8. Write `export-report.md` (TMS IDs/URLs, per-case status, timestamp)
+9. Update state file
 </phase_steps>
 
 <identify_skill step="6.1">
@@ -69,9 +70,59 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 </export>
 
 <update_documents step="6.6">
-1. Update `test-scenarios.md`: add TMS case ID and link to each test case, add export summary at top with target info and result table
-2. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 6 complete
-3. Report completion with TMS link and export statistics
+1. Update `test-scenarios.md`: add TMS case ID and link to each test case, add export summary at top with target info and result table.
+2. **Write `agents/testgen/{TICKET-KEY}/export-report.md`** using the template below. This artifact is the on-disk receipt that the validation_checklist verifies; do NOT skip this step on any execution path (full TMS export, manual-copy fallback, CSV fallback, or partial-export under the 80% threshold). Sections that don't apply to the path taken are explicitly marked `N/A — <reason>`, not omitted.
+
+```markdown
+# Phase 6 Export Report — [TICKET-KEY]
+
+**Completed:** [ISO-8601 timestamp]
+**Outcome:** FULL_EXPORT | PARTIAL_EXPORT | MANUAL_COPY_FALLBACK | CSV_FALLBACK | DEFERRED
+**Source artifact:** agents/testgen/[TICKET-KEY]/test-scenarios.md
+
+## Target
+
+- **TMS:** [TestRail / Zephyr / Xray / qTest / N/A — fallback path]
+- **Target location:** [section / folder / suite identifier, or N/A]
+- **TMS project URL:** [base URL or N/A]
+
+## Export Summary
+
+- **Total cases parsed:** [N]
+- **Created:** [N]
+- **Failed:** [N]
+- **Skipped:** [N]
+- **Success rate:** [N/M = NN%]
+- **Threshold (80%) met:** [yes / no]
+
+## Per-case status
+
+| TC-NNN | Title (truncated) | Status   | TMS ID | TMS URL | Error (if any) |
+|--------|-------------------|----------|--------|---------|----------------|
+| TC-001 | ...               | created  | C123   | <url>   | —              |
+| TC-002 | ...               | failed   | —      | —       | <error message> |
+| TC-003 | ...               | skipped  | —      | —       | <reason>       |
+
+## Fallback (if applicable)
+
+[Present only when Outcome is MANUAL_COPY_FALLBACK / CSV_FALLBACK / DEFERRED; otherwise this section is `N/A — full TMS export path taken`.]
+
+- **Path taken:** MANUAL_COPY | CSV | DEFERRED
+- **Artifact path:** [e.g., `agents/testgen/[TICKET-KEY]/test-scenarios.csv` for CSV, or `agents/testgen/[TICKET-KEY]/test-scenarios.md` for manual-copy]
+- **Row count (CSV) / case count (manual):** [N]
+- **User confirmation of manual export:** [verbatim user reply, with timestamp, for MANUAL_COPY path; otherwise N/A]
+- **Reason for defer:** [verbatim error / MCP state, for DEFERRED path; otherwise N/A]
+
+## Failed cases — investigation pointers
+
+[Present only when Failed > 0 or Outcome is PARTIAL_EXPORT. Otherwise: `None — all cases exported successfully.`]
+
+- TC-NNN: [error category] — [next-step suggestion: retry / adjust mapping / check TMS field config / etc.]
+- ...
+```
+
+3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 6 complete (or `PARTIAL — N/M exported` per the validation_checklist 80% threshold rule). Reference the export-report.md path from the state file's Phase 6 entry.
+4. Report completion to the user with TMS link, export statistics, AND the export-report.md path so they can audit the run.
 </update_documents>
 
 <validation_checklist>
