@@ -17,7 +17,10 @@
 
 ## Step 1: Connect Rosetta MCP
 
-Rosetta uses HTTP MCP transport with OAuth. Pick your IDE and add the configuration.
+Rosetta uses HTTP MCP transport with OAuth. 
+
+1. Pick your IDE and add the configuration.
+2. Authenticate to MCP using GitHub account according to IDE.
 
 <details>
 <summary><b>Cursor</b></summary>
