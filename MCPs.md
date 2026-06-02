@@ -165,8 +165,6 @@ Add to `opencode.json`:
 
 Any MCP client that supports HTTP transport can connect using the endpoint URL. Complete the OAuth flow when prompted.
 
-STDIO transport is available for air-gapped environments. See [INSTALLATION.md](INSTALLATION.md).
-
 ## Step 2: Add Bootstrap Rule
 
 Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and add it to your IDE's instruction file (keep entire contents, including YAML frontmatter):
