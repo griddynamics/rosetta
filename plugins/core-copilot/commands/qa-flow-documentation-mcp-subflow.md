@@ -25,20 +25,20 @@ Write exactly one documentation MCP outcome under the QA raw-data file and verif
 
 <execute_documentation_mcp step="1.2b" subagent="discoverer" role="QA data collector">
 
-Three sub-blocks executed in order: **resolve** → **harvest_and_collect** → **verify**. Each sub-block carries only its own directives; branch triggers live in `<output_contract>` and are referenced by name (e.g. "apply **SKIPPED_NO_CONFIG**") rather than restated. Config-key precedence lives in `<workflow_context>` and is referenced, not relisted.
+Three sub-blocks executed in order: **resolve** → **harvest_and_collect** → **verify**. Each sub-block carries only its own directives. Branch triggers reference `<output_contract>` by name; the **literal outcome line is inlined parenthetically at each trigger site** so the agent does not have to cross-jump to `<output_contract>` to resolve a single branch. The canonical table (with full column shapes) still lives in `<output_contract>`. Config-key precedence lives in `<workflow_context>` and is referenced, not relisted.
 
 **Early-exit rule:** whenever any sub-block applies a branch from `<output_contract>` **other than COMPLETED**, write the row under the raw-data heading and **jump directly to `<verify>` (skip the rest of harvest_and_collect)**.
 
 <resolve>
-1. Pick the **Resolved MCP collection skill** = first non-empty config key per `<workflow_context>` precedence list. If none of those keys are set but documentation MCP scope is clearly active per the in-scope signals in `<workflow_context>`, re-read `qa-project-config.md` and Phase 0 notes for a default tag; if still absent, apply **SKIPPED_NO_CONFIG** → early-exit.
-2. If **all** documentation MCP signals from `<workflow_context>` are absent: apply **SKIPPED_NO_CONFIG** → early-exit.
+1. Pick the **Resolved MCP collection skill** = first non-empty config key per `<workflow_context>` precedence list. If none of those keys are set but documentation MCP scope is clearly active per the in-scope signals in `<workflow_context>`, re-read `qa-project-config.md` and Phase 0 notes for a default tag; if still absent, apply **SKIPPED_NO_CONFIG** (write `**Outcome:** skipped — no documentation MCP configuration` + one-line reason) → early-exit.
+2. If **all** documentation MCP signals from `<workflow_context>` are absent: apply **SKIPPED_NO_CONFIG** (write `**Outcome:** skipped — no documentation MCP configuration` + one-line reason) → early-exit.
 </resolve>
 
 <harvest_and_collect>
-1. ACQUIRE `confluence-source-harvesting` FROM KB if not loaded. Zero documents returned → apply **ACQUIRE_FAILED** (skill `confluence-source-harvesting`) → early-exit.
-2. ACQUIRE the **Resolved MCP collection skill** (from `<resolve>` step 1) FROM KB if not loaded. Zero documents returned → apply **ACQUIRE_FAILED** (Resolved MCP collection skill) → early-exit.
-3. USE SKILL `confluence-source-harvesting`. No harvestable sources → apply **EMPTY_HARVEST** → jump to `<verify>` (do NOT run the next step).
-4. USE SKILL with the **Resolved MCP collection skill**; when done, apply **COMPLETED**.
+1. ACQUIRE `confluence-source-harvesting` FROM KB if not loaded. Zero documents returned → apply **ACQUIRE_FAILED** (skill `confluence-source-harvesting`; write `**Outcome:** skipped — ACQUIRE failed` + skill name + short error) → early-exit.
+2. ACQUIRE the **Resolved MCP collection skill** (from `<resolve>` step 1) FROM KB if not loaded. Zero documents returned → apply **ACQUIRE_FAILED** (Resolved MCP collection skill; write `**Outcome:** skipped — ACQUIRE failed` + skill name + short error) → early-exit.
+3. USE SKILL `confluence-source-harvesting`. No harvestable sources → apply **EMPTY_HARVEST** (write `**Outcome:** no documentation sources after harvesting` + what was searched) → jump to `<verify>` (do NOT run the next step).
+4. USE SKILL with the **Resolved MCP collection skill**; when done, apply **COMPLETED** (write `**Outcome:** collected via <skill-name>` + brief page/URL count, using the **Resolved MCP collection skill** tag for `<skill-name>`).
 </harvest_and_collect>
 
 <verify>

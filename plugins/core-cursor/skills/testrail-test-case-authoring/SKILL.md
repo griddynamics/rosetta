@@ -109,109 +109,7 @@ Include test type in parentheses. Use descriptive titles referencing the key act
 
 <examples>
 
-**Happy Path**:
-```markdown
-### TC-001: User Login with Valid Credentials (Happy Path)
-**Related Requirement**: US-1, FR-1
-**Type**: Happy Path
-**Priority**: P0
-
-**Preconditions**:
-- User account exists in database
-- User is not already logged in
-- Login page is accessible
-
-**Steps**:
-1. Navigate to login page
-2. Enter valid synthetic email (e.g. `test.user-1@example.com`) in email field
-3. Enter valid password placeholder `<valid test password>` in password field
-4. Click "Login" button
-
-**Expected Results**:
-- After step 1: Login page displayed with email and password fields
-- After step 2: Email field populated
-- After step 3: Password field masked
-- After step 4: User redirected to dashboard with "Welcome, User" message
-
-**Traceability**:
-- **User Story**: US-1 (User Login)
-- **Acceptance Criterion**: AC1
-- **Functional Requirement**: FR-1 (Authentication)
-```
-
-**Negative with parameterized test data**:
-```markdown
-### TC-002: User Login with Invalid Credentials (Negative)
-**Related Requirement**: US-1, FR-1
-**Type**: Negative
-**Priority**: P0
-
-**Preconditions**:
-- User account exists in database
-- User is not logged in
-- Execute this test case 3 times with different invalid credential combinations (see Test Data)
-
-**Steps**:
-1. Navigate to login page
-2. Enter email from Test Data
-3. Enter password from Test Data
-4. Click "Login" button
-5. Observe error message and page state
-
-**Expected Results**:
-- After step 1: Login page displayed
-- After step 2-3: Fields populated
-- After step 4: Login attempt processed
-- After step 5: Error message displayed as per Test Data, user remains on login page
-
-**Test Data** (use synthetic emails on `example.com` / `example.org` IETF reserved domain; passwords as placeholders, NOT literal values that could match real accounts):
-
-| Scenario | Email | Password | Expected Error |
-|----------|-------|----------|----------------|
-| Invalid password | `test.user-1@example.com` | `<deliberately-wrong test password>` | "Invalid credentials" |
-| Invalid email | `nonexistent@example.com` | `<valid test password>` | "Invalid credentials" |
-| Both invalid | `nonexistent@example.com` | `<deliberately-wrong test password>` | "Invalid credentials" |
-
-**Traceability**:
-- **User Story**: US-1 (User Login)
-- **Acceptance Criterion**: AC2
-- **Functional Requirement**: FR-1 (Authentication)
-
-**Notes**: Security critical — ensure credentials not revealed in error message
-```
-
-**Role-based parameterized (merged)**:
-```markdown
-### TC-003: Unauthorized Roles Cannot Create Job Post (Negative)
-**Related Requirement**: US-5, FR-12
-**Type**: Negative
-**Priority**: P0
-
-**Preconditions**:
-- User is logged in with one of the unauthorized roles (see Test Data)
-- Execute this test case 3 times, once for each role
-
-**Steps**:
-1. Navigate to Job Post creation page
-2. Attempt to create a new Job Post
-3. Observe system response
-
-**Expected Results**:
-- After step 1: Page loads or access denied based on role
-- After step 2: Creation attempt rejected
-- After step 3: Error message displayed as per Test Data table
-
-**Test Data**:
-| Role    | Expected Error Message |
-|---------|------------------------|
-| Admin   | "Insufficient permissions" |
-| Manager | "Insufficient permissions" |
-| Viewer  | "Insufficient permissions" |
-
-**Traceability**:
-- **User Story**: US-5 (Job Post Access Control)
-- **Functional Requirement**: FR-12 (Role-Based Permissions)
-```
+Three worked entries — **Happy Path**, **Negative with parameterized test data**, and **Role-based parameterized (merged)** — live in [references/examples-and-redaction.md](references/examples-and-redaction.md#worked-examples-referenced-from-examples). Load on demand when a field-shape question arises during authoring. Each entry shows how `<test_case_template>` fills in for its case shape (parameterization counts, Test Data tables, traceability fields, synthetic-placeholder use).
 
 </examples>
 
@@ -245,16 +143,13 @@ A test case carrying gap markers is still complete per `<success_criteria>` — 
 
 Test cases authored here are written verbatim into a tracked artifact (and pushed to TestRail by `testrail-test-case-export`, an external shared system visible to every project user). Treat the case body as **PUBLIC by default** — no literal credentials, no real PII.
 
-**Targets to placeholder, never literal:**
+**Operational rules** (decision-time guidance an agent needs without lazy-loading):
 
-- **Passwords / tokens / API keys** in Steps or Test Data — use `<valid test password>`, `<deliberately-wrong test password>`, `<valid bearer token>`, `<expired bearer token>`, `<valid api key>`. Never paste a real production-account password, even if marked "test". TestRail content is reused, exported, and read by humans who may copy it.
-- **Real customer emails / names / phone numbers / account IDs / payment card numbers** in Test Data — use synthetic equivalents on IETF reserved domains: `test.user-1@example.com`, `qa.smoketest@example.com`; phone shapes from the `+1-555-0100`–`+1-555-0199` reserved range; PSP-published test card numbers if a card is needed (document the source in Notes).
-- **Internal credentialed URLs** (`https://admin:pw@internal.example.com/...`) — redact the credential portion to `https://<redacted: credentialed URL>` and describe the resource in prose.
-- **Real database connection strings, signed URLs, service-account JSONs, private keys** — never embed; describe the source (env var name, secret-manager path) and mechanism instead.
+- **No literal sensitive values** in Steps / Expected Results / Test Data / Preconditions — passwords, tokens, API keys, real PII, credentialed URLs, real DB connection strings. Use shape-preserving placeholders instead.
+- **Structural content stays verbatim** — endpoint paths, HTTP methods, status codes, error message templates (e.g. `"Invalid credentials"` is a UI string, not a secret), field names, and feature names. Redaction targets sensitive **values**, not the structural test description.
+- **If a real production value would be the natural example, replace it with a clearly-fake placeholder of the same shape** — better an obviously-fake placeholder in TestRail than a leaked real one that downstream phases or human testers act on.
 
-**Structural content stays verbatim.** Endpoint paths, HTTP methods, status codes, error message templates ("Invalid credentials" — that's a UI string, not a secret), field names, and feature names are functional and recorded as-is. Redaction targets sensitive **values**, not the structural test description.
-
-If a real production value would be the natural example, replace it with a clearly-fake placeholder of the same shape — better an obviously-fake placeholder in TestRail than a leaked real one that downstream phases or human testers act on.
+**Catalog moved to references** (load on demand when actively applying redaction): the **5-category targets-to-placeholder table** (passwords/tokens/keys + real PII + credentialed URLs + DB connection strings + service-account JSONs/private keys), the **placeholder vocabulary** with per-case-shape guidance, and the **safety re-scan grep targets** all live in [references/examples-and-redaction.md](references/examples-and-redaction.md#redaction-catalog-referenced-from-safety_boundaries) — the single source of truth for what to scan and which placeholders to use.
 
 </safety_boundaries>
 

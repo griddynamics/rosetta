@@ -68,6 +68,21 @@ Canonical match is the KB document whose frontmatter `name:` (or primary tag) is
    - **Assumption:** partial evidence only (e.g., time correlation without stack, single flaky run, or symptom-based guess) — label the root cause **Assumption** and say what evidence is missing.
    - **Unknown:** no usable supporting evidence — label **Unknown** and list what evidence would be needed to confirm.
    - **Ambiguous evidence:** if a case could reasonably be tagged as both **Confirmed** and **Assumption**, choose **Assumption** (weaker label). If it could be both **Assumption** and **Unknown**, choose **Unknown** unless at least one concrete partial fact exists — then **Assumption**.
+
+   **Worked example pair** — kept terse so the evidence-label rule stays concrete. The full per-failure record shape (Error Type / Error / Page Source Analysis / Priority / etc.) is defined by `aqa-test-debugging`'s `<output_format>` (the bound `domain_analysis_skill`); the **Evidence label + Rationale** below are the additional fields step 7.2 adds on top of that schema.
+
+   ✅ **Confirmed:**
+   - **Failure:** `test_checkout_submits_with_valid_card`
+   - **Root cause:** Selector `[data-testid="checkout-submit"]` renamed to `[data-testid="checkout-confirm"]` upstream.
+   - **Evidence label:** Confirmed
+   - **Rationale:** `report.log:142` shows `TimeoutError: locator('[data-testid="checkout-submit"]') not found`; `agents/plans/aqa-checkout-page-sources/checkout.html` (captured this run) shows `[data-testid="checkout-confirm"]` in the rendered DOM — both sides cited.
+
+   🟡 **Assumption:**
+   - **Failure:** `test_search_returns_results`
+   - **Root cause:** Backend search may be returning slowly under load (network or service latency).
+   - **Evidence label:** Assumption
+   - **Rationale:** Test timed out at 30s wait but report has no HTTP capture or backend stack trace; only a single flaky-run signal. To upgrade to Confirmed: a stack trace or HTTP log showing the actual backend slowness, OR ≥3 reruns reproducing the timeout.
+
 6. Validation loop (max two cycles): confirm each failure has exactly one label with evidence rationale; if any entry is unlabeled or violates step 5 rules, repeat steps 1–5 once more. After two cycles with remaining gaps, record unresolved rows in `agents/aqa-state.md`, ask the user once how to label them (or approval to leave borderline items as **Assumption**), then continue only after user response or explicit approval.
 </review_findings>
 

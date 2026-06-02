@@ -72,3 +72,39 @@ Phase 7/8 user waiver: <`granted: <reason>` | `not granted` | `N/A — cap not r
 ```
 
 The parent workflow MAY override these field names; if it does, follow the parent's schema and record the mapping in the state file's metadata so downstream phases can locate the fields.
+
+---
+
+## Part B `<safety_boundaries>` (referenced from SKILL.md `<safety_boundaries>`)
+
+Loaded only when Part B runs (writes test source files + applies fixes). Part A invocations do not pay the resident cost. **Canonical statement** for the four Part-B write-path rules; SKILL.md's `<safety_boundaries>` Part A half (analysis-artifact redaction) is the always-loaded counterpart.
+
+- **Approval discipline — never apply a code change without an explicit approval signal.** Acceptable signals: the calling workflow's recorded approval token, an explicit user response naming the specific Proposed Change (e.g., `apply Change 2`, `approved: Change 1 and Change 3`), or a workflow state-file row recording the approval. Inferred approval from prose ("looks good", "ok", "go ahead", silence) is **forbidden** — re-ask once, then default to NOT applying if still ambiguous. Apply changes one at a time so each approval maps unambiguously to a single Proposed Change.
+- **Stay inside the matched root-cause scope.** Each Proposed Change applies to the file(s) the root-cause analysis named, fixing the cited failure mode. Do NOT make adjacent edits ("while I'm here" cleanups, rename refactors, import reordering, formatting passes) outside that scope. Adjacent issues are recorded as separate Proposed Changes for separate approval.
+- **Never alter test intent while fixing implementation.** Implementation can change (selector value, wait strategy, helper call); the assertion semantics of an ATC cannot. If the test plan / spec is wrong (the API or UI actually behaves correctly and the test was wrong), record that as a spec update — do NOT silently flip the assertion.
+- **Test-code-only writes.** This skill writes only to test files, page-object files when the root cause is a selector update agreed with the user, and the analysis artifact. It does NOT modify application/product source code under test. If a fix would touch app source, stop and report `aqa-test-debugging: proposed fix is in application source <path>, not test code — escalate to product team / out-of-scope for this skill`. Application bugs surface as Application Bug findings in Part A's category list; Part B does not author them.
+
+---
+
+## Part B `<validation_checklist>` (referenced from SKILL.md `<validation_checklist>`)
+
+Loaded only when Part B ran. All items below MUST hold before Part B is declared complete:
+
+- Every Proposed Change carries File / Current Code / Proposed Code / Reason / Impact / Risk fields populated — no partial entries.
+- Every applied change has an explicit approval record (token, named reference, or state-file row) per the Part-B Approval-discipline rule above — no inferred approval.
+- Lint/format was re-run after each modified file; the result is recorded.
+- Test intent unchanged — no ATC's assertion semantics were silently altered. If a spec change was required (API behavior is correct, test was wrong), it was recorded as a spec update, not as a silent assertion flip (per the Never-alter-test-intent rule above).
+- No application/product source files were modified — only test files (and page-object files when the root cause was a selector update agreed with the user) (per the Test-code-only-writes rule above).
+- Iteration count tracked against the 3-iteration cap; if iteration 3 still left failures, the escalation note is recorded per step 9.
+
+---
+
+## Part B `<pitfalls>` (referenced from SKILL.md `<pitfalls>`)
+
+Loaded only when Part B runs. Each item is a bare cross-reference to the canonical rule above — the full statement is not restated.
+
+- Applying changes without explicit approval (Approval-discipline rule above)
+- Making unrelated changes alongside fixes (Stay-inside-scope rule above)
+- Not re-validating linting after each correction (validation-checklist item above)
+- Changing test intent while fixing implementation (Never-alter-test-intent rule above)
+- Modifying application/product source code instead of test code (Test-code-only-writes rule above)

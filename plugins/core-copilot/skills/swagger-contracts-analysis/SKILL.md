@@ -220,14 +220,19 @@ High-level done-condition. Item-level checks live in `<validation_checklist>` (s
 
 <failure_handling>
 
-Consolidated stop/ask/route behaviors. Inline references in step 1.4 (locate failure) and step 5.2 (coverage flag) point here.
+Consolidated stop/ask/route behaviors. Common branches inline; rarely-hit edge cases lazy-loaded.
+
+**Common branches (always-loaded — these are the high-frequency stops):**
 
 - **Endpoint not found in spec OR code** (step 1 exhausted Swagger spec, code-based route definitions, and Swagger-in-source patterns; the target endpoint is in neither): flag the endpoint back to the calling workflow with reason `not-found-in-spec-or-code` AND request user input for endpoint details (per step 1.4). Do NOT fabricate an entry. Do NOT silently drop — record it in the coverage gap list per step 5.2.
 - **Ambiguous routing** (the spec or code returns multiple candidate routes for one logical endpoint — e.g., overlapping path prefixes, versioned duplicates, conflicting method handlers): flag back with reason `ambiguous-routing: <candidate-1> | <candidate-2>` and ask the calling workflow which route is the intended target. Do NOT pick one silently — record both candidates.
 - **Parsing failure** (Swagger spec file is malformed JSON/YAML, OR a code file can't be parsed for route definitions): flag back with reason `parse-failure: <path> — <parser error>`. Continue with the remaining endpoints; the failed endpoint is recorded as a gap. Do NOT guess at contents.
-- **Spec-vs-code reconciliation conflict beyond Notes** (step 1.5/2.4-equivalent: spec and code declare structurally different contracts — e.g., method differs, required-field set differs by >50%, status-code list disagrees on success semantics): record both sides in `Notes / Discrepancies`, mark the entry's `Source: hybrid` with `Reconciliation: unresolved — see Notes`, AND surface to the calling workflow as a Critical follow-up rather than picking the documented or coded side as definitive.
-- **GraphQL API** (target endpoint set is a GraphQL schema, not REST): the REST-shaped output template does not fit. Adapt by using schema introspection (query the `__schema` introspection field via the GraphQL endpoint, OR read the SDL file if shipped). Per query/mutation, write a contract entry with: operation name, arguments + types, return type shape, auth/directives, and citation. Use the per-endpoint template's structural fields (Method = `POST` to `/graphql`; Path = the operation name; Request Body = the operation's variables; Response = the operation's return type). Record in `Notes / Discrepancies` that the entry is GraphQL-shaped.
-- **Citation source unavailable** (entry would be a `Source: hybrid` but the second source is intentionally not consulted — e.g., code is closed-source / out of scope): mark as `Source: swagger` (or `Source: code`) with a single citation; do NOT mark as `hybrid` and do NOT leave Notes empty if the user-asked partial-source scope is recorded — note the scope decision in Notes.
+
+**Edge-case branches (load on demand):** the three lower-frequency conditions below only fire on specific invocations — full rules + resolution discipline live in [references/failure-handling-edge-cases.md](references/failure-handling-edge-cases.md). Load when the trigger applies.
+
+- **Spec-vs-code reconciliation conflict beyond Notes** — when discrepancies exceed what `Notes / Discrepancies` can reasonably hold (method differs, required-field set differs >50%, status-code success semantics disagree, schemas structurally incompatible). See [references file](references/failure-handling-edge-cases.md#spec-vs-code-reconciliation-conflict-beyond-notes) for the both-sides + `Reconciliation: unresolved` + Critical-follow-up rule.
+- **GraphQL API** — when the target is a GraphQL schema, not REST. See [references file](references/failure-handling-edge-cases.md#graphql-api) for the schema-introspection adaptation + per-operation entry rules using the REST template's structural fields.
+- **Citation source unavailable** — when an entry would be `Source: hybrid` but only one source is intentionally consulted (closed-source code, scoped audit). See [references file](references/failure-handling-edge-cases.md#citation-source-unavailable) for the `Source: swagger` / `Source: code` single-source labeling + Notes-scope-decision rule.
 
 </failure_handling>
 

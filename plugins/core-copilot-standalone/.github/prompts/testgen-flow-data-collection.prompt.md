@@ -152,7 +152,27 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 </create_raw_data>
 
 <update_state step="1.4">
-1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 1 complete and metrics
+
+1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` per the parent flow's canonical state-file schema (declared once in `testgen-flow.md` `<state_file>` — this phase does NOT restate the full schema; it produces the Phase 1 delta the schema slots in).
+
+   **Phase 1 delta — required fields (slot into the schema's `## Phase Completion Status` and `## Phase Details` blocks):**
+
+   ```markdown
+   # In `## Phase Completion Status`:
+   - [x] Phase 1: Data Collection - Completed [ISO datetime]
+
+   # In `## Phase Details`, append:
+   ### Phase 1
+   - Completed: [ISO datetime]
+   - Jira Ticket: [TICKET-KEY]
+   - Jira Fields Captured: [count] (summary, description, status, priority, plus any extracted custom fields)
+   - Confluence Pages: [count] (or `0 — user approved skip` if no docs)
+   - Files Created: agents/testgen/{TICKET-KEY}/raw-data.md
+   - Notes: [partial-load flags from get_confluence step 1.2, or ticket-key-extraction notes from step 1.1, or `None`]
+   ```
+
+   Update `**Current Phase**: 1` → `**Current Phase**: 2` and refresh `**Last Updated**` at the top of the file.
+
 2. Tell user: "Phase 1 complete. Found [X] Jira fields and [Y] Confluence pages."
 3. Ask: "Ready to proceed to Phase 2 (Gap Analysis)?"
 </update_state>

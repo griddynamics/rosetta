@@ -112,28 +112,13 @@ If no backend source path is discoverable, skip this step entirely.
 
 ## 5. Discover Existing Test Patterns
 
-Analyze codebase for existing API test patterns:
+**Orchestration only** — detailed enumerations (search globs, framework markers, HTTP clients, structure/assertion/auth patterns, project conventions, mock frameworks) live in [references/existing-test-patterns.md](references/existing-test-patterns.md); load on demand.
 
-1. Search for existing test files:
-   - `*.test.*`, `*.spec.*`, `*_test.*`, `test_*.*`
-   - `__tests__/`, `tests/`, `test/`, `spec/`
-   - Focus on API/integration test directories
-
-2. Identify test framework and patterns:
-   - Import statements (pytest, jest, junit, restassured, supertest, etc.)
-   - HTTP client library (requests, axios, fetch, RestAssured, HttpClient, etc.)
-   - Test structure (describe/it, test classes, test functions)
-   - Assertion patterns
-   - Auth setup patterns (fixtures, beforeAll, setup methods)
-   - Base URL configuration
-   - Test data management (factories, fixtures, seed data)
-
-3. Identify project conventions:
-   - Test file naming conventions
-   - Test directory structure
-   - Shared utilities and helpers
-   - Environment configuration (`.env.test`, test config files) — **record path and variable names only, NEVER copy literal values** (see `<safety_boundaries>`)
-   - Mock/stub patterns for external services
+1. Search for existing test files (globs in references sub-step 1) — focus on API / integration directories.
+2. Identify framework + HTTP client + test structure (markers in references sub-step 2).
+3. Identify project conventions — naming, directory layout, shared utilities, env config, mocks (references sub-step 3).
+4. **Env-config safety:** record env-file **path and variable names only** — NEVER copy literal values (per `<safety_boundaries>`).
+5. Record findings in `raw-data.md` "Existing Test Patterns" per `<output_format>`.
 
 ## 6. Pre-write Safety + Completeness Re-check
 

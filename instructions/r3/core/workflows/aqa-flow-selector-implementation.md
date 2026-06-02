@@ -44,7 +44,7 @@ If a **required** ACQUIRE in step **5.1** below returns **zero** documents: stop
 3. ACQUIRE `aqa-selector-management` FROM KB if not already loaded. If that ACQUIRE returns **zero** documents: apply `<skill_acquire_failure>`.
 4. USE SKILL `aqa-selector-management`
 5. Execute Part B (Selector Implementation) only
-6. Extend existing page objects and create new ones as needed
+6. Extend existing page objects (skill Part B step 5 — match existing patterns: access modifiers, naming, formatting, helper-method shape) and create new ones as needed (skill Part B step 6 — use existing page objects as structural templates). The "follow project conventions exactly" rule is owned by the skill; do not introduce new patterns from this workflow.
 </execute_implementation>
 
 <validate step="5.2">
@@ -54,7 +54,7 @@ If a **required** ACQUIRE in step **5.1** below returns **zero** documents: stop
 </validate>
 
 <update_state step="5.3">
-1. Update `agents/aqa-state.md`:
+1. Update `agents/aqa-state.md` — the fields below mirror the skill's `### Implementation (Part B only)` output-template subsection (canonical shape lives in `aqa-selector-management` references; this is the state-file echo, kept in sync):
    - Page Objects Modified: [list with paths]
    - Page Objects Created: [list with paths]
    - Total Selectors Added: [count]

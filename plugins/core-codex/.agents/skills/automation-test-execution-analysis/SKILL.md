@@ -146,28 +146,7 @@ Every failure entry MUST carry a Fact-vs-Hypothesis flag — absent flag is a va
 
 The analysis artifact is **tracked, downstream-fed, and PUBLIC by default** — committed to the repo, read by the correction phase, referenced in state files, possibly shared with reviewers. Raw inputs (CI logs, framework reports, stack snippets, request/response bodies) routinely embed real secrets and PII. **Redact before writing into the artifact, not after.**
 
-**Targets to redact** (replace literal values with `<redacted: <kind>>` placeholders + a one-line presence/mechanism note). Patterns are grepped across every Failure entry's Evidence references and any inline log/stack/body snippets:
-
-| Target | Where it surfaces | Placeholder | Mechanism / kept verbatim |
-|---|---|---|---|
-| Auth headers | HTTP captures (`Authorization`, `X-Api-Key`, `Cookie`, `Set-Cookie`) | `<redacted: bearer token>` / `<redacted: basic credentials>` / `<redacted: api key>` / `<redacted: session cookie>` | One-line origin (e.g. *"Bearer from `AuthHelper.get_token('admin')`"*) |
-| JWTs | Stack frames + log lines (`eyJ...` shape) | `<redacted: JWT>` | Claims/audience/expiry described if relevant to the root cause |
-| Credentialed URLs | CI logs, stack frames (`https://user:pass@host/...`) | Redact `user:pass@` only | Host + path remain |
-| Query-string secrets | Request URLs (`?api_key=`, `?token=`, `?access_token=`, `?X-Amz-Signature=`, `?sig=`) | Redact secret-bearing param values | Param names + non-secret params remain |
-| Request bodies | HTTP-capture evidence | Redact credential / token / password / payment fields | Field names + non-sensitive values + schema shape verbatim (so contract mismatches can still be reasoned about) |
-| Response bodies | HTTP-capture evidence | Redact `access_token` / `refresh_token` / `id_token` / session IDs / PII (real emails / names / phones / account IDs / payment data) | Structural fields verbatim |
-| Stack traces / error messages | Logged HTTP request lines in connection-error stacks; DB connection strings in `psycopg2.OperationalError` frames | Scan + redact before pasting into Evidence references / Root cause | Framework symbols (function names, repo file paths) verbatim |
-| Environment Info | Report header (base URL, auth method) | Mechanism only — `auth method = OAuth2 client-credentials` / `JWT Bearer` / `Basic Auth via env var <NAME>` | Base URLs usually safe; credentialed base URLs are not |
-
-**Grep pattern list (canonical — referenced from `<validation_checklist>`):** `Bearer `, `Authorization:`, `password:`, `api_key=`, `access_token=`, `client_secret`, JWT shape `eyJ...`, `BEGIN PRIVATE KEY`, `BEGIN RSA PRIVATE KEY`, `postgres://user:pass@`, `mongodb+srv://user:pass@`, plus PII-shaped patterns (real-looking emails outside `example.com`/`example.org`, real phone numbers outside `+1-555-0100`–`+1-555-0199`, card-number shapes).
-
-**Structural-content rule.** Endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, response status text, framework stack frame symbols are functional and recorded as-is. Redaction targets sensitive **values**, not the structural failure spec.
-
-**Re-scan before emit.** `<validation_checklist>`'s redaction item re-greps the assembled artifact against the canonical list; any hits are replaced + the redaction recorded inline (e.g., next to the Evidence reference: `log.txt:142 — Bearer token redacted; origin: AuthHelper.get_token('admin')`).
-
-The boundary is artifact-agnostic — applies to any parent-supplied output path.
-
-> **DRY note (future):** the redaction policy (targets + grep list + structural rule) is shared verbatim with sibling skills (`aqa-test-debugging`, `qa-test-debugging`). A single sensitive-data redaction reference would let all three skills source from one canonical location — tracked in `docs/TODO.md` for the next family refactor.
+**Redaction policy** (targets table + canonical grep-pattern list + structural-content rule + re-scan rule) lives in [references/redaction-policy.md](references/redaction-policy.md) — load when the `<validation_checklist>` redaction item runs.
 
 </safety_boundaries>
 
@@ -180,7 +159,7 @@ The boundary is artifact-agnostic — applies to any parent-supplied output path
 - State and analysis artifact both reflect the same run identifier or timestamp
 - Analysis artifact follows the parent's `<output_format>` if supplied, OR this skill's default template if not — sections present, no `TBD` placeholders
 - User was informed how to proceed (e.g. correction phase) per parent workflow
-- **Redaction scan completed** per `<safety_boundaries>` (single source of truth for targets + grep pattern list) — every Failure entry's Evidence references and any inline log/stack/body snippets were grepped; any matches were replaced with placeholders AND the redaction noted inline. No literal credentials, tokens, or real PII remain in the artifact.
+- **Redaction scan completed** per `<safety_boundaries>` policy in [references/redaction-policy.md](references/redaction-policy.md) (canonical targets + grep-pattern list + structural-content + re-scan rules) — every Failure entry's Evidence references and any inline log/stack/body snippets were grepped; any matches were replaced with placeholders AND the redaction noted inline. No literal credentials, tokens, or real PII remain in the artifact.
 
 </validation_checklist>
 

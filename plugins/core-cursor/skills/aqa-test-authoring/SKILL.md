@@ -95,9 +95,9 @@ Run the `<validation_checklist>` below. Then, **before proceeding to step 5**:
 
 **Template load point (canonical):** the verbatim template at [references/test-implementation-template.md](references/test-implementation-template.md) is loaded **once at step 5** (the emit step) — `<output_format>` references this load point, not its own.
 
-Append the `## Test Implementation` section to the test plan per `<output_format>`. Populate every required subsection (**Test File**, **Implementation Summary**, **Uncovered Assertions**, **Conflicts and Precedence**, **Validation**) with the values produced by steps 1–4. Empty subsections use the explicit `None — <reason>` line from the template — never left blank.
+Append the `## Test Implementation` section to the test plan per `<output_format>` (canonical home for the five required subsections + the `None — <reason>` rule for empty ones). Populate each subsection with the values produced by steps 1–4.
 
-The skill is complete after step 5 emits and only after step 4's validation passed — full done-condition + NOT-complete clauses live in `<success_criteria>` below.
+Done-condition + NOT-complete clauses live in `<success_criteria>` below.
 
 </process>
 
@@ -105,9 +105,9 @@ The skill is complete after step 5 emits and only after step 4's validation pass
 
 High-level done-condition. Item-level checks live in `<validation_checklist>` (single source of truth — referenced here, not restated; mirrors the sibling `aqa-test-debugging` pattern).
 
-**Complete when:** step 4 validation passed → step 5 emitted the `## Test Implementation` section to the test plan → every `<validation_checklist>` item is satisfied. Specifically: test file written at the chosen path; every plan assertion was either implemented OR recorded in `### Uncovered Assertions` with reason; no application source or page-object files were modified (safety boundary); the hand-off section has all five required subsections (Test File, Implementation Summary, Uncovered Assertions, Conflicts and Precedence, Validation); lint/format clean on touched files.
+**Complete when:** step 4 validation passed → step 5 emitted the `## Test Implementation` section to the test plan → every `<validation_checklist>` item is satisfied. Specifically: test file written at the chosen path; every plan assertion was either implemented OR recorded in `### Uncovered Assertions` with reason; no application source or page-object files were modified (safety boundary); the hand-off section carries the five required subsections per `<output_format>` (canonical list); lint/format clean on touched files.
 
-**NOT complete** if step 5 emitted before step 4's validation passed; any plan assertion is missing from both the test file AND the `### Uncovered Assertions` section (silent drop); any application source or page-object file was modified by this skill (Phase 5 owns page-object edits — escalate per `<failure_handling>`); the hand-off section has a blank required subsection instead of `None — <reason>`; or lint failed on a touched file with no recorded resolution.
+**NOT complete** if step 5 emitted before step 4's validation passed; any plan assertion is missing from both the test file AND the `### Uncovered Assertions` section (silent drop); any application source or page-object file was modified by this skill (Phase 5 owns page-object edits — escalate per `<failure_handling>`); the hand-off section has a blank required subsection instead of `None — <reason>` per `<output_format>`; or lint failed on a touched file with no recorded resolution.
 
 </success_criteria>
 
@@ -155,7 +155,7 @@ Run as part of step 4 before step 5 emits. All items must hold:
 - **Coding standards followed** per `<input_contract>` "repo docs win" precedence (canonical rank in references). Any user-instruction override is recorded in `### Conflicts and Precedence`.
 - **No hardcoded sleeps/timeouts** — proper wait strategies only (per step 3c).
 - **Lint/format clean** on touched files; record the exact command run in the implementation notes.
-- **Hand-off output emitted** per `<output_format>` — Test File / Implementation Summary / Uncovered Assertions / Conflicts and Precedence / Validation all populated (or `None` with reason).
+- **Hand-off output emitted** per `<output_format>` — all five required subsections populated (or `None — <reason>` per the template).
 
 </validation_checklist>
 

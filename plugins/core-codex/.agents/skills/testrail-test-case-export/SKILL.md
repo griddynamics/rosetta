@@ -162,31 +162,7 @@ If a real production value would be the natural example in a case body, replace 
 </pitfalls>
 
 <vendor_replacement>
-This skill is TestRail-specific. To support a different TMS (Zephyr, Xray, qTest, Polarion, etc.), fork this SKILL.md and replace only the items below — the rest of the structure (role / when_to_use_skill / process shape / preconditions_format / user_prompt template skeleton / validation_checklist discipline / pitfalls posture) is vendor-agnostic and should stay.
-
-**TestRail-specific items that must be re-bound per vendor:**
-
-- **MCP tool calls** in `<process>`:
-  - `mcp_testrail_get_project` (step 1) → vendor's equivalent "verify project / authenticate / probe access" call
-  - `mcp_testrail_add_case` (step 7) → vendor's equivalent "create test case" call
-  - `mcp_testrail_get_cases` (step 7) → vendor's equivalent "list existing cases" call (if needed for dedup)
-- **Container concept** in `<process>` step 2 and `<user_prompt_section_id>`:
-  - "section_id" is TestRail-specific. Equivalents: Xray "test folder", Zephyr "folder ID", qTest "module ID", Polarion "category". Whether the container is auto-creatable also differs per vendor (TestRail requires manual UI creation; some others allow API creation).
-- **Priority ID mapping** in `<process>` step 3:
-  - TestRail numeric `priority_id` 1–4 (Low → Critical). Each vendor has its own scheme (numeric vs string enum, different value count, different default ordering).
-- **Type ID mapping** in `<process>` step 4:
-  - TestRail numeric `type_id` 1, 6–10. Vendors differ in both numbering and the set of available types (e.g., Xray distinguishes "Manual" / "Cucumber" / "Generic" rather than functional vs negative vs edge).
-- **Field names** in `<process>` steps 5–6:
-  - `custom_steps_separated` (steps + expected results) and `custom_preconds` (preconditions block) are TestRail field names. Vendors use different field IDs and may not split steps/expected at all.
-- **Case ID format** in `<process>` step 8 and `<validation_checklist>`:
-  - `C12345` C-prefix is TestRail-specific. Xray uses `XRAY-NNN`, Zephyr uses project-prefixed keys, qTest uses `TC-NNN`, etc.
-- **User prompt template** in `<user_prompt_section_id>`:
-  - Branded with "TestRail Section Setup" and TestRail URL/UI references. Rewrite for the target vendor's nomenclature and UI.
-- **Pitfalls** that name TestRail behaviors specifically (section creation limit, duplicate-on-rerun semantics, 429 specifics, `custom_steps_separated` quirks).
-
-**Pattern for swapping:** copy this file to `<vendor>-test-case-export/SKILL.md`, edit only the items above, keep the rest. Do not abstract into a shared parent skill until a third vendor binding is needed (YAGNI; two bindings are not enough to validate the abstraction boundary).
-
-**Workflow-side coupling note:** the calling workflow currently ACQUIREs `testrail-test-case-export` by name. When a second-vendor binding is added, either (a) rename the workflow's ACQUIRE to a parameter resolved from project config (e.g., `<tms_export_skill>` placeholder bound to `qa-project-config.md`'s TMS field), or (b) keep per-vendor workflow forks. Option (a) is preferred but should not be implemented until at least one second-vendor binding exists.
+Full maintainer-facing portability guide (item-by-item rebind list for forking this skill to Zephyr / Xray / qTest / Polarion, plus the workflow-side coupling note for adding a second vendor) lives in [references/vendor-porting.md](references/vendor-porting.md) — load only when forking, not during runtime TestRail export.
 </vendor_replacement>
 
 </testrail-test-case-export>

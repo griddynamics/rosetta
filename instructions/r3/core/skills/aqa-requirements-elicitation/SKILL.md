@@ -71,7 +71,7 @@ The structured gaps list is appended to `agents/plans/aqa-<test-name>.md` under 
 - **Derived assertion (if applicable):** [Concrete measurable form, e.g., `response.statusCode == 200` or `page.title == "Order Confirmed"`. Leave blank if no measurable form is derivable from the plan as written.]
 ````
 
-**Worked example** (one gap entry from a hypothetical login-flow plan):
+**Worked example** (one gap entry from a hypothetical login-flow plan, showing both the gap content + a concrete sample question for downstream `questioning`-style use):
 
 ````markdown
 ### G-1: Logout step omits observable post-condition
@@ -79,7 +79,8 @@ The structured gaps list is appended to `agents/plans/aqa-<test-name>.md` under 
 - **Priority:** Should
 - **Confidence:** High
 - **Context:** Phase 1 plan step 4 says "user clicks Logout" with no expected post-condition. The test cannot verify success.
-- **Derived assertion:** After Logout click, page URL ends with `/login` AND `text("Welcome back")` is visible within 2s.
+- **Sample question for the clarification phase** (illustrates **specificity expectation** — exact-vs-contains, timing, single-decision-per-question): *"After Logout, should the test assert exact text `'Success!'` is visible, OR just verify the success message **contains** `'Success'` (case-insensitive)? And what is the acceptable wait window — 2s, 5s, or whatever the existing similar tests use?"* — this kind of specificity (exact-match vs contains + timing budget) is what step 2.2 of `aqa-flow-requirements-clarification` aims for; vague *"is the user logged out?"* questions surface lower-quality answers and are forbidden by the `questioning` skill's rules.
+- **Derived assertion:** After Logout click, page URL ends with `/login` AND `text("Welcome back")` is visible within 2s. (This is the typed Behavioral assertion form step 2.4 of the clarification phase transcribes verbatim into the test plan's `### Explicit Assertions` subsection.)
 ````
 
 </output_format>

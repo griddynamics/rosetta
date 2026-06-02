@@ -95,6 +95,22 @@ Single source of truth for stop / ask behaviors. The process-step GATEs (3, 5, 8
 
 </failure_handling>
 
+<success_criteria>
+
+High-level done-condition. Item-level checks live in `<validation_checklist>` (canonical).
+
+**Complete when:** every user-supplied URL / derived page was fetched and embedded as a `<templates>` page entry (or, if no URLs were supplied, the step 4 search ran and its results were fetched), children were checked for each parent OR waived via the step 3 GATE with the user's decision recorded, truncation per step 6 was applied with the banner when budgets were exceeded, redaction per `<safety_boundaries>` ran against every stored page body, the step 10 summary (page count, children discovered, truncation flags, search terms, failures) was written to the parent-supplied artifact path — OR a `<failure_handling>` stop path was followed (missing required input, MCP not configured / not authenticated, step 5 zero-results with neither URLs nor ticket fields available, step 8 cross-site URL the user declined to replace) and the parent workflow was notified.
+
+**NOT complete** if any of the following — each is a regression the `<validation_checklist>` catches at end-of-run, but this block names them as completion-gate failures so a partial harvest is not silently accepted as done:
+
+- **Silent zero-page emit** — the artifact lists zero pages without an explicit user decision recorded (ticket-only continuation OR step-5 GATE outcome OR auth-failure path).
+- **Children skipped without an approval record** — parents were stored but step 3's `Children fetched: yes | no (reason)` field is blank or missing on any parent entry.
+- **Permission errors hidden as empty content** — any 401/403 surfaced as "no content" rather than `Permission denied: <URL>` per `<safety_boundaries>` "permission errors are not empty content".
+- **Required `<input_contract>` input missing yet artifact was written** — MCP skill name or output artifact path was not supplied by the parent and the phase still emitted a result instead of stopping per `<failure_handling>`.
+- **Redaction scan skipped** — credential / PII patterns from the `<safety_boundaries>` policy were not grepped against stored page bodies before write.
+
+</success_criteria>
+
 <validation_checklist>
 
 - Every stored page lists title, canonical URL, and parent/child relationship when applicable

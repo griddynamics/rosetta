@@ -30,8 +30,10 @@ Fill gaps in understanding, clarify unknowns, AND transcribe the typed assertion
 </phase_steps>
 
 <identify_gaps step="2.1">
-1. USE SKILL `aqa-requirements-elicitation`
-2. Prepare a list of unknowns and ambiguities
+1. USE SKILL `aqa-requirements-elicitation`. This skill performs **two outputs per elicited item**:
+   - A gap/unknown entry (the list of unknowns + ambiguities consumed by step 2.2's question generation).
+   - A **`Derived assertion (if applicable)` field** — a typed (Presence / State / Content / Behavioral) measurable assertion form, OR blank when no measurable form is derivable. This is the source step 2.4 transcribes from. Worked example + concrete sample question (exact-text-vs-contains specificity) live in `aqa-requirements-elicitation`'s `<process>` worked-example block — load that skill's example when authoring questions or assertions of non-obvious specificity.
+2. Prepare a list of unknowns and ambiguities (with their Derived assertion field populated where applicable) for step 2.2's question generation.
 </identify_gaps>
 
 <ask_questions step="2.2">
@@ -64,7 +66,12 @@ Please provide answers so I can proceed with test implementation.
 
 
 <wait_for_user step="2.3">
-1. **STOP AND WAIT** for user to provide all answers
+1. **STOP AND WAIT** for user to provide all answers.
+2. **Answer-handling branches** (apply to step 2.4's processing — explicit so partial/declined paths are not silently dropped):
+   - **All answers received:** proceed to step 2.4 normally.
+   - **Partial answers received** (user answers some Critical / Edge / Optional questions but leaves others blank, OR explicitly says "I don't know" for specific items): re-ask once **only for the unanswered Critical questions** with a tightened phrasing or safe-default option per `questioning` rules. After one unsuccessful re-ask of any Critical question, treat that question as **declined** (next branch). Edge / Optional unanswered items proceed without re-ask (record as gaps in step 2.4 per the None-clause pattern).
+   - **User declines to answer specific questions** (explicit refusal, or unresponsive after the one-re-ask cap above): record each declined Critical question as a `gap: declined by user — <one-line reason or "no reason given">` under the test plan's `### Open Questions` subsection that step 2.4 appends; mark the corresponding `Derived assertion` (if step 2.1 derived one tied to the declined question) as Uncovered in the `### Explicit Assertions` section per step 2.4's None-clause pattern. Proceed to step 2.4 with documented unknowns rather than stalling.
+   - **User declines to answer at all** (no answers, refuses to engage): record `Phase 2 blocked: user declined to answer all clarification questions` in `agents/aqa-state.md`, surface to the parent workflow, do NOT auto-proceed to Phase 3 with zero clarifications — this is a stop, not a gap-with-proceed.
 </wait_for_user>
 
 <update_test_plan step="2.4">

@@ -89,7 +89,7 @@ The full analysis document the skill produces. All 10 sections are required; emp
 - **Contradictions**: [Count]
 - **Gaps**: [Count]
 - **Ambiguities**: [Count]
-- **Severity**: [Critical / High / Medium / Low]
+- **Severity**: [High / Medium / Low] — matches the parent SKILL.md `<safety_boundaries>` rule 3 three-tier scheme (no fourth Critical/Urgent/Blocker tier)
 
 **Recommendation**: [Can proceed with clarifications / Needs major rework / etc.]
 

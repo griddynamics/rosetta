@@ -48,10 +48,41 @@ If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-st
 </execute_identification>
 
 <handle_page_source step="4.2" condition="selectors still missing">
-1. Create directory `agents/plans/aqa-<test-name>-page-sources/` (using the same `<test-name>` slug resolved in step 4.0 per `<input_resolution>`)
-2. Provide clear instructions to user for capturing HTML
-3. **WAIT** for user to add page source files
-4. Verify files exist, then continue Part A analysis
+
+This step's content is **user-facing instruction** — it is preserved in the workflow rather than deferred to a skill because `aqa-selector-management` declares page-sources as an input but does NOT own the capture protocol (verified). Compression rules protect user-facing output: non-technical users need the verbatim capture steps + naming convention + message template, not an abstract pointer.
+
+1. Create directory `agents/plans/aqa-<test-name>-page-sources/` (using the same `<test-name>` slug resolved in step 4.0 per `<input_resolution>`).
+
+2. **Send the user the verbatim capture-instruction message below.** Do NOT paraphrase; non-technical users rely on the literal F12 / right-click steps.
+
+   ```text
+   I need the HTML source of the page(s) under test to verify selectors. Please capture them as follows:
+
+   **For each page involved in the test:**
+
+   1. Open the page in your browser (Chrome / Edge / Firefox / Safari — any modern browser works).
+   2. Open Developer Tools:
+      - **Keyboard:** press F12 (Windows / Linux) or Cmd+Opt+I (macOS).
+      - **OR menu:** right-click anywhere on the page → "Inspect" / "Inspect Element".
+   3. In Developer Tools, switch to the **Elements** (Chrome / Edge) or **Inspector** (Firefox / Safari) tab.
+   4. **Find the test target element** — the element your test interacts with (button, input, link, etc.). Use the element-picker icon (⌖) and click on the element in the rendered page; Developer Tools highlights it in the tree.
+   5. **Include 2–3 parent levels for context.** In the Elements tree, walk up the tree 2–3 levels above the target (so the surrounding container, form, or section is captured along with the target) — selectors often depend on parent structure, not just the target node.
+   6. **Right-click the chosen parent node** → "Copy" → **"Copy outerHTML"** (Chrome / Edge / Firefox) or "Copy HTML" (Safari). This copies the parent + the target + all descendants as one HTML fragment.
+   7. **Save the HTML into a new file** using this naming convention:
+
+      `agents/plans/aqa-<test-name>-page-sources/<page-name>.html`
+
+      where `<page-name>` is a **kebab-case** short name for the page (e.g. `login.html`, `checkout-payment.html`, `order-confirmation.html`). Save **one file per page** the test visits.
+
+   8. Paste the URL of each captured page into the conversation when you confirm the files are saved, so I can cross-reference page → file.
+
+   **When you've saved all the page-source files, reply with "captured" + the list of `<page-name>.html` filenames you created.** I will then verify the directory and continue selector identification.
+   ```
+
+3. **STOP AND WAIT** for the user to add the page-source files. Acceptable resumption signals: the user replies with "captured" + the filename list, OR the user replies with a single filename and a "more coming" signal (in which case partial-resumption is allowed once the user confirms the rest).
+
+4. Verify the files exist at `agents/plans/aqa-<test-name>-page-sources/` with the kebab-case naming above (`<page-name>.html`). If any file is missing, malformed, or saved with the wrong name, ask the user once for a corrected filename or content; do NOT proceed to selector analysis on incomplete page-source coverage. Then continue Part A analysis.
+
 </handle_page_source>
 
 <update_state step="4.3">

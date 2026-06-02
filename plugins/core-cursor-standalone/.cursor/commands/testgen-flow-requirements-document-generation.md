@@ -44,7 +44,27 @@ Synthesize Jira data, Confluence documentation, and user answers into a comprehe
 
 <create_requirements_document step="4.3">
 
-Create `agents/testgen/{TICKET-KEY}/requirements.md` using the output format from the skill, with these testgen-specific additions:
+Create `agents/testgen/{TICKET-KEY}/requirements.md` using the output format from the `requirements-synthesis` skill (its `<output_format>` block defines the document-level skeleton; its `references/output-schemas.md` defines per-entry shapes).
+
+**Canonical section list** (so the agent can self-verify completeness without re-reading the skill — these MUST all be present in the emitted `requirements.md`):
+
+| # | Section | Per-entry shape from `requirements-synthesis` |
+|---|---|---|
+| Header | Document Control + Executive Summary | (Executive Summary extended below for testgen) |
+| 1 | User Stories | `US-[N]` entries (user-stories schema) |
+| 2 | Functional Requirements | `FR-[N]` entries (functional-requirements schema) |
+| 3 | Non-Functional Requirements | `NFR-[N]` entries (non-functional-requirements schema) |
+| 4 | Constraints | `C-[N]` entries (constraints-and-dependencies schema) |
+| 5 | Dependencies | `D-[N]` entries (constraints-and-dependencies schema) |
+| 6 | Out of Scope | Explicit exclusions with rationale |
+| 7 | Assumptions | `A-[N]` entries (assumptions-and-risks schema) |
+| 8 | Risks | `R-[N]` entries (assumptions-and-risks schema) |
+| 9 | Traceability Matrix | (Extended below for testgen) |
+| 10 | Glossary | Domain terms + acronyms |
+
+If any section is absent from the emitted document, the artifact is incomplete — re-invoke the skill or repair before declaring step 4.3 complete.
+
+**Testgen-specific additions** layered on top of the canonical structure:
 
 Executive Summary must include:
 ```markdown
