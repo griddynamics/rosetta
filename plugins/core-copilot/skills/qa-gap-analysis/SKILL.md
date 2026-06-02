@@ -209,12 +209,67 @@ Create `agents/qa/{IDENTIFIER}/analysis.md`:
 
 </output_format>
 
+<success_criteria>
+
+The skill is complete when **all of** the following hold:
+
+- **Every test step** from the test case has been cross-referenced against the API spec per step 1 (one Cross-Reference entry per step in `analysis.md`).
+- **Every gap / contradiction / ambiguity identified** is documented in `analysis.md` using the exact template format from steps 2–4 (G[N] / C[N] / A[N] entries — no shortcut paraphrase).
+- **All Critical questions from step 5 have been resolved.** Resolution is one of:
+  - User answered explicitly → recorded under `## Questions & Answers` / `## Resolved Items`.
+  - User did not know → recorded under `## Assumptions Made` with the chosen default, the reason, and the impact-if-wrong (per `<pitfalls>` "Assuming answers ... document as assumption" rule).
+  - User deferred → still recorded under Assumptions with `Deferred: <reason>` and surfaced to the calling workflow so downstream phases see the gap.
+  - **No Critical question may remain in an "open" state** — that's the failure mode `<pitfalls>` "Proceeding to test specification with unresolved critical gaps" guards against.
+- Important and Optional questions may remain open (recorded in `## Questions & Answers` with `Status: Open — non-blocking`) without preventing completion.
+- `analysis.md` was written with every `<output_format>` section present and the Executive Summary counts match the body.
+- `<safety_boundaries>` redaction was applied to every verbatim quote written into `analysis.md`.
+- `<validation_checklist>` items all hold.
+
+The skill is **NOT complete** if any Critical question is unresolved, any test step lacks a cross-reference entry, or any verbatim quote in `analysis.md` carries a literal credential/PII without redaction.
+
+</success_criteria>
+
+<safety_boundaries>
+
+`analysis.md` is a tracked artifact and may end up in version control, shared review, or downstream prompt contexts. Treat it as **PUBLIC by default**. Steps 3 and 4 instruct the agent to paste verbatim quotes from sources (test cases, Swagger spec, documentation pages) into Contradiction / Ambiguity entries — those sources can carry credentials / tokens / PII. Redact before writing, not after.
+
+**Targets to redact** (replace with placeholders, never literal value):
+
+- **Auth headers / tokens / API keys / passwords** embedded in source text — `Bearer <jwt>`, `Authorization: Basic <base64>`, `X-Api-Key: <key>`, password values pasted in step descriptions. Replace with `<redacted: bearer token>` / `<redacted: api key>` / `<redacted: password>` and add a one-line note in the entry (e.g., `Source: Swagger /auth/login — Bearer token redacted; see env var API_TOKEN`).
+- **Credentialed URLs** (`https://user:pass@host/...`, signed-URL query params) — redact the credential portion. Record the redaction inline.
+- **Connection strings / private keys / service-account JSONs** — never paste; describe the source (env var, secret-manager path) and mechanism (Bearer / Basic / OAuth flow) instead.
+- **Real PII** in test data examples — customer names, real emails, real phone numbers, real account IDs, real payment card numbers. Replace with synthetic equivalents (`test.user-1@example.com`, `+1-555-0100` from the IETF reserved range, official PSP test card numbers if a card is needed).
+- **Test-data fixtures** captured from production logs — redact the sensitive fields; keep structural shape.
+
+**Structural content is safe.** Endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, business-rule prose, vague-statement quotes from test cases — recorded verbatim. Redaction targets sensitive **values**, not the structural content of the gap/contradiction/ambiguity description.
+
+This boundary is consistent with `qa-data-collection`'s `<safety_boundaries>` for `raw-data.md` — both artifacts live in `agents/qa/{IDENTIFIER}/` and feed the same downstream chain.
+
+</safety_boundaries>
+
+<validation_checklist>
+
+Run before declaring the skill complete. All items must hold:
+
+- **`analysis.md` written** at `agents/qa/{IDENTIFIER}/analysis.md` with every `<output_format>` section present (Executive Summary, Cross-Reference Results, Gaps, Contradictions, Ambiguities, Questions & Answers, Assumptions Made, Resolved Items). No section omitted; empty sections explicitly say `None — <reason>` rather than left blank.
+- **Every test step from step 1 has a Cross-Reference entry** in the `## Cross-Reference Results` section — partial coverage of the test case is a regression (pitfall 1).
+- **Executive Summary counts match the body** — `Gaps Found` count equals the number of `G[N]` entries; same for Contradictions (`C[N]`) and Ambiguities (`A[N]`). `Questions Asked` matches the number of Critical + Important + Optional entries combined. If counts disagree, fix the count or the body before emitting.
+- **Every Critical question is resolved** per `<success_criteria>` — answered, recorded as Assumption with default + impact-if-wrong, or recorded as Deferred with reason. No "Open" / "Pending" status on a Critical question.
+- **Every Assumption has Default + Impact-if-Wrong** — no Assumption entry with those fields blank; this is the contract the calling workflow consumes.
+- **Safety re-scan ran per `<safety_boundaries>`** — `analysis.md` was grepped for credential-shaped patterns (`Bearer `, `Authorization:`, `password:`, `api_key=`, JWT shape, `BEGIN PRIVATE KEY`) and PII-shaped patterns before declaring complete; any hits were replaced with placeholders AND the redaction was noted inline.
+- **No fabricated quotes** in Contradiction / Ambiguity entries — every `"[Quote]"` traces verbatim to a real source (with redaction where sensitive); paraphrased "the source said X" without the quote is not acceptable.
+- **Question count ≤ 20 per batch** (pitfall 2). If more than 20 Critical+Important questions surfaced, they are batched into multiple rounds; the artifact records the current batch and the deferred batches.
+
+</validation_checklist>
+
 <pitfalls>
 - Not cross-referencing every test step against API spec — leads to missed gaps
 - Asking too many questions at once (>20) — batch by priority and group related gaps
 - Proceeding to test specification with unresolved critical gaps
 - Assuming answers when user doesn't respond — document as assumption instead
 - Ignoring contradictions between documentation sources
+- Pasting verbatim quotes from test cases / Swagger / docs without scanning for credentials / tokens / PII — apply `<safety_boundaries>` redaction BEFORE writing into `analysis.md`
+- Emitting `analysis.md` with Executive Summary counts that disagree with the body — re-check counts in step 5 before declaring complete
 </pitfalls>
 
 </qa-gap-analysis>

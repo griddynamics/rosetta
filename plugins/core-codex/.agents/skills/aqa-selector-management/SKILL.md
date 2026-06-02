@@ -17,6 +17,8 @@ Map test steps to required UI interactions, identify missing selectors, find sel
 - **Part B — Selector Implementation** (steps 5–7): invoked by `aqa-flow-selector-implementation`. Writes to page-object files only.
 
 The parts may run independently and **must not be conflated in a single phase**. An invocation that loads this skill for the identification phase MUST NOT execute Part B; an invocation for the implementation phase MUST NOT re-execute Part A from scratch (it consumes Part A's recorded inventory). The calling workflow names which part runs; this skill respects that scope.
+
+**Why one file (not two skills).** Parts A and B share three tightly-coupled contracts that change together: the **4-tier selector strategy taxonomy** (Part A flags fragility; Part B's step-7 gate refuses to implement what A flagged), the **selector-inventory shape** (Part A writes it; Part B reads exactly that shape), and the **fragile-selector handoff semantics** (A → B approval flow). Splitting into two skills would force these contracts to be duplicated and kept in sync across files, and a drift between the two halves would be a real regression risk for tests that already passed identification. Keeping one file with explicit Part-A/Part-B scoping (this section + each phase's `<input_contract>` row) preserves the contract single-source-of-truth at the cost of one skill carrying both parts' instructions; the heavier per-part detail (tier table + worked example + output template) is offloaded to [references/strategy-and-template.md](references/strategy-and-template.md) so each invoking phase loads only what it actually needs.
 </when_to_use_skill>
 
 <prerequisites>
@@ -86,20 +88,9 @@ Only when frontend code unavailable or selectors still missing:
 
 Validate the page-sources directory exists at `agents/plans/aqa-<test-name>-page-sources/`. If missing, apply `<failure_handling>` — do NOT proceed to a selector guess.
 
-For each missing selector, determine best strategy:
+For each missing selector, determine best strategy using the **4-tier selector strategy table** in [references/strategy-and-template.md](references/strategy-and-template.md#selector-strategy--4-tier-table). The reference also contains the **good-vs-fragile worked example pair** (data-testid hook vs deep MUI structural path) and the exhaustive flag-patterns list (dynamic IDs, non-unique classes, deep structural paths, framework-generated class names).
 
-| Tier | Strategy | Example (good) | Example (flag/avoid) |
-|---|---|---|---|
-| 1. Preferred | `data-testid` / `data-test` | `[data-testid="checkout-submit"]` | — |
-| 2. Good | unique `id` attribute (non-dynamic) | `#search-input` | `#user-42-row-7-cell` (per-record dynamic ID) |
-| 3. Acceptable | specific stable class / ARIA | `.checkout-summary__total`, `[aria-label="Close dialog"]` | `.btn.btn-primary` (non-unique utility class) |
-| 4. Last resort | structural CSS / XPath | `nav > ul > li:nth-child(3) > a` (only when target has no stable hook AND surrounding DOM is stable) | `/html/body/div[3]/div[2]/section/div/button` (deep absolute XPath — breaks on any layout change) |
-
-**Worked example — good vs fragile pair:**
-- ✅ **Good:** `[data-testid="logout-button"]` — stable hook explicitly added by the frontend team; survives copy changes, restyling, and DOM reordering.
-- ❌ **Fragile (must flag):** `body > div.app-shell > header > nav > div:nth-child(2) > button.MuiButton-root.MuiButton-text` — depends on Material UI's auto-generated class names AND the exact nesting; breaks on every framework upgrade or layout tweak. Flag in step 4's output as `fragile: structural + MUI-generated class — request data-testid from frontend team`.
-
-Flag problematic selectors: dynamic IDs (e.g. `user-42-row-7`), non-unique classes (e.g. `.btn-primary` matching 30 elements), deep structural paths (>3 levels of `>` or `nth-child`), framework-generated class names (`MuiButton-root`, `css-1a2b3c4`).
+Single source of truth: the tier ordering, the example pair, and the fragile-pattern list live in that reference. Do NOT restate them here or in any output — link back to the reference.
 
 ## Part B: Selector Implementation
 
@@ -136,36 +127,9 @@ For each modified/created file:
 
 <output_format>
 
-Document selectors in the test plan (or the artifact the calling workflow names):
+Document selectors in the test plan (or the artifact the calling workflow names), using the **`## Selector Management` section template** in [references/strategy-and-template.md](references/strategy-and-template.md#output-template----selector-management--section).
 
-```markdown
-## Selector Management
-
-### Interaction Map
-[Step → required interactions]
-
-### Selector Availability
-✅ [PageObject.selector] — EXISTS
-❌ [PageObject.selector] — MISSING
-
-### Identified Selectors
-**[PageName] - [ElementName]**
-- Selector: [value]
-- Type: data-testid / id / class / ARIA / XPath
-- Source: Frontend code @ <file:line> / Page source @ <file>
-- Usage: Click / Verify / Type
-- Stability: stable | **fragile: <reason>**
-
-### Fragile Selectors Flagged (require user/workflow approval before Part B implements)
-- [PageName.selector] — <reason> — recommendation: <e.g. request data-testid from frontend team>
-
-### Implementation (Part B only)
-- Page Objects Modified: [list with paths]
-- Page Objects Created: [list with paths]
-- Selectors Added: [count]
-- Methods Added: [count]
-- Fragile selectors implemented after explicit approval: [list with approval evidence, or `None`]
-```
+Required subsections in the order the template defines them: Interaction Map, Selector Availability, Identified Selectors, Fragile Selectors Flagged, Implementation (Part B only). The reference holds the canonical field shapes and field-name vocabulary — do not invent variants here.
 
 </output_format>
 

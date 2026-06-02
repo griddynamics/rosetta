@@ -67,70 +67,7 @@ For each test case, generate 1-N test scenarios covering:
 
 ## 3. Write Detailed Test Specifications
 
-Format: Given-When-Then for each test scenario.
-
-```markdown
-### ATC-[NNN]: [Test Case Title]
-
-**Source**: [Original test case reference — TC-1234 / PROJ-123 / Manual]
-**Priority**: P0 / P1 / P2 / P3
-**Type**: Happy Path / Negative / Auth / Edge Case / Error Handling
-**Endpoint**: [METHOD] [PATH]
-
-**Given**:
-  - [Precondition 1 — e.g., "User exists with ID 42"]
-  - [Auth state — e.g., "Valid Bearer token for admin user"]
-  - [Test data setup — e.g., "Product with ID 1 exists in database"]
-
-**When**:
-  - Send [METHOD] request to [PATH]
-  - Headers:
-    ```json
-    {
-      "Authorization": "Bearer {valid_token}",
-      "Content-Type": "application/json"
-    }
-    ```
-  - Query Parameters: [key=value pairs or N/A]
-  - Request Body:
-    ```json
-    {
-      "field1": "exact test value",
-      "field2": 42
-    }
-    ```
-
-**Then**:
-  - Status Code: [Expected status code]
-  - Response Body:
-    ```json
-    {
-      "id": "[non-null integer]",
-      "field1": "exact test value"
-    }
-    ```
-  - Assertions:
-    - Status code equals [code]
-    - Response body contains field "id" of type integer
-    - Response body field "field1" equals "exact test value"
-
-**Test Data**:
-  - Input: [Exact values to send]
-  - Expected Output: [Exact values to assert]
-  - Precondition Data: [Entities that must exist — how to create them]
-  - Cleanup: [What to delete after test]
-
-**Dependencies**:
-  - Auth: [Token acquisition method]
-  - Fixtures: [Data files or factory methods needed]
-  - Setup: [API calls to make before this test]
-  - Teardown: [API calls to make after this test]
-
-**Assumptions** (REQUIRED when any value was not derivable from contracts/clarifications):
-  - `[ASSUMED: <field_name> = <value>]` — <one-line reason, e.g., "contract did not specify min length; assumed 8 per common convention">
-  - `[ASSUMED: <field_name> = <value>]` — <reason>
-  - (If none: write `None — all values derived from endpoint contracts and clarifications.`)
-```
+Format: Given-When-Then for each test scenario, using the **ATC template** in [references/templates-and-redaction.md](references/templates-and-redaction.md#atc-template-given-when-then--used-by-skill-step-3). The template defines: Source / Priority / Type / Endpoint header, Given / When / Then blocks (with header/body JSON shapes), Test Data, Dependencies, Assumptions. The reference is the single source of truth — do not invent template variants here.
 
 **Per-value honesty rule.** Every concrete value in the spec (request body fields, query params, header values, response assertions) must trace to either (a) the loaded endpoint contracts, (b) the user clarifications, or (c) an explicit `[ASSUMED: ...]` entry in the Assumptions block. **Confident fabrication is forbidden** — when a contract leaves a constraint unspecified, the agent's only options are to ask the calling workflow to clarify (preferred) or to record an explicit Assumption (acceptable for non-blocking gaps).
 
@@ -149,27 +86,7 @@ Map test scenarios to test files following project conventions:
 
 ## 5. Define Shared Test Utilities
 
-Identify reusable elements across test scenarios:
-
-```markdown
-## Shared Utilities Required
-
-### Auth Helper
-- Purpose: Acquire and cache auth tokens for test users
-- Input: User credentials or role
-- Output: Valid Bearer token
-- Reused by: [List test scenario IDs]
-
-### Test Data Factory
-- Purpose: Create test entities via API
-- Methods: createUser(overrides), createProduct(overrides), etc.
-- Reused by: [List test scenario IDs]
-
-### Response Validators
-- Purpose: Common response structure validation
-- Methods: validateErrorResponse(), validatePaginatedResponse()
-- Reused by: [List test scenario IDs]
-```
+Identify reusable elements across test scenarios and document them using the **Shared Utilities template** in [references/templates-and-redaction.md](references/templates-and-redaction.md#shared-utilities-template--used-by-skill-step-5). The template covers Auth Helper, Test Data Factory, and Response Validators with Purpose / Input-Output / Methods / Reused-by fields. Use the reference for the canonical shape; add additional utility types here only when the test scenarios require them.
 
 ## 6. Determine Execution Order
 
@@ -194,15 +111,11 @@ Identify reusable elements across test scenarios:
 
 <safety_boundaries>
 
-`test-specs.md` (or whichever path the calling workflow provides) is a tracked artifact that may end up in version control, shared with reviewers, or fed to downstream phases. Treat it as **PUBLIC by default**:
+`test-specs.md` (or whichever path the calling workflow provides) is a tracked artifact that may end up in version control, shared with reviewers, or fed to downstream phases. Treat it as **PUBLIC by default**.
 
-- **Auth credentials in spec examples MUST use placeholder syntax**, not real values. Acceptable placeholders: `{valid_token}`, `{admin_token}`, `{api_key}`, `<bearer-token-for-test-user>`. Forbidden: pasting an actual JWT, real OAuth client secret, real API key, real password, real session cookie, or any production-environment token — regardless of whether it's "expired" or "test-only".
-- **Test user identities MUST be synthetic.** Use `test-user-1@example.com`, `qa.smoketest@example.com`, fake-name placeholders, synthetic phone numbers (`+1-555-0100` through `+1-555-0199` — the IETF reserved range), and obviously-fake account IDs. Do NOT use real customer emails, real production user IDs, real payment card numbers (use the official Stripe/PSP test card numbers if a card is needed and document the source), or real PII even if it's "your own" data.
-- **Internal URLs that embed credentials** (`https://user:pass@internal.example.com/...`) must be redacted to `https://<redacted: credentialed URL>` and the credential location described in prose instead.
-- **Database connection strings, signed URLs, service-account JSONs, private keys:** never embed in the spec. If a test scenario needs one, describe the **source** (env var name, secret-manager path) and the **mechanism** (Bearer, Basic, OAuth flow) — never the literal value.
-- **Pure functional content** — endpoint paths, HTTP methods, status codes, error message shapes, header names, schema field names — is safe to record verbatim. Redaction targets sensitive *values*, not the structural spec.
+**Redaction targets + placeholder catalog** (canonical) live in [references/templates-and-redaction.md](references/templates-and-redaction.md#redaction-targets--placeholder-catalog--used-by-skill-safety_boundaries). Five categories covered there: (1) auth credentials in spec examples → placeholder syntax `{valid_token}` / `<bearer-token-for-test-user>` etc.; (2) synthetic test-user identities on IETF reserved domains/numbers; (3) credentialed URLs → redacted with prose location; (4) connection strings / signed URLs / service-account JSONs / private keys → source + mechanism, never literal; (5) pure functional content stays verbatim.
 
-If a real production value would be the natural example, replace it with a clearly-fake placeholder of the same shape. Better an obviously-fake example than a leaked real one.
+**Rule of thumb:** if a real production value would be the natural example, replace it with a clearly-fake placeholder of the same shape. Better an obviously-fake example than a leaked real one. Apply continuously as ATC entries are written in step 3 (not after) — the `<validation_checklist>` re-scan catches misses but is the safety net, not the primary discipline.
 
 </safety_boundaries>
 

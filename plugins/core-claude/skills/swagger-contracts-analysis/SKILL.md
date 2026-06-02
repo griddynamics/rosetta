@@ -190,8 +190,29 @@ Run as part of step 5 before emission. Proof-oriented items only — section-pre
 - **API-level auth strategy summarized:** if endpoints share one mechanism, state it once in the handoff note; if mechanism varies per endpoint, summarize the variance for the calling workflow.
 - **Undocumented error responses surfaced as gaps:** a `200`-only entry is acceptable only when both sources truly lack other status codes; otherwise the absence of `401`/`403`/`404`/`500` is recorded in Notes as a documentation gap, not silently omitted.
 - **N/A discipline:** every `N/A` in any field has a one-line reason; bare `N/A` is forbidden.
+- **Redaction scan ran per `<safety_boundaries>`:** the assembled artifact was grepped for credential-shaped patterns (`Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, JWT shape `eyJ...`, `BEGIN PRIVATE KEY`, `postgres://user:pass@`) and PII-shaped patterns; every match was replaced with a placeholder AND the redaction is recorded inline in the entry's `Notes / Discrepancies` section. No literal credentials, tokens, or real PII remain in the artifact.
 
 </validation_checklist>
+
+<safety_boundaries>
+
+The contract artifact this skill produces (commonly `agents/qa/{IDENTIFIER}/api-analysis.md`) is **tracked + downstream-fed** — committed to the repo, read by test-design / test-implementation / debugging phases, and may be shared with reviewers. Treat it as **PUBLIC by default**. Swagger specs and code routinely embed real secrets in `securitySchemes`, example bodies, header constraints, and source-citation snippets; redact before writing, not after.
+
+**Targets to redact** (replace concrete secret values with shape-preserving placeholders; keep the structural shape verbatim):
+
+- **Auth credentials / tokens / API keys / passwords / OAuth client secrets** — in the `Auth` block's `Required scopes / permissions`, in example `Authorization` / `X-Api-Key` / `Cookie` header values, in OAuth token-endpoint example bodies (`client_id`, `client_secret`, `refresh_token`), in Bearer example values. Replace with `<redacted: bearer token>` / `<redacted: api key>` / `<redacted: oauth client secret>` / `<redacted: password>`. Keep the mechanism name (`Bearer JWT`, `OAuth2 client-credentials`, `API Key in header`) — that's structural, not sensitive.
+- **Credentialed URLs** (`https://user:pass@host/...`, signed/presigned URLs with `?X-Amz-Signature=`, `?sig=`, `?token=` query parameters) — redact the credential portion to `https://<redacted: credentialed URL>` or `?sig=<redacted: signed URL signature>`. The base URL and path remain verbatim.
+- **Database connection strings, signed service URLs, service-account JSONs, private keys, certificates** appearing in code citations or spec examples — never embed the literal value. Describe the source (env var name, secret-manager path) and mechanism instead (e.g., `DB connection string from env var DATABASE_URL — credential portion redacted; format: postgresql://user:pass@host/db`).
+- **Real PII in example request/response bodies** (real customer names, real emails, real phone numbers, real account IDs, real payment data, government IDs) — replace with synthetic equivalents on IETF reserved domains (`test.user-1@example.com`), `+1-555-0100`–`+1-555-0199` phone range, or official PSP test card numbers (document the source). Keep the schema shape and field names verbatim.
+- **JWT example values** (`eyJ...` patterns) in spec examples or stack-snippet citations — redact to `<redacted: JWT>` and describe what the JWT carries (claims, audience, expiry) in prose if relevant.
+
+**Structural content stays verbatim** — endpoint paths, HTTP methods, status codes, content types, field names, schema shapes, validation rules (min/max/pattern/enum), header names, response codes, JSONPath citations, code file:line citations, auth-mechanism names. Redaction targets sensitive **values**, not the structural contract spec.
+
+**Re-scan before emit.** As part of step 5's `<validation_checklist>`, re-grep the assembled artifact for credential-shaped patterns (`Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, JWT shape `eyJ...`, `BEGIN PRIVATE KEY`, `postgres://user:pass@`) and PII-shaped patterns before declaring complete; any hits were replaced with placeholders. Record the redaction inline in the `Notes / Discrepancies` section so reviewers know what was hidden.
+
+If a real production value would be the natural example in the contract, replace it with a clearly-fake placeholder of the same shape — better an obviously-fake placeholder than a leaked real one committed alongside the api-analysis artifact and propagated to test-spec, test-implementation, and debug phases.
+
+</safety_boundaries>
 
 <pitfalls>
 - Trusting Swagger spec blindly without cross-referencing with actual code — spec can be outdated; the reconciliation step exists to catch this
@@ -202,6 +223,7 @@ Run as part of step 5 before emission. Proof-oriented items only — section-pre
 - Silently dropping an endpoint the calling workflow asked about because it could not be analyzed — flag it as a gap with reason instead
 - Fabricating schema fields or status codes not present in either source — every field must trace to spec or code, or be marked as `N/A — <reason>`
 - Leaving the Notes / Discrepancies section blank when both spec and code were consulted but no reconciliation note was recorded — explicit "None." is required, not absence
+- Copying literal Bearer tokens / API keys / OAuth client secrets / passwords / signed URLs / real PII from Swagger examples or code citations into the contract artifact — apply `<safety_boundaries>` redaction before writing; the artifact propagates to every downstream test phase
 </pitfalls>
 
 </swagger-contracts-analysis>

@@ -73,51 +73,23 @@ Create outline: test name, setup requirements, dependencies, structure.
 If existing: read file, find appropriate insertion point.
 If new: follow file naming convention from project standards.
 
-## 3. Set Up Test Structure
+## 3. Author Test Code
 
-Match project patterns exactly:
-- Import order (framework → pages → utilities → types)
-- Test suite organization (describe blocks)
-- Test hooks (beforeEach, afterEach, beforeAll, afterAll)
-- Shared setup/fixtures
+This step encompasses the entire authoring pass — structure, setup, actions, assertions, cleanup, documentation. The sub-bullets are standard test-writing sub-actions, not separate process steps; execute them as one cohesive pass that matches the project patterns identified in step 1.
 
-## 4. Implement Setup
+**3a. Test structure** — match project patterns exactly: import order (framework → pages → utilities → types), test-suite organization (describe blocks), test hooks (`beforeEach`/`afterEach`/`beforeAll`/`afterAll`), shared setup/fixtures.
 
-Based on preconditions:
-- Initialize page objects
-- Use reusable utilities (login helpers, navigation)
-- Navigate to starting point
-- Perform any prerequisite actions
+**3b. Setup** — based on preconditions: initialize page objects, use reusable utilities (login helpers, navigation), navigate to starting point, perform prerequisite actions.
 
-## 5. Implement Test Actions
+**3c. Test actions** — for each test step: use page-object methods when available; add appropriate waits (page loads, element visibility, network idle); follow action patterns from similar tests; **no hardcoded sleeps/timeouts**.
 
-For each test step:
-- Use page object methods when available
-- Add appropriate waits (page loads, element visibility, network idle)
-- Follow action patterns from similar tests
-- No hardcoded sleeps/timeouts
+**3d. Assertions** — for each assertion from requirements: use project assertion style (expect, custom matchers); make assertions specific and measurable; include assertion messages if project convention; follow patterns from similar tests.
 
-## 6. Implement Assertions
+**3e. Cleanup** (only if test modifies state or creates data) — `try/finally` or `afterEach` hooks; match cleanup patterns from similar tests.
 
-For each assertion from requirements:
-- Use project assertion style (expect, custom matchers)
-- Make assertions specific and measurable
-- Include assertion messages if project convention
-- Follow patterns from similar tests
+**3f. Documentation** — TestRail case reference as comment; brief test description; inline comments only for complex/non-obvious logic.
 
-## 7. Add Cleanup (if needed)
-
-- Try/finally or afterEach hooks
-- Match cleanup patterns from similar tests
-- Only if test modifies state or creates data
-
-## 8. Add Documentation
-
-- TestRail case reference as comment
-- Brief test description
-- Inline comments only for complex/non-obvious logic
-
-## 9. Validate and Record Uncovered Assertions
+## 4. Validate and Record Uncovered Assertions
 
 Run the `<validation_checklist>` below. Then, **before declaring complete**:
 
@@ -128,38 +100,9 @@ Run the `<validation_checklist>` below. Then, **before declaring complete**:
 
 <output_format>
 
-Update the test plan with implementation details:
+Append a `## Test Implementation` section to the test plan (`agents/plans/aqa-<test-name>.md` or the path the calling workflow named). The verbatim template lives in [references/test-implementation-template.md](references/test-implementation-template.md) — load on demand at step 4.
 
-```markdown
-## Test Implementation
-
-### Test File
-- Location: [path]
-- Type: New file / Added to existing
-- Test Name: [descriptive name]
-
-### Implementation Summary
-- Assertions implemented: [count]
-- Assertions uncovered: [count]  (see Uncovered Assertions below)
-- Page Objects Used: [list]
-- Utilities Used: [list]
-
-### Uncovered Assertions
-- [Assertion text from plan] — reason: [missing page-object method | no UI signal | precondition unestablishable | other]
-- (If none: `None — every assertion from the plan was implemented.`)
-
-### Conflicts and Precedence
-- [Where user-instruction guidance conflicted with repo docs; resolution: repo docs won; description of the override]
-- (If none: `None — sources consistent.`)
-
-### Validation
-- [x] All assertions from plan implemented OR recorded in Uncovered Assertions
-- [x] Page objects used correctly (no direct-selector bypass)
-- [x] Project standards followed (repo docs win per `<input_contract>`)
-- [x] Linting passed
-- [x] No app source or page-object files were modified (safety boundary)
-- [x] Ready for execution
-```
+Required subsections in order: **Test File**, **Implementation Summary**, **Uncovered Assertions**, **Conflicts and Precedence**, **Validation**. Empty sections use the explicit `None — <reason>` line from the template — never left blank.
 
 </output_format>
 

@@ -83,28 +83,29 @@ For each failure, classify:
 - **Root Cause**: Bug in the API under test, not in test code
 - **Action**: Report as application defect, may need test adjustment or skip
 
-Document each failure:
+Document each failure (apply `<safety_boundaries>` redaction to headers, bodies, URLs, and stack traces BEFORE writing):
+
 ```markdown
 ### Failure: [Test Name] (ATC-[NNN])
 
 **Status**: FAIL / ERROR
 **Category**: [Connection / Auth / Request / Response / Data / Timing / App Bug]
-**Error Message**: [Full error message]
-**Stack Trace**: [Key lines]
+**Error Message**: [Full error message — credentials/PII redacted]
+**Stack Trace**: [Key lines — credentials/PII redacted]
 
 **Request Sent** (if available):
 - Method: [HTTP method]
-- URL: [Full URL]
-- Headers: [Key headers]
-- Body: [Request body]
+- URL: [Full URL — query params / credentialed URL portions redacted]
+- Headers: [Key headers — `Authorization`, `Cookie`, `X-Api-Key` values replaced with `<redacted: bearer token>` / `<redacted: session cookie>` / `<redacted: api key>`; presence + mechanism described, not literal value]
+- Body: [Request body — credentials/tokens/PII fields redacted; structural fields verbatim]
 
 **Response Received** (if available):
 - Status: [Status code]
-- Body: [Response body or excerpt]
+- Body: [Response body or excerpt — `Set-Cookie`, response tokens, PII fields redacted; structural fields verbatim]
 
 **Expected vs Actual**:
 - Expected: [What test expected]
-- Actual: [What API returned]
+- Actual: [What API returned — redacted per the same rules above]
 
 **Root Cause Analysis**: [Why this failed]
 **Suggested Fix**: [Specific code change or approach]
@@ -217,6 +218,51 @@ After user approval:
 - Changing test intent while fixing implementation
 - Not separating test code bugs from application bugs
 - Spiraling beyond 3 correction iterations without escalating
+- Pasting auth headers (`Authorization: Bearer ...`), cookies, API keys, or PII verbatim into `execution-report.md` — apply `<safety_boundaries>` redaction before writing, not after
+- Recording an environment's auth tokens or DB connection strings in the `Environment Info` section instead of `mechanism + source` description
 </pitfalls>
+
+<safety_boundaries>
+
+`execution-report.md` is a tracked artifact and may end up in version control, shared review, or downstream prompt contexts. Treat it as **PUBLIC by default**. Failure stack traces and captured request/response data are a common secret-leak vector — redact before writing, not after.
+
+**Targets to redact** (replace with placeholders + describe presence/mechanism in prose, never the literal value):
+
+- **Auth headers** — `Authorization: Bearer <jwt>`, `Authorization: Basic <base64>`, `X-Api-Key: <key>`, `Cookie: session=<id>`, `Set-Cookie` response headers. Replace with `<redacted: bearer token>` / `<redacted: basic credentials>` / `<redacted: api key>` / `<redacted: session cookie>` and add a one-line description (e.g., "Bearer token from `AuthHelper.get_token('admin')`").
+- **Credentialed URLs** (`https://user:pass@host/...`) — redact the `user:pass@` portion before recording.
+- **Query-string secrets** — `?api_key=...`, `?token=...`, `?access_token=...`, signed-URL signatures (`?X-Amz-Signature=...`, `?sig=...`) — redact the secret-bearing parameter values.
+- **Request bodies** containing credentials, tokens, password fields, payment data — redact those fields specifically; keep structural fields (field names, non-sensitive values, schema shape) verbatim.
+- **Response bodies** containing tokens (`access_token`, `refresh_token`, `id_token`), session identifiers, PII (real customer emails / names / phone numbers / account IDs / payment data) — redact the sensitive values; keep structural fields verbatim.
+- **Stack traces / error messages** sometimes embed credentials (e.g., a logged HTTP request line in a connection-error stack). Scan and redact before pasting.
+- **Environment Info** (step 2) — record `auth method = OAuth2 client-credentials` / `JWT Bearer` / `Basic Auth via env var BASIC_AUTH_USER:BASIC_AUTH_PASS` — never the literal token or password. Base URLs are usually safe (e.g., `https://api.staging.example.com`); credentialed base URLs are not.
+
+**Structural content stays verbatim.** Endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, response status text are functional and recorded as-is. Redaction targets sensitive **values**, not the structural failure spec.
+
+If a real production value would be the natural example in a failure entry, replace with a clearly-fake placeholder of the same shape — better an obviously-fake example than a leaked real token committed to the repo.
+
+This boundary applies to BOTH Part A (writing `execution-report.md`) AND Part B (any debug logging the agent emits while applying corrections).
+
+</safety_boundaries>
+
+<validation_checklist>
+
+Run before declaring the skill complete. Items apply per the part(s) that ran (Part A only, or Part A + Part B).
+
+**Part A (report analysis):**
+- `agents/qa/{IDENTIFIER}/execution-report.md` written with all `<output_format>` sections present (Execution Summary, Failures by Category, Failure Details, Patterns, Proposed Corrections, Applied Corrections section as `Pending` until Part B runs).
+- **Every failure entry has a Category and Root Cause Analysis populated** — no entry left as `TBD` or with placeholder fields.
+- **Every failure entry has a Priority** (Critical / High / Medium / Low) — never blank.
+- **Patterns section populated** with either a real cross-failure pattern OR an explicit `No cross-failure patterns identified` line if none — not silently empty.
+- **Safety re-scan ran per `<safety_boundaries>`** — `execution-report.md` was grepped for `Bearer `, `Authorization:`, `Cookie:`, `Set-Cookie:`, `api_key=`, JWT shape, `BEGIN PRIVATE KEY`, and obvious PII shapes; any hits were replaced with placeholders before declaring Part A complete.
+
+**Part B (corrections — when applied):**
+- **Each applied change was lint-checked** (step 7.4) and the result is recorded in the `Applied Corrections` section.
+- **Each applied change was side-effect-verified** (step 7.5) — passing tests were re-checked and no regression was introduced, OR the regression is documented for re-test.
+- **Test intent unchanged.** No applied change altered the assertion semantics of an ATC; only implementation was corrected. Spec changes (when API behavior is correct and the test was wrong) were recorded as updates to `test-specs.md`, not silent assertion changes.
+- **`test-specs.md` updates recorded** when corrections required spec changes (step 7.6).
+- **Iteration count tracked** against the 3-iteration cap (step 8). The current iteration number is recorded in the `Applied Corrections` section; if this is iteration 3 and tests still fail, the escalation note is also recorded.
+- **No unrelated changes** — every modified file appears in `Files Modified` and traces to a Proposed Change entry approved in step 6/7.
+
+</validation_checklist>
 
 </qa-test-debugging>

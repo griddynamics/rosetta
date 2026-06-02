@@ -175,14 +175,75 @@ After user approval:
 
 </failure_handling>
 
+<safety_boundaries>
+
+Part B applies real code changes to the repository's test files. The Part A analysis writes a tracked artifact downstream phases consume. Both halves require explicit boundaries.
+
+**Approval discipline (Part B):**
+
+- **Never apply a code change without an explicit approval signal.** Acceptable signals: the calling workflow's recorded approval token, an explicit user response naming the specific Proposed Change (e.g., `apply Change 2`, `approved: Change 1 and Change 3`), or a workflow state-file row recording the approval. Inferred approval from prose ("looks good", "ok", "go ahead", silence) is **forbidden** — re-ask once, then default to NOT applying if still ambiguous. Apply changes one at a time so each approval maps unambiguously to a single Proposed Change.
+- **Stay inside the matched root-cause scope.** Each Proposed Change applies to the file(s) the root-cause analysis named, fixing the cited failure mode. Do NOT make adjacent edits ("while I'm here" cleanups, rename refactors, import reordering, formatting passes) outside that scope. Adjacent issues are recorded as separate Proposed Changes for separate approval.
+- **Never alter test intent while fixing implementation.** Implementation can change (selector value, wait strategy, helper call); the assertion semantics of an ATC cannot. If the test plan / spec is wrong (the API or UI actually behaves correctly and the test was wrong), record that as a spec update — do NOT silently flip the assertion.
+- **Test-code-only writes.** This skill writes only to test files, page-object files when the root cause is a selector update agreed with the user, and the analysis artifact. It does NOT modify application/product source code under test. If a fix would touch app source, stop and report `aqa-test-debugging: proposed fix is in application source <path>, not test code — escalate to product team / out-of-scope for this skill`. Application bugs surface as Application Bug findings in Part A's category list; Part B does not author them.
+
+**Analysis-artifact discipline (Part A):**
+
+- The Part A output (`execution-report.md` / parent-supplied analysis artifact path) is tracked and downstream-fed. If failure stack traces, request/response captures, or environment info embed credentials / tokens / PII, redact before writing: `Authorization: Bearer <jwt>` → `<redacted: bearer token>`; `X-Api-Key: <key>` → `<redacted: api key>`; real customer emails/names/phone numbers → synthetic placeholders. Structural content (status codes, endpoint paths, error message templates, framework stack frames) stays verbatim.
+
+</safety_boundaries>
+
+<success_criteria>
+
+The skill is complete when **all of** the following hold:
+
+**Part A (always required):**
+- Every failed test from the report has a Failure entry with Category + Root Cause populated.
+- Every selector-category failure cites page-source evidence OR carries the `Root Cause: Unknown — page sources not available` tag per `<failure_handling>`.
+- Execution Summary counts match the body Failure entry count.
+- `<safety_boundaries>` redaction was applied to every credential/PII pattern in the artifact.
+
+**Part B (when corrections were applied):**
+- Every applied change carries an explicit approval record per `<safety_boundaries>` approval discipline — no inferred-approval applications.
+- Every applied change is lint/format clean on the touched file.
+- No test intent was silently altered; spec updates (when required) are recorded as such.
+- No application/product source file was modified.
+- If iterations reached 3 with failures remaining, the escalation note is recorded per Part B step 9.
+
+The skill is **NOT complete** if Part A emits a partial Failure list, a selector failure lacks both evidence and the Unknown tag, Part B applied a change without explicit approval, or Part B touched application source.
+
+</success_criteria>
+
+<validation_checklist>
+
+Run before declaring complete. Items apply per the part(s) that ran.
+
+**Part A (report analysis):**
+- Every failed test from the report has a Failure entry — partial coverage of the failure list is a regression.
+- Every Failure entry has a Category (Connection / Auth / Request / Response / Data / Timing / App Bug / Selector-Locator / Contract-Mismatch / Unknown) and a Root Cause.
+- Every selector-category Failure either cites page-source evidence (`agents/plans/aqa-<test-name>-page-sources/<file>` + the selector lookup) OR carries `Root Cause: Unknown — page sources not available; would need Phase 4 selector identification re-run` per `<failure_handling>` "page sources missing" rule.
+- Execution Summary counts (Total / Passed / Failed / Skipped) match the Failure entry count actually emitted.
+- Patterns section names cross-failure patterns OR explicitly says `No cross-failure patterns identified`.
+- `<safety_boundaries>` redaction scan ran — auth headers, tokens, request/response capture were grepped for credential/PII shapes and replaced with placeholders before writing.
+
+**Part B (corrections — when applied):**
+- Every Proposed Change carries File / Current Code / Proposed Code / Reason / Impact / Risk fields populated — no partial entries.
+- Every applied change has an explicit approval record (token, named reference, or state-file row) per `<safety_boundaries>` approval discipline — no inferred approval.
+- Lint/format was re-run after each modified file; the result is recorded.
+- Test intent unchanged — no ATC's assertion semantics were silently altered. If a spec change was required (API behavior is correct, test was wrong), it was recorded as a spec update, not as a silent assertion flip.
+- No application/product source files were modified — only test files (and page-object files when the root cause was a selector update agreed with the user).
+- Iteration count tracked against the 3-iteration cap; if iteration 3 still left failures, the escalation note is recorded.
+
+</validation_checklist>
+
 <pitfalls>
 - Listing failures without analyzing root causes
 - Skipping page source analysis for selector errors silently — if page sources are missing, declare it (see `<failure_handling>`); do not pretend the analysis was complete
 - Using a `{TICKET-KEY}` path instead of `<test-name>` — `{TICKET-KEY}` is a TestGen convention not present in AQA naming
-- Applying changes without user approval
-- Making unrelated changes alongside fixes
+- Applying changes without user approval — inferred approval from "looks good" / silence is forbidden; see `<safety_boundaries>` approval discipline
+- Making unrelated changes alongside fixes — adjacent issues are separate Proposed Changes requiring separate approval
 - Not re-validating linting after corrections
-- Changing test intent while fixing implementation
+- Changing test intent while fixing implementation — spec updates are recorded separately, not silent assertion flips
+- Modifying application/product source code instead of test code — escalate and stop, do not author the fix
 </pitfalls>
 
 </aqa-test-debugging>

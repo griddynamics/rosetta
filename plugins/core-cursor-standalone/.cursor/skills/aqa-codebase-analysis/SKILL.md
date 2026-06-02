@@ -110,9 +110,7 @@ Find tests covering similar features and record:
 - **Add to existing file** if (a) feature under test is a direct extension of an existing test class/describe, AND (b) the existing file would remain under ~400 lines after addition
 - **Create new file** if (a) feature is a new area, OR (b) existing file would exceed ~400 lines, OR (c) existing file's structure does not fit the new test's setup/teardown shape
 
-**Worked example.** Existing file `tests/checkout/payment.spec.ts` is 280 lines and covers credit-card flows. New test under analysis is `tests/checkout/wallet-payment` (Apple Pay / Google Pay). Decision: **add to existing file** — same feature area (payment), same setup needed (cart + checkout navigation), resulting file ~370 lines (still under threshold). Recorded in the report's **Test Location** section with this rationale.
-
-Counter-example. Existing file `tests/checkout/payment.spec.ts` is 380 lines. New test under analysis is `tests/checkout/refund`. Decision: **new file** `tests/checkout/refund.spec.ts` — adding would push past 400 lines, and refund flow has its own setup (existing-order precondition) distinct from payment setup.
+A worked example pair (add-to-existing and new-file) is in [references/report-template.md](references/report-template.md#test-location-decision--worked-example-pair-referenced-from-skill-step-6) — load on demand when the rule's application to the current case is non-obvious.
 
 ## 7. Identify Reusable Utilities
 
@@ -126,60 +124,7 @@ Search utility dirs (`**/utils/**`, `**/helpers/**`, `**/lib/**`, `**/fixtures/*
 
 Write the report to **`agents/plans/aqa-<test-name>-code-analysis.md`** (resolving `<test-name>` per step 1) — or to the path the calling workflow specified.
 
-Use this structure:
-
-```markdown
-# Code Analysis — <test-name>
-
-**Generated:** <YYYY-MM-DD>
-**Test plan:** agents/plans/aqa-<test-name>.md
-**Sources:**
-- project_description.md: [read | missing]
-- CONTEXT.md / ARCHITECTURE.md / IMPLEMENTATION.md: [list of read | missing]
-- agents/user-instructions/: [N files read | not available]
-- Frontend source: [path | not available]
-
-## 1. Framework and Standards
-- **Framework:** Playwright | Selenium | Cypress | ...
-- **Language:** ...
-- **Project structure:** ...
-- **Coding standards:** ...
-- **Test patterns:** ...
-
-## 2. User Instructions (categorized)
-**Must Follow:** ...
-**Should Follow:** ...
-**Nice to Have:** ...
-(or `not available — see Coverage section`)
-
-## 3. Frontend Analysis
-(or `not available — see Coverage section`)
-
-## 4. Page Object Inventory
-| File | Page/Component | Selectors | Relevant to this test | Action |
-|---|---|---|---|---|
-| ... | ... | ... | yes/no | reuse / extend / new |
-
-## 5. Similar Tests and Patterns
-- ...
-
-## 6. Test Location Decision
-- **Decision:** add-to-existing | new-file
-- **Path:** tests/...
-- **Rationale:** (cite the rule from step 6)
-
-## 7. Reusable Utilities
-- ...
-
-## 8. Conflicts and Precedence
-- (List every place this skill's extracted standards conflicted with authoritative repo docs. Resolution: repo docs won. If none: `None — sources consistent.`)
-
-## 9. Coverage and Confidence
-- **Project description:** [read | missing — low confidence on framework/structure]
-- **User instructions:** [N files | not available — style guidance unverified]
-- **Frontend source:** [available | not available — test identifiers may need page-source capture]
-- **Optional inputs absent:** list each with the downstream-impact note
-```
+Use the **9-section report template** in [references/report-template.md](references/report-template.md#code-analysis-report-template-referenced-from-skill-step-8). The template defines: Sources header, then sections (1) Framework and Standards, (2) User Instructions categorized Must/Should/Nice, (3) Frontend Analysis, (4) Page Object Inventory table, (5) Similar Tests and Patterns, (6) Test Location Decision, (7) Reusable Utilities, (8) Conflicts and Precedence, (9) Coverage and Confidence. All 9 sections are required; empty optional sections say `not available — see Coverage section` per the template's conventions.
 
 Then update the test plan's `## Code Analysis` section with a one-paragraph summary that links to the full report — do NOT duplicate the report contents into the test plan.
 
