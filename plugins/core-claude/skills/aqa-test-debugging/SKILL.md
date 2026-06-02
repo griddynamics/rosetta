@@ -70,7 +70,7 @@ Extract:
 
 ### 3. Categorize Failures
 
-**Canonical taxonomy (single source of truth — referenced by step 4, `<success_criteria>`, `<validation_checklist>`, `<failure_handling>`).** Assign **exactly one** category per failure; the seven are exhaustive + mutually exclusive (pick the most proximate cause):
+**Canonical taxonomy (single source of truth).** Assign **exactly one** category per failure; the seven are exhaustive + mutually exclusive (pick the most proximate cause):
 
 1. **Selector / Locator** — element not found, selector incorrect, element-not-visible (patterns in step 4)
 2. **Timing / Visibility** — timeouts, race conditions, animation not settled, wait too short
@@ -118,7 +118,7 @@ Prioritize:
 
 ### 7. Prepare Proposed Changes
 
-Emit one Proposed Change entry per issue, using the **canonical Proposed Change template** in [references/part-b-mechanics.md](references/part-b-mechanics.md#proposed-change-record-template-referenced-from-skillmd-step-7--output_format--part-b-validation_checklist). Required fields: **File, Current Code, Proposed Code, Reason, Impact, Risk** (6 fields — single source of truth referenced by `<output_format>` and the Part-B `<validation_checklist>`). The reference also holds the per-category fix-matching guidance.
+Emit one Proposed Change entry per issue, using the **canonical Proposed Change template** in [references/part-b-mechanics.md](references/part-b-mechanics.md#proposed-change-record-template-referenced-from-skillmd-step-7--output_format--part-b-validation_checklist). Required fields: **File, Current Code, Proposed Code, Reason, Impact, Risk** (6 fields). The reference also holds the per-category fix-matching guidance.
 
 ### 8. Apply Approved Changes
 
@@ -194,7 +194,7 @@ Part B applies real code changes to the repository's test files. The Part A anal
 
 <success_criteria>
 
-High-level done-condition. Item-level checks live in `<validation_checklist>` (single source of truth — referenced here, not restated).
+High-level done-condition. Item-level checks live in `<validation_checklist>` (canonical).
 
 **Complete when:** Part A's analysis artifact has been emitted with every `<validation_checklist>` Part-A item satisfied; AND if Part B ran, every `<validation_checklist>` Part-B item is satisfied; AND if iteration 3 left failures, the verbatim escalation template from [references/escalation-template.md](references/escalation-template.md) was written per step 9.
 
@@ -209,7 +209,7 @@ Run before declaring complete. Items apply per the part(s) that ran.
 **Part A (report analysis):**
 - Every failed test from the report has a Failure entry — partial coverage of the failure list is a regression.
 - Every Failure entry has a Category picked from the canonical taxonomy in step 3 AND a Root Cause.
-- Every selector-category Failure either cites page-source evidence (`agents/plans/aqa-<test-name>-page-sources/<file>` + the selector lookup) OR carries `Root Cause: Unknown — page sources not available; would need the selector-identification phase re-run` per `<failure_handling>` "page sources missing" rule.
+- Every selector-category Failure either cites page-source evidence OR carries the Unknown tag per `<failure_handling>` "page sources missing" rule.
 - Execution Summary counts (Total / Passed / Failed / Skipped) match the Failure entry count actually emitted.
 - Patterns section names cross-failure patterns OR explicitly says `No cross-failure patterns identified`.
 - `<safety_boundaries>` redaction scan ran — auth headers, tokens, request/response capture were grepped for credential/PII shapes and replaced with placeholders before writing.

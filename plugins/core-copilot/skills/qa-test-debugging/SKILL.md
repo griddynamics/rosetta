@@ -265,6 +265,19 @@ After user approval:
 - Recording an environment's auth tokens or DB connection strings in the `Environment Info` section instead of `mechanism + source` description
 </pitfalls>
 
+<success_criteria>
+
+High-level done-condition consolidating the contract that was previously scattered across the Part A/B boundary note in `<when_to_use_skill>`, the step-8 iteration policy, and `<validation_checklist>`. Item-level checks live in `<validation_checklist>` (single source of truth — referenced here, not restated; mirrors the sibling QA family pattern).
+
+**Complete when:**
+
+- **Part A (always required):** `execution-report.md` has been written at the canonical path with every `<output_format>` section present (Execution Summary, Failures by Category, Failure Details, Patterns, Proposed Corrections, Applied Corrections); every failure carries a Category + Root Cause; the `<safety_boundaries>` redaction re-scan passed (no literal credentials/tokens/PII in auth headers, request/response bodies, stack traces, or environment info).
+- **Part B (when corrections were applied):** every applied change has an explicit user approval record; lint/format ran clean on every touched file (or the failure was resolved with recorded user approval); **test intent was not altered** (assertion semantics unchanged; spec updates recorded as `test-specs.md` changes, not silent assertion flips); only test files were modified (no application/product source); the iteration counter was tracked against the **3-iteration cap** and, if iteration 3 left failures, the escalation was recorded with the user's next-step decision.
+
+The skill is **NOT complete** if: Part A's `execution-report.md` is missing any required section, any failure lacks a Category or Root Cause, any literal credential/PII remains in the artifact, Part B applied a change without explicit approval, Part B modified application source, test intent was silently altered, OR iteration 3 left failures without the recorded escalation. Premature completion declaration when any `<validation_checklist>` item is unmet is a regression.
+
+</success_criteria>
+
 <validation_checklist>
 
 Run before declaring the skill complete. Items apply per the part(s) that ran (Part A only, or Part A + Part B).

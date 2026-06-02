@@ -1,6 +1,6 @@
 ---
 name: automation-test-execution-analysis
-description: "Rosetta phase pattern for obtaining test execution output, running Part-A style failure triage with debugging, and recording categorized root causes before correction work."
+description: "Rosetta phase pattern for obtaining test execution output, running read-only failure triage with debugging, and recording categorized root causes before correction work."
 license: Apache-2.0
 tags: ["workflow", "test-automation", "debugging"]
 baseSchema: docs/schemas/skill.md
@@ -23,8 +23,8 @@ Use after automated tests were executed and the workflow needs execution evidenc
 <core_concepts>
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- Part A = analysis only; do not apply fixes in this skill unless the parent workflow explicitly merges phases
-- Parent workflow names the domain analysis skill (e.g. `*-test-debugging` Part A); this skill orchestrates around it
+- **Read-only by contract.** This skill produces a categorized analysis artifact; it does NOT apply code fixes. Any correction work belongs to a separate downstream phase the parent workflow routes to after the artifact is emitted.
+- **Domain analysis skill — contracted output only.** The parent workflow names a domain analysis skill (a KB identifier). This skill orchestrates around the domain skill's **read-only output contract** — a categorized analysis artifact — without knowledge of the domain skill's internal structure (no awareness of named sections like "Part A" / "Part B" or other sibling-internal partitioning). The domain skill is invoked under its analysis-only contract: it MUST emit the categorized artifact and MUST NOT mutate source files during this phase.
 
 </core_concepts>
 
@@ -35,7 +35,7 @@ The parent workflow phase file supplies all bindings below. This skill does not 
 | Input | Source | Required content / format |
 |---|---|---|
 | Test execution report | Parent workflow's report path, OR user message, OR file under `agents/user-instructions/` discovered by keyword scan in step 1 | One of: framework HTML/XML report (JUnit XML, Playwright HTML, Cypress JSON, pytest JUnit), CI logs (plain text / Markdown), raw stdout/stderr capture, JSON test result export. The format is detected at step 1; if undetectable, treated as plain text. |
-| Domain analysis skill name | Parent workflow phase file (e.g. `aqa-test-debugging` Part A, `qa-test-debugging` Part A) | Exact KB identifier this skill resolves at step 4. Missing or unresolvable → step 5 GATE stops the phase. |
+| Domain analysis skill name | Parent workflow phase file (e.g. `aqa-test-debugging`, `qa-test-debugging`) | Exact KB identifier this skill resolves at step 4. The domain skill is invoked under its **analysis-only / read-only output contract** — its job here is to emit the categorized analysis artifact, not to mutate source. Missing or unresolvable → step 5 GATE stops the phase. |
 | Output artifact path | Parent workflow phase file | Absolute or workspace-relative path where step 9 writes/updates the analysis artifact. Missing → step 9 cannot complete; stop and ask the parent phase. |
 | Output schema (optional) | Parent workflow phase file's `<output_format>` block | If parent supplies a schema, follow it. If absent, this skill's `<output_format>` template is the default. |
 | Workflow state file | Parent workflow (e.g. `agents/aqa-state.md`, `agents/qa-state.md`) | Where step 10 records counts, root-cause summary, report path, and timestamp. |
@@ -55,9 +55,9 @@ The parent workflow phase file supplies all bindings below. This skill does not 
 1. Resolve report location: user message, workflow default path, or `agents/user-instructions/` per parent workflow.
 2. GATE: if no report is available, ask once with a concrete file path or paste format; **WAIT** for user input.
 3. USE SKILL `debugging` while interpreting failures.
-4. Resolve the parent-specified domain analysis skill (and Part A boundary when applicable).
+4. Resolve the parent-specified domain analysis skill.
 5. GATE: if the parent-specified domain analysis skill cannot be resolved/loaded, stop this phase, record the missing skill/tag in workflow state, and ask the user to fix Rosetta/KB access or provide explicit fallback approval before continuing.
-6. USE the resolved domain analysis skill; execute only **Part A** (report analysis) when that skill defines A/B parts.
+6. USE the resolved domain analysis skill **under its analysis-only / read-only output contract** — it MUST emit the categorized analysis artifact and MUST NOT mutate source files. (This skill does not depend on the domain skill's internal section structure; it consumes only the contracted output. If the domain skill's loaded form does not honor the read-only contract for this phase, stop and report to the parent workflow.)
 7. Categorize each failure using the canonical category enum from `<output_format>` (`environment | data | product-regression | test-bug | flakiness | infra-timeout | auth-session | selector-locator` (UI flows) `| contract-mismatch` (API flows) `| unknown`). The hyphenated forms in `<output_format>` are the single source of truth — do not introduce variants (e.g. `product regression` vs `product-regression`).
 8. For each category, tie to evidence: log lines, stack snippets, or request/response identifiers — distinguish verified facts from hypotheses.
 
@@ -99,7 +99,7 @@ If the parent workflow phase file supplies an `<output_format>` (or analysis-art
 **Generated:** <YYYY-MM-DD HH:MM>
 **Report source:** <path or URL>
 **Flow type:** UI | API | mixed | indeterminate
-**Domain analysis skill applied:** <skill-name> (Part A)
+**Domain analysis skill applied:** <skill-name> (analysis-only / read-only contract)
 **Tests executed:** <count>
 **Tests failed:** <count>
 
@@ -144,26 +144,30 @@ Every failure entry MUST carry a Fact-vs-Hypothesis flag — absent flag is a va
 
 <safety_boundaries>
 
-The analysis artifact this skill produces (the parent-supplied output path, e.g. `execution-report.md` / `agents/aqa/{TICKET}/failure-analysis.md`) is **tracked and downstream-fed** — committed to the repo, read by correction phases (Part B), referenced in state files, and may be shared with reviewers. Treat it as **PUBLIC by default**. The raw inputs this skill processes (CI logs, framework reports, stack snippets, captured request/response bodies) routinely embed real secrets and PII — redact before writing into the artifact, not after.
+The analysis artifact is **tracked, downstream-fed, and PUBLIC by default** — committed to the repo, read by the correction phase, referenced in state files, possibly shared with reviewers. Raw inputs (CI logs, framework reports, stack snippets, request/response bodies) routinely embed real secrets and PII. **Redact before writing into the artifact, not after.**
 
-**Targets to redact** (replace with placeholders + describe presence/mechanism in prose, never the literal value). Patterns to grep across every Failure entry's Evidence references and any inline log/stack/body snippets:
+**Targets to redact** (replace literal values with `<redacted: <kind>>` placeholders + a one-line presence/mechanism note). Patterns are grepped across every Failure entry's Evidence references and any inline log/stack/body snippets:
 
-- **Auth headers in HTTP captures** — `Authorization: Bearer <jwt>`, `Authorization: Basic <base64>`, `X-Api-Key: <key>`, `Cookie: session=<id>`, `Set-Cookie` response headers. Replace with `<redacted: bearer token>` / `<redacted: basic credentials>` / `<redacted: api key>` / `<redacted: session cookie>` and add a one-line description (e.g., "Bearer token from `AuthHelper.get_token('admin')`").
-- **JWTs in stack frames or log lines** — the `eyJ...` shape often leaks into stack frames when an auth helper raised mid-call. Replace with `<redacted: JWT>`; describe what the JWT carries (claims/audience/expiry) if relevant to the failure root cause.
-- **Credentialed URLs** in CI logs / stack frames (`https://user:pass@host/...`) — redact the `user:pass@` portion before recording.
-- **Query-string secrets** — `?api_key=...`, `?token=...`, `?access_token=...`, signed-URL signatures (`?X-Amz-Signature=...`, `?sig=...`) appearing in request URLs — redact the secret-bearing parameter values.
-- **Request bodies** in HTTP-capture evidence containing credentials, tokens, password fields, payment data — redact those fields specifically; keep structural fields (field names, non-sensitive values, schema shape) verbatim so the analysis can reason about contract mismatches.
-- **Response bodies** containing tokens (`access_token`, `refresh_token`, `id_token`), session identifiers, PII (real customer emails / names / phone numbers / account IDs / payment data) — redact the sensitive values; keep structural fields verbatim.
-- **Stack traces / error messages** sometimes embed credentials (e.g., a logged HTTP request line in a connection-error stack, or a database connection string in a `psycopg2.OperationalError` frame). Scan and redact before pasting into the Evidence references / Root cause fields.
-- **Environment Info** captured from the report header (API base URL, auth method) — record `auth method = OAuth2 client-credentials` / `JWT Bearer` / `Basic Auth via env var BASIC_AUTH_USER:BASIC_AUTH_PASS` — never the literal token or password. Base URLs are usually safe; credentialed base URLs are not.
+| Target | Where it surfaces | Placeholder | Mechanism / kept verbatim |
+|---|---|---|---|
+| Auth headers | HTTP captures (`Authorization`, `X-Api-Key`, `Cookie`, `Set-Cookie`) | `<redacted: bearer token>` / `<redacted: basic credentials>` / `<redacted: api key>` / `<redacted: session cookie>` | One-line origin (e.g. *"Bearer from `AuthHelper.get_token('admin')`"*) |
+| JWTs | Stack frames + log lines (`eyJ...` shape) | `<redacted: JWT>` | Claims/audience/expiry described if relevant to the root cause |
+| Credentialed URLs | CI logs, stack frames (`https://user:pass@host/...`) | Redact `user:pass@` only | Host + path remain |
+| Query-string secrets | Request URLs (`?api_key=`, `?token=`, `?access_token=`, `?X-Amz-Signature=`, `?sig=`) | Redact secret-bearing param values | Param names + non-secret params remain |
+| Request bodies | HTTP-capture evidence | Redact credential / token / password / payment fields | Field names + non-sensitive values + schema shape verbatim (so contract mismatches can still be reasoned about) |
+| Response bodies | HTTP-capture evidence | Redact `access_token` / `refresh_token` / `id_token` / session IDs / PII (real emails / names / phones / account IDs / payment data) | Structural fields verbatim |
+| Stack traces / error messages | Logged HTTP request lines in connection-error stacks; DB connection strings in `psycopg2.OperationalError` frames | Scan + redact before pasting into Evidence references / Root cause | Framework symbols (function names, repo file paths) verbatim |
+| Environment Info | Report header (base URL, auth method) | Mechanism only — `auth method = OAuth2 client-credentials` / `JWT Bearer` / `Basic Auth via env var <NAME>` | Base URLs usually safe; credentialed base URLs are not |
 
 **Grep pattern list (canonical — referenced from `<validation_checklist>`):** `Bearer `, `Authorization:`, `password:`, `api_key=`, `access_token=`, `client_secret`, JWT shape `eyJ...`, `BEGIN PRIVATE KEY`, `BEGIN RSA PRIVATE KEY`, `postgres://user:pass@`, `mongodb+srv://user:pass@`, plus PII-shaped patterns (real-looking emails outside `example.com`/`example.org`, real phone numbers outside `+1-555-0100`–`+1-555-0199`, card-number shapes).
 
-**Structural content stays verbatim.** Endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, response status text, framework stack frame symbols (function names, file paths within the repo) are functional and recorded as-is. Redaction targets sensitive **values**, not the structural failure spec.
+**Structural-content rule.** Endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, response status text, framework stack frame symbols are functional and recorded as-is. Redaction targets sensitive **values**, not the structural failure spec.
 
-**Re-scan before emit.** As part of `<validation_checklist>`'s redaction item, re-grep the assembled artifact for the patterns above before declaring complete; any hits are replaced with placeholders and the redaction is recorded inline (e.g., next to the Evidence reference: `log.txt:142 — Bearer token redacted; original session: AuthHelper.get_token('admin')`).
+**Re-scan before emit.** `<validation_checklist>`'s redaction item re-greps the assembled artifact against the canonical list; any hits are replaced + the redaction recorded inline (e.g., next to the Evidence reference: `log.txt:142 — Bearer token redacted; origin: AuthHelper.get_token('admin')`).
 
-This boundary applies whether the analysis is being written to `execution-report.md`, a workflow-specific `failure-analysis.md`, or any other parent-supplied path — the rule is artifact-agnostic.
+The boundary is artifact-agnostic — applies to any parent-supplied output path.
+
+> **DRY note (future):** the redaction policy (targets + grep list + structural rule) is shared verbatim with sibling skills (`aqa-test-debugging`, `qa-test-debugging`). A single sensitive-data redaction reference would let all three skills source from one canonical location — tracked in `docs/TODO.md` for the next family refactor.
 
 </safety_boundaries>
 
@@ -172,7 +176,7 @@ This boundary applies whether the analysis is being written to `execution-report
 - Execution input was actually read, not summarized from memory
 - Flow type recorded (UI / API / mixed / indeterminate) per `<input_contract>` flow-type determination
 - Every failure entry carries a Fact-vs-Hypothesis flag per the `<output_format>` mandatory-flag rule (canonical); FACT entries cite ≥1 evidence reference, HYPOTHESIS/UNKNOWN entries state what would upgrade them
-- Part B / code changes were not started unless the parent workflow authorizes combined phases
+- No code changes were started — this phase is read-only by contract; correction work is the downstream phase's job unless the parent workflow explicitly authorizes a combined phase
 - State and analysis artifact both reflect the same run identifier or timestamp
 - Analysis artifact follows the parent's `<output_format>` if supplied, OR this skill's default template if not — sections present, no `TBD` placeholders
 - User was informed how to proceed (e.g. correction phase) per parent workflow

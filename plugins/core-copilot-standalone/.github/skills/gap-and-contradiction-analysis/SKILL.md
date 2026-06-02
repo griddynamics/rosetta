@@ -50,15 +50,7 @@ Analyze for:
 - Source A: "Users can delete records"
 - Source B: "Records are immutable"
 
-Document each contradiction:
-```markdown
-### C1: [Brief Title]
-**Type**: Value Mismatch / Logic Conflict / Requirement Conflict
-**Source 1**: [Source] - [Field/Section] - "[Quote]"
-**Source 2**: [Source] - [Field/Section] - "[Quote]"
-**Impact**: [Why this matters]
-**Needs Clarification**: [Specific question]
-```
+Document each contradiction using the **C-N entry template** in [references/entry-templates-and-document-skeleton.md](references/entry-templates-and-document-skeleton.md#contradiction-entry-template-referenced-from-identify_contradictions-step-2) — load on demand when writing entries. Required fields: Type / Source 1 / Source 2 / Impact / Needs Clarification.
 
 </identify_contradictions>
 
@@ -95,15 +87,7 @@ Analyze for:
 - API endpoints not documented
 - Third-party services not specified
 
-Document each gap:
-```markdown
-### G1: [Brief Title]
-**Type**: Functional / Non-Functional / Data / Business Logic / Dependency
-**Context**: [Where this is needed]
-**Missing Information**: [What's not specified]
-**Impact**: [Why implementation blocked without this]
-**Suggested Question**: [How to ask for this information]
-```
+Document each gap using the **G-N entry template** in [references/entry-templates-and-document-skeleton.md](references/entry-templates-and-document-skeleton.md#gap-entry-template-referenced-from-identify_gaps-step-3) — load on demand. Required fields: Type / Context / Missing Information / Impact / Suggested Question.
 
 </identify_gaps>
 
@@ -117,16 +101,7 @@ Look for:
 - Unclear workflows: "system processes request" (how?)
 - Undefined acronyms or terms
 
-Document each ambiguity:
-```markdown
-### A1: [Brief Title]
-**Source**: [Source] - [Section/Page]
-**Vague Statement**: "[Quote]"
-**Possible Interpretations**:
-  1. [Interpretation 1]
-  2. [Interpretation 2]
-**Clarification Needed**: [Specific question]
-```
+Document each ambiguity using the **A-N entry template** in [references/entry-templates-and-document-skeleton.md](references/entry-templates-and-document-skeleton.md#ambiguity-entry-template-referenced-from-identify_ambiguities-step-4) — load on demand. Required fields: Source (with citation) / Vague Statement (verbatim quote) / Possible Interpretations (≥2) / Clarification Needed.
 
 </identify_ambiguities>
 
@@ -137,21 +112,7 @@ Compare all sources against each other:
 - Overlapping information with different level of detail
 - Consistent information (positive finding)
 
-Document:
-```markdown
-### Cross-Reference Findings
-
-**Only in [Source A]**:
-- [Item 1]
-- [Item 2]
-
-**Only in [Source B]**:
-- [Item 1]
-- [Item 2]
-
-**Overlapping but Different Detail**:
-- [Topic]: [Source A] has [X], [Source B] has [Y detail level]
-```
+Document using the **Cross-Reference Findings template** in [references/entry-templates-and-document-skeleton.md](references/entry-templates-and-document-skeleton.md#cross-reference-findings-template-referenced-from-cross_reference_sources-step-5) — load on demand. Required subsections (≥2 sources): Only-in-A / Only-in-B / Overlapping-but-different-detail. Single-source case: see `<failure_handling>` (skip-with-note).
 
 </cross_reference_sources>
 
@@ -167,80 +128,7 @@ Categorize all findings:
 
 <output_format>
 
-```markdown
-# Analysis - [Title]
-
-**Analyzed**: [DateTime]
-**Sources**: [List of sources analyzed]
-
----
-
-## Executive Summary
-
-- **Total Issues Found**: [Count]
-- **Contradictions**: [Count]
-- **Gaps**: [Count]
-- **Ambiguities**: [Count]
-- **Severity**: [Critical / High / Medium / Low]
-
-**Recommendation**: [Can proceed with clarifications / Needs major rework / etc.]
-
----
-
-## 1. Contradictions
-
-[None found OR list each using C[N] format]
-
----
-
-## 2. Gaps
-
-[None found OR list each using G[N] format]
-
----
-
-## 3. Ambiguities
-
-[None found OR list each using A[N] format]
-
----
-
-## 4. Cross-Reference Analysis
-
-[Findings from cross-reference]
-
----
-
-## 5. Positive Findings
-
-**Well-Documented Areas**:
-- [Area]: Clear and complete
-
-**Strengths**:
-- [Strength]
-
----
-
-## 6. Risk Assessment
-
-**High Risk** (Blocks implementation):
-- [Issue ID]: [Why blocking]
-
-**Medium Risk** (Impacts quality):
-- [Issue ID]: [Impact]
-
-**Low Risk** (Minor clarification):
-- [Issue ID]: [Minor impact]
-
----
-
-## Analysis Metadata
-
-- **Sources Analyzed**: [List]
-- **Analysis Duration**: [Time]
-```
-
-If NO issues found, still produce document with "No issues found" in each section.
+The skill produces a single analysis document. **Full skeleton + every-section-required rule** in [references/entry-templates-and-document-skeleton.md](references/entry-templates-and-document-skeleton.md#output-document-skeleton-referenced-from-output_format-step-6) — load on demand when assembling. Risk-tier scheme follows `<safety_boundaries>` rule 3 (three tiers, no fourth). **Zero-issues rule:** the document is still produced even when no findings exist — `No issues found` in each finding section.
 
 </output_format>
 

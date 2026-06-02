@@ -24,11 +24,26 @@ Use in any phase whose job is to turn approved specs/plans into executable autom
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Implementation ends at "ready to execute"; parsing failures belongs to a later analysis phase unless the workflow says otherwise
-- USE SKILL `hitl` for approval semantics; this skill defines the test-specific sequence
-- **Mandatory ACQUIRE list lives in `<process>` (steps 1–4 below)** — not restated here. Process steps are the single source of truth for which skills load and in what order.
+- **This skill does NOT drive skill loading.** Per the Rosetta isolation model, the calling workflow is responsible for recommending + loading the foundational skills this skill applies discipline from. See `<recommended_foundational_skills>` below — this skill only **verifies presence** at the relevant gates and applies the discipline; it does NOT itself ACQUIRE/USE other skills.
 - The **domain test implementation skill** is required and MUST be named by the parent workflow phase (e.g. `aqa-test-authoring`, `qa-test-implementation`). The canonical "domain-skill-required + no-silent-fallback" rule lives in **step 4 GATE** — referenced from `<input_contract>`, `<failure_handling>`, `<validation_checklist>`, `<pitfalls>` rather than restated.
 
 </core_concepts>
+
+<recommended_foundational_skills>
+
+The calling workflow is expected to have already recommended + loaded these foundational skills before invoking this skill. Each is the canonical source for one slice of discipline this skill applies; this skill does NOT acquire/use them — it verifies they are loaded at the gates in `<process>` and applies their discipline.
+
+| Skill | Discipline this skill applies | Verified at | If not loaded |
+|---|---|---|---|
+| `repository-implementation-standards` | Doc-first alignment with `project_description.md` / `CONTEXT.md` / `ARCHITECTURE.md` / `IMPLEMENTATION.md` | Step 1 | Apply `<failure_handling>` "foundational skill not loaded" |
+| `coding` | General implementation patterns + project style | Step 2 | Same |
+| `testing` | Test design constraints (isolation, idempotency, mocking policy) | Step 3 | Same |
+| **Domain test implementation skill** (parent-named, e.g. `aqa-test-authoring` / `qa-test-implementation`) | Workflow-specific authoring patterns (selectors, page objects, ATC traceability) | Step 4 GATE | Stop per the canonical step-4 GATE — no silent fallback |
+| `hitl` | Wait/approve semantics for the STOP-AND-WAIT at step 8 | Step 8 | Apply `<failure_handling>` "foundational skill not loaded" |
+
+**Why this skill doesn't ACQUIRE/USE.** A skill that chains four-plus sibling skills behaves as a workflow phase, not a leaf skill, and couples to sibling names + load order in a way the Rosetta isolation model discourages. By recasting these as recommended foundational skills the calling workflow loads, this artifact stays a leaf safety/contract skill: it verifies presence and applies discipline without driving cross-skill orchestration.
+
+</recommended_foundational_skills>
 
 <input_contract>
 
@@ -38,7 +53,7 @@ The parent workflow phase file supplies all inputs below. This skill does not in
 |---|---|---|
 | Approved upstream artifact (spec / plan) | Parent workflow phase file | Path to the spec/plan that was approved by the user upstream (e.g. `agents/plans/aqa-<test-name>.md` for AQA; `agents/qa/{TICKET-KEY}/test-specs.md` for QA). Must exist, be non-empty, and carry an approval signal (state-file row, approval token, or timestamp recorded by the parent's HITL step). |
 | Approval signal | Parent workflow (state file row, explicit token, or workflow-defined evidence) | Explicit evidence the upstream artifact is approved. Inferring "looks approved" is forbidden. |
-| Domain test implementation skill name | Parent workflow phase file (e.g. `aqa-test-authoring`, `qa-test-implementation`) | Exact KB identifier this skill ACQUIREs at step 4. Missing → step 4 GATE governs (single source of truth — not restated here). |
+| Domain test implementation skill name | Parent workflow phase file (e.g. `aqa-test-authoring`, `qa-test-implementation`) | Exact KB identifier the calling workflow MUST have loaded (per `<recommended_foundational_skills>`); step 4 GATE verifies presence. Missing → step 4 GATE governs. |
 | Workflow state file | Parent workflow (e.g. `agents/aqa-state.md`, `agents/qa-state.md`) | Path where step 10 records the state update. |
 | Execution command source | Parent workflow OR repo docs (`README.md`, `package.json` scripts, `Makefile`, `CONTRIBUTING.md`) | Used by step 7 to give the user a concrete copy-pasteable command. |
 
@@ -51,14 +66,14 @@ The parent workflow phase file supplies all inputs below. This skill does not in
 
 <process>
 
-1. ACQUIRE `repository-implementation-standards/SKILL.md` FROM KB and USE SKILL `repository-implementation-standards` unless the parent workflow state/artifact for this run already records it as completed for the current implementation phase; if that proof is missing, apply it by default.
-2. ACQUIRE `coding/SKILL.md` FROM KB and USE SKILL `coding` for implementation work.
-3. ACQUIRE `testing/SKILL.md` FROM KB and USE SKILL `testing` for test design constraints (isolation, idempotency, mocking policy) as applicable to this suite type.
-4. Apply the **domain test implementation skill** the parent workflow phase named per `<input_contract>` (e.g. `aqa-test-authoring`, `qa-test-implementation`). ACQUIRE it FROM KB; USE SKILL it.
+1. **Verify `repository-implementation-standards` is loaded** (per `<recommended_foundational_skills>`) and apply its doc-first alignment discipline. If absent from context AND the parent workflow state does not record it as already applied for this implementation phase, stop per `<failure_handling>` "foundational skill not loaded". This skill does NOT load it; the calling workflow recommends + loads it.
+2. **Verify `coding` is loaded** (per `<recommended_foundational_skills>`) and apply its implementation patterns. If absent, stop per `<failure_handling>`.
+3. **Verify `testing` is loaded** (per `<recommended_foundational_skills>`) and apply its test-design constraints (isolation, idempotency, mocking policy) as applicable to this suite type. If absent, stop per `<failure_handling>`.
+4. **Verify the parent-named domain test implementation skill is loaded** (per `<recommended_foundational_skills>` + `<input_contract>`; e.g. `aqa-test-authoring`, `qa-test-implementation`) and apply its workflow-specific authoring patterns.
 
    - **GATE — domain skill required (canonical — referenced from `<core_concepts>`, `<input_contract>`, `<failure_handling>`, `<validation_checklist>`, `<pitfalls>`):** If the parent did NOT name a domain skill AND no conventional name is discoverable from the parent workflow's identifier (e.g. parent `aqa-flow-*` → try `aqa-test-authoring`; parent `qa-flow-*` → try `qa-test-implementation`), STOP. Report `automation-test-implementation-handoff: no domain test implementation skill named by parent and no conventional fallback discoverable` to the parent workflow and ask the user/parent to supply the name. **Silent fallback to `coding` + `testing` alone is forbidden** — the domain skill carries the workflow-specific authoring patterns (selectors, page objects, ATC traceability, etc.) and skipping it produces weaker tests than intended.
-   - If a conventional name is discoverable but the ACQUIRE returns zero documents, follow `<failure_handling>` "zero-doc ACQUIRE on domain skill".
-   - Do NOT substitute a different domain skill silently. If the named domain skill cannot be loaded, stop per `<failure_handling>`.
+   - If a conventional name was named but the skill is not loaded in context, follow `<failure_handling>` "domain skill named but not loaded" — ask the parent to recommend + load it (do not load it from this skill).
+   - Do NOT substitute a different domain skill silently. If the named domain skill cannot be loaded by the parent, stop per `<failure_handling>`.
 5. Validate: project formatter/linter commands run clean; tests compile or parse; obvious import/path errors fixed. If a lint/compile error is unresolvable, follow `<failure_handling>` "unresolvable lint/compile error" — do NOT proceed to step 6.
 6. GATE: enumerate created or changed file paths and primary entry test files.
 7. Tell the user implementation is complete; provide the exact command to run tests for this repository (per `<output_format>` "user-facing handoff message" template).
@@ -123,8 +138,8 @@ Do NOT emit a generic framework name only (e.g. just "run Playwright" or "use py
 
 - **Approved spec/plan missing / empty** (per `<input_contract>` pre-check): stop, report to parent workflow, do not implement.
 - **Approval signal missing / stale:** stop, report; do not infer approval from prose.
-- **Zero-doc ACQUIRE on a foundational skill** (`repository-implementation-standards`, `coding`, `testing` at steps 1–3): stop, report `automation-test-implementation-handoff: KB returned zero documents for <skill-name>` to the parent workflow, ask the user to fix Rosetta/KB access. Do NOT proceed without the foundational skill.
-- **Zero-doc ACQUIRE on domain skill** (step 4 — parent-named OR conventional fallback): stop, report `automation-test-implementation-handoff: KB returned zero documents for domain skill <name>` and ask the parent per **step 4 GATE** (canonical home of the rule).
+- **Foundational skill not loaded** (`repository-implementation-standards`, `coding`, `testing`, or `hitl` — per `<recommended_foundational_skills>` — is not present in context at the verifying step's gate): stop, report `automation-test-implementation-handoff: foundational skill <name> not loaded by calling workflow — see <recommended_foundational_skills>` to the parent workflow, ask the parent / user to recommend + load it. Do NOT load it from this skill (`<core_concepts>` "does NOT drive skill loading" rule).
+- **Domain skill named but not loaded** (step 4 — parent named the domain skill OR a conventional fallback name was discoverable, but the skill is not present in context): stop, report `automation-test-implementation-handoff: domain skill <name> named but not loaded by calling workflow` and ask the parent per **step 4 GATE** (canonical home of the rule). Do NOT load it from this skill.
 - **Domain skill name not supplied AND no conventional fallback discoverable:** stop at **step 4 GATE** (canonical).
 - **Unresolvable lint / compile error** at step 5 (e.g., a third-party dependency missing, a TS type the agent cannot resolve, an import path that the project layout does not support): record the exact error in the state file, surface it to the user, ask whether to (a) install the missing dependency, (b) accept the imperfection and proceed with a recorded gap, or (c) roll back the change. Do NOT proceed to step 6 with unresolved compile-blocking errors.
 - **Repo has no discoverable execution command** (no README script, no `package.json` test script, no Makefile target, no CI config): step 7 asks the user once for the project's run command before STOP-AND-WAIT at step 8. Do NOT emit a generic framework name.
@@ -149,7 +164,7 @@ Do NOT emit a generic framework name only (e.g. just "run Playwright" or "use py
 
 - Keep the first execution command copy-pasteable from repo docs or scripts. Example (Playwright TS, one test file): `npx playwright test tests/checkout/payment.spec.ts`. Example (pytest, with verbose): `uv run pytest tests/api/users_test.py -v`. Always emit the literal command the user can paste.
 - If flaky infrastructure is known, say so before the user runs tests
-- When the parent names a domain skill, load it BEFORE writing test code so its authoring patterns inform the implementation — not after, as a post-hoc check
+- When the parent names a domain skill, the calling workflow should have it loaded BEFORE this skill writes test code so the domain skill's authoring patterns inform the implementation — not as a post-hoc check
 
 </best_practices>
 

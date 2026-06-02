@@ -28,6 +28,23 @@ Use when running any Rosetta workflow split into ordered phases (QA, AQA, TestGe
 
 </core_concepts>
 
+<input_contract>
+
+All inputs are supplied by the parent workflow phase file. This skill does not infer them — missing required values trigger the inline GATEs in `<process>` (step 3 ACQUIRE GATE, step 7 prereq verification, step 10 falsified-skip verification).
+
+| Input | Required? | Source | Used by |
+|---|---|---|---|
+| **Current phase id** | **required** | Parent workflow phase file (the active phase tag/identifier — e.g. `aqa-flow-test-implementation`, `qa-flow-execution-and-report-analysis`) | Step 1 (confirm) + step 4 (execute scope) + step 10b (announcement string includes the phase id) |
+| **Phase ACQUIRE target** | **required** | Parent workflow phase file (the KB document tag this skill ACQUIREs at step 2 — typically the same as the phase id or a `<phase-id>.md` mapping) | Step 2 (ACQUIRE) + step 3 GATE (zero-doc handling) |
+| **Workflow state file path** | **required** | Parent workflow phase file (e.g. `agents/aqa-state.md`, `agents/qa-state.md`, `agents/testgen/{TICKET-KEY}/testgen-state.md`) | Step 5 (state update) + step 9 (skip-reason recording) + step 10a (verification source for "state row missing") + step 10e (acceptable user input lands here) |
+| **Parent HITL-transition declaration** | optional (omitted when the transition is not HITL-gated) | Parent workflow phase file's explicit declaration that an upcoming transition requires user approval (e.g. *"WAIT FOR USER APPROVAL before Phase 5"*, *"HITL transition between Phase 7 and Phase 8"*) | Step 8 GATE — if declared, this skill MUST NOT advance until explicit approval; if absent, normal advance applies |
+| **Dispatch / orchestrator contract** | optional (active only when the parent workflow spawns subagents) | Parent workflow phase file OR the active platform's `orchestrator-contract` skill (referenced in `<resources>`) | Step 11 — sub-agent dispatch follows the named contract; absent → step 11 is a no-op |
+| **Phase exit criteria** | **required** | Parent workflow phase file (each phase file declares its own completion criteria — this skill consumes them as opaque values) | Step 4 (execute until criteria met) + step 7 (downstream-prereq verification) |
+
+**Required-input failure rule.** If the current phase id, the phase ACQUIRE target, or the workflow state file path is missing, this skill cannot run — stop, report `sequential-workflow-execution: required input missing — <name>` to the parent workflow, ask the user / parent to supply. Do NOT pick a default for any of these; the linear-execution guarantee depends on them being explicit.
+
+</input_contract>
+
 <process>
 
 1. Confirm current phase id and its ACQUIRE target (phase markdown) from the parent workflow.
@@ -48,6 +65,58 @@ Use when running any Rosetta workflow split into ordered phases (QA, AQA, TestGe
 11. If spawning subagents, follow the active platform dispatch/review contract.
 
 </process>
+
+<output_format>
+
+This skill emits **three user-facing or workflow-state artifacts** — all are governed by the templates below. The `<templates>` block at the end of the skill holds the canonical state-delta snippet; the other two are defined here.
+
+### 1. State delta snippet (step 5, step 9)
+
+Appended to the workflow state file path supplied by the parent (per `<input_contract>`). Canonical template lives in `<templates>` — the structure is `## Phase [N] — [title]` heading + Status + Completed + Outputs + Notes. Both step 5 (normal completion) and step 9 (user-approved skip) use the same template; step 9's `Status` field is `skipped (user-approved)` with the skip reason recorded under `Notes`.
+
+### 2. Required announcement (step 10b — falsified-skip-claim refusal)
+
+One line announcing the failing verification conditions, emitted immediately before the same-turn unilateral start. Format:
+
+```
+skip refused: <one-clause failing condition> → starting at <earliest incomplete phase id>
+```
+
+**Canonical examples:**
+
+- `skip refused: state row missing → starting at Phase 0`
+- `skip refused: Phase 3 output artifact agents/aqa/{TICKET}/code-analysis.md absent on disk → starting at Phase 3`
+- `skip refused: state file marks Phase 5 in-progress but no completion timestamp recorded → starting at Phase 5`
+
+The announcement MUST cite the specific evidence the falsified-skip-claim verification found (which state row was missing, which artifact path was absent, etc.) — vague *"skip refused"* without a reason is incomplete. Per step 10d, this announcement is followed immediately by the same-turn start of the earliest incomplete phase; no AskUserQuestion, no menu, no pause.
+
+### 3. Phase summary (best_practices — 3–6 bullets before asking to continue)
+
+Emitted at phase completion before any HITL transition prompt or before announcing the next phase. Format:
+
+```markdown
+**Phase [N] — [title] — summary**
+- [Outcome bullet 1: what was produced / decided / verified]
+- [Outcome bullet 2: ...]
+- [Outcome bullet 3: ...]
+- [Risks / assumptions / follow-ups carried into the next phase, if any]
+- [Next phase: <phase-id> — <one-line scope>]
+```
+
+**Canonical example:**
+
+```markdown
+**Phase 3 — Code Analysis — summary**
+- Code-analysis report written at `agents/plans/aqa-checkout-flow-code-analysis.md` (12 page-object references mapped, 4 existing helpers found).
+- Test-location decision recorded: add-to-existing-file `tests/e2e/checkout.spec.ts` (current file 280 lines, well under 400-line anchor).
+- 1 conflict between repo docs and user instructions surfaced: user instructions favor named exports, but `IMPLEMENTATION.md` mandates default exports → resolved per "repo docs win"; recorded in report's Conflicts section.
+- Carrying assumption forward to Phase 4: page-source capture will reuse the existing `RefSrc/checkout-ui/` snapshot rather than re-rendering.
+- Next phase: `aqa-flow-selector-identification` — map the planned test interactions to selectors using the code-analysis page-object inventory.
+```
+
+Required: ≥3 bullets, ≤6 bullets, including at least one "Next phase" line so the user can confirm the planned transition or override it.
+
+</output_format>
 
 <gate_priority>
 
