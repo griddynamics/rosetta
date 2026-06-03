@@ -122,7 +122,11 @@ What can you do, Rosetta?
 
 The agent will follow Rosetta prompts and show Rosetta workflows and execute `self-help-flow` (see screenshots from different tools below):
 
+**Claude Code:**
+
 <img src="docs/images/Rosetta-ProperResponse.png" alt="Rosetta proper response in Claude Code" width="710"/>
+
+**GitHub Copilot:**
 
 <img src="docs/images/Rosetta-ProperResponse-Copilot.png" alt="Rosetta proper response in GitHub Copilot" width="710"/>
 
