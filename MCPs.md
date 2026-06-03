@@ -9,7 +9,7 @@
 > You must receive a prior approval from your manager and company to use it.
 
 > [!WARNING]
-> Use **Sonnet 4.6**, **Gpt-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
+> Use **Sonnet 4.6**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
 
 > [!NOTE]
 > Rosetta is designed to never use or see data or IP.
@@ -45,8 +45,6 @@ Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project):
 ```sh
 claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp
 ```
-
-Authenticate inside a claude session with `/mcp`, select Rosetta, Authenticate, and complete the OAuth flow.
 
 </details>
 
@@ -165,8 +163,6 @@ Add to `opencode.json`:
 ```
 
 </details>
-
-Any MCP client that supports HTTP transport can connect using the endpoint URL. Complete the OAuth flow when prompted.
 
 ## Step 2: Add Bootstrap Rule
 

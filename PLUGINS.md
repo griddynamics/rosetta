@@ -11,7 +11,7 @@ Every plugin supports two installation methods:
 > You must receive prior approval from your manager and company to use Rosetta.
 
 > [!WARNING]
-> Use **Sonnet 4.6**, **gpt-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
+> Use **Sonnet 4.6**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
 
 > [!NOTE]
 > Plugins are pre-release.
@@ -36,24 +36,21 @@ claude plugin install rosetta@rosetta
 
 ### Cursor
 
-> [!NOTE]
-> Cursor also sees plugins installed via Claude Code. If you've already installed via `claude plugin install`, do **not** install again in Cursor — the same content would be duplicated in Cursor's context.
-
 #### Marketplace
 
-If your organization uses Cursor Team Marketplace, you can publish the Rosetta plugin to your company's internal marketplace and make it available to your team.
+> [!NOTE]
+> To add the plugin you need to have the appropriate Cursor plans, such as Teams and Enterprise. 
 
-For more information, see the Cursor documentation:
-https://cursor.com/docs/plugins#team-marketplaces
+To Import the Rosetta github repository to your team/compnay internal marketplace:
+* Use the following repository: https://github.com/griddynamics/rosetta
 
-Rosetta can also be installed in Claude Code. Plugins installed in Claude Code are automatically available in Cursor.
+For detailed setup instructions, see the Cursor documentation:
+* https://cursor.com/docs/plugins#team-marketplaces
 
-The Rosetta repository provides both a Cursor plugin and marketplace integration:
-https://github.com/griddynamics/rosetta
+Plugins installed in Claude Code are automatically available in Cursor.
 
-> **Important**
->
-> Cursor automatically detects and uses plugins installed in Claude Code. To avoid duplicate tools, commands, and context, install Rosetta in **Claude Code only**. Do not install the same plugin separately in both Claude Code and Cursor.
+> [!WARNING]
+> Cursor automatically detects and uses Claude Code plugins. To avoid duplicate tools, commands, and context, do not install the same plugin separately in both Claude Code and Cursor.
 
 #### Standalone
 
@@ -68,7 +65,7 @@ https://github.com/griddynamics/rosetta
 
 ### GitHub Copilot
 
-Copilot runs in VS Code and JetBrains. The marketplace path is VS Code only; standalone works for both.
+GitHub Copilot runs in VS Code and JetBrains. Use **Marketplace** install in VS Code, or **Standalone** in either IDE.
 
 #### Marketplace (VS Code)
 
@@ -84,7 +81,9 @@ Copilot runs in VS Code and JetBrains. The marketplace path is VS Code only; sta
 
 #### Standalone (VS Code and JetBrains)
 
-Use this option when marketplace installation is unavailable, such as in JetBrains Copilot or VS Code environments.
+For JetBrains IDEs, use the standalone installation package. 
+> [!NOTE]
+> The standalone installation is also detected by VS Code, so installing Rosetta through the standalone and marketplace methods will result in duplicate tools, commands, and context.
 
 1. Download `core-copilot-standalone-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
 2. Extract the archive contents into your repository. If `.github/copilot-instructions.md` already exists, merge contents — Rosetta first, then the original content.
@@ -120,9 +119,11 @@ Ask the agent:
 What can you do, Rosetta?
 ```
 
-It should use Rosetta MCP to retrieve agents, guardrails, and instructions:
+The agent will use Rosetta to retrieve agents, guardrails, and instructions:
 
-<img src="docs/images/Rosetta-ProperResponse1.png" alt="Rosetta proper response" width="355"/> <img src="docs/images/Rosetta-ProperResponse2.png" alt="Rosetta proper response" width="300"/>
+<img src="docs/images/Rosetta-ProperResponse.png" alt="Rosetta proper response in Claude Code" width="710"/>
+
+<img src="docs/images/Rosetta-ProperResponse-Copilot.png" alt="Rosetta proper response in GitHub Copilot" width="710"/>
 
 ## Updating
 

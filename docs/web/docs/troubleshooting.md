@@ -51,7 +51,7 @@ permalink: /docs/troubleshooting/
 
 **Wrong model causes poor or inconsistent results**
 
-Use **Sonnet 4.6**, **GPT-5.4-medium**, **gemini-3.1-pro** or better. Avoid Auto model selection. Weaker models skip tool calls, hallucinate instructions, or ignore MCP prompts entirely.
+Use **Sonnet 4.6**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection. Weaker models skip tool calls, hallucinate instructions, or ignore MCP prompts entirely.
 
 ## Slow or Empty Responses
 

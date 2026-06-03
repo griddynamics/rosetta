@@ -9,7 +9,7 @@
 > You must receive a prior approval from your manager and company to use it.
 
 > [!WARNING]
-> Use **Sonnet 4.6**, **GPT-5.3-codex-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
+> Use **Sonnet 4.6**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
 
 > [!NOTE]
 > Rosetta is designed to never use or see data or IP.
@@ -28,7 +28,7 @@ Ask the agent:
 What can you do, Rosetta?
 ```
 
-It should use Rosetta MCP to retrieve agents, guardrails, and instructions:
+It should use Rosetta MCP/Plugin to retrieve agents, guardrails, and instructions:
 
 <img src="docs/images/Rosetta-ProperResponse1.png" alt="Rosetta proper response" width="355"/> <img src="docs/images/Rosetta-ProperResponse2.png" alt="Rosetta proper response" width="300"/>
 
