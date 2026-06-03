@@ -1,7 +1,7 @@
 ---
 name: aqa-test-debugging
 description: Analyze test execution reports, identify failure root causes with page source analysis, propose corrections, and apply approved fixes.
-tags: []
+tags: ["aqa", "test-debugging", "report-analysis", "corrections"]
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -179,7 +179,9 @@ The Part A → Part B cycle is **capped at 3 iterations** to prevent runaway dia
 
 <safety_boundaries>
 
-**Part B (write-path) boundaries:** see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-safety_boundaries-referenced-from-skillmd-safety_boundaries) — approval discipline, stay-inside-scope, never-alter-test-intent, test-code-only writes.
+**HITL governance** — user-approval gating (Part B step 8 "After user approval", the Approval-discipline rule in `references/part-b-mechanics.md`, every approval-signal check) is governed by the `hitl` skill (the workspace-wide HITL authority — single source of truth for ask-before-action, full-automation opt-out, re-ask protocol). The Part B Approval-discipline rule's named approval signals (recorded workflow token, explicit `apply Change N` response, workflow state-file row) are a **domain-specific specialization** of the `hitl` contract, not a parallel mechanism — when `hitl` is loaded, its defaults govern; the signal taxonomy below adds Part-B-specific shape, it does not override.
+
+**Part B (write-path) boundaries:** see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-safety_boundaries-referenced-from-skillmd-safety_boundaries) — approval discipline (specialization of `hitl`), stay-inside-scope, never-alter-test-intent, test-code-only writes.
 
 **Part A analysis-artifact redaction:** The Part A output (`execution-report.md` / parent-supplied analysis artifact path) is tracked and downstream-fed. If failure stack traces, request/response captures, or environment info embed credentials / tokens / PII, redact before writing: `Authorization: Bearer <jwt>` → `<redacted: bearer token>`; `X-Api-Key: <key>` → `<redacted: api key>`; real customer emails/names/phone numbers → synthetic placeholders. Structural content (status codes, endpoint paths, error message templates, framework stack frames) stays verbatim.
 

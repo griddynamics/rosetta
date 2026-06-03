@@ -67,17 +67,21 @@ Please provide answers so I can proceed with test implementation.
 
 <wait_for_user step="2.3">
 1. **STOP AND WAIT** for user to provide all answers.
-2. **Answer-handling branches** (apply to step 2.4's processing — explicit so partial/declined paths are not silently dropped):
-   - **All answers received:** proceed to step 2.4 normally.
-   - **Partial answers received** (user answers some Critical / Edge / Optional questions but leaves others blank, OR explicitly says "I don't know" for specific items): re-ask once **only for the unanswered Critical questions** with a tightened phrasing or safe-default option per `questioning` rules. After one unsuccessful re-ask of any Critical question, treat that question as **declined** (next branch). Edge / Optional unanswered items proceed without re-ask (record as gaps in step 2.4 per the None-clause pattern).
-   - **User declines to answer specific questions** (explicit refusal, or unresponsive after the one-re-ask cap above): record each declined Critical question as a `gap: declined by user — <one-line reason or "no reason given">` under the test plan's `### Open Questions` subsection that step 2.4 appends; mark the corresponding `Derived assertion` (if step 2.1 derived one tied to the declined question) as Uncovered in the `### Explicit Assertions` section per step 2.4's None-clause pattern. Proceed to step 2.4 with documented unknowns rather than stalling.
-   - **User declines to answer at all** (no answers, refuses to engage): record `Phase 2 blocked: user declined to answer all clarification questions` in `agents/aqa-state.md`, surface to the parent workflow, do NOT auto-proceed to Phase 3 with zero clarifications — this is a stop, not a gap-with-proceed.
+
+2. **Answer-handling branches** (apply to step 2.4's processing):
+
+   | Case | Action |
+   |---|---|
+   | All answers received | Proceed to step 2.4. |
+   | Partial — some questions left blank or `"I don't know"` | Re-ask **once** for unanswered Critical only; cap at one re-ask round; on still-no-answer, treat that question as declined (next row). Edge / Optional unanswered → record as gaps per None-clause, do not re-ask. |
+   | Declines specific Critical questions | Record each as `gap: declined by user — <reason or "no reason given">` under `### Open Questions`; mark its Derived assertion (if any) Uncovered in `### Explicit Assertions`. **Aggregate cap:** if ≥50% of Critical questions are declined (or ≥3 declined when Critical count <6), escalate to the last row — do NOT proceed with majority-declined clarifications. |
+   | Declines all / refuses to engage | Stop. Record `Phase 2 blocked: user declined to answer all clarification questions` in `agents/aqa-state.md`, surface to parent workflow, do NOT auto-proceed to Phase 3. |
 </wait_for_user>
 
 <update_test_plan step="2.4">
 1. Process user answers from step 2.3.
-2. **Collect every assertion the `aqa-requirements-elicitation` skill derived in step 2.1** — including its `Derived assertion (if applicable)` field on each elicited item — and assemble the typed assertion list. Every derived assertion MUST be carried forward; if the elicitation skill produced zero derived assertions, emit the **None-clause** (literal text in the template below) rather than omitting the section.
-3. Add the section below to the test plan `agents/plans/aqa-<test-name>.md`. The `### Explicit Assertions` subsection is **mandatory** — Phase 6 (`aqa-test-authoring`) validates that every assertion here is implemented OR listed in Uncovered:
+2. **Carry every `Derived assertion` field from step 2.1 into the typed list below.** Zero derived assertions → emit the None-clause from the template; do NOT omit the section.
+3. Add the section below to `agents/plans/aqa-<test-name>.md`. `### Explicit Assertions` is **mandatory** — Phase 6 (`aqa-test-authoring`) validates that every assertion is implemented OR listed in Uncovered:
 
 ```markdown
 ## Phase 2: Requirements Clarification
@@ -108,6 +112,15 @@ Each assertion carries a **type** (Presence / State / Content / Behavioral) and 
 - **Behavioral:** [action] produces [observable result] within [timing constraint, if any].
 - (If the elicitation skill derived zero assertions: `None — no observable behavior derivable from current clarifications; Phase 6 will surface this as Uncovered`.)
 ```
+
+**Filled-in worked example** (canonical owner = this phase; one example inline so the format is grounded even if the elicitation skill cannot load — the exact-vs-contains specificity distinction is the most error-prone field for this type):
+
+```markdown
+- **Content:** `#login-toast` displays exact text `"Login successful"` (not `contains "successful"`) after clicking the **Sign In** button.
+- **Content:** `#error-banner` contains substring `"network"` (case-insensitive) after a request timeout (do NOT assert exact text — the upstream service formats the rest of the message).
+```
+
+The two bullets illustrate the **exact vs. contains** distinction the elicitation skill flags as a clarification trigger. Apply the same shape (typed prefix → subject → exact-or-contains qualifier → trigger) to every assertion.
 </update_test_plan>
 
 <update_state step="2.5">

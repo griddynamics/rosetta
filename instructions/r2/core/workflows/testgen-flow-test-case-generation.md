@@ -291,6 +291,15 @@ TC-003: Viewer cannot create Job Post
 - **Title quality** per `<title_quality>` — no vague titles (`Test X` / `Check Y` / `Verify Z`). Spot-check P2/P3 cases where vague titles tend to slip in.
 </validation_checklist>
 
+<failure_handling>
+- **Missing or empty input** (`requirements.md` absent at `agents/testgen/{TICKET-KEY}/requirements.md`, OR present but empty / contains no `## ` section headings): stop Phase 5, record `Phase 5 blocked: requirements.md missing or empty at <path>` in `agents/testgen/{TICKET-KEY}/testgen-state.md`, and ask the user to rerun Phase 4 (Requirements Document Generation). Do NOT fabricate test cases from raw-data.md / analysis.md / answers.md — those are upstream inputs, not Phase 5's authoritative source. (Mirrors the sibling `testgen-flow-requirements-document-generation.md` `<failure_handling>` "Missing or empty inputs" rule.)
+- **`requirements.md` exists but has zero requirements to test** (the file is structurally valid but has no `US-N` / `FR-N` / `NFR-N` entries — e.g. Phase 4 was trivially completed against an out-of-scope ticket): stop, record `Phase 5 blocked: requirements.md contains zero testable requirements` in `testgen-state.md`, and surface to the user as a Critical question (`No requirements to generate test cases from — should Phase 4 re-run, or is the ticket genuinely out-of-scope for test coverage?`). Do NOT emit a `test-scenarios.md` with zero TCs and call the phase done.
+- **`requirements.md` unreadable / corrupt** (parse error, permission denied): stop, report the IO/parse error with the file path, ask the user to inspect.
+- **Skill execution failure** (`testrail-test-case-authoring` errors, returns empty, or returns an incompatible shape): fall back to the inline `<tc_schema>` template in step 5.3 — that is exactly why it is restated inline. Record `Phase 5 note: testrail-test-case-authoring fallback applied — used inline tc_schema` in `testgen-state.md`. Continue Phase 5.
+- **Output write failure** (`test-scenarios.md` unwritable — permission denied, disk full): pause, report the filesystem error with the file path, do NOT mark Phase 5 complete.
+- **Coverage gap surfaced by step 5.6** (some requirement has zero test cases after step 5.3 + step 5.5): per step 5.6 — flag in the coverage matrix and surface to the user, do NOT silently skip the requirement.
+</failure_handling>
+
 <pitfalls>
 - Happy-path-only coverage → `<identify_test_types>` step 5.2 minimum-coverage patterns.
 - Skipping the merge pass → `<merge_redundant>` step 5.5.

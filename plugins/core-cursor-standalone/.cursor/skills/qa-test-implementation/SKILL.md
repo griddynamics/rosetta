@@ -67,94 +67,21 @@ From the loaded inputs, draft this outline (intermediate artifact; emitted in th
 
 ## 3. Implement Shared Utilities (if needed)
 
-Before writing tests, create or extend shared utilities identified in the approved specs. **Prefer extending existing helpers over creating parallel ones** — the existing-patterns artifact lists them.
-
-### Auth Helper — canonical Python example
-
-```python
-# Python/pytest example — see references/multi-language-examples.md for TypeScript and Java
-class AuthHelper:
-    @staticmethod
-    def get_token(role="user") -> str:
-        """Acquire auth token for test user with given role."""
-        pass
-
-    @staticmethod
-    def auth_headers(role="user") -> dict:
-        """Return headers with valid auth token."""
-        return {"Authorization": f"Bearer {AuthHelper.get_token(role)}"}
-```
-
-### Test Data Factory — canonical Python example
-
-```python
-class TestDataFactory:
-    @staticmethod
-    def create_user(api_client, overrides=None) -> dict:
-        data = {"name": "Test User", "email": "test@example.com"}
-        if overrides:
-            data.update(overrides)
-        response = api_client.post("/api/v1/users", json=data)
-        return response.json()
-```
-
-**Non-Python projects:** load [references/multi-language-examples.md](references/multi-language-examples.md) on demand for equivalent TypeScript/Jest and Java/JUnit+RestAssured patterns. The base skill keeps Python only to minimize default context cost.
+Create or extend shared utilities identified in the approved specs. **Prefer extending existing helpers over creating parallel ones** — the existing-patterns artifact lists them. Canonical Auth Helper + Test Data Factory examples (Python / TypeScript / Java) live in [references/multi-language-examples.md](references/multi-language-examples.md) — load on demand at this step.
 
 ## 4. Implement Test Files
 
-For each test file from the file mapping in the approved specs, follow existing project patterns:
-
-```python
-# Python/pytest canonical example — see references/multi-language-examples.md for TS/Java
-import pytest
-import requests
-from helpers.auth import AuthHelper
-from helpers.factories import TestDataFactory
-
-BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:8080")
-
-class TestUserEndpoints:
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.client = requests.Session()
-        self.client.headers.update(AuthHelper.auth_headers())
-        self.base_url = f"{BASE_URL}/api/v1/users"
-        yield
-
-    def test_atc_001_create_user_with_valid_data(self):
-        """ATC-001: Create user with all required fields returns 201."""
-        payload = {"name": "John Doe", "email": "john@example.com"}
-        response = self.client.post(self.base_url, json=payload)
-        assert response.status_code == 201
-        body = response.json()
-        assert body["name"] == "John Doe"
-        assert body["email"] == "john@example.com"
-        assert "id" in body
-        assert isinstance(body["id"], int)
-```
+For each test file from the file mapping in the approved specs, follow existing project patterns. Canonical ATC-001 test file (Python / TypeScript / Java) in [references/multi-language-examples.md](references/multi-language-examples.md).
 
 **Naming + traceability:** every test function name or docstring includes the ATC-NNN identifier from the approved specs. Loss of traceability between ATC and test is a regression.
 
 ## 5. Apply Implementation Rules
 
-**Test Isolation**: Each test independent, no shared mutable state, use setup/teardown, no test order dependencies, clean up created data.
-
-**Idempotency**: Tests produce the same result on repeated runs, use unique identifiers (timestamps, UUIDs), reset state between tests.
-
-**Assertions**: Status code first, then response body structure, then values, then headers, then response time (if required). Use schema validation when available.
-
-**Error Response Testing**: Verify error status codes (400, 401, 403, 404, 409, 422, 500), error response body format, and error messages.
-
-**Auth Testing**: Test with valid auth (expect success), without auth (expect 401), with invalid auth (expect 401), with insufficient permissions (expect 403).
+Apply Test Isolation / Idempotency / Assertion order / Error Response Testing / Auth Testing rules per [references/multi-language-examples.md](references/multi-language-examples.md#implementation-rules-skillmd-step-5) — load on demand at this step. Single source of truth; `<validation_checklist>` and `<pitfalls>` reference, do not restate.
 
 ## 6. Implement by Priority
 
-Implement test cases in the order the specs prioritize:
-
-1. **P0 (Critical)**: Happy path CRUD operations
-2. **P1 (High)**: Auth scenarios, validation/negative cases
-3. **P2 (Medium)**: Edge cases, boundary values
-4. **P3 (Low)**: Rare scenarios, optional coverage
+P0 → P1 → P2 → P3 per [references/multi-language-examples.md](references/multi-language-examples.md#priority-order-skillmd-step-6). A spec's priority field overrides this default when present.
 
 ## 7. Record Assumptions and Flag Gaps
 

@@ -9,7 +9,7 @@ baseSchema: docs/schemas/workflow.md
 
 <description_and_purpose>
 
-End-to-end backend API test automation from test case input to working automated tests. Uses test case management systems (TestRail, Jira), Swagger/OpenAPI specs, Confluence documentation, and project code to create automated API tests following existing architecture and coding standards.
+End-to-end backend API test automation from test case input to working automated tests. (Source-system + tool enumeration owned by the frontmatter `description` field — not restated here.)
 
 </description_and_purpose>
 
@@ -24,24 +24,20 @@ End-to-end backend API test automation from test case input to working automated
 <skip_rules>
 
 - **Mandatory order.** Phases **0→7** run sequentially.
-- **Verification-failure unilateral-start override** (single-rule form):
-  - **Deference (scope-lock).** This is the **only** sanctioned no-ask deviation from session-wide `hitl` skill defaults and per-phase HITL gates in this workflow. It applies **only** when verifying a phases-0–2-already-complete claim AND **only** when all three preconditions below evaluate. Do **NOT** generalize the no-ask behavior to any other branch. **Explicit carve-outs that remain in force at all times** — the override never suppresses these:
-    - **Per-phase HITL gates** (Phases 3, 4, 5, 6, 7 marked `type="HITL"`) — still require explicit user approval per the `hitl` skill at their normal trigger points.
-    - **NO ASSUMPTIONS rule** (above) — still governs every decision that is not this skip-verification gate.
-    - **Safety / destructive confirmations** — file deletion, repository edits outside `agents/qa/{IDENTIFIER}/`, comparable irreversible actions.
-  - **Precondition (ALL must be true) — independently verified by reading `agents/qa-state.md` and listing `agents/qa/{IDENTIFIER}/`; do not rely solely on user assertion:** (a) user explicitly says Phases 0–2 were completed, AND (b) `agents/qa-state.md` marks them complete (rows present and checked), AND (c) matching `{IDENTIFIER}` artifacts (at least `raw-data.md` + `api-analysis.md`) exist under `agents/qa/{IDENTIFIER}/`.
-  - **If precondition holds:** skip Phases 0–2 and resume at Phase 3.
-  - **If verification fails (any of a/b/c not satisfied) AND the user's instruction was unambiguous:** print one line naming the failing conditions (e.g., `skip-gate refused: (b) agents/qa-state.md absent, (c) artifacts absent → starting at Phase 0`), then begin Phase 0 in the **same turn**. The announcement frames this as evidence-driven start, not as refusing a user instruction — the verification result IS the decision at this specific gate.
-  - **If any precondition is uncertain or only partially true** (state file partially present, ambiguous user assertion, artifacts present but stale, user-supplied evidence the agent cannot independently confirm on disk): fall back to the normal HITL ask path. **Ambiguity defaults to ASK, not auto-start.**
-  - **Scope:** applies ONLY at this skip-verification gate. Authority on ask-before-action elsewhere: the per-phase HITL gates listed above for phase transitions, the `hitl` skill defaults for all other branches, the explicit carve-outs above for genuine HITL + safety confirmations.
-  - *Rationale (one line): at this gate the verification result IS the decision — the user has asserted "0–2 complete" but state and disk evidence contradict; asking again creates a contradictory loop until artifacts exist.*
 
-- **Skip gate example (`agents/qa-state.md`):**
-  ```markdown
-  - [x] Phase 0: Project Config Loading
-  - [x] Phase 1: Data Collection
-  - [x] Phase 2: API Spec Analysis
-  ```
+- **Always-in-force carve-outs** (the override below NEVER suppresses these, read once):
+  1. **Per-phase HITL gates** (Phases 3, 4, 5, 6, 7 marked `type="HITL"`) require explicit user approval per `bootstrap-hitl-questioning` at their normal trigger points.
+  2. **NO ASSUMPTIONS rule** (above) governs every decision that is not this skip-verification gate.
+  3. **Safety / destructive confirmations** — file deletion, repository edits outside `agents/qa/{IDENTIFIER}/`, comparable irreversible actions.
+
+- **Verification-failure unilateral-start override** — subordinate to `bootstrap-hitl-questioning` policy + the carve-outs above; the only sanctioned no-ask deviation from per-phase HITL, applies only at this skip-verification gate.
+
+  | Precondition (ALL must be true, independently verified — not user assertion alone) | Action |
+  |---|---|
+  | (a) user asserts Phases 0–2 complete this turn **AND** (b) `agents/qa-state.md` marks them complete **AND** (c) matching `{IDENTIFIER}` artifacts (at least `raw-data.md` + `api-analysis.md`) exist under `agents/qa/{IDENTIFIER}/` | Skip Phases 0–2, resume at Phase 3. |
+  | Any of (a)/(b)/(c) is false AND the user's instruction was unambiguous | Print one line naming the failing conditions (e.g., `skip-gate refused: (b) state absent, (c) artifacts absent → starting at Phase 0`); begin Phase 0 in the **same turn**. (Evidence-driven start, not refusing the user — verification result IS the decision; asking again would loop until artifacts exist.) |
+  | Any precondition is uncertain or partial (state partial, assertion ambiguous, artifacts stale) | Fall back to normal HITL ask. **Ambiguity defaults to ASK.** |
+
 - **Execution aid.** If the sequencing skill in `<references>` is available, use it for ACQUIRE cadence, todo discipline, and state updates.
 
 </skip_rules>

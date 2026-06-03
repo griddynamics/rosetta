@@ -48,9 +48,16 @@ Create `agents/testgen/{TICKET-KEY}/analysis.md`:
 
 1. **Sections 1–6** (Contradictions, Gaps, Ambiguities, Cross-Reference Analysis, Positive Findings, Risk Assessment) — produced by `gap-and-contradiction-analysis` per its `<output_format>`. **Per-entry field shapes** — `C[N]`: Type / Source 1 (with field/section + verbatim quote) / Source 2 / Impact / Needs Clarification; `G[N]` / `A[N]` analogous — live in the skill's `references/entry-templates-and-document-skeleton.md` (verified canonical home). Sections 1–6 numbering and skeleton: same reference. The phase delegates without restating; this line is the verification trail.
 
-2. **Verify the skill's output ended at `## 6.`** before appending — grep the file produced by step 1 for the last `^## ` heading and confirm it starts with `## 6.` (or the explicit "No issues found" zero-issues form per `gap-and-contradiction-analysis` `<output_format>`). If the last heading is NOT `## 6.`, the skill's section numbering may have drifted — stop and report; do NOT append section 7 onto a misaligned document.
+2. **Verify the skill's output ended at the Risk Assessment section** before appending (semantic check, not numeric).
 
-3. **Append the two sections below verbatim** to the end of the file (numbering continues from the skill's `## 6.`), then fill the `[bracketed]` slots from the analysis:
+   **Coupling note (declared explicitly):** the skill `gap-and-contradiction-analysis` owns the document skeleton sections 1–N (currently 1–6, last section = Risk Assessment) per its `<output_format>` and `references/entry-templates-and-document-skeleton.md`. This phase appends sections (N+1) and (N+2). The semantic anchor is the **section name "Risk Assessment"**, NOT the literal numeric prefix `## 6.` — if the skill renumbers (e.g. adds a section between Contradictions and Risk Assessment), the append still attaches correctly as long as Risk Assessment is the last skill-owned section.
+
+   **Procedure:**
+   - **Primary check:** grep the file produced by step 1 for the last `^## ` heading; confirm its text **ends with `Risk Assessment`** (matches `## 6. Risk Assessment`, `## 7. Risk Assessment`, `## Risk Assessment`, etc.). Numeric prefix and number drift are tolerated.
+   - **Zero-issues exception:** if the skill emitted the explicit "No issues found" zero-issues form per its `<output_format>`, that is also acceptable.
+   - **Mismatch handling:** if the last `## ` heading is neither a "Risk Assessment" section nor the zero-issues form, the skill output is malformed or its skeleton has drifted beyond the semantic anchor — stop, report `Phase 2: gap-and-contradiction-analysis output does not end with Risk Assessment — last heading was: <heading>`, ask the user to inspect; do NOT append onto a misaligned document.
+
+3. **Append the two sections below verbatim** to the end of the file (numbering continues from the skill's last numbered section — currently `## 6.` Risk Assessment, but reads the actual last-section number from the file produced by step 1 so the append stays consecutive if the skill renumbers), then fill the `[bracketed]` slots from the analysis:
 
 ```markdown
 ## 7. Next Steps

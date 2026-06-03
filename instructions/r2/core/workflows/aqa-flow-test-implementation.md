@@ -18,22 +18,13 @@ Create automated test integrating all page objects and assertions. Stops for use
 - Output: implemented test file, lint-clean
 - Prerequisite: Phases 1-5 complete
 - HITL: must stop and wait for user to execute test
-- Implementation handoff (KB tag): `automation-test-implementation-handoff` — routing follows `<skill_handoff>`.
-- **Loading responsibility (routing):** per `<skill_handoff>` — this phase loads the foundational + domain skills first (step 6.1a), then ACQUIREs + USEs the handoff (step 6.1b). The handoff verifies-and-applies; it does NOT itself load skills.
-- **Authoring decision ownership:** file-location new-vs-existing, cleanup-needed-vs-not, structural-fit ambiguities, and assertion-mapping are owned by the `aqa-test-authoring` skill's `<process>`. This phase only orchestrates the load → verify → emit chain; it does NOT restate authoring branches.
+- Implementation handoff (KB tag): `automation-test-implementation-handoff` — routing per `<skill_handoff>`. Authoring decisions (file-location new-vs-existing, cleanup, structural-fit, assertion-mapping) are owned by `aqa-test-authoring`'s `<process>`; this phase orchestrates load → verify → emit only.
 </workflow_context>
 
 <skill_handoff>
-**Handoff contract** (the handoff skill `automation-test-implementation-handoff` declares this in its `<core_concepts>` and `<recommended_foundational_skills>`):
+The handoff skill `automation-test-implementation-handoff` owns the verify-presence contract in its `<core_concepts>` + `<recommended_foundational_skills>` + step-4 GATE — this phase does NOT restate it.
 
-- The handoff **verifies presence** of the foundational + domain skills at its step-4 GATE; it does NOT ACQUIRE/USE them.
-- If a required skill is not loaded when the handoff runs, its step-4 GATE STOPS with `foundational skill <name> not loaded by calling workflow` — this is a hard failure that breaks the phase chain.
-- Therefore the calling workflow (this phase) MUST load `coding`, `testing`, `repository-implementation-standards`, and the domain skill `aqa-test-authoring` before invoking the handoff.
-
-**Handoff completeness (acceptance criteria for step 6.1b step 3):**
-
-- **Acceptable:** the acquired handoff doc explicitly declares the contract above — namely a `<recommended_foundational_skills>` block (or equivalent) naming the four skills the calling workflow must load, plus a verify-presence step (its step 4 GATE).
-- **Unacceptable:** the handoff doc instead claims to ACQUIRE/USE the foundational skills itself, OR is missing the verify-presence step — treat as a stale/incorrect KB copy, record a warning in `agents/aqa-state.md`, and ask the user whether the KB needs to be updated. The phase is at risk of the deadlock the earlier (pre-recast) contract caused.
+**Operational rule for this phase:** load `coding` + `testing` + `repository-implementation-standards` + `aqa-test-authoring` (step 6.1a) BEFORE invoking the handoff (step 6.1b). If the acquired handoff doc lacks a verify-presence step OR claims to load these skills itself, treat as a stale KB copy: record a warning in `agents/aqa-state.md` and ask the user.
 </skill_handoff>
 
 <phase_steps>
@@ -58,7 +49,7 @@ ACQUIRE the four skills the handoff will verify-presence on (per `<skill_handoff
 <invoke_handoff step="6.1b" subagent="engineer" role="Test automation engineer">
 1. ACQUIRE `automation-test-implementation-handoff` FROM KB when not already loaded.
 2. If step 1 returned zero documents: stop Phase 6, record the failure in `agents/aqa-state.md`, ask the user to fix Rosetta/KB — do NOT run steps 3–4.
-3. USE SKILL `automation-test-implementation-handoff` with **domain test implementation skill = `aqa-test-authoring`**. The handoff verifies presence (of the skills loaded in 6.1a) and applies the discipline per `<skill_handoff>`. On mismatch with `<skill_handoff>` acceptance criteria, record a warning in `agents/aqa-state.md` and ask the user whether the KB copy is stale; do NOT treat the gap as silently acceptable.
+3. USE SKILL `automation-test-implementation-handoff` with **domain test implementation skill = `aqa-test-authoring`**. Handoff verifies presence (of the skills loaded in 6.1a) and applies the discipline. Stale-KB handling per `<skill_handoff>` operational rule.
 4. Verify test file created and lint-clean (per the handoff's step 5 + `<output_format>` deliverables).
 </invoke_handoff>
 

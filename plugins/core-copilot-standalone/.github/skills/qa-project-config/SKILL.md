@@ -92,6 +92,10 @@ File: `agents/qa/{IDENTIFIER}/initial-data.md`
 
 </process>
 
+<success_criteria>
+Complete when **all** of the following hold: (1) `agents/qa/{IDENTIFIER}/` session directory exists; (2) `agents/qa-state.md` initial stub written per step 2; (3) `agents/qa/qa-project-config.md` (project-wide canonical path) exists and is non-empty — either pre-existing or freshly saved by step 5; (4) `agents/qa/{IDENTIFIER}/initial-data.md` written with all four template fields populated; (5) `{IDENTIFIER}` is consistent across the directory name, state file, and initial-data path; (6) no literal credential persisted in the saved config (per `<safety_boundaries>` Redaction-at-intake) — OR a `<failure_handling>` stop path was followed and the user was re-prompted. NOT complete if any of (1)–(6) fails silently, if `{IDENTIFIER}` was fabricated, or if a literal credential survived into the saved config.
+</success_criteria>
+
 <safety_boundaries>
 
 `agents/qa/qa-project-config.md` is **tracked + project-wide** (committed to VCS, read by every QA session). Step-4 elicits credential-shaped information — a user-pasted token would persist into the repo without redaction.

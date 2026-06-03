@@ -54,112 +54,18 @@ Decision point: Swagger available -> full spec analysis. No Swagger -> code-base
 
 <produce_output step="2.3">
 
-Create `agents/qa/{IDENTIFIER}/api-analysis.md` using the following template:
+Create `agents/qa/{IDENTIFIER}/api-analysis.md`. The phase owns the document **section list** and the **Analysis Summary metrics** (this phase's contract); per-endpoint field shapes are owned by the `swagger-contracts-analysis` skill — do not restate them here.
+
+**Required section list** (in order; every section must be present-or-`N/A — <reason>`):
+
+1. **Header** — `# API Analysis - [IDENTIFIER]` + Analyzed / Phase / Spec Source.
+2. **API Overview** — Base URL, API Version, Auth Mechanism, Content Type.
+3. **Endpoints Under Test** — one entry per target endpoint using the per-endpoint shape from `swagger-contracts-analysis/references/per-endpoint-template.md` (Endpoint Contract header, Source, Summary, Tags/Groups, Parameters, Request Body, Responses, Auth, Data Dependencies, Source Citations, Notes/Discrepancies — full field-level template owned by the skill). Load that reference on demand when authoring entries.
+4. **Authentication Details** — Auth Mechanism (Token Endpoint, Token Type, Token Location, Header Name) + Auth for Tests (Strategy, Existing Pattern from Phase 1, Setup Required). One block; no per-endpoint restatement.
+5. **Data Dependencies** — Preconditions, Creation Order (numbered list), Cleanup Considerations. Document-level only; per-endpoint preconditions live inside each endpoint entry.
+6. **Analysis Summary** (the phase's metric contract — kept inline verbatim):
 
 ```markdown
-# API Analysis - [IDENTIFIER]
-
-**Analyzed**: [DateTime]
-**Phase**: 2 - API Spec Analysis
-**Spec Source**: [Swagger URL / Code Analysis / Documentation / Combined]
-
----
-
-## API Overview
-
-- **Base URL**: [Base URL or env variable]
-- **API Version**: [v1, v2, etc.]
-- **Auth Mechanism**: [Type]
-- **Content Type**: [application/json, etc.]
-
----
-
-## Endpoints Under Test
-
-### Endpoint 1: [METHOD] [PATH]
-
-**Summary**: [What it does]
-**Tags**: [API group/category]
-
-#### Request
-- **Content-Type**: [Type]
-- **Auth Required**: [Yes/No — scheme name]
-- **Path Parameters**:
-  | Name | Type | Required | Description |
-  |------|------|----------|-------------|
-  | [name] | [type] | [Yes/No] | [desc] |
-
-- **Query Parameters**:
-  | Name | Type | Required | Default | Description |
-  |------|------|----------|---------|-------------|
-  | [name] | [type] | [Yes/No] | [value] | [desc] |
-
-- **Request Body Schema**:
-  ```json
-  {
-    "field1": "string (required, max 255)",
-    "field2": "integer (optional, min 0)"
-  }
-  ```
-
-- **Example Request**:
-  ```json
-  {
-    "field1": "example value",
-    "field2": 42
-  }
-  ```
-
-#### Responses
-
-| Status | Description | Schema |
-|--------|-------------|--------|
-| 200 | Success | `{ id, field1, field2, createdAt }` |
-| 400 | Validation error | `{ error, message, details[] }` |
-| 401 | Unauthorized | `{ error, message }` |
-| 404 | Not found | `{ error, message }` |
-| 500 | Server error | `{ error, message }` |
-
-#### Constraints
-- [Rate limiting, max payload size, required permissions]
-
----
-
-[Repeat for each endpoint]
-
----
-
-## Authentication Details
-
-### Auth Mechanism: [Type]
-- **Token Endpoint**: [URL if applicable]
-- **Token Type**: [Bearer / API Key / etc.]
-- **Token Location**: [Header / Query / Cookie]
-- **Header Name**: [Authorization / X-API-Key / etc.]
-
-### Auth for Tests
-- **Strategy**: [Test credentials / Mock auth / Service account]
-- **Existing Pattern**: [How current tests do it — from Phase 1]
-- **Setup Required**: [Token acquisition steps]
-
----
-
-## Data Dependencies
-
-### Preconditions
-- [Entity 1 must exist before endpoint X can be tested]
-
-### Creation Order
-1. [Create entity A first]
-2. [Create entity B (depends on A)]
-3. [Test target endpoint (depends on A and B)]
-
-### Cleanup Considerations
-- [Data created by tests should be cleaned up]
-- [Cascade delete behavior]
-
----
-
 ## Analysis Summary
 
 - **Endpoints Analyzed**: [Count]

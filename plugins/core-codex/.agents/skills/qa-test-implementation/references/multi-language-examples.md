@@ -1,8 +1,74 @@
-# Multi-Language Examples — qa-test-implementation
+# Implementation Examples + Rules — qa-test-implementation
 
-The base `SKILL.md` keeps **one canonical example in Python/pytest** to minimize default context cost. This reference holds the equivalent examples in **TypeScript/Jest** and **Java/JUnit + RestAssured**. Load on demand when the project's framework is non-Python.
+The base `SKILL.md` keeps decision-time content only — input GATE (step 1), plan outline (step 2), assumptions discipline (step 7), validation checklist. This reference holds:
 
-The structure mirrors `SKILL.md` steps 3 (Shared Utilities) and 4 (Test Files): an Auth Helper, a Test Data Factory, and an ATC-001 test case. The Python originals stay in `SKILL.md`; this file is the cross-language overlay only.
+1. **Canonical code examples** in Python/pytest, TypeScript/Jest, and Java/JUnit+RestAssured (covering SKILL.md steps 3–4: Shared Utilities + Test Files)
+2. **Implementation rules** (SKILL.md step 5: Test Isolation / Idempotency / Assertions / Error Response Testing / Auth Testing)
+3. **Priority order** (SKILL.md step 6: P0 → P1 → P2 → P3)
+
+Loaded on demand when writing code or applying rules; not needed at the input-validation GATE.
+
+---
+
+## Python / pytest (canonical)
+
+### Auth Helper
+
+```python
+class AuthHelper:
+    @staticmethod
+    def get_token(role="user") -> str:
+        """Acquire auth token for test user with given role."""
+        pass
+
+    @staticmethod
+    def auth_headers(role="user") -> dict:
+        """Return headers with valid auth token."""
+        return {"Authorization": f"Bearer {AuthHelper.get_token(role)}"}
+```
+
+### Test Data Factory
+
+```python
+class TestDataFactory:
+    @staticmethod
+    def create_user(api_client, overrides=None) -> dict:
+        data = {"name": "Test User", "email": "test@example.com"}
+        if overrides:
+            data.update(overrides)
+        response = api_client.post("/api/v1/users", json=data)
+        return response.json()
+```
+
+### Test File — canonical ATC-001 entry
+
+```python
+import pytest
+import requests
+from helpers.auth import AuthHelper
+from helpers.factories import TestDataFactory
+
+BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:8080")
+
+class TestUserEndpoints:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.client = requests.Session()
+        self.client.headers.update(AuthHelper.auth_headers())
+        self.base_url = f"{BASE_URL}/api/v1/users"
+        yield
+
+    def test_atc_001_create_user_with_valid_data(self):
+        """ATC-001: Create user with all required fields returns 201."""
+        payload = {"name": "John Doe", "email": "john@example.com"}
+        response = self.client.post(self.base_url, json=payload)
+        assert response.status_code == 201
+        body = response.json()
+        assert body["name"] == "John Doe"
+        assert body["email"] == "john@example.com"
+        assert "id" in body
+        assert isinstance(body["id"], int)
+```
 
 ---
 
@@ -114,4 +180,29 @@ class UserEndpointsTest {
 
 ## Other languages
 
-The same pattern (Auth Helper → Test Data Factory → ATC test) transfers to C# (xUnit + RestSharp/HttpClient), Go (testing + net/http), Ruby (RSpec + Faraday), etc. Use the canonical Python example in `SKILL.md` as the shape reference and adapt to the target framework's idioms — naming, fixture/setup mechanism, assertion library — per the project's existing test patterns (raw-data artifact captures these).
+The same pattern (Auth Helper → Test Data Factory → ATC test) transfers to C# (xUnit + RestSharp/HttpClient), Go (testing + net/http), Ruby (RSpec + Faraday), etc. Use the Python example above as the shape reference and adapt to the target framework's idioms — naming, fixture/setup mechanism, assertion library — per the project's existing test patterns (raw-data artifact captures these).
+
+---
+
+## Implementation rules (SKILL.md step 5)
+
+Apply these to every test file authored at SKILL.md step 4. Language-agnostic.
+
+- **Test Isolation:** each test independent, no shared mutable state, use setup/teardown, no test-order dependencies, clean up created data.
+- **Idempotency:** tests produce the same result on repeated runs. Use unique identifiers (timestamps, UUIDs); reset state between tests.
+- **Assertion order:** status code first, then response body structure, then values, then headers, then response time (if required). Use schema validation when available.
+- **Error response testing:** verify error status codes (400, 401, 403, 404, 409, 422, 500), error response body format, and error messages.
+- **Auth testing:** test with valid auth (expect success), without auth (expect 401), with invalid auth (expect 401), with insufficient permissions (expect 403). Mirrors `<validation_checklist>` "Auth coverage matches spec" item — the spec's auth-failure ATCs (401 no-token, 401 bad-token, 403 insufficient-perm when applicable) are the canonical source; this rule restates them as a per-test discipline.
+
+---
+
+## Priority order (SKILL.md step 6)
+
+Implement test cases in the order the approved specs prioritize:
+
+1. **P0 (Critical)** — happy-path CRUD operations.
+2. **P1 (High)** — auth scenarios, validation / negative cases.
+3. **P2 (Medium)** — edge cases, boundary values.
+4. **P3 (Low)** — rare scenarios, optional coverage.
+
+A spec's priority field overrides this default when present.

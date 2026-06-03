@@ -18,7 +18,18 @@ Extract detailed endpoint contracts (request/response schemas, status codes, aut
 - List of target endpoints to analyze (provided by calling workflow)
 </prerequisites>
 
+<input_contract>
+- **Required input:** a non-empty **target-endpoint list** supplied by the calling workflow. Each entry minimally identifies the endpoint by `<METHOD> <path>` or its TestRail/Jira-derived reference (e.g. `GET /api/v1/orders/{id}`). The list MAY be sourced from Phase 1 test cases, an explicit user list, or a previous analysis artifact — but it MUST be supplied; this skill never fabricates the target set.
+- **Required input:** at least one **spec/source path** — Swagger/OpenAPI URL OR Swagger/OpenAPI file path OR backend source path with route definitions. If multiple are provided, `<process>` step 1 picks per its priority order.
+- **Existence + non-empty check** runs as `<process>` step 1.0 BEFORE step 1 spec-location logic begins: if the target-endpoint list is empty / absent / unspecified, stop and report `swagger-contracts-analysis: target-endpoint list missing or empty — caller must supply` to the calling workflow. Do NOT proceed to spec analysis against a zero-target list — that produces silent zero-coverage that only surfaces at step 5.2's coverage check.
+- **No silent defaulting:** if the caller supplies neither a spec/source path nor a target list, stop at the same step 1.0 check; do NOT scan the whole codebase as a fallback unless the caller explicitly requested it.
+</input_contract>
+
 <process>
+
+## 1.0 Validate Inputs (GATE)
+
+Run the `<input_contract>` existence + non-empty check on the target-endpoint list AND the spec/source path before any spec-location logic. Failure → stop per `<failure_handling>`; do NOT proceed to step 1.
 
 ## 1. Locate API Specification
 
@@ -121,6 +132,7 @@ Consolidated stop/ask/route behaviors. Common branches inline; rarely-hit edge c
 
 **Common branches (always-loaded — these are the high-frequency stops):**
 
+- **Input-contract failure** (step 1.0 GATE): target-endpoint list empty/absent OR no spec/source path supplied — stop, report `swagger-contracts-analysis: <missing-input> — caller must supply` to the calling workflow per `<input_contract>`. Do NOT proceed to step 1. Do NOT scan the whole codebase as a silent fallback.
 - **Endpoint not found in spec OR code** (step 1 exhausted Swagger spec, code-based route definitions, and Swagger-in-source patterns; the target endpoint is in neither): flag the endpoint back to the calling workflow with reason `not-found-in-spec-or-code` AND request user input for endpoint details (per step 1.4). Do NOT fabricate an entry. Do NOT silently drop — record it in the coverage gap list per step 5.2.
 - **Ambiguous routing** (the spec or code returns multiple candidate routes for one logical endpoint — e.g., overlapping path prefixes, versioned duplicates, conflicting method handlers): flag back with reason `ambiguous-routing: <candidate-1> | <candidate-2>` and ask the calling workflow which route is the intended target. Do NOT pick one silently — record both candidates.
 - **Parsing failure** (Swagger spec file is malformed JSON/YAML, OR a code file can't be parsed for route definitions): flag back with reason `parse-failure: <path> — <parser error>`. Continue with the remaining endpoints; the failed endpoint is recorded as a gap. Do NOT guess at contents.

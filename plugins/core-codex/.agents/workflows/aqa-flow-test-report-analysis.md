@@ -37,6 +37,17 @@ Two-layer binding (orchestrator → domain), single source of truth for both ide
 4. The orchestrator's step 9 writes/updates the analysis artifact at the path supplied above.
 
 Canonical match is the KB document whose frontmatter `name:` (or primary tag) is exactly the bound identifier. Downstream packagers swapping providers override only this block.
+
+**Minimum-output contract (degraded fallback — phase-authoritative).** When the bound domain skill's full `<output_format>` is available, that schema governs (richer field set, per-category guidance). When it is not — KB drift, missing document, format change — the artifact at `agents/plans/aqa-<test-name>-failure-analysis.md` MUST still contain at least the following fields per failure, and this phase verifies them via `<validation_checklist>` independent of skill internals:
+
+- **Failure name** — the failing test identifier (function name, ATC ID, or report row reference).
+- **Error type** — categorical bucket (Selector / Timeout / Assertion / Network / Test Bug / Application Bug / Setup / Unknown).
+- **Root cause** — one-line statement of the diagnosed cause.
+- **Evidence label** — `Confirmed` / `Assumption` / `Unknown` per step 7.2.
+- **Evidence rationale** — one-line citation supporting the label (log line, page-source diff, etc.).
+- **Recommendation** — one-line proposed remediation (the actual change happens in Phase 8).
+
+This minimum set is the **phase contract**; the domain skill's `<output_format>` extends it but cannot remove fields from it. If both are present and disagree on a field, the phase's minimum-output contract wins.
 </failure_analysis_skill_binding>
 
 <phase_steps>
@@ -103,6 +114,7 @@ Canonical match is the KB document whose frontmatter `name:` (or primary tag) is
 - Each root cause tagged **Confirmed**, **Assumption**, or **Unknown** with a one-line evidence rationale
 - Recommendations documented
 - **Analysis artifact written** to `agents/plans/aqa-<test-name>-failure-analysis.md` (path resolved per `<failure_analysis_skill_binding>`) and non-empty
+- **Minimum-output contract satisfied** per `<failure_analysis_skill_binding>` "Minimum-output contract" — every failure entry has Failure name / Error type / Root cause / Evidence label / Evidence rationale / Recommendation populated, independent of whether the domain skill's full `<output_format>` was resolvable. Missing any of these 6 fields = artifact incomplete.
 - **No source files were modified** outside the analysis artifact — read-only scope per `<workflow_context>` adversarial-override clause
 </validation_checklist>
 
