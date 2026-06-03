@@ -128,6 +128,9 @@ The agent will follow Rosetta prompts and show Rosetta workflows and execute `se
 
 ## Upgrading
 
+- Standalone upgrades require to redownload and replace files (install again).
+- Marketplace plugins usually automatically upgrade.
+
 See [INSTALLATION.md#upgrading](INSTALLATION.md#upgrading) for update instructions per install mode.
 
 ## Next Steps
