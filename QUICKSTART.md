@@ -22,7 +22,7 @@
 We recommend installing Rosetta using [PLUGINS](PLUGINS.md).
 If AI coding agent does not support plugins, use [MCPs](MCPs.md).
 
-## Step 2: Initialize (once per repository)
+## Step 2: Initialize (once per repository and commit)
 
 Ask the agent:
 
