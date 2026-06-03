@@ -23,6 +23,8 @@ Rosetta is a meta-prompting, context engineering, and centralized instructions m
 
 Every AI interaction follows four phases: **Prepare** (load guardrails and context), **Research** (search the knowledge base), **Plan** (produce a reviewable plan), **Act** (execute with full context). Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).
 
+**DISCLAIMER**: If you are effectively using your current setup, writing your own skills, and managing AI using your own processes - you 99% don't need Rosetta.
+
 ## Supported IDEs and Agents
 
 Cursor | Claude Code | VS Code / GitHub Copilot | JetBrains (Copilot, Junie) | Windsurf | Codex | Antigravity | OpenCode | Gemini CLI
@@ -33,6 +35,8 @@ Works with any MCP-compatible coding agent, though plugins are recommended.
 
 1. [Plugins and standalone installation are supported for Claude Code, Github Copilot (VSCode/JetBrains IDEA), Cursor](PLUGINS.md)
 2. [MCP-based installation for the rest of coding agents](MCPs.md)
+
+There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.
 
 ## Documentation
 

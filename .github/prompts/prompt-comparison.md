@@ -13,7 +13,7 @@ bootstrap_guardrails, bootstrap_core_policy, bootstrap_execution_policy, bootstr
 
 Rosetta predefine key folders and files using that bootstrap_rosetta_files XML tag that will be present in target project.
 
-When evaluating a Rosetta prompt, simulate the perspective of an agent running inside a real target project.
+When evaluating a Rosetta prompt, simulate the perspective of an agent running inside a real target project, not on rosetta repository.
 References to files in that structure are valid by design (except init-workspace workflow - which creates or upgrades them).
 
 Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` in current rosetta repo to better understand rosetta implementation itself. Remember that current and target repositories ARE DIFFERENT (this content is only available in this repo!).

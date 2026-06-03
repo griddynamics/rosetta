@@ -252,6 +252,13 @@ def track_tool_call(func: Callable[P, Awaitable[str]]) -> Callable[P, Awaitable[
         except Exception as exc:
             duration_ms = (time.time() - start) * 1000
             username = get_authenticated_identity(call_ctx=call_ctx, ctx=ctx)
+            logger.exception(
+                "Unhandled MCP tool exception: tool=%s username=%s repository=%s duration_ms=%.3f",
+                tool_name,
+                username,
+                repository,
+                duration_ms,
+            )
             capture_error_to_posthog(
                 exc,
                 tool_name,

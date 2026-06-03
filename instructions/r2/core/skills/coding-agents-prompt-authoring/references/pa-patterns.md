@@ -2,7 +2,7 @@
 
 <multi-hypothesis>
 
-- Define top 3-5 best solutions
+- Define top 3-5 best solutions, ideas, etc.
 - Work on each independently
 - Select winner or merge
 - Clearly indicate and store separately alternatives
@@ -76,6 +76,7 @@
 - Architect makes high-level decisions, actors, responsibilities, contracts, inputs/outputs
 - Planner breaks down work into process
 - Engineer implements tasks according to plan and design
+- Etc.
 
 </layering-cognitive-space>
 
@@ -102,6 +103,7 @@
 - You can use addendum approach (where subagent only outputs what should be modified)
 - Enforce subagent is focused, in case if something goes off the plan, it must tell caller agent back, instead of trying to continue (critical!)
 - Ensure subagents are organized the way they have minimal state transition
+- The best orchestrator "trusts, but validates", "Idiot-proofing" processes, applies Poka-yoke, proactively fights "if something could go wrong will go wrong", properly applies both "theory X and theory Y" at the same time, etc.
 
 </subagents-orchestration>
 
@@ -139,7 +141,6 @@
 
 </why-vs-how-loops>
 
-
 <problem-solution-proof>
 
 - Use self-documentation to make rational decisions afterwards
@@ -149,6 +150,16 @@
 - If you see it is NOT or partially solved - document what should be done
 
 </problem-solution-proof>
+
+<validation>
+
+- Validate outputs/inputs/statements as those might be partially correct, incomplete, or overstating
+- Build solid foundation then build next layer
+- Sequence dependencies. Example: change database => validate database => implement API instead of change database => implement API
+- Validate by actually executing on what was built (example: run backend code and test API with curl, etc.)
+- Build agentic harness to validate what was built (example: build cli to test library/package or to access external systems, etc.)
+
+</validation>
 
 <work-curiosity-limit>
 
@@ -200,7 +211,7 @@
 - Our prompts should encourage co-working and co-authoring
 - AI forgets to give proper context, forgets that subagents, tool calls outputs are only available to orchestrator, user can not see those, etc.
 - AI forgets to validate, reorganize, persist root causes, learn (persist discovered knowledge), and cleanup
-- AI mixes aspects, actors, and responsibilities if not clearly separated
+- AI mixes intent, aspects, actors, sequence of events, independent facts, consequences vs prerequisites, and responsibilities if not clearly separated
 - AI is prone to carry away and generate a huge amounts of content based on assumptions, rendering it useless or impossible to review
 - AI overly relies on internal knowledge (but train sets are >1Y old), AI does not proactively research
 - AI removes important clarifiers, specifiers, explanations ("just", "only", "constantly", minor explanations, etc)

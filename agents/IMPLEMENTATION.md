@@ -41,6 +41,39 @@ For detailed change history, use git history and PRs instead of expanding this f
 - MCP dataset lookup caches dataset objects as well as name/id mappings, avoiding repeated dataset-open calls during instruction/resource/project tool execution.
 - Analytics repository detection caches MCP roots per HTTP session and uses a fixed singleton cache key for STDIO/local transports.
 
+### MCP Server — HTTP Observability + RC1 Hang Fix (ims-mcp-http-observability)
+
+- **RC1 fix (A3/A4):** All sync RAGFlow calls that previously blocked the asyncio event loop are now offloaded via `asyncio.to_thread` + `asyncio.wait_for` using the new `offload()` helper in `tracing.py`. Leaf sites: `list_docs_with_keyword_fallback`, `ragflow.retrieve` in `tools/instructions.py`; `doc_cache.get_all_docs_async` in `clients/doc_cache.py` (used by `list_instructions` and `read_instruction_resource`). Cache reads/writes remain on the event-loop thread (SPECS A-1).
+- **RAGFlow timeout injection (A2/DD-3):** `_traced_http_method` in `tracing.py` now calls `kwargs.setdefault("timeout", _get_ragflow_http_timeout())` before every RAGFlow HTTP call, defaulting to 60s.
+- **Redis socket timeouts (A5/DD-4):** `_build_redis_store` in `server.py` appends `socket_timeout`, `socket_connect_timeout`, and `health_check_interval` query params to the Redis URL when not already present.
+- **OAuth/OIDC timeouts (A6):** `IntrospectionTokenVerifier` and `OIDCProxy` in `auth/oauth.py` now receive `timeout_seconds=config.oauth_http_timeout` (default 10s).
+- **Exception cause chain (A7):** `_retry_once` raises `RuntimeError(...) from last_exc` so `__cause__` is preserved.
+- **In-flight watchdog (A8/REQ-OBS-6):** OS-thread daemon (`threading.Thread`) started in `main()` before `asyncio.run`; reads `_INFLIGHT_REGISTRY` under a `threading.Lock`; WARN-logs slow requests and calls `faulthandler.dump_traceback()` on stuck entries.
+- **9 env knobs (A1):** Added `ENV_*` + `DEFAULT_*` constants to `constants.py` and dataclass fields + `os.getenv` parsing to `config.py` for all 9 observability/timeout knobs.
+- **RequestLoggingMiddleware repositioned (B1/DD-5):** Now wraps the return value of `mcp.http_app(...)` as the outermost ASGI layer, so auth-rejected requests are also logged.
+- **Response-started flag ordering fixed (B2):** Flag set AFTER `await send(message)` succeeds, not before.
+- **Response completion + disconnect logging (B3):** `http.response.body` with `more_body=False` logs completion; `_wrapped_receive` detects `http.disconnect`/`websocket.disconnect` and logs disconnect.
+- **SSE chunk tracing (B4/REQ-OBS-5):** `_send` wrapper logs one compact INFO per SSE chunk (seq+bytes); payload only under DEBUG.
+- **Error logging (C1):** Added `logger.error`/`logger.exception` at all `return "Error: ..."` sites in `tools/instructions.py` and `tools/resources.py`.
+- **exc_info in tracing (C3):** `traced_execution` and `_traced_http_method` failures now log with `exc_info=True`.
+- **Transport loggers wired (C4):** `mcp.server.streamable_http` and `mcp.server.streamable_http_manager` loggers attached to the ims-mcp handler at startup.
+- **Origin-block log (C5/REQ-OBS-7):** `OriginValidationMiddleware` now WARN-logs rejected origins with origin/path/client.
+- **`/healthz` endpoint (D1-D3):** Registered via `@mcp.custom_route("/healthz", methods=["GET"])`; genuinely unauthenticated (no `RequireAuthMiddleware`); probes RAGFlow off-loop via `asyncio.to_thread` + `asyncio.wait_for(timeout=healthz_ragflow_timeout)`; result cached for `healthz_cache_ttl`; returns 200/503/disabled JSON per spec §4.2.
+- **Dockerfile (E0/E1):** Added `ENV PYTHONFAULTHANDLER=1` and `HEALTHCHECK` using Python stdlib urllib.
+- **Pre-existing type errors fixed:** `_install_process_exception_logging` `exc_info` tuples typed correctly with `types.TracebackType | None`.
+
+#### Phase 6b — Defect Fix: RAGFlow Timeout Layer Correction
+
+- **A2 fix (timeout layer):** Removed `kwargs.setdefault("timeout", ...)` from `_traced_http_method` in `tracing.py` — the RAGFlow SDK methods (`get`, `post`, `put`, `delete`, `patch`) do NOT accept a `timeout` kwarg (confirmed: `ragflow_sdk/ragflow.py:36-52`), so forwarding it raised `TypeError` and broke every tool. Replaced with a one-time `requests.sessions.Session.request` patch in `_install_requests_timeout_patch()`, called inside `instrument_ragflow_client`. This injects `timeout=<RAGFLOW_HTTP_TIMEOUT>` via `setdefault` at the actual transport chokepoint — the single method all `requests.*` module-level functions route through. Blast radius is intentional: all requests-based calls in the process (RAGFlow SDK + PostHog) now get a finite default timeout when no explicit one is passed; explicit callers are unaffected (setdefault semantics). The guard `_requests_session_patched` ensures idempotency.
+
+#### Phase 6b — Review Fixes
+
+- **F2 (RC1 leaf fix):** `_build_workflows_listing` in `tools/instructions.py` converted from sync to `async def`; now calls `await doc_cache.get_all_docs_async(...)` instead of the blocking `get_all_docs()`. Caller `get_context_instructions` updated to `await` it. No remaining sync RAGFlow call on the event loop for `get_context_instructions` path.
+- **F4 (latent NFR-1):** `document_client.list_docs(...)` inside the topic/semantic expansion loop (`tools/instructions.py`) is now offloaded via `await offload(...)`. Dormant today (`topic=None` in all callers), but safe for future enablement.
+- **F5 (watchdog noise):** Watchdog in `server.py` tracks an `already_dumped` set per `trace_id`; `faulthandler.dump_traceback()` fires once per stuck request, not every tick. Set is pruned when requests unregister.
+- **F10 (/healthz info leak):** Exception `detail` in `/healthz` 503 body replaced with generic string `"error"`; full `exc` (which may contain internal RAGFlow URL) now logged at WARNING via `_logger` before returning the response.
+- **F11 (GitHub OAuth timeout):** `GitHubProvider.__init__` accepts `timeout_seconds` (confirmed in installed source). Now passes `timeout_seconds=config.oauth_http_timeout` in `auth/oauth.py`, consistent with OIDCProxy and IntrospectionTokenVerifier.
+
 ### Authorization and Security
 
 - Dataset access is policy-driven, with separate read/write behavior for project datasets.
@@ -90,6 +123,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Current commands: `plan` (create, next, update_status, show_status, query, upsert, create-with-template, upsert-with-template, list-templates), `help`.
 - **Atomic write cycle (FR-PLAN-0024)**: every plan mutation uses a rename-as-guard write cycle — rename plan to `<file>.bakNNN` (backup chain, up to 5 retained), then write new content. `previous_version` field on the plan JSON tracks the prior backup path. Bounded to 50 retries; `backup_create_failed` on exhaustion.
 - **Template registry (FR-PLAN-0033)**: two compiled-in template kinds (`create`, `upsert`) with strict bidirectional placeholder matching. Seed templates: `for-orchestrator` (create) and `for-subagent` (upsert). New subcommands `create-with-template`, `upsert-with-template`, `list-templates`.
+- **phase-steps injection (FR-PLAN-0043)**: `create-with-template` and `upsert-with-template` take a last positional `phase-steps` — a JSON string parsed (`parsePhaseSteps` in `templates/render.ts`) to an array of step objects appended verbatim (IDs unchanged) to the seeded steps after placeholder substitution, so one call emits a full phase (prep steps + caller steps). Empty `[]` valid; bad JSON / non-array → `invalid_phase_steps`; per-step + uniqueness validation stays downstream in create/upsert. Not a placeholder (separate from FR-PLAN-0034). Templates carry no injection marker. Backward compatibility: phase-steps is recommended/required in usage and help, but an **omitted** value is treated as `[]` (defaulted at the command boundary, CLI positional optional) rather than rejected — same recommend-in-guidance / recover-in-implementation pattern as the hidden `--limit` alias.
 - **PlanWriteResult output (FR-PLAN-0040)**: all write subcommands return the single shared `PlanWriteResult` = `{ plan: {name, status, previous_version}, phases[{steps}] }`. `previous_version` (backup path captured at the write, or null on first create) lives inside the plan summary so the backup link is self-discoverable in every write output; the plan document remains the recovery chain. Nested shapes are named/reused types (PlanSummary, PlanPhaseSummary, PlanStepSummary). CLI output is dense JSON (no indent, FR-SHRD-0008).
 - **`next` is `PlanNextResult` (FR-PLAN-0011)**: `{ parent?, next[], count, plan_status, Overall{Open,InProgress,Blocked,Failed,Complete}Count }`. Array = in_progress→open→blocked→failed truncated to limit (default **3**); steps carry `status` (no per-step flags); `parent` only with `--target` (phase scalar fields, no steps); counts scoped to filter else whole plan. Blocked/failed retrieved via `show_status`→`query`→`update_status`.
 - **No internal-traceability leakage (FR-ARCH-0016)**: emitted output (results, errors, help, schema descriptions, notes) carries no requirement IDs / internal paths / dataset prefixes; IDs kept in code comments only. Help `schemas` keyed by exported type name (FR-HELP-0002/FR-PLAN-0041); help `notes` carry construction-flow + phase-scoped + recovery guidance (FR-PLAN-0042).

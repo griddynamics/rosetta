@@ -6,6 +6,7 @@
 
 >[!NOTE]
 > This is pre-release, but it already works.
+> There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.
 
 ## Claude Code Full Plugin Installation
 

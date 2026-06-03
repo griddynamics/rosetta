@@ -27,8 +27,10 @@ export const planNotes: string[] = [
   "templates have two kinds (create, upsert); a template of one kind cannot be used with the other kind",
   // Placeholder syntax (FR-PLAN-0034)
   "placeholder syntax in templates is [placeholder-name]; provided params and declared placeholders must match exactly",
+  // Inline JSON-string arguments (FR-PLAN-0044)
+  "the JSON-bearing arguments are inline JSON strings: the plan data for create, the patch for upsert, and phase-steps for create-with-template and upsert-with-template are each passed as the JSON value itself directly on the command line (for example '[{\"id\":\"s1\",\"name\":\"Step\",\"prompt\":\"do it\"}]')",
   // End-to-end usage (FR-PLAN-0042)
-  "end-to-end usage: (1) build the whole plan from a create-kind template with create-with-template; (2) for each phase, seed the subagent's first steps from an upsert-kind template with upsert-with-template before delegating that phase; (3) hand the phase to its subagent; (4) the subagent works the phase in a loop — call next with --target <its phase id> for the next small batch, call update_status <step_id> in_progress before starting a step and update_status <step_id> complete once it passes; (5) the phase is finished when next returns count 0 and parent.status is complete; if blocked or failed steps remain, recover them before finishing",
+  "end-to-end usage — build the whole execution plan first, then execute. Build: (1) create the plan and its initial preparation phase with create-with-template, passing the actual phase-steps (the main body of work) to fill that first phase in one call; (2) add each subsequent phase (phase 1, phase 2, …) with upsert-with-template, every call passing the actual phase-steps so the phase arrives complete — the seeded subagent bootstrap steps plus the actual phase-steps; always add every follow-up phase with upsert-with-template (never plain upsert for a new phase); use plain upsert only for follow-up steps and patching existing items (rarely); change status only via update_status; (3) keep steps granular — each step is about 3–5 minutes of an AI coding agent's own work. Execute only after the whole execution plan is built: (4) hand each phase to its subagent, which loops — call next with --target <its phase id> for the next small batch, update_status <step_id> in_progress before starting a step and update_status <step_id> complete once it passes; (5) a phase is finished when next returns count 0 and parent.status is complete; if blocked or failed steps remain, recover them before finishing",
   // Phase-scoped next (FR-PLAN-0042)
   "phase-scoped next: when working a single phase always call next with --target <that phase id> so the batch and all the counts cover only that phase; --target may be passed with or without a limit",
   // What next returns (FR-PLAN-0042)
@@ -79,15 +81,15 @@ export const planHelpContent = {
     {
       name: "create",
       brief: "Create a new plan JSON file",
-      usage: "rosettify plan create <plan_file> '<plan-json>'",
-      args: { "plan-json": "JSON with name, description?, phases[]" },
-      required: "plan_file and data (plan JSON) are required",
+      usage: "rosettify plan create <plan_file> '<plan-json-string>'",
+      args: { "plan-json-string": "inline JSON string with name, description?, phases[]" },
+      required: "plan_file and data (an inline plan JSON string) are required",
       description:
         "Creates a new plan at plan_file. Defaults: name='Unnamed Plan', status='open', " +
         "depends_on=[], timestamps set. Validates unique IDs, dependencies, and size limits. " +
         "Returns PlanWriteResult: plan + phases summary.",
       examples: {
-        tip: "rosettify plan create [plan_file] '[plan-json-with-name-phases]'",
+        tip: "rosettify plan create [plan_file] '[plan-json-string-with-name-and-phases]'",
         real: "rosettify plan create plans/feature-x/plan.json '{\"name\":\"Feature X\",\"phases\":[]}'",
       },
     },
@@ -157,60 +159,62 @@ export const planHelpContent = {
     {
       name: "upsert",
       brief: "Create or merge-patch plan/phase/step by id",
-      usage: "rosettify plan upsert <plan_file> <target_id> '<patch-json>'",
+      usage: "rosettify plan upsert <plan_file> <target_id> '<patch-json-string>'",
       args: {
         target_id: "entire_plan | phase-id | step-id",
-        "patch-json": "RFC 7396 patch object. null removes a key.",
+        "patch-json-string": "inline JSON string; RFC 7396 patch object, null removes a key",
         kind: "required for new items: 'phase' or 'step'",
         phase_id: "required for new step: parent phase ID",
       },
-      required: "plan_file, target_id, and data (patch JSON) are required",
+      required: "plan_file, target_id, and data (an inline patch JSON string) are required",
       conditional_requirements: "kind is required only when the target id does not already exist; phase_id is required only when kind is step",
       description:
         "Creates or merge-patches plan/phase/step. Status fields in patch are silently stripped. " +
         "Use update_status to change status after each task completion. Returns PlanWriteResult.",
       examples: {
-        tip: "rosettify plan upsert [plan_file] [target-id] '[patch-json]'",
+        tip: "rosettify plan upsert [plan_file] [target-id] '[patch-json-string]'",
         real: "rosettify plan upsert plans/feature-x/plan.json ph-review '{\"kind\":\"phase\",\"name\":\"Review\"}'",
       },
     },
     {
       name: "create-with-template",
       brief: "Create a plan from a registered create-kind template",
-      usage: "rosettify plan create-with-template <plan_file> <template> <plan-name> <plan-description>",
+      usage: "rosettify plan create-with-template <plan_file> <template> <plan-name> <plan-description> <phase-steps-json-string>",
       args: {
         template: "template name from create-kind collection",
         "plan-name": "value for [plan-name] placeholder",
         "plan-description": "value for [plan-description] placeholder",
+        "phase-steps": "inline JSON string of a steps array appended to the seeded ph-prep phase (empty array [] allowed); not a placeholder",
       },
-      required: "plan_file, template, plan-name, and plan-description are all required",
+      required: "plan_file, template, plan-name, plan-description, and phase-steps are all required",
       description:
         "Renders the named create-kind template with the provided placeholder values, " +
-        "then creates the plan. All validations and write semantics are identical to create. " +
-        "Returns PlanWriteResult.",
+        "appends the phase-steps JSON array to the seeded ph-prep phase, then creates the plan. " +
+        "All validations and write semantics are identical to create. Returns PlanWriteResult.",
       examples: {
-        tip: "rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator [plan-name] [user-request-description-one-sentence]",
-        real: "rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator \"Feature X\" \"User wants to add Y to Z\"",
+        tip: "rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator [plan-name] [user-request-description-one-sentence] [phase-steps-json-string]",
+        real: "rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator \"Feature X\" \"User wants to add Y to Z\" '[{\"id\":\"ph-prep-s-impl\",\"name\":\"Implement\",\"prompt\":\"Implement Y\"}]'",
       },
     },
     {
       name: "upsert-with-template",
       brief: "Upsert a phase into an existing plan using a registered upsert-kind template",
-      usage: "rosettify plan upsert-with-template <plan_file> <phase-id> <template> <phase-name> <phase-description>",
+      usage: "rosettify plan upsert-with-template <plan_file> <phase-id> <template> <phase-name> <phase-description> <phase-steps-json-string>",
       args: {
         "phase-id": "target phase ID and value for [phase-id] placeholder",
         template: "template name from upsert-kind collection",
         "phase-name": "value for [phase-name] placeholder",
         "phase-description": "value for [phase-description] placeholder",
+        "phase-steps": "inline JSON string of a steps array appended to the seeded phase (empty array [] allowed); not a placeholder",
       },
-      required: "plan_file, phase-id, template, phase-name, and phase-description are all required",
+      required: "plan_file, phase-id, template, phase-name, phase-description, and phase-steps are all required",
       description:
         "Renders the named upsert-kind template with the provided placeholder values, " +
-        "then upserts the rendered phase into the plan. All upsert merge semantics apply. " +
-        "Returns PlanWriteResult.",
+        "appends the phase-steps JSON array to the seeded phase, then upserts the rendered phase into the plan. " +
+        "All upsert merge semantics apply. Returns PlanWriteResult.",
       examples: {
-        tip: "rosettify plan upsert-with-template plans/feature-x/plan.json [phase-id] for-subagent [phase-name] [phase-description-one-sentence]",
-        real: "rosettify plan upsert-with-template plans/feature-x/plan.json ph-impl for-subagent \"Implementation\" \"Implement the API endpoint\"",
+        tip: "rosettify plan upsert-with-template plans/feature-x/plan.json [phase-id] for-subagent [phase-name] [phase-description-one-sentence] [phase-steps-json-string]",
+        real: "rosettify plan upsert-with-template plans/feature-x/plan.json ph-impl for-subagent \"Implementation\" \"Implement the API endpoint\" '[{\"id\":\"ph-impl-s-build\",\"name\":\"Build\",\"prompt\":\"Build the endpoint\"}]'",
       },
     },
     {

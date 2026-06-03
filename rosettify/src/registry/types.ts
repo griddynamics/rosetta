@@ -48,6 +48,8 @@ export interface CommandInput {
   "phase-name"?: string;
   /** FR-PLAN-0031 / FR-PLAN-0034 — value for the [phase-description] placeholder (upsert-with-template). */
   "phase-description"?: string;
+  /** FR-PLAN-0043 — JSON array of steps appended to the seeded phase (create-with-template, upsert-with-template). Not a placeholder. */
+  "phase-steps"?: string;
   /** FR-PLAN-0030 / FR-PLAN-0031 — template name to look up in the kind-scoped registry. */
   template?: string;
 }

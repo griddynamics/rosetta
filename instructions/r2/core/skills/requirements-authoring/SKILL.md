@@ -180,7 +180,7 @@ HITL gates (use when):
 - Keep traceability separate
 - Keep decisions separate
 - Keep questions separate
-- REQUIREMENTS/INDEX.md is index, for each file has one md header with its title, short description, serves as ToC grepable by headers
+- REQUIREMENTS/INDEX.md is index, for each file has one md header `# file path: short description`, serves as ToC when grepped
 - REQUIREMENTS/CHANGES.md is change log
 - Each file defines one area abbreviation
 - Each file uses grep-friendly headers for sections and requirements
@@ -245,7 +245,7 @@ HITL gates (use when):
     <criteria>Given: X When: Y Then: Z.</criteria>
   </acceptance>
   <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
-  <implementation>[Implemented|Todo|Modify] [Additional Notes: files affected for implemented, notes without duplication for what changed for todo and modify]</implementation>
+  <implementation>[Status: NotStarted|Implemented|Planned|ToBeModified] [Additional Notes: files affected for implemented, notes without duplication for what changed to modify]</implementation>
   <notes>...</notes>
 </req>
 ```

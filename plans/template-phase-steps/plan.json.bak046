@@ -1,0 +1,261 @@
+{
+  "name": "template-phase-steps",
+  "description": "Add required positional phase-steps (JSON string of steps) parameter to rosettify create-with-template and upsert-with-template so template commands emit a full phase; update REQ xmls across rosettify (via subagent); make docs/REQUIREMENTS/INDEX.md headers greppable (side quest)",
+  "status": "in_progress",
+  "created_at": "2026-06-02T15:34:58.040Z",
+  "updated_at": "2026-06-02T22:40:28.857Z",
+  "previous_version": "plans/template-phase-steps/plan.json.bak045",
+  "phases": [
+    {
+      "status": "complete",
+      "depends_on": [],
+      "id": "ph-prep",
+      "name": "Preparation",
+      "description": "Mandatory Rosetta preparation steps for the orchestrator. Execute every step sequentially. No skipping.",
+      "steps": [
+        {
+          "status": "complete",
+          "depends_on": [],
+          "id": "ph-prep-s-load-context-instructions",
+          "name": "Load bootstrap context",
+          "prompt": "USE SKILL `load-context-instructions`. Execute ALL returned prep steps."
+        },
+        {
+          "status": "complete",
+          "depends_on": [],
+          "id": "ph-prep-s-read-docs",
+          "name": "Read project context",
+          "prompt": "USE SKILL `load-context` as the canonical current context loader. The skill is required even when its expected outputs already look satisfied."
+        },
+        {
+          "status": "complete",
+          "depends_on": [],
+          "id": "ph-prep-s-orchestrator-contract",
+          "name": "Load orchestrator contract",
+          "prompt": "MUST USE SKILL `orchestrator-contract` as first action before dispatching any subagents. MUST USE SKILL `hitl` unless explicitly requested in prompt with exactly `No HITL`."
+        },
+        {
+          "status": "complete",
+          "depends_on": [],
+          "id": "ph-prep-s-load-workflow",
+          "name": "Load workflow",
+          "prompt": "MUST USE SKILL `load-workflow`."
+        },
+        {
+          "status": "complete",
+          "depends_on": [],
+          "id": "ph-prep-s-add-workflow-phases",
+          "name": "Add workflow phases",
+          "prompt": "Add workflow phases from the loaded workflow into this plan — one plan phase per workflow phase, each with dedicated, detailed, and specific steps. Must add phase to identify request size after intial discovery. Include state-restore and resume steps if applicable."
+        }
+      ]
+    },
+    {
+      "status": "complete",
+      "depends_on": [
+        "ph-prep"
+      ],
+      "steps": [
+        {
+          "id": "ph-reqs-s-outline",
+          "name": "Outline affected req units",
+          "prompt": "Produce MECE outline of affected <req> units, new FR-PLAN-0043, help examples, error vocabulary. HITL approve structure.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-reqs-s-draft",
+          "name": "Draft requirement deltas",
+          "prompt": "Draft updated <req> text using requirements-authoring skill. Present as narrative. HITL per-batch approval.",
+          "status": "complete"
+        }
+      ],
+      "name": "Requirements authoring (orchestrator + HITL)",
+      "description": "Outline and draft the requirement deltas for phase-steps. Per-batch user approval before any file edits.",
+      "id": "ph-reqs"
+    },
+    {
+      "status": "complete",
+      "depends_on": [
+        "ph-reqs"
+      ],
+      "steps": [
+        {
+          "id": "ph-reqs-apply-s-dispatch",
+          "name": "Dispatch requirements-engineer subagent",
+          "prompt": "Full subagent applies approved <req> deltas across the entire rosettify requirements folder; updates INDEX.md to greppable per-file headers; updates CHANGES.md. MUST USE SKILL requirements-authoring.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-reqs-apply-s-review",
+          "name": "Dispatch reviewer subagent",
+          "prompt": "Reviewer subagent statically verifies req edits for correctness, consistency, traceability, no scope creep.",
+          "status": "complete"
+        }
+      ],
+      "name": "Apply requirement updates via subagent",
+      "description": "Subagent applies approved req deltas across docs/requirements/rosettify, plus INDEX.md greppable headers side quest and CHANGES.md. Reviewer subagent verifies.",
+      "id": "ph-reqs-apply"
+    },
+    {
+      "status": "complete",
+      "depends_on": [
+        "ph-reqs-apply"
+      ],
+      "steps": [
+        {
+          "id": "ph-impl-s-templates",
+          "name": "Drop placeholder literals",
+          "prompt": "Remove informational [phase-steps] literal from both TS template steps arrays.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-impl-s-injection",
+          "name": "Add array injection + wire commands",
+          "prompt": "Parse phase-steps JSON, append step objects to seeded steps; required; empty [] allowed; invalid JSON or non-array errors. Wire into both commands.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-impl-s-wiring",
+          "name": "Wire frontends and help",
+          "prompt": "Update plan/index.ts schema+switch, cli.ts last positional arg, MCP field, help-content examples, errors.ts.",
+          "status": "complete"
+        }
+      ],
+      "name": "Implement rosettify code",
+      "description": "Drop [phase-steps] literals; add JSON-array injection; wire phase-steps as required last positional param.",
+      "id": "ph-impl"
+    },
+    {
+      "status": "complete",
+      "depends_on": [
+        "ph-impl"
+      ],
+      "steps": [
+        {
+          "id": "ph-tests-s-unit",
+          "name": "Add/update tests",
+          "prompt": "Add vitest cases: array append, empty [], invalid JSON, non-array, IDs as-given, duplicate-id rejection, both commands, CLI+MCP.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-tests-s-run",
+          "name": "Run typecheck and tests",
+          "prompt": "Run npm run typecheck and npm test from rosettify. Report full output. Fix failures.",
+          "status": "complete"
+        }
+      ],
+      "name": "Validate code",
+      "description": "Add/update tests; run typecheck and vitest.",
+      "id": "ph-tests"
+    },
+    {
+      "status": "complete",
+      "depends_on": [
+        "ph-tests"
+      ],
+      "steps": [
+        {
+          "id": "ph-review-s-story",
+          "name": "User narrative review",
+          "prompt": "Present requirements + code as a story for explicit user approval.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-review-s-finalize",
+          "name": "Finalize",
+          "prompt": "Update agents/IMPLEMENTATION.md and MEMORY.md. Mark plan complete after approval.",
+          "status": "complete"
+        }
+      ],
+      "name": "Final HITL and finalization",
+      "description": "Narrative review with user; update IMPLEMENTATION.md and MEMORY.md.",
+      "id": "ph-review"
+    },
+    {
+      "status": "complete",
+      "depends_on": [
+        "ph-review"
+      ],
+      "steps": [
+        {
+          "id": "ph-guidance-s-draft",
+          "name": "Draft note + get approval",
+          "prompt": "Draft new end-to-end usage note wording. HITL approve.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-guidance-s-apply",
+          "name": "Apply to help-content + FR-PLAN-0042",
+          "prompt": "Update help-content.ts note and FR-PLAN-0042 statement to match; adjust help-content.test.ts assertions if needed.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-guidance-s-validate",
+          "name": "Validate",
+          "prompt": "Run npm run typecheck and npm test; confirm green.",
+          "status": "complete"
+        }
+      ],
+      "name": "Update end-to-end usage guidance",
+      "description": "Fix help-content end-to-end usage note + FR-PLAN-0042 to reflect build-then-execute model: create-with-template for initial phase, upsert-with-template per subsequent phase (demand it over plain upsert for new work), 3-5 min step granularity, build whole plan then execute.",
+      "id": "ph-guidance"
+    },
+    {
+      "status": "complete",
+      "depends_on": [
+        "ph-guidance"
+      ],
+      "steps": [
+        {
+          "id": "ph-optional-s-code",
+          "name": "Code: optional + default []",
+          "prompt": "CLI positional <phase-steps> -> [phase-steps]; index.ts drop missing-error + default; cmd functions phaseSteps?: string with parsePhaseSteps(phaseSteps ?? []). Help/usage strings untouched.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-optional-s-reqs",
+          "name": "Sync requirements",
+          "prompt": "FR-PLAN-0043 omitted->treated as [] + recommend/require-but-recover note; FR-PLAN-0030/0031 acceptance omitted lines; FR-PLAN-0021 remove phase-steps-absent from missing_template_param. CHANGES.md entry.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-optional-s-tests",
+          "name": "Update tests",
+          "prompt": "Change omit->missing_template_param tests to omit->ok seeded-only, both commands + CLI/MCP; keep invalid-json/non-array tests.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-optional-s-validate",
+          "name": "Validate",
+          "prompt": "npm run typecheck + npm test green.",
+          "status": "complete"
+        }
+      ],
+      "name": "Make phase-steps optional (backward compat)",
+      "description": "phase-steps optional: omitted -> treated as []. Recommend/require framing in help/notes/usage UNCHANGED. Sync FR-PLAN-0043/0030/0031/0021 acceptance + tests to honest behavior.",
+      "id": "ph-optional"
+    },
+    {
+      "status": "in_progress",
+      "depends_on": [
+        "ph-optional"
+      ],
+      "steps": [
+        {
+          "id": "ph-jsonhint-s-apply",
+          "name": "Apply help + spec edits",
+          "prompt": "help-content.ts: create tip/args plan-json-string; upsert tip/args patch-json-string; with-template tips phase-steps-json-string + inline-not-file arg notes; add notes-array entry. PLAN.md: FR-PLAN-0016/0018 illustration tokens; FR-PLAN-0042 add note bullet.",
+          "status": "in_progress"
+        },
+        {
+          "id": "ph-jsonhint-s-validate",
+          "name": "Rebuild + validate",
+          "prompt": "npm run build + typecheck + test green; show help via built binary."
+        }
+      ],
+      "name": "Clarify inline-JSON-string hints in help",
+      "description": "Help hints for plan data, patch, and phase-steps say *-json-string and inline (not a file path), to stop AI passing files. Sync FR-PLAN-0016/0018/0042. Rebuild + test.",
+      "id": "ph-jsonhint"
+    }
+  ]
+}

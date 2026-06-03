@@ -1,6 +1,11 @@
 // Implements FR-PLAN-0034 (placeholder substitution with strict bidirectional matching).
+// Implements FR-PLAN-0043 (phase-steps array injection — distinct from placeholder substitution).
 
-import { ERR_MISSING_TEMPLATE_PARAM, ERR_UNEXPECTED_TEMPLATE_PARAM } from "../errors.js";
+import {
+  ERR_MISSING_TEMPLATE_PARAM,
+  ERR_UNEXPECTED_TEMPLATE_PARAM,
+  ERR_INVALID_PHASE_STEPS,
+} from "../errors.js";
 
 // ---------------------------------------------------------------------------
 // FR-PLAN-0034 — Placeholder render with strict bidirectional matching
@@ -93,4 +98,34 @@ export function renderTemplate(
   // FR-PLAN-0034 — substitute (literal replacement; values are not re-interpreted)
   const rendered = substituteValues(template.content, params as Record<string, string>);
   return { ok: true, rendered };
+}
+
+// ---------------------------------------------------------------------------
+// FR-PLAN-0043 — phase-steps array injection
+// ---------------------------------------------------------------------------
+
+/**
+ * Parses the required `phase-steps` input — a JSON string that must decode to an
+ * array of step objects. The parsed array is appended verbatim to a template's
+ * seeded steps by the calling subcommand. This is NOT placeholder substitution
+ * (FR-PLAN-0034): it splices objects into an array, which literal string
+ * replacement cannot express. Step field and id-uniqueness validation is left to
+ * the downstream create/upsert logic on the assembled plan (FR-PLAN-0001).
+ *
+ *  - invalid JSON, or JSON that is not an array → invalid_phase_steps
+ *  - an empty array is valid and leaves the seeded steps unchanged
+ */
+export function parsePhaseSteps(
+  phaseSteps: string,
+): { ok: true; steps: unknown[] } | { ok: false; error: string } {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(phaseSteps);
+  } catch {
+    return { ok: false, error: ERR_INVALID_PHASE_STEPS };
+  }
+  if (!Array.isArray(parsed)) {
+    return { ok: false, error: ERR_INVALID_PHASE_STEPS };
+  }
+  return { ok: true, steps: parsed };
 }

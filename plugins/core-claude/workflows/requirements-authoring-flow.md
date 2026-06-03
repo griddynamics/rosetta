@@ -1,6 +1,6 @@
 ---
 name: requirements-authoring-flow
-description: Rosetta workflow for requirements authoring (creating, updating, improving, reviewing). Guides AI through discovery, intent capture, iterative requirement drafting with mandatory user approvals, validation, and delivery. Contains discovery, research, intent capture, outline, drafting, validating, and finalization
+description: Rosetta workflow for requirements and specifications authoring (creating, updating, improving, reviewing). Guides AI through discovery, intent capture, iterative requirement drafting with mandatory user approvals, validation, and delivery. Contains discovery, research, intent capture, outline, drafting, validating, and finalization
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---
@@ -13,13 +13,13 @@ Prevents premature drafting by enforcing HITL gates where every `<req>` unit rec
 
 <workflow_phases>
 
-<prerequisites phase="0", applies="ALL">
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed (get_context_instructions called and all three prep steps completed).
+- Every phase MUST update `requirements-authoring-flow-state.md` in FEATURE TEMP with: phase name, status, artifact produced, and open questions.
+- Orchestrator and subagents MUST USE SKILL `requirements-authoring`.
+- If task is to reverse engineer orchestrator MUST USE SKILL `reverse-engineering`.
+- Keep requirement identifiers in code comments only, must not be user facing.
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
-2. MUST USE OPERATION_MANAGER for deterministic execution
-3. Every phase MUST update `requirements-authoring-flow-state.md` in FEATURE TEMP with: phase name, status, artifact produced, and open questions.
-
-</prerequisites>
+IMPORTANT! If the task is to reverse engineer requirements, spawn MULTIPLE subagents with each handling one unit of analysis (one screen, one page, one controller, one endpoint, etc) to effectively prevent hallucinations by narrow scoping for phases intent_capture, outline, draft, validate.
 
 <discovery phase="1" priority="must" subagent="requirements-engineer" role="Context analyst collecting project and scope signals">
 
@@ -31,6 +31,8 @@ Done when: scope boundaries and relevant requirement files are identified.
 3. Read existing requirements, glossary, assumptions, constraints
 4. Identify requirement areas (FR, NFR, interfaces, data, traceability)
 5. Record assumptions and unknowns
+6. Required skills: `requirements-authoring`
+7. Recommended skills: `reverse-engineering`
 
 </discovery>
 
@@ -43,6 +45,7 @@ Skip when: local context is complete and no external standards are needed.
 1. Gather supporting docs and prior decisions
 2. Collect requirement patterns and quality criteria
 3. Capture measurable thresholds and terminology constraints
+4. Required skills: `requirements-authoring`
 
 </research>
 
@@ -55,6 +58,7 @@ Done when: intent is restated, scope and goals confirmed, assumptions listed, an
 2. List assumptions and targeted questions
 3. HITL: present intent capture and get explicit approval
 4. Resolve blockers before outlining or drafting
+5. Required skills: `requirements-authoring`
 
 </intent_capture>
 
@@ -66,6 +70,7 @@ Done when: user approves structure and requirement batching strategy.
 1. Propose MECE structure and area abbreviations
 2. Map files and IDs without writing final requirement text
 3. HITL: get user approval on structure and scope
+4. Required skills: `requirements-authoring`
 
 </outline>
 
@@ -79,6 +84,7 @@ Done when: every in-scope requirement has schema-complete draft and explicit use
 3. Keep unresolved or deferred units as `Draft`
 4. Modify files directly, do not show to user
 5. Update `<req>` schema if older/missing fields
+6. Required skills: `requirements-authoring`
 
 </draft>
 
@@ -91,6 +97,9 @@ Done when: checklist passes and unresolved issues are either fixed or explicitly
 2. Run conflict checks and gap checks
 3. Verify traceability source -> goal -> req -> test
 4. HITL: review findings with user as a narrative / story /walk-through
+5. Required skills: `requirements-authoring`
+6. Recommended skills: `reverse-engineering`
+7. If reverse engineering: MUST additionally validate there are NO hallucinations or made-up requirements
 
 </validate>
 
@@ -114,6 +123,8 @@ Done when: artifacts are stored in target location and state file is complete.
 2. Update index and links
 3. ACQUIRE `requirements-authoring/assets/ra-change-log.md` FROM KB and update change log
 4. Mark state as complete
+5. Required skills: `requirements-authoring`
+6. Coding must be performed using `coding-flow` (ask, recommend, switch)
 
 </finalization>
 

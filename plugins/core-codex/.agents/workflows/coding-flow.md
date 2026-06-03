@@ -33,7 +33,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 1. Gather project context, affected areas, dependencies, constraints, requirements. SMALL: orchestrator handles inline.
 2. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: discovery-notes.md in FEATURE PLAN folder.
-3. Recommended skills: `load-context`
+3. Required skills: `load-context`
 4. Update `agents/coding-flow-state.md`
 5. Do not stop until 100% clear
 
@@ -64,8 +64,9 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 1. MUST USE SKILL `tech-specs` and `planning` together. Split: specs own WHAT, plan owns HOW. Target: 100% clarity.
 2. Input: discovery notes, user request, `ARCHITECTURE.md`. Output: `<FEATURE>-SPECS.md` + `<FEATURE>-PLAN.md` in FEATURE PLAN folder.
 3. SMALL: output as message, no files. MEDIUM: concise. LARGE: full.
-4. Recommended skills: `tech-specs`, `planning`, `reasoning`, `questioning`
-5. Update `agents/coding-flow-state.md`
+4. Required skills: `tech-specs`, `planning`, `reasoning`
+5. Recommended skills: `questioning`
+6. Update `agents/coding-flow-state.md`
 
 </tech_plan>
 
@@ -73,7 +74,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 1. Review specs and plan against user request and discovery notes, do not assume user is in context, give him full information with TLDR.
 2. Input: specs, plan, user request. Output: review findings and recommendations.
-3. Recommended skills: `reasoning`
+3. Required skills: `reasoning`
 4. Update `agents/coding-flow-state.md`
 
 </review_plan>
@@ -90,9 +91,10 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 1. Implement approved plan. Build MUST succeed. Tests excluded.
 2. Input: approved specs + plan. Output: working code, build passing, update relevant documentation briefly (CONTEXT.md, ARCHITECTURE.md, etc).
 3. MUST follow approved scope. MUST stop and escalate if blocked.
-4. Recommended skills: `coding`, `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
-5. If requirements are used code must contain comments refs to requirement identifiers
-6. Update `agents/coding-flow-state.md`
+4. Required skills: `coding`
+5. Recommended skills: `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
+6. If requirements are used code must contain comments refs to requirement identifiers
+7. Update `agents/coding-flow-state.md`
 
 </implementation>
 
@@ -100,18 +102,20 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 1. Review code changes against approved specs and plan.
 2. Input: implementation diff, specs, plan, check if documentation is updated, brief, and matches the file intent. Output: review findings and recommendations.
-3. Recommended skills: `reasoning`, `coding`, `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
-4. Update `agents/coding-flow-state.md`
+3. Required skills: `coding`
+4. Recommended skills: `reasoning`, `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
+5. Update `agents/coding-flow-state.md`
 
 </review_code>
 
 <impl_validation phase="9" applies="MEDIUM,LARGE" subagent="validator" role="Validation specialist">
 
 1. Validate implementation against specs: git changes, spec coverage, gaps, perform search and MCP fact-checking.
-2. Input: implementation diff, specs, plan, review findings. Output: validation findings.
-3. SMALL: orchestrator performs quick inline check.
-4. Recommended skills: `coding`, `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
-5. Update `agents/coding-flow-state.md`
+2. Locally execute code and check it works
+3. Input: implementation diff, specs, plan, review findings. Output: validation findings.
+4. SMALL: orchestrator performs quick inline check.
+5. Recommended skills: `reverse-engineering`, `debugging`, `sensitive-data`, `testing`, `dangerous-actions`
+6. Update `agents/coding-flow-state.md`
 
 </impl_validation>
 
@@ -127,8 +131,9 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 1. Write and execute tests. All MUST succeed, isolated, idempotent.
 2. Input: implementation, specs. Output: passing tests with coverage.
-3. Recommended skills: `coding`, `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
-4. Update `agents/coding-flow-state.md`
+3. Required skills: `testing`, `coding`
+4. Recommended skills: `debugging`, `coding-iac`, `sensitive-data`, `dangerous-actions`
+5. Update `agents/coding-flow-state.md`
 
 </tests>
 
@@ -136,18 +141,20 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 1. Review tests against specs: coverage, scenarios, edge cases, mocking correctness.
 2. Input: tests, specs, implementation. Output: review findings and recommendations.
-3. Recommended skills: `coding`, `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
-4. Update `agents/coding-flow-state.md`
+3. Required skills: `testing`, `coding`
+4. Recommended skills: `debugging`, `coding-iac`, `sensitive-data`, `dangerous-actions`
+5. Update `agents/coding-flow-state.md`
 
 </review_tests>
 
 <final_validation phase="13" applies="MEDIUM,LARGE" subagent="validator" role="Final end-to-end verification">
 
 1. Systematic by-dependency validation: databases, APIs, web, mobile. Check logs, clean up.
-2. Input: full delivery (code + tests + specs + review findings). Output: final validation report.
-3. SMALL: orchestrator confirms build + tests pass.
-4. Recommended skills: `coding`, `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
-5. Update `agents/coding-flow-state.md`
+2. Additionally systematic "manual QA" by yourself.
+3. Input: full delivery (code + tests + specs + review findings). Output: final validation report.
+4. SMALL: orchestrator confirms build + tests pass.
+5. Recommended skills: `coding`, `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
+6. Update `agents/coding-flow-state.md`
 
 </final_validation>
 

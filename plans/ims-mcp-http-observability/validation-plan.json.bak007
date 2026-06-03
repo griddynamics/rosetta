@@ -1,0 +1,94 @@
+{
+  "name": "final-validation-ph11",
+  "description": "Final end-to-end validation gate: pre_commit, verify_mcp, docker healthcheck, git status",
+  "status": "in_progress",
+  "created_at": "2026-06-01T22:32:56.240Z",
+  "updated_at": "2026-06-01T22:33:20.629Z",
+  "previous_version": "plans/ims-mcp-http-observability/validation-plan.json.bak006",
+  "phases": [
+    {
+      "status": "complete",
+      "depends_on": [],
+      "id": "ph-prep",
+      "name": "Preparation",
+      "description": "Mandatory Rosetta preparation steps for the orchestrator. Execute every step sequentially. No skipping.",
+      "steps": [
+        {
+          "status": "complete",
+          "depends_on": [],
+          "id": "ph-prep-s-load-context-instructions",
+          "name": "Load bootstrap context",
+          "prompt": "USE SKILL `load-context-instructions`. Execute ALL returned prep steps."
+        },
+        {
+          "status": "complete",
+          "depends_on": [],
+          "id": "ph-prep-s-read-docs",
+          "name": "Read project context",
+          "prompt": "USE SKILL `load-context` as the canonical current context loader. The skill is required even when its expected outputs already look satisfied."
+        },
+        {
+          "status": "complete",
+          "depends_on": [],
+          "id": "ph-prep-s-orchestrator-contract",
+          "name": "Load orchestrator contract",
+          "prompt": "MUST USE SKILL `orchestrator-contract` as first action before dispatching any subagents. MUST USE SKILL `hitl` unless explicitly requested in prompt with exactly `No HITL`."
+        },
+        {
+          "status": "complete",
+          "depends_on": [],
+          "id": "ph-prep-s-load-workflow",
+          "name": "Load workflow",
+          "prompt": "MUST USE SKILL `load-workflow`."
+        },
+        {
+          "status": "complete",
+          "depends_on": [],
+          "id": "ph-prep-s-add-workflow-phases",
+          "name": "Add workflow phases",
+          "prompt": "Add workflow phases from the loaded workflow into this plan — one plan phase per workflow phase, each with dedicated, detailed, and specific steps. Must add phase to identify request size after intial discovery. Include state-restore and resume steps if applicable."
+        }
+      ]
+    },
+    {
+      "status": "in_progress",
+      "depends_on": [],
+      "steps": [
+        {
+          "id": "ph-exec-s-load-context-instructions",
+          "name": "Load bootstrap context",
+          "prompt": "USE SKILL `load-context-instructions`. Execute ALL returned prep steps.",
+          "status": "complete"
+        },
+        {
+          "id": "ph-exec-s-read-docs",
+          "name": "Read project context",
+          "prompt": "USE SKILL `load-context` as the canonical current context loader. The skill is required even when its expected outputs already look satisfied."
+        },
+        {
+          "id": "ph-exec-s-subagent-contract",
+          "name": "Load subagent-only contract",
+          "prompt": "MUST USE SKILL `subagent-contract` to understand and to follow scope boundaries, input/output contracts, and escalation protocol."
+        },
+        {
+          "id": "ph-exec-s-execution-planning",
+          "name": "Plan execution at the task level",
+          "prompt": "Perform execution-level planning using todo tasks for this phase's scope. Identify dependencies and the right order before acting."
+        },
+        {
+          "id": "ph-exec-s-execute-tasks",
+          "name": "Execute todo tasks and adopt changes",
+          "prompt": "Execute the planned todo tasks and adopt the resulting changes. Update task status as work progresses."
+        },
+        {
+          "id": "ph-exec-s-proceed-with-request",
+          "name": "Proceed with the assigned request",
+          "prompt": "Proceed with the original assigned request and its activities, following all guardrails and HITL rules."
+        }
+      ],
+      "name": "execution",
+      "description": "Execute all 4 validation tasks: pre_commit, verify_mcp, docker, git status",
+      "id": "ph-exec"
+    }
+  ]
+}

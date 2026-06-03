@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Iterable
 
 from ims_mcp.clients.doc_cache import InstructionDocCache
@@ -21,8 +22,11 @@ from ims_mcp.context import CallContext
 from ims_mcp.services.bundler import Bundler
 from ims_mcp.services.keyword_search import list_docs_with_keyword_fallback
 from ims_mcp.services.query_builder import QueryBuilder
+from ims_mcp.tracing import get_request_trace_id, offload
 from ims_mcp.typing_utils import DocumentLike, JsonObject, as_json_object
 from ims_mcp.tools.validation import normalize_query, normalize_relative_path, normalize_tags, normalize_format
+
+_logger = logging.getLogger("ims_mcp")
 
 
 def _unique_docs(docs: Iterable[DocumentLike]) -> list[DocumentLike]:
@@ -102,7 +106,9 @@ def _frontmatter_description(doc: DocumentLike) -> str:
     return ""
 
 
-def _build_workflows_listing(call_ctx: CallContext, doc_cache: InstructionDocCache) -> str:
+async def _build_workflows_listing(call_ctx: CallContext, doc_cache: InstructionDocCache) -> str:
+    # F2: offload the blocking list_docs call via get_all_docs_async (A4) so this
+    # most-called path never blocks the asyncio event loop on a cache miss.
     dataset_name = call_ctx.config.instruction_dataset
     try:
         dataset = call_ctx.dataset_lookup.get_dataset(name=dataset_name)
@@ -110,7 +116,10 @@ def _build_workflows_listing(call_ctx: CallContext, doc_cache: InstructionDocCac
         return ""
     if not dataset:
         return ""
-    all_docs = doc_cache.get_all_docs(dataset, dataset_name)
+    try:
+        all_docs = await doc_cache.get_all_docs_async(dataset, dataset_name)
+    except Exception:
+        return ""
     prefix = WORKFLOWS_PATH_PREFIX + "/"
     workflow_docs = [
         doc for doc in all_docs
@@ -152,7 +161,7 @@ async def get_context_instructions(
         _strip_frontmatter_content=not include_frontmatter,
     )
     if result and not result.startswith("Error:"):
-        workflows_listing = _build_workflows_listing(call_ctx, doc_cache)
+        workflows_listing = await _build_workflows_listing(call_ctx, doc_cache)
         if workflows_listing:
             result += workflows_listing
         if call_ctx.config.compatibility_mode:
@@ -191,18 +200,27 @@ async def query_instructions(
     try:
         dataset = call_ctx.dataset_lookup.get_dataset(name=dataset_name)
     except Exception as exc:
+        _logger.error(
+            "query_instructions: failed to open dataset '%s': %s",
+            dataset_name,
+            exc,
+            exc_info=True,
+        )
         return f"Error: failed to open instruction dataset '{dataset_name}': {exc}"
 
     if not dataset:
         return f"Error: instruction dataset not found: {dataset_name}"
 
     docs = []
+    trace_id = get_request_trace_id()
 
     # Keyword search: tags via metadata_condition, query via keywords.
+    # A3: offload the sync RAGFlow call to a worker thread to keep event loop live.
     if normalized_tags or normalized_query:
         try:
             docs.extend(
-                list_docs_with_keyword_fallback(
+                await offload(
+                    list_docs_with_keyword_fallback,
                     document_client=document_client,
                     dataset=dataset,
                     query_builder=query_builder,
@@ -212,21 +230,35 @@ async def query_instructions(
                 )
             )
         except Exception as exc:
+            _logger.error(
+                "query_instructions: failed to list instruction documents trace=%s: %s",
+                trace_id,
+                exc,
+                exc_info=True,
+            )
             return f"Error: failed to list instruction documents: {exc}"
 
     # Semantic expansion via retrieve when topic is provided.
+    # A3: offload the sync ragflow.retrieve call to a worker thread.
     if topic and topic.strip():
         try:
-            semantic = call_ctx.ragflow.retrieve(
-                **query_builder.build_retrieve_params(
-                    dataset_ids=[dataset_id],
-                    query=topic.strip(),
-                    tags=normalized_tags,
-                )
+            retrieve_kwargs = query_builder.build_retrieve_params(
+                dataset_ids=[dataset_id],
+                query=topic.strip(),
+                tags=normalized_tags,
             )
+            semantic = await offload(call_ctx.ragflow.retrieve, **retrieve_kwargs)
             for chunk in semantic:
                 if getattr(chunk, "document_id", ""):
-                    docs.extend(document_client.list_docs(dataset=dataset, doc_id=chunk.document_id, page_size=1))
+                    # F4: offload sync list_docs so it never blocks the event loop
+                    # even when topic-based expansion is enabled in future callers.
+                    chunk_docs = await offload(
+                        document_client.list_docs,
+                        dataset=dataset,
+                        doc_id=chunk.document_id,
+                        page_size=1,
+                    )
+                    docs.extend(chunk_docs)
         except Exception:
             # Semantic expansion should not block keyword results.
             pass
@@ -285,12 +317,28 @@ async def list_instructions(
     try:
         dataset = call_ctx.dataset_lookup.get_dataset(name=dataset_name)
     except Exception as exc:
+        _logger.error(
+            "list_instructions: failed to open dataset '%s': %s",
+            dataset_name,
+            exc,
+            exc_info=True,
+        )
         return f"Error: failed to open instruction dataset '{dataset_name}': {exc}"
 
     if not dataset:
         return f"Error: instruction dataset not found: {dataset_name}"
 
-    all_docs = doc_cache.get_all_docs(dataset, dataset_name)
+    # A4: use async variant to offload the blocking list_docs off the event loop.
+    try:
+        all_docs = await doc_cache.get_all_docs_async(dataset, dataset_name)
+    except Exception as exc:
+        _logger.error(
+            "list_instructions: failed to load docs for dataset '%s': %s",
+            dataset_name,
+            exc,
+            exc_info=True,
+        )
+        return f"Error: failed to load instruction documents: {exc}"
 
     if dump_all:
         docs_with_paths = [doc for doc in all_docs if _resource_path(doc)]

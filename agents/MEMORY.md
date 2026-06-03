@@ -7,6 +7,9 @@ Content: brief, grep-friendly, MECE across sections. Style: one-liner per entry,
 
 ## Preventive Rules
 
+### Verify Third-Party SDK Signatures Before Injecting kwargs Via A Wrapper [ACTIVE]
+Confirm the real method signature of any third-party SDK method before injecting kwargs through a monkey-patch wrapper. SDK methods that do NOT declare a kwarg (e.g. RAGFlow `get/post/...` do not accept `timeout`) will raise `TypeError` at runtime when an injected kwarg is forwarded. mypy cannot catch this when the wrapper uses `**kwargs` passthrough. Always read the actual installed source (site-packages or refsrc) and quote the line — do not rely on docs or assumptions. If the kwarg is unsupported by the SDK method, inject it at the underlying transport layer instead (e.g. `requests.sessions.Session.request` for any requests-based SDK).
+
 ### Do Not Manufacture Approval Questions For Unrequested, Unchanged Details [ACTIVE]
 Only surface decisions the user actually owns. Pre-existing behavior the user did not ask to change (e.g. existing `next` step flags resume/previously_blocked/previously_failed) must be left untouched and NOT raised as "needs your nod." Re-raising settled or out-of-scope items reads as churn and erodes trust. Before listing an item as open, check: did the user ask to change THIS? If no, leave it as-is and stay silent.
 
@@ -68,6 +71,15 @@ When implementing concurrent-writer safety for shared files, plain `fs.renameSyn
 
 ### Validate Concurrency Claims With Real Multi-Process Tests Before Shipping [ACTIVE]
 Unit tests that mock filesystem races (vi.spyOn, in-process Promise.all) cannot catch cross-process write conflicts on real filesystems. When a requirement promises concurrent-write safety, the validation MUST include a multi-process test that spawns N independent OS processes against a single shared resource and asserts (a) no lost writes, (b) no corrupted state, (c) no leaked lock artifacts. The cost is one bash/node script and ~5 seconds of CI time; it catches an entire class of bugs that pass every other gate. Build this test before claiming the feature is done.
+
+### Adding A Command Input Field Means Updating Every Layer, Including The Base Type [ACTIVE]
+A new command parameter is not "wired" until it exists at EVERY layer: (1) the base input interface type (e.g. `CommandInput`) — omitting this is a silent typecheck failure caught only at compile, (2) the command's `inputSchema`, (3) the run-delegate destructuring + required/validation check, (4) the CLI frontend (positional/option), (5) the MCP/named-field surface, (6) help content (usage/args/required/examples). After adding the field, run `typecheck` immediately — a missing base-type field surfaces there, not in tests. Treat these six layers as a checklist for any new command input.
+
+### E2E Tests Spawn The Built dist Binary — Rebuild Before Running Them After Source Edits [ACTIVE]
+rosettify's e2e suites (`tests/e2e/*.e2e.test.ts`) `spawnSync` the compiled `dist/bin/rosettify.js`, while unit tests import `src/` directly (vitest transforms TS). So `npm test` can show unit tests reflecting your latest source while e2e tests silently run against a STALE dist — a behavior change in src that an existing e2e doesn't exercise passes, but a new e2e that does exercise it fails with confusing results. After any src change that an e2e asserts, run `npm run build` before `npm test` (the e2e `beforeAll` only checks the binary exists, not that it is current). General rule: when a test harness shells out to a build artifact, rebuild the artifact as part of the validation loop, not just at publish time.
+
+### Requirement IDs And Internal Refs Belong In Code Comments Only, Never User-Facing Strings [ACTIVE]
+Any `FR-`/`NFR-` identifier, internal path, or module name placed in a string that gets SERIALIZED or shown to a user — JSON-schema `description`, CLI argument help text, help-content fields, error messages — leaks internal traceability and violates the no-leak rule (FR-ARCH-0016); a serialized-help no-leak test enforces it. Keep all such identifiers in `//` or `/** */` comments. Before finishing any change that adds schema/arg/help/error strings, grep the diff for `\bN?FR-[A-Z]` inside quoted strings and move any hit into a comment.
 
 ## What Worked
 

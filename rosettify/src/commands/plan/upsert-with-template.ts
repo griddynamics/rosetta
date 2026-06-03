@@ -6,7 +6,7 @@ import type { RunEnvelope } from "../../registry/types.js";
 import { err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
 import { upsertTemplates } from "./templates/index.js";
-import { renderTemplate } from "./templates/render.js";
+import { renderTemplate, parsePhaseSteps } from "./templates/render.js";
 import { cmdUpsert } from "./upsert.js";
 import type { PlanWriteResult } from "./output.js";
 import { ERR_INVALID_TEMPLATE } from "./errors.js";
@@ -20,6 +20,8 @@ export const upsertWithTemplateInputSchema = {
     template: { type: "string", description: "Template name from upsert-kind collection" },
     "phase-name": { type: "string", description: "Value for the [phase-name] placeholder" },
     "phase-description": { type: "string", description: "Value for the [phase-description] placeholder" },
+    // FR-PLAN-0043 — phase-steps array injection (not a placeholder)
+    "phase-steps": { type: "string", description: "JSON array of steps appended to the seeded phase" },
   },
 };
 
@@ -33,6 +35,7 @@ export async function cmdUpsertWithTemplate(
   templateName: string,
   phaseName: string,
   phaseDescription: string,
+  phaseSteps?: string,
 ): Promise<RunEnvelope<PlanWriteResult>> {
   // FR-PLAN-0031 — look up template in upsert-kind collection only
   const template = upsertTemplates[templateName as keyof typeof upsertTemplates];
@@ -53,8 +56,18 @@ export async function cmdUpsertWithTemplate(
     return err(rendered.error);
   }
 
+  // FR-PLAN-0043 — parse and inject caller-supplied steps into the seeded phase.
+  // Backward compatibility: an omitted phase-steps is treated as an empty array.
+  const parsed = parsePhaseSteps(phaseSteps ?? "[]");
+  if (!parsed.ok) {
+    logger.warn({ templateName, error: parsed.error }, "phase-steps parse failed");
+    return err(parsed.error);
+  }
+  const phase = rendered.rendered as { steps: unknown[] };
+  phase.steps.push(...parsed.steps);
+
   logger.info({ planFile, templateName, phaseId }, "upsert-with-template rendering done, invoking upsert");
   // FR-PLAN-0031 — invoke same logic as plan upsert (FR-PLAN-0015) targeting phase-id
   // kind="phase" so that if the phase does not exist, it gets created
-  return cmdUpsert(planFile, phaseId, rendered.rendered as Record<string, unknown>, "phase");
+  return cmdUpsert(planFile, phaseId, phase as unknown as Record<string, unknown>, "phase");
 }

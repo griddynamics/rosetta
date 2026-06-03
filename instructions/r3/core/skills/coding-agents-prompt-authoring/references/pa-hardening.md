@@ -16,7 +16,7 @@ Enforce that target prompt:
 - No lateral/sibling awareness, no reverse awareness, no cross-skill deep linking (exception: frontmatters, and keywords)
 - Always check those prompts vs their schema (critical, as you must not break contract)
 - If prompt is for rosetta itself, MUST ACQUIRE `coding-agents-prompt-authoring/references/pa-rosetta.md` FROM KB and validate prompt uses it
-- Coding-agent-agnostic
+- Coding-agent-agnostic, no hardcoded tool names
 - Clear separation of concerns, actors, events, models, actions
 - Sequential activities use numbered list
 - Look for text compression opportunity without loosing value, including but not limited to using unicode characters and icons, phrases instead of full sentences (except user facing)
