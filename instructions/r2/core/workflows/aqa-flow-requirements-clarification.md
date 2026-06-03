@@ -1,100 +1,46 @@
 ---
 name: aqa-flow-requirements-clarification
-description: Phase 2 of AQA workflow - Requirements Clarification and Assertion Definition
+description: Phase 2 of AQA workflow - Requirements Clarification (gap-filling questioning) and Assertion Transcription (derives typed assertions via the bound elicitation skill and writes them to the test plan as a mandatory list) — USER INTERACTION REQUIRED
 alwaysApply: false
+tags: []
 baseSchema: docs/schemas/phase.md
 ---
 
-# Phase 2: Requirements Clarification
+<aqa_flow_requirements_clarification>
 
-## Objective
+<description_and_purpose>
+Fill gaps in understanding, clarify unknowns, and transcribe the typed assertion list (derived in step 2.1, written to the test plan in step 2.4 — canonical owner of the typed format + mandatory subsection + None-clause) so Phase 6 has a validatable input.
+</description_and_purpose>
 
-Fill gaps in understanding, clarify unknowns, and define explicit assertions before implementation. This phase requires **USER INTERACTION**.
+<workflow_context>
+- Phase 2 of 8 in `aqa-flow`
+- Input: test plan file `agents/plans/aqa-<test-name>.md` from Phase 1
+- Output: user answers + explicit typed assertion list, written into the test plan
+- Prerequisite: Phase 1 complete
+- HITL: user answers required before Phase 3
+- **Assertion authority chain:** elicitation (step 2.1) → transcription per step 2.4 (canonical typed format + mandatory `### Explicit Assertions` subsection + None-clause) → Phase 6 (`aqa-test-authoring`) validates implemented OR Uncovered. If transcription is skipped, Phase 6 validation has no anchor and tests may silently under-assert.
+</workflow_context>
 
-## Prerequisites
+<phase_steps>
+1. Identify gaps in test case understanding → step 2.1
+2. Ask user for clarification → step 2.2
+3. Wait for user answers → step 2.3
+4. Update test plan file `agents/plans/aqa-<test-name>.md` according to user answers → step 2.4
+5. Document and update state → step 2.5
+</phase_steps>
 
-- Phase 1 completed
-- Test plan file created with TestRail and Confluence data
-- Initial understanding of test requirements
+<identify_gaps step="2.1">
+1. USE SKILL `aqa-requirements-elicitation`. This skill performs **two outputs per elicited item**:
+   - A gap/unknown entry (the list of unknowns + ambiguities consumed by step 2.2's question generation).
+   - A **`Derived assertion (if applicable)` field** — a typed (Presence / State / Content / Behavioral) measurable assertion form, OR blank when no measurable form is derivable. This is the source step 2.4 transcribes from. Worked example + concrete sample question (exact-text-vs-contains specificity) live in `aqa-requirements-elicitation`'s `<process>` worked-example block — load that skill's example when authoring questions or assertions of non-obvious specificity.
+2. Prepare a list of unknowns and ambiguities (with their Derived assertion field populated where applicable) for step 2.2's question generation.
+</identify_gaps>
 
-## Phase Tasks
+<ask_questions step="2.2">
+1. USE SKILL `questioning`
+2. Present structured questions to user
 
-### Task 1: Review Gathered Information for Gaps
-
-**Actions**:
-1. Read the test plan file from Phase 1
-2. Analyze information for completeness:
-   - Are test steps clear and unambiguous?
-   - Are expected results specific and measurable?
-   - Is test data defined?
-   - Are edge cases identified?
-   - Are success criteria explicit?
-3. Create list of unknowns and ambiguities
-4. Identify areas requiring clarification
-
-**Expected Output**: List of gaps and questions that need user input.
-
-### Task 2: Define Explicit Assertions
-
-**Actions**:
-1. For each test step, define what will be verified:
-   - UI element states (visible, enabled, disabled, checked)
-   - Text content (exact match, contains, pattern)
-   - Data values (equals, greater than, within range)
-   - Navigation (URL, page title, breadcrumbs)
-   - Error messages or success notifications
-2. Specify assertion types:
-   - Presence assertions (element exists)
-   - State assertions (element state matches expected)
-   - Content assertions (text/value matches expected)
-   - Behavioral assertions (action triggers expected response)
-3. Document all assertions in test plan
-
-**Expected Output**: Complete list of explicit, measurable assertions for each test step.
-
-### Task 3: Prepare Questions for User
-
-**Actions**:
-1. Formulate specific questions about:
-   - **Test Coverage**: What exactly should be tested? Are there specific scenarios?
-   - **Success Criteria**: How do we know the test passed? What defines success?
-   - **Edge Cases**: What unusual conditions should be covered? What can go wrong?
-   - **Test Data**: What specific data should be used? Any special values?
-   - **Expected Behavior**: What should happen in each step? Any timing considerations?
-   - **Out of Scope**: What should NOT be tested in this test case?
-2. Group questions logically
-3. Prioritize questions (critical vs. nice-to-have)
-
-**Example Questions**:
-```
-Critical Questions:
-1. When clicking [Button X], should we verify only [Element Y] appears, 
-   or also check that [Element Z] disappears?
-2. For the success message, should we match exact text "Success!" 
-   or just verify message contains "Success"?
-3. What test data should be used for [Field A]? Any specific format?
-
-Edge Cases:
-4. What should happen if [Condition X] occurs during the test?
-5. Should we test with empty/invalid data, or only valid data?
-
-Test Flow:
-6. Are there any timing dependencies (waits, delays)?
-7. Should this test clean up data after execution?
-```
-
-**Expected Output**: Organized list of specific questions for user.
-
-### Task 4: Ask User and Wait for Answers
-
-**Actions**:
-1. Present questions to user in clear, organized format
-2. Explain why each question is important
-3. **WAIT** for user to provide all answers
-4. **DO NOT PROCEED** to Phase 3 until answers received
-5. Document user responses in test plan
-
-**User Interaction Format**:
+<user_interaction_format>
 ```
 I need clarification on the following to ensure accurate test implementation:
 
@@ -115,85 +61,69 @@ I need clarification on the following to ensure accurate test implementation:
 
 Please provide answers so I can proceed with test implementation.
 ```
+</user_interaction_format>
+</ask_questions>
 
-**Expected Output**: Complete answers from user to all questions.
 
-### Task 5: Update Test Plan with Clarifications
+<wait_for_user step="2.3">
+1. **STOP AND WAIT** for user to provide all answers.
+2. **Answer-handling branches** (apply to step 2.4's processing — explicit so partial/declined paths are not silently dropped):
+   - **All answers received:** proceed to step 2.4 normally.
+   - **Partial answers received** (user answers some Critical / Edge / Optional questions but leaves others blank, OR explicitly says "I don't know" for specific items): re-ask once **only for the unanswered Critical questions** with a tightened phrasing or safe-default option per `questioning` rules. After one unsuccessful re-ask of any Critical question, treat that question as **declined** (next branch). Edge / Optional unanswered items proceed without re-ask (record as gaps in step 2.4 per the None-clause pattern).
+   - **User declines to answer specific questions** (explicit refusal, or unresponsive after the one-re-ask cap above): record each declined Critical question as a `gap: declined by user — <one-line reason or "no reason given">` under the test plan's `### Open Questions` subsection that step 2.4 appends; mark the corresponding `Derived assertion` (if step 2.1 derived one tied to the declined question) as Uncovered in the `### Explicit Assertions` section per step 2.4's None-clause pattern. Proceed to step 2.4 with documented unknowns rather than stalling.
+   - **User declines to answer at all** (no answers, refuses to engage): record `Phase 2 blocked: user declined to answer all clarification questions` in `agents/aqa-state.md`, surface to the parent workflow, do NOT auto-proceed to Phase 3 with zero clarifications — this is a stop, not a gap-with-proceed.
+</wait_for_user>
 
-**Actions**:
-1. Add new section to test plan:
-   ```markdown
-   ## Phase 2: Requirements Clarification
-   
-   ### Questions Asked
-   [List of questions]
-   
-   ### User Responses
-   [Documented answers]
-   
-   ### Defined Assertions
-   #### Step 1: [Action]
-   - Assert: [Explicit assertion]
-   - Verification: [How to verify]
-   
-   #### Step 2: [Action]
-   - Assert: [Explicit assertion]
-   - Verification: [How to verify]
-   ...
-   
-   ### Edge Cases to Cover
-   - [Edge case 1]
-   - [Edge case 2]
-   ...
-   
-   ### Test Data Requirements
-   - [Data requirement 1]
-   - [Data requirement 2]
-   ...
-   ```
-2. Update test steps with explicit assertions
-3. Add edge case scenarios if applicable
-4. Document test data requirements
-
-**Expected Output**: Enhanced test plan with all clarifications and explicit assertions documented.
-
-## Completion Criteria
-
-- [ ] All gaps in understanding identified
-- [ ] Explicit assertions defined for each test step
-- [ ] Questions prepared and presented to user
-- [ ] **User answers received and documented**
-- [ ] Test plan updated with Phase 2 information
-- [ ] Edge cases identified and documented
-- [ ] Test data requirements specified
-- [ ] `agents/aqa-state.md` updated with Phase 2 completion
-
-## Update State File
-
-After completing Phase 2, update `agents/aqa-state.md`:
+<update_test_plan step="2.4">
+1. Process user answers from step 2.3.
+2. **Collect every assertion the `aqa-requirements-elicitation` skill derived in step 2.1** — including its `Derived assertion (if applicable)` field on each elicited item — and assemble the typed assertion list. Every derived assertion MUST be carried forward; if the elicitation skill produced zero derived assertions, emit the **None-clause** (literal text in the template below) rather than omitting the section.
+3. Add the section below to the test plan `agents/plans/aqa-<test-name>.md`. The `### Explicit Assertions` subsection is **mandatory** — Phase 6 (`aqa-test-authoring`) validates that every assertion here is implemented OR listed in Uncovered:
 
 ```markdown
-### Phase 2: Requirements Clarification
-- Completed: [DateTime]
-- Questions Asked: [Count]
-- Assertions Defined: [Count]
-- Edge Cases: [List]
-- User Responses: Documented in test plan
+## Phase 2: Requirements Clarification
+
+### Questions Asked
+[List of questions]
+
+### User Responses
+[Documented answers]
+
+### Edge Cases to Cover
+- [Edge case 1]
+- [Edge case 2]
+...
+
+### Test Data Requirements
+- [Data requirement 1]
+- [Data requirement 2]
+...
+
+### Explicit Assertions (mandatory — transcribed from `aqa-requirements-elicitation`)
+
+Each assertion carries a **type** (Presence / State / Content / Behavioral) and a **subject** (UI element or system observable). One bullet per assertion; do NOT collapse multiple assertions into one line.
+
+- **Presence:** [element/observable] is [present | absent | visible | hidden] after [trigger condition].
+- **State:** [element] is [enabled | disabled | selected | unselected | loading | settled] after [trigger].
+- **Content:** [element] displays/contains [exact value or pattern] after [trigger].
+- **Behavioral:** [action] produces [observable result] within [timing constraint, if any].
+- (If the elicitation skill derived zero assertions: `None — no observable behavior derivable from current clarifications; Phase 6 will surface this as Uncovered`.)
 ```
+</update_test_plan>
 
-Mark Phase 2 as completed and Phase 3 as current.
+<update_state step="2.5">
+1. Update `agents/aqa-state.md`:
+   - Questions Asked: [count]
+   - User Responses: Documented in test plan file
+2. Mark Phase 2 complete, Phase 3 current
+</update_state>
 
-## Next Phase
+<validation_checklist>
+- All gaps identified and questions prepared
+- User answers received and documented
+- Test plan updated with clarifications
+- Edge cases identified
+- Test data requirements specified
+- **`### Explicit Assertions` subsection present per step 2.4** (canonical typed format + per-bullet granularity + None-clause for the zero-assertion case). Absence of the section is not acceptable.
+</validation_checklist>
 
-After user provides all answers, proceed to **Phase 3: Code Analysis** by executing:
-```
-ACQUIRE aqa-flow-code-analysis.md FROM KB
-```
-
-## Important Notes
-
-- **CRITICAL**: DO NOT proceed to Phase 3 without user answers
-- **No Assumptions**: Never assume answers - always ask user
-- **Explicit Over Implicit**: Every assertion must be measurable and verifiable
-- **User Authority**: User has final say on requirements and expected behavior
-- **Document Everything**: Record all questions and answers for traceability
+</aqa_flow_requirements_clarification>

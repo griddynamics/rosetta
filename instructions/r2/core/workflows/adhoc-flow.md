@@ -11,7 +11,7 @@ baseSchema: docs/schemas/workflow.md
 <description_and_purpose>
 
 Problem: Fixed workflows cannot cover the combinatorial space of real requests; orchestrators lock into rigid classification.
-Solution: Meta-workflow — construct a bespoke plan from building blocks, persist via `plan-manager` skill, review, execute with tracking. Each user turn can extend, adapt, or restart.
+Solution: Meta-workflow — construct a bespoke plan from building blocks, persist via `operation-manager` skill, review, execute with tracking. Each user turn can extend, adapt, or restart.
 
 </description_and_purpose>
 
@@ -25,23 +25,26 @@ Match to cognitive demand. Match to current tool.
 
 </models>
 
-<plan_manager>
+<OPERATION_MANAGER>
 
-USE SKILL `plan-manager` as the main execution planner (file-based, via `npx rosettify@latest plan`).
+- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB
+- Commands:
+  - `help plan` provides full information
+  - `plan next <plan_file> [limit] [--target <phase_id>]` — get next steps to execute
+  - `plan create-with-template <plan_file> for-orchestrator '<plan-name>' '<plan-description>'` — bootstrap a new orchestrator plan
+  - `plan upsert-with-template <plan_file> <phase-id> for-subagent '<phase-name>' '<phase-description>'` — orchestrator MUST USE for adding prep steps for subagent
+  - `plan update_status <plan_file> <step-id> [open|in_progress|complete|blocked|failed]` 
+  - `plan query <plan_file> [id|entire_plan]` 
+  - `plan show_status <plan_file> [id|entire_plan]` 
+- Upsert follows RFC 7396: null removes keys, nested objects are merged not replaced, scalars are replaced, status field silently ignored to enforce use of `update_status`.
+- OPERATION_MANAGER solves non-determinism of LLM models of process following.
+- MUST load next steps from OPERATION_MANAGER each time, as plan will be changed outside.
+- MUST execute plan via loop: call `next`, execute, `update_status`.
+- LOOP IS NEVER DONE until `plan_status: complete` AND `count: 0` in `next` output. Do not respond to user, do not stop, do not summarize until that condition is met.
+- MUST upsert a plan because of new tasks, inputs, findings.
+- Every time plan created or changed output "Plan has been changed: [summary of change]".
 
-Orchestrator and subagents:
-- MUST use plan-manager as main execution planner; todo tasks/built-in planners are for tracking INSIDE step execution only.
-- MUST USE `next` to drive execution loop until `plan_status: complete` and `count: 0`.
-- MUST USE `update_status` after each step.
-- MUST USE `upsert` to adapt plan mid-execution (add/remove phases/steps).
-
-Orchestrator:
-- MUST tell subagents all above MUST as MUST (within their scope).
-- MUST tell subagents: "tell orchestrator to modify plan if work is outside your scope".
-
-ACQUIRE `plan-manager/assets/pm-schema.md` FROM KB for data structure reference.
-
-</plan_manager>
+</OPERATION_MANAGER>
 
 <building_blocks>
 
@@ -50,12 +53,12 @@ Compose these into plan phases/steps to build any execution workflow.
 - **discover-research**: scan project context and KB; research external knowledge if needed; deliver summarized references
 - **requirements-capture**: reverse-engineer or interrogate requirements; persist intent as source of truth
 - **reasoning-decomposition**: USE SKILL `reasoning` (7D) to decompose into sub-problems with decisions and trade-offs
-- **plan-wbs**: USE SKILL `planning` to build sequenced WBS; persist via `plan-manager upsert` with subagent/role/model
+- **plan-wbs**: USE SKILL `planning` to build sequenced WBS; persist via `operation-manager upsert` with subagent/role/model
 - **tech-specs**: USE SKILL `tech-specs` to generate target technical implementation specs; makes AI to figure out entire solution, instead of discovering something as a surprise
 - **subagent-delegation**: provide role + context/refs; route parallel/sequential; enforce focus — report back if off-plan
 - **delegate-but-verify**: use subagent delegation, but verify both reasoning and results
 - **critically-review**: critically review inputs, outputs, reasoning, completeness, ambiguity, results of user, subagents, tools, scripts, etc.
-- **execute-track**: plan-manager next → execute → update_status; `upsert` to adapt mid-execution; loop
+- **execute-track**: operation-manager next → execute → update_status; `upsert` to adapt mid-execution; loop
 - **modify-review**: modify then review with different agent/model
 - **review-validate**: review (static inspection against intent) + validate (run locally, call/use local, runtime evidence on real tasks)
 - **memory-learn**: root-cause failures → reusable preventive rules → update AGENT MEMORY.md
@@ -69,9 +72,14 @@ Compose these into plan phases/steps to build any execution workflow.
 
 <workflow_phases>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
-- Use available skills and agents.
-- You will FOR SURE run out of LLM context, leading to loss of information, delegate to subagents!
+<prerequisites phase="1" applies="ALL">
+
+1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
+2. MUST USE OPERATION_MANAGER for deterministic execution
+3. Use available skills and agents.
+4. You will FOR SURE run out of LLM context, leading to loss of information, delegate to subagents!
+
+</prerequisites>
 
 <build_plan phase="2">
 

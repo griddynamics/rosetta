@@ -49,7 +49,7 @@ COPILOT_MODEL_MAP: dict[str, str] = {
 }
 
 
-DEFAULT_RELEASE = "r3"
+DEFAULT_RELEASE = "r2"
 
 
 @dataclass(frozen=True)
