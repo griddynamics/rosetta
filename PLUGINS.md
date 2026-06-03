@@ -126,7 +126,7 @@ The agent will follow Rosetta prompts and show Rosetta workflows and execute `se
 
 <img src="docs/images/Rosetta-ProperResponse-Copilot.png" alt="Rosetta proper response in GitHub Copilot" width="710"/>
 
-## Updating
+## Upgrading
 
 See [INSTALLATION.md#upgrading](INSTALLATION.md#upgrading) for update instructions per install mode.
 
