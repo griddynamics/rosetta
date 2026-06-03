@@ -1,0 +1,104 @@
+[
+  {
+    "id": "ss-impl-base-interface",
+    "category": "query-model-impl",
+    "difficulty": "easy",
+    "prompt": "What is the Java interface every concrete Sm query class implements (the marker interface for the abstract semantic query model)? Just the name.",
+    "asserts": {
+      "must_match_regex": [
+        "^SmQuery$|\\bSmQuery\\b"
+      ],
+      "max_length_chars": 50
+    },
+    "notes": "SmQuery — interface with setQueryId, getQueryId, parse(fabric, builder)"
+  },
+  {
+    "id": "ss-impl-double-dispatch",
+    "category": "query-model-impl",
+    "difficulty": "hard",
+    "prompt": "The SmQuery model uses a visitor pattern with double dispatch. What does each concrete SmQuery class do inside its parse(fabric, builder) method? One sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "fabric\\.get|getBooleanQueryParser|getTermQueryParser|delegates|forwards|hands off|calls.*fabric|fabric.*returns|specific parser"
+      ]
+    },
+    "notes": "Calls fabric.get<TypeName>QueryParser().parse(...) — letting the fabric pick the right backend-specific translator"
+  },
+  {
+    "id": "ss-impl-occur-enum",
+    "category": "query-model-impl",
+    "difficulty": "easy",
+    "prompt": "What are the four values of the SmClause.Occur enum? Comma-separated.",
+    "asserts": {
+      "must_contain": [
+        "MUST",
+        "SHOULD",
+        "FILTER",
+        "MUST_NOT"
+      ]
+    },
+    "notes": "MUST, FILTER, SHOULD, MUST_NOT — mirrors Lucene BooleanClause.Occur"
+  },
+  {
+    "id": "ss-impl-named-param-trick",
+    "category": "query-model-impl",
+    "difficulty": "hard",
+    "prompt": "When SmBooleanSolrQP translates an SmBooleanQuery to Solr, instead of inlining each clause's query string, it uses Solr named parameter references. Show the format of one clause reference inside the produced {!bool ...} string. Two-three short examples.",
+    "asserts": {
+      "must_match_regex": [
+        "must=\\$|should=\\$|filter=\\$|must_not=\\$|=\\$\\w+|=\\$queryId"
+      ]
+    },
+    "notes": "must=$queryId, should=$queryId, filter=$queryId — refers to top-level Solr params keyed by each sub-query's queryId"
+  },
+  {
+    "id": "ss-impl-parsedquery-marker",
+    "category": "query-model-impl",
+    "difficulty": "easy",
+    "prompt": "ParsedQuery is a marker interface implemented by backend-specific result builders. Name the Solr-specific implementation referenced in the skill.",
+    "asserts": {
+      "must_contain": [
+        "SolrParsedQuery"
+      ]
+    },
+    "notes": "SolrParsedQuery accumulates main query string + named params via addParameter"
+  },
+  {
+    "id": "ss-impl-fabric-purpose",
+    "category": "query-model-impl",
+    "difficulty": "medium",
+    "prompt": "What is the role of QueryParserFabric<T>, and why is it parameterized by T extends ParsedQuery? One sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "backend|target|Solr.*Elasticsearch|switch.*backend|different.*backend|target.*backend|swap"
+      ]
+    },
+    "notes": "Fabric is the swap point for backend (Solr vs ES); T parameterizes the result type so the same Sm tree compiles for any backend"
+  },
+  {
+    "id": "ss-impl-must-set-queryid",
+    "category": "query-model-impl-anti",
+    "difficulty": "medium",
+    "prompt": "Why is it crucial that every SmQuery added to an SmBooleanQuery clause have its queryId set before translation? One short sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "\\$null|null.*reference|\\$paramref|reference|param.*can'?t resolve|undefined param|broken reference|cannot resolve|invalid"
+      ]
+    },
+    "notes": "BooleanQuery references clauses via $queryId; null queryId → $null which Solr can't resolve"
+  },
+  {
+    "id": "ss-impl-add-backend",
+    "category": "query-model-impl",
+    "difficulty": "medium",
+    "prompt": "If I want to also target Elasticsearch (in addition to Solr), what three things do I need to implement? List them. Brief.",
+    "asserts": {
+      "must_match_regex": [
+        "EsParsedQuery|ParsedQuery|implements ParsedQuery|ES.*ParsedQuery|new.*ParsedQuery",
+        "QueryParserFabric|EsQueryParserFabric|ES.*Fabric|fabric.*ES|fabric",
+        "QueryParser|translator|per.type|each Sm|11 parsers|one.*parser|translators"
+      ]
+    },
+    "notes": "EsParsedQuery (impl ParsedQuery), EsQueryParserFabric (impl QueryParserFabric<EsParsedQuery>), one Sm*EsQP per Sm subtype"
+  }
+]

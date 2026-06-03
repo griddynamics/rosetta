@@ -1,0 +1,208 @@
+[
+  {
+    "id": "edismax-basic-qf",
+    "category": "edismax",
+    "difficulty": "easy",
+    "prompt": "Write an eDisMax query for 'red shoes' across title_t (boost 5), brand_s (boost 3), description_t (boost 1). Use local params, single line.",
+    "asserts": {
+      "must_contain": [
+        "{!edismax",
+        "qf=",
+        "title_t^5",
+        "brand_s^3",
+        "description_t"
+      ],
+      "must_match_regex": [
+        "\\{!edismax[^}]*qf="
+      ]
+    },
+    "notes": "qf format: 'field^boost field^boost', required parameter"
+  },
+  {
+    "id": "edismax-mm-formula",
+    "category": "edismax",
+    "difficulty": "medium",
+    "prompt": "Write an eDisMax query with mm using the production-safe formula '2<75%' (if 2 or fewer terms require all, else 75%). qf=title_t^5 brand_s^3, query='nike running shoes'. One line.",
+    "asserts": {
+      "must_contain": [
+        "{!edismax",
+        "qf=",
+        "mm="
+      ],
+      "must_match_regex": [
+        "mm=['\"]?2<75%['\"]?"
+      ]
+    },
+    "notes": "Production-safe mm uses formula '2<75%', not hard absolute"
+  },
+  {
+    "id": "edismax-pf-phrase-boost",
+    "category": "edismax",
+    "difficulty": "medium",
+    "prompt": "Write an eDisMax query with qf=title_t^5 description_t^2 and pf=title_t^10 description_t^3 (phrase boost). Query 'red running shoes'. Single line local params.",
+    "asserts": {
+      "must_contain": [
+        "{!edismax",
+        "qf=",
+        "pf=",
+        "title_t^10"
+      ]
+    },
+    "notes": "pf phrase fields add boost when terms appear adjacent"
+  },
+  {
+    "id": "edismax-pf2-pf3",
+    "category": "edismax",
+    "difficulty": "hard",
+    "prompt": "Write URL params for /select with: defType=edismax, q='red nike running shoes', qf=title_t^5, pf=title_t^10 (full phrase), pf2=title_t^5 (bigrams), pf3=title_t^3 (trigrams). One param per line.",
+    "asserts": {
+      "must_contain": [
+        "defType=edismax",
+        "qf=title_t^5",
+        "pf=title_t^10",
+        "pf2=title_t^5",
+        "pf3=title_t^3"
+      ],
+      "must_not_contain": [
+        "defType=dismax"
+      ]
+    },
+    "notes": "pf2/pf3 only exist in eDisMax (not in plain dismax)"
+  },
+  {
+    "id": "bf-additive-log",
+    "category": "edismax",
+    "difficulty": "medium",
+    "prompt": "Write a bf parameter for eDisMax that adds log(popularity_i) to score, with protection against log(0). Just the bf= line.",
+    "asserts": {
+      "must_contain": [
+        "bf=",
+        "log(",
+        "popularity_i"
+      ],
+      "must_match_regex": [
+        "bf=log\\(sum\\(popularity_i\\s*,\\s*1\\)\\)|bf=log\\(popularity_i\\)"
+      ]
+    },
+    "notes": "bf is additive boost; log(0)=-Infinity so always sum(x,1)"
+  },
+  {
+    "id": "bf-vs-boost-difference",
+    "category": "edismax",
+    "difficulty": "hard",
+    "prompt": "In one sentence, explain the difference between bf and boost in eDisMax (how they compose with the base score). Use the words additive and multiplicative.",
+    "asserts": {
+      "must_match_regex": [
+        "bf.*\\+|bf.*add|additive",
+        "boost.*\\*|boost.*multipl|multiplicative"
+      ]
+    },
+    "notes": "bf: score + func; boost: score * func"
+  },
+  {
+    "id": "bq-multiple-clauses",
+    "category": "edismax",
+    "difficulty": "easy",
+    "prompt": "Write eDisMax bq parameters to boost docs with in_stock_b=true (boost 2) and featured_b=true (boost 5). Just the bq lines.",
+    "asserts": {
+      "must_contain": [
+        "bq=in_stock_b:true^2",
+        "bq=featured_b:true^5"
+      ]
+    },
+    "notes": "bq is additive boost query, can be repeated"
+  },
+  {
+    "id": "tie-parameter-explain",
+    "category": "edismax",
+    "difficulty": "medium",
+    "prompt": "Write the tie parameter for eDisMax with value 0.1. In one sentence explain what it controls.",
+    "asserts": {
+      "must_contain": [
+        "tie=0.1"
+      ],
+      "must_match_regex": [
+        "max|winner|best|highest|other field|losing field|secondary|tiebreak"
+      ]
+    },
+    "notes": "tie 0=winner-take-all, 1=sum across fields, 0.1 typical production value"
+  },
+  {
+    "id": "no-edismax-for-fq-anti",
+    "category": "edismax-anti",
+    "difficulty": "hard",
+    "prompt": "Should I use {!edismax} for fq (e.g., to filter by multiple fields)? Two-sentence answer.",
+    "asserts": {
+      "must_match_regex": [
+        "[Nn]o|[Dd]on'?t|[Ss]houldn'?t|[Aa]void",
+        "fq.*not score|fq.*doesn'?t score|filter.*not score|wasted|unnecessary|overhead"
+      ]
+    },
+    "notes": "eDisMax is for user q; fq doesn't use scores"
+  },
+  {
+    "id": "no-pf2-pf3-in-dismax-anti",
+    "category": "edismax-anti",
+    "difficulty": "medium",
+    "prompt": "Are pf2 and pf3 parameters available in DisMax (not eDisMax)? One short sentence with the answer and what to use.",
+    "asserts": {
+      "must_match_regex": [
+        "[Nn]o|[Oo]nly.*eDisMax|[Oo]nly.*edismax|[Nn]ot.*dismax"
+      ],
+      "must_contain": [
+        "edismax"
+      ]
+    },
+    "notes": "pf2/pf3 are eDisMax-only"
+  },
+  {
+    "id": "edismax-full-production",
+    "category": "edismax",
+    "difficulty": "hard",
+    "prompt": "Write a complete production e-commerce edismax config as URL params: defType=edismax, qf with name_t^10 brand_s^6 category_s^4 description_t^2, pf=name_t^20, pf2=name_t^10, mm=2<75%, ps=1, ps2=1, tie=0.1, bf=log(sum(popularity_i,1)). q='red nike'. One param per line.",
+    "asserts": {
+      "must_contain": [
+        "defType=edismax",
+        "qf=",
+        "name_t^10",
+        "brand_s^6",
+        "pf=name_t^20",
+        "pf2=name_t^10",
+        "mm=2<75%",
+        "ps=1",
+        "ps2=1",
+        "tie=0.1",
+        "bf=log(sum(popularity_i,1))"
+      ]
+    },
+    "notes": "Canonical production e-commerce edismax configuration"
+  },
+  {
+    "id": "edismax-hard-mm-warning-anti",
+    "category": "edismax-anti",
+    "difficulty": "easy",
+    "prompt": "I have eDisMax with mm=3 and a user types a single word query. What happens? One short sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "zero|empty|no result|nothing|0 result|return.*nothing"
+      ]
+    },
+    "notes": "Hard mm=3 with 1-word query requires 3 matches — empty results"
+  },
+  {
+    "id": "uf-restriction",
+    "category": "edismax",
+    "difficulty": "medium",
+    "prompt": "Write the uf parameter for eDisMax that allows users to use field: syntax in their queries only on text fields (suffix _t) and string fields (suffix _s), but blocks any field starting with internal_. Just the uf= line.",
+    "asserts": {
+      "must_contain": [
+        "uf="
+      ],
+      "must_match_regex": [
+        "uf=.*\\*_t.*\\*_s|uf=.*\\*_s.*\\*_t",
+        "-internal_\\*"
+      ]
+    },
+    "notes": "uf is whitelist for user field: queries; - prefix excludes"
+  }
+]

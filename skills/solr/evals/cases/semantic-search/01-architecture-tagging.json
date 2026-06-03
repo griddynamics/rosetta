@@ -1,0 +1,124 @@
+[
+  {
+    "id": "ss-three-layers",
+    "category": "architecture",
+    "difficulty": "easy",
+    "prompt": "Name the three layers of this semantic search architecture, in order from input to output. Comma-separated.",
+    "asserts": {
+      "must_match_regex": [
+        "[Tt]agging|[Tt]agger",
+        "[Gg]raph|[Pp]ath",
+        "[Qq]uery.?[Bb]uilding|[Qq]uery construction|[Qq]uery"
+      ]
+    },
+    "notes": "Tagging → Graph (paths) → Query Building"
+  },
+  {
+    "id": "ss-vs-vector",
+    "category": "architecture",
+    "difficulty": "medium",
+    "prompt": "Is this architecture vector/embedding-based semantic search, or something else? One short sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "[Nn]o|[Nn]ot.*vector|[Nn]ot.*embedding|lexical|dictionary|tagging.based|concept.based"
+      ]
+    },
+    "notes": "Lexical/dictionary-based — separate from kNN/embeddings"
+  },
+  {
+    "id": "ss-when-not-to-use",
+    "category": "architecture",
+    "difficulty": "medium",
+    "prompt": "Name two situations where this tagging-based architecture is NOT a good fit and another approach would be better. Brief.",
+    "asserts": {
+      "must_match_regex": [
+        "free.?text|natural.language|user.generated|open.ended|chat|essay|review",
+        "no.*taxonom|no.*authoritative|no.*curat|don'?t have.*concept|no dictionary|no source"
+      ]
+    },
+    "notes": "Not for free-text/open-ended; not without curated taxonomy"
+  },
+  {
+    "id": "ss-concept-handler-path",
+    "category": "tagging",
+    "difficulty": "easy",
+    "prompt": "What HTTP path does the TagHandler register on (the URL endpoint for tagging requests)? Just the path.",
+    "asserts": {
+      "must_match_regex": [
+        "/semanticTagGraph"
+      ]
+    },
+    "notes": "/semanticTagGraph"
+  },
+  {
+    "id": "ss-tag-types",
+    "category": "tagging",
+    "difficulty": "medium",
+    "prompt": "Name the relation types (TagTypes) that the tagger can produce when it matches a shingle to a concept. List at least four. Comma-separated.",
+    "asserts": {
+      "must_contain": [
+        "CONCEPT",
+        "SYN",
+        "MULTI_SYN",
+        "SPELL",
+        "PREFIX"
+      ]
+    },
+    "notes": "CONCEPT, SYN, MULTI_SYN, SPELL, PREFIX (also RECOGNIZED_PRODUCT but domain-specific)"
+  },
+  {
+    "id": "ss-shingle-scoring",
+    "category": "tagging",
+    "difficulty": "hard",
+    "prompt": "When the tagger looks up a shingle, exact matches get base score 100×pow, but fuzzy matches get only 25×pow. What is 'pow' computed from, and what is its purpose? Two short sentences.",
+    "asserts": {
+      "must_match_regex": [
+        "2\\^|2 \\*\\*|power.*2|2.*power|2.*offset|2 to the|exponential|originalTokenOffset",
+        "longer.*shingle|multi.token|multi.word|reward.*long|bias.*long|longer match|shingle length"
+      ]
+    },
+    "notes": "pow = 2^(originalTokenOffset-1); biases tagger toward longer shingle matches"
+  },
+  {
+    "id": "ss-concept-fields-suffix",
+    "category": "concept-indexing",
+    "difficulty": "medium",
+    "prompt": "By convention, the IndexConceptsHandler harvests catalog fields ending in three suffixes. Name them. Comma-separated.",
+    "asserts": {
+      "must_contain": [
+        "_concept",
+        "_shingle",
+        "_text"
+      ]
+    },
+    "notes": "_concept (single-token), _shingle (multi-token shingles), _text (looser)"
+  },
+  {
+    "id": "ss-concept-doc-fields",
+    "category": "concept-indexing",
+    "difficulty": "medium",
+    "prompt": "A document in the concept collection has at least 5 main fields. Name them. Comma-separated.",
+    "asserts": {
+      "must_contain": [
+        "field",
+        "token",
+        "weight",
+        "lang",
+        "source"
+      ]
+    },
+    "notes": "field, token, weight, lang, source (also id and tokenId)"
+  },
+  {
+    "id": "ss-rebuild-cadence",
+    "category": "concept-indexing",
+    "difficulty": "easy",
+    "prompt": "Is the concept collection rebuilt on every catalog change incrementally, or is it rebuilt periodically (e.g., nightly)? One sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "periodic|nightly|daily|rebuild|batch|scheduled"
+      ]
+    },
+    "notes": "Rebuilt periodically (typically nightly), not incrementally"
+  }
+]

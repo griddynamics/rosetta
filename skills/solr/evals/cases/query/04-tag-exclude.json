@@ -1,0 +1,167 @@
+[
+  {
+    "id": "tag-on-fq",
+    "category": "tag-exclude",
+    "difficulty": "easy",
+    "prompt": "Write an fq for category_s=electronics tagged as CAT (so a facet can later exclude it). One-line fq only.",
+    "asserts": {
+      "must_contain": [
+        "{!tag=CAT}",
+        "category_s:electronics"
+      ],
+      "must_not_contain": [
+        "{!ex="
+      ],
+      "max_length_chars": 100
+    },
+    "notes": "Tag goes on fq via {!tag=NAME}; exclude is separate on the facet"
+  },
+  {
+    "id": "exclude-in-json-facet",
+    "category": "tag-exclude",
+    "difficulty": "easy",
+    "prompt": "Write a JSON Facets terms facet on category_s (limit 20) that excludes the filter tagged CAT. Just the facet object body.",
+    "asserts": {
+      "must_contain": [
+        "\"type\":",
+        "\"terms\"",
+        "\"field\":",
+        "\"category_s\"",
+        "\"domain\":",
+        "\"excludeTags\":",
+        "CAT"
+      ],
+      "must_not_contain": [
+        "{!ex="
+      ]
+    },
+    "notes": "JSON Facets uses domain.excludeTags, not {!ex=}"
+  },
+  {
+    "id": "multi-select-full-pattern",
+    "category": "tag-exclude",
+    "difficulty": "medium",
+    "prompt": "Write a complete JSON Request body for /query with: main query *:*, two filters — category_s=electronics tagged CAT and status_s=active untagged. Two facets: by_category on category_s ignoring CAT, by_brand on brand_s. JSON only.",
+    "asserts": {
+      "must_contain": [
+        "\"query\":",
+        "\"filter\":",
+        "{!tag=CAT}",
+        "category_s:electronics",
+        "status_s:active",
+        "\"facet\":",
+        "\"by_category\":",
+        "\"by_brand\":",
+        "\"excludeTags\":",
+        "CAT"
+      ],
+      "must_not_contain": [
+        "\"q\":",
+        "\"fq\":",
+        "\"json.facet\":"
+      ]
+    },
+    "notes": "Canonical multi-select: tag on one fq + exclude in matching facet, other facet scoped"
+  },
+  {
+    "id": "wrong-key-excludefilters",
+    "category": "tag-exclude-anti",
+    "difficulty": "medium",
+    "prompt": "Write a JSON Facets terms facet on brand_s that excludes filter tagged CAT. Just the facet body.",
+    "asserts": {
+      "must_contain": [
+        "\"excludeTags\":"
+      ],
+      "must_not_contain": [
+        "\"excludeFilters\"",
+        "\"exclude\":",
+        "\"ex\":"
+      ]
+    },
+    "notes": "Correct key is excludeTags. Solr silently ignores excludeFilters/exclude/ex"
+  },
+  {
+    "id": "tag-exclude-cannot-touch-q",
+    "category": "tag-exclude-anti",
+    "difficulty": "hard",
+    "prompt": "Can the tag/exclude mechanism be used to exclude the main query (q) from a facet's count? One-sentence answer.",
+    "asserts": {
+      "must_match_regex": [
+        "[Nn]o|[Cc]annot|[Cc]an'?t|[Oo]nly.*fq|[Oo]nly.*filter"
+      ]
+    },
+    "notes": "Tag/exclude only works on fq/filter, never on q"
+  },
+  {
+    "id": "legacy-vs-json-syntax",
+    "category": "tag-exclude",
+    "difficulty": "medium",
+    "prompt": "I'm using the legacy facet API (facet.field, NOT JSON Facets). Write the parameters: tagged fq for category_s=electronics tag CAT, and facet.field on category_s that excludes that tag. Just URL params.",
+    "asserts": {
+      "must_contain": [
+        "{!tag=CAT}",
+        "category_s:electronics",
+        "facet.field=",
+        "{!ex=CAT}"
+      ]
+    },
+    "notes": "Legacy API uses {!ex=TAG} on facet.field; JSON Facets uses domain.excludeTags"
+  },
+  {
+    "id": "exclude-multiple-tags",
+    "category": "tag-exclude",
+    "difficulty": "medium",
+    "prompt": "Write a JSON Facets terms facet on color_s that excludes both CAT and PRICE tagged filters. Just the facet body.",
+    "asserts": {
+      "must_contain": [
+        "\"type\":",
+        "\"terms\"",
+        "\"field\":",
+        "\"color_s\"",
+        "\"excludeTags\":"
+      ],
+      "must_match_regex": [
+        "\"excludeTags\"\\s*:\\s*\\[\\s*\"CAT\"\\s*,\\s*\"PRICE\"\\s*\\]|\"excludeTags\"\\s*:\\s*\"CAT,PRICE\""
+      ]
+    },
+    "notes": "excludeTags accepts array or comma-separated string"
+  },
+  {
+    "id": "tag-name-case-sensitive",
+    "category": "tag-exclude",
+    "difficulty": "easy",
+    "prompt": "I have fq={!tag=CAT}category_s:electronics. Write the JSON Facets domain section that excludes this filter exactly. Tag name must match.",
+    "asserts": {
+      "must_contain": [
+        "\"domain\":",
+        "\"excludeTags\":",
+        "CAT"
+      ],
+      "must_not_match_regex": [
+        "\"excludeTags\"\\s*:\\s*\"cat\"",
+        "\"excludeTags\"\\s*:\\s*\"Cat\""
+      ]
+    },
+    "notes": "Tag names are case-sensitive: CAT and cat are different"
+  },
+  {
+    "id": "tag-with-blockchildren-cross-scope",
+    "category": "tag-exclude",
+    "difficulty": "hard",
+    "prompt": "Main query returns parents (type_s:product). Filters: brand_s=Nike tagged BRAND on parent. Write a child-scope facet on color_s (sku attribute) that excludes BRAND tag. Just the facet body.",
+    "asserts": {
+      "must_contain": [
+        "\"type\":",
+        "\"terms\"",
+        "\"field\":",
+        "\"color_s\"",
+        "\"domain\":",
+        "\"blockChildren\":",
+        "type_s:product",
+        "\"excludeTags\":",
+        "BRAND"
+      ]
+    },
+    "notes": "domain can combine blockChildren and excludeTags simultaneously"
+  }
+]

@@ -1,0 +1,66 @@
+[
+  {
+    "id": "schema-syn-graph-replaces-deprecated",
+    "category": "synonyms",
+    "difficulty": "easy",
+    "prompt": "Which filter factory replaces the deprecated SynonymFilterFactory, and what filter must follow it at index time?",
+    "asserts": {
+      "must_contain": [
+        "SynonymGraphFilter",
+        "FlattenGraphFilter"
+      ]
+    },
+    "notes": "SynonymGraphFilterFactory replaces the deprecated SynonymFilterFactory; FlattenGraphFilterFactory must follow it on the INDEX analyzer."
+  },
+  {
+    "id": "schema-syn-query-time-multiword-problem",
+    "category": "synonyms",
+    "difficulty": "medium",
+    "prompt": "Why are multi-word synonyms applied at QUERY time problematic? One sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "graph|mm|phrase|sow|min.?should.?match"
+      ]
+    },
+    "notes": "Multi-word query-time synonyms emit a token graph that breaks mm counting, phrase construction, and interacts with sow."
+  },
+  {
+    "id": "schema-syn-multiword-equivalence-line",
+    "category": "synonyms",
+    "difficulty": "easy",
+    "prompt": "Give an example synonyms.txt line for a multi-word equivalence.",
+    "asserts": {
+      "must_contain": [
+        ","
+      ],
+      "must_match_regex": [
+        "\\w+ \\w+"
+      ]
+    },
+    "notes": "Comma-separated two-way rule with at least one multi-word entry, e.g. 'laptop, notebook computer'. The regex requires at least one multi-word (space-containing) phrase."
+  },
+  {
+    "id": "schema-syn-which-side-avoids-graph",
+    "category": "synonyms",
+    "difficulty": "medium",
+    "prompt": "Index-time vs query-time synonyms: which avoids the multi-word graph issue?",
+    "asserts": {
+      "must_contain": [
+        "index"
+      ]
+    },
+    "notes": "Index-time expansion (with FlattenGraphFilter) flattens to plain tokens, so mm/phrase/sow are never affected at query time."
+  },
+  {
+    "id": "schema-syn-managed-rest-schemafactory",
+    "category": "synonyms",
+    "difficulty": "easy",
+    "prompt": "What schemaFactory is required to manage synonyms via the REST API?",
+    "asserts": {
+      "must_match_regex": [
+        "Managed.*Schema|ManagedIndexSchemaFactory"
+      ]
+    },
+    "notes": "ManagedIndexSchemaFactory (mutable managed schema) is required for the managed synonyms REST endpoint."
+  }
+]

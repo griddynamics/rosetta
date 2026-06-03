@@ -1,0 +1,144 @@
+[
+  {
+    "id": "sc-base-class",
+    "category": "search-component",
+    "difficulty": "easy",
+    "prompt": "What base Java class do I extend to write a custom Solr SearchComponent? Just the class name.",
+    "asserts": {
+      "must_match_regex": [
+        "^SearchComponent$|\\bSearchComponent\\b"
+      ],
+      "max_length_chars": 60
+    },
+    "notes": "Extend org.apache.solr.handler.component.SearchComponent"
+  },
+  {
+    "id": "sc-lifecycle-methods",
+    "category": "search-component",
+    "difficulty": "medium",
+    "prompt": "Name the two main per-request methods I override in a SearchComponent (the ones that do the actual work). Comma-separated, no parameters.",
+    "asserts": {
+      "must_contain": [
+        "prepare",
+        "process"
+      ],
+      "max_length_chars": 60
+    },
+    "notes": "prepare() for pre-flight, process() for main work"
+  },
+  {
+    "id": "sc-distributed-stages",
+    "category": "search-component",
+    "difficulty": "hard",
+    "prompt": "In SolrCloud, name the two methods I must override in a SearchComponent if I need to aggregate results across shards (in addition to process). Comma-separated.",
+    "asserts": {
+      "must_contain": [
+        "distributedProcess",
+        "handleResponses"
+      ]
+    },
+    "notes": "distributedProcess decides further stages; handleResponses merges shard outputs"
+  },
+  {
+    "id": "sc-first-vs-last-components",
+    "category": "search-component",
+    "difficulty": "medium",
+    "prompt": "If I want my SearchComponent to MODIFY the request before query execution (e.g., add an fq), should I register it under first-components or last-components in solrconfig.xml? One word.",
+    "asserts": {
+      "must_match_regex": [
+        "first.?components|^first$"
+      ],
+      "must_not_match_regex": [
+        "^last"
+      ],
+      "max_length_chars": 60
+    },
+    "notes": "first-components runs before query; last-components runs after"
+  },
+  {
+    "id": "sc-register-xml",
+    "category": "search-component",
+    "difficulty": "medium",
+    "prompt": "Write the solrconfig.xml fragment that: (a) declares a SearchComponent named 'myComp' using class com.example.MyComp, with init param str 'configValue' = 'production', (b) attaches it as last-components to the /select handler. Two XML elements only.",
+    "asserts": {
+      "must_contain": [
+        "<searchComponent",
+        "name=\"myComp\"",
+        "class=\"com.example.MyComp\"",
+        "<str name=\"configValue\">production",
+        "<requestHandler",
+        "name=\"/select\"",
+        "<arr name=\"last-components\">",
+        "<str>myComp</str>"
+      ]
+    },
+    "notes": "searchComponent declaration + requestHandler with last-components arr"
+  },
+  {
+    "id": "sc-state-pitfall",
+    "category": "search-component-anti",
+    "difficulty": "hard",
+    "prompt": "I added a private List<String> field on my SearchComponent class to accumulate something across docs. Why is this dangerous, and where should request-scoped state actually go? Two short sentences.",
+    "asserts": {
+      "must_match_regex": [
+        "thread|reuse|reused|across requests|shared|concurrent|race",
+        "rb\\.req\\.getContext|getContext|request context|ResponseBuilder|ThreadLocal"
+      ]
+    },
+    "notes": "Components are reused across threads; use req.getContext() for request-scoped state"
+  },
+  {
+    "id": "sc-batch-fetch-pattern",
+    "category": "search-component",
+    "difficulty": "hard",
+    "prompt": "I have a DocTransformer that fetches related data per result doc, causing N+1 queries (one external call per doc on the page). Outline the two-component pattern that fixes this. Two sentences.",
+    "asserts": {
+      "must_match_regex": [
+        "SearchComponent.*pre.?fetch|SearchComponent.*bulk|SearchComponent.*batch|component.*fetches.*all|prefetch.*component",
+        "context|cache|getContext|req\\.getContext|stash|store"
+      ]
+    },
+    "notes": "SearchComponent batch-fetches in process(), stashes in req.getContext(); DocTransformer reads from cache per-doc"
+  },
+  {
+    "id": "sc-must-call-super-init",
+    "category": "search-component-anti",
+    "difficulty": "easy",
+    "prompt": "What's the very first line I should write in my SearchComponent's init(NamedList args) method?",
+    "asserts": {
+      "must_contain": [
+        "super.init(args)"
+      ],
+      "max_length_chars": 80
+    },
+    "notes": "Always call super.init(args) first; otherwise base class state is wrong"
+  },
+  {
+    "id": "sc-replace-collapse",
+    "category": "search-component",
+    "difficulty": "hard",
+    "prompt": "I want a SearchComponent that runs AFTER the standard query component, dedupes the result DocList by a key field, and replaces rb.getResults().docList with the deduped one. Which lifecycle method, and what do I assign? Two sentences.",
+    "asserts": {
+      "must_contain": [
+        "process"
+      ],
+      "must_match_regex": [
+        "rb\\.getResults\\(\\)\\.docList|getResults.*docList"
+      ]
+    },
+    "notes": "Override process(), reassign rb.getResults().docList = deduped"
+  },
+  {
+    "id": "sc-solrcoreaware",
+    "category": "search-component",
+    "difficulty": "medium",
+    "prompt": "I need to access the schema in my SearchComponent's setup, but only after the core is fully loaded. What interface do I implement, and what method do I override? Two short sentences.",
+    "asserts": {
+      "must_contain": [
+        "SolrCoreAware",
+        "inform"
+      ]
+    },
+    "notes": "implement SolrCoreAware, override inform(SolrCore core)"
+  }
+]

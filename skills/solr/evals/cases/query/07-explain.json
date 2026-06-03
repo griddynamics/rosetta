@@ -1,0 +1,170 @@
+[
+  {
+    "id": "debug-query-only",
+    "category": "explain",
+    "difficulty": "easy",
+    "prompt": "I want to inspect how Solr parsed my query, but I don't want the per-result explain output (it's slow). What debug parameter value should I use? One word.",
+    "asserts": {
+      "must_match_regex": [
+        "debug=query|^query$|\\bquery\\b"
+      ],
+      "must_not_match_regex": [
+        "debug=true|debug=results|debug=all"
+      ],
+      "max_length_chars": 60
+    },
+    "notes": "debug=query gives parsing info without per-result explain"
+  },
+  {
+    "id": "debug-structured-explain",
+    "category": "explain",
+    "difficulty": "easy",
+    "prompt": "I want explain output as parseable JSON, not text, so my UI can render it. What parameter? One line.",
+    "asserts": {
+      "must_contain": [
+        "debug.explain.structured=true"
+      ]
+    },
+    "notes": "debug.explain.structured=true returns explain as JSON tree"
+  },
+  {
+    "id": "lowercase-and-debug",
+    "category": "explain",
+    "difficulty": "medium",
+    "prompt": "User says 'my query q=solr and lucene returns weird results'. I add debug=query and parsedquery shows: solr OR and OR lucene. What's wrong? One sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "lowercase|case-sensitive|UPPERCASE|must be UPPER|capitaliz|capital",
+        "and.*term|treated as.*term|interpreted as.*term|parsed as.*term"
+      ]
+    },
+    "notes": "Lowercase 'and' is parsed as a term, not a boolean operator"
+  },
+  {
+    "id": "explain-bm25-components",
+    "category": "explain",
+    "difficulty": "medium",
+    "prompt": "Looking at a Solr explain output for a single term-field match (BM25), what are the three multiplicative components shown? Comma-separated, no other text.",
+    "asserts": {
+      "must_contain": [
+        "boost",
+        "idf",
+        "tf"
+      ],
+      "max_length_chars": 80
+    },
+    "notes": "BM25 in Solr explain: boost × idf × tf"
+  },
+  {
+    "id": "explain-dismax-tie",
+    "category": "explain",
+    "difficulty": "hard",
+    "prompt": "An eDisMax explain shows '0.5 = max plus 0.1 times others of:' for a multi-field match. What does the 0.1 represent in the eDisMax config? One short sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "tie|tiebreak|tie-break|tie parameter|tie value"
+      ]
+    },
+    "notes": "0.1 is the tie parameter — fraction of non-winner field scores added to the max"
+  },
+  {
+    "id": "explain-pf-missing",
+    "category": "explain",
+    "difficulty": "hard",
+    "prompt": "I configured pf=title_t^20 in eDisMax for a multi-term query 'red shoes', but explain doesn't show any phrase clause for title_t. Two likely reasons (one sentence each).",
+    "asserts": {
+      "must_match_regex": [
+        "stopword|analyzer|lowercase|tokeniz|filter chain|index time|term filter",
+        "single.term|one.term|1.term|single-?word|only.one.word|no.phrase.possible"
+      ]
+    },
+    "notes": "pf needs ≥2 query terms after analysis; stopwords removed at index/query time can drop terms"
+  },
+  {
+    "id": "explain-block-join-constant",
+    "category": "explain",
+    "difficulty": "easy",
+    "prompt": "I see an explain output of '1.0 = ConstantScore(...)' for results from a {!parent} query. Why is the score constant? One short sentence with the fix.",
+    "asserts": {
+      "must_match_regex": [
+        "score=|score mode|score parameter|default.*none|default.*constant",
+        "score=max|score=avg|score=sum|score=min|score=total"
+      ]
+    },
+    "notes": "Default {!parent} score mode is 'none' (constant 1); set score=max/avg/etc."
+  },
+  {
+    "id": "explain-bf-no-effect",
+    "category": "explain",
+    "difficulty": "hard",
+    "prompt": "My base query produces scores around 15.0. I added bf=log(popularity_i) which shows in explain as '0.5 = bf log(popularity_i)'. Boost has no visible effect on ranking. Why, and what's the fix? Two short sentences.",
+    "asserts": {
+      "must_match_regex": [
+        "small.*relative|drowned|noise|magnitude|too small|negligible|minor|insignificant",
+        "boost=|multiplicative|boost instead|switch to boost|use boost"
+      ]
+    },
+    "notes": "Additive bf can be drowned by large base scores; switch to multiplicative boost="
+  },
+  {
+    "id": "debug-timing",
+    "category": "explain",
+    "difficulty": "easy",
+    "prompt": "I want only timing breakdown by component, no parsing or explain output. Which debug parameter? One line.",
+    "asserts": {
+      "must_match_regex": [
+        "debug=timing|debug.*timing"
+      ]
+    },
+    "notes": "debug=timing gives per-component time without other debug info"
+  },
+  {
+    "id": "explain-default-similarity",
+    "category": "explain",
+    "difficulty": "easy",
+    "prompt": "What is the default similarity (scoring) algorithm in Solr 9.x? One word/short phrase.",
+    "asserts": {
+      "must_match_regex": [
+        "BM25|SchemaSimilarity.*BM25|BM25Similarity"
+      ],
+      "max_length_chars": 80
+    },
+    "notes": "BM25 (via SchemaSimilarity wrapper) is the default in Solr 9.x"
+  },
+  {
+    "id": "explain-debug-true-prod",
+    "category": "explain",
+    "difficulty": "easy",
+    "prompt": "Should I leave debug=true enabled on production traffic? One short sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "[Nn]o|disable|expensive|slow|don'?t|avoid|never|performance"
+      ]
+    },
+    "notes": "debug=true computes explain per result — significant overhead"
+  },
+  {
+    "id": "explain-fields-debug",
+    "category": "explain",
+    "difficulty": "medium",
+    "prompt": "From the debug section of a Solr response, name the field that shows the toString of the resulting Lucene Query (most useful for catching parsing surprises). One word.",
+    "asserts": {
+      "must_match_regex": [
+        "parsedquery|parsedquery_toString"
+      ]
+    },
+    "notes": "parsedquery (or parsedquery_toString) shows what Lucene actually executed"
+  },
+  {
+    "id": "explain-qparser-name",
+    "category": "explain",
+    "difficulty": "medium",
+    "prompt": "I wrote q={!edismax qf=title_t}red but debug shows QParser=LuceneQParser. What likely went wrong? One sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "malformed|syntax|missing.*}|missing.*brace|unquoted|local param.*wrong|local param.*malformed|typo"
+      ]
+    },
+    "notes": "Wrong QParser → local params syntax broken (often missing } or unquoted spaces)"
+  }
+]

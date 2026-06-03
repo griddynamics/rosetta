@@ -1,0 +1,69 @@
+[
+  {
+    "id": "autocommit-vs-softcommit-visibility",
+    "category": "solrconfig",
+    "difficulty": "easy",
+    "prompt": "What is the difference between autoCommit and autoSoftCommit in Solr, and which one controls whether newly indexed documents become visible to searches?",
+    "asserts": {
+      "must_contain": [
+        "softCommit"
+      ],
+      "must_match_regex": [
+        "visib|searcher|near.?real.?time|NRT"
+      ]
+    },
+    "notes": "Hard commit (autoCommit) = durability (flush segments + tlog); soft commit (autoSoftCommit) = visibility/NRT by opening a new searcher. Visibility is controlled by autoSoftCommit."
+  },
+  {
+    "id": "opensearcher-on-frequent-hardcommit",
+    "category": "solrconfig",
+    "difficulty": "medium",
+    "prompt": "For a frequent hard autoCommit in Solr 9.x, what should openSearcher be set to, and why?",
+    "asserts": {
+      "must_match_regex": [
+        "false",
+        "soft.?commit|visibility|expensive"
+      ]
+    },
+    "notes": "openSearcher=false on a frequent hard commit avoids redundant expensive searcher opens; let autoSoftCommit own visibility (the expensive part of a commit)."
+  },
+  {
+    "id": "name-two-query-caches",
+    "category": "solrconfig",
+    "difficulty": "easy",
+    "prompt": "Name two Solr query caches that are configured in solrconfig.xml.",
+    "asserts": {
+      "must_match_regex": [
+        "filterCache|queryResultCache|documentCache"
+      ]
+    },
+    "notes": "The per-searcher query caches in solrconfig.xml are filterCache, queryResultCache, and documentCache (CaffeineCache impl in Solr 9.x)."
+  },
+  {
+    "id": "default-schemafactory-9x",
+    "category": "solrconfig",
+    "difficulty": "easy",
+    "prompt": "Which schemaFactory is the Solr 9.x default and allows runtime schema edits via the Schema REST API?",
+    "asserts": {
+      "must_match_regex": [
+        "Managed"
+      ],
+      "must_not_contain": [
+        "Classic"
+      ]
+    },
+    "notes": "ManagedIndexSchemaFactory is the Solr 9.x default and is mutable at runtime; ClassicIndexSchemaFactory is read-only."
+  },
+  {
+    "id": "lucenematchversion-purpose",
+    "category": "solrconfig",
+    "difficulty": "easy",
+    "prompt": "What does luceneMatchVersion control in solrconfig.xml? Answer in one sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "compat|version|behavior|defaults"
+      ]
+    },
+    "notes": "luceneMatchVersion declares which Lucene version's behavior, defaults, and compatibility Solr emulates for analysis and index-writing components."
+  }
+]

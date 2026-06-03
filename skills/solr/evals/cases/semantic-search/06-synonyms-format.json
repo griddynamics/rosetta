@@ -1,0 +1,118 @@
+[
+  {
+    "id": "ss-syn-format-separator",
+    "category": "synonyms",
+    "difficulty": "easy",
+    "prompt": "In the standard Solr synonyms.txt format (consumed by SynonymGraphFilterFactory), what character separates equivalent terms on a single rule line? One character.",
+    "asserts": {
+      "must_match_regex": [
+        "comma|,"
+      ],
+      "must_not_match_regex": [
+        "semicolon|;"
+      ],
+      "max_length_chars": 50
+    },
+    "notes": "Comma — e.g., 'ferrari, ferr, prancing horse'. Not semicolon."
+  },
+  {
+    "id": "ss-syn-two-way",
+    "category": "synonyms",
+    "difficulty": "medium",
+    "prompt": "Write a synonyms.txt rule that makes 'tire', 'tyre', and 'wheel' all equivalent two-way synonyms. One line.",
+    "asserts": {
+      "must_match_regex": [
+        "tire\\s*,\\s*tyre\\s*,\\s*wheel|wheel\\s*,\\s*tire\\s*,\\s*tyre|tyre\\s*,\\s*tire\\s*,\\s*wheel"
+      ],
+      "must_not_match_regex": [
+        "=>"
+      ]
+    },
+    "notes": "tire, tyre, wheel — comma-separated; no => arrow for two-way"
+  },
+  {
+    "id": "ss-syn-one-way-arrow",
+    "category": "synonyms",
+    "difficulty": "medium",
+    "prompt": "What syntax do I use in synonyms.txt to make a one-way rule where 'teh' should be replaced by 'the' (and 'teh' itself dropped from the token stream)?",
+    "asserts": {
+      "must_match_regex": [
+        "teh\\s*=>\\s*the"
+      ]
+    },
+    "notes": "teh => the — left-hand side replaced by right-hand side; LHS dropped unless re-listed on RHS"
+  },
+  {
+    "id": "ss-syn-keep-lhs",
+    "category": "synonyms",
+    "difficulty": "hard",
+    "prompt": "I want 'vw' to expand to BOTH 'vw' and 'volkswagen' (so docs with 'vw' AND docs with 'volkswagen' both match). Show two valid synonyms.txt rules that achieve this — one with =>, one without.",
+    "asserts": {
+      "must_match_regex": [
+        "vw\\s*,\\s*volkswagen|volkswagen\\s*,\\s*vw",
+        "vw\\s*=>\\s*vw\\s*,\\s*volkswagen|vw\\s*=>\\s*volkswagen\\s*,\\s*vw"
+      ]
+    },
+    "notes": "Two-way 'vw, volkswagen' OR explicit 'vw => vw, volkswagen' — including LHS on RHS keeps it"
+  },
+  {
+    "id": "ss-syn-graph-filter-class",
+    "category": "synonyms",
+    "difficulty": "easy",
+    "prompt": "What is the modern Solr 9.x filter class name for synonym handling (the one that supports multi-word synonyms correctly via graph token streams)?",
+    "asserts": {
+      "must_match_regex": [
+        "SynonymGraphFilterFactory|solr\\.SynonymGraphFilterFactory"
+      ]
+    },
+    "notes": "solr.SynonymGraphFilterFactory; SynonymFilterFactory is deprecated"
+  },
+  {
+    "id": "ss-syn-flatten-graph",
+    "category": "synonyms",
+    "difficulty": "hard",
+    "prompt": "If I use SynonymGraphFilterFactory in an INDEX-time analyzer, what additional filter must I add after it to make the index work correctly? Just the class name.",
+    "asserts": {
+      "must_match_regex": [
+        "FlattenGraphFilterFactory|solr\\.FlattenGraphFilterFactory"
+      ]
+    },
+    "notes": "solr.FlattenGraphFilterFactory required AFTER SynonymGraphFilter on index analyzer (not query analyzer)"
+  },
+  {
+    "id": "ss-syn-comments",
+    "category": "synonyms",
+    "difficulty": "easy",
+    "prompt": "What character starts a comment line in synonyms.txt?",
+    "asserts": {
+      "must_match_regex": [
+        "#|hash|pound"
+      ]
+    },
+    "notes": "# starts comments; blank lines also ignored"
+  },
+  {
+    "id": "ss-syn-multi-word",
+    "category": "synonyms",
+    "difficulty": "medium",
+    "prompt": "Can a single rule in synonyms.txt contain multi-word phrases like 'ear pads' as one entry? One word answer.",
+    "asserts": {
+      "must_match_regex": [
+        "[Yy]es"
+      ]
+    },
+    "notes": "Yes — multi-word entries (with spaces) work; e.g., 'ear pads, ear cushions, ear pad set' is valid"
+  },
+  {
+    "id": "ss-syn-domain-specific",
+    "category": "synonyms",
+    "difficulty": "hard",
+    "prompt": "When should I NOT put a synonym pair in synonyms.txt and instead model it as concept docs in the concept collection? One sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "domain.specific|category.specific|specific.*category|specific.*domain|only.*applies|scoped|context.specific|only.in|specific.context"
+      ]
+    },
+    "notes": "Domain-specific equivalences (only-applies-to-headphones, only-applies-to-speakers) should be concept docs scoped via fq, not global synonyms.txt"
+  }
+]

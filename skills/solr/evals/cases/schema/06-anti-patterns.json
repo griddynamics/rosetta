@@ -1,0 +1,63 @@
+[
+  {
+    "id": "auditor-flag-three",
+    "category": "anti-patterns",
+    "difficulty": "easy",
+    "prompt": "List three schema anti-patterns an auditor should flag immediately in a Solr 9.x managed-schema.",
+    "asserts": {
+      "must_match_regex": [
+        "string.*full.?text|docValues|asymmetr|over.?stor|multiValued"
+      ]
+    },
+    "notes": "Auditor triage list: string-for-fulltext, missing docValues, asymmetric analyzers, over-storing, unexpected multiValued, copyField sprawl, etc."
+  },
+  {
+    "id": "facet-no-docvalues-heap",
+    "category": "anti-patterns",
+    "difficulty": "easy",
+    "prompt": "A facet field works in testing but heap spikes under load; the field has no docValues. Name the anti-pattern.",
+    "asserts": {
+      "must_contain": [
+        "docValues"
+      ]
+    },
+    "notes": "Missing docValues on a facet field forces fieldCache un-inversion, causing heap pressure under load."
+  },
+  {
+    "id": "trie-to-point-migration",
+    "category": "anti-patterns",
+    "difficulty": "medium",
+    "prompt": "Migrating a Solr 8 schema to Solr 9: which field-type family was removed and what replaces it?",
+    "asserts": {
+      "must_contain": [
+        "Trie",
+        "Point"
+      ]
+    },
+    "notes": "Trie* field types were removed in Solr 9.0; replace with *PointField (pint/plong/pfloat/pdouble/pdate) and reindex."
+  },
+  {
+    "id": "text-field-for-sorting",
+    "category": "anti-patterns",
+    "difficulty": "medium",
+    "prompt": "Why is using a text_general field for sorting an anti-pattern in Solr?",
+    "asserts": {
+      "must_match_regex": [
+        "tokeniz|multi.?valued|docValues|not.*sort"
+      ]
+    },
+    "notes": "text_general is tokenized (and often multiValued); sorting on a tokenized/multiValued field is undefined. Use string + docValues."
+  },
+  {
+    "id": "solr10-assume-like-9",
+    "category": "anti-patterns",
+    "difficulty": "easy",
+    "prompt": "One-line: is it safe to assume Solr 10 behaves like Solr 9.x for schema syntax?",
+    "asserts": {
+      "must_match_regex": [
+        "verify|release notes|no|check"
+      ]
+    },
+    "notes": "Do not assume; verify Solr 10 behavior against the official release notes before asserting removals or changes."
+  }
+]

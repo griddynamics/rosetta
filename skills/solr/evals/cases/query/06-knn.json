@@ -1,0 +1,206 @@
+[
+  {
+    "id": "knn-basic",
+    "category": "knn",
+    "difficulty": "easy",
+    "prompt": "Write a Solr q parameter using {!knn} to retrieve the top 100 most similar docs from field 'embedding' for the query vector [0.1, 0.2, 0.3]. One line.",
+    "asserts": {
+      "must_contain": [
+        "{!knn",
+        "f=embedding",
+        "topK=100",
+        "[0.1",
+        "0.2",
+        "0.3]"
+      ]
+    },
+    "notes": "Basic kNN syntax: f=, topK=, vector after }"
+  },
+  {
+    "id": "knn-pre-filter",
+    "category": "knn",
+    "difficulty": "medium",
+    "prompt": "kNN search with topK=50 on field 'embedding' for vector [0.1, 0.2], pre-filtered (filter applied BEFORE HNSW traversal) by in_stock_b:true. One line q only.",
+    "asserts": {
+      "must_contain": [
+        "{!knn",
+        "f=embedding",
+        "topK=50",
+        "preFilter=",
+        "in_stock_b:true"
+      ]
+    },
+    "notes": "preFilter= integrates filter into HNSW traversal — preserves recall vs post-filter"
+  },
+  {
+    "id": "knn-post-filter-trap",
+    "category": "knn-anti",
+    "difficulty": "hard",
+    "prompt": "User reports that this query returns only 2-3 results, not the expected 50:\nq={!knn f=embedding topK=50}[0.1, 0.2, 0.3]\nfq=in_stock_b:true\n(Their corpus has millions of docs, in_stock matches ~5%.) Explain in one sentence what's going wrong and write the corrected q line.",
+    "asserts": {
+      "must_match_regex": [
+        "post.?filter|after.*topK|after.*kNN|filter.*after|filter.*applied.*after"
+      ],
+      "must_contain": [
+        "preFilter=",
+        "in_stock_b:true"
+      ]
+    },
+    "notes": "fq runs as post-filter on the topK results; selective filter starves the result set"
+  },
+  {
+    "id": "knn-multiple-pre-filters",
+    "category": "knn",
+    "difficulty": "medium",
+    "prompt": "kNN with topK=100 on 'embedding' field, vector [0.1,0.2], pre-filtered by BOTH in_stock_b:true AND brand_s:Nike. Show one approach using comma-separated preFilter. One line.",
+    "asserts": {
+      "must_contain": [
+        "{!knn",
+        "f=embedding",
+        "topK=100",
+        "preFilter="
+      ],
+      "must_match_regex": [
+        "preFilter=['\"]?in_stock_b:true\\s*,\\s*brand_s:Nike|preFilter=['\"]?brand_s:Nike\\s*,\\s*in_stock_b:true"
+      ]
+    },
+    "notes": "comma-separated preFilter string OR multiple preFilter= entries both work"
+  },
+  {
+    "id": "knn-field-setup",
+    "category": "knn",
+    "difficulty": "medium",
+    "prompt": "Write the schema fieldType for a dense vector field with 768 dimensions using cosine similarity. Just the <fieldType> XML element.",
+    "asserts": {
+      "must_contain": [
+        "DenseVectorField",
+        "vectorDimension=",
+        "768",
+        "similarityFunction=",
+        "cosine"
+      ],
+      "must_match_regex": [
+        "class=['\"]solr.DenseVectorField['\"]"
+      ]
+    },
+    "notes": "DenseVectorField with vectorDimension and similarityFunction"
+  },
+  {
+    "id": "knn-dimension-mismatch",
+    "category": "knn-anti",
+    "difficulty": "easy",
+    "prompt": "What error happens when I query a 768-dim DenseVectorField with a 384-dim query vector? One short sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "[Ii]llegal.?[Aa]rgument|dimension.*mismatch|mismatch.*dimension|wrong dimension|exception|error.*query.*time"
+      ]
+    },
+    "notes": "Dimension mismatch raises IllegalArgumentException at query time"
+  },
+  {
+    "id": "knn-mlt-self-vector",
+    "category": "knn",
+    "difficulty": "hard",
+    "prompt": "Implement 'more like this' for document with id='p1': use its own embedding field value as the query vector. Top 10 similar docs. One line q only.",
+    "asserts": {
+      "must_contain": [
+        "{!knn",
+        "f=embedding",
+        "topK=10"
+      ],
+      "must_match_regex": [
+        "v=field\\(\\s*['\"]?embedding['\"]?\\s*,\\s*['\"]?p1['\"]?\\s*\\)|field\\(\\s*['\"]?embedding['\"]?\\s*,\\s*['\"]?p1['\"]?\\s*\\)"
+      ]
+    },
+    "notes": "field('embedding','p1') reads vector from doc p1 to use as query"
+  },
+  {
+    "id": "knn-cosine-normalization",
+    "category": "knn",
+    "difficulty": "medium",
+    "prompt": "I'm using similarityFunction=dot_product on my vector field but my embedding library returns unnormalized vectors. What's wrong with my similarity scores? One sentence + one-sentence fix.",
+    "asserts": {
+      "must_match_regex": [
+        "normaliz|unit.length|unit.vector|magnitude|norm.?them|L2",
+        "wrong|incorrect|meaningless|invalid|wildly|off"
+      ]
+    },
+    "notes": "dot_product needs pre-normalized vectors; cosine handles normalization internally"
+  },
+  {
+    "id": "knn-hybrid-rerank",
+    "category": "knn",
+    "difficulty": "hard",
+    "prompt": "Hybrid search: text query 'red shoes' via edismax (qf=title_t^5), then re-rank top 200 by kNN similarity to vector [0.1,0.2] (vector field 'embedding'), with reRankWeight=2.0. Show q, rq, and rqq parameters (one per line).",
+    "asserts": {
+      "must_contain": [
+        "q={!edismax",
+        "qf=",
+        "title_t",
+        "red shoes",
+        "rq={!rerank",
+        "reRankQuery=",
+        "reRankDocs=200",
+        "reRankWeight=2.0",
+        "{!knn",
+        "f=embedding"
+      ]
+    },
+    "notes": "Lexical retrieval + kNN re-rank is a common hybrid pattern"
+  },
+  {
+    "id": "knn-results-not-enough-fix",
+    "category": "knn",
+    "difficulty": "medium",
+    "prompt": "I want exactly 20 final results from kNN over an 'embedding' field with a fq=brand_s:Nike filter (Nike covers ~10% of corpus). Two-sentence approach: which mechanism + appropriate topK setting.",
+    "asserts": {
+      "must_match_regex": [
+        "preFilter|pre.?filter",
+        "topK=[2-9][0-9]|topK=[1-9][0-9]{2,}|topK.*at least|topK.*200|topK.*100"
+      ]
+    },
+    "notes": "Use preFilter so HNSW only considers matching docs; topK = desired_results × 2 minimum"
+  },
+  {
+    "id": "knn-stored-flag",
+    "category": "knn",
+    "difficulty": "easy",
+    "prompt": "Should I set stored=true on my DenseVectorField with 768 dimensions and 50M documents? One sentence.",
+    "asserts": {
+      "must_match_regex": [
+        "[Nn]o|only.*if|don'?t need|unless.*retrieve|unless.*return|disk space|huge|expensive|doubles"
+      ]
+    },
+    "notes": "stored=true doubles disk usage; only set when you need fl=embedding to return vectors"
+  },
+  {
+    "id": "knn-sort-override",
+    "category": "knn",
+    "difficulty": "medium",
+    "prompt": "I want kNN top 100 by similarity from 'embedding' but final ordering should be by price_f ascending (semantically nearest, then cheapest first). One line each: q, sort.",
+    "asserts": {
+      "must_contain": [
+        "q={!knn",
+        "f=embedding",
+        "topK=100",
+        "sort=price_f asc"
+      ]
+    },
+    "notes": "Default sort is by score; override with sort= to reorder kNN topK"
+  },
+  {
+    "id": "knn-distance-units",
+    "category": "knn",
+    "difficulty": "easy",
+    "prompt": "List the three similarityFunction options for DenseVectorField in Solr 9.x. Comma-separated, no other text.",
+    "asserts": {
+      "must_contain": [
+        "cosine",
+        "dot_product",
+        "euclidean"
+      ],
+      "max_length_chars": 80
+    },
+    "notes": "Three options: cosine, dot_product, euclidean"
+  }
+]
