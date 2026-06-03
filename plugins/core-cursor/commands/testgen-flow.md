@@ -19,12 +19,12 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 - Rosetta prep steps completed
 - **ONE PHASE AT A TIME:** ACQUIRE phase file, execute, update state, move to next.
 - **DO NOT SKIP PHASES:** Each builds on the previous. Skip gates: only with **explicit user instruction**, **or** when `testgen-state.md` marks the phase complete **and** its expected output file exists under `agents/testgen/{TICKET-KEY}/`; otherwise resume from the earliest incomplete phase.
-- **Verification-failure resume:** see `<orchestration_and_escalation>` — single canonical home for the unilateral-start override; scope-locked to the missing-state + missing-output case. Does NOT override the per-phase USER CONFIRMATION below (happy path), the Phase 3 / Phase 6 HITL approval gates, or any safety/destructive confirmation.
+- **Verification-failure resume:** the unilateral-start override lives in `<orchestration_and_escalation>` — scope-locked, subordinate to higher-priority rules. **Carve-outs / precedence:** see the canonical priority hierarchy in `<orchestration_and_escalation>` (rule 4 is the override; rules 1–3 are never overridden).
 - **STATE TRACKING:** Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
 - **SELF-CHECK BETWEEN PHASES:** Before advancing, verify the state file row was updated, the expected output file exists and is non-empty, and any HITL approval (Phase 3, 6) is recorded.
 - USE SKILL `sequential-workflow-execution` for the canonical implementation of the bullets above (ACQUIRE if not already loaded). The inline bullets remain authoritative if the SKILL fails to load.
 - MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL PHASES ARE SEQUENTIAL.
-- **USER CONFIRMATION:** Wait for approval before next phase. (Happy-path governance — applies to every phase transition that is NOT the verification-failure resume case above; that single carve-out lives in `<orchestration_and_escalation>` and does not generalize.)
+- **USER CONFIRMATION:** Wait for approval before next phase. (Happy-path governance — rule 3 in the priority hierarchy in `<orchestration_and_escalation>`.)
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
 - **Per-phase failure cases + grounding examples — owned by phase files** (verification trail; router stays thin):
@@ -117,16 +117,26 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 <orchestration_and_escalation>
 
+- **Transition rules priority hierarchy** (canonical — single source of truth for which rule wins when phase-transition rules overlap; referenced from `<workflow_phases>` and from the override clause below):
+
+  **Highest priority (NEVER overridden) — Lowest priority (narrowest carve-out):**
+
+  1. **Safety / destructive confirmations** — any prompt before file deletion, repository edits outside `agents/testgen/{TICKET-KEY}/`, TMS write scope changes, or comparable destructive/irreversible actions. The `<phase_5_6_standards_gate>` confirmation discipline for outside-output-dir writes is included here.
+  2. **Phase 3 + Phase 6 HITL approval gates** — genuine HITL (user MUST answer `questions.md` / MUST confirm TMS target + export scope). Not confirmation requests that can be elided.
+  3. **Per-phase USER CONFIRMATION** (`<workflow_phases>` happy-path rule) — governs every phase transition that is not the verification-failure resume case in rule 4.
+  4. **Verification-failure unilateral-start override** (this block) — narrow carve-out: applies ONLY at the verification-failure gate AND only when all preconditions below hold. Subordinate to all three rules above; defaults to ASK on any ambiguity.
+
+  **Reading:** safety/HITL gates > per-phase USER CONFIRMATION > verification-failure override.
+
 - **Verification-failure unilateral-start override** (single-rule form):
-  - **Deference (scope-lock).** This is the **only** sanctioned no-ask deviation from the per-phase USER CONFIRMATION rule in `<workflow_phases>` and from session-wide `hitl` skill defaults. It applies **only** when ALL three preconditions below hold AND **only** at this verification-failure gate. Do **NOT** generalize the no-ask behavior to any other branch. **Explicit carve-outs that remain in force at all times** — the override never suppresses these:
-    - **Per-phase USER CONFIRMATION** (`<workflow_phases>` happy-path rule) — still governs every phase transition that is not the verification-failure resume case.
-    - **Phase 3 HITL approval gate** — user MUST answer `questions.md`; this is genuine HITL, not a confirmation request that can be elided.
-    - **Phase 6 HITL approval gate** — user MUST confirm target TMS location + export scope; this is genuine HITL.
-    - **Safety / destructive confirmations** — any prompt before file deletion, repository edits outside `agents/testgen/{TICKET-KEY}/`, TMS write scope changes, or comparable destructive/irreversible actions. The `<phase_5_6_standards_gate>` confirmation discipline for outside-output-dir writes also remains in force.
+  - **Deference (scope-lock).** This is the **only** sanctioned no-ask deviation from the per-phase USER CONFIRMATION rule and from session-wide `hitl` skill defaults. It applies **only** when ALL three preconditions below hold AND **only** at this verification-failure gate. Do **NOT** generalize the no-ask behavior to any other branch. **Carve-outs that remain in force at all times live in the priority hierarchy above (rules 1–3)** — the override never suppresses them; do not restate them here.
   - **Precondition (ALL must be true):** (a) user has explicitly asserted phase(s) are complete in this turn, AND (b) `agents/testgen/{TICKET-KEY}/testgen-state.md` does NOT mark the asserted phases complete (row missing or `[ ]` unchecked), AND (c) the matching expected output file (per `<state_file>` / `<output_directory>`) is absent under `agents/testgen/{TICKET-KEY}/`.
-  - **If precondition holds:** print one line naming the failing conditions (e.g., `skip refused: testgen-state.md row missing → starting at Phase 0`), then start the earliest incomplete phase in the **same turn** — do NOT call `AskUserQuestion`, present options, or pause for input. The verification result IS the decision at this specific gate.
+  - **If precondition holds:**
+    1. Print one line naming the failing conditions to the user (e.g., `skip refused: testgen-state.md row missing → starting at Phase 0`).
+    2. **Log the override decision into `agents/testgen/{TICKET-KEY}/testgen-state.md`** under a `## Verification-Failure Overrides` section — record the timestamp, the user's asserted-complete claim, the failing conditions cited, and the phase started. This creates an auditable trail; the printed one-line announcement is not sufficient on its own.
+    3. Start the earliest incomplete phase in the **same turn** — do NOT call `AskUserQuestion`, present options, or pause for input. The verification result IS the decision at this specific gate.
   - **If any precondition is uncertain or only partially true** (state file partially present, ambiguous user assertion, output file present but stale): fall back to the normal HITL ask path. **Ambiguity defaults to ASK, not auto-start.**
-  - **Scope:** applies ONLY at this verification-failure gate. Authority on ask-before-action elsewhere: the per-phase USER CONFIRMATION rule in `<workflow_phases>` for happy-path transitions, the `hitl` skill defaults for all other branches, the explicit carve-outs above for genuine HITL + safety confirmations.
+  - **Scope:** applies ONLY at this verification-failure gate. Authority elsewhere lives in the priority hierarchy above.
   - *Rationale (one line): at this gate the verification result IS the decision — the user has already asserted; asking again creates a contradictory loop until artifacts exist.*
 
 </orchestration_and_escalation>
@@ -170,6 +180,12 @@ Create/update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase:
 - Notes: [Any relevant notes]
 
 [Add sections for each completed phase]
+
+## Verification-Failure Overrides
+
+[Append a row each time the `<orchestration_and_escalation>` verification-failure unilateral-start override fires. If never fired, write: `None — no overrides applied.`]
+
+- **[ISO timestamp]** — User asserted phases complete: `[user's verbatim claim]`. Failing conditions: `[which preconditions were unmet — state row missing / output file absent / etc.]`. Phase started: `[earliest incomplete phase id]`.
 ```
 
 </state_file>

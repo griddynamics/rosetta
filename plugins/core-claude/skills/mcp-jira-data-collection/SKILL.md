@@ -46,7 +46,7 @@ Complete when the Jira issue was retrieved via `jira_get_issue`, normalized into
    - **Field permission-restricted** (assignee/reporter hidden, description redacted by Jira's own security, comments not visible to the MCP credential): write `<restricted by permissions>` in the section AND note in Gaps: `<field>: not visible to configured Jira credentials`. Continue extraction; do not stop the whole skill.
    - **Custom fields**: if standard `jira_get_issue` returns cryptic IDs (`customfield_10012`), call `jira_search_fields()` to resolve names. If discovery fails, list the cryptic IDs and add a Gaps note `Custom field schema unavailable — field names may be cryptic`. Do not stop the extraction.
 
-4. **Pre-emit validation.** Before writing the output, re-check against `<validation_checklist>`. Fix any failing item before step 5.
+4. **Pre-emit validation.** Before writing the output, re-check against the 8-item validation checklist in [references/validation-checklist.md](references/validation-checklist.md) — load on demand at this step. Fix any failing item before step 5.
 
 5. **Apply `<safety_boundaries>` redaction one final time** as a re-scan against the assembled artifact (Description + Comments are the highest-risk fields — stack traces, environment dumps, customer-report pastes). Any match here is replaced with a placeholder AND recorded in Sensitive-content redactions. If none: write `None.` in that section.
 
@@ -122,35 +122,26 @@ If a real production value would be the natural example in the artifact, replace
 - **MCP transport error** (timeout, 5xx, connection drop): retry once with the same `issue_key`. If the second call also fails, stop, report the transport error with the error message, ask the user to verify Jira MCP configuration and connectivity.
 - **Ticket-not-found** (`jira_get_issue` returns 404 / empty / "issue does not exist"): stop, report `mcp-jira-data-collection: ticket <KEY> not found — verify the key is correct and accessible by the configured Jira credentials`. Do NOT emit a partial or empty artifact. Do NOT fabricate fields.
 - **Authorization failure** (401/403): stop, report `mcp-jira-data-collection: Jira rejected the request — ticket <KEY> may exist but is not visible to the configured credentials`. Ask the user to verify Jira MCP credentials / project access.
-- **Required field empty** (issue retrieved successfully but summary or description is empty): proceed with extraction, write `None` in the matching output section, record the empty field in the Gaps section. Do NOT fabricate.
-- **Field permission-restricted** (assignee/reporter/description hidden by Jira's own ACL): write `<restricted by permissions>` in the field, record in Gaps. Continue — partial visibility is acceptable; silent omission is not.
+- **Required field empty** (issue retrieved successfully but summary or description is empty): per `<process>` step 3 empty-field branch. Do NOT fabricate.
+- **Field permission-restricted** (assignee/reporter/description hidden by Jira's own ACL): per `<process>` step 3 + `<safety_boundaries>` "Permission-restricted fields are not empty content" rule.
 - **`jira_search_fields` discovery fails** (custom-field schema cannot be retrieved): proceed with the fields the issue object exposed directly; record under Custom Fields a note: `Custom field schema unavailable — field names may be cryptic`. Do not stop the extraction.
 
 </failure_handling>
 
 <validation_checklist>
 
-Before declaring this skill complete, all of the following must hold:
-
-- **Issue successfully retrieved:** `jira_get_issue` returned a non-empty issue object; if it did not, this skill is NOT complete — the failure path in `<failure_handling>` was followed instead.
-- **All `<output_format>` sections present:** Ticket header, Description, Labels, Components, Assignee/Reporter, Comments, Custom Fields, Gaps, Sensitive-content redactions. No section omitted; empty sections explicitly say `None` (or `<restricted by permissions>` with a Gaps note) rather than left blank.
-- **Every empty / restricted required field is in the Gaps section:** Summary, Description are required; if either is empty or restricted in Jira, it appears in Gaps with the field name. No field was silently left blank in the output.
-- **Comments cap respected:** at most 10 comments recorded (the most recent 10). If Jira had >10 comments, a Gaps entry notes `Comments: showing 10 most recent; <total> total exist in Jira`.
-- **Custom-field discovery attempted when needed:** if any returned field used a cryptic `customfield_NNNNN` ID, `jira_search_fields` was called (and its result OR failure recorded).
-- **Redaction scan completed** per `<safety_boundaries>` Targets list — especially against Description and Comments; any matches were replaced and recorded in Sensitive-content redactions. If no matches: that section says `None.` — not blank.
-- **No fabricated content:** no field of the output describes content not actually present in the Jira issue object. Inference, paraphrase-without-quote, or guessed values are forbidden — gaps are recorded, not filled.
-- **Read-only contract honored** per `<safety_boundaries>` — no Jira MCP write operations were called.
+8-item pre-emit checklist lives in [references/validation-checklist.md](references/validation-checklist.md) — loaded on demand from `<process>` step 4 (the only step that runs the checklist).
 
 </validation_checklist>
 
 <pitfalls>
 - Ticket key may be embedded in a URL — always parse flexibly
-- Custom fields vary per project — use `jira_search_fields()` to discover names
+- Custom fields vary per project — use `jira_search_fields()` to discover names (per `<process>` step 3)
 - Rendered HTML description may need markdown conversion
-- Some fields (assignee, reporter, description) may be restricted by permissions — record as `<restricted by permissions>` + Gaps note; do NOT silently leave blank
-- Pasting verbatim description or comments without applying `<safety_boundaries>` redaction — Jira tickets routinely embed credentials and PII in stack-trace dumps and customer reports; redact BEFORE writing, not after.
-- Capping comments at >10 silently — record the cap in Gaps if there were more
-- Emitting a partial artifact on auth/transport failure instead of stopping per `<failure_handling>` — silent partial emit hides the failure from downstream phases
+- Permission-restricted fields silently left blank — see `<safety_boundaries>` "Permission-restricted fields are not empty content" rule
+- Verbatim description / comments without redaction — see `<safety_boundaries>` "Redact every retrieved description + comment body" (Jira tickets routinely embed credentials + PII in stack-trace dumps and customer reports)
+- Capping comments at >10 silently — record the cap in Gaps if there were more (per `<validation_checklist>`)
+- Partial artifact on auth/transport failure instead of stopping — see `<failure_handling>`
 </pitfalls>
 
 <vendor_replacement>

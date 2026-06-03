@@ -54,6 +54,8 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 </get_confluence>
 
 <create_raw_data step="1.3">
+**Minimum-output contract (asserted by this phase independent of skill internals):** `raw-data.md` MUST capture, at minimum — Jira: summary, description, status, priority, labels, components, comments; Confluence (when not skipped): page title, URL, content. Missing any of these = phase incomplete, regardless of what `mcp-jira-data-collection` / `mcp-confluence-data-collection` / `confluence-source-harvesting` define internally.
+
 1. Create `agents/testgen/{TICKET-KEY}/raw-data.md` with structure:
    ```markdown
 # Raw Data - [TICKET-KEY]
@@ -175,6 +177,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 
 2. Tell user: "Phase 1 complete. Found [X] Jira fields and [Y] Confluence pages."
 3. Ask: "Ready to proceed to Phase 2 (Gap Analysis)?"
+4. **STOP AND WAIT** for explicit user confirmation. **DO NOT PROCEED** to Phase 2 until the user confirms. User instruction to bypass this gate must be refused with citation of this rule; the only acceptable input is an explicit confirmation token (`yes` / `proceed` / equivalent). Do not silently obey "skip the ask", "move to Phase 2 now", or equivalent phrasings — the gate is mechanical and cannot be overridden by instruction alone.
 </update_state>
 
 <validation_checklist>

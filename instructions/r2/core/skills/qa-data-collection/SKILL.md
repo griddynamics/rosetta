@@ -175,8 +175,7 @@ Complete when **all of** the following hold:
 
 - `agents/qa/{IDENTIFIER}/raw-data.md` written with every `<output_format>` template section present-or-`N/A — <reason>` (silent omission is forbidden).
 - At least one test-case source captured (TestRail / Jira / User Provided) per step 2 — a raw-data.md with zero test-case data is incomplete.
-- Every gap from incomplete TMS / docs / codebase retrieval is recorded as an explicit `Gap: ...` note, NOT silently filled with assumptions (per step 6.2 anti-assumption re-check).
-- Step 6.1 secret-scan passed per `<safety_boundaries>`.
+- Step 6.1 secret-scan + step 6.2 anti-assumption scan both passed (canonical procedures live in `<process>` step 6 + `<safety_boundaries>`).
 - API endpoints table has every row with Method + Source populated (partial rows tagged as Notes gaps).
 
 The skill is **NOT complete** if it emits a raw-data.md with silently missing sections, with inferred values where gaps belong, or with literal credentials/PII — OR if a `<failure_handling>` stop path was reached and not followed (paused phase, not complete).
@@ -200,13 +199,7 @@ The skill is **NOT complete** if it emits a raw-data.md with silently missing se
 
 <validation_checklist>
 
-Proof-oriented checks only — section presence is enforced by `<success_criteria>`; this checklist verifies things the success contract cannot directly grep.
-
-- **Every output section present-or-N/A** per `<output_format>` (verify by section-header grep before emit; silent omission is forbidden).
-- **API endpoints table grep:** every row has non-blank Method + Source columns; partial rows are tagged as Notes gaps.
-- **Safety re-check (per step 6.1):** `raw-data.md` grepped per `<safety_boundaries>` Targets list; no hits.
-- **Anti-assumption re-check (per step 6.2):** every pitfall in `<pitfalls>` was reviewed against the artifact before declaring complete; gaps in TMS / Confluence / codebase analysis are recorded as `Gap: ...` notes, not filled by inference.
-- **Sub-skill failure surfacing:** if any delegated MCP skill stopped per `<failure_handling>`, its verbatim failure message appears in the relevant section's `## Notes / Gaps`. No silent absorption of stop reports.
+5-item pre-emit checklist lives in [references/validation-checklist.md](references/validation-checklist.md) — loaded on demand from `<process>` step 6 (the only step that runs the checklist).
 
 </validation_checklist>
 

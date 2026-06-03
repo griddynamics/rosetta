@@ -48,7 +48,9 @@ Create `agents/testgen/{TICKET-KEY}/analysis.md`:
 
 1. **Sections 1–6** (Contradictions, Gaps, Ambiguities, Cross-Reference Analysis, Positive Findings, Risk Assessment) — produced by `gap-and-contradiction-analysis` per its `<output_format>`. **Per-entry field shapes** — `C[N]`: Type / Source 1 (with field/section + verbatim quote) / Source 2 / Impact / Needs Clarification; `G[N]` / `A[N]` analogous — live in the skill's `references/entry-templates-and-document-skeleton.md` (verified canonical home). Sections 1–6 numbering and skeleton: same reference. The phase delegates without restating; this line is the verification trail.
 
-2. **Append the two sections below verbatim** to the end of the file produced by step 1, then fill the `[bracketed]` slots from the analysis:
+2. **Verify the skill's output ended at `## 6.`** before appending — grep the file produced by step 1 for the last `^## ` heading and confirm it starts with `## 6.` (or the explicit "No issues found" zero-issues form per `gap-and-contradiction-analysis` `<output_format>`). If the last heading is NOT `## 6.`, the skill's section numbering may have drifted — stop and report; do NOT append section 7 onto a misaligned document.
+
+3. **Append the two sections below verbatim** to the end of the file (numbering continues from the skill's `## 6.`), then fill the `[bracketed]` slots from the analysis:
 
 ```markdown
 ## 7. Next Steps
@@ -86,6 +88,7 @@ Name the specific concept that's missing or conflicting, quote the source text, 
 1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 2 complete and metrics (contradictions, gaps, ambiguities counts, risk level)
 2. **Zero-issues branch:** if total issues = 0 (no contradictions, no gaps, no ambiguities), tell the user: "Phase 2 complete. No issues found — recommend skipping Phase 3 (Question Generation) and advancing to Phase 4 (Requirements Document)." Mark Phase 3 as `SKIPPED — no issues from Phase 2` in `testgen-state.md` if the user agrees, then proceed to Phase 4.
 3. **Issues-found branch:** Tell user: "Phase 2 complete. Found [X] contradictions, [Y] gaps, [Z] ambiguities." Show high-risk issues requiring urgent clarification. Ask: "Ready to proceed to Phase 3 (Question Generation)?"
+4. **STOP and wait for explicit user confirmation** before the parent flow advances to Phase 3. Do NOT auto-proceed on inferred approval or silence; treat ambiguous responses as "not confirmed" and re-ask. (Applies only on the issues-found branch — the zero-issues branch in sub-step 2 has its own user-agrees gate.)
 </update_state>
 
 <validation_checklist>

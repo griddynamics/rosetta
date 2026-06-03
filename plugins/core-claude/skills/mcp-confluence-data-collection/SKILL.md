@@ -42,7 +42,7 @@ Complete when target pages were retrieved via `confluence_get_page` (or via sear
    - **On user-supplied "skip" / "proceed without docs"**: record `Documentation: not available — user approved no-docs continuation` in the artifact summary and proceed with an empty Documentation block. Do NOT fabricate content.
    - **On exhausted (URL-and-search) zero-result case**: stop per `<failure_handling>` ("zero-pages" case).
 6. Truncate pages exceeding ~5000 words, note truncation with what was omitted.
-7. **Pre-emit validation.** Before writing the output, re-check against `<validation_checklist>`. Fix any failing item.
+7. **Pre-emit validation.** Before writing the output, re-check against the 9-item validation checklist in [references/validation-checklist.md](references/validation-checklist.md) — load on demand at this step. Fix any failing item.
 8. **Apply `<safety_boundaries>` redaction one final time** as a re-scan against every page body. Replace matches with placeholders AND record each in Sensitive-content redactions. If none: write `None.` there.
 
 </process>
@@ -108,7 +108,7 @@ If a real production value would be the natural example, replace it with a clear
 - **MCP not configured / not authenticated** (the MCP skill cannot connect or returns unauthenticated): stop, report `mcp-confluence-data-collection: Confluence MCP not configured or not authenticated — verify MCP setup`. Do NOT emit a zero-page artifact and call the phase done.
 - **MCP transport error** (timeout, 5xx, connection drop on any call): retry once with the same parameters. If the second call also fails, stop, report the transport error with the error message, ask the user to verify Confluence MCP configuration and connectivity.
 - **Authorization failure** (401/403): stop, report `mcp-confluence-data-collection: Confluence rejected the request — page(s) may exist but are not visible to the configured credentials`. Ask the user to verify Confluence MCP credentials / space access.
-- **Per-page permission-restricted** (one specific page returns 401/403 mid-harvest, others succeed): record `<restricted by permissions>` for that page + Gaps entry, continue with remaining pages. If ALL pages fail with auth errors, treat as the global "Authorization failure" case above.
+- **Per-page permission-restricted** (one specific page returns 401/403 mid-harvest, others succeed): per `<safety_boundaries>` "Permission errors are not empty content" + `<process>` step 4 permission-restricted branch. If ALL pages fail with auth errors, treat as the global "Authorization failure" case above.
 - **Cross-domain URL** (user-supplied URL belongs to a Confluence host different from the configured MCP's site): stop the fetch for that URL, report `mcp-confluence-data-collection: URL <url> belongs to a different Confluence host (<domain>) than the configured MCP — ask user for an in-site equivalent or accept ticket-only continuation`. Do NOT bypass to an unconfigured fetch.
 - **Zero pages after URL and search paths exhausted** (no URLs supplied, search returns zero results, user-asked fallback also produced no URLs): record `Documentation: not available — search returned no results; user did not supply alternate URLs` in the artifact summary AND in Gaps. Acceptable if the user explicitly approves no-docs continuation per step 5. Otherwise stop and re-ask.
 - **`confluence_get_page` returns content but it is empty**: include the page with `[empty page]` body marker and record in Gaps. Do NOT fabricate content.
@@ -117,29 +117,19 @@ If a real production value would be the natural example, replace it with a clear
 
 <validation_checklist>
 
-Before declaring this skill complete, all of the following must hold:
-
-- **Target pages retrieved** via `confluence_get_page` (or via search + retrieve when no URLs were supplied). If retrieval failed entirely, the failure path in `<failure_handling>` was followed instead — this skill is NOT complete.
-- **All `<output_format>` sections present:** Page entries with URL/Space/Labels/Updated/Type/Status/Content/Child Pages, Search Provenance (when search was used) OR `N/A — URL-driven retrieval`, Gaps, Sensitive-content redactions. No section omitted; empty sections explicitly say `None.` rather than left blank.
-- **Child pages checked for each parent** (or `None — no children exposed by API` recorded). Parent-only retrieval without checking children is a regression.
-- **Truncation noted** on every page exceeding the ~5000-word budget, with a description of what was omitted. Silent truncation is forbidden.
-- **Permission errors recorded, not hidden:** any page returning 401/403 appears with `<restricted by permissions>` + a Gaps entry, never as `[empty]`.
-- **Search Provenance recorded** when step 2 ran — the exact CQL query, top-N page IDs in ranked order, and the ranking rule applied (title > label > body). Without this, the search run is not reproducible.
-- **Redaction scan completed** per `<safety_boundaries>`: any matches replaced + recorded in Sensitive-content redactions; if none, that section says `None.` (not blank).
-- **No fabricated content:** every page entry describes content actually returned by `confluence_get_page`. Inference, paraphrase-without-source, or guessed values are forbidden — gaps are recorded.
-- **Read-only contract honored:** no Confluence MCP write operations were called.
+9-item pre-emit checklist lives in [references/validation-checklist.md](references/validation-checklist.md) — loaded on demand from `<process>` step 7 (the only step that runs the checklist).
 
 </validation_checklist>
 
 <pitfalls>
-- Child pages often contain critical detail — always check with `get_page_children`
-- Large pages should be truncated at ~5000 words with truncation noted
+- Child pages often contain critical detail — always check with `get_page_children` (per `<process>` step 3)
+- Large pages exceeding ~5000 words without truncation noted — see `<validation_checklist>` truncation item
 - URL formats vary (display, direct, short) — parse flexibly
-- User-provided URLs from different Confluence domains may not be accessible via configured MCP — stop per `<failure_handling>` "cross-domain URL"; do NOT silently fetch elsewhere
+- Cross-domain URL silently fetched — see `<failure_handling>` "Cross-domain URL"
 - Search may miss pages — always offer user a chance to provide direct URLs
-- Pasting verbatim page bodies without applying `<safety_boundaries>` redaction — redact BEFORE writing, not after.
-- Hiding MCP permission errors as empty content — record `<restricted by permissions>` + Gaps entry; do NOT silently emit empty bodies
-- Skipping the CQL query / ranking record in Search Provenance — the search run is unreproducible without it
+- Verbatim page bodies without redaction — see `<safety_boundaries>` "Redact every retrieved page body"
+- Hiding MCP permission errors as empty content — see `<safety_boundaries>` "Permission errors are not empty content"
+- Skipping the CQL query / ranking record in Search Provenance — see `<validation_checklist>` Search Provenance item
 </pitfalls>
 
 <vendor_replacement>

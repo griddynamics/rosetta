@@ -50,30 +50,7 @@ Where `{IDENTIFIER}` is:
 
 The same `{IDENTIFIER}` value MUST be used in every artifact this skill produces (state file, project config, initial-data file) and in every downstream phase's artifacts under `agents/qa/{IDENTIFIER}/`. Pick once, reuse everywhere.
 
-**Initial state-file content.** Write the following minimum stub to `agents/qa-state.md`; the schema and per-phase update conventions are owned by `qa-flow.md` `<state_file>` (the workflow file updates this file after every phase):
-
-```markdown
-# API QA State - <Test Name / Feature>
-
-**Last Updated**: [DateTime]
-**Current Phase**: 0
-**Test Case Source**: [TestRail ID / Jira Ticket / Manual]
-**Feature**: [Feature Name]
-**IDENTIFIER**: [the {IDENTIFIER} value chosen above — must match agents/qa/{IDENTIFIER}/ directory]
-
-## Phase Completion Status
-
-- [x] Phase 0: Project Config Loading
-- [ ] Phase 1: Data Collection
-- [ ] Phase 2: API Spec Analysis
-- [ ] Phase 3: Gap & Requirements Clarification
-- [ ] Phase 4: Test Case Specification
-- [ ] Phase 5: Test Implementation
-- [ ] Phase 6: Execution & Report Analysis
-- [ ] Phase 7: Test Corrections
-```
-
-Refer to `qa-flow.md` `<state_file>` for the full schema. Downstream phases append per-phase detail; this skill only writes the initial stub above.
+**Initial state-file content.** Write the minimum stub to `agents/qa-state.md` — verbatim template lives in [references/templates.md](references/templates.md) (loaded on demand). The full per-phase update schema is owned by `qa-flow.md` `<state_file>`; this skill only writes the initial stub.
 
 ## 3. Load or Create Project Config
 
@@ -133,45 +110,7 @@ If critical information is missing, ask follow-up questions.
 
 ## 5. Save Project Config
 
-Save to the same canonical path as step 3 (`agents/qa/qa-project-config.md`):
-
-```markdown
-# QA Project Config
-
-**Created**: [DateTime]
-**Last Updated**: [DateTime]
-
-## Document Storage
-- **Type**: [Confluence / Google Drive / Local / Other]
-- **Location**: [URLs, space keys, paths]
-
-## API Specification
-- **Swagger/OpenAPI Available**: [Yes/No]
-- **Spec URL**: [URL or N/A]
-- **Spec Format**: [OpenAPI 3.x / Swagger 2.0 / N/A]
-
-## Backend Source Code
-- **Available**: [Yes / No]
-- **Location**: [RefSrc/{project-name}/ / workspace path / N/A]
-- **Framework**: [Spring / Express / FastAPI / .NET / Other / TBD]
-
-## Test Case Management
-- **System**: [TestRail / Jira / Confluence / Manual / Other]
-- **Project/Suite**: [IDs if applicable]
-- **Access**: [MCP name or manual]
-
-## Test Framework
-- **Framework**: [pytest / Jest / JUnit / RestAssured / SuperTest / Other / TBD]
-- **Test Location**: [Directory path or TBD]
-- **Existing API Tests**: [Yes/No / TBD]
-
-## Authentication
-- **API Auth Mechanism**: [OAuth2 / JWT / API Key / Basic / None / TBD]
-- **Test Auth Strategy**: [Test credentials / Mock auth / Service account / TBD]
-
-## Additional Notes
-- [Any project-specific details, constraints, or preferences]
-```
+Save to the same canonical path as step 3 (`agents/qa/qa-project-config.md`). Verbatim template lives in [references/templates.md](references/templates.md) — loaded on demand at this step. Required sections: **Document Storage** / **API Specification** / **Backend Source Code** / **Test Case Management** / **Test Framework** / **Authentication** / **Additional Notes**. Populate from the user's step-4 answers; mark optional fields `TBD — <reason>` when discovery is intentionally deferred.
 
 ## 6. Create Initial Data File
 
@@ -231,17 +170,7 @@ This boundary is consistent with `qa-gap-analysis` and `qa-test-debugging` `<saf
 
 <validation_checklist>
 
-Before declaring this skill complete, all of the following must hold:
-
-- **Session directory created:** `agents/qa/{IDENTIFIER}/` exists.
-- **State file initialized:** `agents/qa-state.md` exists with the initial stub from step 2 (Last Updated / Current Phase: 0 / IDENTIFIER / Phase Completion Status table with Phase 0 checked).
-- **Project config present:** `agents/qa/qa-project-config.md` (canonical project-wide path) exists and is non-empty — either pre-existing (step 3 path A) or freshly saved by step 5 (path B).
-- **Initial-data file written:** `agents/qa/{IDENTIFIER}/initial-data.md` exists with all four template fields populated (Initial user prompt / Project config file / Test case reference / Additional links).
-- **IDENTIFIER consistency** per step 2 — same value in (a) `agents/qa/{IDENTIFIER}/` directory name, (b) `agents/qa-state.md` IDENTIFIER field, (c) `initial-data.md` path. Any mismatch → re-run step 2.
-- **No empty placeholders:** project config has real values (or explicit `TBD` where optional + explanation), not blank fields.
-- **Canonical paths only:** no deprecated `<agent_folder>` placeholders; paths follow the scheme in steps 2 + 3 + 5.
-- **No literal credentials persisted** per `<safety_boundaries>` Redaction-at-intake rule; any redaction noted in `## Additional Notes`.
-- **No fabricated `{IDENTIFIER}`** per `<failure_handling>` — chosen value traces to a real TestRail ID / Jira key / feature reference.
+9-item pre-emit checklist lives in [references/validation-checklist.md](references/validation-checklist.md) — loaded on demand at session-init completion.
 
 </validation_checklist>
 

@@ -115,13 +115,10 @@ End-to-end test automation from requirements gathering to test implementation. U
 <orchestration_and_escalation>
 - When loaded, USE SKILL `sequential-workflow-execution` (ACQUIRE FROM KB when needed) for skip gates and transition prompts.
 - Any skip outside those gates requires explicit user confirmation (HITL).
-- **Verification-failure unilateral-start override** (single-rule form):
-  - **Deference (scope-lock).** This is the **only** sanctioned deviation from `hitl` skill defaults in this workflow. It applies **only** when ALL three preconditions below hold AND **only** at this verification-failure gate. Do NOT generalize the no-ask behavior to any other branch, phase transition, or decision; every other ask-before-action decision in this workflow follows `hitl` skill defaults + the `<workflow_context>` NO-ASSUMPTIONS rule.
-  - **Precondition (ALL must be true):** (a) user has explicitly asserted phases are complete in this turn, AND (b) `agents/aqa-state.md` does NOT mark the asserted phases complete (rows missing or not-checked), AND (c) the matching artifacts named in `<workflow_success_criteria>` spot checks are absent on disk.
-  - **If precondition holds:** print one line naming the failing conditions (e.g., `skip refused: state file absent → starting at Phase 1`), then start the earliest incomplete phase in the **same turn** — do NOT call `AskUserQuestion`, present options, or ask "how do you want to proceed".
-  - **If any precondition is uncertain or only partially true** (state file partially present, ambiguous user assertion, artifacts present but stale): fall back to the normal HITL ask path. Ambiguity defaults to ASK, not auto-start.
-  - **Scope:** this override applies ONLY at this gate; every other branch follows HITL defaults. Authority on ask-before-action elsewhere: `hitl` skill + `<workflow_context>` NO-ASSUMPTIONS rule.
-  - *Rationale (one line): at this gate the verification result IS the decision — the user has already asserted; asking again creates a contradictory loop until artifacts exist.*
+- **Verification-failure unilateral-start override** — scope-locked to this gate only; every other ask-before-action decision follows `hitl` skill defaults + `<workflow_context>` NO-ASSUMPTIONS. Phase 3 / 6 HITL gates and safety/destructive confirmations are NEVER suppressed.
+  - **Trigger (ALL must be true):** (a) user explicitly asserted phases complete this turn, AND (b) `agents/aqa-state.md` does NOT mark them complete (rows missing or not-checked), AND (c) the matching `<workflow_success_criteria>` spot-check artifacts are absent on disk.
+  - **Action when trigger holds:** (1) print one line naming the failing conditions (e.g., `skip refused: state file absent → starting at Phase 1`); (2) **log the override decision into `agents/aqa-state.md`** under `## Verification-Failure Overrides` (timestamp + user's asserted-complete claim + failing conditions cited + phase started — the printed line alone is insufficient for the audit trail); (3) start the earliest incomplete phase in the **same turn** — do NOT call `AskUserQuestion`.
+  - **Default on ambiguity:** any uncertain or partial precondition (state file partially present, ambiguous user assertion, artifacts present but stale) → fall back to normal HITL ask. *Rationale: at this gate the verification result IS the decision; asking would create a contradictory loop until artifacts exist.*
 - Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user, and do not substitute silently. (Follows normal HITL — the override does not apply outside the gate above.)
 </orchestration_and_escalation>
 
@@ -154,6 +151,12 @@ Create/update `agents/aqa-state.md` after each phase:
 - [ ] Phase 6: Test Implementation
 - [ ] Phase 7: Test Report Analysis
 - [ ] Phase 8: Test Corrections
+
+## Verification-Failure Overrides
+
+[Append a row each time the `<orchestration_and_escalation>` verification-failure unilateral-start override fires. If never fired, write: `None — no overrides applied.`]
+
+- **[ISO timestamp]** — User asserted phases complete: `[user's verbatim claim]`. Failing conditions: `[which preconditions were unmet — state row missing / spot-check artifact absent / etc.]`. Phase started: `[earliest incomplete phase id]`.
 ```
 
 </state_file>

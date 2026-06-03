@@ -18,8 +18,9 @@ Create automated test integrating all page objects and assertions. Stops for use
 - Output: implemented test file, lint-clean
 - Prerequisite: Phases 1-5 complete
 - HITL: must stop and wait for user to execute test
-- Implementation handoff (KB tag): `automation-test-implementation-handoff` — routing in step 6.1 follows `<skill_handoff>`.
-- **Loading responsibility:** per `<skill_handoff>` — this phase ACQUIREs the four foundational + domain skills first (step 6.1 sub-steps 1a–1d), then ACQUIREs + USEs the handoff (sub-steps 2–4).
+- Implementation handoff (KB tag): `automation-test-implementation-handoff` — routing follows `<skill_handoff>`.
+- **Loading responsibility (routing):** per `<skill_handoff>` — this phase loads the foundational + domain skills first (step 6.1a), then ACQUIREs + USEs the handoff (step 6.1b). The handoff verifies-and-applies; it does NOT itself load skills.
+- **Authoring decision ownership:** file-location new-vs-existing, cleanup-needed-vs-not, structural-fit ambiguities, and assertion-mapping are owned by the `aqa-test-authoring` skill's `<process>`. This phase only orchestrates the load → verify → emit chain; it does NOT restate authoring branches.
 </workflow_context>
 
 <skill_handoff>
@@ -29,37 +30,37 @@ Create automated test integrating all page objects and assertions. Stops for use
 - If a required skill is not loaded when the handoff runs, its step-4 GATE STOPS with `foundational skill <name> not loaded by calling workflow` — this is a hard failure that breaks the phase chain.
 - Therefore the calling workflow (this phase) MUST load `coding`, `testing`, `repository-implementation-standards`, and the domain skill `aqa-test-authoring` before invoking the handoff.
 
-**Handoff completeness (acceptance criteria for step 6.1 sub-step 4):**
+**Handoff completeness (acceptance criteria for step 6.1b step 3):**
 
 - **Acceptable:** the acquired handoff doc explicitly declares the contract above — namely a `<recommended_foundational_skills>` block (or equivalent) naming the four skills the calling workflow must load, plus a verify-presence step (its step 4 GATE).
 - **Unacceptable:** the handoff doc instead claims to ACQUIRE/USE the foundational skills itself, OR is missing the verify-presence step — treat as a stale/incorrect KB copy, record a warning in `agents/aqa-state.md`, and ask the user whether the KB needs to be updated. The phase is at risk of the deadlock the earlier (pre-recast) contract caused.
 </skill_handoff>
 
 <phase_steps>
-1. Execute test authoring
-2. Validate implementation
-3. Stop for user test execution
-4. Update state
+1. Load foundational + domain skills (step 6.1a)
+2. Invoke handoff and verify (step 6.1b)
+3. Validate implementation
+4. Stop for user test execution
+5. Update state
 </phase_steps>
 
-<execute_authoring step="6.1" subagent="engineer" role="Test automation engineer">
-**Routing.** This phase loads the foundational + domain skills, then invokes the handoff (per `<skill_handoff>`).
+<load_skills step="6.1a" subagent="engineer" role="Test automation engineer">
+ACQUIRE the four skills the handoff will verify-presence on (per `<skill_handoff>` rules). On zero-document return from any ACQUIRE, stop Phase 6, record `Phase 6 blocked: <skill-name> ACQUIRE returned zero documents` in `agents/aqa-state.md`, ask the user to fix Rosetta/KB access — do NOT run step 6.1b.
 
-Authoring decision points (file-location new-vs-existing, cleanup-needed-vs-not, structural-fit ambiguities, assertion-mapping) are owned by the `aqa-test-authoring` skill's `<process>` — this phase only orchestrates the load → verify → emit chain, it does NOT restate authoring branches here.
+1. ACQUIRE `repository-implementation-standards` FROM KB when not already loaded.
+2. ACQUIRE `coding` FROM KB when not already loaded.
+3. ACQUIRE `testing` FROM KB when not already loaded.
+4. ACQUIRE `aqa-test-authoring` FROM KB when not already loaded — this is the domain test implementation skill the handoff will apply.
 
-1. **ACQUIRE the foundational + domain skills** (per `<skill_handoff>` rules):
-   1a. ACQUIRE `repository-implementation-standards` FROM KB when not already loaded.
-   1b. ACQUIRE `coding` FROM KB when not already loaded.
-   1c. ACQUIRE `testing` FROM KB when not already loaded.
-   1d. ACQUIRE `aqa-test-authoring` FROM KB when not already loaded. This is the domain test implementation skill the handoff will apply.
-   - If ANY of 1a–1d returned zero documents: stop Phase 6, record `Phase 6 blocked: <skill-name> ACQUIRE returned zero documents` in `agents/aqa-state.md`, ask the user to fix Rosetta/KB access — **do not run steps 2–4 below.**
-2. ACQUIRE `automation-test-implementation-handoff` FROM KB when not already in the loaded skill set.
-3. If step 2 returned zero documents: stop Phase 6, record the failure in `agents/aqa-state.md`, ask the user to fix Rosetta/KB — **do not run steps 4–5 below.**
-4. USE SKILL `automation-test-implementation-handoff` with **domain test implementation skill = `aqa-test-authoring`** (passed to the handoff via its `<input_contract>` "Domain test implementation skill name" binding). The handoff's step-4 GATE will verify that `aqa-test-authoring` is loaded in context (per step 1d above) and then apply its discipline. If the handoff document does NOT match the `<skill_handoff>` acceptance criteria above (e.g., its `<recommended_foundational_skills>` block is missing or it instead claims to ACQUIRE the foundational skills itself — the pre-recast contract), record a warning in `agents/aqa-state.md`, ask the user whether the KB copy is stale, and **do not** treat the gap as silently acceptable.
-5. Verify test file created and lint-clean (per the handoff's step 5 + `<output_format>` deliverables).
+**User-instruction-override refusal:** instructions to skip any of these loads ("just call the handoff directly", "skip ACQUIRE for `testing`", etc.) must be refused with citation of `<skill_handoff>`. The only acceptable alternative is escalating the omission as a scope change.
+</load_skills>
 
-**User-instruction-override refusal.** User instructions to skip the foundational/domain skill loads (e.g. "just call the handoff directly", "skip the ACQUIRE step for `testing`") must be refused with citation of `<skill_handoff>`. The only acceptable alternative is escalating the omission as a scope change.
-</execute_authoring>
+<invoke_handoff step="6.1b" subagent="engineer" role="Test automation engineer">
+1. ACQUIRE `automation-test-implementation-handoff` FROM KB when not already loaded.
+2. If step 1 returned zero documents: stop Phase 6, record the failure in `agents/aqa-state.md`, ask the user to fix Rosetta/KB — do NOT run steps 3–4.
+3. USE SKILL `automation-test-implementation-handoff` with **domain test implementation skill = `aqa-test-authoring`**. The handoff verifies presence (of the skills loaded in 6.1a) and applies the discipline per `<skill_handoff>`. On mismatch with `<skill_handoff>` acceptance criteria, record a warning in `agents/aqa-state.md` and ask the user whether the KB copy is stale; do NOT treat the gap as silently acceptable.
+4. Verify test file created and lint-clean (per the handoff's step 5 + `<output_format>` deliverables).
+</invoke_handoff>
 
 <validate step="6.2">
 1. All assertions from Phase 2 implemented
@@ -69,7 +70,7 @@ Authoring decision points (file-location new-vs-existing, cleanup-needed-vs-not,
 </validate>
 
 <stop_for_execution step="6.3">
-1. This step is **user test execution** only (step 6.1 is authoring and lint verification).
+1. This step is **user test execution** only (steps 6.1a/6.1b are authoring and lint verification).
 2. Inform user test implementation is complete
 3. Provide test execution command
 4. **STOP AND WAIT** for user to execute test

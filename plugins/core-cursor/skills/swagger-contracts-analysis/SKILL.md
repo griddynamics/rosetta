@@ -109,88 +109,31 @@ After extracting contracts for each target endpoint, before emission:
 
 <output_format>
 
-One contract entry per target endpoint, written in markdown, using the template below. The calling workflow supplies the destination file path (commonly `agents/qa/{IDENTIFIER}/api-analysis.md`); this skill does NOT decide the path.
+One contract entry per target endpoint, written in markdown. The calling workflow supplies the destination file path (commonly `agents/qa/{IDENTIFIER}/api-analysis.md`); this skill does NOT decide the path.
 
-**Per-endpoint template:**
+**Verbatim per-endpoint template** (markdown shape + table layouts) lives in [references/per-endpoint-template.md](references/per-endpoint-template.md) — load on demand when authoring entries.
 
-````markdown
-## Endpoint Contract: <METHOD> <path>
+**Required subsections (in this order)** — every entry MUST include each subsection populated with real values OR an explicit `N/A — <reason>` / `None`:
 
-**Source:** swagger | code | hybrid (both used)
-**Summary:** [one-line summary from spec / docstring / N/A]
-**Tags / Groups:** [functional grouping or N/A]
+1. **Endpoint Contract header** — `<METHOD> <path>`
+2. **Source** — `swagger` / `code` / `hybrid (both used)`
+3. **Summary** — one-line from spec/docstring or `N/A`
+4. **Tags / Groups** — functional grouping or `N/A`
+5. **Parameters** — separate tables for Path / Query / Header, each with fields `Name | Type | Required | Constraints`; or `None` per category
+6. **Request Body** — `Content-Type` + `Schema` (JSON) + `Example` (JSON); or `N/A — no body`
+7. **Responses** — table with fields `Status | Content-Type | Schema | Example`
+8. **Auth** — `Mechanism` (Bearer JWT / OAuth2 / API Key / Basic / Session-Cookie / None) + `Required scopes / permissions` + `Public endpoint` (yes/no)
+9. **Data Dependencies** — `Preconditions` + `Side effects` + `Idempotent` (yes/no + rationale)
+10. **Source Citations** — `Swagger` path expression + `Code` file paths/lines; each may be `N/A`
+11. **Notes / Discrepancies** — spec-vs-code mismatches / deprecations / auth differences; or `None.`
 
-### Parameters
-
-**Path parameters:**
-| Name | Type | Required | Constraints |
-|------|------|----------|-------------|
-| ...  | ...  | ...      | ...         |
-
-(or `None` if endpoint has no path parameters)
-
-**Query parameters:** (same table shape, or `None`)
-
-**Header parameters:** (same table shape, or `None`)
-
-### Request Body
-
-**Content-Type:** [e.g. `application/json`, `multipart/form-data`, or `N/A — no body`]
-
-**Schema:**
-```json
-{ ... }
-```
-
-**Example:**
-```json
-{ ... }
-```
-
-### Responses
-
-| Status | Content-Type | Schema | Example |
-|--------|-------------|--------|---------|
-| ...    | ...         | ...    | ...     |
-
-### Auth
-
-- **Mechanism:** [Bearer JWT / OAuth2 / API Key / Basic / Session-Cookie / None]
-- **Required scopes / permissions:** [list or N/A]
-- **Public endpoint:** [yes / no]
-
-### Data Dependencies
-
-- **Preconditions:** [required DB state, entity relationships, ordering]
-- **Side effects:** [what is created / modified / deleted]
-- **Idempotent:** [yes / no, with rationale if non-obvious]
-
-### Source Citations
-
-- Swagger: [json/yaml path expression, e.g. `paths./api/v1/orders/{orderId}.get`] or `N/A`
-- Code: [file paths + line numbers for handler + DTO/models] or `N/A`
-
-### Notes / Discrepancies
-
-[Spec-vs-code mismatches, deprecated markers, missing field schemas, auth differences between spec and code. If none: `None.`]
-````
-
-**Canonical example.** Load `references/canonical-example.md` on demand to see one complete worked entry — covers the `Source: hybrid` path with a real spec-vs-code discrepancy in the Notes section. Use it when authoring the first contract entry of a new project, or when the template above leaves field-shape questions ambiguous. The example is **one entry**, not the schema; the per-endpoint template above remains authoritative.
+**Canonical example.** Load [references/canonical-example.md](references/canonical-example.md) on demand to see one complete worked entry — covers the `Source: hybrid` path with a real spec-vs-code discrepancy in Notes. Use it when authoring the first contract entry of a new project, or when field-shape questions arise. The example is **one entry**, not the schema; the per-endpoint template above remains authoritative.
 
 </output_format>
 
 <validation_checklist>
 
-Run as part of step 5 before emission. Proof-oriented items only — section-presence is enforced by `<output_format>` itself; this checklist verifies things the template can't.
-
-- **Coverage:** every endpoint in the calling workflow's target list has a contract entry OR is flagged back as a gap with reason. No silent drops.
-- **Source Citations populated:** every entry has at least one citation (Swagger JSONPath OR code file:line). Citation-less entries are gaps, not entries.
-- **No fabricated content:** every field traces to the spec, to the code, or is explicitly marked `N/A — <reason>` / `Gap: <reason>`. No invented schema fields, no invented status codes, no inferred auth requirements without source.
-- **Reconciliation evidence:** entries marked `Source: hybrid` have a non-empty Notes / Discrepancies section (either a recorded mismatch OR an explicit `None.` confirming reconciliation ran). Empty Notes on a hybrid entry means the reconciliation step was skipped.
-- **API-level auth strategy summarized:** if endpoints share one mechanism, state it once in the handoff note; if mechanism varies per endpoint, summarize the variance for the calling workflow.
-- **Undocumented error responses surfaced as gaps:** a `200`-only entry is acceptable only when both sources truly lack other status codes; otherwise the absence of `401`/`403`/`404`/`500` is recorded in Notes as a documentation gap, not silently omitted.
-- **N/A discipline:** every `N/A` in any field has a one-line reason; bare `N/A` is forbidden.
-- **Redaction scan ran** per `<safety_boundaries>` — no literal credentials/tokens/PII remain in the artifact.
+8-item pre-emit checklist lives in [references/validation-checklist.md](references/validation-checklist.md) — loaded on demand from `<process>` step 5.3 (the only step that runs the checklist).
 
 </validation_checklist>
 

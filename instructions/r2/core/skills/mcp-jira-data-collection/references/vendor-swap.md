@@ -10,7 +10,7 @@ The runtime skill is Atlassian-Jira-specific. To support a different issue track
 
 - **MCP tool calls** in `<process>`:
   - `jira_get_issue` (step 2) → vendor's equivalent "fetch single issue by key/ID" operation. Parameter shape (`issue_key`, `fields`, `expand`, `comment_limit`) is Jira-specific — other vendors use different signatures (e.g., GitHub Issues uses `owner/repo/issue_number`, Linear uses GraphQL with `id`).
-  - `jira_search_fields` (step 6 fallback + pitfalls) → vendor's equivalent "discover custom-field schema" operation. Not all trackers expose custom-field metadata via API.
+  - `jira_search_fields` (step 3 custom-fields branch + pitfalls) → vendor's equivalent "discover custom-field schema" operation. Not all trackers expose custom-field metadata via API.
 - **Identifier format** in `<prerequisites>` and `<process>` step 1:
   - Jira accepts `PROJ-NNN` project-prefixed keys and URL form `https://*.atlassian.net/browse/PROJ-NNN` (or self-hosted `https://jira.company.com/browse/PROJ-NNN`). Other vendors use different ID schemes: GitHub `owner/repo#NNN`, GitLab `group/project#NNN`, Linear `TEAM-NNN`, Azure DevOps numeric ID, ServiceNow `INC-NNNNNNN`.
 - **Field set** in `<process>` step 2:
