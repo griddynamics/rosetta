@@ -48,7 +48,7 @@ To Import the Rosetta github repository to your team/compnay internal marketplac
 For detailed setup instructions, see the Cursor documentation:
 * https://cursor.com/docs/plugins#team-marketplaces
 
-Plugins installed in Claude Code are automatically available in Cursor.
+**ALTERNATIVE**: Plugins installed in Claude Code are automatically available in Cursor.
 
 > [!WARNING]
 > Cursor automatically detects and uses Claude Code plugins. To avoid duplicate tools, commands, and context, do not install the same plugin separately in both Claude Code and Cursor.
