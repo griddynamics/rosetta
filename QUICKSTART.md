@@ -22,19 +22,7 @@
 We recommend installing Rosetta using [PLUGINS](PLUGINS.md).
 If AI coding agent does not support plugins, use [MCPs](MCPs.md).
 
-## Step 2: Verify
-
-Ask the agent:
-
-```
-What can you do, Rosetta?
-```
-
-It should use Rosetta MCP/Plugin to retrieve agents, guardrails, and instructions:
-
-<img src="docs/images/Rosetta-ProperResponse1.png" alt="Rosetta proper response" width="355"/> <img src="docs/images/Rosetta-ProperResponse2.png" alt="Rosetta proper response" width="300"/>
-
-## Step 3: Initialize (once per repository)
+## Step 2: Initialize (once per repository)
 
 Ask the agent:
 
@@ -49,13 +37,9 @@ The agent will analyze your tech stack, generate documentation (TECHSTACK.md, CO
 > **Composite workspaces:** init each repository separately, then init at the workspace level with "This is composite workspace" appended.
 > **Dead code or existing specs:** mention their location in the prompt to save time.
 
-## Common Issues
-
-- **OAuth prompt does not appear:** restart your IDE and retry the connection. Read more in [Troubleshooting — Connection & Authentication](TROUBLESHOOTING.md#connection--authentication).
-- **Agent ignores Rosetta tools:** confirm the MCP server shows as connected in your IDE's MCP settings. Add a [bootstrap rule](INSTALLATION.md) if the agent still skips Rosetta. Read more in [Troubleshooting — Agent Not Using Rosetta](TROUBLESHOOTING.md#agent-not-using-rosetta).
-- **Slow or empty responses:** check your network can reach your Rosetta MCP host. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#slow-or-empty-responses).
-
 ## Next Steps
+
+To properly set up an entire workspace, refer to [CONFIGURATION.md](CONFIGURATION.md).
 
 ### Coding Workflow
 
