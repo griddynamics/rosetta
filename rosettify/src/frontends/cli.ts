@@ -171,7 +171,7 @@ export async function runCli(args: string[]): Promise<void> {
       },
     );
 
-  // FR-PLAN-0030 — plan create-with-template <plan_file> <template> <plan-name> <plan-description>
+  // FR-PLAN-0030 — plan create-with-template <plan_file> <template> <plan-name> <plan-description> <phase-steps>
   planCmd
     .command("create-with-template")
     .description("Create a plan from a registered create-kind template")
@@ -179,20 +179,23 @@ export async function runCli(args: string[]): Promise<void> {
     .argument("<template>", "Template name from create-kind collection")
     .argument("<plan-name>", "Value for [plan-name] placeholder")
     .argument("<plan-description>", "Value for [plan-description] placeholder")
-    .action(async (planFile: string, template: string, planName: string, planDescription: string) => {
+    // FR-PLAN-0043 — phase-steps array injection (not a placeholder); optional for backward compatibility (omitted → [])
+    .argument("[phase-steps]", "JSON array of steps appended to the seeded ph-prep phase")
+    .action(async (planFile: string, template: string, planName: string, planDescription: string, phaseSteps: string) => {
       const input: PlanInput = {
         subcommand: "create-with-template",
         plan_file: planFile,
         template,
         "plan-name": planName,
         "plan-description": planDescription,
+        "phase-steps": phaseSteps,
       };
       const envelope = await dispatch(planToolDef, input);
       writeResult(planToolDef.name, envelope);
       process.exit(envelope.ok ? 0 : 1);
     });
 
-  // FR-PLAN-0031 — plan upsert-with-template <plan_file> <phase-id> <template> <phase-name> <phase-description>
+  // FR-PLAN-0031 — plan upsert-with-template <plan_file> <phase-id> <template> <phase-name> <phase-description> <phase-steps>
   planCmd
     .command("upsert-with-template")
     .description("Upsert a phase using a registered upsert-kind template")
@@ -201,7 +204,9 @@ export async function runCli(args: string[]): Promise<void> {
     .argument("<template>", "Template name from upsert-kind collection")
     .argument("<phase-name>", "Value for [phase-name] placeholder")
     .argument("<phase-description>", "Value for [phase-description] placeholder")
-    .action(async (planFile: string, phaseId: string, template: string, phaseName: string, phaseDescription: string) => {
+    // FR-PLAN-0043 — phase-steps array injection (not a placeholder); optional for backward compatibility (omitted → [])
+    .argument("[phase-steps]", "JSON array of steps appended to the seeded phase")
+    .action(async (planFile: string, phaseId: string, template: string, phaseName: string, phaseDescription: string, phaseSteps: string) => {
       const input: PlanInput = {
         subcommand: "upsert-with-template",
         plan_file: planFile,
@@ -209,6 +214,7 @@ export async function runCli(args: string[]): Promise<void> {
         template,
         "phase-name": phaseName,
         "phase-description": phaseDescription,
+        "phase-steps": phaseSteps,
       };
       const envelope = await dispatch(planToolDef, input);
       writeResult(planToolDef.name, envelope);

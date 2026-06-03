@@ -1,8 +1,9 @@
 /**
- * Unit tests for cmdUpsertWithTemplate — FR-PLAN-0031.
+ * Unit tests for cmdUpsertWithTemplate — FR-PLAN-0031 / FR-PLAN-0043.
  * Acceptance criteria: phase upserted; compressed-tree returned (no previous_version on result);
  * plan FILE's previous_version advances with each write; second invocation with different
  * phase-id produces unique step IDs (FR-PLAN-0036).
+ * FR-PLAN-0043: phase-steps JSON array appended to seeded phase steps.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
@@ -42,7 +43,7 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 happy path", () => {
     const file = planFile();
     await createPlanFile(file);
 
-    const result = await cmdUpsertWithTemplate(file, "ph-impl", "for-subagent", "Implementation", "Implement the feature");
+    const result = await cmdUpsertWithTemplate(file, "ph-impl", "for-subagent", "Implementation", "Implement the feature", "[]");
 
     expect(result.ok).toBe(true);
     const tree = result.result as PlanWriteResult;
@@ -68,7 +69,7 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 happy path", () => {
     const file = planFile();
     await createPlanFile(file);
 
-    const result = await cmdUpsertWithTemplate(file, "ph-impl", "for-subagent", "Implementation", "Impl desc");
+    const result = await cmdUpsertWithTemplate(file, "ph-impl", "for-subagent", "Implementation", "Impl desc", "[]");
 
     expect(result.ok).toBe(true);
     // FR-PLAN-0024 — the plan FILE on disk has previous_version pointing to backup
@@ -82,7 +83,7 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 happy path", () => {
   it("substitutes phase-id, phase-name, phase-description in upserted phase", async () => {
     const file = planFile();
     await createPlanFile(file);
-    await cmdUpsertWithTemplate(file, "ph-review", "for-subagent", "Review Phase", "Code review");
+    await cmdUpsertWithTemplate(file, "ph-review", "for-subagent", "Review Phase", "Code review", "[]");
 
     const plan = loadPlan(file)!;
     const phase = plan.phases.find((p) => p.id === "ph-review");
@@ -97,10 +98,10 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 happy path", () => {
     await createPlanFile(file);
 
     // First upsert: phase ph-impl
-    await cmdUpsertWithTemplate(file, "ph-impl", "for-subagent", "Implementation", "Impl");
+    await cmdUpsertWithTemplate(file, "ph-impl", "for-subagent", "Implementation", "Impl", "[]");
 
     // Second upsert: phase ph-test
-    await cmdUpsertWithTemplate(file, "ph-test", "for-subagent", "Testing", "Test");
+    await cmdUpsertWithTemplate(file, "ph-test", "for-subagent", "Testing", "Test", "[]");
 
     const plan = loadPlan(file)!;
     const implPhase = plan.phases.find((p) => p.id === "ph-impl")!;
@@ -129,7 +130,7 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 error: invalid_template", () =>
     const file = planFile();
     await createPlanFile(file);
 
-    const result = await cmdUpsertWithTemplate(file, "ph-impl", "nonexistent-template", "Phase", "Desc");
+    const result = await cmdUpsertWithTemplate(file, "ph-impl", "nonexistent-template", "Phase", "Desc", "[]");
     expect(result.ok).toBe(false);
     expect(result.error).toBe("invalid_template");
   });
@@ -139,7 +140,7 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 error: invalid_template", () =>
     const file = planFile();
     await createPlanFile(file);
 
-    const result = await cmdUpsertWithTemplate(file, "ph-impl", "for-orchestrator", "Phase", "Desc");
+    const result = await cmdUpsertWithTemplate(file, "ph-impl", "for-orchestrator", "Phase", "Desc", "[]");
     expect(result.ok).toBe(false);
     expect(result.error).toBe("invalid_template");
   });
@@ -188,7 +189,7 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 previous_version tracking on FI
     const file = planFile();
     await createPlanFile(file);
 
-    const r1 = await cmdUpsertWithTemplate(file, "ph-impl", "for-subagent", "Impl", "desc1");
+    const r1 = await cmdUpsertWithTemplate(file, "ph-impl", "for-subagent", "Impl", "desc1", "[]");
     expect(r1.ok).toBe(true);
     const tree1 = r1.result as PlanWriteResult;
     // FR-PLAN-0040 — result.plan.previous_version is the backup path (non-null)
@@ -201,7 +202,7 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 previous_version tracking on FI
     expect(planV1.previous_version).toContain(".bak000");
     expect(tree1.plan.previous_version).toBe(planV1.previous_version);
 
-    const r2 = await cmdUpsertWithTemplate(file, "ph-test", "for-subagent", "Test", "desc2");
+    const r2 = await cmdUpsertWithTemplate(file, "ph-test", "for-subagent", "Test", "desc2", "[]");
     expect(r2.ok).toBe(true);
     const tree2 = r2.result as PlanWriteResult;
     // FR-PLAN-0040 — result.plan.previous_version advances to .bak001
@@ -213,5 +214,146 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0031 previous_version tracking on FI
 
     // Each backup is a different file
     expect(planV1.previous_version).not.toBe(planV2.previous_version);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// FR-PLAN-0043 — phase-steps injection for upsert-with-template
+// ---------------------------------------------------------------------------
+
+describe("cmdUpsertWithTemplate — FR-PLAN-0043 phase-steps injection", () => {
+  // FR-PLAN-0043 — phase-steps array of 2 steps appended after 6 seeded steps; ids preserved exactly
+  it("appends 2 injected steps after 6 seeded steps; injected ids preserved verbatim", async () => {
+    const file = planFile();
+    await createPlanFile(file);
+
+    const injectedSteps = [
+      { id: "ph-impl-x1", name: "Extra Step X1", prompt: "Do X1" },
+      { id: "custom-step-2", name: "Custom Step 2", prompt: "Do custom 2" },
+    ];
+
+    const result = await cmdUpsertWithTemplate(
+      file,
+      "ph-impl",
+      "for-subagent",
+      "Implementation",
+      "Implement the feature",
+      JSON.stringify(injectedSteps),
+    );
+
+    expect(result.ok).toBe(true);
+    const plan = loadPlan(file)!;
+    const phase = plan.phases.find((p) => p.id === "ph-impl")!;
+    expect(phase).toBeDefined();
+    // 6 seeded + 2 injected = 8 total
+    expect(phase.steps.length).toBe(8);
+    // Injected steps at positions 6 and 7 with exact IDs (NOT forced to ph-impl-s- pattern)
+    const injected0 = phase.steps[6] as { id: string; name: string };
+    const injected1 = phase.steps[7] as { id: string; name: string };
+    expect(injected0.id).toBe("ph-impl-x1");
+    expect(injected0.name).toBe("Extra Step X1");
+    expect(injected1.id).toBe("custom-step-2");
+    expect(injected1.name).toBe("Custom Step 2");
+  });
+
+  // FR-PLAN-0043 — phase-steps = "[]" → phase has exactly 6 seeded steps
+  it("empty phase-steps leaves upserted phase with exactly 6 seeded steps", async () => {
+    const file = planFile();
+    await createPlanFile(file);
+
+    const result = await cmdUpsertWithTemplate(
+      file,
+      "ph-impl",
+      "for-subagent",
+      "Implementation",
+      "Implement",
+      "[]",
+    );
+
+    expect(result.ok).toBe(true);
+    const plan = loadPlan(file)!;
+    const phase = plan.phases.find((p) => p.id === "ph-impl")!;
+    expect(phase).toBeDefined();
+    expect(phase.steps.length).toBe(6);
+  });
+
+  // FR-PLAN-0043 — backward compatibility: omitting phase-steps is treated as [] (not an error)
+  it("via dispatcher omitting phase-steps succeeds with only the seeded phase steps", async () => {
+    const file = planFile();
+    await createPlanFile(file);
+
+    const result = await planToolDef.run({
+      subcommand: "upsert-with-template",
+      plan_file: file,
+      "phase-id": "ph-impl",
+      template: "for-subagent",
+      "phase-name": "Implementation",
+      "phase-description": "Implement the feature",
+      // "phase-steps" intentionally omitted → treated as []
+    });
+
+    expect(result.ok).toBe(true);
+    const plan = loadPlan(file)!;
+    const phase = plan.phases.find((p) => p.id === "ph-impl")!;
+    expect(phase.steps).toHaveLength(6);
+  });
+
+  // FR-PLAN-0043 — phase-steps = "not json" → invalid_phase_steps
+  it("invalid JSON phase-steps returns invalid_phase_steps", async () => {
+    const file = planFile();
+    await createPlanFile(file);
+
+    const result = await cmdUpsertWithTemplate(
+      file,
+      "ph-impl",
+      "for-subagent",
+      "Implementation",
+      "desc",
+      "not json",
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("invalid_phase_steps");
+  });
+
+  // FR-PLAN-0043 — phase-steps = '{"a":1}' (valid JSON, not array) → invalid_phase_steps
+  it("valid JSON but non-array phase-steps returns invalid_phase_steps", async () => {
+    const file = planFile();
+    await createPlanFile(file);
+
+    const result = await cmdUpsertWithTemplate(
+      file,
+      "ph-impl",
+      "for-subagent",
+      "Implementation",
+      "desc",
+      '{"a":1}',
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("invalid_phase_steps");
+  });
+
+  // FR-PLAN-0043 — injected step id duplicating a seeded id → downstream duplicate_id error
+  it("injected step with id duplicating a seeded step id produces duplicate_id error", async () => {
+    const file = planFile();
+    await createPlanFile(file);
+
+    // "ph-impl-s-read-docs" is a seeded step id when phase-id="ph-impl" (from for-subagent template)
+    const duplicateStep = [
+      { id: "ph-impl-s-read-docs", name: "Duplicate", prompt: "This duplicates a seeded step" },
+    ];
+
+    const result = await cmdUpsertWithTemplate(
+      file,
+      "ph-impl",
+      "for-subagent",
+      "Implementation",
+      "desc",
+      JSON.stringify(duplicateStep),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("duplicate_id");
   });
 });

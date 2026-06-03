@@ -65,6 +65,25 @@ from ims_mcp.constants import (
     TRANSPORT_HTTP,
     TRANSPORT_STDIO,
     VALID_POLICIES,
+    # Observability + timeout knobs
+    DEFAULT_RAGFLOW_HTTP_TIMEOUT,
+    DEFAULT_TOOL_TIMEOUT,
+    DEFAULT_REDIS_SOCKET_TIMEOUT,
+    DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT,
+    DEFAULT_REDIS_HEALTH_CHECK_INTERVAL,
+    DEFAULT_INFLIGHT_WARN_THRESHOLD,
+    DEFAULT_HEALTHZ_RAGFLOW_TIMEOUT,
+    DEFAULT_HEALTHZ_CACHE_TTL,
+    DEFAULT_OAUTH_HTTP_TIMEOUT,
+    ENV_RAGFLOW_HTTP_TIMEOUT,
+    ENV_TOOL_TIMEOUT,
+    ENV_REDIS_SOCKET_TIMEOUT,
+    ENV_REDIS_SOCKET_CONNECT_TIMEOUT,
+    ENV_REDIS_HEALTH_CHECK_INTERVAL,
+    ENV_INFLIGHT_WARN_THRESHOLD,
+    ENV_HEALTHZ_RAGFLOW_TIMEOUT,
+    ENV_HEALTHZ_CACHE_TTL,
+    ENV_OAUTH_HTTP_TIMEOUT,
 )
 
 
@@ -304,6 +323,16 @@ class RosettaConfig:
     invite_emails: list[str]
     # Plan manager
     plan_ttl_days: int
+    # Observability + timeout knobs (A1)
+    ragflow_http_timeout: int = DEFAULT_RAGFLOW_HTTP_TIMEOUT
+    tool_timeout: int = DEFAULT_TOOL_TIMEOUT
+    redis_socket_timeout: int = DEFAULT_REDIS_SOCKET_TIMEOUT
+    redis_socket_connect_timeout: int = DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT
+    redis_health_check_interval: int = DEFAULT_REDIS_HEALTH_CHECK_INTERVAL
+    inflight_warn_threshold: int = DEFAULT_INFLIGHT_WARN_THRESHOLD
+    healthz_ragflow_timeout: int = DEFAULT_HEALTHZ_RAGFLOW_TIMEOUT
+    healthz_cache_ttl: int = DEFAULT_HEALTHZ_CACHE_TTL
+    oauth_http_timeout: int = DEFAULT_OAUTH_HTTP_TIMEOUT
     allowed_scopes: tuple[str, ...] = ()
     # Set to True when running in legacy compatibility mode (STDIO + R2R credentials).
     compatibility_mode: bool = False
@@ -368,6 +397,34 @@ class RosettaConfig:
             user_email=os.getenv(ENV_USER_EMAIL, DEFAULT_USER_EMAIL).strip() or DEFAULT_USER_EMAIL,
             invite_emails=invite_emails,
             plan_ttl_days=_parse_int(os.getenv(ENV_PLAN_TTL_DAYS, ""), DEFAULT_PLAN_TTL_DAYS),
+            # Observability + timeout knobs (A1)
+            ragflow_http_timeout=_parse_int(
+                os.getenv(ENV_RAGFLOW_HTTP_TIMEOUT, ""), DEFAULT_RAGFLOW_HTTP_TIMEOUT
+            ),
+            tool_timeout=_parse_int(os.getenv(ENV_TOOL_TIMEOUT, ""), DEFAULT_TOOL_TIMEOUT),
+            redis_socket_timeout=_parse_int(
+                os.getenv(ENV_REDIS_SOCKET_TIMEOUT, ""), DEFAULT_REDIS_SOCKET_TIMEOUT
+            ),
+            redis_socket_connect_timeout=_parse_int(
+                os.getenv(ENV_REDIS_SOCKET_CONNECT_TIMEOUT, ""),
+                DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT,
+            ),
+            redis_health_check_interval=_parse_int(
+                os.getenv(ENV_REDIS_HEALTH_CHECK_INTERVAL, ""),
+                DEFAULT_REDIS_HEALTH_CHECK_INTERVAL,
+            ),
+            inflight_warn_threshold=_parse_int(
+                os.getenv(ENV_INFLIGHT_WARN_THRESHOLD, ""), DEFAULT_INFLIGHT_WARN_THRESHOLD
+            ),
+            healthz_ragflow_timeout=_parse_int(
+                os.getenv(ENV_HEALTHZ_RAGFLOW_TIMEOUT, ""), DEFAULT_HEALTHZ_RAGFLOW_TIMEOUT
+            ),
+            healthz_cache_ttl=_parse_int(
+                os.getenv(ENV_HEALTHZ_CACHE_TTL, ""), DEFAULT_HEALTHZ_CACHE_TTL
+            ),
+            oauth_http_timeout=_parse_int(
+                os.getenv(ENV_OAUTH_HTTP_TIMEOUT, ""), DEFAULT_OAUTH_HTTP_TIMEOUT
+            ),
         )
         if (
             config.transport == TRANSPORT_STDIO

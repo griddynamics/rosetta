@@ -208,7 +208,7 @@ next SHALL accept an optional limit parameter (default 3) bounding the number of
 
 <req id="FR-PLAN-0030" type="FR" level="System">
   <title>plan create-with-template subcommand</title>
-  <statement>plan create-with-template SHALL accept four required inputs, named uniformly across frontends:
+  <statement>plan create-with-template SHALL accept five required inputs, named uniformly across frontends:
 
 | Position (CLI) | Parameter name (CLI flag / MCP field / placeholder) |
 |---|---|
@@ -216,8 +216,11 @@ next SHALL accept an optional limit parameter (default 3) bounding the number of
 | 2 | `template` |
 | 3 | `plan-name` |
 | 4 | `plan-description` |
+| 5 | `phase-steps` |
 
 Parameters 3 and 4 are template placeholder values and SHALL be passed under the kebab-case names shown (FR-PLAN-0034). CLI accepts them positionally in the order above. MCP receives them as named fields on the plan tool's input object under the same names.
+
+Parameter 5 `phase-steps` is a JSON array of additional steps injected into the seeded phase per FR-PLAN-0043; it is not a placeholder value and is not subject to FR-PLAN-0034 matching.
 
 The subcommand SHALL look up `template` in the create-kind template collection (FR-PLAN-0033); a name not found in that collection SHALL be rejected with `invalid_template`. It SHALL render the template via FR-PLAN-0034 with `[plan-name]` and `[plan-description]` as the only allowed placeholders, then invoke the same logic as plan create (FR-PLAN-0010) on the rendered plan JSON. All validations, write semantics (FR-PLAN-0024), and result shape (FR-PLAN-0040) SHALL be identical to plan create.</statement>
   <rationale>A wrapper over create keeps semantics consistent and avoids duplicate write paths. Uniform parameter naming across CLI and MCP makes the binding to placeholder names self-evident.</rationale>
@@ -227,7 +230,7 @@ The subcommand SHALL look up `template` in the create-kind template collection (
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: CLI `rosettify plan create-with-template plans/x.json for-orchestrator "My Plan" "Do Y"`. Then: the plan file is created with name="My Plan" and `[plan-description]` substituted; the result matches FR-PLAN-0040. Given: MCP `CallTool "plan" {subcommand:"create-with-template", plan_file:"plans/x.json", template:"for-orchestrator", "plan-name":"My Plan", "plan-description":"Do Y"}`. Then: identical effect to the CLI invocation. Given: an unknown template name. Then: {error: "invalid_template"}. Given: a template that is registered only as an upsert template. Then: {error: "invalid_template"}. Given: any required parameter is missing. Then: rejected with `missing_template_param`.</criteria>
+    <criteria>Given: CLI `rosettify plan create-with-template plans/x.json for-orchestrator "My Plan" "Do Y" '[{"id":"ph-prep-s-impl","name":"Implement","prompt":"Implement Y"}]'`. Then: the plan file is created with name="My Plan" and `[plan-description]` substituted, with the injected step appended to the ph-prep phase; the result matches FR-PLAN-0040. Given: MCP `CallTool "plan" {subcommand:"create-with-template", plan_file:"plans/x.json", template:"for-orchestrator", "plan-name":"My Plan", "plan-description":"Do Y", "phase-steps":"[{...}]"}`. Then: identical effect to the CLI invocation. Given: an unknown template name. Then: {error: "invalid_template"}. Given: a template that is registered only as an upsert template. Then: {error: "invalid_template"}. Given: phase-steps omitted. Then: treated as an empty array (FR-PLAN-0043); the plan is created with only the seeded ph-prep steps. Given: any required placeholder parameter is missing. Then: rejected with `missing_template_param`.</criteria>
   </acceptance>
 </req>
 
@@ -235,7 +238,7 @@ The subcommand SHALL look up `template` in the create-kind template collection (
 
 <req id="FR-PLAN-0031" type="FR" level="System">
   <title>plan upsert-with-template subcommand</title>
-  <statement>plan upsert-with-template SHALL accept five required inputs, named uniformly across frontends:
+  <statement>plan upsert-with-template SHALL accept six required inputs, named uniformly across frontends:
 
 | Position (CLI) | Parameter name (CLI flag / MCP field / placeholder) |
 |---|---|
@@ -244,8 +247,11 @@ The subcommand SHALL look up `template` in the create-kind template collection (
 | 3 | `template` |
 | 4 | `phase-name` |
 | 5 | `phase-description` |
+| 6 | `phase-steps` |
 
 Parameters 2, 4, and 5 are template placeholder values and SHALL be passed under the kebab-case names shown (FR-PLAN-0034). CLI accepts them positionally in the order above. MCP receives them as named fields on the plan tool's input object under the same names.
+
+Parameter 6 `phase-steps` is a JSON array of additional steps injected into the seeded phase per FR-PLAN-0043; it is not a placeholder value and is not subject to FR-PLAN-0034 matching.
 
 The subcommand SHALL look up `template` in the upsert-kind template collection (FR-PLAN-0033); a name not found in that collection SHALL be rejected with `invalid_template`. It SHALL render the template via FR-PLAN-0034 with `[phase-id]`, `[phase-name]`, and `[phase-description]` as the only allowed placeholders, then invoke the same logic as plan upsert (FR-PLAN-0015) targeting `phase-id` with the rendered phase JSON as the patch data. All upsert merge semantics, validations, write semantics (FR-PLAN-0024), and result shape (FR-PLAN-0040) SHALL be identical to plan upsert.</statement>
   <rationale>A wrapper over upsert keeps merge and write semantics consistent. Exposing `phase-id` as a placeholder-bound input lets the same template apply to any phase in any plan and keeps step IDs unique under repeated use.</rationale>
@@ -255,7 +261,7 @@ The subcommand SHALL look up `template` in the upsert-kind template collection (
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: CLI `rosettify plan upsert-with-template plans/x.json ph-impl for-subagent "Implementation" "Implement the API endpoint"`. Then: a phase with id="ph-impl" is upserted from the rendered template content; the result matches FR-PLAN-0040. Given: MCP `CallTool "plan" {subcommand:"upsert-with-template", plan_file:"plans/x.json", "phase-id":"ph-impl", template:"for-subagent", "phase-name":"Implementation", "phase-description":"Implement the API endpoint"}`. Then: identical effect to the CLI invocation. Given: an unknown template name. Then: {error: "invalid_template"}. Given: a template that is registered only as a create template. Then: {error: "invalid_template"}. Given: any required parameter is missing. Then: rejected with `missing_template_param`. Given: the target phase already exists. Then: standard upsert merge semantics apply (FR-PLAN-0015).</criteria>
+    <criteria>Given: CLI `rosettify plan upsert-with-template plans/x.json ph-impl for-subagent "Implementation" "Implement the API endpoint" '[{"id":"ph-impl-s-verify","name":"Verify","prompt":"Verify implementation"}]'`. Then: a phase with id="ph-impl" is upserted from the rendered template content with the injected step appended; the result matches FR-PLAN-0040. Given: MCP `CallTool "plan" {subcommand:"upsert-with-template", plan_file:"plans/x.json", "phase-id":"ph-impl", template:"for-subagent", "phase-name":"Implementation", "phase-description":"Implement the API endpoint", "phase-steps":"[{...}]"}`. Then: identical effect to the CLI invocation. Given: an unknown template name. Then: {error: "invalid_template"}. Given: a template that is registered only as a create template. Then: {error: "invalid_template"}. Given: phase-steps omitted. Then: treated as an empty array (FR-PLAN-0043); the phase is upserted with only its seeded steps. Given: any required placeholder parameter is missing. Then: rejected with `missing_template_param`. Given: the target phase already exists. Then: standard upsert merge semantics apply (FR-PLAN-0015).</criteria>
   </acceptance>
 </req>
 
@@ -301,10 +307,10 @@ Concrete illustration for `create-with-template`:
 
 ```
 Tip form:
-  rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator [plan-name] [user-request-description-one-sentence]
+  rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator [plan-name] [user-request-description-one-sentence] [phase-steps-json-string]
 
 Real form:
-  rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator "Feature X" "User wants to add Y to Z"
+  rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator "Feature X" "User wants to add Y to Z" '[{"id":"ph-prep-s-impl","name":"Implement","prompt":"Implement Y"}]'
 ```
 
 The two forms together teach the caller what each argument is for AND show a runnable instance
@@ -355,7 +361,7 @@ The two forms together teach the caller what each argument is for AND show a run
 - if the plan file is missing but at least one backup exists, reads retry briefly before returning `plan_not_found`
 - templates have two kinds (create, upsert); a template of one kind cannot be used with the other kind
 - placeholder syntax in templates is `[placeholder-name]`; provided params and declared placeholders must match exactly
-- end-to-end usage: (1) build the whole plan from a create-kind template with create-with-template; (2) for each phase, seed the subagent's first steps from an upsert-kind template with upsert-with-template before delegating that phase; (3) hand the phase to its subagent; (4) the subagent works the phase in a loop — call next with --target <its phase id> for the next small batch, call update_status <step_id> in_progress before starting a step and update_status <step_id> complete once it passes; (5) the phase is finished when next returns count 0 and parent.status is complete; if blocked or failed steps remain, recover them before finishing
+- end-to-end usage — build the whole execution plan first, then execute. Build: (1) create the plan and its initial preparation phase with create-with-template, passing the actual phase-steps (the main body of work) to fill that first phase in one call; (2) add each subsequent phase (phase 1, phase 2, …) with upsert-with-template, every call passing the actual phase-steps so the phase arrives complete — the seeded subagent bootstrap steps plus the actual phase-steps; always add every follow-up phase with upsert-with-template (never plain upsert for a new phase); use plain upsert only for follow-up steps and patching existing items (rarely); change status only via update_status; (3) keep steps granular — each step is about 3–5 minutes of an AI coding agent's own work. Execute only after the whole execution plan is built: (4) hand each phase to its subagent, which loops — call next with --target <its phase id> for the next small batch, update_status <step_id> in_progress before starting a step and update_status <step_id> complete once it passes; (5) a phase is finished when next returns count 0 and parent.status is complete; if blocked or failed steps remain, recover them before finishing
 - phase-scoped next: when working a single phase always call next with --target <that phase id> so the batch and all the counts cover only that phase; --target may be passed with or without a limit
 - what next returns: next lists steps in priority order — in_progress, then ready open, then blocked, then failed — and cuts the list off at limit (default 3). Because in_progress and open steps come first, when there is enough work to do the blocked and failed steps get cut off and won't appear in that call. The Overall*Count fields are a headcount of every status in scope (open, in_progress, blocked, failed, complete) — a reminder of what exists even when the limit hid some
 - three outcomes of a next call: if count is greater than 0, work the returned steps; if count is 0 and the scope is complete (parent.status complete under --target, otherwise plan_status complete), the scope is done; if count is 0 but blocked or failed steps remain, stop looping and recover them
@@ -431,10 +437,10 @@ Concrete illustration for `create-with-template`:
 
 ```
 Tip form:
-  rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator [plan-name] [user-request-description-one-sentence]
+  rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator [plan-name] [user-request-description-one-sentence] [phase-steps-json-string]
 
 Real form:
-  rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator "Feature X" "User wants to add Y to Z"
+  rosettify plan create-with-template plans/feature-x/plan.json for-orchestrator "Feature X" "User wants to add Y to Z" '[{"id":"ph-prep-s-impl","name":"Implement","prompt":"Implement Y"}]'
 ```
 
 The two forms together teach the caller what each argument is for AND show a runnable instance.</statement>
@@ -485,6 +491,42 @@ The plan summary SHALL carry `previous_version`: the filesystem path of the back
   </acceptance>
 </req>
 
+### FR-PLAN-0043 phase-steps array injection
+
+<req id="FR-PLAN-0043" type="FR" level="System" classification="technical">
+  <title>phase-steps array injection for template subcommands</title>
+  <statement>create-with-template (FR-PLAN-0030) and upsert-with-template (FR-PLAN-0031) SHALL accept a required `phase-steps` input: a JSON string that SHALL parse to an array of step objects. The parsed array SHALL be appended, in order, to the end of the seeded `steps` array of the template's phase — for create-with-template the plan's `ph-prep` phase, for upsert-with-template the upserted phase — after placeholder substitution (FR-PLAN-0034) completes. Injected step objects SHALL be inserted verbatim; their `id` values SHALL NOT be rewritten or prefixed. An empty array SHALL be valid and SHALL leave the seeded steps unchanged. Callers SHALL pass `phase-steps`, and usage and help present it as required; for backward compatibility, if `phase-steps` is omitted the subcommand SHALL treat it as an empty array (equivalent to `[]`) rather than reject the call. If `phase-steps` is present but is not valid JSON, or parses to a value that is not an array, the subcommand SHALL be rejected with `invalid_phase_steps`. Field-level validation of each injected step (required id/name/prompt, plan-wide id uniqueness per FR-PLAN-0001) SHALL be performed by the downstream create (FR-PLAN-0010) or upsert (FR-PLAN-0015) logic on the assembled plan, not by the injection. phase-steps SHALL NOT be a template placeholder and SHALL NOT participate in the strict bidirectional placeholder matching of FR-PLAN-0034.</statement>
+  <rationale>A template seeds only the mandatory bootstrap steps; the caller completes the phase by supplying the remaining workflow steps in the same call, so a template subcommand emits a full, ready-to-run phase. Array injection is structurally distinct from string placeholder substitution: it splices objects into an array, which literal string replacement cannot express. Keeping IDs verbatim gives the caller full control and reuses the existing duplicate-id guard.</rationale>
+  <source>User</source>
+  <ticketId>CTORNDGAIN-1333</ticketId>
+  <priority>Must</priority>
+  <status>Draft</status>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: create-with-template with phase-steps a JSON array of two valid step objects. Then: the created ph-prep phase ends with the five seeded steps followed by the two injected steps in order, IDs unchanged; result matches FR-PLAN-0040. Given: upsert-with-template with phase-steps = []. Then: the upserted phase contains exactly the six seeded steps. Given: phase-steps omitted entirely. Then: the subcommand succeeds and the phase contains only its seeded steps (omission is treated as an empty array). Given: phase-steps = "not json". Then: {error: "invalid_phase_steps"}. Given: phase-steps a JSON object (not array). Then: {error: "invalid_phase_steps"}. Given: an injected step id duplicating a seeded step id. Then: downstream write rejected with duplicate_id (FR-PLAN-0001).</criteria>
+  </acceptance>
+  <depends>FR-PLAN-0001, FR-PLAN-0030, FR-PLAN-0031, FR-PLAN-0034</depends>
+  <implementation>[Status: ToBeModified] [Additional Notes: command-layer splice of parsed array into seeded steps after render; new error invalid_phase_steps; phase-steps wired as an optional last positional CLI arg and MCP field — omitted is treated as [] for backward compatibility, defaulted at the command boundary; usage/help still present it as required]</implementation>
+</req>
+
+### FR-PLAN-0044 JSON-bearing arguments are inline JSON strings
+
+<req id="FR-PLAN-0044" type="FR" level="System" classification="technical">
+  <title>JSON-bearing command arguments are inline JSON strings</title>
+  <statement>The JSON-bearing inputs of the plan command — the plan data of `create`, the patch of `upsert`, and `phase-steps` of `create-with-template` and `upsert-with-template` — SHALL be supplied as inline JSON strings passed directly as the command argument (CLI positional value or MCP field) and parsed in-process. The help content (FR-PLAN-0016, FR-PLAN-0018, FR-PLAN-0042) SHALL present each of these inputs with a hint that names it as a JSON string — `plan-json-string`, `patch-json-string`, and `phase-steps-json-string` — in the usage line and the tip-form example, and SHALL include a note stating that these arguments are passed as the JSON value itself on the command line, so a caller supplies the JSON content directly.</statement>
+  <rationale>Callers, including AI agents, have supplied a path or filename where the JSON value was expected. Naming the hint as a JSON string at the point of use makes the expected inline input self-evident and removes the ambiguity.</rationale>
+  <source>User</source>
+  <ticketId>CTORNDGAIN-1333</ticketId>
+  <priority>Must</priority>
+  <status>Draft</status>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: rosettify help plan. Then: the create, upsert, create-with-template, and upsert-with-template entries name their JSON-bearing argument as a JSON string in the usage line and tip example (plan-json-string, patch-json-string, phase-steps-json-string), and the notes include the inline-JSON-string statement. Given: a create, upsert, or with-template invocation whose JSON-bearing argument is a valid inline JSON string. Then: it is parsed and applied. Given: a malformed value. Then: it is rejected with the subcommand's existing error (invalid_data for create/upsert, invalid_phase_steps for the with-template subcommands).</criteria>
+  </acceptance>
+  <depends>FR-PLAN-0016, FR-PLAN-0018, FR-PLAN-0042, FR-PLAN-0043</depends>
+  <implementation>[Status: Implemented] [Additional Notes: help-content.ts usage/args/examples use *-json-string hints + inline-JSON-string note; data parsed in plan/index.ts; phase-steps parsed by parsePhaseSteps]</implementation>
+</req>
+
 ## Templates
 
 ### FR-PLAN-0033 Template Registry
@@ -517,7 +559,7 @@ The render operation SHALL build a parameter dictionary keyed by placeholder nam
 - If the caller provides a value for which no matching declared placeholder exists in the template, the render SHALL fail with `unexpected_template_param`.
 - If the template's JSON content contains a placeholder token that is not in its declared set, the render SHALL fail with `unexpected_template_param`.
 
-All input parameters for the template-using subcommands (FR-PLAN-0030, FR-PLAN-0031) SHALL be required. Substitution SHALL be literal string replacement; values SHALL NOT be re-interpreted or escaped beyond what JSON syntax requires to keep the rendered template a valid JSON document.</statement>
+All input parameters for the template-using subcommands (FR-PLAN-0030, FR-PLAN-0031) SHALL be required. Substitution SHALL be literal string replacement; values SHALL NOT be re-interpreted or escaped beyond what JSON syntax requires to keep the rendered template a valid JSON document. Injection of caller-supplied steps via `phase-steps` is governed by FR-PLAN-0043 and is not part of placeholder substitution.</statement>
   <rationale>A single canonical name spanning CLI positionals, MCP input fields, and template placeholders eliminates translation layers, prevents drift, and makes mistakes self-evident. Strict bidirectional matching catches both caller errors (forgot a param) and template authoring errors (template uses a placeholder caller cannot supply), eliminating silent template misuse.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -653,7 +695,7 @@ Implementations SHALL NOT use plain rename or plain hardlink as the cycle's excl
 
 <req id="FR-PLAN-0021" type="FR" level="System">
   <title>Known error codes</title>
-  <statement>All plan errors SHALL be returned via the common output envelope (FR-ARCH-0011). Known error codes: plan_not_found (file missing), plan_file_corrupted (plan file exists but cannot be parsed as valid JSON), target_not_found (unknown ID), invalid_target (entire_plan in update_status), invalid_status (bad status value), missing_new_status (status parameter absent in update_status), missing_id (phase in array without id), phase_not_found (step targeting nonexistent phase), phase_status_is_derived (update_status targeting a phase), missing_phase_id (new step without phase_id), missing_kind (new item without kind), invalid_kind (wrong kind value), immutable_id (patch attempts to change id), duplicate_id (non-unique IDs after mutation), unknown_dependency (depends_on references non-existent ID), dependency_cycle (circular dependency detected), size_limit_exceeded (constants violated), invalid_data (malformed data payload), missing_data (absent data payload), invalid_limit (negative limit in next), concurrent_write_conflict (optimistic retry exhausted on concurrent access), backup_create_failed (rename-as-guard write cycle exhausted retries per FR-PLAN-0024), invalid_template (template name not found in the requested kind's collection — FR-PLAN-0030, FR-PLAN-0031), missing_template_param (template declares a placeholder for which no value was provided — FR-PLAN-0034), unexpected_template_param (caller provided a value with no matching declared placeholder, or template contains a placeholder token not in its declared set — FR-PLAN-0034), unknown_command (unrecognized subcommand — include_help=true, includes list of valid commands: create, next, update_status, show_status, query, upsert, create-with-template, upsert-with-template, list-templates).</statement>
+  <statement>All plan errors SHALL be returned via the common output envelope (FR-ARCH-0011). Known error codes: plan_not_found (file missing), plan_file_corrupted (plan file exists but cannot be parsed as valid JSON), target_not_found (unknown ID), invalid_target (entire_plan in update_status), invalid_status (bad status value), missing_new_status (status parameter absent in update_status), missing_id (phase in array without id), phase_not_found (step targeting nonexistent phase), phase_status_is_derived (update_status targeting a phase), missing_phase_id (new step without phase_id), missing_kind (new item without kind), invalid_kind (wrong kind value), immutable_id (patch attempts to change id), duplicate_id (non-unique IDs after mutation), unknown_dependency (depends_on references non-existent ID), dependency_cycle (circular dependency detected), size_limit_exceeded (constants violated), invalid_data (malformed data payload), missing_data (absent data payload), invalid_limit (negative limit in next), concurrent_write_conflict (optimistic retry exhausted on concurrent access), backup_create_failed (rename-as-guard write cycle exhausted retries per FR-PLAN-0024), invalid_template (template name not found in the requested kind's collection — FR-PLAN-0030, FR-PLAN-0031), missing_template_param (template declares a placeholder for which no value was provided — FR-PLAN-0034), unexpected_template_param (caller provided a value with no matching declared placeholder, or template contains a placeholder token not in its declared set — FR-PLAN-0034), invalid_phase_steps (phase-steps is present but is not valid JSON or parses to a non-array value — FR-PLAN-0043), unknown_command (unrecognized subcommand — include_help=true, includes list of valid commands: create, next, update_status, show_status, query, upsert, create-with-template, upsert-with-template, list-templates).</statement>
   <rationale>Error codes from JS, Python, rosettify behaviors, atomic write cycle, and template subcommands.</rationale>
   <source>Sources</source>
   <ticketId>CTORNDGAIN-1333</ticketId>

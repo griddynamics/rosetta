@@ -10,7 +10,7 @@ baseSchema: docs/schemas/workflow.md
 <description_and_purpose>
 
 Problem: Code analysis degrades into transcription, drifts into suggestions/refactors, or stalls when codebase exceeds single-agent context; assumptions and unknowns are silently adopted.
-Solution: Thin, sequential workflow that classifies SMALL vs LARGE codebase, delegates analysis to the `reverse-engineering` skill, partitions LARGE codebases via `large-workspace-handling`, gates critical/high unknowns through `questioning`, and optionally extracts requirements via `requirements-authoring`. Grounded by links, HITL at unknowns and final review.
+Solution: Thin, sequential workflow that classifies SMALL vs LARGE codebase, delegates analysis to the `reverse-engineering` skill, must partition LARGE codebases via `large-workspace-handling`, gates critical/high unknowns through `questioning`, and optionally extracts requirements via `requirements-authoring`. Grounded by links, HITL at unknowns and final review.
 Validation: Output files exist under `docs/<feature>/`; every claim traces to code/docs; no generated or suggested implementation; open questions and assumptions are documented; state file reflects phase evidence.
 
 </description_and_purpose>
@@ -21,10 +21,14 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 1. All Rosetta prep steps MUST be FULLY completed
 2. MUST USE OPERATION_MANAGER for deterministic execution
-3. Phases are sequential; module analysis in LARGE codebases runs in parallel via `large-workspace-handling`.
+3. Phases are sequential; module analysis in LARGE codebases runs in parallel via SKILL `large-workspace-handling`.
 4. Orchestrator trusts skills to own execution internals; coordinates sequence, artifacts, state, and approvals only.
 5. State file: `agents/code-analysis-flow-state.md` updated after each phase.
 6. Documentation principle: ground with links; no code generation, no suggestions, no speculation. See `best_practices` for sizing and diagram rules.
+7. If task is to extract/document/reverse engineer requirements or specifications from existing app/code:
+   - This is much more intense per subagent: reclassify SMALL if < 10 source files, otherwise LARGE and MUST USE `large-workspace-handling`.
+   - Both orchestrator and subagents MUST USE SKILL `requirements-authoring`
+   - Spawn MULTIPLE subagents with each handling one unit of analysis (one module, one community, one screen, one controller, one endpoint, etc) to effectively prevent hallucinations by narrowing scope down for phases `requirements_branch` and `review` (more agents - less scope each).
 
 </prerequisites>
 
@@ -59,11 +63,12 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 <requirements_branch phase="4" applies="ALL" when="user requested requirements reverse-engineering" subagent="architect" role="Requirements engineer extracting intent from code">
 
-1. Precondition: user explicitly requested requirements reverse-engineering (e.g., "extract requirements", "generate SRS", "produce EARS/NFRs from code"). If absent, skip this phase entirely.
+1. Precondition: user explicitly requested requirements reverse-engineering (e.g., "extract requirements", "generate SRS", "generate specifications", "from existing code", "produce EARS/NFRs from code"). If absent, skip this phase entirely.
 2. Use `reverse-engineering` skill to distill intent, then `requirements-authoring` skill to produce atomic, testable functional and non-functional requirements with SMART, MECE, acceptance criteria, EARS phrasing, priority (MoSCoW), and predecessors.
-3. Input: scope + context. Output: `docs/<feature>/REQUIREMENTS/` per `requirements-authoring` layout, with HITL per-unit approval owned by that skill.
+3. Input: scope + context. Output: `docs/REQUIREMENTS/` per `requirements-authoring` layout, with HITL per-unit approval owned by that skill.
 4. Required skills: `reverse-engineering`, `requirements-authoring`
 5. Update `agents/code-analysis-flow-state.md`.
+6. Partition workspace USING SKILL `large-workspace-handling` (Summarization & Indexing strategy): every file belongs to exactly one scope; subagents analyze per-module in parallel.
 
 </requirements_branch>
 
@@ -79,7 +84,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 <analyze_large_parallel phase="6" applies="LARGE" subagent="architect" role="Per-module systems analyst (parallel dispatch)">
 
-1. Partition workspace with `large-workspace-handling` (Summarization & Indexing strategy): every file belongs to exactly one scope; subagents analyze per-module in parallel.
+1. Partition workspace USING SKILL `large-workspace-handling` (Summarization & Indexing strategy): every file belongs to exactly one scope; subagents analyze per-module in parallel.
 2. Per module produce: business logic overview, architecture overview, component analysis (with subcomponents, interface definitions, and major features), identified design patterns and anti-patterns, data architecture with exact contracts (fields, types, purpose), integration patterns, quality observations, engineering insights. Aim 100–200 lines; diagrams in Mermaid with explicit light/dark colors.
 3. Input: `module-list` + scope + context. Output: `docs/<feature>/module-<module>.md` per module.
 4. Required skills: `large-workspace-handling`, `reverse-engineering`
@@ -104,6 +109,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 2. Input: analysis artifacts + scope + context. Output: review findings and recommendations.
 3. Recommended skills: `reasoning`
 4. Update `agents/code-analysis-flow-state.md`.
+5. If reverse engineering: MUST validate there are NO hallucinations or made-up requirements - this is a contract!
 
 </review>
 
@@ -153,7 +159,8 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 - Mermaid diagrams render in both themes (explicit colors set).
 - Per-module docs stay within 100–200 lines target; code snippets ≤3 lines.
 - `agents/code-analysis-flow-state.md` has artifact evidence for every executed phase.
-- Requirements branch produced `docs/<feature>/REQUIREMENTS/` artifacts only when the user requested it.
+- Requirements branch produced `docs/REQUIREMENTS/` artifacts only when the user requested it.
+- `docs/REQUIREMENTS/INDEX.md` is greppable by headers, which provides automatic ToC for all requirement files with short description.
 - Outputs map to original user scope with traceable coverage.
 
 </validation_checklist>

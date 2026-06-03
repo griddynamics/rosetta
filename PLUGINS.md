@@ -14,7 +14,8 @@ Every plugin supports two installation methods:
 > Use **Sonnet 4.6**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
 
 > [!NOTE]
-> Plugins are pre-release.
+> This is pre-release, but it already works.
+> There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.
 
 ## Step 1: Install Plugin
 

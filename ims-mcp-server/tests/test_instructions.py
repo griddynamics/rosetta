@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, Mock
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 
@@ -65,7 +65,7 @@ class TestListInstructions:
     async def test_flat_format_all_case(self, mock_call_ctx, mock_doc_cache, mock_bundler, sample_docs):
         """Test flat format with 'all' prefix."""
         mock_call_ctx.ragflow.get_dataset = Mock(return_value=Mock())
-        mock_doc_cache.get_all_docs = Mock(return_value=sample_docs)
+        mock_doc_cache.get_all_docs_async = AsyncMock(return_value=sample_docs)
 
         result = await list_instructions(
             call_ctx=mock_call_ctx,
@@ -89,7 +89,7 @@ class TestListInstructions:
     async def test_flat_format_root_prefix(self, mock_call_ctx, mock_doc_cache, mock_bundler, sample_docs):
         """Test flat format with empty/root prefix."""
         mock_call_ctx.ragflow.get_dataset = Mock(return_value=Mock())
-        mock_doc_cache.get_all_docs = Mock(return_value=sample_docs)
+        mock_doc_cache.get_all_docs_async = AsyncMock(return_value=sample_docs)
 
         result = await list_instructions(
             call_ctx=mock_call_ctx,
@@ -111,7 +111,7 @@ class TestListInstructions:
     async def test_flat_format_skills_prefix(self, mock_call_ctx, mock_doc_cache, mock_bundler, sample_docs):
         """Test flat format with 'skills' prefix."""
         mock_call_ctx.ragflow.get_dataset = Mock(return_value=Mock())
-        mock_doc_cache.get_all_docs = Mock(return_value=sample_docs)
+        mock_doc_cache.get_all_docs_async = AsyncMock(return_value=sample_docs)
 
         result = await list_instructions(
             call_ctx=mock_call_ctx,
@@ -132,7 +132,7 @@ class TestListInstructions:
     async def test_flat_format_nested_prefix(self, mock_call_ctx, mock_doc_cache, mock_bundler, sample_docs):
         """Test flat format with nested prefix 'skills/coding'."""
         mock_call_ctx.ragflow.get_dataset = Mock(return_value=Mock())
-        mock_doc_cache.get_all_docs = Mock(return_value=sample_docs)
+        mock_doc_cache.get_all_docs_async = AsyncMock(return_value=sample_docs)
 
         result = await list_instructions(
             call_ctx=mock_call_ctx,
@@ -153,7 +153,7 @@ class TestListInstructions:
     async def test_xml_format_default(self, mock_call_ctx, mock_doc_cache, mock_bundler, sample_docs):
         """Test XML format (default) returns bundler output."""
         mock_call_ctx.ragflow.get_dataset = Mock(return_value=Mock())
-        mock_doc_cache.get_all_docs = Mock(return_value=sample_docs)
+        mock_doc_cache.get_all_docs_async = AsyncMock(return_value=sample_docs)
 
         result = await list_instructions(
             call_ctx=mock_call_ctx,
@@ -170,7 +170,7 @@ class TestListInstructions:
     async def test_xml_format_all_case(self, mock_call_ctx, mock_doc_cache, mock_bundler, sample_docs):
         """Test XML format with 'all' prefix."""
         mock_call_ctx.ragflow.get_dataset = Mock(return_value=Mock())
-        mock_doc_cache.get_all_docs = Mock(return_value=sample_docs)
+        mock_doc_cache.get_all_docs_async = AsyncMock(return_value=sample_docs)
 
         result = await list_instructions(
             call_ctx=mock_call_ctx,
@@ -187,7 +187,7 @@ class TestListInstructions:
     async def test_no_children_found(self, mock_call_ctx, mock_doc_cache, mock_bundler):
         """Test when no children are found for prefix."""
         mock_call_ctx.ragflow.get_dataset = Mock(return_value=Mock())
-        mock_doc_cache.get_all_docs = Mock(return_value=[])
+        mock_doc_cache.get_all_docs_async = AsyncMock(return_value=[])
 
         result = await list_instructions(
             call_ctx=mock_call_ctx,
@@ -203,7 +203,7 @@ class TestListInstructions:
     async def test_no_files_for_all(self, mock_call_ctx, mock_doc_cache, mock_bundler):
         """Test when no instruction files are found for 'all' case."""
         mock_call_ctx.ragflow.get_dataset = Mock(return_value=Mock())
-        mock_doc_cache.get_all_docs = Mock(return_value=[])
+        mock_doc_cache.get_all_docs_async = AsyncMock(return_value=[])
 
         result = await list_instructions(
             call_ctx=mock_call_ctx,
@@ -219,7 +219,7 @@ class TestListInstructions:
     async def test_invalid_format(self, mock_call_ctx, mock_doc_cache, mock_bundler, sample_docs):
         """Test with invalid format parameter."""
         mock_call_ctx.ragflow.get_dataset = Mock(return_value=Mock())
-        mock_doc_cache.get_all_docs = Mock(return_value=sample_docs)
+        mock_doc_cache.get_all_docs_async = AsyncMock(return_value=sample_docs)
 
         result = await list_instructions(
             call_ctx=mock_call_ctx,
@@ -274,7 +274,7 @@ class TestListInstructions:
             MockDocument("3", "workflows/test.md"),
         ]
         mock_call_ctx.ragflow.get_dataset = Mock(return_value=Mock())
-        mock_doc_cache.get_all_docs = Mock(return_value=duplicate_docs)
+        mock_doc_cache.get_all_docs_async = AsyncMock(return_value=duplicate_docs)
 
         result = await list_instructions(
             call_ctx=mock_call_ctx,
@@ -296,7 +296,7 @@ class TestListInstructions:
             Mock(id="3", meta_fields={}),  # No resource_path key
         ]
         mock_call_ctx.ragflow.get_dataset = Mock(return_value=Mock())
-        mock_doc_cache.get_all_docs = Mock(return_value=docs_with_missing_paths)
+        mock_doc_cache.get_all_docs_async = AsyncMock(return_value=docs_with_missing_paths)
 
         result = await list_instructions(
             call_ctx=mock_call_ctx,

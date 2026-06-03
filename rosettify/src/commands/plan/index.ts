@@ -48,6 +48,7 @@ async function runPlan(input: PlanInput): Promise<RunEnvelope<unknown>> {
     "phase-id": phaseId,
     "phase-name": phaseName,
     "phase-description": phaseDescription,
+    "phase-steps": phaseSteps,
   } = input;
 
   // FR-PLAN-0022 — no subcommand returns help content
@@ -119,7 +120,8 @@ async function runPlan(input: PlanInput): Promise<RunEnvelope<unknown>> {
       // FR-PLAN-0034 — provided=present. Empty string is a value; only undefined/null = absent.
       if (planName === undefined || planName === null) return err(`${ERR_MISSING_TEMPLATE_PARAM}: plan-name`, true);
       if (planDescription === undefined || planDescription === null) return err(`${ERR_MISSING_TEMPLATE_PARAM}: plan-description`, true);
-      return cmdCreateWithTemplate(plan_file, template, planName, planDescription);
+      // FR-PLAN-0043 — phase-steps is required/recommended in guidance, but for backward compatibility an omitted value is treated as [] (recovered downstream). Malformed content is still rejected as invalid_phase_steps.
+      return cmdCreateWithTemplate(plan_file, template, planName, planDescription, phaseSteps);
     }
 
     // FR-PLAN-0031 — upsert-with-template
@@ -130,7 +132,8 @@ async function runPlan(input: PlanInput): Promise<RunEnvelope<unknown>> {
       if (template === undefined || template === null) return err(`${ERR_MISSING_TEMPLATE_PARAM}: template`, true);
       if (phaseName === undefined || phaseName === null) return err(`${ERR_MISSING_TEMPLATE_PARAM}: phase-name`, true);
       if (phaseDescription === undefined || phaseDescription === null) return err(`${ERR_MISSING_TEMPLATE_PARAM}: phase-description`, true);
-      return cmdUpsertWithTemplate(plan_file, phaseId, template, phaseName, phaseDescription);
+      // FR-PLAN-0043 — phase-steps is required/recommended in guidance, but for backward compatibility an omitted value is treated as [] (recovered downstream). Malformed content is still rejected as invalid_phase_steps.
+      return cmdUpsertWithTemplate(plan_file, phaseId, template, phaseName, phaseDescription, phaseSteps);
     }
 
     // FR-PLAN-0032 — list-templates
@@ -211,6 +214,11 @@ export const planToolDef: ToolDef<PlanInput, unknown> = {
       "phase-description": {
         type: "string",
         description: "Value for [phase-description] placeholder",
+      },
+      // FR-PLAN-0043 — phase-steps array injection (not a placeholder)
+      "phase-steps": {
+        type: "string",
+        description: "JSON array of steps appended to the seeded phase (create-with-template, upsert-with-template)",
       },
     },
   },

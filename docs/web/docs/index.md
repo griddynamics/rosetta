@@ -25,6 +25,11 @@ Rosetta is a meta-prompting, context engineering, and centralized instructions m
     <p class="docs-index-card-title">Installation</p>
     <p class="docs-index-card-desc">HTTP, STDIO, plugin, and offline installation for all supported IDEs.</p>
   </a>
+  <a href="/rosetta/docs/configuration/" class="docs-index-card">
+    <p class="docs-index-card-cat">Getting Started</p>
+    <p class="docs-index-card-title">Configuration</p>
+    <p class="docs-index-card-desc">Set up business context, technical context, and reference code so agents work well.</p>
+  </a>
   <a href="/rosetta/docs/overview/" class="docs-index-card">
     <p class="docs-index-card-cat">Core Concepts</p>
     <p class="docs-index-card-title">Overview</p>

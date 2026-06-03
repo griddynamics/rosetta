@@ -17,3 +17,6 @@ export const ERR_MISSING_TEMPLATE_PARAM = "missing_template_param";
 
 /** FR-PLAN-0021 / FR-PLAN-0034 — caller provided a value with no matching declared placeholder, or template contains a placeholder token not in its declared set. */
 export const ERR_UNEXPECTED_TEMPLATE_PARAM = "unexpected_template_param";
+
+/** FR-PLAN-0021 / FR-PLAN-0043 — phase-steps is present but is not valid JSON, or parses to a value that is not an array. */
+export const ERR_INVALID_PHASE_STEPS = "invalid_phase_steps";
