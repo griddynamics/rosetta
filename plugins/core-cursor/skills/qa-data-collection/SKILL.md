@@ -145,55 +145,42 @@ Verbatim template + section structure (Test Case Data, Documentation, Existing T
 </output_format>
 
 <pitfalls>
-- Assuming test data when TestRail or Confluence returns incomplete results — note gaps instead
-- Not cross-referencing TMS data with documentation findings
-- Skipping codebase analysis for existing test patterns — leads to inconsistent implementation
-- Not asking user for IDs/URLs when missing from config
-- Ignoring existing test patterns and conventions in the codebase
-- Skipping backend source code analysis when path is configured in project config — leads to less accurate API spec analysis in Phase 2
-- **Copying literal `.env` values, tokens, or passwords into `raw-data.md` — see `<safety_boundaries>`**
-- Marking sections "TBD" or skipping them silently instead of explicitly recording the gap with a reason
+(Each item is a pointer; the rule lives in the cited section.)
+- Assuming test data on TMS/doc incompleteness → `<process>` step 6.2 anti-assumption scan.
+- Not cross-referencing TMS data with documentation findings → step 3.
+- Skipping codebase test-pattern analysis → `<process>` step 5.
+- Not asking user for IDs/URLs when missing from config → `<failure_handling>` "No TMS source resolvable".
+- Skipping backend source analysis when path is configured → `<process>` step 4.
+- **Literal `.env` values / tokens / passwords in `raw-data.md` → `<safety_boundaries>` + step 6.1 secret-scan.**
+- Silent "TBD" / skipped sections → `<success_criteria>` (every section present-or-gap-with-reason).
 </pitfalls>
 
 <safety_boundaries>
 
-`raw-data.md` is a tracked artifact and may end up in version control, shared review, or downstream prompt contexts. Treat it as **PUBLIC by default**. This skill MUST NOT capture sensitive values verbatim:
+`raw-data.md` is **PUBLIC by default** (tracked, shared review, downstream prompt contexts). This skill MUST NOT capture sensitive values verbatim:
 
-- **Credentials / API keys / tokens / passwords / OAuth secrets:** record only the **source** (env var name, secret-manager path, config-file path) and the **mechanism** (Bearer token, Basic Auth, OAuth client-credentials flow, API key header `X-Api-Key`, etc.). NEVER copy the literal value.
-- **`.env`, `.env.test`, `.env.local`, `secrets.yaml`, or similar files:** record their **path** and the **variable names** that test/auth/base-URL logic depends on. Do NOT copy values. If a file is gitignored, note that fact instead of opening it for content capture.
-- **Database connection strings, service-account JSONs, private keys, certificates, signed URLs:** record presence and path only. Do not paste contents into `raw-data.md`.
-- **Base URLs and endpoint paths** are usually safe to record verbatim (e.g., `https://api.staging.example.com/v1/orders`). Exception: if a URL embeds credentials in the form `https://user:pass@host/...`, redact the `user:pass@` portion before recording.
-- **Test data fixtures with PII** (real names, real emails, real phone numbers, real account IDs of production users): use the pattern's structure only, not the values. Replace with placeholders if needed for shape demonstration.
+- **Credentials / API keys / tokens / passwords / OAuth secrets:** record **source** (env var, secret-manager path, config-file path) + **mechanism** (Bearer / Basic / OAuth client-credentials / `X-Api-Key` header / etc.). NEVER copy the literal value.
+- **`.env`, `.env.test`, `.env.local`, `secrets.yaml`:** record **path** + **variable names** test/auth/base-URL logic depends on. Do NOT copy values; gitignored → note that fact, do not open.
+- **DB connection strings, service-account JSONs, private keys, certificates, signed URLs:** record presence + path only.
+- **Base URLs / endpoint paths:** safe verbatim (`https://api.staging.example.com/v1/orders`). Exception: redact `user:pass@` if embedded.
+- **PII in test fixtures** (real names/emails/phones/account IDs): use the structural shape only; replace values with placeholders.
 
-If a section in the `<output_format>` template would naturally require sensitive content (e.g., an auth-setup snippet that includes a hardcoded token), describe the pattern in prose with a placeholder rather than reproduce the literal code.
+If an `<output_format>` section would naturally require sensitive content (e.g., auth-setup snippet with a hardcoded token), describe the pattern in prose with a placeholder.
 
 </safety_boundaries>
 
 <success_criteria>
-
-Complete when **all of** the following hold:
-
-- `agents/qa/{IDENTIFIER}/raw-data.md` written with every `<output_format>` template section present-or-`N/A — <reason>` (silent omission is forbidden).
-- At least one test-case source captured (TestRail / Jira / User Provided) per step 2 — a raw-data.md with zero test-case data is incomplete.
-- Step 6.1 secret-scan + step 6.2 anti-assumption scan both passed (canonical procedures live in `<process>` step 6 + `<safety_boundaries>`).
-- API endpoints table has every row with Method + Source populated (partial rows tagged as Notes gaps).
-
-The skill is **NOT complete** if it emits a raw-data.md with silently missing sections, with inferred values where gaps belong, or with literal credentials/PII — OR if a `<failure_handling>` stop path was reached and not followed (paused phase, not complete).
-
+Complete when `agents/qa/{IDENTIFIER}/raw-data.md` is written with every `<output_format>` section present-or-`N/A — <reason>` (silent omission forbidden), at least one test-case source captured per step 2, step 6.1 secret-scan + step 6.2 anti-assumption scan passed, and every API endpoints row has Method + Source populated. NOT complete if the artifact has silent omissions, inferred values where gaps belong, or literal credentials/PII (rule sources: `<safety_boundaries>` for redaction; `<process>` step 6 for the pre-write re-check; `<failure_handling>` for stop paths).
 </success_criteria>
 
 <failure_handling>
 
-- **Project config missing or unreadable** at `agents/qa/qa-project-config.md` (step 1 prerequisite): stop, report `qa-data-collection: project config missing/unreadable at <path>`, ask the user to rerun Phase 0 (qa-flow-project-config-loading). Do NOT proceed with assumed defaults.
-- **Initial-data file missing or unreadable** at `agents/qa/{IDENTIFIER}/initial-data.md`: stop, report the missing/unreadable path, ask user to rerun Phase 0. Do NOT pick a default identifier.
-- **Delegated MCP skill stops with a failure** (`mcp-testrail-data-collection`, `mcp-jira-data-collection`, `mcp-confluence-data-collection` returns a stop report — auth failure, ticket/case/page not found, MCP not configured, transport error per the sub-skill's own `<failure_handling>`):
-  - Record the sub-skill's failure message verbatim in the corresponding `raw-data.md` section's `## Notes / Gaps` as `Gap: <sub-skill-name> stopped — <verbatim message>`.
-  - Do NOT fabricate substitute content for the failed source — the gap is the data point.
-  - Continue collection with the **remaining sources** unless the failed source was the **only** test-case source (step 2). If the only test-case source failed, stop the whole skill and surface to the calling workflow — `<success_criteria>` requires at least one test-case source.
-- **No TMS source resolvable** (step 2 — project config names a TMS but the user supplied no ticket/case ID AND the delegated MCP skill cannot infer one): stop, ask the user once for the ticket/case ID. After one re-ask still missing, stop the skill, record `Phase 1 blocked: no resolvable test-case source — TMS configured but identifier not supplied` in `agents/qa-state.md`. Do NOT invent an ID.
-- **Documentation step user response missing** (step 3 ask-once: no documentation found AND user supplies neither URLs nor explicit `skip`): re-ask once. If still no response, treat as explicit `skip` AND record `Documentation: not available — no user response after re-ask` in `## Documentation`. Continue with the remaining steps.
-- **Backend source code path set in config but absent on disk** (step 4): record `Gap: backend source path <path> set in qa-project-config.md but not found on disk` in the Backend Source Code Analysis section's Notes. Continue with the remaining steps; do NOT silently mark `N/A`.
-- **`raw-data.md` unwritable** (permission denied, disk full): pause, report the filesystem error with the file path, do not mark Phase 1 complete.
+- **Project config or initial-data file missing/unreadable** (step 1 prerequisites): stop, report the missing path, ask the user to rerun Phase 0 (`qa-flow-project-config-loading`). Do NOT proceed with assumed defaults; do NOT pick a default identifier.
+- **Delegated MCP skill stops** (`mcp-testrail-data-collection` / `mcp-jira-data-collection` / `mcp-confluence-data-collection` returns a stop per its own `<failure_handling>`): record the sub-skill's failure message verbatim in the corresponding section's `## Notes / Gaps` as `Gap: <sub-skill-name> stopped — <verbatim message>`. Do NOT fabricate substitute content. Continue with remaining sources, EXCEPT if the failed source was the only test-case source (step 2) — then stop the whole skill (`<success_criteria>` requires ≥1 test-case source).
+- **No TMS source resolvable** (step 2): ask the user once. If still missing, stop the skill and record `Phase 1 blocked: no resolvable test-case source — TMS configured but identifier not supplied` in `agents/qa-state.md`. Do NOT invent an ID.
+- **Documentation step user response missing** (step 3): re-ask once. If still no response, treat as `skip` and record `Documentation: not available — no user response after re-ask` in `## Documentation`. Continue.
+- **Backend source path absent on disk** (step 4, when set in config): record `Gap: backend source path <path> set in qa-project-config.md but not found on disk` in the Backend Source Code Analysis Notes. Continue; do NOT silently mark `N/A`.
+- **`raw-data.md` unwritable**: pause, report the filesystem error with the path; do not mark Phase 1 complete.
 
 </failure_handling>
 

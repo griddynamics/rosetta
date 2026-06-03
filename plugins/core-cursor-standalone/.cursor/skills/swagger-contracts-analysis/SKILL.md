@@ -41,54 +41,18 @@ Decision point: Swagger available -> full spec analysis. No Swagger -> code-base
 
 ## 2. Extract Endpoint Contracts
 
-For each target endpoint, extract:
+For each target endpoint, populate every subsection of the `<output_format>` Required-Subsections list (verbatim field shapes in `references/per-endpoint-template.md`). Sources:
 
-### From Swagger/OpenAPI Spec
-- **Path**: Full endpoint path (e.g., `/api/v1/users/{id}`)
-- **HTTP Method**: GET, POST, PUT, PATCH, DELETE
-- **Summary/Description**: What the endpoint does
-- **Parameters**:
-  - Path parameters (name, type, required)
-  - Query parameters (name, type, required, default)
-  - Header parameters (name, type, required)
-- **Request Body**:
-  - Content type (application/json, multipart/form-data, etc.)
-  - Schema (fields, types, required fields, constraints)
-  - Example request body
-- **Responses**:
-  - Status codes (200, 201, 400, 401, 403, 404, 500, etc.)
-  - Response schema per status code
-  - Response headers
-  - Example responses
-- **Security**:
-  - Auth schemes required (Bearer, OAuth2, API Key, etc.)
-  - Required scopes/permissions
-- **Tags/Groups**: Functional grouping
-
-### From Code Analysis (if no Swagger)
-
-- Parse controller/route files for endpoint definitions
-- Extract request validation schemas (Joi, Zod, Pydantic, Bean Validation, etc.)
-- Extract response DTOs/models
-- Identify middleware (auth, validation, rate limiting)
-- Check for API versioning patterns
+- **From Swagger/OpenAPI spec:** path + method + summary, parameters (path/query/header), request body (content-type/schema/example), responses per status code (schema/headers/example), security (auth schemes + scopes), tags.
+- **From code (if no Swagger):** parse controller/route files; extract request validation schemas (Joi / Zod / Pydantic / Bean Validation), response DTOs/models, middleware (auth / validation / rate-limit), API-versioning patterns.
 
 ## 3. Analyze Auth Requirements
 
-For the API under test, determine:
-
-1. **Auth mechanism**: Bearer token (JWT), OAuth2, API Key, Basic Auth, Session/Cookie, or no auth
-2. **Auth endpoints** (if token-based): token endpoint URL, required credentials, token format/expiry, refresh mechanism
-3. **Per-endpoint auth**: which endpoints require auth, which are public, role/permission requirements
-4. **Test auth strategy**: how existing tests handle auth, test credentials setup, token caching/reuse
+For the API under test, determine: (1) **auth mechanism** (Bearer JWT / OAuth2 / API Key / Basic / Session-cookie / none); (2) **auth endpoints** if token-based (token URL, credentials, format/expiry, refresh); (3) **per-endpoint auth** (which require auth, which are public, role/permission requirements); (4) **test auth strategy** (how existing tests handle auth, test credentials setup, token caching/reuse).
 
 ## 4. Identify Data Dependencies
 
-For each endpoint, determine:
-
-1. **Input data requirements**: required fields and types, validation rules (min/max, patterns, enums), field relationships, file uploads
-2. **Data preconditions**: required database state, required entity relationships, ordering dependencies (e.g., create user before order)
-3. **Data side effects**: what data is created/modified/deleted, cascading effects, idempotency characteristics
+For each endpoint determine: (1) **input data requirements** (required fields + types, validation rules, field relationships, file uploads); (2) **preconditions** (required DB state, entity relationships, ordering); (3) **side effects** (what is created/modified/deleted, cascading effects, idempotency).
 
 ## 5. Reconcile and Validate
 
@@ -109,25 +73,15 @@ After extracting contracts for each target endpoint, before emission:
 
 <output_format>
 
-One contract entry per target endpoint, written in markdown. The calling workflow supplies the destination file path (commonly `agents/qa/{IDENTIFIER}/api-analysis.md`); this skill does NOT decide the path.
+One contract entry per target endpoint. The calling workflow supplies the destination file path (commonly `agents/qa/{IDENTIFIER}/api-analysis.md`); this skill does NOT decide the path.
 
-**Verbatim per-endpoint template** (markdown shape + table layouts) lives in [references/per-endpoint-template.md](references/per-endpoint-template.md) — load on demand when authoring entries.
+**Required subsections** (in this order — every entry MUST include each, populated with real values OR explicit `N/A — <reason>` / `None`):
 
-**Required subsections (in this order)** — every entry MUST include each subsection populated with real values OR an explicit `N/A — <reason>` / `None`:
+1. Endpoint Contract header (`<METHOD> <path>`) — 2. Source — 3. Summary — 4. Tags / Groups — 5. Parameters (Path / Query / Header) — 6. Request Body — 7. Responses — 8. Auth — 9. Data Dependencies — 10. Source Citations — 11. Notes / Discrepancies.
 
-1. **Endpoint Contract header** — `<METHOD> <path>`
-2. **Source** — `swagger` / `code` / `hybrid (both used)`
-3. **Summary** — one-line from spec/docstring or `N/A`
-4. **Tags / Groups** — functional grouping or `N/A`
-5. **Parameters** — separate tables for Path / Query / Header, each with fields `Name | Type | Required | Constraints`; or `None` per category
-6. **Request Body** — `Content-Type` + `Schema` (JSON) + `Example` (JSON); or `N/A — no body`
-7. **Responses** — table with fields `Status | Content-Type | Schema | Example`
-8. **Auth** — `Mechanism` (Bearer JWT / OAuth2 / API Key / Basic / Session-Cookie / None) + `Required scopes / permissions` + `Public endpoint` (yes/no)
-9. **Data Dependencies** — `Preconditions` + `Side effects` + `Idempotent` (yes/no + rationale)
-10. **Source Citations** — `Swagger` path expression + `Code` file paths/lines; each may be `N/A`
-11. **Notes / Discrepancies** — spec-vs-code mismatches / deprecations / auth differences; or `None.`
+**Verbatim markdown template** (subsection field shapes, table layouts, content-type rules, citation formats): [references/per-endpoint-template.md](references/per-endpoint-template.md) — load on demand when authoring entries.
 
-**Canonical example.** Load [references/canonical-example.md](references/canonical-example.md) on demand to see one complete worked entry — covers the `Source: hybrid` path with a real spec-vs-code discrepancy in Notes. Use it when authoring the first contract entry of a new project, or when field-shape questions arise. The example is **one entry**, not the schema; the per-endpoint template above remains authoritative.
+**Canonical worked example** (`Source: hybrid` with a real spec-vs-code discrepancy in Notes): [references/canonical-example.md](references/canonical-example.md) — load on demand when authoring the first entry of a new project or when field-shape questions arise.
 
 </output_format>
 
@@ -180,15 +134,16 @@ Consolidated stop/ask/route behaviors. Common branches inline; rarely-hit edge c
 </failure_handling>
 
 <pitfalls>
-- Trusting Swagger spec blindly without cross-referencing with actual code — spec can be outdated; the reconciliation step exists to catch this
-- Skipping code-based analysis when Swagger is available — code may have additional validation not in spec; record the discrepancy in Notes
-- Not documenting auth requirements per endpoint — leads to 401/403 failures during testing
-- Ignoring data dependencies and creation order — leads to 404s and FK violations in tests
-- Treating GraphQL APIs as plain REST without switching to the GraphQL branch — see `<failure_handling>` "GraphQL API" for the handled adaptation
-- Silently dropping an endpoint the calling workflow asked about because it could not be analyzed — flag it as a gap with reason instead
-- Fabricating schema fields or status codes not present in either source — every field must trace to spec or code, or be marked as `N/A — <reason>`
-- Leaving the Notes / Discrepancies section blank when both spec and code were consulted but no reconciliation note was recorded — explicit "None." is required, not absence
-- Copying literal credentials or PII from Swagger examples / code citations into the contract artifact — apply `<safety_boundaries>` redaction before writing (the artifact propagates to every downstream test phase)
+(Each item is a pointer; the rule lives in the cited section.)
+- Trusting Swagger blindly without cross-referencing code → `<process>` step 5.1 reconciliation.
+- Skipping code-based analysis when Swagger is available → `<process>` step 2 hybrid branch.
+- Missing per-endpoint auth requirements → `<process>` step 3.
+- Ignoring data dependencies / creation order → `<process>` step 4.
+- Treating GraphQL APIs as REST → `<failure_handling>` "GraphQL API" branch.
+- Silent endpoint drop → `<failure_handling>` "Endpoint not found" + `<process>` step 5.2.
+- Fabricated schema fields / status codes → `<success_criteria>` (every field must trace to spec/code or be `N/A — <reason>`).
+- Empty `Notes / Discrepancies` on hybrid entries → `<success_criteria>` (explicit `None.` required).
+- Literal credentials / PII in artifact → `<safety_boundaries>` redact-before-writing.
 </pitfalls>
 
 </swagger-contracts-analysis>

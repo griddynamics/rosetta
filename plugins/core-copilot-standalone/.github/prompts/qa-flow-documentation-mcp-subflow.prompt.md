@@ -25,9 +25,7 @@ Write exactly one documentation MCP outcome under the QA raw-data file and verif
 
 <execute_documentation_mcp step="1.2b" subagent="discoverer" role="QA data collector">
 
-Three sub-blocks executed in order: **resolve** → **harvest_and_collect** → **verify**.
-
-**Early-exit rule:** whenever any sub-block applies a branch from `<output_contract>` **other than COMPLETED**, write the row under the raw-data heading and **jump directly to `<verify>` (skip the rest of harvest_and_collect)**.
+**Early-exit rule:** whenever any branch other than **COMPLETED** is applied, write the row under the raw-data heading and jump directly to `<verify>` (skip the remaining `<harvest_and_collect>` steps).
 
 <resolve>
 1. Pick the **Resolved MCP collection skill** = first non-empty config key per `<workflow_context>` precedence list. If none of those keys are set but documentation MCP scope is clearly active per the in-scope signals in `<workflow_context>`, re-read `qa-project-config.md` and Phase 0 notes for a default tag; if still absent, apply **SKIPPED_NO_CONFIG** (per `<output_contract>`) → early-exit.
@@ -43,17 +41,12 @@ Three sub-blocks executed in order: **resolve** → **harvest_and_collect** → 
 
 <verify>
 1. Verify `agents/qa/{IDENTIFIER}/raw-data.md` exists and the documentation heading (per `<workflow_context>`) holds **exactly one** outcome line matching the row of `<output_contract>` for the branch taken above.
-2. On verification failure: apply the matching case in `<verify_remediation>`, then re-run verify. After three failed passes total, stop and escalate per `<verify_remediation>` "terminal" rule.
+2. On verification failure, apply the matching fallback below then re-run step 1:
+   - **Zero outcomes under the heading** → append the row for the branch taken (per `<output_contract>`).
+   - **Duplicate outcomes** (multiple rows from a re-run) → keep only the most recent matching row (latest by `agents/qa-state.md` Phase 1 timestamp); delete earlier rows.
+   - **Heading missing entirely** → create the fixed heading from `<workflow_context>`, then append the appropriate row.
+3. **Terminal:** after three failed re-runs of step 1, stop; record `Phase 1 subflow verification failed after remediation` in `agents/qa-state.md`; ask the user to inspect `raw-data.md` manually.
 </verify>
-
-<verify_remediation>
-Triggered from `<verify>` step 2. Each case is a one-step remediation followed by re-running `<verify>`.
-
-- **Zero outcomes under the heading** → append the row for the branch taken (per `<output_contract>`); re-run verify.
-- **Duplicate outcomes** (multiple rows from a re-run) → keep only the most recent matching row (latest by `agents/qa-state.md` Phase 1 timestamp), delete earlier rows; re-run verify.
-- **Heading missing entirely** → create the fixed heading from `<workflow_context>`, then append the appropriate row; re-run verify.
-- **Terminal (third pass still fails)** → stop; record `Phase 1 subflow verification failed after remediation` in `agents/qa-state.md`; ask the user to inspect `raw-data.md` manually.
-</verify_remediation>
 
 </execute_documentation_mcp>
 

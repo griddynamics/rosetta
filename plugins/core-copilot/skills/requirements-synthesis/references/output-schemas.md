@@ -70,6 +70,24 @@ Specific system capabilities. Use active voice, present tense.
 **Assumptions** (if any): [From unresolved issues]
 ```
 
+Example:
+
+```markdown
+### FR-1: Password Validation
+**Description**: The system MUST enforce password strength rules at registration and password change.
+**Priority**: P0 Critical
+**Source**: Jira PROJ-123 acceptance criteria + Confluence "Security Policy v3.2"
+
+**Details**:
+- Minimum length: 12 characters
+- Must contain ≥1 uppercase, ≥1 lowercase, ≥1 digit, ≥1 symbol from `!@#$%^&*`
+- Reject the last 5 passwords used by the same account
+- Reject the top-1000 most-common passwords (e.g., `Password123!`)
+
+**Related User Stories**: US-1
+**Assumptions** (if any): None — all rules confirmed via user answer Q3
+```
+
 **Coverage guidance:** include FRs from every capability class actually present in the project's scope (auth, data management, business logic, integrations, reporting, notifications, etc. — only those that apply). Do not pad with FRs for capability classes the sources don't mention.
 
 ---
@@ -85,6 +103,17 @@ Quality attributes with measurable criteria. Every NFR must have a threshold.
 **Measurement**: [How to verify — with threshold]
 **Priority**: [P0 / P1 / P2 / P3]
 **Source**: [Reference or "Industry Standard"]
+```
+
+Example:
+
+```markdown
+### NFR-1: Performance - API Response Time
+**Category**: Performance
+**Description**: All authenticated API endpoints under `/api/v1/` MUST respond within an upper-bounded latency under nominal load.
+**Measurement**: p95 < 200ms, p99 < 500ms, measured at the load balancer over a 5-minute window at 1000 concurrent users
+**Priority**: P0 Critical
+**Source**: User Answer Q5 + NFR baseline from Confluence "SLO catalog"
 ```
 
 **Threshold rule:** every NFR MUST include a concrete numeric or categorical threshold in `Measurement` (e.g., `p95 < 200ms`, `WCAG 2.1 AA`, `uptime ≥ 99.9%`, `1000 concurrent users`). NFRs without a verifiable threshold are gaps, not requirements — record them in `assumptions-and-risks` with the missing-threshold flag instead.

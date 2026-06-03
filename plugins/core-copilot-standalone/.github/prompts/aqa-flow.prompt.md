@@ -115,11 +115,11 @@ End-to-end test automation from requirements gathering to test implementation. U
 <orchestration_and_escalation>
 - When loaded, USE SKILL `sequential-workflow-execution` (ACQUIRE FROM KB when needed) for skip gates and transition prompts.
 - Any skip outside those gates requires explicit user confirmation (HITL).
-- **Verification-failure unilateral-start override** — scope-locked to this gate only; every other ask-before-action decision follows `hitl` skill defaults + `<workflow_context>` NO-ASSUMPTIONS. Phase 3 / 6 HITL gates and safety/destructive confirmations are NEVER suppressed.
-  - **Trigger (ALL must be true):** (a) user explicitly asserted phases complete this turn, AND (b) `agents/aqa-state.md` does NOT mark them complete (rows missing or not-checked), AND (c) the matching `<workflow_success_criteria>` spot-check artifacts are absent on disk.
-  - **Action when trigger holds:** (1) print one line naming the failing conditions (e.g., `skip refused: state file absent → starting at Phase 1`); (2) **log the override decision into `agents/aqa-state.md`** under `## Verification-Failure Overrides` (timestamp + user's asserted-complete claim + failing conditions cited + phase started — the printed line alone is insufficient for the audit trail); (3) start the earliest incomplete phase in the **same turn** — do NOT call `AskUserQuestion`.
-  - **Default on ambiguity:** any uncertain or partial precondition (state file partially present, ambiguous user assertion, artifacts present but stale) → fall back to normal HITL ask. *Rationale: at this gate the verification result IS the decision; asking would create a contradictory loop until artifacts exist.*
-- Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user, and do not substitute silently. (Follows normal HITL — the override does not apply outside the gate above.)
+- **Verification-failure unilateral-start override** — subordinate to `bootstrap-hitl-questioning` policy; Phase 3/6 HITL gates and safety/destructive confirmations are NEVER suppressed.
+  - **Trigger** (ALL three must hold): user asserted phases complete this turn + `agents/aqa-state.md` does not mark them complete + matching `<workflow_success_criteria>` spot-check artifacts are absent on disk.
+  - **Action:** print one line naming the failing conditions, log the override into `agents/aqa-state.md` `## Verification-Failure Overrides` (timestamp + asserted-complete claim + failing conditions + phase started — printed line alone is insufficient audit trail), start the earliest incomplete phase in the same turn — do NOT call `AskUserQuestion`.
+  - **Default:** any uncertainty (partial state, ambiguous assertion, stale artifacts) → fall back to normal HITL ask. *Rationale: the verification result IS the decision; asking would loop until artifacts exist.*
+- Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user, and do not substitute silently. (Normal HITL — the override does not apply outside the gate above.)
 </orchestration_and_escalation>
 
 <workflow_success_criteria>

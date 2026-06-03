@@ -14,7 +14,7 @@ Retrieve and normalize feature documentation, technical specs, and business cont
 </when_to_use_skill>
 
 <success_criteria>
-Complete when target pages were retrieved via `confluence_get_page` (or via search + retrieve when no URLs were supplied), normalized into every `<output_format>` section, child pages were checked for each parent (or the no-children fact recorded), truncated pages are labeled, every credential/PII embedded in page content was redacted per `<safety_boundaries>` and recorded in the Sensitive-content redactions section — OR the no-results / auth-failure / transport-error path in `<failure_handling>` was followed and the user was re-prompted. The skill is NOT complete if it emits a partial artifact without flagging the gap, fabricates page content, writes a verbatim credential/PII into the artifact, or hides a permission error as empty content.
+Complete when target pages are retrieved + normalized into every `<output_format>` section + redacted per `<safety_boundaries>` — OR an error path in `<failure_handling>` was followed and the user re-prompted. NOT complete if the artifact omits gap flags, fabricates content, or leaks a credential/PII (rule sources: `<safety_boundaries>` for redaction + permission semantics; `<failure_handling>` for transport/auth/zero-result paths).
 </success_criteria>
 
 <prerequisites>
@@ -36,7 +36,7 @@ Complete when target pages were retrieved via `confluence_get_page` (or via sear
 3. For each parent page, retrieve up to 5 relevant child pages.
 4. **Extract and normalize per page** (decision branching):
    - **Page present and content non-empty**: include in `<output_format>`. Apply `<safety_boundaries>` redaction first if the body embeds credentials/PII.
-   - **Page permission-restricted** (page exists per metadata but body returns 401/403, OR the MCP indicates restriction): record `<restricted by permissions>` for the body field, record in Gaps; do NOT hide as empty content — that's the pitfall and the `<safety_boundaries>` "permission errors are not empty content" rule.
+   - **Page permission-restricted** (body returns 401/403 OR MCP indicates restriction): record `<restricted by permissions>` for the body field + a Gaps entry. (Rule: `<safety_boundaries>` permission semantics; do not silently treat as empty.)
    - **Page content empty** (page retrieved successfully but body is empty): include with `[empty page]` body marker and record in Gaps.
 5. **Fallback**: If no results, ask user for specific page URLs/IDs or note gap.
    - **On user-supplied "skip" / "proceed without docs"**: record `Documentation: not available — user approved no-docs continuation` in the artifact summary and proceed with an empty Documentation block. Do NOT fabricate content.
@@ -122,14 +122,15 @@ If a real production value would be the natural example, replace it with a clear
 </validation_checklist>
 
 <pitfalls>
-- Child pages often contain critical detail — always check with `get_page_children` (per `<process>` step 3)
-- Large pages exceeding ~5000 words without truncation noted — see `<validation_checklist>` truncation item
-- URL formats vary (display, direct, short) — parse flexibly
-- Cross-domain URL silently fetched — see `<failure_handling>` "Cross-domain URL"
-- Search may miss pages — always offer user a chance to provide direct URLs
-- Verbatim page bodies without redaction — see `<safety_boundaries>` "Redact every retrieved page body"
-- Hiding MCP permission errors as empty content — see `<safety_boundaries>` "Permission errors are not empty content"
-- Skipping the CQL query / ranking record in Search Provenance — see `<validation_checklist>` Search Provenance item
+(Each item is a pointer; the rule lives in the cited section.)
+- Skipping child-page traversal → `<process>` step 3.
+- Untruncated >5000-word pages → `<process>` step 6 + `<validation_checklist>`.
+- Inflexible URL parsing (display / direct / short) → handle in step 1.
+- Silent cross-domain fetch → `<failure_handling>` "Cross-domain URL".
+- No fallback when search returns nothing → `<process>` step 5.
+- Verbatim page bodies without redaction → `<safety_boundaries>`.
+- Permission errors masked as empty content → `<safety_boundaries>` permission rule.
+- Missing CQL / ranking record → `<validation_checklist>` Search Provenance item.
 </pitfalls>
 
 <vendor_replacement>

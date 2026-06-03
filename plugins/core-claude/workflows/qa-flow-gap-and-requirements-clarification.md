@@ -27,6 +27,14 @@ Cross-reference test cases, documentation, and API spec to identify gaps, contra
 </phase_steps>
 
 <execute_gap_analysis step="3.1" subagent="architect" role="API test requirements analyst">
+
+**Division of labor** (each skill owns a distinct `analysis.md` section per `<analysis_md_contract>`; do not double-count):
+- `qa-gap-analysis` → **Gaps** (test-case vs API-spec cross-reference; `G[N]` entries)
+- `gap-and-contradiction-analysis` → **Contradictions** (cross-source disagreements between raw-data, api-analysis, docs; `C[N]` entries)
+- `aqa-requirements-elicitation` → **Ambiguities** + elicited follow-up questions (vague statements resolved into clarification asks; `A[N]` entries)
+
+If a finding fits more than one bucket, record it once under the section that owns its emit shape (G/C/A) and add a cross-reference note rather than duplicating across sections.
+
 1. USE SKILL `qa-gap-analysis`
 2. USE SKILL `gap-and-contradiction-analysis`
 3. USE SKILL `aqa-requirements-elicitation`

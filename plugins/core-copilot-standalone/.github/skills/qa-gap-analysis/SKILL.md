@@ -21,9 +21,11 @@ Systematically compare test cases against API specifications to find missing inf
 
 <process>
 
+All step-N entry templates + gap-category catalogs + vague-statement examples live in [references/entry-templates.md](references/entry-templates.md) — load on demand at the relevant write step. The base process below is orchestration only.
+
 ## 1. Cross-Reference Test Cases vs API Spec
 
-For each test step from the test case, verify against API analysis:
+For each test step from the test case, verify against API analysis using this check table:
 
 | Check | Question | Impact |
 |-------|----------|--------|
@@ -35,130 +37,23 @@ For each test step from the test case, verify against API analysis:
 | Auth coverage | Does test case cover auth scenarios appropriately? | Missing test coverage |
 | Error handling | Does test case cover error responses? | Incomplete coverage |
 
-Document findings:
-```markdown
-### Cross-Reference: Test Case Step [N] vs API Spec
-
-**Test Step**: [Description from test case]
-**API Endpoint**: [METHOD] [PATH]
-**Match Status**: [Full match / Partial / Mismatch / Not in spec]
-**Gaps**: [List any gaps found]
-```
+Document findings per the Cross-Reference entry template in [references/entry-templates.md](references/entry-templates.md#step-1--cross-reference-entry-template).
 
 ## 2. Identify Gaps
 
-Gap categories for API testing:
-
-### Missing Endpoint Details
-- Endpoint path not documented or ambiguous
-- HTTP method not specified
-- API version unclear
-- Base URL unknown
-
-### Missing Request Details
-- Required request body fields unknown
-- Field types/formats not specified
-- Validation rules not documented (min/max, patterns, enums)
-- Content-Type not specified
-- Required headers not listed
-
-### Missing Response Details
-- Expected status codes not defined for all scenarios
-- Response body schema not documented
-- Error response format unknown
-- Response headers not specified
-
-### Missing Auth Details
-- Auth mechanism not specified for endpoint
-- Test credentials not provided
-- Token acquisition flow unclear
-- Required permissions/roles unknown
-
-### Missing Test Data Details
-- Test data values not specified (what to send)
-- Expected response values not specified (what to assert)
-- Precondition data not defined (what must exist before test)
-- Cleanup requirements not defined
-
-### Missing Edge Cases
-- Empty/null required fields behavior
-- Values exceeding limits behavior
-- Invalid data types behavior
-- Duplicate entries behavior
-- Concurrent request behavior
-- Rate limiting behavior
-
-Document each gap:
-```markdown
-### G[N]: [Brief Title]
-**Type**: Endpoint / Request / Response / Auth / Test Data / Edge Case
-**Context**: [Which test step or endpoint this relates to]
-**Missing Information**: [What is not specified]
-**Impact**: [Why automation is blocked or degraded without this]
-**Suggested Question**: [How to ask for this information]
-```
+Scan against the 6 gap categories (Endpoint / Request / Response / Auth / Test Data / Edge Case) enumerated in [references/entry-templates.md](references/entry-templates.md#step-2--gap-categories-what-to-scan-for). Emit one `G[N]` entry per missing data point per the G[N] template in the same reference. Do not paraphrase the template — its field set drives `<validation_checklist>` greps.
 
 ## 3. Identify Contradictions
 
-Look for conflicts between:
-- Test case expected results vs API spec response schemas
-- Test case preconditions vs actual data requirements
-- Documentation descriptions vs Swagger definitions
-- Different documentation pages giving different information
-- Test case HTTP methods vs endpoint definitions
-
-Document each:
-```markdown
-### C[N]: [Brief Title]
-**Source 1**: [Test Case / Swagger / Docs] — "[Quote]"
-**Source 2**: [Test Case / Swagger / Docs] — "[Quote]"
-**Impact**: [Why this matters for test automation]
-**Needs Clarification**: [Specific question]
-```
+Look for conflicts between sources per the catalog in [references/entry-templates.md](references/entry-templates.md#step-3--contradiction-conflict-sources--cn-template). Emit one `C[N]` entry per contradiction per the C[N] template in the same reference. Apply `<safety_boundaries>` redaction to each quoted source line **before** writing it into the entry.
 
 ## 4. Identify Ambiguities
 
-Look for vague statements in test cases:
-- "Verify the response is correct" (correct how?)
-- "Check that the data is saved" (which fields? in which table/store?)
-- "Validate error handling" (which errors? what format?)
-- "Test with valid data" (what specific values?)
-- "Ensure proper authentication" (which auth method? which role?)
-
-Document each:
-```markdown
-### A[N]: [Brief Title]
-**Source**: [Test Case / Docs / Swagger]
-**Vague Statement**: "[Quote]"
-**Possible Interpretations**:
-  1. [Interpretation 1]
-  2. [Interpretation 2]
-**Clarification Needed**: [Specific question]
-```
+Scan for vague statements per the examples in [references/entry-templates.md](references/entry-templates.md#step-4--vague-statement-examples--an-template). Emit one `A[N]` entry per ambiguity per the A[N] template in the same reference.
 
 ## 5. Prepare Prioritized Questions
 
-Organize questions by priority:
-
-```markdown
-## Critical Questions (Must Answer — blocks test creation)
-
-1. [Question about missing endpoint/request/response details]
-   - Why: [Impact on test automation]
-   - Default if unknown: [Safe assumption or N/A]
-
-## Important Questions (Should Answer — affects test quality)
-
-2. [Question about edge cases or error scenarios]
-   - Why: [Impact on test coverage]
-   - Default if unknown: [Safe assumption or N/A]
-
-## Optional Questions (Nice to Have — improves completeness)
-
-3. [Question about non-critical scenarios]
-   - Why: [Impact on test comprehensiveness]
-   - Default if unknown: [Safe assumption or N/A]
-```
+Organize questions by priority (Critical / Important / Optional) using the template in [references/entry-templates.md](references/entry-templates.md#step-5--prioritized-questions-template). Question-count semantics (cap denominator vs Executive Summary total) live in `<output_format>` — `<validation_checklist>` and `<success_criteria>` reference that single definition.
 
 </process>
 
@@ -179,7 +74,7 @@ Create `agents/qa/{IDENTIFIER}/analysis.md`:
 - **Gaps Found**: [Count]
 - **Contradictions Found**: [Count]
 - **Ambiguities Found**: [Count]
-- **Questions Asked**: [Count — Critical + Important + Optional combined; differs from the `<validation_checklist>` batch-cap denominator which is Critical+Important only]
+- **Questions Asked**: [Count — Critical + Important + Optional combined]
 - **Answers Received**: [Count]
 - **Open Assumptions**: [Count]
 
@@ -207,78 +102,79 @@ Create `agents/qa/{IDENTIFIER}/analysis.md`:
 [Items clarified through user answers]
 ```
 
+**Question-count semantics** (canonical definition — other sections reference, do not restate):
+
+- **`Questions Asked` (Executive Summary)** = Critical + Important + Optional combined.
+- **Per-batch cap** (`<validation_checklist>`) = Critical + Important only; Optional questions do **not** count toward the cap. The two numbers are expected to differ by the Optional count.
+
 </output_format>
 
 <success_criteria>
 
-The skill is complete when **all of** the following hold:
+Complete when **all of** the following hold:
 
-- **Every test step** from the test case has been cross-referenced against the API spec per step 1 (one Cross-Reference entry per step in `analysis.md`).
-- **Every gap / contradiction / ambiguity identified** is documented in `analysis.md` using the exact template format from steps 2–4 (G[N] / C[N] / A[N] entries — no shortcut paraphrase).
-- **All Critical questions from step 5 have been resolved.** Resolution is one of:
-  - User answered explicitly → recorded under `## Questions & Answers` / `## Resolved Items`.
-  - User did not know → recorded under `## Assumptions Made` with the chosen default, the reason, and the impact-if-wrong (per `<pitfalls>` "Assuming answers ... document as assumption" rule).
-  - User deferred → still recorded under Assumptions with `Deferred: <reason>` and surfaced to the calling workflow so downstream phases see the gap.
-  - **No Critical question may remain in an "open" state** — that's the failure mode `<pitfalls>` "Proceeding to test specification with unresolved critical gaps" guards against.
-- Important and Optional questions may remain open (recorded in `## Questions & Answers` with `Status: Open — non-blocking`) without preventing completion.
-- `analysis.md` was written with every `<output_format>` section present and the Executive Summary counts match the body.
-- `<safety_boundaries>` redaction was applied to every verbatim quote written into `analysis.md`.
+- **Every test step** has been cross-referenced against the API spec per step 1 (one Cross-Reference entry per step).
+- **Every gap / contradiction / ambiguity identified** is documented using the exact `G[N]` / `C[N]` / `A[N]` templates from [references/entry-templates.md](references/entry-templates.md) — no shortcut paraphrase.
+- **All Critical questions from step 5 resolved.** Resolution = explicit answer (recorded under Questions & Answers / Resolved Items) OR `Assumptions Made` entry with chosen default + reason + impact-if-wrong OR `Deferred: <reason>` Assumption surfaced to the calling workflow. **No Critical question may remain `open`.**
+- Important and Optional questions may remain `Status: Open — non-blocking`.
+- `analysis.md` was written with every `<output_format>` section present; Executive Summary counts match the body (Question-count semantics per `<output_format>`).
+- `<safety_boundaries>` redaction was applied to every verbatim quote.
 - `<validation_checklist>` items all hold.
 
-The skill is **NOT complete** if any Critical question is unresolved, any test step lacks a cross-reference entry, or any verbatim quote in `analysis.md` carries a literal credential/PII without redaction.
+NOT complete if any Critical question is unresolved, any test step lacks a cross-reference entry, or any verbatim quote carries literal credentials/PII.
 
 </success_criteria>
 
 <safety_boundaries>
 
-`analysis.md` is a tracked artifact and may end up in version control, shared review, or downstream prompt contexts. Treat it as **PUBLIC by default**. Steps 3 and 4 instruct the agent to paste verbatim quotes from sources (test cases, Swagger spec, documentation pages) into Contradiction / Ambiguity entries — those sources can carry credentials / tokens / PII. Redact before writing, not after.
+`analysis.md` is **PUBLIC by default** (tracked, shared review, downstream prompt contexts). Steps 3 and 4 instruct the agent to paste verbatim quotes from sources (test cases, Swagger spec, documentation pages) into Contradiction / Ambiguity entries — those sources can carry credentials / tokens / PII. **Redact before writing, not after.**
 
 **Targets to redact** (replace with placeholders, never literal value):
 
-- **Auth headers / tokens / API keys / passwords** embedded in source text — `Bearer <jwt>`, `Authorization: Basic <base64>`, `X-Api-Key: <key>`, password values pasted in step descriptions. Replace with `<redacted: bearer token>` / `<redacted: api key>` / `<redacted: password>` and add a one-line note in the entry (e.g., `Source: Swagger /auth/login — Bearer token redacted; see env var API_TOKEN`).
-- **Credentialed URLs** (`https://user:pass@host/...`, signed-URL query params) — redact the credential portion. Record the redaction inline.
-- **Connection strings / private keys / service-account JSONs** — never paste; describe the source (env var, secret-manager path) and mechanism (Bearer / Basic / OAuth flow) instead.
-- **Real PII** in test data examples — customer names, real emails, real phone numbers, real account IDs, real payment card numbers. Replace with synthetic equivalents (`test.user-1@example.com`, `+1-555-0100` from the IETF reserved range, official PSP test card numbers if a card is needed).
-- **Test-data fixtures** captured from production logs — redact the sensitive fields; keep structural shape.
+- **Auth headers / tokens / API keys / passwords** embedded in source text — `Bearer <jwt>`, `Authorization: Basic <base64>`, `X-Api-Key: <key>`, password values in step descriptions. Replace with `<redacted: bearer token>` / `<redacted: api key>` / `<redacted: password>` + one-line inline note (e.g., `Source: Swagger /auth/login — Bearer token redacted; see env var API_TOKEN`).
+- **Credentialed URLs** (`https://user:pass@host/...`, signed-URL query params) — redact the credential portion; record the redaction inline.
+- **Connection strings / private keys / service-account JSONs** — never paste; describe source (env var, secret-manager path) + mechanism (Bearer / Basic / OAuth flow).
+- **Real PII** in test data examples — customer names, real emails, real phone numbers, real account IDs, real payment card numbers. Replace with synthetic equivalents (`test.user-1@example.com`, `+1-555-0100` IETF reserved range, official PSP test card numbers).
+- **Test-data fixtures captured from production logs** — redact sensitive fields; keep structural shape.
 
-**Structural content is safe.** Endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, business-rule prose, vague-statement quotes from test cases — recorded verbatim. Redaction targets sensitive **values**, not the structural content of the gap/contradiction/ambiguity description.
+**Structural content is safe** — endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, business-rule prose, vague-statement quotes. Redaction targets sensitive **values**, not structural content.
 
-This boundary is consistent with `qa-data-collection`'s `<safety_boundaries>` for `raw-data.md` — both artifacts live in `agents/qa/{IDENTIFIER}/` and feed the same downstream chain.
+Consistent with `qa-data-collection`'s `<safety_boundaries>` for `raw-data.md`.
 
 </safety_boundaries>
 
 <failure_handling>
 
-- **`raw-data.md` missing or empty** at `agents/qa/{IDENTIFIER}/raw-data.md`: stop, report `qa-gap-analysis: raw-data.md missing/empty at <path>` to the calling workflow, ask the user to rerun Phase 1 (data collection). Do NOT proceed — step 1's cross-reference has nothing to read from.
-- **`api-analysis.md` missing or empty** at `agents/qa/{IDENTIFIER}/api-analysis.md`: stop, report `qa-gap-analysis: api-analysis.md missing/empty at <path>`, ask the user to rerun Phase 2 (API spec analysis). Do NOT invent endpoints to fill the cross-reference table — that's the exact fabrication mode this skill is built to surface.
-- **`api-analysis.md` exists but contains zero endpoints** (the artifact was produced but is structurally empty — Phase 2 found no endpoints to record): treat as a **blocking gap**. Record one `G[N]` entry in `analysis.md` of type **Endpoint** with `Missing Information: api-analysis.md has zero endpoints — cross-reference impossible without source-of-truth endpoint inventory` and `Impact: blocks test specification entirely`. Stop step 1, surface as a Critical question to the user (`Should Phase 2 re-run with a different spec source, or proceed with manual endpoint discovery?`), do NOT emit a vacuous Cross-Reference Results section with no entries.
+- **`raw-data.md` or `api-analysis.md` missing/empty** at the expected paths: stop, report the missing path, ask the user to rerun the corresponding upstream phase (Phase 1 / Phase 2). Do NOT invent endpoints or test steps.
+- **`api-analysis.md` exists but contains zero endpoints** (structurally empty): treat as a **blocking gap**. Emit one `G[N]` entry of type **Endpoint** with `Missing Information: api-analysis.md has zero endpoints — cross-reference impossible without source-of-truth endpoint inventory` + `Impact: blocks test specification entirely`. Stop step 1, surface as a Critical question (`Should Phase 2 re-run with a different spec source, or proceed with manual endpoint discovery?`). Do NOT emit a vacuous Cross-Reference Results section.
 - **`raw-data.md` or `api-analysis.md` unreadable / corrupt** (parse error, permission denied): stop, report the IO/parse error with the file path, ask the user to inspect.
-- **Test case has zero test steps to cross-reference** (raw-data.md captures a test case description but the steps section is empty): stop, surface as a Critical question (`Test case provides no steps to cross-reference — please supply the step sequence or confirm the test is intentionally exploratory`). Do not emit an empty Cross-Reference Results section.
-- **User does not respond to Critical question prompts** after one re-ask: apply `<success_criteria>` Assumption-with-Deferred-tag rule — record the Critical question's assumption + impact-if-wrong + `Deferred: no user response after re-ask` and surface to the calling workflow so downstream phases see the gap. Do NOT proceed silently.
+- **Test case has zero test steps**: stop, surface as a Critical question (`Test case provides no steps to cross-reference — please supply the step sequence or confirm the test is intentionally exploratory`). Do NOT emit an empty Cross-Reference Results section.
+- **User does not respond to Critical question prompts** after one re-ask: apply `<success_criteria>` Deferred-Assumption rule — record assumption + impact-if-wrong + `Deferred: no user response after re-ask` and surface to the calling workflow. Do NOT proceed silently.
 
 </failure_handling>
 
 <validation_checklist>
 
-**Grep-proof layer only.** The rules (contracts) live in `<success_criteria>`; items below verify those contracts by grep before emit. Items unique to this checklist (no `<success_criteria>` counterpart) carry no pointer.
+**Grep-proof layer only.** Rules live in `<success_criteria>` + `<output_format>`; items below verify those contracts by grep before emit. Items unique to this checklist carry no pointer.
 
-- **Cross-Reference grep:** `### Cross-Reference: Test Case Step [N]` entry count in `## Cross-Reference Results` = total test step count from step 1. *(verifies `<success_criteria>` cross-reference rule)*
-- **Executive Summary counts grep:** `Gaps Found` = `G[N]` count; `Contradictions Found` = `C[N]` count; `Ambiguities Found` = `A[N]` count; `Questions Asked` = Critical+Important+Optional combined. If counts disagree, fix the count or the body. *(verifies `<success_criteria>` counts-match-body rule)*
+- **Cross-Reference grep:** `### Cross-Reference: Test Case Step [N]` entry count in `## Cross-Reference Results` = total test step count. *(verifies `<success_criteria>` cross-reference rule)*
+- **Executive Summary counts grep:** `Gaps Found` = `G[N]` count; `Contradictions Found` = `C[N]` count; `Ambiguities Found` = `A[N]` count; `Questions Asked` = the Executive-Summary denominator defined in `<output_format>`. If counts disagree, fix the count or the body. *(verifies `<success_criteria>` counts-match-body rule)*
 - **Assumption-fields grep:** every `A-N` entry has Default + Impact-if-Wrong populated. *(verifies `<success_criteria>` Assumption rule)*
 - **Safety re-scan grep** per `<safety_boundaries>` Targets list; hits replaced + noted inline; no-match = no annotation. *(verifies `<success_criteria>` redaction-applied rule)*
-- **No fabricated quotes** in Contradiction / Ambiguity entries — every `"[Quote]"` traces verbatim to a real source line; re-grep for paraphrased "the source said X" forms and fail emit on any match. *(unique to checklist — no `<success_criteria>` counterpart)*
-- **Question count ≤ 20 per batch** (pitfall 2) — **denominator: Critical + Important only**; Optional questions do **not** count toward this cap. If more than 20 Critical+Important questions surfaced, they are batched; the artifact records the current batch and the deferred batches. **Deliberate scope difference vs the Executive Summary's `Questions Asked` total** (which includes Optional) — the two numbers are expected to differ by the Optional count. *(unique to checklist — no `<success_criteria>` counterpart)*
+- **No fabricated quotes** in Contradiction / Ambiguity entries — every `"[Quote]"` traces verbatim to a real source line; re-grep for paraphrased "the source said X" forms and fail emit on any match. *(unique to checklist)*
+- **Question count ≤ 20 per batch** — denominator per `<output_format>` Question-count semantics (Critical + Important only). If more than 20 surfaced, batch by priority; record current batch + deferred batches. *(unique to checklist)*
 
 </validation_checklist>
 
 <pitfalls>
-- Not cross-referencing every test step against API spec — leads to missed gaps
-- Asking too many questions at once (>20) — batch by priority and group related gaps
-- Proceeding to test specification with unresolved critical gaps
-- Assuming answers when user doesn't respond — document as assumption instead
-- Ignoring contradictions between documentation sources
-- Pasting verbatim quotes without applying `<safety_boundaries>` redaction (the target list + grep patterns live there) — redact BEFORE writing into `analysis.md`, not after
-- Emitting `analysis.md` with Executive Summary counts that disagree with the body — re-check counts in step 5 before declaring complete
+(Each item is a pointer; the rule lives in the cited section.)
+- Not cross-referencing every test step → `<process>` step 1.
+- Asking >20 questions at once → `<validation_checklist>` per-batch cap (denominator per `<output_format>`).
+- Proceeding to test specification with unresolved Critical gaps → `<success_criteria>` Critical-resolution rule.
+- Assuming answers when user doesn't respond → `<failure_handling>` Deferred-Assumption rule.
+- Ignoring contradictions between documentation sources → `<process>` step 3 catalog.
+- Verbatim quotes without `<safety_boundaries>` redaction (redact BEFORE writing).
+- Executive Summary counts disagree with body → `<validation_checklist>` counts grep.
 </pitfalls>
 
 </qa-gap-analysis>

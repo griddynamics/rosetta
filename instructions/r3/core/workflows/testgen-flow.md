@@ -128,16 +128,10 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
   **Reading:** safety/HITL gates > per-phase USER CONFIRMATION > verification-failure override.
 
-- **Verification-failure unilateral-start override** (single-rule form):
-  - **Deference (scope-lock).** This is the **only** sanctioned no-ask deviation from the per-phase USER CONFIRMATION rule and from session-wide `hitl` skill defaults. It applies **only** when ALL three preconditions below hold AND **only** at this verification-failure gate. Do **NOT** generalize the no-ask behavior to any other branch. **Carve-outs that remain in force at all times live in the priority hierarchy above (rules 1–3)** — the override never suppresses them; do not restate them here.
-  - **Precondition (ALL must be true):** (a) user has explicitly asserted phase(s) are complete in this turn, AND (b) `agents/testgen/{TICKET-KEY}/testgen-state.md` does NOT mark the asserted phases complete (row missing or `[ ]` unchecked), AND (c) the matching expected output file (per `<state_file>` / `<output_directory>`) is absent under `agents/testgen/{TICKET-KEY}/`.
-  - **If precondition holds:**
-    1. Print one line naming the failing conditions to the user (e.g., `skip refused: testgen-state.md row missing → starting at Phase 0`).
-    2. **Log the override decision into `agents/testgen/{TICKET-KEY}/testgen-state.md`** under a `## Verification-Failure Overrides` section — record the timestamp, the user's asserted-complete claim, the failing conditions cited, and the phase started. This creates an auditable trail; the printed one-line announcement is not sufficient on its own.
-    3. Start the earliest incomplete phase in the **same turn** — do NOT call `AskUserQuestion`, present options, or pause for input. The verification result IS the decision at this specific gate.
-  - **If any precondition is uncertain or only partially true** (state file partially present, ambiguous user assertion, output file present but stale): fall back to the normal HITL ask path. **Ambiguity defaults to ASK, not auto-start.**
-  - **Scope:** applies ONLY at this verification-failure gate. Authority elsewhere lives in the priority hierarchy above.
-  - *Rationale (one line): at this gate the verification result IS the decision — the user has already asserted; asking again creates a contradictory loop until artifacts exist.*
+- **Verification-failure unilateral-start override** — subordinate to `bootstrap-hitl-questioning` policy + the priority hierarchy above (rules 1–3 are NEVER overridden); the only sanctioned no-ask deviation from rule 3, applies only at this gate.
+  - **Trigger** (ALL three must hold): user asserted phase(s) complete this turn + `agents/testgen/{TICKET-KEY}/testgen-state.md` does not mark the asserted phases complete + the matching expected output file is absent under `agents/testgen/{TICKET-KEY}/`.
+  - **Action:** print one line naming the failing conditions, log the override into `agents/testgen/{TICKET-KEY}/testgen-state.md` `## Verification-Failure Overrides` (timestamp + asserted-complete claim + failing conditions + phase started — printed line alone is insufficient audit trail), start the earliest incomplete phase in the same turn — do NOT call `AskUserQuestion`.
+  - **Default:** any uncertainty (partial state, ambiguous assertion, stale output) → fall back to normal HITL ask. *Rationale: the verification result IS the decision; asking would loop until artifacts exist.*
 
 </orchestration_and_escalation>
 
