@@ -120,7 +120,7 @@ Ask the agent:
 What can you do, Rosetta?
 ```
 
-The agent will use Rosetta to retrieve agents, guardrails, and instructions:
+The agent will follow Rosetta prompts and show Rosetta workflows and execute `self-help-flow` (see screenshots from different tools below):
 
 <img src="docs/images/Rosetta-ProperResponse.png" alt="Rosetta proper response in Claude Code" width="710"/>
 
