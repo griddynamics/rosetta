@@ -17,9 +17,9 @@ baseSchema: docs/schemas/skill.md
 Execute in order:
 
 1. Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` — FULL CONTENT, ALL LINES
-2. Grep `^#{1,3}` headers of `agents/IMPLEMENTATION.md`, `agents/MEMORY.md`, `docs/PATTERNS/INDEX.md`, and `docs/REQUIREMENTS/INDEX.md`
+2. Grep headers of `agents/IMPLEMENTATION.md`, `agents/MEMORY.md`, `docs/PATTERNS/INDEX.md`, `docs/REQUIREMENTS/INDEX.md`, and `refsrc/INDEX.md`
    ```bash
-   grep -n "^#{1,3}" agents/IMPLEMENTATION.md agents/MEMORY.md docs/PATTERNS/INDEX.md docs/REQUIREMENTS/INDEX.md
+   grep -n "^#{1,3}" agents/IMPLEMENTATION.md agents/MEMORY.md docs/PATTERNS/INDEX.md docs/REQUIREMENTS/INDEX.md refsrc/INDEX.md
    ```
 3. Use built-in tools instead of bash grep if available 
 

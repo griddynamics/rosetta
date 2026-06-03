@@ -6,7 +6,7 @@ import type { RunEnvelope } from "../../registry/types.js";
 import { err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
 import { createTemplates } from "./templates/index.js";
-import { renderTemplate } from "./templates/render.js";
+import { renderTemplate, parsePhaseSteps } from "./templates/render.js";
 import { cmdCreate } from "./create.js";
 import type { PlanWriteResult } from "./output.js";
 import { ERR_INVALID_TEMPLATE } from "./errors.js";
@@ -19,6 +19,8 @@ export const createWithTemplateInputSchema = {
     template: { type: "string", description: "Template name from create-kind collection" },
     "plan-name": { type: "string", description: "Value for the [plan-name] placeholder" },
     "plan-description": { type: "string", description: "Value for the [plan-description] placeholder" },
+    // FR-PLAN-0043 — phase-steps array injection (not a placeholder)
+    "phase-steps": { type: "string", description: "JSON array of steps appended to the seeded ph-prep phase" },
   },
 };
 
@@ -31,6 +33,7 @@ export async function cmdCreateWithTemplate(
   templateName: string,
   planName: string,
   planDescription: string,
+  phaseSteps?: string,
 ): Promise<RunEnvelope<PlanWriteResult>> {
   // FR-PLAN-0030 — look up template in create-kind collection only
   const template = createTemplates[templateName as keyof typeof createTemplates];
@@ -50,7 +53,18 @@ export async function cmdCreateWithTemplate(
     return err(rendered.error);
   }
 
+  // FR-PLAN-0043 — parse and inject caller-supplied steps into the seeded ph-prep phase.
+  // Backward compatibility: an omitted phase-steps is treated as an empty array.
+  const parsed = parsePhaseSteps(phaseSteps ?? "[]");
+  if (!parsed.ok) {
+    logger.warn({ templateName, error: parsed.error }, "phase-steps parse failed");
+    return err(parsed.error);
+  }
+  const plan = rendered.rendered as { phases: Array<{ id: string; steps: unknown[] }> };
+  const prep = plan.phases.find((p) => p.id === "ph-prep") ?? plan.phases[0];
+  prep.steps.push(...parsed.steps);
+
   logger.info({ planFile, templateName }, "create-with-template rendering done, invoking create");
   // FR-PLAN-0030 — invoke same logic as plan create (FR-PLAN-0010)
-  return cmdCreate(planFile, rendered.rendered as Record<string, unknown>);
+  return cmdCreate(planFile, plan as unknown as Record<string, unknown>);
 }

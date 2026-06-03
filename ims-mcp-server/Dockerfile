@@ -19,6 +19,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Keeps Python from buffering stdout and stderr
 ENV PYTHONUNBUFFERED=1
 
+# E0: Enable Python fault handler — dumps all-thread stack traces on fatal signals
+# and arms the in-flight watchdog's faulthandler.dump_traceback() (A8/DD-7).
+ENV PYTHONFAULTHANDLER=1
+
 LABEL description="Rosetta MCP Server"
 
 RUN adduser \
@@ -46,5 +50,10 @@ ENV ROSETTA_HTTP_PORT=8000
 USER rosetta    
 
 EXPOSE 8000
+
+# E1: Docker health check using Python stdlib only (NFR-6).
+# Interval/timeout align with /healthz cache TTL + probe (D2/D3).
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz',timeout=4).status==200 else 1)"]
 
 CMD ["python", "-m", "ims_mcp"]

@@ -16,6 +16,8 @@
 > [!NOTE]
 > Rosetta is designed to never use or see data or IP.
 > Instead it uses inversion of control, by providing a "menu" to AI coding agents.
+> There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.
+
 
 Rosetta uses HTTP MCP transport with OAuth. Pick your IDE and add the configuration.
 

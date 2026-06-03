@@ -395,10 +395,10 @@ describe("CLI — plan list-templates (FR-PLAN-0032)", () => {
 describe("CLI — plan create-with-template (FR-PLAN-0030)", () => {
   it("creates a plan file from for-orchestrator template and exits 0", () => {
     const file = planFile();
-    // CLI positional args: create-with-template <plan_file> <template> <plan-name> <plan-description>
+    // CLI positional args: create-with-template <plan_file> <template> <plan-name> <plan-description> <phase-steps>
     const r = run([
       "plan", "create-with-template", file,
-      "for-orchestrator", "CLI Template Plan", "Created via template",
+      "for-orchestrator", "CLI Template Plan", "Created via template", "[]",
     ]);
     expect(r.status).toBe(0);
     // Success: dense JSON output (FR-SHRD-0008) — single line (no trailing newline in payload JSON)
@@ -419,19 +419,55 @@ describe("CLI — plan create-with-template (FR-PLAN-0030)", () => {
     expect(bakFiles.length).toBe(0);
   });
 
+  // FR-PLAN-0043 — backward compatibility: phase-steps positional may be omitted (treated as [])
+  it("omitting the phase-steps positional succeeds with only the seeded ph-prep steps", () => {
+    const file = planFile();
+    const r = run([
+      "plan", "create-with-template", file,
+      "for-orchestrator", "No Steps Plan", "Created without phase-steps",
+    ]);
+    expect(r.status).toBe(0);
+    const tree = r.json as { phases: { id: string; steps: unknown[] }[] };
+    const prep = tree.phases.find((p) => p.id === "ph-prep")!;
+    expect(prep.steps).toHaveLength(5);
+  });
+
   it("placeholder substitution: plan-name appears in file on disk", () => {
     const file = planFile();
-    run(["plan", "create-with-template", file, "for-orchestrator", "SubstTest", "desc"]);
+    run(["plan", "create-with-template", file, "for-orchestrator", "SubstTest", "desc", "[]"]);
     const raw = fs.readFileSync(file, "utf8");
     expect(raw).toContain("SubstTest");
   });
 
   it("returns error for unknown template name", () => {
     const file = planFile();
-    const r = run(["plan", "create-with-template", file, "no-such-template", "X", "Y"]);
+    const r = run(["plan", "create-with-template", file, "no-such-template", "X", "Y", "[]"]);
     expect(r.status).toBe(1);
     const payload = r.json as { error: string };
     expect(payload.error).toContain("invalid_template");
+  });
+
+  // FR-PLAN-0043 — happy path: non-empty phase-steps array injected into ph-prep
+  it("non-empty phase-steps array: injected step appears after seeded steps in plan file", () => {
+    const file = planFile();
+    const injectedSteps = JSON.stringify([
+      { id: "ph-prep-s-my-custom", name: "My Custom Step", prompt: "Do something custom" },
+    ]);
+    const r = run([
+      "plan", "create-with-template", file,
+      "for-orchestrator", "Phase Steps E2E", "E2E test for phase-steps", injectedSteps,
+    ]);
+    expect(r.status).toBe(0);
+    expect((r.json as any).ok).toBeUndefined();
+    // Plan file must contain the injected step id
+    const raw = fs.readFileSync(file, "utf8");
+    expect(raw).toContain("ph-prep-s-my-custom");
+    expect(raw).toContain("My Custom Step");
+    // The plan must have ph-prep with 6 steps (5 seeded + 1 injected)
+    const plan = JSON.parse(raw) as { phases: Array<{ id: string; steps: unknown[] }> };
+    const prepPhase = plan.phases.find((p) => p.id === "ph-prep")!;
+    expect(prepPhase).toBeDefined();
+    expect(prepPhase.steps.length).toBe(6);
   });
 });
 
@@ -448,10 +484,10 @@ describe("CLI — plan upsert-with-template (FR-PLAN-0031)", () => {
   it("upserts phases from for-subagent template and exits 0", () => {
     const file = planFile();
     createBasePlan(file);
-    // CLI positional args: upsert-with-template <plan_file> <phase-id> <template> <phase-name> <phase-description>
+    // CLI positional args: upsert-with-template <plan_file> <phase-id> <template> <phase-name> <phase-description> <phase-steps>
     const r = run([
       "plan", "upsert-with-template", file,
-      "ph-impl", "for-subagent", "Implementation", "Implement features",
+      "ph-impl", "for-subagent", "Implementation", "Implement features", "[]",
     ]);
     expect(r.status).toBe(0);
     expect((r.json as any).ok).toBeUndefined();
@@ -473,7 +509,7 @@ describe("CLI — plan upsert-with-template (FR-PLAN-0031)", () => {
   it("placeholder substitution: phase-id appears in plan on disk", () => {
     const file = planFile();
     createBasePlan(file);
-    run(["plan", "upsert-with-template", file, "ph-test", "for-subagent", "Testing", "Run all tests"]);
+    run(["plan", "upsert-with-template", file, "ph-test", "for-subagent", "Testing", "Run all tests", "[]"]);
     const raw = fs.readFileSync(file, "utf8");
     expect(raw).toContain("ph-test");
   });
@@ -481,7 +517,7 @@ describe("CLI — plan upsert-with-template (FR-PLAN-0031)", () => {
   it("returns error for unknown template name", () => {
     const file = planFile();
     createBasePlan(file);
-    const r = run(["plan", "upsert-with-template", file, "ph-x", "no-such-template", "X", "Y"]);
+    const r = run(["plan", "upsert-with-template", file, "ph-x", "no-such-template", "X", "Y", "[]"]);
     expect(r.status).toBe(1);
     const payload = r.json as { error: string };
     expect(payload.error).toContain("invalid_template");
@@ -533,7 +569,7 @@ describe("CLI — concurrent writers (FR-PLAN-0024 / FR-PLAN-0025)", () => {
     const file = planFile("concurrent.json");
 
     // Seed plan first (sequential, single process).
-    const seed = run(["plan", "create-with-template", file, "for-orchestrator", "Concurrent", "MPP test"]);
+    const seed = run(["plan", "create-with-template", file, "for-orchestrator", "Concurrent", "MPP test", "[]"]);
     expect(seed.status).toBe(0);
 
     // Spawn N processes in parallel via Node child_process.spawn (non-blocking).
@@ -541,7 +577,7 @@ describe("CLI — concurrent writers (FR-PLAN-0024 / FR-PLAN-0025)", () => {
     const exitCodes: number[] = await Promise.all(
       Array.from({ length: N }, (_, i) => {
         const phaseId = `ph-mpp-${i + 1}`;
-        const args = [BIN, "plan", "upsert-with-template", file, phaseId, "for-subagent", `Phase ${i + 1}`, `Worker ${i + 1}`];
+        const args = [BIN, "plan", "upsert-with-template", file, phaseId, "for-subagent", `Phase ${i + 1}`, `Worker ${i + 1}`, "[]"];
         return new Promise<number>((resolve) => {
           const child = spawn(NODE, args, { stdio: "pipe" });
           child.on("close", (code) => resolve(code ?? -1));

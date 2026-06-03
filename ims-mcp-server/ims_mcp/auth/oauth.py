@@ -76,6 +76,7 @@ def build_oauth_provider(
             jwt_signing_key=config.oauth_jwt_signing_key,
             redirect_path=config.oauth_callback_path,
             require_authorization_consent=True,
+            timeout_seconds=config.oauth_http_timeout,  # A6: bound OIDC config fetch
         )
 
     if config.oauth_mode == OAUTH_MODE_GITHUB:
@@ -93,6 +94,7 @@ def build_oauth_provider(
             client_storage=client_storage,
             jwt_signing_key=config.oauth_jwt_signing_key,
             require_authorization_consent=True,
+            timeout_seconds=config.oauth_http_timeout,  # F11/A6: bound GitHub API calls
         )
 
     if config.oauth_mode not in {OAUTH_MODE_OAUTH, OAUTH_MODE_OIDC, OAUTH_MODE_GITHUB}:
@@ -116,6 +118,7 @@ def build_oauth_provider(
         client_secret=config.oauth_client_secret,
         cache_ttl_seconds=INTROSPECTION_CACHE_TTL_SECONDS,
         required_scopes=config.oauth_required_scopes,
+        timeout_seconds=config.oauth_http_timeout,  # A6: explicit introspection timeout
     )
 
     # valid_scopes: advertised in .well-known/oauth-authorization-server

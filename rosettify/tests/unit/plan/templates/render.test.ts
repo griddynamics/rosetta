@@ -1,9 +1,11 @@
 /**
  * Unit tests for renderTemplate — FR-PLAN-0034.
+ * Unit tests for parsePhaseSteps — FR-PLAN-0043.
  * Strict bidirectional matching: 3 failure modes + happy path + literal substitution.
+ * parsePhaseSteps: ok array, empty array, invalid json, non-array.
  */
 import { describe, it, expect } from "vitest";
-import { renderTemplate } from "../../../../src/commands/plan/templates/render.js";
+import { renderTemplate, parsePhaseSteps } from "../../../../src/commands/plan/templates/render.js";
 
 // ---------------------------------------------------------------------------
 // FR-PLAN-0034 — Placeholder render with strict bidirectional matching
@@ -153,5 +155,72 @@ describe("renderTemplate — FR-PLAN-0034 empty placeholders", () => {
     if (!result.ok) return;
     const rendered = result.rendered as { name: string };
     expect(rendered.name).toBe("Static Name");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// FR-PLAN-0043 — parsePhaseSteps
+// ---------------------------------------------------------------------------
+
+describe("parsePhaseSteps — FR-PLAN-0043", () => {
+  // FR-PLAN-0043 — valid JSON array of step objects → ok=true, steps returned
+  it("returns ok=true and parsed steps for a valid JSON array of step objects", () => {
+    const steps = [
+      { id: "step-1", name: "Step One", prompt: "Do step one" },
+      { id: "step-2", name: "Step Two", prompt: "Do step two" },
+    ];
+    const result = parsePhaseSteps(JSON.stringify(steps));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.steps).toHaveLength(2);
+    expect((result.steps[0] as { id: string }).id).toBe("step-1");
+    expect((result.steps[1] as { id: string }).id).toBe("step-2");
+  });
+
+  // FR-PLAN-0043 — empty array is valid; leaves seeded steps unchanged
+  it("returns ok=true and empty steps array for empty JSON array input", () => {
+    const result = parsePhaseSteps("[]");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.steps).toHaveLength(0);
+    expect(Array.isArray(result.steps)).toBe(true);
+  });
+
+  // FR-PLAN-0043 — invalid JSON → invalid_phase_steps
+  it("returns ok=false with invalid_phase_steps for invalid JSON string", () => {
+    const result = parsePhaseSteps("not valid json");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe("invalid_phase_steps");
+  });
+
+  // FR-PLAN-0043 — valid JSON but not an array → invalid_phase_steps
+  it("returns ok=false with invalid_phase_steps when JSON is an object, not an array", () => {
+    const result = parsePhaseSteps('{"id":"step-1","name":"Not an array"}');
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe("invalid_phase_steps");
+  });
+
+  // FR-PLAN-0043 — null JSON value (valid JSON, not array) → invalid_phase_steps
+  it("returns ok=false with invalid_phase_steps when JSON is null", () => {
+    const result = parsePhaseSteps("null");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe("invalid_phase_steps");
+  });
+
+  // FR-PLAN-0043 — number JSON value (valid JSON, not array) → invalid_phase_steps
+  it("returns ok=false with invalid_phase_steps when JSON is a number", () => {
+    const result = parsePhaseSteps("42");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe("invalid_phase_steps");
   });
 });

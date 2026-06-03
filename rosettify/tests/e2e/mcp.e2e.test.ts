@@ -435,6 +435,7 @@ describe("MCP — plan create-with-template (FR-PLAN-0030)", () => {
       template: "for-orchestrator",
       "plan-name": "MCP Template Plan",
       "plan-description": "Created via MCP template",
+      "phase-steps": "[]",
     });
 
     expect(isError).toBe(false);
@@ -463,9 +464,39 @@ describe("MCP — plan create-with-template (FR-PLAN-0030)", () => {
       template: "no-such-template",
       "plan-name": "X",
       "plan-description": "Y",
+      "phase-steps": "[]",
     });
     expect(isError).toBe(true);
     expect((payload as { error: string }).error).toContain("invalid_template");
+  });
+
+  // FR-PLAN-0043 — happy path: non-empty phase-steps array injected into ph-prep via MCP
+  it("non-empty phase-steps array: injected step present in plan file on disk", async () => {
+    const file = planFile("template-create-phasesteps.json");
+    const injectedSteps = JSON.stringify([
+      { id: "ph-prep-s-mcp-custom", name: "MCP Custom Step", prompt: "Do custom step via MCP" },
+    ]);
+
+    const { payload, isError } = await client.callTool("plan", {
+      subcommand: "create-with-template",
+      plan_file: file,
+      template: "for-orchestrator",
+      "plan-name": "MCP Phase Steps Plan",
+      "plan-description": "MCP phase-steps injection test",
+      "phase-steps": injectedSteps,
+    });
+
+    expect(isError).toBe(false);
+    expect((payload as any).ok).toBeUndefined();
+    // Plan file must contain the injected step
+    const raw = fs.readFileSync(file, "utf8");
+    expect(raw).toContain("ph-prep-s-mcp-custom");
+    expect(raw).toContain("MCP Custom Step");
+    // ph-prep should have 6 steps (5 seeded + 1 injected)
+    const plan = JSON.parse(raw) as { phases: Array<{ id: string; steps: unknown[] }> };
+    const prepPhase = plan.phases.find((p) => p.id === "ph-prep")!;
+    expect(prepPhase).toBeDefined();
+    expect(prepPhase.steps.length).toBe(6);
   });
 });
 
@@ -493,6 +524,7 @@ describe("MCP — plan upsert-with-template (FR-PLAN-0031)", () => {
       "phase-id": "ph-impl",
       "phase-name": "Implementation",
       "phase-description": "Implement features",
+      "phase-steps": "[]",
     });
 
     expect(isError).toBe(false);
@@ -526,6 +558,7 @@ describe("MCP — plan upsert-with-template (FR-PLAN-0031)", () => {
       "phase-id": "ph-a",
       "phase-name": "Phase A",
       "phase-description": "desc a",
+      "phase-steps": "[]",
     });
 
     await client.callTool("plan", {
@@ -535,6 +568,7 @@ describe("MCP — plan upsert-with-template (FR-PLAN-0031)", () => {
       "phase-id": "ph-b",
       "phase-name": "Phase B",
       "phase-description": "desc b",
+      "phase-steps": "[]",
     });
 
     const raw = fs.readFileSync(file, "utf8");
@@ -556,6 +590,7 @@ describe("MCP — plan upsert-with-template (FR-PLAN-0031)", () => {
       "phase-id": "ph-x",
       "phase-name": "X",
       "phase-description": "Y",
+      "phase-steps": "[]",
     });
     expect(isError).toBe(true);
     expect((payload as { error: string }).error).toContain("invalid_template");
