@@ -45,6 +45,12 @@ If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-st
 1. USE SKILL `aqa-selector-management`
 2. Execute Part A (Selector Identification) only
 3. If all selectors found in frontend code, skip step 4.2
+
+**Part A deliverables owned by the skill** (verified — no in-phase schema duplication needed; named here so Phase 5 readers see the contract Phase 4 produces):
+- **Interaction mapping** (test step → required UI interactions): `aqa-selector-management` SKILL.md step 1
+- **Existing-page-object availability check** (✅ EXISTS / ❌ MISSING / ❌ UNRESOLVABLE per interaction): SKILL.md step 2 + `<validation_checklist>`
+- **Selector-strategy preference order** (4-tier: `data-testid` > `id` > stable class/ARIA > XPath): `references/strategy-and-template.md` "Selector Strategy — 4-Tier Table"
+- **Selector-map output schema** (Selector / Type / Source / Usage / Stability per identified selector): `references/strategy-and-template.md` "Identified Selectors" section. This is the schema Phase 5 reads from the test plan's `## Selector Management` section.
 </execute_identification>
 
 <handle_page_source step="4.2" condition="selectors still missing">

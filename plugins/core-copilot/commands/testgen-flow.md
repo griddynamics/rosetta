@@ -27,6 +27,13 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 - **USER CONFIRMATION:** Wait for approval before next phase. (Happy-path governance — applies to every phase transition that is NOT the verification-failure resume case above; that single carve-out lives in `<orchestration_and_escalation>` and does not generalize.)
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
+- **Per-phase failure cases + grounding examples — owned by phase files** (verification trail; router stays thin):
+  - *Jira ticket not found* → `testgen-flow-data-collection.md` + `mcp-jira-data-collection` skill `<failure_handling>`
+  - *No Confluence results* → `testgen-flow-data-collection.md` + `confluence-source-harvesting` skill `<failure_handling>`
+  - *User declines / does not answer questions* → `testgen-flow-question-generation.md` `<failure_handling>` "User explicitly declines to answer"
+  - *Incomplete / missing requirements inputs* → `testgen-flow-requirements-document-generation.md` `<failure_handling>` "Missing or empty inputs"
+  - *CQL search example + ranking rule* → `mcp-confluence-data-collection/references/cql-and-redaction.md`
+  - *Initial-prompt format examples* (PROJ-123, full Jira URL) → `testgen-flow-project-config-loading.md`
 - **Model tier vocabulary** (centralized — phase headers reference tiers, not dated model IDs, so vendor/release churn does not rot the phase definitions):
   - `tier: complex` — heavy reasoning / multi-source synthesis / gap-and-contradiction analysis / requirements engineering. Current recommended: Anthropic Opus-class, OpenAI GPT high-tier.
   - `tier: workhorse` — structured execution / data extraction / test-case generation + export. Current recommended: Anthropic Sonnet-class, OpenAI GPT medium-tier.

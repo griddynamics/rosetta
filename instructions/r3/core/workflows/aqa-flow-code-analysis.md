@@ -45,7 +45,10 @@ If the Phase 1 plan path is still missing after resolving `<test-name>`, or `<te
 
 <execute_analysis step="3.1" subagent="discoverer" role="Test architecture analyst">
 1. USE SKILL `aqa-codebase-analysis`
-2. Verify test plan updated with architecture findings
+2. **Conditional-input else-paths** (the skill performs the work; the contract is anchored here so a phase-only reader sees what the skill will do when an optional input is absent):
+   - If `agents/user-instructions/` is **absent or empty**: the skill records `User Instructions: none found` in the report and proceeds — Phase 3 **continues**, does not stop.
+   - If a **frontend source path is not discoverable** (no project-config reference, no `refsrc/<repo>/` available): the skill skips frontend analysis, records the gap in the report's `## Coverage` section per its epistemic-honesty rule, and Phase 3 **continues**.
+3. Verify test plan updated with architecture findings
 </execute_analysis>
 
 <validate_findings step="3.2">

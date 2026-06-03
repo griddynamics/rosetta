@@ -46,7 +46,7 @@ Analyze Jira ticket and Confluence documentation to identify contradictions, gap
 
 Create `agents/testgen/{TICKET-KEY}/analysis.md`:
 
-1. **Sections 1–6** (Contradictions, Gaps, Ambiguities, Cross-Reference Analysis, Positive Findings, Risk Assessment) — produced by `gap-and-contradiction-analysis` per its `<output_format>`.
+1. **Sections 1–6** (Contradictions, Gaps, Ambiguities, Cross-Reference Analysis, Positive Findings, Risk Assessment) — produced by `gap-and-contradiction-analysis` per its `<output_format>`. **Per-entry field shapes** — `C[N]`: Type / Source 1 (with field/section + verbatim quote) / Source 2 / Impact / Needs Clarification; `G[N]` / `A[N]` analogous — live in the skill's `references/entry-templates-and-document-skeleton.md` (verified canonical home). Sections 1–6 numbering and skeleton: same reference. The phase delegates without restating; this line is the verification trail.
 
 2. **Append the two sections below verbatim** to the end of the file produced by step 1, then fill the `[bracketed]` slots from the analysis:
 

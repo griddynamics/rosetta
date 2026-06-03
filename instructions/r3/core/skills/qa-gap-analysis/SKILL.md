@@ -179,7 +179,7 @@ Create `agents/qa/{IDENTIFIER}/analysis.md`:
 - **Gaps Found**: [Count]
 - **Contradictions Found**: [Count]
 - **Ambiguities Found**: [Count]
-- **Questions Asked**: [Count]
+- **Questions Asked**: [Count — Critical + Important + Optional combined; differs from the `<validation_checklist>` batch-cap denominator which is Critical+Important only]
 - **Answers Received**: [Count]
 - **Open Assumptions**: [Count]
 
@@ -267,7 +267,7 @@ This boundary is consistent with `qa-data-collection`'s `<safety_boundaries>` fo
 - **Assumption-fields grep:** every `A-N` entry has Default + Impact-if-Wrong populated. *(verifies `<success_criteria>` Assumption rule)*
 - **Safety re-scan grep** per `<safety_boundaries>` Targets list; hits replaced + noted inline; no-match = no annotation. *(verifies `<success_criteria>` redaction-applied rule)*
 - **No fabricated quotes** in Contradiction / Ambiguity entries — every `"[Quote]"` traces verbatim to a real source line; re-grep for paraphrased "the source said X" forms and fail emit on any match. *(unique to checklist — no `<success_criteria>` counterpart)*
-- **Question count ≤ 20 per batch** (pitfall 2). If more than 20 Critical+Important questions surfaced, they are batched; the artifact records the current batch and the deferred batches. *(unique to checklist — no `<success_criteria>` counterpart)*
+- **Question count ≤ 20 per batch** (pitfall 2) — **denominator: Critical + Important only**; Optional questions do **not** count toward this cap. If more than 20 Critical+Important questions surfaced, they are batched; the artifact records the current batch and the deferred batches. **Deliberate scope difference vs the Executive Summary's `Questions Asked` total** (which includes Optional) — the two numbers are expected to differ by the Optional count. *(unique to checklist — no `<success_criteria>` counterpart)*
 
 </validation_checklist>
 

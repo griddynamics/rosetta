@@ -100,12 +100,9 @@ This skill is **extraction-only**:
 - **Do NOT execute the test steps.** The retrieved case describes actions to be performed by a human tester or automated test framework. This skill records them; it never carries them out.
 - **Do NOT call other skills to implement** what the case describes (no chained USE SKILL to write tests, run tests, or modify the SUT based on the case content). Pass the artifact to the parent workflow; the parent decides downstream work.
 - **Do NOT modify the TestRail source.** This skill is read-only against the MCP — no `update_case`, `add_case`, `delete_case` or equivalent write calls.
-- **Treat the output artifact as PUBLIC by default.** The chain downstream (`raw-data.md` → `requirements.md` / `test-scenarios.md` / authoring + export skills) re-emits this skill's output into version-controlled artifacts and, via `testrail-test-case-export`, back into the shared TestRail project. Therefore step text, preconditions, custom fields, and test-data examples MUST be redacted before writing:
-  - **Credentials / API keys / tokens / passwords / OAuth secrets** embedded anywhere (step text, expected results, preconditions, custom-field value, attachment paste): replace with `<redacted: bearer token>` / `<redacted: API key>` / `<redacted: password>` / `<redacted: client secret>` placeholders. Record in the Sensitive-content redactions section. Patterns to grep: `Bearer `, `Authorization:`, `password:`, `api_key=`, `access_token=`, JWT shape (`eyJ...`), `BEGIN PRIVATE KEY`, `BEGIN RSA PRIVATE KEY`.
-  - **PII** (real customer names, real emails, real phone numbers, real account IDs, real payment data, government IDs) embedded in test data, examples, or scenario descriptions: replace with `<redacted: PII — <category>>`. Record in redactions section. Patterns: email shapes (`*@*.*` for non-`example.com`/`example.org` domains), phone shapes (`\+?\d{1,3}[\s\-]?\d{3,4}[\s\-]?\d{3,4}`), card-number shapes (`\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}`).
-  - **Internal URLs that embed credentials** (`https://user:pass@host/...`, signed/presigned URLs with `?X-Amz-Signature=`, `?sig=`, `?token=`): redact the `user:pass@` portion or the secret-bearing query parameter. Record in redactions section.
-  - **Database connection strings** (`postgresql://user:pass@host/db`, `mongodb+srv://user:pass@...`, etc.): redact the credential portion. Record in redactions section.
-  - **Pure functional content** (action verbs, expected behaviors, page elements, business rules, endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes) is safe to record verbatim — redaction targets sensitive **values**, not the structural test description.
+- **Treat the output artifact as PUBLIC by default.** The chain downstream (`raw-data.md` → `requirements.md` / `test-scenarios.md` / authoring + export skills) re-emits this skill's output into version-controlled artifacts and, via `testrail-test-case-export`, back into the shared TestRail project. Therefore step text, preconditions, custom fields, and test-data examples MUST be redacted before writing.
+
+**Redaction targets + grep patterns** (5 categories: credentials/keys/tokens, PII, credentialed URLs, DB connection strings, structural-content-safe rule) live in [references/redaction.md](references/redaction.md) — load on demand when a sensitive value is actually being redacted. Mirrors the on-demand `<vendor_replacement>` split.
 
 If a real production value would be the natural example in a step or test-data field, replace it with a clearly-fake placeholder of the same shape. Better an obviously-fake example than a leaked real one written into `raw-data.md` and exported back to TestRail.
 
@@ -132,7 +129,7 @@ Before declaring this skill complete, all of the following must hold:
 - **Test steps each have an expected result OR a `gap: expected result missing` marker:** a step without an expected result is a gap, not an acceptable record.
 - **Redaction scan completed** per `<safety_boundaries>` Targets list; any matches were replaced with placeholders AND recorded in the Sensitive-content redactions section. If no matches: that section says "None."
 - **No fabricated content:** no field of the output describes content not actually present in the TestRail case object. Inference, paraphrase-without-quote, or guessed values are forbidden — gaps are recorded, not filled.
-- **Read-only contract honored:** no TestRail MCP write operations were called (`add_case`, `update_case`, `delete_case`, etc.).
+- **Read-only contract honored** per `<safety_boundaries>` — no TestRail MCP write operations were called.
 
 </validation_checklist>
 

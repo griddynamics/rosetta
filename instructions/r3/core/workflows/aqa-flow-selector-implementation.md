@@ -45,6 +45,8 @@ If a **required** ACQUIRE in step **5.1** below returns **zero** documents: stop
 4. USE SKILL `aqa-selector-management`
 5. Execute Part B (Selector Implementation) only
 6. Extend existing page objects (skill Part B step 5 — match existing patterns: access modifiers, naming, formatting, helper-method shape) and create new ones as needed (skill Part B step 6 — use existing page objects as structural templates). The "follow project conventions exactly" rule is owned by the skill; do not introduce new patterns from this workflow.
+7. **Implementation report output:** Part B writes the `### Implementation (Part B only)` subsection in the test plan's `## Selector Management` section — canonical fields (Page Objects Modified, Page Objects Created, Selectors Added, Helper Methods Added) defined in `aqa-selector-management` references. Step 5.3 echoes those fields into `agents/aqa-state.md`.
+8. **Conditional doc-style match** (per the `<skill_precedence>` "follow project conventions exactly" rule): add JSDoc/TSDoc on new selectors and helper methods **only if** existing page objects in the same file/module already use it. Match the existing style; do **not** introduce doc comments to a file/module that does not already use them.
 </execute_implementation>
 
 <validate step="5.2">
