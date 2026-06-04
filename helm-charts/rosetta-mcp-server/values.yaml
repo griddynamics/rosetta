@@ -3,6 +3,17 @@ fullnameOverride: ""
 
 replicaCount: 1
 
+# Health probes (optional)
+# livenessProbe: {}
+# readinessProbe: {}
+# startupProbe: {}
+
+# PodDisruptionBudget — enable when replicaCount > 1 (or autoscaling minReplicas > 1)
+podDisruptionBudget:
+  enabled: false
+  maxUnavailable: 1
+  # minAvailable: 1
+
 image:
   repository: griddynamics/rosetta-mcp
   # Uncomment and set the image tag. Defaults to .Chart.AppVersion if not set:
