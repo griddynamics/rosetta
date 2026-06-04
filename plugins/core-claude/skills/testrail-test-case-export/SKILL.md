@@ -15,7 +15,7 @@ Use during test case export when the target TMS is TestRail. Provides TestRail-s
 
 <input_contract>
 
-This skill performs **irreversible external writes** to a shared TestRail project. The bindings below MUST be supplied by the calling workflow — undeclared inputs raise the risk of exporting against the wrong project or suite. Mirrors the sibling `testrail-test-case-authoring` `<input_contract>` shape.
+Irreversibility + dedup discipline: see step 7 confirmation gate (canonical). Bindings below MUST be supplied by the calling workflow.
 
 | Input | Required? | Source | Used by |
 |---|---|---|---|
@@ -34,8 +34,7 @@ This skill performs **irreversible external writes** to a shared TestRail projec
 <process>
 
 1. **Verify connection**: call `mcp_testrail_get_project(project_id)` — if fails, inform user to verify MCP config, credentials, and project access
-2. **Get section_id from user** (see `user_prompt_section_id` template below): TestRail MCP cannot create sections — user must provide existing section_id or create one in TestRail UI first
-   - Parse flexibly: accept "section_id is XXXXX", "group_id=XXXXX", or just the number
+2. **Get section_id from user** (TestRail MCP cannot create sections — user must provide existing section_id or create one in TestRail UI first). Verbatim prompt template in [references/vendor-porting.md "Section-ID user prompt template"](references/vendor-porting.md#section-id-user-prompt-template-referenced-from-skillmd-process-step-2) — load on demand. Parse flexibly: accept `section_id is XXXXX`, `group_id=XXXXX`, or just the number.
 3. **Apply priority mapping** — **precedence: parent TMS config first, defaults last** (per-case overrides + instance-specific tables from `qa-project-config.md` / `testgen-project-config.md` win). Defaults (used only when no parent mapping is supplied):
    - P0 → `priority_id: 4` (Critical) · P1 → `3` (High) · P2 → `2` (Medium) · P3 → `1` (Low)
 4. **Apply type mapping** — same precedence as step 3. Defaults:
@@ -43,10 +42,9 @@ This skill performs **irreversible external writes** to a shared TestRail projec
 
    **Default-ID rationale + silent-mismatch audit risk** (why ID tables vary per TestRail instance, what audits should catch) lives in [references/vendor-porting.md "Default-ID rationale"](references/vendor-porting.md#default-id-rationale-referenced-from-skillmd-process-steps-3--4) — load when reviewing whether the defaults are safe for the target instance.
 5. **Format steps**: use `custom_steps_separated` — each entry has `content` (action) and `expected` (outcome)
-6. **Build preconditions**: use `custom_preconds` field with TEST DATA first, then original preconditions (see `preconditions_format` below)
-   - If `custom_preconds` not supported: prepend to first step content with `\n\n--- STEPS ---\n\n` separator
+6. **Build preconditions**: use `custom_preconds` field with TEST DATA first, then original preconditions. Verbatim TEST DATA / PRECONDITIONS section format in [references/vendor-porting.md "Preconditions format"](references/vendor-porting.md#preconditions-format-referenced-from-skillmd-process-step-6) — load on demand. If `custom_preconds` not supported: prepend to first step content with `\n\n--- STEPS ---\n\n` separator.
 7. **Pre-export safety check + dedup pre-scan (GATE — required before any write):**
-   - **Sensitive-value scan.** Re-read every case title, step `content`, step `expected`, and the preconditions block. Targets + placeholder vocabulary live in `<safety_boundaries>` "Redaction targets" (single SSoT — not restated here). TestRail is an external shared system and writes are irreversible from this skill's side. If any target is found, **stop** — apply `<safety_boundaries>` redaction discipline before continuing.
+   - **Sensitive-value scan.** Re-read every case title, step `content`, step `expected`, and the preconditions block. Targets + placeholder vocabulary live in `<safety_boundaries>` "Redaction targets" (single SSoT). If any target is found, **stop** — apply `<safety_boundaries>` redaction discipline before continuing. (Why this matters at this step: see the irreversibility warning in the user-facing Confirmation gate below — canonical home for the destructive-write framing.)
    - **Dedup pre-scan.** Call `mcp_testrail_get_cases(project_id, suite_id)` to fetch existing case titles in the target suite. Build the overlap set: which planned titles already exist in the suite (exact-match on `title`). Record the overlap count.
    - **Confirmation gate (user-facing).** Print a summary to the user:
      ```
@@ -65,57 +63,11 @@ This skill performs **irreversible external writes** to a shared TestRail projec
 
 </process>
 
-<preconditions_format>
-
-Order: TEST DATA first (tester sees execution count immediately), then preconditions.
-
-For parameterized tests (has Test Data table):
-```
-=== TEST DATA ===
-Execute this test case for EACH row in the table below:
-
-| Parameter | Value 1 | Value 2 |
-|-----------|---------|---------|
-| [Param]   | [Val]   | [Val]   |
-
-=== PRECONDITIONS ===
-- [Precondition 1]
-- [Precondition 2]
-```
-
-For non-parameterized tests: include only `=== PRECONDITIONS ===` section.
-
-</preconditions_format>
-
-<user_prompt_section_id>
-
-Use this structure when asking user for section_id:
-
-```
-TestRail Section Setup Required
-
-To export test cases, I need a section_id from TestRail.
-
-**Option A: Use existing section**
-If you already have a section, provide the section_id.
-Find it in the URL when viewing a section (e.g., group_id=94686 or section_id=94686)
-
-**Option B: Create new section**
-1. Go to: [TestRail suite URL]
-2. Click "Add Section"
-3. Name it: [TICKET-KEY]
-4. After creating, find the section_id in the URL or section details
-
-Please provide: "section_id is XXXXX" or just the number
-```
-
-</user_prompt_section_id>
-
 <safety_boundaries>
 
-Irreversible writes to an external shared system — every `mcp_testrail_add_case` call is permanent and not rollable-back from this skill. TestRail does NOT deduplicate by title; re-running creates duplicates by design. **Destructive-on-rerun.**
+Destructive-write framing (irreversibility + dedup-by-design + Destructive-on-rerun) lives once at `<process>` step 7's user-facing Confirmation gate (canonical). The redaction discipline + operational rules below are the additive content.
 
-**Gate procedure (canonical = step 7).** Sensitive-value scan + dedup pre-scan + confirmation gate (`a`/`b`/`c`) are defined in `<process>` step 7 and not restated here.
+**Gate procedure** — Sensitive-value scan + dedup pre-scan + confirmation gate (`a`/`b`/`c`) defined in `<process>` step 7.
 
 **Redaction targets** (the catalog step 7 applies — single source of truth for what counts as sensitive):
 - **Credentials / tokens / API keys / passwords / JWTs** — replace with placeholders: `<valid bearer token>` / `<expired bearer token>` for auth tokens, `<valid api key>` for API keys, `<valid test password>` / `<deliberately-wrong test password>` for passwords. The authoring skill (`testrail-test-case-authoring`) uses the same placeholder shapes by convention.

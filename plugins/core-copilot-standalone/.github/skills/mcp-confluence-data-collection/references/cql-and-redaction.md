@@ -2,7 +2,7 @@
 
 Loaded on demand from SKILL.md when actively building a CQL query (step 2) or applying redaction (step 8 / `<safety_boundaries>`). The base SKILL.md keeps the operational rules + GATEs + decision-time content; this file holds the detailed pattern catalogs that the agent consults at fill-in time.
 
-Sibling skill `mcp-confluence-data-collection/references/vendor-swap.md` already uses the same lazy-loading pattern for maintainer-only content.
+Sibling reference file `mcp-confluence-data-collection/references/vendor-swap.md` already uses the same lazy-loading pattern for maintainer-only content.
 
 ---
 
@@ -139,3 +139,18 @@ Loaded on demand at process step 8 when assembling the artifact. The base SKILL.
 ### Sensitive-content redactions
 [List of any pages where `<safety_boundaries>` redaction was applied. Format: `- <page title>: <redaction marker> (reason: credential / PII / credentialed URL / connection string / etc.)`. If none, write: `None.`]
 ```
+
+---
+
+## Malformed-input triggers (referenced from `<input_contract>`)
+
+Loaded on demand when an input shape needs validation. The base SKILL.md keeps the operational rule + accepted-input table inline (decision-time); this section holds the per-trigger enumeration the agent grep-checks at validation time.
+
+The malformed-input check runs **BEFORE any MCP call**. Failure routes to `<failure_handling>` ("Input unresolvable" for parse/shape failures, "Cross-domain URL" for host mismatch):
+
+- **No inputs supplied** (no URL, no ID, no search terms) → unresolvable.
+- **URL provided but unparseable** (no host, no `pageId` / `/pages/<ID>` / `/x/<short-id>` segment) → unresolvable.
+- **URL host does NOT match the configured MCP's site** → routes to "Cross-domain URL" (distinct from unresolvable).
+- **Page ID supplied but does not match the host's expected ID shape** (digits-only on Cloud, alphanumeric on some Server installs) → unresolvable.
+
+The skill MUST NOT attempt retrieval against malformed input — that produces silent zero-result branches downstream that look like "no pages found" when the real cause is bad input parsing.

@@ -56,23 +56,22 @@ All inputs are supplied by the parent workflow phase file. This skill does not i
 7. GATE: if the next phase depends on outputs of this phase, verify required files or sections exist before advancing.
 8. GATE: when the parent workflow marks a transition as HITL, do not advance until the user explicitly approves.
 9. If the user requests skipping a phase, restate blast radius, get explicit approval, record skip reason and timestamp in state.
-10. **Verification-failure unilateral start** — falsified-skip-claim handling (see `<gate_priority>` for scope):
+10. **Verification-failure unilateral start** — falsified-skip-claim handling (see `<gate_priority>` for disambiguation vs steps 8 + 9):
     10a. **Trigger.** A skip is asserted (by user or upstream context) but the workflow state file does not mark the claimed phases complete, OR the corresponding output artifacts are absent on disk.
-    10b. **Required announcement.** One line stating the failing conditions, e.g., `skip refused: state row missing → starting at Phase 0`.
-    10c. **Action.** Begin the earliest incomplete phase in the **same turn**, without yielding to user input.
-    10d. **Forbidden at this gate.** `AskUserQuestion`, menu/options blocks, confirmation prompts, or pausing for input before starting.
-    10e. **Only acceptable user input.** Producing the missing state row or output artifact on disk; bare instruction to bypass is refused with the same announcement, then 10c proceeds.
+    10b. **Required announcement + Action.** Emit the one-line announcement (format + examples in `<output_format>` section 2, canonical) and begin the earliest incomplete phase in the **same turn**.
+    10c. **Forbidden at this gate.** `AskUserQuestion`, menu/options blocks, confirmation prompts, or pausing for input before starting.
+    10d. **Only acceptable user input.** Producing the missing state row or output artifact on disk; bare instruction to bypass is refused with the same announcement, then 10b proceeds.
 11. If spawning subagents, follow the active platform dispatch/review contract.
 
 </process>
 
 <output_format>
 
-This skill emits **three user-facing or workflow-state artifacts** — all are governed by the templates below. The `<templates>` block at the end of the skill holds the canonical state-delta snippet; the other two are defined here.
+This skill emits **three artifacts**, each governed by one canonical section.
 
 ### 1. State delta snippet (step 5, step 9)
 
-Appended to the workflow state file path supplied by the parent (per `<input_contract>`). Canonical template lives in `<templates>` — the structure is `## Phase [N] — [title]` heading + Status + Completed + Outputs + Notes. Both step 5 (normal completion) and step 9 (user-approved skip) use the same template; step 9's `Status` field is `skipped (user-approved)` with the skip reason recorded under `Notes`.
+Verbatim template in `<templates>` (Status / Completed / Outputs / Notes). Step 5 (normal completion) and step 9 (user-approved skip) both use the same template; step 9's `Status` = `skipped (user-approved)` with reason under `Notes`.
 
 ### 2. Required announcement (step 10b — falsified-skip-claim refusal)
 
@@ -155,8 +154,8 @@ Steps 8, 9, and 10 govern three distinct transition shapes. They never apply to 
 - Treating unclear replies as approval for a HITL transition or phase skip
 - Marking a phase complete while required artifacts are empty or placeholder-only
 - Advancing because "the next phase looks easy" without satisfying prerequisites
-- Confusing step 10 (falsified-skip verification) with step 8 (HITL approval) — see `<gate_priority>` precedence rule
-- Asking `AskUserQuestion` to "confirm" a falsified-skip refusal — the verification is the decision; the announcement-then-begin sequence in 10b/10c is the only correct action
+- Confusing step 10 (falsified-skip verification) with step 8 (HITL approval) — see `<gate_priority>` precedence rule.
+- Asking `AskUserQuestion` to "confirm" a falsified-skip refusal — see step 10c (forbidden) + step 10b (announce-then-begin same turn).
 
 </pitfalls>
 

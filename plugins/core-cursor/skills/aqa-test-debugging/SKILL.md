@@ -142,6 +142,31 @@ Part B step-by-step orchestration (step 7 Prepare Proposed Changes, step 8 Apply
 - Root Cause: [analysis]
 - Page Source Analysis: [if selector error]
 - Priority: [level]
+- Evidence Label: [Confirmed | Assumption | Unknown]
+- Evidence Rationale: [one-line citation supporting the label]
+```
+
+**Evidence-strength labels** (per-failure classification; calling phases verify presence):
+
+- **Confirmed** — logs, stack traces, or reproducible steps tie the failure to this cause. Cite both sides (error log line + page-source diff / HTTP capture / repro count).
+- **Assumption** — partial evidence only (time correlation without stack, single flaky run, symptom-based guess). State **what evidence is missing** to upgrade to Confirmed.
+- **Unknown** — no usable supporting evidence. List **what evidence would be needed** to label.
+- **Ambiguity tiebreak:** Confirmed vs Assumption → **Assumption** (weaker label wins). Assumption vs Unknown → **Unknown** unless at least one concrete partial fact exists → then **Assumption**.
+
+**Worked example pair** (one Confirmed + one Assumption, grounding the label rule for authoring):
+
+```
+✅ Confirmed
+- Failure: test_checkout_submits_with_valid_card
+- Root cause: Selector `[data-testid="checkout-submit"]` renamed to `[data-testid="checkout-confirm"]` upstream.
+- Evidence label: Confirmed
+- Evidence rationale: report.log:142 shows TimeoutError on the old selector; page-source capture this run shows the new selector in the rendered DOM — both sides cited.
+
+🟡 Assumption
+- Failure: test_search_returns_results
+- Root cause: Backend search may be returning slowly under load.
+- Evidence label: Assumption
+- Evidence rationale: 30s wait timeout but no HTTP capture or stack trace; single flaky run. To upgrade to Confirmed: stack trace / HTTP log showing actual backend slowness OR ≥3 reruns reproducing.
 ```
 
 **Part B artifact (only when Part B runs)** — `### Proposed Corrections` + `### Applied Corrections` subsections appended to the Part A artifact. Verbatim template + 6-field Proposed Change shape in [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-output_format-template-referenced-from-skillmd-output_format).

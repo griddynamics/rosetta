@@ -13,8 +13,16 @@ baseSchema: docs/schemas/skill.md
 Retrieve and normalize feature documentation, technical specs, and business context from Confluence when page IDs, URLs, or search terms are available.
 </when_to_use_skill>
 
+<core_concepts>
+
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
+- Extraction-only contract: this skill reads + normalizes Confluence pages and does NOT modify the source, act on page content, or chain implementation skills off retrieved runbooks.
+- Output is **PUBLIC by default** — committed to repo, re-emitted into downstream artifacts; redaction is applied before writing, not after.
+
+</core_concepts>
+
 <success_criteria>
-Complete when target pages are retrieved + normalized into every `<output_format>` section + redacted per `<safety_boundaries>` — OR an error path in `<failure_handling>` was followed and the user re-prompted. NOT complete if the artifact omits gap flags, fabricates content, or leaks a credential/PII (rule sources: `<safety_boundaries>` for redaction + permission semantics; `<failure_handling>` for transport/auth/zero-result paths).
+Complete when target pages are retrieved + normalized into every output section + redacted — OR an error path was followed and the user re-prompted. NOT complete if the artifact omits gap flags, fabricates content, or leaks a credential/PII.
 </success_criteria>
 
 <prerequisites>
@@ -34,14 +42,7 @@ The calling workflow / user supplies one of these input forms; the skill validat
 | **Page URL — short form** | `https://<host>/x/<short-id>` | Parse short-id; resolve via MCP; host MUST match the configured MCP |
 | **Search terms** | Plain keywords / phrases (the agent assembles CQL per step 2.1) | At least one keyword OR at least one of: labels, components, project key |
 
-**Malformed-input check** (runs BEFORE any MCP call; failure routes to `<failure_handling>` "Input unresolvable"):
-
-- No inputs supplied (no URL, no ID, no search terms) → unresolvable.
-- URL provided but no host or no `pageId` / `/pages/<ID>` / `/x/<short-id>` segment → unresolvable (cannot parse).
-- URL host does NOT match the configured MCP's site → routes to `<failure_handling>` "Cross-domain URL" (distinct from unresolvable).
-- Page ID supplied but does not match the host's expected ID shape → unresolvable.
-
-The skill MUST NOT attempt retrieval against malformed input — that produces silent zero-result branches downstream that look like "no pages found" when the real cause is bad input parsing.
+**Malformed-input check** runs BEFORE any MCP call (no inputs / unparseable URL / cross-domain host / wrong-shape page ID). Full trigger list + routing rules live in [references/cql-and-redaction.md "Malformed-input triggers"](references/cql-and-redaction.md#malformed-input-triggers-referenced-from-input_contract) — load on demand. Routes to `<failure_handling>` ("Input unresolvable" or "Cross-domain URL"); never attempt retrieval against malformed input.
 
 </input_contract>
 
@@ -53,7 +54,7 @@ The skill MUST NOT attempt retrieval against malformed input — that produces s
    - **On cross-domain URL** (URL belongs to a different Confluence host than the configured MCP): stop per `<failure_handling>` ("cross-domain URL" case) — name the failing URL and ask the user.
 2. **If no URLs provided**:
    2.1. Build a CQL query from available context. **Deterministic shape, worked example, fallback recipe, and "always include `space =` filter" rule** in [references/cql-and-redaction.md](references/cql-and-redaction.md#cql-query-recipe-referenced-from-step-21) — load on demand.
-   2.2. Search Confluence: `confluence_search(query=cql_query, limit=10)`. **If the search returns zero results, jump to step 5 (Fallback) — the zero-result branch is the no-URL search path's continuation; steps 3–4 do not run when there are no pages to retrieve.**
+   2.2. Search Confluence: `confluence_search(query=cql_query, limit=10)`. **Zero-result precedence:** if search returns zero results, jump to step 5 (Fallback) — step 5 ALWAYS asks the user first; only after the user supplies nothing does `<failure_handling>` "Zero pages" stop apply. Steps 3–4 do not run when there are no pages to retrieve.
    2.3. **Rank results deterministically.** Fixed priority order: **title-match > label-match > body-match**; within each tier use the MCP's relevance score / recency as the tiebreaker. Record the chosen ranking + top-N IDs in the artifact's `### Search Provenance` section for reproducibility. Full priority-tier definitions in [references/cql-and-redaction.md](references/cql-and-redaction.md#deterministic-ranking-rule-referenced-from-step-23).
    2.4. Retrieve top 3–5 pages: `confluence_get_page(page_id, convert_to_markdown=True, include_metadata=True)`. Apply the same error branches as step 1.
 3. For each parent page, retrieve up to 5 relevant child pages.
@@ -72,7 +73,7 @@ The skill MUST NOT attempt retrieval against malformed input — that produces s
 
 <output_format>
 
-The artifact has **4 sections in order** (the phase contract — single source of truth shared with `references/cql-and-redaction.md` "Output template" + `references/validation-checklist.md` "all sections present" check; every section must be present, empty sections use `None.`):
+The artifact has **4 sections in order**; every section must be present, empty sections use `None.`:
 
 1. `## Confluence Documentation` — per-page entries with Page header (URL / Space / Labels / Updated / Type / Status) + `#### Content` + `#### Child Pages`
 2. `### Search Provenance` (when no URL was supplied; otherwise `N/A — URL-driven retrieval`) — CQL query + top-N page IDs + ranking applied
@@ -105,14 +106,16 @@ Load on demand when actively applying redaction. The above rules are NOT restate
 
 <failure_handling>
 
-- **Input unresolvable** (no page URL/ID provided, no search terms provided, malformed URL): stop, report `mcp-confluence-data-collection: input unresolvable — supply page URL/ID or search terms` to the parent workflow, ask the user. Do NOT guess.
-- **MCP not configured / not authenticated** (the MCP skill cannot connect or returns unauthenticated): stop, report `mcp-confluence-data-collection: Confluence MCP not configured or not authenticated — verify MCP setup`. Do NOT emit a zero-page artifact and call the phase done.
-- **MCP transport error** (timeout, 5xx, connection drop on any call): retry once with the same parameters. If the second call also fails, stop, report the transport error with the error message, ask the user to verify Confluence MCP configuration and connectivity.
-- **Authorization failure** (401/403): stop, report `mcp-confluence-data-collection: Confluence rejected the request — page(s) may exist but are not visible to the configured credentials`. Ask the user to verify Confluence MCP credentials / space access.
-- **Per-page permission-restricted** (one specific page returns 401/403 mid-harvest, others succeed): per `<safety_boundaries>` "Permission errors are not empty content" + `<process>` step 4 permission-restricted branch. If ALL pages fail with auth errors, treat as the global "Authorization failure" case above.
-- **Cross-domain URL** (user-supplied URL belongs to a Confluence host different from the configured MCP's site): stop the fetch for that URL, report `mcp-confluence-data-collection: URL <url> belongs to a different Confluence host (<domain>) than the configured MCP — ask user for an in-site equivalent or accept ticket-only continuation`. Do NOT bypass to an unconfigured fetch.
-- **Zero pages after URL and search paths exhausted** (no URLs supplied, search returns zero results, user-asked fallback also produced no URLs): record `Documentation: not available — search returned no results; user did not supply alternate URLs` in the artifact summary AND in Gaps. Acceptable if the user explicitly approves no-docs continuation per step 5. Otherwise stop and re-ask.
-- **`confluence_get_page` returns content but it is empty**: include the page with `[empty page]` body marker and record in Gaps. Do NOT fabricate content.
+Triggers → action (terse triggers; `<safety_boundaries>` owns the permission-error rule and `<process>` step 5 owns the zero-result precedence — not restated here):
+
+- **Input unresolvable** → stop, report `input unresolvable — supply page URL/ID or search terms`, ask user. Do NOT guess.
+- **MCP not configured / not authenticated** → stop, report `Confluence MCP not configured or not authenticated — verify MCP setup`. Do NOT emit zero-page artifact.
+- **MCP transport error** (timeout / 5xx / drop) → retry once same params; on second failure, stop + report transport error + ask user to verify MCP connectivity.
+- **Authorization failure** (401/403 on all pages) → stop, report `Confluence rejected the request — page(s) may exist but not visible to configured credentials`, ask user to verify credentials / space access.
+- **Per-page permission-restricted** (specific pages 401/403, others succeed) → apply `<safety_boundaries>` permission-error rule via `<process>` step 4 branch. If ALL pages fail → global Authorization failure above.
+- **Cross-domain URL** → stop the fetch, report `URL <url> belongs to a different Confluence host (<domain>) than the configured MCP — ask user for in-site equivalent or accept ticket-only continuation`. Do NOT bypass.
+- **Zero pages after URL + search + user-fallback exhausted** → record `Documentation: not available — search returned no results; user did not supply alternate URLs` in summary + Gaps. Step 5 precedence: ask user FIRST; this stop fires only after user-fallback produces nothing.
+- **`confluence_get_page` returns empty body** → include with `[empty page]` marker + Gaps entry. Do NOT fabricate.
 
 </failure_handling>
 

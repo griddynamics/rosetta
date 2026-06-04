@@ -113,13 +113,11 @@ End-to-end test automation from requirements gathering to test implementation. U
 </workflow_phases>
 
 <orchestration_and_escalation>
-- When loaded, USE SKILL `sequential-workflow-execution` (ACQUIRE FROM KB when needed) for skip gates and transition prompts.
-- Any skip outside those gates requires explicit user confirmation (HITL).
-- **Verification-failure unilateral-start override** — subordinate to `bootstrap-hitl-questioning` policy; Phase 3/6 HITL gates and safety/destructive confirmations are NEVER suppressed.
-  - **Trigger** (ALL three must hold): user asserted phases complete this turn + `agents/aqa-state.md` does not mark them complete + matching `<workflow_success_criteria>` spot-check artifacts are absent on disk.
-  - **Action:** print one line naming the failing conditions, log the override into `agents/aqa-state.md` `## Verification-Failure Overrides` (timestamp + asserted-complete claim + failing conditions + phase started — printed line alone is insufficient audit trail), start the earliest incomplete phase in the same turn — do NOT call `AskUserQuestion`.
-  - **Default:** any uncertainty (partial state, ambiguous assertion, stale artifacts) → fall back to normal HITL ask. *Rationale: the verification result IS the decision; asking would loop until artifacts exist.*
-- Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user, and do not substitute silently. (Normal HITL — the override does not apply outside the gate above.)
+- USE SKILL `sequential-workflow-execution` (ACQUIRE FROM KB when needed) for skip gates, transition prompts, and the **falsified-skip-claim handling** (its step 10 owns trigger / action / forbidden-at-gate / acceptable-input + announcement format — single canonical home; subordinate to `bootstrap-hitl-questioning`). This workflow does NOT restate that logic.
+- **AQA-specific binding for step 10:** state file = `agents/aqa-state.md`; verification artifacts = the spot-checks in `<workflow_success_criteria>`; carve-outs that remain in force = Phase 3/6 HITL gates + safety/destructive confirmations + zero-document ACQUIRE (stop + record + ask).
+- Audit-trail row written to `agents/aqa-state.md` `## Verification-Failure Overrides` per the state-file template below — step 10 of `sequential-workflow-execution` defines when and what to log.
+- Any skip outside `sequential-workflow-execution` gates requires explicit user confirmation (HITL).
+- Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user; never substitute silently.
 </orchestration_and_escalation>
 
 <workflow_success_criteria>
@@ -163,24 +161,13 @@ Create/update `agents/aqa-state.md` after each phase:
 
 <references>
 
-Subagents:
-- `discoverer` (Lightweight): external MCP data gathering, codebase analysis
-- `architect` (Full): test requirements specification and analysis
-- `engineer` (Full): selector management, test implementation, debugging, corrections
-- `executor` (Lightweight): optional for mechanical actions (builds, installs)
+Logical names only — full descriptions live where each is consumed (subagent contracts in `orchestrator-contract` skill, skill semantics in each skill's `SKILL.md`, MCP setup in workspace config).
 
-Skills:
-- Workflow orchestration tags: `sequential-workflow-execution`, `automation-test-implementation-handoff`, `automation-test-execution-analysis`, `user-approved-code-changes`, `confluence-source-harvesting`
-- **`sequential-workflow-execution`:** phase ordering, skip/customization gates, and transition prompts for multi-phase runs.
-- **`repository-implementation-standards`:** project coding conventions for tests, page objects, and shared helpers — derived from repo docs (`project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`); on conflict, repo docs win.
-- `questioning`, `coding`, `testing`, `debugging`
-- `aqa-requirements-elicitation`, `aqa-codebase-analysis`, `aqa-selector-management`, `aqa-test-authoring`, `aqa-test-debugging`
-- `mcp-testrail-data-collection`, `mcp-confluence-data-collection`
+**Subagents:** `discoverer` · `architect` · `engineer` · `executor`.
 
-MCPs:
-- Test case management MCP (default: `TestRail`)
-- Documentation MCP (default: `Atlassian Confluence`)
-- Browser automation MCP (default: `Playwright`)
+**Skills:** `sequential-workflow-execution` · `repository-implementation-standards` · `automation-test-implementation-handoff` · `automation-test-execution-analysis` · `user-approved-code-changes` · `confluence-source-harvesting` · `questioning` · `coding` · `testing` · `debugging` · `aqa-requirements-elicitation` · `aqa-codebase-analysis` · `aqa-selector-management` · `aqa-test-authoring` · `aqa-test-debugging` · `mcp-testrail-data-collection` · `mcp-confluence-data-collection`.
+
+**MCPs:** Test case management (default: `TestRail`) · Documentation (default: `Atlassian Confluence`) · Browser automation (default: `Playwright`).
 
 </references>
 

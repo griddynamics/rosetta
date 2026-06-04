@@ -234,3 +234,52 @@ Steps 3 + 4 **prefer the parent workflow's TMS config** over the defaults. When 
 ### For maintainers porting to non-TestRail vendors
 
 Drop these defaults entirely from the forked skill. Other vendors (Xray, Zephyr, qTest, Polarion) use either string enums (Xray priority labels), GraphQL types (Linear), or fully customizable type taxonomies — none have a "documented default ID table" the way TestRail does. The forked skill should require the parent to supply the mapping or refuse to run; see the per-vendor rebind list above for the vendor-specific guidance.
+
+---
+
+## Section-ID user prompt template (referenced from SKILL.md `<process>` step 2)
+
+Loaded on demand at step 2 when the parent workflow did not pre-supply `section_id` and the skill must collect it from the user. The base SKILL.md keeps the step-2 operational rule + flexible-parse acceptance (`section_id is XXXXX` / `group_id=XXXXX` / bare number) inline; this section holds the verbatim prompt text.
+
+```
+TestRail Section Setup Required
+
+To export test cases, I need a section_id from TestRail.
+
+**Option A: Use existing section**
+If you already have a section, provide the section_id.
+Find it in the URL when viewing a section (e.g., group_id=94686 or section_id=94686)
+
+**Option B: Create new section**
+1. Go to: [TestRail suite URL]
+2. Click "Add Section"
+3. Name it: [TICKET-KEY]
+4. After creating, find the section_id in the URL or section details
+
+Please provide: "section_id is XXXXX" or just the number
+```
+
+---
+
+## Preconditions format (referenced from SKILL.md `<process>` step 6)
+
+Loaded on demand at step 6 when actually formatting the `custom_preconds` field. The base SKILL.md keeps the field-choice + fallback rule inline; this section holds the verbatim TEST DATA / PRECONDITIONS section ordering template.
+
+Order: TEST DATA first (tester sees execution count immediately), then preconditions.
+
+For parameterized tests (has Test Data table):
+
+```
+=== TEST DATA ===
+Execute this test case for EACH row in the table below:
+
+| Parameter | Value 1 | Value 2 |
+|-----------|---------|---------|
+| [Param]   | [Val]   | [Val]   |
+
+=== PRECONDITIONS ===
+- [Precondition 1]
+- [Precondition 2]
+```
+
+For non-parameterized tests: include only the `=== PRECONDITIONS ===` section.
