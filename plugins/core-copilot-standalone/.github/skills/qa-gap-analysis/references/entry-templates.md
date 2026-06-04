@@ -136,3 +136,15 @@ Look for vague statements in test cases:
    - Why: [Impact on test comprehensiveness]
    - Default if unknown: [Safe assumption or N/A]
 ```
+
+---
+
+## Redaction examples (referenced from SKILL.md `<safety_boundaries>`)
+
+The operational rule + structural-content rule + targets categories live inline in SKILL.md `<safety_boundaries>`. The per-target examples below are illustrative — loaded on demand at steps 3 + 4 when authoring Contradiction / Ambiguity entries that may include quoted source text.
+
+- **Auth headers / tokens / API keys / passwords** in source text — `Bearer <jwt>`, `Authorization: Basic <base64>`, `X-Api-Key: <key>`, password values in step descriptions. Replace with `<redacted: bearer token>` / `<redacted: api key>` / `<redacted: password>` + one-line inline note (e.g., `Source: Swagger /auth/login — Bearer token redacted; see env var API_TOKEN`).
+- **Credentialed URLs** (`https://user:pass@host/...`, signed-URL query params) — redact the credential portion; record the redaction inline.
+- **Connection strings / private keys / service-account JSONs** — never paste; describe source (env var, secret-manager path) + mechanism (Bearer / Basic / OAuth flow).
+- **Real PII** in test data examples — customer names, real emails, real phone numbers, real account IDs, real payment card numbers. Replace with synthetic equivalents (`test.user-1@example.com`, `+1-555-0100` IETF reserved range, official PSP test card numbers).
+- **Test-data fixtures captured from production logs** — redact sensitive fields; keep structural shape.

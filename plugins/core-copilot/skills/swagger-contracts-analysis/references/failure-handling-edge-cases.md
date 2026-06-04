@@ -62,3 +62,45 @@ Mirrors the same lazy-loading pattern already used by `references/redaction-cata
 3. **Do NOT leave `Notes / Discrepancies` empty** when the partial-source scope was a recorded user / workflow decision. Note the scope decision in the entry's Notes field so reviewers can trace why only one source informed the contract — e.g., `Scope: spec-only per calling workflow request (code is closed-source for this audit); spec-vs-code reconciliation not run for this entry.`
 
 The Notes field is the audit trail; an empty Notes on a single-source entry is acceptable only when there was no explicit scope decision (e.g., the user simply didn't ask for hybrid reconciliation).
+
+---
+
+## Pitfalls catalog (referenced from SKILL.md `<pitfalls>`)
+
+Loaded on demand when the agent is reviewing why an authored entry might be incomplete or wrong. The base SKILL.md keeps the canonical rules in `<process>` + `<safety_boundaries>` + `<success_criteria>` + `<failure_handling>`; this list points at those canonical homes.
+
+- **Trusting Swagger blindly without cross-referencing code** → `<process>` step 5.1 reconciliation.
+- **Skipping code-based analysis when Swagger is available** → `<process>` step 2 hybrid branch.
+- **Missing per-endpoint auth requirements** → `<process>` step 3.
+- **Ignoring data dependencies / creation order** → `<process>` step 4.
+- **Treating GraphQL APIs as REST** → SKILL.md `<failure_handling>` "GraphQL API" edge-case pointer + the GraphQL section above.
+- **Silent endpoint drop** → SKILL.md `<process>` step 5.2 (canonical coverage rule) + `<failure_handling>` "Endpoint not found" pointer.
+- **Fabricated schema fields / status codes** → SKILL.md `<success_criteria>` no-fabrication rule (every field traces to spec/code or is marked `N/A — <reason>`).
+- **Empty `Notes / Discrepancies` on hybrid entries** → SKILL.md `<success_criteria>` hybrid-Notes rule (explicit `None.` required when no mismatch).
+- **Literal credentials / PII in artifact** → SKILL.md `<safety_boundaries>` redact-before-writing rule + `references/redaction-catalog.md` target list.
+
+---
+
+## Process step 5 expanded prose (referenced from SKILL.md `<process>` step 5)
+
+The base SKILL.md keeps step 5 as four short numbered actions (5.1 cross-check, 5.2 coverage, 5.3 checklist, 5.4 emit). This section holds the per-action prose for grounding when the brief inline directives are not enough.
+
+### 5.1 Spec-vs-code cross-check (when both are available)
+
+For each endpoint, compare the Swagger spec against the code: are the same fields / types / required-flags / status codes / auth requirements present in both? Record every mismatch (additional validation in code not in spec, deprecated markers, missing response shapes, auth differences) in the **Notes / Discrepancies** section of that endpoint's contract entry.
+
+Do NOT silently prefer one source over the other — declare the discrepancy explicitly so the calling workflow / reviewer can decide. When a discrepancy exceeds what Notes can hold (method differs, required-field set differs >50%, status-code success semantics disagree, schemas structurally incompatible), escalate per the `Spec-vs-code reconciliation conflict beyond Notes` edge-case section above.
+
+### 5.2 Coverage check (canonical — single source of truth for the no-silent-drop rule)
+
+Every endpoint in the target list supplied by the calling workflow MUST have a contract entry. Endpoints that could not be analyzed (not found in spec/code, ambiguous routing, parsing failure) are flagged back to the calling workflow with the specific reason — **NEVER silently dropped**.
+
+Other sections reference this rule by name: `<input_contract>` step 1.0 GATE, `<success_criteria>`, `<failure_handling>` "Endpoint not found" branch, `<pitfalls>` "Silent endpoint drop". The full rule is stated here; pointers elsewhere do not restate it.
+
+### 5.3 Run the validation checklist
+
+Load [references/validation-checklist.md](validation-checklist.md) and verify every item before emit. Fix any failing item.
+
+### 5.4 Emit per output_format
+
+Emit the per-endpoint markdown (template in `references/per-endpoint-template.md`) to the destination supplied by the calling workflow. This skill does NOT decide the destination path — the calling workflow names it.

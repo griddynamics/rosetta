@@ -172,3 +172,46 @@ Before declaring a case complete, scan Steps + Expected Results + Test Data + Pr
 - Credentialed URLs (`user:pass@` segments)
 
 Any matches → replace with the placeholders above; record the redaction in Notes.
+
+---
+
+## Pitfalls catalog (referenced from SKILL.md `<pitfalls>`)
+
+Loaded on demand during emit review. Each item is a pointer to the canonical rule home — no rule is restated. The base SKILL.md keeps `<format_rules>` + `<epistemic_honesty>` + `<safety_boundaries>` inline as the rule SSoTs.
+
+- **BDD / Given-When-Then format** → `<format_rules>` MUST NOT.
+- **Multi-action steps OR vague expected results** → `<format_rules>` step / expected-result discipline.
+- **Parameterization without execution-count clause or Test Data ref** → `<format_rules>` parameterization.
+- **>5 parameter sets** → split per `<failure_handling>` cap rule.
+- **Fabricated requirement / US / AC IDs** → `<epistemic_honesty>` gap markers (canonical).
+- **Literal credentials / PII in case body** → `<safety_boundaries>` (downstream `testrail-test-case-export` writes verbatim to TestRail — irreversible if leaked).
+
+---
+
+## Validation grep specs (referenced from SKILL.md `<validation_checklist>`)
+
+Loaded on demand at pre-emit. The base SKILL.md keeps the **per-rule grep item list** (item names + canonical-rule cite) inline so the agent knows what to verify; this section holds the verbose **grep specs** (literal strings to search, multi-condition predicates) the agent applies at grep time.
+
+### Format compliance grep — literals
+Grep the assembled test case body for: `Given `, `When `, `Then `, `Post-conditions`, `Automation`. **None must appear.** Per `<format_rules>` MUST NOT.
+
+### Step / expected-result discipline grep — predicates
+- Steps numbered sequentially (1, 2, 3, ...) — no missing numbers, no out-of-order.
+- Every expected result line references its step (`After step N: ...`) — no orphan expected-results.
+- No step contains multiple actions joined by `and` / commas — single-action steps per `<format_rules>`.
+
+### Parameterization grep — predicates
+When a Test Data table is present:
+- Preconditions states execution count (e.g. `Execute this test case 3 times with different parameters`).
+- Preconditions references Test Data explicitly.
+- Set count ≤ 5 — if >5, split into multiple cases per `<failure_handling>` cap rule.
+
+### Gap-marker grep — fields
+Every traceability field AND every required field — Related Requirement, Type, Priority, Preconditions, Steps, Expected Results, Traceability (US / AC / FR / NFR) — is either real OR carries a `<epistemic_honesty>` gap marker. No fabrication.
+
+### Safety re-scan grep — patterns
+Per the "Safety re-scan grep targets" section above in this file. Single SSoT for what to scan against; results applied per `<safety_boundaries>` placeholder vocabulary.
+
+### Notes-accuracy structural check
+- Split-from-N-set parameterization: each split case's Notes records `Split from <N>-set parameterization (1 of M, 2 of M, ...)`.
+- Defaulted-to-P2 Priority gap: the Priority gap marker is visible in the Traceability/Priority section per `<epistemic_honesty>`.

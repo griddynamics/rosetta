@@ -41,12 +41,7 @@ The parent workflow phase file supplies all bindings below. This skill does not 
 | Workflow state file | Parent workflow (e.g. `agents/aqa-state.md`, `agents/qa-state.md`) | Where step 10 records counts, root-cause summary, report path, and timestamp. |
 | Run identifier or timestamp | Parent workflow OR derivable from the report | Used to tie the analysis artifact to a single test execution. |
 
-**Flow-type determination** (drives the step 7 category set):
-
-- **UI flow** if the report's framework or test paths match Playwright/Cypress/Selenium/WebdriverIO/TestCafe **OR** any failure stack references a browser driver / selector resolution / page-object call. UI-specific categories become applicable: selector/locator, auth/session (browser auth), flakiness from timing/visibility.
-- **API flow** if the report's framework matches pytest+requests / RestAssured / SuperTest / Karate **OR** failures cite HTTP status codes, request/response payloads, or contract validators. API-specific categories become applicable: contract mismatch, auth/session (token-based), infra timeout (HTTP), data.
-- **Mixed flow:** if both signals are present, treat as **mixed** and apply UI categories to UI-attributed failures, API categories to API-attributed failures. Record the flow-type decision in the analysis artifact's metadata.
-- **Indeterminate:** if neither signal is present after one pass over the report (e.g., a plain failure log with no framework markers), record `flow-type: indeterminate` in the artifact's metadata, ask the parent workflow once to disambiguate, and continue with the unioned category list. Do NOT guess.
+**Flow-type determination** drives the step-7 category set. Detection rules + framework signal lists + UI/API/mixed/indeterminate branches live in [references/output-template-and-examples.md "Flow-type determination"](references/output-template-and-examples.md#flow-type-determination-referenced-from-skillmd-input_contract) — load on demand when actually triaging.
 
 </input_contract>
 
@@ -58,8 +53,8 @@ The parent workflow phase file supplies all bindings below. This skill does not 
 4. Resolve the parent-specified domain analysis skill.
 5. GATE: if the parent-specified domain analysis skill cannot be resolved/loaded, stop this phase, record the missing skill/tag in workflow state, and ask the user to fix Rosetta/KB access or provide explicit fallback approval before continuing.
 6. USE the resolved domain analysis skill under the read-only contract from `<core_concepts>`. If the domain skill's loaded form does not honor that contract for this phase, stop and report to the parent workflow.
-7. Categorize each failure using the canonical category enum from `<output_format>` (`environment | data | product-regression | test-bug | flakiness | infra-timeout | auth-session | selector-locator` (UI flows) `| contract-mismatch` (API flows) `| unknown`). The hyphenated forms in `<output_format>` are the single source of truth — do not introduce variants (e.g. `product regression` vs `product-regression`).
-8. For each category, tie to evidence: log lines, stack snippets, or request/response identifiers — distinguish verified facts from hypotheses. **Every entry MUST carry a Fact-vs-Hypothesis flag** (canonical rule — see `<output_format>`). Paired worked example (grounded vs ungrounded, same test in both shapes): [references/output-template-and-examples.md](references/output-template-and-examples.md#worked-example--grounded-vs-ungrounded-finding-referenced-from-skillmd-process-step-8) — load on demand when authoring entries.
+7. Categorize each failure using the **canonical category enum** in `<output_format>` (single source of truth — hyphenated forms only; no variants like `product regression`).
+8. For each category, tie to evidence (log lines, stack snippets, request/response IDs) and set the **Fact-vs-Hypothesis flag** per `<output_format>` (canonical rule). Paired worked example (grounded vs ungrounded): [references/output-template-and-examples.md](references/output-template-and-examples.md#worked-example--grounded-vs-ungrounded-finding-referenced-from-skillmd-process-step-8).
 9. Produce or update the parent workflow's analysis artifact (path and template from phase file).
 10. Update workflow state with counts, root-cause summary list, report path, and phase completion timestamp.
 11. GATE: confirm recommendations are actionable for a correction phase (owner file, suspected fix type).
@@ -88,28 +83,28 @@ The analysis artifact is **tracked, downstream-fed, and PUBLIC by default** — 
 
 <validation_checklist>
 
-- Execution input was actually read, not summarized from memory
-- Flow type recorded (UI / API / mixed / indeterminate) per `<input_contract>` flow-type determination
-- Every failure entry carries a Fact-vs-Hypothesis flag per the `<output_format>` mandatory-flag rule (canonical); FACT entries cite ≥1 evidence reference, HYPOTHESIS/UNKNOWN entries state what would upgrade them
-- No code changes were started — this phase is read-only by contract; correction work is the downstream phase's job unless the parent workflow explicitly authorizes a combined phase
-- State and analysis artifact both reflect the same run identifier or timestamp
-- Analysis artifact follows the parent's `<output_format>` if supplied, OR this skill's default template if not — sections present, no `TBD` placeholders
-- User was informed how to proceed (e.g. correction phase) per parent workflow
-- **Redaction scan completed** per `<safety_boundaries>` policy in [references/redaction-policy.md](references/redaction-policy.md) (canonical targets + grep-pattern list + structural-content + re-scan rules) — every Failure entry's Evidence references and any inline log/stack/body snippets were grepped; any matches were replaced with placeholders AND the redaction noted inline. No literal credentials, tokens, or real PII remain in the artifact.
+**Grep-proof layer only** — rules live in `<core_concepts>` (read-only contract) + `<input_contract>` (flow-type) + `<output_format>` (category enum + Fact-vs-Hypothesis flag) + `<safety_boundaries>` (redaction). Items below are per-emit grep checks; no rule is restated here.
+
+- Execution input was actually read, not summarized from memory.
+- Flow-type recorded per `<input_contract>` (UI / API / mixed / indeterminate).
+- Fact-vs-Hypothesis flag present on every failure entry per `<output_format>` canonical rule.
+- Read-only contract honored per `<core_concepts>` — no code changes started (unless parent explicitly authorizes a combined phase).
+- State + artifact share the same run identifier / timestamp.
+- Artifact follows parent's `<output_format>` if supplied, else the default template — sections present, no `TBD` placeholders.
+- User informed how to proceed (e.g. correction phase) per parent workflow.
+- Redaction scan run per `<safety_boundaries>` → `references/redaction-policy.md` (canonical target list + grep patterns + re-scan rule).
 
 </validation_checklist>
 
 <best_practices>
 
-- Prefer stable identifiers (test case name, node id, request id) over page numbers in PDFs
-- When multiple failures share one root cause, collapse them to reduce noise
+Stable-identifier preference + root-cause-collapse rule live in [references/output-template-and-examples.md "Best practices + pitfalls"](references/output-template-and-examples.md#best-practices--pitfalls-referenced-from-skillmd-best_practices--pitfalls) — load on demand during triage / authoring.
 
 </best_practices>
 
 <pitfalls>
 
-- Treating green CI from a different branch or stale run as current
-- Confusing application bugs with outdated tests without evidence
+Stale-CI-run + application-bug-vs-outdated-test pitfalls live in [references/output-template-and-examples.md "Best practices + pitfalls"](references/output-template-and-examples.md#best-practices--pitfalls-referenced-from-skillmd-best_practices--pitfalls) — load on demand during triage / authoring.
 
 </pitfalls>
 

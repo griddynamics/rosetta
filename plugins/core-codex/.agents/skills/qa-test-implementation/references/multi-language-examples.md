@@ -206,3 +206,44 @@ Implement test cases in the order the approved specs prioritize:
 4. **P3 (Low)** — rare scenarios, optional coverage.
 
 A spec's priority field overrides this default when present.
+
+---
+
+## Hand-off Summary worked example (SKILL.md `<output_format>`)
+
+Loaded on demand at process step 8 when authoring the hand-off summary returned to the calling workflow. The base SKILL.md keeps the **field list + structure shape** inline (decision-time — agents need the section names to verify completeness); this filled-in example shows what each field looks like populated.
+
+```markdown
+## qa-test-implementation deliverable
+
+**Test framework:** pytest 7.4
+**Files created:** 2
+**Files modified:** 1
+
+### Files
+- `tests/api/users.test.ts` (created, 8 tests)
+- `tests/helpers/auth.ts` (modified — extended existing AuthHelper with `getAdminToken`)
+
+### ATC → test mapping
+| ATC ID  | Test file                  | Test function                              |
+|---------|----------------------------|--------------------------------------------|
+| ATC-001 | `tests/api/users.test.ts`  | `test_create_user_with_valid_data`         |
+| ATC-002 | `tests/api/users.test.ts`  | `test_create_user_missing_required_field`  |
+
+### Assumptions made
+- `[ASSUMED: max_username_length=64]` — spec did not specify; chose 64 to match the user-table column constraint observed in the existing schema migration.
+- `[ASSUMED: test isolation via class-scoped setup]` — both class-based and function-scoped patterns exist in the codebase; chose class-scoped to match the most recent file.
+- (If none: `None — all values derived from approved specs and existing patterns.`)
+
+### Gaps surfaced
+- `ATC-017` — not implemented; depends on `/api/v1/admin/audit-log` endpoint not present in `api-analysis.md`. Calling workflow should re-run API spec analysis to cover this endpoint.
+- (If none: `None — all ATCs implemented.`)
+
+### Lint / format status
+- pass — exact command run: `npm run lint && npm run format:check`
+
+### Ready for re-test
+- yes
+```
+
+The `[ASSUMED: ...]` marker + no-silent-ATC-drop rule are canonical in SKILL.md `<process>` step 7 — this example just shows their on-disk shape.

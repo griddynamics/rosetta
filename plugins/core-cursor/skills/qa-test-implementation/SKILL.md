@@ -103,76 +103,50 @@ Run the `<validation_checklist>` below before declaring complete. Fix any failin
 The skill's deliverable is two parts: (a) on-disk test + utility code, (b) a hand-off summary returned to the calling workflow.
 
 **On-disk deliverable:**
-- Test files created or modified at paths consistent with the project's test layout
-- Shared utility files created or modified at paths consistent with the project's helper layout
+- Test files created or modified at paths consistent with the project's test layout.
+- Shared utility files created or modified at paths consistent with the project's helper layout.
 
-**Hand-off summary** (returned to the calling workflow):
+**Hand-off summary** (returned to the calling workflow) — required fields, in this order. Each field's `[ASSUMED: ...]` marker + no-silent-ATC-drop discipline is owned by `<process>` step 7 (canonical); this section is the field-list contract only.
 
-```markdown
-## qa-test-implementation deliverable
+1. `**Test framework:**` (name + version)
+2. `**Files created:**` / `**Files modified:**` (counts)
+3. `### Files` — bulleted list of paths with brief annotation
+4. `### ATC → test mapping` — table: ATC ID | Test file | Test function
+5. `### Assumptions made` — `[ASSUMED: ...]` entries per step 7 (or `None — ...` per the populated example)
+6. `### Gaps surfaced` — per-ATC entries with reason (or `None — all ATCs implemented`)
+7. `### Lint / format status` — pass | fail | skipped + exact command
+8. `### Ready for re-test` — yes | no (with reason if no)
 
-**Test framework:** [name + version]
-**Files created:** [count]
-**Files modified:** [count]
-
-### Files
-- `tests/api/users.test.ts` (created, 8 tests)
-- `tests/helpers/auth.ts` (modified — extended existing AuthHelper with `getAdminToken`)
-
-### ATC → test mapping
-| ATC ID  | Test file                  | Test function                              |
-|---------|----------------------------|--------------------------------------------|
-| ATC-001 | `tests/api/users.test.ts`  | `test_create_user_with_valid_data`         |
-| ATC-002 | `tests/api/users.test.ts`  | `test_create_user_missing_required_field`  |
-
-### Assumptions made
-- `[ASSUMED: max_username_length=64]` — spec did not specify; chose 64 to match the user-table column constraint observed in the existing schema migration.
-- `[ASSUMED: test isolation via class-scoped setup]` — both class-based and function-scoped patterns exist in the codebase; chose class-scoped to match the most recent file.
-- (If none: `None — all values derived from approved specs and existing patterns.`)
-
-### Gaps surfaced
-- `ATC-017` — not implemented; depends on `/api/v1/admin/audit-log` endpoint not present in `api-analysis.md`. Calling workflow should re-run API spec analysis to cover this endpoint.
-- (If none: `None — all ATCs implemented.`)
-
-### Lint / format status
-- [pass | fail | skipped] — exact command run: `<command>`
-- If failed: paste the relevant error output.
-
-### Ready for re-test
-- yes | no (with reason if no)
-```
+**Filled worked example** (sample file names + ATC table + sample `[ASSUMED:]` markers + lint output) lives in [references/multi-language-examples.md](references/multi-language-examples.md#hand-off-summary-worked-example-skillmd-output_format) — load on demand at process step 8.
 
 </output_format>
 
 <validation_checklist>
 
-Run as process step 8 before declaring complete. All items must hold:
+**Grep-proof layer only** — rules live in step 1 GATE + `<process>` step 7 (assumptions/gaps discipline) + `<output_format>` (field list) + step 5 implementation rules (`references/multi-language-examples.md`). Items below are per-emission grep checks; no rule is restated here.
 
-- **All inputs were validated** per step 1 GATE; no input was missing/unapproved when generation began.
-- **Every ATC from approved specs is mapped to a test function** OR surfaced in the `### Gaps` section with a reason. No silent ATC drops.
-- **Every test function name or docstring contains its ATC-NNN identifier** — traceability preserved.
-- **All assertions from the approved spec are encoded** in the test function (status code + body structure + body values + headers as specified). Missing assertions are spec violations.
-- **Auth coverage matches spec:** for each protected endpoint, the spec's auth-failure ATCs (401 no-token, 401 bad-token, 403 insufficient-perm when applicable) are implemented.
-- **No hardcoded URLs / credentials / production data** in test files. Use env vars, fixtures, or config files. Synthetic test data only.
-- **Existing helpers extended, not duplicated.** If a parallel `AuthHelper`/`Factory`/`Validator` was created, the reason is recorded in Assumptions.
-- **Imports correct; lint/format clean** on touched files. Run the project's lint/format command and record the result in the hand-off summary.
-- **Assumptions section populated** — every spec-omitted value or pattern-ambiguity decision is recorded with `[ASSUMED: ...]` markers in code AND in the hand-off summary. Empty list is acceptable; absence of the section is not.
-- **Hand-off summary emitted** per `<output_format>` — Test framework / Files / ATC→test mapping / Assumptions / Gaps / Lint / Ready-for-re-test fields all populated (or marked `None`/`N/A` with reason).
+- **Step 1 GATE passed** (all 5 inputs validated; no missing/unapproved generation start).
+- **ATC traceability grep:** every ATC from approved specs → either a test function mapped in `### ATC → test mapping` OR a `### Gaps surfaced` entry with reason (step 7 "no silent drop" rule).
+- **ATC-NNN identifier grep:** every test function name or docstring contains its ATC ID.
+- **Assertion-completeness grep** per the approved spec (status / body structure / body values / headers).
+- **Auth-coverage grep:** spec's auth-failure ATCs (401 no-token / 401 bad-token / 403 insufficient-perm) all implemented for protected endpoints.
+- **No hardcoded credentials / URLs / production data** grep on touched test files (synthetic data only; env vars / fixtures / config for runtime values).
+- **Helper-reuse grep** per step 1 GATE shared-utility rule: parallel `AuthHelper`/`Factory`/`Validator` only when the Assumptions section records the reason.
+- **Lint/format clean** grep on touched files; exact command recorded in hand-off summary.
+- **`[ASSUMED: ...]` marker grep** per step 7: every Assumptions-section entry uses the marker syntax in code AND in the hand-off summary.
+- **Hand-off summary emitted** per `<output_format>` field list — all 8 fields populated (or `None`/`N/A` with reason).
 
 </validation_checklist>
 
 <pitfalls>
-- Generating test code from unapproved specs because the approval signal looked "probably there" — the step 1 GATE requires an explicit approval signal from the calling workflow, not inference.
-- Bypassing existing helpers to write raw HTTP calls when utilities exist
-- Missing assertions from the test specification
-- Not matching existing test patterns (imports, structure, naming)
-- Hardcoding URLs, credentials, or test data that should be configurable
-- Skipping test data cleanup — causes cascading failures in test suite
-- Not referencing ATC spec IDs in test names/comments — loses traceability
-- Adding hardcoded waits/sleeps instead of proper retry strategies
-- Inventing spec values without an `[ASSUMED: ...]` marker — confident fabrication that the maintainer cannot trace back
-- Silently dropping ATCs that can't be implemented — they belong in the `### Gaps` section of the hand-off summary
-- Picking a test framework default when existing patterns are absent or ambiguous — the step 1 GATE requires the caller to provide the framework choice explicitly
+
+Only **genuinely additive** failure modes (rules already enforced by step 1 GATE / `<process>` step 7 / `<validation_checklist>` are NOT restated):
+
+- **Hardcoded waits / sleeps** instead of proper retry-or-condition strategies — produces flaky tests under load variance. The lint/format check rarely catches `time.sleep(2)` / `await new Promise(r => setTimeout(r, 2000))`; the checklist's "no hardcoded credentials" grep targets sensitive values, not timing primitives. Use the framework's wait/retry primitives (e.g., `pytest.retry`, `expect.poll`, `WebDriverWait`) tied to an observable condition.
+- **Skipping test data cleanup** — even idempotent-looking tests can leave state that cascades into later runs (sequence-IDs, soft-delete flags, audit-log rows). Add teardown or rollback per the project's existing pattern.
+- **Bypassing existing helpers to write raw HTTP calls** when utilities exist — splits the maintenance surface; a future auth-helper change misses the raw paths. The helper-reuse grep catches the *parallel-implementation* case; this pitfall covers the upstream "I'll just call requests.post directly" temptation when the helper exists but is harder to discover.
+- **Not matching existing test patterns** (imports order / describe/test structure / naming convention) — the lint command catches formatting but not structural fit; downstream phases assume consistency.
+
 </pitfalls>
 
 </qa-test-implementation>

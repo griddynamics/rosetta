@@ -48,7 +48,7 @@ The skill is **NOT complete** if the artifact lacks the alignment section, the s
 | Phase artifact path | **required** | Parent workflow phase file (e.g. `agents/plans/aqa-<test-name>.md`, `agents/qa/{IDENTIFIER}/raw-data.md`) | Step 6 — destination for the `## Repository Standards Alignment` section |
 | Standards docs at non-default paths | optional | Parent workflow or user | Step 1 — overrides the repo-root default lookup |
 | Substitute standards (when docs absent) | required only if step-2 GATE fires | User response to the ask-once prompt | Step 3 — extract rules from user-supplied source |
-| Standards docs at repo root | self-discovered | This skill walks `project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md` | Step 1 — default lookup |
+| Standards docs at repo root | self-discovered | This skill walks `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md` (canonical Rosetta target-project docs) + `project_description.md` if present | Step 1 — default lookup |
 | Codebase | self-discovered | Workspace | Step 4 — closest-example search |
 
 **Required-input failure rule.** If the phase artifact path is not supplied, this skill cannot write its alignment record — apply `<failure_handling>` "missing artifact path". Do NOT pick a default path; downstream handoff skills look for the record where the parent named it.
@@ -57,7 +57,7 @@ The skill is **NOT complete** if the artifact lacks the alignment section, the s
 
 <process>
 
-1. Locate and read, when present: `project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md` (repo root or paths given by the workflow or user).
+1. Locate and read, when present: the **canonical Rosetta target-project docs** at repo root — `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md` (or paths given by the workflow / user). Also read `project_description.md` at repo root **if present** — non-canonical, optional, project-specific narrative doc (some projects carry it as a top-level overview); absence is normal and does NOT fire the step-2 GATE on its own.
 2. GATE: if none of the standard docs in step 1 exist or are readable, stop implementation and ask the user to provide substitute standards before continuing.
 3. Extract explicit rules: test layout, naming, fixtures, auth/session handling, logging, lint/format commands, forbidden patterns.
 4. Search the codebase for the closest existing examples (same framework, same layer) before writing new files.
@@ -100,41 +100,13 @@ Append the following section to the parent-supplied phase artifact (path from `<
 - (If none: `None — sources consistent.`)
 ```
 
-**Concrete example** of a populated section:
-
-```markdown
-## Repository Standards Alignment
-
-### Docs read
-- project_description.md: ./project_description.md
-- CONTEXT.md: not present
-- ARCHITECTURE.md: ./ARCHITECTURE.md
-- IMPLEMENTATION.md: not present
-- Substitute standards: N/A
-
-### Rules extracted
-- **Test layout:** Playwright specs under `tests/e2e/<feature>/<scenario>.spec.ts`; page objects under `tests/pages/`.
-- **Naming:** `kebab-case.spec.ts` for tests; `PascalCase` for page-object classes.
-- **Fixtures / helpers / page objects:** `tests/fixtures/auth.ts` for token acquisition; reuse `BasePage` from `tests/pages/base.page.ts` for navigation.
-- **Auth / session handling:** Bearer token from env var `E2E_AUTH_TOKEN`; helper `AuthHelper.adminToken()` for admin tests.
-- **Logging:** Playwright's built-in `test.info().annotations` — no custom logger.
-- **Lint / format commands:** `npm run lint` (ESLint) + `npm run format` (Prettier).
-- **Forbidden patterns:** Not documented — no explicit list.
-
-### Reference example files (closest existing patterns)
-- `tests/e2e/checkout/payment.spec.ts` — used as template for: test layout + describe/test structure.
-- `tests/pages/checkout.page.ts` — used as template for: page-object shape.
-- `tests/fixtures/auth.ts` — used as template for: auth helper.
-
-### Conflicts and resolutions
-- `IMPLEMENTATION.md` is absent but `tests/e2e/checkout/payment.spec.ts` uses `test.describe.serial(...)` while `ARCHITECTURE.md` says "tests should be parallelizable" — surfaced to user; user directed: keep `serial` for the new test (matches existing pattern), record as assumption.
-```
+**Concrete worked example** (populated Playwright project with a Docs-vs-code conflict resolution) lives in [references/output-example.md](references/output-example.md#populated-example--playwright-project) — load on demand at process step 6 when authoring the alignment record.
 
 </output_format>
 
 <safety_boundaries>
 
-This skill **reads** repository docs (`project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`) and the codebase. It **writes only** the `## Repository Standards Alignment` section into the parent-supplied phase artifact (path from `<input_contract>`).
+This skill **reads** repository docs (canonical: `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`; optional: `project_description.md`) and the codebase. It **writes only** the `## Repository Standards Alignment` section into the parent-supplied phase artifact (path from `<input_contract>`).
 
 It does **not**:
 
@@ -160,13 +132,12 @@ Reading is unbounded (any file in the repo may be sampled as a "closest example"
 
 <validation_checklist>
 
-- At least one of the standard doc files was read, or the user confirmed none exist and provided substitute standards
-- Implementation matches documented directory layout, naming, and tooling commands when documented
-- New code reuses or extends existing helpers/fixtures/page objects when applicable instead of duplicating
-- Conflicts between docs and code were surfaced to the user or documented as assumptions
-- **`## Repository Standards Alignment` section written** to the parent-supplied phase artifact per `<output_format>` — all four subsections present (Docs read / Rules extracted / Reference example files / Conflicts and resolutions), empty fields marked `None` or `Not documented — <impact>`, not silently blank
-- **Reference example file list capped at ≤ 6 entries** with paths only (no large quoted code blocks)
-- **No source files were modified** outside the alignment section append — safety boundary respected
+**Grep-proof layer only** — rules live in `<success_criteria>` + `<output_format>` + `<safety_boundaries>`; items below verify those rules at emit time. No rule is restated here.
+
+- At least one canonical doc (or user-confirmed substitute per `<failure_handling>`) was read.
+- `## Repository Standards Alignment` section written per `<output_format>` — its 4 subsections (declared once in `<output_format>`) all present; empty fields marked `None` / `Not documented — <impact>`.
+- Reference example file list ≤ 6 entries; paths only.
+- No source files modified outside the alignment-section append per `<safety_boundaries>`.
 
 </validation_checklist>
 

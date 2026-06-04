@@ -207,3 +207,30 @@ The calling workflow currently ACQUIREs `testrail-test-case-export` by name. Whe
 **(b) Keep per-vendor workflow forks** — the calling workflow has a `<vendor>-flow.md` that hardcodes the corresponding `<vendor>-test-case-export` ACQUIRE.
 
 Option (a) is preferred but should not be implemented until at least one second-vendor binding actually exists (YAGNI — designing a parameter-resolution mechanism for one vendor is over-engineering).
+
+---
+
+## Default-ID rationale (referenced from SKILL.md `<process>` steps 3 + 4)
+
+Loaded on demand when a maintainer questions why the SKILL.md ships with a specific default priority/type ID table — and what the audit implications of using those defaults on a non-default TestRail instance are.
+
+### Why steps 3 + 4 carry a default table at all
+
+TestRail's `priority_id` and `type_id` values are NOT enums in the API spec — they are foreign keys into per-instance lookup tables (`Administration → Customizations → Priorities` and `Administration → Customizations → Test Types`). Two different TestRail installations of the same software can have completely different ID-to-label mappings, and the API does not validate semantic correctness — it accepts any integer the user passes and stores it.
+
+The SKILL.md defaults below are the **documented out-of-the-box values** that ship in a fresh TestRail installation:
+
+- **Priority defaults:** P0 → `4` (Critical), P1 → `3` (High), P2 → `2` (Medium), P3 → `1` (Low)
+- **Type defaults:** Happy Path → `1` (Functional), Negative → `7`, Edge Case → `6` (Boundary), Integration → `8`, Performance → `9`, Security → `10`
+
+### Audit risk: silent mis-mapping on customized instances
+
+When a TestRail instance has a customized priority or type table (renamed labels, reordered values, added intermediate values like "P1.5 — Urgent"), exporting against the default IDs above produces **silently mis-labeled cases** in the target project. The API call succeeds, the case appears in TestRail, but its priority/type label is wrong — and the rendered TestRail UI gives no indication that the ID came from a generic default rather than the instance's actual mapping.
+
+### Mitigation: parent TMS config takes precedence
+
+Steps 3 + 4 **prefer the parent workflow's TMS config** over the defaults. When a project supplies an instance-specific `priority_id` / `type_id` table via `qa-project-config.md` `Test Case Management` section (or testgen equivalent), the skill uses that mapping. The defaults are a last-resort fallback so the export still produces a valid case rather than failing — but the validation_checklist's "values match target project configuration per step 3 + 4 precedence" item is the audit anchor that catches this mismatch in review.
+
+### For maintainers porting to non-TestRail vendors
+
+Drop these defaults entirely from the forked skill. Other vendors (Xray, Zephyr, qTest, Polarion) use either string enums (Xray priority labels), GraphQL types (Linear), or fully customizable type taxonomies — none have a "documented default ID table" the way TestRail does. The forked skill should require the parent to supply the mapping or refuse to run; see the per-vendor rebind list above for the vendor-specific guidance.

@@ -83,3 +83,32 @@ Required to upgrade to FACT: a stack trace or HTTP log showing the actual networ
 ```
 
 Apply the same shape to every Fn entry: state the category (from the canonical enum), cite or explicitly disclaim evidence, set the Fact-vs-Hypothesis flag, name a one-line root cause + owner file when FACT, or state what data would upgrade HYPOTHESIS / UNKNOWN to FACT.
+
+---
+
+## Flow-type determination (referenced from SKILL.md `<input_contract>`)
+
+The base SKILL.md keeps the input-contract table inline (decision-time — agents need the input shape every call); this section holds the flow-type detection rules loaded only when actually triaging a report.
+
+The flow type drives the step-7 category set:
+
+- **UI flow** if the report's framework or test paths match Playwright / Cypress / Selenium / WebdriverIO / TestCafe **OR** any failure stack references a browser driver / selector resolution / page-object call. UI-specific categories become applicable: selector/locator, auth/session (browser auth), flakiness from timing/visibility.
+- **API flow** if the report's framework matches pytest+requests / RestAssured / SuperTest / Karate **OR** failures cite HTTP status codes, request/response payloads, or contract validators. API-specific categories become applicable: contract mismatch, auth/session (token-based), infra timeout (HTTP), data.
+- **Mixed flow:** if both signals are present, treat as **mixed** and apply UI categories to UI-attributed failures, API categories to API-attributed failures. Record the flow-type decision in the analysis artifact's metadata.
+- **Indeterminate:** if neither signal is present after one pass over the report (e.g., a plain failure log with no framework markers), record `flow-type: indeterminate` in the artifact's metadata, ask the parent workflow once to disambiguate, and continue with the unioned category list. Do NOT guess.
+
+---
+
+## Best practices + pitfalls (referenced from SKILL.md `<best_practices>` + `<pitfalls>`)
+
+Loaded on demand during report triage / artifact authoring. The base SKILL.md keeps decision-time content (process / GATEs / safety / output_format) inline; this section holds the recommendation + anti-pattern catalogs.
+
+### Best practices
+
+- Prefer stable identifiers (test case name, node id, request id) over page numbers in PDFs.
+- When multiple failures share one root cause, collapse them to reduce noise (use `Affects:` to enumerate the test IDs sharing the root cause in a single Fn entry rather than emitting Fn-1, Fn-2, Fn-3 for the same cause).
+
+### Pitfalls
+
+- Treating green CI from a different branch or stale run as current — verify the run identifier matches the execution under analysis.
+- Confusing application bugs with outdated tests without evidence — `product-regression` (app bug) vs `test-bug` (outdated test) is exactly the call the Fact-vs-Hypothesis flag exists to make traceable. When both could explain the failure, set the flag to `HYPOTHESIS` until a stack / request trace / spec diff decides it.

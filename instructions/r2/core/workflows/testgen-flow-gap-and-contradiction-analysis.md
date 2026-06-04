@@ -38,21 +38,21 @@ Analyze Jira ticket and Confluence documentation to identify contradictions, gap
 <run_analysis step="2.2" subagent="architect" role="Requirements gap analyst">
 1. USE SKILL `gap-and-contradiction-analysis`
 2. Sources to analyze: Jira ticket data + Confluence page data from `raw-data.md`
-3. Identify contradictions, gaps, ambiguities across Jira and Confluence
-4. Cross-reference Jira vs Confluence for information present only in one source
+3. Identify contradictions, gaps, ambiguities per the skill's detection taxonomies (Contradiction types: Value Mismatch / Logic Conflict / Requirement Conflict; Gap types: Functional / Non-Functional / Data / Business Logic / Dependency; Ambiguity vague-term catalog) — full per-category detection guidance lives in the skill's `<process>` and `references/entry-templates-and-document-skeleton.md`. This phase does NOT restate the taxonomies; it invokes them through the skill.
+4. Cross-reference Jira vs Confluence for information present only in one source.
 </run_analysis>
 
 <create_analysis_document step="2.3">
 
-Create `agents/testgen/{TICKET-KEY}/analysis.md` via four atomic sub-steps.
+Create `agents/testgen/{TICKET-KEY}/analysis.md` via three sequenced sub-steps after a single precondition.
 
-**Append contract (public, declared once):** `gap-and-contradiction-analysis` owns the document skeleton (its `<output_format>` is the contract — sections, numbering, and the `<!-- end-of-gap-and-contradiction-analysis -->` public append-anchor marker emitted as the last line). This phase appends two sections (Next Steps + Analysis Metadata) by splicing them **before** the anchor marker and re-emitting the marker as the last line. The phase keys on the public anchor, not on the skill's internal section names or numbering — the contract survives skeleton renumbering, renames, or additions.
+**Precondition (skill emitted analysis.md):** step 2.2 invoked `gap-and-contradiction-analysis`; its output file MUST exist at `agents/testgen/{TICKET-KEY}/analysis.md` and be non-empty. If not, apply `<failure_handling>` "skill emitted no analysis.md" — do NOT enter the sub-steps below.
 
-**2.3.a — Run the skill (already done in step 2.2).** Step 2.2 already invoked `gap-and-contradiction-analysis`. Verify its output file exists at `agents/testgen/{TICKET-KEY}/analysis.md` and is non-empty.
+**Phase append-anchor contract (parameterized — not skill-internal):** this phase requires the configured analysis skill to emit a **public append-anchor as the last line of `analysis.md`**, so downstream phases can splice further sections before it without coupling to skill-internal section names or numbering. Current binding: `gap-and-contradiction-analysis` emits the literal marker `<!-- end-of-gap-and-contradiction-analysis -->`. If a different analysis skill is bound, its declared append-anchor token replaces the literal above — the **contract** is "public last-line marker", the literal value is the binding's parameter.
 
-**2.3.b — Verify the public append-anchor.** Grep the file for the literal line `<!-- end-of-gap-and-contradiction-analysis -->`. If absent: stop, report `Phase 2: gap-and-contradiction-analysis output missing public append-anchor marker — skill output may be malformed or from a pre-anchor version`, ask the user to inspect. Do NOT append onto a missing-anchor document.
+**2.3.a — Verify the public append-anchor.** Grep `analysis.md` for the literal marker declared by the currently-bound analysis skill (default: `<!-- end-of-gap-and-contradiction-analysis -->`). If absent: apply `<failure_handling>` "append-anchor missing" — do NOT splice into a missing-anchor document.
 
-**2.3.c — Splice the two appended sections before the anchor.** Insert the block below immediately before the `<!-- end-of-gap-and-contradiction-analysis -->` line, then re-emit the marker as the last line. Numbering: the section numbers below use the skill's current scheme (next numbers after the skill's last numbered section); they are presentation-only and may be renumbered if the skill's skeleton evolves — the anchor remains the splice point regardless.
+**2.3.b — Splice two phase-owned sections before the anchor.** Insert the block below immediately before the anchor line, then re-emit the marker as the last line. Numbering: section numbers below follow the skill's current scheme and may be renumbered on skeleton evolution — the anchor remains the splice point regardless.
 
 ```markdown
 ## 7. Next Steps
@@ -72,9 +72,12 @@ Create `agents/testgen/{TICKET-KEY}/analysis.md` via four atomic sub-steps.
 - **Manual Review**: [Areas requiring human judgment]
 ```
 
-**2.3.d — Zero-issues handling.** If total issues = 0 (the skill's sections carry `No issues found.` per its zero-issues rule), set `Total questions expected: 0` and replace the `Recommended: ...` line with `Proceed directly to Phase 4 — no clarification needed (per Phase 2 zero-issues outcome).` Anchor verification (2.3.b) still runs — zero-issues documents emit the marker like every other case.
+**2.3.c — Zero-issues handling.** If total issues = 0 (the skill's sections carry `No issues found.` per its zero-issues rule), set `Total questions expected: 0` and replace the `Recommended: ...` line with `Proceed directly to Phase 4 — no clarification needed (per Phase 2 zero-issues outcome).` Anchor verification at 2.3.a still runs — zero-issues documents emit the marker like every other case.
 
-**Final analysis.md heading shape** (self-contained — describes the joined skill-output + appended-sections result so the document contract is verifiable from this file alone):
+<details>
+<summary><strong>Final analysis.md heading shape</strong> (collapsed reference — expand to verify the joined skill-output + appended-sections shape)</summary>
+
+Self-contained joined view; the document contract is verifiable from this file alone:
 
 | Order | Heading | Owner | Notes |
 |---|---|---|---|
@@ -87,11 +90,13 @@ Create `agents/testgen/{TICKET-KEY}/analysis.md` via four atomic sub-steps.
 | 7 | `## 5. Positive Findings` | skill | |
 | 8 | `## 6. Risk Assessment` | skill | Last skill-owned section in current skeleton |
 | 9 | `## Analysis Metadata` (skill's own) | skill | Sources Analyzed + Analysis Duration |
-| 10 | `## 7. Next Steps` | **phase** (appended 2.3.c) | |
-| 11 | `## Analysis Metadata` (phase-extended) | **phase** (appended 2.3.c) | Phase-specific fields (Jira / Confluence / Manual Review) |
-| EOF | `<!-- end-of-gap-and-contradiction-analysis -->` | skill (re-emitted) | Public append-anchor, last line of file |
+| 10 | `## 7. Next Steps` | **phase** (appended 2.3.b) | |
+| 11 | `## Analysis Metadata` (phase-extended) | **phase** (appended 2.3.b) | Phase-specific fields (Jira / Confluence / Manual Review) |
+| EOF | `<!-- end-of-gap-and-contradiction-analysis -->` (or the bound skill's declared marker) | skill (re-emitted) | Public append-anchor, last line of file |
 
 Skill skeleton evolution (renumbering, renames, added sections) is tolerated as long as the anchor remains the last line.
+
+</details>
 
 **Finding-quality grounding** (applies to every Contradiction / Gap / Ambiguity entry):
 
@@ -118,6 +123,15 @@ Name the specific concept that's missing or conflicting, quote the source text, 
 - State file updated with Phase 2 complete
 - Metrics updated in state file
 </validation_checklist>
+
+<failure_handling>
+
+- **Skill emitted no analysis.md** (step 2.2 invoked `gap-and-contradiction-analysis` but its output file is absent at `agents/testgen/{TICKET-KEY}/analysis.md`, OR the file exists but is empty): stop Phase 2, record `Phase 2 blocked: gap-and-contradiction-analysis produced no analysis.md` in `testgen-state.md`, ask the user to verify the skill loaded correctly. **No inline per-entry fallback shape exists** — unlike `testgen-flow-test-case-generation.md`'s `<tc_schema>` inline-template fallback, this phase has no inline C[N]/G[N]/A[N] entry templates to author against if the skill cannot load (full entry shapes + 7-category taxonomies live in `gap-and-contradiction-analysis/SKILL.md` + `references/entry-templates-and-document-skeleton.md`). The phase **blocks** when the skill is unavailable; do NOT fabricate a partial analysis.md.
+- **Append-anchor missing** (step 2.3.a: `analysis.md` exists and is non-empty but the configured analysis skill's declared public last-line marker is absent — default: `<!-- end-of-gap-and-contradiction-analysis -->`): stop, report `Phase 2: analysis.md missing public append-anchor marker — skill output may be malformed or from a pre-anchor version of the analysis skill`, ask the user to inspect. Do NOT splice phase-owned sections onto a missing-anchor document.
+- **Skill execution failure** (`gap-and-contradiction-analysis` errors mid-run): re-invoke once with the same inputs; if still failing, stop, record the skill failure, and ask the user to verify input quality.
+- **`analysis.md` unwritable** at the supplied path (permission denied, disk full): pause, report the filesystem error with the path; do not mark Phase 2 complete.
+
+</failure_handling>
 
 <pitfalls>
 - Focus on implementation-blocking issues first

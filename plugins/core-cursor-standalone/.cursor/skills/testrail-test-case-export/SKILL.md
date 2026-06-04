@@ -36,23 +36,17 @@ This skill performs **irreversible external writes** to a shared TestRail projec
 1. **Verify connection**: call `mcp_testrail_get_project(project_id)` — if fails, inform user to verify MCP config, credentials, and project access
 2. **Get section_id from user** (see `user_prompt_section_id` template below): TestRail MCP cannot create sections — user must provide existing section_id or create one in TestRail UI first
    - Parse flexibly: accept "section_id is XXXXX", "group_id=XXXXX", or just the number
-3. **Apply priority mapping** — **precedence: parent workflow's TMS config first, defaults last.** If the parent supplied per-case `priority_id` overrides (per `<input_contract>`) or the TMS-config source (e.g. `agents/qa/qa-project-config.md` `Test Case Management` section, or testgen equivalent) provides an instance-specific `priority_id` table, use that. **Fallback only when no parent mapping is supplied** — the values below are the **documented TestRail-default priority IDs** and **WILL silently mis-map cases on TestRail instances with a customized priority table** (audit risk per `<pitfalls>` "priority_id and type_id values may differ per TestRail instance"):
-   - P0 → `priority_id: 4` (Critical)
-   - P1 → `priority_id: 3` (High)
-   - P2 → `priority_id: 2` (Medium)
-   - P3 → `priority_id: 1` (Low)
-4. **Apply type mapping** — **same precedence as step 3** (parent's TMS-config `type_id` table or per-case `type_id` overrides first; defaults are the **TestRail-default type IDs**, last-resort fallback only):
-   - Happy Path → `type_id: 1` (Functional)
-   - Negative → `type_id: 7`
-   - Edge Case → `type_id: 6` (Boundary)
-   - Integration → `type_id: 8`
-   - Performance → `type_id: 9`
-   - Security → `type_id: 10`
+3. **Apply priority mapping** — **precedence: parent TMS config first, defaults last** (per-case overrides + instance-specific tables from `qa-project-config.md` / `testgen-project-config.md` win). Defaults (used only when no parent mapping is supplied):
+   - P0 → `priority_id: 4` (Critical) · P1 → `3` (High) · P2 → `2` (Medium) · P3 → `1` (Low)
+4. **Apply type mapping** — same precedence as step 3. Defaults:
+   - Happy Path → `type_id: 1` (Functional) · Negative → `7` · Edge Case → `6` (Boundary) · Integration → `8` · Performance → `9` · Security → `10`
+
+   **Default-ID rationale + silent-mismatch audit risk** (why ID tables vary per TestRail instance, what audits should catch) lives in [references/vendor-porting.md "Default-ID rationale"](references/vendor-porting.md#default-id-rationale-referenced-from-skillmd-process-steps-3--4) — load when reviewing whether the defaults are safe for the target instance.
 5. **Format steps**: use `custom_steps_separated` — each entry has `content` (action) and `expected` (outcome)
 6. **Build preconditions**: use `custom_preconds` field with TEST DATA first, then original preconditions (see `preconditions_format` below)
    - If `custom_preconds` not supported: prepend to first step content with `\n\n--- STEPS ---\n\n` separator
 7. **Pre-export safety check + dedup pre-scan (GATE — required before any write):**
-   - **Sensitive-value scan.** Re-read every case title, step `content`, step `expected`, and the preconditions block for: real credentials, tokens, API keys, passwords, JWTs, signed URLs, private keys, real PII (real names, emails, phone numbers, account IDs, payment data). TestRail is an external shared system and writes are irreversible from this skill's side. If any value is found, **stop** — apply `<safety_boundaries>` redaction discipline (replace with placeholders) before continuing.
+   - **Sensitive-value scan.** Re-read every case title, step `content`, step `expected`, and the preconditions block. Targets + placeholder vocabulary live in `<safety_boundaries>` "Redaction targets" (single SSoT — not restated here). TestRail is an external shared system and writes are irreversible from this skill's side. If any target is found, **stop** — apply `<safety_boundaries>` redaction discipline before continuing.
    - **Dedup pre-scan.** Call `mcp_testrail_get_cases(project_id, suite_id)` to fetch existing case titles in the target suite. Build the overlap set: which planned titles already exist in the suite (exact-match on `title`). Record the overlap count.
    - **Confirmation gate (user-facing).** Print a summary to the user:
      ```

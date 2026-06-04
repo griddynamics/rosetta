@@ -181,3 +181,62 @@ Link every requirement back to its source and forward to test scenarios:
 | FR-1 | Jira DESC | US-1 | [placeholder for test phase] |
 | NFR-1 | User Answer Q5 | - | [placeholder for test phase] |
 ```
+
+---
+
+## Document wrapper (referenced from SKILL.md `<output_format>`)
+
+The 10-section document skeleton assembled at process step 9. SKILL.md keeps the section list inline as the contract; this verbatim template fills in the field shapes the agent uses at write time.
+
+```markdown
+# Requirements Document - [Title]
+
+**Generated**: [DateTime]
+**Status**: DRAFT
+
+---
+
+## Document Control
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0 | [Date] | [Author] | Initial generation |
+
+---
+
+## Executive Summary
+**Description**: [2-3 sentence overview]
+**Scope Summary**: [Key capabilities]
+**Sources**: [List of sources used]
+
+---
+
+## 1. User Stories
+[US-N entries — schema in this file's `user-stories` section]
+
+## 2. Functional Requirements
+[FR-N entries — schema in this file's `functional-requirements` section]
+
+## 3. Non-Functional Requirements
+[NFR-N entries — schema in this file's `non-functional-requirements` section]
+
+## 4. Constraints
+[C-N entries — schema in this file's `constraints-and-dependencies` section]
+
+## 5. Dependencies
+[D-N entries — schema in this file's `constraints-and-dependencies` section]
+
+## 6. Out of Scope
+[Explicit exclusions with rationale]
+
+## 7. Assumptions
+[A-N entries — schema in this file's `assumptions-and-risks` section]
+
+## 8. Risks
+[R-N entries — schema in this file's `assumptions-and-risks` section]
+
+## 9. Traceability Matrix
+[Table — schema in this file's `traceability-matrix` section]
+
+## 10. Glossary
+[Technical terms, acronyms, domain-specific language]
+```

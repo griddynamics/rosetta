@@ -111,31 +111,23 @@ Create `agents/qa/{IDENTIFIER}/analysis.md`:
 
 <success_criteria>
 
-Complete when **all of** the following hold:
+Complete when: every test step has a Cross-Reference entry (step 1); every G/C/A finding uses the verbatim template (`references/entry-templates.md`); all Critical questions resolved (explicit answer OR `Assumptions Made` entry with default + reason + impact OR `Deferred: <reason>` surfaced — no Critical may remain open); Important/Optional may remain `Status: Open — non-blocking`; every `<output_format>` section present; Executive Summary counts match body per `<output_format>` Question-count semantics; `<safety_boundaries>` redaction applied; `<validation_checklist>` greps pass.
 
-- **Every test step** has been cross-referenced against the API spec per step 1 (one Cross-Reference entry per step).
-- **Every gap / contradiction / ambiguity identified** is documented using the exact `G[N]` / `C[N]` / `A[N]` templates from [references/entry-templates.md](references/entry-templates.md) — no shortcut paraphrase.
-- **All Critical questions from step 5 resolved.** Resolution = explicit answer (recorded under Questions & Answers / Resolved Items) OR `Assumptions Made` entry with chosen default + reason + impact-if-wrong OR `Deferred: <reason>` Assumption surfaced to the calling workflow. **No Critical question may remain `open`.**
-- Important and Optional questions may remain `Status: Open — non-blocking`.
-- `analysis.md` was written with every `<output_format>` section present; Executive Summary counts match the body (Question-count semantics per `<output_format>`).
-- `<safety_boundaries>` redaction was applied to every verbatim quote.
-- `<validation_checklist>` items all hold.
-
-NOT complete if any Critical question is unresolved, any test step lacks a cross-reference entry, or any verbatim quote carries literal credentials/PII.
+NOT complete if any Critical is unresolved, any test step lacks a Cross-Reference entry, or any verbatim quote carries literal credentials/PII.
 
 </success_criteria>
 
 <safety_boundaries>
 
-`analysis.md` is **PUBLIC by default** (tracked, shared review, downstream prompt contexts). Steps 3 and 4 instruct the agent to paste verbatim quotes from sources (test cases, Swagger spec, documentation pages) into Contradiction / Ambiguity entries — those sources can carry credentials / tokens / PII. **Redact before writing, not after.**
+`analysis.md` is **PUBLIC by default** (tracked, shared review, downstream prompt contexts). Steps 3 + 4 paste verbatim source quotes that may carry credentials / tokens / PII. **Redact before writing, not after.**
 
-**Targets to redact** (replace with placeholders, never literal value):
+**Target categories** (5 buckets — per-category examples + placeholder vocabulary in [references/entry-templates.md "Redaction examples"](references/entry-templates.md#redaction-examples-referenced-from-skillmd-safety_boundaries), loaded at steps 3 + 4):
 
-- **Auth headers / tokens / API keys / passwords** embedded in source text — `Bearer <jwt>`, `Authorization: Basic <base64>`, `X-Api-Key: <key>`, password values in step descriptions. Replace with `<redacted: bearer token>` / `<redacted: api key>` / `<redacted: password>` + one-line inline note (e.g., `Source: Swagger /auth/login — Bearer token redacted; see env var API_TOKEN`).
-- **Credentialed URLs** (`https://user:pass@host/...`, signed-URL query params) — redact the credential portion; record the redaction inline.
-- **Connection strings / private keys / service-account JSONs** — never paste; describe source (env var, secret-manager path) + mechanism (Bearer / Basic / OAuth flow).
-- **Real PII** in test data examples — customer names, real emails, real phone numbers, real account IDs, real payment card numbers. Replace with synthetic equivalents (`test.user-1@example.com`, `+1-555-0100` IETF reserved range, official PSP test card numbers).
-- **Test-data fixtures captured from production logs** — redact sensitive fields; keep structural shape.
+1. Auth headers / tokens / API keys / passwords
+2. Credentialed URLs (user:pass@ form, signed URLs)
+3. Connection strings / private keys / service-account JSONs
+4. Real PII (customer names / emails / phones / account IDs / payment cards)
+5. Test-data fixtures captured from production logs
 
 **Structural content is safe** — endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, business-rule prose, vague-statement quotes. Redaction targets sensitive **values**, not structural content.
 
@@ -155,26 +147,24 @@ Consistent with `qa-data-collection`'s `<safety_boundaries>` for `raw-data.md`.
 
 <validation_checklist>
 
-**Grep-proof layer only.** Rules live in `<success_criteria>` + `<output_format>`; items below verify those contracts by grep before emit. Items unique to this checklist carry no pointer.
+**Grep-proof layer only** — rules live in `<success_criteria>` + `<output_format>` + `<safety_boundaries>`; items below are per-case grep checks. No rule is restated here.
 
-- **Cross-Reference grep:** `### Cross-Reference: Test Case Step [N]` entry count in `## Cross-Reference Results` = total test step count. *(verifies `<success_criteria>` cross-reference rule)*
-- **Executive Summary counts grep:** `Gaps Found` = `G[N]` count; `Contradictions Found` = `C[N]` count; `Ambiguities Found` = `A[N]` count; `Questions Asked` = the Executive-Summary denominator defined in `<output_format>`. If counts disagree, fix the count or the body. *(verifies `<success_criteria>` counts-match-body rule)*
-- **Assumption-fields grep:** every `A-N` entry has Default + Impact-if-Wrong populated. *(verifies `<success_criteria>` Assumption rule)*
-- **Safety re-scan grep** per `<safety_boundaries>` Targets list; hits replaced + noted inline; no-match = no annotation. *(verifies `<success_criteria>` redaction-applied rule)*
-- **No fabricated quotes** in Contradiction / Ambiguity entries — every `"[Quote]"` traces verbatim to a real source line; re-grep for paraphrased "the source said X" forms and fail emit on any match. *(unique to checklist)*
-- **Question count ≤ 20 per batch** — denominator per `<output_format>` Question-count semantics (Critical + Important only). If more than 20 surfaced, batch by priority; record current batch + deferred batches. *(unique to checklist)*
+- **Cross-Reference count grep:** `### Cross-Reference` entry count = total test step count.
+- **Summary counts grep:** `Gaps Found` = `G[N]` count; `Contradictions Found` = `C[N]` count; `Ambiguities Found` = `A[N]` count; `Questions Asked` per `<output_format>` Question-count semantics.
+- **Assumption-fields grep:** every `A-N` entry has Default + Impact-if-Wrong.
+- **Safety re-scan grep** per `<safety_boundaries>` 5 target categories.
+- **No fabricated quotes** — every `"[Quote]"` traces verbatim to a real source; "the source said X" paraphrase forms fail the grep.
+- **Per-batch question cap (≤ 20)** — denominator per `<output_format>` Question-count semantics (Critical + Important only). Above 20 → batch by priority, record current + deferred batches.
 
 </validation_checklist>
 
 <pitfalls>
-(Each item is a pointer; the rule lives in the cited section.)
-- Not cross-referencing every test step → `<process>` step 1.
-- Asking >20 questions at once → `<validation_checklist>` per-batch cap (denominator per `<output_format>`).
-- Proceeding to test specification with unresolved Critical gaps → `<success_criteria>` Critical-resolution rule.
-- Assuming answers when user doesn't respond → `<failure_handling>` Deferred-Assumption rule.
-- Ignoring contradictions between documentation sources → `<process>` step 3 catalog.
-- Verbatim quotes without `<safety_boundaries>` redaction (redact BEFORE writing).
-- Executive Summary counts disagree with body → `<validation_checklist>` counts grep.
+
+Only **genuinely additive** failure modes (rules already enforced by `<process>` / `<success_criteria>` / `<validation_checklist>` / `<safety_boundaries>` are NOT restated here):
+
+- **Paraphrasing source text instead of quoting verbatim** in Contradiction / Ambiguity entries — `<validation_checklist>` greps for `"[Quote]"` shape but cannot catch "the source said X" forms beyond the no-fabricated-quote rule. Quote verbatim or use `gap: source phrasing unclear — paraphrase recorded`; never silently paraphrase.
+- **Conflating cross-source contradiction with intra-source ambiguity** — a single Swagger field with vague description is `A[N]`, NOT `C[N]`. Two sources that genuinely disagree are `C[N]`. Mis-classification skips the wrong-category template's required fields.
+
 </pitfalls>
 
 </qa-gap-analysis>

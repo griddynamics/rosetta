@@ -28,25 +28,21 @@ A caller may invoke **Part A only** (analysis without correction mandate) — us
 
 <safety_boundaries>
 
-`execution-report.md` is a tracked artifact and may end up in version control, shared review, or downstream prompt contexts. Treat it as **PUBLIC by default**. Failure stack traces and captured request/response data are a common secret-leak vector — redact before writing, not after.
+`execution-report.md` is **PUBLIC by default** (tracked, shared review, downstream prompt contexts). Failure stack traces and captured request/response data are a common secret-leak vector — **redact before writing, not after**. Applies to BOTH Part A (`execution-report.md`) AND Part B (any debug logging during corrections).
 
-**Targets to redact** (replace with placeholders + describe presence/mechanism in prose, never the literal value):
+**Target categories** (7 buckets — per-target enumeration + placeholder vocabulary + grep patterns in [references/redaction-targets.md](references/redaction-targets.md#per-target-redaction-targets--placeholder-vocabulary-referenced-from-skillmd-safety_boundaries), loaded at steps 2 + 3 when writing entries):
 
-- **Auth headers** — `Authorization: Bearer <jwt>`, `Authorization: Basic <base64>`, `X-Api-Key: <key>`, `Cookie: session=<id>`, `Set-Cookie` response headers. Replace with `<redacted: bearer token>` / `<redacted: basic credentials>` / `<redacted: api key>` / `<redacted: session cookie>` and add a one-line description (e.g., "Bearer token from `AuthHelper.get_token('admin')`").
-- **Credentialed URLs** (`https://user:pass@host/...`) — redact the `user:pass@` portion before recording.
-- **Query-string secrets** — `?api_key=...`, `?token=...`, `?access_token=...`, signed-URL signatures (`?X-Amz-Signature=...`, `?sig=...`) — redact the secret-bearing parameter values.
-- **Request bodies** containing credentials, tokens, password fields, payment data — redact those fields specifically; keep structural fields (field names, non-sensitive values, schema shape) verbatim.
-- **Response bodies** containing tokens (`access_token`, `refresh_token`, `id_token`), session identifiers, PII (real customer emails / names / phone numbers / account IDs / payment data) — redact the sensitive values; keep structural fields verbatim.
-- **Stack traces / error messages** sometimes embed credentials (e.g., a logged HTTP request line in a connection-error stack). Scan and redact before pasting.
-- **Environment Info** (step 2) — record `auth method = OAuth2 client-credentials` / `JWT Bearer` / `Basic Auth via env var BASIC_AUTH_USER:BASIC_AUTH_PASS` — never the literal token or password. Base URLs are usually safe (e.g., `https://api.staging.example.com`); credentialed base URLs are not.
+1. Auth headers (Authorization / X-Api-Key / Cookie)
+2. Credentialed URLs (user:pass@ form)
+3. Query-string secrets (api_key / token / signed-URL signatures)
+4. Request bodies (credentials / payment data)
+5. Response bodies (tokens / session IDs / PII)
+6. Stack traces / error messages (embedded credentials)
+7. Environment Info (mechanism + source description only — never literal values)
 
-**Structural content stays verbatim.** Endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, response status text are functional and recorded as-is. Redaction targets sensitive **values**, not the structural failure spec.
+**Structural content stays verbatim** — endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes. Redaction targets sensitive **values**, not the structural failure spec.
 
-If a real production value would be the natural example in a failure entry, replace with a clearly-fake placeholder of the same shape — better an obviously-fake example than a leaked real token committed to the repo.
-
-This boundary applies to BOTH Part A (writing `execution-report.md`) AND Part B (any debug logging the agent emits while applying corrections).
-
-**Part B (write-path) boundaries** — approval discipline, stay-inside-scope, never-alter-test-intent, test-code-only writes: see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-safety_boundaries-referenced-from-skillmd-safety_boundaries) — loaded only when Part B runs.
+**Part B (write-path) boundaries** — approval discipline, stay-inside-scope, never-alter-test-intent, test-code-only writes: see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-safety_boundaries-referenced-from-skillmd-safety_boundaries).
 
 </safety_boundaries>
 
@@ -88,7 +84,7 @@ Extract:
 
 **Canonical 7-category taxonomy.** Assign **exactly one** category per failure; the seven are exhaustive + mutually exclusive: **Connection / Environment**, **Authentication**, **Request**, **Response Assertion**, **Test Data**, **Timing / Race Condition**, **Application Bug**. Full catalog (Symptoms / Root Cause / Action per category) + the per-failure entry template the agent emits live in [references/failure-catalog.md](references/failure-catalog.md) — load when actively classifying failures.
 
-Apply `<safety_boundaries>` redaction to headers, bodies, URLs, and stack traces BEFORE writing each entry — never after.
+Apply `<safety_boundaries>` redaction BEFORE writing each entry.
 
 ### 4. Identify Patterns
 
@@ -153,10 +149,9 @@ The Part A → Part B cycle is **capped at 3 iterations**. Counter mechanics + s
 
 <pitfalls>
 
-**Part A pitfalls:**
-- Listing failures without analyzing root causes — not actionable
-- Pasting auth headers (`Authorization: Bearer ...`), cookies, API keys, or PII verbatim into `execution-report.md` — apply `<safety_boundaries>` redaction before writing, not after
-- Recording an environment's auth tokens or DB connection strings in the `Environment Info` section instead of `mechanism + source` description
+**Part A pitfalls** (only **genuinely additive** failure modes; `<safety_boundaries>` and `<failure_handling>` rules NOT restated):
+
+- **Failure listing without root cause analysis** — categorization alone is not actionable; every entry needs a Root Cause field populated to drive Part B fix-matching. The validation_checklist greps for this; this pitfall covers the upstream "I'll just categorize and move on" temptation.
 
 **Part B pitfalls:** see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-pitfalls-referenced-from-skillmd-pitfalls).
 
@@ -181,7 +176,7 @@ Run before declaring the skill complete. Items apply per the part(s) that ran (P
 - **Every failure entry has a Category and Root Cause Analysis populated** — no entry left as `TBD` or with placeholder fields.
 - **Every failure entry has a Priority** (Critical / High / Medium / Low) — never blank.
 - **Patterns section populated** with either a real cross-failure pattern OR an explicit `No cross-failure patterns identified` line if none — not silently empty.
-- **Safety re-scan ran per `<safety_boundaries>`** — `execution-report.md` was grepped against the `<safety_boundaries>` Targets list; any hits were replaced with placeholders before declaring Part A complete.
+- **Safety re-scan ran** per `<safety_boundaries>` 7 target categories + the grep patterns in `references/redaction-targets.md` (single SSoT — not restated here); any hits replaced with placeholders before Part A complete.
 
 **Part B (corrections — when applied):** see [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-validation_checklist-referenced-from-skillmd-validation_checklist).
 

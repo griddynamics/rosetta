@@ -15,43 +15,29 @@ End-to-end backend API test automation from test case input to working automated
 
 <workflow_phases>
 
-- **Phases 0→7 MUST run in order** (single source of truth for the ordering rule; `<skip_rules>` references this, does not restate). Skipping is permitted only via `<skip_rules>` below.
-- Rosetta prep steps completed
-- NO ASSUMPTIONS: Never assume endpoints, payloads, auth mechanisms, or response schemas. Always ask the user if information is missing.
-- STATE TRACKING: Update `agents/qa-state.md` after each phase.
-- MUST use todo tasks for tracking progress. Prioritize ACCURACY over SPEED.
+- **Phases 0→7 MUST run in order**; sanctioned skips per `<skip_rules>` only.
+- Rosetta prep steps completed.
+- NO ASSUMPTIONS: never assume endpoints, payloads, auth mechanisms, or response schemas — ask the user when missing.
+- Generic linear-execution cadence (ACQUIRE phase file → execute → update state → next; todo discipline; no skipping without approval) is owned by the **`sequential-workflow-execution`** skill (per `<references>`). This workflow specifies only qa-flow-specific deltas in each phase block below.
 
 <phase_template>
-Every phase block below follows this cadence (read once; each block specifies only its deltas):
-
-1. ACQUIRE the named phase file FROM KB
-2. Execute phase instructions
-3. Apply the Input / Output paths declared in the per-phase block
-4. Honor any HITL gate declared in the per-phase block (text + timing)
-5. Recommended skills: see `<references>` (Phase N)
-6. Update `agents/qa-state.md`
-
-If a block omits a row (e.g. no HITL gate), the corresponding template step is skipped for that phase.
+Per-phase block format: phase file path + Input/Output + HITL gate (when present). The ACQUIRE / execute / state-update cadence is the `sequential-workflow-execution` skill's contract, not restated per-phase.
 </phase_template>
 
 <skip_rules>
 
-- Ordering rule per `<workflow_phases>` preamble (sequential 0→7); this block governs sanctioned skips only.
+- **Always-in-force carve-outs** (the override below NEVER suppresses):
+  1. Per-phase HITL gates (Phases 3-7 marked `type="HITL"`) — explicit user approval per `bootstrap-hitl-questioning`.
+  2. NO ASSUMPTIONS rule (above) — every non-skip-gate decision.
+  3. Safety / destructive confirmations — file deletion, edits outside `agents/qa/{IDENTIFIER}/`, comparable irreversible actions.
 
-- **Always-in-force carve-outs** (the override below NEVER suppresses these, read once):
-  1. **Per-phase HITL gates** (Phases 3, 4, 5, 6, 7 marked `type="HITL"`) require explicit user approval per `bootstrap-hitl-questioning` at their normal trigger points.
-  2. **NO ASSUMPTIONS rule** (above) governs every decision that is not this skip-verification gate.
-  3. **Safety / destructive confirmations** — file deletion, repository edits outside `agents/qa/{IDENTIFIER}/`, comparable irreversible actions.
+- **Verification-failure unilateral-start override** — subordinate to `bootstrap-hitl-questioning` + the carve-outs above; the only no-ask deviation, applies only at this skip-verification gate.
 
-- **Verification-failure unilateral-start override** — subordinate to `bootstrap-hitl-questioning` policy + the carve-outs above; the only sanctioned no-ask deviation from per-phase HITL, applies only at this skip-verification gate.
-
-  | Precondition (ALL must be true, independently verified — not user assertion alone) | Action |
+  | Precondition (ALL true, independently verified) | Action |
   |---|---|
-  | (a) user asserts Phases 0–2 complete this turn **AND** (b) `agents/qa-state.md` marks them complete **AND** (c) matching `{IDENTIFIER}` artifacts (at least `raw-data.md` + `api-analysis.md`) exist under `agents/qa/{IDENTIFIER}/` | Skip Phases 0–2, resume at Phase 3. |
-  | Any of (a)/(b)/(c) is false AND the user's instruction was unambiguous | Print one line naming the failing conditions (e.g., `skip-gate refused: (b) state absent, (c) artifacts absent → starting at Phase 0`); begin Phase 0 in the **same turn**. (Evidence-driven start, not refusing the user — verification result IS the decision; asking again would loop until artifacts exist.) |
-  | Any precondition is uncertain or partial (state partial, assertion ambiguous, artifacts stale) | Fall back to normal HITL ask. **Ambiguity defaults to ASK.** |
-
-- **Execution aid.** If the sequencing skill in `<references>` is available, use it for ACQUIRE cadence, todo discipline, and state updates.
+  | (a) user asserts Phases 0-2 complete this turn AND (b) `agents/qa-state.md` marks them complete AND (c) `raw-data.md` + `api-analysis.md` exist under `agents/qa/{IDENTIFIER}/` | Skip Phases 0-2, resume at Phase 3. |
+  | Any of (a)/(b)/(c) false AND user instruction unambiguous | Print failing conditions; begin Phase 0 same turn. |
+  | Any precondition uncertain | Fall back to normal HITL ask. **Ambiguity defaults to ASK.** |
 
 </skip_rules>
 - If user did not specify preferences, perform all steps except optional.
@@ -123,28 +109,7 @@ Example: if a skill suggests `/tests/api/` but `ARCHITECTURE.md` requires `/qa/a
 
 <state_file>
 
-Create/update `agents/qa-state.md` after each phase:
-
-```markdown
-# QA State - <Test Name / Feature>
-
-**Last Updated**: [DateTime]
-**Current Phase**: [0-7 or COMPLETE]
-**Test Case Source**: [TestRail ID / Jira Ticket / Manual]
-**Feature**: [Feature Name]
-**API Base URL**: [Base URL if known]
-
-## Phase Completion Status
-
-- [ ] Phase 0: Project Config Loading
-- [ ] Phase 1: Data Collection
-- [ ] Phase 2: API Spec Analysis
-- [ ] Phase 3: Gap & Requirements Clarification
-- [ ] Phase 4: Test Case Specification
-- [ ] Phase 5: Test Implementation
-- [ ] Phase 6: Execution & Report Analysis
-- [ ] Phase 7: Test Corrections
-```
+`agents/qa-state.md` carries: header (Last Updated / Current Phase 0-7 / Test Case Source / Feature / API Base URL) + 8-row `## Phase Completion Status` checklist (one row per phase 0-7) + per-phase append blocks. Each phase file owns its own state-update snippet (the delta it appends after running) — this workflow does not restate the full template.
 
 </state_file>
 
@@ -156,23 +121,18 @@ Subagents:
 - `engineer` (Full): test implementation, debugging, corrections
 - `executor` (Lightweight): optional for mechanical actions (builds, installs)
 
-Skills:
-- Cross-phase orchestration: `sequential-workflow-execution`
-- Repository standards: `repository-implementation-standards`
-- Phase-recommended skills (canonical list):
-  - Phase 0: `qa-project-config`
-  - Phase 1: `qa-data-collection`, `confluence-source-harvesting` (when documentation MCP is in scope)
-  - Phase 2: `swagger-contracts-analysis`
-  - Phase 3: `qa-gap-analysis`, `gap-and-contradiction-analysis`, `aqa-requirements-elicitation`, `questioning`
-  - Phase 4: `api-test-spec-authoring`, `repository-implementation-standards`
-  - Phase 5: `automation-test-implementation-handoff` (primary entrypoint). Reachable only via the handoff (do not ACQUIRE/USE directly from the phase file): `coding`, `testing`, `qa-test-implementation`. See `qa-flow-test-implementation.md` step 5.1.4 delegation policy.
-  - Phase 6: `debugging`, `qa-test-debugging` (Part A), `automation-test-execution-analysis`
-  - Phase 7: `debugging`, `coding`, `qa-test-debugging` (Part B), `user-approved-code-changes`
+Skills (compact map — phase → comma-separated skill tags; backticked = ACQUIRE tag):
+- Cross-phase: `sequential-workflow-execution`, `repository-implementation-standards`.
+- Phase 0: `qa-project-config`.
+- Phase 1: `qa-data-collection`, `confluence-source-harvesting` (when doc-MCP in scope).
+- Phase 2: `swagger-contracts-analysis`.
+- Phase 3: `qa-gap-analysis`, `gap-and-contradiction-analysis`, `aqa-requirements-elicitation`, `questioning`.
+- Phase 4: `api-test-spec-authoring`, `repository-implementation-standards`.
+- Phase 5: `automation-test-implementation-handoff` (primary). Reachable only via handoff: `coding`, `testing`, `qa-test-implementation`. Delegation policy: `qa-flow-test-implementation.md` step 5.1.4.
+- Phase 6: `debugging`, `qa-test-debugging` (Part A), `automation-test-execution-analysis`.
+- Phase 7: `debugging`, `coding`, `qa-test-debugging` (Part B), `user-approved-code-changes`.
 
-**Rosetta KB:** Backticked names are ACQUIRE tags; if ACQUIRE returns zero documents, follow `<failure_handling>`.
-All backticked skill names in this file are expected to resolve as valid KB tags at runtime.
-
-Note: `qa-test-debugging` is a standalone ad-hoc skill (no dedicated workflow file). It is invoked on-demand during Phase 6 (failure analysis) and Phase 7 (corrections).
+**Rosetta KB:** zero-document ACQUIRE → `<failure_handling>`. `qa-test-debugging` is invoked ad-hoc during Phases 6 (Part A) + 7 (Part B); no dedicated workflow file.
 
 MCPs:
 - `TestRail` — test case management

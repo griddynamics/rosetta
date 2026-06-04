@@ -108,13 +108,9 @@ Three worked entries — **Happy Path**, **Negative with parameterized test data
 </examples>
 
 <pitfalls>
-(Each item is a pointer; the rule lives in the cited section.)
-- BDD / Given-When-Then format → `<format_rules>` MUST NOT.
-- Multi-action steps OR vague expected results → `<format_rules>` step / expected-result discipline.
-- Parameterization without execution-count clause or Test Data ref → `<format_rules>` parameterization.
-- >5 parameter sets → split per `<failure_handling>` cap rule.
-- Fabricated requirement / US / AC IDs → `<epistemic_honesty>` gap markers (canonical).
-- Literal credentials / PII in case body → `<safety_boundaries>` (downstream `testrail-test-case-export` writes verbatim to TestRail — irreversible if leaked).
+
+6-item pitfalls catalog (pointer-only — each item cites its canonical rule home in `<format_rules>` / `<epistemic_honesty>` / `<safety_boundaries>` / `<failure_handling>`) lives in [references/examples-and-redaction.md "Pitfalls catalog"](references/examples-and-redaction.md#pitfalls-catalog-referenced-from-skillmd-pitfalls) — load on demand during emit review.
+
 </pitfalls>
 
 <epistemic_honesty>
@@ -158,15 +154,15 @@ Test cases authored here are written verbatim into a tracked artifact (and pushe
 
 <validation_checklist>
 
-**Grep-proof layer only** — rules live in `<format_rules>` / `<epistemic_honesty>` / `<safety_boundaries>`; items below are per-case grep checks that verify those rules. No rule is restated here.
+**Grep-proof layer only** — rules live in `<format_rules>` / `<epistemic_honesty>` / `<safety_boundaries>` / `<naming_conventions>`. Items below are the per-rule check inventory; **verbose grep specs** (literal strings + multi-condition predicates) live in [references/examples-and-redaction.md "Validation grep specs"](references/examples-and-redaction.md#validation-grep-specs-referenced-from-skillmd-validation_checklist) — load on demand at pre-emit.
 
-- **Format compliance grep** per `<format_rules>` MUST/MUST-NOT: re-grep for `Given `, `When `, `Then `, `Post-conditions`, `Automation` — none must appear.
-- **Step / expected-result discipline grep** (operational sub-rule of `<format_rules>`): sequential numbering; every expected result references its step (`After step N: ...`); no orphan; no step with multi-action `and`/comma joins.
-- **Naming grep** per `<naming_conventions>`: parenthesized type label present.
-- **Parameterization grep** per `<format_rules>`: when Test Data present → Preconditions states execution count + references Test Data + set count ≤ 5 (else split per `<failure_handling>`).
-- **Gap-marker grep** per `<epistemic_honesty>` (covers both Traceability honesty AND required-field populated-or-gap-marked — single canonical contract): every Traceability field and every required field (Related Requirement, Type, Priority, Preconditions, Steps, Expected Results) is either real or carries a `<epistemic_honesty>` gap marker. No fabrication.
-- **Safety re-scan grep** per `<safety_boundaries>` (target list + placeholder vocabulary in `references/examples-and-redaction.md`).
-- **Notes accuracy** (structural artifact check, no canonical rule): split-from-N-set parameterization recorded; defaulted-to-P2 Priority gap visible.
+- **Format compliance grep** per `<format_rules>` MUST/MUST-NOT.
+- **Step / expected-result discipline grep** per `<format_rules>` step rules.
+- **Naming grep** per `<naming_conventions>` (parenthesized type label present).
+- **Parameterization grep** per `<format_rules>` parameterization + `<failure_handling>` cap rule.
+- **Gap-marker grep** per `<epistemic_honesty>` (canonical — covers Traceability + required-field-populated-or-gap-marked in one contract).
+- **Safety re-scan grep** per `<safety_boundaries>` (target list + patterns in references).
+- **Notes accuracy** (structural artifact check, no canonical rule).
 
 </validation_checklist>
 

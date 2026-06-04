@@ -65,20 +65,14 @@ For the API under test, determine: (1) **auth mechanism** (Bearer JWT / OAuth2 /
 
 For each endpoint determine: (1) **input data requirements** (required fields + types, validation rules, field relationships, file uploads); (2) **preconditions** (required DB state, entity relationships, ordering); (3) **side effects** (what is created/modified/deleted, cascading effects, idempotency).
 
-## 5. Reconcile and Validate
+## 5. Reconcile and Validate (orchestration only)
 
-After extracting contracts for each target endpoint, before emission:
+Four numbered actions; per-action prose lives in [references/failure-handling-edge-cases.md "Process step 5 expanded prose"](references/failure-handling-edge-cases.md#process-step-5-expanded-prose-referenced-from-skillmd-process-step-5).
 
-1. **Spec-vs-code cross-check** (when both are available):
-   - For each endpoint, compare the Swagger spec against the code: are the same fields / types / required-flags / status codes / auth requirements present in both?
-   - Record every mismatch (additional validation in code not in spec, deprecated markers, missing response shapes, auth differences) in the **Notes / Discrepancies** section of that endpoint's contract entry.
-   - Do NOT silently prefer one source over the other — declare the discrepancy explicitly so the calling workflow / reviewer can decide.
-
-2. **Coverage check.** Every endpoint in the target list supplied by the calling workflow must have a contract entry. Endpoints that could not be analyzed (not found in spec/code, ambiguous routing, parsing failure) are flagged back to the calling workflow with the specific reason — NOT silently dropped.
-
-3. **Run `<validation_checklist>`** before emission. Fix any failing item before proceeding.
-
-4. **Emit per `<output_format>`** to the destination supplied by the calling workflow (this skill does NOT decide the destination path).
+1. **Spec-vs-code cross-check** when both sources available — record mismatches in `Notes / Discrepancies`.
+2. **Coverage check (canonical)** — every target endpoint has a contract entry OR is flagged back as a gap; **no silent drop**. (Other sections reference this; the canonical statement lives in the references-expanded section.)
+3. **Run `<validation_checklist>`** before emit.
+4. **Emit per `<output_format>`** to the destination supplied by the calling workflow.
 
 </process>
 
@@ -118,11 +112,11 @@ The contract artifact this skill produces (commonly `agents/qa/{IDENTIFIER}/api-
 
 <success_criteria>
 
-High-level done-condition. Item-level checks live in `<validation_checklist>` (single source of truth — referenced here, not restated).
+Item-level checks live in `<validation_checklist>` (SSoT). High-level done-condition stated once here:
 
-**Complete when:** every endpoint in the calling workflow's target list has a contract entry OR is flagged back as a gap with reason; every entry has ≥1 citation (Swagger JSONPath OR code `file:line`); every entry marked `Source: hybrid` has a non-empty `Notes / Discrepancies` section (either a recorded mismatch OR explicit `None.`); every `<validation_checklist>` item holds (the redaction scan is one of them — not separately restated here).
+**Complete when:** every target endpoint has a contract entry OR is flagged back as a gap (per `<process>` step 5.2 canonical coverage rule); every entry has ≥1 citation; every `Source: hybrid` entry has a non-empty `Notes / Discrepancies` (recorded mismatch OR explicit `None.` — **canonical hybrid-Notes rule, referenced from other sections**); every `<validation_checklist>` item holds.
 
-**NOT complete** if any target endpoint is silently dropped (must be flagged as a gap with reason — see `<failure_handling>`); any entry lacks a citation; any hybrid entry has empty `Notes / Discrepancies`; literal credentials/PII remain in the artifact; any `N/A` is bare (without one-line reason).
+**NOT complete** if any rule above is violated. Specific failure modes the checklist catches: silent endpoint drop, bare `N/A`, literal credentials/PII in artifact, missing citations, empty hybrid Notes.
 
 </success_criteria>
 
@@ -146,16 +140,9 @@ Consolidated stop/ask/route behaviors. Common branches inline; rarely-hit edge c
 </failure_handling>
 
 <pitfalls>
-(Each item is a pointer; the rule lives in the cited section.)
-- Trusting Swagger blindly without cross-referencing code → `<process>` step 5.1 reconciliation.
-- Skipping code-based analysis when Swagger is available → `<process>` step 2 hybrid branch.
-- Missing per-endpoint auth requirements → `<process>` step 3.
-- Ignoring data dependencies / creation order → `<process>` step 4.
-- Treating GraphQL APIs as REST → `<failure_handling>` "GraphQL API" branch.
-- Silent endpoint drop → `<failure_handling>` "Endpoint not found" + `<process>` step 5.2.
-- Fabricated schema fields / status codes → `<success_criteria>` (every field must trace to spec/code or be `N/A — <reason>`).
-- Empty `Notes / Discrepancies` on hybrid entries → `<success_criteria>` (explicit `None.` required).
-- Literal credentials / PII in artifact → `<safety_boundaries>` redact-before-writing.
+
+9-item catalog (pointer-only — each item cites its canonical rule home in `<process>` / `<safety_boundaries>` / `<success_criteria>` / `<failure_handling>`) lives in [references/failure-handling-edge-cases.md "Pitfalls catalog"](references/failure-handling-edge-cases.md#pitfalls-catalog-referenced-from-skillmd-pitfalls) — load on demand during emit review.
+
 </pitfalls>
 
 </swagger-contracts-analysis>

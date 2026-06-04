@@ -52,58 +52,11 @@ If unresolved, document as assumption with impact-if-wrong.
 
 <output_format>
 
-```markdown
-# Requirements Document - [Title]
+The assembled document has **10 sections in order** (the phase contract):
 
-**Generated**: [DateTime]
-**Status**: DRAFT
+1. Document Control — 2. Executive Summary — 3. User Stories (US-N) — 4. Functional Requirements (FR-N) — 5. Non-Functional Requirements (NFR-N) — 6. Constraints (C-N) — 7. Dependencies (D-N) — 8. Out of Scope — 9. Assumptions (A-N) — 10. Risks (R-N) — 11. Traceability Matrix — 12. Glossary.
 
----
-
-## Document Control
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | [Date] | [Author] | Initial generation |
-
----
-
-## Executive Summary
-**Description**: [2-3 sentence overview]
-**Scope Summary**: [Key capabilities]
-**Sources**: [List of sources used]
-
----
-
-## 1. User Stories
-[US-N entries — schema in references/output-schemas.md#user-stories]
-
-## 2. Functional Requirements
-[FR-N entries — schema in references/output-schemas.md#functional-requirements]
-
-## 3. Non-Functional Requirements
-[NFR-N entries — schema in references/output-schemas.md#non-functional-requirements]
-
-## 4. Constraints
-[C-N entries — schema in references/output-schemas.md#constraints-and-dependencies]
-
-## 5. Dependencies
-[D-N entries — schema in references/output-schemas.md#constraints-and-dependencies]
-
-## 6. Out of Scope
-[Explicit exclusions with rationale]
-
-## 7. Assumptions
-[A-N entries — schema in references/output-schemas.md#assumptions-and-risks]
-
-## 8. Risks
-[R-N entries — schema in references/output-schemas.md#assumptions-and-risks]
-
-## 9. Traceability Matrix
-[Table linking requirements → sources → stories → tests — schema in references/output-schemas.md#traceability-matrix]
-
-## 10. Glossary
-[Technical terms, acronyms, domain-specific language]
-```
+Verbatim document wrapper (skeleton + field shapes + Executive Summary template) lives in [references/output-schemas.md "Document wrapper"](references/output-schemas.md#document-wrapper-referenced-from-skillmd-output_format) — load on demand at process step 9 when assembling.
 
 </output_format>
 
@@ -134,17 +87,14 @@ The requirements document is a **DRAFT, version-tracked, downstream-fed artifact
 </safety_boundaries>
 
 <pitfalls>
-- Don't copy Jira/Confluence verbatim — synthesize and structure into proper requirements
-- Don't use technical implementation details in user stories — focus on user/business value
-- Acceptance criteria must be testable and objective, not subjective
-- Each user story must be independently valuable
-- Don't skip traceability — every requirement must link to a source
-- Document all assumptions from unresolved questions with impact-if-wrong
-- Padding FRs or NFRs by category to look thorough — only include what the sources actually specify
-- Emitting NFRs without thresholds — they're gaps, not requirements; record under assumptions/risks instead
-- Inventing comparisons across sources when only one source exists — see `<failure_handling>` single-source branch
-- Copying credentials / tokens / PII verbatim from source content into the document — apply `<safety_boundaries>` redaction
-- Restating SMART / priority / language conventions here — those belong to `requirements-authoring`; this skill defers to it
+
+Only **genuinely additive** failure modes (rules already enforced by `<quality_guidelines>` / `<safety_boundaries>` / `<failure_handling>` / `<validation_checklist>` are NOT restated):
+
+- **Verbatim Jira/Confluence copy-paste** — synthesis means re-shaping source content into the per-requirement schema (`requirements-authoring` MUST/SHOULD/MAY voice, structural normalization), not paraphrase-via-quoting. The validation_checklist's no-fabrication grep is the inverse direction; this rule covers the other end.
+- **Technical implementation details in user stories** — `As a/I want/So that` is user-value framing, not architectural design. Implementation language (database, endpoint, payload) belongs in FR/NFR, not US.
+- **Acceptance criteria that are subjective** — "easy to use", "feels fast", "intuitive". AC must be observable and testable; if the source provides only subjective language, derive a measurable proxy or surface the gap.
+- **User stories that are not independently valuable** — a story that only makes sense alongside another belongs in one combined story OR as an FR. INVEST's independence dimension; no other section enforces it.
+
 </pitfalls>
 
 <failure_handling>
@@ -154,24 +104,23 @@ The requirements document is a **DRAFT, version-tracked, downstream-fed artifact
 - **Intra-source contradiction** (Jira ticket contradicts itself, or one Confluence page contradicts another section of the same page): record both quotes as a contradiction entry, do NOT auto-resolve by recency / position / paragraph order. Surface as an `A-N` assumption with `Impact if Wrong: <both branches>` and require parent-workflow attention before treating the requirement as final.
 - **Primary source missing** (no Jira ticket, no TestRail case, no direct user description — nothing to synthesize from): stop, report `requirements-synthesis: no primary source provided — cannot generate requirements from empty input`, do NOT emit a document with placeholder requirements.
 - **Unresolved cross-source conflict after `<source_priority>` applied** (priority ladder did not break the tie because both sources are at the same priority tier and disagree): record as `A-N` assumption per the existing source_priority rule, AND list under the Risks section with `Probability: High` to ensure reviewer attention.
-- **Source contains credentials / PII** (any redaction-trigger pattern per `<safety_boundaries>`): redact before quoting; do NOT defer redaction to a later phase or copy verbatim "for completeness". Document the redaction in the requirement's source citation.
+- **Source contains credentials / PII**: redact before quoting per `<safety_boundaries>` (canonical target list + patterns); document the redaction in the requirement's source citation. Do NOT defer redaction.
 
 </failure_handling>
 
 <validation_checklist>
 
-Run as process step 10 before declaring the document complete. All items must hold:
+**Grep-proof layer only** — synthesis rules live in `<quality_guidelines>` (source provenance / NFR threshold / coverage / one-behavior-per-requirement / single-source confidence); redaction targets + patterns in `<safety_boundaries>`. Items below are per-document greps; no rule is restated here.
 
-- **Every requirement has a Source field populated** — no FR/NFR/US/C/D entry with `Source: [Reference]` placeholder unfilled.
-- **Every NFR has a concrete Measurement threshold** — numeric (latency, RPS, percentile) or categorical (WCAG level, compliance standard). NFRs without thresholds were moved to assumptions-and-risks per the threshold rule.
-- **No vague adjectives in any requirement body** — `fast`, `user-friendly`, `secure`, `scalable`, `robust`, `intuitive` etc. are forbidden; each must be quantified or removed. Re-grep the assembled document before emitting.
-- **Traceability matrix is complete** — every `FR-N` / `NFR-N` / `US-N` from sections 1-3 appears as a row; Source column populated; Test Scenario column either populated or marked `[placeholder for test phase]`.
-- **Every Assumption has Impact-if-Wrong and Validation Plan** — no `A-N` entry with those fields blank.
-- **Every Risk has Probability + Impact + Mitigation** — no `R-N` entry with any of those fields blank.
-- **Executive Summary lists every source actually consulted** — and explicitly marks single-source / no-user-answers / intra-source-contradiction states when they apply per `<failure_handling>`.
-- **No fabricated content** — every requirement traces to a quoted or paraphrased item in a source; padding requirements to look thorough is forbidden.
-- **One behavior per requirement** — composite "must do A AND B" requirements are split into separate entries.
-- **Redaction re-scan ran** per `<safety_boundaries>` — assembled document was grepped for credential-shaped patterns (`Bearer `, `password:`, `api_key=`, JWT shapes, `BEGIN PRIVATE KEY`) and PII-shaped patterns; any hit was redacted with the redaction note attached.
+- **Source-field grep** per `<quality_guidelines>` source-provenance rule: no FR/NFR/US/C/D entry with `Source: [Reference]` placeholder unfilled.
+- **NFR threshold grep** per `<quality_guidelines>` threshold rule: every NFR `Measurement` field has a numeric or categorical value; thresholdless NFRs moved to `assumptions-and-risks`.
+- **Vague-adjective grep:** re-grep for `fast`, `user-friendly`, `secure`, `scalable`, `robust`, `intuitive` in requirement bodies — must be quantified or removed.
+- **Traceability completeness grep:** every `FR-N`/`NFR-N`/`US-N` from sections 1–3 has a row; Source populated; Test Scenario populated or `[placeholder for test phase]`.
+- **Assumption fields grep:** every `A-N` has Impact-if-Wrong + Validation Plan.
+- **Risk fields grep:** every `R-N` has Probability + Impact + Mitigation.
+- **Executive Summary source list grep** per `<failure_handling>`: every source actually consulted listed; single-source / no-user-answers / intra-source-contradiction state markers present when applicable.
+- **One-behavior-per-requirement grep** per `<quality_guidelines>`: composite `... AND ...` requirements are split.
+- **Redaction re-scan** per `<safety_boundaries>` target list + pattern set (`Bearer `, `password:`, `api_key=`, JWT shape, `BEGIN PRIVATE KEY`, PII shapes) — single source of truth in `<safety_boundaries>`; not restated here.
 
 </validation_checklist>
 

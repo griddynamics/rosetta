@@ -100,3 +100,42 @@ Real customer names, real emails, real phone numbers, real account IDs, real pay
 Page titles, headings, business-rule prose, schema field names, endpoint paths, HTTP methods, status codes, error message templates, screenshots descriptions, link targets to other in-site pages — recorded verbatim. **Redaction targets sensitive values, not the structural documentation.**
 
 If a real production value would be the natural example, replace it with a clearly-fake placeholder of the same shape — better an obviously-fake placeholder than a leaked real one committed alongside the raw-data artifact.
+
+---
+
+## Output template (referenced from SKILL.md `<output_format>`)
+
+Loaded on demand at process step 8 when assembling the artifact. The base SKILL.md keeps the section list inline (decision-time — agents need section names to verify completeness); this file holds the verbatim markdown template.
+
+```markdown
+## Confluence Documentation
+
+### Page: [Page Title]
+**URL**: [URL]
+**Space**: [Space Key]
+**Labels**: [Labels]
+**Updated**: [Date]
+**Type**: Parent / Child of [Parent Title]
+**Status**: retrieved | `<restricted by permissions>` | `[empty page]`
+
+#### Content
+[Full page content in markdown, with `<safety_boundaries>` redactions applied. Truncated pages are marked with `[truncated at ~5000 words; <description of what was omitted>]`. Restricted pages show `<restricted by permissions> — body not retrievable with configured Confluence MCP credentials`.]
+
+#### Child Pages
+- [Child Title] — [URL]
+(or `None — no children exposed by API`)
+
+---
+[Repeat for each page]
+
+### Search Provenance (when no URL was supplied)
+- **CQL query**: [exact CQL string used in step 2.2, or `N/A — URL-driven retrieval`]
+- **Top-N page IDs**: [comma-separated IDs in ranked order]
+- **Ranking applied**: title-match > label-match > body-match (with MCP relevance + recency as in-tier tiebreaker)
+
+### Gaps
+[List of empty / restricted / unresolvable pages. Format: `- <page URL or title>: <reason — empty / restricted / not-accessible / cross-domain>`. If none, write: `None.`]
+
+### Sensitive-content redactions
+[List of any pages where `<safety_boundaries>` redaction was applied. Format: `- <page title>: <redaction marker> (reason: credential / PII / credentialed URL / connection string / etc.)`. If none, write: `None.`]
+```
