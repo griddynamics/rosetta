@@ -44,13 +44,13 @@ Synthesize Jira data, Confluence documentation, and user answers into a comprehe
 
 <create_requirements_document step="4.3">
 
-Create `agents/testgen/{TICKET-KEY}/requirements.md` using the output format from the `requirements-synthesis` skill (its `<output_format>` block defines the document-level skeleton; its `references/output-schemas.md` defines per-entry shapes).
+Create `agents/testgen/{TICKET-KEY}/requirements.md`. The `requirements-synthesis` skill emits per the document-level skeleton in its `<output_format>` + per-entry shapes in `references/output-schemas.md`.
 
-**Canonical section list** (so the agent can self-verify completeness without re-reading the skill — these MUST all be present in the emitted `requirements.md`):
+**Section contract (phase-owned SSoT)** — the table below is **the authoritative phase contract the bound skill MUST satisfy**, not a parallel restatement. `requirements-synthesis/SKILL.md` `<output_format>` and `references/output-schemas.md` "Document wrapper" use the same scheme (front-matter + 10 numbered sections) — the unified single source of truth as of the last requirements-synthesis fix. If the skill's emitted skeleton drifts from this table, the phase fails verification and re-invokes the skill rather than accepting a divergent shape; the phase **bounds the contract**, the skill is the implementation.
 
 | # | Section | Per-entry shape from `requirements-synthesis` |
 |---|---|---|
-| Header | Document Control + Executive Summary | (Executive Summary extended below for testgen) |
+| Front-matter | Document Control + Executive Summary | (Executive Summary extended below for testgen) |
 | 1 | User Stories | `US-[N]` entries (user-stories schema) |
 | 2 | Functional Requirements | `FR-[N]` entries (functional-requirements schema) |
 | 3 | Non-Functional Requirements | `NFR-[N]` entries (non-functional-requirements schema) |
@@ -139,6 +139,15 @@ The Measurement field carries the threshold (numeric + measurement window + load
 - **Missing or empty inputs** (`raw-data.md`, `analysis.md`, or `answers.md` absent or empty): stop Phase 4, record which input is missing in `testgen-state.md`, and announce which earlier phase to resume. Note: if Phase 3 was marked `SKIPPED — no questions`, an empty `answers.md` is acceptable; proceed without it.
 - **Contradictions unresolved by user answers** (the requirements skill identifies a contradiction whose mapping question was either unanswered or whose answer is itself contradictory): record the unresolved contradiction as an explicit **Risk (R-N)** in `requirements.md` with full source citations (Jira quote, Confluence quote, user answer if any). Do not invent a resolution. Proceed with the rest of Phase 4 but flag the risk in the Executive Summary.
 - **Skill execution failure** (`requirements-synthesis` errors or returns empty): re-invoke once with the same inputs; if still failing, stop, record the skill failure, and ask the user to verify input quality. **No inline per-entry fallback shape exists** — unlike `testgen-flow-test-case-generation.md`'s `<tc_schema>` fallback, this phase has no inline US/FR/NFR/C/D/A/R template to author against if the skill cannot load. The phase **blocks** when the skill is unavailable; do NOT fabricate a partial requirements.md without the skill's structured authoring discipline.
+
+**Conscious tradeoff — why no inline per-entry fallback (declared once, not re-derived per turn):**
+
+- **The skill is a hard dependency, by design.** `requirements-synthesis` is the canonical author for US / FR / NFR / C / D / A / R / Traceability shapes (SMART criteria + threshold rules + source-provenance discipline + INVEST-style story rules + redaction). Replicating those rules inline as a fallback would re-introduce the 4-way duplication this PR deliberately removed, and the fallback would drift from the canonical authoring discipline.
+- **Deployment guarantee.** `requirements-synthesis` ships at `instructions/<release>/core/skills/requirements-synthesis/SKILL.md` (verified for r2 + r3); both release trees contain it, the plugin generator propagates it to every plugin tree. Runtime ACQUIRE resolves against the filesystem path, not against the `docs/definitions/skills.md` registry (which lists meta-level skills only — most QA/AQA/testgen domain skills are not in that registry by convention).
+- **Section contract is phase-owned.** The phase's `<create_requirements_document>` table is the authoritative SSoT for the document skeleton (front-matter + 10 numbered sections); a skill version whose `<output_format>` drifts from that contract fails verification and triggers re-invoke. The phase's contract is decoupled from the skill's implementation details.
+
+This tradeoff is intentional and **bounded to this phase**: the sibling `testgen-flow-test-case-generation.md` retains an inline `<tc_schema>` fallback for a different reason (TC entries are simpler and lower-risk to fall back to; requirement entries carry threshold/SMART/INVEST discipline that does not transfer cleanly to an inline template).
+
 </failure_handling>
 
 <pitfalls>

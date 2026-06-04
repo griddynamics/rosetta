@@ -72,10 +72,10 @@ The skill MUST NOT attempt retrieval against malformed input — that produces s
 
 <output_format>
 
-The artifact has **5 sections in order** (the phase contract — every section must be present, empty sections use `None.`):
+The artifact has **4 sections in order** (the phase contract — single source of truth shared with `references/cql-and-redaction.md` "Output template" + `references/validation-checklist.md` "all sections present" check; every section must be present, empty sections use `None.`):
 
 1. `## Confluence Documentation` — per-page entries with Page header (URL / Space / Labels / Updated / Type / Status) + `#### Content` + `#### Child Pages`
-2. `### Search Provenance` (when no URL was supplied) — CQL query + top-N page IDs + ranking applied
+2. `### Search Provenance` (when no URL was supplied; otherwise `N/A — URL-driven retrieval`) — CQL query + top-N page IDs + ranking applied
 3. `### Gaps` — empty / restricted / unresolvable pages (or `None.`)
 4. `### Sensitive-content redactions` — pages where `<safety_boundaries>` redaction was applied (or `None.`)
 

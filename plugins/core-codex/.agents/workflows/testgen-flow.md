@@ -16,28 +16,28 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 <workflow_phases>
 
-- Rosetta prep steps completed
+- Rosetta prep steps completed.
 - **ONE PHASE AT A TIME:** ACQUIRE phase file, execute, update state, move to next.
 - **DO NOT SKIP PHASES:** Each builds on the previous. Skip gates: only with **explicit user instruction**, **or** when `testgen-state.md` marks the phase complete **and** its expected output file exists under `agents/testgen/{TICKET-KEY}/`; otherwise resume from the earliest incomplete phase.
-- **Verification-failure resume:** the unilateral-start override lives in `<orchestration_and_escalation>` — scope-locked, subordinate to higher-priority rules. **Carve-outs / precedence:** see the canonical priority hierarchy in `<orchestration_and_escalation>` (rule 4 is the override; rules 1–3 are never overridden).
+- **Transition precedence** (the only place referenced from here): `<orchestration_and_escalation>` priority hierarchy.
 - **STATE TRACKING:** Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
 - **SELF-CHECK BETWEEN PHASES:** Before advancing, verify the state file row was updated, the expected output file exists and is non-empty, and any HITL approval (Phase 3, 6) is recorded.
-- USE SKILL `sequential-workflow-execution` for the canonical implementation of the bullets above (ACQUIRE if not already loaded). The inline bullets remain authoritative if the SKILL fails to load.
-- MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL PHASES ARE SEQUENTIAL.
-- **USER CONFIRMATION:** Wait for approval before next phase. (Happy-path governance — rule 3 in the priority hierarchy in `<orchestration_and_escalation>`.)
+- USE SKILL `sequential-workflow-execution` for the canonical implementation (ACQUIRE if not loaded). Inline bullets remain authoritative on skill load failure.
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
-- **Per-phase failure cases + grounding examples — owned by phase files** (verification trail; router stays thin):
-  - *Jira ticket not found* → `testgen-flow-data-collection.md` + `mcp-jira-data-collection` skill `<failure_handling>`
-  - *No Confluence results* → `testgen-flow-data-collection.md` + `confluence-source-harvesting` skill `<failure_handling>`
-  - *User declines / does not answer questions* → `testgen-flow-question-generation.md` `<failure_handling>` "User explicitly declines to answer"
-  - *Incomplete / missing requirements inputs* → `testgen-flow-requirements-document-generation.md` `<failure_handling>` "Missing or empty inputs"
-  - *CQL search example + ranking rule* → `mcp-confluence-data-collection/references/cql-and-redaction.md`
-  - *Initial-prompt format examples* (PROJ-123, full Jira URL) → `testgen-flow-project-config-loading.md`
-- **Model tier vocabulary** (centralized — phase headers reference tiers, not dated model IDs, so vendor/release churn does not rot the phase definitions):
+- **Canonical trigger prompt example** (one inline grounding instance so the agent has a reference before phase files load; additional formats per `testgen-flow-project-config-loading.md`): `Analyze requirements for PROJ-123` (also accepted: bare ticket key `PROJ-123`, full Jira URL).
+- **Per-phase failure cases — owned by phase files** (verified anchors; the router is a thin coordinator):
+  - *Jira ticket not found* → `testgen-flow-data-collection.md` + `mcp-jira-data-collection` skill `<failure_handling>`.
+  - *No Confluence results* → `testgen-flow-data-collection.md` + `confluence-source-harvesting` skill `<failure_handling>`.
+  - *User declines / does not answer questions* → `testgen-flow-question-generation.md` `<failure_handling>` "User explicitly declines to answer".
+  - *Incomplete / missing requirements inputs* → `testgen-flow-requirements-document-generation.md` `<failure_handling>` "Missing or empty inputs".
+  - *CQL search example + ranking rule* → `mcp-confluence-data-collection/references/cql-and-redaction.md`.
+  - *Initial-prompt format examples* → `testgen-flow-project-config-loading.md`.
+  - **Phase 6 80%-export-success threshold (measurable)** → `testgen-flow-test-case-export.md` (`Threshold (80%) met` field + `PARTIAL — N/M exported` state). The router does not duplicate the threshold.
+  - **Phase 5 test-case-count guidance (10-30 typical)** → `testgen-flow-test-case-generation.md` `<validation_checklist>`.
+- **Model tier vocabulary:**
   - `tier: complex` — heavy reasoning / multi-source synthesis / gap-and-contradiction analysis / requirements engineering. Current recommended: Anthropic Opus-class, OpenAI GPT high-tier.
   - `tier: workhorse` — structured execution / data extraction / test-case generation + export. Current recommended: Anthropic Sonnet-class, OpenAI GPT medium-tier.
-  - The tier hint is the agent-agnostic anchor. Rosetta or the session bootstrap may override the concrete model mapping; phase headers should be edited only when adding a tier, not when models churn.
 
 <project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_recommended_model="tier: workhorse">
 
@@ -117,21 +117,16 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 <orchestration_and_escalation>
 
-- **Transition rules priority hierarchy** (canonical — single source of truth for which rule wins when phase-transition rules overlap; referenced from `<workflow_phases>` and from the override clause below):
+- **Transition rules priority hierarchy** (highest priority NEVER overridden → lowest):
+  1. **Safety / destructive confirmations** — file deletion, repo edits outside `agents/testgen/{TICKET-KEY}/`, TMS write scope changes, comparable irreversible actions. Includes `<phase_5_6_standards_gate>` outside-output-dir confirmation.
+  2. **Phase 3 + Phase 6 HITL approval gates** — user MUST answer `questions.md` / confirm TMS target + export scope.
+  3. **Per-phase USER CONFIRMATION** — every phase transition that is not the verification-failure resume case.
+  4. **Verification-failure unilateral-start override** — narrow carve-out at the verification-failure gate only; subordinate to rules 1–3; defaults to ASK on ambiguity.
 
-  **Highest priority (NEVER overridden) — Lowest priority (narrowest carve-out):**
-
-  1. **Safety / destructive confirmations** — any prompt before file deletion, repository edits outside `agents/testgen/{TICKET-KEY}/`, TMS write scope changes, or comparable destructive/irreversible actions. The `<phase_5_6_standards_gate>` confirmation discipline for outside-output-dir writes is included here.
-  2. **Phase 3 + Phase 6 HITL approval gates** — genuine HITL (user MUST answer `questions.md` / MUST confirm TMS target + export scope). Not confirmation requests that can be elided.
-  3. **Per-phase USER CONFIRMATION** (`<workflow_phases>` happy-path rule) — governs every phase transition that is not the verification-failure resume case in rule 4.
-  4. **Verification-failure unilateral-start override** (this block) — narrow carve-out: applies ONLY at the verification-failure gate AND only when all preconditions below hold. Subordinate to all three rules above; defaults to ASK on any ambiguity.
-
-  **Reading:** safety/HITL gates > per-phase USER CONFIRMATION > verification-failure override.
-
-- **Verification-failure unilateral-start override** — subordinate to `bootstrap-hitl-questioning` policy + the priority hierarchy above (rules 1–3 are NEVER overridden); the only sanctioned no-ask deviation from rule 3, applies only at this gate.
+- **Verification-failure unilateral-start override** — subordinate to `bootstrap-hitl-questioning` + rules 1–3 above; the only no-ask deviation from rule 3.
   - **Trigger** (ALL three must hold): user asserted phase(s) complete this turn + `agents/testgen/{TICKET-KEY}/testgen-state.md` does not mark the asserted phases complete + the matching expected output file is absent under `agents/testgen/{TICKET-KEY}/`.
-  - **Action:** print one line naming the failing conditions, log the override into `agents/testgen/{TICKET-KEY}/testgen-state.md` `## Verification-Failure Overrides` (timestamp + asserted-complete claim + failing conditions + phase started — printed line alone is insufficient audit trail), start the earliest incomplete phase in the same turn — do NOT call `AskUserQuestion`.
-  - **Default:** any uncertainty (partial state, ambiguous assertion, stale output) → fall back to normal HITL ask. *Rationale: the verification result IS the decision; asking would loop until artifacts exist.*
+  - **Action:** print one line naming failing conditions, log the override into `agents/testgen/{TICKET-KEY}/testgen-state.md` `## Verification-Failure Overrides` (timestamp + asserted-complete claim + failing conditions + phase started), start the earliest incomplete phase in the same turn — do NOT call `AskUserQuestion`.
+  - **Default:** uncertainty (partial state, ambiguous assertion, stale output) → fall back to normal HITL ask.
 
 </orchestration_and_escalation>
 

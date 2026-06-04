@@ -52,9 +52,12 @@ If unresolved, document as assumption with impact-if-wrong.
 
 <output_format>
 
-The assembled document has **10 sections in order** (the phase contract):
+The assembled document has **front-matter (Document Control + Executive Summary) + 10 numbered sections in order** (the phase contract — single source of truth shared with `references/output-schemas.md` "Document wrapper" + `testgen-flow-requirements-document-generation.md` `<create_requirements_document>` Canonical section list):
 
-1. Document Control — 2. Executive Summary — 3. User Stories (US-N) — 4. Functional Requirements (FR-N) — 5. Non-Functional Requirements (NFR-N) — 6. Constraints (C-N) — 7. Dependencies (D-N) — 8. Out of Scope — 9. Assumptions (A-N) — 10. Risks (R-N) — 11. Traceability Matrix — 12. Glossary.
+- **Front-matter:** Document Control · Executive Summary.
+- **Numbered sections 1–10:** 1. User Stories (US-N) — 2. Functional Requirements (FR-N) — 3. Non-Functional Requirements (NFR-N) — 4. Constraints (C-N) — 5. Dependencies (D-N) — 6. Out of Scope — 7. Assumptions (A-N) — 8. Risks (R-N) — 9. Traceability Matrix — 10. Glossary.
+
+`<validation_checklist>` traceability greps target the **numbered** sections (e.g. "sections 1-3" = US / FR / NFR); front-matter is not in the numbering.
 
 Verbatim document wrapper (skeleton + field shapes + Executive Summary template) lives in [references/output-schemas.md "Document wrapper"](references/output-schemas.md#document-wrapper-referenced-from-skillmd-output_format) — load on demand at process step 9 when assembling.
 

@@ -31,11 +31,30 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 
 <core_concepts>
 
-- Try `rosettify` MCP first (if already available), fallback to CLI: `npx rosettify@latest <command> <subcommand> <plan_file`>, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB.
+- Try `rosettify` MCP first (if already available), fallback to CLI: `npx rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB.
 - Always use full absolute paths for the plan file
 - Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`
 - Help: `npx rosettify@latest help plan` provides full help JSON
-- Resume behavior: `next` returns four groups: (1) in_progress steps (resume=true), (2) open eligible steps, (3) blocked steps (previously_blocked=true), (4) failed steps (previously_failed=true)
+- Resume behavior: `next` returns four groups: (1) in_progress steps (resume=true), (2) open eligible steps, (3) blocked steps (previously_blocked=true), (4) failed steps (previously_failed=true). **Canonical `next` output shape** (one concrete example so subagents do not have to infer field names; covers all four step groups + `count`/`plan_status`):
+
+  ```json
+  {
+    "count": 3,
+    "plan_status": "in_progress",
+    "in_progress": [
+      { "step_id": "ph-1-step-2", "phase_id": "ph-1", "resume": true, "prompt": "..." }
+    ],
+    "open": [
+      { "step_id": "ph-1-step-3", "phase_id": "ph-1", "prompt": "..." }
+    ],
+    "blocked": [
+      { "step_id": "ph-1-step-4", "phase_id": "ph-1", "previously_blocked": true, "blocked_reason": "...", "prompt": "..." }
+    ],
+    "failed": []
+  }
+  ```
+
+  Phase-complete shape: `{ "count": 0, "plan_status": "complete", "in_progress": [], "open": [], "blocked": [], "failed": [] }` — branch to step 4 of the subagent flow.
 - Phases are sequential: steps from a later phase do not appear until all steps in earlier phases are complete
 - Status propagation: bottom-up only (steps -> phases -> plan); plan root status is always derived, never set directly
 - `upsert` silently ignores status fields in patch -- only `update_status` modifies status

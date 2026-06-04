@@ -52,7 +52,7 @@ Create `agents/testgen/{TICKET-KEY}/analysis.md` via three sequenced sub-steps a
 
 **2.3.a — Verify the public append-anchor.** Grep `analysis.md` for the literal marker declared by the currently-bound analysis skill (default: `<!-- end-of-gap-and-contradiction-analysis -->`). If absent: apply `<failure_handling>` "append-anchor missing" — do NOT splice into a missing-anchor document.
 
-**2.3.b — Splice two phase-owned sections before the anchor.** Insert the block below immediately before the anchor line, then re-emit the marker as the last line. Numbering: section numbers below follow the skill's current scheme and may be renumbered on skeleton evolution — the anchor remains the splice point regardless.
+**2.3.b — Splice two phase-owned sections before the anchor.** Insert the **phase-owned splice block** below immediately before the anchor line, then re-emit the marker as the last line. Numbering: section numbers below follow the skill's current scheme and may be renumbered on skeleton evolution — the anchor remains the splice point regardless. The block below is **phase-owned content** appended to the skill's output; it is NOT a residual template or stray fragment.
 
 ```markdown
 ## 7. Next Steps
@@ -75,28 +75,24 @@ Create `agents/testgen/{TICKET-KEY}/analysis.md` via three sequenced sub-steps a
 **2.3.c — Zero-issues handling.** If total issues = 0 (the skill's sections carry `No issues found.` per its zero-issues rule), set `Total questions expected: 0` and replace the `Recommended: ...` line with `Proceed directly to Phase 4 — no clarification needed (per Phase 2 zero-issues outcome).` Anchor verification at 2.3.a still runs — zero-issues documents emit the marker like every other case.
 
 <details>
-<summary><strong>Final analysis.md heading shape</strong> (collapsed reference — expand to verify the joined skill-output + appended-sections shape)</summary>
+<summary><strong>Final analysis.md ownership shape</strong> (collapsed reference — expand to see what the phase requires of the bound skill)</summary>
 
-Self-contained joined view; the document contract is verifiable from this file alone:
+The phase does NOT enumerate the skill's internal section structure. The bound skill owns the entire skeleton above its public anchor; the phase appends two sections + re-emits the anchor.
 
-| Order | Heading | Owner | Notes |
-|---|---|---|---|
-| 1 | `# Analysis - [Title]` | skill | Document header |
-| 2 | `## Executive Summary` | skill | |
-| 3 | `## 1. Contradictions` | skill | C[N] entries or `None found` |
-| 4 | `## 2. Gaps` | skill | G[N] entries or `None found` |
-| 5 | `## 3. Ambiguities` | skill | A[N] entries or `None found` |
-| 6 | `## 4. Cross-Reference Analysis` | skill | |
-| 7 | `## 5. Positive Findings` | skill | |
-| 8 | `## 6. Risk Assessment` | skill | Last skill-owned section in current skeleton |
-| 9 | `## Analysis Metadata` (skill's own) | skill | Sources Analyzed + Analysis Duration |
-| 10 | `## 7. Next Steps` | **phase** (appended 2.3.b) | |
-| 11 | `## Analysis Metadata` (phase-extended) | **phase** (appended 2.3.b) | Phase-specific fields (Jira / Confluence / Manual Review) |
-| EOF | `<!-- end-of-gap-and-contradiction-analysis -->` (or the bound skill's declared marker) | skill (re-emitted) | Public append-anchor, last line of file |
-
-Skill skeleton evolution (renumbering, renames, added sections) is tolerated as long as the anchor remains the last line.
+| Region | Owner | What the phase asserts |
+|---|---|---|
+| Document body (header + all analysis sections + skill's own Metadata) | **skill** (per its `<output_format>`) | **No assertion about section names, numbering, or count.** The skill's `<output_format>` is the authoritative source. |
+| `## 7. Next Steps` (phase-appended) | **phase** (splice 2.3.b) | Phase-owned content; numbering follows the skill's current scheme but may renumber on skeleton evolution. |
+| `## Analysis Metadata` (phase-extended; Jira / Confluence / Manual Review) | **phase** (splice 2.3.b) | Phase-owned content with testgen-specific fields. |
+| EOF marker (`<!-- end-of-gap-and-contradiction-analysis -->` or the bound skill's declared token) | skill (re-emitted by 2.3.b) | **The only structural assertion the phase makes about the skill** — public append-anchor as the last line. |
 
 </details>
+
+**Skill-version compatibility contract** (declared once, the SSoT for what the phase requires of any bound analysis skill — not skill-internal anchors or sections):
+
+The phase requires **exactly one thing** from the bound analysis skill at runtime: the skill MUST emit a public last-line append-anchor token (default: `<!-- end-of-gap-and-contradiction-analysis -->`). No other assertion is made about the skill's emitted structure — section names, numbering, count, or ordering are owned entirely by the skill's `<output_format>`. Skeleton evolution (renumbering, renames, added/removed sections) is tolerated as long as the public anchor remains the last line. A skill version whose `<output_format>` no longer emits the anchor token is incompatible and the phase blocks at step 2.3.a per `<failure_handling>` "Append-anchor missing".
+
+**Deployment guarantee.** `gap-and-contradiction-analysis` ships at `instructions/<release>/core/skills/gap-and-contradiction-analysis/SKILL.md` (verified for r2 + r3); both release trees contain it. Its `<output_format>` is required to declare and emit the public append-anchor — that contract is owned in the skill's own SKILL.md and inherited by every binding.
 
 **Finding-quality grounding** (applies to every Contradiction / Gap / Ambiguity entry):
 
