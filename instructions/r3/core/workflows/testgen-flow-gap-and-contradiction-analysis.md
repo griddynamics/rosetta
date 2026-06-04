@@ -44,20 +44,15 @@ Analyze Jira ticket and Confluence documentation to identify contradictions, gap
 
 <create_analysis_document step="2.3">
 
-Create `agents/testgen/{TICKET-KEY}/analysis.md`:
+Create `agents/testgen/{TICKET-KEY}/analysis.md` via four atomic sub-steps.
 
-1. **Sections 1–6** (Contradictions, Gaps, Ambiguities, Cross-Reference Analysis, Positive Findings, Risk Assessment) — produced by `gap-and-contradiction-analysis` per its `<output_format>`. **Per-entry field shapes** — `C[N]`: Type / Source 1 (with field/section + verbatim quote) / Source 2 / Impact / Needs Clarification; `G[N]` / `A[N]` analogous — live in the skill's `references/entry-templates-and-document-skeleton.md` (verified canonical home). Sections 1–6 numbering and skeleton: same reference. The phase delegates without restating; this line is the verification trail.
+**Append contract (public, declared once):** `gap-and-contradiction-analysis` owns the document skeleton (its `<output_format>` is the contract — sections, numbering, and the `<!-- end-of-gap-and-contradiction-analysis -->` public append-anchor marker emitted as the last line). This phase appends two sections (Next Steps + Analysis Metadata) by splicing them **before** the anchor marker and re-emitting the marker as the last line. The phase keys on the public anchor, not on the skill's internal section names or numbering — the contract survives skeleton renumbering, renames, or additions.
 
-2. **Verify the skill's output ended at the Risk Assessment section** before appending (semantic check, not numeric).
+**2.3.a — Run the skill (already done in step 2.2).** Step 2.2 already invoked `gap-and-contradiction-analysis`. Verify its output file exists at `agents/testgen/{TICKET-KEY}/analysis.md` and is non-empty.
 
-   **Coupling note (declared explicitly):** the skill `gap-and-contradiction-analysis` owns the document skeleton sections 1–N (currently 1–6, last section = Risk Assessment) per its `<output_format>` and `references/entry-templates-and-document-skeleton.md`. This phase appends sections (N+1) and (N+2). The semantic anchor is the **section name "Risk Assessment"**, NOT the literal numeric prefix `## 6.` — if the skill renumbers (e.g. adds a section between Contradictions and Risk Assessment), the append still attaches correctly as long as Risk Assessment is the last skill-owned section.
+**2.3.b — Verify the public append-anchor.** Grep the file for the literal line `<!-- end-of-gap-and-contradiction-analysis -->`. If absent: stop, report `Phase 2: gap-and-contradiction-analysis output missing public append-anchor marker — skill output may be malformed or from a pre-anchor version`, ask the user to inspect. Do NOT append onto a missing-anchor document.
 
-   **Procedure:**
-   - **Primary check:** grep the file produced by step 1 for the last `^## ` heading; confirm its text **ends with `Risk Assessment`** (matches `## 6. Risk Assessment`, `## 7. Risk Assessment`, `## Risk Assessment`, etc.). Numeric prefix and number drift are tolerated.
-   - **Zero-issues exception:** if the skill emitted the explicit "No issues found" zero-issues form per its `<output_format>`, that is also acceptable.
-   - **Mismatch handling:** if the last `## ` heading is neither a "Risk Assessment" section nor the zero-issues form, the skill output is malformed or its skeleton has drifted beyond the semantic anchor — stop, report `Phase 2: gap-and-contradiction-analysis output does not end with Risk Assessment — last heading was: <heading>`, ask the user to inspect; do NOT append onto a misaligned document.
-
-3. **Append the two sections below verbatim** to the end of the file (numbering continues from the skill's last numbered section — currently `## 6.` Risk Assessment, but reads the actual last-section number from the file produced by step 1 so the append stays consecutive if the skill renumbers), then fill the `[bracketed]` slots from the analysis:
+**2.3.c — Splice the two appended sections before the anchor.** Insert the block below immediately before the `<!-- end-of-gap-and-contradiction-analysis -->` line, then re-emit the marker as the last line. Numbering: the section numbers below use the skill's current scheme (next numbers after the skill's last numbered section); they are presentation-only and may be renumbered if the skill's skeleton evolves — the anchor remains the splice point regardless.
 
 ```markdown
 ## 7. Next Steps
@@ -77,9 +72,26 @@ Create `agents/testgen/{TICKET-KEY}/analysis.md`:
 - **Manual Review**: [Areas requiring human judgment]
 ```
 
-Nothing else is appended — sections 1–6 are owned by the skill, not by this phase.
+**2.3.d — Zero-issues handling.** If total issues = 0 (the skill's sections carry `No issues found.` per its zero-issues rule), set `Total questions expected: 0` and replace the `Recommended: ...` line with `Proceed directly to Phase 4 — no clarification needed (per Phase 2 zero-issues outcome).` Anchor verification (2.3.b) still runs — zero-issues documents emit the marker like every other case.
 
-**Zero-issues rule:** if total issues = 0, the skill's sections 1–6 carry explicit `No issues found.` per its zero-issues rule; inside the append-only block above, set `Total questions expected: 0` and replace the `Recommended: ...` line with `Proceed directly to Phase 4 — no clarification needed (per Phase 2 zero-issues outcome).`
+**Final analysis.md heading shape** (self-contained — describes the joined skill-output + appended-sections result so the document contract is verifiable from this file alone):
+
+| Order | Heading | Owner | Notes |
+|---|---|---|---|
+| 1 | `# Analysis - [Title]` | skill | Document header |
+| 2 | `## Executive Summary` | skill | |
+| 3 | `## 1. Contradictions` | skill | C[N] entries or `None found` |
+| 4 | `## 2. Gaps` | skill | G[N] entries or `None found` |
+| 5 | `## 3. Ambiguities` | skill | A[N] entries or `None found` |
+| 6 | `## 4. Cross-Reference Analysis` | skill | |
+| 7 | `## 5. Positive Findings` | skill | |
+| 8 | `## 6. Risk Assessment` | skill | Last skill-owned section in current skeleton |
+| 9 | `## Analysis Metadata` (skill's own) | skill | Sources Analyzed + Analysis Duration |
+| 10 | `## 7. Next Steps` | **phase** (appended 2.3.c) | |
+| 11 | `## Analysis Metadata` (phase-extended) | **phase** (appended 2.3.c) | Phase-specific fields (Jira / Confluence / Manual Review) |
+| EOF | `<!-- end-of-gap-and-contradiction-analysis -->` | skill (re-emitted) | Public append-anchor, last line of file |
+
+Skill skeleton evolution (renumbering, renames, added sections) is tolerated as long as the anchor remains the last line.
 
 **Finding-quality grounding** (applies to every Contradiction / Gap / Ambiguity entry):
 

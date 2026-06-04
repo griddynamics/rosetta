@@ -116,30 +116,17 @@ Prioritize:
 - Unusually slow tests
 - Flakiness indicators
 
-## Part B: Corrections
+## Part B: Corrections (steps 7–9)
 
-### 7. Prepare Proposed Changes
+Part B step-by-step orchestration (step 7 Prepare Proposed Changes, step 8 Apply Approved Changes, step 9 Iteration cap + escalation) lives in [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-step-orchestration-steps-79--referenced-from-skillmd-process) — load on demand only when Part B runs. Part-A-only invocations MUST NOT load this section.
 
-Emit one Proposed Change entry per issue, using the **canonical Proposed Change template** in [references/part-b-mechanics.md](references/part-b-mechanics.md#proposed-change-record-template-referenced-from-skillmd-step-7--output_format--part-b-validation_checklist). Required fields: **File, Current Code, Proposed Code, Reason, Impact, Risk** (6 fields). The reference also holds the per-category fix-matching guidance.
-
-### 8. Apply Approved Changes
-
-After user approval:
-1. Apply changes one at a time
-2. Verify each change is correct
-3. Follow project standards
-4. Check linting after each file modification
-5. Validate changes address root causes
-
-### 9. Track Iteration Count and Escalate at the 3-Iteration Cap
-
-The Part A → Part B cycle is **capped at 3 iterations** to prevent runaway diagnose/patch loops. Counter mechanics + state-file field schema + cap-enforcement protocol (read counter → increment after Part B → branch on re-execution outcome → escalate at iteration 3) live in [references/part-b-mechanics.md](references/part-b-mechanics.md#step-9-iteration-cap-state-file-protocol-referenced-from-skillmd-step-9).
-
-**Governance (canonical):** Do NOT auto-start a 4th iteration without an explicit user waiver recorded in the state file. When the cap is reached with failures remaining, write the verbatim escalation-note template from [references/escalation-template.md](references/escalation-template.md).
+**Canonical guard (always inline):** the 3-iteration cap is hard — do NOT auto-start a 4th iteration without an explicit user waiver recorded in the state file. The escalation template lives in [references/escalation-template.md](references/escalation-template.md).
 
 </process>
 
 <output_format>
+
+**Part A artifact (always emitted):**
 
 ```markdown
 ## Test Report Analysis
@@ -155,15 +142,9 @@ The Part A → Part B cycle is **capped at 3 iterations** to prevent runaway dia
 - Root Cause: [analysis]
 - Page Source Analysis: [if selector error]
 - Priority: [level]
-
-### Proposed Corrections
-[Change list — each entry uses the 6-field Proposed Change template (File / Current Code / Proposed Code / Reason / Impact / Risk) from references/part-b-mechanics.md]
-
-### Applied Corrections (after approval)
-- Files Modified: [list]
-- Issues Fixed: [count]
-- Status: Ready for re-testing
 ```
+
+**Part B artifact (only when Part B runs)** — `### Proposed Corrections` + `### Applied Corrections` subsections appended to the Part A artifact. Verbatim template + 6-field Proposed Change shape in [references/part-b-mechanics.md](references/part-b-mechanics.md#part-b-output_format-template-referenced-from-skillmd-output_format).
 
 </output_format>
 

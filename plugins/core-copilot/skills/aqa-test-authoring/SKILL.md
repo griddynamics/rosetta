@@ -1,7 +1,7 @@
 ---
 name: aqa-test-authoring
 description: Implement automated test following project standards, integrating page objects and assertions from test plan.
-tags: []
+tags: ["aqa", "test-authoring", "implementation"]
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -128,41 +128,27 @@ If the test plan's selector inventory turns out to be incomplete during authorin
 
 <failure_handling>
 
-- **Test plan missing or empty** at `agents/plans/aqa-<test-name>.md` (or workflow-supplied path): stop, report `aqa-test-authoring: test plan missing/empty at <path>`. Do not author from incomplete inputs.
-- **Required selector or page-object method missing** (test plan's selector inventory promises a method that isn't actually in the referenced page-object file): stop authoring the affected test action, record `aqa-test-authoring: page-object method <Class.method> referenced by plan but not found in <file>` in the output's Uncovered Assertions section, and ask the calling workflow to re-run Phase 5 (selector implementation). Do NOT extend the page object inline (safety boundary).
-- **Required selector itself missing** (Part A inventory marked an interaction as resolved but the referenced selector isn't in the page object): same as above — Phase 5 owns it; do not invent the selector.
-- **Unimplementable assertion** (an assertion from requirements has no observable UI signal, no available helper, or requires a precondition the test cannot establish): record it in `### Uncovered Assertions` with the specific reason. Do NOT silently drop it from coverage.
-- **`<test-name>` unresolved or ambiguous**: stop, ask the calling workflow to resolve the slug per `aqa-flow-code-analysis.md` `<naming_convention>`.
-- **Conflict between user instructions and repo docs**: follow repo docs per `<input_contract>` precedence, record the override in `### Conflicts and Precedence`. Never silently apply either side.
-- **Test plan's location decision references a file the project layout doesn't have** (file mapping says "add to `tests/checkout/payment.spec.ts`" but no such file exists): stop, report the mismatch, ask the calling workflow whether to fall back to "create new file" with the same name or revisit the Phase 3 location decision. Do not silently create the file under a guessed path.
+7-case full list lives in [references/test-implementation-template.md "Failure Handling — full case list"](references/test-implementation-template.md#failure-handling--full-case-list-referenced-from-skillmd-failure_handling) — load on demand when a stop condition is hit (steps 2–4). Cases: test plan missing/empty, required selector/method missing, required selector itself missing, unimplementable assertion, `<test-name>` unresolved, user-instructions-vs-repo-docs conflict, test plan's location-decision references a non-existent file. Each case carries a stop/route/record discipline; do NOT improvise — load the catalog.
 
 </failure_handling>
 
 <validation_checklist>
 
-Run as part of step 4 before step 5 emits. All items must hold:
-
-- **Imports correct and follow project order** (framework → pages → utilities → types, or whatever the existing patterns dictate).
-- **Every plan assertion is implemented OR listed in `### Uncovered Assertions`** per step 4.
-- **Page objects used for all UI interactions** — no direct selector use in test code (safety boundary).
-- **No application source or page-object files were modified** by this skill. The only writes are the test file and the test plan's `## Test Implementation` section.
-- **Coding standards followed** per `<input_contract>` repo-docs-win precedence. Any user-instruction override is recorded in `### Conflicts and Precedence`.
-- **No hardcoded sleeps/timeouts** — proper wait strategies only (per step 3c).
-- **Lint/format clean** on touched files; record the exact command run in the implementation notes.
-- **Hand-off output emitted** per `<output_format>` — all five required subsections populated (or `None — <reason>` per the template).
+8-item full list lives in [references/test-implementation-template.md "Validation Checklist — full item list"](references/test-implementation-template.md#validation-checklist--full-item-list-referenced-from-skillmd-validation_checklist) — load on demand at step 4 (pre-emit gate). Items: imports + project order, every-assertion-implemented-or-uncovered, page-objects-only, no-app-source-or-page-object-modifications, repo-docs-win precedence + conflict recorded, no hardcoded sleeps, lint/format clean, hand-off output emitted. Run before step 5 emits.
 
 </validation_checklist>
 
 <pitfalls>
-- Bypassing page objects to use selectors directly — safety-boundary violation
-- Inventing or extending page-object selectors/methods inline when the inventory is incomplete — that's the **selector-implementation phase**'s responsibility; stop and route back
-- Silently dropping assertions that can't be implemented — see step 4
-- Missing assertions from requirements phase
-- Ignoring user instructions OR silently applying them over repo docs — see `<input_contract>` repo docs win
-- Not matching existing test patterns (imports, structure, naming)
-- Adding hardcoded waits instead of proper wait strategies
-- Editing application source or page-object files during authoring — only test files are writable
-- Skipping linting validation
+(Each item is a pointer; the rule lives in the cited section.)
+- Bypassing page objects → `<safety_boundaries>` (no direct selector use).
+- Inventing/extending page-object selectors/methods inline → `<failure_handling>` "required selector/method missing" (selector-implementation phase owns it).
+- Silently dropping unimplementable assertions → `<process>` step 4 Uncovered Assertions rule.
+- Missing assertions from requirements phase → `<process>` step 1 review + step 4 carry-forward.
+- Silently overriding repo docs with user instructions → Conflict Precedence Rank in `references/test-implementation-template.md` (repo docs win).
+- Not matching existing test patterns → `<process>` step 3a.
+- Hardcoded waits → `<process>` step 3c (no sleeps).
+- Editing application source / page-object files → `<safety_boundaries>` (only test files + plan section).
+- Skipping lint validation → `<validation_checklist>` "lint/format clean" item.
 </pitfalls>
 
 </aqa-test-authoring>

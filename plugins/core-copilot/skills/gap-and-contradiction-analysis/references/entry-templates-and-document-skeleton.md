@@ -146,6 +146,10 @@ The full analysis document the skill produces. All 10 sections are required; emp
 
 - **Sources Analyzed**: [List]
 - **Analysis Duration**: [Time]
+
+<!-- end-of-gap-and-contradiction-analysis -->
 ```
+
+**Anchor emission rule:** The literal HTML comment `<!-- end-of-gap-and-contradiction-analysis -->` MUST be the last line of the file (no trailing newlines after it, no other content after it). This is the public append-anchor declared by `<output_format>`; downstream phases append further sections by inserting **before** this marker (then re-emitting the marker as the last line) OR by treating it as the splice point. The marker is part of the skill's stable public contract; do NOT rename it or change its placement when revising the skeleton above.
 
 If NO issues found, still produce the document with "No issues found" in each finding section per `<failure_handling>` discipline (the document must exist even on a clean analysis so downstream phases have a verifiable artifact).

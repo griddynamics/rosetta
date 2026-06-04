@@ -14,14 +14,7 @@ Use when test cases must be written in TestRail-compatible format. Provides the 
 </when_to_use_skill>
 
 <success_criteria>
-A test case is complete when **all of** the following hold:
-- `<epistemic_honesty>` gap-marker discipline holds (every required field is either real or marked as a gap; no fabricated IDs/ACs/requirements).
-- `<format_rules>` hold (Steps + Expected Results format + the MUST/MUST-NOT enumeration; sequential numbering + step-referenced expected results).
-- `<naming_conventions>` hold (test type in parentheses).
-- `<format_rules>` parameterization rules hold (execution-count clause in Preconditions; ≤ 5 parameter sets).
-- `<safety_boundaries>` redaction discipline holds.
-
-NOT complete if any `<format_rules>` / `<epistemic_honesty>` / `<safety_boundaries>` rule is violated.
+Complete when `<format_rules>` + `<naming_conventions>` + `<epistemic_honesty>` (gap-marker discipline) + `<safety_boundaries>` (redaction) all hold per `<validation_checklist>` greps. NOT complete if any rule is violated.
 </success_criteria>
 
 <input_contract>
@@ -115,13 +108,13 @@ Three worked entries — **Happy Path**, **Negative with parameterized test data
 </examples>
 
 <pitfalls>
-- Do NOT use BDD Given-When-Then format — TestRail uses Steps + Expected Results
-- Each step must be a single action, not multiple actions combined
-- Expected results must be observable and verifiable, not vague
-- For parameterized tests, preconditions must state how many times to execute and reference Test Data
-- Maximum 5 parameter sets per test case — split into multiple test cases if more
-- Inventing requirement / user-story / acceptance-criterion IDs to fill the template when none were supplied — fabrication. Mark as a gap per `<epistemic_honesty>` instead.
-- Pasting literal credentials / PII into the case body — see `<safety_boundaries>`. (Downstream `testrail-test-case-export` writes this verbatim to TestRail — irreversible if leaked.)
+(Each item is a pointer; the rule lives in the cited section.)
+- BDD / Given-When-Then format → `<format_rules>` MUST NOT.
+- Multi-action steps OR vague expected results → `<format_rules>` step / expected-result discipline.
+- Parameterization without execution-count clause or Test Data ref → `<format_rules>` parameterization.
+- >5 parameter sets → split per `<failure_handling>` cap rule.
+- Fabricated requirement / US / AC IDs → `<epistemic_honesty>` gap markers (canonical).
+- Literal credentials / PII in case body → `<safety_boundaries>` (downstream `testrail-test-case-export` writes verbatim to TestRail — irreversible if leaked).
 </pitfalls>
 
 <epistemic_honesty>
@@ -156,26 +149,24 @@ Test cases authored here are written verbatim into a tracked artifact (and pushe
 
 <failure_handling>
 
-- **No requirement / AC mapping available** for a scenario (upstream did not supply a requirements doc OR the doc has no entry for this scenario): apply `<epistemic_honesty>` gap markers in the Traceability fields. Do NOT invent `FR-X` / `US-X` / `AC[N]` IDs. The case is still emitted; the gap is visible.
-- **Parameter sets exceed the 5-set cap:** split into multiple test cases per the `<pitfalls>` rule. Number sequentially (TC-A, TC-B, TC-C, ...) and reuse the same Related Requirement / Traceability set across the split unless the parameter-group semantics genuinely differ. Note in each split case's Notes: `Split from <N>-set parameterization (1 of M, 2 of M, ...)`.
-- **Scenario intent ambiguous** (the calling workflow supplied a vague "test the login flow" without happy/negative/edge specification): stop, ask the calling workflow / user to specify the test type (Happy Path / Negative / Edge Case / Integration / Performance / Security). Do NOT pick a default — naming includes the test type per `<naming_conventions>` and guessing the wrong type pollutes the suite organization.
-- **Step decomposition impossible from intent** (a high-level scenario "user pays for cart" with no detail on the cart, the payment method, or the success criterion): stop, ask the calling workflow for the underlying action sequence. Do NOT invent steps to fill the template — fabricated steps fail at execution.
-- **Priority signal missing:** apply the `<epistemic_honesty>` Priority fallback — set P2 with a gap marker. This is the one field where a flagged default is acceptable.
+- **No requirement / AC mapping available** OR **Priority signal missing**: apply `<epistemic_honesty>` (canonical SSoT — gap-marker discipline per field, including the Priority P2-with-gap-marker fallback). Do NOT restate the rule here.
+- **Parameter sets exceed the 5-set cap:** split into multiple test cases. Number sequentially (TC-A, TC-B, TC-C, ...) and reuse the same Related Requirement / Traceability set across the split unless parameter-group semantics genuinely differ. Note in each split case's Notes: `Split from <N>-set parameterization (1 of M, 2 of M, ...)`.
+- **Scenario intent ambiguous** (vague "test the login flow" without happy/negative/edge specification): stop, ask for the test type (Happy Path / Negative / Edge Case / Integration / Performance / Security). Do NOT pick a default — naming per `<naming_conventions>` includes the type and guessing pollutes the suite organization.
+- **Step decomposition impossible** (high-level scenario like "user pays for cart" with no detail on cart / payment method / success criterion): stop, ask the calling workflow for the action sequence. Do NOT invent steps — fabricated steps fail at execution.
 
 </failure_handling>
 
 <validation_checklist>
 
-**Grep-proof layer only.** The rules (contracts) live in `<format_rules>` / `<epistemic_honesty>` / `<safety_boundaries>`; items below verify those contracts by grep before emit. Items unique to this checklist (no canonical-rule counterpart) carry no pointer.
+**Grep-proof layer only** — rules live in `<format_rules>` / `<epistemic_honesty>` / `<safety_boundaries>`; items below are per-case grep checks that verify those rules. No rule is restated here.
 
-- **Format compliance grep** per `<format_rules>`: re-grep the case body for `Given `, `When `, `Then `, `Post-conditions`, `Automation` — none must appear.
-- **Step / expected-result discipline grep:** steps numbered sequentially (1, 2, 3, ...); every expected result line references its step (`After step N: ...`); no expected result orphaned; no step containing multiple actions joined by "and" or commas. *(unique to checklist — operational sub-rules of `<format_rules>` that need per-case grep)*
-- **Naming grep** per `<naming_conventions>`: title contains a parenthesized type label.
-- **Parameterization grep** per `<format_rules>`: if Test Data table is present, Preconditions states execution count AND references Test Data; set count ≤ 5 (else split per `<failure_handling>`).
-- **Traceability honesty grep** per `<epistemic_honesty>`: every Traceability field is either real or carries a gap marker.
-- **Safety re-scan grep** per `<safety_boundaries>` (target list + grep patterns + placeholder vocabulary live in `references/examples-and-redaction.md` — single source of truth; do not restate here).
-- **Required field populated or gap-marked** per `<epistemic_honesty>`: every required field (Related Requirement, Type, Priority, Preconditions, Steps, Expected Results, Traceability) is either real or carries a gap marker.
-- **Notes accurate:** if the case was split from a >5-parameter authoring, the Notes section says so; if Priority was defaulted to P2 via the gap fallback, the gap marker in Traceability/Priority section is visible. *(unique to checklist — structural artifact check)*
+- **Format compliance grep** per `<format_rules>` MUST/MUST-NOT: re-grep for `Given `, `When `, `Then `, `Post-conditions`, `Automation` — none must appear.
+- **Step / expected-result discipline grep** (operational sub-rule of `<format_rules>`): sequential numbering; every expected result references its step (`After step N: ...`); no orphan; no step with multi-action `and`/comma joins.
+- **Naming grep** per `<naming_conventions>`: parenthesized type label present.
+- **Parameterization grep** per `<format_rules>`: when Test Data present → Preconditions states execution count + references Test Data + set count ≤ 5 (else split per `<failure_handling>`).
+- **Gap-marker grep** per `<epistemic_honesty>` (covers both Traceability honesty AND required-field populated-or-gap-marked — single canonical contract): every Traceability field and every required field (Related Requirement, Type, Priority, Preconditions, Steps, Expected Results) is either real or carries a `<epistemic_honesty>` gap marker. No fabrication.
+- **Safety re-scan grep** per `<safety_boundaries>` (target list + placeholder vocabulary in `references/examples-and-redaction.md`).
+- **Notes accuracy** (structural artifact check, no canonical rule): split-from-N-set parameterization recorded; defaulted-to-P2 Priority gap visible.
 
 </validation_checklist>
 

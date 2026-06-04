@@ -119,46 +119,52 @@ Please provide: "section_id is XXXXX" or just the number
 
 <safety_boundaries>
 
-This skill performs **irreversible writes to an external shared system** — every `mcp_testrail_add_case` call is a permanent, network-visible side effect that cannot be rolled back from this skill. TestRail does NOT deduplicate by title; re-running creates duplicates by design. Treat the export operation as **destructive-on-rerun**.
+Irreversible writes to an external shared system — every `mcp_testrail_add_case` call is permanent and not rollable-back from this skill. TestRail does NOT deduplicate by title; re-running creates duplicates by design. **Destructive-on-rerun.**
 
-- **No write without explicit confirmation** — see step 7 confirmation gate (canonical).
-- **Dedup pre-scan before every export run** per step 7 (canonical) — workflow state can be wrong; the external system is the source of truth for what already exists.
-- **No real credentials, secrets, or PII in exported case bodies.** Case titles, step `content`, step `expected`, and the preconditions block are all written verbatim to TestRail and viewable by every TestRail user with project access. Targets to scan and redact in step 7 BEFORE the confirmation gate:
-  - **Credentials, tokens, API keys, passwords, JWTs** — replace with placeholders: `<valid bearer token>` / `<expired bearer token>` for auth tokens, `<valid api key>` for API keys, `<valid test password>` / `<deliberately-wrong test password>` for passwords. The authoring skill (`testrail-test-case-authoring`) uses the same placeholder shapes by convention; end-to-end consistency is enforced by convention, not by cross-skill import.
-  - Real customer emails / names / phone numbers / account IDs / payment card numbers — replace with synthetic equivalents (`test.user-1@example.com`, `+1-555-0100` from the IETF reserved range, official PSP test card numbers if a card is needed and document the source).
-  - Signed / credentialed URLs — replace with `<redacted: signed URL>` plus a one-line description.
-  - Private keys, service-account JSON, certificates — never embed.
-- **Structural content is safe.** Endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, and feature names are functional and recorded verbatim. Redaction targets sensitive **values**, not the structural spec.
-- **Cancellation is safe.** Aborting at the confirmation gate produces no writes; cancellation is preferred over best-guess export.
-- **Rate limit respected.** ~0.5s between `mcp_testrail_add_case` calls is the floor; back off further on 429.
+**Gate procedure (canonical = step 7).** Sensitive-value scan + dedup pre-scan + confirmation gate (`a`/`b`/`c`) are defined in `<process>` step 7 and not restated here.
 
-If a real production value would be the natural example in a case body, replace it with a clearly-fake placeholder of the same shape — better an obviously-fake example than a leaked real one written into TestRail permanently.
+**Redaction targets** (the catalog step 7 applies — single source of truth for what counts as sensitive):
+- **Credentials / tokens / API keys / passwords / JWTs** — replace with placeholders: `<valid bearer token>` / `<expired bearer token>` for auth tokens, `<valid api key>` for API keys, `<valid test password>` / `<deliberately-wrong test password>` for passwords. The authoring skill (`testrail-test-case-authoring`) uses the same placeholder shapes by convention.
+- **Real PII** — customer emails / names / phone numbers / account IDs / payment cards → synthetic equivalents (`test.user-1@example.com`, `+1-555-0100` IETF reserved range, official PSP test card numbers).
+- **Signed / credentialed URLs** → `<redacted: signed URL>` + one-line description.
+- **Private keys / service-account JSON / certificates** — never embed.
+
+**Structural content is safe** — endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes, feature names. Redaction targets sensitive **values**, not the structural spec.
+
+**Operational rules** (always inline; not covered by step 7):
+- Cancellation is safe — aborting at the gate produces no writes; cancellation is preferred over best-guess export.
+- Rate limit: ~0.5s between `mcp_testrail_add_case` calls is the floor; back off further on 429.
+
+If a real production value would be the natural example, replace it with a clearly-fake placeholder of the same shape.
 
 </safety_boundaries>
 
 <validation_checklist>
-- `mcp_testrail_get_project` call succeeds before export begins
-- section_id confirmed valid
-- All priority_id and type_id values match target TestRail project configuration (per step 3 + 4 precedence)
-- **Step 7 sensitive-value scan ran** per step 7 + `<safety_boundaries>` placeholder catalog — no literal credentials/PII remain in any case body
-- **Step 7 dedup pre-scan ran** — `mcp_testrail_get_cases` called; overlap count shown to user
-- **Step 7 confirmation gate passed** — explicit `a` / `b` / `c` choice recorded in workflow state; no `mcp_testrail_add_case` call issued without it
-- Exported case set matches the user's choice from step 7
-- Each exported case returns a TestRail case ID
-- `test-scenarios.md` updated with C-prefixed IDs and TestRail links
+
+**Grep-proof layer only** — operational rules live in `<process>` step 7 and `<safety_boundaries>`; items below verify those rules by grep before any export call.
+
+- `mcp_testrail_get_project` call succeeded (step 1).
+- `section_id` confirmed valid (step 2).
+- `priority_id` / `type_id` values match target TestRail project configuration per step 3 + 4 precedence (parent TMS config first, defaults last).
+- **Step 7 GATE passed** — sensitive-value scan + dedup pre-scan (`mcp_testrail_get_cases` called, overlap count shown) + explicit `a`/`b`/`c` choice recorded in workflow state. No `mcp_testrail_add_case` call issued without all three. (Canonical procedure: step 7.)
+- Exported case set matches the step-7 user choice.
+- Each exported case returns a TestRail case ID.
+- `test-scenarios.md` updated with C-prefixed IDs and TestRail links.
+
 </validation_checklist>
 
 <pitfalls>
-- TestRail MCP lacks section creation — user must create sections manually in TestRail UI
-- If `custom_preconds` field not supported, fall back to prepending preconditions to first step with `--- STEPS ---` separator
-- **Re-running export creates duplicate test cases in TestRail** (by design, preserves history) — see step 7 confirmation gate + dedup pre-scan
-- Inferring user approval from prose instead of `a` / `b` / `c` — see step 7 ambiguity-defaults-to-cancel rule
-- Skipping the dedup pre-scan because the workflow state says "first run" — see step 7
-- Exporting real credentials / tokens / passwords / PII verbatim into TestRail case bodies — see `<safety_boundaries>` placeholder catalog (step 7 applies it before the confirmation gate)
-- `priority_id` and `type_id` values may differ per TestRail instance — verify with user if defaults don't match
-- TestRail case IDs are always C-prefixed — omitting the prefix breaks links
-- `custom_steps_separated` format may be rejected if TestRail field configuration differs — check field config and fall back to plain text steps
-- TestRail may have API rate limits — if 429 errors occur, increase delay between calls
+(Each item is a pointer; the rule lives in the cited section.)
+- TestRail MCP lacks section creation — user creates manually in TestRail UI (`<user_prompt_section_id>` template).
+- `custom_preconds` field unsupported → fall back to `--- STEPS ---` prepend per step 6.
+- Re-run creates duplicates (by-design history preservation) → step 7 dedup pre-scan + confirmation gate.
+- Inferred approval from prose ("ok" / silence) → step 7 ambiguity-defaults-to-cancel rule.
+- Skipping dedup pre-scan on "first run" → step 7 (workflow state can be wrong; TestRail is source of truth).
+- Real credentials / PII in case bodies → `<safety_boundaries>` redaction catalog (applied at step 7).
+- `priority_id` / `type_id` instance-mismatch → step 3 + 4 precedence (canonical — parent TMS config first, defaults last).
+- Missing C-prefix → step 9 ID format.
+- `custom_steps_separated` rejected → step 5 fallback to plain text.
+- 429 rate limits → `<safety_boundaries>` operational rules (back off further).
 </pitfalls>
 
 <vendor_replacement>

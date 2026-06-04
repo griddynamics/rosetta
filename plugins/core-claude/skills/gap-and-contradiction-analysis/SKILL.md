@@ -130,6 +130,8 @@ Categorize all findings:
 
 The skill produces a single analysis document. **Full skeleton + every-section-required rule** in [references/entry-templates-and-document-skeleton.md](references/entry-templates-and-document-skeleton.md#output-document-skeleton-referenced-from-output_format-step-6) — load on demand when assembling. Risk-tier scheme follows `<safety_boundaries>` rule 3 (three tiers, no fourth). **Zero-issues rule:** the document is still produced even when no findings exist — `No issues found` in each finding section.
 
+**Public append-anchor.** The last line of the emitted document MUST be the literal HTML comment `<!-- end-of-gap-and-contradiction-analysis -->` on its own line, with nothing after it. This anchor is the **public contract** calling phases key on when appending further sections to the document; it is part of the `<output_format>` and stable across skeleton revisions. Skeleton renumbering, section additions, or section renames do NOT break callers that anchor on this marker.
+
 </output_format>
 
 <analysis_guidelines>

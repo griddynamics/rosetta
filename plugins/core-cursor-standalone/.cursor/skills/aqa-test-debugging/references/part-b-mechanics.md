@@ -1,6 +1,48 @@
 # Part B Mechanics — aqa-test-debugging
 
-Loaded on demand from `SKILL.md` when Part B (steps 7–9) runs. The base `SKILL.md` keeps the orchestration steps + the canonical taxonomy (step 3) + safety boundaries + success criteria + validation checklist; this file holds the heavier Part-B-only material so Part-A invocations don't carry it in active context.
+Loaded on demand from `SKILL.md` when Part B (steps 7–9) runs. The base `SKILL.md` keeps Part A (steps 1–6) + the canonical taxonomy (step 3) + safety boundaries + success criteria + Part-A validation checklist inline; this file holds **all Part-B material — step orchestration prose AND mechanics** so Part-A-only invocations don't carry Part B in active context.
+
+---
+
+## Part B Step Orchestration (steps 7–9 — referenced from SKILL.md `<process>`)
+
+### 7. Prepare Proposed Changes
+
+Emit one Proposed Change entry per issue, using the **canonical Proposed Change template** below (Proposed Change record template section). Required fields: **File, Current Code, Proposed Code, Reason, Impact, Risk** (6 fields). The per-category fix-matching guidance is in this file's `Per-category fix-matching` section.
+
+### 8. Apply Approved Changes
+
+After user approval (per `<safety_boundaries>` HITL governance + the Approval-discipline rule in this file's Part-B `<safety_boundaries>` section):
+
+1. Apply changes one at a time
+2. Verify each change is correct
+3. Follow project standards
+4. Check linting after each file modification
+5. Validate changes address root causes
+
+### 9. Track Iteration Count and Escalate at the 3-Iteration Cap
+
+The Part A → Part B cycle is **capped at 3 iterations** to prevent runaway diagnose/patch loops. Counter mechanics + state-file field schema + cap-enforcement protocol (read counter → increment after Part B → branch on re-execution outcome → escalate at iteration 3) live in this file's `Step 9 iteration-cap state-file protocol` section.
+
+**Governance (canonical):** Do NOT auto-start a 4th iteration without an explicit user waiver recorded in the state file. When the cap is reached with failures remaining, write the verbatim escalation-note template from [escalation-template.md](escalation-template.md).
+
+---
+
+## Part B `<output_format>` template (referenced from SKILL.md `<output_format>`)
+
+Two subsections appended to the Part A artifact when Part B runs:
+
+```markdown
+### Proposed Corrections
+[Change list — each entry uses the 6-field Proposed Change template (File / Current Code / Proposed Code / Reason / Impact / Risk) below]
+
+### Applied Corrections (after approval)
+- Files Modified: [list]
+- Issues Fixed: [count]
+- Status: Ready for re-testing
+```
+
+The 6-field Proposed Change template is the `Proposed Change record template` section below.
 
 ---
 

@@ -15,15 +15,28 @@ End-to-end backend API test automation from test case input to working automated
 
 <workflow_phases>
 
-- **Phases 0→7 MUST run in order; skipping is permitted only via `<skip_rules>` below.**
+- **Phases 0→7 MUST run in order** (single source of truth for the ordering rule; `<skip_rules>` references this, does not restate). Skipping is permitted only via `<skip_rules>` below.
 - Rosetta prep steps completed
 - NO ASSUMPTIONS: Never assume endpoints, payloads, auth mechanisms, or response schemas. Always ask the user if information is missing.
 - STATE TRACKING: Update `agents/qa-state.md` after each phase.
-- Per-phase cadence: ACQUIRE phase file → execute phase instructions → update `agents/qa-state.md` → move to next phase.
 - MUST use todo tasks for tracking progress. Prioritize ACCURACY over SPEED.
+
+<phase_template>
+Every phase block below follows this cadence (read once; each block specifies only its deltas):
+
+1. ACQUIRE the named phase file FROM KB
+2. Execute phase instructions
+3. Apply the Input / Output paths declared in the per-phase block
+4. Honor any HITL gate declared in the per-phase block (text + timing)
+5. Recommended skills: see `<references>` (Phase N)
+6. Update `agents/qa-state.md`
+
+If a block omits a row (e.g. no HITL gate), the corresponding template step is skipped for that phase.
+</phase_template>
+
 <skip_rules>
 
-- **Mandatory order.** Phases **0→7** run sequentially.
+- Ordering rule per `<workflow_phases>` preamble (sequential 0→7); this block governs sanctioned skips only.
 
 - **Always-in-force carve-outs** (the override below NEVER suppresses these, read once):
   1. **Per-phase HITL gates** (Phases 3, 4, 5, 6, 7 marked `type="HITL"`) require explicit user approval per `bootstrap-hitl-questioning` at their normal trigger points.
@@ -49,89 +62,49 @@ End-to-end backend API test automation from test case input to working automated
 - **Overall workflow done when:** every phase required for this run is marked complete in `agents/qa-state.md`, expected artifacts for those phases exist under `agents/qa/{IDENTIFIER}/` (and related paths named in phase docs), and the user accepts the last test outcome or explicitly stops the run.
 
 <project_config_loading phase="0" applies="ALL" subagent="discoverer" role="QA project config loader" type="HITL-CONDITIONAL">
-
-1. ACQUIRE `qa-flow-project-config-loading.md` FROM KB
-2. Execute phase instructions.
-3. Input: user request. Output: project config file, initial data file, session directory at `agents/qa/{IDENTIFIER}/`.
-4. **ASK USER FOR PROJECT INFO** if config does not already exist.
-5. Recommended skills: see `<references>` (Phase 0)
-6. Update `agents/qa-state.md`
-
+- Phase file: `qa-flow-project-config-loading.md`
+- Input: user request. Output: project config file, initial data file, session directory at `agents/qa/{IDENTIFIER}/`.
+- HITL gate: **ASK USER FOR PROJECT INFO** if config does not already exist.
 </project_config_loading>
 
 <data_collection phase="1" applies="ALL" subagent="discoverer" role="QA data collector">
-
-1. ACQUIRE `qa-flow-data-collection.md` FROM KB
-2. Execute phase instructions.
-3. Input: project config + initial data. Output: raw data document at `agents/qa/{IDENTIFIER}/raw-data.md` with test cases, documentation, and existing test patterns.
-4. Recommended skills: see `<references>` (Phase 1)
-5. Update `agents/qa-state.md`
-
+- Phase file: `qa-flow-data-collection.md`
+- Input: project config + initial data. Output: `agents/qa/{IDENTIFIER}/raw-data.md` (test cases, documentation, existing test patterns).
 </data_collection>
 
 <api_spec_analysis phase="2" applies="ALL" subagent="discoverer" role="API spec analyst">
-
-1. ACQUIRE `qa-flow-api-spec-analysis.md` FROM KB
-2. Execute phase instructions.
-3. Input: raw data + project config. Output: API analysis document at `agents/qa/{IDENTIFIER}/api-analysis.md` with endpoint contracts, auth requirements, data dependencies.
-4. Recommended skills: see `<references>` (Phase 2)
-5. Update `agents/qa-state.md`
-
+- Phase file: `qa-flow-api-spec-analysis.md`
+- Input: raw data + project config. Output: `agents/qa/{IDENTIFIER}/api-analysis.md` (endpoint contracts, auth, data dependencies).
 </api_spec_analysis>
 
 <gap_and_requirements_clarification phase="3" applies="ALL" subagent="architect" role="API test requirements analyst" type="HITL">
-
-1. ACQUIRE `qa-flow-gap-and-requirements-clarification.md` FROM KB
-2. Execute phase instructions.
-3. Input: raw data + API analysis. Output: analysis document at `agents/qa/{IDENTIFIER}/analysis.md` with gaps, contradictions, ambiguities resolved.
-4. **WAIT FOR USER ANSWERS** before Phase 4.
-5. Recommended skills: see `<references>` (Phase 3)
-6. Update `agents/qa-state.md`
-
+- Phase file: `qa-flow-gap-and-requirements-clarification.md`
+- Input: raw data + API analysis. Output: `agents/qa/{IDENTIFIER}/analysis.md` (gaps, contradictions, ambiguities resolved).
+- HITL gate: **WAIT FOR USER ANSWERS** before Phase 4.
 </gap_and_requirements_clarification>
 
 <test_case_specification phase="4" applies="ALL" subagent="architect" role="API test specification author" type="HITL">
-
-1. ACQUIRE `qa-flow-test-case-specification.md` FROM KB
-2. Execute phase instructions.
-3. Input: all phase 1-3 outputs. Output: test specifications at `agents/qa/{IDENTIFIER}/test-specs.md` with Given-When-Then scenarios.
-4. **WAIT FOR USER APPROVAL** before Phase 5.
-5. Recommended skills: see `<references>` (Phase 4)
-6. Update `agents/qa-state.md`
-
+- Phase file: `qa-flow-test-case-specification.md`
+- Input: all phase 1-3 outputs. Output: `agents/qa/{IDENTIFIER}/test-specs.md` (Given-When-Then scenarios).
+- HITL gate: **WAIT FOR USER APPROVAL** before Phase 5.
 </test_case_specification>
 
 <test_implementation phase="5" applies="ALL" subagent="engineer" role="API test automation engineer" type="HITL">
-
-1. ACQUIRE `qa-flow-test-implementation.md` FROM KB
-2. Execute phase instructions.
-3. Input: approved test specs + existing patterns + API analysis. Output: implemented test files.
-4. **STOP AND WAIT** for user to execute tests.
-5. Recommended skills: see `<references>` (Phase 5)
-6. Update `agents/qa-state.md`
-
+- Phase file: `qa-flow-test-implementation.md`
+- Input: approved test specs + existing patterns + API analysis. Output: implemented test files.
+- HITL gate: **STOP AND WAIT** for user to execute tests.
 </test_implementation>
 
 <execution_and_report_analysis phase="6" applies="ALL" subagent="engineer" role="API test failure analyst" type="HITL">
-
-1. ACQUIRE `qa-flow-execution-and-report-analysis.md` FROM KB
-2. Execute phase instructions.
-3. Input: test execution report (user-provided or from `agents/user-instructions/`). Output: execution report at `agents/qa/{IDENTIFIER}/execution-report.md` with failure analysis.
-4. **WAIT FOR USER TO PROVIDE TEST EXECUTION RESULTS**.
-5. Recommended skills: see `<references>` (Phase 6)
-6. Update `agents/qa-state.md`
-
+- Phase file: `qa-flow-execution-and-report-analysis.md`
+- Input: test execution report (user-provided or from `agents/user-instructions/`). Output: `agents/qa/{IDENTIFIER}/execution-report.md` (failure analysis).
+- HITL gate: **WAIT FOR USER TO PROVIDE TEST EXECUTION RESULTS**.
 </execution_and_report_analysis>
 
 <test_corrections phase="7" applies="ALL" subagent="engineer" role="API test correction engineer" type="HITL">
-
-1. ACQUIRE `qa-flow-test-correction.md` FROM KB
-2. Execute phase instructions.
-3. Input: execution report + test files + test specs. Output: corrected test files.
-4. **WAIT FOR USER APPROVAL** before applying changes.
-5. Recommended skills: see `<references>` (Phase 7)
-6. Update `agents/qa-state.md`
-
+- Phase file: `qa-flow-test-correction.md`
+- Input: execution report + test files + test specs. Output: corrected test files.
+- HITL gate: **WAIT FOR USER APPROVAL** before applying changes.
 </test_corrections>
 
 </workflow_phases>
