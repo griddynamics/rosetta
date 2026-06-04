@@ -45,32 +45,21 @@ Collect test case details, feature documentation, and existing API test patterns
 
 ## 2. Retrieve Test Case(s)
 
-Based on test case source from project config:
+**Config-resolved collection skill** (mirrors `qa-flow-documentation-mcp-subflow.md`'s pattern — vendor tags are NOT literal; they are resolved from `qa-project-config.md` at runtime so a project can swap TMS / issue tracker without editing this skill):
 
-### Option A: TestRail Test Case
-1. USE SKILL `mcp-testrail-data-collection`
-2. Extract:
-   - Test case ID and title
-   - Test description / objective
-   - Preconditions
-   - Test steps (step-by-step actions)
-   - Expected results for each step
-   - Priority and test type
-   - Custom fields (API endpoint, HTTP method if available)
+Read the first non-empty config key in this precedence list to resolve the **TMS/issue collection skill tag** (`<tms_collection_skill>`): `tms_collection_skill` → `test_case_management.mcp_collection_skill` → `mcp_test_case_collection_skill`. The `Test Case Management` block in `qa-project-config.md` declares which key the project uses; defaults below are vendor-named only for clarity, not for hardcoding.
 
-### Option B: Jira Ticket
-1. USE SKILL `mcp-jira-data-collection`
-2. Extract:
-   - Summary, description (both raw and rendered)
-   - Acceptance criteria
-   - Issue type, status, priority
-   - Labels, components
-   - Comments (up to 10 recent)
-   - Custom fields (API endpoint, story points, etc.)
+### Option A: TMS Test Case (e.g. TestRail; vendor per project config)
+1. USE SKILL `<tms_collection_skill>` (config-resolved; default binding when the project uses TestRail: `mcp-testrail-data-collection`).
+2. Extract: test case ID and title; description / objective; preconditions; test steps (step-by-step actions); expected results per step; priority and test type; custom fields (API endpoint, HTTP method when available).
+
+### Option B: Issue Tracker (e.g. Jira; vendor per project config)
+1. USE SKILL `<issue_collection_skill>` (config-resolved from `issue_collection_skill` → `issue_tracker.mcp_collection_skill`; default binding when the project uses Jira: `mcp-jira-data-collection`).
+2. Extract: summary + description (raw + rendered); acceptance criteria; issue type, status, priority; labels, components; comments (up to 10 recent); custom fields (API endpoint, story points, etc.).
 
 ### Option C: Direct User Input
-- Document the test case description as provided by user
-- Ask for clarification on any ambiguous steps
+- Document the test case description as provided by user.
+- Ask for clarification on any ambiguous steps.
 
 For ALL options, capture:
 - What endpoint(s) are being tested
@@ -83,11 +72,11 @@ For ALL options, capture:
 
 Based on document storage config:
 
-### Confluence Documentation
-1. USE SKILL `mcp-confluence-data-collection`
-2. Search for pages related to the API endpoints and feature under test
-3. For each relevant page, extract feature context, API contracts, and business rules
-4. Check for child pages with additional detail
+### Documentation Source (e.g. Confluence; vendor per project config)
+1. USE SKILL `<documentation_mcp_collection_skill>` (config-resolved per the same precedence pattern `qa-flow-documentation-mcp-subflow.md` uses: `documentation_mcp_collection_skill` → `documentation.mcp_collection_skill` → `mcp_documentation_collection_skill` → `confluence_mcp_collection_skill`; default binding when the project uses Confluence: `mcp-confluence-data-collection`).
+2. Search for pages related to the API endpoints and feature under test.
+3. For each relevant page, extract feature context, API contracts, and business rules.
+4. Check for child pages with additional detail.
 
 ### Local Documentation
 - Search repository for relevant docs: `docs/`, `api-docs/`, `README.md`

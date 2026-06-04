@@ -114,7 +114,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 
 <orchestration_and_escalation>
 - USE SKILL `sequential-workflow-execution` (ACQUIRE FROM KB when needed) for skip gates, transition prompts, and the **falsified-skip-claim handling** (its step 10 owns trigger / action / forbidden-at-gate / acceptable-input + announcement format — single canonical home; subordinate to `bootstrap-hitl-questioning`). This workflow does NOT restate that logic.
-- **AQA-specific binding for step 10:** state file = `agents/aqa-state.md`; verification artifacts = the spot-checks in `<workflow_success_criteria>`; carve-outs that remain in force = Phase 3/6 HITL gates + safety/destructive confirmations + zero-document ACQUIRE (stop + record + ask).
+- **AQA-specific binding for step 10:** state file = `agents/aqa-state.md`; verification artifacts = the spot-checks in `<workflow_success_criteria>`; carve-outs that remain in force = **every phase header carrying `type="HITL"` or `type="HITL-CONDITIONAL"`** (canonical source: the `type=` attributes on the `<workflow_phases>` elements — currently Phases 2, 4, 6, 7, 8) + safety/destructive confirmations + zero-document ACQUIRE (stop + record + ask).
 - Audit-trail row written to `agents/aqa-state.md` `## Verification-Failure Overrides` per the state-file template below — step 10 of `sequential-workflow-execution` defines when and what to log.
 - Any skip outside `sequential-workflow-execution` gates requires explicit user confirmation (HITL).
 - Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user; never substitute silently.
