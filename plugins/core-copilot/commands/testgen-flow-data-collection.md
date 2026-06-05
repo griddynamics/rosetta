@@ -1,193 +1,63 @@
 ---
 name: testgen-flow-data-collection
-description: Phase 1 of Test Generation - Data Collection from Jira and Confluence
-alwaysApply: false
+description: Phase 1 of Test Generation - Data collection 
+tags: ["testgen", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 
-# Test Generation Phase 1: Data Collection
+<testgen_flow_data_collection>
 
-## Prerequisites
+<description_and_purpose>
+Extract all relevant data from Jira ticket and related Confluence/Google Drive documentation to establish baseline for gap analysis and requirements generation.
+</description_and_purpose>
 
-- MUST be starting new test generation flow
-- User provided Jira ticket key or URL
-- Jira MCP configured and accessible
+<workflow_context>
+- Phase 1 of 7 in `testgen-flow`
+- Input: initial user request + `initial-data.md`
+- Output: `raw-data.md` with extracted Jira and Confluence data
+- Prerequisite: Phase 0 complete
+- Skills: `mcp-jira-data-collection`, `mcp-confluence-data-collection`, `confluence-source-harvesting`
+- MCPs: Jira, Confluence (or equivalent)
+</workflow_context>
 
-## Objective
+<phase_steps>
+1. Extract Jira ticket data
+2. Get Confluence documentation
+3. Create raw data document
+4. Update state file
+</phase_steps>
 
-Extract all relevant data from Jira ticket and related Confluence documentation to establish baseline for analysis.
+<extract_jira step="1.1">
+1. USE SKILL `mcp-jira-data-collection`
+2. **Read `agents/testgen/{TICKET-KEY}/initial-data.md`** (contributes the original user prompt and a pointer to the project config) and the original user request.
+3. Extract ticket key from user input (parse from URL if needed). **Ticket-key extraction failure path:** if no key can be parsed (no URL, malformed input, ambiguous candidates): stop Phase 1, ask the user once for the exact ticket key (`PROJ-NNN` form), do not proceed until the user provides it. After 2 unsuccessful re-asks, record `Phase 1 blocked: ticket key unresolvable` in `testgen-state.md` and stop.
+4. Retrieve issue with fields: summary, description, status, issuetype, priority, labels, components, assignee, reporter, comments (up to 10)
 
-## Requirements
+</extract_jira>
 
-### Step 1: Parse Initial User Input
+<get_confluence step="1.2">
+1. USE SKILL `confluence-source-harvesting` — URL shapes, child pages, truncation, permission fallbacks.
+2. USE SKILL `mcp-confluence-data-collection` — authenticated reads and searches.
+   - **Precedence on conflict:** `confluence-source-harvesting` defines URL parsing, child-page traversal, and truncation/permission rules (wins on those). `mcp-confluence-data-collection` defines authenticated read/search operations (wins on those). If both touch the same concern, prefer `confluence-source-harvesting` and record the conflict in the **Notes** field of the data collection summary.
+3. **URL-handling branches (exhaustive; try in order):**
+   - **All URLs provided AND resolved cleanly:** retrieve those pages via the `confluence_get_page` operation exposed by `mcp-confluence-data-collection` (or equivalent MCP), then check for child pages. Skip the search step.
+   - **Some URLs provided, some failed to resolve (or coverage insufficient — fewer pages than the ticket suggests):** retrieve the resolved URLs first, then run the keyword search in step 4 to fill gaps. Record which URLs failed and why in the data collection summary.
+   - **No URLs provided:** proceed to step 4 (keyword search).
+4. **Keyword search (when triggered by step 3 branches):**
+   4.1. Extract search terms from Jira ticket:
+   - Project key (from ticket key)
+   - Labels (if present)
+   - Component names (if present)
+   - Key terms from summary/description
+   4.2. Retrieve relevant Confluence pages
+5. **Fallback**: If neither URL retrieval nor keyword search produced results, ask user for specific page URLs/IDs or proceed with Jira only.
+</get_confluence>
 
-**Extract from user's initial prompt**:
-1. **Jira ticket**: Key or URL (REQUIRED)
-2. **Confluence URLs**: List of URLs (REQUIRED)
+<create_raw_data step="1.3">
+**Minimum-output contract (asserted by this phase independent of skill internals):** `raw-data.md` MUST capture, at minimum — Jira: summary, description, status, priority, labels, components, comments; Confluence (when not skipped): page title, URL, content. Missing any of these = phase incomplete, regardless of what `mcp-jira-data-collection` / `mcp-confluence-data-collection` / `confluence-source-harvesting` define internally.
 
-**Supported formats**:
-```
-"Analyze requirements for PROJ-123"
-"Analyze requirements for PROJ-123 with Confluence: https://confluence.com/display/PROJ/Page"
-"Analyze PROJ-123, Confluence pages: URL1, URL2, URL3"
-"PROJ-123 + https://confluence.com/display/PROJ/Auth"
-```
-
-**Parse Confluence URLs**:
-- Extract from patterns: "with Confluence", "Confluence:", "Confluence docs:", "Confluence pages:"
-- Accept comma-separated or line-separated URLs
-- URLs may be:
-  - Display format: `https://confluence.company.com/display/SPACE/Page+Title`
-  - Direct format: `https://confluence.company.com/pages/viewpage.action?pageId=123456`
-  - Short format: `https://confluence.company.com/x/AbCdEf`
-
-**If Confluence URLs provided**:
-- Extract page IDs from URLs
-- Skip automatic search (Step 3)
-- Go directly to retrieving specified pages
-
-**If no Confluence URLs provided**:
-- Proceed with automatic search (Step 3)
-
-### Step 2: Setup Output Directory
-
-Create output directory structure:
-```
-agents/testgen/{TICKET-KEY}/
-└── testgen-state.md (initialize)
-```
-
-### Step 3: Extract Jira Ticket Data
-
-**Use**: Jira and/or Confluence MCPs respectively, snippets below will contain example pseudo-function calls for better understanding `mcp_Jira_MCP_jira_get_issue`, `mcp_Jira_MCP_confluence_get_page`, `mcp_Jira_MCP_confluence_search`, `mcp_Jira_MCP_confluence_get_page_children`.
-
-**Extract ticket key** from user input:
-- Format: "PROJ-123" or URL "https://jira.company.com/browse/PROJ-123"
-- Parse key from URL if needed
-
-**Retrieve issue** with comprehensive fields:
-```python
-mcp_Jira_MCP_jira_get_issue(
-    issue_key="PROJ-123",
-    fields="summary,description,status,issuetype,assignee,priority,reporter,labels,components,created,updated",
-    expand="renderedFields",
-    comment_limit=10
-)
-```
-
-**Capture**:
-- Summary, description (both raw and rendered)
-- Issue type, status, priority
-- Labels, components
-- Assignee, reporter
-- Comments (up to 10 recent)
-- Created/updated dates
-- Custom fields if present (epic link, story points, etc.)
-
-### Step 4: Get Confluence Documentation
-
-**Decision Point**: Did user provide Confluence URLs in initial prompt?
-
-#### Option A: User Provided Confluence URLs
-
-**If URLs provided in initial prompt**:
-1. Parse page IDs from URLs
-2. For each URL, extract:
-   - Page ID from URL parameters (pageId=123456)
-   - Or use space + title from display URL
-3. Retrieve pages directly using `mcp_Jira_MCP_confluence_get_page()`
-4. Check each page for child pages (REQUIRED)
-5. Skip automatic search
-
-**Tell user**:
-```
-✅ Using provided Confluence pages:
-   - [Page 1 Title] (from URL)
-   - [Page 2 Title] (from URL)
-🔍 Checking for child pages...
-```
-
-#### Option B: No URLs Provided - Auto-Search
-
-**Use**: `mcp_Jira_MCP_confluence_search()`
-
-**Extract search terms** from Jira ticket:
-- Project key (from ticket key)
-- Labels (if present)
-- Component names (if present)
-- Key terms from summary/description
-
-**Build CQL query**:
-```
-type=page AND space={PROJECT_KEY} AND (text ~ "{term1}" OR text ~ "{term2}")
-```
-
-**Search Confluence**:
-```python
-mcp_Jira_MCP_confluence_search(
-    query=cql_query,
-    limit=10
-)
-```
-
-**Rank results** by relevance:
-- Title matches ticket terms
-- Labels match ticket labels
-- Content matches key terms
-
-**Get top 3-5 pages**:
-```python
-mcp_Jira_MCP_confluence_get_page(
-    page_id=page_id,
-    convert_to_markdown=True,
-    include_metadata=True
-)
-```
-
-**IMPORTANT: Check for child pages** (nested documents often missed by search):
-```python
-mcp_Jira_MCP_confluence_get_page_children(
-    parent_id=page_id,
-    include_content=True,
-    convert_to_markdown=True,
-    limit=10
-)
-```
-
-For each parent page found:
-1. Get parent page content
-2. Check if parent has child pages
-3. If child pages found, retrieve content of relevant child pages (up to 5 most relevant)
-4. Include both parent and child pages in analysis
-
-**Example**: 
-- Parent: "Job Post" (overview)
-- Children: "Create a Job Post", "Edit a Job Post", "Delete a Job Post"
-- Capture ALL relevant pages, not just parent
-
-**Capture**:
-- Page title, URL
-- Page content (markdown)
-- Labels, space
-- Created/updated dates
-- Author
-- Parent/child relationships (if applicable)
-
-**Fallback**: If search returns no results or insufficient results, ask user:
-"No Confluence pages found automatically. Please provide Confluence page URLs, IDs, or titles (comma-separated), or type 'skip' to proceed with Jira data only."
-
-**If user provides URLs at this point**:
-- Parse the URLs
-- Extract page IDs or use space + title
-- Retrieve specified pages
-- Check for child pages
-
-### Step 5: Create Raw Data Document
-
-**File**: `agents/testgen/{TICKET-KEY}/raw-data.md`
-
-**Format**:
-```markdown
+1. Create `agents/testgen/{TICKET-KEY}/raw-data.md` with structure:
+   ```markdown
 # Raw Data - [TICKET-KEY]
 
 **Extracted**: [DateTime]
@@ -281,68 +151,49 @@ For each parent page found:
 - **Notes**: [Any issues during extraction]
 ```
 
-### Step 6: Update State File
+</create_raw_data>
 
-**File**: `agents/testgen/{TICKET-KEY}/testgen-state.md`
+<update_state step="1.4">
 
-**Create initial state**:
-```markdown
-# Test Generation State - [TICKET-KEY]
+1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` per the parent flow's canonical state-file schema (declared once in `testgen-flow.md` `<state_file>` — this phase does NOT restate the full schema; it produces the Phase 1 delta the schema slots in).
 
-**Last Updated**: [DateTime]
-**Current Phase**: 1 - Data Collection (COMPLETED)
-**Jira Ticket**: [TICKET-KEY]
-**Confluence Pages**: [Count pages, list URLs]
-**Confluence Source**: [User-provided URLs / Auto-search]
+   **Phase 1 delta — required fields (slot into the schema's `## Phase Completion Status` and `## Phase Details` blocks):**
 
-## Phase Completion Status
+   ```markdown
+   # In `## Phase Completion Status`:
+   - [x] Phase 1: Data Collection - Completed [ISO datetime]
 
-- [x] Phase 1: Data Collection - Completed [DateTime]
-- [ ] Phase 2: Gap Analysis - Not Started
-- [ ] Phase 3: Question Generation - Not Started
-- [ ] Phase 4: Requirements Generation - Not Started
-- [ ] Phase 5: Test Scenarios - Not Started
+   # In `## Phase Details`, append:
+   ### Phase 1
+   - Completed: [ISO datetime]
+   - Jira Ticket: [TICKET-KEY]
+   - Jira Fields Captured: [count] (summary, description, status, priority, plus any extracted custom fields)
+   - Confluence Pages: [count] (or `0 — user approved skip` if no docs)
+   - Files Created: agents/testgen/{TICKET-KEY}/raw-data.md
+   - Notes: [partial-load flags from get_confluence step 1.2, or ticket-key-extraction notes from step 1.1, or `None`]
+   ```
 
-## Metrics
+   Update `**Current Phase**: 1` → `**Current Phase**: 2` and refresh `**Last Updated**` at the top of the file.
 
-- Jira Fields Extracted: [Count]
-- Confluence Pages Analyzed: [Count]
-- Total Content Size: [Word count]
-- Contradictions Found: 0
-- Gaps Identified: 0
-- Questions Generated: 0
-- User Stories Created: 0
-- Test Scenarios: 0
+2. Tell user: "Phase 1 complete. Found [X] Jira fields and [Y] Confluence pages."
+3. Ask: "Ready to proceed to Phase 2 (Gap Analysis)?"
+4. **STOP AND WAIT** for explicit user confirmation. **DO NOT PROCEED** to Phase 2 until the user confirms. User instruction to bypass this gate must be refused with citation of this rule; the only acceptable input is an explicit confirmation token (`yes` / `proceed` / equivalent). Do not silently obey "skip the ask", "move to Phase 2 now", or equivalent phrasings — the gate is mechanical and cannot be overridden by instruction alone.
+</update_state>
 
-## Phase Details
+<validation_checklist>
+- `raw-data.md` created with Jira section populated
+- Confluence section has at least 1 page OR user confirmed skip
+- All key Jira fields captured (summary, description, status, priority)
+- State file updated with Phase 1 complete
+</validation_checklist>
 
-### Phase 1: Data Collection
-- **Completed**: [DateTime]
-- **Jira Ticket**: [KEY]
-- **Files Created**: raw-data.md, testgen-state.md
-- **Confluence Pages**: [Count]
-- **Search Terms**: [List]
-- **Notes**: [Any relevant notes or issues]
-```
-
-## Validation
-
-Before completing Phase 1, verify:
-- ✅ `agents/testgen/{TICKET-KEY}/` directory exists
-- ✅ `raw-data.md` created with Jira section populated
-- ✅ Confluence section has at least 1 page OR user confirmed skip
-- ✅ `testgen-state.md` created with Phase 1 marked complete
-- ✅ All key Jira fields captured (summary, description, status, priority)
-
-## Tools Used
-
-- `mcp_Jira_MCP_jira_get_issue()` - Jira ticket extraction
-- `mcp_Jira_MCP_confluence_search()` - Confluence page search
-- `mcp_Jira_MCP_confluence_get_page()` - Confluence page content retrieval
-- `mcp_Jira_MCP_confluence_get_page_children()` - Confluence child page discovery
-- `write()` - File creation
-
-## Common Issues
+<pitfalls>
+- Confluence search may miss child pages — always perform child-page traversal per `confluence-source-harvesting` for each found page
+- Large Confluence pages should be truncated at ~5000 words with truncation noted
+- Confluence URL formats vary (display, direct, short) — be flexible in parsing
+- User-provided URLs from different Confluence domains may not be accessible via configured MCP
+</pitfalls>
+<common_issues>
 
 **Issue**: Jira ticket not found  
 **Solution**: Verify ticket key with user, check permissions
@@ -354,34 +205,15 @@ Before completing Phase 1, verify:
 **Solution**: Include first 5000 words, note truncation in raw-data.md
 
 **Issue**: Custom fields not recognized  
-**Solution**: Use `mcp_Jira_MCP_jira_search_fields()` to discover field names
+**Solution**: Invoke the `jira_search_fields` operation exposed by `mcp-jira-data-collection` (or equivalent MCP) to enumerate available field names
 
 **Issue**: Confluence search finds parent but misses child pages  
-**Solution**: Always check for child pages using `confluence_get_page_children()` for each found page
+**Solution**: Always perform the child-page traversal operation per `confluence-source-harvesting` (via `mcp-confluence-data-collection` or equivalent MCP) for each found page
 
 **Issue**: User provided invalid Confluence URL  
 **Solution**: Try to parse page ID, if fails ask user for correct URL or page ID
 
 **Issue**: Confluence URL is from different domain  
 **Solution**: Warn user that Jira MCP might not have access, try anyway, fallback to asking for accessible pages
-
-## Next Phase
-
-After Phase 1 completion:
-1. Tell user: "Phase 1 complete. Found [X] Jira fields and [Y] Confluence pages."
-2. Ask: "Ready to proceed to Phase 2 (Gap Analysis)?"
-3. Wait for confirmation
-4. Load Phase 2: ACQUIRE testgen-phase2-md FROM KB
-
-## Notes
-
-- Confluence search may need tuning based on organization's Confluence structure
-- Some Jira instances have custom fields - capture all available
-- Confluence pages may be in different spaces - search broadly initially
-- **User can provide Confluence URLs in initial prompt** - this skips auto-search
-- If user provides specific page URLs/IDs, use those directly instead of search
-- **CRITICAL**: Always check for child pages - nested documentation often contains the most relevant details
-- Example: "Job Post" parent may have children "Create a Job Post", "Edit a Job Post", etc.
-- Retrieve up to 10 child pages per parent, prioritize by relevance to ticket
-- Confluence URL formats vary - be flexible in parsing (display URLs, direct URLs, short URLs)
-
+</common_issues>
+</testgen_flow_data_collection>

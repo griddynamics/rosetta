@@ -15,46 +15,41 @@ name: Validate Prompts
 # - Creates a PR comment with all issues by severity
 
 on:
-  pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches:
+      - main
     paths:
       - "instructions/r*/**"
       - ".github/workflows/validate-prompts.yml"
       - ".github/prompts/prompt-comparison.md"
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "instructions/r*/**"
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write # Required for creating PR comments
 
 jobs:
   validate:
-    if: github.event_name != 'pull_request_target' || github.event.pull_request.draft != true
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write # Required for creating PR comments
 
     env:
       TMP_DIR: .tmp
       ALL_RESULTS_FILE: .tmp/all-results.json
       PR_COMMENT_FILE: .tmp/pr-comment.md
+      PR_DETAILS_FILE: .tmp/pr-details.md
       DIFF_FILE: .tmp/instructions.diff
       MODEL: opus
-      TARGET_PR_NUMBER: ${{ github.event.pull_request.number }}
-      TARGET_BASE_REF: ${{ github.event.pull_request.base.ref }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          ref: main
           fetch-depth: 0 # Fetch all history to compare with base branch
-
-      - name: Checkout PR content
-        if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v5
-        with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.sha }}
-          path: pr
-          fetch-depth: 0
 
       - name: Install Claude Code CLI
         run: |
@@ -70,11 +65,10 @@ jobs:
         run: |
           echo "Detecting changed files in instructions/ folder..."
 
-          if [ -n "$TARGET_BASE_REF" ]; then
-            BASE_BRANCH="$TARGET_BASE_REF"
-            git -C pr remote add base "https://github.com/$GITHUB_REPOSITORY.git"
-            git -C pr fetch base "$BASE_BRANCH"
-            BASE_REF="base/$BASE_BRANCH"
+          if [ -n "${{ github.event.pull_request.base.ref }}" ]; then
+            BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+            git fetch origin "$BASE_BRANCH"
+            BASE_REF="origin/$BASE_BRANCH"
           else
             BASE_REF="HEAD^"
           fi
@@ -82,7 +76,7 @@ jobs:
           echo "Base ref: $BASE_REF"
 
           # Get changed files in instructions/ folder
-          CHANGED_FILES=$(git -C pr diff --name-only "$BASE_REF"...HEAD -- 'instructions/r*/**' 2>/dev/null | tr '\n' ' ' || true)
+          CHANGED_FILES=$(git diff --name-only "$BASE_REF"...HEAD -- 'instructions/r*/**' 2>/dev/null | tr '\n' ' ' || true)
 
           echo "Changed files: $CHANGED_FILES"
           echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
@@ -102,7 +96,7 @@ jobs:
           BASE_REF: ${{ steps.changed-files.outputs.base_ref }}
         run: |
           mkdir -p $TMP_DIR
-          git -C pr diff "$BASE_REF"...HEAD -- 'instructions/r*/**' > $DIFF_FILE 2>/dev/null || true
+          git diff "$BASE_REF"...HEAD -- 'instructions/r*/**' > $DIFF_FILE 2>/dev/null || true
           echo "::notice::Diff generated: $(wc -l < $DIFF_FILE) lines"
 
       - name: Validate prompts
@@ -118,11 +112,11 @@ jobs:
           COUNT="${{ steps.changed-files.outputs.count }}"
           mkdir -p $TMP_DIR/agents
 
-          PROMPT="Changed files: $CHANGED_FILES ; Git base ref=$BASE_REF ; Changed count=$COUNT ; Output file=$ALL_RESULTS_FILE ; Diff file=$DIFF_FILE ; PR content path=pr"
+          PROMPT="Changed files: $CHANGED_FILES ; Git base ref=$BASE_REF ; Changed count=$COUNT ; Output file=$ALL_RESULTS_FILE ; Diff file=$DIFF_FILE"
           echo "Prompt: $PROMPT"
 
           claude --model $MODEL \
-            --allowedTools "Write(.tmp/**), Edit(.tmp/**), Read(.tmp/**), Read(instructions/**), Read(docs/**), Read(agents/**), Read(pr/**), Bash, Task" \
+            --allowedTools "Write(.tmp/**), Edit(.tmp/**), Read(.tmp/**), Read(instructions/**), Read(docs/**), Read(agents/**), Bash, Task" \
             --system-prompt-file ./.github/prompts/prompt-comparison.md \
             -p "$PROMPT"
 
@@ -139,7 +133,7 @@ jobs:
           echo "::notice::No high/critical issues found"
 
       - name: Generate PR comment
-        if: always() && env.TARGET_PR_NUMBER != '' && steps.changed-files.outputs.count > 0
+        if: always() && github.event_name == 'pull_request' && steps.changed-files.outputs.count > 0
         run: |
           cat > $PR_COMMENT_FILE <<EOF
           ## :clipboard: Prompt Quality Validation Report
@@ -179,18 +173,32 @@ jobs:
             fi
           done
 
-          echo -e "\n---\n" >> $PR_COMMENT_FILE
+          # PR comment intentionally stops at the summary table — GitHub PR comments are capped at 65,536 chars
+          # and per-file detail blocks easily blow past that on multi-file PRs. Full per-file findings go to the
+          # workflow's $GITHUB_STEP_SUMMARY (no size limit) via $PR_DETAILS_FILE; the PR comment links to it.
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          cat >> $PR_COMMENT_FILE <<EOF
 
-          # Process each file with detailed issues
+          ---
+
+          :clipboard: **Full per-file findings (Problem / Reason / Solution + Gates Comparison) → [Workflow run Summary]($RUN_URL)** (PR comments are capped at 65,536 chars; details live on the Actions run).
+          EOF
+
+          # Per-file detail blocks: write to $PR_DETAILS_FILE (consumed by the Summary step → $GITHUB_STEP_SUMMARY).
+          cat > $PR_DETAILS_FILE <<EOF
+          ## :clipboard: Per-File Findings
+
+          EOF
+
           jq -c '.[]' $ALL_RESULTS_FILE | while read -r result; do
             FILE=$(echo "$result" | jq -r '.file')
 
             # Show file name first
-            echo -e "### :page_facing_up: \`$FILE\`\n" >> $PR_COMMENT_FILE
+            echo -e "### :page_facing_up: \`$FILE\`\n" >> $PR_DETAILS_FILE
 
             if echo "$result" | jq -e '.error' > /dev/null 2>&1; then
-              echo "**Error:** $(echo "$result" | jq -r '.error')" >> $PR_COMMENT_FILE
-              echo -e "\n---\n" >> $PR_COMMENT_FILE
+              echo "**Error:** $(echo "$result" | jq -r '.error')" >> $PR_DETAILS_FILE
+              echo -e "\n---\n" >> $PR_DETAILS_FILE
               continue
             fi
 
@@ -198,12 +206,12 @@ jobs:
             ISSUES=$(echo "$result" | jq '[.issues | sort_by(.severity) | reverse[]]')
 
             if [ "$(echo "$ISSUES" | jq 'length')" -eq 0 ]; then
-              echo "#### :white_check_mark: No Issues Found" >> $PR_COMMENT_FILE
-              echo "" >> $PR_COMMENT_FILE
+              echo "#### :white_check_mark: No Issues Found" >> $PR_DETAILS_FILE
+              echo "" >> $PR_DETAILS_FILE
             else
-              echo "#### :warning: Issues Found" >> $PR_COMMENT_FILE
-              echo "" >> $PR_COMMENT_FILE
-              cat >> $PR_COMMENT_FILE <<EOF
+              echo "#### :warning: Issues Found" >> $PR_DETAILS_FILE
+              echo "" >> $PR_DETAILS_FILE
+              cat >> $PR_DETAILS_FILE <<EOF
           | Severity | Gate | Details |
           |----------|------|---------|
           EOF
@@ -216,17 +224,17 @@ jobs:
                  else ":black_circle: Unknown" end),
                 .gate, .problem, .reason, .solution] | @tsv' | \
               while IFS=$'\t' read -r sev gate prob reason sol; do
-                echo "| $sev | $gate | **Problem:**<br> $prob<br>**Reason:**<br> $reason<br>**Solution:**<br> $sol |" >> $PR_COMMENT_FILE
+                echo "| $sev | $gate | **Problem:**<br> $prob<br>**Reason:**<br> $reason<br>**Solution:**<br> $sol |" >> $PR_DETAILS_FILE
               done
-              echo "" >> $PR_COMMENT_FILE
+              echo "" >> $PR_DETAILS_FILE
             fi
 
             # Show gates comparison with scores
             echo "$result" | jq -e '.gates' > /dev/null 2>&1 && {
-              echo "#### :bar_chart: Gates Comparison" >> $PR_COMMENT_FILE
-              echo "" >> $PR_COMMENT_FILE
-              echo "| Gate | Score | Comparison |" >> $PR_COMMENT_FILE
-              echo "|------|-------|------------|" >> $PR_COMMENT_FILE
+              echo "#### :bar_chart: Gates Comparison" >> $PR_DETAILS_FILE
+              echo "" >> $PR_DETAILS_FILE
+              echo "| Gate | Score | Comparison |" >> $PR_DETAILS_FILE
+              echo "|------|-------|------------|" >> $PR_DETAILS_FILE
 
               echo "$result" | jq -r '.gates | to_entries | map(select(.value.comparison != 3)) | .[] |
                 [.key,
@@ -237,24 +245,24 @@ jobs:
                   elif .value.comparison == 1 then ":x: Much worse"
                   else ":arrow_right: No change" end)] | @tsv' | \
               while IFS=$'\t' read -r gate score change; do
-                echo "| $gate | $score | $change |" >> $PR_COMMENT_FILE
+                echo "| $gate | $score | $change |" >> $PR_DETAILS_FILE
               done
 
-              echo "" >> $PR_COMMENT_FILE
+              echo "" >> $PR_DETAILS_FILE
             }
 
-            echo -e "\n---\n" >> $PR_COMMENT_FILE
+            echo -e "\n---\n" >> $PR_DETAILS_FILE
           done
 
       - name: Post PR comment
-        if: always() && env.TARGET_PR_NUMBER != '' && steps.changed-files.outputs.count > 0
+        if: always() && github.event_name == 'pull_request' && steps.changed-files.outputs.count > 0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Posting PR comment..."
 
           # Use gh CLI to create PR comment
-          gh pr comment "$TARGET_PR_NUMBER" \
+          gh pr comment ${{ github.event.pull_request.number }} \
             --body-file $PR_COMMENT_FILE
 
           echo "::notice::PR comment posted"
@@ -267,4 +275,10 @@ jobs:
 
           - **Files validated:** ${{ steps.changed-files.outputs.count }}
           - **Status:** $( [ "${{ steps.validate.outputs.has_high_severity }}" = "true" ] && echo ":x: Failed" || echo ":white_check_mark: Passed" )
+
           EOF
+
+          # Append the compact PR comment (summary table) AND the full per-file detail block to the run summary.
+          # The PR comment posts only the compact part; the full detail lives here without the 65,536-char cap.
+          [ -f "$PR_COMMENT_FILE" ] && cat "$PR_COMMENT_FILE" >> $GITHUB_STEP_SUMMARY
+          [ -f "$PR_DETAILS_FILE" ] && cat "$PR_DETAILS_FILE" >> $GITHUB_STEP_SUMMARY

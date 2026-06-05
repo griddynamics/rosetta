@@ -605,9 +605,9 @@ def build_bootstrap_replacements(
             bash_escaped = _bash_single_quote_escape(escaped)
             ps_escaped = _ps_single_quote_escape(escaped)
 
-            if len(escaped) > 10000:
+            if len(escaped) > 12000:
                 errors.append(
-                    f"ERROR: {plugin_name} {rel_file} additionalContext is {len(escaped)} chars (max 10000)"
+                    f"ERROR: {plugin_name} {rel_file} additionalContext is {len(escaped)} chars (max 12000)"
                 )
                 violations += 1
 

@@ -2,271 +2,77 @@
 name: aqa-flow-selector-implementation
 description: Phase 5 of AQA workflow - Selector Implementation in Page Objects
 alwaysApply: false
+tags: []
 baseSchema: docs/schemas/phase.md
 ---
 
-# Phase 5: Selector Implementation
+<aqa_flow_selector_implementation>
 
-## Objective
+<description_and_purpose>
+Add identified selectors to page objects following project conventions and patterns.
+</description_and_purpose>
 
-Add identified selectors to appropriate Page Objects following project conventions and architecture patterns.
+<workflow_context>
+- Phase 5 of 8 in `aqa-flow`
+- Input: selector map from Phase 4, page object inventory from Phase 3
+- Output: page objects extended/created with all required selectors
+- Prerequisite: Phases 1-4 complete
+- Skills (Rosetta KB tags — `ACQUIRE <tag> FROM KB` before USE): `repository-implementation-standards`, `aqa-selector-management`.
+</workflow_context>
 
-## Prerequisites
+<skill_precedence>
+If `repository-implementation-standards` and `aqa-selector-management` disagree: follow `aqa-selector-management` for selector locators, page object APIs, and AQA-specific patterns; follow `repository-implementation-standards` for general repo hygiene (formatting, shared helpers) where it does not override those AQA decisions.
 
-- Phase 1, 2, 3, and 4 completed
-- All missing selectors identified and documented
-- Page source analyzed and selector strategy determined
-- Understanding of existing Page Object patterns
+**Resolved example (positive):** repo standard prefers `camelCase` private helpers, but `aqa-selector-management` mandates `getSubmitButton()`-style accessors for elements touched by tests → use **`getSubmitButton()`** (and other selector-skill accessors) for page-object element access; keep **`camelCase`** for unrelated utilities (e.g. string builders) that are not selector accessors.
 
-## Phase Tasks
+**Anti-pattern (negative):** renaming `getSubmitButton()` to `submitBtn()` “to match repo naming” for a mapped selector — **wrong**; that shortcut overrides AQA selector rules and must be reverted per the rule above.
+</skill_precedence>
 
-### Task 1: Review Selector Implementation Plan
+<skill_acquire_failure>
+If a **required** ACQUIRE in step **5.1** below returns **zero** documents: stop Phase 5 immediately, record the failure and the **skill tag** that failed in `agents/aqa-state.md`, notify the user to fix Rosetta/KB access, and **do not** run any later steps in 5.1.
+</skill_acquire_failure>
 
-**Actions**:
-1. Read test plan Phase 4 section with identified selectors
-2. Review Phase 3 analysis of existing Page Objects
-3. For each missing selector, confirm:
-   - Target Page Object (existing or new)
-   - Selector value and type
-   - Usage purpose (click, verify, type)
-4. Create implementation checklist:
-   ```markdown
-   ### Selector Implementation Checklist
-   
-   #### DashboardPage (existing - extend)
-   - [ ] Add welcomeMessage selector
-   - [ ] Add dashboardTitle selector
-   - [ ] Add notificationBell selector
-   
-   #### SettingsPage (new - create)
-   - [ ] Create new Page Object file
-   - [ ] Add emailInput selector
-   - [ ] Add saveButton selector
-   - [ ] Add successNotification selector
-   ```
+<phase_steps>
+1. Execute selector implementation (Part B of skill)
+2. Validate implementation
+3. Update state
+</phase_steps>
 
-**Expected Output**: Clear plan of what needs to be implemented.
+<execute_implementation step="5.1" subagent="engineer" role="Selector implementation specialist">
+1. ACQUIRE `repository-implementation-standards` FROM KB if not already loaded. If that ACQUIRE returns **zero** documents: apply `<skill_acquire_failure>`.
+2. USE SKILL `repository-implementation-standards`
+3. ACQUIRE `aqa-selector-management` FROM KB if not already loaded. If that ACQUIRE returns **zero** documents: apply `<skill_acquire_failure>`.
+4. USE SKILL `aqa-selector-management`
+5. Execute Part B (Selector Implementation) only
+6. Extend existing page objects (skill Part B step 5 — match existing patterns: access modifiers, naming, formatting, helper-method shape) and create new ones as needed (skill Part B step 6 — use existing page objects as structural templates). The "follow project conventions exactly" rule is owned by the skill; do not introduce new patterns from this workflow.
+7. **Implementation report output:** Part B writes the `### Implementation (Part B only)` subsection in the test plan's `## Selector Management` section — canonical fields (Page Objects Modified, Page Objects Created, Selectors Added, Helper Methods Added) defined in `aqa-selector-management` references. Step 5.3 echoes those fields into `agents/aqa-state.md`.
+8. **Conditional doc-style match** (per the `<skill_precedence>` "follow project conventions exactly" rule): add JSDoc/TSDoc on new selectors and helper methods **only if** existing page objects in the same file/module already use it. Match the existing style; do **not** introduce doc comments to a file/module that does not already use them.
+</execute_implementation>
 
-### Task 2: Extend Existing Page Objects
+<validate step="5.2">
+1. Check linting on all modified/created files
+2. Fix any linting errors
+3. Verify all selectors from Phase 4 map are implemented
+</validate>
 
-**Actions**:
-1. For each Page Object that needs new selectors:
-   - Read the existing Page Object file
-   - Understand its structure and patterns:
-     - How are selectors defined? (constants, getters, class properties)
-     - What naming convention is used? (camelCase, UPPER_CASE)
-     - Where are selectors located in the file?
-     - Are there comments or documentation?
-2. Add new selectors following the exact pattern:
-   ```typescript
-   // Example: If existing pattern is:
-   private readonly loginButton = '[data-testid="login-btn"]';
-   
-   // Add new selectors in same style:
-   private readonly welcomeMessage = '[data-testid="welcome-message"]';
-   private readonly dashboardTitle = '#dashboard-title';
-   ```
-3. Maintain consistency:
-   - Same access modifiers (private, public, protected)
-   - Same data types
-   - Same formatting and indentation
-   - Same comment style if comments are used
-4. Add selectors in logical location:
-   - Group related selectors together
-   - Follow existing ordering (alphabetical, by feature, by location on page)
-5. Add helper methods if needed:
-   ```typescript
-   // If Page Object has action methods, add new ones:
-   async getWelcomeMessage(): Promise<string> {
-     return await this.page.textContent(this.welcomeMessage);
-   }
-   
-   async clickNotificationBell(): Promise<void> {
-     await this.page.click(this.notificationBell);
-   }
-   ```
+<update_state step="5.3">
+1. Update `agents/aqa-state.md` — the fields below mirror the skill's `### Implementation (Part B only)` output-template subsection (canonical shape lives in `aqa-selector-management` references; this is the state-file echo, kept in sync):
+   - Page Objects Modified: [list with paths]
+   - Page Objects Created: [list with paths]
+   - Total Selectors Added: [count]
+   - Helper Methods Added: [count]
+   - Linting: [clean/resolved]
+   - Phase 5 completion timestamp
+2. Mark Phase 5 complete, Phase 6 current
+</update_state>
 
-**Expected Output**: Existing Page Objects extended with new selectors and methods.
+<validation_checklist>
+- All missing selectors implemented
+- New page objects created if needed
+- `repository-implementation-standards` applied for repo hygiene (formatting, shared helpers) where relevant, and `aqa-selector-management` applied for selector/page-object rules — no conflicting shortcuts (see **Resolved example** / **Anti-pattern** in `<skill_precedence>`)
+- Implementations follow project conventions exactly
+- Helper methods added as needed
+- Linting errors checked and fixed
+</validation_checklist>
 
-### Task 3: Create New Page Objects (If Needed)
-
-**Actions**:
-1. If new Page Object is needed:
-   - Find existing Page Object to use as template
-   - Copy structure and patterns
-   - Follow project naming conventions
-2. Create file in correct location (from Phase 3 analysis):
-   ```typescript
-   // Example: src/pages/SettingsPage.ts
-   
-   import { Page } from '@playwright/test';
-   import { BasePage } from './BasePage'; // If base class exists
-   
-   export class SettingsPage extends BasePage {
-     // Selectors
-     private readonly emailInput = '[data-testid="email-input"]';
-     private readonly saveButton = '[data-testid="save-btn"]';
-     private readonly successNotification = '.notification.success';
-     
-     constructor(page: Page) {
-       super(page);
-     }
-     
-     // Action methods
-     async updateEmail(email: string): Promise<void> {
-       await this.page.fill(this.emailInput, email);
-     }
-     
-     async clickSave(): Promise<void> {
-       await this.page.click(this.saveButton);
-     }
-     
-     async isSuccessNotificationVisible(): Promise<boolean> {
-       return await this.page.isVisible(this.successNotification);
-     }
-   }
-   ```
-3. Follow all project conventions:
-   - Import statements organized correctly
-   - Class structure matches existing patterns
-   - Constructor pattern matches existing Page Objects
-   - Method naming follows convention
-   - Type annotations used consistently
-4. Add to Page Object index/exports if project uses barrel files
-
-**Expected Output**: New Page Object file(s) created following project standards.
-
-### Task 4: Add Documentation (If Project Uses It)
-
-**Actions**:
-1. Check if existing Page Objects have documentation:
-   - JSDoc/TSDoc comments
-   - README files
-   - Inline comments explaining selectors
-2. If documentation exists, add for new selectors:
-   ```typescript
-   /**
-    * Welcome message displayed after user login
-    * Format: "Welcome, [username]"
-    */
-   private readonly welcomeMessage = '[data-testid="welcome-message"]';
-   
-   /**
-    * Retrieves the welcome message text
-    * @returns The welcome message string
-    */
-   async getWelcomeMessage(): Promise<string> {
-     return await this.page.textContent(this.welcomeMessage);
-   }
-   ```
-3. Update Page Object documentation if it exists:
-   - Add new selectors to selector lists
-   - Document new methods
-
-**Expected Output**: Documentation added consistent with project standards.
-
-### Task 5: Validate Selector Implementation
-
-**Actions**:
-1. Check each modified/created file:
-   - [ ] Selectors added in correct format
-   - [ ] Naming follows project conventions
-   - [ ] All required selectors implemented
-   - [ ] Helper methods added if needed
-   - [ ] File structure matches existing patterns
-   - [ ] Imports correct and organized
-   - [ ] No syntax errors
-2. Use ReadLints to check for linting errors:
-   ```
-   Use: ReadLints tool on modified files
-   ```
-3. Fix any linting issues found
-4. Verify against checklist from Task 1
-
-**Expected Output**: All selectors implemented correctly with no errors.
-
-### Task 6: Update Test Plan
-
-**Actions**:
-1. Add Phase 5 section to test plan:
-   ```markdown
-   ## Phase 5: Selector Implementation
-   
-   ### Page Objects Modified
-   
-   #### DashboardPage (src/pages/DashboardPage.ts)
-   Added selectors:
-   - `welcomeMessage`: [data-testid="welcome-message"] - Text verification
-   - `dashboardTitle`: #dashboard-title - Text verification
-   - `notificationBell`: [aria-label="Notifications"] - Click action
-   
-   Added methods:
-   - `getWelcomeMessage()`: Returns welcome text
-   - `getDashboardTitle()`: Returns title text
-   - `clickNotificationBell()`: Clicks notification icon
-   
-   #### SettingsPage (src/pages/SettingsPage.ts) - NEW
-   Created new Page Object with selectors:
-   - `emailInput`: [data-testid="email-input"] - Text input
-   - `saveButton`: [data-testid="save-btn"] - Click action
-   - `successNotification`: .notification.success - Visibility check
-   
-   Methods implemented:
-   - `updateEmail(email)`: Updates email field
-   - `clickSave()`: Clicks save button
-   - `isSuccessNotificationVisible()`: Checks notification
-   
-   ### Implementation Notes
-   - [Any deviations from original plan]
-   - [Any issues encountered and resolved]
-   
-   ### Files Modified
-   - src/pages/DashboardPage.ts (extended)
-   - src/pages/SettingsPage.ts (created)
-   ```
-
-**Expected Output**: Test plan updated with implementation details.
-
-## Completion Criteria
-
-- [ ] All missing selectors implemented in Page Objects
-- [ ] New Page Objects created if needed
-- [ ] All implementations follow project conventions
-- [ ] Helper methods added as needed
-- [ ] Documentation added if project uses it
-- [ ] Linting errors checked and fixed
-- [ ] Implementation matches Phase 4 plan
-- [ ] Test plan updated with Phase 5 information
-- [ ] `agents/aqa-state.md` updated with Phase 5 completion
-
-## Update State File
-
-After completing Phase 5, update `agents/aqa-state.md`:
-
-```markdown
-### Phase 5: Selector Implementation
-- Completed: [DateTime]
-- Page Objects Modified: [List with file paths]
-- Page Objects Created: [List with file paths]
-- Total Selectors Added: [Count]
-- Helper Methods Added: [Count]
-- Linting Issues: [None / Resolved]
-```
-
-Mark Phase 5 as completed and Phase 6 as current.
-
-## Next Phase
-
-Proceed to **Phase 6: Test Implementation** by executing:
-```
-ACQUIRE aqa-flow-test-implementation.md FROM KB
-```
-
-## Important Notes
-
-- **Consistency is Critical**: New code must match existing patterns exactly
-- **No Shortcuts**: Follow all project conventions even if they seem verbose
-- **Quality Over Speed**: Take time to ensure proper implementation
-- **Check Linting**: Always validate code meets project linting rules
-- **Document Changes**: Update test plan with all implementation details
-- **Preserve Structure**: Don't reorganize or refactor existing code
+</aqa_flow_selector_implementation>
