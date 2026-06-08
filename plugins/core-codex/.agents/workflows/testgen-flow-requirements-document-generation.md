@@ -15,7 +15,7 @@ Synthesize Jira data, Confluence documentation, and user answers into a comprehe
 - Phase 4 of 7 in `testgen-flow`
 - Input: `raw-data.md`, `analysis.md`, `answers.md`
 - Output: `requirements.md` — primary deliverable for test case generation
-- Skills: `requirements-synthesis`
+- Skills: `requirements-authoring` (synthesis mode)
 - Prerequisite: Phase 0-3 complete with validated user answers
 - Priority order for source resolution: User answers > Jira > Confluence > Analysis insights
 </workflow_context>
@@ -35,7 +35,7 @@ Synthesize Jira data, Confluence documentation, and user answers into a comprehe
 </load_sources>
 
 <synthesize_requirements step="4.2" subagent="architect" role="Requirements engineer">
-1. USE SKILL `requirements-synthesis`
+1. USE SKILL `requirements-authoring` (synthesis mode). The mode EMITS into this phase's `<create_requirements_document>` section contract; the phase OWNS the document skeleton and output path.
 2. Source priority: User answers (Phase 3) > Jira ticket > Confluence docs > Analysis insights
 3. Resolve contradictions using user answers; fill gaps using user answers; flag unresolved items as assumptions
 4. Generate: user stories (US-N), functional requirements (FR-N), non-functional requirements (NFR-N), constraints (C-N), dependencies (D-N), assumptions (A-N), risks (R-N)
@@ -44,11 +44,11 @@ Synthesize Jira data, Confluence documentation, and user answers into a comprehe
 
 <create_requirements_document step="4.3">
 
-Create `agents/testgen/{TICKET-KEY}/requirements.md`. The `requirements-synthesis` skill emits per the document-level skeleton in its `<output_format>` + per-entry shapes in `references/output-schemas.md`.
+Create `agents/testgen/{TICKET-KEY}/requirements.md`. The `requirements-authoring` synthesis mode emits per its `<synthesis>` rules + per-entry shapes in `requirements-authoring/references/authoring-catalogs.md` (synthesis output schemas).
 
-**Section contract (phase-owned SSoT)** — the table below is **the authoritative phase contract the bound skill MUST satisfy**, not a parallel restatement. `requirements-synthesis/SKILL.md` `<output_format>` and `references/output-schemas.md` "Document wrapper" use the same scheme (front-matter + 10 numbered sections) — the unified single source of truth as of the last requirements-synthesis fix. If the skill's emitted skeleton drifts from this table, the phase fails verification and re-invokes the skill rather than accepting a divergent shape; the phase **bounds the contract**, the skill is the implementation.
+**Section contract (phase-owned SSoT)** — the table below is **the authoritative phase contract the synthesis mode MUST satisfy**, not a parallel restatement. The mode's document wrapper uses the same scheme (front-matter + 10 numbered sections). If the emitted skeleton drifts from this table, the phase fails verification and re-invokes rather than accepting a divergent shape; the phase **bounds the contract**, the skill is the implementation.
 
-| # | Section | Per-entry shape from `requirements-synthesis` |
+| # | Section | Per-entry shape (synthesis schema) |
 |---|---|---|
 | Front-matter | Document Control + Executive Summary | (Executive Summary extended below for testgen) |
 | 1 | User Stories | `US-[N]` entries (user-stories schema) |
@@ -99,7 +99,7 @@ Traceability Matrix must include Test Scenario placeholder column:
 
 All requirements must follow SMART criteria: Specific, Measurable, Achievable, Relevant, Testable.
 
-**Compact SMART exemplar** (phase-level grounding so the agent emits measurable requirements rather than vague ones — full FR/NFR/US worked examples live in `requirements-synthesis/references/output-schemas.md`):
+**Compact SMART exemplar** (phase-level grounding so the agent emits measurable requirements rather than vague ones — full FR/NFR/US worked examples live in `requirements-authoring/references/authoring-catalogs.md`):
 
 ```markdown
 ### NFR-1: Performance - Login Response Time
@@ -109,9 +109,9 @@ All requirements must follow SMART criteria: Specific, Measurable, Achievable, R
 **Source**: User Answer Q5 + Confluence "SLO catalog"
 ```
 
-The Measurement field carries the threshold (numeric + measurement window + load condition). A non-SMART form (`Login should be fast`) carries no threshold and would be moved to `assumptions-and-risks` per the `requirements-synthesis` skill's NFR-threshold rule.
+The Measurement field carries the threshold (numeric + measurement window + load condition). A non-SMART form (`Login should be fast`) carries no threshold and would be moved to `assumptions-and-risks` per the synthesis mode's NFR-threshold rule.
 
-**Coverage prompt** (systematic-discovery checklist — applied per the `requirements-synthesis` Coverage-guidance rule "include only categories the sources actually specify; do not pad"):
+**Coverage prompt** (systematic-discovery checklist — applied per the synthesis mode's Coverage-discipline rule "include only categories the sources actually specify; do not pad"):
 
 - **FR capability classes** to scan against: auth, data management, business logic, integrations, reporting, notifications, admin/configuration, search, file handling. Cover each class only if the sources mention it.
 - **NFR categories** to scan against: Performance, Security, Scalability, Usability, Reliability, Maintainability. Include an NFR only when the source data or user answers specify a constraint in that category.
@@ -137,14 +137,14 @@ The Measurement field carries the threshold (numeric + measurement window + load
 
 <failure_handling>
 - **Missing or empty inputs** (`raw-data.md`, `analysis.md`, or `answers.md` absent or empty): stop Phase 4, record which input is missing in `testgen-state.md`, and announce which earlier phase to resume. Note: if Phase 3 was marked `SKIPPED — no questions`, an empty `answers.md` is acceptable; proceed without it.
-- **Contradictions unresolved by user answers** (the requirements skill identifies a contradiction whose mapping question was either unanswered or whose answer is itself contradictory): record the unresolved contradiction as an explicit **Risk (R-N)** in `requirements.md` with full source citations (Jira quote, Confluence quote, user answer if any). Do not invent a resolution. Proceed with the rest of Phase 4 but flag the risk in the Executive Summary.
-- **Skill execution failure** (`requirements-synthesis` errors or returns empty): re-invoke once with the same inputs; if still failing, stop, record the skill failure, and ask the user to verify input quality. **No inline per-entry fallback shape exists** — unlike `testgen-flow-test-case-generation.md`'s `<tc_schema>` fallback, this phase has no inline US/FR/NFR/C/D/A/R template to author against if the skill cannot load. The phase **blocks** when the skill is unavailable; do NOT fabricate a partial requirements.md without the skill's structured authoring discipline.
+- **Contradictions unresolved by user answers** (the synthesis mode identifies a contradiction whose mapping question was either unanswered or whose answer is itself contradictory): record the unresolved contradiction as an explicit **Risk (R-N)** in `requirements.md` with full source citations (Jira quote, Confluence quote, user answer if any). Do not invent a resolution. Proceed with the rest of Phase 4 but flag the risk in the Executive Summary.
+- **Skill execution failure** (`requirements-authoring` synthesis mode errors or returns empty): re-invoke once with the same inputs; if still failing, stop, record the skill failure, and ask the user to verify input quality. **No inline per-entry fallback shape exists** — unlike `testgen-flow-test-case-generation.md`'s `<tc_schema>` fallback, this phase has no inline US/FR/NFR/C/D/A/R template to author against if the skill cannot load. The phase **blocks** when the skill is unavailable; do NOT fabricate a partial requirements.md without the mode's structured authoring discipline.
 
 **Conscious tradeoff — why no inline per-entry fallback (declared once, not re-derived per turn):**
 
-- **The skill is a hard dependency, by design.** `requirements-synthesis` is the canonical author for US / FR / NFR / C / D / A / R / Traceability shapes (SMART criteria + threshold rules + source-provenance discipline + INVEST-style story rules + redaction). Replicating those rules inline as a fallback would re-introduce the 4-way duplication this PR deliberately removed, and the fallback would drift from the canonical authoring discipline.
-- **Deployment guarantee.** `requirements-synthesis` ships at `instructions/<release>/core/skills/requirements-synthesis/SKILL.md` (verified for r2 + r3); both release trees contain it, the plugin generator propagates it to every plugin tree. Runtime ACQUIRE resolves against the filesystem path, not against the `docs/definitions/skills.md` registry (which lists meta-level skills only — most QA/AQA/testgen domain skills are not in that registry by convention).
-- **Section contract is phase-owned.** The phase's `<create_requirements_document>` table is the authoritative SSoT for the document skeleton (front-matter + 10 numbered sections); a skill version whose `<output_format>` drifts from that contract fails verification and triggers re-invoke. The phase's contract is decoupled from the skill's implementation details.
+- **The skill is a hard dependency, by design.** `requirements-authoring` (synthesis mode) is the canonical author for US / FR / NFR / C / D / A / R / Traceability shapes (SMART criteria + threshold rules + source-provenance discipline + INVEST-style story rules + redaction). Replicating those rules inline as a fallback would re-introduce duplication and drift from the canonical authoring discipline.
+- **Deployment guarantee.** `requirements-authoring` ships at `instructions/<release>/core/skills/requirements-authoring/SKILL.md` (with its `references/authoring-catalogs.md`); runtime ACQUIRE resolves against the filesystem path.
+- **Section contract is phase-owned.** The phase's `<create_requirements_document>` table is the authoritative SSoT for the document skeleton (front-matter + 10 numbered sections); a mode version whose output drifts from that contract fails verification and triggers re-invoke. The phase's contract is decoupled from the skill's implementation details.
 
 This tradeoff is intentional and **bounded to this phase**: the sibling `testgen-flow-test-case-generation.md` retains an inline `<tc_schema>` fallback for a different reason (TC entries are simpler and lower-risk to fall back to; requirement entries carry threshold/SMART/INVEST discipline that does not transfer cleanly to an inline template).
 

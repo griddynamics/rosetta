@@ -20,6 +20,8 @@ Use when writing or updating tests, verifying implementation correctness, settin
 <core_concepts>
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- Quality bar, mocking policy, and scenario rules below are canonical — single source of truth; other sections reference, do not restate
+- Verbose multi-language code, selector tables, and templates live in `references/implementation-examples.md` — lazy-loaded only inside the relevant `<implementation_modes>` mode, never resident here
 
 Principles:
 
@@ -56,6 +58,31 @@ Infrastructure:
 
 </core_concepts>
 
+<implementation_modes>
+
+Three test-implementation modes. The calling workflow PHASE is the SSoT for paths, the failure/assertion taxonomy, the output-artifact contract, the read-only-vs-write boundary, and any iteration cap; this skill EMITS against those bindings. Verbose code/templates load on demand from [references/implementation-examples.md](references/implementation-examples.md) at the cited step — never resident.
+
+General method (all modes): read the phase-supplied inputs → match the repository's existing patterns (USE SKILL `coding` standards-first mode for the authoritative conventions) → emit code/artifact → record every gap explicitly (no silent drops) → run `<validation_checklist>`.
+
+**UI impl mode** (integrate page objects + assertions from a test plan):
+1. Consolidate the plan: steps, explicit assertions, file-location decision, similar-test patterns, available page-object methods, user instructions.
+2. Author the test using page-object methods only (no raw selectors in test code), proper waits, project assertion style — shape in `references/implementation-examples.md` "UI impl mode".
+3. Record every plan assertion that could NOT be implemented in the phase's `### Uncovered Assertions` with the reason — silent drop forbidden (worked example in the reference).
+4. Write ONLY test files (and the phase's hand-off record). Missing selector/page-object method → do not author it inline; surface to the phase to re-run the selector phase.
+
+**API impl mode** (implement approved API specs as executable tests with shared utils):
+1. GATE: approved-specs artifact + recorded approval + API-contract artifact + discoverable existing patterns all present (phase supplies paths + the approval signal). Missing/unapproved → stop, report to the phase; never author from unapproved specs.
+2. Implement shared utilities (auth helper, data factory, response validator) — prefer EXTENDING existing helpers over parallel ones; record any extension.
+3. Implement test files per the file mapping; every test name/docstring carries its ATC-NNN id. Rules + multi-language examples in `references/implementation-examples.md` "API impl mode".
+4. Record assumptions as `[ASSUMED: <field>=<value>]` (code + hand-off) and surface unimplementable ATCs as Gaps — no silent ATC drop.
+
+**Selector mode** (Part A identify, Part B implement — invoked by separate phases; never conflate in one phase):
+- **Part A (read-only identify):** map each test step to required UI interactions → check existing page objects (✅ EXISTS / ❌ MISSING / ❌ UNRESOLVABLE) → search frontend source (`data-testid` first) → analyze the phase-supplied page-source HTML for still-missing selectors using the 4-tier strategy. No source available → stop, report; never fabricate a selector from naming guesses. 4-tier table + fragile-pattern list in `references/implementation-examples.md` "Selector mode".
+- **Part B (write page objects only):** extend existing / create new page objects matching project patterns exactly; mechanics in the reference. Fragile-selector gate: a selector Part A flagged fragile is never silently committed — replace with a stable alternative or get explicit approval first.
+- Output: the phase's `## Selector Management` section (template in the reference). Part A writes Interaction Map / Availability / Identified Selectors / Fragile Flagged; Part B adds the Implementation subsection.
+
+</implementation_modes>
+
 <validation_checklist>
 
 - Coverage >= 80% across major functionality
@@ -69,6 +96,7 @@ Infrastructure:
 - Tests are isolated — no shared mutable state between tests
 - Tests are idempotent — same result on every run
 - Previous server instances killed before test run
+- Impl modes: every plan assertion / ATC is implemented OR recorded as uncovered/gap (no silent drop); UI/selector modes touch only the phase-permitted file set; selector Part A is read-only; fragile selectors never silently committed; lint/format clean on touched files
 
 </validation_checklist>
 
@@ -97,8 +125,9 @@ Infrastructure:
 - MCP `DeepWiki` — external documentation and knowledge
 - MCP `GitNexus` — codebase knowledge graph
 - MCP `Serena` — semantic code retrieval at symbol level
-- skill `coding` — implementation context and validation methodology
+- skill `coding` — standards-first mode (repo conventions as authority) + approved-apply mode for corrections
 - skill `debugging` — for test failures and unexpected behavior
+- `references/implementation-examples.md` — multi-language code, 4-tier selector table, output templates (lazy-loaded per `<implementation_modes>`)
 
 </resources>
 

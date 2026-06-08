@@ -1,6 +1,6 @@
 ---
 name: debugging
-description: Rosetta debugging skill for errors, test failures, and unexpected behavior. Use proactively when encountering any issue. Ensures root cause investigation before attempting fixes.
+description: Rosetta debugging skill for errors, test failures, and unexpected behavior. Use proactively when encountering any issue. Ensures root-cause investigation before fixes; includes a read-only test-execution report triage mode for UI and API automated-test failures.
 license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
@@ -14,7 +14,7 @@ Senior engineer specializing in systematic root cause analysis and methodical de
 </role>
 
 <when_to_use_skill>
-Use when encountering errors, test failures, unexpected behavior, or when a previous fix failed and the issue persists. Every fix must trace to a confirmed root cause with evidence — no symptom-only fixes survive review.
+Use when encountering errors, test failures, unexpected behavior, or when a previous fix failed and the issue persists. For an automated-test execution report (UI or API), use the test-execution triage mode in `<process>`. Every fix must trace to a confirmed root cause with evidence — no symptom-only fixes survive review.
 </when_to_use_skill>
 
 <core_concepts>
@@ -22,6 +22,8 @@ Use when encountering errors, test failures, unexpected behavior, or when a prev
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - ALWAYS find root cause before attempting fixes; symptom fixes are failure
 - Make implicit become explicit — incorrect assumptions hide root causes
+- Evidence label per cause — `Confirmed` (both sides cited) | `Assumption` (partial; state the missing evidence) | `Unknown` (none; state what is needed); the weaker label wins ties (canonical — single source of truth; other sections reference, do not restate)
+- Redaction of captured logs, requests, responses, or page sources → USE SKILL `sensitive-data` (canonical authority — not restated here)
 - Execute phases sequentially
 
 For each issue provide:
@@ -73,6 +75,25 @@ BEFORE attempting ANY fix:
 
 </implementation>
 
+<test_execution_triage>
+
+Read-only triage of an automated-test execution report. The calling workflow phase is the SSoT for three bindings it supplies: the report path, the failure-category taxonomy to use, and the output-artifact contract.
+
+1. Parse the report — per-test status, error message, stack trace, duration, and captured artifacts (screenshots, page source, request/response).
+2. Categorize each failure into exactly one category from the phase-supplied taxonomy (most-proximate cause).
+3. For element/selector errors analyze the captured page source; for response/assertion errors analyze the captured request/response. No capture available → label the cause `Unknown` and state the capture needed.
+4. Identify cross-failure patterns — shared cause, setup cascade, environment-wide, category skew — and prioritize Critical/High/Medium/Low.
+5. Label each cause's evidence strength (→ `<core_concepts>`) and write findings into the phase's output artifact, redacted (→ `<core_concepts>`).
+
+GATE: read-only. Proposing or applying fixes is a separate correction phase — USE SKILL `coding`.
+
+Worked evidence labels:
+
+- `Confirmed` — `report.log:142` shows TimeoutError on the old selector AND this run's page source shows the renamed selector — both sides cited.
+- `Assumption` — 30s timeout, no stack/HTTP capture, single run; to upgrade: a stack/HTTP log of backend slowness OR ≥3 reproducing reruns.
+
+</test_execution_triage>
+
 <validation_checklist>
 
 - Root cause identified with evidence before any fix attempted
@@ -82,6 +103,7 @@ BEFORE attempting ANY fix:
 - Failing test reproduces the bug
 - No regressions introduced
 - Prevention recommendation documented
+- Triage mode: every failed test has one taxonomy category, a root cause, and an evidence label; selector/response causes cite captured evidence or are labelled `Unknown`; cross-failure patterns are named or explicitly none; redaction scan ran
 
 </validation_checklist>
 
@@ -98,6 +120,7 @@ BEFORE attempting ANY fix:
 - Attempting fixes before tracing the root cause
 - Stacking multiple fixes without validating each
 - Each fix reveals a new problem elsewhere — likely a design issue, not a bug
+- Categorizing failures without populating a root cause and an evidence label
 
 </pitfalls>
 

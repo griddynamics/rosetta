@@ -9,99 +9,84 @@ baseSchema: docs/schemas/phase.md
 <qa_flow_execution_and_report_analysis>
 
 <description_and_purpose>
-Analyze test execution results provided by user. Identify failures, categorize root causes, and prepare actionable fix recommendations.
+Analyze test execution results provided by the user. Identify failures, categorize root causes, and prepare actionable fix recommendations for Phase 7.
 </description_and_purpose>
 
 <workflow_context>
 - Phase 6 of 8 in `qa-flow`
 - Input: test execution report or output (user-provided or from `agents/user-instructions/`)
-- Output: `agents/qa/{IDENTIFIER}/execution-report.md` with failure analysis and recommendations
+- Output artifact path (single SSoT — referenced by other sections): `agents/qa/{IDENTIFIER}/execution-report.md` (resolve `{IDENTIFIER}` from `agents/qa-state.md`)
 - Prerequisite: Phase 5 complete, tests executed by user
 - HITL: may need to ask user for test execution results
-- Analysis skill chain: see `<pinned_analysis_binding>` (single source of truth for both the orchestrator and the domain analysis skill).
+- Read-only scope (single SSoT — referenced by other sections as "the read-only scope"): parse / categorize / root-cause / label evidence / recommend. NO production code edits, NO writes to test or product source files. Refuse "just fix it now" / "patch and move on" with citation of this scope; the only acceptable user inputs are report location, evidence/labeling clarifications, or explicit approval to leave borderline items as `Assumption`.
 </workflow_context>
 
-<pinned_analysis_skill_tag>automation-test-execution-analysis</pinned_analysis_skill_tag>
+<recommended_skills>
+- `debugging` — its test-execution triage mode performs the read-only analysis below (parse → categorize → root-cause → label).
+- `sensitive-data` — redaction authority for any captured logs/requests/responses before they are written to the artifact.
+</recommended_skills>
 
-<pinned_analysis_binding>
-Two-layer binding (orchestrator → domain), single source of truth for both identifiers:
+<failure_taxonomy>
+Phase-authoritative API failure taxonomy. Assign **exactly one** category per failure (exhaustive + mutually exclusive; pick the most-proximate cause):
 
-- **`pinned_analysis_skill_tag`** (orchestrator) = `automation-test-execution-analysis`. Requires the parent phase to supply (a) the output artifact path and (b) a domain analysis skill name — both bound here.
-- **`domain_analysis_skill`** = `qa-test-debugging`, **Part A only** (Report Analysis). Part B (Corrections) is out of scope for Phase 6 and belongs to Phase 7.
-- **Output artifact path** (supplied to the orchestrator) = `agents/qa/{IDENTIFIER}/execution-report.md` — same `{IDENTIFIER}` resolved in Phase 0.
+1. **Connection / Environment** — base URL unreachable, TLS, wrong environment, infrastructure down
+2. **Authentication** — missing/expired token, wrong credentials, auth header not sent
+3. **Request** — wrong path/method/params/body shape vs the API contract
+4. **Response Assertion** — expected vs actual mismatch (status / body / schema / field value)
+5. **Test Data** — fixtures, preconditions, or data factories not established
+6. **Timing / Race Condition** — ret/poll timeout, async ordering, eventual-consistency window
+7. **Application Bug** — defect in the API under test (not the test)
+</failure_taxonomy>
 
-**Layering order (load + execute precedence):**
-1. Load the orchestrator (`automation-test-execution-analysis`).
-2. The orchestrator's step 4 resolves the domain skill name supplied here (`qa-test-debugging`) and loads it.
-3. Only **Part A** of the domain skill runs in this phase; the orchestrator's step 6 enforces the Part A boundary.
-4. The orchestrator's step 9 writes/updates the analysis artifact at the path supplied above.
+<execution_report_contract>
+`execution-report.md` is **PUBLIC by default** (tracked, shared review, downstream prompt contexts) — redact via `sensitive-data` BEFORE writing, not after. Structural content (status codes, endpoint paths, error-message templates, field names, schema shapes) stays verbatim; redaction targets sensitive **values** only.
 
-Canonical match is the KB document whose frontmatter `name:` (or primary tag) is exactly the bound identifier.
-</pinned_analysis_binding>
+Must be non-empty and contain:
 
-<!-- Maintainer note: when renaming either skill in Rosetta, update qa-flow.md Phase 6 recommended skills AND this binding block in the same edit. -->
+- **Execution Summary** — Total / Passed / Failed / Skipped / duration.
+- **Failures by Category** — count + tests affected per `<failure_taxonomy>` category.
+- **Failure Details** — one entry per failed test with: Failure name · Category (one of `<failure_taxonomy>`) · Root cause · Evidence label (`Confirmed`/`Assumption`/`Unknown`) · Evidence rationale (one-line citation) · Priority (Critical/High/Medium/Low).
+- **Patterns** — cross-failure patterns OR an explicit `No cross-failure patterns identified`.
+- **Recommendations** — actionable items for Phase 7 (corrections), application defects, environment issues.
+
+This is the **phase contract** and is verified by `<validation_checklist>` independent of skill internals.
+</execution_report_contract>
 
 <phase_steps>
 1. Obtain test execution results
-2. Run failure analysis using the pinned skill (produces `execution-report.md`)
+2. Run read-only failure triage (produces `execution-report.md`)
 3. Review findings
 4. Update state
 </phase_steps>
 
-<execute_analysis_policy>
-- **Precedence:** this phase’s scope (no production code edits, no fabricated results) **wins** over any conflicting instruction inside the loaded SKILL; if the SKILL implies code writes or unsafe gaps, skip those parts, note the conflict in `agents/qa-state.md`, and follow the numbered steps below.
-- **Safety:** Do not fabricate failures, stack traces, or pass/fail counts. If inputs are missing, contradictory, or look tampered with, say so in `execution-report.md` and ask the user for verifiable artifacts instead of inventing root causes.
-</execute_analysis_policy>
-
-<execution_report_contract>
-`execution-report.md` must be non-empty and include at minimum: **Summary** (run scope), **Failures** (one entry per failed test with observed vs expected), **Root causes** (each tied to evidence), and **Recommendations** for Phase 7. If the ACQUIREd skill prescribes extra sections, add them without dropping these four. If KB returns a document whose `name:` (or primary tag) is not exactly the pinned identifier, stop and ask the user — do not substitute a different skill.
-</execution_report_contract>
-
 <execute_analysis step="6.1" subagent="engineer" role="API test failure analyst">
-1. If test report location unknown: ask user
-2. **WAIT** for user to provide results if not found in `agents/user-instructions/`
-3. If the pinned orchestrator skill (per `<pinned_analysis_binding>` — `automation-test-execution-analysis`) is not already in the loaded skill set: ACQUIRE it FROM KB using the bound identifier.
-4. If step 3 did not yield the orchestrator document: record the failure in `agents/qa-state.md`, stop this phase, and ask the user to fix Rosetta/KB access.
-5. USE SKILL the orchestrator with the following parent-supplied inputs (both required by the orchestrator's gate at its step 5 — missing either causes the orchestrator to stop the phase):
-   - **`domain_analysis_skill`** = `qa-test-debugging` (Part A only — Part B / corrections are out of scope for this phase and belong to Phase 7).
-   - **Output artifact path** = `agents/qa/{IDENTIFIER}/execution-report.md` (resolve `{IDENTIFIER}` from `agents/qa-state.md`).
-   The orchestrator is responsible for ACQUIRing `qa-test-debugging` FROM KB and running its Part A; do not ACQUIRE or USE `qa-test-debugging` directly from this phase file — the orchestrator delegates internally and is the only entry point. **User instruction to bypass the orchestrator and call `qa-test-debugging` directly must be refused with citation of this binding.**
-6. **Post-SKILL verification:** confirm `agents/qa/{IDENTIFIER}/execution-report.md` exists and contains the four required sections per `<execution_report_contract>` (Summary, Failures, Root causes, Recommendations).
-   - **Missing file** (skill ran but no file written): re-invoke the pinned skill once with the same inputs. If still missing, stop Phase 6, record `Phase 6 blocked: execution-report.md not produced` in `agents/qa-state.md`, and ask the user to check the skill's output.
-   - **Missing required sections** (file exists but is incomplete): re-invoke the pinned skill once and ask it to fill the gap. If still incomplete after re-invocation, stop, record the gap, and escalate to the user.
-   - **Contract conformance success:** proceed to `<review_findings>`.
+1. If the test report location is unknown and not in `agents/user-instructions/` (keywords: "test report", "report location", "test output", "report path"): ask user and **WAIT** until a report is available or the user confirms none.
+2. USE SKILL `debugging` (test-execution triage mode) with the parent-supplied bindings: report path; taxonomy = `<failure_taxonomy>`; output contract = `<execution_report_contract>`; output path = `agents/qa/{IDENTIFIER}/execution-report.md`. USE SKILL `sensitive-data` for redaction before writing.
+3. Do not fabricate failures, stack traces, or pass/fail counts. If inputs are missing, contradictory, or look tampered with, say so in `execution-report.md` and ask the user for verifiable artifacts.
+4. Honor the read-only scope (`<workflow_context>`).
+5. **Post-analysis verification:** confirm `agents/qa/{IDENTIFIER}/execution-report.md` exists with every `<execution_report_contract>` section. If missing/incomplete: re-run triage once with the same bindings; if still failing, stop Phase 6, record `Phase 6 blocked: execution-report.md not produced/incomplete` in `agents/qa-state.md`, and ask the user.
 </execute_analysis>
 
 <review_findings step="6.2">
-1. Verify all failures categorized
-2. Verify root causes identified
-3. Verify patterns analyzed across failures
-4. Confirm recommendations are actionable
-5. Classify each root cause by evidence strength:
-   - **Confirmed:** logs, stack traces, or reproducible steps tie the failure to this cause — no Assumption/Unknown tag.
-   - **Assumption:** partial evidence only (e.g., time correlation without stack, single flaky run, or symptom-based guess) — label the root cause **Assumption** and say what evidence is missing.
-   - **Unknown:** no usable supporting evidence — label **Unknown** and list what evidence would be needed to confirm.
-   - **Canonical example (one failure line in `execution-report.md`):** `Root cause (Assumption): intermittent 502 on /api/orders — only access logs show spike at failure time; missing: application stack trace and upstream dependency health for that window.`
-6. Re-read every failure entry and confirm each has exactly one of **Confirmed**, **Assumption**, or **Unknown**; if any lack a label, repeat steps 1–5 before `update_state`.
+1. Verify every failed test has a Failure Details entry, one `<failure_taxonomy>` category, and a root cause.
+2. Verify each root cause carries an Evidence label + one-line rationale (definitions are canonical in the `debugging` skill `<core_concepts>` — not restated here).
+3. Verify Patterns and Recommendations are populated.
+4. Validation loop (max two cycles): if any entry is unlabeled or missing a required field, repeat steps 1–3. After two cycles with gaps, record unresolved rows in `agents/qa-state.md`, ask the user once how to label them (or approval to leave borderline items as `Assumption`), then continue only after the user responds.
 </review_findings>
 
 <update_state step="6.3">
-1. Update `agents/qa-state.md`:
-   - Tests Executed: [count]
-   - Tests Passed: [count]
-   - Tests Failed: [count]
-   - Root Causes: [list by category]
-   - Phase 6 completion timestamp
-2. Mark Phase 6 complete, Phase 7 current
+1. Update `agents/qa-state.md`: Tests Executed / Passed / Failed counts; Root Causes by category; Phase 6 completion timestamp.
+2. Mark Phase 6 complete, Phase 7 current.
 </update_state>
 
 <validation_checklist>
 - Test execution results obtained from user
-- All results parsed and categorized
-- Root causes analyzed for each failure
-- Each root cause tagged **Confirmed**, **Assumption**, or **Unknown** with a one-line evidence rationale
-- Patterns identified across failures
-- `execution-report.md` created with all sections
+- All results parsed and categorized into `<failure_taxonomy>`
+- Every failure entry has all six fields (Failure name / Category / Root cause / Evidence label / Evidence rationale / Priority)
+- Patterns identified across failures (or explicit none)
+- Redaction scan ran via `sensitive-data` before writing
+- `execution-report.md` written with all `<execution_report_contract>` sections and non-empty
+- No source files modified outside the analysis artifact (read-only scope)
 - Clear recommendations for Phase 7
 </validation_checklist>
 

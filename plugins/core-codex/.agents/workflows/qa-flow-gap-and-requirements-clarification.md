@@ -28,17 +28,39 @@ Cross-reference test cases, documentation, and API spec to identify gaps, contra
 
 <execute_gap_analysis step="3.1" subagent="architect" role="API test requirements analyst">
 
-**Division of labor** (each skill owns a distinct `analysis.md` section per `<analysis_md_contract>`; do not double-count):
-- `qa-gap-analysis` → **Gaps** (test-case vs API-spec cross-reference; `G[N]` entries)
-- `gap-and-contradiction-analysis` → **Contradictions** (cross-source disagreements between raw-data, api-analysis, docs; `C[N]` entries)
-- `aqa-requirements-elicitation` → **Ambiguities** + elicited follow-up questions (vague statements resolved into clarification asks; `A[N]` entries)
+1. USE SKILL `requirements-use` (gap_analysis mode). Run all three variants against the inputs and EMIT findings into the phase-owned sections of `<analysis_md_contract>`; the mode is analysis-only and never invents the artifact shape:
+   - **Test-cases-vs-API-spec variant** → **Gaps** (`G[N]` entries; test step vs API analysis cross-reference).
+   - **General multi-source variant** → **Contradictions** (`C[N]`; cross-source disagreements between raw-data, api-analysis, docs) + **Ambiguities** (`A[N]`; vague statements).
+2. Finding-entry shapes (`G[N]` / `C[N]` / `A[N]`, each with verbatim source quote + citation + impact + suggested question) are owned by this phase's `<finding_entry_templates>` below.
+3. If a finding fits more than one bucket, record it once under the section that owns its emit shape (G/C/A) and add a cross-reference note rather than duplicating.
+4. Prepare a prioritized list of gaps, contradictions, ambiguities for step 3.2.
 
-If a finding fits more than one bucket, record it once under the section that owns its emit shape (G/C/A) and add a cross-reference note rather than duplicating across sections.
+<finding_entry_templates>
 
-1. USE SKILL `qa-gap-analysis`
-2. USE SKILL `gap-and-contradiction-analysis`
-3. USE SKILL `aqa-requirements-elicitation`
-4. Prepare prioritized list of gaps, contradictions, ambiguities
+```markdown
+### G[N]: [Brief Title]
+**Type**: Endpoint / Request / Response / Auth / Test Data / Edge Case
+**Context**: [Which test step or endpoint]
+**Missing Information**: [What is not specified]
+**Impact**: [Why automation is blocked or degraded]
+**Suggested Question**: [How to ask for this]
+
+### C[N]: [Brief Title]
+**Source 1**: [Test Case / Swagger / Docs] — "[Quote]"
+**Source 2**: [Test Case / Swagger / Docs] — "[Quote]"
+**Impact**: [Why this matters for test automation]
+**Needs Clarification**: [Specific question]
+
+### A[N]: [Brief Title]
+**Source**: [Test Case / Docs / Swagger]
+**Vague Statement**: "[Quote]"
+**Possible Interpretations**: 1. [...] 2. [...]
+**Clarification Needed**: [Specific question]
+```
+
+Quote source text verbatim; redact credentials/PII in any quoted line before writing it (the gap_analysis mode applies `sensitive-data`).
+
+</finding_entry_templates>
 </execute_gap_analysis>
 
 <ask_user step="3.2">
@@ -95,7 +117,7 @@ If a finding fits more than one bucket, record it once under the section that ow
 
 <failure_handling>
 - **Missing prerequisite artifact** (`raw-data.md` or `api-analysis.md` absent or empty): stop Phase 3, record `Phase 3 blocked: missing [artifact]` in `agents/qa-state.md`, and ask the user to re-run the producing phase.
-- **Zero-doc ACQUIRE** for any of `qa-gap-analysis`, `gap-and-contradiction-analysis`, `aqa-requirements-elicitation`, `questioning`: apply the parent `qa-flow.md` `<failure_handling>` zero-doc rule (stop, record, ask user).
+- **Zero-doc ACQUIRE** for any of `requirements-use`, `questioning`: apply the parent `qa-flow.md` `<failure_handling>` zero-doc rule (stop, record, ask user).
 - **HITL stall** (user unresponsive after Critical question, or refuses to answer a Critical): do **not** auto-promote to assumption. Record `Phase 3 blocked: user-unresponsive on Critical question(s)` in `agents/qa-state.md` and pause; the agent must not advance to Phase 4 silently. Resume only after the user answers, explicitly approves proceeding with a BLOCKING ASSUMPTION, or downgrades the question.
 </failure_handling>
 

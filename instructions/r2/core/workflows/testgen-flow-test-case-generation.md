@@ -15,7 +15,7 @@ Generate comprehensive test cases from the requirements document, covering all r
 - Phase 5 of 7 in `testgen-flow`
 - Input: `requirements.md` from Phase 4
 - Output: `test-scenarios.md` — test cases 
-- Skills: `testrail-test-case-authoring`, `testing`, `repository-implementation-standards`
+- Skills: `scenarios-generation` (generation mode + config-resolved TMS FORMAT binding), `coding` (standards-first mode for any write outside the agents folder)
 - Prerequisite: Phase 0-4 complete with validated requirements
 </workflow_context>
 
@@ -32,11 +32,11 @@ Generate comprehensive test cases from the requirements document, covering all r
 </phase_steps>
 
 <scope_check step="5.0">
-**Path-scope gating** (runs before loading requirements so the agent knows whether `repository-implementation-standards` is needed for any planned writes):
+**Path-scope gating** (runs before loading requirements so the agent knows whether `coding` standards-first mode is needed for any planned writes):
 1. List every planned output path for this phase.
 2. Check whether every path begins with `agents/testgen/{TICKET-KEY}/` (default flow: `test-scenarios.md` and the in-folder `requirements.md` traceability update in step 5.8).
-3. If yes: do **not** invoke `repository-implementation-standards`. Record in `agents/testgen/{TICKET-KEY}/testgen-state.md`: `5.0 repository-implementation-standards: skipped — writes scoped to agents/testgen/{TICKET-KEY}/`.
-4. If any path falls outside that folder: USE SKILL `repository-implementation-standards` before any such write.
+3. If yes: do **not** invoke `coding`. Record in `agents/testgen/{TICKET-KEY}/testgen-state.md`: `5.0 coding standards-first: skipped — writes scoped to agents/testgen/{TICKET-KEY}/`.
+4. If any path falls outside that folder: USE SKILL `coding` (standards-first mode) before any such write.
 </scope_check>
 
 <load_requirements step="5.1">
@@ -80,7 +80,10 @@ Common patterns for minimum coverage:
 </identify_test_types>
 
 <generate_test_cases step="5.3" subagent="engineer" role="Test case design engineer">
-1. USE SKILL `testrail-test-case-authoring` for test case format.
+
+**Resolve the TMS FORMAT vendor binding first** (config-resolved — do NOT hardcode the vendor): read the resolved FORMAT vendor from project config, taking the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `agents/testgen/{TICKET-KEY}/testgen-project-config.md` / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `scenarios-generation`, which loads `references/<vendor>-format.md`. If the keys are empty but a TMS is clearly in scope, re-read config for a default; if still absent, fall back to the inline `<tc_schema>` template below (record the fallback per `<failure_handling>`).
+
+1. USE SKILL `scenarios-generation` (generation mode) passing the resolved FORMAT vendor binding for test case format.
 2. Create 2-5 test cases per requirement covering different test types from step 5.2.
 3. Apply `<format_rules>` (forbidden fields), `<tc_schema>` (field-level template), and `<title_quality>` (naming) sub-blocks below.
 
@@ -94,11 +97,11 @@ Test cases MUST use the **`Steps + Expected Result`** shape so they map cleanly 
 - `Post-conditions` field — encode teardown into the test framework or note residual side effects in Expected Result
 - `Automation` field — automation status is TMS metadata or framework concern, not part of the case body
 
-`testrail-test-case-authoring` enforces these on the normal path; the rules are restated here once so they survive when the skill cannot load.
+`scenarios-generation` (resolved FORMAT binding) enforces these on the normal path; the rules are restated here once so they survive when the skill cannot load.
 </format_rules>
 
 <tc_schema>
-Every test case (TC-NNN) MUST have these fields, in this order. If `testrail-test-case-authoring` is unavailable or returns an incompatible shape, use this template so Phase 5 output is self-contained:
+Every test case (TC-NNN) MUST have these fields, in this order. If `scenarios-generation` (or its resolved FORMAT binding) is unavailable or returns an incompatible shape, use this template so Phase 5 output is self-contained:
 
 ```markdown
 ### TC-NNN: [Concise test case title]
@@ -191,7 +194,7 @@ TC-001: Admin cannot create Job Post
 TC-002: Manager cannot create Job Post
 TC-003: Viewer cannot create Job Post
 ```
-**After (merged)**: single TC-001 with role as parameter (see `testrail-test-case-authoring` skill for format example)
+**After (merged)**: single TC-001 with role as parameter (see `scenarios-generation` resolved FORMAT binding for the parameterized format example)
 </merge_redundant>
 
 <build_traceability step="5.6">
@@ -246,7 +249,7 @@ TC-003: Viewer cannot create Job Post
 ---
 
 ## Priority 0 Test Cases (Critical)
-[TC entries using testrail-test-case-authoring format]
+[TC entries in the resolved FORMAT-binding case format]
 
 ## Priority 1 Test Cases (High)
 [TC entries]
@@ -295,7 +298,7 @@ TC-003: Viewer cannot create Job Post
 - **Missing or empty input** (`requirements.md` absent at `agents/testgen/{TICKET-KEY}/requirements.md`, OR present but empty / contains no `## ` section headings): stop Phase 5, record `Phase 5 blocked: requirements.md missing or empty at <path>` in `agents/testgen/{TICKET-KEY}/testgen-state.md`, and ask the user to rerun Phase 4 (Requirements Document Generation). Do NOT fabricate test cases from raw-data.md / analysis.md / answers.md — those are upstream inputs, not Phase 5's authoritative source. (Mirrors the sibling `testgen-flow-requirements-document-generation.md` `<failure_handling>` "Missing or empty inputs" rule.)
 - **`requirements.md` exists but has zero requirements to test** (the file is structurally valid but has no `US-N` / `FR-N` / `NFR-N` entries — e.g. Phase 4 was trivially completed against an out-of-scope ticket): stop, record `Phase 5 blocked: requirements.md contains zero testable requirements` in `testgen-state.md`, and surface to the user as a Critical question (`No requirements to generate test cases from — should Phase 4 re-run, or is the ticket genuinely out-of-scope for test coverage?`). Do NOT emit a `test-scenarios.md` with zero TCs and call the phase done.
 - **`requirements.md` unreadable / corrupt** (parse error, permission denied): stop, report the IO/parse error with the file path, ask the user to inspect.
-- **Skill execution failure** (`testrail-test-case-authoring` errors, returns empty, or returns an incompatible shape): fall back to the inline `<tc_schema>` template in step 5.3 — that is exactly why it is restated inline. Record `Phase 5 note: testrail-test-case-authoring fallback applied — used inline tc_schema` in `testgen-state.md`. Continue Phase 5.
+- **Skill execution failure** (`scenarios-generation` / its resolved FORMAT binding errors, returns empty, or returns an incompatible shape; OR no FORMAT vendor resolvable from config): fall back to the inline `<tc_schema>` template in step 5.3 — that is exactly why it is restated inline. Record `Phase 5 note: scenarios-generation fallback applied — used inline tc_schema` in `testgen-state.md`. Continue Phase 5.
 - **Output write failure** (`test-scenarios.md` unwritable — permission denied, disk full): pause, report the filesystem error with the file path, do NOT mark Phase 5 complete.
 - **Coverage gap surfaced by step 5.6** (some requirement has zero test cases after step 5.3 + step 5.5): per step 5.6 — flag in the coverage matrix and surface to the user, do NOT silently skip the requirement.
 </failure_handling>

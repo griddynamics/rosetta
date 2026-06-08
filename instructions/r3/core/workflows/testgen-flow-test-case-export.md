@@ -17,11 +17,11 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 - Output: test cases created in TMS
 - Prerequisite: Phase 5 complete, user reviewed test cases, TMS MCP configured
 - HITL: user must provide target location in TMS (e.g., section, folder, suite)
-- Skills: **USE** TMS-specific export skill (e.g., `testrail-test-case-export`) for connection, field mappings, and API details; **USE** `repository-implementation-standards` when updating tracked repository markdown such as `test-scenarios.md` with TMS IDs.
+- Skills: **USE** `scenarios-generation` with the config-resolved TMS EXPORT vendor binding (e.g. `testrail`) for connection, field mappings, and API details; **USE** `coding` (standards-first mode) when updating tracked repository markdown such as `test-scenarios.md` with TMS IDs.
 </workflow_context>
 
 <phase_steps>
-1. Activate `repository-implementation-standards` (if updating tracked files) and identify TMS-specific export skill
+1. Activate `coding` standards-first (if updating tracked files) and resolve the TMS EXPORT vendor binding
 2. Verify TMS connection via MCP
 3. Get target location from user
 4. Parse test cases from markdown
@@ -33,10 +33,12 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 </phase_steps>
 
 <identify_skill step="6.1">
-1. If updating tracked repository files (for example embedding TMS IDs into `test-scenarios.md` under version control): USE SKILL `repository-implementation-standards` first.
-2. Determine which TMS the project uses (from project config or ask user)
-3. ACQUIRE the corresponding TMS export skill (`testrail-test-case-export`)
-4. All subsequent steps use mappings, API calls, and formats defined in that skill
+**This phase OWNS the export contract** — what gets pushed (the approved case set from `test-scenarios.md`), ID handling (vendor-format case IDs written back per step 6.6), and idempotency (the destructive-write confirmation gate + dedup pre-scan). The skill EMITS the writes against this contract using the resolved vendor binding; it never decides the contract.
+
+1. If updating tracked repository files (for example embedding TMS IDs into `test-scenarios.md` under version control): USE SKILL `coding` (standards-first mode) first.
+2. **Resolve the TMS EXPORT vendor binding from project config** (config-resolved — do NOT hardcode the vendor): take the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `agents/testgen/{TICKET-KEY}/testgen-project-config.md` / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `scenarios-generation`, which loads `references/<vendor>-export.md`.
+3. If the keys are empty but a TMS is clearly in scope, re-read config for a default; if still absent, the export cannot run on the MCP path → fall through to the step 6.2 fallbacks (manual copy / CSV / defer).
+4. USE SKILL `scenarios-generation` passing the resolved EXPORT vendor binding. All subsequent steps use the connection check, field mappings, API calls, and ID formats it defines for that vendor.
 </identify_skill>
 
 <verify_connection step="6.2">

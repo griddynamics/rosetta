@@ -18,10 +18,10 @@ End-to-end backend API test automation from test case input to working automated
 - **Phases 0→7 MUST run in order**; sanctioned skips per `<skip_rules>` only.
 - Rosetta prep steps completed.
 - NO ASSUMPTIONS: never assume endpoints, payloads, auth mechanisms, or response schemas — ask the user when missing.
-- Generic linear-execution cadence (ACQUIRE phase file → execute → update state → next; todo discipline; no skipping without approval) is owned by the **`sequential-workflow-execution`** skill (per `<references>`). This workflow specifies only qa-flow-specific deltas in each phase block below.
+- Generic linear-execution cadence (ACQUIRE phase file → execute → update state → next; todo discipline; no skipping without approval) is owned by the **`orchestrator-contract`** skill (per `<references>`). This workflow specifies only qa-flow-specific deltas in each phase block below.
 
 <phase_template>
-Per-phase block format: phase file path + Input/Output + HITL gate (when present). The ACQUIRE / execute / state-update cadence is the `sequential-workflow-execution` skill's contract, not restated per-phase.
+Per-phase block format: phase file path + Input/Output + HITL gate (when present). The ACQUIRE / execute / state-update cadence is the `orchestrator-contract` skill's contract, not restated per-phase.
 </phase_template>
 
 <skip_rules>
@@ -42,7 +42,7 @@ Per-phase block format: phase file path + Input/Output + HITL gate (when present
 </skip_rules>
 - If user did not specify preferences, perform all steps except optional.
 - User CAN customize: specific phases, already-done phases, specific goals, specific cases — LISTEN and ADOPT.
-- USE SKILL `repository-implementation-standards` before implementation or correction work that touches repository test code or shared utilities (if not already loaded: ACQUIRE `repository-implementation-standards` FROM KB).
+- USE SKILL `coding` before implementation or correction work that touches repository test code or shared utilities (if not already loaded: ACQUIRE `coding` FROM KB).
 - **Repository coding standards:** follow `<coding_standards_precedence>`.
 - Prefer extending existing test files and utilities over creating new ones.
 - **Overall workflow done when:** every phase required for this run is marked complete in `agents/qa-state.md`, expected artifacts for those phases exist under `agents/qa/{IDENTIFIER}/` (and related paths named in phase docs), and the user accepts the last test outcome or explicitly stops the run.
@@ -101,10 +101,10 @@ Example: if a skill suggests `/tests/api/` but `ARCHITECTURE.md` requires `/qa/a
 </coding_standards_precedence>
 
 <failure_handling>
-- **Zero-doc ACQUIRE** for a required phase workflow: stop, record in `agents/qa-state.md`, ask the user — no undocumented prompts (see also `sequential-workflow-execution` skill when loaded).
+- **Zero-doc ACQUIRE** for a required phase workflow: stop, record in `agents/qa-state.md`, ask the user — no undocumented prompts (see also `orchestrator-contract` skill when loaded).
 - **Missing prior artifact:** do not fabricate; with user agreement re-run the producing phase, or stop and ask the user to restore it.
 - **Unreadable `agents/qa-state.md`:** pause, rebuild minimal phase pointers from `agents/qa/{IDENTIFIER}/` when possible, then ask the user to confirm.
-- **State-note example (zero-doc ACQUIRE):** `Phase 5 blocked: ACQUIRE automation-test-implementation-handoff returned zero documents at 2026-05-25T15:00Z; awaiting user action.`
+- **State-note example (zero-doc ACQUIRE):** `Phase 5 blocked: ACQUIRE qa-flow-test-implementation.md returned zero documents at 2026-05-25T15:00Z; awaiting user action.`
 </failure_handling>
 
 <state_file>
@@ -122,17 +122,17 @@ Subagents:
 - `executor` (Lightweight): optional for mechanical actions (builds, installs)
 
 Skills (compact map — phase → comma-separated skill tags; backticked = ACQUIRE tag):
-- Cross-phase: `sequential-workflow-execution`, `repository-implementation-standards`.
-- Phase 0: `qa-project-config`.
-- Phase 1: `qa-data-collection`, `confluence-source-harvesting` (when doc-MCP in scope).
-- Phase 2: `swagger-contracts-analysis`.
-- Phase 3: `qa-gap-analysis`, `gap-and-contradiction-analysis`, `aqa-requirements-elicitation`, `questioning`.
-- Phase 4: `api-test-spec-authoring`, `repository-implementation-standards`.
-- Phase 5: `automation-test-implementation-handoff` (primary). Reachable only via handoff: `coding`, `testing`, `qa-test-implementation`. Delegation policy: `qa-flow-test-implementation.md` step 5.1.4.
-- Phase 6: `debugging`, `qa-test-debugging` (Part A), `automation-test-execution-analysis`.
-- Phase 7: `debugging`, `coding`, `qa-test-debugging` (Part B), `user-approved-code-changes`.
+- Cross-phase: `orchestrator-contract`, `coding`.
+- Phase 0: config init owned by Phase 0 via `questioning`.
+- Phase 1: `discovery`.
+- Phase 2: `reverse-engineering`.
+- Phase 3: `requirements-use`, `questioning`.
+- Phase 4: `scenarios-generation`, `coding`.
+- Phase 5: test-implementation done inline by this phase via `coding` + `testing`. Delegation policy: `qa-flow-test-implementation.md` step 5.1.4.
+- Phase 6: `debugging` (Part A) (report-analysis done inline via `debugging` + `sensitive-data`).
+- Phase 7: `debugging`, `coding` (Part B).
 
-**Rosetta KB:** zero-document ACQUIRE → `<failure_handling>`. `qa-test-debugging` is invoked ad-hoc during Phases 6 (Part A) + 7 (Part B); no dedicated workflow file.
+**Rosetta KB:** zero-document ACQUIRE → `<failure_handling>`. `debugging` is invoked ad-hoc during Phases 6 (Part A) + 7 (Part B); no dedicated workflow file.
 
 MCPs:
 - `TestRail` — test case management

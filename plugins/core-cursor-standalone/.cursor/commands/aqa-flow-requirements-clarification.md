@@ -1,6 +1,6 @@
 ---
 name: aqa-flow-requirements-clarification
-description: Phase 2 of AQA workflow - Requirements Clarification (gap-filling questioning) and Assertion Transcription (derives typed assertions via the bound elicitation skill and writes them to the test plan as a mandatory list) — USER INTERACTION REQUIRED
+description: Phase 2 of AQA workflow - Requirements Clarification (gap-filling questioning) and Assertion Transcription (derives typed assertions via the requirements-use gap_analysis mode and writes them to the test plan as a mandatory list) — USER INTERACTION REQUIRED
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
@@ -18,7 +18,7 @@ Fill gaps in understanding, clarify unknowns, and transcribe the typed assertion
 - Output: user answers + explicit typed assertion list, written into the test plan
 - Prerequisite: Phase 1 complete
 - HITL: user answers required before Phase 3
-- **Assertion authority chain:** elicitation (step 2.1) → transcription per step 2.4 (canonical typed format + mandatory `### Explicit Assertions` subsection + None-clause) → Phase 6 (`aqa-test-authoring`) validates implemented OR Uncovered. If transcription is skipped, Phase 6 validation has no anchor and tests may silently under-assert.
+- **Assertion authority chain:** gap analysis (step 2.1, `requirements-use` gap_analysis mode) → transcription per step 2.4 (canonical typed format + mandatory `### Explicit Assertions` subsection + None-clause) → Phase 6 (`testing`) validates implemented OR Uncovered. If transcription is skipped, Phase 6 validation has no anchor and tests may silently under-assert.
 </workflow_context>
 
 <phase_steps>
@@ -30,10 +30,26 @@ Fill gaps in understanding, clarify unknowns, and transcribe the typed assertion
 </phase_steps>
 
 <identify_gaps step="2.1">
-1. USE SKILL `aqa-requirements-elicitation`. This skill performs **two outputs per elicited item**:
-   - A gap/unknown entry (the list of unknowns + ambiguities consumed by step 2.2's question generation).
-   - A **`Derived assertion (if applicable)` field** — a typed (Presence / State / Content / Behavioral) measurable assertion form, OR blank when no measurable form is derivable. This is the source step 2.4 transcribes from. Worked example + concrete sample question (exact-text-vs-contains specificity) live in `aqa-requirements-elicitation`'s `<process>` worked-example block — load that skill's example when authoring questions or assertions of non-obvious specificity.
-2. Prepare a list of unknowns and ambiguities (with their Derived assertion field populated where applicable) for step 2.2's question generation.
+1. USE SKILL `requirements-use` (gap_analysis mode, test-plan variant). The mode is analysis-only; it evaluates all five completeness dimensions (D1 steps clarity / D2 result measurability / D3 test data / D4 edge cases / D5 success criteria) of the Phase 1 test plan and EMITS, per gap, the **gap entry** defined by this phase's `<gap_entry_template>` below — this phase OWNS that template + the question-prep contract; the skill never invents the artifact shape.
+2. Per gap, the entry carries a **`Derived assertion (if applicable)` field** — a typed (Presence / State / Content / Behavioral) measurable assertion form, OR blank when no measurable form is derivable from the plan as written (never fabricate). This is the source step 2.4 transcribes from.
+3. Prepare the list of unknowns and ambiguities (with Derived assertion populated where applicable) for step 2.2's question generation.
+
+<gap_entry_template>
+
+Each gap is recorded as one entry; if all five dimensions are satisfied, emit the single line `No gaps identified — all five completeness dimensions (D1–D5) satisfied by the Phase 1 plan.`
+
+```markdown
+### G-N: [Brief gap title]
+- **Dimension:** D1 | D2 | D3 | D4 | D5
+- **Priority:** Critical (blocks test design) | Should (impairs quality) | Optional
+- **Confidence:** High (clearly a gap) | Low (borderline — flag for prioritization)
+- **Context:** [What is unclear/missing; cite section/step number when possible]
+- **Derived assertion (if applicable):** [Concrete measurable form, e.g. `response.statusCode == 200` or `page.title == "Order Confirmed"`. Blank if none derivable from the plan as written.]
+```
+
+Specificity expectation for the downstream question (exact-text-vs-contains, timing budget, single-decision-per-question) is owned by `questioning` (step 2.2) — e.g. *"After Logout, assert exact text `'Success!'` OR that the message **contains** `'Success'` (case-insensitive)? Acceptable wait window — 2s, 5s, or match existing similar tests?"* Vague *"is the user logged out?"* questions are forbidden.
+
+</gap_entry_template>
 </identify_gaps>
 
 <ask_questions step="2.2">
@@ -81,7 +97,7 @@ Please provide answers so I can proceed with test implementation.
 <update_test_plan step="2.4">
 1. Process user answers from step 2.3.
 2. **Carry every `Derived assertion` field from step 2.1 into the typed list below.** Zero derived assertions → emit the None-clause from the template; do NOT omit the section.
-3. Add the section below to `agents/plans/aqa-<test-name>.md`. `### Explicit Assertions` is **mandatory** — Phase 6 (`aqa-test-authoring`) validates that every assertion is implemented OR listed in Uncovered:
+3. Add the section below to `agents/plans/aqa-<test-name>.md`. `### Explicit Assertions` is **mandatory** — Phase 6 (`testing`) validates that every assertion is implemented OR listed in Uncovered:
 
 ```markdown
 ## Phase 2: Requirements Clarification
@@ -102,7 +118,7 @@ Please provide answers so I can proceed with test implementation.
 - [Data requirement 2]
 ...
 
-### Explicit Assertions (mandatory — transcribed from `aqa-requirements-elicitation`)
+### Explicit Assertions (mandatory — transcribed from step 2.1 gap analysis)
 
 Each assertion carries a **type** (Presence / State / Content / Behavioral) and a **subject** (UI element or system observable). One bullet per assertion; do NOT collapse multiple assertions into one line.
 
@@ -110,17 +126,17 @@ Each assertion carries a **type** (Presence / State / Content / Behavioral) and 
 - **State:** [element] is [enabled | disabled | selected | unselected | loading | settled] after [trigger].
 - **Content:** [element] displays/contains [exact value or pattern] after [trigger].
 - **Behavioral:** [action] produces [observable result] within [timing constraint, if any].
-- (If the elicitation skill derived zero assertions: `None — no observable behavior derivable from current clarifications; Phase 6 will surface this as Uncovered`.)
+- (If step 2.1 derived zero assertions: `None — no observable behavior derivable from current clarifications; Phase 6 will surface this as Uncovered`.)
 ```
 
-**Filled-in worked example** (canonical owner = this phase; one example inline so the format is grounded even if the elicitation skill cannot load — the exact-vs-contains specificity distinction is the most error-prone field for this type):
+**Filled-in worked example** (canonical owner = this phase; one example inline so the format is grounded even if the gap_analysis mode cannot load — the exact-vs-contains specificity distinction is the most error-prone field for this type):
 
 ```markdown
 - **Content:** `#login-toast` displays exact text `"Login successful"` (not `contains "successful"`) after clicking the **Sign In** button.
 - **Content:** `#error-banner` contains substring `"network"` (case-insensitive) after a request timeout (do NOT assert exact text — the upstream service formats the rest of the message).
 ```
 
-The two bullets illustrate the **exact vs. contains** distinction the elicitation skill flags as a clarification trigger. Apply the same shape (typed prefix → subject → exact-or-contains qualifier → trigger) to every assertion.
+The two bullets illustrate the **exact vs. contains** distinction step 2.1 flags as a clarification trigger. Apply the same shape (typed prefix → subject → exact-or-contains qualifier → trigger) to every assertion.
 </update_test_plan>
 
 <update_state step="2.5">

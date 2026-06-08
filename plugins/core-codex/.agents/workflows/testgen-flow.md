@@ -22,16 +22,16 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 - **Transition precedence** (the only place referenced from here): `<orchestration_and_escalation>` priority hierarchy.
 - **STATE TRACKING:** Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
 - **SELF-CHECK BETWEEN PHASES:** Before advancing, verify the state file row was updated, the expected output file exists and is non-empty, and any HITL approval (Phase 3, 6) is recorded.
-- USE SKILL `sequential-workflow-execution` for the canonical implementation (ACQUIRE if not loaded). Inline bullets remain authoritative on skill load failure.
+- USE SKILL `orchestrator-contract` for the canonical implementation (ACQUIRE if not loaded). Inline bullets remain authoritative on skill load failure.
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
 - **Canonical trigger prompt example** (one inline grounding instance so the agent has a reference before phase files load; additional formats per `testgen-flow-project-config-loading.md`): `Analyze requirements for PROJ-123` (also accepted: bare ticket key `PROJ-123`, full Jira URL).
 - **Per-phase failure cases — owned by phase files** (verified anchors; the router is a thin coordinator):
-  - *Jira ticket not found* → `testgen-flow-data-collection.md` + `mcp-jira-data-collection` skill `<failure_handling>`.
-  - *No Confluence results* → `testgen-flow-data-collection.md` + `confluence-source-harvesting` skill `<failure_handling>`.
+  - *Jira ticket not found* → `testgen-flow-data-collection.md` + `discovery` skill `<failure_handling>` (Jira binding).
+  - *No Confluence results* → `testgen-flow-data-collection.md` + `discovery` skill `<failure_handling>` (Confluence binding).
   - *User declines / does not answer questions* → `testgen-flow-question-generation.md` `<failure_handling>` "User explicitly declines to answer".
   - *Incomplete / missing requirements inputs* → `testgen-flow-requirements-document-generation.md` `<failure_handling>` "Missing or empty inputs".
-  - *CQL search example + ranking rule* → `mcp-confluence-data-collection/references/cql-and-redaction.md`.
+  - *CQL search example + ranking rule* → the `discovery` Confluence binding (`references/confluence-binding.md`).
   - *Initial-prompt format examples* → `testgen-flow-project-config-loading.md`.
   - **Phase 6 80%-export-success threshold (measurable)** → `testgen-flow-test-case-export.md` (`Threshold (80%) met` field + `PARTIAL — N/M exported` state). The router does not duplicate the threshold.
   - **Phase 5 test-case-count guidance (10-30 typical)** → `testgen-flow-test-case-generation.md` `<validation_checklist>`.
@@ -54,7 +54,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 1. ACQUIRE `testgen-flow-data-collection.md` FROM KB
 2. Execute phase instructions.
 3. Input: initial user request, initial-data.md. Output: `agents/testgen/{TICKET-KEY}/raw-data.md` with Jira + Confluence data.
-4. Recommended skills: `mcp-jira-data-collection`, `mcp-confluence-data-collection`, `confluence-source-harvesting`
+4. Recommended skills: `discovery`
 5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </data_collection>
@@ -64,7 +64,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 1. ACQUIRE `testgen-flow-gap-and-contradiction-analysis.md` FROM KB
 2. Execute phase instructions.
 3. Input: raw-data.md. Output: `agents/testgen/{TICKET-KEY}/analysis.md` with contradictions, gaps, ambiguities.
-4. Recommended skills: `gap-and-contradiction-analysis`
+4. Recommended skills: `requirements-use`
 5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </gap_and_contradiction_analysis>
@@ -85,7 +85,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 1. ACQUIRE `testgen-flow-requirements-document-generation.md` FROM KB
 2. Execute phase instructions.
 3. Input: raw-data.md + analysis.md + answers.md. Output: `agents/testgen/{TICKET-KEY}/requirements.md`.
-4. Recommended skills: `requirements-synthesis`
+4. Recommended skills: `requirements-authoring`
 5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </requirements_document_generation>
@@ -95,8 +95,8 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 1. ACQUIRE `testgen-flow-test-case-generation.md` FROM KB
 2. Execute phase instructions.
 3. Input: requirements.md. Output: `agents/testgen/{TICKET-KEY}/test-scenarios.md`
-4. Recommended skills: `testrail-test-case-authoring`, `repository-implementation-standards`
-5. Apply `repository-implementation-standards` per `<phase_5_6_standards_gate>`.
+4. Recommended skills: `scenarios-generation`, `coding`
+5. Apply `coding` per `<phase_5_6_standards_gate>`.
 6. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </test_case_generation>
@@ -107,8 +107,8 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 2. Execute phase instructions.
 3. Input: test-scenarios.md. Output: test cases exported to Test Management System **and** a local export receipt at `agents/testgen/{TICKET-KEY}/export-report.md` (TMS IDs/URLs, per-case status, timestamp). The local receipt is the on-disk evidence Phase 6 ran successfully.
 4. **WAIT FOR USER** to provide target location and confirm export.
-5. Recommended skills: `testrail-test-case-export`, `repository-implementation-standards`
-6. Apply `repository-implementation-standards` per `<phase_5_6_standards_gate>`.
+5. Recommended skills: `scenarios-generation`, `coding`
+6. Apply `coding` per `<phase_5_6_standards_gate>`.
 7. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </test_case_export>
@@ -131,7 +131,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 </orchestration_and_escalation>
 
 <phase_5_6_standards_gate>
-- Applies to phases 5-6: apply `repository-implementation-standards` when a phase writes any file outside `agents/testgen/{TICKET-KEY}/`.
+- Applies to phases 5-6: apply `coding` when a phase writes any file outside `agents/testgen/{TICKET-KEY}/`.
 - **mixed outputs** means one phase writes both inside and outside `agents/testgen/{TICKET-KEY}/`.
 - **missing/partial repo-edit confirmation** means the user did not explicitly confirm repository edit scope in chat for that phase.
 - Default behavior: if confirmation is missing/partial or outputs are mixed, apply the skill.
@@ -206,11 +206,10 @@ Subagents:
 - `engineer` (Full): test case generation, TMS export
 
 Skills:
-- `questioning`, `requirements-synthesis`, `testrail-test-case-authoring`
-- `sequential-workflow-execution`, `repository-implementation-standards`, `confluence-source-harvesting`
-- `mcp-jira-data-collection`, `mcp-confluence-data-collection`
-- `gap-and-contradiction-analysis`
-- `testrail-test-case-export` 
+- `questioning`, `requirements-authoring`, `scenarios-generation`
+- `orchestrator-contract`, `coding`
+- `discovery`
+- `requirements-use`
 
 MCPs:
 - `Atlassian Jira` — ticket data extraction

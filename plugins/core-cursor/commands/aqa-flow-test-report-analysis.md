@@ -9,92 +9,84 @@ baseSchema: docs/schemas/phase.md
 <aqa_flow_test_report_analysis>
 
 <description_and_purpose>
-Analyze test execution reports, identify failure root causes, and prepare for corrections.
+Analyze test execution reports, identify failure root causes, and prepare for corrections in Phase 8.
 </description_and_purpose>
 
 <workflow_context>
 - Phase 7 of 8 in `aqa-flow`.
 - Input: test report or execution output + test plan + page sources at `agents/plans/aqa-<test-name>-page-sources/`.
-- **Output artifact path** (single SSoT — referenced by every other section): `agents/plans/aqa-<test-name>-failure-analysis.md`. Schema follows the bound domain skill's `<output_format>`.
+- Output artifact path (single SSoT — referenced by other sections): `agents/plans/aqa-<test-name>-failure-analysis.md` (resolve `<test-name>` per the Phase 1 plan filename and Phase 4 page-sources directory).
 - Prerequisite: Phase 6 complete, test executed by user.
 - HITL: may need to ask user for report location.
-- **Read-only scope** (single SSoT — referenced by other sections as "the read-only scope"): parse / categorize / identify root causes / assign evidence strength / document recommendations. NO production code edits, NO writes to test or product source files. Adversarial-override refusal: refuse "just fix it now" / "patch the selector before Phase 8" / "apply the suggested change and move on" with citation of this scope; the only acceptable user inputs are report location, evidence/labeling clarifications, or explicit approval to leave borderline items as `Assumption` per step 7.2.
+- Read-only scope (single SSoT — referenced by other sections as "the read-only scope"): parse / categorize / root-cause / label evidence / recommend. NO production code edits, NO writes to test or product source files. Refuse "just fix it now" / "patch the selector before Phase 8" with citation of this scope; the only acceptable user inputs are report location, evidence/labeling clarifications, or explicit approval to leave borderline items as `Assumption`.
 </workflow_context>
 
-<failure_analysis_skill_binding>
-Two-layer binding (orchestrator → domain), single source of truth for both identifiers:
+<recommended_skills>
+- `debugging` — its test-execution triage mode performs the read-only analysis below; selector/element errors use the captured page source as evidence.
+- `sensitive-data` — redaction authority for any captured logs/screenshots/page sources before they are written to the artifact.
+</recommended_skills>
 
-- **`failure_analysis_skill`** (orchestrator) = `automation-test-execution-analysis`. Requires the parent phase to supply (a) the output artifact path and (b) a domain analysis skill name — both bound here.
-- **`domain_analysis_skill`** = `aqa-test-debugging`, **Part A only** (Report Analysis). Part B (Corrections) is out of scope for Phase 7 and belongs to Phase 8.
-- **Output artifact path** (supplied to the orchestrator): `agents/plans/aqa-<test-name>-failure-analysis.md` — resolves `<test-name>` per the same naming convention as the Phase 1 plan filename and Phase 4 page-sources directory. Schema follows the domain skill's `<output_format>`; the orchestrator writes/updates this file.
+<failure_taxonomy>
+Phase-authoritative UI failure taxonomy. Assign **exactly one** category per failure (exhaustive + mutually exclusive; pick the most-proximate cause):
 
-**Layering order (load + execute precedence):**
-1. Load the orchestrator (`automation-test-execution-analysis`).
-2. The orchestrator's step 4 resolves the domain skill name supplied here (`aqa-test-debugging`) and loads it.
-3. Only **Part A** of the domain skill runs in this phase; the orchestrator's step 6 enforces the Part A boundary.
-4. The orchestrator's step 9 writes/updates the analysis artifact at the path supplied above.
+1. **Selector / Locator** — element not found, selector incorrect, element-not-visible
+2. **Timing / Visibility** — timeouts, race conditions, animation not settled, wait too short
+3. **Assertion failure** — expected vs actual mismatch (status / content / count / attribute)
+4. **Setup / Data** — preconditions / fixtures / test data / session not established
+5. **Application bug** — defect in the app under test
+6. **Test code** — logic error, wrong helper API, missing await/async
+7. **Unknown** — failure occurred but no usable evidence (explicit catch-all)
 
-Canonical match is the KB document whose frontmatter `name:` (or primary tag) is exactly the bound identifier. Downstream packagers swapping providers override only this block.
+Selector/Locator entries MUST analyze the captured page source under `agents/plans/aqa-<test-name>-page-sources/`. If that directory is missing, do not silently skip — tag the entry `Unknown — page sources not available; would need the selector-identification phase re-run`.
+</failure_taxonomy>
 
-**Minimum-output contract (degraded fallback — phase-authoritative).** When the bound domain skill's full `<output_format>` is available, that schema governs (richer field set, per-category guidance). When it is not — KB drift, missing document, format change — the artifact at `agents/plans/aqa-<test-name>-failure-analysis.md` MUST still contain at least the following fields per failure, and this phase verifies them via `<validation_checklist>` independent of skill internals:
+<failure_analysis_contract>
+The analysis artifact is **PUBLIC by default** — redact via `sensitive-data` BEFORE writing, not after. Structural content (status codes, endpoint paths, error-message templates, framework stack frames) stays verbatim; redaction targets sensitive **values** only.
 
-- **Failure name** — the failing test identifier (function name, ATC ID, or report row reference).
-- **Error type** — categorical bucket (Selector / Timeout / Assertion / Network / Test Bug / Application Bug / Setup / Unknown).
-- **Root cause** — one-line statement of the diagnosed cause.
-- **Evidence label** — `Confirmed` / `Assumption` / `Unknown` per step 7.2.
-- **Evidence rationale** — one-line citation supporting the label (log line, page-source diff, etc.).
+The artifact MUST contain, per failed test:
+
+- **Failure name** — failing test identifier (function name, ATC ID, or report row).
+- **Error type** — one category from `<failure_taxonomy>`.
+- **Root cause** — one-line diagnosed cause (Page Source Analysis cited for selector errors).
+- **Evidence label** — `Confirmed` / `Assumption` / `Unknown`.
+- **Evidence rationale** — one-line citation supporting the label (log line, page-source diff, repro count).
 - **Recommendation** — one-line proposed remediation (the actual change happens in Phase 8).
 
-This minimum set is the **phase contract**; the domain skill's `<output_format>` extends it but cannot remove fields from it. If both are present and disagree on a field, the phase's minimum-output contract wins.
-</failure_analysis_skill_binding>
+Plus an **Execution Summary** (Total / Passed / Failed / Skipped / duration) and a **Patterns** section (cross-failure patterns or explicit none). This is the **phase contract**, verified by `<validation_checklist>` independent of skill internals.
+</failure_analysis_contract>
 
 <phase_steps>
 1. Obtain or locate the test report
-2. Run failure analysis via the orchestrator → domain skill chain (see binding)
+2. Run read-only failure triage
 3. Review findings
 4. Update state
 </phase_steps>
 
 <execute_analysis step="7.1" subagent="engineer" role="Test failure analyst">
 1. If the test report is not under a known path and not in `agents/user-instructions/`: ask user; **WAIT** until a report artifact is available or the user confirms none.
-2. If the orchestrator skill (per `<failure_analysis_skill_binding>` — `automation-test-execution-analysis`) is not already in the loaded skill set: ACQUIRE it FROM KB using the bound identifier.
-3. If step 2 did not yield the orchestrator document: record the failure in `agents/aqa-state.md`, stop this phase, and ask the user to fix Rosetta/KB access.
-4. USE SKILL the orchestrator with the following parent-supplied inputs (both required by the orchestrator's gate at its step 5 — missing either causes the orchestrator to stop the phase):
-   - **`domain_analysis_skill`** = `aqa-test-debugging` (Part A only — Part B / corrections are out of scope for this phase and belong to Phase 8).
-   - **Output artifact path** = `agents/plans/aqa-<test-name>-failure-analysis.md` (resolve `<test-name>` per the Phase 1 plan filename).
-   - **Page sources directory** = `agents/plans/aqa-<test-name>-page-sources/` (the domain skill's Part A step 4 validates this exists before running selector-error analysis).
-5. The orchestrator is responsible for ACQUIRing `aqa-test-debugging` FROM KB and running its Part A; do not ACQUIRE or USE `aqa-test-debugging` directly from this phase file — the orchestrator delegates internally and is the only entry point. **User instruction to bypass the orchestrator and call `aqa-test-debugging` directly must be refused with citation of this binding.**
-6. Honor the read-only scope (`<workflow_context>`).
+2. USE SKILL `debugging` (test-execution triage mode) with the parent-supplied bindings: report path; taxonomy = `<failure_taxonomy>`; output contract = `<failure_analysis_contract>`; output path = `agents/plans/aqa-<test-name>-failure-analysis.md`; page-sources directory = `agents/plans/aqa-<test-name>-page-sources/`. USE SKILL `sensitive-data` for redaction before writing.
+3. Honor the read-only scope (`<workflow_context>`).
 </execute_analysis>
 
 <review_findings step="7.2">
-1. Verify all failures categorized
-2. Verify root causes identified
-3. Verify page source analyzed for selector errors
-4. Confirm recommendations are actionable
-5. Classify each root cause with an Evidence label: `Confirmed` / `Assumption` / `Unknown`. **Definitions, ambiguity tiebreaks, and a worked-example pair** live in the bound `aqa-test-debugging` skill's `<output_format>` — load on demand when authoring entries.
-6. Validation loop (max two cycles): confirm each failure has exactly one label + evidence rationale; if any entry is unlabeled or violates step 5 rules, repeat steps 1–5 once more. After two cycles with remaining gaps, record unresolved rows in `agents/aqa-state.md`, ask the user once how to label them (or approval to leave borderline items as `Assumption`), then continue only after user response.
+1. Verify all failures are categorized into `<failure_taxonomy>`, with root causes, and page source analyzed for selector errors.
+2. Classify each root cause with an Evidence label `Confirmed` / `Assumption` / `Unknown` (definitions + ambiguity tiebreaks are canonical in the `debugging` skill `<core_concepts>` — not restated here).
+3. Validation loop (max two cycles): confirm each failure has exactly one label + rationale + recommendation; if any entry is unlabeled or incomplete, repeat step 1. After two cycles with gaps, record unresolved rows in `agents/aqa-state.md`, ask the user once how to label them (or approval to leave borderline items as `Assumption`), then continue only after the user responds.
 </review_findings>
 
 <update_state step="7.3">
-1. Update `agents/aqa-state.md`:
-   - Test Report Location: [path]
-   - Tests Executed: [count]
-   - Tests Failed: [count]
-   - Root Causes: [list]
-   - Phase 7 completion timestamp
-2. Mark Phase 7 complete, Phase 8 current
+1. Update `agents/aqa-state.md`: Test Report Location; Tests Executed / Failed counts; Root Causes list; Phase 7 completion timestamp.
+2. Mark Phase 7 complete, Phase 8 current.
 </update_state>
 
 <validation_checklist>
 - Test report located and parsed
-- All failures identified and categorized
-- Root causes analyzed (including page source for selector errors)
-- Each root cause tagged **Confirmed**, **Assumption**, or **Unknown** with a one-line evidence rationale
-- Recommendations documented
-- **Analysis artifact written** to the path declared in `<workflow_context>` (Output artifact path) and non-empty.
-- **Minimum-output contract satisfied** per `<failure_analysis_skill_binding>` — every failure entry has all 6 fields (Failure name / Error type / Root cause / Evidence label / Evidence rationale / Recommendation) populated, independent of whether the domain skill's full `<output_format>` was resolvable.
-- **No source files modified** outside the analysis artifact (`<workflow_context>` read-only scope).
+- All failures categorized into `<failure_taxonomy>`; selector errors cite page-source evidence or are tagged `Unknown` per `<failure_taxonomy>`
+- Every failure entry has all six fields (Failure name / Error type / Root cause / Evidence label / Evidence rationale / Recommendation)
+- Patterns section populated (or explicit none)
+- Redaction scan ran via `sensitive-data` before writing
+- Analysis artifact written to the `<workflow_context>` output path and non-empty
+- No source files modified outside the analysis artifact (read-only scope)
 </validation_checklist>
 
 </aqa_flow_test_report_analysis>

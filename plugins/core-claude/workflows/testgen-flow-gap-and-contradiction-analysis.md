@@ -15,7 +15,7 @@ Analyze Jira ticket and Confluence documentation to identify contradictions, gap
 - Phase 2 of 7 in `testgen-flow`
 - Input: `raw-data.md` from Phase 1
 - Output: `analysis.md` with categorized contradictions, gaps, ambiguities, risk assessment
-- Skills: `gap-and-contradiction-analysis`
+- Skills: `requirements-use` (gap_analysis mode)
 - Prerequisite: Phase 0, Phase 1 complete
 </workflow_context>
 
@@ -36,63 +36,71 @@ Analyze Jira ticket and Confluence documentation to identify contradictions, gap
 </load_raw_data>
 
 <run_analysis step="2.2" subagent="architect" role="Requirements gap analyst">
-1. USE SKILL `gap-and-contradiction-analysis`
-2. Sources to analyze: Jira ticket data + Confluence page data from `raw-data.md`
-3. Identify contradictions, gaps, ambiguities per the skill's detection taxonomies (Contradiction types: Value Mismatch / Logic Conflict / Requirement Conflict; Gap types: Functional / Non-Functional / Data / Business Logic / Dependency; Ambiguity vague-term catalog) — full per-category detection guidance lives in the skill's `<process>` and `references/entry-templates-and-document-skeleton.md`. This phase does NOT restate the taxonomies; it invokes them through the skill.
-4. Cross-reference Jira vs Confluence for information present only in one source.
+1. USE SKILL `requirements-use` (gap_analysis mode, general multi-source variant). The mode is analysis-only and EMITS categorized findings into this phase's `<analysis_document_contract>` artifact; it never invents the artifact shape or path.
+2. Sources to analyze: Jira ticket data + Confluence page data from `raw-data.md`.
+3. Identify contradictions, gaps, ambiguities per the mode's detection catalogs (loaded from `requirements-use/references/gap-analysis-catalogs.md`) — contradiction (value-mismatch / logic-conflict / requirement-conflict), gap (functional / non-functional / data / business-logic / dependency), and ambiguity (vague-term) probes. This phase does NOT restate the taxonomies; it invokes them through the mode and OWNS the output document below.
+4. Cross-reference Jira vs Confluence for information present only in one source (single-source case → skip-with-note).
 </run_analysis>
 
 <create_analysis_document step="2.3">
 
-Create `agents/testgen/{TICKET-KEY}/analysis.md` via three sequenced sub-steps after a single precondition.
+Create `agents/testgen/{TICKET-KEY}/analysis.md`. The `requirements-use` gap_analysis mode EMITS its categorized findings into the phase-owned document contract below — this phase OWNS the full skeleton, section list, and risk-assessment artifact shape; the mode supplies the finding entries.
 
-**Precondition (skill emitted analysis.md):** step 2.2 invoked `gap-and-contradiction-analysis`; its output file MUST exist at `agents/testgen/{TICKET-KEY}/analysis.md` and be non-empty. If not, apply `<failure_handling>` "skill emitted no analysis.md" — do NOT enter the sub-steps below.
+**Precondition (mode produced findings):** step 2.2 invoked `requirements-use` gap_analysis and produced categorized findings (or an explicit zero-issues result). If the mode could not run, apply `<failure_handling>` "gap_analysis produced no findings" — do NOT fabricate a partial analysis.
 
-**Phase append-anchor contract (parameterized — not skill-internal):** this phase requires the configured analysis skill to emit a **public append-anchor as the last line of `analysis.md`**, so downstream phases can splice further sections before it without coupling to skill-internal section names or numbering. Current binding: `gap-and-contradiction-analysis` emits the literal marker `<!-- end-of-gap-and-contradiction-analysis -->`. If a different analysis skill is bound, its declared append-anchor token replaces the literal above — the **contract** is "public last-line marker", the literal value is the binding's parameter.
+<analysis_document_contract>
 
-**2.3.a — Verify the public append-anchor.** Grep `analysis.md` for the literal marker declared by the currently-bound analysis skill (default: `<!-- end-of-gap-and-contradiction-analysis -->`). If absent: apply `<failure_handling>` "append-anchor missing" — do NOT splice into a missing-anchor document.
-
-**2.3.b — Splice two phase-owned sections before the anchor.** Insert the **phase-owned splice block** below immediately before the anchor line, then re-emit the marker as the last line. Numbering: section numbers below follow the skill's current scheme and may be renumbered on skeleton evolution — the anchor remains the splice point regardless. The block below is **phase-owned content** appended to the skill's output; it is NOT a residual template or stray fragment.
+The document has these sections in order; empty finding sections carry `No issues found` (never silently omitted). Per-entry shapes: C[N] (Type / Source 1 / Source 2 / Impact / Needs Clarification), G[N] (Type / Context / Missing Information / Impact / Suggested Question), A[N] (Source / Vague Statement / Possible Interpretations ≥2 / Clarification Needed). Risk tiers are exactly three (High / Medium / Low) — no fourth tier.
 
 ```markdown
-## 7. Next Steps
+# Analysis - [TICKET-KEY]
 
+**Analyzed**: [DateTime]
+**Sources**: [Jira ticket + Confluence pages analyzed]
+
+---
+
+## Executive Summary
+- **Total Issues Found**: [Count]
+- **Contradictions**: [Count]  · **Gaps**: [Count]  · **Ambiguities**: [Count]
+- **Severity**: [High / Medium / Low]
+- **Recommendation**: [Can proceed with clarifications / Needs major rework]
+
+## 1. Contradictions
+[None found OR C[N] entries]
+
+## 2. Gaps
+[None found OR G[N] entries]
+
+## 3. Ambiguities
+[None found OR A[N] entries]
+
+## 4. Cross-Reference Analysis
+[Findings OR `Skipped — only one source available (<name>); no cross-reference possible.`]
+
+## 5. Positive Findings
+[Well-documented areas / strengths]
+
+## 6. Risk Assessment
+**High Risk** (blocks implementation): [Issue ID — why blocking]
+**Medium Risk** (impacts quality): [Issue ID — impact]
+**Low Risk** (minor clarification): [Issue ID — minor impact]
+
+## 7. Next Steps
 1. Generate clarification questions (Phase 3)
 2. Total questions expected: [Estimate based on issues found]
 3. Recommended: Review with [Stakeholder role] before proceeding
 
----
-
 ## Analysis Metadata
-
 - **Jira Fields Analyzed**: [List key fields]
 - **Confluence Pages Analyzed**: [Count and titles]
 - **Analysis Duration**: [Time spent]
-- **Automated Checks**: [Any automated validation performed]
 - **Manual Review**: [Areas requiring human judgment]
 ```
 
-**2.3.c — Zero-issues handling.** If total issues = 0 (the skill's sections carry `No issues found.` per its zero-issues rule), set `Total questions expected: 0` and replace the `Recommended: ...` line with `Proceed directly to Phase 4 — no clarification needed (per Phase 2 zero-issues outcome).` Anchor verification at 2.3.a still runs — zero-issues documents emit the marker like every other case.
+</analysis_document_contract>
 
-<details>
-<summary><strong>Final analysis.md ownership shape</strong> (collapsed reference — expand to see what the phase requires of the bound skill)</summary>
-
-The phase does NOT enumerate the skill's internal section structure. The bound skill owns the entire skeleton above its public anchor; the phase appends two sections + re-emits the anchor.
-
-| Region | Owner | What the phase asserts |
-|---|---|---|
-| Document body (header + all analysis sections + skill's own Metadata) | **skill** (per its `<output_format>`) | **No assertion about section names, numbering, or count.** The skill's `<output_format>` is the authoritative source. |
-| `## 7. Next Steps` (phase-appended) | **phase** (splice 2.3.b) | Phase-owned content; numbering follows the skill's current scheme but may renumber on skeleton evolution. |
-| `## Analysis Metadata` (phase-extended; Jira / Confluence / Manual Review) | **phase** (splice 2.3.b) | Phase-owned content with testgen-specific fields. |
-| EOF marker (`<!-- end-of-gap-and-contradiction-analysis -->` or the bound skill's declared token) | skill (re-emitted by 2.3.b) | **The only structural assertion the phase makes about the skill** — public append-anchor as the last line. |
-
-</details>
-
-**Skill-version compatibility contract** (declared once, the SSoT for what the phase requires of any bound analysis skill — not skill-internal anchors or sections):
-
-The phase requires **exactly one thing** from the bound analysis skill at runtime: the skill MUST emit a public last-line append-anchor token (default: `<!-- end-of-gap-and-contradiction-analysis -->`). No other assertion is made about the skill's emitted structure — section names, numbering, count, or ordering are owned entirely by the skill's `<output_format>`. Skeleton evolution (renumbering, renames, added/removed sections) is tolerated as long as the public anchor remains the last line. A skill version whose `<output_format>` no longer emits the anchor token is incompatible and the phase blocks at step 2.3.a per `<failure_handling>` "Append-anchor missing".
-
-**Deployment guarantee.** `gap-and-contradiction-analysis` ships at `instructions/<release>/core/skills/gap-and-contradiction-analysis/SKILL.md` (verified for r2 + r3); both release trees contain it. Its `<output_format>` is required to declare and emit the public append-anchor — that contract is owned in the skill's own SKILL.md and inherited by every binding.
+**Zero-issues handling.** If total issues = 0, every finding section carries `No issues found`, set `Total questions expected: 0`, and replace the `Recommended: ...` line with `Proceed directly to Phase 4 — no clarification needed (per Phase 2 zero-issues outcome).` The document is still produced so downstream phases have a verifiable artifact.
 
 **Finding-quality grounding** (applies to every Contradiction / Gap / Ambiguity entry):
 
@@ -112,19 +120,17 @@ Name the specific concept that's missing or conflicting, quote the source text, 
 </update_state>
 
 <validation_checklist>
-- `analysis.md` created with categorized findings
+- `analysis.md` created with all sections per `<analysis_document_contract>` (in order; empty finding sections carry `No issues found`)
 - At least 1 issue identified OR explicit "No issues found" statement
-- Each issue has clear type, source quotes, and suggested question
-- Risk assessment completed
-- State file updated with Phase 2 complete
-- Metrics updated in state file
+- Each issue has clear type, verbatim source quotes with citation, and suggested question
+- Each finding carries exactly one risk tier (High / Medium / Low); Risk Assessment section completed
+- State file updated with Phase 2 complete; metrics updated
 </validation_checklist>
 
 <failure_handling>
 
-- **Skill emitted no analysis.md** (step 2.2 invoked `gap-and-contradiction-analysis` but its output file is absent at `agents/testgen/{TICKET-KEY}/analysis.md`, OR the file exists but is empty): stop Phase 2, record `Phase 2 blocked: gap-and-contradiction-analysis produced no analysis.md` in `testgen-state.md`, ask the user to verify the skill loaded correctly. **No inline per-entry fallback shape exists** — unlike `testgen-flow-test-case-generation.md`'s `<tc_schema>` inline-template fallback, this phase has no inline C[N]/G[N]/A[N] entry templates to author against if the skill cannot load (full entry shapes + 7-category taxonomies live in `gap-and-contradiction-analysis/SKILL.md` + `references/entry-templates-and-document-skeleton.md`). The phase **blocks** when the skill is unavailable; do NOT fabricate a partial analysis.md.
-- **Append-anchor missing** (step 2.3.a: `analysis.md` exists and is non-empty but the configured analysis skill's declared public last-line marker is absent — default: `<!-- end-of-gap-and-contradiction-analysis -->`): stop, report `Phase 2: analysis.md missing public append-anchor marker — skill output may be malformed or from a pre-anchor version of the analysis skill`, ask the user to inspect. Do NOT splice phase-owned sections onto a missing-anchor document.
-- **Skill execution failure** (`gap-and-contradiction-analysis` errors mid-run): re-invoke once with the same inputs; if still failing, stop, record the skill failure, and ask the user to verify input quality.
+- **gap_analysis produced no findings** (step 2.2 invoked `requirements-use` gap_analysis but it could not run / returned nothing): stop Phase 2, record `Phase 2 blocked: requirements-use gap_analysis produced no findings` in `testgen-state.md`, ask the user to verify the skill loaded correctly. The phase **blocks** when the mode is unavailable; do NOT fabricate a partial analysis.md. (Entry shapes are owned inline by `<analysis_document_contract>`, but the mode supplies the analysed findings — a blank skeleton with no analysis is not acceptable.)
+- **Skill execution failure** (`requirements-use` gap_analysis errors mid-run): re-invoke once with the same inputs; if still failing, stop, record the skill failure, and ask the user to verify input quality.
 - **`analysis.md` unwritable** at the supplied path (permission denied, disk full): pause, report the filesystem error with the path; do not mark Phase 2 complete.
 
 </failure_handling>

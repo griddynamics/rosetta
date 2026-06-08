@@ -1,6 +1,6 @@
 ---
 name: qa-flow-documentation-mcp-subflow
-description: Documentation MCP collection branch for QA Phase 1 — invoked when qa-project-config scopes a documentation MCP
+description: Documentation MCP collection branch for QA Phase 1 — invoked when the project config scopes a documentation MCP
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md
@@ -14,11 +14,11 @@ Write exactly one documentation MCP outcome under the QA raw-data file and verif
 
 <workflow_context>
 - **Raw-data heading (fixed for this workflow):** `## Documentation / Confluence` under `agents/qa/{IDENTIFIER}/raw-data.md`. Do not invent a different heading unless `qa-project-config.md` explicitly instructs a rename; if it does, write outcomes under the configured heading and note the mapping in `raw-data.md` once.
-- **Config keys (read literally from `qa-project-config.md` / Phase 0 output):** resolve the MCP collection skill tag from whichever of these fields exists first (stop at first hit): `documentation_mcp_collection_skill`, `documentation.mcp_collection_skill`, `mcp_documentation_collection_skill`, `confluence_mcp_collection_skill`. For “is documentation MCP in scope?” use signals such as `documentation_type`, `type` (when value implies a documentation backend), `confluence_base_url`, `confluence_space`, `documentation_base_url`, `documentation_mcp_server`, or any field your `qa-project-config` template documents for documentation MCP — treat absent values as absent.
+- **Config keys (read literally from `qa-project-config.md` / Phase 0 output):** resolve the documentation **vendor binding** from whichever of these fields exists first (stop at first hit): `documentation_mcp_collection_skill`, `documentation.mcp_collection_skill`, `mcp_documentation_collection_skill`, `confluence_mcp_collection_skill`. The resolved value maps to a `discovery` vendor binding (Confluence backend → binding `confluence`); the collection skill is ALWAYS `discovery`, which loads `references/<vendor>-binding.md`. For “is documentation MCP in scope?” use signals such as `documentation_type`, `type` (when value implies a documentation backend), `confluence_base_url`, `confluence_space`, `documentation_base_url`, `documentation_mcp_server`, or any field your `qa-project-config` template documents for documentation MCP — treat absent values as absent.
 </workflow_context>
 
 <phase_steps>
-1. Resolve MCP skill tag and configuration presence
+1. Resolve documentation vendor binding and configuration presence
 2. Harvest and collect documentation pages
 3. Verify raw-data documentation subsection
 </phase_steps>
@@ -28,15 +28,13 @@ Write exactly one documentation MCP outcome under the QA raw-data file and verif
 **Early-exit rule:** whenever any branch other than **COMPLETED** is applied, write the row under the raw-data heading and jump directly to `<verify>` (skip the remaining `<harvest_and_collect>` steps).
 
 <resolve>
-1. Pick the **Resolved MCP collection skill** = first non-empty config key per `<workflow_context>` precedence list. If none of those keys are set but documentation MCP scope is clearly active per the in-scope signals in `<workflow_context>`, re-read `qa-project-config.md` and Phase 0 notes for a default tag; if still absent, apply **SKIPPED_NO_CONFIG** (per `<output_contract>`) → early-exit.
+1. Pick the **Resolved documentation vendor binding** = the `discovery` vendor binding mapped from the first non-empty config key per `<workflow_context>` precedence list (Confluence backend → binding `confluence`). If none of those keys are set but documentation MCP scope is clearly active per the in-scope signals in `<workflow_context>`, re-read `qa-project-config.md` and Phase 0 notes for a default; if still absent, apply **SKIPPED_NO_CONFIG** (per `<output_contract>`) → early-exit.
 2. If **all** documentation MCP signals from `<workflow_context>` are absent: apply **SKIPPED_NO_CONFIG** (per `<output_contract>`) → early-exit.
 </resolve>
 
 <harvest_and_collect>
-1. ACQUIRE `confluence-source-harvesting` FROM KB if not loaded. Zero documents returned → apply **ACQUIRE_FAILED** (per `<output_contract>` — skill name = `confluence-source-harvesting`) → early-exit.
-2. ACQUIRE the **Resolved MCP collection skill** (from `<resolve>` step 1) FROM KB if not loaded. Zero documents returned → apply **ACQUIRE_FAILED** (per `<output_contract>` — skill name = Resolved MCP collection skill) → early-exit.
-3. USE SKILL `confluence-source-harvesting`. No harvestable sources → apply **EMPTY_HARVEST** (per `<output_contract>`) → jump to `<verify>` (do NOT run the next step).
-4. USE SKILL with the **Resolved MCP collection skill**; when done, apply **COMPLETED** (per `<output_contract>` — `<skill-name>` = Resolved MCP collection skill tag).
+1. ACQUIRE `discovery` FROM KB if not loaded. Zero documents returned → apply **ACQUIRE_FAILED** (per `<output_contract>` — skill name = `discovery`) → early-exit.
+2. USE SKILL `discovery` with the **Resolved documentation vendor binding** (from `<resolve>` step 1), passing the Confluence input handle(s) and the `## Documentation / Confluence` raw-data heading as the output contract. `discovery` loads `references/confluence-binding.md` (harvesting discipline + authenticated MCP reads/searches in one binding). No harvestable sources after search + user fallback → apply **EMPTY_HARVEST** (per `<output_contract>`) → jump to `<verify>`. Otherwise, when done, apply **COMPLETED** (per `<output_contract>` — `<skill-name>` = `discovery (<binding>)`). Redaction runs inside `discovery` via `sensitive-data` before write.
 </harvest_and_collect>
 
 <verify>
@@ -56,7 +54,7 @@ Write exactly one documentation MCP outcome under the QA raw-data file and verif
 | **SKIPPED_NO_CONFIG** | No documentation MCP configuration / no resolvable collection skill | `**Outcome:** skipped — no documentation MCP configuration` + one-line reason |
 | **ACQUIRE_FAILED** | ACQUIRE returned zero docs for harvesting or MCP collection skill | `**Outcome:** skipped — ACQUIRE failed` + skill name + short error |
 | **EMPTY_HARVEST** | Harvesting ran but found no fetchable sources | `**Outcome:** no documentation sources after harvesting` + what was searched |
-| **COMPLETED** | MCP collection skill ran after successful harvest | `**Outcome:** collected via <skill-name>` + brief page/URL count (use **Resolved MCP collection skill** tag from step 1) |
+| **COMPLETED** | `discovery` ran the resolved documentation vendor binding | `**Outcome:** collected via <skill-name>` + brief page/URL count (use `discovery (<binding>)` from step 1, e.g. `discovery (confluence)`) |
 
 Apply rows by writing under the fixed heading; each row’s third column is the canonical shape — reference this table instead of paraphrasing.
 </output_contract>

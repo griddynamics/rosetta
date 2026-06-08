@@ -15,10 +15,13 @@ Gather test case details from TestRail and feature context from Confluence, cros
 - Phase 1 of 8 in `aqa-flow`
 - Input: TestRail case ID or URL, Confluence page ID or search terms (from user)
 - Output: `agents/plans/aqa-<test-name>.md` with test case info and feature context
-- MCP skills: `mcp-testrail-data-collection`, `mcp-confluence-data-collection`
-- Discipline skill (Rosetta KB): `confluence-source-harvesting` — required for step 1.3; ACQUIRE before USE if not already loaded.
+- Collection skill: `discovery` (single canonical collector). This phase resolves the in-scope collection vendor binding(s) from project config and passes them to `discovery`; `discovery` loads `references/<vendor>-binding.md`. ACQUIRE `discovery` before USE if not already loaded.
+- **Config-resolved vendors (vendors are NOT hardcoded).** Resolve from the AQA project config / Phase 0 output:
+  - **TMS vendor** — first non-empty key (stop at first hit): `tms_mcp_collection_skill`, `tms_collection_skill`, `test_case_management.mcp_collection_skill`. In-scope signal: `testrail_base_url` (or a TMS server/base-URL field) present → TestRail in scope → vendor binding = `testrail`.
+  - **Documentation vendor** — first non-empty key: `documentation_mcp_collection_skill`, `documentation.mcp_collection_skill`, `mcp_documentation_collection_skill`, `confluence_mcp_collection_skill`. In-scope signals: `confluence_base_url` / `confluence_space` present → Confluence in scope → vendor binding = `confluence`.
+  - **Fallback:** resolved vendor empty but scope clearly active → re-read config; still absent → record the gap in `agents/aqa-state.md` and apply `<zero_doc_protocol>` (do not fabricate a vendor).
 - Session guardrails: `bootstrap-guardrails` is a **rule** (not a skill) loaded session-wide via Rosetta bootstrap (Prep Step 3); no per-phase ACQUIRE needed. If for any reason the rule is absent from the session context, treat that as a session-bootstrap failure and stop the phase (do not silently proceed).
-- Zero-document ACQUIRE for any required tag in step 1.3: apply `<zero_doc_protocol>`.
+- Zero-document ACQUIRE for any required tag in step 1.2 / 1.3: apply `<zero_doc_protocol>`.
 - **ACQUIRE success:** Rosetta returns **≥1 non-empty** instruction document for the tag.
 - Prerequisite: TestRail and Confluence MCPs configured; Rosetta/KB access sufficient to resolve the tags above when needed.
 </workflow_context>
@@ -37,8 +40,11 @@ Gather test case details from TestRail and feature context from Confluence, cros
 </confirm_inputs>
 
 <gather_testrail step="1.2" subagent="discoverer" role="AQA data collector">
-1. USE SKILL `mcp-testrail-data-collection`
-2. Extract: case ID, title, description, preconditions, step-by-step actions with expected results, test goal, priority, test type
+1. Resolve the **TMS vendor binding** per `<workflow_context>` (TestRail in scope when `testrail_base_url` / a TMS server field is set → binding = `testrail`). If unresolvable with scope active, apply `<zero_doc_protocol>`.
+2. ACQUIRE `discovery` FROM KB if not already loaded. On zero documents: apply `<zero_doc_protocol>`.
+3. USE SKILL `discovery` with the resolved TMS vendor binding (`testrail`), passing the TestRail case ID/URL input and this phase's test-case output contract; `discovery` loads `references/testrail-binding.md`.
+4. Extract: case ID, title, description, preconditions, step-by-step actions with expected results, test goal, priority, test type.
+5. Redaction of any captured value runs inside `discovery` via `sensitive-data` before write.
 </gather_testrail>
 
 <gather_confluence step="1.3" subagent="discoverer" role="AQA data collector">
@@ -53,24 +59,18 @@ Stop Phase 1, record the failed KB tag in `agents/aqa-state.md`, notify the user
 
 <acquire_skills>
 1. Verify `bootstrap-guardrails` rule is present in session context (loaded via Rosetta bootstrap, not per-phase). If absent, stop and report bootstrap failure to user; do not apply `<zero_doc_protocol>` (which is for skill ACQUIRE), do not silently proceed.
-2. ACQUIRE `confluence-source-harvesting` FROM KB if not already loaded. On zero documents: apply `<zero_doc_protocol>`.
+2. Resolve the **Documentation vendor binding** per `<workflow_context>` (Confluence in scope when `confluence_base_url` / `confluence_space` is set → binding = `confluence`). If unresolvable with scope active, apply `<zero_doc_protocol>`.
+3. ACQUIRE `discovery` FROM KB if not already loaded. On zero documents: apply `<zero_doc_protocol>`.
 </acquire_skills>
 
 <harvest_and_fetch>
-1. USE SKILL `confluence-source-harvesting` — URL shapes, child pages, truncation, permission fallbacks.
-2. USE SKILL `mcp-confluence-data-collection` — authenticated page reads and searches using the MCP.
+1. USE SKILL `discovery` with the resolved documentation vendor binding (`confluence`), passing the Confluence page ID/URL/search-terms input and this phase's feature-context output contract. `discovery` loads `references/confluence-binding.md`, which carries the harvesting discipline (URL shapes, child pages, truncation, deduplication) AND the authenticated MCP reads/searches in one binding.
+2. Redaction of any captured page body runs inside `discovery` via `sensitive-data` before write.
 </harvest_and_fetch>
 
-<merge_policy>
-Per-signal tie-breaks when harvesting and MCP disagree:
-
-- **Body text mismatch:** prefer the MCP body (authenticated, canonical source); record the harvested variant in **Access / Truncation Notes**.
-- **Truncation flag mismatch:** prefer the harvesting signal (harvesting is the conservative gate — if either source says truncated, the page is truncated). Note the MCP claim in the same field.
-- **Access / permission status mismatch:** prefer the more restrictive status (e.g., harvesting says denied, MCP says reachable → record as **partial / denied** and require the user to confirm scope before relying on MCP body).
-- **Any other disagreement:** apply the rule named in `confluence-source-harvesting`; if the SKILL is silent, fall back to MCP body + note the conflict.
-
-Record every conflict in **Access / Truncation Notes** (see template in `<cross_reference_and_assemble>`).
-</merge_policy>
+<access_notes_policy>
+`discovery` (`confluence` binding) is the single source for page bodies, truncation flags, and permission status — there is no second skill to reconcile against. Record every truncation, permission denial, `[empty page]`, or cross-domain fallback the binding reports into **Access / Truncation Notes** (template in `<cross_reference_and_assemble>`); do not omit. Permission-restricted pages appear as `<restricted by permissions>`, never as empty content.
+</access_notes_policy>
 
 <extract_context>
 1. Extract: feature description and purpose, business context, user flows, technical specifications, UI/UX requirements, integration points, known limitations

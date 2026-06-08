@@ -39,8 +39,9 @@ Read completely:
 
 <execute_authoring step="4.2" subagent="architect" role="API test specification author">
 
-1. USE SKILL `api-test-spec-authoring` with all loaded inputs from step 4.1
-2. The skill generates: test scenarios, GWT specs, file mapping, shared utilities, execution order
+1. USE SKILL `scenarios-generation` (gwt_spec mode) with all loaded inputs from step 4.1. This phase OWNS the output contract — the spec artifact section list (`<produce_output>` step 4.3 template) and the file-mapping / shared-utilities / execution-order sections — and the scenario taxonomy; the skill EMITS Given-When-Then ATC entries into them.
+2. Redact any captured credentials, tokens, PII, or credentialed URLs in the emitted spec → USE SKILL `sensitive-data`.
+3. The skill produces: test scenarios, GWT specs, file mapping, shared utilities, execution order.
 
 </execute_authoring>
 
@@ -156,7 +157,7 @@ List any assumptions from Phase 3 that affect these specs **plus any new assumpt
 <failure_handling>
 - **Missing input file** (`raw-data.md`, `api-analysis.md`, or `analysis.md` absent or empty): stop Phase 4, record `Phase 4 blocked: missing [artifact]` in `agents/qa-state.md`, ask user to re-run the producing phase.
 - **Unresolved Phase 3 gaps** (analysis.md still has `BLOCKING ASSUMPTION` entries): stop, record `Phase 4 blocked: Phase 3 has open Critical questions`, send user back to Phase 3.
-- **Skill produces zero scenarios** (api-test-spec-authoring returns empty): stop, record skill failure, ask user to verify inputs and re-run.
+- **Skill produces zero scenarios** (`scenarios-generation` returns empty): stop, record skill failure, ask user to verify inputs and re-run.
 - **Repeated rejection cycle:** after the 3rd cycle of reject-and-re-present per `<present_for_approval>` step 3, stop and ask the user whether to re-open Phase 3 or escalate scope.
 </failure_handling>
 

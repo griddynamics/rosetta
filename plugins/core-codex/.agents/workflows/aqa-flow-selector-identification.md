@@ -9,16 +9,29 @@ baseSchema: docs/schemas/phase.md
 <aqa_flow_selector_identification>
 
 <description_and_purpose>
-Identify missing selectors from frontend source code or page source HTML. Conditionally requests page source from user.
+Identify missing UI selectors from frontend source code or page-source HTML and record the selector map with values and strategy. Conditionally requests page-source capture from the user. Read-only identification — no page-object writes (that is Phase 5).
 </description_and_purpose>
 
 <workflow_context>
 - Phase 4 of 8 in `aqa-flow`
-- Input: test plan with assertions; Phase 3 code analysis report at `agents/plans/aqa-<test-name>-code-analysis.md`
-- Output: complete selector map with values and strategy
+- Input: test plan `agents/plans/aqa-<test-name>.md` with assertions; Phase 3 code analysis at `agents/plans/aqa-<test-name>-code-analysis.md`
+- Output: the `## Selector Management` section (Part A subsections) written into the test plan
 - Prerequisite: Phases 1-3 complete
-- HITL: conditional — only if frontend code unavailable or selectors not found
+- HITL: conditional — only if frontend code is unavailable or selectors are not found
+- Read-only scope (single SSoT): identify only. NO writes to page objects, test files, or frontend source.
 </workflow_context>
+
+<recommended_skills>
+- `testing` — selector mode Part A (read-only identification) performs the interaction map → availability check → frontend search → page-source analysis below.
+</recommended_skills>
+
+<page_sources_contract>
+The phase OWNS the page-sources output path and capture contract (`testing` declares page sources as an input but does not own the capture protocol).
+
+- **Path:** `agents/plans/aqa-<test-name>-page-sources/` (one HTML file per page the test visits).
+- **Naming:** `<page-name>.html`, kebab-case (e.g. `login.html`, `checkout-payment.html`, `order-confirmation.html`).
+- **Validation:** the directory + files must exist with the kebab-case naming before Part A's page-source analysis runs. If missing AND frontend source is also unavailable, do NOT fabricate selectors — stop and request capture per `<handle_page_source>`.
+</page_sources_contract>
 
 <input_resolution>
 `<test-name>` matches the Phase 1 plan `agents/plans/aqa-<test-name>.md`; use `agents/aqa-state.md` if the slug is unclear. **Example:** `agents/plans/aqa-login-redirect-code-analysis.md` → `<test-name>` = `login-redirect`.
@@ -29,10 +42,10 @@ If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-st
 </failure_handling>
 
 <phase_steps>
-1. Resolve `<test-name>` and verify the Phase 3 code-analysis file (see `<input_resolution>` / `<failure_handling>`)
-2. Execute selector identification (Part A of skill)
-3. Handle page source request if needed
-4. Update state
+1. Resolve `<test-name>` and verify the Phase 3 code-analysis file (step 4.0)
+2. Execute selector identification (step 4.1)
+3. Handle page source request if needed (step 4.2)
+4. Update state (step 4.3)
 </phase_steps>
 
 <resolve_inputs step="4.0">
@@ -42,22 +55,22 @@ If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-st
 </resolve_inputs>
 
 <execute_identification step="4.1" subagent="engineer" role="Selector identification specialist">
-1. USE SKILL `aqa-selector-management`
-2. Execute Part A (Selector Identification) only
-3. If all selectors found in frontend code, skip step 4.2
+1. USE SKILL `testing` (selector mode, Part A — read-only identify) with the parent-supplied bindings: test plan path; code-analysis path; page-sources directory + contract = `<page_sources_contract>`; output = the `## Selector Management` section's Part A subsections in the test plan.
+2. Execute Part A only (Interaction Map → Selector Availability → frontend-source search → page-source analysis for still-missing selectors). If all selectors are found in frontend code, skip step 4.2.
+3. Honor the read-only scope (`<workflow_context>`).
 
-**Part A deliverables owned by the skill** (verified — no in-phase schema duplication needed; named here so Phase 5 readers see the contract Phase 4 produces):
-- **Interaction mapping** (test step → required UI interactions): `aqa-selector-management` SKILL.md step 1
-- **Existing-page-object availability check** (✅ EXISTS / ❌ MISSING / ❌ UNRESOLVABLE per interaction): SKILL.md step 2 + `<validation_checklist>`
-- **Selector-strategy preference order** (4-tier: `data-testid` > `id` > stable class/ARIA > XPath): `references/strategy-and-template.md` "Selector Strategy — 4-Tier Table"
-- **Selector-map output schema** (Selector / Type / Source / Usage / Stability per identified selector): `references/strategy-and-template.md` "Identified Selectors" section. This is the schema Phase 5 reads from the test plan's `## Selector Management` section.
+**Part A deliverables** (written into the test plan's `## Selector Management` — the contract Phase 5 reads):
+- **Interaction Map** — test step → required UI interactions.
+- **Selector Availability** — ✅ EXISTS / ❌ MISSING / ❌ UNRESOLVABLE per interaction.
+- **Identified Selectors** — Selector / Type / Source (file:line or page-source file) / Usage / Stability per selector, using the 4-tier strategy (`data-testid` > `id` > stable class/ARIA > XPath).
+- **Fragile Selectors Flagged** — any selector matching a fragile pattern, with reason + recommendation, for Phase 5's fragile-selector gate.
 </execute_identification>
 
 <handle_page_source step="4.2" condition="selectors still missing">
 
-This step's content is **user-facing instruction** — it is preserved in the workflow rather than deferred to a skill because `aqa-selector-management` declares page-sources as an input but does NOT own the capture protocol (verified). Compression rules protect user-facing output: non-technical users need the verbatim capture steps + naming convention + message template, not an abstract pointer.
+This step's content is **user-facing instruction** — preserved verbatim in the workflow (the `testing` skill declares page sources as an input but does NOT own the capture protocol). Non-technical users need the literal capture steps + naming convention + message, not an abstract pointer.
 
-1. Create directory `agents/plans/aqa-<test-name>-page-sources/` (using the same `<test-name>` slug resolved in step 4.0 per `<input_resolution>`).
+1. Create directory `agents/plans/aqa-<test-name>-page-sources/` (same `<test-name>` slug resolved in step 4.0, per `<page_sources_contract>`).
 
 2. **Send the user the verbatim capture-instruction message below.** Do NOT paraphrase; non-technical users rely on the literal F12 / right-click steps.
 
@@ -85,9 +98,9 @@ This step's content is **user-facing instruction** — it is preserved in the wo
    **When you've saved all the page-source files, reply with "captured" + the list of `<page-name>.html` filenames you created.** I will then verify the directory and continue selector identification.
    ```
 
-3. **STOP AND WAIT** for the user to add the page-source files. Acceptable resumption signals: the user replies with "captured" + the filename list, OR the user replies with a single filename and a "more coming" signal (in which case partial-resumption is allowed once the user confirms the rest).
+3. **STOP AND WAIT** for the user to add the page-source files. Acceptable resumption signals: the user replies with "captured" + the filename list, OR the user replies with a single filename and a "more coming" signal (partial-resumption allowed once the user confirms the rest).
 
-4. Verify the files exist at `agents/plans/aqa-<test-name>-page-sources/` with the kebab-case naming above (`<page-name>.html`). If any file is missing, malformed, or saved with the wrong name, ask the user once for a corrected filename or content; do NOT proceed to selector analysis on incomplete page-source coverage. Then continue Part A analysis.
+4. Verify the files exist at `agents/plans/aqa-<test-name>-page-sources/` with the kebab-case naming (`<page-name>.html`). If any file is missing, malformed, or saved with the wrong name, ask the user once for a corrected filename or content; do NOT proceed to selector analysis on incomplete page-source coverage. Then continue Part A analysis.
 
 </handle_page_source>
 
@@ -104,10 +117,12 @@ This step's content is **user-facing instruction** — it is preserved in the wo
 
 <validation_checklist>
 - All required UI interactions mapped
-- Existing selectors checked in page objects
+- Existing selectors checked in page objects (✅ / ❌ / UNRESOLVABLE per interaction)
 - Frontend source code searched first (if available)
-- Missing selectors identified from page source (if needed)
-- Selector strategy documented
+- Missing selectors identified from page source (if needed); page sources validated against `<page_sources_contract>` or stopped per `<handle_page_source>`
+- Selector strategy documented; fragile selectors flagged with reason + recommendation
+- No page objects, test files, or frontend source modified (read-only scope)
 </validation_checklist>
 
 </aqa_flow_selector_identification>
+</output>

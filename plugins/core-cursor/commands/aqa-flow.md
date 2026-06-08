@@ -23,7 +23,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 - MUST use todo tasks for tracking progress. Prioritize ACCURACY over SPEED.
 - If user did not specify preferences, perform all steps except optional.
 - User CAN customize: specific phases, already-done phases, specific goals, specific cases — LISTEN and ADOPT.
-- USE SKILL `repository-implementation-standards` before implementation or correction work that touches repository tests, page objects, or shared helpers (ACQUIRE from KB if needed); it is authoritative for conventions and repository docs win on conflicts with skill snippets.
+- USE SKILL `coding` before implementation or correction work that touches repository tests, page objects, or shared helpers (ACQUIRE from KB if needed); it is authoritative for conventions and repository docs win on conflicts with skill snippets.
 - Default behavior: reuse existing page objects/tests first, and create new files only when no suitable match exists.
 
 <data_collection phase="1" applies="ALL" subagent="discoverer" role="AQA data collector">
@@ -31,7 +31,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 1. ACQUIRE `aqa-flow-data-collection.md` FROM KB
 2. Execute phase instructions.
 3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: test plan file created at `agents/plans/aqa-<test-name>.md`
-4. Recommended skills: `mcp-testrail-data-collection`, `mcp-confluence-data-collection`, `confluence-source-harvesting`
+4. Recommended skills: `discovery`
 5. Update `agents/aqa-state.md`
 
 </data_collection>
@@ -41,7 +41,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 1. ACQUIRE `aqa-flow-requirements-clarification.md` FROM KB
 2. Execute phase instructions.
 3. Input: user request + collected data from Phase 1. Output: clarified test requirements and scope in test plan file `agents/plans/aqa-<test-name>.md`
-4. Recommended skills: `aqa-requirements-elicitation`, `questioning`
+4. Recommended skills: `requirements-use`, `questioning`
 5. Update `agents/aqa-state.md`
 
 </requirements_clarification>
@@ -51,7 +51,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 1. ACQUIRE `aqa-flow-code-analysis.md` FROM KB
 2. Execute phase instructions.
 3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md` + test plan file `agents/plans/aqa-<test-name>.md`. Output: code analysis report at `agents/plans/aqa-<test-name>-code-analysis.md` (architecture patterns, existing page objects, test patterns).
-4. Recommended skills: `aqa-codebase-analysis`
+4. Recommended skills: `reverse-engineering`
 5. Update `agents/aqa-state.md`
 
 </code_analysis>
@@ -62,7 +62,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 2. Execute phase instructions.
 3. Input: code analysis report `agents/plans/aqa-<test-name>-code-analysis.md` + frontend code (or user-provided page source). Output: identified selectors for test targets.
 4. **WAIT FOR USER TO PROVIDE PAGE SOURCE** only if frontend code unavailable or selectors not found.
-5. Recommended skills: `aqa-selector-management` (Part A)
+5. Recommended skills: `testing` (Part A)
 6. Update `agents/aqa-state.md`
 
 </selector_identification>
@@ -72,7 +72,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 1. ACQUIRE `aqa-flow-selector-implementation.md` FROM KB
 2. Execute phase instructions.
 3. Input: identified selectors + existing page objects. Output: implemented/updated page object files with selectors.
-4. Recommended skills: `aqa-selector-management` (Part B), `repository-implementation-standards`
+4. Recommended skills: `testing` (Part B), `coding`
 5. Update `agents/aqa-state.md`
 
 </selector_implementation>
@@ -83,7 +83,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 2. Execute phase instructions.
 3. Input: page objects + clarified requirements + code analysis report `agents/plans/aqa-<test-name>-code-analysis.md`. Output: implemented test files.
 4. **STOP AND WAIT** for user to execute test.
-5. Recommended skills: `coding`, `testing`, `aqa-test-authoring`, `automation-test-implementation-handoff`
+5. Recommended skills: `coding`, `testing` (test-implementation is done inline by this phase via `coding` + `testing`)
 6. Update `agents/aqa-state.md`
 
 </test_implementation>
@@ -94,7 +94,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 2. Execute phase instructions.
 3. Input: test execution report (user-provided or from `agents/user-instructions/`). Output: failure analysis with root causes and fix recommendations.
 4. **WAIT FOR USER TO PROVIDE TEST REPORT** (if not in `agents/user-instructions/`).
-5. Recommended skills: `debugging`, `aqa-test-debugging` (Part A), `automation-test-execution-analysis`
+5. Recommended skills: `debugging` (Part A) (report-analysis is done inline by this phase via `debugging` + `sensitive-data`)
 6. Update `agents/aqa-state.md`
 
 </test_report_analysis>
@@ -105,7 +105,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 2. Execute phase instructions.
 3. Input: failure analysis + test files + page objects. Output: corrected test files and page objects.
 4. **WAIT FOR USER APPROVAL** before applying changes; authoritative approval tokens and presentation rules are defined in `aqa-flow-test-correction.md` section `<present_for_approval>`.
-5. Recommended skills: `debugging`, `coding`, `aqa-test-debugging` (Part B), `user-approved-code-changes`
+5. Recommended skills: `debugging` (Part B), `coding`
 6. Update `agents/aqa-state.md`
 
 </test_corrections>
@@ -113,10 +113,10 @@ End-to-end test automation from requirements gathering to test implementation. U
 </workflow_phases>
 
 <orchestration_and_escalation>
-- USE SKILL `sequential-workflow-execution` (ACQUIRE FROM KB when needed) for skip gates, transition prompts, and the **falsified-skip-claim handling** (its step 10 owns trigger / action / forbidden-at-gate / acceptable-input + announcement format — single canonical home; subordinate to `bootstrap-hitl-questioning`). This workflow does NOT restate that logic.
+- USE SKILL `orchestrator-contract` (ACQUIRE FROM KB when needed) for skip gates, transition prompts, and the **falsified-skip-claim handling** (its step 10 owns trigger / action / forbidden-at-gate / acceptable-input + announcement format — single canonical home; subordinate to `bootstrap-hitl-questioning`). This workflow does NOT restate that logic.
 - **AQA-specific binding for step 10:** state file = `agents/aqa-state.md`; verification artifacts = the spot-checks in `<workflow_success_criteria>`; carve-outs that remain in force = **every phase header carrying `type="HITL"` or `type="HITL-CONDITIONAL"`** (canonical source: the `type=` attributes on the `<workflow_phases>` elements — currently Phases 2, 4, 6, 7, 8) + safety/destructive confirmations + zero-document ACQUIRE (stop + record + ask).
-- Audit-trail row written to `agents/aqa-state.md` `## Verification-Failure Overrides` per the state-file template below — step 10 of `sequential-workflow-execution` defines when and what to log.
-- Any skip outside `sequential-workflow-execution` gates requires explicit user confirmation (HITL).
+- Audit-trail row written to `agents/aqa-state.md` `## Verification-Failure Overrides` per the state-file template below — step 10 of `orchestrator-contract` defines when and what to log.
+- Any skip outside `orchestrator-contract` gates requires explicit user confirmation (HITL).
 - Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user; never substitute silently.
 </orchestration_and_escalation>
 
@@ -165,7 +165,7 @@ Logical names only — full descriptions live where each is consumed (subagent c
 
 **Subagents:** `discoverer` · `architect` · `engineer` · `executor`.
 
-**Skills:** `sequential-workflow-execution` · `repository-implementation-standards` · `automation-test-implementation-handoff` · `automation-test-execution-analysis` · `user-approved-code-changes` · `confluence-source-harvesting` · `questioning` · `coding` · `testing` · `debugging` · `aqa-requirements-elicitation` · `aqa-codebase-analysis` · `aqa-selector-management` · `aqa-test-authoring` · `aqa-test-debugging` · `mcp-testrail-data-collection` · `mcp-confluence-data-collection`.
+**Skills:** `orchestrator-contract` · `coding` · `questioning` · `testing` · `debugging` · `requirements-use` · `reverse-engineering` · `discovery`.
 
 **MCPs:** Test case management (default: `TestRail`) · Documentation (default: `Atlassian Confluence`) · Browser automation (default: `Playwright`).
 

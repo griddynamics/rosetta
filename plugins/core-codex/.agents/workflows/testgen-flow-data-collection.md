@@ -16,7 +16,11 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 - Input: initial user request + `initial-data.md`
 - Output: `raw-data.md` with extracted Jira and Confluence data
 - Prerequisite: Phase 0 complete
-- Skills: `mcp-jira-data-collection`, `mcp-confluence-data-collection`, `confluence-source-harvesting`
+- Collection skill: `discovery` (single canonical collector). This phase resolves the in-scope vendor binding(s) from config and passes them to `discovery`, which loads `references/<vendor>-binding.md`.
+- **Config-resolved vendors (NOT hardcoded).** Resolve from the testgen project config / `initial-data.md` pointer:
+  - **Issue vendor** — first non-empty key (stop at first hit): `issue_mcp_collection_skill`, `issue_collection_skill`, `issue_tracker.mcp_collection_skill`. In-scope signal: `jira_base_url` present → binding = `jira`.
+  - **Documentation vendor** — first non-empty key: `documentation_mcp_collection_skill`, `documentation.mcp_collection_skill`, `mcp_documentation_collection_skill`, `confluence_mcp_collection_skill`. In-scope signals: `confluence_base_url` / `confluence_space` present → binding = `confluence`.
+  - **Fallback:** resolved vendor empty but scope clearly active → re-read config; still absent → `SKIPPED_NO_CONFIG` (record the gap + skip that source, do not fabricate a vendor).
 - MCPs: Jira, Confluence (or equivalent)
 </workflow_context>
 
@@ -28,33 +32,23 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 </phase_steps>
 
 <extract_jira step="1.1">
-1. USE SKILL `mcp-jira-data-collection`
-2. **Read `agents/testgen/{TICKET-KEY}/initial-data.md`** (contributes the original user prompt and a pointer to the project config) and the original user request.
-3. Extract ticket key from user input (parse from URL if needed). **Ticket-key extraction failure path:** if no key can be parsed (no URL, malformed input, ambiguous candidates): stop Phase 1, ask the user once for the exact ticket key (`PROJ-NNN` form), do not proceed until the user provides it. After 2 unsuccessful re-asks, record `Phase 1 blocked: ticket key unresolvable` in `testgen-state.md` and stop.
-4. Retrieve issue with fields: summary, description, status, issuetype, priority, labels, components, assignee, reporter, comments (up to 10)
+1. **Read `agents/testgen/{TICKET-KEY}/initial-data.md`** (contributes the original user prompt and a pointer to the project config) and the original user request.
+2. Resolve the **Issue vendor binding** per `<workflow_context>` (`jira_base_url` set → binding = `jira`). If unresolvable with scope active, re-read config; still absent → record the gap and stop Phase 1.
+3. ACQUIRE `discovery` FROM KB if not already loaded.
+4. Extract ticket key from user input (parse from URL if needed). **Ticket-key extraction failure path:** if no key can be parsed (no URL, malformed input, ambiguous candidates): stop Phase 1, ask the user once for the exact ticket key (`PROJ-NNN` form), do not proceed until the user provides it. After 2 unsuccessful re-asks, record `Phase 1 blocked: ticket key unresolvable` in `testgen-state.md` and stop.
+5. USE SKILL `discovery` with the resolved issue vendor binding (`jira`), passing the resolved ticket key and the Jira section of `<create_raw_data>`'s minimum-output contract; `discovery` loads `references/jira-binding.md`. Retrieve fields: summary, description, status, issuetype, priority, labels, components, assignee, reporter, comments (up to 10). Redaction runs inside `discovery` via `sensitive-data` before write.
 
 </extract_jira>
 
 <get_confluence step="1.2">
-1. USE SKILL `confluence-source-harvesting` — URL shapes, child pages, truncation, permission fallbacks.
-2. USE SKILL `mcp-confluence-data-collection` — authenticated reads and searches.
-   - **Precedence on conflict:** `confluence-source-harvesting` defines URL parsing, child-page traversal, and truncation/permission rules (wins on those). `mcp-confluence-data-collection` defines authenticated read/search operations (wins on those). If both touch the same concern, prefer `confluence-source-harvesting` and record the conflict in the **Notes** field of the data collection summary.
-3. **URL-handling branches (exhaustive; try in order):**
-   - **All URLs provided AND resolved cleanly:** retrieve those pages via the `confluence_get_page` operation exposed by `mcp-confluence-data-collection` (or equivalent MCP), then check for child pages. Skip the search step.
-   - **Some URLs provided, some failed to resolve (or coverage insufficient — fewer pages than the ticket suggests):** retrieve the resolved URLs first, then run the keyword search in step 4 to fill gaps. Record which URLs failed and why in the data collection summary.
-   - **No URLs provided:** proceed to step 4 (keyword search).
-4. **Keyword search (when triggered by step 3 branches):**
-   4.1. Extract search terms from Jira ticket:
-   - Project key (from ticket key)
-   - Labels (if present)
-   - Component names (if present)
-   - Key terms from summary/description
-   4.2. Retrieve relevant Confluence pages
-5. **Fallback**: If neither URL retrieval nor keyword search produced results, ask user for specific page URLs/IDs or proceed with Jira only.
+1. Resolve the **Documentation vendor binding** per `<workflow_context>` (`confluence_base_url` / `confluence_space` set → binding = `confluence`). If documentation MCP is not in scope, apply `SKIPPED_NO_CONFIG`: record `Confluence Source: Skipped — no documentation MCP configuration` and proceed Jira-only. ACQUIRE `discovery` FROM KB if not already loaded.
+2. USE SKILL `discovery` with the resolved documentation vendor binding (`confluence`), passing the Confluence input handle(s) and the Confluence section of `<create_raw_data>`'s contract. `discovery` loads `references/confluence-binding.md`, which owns URL parsing, direct-URL-vs-search precedence, child-page traversal, truncation, deduplication, permission fallbacks, AND the authenticated MCP reads/searches in one binding — no second skill to reconcile against. Redaction runs inside `discovery` via `sensitive-data` before write.
+3. **Search-term seed (passed to `discovery` when no URLs supplied):** project key (from ticket key), labels, component names, key terms from summary/description.
+4. **Fallback**: when the binding reports zero pages after URL + search + its ask-once user fallback, record `Confluence Source: not available — proceeded Jira-only` in the data collection summary and continue. Do NOT fabricate documentation content.
 </get_confluence>
 
 <create_raw_data step="1.3">
-**Minimum-output contract (asserted by this phase independent of skill internals):** `raw-data.md` MUST capture, at minimum — Jira: summary, description, status, priority, labels, components, comments; Confluence (when not skipped): page title, URL, content. Missing any of these = phase incomplete, regardless of what `mcp-jira-data-collection` / `mcp-confluence-data-collection` / `confluence-source-harvesting` define internally.
+**Minimum-output contract (asserted by this phase independent of skill internals):** `raw-data.md` MUST capture, at minimum — Jira: summary, description, status, priority, labels, components, comments; Confluence (when not skipped): page title, URL, content. Missing any of these = phase incomplete, regardless of what `discovery` (`jira` / `confluence` bindings) defines internally.
 
 1. Create `agents/testgen/{TICKET-KEY}/raw-data.md` with structure:
    ```markdown
@@ -188,7 +182,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 </validation_checklist>
 
 <pitfalls>
-- Confluence search may miss child pages — always perform child-page traversal per `confluence-source-harvesting` for each found page
+- Confluence search may miss child pages — always perform child-page traversal per `discovery`'s `confluence` binding for each found page
 - Large Confluence pages should be truncated at ~5000 words with truncation noted
 - Confluence URL formats vary (display, direct, short) — be flexible in parsing
 - User-provided URLs from different Confluence domains may not be accessible via configured MCP
@@ -205,10 +199,10 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 **Solution**: Include first 5000 words, note truncation in raw-data.md
 
 **Issue**: Custom fields not recognized  
-**Solution**: Invoke the `jira_search_fields` operation exposed by `mcp-jira-data-collection` (or equivalent MCP) to enumerate available field names
+**Solution**: Invoke the `jira_search_fields` operation per `discovery`'s `jira` binding (or equivalent MCP) to enumerate available field names
 
 **Issue**: Confluence search finds parent but misses child pages  
-**Solution**: Always perform the child-page traversal operation per `confluence-source-harvesting` (via `mcp-confluence-data-collection` or equivalent MCP) for each found page
+**Solution**: Always perform the child-page traversal operation per `discovery`'s `confluence` binding (or equivalent MCP) for each found page
 
 **Issue**: User provided invalid Confluence URL  
 **Solution**: Try to parse page ID, if fails ask user for correct URL or page ID
