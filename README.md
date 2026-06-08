@@ -31,31 +31,24 @@ If you want to quickly understand what problem Rosetta solves and why we built i
 
 ## Supported IDEs and Agents
 
-Cursor | Claude Code | VS Code / GitHub Copilot | JetBrains (Copilot, Junie) | Windsurf | Codex | Antigravity | OpenCode | Gemini CLI
+| IDE/Agent | Plugin | MCP |
+|---|---|---|
+| Cursor | ✓ | ✓ |
+| Claude Code | ✓ | ✓ |
+| Codex | ✓ | ✓ |
+| GitHub Copilot (VS Code) | ✓ | ✓ |
+| GitHub Copilot (JetBrains) | ✓ | ✓ |
+| JetBrains Junie | — | ✓ |
+| Windsurf | — | ✓ |
+| Antigravity | — | ✓ |
+| OpenCode | — | ✓ |
 
-Works with any MCP-compatible coding agent, though plugins are recommended.
+We recommend installing Rosetta using [PLUGINS](PLUGINS.md).
+If AI coding agent does not support plugins, use [MCPs](MCPs.md).
 
-## Quick Start
+> [!WARNING]
+> There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.
 
-1. [Plugins and standalone installation are supported for Claude Code, Github Copilot (VSCode/JetBrains IDEA), Cursor](PLUGINS.md)
-2. [MCP-based installation for the rest of coding agents](MCPs.md)
-
-There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.
-
-## Documentation
-
-| I want to... | Read |
-|---|---|
-| Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md) |
-| Set up Rosetta | [QUICKSTART.md](QUICKSTART.md) |
-| Learn how to use Rosetta flows | [USAGE_GUIDE.md](USAGE_GUIDE.md) |
-| Deploy Rosetta for my organization | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) |
-| Understand the system architecture | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| Navigate the codebase | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) |
-| Contribute a change | [CONTRIBUTING.md](CONTRIBUTING.md) |
-| Debug a problem | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
-| See release history | [CHANGELOG.md](CHANGELOG.md) |
-| Security Policy | [SECURITY.md](SECURITY.md) |
 
 <details>
 <summary><b>What Rosetta Adds to AI Coding Agents</b></summary>
@@ -180,6 +173,21 @@ https://github.com/user-attachments/assets/fc0ef06a-2f9c-49fa-bc05-68001dadd286
 Use Rosetta plugins to develop Rosetta.
 
 Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and expectations.
+
+## Documentation
+
+| I want to... | Read |
+|---|---|
+| Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md) |
+| Set up Rosetta | [QUICKSTART.md](QUICKSTART.md) |
+| Learn how to use Rosetta flows | [USAGE_GUIDE.md](USAGE_GUIDE.md) |
+| Deploy Rosetta for my organization | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) |
+| Understand the system architecture | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Navigate the codebase | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) |
+| Contribute a change | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Debug a problem | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
+| See release history | [CHANGELOG.md](CHANGELOG.md) |
+| Security Policy | [SECURITY.md](SECURITY.md) |
 
 ## Community
 
