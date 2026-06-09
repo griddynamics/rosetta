@@ -4,7 +4,10 @@
 > received at runtime match the shapes in our test fixtures. Run these cases in
 > `/Users/akoziar/dev/gd/incarno/robotic-platform-frontend/` (INCARNO project).
 >
-> **Antigravity:** Not tested — hooks are not supported.
+> **Antigravity:** Not tested — Antigravity does not have a native hook adapter in this runtime.
+> Rosetta instructions are delivered to Antigravity via MCP/plugins only. See
+> [ARCHITECTURE.md — Native hook runtime IDE coverage](../docs/ARCHITECTURE.md) for the full list
+> of IDEs with native adapter support (Claude Code, Cursor, Codex, Windsurf, Copilot).
 
 ---
 
