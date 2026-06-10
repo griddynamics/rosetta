@@ -64,7 +64,7 @@ On session start if thinking one of these or similar thoughts → rationalizing,
   - `plan next <plan_file> [limit] [--target <phase_id>]` — get next steps to execute
   - `plan create-with-template <plan_file> for-orchestrator '<plan-name>' '<plan-description>' <phase-steps-json-string>` — bootstrap a new orchestrator plan
   - `plan upsert <plan_file> <target_id> '<patch-json-string>' [--kind phase|step] [--phase_id <parent-id>]` — orchestrator MUST USE for adding or patching any phase/step with custom content when it should be done by orchestrator; 
-  - `plan upsert-with-template <plan_file> <phase-id> for-subagent '<phase-name>' '<phase-description>' <phase-steps-json-string>` — orchestrator MUST USE **before delegating a phase to a subagent**; auto-injects standard subagent prep steps 
+ - `plan upsert-with-template <plan_file> <phase-id> for-subagent '<phase-name>' '<phase-description>' <phase-steps-json-string>` — orchestrator MUST USE **before delegating a phase to a subagent**; auto-injects standard subagent prep steps into a **new dedicated phase**; hand this new phase id to the subagent 
   - `plan update_status <plan_file> <step-id> [open|in_progress|complete|blocked|failed]` 
   - `plan query <plan_file> [id|entire_plan]` 
   - `plan show_status <plan_file> [id|entire_plan]` 
@@ -88,7 +88,7 @@ Step 1:
 
 - **Subagent** → Plan is already created. Call OPERATION_MANAGER `next <plan_file> --target <phase_id>` to receive assigned steps. Do not create a new plan.
 
-**Orchestrator — when delegating to subagents**: before handing off each phase, add the subagent prep steps first: OPERATION_MANAGER `upsert-with-template <plan_file> <phase-id> for-subagent "<phase-name>" "<phase-description>" <phase-steps-json-string>`.
+**Orchestrator — when delegating to subagents**: before handing off each phase, create a **dedicated new subagent phase** (id must NOT already exist in the plan, e.g. `<work-phase-id>-prep`): OPERATION_MANAGER `upsert-with-template <plan_file> <phase-id> for-subagent "<phase-name>" "<phase-description>" <phase-steps-json-string>`. Pass new `<phase-id>` to the subagent — not the original work phase id.
 
 Step 2+: Call OPERATION_MANAGER `next <plan_file> [limit] [--target <phase_id>]`
 
