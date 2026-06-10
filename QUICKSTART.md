@@ -83,6 +83,22 @@ To properly set up an entire workspace, refer to [CONFIGURATION.md](CONFIGURATIO
 /requirements-authoring-flow update existing requirements for <component name> so that it <does new behavior/supports new capability>. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected.
 ```
 
+### Automated QA
+
+**WHAT**: Automate one UI test at a time from a TestRail case, reusing your existing Page Objects and selectors. Scope each run to a single test case or feature — never ask it to automate everything at once.
+
+```
+/aqa-flow Automate TestRail case C1234 for the checkout flow, reusing existing Page Objects.
+```
+
+```
+/aqa-flow Implement an end-to-end test for the user registration feature, then stop so I can run it.
+```
+
+```
+/aqa-flow Analyze the failing test report for the login suite, categorize the failures, and propose fixes.
+```
+
 ### Modernization
 
 **FIRST**: Document modernization goals in CONTEXT.md, document target services technical aspects in ARCHITECTURE.md, document where source code should be created, keep refsrc populated with reference code source (old code, new code, reusable libraries, configuration and documentation files, and similar).

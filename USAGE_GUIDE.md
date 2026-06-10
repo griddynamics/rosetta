@@ -103,8 +103,8 @@ Use this for implementation work after you know what needs to change. Rosetta tu
 **Expect:** discoverer, architect, engineer, executor, reviewer, and validator subagents. Artifacts can include discovery notes, specs, plans, review findings, validation findings, tests, and concise Rosetta doc updates. Your responsibility is to provide acceptance criteria, review plans before approving, and call out scope changes before implementation starts.
 
 ```
-/coding-flow Add password reset functionality
-/coding-flow Fix the race condition in payment processing
+/coding-flow Add password reset functionality to the auth service
+/coding-flow Identify and fix the race condition in payment processing
 /coding-flow Implement the notification service
 ```
 
@@ -153,7 +153,7 @@ Builds a custom workflow when no fixed Rosetta workflow fits the request. It com
 
 ```
 /adhoc-flow Write a quick script to parse these CSV files
-/adhoc-flow Refactor the logging across three services
+/adhoc-flow Refactor logging across the payments, orders, and billing services
 ```
 
 </details>
@@ -181,7 +181,7 @@ Reverse-engineers an existing codebase into grounded architecture documentation 
 
 ```
 /code-analysis-flow Explain how the authentication system works
-/code-analysis-flow What is the architecture of the payment module?
+/code-analysis-flow Document the architecture of the payment module
 /code-analysis-flow Analyze the REST API architecture and write the result to analysis.md
 /code-analysis-flow Reverse-engineer requirements from the billing module
 ```
@@ -204,7 +204,7 @@ Use this for project-related research, investigation, or technical comparison th
 **Expect:** a researcher subagent, a prompt artifact before the research runs, and grounded final analysis. Your responsibility is to review the prompt because it controls what the research will and will not answer.
 
 ```
-/research-flow Research best practices for microservices authentication
+/research-flow Research best practices for microservices authentication for our stack
 /research-flow Investigate OAuth 2.0 implementation options for our stack
 /research-flow Compare event sourcing vs CRUD for our order service
 ```
@@ -231,8 +231,8 @@ Creates or updates automated UI tests from a TestRail case, Confluence context, 
 **Expect:** sequential state-driven execution with QA/frontend/test implementation focus. HITL gates occur in phases 2, 6, 7, and 8; phase 4 asks for page HTML only if needed. Your responsibility is to provide the TestRail case, Confluence context, answers, page HTML when requested, run the test, and provide the report.
 
 ```
-/aqa-flow Write tests for the user registration feature
-/aqa-flow Create QA automation for the checkout flow
+/aqa-flow Automate TestRail case C1234 for the user registration feature, reusing existing Page Objects
+/aqa-flow Analyze the failing test report for the checkout suite and propose fixes
 ```
 
 </details>
@@ -282,8 +282,8 @@ Large migration workflow for code conversions, platform upgrades, framework upgr
 **Expect:** heavy subagent use, often one focused subagent per phase or project. HITL confirms applicable phases, phase transitions, target-spec approval, public API changes, and implementation start. Your responsibility is to provide source/target expectations, compatibility requirements, test expectations, deployment constraints, and careful spec review.
 
 ```
-/modernization-flow Migrate from Java 8 to Java 21
 /modernization-flow Re-architect monolith to microservices
+/modernization-flow Migrate the billing module from Java 8 to Java 21, one phase at a time
 ```
 
 </details>
@@ -304,7 +304,7 @@ Onboards an external or private codebase so AI agents can use it in the current 
 **Expect:** sequential orchestration rather than named subagents. Artifacts include compressed XML for AI consumption, a short onboarding document, and an architecture rule telling agents to use the reference source. Your responsibility is to provide an accessible path and correct detected metadata if needed.
 
 ```
-/external-lib-flow Teach AI about our internal authentication library
+/external-lib-flow Teach AI about our internal authentication library at <path>
 /external-lib-flow Document the shared utilities package
 ```
 
