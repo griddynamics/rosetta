@@ -1,6 +1,6 @@
 ---
 name: requirements-authoring-flow
-description: Rosetta workflow for requirements and specifications authoring (creating, updating, improving, reviewing). Guides AI through discovery, intent capture, iterative requirement drafting with mandatory user approvals, validation, and delivery. Contains discovery, research, intent capture, outline, drafting, validating, and finalization
+description: "Workflow for authoring requirements and specifications: drafting, review, validation, etc."
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---

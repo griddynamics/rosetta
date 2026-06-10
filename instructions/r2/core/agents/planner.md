@@ -1,6 +1,6 @@
 ---
 name: planner
-description: Rosetta Full subagent. Execution planning from approved intent/specs, producing sequenced plans scaled to request size.
+description: "Plan execution: turn approved intent/specs into a sequenced plan scaled to size. Full subagent."
 mode: subagent
 model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high
 readonly: false

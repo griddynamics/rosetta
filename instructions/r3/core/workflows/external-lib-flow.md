@@ -1,6 +1,6 @@
 ---
 name: external-lib-flow
-description: Use if user asks to make AI use or teach AI or onboard AI or document for AI the EXTERNAL private library or project codebase for understanding and usage in existing workspace. So that AI can use external library in current project without having direct access to its source code.
+description: "Workflow for onboarding an external private library so AI can use it without source access."
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---

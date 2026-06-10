@@ -1,6 +1,6 @@
 ---
 name: coding-agents-prompt-authoring
-description: Author, update, and validate prompts (skills, agents, subagents, workflows, commands, rules, templates, or just any generic prompt). Produces a final prompt with analytics artifacts (brief, contracts, and a validation pack). Use when creating, editing, refactoring, reviewing, validating, or migrating prompts for AI coding agents.
+description: "To author, review, and validate prompts (skills, agents, workflows, rules, etc.) with brief, contracts, and a validation pack."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true

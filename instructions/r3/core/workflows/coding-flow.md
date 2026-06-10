@@ -1,6 +1,6 @@
 ---
 name: coding-flow
-description: "Rosetta fixing, improvements, coding, and implementation workflow, includes discovery, tech specs, tech plan, subagent plan review, user plan review, implementation, subagent review implementation, validation, user review, and final validation with reviewer gates, HITL gates, and subagent delegation. Adopts to request size from small to large."
+description: "Workflow for all coding: features, fixes, refactors, unit tests, etc.; scales small to large."
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---
@@ -99,7 +99,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 2. Input: approved specs + plan. Demand subagent to read and execute it fully. Do not repeat contents => reference instead. Output: working code, build passing, update relevant documentation briefly (CONTEXT.md, ARCHITECTURE.md, etc).
 3. MUST follow approved scope. MUST stop and escalate if blocked.
 4. Required skills: `coding`
-5. Recommended skills: `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
+5. Recommended skills: `debugging`, `sensitive-data`, `testing`, `dangerous-actions`
 6. If requirements are used code must contain comments refs to requirements identifiers
 7. Update `coding-flow-state.md`
 
@@ -110,7 +110,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 1. Review code changes against approved specs and plan.
 2. Input: implementation diff, specs, plan, check if documentation is updated, brief, and matches the file intent. Output: review findings and recommendations.
 3. Required skills: `coding`
-4. Recommended skills: `reasoning`, `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
+4. Recommended skills: `reasoning`, `debugging`, `sensitive-data`, `testing`, `dangerous-actions`
 5. Update `coding-flow-state.md`
 
 </review_code>
@@ -139,7 +139,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 1. Write and execute tests. All MUST succeed, isolated, idempotent.
 2. Input: implementation, specs. Demand subagent to read specs fully. Do not repeat contents => reference instead. Output: passing tests with coverage.
 3. Required skills: `testing`, `coding`
-4. Recommended skills: `debugging`, `coding-iac`, `sensitive-data`, `dangerous-actions`
+4. Recommended skills: `debugging`, `sensitive-data`, `dangerous-actions`
 5. Update `coding-flow-state.md`
 
 </tests>
@@ -149,7 +149,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 1. Review tests against specs: coverage, scenarios, edge cases, mocking correctness.
 2. Input: tests, specs, implementation. Output: review findings and recommendations.
 3. Required skills: `testing`, `coding`
-4. Recommended skills: `debugging`, `coding-iac`, `sensitive-data`, `dangerous-actions`
+4. Recommended skills: `debugging`, `sensitive-data`, `dangerous-actions`
 5. Update `coding-flow-state.md`
 
 </review_tests>
@@ -160,7 +160,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 2. Additionally systematic "manual QA" by yourself.
 3. Input: full delivery (code + tests + specs + review findings). Demand subagent to read specs fully. Do not repeat contents => reference instead. Output: final validation report.
 4. SMALL: orchestrator confirms build + tests pass.
-5. Recommended skills: `coding`, `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
+5. Recommended skills: `coding`, `debugging`, `sensitive-data`, `testing`, `dangerous-actions`
 6. Update `coding-flow-state.md`
 
 </final_validation>

@@ -1,6 +1,6 @@
 ---
 name: load-workflow
-description: Rosetta MUST skill to select, load, and activate the best-matching workflow for the current request, inject its phases into the execution plan, and restore state when resuming.
+description: "To select, activate, and resume the best-matching workflow and inject its phases. MUST."
 tags: ["rosetta-bootstrap", "core", "workflow", "orchestrator"]
 baseSchema: docs/schemas/skill.md
 ---

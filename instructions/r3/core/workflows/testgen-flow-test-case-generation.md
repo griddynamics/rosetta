@@ -1,6 +1,6 @@
 ---
 name: testgen-flow-test-case-generation
-description: Phase 5 of Test Generation - Test Scenario Generation (TestRail-compatible)
+description: "Phase 5 Test Case Generation of testgen-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

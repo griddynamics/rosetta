@@ -1,6 +1,6 @@
 ---
 name: validator
-description: Rosetta Full subagent. Verify implementation matches intent through actual execution and evidence-based validation.
+description: "Validate that implementation matches intent via execution and evidence. Full subagent."
 mode: subagent
 model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-4.6-sonnet
 readonly: false

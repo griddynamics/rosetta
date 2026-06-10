@@ -1,6 +1,6 @@
 ---
 name: coding-agents-prompting-flow
-description: Reusable workflow for prompt authoring/adaptation with thin orchestration and explicit HITL approvals. discover -> extract+intake -> blueprint -> for_each_prompt_loop(draft -> hardening -> edit) -> simulate -> validate.
+description: "Workflow for authoring and adapting AI-agent prompts: skills, agents, workflows, rules, etc."
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---

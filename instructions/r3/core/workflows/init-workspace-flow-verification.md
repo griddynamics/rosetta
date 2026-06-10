@@ -1,6 +1,6 @@
 ---
 name: init-workspace-flow-verification
-description: "Phase 9 of init-workspace-flow, contains verify completeness, suggest next steps, enforce new-chat requirement."
+description: "Phase 9 Verification of init-workspace-flow"
 tags: ["init", "workspace", "verification", "phase"]
 baseSchema: docs/schemas/phase.md
 ---

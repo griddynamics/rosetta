@@ -1,6 +1,6 @@
 ---
-name: hooks-authoring
-description: "Rules for authoring, registering, and testing hooks in Rosetta. Use when creating a new hook, adding a SemanticKind, troubleshooting a hook that doesn't fire, or reviewing a hooks PR."
+name: coding-agents-hooks-authoring
+description: "To author, register, and test Rosetta hooks, add a SemanticKind, or debug a hook that won't fire."
 tags: [hooks, authoring, registration]
 baseSchema: docs/schemas/skill.md
 ---

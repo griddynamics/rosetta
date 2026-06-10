@@ -1,6 +1,6 @@
 ---
 name: modernization-flow-review
-description: "Modernization flow phase 7: Final review, pattern consistency, cross-project validation."
+description: "Phase 7 Review of modernization-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

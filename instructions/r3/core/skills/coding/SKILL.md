@@ -1,6 +1,6 @@
 ---
 name: coding
-description: Rosetta coding skill for implementation with KISS/SOLID/DRY principles, zero-tolerance quality, multi-environment awareness, and systematic validation. Use when implementing features, fixing bugs, or making code changes.
+description: "To implement features, fix bugs, and refactor with KISS/SOLID/DRY and systematic validation."
 license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
@@ -30,6 +30,7 @@ Principles:
 - Zero tolerance: no cheating, no pre-existing excuses, no warnings, no errors. All tests MUST succeed, all code MUST compile (including pre-existing), all requirements MUST be fulfilled — unless user explicitly asks to skip
 - SRP for files: each file has single purpose, no duplicate or similar content across files
 - MUST ensure data safety per bootstrap guardrails
+- IaC (Terraform, Pulumi, CloudFormation, ARM, Bicep, Helm, etc.): MUST follow `assets/iac.md`
 - Documentation: ONLY as instructed by rules or user
 - Address root cause, if you think you found it, investigate more
 - Prefer consistent and reliable solutions

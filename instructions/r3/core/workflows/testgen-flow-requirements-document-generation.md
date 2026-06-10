@@ -1,6 +1,6 @@
 ---
 name: testgen-flow-requirements-document-generation
-description: Phase 4 of Test Generation - Requirements Document Generation
+description: "Phase 4 Requirements Document of testgen-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---
