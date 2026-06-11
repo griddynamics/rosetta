@@ -2,6 +2,7 @@
 name: init-workspace-flow-verification
 description: "Phase 9 Verification of init-workspace-flow"
 tags: ["init", "workspace", "verification", "phase"]
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

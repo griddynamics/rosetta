@@ -2,6 +2,7 @@
 name: init-workspace-flow-context
 description: "Phase 1 Context of init-workspace-flow"
 tags: ["init", "workspace", "context", "phase"]
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

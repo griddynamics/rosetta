@@ -3,6 +3,7 @@ name: modernization-flow
 description: "Workflow for converting, modernizing, upgrading, or re-architecting code (e.g. C++→Java, monolith→microservices), etc."
 alwaysApply: false
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 
@@ -35,6 +36,10 @@ This modernization process is designed to systematically analyze, specify, and i
 - If there is no need to rewrite code (example: upgrade .NET 6 to .NET 8), then take original and target code specs LIGHTLY, only document WHAT IS NECESSARY TO CHANGE (example: new way to use app builder).
 
 ## Modernization Flow - Phase Overview
+
+**Phase 0: Prerequisites** 
+1. All Rosetta prep steps MUST be FULLY completed
+2. MUST USE OPERATION_MANAGER for deterministic execution
 
 **Phase 1: Existing Library Analysis for Reusing in Target State** [modernization-flow-reuse.md]
 1. ACQUIRE modernization-flow-reuse.md FROM KB

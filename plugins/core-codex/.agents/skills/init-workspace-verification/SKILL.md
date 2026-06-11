@@ -5,6 +5,8 @@ license: Apache-2.0
 model: gpt-5.4
 model_reasoning_effort: medium
 tags: ["init", "workspace", "verification", "validation"]
+disable-model-invocation: false
+user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -79,11 +81,6 @@ ASSUMPTIONS REVALIDATION:
 - Duplicates: keep most detailed
 - Forward references: verify target files exist
 - New assumptions: track any discovered during verification
-
-DEPRECATED ARTIFACTS (notify user, do NOT auto-delete):
-
-- `agents/init-rosetta-shells-flow-state.md` — r1 state file
-- Local `init-rosetta-shells-flow.md` — replaced by init-workspace-shells skill
 
 </process>
 

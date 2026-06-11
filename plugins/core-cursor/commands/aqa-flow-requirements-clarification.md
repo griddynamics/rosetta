@@ -2,6 +2,7 @@
 name: aqa-flow-requirements-clarification
 description: "Phase 2 Requirements Clarification of aqa-flow"
 alwaysApply: false
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

@@ -2,6 +2,7 @@
 name: modernization-flow-review
 description: "Phase 7 Review of modernization-flow"
 alwaysApply: false
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

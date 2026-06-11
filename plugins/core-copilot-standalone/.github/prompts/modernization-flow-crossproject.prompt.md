@@ -2,6 +2,7 @@
 name: modernization-flow-crossproject
 description: "Phase 5 Cross-Project Analysis of modernization-flow"
 alwaysApply: false
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

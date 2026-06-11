@@ -2,6 +2,7 @@
 name: init-workspace-flow-rules
 description: "Phase 4 Rules (optional) of init-workspace-flow"
 tags: ["init", "workspace", "rules", "phase", "optional"]
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

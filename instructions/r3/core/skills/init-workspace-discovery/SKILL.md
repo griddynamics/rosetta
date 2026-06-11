@@ -4,6 +4,8 @@ description: "Discover tech stack."
 license: Apache-2.0
 model: claude-haiku-4-5, gemini-3-flash-preview
 tags: ["init", "workspace", "discovery", "techstack", "codemap"]
+disable-model-invocation: false
+user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 

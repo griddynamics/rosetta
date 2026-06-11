@@ -4,6 +4,8 @@ description: "Create agent rules."
 license: Apache-2.0
 model: claude-sonnet-4-6, gpt-5.4-medium
 tags: ["init", "workspace", "rules"]
+disable-model-invocation: false
+user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 

@@ -4,6 +4,8 @@ description: "Generate workspace docs."
 license: Apache-2.0
 model: claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-preview
 tags: ["init", "workspace", "documentation", "context", "architecture"]
+disable-model-invocation: false
+user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 

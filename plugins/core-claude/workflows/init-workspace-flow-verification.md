@@ -1,19 +1,20 @@
 ---
 name: init-workspace-flow-verification
-description: "Phase 8 Verification of init-workspace-flow"
+description: "Phase 9 Verification of init-workspace-flow"
 tags: ["init", "workspace", "verification", "phase"]
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 
 <init_workspace_flow_verification>
 
 <description_and_purpose>
-Without a final verification pass, incomplete or inconsistent documentation ships silently. Phase 8 runs a centralized checklist, ensures nothing was missed, and enforces new-chat requirement.
+Without a final verification pass, incomplete or inconsistent documentation ships silently. Phase 9 runs a centralized checklist, ensures nothing was missed, and enforces new-chat requirement.
 </description_and_purpose>
 
 <workflow_context>
-- Phase 8 of 8 in init-workspace-flow (final phase)
-- Prerequisite: Phases 1-7 complete
+- Phase 9 of 9 in init-workspace-flow (final phase)
+- Prerequisite: Phases 1-8 complete
 - Output: verification report, next steps, new-chat enforcement
 </workflow_context>
 
@@ -24,20 +25,20 @@ Without a final verification pass, incomplete or inconsistent documentation ship
 4. Enforce new chat and mark COMPLETE
 </phase_steps>
 
-<read_state step="8.1">
+<read_state step="9.1">
 1. Read `agents/init-workspace-flow-state.md`
-2. Confirm Phases 1-7 all marked complete
-3. Collect unresolved gaps from Phase 7
+2. Confirm Phases 1-8 all marked complete
+3. Collect unresolved gaps from Phase 8
 </read_state>
 
-<execute_verification step="8.2" subagent="built-in" role="Workspace initialization auditor" subagent_recommended_model="claude-sonnet-4-6,gpt-5.4-medium">
+<execute_verification step="9.2" subagent="built-in" role="Workspace initialization auditor" subagent_recommended_model="claude-sonnet-4-6,gpt-5.4-medium">
 1. ACQUIRE `init-workspace-verification/SKILL.md` FROM KB
 2. Execute full verification checklist
 3. Run catch-up for failed checkpoints
 4. Revalidate ASSUMPTIONS.md
 </execute_verification>
 
-<next_steps step="8.3">
+<next_steps step="9.3">
 1. If verification found failed checkpoints: list specific remediation actions
 2. Suggest next steps based on workspace state:
    - Run coding workflow for first feature
@@ -79,7 +80,7 @@ Without a final verification pass, incomplete or inconsistent documentation ship
    ```
 </next_steps>
 
-<enforce_new_chat step="8.4">
+<enforce_new_chat step="9.4">
 1. EMPHASIZE: MUST start a new chat session after init completes
 2. Current session context is polluted with init-specific state
 3. Mark state as COMPLETE in `agents/init-workspace-flow-state.md`

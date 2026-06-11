@@ -10,7 +10,7 @@
 - Label assumptions explicitly
 - Prefer schemas + examples
 - Include checklist + tests + failure modes
-- Insert Human-in-the-Loop gates, if not covered already by `bootstrap-hitl-questioning.md`
+- Insert Human-in-the-Loop gates, if not covered already by `hitl` skill
 - Keep diffs surgical
 - Prefer existing standards, patterns, simple solutions
 - Time and temporal references and relationships explicit
@@ -65,7 +65,7 @@
 - Ignore token limits for input/output space
 - No test cases or acceptance criteria
 - No Human-in-the-Loop gates for ambiguous, assumptions, tradeoffs
-- Duplicating `bootstrap-hitl-questioning.md`
+- Duplicating `hitl` skill
 
 **Format**
 

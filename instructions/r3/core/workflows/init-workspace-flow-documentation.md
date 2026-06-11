@@ -2,6 +2,7 @@
 name: init-workspace-flow-documentation
 description: "Phase 7 Documentation of init-workspace-flow"
 tags: ["init", "workspace", "documentation", "phase"]
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

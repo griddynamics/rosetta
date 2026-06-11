@@ -2,6 +2,7 @@
 name: adhoc-flow
 description: "Workflow for the rest of tasks: lightweight documentation, build, track, synchronize, etc."
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

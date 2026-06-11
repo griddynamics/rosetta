@@ -3,6 +3,7 @@ name: large-workspace-handling
 description: "To partition large workspaces (100+ files) into scoped subagent tasks when context is insufficient."
 license: Apache-2.0
 tags: ["skill", "workspace", "large-workspace", "delegation"]
+user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

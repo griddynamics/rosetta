@@ -2,6 +2,7 @@
 name: coding-agents-prompting-flow
 description: "Workflow for authoring and adapting AI-agent prompts: skills, agents, workflows, rules, etc."
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

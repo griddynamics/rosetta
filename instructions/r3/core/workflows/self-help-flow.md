@@ -2,6 +2,7 @@
 name: self-help-flow
 description: "Workflow for Rosetta self-help: explain capabilities and usage, then run any discovered workflow."
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

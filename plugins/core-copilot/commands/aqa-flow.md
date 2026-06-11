@@ -3,6 +3,7 @@ name: aqa-flow
 description: "Workflow for automated QA: integration and end-to-end UI test automation, page objects, etc."
 alwaysApply: false
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
  

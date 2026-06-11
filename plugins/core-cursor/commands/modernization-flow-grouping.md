@@ -2,6 +2,7 @@
 name: modernization-flow-grouping
 description: "Phase 4 Class Grouping of modernization-flow"
 alwaysApply: false
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

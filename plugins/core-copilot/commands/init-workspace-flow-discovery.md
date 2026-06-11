@@ -2,6 +2,7 @@
 name: init-workspace-flow-discovery
 description: "Phase 3 Discovery of init-workspace-flow"
 tags: ["init", "workspace", "discovery", "phase"]
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 
@@ -12,7 +13,7 @@ Produces foundational technical documentation (TECHSTACK, CODEMAP, DEPENDENCIES)
 </description_and_purpose>
 
 <workflow_context>
-- Phase 3 of 8 in init-workspace-flow
+- Phase 3 of 9 in init-workspace-flow
 - Input: filesystem, state.mode, state.composite
 - Output: TECHSTACK, CODEMAP, DEPENDENCIES on disk
 - Prerequisite: Phase 1 complete (mode known), Phase 2 complete or skipped
@@ -41,7 +42,7 @@ Produces foundational technical documentation (TECHSTACK, CODEMAP, DEPENDENCIES)
    - CODEMAP status (created | updated | skipped)
    - DEPENDENCIES status (created | updated | skipped)
    - Phase 3 completion timestamp
-2. Log gaps for Phase 7
+2. Log gaps for Phase 8
 </update_state>
 
 <validation_checklist>

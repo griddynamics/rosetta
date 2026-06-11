@@ -2,6 +2,7 @@
 name: code-analysis-flow
 description: "Workflow for reverse-engineering a codebase into grounded architecture docs, requirements capture, etc."
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 
@@ -10,23 +11,28 @@ baseSchema: docs/schemas/workflow.md
 <description_and_purpose>
 
 Problem: Code analysis degrades into transcription, drifts into suggestions/refactors, or stalls when codebase exceeds single-agent context; assumptions and unknowns are silently adopted.
-Solution: Thin, sequential workflow that classifies SMALL vs LARGE codebase, delegates analysis to the `reverse-engineering` skill, partitions LARGE codebases via `large-workspace-handling`, gates critical/high unknowns through `questioning`, and optionally extracts requirements via `requirements-authoring`. Grounded by links, HITL at unknowns and final review.
+Solution: Thin, sequential workflow that classifies SMALL vs LARGE codebase, delegates analysis to the `reverse-engineering` skill, must partition LARGE codebases via `large-workspace-handling`, gates critical/high unknowns through `questioning`, and optionally extracts requirements via `requirements-authoring`. Grounded by links, HITL at unknowns and final review.
 Validation: Output files exist under `docs/<feature>/`; every claim traces to code/docs; no generated or suggested implementation; open questions and assumptions are documented; state file reflects phase evidence.
 
 </description_and_purpose>
 
 <workflow_phases>
 
-- Rosetta prep steps completed.
-- Phases are sequential; module analysis in LARGE codebases runs in parallel via `large-workspace-handling`.
-- Orchestrator trusts skills to own execution internals; coordinates sequence, artifacts, state, and approvals only.
-- State file: `agents/TEMP/code-analysis-flow-state.md` updated after each phase.
-- Documentation principle: ground with links; no code generation, no suggestions, no speculation. See `best_practices` for sizing and diagram rules.
-- If `/goal` is set repeat phases 4-8 until goal is met.
-- If task is to extract/document/reverse engineer requirements or specifications from existing app/code:
-  - This is much more intense per subagent: reclassify SMALL if < 10 source files, otherwise LARGE and MUST USE `large-workspace-handling`.
-  - Both orchestrator and subagents MUST USE SKILL `requirements-authoring`
-  - Spawn MULTIPLE subagents with each handling one unit of analysis (one module, one community, one screen, one controller, one endpoint, etc) to effectively prevent hallucinations by narrowing scope down for phases `requirements_branch` and `review` (more agents - less scope each).
+<prerequisites phase="0" applies="ALL">
+
+1. All Rosetta prep steps MUST be FULLY completed
+2. MUST USE OPERATION_MANAGER for deterministic execution
+3. Phases are sequential; module analysis in LARGE codebases runs in parallel via SKILL `large-workspace-handling`.
+4. Orchestrator trusts skills to own execution internals; coordinates sequence, artifacts, state, and approvals only.
+5. State file: `agents/TEMP/code-analysis-flow-state.md` updated after each phase.
+6. Documentation principle: ground with links; no code generation, no suggestions, no speculation. See `best_practices` for sizing and diagram rules.
+7. If `/goal` is set repeat phases 4-8 until goal is met.
+8. If task is to extract/document/reverse engineer requirements or specifications from existing app/code:
+   - This is much more intense per subagent: reclassify SMALL if < 10 source files, otherwise LARGE and MUST USE `large-workspace-handling`.
+   - Both orchestrator and subagents MUST USE SKILL `requirements-authoring`
+   - Spawn MULTIPLE subagents with each handling one unit of analysis (one module, one community, one screen, one controller, one endpoint, etc) to effectively prevent hallucinations by narrowing scope down for phases `requirements_branch` and `review` (more agents - less scope each).
+
+</prerequisites>
 
 <context_load phase="1" applies="ALL" subagent="discoverer" role="Context gatherer for analysis scope">
 

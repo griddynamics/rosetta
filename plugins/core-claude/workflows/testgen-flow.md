@@ -3,6 +3,7 @@ name: testgen-flow
 description: "Workflow for generating test cases from requirements (Jira/Confluence), exporting to TestRail, etc."
 alwaysApply: false
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

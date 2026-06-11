@@ -2,6 +2,7 @@
 name: modernization-flow-implement
 description: "Phase 8 Implementation of modernization-flow"
 alwaysApply: false
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

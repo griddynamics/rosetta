@@ -2,6 +2,7 @@
 name: requirements-authoring-flow
 description: "Workflow for authoring requirements and specifications: drafting, review, validation, etc."
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 
@@ -13,14 +14,19 @@ Prevents premature drafting by enforcing HITL gates where every `<req>` unit rec
 
 <workflow_phases>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed (get_context_instructions called and all three prep steps completed).
-- Every phase MUST update `requirements-authoring-flow-state.md` in FEATURE TEMP with: phase name, status, artifact produced, and open questions.
-- Orchestrator and subagents MUST USE SKILL `requirements-authoring`.
-- If task is to reverse engineer orchestrator MUST USE SKILL `reverse-engineering`.
-- Keep requirement identifiers in code comments only, must not be user facing.
-- If `/goal` is set repeat phases 5-6 until goal is met, then continue with the rest of phases.
+<prerequisites phase="0", applies="ALL">
+
+1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
+2. MUST USE OPERATION_MANAGER for deterministic execution
+3. Every phase MUST update `requirements-authoring-flow-state.md` in FEATURE TEMP with: phase name, status, artifact produced, and open questions.
+4. Orchestrator and subagents MUST USE SKILL `requirements-authoring`.
+5. If task is to reverse engineer orchestrator MUST USE SKILL `reverse-engineering`.
+6. Keep requirement identifiers in code comments only, must not be user facing.
+7. If `/goal` is set repeat phases 5-6 until goal is met, then continue with the rest of phases.
 
 IMPORTANT! If the task is to reverse engineer requirements, spawn MULTIPLE subagents with each handling one unit of analysis (one screen, one page, one controller, one endpoint, etc) to effectively prevent hallucinations by narrow scoping for phases intent_capture, outline, draft, validate.
+
+</prerequisites>
 
 <discovery phase="1" priority="must" subagent="requirements-engineer" role="Context analyst collecting project and scope signals">
 

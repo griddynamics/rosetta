@@ -2,6 +2,7 @@
 name: init-workspace-flow
 description: "Workflow for initializing or upgrading a workspace: context, discovery, documentation, etc."
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

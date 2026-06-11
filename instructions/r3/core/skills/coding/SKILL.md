@@ -2,6 +2,7 @@
 name: coding
 description: "To implement features, fix bugs, and refactor with KISS/SOLID/DRY and systematic validation."
 license: Apache-2.0
+user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

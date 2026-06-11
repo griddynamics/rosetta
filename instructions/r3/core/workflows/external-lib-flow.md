@@ -2,6 +2,7 @@
 name: external-lib-flow
 description: "Workflow for onboarding an external private library so AI can use it without source access."
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

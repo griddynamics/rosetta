@@ -2,6 +2,7 @@
 name: coding-flow
 description: "Workflow for all coding: features, fixes, refactors, unit tests, etc.; scales small to large."
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

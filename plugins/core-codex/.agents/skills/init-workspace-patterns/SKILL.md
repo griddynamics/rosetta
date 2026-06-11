@@ -5,6 +5,8 @@ license: Apache-2.0
 model: gpt-5.4
 model_reasoning_effort: high
 tags: ["init", "workspace", "patterns", "reverse-engineering"]
+disable-model-invocation: false
+user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 
