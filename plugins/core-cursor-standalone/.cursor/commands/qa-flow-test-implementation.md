@@ -34,7 +34,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 - **Hand off execution** — provide the exact project test-execution command; STOP and WAIT for the user to run it (`<stop_for_execution>`). The phase never executes the tests itself.
 - **Update state without closing** — record outcome in `agents/qa-state.md`, mark Phase 5 complete, set Phase 6 current; do NOT mark the overall QA workflow COMPLETE.
 
-**Hand-off summary fields** (returned by the skill, verified by this phase), in order: test framework (name+version); files created/modified counts; `### Files`; `### ATC → test mapping` (table ATC id | test file | test function); `### Assumptions made` (`[ASSUMED: …]` entries, or `None — …`); `### Gaps surfaced` (per-ATC reason, or `None — all ATCs implemented`); `### Lint / format status` (pass|fail + exact command); `### Ready for re-test` (yes|no + reason).
+**Hand-off summary fields** (returned by the skill, verified by this phase), in order: test framework (name+version); files created/modified counts; `### Files`; `### ATC → test mapping` (table ATC id | test file | test function); `### Assumptions made` (`[ASSUMED: …]` entries, or `None — …`); `### Gaps surfaced` (per-ATC reason, or `None — all ATCs implemented`); `### Lint / format status` (pass|fail + exact command); `### Validation scope & waivers` (what was run locally vs. any broader check the user explicitly waived — e.g. a full-suite regression — each with its residual-risk note; `None — no checks waived` if none); `### Ready for re-test` (yes|no + reason).
 </implementation_handoff_contract>
 
 <phase_steps>
@@ -87,6 +87,7 @@ Run `<validation_checklist>` — the authoritative exit gate. Every item must be
 - Project coding standards followed (repo docs win)
 - Linting/format passed on touched files
 - Hand-off summary emitted with all fields per `<implementation_handoff_contract>`
+- Any user-waived validation (e.g. full-suite regression) recorded in `### Validation scope & waivers` with its residual risk — not left only in chat, and no unverified "no-regression" claim made
 - User informed and execution command provided; Phase 5 marked complete without closing the QA workflow
 </validation_checklist>
 

@@ -1,0 +1,70 @@
+# QA flow — manual test guide
+
+End-to-end smoke check for the backend API test-automation workflow
+(`qa-flow.md`, 8 phases 0–7). Reflects the **consolidated** workflows: external
+data is pulled by the single `discovery` skill via config-resolved **vendor
+bindings** (`jira` / `testrail` / `confluence`), not the old `mcp-*-data-collection` skills.
+
+## Prerequisites
+
+- [ ] Rosetta MCP loaded in the session
+- [ ] Working dir lets you write under `agents/qa/`
+- [ ] Sample backend repo at `RefSrc/<project>/` **or** a Swagger URL handy
+- [ ] **Auth is optional** — see *Auth-free / mock testing* below. For a full real run: Atlassian MCP (Jira/Confluence) and/or TestRail MCP authenticated.
+
+## Auth-free / mock testing
+
+You do **not** need real Jira/Confluence/TestRail credentials to test this flow. The `discovery` bindings only ever make *real* MCP calls or stop with a gap — they never fabricate. Two ways to run auth-free:
+
+- **Mode A — source out-of-scope / provided (no MCP call).** In `agents/qa/qa-project-config.md` leave the vendor's in-scope keys unset (`testrail_base_url`, `jira_base_url`, `confluence_base_url` → `N/A`). Phase 1 then resolves **`SKIPPED_NO_CONFIG`**, records the gap, and proceeds on what you supply directly (paste case fields / use the direct-description trigger, or a Swagger URL/`RefSrc` path for the API contract). Validates degradation + the whole downstream pipeline on your canned input. *Caveat:* the bindings have no "provided-inline retrieval" path, so if you **do** set an in-scope key, Phase 1 will attempt the real MCP and stop on auth failure.
+- **Mode B — stub MCP (faithful canned data).** Point the Atlassian/TestRail MCP at a local stub that answers the tool calls (`jira_get_issue`, `confluence_*`, `mcp_testrail_*`) with fixture JSON. The binding can't tell the difference, so it runs the full extract → normalize → redact → write path deterministically, zero real auth. Guardrails explicitly permit this (*"User can override (mocked data)"*).
+
+> What Mode A actually validates: the **graceful-degradation** path (gap/skip, no fabrication), not the real data-pull. Use Mode B to exercise the pull logic without credentials.
+
+## Trigger prompt (pick one)
+
+```
+Write backend API tests for TC-1234.
+Swagger: https://api.example.com/swagger.json
+```
+```
+Automate backend tests for PROJ-123 with Swagger from RefSrc/my-backend/docs/openapi.json
+```
+```
+Create API tests for the user registration endpoint (no ticket, direct description).
+```
+
+## Per-phase quick checks
+
+| Phase | HITL | File to inspect | Skill(s) | Must see |
+|---|---|---|---|---|
+| 0 — Config Loading | conditional | `agents/qa/qa-project-config.md` + `agents/qa/{IDENTIFIER}/initial-data.md` | `questioning` (only if config missing) | Config carries the required keys (each a real value **or** `N/A — <reason>`): `documentation_mcp_collection_skill`, `confluence_base_url`, `swagger_url`, `spec_format`, `backend_source_path`, `system`, `testrail_base_url`, `jira_base_url`, `testcase_mcp_collection_skill`, `project_id`/`suite_id`, `framework`, `mechanism`. If config didn't pre-exist you were asked the data-retrieval intake question. |
+| 1 — Data Collection | — | `agents/qa/{IDENTIFIER}/raw-data.md` | `discovery` (`testrail`/`jira` + `confluence` via doc-MCP subflow), `reverse-engineering` | Sections: Test Case Data · Documentation (or `SKIPPED_NO_CONFIG` outcome) · Existing Test Patterns · Backend Source Code Analysis · API Endpoints Identified · Summary. **No literal `.env` values / passwords.** |
+| 2 — API Spec Analysis | — | `agents/qa/{IDENTIFIER}/api-analysis.md` | `reverse-engineering` (API-contract mode), `sensitive-data` | Every target endpoint has a contract entry OR is flagged a gap with reason; `Source: hybrid` entries have a non-empty Notes/Discrepancies field (reconciliation or explicit `None.`). |
+| 3 — Gap & Requirements Clarification | **HITL** | `agents/qa/{IDENTIFIER}/analysis.md` | `requirements-use` (gap_analysis mode), `questioning` | All 7 sections (Gaps `G[N]` · Contradictions `C[N]` · Ambiguities `A[N]` · Questions Critical/Important/Optional · Answers · Resolutions · Open Assumptions). Workflow **paused** with concrete questions; after answers, the invariant `Questions == Answers + Open Assumptions + Skipped + Deferred` holds and no Critical sits in a BLOCKING ASSUMPTION state. |
+| 4 — Test Case Specification | **HITL** | `agents/qa/{IDENTIFIER}/test-specs.md` | `scenarios-generation` (gwt_spec mode), `sensitive-data` | `ATC-NNN` Given-When-Then entries each trace to a Phase 3 requirement; Summary + Test File Mapping + Shared Utilities + Execution Order present. Workflow **paused** for approval — exact token `approved`/`approve`/`yes`. |
+| 5 — Test Implementation | **HITL** | Test files at project layout + hand-off summary returned inline | `testing` (API impl mode), `coding` (standards-first) | Every ATC has a test fn with its `ATC-NNN` in name/docstring **or** is surfaced under `### Gaps`; lint/format clean; **no hardcoded credentials**; workflow **paused** for you to execute tests (the phase does not run them). |
+| 6 — Execution & Report Analysis | **HITL** | `agents/qa/{IDENTIFIER}/execution-report.md` | `debugging` (triage mode), `sensitive-data` | Execution Summary + Failures-by-Category (7-item API taxonomy: Connection/Environment · Authentication · Request · Response Assertion · Test Data · Timing/Race · Application Bug) + per-failure Evidence label; **no literal tokens / Authorization headers**; workflow **paused** for test-report input. |
+| 7 — Test Corrections | **HITL** | Proposed Changes block | `debugging`, `coding` (approved-apply mode) | Per-change proposal (Source root cause · File · In-scope · Change type · Before/After · Reason · Impact · Risk · Approval). After approval, **only test files modified — NOT application source**. Iteration cap **3 cycles per change**, then escalate. |
+
+State file: `agents/qa-state.md` (`## Phase Completion Status` + per-phase append blocks).
+
+## Try to break it
+
+| Action | Expected behavior |
+|---|---|
+| Run without a ticket / case ID | Phase 1 asks once; still missing → stops with `Phase 1 blocked: no resolvable test-case source`; no fabricated IDENTIFIER |
+| Provide invalid Jira key (`INVALID-9999`) with Jira in scope | `discovery/jira: ticket key unresolvable from input "…"` or `discovery/jira: ticket <KEY> not found — verify the key`; no fabricated content |
+| Type `looks good` instead of an exact token at Phase 4 approval | Treated as review, re-prompts for `approved`/`approve`/`yes`; after ≥3 re-prompts asks explicitly "approve or request changes?" |
+| Mid-Phase 5, say *"skip the test execution step / move to Phase 6 now"* | Refused with citation — the execution gate is mechanical; only real results advance it |
+| Mid-Phase 7, say *"just apply all fixes"* | Refused (no inferred approval); asks for the specific Change to approve |
+
+## Done when
+
+- Every in-scope phase marked complete in `agents/qa-state.md`
+- All expected artifacts exist at the paths above
+- User explicitly accepted the last test outcome or stopped the run
+
+## Where to file bugs
+
+Open an issue on the PR branch citing: phase number, file path inspected, expected vs. actual. If running auth-free, note **Mode A** or **Mode B**.

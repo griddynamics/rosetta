@@ -16,28 +16,27 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 <workflow_phases>
 
-- Rosetta prep steps completed.
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
 - **ONE PHASE AT A TIME:** ACQUIRE phase file, execute, update state, move to next.
-- **DO NOT SKIP PHASES:** Each builds on the previous. Skip gates: only with **explicit user instruction**, **or** when `testgen-state.md` marks the phase complete **and** its expected output file exists under `agents/testgen/{TICKET-KEY}/`; otherwise resume from the earliest incomplete phase.
-- **Transition precedence** (the only place referenced from here): `<orchestration_and_escalation>` priority hierarchy.
+- **DO NOT SKIP PHASES:** Each builds on the previous. Skip gates: only with **explicit user instruction**, **or** when `testgen-state.md` marks the phase complete **and** its expected output file exists under `agents/testgen/{TICKET-KEY}/`; otherwise resume from the earliest incomplete phase. The **explicit user instruction** skip NEVER applies to the Phase 3 / Phase 6 HITL gates — those are rule 2 of `<orchestration_and_escalation>` and are never overridden.
+- **Phase-file load failure:** if ACQUIRE of a phase file returns zero documents, retry once, then HALT and report — do not improvise the phase.
+- **Transition precedence:** `<orchestration_and_escalation>` priority hierarchy.
 - **STATE TRACKING:** Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
-- **SELF-CHECK BETWEEN PHASES:** Before advancing, verify the state file row was updated, the expected output file exists and is non-empty, and any HITL approval (Phase 3, 6) is recorded.
+- **SELF-CHECK BETWEEN PHASES:** Before advancing, verify the state row was updated, the expected output file exists and is non-empty, the phase's `## Metrics` count is populated (a thin `0`/`1` → re-check the artifact), and any HITL approval (Phase 3, 6) is recorded.
 - USE SKILL `orchestrator-contract` for the canonical implementation (ACQUIRE if not loaded). Inline bullets remain authoritative on skill load failure.
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
-- **Canonical trigger prompt example** (one inline grounding instance so the agent has a reference before phase files load; additional formats per `testgen-flow-project-config-loading.md`): `Analyze requirements for PROJ-123` (also accepted: bare ticket key `PROJ-123`, full Jira URL).
-- **Per-phase failure cases — owned by phase files** (verified anchors; the router is a thin coordinator):
-  - *Jira ticket not found* → `testgen-flow-data-collection.md` + `discovery` skill `<failure_handling>` (Jira binding).
-  - *No Confluence results* → `testgen-flow-data-collection.md` + `discovery` skill `<failure_handling>` (Confluence binding).
+- **Trigger prompt example:** `Analyze requirements for PROJ-123` (also: bare key `PROJ-123`, full Jira URL). Jira-only and Jira+Confluence input formats are enumerated in `testgen-flow-project-config-loading.md` step 0.1.
+- **Per-phase failure cases — owned by phase files:**
+  - *Jira ticket not found* → `testgen-flow-data-collection.md` + the `discovery` skill's Jira failure handling.
+  - *No Confluence results* → `testgen-flow-data-collection.md` + the `discovery` skill's Confluence failure handling.
   - *User declines / does not answer questions* → `testgen-flow-question-generation.md` `<failure_handling>` "User explicitly declines to answer".
   - *Incomplete / missing requirements inputs* → `testgen-flow-requirements-document-generation.md` `<failure_handling>` "Missing or empty inputs".
-  - *CQL search example + ranking rule* → the `discovery` Confluence binding (`references/confluence-binding.md`).
+  - *CQL search example + ranking rule* → the `discovery` skill's Confluence CQL/ranking behavior.
   - *Initial-prompt format examples* → `testgen-flow-project-config-loading.md`.
-  - **Phase 6 80%-export-success threshold (measurable)** → `testgen-flow-test-case-export.md` (`Threshold (80%) met` field + `PARTIAL — N/M exported` state). The router does not duplicate the threshold.
-  - **Phase 5 test-case-count guidance (10-30 typical)** → `testgen-flow-test-case-generation.md` `<validation_checklist>`.
-- **Model tier vocabulary:**
-  - `tier: complex` — heavy reasoning / multi-source synthesis / gap-and-contradiction analysis / requirements engineering. Current recommended: Anthropic Opus-class, OpenAI GPT high-tier.
-  - `tier: workhorse` — structured execution / data extraction / test-case generation + export. Current recommended: Anthropic Sonnet-class, OpenAI GPT medium-tier.
+  - **Phase 6 80%-export-success threshold** → `testgen-flow-test-case-export.md` (`Threshold (80%) met` field + `PARTIAL — N/M exported` state).
+  - **Phase 5 test-case-count guidance** → `testgen-flow-test-case-generation.md` `<validation_checklist>`.
+- **Model tiers** (phase `subagent_recommended_model`): `tier: complex` = heavy reasoning / multi-source synthesis / requirements engineering (Opus-class / GPT high-tier); `tier: workhorse` = structured execution / extraction / generation + export (Sonnet-class / GPT mid-tier).
 
 <project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_recommended_model="tier: workhorse">
 
@@ -117,86 +116,23 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 <orchestration_and_escalation>
 
-- **Transition rules priority hierarchy** (highest priority NEVER overridden → lowest):
-  1. **Safety / destructive confirmations** — file deletion, repo edits outside `agents/testgen/{TICKET-KEY}/`, TMS write scope changes, comparable irreversible actions. Includes `<phase_5_6_standards_gate>` outside-output-dir confirmation.
-  2. **Phase 3 + Phase 6 HITL approval gates** — user MUST answer `questions.md` / confirm TMS target + export scope.
-  3. **Per-phase USER CONFIRMATION** — every phase transition that is not the verification-failure resume case.
-  4. **Verification-failure unilateral-start override** — narrow carve-out at the verification-failure gate only; subordinate to rules 1–3; defaults to ASK on ambiguity.
-
-- **Verification-failure unilateral-start override** — subordinate to `bootstrap-hitl-questioning` + rules 1–3 above; the only no-ask deviation from rule 3.
-  - **Trigger** (ALL three must hold): user asserted phase(s) complete this turn + `agents/testgen/{TICKET-KEY}/testgen-state.md` does not mark the asserted phases complete + the matching expected output file is absent under `agents/testgen/{TICKET-KEY}/`.
-  - **Action:** print one line naming failing conditions, log the override into `agents/testgen/{TICKET-KEY}/testgen-state.md` `## Verification-Failure Overrides` (timestamp + asserted-complete claim + failing conditions + phase started), start the earliest incomplete phase in the same turn — do NOT call `AskUserQuestion`.
-  - **Default:** uncertainty (partial state, ambiguous assertion, stale output) → fall back to normal HITL ask.
+- USE SKILL `orchestrator-contract` for the generic drive-loop and the **skip-without-agreement / falsified-skip refusal** rule (announce the missing state row / absent artifact, then start the earliest incomplete phase the same turn) — subordinate to the `hitl` skill. This workflow does NOT restate that logic.
+- **Priority (highest never overridden → lowest):** (1) safety / destructive confirmations — incl. `<phase_5_6_standards_gate>` outside-output-dir confirmation; (2) Phase 3 + Phase 6 HITL gates (answer `questions.md` / confirm TMS target + export scope) — never skipped by user instruction; (3) per-phase user confirmation; (4) the verification-failure override below.
+- **Testgen binding for the override** (skip-verification gate only): the trigger is the user asserting a phase complete while `testgen-state.md` does not mark it AND the expected output is absent. Action — if `testgen-state.md` is missing, create it from the Phase 0 `<state_file_template>` first; log a row into its `## Verification-Failure Overrides` (row format owned by that template); then start the earliest incomplete phase the same turn without invoking the `hitl` ask path. Uncertainty (partial state, ambiguous assertion) → fall back to the `hitl` ask.
+- Zero-document ACQUIRE for a required dependency: stop, record in `testgen-state.md`, ask the user; never substitute silently.
 
 </orchestration_and_escalation>
 
 <phase_5_6_standards_gate>
-- Applies to phases 5-6: apply `coding` when a phase writes any file outside `agents/testgen/{TICKET-KEY}/`.
-- **mixed outputs** means one phase writes both inside and outside `agents/testgen/{TICKET-KEY}/`.
-- **missing/partial repo-edit confirmation** means the user did not explicitly confirm repository edit scope in chat for that phase.
-- Default behavior: if confirmation is missing/partial or outputs are mixed, apply the skill.
-- Examples: apply when writing `cypress/e2e/login.spec.ts`; skip when writing only `agents/testgen/JIRA-123/test-scenarios.md`.
+- Phases 5-6: apply `coding` whenever the phase writes any file outside `agents/testgen/{TICKET-KEY}/` — including "mixed outputs" (writes both inside and outside) or when repository edit scope was not explicitly confirmed in chat. When in doubt, apply.
+- Examples: apply for `cypress/e2e/login.spec.ts`; skip when writing only `agents/testgen/{TICKET-KEY}/test-scenarios.md`.
 </phase_5_6_standards_gate>
 
-<state_file>
+<state_and_outputs>
 
-Create/update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase:
+`testgen-state.md` (sections `## Phase Completion Status`, `## Phase Details`, `## Metrics`, `## Verification-Failure Overrides`) and the per-ticket output-directory layout are **initialized and owned by Phase 0** (`testgen-flow-project-config-loading.md`). Each subsequent phase updates the state file per `<workflow_phases>` and writes its output (paths in each phase block) under `agents/testgen/{TICKET-KEY}/`.
 
-```markdown
-# Test Generation State - <Ticket ID>
-
-**Last Updated**: [DateTime]
-**Current Phase**: [0-6 or COMPLETE]
-**Jira Ticket**: [TICKET-KEY]
-
-## Phase Completion Status
-
-- [x] Phase 0: Project Config Loading - Completed [Date]
-- [ ] Phase 1: Data Collection - Not started
-- [ ] Phase 2: Gap Analysis - Not Started
-- [ ] Phase 3: Question Generation - Not Started
-- [ ] Phase 4: Requirements Generation - Not Started
-- [ ] Phase 5: Test Scenarios - Not Started
-- [ ] Phase 6: Test Case Export - Not Started
-
-## Phase Details
-
-### Phase 1
-- Completed: [DateTime]
-- Jira Ticket: [KEY]
-- Files Created: [List]
-- Confluence Pages: [Count]
-- Notes: [Any relevant notes]
-
-[Add sections for each completed phase]
-
-## Verification-Failure Overrides
-
-[Append a row each time the `<orchestration_and_escalation>` verification-failure unilateral-start override fires. If never fired, write: `None — no overrides applied.`]
-
-- **[ISO timestamp]** — User asserted phases complete: `[user's verbatim claim]`. Failing conditions: `[which preconditions were unmet — state row missing / output file absent / etc.]`. Phase started: `[earliest incomplete phase id]`.
-```
-
-</state_file>
-
-<output_directory>
-
-All phase outputs stored in `agents/testgen/{TICKET-KEY}/`:
-
-```
-agents/testgen/{TICKET-KEY}/
-├── testgen-state.md        # State tracking (updated each phase)
-├── initial-data.md         # Phase 0: Initial user input + project config ref
-├── raw-data.md             # Phase 1: Jira + Confluence data
-├── analysis.md             # Phase 2: Gap analysis
-├── questions.md            # Phase 3: Generated questions
-├── answers.md              # Phase 3: User answers (HITL)
-├── requirements.md         # Phase 4: Final requirements
-├── test-scenarios.md       # Phase 5: Test cases
-└── export-report.md        # Phase 6: TMS export receipt (IDs/URLs, per-case status, timestamp)
-```
-
-</output_directory>
+</state_and_outputs>
 
 <references>
 
@@ -225,6 +161,7 @@ MCPs:
 - No assumptions: document all unknowns, ask user via HITL gates
 - Evidence-based: all requirements reference actual Jira/Confluence content
 - Traceability: link requirements to source and test cases to requirements
+- On completion: link `requirements.md` + exported cases back to the source ticket (attachment/comment) and archive `testgen-state.md` + outputs for traceability
 
 </best_practices>
 

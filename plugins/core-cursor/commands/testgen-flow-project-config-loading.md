@@ -29,12 +29,16 @@ Find or create the project config file, obtain project-specific data retrieval c
 
 <parse_input step="0.1">
 1. Extract Jira ticket key or URL from user prompt (REQUIRED)
-2. Accept formats: "PROJ-123", full Jira URL, "Analyze requirements for PROJ-123"
+2. Accept formats:
+   - **Jira only:** `PROJ-123`, a full Jira URL, or `Analyze requirements for PROJ-123`.
+   - **Jira + Confluence:** the ticket key/URL plus one or more Confluence page URLs, e.g. `Analyze PROJ-123, docs: https://<confluence>/pages/123` or a full Jira URL with several Confluence URLs.
+   - **Jira + other documentation URLs** (e.g. Google Drive): the ticket plus any documentation links the project config lists as data sources.
+3. Any non-Jira links pasted here are captured verbatim into `initial-data.md` and carried into Phase 1 data collection, resolved there per the project config's data sources.
 </parse_input>
 
 <setup_directory step="0.2">
-1. Create `agents/testgen/{TICKET-KEY}/`
-2. Initialize `testgen-state.md`
+1. Create `agents/testgen/{TICKET-KEY}/` (full per-ticket layout in `<output_directory>` below).
+2. Initialize `testgen-state.md` from `<state_file_template>` below. At init the Phase 0 row is `[ ] Phase 0: Project Config Loading - In progress` (all others Not started); step 0.6 flips it to `[x] ... Completed` only after the config and initial-data files exist.
 </setup_directory>
 
 <load_project_config step="0.3">
@@ -48,7 +52,7 @@ Find or create the project config file, obtain project-specific data retrieval c
 
 Contiguous 1–5 sequence. The `<example_format_of_question>` block below is the verbatim question text used by step 2 — it is **not** a numbered step and the sequence does not restart after it.
 
-1. ACQUIRE `questioning/SKILL.md` FROM KB.
+1. USE SKILL `questioning`.
 2. Ask the user about knowledge base and data retrieval setup using the verbatim question text in `<example_format_of_question>` below.
 3. Process the user's answer — confirm the default scheme OR capture their customization.
 4. **Validate the answer provides sufficient information.** Minimum required fields:
@@ -57,7 +61,7 @@ Contiguous 1–5 sequence. The `<example_format_of_question>` block below is the
    - **Auth assumptions** (MCP already configured / token in env / requires per-call OAuth)
 
    **Validation failure paths:**
-   - If user said YES to default but the default cannot run in the environment (no MCP, no auth): re-ask for the missing field(s), naming exactly which are absent.
+   - If user said YES to default but the default cannot run in the environment (no MCP, no auth): re-prompt up to 2 times naming exactly which field(s) are absent. After 2 unsuccessful re-prompts, stop Phase 0, record `Phase 0 blocked: default unrunnable — missing <field>` in `testgen-state.md`, and ask the user to supply a complete answer before continuing.
    - If user said NO but did not name source / method / auth: re-prompt up to 2 times naming the missing fields explicitly. After 2 unsuccessful re-prompts, stop Phase 0, record `Phase 0 blocked: incomplete config answer` in `testgen-state.md`, and ask the user to supply a complete answer before continuing.
 5. Save the validated configuration to `agents/testgen/testgen-project-config.md` (canonical path per step 0.3).
 
@@ -96,8 +100,73 @@ you can provide them here as well.
 1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 0 complete
 2. Tell user: "Phase 0 complete. Project setup ready."
 3. Ask: "Ready to proceed to Phase 1 (Data Collection)?"
-4. **STOP and wait for explicit user confirmation** before the parent flow advances to Phase 1. Do NOT auto-proceed on inferred approval or silence; treat ambiguous responses as "not confirmed" and re-ask.
+4. Gate the advance to Phase 1 via USE SKILL `hitl` (the canonical approval/escalation home): require explicit user confirmation; do NOT auto-proceed on inferred approval or silence; treat ambiguous responses as "not confirmed" and re-ask.
 </update_state>
+
+<state_file_template>
+
+`agents/testgen/{TICKET-KEY}/testgen-state.md` — created here in Phase 0, updated by every subsequent phase:
+
+```markdown
+# Test Generation State - <Ticket ID>
+
+**Last Updated**: [DateTime]
+**Current Phase**: [0-6 or COMPLETE; if a phase halts, append " (BLOCKED: <reason>)", e.g. "0 (BLOCKED: incomplete config answer)"]
+**Jira Ticket**: [TICKET-KEY]
+
+## Phase Completion Status
+
+- [ ] Phase 0: Project Config Loading - In progress
+- [ ] Phase 1: Data Collection - Not started
+- [ ] Phase 2: Gap Analysis - Not Started
+- [ ] Phase 3: Question Generation - Not Started
+- [ ] Phase 4: Requirements Generation - Not Started
+- [ ] Phase 5: Test Scenarios - Not Started
+- [ ] Phase 6: Test Case Export - Not Started
+
+## Phase Details
+
+### Phase 1
+- Completed: [DateTime]
+- Jira Ticket: [KEY]
+- Files Created: [List]
+- Confluence Pages: [Count]
+- Notes: [Any relevant notes]
+
+[Add sections for each completed phase]
+
+## Metrics
+
+Completeness signal (one line; `—` until the phase runs; a thin `0`/`1` where more is expected → re-check the artifact):
+`P1 jira:[n]/conf:[n] · P2 contradictions:[n]/gaps:[n]/ambig:[n] · P3 questions:[n]/answered:[n] · P4 stories:[n]/FR:[n]/NFR:[n] · P5 scenarios:[n] · P6 exported:[n]/[n]`
+
+## Verification-Failure Overrides
+
+[Append a row each time the parent flow's verification-failure unilateral-start override fires. If never fired, write: `None — no overrides applied.`]
+
+- **[ISO timestamp]** — User asserted phases complete: `[user's verbatim claim]`. Failing conditions: `[which preconditions were unmet — state row missing / output file absent / etc.]`. Phase started: `[earliest incomplete phase id]`.
+```
+
+</state_file_template>
+
+<output_directory>
+
+All phase outputs stored under `agents/testgen/{TICKET-KEY}/`:
+
+```
+agents/testgen/{TICKET-KEY}/
+├── testgen-state.md        # State tracking (updated each phase)
+├── initial-data.md         # Phase 0: Initial user input + project config ref
+├── raw-data.md             # Phase 1: Jira + Confluence data
+├── analysis.md             # Phase 2: Gap analysis
+├── questions.md            # Phase 3: Generated questions
+├── answers.md              # Phase 3: User answers (HITL)
+├── requirements.md         # Phase 4: Final requirements
+├── test-scenarios.md       # Phase 5: Test cases
+└── export-report.md        # Phase 6: TMS export receipt (IDs/URLs, per-case status, timestamp)
+```
+
+</output_directory>
 
 <validation_checklist>
 - `agents/testgen/{TICKET-KEY}/` directory exists

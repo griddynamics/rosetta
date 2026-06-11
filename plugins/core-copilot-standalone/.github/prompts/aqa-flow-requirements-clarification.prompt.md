@@ -25,7 +25,7 @@ Fill gaps in understanding, clarify unknowns, and transcribe the typed assertion
 1. Identify gaps in test case understanding → step 2.1
 2. Ask user for clarification → step 2.2
 3. Wait for user answers → step 2.3
-4. Update test plan file `agents/plans/aqa-<test-name>.md` according to user answers → step 2.4
+4. Update the test plan + write the **mandatory** typed `### Explicit Assertions` list → step 2.4
 5. Document and update state → step 2.5
 </phase_steps>
 
@@ -89,8 +89,8 @@ Please provide answers so I can proceed with test implementation.
    | Case | Action |
    |---|---|
    | All answers received | Proceed to step 2.4. |
-   | Partial — some questions left blank or `"I don't know"` | Re-ask **once** for unanswered Critical only; cap at one re-ask round; on still-no-answer, treat that question as declined (next row). Edge / Optional unanswered → record as gaps per None-clause, do not re-ask. |
-   | Declines specific Critical questions | Record each as `gap: declined by user — <reason or "no reason given">` under `### Open Questions`; mark its Derived assertion (if any) Uncovered in `### Explicit Assertions`. **Aggregate cap:** if ≥50% of Critical questions are declined (or ≥3 declined when Critical count <6), escalate to the last row — do NOT proceed with majority-declined clarifications. |
+   | Partial — some questions left blank or `"I don't know"` | Re-ask **once** for unanswered Critical only; cap at one re-ask round; on still-no-answer, treat that question as declined (next row). Edge / Optional unanswered → record under `### Open Questions`, do not re-ask. |
+   | Declines specific Critical questions | Record each under `### Open Questions` as `declined by user — <reason or "no reason given">`; keep any Derived assertion as a normal `### Explicit Assertions` bullet (Phase 6 decides implemented-or-Uncovered — Phase 2 writes no status). **Aggregate cap:** if ≥50% of Critical questions are declined (or ≥3 declined when Critical count <6), escalate to the last row — do NOT proceed with majority-declined clarifications. |
    | Declines all / refuses to engage | Stop. Record `Phase 2 blocked: user declined to answer all clarification questions` in `agents/aqa-state.md`, surface to parent workflow, do NOT auto-proceed to Phase 3. |
 </wait_for_user>
 
@@ -118,9 +118,12 @@ Please provide answers so I can proceed with test implementation.
 - [Data requirement 2]
 ...
 
+### Open Questions
+- [Each declined or unanswered question — `declined by user — <reason>` or `unanswered (Edge/Optional)` — citing the question. If none: `None — all questions answered.`]
+
 ### Explicit Assertions (mandatory — transcribed from step 2.1 gap analysis)
 
-Each assertion carries a **type** (Presence / State / Content / Behavioral) and a **subject** (UI element or system observable). One bullet per assertion; do NOT collapse multiple assertions into one line.
+Each assertion carries a **type** (Presence / State / Content / Behavioral) and a **subject** (UI element or system observable). One bullet per assertion; do NOT collapse multiple assertions into one line. Phase 2 writes **only** typed bullets here (no status field); the `### Uncovered Assertions` section is owned and written by Phase 6 (`aqa-flow-test-implementation.md`) — Phase 2 never pre-marks status.
 
 - **Presence:** [element/observable] is [present | absent | visible | hidden] after [trigger condition].
 - **State:** [element] is [enabled | disabled | selected | unselected | loading | settled] after [trigger].
@@ -140,10 +143,12 @@ The two bullets illustrate the **exact vs. contains** distinction step 2.1 flags
 </update_test_plan>
 
 <update_state step="2.5">
-1. Update `agents/aqa-state.md`:
+1. **GATE — do NOT mark Phase 2 complete or advance to Phase 3 until** `agents/plans/aqa-<test-name>.md` contains the step-2.4 `### Explicit Assertions` subsection with **at least one typed bullet** (Presence / State / Content / Behavioral) **OR** the explicit None-clause. If it is absent, return to step 2.4 and write it first — a Phase 2 marked complete without this subsection is a defect (Phase 6 loses its validation anchor and tests silently under-assert).
+2. Update `agents/aqa-state.md`:
    - Questions Asked: [count]
    - User Responses: Documented in test plan file
-2. Mark Phase 2 complete, Phase 3 current
+   - Explicit Assertions: [count of typed bullets, or `None-clause`]
+3. Mark Phase 2 complete, Phase 3 current.
 </update_state>
 
 <validation_checklist>

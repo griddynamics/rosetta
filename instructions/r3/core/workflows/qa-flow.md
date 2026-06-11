@@ -16,9 +16,10 @@ End-to-end backend API test automation from test case input to working automated
 <workflow_phases>
 
 - **Phases 0→7 MUST run in order**; sanctioned skips per `<skip_rules>` only.
-- Rosetta prep steps completed.
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
 - NO ASSUMPTIONS: never assume endpoints, payloads, auth mechanisms, or response schemas — ask the user when missing.
 - Generic linear-execution cadence (ACQUIRE phase file → execute → update state → next; todo discipline; no skipping without approval) is owned by the **`orchestrator-contract`** skill (per `<references>`). This workflow specifies only qa-flow-specific deltas in each phase block below.
+- **Phase-output gate (verify before advancing):** each phase's mandatory artifact must exist and pass its phase-file completion gate before the next phase starts — notably **Phase 4: every `ATC-NNN` in `test-specs.md` traces to a Phase 3 requirement/source**; also Phase 1 `raw-data.md`, Phase 2 `api-analysis.md`, and Phase 6 `execution-report.md` present and non-placeholder. (Generic verify-before-advance is owned by `orchestrator-contract`.)
 
 <phase_template>
 Per-phase block format: phase file path + Input/Output + HITL gate (when present). The ACQUIRE / execute / state-update cadence is the `orchestrator-contract` skill's contract, not restated per-phase.
@@ -27,11 +28,11 @@ Per-phase block format: phase file path + Input/Output + HITL gate (when present
 <skip_rules>
 
 - **Always-in-force carve-outs** (the override below NEVER suppresses):
-  1. Per-phase HITL gates (Phases 3-7 marked `type="HITL"`) — explicit user approval per `bootstrap-hitl-questioning`.
+  1. Per-phase HITL gates (Phases 3-7 marked `type="HITL"`) — explicit user approval per the `hitl` skill.
   2. NO ASSUMPTIONS rule (above) — every non-skip-gate decision.
   3. Safety / destructive confirmations — file deletion, edits outside `agents/qa/{IDENTIFIER}/`, comparable irreversible actions.
 
-- **Verification-failure unilateral-start override** — subordinate to `bootstrap-hitl-questioning` + the carve-outs above; the only no-ask deviation, applies only at this skip-verification gate.
+- **Verification-failure unilateral-start override** — subordinate to the `hitl` skill + the carve-outs above; the only no-ask deviation, applies only at this skip-verification gate.
 
   | Precondition (ALL true, independently verified) | Action |
   |---|---|
@@ -129,10 +130,10 @@ Skills (compact map — phase → comma-separated skill tags; backticked = ACQUI
 - Phase 3: `requirements-use`, `questioning`.
 - Phase 4: `scenarios-generation`, `coding`.
 - Phase 5: test-implementation done inline by this phase via `coding` + `testing`. Delegation policy: `qa-flow-test-implementation.md` step 5.1.4.
-- Phase 6: `debugging` (Part A) (report-analysis done inline via `debugging` + `sensitive-data`).
-- Phase 7: `debugging`, `coding` (Part B).
+- Phase 6: `debugging`, `sensitive-data` (read-only report-analysis triage, done inline).
+- Phase 7: `debugging`, `coding`.
 
-**Rosetta KB:** zero-document ACQUIRE → `<failure_handling>`. `debugging` is invoked ad-hoc during Phases 6 (Part A) + 7 (Part B); no dedicated workflow file.
+**Rosetta KB:** zero-document ACQUIRE → `<failure_handling>`. `debugging` is invoked ad-hoc during Phase 6 (report analysis) and Phase 7 (corrections); no dedicated workflow file.
 
 MCPs:
 - `TestRail` — test case management

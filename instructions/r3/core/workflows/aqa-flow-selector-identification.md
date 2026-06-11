@@ -64,6 +64,8 @@ If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-st
 - **Selector Availability** — ✅ EXISTS / ❌ MISSING / ❌ UNRESOLVABLE per interaction.
 - **Identified Selectors** — Selector / Type / Source (file:line or page-source file) / Usage / Stability per selector, using the 4-tier strategy (`data-testid` > `id` > stable class/ARIA > XPath).
 - **Fragile Selectors Flagged** — any selector matching a fragile pattern, with reason + recommendation, for Phase 5's fragile-selector gate.
+
+**Blocking-infeasibility check.** If the test's core interactions are **UNRESOLVABLE because the target elements/flow are absent from the app** — page source was captured but contains no matching elements (not merely a not-yet-captured page source) — the test cannot be authored without inventing selectors or modifying product source. Trigger the workflow's **Blocking infeasibility HARD-STOP** (`aqa-flow.md`): escalate to the user with the options and WAIT for an explicit choice. Do NOT fabricate selectors, do NOT on your own initiative default to a pending/`fixme` spec, and do NOT advance to Phase 5 — even if the user earlier said "skip clarification".
 </execute_identification>
 
 <handle_page_source step="4.2" condition="selectors still missing">
@@ -105,14 +107,15 @@ This step's content is **user-facing instruction** — preserved verbatim in the
 </handle_page_source>
 
 <update_state step="4.3">
-1. Update `agents/aqa-state.md`:
+1. **GATE — do NOT mark Phase 4 complete or advance to Phase 5 until** the test plan's `## Selector Management` section carries the Part A deliverables (Interaction Map · Selector Availability · Identified Selectors · Fragile Selectors Flagged). If absent, return to the identification step and write them — Phase 5 reads this section as its contract; completing Phase 4 without it leaves Phase 5 with no selectors to implement.
+2. Update `agents/aqa-state.md`:
    - Total Selectors Needed: [count]
    - Existing: [count]
    - Found in Frontend: [count]
    - Page Source Required: [yes/no]
    - Selector Strategy: [preferred method]
    - Phase 4 completion timestamp
-2. Mark Phase 4 complete, Phase 5 current
+3. Mark Phase 4 complete, Phase 5 current.
 </update_state>
 
 <validation_checklist>
@@ -125,4 +128,3 @@ This step's content is **user-facing instruction** — preserved verbatim in the
 </validation_checklist>
 
 </aqa_flow_selector_identification>
-</output>
