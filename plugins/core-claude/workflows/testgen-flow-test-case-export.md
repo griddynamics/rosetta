@@ -1,6 +1,6 @@
 ---
 name: testgen-flow-test-case-export
-description: Phase 6 of Test Generation - Export Test Cases
+description: "Phase 6 Test Case Export of testgen-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

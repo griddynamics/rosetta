@@ -1,6 +1,6 @@
 ---
 name: init-workspace-rules
-description: "Rosetta skill to create local cached agent rules configured for IDE/OS/project context."
+description: "Create agent rules."
 license: Apache-2.0
 model: claude-sonnet-4-6
 tags: ["init", "workspace", "rules"]

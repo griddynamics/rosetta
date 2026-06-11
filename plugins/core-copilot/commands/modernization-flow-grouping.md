@@ -1,6 +1,6 @@
 ---
 name: modernization-flow-grouping
-description: "Modernization flow phase 4: Class group analysis, bounded contexts, dependency mapping."
+description: "Phase 4 Class Grouping of modernization-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

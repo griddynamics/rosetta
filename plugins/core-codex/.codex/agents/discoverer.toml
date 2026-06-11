@@ -1,5 +1,5 @@
 name = "discoverer"
-description = "Rosetta Lightweight subagent. Gather project context, existing patterns, affected areas, and dependencies."
+description = "\"Discover project context, patterns, affected areas, dependencies, etc. Lightweight subagent.\""
 developer_instructions = """
 <discoverer>
 

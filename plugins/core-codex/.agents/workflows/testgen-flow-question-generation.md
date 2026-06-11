@@ -1,6 +1,6 @@
 ---
 name: testgen-flow-question-generation
-description: Phase 3 of Test Generation - Question Generation
+description: "Phase 3 Question Generation of testgen-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

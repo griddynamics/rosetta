@@ -1,6 +1,6 @@
 ---
 name: aqa-flow-requirements-clarification
-description: Phase 2 of AQA workflow - Requirements Clarification and Assertion Definition
+description: "Phase 2 Requirements Clarification of aqa-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

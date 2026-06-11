@@ -1,6 +1,6 @@
 ---
 name: specflow-use
-description: Connect Rosetta locally with Grid Dynamics SpecFlow MCP. Trigger only when the user mentions SpecFlow or SpecFlow workspaces and if SpecFlow MCP is already installed.
+description: "To connect Rosetta with Grid Dynamics SpecFlow MCP; only when SpecFlow is mentioned and the MCP is installed."
 license: Apache-2.0
 ---
 

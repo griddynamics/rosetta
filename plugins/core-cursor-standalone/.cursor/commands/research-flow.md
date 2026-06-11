@@ -1,6 +1,6 @@
 ---
 name: research-flow
-description: Rosetta workflow for project-related deep research using meta-prompting approach. Use when user requests research, analysis, or investigation that requires systematic exploration with grounded references. Contains context load, prompt crafting using reasoning, executing research with parallel subagents, and finalization.
+description: "Workflow for deep project research with grounded references, parallel exploration, etc."
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---

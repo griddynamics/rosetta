@@ -1,6 +1,6 @@
 ---
 name: reasoning
-description: Apply structured meta-cognitive reasoning to complex problems using canonical 7D, then deliver a clear answer with caveats.
+description: "To apply structured 7D meta-cognitive reasoning to complex problems, then answer clearly with caveats."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true

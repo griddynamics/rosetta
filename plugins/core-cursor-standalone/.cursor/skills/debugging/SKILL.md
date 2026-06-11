@@ -1,6 +1,6 @@
 ---
 name: debugging
-description: Rosetta debugging skill for errors, test failures, and unexpected behavior. Use proactively when encountering any issue. Ensures root cause investigation before attempting fixes.
+description: "To investigate errors, test failures, and unexpected behavior — root cause before fix."
 license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---

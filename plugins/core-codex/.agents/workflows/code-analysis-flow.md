@@ -1,6 +1,6 @@
 ---
 name: code-analysis-flow
-description: "Rosetta workflow for reverse-engineering an existing codebase into grounded architecture documentation. Use when user asks to analyze, document, or reverse-engineer a code module, repository, or feature. Scales to SMALL (single doc) or LARGE (per-module + summary). Optional requirements branch captures SMART/MECE/EARS functional and non-functional requirements from code."
+description: "Workflow for reverse-engineering a codebase into grounded architecture docs, requirements capture, etc."
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---

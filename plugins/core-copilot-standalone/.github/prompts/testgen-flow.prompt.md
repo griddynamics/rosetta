@@ -1,6 +1,6 @@
 ---
 name: testgen-flow
-description: MUST apply when test case generation task is assigned. (e.g if a user asks to generate test cases for TICKET-123, create test scenarios from Jira, analyze requirements and generate tests, export tests to TestRail)
+description: "Workflow for generating test cases from requirements (Jira/Confluence), exporting to TestRail, etc."
 alwaysApply: false
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md

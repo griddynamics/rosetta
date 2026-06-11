@@ -13,13 +13,19 @@ Orchestrates prompt authoring/adaptation via `discover -> extract+intake -> blue
 
 <workflow_phases>
 
-<prerequisites step="0", applies="ALL">
+Orchestrator must trust the system and skills; coordinate only sequence, artifacts, state, and approvals.
+Load only references needed for the current phase.
 
-1. All Rosetta prep steps MUST be FULLY completed
-2. MUST USE OPERATION_MANAGER for deterministic execution
-3. Orchestrator must trust the system and skills; coordinate only sequence, artifacts, state, and approvals.
-4. Load only references needed for the current phase; load each phase's skills just-in-time when entering it (when subagents are not used).
-5. Agent state tracker file `coding-agents-prompting-flow-state.md` is stored in FEATURE TEMP folder.
+Agent state tracker file `coding-agents-prompting-flow-state.md` is stored in FEATURE TEMP folder.
+
+Execute phases sequentially, do not skip!
+
+<prerequisites>
+
+1. Preparation steps are mandatory prerequisites and must be completed before phase 1.
+2. Workflow execution starts only after prerequisites are satisfied.
+3. Orchestrator and subagents MUST USE SKILL `coding-agents-prompt-authoring`.
+4. MUST load each phase's skills when entering that phase (just-in-time) when subagents are not used.
 
 </prerequisites>
 
@@ -112,6 +118,7 @@ Contracts:
 
 - `discover` runs first and produces `Discovery Notes` + `Reference Set`.
 - `Prompt Brief` is approved before blueprint starts.
+- Adaptation requests load `pa-adapt.md` and keep source intent traceable through the target artifact.
 - `Prompt Brief` is present as input in loop, simulation, and validation phases.
 - Loop explicitly runs `draft -> hardening -> edit` for each target prompt.
 - Every phase has artifact evidence and state update in coding-agents-prompting-flow-state.md in FEATURE TEMP folder.

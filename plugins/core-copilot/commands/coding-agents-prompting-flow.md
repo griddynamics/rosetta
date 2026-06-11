@@ -1,6 +1,6 @@
 ---
 name: coding-agents-prompting-flow
-description: Reusable workflow for prompt authoring/adaptation with thin orchestration and explicit HITL approvals. discover -> extract+intake -> blueprint -> for_each_prompt_loop(draft -> hardening -> edit) -> simulate -> validate.
+description: "Workflow for authoring and adapting AI-agent prompts: skills, agents, workflows, rules, etc."
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---
@@ -118,6 +118,7 @@ Contracts:
 
 - `discover` runs first and produces `Discovery Notes` + `Reference Set`.
 - `Prompt Brief` is approved before blueprint starts.
+- Adaptation requests load `pa-adapt.md` and keep source intent traceable through the target artifact.
 - `Prompt Brief` is present as input in loop, simulation, and validation phases.
 - Loop explicitly runs `draft -> hardening -> edit` for each target prompt.
 - Every phase has artifact evidence and state update in coding-agents-prompting-flow-state.md in FEATURE TEMP folder.

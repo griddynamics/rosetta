@@ -1,6 +1,6 @@
 ---
 name: testgen-flow-data-collection
-description: Phase 1 of Test Generation - Data Collection from Jira and Confluence
+description: "Phase 1 Data Collection of testgen-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

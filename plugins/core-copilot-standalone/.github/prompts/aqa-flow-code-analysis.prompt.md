@@ -1,6 +1,6 @@
 ---
 name: aqa-flow-code-analysis
-description: Phase 3 of AQA workflow - Code Analysis and Architecture Understanding
+description: "Phase 3 Code Analysis of aqa-flow"
 alwaysApply: false
 baseSchema: docs/schemas/rule.md
 ---

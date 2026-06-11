@@ -1,6 +1,6 @@
 ---
 name: init-workspace-documentation
-description: "Rosetta skill to create CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, and AGENT MEMORY.md from workspace analysis."
+description: "Generate workspace docs."
 license: Apache-2.0
 model: gpt-5.5
 model_reasoning_effort: high

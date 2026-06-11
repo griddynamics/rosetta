@@ -1,6 +1,6 @@
 ---
 name: prompt-engineer
-description: Rosetta Full subagent. Prompt authoring and adaptation — discovery, drafting, and delivery of prompt artifacts under explicit HITL approvals.
+description: "Author and adapt prompts — discover, draft, deliver — under HITL approvals. Full subagent."
 mode: subagent
 model: claude-opus-4-8
 readonly: false
@@ -63,7 +63,6 @@ Validation: Delivered artifacts satisfy assigned contract, include required HITL
 <skills_available>
 
 - USE SKILL `coding-agents-prompt-authoring`
-- USE SKILL `coding-agents-prompt-adaptation`
 - USE SKILL `requirements-authoring`
 
 </skills_available>

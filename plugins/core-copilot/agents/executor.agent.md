@@ -1,6 +1,6 @@
 ---
 name: executor
-description: Rosetta Lightweight subagent. Run simple commands, collect results, and summarize to prevent parent context overflow.
+description: "Run simple commands, collect and summarize results to protect parent context. Lightweight subagent."
 mode: subagent
 model: Claude Haiku 4.5
 readonly: false

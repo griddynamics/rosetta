@@ -1,6 +1,6 @@
 ---
 name: modernization-flow-mapping
-description: "Modernization flow phase 6: Implementation mapping, target specs, source-to-target mapping."
+description: "Phase 6 Implementation Mapping of modernization-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

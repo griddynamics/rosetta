@@ -1,6 +1,6 @@
 ---
 name: modernization-flow-reuse
-description: Phase 7 of AQA workflow - Test Report Analysis
+description: "Phase 7 Test Report Analysis of aqa-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

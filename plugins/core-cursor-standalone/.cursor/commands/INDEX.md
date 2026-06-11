@@ -2,15 +2,15 @@
 
 All paths are relative to Rosetta Plugin Path.
 
-- `commands/adhoc-flow.md`: "Rosetta ad-hoc adaptive meta-workflow that constructs, tracks, reviews, and executes a tailored execution plan per user request using building blocks and available instructions. Useful for small or simple tasks if none other workflows matches. Lightweight."
-- `commands/aqa-flow.md`: MUST apply when automated QA/testing task is assigned. (e.g if user asks to write automation tests for feature, create test automation)
-- `commands/code-analysis-flow.md`: "Rosetta workflow for reverse-engineering an existing codebase into grounded architecture documentation. Use when user asks to analyze, document, or reverse-engineer a code module, repository, or feature. Scales to SMALL (single doc) or LARGE (per-module + summary). Optional requirements branch captures SMART/MECE/EARS functional and non-functional requirements from code."
-- `commands/coding-agents-prompting-flow.md`: Reusable workflow for prompt authoring/adaptation with thin orchestration and explicit HITL approvals. discover -> extract+intake -> blueprint -> for_each_prompt_loop(draft -> hardening -> edit) -> simulate -> validate.
-- `commands/coding-flow.md`: "Rosetta fixing, improvements, coding, and implementation workflow, includes discovery, tech specs, tech plan, subagent plan review, user plan review, implementation, subagent review implementation, validation, user review, and final validation with reviewer gates, HITL gates, and subagent delegation. Adopts to request size from small to large."
-- `commands/external-lib-flow.md`: Use if user asks to make AI use or teach AI or onboard AI or document for AI the EXTERNAL private library or project codebase for understanding and usage in existing workspace. So that AI can use external library in current project without having direct access to its source code.
-- `commands/init-workspace-flow.md`: "Rosetta workflow to initialize or upgrade a workspace, includes identify context, init proxying shells for target skills/agents/commands, workspace discovery, copy rules (optional, not recommended), identify patterns used, generate documentation, clarify questions, verification."
-- `commands/modernization-flow.md`: If user asks for entire code conversion (C++ to Java), modernization (Windows to Linux Containers), upgrade (.NET 4.5 to .NET 10), re-architecture (Monolith to Microservices, SQL to NOSQL), implementing containerization or Linux support, and similar flows. Additionally including discovery/research/planning for modernization.
-- `commands/requirements-authoring-flow.md`: Rosetta workflow for requirements and specifications authoring (creating, updating, improving, reviewing). Guides AI through discovery, intent capture, iterative requirement drafting with mandatory user approvals, validation, and delivery. Contains discovery, research, intent capture, outline, drafting, validating, and finalization
-- `commands/research-flow.md`: Rosetta workflow for project-related deep research using meta-prompting approach. Use when user requests research, analysis, or investigation that requires systematic exploration with grounded references. Contains context load, prompt crafting using reasoning, executing research with parallel subagents, and finalization.
-- `commands/self-help-flow.md`: Rosetta self-help. Ask about capabilities, learn how to use them, get guidance on developing with Rosetta, or seamlessly switch to executing any discovered workflow. Answers "what can you do", "how do I use X", "how modernization works", "what workflows are available", etc.
-- `commands/testgen-flow.md`: MUST apply when test case generation task is assigned. (e.g if a user asks to generate test cases for TICKET-123, create test scenarios from Jira, analyze requirements and generate tests, export tests to TestRail)
+- `commands/adhoc-flow.md`: "Workflow for the rest of tasks: lightweight documentation, build, track, synchronize, etc."
+- `commands/aqa-flow.md`: "Workflow for automated QA: integration and end-to-end UI test automation, page objects, etc."
+- `commands/code-analysis-flow.md`: "Workflow for reverse-engineering a codebase into grounded architecture docs, requirements capture, etc."
+- `commands/coding-agents-prompting-flow.md`: "Workflow for authoring and adapting AI-agent prompts: skills, agents, workflows, rules, etc."
+- `commands/coding-flow.md`: "Workflow for all coding: features, fixes, refactors, unit tests, etc.; scales small to large."
+- `commands/external-lib-flow.md`: "Workflow for onboarding an external private library so AI can use it without source access."
+- `commands/init-workspace-flow.md`: "Workflow for initializing or upgrading a workspace: context, discovery, documentation, etc."
+- `commands/modernization-flow.md`: "Workflow for converting, modernizing, upgrading, or re-architecting code (e.g. C++→Java, monolith→microservices), etc."
+- `commands/requirements-authoring-flow.md`: "Workflow for authoring requirements and specifications: drafting, review, validation, etc."
+- `commands/research-flow.md`: "Workflow for deep project research with grounded references, parallel exploration, etc."
+- `commands/self-help-flow.md`: "Workflow for Rosetta self-help: explain capabilities and usage, then run any discovered workflow."
+- `commands/testgen-flow.md`: "Workflow for generating test cases from requirements (Jira/Confluence), exporting to TestRail, etc."

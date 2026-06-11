@@ -1,6 +1,6 @@
 ---
 name: modernization-flow-testing
-description: "Modernization flow phase 3 (optional): Test coverage analysis and gap filling. Integration testing."
+description: "Phase 3 Testing (optional) of modernization-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

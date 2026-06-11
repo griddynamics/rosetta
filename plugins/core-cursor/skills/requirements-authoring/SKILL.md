@@ -1,6 +1,6 @@
 ---
 name: requirements-authoring
-description: Author, update, and validate functional and non-functional requirements as a source of truth using atomic requirement units with explicit user approval.
+description: "To author, update, and validate functional/non-functional requirements as atomic units with user approval."
 tags: ["requirements", "skills"]
 license: Apache-2.0
 disable-model-invocation: false

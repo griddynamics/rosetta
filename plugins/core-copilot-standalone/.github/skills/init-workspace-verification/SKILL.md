@@ -1,6 +1,6 @@
 ---
 name: init-workspace-verification
-description: "Rosetta skill to verify workspace initialization completeness and run catch-up for missed artifacts."
+description: "Verify init completeness."
 license: Apache-2.0
 model: Claude Sonnet 4.6
 tags: ["init", "workspace", "verification", "validation"]

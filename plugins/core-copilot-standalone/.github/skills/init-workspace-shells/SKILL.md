@@ -1,6 +1,6 @@
 ---
 name: init-workspace-shells
-description: "Rosetta skill to generate IDE/CodingAgent shell files from KB schemas."
+description: "Generate shell files."
 license: Apache-2.0
 model: Claude Sonnet 4.6
 tags: ["init", "workspace", "shells", "configure"]

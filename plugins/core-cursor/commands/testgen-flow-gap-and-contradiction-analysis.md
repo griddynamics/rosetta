@@ -1,6 +1,6 @@
 ---
 name: testgen-flow-gap-and-contradiction-analysis
-description: Phase 2 of Test Generation - Gap and Contradiction Analysis
+description: "Phase 2 Gap & Contradiction Analysis of testgen-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

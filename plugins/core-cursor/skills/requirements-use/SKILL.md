@@ -1,6 +1,6 @@
 ---
 name: requirements-use
-description: Consume approved requirements to drive planning, implementation, and validation with explicit traceability and mandatory HITL for ambiguity or tradeoffs.
+description: "To consume approved requirements for planning, implementation, and validation, with traceability and HITL."
 tags: ["requirements", "skills"]
 license: Apache-2.0
 disable-model-invocation: false

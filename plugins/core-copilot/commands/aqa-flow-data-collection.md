@@ -1,6 +1,6 @@
 ---
 name: aqa-flow-data-collection
-description: Phase 1 of AQA workflow - Data Collection 
+description: "Phase 1 Data Collection of aqa-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

@@ -1,6 +1,6 @@
 ---
 name: aqa-flow-selector-implementation
-description: Phase 5 of AQA workflow - Selector Implementation in Page Objects
+description: "Phase 5 Selector Implementation of aqa-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

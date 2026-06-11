@@ -1,6 +1,6 @@
 ---
 name: aqa-flow
-description: MUST apply when automated QA/testing task is assigned. (e.g if user asks to write automation tests for feature, create test automation)
+description: "Workflow for automated QA: integration and end-to-end UI test automation, page objects, etc."
 alwaysApply: false
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md

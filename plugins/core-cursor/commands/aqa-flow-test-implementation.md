@@ -1,6 +1,6 @@
 ---
 name: aqa-flow-test-implementation
-description: Phase 6 of AQA workflow - Test Implementation and Integration
+description: "Phase 6 Test Implementation of aqa-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

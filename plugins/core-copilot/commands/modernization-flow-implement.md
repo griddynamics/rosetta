@@ -1,6 +1,6 @@
 ---
 name: modernization-flow-implement
-description: "Modernization flow phase 8: Implementation following approved target specs."
+description: "Phase 8 Implementation of modernization-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

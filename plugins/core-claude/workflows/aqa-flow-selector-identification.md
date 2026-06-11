@@ -1,6 +1,6 @@
 ---
 name: aqa-flow-selector-identification
-description: Phase 4 of AQA workflow - Selector Identification and Page Source Request
+description: "Phase 4 Selector Identification of aqa-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

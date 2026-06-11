@@ -1,6 +1,6 @@
 ---
 name: natural-writing
-description: Use this skill to rewrite or generate text in a clear, natural, and honest human tone. Eliminates AI-sounding language, marketing hype, and robotic phrasing.
+description: "To rewrite text in a clear, natural, honest human tone — no AI slop, hype, or robotic phrasing."
 license: Apache-2.0
 
 tags: ["natural-writing", "writing", "style", "rewrite"]
