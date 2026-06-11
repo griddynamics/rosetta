@@ -1,6 +1,6 @@
 ---
 name: qa-flow
-description: MUST apply when a backend API test-automation task is assigned (e.g. user asks to write API tests, automate endpoints from a TestRail / Jira test case, add coverage for a REST/GraphQL service, extend a pytest / Jest / JUnit / RestAssured / SuperTest API suite, debug or correct failing API tests). End-to-end backend API test automation from test case input through API-spec analysis, requirements clarification, test specification, implementation, execution, and corrections — uses TestRail / Jira test cases, Swagger/OpenAPI specs, Confluence documentation, and project code to produce automated tests aligned with existing architecture and standards.
+description: MUST apply for backend API test automation: TestRail/Jira cases → automated tests, HITL gates at spec/impl/exec/correction.
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---
@@ -26,6 +26,8 @@ Per-phase block format: phase file path + Input/Output + HITL gate (when present
 </phase_template>
 
 <skip_rules>
+
+This block owns ONLY the qa-flow-specific skip preconditions/carve-outs below. Gate-execution mechanics (how to run an approval gate, token handling) are owned by `USE SKILL hitl` — defer to it; not restated here.
 
 - **Always-in-force carve-outs** (the override below NEVER suppresses):
   1. Per-phase HITL gates (Phases 3-7 marked `type="HITL"`) — explicit user approval per the `hitl` skill.
@@ -129,7 +131,7 @@ Skills (compact map — phase → comma-separated skill tags; backticked = ACQUI
 - Phase 2: `reverse-engineering`.
 - Phase 3: `requirements-use`, `questioning`.
 - Phase 4: `scenarios-generation`, `coding`.
-- Phase 5: test-implementation done inline by this phase via `coding` + `testing`. Delegation policy: `qa-flow-test-implementation.md` step 5.1.4.
+- Phase 5: test-implementation done inline by this phase via `coding` + `testing`. Delegation policy: `qa-flow-test-implementation.md` `<execute_implementation step="5.1">`.
 - Phase 6: `debugging`, `sensitive-data` (read-only report-analysis triage, done inline).
 - Phase 7: `debugging`, `coding`.
 

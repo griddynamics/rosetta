@@ -1,11 +1,17 @@
 ---
 name: orchestrator-contract
-description: "Rosetta MUST skill. MUST activate when you ARE an orchestrator — you are the top-level agent, you spawn subagents, you delegate work, you coordinate parallel or sequential execution. Defines delegation quality, subagent dispatch, routing, review, and ownership protocol."
+description: "Rosetta MUST skill — activate as orchestrator: delegation, dispatch, routing, review, ownership protocol."
 license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
 
 <orchestrator_contract>
+
+<when_to_use_skill>
+
+Activate when you ARE the orchestrator — top-level agent that spawns subagents, delegates, and coordinates parallel/sequential execution. Not for subagents executing a single assigned task.
+
+</when_to_use_skill>
 
 <prerequisites>
 
@@ -36,51 +42,7 @@ Topology:
 
 Dispatch:
 
-4. Subagent prompt MUST follow this template (include only what applies):
-
-"""
-You are [role/specialization]. [Lightweight|Full] subagent.
-[Plan: [plan.json path or "ad-hoc"]. Phase: [phase id]. Task: [task id].]
-
-## Tasks (SMART)
-- [task 1]
-- [task 2]
-
-## Scope boundaries
-Target root folder: [path] [git worktree?]
-DO: [what is in scope, explicit expected outputs and clear expectations]
-DO NOT: [what is explicitly out of scope, what not to touch — forbid out-of-scope work]
-
-## Constraints
-- [constraint: e.g., case sensitivity, naming conventions, patterns to follow]
-
-## Acceptance criteria
-- [done when: specific measurable condition]
-
-## Failure conditions
-- [stop and report when: condition]
-
-## Skills
-MUST USE SKILL `subagent-contract`, `operation-manager`.
-MUST USE SKILL [required skill].
-RECOMMEND USE SKILL [recommended skill].
-
-## Original user request
-[original user request/intent verbatim — always provide throughout all steps]
-
-## Context
-[specific task, full context, and references — subagents know nothing except shared bootstrap, prep steps, and this contract; provide everything needed]
-
-## Output
-Response Message: [define what and format of the response message output, request for consistent, non-ambiguous and full message, so that you are able to verify it]
-Output files: [optional, output can be just response message or it could be both message + files (if high volume expected); provide unique output file path per subagent and format if output to file is needed; for large output define exact path and required file format/template; or expected report-back summary — include only what applies]
-
-## Evidence
-[require that all claims, findings, and recommendations include proofs, references, and deep links with line ranges; include brief source quotes; explicitly distinguish verified facts from assumptions]
-
-[free form anything else that was not provided, additional information, requirements, specifications, context, etc.]
-"""
-
+4. Subagent dispatch prompt template → `references/dispatch-template.md` (load when composing a dispatch). The prompt MUST follow it; include only what applies.
 5. Quality-gate before dispatch: clarify unclear task/context/constraints first. Never dispatch ambiguous instructions.
 6. Lightweight = generic, built-in, small clear tasks (e.g., build/tests). Full = user-defined, specialized role, larger work.
 7. Keep standard agent tools available to subagents as required.

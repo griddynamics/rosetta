@@ -63,11 +63,11 @@ This phase performs session initialization DIRECTLY (no dedicated init skill); i
 
 </execute_config>
 
-<create_initial_data step="0.2a">
+<create_initial_data step="0.2">
 Write `agents/qa/{IDENTIFIER}/initial-data.md` per `<initial_data_contract>` — all four fields populated from the parsed input.
 </create_initial_data>
 
-<update_state step="0.2">
+<update_state step="0.3">
 1. Update `agents/qa-state.md`:
    - Test Case Source: [TestRail ID / Jira key / Manual]
    - Config Source: [Existing / User provided / Discovered]

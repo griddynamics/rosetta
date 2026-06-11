@@ -31,7 +31,7 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 
 <core_concepts>
 
-- Try `rosettify` MCP first (if already available), fallback to CLI: `npx rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB.
+- Mechanism selection (tier the UNIVERSAL path first): the built-in todo-task fallback ACQUIRE `todo-tasks-fallback.md` FROM KB is agent-agnostic and works on every coding agent — it is the universal baseline. Preferred-when-available opt-in (both require Node.js): `rosettify` MCP if already available, else the CLI `npx rosettify@latest <command> <subcommand> <plan_file>` (on Claude Code needs the `allowed-tools: Bash(npx:*)` grant). Use an opt-in only when its prerequisites are met; otherwise fall back to the universal `todo-tasks-fallback.md`.
 - Always use full absolute paths for the plan file
 - Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`
 - Help: `npx rosettify@latest help plan` provides full help JSON
@@ -62,6 +62,8 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 </core_concepts>
 
 <process>
+
+**Self-select your flow:** if you ARE the orchestrator (you spawn/delegate phases) → Orchestrator flow below; if you are a subagent executing one assigned phase → Subagent flow below. Run exactly one.
 
 **Orchestrator flow:**
 

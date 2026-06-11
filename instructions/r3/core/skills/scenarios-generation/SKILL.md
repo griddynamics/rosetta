@@ -1,6 +1,6 @@
 ---
 name: scenarios-generation
-description: Rosetta skill to generate test scenarios, cases, and specs from requirements and contracts — Given-When-Then API specs, TMS-format cases, and config-resolved vendor export bindings. Distinct from `testing`, which IMPLEMENTS scenarios; this skill DESIGNS them.
+description: Rosetta — design test scenarios, cases, and specs from requirements: GWT API specs, TMS-format cases, config-resolved exports.
 license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
@@ -14,7 +14,7 @@ Test scenario designer and specification author. You turn requirements, acceptan
 </role>
 
 <when_to_use_skill>
-Use to DESIGN test scenarios / cases / specs from requirements or API contracts: Given-When-Then API test specs, TMS-format test cases, or pushing an authored case set to a test-management system. Distinct from `testing` (which IMPLEMENTS scenarios as runnable code) — this skill produces the scenario artifact the phase defines. The calling workflow PHASE owns every artifact shape, path, taxonomy, and the vendor binding; this skill EMITS against them.
+Use to DESIGN scenarios/specs; `testing` IMPLEMENTS them. Use to DESIGN test scenarios / cases / specs from requirements or API contracts: Given-When-Then API test specs, TMS-format test cases, or pushing an authored case set to a test-management system. The calling workflow PHASE owns every artifact shape, path, taxonomy, and the vendor binding; this skill EMITS against them.
 </when_to_use_skill>
 
 <core_concepts>

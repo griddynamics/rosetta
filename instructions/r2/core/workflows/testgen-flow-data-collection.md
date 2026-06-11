@@ -149,7 +149,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 
 <update_state step="1.4">
 
-1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` per the parent flow's canonical state-file schema (declared once in `testgen-flow.md` `<state_file>` — this phase does NOT restate the full schema; it produces the Phase 1 delta the schema slots in).
+1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` per the canonical state-file schema (owned by `testgen-flow-project-config-loading.md` `<state_file_template>`, via `testgen-flow.md` `<state_and_outputs>` — this phase does NOT restate the full schema; it produces the Phase 1 delta the schema slots in).
 
    **Phase 1 delta — required fields (slot into the schema's `## Phase Completion Status` and `## Phase Details` blocks):**
 
