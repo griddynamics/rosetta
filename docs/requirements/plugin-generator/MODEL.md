@@ -23,21 +23,22 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
 
 <req id="DATA-CFG-0002" type="DATA" level="System" ticketId="" classification="technical">
   <title>Plugin-target descriptor</title>
-  <statement>Each `PluginTarget` descriptor shall declare, as data, its `PluginSpec` — an ordered list of `SpecEntry` (`{source: glob, target: path, exclude: string[], processors: FileProcessor[]}`), an ordered `PluginProcessor` pipeline, and the descriptor fields (target name, output location and base subfolder, preserved-file seed source, `ModelVocabulary`, bootstrap manifest and inclusion flags, hook configuration, and index and injection declarations). Every per-IDE adaptation shall be expressed by `FileProcessor`s in `SpecEntry` pipelines (model normalization, file/suffix renames, codex agent format), by the `SpecEntry` `target` (folder placement, alternate-name duplication), or by `PluginProcessor`s (reference rewriting, index generation, template rendering, section injection) — never by bespoke descriptor flags or out-of-band passes.</statement>
+  <statement>Each `PluginTarget` descriptor shall declare, as data, its `PluginSpec` — an ordered list of `SpecEntry` (`{source: glob, target: path, exclude: string[], processors: FileProcessor[]}`), an ordered `PluginProcessor` pipeline, and the descriptor fields (target name, output location and base subfolder, preserved-file seed source, `ModelVocabulary`, bootstrap manifest and inclusion flags, hook configuration, and index and injection declarations). Every per-IDE adaptation shall be expressed by `FileProcessor`s in `SpecEntry` pipelines (per-case model normalization, file/suffix renames, codex agent format), by the `SpecEntry` `target` (folder placement, alternate-name duplication), or by generic `PluginProcessor`s parameterized by descriptor data (reference rewriting, index generation, template rendering, section injection, post-render mirror declarations consumed by a generic `pluginMirrorFiles(from, to)`, directory creation by a generic `createFolder(path)`) — never by bespoke descriptor flags, target-/release-specific options, out-of-band passes (FR-ARCH-0004), or an identity-discriminant flag whose value set enumerates IDE/target/case identities (FR-ARCH-0005). The descriptor shall hold no bootstrap-delivery-strategy field and no per-release, per-target, or identity-discriminant behavior flag; delivery is a property of the preserved templates/rules (FR-VAR-0070).</statement>
   <rationale>Uniform, declarative target definition lets every variant be generated the same way: one shared spec shape (FR-ARCH-0001/0002), values in `plugin-specs.ts`, behavior in the two-tier processor pipelines.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-06-09</changed>
   <verification>Inspection</verification>
   <acceptance>
     <criteria>Given: the six variants When: each is generated Then: only its descriptor differs; the generation procedure is identical.</criteria>
+    <criteria>Given: any descriptor field When: inspected Then: it is a value, map, glob, path, or composed processor list — never an identity-discriminant flag enumerating IDE/target/case identities (FR-ARCH-0005).</criteria>
     <criteria>Given: a descriptor omitting an optional adaptation When: generated Then: that adaptation is skipped without error.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
-  <notes>Target-state descriptor = `PluginSpec` = descriptor fields (name, destination, baseSubfolder, preserved-file seed source, modelVocabulary, bootstrap manifest/inclusion flags, hook config) + `SpecEntry[]` + `PluginProcessor[]`. File-tier behavior lives in each `SpecEntry`'s `FileProcessor` pipeline (`fileRead`, `fileApplyOverrides`, `fileBundle`, `fileNormalizeModels`, `fileRename`, `fileCodexAgentFormat`); plugin-tier behavior is `PluginProcessor`s (`pluginCleanup`, `pluginCopy`, `pluginProcessSpecEntries`, `pluginRewriteReferences`, `pluginGenerateIndexes`, `pluginInjectSections`, `pluginAssembleBootstrap`, `pluginRenderTemplates`, `pluginWrite`). The original Python flags `rename_folders` become `SpecEntry` `target`s; `rename_files`/`rename_agents` become `fileRename()`; `pre_copy_folders` an extra `SpecEntry` (FR-COPY-0033); `pre_move_files` a relocation `SpecEntry`/`fileRename()` (FR-COPY-0034); runtime-layout moves become `SpecEntry` `target`s (FR-VAR-0030/0041). Mapping retained here only as parity provenance against `scripts/plugin_generator.py`.</notes>
+  <implementation>ToBeModified</implementation>
+  <implementationNotes>ToBeModified: `hookEntryShape` and any per-target/identity-discriminant behavior flag are dropped from the descriptor.</implementationNotes>
+  <notes>Target-state descriptor = `PluginSpec` = descriptor fields (name, destination, baseSubfolder, preserved-file seed source, modelVocabulary, bootstrap manifest/inclusion flags, hook config) + `SpecEntry[]` + `PluginProcessor[]`. File-tier behavior lives in each `SpecEntry`'s `FileProcessor` pipeline (`fileRead`, `fileApplyOverrides`, `fileBundle`, per-vocabulary model-normalization processors, `fileRename`, `fileCodexAgentFormat`); plugin-tier behavior is `PluginProcessor`s (`pluginCleanup`, `pluginCopy`, `pluginProcessSpecEntries`, `pluginRewriteReferences`, `pluginGenerateIndexes`, `pluginInjectSections`, `pluginAssembleBootstrap`, `pluginRenderTemplates`, `pluginWrite`). The original Python flags `rename_folders` become `SpecEntry` `target`s; `rename_files`/`rename_agents` become `fileRename()`; `pre_copy_folders` an extra `SpecEntry` (FR-COPY-0033); `pre_move_files` a relocation `SpecEntry`/`fileRename()` (FR-COPY-0034); runtime-layout moves become `SpecEntry` `target`s (FR-VAR-0030/0041). Mapping retained here only as parity provenance against `scripts/plugin_generator.py`.</notes>
 </req>
 
 <req id="DATA-CFG-0003" type="DATA" level="System" ticketId="" classification="technical">
@@ -66,13 +67,13 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-06-10</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: logical key `sonnet` When: normalized Then: Claude→`sonnet`, Cursor→`claude-sonnet-4-6`, Copilot→`Claude Sonnet 4.6`.</criteria>
+    <criteria>Given: logical key `sonnet` When: normalized Then: Claude→`claude-sonnet-4-6`, Cursor→`claude-sonnet-4-6`, Copilot→`Claude Sonnet 4.6`.</criteria>
     <criteria>Given: a `gpt-*` value When: normalized for Codex Then: a base model and optional reasoning-effort are derived.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
+  <implementation>ToBeModified</implementation>
   <implementationNotes></implementationNotes>
   <notes>Mapping values (model version strings) are content/config, expected to change over time; the mapping mechanism is the requirement, not the specific strings.</notes>
 </req>

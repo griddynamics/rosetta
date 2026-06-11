@@ -2,7 +2,7 @@
 name: init-workspace-documentation
 description: "Rosetta skill to create CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, and AGENT MEMORY.md from workspace analysis."
 license: Apache-2.0
-model: claude-opus-4-6
+model: claude-opus-4-8
 tags: ["init", "workspace", "documentation", "context", "architecture"]
 baseSchema: docs/schemas/skill.md
 ---

@@ -5,7 +5,7 @@ license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: request, existing-prompt?, constraints?, audience?
-model: Claude Opus 4.6
+model: Claude Opus 4.8
 context: default
 agent: prompt-engineer, reviewer, validator
 metadata:

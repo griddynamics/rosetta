@@ -1,6 +1,6 @@
 # plugin-generator — FR: Target Architecture (VFS + Two-Tier Processor Pipeline)
 
-Architecture requirements: the configuration-driven generation model — uniform spec contract, immutable flat VFS, filename directives, and the **two-tier** pure processor pipeline. A `FileProcessor` transforms one `FileProcessingFrame`; a `PluginProcessor` transforms the whole-plugin `PluginProcessingFrame` (which holds all of the target's `FileProcessingFrame`s), giving cross-file processors a whole-plugin view without recomputation or barriers. Naming: types are PascalCase; processor factory functions are camelCase and carry a `file`/`plugin` tier prefix. Terms: see `GLOSSARY.md`.
+Architecture requirements: the configuration-driven generation model — uniform spec contract, immutable flat VFS, filename directives, and the **two-tier** pure processor pipeline. A `FileProcessor` transforms one `FileProcessingFrame`; a `PluginProcessor` transforms the whole-plugin `PluginProcessingFrame` (which holds all of the target's `FileProcessingFrame`s), giving cross-file processors a whole-plugin view without recomputation or barriers. Naming: types are PascalCase; processor factory functions are camelCase and carry a `file`/`plugin` tier prefix. Per-case variation is expressed by composition — case-specific processors in specific specs plus shared low-level helpers — never by branching on IDE identity or an identity-discriminant flag (FR-ARCH-0004, FR-ARCH-0005). Terms: see `GLOSSARY.md`.
 
 ## Specification contract
 
@@ -24,28 +24,29 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0002" type="FR" level="System" ticketId="" classification="technical">
   <title>SpecEntry and PluginSpec shape</title>
-  <statement>Each `SpecEntry` shall declare `{source: glob, target: path, exclude: string[], processors: FileProcessor[]}` — a VFS-relative source glob, a target folder/path, a list of VFS paths to exclude from emission, and an ordered `FileProcessor` pipeline. A `PluginTarget`'s `PluginSpec` shall hold an ordered list of `SpecEntry`s, an ordered `PluginProcessor` pipeline, and the per-target descriptor values (identity, output location and base subfolder, preserved-file seed source, model vocabulary, bootstrap manifest, hook configuration, and index and injection declarations). A file's destination folder is the `SpecEntry` `target` (e.g. `workflows`→`commands`); a filename/suffix change is `fileRename()` within that entry's processors; a source file that must not ship is named in `exclude` (no source rename — the source files remain unchanged for MCP and instruction references).</statement>
+  <statement>Each `SpecEntry` shall declare `{source: glob, target: path, exclude: string[], processors: FileProcessor[]}` — a VFS-relative source glob, a target folder/path, a list of VFS paths to exclude from emission, and an ordered `FileProcessor` pipeline. A `PluginTarget`'s `PluginSpec` shall hold an ordered list of `SpecEntry`s, an ordered `PluginProcessor` pipeline, and the per-target descriptor values (identity, output location and base subfolder, preserved-file seed source, model vocabulary, bootstrap manifest, hook configuration, and index and injection declarations). A file's destination folder is the `SpecEntry` `target` (e.g. `workflows`→`commands`); a filename/suffix change is `fileRename()` within that entry's processors; a source file that must not ship is named in `exclude` (no source rename — the source files remain unchanged for MCP and instruction references). Per-case file behavior (e.g. model normalization, hook entry-shape emission) is selected by which `FileProcessor`s a `SpecEntry`/`PluginSpec` composes, not by an identity-discriminant field on the spec (FR-ARCH-0005).</statement>
   <rationale>Processing is expressed as source→target mappings (folder placement) with an explicit per-file processor chain, while whole-plugin steps and descriptor data live on the `PluginSpec`. `exclude` is data on the entry, so an overlay domain can own its own omissions and no source file has to be renamed.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-06-11</changed>
   <verification>Inspection</verification>
   <acceptance>
     <criteria>Given: a `SpecEntry` When: read Then: it provides `{source: glob, target: path, exclude: string[], processors: FileProcessor[]}`.</criteria>
     <criteria>Given: a VFS path listed in `exclude` When: the entry is processed Then: no frame is created for it and it is not emitted.</criteria>
     <criteria>Given: a `PluginSpec` When: read Then: it provides `specEntries: SpecEntry[]`, `processors: PluginProcessor[]`, and the descriptor fields.</criteria>
     <criteria>Given: a `workflows`→`commands` move When: expressed Then: it is a `SpecEntry` with `target: "commands"`; a `.md`→`.mdc` change is `fileRename()` in that entry.</criteria>
+    <criteria>Given: per-case file behavior When: a `PluginSpec` is read Then: it is carried by the case-specific `FileProcessor`s composed into the relevant `SpecEntry` pipeline, not by an identity-discriminant descriptor field (FR-ARCH-0005).</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/plugin-generator/src/types.ts (PluginSpec shape); src/plugin-generator/src/spec/targets.ts (per-vocabulary FileProcessors wired per SpecEntry). Identity-discriminant fields `hookEntryShape` and `ModelVocabulary.kind` removed.</implementationNotes>
   <depends>FR-ARCH-0001</depends>
 </req>
 
 <req id="FR-ARCH-0003" type="FR" level="System" ticketId="" classification="technical">
   <title>Precise, specific naming with tier convention</title>
-  <statement>The re-implementation shall give every domain concept a precise, specific named type — not only files — and shall avoid bare generic words (e.g. "item", "entry", "value", "thing", "data", "spec", "frame") as type or identifier names. Types shall be PascalCase (`FileProcessor`, `PluginProcessor`, `FileProcessingFrame`, `PluginProcessingFrame`, `PluginSpec`, `SpecEntry`, `VirtualFile`, `SourceFile`, `ModelVocabulary`, …); processor factory functions shall be camelCase and carry a `file`/`plugin` tier prefix (`fileRename`, `fileNormalizeModels`, `pluginRewriteReferences`, `pluginGenerateIndexes`).</statement>
+  <statement>The re-implementation shall give every domain concept a precise, specific named type — not only files — and shall avoid bare generic words (e.g. "item", "entry", "value", "thing", "data", "spec", "frame") as type or identifier names. Types shall be PascalCase (`FileProcessor`, `PluginProcessor`, `FileProcessingFrame`, `PluginProcessingFrame`, `PluginSpec`, `SpecEntry`, `VirtualFile`, `SourceFile`, `ModelVocabulary`, …); processor factory functions shall be camelCase and carry a `file`/`plugin` tier prefix (`fileRename`, `fileApplyOverrides`, `pluginRewriteReferences`, `pluginGenerateIndexes`).</statement>
   <rationale>Unambiguous, self-documenting code; the tier prefix makes a processor's scope (one file vs the whole plugin) visible at the call site.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -60,6 +61,51 @@ Architecture requirements: the configuration-driven generation model — uniform
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
+</req>
+
+<req id="FR-ARCH-0004" type="FR" level="System" ticketId="" classification="technical">
+  <title>Processors are universal and reusable</title>
+  <statement>Every `FileProcessor` and `PluginProcessor` shall be a universal, reusable unit of work: it shall encode no specific target, IDE, release, folder, or filename, and all specificity shall be supplied to it as data (glob, target path, path pair, vocabulary, declaration) at composition time. A processor that copies a file shall be a general `pluginCopyFiles(source, target)` / `pluginMirrorFiles(from, to)`, never a `copilotCopyHooks()`; a processor that creates a directory shall be a general `createFolder(path)`, never a per-target/per-release flag; reference rewriting shall consume the resolved renames already recorded on the frames (FR-ARCH-0049), never re-derive them from per-target rules. No processor name, branch, or constant shall name a concrete target (`core-cursor`), release (`r2`/`r3`), folder (`rules`/`workflows`), or instruction filename. Supplying specificity "as data" excludes an identity-discriminant flag — a descriptor value whose value set enumerates IDE/target/case identities (e.g. `hookEntryShape`, a `ModelVocabulary` `kind`) or that is otherwise derived from identity; such a flag is identity relabeled, and branching on it is prohibited (FR-ARCH-0005).</statement>
+  <rationale>A processor is a small, composable unit; correctness and maintainability come from composing a fixed catalog of generic processors over per-target data, not from growing target-aware variants or option flags. Naming or branching on a concrete target/release/folder couples the engine to content and defeats the data-driven design (NFR-0006, DATA-CFG-0002).</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-06-11</changed>
+  <verification>Inspection</verification>
+  <acceptance>
+    <criteria>Given: any processor When: inspected Then: it contains no literal target name, release name, folder name, or instruction filename; all such values arrive as data.</criteria>
+    <criteria>Given: a need to copy or mirror a file When: expressed Then: it is a general copy/mirror processor parameterized by source and target, reusable by any target.</criteria>
+    <criteria>Given: a need to create a directory When: expressed Then: it is a general `createFolder(path)` processor, not a per-target/per-release flag.</criteria>
+    <criteria>Given: the processor catalog When: extended Then: new behavior is a new generic processor or new data, never a target-specific branch inside an existing one.</criteria>
+    <criteria>Given: a per-IDE adaptation supplied "as data" When: inspected Then: it is a value, a map, or a composed case-specific processor — never an identity-discriminant flag branched on at runtime (FR-ARCH-0005).</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/plugin-generator/src/types.ts (fields removed); src/plugin-generator/src/spec/model-maps.ts (kind removed from 4 vocabulary constants); src/plugin-generator/src/spec/targets.ts (per-vocabulary processors + per-IDE assemblers composed per spec).</implementationNotes>
+  <depends>FR-ARCH-0003, FR-ARCH-0035, FR-ARCH-0049, NFR-0006</depends>
+</req>
+
+<req id="FR-ARCH-0005" type="FR" level="System" ticketId="" classification="technical">
+  <title>No identity branching or identity-discriminant flags; per-case variation by composition</title>
+  <statement>No `FileProcessor` or `PluginProcessor` shall branch on a `PluginTarget`'s IDE/target identity (Claude, Cursor, Copilot, Codex, or any specific target), and none shall branch on an identity-discriminant flag — a `PluginSpec`/descriptor value whose value set enumerates IDE/target/case identities (e.g. `hookEntryShape`, a `ModelVocabulary` `kind`) or that is otherwise derived from identity. Any branching a processor performs shall rest only on a genuine behavior flag that names a capability or outcome, never on identity. Per-case variation shall instead be expressed by composition: (a) each processor shall perform one small unit of work; (b) behavior that differs by case shall be a separate, case-specific processor placed only in the pipeline(s) of the `PluginSpec`(s) that require it, so the applicable case is selected by which processor the spec composes — not by a runtime branch; (c) logic shared across case-specific processors shall live in low-level reusable functions that each such processor composes, never duplicated and never routed through a shared identity-dispatching processor; and (d) behavior that applies only to specific paths shall be scoped by a `SpecEntry` source glob and that entry's processors (FR-ARCH-0002), never by a path test inside a shared processor.</statement>
+  <rationale>FR-ARCH-0004's "all specificity as data" is met in spirit only when the data is a value, a map, or a composed case-specific processor; re-encoding identity as an enum and switching on it reintroduces the exact target-coupling FR-ARCH-0004 and NFR-0006 remove — an identity-discriminant flag is the target name relabeled. Composition keeps the processor catalog generic and content-agnostic while per-case behavior lives where the case is declared (its `PluginSpec`), and shared low-level functions keep that per-case code DRY without a dispatcher.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-06-11</changed>
+  <verification>Inspection</verification>
+  <acceptance>
+    <criteria>Given: any `FileProcessor` or `PluginProcessor` When: inspected Then: it contains no conditional on a target/IDE identity and no conditional on an identity-discriminant flag (e.g. `hookEntryShape`, `ModelVocabulary.kind`).</criteria>
+    <criteria>Given: two targets that need different per-case behavior (e.g. hook entry shape, model normalization) When: their pipelines are inspected Then: each `PluginSpec` composes its own case-specific processor for that behavior and no single shared processor selects between the cases.</criteria>
+    <criteria>Given: logic common to several case-specific processors When: inspected Then: it is a shared low-level function composed by each, not duplicated and not reached through an identity switch.</criteria>
+    <criteria>Given: a behavior limited to specific paths When: expressed Then: it is a `SpecEntry` with a source glob plus that entry's processors, not a path branch inside a shared processor.</criteria>
+    <criteria>Given: a new IDE/target When: added Then: it is realized by new descriptor data and/or new case-specific processors composed into its spec, with no edit to any shared processor's control flow.</criteria>
+  </acceptance>
+  <depends>FR-ARCH-0002, FR-ARCH-0003, FR-ARCH-0004, NFR-0006</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/plugin-generator/src/types.ts (hookEntryShape, ModelVocabulary.kind removed); src/plugin-generator/src/spec/model-maps.ts (kind removed); src/plugin-generator/src/file-processors/file-normalize-models.ts (switch dispatcher deleted, 4 helpers exported); src/plugin-generator/src/file-processors/file-normalize-{claude,cursor,copilot,codex}-models.ts (new per-vocabulary processors); src/plugin-generator/src/bootstrap/payload.ts (switch deleted, callback-driven assembleBootstrapPayload, 4 entry builders exported); src/plugin-generator/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (new per-IDE assemblers); src/plugin-generator/src/plugin-processors/plugin-assemble-bootstrap.ts (deleted).</implementationNotes>
+  <notes>All 5 violation sites eliminated (C1–C4): fileNormalizeModels switch(vocabulary.kind), buildEntryForIde switch(shape), buildPluginRootEntry switch(shape), bootstrap_hooks_${shape} dynamic key, hookEntryShape+ModelVocabulary.kind identity-discriminant fields. tsc clean, 410 tests pass, r2/r3 parity verified.</notes>
 </req>
 
 ## Virtual File System (VFS)
@@ -535,22 +581,23 @@ Architecture requirements: the configuration-driven generation model — uniform
 </req>
 
 <req id="FR-ARCH-0046" type="FR" level="System" ticketId="" classification="technical">
-  <title>fileNormalizeModels() processor</title>
-  <statement>The `fileNormalizeModels()` processor shall rewrite a text `FileProcessingFrame`'s frontmatter model value into the current `PluginTarget`'s `ModelVocabulary`, leaving content without a model value unchanged.</statement>
-  <rationale>Each IDE accepts only its own model identifier format; normalization is one explicit file-tier stage, not hidden inside copying.</rationale>
+  <title>Model-normalization file processors (per vocabulary)</title>
+  <statement>The generator shall normalize a text `FileProcessingFrame`'s frontmatter model value into the current `PluginTarget`'s model identifier format using a case-specific model-normalization `FileProcessor` composed into that target's `SpecEntry` pipeline — one such processor per model vocabulary — each rewriting the model value per its target's `ModelVocabulary` and leaving content without a model value unchanged. Logic shared across these processors shall be reused as low-level frontmatter and model-mapping helpers (FR-ARCH-0005), and no model-normalization processor shall branch on a vocabulary-kind identity-discriminant.</statement>
+  <rationale>Each IDE accepts only its own model identifier format, produced by genuinely different rules (token-scan, first-token, two-line split); each is therefore its own small case-specific processor that reuses shared helpers, rather than one processor switching on a vocabulary `kind` (FR-ARCH-0005). Normalization stays an explicit file-tier stage, not hidden inside copying. Maintainers intentionally use order of models so that they can select different model providers for different agents/skills (example: engineer subagent uses Sonnet, while reviewer uses GPT).</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-06-11</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a frame whose frontmatter declares a model When: normalized for a `PluginTarget` Then: the model value is rewritten per that target's `ModelVocabulary`.</criteria>
     <criteria>Given: a frame with no model value When: normalized Then: its content is unchanged.</criteria>
+    <criteria>Given: a target's pipeline When: inspected Then: it composes exactly the model-normalization processor for that target's vocabulary, and no such processor selects behavior by a vocabulary-kind discriminant (FR-ARCH-0005).</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
-  <depends>DATA-CFG-0004</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/plugin-generator/src/file-processors/file-normalize-models.ts (switch dispatcher deleted; 4 helpers exported: extractFrontmatterModelField, applyModelRewrite, removeModelLine, rewriteCodexModelFields); src/plugin-generator/src/file-processors/file-normalize-claude-models.ts; src/plugin-generator/src/file-processors/file-normalize-cursor-models.ts; src/plugin-generator/src/file-processors/file-normalize-copilot-models.ts; src/plugin-generator/src/file-processors/file-normalize-codex-models.ts. Multi-vendor model ordering is intentional: maintainers order models in frontmatter to select different providers per agent/skill (e.g. engineer uses Sonnet, reviewer uses GPT); each per-vocabulary processor applies its algorithm (claude: token-scan for first claude-compatible token; cursor/copilot: first token map-lookup; codex: gpt-token two-line rewrite or strip).</implementationNotes>
+  <depends>DATA-CFG-0004, FR-ARCH-0005</depends>
 </req>
 
 ## Plugin processors (`PluginProcessor`)
@@ -620,7 +667,7 @@ Architecture requirements: the configuration-driven generation model — uniform
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-06-11</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a body reference `workflows/coding-flow.md` and a `workflows`→`commands` move When: run Then: it reads `commands/coding-flow.md` and the document's target path is unchanged.</criteria>
@@ -629,8 +676,8 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: the prose word "agents" (with an `agents`→`.codex/agents` move in effect) When: run Then: the word is unchanged; only complete `agents/<path>` references are rewritten.</criteria>
     <criteria>Given: the `frames` When: the lookup is assembled Then: it is read from the frames (`sourcePath → targetPath`) plus the entries' folder pairs, not recomputed from rename rules.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-rewrite-references.ts. Frame-lookup-driven; no recomputed rename rules. Ghost-frame handling included.</implementationNotes>
   <depends>FR-ARCH-0039, FR-ARCH-0037, FR-ARCH-0054</depends>
 </req>
 
@@ -680,14 +727,14 @@ Architecture requirements: the configuration-driven generation model — uniform
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-06-11</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a target's present bootstrap frames When: assembled Then: the payload is built in manifest order per FR-HOOK and exposed to template rendering.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
-  <depends>FR-HOOK-0001, FR-HOOK-0009</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-assemble-claude-bootstrap.ts; src/plugin-generator/src/plugin-processors/plugin-assemble-cursor-bootstrap.ts; src/plugin-generator/src/plugin-processors/plugin-assemble-copilot-bootstrap.ts; src/plugin-generator/src/plugin-processors/plugin-assemble-codex-bootstrap.ts. All 4 assemblers call callback-driven assembleBootstrapPayload(p, buildEntry, buildRootEntry) and write templateContext['bootstrap_hooks'] (one fixed key). Cursor generates full bootstrap payload; cursor template omits {{{bootstrap_hooks}}} placeholder so payload is not injected — template decision per FR-VAR-0070. Monolithic plugin-assemble-bootstrap.ts deleted.</implementationNotes>
+  <depends>FR-HOOK-0001, FR-HOOK-0009, FR-HOOK-0005</depends>
 </req>
 
 <req id="FR-ARCH-0048" type="FR" level="System" ticketId="" classification="technical">

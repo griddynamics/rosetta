@@ -25,7 +25,7 @@ Provide a Node.js CLI tool (`npx rosetta <command>`) for Rosetta operations. The
 
 ## Out of Scope
 
-- Repository initialization (`Initialize this repository using Rosetta` step)
+- Repository initialization (`Initialize this repository using the respective Rosetta workflow` step)
 - Rosetta Server deployment or management
 - IDE plugin installation beyond MCP config and bootstrap files
 - Local KB mode (Mode 3 from INSTALLATION.md)

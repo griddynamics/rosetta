@@ -38,34 +38,26 @@ Rosetta is designed to not see your source code or IP. It only serves knowledge 
 
 ## Get Started
 
-**Cursor** — add to `~/.cursor/mcp.json` or `.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "Rosetta": {
-      "url": "https://mcp.rosetta.griddynamics.net/mcp"
-    }
-  }
-}
-```
+Use [Plugins](/rosetta/docs/plugins/) when your IDE supports them. Plugins install Rosetta instructions locally and do not need a live Rosetta server connection during normal agent work.
 
 **Claude Code:**
 
 ```sh
-claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp
+claude plugin marketplace add griddynamics/rosetta
+claude plugin install rosetta@rosetta
 ```
 
-**Codex:**
+**Cursor, GitHub Copilot, and Codex:** follow the plugin or standalone package instructions in [Plugins](/rosetta/docs/plugins/).
 
-```sh
-codex mcp add Rosetta --url https://mcp.rosetta.griddynamics.net/mcp
-codex mcp login Rosetta
-```
+Use [MCPs](/rosetta/docs/mcps/) for IDEs without a Rosetta plugin path, including Windsurf, Antigravity, OpenCode, and JetBrains Junie.
 
-Complete the OAuth flow when prompted. Then ask: *"Initialize this repository using Rosetta"*
+After installation, ask:
 
-STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](/rosetta/docs/installation/). Read more in the [Quickstart](/rosetta/docs/quickstart/).
+**Greenfield (new repository):** *"Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ..."*
+
+**Brownfield (existing repository):** *"Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]"*
+
+STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](/rosetta/docs/installation/). Read more in the [Quick Start](/rosetta/docs/quickstart/).
 
 ## Supported IDEs and Agents
 

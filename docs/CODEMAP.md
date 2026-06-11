@@ -82,7 +82,7 @@ pyproject.toml README.md
 
 #### instructions/r2/core/skills/ — 20 skill folders (34 files total)
 
-coding/ coding-agents-prompt-adaptation/ debugging/ init-workspace-context/
+coding/ debugging/ init-workspace-context/
 init-workspace-discovery/ init-workspace-documentation/ init-workspace-patterns/
 init-workspace-rules/ init-workspace-shells/ init-workspace-verification/
 large-workspace-handling/ load-context/ planning/ questioning/ reasoning/

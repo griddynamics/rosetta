@@ -25,7 +25,6 @@
 - large-file-handling
 - requirements-authoring
 - requirements-use
-- coding-agents-prompt-adaptation
 - coding
 - testing
 - debugging

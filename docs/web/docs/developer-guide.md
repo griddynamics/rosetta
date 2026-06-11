@@ -14,15 +14,51 @@ permalink: /docs/developer-guide/
 
 ## Overall Development Flow
 
-1. **Prepare repository.**
-   - Fork repository entirely and work in the `main` branch
-   - Clone and create feature branch from the `main` branch
-   - Rosetta uses `main` as target branch for PR
-   - See [Contributing Workflow](/rosetta/docs/contributing/#contributing-workflow) for git-related info
+At a glance — the steps below expand each stage:
 
-2. **Develop using claude code / codex / cursor** or **Use the prompting flow.**
-   - Development: existing rules will kick in, we use HTTP MCP.
-   - Prompting: use the [`coding-agents-prompting-flow`](/rosetta/docs/contributing/#prompt-changes) to author, refactor, or harden prompts.
+```
+fork/clone → branch → edit → validate → push → PR
+```
+
+1. **Prepare repository.**
+   - Fork the repository entirely and work in the `main` branch
+   - Clone and create a feature branch from `main` (use descriptive branch names)
+   - Rosetta uses `main` as the target branch for every PR
+   - Commit messages: short summary line, body if needed. No special format enforced.
+
+2. **Develop using claude code / codex / cursor** or **use the prompting flow.**
+   - **Development:** existing rules kick in and HTTP MCP is preconfigured.
+   - **Prompting:** use the [`coding-agents-prompting-flow`](/rosetta/docs/usage-guide/#workflows) with the `coding-agents-prompt-authoring` skill to author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with the Opus 4.8 model.
+
+     Example invocations:
+
+     - Run the flow by slash-command (requires the plugin installed — see [Plugins](/rosetta/docs/plugins/#step-1-install-plugin)):
+
+       ```
+       /coding-agents-prompting-flow to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       ```
+
+     - Refactor an old prompt into the new format:
+
+       ```
+       MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
+       ```
+
+     - Author a new prompt:
+
+       ```
+       MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       ```
+
+     - Author a new prompt via Rosetta MCP:
+
+       ```
+       MUST ACQUIRE coding-agents-prompting-flow.md FROM KB AND FULLY EXECUTE IT to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       ```
+
+     Include in every prompt-change PR: a prompt brief (goal, non-goals, constraints), before/after behavior examples, and validation evidence (attach to the PR description).
+
+     Automated review pipelines run on prompt-change PRs — **static AI review** (structure, quality, correctness, governance) and **scenario comparison** (runs scenarios with the old and new prompts, then validates the behavioral difference). Both must pass before merge.
 
 3. **Check your output.**
    - [General Review Criteria](/rosetta/docs/review/#general-review-criteria)
@@ -48,9 +84,8 @@ permalink: /docs/developer-guide/
    - All: update documentation, including web site
 
 7. **Pipelines.**
-   - [Automated pipelines](/rosetta/docs/contributing/#prompt-changes) will execute
-   - Static AI review and scenario comparison
-   - Both must pass
+   - Automated pipelines run on your PR: static AI review and scenario comparison (detailed in step 2 above)
+   - Both must pass before merge
 
 ---
 
@@ -190,7 +225,7 @@ codex mcp add Rosetta \
 
 **Pre-release builds:** Version suffixes like `b00` trigger automatic pre-release publishing. Use `--prerelease=allow` with uvx to pull these builds.
 
-Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](/rosetta/docs/quickstart/#step-2-add-bootstrap-rule).
+Add the bootstrap rule to your IDE as defined in [MCPs Installation — Add Bootstrap Rule](/rosetta/docs/mcps/#step-2-add-bootstrap-rule).
 
 ---
 
@@ -318,7 +353,7 @@ codex mcp add Rosetta --url [rosetta MCP development server URL]
 
 Authenticate via OAuth as required.
 
-Add the bootstrap rule to your IDE as defined in [Quick Start — Add Bootstrap Rule](/rosetta/docs/quickstart/#step-2-add-bootstrap-rule).
+Add the bootstrap rule to your IDE as defined in [MCPs Installation — Add Bootstrap Rule](/rosetta/docs/mcps/#step-2-add-bootstrap-rule).
 
 ### 4. Test CLI changes
 

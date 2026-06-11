@@ -5,7 +5,7 @@ license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: tasks-or-plan, cli-selection?, model-preferences?
-model: claude-opus-4-6
+model: claude-opus-4-8
 context: default
 metadata:
   version: "1.0"

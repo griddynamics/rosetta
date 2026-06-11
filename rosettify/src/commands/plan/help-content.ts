@@ -159,21 +159,21 @@ export const planHelpContent = {
     {
       name: "upsert",
       brief: "Create or merge-patch plan/phase/step by id",
-      usage: "rosettify plan upsert <plan_file> <target_id> '<patch-json-string>'",
+      usage: "rosettify plan upsert <plan_file> <target_id> '<patch-json-string>' [--kind phase|step] [--phase_id <parent-id>]",
       args: {
         target_id: "entire_plan | phase-id | step-id",
         "patch-json-string": "inline JSON string; RFC 7396 patch object, null removes a key",
-        kind: "required for new items: 'phase' or 'step'",
-        phase_id: "required for new step: parent phase ID",
+        "--kind": "required for new items: 'phase' or 'step'",
+        "--phase_id": "required for new step: parent phase ID",
       },
       required: "plan_file, target_id, and data (an inline patch JSON string) are required",
-      conditional_requirements: "kind is required only when the target id does not already exist; phase_id is required only when kind is step",
+      conditional_requirements: "--kind flag is required only when the target id does not already exist; --phase_id flag is required only when --kind is step",
       description:
         "Creates or merge-patches plan/phase/step. Status fields in patch are silently stripped. " +
         "Use update_status to change status after each task completion. Returns PlanWriteResult.",
       examples: {
-        tip: "rosettify plan upsert [plan_file] [target-id] '[patch-json-string]'",
-        real: "rosettify plan upsert plans/feature-x/plan.json ph-review '{\"kind\":\"phase\",\"name\":\"Review\"}'",
+        tip: "rosettify plan upsert [plan_file] [target-id] '[patch-json-string]' --kind [phase|step]",
+        real: "rosettify plan upsert plans/feature-x/plan.json ph-review '{\"name\":\"Review\"}' --kind phase",
       },
     },
     {

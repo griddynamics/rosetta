@@ -2,7 +2,7 @@
 name: planner
 description: Rosetta Full subagent. Execution planning from approved intent/specs, producing sequenced plans scaled to request size.
 mode: subagent
-model: Claude Opus 4.6
+model: Claude Opus 4.8
 readonly: false
 tags: ["subagent", "agent", "planning"]
 baseSchema: docs/schemas/agent.md

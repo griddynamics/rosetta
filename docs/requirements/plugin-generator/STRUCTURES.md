@@ -30,16 +30,25 @@ core-cursor/
 ```
 
 ## core-copilot — marketplace (bootstrap: session-start hooks, bash+PowerShell, dedup lock)
+
+Three `hooks.json` files are produced at distinct paths. `hooks.json` (root) and `.github/plugin/hooks.json` are byte-identical (alternate-name copy; MD5 confirmed in r2 baseline). `hooks/hooks.json` is the standalone-form rendered output (distinct content; `"sessionStart": []`).
+
 ```
 core-copilot/
-  .github/plugin/{hooks.json,.mcp.json}  [P] config
-  hooks.json                      [G] ← copied from .github/plugin/hooks.json to root (runtime layout)
+  .github/plugin/plugin.json      [P] manifest
+  .github/plugin/hooks.json.tmpl  [P] plugin-form hook template
+  .github/plugin/hooks.json       [G] ← rendered from .github/plugin/hooks.json.tmpl; plugin-form bootstrap payload
+  hooks.json                      [G] ← alternate-name copy of .github/plugin/hooks.json (byte-identical); runtime layout for IDE (FR-VAR-0031)
+  hooks/hooks.json.tmpl           [P] standalone-form hook template (consumed by copilot-standalone)
+  hooks/hooks.json                [G] ← rendered from hooks/hooks.json.tmpl; standalone-form (sessionStart: [])
+  hooks/*.js                      [G] ← synced from hooks/dist (deterministic-hooks releases only)
   agents/*.agent.md               [G] ← source agents, renamed
   commands/*.md + INDEX.md        [G] ← renamed from workflows/
   rules/*.md + INDEX.md           [G] ← source rules (model→Copilot map)
   skills/ ; configure/ ; templates/  [G] ← source
-  hooks/hooks.json + hooks/*.js   [G] ← rendered + hooks/dist
 ```
+
+Note: `hooks.json` (root) and `.github/plugin/hooks.json` are produced as an alternate-name duplication (`SpecEntry`, FR-COPY-0033, FR-VAR-0031), not as a `fileRename()`. Both files are present in the output simultaneously.
 
 ## core-codex — marketplace (bootstrap: session-start hooks)
 ```
@@ -95,7 +104,7 @@ core-copilot-standalone/
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
-  <depends>FR-VAR-0010, FR-VAR-0020, FR-VAR-0030, FR-VAR-0041</depends>
+  <depends>FR-VAR-0010, FR-VAR-0020, FR-VAR-0030, FR-VAR-0031, FR-VAR-0041</depends>
 </req>
 
 <req id="FR-STRUCT-0020" type="FR" level="System" ticketId="" classification="technical">

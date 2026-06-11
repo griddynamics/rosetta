@@ -2,7 +2,7 @@
 name: researcher
 description: Rosetta Full subagent. Execute deep research tasks with grounded references, systematic exploration, and self-validation.
 mode: subagent
-model: sonnet
+model: claude-sonnet-4-6
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

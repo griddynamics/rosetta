@@ -18,7 +18,7 @@ Rosetta is a meta-prompting, context engineering, and centralized instructions m
   <a href="/rosetta/docs/quickstart/" class="docs-index-card">
     <p class="docs-index-card-cat">Getting Started</p>
     <p class="docs-index-card-title">Quick Start</p>
-    <p class="docs-index-card-desc">Connect your IDE, add the bootstrap rule, and run your first workflow.</p>
+    <p class="docs-index-card-desc">Install Rosetta with plugins where supported, then initialize your first repository.</p>
   </a>
   <a href="/rosetta/docs/installation/" class="docs-index-card">
     <p class="docs-index-card-cat">Getting Started</p>
@@ -29,6 +29,21 @@ Rosetta is a meta-prompting, context engineering, and centralized instructions m
     <p class="docs-index-card-cat">Getting Started</p>
     <p class="docs-index-card-title">Configuration</p>
     <p class="docs-index-card-desc">Set up business context, technical context, and reference code so agents work well.</p>
+  </a>
+  <a href="/rosetta/docs/plugins/" class="docs-index-card">
+    <p class="docs-index-card-cat">Getting Started</p>
+    <p class="docs-index-card-title">Plugins</p>
+    <p class="docs-index-card-desc">Install local Rosetta instructions for Claude Code, Cursor, GitHub Copilot, and Codex.</p>
+  </a>
+  <a href="/rosetta/docs/mcps/" class="docs-index-card">
+    <p class="docs-index-card-cat">Getting Started</p>
+    <p class="docs-index-card-title">MCPs</p>
+    <p class="docs-index-card-desc">Connect Rosetta over HTTP MCP for IDEs that do not support Rosetta plugins.</p>
+  </a>
+  <a href="/rosetta/docs/faq/" class="docs-index-card">
+    <p class="docs-index-card-cat">Getting Started</p>
+    <p class="docs-index-card-title">FAQ</p>
+    <p class="docs-index-card-desc">Answers about installation, token usage, HITL, workflows, and support.</p>
   </a>
   <a href="/rosetta/docs/overview/" class="docs-index-card">
     <p class="docs-index-card-cat">Core Concepts</p>

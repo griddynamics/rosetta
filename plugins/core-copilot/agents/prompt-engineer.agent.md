@@ -2,7 +2,7 @@
 name: prompt-engineer
 description: Rosetta Full subagent. Prompt authoring and adaptation — discovery, drafting, and delivery of prompt artifacts under explicit HITL approvals.
 mode: subagent
-model: Claude Opus 4.6
+model: Claude Opus 4.8
 readonly: false
 tags: ["subagent", "agent"]
 baseSchema: docs/schemas/agent.md

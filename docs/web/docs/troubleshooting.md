@@ -35,7 +35,7 @@ permalink: /docs/troubleshooting/
 **Agent ignores Rosetta tools entirely**
 - Confirm the MCP server shows as connected in your IDE's MCP settings
 - Add a [bootstrap rule](/rosetta/docs/installation/) to your project. This is the universal fallback for any IDE or agent that doesn't reliably read MCP server prompts
-- Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and place it in your IDE's instruction file (see [Quick Start](/rosetta/docs/quickstart/#step-2-add-bootstrap-rule) Step 2 for paths)
+- Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and place it in your IDE's instruction file (see [MCPs Installation](/rosetta/docs/mcps/#step-2-add-bootstrap-rule) Step 2 for paths)
 
 **Agent used Rosetta before but stopped**
 - Check re-authentication (see above)

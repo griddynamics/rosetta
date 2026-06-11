@@ -49,10 +49,14 @@ For shared setup and installation details, use the [Usage Guide](/rosetta/docs/u
 ## How To Start
 
 ```text
-Initialize this repository using Rosetta
+# Greenfield (new repository)
+Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ...
+
+# Brownfield (existing repository)
+Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]
+
 Upgrade this repository from Rosetta R1 to R2
 Initialize subagents and workflows
-Initialize this composite workspace using Rosetta
 ```
 
 ## How Rosetta Shapes This Workflow
@@ -109,7 +113,7 @@ sequenceDiagram
     participant S as Phase subagents
     participant F as Workspace files
 
-    U->>A: Initialize this repository using Rosetta
+    U->>A: Initialize this repository using the respective Rosetta workflow
     R-->>A: Load bootstrap and init workflow instructions
     A->>F: Create init state file
     A->>S: Run Phase 1 mode detection

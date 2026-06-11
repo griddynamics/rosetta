@@ -5,7 +5,7 @@ license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: problem, context?, constraints?
-model: claude-opus-4-6
+model: claude-opus-4-8
 context: default
 agent: planner, prompt-engineer
 metadata:

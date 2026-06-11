@@ -6,8 +6,8 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
 
 <req id="FR-CLI-0001" type="FR" level="System" ticketId="" classification="technical">
   <title>Command-line invocation</title>
-  <statement>The generator shall provide a command-line entry point accepting optional release, domain, repo-root, and output-directory arguments, and shall return a process exit status reflecting run success.</statement>
-  <rationale>Operators and the pre-commit step invoke it as a command.</rationale>
+  <statement>The generator shall provide a command-line entry point accepting optional release, domain, source, per-source override, and output arguments (FR-CLI-0020), and shall return a process exit status reflecting run success.</statement>
+  <rationale>Operators and the pre-commit step invoke it as a command. The tool is a self-contained utility parameterized by a source root, not by a repository.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -18,8 +18,8 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
     <criteria>Given: no arguments When: invoked Then: it generates from the default release and default domain into the default output directory.</criteria>
     <criteria>Given: an unknown argument When: invoked Then: it reports usage and exits non-zero.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>ToBeModified</implementation>
+  <implementationNotes>ToBeModified: clean-architecture re-implementation (CLI source model, RECON-9).</implementationNotes>
 </req>
 
 <req id="FR-CLI-0002" type="FR" level="System" ticketId="" classification="technical">
@@ -81,7 +81,7 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
 
 <req id="FR-CLI-0030" type="FR" level="System" ticketId="" classification="technical">
   <title>Domain-selected instruction source</title>
-  <statement>The generator shall accept a domain argument naming one or more layer folders under the selected release, defaulting to `core`, and shall resolve the instruction source from `instructions/<release>/<domain>/`.</statement>
+  <statement>The generator shall accept a domain argument naming one or more layer folders under the selected release, defaulting to `core`, and shall resolve the instruction source from `<instructionsSource>/<release>/<domain>/` (FR-CLI-0020).</statement>
   <rationale>Decouples the source layer from a hardcoded `core`, enabling organization overlays. Replaces the hardcoded `core`.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -90,12 +90,12 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   <changed>2026-06-04</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: no domain argument When: invoked Then: source resolves to `instructions/<release>/core/`.</criteria>
-    <criteria>Given: `--domain acme` When: invoked Then: source resolves to `instructions/<release>/acme/`.</criteria>
+    <criteria>Given: no domain argument When: invoked Then: source resolves to `<instructionsSource>/<release>/core/`.</criteria>
+    <criteria>Given: `--domain acme` When: invoked Then: source resolves to `<instructionsSource>/<release>/acme/`.</criteria>
     <criteria>Given: a domain folder that does not exist When: invoked Then: it reports the missing source and exits non-zero without generating output.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>ToBeModified</implementation>
+  <implementationNotes>ToBeModified: clean-architecture re-implementation (CLI source model, RECON-9).</implementationNotes>
   <depends>DATA-CFG-0001</depends>
 </req>
 
@@ -124,38 +124,42 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
 ## Repo root and output
 
 <req id="FR-CLI-0020" type="FR" level="System" ticketId="" classification="technical">
-  <title>Repo root resolution</title>
-  <statement>The generator shall determine the repository root from the repo-root argument, defaulting to the repository that contains the generator.</statement>
-  <rationale>All input/output paths are relative to the repo root.</rationale>
-  <source>Sources</source>
+  <title>Source resolution (global source + per-source overrides)</title>
+  <statement>The generator shall take a single global `source` argument, defaulting to the current directory (`.`), and shall derive each input and output location from it using OS-aware path joining: the instruction source at `<source>/instructions`, the preserved-files source at `<source>/src/plugin-generator/plugins`, and the hooks source at `<source>/hooks`. Each derived location shall be independently overridable by its own argument — `instructionsSource`, `pluginsSource`, `hooksSource` — which, when supplied, replaces the corresponding `<source>/…` default. The generator shall not take a "repository root" argument and shall not assume it runs inside any particular repository.</statement>
+  <rationale>A self-contained utility is parameterized by a source root and optional per-input overrides, never by "the repo." Defaulting `source` to the current directory and deriving inputs from it makes the common case argument-free while keeping every input independently redirectable.</rationale>
+  <source>User</source>
   <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <status>Draft</status>
+  <approved_by></approved_by>
+  <changed>2026-06-05</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: no repo-root argument When: invoked Then: the containing repository root is used.</criteria>
+    <criteria>Given: no `source` argument When: invoked Then: `source` is the current directory and the instruction source resolves to `./instructions`.</criteria>
+    <criteria>Given: `--source <dir>` When: invoked Then: instruction source = `<dir>/instructions`, preserved-files source = `<dir>/src/plugin-generator/plugins`, hooks source = `<dir>/hooks`, unless individually overridden.</criteria>
+    <criteria>Given: `--instructionsSource <dir>` (or `--pluginsSource`/`--hooksSource`) When: invoked Then: that location is used in place of its `<source>/…` default and the others remain derived from `source`.</criteria>
+    <criteria>Given: the argument list When: inspected Then: there is no repository-root argument.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>ToBeModified</implementation>
+  <implementationNotes>ToBeModified: clean-architecture re-implementation (CLI source model, RECON-9). source model replaces the prior repo-root model (2026-06-05); pending owner review.</implementationNotes>
+  <depends>DATA-CFG-0005</depends>
 </req>
 
 <req id="FR-CLI-0021" type="FR" level="System" ticketId="" classification="technical">
   <title>Output directory redirection</title>
-  <statement>The generator shall write all targets into the output directory, defaulting to `<repo-root>/plugins`.</statement>
-  <rationale>Allows isolated output (e.g. for diffing) without touching the committed tree.</rationale>
+  <statement>The generator shall write all targets into the output directory given by the `output` argument, defaulting to `<source>/plugins` (FR-CLI-0020).</statement>
+  <rationale>Allows isolated output (e.g. for diffing) without touching the committed tree; the default derives from `source` like every other location.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <status>Draft</status>
+  <approved_by></approved_by>
+  <changed>2026-06-05</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: no output-dir argument When: invoked Then: output goes to `<repo-root>/plugins`.</criteria>
-    <criteria>Given: an output-dir When: invoked Then: every target folder is created under it.</criteria>
+    <criteria>Given: no `output` argument When: invoked Then: output goes to `<source>/plugins`.</criteria>
+    <criteria>Given: an `output` argument When: invoked Then: every target folder is created under it.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>ToBeModified</implementation>
+  <implementationNotes>ToBeModified: clean-architecture re-implementation (CLI source model, RECON-9).</implementationNotes>
 </req>
 
 ## Run modes

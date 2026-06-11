@@ -40,14 +40,14 @@ Dispatch:
 
 """
 You are [role/specialization]. [Lightweight|Full] subagent.
-Plan: [absolute path to plan.json or "ad-hoc"]. Phase: [phase id]. [Step: [step id].]
+[Plan: [plan.json path or "ad-hoc"]. Phase: [phase id]. Task: [task id].]
 
 ## Tasks (SMART)
 - [task 1]
 - [task 2]
 
 ## Scope boundaries
-Target root folder: [path]
+Target root folder: [path] [git worktree?]
 DO: [what is in scope, explicit expected outputs and clear expectations]
 DO NOT: [what is explicitly out of scope, what not to touch — forbid out-of-scope work]
 
@@ -78,7 +78,7 @@ Output files: [optional, output can be just response message or it could be both
 ## Evidence
 [require that all claims, findings, and recommendations include proofs, references, and deep links with line ranges; include brief source quotes; explicitly distinguish verified facts from assumptions]
 
-[additional information, requirements, specifications, context, etc.]
+[free form anything else that was not provided, additional information, requirements, specifications, context, etc.]
 """
 
 5. Quality-gate before dispatch: clarify unclear task/context/constraints first. Never dispatch ambiguous instructions.

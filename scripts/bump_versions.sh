@@ -115,7 +115,11 @@ for f in \
     "$ROOT/plugins/core-claude/.claude-plugin/plugin.json" \
     "$ROOT/plugins/core-cursor/.cursor-plugin/plugin.json" \
     "$ROOT/plugins/core-copilot/.github/plugin/plugin.json" \
-    "$ROOT/plugins/core-codex/.codex-plugin/plugin.json"; do
+    "$ROOT/plugins/core-codex/.codex-plugin/plugin.json" \
+    "$ROOT/src/plugin-generator/plugins/core-claude/.claude-plugin/plugin.json" \
+    "$ROOT/src/plugin-generator/plugins/core-cursor/.cursor-plugin/plugin.json" \
+    "$ROOT/src/plugin-generator/plugins/core-copilot/.github/plugin/plugin.json" \
+    "$ROOT/src/plugin-generator/plugins/core-codex/.codex-plugin/plugin.json"; do
     printf "  %-55s %s\n" "[plugin.json] ${f#$ROOT/}" "$(get_json_version "$f")"
 done
 for f in \
@@ -188,6 +192,13 @@ bump_file_json "$ROOT/plugins/core-claude/.claude-plugin/plugin.json"  "y"
 bump_file_json "$ROOT/plugins/core-cursor/.cursor-plugin/plugin.json"  "y"
 bump_file_json "$ROOT/plugins/core-copilot/.github/plugin/plugin.json" "y"
 bump_file_json "$ROOT/plugins/core-codex/.codex-plugin/plugin.json"    "y"
+
+echo ""
+echo "--- plugin.json files (plugin-generator preserved source) ---"
+bump_file_json "$ROOT/src/plugin-generator/plugins/core-claude/.claude-plugin/plugin.json"  "y"
+bump_file_json "$ROOT/src/plugin-generator/plugins/core-cursor/.cursor-plugin/plugin.json"  "y"
+bump_file_json "$ROOT/src/plugin-generator/plugins/core-copilot/.github/plugin/plugin.json" "y"
+bump_file_json "$ROOT/src/plugin-generator/plugins/core-codex/.codex-plugin/plugin.json"    "y"
 
 echo ""
 echo "--- marketplace.json files (default: N) ---"

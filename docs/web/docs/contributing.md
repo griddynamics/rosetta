@@ -30,7 +30,7 @@ permalink: /docs/contributing/
 
 Not sure where your idea fits? Open an issue first.
 
-## Fast Path to Your First PR
+## How to Contribute
 
 1. Pick a small, scoped issue (or open one with your proposal)
 2. Make focused edits. One concern per PR.
@@ -39,49 +39,13 @@ Not sure where your idea fits? Open an issue first.
 
 That's it. Small PRs get reviewed faster and merged sooner.
 
-## Contributing Workflow
-
-```
-fork/clone → branch → edit → validate → push → PR
-```
-
-- Branch from `main`. Use descriptive branch names.
-- Commit messages: short summary line, body if needed. No special format enforced.
-- Run local validation before pushing.
-- Open a PR against `main`. Fill in the PR template.
-
-See [Overall Development Flow](/rosetta/docs/developer-guide/#overall-development-flow) on how to run, test, build, review, and validate.
+For the full sequence — setup, development, testing, validation, and PR submission — see [Overall Development Flow](/rosetta/docs/developer-guide/#overall-development-flow).
 
 ## Prompt Changes
 
-Rosetta is a prompt engineering system. Prompt changes have outsized impact and need extra care.
+Prompt changes have outsized impact and need extra care. A prompt change modifies how AI agents behave across every project that uses Rosetta.
 
-**Use the prompting flow.** The [`coding-agents-prompting-flow`](/rosetta/docs/usage-guide/#workflows) with `coding-agents-prompt-authoring` skill helps you author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with Opus 4.8 model.
-
-Examples:
-
-1. Refactoring old rosetta prompt to new:
-   ```
-   MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R2 prompt family in Rosetta.
-   ```
-
-2. Creating a new prompt:
-   ```
-   MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to author a new R2 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
-   ```
-
-**What to include in the PR:**
-
-1. A prompt brief: goal, non-goals, constraints
-2. Before/after behavior examples
-3. Validation evidence (attach to PR description)
-
-**Automated review pipelines will run on your PR:**
-
-- **Static AI review** validates prompt changes for structure, quality, correctness, and governance
-- **Scenario comparison** runs scenarios with old and new prompts, then validates the behavioral difference
-
-Both must pass before merge.
+For the full process — which workflow to run, which model to use, the concrete invocations, what to include in the PR, and the automated review pipelines — see [Developer Guide → Overall Development Flow (step 2)](/rosetta/docs/developer-guide/#overall-development-flow).
 
 ## AI-Assisted Contributions
 

@@ -99,7 +99,7 @@ Steps:
 
 You are done when ALL of the following are true:
 1. Every changed file has an entry in the output array (no file skipped — including deleted and new files).
-2. All 20 gates are scored for every file (no gate skipped). Every gate appears in `gates{}`.
+2. All 21 gates are scored for every file (no gate skipped). Every gate appears in `gates{}`.
 3. Every gate scoring ≤ 3 has at least one entry in `issues[]`.
 4. Every issue has `severity`, `problem`, `solution`, and `reason`.
 5. Every issue references specific text from the evaluated prompt.
@@ -147,14 +147,14 @@ Comparison is NOT two independent evaluations. It is a **change-focused** analys
    - **Moved**: same content relocated to different section/position. Evaluate whether the move improves or hurts coherence.
 3. For each change, determine which gate(s) it affects.
 
-**Phase 2 — Gate Scoring (derived from changes).** For each of the 20 gates:
+**Phase 2 — Gate Scoring (derived from changes).** For each of the 21 gates:
 
 1. If the diff does not touch content related to this gate: score `comparison: 3` (unchanged, assumed good).
 2. If the diff touches this gate: score both `comparison` (1-5 change impact) and `score` (1-5 absolute quality of the new version for the affected content).
 3. If content satisfying a gate's checks was deleted, the `score` for the new version MUST be lower than the base version's score for that gate (or equal only if equivalent content exists elsewhere in the new version). The `comparison` score MUST be < 3. Do NOT score a deletion as an improvement (comparison 4-5) unless the deleted content was demonstrably harmful or duplicated.
 4. Every issue MUST reference a specific change (added/deleted/modified line or section) that caused the regression. Do NOT report issues against unchanged content.
 
-## Quality Gates (20 total)
+## Quality Gates (21 total)
 
 ### Category: definition
 
@@ -196,6 +196,7 @@ Comparison is NOT two independent evaluations. It is a **change-focused** analys
 ### Category: portability
 
 **Dependency Management** — Are external dependencies abstracted rather than hardcoded? Checks: (1) tool/MCP/vendor names parameterized, (2) domain knowledge retrieved not baked in.
+**Rosetta** - Check for any review violations identified by SKILL `coding-agents-prompt-authoring` itself, and specifically in `coding-agents-prompt-authoring/references/pa-rosetta.md` and `coding-agents-prompt-authoring/references/pa-hardening.md`.
 
 ### Output Structure
 
@@ -205,7 +206,7 @@ The output is a JSON **array** written to the output file path provided in the p
 
 2. **`status`** — one of: `modified`, `deleted`, `new`
 
-3. **`gates{}`** — object mapping every gate name to a score object. All 20 gates MUST appear. Use the exact gate names from the Quality Gates section (e.g., "Goal Specification", "Input Contract"). Each gate contains:
+3. **`gates{}`** — object mapping every gate name to a score object. All 21 gates MUST appear. Use the exact gate names from the Quality Gates section (e.g., "Goal Specification", "Input Contract"). Each gate contains:
    - `score`: integer 1-5, the absolute score for the NEW prompt (for deleted files: score the impact of the deletion; for new files: absolute quality from scratch)
    - `comparison`: integer 1-5, the relative comparison score showing the impact of changes from base to new (1=much worse, 2=slightly worse, 3=no change, 4=slightly better, 5=much better). For new files: if a similar file existed in a previous release, compare against that predecessor; otherwise compare against the baseline assumption of the file not existing — a well-written new prompt that fills a real gap scores 4-5, a poorly written one that adds noise without value scores 2-3. Avoid anchoring bias from having read the file.
 
@@ -224,7 +225,7 @@ For files that cannot be processed, use `{"file": "<path>", "error": "<message>"
 - If a file cannot be read and its content cannot be retrieved from git: include `{"file": "<path>", "error": "Cannot read file: <path>"}` in the output array.
 - If file content is empty: include `{"file": "<path>", "error": "Empty prompt in file: <path>"}` in the output array.
 - If file content exceeds 20K characters: include `{"file": "<path>", "error": "Prompt too large for reliable evaluation: <path>"}` in the output array.
-- If file content between 10K characters to 20K characters: this is a high severity, but not error.
+- If file content between 10K characters to 20K characters: this is a medium severity, but not error.
 - If you cannot confidently score a gate: score 3 and add an issue explaining the uncertainty.
 - The output file MUST always be written, even if all files error. Minimum valid output: `[]`.
 - NO text output should be returned by agent except the JSON file.

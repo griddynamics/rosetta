@@ -32,7 +32,9 @@ baseSchema: docs/schemas/workflow.md
 [Orchestrator may not have clear picture, instruct it to trust the system, skills define that, and it should NOT try to execute those itself]
 [Tell how phases and steps are executed: sequentially or parallel]
 
-<[phase_name] phase="N" [dimension]="[value]" subagent="[subagent name]" role="[subagent role with specialization to assume, brilliant and short]" subagent_recommended_model="[comma separate list of models]">
+<[phase_name] phase="N" [dimension]="[value]" subagent="[subagent name]" role="[subagent role with specialization to assume, brilliant and short]" subagent_recommended_model="[comma separate list of models]" [optional: must-be-subagent]>
+
+[add attribute must-be-subagent for phases where fresh eyes are critical: reviewers/validator/etc.]
 
 1. [High-level brief description, the phase itself should be a separate file if requires multiple steps to be executed]
 2. [Briefly inputs, outputs, responsibilities contract]

@@ -74,7 +74,7 @@ Modal verbs: `shall` (mandatory), `should` (preferred), `may` (optional), `shall
 
 <requirement_statements>
 
-- **FRs:** EARS, one pattern per FR; avoid multiple triggers/responses; split compound requirements; link to scenarios; include error behaviors. Pattern catalog (ubiquitous/event/state/optional/unwanted) → [references/authoring-catalogs.md](references/authoring-catalogs.md#ears-pattern-catalog-functional-requirement-statements).
+- **FRs:** EARS, one pattern per FR; avoid multiple triggers/responses; split compound requirements; link to scenarios; include error behaviors; switch both implementation status and req status. Pattern catalog (ubiquitous/event/state/optional/unwanted) → [references/authoring-catalogs.md](references/authoring-catalogs.md#ears-pattern-catalog-functional-requirement-statements).
 - **NFRs:** ISO 25010 buckets; include metric, threshold, measurement conditions and method; prefer percentiles; state limits; tie to scenarios; no subjective quality words.
 - **Acceptance criteria:** `Given:<G> When:<W> Then:<T>.` Independently testable; cover happy/unhappy/boundary/error.
 - **Verification:** prefer **Test**; **Analysis** (proofs); **Inspection** (artifacts); **Demo** (behaviors).

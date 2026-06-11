@@ -27,7 +27,7 @@ Rosetta supports the current release and the one before it (N-1) so when a new r
 
 **How do I upgrade from R1 to R2?**
 
-Open a new chat in your IDE and type: `Initialize this repository using Rosetta (upgrade R1 to R2)`. Rosetta will detect the existing R1 layout and migrate it.
+Open a new chat in your IDE and type: `Initialize this repository using the respective Rosetta workflow (upgrade R1 to R2)`. Rosetta will detect the existing R1 layout and migrate it.
 
 **Plugin install or MCP install — which should I use?**
 

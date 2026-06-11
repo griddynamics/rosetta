@@ -512,8 +512,14 @@ It should use Rosetta MCP to retrieve agents, guardrails, and instructions:
 
 Run once per repository after installation:
 
+**Greenfield (new repository):**
 ```
-Initialize this repository using Rosetta
+Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ...
+```
+
+**Brownfield (existing repository):**
+```
+Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]
 ```
 
 The agent runs an eight-phase workflow (see [Usage Guide — Init Workspace](USAGE_GUIDE.md#workflows) for details):

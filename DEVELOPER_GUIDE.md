@@ -7,15 +7,51 @@
 
 ## Overall Development Flow
 
-1. **Prepare local Rosetta repository.**
-   - Fork repository entirely and work in the `main` branch
-   - Clone and create feature branch from the `main` branch
-   - Rosetta uses `main` as target branch for PR
-   - See [Contributing Workflow](CONTRIBUTING.md#contributing-workflow) for git-related info
+At a glance — the steps below expand each stage:
 
-2. **Develop Rosetta using claude code / codex / cursor** or **Use the prompting flow.**
-   - Development: existing rules will kick in, we use HTTP MCP, everything is preconfigured using claude standards. The repo's `.mcp.json` pre-configures Claude Code to connect to the **dev** MCP endpoint (`rosetta-dev.example.com/mcp`) — this is intentional so contributors see their in-progress instruction changes reflected immediately. End users connect to the production endpoint instead.
-   - Prompting: use the [`coding-agents-prompting-flow` (description + examples)](CONTRIBUTING.md#prompt-changes) to author, refactor, or harden prompts.
+```
+fork/clone → branch → edit → validate → push → PR
+```
+
+1. **Prepare local Rosetta repository.**
+   - Fork the repository entirely and work in the `main` branch
+   - Clone and create a feature branch from `main` (use descriptive branch names)
+   - Rosetta uses `main` as the target branch for every PR
+   - Commit messages: short summary line, body if needed. No special format enforced.
+
+2. **Develop Rosetta using claude code / codex / cursor** or **use the prompting flow.**
+   - **Development:** use rosetta plugins to develop rosetta. [TESTING-PLUGINS.md](docs/TESTING-PLUGINS.md) shows how to install/test plugins locally. HTTP MCP should not be used. The repo's `.mcp.json` pre-configures Claude Code to connect to the **dev** MCP endpoint (`rosetta-dev.example.com/mcp`) — intentional so contributors see their in-progress instruction changes reflected immediately. End users connect to the production endpoint instead.
+   - **Prompting:** use the [`coding-agents-prompting-flow`](USAGE_GUIDE.md#workflows) with the `coding-agents-prompt-authoring` skill to author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with the Opus 4.8 model.
+
+     Example invocations:
+
+     - Run the flow by slash-command (requires the plugin installed — see [Plugins](PLUGINS.md#step-1-install-plugin)):
+
+       ```
+       /coding-agents-prompting-flow to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       ```
+
+     - Refactor an old prompt into the new format:
+
+       ```
+       MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
+       ```
+
+     - Author a new prompt:
+
+       ```
+       MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       ```
+
+     - Author a new prompt via Rosetta MCP:
+
+       ```
+       MUST ACQUIRE coding-agents-prompting-flow.md FROM KB AND FULLY EXECUTE IT to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       ```
+
+     Include in every prompt-change PR: a prompt brief (goal, non-goals, constraints), before/after behavior examples, and validation evidence (attach to the PR description).
+
+     Automated review pipelines run on prompt-change PRs — **static AI review** (structure, quality, correctness, governance) and **scenario comparison** (runs scenarios with the old and new prompts, then validates the behavioral difference). Both must pass before merge.
 
 3. **Check your output.**
    - [General Review Criteria](REVIEW.md#general-review-criteria)
@@ -26,7 +62,7 @@
 4. **Test locally on a target repo.**
    - Disable Rosetta MCP
    - Set up [Local Instructions Mode](#local-development-instructions) on **target** repository.
-   - Test your prompts against on a real codebase.
+   - Test your prompts against a real codebase.
    - Modify your prompts in `instructions` in **target** repository
    - Restart coding agents or new sessions after changes made
    - Copy back changed files to the Rosetta repository
@@ -45,9 +81,8 @@
    - All: update documentation, including web site
 
 7. **Pipelines.**
-   - [Automated pipelines](CONTRIBUTING.md#prompt-changes) will execute
-   - Static AI review and scenario comparison
-   - Both must pass
+   - Automated pipelines run on your PR: static AI review and scenario comparison (detailed in step 2 above)
+   - Both must pass before merge
 
 ---
 

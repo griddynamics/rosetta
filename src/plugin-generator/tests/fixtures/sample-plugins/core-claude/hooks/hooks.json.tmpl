@@ -1,0 +1,13 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [{{{bootstrap_hooks}}}]
+      }
+    ]{{#if deterministic_hooks}},{{/if}}
+{{#if deterministic_hooks}}
+    "PreToolUse": []
+{{/if}}
+  }
+}

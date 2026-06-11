@@ -14,7 +14,13 @@ from pathlib import Path
 
 from pybars import Compiler
 
-ALLOWED_CLAUDE_MODELS = {"opus", "sonnet", "haiku", "inherit"}
+CLAUDE_MODEL_MAP: dict[str, str] = {
+    "opus":   "claude-opus-4-8",
+    "sonnet": "claude-sonnet-4-6",
+    "haiku":  "claude-haiku-4-5",
+}
+
+ALLOWED_CLAUDE_MODELS = set(CLAUDE_MODEL_MAP.values()) | {"inherit"}
 
 EXCLUDED_RULE_FILES = {"rules/bootstrap.md", "rules/local-files-mode.md"}
 
@@ -25,7 +31,7 @@ BOOTSTRAP_PREFIX = (
 )
 
 CURSOR_MODEL_MAP: dict[str, str] = {
-    "opus":                   "claude-opus-4-6",
+    "opus":                   "claude-opus-4-8",
     "sonnet":                 "claude-sonnet-4-6",
     "haiku":                  "claude-haiku-4-5",
     "gpt-5.5":                "gpt-5.5",
@@ -37,7 +43,7 @@ CURSOR_MODEL_MAP: dict[str, str] = {
 }
 
 COPILOT_MODEL_MAP: dict[str, str] = {
-    "opus":                   "Claude Opus 4.6",
+    "opus":                   "Claude Opus 4.8",
     "sonnet":                 "Claude Sonnet 4.6",
     "haiku":                  "Claude Haiku 4.5",
     "gpt-5.5":                "GPT-5.5",
@@ -177,11 +183,11 @@ def normalize_claude_model(value: str) -> str:
     if lowered in ALLOWED_CLAUDE_MODELS:
         return lowered
     if "opus" in lowered:
-        return "opus"
+        return CLAUDE_MODEL_MAP["opus"]
     if "sonnet" in lowered:
-        return "sonnet"
+        return CLAUDE_MODEL_MAP["sonnet"]
     if "haiku" in lowered:
-        return "haiku"
+        return CLAUDE_MODEL_MAP["haiku"]
     return "inherit"
 
 

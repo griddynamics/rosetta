@@ -49,7 +49,12 @@ Sets up a repository so AI coding agents can work with Rosetta context from the 
 **Expect:** built-in subagents for mode detection, discovery, pattern extraction, documentation, gap filling, and verification. Your responsibility is to answer domain and architecture questions, review generated docs, and restart the chat after initialization so new shell/context files are loaded.
 
 ```
-"Initialize this repository using Rosetta"
+# Greenfield (new repository)
+"Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ..."
+
+# Brownfield (existing repository)
+"Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]"
+
 "Upgrade this repository from Rosetta R1 to R2"
 "Initialize subagents and workflows"
 ```
@@ -521,8 +526,21 @@ What happens:
 
 ### Project Initialization
 
+**Greenfield (new repository):**
 ```
-You: "Initialize this repository using Rosetta"
+You: "Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ..."
+
+What happens:
+1. Agent scans your tech stack, dependencies, and project structure
+2. Generates TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md
+3. Creates CONTEXT.md and ARCHITECTURE.md
+4. Asks clarifying questions about your project
+5. Verifies all generated docs
+```
+
+**Brownfield (existing repository):**
+```
+You: "Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]"
 
 What happens:
 1. Agent scans your tech stack, dependencies, and project structure
@@ -584,6 +602,13 @@ See [Plugins](/rosetta/docs/plugins/) for install commands.
 - **Clean up dead code before onboarding.** Unused code confuses AI the same way it confuses new developers.
 - **Do not approve plans you have not read.** The approval gate only protects you if you use it.
 - **Do not delete files in `docs/`.** They are Rosetta's project knowledge. Deleting them means starting over.
+- **Switch sessions at 65% context.** Monitor context usage. If it goes above 65%, queue the message or wait for the earliest ability to switch over to a new session:
+
+  `Please save execution state, workflow state, findings, original intent with clarifications, and tasks left to do as concise "agents/TEMP/execution-state.md" so that I can start a fresh new session and continue execution where you left it off.`
+
+  Once file saved, start the new session with the same original slash command:
+
+  `/<original-command> Please resume execution saved in "agents/TEMP/execution-state.md" according to flow instructions`
 
 ## Video Tutorials
 

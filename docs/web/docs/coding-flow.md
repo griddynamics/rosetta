@@ -87,6 +87,16 @@ Rosetta provides instructions. Coding agents act on them. Rosetta itself does no
 | 10. Review tests | `MEDIUM,LARGE` | Tests, specs, implementation | Inspect scenario coverage, edge cases, and mocking correctness | Review findings and recommendations; state update | Reviewer for medium and large tasks |
 | 11. Final validation | `MEDIUM,LARGE`; small confirms build and tests passed | Full delivery set | Perform final by-dependency verification and cleanup checks | Final validation report; state update | Validator for medium and large tasks |
 
+## Best Practices
+
+- **Switch sessions at 65% context.** Monitor context usage. If it goes above 65%, queue the message or wait for the earliest ability to switch over to a new session:
+
+  `Please save execution state, workflow state, findings, original intent with clarifications, and tasks left to do as concise "agents/TEMP/execution-state.md" so that I can start a fresh new session and continue execution where you left it off.`
+
+  Once file saved, start the new session with the same original slash command:
+
+  `/coding-flow Please resume execution saved in "agents/TEMP/execution-state.md" according to flow instructions`
+
 ## Workflow Overview
 
 ```mermaid

@@ -25,12 +25,12 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 - MUST load each phase's skills when entering that phase (just-in-time) when subagents are not used.
 - If workflow is executed to implement requirements and those exists in REQUIREMENTS folder, MUST USE SKILL `requirements-use` and load all affected requirements (after skill is loaded). After that subagents must be given pointers to those requirements and skill.
 - If `/goal` is set repeat phases 5-10 postponing user_review_impl and final_validation until goal is met.
-- Coding workflow state is saved to AGENTS TEMP FEATURE folder as `coding-flow-state.md` file. 
+- Coding workflow state is saved to AGENTS TEMP FEATURE folder as `coding-flow-state.md` file.
 
 <discovery phase="1" applies="MEDIUM,LARGE" subagent="discoverer" role="Context discoverer">
 
 1. Gather project context, affected areas, dependencies, constraints, requirements. SMALL: orchestrator handles inline.
-2. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: discovery-notes.md in FEATURE PLAN folder.
+2. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: `discovery-notes.md` in FEATURE PLAN folder.
 3. Required skills: `load-context`
 4. If REQUIREMENTS in use: `requirements-use` skill is required.
 5. Additionally request to discover existing libraries, packages, search web for similar problems/tasks (if this make sense)
@@ -51,7 +51,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </tech_plan>
 
-<review_plan phase="3" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting specs and plan against intent">
+<review_plan phase="3" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting specs and plan against intent" must-be-subagent>
 
 1. Review specs and plan against user request and discovery notes.
 2. Input: specs, plan, user request. Output: review findings and recommendations.
@@ -75,11 +75,12 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 4. Required skills: `coding`
 5. Recommended skills: `debugging`, `coding-iac`, `sensitive-data`, `testing`, `dangerous-actions`
 6. If requirements are used code must contain comments refs to requirements identifiers
-7. Update `coding-flow-state.md`
+7. Spawn multiple implementation agents on independent tasks without dependencies and files intersection if reasonable
+8. Update `coding-flow-state.md`
 
 </implementation>
 
-<review_code phase="6" applies="ALL" subagent="reviewer" role="Reviewer inspecting implementation against specs">
+<review_code phase="6" applies="ALL" subagent="reviewer" role="Reviewer inspecting implementation against specs" must-be-subagent>
 
 1. Review code changes against approved specs and plan.
 2. Input: implementation diff, specs, plan, check if documentation is updated, brief, and matches the file intent. Output: review findings and recommendations.
@@ -118,7 +119,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </tests>
 
-<review_tests phase="10" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting test coverage and quality">
+<review_tests phase="10" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting test coverage and quality" must-be-subagent>
 
 1. Review tests against specs: coverage, scenarios, edge cases, mocking correctness.
 2. Input: tests, specs, implementation. Output: review findings and recommendations.
