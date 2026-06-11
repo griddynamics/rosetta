@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/griddynamics-rosetta-badge.png)](https://mseep.ai/app/griddynamics-rosetta)
+
 <div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/web/assets/brand/rosetta-logo-full-color-white-text.png">
