@@ -1,6 +1,6 @@
 # Requirements Authoring — Catalogs, Schemas & Templates
 
-Loaded on demand from `requirements-authoring/SKILL.md` when actively drafting. SKILL.md keeps every authoring **rule and method** inline; this file holds the reference-grade catalogs, schemas, and verbatim templates filled in at write time. SMART / MUST-SHOULD-MAY / priority conventions are owned by SKILL.md — not restated here.
+Loaded on demand from `requirements-authoring/SKILL.md` when actively drafting. SKILL.md keeps every authoring **rule and method** inline; this file holds the reference-grade catalogs, schemas, and verbatim templates filled in at write time. MUST-SHOULD-MAY / priority conventions are owned by SKILL.md — not restated here.
 
 ---
 

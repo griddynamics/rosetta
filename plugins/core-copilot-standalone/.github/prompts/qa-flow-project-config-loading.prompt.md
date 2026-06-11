@@ -227,7 +227,7 @@ Please answer what you know — I can discover the rest from code and docs.
 
 ## Project config template
 
-Written to the canonical path `agents/qa/qa-project-config.md` (project-wide; shared across every QA session for this project). Populate each section from the user's answers; mark optional fields `TBD — <reason>` when discovery is intentionally deferred. The `<config_contract>` table is the authority for which keys are required.
+Written to the canonical path `agents/qa/qa-project-config.md` (project-wide; shared across every QA session for this project). Populate each section from the user's answers. **`<config_contract>` is the single authority for which keys are required and their accepted values / `N/A — <reason>` forms — not restated per-field below;** the required keys carry `[per <config_contract>]` placeholders. Mark optional fields `TBD — <reason>` when discovery is intentionally deferred.
 
 ```markdown
 # QA Project Config
@@ -236,34 +236,34 @@ Written to the canonical path `agents/qa/qa-project-config.md` (project-wide; sh
 **Last Updated**: [DateTime]
 
 ## Document Storage
-- **documentation_type**: [confluence / google-drive / local / none]
-- **documentation_mcp_collection_skill**: [skill tag or N/A — documentation_type: none]
-- **confluence_base_url / documentation_base_url**: [Base URL or N/A — documentation_type: <value>]
+- **documentation_type**: [per <config_contract>]
+- **documentation_mcp_collection_skill**: [per <config_contract>]
+- **confluence_base_url / documentation_base_url**: [per <config_contract>]
 - **Location**: [URLs, space keys, paths]
 
 ## API Specification
-- **swagger_url**: [URL/path or N/A — no Swagger spec available; code-based analysis will run]
-- **spec_format**: [OpenAPI 3.x / Swagger 2.0 / N/A]
+- **swagger_url**: [per <config_contract>]
+- **spec_format**: [per <config_contract>]
 
 ## Backend Source Code
-- **backend_source_path**: [RefSrc/{project-name}/ / workspace path / N/A — work from Swagger/docs only]
+- **backend_source_path**: [per <config_contract>]
 - **Framework**: [Spring / Express / FastAPI / .NET / Other / TBD]
 
 ## Test Case Management
-- **system**: [testrail / jira / confluence / manual / other]
-- **testrail_base_url**: [Base URL or N/A — system: <non-testrail-value>]
-- **jira_base_url**: [Base URL or N/A — system: <non-jira-value>]
-- **testcase_mcp_collection_skill**: [skill tag or N/A — system: manual]
-- **project_id / suite_id**: [IDs if applicable, or N/A — system: <value>]
+- **system**: [per <config_contract>]
+- **testrail_base_url**: [per <config_contract>]
+- **jira_base_url**: [per <config_contract>]
+- **testcase_mcp_collection_skill**: [per <config_contract>]
+- **project_id / suite_id**: [per <config_contract>]
 - **Access**: [MCP-managed / env var <NAME> / manual]
 
 ## Test Framework
-- **framework**: [pytest / Jest / JUnit / RestAssured / SuperTest / Other / TBD — will discover from codebase]
+- **framework**: [per <config_contract>]
 - **Test Location**: [Directory path or TBD]
 - **Existing API Tests**: [Yes / No / TBD]
 
 ## Authentication
-- **mechanism**: [oauth2 / jwt / api-key / basic / none / TBD — will discover from spec/code]
+- **mechanism**: [per <config_contract>]
 - **Test Auth Strategy**: [strategy + source, e.g. Bearer JWT from AuthHelper; creds in env vars — never literal values]
 
 ## Additional Notes

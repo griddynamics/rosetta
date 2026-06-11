@@ -135,7 +135,7 @@ Proactively offer a requirements graph (suggest perspectives), build it from all
 
 <resources>
 
-`ACQUIRE FROM KB`: workflow `requirements-flow`; rule `rules/requirements-best-practices.mdc`; reference `requirements-authoring/references/authoring-catalogs.md` (unit template, EARS, synthesis schemas, conventions, graph); assets `ra-intent-capture.md`, `ra-requirement-unit.md`, `ra-validation-rubric.md`, `ra-change-log.md`.
+`ACQUIRE FROM KB`: workflow `requirements-flow`; rule `rules/requirements-best-practices.mdc`; reference `requirements-authoring/references/authoring-catalogs.md` (unit template, EARS, synthesis schemas, conventions, graph); assets `ra-intent-capture.md`, `ra-requirement-unit.xml`, `ra-validation-rubric.md`, `ra-change-log.md`.
 
 </resources>
 
