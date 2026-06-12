@@ -214,12 +214,12 @@ Use this for project-related research, investigation, or technical comparison th
 <details>
 <summary><b>Automated QA</b></summary>
 
-Creates or updates automated UI tests from a TestRail case, Confluence context, and the project test architecture. The workflow reads requirements first, clarifies assertions, analyzes existing tests and Page Objects, identifies selectors from source or page HTML, implements the test, then waits for execution results before proposing fixes.
+Takes a test case from your Test Management System (TestRail, qTest) and produces a working automated test in your automation framework. Rather than relying on the test-case description alone, the workflow also gathers what it needs from your code and ticket system (for example, Jira); it clarifies assertions, analyzes existing tests and Page Objects, identifies selectors, implements the test, asks when it sees contradictions, then waits for execution results and helps fix the test until it passes.
 
-**Use when:** automate a TestRail case or QA scenario, reuse existing Page Objects and helpers, avoid guessed selectors, or analyze a failing automated test report.
+**Use when:** automate a test case from your test management system, reuse existing Page Objects and helpers, avoid guessed selectors, or fix a failing automated test.
 
 **Phases:**
-1. Data Collection — collect TestRail, Confluence, project instructions, and create `agents/plans/aqa-<test-name>.md`
+1. Data Collection — collect the test case, ticket/Confluence context, and project instructions, and create `agents/plans/aqa-<test-name>.md`
 2. Requirements Clarification — ask assertion and behavior questions; wait for answers before code analysis
 3. Code Analysis — inspect frontend code, Page Objects, existing tests, utilities, and project conventions
 4. Selector Identification — map steps to UI elements; request page source only when selectors cannot be found
@@ -228,11 +228,12 @@ Creates or updates automated UI tests from a TestRail case, Confluence context, 
 7. Test Report Analysis — read test report output, categorize failures, and identify root causes
 8. Test Corrections — prepare fixes and require approval before applying changes
 
-**Expect:** sequential state-driven execution with QA/frontend/test implementation focus. HITL gates occur in phases 2, 6, 7, and 8; phase 4 asks for page HTML only if needed. Your responsibility is to provide the TestRail case, Confluence context, answers, page HTML when requested, run the test, and provide the report.
+**Expect:** sequential state-driven execution with QA/frontend/test implementation focus. HITL gates occur in phases 2, 6, 7, and 8; phase 4 asks for page HTML only if needed. Your responsibility is to provide the test case, any ticket or Confluence context, answers, page HTML when requested, run the test, and provide the report.
 
 ```
-/aqa-flow Automate TestRail case C1234 for the user registration feature, reusing existing Page Objects
-/aqa-flow Analyze the failing test report for the checkout suite and propose fixes
+/aqa-flow Automate the test case for the user registration flow
+/aqa-flow Implement automation for the regression suite test cases
+/aqa-flow Fix the failing automated test for the checkout flow
 ```
 
 </details>

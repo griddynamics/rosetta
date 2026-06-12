@@ -85,18 +85,18 @@ To properly set up an entire workspace, refer to [CONFIGURATION.md](CONFIGURATIO
 
 ### Automated QA
 
-**WHAT**: Automate one UI test at a time from a TestRail case, reusing your existing Page Objects and selectors. Scope each run to a single test case or feature — never ask it to automate everything at once.
+**WHAT**: Helps user go from a test case in Test Management System to a working test in the automation framework. Give it a test case, it gathers what it needs from your code and ticket system (for example, Jira) and AQA implements the automated test, asks questions when it sees contradictions, and helps fix the test until it passes.
 
 ```
-/aqa-flow Automate TestRail case C1234 for the checkout flow, reusing existing Page Objects.
-```
-
-```
-/aqa-flow Implement an end-to-end test for the user registration feature, then stop so I can run it.
+/aqa-flow Automate the test case for the checkout flow, ...
 ```
 
 ```
-/aqa-flow Analyze the failing test report for the login suite, categorize the failures, and propose fixes.
+/aqa-flow Implement automation for the test cases in suite ..., ...
+```
+
+```
+/aqa-flow Fix the failing automated test for ..., ...
 ```
 
 ### Modernization

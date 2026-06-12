@@ -38,6 +38,16 @@ Use the **plugin** when one is available for your IDE. Plugins bundle the bootst
 
 Use the **MCP** install when no plugin path exists for your IDE — e.g. Windsurf, Antigravity, OpenCode, or JetBrains Junie. See [PLUGINS.md](PLUGINS.md) for the IDEs that currently ship a plugin, and [INSTALLATION.md](INSTALLATION.md) for MCP setup.
 
+**I ran init — am I ready to go?**
+
+No. You must add the context the agent does not know:
+
+- Links to external knowledge — Confluence pages, Jira projects, design docs.
+- Architecture and business context that lives outside the repo.
+- External dependencies — other projects or services this repo relies on; the agent has no way to infer these.
+
+Add this information to the context files yourself. Do not simply ask the AI to "improve" the generated docs — without new facts it only rephrases them and often makes them worse. See [CONFIGURATION.md](CONFIGURATION.md) for setting up the workspace, including `gain.json` and `refsrc/`.
+
 ---
 
 ## Token Usage & Performance
@@ -58,6 +68,15 @@ For small/trivial tasks AI treats them as just small change and never executes t
 
 Rosetta runs prep steps once per session: it loads context, classifies the request, picks a workflow, and reads relevant project files (`CONTEXT.md`, `ARCHITECTURE.md`, etc.). Subsequent messages reuse this context and are fast.
 
+**Which model should I use, and why did Rosetta burn through my token budget?**
+
+Pick a **medium** model — **Sonnet 4.6**, **GPT-5.4-medium**, or **gemini-3.1-pro** — and avoid Auto model selection. The two most common cost mistakes:
+
+- **Running everything on a high-reasoning/Opus model.** Opus-class models spend heavily on reasoning and can exhaust a daily balance in one sitting. Rosetta already assigns an appropriate model per subagent and switches automatically, so you do not need to force the most expensive model for the whole session.
+- **Letting Auto pick the model.** Auto often downgrades to a weaker model mid-task, producing low-quality results. Choose the model explicitly.
+
+See the model guidance in [QUICKSTART.md](QUICKSTART.md).
+
 ---
 
 ## Behavior & Modes
@@ -77,6 +96,13 @@ Include the literal phrase `fully autonomous` or `no HITL` in your request. This
 **The agent stopped following Rosetta mid-session. What happened?**
 
 Most likely an expired MCP OAuth token. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#agent-not-using-rosetta) — re-authenticate through your IDE's MCP settings.
+
+**When should I start a new chat session versus continue in the same one?**
+
+- **Same session** for follow-ups on the work just done — the agent fixed something the wrong way, missed an edge case, or you want to refine the same change.
+- **New session** when you move to a different feature, a new dependency, or an unrelated change. Each top-level request should start fresh so prep steps reclassify it and context stays lean.
+
+Reusing one long session for many unrelated tasks bloats context and degrades results. (A common mistake is running every task in a chat that started with "what can you do?" — start a new session for the real task.)
 
 ---
 
