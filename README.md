@@ -29,26 +29,22 @@ If you want to quickly understand what problem Rosetta solves and why we built i
 
 **DISCLAIMER**: If you are effectively using your current setup, writing your own skills, and managing AI using your own processes - you 99% don't need Rosetta.
 
-## Supported IDEs and Agents
+## Quick Start
 
-| IDE/Agent | Plugin | MCP |
-|---|---|---|
-| Cursor | ✓ | ✓ |
-| Claude Code | ✓ | ✓ |
-| Codex | ✓ | ✓ |
-| GitHub Copilot (VS Code) | ✓ | ✓ |
-| GitHub Copilot (JetBrains) | ✓ | ✓ |
-| JetBrains Junie | — | ✓ |
-| Windsurf | — | ✓ |
-| Antigravity | — | ✓ |
-| OpenCode | — | ✓ |
+Install Rosetta using:
 
-We recommend installing Rosetta using [PLUGINS](PLUGINS.md).
-If AI coding agent does not support plugins, use [MCPs](MCPs.md).
+- **Plugins (recommended)** — [How to install](PLUGINS.md). **Supported IDEs:** Cursor, Claude Code, Codex, GitHub Copilot (VS Code & JetBrains).
+- **MCP** — [How to install](MCPs.md). **Supported IDEs:** All of the above, plus JetBrains Junie, Windsurf, Antigravity, OpenCode.
 
 > [!WARNING]
 > There will be conflict if you have similar plugins installed: JUXT, Superpowers, GSD, AI-DevKit. Use the ones you have the most experience with.
 
+After installing, initialize your repo:
+
+- **Greenfield (new repository):** *"Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ..."*
+- **Brownfield (existing repository):** *"Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]"*
+
+STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](INSTALLATION.md). Read more in the [Quickstart](QUICKSTART.md).
 
 <details>
 <summary><b>What Rosetta Adds to AI Coding Agents</b></summary>
@@ -128,45 +124,6 @@ Rosetta is engineered to prevent the unintentional transmission of sensitive dat
 - **Deterministic Instruction Serving**: Instructions are delivered as MCP resources in a strictly deterministic manner. By eliminating the need for semantic search, coding agents are never required to transmit source code or sensitive context to Rosetta to retrieve instructions.
 - **Read-Only Default State**: "Write" mode is disabled and hidden by default. Enabling write capabilities requires an explicit, intentional configuration at deployment, ensuring that data persistence remains entirely outside of the end-user's control.
 - **Schema-Strict Input Validation**: All MCP tool inputs undergo rigorous validation against predefined schemas. This ensures the system rejects any unexpected payloads or "over-sharing" of data that does not match the required parameters.
-
-## Get Started
-
-**Cursor** — add to `~/.cursor/mcp.json` or `.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "Rosetta": {
-      "url": "https://mcp.rosetta.griddynamics.net/mcp"
-    }
-  }
-}
-```
-
-**Claude Code:**
-
-```sh
-claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp
-```
-
-**Codex:**
-
-```sh
-codex mcp add Rosetta --url https://mcp.rosetta.griddynamics.net/mcp
-codex mcp login Rosetta
-```
-
-Complete the OAuth flow when prompted. Then ask:
-
-**Greenfield (new repository):** *"Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ..."*
-
-**Brownfield (existing repository):** *"Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]"*
-
-STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](INSTALLATION.md). Read more in the [Quickstart](QUICKSTART.md).
-
-## Tech Demo
-
-https://github.com/user-attachments/assets/fc0ef06a-2f9c-49fa-bc05-68001dadd286
 
 ## Contributing
 
