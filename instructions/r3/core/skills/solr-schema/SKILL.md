@@ -8,6 +8,8 @@ tags:
   - analyzers
   - docvalues
   - solrconfig
+disable-model-invocation: false
+user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 
