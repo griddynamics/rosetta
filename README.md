@@ -21,6 +21,14 @@
 
 https://github.com/user-attachments/assets/6df6e217-3e5c-4691-84ed-7440701a87de
 
+Rosetta gives an AI coding agent the context and instructions any senior engineer would need before touching the code. As the result, AI agents work from real knowledge of your project instead of guessing. Rosetta feeds the agent your system architecture, domain rules, and engineering standards, plus a library of ready-made instructions to follow. Those instructions include:
+- **Rules** — always-on policies the agent must follow (guardrails, safety, conventions).
+- **Skills** — focused abilities it uses when needed (e.g. load context, write specs).
+- **Workflows** — step-by-step processes for a whole task (coding, testing, modernization, and more).
+- **Sub-agents** — specialized helpers the main agent hands work to (reviewer, researcher, and others).
+
+When you first set it up, Rosetta learns your project by reading the existing code and saving notes on how everything fits together, so the AI doesn't start from zero every time. As a result, the AI gets up to speed faster, spends fewer tokens in later chats, and writes code that is more reliable and consistent.
+
 Rosetta is a meta-prompting, context engineering, and centralized instructions management for AI coding agents. It provides structured context - rules, skills, workflows, and sub-agents - guiding AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards. Rosetta accelerates project onboarding by reverse-engineering architecture and domain context, reducing further conversations token consumption and improving the reliability and consistency of AI-generated code.
 
 Every AI interaction follows four phases: **Prepare** (load guardrails and context), **Research** (search the knowledge base), **Plan** (produce a reviewable plan), **Act** (execute with full context), and **Validate** (manual validation by AI). Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).

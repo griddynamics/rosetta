@@ -40,13 +40,15 @@ Use the **MCP** install when no plugin path exists for your IDE — e.g. Windsur
 
 **I ran init — am I ready to go?**
 
-No. You must add the context the agent does not know:
+No. Init generates a starting skeleton, but the agent only knows what the workspace tells it. Before real work, give it the three things it cannot infer from code:
 
-- Links to external knowledge — Confluence pages, Jira projects, design docs.
-- Architecture and business context that lives outside the repo.
-- External dependencies — other projects or services this repo relies on; the agent has no way to infer these.
+- **Business context** → `CONTEXT.md`: the project goal, domain rules, stakeholders, issue tracker, and how a ticket becomes shipped work.
+- **Technical context** → `ARCHITECTURE.md`: how to run/build/test it, service and external-library dependencies, auth and routing, and your coding/style standards.
+- **Reference code** → `refsrc/`: read-only copies of code the agent can't otherwise see (e.g. the backend for a frontend repo, corporate libraries, a recently-updated framework), listed in `refsrc/INDEX.md`.
 
-Add this information to the context files yourself. Do not simply ask the AI to "improve" the generated docs — without new facts it only rephrases them and often makes them worse. See [CONFIGURATION.md](CONFIGURATION.md) for setting up the workspace, including `gain.json` and `refsrc/`.
+Then define reusable **patterns** so generated code stays consistent, and configure your **ecosystem** (a few MCPs/CLIs). Add this yourself — do not just ask the AI to "improve" the generated docs; without new facts it only rephrases them and often makes them worse.
+
+See [CONFIGURATION.md](CONFIGURATION.md) for the full per-repository checklist and the multi-repo / modernization layouts.
 
 ---
 
