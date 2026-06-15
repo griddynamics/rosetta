@@ -1,6 +1,6 @@
 ---
 name: load-context-instructions
-description: Detect active execution mode and load Rosetta bootstrap instructions accordingly.
+description: "To detect execution mode and load the matching bootstrap instructions."
 baseSchema: docs/schemas/skill.md
 ---
 <load-context-instructions>

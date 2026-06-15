@@ -1,6 +1,6 @@
 ---
-name: aqa-flow-test-report-analysis
-description: Phase 7 of AQA workflow - Test Report Analysis (USER INTERACTION REQUIRED if report location unknown)
+name: modernization-flow-reuse
+description: "Phase 7 Test Report Analysis of aqa-flow"
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md

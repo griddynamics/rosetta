@@ -1,6 +1,6 @@
 ---
 name: gitnexus-tools
-description: Use when you need to select or call a GitNexus MCP tool and want the right tool with the right parameters. Consult before any GitNexus tool call.
+description: "To call the right GitNexus MCP tool, querying the repo code graph."
 tags: ["gitnexus", "pattern-matching", "code-intelligence"]
 baseSchema: docs/schemas/skill.md
 ---

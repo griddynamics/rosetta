@@ -41,11 +41,15 @@ describe('normalizeClaude', () => {
 describe('normalizeCursor', () => {
   it('takes first model overall', () => {
     // First is claude → maps to canonical
-    expect(normalizeCursor('claude-4.8-opus-high, gpt-5.5-high')).toBe('claude-opus-4-6');
+    expect(normalizeCursor('claude-4.8-opus-high, gpt-5.5-high')).toBe('claude-opus-4-8');
   });
 
-  it('strips effort suffix from gpt tokens', () => {
+  it('maps gpt effort variant via exhaustive table', () => {
     expect(normalizeCursor('gpt-5.5-high')).toBe('gpt-5.5');
+  });
+
+  it('maps gpt-5.4-high via exhaustive table', () => {
+    expect(normalizeCursor('gpt-5.4-high, other')).toBe('gpt-5.4');
   });
 
   it('maps claude-4.6-sonnet to claude-sonnet-4-6', () => {
@@ -63,11 +67,15 @@ describe('normalizeCursor', () => {
 
 describe('normalizeCopilot', () => {
   it('maps claude-4.8-opus-high to display name', () => {
-    expect(normalizeCopilot('claude-4.8-opus-high')).toBe('Claude Opus 4.6');
+    expect(normalizeCopilot('claude-4.8-opus-high')).toBe('Claude Opus 4.8');
   });
 
-  it('maps gpt-5.5-high to GPT-5.5', () => {
+  it('maps gpt-5.5-high to GPT-5.5 via exhaustive table', () => {
     expect(normalizeCopilot('gpt-5.5-high, claude-4.8-opus')).toBe('GPT-5.5');
+  });
+
+  it('maps gpt-5.4-high to GPT-5.4 via exhaustive table', () => {
+    expect(normalizeCopilot('gpt-5.4-high, other')).toBe('GPT-5.4');
   });
 
   it('returns null for empty string', () => {

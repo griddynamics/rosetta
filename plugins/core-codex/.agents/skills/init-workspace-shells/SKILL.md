@@ -1,6 +1,6 @@
 ---
 name: init-workspace-shells
-description: "Rosetta skill to generate IDE/CodingAgent shell files from KB schemas."
+description: "Generate shell files."
 license: Apache-2.0
 model: gpt-5.4
 model_reasoning_effort: medium

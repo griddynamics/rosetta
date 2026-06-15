@@ -1,8 +1,18 @@
 # Story: Skills Taxonomy Reconciliation + Frontmatter Refactoring
 
-Status: DRAFT — analysis complete; recommendations only (implementation decides verdicts). Confirmed scope with owner. r3 only; source = `instructions/r3/core/**` (never hand-edit `plugins/`).
+Status: IN PROGRESS — frontmatter `description` compression is complete; structural/visibility/taxonomy work remains. Confirmed scope with owner. Source = `instructions/r3/core/**` (also mirrored to r2 this pass — see Completed; never hand-edit `plugins/`).
 
 **Current vs target:** Findings (F*) describe the *current* state; Workstreams (W*) describe the *target* state and the gap to close. Code may already be partway to a target — partial progress is **not** completion. Execute each workstream to its described target, never to "looks already done."
+
+## Completed (this pass)
+
+- **W4 — Description diet — DONE.** All non-critical skill/subagent/workflow descriptions compressed. Skills → verb-first `To …`; `init-workspace-*` → 2–3 words; gitnexus tightened; subagents → action-led + `Full/Lightweight subagent.` tag.
+- **W3 (description part) — DONE.** Top-level workflows → `Workflow for …`; phase files → `Phase N <label> of <flow>` (existing phase numbers kept verbatim, gaps allowed). Phase *hiding* (visibility flag) still open.
+- **W5 (description part) — DONE.** The 5 MUST skills (`risk-assessment`, `self-learning`, `self-organization`, `orchestrator-contract`, `subagent-contract`) dropped the redundant `Rosetta MUST skill.` lead, every activation trigger kept. The 4 critical skills (`dangerous-actions`, `sensitive-data`, `hitl`, `deviation`) kept **verbatim**. The bootstrap-guardrails *rule* simplification is still open.
+- **W1 (coding-iac part) — DONE.** `coding-iac` folded into `coding`: body → `skills/coding/assets/iac.md`; `coding/SKILL.md` carries `MUST follow \`assets/iac.md\``; skill deleted; removed from `coding-flow` recommended lists. The `coding-iac-best-practices.md` rule kept. (`init-workspace-*` inline still open; gitnexus consolidation dropped.)
+- **`questioning` kept** (not merged into `hitl`): content overlaps hitl's questioning section, but it is the lightweight, subagent-loadable form; merging would force the heavy hitl protocol into subagents. Description compressed only.
+- **Release targeting (r2 vs r3):** this pass applied to **both** (owner-approved, **one-time**). Default is `r3`; **ask each request which release(s) to apply to** — do not assume r2.
+- **Recorded into the plan below (owner-approved):** `coding-agents-prompt-adaptation` **removed** (folder + `prompt-engineer.md` ref + `docs/definitions/skills.md` + `docs/CODEMAP.md`); `hooks-authoring` **renamed → `coding-agents-hooks-authoring`** (kept). The Recommendation table and Scope reflect these.
 
 ## Problem
 
@@ -30,46 +40,45 @@ The skill set has drifted from its own canonical taxonomy and carries cost that 
 4. **Off-list skills:** this doc gives **recommendations with confidence**, not verdicts. Implementation decides.
 5. **Scope:** one story = taxonomy reconciliation **+** the 4 objectives.
 6. **Cross-IDE visibility:** captured as a research task with acceptance criteria (W2), not built here.
-7. **Workflow phases:** stay emitted as commands (parent invokes them) but get `user-invocable: false` (+ per-IDE equivalents) to drop them from the user `/` menu; top-level flows stay `user-invocable: true`. Visibility is a frontmatter flag only. ALL workflow descriptions are compressed (W4 diet) — nothing added; the sole top-level/phase difference is the flag.
+7. **Workflow phases:** stay emitted as commands (parent invokes them) but get `user-invocable: false` (+ per-IDE equivalents) to drop them from the user `/` menu; top-level flows stay `user-invocable: true`. Visibility is a frontmatter flag only; the sole top-level/phase difference is the flag.
 
 ## Recommendation table (implementation decides)
 
+> Description compression was applied to every kept skill this pass (not repeated per row). **Resolved this pass:** `coding-iac` folded into `coding`; `coding-agents-prompt-adaptation` removed — both no longer listed. Remaining recommendations are unchanged from the original analysis.
+
 | Skill(s) | Canon? | Recommendation | Visibility | Conf. |
 |---|---|---|---|---|
-| coding, testing, debugging, planning, tech-specs, reasoning, research, requirements-authoring, requirements-use, reverse-engineering, coding-agents-prompt-authoring, coding-agents-prompt-adaptation, large-workspace-handling | ✓ | Keep — independent capability (F4) | visible | High |
+| coding, testing, debugging, planning, tech-specs, reasoning, research, requirements-authoring, requirements-use, reverse-engineering, coding-agents-prompt-authoring, large-workspace-handling | ✓ | Keep — independent capability (F4) | visible | High |
 | hitl, sensitive-data, dangerous-actions, deviation, risk-assessment, self-learning, self-organization, questioning | ✓ | Keep — reactive guardrail; description carries trigger (F3, W5) | hidden | High |
 | load-context, load-workflow, load-context-instructions, operation-manager, orchestrator-contract, subagent-contract | partial | Keep — infra/plumbing | hidden | High |
-| init-workspace-context, -discovery, -documentation, -patterns, -rules, -shells, -verification | (outdated) | Inline into matching `init-workspace-flow-*.md`; delete skill (F2) | n/a (phase) | High |
-| coding-iac | ✗ | Fold into `coding` (`coding/assets/` + call-to-action) | n/a | High |
-| gitnexus-cli, gitnexus-setup, gitnexus-tools | ✗ | Consolidate → 1 `gitnexus` skill (alt: keep tools+cli, fold setup) | hidden/conditional | Med |
+| init-workspace-context, -discovery, -documentation, -patterns, -rules, -shells, -verification | (outdated) | Inline into matching `init-workspace-flow-*.md`; delete skill (F2) — **pending** | n/a (phase) | High |
+| gitnexus-cli, gitnexus-setup, gitnexus-tools | ✗ | Keep all three (consolidation dropped this pass) | hidden/conditional | Med |
 | specflow-use | ✗ | Keep — integration connector, conditional on SpecFlow MCP | hidden/conditional | Med |
-| hooks-authoring | ✗ | Keep — meta/dev skill (authoring Rosetta itself) | hidden | Med |
+| coding-agents-hooks-authoring (was `hooks-authoring`) | ✗ | Keep — meta/dev skill; renamed this pass | hidden | Med |
 | natural-writing | ✗ | Keep — capability (used by `self-help-flow`) | visible | Med |
 | coding-agents-farm | ✗ | Keep — standalone orchestration capability | visible | Med |
 
 ## Workstreams
 
-- **W0 — Reconcile taxonomy.** Update `docs/definitions/skills.md` per Confirmed Decision 2: rename entry `plan-manager`→`operation-manager`; add `load-context/load-workflow/load-context-instructions`; remove `init-workspace-*` (now phases); keep `discovery` distinct, `context-engineering` as TBD placeholder; record the off-list recommendations. Update every `USE SKILL` / `ACQUIRE …/SKILL.md` reference; zero dangling refs. Apply the same reconciliation to `docs/definitions/workflows.md` (parallel drift — lists unbuilt flows e.g. `discovery-flow`/`context-engineering-flow`/`testing-flow`, omits built ones e.g. `testgen-flow`/`requirements-authoring-flow`): reconcile toward built reality, same TBD/distinct policy.
-- **W1 — Inline / fold.** Merge `init-workspace-*` bodies into phases (delete skills); fold `coding-iac` into `coding`; consolidate `gitnexus-*` per recommendation.
-- **W2 — Visibility + cross-IDE research.** Tag each kept skill **and each workflow/command** by visibility class via frontmatter. **Claude Code flags (explicit):** hidden-but-auto-activated (guardrails, infra/plumbing) = `user-invocable: false` **+** `disable-model-invocation: false`; hidden, parent-invoked only (phases) = `user-invocable: false`; visible = `user-invocable: true`. **Other IDEs:** implementer/AI researches and derives the equivalent attributes — do not assume parity. **Research task (AC):** produce IDE→attribute matrix (Claude Code, Cursor, Copilot, Codex, OpenCode) for hide-from-menu vs disable-auto, for **both skills and commands**; apply per-IDE frontmatter; extend `plugin_generator.py` where an IDE ignores the flag. Acceptance: every hidden skill/phase verified non-listed in the user menu yet still invocable (auto for guardrails, parent-invoked for phases) on each supported IDE, or the limitation documented.
-- **W3 — Workflow phase hiding + description compression.** Phases stay emitted as commands (parent invokes them); add `user-invocable: false` (+ per-IDE equivalents) to remove them from the user `/` menu. Top-level flows stay `user-invocable: true`. Compress **all** workflow descriptions per the W4 diet — nothing added. The only top-level/phase difference is the visibility flag.
-- **W4 — Description diet (non-critical skills).** Non-guardrail, non-auto skill + workflow descriptions → ≤25 tokens, verb-first ("To …"), no "Use when", drop "Rosetta … skill" boilerplate. Example — `coding`: → *"To implement features, fix bugs, and refactor with KISS/SOLID/DRY and systematic validation."*
-- **W5 — Native-trigger reframe (F3).** Audit guardrail/auto-activated skill descriptions; ensure each carries its activation trigger (add where missing). **Current:** `bootstrap-guardrails.md` restates each guardrail's trigger inline (duplicating the description), even though already grouped. **Target:** the description owns the trigger; the rule becomes a minimal index naming which skills auto-activate **without restating their trigger conditions**. **Done when:** the rule no longer repeats any trigger the description already carries, *and* each guardrail still fires from its description alone (rule absent) in a test. Note: the existing pointer-style grouping is **not** completion — the duplication must be gone.
-- **W6 — Documentation & reference sync.** The taxonomy, visibility, and command/phase model is described in several model docs that will drift. Update: `coding-agents-prompt-authoring/references/pa-rosetta.md` and `pa-rosetta-intro-for-AI.md` (skill/workflow model, command aliases, canonical-list policy), `pa-schemas.md` (frontmatter schemas — document `user-invocable`/visibility for **skills and commands/workflows**), `pa-knowledge-base.md` + `pa-intake.md` (skill taxonomy references), `docs/schemas/skill.md` (and workflow/command schema if present), and `docs/ARCHITECTURE.md` (Command Aliases, Instruction Structure, Bootstrap Flow). Acceptance: grep finds no stale skill names, no "phases are user commands" assumption, and the visibility-flag model is documented in one canonical place referenced by the rest.
+- **W0 — Reconcile taxonomy.** Update `docs/definitions/skills.md` per Confirmed Decision 2: rename entry `plan-manager`→`operation-manager`; add `load-context/load-workflow/load-context-instructions`; remove `init-workspace-*` (now phases); keep `discovery` distinct, `context-engineering` as TBD placeholder; record the off-list recommendations. Update every `USE SKILL` / `ACQUIRE …/SKILL.md` reference; zero dangling refs. Apply the same reconciliation to `docs/definitions/workflows.md` (parallel drift — lists unbuilt flows e.g. `discovery-flow`/`context-engineering-flow`/`testing-flow`, omits built ones e.g. `testgen-flow`/`requirements-authoring-flow`): reconcile toward built reality, same TBD/distinct policy. *(This pass touched only the `coding-agents-prompt-adaptation` line + CODEMAP entry; the rest is pending. Also add `coding-agents-hooks-authoring`.)*
+- **W1 — Inline.** Merge each `init-workspace-*` skill body into its matching `init-workspace-flow-*.md` phase, then delete the standalone skill (F2). *(`coding-iac` fold already done; gitnexus consolidation dropped — the 3 skills stay.)*
+- **W2 — Visibility + cross-IDE research.** Tag each kept skill **and each workflow/command** by visibility class via frontmatter. **Claude Code flags (explicit):** hidden-but-auto-activated (guardrails, infra/plumbing) = `user-invocable: false` **+** `disable-model-invocation: false`; hidden, parent-invoked only (phases) = `user-invocable: false`; visible = `user-invocable: true`. **Other IDEs:** implementer/AI researches and derives the equivalent attributes — do not assume parity. **Research task (AC):** produce IDE→attribute matrix (Claude Code, Cursor, Copilot, Codex, OpenCode) for hide-from-menu vs disable-auto, for **both skills and commands**; apply per-IDE frontmatter; extend `plugin_generator.py` where an IDE ignores the flag. Acceptance: every hidden skill/phase verified non-listed in the user menu yet still invocable (auto for guardrails, parent-invoked for phases) on each supported IDE, or the limitation documented. *(Pending.)*
+- **W3 — Workflow phase hiding.** Phases stay emitted as commands (parent invokes them); add `user-invocable: false` (+ per-IDE equivalents) to remove them from the user `/` menu. Top-level flows stay `user-invocable: true`. *(Phase description compression already done; this is the visibility flag only.)*
+- **W5 — Native-trigger reframe (F3).** `bootstrap-guardrails.md` restates each guardrail's trigger inline, duplicating the (now-authoritative) descriptions. **Target:** shrink the rule to a minimal index naming which skills auto-activate **without restating their trigger conditions**. **Done when:** the rule no longer repeats any trigger the description already carries, *and* each guardrail still fires from its description alone (rule absent) in a test.
+- **W6 — Documentation & reference sync.** The taxonomy, visibility, and command/phase model is described in several model docs that will drift. Update: `coding-agents-prompt-authoring/references/pa-rosetta.md` and `pa-rosetta-intro-for-AI.md` (skill/workflow model, command aliases, canonical-list policy), `pa-schemas.md` (frontmatter schemas — document `user-invocable`/visibility for **skills and commands/workflows**), `pa-knowledge-base.md` + `pa-intake.md` (skill taxonomy references), `docs/schemas/skill.md` (and workflow/command schema if present), and `docs/ARCHITECTURE.md` (Command Aliases, Instruction Structure, Bootstrap Flow). Acceptance: grep finds no stale skill names, no "phases are user commands" assumption, and the visibility-flag model is documented in one canonical place referenced by the rest. *(Pending.)*
 
 ## Scope, success, risks
 
 - IN: `instructions/r3/core/skills/**` + `workflows/**`, `instructions/r3/core/rules/bootstrap-guardrails.md`, `instructions/r3/core/skills/coding-agents-prompt-authoring/references/{pa-rosetta,pa-rosetta-intro-for-AI,pa-schemas,pa-knowledge-base,pa-intake}.md`, `docs/definitions/{skills,workflows}.md`, `docs/schemas/skill.md`, `docs/ARCHITECTURE.md`, `scripts/plugin_generator.py` (only if W2 needs it), plugin regen.
-- OUT: r2, MCP server behavior, impl renames.
+- OUT (default): r2, MCP server behavior, impl renames. **Release targeting is per-request — ask each time which release(s) to apply; default `r3`, do not assume r2.** This pass applied to r2 + r3 by owner request (one-time).
 - Success: list reconciled; recommendations applied by implementation; zero dangling refs; phases hidden from the user menu via flag yet still parent-invocable; all workflow descriptions compressed; non-critical descriptions ≤25 tokens; guardrails fire from description alone; clean plugin regen.
-- Risks: reference breakage from inlines/folds (W1); IDE that ignores the `user-invocable` flag leaves a hidden skill/phase visible or a hidden skill un-activatable (W2/W3); weakened guardrail activation if a description loses its trigger during W5.
+- Risks: reference breakage from `init-workspace-*` inlines (W1); IDE that ignores the `user-invocable` flag leaves a hidden skill/phase visible or a hidden skill un-activatable (W2/W3); weakened guardrail activation if a description loses its trigger during W5.
 
 ## Open items for implementation
 
 1. **F2 confirmation** at execution: `init-workspace-*` become phases (removed as skills).
-2. **gitnexus** consolidation shape: 3→1, or keep tools+cli and fold setup.
-3. **W5 rule shape:** how lean the simplified `bootstrap-guardrails` pointer should be once native triggers carry the load.
-4. **Validation mechanism:** regression prompt suite vs manual checklist vs eval — to prove hidden-but-auto and native-trigger behavior.
+2. **W5 rule shape:** how lean the simplified `bootstrap-guardrails` pointer should be once native triggers carry the load.
+3. **Validation mechanism:** regression prompt suite vs manual checklist vs eval — to prove hidden-but-auto and native-trigger behavior.
 
 ## Original Intent & Owner Clarifications (verbatim — no inference)
 
@@ -97,4 +106,16 @@ Grill me. Save output to `docs/stories/skills-refactoring.md`.
 - **Off-list skills:** "You don't [decide]. Implementation does. You can provide a recommendation table, based on real existing skills, and provide your confidence and/or top options."
 - **Scope:** expand to the full task (taxonomy reconciliation + the four objectives); "the full task is better than partial." r3; DRAFT.
 - **Workflow phases (Obj 3):** "Phases are directly called out from the workflow. User must not know them." They MUST still be emitted as commands — "otherwise those will not be invocable." "Use frontmatter flags properly: we compress the description (to not waste tokens) and we remove them from the user UI (as phases are not directly invocable, only through the parent workflow)." Do not add description — only compress.
-- **Reference docs:** "we must update pa-rosetta and similar files too as part of the task."
+
+### Clarifications (this pass — owner-approved)
+
+- **Release targeting:** applied to both r2 and r3 this pass (one-time). Policy going forward: **ASK each request which release(s) to apply to (r2 vs r3); default `r3`.**
+- **Workflow descriptions:** all start with "Workflow for …"; routing-trigger flows (aqa, testgen) rephrased to topic form, dropping "MUST apply when".
+- **Phase descriptions:** keep `Phase N <1-2 words> of <flow>-flow`, numbers matching the parent `*-flow.md`.
+- **Guardrails:** densify only, may drop "Rosetta", no value lost; do not repeat "MUST skill. MUST …"; the 4 critical stay verbatim.
+- **init-* skill descriptions:** 2–3 words.
+- **`coding-iac`:** fold into `coding` via `assets/iac.md` + a `MUST follow` call-to-action.
+- **`coding-agents-prompt-adaptation`:** remove (unused beyond the prompt-engineer agent; authoring is primary). Recorded in the Recommendation table.
+- **`hooks-authoring`:** rename to `coding-agents-hooks-authoring` (folder + refs).
+- **gitnexus:** keep the 3 skills; **consolidation dropped** (descriptions tightened this pass).
+- **`questioning`:** keep (lightweight, subagent-loadable); compress description only.

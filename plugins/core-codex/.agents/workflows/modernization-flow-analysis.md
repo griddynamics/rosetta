@@ -1,6 +1,6 @@
 ---
 name: modernization-flow-analysis
-description: "Modernization flow phase 2: Old code analysis, requirements, specifications."
+description: "Phase 2 Code Analysis of modernization-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

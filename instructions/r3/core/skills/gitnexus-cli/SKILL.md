@@ -1,6 +1,6 @@
 ---
 name: gitnexus-cli
-description: "GitNexus CLI reference for npx commands — analyze, status, clean, wiki, list — with flags, effects, and when to run each."
+description: "To run GitNexus CLI: analyze, status, clean, wiki, list."
 tags: ["gitnexus", "cli", "indexing"]
 baseSchema: docs/schemas/skill.md
 ---

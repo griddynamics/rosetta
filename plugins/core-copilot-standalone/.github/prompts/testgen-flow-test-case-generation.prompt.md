@@ -1,7 +1,7 @@
 ---
 name: testgen-flow-test-case-generation
-description: Phase 5 of testgen-flow - Generate test cases from requirements document
-tags: ["testgen", "phase"]
+description: "Phase 5 Test Case Generation of testgen-flow"
+alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---
 

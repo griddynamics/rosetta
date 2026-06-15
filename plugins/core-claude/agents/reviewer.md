@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Rosetta Full subagent. Inspect artifacts against intent and contracts, provides recommendations.
+description: "Review artifacts against intent and contracts, recommend, etc. Full subagent."
 mode: subagent
 model: claude-sonnet-4-6
 readonly: false

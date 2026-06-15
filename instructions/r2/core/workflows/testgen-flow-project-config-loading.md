@@ -1,7 +1,7 @@
 ---
 name: testgen-flow-project-config-loading
-description: Phase 0 of Test Generation - Load or create project configuration for test generation
-tags: ["testgen", "phase"]
+description: "Phase 0 Project Config Loading of testgen-flow"
+alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: modernization-flow-crossproject
-description: "Modernization flow phase 5: Cross-project analysis, similarities, patterns, proxy replacement."
+description: "Phase 5 Cross-Project Analysis of modernization-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

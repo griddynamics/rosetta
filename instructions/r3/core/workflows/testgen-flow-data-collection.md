@@ -1,7 +1,7 @@
 ---
 name: testgen-flow-data-collection
-description: Phase 1 of Test Generation - Data collection 
-tags: ["testgen", "phase"]
+description: "Phase 1 Data Collection of testgen-flow"
+alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---
 

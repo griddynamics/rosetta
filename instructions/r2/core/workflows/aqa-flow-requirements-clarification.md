@@ -1,6 +1,6 @@
 ---
 name: aqa-flow-requirements-clarification
-description: Phase 2 of AQA workflow - Requirements Clarification (gap-filling questioning) and Assertion Transcription (derives typed assertions via the requirements-use gap_analysis mode and writes them to the test plan as a mandatory list) — USER INTERACTION REQUIRED
+description: "Phase 2 Requirements Clarification of aqa-flow"
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md

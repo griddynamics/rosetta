@@ -1,6 +1,6 @@
 ---
 name: init-workspace-discovery
-description: "Rosetta skill to produce TECHSTACK, CODEMAP, DEPENDENCIES from workspace analysis."
+description: "Discover tech stack."
 license: Apache-2.0
 tags: ["init", "workspace", "discovery", "techstack", "codemap"]
 baseSchema: docs/schemas/skill.md

@@ -1,6 +1,6 @@
 ---
 name: gitnexus-setup
-description: "Use when directly requested to install GitNexus."
+description: "To install GitNexus (repo code graph), when requested."
 tags: ["gitnexus", "code-graph", "installation", "opt-in"]
 baseSchema: docs/schemas/skill.md
 ---

@@ -1,5 +1,5 @@
 name = "validator"
-description = "Rosetta Full subagent. Verify implementation matches intent through actual execution and evidence-based validation."
+description = "\"Validate that implementation matches intent via execution and evidence. Full subagent.\""
 developer_instructions = """
 <validator>
 

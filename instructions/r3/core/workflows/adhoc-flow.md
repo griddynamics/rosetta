@@ -1,6 +1,6 @@
 ---
 name: adhoc-flow
-description: "Rosetta ad-hoc adaptive meta-workflow that constructs, tracks, reviews, and executes a tailored execution plan per user request using building blocks and available instructions. Useful for small or simple tasks if none other workflows matches. Lightweight."
+description: "Workflow for the rest of tasks: lightweight documentation, build, track, synchronize, etc."
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---
@@ -90,7 +90,7 @@ Compose these into plan phases/steps to build any execution workflow.
 
 </build_plan>
 
-<review_plan phase="3" if="MEDIUM, LARGE" subagent="reviewer" role="Plan reviewer of AI automated tasks">
+<review_plan phase="3" if="MEDIUM, LARGE" subagent="reviewer" role="Plan reviewer of AI automated tasks" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6" must-be-subagent>
 
 1. Review: completeness, sequencing, dependency correctness, prompt clarity, etc.
 2. Subagent to query by full path to plan.json. Orchestrator to upsert fixes.

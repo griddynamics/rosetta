@@ -1,6 +1,6 @@
 ---
 name: plan-manager
-description: "Rosetta skill for reliable execution: plan creation, tracking, and execution coordination via local JSON files."
+description: "To create, track, and coordinate execution plans via local JSON files."
 license: Apache-2.0
 dependencies: node.js
 disable-model-invocation: false

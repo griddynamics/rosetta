@@ -21,6 +21,7 @@ baseSchema: docs/schemas/rule.md
 - YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar.
 - THE ONLY exception is when user DIRECTLY EXPLICITLY ASKS `fully autonomous` or `no HITL`.
 - The cost of mistakes is VERY HIGH, assumptions are the top contributor, assumptions MUST BE shown to user for prior approval.
+- Auto mode, full access, etc ONLY means automatic approval of tool permission prompts, HITL stays!
 
 </core_principles>
 

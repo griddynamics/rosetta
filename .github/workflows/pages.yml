@@ -5,6 +5,7 @@ on:
     branches: ["main"]
     paths:
       - "docs/web/**"
+      - "llms-full.txt"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -26,6 +27,9 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
+      - name: Stage llms-full.txt for site
+        run: cp llms-full.txt docs/web/llms-full.txt
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1

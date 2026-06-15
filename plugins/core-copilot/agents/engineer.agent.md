@@ -1,6 +1,6 @@
 ---
 name: engineer
-description: Rosetta Full subagent. Execute implementation and testing tasks with high quality, assuming engineering identity provided by orchestrator.
+description: "Implement and test to high quality under the orchestrator-assigned identity. Full subagent."
 mode: subagent
 model: Claude Sonnet 4.6
 readonly: false

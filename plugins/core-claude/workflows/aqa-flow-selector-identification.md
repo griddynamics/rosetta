@@ -1,6 +1,6 @@
 ---
 name: aqa-flow-selector-identification
-description: Phase 4 of AQA workflow - Selector Identification (USER INTERACTION CONDITIONALLY REQUIRED)
+description: "Phase 4 Selector Identification of aqa-flow"
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md

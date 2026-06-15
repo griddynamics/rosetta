@@ -1,6 +1,6 @@
 ---
 name: init-workspace-flow-documentation
-description: "Phase 7 of init-workspace-flow, contains create CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md."
+description: "Phase 7 Documentation of init-workspace-flow"
 tags: ["init", "workspace", "documentation", "phase"]
 baseSchema: docs/schemas/phase.md
 ---

@@ -1,6 +1,6 @@
 ---
 name: init-workspace-context
-description: "Rosetta skill to classify workspace initialization mode, build existing file inventory, and generate gain.json"
+description: "Classify workspace mode."
 license: Apache-2.0
 model: Claude Haiku 4.5
 tags: ["init", "workspace", "context", "detection"]

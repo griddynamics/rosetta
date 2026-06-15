@@ -1,7 +1,7 @@
 ---
 name: testgen-flow-gap-and-contradiction-analysis
-description: Phase 2 of testgen-flow - Gap and contradiction analysis of collected data
-tags: ["testgen", "phase"]
+description: "Phase 2 Gap & Contradiction Analysis of testgen-flow"
+alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---
 

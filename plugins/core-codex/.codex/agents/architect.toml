@@ -1,5 +1,5 @@
 name = "architect"
-description = "Rosetta Full subagent. Transform requirements into clear, testable tech specifications and architecture."
+description = "\"Architect solution, transform intent into reliable tech specs, etc. Full subagent.\""
 developer_instructions = """
 <architect>
 

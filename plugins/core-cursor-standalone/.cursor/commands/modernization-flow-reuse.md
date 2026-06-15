@@ -1,6 +1,6 @@
 ---
 name: modernization-flow-reuse
-description: "Modernization flow phase 1: Existing library analysis for reuse in target state."
+description: "Phase 1 Existing-Library Reuse of modernization-flow"
 alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---

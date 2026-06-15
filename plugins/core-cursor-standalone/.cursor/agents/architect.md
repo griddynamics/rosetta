@@ -1,6 +1,6 @@
 ---
 name: architect
-description: Rosetta Full subagent. Transform requirements into clear, testable tech specifications and architecture.
+description: "Architect solution, transform intent into reliable tech specs, etc. Full subagent."
 mode: subagent
 model: claude-opus-4-8
 readonly: false

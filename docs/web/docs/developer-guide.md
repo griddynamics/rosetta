@@ -27,7 +27,7 @@ fork/clone → branch → edit → validate → push → PR
    - Commit messages: short summary line, body if needed. No special format enforced.
 
 2. **Develop using claude code / codex / cursor** or **use the prompting flow.**
-   - **Development:** existing rules kick in and HTTP MCP is preconfigured.
+   - **Development:** use rosetta plugins to develop rosetta. [TESTING-PLUGINS.md](https://github.com/griddynamics/rosetta/blob/main/docs/TESTING-PLUGINS.md) shows how to install and test plugins locally. Plugins allow contributors to see their in-progress instruction changes reflected almost immediately. End users should use plugins built from `main` or the production MCP endpoints.
    - **Prompting:** use the [`coding-agents-prompting-flow`](/rosetta/docs/usage-guide/#workflows) with the `coding-agents-prompt-authoring` skill to author, design, refactor, harden, and modernize prompt families (agents, skills, workflows, workflow phases, rules). It understands Rosetta internals. Use it with the Opus 4.8 model.
 
      Example invocations:
@@ -38,13 +38,13 @@ fork/clone → branch → edit → validate → push → PR
        /coding-agents-prompting-flow to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
        ```
 
-     - Refactor an old prompt into the new format:
+     - Refactor an old prompt into the new format using local instructions:
 
        ```
        MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
        ```
 
-     - Author a new prompt:
+     - Author a new prompt using local instructions:
 
        ```
        MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>

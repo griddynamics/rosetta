@@ -1,6 +1,6 @@
 ---
 name: testing
-description: Rosetta testing skill for thorough, isolated, idempotent tests with 80% minimum coverage, external-only mocking, and scenario-driven testing. Use when writing or updating tests.
+description: "To write thorough, isolated, idempotent tests — 80%+ coverage, external-only mocking, scenario-driven."
 license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---

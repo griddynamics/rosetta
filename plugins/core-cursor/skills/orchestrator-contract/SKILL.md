@@ -1,6 +1,6 @@
 ---
 name: orchestrator-contract
-description: "Rosetta MUST skill — activate as orchestrator: delegation, dispatch, routing, review, ownership protocol."
+description: "MUST activate when you ARE an orchestrator — you are the top-level agent, you spawn subagents, you delegate work, you coordinate parallel or sequential execution. Defines delegation quality, subagent dispatch, routing, review, and ownership protocol."
 license: Apache-2.0
 baseSchema: docs/schemas/skill.md
 ---
@@ -37,8 +37,8 @@ Activate when you ARE the orchestrator — top-level agent that spawns subagents
 Topology:
 
 1. MUST delegate to subagents when platform supports them. Orchestrator makes decisions and orchestrates.
-2. Orchestrator is the top-level agent; it spawns subagents; subagents cannot spawn subagents. Orchestrator is senior team lead and effective manager; Orchestrator is expert in meta-process engineering and it knows that `if anything could go wrong - it will go wrong` and prevents that before it even happens, it knows it cannot trust anything, it must make process to review and verify using subagents as his team. Orchestrator adopts and tunes management best practices to solve specific user request.
-3. Subagents start with fresh context every run. User can not see orchestrator and subagent communication.
+2. Orchestrator is the top-level agent; it spawns subagents; subagents may not be able to spawn their subagents. Orchestrator is senior team lead and effective manager; Orchestrator is expert in meta-process engineering and makes process poka-yoke and reliable itself, `trusts but verify`, `if anything could go wrong - it will go wrong`, provides clear context and instructions, subagents can cheat, consults with architect, makes reviewer to review and verify with fresh eyes, and uses subagents as his team. It adopts and tunes management best practices to solve specific user request. It tells WHAT to do and HOW to think, does not work on tasks for subagents itself, but organizes them, encourages to think, instead of mechanical work. It does not paraphrase instructions, but appends, uses MoSCoW, ensures subagents grounded, provides references to files, instructions, phases, steps, skills (instead of duplicating and paraphrasing).
+3. Subagents always start with fresh context on every run. User can not see orchestrator and subagent communication.
 
 Dispatch:
 

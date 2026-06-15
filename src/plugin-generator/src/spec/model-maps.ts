@@ -36,37 +36,53 @@ export function normalizeClaude(modelField: string): string | null {
 // Claude tokens mapped via CURSOR_CLAUDE_MAP; gpt tokens stripped of -effort suffix inline.
 
 const CURSOR_CLAUDE_MAP: Record<string, string> = {
-  'claude-4.8-opus-high': 'claude-opus-4-6',
-  'claude-4.8-opus': 'claude-opus-4-6',
-  'claude-opus-4-8': 'claude-opus-4-6',
+  'claude-4.8-opus-high': 'claude-opus-4-8',
+  'claude-4.8-opus': 'claude-opus-4-8',
+  'claude-opus-4-8': 'claude-opus-4-8',
+  'claude-4.7-opus-high': 'claude-opus-4-8',
+  'claude-4.7-opus': 'claude-opus-4-8',
+  'claude-opus-4-7': 'claude-opus-4-8',
   'claude-4.6-sonnet': 'claude-sonnet-4-6',
   'claude-4.5-haiku': 'claude-haiku-4-5',
-  'claude-opus-4-6': 'claude-opus-4-6',
+  'claude-opus-4-6': 'claude-opus-4-8',
   'claude-sonnet-4-6': 'claude-sonnet-4-6',
   'claude-haiku-4-5': 'claude-haiku-4-5',
+};
+
+const CURSOR_GPT_MAP: Record<string, string> = {
+  // GPT-5.5
+  'gpt-5.5-high':         'gpt-5.5',
+  'gpt-5.5-medium':       'gpt-5.5',
+  'gpt-5.5-low':          'gpt-5.5',
+  'gpt-5.5':              'gpt-5.5',
+  // GPT-5.4
+  'gpt-5.4-high':         'gpt-5.4',
+  'gpt-5.4-medium':       'gpt-5.4',
+  'gpt-5.4-low':          'gpt-5.4',
+  'gpt-5.4':              'gpt-5.4',
+  // GPT-5.3 → upgrade to 5.4
+  'gpt-5.3-high':         'gpt-5.4',
+  'gpt-5.3-medium':       'gpt-5.4',
+  'gpt-5.3-low':          'gpt-5.4',
+  'gpt-5.3':              'gpt-5.4',
+  // GPT-5.3-Codex → upgrade to 5.4
+  'gpt-5.3-codex-high':   'gpt-5.4',
+  'gpt-5.3-codex-medium': 'gpt-5.4',
+  'gpt-5.3-codex-low':    'gpt-5.4',
+  'gpt-5.3-codex':        'gpt-5.4',
+};
+
+const CURSOR_GEMINI_MAP: Record<string, string> = {
+  'gemini-3.5-flash': 'gemini-3.5-flash',
+  'gemini-3-flash': 'gemini-3.5-flash',
+  'gemini-3.1-pro-preview': 'gemini-3.1-pro',
+  'gemini-3.1-pro': 'gemini-3.1-pro',
 };
 
 export function normalizeCursor(modelField: string): string | null {
   const first = modelField.split(',')[0].trim();
   if (!first) return null;
-
-  const lower = first.toLowerCase();
-
-  // Claude token
-  if (lower.startsWith('claude-')) {
-    if (CURSOR_CLAUDE_MAP[first]) return CURSOR_CLAUDE_MAP[first];
-    // Fallback: strip effort suffix (e.g. -high, -medium, -low) and try again
-    const stripped = first.replace(/-(?:high|medium|low)$/, '');
-    if (CURSOR_CLAUDE_MAP[stripped]) return CURSOR_CLAUDE_MAP[stripped];
-    return first; // passthrough unknown claude tokens
-  }
-
-  // GPT token: strip trailing -<effort>
-  if (lower.startsWith('gpt-')) {
-    return first.replace(/-(?:high|medium|low)$/, '');
-  }
-
-  return first; // passthrough other tokens
+  return CURSOR_CLAUDE_MAP[first] ?? CURSOR_GPT_MAP[first] ?? CURSOR_GEMINI_MAP[first] ?? first;
 }
 
 // ─── Copilot vocabulary (FR-COPY-0021) ────────────────────────────────────────
@@ -74,49 +90,52 @@ export function normalizeCursor(modelField: string): string | null {
 // Map via COPILOT_CLAUDE_MAP / COPILOT_GPT_MAP. Decoded from baseline core-copilot/agents/*.agent.md.
 
 const COPILOT_CLAUDE_MAP: Record<string, string> = {
-  'claude-4.8-opus-high': 'Claude Opus 4.6',
-  'claude-4.8-opus': 'Claude Opus 4.6',
-  'claude-opus-4-8': 'Claude Opus 4.6',
+  'claude-4.8-opus-high': 'Claude Opus 4.8',
+  'claude-4.8-opus': 'Claude Opus 4.8',
+  'claude-opus-4-8': 'Claude Opus 4.8',
+  'claude-4.7-opus-high': 'Claude Opus 4.8',
+  'claude-4.7-opus': 'Claude Opus 4.8',
+  'claude-opus-4-7': 'Claude Opus 4.8',
   'claude-4.6-sonnet': 'Claude Sonnet 4.6',
   'claude-4.5-haiku': 'Claude Haiku 4.5',
-  'claude-opus-4-6': 'Claude Opus 4.6',
+  'claude-opus-4-6': 'Claude Opus 4.8',
   'claude-sonnet-4-6': 'Claude Sonnet 4.6',
   'claude-haiku-4-5': 'Claude Haiku 4.5',
 };
 
 const COPILOT_GPT_MAP: Record<string, string> = {
-  'gpt-5.5': 'GPT-5.5',
-  'gpt-5.4': 'GPT-5.4',
-  'gpt-5.3': 'GPT-5.3',
-  'gpt-4.5': 'GPT-4.5',
-  'gpt-4o': 'GPT-4o',
-  'gpt-4': 'GPT-4',
-  'o3': 'o3',
-  'o4-mini': 'o4-mini',
+  // GPT-5.5
+  'gpt-5.5-high':         'GPT-5.5',
+  'gpt-5.5-medium':       'GPT-5.5',
+  'gpt-5.5-low':          'GPT-5.5',
+  'gpt-5.5':              'GPT-5.5',
+  // GPT-5.4
+  'gpt-5.4-high':         'GPT-5.4',
+  'gpt-5.4-medium':       'GPT-5.4',
+  'gpt-5.4-low':          'GPT-5.4',
+  'gpt-5.4':              'GPT-5.4',
+  // GPT-5.3 → upgrade to 5.4
+  'gpt-5.3-high':         'GPT-5.4',
+  'gpt-5.3-medium':       'GPT-5.4',
+  'gpt-5.3-low':          'GPT-5.4',
+  'gpt-5.3':              'GPT-5.4',
+  // GPT-5.3-Codex → upgrade to 5.4
+  'gpt-5.3-codex-high':   'GPT-5.4',
+  'gpt-5.3-codex-medium': 'GPT-5.4',
+  'gpt-5.3-codex-low':    'GPT-5.4',
+  'gpt-5.3-codex':        'GPT-5.4',
+};
+
+const COPILOT_GEMINI_MAP: Record<string, string> = {
+  'gemini-3.1-pro-preview': 'Gemini 3.1 Pro (Preview)',
+  'gemini-3.1-pro': 'Gemini 3.1 Pro (Preview)',
+  'gemini-3-flash': 'Gemini 3.5 Flash',
 };
 
 export function normalizeCopilot(modelField: string): string | null {
   const first = modelField.split(',')[0].trim();
   if (!first) return null;
-
-  const lower = first.toLowerCase();
-
-  // Claude token
-  if (lower.startsWith('claude-')) {
-    if (COPILOT_CLAUDE_MAP[first]) return COPILOT_CLAUDE_MAP[first];
-    const stripped = first.replace(/-(?:high|medium|low)$/, '');
-    if (COPILOT_CLAUDE_MAP[stripped]) return COPILOT_CLAUDE_MAP[stripped];
-    return first;
-  }
-
-  // GPT token: strip effort suffix → look up in display map
-  if (lower.startsWith('gpt-') || lower.startsWith('o3') || lower.startsWith('o4')) {
-    const base = first.replace(/-(?:high|medium|low)$/, '');
-    if (COPILOT_GPT_MAP[base]) return COPILOT_GPT_MAP[base];
-    return base;
-  }
-
-  return first;
+  return COPILOT_CLAUDE_MAP[first] ?? COPILOT_GPT_MAP[first] ?? COPILOT_GEMINI_MAP[first] ?? first;
 }
 
 // ─── Codex vocabulary (FR-COPY-0022) ──────────────────────────────────────────

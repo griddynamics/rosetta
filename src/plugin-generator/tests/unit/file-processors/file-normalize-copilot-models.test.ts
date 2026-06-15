@@ -70,20 +70,28 @@ describe('fileNormalizeCopilotModels — guard cases (same instance)', () => {
 // ─── Claude → display name (COPILOT_CLAUDE_MAP) ──────────────────────────────
 
 describe('fileNormalizeCopilotModels — claude token to display name', () => {
-  it('claude-opus-4-6 → Claude Opus 4.6', () => {
+  it('claude-opus-4-6 → Claude Opus 4.8 (upgrade)', () => {
     const content = '---\nmodel: claude-opus-4-6\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-opus-4-6');
     const result = fileNormalizeCopilotModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: Claude Opus 4.6');
-    expect((result.source[0]?.frontmatter as any).model).toBe('Claude Opus 4.6');
+    expect(result.target_contents as string).toContain('model: Claude Opus 4.8');
+    expect((result.source[0]?.frontmatter as any).model).toBe('Claude Opus 4.8');
   });
 
-  it('claude-opus-4-8 → Claude Opus 4.6 (alias)', () => {
+  it('claude-opus-4-8 → Claude Opus 4.8', () => {
     const content = '---\nmodel: claude-opus-4-8\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-opus-4-8');
     const result = fileNormalizeCopilotModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: Claude Opus 4.6');
-    expect((result.source[0]?.frontmatter as any).model).toBe('Claude Opus 4.6');
+    expect(result.target_contents as string).toContain('model: Claude Opus 4.8');
+    expect((result.source[0]?.frontmatter as any).model).toBe('Claude Opus 4.8');
+  });
+
+  it('claude-opus-4-7 → Claude Opus 4.8 (upgrade)', () => {
+    const content = '---\nmodel: claude-opus-4-7\ntags: []\n---\n# Body\n';
+    const frame = makeFrame(content, 'claude-opus-4-7');
+    const result = fileNormalizeCopilotModels(frame, makeCtx());
+    expect(result.target_contents as string).toContain('model: Claude Opus 4.8');
+    expect((result.source[0]?.frontmatter as any).model).toBe('Claude Opus 4.8');
   });
 
   it('claude-sonnet-4-6 → Claude Sonnet 4.6', () => {
@@ -102,25 +110,17 @@ describe('fileNormalizeCopilotModels — claude token to display name', () => {
   });
 
   it('uses first token only (not scan-for-claude)', () => {
-    // gpt-4o is first → maps to GPT-4o display name
-    const content = '---\nmodel: gpt-4o, claude-opus-4-6\ntags: []\n---\n# Body\n';
-    const frame = makeFrame(content, 'gpt-4o, claude-opus-4-6');
+    // gpt-5.5 is first → maps to GPT-5.5 display name
+    const content = '---\nmodel: gpt-5.5, claude-opus-4-6\ntags: []\n---\n# Body\n';
+    const frame = makeFrame(content, 'gpt-5.5, claude-opus-4-6');
     const result = fileNormalizeCopilotModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: GPT-4o');
+    expect(result.target_contents as string).toContain('model: GPT-5.5');
   });
 });
 
 // ─── GPT → display name (COPILOT_GPT_MAP) ────────────────────────────────────
 
 describe('fileNormalizeCopilotModels — gpt token to display name', () => {
-  it('gpt-4o → GPT-4o', () => {
-    const content = '---\nmodel: gpt-4o\ntags: []\n---\n# Body\n';
-    const frame = makeFrame(content, 'gpt-4o');
-    const result = fileNormalizeCopilotModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: GPT-4o');
-    expect((result.source[0]?.frontmatter as any).model).toBe('GPT-4o');
-  });
-
   it('gpt-5.5 → GPT-5.5', () => {
     const content = '---\nmodel: gpt-5.5\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-5.5');
@@ -128,11 +128,47 @@ describe('fileNormalizeCopilotModels — gpt token to display name', () => {
     expect(result.target_contents as string).toContain('model: GPT-5.5');
   });
 
-  it('gpt-4o-high strips effort suffix then maps to GPT-4o', () => {
-    const content = '---\nmodel: gpt-4o-high\ntags: []\n---\n# Body\n';
-    const frame = makeFrame(content, 'gpt-4o-high');
+  it('gpt-5.4-high → COPILOT_GPT_MAP → GPT-5.4', () => {
+    const content = '---\nmodel: gpt-5.4-high\ntags: []\n---\n# Body\n';
+    const frame = makeFrame(content, 'gpt-5.4-high');
     const result = fileNormalizeCopilotModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: GPT-4o');
+    expect(result.target_contents as string).toContain('model: GPT-5.4');
+    expect((result.source[0]?.frontmatter as any).model).toBe('GPT-5.4');
+  });
+
+  it('gpt-5.5-medium → COPILOT_GPT_MAP → GPT-5.5', () => {
+    const content = '---\nmodel: gpt-5.5-medium\ntags: []\n---\n# Body\n';
+    const frame = makeFrame(content, 'gpt-5.5-medium');
+    const result = fileNormalizeCopilotModels(frame, makeCtx());
+    expect(result.target_contents as string).toContain('model: GPT-5.5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('GPT-5.5');
+  });
+
+  it('gpt-5.3-codex → COPILOT_GPT_MAP upgrade → GPT-5.4', () => {
+    const content = '---\nmodel: gpt-5.3-codex\ntags: []\n---\n# Body\n';
+    const frame = makeFrame(content, 'gpt-5.3-codex');
+    const result = fileNormalizeCopilotModels(frame, makeCtx());
+    expect(result.target_contents as string).toContain('model: GPT-5.4');
+    expect((result.source[0]?.frontmatter as any).model).toBe('GPT-5.4');
+  });
+});
+
+// ─── Gemini → display name (COPILOT_GEMINI_MAP) ───────────────────────────────
+
+describe('fileNormalizeCopilotModels — gemini token to display name', () => {
+  it('gemini-3-flash → COPILOT_GEMINI_MAP → Gemini 3.5 Flash', () => {
+    const content = '---\nmodel: gemini-3-flash\ntags: []\n---\n# Body\n';
+    const frame = makeFrame(content, 'gemini-3-flash');
+    const result = fileNormalizeCopilotModels(frame, makeCtx());
+    expect(result.target_contents as string).toContain('model: Gemini 3.5 Flash');
+    expect((result.source[0]?.frontmatter as any).model).toBe('Gemini 3.5 Flash');
+  });
+
+  it('gemini-3.1-pro → COPILOT_GEMINI_MAP → Gemini 3.1 Pro (Preview)', () => {
+    const content = '---\nmodel: gemini-3.1-pro\ntags: []\n---\n# Body\n';
+    const frame = makeFrame(content, 'gemini-3.1-pro');
+    const result = fileNormalizeCopilotModels(frame, makeCtx());
+    expect(result.target_contents as string).toContain('model: Gemini 3.1 Pro (Preview)');
   });
 });
 

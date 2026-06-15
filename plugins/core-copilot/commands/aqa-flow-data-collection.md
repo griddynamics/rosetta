@@ -1,7 +1,7 @@
 ---
 name: aqa-flow-data-collection
-description: Phase 1 of AQA workflow - Data Collection from TestRail and Confluence
-tags: ["aqa", "phase"]
+description: "Phase 1 Data Collection of aqa-flow"
+alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: testgen-flow-requirements-document-generation
-description: Phase 4 of testgen-flow - Generate structured requirements document from all collected data
-tags: ["testgen", "phase"]
+description: "Phase 4 Requirements Document of testgen-flow"
+alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---
 

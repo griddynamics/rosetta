@@ -32,7 +32,7 @@ baseSchema: docs/schemas/workflow.md
 [Orchestrator may not have clear picture, instruct it to trust the system, skills define that, and it should NOT try to execute those itself]
 [Tell how phases and steps are executed: sequentially or parallel]
 
-<[phase_name] phase="N" [dimension]="[value]" subagent="[subagent name]" role="[subagent role with specialization to assume, brilliant and short]" subagent_recommended_model="[comma separate list of models]" [optional: must-be-subagent]>
+<[phase_name] phase="N" [dimension]="[value]" subagent="[subagent name]" role="[subagent role with specialization to assume, brilliant and short]" subagent_required_model="[comma separate list of models]" [optional: must-be-subagent]>
 
 [add attribute must-be-subagent for phases where fresh eyes are critical: reviewers/validator/etc.]
 
@@ -45,7 +45,7 @@ baseSchema: docs/schemas/workflow.md
 [THE FOLLOWING SECTION IS OPTIONAL]
 [ADDITIONALLY, IF WORKFLOW IS LARGE - USE SEPARATE PHASE TEMPLATE]
 <[step_name] step="N.Y" [dimension]="[value]">
-[IF NEEDED ADD ADDITIONAL ATTRIBUTES IF STEP IS LARGE AND SUBAGENT IS REQUIRED: subagent="<subagent name>" role="<subagent role with specialization to assume, brilliant and short>" subagent_recommended_model="<comma separate list of models>" ]
+[IF NEEDED ADD ADDITIONAL ATTRIBUTES IF STEP IS LARGE AND SUBAGENT IS REQUIRED: subagent="<subagent name>" role="<subagent role with specialization to assume, brilliant and short>" subagent_required_model="<comma separate list of models extracted from subagent frontmatter itself, plus normalize claude-* to canonical list above, example claude-opus-4.8-high to claude-opus-4-8>" ]
 
 1. [Actions to be taken]
 

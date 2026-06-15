@@ -1,6 +1,6 @@
 ---
 name: init-workspace-patterns
-description: "Rosetta skill to extract recurring coding and architectural patterns from workspace code into reusable templates."
+description: "Extract code patterns."
 license: Apache-2.0
 model: gpt-5.4
 model_reasoning_effort: high

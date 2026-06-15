@@ -1,6 +1,6 @@
 ---
 name: self-help-flow
-description: Rosetta self-help. Ask about capabilities, learn how to use them, get guidance on developing with Rosetta, or seamlessly switch to executing any discovered workflow. Answers "what can you do", "how do I use X", "how modernization works", "what workflows are available", etc.
+description: "Workflow for Rosetta self-help: explain capabilities and usage, then run any discovered workflow."
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---

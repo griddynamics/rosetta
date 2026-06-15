@@ -1,7 +1,7 @@
 ---
 name: testgen-flow-question-generation
-description: Phase 3 of Test Generation - Question generation and user input (HITL gate)
-tags: ["testgen", "phase"]
+description: "Phase 3 Question Generation of testgen-flow"
+alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---
 

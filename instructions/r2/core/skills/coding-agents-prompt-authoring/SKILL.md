@@ -1,6 +1,6 @@
 ---
 name: coding-agents-prompt-authoring
-description: Author, update, and validate prompts (skills, agents, subagents, workflows, commands, rules, templates, or just any generic prompt). Produces a final prompt with analytics artifacts (brief, contracts, and a validation pack). Use when creating, editing, refactoring, reviewing, validating, or migrating prompts for AI coding agents.
+description: "To author, adapt, review, and validate prompts (skills, agents, workflows, rules, etc.) with brief, contracts, and a validation pack."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
@@ -32,6 +32,7 @@ You are a senior prompt engineer and an expert in meta prompting and meta proces
 Problem this skill solves:
 Authoring, refactoring, reviewing, editing, improving prompts to be reliable, small, clear, specific, with Human-in-the-Loop and actively addressing assumptions, hallucinations, and "AI slop" in general.
 Prompts include skills, agents, subagents, workflows, rules, templates, commands, or just any generic prompt.
+Use also when porting prompts between agents/IDEs, or migrating rules between formats.
 
 </when_to_use_skill>
 
@@ -47,6 +48,7 @@ Prompts include skills, agents, subagents, workflows, rules, templates, commands
 - For small prompts, keep analytical artifacts in memory and return them in the message
 - Do not project analytical artifacts into generated target prompts.
 - Intentional: checklist/best-practices/pitfalls are maintained in `references/*` to keep this file small
+- Prompt adaptation and porting MUST follow `references/pa-adapt.md`
 
 Prompt classification:
 
@@ -89,6 +91,7 @@ Based on the task `ACQUIRE FROM KB` and apply:
 
 - ACQUIRE `coding-agents-prompt-authoring/references/pa-extract.md` FROM KB to extract and structure requirements from existing prompt when original prompt file is present
 - ACQUIRE `coding-agents-prompt-authoring/references/pa-intake.md` FROM KB to elicit and structure requirements (including extracted), prepare prompt brief as source of truth
+- ACQUIRE `coding-agents-prompt-authoring/references/pa-adapt.md` FROM KB when porting prompts between agents/IDEs, or migrating rules between formats
 - ACQUIRE `coding-agents-prompt-authoring/references/pa-blueprint.md` FROM KB to design prompt structure, actors, contracts, schemas, prepare concise blueprint using prompt-brief
 - ACQUIRE `coding-agents-prompt-authoring/references/pa-draft.md` FROM KB to create starting prompt content using prompt-brief and blueprint, prepare drafts as target prompt files
 - ACQUIRE `coding-agents-prompt-authoring/references/pa-hardening.md` FROM KB to critically review and evaluate against intent and prompt-brief, or comparison mode for refactor

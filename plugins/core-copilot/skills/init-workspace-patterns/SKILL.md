@@ -1,6 +1,6 @@
 ---
 name: init-workspace-patterns
-description: "Rosetta skill to extract recurring coding and architectural patterns from workspace code into reusable templates."
+description: "Extract code patterns."
 license: Apache-2.0
 model: Claude Sonnet 4.6
 tags: ["init", "workspace", "patterns", "reverse-engineering"]

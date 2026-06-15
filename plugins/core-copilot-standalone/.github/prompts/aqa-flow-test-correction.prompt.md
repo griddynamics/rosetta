@@ -1,6 +1,6 @@
 ---
 name: aqa-flow-test-correction
-description: Phase 8 of AQA workflow - Test Corrections (USER APPROVAL REQUIRED)
+description: "Phase 8 Test Correction of aqa-flow"
 alwaysApply: false
 tags: []
 baseSchema: docs/schemas/phase.md

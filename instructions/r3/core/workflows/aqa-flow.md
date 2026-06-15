@@ -1,6 +1,7 @@
 ---
 name: aqa-flow
-description: MUST apply for automated UI/E2E test tasks — write, extend, debug, or fix automation. End-to-end from requirements through implementation, execution analysis, and correction.
+description: "Workflow for automated QA: integration and end-to-end UI test automation, page objects, etc."
+alwaysApply: false
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---
