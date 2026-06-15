@@ -84,4 +84,11 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 - State updated without auto-looping; re-run instruction provided
 </validation_checklist>
 
+<failure_handling>
+- **Execution report absent/empty:** if `agents/qa/{IDENTIFIER}/execution-report.md` does not exist or has no failure entries, stop Phase 7, record `Phase 7 blocked: Phase 6 execution report missing/empty` in `agents/qa-state.md`, and return to Phase 6 — never fabricate proposed changes against a missing report.
+- **`agents/qa-state.md` missing or `{IDENTIFIER}` unresolvable:** stop Phase 7, record the failure in chat output, ask the user to restore the state file; do not auto-recreate it and do not guess `{IDENTIFIER}` (every input/output path depends on it).
+- **Proposed-change asset ACQUIRE returns zero documents** (step 7.2): stop — do NOT present a correction block authored from memory. Report the failed ACQUIRE and ask the user to fix Rosetta/KB access.
+- **No change maps to a confirmed root cause:** if `debugging` (step 7.1.1) cannot align a proposed edit to a confirmed Phase 6 root cause, do not propose it; record the unmapped failure and return to Phase 6 for deeper analysis rather than applying a symptom-only fix.
+</failure_handling>
+
 </qa_flow_test_correction>

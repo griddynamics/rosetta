@@ -10,6 +10,8 @@ Send this message **verbatim** to the user when selectors are still missing and 
 ```text
 I need the HTML source of the page(s) under test to verify selectors. Please capture them as follows:
 
+⚠️ **Before sharing:** do not paste or save pages that contain passwords, personal data, or anything secret. If the page shows such data, blank it out in the saved file first.
+
 **For each page involved in the test:**
 
 1. Open the page in your browser (Chrome / Edge / Firefox / Safari — any modern browser works).
@@ -30,5 +32,10 @@ I need the HTML source of the page(s) under test to verify selectors. Please cap
 
 **When you've saved all the page-source files, reply with "captured" + the list of `<page-name>.html` filenames you created.** I will then verify the directory and continue selector identification.
 ```
+
+After capture (agent-facing — outside the verbatim message):
+
+- Authenticated page HTML routinely embeds session/CSRF tokens and PII. Apply `qa-knowledge/references/redaction-scope.md` to every saved page-source file before reading or referencing it — treat it as a tracked artifact (fail-closed: if the scan cannot run, do not proceed).
+- Not-captured branch: if the user cannot capture (no app access, login wall, dynamic SPA where outerHTML is incomplete), or the verified files are missing/empty/garbled — do NOT guess selectors from memory. Stop and re-run the selector-identification phase or escalate, mirroring the taxonomy's `page sources not available` branch.
 
 </page-source-capture-instructions>

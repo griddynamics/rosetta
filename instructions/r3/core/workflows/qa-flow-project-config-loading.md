@@ -24,6 +24,7 @@ Initialize the QA session directory, load the existing project config or collect
 <recommended_skills>
 - `qa-structure` — canonical paths, `{IDENTIFIER}` derivation, config-key schema, state-file shape; ACQUIRE its assets/references at the cited steps.
 - `questioning` — the structured user interview when the config is missing.
+- `qa-knowledge` — the shared redaction scope for the pre-write gate (`references/redaction-scope.md`).
 </recommended_skills>
 
 <phase_steps>
@@ -94,17 +95,11 @@ Write `agents/qa/{IDENTIFIER}/initial-data.md` using the inline template below (
 
 <safety_boundaries>
 
-`agents/qa/qa-project-config.md` is **tracked + project-wide** (committed to VCS, read by every QA session). User-supplied answers can carry credential-shaped values that would persist into the repo without redaction.
+`agents/qa/qa-project-config.md` is **tracked + project-wide** (committed to VCS, read by every QA session) — treat as PUBLIC by default. User-supplied answers can carry credential-shaped values that would persist into the repo without redaction.
 
-**Auth fields — record mechanism + source, never literal values:**
+**Auth fields — record mechanism + source, never literal values:** record the **scheme name** (`OAuth2 client-credentials` / `JWT Bearer` / `API Key in X-Api-Key header` / `Basic Auth` / `Session cookie` / `None`) and the **strategy + source** (e.g. `Bearer JWT from AuthHelper.get_token('admin'); credentials in env vars E2E_USER + E2E_PASS`). **Never paste** actual tokens, passwords, JSON contents, API key values, or OAuth `client_secret` — regardless of "test"/"throwaway" labels. `Test Case Management` access tokens (TestRail API key, Jira PAT) → record as `MCP-managed` or `env var <NAME>`.
 
-- **API Auth Mechanism** (`mechanism`): record the **scheme name** only (`OAuth2 client-credentials` / `JWT Bearer` / `API Key in X-Api-Key header` / `Basic Auth` / `Session cookie` / `None`). Structural; acceptable.
-- **Test Auth Strategy**: record the **strategy + source** (e.g. `Bearer JWT from AuthHelper.get_token('admin'); credentials in env vars E2E_USER + E2E_PASS`). **Never paste:** actual tokens, passwords, JSON contents, API key values, OAuth `client_secret`, or any production secret — regardless of "test"/"throwaway" labels.
-- **Redaction at intake:** if a user answer pastes a literal secret (`Bearer eyJ...`, `password: SuperSecret123`, JSON with `client_secret`, etc.), redact at capture time before writing the config: replace with a mechanism+source description and add a one-line `## Additional Notes`: `Original auth answer included a literal <kind> — redacted; agent should request mechanism+source description from user if env var name is unknown.`
-- **Other credential-shaped fields:** `Test Case Management` access tokens (TestRail API key, Jira PAT) → record as `MCP-managed` or `env var <NAME>`. Credentialed URLs (`https://user:pass@host`) → redact to `https://<redacted: credentialed URL>` + describe credential location in prose.
-- **Synthetic test-user identities:** keep emails on IETF reserved domains (`test.user-1@example.com`); do not record real production emails even if "marked test".
-
-**Structural content stays verbatim** — endpoint paths, framework names, directory paths, MCP names, base URLs and spec URLs without embedded credentials, TestRail/Jira project keys. Redaction targets sensitive **values**. Consistent with `requirements-use` and `debugging` `<safety_boundaries>`.
+**Redaction at intake (pre-write gate, MANDATORY):** before writing the config, MUST ACQUIRE `qa-knowledge/references/redaction-scope.md` FROM KB and run its re-scan grep list against the populated config — writing is FORBIDDEN until that scan has run. **Fail-closed:** if that ACQUIRE returns zero documents (KB unavailable), STOP and report — never write an unscanned config. Always-present minimal floor (so a scan can run even if the KB fetch fails) — at minimum grep for: `Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, `eyJ` (JWT), `BEGIN PRIVATE KEY`, `user:pass@`. On a hit, replace the literal with a mechanism+source description and add a one-line `## Additional Notes`: `Original auth answer included a literal <kind> — redacted; request mechanism+source from user if env var name is unknown.` The full target catalog + shape-preserving placeholders + complete re-scan list live in the reference (structural content — endpoint paths, framework names, base/spec URLs without embedded credentials, project keys — stays verbatim).
 
 </safety_boundaries>
 
@@ -127,7 +122,7 @@ Write `agents/qa/{IDENTIFIER}/initial-data.md` using the inline template below (
 - `initial-data.md` created per the inline initial-data template (step 0.2) with all four required fields populated
 - `agents/qa-state.md` created with Phase 0 marked complete and `IDENTIFIER:` field matching the `agents/qa/{IDENTIFIER}/` directory name
 - `{IDENTIFIER}` value identical across (a) directory name, (b) qa-state.md IDENTIFIER field, (c) initial-data.md path; no fabricated `{IDENTIFIER}`
-- No literal credential persisted in the saved config (per `<safety_boundaries>` Redaction-at-intake); any redaction noted in `## Additional Notes`
+- Redaction pre-write gate ran — `qa-knowledge/references/redaction-scope.md` (ACQUIRE FROM KB) loaded and its grep list executed against the config before write; no literal credential persisted; any redaction noted in `## Additional Notes`
 - No failure-handling condition from `<failure_handling>` is currently active — every listed scenario has either not been triggered or has been remediated
 </validation_checklist>
 
