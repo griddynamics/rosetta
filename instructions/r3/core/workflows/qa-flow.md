@@ -125,7 +125,7 @@ Subagents:
 - `executor` (Lightweight): optional for mechanical actions (builds, installs)
 
 Skills (compact map — phase → comma-separated skill tags; backticked = ACQUIRE tag):
-- Cross-phase: `orchestrator-contract`, `coding`.
+- Cross-phase: `orchestrator-contract`, `coding`, `qa-structure` (paths/identifier/state-file), `qa-knowledge` (taxonomies, redaction scope, artifact skeletons).
 - Phase 0: config init owned by Phase 0 via `questioning`.
 - Phase 1: `discovery`.
 - Phase 2: `reverse-engineering`.

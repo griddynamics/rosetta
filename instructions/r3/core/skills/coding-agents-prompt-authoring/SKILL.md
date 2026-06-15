@@ -50,9 +50,9 @@ Prompts include skills, agents, subagents, workflows, rules, templates, commands
 
 Prompt classification:
 
-- **Skill** — reusable knowledge/instructions/action/activity loaded into agents on demand
+- **Skill** — reusable knowledge/instructions/action/activity dynamically loaded into agents on demand; skill is a folder with SKILL.md file plus references and assets loaded from SKILL.md
 - **Rule** — persistent constraints added to LLM context across all agents either globally (always apply) or by description (not reliable) or by path glob (ex: *.md, *.ts), do not duplicate skill, skill is preferred, rules are actually rarely needed
-- **Agent / Subagent** — delegated specialist with fresh context, own system prompt
+- **Agent / Subagent** — delegated specialist with fresh context, own system prompt, dynamically loaded on demand
 - **Workflow / Command** — user-triggered action or multi-phase pipeline coordinating multiple prompts/agents, large workflows come with phases in separate files
 - **Template** — parameterized template prompt with variables, instructions in placeholders, validated before rendering
 - **Ad-hoc** — one-off queries, no reuse expected, go simple and freeform
@@ -127,6 +127,18 @@ Example logical flow: discover → extract+intake → blueprint → for_each_pro
 - Strong success criteria
 
 </core_principles>
+
+<rosetta canonical lists>
+You must check canonical lists of workflows, templates, subagents, skills, rules Rosetta has or to be implemented (you must use them as if those are already exist):
+
+- `docs/definitions/workflows.md`
+- `docs/definitions/templates.md`
+- `docs/definitions/agents.md`
+- `docs/definitions/skills.md`
+- `docs/definitions/rules.md`
+
+This list above defines what should be what, you must read it.
+</rosetta canonical lists>
 
 <resources>
 

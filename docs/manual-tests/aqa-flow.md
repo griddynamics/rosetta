@@ -5,6 +5,10 @@ End-to-end smoke check for the UI / browser test-automation workflow
 WebdriverIO projects. Reflects the **consolidated** workflows: external data is
 pulled by the single `discovery` skill via config-resolved vendor bindings
 (`testrail` / `confluence`), not the old `mcp-*-data-collection` skills.
+Two shared skills now carry the cross-phase scaffolding — **`qa-structure`** (canonical
+paths, the `<test-name>` slug rules + page-sources contract, state-file shape) and
+**`qa-knowledge`** (failure taxonomy, redaction scope, and the per-phase artifact
+skeletons, `ACQUIRE`'d as assets at point of use). QA uses the same two.
 
 ## Prerequisites
 
@@ -39,7 +43,7 @@ Fix the failing test test_search_returns_results. Report at agents/user-instruct
 
 | Phase | HITL | File to inspect | Skill(s) | Must see |
 |---|---|---|---|---|
-| 1 — Data Collection | — | `agents/plans/aqa-<test-name>.md` | `discovery` (`testrail` + `confluence` bindings) | Test Case Information + Feature Context + **Access / Truncation Notes** (all page-access gaps disclosed); sources cited; no fabricated steps |
+| 1 — Data Collection | — | `agents/plans/aqa-<test-name>.md` | `discovery` (`testrail` + `confluence` bindings), `qa-structure` | Test Case Information + Feature Context + **Access / Truncation Notes** (all page-access gaps disclosed); sources cited; no fabricated steps. Plan written from the `aqa-plan-template` asset; `agents/aqa-state.md` seeded from the `aqa-state-template` asset |
 | 2 — Requirements Clarification | **HITL** | Same plan file (`## Phase 2`) | `requirements-use` (gap_analysis mode), `questioning` | **`### Explicit Assertions`** present (typed: Presence / State / Content / Behavioral; one per bullet) — mandatory or the phase fails validation; workflow **paused** with questions; aggregate-cap fires if you decline most Criticals |
 | 3 — Code Analysis | — | `agents/plans/aqa-<test-name>-code-analysis.md` | `reverse-engineering` (test-arch mode), `sensitive-data` | All 9 sections (Framework/Standards · User Instructions · Frontend Analysis · Page Object Inventory · Similar Tests · Test-Location Decision · Reusable Utilities · Conflicts & Precedence · Coverage); test-location decision cites the ~400-line rule |
 | 4 — Selector Identification | conditional | Plan's `## Selector Management` (Part A) | `testing` (selector mode, Part A — read-only) | Interaction Map + Selector Availability (✅/❌/UNRESOLVABLE) + Identified Selectors (4-tier: `data-testid` > `id` > stable class/ARIA > XPath) + Fragile Selectors Flagged; **page sources captured** under `agents/plans/aqa-<test-name>-page-sources/` if any were ambiguous |
@@ -48,7 +52,9 @@ Fix the failing test test_search_returns_results. Report at agents/user-instruct
 | 7 — Test Report Analysis | **HITL** | `agents/plans/aqa-<test-name>-failure-analysis.md` | `debugging` (triage mode), `sensitive-data` | All 6 fields per failure (Failure name / Error type / Root cause / Evidence label / Evidence rationale / Recommendation), category from the 7-item UI taxonomy; **no source files modified by this phase** |
 | 8 — Test Corrections | **HITL** | Proposed Changes for each failure | `debugging`, `coding` (approved-apply mode) | Approval required per-change (exact token `approved`/`approve`/`yes`); **only test/page-object files modified**, never application source; iteration cap **3 cycles per change** |
 
-State file: `agents/aqa-state.md` (created by Phase 1: `## Phase Completion Status` · `## Key Artifacts & Facts` · `## Verification-Failure Overrides`).
+State file: `agents/aqa-state.md` (created by Phase 1 from the `qa-structure` `aqa-state-template` asset: `## Phase Completion Status` · `## Key Artifacts & Facts` · `## Verification-Failure Overrides`).
+
+**Across all phases:** `qa-structure` supplies the canonical paths, `<test-name>` slug rules + page-sources contract, and state-file shape; `qa-knowledge` supplies the UI failure taxonomy, the artifact skeletons (plan, code-analysis report, clarification templates, failure-analysis — each `ACQUIRE`'d FROM KB at the step that writes it), and the redaction scope. The Skill(s) column lists each phase's domain skills on top of these two.
 
 ## Try to break it
 
@@ -60,6 +66,7 @@ State file: `agents/aqa-state.md` (created by Phase 1: `## Phase Completion Stat
 | Mid-Phase 8 say *"apply Change 1 and Change 3, also clean up some imports"* | Cleanup refused (out of scope); Change 1 + Change 3 applied |
 | Page-sources directory missing in Phase 7 | Selector-category failures tagged `Unknown — page sources not available; would need the selector-identification phase re-run`; non-selector failures still analyzed |
 | Iteration 3 of the Phase 6→7→8 loop with failures remaining | `Phase 8 blocked: in-phase apply retry cap reached` (3 cycles/change) → escalate; no auto-start of a 4th cycle |
+| Simulate KB unavailable before Phase 7 redaction (the `redaction-scope` ACQUIRE returns zero) | **Fail-closed**: Phase 7 STOPs and reports — never emits an unscanned `failure-analysis.md`; an always-inline minimal token net still catches the obvious cases |
 
 ## Done when
 

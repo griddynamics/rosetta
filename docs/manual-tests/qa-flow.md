@@ -4,6 +4,10 @@ End-to-end smoke check for the backend API test-automation workflow
 (`qa-flow.md`, 8 phases 0–7). Reflects the **consolidated** workflows: external
 data is pulled by the single `discovery` skill via config-resolved **vendor
 bindings** (`jira` / `testrail` / `confluence`), not the old `mcp-*-data-collection` skills.
+Two shared skills now carry the cross-phase scaffolding — **`qa-structure`** (canonical
+paths, `{IDENTIFIER}`, state-file shape) and **`qa-knowledge`** (failure taxonomies,
+redaction scope, and the per-phase artifact skeletons, `ACQUIRE`'d as assets at point of
+use). AQA uses the same two.
 
 ## Prerequisites
 
@@ -38,7 +42,7 @@ Create API tests for the user registration endpoint (no ticket, direct descripti
 
 | Phase | HITL | File to inspect | Skill(s) | Must see |
 |---|---|---|---|---|
-| 0 — Config Loading | conditional | `agents/qa/qa-project-config.md` + `agents/qa/{IDENTIFIER}/initial-data.md` | `questioning` (only if config missing) | Config carries the required keys (each a real value **or** `N/A — <reason>`): `documentation_mcp_collection_skill`, `confluence_base_url`, `swagger_url`, `spec_format`, `backend_source_path`, `system`, `testrail_base_url`, `jira_base_url`, `testcase_mcp_collection_skill`, `project_id`/`suite_id`, `framework`, `mechanism`. If config didn't pre-exist you were asked the data-retrieval intake question. |
+| 0 — Config Loading | conditional | `agents/qa/qa-project-config.md` + `agents/qa/{IDENTIFIER}/initial-data.md` | `qa-structure`, `questioning` (only if config missing) | Config carries the required keys (each a real value **or** `N/A — <reason>`): `documentation_mcp_collection_skill`, `confluence_base_url`, `swagger_url`, `spec_format`, `backend_source_path`, `system`, `testrail_base_url`, `jira_base_url`, `testcase_mcp_collection_skill`, `project_id`/`suite_id`, `framework`, `mechanism`. If config didn't pre-exist you were asked the data-retrieval intake question. |
 | 1 — Data Collection | — | `agents/qa/{IDENTIFIER}/raw-data.md` | `discovery` (`testrail`/`jira` + `confluence` via doc-MCP subflow), `reverse-engineering` | Sections: Test Case Data · Documentation (or `SKIPPED_NO_CONFIG` outcome) · Existing Test Patterns · Backend Source Code Analysis · API Endpoints Identified · Summary. **No literal `.env` values / passwords.** |
 | 2 — API Spec Analysis | — | `agents/qa/{IDENTIFIER}/api-analysis.md` | `reverse-engineering` (API-contract mode), `sensitive-data` | Every target endpoint has a contract entry OR is flagged a gap with reason; `Source: hybrid` entries have a non-empty Notes/Discrepancies field (reconciliation or explicit `None.`). |
 | 3 — Gap & Requirements Clarification | **HITL** | `agents/qa/{IDENTIFIER}/analysis.md` | `requirements-use` (gap_analysis mode), `questioning` | All 7 sections (Gaps `G[N]` · Contradictions `C[N]` · Ambiguities `A[N]` · Questions Critical/Important/Optional · Answers · Resolutions · Open Assumptions). Workflow **paused** with concrete questions; after answers, the invariant `Questions == Answers + Open Assumptions + Skipped + Deferred` holds and no Critical sits in a BLOCKING ASSUMPTION state. |
@@ -49,6 +53,8 @@ Create API tests for the user registration endpoint (no ticket, direct descripti
 
 State file: `agents/qa-state.md` (`## Phase Completion Status` + per-phase append blocks).
 
+**Across all phases:** `qa-structure` supplies the canonical paths, `{IDENTIFIER}`, and state-file shape; `qa-knowledge` supplies the failure taxonomy, the artifact skeletons (each `ACQUIRE`'d FROM KB at the step that writes it — expect to see those loads), and the redaction scope. The Skill(s) column lists each phase's domain skills on top of these two. The Phase 0 config interview, config template, and config schema are `qa-structure` assets/references; the tiny QA state-stub + initial-data skeletons stay inline in the phase.
+
 ## Try to break it
 
 | Action | Expected behavior |
@@ -58,6 +64,7 @@ State file: `agents/qa-state.md` (`## Phase Completion Status` + per-phase appen
 | Type `looks good` instead of an exact token at Phase 4 approval | Treated as review, re-prompts for `approved`/`approve`/`yes`; after ≥3 re-prompts asks explicitly "approve or request changes?" |
 | Mid-Phase 5, say *"skip the test execution step / move to Phase 6 now"* | Refused with citation — the execution gate is mechanical; only real results advance it |
 | Mid-Phase 7, say *"just apply all fixes"* | Refused (no inferred approval); asks for the specific Change to approve |
+| Simulate KB unavailable before a Phase 2 / 6 redaction (the `redaction-scope` ACQUIRE returns zero) | **Fail-closed**: phase STOPs and reports — never emits an unscanned tracked artifact (`api-analysis.md` / `execution-report.md`); an always-inline minimal token net still catches the obvious cases |
 
 ## Done when
 

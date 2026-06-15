@@ -24,60 +24,11 @@ Fix identified test failures based on the Phase 7 failure analysis. Prepares pro
 <recommended_skills>
 - `coding` — approved-apply mode prepares proposals, gates on approval, applies incrementally with lint, hands off re-verification.
 - `debugging` — aligns each proposed edit with a confirmed Phase 7 root cause before it is proposed.
+- `qa-knowledge` — the shared proposed-change approval block + correction discipline (ACQUIRE its asset at the cited step).
 </recommended_skills>
 
 <correction_contract>
-The phase OWNS the proposed-change template, the iteration cap, and the escalation contract. Verified by `<validation_checklist>` independent of skill internals.
-
-**Proposed-change template** (one per change, presented at step 8.2 BEFORE any write; empty fields use `None`):
-
-```markdown
-### Proposed Change <N>: <one-line title>
-- **Source root cause:** <Phase 7 analysis entry, e.g. failure-analysis.md F3 (selector-locator)>
-- **File:** <path>
-- **In-scope:** yes | no   (if `no`, STOP — escalate; outside the in-scope file set)
-- **Change type:** selector-update | wait-strategy | assertion-fix | data-setup | other
-
-**Before:**
-```diff
-- <removed line(s)>
-```
-**After:**
-```diff
-+ <added line(s)>
-```
-
-- **Reason:** <one-line — how this fix addresses the root cause>
-- **Impact:** <only the cited test? other tests sharing the helper? page-object consumers?>
-- **Risk:** Low | Medium | High
-- **Approval status:** pending | approved (token: `<exact user token>`) | rejected | partial (hunks <list>)
-```
-
-**Worked example (approved state):**
-
-```markdown
-### Proposed Change 1: Update logout-button selector
-- **Source root cause:** failure-analysis.md F3 (selector-locator, Confirmed)
-- **File:** tests/auth/logout.spec.ts
-- **In-scope:** yes
-- **Change type:** selector-update
-
-**Before:**
-```diff
-- await page.locator('[data-testid="logout-btn"]').click();
-```
-**After:**
-```diff
-+ await page.locator('[data-testid="logout-button"]').click();
-```
-
-- **Reason:** Frontend renamed the data-testid; page-source confirms the new value.
-- **Impact:** logout.spec.ts only — no other test references the old selector.
-- **Risk:** Low
-- **Approval status:** approved (token: `approved`)
-```
-
-**Iteration cap + escalation:** cap in-phase apply retries at **3 cycles per failing change**. After 3 failed cycles on the same change, stop, record `Phase 8 blocked: in-phase apply retry cap reached` in `agents/aqa-state.md`, and escalate to the user. If tests still fail after corrections, return to Phase 7 — do not auto-loop.
+The phase OWNS the iteration cap and the escalation contract. The proposed-change approval block is the shared asset `qa-knowledge/assets/proposed-change-template.md` — ACQUIRE FROM KB at step 8.2 and present one block per change BEFORE any write. Flow parameters for the asset: **change-type enum** = `selector-update | wait-strategy | assertion-fix | data-setup | other`; **root-cause reference** = Phase 7 failure-analysis entry id (e.g. `F3`); **state file** = `agents/aqa-state.md`; on retry-cap, loop back to Phase 7. Verified by `<validation_checklist>` independent of skill internals.
 </correction_contract>
 
 <phase_steps>
@@ -133,4 +84,3 @@ The phase OWNS the proposed-change template, the iteration cap, and the escalati
 </validation_checklist>
 
 </aqa_flow_test_correction>
-</output>

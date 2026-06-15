@@ -24,6 +24,8 @@ Implement all approved API test specifications as executable automated tests wit
 <recommended_skills>
 - `testing` — API impl mode implements the approved specs as executable tests with shared utils, records assumptions/gaps, emits the hand-off summary.
 - `coding` — standards-first mode supplies the authoritative repository conventions (repo docs beat model defaults) before authoring.
+- `qa-structure` — `{IDENTIFIER}` path resolution and artifact location.
+- `qa-knowledge` — the hand-off record fields (ACQUIRE its asset at the cited step).
 </recommended_skills>
 
 <implementation_handoff_contract>
@@ -34,7 +36,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 - **Hand off execution** — provide the exact project test-execution command; STOP and WAIT for the user to run it (`<stop_for_execution>`). The phase never executes the tests itself.
 - **Update state without closing** — record outcome in `agents/qa-state.md`, mark Phase 5 complete, set Phase 6 current; do NOT mark the overall QA workflow COMPLETE.
 
-**Hand-off summary fields** (returned by the skill, verified by this phase), in order: test framework (name+version); files created/modified counts; `### Files`; `### ATC → test mapping` (table ATC id | test file | test function); `### Assumptions made` (`[ASSUMED: …]` entries, or `None — …`); `### Gaps surfaced` (per-ATC reason, or `None — all ATCs implemented`); `### Lint / format status` (pass|fail + exact command); `### Validation scope & waivers` (what was run locally vs. any broader check the user explicitly waived — e.g. a full-suite regression — each with its residual-risk note; `None — no checks waived` if none); `### Ready for re-test` (yes|no + reason).
+**Hand-off summary fields** (returned by the skill, verified by this phase) → asset `qa-knowledge/assets/qa-test-impl-record.md` (ACQUIRE FROM KB) — the ordered field list (framework, file counts, `### Files`, `### ATC → test mapping`, `### Assumptions made`, `### Gaps surfaced`, `### Lint / format status`, `### Validation scope & waivers`, `### Ready for re-test`).
 </implementation_handoff_contract>
 
 <phase_steps>
@@ -47,7 +49,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 <execute_implementation step="5.1" subagent="engineer" role="API test automation engineer">
 1. GATE: confirm `agents/qa/{IDENTIFIER}/test-specs.md` exists, is non-empty, and `User Approval` is set in `agents/qa-state.md`; confirm `api-analysis.md` and discoverable existing patterns are present. On any failure apply `<failure_handling>` — never author from unapproved or incomplete inputs.
 2. USE SKILL `coding` (standards-first mode) to read the repository standards as authority before authoring; repo docs beat model defaults.
-3. USE SKILL `testing` (API impl mode) with the parent-supplied bindings: approved-specs path + the recorded approval signal; API-contract path; existing-patterns source; write boundary = test + shared-utility files only (`<workflow_context>`); output = the hand-off summary in `<implementation_handoff_contract>`.
+3. USE SKILL `testing` (API impl mode) with the parent-supplied bindings: approved-specs path + the recorded approval signal; API-contract path; existing-patterns source; write boundary = test + shared-utility files only (`<workflow_context>`); output = the hand-off summary fields, which the `engineer` MUST ACQUIRE from `qa-knowledge/assets/qa-test-impl-record.md` FROM KB (per `<implementation_handoff_contract>`).
 4. Implement shared utilities (auth helper, data factory, response validator) — prefer EXTENDING existing helpers over parallel ones; record any extension. Every test name/docstring carries its ATC-NNN id.
 5. Record assumptions as `[ASSUMED: <field>=<value>]` (code + summary) and surface any unimplementable ATC as a Gap — no silent ATC drop.
 6. Validate locally: run the project lint/format command on touched files and resolve issues; emit the hand-off summary.
@@ -99,4 +101,3 @@ Run `<validation_checklist>` — the authoritative exit gate. Every item must be
 </failure_handling>
 
 </qa_flow_test_implementation>
-</output>

@@ -23,6 +23,8 @@ Analyze Swagger/OpenAPI specification or codebase API definitions to extract end
 <recommended_skills>
 - `reverse-engineering` (API-contract extraction mode) — locates the spec/route source and extracts per-endpoint contracts, auth, and data dependencies for the phase-supplied target-endpoint list.
 - `sensitive-data` — redaction authority for any credential/PII/JWT value before it is written to the artifact.
+- `qa-structure` — `{IDENTIFIER}` path resolution and the artifact location.
+- `qa-knowledge` — the api-analysis output skeletons + redaction scope (ACQUIRE its asset/reference at the cited steps).
 </recommended_skills>
 
 <input_contract>
@@ -59,7 +61,7 @@ Decision point: Swagger available -> full spec analysis. No Swagger -> code-base
 
 <execute_analysis step="2.2" subagent="discoverer" role="API spec analyst">
 
-1. USE SKILL `reverse-engineering` (API-contract extraction mode) with the phase-supplied bindings: target-endpoint list (Phase 1 test cases) + spec source (step 2.1) = `<input_contract>`; per-endpoint output shape, redaction catalog, and validation = `<endpoint_contract_template>`, `<redaction_contract>`, `<validation_checklist>`; output path = `agents/qa/{IDENTIFIER}/api-analysis.md`. The skill GATEs on the two required inputs before locating the spec. USE SKILL `sensitive-data` to redact before writing.
+1. **ACQUIRE `qa-knowledge/assets/api-analysis-template.md` and `qa-knowledge/references/redaction-scope.md` FROM KB first** — the bound `reverse-engineering` skill disowns the output shape and the redaction list, so they are load-bearing for the `discoverer`. Then USE SKILL `reverse-engineering` (API-contract extraction mode) with the phase-supplied bindings: target-endpoint list (Phase 1 test cases) + spec source (step 2.1) = `<input_contract>`; per-endpoint output shape + Analysis Summary metrics = the `api-analysis-template` asset; redaction scope = the `redaction-scope` reference; validation = `<validation_checklist>`; output path = `agents/qa/{IDENTIFIER}/api-analysis.md`. The skill GATEs on the two required inputs before locating the spec. USE SKILL `sensitive-data` to redact before writing.
 2. The skill extracts per endpoint: contracts, auth requirements, data dependencies, and reconciles spec-vs-code when both sources are read.
 3. Coverage is mandatory: every target endpoint gets a contract entry OR is flagged back as a gap with reason — no silent drop. Do not fabricate schemas, status codes, or auth requirements without a source.
 
@@ -67,127 +69,21 @@ Decision point: Swagger available -> full spec analysis. No Swagger -> code-base
 
 <produce_output step="2.3">
 
-Create `agents/qa/{IDENTIFIER}/api-analysis.md`. The phase owns the document **section list**, the **per-endpoint template** (`<endpoint_contract_template>`), the **redaction catalog** (`<redaction_contract>`), and the **Analysis Summary metrics** — this is the full phase contract (the skill EMITS into it, the phase ASSERTS it).
+Create `agents/qa/{IDENTIFIER}/api-analysis.md`. The phase owns the document **section list** below; the verbatim per-endpoint contract entry and the Analysis Summary metrics are the asset `qa-knowledge/assets/api-analysis-template.md` (ACQUIRE FROM KB). The skill EMITS into these, the phase ASSERTS them.
 
 **Required section list** (in order; every section must be present-or-`N/A — <reason>`):
 
 1. **Header** — `# API Analysis - [IDENTIFIER]` + Analyzed / Phase / Spec Source.
 2. **API Overview** — Base URL, API Version, Auth Mechanism, Content Type.
-3. **Endpoints Under Test** — one entry per target endpoint using the `<endpoint_contract_template>` (canonical — single source of truth; other sections reference, do not restate).
+3. **Endpoints Under Test** — one entry per target endpoint using the asset's per-endpoint contract entry (canonical — single source of truth; other sections reference, do not restate).
 4. **Authentication Details** — Auth Mechanism (Token Endpoint, Token Type, Token Location, Header Name) + Auth for Tests (Strategy, Existing Pattern from Phase 1, Setup Required). One block; no per-endpoint restatement.
 5. **Data Dependencies** — Preconditions, Creation Order (numbered list), Cleanup Considerations. Document-level only; per-endpoint preconditions live inside each endpoint entry.
-6. **Analysis Summary** (the phase's metric contract — kept inline verbatim):
-
-```markdown
-## Analysis Summary
-
-- **Endpoints Analyzed**: [Count]
-- **HTTP Methods**: GET: [N], POST: [N], PUT: [N], DELETE: [N], PATCH: [N]
-- **Auth Required Endpoints**: [Count]
-- **Public Endpoints**: [Count]
-- **Request Schemas Extracted**: [Count]
-- **Response Schemas Extracted**: [Count]
-- **Data Dependencies Found**: [Count]
-- **Spec Coverage**: [% of test case endpoints covered by spec]
-```
+6. **Analysis Summary** — the metric block from the asset's "Analysis Summary metrics".
 
 </produce_output>
 
-<endpoint_contract_template>
-One contract entry per target endpoint, in this order; every subsection present with real values OR explicit `N/A — <reason>` / `None`. Structural content (paths, methods, status codes, field/schema names, validation rules, citations, auth-mechanism names) is verbatim functional content; redaction (`<redaction_contract>`) targets sensitive **values** only.
-
-````markdown
-## Endpoint Contract: <METHOD> <path>
-
-**Source:** swagger | code | hybrid (both used)
-**Summary:** [one-line from spec / docstring / N/A]
-**Tags / Groups:** [functional grouping or N/A]
-
-### Parameters
-**Path parameters:**
-| Name | Type | Required | Constraints |
-|------|------|----------|-------------|
-(or `None`) — **Query parameters:** same shape or `None` — **Header parameters:** same shape or `None`
-
-### Request Body
-**Content-Type:** [e.g. `application/json`, or `N/A — no body`]
-**Schema:** ```json { ... } ``` — **Example:** ```json { ... } ```
-
-### Responses
-| Status | Content-Type | Schema | Example |
-|--------|-------------|--------|---------|
-
-### Auth
-- **Mechanism:** [Bearer JWT / OAuth2 / API Key / Basic / Session-Cookie / None]
-- **Required scopes / permissions:** [list or N/A] — **Public endpoint:** [yes / no]
-
-### Data Dependencies
-- **Preconditions:** [required DB state, entity relationships, ordering]
-- **Side effects:** [created / modified / deleted] — **Idempotent:** [yes / no + rationale if non-obvious]
-
-### Source Citations
-- Swagger: [JSONPath, e.g. `paths./api/v1/orders/{orderId}.get`] or `N/A`
-- Code: [file:line for handler + DTO/model] or `N/A`
-
-### Notes / Discrepancies
-[Spec-vs-code mismatches, deprecated markers, missing schemas, undocumented status codes. `Source: hybrid` entries MUST have a non-empty Notes — a recorded mismatch OR explicit `None.` confirming reconciliation ran. Also record each applied redaction here.]
-````
-
-**Worked entry** (`Source: hybrid` with a real discrepancy — demonstrates code-as-supplement and a recorded gap):
-
-````markdown
-## Endpoint Contract: GET /api/v1/orders/{orderId}
-
-**Source:** hybrid
-**Summary:** Retrieve a single order by ID for the authenticated user.
-**Tags / Groups:** Orders
-
-### Parameters
-**Path parameters:**
-| Name | Type | Required | Constraints |
-|------|------|----------|-------------|
-| orderId | string | yes | UUID v4; pattern `[0-9a-f-]{36}` |
-
-**Query parameters:** None — **Header parameters:** `Authorization: Bearer <jwt>` (required); `Accept` defaults `application/json`
-
-### Request Body
-**Content-Type:** N/A — no body
-
-### Responses
-| Status | Content-Type | Schema | Example |
-|--------|--------------|--------|---------|
-| 200 | application/json | `Order` | `{"id":"o-123","status":"PAID","customer_id":"c-1","total":42.00}` |
-| 401 | application/problem+json | `AuthError` | `{"type":"unauthorized","title":"Missing or invalid token"}` |
-| 403 | application/problem+json | `AuthError` | `{"type":"forbidden","title":"Order belongs to another customer"}` |
-| 404 | application/problem+json | `NotFound` | `{"type":"not_found","title":"Order o-123 does not exist"}` |
-
-### Auth
-- **Mechanism:** Bearer JWT — **Required scopes / permissions:** `orders:read` — **Public endpoint:** no
-
-### Data Dependencies
-- **Preconditions:** order exists; `orders.customer_id` matches the caller (else 403).
-- **Side effects:** None (read-only). — **Idempotent:** yes (GET).
-
-### Source Citations
-- Swagger: `paths./api/v1/orders/{orderId}.get`
-- Code: `src/controllers/orders.controller.ts:42` (handler), `src/dto/order.dto.ts` (response model)
-
-### Notes / Discrepancies
-Code rejects `orderId` shorter than 36 chars with a 400 before the handler; Swagger declares only 200/401/403/404. Treat 400 as undocumented-but-real.
-````
-</endpoint_contract_template>
-
 <redaction_contract>
-`api-analysis.md` is **tracked + downstream-fed** (read by test-design / test-implementation / debugging phases) — **PUBLIC by default**. Redact via `sensitive-data` BEFORE writing, then re-scan before emit; record each redaction in the entry's `Notes / Discrepancies`. Swagger specs and code routinely embed real secrets in `securitySchemes`, example bodies, and citation snippets.
-
-**Targets to redact → shape-preserving placeholder** (keep the structural shape):
-1. **Auth credentials / tokens / keys / passwords / OAuth secrets** (in `Authorization`/`X-Api-Key`/`Cookie` examples, OAuth token-endpoint bodies, Bearer examples) → `<redacted: bearer token>` / `<redacted: api key>` / `<redacted: oauth client secret>` / `<redacted: password>`. Keep the mechanism name (`Bearer JWT`, `OAuth2 client-credentials`) verbatim.
-2. **Credentialed URLs** — `https://user:pass@host` → `https://<redacted: credentialed URL>` (host/path verbatim); `?sig=<sig>` → `?sig=<redacted: signed URL signature>`.
-3. **Connection strings / service-account JSONs / private keys / certs** — never embed the literal; describe the source (env var / secret-manager path) + format, e.g. `from env DATABASE_URL — credential redacted; format postgresql://user:pass@host/db`.
-4. **Real PII in example bodies** — replace with synthetic on IETF reserved ranges: emails `test.user-1@example.com`; phones `+1-555-0100`–`+1-555-0199`; official PSP test cards (cite source). Field names/schema shapes stay verbatim.
-5. **JWT example values** (`eyJ...`) → `<redacted: JWT>`; describe carried claims in prose if they affect documented authorization.
-
-**Re-scan grep list** (before emit): `Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, `eyJ` (JWT), `BEGIN PRIVATE KEY`, `BEGIN RSA PRIVATE KEY`, `postgres://user:pass@`, `mongodb+srv://user:pass@`; plus emails outside `example.com`/`example.org`, phones outside the `+1-555-01xx` reserved range, card-number shapes `\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}`, and real customer names alongside any of the above.
+`api-analysis.md` is **tracked + downstream-fed** (read by test-design / test-implementation / debugging phases) — **PUBLIC by default**. Redact via `sensitive-data` BEFORE writing. **Pre-emit gate (MANDATORY): MUST ACQUIRE `qa-knowledge/references/redaction-scope.md` FROM KB and run its grep list against the rendered artifact — emit is FORBIDDEN until that scan has run. Fail-closed: if that ACQUIRE returns zero documents (KB unavailable), STOP and report — never emit unscanned.** Always-present minimal floor (so a scan can run even if the KB fetch fails) — at minimum grep for: `Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, `eyJ` (JWT), `BEGIN PRIVATE KEY`, `user:pass@`. Record each redaction in the entry's `Notes / Discrepancies`. The full target catalog + shape-preserving placeholders + complete re-scan list are in the reference — Swagger specs and code routinely embed real secrets in `securitySchemes`, example bodies, and citation snippets.
 </redaction_contract>
 
 <validate_findings step="2.4">
@@ -215,10 +111,10 @@ Code rejects `orderId` shorter than 36 chars with a 400 before the handler; Swag
 - **Reconciliation evidence:** every `Source: hybrid` entry has a non-empty `Notes / Discrepancies` (recorded mismatch OR explicit `None.`)
 - **Undocumented error responses surfaced:** a `200`-only entry is acceptable only when both sources truly lack other codes; otherwise missing `401`/`403`/`404`/`500` recorded in Notes as a gap
 - **N/A discipline:** every `N/A` has a one-line reason; bare `N/A` forbidden
-- **Redaction scan ran** per `<redaction_contract>` — no literal credentials/tokens/PII remain
+- **Redaction pre-emit gate ran** — `qa-knowledge/references/redaction-scope.md` (ACQUIRE FROM KB) was loaded and its grep list executed against the rendered artifact; no literal credentials/tokens/PII remain
 - Request/response schemas, auth requirements, and data dependencies documented (from spec or code)
 - Backend source analyzed for route definitions (if path configured)
-- `api-analysis.md` created with all `<produce_output>` sections, each endpoint per `<endpoint_contract_template>`, plus the Analysis Summary metrics
+- `api-analysis.md` created with all `<produce_output>` sections, each endpoint per the `api-analysis-template` asset, plus the Analysis Summary metrics
 </validation_checklist>
 
 </qa_flow_api_spec_analysis>

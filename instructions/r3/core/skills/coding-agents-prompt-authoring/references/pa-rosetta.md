@@ -20,16 +20,6 @@ The prompts you modify will also start with prep steps, but you must ensure work
 
 Instructions folder structure is defined in `docs/definitions/folder-structure.md`.
 
-Must check canonical lists of workflows, templates, subagents, skills, rules Rosetta has or to be implemented (you must use them as if those are already exist):
-
-- `docs/definitions/workflows.md`
-- `docs/definitions/templates.md`
-- `docs/definitions/agents.md`
-- `docs/definitions/skills.md`
-- `docs/definitions/rules.md`
-
-This list above defines what should be what, you must read it.
-
 Rosetta runs with AI coding agents on top of target repository. All rosetta prompts are coding-agent-agnostic.
 
 Rosetta uses the following folders on target repository:

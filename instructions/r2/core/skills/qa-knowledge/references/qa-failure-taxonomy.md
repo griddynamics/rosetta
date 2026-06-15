@@ -1,0 +1,18 @@
+---
+name: qa-failure-taxonomy
+description: QA (backend API) failure taxonomy — exhaustive, mutually-exclusive categories for test-execution triage.
+---
+
+<qa-failure-taxonomy>
+
+QA backend-API failure taxonomy. Assign **exactly one** category per failure (exhaustive + mutually exclusive; pick the most-proximate cause):
+
+1. **Connection / Environment** — base URL unreachable, TLS, wrong environment, infrastructure down
+2. **Authentication** — missing/expired token, wrong credentials, auth header not sent
+3. **Request** — wrong path/method/params/body shape vs the API contract
+4. **Response Assertion** — expected vs actual mismatch (status / body / schema / field value)
+5. **Test Data** — fixtures, preconditions, or data factories not established
+6. **Timing / Race Condition** — ret/poll timeout, async ordering, eventual-consistency window
+7. **Application Bug** — defect in the API under test (not the test)
+
+</qa-failure-taxonomy>

@@ -28,6 +28,8 @@
 - coding
 - testing
 - debugging
+- qa-structure
+- qa-knowledge
 - init-workspace-context
 - init-workspace-shells
 - init-workspace-discovery

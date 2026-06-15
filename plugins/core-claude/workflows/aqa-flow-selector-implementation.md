@@ -23,6 +23,7 @@ Add the selectors identified in Phase 4 to page objects, following project conve
 <recommended_skills>
 - `coding` — standards-first mode: repo standards as authority for general hygiene (formatting, shared helpers, naming case) before extending page objects.
 - `testing` — selector mode Part B writes the page-object selectors/methods matching project patterns and enforces the fragile-selector gate.
+- `qa-structure` — `<test-name>` paths and the AQA state-file shape (`aqa-layout`).
 </recommended_skills>
 
 <skill_precedence>
@@ -83,4 +84,3 @@ The Phase 4 Part A inventory (the test plan's `## Selector Management` section) 
 </validation_checklist>
 
 </aqa_flow_selector_implementation>
-</output>

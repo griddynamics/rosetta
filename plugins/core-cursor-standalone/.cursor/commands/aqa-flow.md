@@ -143,7 +143,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 
 <state_file>
 
-`agents/aqa-state.md` — created/updated after each phase from the template **owned by the data-collection phase** (`aqa-flow-data-collection.md` `<state_file_template>`). It carries `## Phase Completion Status`, `## Key Artifacts & Facts` (the resume anchor — only what resume-after-compaction needs; full per-phase detail lives in each phase's own artifacts), and `## Verification-Failure Overrides`.
+`agents/aqa-state.md` — created/updated after each phase from the template **owned by `qa-structure`** (asset `qa-structure/assets/aqa-state-template.md`, ACQUIRE'd at Phase 1). It carries `## Phase Completion Status`, `## Key Artifacts & Facts` (the resume anchor — only what resume-after-compaction needs; full per-phase detail lives in each phase's own artifacts), and `## Verification-Failure Overrides`.
 
 </state_file>
 
@@ -153,7 +153,7 @@ Logical names only — full descriptions live where each is consumed (subagent c
 
 **Subagents:** `discoverer` · `architect` · `engineer`.
 
-**Skills:** `orchestrator-contract` · `hitl` · `coding` · `questioning` · `testing` · `debugging` · `sensitive-data` · `requirements-use` · `reverse-engineering` · `discovery`.
+**Skills:** `orchestrator-contract` · `hitl` · `coding` · `questioning` · `testing` · `debugging` · `sensitive-data` · `requirements-use` · `reverse-engineering` · `discovery` · `qa-structure` · `qa-knowledge`.
 
 **MCPs:** Test case management (default: `TestRail`) · Documentation (default: `Atlassian Confluence`) · Browser automation (default: `Playwright`).
 

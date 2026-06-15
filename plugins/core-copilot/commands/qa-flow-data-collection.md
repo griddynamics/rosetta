@@ -24,6 +24,13 @@ Gather test case details from TMS, search documentation, and discover existing A
 - Optional **documentation MCP** when `qa-project-config.md` scopes it — binding note in `<config_binding>`; procedure in `<execute_collection>` step **1.2b**.
 </workflow_context>
 
+<recommended_skills>
+- `discovery` — single canonical collector for TMS + documentation MCP sources.
+- `reverse-engineering` — existing-test-pattern + backend-source scan.
+- `qa-structure` — `{IDENTIFIER}` path resolution and the raw-data artifact location.
+- `qa-knowledge` — redaction scope for captured values (`references/redaction-scope.md`).
+</recommended_skills>
+
 <config_binding>
 Documentation MCP scope comes from **`qa-project-config.md`** and Phase 0 only.
 **Subflow ACQUIRE tag (exact string):** `qa-flow-documentation-mcp-subflow`. The acquired fragment is the single source of truth for collection-vendor key precedence, in-scope signals, branch rules, and `<execute_documentation_mcp>` steps. The subflow resolves the documentation vendor binding (`confluence`) and invokes `USE SKILL discovery` with it.
@@ -38,7 +45,7 @@ This phase owns the raw-data aggregation artifact `agents/qa/{IDENTIFIER}/raw-da
 - **API Endpoints Identified** — every row has Method + Source populated; partial rows tagged as gaps.
 - **Data Collection Summary** — counts + gap notes; a delegated-skill stop is recorded verbatim as `Gap: <skill> stopped — <message>`, never fabricated over.
 
-Redaction of every captured value runs inside `discovery` via `sensitive-data` before write; `raw-data.md` is PUBLIC by default.
+Redaction of every captured value runs inside `discovery` via `sensitive-data` before write (scope per `qa-knowledge/references/redaction-scope.md`); `raw-data.md` is PUBLIC by default.
 </raw_data_contract>
 
 <phase_steps>

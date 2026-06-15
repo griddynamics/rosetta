@@ -24,6 +24,8 @@ Create the automated UI test integrating all page objects and assertions from th
 <recommended_skills>
 - `testing` — UI impl mode authors the test (page objects + assertions from the plan), records uncovered assertions, emits the hand-off record.
 - `coding` — standards-first mode supplies the authoritative repository conventions (repo docs beat model defaults) before authoring.
+- `qa-structure` — `<test-name>` paths and the AQA state-file shape (`aqa-layout`).
+- `qa-knowledge` — the Test Implementation record (ACQUIRE its asset at the cited step).
 </recommended_skills>
 
 <implementation_handoff_contract>
@@ -34,7 +36,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 - **Hand off execution** — provide the exact project test-execution command; STOP and WAIT for the user to run it (`<stop_for_execution>`). The phase never executes the test itself.
 - **Update state without closing** — record outcome in `agents/aqa-state.md`, mark Phase 6 complete, set Phase 7 current; do NOT mark the overall AQA workflow COMPLETE.
 
-**Test Implementation record** — appended to the test plan, required subsections in order: **Test File** (location · new-vs-existing · test name), **Implementation Summary** (assertions implemented/uncovered counts · page objects used · utilities used), **Uncovered Assertions** (`<assertion> — reason: <…>`, or `None — every plan assertion implemented`), **Conflicts and Precedence** (user-instruction-vs-repo-docs overrides; repo docs win; or `None — sources consistent`), **Validation** (checkboxes). Empty subsections use `None — <reason>`, never blank.
+**Test Implementation record** → asset `qa-knowledge/assets/aqa-test-impl-record.md` (ACQUIRE FROM KB) — the five ordered subsections (Test File, Implementation Summary, Uncovered Assertions, Conflicts and Precedence, Validation) plus the `### Uncovered Assertions` entry shape.
 </implementation_handoff_contract>
 
 <phase_steps>
@@ -46,7 +48,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 
 <execute_implementation step="6.1" subagent="engineer" role="Test automation engineer">
 1. USE SKILL `coding` (standards-first mode) to read the repository standards as authority before authoring; repo docs beat model defaults.
-2. USE SKILL `testing` (UI impl mode) with the parent-supplied bindings: test plan path `agents/plans/aqa-<test-name>.md`; write boundary = test files only (`<workflow_context>`); output record = the Test Implementation record in `<implementation_handoff_contract>`.
+2. USE SKILL `testing` (UI impl mode) with the parent-supplied bindings: test plan path `agents/plans/aqa-<test-name>.md`; write boundary = test files only (`<workflow_context>`); output record = the Test Implementation record, which the `engineer` MUST ACQUIRE from `qa-knowledge/assets/aqa-test-impl-record.md` FROM KB (per `<implementation_handoff_contract>`).
 3. Author the test using page-object methods only (no raw selectors in test code), proper waits, project assertion style. If a required selector or page-object method is missing, do NOT author it inline — stop and route back to Phase 5 (selector implementation).
 4. Record every plan assertion that cannot be implemented in the test plan's `### Uncovered Assertions` with the reason. Silent drop is forbidden.
 5. Validate locally: run the project lint/format command on the touched test file and resolve issues; emit the Test Implementation record.
@@ -104,4 +106,3 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 </validation_checklist>
 
 </aqa_flow_test_implementation>
-</output>

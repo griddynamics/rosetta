@@ -24,60 +24,11 @@ Fix identified API test failures based on the Phase 6 execution report. Prepares
 <recommended_skills>
 - `coding` — approved-apply mode prepares proposals, gates on approval, applies incrementally with lint, hands off re-verification.
 - `debugging` — aligns each proposed edit with a confirmed Phase 6 root cause before it is proposed.
+- `qa-knowledge` — the shared proposed-change approval block + correction discipline (ACQUIRE its asset at the cited step).
 </recommended_skills>
 
 <correction_contract>
-The phase OWNS the proposed-change template, the iteration cap, and the escalation contract. Verified by `<validation_checklist>` independent of skill internals.
-
-**Proposed-change template** (one per change, presented at step 7.2 BEFORE any write; empty fields use `None`):
-
-```markdown
-### Proposed Change <N>: <one-line title>
-- **Source root cause:** <execution-report entry id, e.g. ERR-3 (response-assertion)>
-- **File:** <path>
-- **In-scope:** yes | no   (if `no`, STOP — escalate; outside the in-scope file set)
-- **Change type:** assertion-fix | auth-fix | data-setup | request-shape | wait-strategy | other
-
-**Before:**
-```diff
-- <removed line(s)>
-```
-**After:**
-```diff
-+ <added line(s)>
-```
-
-- **Reason:** <one-line — how this fix addresses the root cause>
-- **Impact:** <only the cited test? other tests sharing the helper/factory?>
-- **Risk:** Low | Medium | High
-- **Approval status:** pending | approved (token: `<exact user token>`) | rejected | partial (hunks <list>)
-```
-
-**Worked example (approved state):**
-
-```markdown
-### Proposed Change 1: Use status-matcher instead of raw .code compare
-- **Source root cause:** execution-report.md ERR-3 (response-assertion, Confirmed)
-- **File:** tests/api/orders_spec.rb
-- **In-scope:** yes
-- **Change type:** assertion-fix
-
-**Before:**
-```diff
--    expect(response.code).to eq("200")
-```
-**After:**
-```diff
-+    expect(response).to have_http_status(:ok)
-```
-
-- **Reason:** response is a Rack::Response; comparing `.code` to string "200" failed per ERR-3.
-- **Impact:** orders_spec.rb only.
-- **Risk:** Low
-- **Approval status:** approved (token: `approved`)
-```
-
-**Iteration cap + escalation:** cap in-phase apply retries at **3 cycles per failing change**. After 3 failed cycles on the same change, stop, record `Phase 7 blocked: in-phase apply retry cap reached` in `agents/qa-state.md`, and escalate to the user. If tests still fail after corrections, return to Phase 6 — do not auto-loop.
+The phase OWNS the iteration cap and the escalation contract. The proposed-change approval block is the shared asset `qa-knowledge/assets/proposed-change-template.md` — ACQUIRE FROM KB at step 7.2 and present one block per change BEFORE any write. Flow parameters for the asset: **change-type enum** = `assertion-fix | auth-fix | data-setup | request-shape | wait-strategy | other`; **root-cause reference** = execution-report entry id (e.g. `ERR-3`); **state file** = `agents/qa-state.md`; on retry-cap, loop back to Phase 6. Verified by `<validation_checklist>` independent of skill internals.
 </correction_contract>
 
 <phase_steps>
@@ -134,4 +85,3 @@ The phase OWNS the proposed-change template, the iteration cap, and the escalati
 </validation_checklist>
 
 </qa_flow_test_correction>
-</output>

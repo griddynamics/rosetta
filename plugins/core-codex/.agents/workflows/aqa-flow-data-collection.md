@@ -26,6 +26,12 @@ Gather test case details from TestRail and feature context from Confluence, cros
 - Prerequisite: TestRail and Confluence MCPs configured; Rosetta/KB access sufficient to resolve the tags above when needed.
 </workflow_context>
 
+<recommended_skills>
+- `discovery` — single canonical collector for TestRail + Confluence (loads `references/<vendor>-binding.md`).
+- `qa-structure` — `<test-name>` slug rules + canonical AQA paths (`aqa-layout`) and the state-file template (`aqa-state-template` asset).
+- `qa-knowledge` — the AQA test-plan skeleton (`aqa-plan-template` asset) + redaction scope (`references/redaction-scope.md`).
+</recommended_skills>
+
 <phase_steps>
 1. Confirm inputs from user
 2. Gather TestRail data
@@ -37,7 +43,7 @@ Gather test case details from TestRail and feature context from Confluence, cros
 <confirm_inputs step="1.1">
 1. Verify TestRail case ID or URL provided (ask user if missing).
 2. Verify Confluence page ID or search terms provided (ask user if missing).
-3. **Resolve the `<test-name>` slug — never fabricate it.** Derive a kebab-case slug from the test case title (TestRail) or the user's feature description (e.g. "checkout with valid card" → `checkout-valid-card`), then **confirm it with the user before creating `agents/plans/aqa-<test-name>.md`** — e.g. "I'll name the plan `aqa-checkout-valid-card.md` — OK, or prefer another slug?". If neither a test case nor a feature description is available, STOP and ask the user; do NOT invent a slug or a placeholder.
+3. **Resolve the `<test-name>` slug — never fabricate it** (format + authority per `qa-structure` `aqa-layout`). Derive a kebab-case slug from the test case title (TestRail) or the user's feature description (e.g. "checkout with valid card" → `checkout-valid-card`), then **confirm it with the user before creating `agents/plans/aqa-<test-name>.md`** — e.g. "I'll name the plan `aqa-checkout-valid-card.md` — OK, or prefer another slug?". If neither a test case nor a feature description is available, STOP and ask the user; do NOT invent a slug or a placeholder.
 4. **Respect user edits to the slug / plan.** If the user deletes, renames, or clears the slug or the plan file, treat it as rejection of the current slug — re-ask and use the user's choice; never silently re-write a slug the user removed.
 </confirm_inputs>
 
@@ -54,7 +60,7 @@ External content pulled in this phase — TestRail case fields (title, descripti
 2. ACQUIRE `discovery` FROM KB if not already loaded. On zero documents: apply `<zero_doc_protocol>`.
 3. USE SKILL `discovery` with the resolved TMS vendor binding (`testrail`), passing the TestRail case ID/URL input and this phase's test-case output contract; `discovery` loads `references/testrail-binding.md`.
 4. Extract: case ID, title, description, preconditions, step-by-step actions with expected results, test goal, priority, test type.
-5. Redaction of any captured value runs inside `discovery` via `sensitive-data` before write.
+5. Redaction of any captured value runs inside `discovery` via `sensitive-data` before write (scope per `qa-knowledge/references/redaction-scope.md`).
 </gather_testrail>
 
 <gather_confluence step="1.3" subagent="discoverer" role="AQA data collector">
@@ -70,11 +76,11 @@ Stop Phase 1, record the failed KB tag in `agents/aqa-state.md`, notify the user
 
 <harvest_and_fetch>
 1. USE SKILL `discovery` with the resolved documentation vendor binding (`confluence`), passing the Confluence page ID/URL/search-terms input and this phase's feature-context output contract. `discovery` loads `references/confluence-binding.md`, which carries the harvesting discipline (URL shapes, child pages, truncation, deduplication) AND the authenticated MCP reads/searches in one binding.
-2. Redaction of any captured page body runs inside `discovery` via `sensitive-data` before write.
+2. Redaction of any captured page body runs inside `discovery` via `sensitive-data` before write (scope per `qa-knowledge/references/redaction-scope.md`).
 </harvest_and_fetch>
 
 <access_notes_policy>
-**Disclosure rule (canonical — single source of truth; other sections reference, do not restate).** `discovery` (`confluence` binding) is the single source for page bodies, truncation flags, and permission status. Record every truncation, permission denial, `[empty page]`, or cross-domain fallback it reports into `## Access / Truncation Notes` (template in `<cross_reference_and_assemble>`); never omit. Permission-restricted pages appear as `<restricted by permissions>`, never as empty content.
+**Disclosure rule (canonical — single source of truth; other sections reference, do not restate).** `discovery` (`confluence` binding) is the single source for page bodies, truncation flags, and permission status. Record every truncation, permission denial, `[empty page]`, or cross-domain fallback it reports into `## Access / Truncation Notes` (template in the `qa-knowledge/assets/aqa-plan-template.md` asset); never omit. Permission-restricted pages appear as `<restricted by permissions>`, never as empty content.
 </access_notes_policy>
 
 <extract_context>
@@ -85,117 +91,21 @@ Stop Phase 1, record the failed KB tag in `agents/aqa-state.md`, notify the user
 
 <cross_reference_and_assemble step="1.4">
 1. Validate TestRail steps against Confluence feature context — note gaps or contradictions; populate `## Access / Truncation Notes` per `<access_notes_policy>`.
-2. Create `agents/plans/aqa-<test-name>.md` using the template below
-3. Verify test plan file created
-
-Output template for `agents/plans/aqa-<test-name>.md`:
-
-```markdown
-# AQA Test Plan - <Test Name>
-
-**Created**: [DateTime]
-**TestRail Case**: [ID/URL]
-**Feature**: [Feature Name]
-**Status**: Phase 1 Complete
-
-## Test Case Information
-
-### Source
-- TestRail Case: [ID]
-- Confluence: [Page URLs]
-
-### Test Goal
-[What is being tested and why]
-
-### Preconditions
-[List preconditions from TestRail]
-
-### Test Steps
-1. [Step 1]
-   - Expected: [Result]
-2. [Step 2]
-   - Expected: [Result]
-
-### Expected Overall Result
-[Final expected outcome]
-
-## Feature Context
-
-### Business Purpose
-[From Confluence]
-
-### Technical Details
-[From Confluence]
-
-### User Flow
-[From Confluence]
-
-## Access / Truncation Notes
-- [Per-page: full read / truncated / permission denied / fallback used — cite the URL; if none: `None — all cited Confluence pages read in full`. Example: `…/AbCd123` — truncated at ~5000 words by harvesting, MCP returned full body (used MCP body, kept the note for audit).]
-
-## Cross-Reference Notes
-- [Gaps, contradictions, or observations between TestRail and Confluence]
-```
-
+2. Create `agents/plans/aqa-<test-name>.md` per the asset `qa-knowledge/assets/aqa-plan-template.md` (ACQUIRE FROM KB) — Test Case Information, Feature Context, Access / Truncation Notes, Cross-Reference Notes.
+3. Verify test plan file created.
 </cross_reference_and_assemble>
 
 <update_state step="1.5">
-1. **GATE — resolve and confirm the `<test-name>` slug before completing:**
+1. **GATE — resolve and confirm the `<test-name>` slug before completing** (rules per `qa-structure` `aqa-layout`):
    1. Re-read the actual plan filename under `agents/plans/`.
    2. If it is a non-empty, valid kebab-case slug, adopt it as authoritative.
    3. If it differs from your in-memory value, the user renamed it — adopt theirs, update state references, briefly confirm.
    4. If it is empty / cleared / a literal placeholder (`aqa-.md`, `aqa-<test-name>.md`), it is **INVALID** — do NOT adopt, fabricate, or substitute; return to step 1.1, re-ask the user, then re-create the plan at the confirmed name.
    5. Do NOT mark Phase 1 complete or advance to Phase 2 until a user-confirmed, non-empty slug exists AND `agents/plans/aqa-<test-name>.md` exists at it.
-2. If `agents/aqa-state.md` does not exist yet, create it from `<state_file_template>` below (Phase 1 is the first phase to write it).
+2. If `agents/aqa-state.md` does not exist yet, create it from the asset `qa-structure/assets/aqa-state-template.md` (ACQUIRE FROM KB) — Phase 1 is the first phase to write it.
 3. Update `agents/aqa-state.md`: confirmed `<test-name>` slug; TestRail Case [ID/URL]; Confluence Pages [URLs]; Test Goal [brief]; Test Plan File [path]; Phase 1 completion timestamp — recording the resolved facts into the `## Key Artifacts & Facts` resume anchor.
 4. Mark Phase 1 complete, Phase 2 current.
 </update_state>
-
-<state_file_template>
-
-`agents/aqa-state.md` — initialized here at Phase 1 (the first phase to write it) and updated by every later phase:
-
-```markdown
-# AQA State - <Test Name>
-
-**Last Updated**: [DateTime]
-**Current Phase**: [1-8 or COMPLETE]
-**TestRail Case**: [Test Case ID/URL]
-**Feature**: [Feature Name]
-
-## Phase Completion Status
-
-- [ ] Phase 1: Data Collection
-- [ ] Phase 2: Requirements Clarification
-- [ ] Phase 3: Code Analysis
-- [ ] Phase 4: Selector Identification
-- [ ] Phase 5: Selector Implementation
-- [ ] Phase 6: Test Implementation
-- [ ] Phase 7: Test Report Analysis
-- [ ] Phase 8: Test Corrections
-
-## Key Artifacts & Facts
-
-Resume anchor — full per-phase detail lives in each phase's own artifacts; record here only what resume-after-compaction needs. Use `N/A` / `TBD` until the producing phase runs.
-
-| Artifact / fact | Value |
-|---|---|
-| Plan file (Phases 1–2) | `agents/plans/aqa-<test-name>.md` |
-| Code analysis (Phase 3) | `agents/plans/aqa-<test-name>-code-analysis.md` |
-| Page sources (Phase 4) | `agents/plans/aqa-<test-name>-page-sources/` |
-| Test file(s) (Phase 6) | [paths, or `TBD`] |
-| Failure analysis (Phase 7) | `agents/plans/aqa-<test-name>-failure-analysis.md` |
-| Root causes (Phase 7) | [one line per confirmed root cause; full detail in the failure-analysis artifact] |
-| HITL approvals | [one line per gate — approving phase + ISO timestamp, e.g. `Phase 2 / 2026-… (answers)`, `Phase 8 / 2026-… (corrections)`; or `N/A`] |
-
-## Verification-Failure Overrides
-
-[Append a row each time the parent flow's verification-failure unilateral-start override fires. If never fired, write: `None — no overrides applied.`]
-
-- **[ISO timestamp]** — User asserted phases complete: `[user's verbatim claim]`. Failing conditions: `[which preconditions were unmet — state row missing / spot-check artifact absent / etc.]`. Phase started: `[earliest incomplete phase id]`.
-```
-
-</state_file_template>
 
 <validation_checklist>
 - TestRail test case retrieved and documented
