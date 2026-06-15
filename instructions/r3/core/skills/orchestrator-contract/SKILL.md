@@ -42,7 +42,7 @@ Topology:
 
 Dispatch:
 
-4. Subagent dispatch prompt template → `references/dispatch-template.md` (load when composing a dispatch). The prompt MUST follow it; include only what applies.
+4. Subagent dispatch prompt template: ACQUIRE `orchestrator-contract/references/dispatch-template.md` FROM KB when composing a dispatch; the prompt MUST follow it, include only what applies.
 5. Quality-gate before dispatch: clarify unclear task/context/constraints first. Never dispatch ambiguous instructions.
 6. Lightweight = generic, built-in, small clear tasks (e.g., build/tests). Full = user-defined, specialized role, larger work.
 7. Keep standard agent tools available to subagents as required.

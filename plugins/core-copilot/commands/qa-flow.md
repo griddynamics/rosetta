@@ -18,7 +18,7 @@ End-to-end backend API test automation from test case input to working automated
 - **Phases 0→7 MUST run in order**; sanctioned skips per `<skip_rules>` only.
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
 - NO ASSUMPTIONS: never assume endpoints, payloads, auth mechanisms, or response schemas — ask the user when missing.
-- Generic linear-execution cadence (ACQUIRE phase file → execute → update state → next; todo discipline; no skipping without approval) is owned by the **`orchestrator-contract`** skill (per `<references>`). This workflow specifies only qa-flow-specific deltas in each phase block below.
+- **Drive loop:** USE SKILL `orchestrator-contract` (ACQUIRE FROM KB if not loaded) — it owns the per-phase cadence and todo discipline. **Inline fallback, authoritative if that skill is missing or dropped on compaction:** for each phase in order — ACQUIRE its phase file FROM KB → execute → update `agents/qa-state.md` → verify the phase-output gate → next; never batch-load future phases; never skip without approval (`<skip_rules>`). This workflow specifies only qa-flow-specific deltas in each phase block below.
 - **Phase-output gate (verify before advancing):** each phase's mandatory artifact must exist and pass its phase-file completion gate before the next phase starts — notably **Phase 4: every `ATC-NNN` in `test-specs.md` traces to a Phase 3 requirement/source**; also Phase 1 `raw-data.md`, Phase 2 `api-analysis.md`, and Phase 6 `execution-report.md` present and non-placeholder. (Generic verify-before-advance is owned by `orchestrator-contract`.)
 
 <phase_template>
@@ -38,7 +38,7 @@ This block owns ONLY the qa-flow-specific skip preconditions/carve-outs below. G
 
   | Precondition (ALL true, independently verified) | Action |
   |---|---|
-  | (a) user asserts Phases 0-2 complete this turn AND (b) `agents/qa-state.md` marks them complete AND (c) `raw-data.md` + `api-analysis.md` exist under `agents/qa/{IDENTIFIER}/` | Skip Phases 0-2, resume at Phase 3. |
+  | (a) user asserts Phases 0-2 complete this turn AND (b) `agents/qa-state.md` marks them complete AND (c) `raw-data.md` + `api-analysis.md` exist under `agents/qa/{IDENTIFIER}/` | **Print (a)/(b)/(c) each with its concrete evidence** (user-assertion quote · the qa-state rows · the two artifact paths), then skip Phases 0-2 and resume at Phase 3. Any precondition not showable with concrete evidence → treat as uncertain (last row). |
   | Any of (a)/(b)/(c) false AND user instruction unambiguous | Print failing conditions; begin Phase 0 same turn. |
   | Any precondition uncertain | Fall back to normal HITL ask. **Ambiguity defaults to ASK.** |
 

@@ -2,6 +2,8 @@
 
 Loaded on demand by `discovery` SKILL.md `<data_collection>` step 2 when the phase resolves the `testrail` binding. Holds the TestRail-specific MCP call shapes, input parsing, field map, redaction targets, failure paths, and validation items. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
 
+**MCP method names below (`get_case`, `get_case_fields`, and the update/add/delete write calls) are illustrative of one common TestRail MCP server — not a hardcoded contract.** Resolve the actual tool from the configured TestRail MCP binding; if it names operations differently, map by capability: get-case, case-field-schema lookup, and (write — forbidden in this read-only binding) case update/add/delete.
+
 ---
 
 ## Input parsing (SKILL step 1)

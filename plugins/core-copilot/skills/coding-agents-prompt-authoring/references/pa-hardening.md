@@ -39,7 +39,7 @@ Terse anti-cycle checks — specializations of the core principles in this file 
 - Vendors: config-key precedence, not literal tags — a specialization of "no hardcoded tool names" (`<hardening>`).
 - State an apparent rule-tension's reconciliation in one sentence.
 - Give one filled example per error-prone field.
-- HITL: a phase `type=` marker points to the canonical HITL home (`<hardening>`), never a parallel mechanism — keep prose and `type=` headers consistent.
+- HITL: a phase `type=` marker (the HITL attribute in a phase's header) points to the canonical HITL home — `bootstrap-hitl-questioning.md` (its rule is stated in `<hardening>`), never a parallel mechanism — keep prose and `type=` headers consistent.
 
 </audit_survival_checks>
 

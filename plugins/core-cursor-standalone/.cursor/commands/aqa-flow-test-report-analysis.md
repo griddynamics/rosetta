@@ -1,5 +1,5 @@
 ---
-name: modernization-flow-reuse
+name: aqa-flow-test-report-analysis
 description: "Phase 7 Test Report Analysis of aqa-flow"
 alwaysApply: false
 tags: []
@@ -22,10 +22,10 @@ Analyze test execution reports, identify failure root causes, and prepare for co
 </workflow_context>
 
 <recommended_skills>
-- `debugging` — its test-execution triage mode performs the read-only analysis below; selector/element errors use the captured page source as evidence.
-- `sensitive-data` — redaction authority for any captured logs/screenshots/page sources before they are written to the artifact.
-- `qa-structure` — `<test-name>` slug resolution + the failure-analysis path (`aqa-layout`).
-- `qa-knowledge` — the AQA failure taxonomy + failure-analysis skeleton + redaction scope (ACQUIRE its reference/asset at the cited steps).
+- `debugging` — read-only root-cause analysis of the execution report, with evidence labeling.
+- `sensitive-data` — redaction of captured logs/screenshots/page sources before write.
+- `qa-structure` — `<test-name>` slug + failure-analysis path resolution.
+- `qa-knowledge` — failure classification, artifact shape, and redaction scope this phase consumes (ACQUIRE at the cited steps).
 </recommended_skills>
 
 <failure_analysis_contract>

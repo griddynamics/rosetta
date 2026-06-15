@@ -2,6 +2,8 @@
 
 Loaded on demand by `discovery` SKILL.md `<data_collection>` step 2 when the phase resolves the `jira` binding. Holds the Jira-specific MCP call shapes, input parsing, field map, redaction targets, failure paths, and validation items. The base SKILL.md owns the general method (extract → normalize → redact → write) and the phase-is-SSoT rule — not restated here.
 
+**MCP method names below (`jira_get_issue`, `jira_search_fields`, and the create/update/transition/comment write calls) are illustrative of one common Jira MCP server — not a hardcoded contract.** Resolve the actual tool from the configured Jira MCP binding; if it names operations differently, map by capability: get-issue (with fields/expand/comment-limit), field-schema lookup, and (write — forbidden in this read-only binding) issue create/update/transition/comment.
+
 ---
 
 ## Input parsing (SKILL step 1)
