@@ -2,7 +2,6 @@
 name: init-workspace-flow-shells
 description: "Phase 2 Shells of init-workspace-flow"
 tags: ["init", "workspace", "shells", "phase"]
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 
@@ -13,7 +12,7 @@ Generates shell config files so subsequent sessions can load context and invoke 
 </description_and_purpose>
 
 <workflow_context>
-- Phase 2 of 9 in init-workspace-flow
+- Phase 2 of 8 in init-workspace-flow
 - Input: state.mode, state.plugin_active
 - Output: shell configs, bootstrap rule, load-context shell
 - Prerequisite: Phase 1 complete, state.mode set
@@ -42,7 +41,7 @@ Generates shell config files so subsequent sessions can load context and invoke 
    - Shell configs status (created | updated | skipped)
    - Bootstrap rule status
    - Phase 2 completion timestamp
-2. Log gaps for Phase 8
+2. Log gaps for Phase 7
 </update_state>
 
 <validation_checklist>

@@ -5,8 +5,6 @@ license: Apache-2.0
 model: gpt-5.4
 model_reasoning_effort: medium
 tags: ["init", "workspace", "rules"]
-disable-model-invocation: false
-user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -60,7 +58,7 @@ Step 3: Discover Full Rosetta Content (subagent)
 Step 4: MUST Install Root Entry Point and Bootstrap Rules
 
 1. ACQUIRE `rules/local-files-mode.md` FROM KB — install as root entry point per IDE configure spec
-2. Embed Rosetta version marker (e.g., "R3") in core root file for staleness detection
+2. Embed Rosetta version marker (e.g., "R2.0") in core root file for staleness detection
 3. Apply IDE-specific frontmatter format from configure file
 4. ACQUIRE each `rules/bootstrap-*.md` FROM KB — install as individual rule files per IDE configure spec
 

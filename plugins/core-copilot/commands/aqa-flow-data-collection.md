@@ -2,7 +2,6 @@
 name: aqa-flow-data-collection
 description: "Phase 1 Data Collection of aqa-flow"
 alwaysApply: false
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

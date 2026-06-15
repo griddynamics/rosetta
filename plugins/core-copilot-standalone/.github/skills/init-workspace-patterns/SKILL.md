@@ -4,8 +4,6 @@ description: "Extract code patterns."
 license: Apache-2.0
 model: Claude Sonnet 4.6
 tags: ["init", "workspace", "patterns", "reverse-engineering"]
-disable-model-invocation: false
-user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 

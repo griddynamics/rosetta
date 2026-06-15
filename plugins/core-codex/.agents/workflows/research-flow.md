@@ -2,7 +2,6 @@
 name: research-flow
 description: "Workflow for deep project research with grounded references, parallel exploration, etc."
 tags: ["workflow"]
-user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 
@@ -14,18 +13,15 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 <workflow_phases>
 
-<prerequisites phase="0", applies="ALL">
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- If `/goal` is set repeat phases 3-4 until goal is met.
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
-2. MUST USE OPERATION_MANAGER for deterministic execution
-3. Orchestrator trusts the system and skills; coordinates sequence, artifacts, state, and approvals only.
-4. Execute phases sequentially.
-5. Agent state tracker file `research-flow-state.md` is stored in FEATURE TEMP folder.
-6. If `/goal` is set repeat phases 3-4 until goal is met.
+Orchestrator trusts the system and skills; coordinates sequence, artifacts, state, and approvals only.
+Execute phases sequentially.
 
-</prerequisites>
+Agent state tracker file `research-flow-state.md` is stored in FEATURE TEMP folder.
 
-<context_load phase="1" subagent="researcher" role="Context gatherer for research scope">
+<context_load phase="1" subagent="researcher" role="Context gatherer for research scope" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Read all lines from CONTEXT.md, ARCHITECTURE.md, and IMPLEMENTATION.md.
 2. Input: user research request. Output: loaded project context.
@@ -33,7 +29,7 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 </context_load>
 
-<prompt_craft phase="2" subagent="researcher" role="Research prompt architect" subagent_recommended_model="claude-opus-4-8, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-high">
+<prompt_craft phase="2" subagent="researcher" role="Research prompt architect" subagent_required_model="claude-opus-4-8, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Create an optimized research prompt for the user request.
 2. Save as `research-prompt.md` in FEATURE PLAN folder. Output ONLY the optimized prompt.
@@ -44,7 +40,7 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 </prompt_craft>
 
-<execute_research phase="3" subagent="researcher" role="Deep research executor" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
+<execute_research phase="3" subagent="researcher" role="Deep research executor" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Execute the approved research prompt as a separate subagent.
 2. Input: approved `research-prompt.md`. Output: `docs/<feature>-research.md`.
@@ -53,7 +49,7 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 </execute_research>
 
-<finalize phase="4" subagent="researcher" role="Research finalizer">
+<finalize phase="4" subagent="researcher" role="Research finalizer" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Finalize `docs/<feature>-research.md`.
 2. Input: completed research document. Output: finalized research document.

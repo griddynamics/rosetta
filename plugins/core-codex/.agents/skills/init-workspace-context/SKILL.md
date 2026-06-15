@@ -3,8 +3,6 @@ name: init-workspace-context
 description: "Classify workspace mode."
 license: Apache-2.0
 tags: ["init", "workspace", "context", "detection"]
-disable-model-invocation: false
-user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -36,7 +34,7 @@ Initialization must behave differently for fresh, existing, or plugin workspaces
 
 <gain_json_generation>
 
-1. Auto-detect fields from workspace. Non-obvious: `versions.rosetta` — read from Rosetta plugin path in current LLM context; `versions` is for GAIN suite tools only, not the project
+1. Auto-detect fields from workspace. Non-obvious: `versions.rosetta` — read from Rosetta plugin path in current LLM context, e.g. "2.0.43"; `versions` is for GAIN suite tools only (rosetta, specflow, etc.), not the project
 2. Ask user for anything unresolved in a single batch. All fields optional. Prioritize critical fields first. Leave placeholders for skipped fields
 3. If `gain.json` already exists: read it, ask only about gaps and placeholders; never overwrite confirmed values
 4. If running as subagent: output `gain_json_draft` (template with auto-detected values filled in, all other fields left as template placeholders) to orchestrator; instruct orchestrator to ask user to fill in each placeholder field, and leave any unanswered fields exactly as the placeholder in the template

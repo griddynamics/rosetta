@@ -18,17 +18,17 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 <workflow_phases>
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- MUST FOLLOW THIS WORKFLOW ENTIRELY AND FULLY, ALL REQUIRED SCALING IS ALREADY PRE-DEFINED BY "applies" ATTRIBUTE.
-- Phases are sequential. Independent subagent tasks within a phase CAN run in parallel.
-- When debugging is needed, INVOKE SUBAGENT `engineer` separately to isolate debugging context from implementation.
-- Use INVOKE SUBAGENT `executor` for building, running tests, installing packages, and similar mechanical actions.
-- MUST load each phase's skills when entering that phase (just-in-time) when subagents are not used.
-- If workflow is executed to implement requirements and those exists in REQUIREMENTS folder, MUST USE SKILL `requirements-use` and load all affected requirements (after skill is loaded). After that subagents must be given pointers to those requirements and skill.
+- No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping
+- Phases are sequential. Independent tasks can run in parallel
+- When debugging is needed, INVOKE SUBAGENT `engineer` with `debugging` skill to save LLM context
+- INVOKE SUBAGENT `executor` for building, running tests, installing packages, and similar mechanical actions.
+- MUST just-in-time load each phase's skills
+- If workflow is for REQUIREMENTS, MUST USE SKILL `requirements-use` and LOAD all affected requirements. Use refs to requirements for subagents.
 - If `/goal` is set repeat phases 5-10 postponing user_review_impl and final_validation until goal is met.
+- If migrate/modernize: implementation phase MUST use tiny batches ONLY (1-3 files), never bulk-read (other phases may); specs/plan enforce; FS-copy RECOMMENDED; no behavior change/new code; mirror source; subagents same; REQUIRED TO log <file> started/completed; Use impl subagents like MAP-REDUCE;
 - Coding workflow state is saved to AGENTS TEMP FEATURE folder as `coding-flow-state.md` file.
-- If migrate/modernize: implementation phase MUST use tiny batches ONLY (1-3 files), never bulk-read (other phases may); specs/plan enforce; FS-copy RECOMMENDED; no behavior change/new code; mirror source; subagents same; REQUIRED TO log <file> started/completed.
 
-<discovery phase="1" applies="MEDIUM,LARGE" subagent="discoverer" role="Context discoverer">
+<discovery phase="1" applies="MEDIUM,LARGE" subagent="discoverer" role="Context discoverer" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Gather project context, affected areas, dependencies, constraints, requirements. SMALL: orchestrator handles inline.
 2. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: `discovery-notes.md` in FEATURE PLAN folder.
@@ -39,7 +39,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </discovery>
 
-<tech_plan phase="2" applies="ALL" subagent="architect" role="Senior architect defining specs and plan">
+<tech_plan phase="2" applies="ALL" subagent="architect" role="Senior architect defining specs and plan" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. USE SKILL `tech-specs` and USE SKILL `planning` together. Split: specs own WHAT, plan owns HOW.
 2. Input: discovery notes, user request, `ARCHITECTURE.md`. Output: `<FEATURE>-SPECS.md` + `<FEATURE>-PLAN.md` in FEATURE PLAN folder.
@@ -52,7 +52,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </tech_plan>
 
-<review_plan phase="3" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting specs and plan against intent" must-be-subagent>
+<review_plan phase="3" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting specs and plan against intent" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6" must-be-subagent>
 
 1. Review specs and plan against user request and discovery notes.
 2. Input: specs, plan, user request. Output: review findings and recommendations.
@@ -68,7 +68,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </user_review_plan>
 
-<implementation phase="5" applies="ALL" subagent="engineer" role="Senior engineer executing approved plan">
+<implementation phase="5" applies="ALL" subagent="engineer" role="Senior engineer executing approved plan" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3-flash">
 
 1. Implement approved plan. Build MUST succeed. Tests excluded.
 2. Input: approved specs + plan. Demand subagent to read and execute it fully. Do not repeat contents => reference instead. Output: working code, build passing, update relevant documentation briefly (CONTEXT.md, ARCHITECTURE.md, etc).
@@ -81,7 +81,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </implementation>
 
-<review_code phase="6" applies="ALL" subagent="reviewer" role="Reviewer inspecting implementation against specs" must-be-subagent>
+<review_code phase="6" applies="ALL" subagent="reviewer" role="Reviewer inspecting implementation against specs" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6" must-be-subagent>
 
 1. Review code changes against approved specs and plan.
 2. Input: implementation diff, specs, plan, check if documentation is updated, brief, and matches the file intent. Output: review findings and recommendations.
@@ -91,7 +91,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </review_code>
 
-<impl_validation phase="7" applies="MEDIUM,LARGE" subagent="validator" role="Validation specialist">
+<impl_validation phase="7" applies="MEDIUM,LARGE" subagent="validator" role="Validation specialist" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6">
 
 1. Validate implementation against specs: git changes, spec coverage, gaps, perform search and MCP fact-checking.
 2. Additionally locally execute code and check it works
@@ -110,7 +110,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </user_review_impl>
 
-<tests phase="9" applies="ALL" subagent="engineer" role="Senior engineer writing and running tests">
+<tests phase="9" applies="ALL" subagent="engineer" role="Senior engineer writing and running tests" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3-flash">
 
 1. Write and execute tests. All MUST succeed, isolated, idempotent.
 2. Input: implementation, specs. Demand subagent to read specs fully. Do not repeat contents => reference instead. Output: passing tests with coverage.
@@ -120,7 +120,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </tests>
 
-<review_tests phase="10" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting test coverage and quality" must-be-subagent>
+<review_tests phase="10" applies="MEDIUM,LARGE" subagent="reviewer" role="Reviewer inspecting test coverage and quality" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6" must-be-subagent>
 
 1. Review tests against specs: coverage, scenarios, edge cases, mocking correctness.
 2. Input: tests, specs, implementation. Output: review findings and recommendations.
@@ -130,7 +130,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </review_tests>
 
-<final_validation phase="11" applies="MEDIUM,LARGE" subagent="validator" role="Final end-to-end verification">
+<final_validation phase="11" applies="MEDIUM,LARGE" subagent="validator" role="Final end-to-end verification" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6">
 
 1. Systematic by-dependency validation: databases, APIs, web, mobile. Check logs, clean up.
 2. Additionally systematic "manual QA" by yourself.

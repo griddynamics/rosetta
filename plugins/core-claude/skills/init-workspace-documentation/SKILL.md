@@ -4,8 +4,6 @@ description: "Generate workspace docs."
 license: Apache-2.0
 model: claude-opus-4-8
 tags: ["init", "workspace", "documentation", "context", "architecture"]
-disable-model-invocation: false
-user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -91,7 +89,6 @@ README.md:
    - Speckit: if `memory/constitution.md` and `specs` folder exist, add "MUST ACQUIRE speckit-integration-policy.md FROM KB and execute it" to CONTEXT.md
    - Composite (state.composite = true): create top-level docs as registries with workspace-relative paths to sub-repo docs
    - If large project add "MUST USE SKILL `large-workspace-handling`" to CONTEXT.md
-   - GitNexus: if `.gitnexus/` folder exists, add "GitNexus is installed. USE SKILL `gitnexus-tools` for graph-based code intelligence — supplements Rosetta skills, does not replace them. USE SKILL `gitnexus-cli` to re-index, check status, or clean the index." to CONTEXT.md
 
 </process>
 
@@ -136,27 +133,6 @@ Keep template entries so that AI knows how to fill them in later on.
 
 ### <Generalized Discovery> [ACTIVE|RETIRED]
 [Usage, Reasons, Problems]
-```
-
-### IMPLEMENTATION.md
-
-```markdown
-# Rosetta Implementation Summary
-
-This file is a brief and durable summary of the current implementation state.
-It is intentionally concise and should not be used as a chronological work log.
-
-For detailed change history, use git history and PRs instead of expanding this file.
-
-## Current State
-
-- [List what is implemented briefly]
-
-## Major Implemented Workstreams
-
-### [Workstream 1]: [status], [modified date]
-
-- [Brief changes with keywords and references]
 ```
 
 </templates>

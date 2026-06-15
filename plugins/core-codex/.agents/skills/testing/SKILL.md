@@ -2,7 +2,6 @@
 name: testing
 description: "To write thorough, isolated, idempotent tests — 80%+ coverage, external-only mocking, scenario-driven."
 license: Apache-2.0
-user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

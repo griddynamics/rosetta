@@ -4,8 +4,6 @@ description: "Generate shell files."
 license: Apache-2.0
 model: Claude Sonnet 4.6
 tags: ["init", "workspace", "shells", "configure"]
-disable-model-invocation: false
-user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 

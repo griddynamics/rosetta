@@ -1,29 +1,5 @@
 {
   "version": 1,
   "hooks": {
-    "preToolUse": [
-      {
-        "matcher": "Bash|Write|Edit|MultiEdit|mcp__.*",
-        "command": "node .cursor/hooks/dangerous-actions.js"
-      }
-    ],
-    "postToolUse": [
-      {
-        "matcher": "Write",
-        "command": "node .cursor/hooks/loose-files.js"
-      },
-      {
-        "matcher": "Write|Edit",
-        "command": "node .cursor/hooks/md-file-advisory.js"
-      },
-      {
-        "matcher": "Write|Edit",
-        "command": "node .cursor/hooks/gitnexus-refresh.js"
-      },
-      {
-        "matcher": "Write|Edit",
-        "command": "node .cursor/hooks/lint-format-advisory.js"
-      }
-    ]
   }
 }

@@ -2,7 +2,6 @@
 name: modernization-flow-mapping
 description: "Phase 6 Implementation Mapping of modernization-flow"
 alwaysApply: false
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

@@ -2,7 +2,6 @@
 name: aqa-flow-selector-identification
 description: "Phase 4 Selector Identification of aqa-flow"
 alwaysApply: false
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

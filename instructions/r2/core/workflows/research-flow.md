@@ -21,7 +21,7 @@ Execute phases sequentially.
 
 Agent state tracker file `research-flow-state.md` is stored in FEATURE TEMP folder.
 
-<context_load phase="1" subagent="researcher" role="Context gatherer for research scope">
+<context_load phase="1" subagent="researcher" role="Context gatherer for research scope" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Read all lines from CONTEXT.md, ARCHITECTURE.md, and IMPLEMENTATION.md.
 2. Input: user research request. Output: loaded project context.
@@ -29,7 +29,7 @@ Agent state tracker file `research-flow-state.md` is stored in FEATURE TEMP fold
 
 </context_load>
 
-<prompt_craft phase="2" subagent="researcher" role="Research prompt architect" subagent_recommended_model="claude-opus-4-8, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-high">
+<prompt_craft phase="2" subagent="researcher" role="Research prompt architect" subagent_required_model="claude-opus-4-8, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Create an optimized research prompt for the user request.
 2. Save as `research-prompt.md` in FEATURE PLAN folder. Output ONLY the optimized prompt.
@@ -40,7 +40,7 @@ Agent state tracker file `research-flow-state.md` is stored in FEATURE TEMP fold
 
 </prompt_craft>
 
-<execute_research phase="3" subagent="researcher" role="Deep research executor" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
+<execute_research phase="3" subagent="researcher" role="Deep research executor" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Execute the approved research prompt as a separate subagent.
 2. Input: approved `research-prompt.md`. Output: `docs/<feature>-research.md`.
@@ -49,7 +49,7 @@ Agent state tracker file `research-flow-state.md` is stored in FEATURE TEMP fold
 
 </execute_research>
 
-<finalize phase="4" subagent="researcher" role="Research finalizer">
+<finalize phase="4" subagent="researcher" role="Research finalizer" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Finalize `docs/<feature>-research.md`.
 2. Input: completed research document. Output: finalized research document.

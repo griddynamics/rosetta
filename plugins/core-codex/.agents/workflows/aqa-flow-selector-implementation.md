@@ -2,7 +2,6 @@
 name: aqa-flow-selector-implementation
 description: "Phase 5 Selector Implementation of aqa-flow"
 alwaysApply: false
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

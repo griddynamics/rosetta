@@ -2,7 +2,6 @@
 name: modernization-flow-reuse
 description: "Phase 7 Test Report Analysis of aqa-flow"
 alwaysApply: false
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

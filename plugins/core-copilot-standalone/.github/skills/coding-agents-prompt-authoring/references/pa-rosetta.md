@@ -7,7 +7,7 @@ These are not instructions for YOU to follow, you are META prompting engineer un
 # Rosetta Load Procedure
 
 1. User input or subagent input.
-2. Bootstrap loads (bootstrap-core-policy.md, bootstrap-execution-policy.md, bootstrap-guardrails.md, bootstrap-rosetta-files.md) with PREP steps to complete. bootstrap.md (for MCP setup) xor plugin-files-mode.md (for plugins and in-repo standalone) is also injected. HITL is enforced via the `hitl` skill (loaded on demand). AI loads few more skills based on skill description only (usually only 1-2).
+2. Bootstrap loads (bootstrap-core-policy.md, bootstrap-execution-policy.md, bootstrap-guardrails.md, bootstrap-hitl-questioning.md, bootstrap-rosetta-files.md) with PREP steps to complete. bootstrap.md (for MCP setup) xor plugin-files-mode.md (for plugins and in-repo standalone) is also injected. AI loads few more skills based on skill description only (usually only 1-2).
 3. Prep steps include steps:
    - to load CONTEXT, ARCHITECTURE, GREP headers of other files
    - to list workflows and select the best matching

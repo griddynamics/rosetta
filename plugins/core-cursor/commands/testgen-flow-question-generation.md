@@ -2,7 +2,6 @@
 name: testgen-flow-question-generation
 description: "Phase 3 Question Generation of testgen-flow"
 alwaysApply: false
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

@@ -14,15 +14,17 @@ Prevents premature drafting by enforcing HITL gates where every `<req>` unit rec
 <workflow_phases>
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed (get_context_instructions called and all three prep steps completed).
+- No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping
 - Every phase MUST update `requirements-authoring-flow-state.md` in FEATURE TEMP with: phase name, status, artifact produced, and open questions.
 - Orchestrator and subagents MUST USE SKILL `requirements-authoring`.
 - If task is to reverse engineer orchestrator MUST USE SKILL `reverse-engineering`.
 - Keep requirement identifiers in code comments only, must not be user facing.
 - If `/goal` is set repeat phases 5-6 until goal is met, then continue with the rest of phases.
+- This workflow MUST be used with Fable, Opus, GPT-5.5+ class models => IF NOT - DEMAND USER TO SWITCH MODEL
 
 IMPORTANT! If the task is to reverse engineer requirements, spawn MULTIPLE subagents with each handling one unit of analysis (one screen, one page, one controller, one endpoint, etc) to effectively prevent hallucinations by narrow scoping for phases intent_capture, outline, draft, validate.
 
-<discovery phase="1" priority="must" subagent="requirements-engineer" role="Context analyst collecting project and scope signals">
+<discovery phase="1" priority="must" subagent="discoverer" role="Context analyst collecting project and scope signals" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 Artifact: Discovery Summary (context, existing requirements, constraints, affected files).
 Done when: scope boundaries and relevant requirement files are identified.
@@ -37,7 +39,7 @@ Done when: scope boundaries and relevant requirement files are identified.
 
 </discovery>
 
-<research phase="2" priority="should" subagent="requirements-engineer" role="Researcher collecting standards and prior decisions">
+<research phase="2" priority="should" subagent="requirements-engineer" role="Researcher collecting standards and prior decisions" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 Artifact: Research Notes (sources, constraints, prior art, reusable requirement patterns).
 Done when: relevant references are gathered OR no additional sources are needed.
@@ -50,7 +52,7 @@ Skip when: local context is complete and no external standards are needed.
 
 </research>
 
-<intent_capture phase="3" priority="must" subagent="requirements-engineer" role="Requirements analyst capturing intent and assumptions">
+<intent_capture phase="3" priority="must" subagent="requirements-engineer" role="Requirements analyst capturing intent and assumptions" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 Artifact: Intent Capture.
 Done when: intent is restated, scope and goals confirmed, assumptions listed, and questions resolved.
@@ -63,7 +65,7 @@ Done when: intent is restated, scope and goals confirmed, assumptions listed, an
 
 </intent_capture>
 
-<outline phase="4" priority="must" subagent="requirements-engineer" role="Information architect proposing MECE requirement layout">
+<outline phase="4" priority="must" subagent="requirements-engineer" role="Information architect proposing MECE requirement layout" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 Artifact: Requirement Outline (areas, file mapping, ID strategy, traceability plan).
 Done when: user approves structure and requirement batching strategy.
@@ -75,7 +77,7 @@ Done when: user approves structure and requirement batching strategy.
 
 </outline>
 
-<draft phase="5" priority="must" subagent="requirements-engineer" role="Author drafting atomic requirement units">
+<draft phase="5" priority="must" subagent="requirements-engineer" role="Author drafting atomic requirement units" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 Artifact: Draft Requirement Units (from `requirements-authoring/assets/ra-requirement-unit.md`).
 Done when: every in-scope requirement has schema-complete draft and explicit user decision.
@@ -90,7 +92,7 @@ Done when: every in-scope requirement has schema-complete draft and explicit use
 
 </draft>
 
-<validate phase="6" priority="must" subagent="requirements-reviewer" role="Quality reviewer checking correctness, conflicts, and gaps">
+<validate phase="6" priority="must" subagent="reviewer" role="Quality reviewer checking correctness, conflicts, and gaps" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6" must-be-subagent>
 
 Artifact: Validation Report (rubric results, conflict checks, gap checks, risks).
 Done when: checklist passes and unresolved issues are either fixed or explicitly deferred.
@@ -117,7 +119,7 @@ Done when: checklist passes and unresolved issues are either fixed or explicitly
 
 </user_review>
 
-<finalization phase="8" priority="must" subagent="requirements-engineer" role="Business analyst finalizing requirement artifacts">
+<finalization phase="8" priority="must" subagent="requirements-engineer" role="Business analyst finalizing requirement artifacts" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 Artifact: Final Requirements Set, Validation Pack, Traceability Matrix, Change Log.
 Done when: artifacts are stored in target location and state file is complete.

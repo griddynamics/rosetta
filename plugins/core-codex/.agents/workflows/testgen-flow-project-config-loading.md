@@ -2,7 +2,6 @@
 name: testgen-flow-project-config-loading
 description: "Phase 0 Project Config Loading of testgen-flow"
 alwaysApply: false
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

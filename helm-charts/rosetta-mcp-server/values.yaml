@@ -3,6 +3,37 @@ fullnameOverride: ""
 
 replicaCount: 1
 
+# Health probes (optional)
+# Example (edit as needed):
+# livenessProbe:
+#   tcpSocket:
+#     port: port8000
+#   periodSeconds: 30
+#   timeoutSeconds: 5
+#   failureThreshold: 3
+
+# readinessProbe:
+#   httpGet:
+#     path: /healthz
+#     port: port8000
+#   periodSeconds: 10
+#   timeoutSeconds: 5
+#   failureThreshold: 3
+
+# startupProbe:
+#   httpGet:
+#     path: /healthz
+#     port: port8000
+#   periodSeconds: 10
+#   timeoutSeconds: 5
+#   failureThreshold: 40
+
+# PodDisruptionBudget — enable when replicaCount > 1 (or autoscaling minReplicas > 1)
+podDisruptionBudget:
+  enabled: false
+  maxUnavailable: 1
+  # minAvailable: 1
+
 image:
   repository: griddynamics/rosetta-mcp
   # Uncomment and set the image tag. Defaults to .Chart.AppVersion if not set:

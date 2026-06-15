@@ -5,7 +5,7 @@ Review according to core_principles_to_enforce_in_target_prompt.
 Enforce that target prompt:
 
 - Actively involves user
-- Has User Involvement and HITL ONLY via `hitl` skill (to support full automation)
+- Has User Involvement and HITL ONLY in `bootstrap-hitl-questioning.md` (to support full automation)
 - Asks questions until crystal clear without nitpicking
 - Use common and domain terms
 - Defines target audience
@@ -42,7 +42,7 @@ Enforce that target prompt:
 - Define output schema
 - Prefer structured outputs
 - Validate with test cases
-- Active user involvement and HITL is only via `hitl` skill
+- Active user involvement and HITL is only in `bootstrap-hitl-questioning.md`
 - Prevent scope creep
 - Less scope, more value
 - Use common and domain terms

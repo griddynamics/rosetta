@@ -7,7 +7,7 @@ disable-model-invocation: false
 user-invocable: true
 argument-hint: request, requirements-set?, target-scope?, constraints?, delivery-goal?
 context: default
-agent: requirements-engineer, requirements-reviewer
+agent: requirements-engineer, reviewer
 metadata:
   version: "1.0"
   category: "requirements-engineering"

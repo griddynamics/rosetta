@@ -2,7 +2,8 @@
 name: aqa-flow-code-analysis
 description: "Phase 3 Code Analysis of aqa-flow"
 alwaysApply: false
-baseSchema: docs/schemas/rule.md
+user-invocable: false
+baseSchema: docs/schemas/phase.md
 ---
 
 # Phase 3: Code Analysis

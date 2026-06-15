@@ -18,6 +18,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 <workflow_phases>
 
 - Rosetta prep steps completed.
+- No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping
 - Phases are sequential; module analysis in LARGE codebases runs in parallel via `large-workspace-handling`.
 - Orchestrator trusts skills to own execution internals; coordinates sequence, artifacts, state, and approvals only.
 - State file: `agents/TEMP/code-analysis-flow-state.md` updated after each phase.
@@ -28,7 +29,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
   - Both orchestrator and subagents MUST USE SKILL `requirements-authoring`
   - Spawn MULTIPLE subagents with each handling one unit of analysis (one module, one community, one screen, one controller, one endpoint, etc) to effectively prevent hallucinations by narrowing scope down for phases `requirements_branch` and `review` (more agents - less scope each).
 
-<context_load phase="1" applies="ALL" subagent="discoverer" role="Context gatherer for analysis scope">
+<context_load phase="1" applies="ALL" subagent="discoverer" role="Context gatherer for analysis scope" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Read all lines of `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md`; grep headers of `docs/CODEMAP.md`, `docs/TECHSTACK.md`, `docs/DEPENDENCIES.md` if present.
 2. Input: user analysis request. Output: loaded project context + entry points (APIs, webhooks, CLIs, cron jobs).
@@ -37,7 +38,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </context_load>
 
-<scope_and_classify phase="2" applies="ALL" subagent="discoverer" role="Scope and size scanner">
+<scope_and_classify phase="2" applies="ALL" subagent="discoverer" role="Scope and size scanner" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Classify target codebase: LARGE if 100+ files recursively or 4+ modules; otherwise SMALL.
 2. Identify target scope (repo, module, feature, path glob). Record boundaries and non-goals.
@@ -57,7 +58,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </clarify_unknowns>
 
-<requirements_branch phase="4" applies="ALL" when="user requested requirements reverse-engineering" subagent="architect" role="Requirements engineer extracting intent from code">
+<requirements_branch phase="4" applies="ALL" when="user requested requirements reverse-engineering" subagent="architect" role="Requirements engineer extracting intent from code" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Precondition: user explicitly requested requirements reverse-engineering (e.g., "extract requirements", "generate SRS", "generate specifications", "from existing code", "produce EARS/NFRs from code"). If absent, skip this phase entirely.
 2. Use `reverse-engineering` skill to distill intent, then `requirements-authoring` skill to produce atomic, testable functional and non-functional requirements with SMART, MECE, acceptance criteria, EARS phrasing, priority (MoSCoW), and predecessors.
@@ -69,7 +70,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </requirements_branch>
 
-<analyze_small phase="5" applies="SMALL" subagent="architect" role="Senior systems analyst producing a single grounded analysis document">
+<analyze_small phase="5" applies="SMALL" subagent="architect" role="Senior systems analyst producing a single grounded analysis document" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Produce one grounded analysis document covering: components, data models, patterns, logic flow as conceptual algorithm (no line-by-line), boundary and edge cases, unhandled edges, sequence and dependency diagrams in Mermaid, external dependencies with purpose.
 2. Reference specific files and line ranges; keep code snippets ≤3 lines.
@@ -79,7 +80,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </analyze_small>
 
-<analyze_large_parallel phase="6" applies="LARGE" subagent="architect" role="Per-module systems analyst (parallel dispatch)">
+<analyze_large_parallel phase="6" applies="LARGE" subagent="architect" role="Per-module systems analyst (parallel dispatch)" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Partition workspace USING SKILL `large-workspace-handling` (Summarization & Indexing strategy): every file belongs to exactly one scope; subagents analyze per-module in parallel.
 2. Per module produce: business logic overview, architecture overview, component analysis (with subcomponents, interface definitions, and major features), identified design patterns and anti-patterns, data architecture with exact contracts (fields, types, purpose), integration patterns, quality observations, engineering insights. Aim 100–200 lines; diagrams in Mermaid with explicit light/dark colors.
@@ -89,7 +90,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </analyze_large_parallel>
 
-<summarize phase="7" applies="LARGE" subagent="architect" role="Cross-module summarizer">
+<summarize phase="7" applies="LARGE" subagent="architect" role="Cross-module summarizer" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Read ALL per-module documents in full (no limit/offset), decompose into canonical sections, combine corresponding sections across modules, and produce a unified view.
 2. Produce `docs/<feature>/summary.md` with: Business context (processes/scenarios with involved components and Mermaid diagrams), Domain description (data models with business purpose and cross-repo physical references), Detailed analysis (per repository/component: tech stack, features, dependencies), Architecture insights (patterns and conventions), Dependency map (Mermaid at component and subcomponent level).
@@ -100,7 +101,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </summarize>
 
-<review phase="8" applies="ALL" subagent="reviewer" role="Analysis quality reviewer">
+<review phase="8" applies="ALL" subagent="reviewer" role="Analysis quality reviewer" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6" must-be-subagent>
 
 1. Inspect outputs for groundedness (every claim linked), accuracy, coverage of scope, absence of generated/suggested code, assumption/unknown documentation, and Mermaid diagram legibility in light and dark themes.
 2. Input: analysis artifacts + scope + context. Output: review findings and recommendations.
@@ -117,7 +118,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </user_review>
 
-<finalize phase="10" applies="ALL" subagent="architect" role="Analysis finalizer">
+<finalize phase="10" applies="ALL" subagent="architect" role="Analysis finalizer" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Update `IMPLEMENTATION.md` with a brief pointer to produced analysis artifacts.
 2. Mark `code-analysis-flow-state.md` complete with phase evidence and artifact paths.

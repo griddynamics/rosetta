@@ -84,6 +84,7 @@ rosetta-cli/test-remote-*.sh
 docs/web/_site/
 docs/web/.bundle/
 docs/web/vendor/
+docs/web/llms-full.txt
 _site/
 .jekyll-cache/
 .jekyll-metadata

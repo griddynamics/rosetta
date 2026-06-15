@@ -25,11 +25,13 @@ Execute phases sequentially, do not skip!
 1. Preparation steps are mandatory prerequisites and must be completed before phase 1.
 2. Workflow execution starts only after prerequisites are satisfied.
 3. Orchestrator and subagents MUST USE SKILL `coding-agents-prompt-authoring`.
-4. MUST load each phase's skills when entering that phase (just-in-time) when subagents are not used.
+4. MUST just-in-time load each phase's skills
+5. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping
+6. This workflow MUST be used with Fable, Opus, GPT-5.5+ class models => IF NOT - DEMAND USER TO SWITCH MODEL
 
 </prerequisites>
 
-<discover step="1" subagent="discoverer" role="Context discoverer">
+<discover step="1" subagent="discoverer" role="Context discoverer" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Discover project-local context, relevant prompt-family artifacts, and required references for this request.
 2. Input: request + optional existing prompt. Output: `Discovery Notes` + `Reference Set`.
@@ -38,7 +40,7 @@ Execute phases sequentially, do not skip!
 
 </discover>
 
-<extract_intake step="2" subagent="prompt-engineer" role="Intent extractor">
+<extract_intake step="2" subagent="prompt-engineer" role="Intent extractor" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Extract requirements from source prompt when present and intake clarifications from user.
 2. Input: request + optional existing prompt + `Discovery Notes` + `Reference Set`. Output: `Prompt Brief` + `Open Questions`.
@@ -47,7 +49,7 @@ Execute phases sequentially, do not skip!
 
 </extract_intake>
 
-<blueprint step="3" subagent="prompt-engineer" role="Blueprint Architect">
+<blueprint step="3" subagent="prompt-engineer" role="Blueprint Architect" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Design blueprint: structure, actors, contracts, and boundaries for target prompt set.
 2. Input: approved `Prompt Brief`. Output: `Blueprint`.
@@ -56,7 +58,7 @@ Execute phases sequentially, do not skip!
 
 </blueprint>
 
-<for_each_prompt_loop step="4" subagent="prompt-engineer" role="Prompt Author">
+<for_each_prompt_loop step="4" subagent="prompt-engineer" role="Prompt Author" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Scope: `draft` target prompts
 2. Input: approved `Prompt Brief` + `Blueprint`. Output: `Draft Prompt Set` + optional change-log.md in FEATURE PLAN folder.
@@ -65,7 +67,7 @@ Execute phases sequentially, do not skip!
 
 </for_each_prompt_loop>
 
-<for_each_prompt_loop step="5" subagent="prompt-engineer" role="Prompt reviewer and hardening">
+<for_each_prompt_loop step="5" subagent="prompt-engineer" role="Prompt reviewer and hardening" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Run loop for each target prompt: `hardening -> edit` until pass criteria or HITL decision.
 2. This is automated review by subagent, this is not HITL review!
@@ -75,7 +77,7 @@ Execute phases sequentially, do not skip!
 
 </for_each_prompt_loop>
 
-<simulate step="6" subagent="prompt-engineer" role="Execution tracer">
+<simulate step="6" subagent="prompt-engineer" role="Execution tracer" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Simulate realistic runs and trace context/cognitive load across the prompt chain.
 2. Input: `Prompt Brief` + `Prompt Set`. Output: `Simulation Notes`.
@@ -84,7 +86,7 @@ Execute phases sequentially, do not skip!
 
 </simulate>
 
-<validate step="7" subagent="prompt-engineer" role="Quality validator">
+<validate step="7" subagent="prompt-engineer" role="Quality validator" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
 1. Validate final artifacts against intent, contracts, failure modes, and traceability.
 2. Input: `Prompt Brief` + `Blueprint` + `Candidate Prompt Set` + `Simulation Notes`. Output: `Final Prompt Set` + `Validation Pack` (`Checklist Results`, `Tests`, `Failure Modes`, `Traceability`; persistent report optional in FEATURE PLAN folder as validation-report.md).

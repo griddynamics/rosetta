@@ -5,8 +5,6 @@ license: Apache-2.0
 model: gpt-5.4
 model_reasoning_effort: medium
 tags: ["init", "workspace", "shells", "configure"]
-disable-model-invocation: false
-user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 

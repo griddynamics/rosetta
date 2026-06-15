@@ -2,7 +2,6 @@
 name: aqa-flow-test-implementation
 description: "Phase 6 Test Implementation of aqa-flow"
 alwaysApply: false
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

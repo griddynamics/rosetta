@@ -21,7 +21,9 @@
 
 Rosetta is a meta-prompting, context engineering, and centralized instructions management for AI coding agents. It provides structured context - rules, skills, workflows, and sub-agents - guiding AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards. Rosetta accelerates project onboarding by reverse-engineering architecture and domain context, reducing further conversations token consumption and improving the reliability and consistency of AI-generated code.
 
-Every AI interaction follows four phases: **Prepare** (load guardrails and context), **Research** (search the knowledge base), **Plan** (produce a reviewable plan), **Act** (execute with full context). Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).
+Every AI interaction follows four phases: **Prepare** (load guardrails and context), **Research** (search the knowledge base), **Plan** (produce a reviewable plan), **Act** (execute with full context), and **Validate** (manual validation by AI). Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).
+
+If you want to quickly understand what problem Rosetta solves and why we built it, see the [Elevator Speech](ELEVATOR_SPEECH.md).
 
 **DISCLAIMER**: If you are effectively using your current setup, writing your own skills, and managing AI using your own processes - you 99% don't need Rosetta.
 

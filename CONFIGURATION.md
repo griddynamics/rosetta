@@ -27,7 +27,10 @@ Work through these five steps once per repository.
 
 ### Step 1 — Capture business context in `CONTEXT.md`
 
-Record the non-technical facts about the project:
+Ask Opus-class model to help you with:
+
+```
+Read and record the non-technical and engineering behavior facts about the project in `docs/CONTEXT.md`:
 
 - Its overall goal.
 - What it does in the client's wider ecosystem.
@@ -37,11 +40,24 @@ Record the non-technical facts about the project:
 - Who the users and key stakeholders are.
 - Core business rules and domain constraints.
 - Any compliance or regulatory requirements.
+- Accepted SDLC, DoD, and processes related to the project.
 - References to documentation and ways to access it (example, acli or mcp for atlassian).
+
+Interview me relentlessly about every aspect of this plan until we reach a full shared understanding.
+Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
+For each question, provide recommended and alternative answers.
+Ask the questions one at a time.
+If a question can be answered by web search, exploring the codebase, do it first.
+Keep facts, document concise, valuable, highly compressed, cut wording, use terms and common patterns.
+Audience: AI like you.
+```
 
 ### Step 2 — Capture technical context in `ARCHITECTURE.md`
 
-Record how the project is built and run:
+Similarly, ask Opus-class model to help you with:
+
+```
+Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
 
 - How to start the application(s) locally.
 - Where and when integration tests and e2e tests are created.
@@ -53,7 +69,17 @@ Record how the project is built and run:
 - Authentication, authorization, and routing for the deployed application.
 - A brief description of the deployment infrastructure and environments.
 - The build and CI/CD pipeline.
-- Name standards for coding, linting, formatting (e.g. Google Java Style, Microsoft .NET code style) — name them, not the rules.
+- Recommended allowed tooling (gh cli, MCPs, see https://raw.githubusercontent.com/griddynamics/rosetta/refs/heads/main/CONFIGURATION.md)
+- Name standards for coding, linting, formatting (e.g. Google Java Style, Microsoft .NET code style) — not the rules!
+
+Interview me relentlessly about every aspect of this plan until we reach a full shared understanding.
+Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
+For each question, provide recommended and alternative answers.
+Ask the questions one at a time.
+If a question can be answered by web search, exploring the codebase, do it first.
+Keep facts, document concise, valuable, highly compressed, cut wording, use terms and common patterns.
+Audience: AI like you.
+```
 
 ### Step 3 — Provide reference source code
 

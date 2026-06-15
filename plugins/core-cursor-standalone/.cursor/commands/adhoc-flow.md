@@ -2,7 +2,6 @@
 name: adhoc-flow
 description: "Workflow for the rest of tasks: lightweight documentation, build, track, synchronize, etc."
 tags: ["workflow"]
-user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 
@@ -26,26 +25,23 @@ Match to cognitive demand. Match to current tool.
 
 </models>
 
-<OPERATION_MANAGER>
+<plan_manager>
 
-- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB
-- Commands:
-  - `help plan` provides full information
-  - `plan next <plan_file> [limit] [--target <phase_id>]` — get next steps to execute
-  - `plan create-with-template <plan_file> for-orchestrator '<plan-name>' '<plan-description>'` — bootstrap a new orchestrator plan
-  - `plan upsert-with-template <plan_file> <phase-id> for-subagent '<phase-name>' '<phase-description>'` — orchestrator MUST USE for adding prep steps for subagent
-  - `plan update_status <plan_file> <step-id> [open|in_progress|complete|blocked|failed]` 
-  - `plan query <plan_file> [id|entire_plan]` 
-  - `plan show_status <plan_file> [id|entire_plan]` 
-- Upsert follows RFC 7396: null removes keys, nested objects are merged not replaced, scalars are replaced, status field silently ignored to enforce use of `update_status`.
-- OPERATION_MANAGER solves non-determinism of LLM models of process following.
-- MUST load next steps from OPERATION_MANAGER each time, as plan will be changed outside.
-- MUST execute plan via loop: call `next`, execute, `update_status`.
-- LOOP IS NEVER DONE until `plan_status: complete` AND `count: 0` in `next` output. Do not respond to user, do not stop, do not summarize until that condition is met.
-- MUST upsert a plan because of new tasks, inputs, findings.
-- Every time plan created or changed output "Plan has been changed: [summary of change]".
+USE SKILL `plan-manager` as the main execution planner (file-based, via `npx rosettify@latest plan`).
 
-</OPERATION_MANAGER>
+Orchestrator and subagents:
+- MUST use plan-manager as main execution planner; todo tasks/built-in planners are for tracking INSIDE step execution only.
+- MUST USE `next` to drive execution loop until `plan_status: complete` and `count: 0`.
+- MUST USE `update_status` after each step.
+- MUST USE `upsert` to adapt plan mid-execution (add/remove phases/steps).
+
+Orchestrator:
+- MUST tell subagents all above MUST as MUST (within their scope).
+- MUST tell subagents: "tell orchestrator to modify plan if work is outside your scope".
+
+ACQUIRE `plan-manager/assets/pm-schema.md` FROM KB for data structure reference.
+
+</plan_manager>
 
 <building_blocks>
 
@@ -73,15 +69,10 @@ Compose these into plan phases/steps to build any execution workflow.
 
 <workflow_phases>
 
-<prerequisites phase="1" applies="ALL">
-
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
-2. MUST USE OPERATION_MANAGER for deterministic execution
-3. Use available skills and agents.
-4. You will FOR SURE run out of LLM context, leading to loss of information, delegate to subagents!
-5. If `/goal` is set repeat phases 4-5 until goal is met.
-
-</prerequisites>
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
+- Use available skills and agents.
+- You will FOR SURE run out of LLM context, leading to loss of information, delegate to subagents!
+- If `/goal` is set repeat phases 4-5 until goal is met.
 
 <build_plan phase="2">
 
@@ -91,7 +82,7 @@ Compose these into plan phases/steps to build any execution workflow.
 
 </build_plan>
 
-<review_plan phase="3" if="MEDIUM, LARGE" subagent="reviewer" role="Plan reviewer of AI automated tasks">
+<review_plan phase="3" if="MEDIUM, LARGE" subagent="reviewer" role="Plan reviewer of AI automated tasks" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6" must-be-subagent>
 
 1. Review: completeness, sequencing, dependency correctness, prompt clarity, etc.
 2. Subagent to query by full path to plan.json. Orchestrator to upsert fixes.

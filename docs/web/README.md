@@ -6,6 +6,7 @@ This folder is a Jekyll site for GitHub Pages.
 
 ```bash
 cd docs/web
+cp ../../llms-full.txt llms-full.txt   # static agent context file (not linked in nav)
 bundle exec jekyll serve
 ```
 

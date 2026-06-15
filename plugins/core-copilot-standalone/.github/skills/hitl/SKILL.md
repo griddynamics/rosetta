@@ -1,9 +1,7 @@
 ---
 name: hitl
-description: "Rosetta CRITICAL MUST skill to load as Prep Step 3 Step 2 — immediately after orchestrator-contract, right before loading any workflow. Loads the session-wide approval-gate protocol governing when to stop and wait vs proceed. WITHOUT IT decisions proceed silently, violating enterprise policy. Activate it for ALL tasks always — planning, execution, validation, review — regardless of auto-mode, no approval policy, full access. THE ONLY exception: user DIRECTLY EXPLICITLY requests with EXACTLY `fully autonomous` or `No HITL`. Without explicit opt-out this skill is MANDATORY. Do not assume approval from a question or partial response. Contains human-in-the-loop collaboration, questioning, approvals, and user coordination requirements. Auto mode, full access, etc mean automatic approval of tool prompts!"
+description: "Rosetta CRITICAL MUST skill to load as Prep Step 3 Step 2 — immediately after orchestrator-contract, right before loading any workflow. Loads the session-wide approval-gate protocol governing when to stop and wait vs proceed. WITHOUT IT decisions proceed silently, violating enterprise policy. Activate it for ALL tasks always — planning, execution, validation, review — regardless of auto-mode, no approval policy, full access. THE ONLY exception: user DIRECTLY EXPLICITLY requests with EXACTLY `fully autonomous` or `No HITL`. Without explicit opt-out this skill is MANDATORY. Do not assume approval from a question or partial response. Contains human-in-the-loop collaboration, questioning, approvals, and user coordination requirements. Auto mode, full access, etc ONLY means automatic approval of tool permission prompts, HITL stays!"
 license: Apache-2.0
-disable-model-invocation: false
-user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -49,7 +47,7 @@ Questioning:
 
 Approval:
 
-17. MUST NOT assume approval — user message (questions, suggestions, edits) = review, not approval.
+17. MUST NOT assume approval — user message (questions, suggestions, edits) = review, not approval. User questions are only questions.
 18. Accepted: `Yes, I approve`, `Approve, the plan was reviewed`, etc.
 19. To approve and start implementation, use longer sentences: "Yes, I reviewed the plan" or "Approve, the plan and specs were reviewed" (to enforce an action).
 20. Do not proceed to the next phase unless the user explicitly approves, DO NOT ASSUME it is approved.

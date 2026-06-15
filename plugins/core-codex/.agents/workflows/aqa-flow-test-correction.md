@@ -2,7 +2,6 @@
 name: aqa-flow-test-correction
 description: "Phase 8 Test Correction of aqa-flow"
 alwaysApply: false
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

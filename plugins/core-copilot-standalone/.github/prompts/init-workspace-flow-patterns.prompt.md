@@ -2,7 +2,6 @@
 name: init-workspace-flow-patterns
 description: "Phase 5 Patterns of init-workspace-flow"
 tags: ["init", "workspace", "patterns", "phase"]
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 
@@ -13,7 +12,7 @@ Extract recurring code structures into explicit reusable pattern templates. With
 </description_and_purpose>
 
 <workflow_context>
-- Phase 5 of 9 in init-workspace-flow
+- Phase 5 of 8 in init-workspace-flow
 - Input: CODEMAP, source code
 - Output: docs/PATTERNS/ (INDEX.md, per-module files, CHANGES.md)
 - Prerequisite: Phase 3 complete (CODEMAP exists)
@@ -47,7 +46,7 @@ Extract recurring code structures into explicit reusable pattern templates. With
 <update_state step="5.4">
 1. Write Phase 5 completion to `agents/init-workspace-flow-state.md`
 2. Update PATTERNS row in file inventory
-3. Log gaps for Phase 8
+3. Log gaps for Phase 7
 </update_state>
 
 <validation_checklist>

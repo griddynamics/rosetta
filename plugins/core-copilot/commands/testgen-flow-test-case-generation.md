@@ -2,7 +2,6 @@
 name: testgen-flow-test-case-generation
 description: "Phase 5 Test Case Generation of testgen-flow"
 alwaysApply: false
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

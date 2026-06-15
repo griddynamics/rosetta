@@ -1,8 +1,7 @@
 ---
 name: init-workspace-flow-questions
-description: "Phase 8 Questions of init-workspace-flow"
+description: "Phase 7 Questions of init-workspace-flow"
 tags: ["init", "workspace", "questions", "hitl", "phase"]
-user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 
@@ -17,8 +16,8 @@ Validation: Every accumulated gap has a resolution; each answer traces to at lea
 
 <workflow_context>
 
-- Phase 8 of 9 in init-workspace-flow
-- Input: all docs from Phases 1–7, accumulated gaps from state
+- Phase 7 of 8 in init-workspace-flow
+- Input: all docs from Phases 1–6, accumulated gaps from state
 - Output: answers integrated into docs, affected files updated via subagents
 
 </workflow_context>
