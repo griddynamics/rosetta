@@ -14,7 +14,7 @@ Create the automated UI test integrating all page objects and assertions from th
 
 <workflow_context>
 - Phase 6 of 8 in `aqa-flow`
-- Input: complete test plan `agents/plans/aqa-<test-name>.md` (all phases), page objects ready from Phase 5
+- Input: complete test plan `plans/aqa-<test-name>.md` (all phases), page objects ready from Phase 5
 - Output: implemented test file, lint-clean; state updated; user given an execution command
 - Prerequisite: Phases 1-5 complete
 - HITL: must stop and wait for the user to execute the test (this phase does not run it)
@@ -48,7 +48,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 
 <execute_implementation step="6.1" subagent="engineer" role="Test automation engineer">
 1. USE SKILL `coding` (standards-first mode) to read the repository standards as authority before authoring; repo docs beat model defaults.
-2. USE SKILL `testing` (UI impl mode) with the parent-supplied bindings: test plan path `agents/plans/aqa-<test-name>.md`; write boundary = test files only (`<workflow_context>`); output record = the Test Implementation record, which the `engineer` MUST ACQUIRE from `qa-knowledge/assets/aqa-test-impl-record.md` FROM KB (per `<implementation_handoff_contract>`).
+2. USE SKILL `testing` (UI impl mode) with the parent-supplied bindings: test plan path `plans/aqa-<test-name>.md`; write boundary = test files only (`<workflow_context>`); output record = the Test Implementation record, which the `engineer` MUST ACQUIRE from `qa-knowledge/assets/aqa-test-impl-record.md` FROM KB (per `<implementation_handoff_contract>`).
 3. Author the test using page-object methods only (no raw selectors in test code), proper waits, project assertion style. If a required selector or page-object method is missing, do NOT author it inline — stop and route back to Phase 5 (selector implementation).
 4. Record every plan assertion that cannot be implemented in the test plan's `### Uncovered Assertions` with the reason. Silent drop is forbidden.
 5. Validate locally: run the project lint/format command on the touched test file and resolve issues; emit the Test Implementation record.

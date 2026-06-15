@@ -5,7 +5,7 @@ description: Verbatim user-facing message for capturing page-source HTML for AQA
 
 <page-source-capture-instructions>
 
-Send this message **verbatim** to the user when selectors are still missing and page-source capture is needed — do NOT paraphrase; non-technical users rely on the literal F12 / right-click steps. Save files to `agents/plans/aqa-<test-name>-page-sources/<page-name>.html` (kebab-case), one per page the test visits.
+Send this message **verbatim** to the user when selectors are still missing and page-source capture is needed — do NOT paraphrase; non-technical users rely on the literal F12 / right-click steps. Save files to `plans/aqa-<test-name>-page-sources/<page-name>.html` (kebab-case), one per page the test visits.
 
 ```text
 I need the HTML source of the page(s) under test to verify selectors. Please capture them as follows:
@@ -24,7 +24,7 @@ I need the HTML source of the page(s) under test to verify selectors. Please cap
 6. **Right-click the chosen parent node** → "Copy" → **"Copy outerHTML"** (Chrome / Edge / Firefox) or "Copy HTML" (Safari). This copies the parent + the target + all descendants as one HTML fragment.
 7. **Save the HTML into a new file** using this naming convention:
 
-   `agents/plans/aqa-<test-name>-page-sources/<page-name>.html`
+   `plans/aqa-<test-name>-page-sources/<page-name>.html`
 
    where `<page-name>` is a **kebab-case** short name for the page (e.g. `login.html`, `checkout-payment.html`, `order-confirmation.html`). Save **one file per page** the test visits.
 

@@ -1,11 +1,11 @@
 ---
 name: aqa-plan-template
-description: AQA test-plan skeleton (agents/plans/aqa-<test-name>.md) — Test Case Information, Feature Context, Access / Cross-Reference notes.
+description: AQA test-plan skeleton (plans/aqa-<test-name>.md) — Test Case Information, Feature Context, Access / Cross-Reference notes.
 ---
 
 <aqa-plan-template>
 
-Output template for `agents/plans/aqa-<test-name>.md` (Phase 1). `## Access / Truncation Notes` is populated from the collection skill's disclosure (truncation, permission denials, `[empty page]`, cross-domain fallbacks); never omit.
+Output template for `plans/aqa-<test-name>.md` (Phase 1). `## Access / Truncation Notes` is populated from the collection skill's disclosure (truncation, permission denials, `[empty page]`, cross-domain fallbacks); never omit.
 
 ```markdown
 # AQA Test Plan - <Test Name>

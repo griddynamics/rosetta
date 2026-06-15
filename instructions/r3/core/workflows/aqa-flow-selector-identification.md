@@ -14,7 +14,7 @@ Identify missing UI selectors from frontend source code or page-source HTML and 
 
 <workflow_context>
 - Phase 4 of 8 in `aqa-flow`
-- Input: test plan `agents/plans/aqa-<test-name>.md` with assertions; Phase 3 code analysis at `agents/plans/aqa-<test-name>-code-analysis.md`
+- Input: test plan `plans/aqa-<test-name>.md` with assertions; Phase 3 code analysis at `plans/aqa-<test-name>-code-analysis.md`
 - Output: the `## Selector Management` section (Part A subsections) written into the test plan
 - Prerequisite: Phases 1-3 complete
 - HITL: conditional — only if frontend code is unavailable or selectors are not found
@@ -29,7 +29,7 @@ Identify missing UI selectors from frontend source code or page-source HTML and 
 </recommended_skills>
 
 <failure_handling>
-If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-state.md`, or more than one plausible `agents/plans/aqa-*-code-analysis.md` exists: stop Phase 4, record the gap in `agents/aqa-state.md`, ask the user once for the canonical `<test-name>` or to re-run Phase 3 — do not guess (slug rules per `qa-structure` `aqa-layout`).
+If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-state.md`, or more than one plausible `plans/aqa-*-code-analysis.md` exists: stop Phase 4, record the gap in `agents/aqa-state.md`, ask the user once for the canonical `<test-name>` or to re-run Phase 3 — do not guess (slug rules per `qa-structure` `aqa-layout`).
 </failure_handling>
 
 <phase_steps>
@@ -40,8 +40,8 @@ If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-st
 </phase_steps>
 
 <resolve_inputs step="4.0">
-1. Resolve `<test-name>` per `qa-structure` `aqa-layout` slug rules (the slug matches the Phase 1 plan `agents/plans/aqa-<test-name>.md`; use `agents/aqa-state.md` if unclear).
-2. Verify `agents/plans/aqa-<test-name>-code-analysis.md` exists and is the single canonical input for this run.
+1. Resolve `<test-name>` per `qa-structure` `aqa-layout` slug rules (the slug matches the Phase 1 plan `plans/aqa-<test-name>.md`; use `agents/aqa-state.md` if unclear).
+2. Verify `plans/aqa-<test-name>-code-analysis.md` exists and is the single canonical input for this run.
 3. If verification fails: apply `<failure_handling>`.
 </resolve_inputs>
 
@@ -63,13 +63,13 @@ If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-st
 
 The capture protocol is **user-facing instruction** — the `testing` skill declares page sources as an input but does NOT own the capture protocol. Non-technical users need the literal steps, not an abstract pointer.
 
-1. Create directory `agents/plans/aqa-<test-name>-page-sources/` (same `<test-name>` slug resolved in step 4.0; path/naming contract per `qa-structure` `aqa-layout`).
+1. Create directory `plans/aqa-<test-name>-page-sources/` (same `<test-name>` slug resolved in step 4.0; path/naming contract per `qa-structure` `aqa-layout`).
 
 2. **Send the user the verbatim capture-instruction message** — ACQUIRE `qa-knowledge/assets/page-source-capture-instructions.md` FROM KB and send its `text` block verbatim. Do NOT paraphrase; non-technical users rely on the literal F12 / right-click steps.
 
 3. **STOP AND WAIT** for the user to add the page-source files. Acceptable resumption signals: the user replies with "captured" + the filename list, OR the user replies with a single filename and a "more coming" signal (partial-resumption allowed once the user confirms the rest).
 
-4. Verify the files exist at `agents/plans/aqa-<test-name>-page-sources/` with the kebab-case naming (`<page-name>.html`). If any file is missing, malformed, or saved with the wrong name, ask the user once for a corrected filename or content; do NOT proceed to selector analysis on incomplete page-source coverage. Then continue Part A analysis.
+4. Verify the files exist at `plans/aqa-<test-name>-page-sources/` with the kebab-case naming (`<page-name>.html`). If any file is missing, malformed, or saved with the wrong name, ask the user once for a corrected filename or content; do NOT proceed to selector analysis on incomplete page-source coverage. Then continue Part A analysis.
 
 </handle_page_source>
 

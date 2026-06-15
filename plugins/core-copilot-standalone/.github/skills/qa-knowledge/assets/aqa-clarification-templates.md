@@ -45,7 +45,7 @@ Please provide answers so I can proceed with test implementation.
 
 ## Test-plan clarification section
 
-`### Explicit Assertions` is **mandatory** — Phase 6 validates that every assertion is implemented OR listed in Uncovered. Carry every `Derived assertion` from the gap entries into the typed list; zero derived assertions → emit the None-clause, never omit the section. Add this section to `agents/plans/aqa-<test-name>.md`:
+`### Explicit Assertions` is **mandatory** — Phase 6 validates that every assertion is implemented OR listed in Uncovered. Carry every `Derived assertion` from the gap entries into the typed list; zero derived assertions → emit the None-clause, never omit the section. Add this section to `plans/aqa-<test-name>.md`:
 
 ```markdown
 ## Phase 2: Requirements Clarification

@@ -40,7 +40,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 
 1. ACQUIRE `aqa-flow-data-collection.md` FROM KB
 2. Execute phase instructions.
-3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: test plan file created at `agents/plans/aqa-<test-name>.md`
+3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: test plan file created at `plans/aqa-<test-name>.md`
 4. Recommended skills: `discovery`
 5. Update `agents/aqa-state.md`
 
@@ -50,7 +50,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 
 1. ACQUIRE `aqa-flow-requirements-clarification.md` FROM KB
 2. Execute phase instructions.
-3. Input: user request + collected data from Phase 1. Output: clarified test requirements and scope in test plan file `agents/plans/aqa-<test-name>.md`
+3. Input: user request + collected data from Phase 1. Output: clarified test requirements and scope in test plan file `plans/aqa-<test-name>.md`
 4. **WAIT FOR USER ANSWERS** to the clarifying questions before Phase 3.
 5. Recommended skills: `requirements-use`, `questioning`
 6. Update `agents/aqa-state.md`
@@ -61,7 +61,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 
 1. ACQUIRE `aqa-flow-code-analysis.md` FROM KB
 2. Execute phase instructions.
-3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md` + test plan file `agents/plans/aqa-<test-name>.md`. Output: code analysis report at `agents/plans/aqa-<test-name>-code-analysis.md` (architecture patterns, existing page objects, test patterns).
+3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md` + test plan file `plans/aqa-<test-name>.md`. Output: code analysis report at `plans/aqa-<test-name>-code-analysis.md` (architecture patterns, existing page objects, test patterns).
 4. Recommended skills: `reverse-engineering`
 5. Update `agents/aqa-state.md`
 
@@ -71,7 +71,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 
 1. ACQUIRE `aqa-flow-selector-identification.md` FROM KB
 2. Execute phase instructions.
-3. Input: code analysis report `agents/plans/aqa-<test-name>-code-analysis.md` + frontend code (or user-provided page source). Output: identified selectors for test targets.
+3. Input: code analysis report `plans/aqa-<test-name>-code-analysis.md` + frontend code (or user-provided page source). Output: identified selectors for test targets.
 4. **WAIT FOR USER TO PROVIDE PAGE SOURCE** only if frontend code unavailable or selectors not found.
 5. Recommended skills: `testing` (Part A)
 6. Update `agents/aqa-state.md`
@@ -92,7 +92,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 
 1. ACQUIRE `aqa-flow-test-implementation.md` FROM KB
 2. Execute phase instructions.
-3. Input: page objects + clarified requirements + code analysis report `agents/plans/aqa-<test-name>-code-analysis.md`. Output: implemented test files.
+3. Input: page objects + clarified requirements + code analysis report `plans/aqa-<test-name>-code-analysis.md`. Output: implemented test files.
 4. **STOP AND WAIT** for user to execute test.
 5. Recommended skills: `coding`, `testing` (test-implementation is done inline by this phase via `coding` + `testing`)
 6. Update `agents/aqa-state.md`
@@ -136,7 +136,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 </orchestration_and_escalation>
 
 <workflow_success_criteria>
-- **Overall run complete** when every in-scope phase is marked done in `agents/aqa-state.md` and the artifacts those phases reference exist (e.g. `agents/plans/aqa-<test-name>.md`, `agents/plans/aqa-<test-name>-code-analysis.md` when Phase 3 ran, test file paths after Phase 6, failure analysis before Phase 8), and the user accepts the last test outcome or explicitly stops.
+- **Overall run complete** when every in-scope phase is marked done in `agents/aqa-state.md` and the artifacts those phases reference exist (e.g. `plans/aqa-<test-name>.md`, `plans/aqa-<test-name>-code-analysis.md` when Phase 3 ran, test file paths after Phase 6, failure analysis before Phase 8), and the user accepts the last test outcome or explicitly stops.
 - **In-scope phase** means any phase required by default execution plus user-approved customization/skip decisions under `<orchestration_and_escalation>`.
 - **Spot checks:** Phase 1 — plan file exists at the **user-confirmed** `<test-name>` slug (no fabricated/placeholder slug; user deletion of the slug respected); Phase 2 — `### Explicit Assertions` subsection present in the plan (≥1 typed bullet or the None-clause); Phase 3 — code analysis report path populated with architecture + page object inventory + test location; Phase 4 — `## Selector Management` Part A deliverables present in the plan (Interaction Map / Availability / Identified Selectors / Fragile Flagged); Phase 5 — every identified selector present in the updated page-object files and lint-clean; Phase 6 — test file path + lint-clean per phase doc (example: `tests/e2e/login.spec.ts` exists and lint passes as required by `aqa-flow-test-implementation.md`); Phase 7 — failure analysis recorded; Phase 8 — user-approved edits applied when that phase runs.
 - If a required spot-check artifact is missing or partial, that phase is not done: record the gap in `agents/aqa-state.md`, flag uncertainty, and stop for user guidance before continuing.

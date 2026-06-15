@@ -131,18 +131,6 @@ Example logical flow: discover → extract+intake → blueprint → for_each_pro
 
 </core_principles>
 
-<rosetta canonical lists>
-You must check canonical lists of workflows, templates, subagents, skills, rules Rosetta has or to be implemented (you must use them as if those are already exist):
-
-- `docs/definitions/workflows.md`
-- `docs/definitions/templates.md`
-- `docs/definitions/agents.md`
-- `docs/definitions/skills.md`
-- `docs/definitions/rules.md`
-
-This list above defines what should be what, you must read it.
-</rosetta canonical lists>
-
 <resources>
 
 - When needed ACQUIRE `coding-agents-prompt-authoring/references/pa-knowledge-base.md` FROM KB (large file, grep headers to auto-TOC and load only needed sections)

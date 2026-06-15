@@ -11,7 +11,7 @@ description: AQA code-analysis report skeleton (9 sections) plus the test-locati
 # Code Analysis — <test-name>
 
 **Generated:** <YYYY-MM-DD>
-**Test plan:** agents/plans/aqa-<test-name>.md
+**Test plan:** plans/aqa-<test-name>.md
 **Sources:**
 - project_description.md: [read | missing]
 - CONTEXT.md / ARCHITECTURE.md / IMPLEMENTATION.md: [list read | missing]

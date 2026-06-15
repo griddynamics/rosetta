@@ -72,22 +72,10 @@ Validation methodology:
 
 <implementation_modes>
 
-Two modes layered on the general coding discipline. The calling workflow PHASE is the SSoT for in-scope file set, artifact paths, approval-token set, the proposed-change template, and any iteration cap; this skill EMITS against those bindings.
+Two named coding-discipline modes the calling workflow PHASE binds to. The PHASE is SSoT for the in-scope file set, artifact paths, approval-token set, proposed-change template, root-cause source, and iteration cap, and owns the step sequence; this skill applies the discipline below against those bindings — it does not restate the phase's procedure, approval vocabulary, or root-cause analysis.
 
-**standards-first mode** (read repository standards as authority BEFORE implementing/extending tests, helpers, page objects, automation glue):
-1. Read the canonical repo docs at root when present — `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md` (+ `project_description.md` if present; absence is normal). GATE: if none exist/readable, stop and ask the user for substitute standards — do NOT proceed on model defaults.
-2. Extract explicit rules: test layout, naming, fixtures, auth/session, logging, lint/format commands, forbidden patterns. Mark unspecified rules `Not documented — <impact>` rather than inventing.
-3. Search the codebase for the closest existing examples (same framework, same layer) before writing new files — prefer extending existing patterns over parallel conventions.
-4. Repository documentation beats model defaults on every conflict (canonical — single source of truth). Surface doc-vs-code conflicts to the user; apply the documented rule unless the user directs otherwise; record the resolution.
-5. Record into the phase artifact which files were used as references (paths only, ≤6, no large quotes) and the extracted rules. The phase owns the artifact path and the `## Repository Standards Alignment` record shape.
-
-**approved-apply mode** (a domain-specific specialization of `hitl` for applying fixes after analysis):
-1. USE SKILL `debugging` to align each proposed edit with a confirmed root cause; keep proposals minimal (smallest diff per linked cause).
-2. Prepare each change as a proposal with before/after evidence + file path, in the proposed-change template the PHASE owns — present, do NOT write.
-3. GATE: WAIT for explicit approval. Approval vocabulary is governed by `hitl` and the phase's bound approval-token set — never infer approval from "looks good", silence, or a question.
-4. Apply approved changes one at a time (or in named approved batches); run lint/format after each. Partial-batch approval applies ONLY the explicitly named hunks.
-5. GATE: lint failure → stop applying further changes; revert/re-prepare or get user approval for a revised approach — never leave a file broken.
-6. Honor the phase's in-scope file set (writes outside it are refused and escalated) and the phase's iteration cap. Hand off re-verification: tell the user the exact re-run command; update state without closing the workflow.
+- **standards-first mode** — before authoring/extending code, read the repository's OWN standards as authority: root canonical docs when present + the closest existing examples in the same framework/layer; repo docs beat model defaults on every conflict (surface + record conflicts); record reference paths (≤6, no large quotes) + extracted rules into the phase artifact. GATE: no readable standards → stop and ask for substitutes; never proceed on model defaults.
+- **approved-apply mode** — prepare each fix as a minimal before/after proposal in the phase's template (present, do NOT write); WAIT for explicit approval per the phase's bound token set (never infer from "looks good"/silence/a question); apply approved changes one at a time with lint after each (lint failure → revert/re-prepare, never leave a file broken); honor the in-scope file set + iteration cap; hand off re-verification (exact re-run command; update state without closing the workflow). Each edit's root-cause alignment is sequenced by the workflow's debugging step before apply — not performed here.
 
 </implementation_modes>
 
@@ -129,7 +117,7 @@ Two modes layered on the general coding discipline. The calling workflow PHASE i
 - MCP `Chrome-DevTools` — browser debugging and inspection
 - MCP `GitNexus` — codebase knowledge graph
 - MCP `Serena` — semantic code retrieval at symbol level
-- skill `debugging` — for issues during implementation and root-cause alignment in approved-apply mode
+- skill `debugging` — root-cause analysis (the workflow sequences it before approved-apply; not invoked from here)
 - skill `hitl` — approval-gate authority for approved-apply mode (not restated here)
 - skill `testing` — test quality bar when implementing/extending tests
 - skill `planning` — for implementation planning

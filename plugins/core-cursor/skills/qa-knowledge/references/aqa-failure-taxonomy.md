@@ -15,6 +15,6 @@ AQA UI/E2E failure taxonomy. Assign **exactly one** category per failure (exhaus
 6. **Test code** — logic error, wrong helper API, missing await/async
 7. **Unknown** — failure occurred but no usable evidence (explicit catch-all)
 
-Selector/Locator entries MUST analyze the captured page source under `agents/plans/aqa-<test-name>-page-sources/`. If that directory is missing, do not silently skip — tag the entry `Unknown — page sources not available; would need the selector-identification phase re-run`.
+Selector/Locator entries MUST analyze the captured page source under `plans/aqa-<test-name>-page-sources/`. If that directory is missing, do not silently skip — tag the entry `Unknown — page sources not available; would need the selector-identification phase re-run`.
 
 </aqa-failure-taxonomy>

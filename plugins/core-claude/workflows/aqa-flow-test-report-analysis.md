@@ -14,8 +14,8 @@ Analyze test execution reports, identify failure root causes, and prepare for co
 
 <workflow_context>
 - Phase 7 of 8 in `aqa-flow`.
-- Input: test report or execution output + test plan + page sources at `agents/plans/aqa-<test-name>-page-sources/`.
-- Output artifact path (single SSoT — referenced by other sections): `agents/plans/aqa-<test-name>-failure-analysis.md` (resolve `<test-name>` per `qa-structure` `aqa-layout`).
+- Input: test report or execution output + test plan + page sources at `plans/aqa-<test-name>-page-sources/`.
+- Output artifact path (single SSoT — referenced by other sections): `plans/aqa-<test-name>-failure-analysis.md` (resolve `<test-name>` per `qa-structure` `aqa-layout`).
 - Prerequisite: Phase 6 complete, test executed by user.
 - HITL: may need to ask user for report location.
 - Read-only scope (single SSoT — referenced by other sections as "the read-only scope"): parse / categorize / root-cause / label evidence / recommend. NO production code edits, NO writes to test or product source files. Refuse "just fix it now" / "patch the selector before Phase 8" with citation of this scope; the only acceptable user inputs are report location, evidence/labeling clarifications, or explicit approval to leave borderline items as `Assumption`.
@@ -43,7 +43,7 @@ This is the **phase contract**, verified by `<validation_checklist>` independent
 
 <execute_analysis step="7.1" subagent="engineer" role="Test failure analyst">
 1. If the test report is not under a known path and not in `agents/user-instructions/`: ask user; **WAIT** until a report artifact is available or the user confirms none.
-2. **ACQUIRE `qa-knowledge/references/aqa-failure-taxonomy.md`, `qa-knowledge/assets/failure-analysis-template.md`, and `qa-knowledge/references/redaction-scope.md` FROM KB first** — load-bearing for the `engineer`. Then USE SKILL `debugging` (test-execution triage mode) with the parent-supplied bindings: report path; taxonomy = the `aqa-failure-taxonomy` reference; output contract = `<failure_analysis_contract>`; output path = `agents/plans/aqa-<test-name>-failure-analysis.md`; page-sources directory = `agents/plans/aqa-<test-name>-page-sources/`. USE SKILL `sensitive-data` for redaction, then run the `redaction-scope` grep list as the pre-emit gate before writing.
+2. **ACQUIRE `qa-knowledge/references/aqa-failure-taxonomy.md`, `qa-knowledge/assets/failure-analysis-template.md`, and `qa-knowledge/references/redaction-scope.md` FROM KB first** — load-bearing for the `engineer`. Then USE SKILL `debugging` (test-execution triage mode) with the parent-supplied bindings: report path; taxonomy = the `aqa-failure-taxonomy` reference; output contract = `<failure_analysis_contract>`; output path = `plans/aqa-<test-name>-failure-analysis.md`; page-sources directory = `plans/aqa-<test-name>-page-sources/`. USE SKILL `sensitive-data` for redaction, then run the `redaction-scope` grep list as the pre-emit gate before writing.
 3. Honor the read-only scope (`<workflow_context>`).
 </execute_analysis>
 

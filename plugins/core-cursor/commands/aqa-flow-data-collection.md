@@ -14,7 +14,7 @@ Gather test case details from TestRail and feature context from Confluence, cros
 <workflow_context>
 - Phase 1 of 8 in `aqa-flow`
 - Input: TestRail case ID or URL, Confluence page ID or search terms (from user)
-- Output: `agents/plans/aqa-<test-name>.md` with test case info and feature context
+- Output: `plans/aqa-<test-name>.md` with test case info and feature context
 - Collection skill: `discovery` (single canonical collector). This phase resolves the in-scope collection vendor binding(s) from project config and passes them to `discovery`; `discovery` loads `references/<vendor>-binding.md`. ACQUIRE `discovery` before USE if not already loaded.
 - **Config-resolved vendors (vendors are NOT hardcoded).** Resolve from the AQA project config / Phase 0 output:
   - **TMS vendor** — first non-empty key (stop at first hit): `tms_mcp_collection_skill`, `tms_collection_skill`, `test_case_management.mcp_collection_skill`. In-scope signal: `testrail_base_url` (or a TMS server/base-URL field) present → TestRail in scope → vendor binding = `testrail`.
@@ -43,7 +43,7 @@ Gather test case details from TestRail and feature context from Confluence, cros
 <confirm_inputs step="1.1">
 1. Verify TestRail case ID or URL provided (ask user if missing).
 2. Verify Confluence page ID or search terms provided (ask user if missing).
-3. **Resolve the `<test-name>` slug — never fabricate it** (format + authority per `qa-structure` `aqa-layout`). Derive a kebab-case slug from the test case title (TestRail) or the user's feature description (e.g. "checkout with valid card" → `checkout-valid-card`), then **confirm it with the user before creating `agents/plans/aqa-<test-name>.md`** — e.g. "I'll name the plan `aqa-checkout-valid-card.md` — OK, or prefer another slug?". If neither a test case nor a feature description is available, STOP and ask the user; do NOT invent a slug or a placeholder.
+3. **Resolve the `<test-name>` slug — never fabricate it** (format + authority per `qa-structure` `aqa-layout`). Derive a kebab-case slug from the test case title (TestRail) or the user's feature description (e.g. "checkout with valid card" → `checkout-valid-card`), then **confirm it with the user before creating `plans/aqa-<test-name>.md`** — e.g. "I'll name the plan `aqa-checkout-valid-card.md` — OK, or prefer another slug?". If neither a test case nor a feature description is available, STOP and ask the user; do NOT invent a slug or a placeholder.
 4. **Respect user edits to the slug / plan.** If the user deletes, renames, or clears the slug or the plan file, treat it as rejection of the current slug — re-ask and use the user's choice; never silently re-write a slug the user removed.
 </confirm_inputs>
 
@@ -91,17 +91,17 @@ Stop Phase 1, record the failed KB tag in `agents/aqa-state.md`, notify the user
 
 <cross_reference_and_assemble step="1.4">
 1. Validate TestRail steps against Confluence feature context — note gaps or contradictions; populate `## Access / Truncation Notes` per `<access_notes_policy>`.
-2. Create `agents/plans/aqa-<test-name>.md` per the asset `qa-knowledge/assets/aqa-plan-template.md` (ACQUIRE FROM KB) — Test Case Information, Feature Context, Access / Truncation Notes, Cross-Reference Notes.
+2. Create `plans/aqa-<test-name>.md` per the asset `qa-knowledge/assets/aqa-plan-template.md` (ACQUIRE FROM KB) — Test Case Information, Feature Context, Access / Truncation Notes, Cross-Reference Notes.
 3. Verify test plan file created.
 </cross_reference_and_assemble>
 
 <update_state step="1.5">
 1. **GATE — resolve and confirm the `<test-name>` slug before completing** (rules per `qa-structure` `aqa-layout`):
-   1. Re-read the actual plan filename under `agents/plans/`.
+   1. Re-read the actual plan filename under `plans/`.
    2. If it is a non-empty, valid kebab-case slug, adopt it as authoritative.
    3. If it differs from your in-memory value, the user renamed it — adopt theirs, update state references, briefly confirm.
    4. If it is empty / cleared / a literal placeholder (`aqa-.md`, `aqa-<test-name>.md`), it is **INVALID** — do NOT adopt, fabricate, or substitute; return to step 1.1, re-ask the user, then re-create the plan at the confirmed name.
-   5. Do NOT mark Phase 1 complete or advance to Phase 2 until a user-confirmed, non-empty slug exists AND `agents/plans/aqa-<test-name>.md` exists at it.
+   5. Do NOT mark Phase 1 complete or advance to Phase 2 until a user-confirmed, non-empty slug exists AND `plans/aqa-<test-name>.md` exists at it.
 2. If `agents/aqa-state.md` does not exist yet, create it from the asset `qa-structure/assets/aqa-state-template.md` (ACQUIRE FROM KB) — Phase 1 is the first phase to write it.
 3. Update `agents/aqa-state.md`: confirmed `<test-name>` slug; TestRail Case [ID/URL]; Confluence Pages [URLs]; Test Goal [brief]; Test Plan File [path]; Phase 1 completion timestamp — recording the resolved facts into the `## Key Artifacts & Facts` resume anchor.
 4. Mark Phase 1 complete, Phase 2 current.
@@ -112,7 +112,7 @@ Stop Phase 1, record the failed KB tag in `agents/aqa-state.md`, notify the user
 - Confluence documentation retrieved and documented
 - `## Access / Truncation Notes` populated per `<access_notes_policy>`
 - Cross-reference between TestRail and Confluence completed
-- **`<test-name>` slug confirmed by the user (not fabricated); plan file created at `agents/plans/aqa-<confirmed-slug>.md`**
+- **`<test-name>` slug confirmed by the user (not fabricated); plan file created at `plans/aqa-<confirmed-slug>.md`**
 - Test plan file created with all Phase 1 information
 - Test goal clearly understood
 - Expected results documented

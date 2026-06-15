@@ -14,7 +14,7 @@ Fill gaps in understanding, clarify unknowns, and transcribe the typed assertion
 
 <workflow_context>
 - Phase 2 of 8 in `aqa-flow`
-- Input: test plan file `agents/plans/aqa-<test-name>.md` from Phase 1
+- Input: test plan file `plans/aqa-<test-name>.md` from Phase 1
 - Output: user answers + explicit typed assertion list, written into the test plan
 - Prerequisite: Phase 1 complete
 - HITL: user answers required before Phase 3
@@ -63,11 +63,11 @@ Fill gaps in understanding, clarify unknowns, and transcribe the typed assertion
 <update_test_plan step="2.4">
 1. Process user answers from step 2.3.
 2. **Carry every `Derived assertion` field from step 2.1 into the typed list.** Zero derived assertions → emit the None-clause; do NOT omit the section.
-3. Add the **Phase 2 clarification section** to `agents/plans/aqa-<test-name>.md` per the asset `qa-knowledge/assets/aqa-clarification-templates.md` ("Test-plan clarification section"; ACQUIRE FROM KB) — Questions Asked, User Responses, Edge Cases, Test Data Requirements, Open Questions, and the **mandatory** typed `### Explicit Assertions` (with the worked exact-vs-contains example). Phase 6 (`testing`) validates that every assertion is implemented OR listed in Uncovered.
+3. Add the **Phase 2 clarification section** to `plans/aqa-<test-name>.md` per the asset `qa-knowledge/assets/aqa-clarification-templates.md` ("Test-plan clarification section"; ACQUIRE FROM KB) — Questions Asked, User Responses, Edge Cases, Test Data Requirements, Open Questions, and the **mandatory** typed `### Explicit Assertions` (with the worked exact-vs-contains example). Phase 6 (`testing`) validates that every assertion is implemented OR listed in Uncovered.
 </update_test_plan>
 
 <update_state step="2.5">
-1. **GATE — do NOT mark Phase 2 complete or advance to Phase 3 until** `agents/plans/aqa-<test-name>.md` contains the step-2.4 `### Explicit Assertions` subsection with **at least one typed bullet** (Presence / State / Content / Behavioral) **OR** the explicit None-clause. If it is absent, return to step 2.4 and write it first — a Phase 2 marked complete without this subsection is a defect (Phase 6 loses its validation anchor and tests silently under-assert).
+1. **GATE — do NOT mark Phase 2 complete or advance to Phase 3 until** `plans/aqa-<test-name>.md` contains the step-2.4 `### Explicit Assertions` subsection with **at least one typed bullet** (Presence / State / Content / Behavioral) **OR** the explicit None-clause. If it is absent, return to step 2.4 and write it first — a Phase 2 marked complete without this subsection is a defect (Phase 6 loses its validation anchor and tests silently under-assert).
 2. Update `agents/aqa-state.md`:
    - Questions Asked: [count]
    - User Responses: Documented in test plan file

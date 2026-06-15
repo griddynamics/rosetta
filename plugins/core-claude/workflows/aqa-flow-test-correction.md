@@ -14,7 +14,7 @@ Fix identified test failures based on the Phase 7 failure analysis. Prepares pro
 
 <workflow_context>
 - Phase 8 of 8 in `aqa-flow`
-- Input: failure analysis from Phase 7 (`agents/plans/aqa-<test-name>-failure-analysis.md`)
+- Input: failure analysis from Phase 7 (`plans/aqa-<test-name>-failure-analysis.md`)
 - Output: corrected test code, ready for re-testing
 - Prerequisite: Phase 7 complete
 - HITL: explicit user approval required before applying any change (a domain-specific specialization of `hitl`)
@@ -41,7 +41,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 <execute_corrections step="8.1" subagent="engineer" role="Test correction engineer">
 **Guardrail:** all of step 8.1 is preparation-only; file writes are forbidden until step 8.3. "Preparation-only" means proposed edits paired with before/after evidence — no writes to test, page-object, or product source files.
 1. USE SKILL `debugging` to align each proposed edit with a confirmed Phase 7 root cause (no symptom-only fixes).
-2. USE SKILL `coding` (approved-apply mode) with the parent-supplied bindings: proposed-change source = `agents/plans/aqa-<test-name>-failure-analysis.md`; proposed-change template = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 8.2; state file = `agents/aqa-state.md`; iteration cap = `<correction_contract>`; loop target = Phase 7.
+2. USE SKILL `coding` (approved-apply mode) with the parent-supplied bindings: proposed-change source = `plans/aqa-<test-name>-failure-analysis.md`; proposed-change template = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 8.2; state file = `agents/aqa-state.md`; iteration cap = `<correction_contract>`; loop target = Phase 7.
 3. Produce one Proposed Change record per fix per the `<correction_contract>` template. Do NOT apply anything yet.
 </execute_corrections>
 

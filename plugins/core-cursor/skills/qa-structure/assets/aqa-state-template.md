@@ -32,11 +32,11 @@ Resume anchor — full per-phase detail lives in each phase's own artifacts; rec
 
 | Artifact / fact | Value |
 |---|---|
-| Plan file (Phases 1–2) | `agents/plans/aqa-<test-name>.md` |
-| Code analysis (Phase 3) | `agents/plans/aqa-<test-name>-code-analysis.md` |
-| Page sources (Phase 4) | `agents/plans/aqa-<test-name>-page-sources/` |
+| Plan file (Phases 1–2) | `plans/aqa-<test-name>.md` |
+| Code analysis (Phase 3) | `plans/aqa-<test-name>-code-analysis.md` |
+| Page sources (Phase 4) | `plans/aqa-<test-name>-page-sources/` |
 | Test file(s) (Phase 6) | [paths, or `TBD`] |
-| Failure analysis (Phase 7) | `agents/plans/aqa-<test-name>-failure-analysis.md` |
+| Failure analysis (Phase 7) | `plans/aqa-<test-name>-failure-analysis.md` |
 | Root causes (Phase 7) | [one line per confirmed root cause; full detail in the failure-analysis artifact] |
 | HITL approvals | [one line per gate — approving phase + ISO timestamp, e.g. `Phase 2 / 2026-… (answers)`, `Phase 8 / 2026-… (corrections)`; or `N/A`] |
 
