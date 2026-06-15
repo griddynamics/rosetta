@@ -26,15 +26,31 @@ Activate inside any QA or AQA flow phase that must create the session folder, re
 
 <resources>
 
-- reference `qa-structure/references/qa-layout.md` — QA paths, `{IDENTIFIER}` derivation, QA state-file shape
-- reference `qa-structure/references/aqa-layout.md` — AQA paths, `<test-name>` slug rules, AQA state-file shape
-- reference `qa-structure/references/config-schema.md` — QA project-config key schema (keys + consuming phase + accepted N/A forms)
-- asset `qa-structure/assets/qa-project-config-template.md` — QA project-config markdown skeleton
-- asset `qa-structure/assets/qa-config-interview.md` — verbatim user-prompt interview (Phase 0, config missing)
-- asset `qa-structure/assets/aqa-state-template.md` — AQA state-file template
+Router — ACQUIRE the one your current step needs (point-of-use, never all at once):
 
-(The QA state-file seed and the QA per-run initial-data skeleton are tiny + always-needed, so they stay **inline** in `qa-flow-project-config-loading.md` rather than as assets — avoids ACQUIRE round-trips on the Phase 0 critical path.)
+| When a phase needs to… | ACQUIRE |
+|---|---|
+| resolve QA paths, `{IDENTIFIER}` derivation, or the QA state-file shape | `qa-structure/references/qa-layout.md` |
+| resolve AQA paths, the `<test-name>` slug rules, the page-sources contract, or the AQA state-file shape | `qa-structure/references/aqa-layout.md` |
+| load or validate the QA project-config keys (keys + consuming phase + accepted `N/A` forms) | `qa-structure/references/config-schema.md` |
+| write the QA project-config file | `qa-structure/assets/qa-project-config-template.md` |
+| run the Phase 0 user interview (config missing) | `qa-structure/assets/qa-config-interview.md` |
+| seed the AQA state file (Phase 1) | `qa-structure/assets/aqa-state-template.md` |
+
+The QA state-file seed and the QA per-run initial-data skeleton are tiny + always-needed, so they stay **inline** in `qa-flow-project-config-loading.md` rather than as assets — avoids ACQUIRE round-trips on the Phase 0 critical path.
 
 </resources>
+
+<anti_patterns>
+
+Flag/refuse these before proceeding:
+
+- Fabricating or guessing a `<test-name>` / `{IDENTIFIER}` slug instead of confirming with the user (or stopping when underivable).
+- Writing the project config to a per-ticket path instead of the project-wide canonical path.
+- Leaving a required config key absent instead of `N/A — <reason>` — Phase 1's grep silently misses an absent key.
+- Inventing a non-canonical artifact path instead of binding to the layout reference verbatim.
+- Loading both flows' layouts when only one applies (`qa-layout` XOR `aqa-layout`).
+
+</anti_patterns>
 
 </qa_structure>

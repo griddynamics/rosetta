@@ -25,22 +25,39 @@ Activate inside any QA or AQA flow phase that authors, analyzes, or corrects tes
 
 <resources>
 
-- asset `qa-knowledge/assets/proposed-change-template.md` — shared QA/AQA correction approval block (presented before any write)
-- asset `qa-knowledge/assets/api-analysis-template.md` — QA api-analysis per-endpoint contract entry + Analysis Summary metrics
-- asset `qa-knowledge/assets/test-spec-template.md` — QA test-specs skeleton (GWT ATC scenarios, file mapping, utilities)
-- asset `qa-knowledge/assets/qa-test-impl-record.md` — QA Phase 5 hand-off summary fields
-- asset `qa-knowledge/assets/execution-report-template.md` — QA execution-report skeleton
-- asset `qa-knowledge/assets/gap-finding-templates.md` — QA gap-analysis G/C/A finding-entry forms
-- asset `qa-knowledge/assets/aqa-plan-template.md` — AQA test-plan skeleton (Test Case Info, Feature Context, Access/Cross-Reference notes)
-- asset `qa-knowledge/assets/code-analysis-report-template.md` — AQA code-analysis 9-section report + test-location rule
-- asset `qa-knowledge/assets/aqa-clarification-templates.md` — AQA Phase 2 gap entry, questions message, clarification section (typed Explicit Assertions)
-- asset `qa-knowledge/assets/aqa-test-impl-record.md` — AQA Phase 6 Test Implementation record
-- asset `qa-knowledge/assets/failure-analysis-template.md` — AQA failure-analysis skeleton
-- asset `qa-knowledge/assets/page-source-capture-instructions.md` — verbatim user-facing page-source capture message
-- reference `qa-knowledge/references/redaction-scope.md` — shared QA/AQA redaction scope + pre-emit re-scan list
-- reference `qa-knowledge/references/qa-failure-taxonomy.md` — QA backend-API failure taxonomy
-- reference `qa-knowledge/references/aqa-failure-taxonomy.md` — AQA UI/E2E failure taxonomy
+Router — ACQUIRE the one your current step needs (point-of-use, never all at once):
+
+| When a phase needs to… | ACQUIRE |
+|---|---|
+| present a correction for approval (QA **or** AQA) | `qa-knowledge/assets/proposed-change-template.md` |
+| emit the QA api-analysis artifact | `qa-knowledge/assets/api-analysis-template.md` |
+| emit QA test specs (Given-When-Then `ATC-NNN`) | `qa-knowledge/assets/test-spec-template.md` |
+| record the QA test-implementation hand-off | `qa-knowledge/assets/qa-test-impl-record.md` |
+| emit the QA execution report | `qa-knowledge/assets/execution-report-template.md` |
+| record QA gap-analysis findings (G/C/A) | `qa-knowledge/assets/gap-finding-templates.md` |
+| build the AQA test plan (Phase 1) | `qa-knowledge/assets/aqa-plan-template.md` |
+| emit the AQA code-analysis report | `qa-knowledge/assets/code-analysis-report-template.md` |
+| run AQA Phase-2 clarification (gap entry / questions / typed assertions) | `qa-knowledge/assets/aqa-clarification-templates.md` |
+| record the AQA test-implementation | `qa-knowledge/assets/aqa-test-impl-record.md` |
+| emit the AQA failure analysis | `qa-knowledge/assets/failure-analysis-template.md` |
+| send the page-source capture message to the user | `qa-knowledge/assets/page-source-capture-instructions.md` |
+| redact before writing **any** tracked artifact (both flows) | `qa-knowledge/references/redaction-scope.md` |
+| classify a QA backend-API failure | `qa-knowledge/references/qa-failure-taxonomy.md` |
+| classify an AQA UI/E2E failure | `qa-knowledge/references/aqa-failure-taxonomy.md` |
 
 </resources>
+
+<anti_patterns>
+
+Flag/refuse these before proceeding:
+
+- Redacting "from memory" instead of running the `redaction-scope` grep list as the pre-emit gate — and emitting anyway when that ACQUIRE failed (the gate is **fail-closed**: stop, never emit unscanned).
+- A subagent writing an artifact from memory instead of ACQUIRE-ing its skeleton/template first.
+- Silent ATC / assertion drop — every ATC (QA) or typed assertion (AQA) is implemented **or** recorded (Gap / Uncovered), never dropped.
+- Collapsing multiple ATCs / assertions into one bullet — one per bullet.
+- Inventing an artifact's shape the skill owns instead of ACQUIRE-ing the asset.
+- Restating a taxonomy or template inline instead of pointing to its reference/asset (DRY).
+
+</anti_patterns>
 
 </qa_knowledge>
