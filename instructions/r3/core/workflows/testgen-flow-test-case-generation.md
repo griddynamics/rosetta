@@ -55,6 +55,8 @@ For each requirement, determine test scenario types needed:
 - **Performance Tests** (for NFRs): load, stress, concurrent users, response time
 - **Security Tests** (for security NFRs): auth failures, authorization violations, injection, XSS
 
+**Scope guard:** generate **Performance** and **Security** test types ONLY when the requirements / NFRs specify a constraint in that category — never invent injection / XSS / load tests without a source requirement (mirrors the Phase 4 NFR coverage-discipline: cover only what the sources specify, do not pad).
+
 Common patterns for minimum coverage:
 
 **CRUD Operations** (4+ scenarios):
@@ -81,7 +83,7 @@ Common patterns for minimum coverage:
 
 <generate_test_cases step="5.3" subagent="engineer" role="Test case design engineer">
 
-**Resolve the TMS FORMAT vendor binding first** (config-resolved — do NOT hardcode the vendor): read the resolved FORMAT vendor from project config, taking the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `agents/testgen/testgen-project-config.md` (project-wide, per Phase 0 step 0.3) / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `scenarios-generation`, which loads `references/<vendor>-format.md`. If the keys are empty but a TMS is clearly in scope, re-read config for a default; if still absent, fall back to the inline `<tc_schema>` template below (record the fallback per `<failure_handling>`).
+**Resolve the TMS FORMAT vendor binding first** (config-resolved — do NOT hardcode the vendor): read the resolved FORMAT vendor from project config, taking the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `agents/testgen/testgen-project-config.md` (project-wide, per Phase 0 step 0.3) / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `scenarios-generation` for the vendor-specific case format (the skill resolves and loads its own format internally). If the keys are empty but a TMS is clearly in scope, re-read config for a default; if still absent, fall back to the inline `<tc_schema>` template below (record the fallback per `<failure_handling>`).
 
 1. USE SKILL `scenarios-generation` (generation mode) passing the resolved FORMAT vendor binding for test case format.
 2. Create 2-5 test cases per requirement covering different test types from step 5.2.
@@ -249,7 +251,7 @@ TC-003: Viewer cannot create Job Post
 ---
 
 ## Priority 0 Test Cases (Critical)
-[TC entries in the resolved FORMAT-binding case format]
+[TC entries per `<tc_schema>` — or the resolved FORMAT-binding case format when `scenarios-generation` loaded; `<tc_schema>` is the normative fallback shape]
 
 ## Priority 1 Test Cases (High)
 [TC entries]
@@ -278,7 +280,8 @@ TC-003: Viewer cannot create Job Post
 <update_state step="5.9">
 1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 5 complete and metrics (total test cases, merged count, priority breakdown, coverage)
 2. Tell user: "Phase 5 complete. Generated [X] test cases ([Y] merged for efficiency). All requirements covered."
-3. Ask: "Ready to proceed to Phase 6 (TestRail Export)?"
+3. Ask: "Please review `test-scenarios.md`. Ready to proceed to Phase 6 (TestRail Export)?"
+4. **STOP AND WAIT for explicit user confirmation. DO NOT PROCEED to Phase 6 until the user confirms.** Only an explicit confirmation token (`yes` / `proceed` / equivalent) unblocks Phase 6; treat ambiguous responses (questions, suggestions, silence) as not confirmed and re-ask. (Matches the Phase 4 gate at `testgen-flow-requirements-document-generation.md` step 4.4.)
 </update_state>
 
 <validation_checklist>

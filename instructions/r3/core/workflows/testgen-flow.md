@@ -10,7 +10,7 @@ baseSchema: docs/schemas/workflow.md
 
 <description_and_purpose>
 
-Systematic requirements analysis from Jira tickets and Confluence documentation to structured requirements and test scenarios. Extracts data, identifies gaps, clarifies unknowns via HITL, generates requirements document, and produces test cases with optional export to a Test Management System. Designed for BA/QA engineers and requirements engineers.
+Systematic requirements analysis from Jira tickets and Confluence documentation to structured requirements and test scenarios. Extracts data, identifies gaps, clarifies unknowns via HITL, generates requirements document, and produces test cases with export to a Test Management System (Phase 6, user-triggered — the user may choose not to trigger it, but it is a fully-specified phase, not informally skippable). Designed for BA/QA engineers and requirements engineers.
 
 </description_and_purpose>
 
@@ -79,13 +79,14 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 </question_generation>
 
-<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_recommended_model="tier: complex">
+<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_recommended_model="tier: complex" type="HITL">
 
 1. ACQUIRE `testgen-flow-requirements-document-generation.md` FROM KB
 2. Execute phase instructions.
 3. Input: raw-data.md + analysis.md + answers.md. Output: `agents/testgen/{TICKET-KEY}/requirements.md`.
-4. Recommended skills: `requirements-authoring`
-5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+4. **WAIT FOR USER** to review `requirements.md` before Phase 5 (phase-file gate, step 4.4) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
+5. Recommended skills: `requirements-authoring`
+6. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </requirements_document_generation>
 
@@ -94,9 +95,10 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 1. ACQUIRE `testgen-flow-test-case-generation.md` FROM KB
 2. Execute phase instructions.
 3. Input: requirements.md. Output: `agents/testgen/{TICKET-KEY}/test-scenarios.md`
-4. Recommended skills: `scenarios-generation`, `coding`
-5. Apply `coding` per `<phase_5_6_standards_gate>`.
-6. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+4. **WAIT FOR USER** to review `test-scenarios.md` before Phase 6 export (phase-file gate, step 5.9) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
+5. Recommended skills: `scenarios-generation`, `coding`
+6. Apply `coding` per `<phase_5_6_standards_gate>`.
+7. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </test_case_generation>
 
@@ -130,7 +132,9 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 <state_and_outputs>
 
-`testgen-state.md` (sections `## Phase Completion Status`, `## Phase Details`, `## Metrics`, `## Verification-Failure Overrides`) and the per-ticket output-directory layout are **initialized and owned by Phase 0** (`testgen-flow-project-config-loading.md`). Each subsequent phase updates the state file per `<workflow_phases>` and writes its output (paths in each phase block) under `agents/testgen/{TICKET-KEY}/`.
+`testgen-state.md` (sections `## Phase Completion Status`, `## Phase Details`, `## Metrics`, `## Verification-Failure Overrides`) and the per-ticket output-directory layout are **initialized and owned by Phase 0** (`testgen-flow-project-config-loading.md`) — see it for the canonical layout. Each subsequent phase updates the state file per `<workflow_phases>` and writes its output (paths in each phase block) under `agents/testgen/{TICKET-KEY}/`.
+
+Expected per-ticket artifact set (one validation can confirm all phases ran): `initial-data.md` + project config (Phase 0) · `raw-data.md` (1) · `analysis.md` (2) · `questions.md` + `answers.md` (3) · `requirements.md` (4) · `test-scenarios.md` (5) · `export-report.md` (6) · `testgen-state.md` (all). Full schema/layout owned by Phase 0.
 
 </state_and_outputs>
 

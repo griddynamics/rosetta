@@ -47,6 +47,16 @@ For each test case, generate 1-N scenarios across these categories (priority def
 
 ---
 
+## Decision rules — apply while filling the ATC template
+
+- **Partial endpoint contract** (some fields known, some absent): author the mappable parts; mark each unknown value `[ASSUMED: …]` (per-value honesty rule); if a *core* field stays unresolved, flag the case in `## Excluded Test Cases`.
+- **Structurally incomplete ATC** — a required *structural* field (`Endpoint`, `Type`, `Priority`) cannot be determined (e.g. the test case names no API path): write `gap: <field> — <reason>` in that field AND record the ATC in `## Excluded Test Cases` with the missing field listed. Never author a structurally incomplete ATC silently; never fabricate the field.
+- **Source field** (traceability): if no source reference is traceable, write `gap: no source reference — <reason>` — never invent a TC / ticket number.
+- **Duplicate test cases** (same endpoint + intent across the input list): emit ONE ATC, list the merged source ids in `**Source**` — do not emit near-identical duplicates.
+- **Inapplicable test type** for an endpoint (e.g. no Auth category on a public endpoint): omit that category and record the omission + reason in `## Excluded Test Cases` — do not invent an auth scenario.
+
+---
+
 ## ATC Template (Given-When-Then) — used by SKILL step 3
 
 One entry per scenario, written into the phase's spec artifact.
@@ -183,4 +193,30 @@ Written into the spec artifact's `## Shared Utilities Required` section.
 
 **Assumptions**:
   - None — all values derived from endpoint contracts and clarifications.
+```
+
+---
+
+## Worked examples — Auth failure + Boundary (structural contrast vs Happy Path)
+
+Auth failure — `Given` = no token; `Then` = 401 with **no resource-body assertion**:
+
+```markdown
+### ATC-014: GET /api/v1/orders/{orderId} rejects an unauthenticated request
+**Source**: TC-42 · **Priority**: P1 · **Type**: Auth · **Endpoint**: GET /api/v1/orders/{orderId}
+**Given**: no `Authorization` header present
+**When**: send GET /api/v1/orders/o-12345 with no auth header
+**Then**: Status Code 401; assert error code `unauthorized`; **no resource body asserted**
+**Assumptions**: None — 401 derived from the endpoint's auth contract.
+```
+
+Edge/Boundary — value at the limit; `Then` asserts boundary handling, not a happy body:
+
+```markdown
+### ATC-022: GET /api/v1/orders/{orderId} handles a max-length order id
+**Source**: TC-42 · **Priority**: P3 · **Type**: Edge Case · **Endpoint**: GET /api/v1/orders/{orderId}
+**Given**: orderId at the documented max length
+**When**: send GET with the max-length id
+**Then**: Status Code 200 or 404 (valid-but-absent); assert no truncation error; assert id echoed unchanged
+**Assumptions**: `[ASSUMED: max id length = 64 — contract did not specify]`
 ```

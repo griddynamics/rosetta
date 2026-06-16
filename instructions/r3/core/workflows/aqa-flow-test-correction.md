@@ -19,13 +19,8 @@ Fix identified test failures based on the Phase 7 failure analysis. Prepares pro
 - Prerequisite: Phase 7 complete
 - HITL: explicit user approval required before applying any change (a domain-specific specialization of `hitl`)
 - In-scope file set (single SSoT): test files only (and page-object files if the Phase 7 analysis identifies a selector fix). Writes outside this set are refused and escalated.
+- Skills: `coding` (approved-apply mode), `debugging` (root-cause alignment), `qa-knowledge` (proposed-change approval block + correction discipline)
 </workflow_context>
-
-<recommended_skills>
-- `coding` — approved-apply mode prepares proposals, gates on approval, applies incrementally with lint, hands off re-verification.
-- `debugging` — aligns each proposed edit with a confirmed Phase 7 root cause before it is proposed.
-- `qa-knowledge` — the shared proposed-change approval block + correction discipline (ACQUIRE its asset at the cited step).
-</recommended_skills>
 
 <correction_contract>
 The phase OWNS the iteration cap and the escalation contract. The proposed-change approval block is the shared asset `qa-knowledge/assets/proposed-change-template.md` — ACQUIRE FROM KB at step 8.2 and present one block per change BEFORE any write. Flow parameters for the asset: **change-type enum** = `selector-update | wait-strategy | assertion-fix | data-setup | other`; **root-cause reference** = Phase 7 failure-analysis entry id (e.g. `F3`); **state file** = `agents/aqa-state.md`; on retry-cap, loop back to Phase 7. Verified by `<validation_checklist>` independent of skill internals.
@@ -47,10 +42,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 
 <present_for_approval step="8.2">
 1. Present all proposed changes with before/after code per the template.
-2. **WAIT** for explicit user approval.
-3. The user must type `approved`, `approve`, or `yes` (case-insensitive). Do not assume approval. Loose phrasings ("looks good", "ship it", "LGTM", "go ahead", "OK") are treated as REVIEW, not approval — re-prompt for an exact token (approval vocabulary governed by `hitl`).
-4. Partial approval (`apply Change 1 and Change 3`) applies ONLY the named hunks.
-5. If the user requests modifications: update proposals, re-present. If the user rejects specific changes: remove them.
+2. **Approval gate:** ACQUIRE `qa-knowledge/assets/approval-gate.md` FROM KB and apply it over the presented changes (closed-token discipline · loose-phrasing rejection · max-retry escalation · partial approval · change/reject handling). Bindings: closed token list = `approved` / `approve` / `yes`; re-present step = 8.2; full-reject revisit target = Phase 7. The token list is this phase's authoritative specialization.
 </present_for_approval>
 
 <apply_changes step="8.3">

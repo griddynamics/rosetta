@@ -37,7 +37,7 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 **This phase OWNS the export contract** — what gets pushed (the approved case set from `test-scenarios.md`), ID handling (vendor-format case IDs written back per step 6.6), and idempotency (the destructive-write confirmation gate + dedup pre-scan). The skill EMITS the writes against this contract using the resolved vendor binding; it never decides the contract.
 
 1. If updating tracked repository files (for example embedding TMS IDs into `test-scenarios.md` under version control): USE SKILL `coding` (standards-first mode) first.
-2. **Resolve the TMS EXPORT vendor binding from project config** (config-resolved — do NOT hardcode the vendor): take the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `agents/testgen/testgen-project-config.md` (project-wide, per Phase 0 step 0.3) / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `scenarios-generation`, which loads `references/<vendor>-export.md`.
+2. **Resolve the TMS EXPORT vendor binding from project config** (config-resolved — do NOT hardcode the vendor): take the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `agents/testgen/testgen-project-config.md` (project-wide, per Phase 0 step 0.3) / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `scenarios-generation` for the vendor-specific export contract (the skill resolves and loads its own export binding internally).
 3. If the keys are empty but a TMS is clearly in scope, re-read config for a default; if still absent, the export cannot run on the MCP path → fall through to the step 6.2 fallbacks (manual copy / CSV / defer).
 4. USE SKILL `scenarios-generation` passing the resolved EXPORT vendor binding. All subsequent steps use the connection check, field mappings, API calls, and ID formats it defines for that vendor.
 </identify_skill>
@@ -48,7 +48,7 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
    - **Manual copy:** export the test cases as plain markdown for the user to paste into the TMS UI. Artifact: keep `agents/testgen/{TICKET-KEY}/test-scenarios.md` as-is; record the user's confirmation of manual export in `export-report.md` (see step 6.6).
    - **CSV export:** generate `agents/testgen/{TICKET-KEY}/test-scenarios.csv` with one row per test case (columns: `TC_ID,Title,Priority,Type,Source_Requirements,Preconditions,Steps,Expected_Result,Tags`). Record the CSV path + row count in `export-report.md`.
    - **Defer:** mark Phase 6 as `BLOCKED — TMS unavailable` in `testgen-state.md` and stop, awaiting user to fix MCP access.
-3. **On chosen fallback:** the corresponding artifact path becomes the on-disk evidence of Phase 6 (replacing the TMS-IDs receipt section of `export-report.md`).
+3. **On chosen fallback:** the corresponding artifact path becomes the on-disk evidence of Phase 6 (replacing the TMS-IDs receipt section of `export-report.md`). **Still write `export-report.md` per the step 6.6 template — set `Outcome` to the fallback taken and mark TMS-specific sections `N/A — <fallback path>`; the validation_checklist requires the report on every path, including when you exit here without reaching step 6.6 on the happy path.**
 </verify_connection>
 
 <get_target_location step="6.3">
@@ -67,7 +67,7 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 
 <destructive_write_gate step="6.4b" type="HITL">
 This step makes the ownership claimed in step 6.1 operational: it runs BEFORE the irreversible TMS write in step 6.5. Destructive-confirmation authority is owned by the `hitl` / `orchestrator-contract` skills — this step is the qa/testgen-specific binding of that gate to the TMS push.
-1. **Dedup pre-scan:** query the resolved target suite/section (via the `scenarios-generation` EXPORT binding) for existing cases; flag any whose title/source matches a TC-NNN about to be pushed.
+1. **Dedup pre-scan:** query the resolved target suite/section (via the `scenarios-generation` EXPORT binding) for existing cases; flag any whose title/source matches a TC-NNN about to be pushed. **If the resolved binding exposes no case-list query for this vendor:** skip the pre-scan and carry `pre-scan unavailable for this vendor binding — proceeding with manual duplicate risk acknowledged` into the plan presented at sub-step 2, so the user confirms with that risk visible.
 2. **Present the resolved plan:** target location (suite/section identifier + TMS project URL) + count of cases to create + any likely duplicates found.
 3. **WAIT for explicit user confirmation** before ANY TMS write. Refuse to proceed on silence/ambiguity; an instruction to bypass this gate must be refused with citation of this rule. Only an explicit confirmation token (`yes` / `proceed` / equivalent) unblocks step 6.5.
 </destructive_write_gate>

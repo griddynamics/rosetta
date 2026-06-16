@@ -17,6 +17,7 @@ The phase supplies a ticket key or URL. Resolve the canonical key:
 ## Retrieval (SKILL step 3)
 
 ```
+# illustrative — call the configured Jira MCP's get-issue tool; this literal name is not a contract
 jira_get_issue(
     issue_key="PROJ-123",
     fields="summary,description,status,issuetype,assignee,priority,reporter,labels,components,created,updated",
@@ -45,6 +46,17 @@ jira_get_issue(
 
 Per-field branch: present + non-empty → include; empty/null → `None` + gap; permission-restricted → `<restricted by permissions>` + gap `<field>: not visible to configured Jira credentials`. Continue extraction.
 
+**Rendered example** (a normalized Jira issue block in `raw-data.md`):
+
+```markdown
+### PROJ-123 — Login returns 500 on empty username
+- **Type / Status / Priority:** Bug / In Progress / High
+- **Summary:** Login page throws 500 on empty username
+- **Description:** submitting the login form with a blank username returns HTTP 500 instead of a 400 validation error
+- **Labels / Components:** `auth`, `login` / `api-gateway`
+- **Comments (≤10):** 2 shown — @dev (2026-05-01): "repro confirmed on staging"
+```
+
 ## Redaction targets (SKILL step 4 → `sensitive-data`)
 
 Description and each comment body are highest-risk (Jira tickets routinely embed credentials + PII in stack-trace dumps and customer reports). Scan every captured value:
@@ -72,4 +84,3 @@ Record each redaction in the artifact's redaction section; if a real production 
 - Comment cap ≤10 honored with the overflow gap note when more exist.
 - Custom-field discovery attempted on cryptic `customfield_NNNNN` IDs.
 - Read-only: no `jira_create_issue` / `jira_update_issue` / `jira_transition_issue` / `jira_add_comment` or equivalent write call was made.
-</content>

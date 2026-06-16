@@ -19,13 +19,8 @@ Initialize the QA session directory, load the existing project config or collect
 - Output (canonical paths owned by `qa-structure`): project-wide `agents/qa/qa-project-config.md`; per-session `agents/qa/{IDENTIFIER}/initial-data.md`; workflow state `agents/qa-state.md`.
 - Prerequisite: starting new QA flow
 - HITL: conditional — user is questioned ONLY if the project config does not already exist
+- Skills: `qa-structure` (paths / `{IDENTIFIER}` / config schema / state shape), `questioning` (config-missing interview), `qa-knowledge` (redaction scope for the pre-write gate)
 </workflow_context>
-
-<recommended_skills>
-- `qa-structure` — canonical paths, `{IDENTIFIER}` derivation, config-key schema, state-file shape; ACQUIRE its assets/references at the cited steps.
-- `questioning` — the structured user interview when the config is missing.
-- `qa-knowledge` — the shared redaction scope for the pre-write gate (`references/redaction-scope.md`).
-</recommended_skills>
 
 <phase_steps>
 1. Parse user input, derive `{IDENTIFIER}`, and create the session directory + state-file stub.
@@ -64,12 +59,22 @@ Initialize the QA session directory, load the existing project config or collect
    - [ ] Phase 6: Execution & Report Analysis
    - [ ] Phase 7: Test Corrections
    ```
-4. **Load or create the project config** at the canonical path `agents/qa/qa-project-config.md` (project-wide, NOT per-`{IDENTIFIER}`):
-   - **File exists AND non-empty:** reuse as-is; skip to step 0.2 — nothing to collect, no user interaction. Still confirm every required key from `config-schema.md` is present; a malformed/incomplete existing config is handled per `<failure_handling>`.
-   - **File missing OR empty:** collect project info from the user — **USE SKILL `questioning`** asking the verbatim prompt in the asset `qa-structure/assets/qa-config-interview.md` (ACQUIRE FROM KB). **Validate the answer covers at minimum: document storage, Swagger/OpenAPI availability, and the test-case source; if a required field is missing, ask ONE follow-up naming exactly the missing fields — cap 2 rounds total.** Then write the populated config using the asset `qa-structure/assets/qa-project-config-template.md` (ACQUIRE FROM KB), applying `<safety_boundaries>` redaction at intake. Required keys + accepted `N/A` forms are in `qa-structure/references/config-schema.md`.
+4. **Load or create the project config** at the canonical path `agents/qa/qa-project-config.md` (project-wide, NOT per-`{IDENTIFIER}`): if the file exists AND is non-empty → `<config_exists>`; if it is missing OR empty → `<config_missing>`.
 5. **Verify** the per-session directory `agents/qa/{IDENTIFIER}/` exists and the project-wide config is non-empty at the canonical path before proceeding.
 
 </execute_config>
+
+<config_exists step="0.1.4a">
+1. Reuse the existing config as-is; skip to step 0.2 — nothing to collect, no user interaction.
+2. Still confirm every required key from `qa-structure/references/config-schema.md` is present; a malformed / incomplete existing config is handled per `<failure_handling>` (the config-incomplete branch).
+</config_exists>
+
+<config_missing step="0.1.4b">
+1. Collect project info from the user — **USE SKILL `questioning`** asking the verbatim prompt in the asset `qa-structure/assets/qa-config-interview.md` (ACQUIRE FROM KB).
+2. Validate the answer covers at minimum: document storage, Swagger/OpenAPI availability, and the test-case source. If a required field is missing, ask ONE follow-up naming exactly the missing fields — cap 2 rounds total.
+3. Write the populated config using the asset `qa-structure/assets/qa-project-config-template.md` (ACQUIRE FROM KB), applying `<safety_boundaries>` redaction at intake.
+4. Required keys + accepted `N/A` forms are in `qa-structure/references/config-schema.md`.
+</config_missing>
 
 <create_initial_data step="0.2">
 Write `agents/qa/{IDENTIFIER}/initial-data.md` using the inline template below (kept inline — tiny + always needed); all four fields populated from the parsed input (`None` only for additional-links):

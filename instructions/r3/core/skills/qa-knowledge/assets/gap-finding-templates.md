@@ -7,6 +7,12 @@ description: QA gap-analysis finding-entry forms — G[N] gaps, C[N] contradicti
 
 Finding-entry shapes for `analysis.md` (one per finding). Quote source text verbatim; redact credentials/PII in any quoted line before writing (scope per `qa-knowledge/references/redaction-scope.md`; the gap_analysis mode applies the redaction skill).
 
+**Classify each finding into exactly one type:** **G (Gap)** — information is absent entirely · **C (Contradiction)** — two sources state conflicting facts · **A (Ambiguity)** — one source uses language with ≥2 valid interpretations. When a finding fits more than one type, file under the **most actionable** (C > A > G) and add a cross-reference in its `Impact` / `Needs Clarification` field.
+
+**Source vocabulary** (for `Source` / `Source 1|2` fields): one of `Test Case`, `Swagger/OpenAPI`, `Docs`, `User Instructions`.
+
+**Before writing:** each finding has a unique sequential index (`G1, G2…` / `C1, C2…` / `A1, A2…`); every `[Quote]` holds actual verbatim source text; no `[placeholder]` bracket remains; `Impact` is never blank. **Done when** all findings are indexed and complete with no residual placeholders.
+
 ```markdown
 ### G[N]: [Brief Title]
 **Type**: Endpoint / Request / Response / Auth / Test Data / Edge Case
@@ -26,6 +32,29 @@ Finding-entry shapes for `analysis.md` (one per finding). Quote source text verb
 **Vague Statement**: "[Quote]"
 **Possible Interpretations**: 1. [...] 2. [...]
 **Clarification Needed**: [Specific question]
+```
+
+**Worked examples** (one per type, QA-domain):
+
+```markdown
+### G1: Order-status enum not specified
+**Type**: Response
+**Context**: GET /api/v1/orders/{id} — `status` field
+**Missing Information**: the set of valid `status` values is not listed in Swagger or the test case
+**Impact**: cannot assert status transitions; negative tests for invalid status are unauthorable
+**Suggested Question**: What are the allowed `order.status` values and their transitions?
+
+### C1: Conflicting success status code
+**Source 1**: Swagger/OpenAPI — "POST /orders returns 201"
+**Source 2**: Test Case TC-42 — "expect 200 on create"
+**Impact**: the happy-path status assertion would be wrong against one of the sources
+**Needs Clarification**: Is order-create success 200 or 201?
+
+### A1: "appropriate timeout" undefined
+**Source**: Docs
+**Vague Statement**: "the request should fail after an appropriate timeout"
+**Possible Interpretations**: 1. client-side 30s abort  2. server 504 after the gateway limit
+**Clarification Needed**: What exact timeout value/behavior should the test assert?
 ```
 
 </gap-finding-templates>

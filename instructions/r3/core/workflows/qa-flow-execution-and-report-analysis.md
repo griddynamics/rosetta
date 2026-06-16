@@ -19,14 +19,8 @@ Analyze test execution results provided by the user. Identify failures, categori
 - Prerequisite: Phase 5 complete, tests executed by user
 - HITL: may need to ask user for test execution results
 - Read-only scope (single SSoT — referenced by other sections as "the read-only scope"): parse / categorize / root-cause / label evidence / recommend. NO production code edits, NO writes to test or product source files. Refuse "just fix it now" / "patch and move on" with citation of this scope; the only acceptable user inputs are report location, evidence/labeling clarifications, or explicit approval to leave borderline items as `Assumption`.
+- Skills: `debugging` (test-execution triage mode), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path), `qa-knowledge` (QA failure taxonomy + execution-report skeleton + redaction scope)
 </workflow_context>
-
-<recommended_skills>
-- `debugging` — its test-execution triage mode performs the read-only analysis below (parse → categorize → root-cause → label).
-- `sensitive-data` — redaction authority for any captured logs/requests/responses before they are written to the artifact.
-- `qa-structure` — `{IDENTIFIER}` path resolution and artifact location.
-- `qa-knowledge` — the QA failure taxonomy + execution-report skeleton + redaction scope (ACQUIRE its reference/asset at the cited steps).
-</recommended_skills>
 
 <execution_report_contract>
 `execution-report.md` is **PUBLIC by default** (tracked, shared review, downstream prompt contexts) — redact BEFORE writing per `qa-knowledge/references/redaction-scope.md`, not after. **MUST ACQUIRE that reference and run its grep list against the rendered artifact as the pre-emit gate; emit FORBIDDEN until it has run** (test logs/stack traces can carry tokens). The failure classification is `qa-knowledge/references/qa-failure-taxonomy.md` (assign exactly one category per failure). The required report structure is the asset `qa-knowledge/assets/execution-report-template.md` (ACQUIRE FROM KB) — Execution Summary, Failures by Category, per-failure Failure Details (Failure name · Category · Root cause · Evidence label `Confirmed`/`Assumption`/`Unknown` · Evidence rationale · Priority), Patterns, Recommendations.

@@ -20,13 +20,8 @@ Identify missing UI selectors from frontend source code or page-source HTML and 
 - HITL: conditional — only if frontend code is unavailable or selectors are not found
 - Read-only scope (single SSoT): identify only. NO writes to page objects, test files, or frontend source.
 - Paths + `<test-name>` slug resolution + the page-sources capture path/naming contract are owned by `qa-structure` `aqa-layout`.
+- Skills: `testing` (selector mode Part A — read-only identification), `qa-structure` (`<test-name>` + page-sources path), `qa-knowledge` (page-source capture asset)
 </workflow_context>
-
-<recommended_skills>
-- `testing` — selector mode Part A (read-only identification) performs the interaction map → availability check → frontend search → page-source analysis below.
-- `qa-structure` — `<test-name>` slug resolution + the page-sources path/naming contract (`aqa-layout`).
-- `qa-knowledge` — the verbatim page-source capture message (ACQUIRE its asset at step 4.2).
-</recommended_skills>
 
 <failure_handling>
 If the code-analysis file is missing, the slug stays ambiguous in `agents/aqa-state.md`, or more than one plausible `plans/aqa-*-code-analysis.md` exists: stop Phase 4, record the gap in `agents/aqa-state.md`, ask the user once for the canonical `<test-name>` or to re-run Phase 3 — do not guess (slug rules per `qa-structure` `aqa-layout`).

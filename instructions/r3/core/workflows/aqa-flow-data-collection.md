@@ -24,13 +24,8 @@ Gather test case details from TestRail and feature context from Confluence, cros
 - Zero-document ACQUIRE for any required tag in step 1.2 / 1.3: apply `<zero_doc_protocol>`.
 - **ACQUIRE success:** Rosetta returns **≥1 non-empty** instruction document for the tag.
 - Prerequisite: TestRail and Confluence MCPs configured; Rosetta/KB access sufficient to resolve the tags above when needed.
+- Skills: `discovery` (TestRail + Confluence collector), `qa-structure` (slug + AQA paths + state template), `qa-knowledge` (AQA test-plan skeleton + redaction scope)
 </workflow_context>
-
-<recommended_skills>
-- `discovery` — single canonical collector for TestRail + Confluence (loads `references/<vendor>-binding.md`).
-- `qa-structure` — `<test-name>` slug rules + canonical AQA paths (`aqa-layout`) and the state-file template (`aqa-state-template` asset).
-- `qa-knowledge` — the AQA test-plan skeleton (`aqa-plan-template` asset) + redaction scope (`references/redaction-scope.md`).
-</recommended_skills>
 
 <phase_steps>
 1. Confirm inputs from user

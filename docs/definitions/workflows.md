@@ -12,6 +12,8 @@
 - data-flow
 - external-lib-flow
 - aqa-flow
+- qa-flow
+- testgen-flow
 - modernization-flow
 - adhoc-flow
 - coding-agents-prompting-flow

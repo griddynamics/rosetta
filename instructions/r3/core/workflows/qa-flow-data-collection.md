@@ -22,13 +22,8 @@ Gather test case details from TMS, search documentation, and discover existing A
   - **TMS vendor** — first non-empty key (stop at first hit): `tms_collection_skill`, `test_case_management.mcp_collection_skill`, `mcp_test_case_collection_skill`. In-scope signal: `testrail_base_url` → binding = `testrail`; `jira_base_url` → binding = `jira`.
   - **Documentation vendor** — see `<config_binding>` (precedence + in-scope signals owned by the documentation MCP subflow).
 - Optional **documentation MCP** when `qa-project-config.md` scopes it — binding note in `<config_binding>`; procedure in `<execute_collection>` step **1.2b**.
+- Skills: `discovery` (TMS + documentation MCP collector), `reverse-engineering` (existing-test + backend-source scan), `qa-structure` (`{IDENTIFIER}` + raw-data path)
 </workflow_context>
-
-<recommended_skills>
-- `discovery` — single canonical collector for TMS + documentation MCP sources.
-- `reverse-engineering` — existing-test-pattern + backend-source scan.
-- `qa-structure` — `{IDENTIFIER}` path resolution and the raw-data artifact location.
-</recommended_skills>
 
 <config_binding>
 Documentation MCP scope comes from **`qa-project-config.md`** and Phase 0 only.

@@ -18,14 +18,8 @@ Understand existing test architecture, identify reusable components, and determi
 - Output artifact path (single SSoT — referenced by other sections): `plans/aqa-<test-name>-code-analysis.md` (resolve `<test-name>` per `qa-structure` `aqa-layout` slug rules)
 - Prerequisite: Phases 1 and 2 complete
 - Read-only scope (single SSoT — referenced by other sections as "the read-only scope"): read project description, page objects, similar tests, utilities; produce the report + a one-paragraph `## Code Analysis` summary in the test plan. NO edits to page objects, test files, source under analysis, `project_description.md`, or repo docs; NO running tests/lint/build. A finding that implies code work is surfaced in the report, not acted on.
+- Skills: `reverse-engineering` (test-automation architecture analysis mode), `sensitive-data` (redaction), `qa-structure` (slug + report path), `qa-knowledge` (code-analysis report skeleton + redaction scope)
 </workflow_context>
-
-<recommended_skills>
-- `reverse-engineering` (test-automation architecture analysis mode) — performs the read-only architecture analysis below: framework/standards, page-object inventory, similar tests, reusable utilities, and the test-location decision.
-- `sensitive-data` — redaction authority for any captured source/selectors/config values before they are written to the report.
-- `qa-structure` — `<test-name>` slug rules + guards and the canonical report path (`aqa-layout`).
-- `qa-knowledge` — the 9-section code-analysis report skeleton + redaction scope (ACQUIRE its asset/reference at the cited steps).
-</recommended_skills>
 
 <input_contract>
 The phase supplies these paths to the skill; defaults apply when not configured:

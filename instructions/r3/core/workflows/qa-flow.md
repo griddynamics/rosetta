@@ -11,6 +11,8 @@ baseSchema: docs/schemas/workflow.md
 
 End-to-end backend API test automation from test case input to working automated tests. (Source-system + tool enumeration owned by the frontmatter `description` field — not restated here.)
 
+**At completion the user has:** corrected, passing API test files in the repository; the per-session artifacts under `agents/qa/{IDENTIFIER}/` (`raw-data.md`, `api-analysis.md`, `analysis.md`, `test-specs.md`, `execution-report.md`); and `agents/qa-state.md` recording phase completion, metrics, and HITL approvals.
+
 </description_and_purpose>
 
 <workflow_phases>
@@ -18,7 +20,8 @@ End-to-end backend API test automation from test case input to working automated
 - **Phases 0→7 MUST run in order**; sanctioned skips per `<skip_rules>` only.
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
 - NO ASSUMPTIONS: never assume endpoints, payloads, auth mechanisms, or response schemas — ask the user when missing.
-- **Drive loop:** USE SKILL `orchestrator-contract` (ACQUIRE FROM KB if not loaded) — it owns the per-phase cadence and todo discipline. **Inline fallback, authoritative if that skill is missing or dropped on compaction:** for each phase in order — ACQUIRE its phase file FROM KB → execute → update `agents/qa-state.md` → verify the phase-output gate → next; never batch-load future phases; never skip without approval (`<skip_rules>`). This workflow specifies only qa-flow-specific deltas in each phase block below.
+- **Drive loop:** USE SKILL `orchestrator-contract` (ACQUIRE FROM KB if not loaded) — it owns the per-phase ACQUIRE→execute→update-state→verify cadence and todo discipline. This workflow specifies only qa-flow-specific deltas in each phase block below.
+- **Drive-loop fallback** (authoritative ONLY if `orchestrator-contract` is missing or dropped on compaction): for each phase in order — ACQUIRE its phase file FROM KB → execute → update `agents/qa-state.md` → verify the phase-output gate → next; never batch-load future phases; never skip without approval (`<skip_rules>`).
 - **Phase-output gate (verify before advancing):** each phase's mandatory artifact must exist and pass its phase-file completion gate before the next phase starts — notably **Phase 4: every `ATC-NNN` in `test-specs.md` traces to a Phase 3 requirement/source**; also Phase 1 `raw-data.md`, Phase 2 `api-analysis.md`, and Phase 6 `execution-report.md` present and non-placeholder. (Generic verify-before-advance is owned by `orchestrator-contract`.)
 
 <phase_template>
@@ -102,7 +105,7 @@ This block owns ONLY the qa-flow-specific skip rules below: a set of **always-in
 </workflow_phases>
 
 <coding_standards_precedence>
-Conflict rule is binary: if guidance from a loaded skill conflicts with repository markdown (`project_description.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`) on naming, structure/layout, tooling, or test patterns, repository markdown wins and the conflicting skill snippet is ignored for that decision. If there is no conflict, apply both.
+Conflict rule is binary: if guidance from a loaded skill conflicts with repository markdown (`CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`, and `project_description.md` if present) on naming, structure/layout, tooling, or test patterns, repository markdown wins and the conflicting skill snippet is ignored for that decision. If there is no conflict, apply both.
 Example: if a skill suggests `/tests/api/` but `ARCHITECTURE.md` requires `/qa/api/tests/`, use `/qa/api/tests/`.
 </coding_standards_precedence>
 
@@ -115,7 +118,7 @@ Example: if a skill suggests `/tests/api/` but `ARCHITECTURE.md` requires `/qa/a
 
 <state_file>
 
-`agents/qa-state.md` carries: header (Last Updated / Current Phase 0-7 / Test Case Source / Feature / API Base URL) + 8-row `## Phase Completion Status` checklist (one row per phase 0-7) + per-phase append blocks. Each phase file owns its own state-update snippet (the delta it appends after running) — this workflow does not restate the full template.
+`agents/qa-state.md` carries: header (Last Updated / Current Phase 0-7 / Test Case Source / Feature / IDENTIFIER — matching the Phase 0 stub; `API Base URL` is appended once Phase 2 resolves it) + 8-row `## Phase Completion Status` checklist (one row per phase 0-7) + per-phase append blocks. Each phase file owns its own state-update snippet (the delta it appends after running) — this workflow does not restate the full template.
 
 </state_file>
 

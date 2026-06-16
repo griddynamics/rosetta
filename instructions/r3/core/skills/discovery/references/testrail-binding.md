@@ -17,6 +17,7 @@ The phase supplies a test case ID or URL. Resolve the numeric case ID:
 ## Retrieval (SKILL step 3)
 
 ```
+# illustrative — call the configured TestRail MCP's get-case tool; this literal name is not a contract
 get_case(case_id=<resolved id>)
 ```
 
@@ -36,6 +37,19 @@ get_case(case_id=<resolved id>)
 | Custom fields | API endpoint, HTTP method, etc. when present; resolve via `get_case_fields` |
 
 Per-field branch: present + non-empty → include (redact first if sensitive); empty/missing → record in gaps with a one-line "missing in TestRail source" note. Do NOT leave blank, assume content, or fabricate.
+
+**Rendered example** (one normalized case in `raw-data.md` — one step with a proper expected result, one with the gap marker):
+
+```markdown
+### C12345 — Refund a paid order
+- **Section:** Billing / Refunds · **Priority:** High · **Type:** Functional
+- **Test Goal:** verify a paid order can be fully refunded
+- **Preconditions:** order `o-12345` exists with status `PAID`
+- **Steps:**
+  1. POST /api/v1/orders/o-12345/refund → Expected: status 200, `body.status == "REFUNDED"`
+  2. GET /api/v1/orders/o-12345 → Expected: `gap: expected result missing`
+- **Expected Overall Result:** order shows `REFUNDED`; refund recorded
+```
 
 ## Redaction targets (SKILL step 4 → `sensitive-data`)
 
@@ -64,4 +78,3 @@ Record each redaction in the artifact's redaction section; substitute a clearly-
 - Title, Test Steps, Expected Overall Result present or in gaps; no required field silently blank.
 - Each test step has an expected result OR a `gap: expected result missing` marker.
 - Read-only: no `update_case` / `add_case` / `delete_case` or equivalent write call was made.
-</content>

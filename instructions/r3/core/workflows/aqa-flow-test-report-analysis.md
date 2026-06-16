@@ -19,17 +19,13 @@ Analyze test execution reports, identify failure root causes, and prepare for co
 - Prerequisite: Phase 6 complete, test executed by user.
 - HITL: may need to ask user for report location.
 - Read-only scope (single SSoT — referenced by other sections as "the read-only scope"): parse / categorize / root-cause / label evidence / recommend. NO production code edits, NO writes to test or product source files. Refuse "just fix it now" / "patch the selector before Phase 8" with citation of this scope; the only acceptable user inputs are report location, evidence/labeling clarifications, or explicit approval to leave borderline items as `Assumption`.
+- Skills: `debugging` (read-only root-cause analysis), `sensitive-data` (redaction), `qa-structure` (slug + failure-analysis path), `qa-knowledge` (failure classification + artifact shape + redaction scope)
 </workflow_context>
-
-<recommended_skills>
-- `debugging` — read-only root-cause analysis of the execution report, with evidence labeling.
-- `sensitive-data` — redaction of captured logs/screenshots/page sources before write.
-- `qa-structure` — `<test-name>` slug + failure-analysis path resolution.
-- `qa-knowledge` — failure classification, artifact shape, and redaction scope this phase consumes (ACQUIRE at the cited steps).
-</recommended_skills>
 
 <failure_analysis_contract>
 The analysis artifact is **PUBLIC by default** — redact BEFORE writing per `qa-knowledge/references/redaction-scope.md`, not after. **MUST ACQUIRE that reference and run its grep list against the rendered artifact as the pre-emit gate; emit FORBIDDEN until it has run** (logs/screenshots/page sources can carry tokens or PII). The failure classification is `qa-knowledge/references/aqa-failure-taxonomy.md` (assign exactly one category per failure; Selector/Locator entries cite the captured page source). The required artifact structure is the asset `qa-knowledge/assets/failure-analysis-template.md` (ACQUIRE FROM KB) — per failed test: Failure name · Error type · Root cause · Evidence label (`Confirmed`/`Assumption`/`Unknown`) · Evidence rationale · Recommendation; plus an Execution Summary and a Patterns section.
+
+Example entry (grounding, independent of the external asset): `**Failure:** login-redirect-missing · **Error type:** Selector/Locator · **Root cause:** login button selector `#submit` renamed to `#login-submit` · **Evidence:** Confirmed · **Rationale:** report stack trace + captured page source both cited · **Recommendation:** update the selector in the LoginPage page object (Phase 8).`
 
 This is the **phase contract**, verified by `<validation_checklist>` independent of skill internals.
 </failure_analysis_contract>
@@ -51,6 +47,7 @@ This is the **phase contract**, verified by `<validation_checklist>` independent
 1. Verify all failures are categorized per `qa-knowledge/references/aqa-failure-taxonomy.md`, with root causes, and page source analyzed for selector errors.
 2. Classify each root cause with an Evidence label `Confirmed` / `Assumption` / `Unknown` (definitions + ambiguity tiebreaks are canonical in the `debugging` skill `<core_concepts>` — not restated here).
 3. Validation loop (max two cycles): confirm each failure has exactly one label + rationale + recommendation; if any entry is unlabeled or incomplete, repeat step 1. After two cycles with gaps, record unresolved rows in `agents/aqa-state.md`, ask the user once how to label them (or approval to leave borderline items as `Assumption`), then continue only after the user responds.
+4. **Performance & flakiness pass:** from the report, parse total + per-test execution times; flag tests above the project's slow-test threshold (or a sensible default if unspecified) and note flakiness indicators (intermittent pass/fail, retries consumed, timeouts not attributable to a selector/assertion cause). Record these in the artifact's Patterns section. If the report carries no timing data, record `performance data not available in report` — do not fabricate.
 </review_findings>
 
 <update_state step="7.3">
@@ -62,7 +59,7 @@ This is the **phase contract**, verified by `<validation_checklist>` independent
 - Test report located and parsed
 - All failures categorized per `qa-knowledge/references/aqa-failure-taxonomy.md`; selector errors cite page-source evidence or are tagged `Unknown` per that taxonomy
 - Every failure entry has all six fields (Failure name / Error type / Root cause / Evidence label / Evidence rationale / Recommendation)
-- Patterns section populated (or explicit none)
+- Patterns section populated (or explicit none), including the performance/flakiness pass — slow tests flagged + flakiness noted, or `performance data not available in report` recorded
 - Redaction pre-emit gate ran — the `qa-knowledge/references/redaction-scope.md` grep list was executed against the artifact before writing
 - Analysis artifact written to the `<workflow_context>` output path and non-empty
 - No source files modified outside the analysis artifact (read-only scope)

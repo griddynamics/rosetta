@@ -18,13 +18,8 @@ Add the selectors identified in Phase 4 to page objects, following project conve
 - Output: page objects extended/created with all required selectors; the Part B Implementation subsection recorded
 - Prerequisite: Phases 1-4 complete
 - Write boundary (single SSoT): writes ONLY page-object files (and the test plan's `## Selector Management` → Implementation subsection). No test files, fixtures, or frontend source.
+- Skills: `coding` (standards-first mode), `testing` (selector mode Part B), `qa-structure` (`<test-name>` paths + AQA state shape)
 </workflow_context>
-
-<recommended_skills>
-- `coding` — standards-first mode: repo standards as authority for general hygiene (formatting, shared helpers, naming case) before extending page objects.
-- `testing` — selector mode Part B writes the page-object selectors/methods matching project patterns and enforces the fragile-selector gate.
-- `qa-structure` — `<test-name>` paths and the AQA state-file shape (`aqa-layout`).
-</recommended_skills>
 
 <skill_precedence>
 If repository general hygiene and the selector-mode page-object rules disagree: follow `testing` selector mode for selector locators, page-object accessor/getter/method conventions, and AQA-specific patterns; follow `coding` standards-first mode for general repo hygiene (formatting, shared helpers, import order) where it does not override those selector decisions. Repo docs win on general-hygiene conflicts.

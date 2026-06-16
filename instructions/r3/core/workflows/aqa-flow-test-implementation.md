@@ -19,14 +19,8 @@ Create the automated UI test integrating all page objects and assertions from th
 - Prerequisite: Phases 1-5 complete
 - HITL: must stop and wait for the user to execute the test (this phase does not run it)
 - Write boundary (single SSoT — referenced by other sections): writes ONLY test files (and the test plan's `## Test Implementation` record). NO edits to application source or page-object files — a missing selector/method routes back to Phase 5, never authored inline here.
+- Skills: `testing` (UI impl mode), `coding` (standards-first mode), `qa-structure` (`<test-name>` paths + AQA state shape), `qa-knowledge` (Test Implementation record)
 </workflow_context>
-
-<recommended_skills>
-- `testing` — UI impl mode authors the test (page objects + assertions from the plan), records uncovered assertions, emits the hand-off record.
-- `coding` — standards-first mode supplies the authoritative repository conventions (repo docs beat model defaults) before authoring.
-- `qa-structure` — `<test-name>` paths and the AQA state-file shape (`aqa-layout`).
-- `qa-knowledge` — the Test Implementation record (ACQUIRE its asset at the cited step).
-</recommended_skills>
 
 <implementation_handoff_contract>
 This phase OWNS the implement → validate-locally → hand-off-execution → update-state-without-closing contract. It is verified by `<validation_checklist>` independent of skill internals.
@@ -36,7 +30,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 - **Hand off execution** — provide the exact project test-execution command; STOP and WAIT for the user to run it (`<stop_for_execution>`). The phase never executes the test itself.
 - **Update state without closing** — record outcome in `agents/aqa-state.md`, mark Phase 6 complete, set Phase 7 current; do NOT mark the overall AQA workflow COMPLETE.
 
-**Test Implementation record** → asset `qa-knowledge/assets/aqa-test-impl-record.md` (ACQUIRE FROM KB) — the five ordered subsections (Test File, Implementation Summary, Uncovered Assertions, Conflicts and Precedence, Validation) plus the `### Uncovered Assertions` entry shape.
+**Test Implementation record** → asset `qa-knowledge/assets/aqa-test-impl-record.md` (ACQUIRE FROM KB for the full rendering template). Five ordered subsections + their required top-level fields (inline anchor so the output contract is verifiable from this file): **Test File** (path · framework); **Implementation Summary** (assertions implemented/total · page objects used); **Uncovered Assertions** (`### Uncovered Assertions` — per entry: assertion · reason · disposition); **Conflicts and Precedence** (doc-vs-skill conflict · resolution); **Validation** (lint status · coverage).
 </implementation_handoff_contract>
 
 <phase_steps>
@@ -52,6 +46,22 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 3. Author the test using page-object methods only (no raw selectors in test code), proper waits, project assertion style. If a required selector or page-object method is missing, do NOT author it inline — stop and route back to Phase 5 (selector implementation).
 4. Record every plan assertion that cannot be implemented in the test plan's `### Uncovered Assertions` with the reason. Silent drop is forbidden.
 5. Validate locally: run the project lint/format command on the touched test file and resolve issues; emit the Test Implementation record.
+
+**Minimal test skeleton** (illustrative shape only — page-object methods, no raw selectors; adapt to the project's framework/language per `coding` standards-first):
+
+```typescript
+import { test, expect } from '@playwright/test';
+import { CheckoutPage } from '../pages/CheckoutPage';
+
+test.describe('refund-happy-path', () => {
+  test('issues a full refund', async ({ page }) => {
+    const checkout = new CheckoutPage(page);              // page object — never raw selectors
+    await checkout.goto();
+    await checkout.requestRefund('full');                 // ATC-mapped action
+    expect(await checkout.refundStatus()).toBe('Refunded'); // typed assertion from the plan
+  });
+});
+```
 </execute_implementation>
 
 <validate step="6.2">

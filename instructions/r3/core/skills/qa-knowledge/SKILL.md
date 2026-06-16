@@ -30,6 +30,7 @@ Router — ACQUIRE the one your current step needs (point-of-use, never all at o
 | When a phase needs to… | ACQUIRE |
 |---|---|
 | present a correction for approval (QA **or** AQA) | `qa-knowledge/assets/proposed-change-template.md` |
+| run the explicit-approval gate (closed token list / loose-phrasing rejection / max-retry / partial approval) for a correction or spec/plan approval | `qa-knowledge/assets/approval-gate.md` |
 | emit the QA api-analysis artifact | `qa-knowledge/assets/api-analysis-template.md` |
 | emit QA test specs (Given-When-Then `ATC-NNN`) | `qa-knowledge/assets/test-spec-template.md` |
 | record the QA test-implementation hand-off | `qa-knowledge/assets/qa-test-impl-record.md` |

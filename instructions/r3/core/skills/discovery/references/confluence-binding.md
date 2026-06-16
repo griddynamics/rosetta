@@ -22,6 +22,8 @@ Canonical storage form for any URL is `/spaces/<KEY>/pages/<numeric-id>`. When t
 
 ## Retrieval & harvesting discipline (SKILL step 3)
 
+_Method names below (`confluence_get_page`, `confluence_get_page_children`, `confluence_search`) are illustrative — call the configured Confluence MCP's equivalent page-fetch / child-pages / CQL-search tools; the literal names are not a contract._
+
 **Direct-URL path (preferred when URLs/IDs supplied):**
 1. `confluence_get_page(page_id, convert_to_markdown=True, include_metadata=True)` for each supplied page.
 2. `confluence_get_page_children()` — fetch up to 5 relevant child pages per parent, recursing to leaves or the phase's depth cap. If the API does not expose child relationships and children are still plausible, ask once for child links (or approval to continue parent-only) and record the decision (`Children fetched: yes | no (reason)`).
@@ -45,6 +47,17 @@ Canonical storage form for any URL is `/spaces/<KEY>/pages/<numeric-id>`. When t
 - **Present + content non-empty** → include (Page header: URL / Space / Labels / Updated / Type / Status; `#### Content`; `#### Child Pages`); redact body first.
 - **Permission-restricted** (body 401/403 OR MCP indicates restriction) → `<restricted by permissions> — body not retrievable with configured Confluence MCP credentials` + a gap entry. A 401/403 is NOT empty content; never silently treat as missing.
 - **Content empty** (retrieved but body empty) → `[empty page]` marker + gap.
+
+**Rendered example** (one normalized page entry in `raw-data.md`):
+
+```markdown
+#### Checkout Refund Flow  (/spaces/PROJ/pages/12345)
+- **Space / Labels / Updated / Type / Status:** PROJ / `refund`, `checkout` / 2026-04-18 / page / current
+#### Content
+Refunds are issued via POST /api/v1/orders/{id}/refund; a paid order transitions PAID → REFUNDED…
+#### Child Pages
+- Refund Edge Cases (/spaces/PROJ/pages/12346)
+```
 
 ## Redaction targets (SKILL step 4 → `sensitive-data`)
 
@@ -81,4 +94,3 @@ The phase owns the artifact path + heading; this binding emits, in order: per-pa
 - Permission errors recorded as `<restricted by permissions>`, never masked as empty content.
 - Search Provenance populated (CQL + top-N IDs + ranking) whenever the search path ran.
 - Read-only: no `confluence_create_page` / `confluence_update_page` / `confluence_add_comment` or equivalent write call was made.
-</content>

@@ -18,14 +18,8 @@ Analyze Swagger/OpenAPI specification or codebase API definitions to extract end
 - Output artifact path (single SSoT — referenced by other sections): `agents/qa/{IDENTIFIER}/api-analysis.md` (resolve `{IDENTIFIER}` from `agents/qa-state.md`)
 - Prerequisite: Phase 1 complete, `raw-data.md` exists with identified endpoints
 - Read-only scope: locate spec/source, extract contracts, reconcile, write the analysis artifact. NO edits to backend source or product code.
+- Skills: `reverse-engineering` (API-contract extraction mode), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path), `qa-knowledge` (api-analysis skeletons + redaction scope)
 </workflow_context>
-
-<recommended_skills>
-- `reverse-engineering` (API-contract extraction mode) — locates the spec/route source and extracts per-endpoint contracts, auth, and data dependencies for the phase-supplied target-endpoint list.
-- `sensitive-data` — redaction authority for any credential/PII/JWT value before it is written to the artifact.
-- `qa-structure` — `{IDENTIFIER}` path resolution and the artifact location.
-- `qa-knowledge` — the api-analysis output skeletons + redaction scope (ACQUIRE its asset/reference at the cited steps).
-</recommended_skills>
 
 <input_contract>
 The phase supplies the skill two required inputs; the skill GATEs on both before any spec-location logic:

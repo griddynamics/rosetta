@@ -18,14 +18,8 @@ Cross-reference test cases, documentation, and API spec to identify gaps, contra
 - Output: `agents/qa/{IDENTIFIER}/analysis.md` with gaps resolved, user answers documented
 - Prerequisite: Phases 1 and 2 complete
 - HITL: user answers required before Phase 4
+- Skills: `requirements-use` (gap_analysis mode), `questioning` (clarification batch), `qa-structure` (`{IDENTIFIER}` + analysis path), `qa-knowledge` (G/C/A finding forms)
 </workflow_context>
-
-<recommended_skills>
-- `requirements-use` (gap_analysis mode) — emits gaps / contradictions / ambiguities from the cross-referenced inputs.
-- `questioning` — structured Critical / Important / Optional clarification batch.
-- `qa-structure` — `{IDENTIFIER}` path resolution and the analysis artifact location.
-- `qa-knowledge` — the G/C/A finding-entry forms (ACQUIRE its asset at step 3.1).
-</recommended_skills>
 
 <phase_steps>
 1. Execute gap analysis

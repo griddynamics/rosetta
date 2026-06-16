@@ -38,7 +38,7 @@ Analyze Jira ticket and Confluence documentation to identify contradictions, gap
 <run_analysis step="2.2" subagent="architect" role="Requirements gap analyst">
 1. USE SKILL `requirements-use` (gap_analysis mode, general multi-source variant). The mode is analysis-only and EMITS categorized findings into this phase's `<analysis_document_contract>` artifact; it never invents the artifact shape or path.
 2. Sources to analyze: Jira ticket data + Confluence page data from `raw-data.md`.
-3. Identify contradictions, gaps, ambiguities per the mode's detection catalogs (loaded from `requirements-use/references/gap-analysis-catalogs.md`) — contradiction (value-mismatch / logic-conflict / requirement-conflict), gap (functional / non-functional / data / business-logic / dependency), and ambiguity (vague-term) probes. This phase does NOT restate the taxonomies; it invokes them through the mode and OWNS the output document below.
+3. Identify contradictions, gaps, ambiguities per the mode's detection catalogs — contradiction (value-mismatch / logic-conflict / requirement-conflict), gap (functional / non-functional / data / business-logic / dependency), and ambiguity (vague-term) probes. This phase does NOT restate the taxonomies; it invokes them through the mode and OWNS the output document below.
 4. Cross-reference Jira vs Confluence for information present only in one source (single-source case → skip-with-note).
 </run_analysis>
 
@@ -50,7 +50,7 @@ Create `agents/testgen/{TICKET-KEY}/analysis.md`. The `requirements-use` gap_ana
 
 <analysis_document_contract>
 
-The document has these sections in order; empty finding sections carry `No issues found` (never silently omitted). Per-entry shapes: C[N] (Type / Source 1 / Source 2 / Impact / Needs Clarification), G[N] (Type / Context / Missing Information / Impact / Suggested Question), A[N] (Source / Vague Statement / Possible Interpretations ≥2 / Clarification Needed). Risk tiers are exactly three (High / Medium / Low) — no fourth tier.
+The document has these sections in order; empty finding sections carry `No issues found` (never silently omitted). Per-entry shapes: C[N] (Type / Source 1 / Source 2 / Impact / Needs Clarification), G[N] (Type / Context / Missing Information / Impact / Suggested Question), A[N] (Source / Vague Statement / Possible Interpretations ≥2 / Clarification Needed). Risk tiers are exactly three (High / Medium / Low) — no fourth tier. **Phase 3 priority mapping (so the downstream P0/P1 signal is unambiguous):** a High finding whose Impact is "blocks implementation" → Phase 3 **P0** (MUST answer); Medium (impacts quality) → **P1**; Low (minor clarification) → **P2/P3**. Phase 3 classifies a question's priority from the finding's tier + its stated Impact, not from a tier name alone.
 
 ```markdown
 # Analysis - [TICKET-KEY]

@@ -5,6 +5,14 @@ description: AQA Phase 2 templates — gap entry, clarification questions messag
 
 <aqa-clarification-templates>
 
+**Completeness dimensions** (the gap-entry `Dimension` field): **D1** steps clarity · **D2** result measurability · **D3** test data · **D4** edge cases · **D5** success criteria. (Full catalog is owned by the `requirements-use` gap_analysis mode; this gloss anchors the template so it is self-contained.)
+
+**Prerequisite + inputs:** the test plan at `plans/aqa-<test-name>.md` must be populated (Test Steps + Expected Overall Result) before these templates apply. If the plan is absent or a dimension cannot be evaluated, STOP and report to the caller before creating gap entries.
+
+**Router:** use only the section your current step needs — **Gap entry** (record a gap), **Clarification questions message** (the user-facing ask), or **Test-plan clarification section** (write results back to the plan).
+
+**Done when:** all gap entries are written + prioritized, the clarification message has been sent, user responses are documented in the plan, and `### Explicit Assertions` is populated. After populating Explicit Assertions, verify each gap entry's `Derived assertion` appears in the list (one-to-one — no silent drop).
+
 ## Gap entry
 
 Each gap is recorded as one entry; if all five dimensions are satisfied, emit the single line `No gaps identified — all five completeness dimensions (D1–D5) satisfied by the Phase 1 plan.`
@@ -45,7 +53,7 @@ Please provide answers so I can proceed with test implementation.
 
 ## Test-plan clarification section
 
-`### Explicit Assertions` is **mandatory** — Phase 6 validates that every assertion is implemented OR listed in Uncovered. Carry every `Derived assertion` from the gap entries into the typed list; zero derived assertions → emit the None-clause, never omit the section. Add this section to `plans/aqa-<test-name>.md`:
+`### Explicit Assertions` is **mandatory** — every assertion listed here MUST be implemented OR recorded as Uncovered in the implementation record (no silent drops). Carry every `Derived assertion` from the gap entries into the typed list; zero derived assertions → emit the None-clause, never omit the section. Add this section to `plans/aqa-<test-name>.md`:
 
 ```markdown
 ## Phase 2: Requirements Clarification
@@ -71,13 +79,13 @@ Please provide answers so I can proceed with test implementation.
 
 ### Explicit Assertions (mandatory — transcribed from step 2.1 gap analysis)
 
-Each assertion carries a **type** (Presence / State / Content / Behavioral) and a **subject** (UI element or system observable). One bullet per assertion; do NOT collapse multiple assertions into one line. Phase 2 writes **only** typed bullets here (no status field); the `### Uncovered Assertions` section is owned and written by Phase 6 — Phase 2 never pre-marks status.
+Each assertion carries a **type** (Presence / State / Content / Behavioral) and a **subject** (UI element or system observable). One bullet per assertion; do NOT collapse multiple assertions into one line. This clarification step writes **only** typed bullets here (no status field); the `### Uncovered Assertions` section is owned and written by the downstream implementation step — this step never pre-marks status.
 
 - **Presence:** [element/observable] is [present | absent | visible | hidden] after [trigger condition].
 - **State:** [element] is [enabled | disabled | selected | unselected | loading | settled] after [trigger].
 - **Content:** [element] displays/contains [exact value or pattern] after [trigger].
 - **Behavioral:** [action] produces [observable result] within [timing constraint, if any].
-- (If step 2.1 derived zero assertions: `None — no observable behavior derivable from current clarifications; Phase 6 will surface this as Uncovered`.)
+- (If the gap analysis derived zero assertions: `None — no observable behavior derivable from current clarifications; the implementation step will surface this as Uncovered`.)
 ```
 
 **Filled-in worked example** (the exact-vs-contains specificity distinction is the most error-prone field for this type):

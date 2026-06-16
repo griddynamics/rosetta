@@ -16,13 +16,15 @@ Test scenario designer and specification author. You turn requirements, acceptan
 
 <when_to_use_skill>
 Use to DESIGN scenarios/specs; `testing` IMPLEMENTS them. Use to DESIGN test scenarios / cases / specs from requirements or API contracts: Given-When-Then API test specs, TMS-format test cases, or pushing an authored case set to a test-management system. The calling workflow PHASE owns every artifact shape, path, taxonomy, and the vendor binding; this skill EMITS against them.
+
+**Caller contract (what the invoking phase/agent must supply):** the mode (`gwt_spec` | `generation` | vendor export); the phase artifact path(s) + section list; the input sources (raw test cases, endpoint contracts, gap-analysis/clarifications); and — for vendor work — the resolved vendor binding. Each mode's minimum-output shape is stated in its block below.
 </when_to_use_skill>
 
 <core_concepts>
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - The PHASE asserts the output artifact (section list, file path, scenario taxonomy, coverage contract); this skill EMITS into it and never invents the artifact's shape or path (canonical — single source of truth; other sections reference, do not restate)
-- Per-value honesty: every concrete value (request fields, params, headers, response assertions, test data) traces to (a) a loaded contract, (b) a user clarification, or (c) an explicit `[ASSUMED: ...]` / `gap: ...` marker. Confident fabrication is forbidden (canonical — single source of truth)
+- Per-value honesty: every concrete value (request fields, params, headers, response assertions, test data) traces to (a) a loaded contract, (b) a user clarification, or (c) an explicit `[ASSUMED: ...]` / `gap: ...` marker. Confident fabrication is forbidden (canonical — single source of truth). Example markers: `**Then:** poll timeout `[ASSUMED: 30s — not in contract]``; `unmappable: TC-1234 targets POST /refunds — not in loaded contracts`
 - Coverage is total: every input requirement / test case maps to ≥1 emitted scenario OR appears in an explicit excluded/gap section — no silent drops (canonical)
 - Redaction of credentials, tokens, PII, and credentialed URLs in any emitted artifact → USE SKILL `sensitive-data` (canonical authority — not restated here)
 - References load lazily: load `references/<file>.md` only when actively authoring that shape (convention stated once here)
@@ -31,7 +33,7 @@ Use to DESIGN scenarios/specs; `testing` IMPLEMENTS them. Use to DESIGN test sce
 
 <gwt_spec>
 
-Mode: author Given-When-Then API test specifications from raw test cases + endpoint contracts + resolved clarifications. The PHASE supplies all input/output paths and the spec artifact's section list.
+Mode: author Given-When-Then API test specifications from raw test cases + endpoint contracts + resolved clarifications. The PHASE supplies all input/output paths and the spec artifact's section list. **Minimum output:** one Given-When-Then ATC entry per scenario (all fields) + an `## Excluded Test Cases` section + file-mapping / shared-utilities / execution-order sections.
 
 1. **Load + GATE.** Read the phase-supplied inputs (raw test cases; endpoint contracts; gap analysis / clarifications). Before authoring:
    - Endpoint contracts missing/empty → stop, report `scenarios-generation: endpoint contracts not loaded` to the phase. Do NOT fabricate request/response shapes.
@@ -47,7 +49,7 @@ Mode: author Given-When-Then API test specifications from raw test cases + endpo
 
 <generation>
 
-Mode: produce test scenarios/cases into the phase-defined artifact in the phase-defined format (e.g. TMS-compatible Steps + Expected-Result cases, or scenario tables). The PHASE owns the case taxonomy, field schema, naming, parameterization cap, and coverage matrix; this skill fills them.
+Mode: produce test scenarios/cases into the phase-defined artifact in the phase-defined format (e.g. TMS-compatible Steps + Expected-Result cases, or scenario tables). The PHASE owns the case taxonomy, field schema, naming, parameterization cap, and coverage matrix; this skill fills them. **Minimum output:** cases in the phase's format (every required field populated or `gap:`-marked) + coverage confirmation (each input requirement → ≥1 case or a flagged gap).
 
 1. Read the phase's requirement source and the format binding it supplies (inline schema, or a resolved vendor FORMAT binding → `<vendor_binding>`). Scenario intent missing → stop, ask the phase; never author from an absent source.
 2. Generate cases covering the phase's taxonomy; merge redundant cases via parameterization when the phase requests it (respect its parameter-set cap).

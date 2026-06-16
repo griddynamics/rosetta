@@ -16,7 +16,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 - Input: initial user request + `initial-data.md`
 - Output: `raw-data.md` with extracted Jira and Confluence data
 - Prerequisite: Phase 0 complete
-- Collection skill: `discovery` (single canonical collector). This phase resolves the in-scope vendor binding(s) from config and passes them to `discovery`, which loads `references/<vendor>-binding.md`.
+- Collection skill: `discovery` (single canonical collector). This phase resolves the in-scope vendor binding(s) from config and passes them to `discovery` (which resolves and loads its own vendor binding internally).
 - **Config-resolved vendors (NOT hardcoded).** Resolve from the testgen project config / `initial-data.md` pointer:
   - **Issue vendor** — first non-empty key (stop at first hit): `issue_mcp_collection_skill`, `issue_collection_skill`, `issue_tracker.mcp_collection_skill`. In-scope signal: `jira_base_url` present → binding = `jira`.
   - **Documentation vendor** — first non-empty key: `documentation_mcp_collection_skill`, `documentation.mcp_collection_skill`, `mcp_documentation_collection_skill`, `confluence_mcp_collection_skill`. In-scope signals: `confluence_base_url` / `confluence_space` present → binding = `confluence`.

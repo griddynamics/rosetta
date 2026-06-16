@@ -20,7 +20,7 @@ The PHASE supplies the bindings: authored case-set source path, `project_id`, `s
 6. **Build preconditions** — `custom_preconds`: TEST DATA first (with execution-count note for parameterized cases), then original preconditions. If `custom_preconds` unsupported, prepend to the first step `content` with a `\n\n--- STEPS ---\n\n` separator.
 7. **Pre-export safety check + dedup pre-scan (GATE — required before any write):**
    - **Sensitive-value scan** — re-read every title, step `content`, step `expected`, and the preconditions block; apply `sensitive-data` redaction before continuing.
-   - **Dedup pre-scan** — call `mcp_testrail_get_cases(project_id, suite_id)`; build the overlap set (exact title match) and record the overlap count.
+   - **Dedup pre-scan** — call `mcp_testrail_get_cases(project_id, suite_id)`; build the overlap set (exact title match) and record the overlap count. **If this call fails (network / permission / API error): do NOT proceed to export — stop and report `testrail-export: dedup pre-scan failed — <reason>` to the phase. The phase decides: retry, skip the dedup scan with explicit user acknowledgment of duplicate risk (then surface `Existing matching titles: unknown — pre-scan unavailable` in the gate), or cancel.**
    - **Confirmation gate (user-facing):**
      ```
      Planned export: <N> test cases to TestRail project <project_id>, section <section_id>.
@@ -31,7 +31,9 @@ The PHASE supplies the bindings: authored case-set source path, `project_id`, `s
    - **WAIT for an explicit `a` / `b` / `c`.** Ambiguous responses ("ok", "looks good", silence) are NOT approval — re-ask once, then default to `c` (cancel). Inferred approval is forbidden — this is a destructive external write.
    - On `c`: stop, record the cancellation in the workflow state, do not call `mcp_testrail_add_case` even once.
 8. **Export each approved case** — `mcp_testrail_add_case(section_id, title, priority_id, type_id, refs, custom_steps_separated)` for the approved set (`a` = full list; `b` = non-overlapping subset). ~0.5s delay between calls; back off further on 429. On individual failure: log error, continue. Record each created case's C-prefixed ID with its title.
-9. **Post-export** — TestRail case IDs are C-prefixed (e.g., `C12345`); use this format in document updates and links, and write the IDs back to the source artifact.
+9. **Post-export** — TestRail case IDs are C-prefixed (e.g., `C12345`); use this format in document updates and links, and write the IDs back to the source artifact in a defined shape:
+   - **Source-artifact write-back:** append a `## TestRail Export` table to the case-set artifact — columns `Case Title | TestRail ID | URL | Status (created / failed / skipped) | Error (if any)`, one row per planned case.
+   - **Workflow-state record** (written to the phase-supplied workflow-state path, parseable by the calling phase): `exported: <created>/<N>` · `overlap_count: <n | unknown>` · `user_choice: a|b|c` · `target: project_id/suite_id/section_id` · `timestamp`.
 
 ---
 
@@ -95,17 +97,4 @@ TestRail `priority_id` / `type_id` are NOT enums — they are foreign keys into 
 
 ## Swapping to another TMS vendor
 
-Loaded only when forking this binding to another TMS (Zephyr / Xray / qTest / Polarion). Copy this file to `references/<vendor>-export.md` and rebind only the vendor-specific items; keep the process shape, confirmation gate, and redaction discipline verbatim. Gather these before editing:
-
-| Rebind item | TestRail value | Replace with |
-|---|---|---|
-| MCP tool names | `mcp_testrail_get_project` / `_get_cases` / `_add_case` | vendor's verify / list / create-case calls |
-| Container concept | `section_id` (manual UI creation) | folder ID / module ID / category; offer API creation if the vendor supports it |
-| Priority enum | numeric `priority_id` 1–4 | vendor enum (numeric / string; 3/4/5-tier) |
-| Type taxonomy | numeric `type_id` 1, 6–10 | vendor type set (Xray Manual/Cucumber/Generic, etc.) |
-| Step / precond fields | `custom_steps_separated` / `custom_preconds` | vendor field IDs; concatenate with `--- EXPECTED ---` if the vendor has no split |
-| Case ID shape | `C12345` (C-prefix) | `XRAY-NNN` / `TC-NNN` / project-prefixed key |
-
-**Degrade-safely rule:** when the vendor lacks a TestRail concept, degrade the *content* (e.g. skip dedup detection if there is no list-cases call) but NEVER the *gate* — always keep the confirmation gate, redaction, and a workflow-state record of the skip. Do not abstract into a shared parent until a third vendor binding exists (YAGNI).
-
-**Self-validation grep after a fork** — `grep -nE 'mcp_testrail_|section_id|custom_steps_separated|custom_preconds|\bC[0-9]{4,}\b|TestRail' <vendor>-export.md` must return zero matches (or intentional retentions tagged `# <vendor>-port: intentional retention — <reason>`).
+To fork this binding for another TMS (Zephyr / Xray / qTest / Polarion): ACQUIRE `scenarios-generation/references/vendor-fork-guide.md` FROM KB, copy this file to `references/<vendor>-export.md`, and rebind only the vendor-specific items per that guide's Rebind table — keeping the process shape, the destructive-write confirmation gate, and the redaction discipline verbatim.

@@ -44,7 +44,7 @@ Synthesize Jira data, Confluence documentation, and user answers into a comprehe
 
 <create_requirements_document step="4.3">
 
-Create `agents/testgen/{TICKET-KEY}/requirements.md`. The `requirements-authoring` synthesis mode emits per its `<synthesis>` rules + per-entry shapes in `requirements-authoring/references/authoring-catalogs.md` (synthesis output schemas).
+Create `agents/testgen/{TICKET-KEY}/requirements.md`. The `requirements-authoring` synthesis mode emits per its `<synthesis>` rules and its synthesis output schemas (owned internally by the skill).
 
 **Section contract (phase-owned SSoT)** — the table below is **the authoritative phase contract the synthesis mode MUST satisfy**, not a parallel restatement. The mode's document wrapper uses the same scheme (front-matter + 10 numbered sections). If the emitted skeleton drifts from this table, the phase fails verification and re-invokes rather than accepting a divergent shape; the phase **bounds the contract**, the skill is the implementation.
 
@@ -97,9 +97,11 @@ Traceability Matrix must include Test Scenario placeholder column:
 | NFR-1 | User Answer Q5 | - | To be generated (Phase 5) |
 ```
 
+Each **User Story (US-N)** carries a **Definition of Done** sub-block (testgen addition layered on the user-stories schema): a short done-conditions checklist (acceptance criteria satisfied, test scenarios defined, docs/config updated as applicable) so Phase 5 can derive coverage from explicit completion criteria.
+
 All requirements must follow SMART criteria: Specific, Measurable, Achievable, Relevant, Testable.
 
-**Compact SMART exemplar** (phase-level grounding so the agent emits measurable requirements rather than vague ones — full FR/NFR/US worked examples live in `requirements-authoring/references/authoring-catalogs.md`):
+**Compact SMART exemplar** (phase-level grounding so the agent emits measurable requirements rather than vague ones — full FR/NFR/US worked examples are owned by the `requirements-authoring` synthesis mode):
 
 ```markdown
 ### NFR-1: Performance - Login Response Time
@@ -143,7 +145,7 @@ The Measurement field carries the threshold (numeric + measurement window + load
 **Conscious tradeoff — why no inline per-entry fallback (declared once, not re-derived per turn):**
 
 - **The skill is a hard dependency, by design.** `requirements-authoring` (synthesis mode) is the canonical author for US / FR / NFR / C / D / A / R / Traceability shapes (SMART criteria + threshold rules + source-provenance discipline + INVEST-style story rules + redaction). Replicating those rules inline as a fallback would re-introduce duplication and drift from the canonical authoring discipline.
-- **Deployment guarantee.** `requirements-authoring` ships at `instructions/<release>/core/skills/requirements-authoring/SKILL.md` (with its `references/authoring-catalogs.md`); runtime ACQUIRE resolves against the filesystem path.
+- **Deployment guarantee.** `requirements-authoring` is a published core skill, always available via `USE SKILL requirements-authoring` (ACQUIRE FROM KB if not loaded) — not an optional dependency.
 - **Section contract is phase-owned.** The phase's `<create_requirements_document>` table is the authoritative SSoT for the document skeleton (front-matter + 10 numbered sections); a mode version whose output drifts from that contract fails verification and triggers re-invoke. The phase's contract is decoupled from the skill's implementation details.
 
 This tradeoff is intentional and **bounded to this phase**: the sibling `testgen-flow-test-case-generation.md` retains an inline `<tc_schema>` fallback for a different reason (TC entries are simpler and lower-risk to fall back to; requirement entries carry threshold/SMART/INVEST discipline that does not transfer cleanly to an inline template).

@@ -5,6 +5,10 @@ description: AQA failure-analysis.md skeleton — per-failed-test fields plus Ex
 
 <failure-analysis-template>
 
+**Required inputs:** the AQA test-run output (per-test error messages + stack traces), the AQA failure taxonomy loaded, and — for selector-class failures — the captured page-source / diff.
+
+**Evidence-label rule:** assign `Unknown` ONLY after page-source capture has been attempted and the cause is still unresolvable. If page sources were never captured, escalate via `qa-knowledge/assets/page-source-capture-instructions.md` before assigning `Unknown` — do not short-circuit the diagnosis.
+
 `aqa-<test-name>-failure-analysis.md` must contain, per failed test:
 
 - **Failure name** — failing test identifier (function name, ATC ID, or report row).
@@ -12,8 +16,14 @@ description: AQA failure-analysis.md skeleton — per-failed-test fields plus Ex
 - **Root cause** — one-line diagnosed cause (Page Source Analysis cited for selector errors).
 - **Evidence label** — `Confirmed` / `Assumption` / `Unknown`.
 - **Evidence rationale** — one-line citation supporting the label (log line, page-source diff, repro count).
-- **Recommendation** — one-line proposed remediation (the actual change happens in Phase 8).
+- **Recommendation** — one-line proposed remediation (the actual change happens in the downstream correction step).
 
 Plus an **Execution Summary** (Total / Passed / Failed / Skipped / duration) and a **Patterns** section (cross-failure patterns or explicit none).
+
+**Worked example** (resolves the Root-cause vs Evidence-rationale distinction agents conflate):
+
+> **Failure name:** test_login_submit · **Error type:** Selector / Locator · **Root cause:** `#submit-btn` id removed in the latest deploy · **Evidence label:** Confirmed · **Evidence rationale:** page-source diff line 42 shows the id changed to `data-testid="login-submit"` · **Recommendation:** update the selector to `[data-testid="login-submit"]`.
+
+**Before writing:** every failed test from the run has exactly one entry; each `Evidence label` is one of `Confirmed`/`Assumption`/`Unknown`; Execution Summary counts are consistent with the run. **Done when** all of the above hold and every entry has all 6 fields populated.
 
 </failure-analysis-template>

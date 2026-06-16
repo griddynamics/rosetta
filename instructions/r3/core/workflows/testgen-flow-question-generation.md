@@ -149,6 +149,21 @@ For each question below, replace `[Leave blank for user]` with your answer (or `
 ## P3 Questions (Low)
 
 [Same; optional, may remain blank per `<validate_answers>` rule]
+
+---
+
+## Additional Questions or Comments
+
+[If you have information, constraints, edge cases, or context NOT covered by the questions above, add it here. This free-text is the channel for user-volunteered input and is carried into Phase 4 requirements.]
+
+---
+
+## Completion Checklist (tick before notifying the agent)
+
+- [ ] All P0 questions answered (no blanks)
+- [ ] P1 answered or marked `UNKNOWN — need to research with [stakeholder]`
+- [ ] File saved
+- [ ] When complete, tell the agent: "answers ready"
 ````
 </questions_template>
 </create_questions_document>
@@ -230,10 +245,11 @@ For each question below, replace `[Leave blank for user]` with your answer (or `
 </create_answers_document>
 
 <update_state step="3.5">
-1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 3 complete and answer metrics
+1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 3 complete. **State delta (per `testgen-flow.md` SELF-CHECK):** set the Phase 3 `## Phase Completion Status` row to complete; populate `## Phase Details` (questions generated, P0/P1 answered, unresolved/UNKNOWN counts, files created: `questions.md`, `answers.md`); update `## Metrics`.
 2. Tell user: "Phase 3 complete. [X] questions answered, [Y] unresolved."
 3. If unresolved: "We'll document assumptions for unresolved items."
 4. Ask: "Ready to proceed to Phase 4 (Requirements Generation)?"
+5. **STOP AND WAIT for explicit user confirmation. DO NOT PROCEED to Phase 4 until the user confirms.** Treat ambiguous responses (further questions, suggestions, silence) as not confirmed and re-ask — this matches the Phase 1/2 update_state enforcement and the `<workflow_context>` HITL-GATE rule.
 </update_state>
 
 <validation_checklist>

@@ -5,7 +5,15 @@ description: AQA test-plan skeleton (plans/aqa-<test-name>.md) — Test Case Inf
 
 <aqa-plan-template>
 
-Output template for `plans/aqa-<test-name>.md` (Phase 1). `## Access / Truncation Notes` is populated from the collection skill's disclosure (truncation, permission denials, `[empty page]`, cross-domain fallbacks); never omit.
+Output template for `plans/aqa-<test-name>.md`. `## Access / Truncation Notes` is populated from the **`discovery`** collection skill's disclosure (truncation, permission denials, `[empty page]`, cross-domain fallbacks); never omit.
+
+**Inputs required:** the TestRail Case ID, the Confluence page URL(s), and `discovery`'s collection disclosure output.
+
+**Data-absence branches:** TestRail case inaccessible (missing / deleted / permission-denied) → set all TestRail-sourced fields to `N/A — TestRail case inaccessible` and record it in `## Access / Truncation Notes`. TestRail case has no steps → write `None — steps absent from TestRail case` in Test Steps. Confluence page inaccessible → write `None — Confluence page inaccessible` in the affected Feature Context field and record it in `## Access / Truncation Notes`.
+
+**Conflict rule:** when TestRail and Confluence contradict, record BOTH versions in `## Cross-Reference Notes` and flag `[CONFLICT — await clarification]` — do not resolve unilaterally.
+
+**Before writing:** confirm every section holds a real value or an explicit `N/A — <reason>` (no blank section). **Done when** Test Case Information, Feature Context, Access / Truncation Notes, and Cross-Reference Notes are all populated.
 
 ```markdown
 # AQA Test Plan - <Test Name>
@@ -39,7 +47,7 @@ Output template for `plans/aqa-<test-name>.md` (Phase 1). `## Access / Truncatio
 ## Feature Context
 
 ### Business Purpose
-[From Confluence]
+[From Confluence — e.g. "Allows customers to track order delivery status in real-time."]
 
 ### Technical Details
 [From Confluence]
@@ -51,7 +59,7 @@ Output template for `plans/aqa-<test-name>.md` (Phase 1). `## Access / Truncatio
 - [Per-page: full read / truncated / permission denied / fallback used — cite the URL; if none: `None — all cited Confluence pages read in full`. Example: `…/AbCd123` — truncated at ~5000 words by harvesting, MCP returned full body (used MCP body, kept the note for audit).]
 
 ## Cross-Reference Notes
-- [Gaps, contradictions, or observations between TestRail and Confluence]
+- [Gaps, contradictions, or observations between TestRail and Confluence — e.g. `TestRail step 3 expects 200; Confluence references 204 — [CONFLICT — await clarification]`]
 ```
 
 </aqa-plan-template>

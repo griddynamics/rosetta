@@ -1,17 +1,53 @@
 ---
 name: aqa-test-impl-record
-description: AQA Phase 6 Test Implementation record — appended to the test plan after authoring.
+description: AQA Test Implementation record — appended to the test plan after authoring.
 ---
 
 <aqa-test-impl-record>
 
-**Test Implementation record** — appended to the test plan, required subsections in order: **Test File** (location · new-vs-existing · test name), **Implementation Summary** (assertions implemented/uncovered counts · page objects used · utilities used), **Uncovered Assertions** (`<assertion> — reason: <…>`, or `None — every plan assertion implemented`), **Conflicts and Precedence** (user-instruction-vs-repo-docs overrides; repo docs win; or `None — sources consistent`), **Validation** (checkboxes). Empty subsections use `None — <reason>`, never blank.
+**Append to** `plans/aqa-<test-name>.md` — the test-plan file (same `<test-name>` slug used throughout the AQA run).
 
-Worked example of the phase-owned `### Uncovered Assertions` entry (framework-neutral; the `<assertion> — reason: <…>` shape, never a silent drop):
+**Inputs required:** the test plan's Explicit Assertions, the test file path, the page objects used, and any user-instruction-vs-repo-doc conflicts encountered.
+
+**Constraints (read first):** all five subsections are required and ordered; empty subsections use `None — <reason>`, never blank; repo docs win on any conflict; no plan assertion is silently dropped (it is implemented OR listed under Uncovered Assertions). **Done when** all five subsections carry real values or an explicit `None — …` and the Validation checklist is fully checked.
+
+Template — fill each subsection:
 
 ```markdown
+### Test File
+- Location: <path>
+- New vs existing: <new | extended existing>
+- Test name: <name>
+
+### Implementation Summary
+- Assertions implemented: <n> / <total>
+- Assertions uncovered: <n> (see Uncovered Assertions)
+- Page objects used: <list>
+- Utilities used: <list, or None>
+
 ### Uncovered Assertions
-- "Confirmation email received after checkout" — reason: no mail-inbox fixture in scope; missing page-object method routed back to Phase 5.
+- "<assertion>" — reason: <…>
+- (or `None — every plan assertion implemented`)
+
+### Conflicts and Precedence
+- <user-instruction vs repo-doc conflict> → resolved in favor of repo docs: <what was applied>
+- (or `None — sources consistent`)
+
+### Validation
+- [ ] All plan assertions implemented or recorded as Uncovered
+- [ ] No assertion silently dropped
+- [ ] Page objects used (no raw-selector bypass)
+- [ ] Conflicts and Precedence documented or marked None
+- [ ] Test file path and name verified correct
+- [ ] Lint / format clean on the touched test file
 ```
+
+**Worked examples** (one line per subsection):
+
+- **Test File:** `tests/e2e/checkout/refund.spec.ts` · extended existing · `refund-happy-path`
+- **Implementation Summary:** 7/9 implemented · 2 uncovered · page objects `CheckoutPage, RefundPage` · utilities `None`
+- **Uncovered Assertions:** "Confirmation email received after checkout" — reason: no mail-inbox fixture in scope; the missing page-object method was escalated to the selector-implementation step for resolution.
+- **Conflicts and Precedence:** user asked for `data-cy` selectors but `ARCHITECTURE.md` mandates `data-testid` → applied `data-testid` (repo docs win).
+- **Validation:** all boxes checked after the local lint + assertion-coverage pass.
 
 </aqa-test-impl-record>

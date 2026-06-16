@@ -19,13 +19,8 @@ Fix identified API test failures based on the Phase 6 execution report. Prepares
 - Prerequisite: Phase 6 complete
 - HITL: explicit user approval required before applying any change (a domain-specific specialization of `hitl`)
 - In-scope file set (single SSoT): test files + shared test-utility files only. Writes outside this set are refused and escalated.
+- Skills: `coding` (approved-apply mode), `debugging` (root-cause alignment), `qa-knowledge` (proposed-change approval block + correction discipline)
 </workflow_context>
-
-<recommended_skills>
-- `coding` — approved-apply mode prepares proposals, gates on approval, applies incrementally with lint, hands off re-verification.
-- `debugging` — aligns each proposed edit with a confirmed Phase 6 root cause before it is proposed.
-- `qa-knowledge` — the shared proposed-change approval block + correction discipline (ACQUIRE its asset at the cited step).
-</recommended_skills>
 
 <correction_contract>
 The phase OWNS the iteration cap and the escalation contract. The proposed-change approval block is the shared asset `qa-knowledge/assets/proposed-change-template.md` — ACQUIRE FROM KB at step 7.2 and present one block per change BEFORE any write. Flow parameters for the asset: **change-type enum** = `assertion-fix | auth-fix | data-setup | request-shape | wait-strategy | other`; **root-cause reference** = execution-report entry id (e.g. `ERR-3`); **state file** = `agents/qa-state.md`; on retry-cap, loop back to Phase 6. Verified by `<validation_checklist>` independent of skill internals.
@@ -41,17 +36,13 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 <execute_corrections step="7.1" subagent="engineer" role="Test correction engineer">
 **Preparation-only:** nothing in this block modifies workspace files until step 7.3 after explicit approval in 7.2. "Preparation-only" means proposed edits paired with before/after evidence — no writes to test or product source files.
 1. USE SKILL `debugging` to align each proposed edit with a confirmed Phase 6 root cause (no symptom-only fixes).
-2. USE SKILL `coding` (approved-apply mode) with the parent-supplied bindings: proposed-change source = `agents/qa/{IDENTIFIER}/execution-report.md`; proposed-change template = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 7.2; state file = `agents/qa-state.md`; iteration cap = `<correction_contract>`; loop target = Phase 6.
+2. USE SKILL `coding` (approved-apply mode). Bindings grouped by owner: proposed-change source = `agents/qa/{IDENTIFIER}/execution-report.md`; proposed-change template + state file + iteration cap + loop target = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 7.2.
 3. Produce one Proposed Change record per fix per the `<correction_contract>` template, citing the matching execution-report entry id (e.g. `ERR-3`). Do NOT apply anything yet.
 </execute_corrections>
 
 <present_for_approval step="7.2">
 1. Present all proposed changes with before/after code per the template.
-2. **WAIT** for explicit user approval.
-3. The user must type one of exactly `approved`, `approve`, or `yes` (case-insensitive). Do not assume approval. **Loose phrasings such as "looks good", "ship it", "LGTM", "sounds good", "go ahead", "OK", "go", or paraphrases that imply but do not state approval are treated as REVIEW (not approval). Re-prompt for one of the exact tokens. The token list is closed; any "or similar" / "etc." extension language present in other loaded rules does NOT extend it for this gate — this phase's token list is authoritative here.** (Approval vocabulary is governed by `hitl`; this gate's closed token list is the phase-specific specialization.)
-3a. **Max-retry escalation:** if the user has been re-prompted ≥3 times in this Phase 7 cycle without supplying an exact approval token, stop the loop and ask explicitly: "are you trying to approve (type `approved` or `yes`) or trying to reject/modify the plan?" Do not continue silently re-prompting beyond 3 cycles.
-4. Partial approval (`apply Change 1 and Change 3`) applies ONLY the named hunks.
-5. If the user requests modifications: update proposals, re-present. If the user rejects specific changes: remove them.
+2. **Approval gate:** ACQUIRE `qa-knowledge/assets/approval-gate.md` FROM KB and apply it over the presented changes (closed-token discipline · loose-phrasing rejection · max-retry escalation · partial approval · change/reject handling). Bindings: closed token list = `approved` / `approve` / `yes`; re-present step = 7.2; full-reject revisit target = Phase 6. The token list is this phase's authoritative specialization.
 </present_for_approval>
 
 <apply_changes step="7.3">
