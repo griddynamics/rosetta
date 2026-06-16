@@ -124,13 +124,13 @@ End-to-end test automation from requirements gathering to test implementation. U
 </workflow_phases>
 
 <orchestration_and_escalation>
-- USE SKILL `orchestrator-contract` (ACQUIRE FROM KB when needed) for skip gates and transition handling; its phase-execution loop owns the **skip-without-agreement / falsified-skip refusal** rule (announce the missing state row / absent artifact, then start the earliest incomplete phase the same turn) — single canonical home, subordinate to the `hitl` skill. This workflow does NOT restate that logic.
+- **Skip-without-agreement / falsified-skip refusal** (this workflow owns the rule; subordinate to the `hitl` skill): a skip asserted but contradicted by `agents/aqa-state.md` / disk evidence is refused — announce the specific missing state row / absent artifact, then start the earliest incomplete phase the same turn.
 - **AQA bindings for that rule:**
   - State file: `agents/aqa-state.md`.
   - Verification artifacts: the spot-checks in `<workflow_success_criteria>`.
   - HITL carve-outs (never overridden): every phase header carrying `type="HITL"` / `type="HITL-CONDITIONAL"` — those `type=` attributes are the sole source of truth — plus safety/destructive confirmations.
-- Audit-trail row → `agents/aqa-state.md` `## Verification-Failure Overrides` (template owned by the data-collection phase, `aqa-flow-data-collection.md`); `orchestrator-contract`'s skip-refusal rule defines when and what to log.
-- Any skip outside `orchestrator-contract` gates requires explicit user confirmation (HITL).
+- Audit-trail row → `agents/aqa-state.md` `## Verification-Failure Overrides` (template owned by the data-collection phase, `aqa-flow-data-collection.md`); the skip-refusal rule above defines when and what to log.
+- Any skip outside the rule above requires explicit user confirmation (HITL).
 - **HITL waits on delegated (subagent) phases are owned by the orchestrator.** A subagent cannot talk to the user: on a `type="HITL"` phase the subagent surfaces the question/blocker and returns; the **orchestrator** runs the gate with the user and only then resumes. A subagent never waits for, infers, or proceeds without the user's approval itself (critical on the destructive Phase 8).
 - Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user; never substitute silently.
 </orchestration_and_escalation>

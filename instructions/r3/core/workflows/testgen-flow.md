@@ -23,7 +23,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 - **Transition precedence:** `<orchestration_and_escalation>` priority hierarchy.
 - **STATE TRACKING:** Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
 - **SELF-CHECK BETWEEN PHASES:** Before advancing, verify the state row was updated, the expected output file exists and is non-empty, the phase's `## Metrics` count is populated (a thin `0`/`1` → re-check the artifact), and any HITL approval (Phase 3, 6) is recorded.
-- USE SKILL `orchestrator-contract` for the canonical implementation (ACQUIRE if not loaded). Inline bullets remain authoritative on skill load failure.
+- The drive-loop cadence above is owned by this workflow — the inline bullets are authoritative. When a phase delegates work to subagents, dispatch per `USE SKILL orchestrator-contract` (ACQUIRE if not loaded).
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
 - **Trigger prompt example:** `Analyze requirements for PROJ-123` (also: bare key `PROJ-123`, full Jira URL). Jira-only and Jira+Confluence input formats are enumerated in `testgen-flow-project-config-loading.md` step 0.1.
@@ -118,7 +118,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 <orchestration_and_escalation>
 
-- USE SKILL `orchestrator-contract` for the generic drive-loop and the **skip-without-agreement / falsified-skip refusal** rule (announce the missing state row / absent artifact, then start the earliest incomplete phase the same turn) — subordinate to the `hitl` skill. This workflow does NOT restate that logic.
+- **Skip-without-agreement / falsified-skip refusal** (this workflow owns the rule; subordinate to the `hitl` skill): a skip asserted but contradicted by `testgen-state.md` / disk evidence is refused — announce the specific missing state row / absent artifact, then start the earliest incomplete phase the same turn.
 - **Priority (highest never overridden → lowest):** (1) safety / destructive confirmations — incl. `<phase_5_6_standards_gate>` outside-output-dir confirmation; (2) Phase 3 + Phase 6 HITL gates (answer `questions.md` / confirm TMS target + export scope) — never skipped by user instruction; (3) per-phase user confirmation; (4) the verification-failure override below.
 - **Testgen binding for the override** (skip-verification gate only): the trigger is the user asserting a phase complete while `testgen-state.md` does not mark it AND the expected output is absent. Action — if `testgen-state.md` is missing, create it from the Phase 0 `<state_file_template>` first; log a row into its `## Verification-Failure Overrides` (row format owned by that template); then start the earliest incomplete phase the same turn without invoking the `hitl` ask path. Uncertainty (partial state, ambiguous assertion) → fall back to the `hitl` ask.
 - Zero-document ACQUIRE for a required dependency: stop, record in `testgen-state.md`, ask the user; never substitute silently.

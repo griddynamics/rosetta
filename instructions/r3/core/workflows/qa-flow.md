@@ -20,12 +20,11 @@ End-to-end backend API test automation from test case input to working automated
 - **Phases 0→7 MUST run in order**; sanctioned skips per `<skip_rules>` only.
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
 - NO ASSUMPTIONS: never assume endpoints, payloads, auth mechanisms, or response schemas — ask the user when missing.
-- **Drive loop:** USE SKILL `orchestrator-contract` (ACQUIRE FROM KB if not loaded) — it owns the per-phase ACQUIRE→execute→update-state→verify cadence and todo discipline. This workflow specifies only qa-flow-specific deltas in each phase block below.
-- **Drive-loop fallback** (authoritative ONLY if `orchestrator-contract` is missing or dropped on compaction): for each phase in order — ACQUIRE its phase file FROM KB → execute → update `agents/qa-state.md` → verify the phase-output gate → next; never batch-load future phases; never skip without approval (`<skip_rules>`).
-- **Phase-output gate (verify before advancing):** each phase's mandatory artifact must exist and pass its phase-file completion gate before the next phase starts — notably **Phase 4: every `ATC-NNN` in `test-specs.md` traces to a Phase 3 requirement/source**; also Phase 1 `raw-data.md`, Phase 2 `api-analysis.md`, and Phase 6 `execution-report.md` present and non-placeholder. (Generic verify-before-advance is owned by `orchestrator-contract`.)
+- **Drive loop (owned by this workflow):** execute phases in order — for each: ACQUIRE its phase file FROM KB → execute → update `agents/qa-state.md` → verify the phase-output gate → next; keep todos matched to the active phase; never batch-load future phases; never skip without approval (`<skip_rules>`). When a phase delegates work to subagents, dispatch per `USE SKILL orchestrator-contract`. This workflow specifies only qa-flow-specific deltas in each phase block below.
+- **Phase-output gate (verify before advancing):** each phase's mandatory artifact must exist and pass its phase-file completion gate before the next phase starts — notably **Phase 4: every `ATC-NNN` in `test-specs.md` traces to a Phase 3 requirement/source**; also Phase 1 `raw-data.md`, Phase 2 `api-analysis.md`, and Phase 6 `execution-report.md` present and non-placeholder.
 
 <phase_template>
-Per-phase block format: phase file path + Input/Output + HITL gate (when present). The ACQUIRE / execute / state-update cadence is the `orchestrator-contract` skill's contract, not restated per-phase.
+Per-phase block format: phase file path + Input/Output + HITL gate (when present). The ACQUIRE / execute / state-update cadence is the drive loop above, not restated per-phase.
 </phase_template>
 
 <skip_rules>
