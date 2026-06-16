@@ -16,6 +16,10 @@ agents/qa/{IDENTIFIER}/initial-data.md   (this run's handoff artifact)
 
 **`{IDENTIFIER}` derivation:** prefer Jira key (`PROJ-123`) → TestRail case ID (`C12345`) → sanitized kebab-case feature (`order-lookup`); first non-empty wins; recorded once in `qa-state.md` and reused as the session-dir name everywhere. The project config is project-wide, NOT per-`{IDENTIFIER}` — every session reads the one shared file.
 
+**Slug format (sanitized-feature branch + any user-supplied identifier):** lowercase ASCII kebab-case — letters, digits, hyphens only; no spaces or paths; max 80 chars. Reserved names rejected: `state`, `index`, `qa-state`.
+
+**Underivable guard:** if none of the three sources yields a value — or the result cannot be reduced to a valid slug even after one user attempt — stop, record the gap in `agents/qa-state.md`, and ask the user once; never fabricate or guess a `{IDENTIFIER}`.
+
 **State file `agents/qa-state.md`:** header (Last Updated / Current Phase 0-7 / Test Case Source / Feature / API Base URL) + 8-row `## Phase Completion Status` + per-phase append blocks. Seed skeleton is kept inline in `qa-flow-project-config-loading.md` (Phase 0, step 0.1) — tiny + always-needed, so not a separate asset. Each phase appends only its own delta.
 
 </qa-layout>

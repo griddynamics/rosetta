@@ -46,7 +46,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 4. Update state (step 5.4)
 </phase_steps>
 
-<execute_implementation step="5.1" subagent="engineer" role="API test automation engineer">
+<execute_implementation step="5.1" subagent="engineer" role="Test automation engineer">
 1. GATE: confirm `agents/qa/{IDENTIFIER}/test-specs.md` exists, is non-empty, and `User Approval` is set in `agents/qa-state.md`; confirm `api-analysis.md` and discoverable existing patterns are present. On any failure apply `<failure_handling>` — never author from unapproved or incomplete inputs.
 2. USE SKILL `coding` (standards-first mode) to read the repository standards as authority before authoring; repo docs beat model defaults.
 3. USE SKILL `testing` (API impl mode) with the parent-supplied bindings: approved-specs path + the recorded approval signal; API-contract path; existing-patterns source; write boundary = test + shared-utility files only (`<workflow_context>`); output = the hand-off summary fields, which the `engineer` MUST ACQUIRE from `qa-knowledge/assets/qa-test-impl-record.md` FROM KB (per `<implementation_handoff_contract>`).

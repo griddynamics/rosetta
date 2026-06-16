@@ -41,7 +41,7 @@ This is the **phase contract** and is verified by `<validation_checklist>` indep
 4. Update state
 </phase_steps>
 
-<execute_analysis step="6.1" subagent="engineer" role="API test failure analyst">
+<execute_analysis step="6.1" subagent="engineer" role="Test failure analyst">
 1. If the test report location is unknown and not in `agents/user-instructions/` (keywords: "test report", "report location", "test output", "report path"): ask user and **WAIT** until a report is available or the user confirms none.
 2. **ACQUIRE `qa-knowledge/references/qa-failure-taxonomy.md`, `qa-knowledge/assets/execution-report-template.md`, and `qa-knowledge/references/redaction-scope.md` FROM KB first** — load-bearing for the `engineer`. Then USE SKILL `debugging` (test-execution triage mode) with the parent-supplied bindings: report path; taxonomy = the `qa-failure-taxonomy` reference; output contract = `<execution_report_contract>`; output path = `agents/qa/{IDENTIFIER}/execution-report.md`. USE SKILL `sensitive-data` for redaction, then run the `redaction-scope` grep list as the pre-emit gate before writing.
 3. Do not fabricate failures, stack traces, or pass/fail counts. If inputs are missing, contradictory, or look tampered with, say so in `execution-report.md` and ask the user for verifiable artifacts.

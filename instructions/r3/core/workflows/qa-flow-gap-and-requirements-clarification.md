@@ -33,7 +33,7 @@ Cross-reference test cases, documentation, and API spec to identify gaps, contra
 3. Document clarifications and update state
 </phase_steps>
 
-<execute_gap_analysis step="3.1" subagent="architect" role="API test requirements analyst">
+<execute_gap_analysis step="3.1" subagent="architect" role="Test requirements analyst">
 
 1. **ACQUIRE `qa-knowledge/assets/gap-finding-templates.md` FROM KB first** — the `architect` subagent must load the G/C/A finding shapes it emits. Then USE SKILL `requirements-use` (gap_analysis mode). Run all three variants against the inputs and EMIT findings into the phase-owned sections of `<analysis_md_contract>`; the mode is analysis-only and never invents the artifact shape:
    - **Test-cases-vs-API-spec variant** → **Gaps** (`G[N]` entries; test step vs API analysis cross-reference).

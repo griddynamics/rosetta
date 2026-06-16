@@ -38,7 +38,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 4. Update state (step 7.4)
 </phase_steps>
 
-<execute_corrections step="7.1" subagent="engineer" role="API test correction engineer">
+<execute_corrections step="7.1" subagent="engineer" role="Test correction engineer">
 **Preparation-only:** nothing in this block modifies workspace files until step 7.3 after explicit approval in 7.2. "Preparation-only" means proposed edits paired with before/after evidence — no writes to test or product source files.
 1. USE SKILL `debugging` to align each proposed edit with a confirmed Phase 6 root cause (no symptom-only fixes).
 2. USE SKILL `coding` (approved-apply mode) with the parent-supplied bindings: proposed-change source = `agents/qa/{IDENTIFIER}/execution-report.md`; proposed-change template = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 7.2; state file = `agents/qa-state.md`; iteration cap = `<correction_contract>`; loop target = Phase 6.

@@ -44,7 +44,7 @@ Read completely:
 
 </load_inputs>
 
-<execute_authoring step="4.2" subagent="architect" role="API test specification author">
+<execute_authoring step="4.2" subagent="architect" role="Test specification author">
 
 1. **ACQUIRE `qa-knowledge/assets/test-spec-template.md` FROM KB first** — the `architect` subagent must load the skeleton it emits into. Then USE SKILL `scenarios-generation` (gwt_spec mode) with all loaded inputs from step 4.1. This phase OWNS the output contract — the spec artifact section list (the `qa-knowledge/assets/test-spec-template.md` asset) and the file-mapping / shared-utilities / execution-order sections — and the scenario taxonomy; the skill EMITS Given-When-Then ATC entries into them.
 2. Redact any captured credentials, tokens, PII, or credentialed URLs in the emitted spec → USE SKILL `sensitive-data`.

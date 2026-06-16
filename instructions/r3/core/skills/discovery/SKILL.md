@@ -2,6 +2,7 @@
 name: discovery
 description: Rosetta — gather source artifacts from Jira/Confluence/TestRail into a phase-defined raw-context artifact. Read-only.
 license: Apache-2.0
+tags: []
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -40,7 +41,7 @@ The single mode of this skill: collect from one or more vendor sources into the 
 
 3. **Extract + normalize** per the binding's field map. Per field: present + non-empty → include in the phase's section; empty/null → write `None` + record a gap; permission-restricted → `<restricted by permissions>` + gap; transport/not-found/auth failures → follow the binding's failure path (retry-once on transport, then stop + report; never emit a partial-but-unflagged artifact). Capture provenance (source IDs, URLs, query used, ranking) where the binding specifies it.
 
-4. **Redact, then write.** Before writing any captured value, scan + redact via `sensitive-data` (→ `<core_concepts>`) — descriptions, comments, page bodies, step text, and test-data are the highest-risk fields. Replace literal secrets/PII with shape-preserving placeholders and record each redaction in the artifact's redaction section (or `None.` if clean). Structural content (feature names, endpoint paths, methods, status codes, field names, schema shapes, headings) stays verbatim — redaction targets sensitive VALUES, not structure. Then write into the phase-owned section.
+4. **Redact, then write.** Before writing any captured value, scan + redact via `sensitive-data` (→ `<core_concepts>`) — descriptions, comments, page bodies, step text, and test-data are the highest-risk fields. Replace literal secrets/PII with shape-preserving placeholders and record each redaction in the artifact's redaction section (or `None.` if clean). Structural content (feature names, endpoint paths, methods, status codes, field names, schema shapes, headings) stays verbatim — redaction targets sensitive VALUES, not structure. **The redaction gate is fail-closed: if `sensitive-data` cannot be loaded or run, STOP and report — never write unscanned content.** Then write into the phase-owned section.
 
 When a phase supplies MULTIPLE bindings, run steps 2–4 per vendor and emit each vendor's output into the section the phase assigns it; the phase owns any cross-vendor aggregation/reconciliation.
 
@@ -66,6 +67,7 @@ Generic gate (the per-vendor binding adds its own item-level checklist, loaded w
 - Emitting an empty or partial artifact on transport/auth/not-found failure instead of following the binding's failure path → step 3
 - Permission-restricted item masked as empty content → `<core_concepts>` permission rule
 - Verbatim description / comments / page bodies / step text written without the `sensitive-data` scan → step 4
+- Writing captured content when `sensitive-data` is unavailable (ACQUIRE/load fails) instead of stopping → step 4 (the redaction gate is fail-closed)
 - Fabricating, inferring, or paraphrasing-without-source a missing field instead of recording a gap → `<core_concepts>`
 
 </pitfalls>

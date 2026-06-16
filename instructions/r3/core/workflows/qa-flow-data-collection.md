@@ -28,7 +28,6 @@ Gather test case details from TMS, search documentation, and discover existing A
 - `discovery` — single canonical collector for TMS + documentation MCP sources.
 - `reverse-engineering` — existing-test-pattern + backend-source scan.
 - `qa-structure` — `{IDENTIFIER}` path resolution and the raw-data artifact location.
-- `qa-knowledge` — redaction scope for captured values (`references/redaction-scope.md`).
 </recommended_skills>
 
 <config_binding>
@@ -45,7 +44,7 @@ This phase owns the raw-data aggregation artifact `agents/qa/{IDENTIFIER}/raw-da
 - **API Endpoints Identified** — every row has Method + Source populated; partial rows tagged as gaps.
 - **Data Collection Summary** — counts + gap notes; a delegated-skill stop is recorded verbatim as `Gap: <skill> stopped — <message>`, never fabricated over.
 
-Redaction of every captured value runs inside `discovery` via `sensitive-data` before write (scope per `qa-knowledge/references/redaction-scope.md`); `raw-data.md` is PUBLIC by default.
+Redaction of every captured value runs inside `discovery` via `sensitive-data` before write (redaction scope owned by the vendor binding loaded inside `discovery`); `raw-data.md` is PUBLIC by default.
 </raw_data_contract>
 
 <phase_steps>

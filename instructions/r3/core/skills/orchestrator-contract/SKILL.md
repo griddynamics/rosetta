@@ -87,6 +87,7 @@ Phase-by-phase execution discipline (driving an already-loaded multi-phase workf
 - Advancing a phase while its outputs are empty/placeholder, or skipping a phase without explicit user agreement (→ `<process>` 25–27).
 - Pre-loading future phases instead of ACQUIRE just-in-time (→ `<process>` 23).
 - Treating an unclear reply as approval for a HITL transition or phase skip (→ `hitl`).
+- Dispatching when ACQUIRE `references/dispatch-template.md` returned zero documents — STOP and report; never dispatch with an undocumented template (→ `<process>` 4).
 
 </pitfalls>
 

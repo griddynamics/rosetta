@@ -27,9 +27,9 @@ Per-phase block format: phase file path + Input/Output + HITL gate (when present
 
 <skip_rules>
 
-This block owns ONLY the qa-flow-specific skip preconditions/carve-outs below. Gate-execution mechanics (how to run an approval gate, token handling) are owned by `USE SKILL hitl` — defer to it; not restated here.
+This block owns ONLY the qa-flow-specific skip rules below: a set of **always-in-force carve-outs** plus a single **verification-failure unilateral-start override** (the only no-ask deviation; its preconditions are in the table further down). The carve-outs bind unconditionally; the override is subordinate to them. Gate-execution mechanics (how to run an approval gate, token handling) are owned by `USE SKILL hitl` — defer to it; not restated here.
 
-- **Always-in-force carve-outs** (the override below NEVER suppresses):
+- **Always-in-force carve-outs** (the override never suppresses these):
   1. Per-phase HITL gates (Phases 3-7 marked `type="HITL"`) — explicit user approval per the `hitl` skill.
   2. NO ASSUMPTIONS rule (above) — every non-skip-gate decision.
   3. Safety / destructive confirmations — file deletion, edits outside `agents/qa/{IDENTIFIER}/`, comparable irreversible actions.
@@ -43,12 +43,15 @@ This block owns ONLY the qa-flow-specific skip preconditions/carve-outs below. G
   | Any precondition uncertain | Fall back to normal HITL ask. **Ambiguity defaults to ASK.** |
 
 </skip_rules>
+
+<execution_policy>
 - If user did not specify preferences, perform all steps except optional.
 - User CAN customize: specific phases, already-done phases, specific goals, specific cases — LISTEN and ADOPT.
 - USE SKILL `coding` before implementation or correction work that touches repository test code or shared utilities (if not already loaded: ACQUIRE `coding` FROM KB).
 - **Repository coding standards:** follow `<coding_standards_precedence>`.
 - Prefer extending existing test files and utilities over creating new ones.
 - **Overall workflow done when:** every phase required for this run is marked complete in `agents/qa-state.md`, expected artifacts for those phases exist under `agents/qa/{IDENTIFIER}/` (and related paths named in phase docs), and the user accepts the last test outcome or explicitly stops the run.
+</execution_policy>
 
 <project_config_loading phase="0" applies="ALL" subagent="discoverer" role="QA project config loader" type="HITL-CONDITIONAL">
 - Phase file: `qa-flow-project-config-loading.md`
@@ -66,31 +69,31 @@ This block owns ONLY the qa-flow-specific skip preconditions/carve-outs below. G
 - Input: raw data + project config. Output: `agents/qa/{IDENTIFIER}/api-analysis.md` (endpoint contracts, auth, data dependencies).
 </api_spec_analysis>
 
-<gap_and_requirements_clarification phase="3" applies="ALL" subagent="architect" role="API test requirements analyst" type="HITL">
+<gap_and_requirements_clarification phase="3" applies="ALL" subagent="architect" role="Test requirements analyst" type="HITL">
 - Phase file: `qa-flow-gap-and-requirements-clarification.md`
 - Input: raw data + API analysis. Output: `agents/qa/{IDENTIFIER}/analysis.md` (gaps, contradictions, ambiguities resolved).
 - HITL gate: **WAIT FOR USER ANSWERS** before Phase 4.
 </gap_and_requirements_clarification>
 
-<test_case_specification phase="4" applies="ALL" subagent="architect" role="API test specification author" type="HITL">
+<test_case_specification phase="4" applies="ALL" subagent="architect" role="Test specification author" type="HITL">
 - Phase file: `qa-flow-test-case-specification.md`
 - Input: all phase 1-3 outputs. Output: `agents/qa/{IDENTIFIER}/test-specs.md` (Given-When-Then scenarios).
 - HITL gate: **WAIT FOR USER APPROVAL** before Phase 5.
 </test_case_specification>
 
-<test_implementation phase="5" applies="ALL" subagent="engineer" role="API test automation engineer" type="HITL">
+<test_implementation phase="5" applies="ALL" subagent="engineer" role="Test automation engineer" type="HITL">
 - Phase file: `qa-flow-test-implementation.md`
 - Input: approved test specs + existing patterns + API analysis. Output: implemented test files.
-- HITL gate: **STOP AND WAIT** for user to execute tests.
+- HITL gate: **STOP AND WAIT** — user must provide actual execution results (output, report path, or pass/fail); confirmation alone does not satisfy this gate.
 </test_implementation>
 
-<execution_and_report_analysis phase="6" applies="ALL" subagent="engineer" role="API test failure analyst" type="HITL">
+<execution_and_report_analysis phase="6" applies="ALL" subagent="engineer" role="Test failure analyst" type="HITL">
 - Phase file: `qa-flow-execution-and-report-analysis.md`
 - Input: test execution report (user-provided or from `agents/user-instructions/`). Output: `agents/qa/{IDENTIFIER}/execution-report.md` (failure analysis).
 - HITL gate: **WAIT FOR USER TO PROVIDE TEST EXECUTION RESULTS**.
 </execution_and_report_analysis>
 
-<test_corrections phase="7" applies="ALL" subagent="engineer" role="API test correction engineer" type="HITL">
+<test_corrections phase="7" applies="ALL" subagent="engineer" role="Test correction engineer" type="HITL">
 - Phase file: `qa-flow-test-correction.md`
 - Input: execution report + test files + test specs. Output: corrected test files.
 - HITL gate: **WAIT FOR USER APPROVAL** before applying changes.
@@ -124,7 +127,7 @@ Subagents:
 - `engineer` (Full): test implementation, debugging, corrections
 - `executor` (Lightweight): optional for mechanical actions (builds, installs)
 
-Skills (compact map — phase → comma-separated skill tags; backticked = ACQUIRE tag):
+Skills (compact map — phase → comma-separated skill tags; a backticked name is an ACQUIRE tag — `ACQUIRE <name> FROM KB` at that phase's entry step):
 - Cross-phase: `orchestrator-contract`, `coding`, `qa-structure` (paths/identifier/state-file), `qa-knowledge` (taxonomies, redaction scope, artifact skeletons).
 - Phase 0: config init owned by Phase 0 via `questioning`.
 - Phase 1: `discovery`.
