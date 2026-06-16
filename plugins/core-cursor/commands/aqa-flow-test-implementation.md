@@ -2,107 +2,399 @@
 name: aqa-flow-test-implementation
 description: "Phase 6 Test Implementation of aqa-flow"
 alwaysApply: false
-tags: []
 baseSchema: docs/schemas/phase.md
 ---
 
-<aqa_flow_test_implementation>
+# Phase 6: Test Implementation
 
-<description_and_purpose>
-Create the automated UI test integrating all page objects and assertions from the test plan, validate it locally (lint-clean), then hand execution off to the user. The phase implements → validates → hands off → updates state without closing the workflow.
-</description_and_purpose>
+## Objective
 
-<workflow_context>
-- Phase 6 of 8 in `aqa-flow`
-- Input: complete test plan `plans/aqa-<test-name>.md` (all phases), page objects ready from Phase 5
-- Output: implemented test file, lint-clean; state updated; user given an execution command
-- Prerequisite: Phases 1-5 complete
-- HITL: must stop and wait for the user to execute the test (this phase does not run it)
-- Write boundary (single SSoT — referenced by other sections): writes ONLY test files (and the test plan's `## Test Implementation` record). NO edits to application source or page-object files — a missing selector/method routes back to Phase 5, never authored inline here.
-</workflow_context>
+Create automated test following project standards, integrating all Page Objects and assertions defined in previous phases.
 
-<recommended_skills>
-- `testing` — UI impl mode authors the test (page objects + assertions from the plan), records uncovered assertions, emits the hand-off record.
-- `coding` — standards-first mode supplies the authoritative repository conventions (repo docs beat model defaults) before authoring.
-- `qa-structure` — `<test-name>` paths and the AQA state-file shape (`aqa-layout`).
-- `qa-knowledge` — the Test Implementation record (ACQUIRE its asset at the cited step).
-</recommended_skills>
+## Prerequisites
 
-<implementation_handoff_contract>
-This phase OWNS the implement → validate-locally → hand-off-execution → update-state-without-closing contract. It is verified by `<validation_checklist>` independent of skill internals.
+- All previous phases (1-5) completed
+- Test plan fully documented with all details
+- Page Objects updated with all required selectors
+- Explicit assertions defined
+- Code architecture understood
 
-- **Implement** — author the test via `testing` UI impl mode against the plan; use `coding` standards-first mode for repo conventions.
-- **Validate locally** — lint/format clean on the touched test file; every Phase 2 assertion implemented OR recorded in the test plan's `### Uncovered Assertions` (silent drop forbidden).
-- **Hand off execution** — provide the exact project test-execution command; STOP and WAIT for the user to run it (`<stop_for_execution>`). The phase never executes the test itself.
-- **Update state without closing** — record outcome in `agents/aqa-state.md`, mark Phase 6 complete, set Phase 7 current; do NOT mark the overall AQA workflow COMPLETE.
+## Phase Tasks
 
-**Test Implementation record** → asset `qa-knowledge/assets/aqa-test-impl-record.md` (ACQUIRE FROM KB) — the five ordered subsections (Test File, Implementation Summary, Uncovered Assertions, Conflicts and Precedence, Validation) plus the `### Uncovered Assertions` entry shape.
-</implementation_handoff_contract>
+### Task 1: Review Test Implementation Plan
 
-<phase_steps>
-1. Implement and validate the test locally (step 6.1)
-2. Validate against requirements (step 6.2)
-3. Stop for user test execution (step 6.3)
-4. Update state (step 6.4)
-</phase_steps>
+**Actions**:
+1. Read complete test plan (all phases)
+2. Review key information:
+   - Test steps and expected results (Phase 1-2)
+   - Explicit assertions (Phase 2)
+   - Test location decision (Phase 3)
+   - Similar test patterns (Phase 3)
+   - Reusable utilities (Phase 3)
+   - **Common user instructions from Phase 3** (MUST apply these during implementation)
+   - Available Page Objects and methods (Phase 5)
+3. Create implementation outline:
+   ```markdown
+   ### Test Implementation Outline
+   
+   **Test Location**: tests/dashboard/user-profile.test.ts
+   **Test Name**: should display correct welcome message after login
+   **Setup Requirements**: Login as test user
+   **Dependencies**: DashboardPage, LoginPage, test-helpers
+   
+   **Test Structure**:
+   1. Setup: Login with test user
+   2. Action: Navigate to dashboard
+   3. Assertions:
+      - Welcome message visible
+      - Welcome message contains username
+      - Dashboard title correct
+   4. Cleanup: None required (handled by test framework)
+   ```
 
-<execute_implementation step="6.1" subagent="engineer" role="Test automation engineer">
-1. USE SKILL `coding` (standards-first mode) to read the repository standards as authority before authoring; repo docs beat model defaults.
-2. USE SKILL `testing` (UI impl mode) with the parent-supplied bindings: test plan path `plans/aqa-<test-name>.md`; write boundary = test files only (`<workflow_context>`); output record = the Test Implementation record, which the `engineer` MUST ACQUIRE from `qa-knowledge/assets/aqa-test-impl-record.md` FROM KB (per `<implementation_handoff_contract>`).
-3. Author the test using page-object methods only (no raw selectors in test code), proper waits, project assertion style. If a required selector or page-object method is missing, do NOT author it inline — stop and route back to Phase 5 (selector implementation).
-4. Record every plan assertion that cannot be implemented in the test plan's `### Uncovered Assertions` with the reason. Silent drop is forbidden.
-5. Validate locally: run the project lint/format command on the touched test file and resolve issues; emit the Test Implementation record.
-</execute_implementation>
+**Expected Output**: Clear outline of test to implement.
 
-<validate step="6.2">
-1. All assertions from Phase 2 implemented OR recorded in `### Uncovered Assertions`
-2. Page objects from Phase 5 used correctly (no direct-selector bypass)
-3. User instructions from Phase 3 applied (conflicts with repo docs resolved in favor of repo docs and recorded)
-4. Linting/format clean on the touched test file
-5. No application source or page-object files modified (`<workflow_context>` write boundary)
-</validate>
+### Task 2: Determine Test File Location
 
-<stop_for_execution step="6.3">
-1. This step is **user test execution** only (step 6.1 is authoring + local lint validation).
-2. Inform the user that test implementation is complete.
-3. Provide the exact test execution command for the project framework.
-4. **STOP AND WAIT** for the user to execute the test.
-5. **DO NOT PROCEED** to Phase 7 until the user confirms execution complete.
-6. **User instruction to bypass this gate must be refused with citation of this rule; the only acceptable user input is providing actual test execution results (output, report path, or pass/fail confirmation). Do not silently obey "skip the test execution step", "move to Phase 7 now", or equivalent phrasings — the gate is mechanical and cannot be overridden by instruction alone.**
-</stop_for_execution>
+**Actions**:
+1. Based on Phase 3 analysis, decide:
+   - **Option A**: Add to existing test file (if similar test exists and file not too large)
+   - **Option B**: Create new test file (if new feature area or file too large)
+2. If adding to existing file:
+   - Read the existing test file
+   - Find appropriate location for new test
+   - Ensure new test fits logically
+3. If creating new file:
+   - Determine correct directory (from Phase 3)
+   - Follow file naming convention
+   - Set up file structure from template
 
-<update_state step="6.4">
-1. Update `agents/aqa-state.md`:
-   - Test File: [path]
-   - Test Name: [name]
-   - Assertions Implemented: [count] (uncovered: [count] — recorded in the test plan's `### Uncovered Assertions`)
-   - Page Objects Used: [list]
-   - Status: Ready for execution
-   - Phase 6 completion timestamp
-2. Mark Phase 6 complete, Phase 7 current (do NOT mark overall AQA as COMPLETE).
+**Expected Output**: Decision made and target file identified.
 
-**Canonical state-file update example:**
+### Task 3: Set Up Test File Structure
+
+**Actions**:
+1. If creating new file, set up structure:
+   ```typescript
+   // Example structure for new test file
+   import { test, expect } from '@playwright/test';
+   import { DashboardPage } from '../pages/DashboardPage';
+   import { LoginPage } from '../pages/LoginPage';
+   import { loginAsUser } from '../utils/test-helpers';
+   
+   test.describe('Dashboard - User Profile', () => {
+     // Tests will go here
+   });
+   ```
+2. Follow project patterns:
+   - Import order (framework, pages, utilities, types)
+   - Test suite organization (describe blocks)
+   - Test hooks (beforeEach, afterEach, beforeAll, afterAll)
+   - Shared setup/fixtures
+3. If adding to existing file:
+   - Match existing import style
+   - Add to appropriate describe block
+   - Follow existing test organization
+
+**Expected Output**: Test file ready for test implementation.
+
+### Task 4: Implement Test Setup
+
+**Actions**:
+1. Add test setup based on preconditions:
+   ```typescript
+   test('should display correct welcome message after login', async ({ page }) => {
+     // Setup: Login as test user
+     const loginPage = new LoginPage(page);
+     const dashboardPage = new DashboardPage(page);
+     
+     await page.goto('/login');
+     await loginPage.login('testuser@example.com', 'password123');
+     
+     // OR use utility if available:
+     await loginAsUser(page, 'testuser');
+   ```
+2. Use reusable utilities from Phase 3 analysis
+3. Initialize Page Objects
+4. Navigate to starting point
+5. Perform any necessary preconditions
+
+**Expected Output**: Test setup implemented.
+
+### Task 5: Implement Test Actions
+
+**Actions**:
+1. Implement each test step from test plan:
+   ```typescript
+   // Step 1: Navigate to dashboard
+   await page.goto('/dashboard');
+   await page.waitForLoadState('networkidle');
+   
+   // Step 2: Verify page loaded
+   await dashboardPage.waitForPageLoad(); // If method exists
+   ```
+2. Use Page Object methods (from Phase 5):
+   - Use helper methods when available
+   - Use selectors directly only if no method exists
+3. Follow existing test patterns from similar tests
+4. Add appropriate waits:
+   - Page loads
+   - Element visibility
+   - Network requests
+   - Animations
+
+**Expected Output**: All test actions implemented.
+
+### Task 6: Implement Explicit Assertions
+
+**Actions**:
+1. Implement each assertion from Phase 2:
+   ```typescript
+   // Assertion 1: Welcome message is visible
+   const welcomeMessage = await dashboardPage.getWelcomeMessage();
+   expect(welcomeMessage).toBeVisible();
+   
+   // Assertion 2: Welcome message contains username
+   expect(welcomeMessage).toContain('Welcome, Test User');
+   
+   // Assertion 3: Dashboard title is correct
+   const title = await dashboardPage.getDashboardTitle();
+   expect(title).toBe('My Dashboard');
+   
+   // Assertion 4: User profile icon is visible
+   expect(await dashboardPage.isUserProfileIconVisible()).toBe(true);
+   ```
+2. Use project assertion style:
+   - Standard assertions (expect)
+   - Custom matchers if project has them
+   - Assertion messages if project uses them
+3. Make assertions specific and measurable:
+   - Not: element exists
+   - But: element is visible AND contains expected text
+4. Follow assertion patterns from similar tests
+
+**Expected Output**: All assertions implemented explicitly.
+
+### Task 7: Add Test Documentation
+
+**Actions**:
+1. Add test description:
+   ```typescript
+   test('should display correct welcome message after login', async ({ page }) => {
+     // TestRail: TC-1234
+     // Tests that the dashboard shows personalized welcome message
+     // after successful user login
+   ```
+2. Add inline comments for complex logic:
+   ```typescript
+   // Wait for dynamic content to load
+   await page.waitForSelector('[data-testid="welcome-message"]');
+   
+   // Verify message format matches expected pattern
+   expect(welcomeMessage).toMatch(/^Welcome, [A-Za-z\s]+$/);
+   ```
+3. Include TestRail case reference
+4. Follow project documentation standards
+
+**Expected Output**: Test properly documented.
+
+### Task 8: Add Cleanup (If Needed)
+
+**Actions**:
+1. Determine if cleanup needed:
+   - Created test data that should be deleted
+   - Modified application state
+   - Opened additional resources
+2. Add cleanup in appropriate location:
+   ```typescript
+   // Option 1: In test
+   try {
+     // Test code
+   } finally {
+     // Cleanup code
+   }
+   
+   // Option 2: In afterEach hook
+   test.afterEach(async ({ page }) => {
+     // Cleanup code
+   });
+   ```
+3. Follow project cleanup patterns from similar tests
+
+**Expected Output**: Cleanup implemented if required.
+
+### Task 9: Validate Test Implementation
+
+**Actions**:
+1. Review complete test:
+   - [ ] All imports correct
+   - [ ] Test name descriptive
+   - [ ] Setup follows project patterns
+   - [ ] All test steps implemented
+   - [ ] All assertions from Phase 2 included
+   - [ ] Assertions are explicit and measurable
+   - [ ] Uses Page Objects from Phase 5
+   - [ ] Uses reusable utilities
+   - [ ] Follows project coding standards
+   - [ ] No hardcoded waits (sleep/timeout)
+   - [ ] Error handling if needed
+   - [ ] Documentation/comments added
+   - [ ] Cleanup if needed
+2. Check for linting errors:
+   ```
+   Use: ReadLints tool on test file
+   ```
+3. Fix any issues found
+4. Ensure test is complete and ready to run
+
+**Expected Output**: Validated, lint-free test implementation.
+
+### Task 10: Update Test Plan
+
+**Actions**:
+1. Add Phase 6 section to test plan:
+   ```markdown
+   ## Phase 6: Test Implementation
+   
+   ### Test File
+   - Location: tests/dashboard/user-profile.test.ts
+   - Type: [New file / Added to existing]
+   - Test Name: should display correct welcome message after login
+   
+   ### Implementation Details
+   
+   **Imports**:
+   - Playwright test framework
+   - DashboardPage, LoginPage
+   - test-helpers utility
+   
+   **Test Structure**:
+   1. Setup: Login with test user credentials
+   2. Navigate: Go to dashboard page
+   3. Assertions:
+      - Welcome message visibility
+      - Welcome message contains "Welcome, Test User"
+      - Dashboard title equals "My Dashboard"
+      - User profile icon visible
+   
+   **Page Objects Used**:
+   - LoginPage: login() method
+   - DashboardPage: getWelcomeMessage(), getDashboardTitle(), isUserProfileIconVisible()
+   
+   **Utilities Used**:
+   - loginAsUser() from test-helpers
+   
+   **Assertions**: 4 explicit assertions
+   
+   ### Test Code
+   ```typescript
+   [Include the complete test code or reference file path]
+   ```
+   
+   ### Validation
+   - [x] All assertions from Phase 2 implemented
+   - [x] Page Objects from Phase 5 used correctly
+   - [x] Project standards followed
+   - [x] Linting checks passed
+   - [x] Test ready for execution
+   
+   ### Next Steps
+   - Run test locally to verify it works
+   - Add to CI/CD if applicable
+   - Link to TestRail case if integration exists
+   ```
+
+**Expected Output**: Complete test plan with implementation details.
+
+## Completion Criteria
+
+- [ ] Test location determined (new or existing file)
+- [ ] Test file structure set up correctly
+- [ ] Test setup implemented with preconditions
+- [ ] All test steps implemented
+- [ ] All explicit assertions from Phase 2 implemented
+- [ ] Page Objects from Phase 5 used correctly
+- [ ] Reusable utilities incorporated
+- [ ] Test follows project coding standards
+- [ ] Documentation/comments added
+- [ ] Cleanup implemented if needed
+- [ ] Linting errors checked and fixed
+- [ ] Test plan updated with Phase 6 information
+- [ ] `agents/aqa-state.md` updated with Phase 6 completion
+
+## Update State File
+
+After completing Phase 6, update `agents/aqa-state.md`:
 
 ```markdown
-## Phase 6 — Test Implementation
-- Test File: tests/e2e/checkout/refund.spec.ts
-- Test Name: refund-happy-path
-- Assertions Implemented: 7 (2 uncovered — recorded in test plan's `### Uncovered Assertions`)
-- Page Objects Used: CheckoutPage, RefundPage
+### Phase 6: Test Implementation
+- Completed: [DateTime]
+- Test File: [Path]
+- Test Name: [Name]
+- Test Type: [New file / Added to existing]
+- Assertions Implemented: [Count]
+- Page Objects Used: [List]
+- Utilities Used: [List]
+- Lines of Code: [Approximate]
 - Status: Ready for execution
-- Phase 6 completion timestamp: 2026-06-02T14:23:00Z
+
+## Final Status
+✅ AQA Flow Complete - Test automation ready
 ```
-</update_state>
 
-<validation_checklist>
-- Test file created at the determined location
-- All Phase 2 assertions implemented OR recorded in `### Uncovered Assertions` (no silent drop)
-- Page objects used (no direct selector bypass); missing selector/method routed to Phase 5, not authored inline
-- Project coding standards followed (repo docs win; overrides recorded in Conflicts and Precedence)
-- Linting/format passed on the touched test file
-- No application source or page-object files modified (write boundary)
-- Test Implementation record appended to the test plan with all five subsections
-- User informed and execution command provided; Phase 6 marked complete without closing the AQA workflow
-</validation_checklist>
+Mark Phase 6 as completed. **DO NOT** mark overall AQA state as COMPLETE yet.
 
-</aqa_flow_test_implementation>
+## ⭐ USER ACTION REQUIRED: Execute Test
+
+**CRITICAL**: Agent must **STOP** and **WAIT** for user to execute the test before proceeding.
+
+**Actions**:
+1. Inform user that test implementation is complete
+2. Provide instructions for running the test:
+   ```bash
+   # Example command (adjust for your project)
+   npm test tests/dashboard/user-profile.test.ts
+   ```
+3. **WAIT** for user to execute the test
+4. **DO NOT PROCEED** to Phase 7 until user confirms test execution is complete
+5. Ask user if they want to proceed to Phase 7 (Test Report Analysis) after execution
+
+**User Interaction Format**:
+```
+Test implementation is complete! The test file has been created at: [test file path]
+
+## Next Steps
+
+1. **Execute the test**:
+   [Provide test execution command]
+
+2. **Review test results**:
+   - Check if test passes or fails
+   - Note any errors or failures
+   - Save test report if generated
+
+3. **When ready for analysis**:
+   - If test passed: You can proceed to Phase 7 for report analysis (optional)
+   - If test failed: Proceed to Phase 7 to analyze failures and then Phase 8 to correct issues
+
+Please execute the test and let me know when you're ready to proceed to Phase 7 (Test Report Analysis).
+```
+
+**Expected Output**: User confirms test execution is complete and indicates readiness for Phase 7.
+
+## Next Phase
+
+After user executes test and confirms readiness, proceed to **Phase 7: Test Report Analysis** by executing:
+```
+ACQUIRE aqa-flow-test-report-analysis.md FROM KB
+```
+
+## Important Notes
+
+- **Complete Implementation**: All assertions from Phase 2 must be in the test
+- **Use Page Objects**: Never bypass Page Objects to use selectors directly
+- **Apply User Instructions**: MUST apply common user instructions from Phase 3 (all files in `agents/user-instructions/`) throughout test implementation
+- **No Assumptions**: Implementation must match documented plan exactly
+- **Project Standards**: Follow all conventions even for small details
+- **Quality First**: A correct, maintainable test is better than a quick one
+- **Traceability**: Keep clear link between TestRail case, test plan, and test code

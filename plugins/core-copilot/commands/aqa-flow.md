@@ -5,159 +5,166 @@ alwaysApply: false
 tags: ["workflow"]
 baseSchema: docs/schemas/workflow.md
 ---
+ 
+# AQA (Automated QA) Agent - Test Automation Workflow
 
-<aqa_flow>
+## Context
 
-<description_and_purpose>
+This agent handles end-to-end test automation from requirements gathering to test implementation. It uses TestRail, Confluence, and project documentation to create automated tests following existing architecture and coding standards.
 
-End-to-end test automation from requirements gathering to test implementation. Uses test cases, project documentation to create automated tests following existing architecture and coding standards.
+### Critical Requirements
 
-</description_and_purpose>
+- **ONE PHASE AT A TIME**: Read phase file, execute, update state, move to next.
+- **DO NOT SKIP PHASES**: Each builds on previous.
+- **NO ASSUMPTIONS**: Never assume selectors, flows, or data. Always ask the user if information is missing.
+- **USER INTERACTION**: Wait for user responses when questions are asked or files are requested. Phase 2, 6, 7, and 8 always require user input. Phase 4 requires user input ONLY if frontend code is unavailable or selectors cannot be found
+- **STATE TRACKING**: Update `agents/aqa-state.md` after each phase.
+- **MUST** use todo tasks for tracking progress.
+- Prioritize ACCURACY over SPEED!
 
-<workflow_phases>
+### User Customizations
 
-**Execution cadence:**
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
-- Execute every in-scope phase in strict 1-8 order (never skip without explicit HITL confirmation): ACQUIRE phase file → execute → update `agents/aqa-state.md` → next; never start a phase until the previous is marked done in state.
-- Skip gates, transitions, and escalation → `<orchestration_and_escalation>`.
-- MUST use todo tasks; prioritize ACCURACY over SPEED.
+- If user did not specify any preferences perform all steps except optional.
+- User CAN customize and ask only for specific phases OR phases could have been done already OR towards specific goal OR for specific case, in this case LISTEN and ADOPT to the user.
 
-**No assumptions & state:**
-- NO ASSUMPTIONS: never assume selectors, flows, or data — ask the user when information is missing.
-- Update `agents/aqa-state.md` after each phase.
+## AQA Flow - Phase Overview
 
-**Customization:**
-- If the user gave no preferences, perform all steps except optional.
-- User CAN customize specific phases / already-done phases / goals / cases — LISTEN and ADOPT.
+**Phase 1: Data Collection** [aqa-flow-data-collection.md]
+1. ACQUIRE aqa-flow-data-collection.md FROM KB
+2. Execute phase instructions
+3. Update `agents/aqa-state.md`
+4. Validate gathered data
 
-**Authoritative rules (do not skim past):**
-- USE SKILL `coding` before any work touching repository tests, page objects, or shared helpers (ACQUIRE if needed) — authoritative for conventions; repository docs win over skill snippets.
-- Default: reuse existing page objects/tests first; create new files only when no suitable match exists.
-- Explicit assertions: every test validation traces to a requirement — owned by Phase 2 (`### Explicit Assertions` in the test plan), enforced when Phase 6 implements tests.
-- **Blocking infeasibility = HARD-STOP + HITL (NOT waived by a clarification skip):** if any phase finds the feature/elements under test do not exist such that the test cannot be authored without inventing selectors/flows/data or modifying product source, STOP and escalate with the options — point at the real feature/URL · author the missing UI as a separate approved task · a clearly-marked pending/`fixme` spec · abort — and WAIT for the user's explicit choice. "Skip clarification" waives clarification *questions* only; it never authorizes this feasibility/scope call.
+**Phase 2: Requirements Clarification** [aqa-flow-requirements-clarification.md] ⭐ **USER INTERACTION REQUIRED**
+1. ACQUIRE aqa-flow-requirements-clarification.md FROM KB
+2. Execute phase instructions
+3. **WAIT FOR USER ANSWERS** before Phase 3
+4. Update `agents/aqa-state.md`
 
-<data_collection phase="1" applies="ALL" subagent="discoverer" role="AQA data collector">
+**Phase 3: Code Analysis** [aqa-flow-code-analysis.md]
+1. ACQUIRE aqa-flow-code-analysis.md FROM KB
+2. Execute phase instructions
+3. Analyze frontend source code if available 
+4. Update `agents/aqa-state.md`
+5. Validate analysis findings
 
-1. ACQUIRE `aqa-flow-data-collection.md` FROM KB
-2. Execute phase instructions.
-3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: test plan file created at `plans/aqa-<test-name>.md`
-4. Recommended skills: `discovery`
+**Phase 4: Selector Identification** [aqa-flow-selector-identification.md] ⭐ **USER INTERACTION CONDITIONALLY REQUIRED**
+1. ACQUIRE aqa-flow-selector-identification.md FROM KB
+2. Execute phase instructions
+3. Search frontend code for selectors first
+4. **WAIT FOR USER TO PROVIDE PAGE SOURCE** only if frontend code unavailable or selectors not found
 5. Update `agents/aqa-state.md`
 
-</data_collection>
+**Phase 5: Selector Implementation** [aqa-flow-selector-implementation.md]
+1. ACQUIRE aqa-flow-selector-implementation.md FROM KB
+2. Execute phase instructions
+3. Update `agents/aqa-state.md`
+4. Validate selectors added
 
-<requirements_clarification phase="2" applies="ALL" subagent="architect" role="Test requirements analyst" type="HITL">
+**Phase 6: Test Implementation** [aqa-flow-test-implementation.md]
+1. ACQUIRE aqa-flow-test-implementation.md FROM KB
+2. Execute phase instructions
+3. Update `agents/aqa-state.md`
+4. Validate test created
+5. **STOP AND WAIT** for user to execute test
 
-1. ACQUIRE `aqa-flow-requirements-clarification.md` FROM KB
-2. Execute phase instructions.
-3. Input: user request + collected data from Phase 1. Output: clarified test requirements and scope in test plan file `plans/aqa-<test-name>.md`
-4. **WAIT FOR USER ANSWERS** to the clarifying questions before Phase 3.
-5. Recommended skills: `requirements-use`, `questioning`
-6. Update `agents/aqa-state.md`
+**Phase 7: Test Report Analysis** [aqa-flow-test-report-analysis.md] ⭐ **USER INTERACTION REQUIRED**
+1. ACQUIRE aqa-flow-test-report-analysis.md FROM KB
+2. Execute phase instructions
+3. **WAIT FOR USER TO PROVIDE TEST REPORT** (if not in agents/user-instructions/ files)
+4. Update `agents/aqa-state.md`
+5. Analyze test failures and root causes
 
-</requirements_clarification>
+**Phase 8: Test Corrections** [aqa-flow-test-correction.md] ⭐ **USER APPROVAL REQUIRED**
+1. ACQUIRE aqa-flow-test-correction.md FROM KB
+2. Execute phase instructions
+3. **WAIT FOR USER APPROVAL** before applying changes
+4. Update `agents/aqa-state.md`
+5. Validate corrections applied
 
-<code_analysis phase="3" applies="ALL" subagent="discoverer" role="Test architecture analyst">
+## State File Format
 
-1. ACQUIRE `aqa-flow-code-analysis.md` FROM KB
-2. Execute phase instructions.
-3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md` + test plan file `plans/aqa-<test-name>.md`. Output: code analysis report at `plans/aqa-<test-name>-code-analysis.md` (architecture patterns, existing page objects, test patterns).
-4. Recommended skills: `reverse-engineering`
-5. Update `agents/aqa-state.md`
+Create/update `agents/aqa-state.md` after each phase:
 
-</code_analysis>
+```markdown
+# AQA State - <Test Name>
 
-<selector_identification phase="4" applies="ALL" subagent="engineer" role="Selector identification specialist" type="HITL-CONDITIONAL">
+**Last Updated**: [DateTime]
+**Current Phase**: [1-8 or COMPLETE]
+**TestRail Case**: [Test Case ID/URL]
+**Feature**: [Feature Name]
 
-1. ACQUIRE `aqa-flow-selector-identification.md` FROM KB
-2. Execute phase instructions.
-3. Input: code analysis report `plans/aqa-<test-name>-code-analysis.md` + frontend code (or user-provided page source). Output: identified selectors for test targets.
-4. **WAIT FOR USER TO PROVIDE PAGE SOURCE** only if frontend code unavailable or selectors not found.
-5. Recommended skills: `testing` (Part A)
-6. Update `agents/aqa-state.md`
+## Phase Completion Status
 
-</selector_identification>
+- [x] Phase 1: Data Collection - Completed [Date]
+- [ ] Phase 2: Requirements Clarification - Not Started
+- [ ] Phase 3: Code Analysis - Not Started
+- [ ] Phase 4: Selector Identification - Not Started
+- [ ] Phase 5: Selector Implementation - Not Started
+- [ ] Phase 6: Test Implementation - Not Started
+- [ ] Phase 7: Test Report Analysis - Not Started
+- [ ] Phase 8: Test Corrections - Not Started
 
-<selector_implementation phase="5" applies="ALL" subagent="engineer" role="Selector implementation specialist">
+## Test Details
 
-1. ACQUIRE `aqa-flow-selector-implementation.md` FROM KB
-2. Execute phase instructions.
-3. Input: identified selectors + existing page objects. Output: implemented/updated page object files with selectors.
-4. Recommended skills: `testing` (Part B), `coding`
-5. Update `agents/aqa-state.md`
+### Phase 1: Data Collection
+- Completed: [DateTime]
+- TestRail Case: [ID/URL]
+- Confluence Pages: [URLs]
+- Test Goal: [Brief description]
+- Expected Result: [Brief description]
 
-</selector_implementation>
+### Phase 2: Requirements Clarification
+- Questions Asked: [Count]
+- Assertions Defined: [Count]
+- Edge Cases: [List]
 
-<test_implementation phase="6" applies="ALL" subagent="engineer" role="Test automation engineer" type="HITL">
+### Phase 3: Code Analysis
+- Existing Page Objects: [List]
+- Similar Tests: [File paths]
+- Test Location: [Directory/File]
 
-1. ACQUIRE `aqa-flow-test-implementation.md` FROM KB
-2. Execute phase instructions.
-3. Input: page objects + clarified requirements + code analysis report `plans/aqa-<test-name>-code-analysis.md`. Output: implemented test files.
-4. **STOP AND WAIT** for user to execute test.
-5. Recommended skills: `coding`, `testing` (test-implementation is done inline by this phase via `coding` + `testing`)
-6. Update `agents/aqa-state.md`
+### Phase 4: Selector Identification
+- Missing Selectors: [Count]
+- Selectors Found in Frontend Code: [Count and list if applicable]
+- Page Source Files: [Paths if needed]
+- Source: [Frontend Code / Page Source / Both]
 
-</test_implementation>
+### Phase 5: Selector Implementation
+- Page Objects Updated: [List]
+- New Page Objects Created: [List]
 
-<test_report_analysis phase="7" applies="ALL" subagent="engineer" role="Test failure analyst" type="HITL">
+### Phase 6: Test Implementation
+- Test File: [Path]
+- Test Method: [Name]
+- Assertions: [Count]
+- Status: Ready for execution
 
-1. ACQUIRE `aqa-flow-test-report-analysis.md` FROM KB
-2. Execute phase instructions.
-3. Input: test execution report (user-provided or from `agents/user-instructions/`). Output: failure analysis with root causes and fix recommendations.
-4. **WAIT FOR USER TO PROVIDE TEST REPORT** (if not in `agents/user-instructions/`).
-5. Recommended skills: `debugging`, `sensitive-data` (read-only report-analysis triage, done inline by this phase)
-6. Update `agents/aqa-state.md`
+### Phase 7: Test Report Analysis
+- Test Report Location: [Path or source]
+- Tests Executed: [Count]
+- Tests Failed: [Count]
+- Root Causes: [List]
 
-</test_report_analysis>
+### Phase 8: Test Corrections
+- Issues Fixed: [Count]
+- Changes Applied: [Count]
+- User Approval: [Date/Time]
+- Status: Ready for re-testing
 
-<test_corrections phase="8" applies="ALL" subagent="engineer" role="Test correction engineer" type="HITL">
+[Add sections for each completed phase]
+```
 
-1. ACQUIRE `aqa-flow-test-correction.md` FROM KB
-2. Execute phase instructions.
-3. Input: failure analysis + test files + page objects. Output: corrected test files and page objects.
-4. **WAIT FOR USER APPROVAL** before applying changes; authoritative approval tokens and presentation rules are defined in `aqa-flow-test-correction.md` section `<present_for_approval>`.
-5. Recommended skills: `debugging`, `coding`
-6. Update `agents/aqa-state.md`
+## Important Notes
 
-</test_corrections>
-
-</workflow_phases>
-
-<orchestration_and_escalation>
-- USE SKILL `orchestrator-contract` (ACQUIRE FROM KB when needed) for skip gates and transition handling; its phase-execution loop owns the **skip-without-agreement / falsified-skip refusal** rule (announce the missing state row / absent artifact, then start the earliest incomplete phase the same turn) — single canonical home, subordinate to the `hitl` skill. This workflow does NOT restate that logic.
-- **AQA bindings for that rule:**
-  - State file: `agents/aqa-state.md`.
-  - Verification artifacts: the spot-checks in `<workflow_success_criteria>`.
-  - HITL carve-outs (never overridden): every phase header carrying `type="HITL"` / `type="HITL-CONDITIONAL"` — those `type=` attributes are the sole source of truth — plus safety/destructive confirmations.
-- Audit-trail row → `agents/aqa-state.md` `## Verification-Failure Overrides` (template owned by the data-collection phase, `aqa-flow-data-collection.md`); `orchestrator-contract`'s skip-refusal rule defines when and what to log.
-- Any skip outside `orchestrator-contract` gates requires explicit user confirmation (HITL).
-- **HITL waits on delegated (subagent) phases are owned by the orchestrator.** A subagent cannot talk to the user: on a `type="HITL"` phase the subagent surfaces the question/blocker and returns; the **orchestrator** runs the gate with the user and only then resumes. A subagent never waits for, infers, or proceeds without the user's approval itself (critical on the destructive Phase 8).
-- Zero-document ACQUIRE for a required dependency: stop, record in `agents/aqa-state.md`, ask the user; never substitute silently.
-</orchestration_and_escalation>
-
-<workflow_success_criteria>
-- **Overall run complete** when every in-scope phase is marked done in `agents/aqa-state.md` and the artifacts those phases reference exist (e.g. `plans/aqa-<test-name>.md`, `plans/aqa-<test-name>-code-analysis.md` when Phase 3 ran, test file paths after Phase 6, failure analysis before Phase 8), and the user accepts the last test outcome or explicitly stops.
-- **In-scope phase** means any phase required by default execution plus user-approved customization/skip decisions under `<orchestration_and_escalation>`.
-- **Spot checks:** Phase 1 — plan file exists at the **user-confirmed** `<test-name>` slug (no fabricated/placeholder slug; user deletion of the slug respected); Phase 2 — `### Explicit Assertions` subsection present in the plan (≥1 typed bullet or the None-clause); Phase 3 — code analysis report path populated with architecture + page object inventory + test location; Phase 4 — `## Selector Management` Part A deliverables present in the plan (Interaction Map / Availability / Identified Selectors / Fragile Flagged); Phase 5 — every identified selector present in the updated page-object files and lint-clean; Phase 6 — test file path + lint-clean per phase doc (example: `tests/e2e/login.spec.ts` exists and lint passes as required by `aqa-flow-test-implementation.md`); Phase 7 — failure analysis recorded; Phase 8 — user-approved edits applied when that phase runs.
-- If a required spot-check artifact is missing or partial, that phase is not done: record the gap in `agents/aqa-state.md`, flag uncertainty, and stop for user guidance before continuing.
-</workflow_success_criteria>
-
-<state_file>
-
-`agents/aqa-state.md` — created/updated after each phase from the template **owned by `qa-structure`** (asset `qa-structure/assets/aqa-state-template.md`, ACQUIRE'd at Phase 1). It carries `## Phase Completion Status`, `## Key Artifacts & Facts` (the resume anchor — only what resume-after-compaction needs; full per-phase detail lives in each phase's own artifacts), and `## Verification-Failure Overrides`.
-
-</state_file>
-
-<references>
-
-Logical names only — full descriptions live where each is consumed (subagent contracts in `orchestrator-contract` skill, skill semantics in each skill's `SKILL.md`, MCP setup in workspace config).
-
-**Subagents:** `discoverer` · `architect` · `engineer`.
-
-**Skills:** `orchestrator-contract` · `hitl` · `coding` · `questioning` · `testing` · `debugging` · `sensitive-data` · `requirements-use` · `reverse-engineering` · `discovery` · `qa-structure` · `qa-knowledge`.
-
-**MCPs:** Test case management (default: `TestRail`) · Documentation (default: `Atlassian Confluence`) · Browser automation (default: `Playwright`).
-
-</references>
-
-</aqa_flow>
+- **Sequential Execution**: Phases build on each other, must execute in order.
+- **No Assumptions Rule**: Always ask user when information is missing - never guess selectors, flows, or test data.
+- **Architecture First**: Always analyze existing code structure before implementing new tests.
+- **Reuse Over Creation**: Prefer adding to existing files and using existing Page Objects over creating new ones.
+- **Explicit Assertions**: All test validations must be explicitly defined based on requirements.
+- **User Interaction**: Phases 2, 6, 7, and 8 always require user input. Phase 4 requires user input ONLY if frontend code unavailable or selectors cannot be found there - never proceed without answers or approval.
+- **Test Execution**: Phase 6 stops and waits for user to execute tests before Phase 7.
+- **Test Reports**: Phase 7 reads test report location from all files in agents/user-instructions/ directory, asks user if not found.
+- **User Approval**: Phase 8 requires explicit user approval before applying any changes.
+- **Documentation**: Use `project_description.md` as the single source of truth for coding standards.
+- **Evidence-Based**: All decisions based on actual code analysis, not assumptions.

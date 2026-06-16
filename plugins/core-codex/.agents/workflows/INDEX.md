@@ -10,7 +10,6 @@ All paths are relative to Rosetta Plugin Path.
 - `workflows/external-lib-flow.md`: "Workflow for onboarding an external private library so AI can use it without source access."
 - `workflows/init-workspace-flow.md`: "Workflow for initializing or upgrading a workspace: context, discovery, documentation, etc."
 - `workflows/modernization-flow.md`: "Workflow for converting, modernizing, upgrading, or re-architecting code (e.g. C++→Java, monolith→microservices), etc."
-- `workflows/qa-flow.md`: MUST apply for backend API test automation: TestRail/Jira cases → automated tests, HITL gates at spec/impl/exec/correction.
 - `workflows/requirements-authoring-flow.md`: "Workflow for authoring requirements and specifications: drafting, review, validation, etc."
 - `workflows/research-flow.md`: "Workflow for deep project research with grounded references, parallel exploration, etc."
 - `workflows/self-help-flow.md`: "Workflow for Rosetta self-help: explain capabilities and usage, then run any discovered workflow."

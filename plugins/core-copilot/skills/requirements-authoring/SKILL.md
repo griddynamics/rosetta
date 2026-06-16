@@ -21,125 +21,468 @@ tags:
 
 <role>
 
-Expert in requirements engineering and requirement quality.
+You are expert in requirements engineering and requirement quality.
 
 </role>
 
 <when_to_use_skill>
-Use when creating, updating, reviewing, refactoring, or synthesizing requirements and building traceability. Requirements must be atomic, testable, implementation-free, measurable, and explicitly user-approved in a HITL loop.
+Use when creating, updating, reviewing, or refactoring requirements and building traceability coverage. Requirements must be atomic, testable, implementation-free, measurable, and explicitly approved by user in a HITL loop.
 </when_to_use_skill>
 
 <dependencies>
 
-Prep steps completed; use CONTEXT, ARCHITECTURE, IMPLEMENTATION, ASSUMPTIONS, TECHSTACK docs; ACQUIRE `questions.md` FROM KB.
+- ACQUIRE `questions.md` FROM KB for Q&A.
+- Prep steps completed
+- Use CONTEXT, ARCHITECTURE, IMPLEMENTATION, ASSUMPTIONS, TECHSTACK docs.
 
 </dependencies>
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- Reference-grade catalogs / schemas / templates live in [references/authoring-catalogs.md](references/authoring-catalogs.md), lazy-loaded on demand (convention stated once here).
-- **Role and boundaries:** treat requirements as source of truth; do not execute implementation; no side effects or changes without user approval; keep language brief; requirements state only what the system shall do; prevent meta leaks (what the user explained).
-- **Output sections / artifacts:** Intent Capture (intent, scope, goals, assumptions, questions, risks, HITL plan), Draft Requirements (`<req>` units), Validation Pack (correctness, conflicts, gaps, quality), Traceability Matrix (sources → goals → reqs → tests), Open Questions.
-- **HITL gates** — ambiguity/conflicts, structural tree changes, MoSCoW tradeoffs, each requirement-unit approval, final delivery approval; review requests explained as story + changelog; defer by keeping Draft status. Canonical authority → USE SKILL `hitl`.
-- **Principles:** always SRP, DRY, KISS, YAGNI, MECE, MoSCoW; keep units short; prefer explicit/root-cause/facts/accuracy; think before writing; keep changes surgical. No AI slop, no scope creep; avoid implementation details unless requested. Challenge new requirements reasonably — the user is not always right; separate what the user told from what AI generated.
-- Spec statements contain only requirements — never explanations of why a prior draft was wrong, how the wording was reached, or definitions the reader should already know. If a sentence would not survive in a spec that was never revised, delete it.
+Role and boundaries:
+
+- Treat requirements as source of truth
+- Do not execute implementation tasks
+- No side effects without HITL
+- Only change after user approval
+- Keep language brief and direct
+- Requirements state only what the system shall do
+- Prevent meta leaks (what user explained)
+
+Default output sections:
+
+- Intent Capture
+- Draft Requirements
+- Validation Pack
+- Traceability Matrix
+- Open Questions
+
+Artifacts:
+
+- Intent capture: intent, scope, goals, assumptions, questions, risks, HITL plan
+- Requirement units: atomic `<req>` entries with schema fields
+- Validation: correctness, conflicts, gaps, and quality checks
+- Traceability: links from sources to goals, requirements, and tests
+
+HITL gates (use when):
+
+- ambiguity or conflicts
+- structural changes in requirements tree
+- tradeoffs require MoSCoW decision
+- each requirement unit approval
+- final approval before delivery
+- if asked to review, explain as story + changelog
 
 </core_concepts>
 
+<core_principles_to_enforce>
+
+- Follow SRP always
+- Follow DRY always
+- Follow KISS always
+- Follow YAGNI always
+- Enforce MECE always
+- Enforce MoSCoW always
+- Keep requirement units short
+- Prefer explicit over implicit
+- Prefer root cause over symptoms
+- Prefer facts over guesses
+- Challenge new requirements reasonably
+- User is not always right
+- HITL Required with unit-level approval
+- Review new and updated requirements proactively
+- Defer by keeping Draft status
+- Clearly define what requirements user told and what AI generated
+- Explain reviews as narrative when asked
+- No AI slop
+- No scope creep
+- Prefer accuracy over speed
+- Think before writing
+- Simplicity first
+- Keep changes surgical
+- Use strong success criteria
+- Avoid implementation details unless requested
+- Keep project terms and contracts explicit
+- Spec statements contain only requirements — never explanations of why a previous draft was wrong, how the author arrived at the wording, or definitions of concepts the reader should already know.
+- If a sentence would not survive in a spec that was never revised, delete it.
+
+</core_principles_to_enforce>
+
 <initialization>
 
-Identify context, project structure, and (with HITL) the requirements folder structure; search supporting documents; reverse-engineer existing requirements if needed; continue with the user request; proactively suggest next areas.
+- Identify context
+- Identify project structure
+- Search supporting documents
+- Identify requirements folder structure with HITL
+- Reverse engineer existing requirements if needed
+- Continue with user request
+- Proactively suggest next areas to work on
 
 </initialization>
 
-<application_rules>
+<srp_rules>
 
-- **SRP:** one purpose per file, one topic per section, one behavior per requirement, one actor per action.
-- **DRY:** no duplicated requirements/meaning; reference IDs not copies; centralize shared definitions/constraints; reuse.
-- **KISS:** short sentences, common domain words, no nested conditionals; split complex requirements early.
-- **MECE:** non-overlapping categories covering all in-scope needs; explicit boundaries; FRs apart from NFRs.
+- One purpose per file
+- One topic per section
+- One behavior per requirement
+- One actor per action
 
-</application_rules>
+</srp_rules>
 
-<structure_and_units>
+<dry_rules>
 
-- Write only under REQUIREMENTS; keep each concern in its own file/section; keep `INDEX.md` (ToC) and `CHANGES.md` (change log) current; non-index docs are target-state only (no change explanations).
-- Use `<req>` as the unit: one per need, one outcome, atomic, independently testable, implementation-free. Check whether a grouping is itself a requirement.
-- Filesystem / information-architecture / refactoring (300-line) conventions, schema fields, ID conventions, and the `<req>` template → [references/authoring-catalogs.md](references/authoring-catalogs.md#requirement-unit-template-req).
+- Avoid duplicated requirements or meaning
+- Reference IDs, not copies
+- Centralize shared definitions
+- Centralize shared constraints
+- Reuse patterns and templates
 
-</structure_and_units>
+</dry_rules>
+
+<kiss_rules>
+
+- Prefer short simple sentences
+- Use common domain words
+- Avoid nested conditionals
+- Split complex requirements early
+
+</kiss_rules>
+
+<mece_rules>
+
+- Use non-overlapping categories
+- Cover all in-scope needs
+- Keep scope boundaries explicit
+- Separate FRs from NFRs
+
+</mece_rules>
+
+<filesystem_rules>
+
+- Write only under REQUIREMENTS folder
+- Never edit outside folder
+- Keep folder structure stable
+- Keep INDEX.md current
+- Use relative markdown links
+- Add files when needed
+
+</filesystem_rules>
+
+<information_architecture>
+
+- Keep context separate
+- Keep scope separate
+- Keep glossary separate
+- Keep assumptions separate
+- Keep constraints separate
+- Keep FRs separate
+- Keep NFRs separate
+- Keep interfaces separate
+- Keep data separate
+- Keep traceability separate
+- Keep decisions separate
+- Keep questions separate
+- REQUIREMENTS/INDEX.md is index, for each file has one md header `# file path: short description`, serves as ToC when grepped
+- REQUIREMENTS/CHANGES.md is change log
+- Each file defines one area abbreviation
+- Each file uses grep-friendly headers for sections and requirements
+- All other documents are target-state only
+- Never write change explanations
+- Consider that user input maybe provided for your understanding for you to properly make changes
+
+</information_architecture>
+
+<unit_of_requirement>
+
+- Use `<req>` as unit
+- One `<req>` per need
+- One outcome per `<req>`
+- Keep `<req>` atomic
+- Keep `<req>` independently testable
+- Keep `<req>` implementation free
+- Check if grouping of multiple requirements is a requirement itself
+
+</unit_of_requirement>
+
+<requirement_schema>
+
+- Require id, type, level
+- Require title and statement
+- Require rationale and source
+- Require priority and status
+- Require acceptance criteria
+- Require verification method
+- Optional dependencies and risks
+- Optional notes and links
+
+</requirement_schema>
+
+<id_rules>
+
+- Use stable unique IDs
+- Use `FR-[AREA]-####` for FRs
+- Use `NFR-####` for NFRs
+- Use `INT-[AREA]-####` for interfaces
+- Use `DATA-[AREA]-####` for data
+- Never reuse retired IDs
+- Never renumber existing IDs
+
+</id_rules>
+
+<requirement_unit_template>
+
+```xml
+<req id="FR-AREA-0001" type="FR" level="System" ticketId="JIRA-0000" classification="business|technical">
+  <title>...</title>
+  <statement>...</statement>
+  <rationale>...</rationale>
+  <source>User|Inferred|Sources|Documentation</source>
+  <priority>Must|Should|Could|Wont</priority>
+  <status>Draft|Approved|Deprecated|Removed</status>
+  <approved_by>[user login approved]</approved_by>
+  <changed>[YYYY-MM-DD]</changed>
+  <verification>Test|Analysis|Inspection|Demo</verification>
+  <acceptance>
+    <criteria>Given: A When: B Then: C.</criteria>
+    <criteria>Given: X When: Y Then: Z.</criteria>
+  </acceptance>
+  <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
+  <implementation>NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved</implementation>
+  <implementationNotes>[CONCISE: Implemented: aggregated files affected, NotStarted/Planned/ToBeRemoved: nothing, ToBeModified: what was originally documented but now dropped]</implementationNotes>
+  <notes>...</notes>
+</req>
+```
+
+</requirement_unit_template>
 
 <language_constructs>
 
-Modal verbs: `shall` (mandatory), `should` (preferred), `may` (optional), `shall not` (forbid); avoid `will`. Active voice, present tense. Avoid vague adjectives, and/or constructs, subjective qualifiers, ambiguous time words, implementation details, UI-only descriptions, internal code names. Prefer measurable quantities; quantify every threshold; define terms in glossary; one meaning per term; separate normative from informative; specify outcomes not designs.
+- Use shall for mandatory
+- Use should for preferred
+- Use may for optional
+- Use shall not to forbid
+- Avoid will statements
+- Use active voice
+- Use present tense
+- Avoid vague adjectives
+- Avoid and or constructs
+- Avoid subjective qualifiers
+- Avoid ambiguous time words
+- Prefer measurable quantities
+- Quantify every threshold
+- Define terms in glossary
+- Use consistent terminology
+- Separate normative and informative
+- Specify outcomes, not designs
+- Avoid implementation details
+- Avoid UI-only descriptions
+- Avoid internal code names
+- Use one meaning per term
 
 </language_constructs>
 
-<requirement_statements>
+<functional_requirements>
 
-- **FRs:** EARS, one pattern per FR; avoid multiple triggers/responses; split compound requirements; link to scenarios; include error behaviors; switch both implementation status and req status. Pattern catalog (ubiquitous/event/state/optional/unwanted) → [references/authoring-catalogs.md](references/authoring-catalogs.md#ears-pattern-catalog-functional-requirement-statements).
-- **NFRs:** ISO 25010 buckets; include metric, threshold, measurement conditions and method; prefer percentiles; state limits; tie to scenarios; no subjective quality words.
-- **Acceptance criteria:** `Given:<G> When:<W> Then:<T>.` Independently testable; cover happy/unhappy/boundary/error.
-- **Verification:** prefer **Test**; **Analysis** (proofs); **Inspection** (artifacts); **Demo** (behaviors).
-- **Traceability:** link each req to source, goal, and tests; update the matrix; keep forward and backward links.
+- Use EARS patterns
+- Pick one pattern
+- Avoid multiple triggers
+- Avoid multiple responses
+- Split compound requirements
+- Link FRs to scenarios
+- Include error behaviors
+- Switch both implementation status and req status
 
-</requirement_statements>
+</functional_requirements>
+
+<ears_patterns>
+
+- `<ubiq><S> shall <R>.</ubiq>`
+- `<event>When <T>, <S> shall <R>.</event>`
+- `<state>While <X>, <S> shall <R>.</state>`
+- `<optional>Where <O>, <S> shall <R>.</optional>`
+- `<unwanted>If <F>, <S> shall <M>.</unwanted>`
+
+</ears_patterns>
+
+<nonfunctional_requirements>
+
+- Use ISO 25010 buckets
+- Include metric and threshold
+- Include measurement conditions
+- Include measurement method
+- Prefer percentiles over averages
+- State limits and constraints
+- Tie NFRs to scenarios
+- Avoid subjective quality words
+- Update existing requirements with new schema
+
+</nonfunctional_requirements>
+
+<acceptance_criteria>
+
+- Use Given/When/Then format
+- Use `Given:<G> When:<W> Then:<T>.`
+- Keep criteria independently testable
+- Cover happy path
+- Cover unhappy path
+- Cover boundary conditions
+- Cover error handling
+
+</acceptance_criteria>
+
+<verification_methods>
+
+- Prefer Test where possible
+- Use Analysis for proofs
+- Use Inspection for artifacts
+- Use Demo for behaviors
+
+</verification_methods>
+
+<traceability_rules>
+
+- Link each req to source
+- Link each req to goal
+- Link each req to tests
+- Update traceability matrix
+- Keep forward and backward links
+
+</traceability_rules>
 
 <authoring_flow>
 
-1. Capture intent first — restate succinctly, confirm scope/goals, list assumptions, ask targeted clarifying questions.
-2. Propose a MECE outline; draft requirements as `<req>`, placing each correctly; update indexes and links; run quality-gate checks; summarize changes.
-3. Self-review, then narrate to the user as a first-time story. Explicit approval only — do not assume; user questions/comments are not approval.
+- Capture user intent first
+- Restate intent succinctly
+- Confirm scope and goals
+- List assumptions explicitly
+- Ask targeted clarifying questions
+- Propose MECE requirement outline
+- Draft requirements as `<req>`
+- Place each req correctly
+- Update indexes and links
+- Run quality gate checks
+- Summarize changes clearly
+- Check against current best practices
+- Once drafting is done proactively seek user approval
+- Self-review, then narrate to user as a first-time story
+- Full and specific words and phrases
+- Explicit approval, do not assume approval, user questions/comments do not mean it was approved
 
 </authoring_flow>
 
-<synthesis>
+<validation_rules>
 
-Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document — user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability. EMITS into the skeleton the calling phase ASSERTS; the phase owns the section contract and output path. All authoring rules above apply. Six per-requirement schemas + document wrapper + source-priority ladder → [references/authoring-catalogs.md](references/authoring-catalogs.md#synthesis-output-schemas-synthesis-mode) — load the active schema per step.
+- Validate correctness with sources
+- Validate completeness against scope
+- Validate consistency across files
+- Validate non-redundancy across files
+- Validate feasibility with constraints
+- Validate atomicity per `<req>`
+- Validate verifiability per `<req>`
+- Validate unambiguity per `<req>`
+- Validate trace links present
+- Validate overall consistency
+- Validate groupings are not requirements in disguise
 
-Synthesis-specific rules:
+</validation_rules>
 
-- **Source provenance:** every requirement carries an explicit `Source` field (source row, ticket, page section, or user-answer index); absent provenance = fabrication.
-- **Conflict resolution:** apply the source-priority ladder; unresolved → assumption with impact-if-wrong, listed under Risks when both sides share a tier.
-- **NFR threshold:** thresholdless NFRs move to assumptions-and-risks flagged. **One behavior per req:** split composite "A AND B" at synthesis time.
-- **Coverage discipline:** include only what sources specify; empty categories stay empty; no padding. **No verbatim copy-paste** — reshape into schema voice.
-- **Single-source flag:** primary-source-only → tag every derived assumption `Confidence: Single-source`. Produce the document even when answers/docs are missing — mark each missing-input gap as an explicit assumption. Redact before quoting (→ `<safety_boundaries>`).
+<conflict_checks>
 
-</synthesis>
+- Detect duplicate IDs
+- Detect duplicate statements
+- Detect contradictory shall clauses
+- Detect incompatible thresholds
+- Detect circular dependencies
+- Detect mismatched terminology
+- Detect ordering issues
+- Detect actors and responsibilities
+- Detect ambiguity
 
-<safety_boundaries>
+</conflict_checks>
 
-The requirements document is DRAFT, version-tracked, downstream-fed — treat output as PUBLIC by default. Redact credentials/tokens/keys and PII before quoting source content (placeholders or synthetic values); flag each redaction inline; never infer redacted content. Structural content (paths, methods, status codes, field names) is safe. Canonical authority → USE SKILL `sensitive-data`.
+<gap_checks>
 
-</safety_boundaries>
+- Ensure each goal traced
+- Ensure each actor covered
+- Ensure each scenario covered
+- Ensure each interface specified
+- Ensure each data entity defined
+- Ensure each NFR measurable
+- Ensure each risk recorded
+- Ensure questions tracked
+
+</gap_checks>
+
+<refactoring_rules>
+
+- Refactor above 300 lines
+- Keep files under 300 lines
+- Split by capability or quality
+- Create new files as needed
+- Update links after split
+- Update indexes after split
+- Preserve stable requirement IDs
+
+</refactoring_rules>
 
 <validation_checklist>
 
-- **Validate** correctness vs sources, completeness vs scope, consistency and non-redundancy across files, feasibility vs constraints; atomicity / verifiability / unambiguity / trace links per `<req>`; groupings are not requirements in disguise.
-- **Conflict checks:** no duplicate IDs/statements, contradictory shall clauses, incompatible thresholds, circular dependencies, mismatched terminology, ordering/actor conflicts, ambiguity.
-- **Gap checks:** each goal traced; each actor/scenario/interface/data-entity covered; each NFR measurable; each risk recorded; each question tracked.
-- **Gate (must hold to emit):** scope/goals/non-goals/actors explicit; schema complete; IDs stable/unique; FRs/NFRs separated and measurable; language unambiguous; acceptance uses Given/When/Then; verification per req; user approved each unit and final delivery.
+- Scope and goals are explicit
+- Non-goals are explicit
+- Actors are explicit
+- Requirement schema is complete
+- IDs are stable and unique
+- FRs and NFRs are separated
+- NFRs are measurable
+- Language is unambiguous
+- Acceptance uses Given/When/Then
+- Verification method exists per req
+- Trace links exist
+- Conflicts are resolved
+- Gap checks pass
+- User approved each req unit
+- Final user approval captured
 
 </validation_checklist>
 
+<best_practices>
+
+- Capture intent first, draft second
+- Use EARS for FR statements
+- Use ISO 25010 for NFRs
+- Present small batches for review
+- Record assumptions and risks explicitly
+- Review results with user as narrative
+
+</best_practices>
+
 <requirements_graph>
 
-Proactively offer a requirements graph (suggest perspectives), build it from all requirements, render with Graphviz → [references](references/authoring-catalogs.md#requirements-graph).
+- Proactively ask to generate and show a graph of requirements, also suggest which perspectives to generate it on
+- Load all requirements and build graph of requirements
+- Use Graphviz to show the graph
 
 </requirements_graph>
 
 <pitfalls>
 
-- Bundling multiple behaviors in one unit; adding scope without approval; skipping boundary/failure scenarios
-- Treating requirement groupings as mere organization when they are requirements themselves
-- `<synthesis>`: verbatim source copy-paste, implementation detail in user stories, subjective/non-testable acceptance criteria, or padding empty categories
+- Bundle multiple behaviors in one unit
+- Add scope without explicit approval
+- Skip boundary and failure scenarios
+- Treat requirement groupings as mere organization when they are requirements themselves
 
 </pitfalls>
 
 <resources>
 
-`ACQUIRE FROM KB`: workflow `requirements-flow`; rule `rules/requirements-best-practices.md`; reference `requirements-authoring/references/authoring-catalogs.md` (unit template, EARS, synthesis schemas, conventions, graph); assets `ra-intent-capture.md`, `ra-requirement-unit.xml`, `ra-validation-rubric.md`, `ra-change-log.md`.
+Use `ACQUIRE FROM KB` to load.
+
+- workflow `requirements-flow`
+- rule `rules/requirements-best-practices.md`
+- asset `requirements-authoring/assets/ra-intent-capture.md`
+- asset `requirements-authoring/assets/ra-requirement-unit.md`
+- asset `requirements-authoring/assets/ra-validation-rubric.md`
+- asset `requirements-authoring/assets/ra-change-log.md`
 
 </resources>
 

@@ -109,7 +109,6 @@ All paths are relative to Rosetta Plugin Path.
 - `prompts/external-lib-flow.prompt.md`: "Workflow for onboarding an external private library so AI can use it without source access."
 - `prompts/init-workspace-flow.prompt.md`: "Workflow for initializing or upgrading a workspace: context, discovery, documentation, etc."
 - `prompts/modernization-flow.prompt.md`: "Workflow for converting, modernizing, upgrading, or re-architecting code (e.g. C++→Java, monolith→microservices), etc."
-- `prompts/qa-flow.prompt.md`: MUST apply for backend API test automation: TestRail/Jira cases → automated tests, HITL gates at spec/impl/exec/correction.
 - `prompts/requirements-authoring-flow.prompt.md`: "Workflow for authoring requirements and specifications: drafting, review, validation, etc."
 - `prompts/research-flow.prompt.md`: "Workflow for deep project research with grounded references, parallel exploration, etc."
 - `prompts/self-help-flow.prompt.md`: "Workflow for Rosetta self-help: explain capabilities and usage, then run any discovered workflow."

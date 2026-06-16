@@ -5,174 +5,156 @@ alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---
 
-<testgen_flow_project_config_loading>
+# Test Generation Phase 0: Project Config Loading
 
-<description_and_purpose>
-Find or create the project config file, obtain project-specific data retrieval configuration from user, and initialize the ticket output directory.
-</description_and_purpose>
+## Prerequisites
 
-<workflow_context>
-- Phase 0 of 7 in `testgen-flow`
-- Input: user request with Jira ticket key/URL
-- Output: `initial-data.md`, project config file, initialized state
-- Prerequisite: user provided Jira ticket key or URL
-</workflow_context>
+- MUST be starting new test generation flow
+- User provided Jira ticket key or URL
 
-<phase_steps>
-1. Parse initial user input for ticket key
-2. Setup output directory
-3. Load or create project config
-4. Obtain project info from user (if config is new)
-5. Create initial-data file
-6. Update state file
-</phase_steps>
+## Objective
 
-<parse_input step="0.1">
-1. Extract Jira ticket key or URL from user prompt (REQUIRED)
-2. Accept formats:
-   - **Jira only:** `PROJ-123`, a full Jira URL, or `Analyze requirements for PROJ-123`.
-   - **Jira + Confluence:** the ticket key/URL plus one or more Confluence page URLs, e.g. `Analyze PROJ-123, docs: https://<confluence>/pages/123` or a full Jira URL with several Confluence URLs.
-   - **Jira + other documentation URLs** (e.g. Google Drive): the ticket plus any documentation links the project config lists as data sources.
-3. Any non-Jira links pasted here are captured verbatim into `initial-data.md` and carried into Phase 1 data collection, resolved there per the project config's data sources.
-</parse_input>
+- Find or create the project config file
+- Obtain all necessary information about the project's configuration and flow, either directly from the user
+or from the existing config file
+- Initialize ticket's directory with initial data provided
 
-<setup_directory step="0.2">
-1. Create `agents/testgen/{TICKET-KEY}/` (full per-ticket layout in `<output_directory>` below).
-2. Initialize `testgen-state.md` from `<state_file_template>` below. At init the Phase 0 row is `[ ] Phase 0: Project Config Loading - In progress` (all others Not started); step 0.6 flips it to `[x] ... Completed` only after the config and initial-data files exist.
-</setup_directory>
+## Requirements
 
-<load_project_config step="0.3">
-1. Search for `testgen-project-config.md` at the canonical path `agents/testgen/testgen-project-config.md` (project-wide, **not** per-ticket — the same config is shared across all tickets).
-2. **Branches (exhaustive):**
-   - **File exists AND non-empty:** skip to step 0.5.
-   - **File missing OR exists but empty:** proceed to step 0.4 (do NOT create an empty placeholder file — step 0.4 will write the populated file).
-</load_project_config>
+### Step 1: Parse Initial User Input
 
-<obtain_project_info step="0.4">
+**Extract from user's initial prompt**:
+1. **Jira ticket**: Key or URL (REQUIRED)
 
-Contiguous 1–5 sequence. The `<example_format_of_question>` block below is the verbatim question text used by step 2 — it is **not** a numbered step and the sequence does not restart after it.
+**Supported formats (examples)**:
+```
+"Analyze requirements for PROJ-123"
+"Analyze ticket PROJ-123, Google Drive pages: URL1, URL2, URL3"
+"PROJ-123 + https://confluence.com/display/PROJ/Auth"
+...
+```
 
-1. USE SKILL `questioning`.
-2. Ask the user about knowledge base and data retrieval setup using the verbatim question text in `<example_format_of_question>` below.
-3. Process the user's answer — confirm the default scheme OR capture their customization.
-4. **Validate the answer provides sufficient information.** Minimum required fields:
-   - **Data sources** (which of: Jira, Confluence, attached docs, other URLs)
-   - **Retrieval method** per source (MCP-based / direct URL / search-by-keywords)
-   - **Auth assumptions** (MCP already configured / token in env / requires per-call OAuth)
+### Step 2: Setup Output Directory
 
-   **Validation failure paths:**
-   - If user said YES to default but the default cannot run in the environment (no MCP, no auth): re-prompt up to 2 times naming exactly which field(s) are absent. After 2 unsuccessful re-prompts, stop Phase 0, record `Phase 0 blocked: default unrunnable — missing <field>` in `testgen-state.md`, and ask the user to supply a complete answer before continuing.
-   - If user said NO but did not name source / method / auth: re-prompt up to 2 times naming the missing fields explicitly. After 2 unsuccessful re-prompts, stop Phase 0, record `Phase 0 blocked: incomplete config answer` in `testgen-state.md`, and ask the user to supply a complete answer before continuing.
-5. Save the validated configuration to `agents/testgen/testgen-project-config.md` (canonical path per step 0.3).
+Create output directory structure:
+```
+agents/testgen/{TICKET-KEY}/
+└── testgen-state.md (initialize)
+```
 
-<example_format_of_question>
-```markdown
-According to test generation process rules, I require more details related to your project - How should I retrieve the information necessary for test case generation?
+### Step 3: Load Project Config File
+
+**Find and load project file if it exists**:
+- find `testgen-project-config.md` file in the repo's agent-specific directory
+- if you cannot find the file, create a new one in the repo's agent-specific directory
+
+**If the project config file exists and is not empty, proceed to Step 5**
+
+**If the project config file does not exist, proceed to Step 4**
+
+### Step 4: Obtain Project Info From User
+
+**NOTE: Execute ONLY IF project file does not already exist!**
+
+**Goal**: Obtain all necessary project-specific information from user
+- **Especially applies to** knowledge base and required documents
+
+#### Step 4.1: Ask user about knowledge base setup, providing the default data retrieval process as a reference:
+
+**Tell user**:
+```
+According to test generation process rules, I require more details related to your project.
+
+- How should I retrieve the information necessary for test case generation?
+
 As a reference, I provide the default Data Retrieval scheme below:
+
 ** Default Setup **
 - retrieve Jira ticket fields (summary+description)
 - retrieve provided Confluence documents, if any
 - search for Confluence pages using keywords extracted from the ticket
 - combine all the information as a basis for test case generation
 
-Is the above accurate for your project?
+Is the above accurate for your project? 
+
 Please answer YES or NO
 - If your answer is NO then please provide details about data retrieval for your project.
-- If you have links to any additional documentation or materials that need to be considered,
+- If you have links to any additional documentation or materials that need to be considered, 
 you can provide them here as well.
 ```
-</example_format_of_question>
 
-</obtain_project_info>
+#### Step 4.2: Validate Answer to ensure it answers the questions and provides the necessary information
 
-<create_initial_data step="0.5">
-1. Create `agents/testgen/{TICKET-KEY}/initial-data.md`:
+#### Step 4.3: Save the collected information (data retrieval scheme + additional links) in the project file you created
 
+Save the information to `<agent_folder>/testgen-project-config.md`.
+
+This file should be used for any future queries related to this project.
+
+### Step 5: Create initial-data file
+
+This file will be used in the next step
+
+**File**: `agents/testgen/{TICKET_KEY}/initial-data.md`
+
+**Create new file**:
 ```markdown
 # Initial data - [TICKET-KEY]
 
 **Initial user prompt:** [USER PROMPT]
 **Project config file - USE AS REFERENCE FOR THE NEXT PHASE:** [PROJECT CONFIG FILENAME]
 ```
-</create_initial_data>
 
-<update_state step="0.6">
-1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 0 complete
-2. Tell user: "Phase 0 complete. Project setup ready."
-3. Ask: "Ready to proceed to Phase 1 (Data Collection)?"
-4. Gate the advance to Phase 1 via USE SKILL `hitl` (the canonical approval/escalation home): require explicit user confirmation; do NOT auto-proceed on inferred approval or silence; treat ambiguous responses as "not confirmed" and re-ask.
-</update_state>
+### Step 6: Update State File
 
-<state_file_template>
+**File**: `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
-`agents/testgen/{TICKET-KEY}/testgen-state.md` — created here in Phase 0, updated by every subsequent phase:
-
+**Create initial state**:
 ```markdown
-# Test Generation State - <Ticket ID>
+# Test Generation State - [TICKET-KEY]
 
 **Last Updated**: [DateTime]
-**Current Phase**: [0-6 or COMPLETE; if a phase halts, append " (BLOCKED: <reason>)", e.g. "0 (BLOCKED: incomplete config answer)"]
+**Current Phase**: 0 - Project Config Loading (COMPLETED)
 **Jira Ticket**: [TICKET-KEY]
 
 ## Phase Completion Status
 
-- [ ] Phase 0: Project Config Loading - In progress
-- [ ] Phase 1: Data Collection - Not started
+- [x] Phase 0: Project Config Retrieval - Completed [DateTime]
+- [ ] Phase 1: Data Collection - Not Started
 - [ ] Phase 2: Gap Analysis - Not Started
 - [ ] Phase 3: Question Generation - Not Started
 - [ ] Phase 4: Requirements Generation - Not Started
 - [ ] Phase 5: Test Scenarios - Not Started
-- [ ] Phase 6: Test Case Export - Not Started
 
 ## Phase Details
 
-### Phase 1
-- Completed: [DateTime]
-- Jira Ticket: [KEY]
-- Files Created: [List]
-- Confluence Pages: [Count]
-- Notes: [Any relevant notes]
-
-[Add sections for each completed phase]
-
-## Metrics
-
-Completeness signal (one line; `—` until the phase runs; a thin `0`/`1` where more is expected → re-check the artifact):
-`P1 jira:[n]/conf:[n] · P2 contradictions:[n]/gaps:[n]/ambig:[n] · P3 questions:[n]/answered:[n] · P4 stories:[n]/FR:[n]/NFR:[n] · P5 scenarios:[n] · P6 exported:[n]/[n]`
-
-## Verification-Failure Overrides
-
-[Append a row each time the parent flow's verification-failure unilateral-start override fires. If never fired, write: `None — no overrides applied.`]
-
-- **[ISO timestamp]** — User asserted phases complete: `[user's verbatim claim]`. Failing conditions: `[which preconditions were unmet — state row missing / output file absent / etc.]`. Phase started: `[earliest incomplete phase id]`.
+### Phase 0: Project Config Loading
+- **Completed**: [DateTime]
+- **Jira Ticket**: [KEY]
+- **Files Created**: initial-data.md, testgen-state.md
+- **Notes**: [Any relevant notes or issues]
 ```
 
-</state_file_template>
+## Validation
 
-<output_directory>
+Before completing Phase 1, verify:
+- ✅ `agents/testgen/{TICKET-KEY}/` directory exists
+- ✅ `<agent_folder>/testgen-project-config.md` file exists with non-empty content
+- ✅ `initial-data.md` created with initial prompt and project config info
+- ✅ `testgen-state.md` created with Phase 0 marked complete
 
-All phase outputs stored under `agents/testgen/{TICKET-KEY}/`:
+## Tools Used
 
-```
-agents/testgen/{TICKET-KEY}/
-├── testgen-state.md        # State tracking (updated each phase)
-├── initial-data.md         # Phase 0: Initial user input + project config ref
-├── raw-data.md             # Phase 1: Jira + Confluence data
-├── analysis.md             # Phase 2: Gap analysis
-├── questions.md            # Phase 3: Generated questions
-├── answers.md              # Phase 3: User answers (HITL)
-├── requirements.md         # Phase 4: Final requirements
-├── test-scenarios.md       # Phase 5: Test cases
-└── export-report.md        # Phase 6: TMS export receipt (IDs/URLs, per-case status, timestamp)
-```
+- `write()` - File creation
 
-</output_directory>
+## Common Issues
 
-<validation_checklist>
-- `agents/testgen/{TICKET-KEY}/` directory exists
-- `agents/testgen/testgen-project-config.md` (project-wide, not per-ticket) exists with non-empty content covering data sources, retrieval method, and auth assumptions
-- `agents/testgen/{TICKET-KEY}/initial-data.md` created with user prompt and config reference
-- `agents/testgen/{TICKET-KEY}/testgen-state.md` created with Phase 0 marked complete
-</validation_checklist>
+## Next Phase
 
-</testgen_flow_project_config_loading>
+After Phase 0 completion:
+1. Tell user: "Phase 0 complete. Project setup complete"
+2. Ask: "Ready to proceed to Phase 1 (Data Retrieval)?"
+3. Wait for confirmation
+4. Load Phase 1: ACQUIRE testgen-phase1-md FROM KB
+
+## Notes

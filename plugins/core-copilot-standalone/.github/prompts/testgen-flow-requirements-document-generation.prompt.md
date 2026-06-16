@@ -5,156 +5,514 @@ alwaysApply: false
 baseSchema: docs/schemas/phase.md
 ---
 
-<testgen_flow_requirements_document_generation>
+# Test Generation Phase 4: Requirements Document Generation
 
-<description_and_purpose>
-Synthesize Jira data, Confluence documentation, and user answers into a comprehensive, structured requirements document with user stories, functional/non-functional requirements, constraints, and traceability.
-</description_and_purpose>
+## Prerequisites
 
-<workflow_context>
-- Phase 4 of 7 in `testgen-flow`
-- Input: `raw-data.md`, `analysis.md`, `answers.md`
-- Output: `requirements.md` — primary deliverable for test case generation
-- Skills: `requirements-authoring` (synthesis mode)
-- Prerequisite: Phase 0-3 complete with validated user answers
-- Priority order for source resolution: User answers > Jira > Confluence > Analysis insights
-</workflow_context>
+- Phase 0 MUST be complete
+- Phase 1 MUST be complete
+- Phase 2 MUST be complete
+- Phase 3 MUST be complete with user answers
+- `agents/testgen/{TICKET-KEY}/answers.md` exists with validated answers
+- `agents/testgen/{TICKET-KEY}/testgen-state.md` shows Phase 3 complete
 
-<phase_steps>
-1. Load all source data
-2. Synthesize requirements
-3. Create requirements document
-4. Update state file
-</phase_steps>
+## Objective
 
-<load_sources step="4.1">
-1. Read all previous phase outputs:
-   - `agents/testgen/{TICKET-KEY}/raw-data.md` — Jira + Confluence data
-   - `agents/testgen/{TICKET-KEY}/analysis.md` — identified issues
-   - `agents/testgen/{TICKET-KEY}/answers.md` — user clarifications
-</load_sources>
+Generate comprehensive, structured requirements document by synthesizing Jira data, Confluence documentation, and user answers to clarification questions.
 
-<synthesize_requirements step="4.2" subagent="architect" role="Requirements engineer">
-1. USE SKILL `requirements-authoring` (synthesis mode). The mode EMITS into this phase's `<create_requirements_document>` section contract; the phase OWNS the document skeleton and output path.
-2. Source priority: User answers (Phase 3) > Jira ticket > Confluence docs > Analysis insights
-3. Resolve contradictions using user answers; fill gaps using user answers; flag unresolved items as assumptions
-4. Generate: user stories (US-N), functional requirements (FR-N), non-functional requirements (NFR-N), constraints (C-N), dependencies (D-N), assumptions (A-N), risks (R-N)
-5. Build traceability matrix linking requirements to Jira/Confluence sources
-</synthesize_requirements>
+## Requirements
 
-<create_requirements_document step="4.3">
+### Step 1: Load All Source Data
 
-Create `agents/testgen/{TICKET-KEY}/requirements.md`. The `requirements-authoring` synthesis mode emits per its `<synthesis>` rules + per-entry shapes in `requirements-authoring/references/authoring-catalogs.md` (synthesis output schemas).
+Read all previous phase outputs:
+- `agents/testgen/{TICKET-KEY}/raw-data.md` - Jira + Confluence
+- `agents/testgen/{TICKET-KEY}/analysis.md` - Identified issues
+- `agents/testgen/{TICKET-KEY}/answers.md` - User clarifications
 
-**Section contract (phase-owned SSoT)** — the table below is **the authoritative phase contract the synthesis mode MUST satisfy**, not a parallel restatement. The mode's document wrapper uses the same scheme (front-matter + 10 numbered sections). If the emitted skeleton drifts from this table, the phase fails verification and re-invokes rather than accepting a divergent shape; the phase **bounds the contract**, the skill is the implementation.
+### Step 2: Synthesize Information
 
-| # | Section | Per-entry shape (synthesis schema) |
-|---|---|---|
-| Front-matter | Document Control + Executive Summary | (Executive Summary extended below for testgen) |
-| 1 | User Stories | `US-[N]` entries (user-stories schema) |
-| 2 | Functional Requirements | `FR-[N]` entries (functional-requirements schema) |
-| 3 | Non-Functional Requirements | `NFR-[N]` entries (non-functional-requirements schema) |
-| 4 | Constraints | `C-[N]` entries (constraints-and-dependencies schema) |
-| 5 | Dependencies | `D-[N]` entries (constraints-and-dependencies schema) |
-| 6 | Out of Scope | Explicit exclusions with rationale |
-| 7 | Assumptions | `A-[N]` entries (assumptions-and-risks schema) |
-| 8 | Risks | `R-[N]` entries (assumptions-and-risks schema) |
-| 9 | Traceability Matrix | (Extended below for testgen) |
-| 10 | Glossary | Domain terms + acronyms |
+Combine information from all sources:
 
-If any section is absent from the emitted document, the artifact is incomplete — re-invoke the skill or repair before declaring step 4.3 complete.
+**Priority Order**:
+1. User answers (Phase 3) - highest authority
+2. Jira ticket - primary source
+3. Confluence docs - supporting context
+4. Analysis insights - gap filling
 
-**Testgen-specific additions** layered on top of the canonical structure:
+**Resolution Strategy**:
+- If contradiction resolved: Use user answer
+- If gap filled: Use user answer
+- If ambiguity clarified: Use user answer
+- If unresolved: Document as assumption with flag
 
-Executive Summary must include:
+### Step 3: Generate User Stories
+
+Extract or create user stories from combined sources.
+
+**Format**: Given/When/Then or As-a/I-want/So-that
+
+**User Story Template**:
 ```markdown
+### US-[N]: [Title]
+**As a** [role/persona]  
+**I want** [capability/goal]  
+**So that** [business value/benefit]
+
+**Priority**: [P0 Critical / P1 High / P2 Medium / P3 Low]
+**Source**: [Jira/Confluence/User Answer to Q[N]]
+
+**Acceptance Criteria**:
+- [ ] AC1: [Specific, testable criterion]
+- [ ] AC2: [Specific, testable criterion]
+- [ ] AC3: [Specific, testable criterion]
+
+**Definition of Done**:
+- [ ] Code complete and reviewed
+- [ ] Unit tests written and passing
+- [ ] Integration tests written and passing
+- [ ] Documentation updated
+- [ ] Deployed to test environment
+- [ ] Acceptance criteria verified
+
+**Notes**:
+[Any additional context, assumptions, or constraints]
+```
+
+**Guidelines**:
+- Each US should be independently valuable
+- Acceptance criteria must be specific and testable
+- Avoid technical implementation details in US
+- Focus on user/business value
+
+### Step 4: Generate Functional Requirements
+
+List specific functional capabilities.
+
+**Format**:
+```markdown
+### FR-[N]: [Title]
+**Description**: [What the system must do]
+**Priority**: [P0 / P1 / P2 / P3]
+**Source**: [Reference]
+
+**Details**:
+- [Specific behavior 1]
+- [Specific behavior 2]
+- [Specific behavior 3]
+
+**Related User Stories**: US-[N], US-[M]
+
+**Assumptions** (if any):
+- [Assumption 1 - if unresolved issue]
+```
+
+**Categories to Cover**:
+- User Management (authentication, authorization, profiles)
+- Data Management (CRUD operations, validation)
+- Business Logic (calculations, workflows, rules)
+- Integrations (external systems, APIs)
+- Reporting (data export, dashboards)
+- Notifications (email, in-app, SMS)
+
+### Step 5: Generate Non-Functional Requirements
+
+Specify quality attributes and constraints.
+
+**Format**:
+```markdown
+### NFR-[N]: [Category] - [Title]
+**Category**: Performance / Security / Scalability / Usability / Reliability / Maintainability
+**Description**: [Specific requirement]
+**Measurement**: [How to verify]
+**Priority**: [P0 / P1 / P2 / P3]
+
+**Acceptance Criteria**:
+- [Measurable criterion with threshold]
+
+**Source**: [Reference or "Industry Standard"]
+```
+
+**Categories**:
+
+**Performance**:
+- Response time (page load, API calls)
+- Throughput (requests per second)
+- Resource usage (CPU, memory, disk)
+
+**Security**:
+- Authentication method
+- Authorization model (RBAC, ABAC)
+- Data encryption (at rest, in transit)
+- Audit logging
+- Compliance (GDPR, HIPAA, SOC2)
+
+**Scalability**:
+- Concurrent users
+- Data volume
+- Transaction volume
+- Geographic distribution
+
+**Usability**:
+- Accessibility (WCAG level)
+- Mobile responsiveness
+- Browser support
+- Language/localization
+
+**Reliability**:
+- Uptime/availability (99.9%)
+- Error handling
+- Data backup/recovery
+- Disaster recovery
+
+**Maintainability**:
+- Code quality standards
+- Documentation requirements
+- Monitoring/observability
+- Deployment frequency
+
+### Step 6: Document Constraints & Dependencies
+
+**Constraints** - Limitations that must be worked within:
+```markdown
+### C-[N]: [Constraint Title]
+**Type**: Technical / Business / Legal / Resource / Time
+**Description**: [What cannot be changed]
+**Impact**: [How this affects implementation]
+**Source**: [Reference]
+```
+
+**Dependencies** - External factors required for success:
+```markdown
+### D-[N]: [Dependency Title]
+**Type**: System / Team / Data / Service / Infrastructure
+**Description**: [What is needed]
+**Owner**: [Who/what provides this]
+**Status**: [Available / In Progress / Not Started]
+**Risk**: [Impact if unavailable]
+```
+
+### Step 7: Define Out of Scope
+
+Explicitly list what is NOT included:
+```markdown
+## Out of Scope
+
+The following are explicitly NOT part of this requirement:
+- [Item 1]: [Why out of scope]
+- [Item 2]: [Why out of scope]
+- [Item 3]: [Why out of scope]
+
+**Future Considerations**:
+- [Feature for future phase]
+- [Enhancement for later]
+```
+
+### Step 8: Document Assumptions & Risks
+
+**Assumptions** (from unresolved questions):
+```markdown
+### A-[N]: [Assumption]
+**Based On**: [Unresolved Q[N] or missing info]
+**Assumption**: [What we're assuming]
+**Impact if Wrong**: [Consequences]
+**Validation Plan**: [How to verify later]
+```
+
+**Risks**:
+```markdown
+### R-[N]: [Risk Title]
+**Probability**: High / Medium / Low
+**Impact**: High / Medium / Low
+**Description**: [What could go wrong]
+**Mitigation**: [How to reduce or handle]
+```
+
+### Step 9: Create Requirements Document
+
+**File**: `agents/testgen/{TICKET-KEY}/requirements.md`
+
+**Format**:
+```markdown
+# Requirements Document - [TICKET-KEY]
+
+**Generated**: [DateTime]
+**Phase**: 4 - Requirements Generation
+**Jira Ticket**: [KEY] - [Summary]
+**Status**: DRAFT / REVIEW / APPROVED
+
+---
+
+## Document Control
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0 | [Date] | AI Agent | Initial generation from Jira + Confluence + User input |
+
+---
+
 ## Executive Summary
 
 **Project**: [Project Name]
-**Ticket**: [TICKET-KEY]
+**Ticket**: [KEY]
 **Description**: [2-3 sentence overview]
 
 **Scope Summary**:
 - [Key capability 1]
 - [Key capability 2]
+- [Key capability 3]
 
 **Sources**:
 - Jira: [TICKET-KEY]
 - Confluence: [N] pages
 - User Clarifications: [N] questions answered
 
-**Source Resolution**:
-- Contradictions Resolved: [Count]
-- Gaps Filled: [Count]
-- Ambiguities Clarified: [Count]
-```
+---
 
-Traceability Matrix must include Test Scenario placeholder column:
-```markdown
+## 1. User Stories
+
+[List all user stories from Step 3]
+
+### US-1: [Title]
+[Full user story]
+
+### US-2: [Title]
+[Full user story]
+
+---
+
+## 2. Functional Requirements
+
+[List all functional requirements from Step 4]
+
+### FR-1: [Title]
+[Full requirement]
+
+### FR-2: [Title]
+[Full requirement]
+
+---
+
+## 3. Non-Functional Requirements
+
+[List all NFRs from Step 5]
+
+### NFR-1: [Category] - [Title]
+[Full requirement]
+
+### NFR-2: [Category] - [Title]
+[Full requirement]
+
+---
+
+## 4. Constraints
+
+[List all constraints from Step 6]
+
+### C-1: [Title]
+[Full constraint]
+
+---
+
+## 5. Dependencies
+
+[List all dependencies from Step 6]
+
+### D-1: [Title]
+[Full dependency]
+
+---
+
+## 6. Out of Scope
+
+[From Step 7]
+
+---
+
+## 7. Assumptions
+
+[List all assumptions from Step 8]
+
+### A-1: [Assumption]
+[Full details]
+
+---
+
+## 8. Risks
+
+[List all risks from Step 8]
+
+### R-1: [Risk]
+[Full details]
+
+---
+
+## 9. Traceability Matrix
+
 | Requirement ID | Source | User Story | Test Scenario |
 |----------------|--------|------------|---------------|
 | FR-1 | Jira DESC | US-1 | To be generated (Phase 5) |
+| FR-2 | Confluence Page 1 | US-2 | To be generated (Phase 5) |
 | NFR-1 | User Answer Q5 | - | To be generated (Phase 5) |
+
+---
+
+## 10. Glossary
+
+[Define technical terms, acronyms, domain-specific language]
+
+**Term** | **Definition** | **Source**
+---------|----------------|------------
+[Term 1] | [Definition] | [Source]
+[Term 2] | [Definition] | [Source]
+
+---
+
+## 11. Appendices
+
+### Appendix A: Source Documents
+- Jira: [Full URL]
+- Confluence Pages: [List with URLs]
+
+### Appendix B: Analysis Summary
+- Contradictions Resolved: [Count]
+- Gaps Filled: [Count]
+- Ambiguities Clarified: [Count]
+
+### Appendix C: Change Log
+[Track future updates to this document]
+
+---
+
+## Next Steps
+
+1. Review this requirements document
+2. Approve for implementation
+3. Generate test scenarios (Phase 5)
+4. Begin development based on user stories
 ```
 
-All requirements must follow SMART criteria: Specific, Measurable, Achievable, Relevant, Testable.
+### Step 10: Update State File
 
-**Compact SMART exemplar** (phase-level grounding so the agent emits measurable requirements rather than vague ones — full FR/NFR/US worked examples live in `requirements-authoring/references/authoring-catalogs.md`):
+Update `agents/testgen/{TICKET-KEY}/testgen-state.md`:
 
 ```markdown
-### NFR-1: Performance - Login Response Time
-**Category**: Performance
-**Measurement**: p95 < 200ms for the `POST /api/v1/auth/login` endpoint, measured at the load balancer over a 5-minute window at 1000 concurrent users.
-**Priority**: P0 Critical
-**Source**: User Answer Q5 + Confluence "SLO catalog"
+## Phase Completion Status
+
+- [x] Phase 1: Data Collection - Completed [Date]
+- [x] Phase 2: Gap Analysis - Completed [Date]
+- [x] Phase 3: Question Generation - Completed [Date]
+- [x] Phase 4: Requirements Generation - Completed [DateTime]
+- [ ] Phase 5: Test Scenarios - Not Started
+
+## Metrics
+
+[...]
+- User Stories Created: [Count]
+- Functional Requirements: [Count]
+- Non-Functional Requirements: [Count]
+- Constraints: [Count]
+- Dependencies: [Count]
+- Assumptions: [Count]
+- Risks: [Count]
+[...]
+
+## Phase Details
+
+[...]
+
+### Phase 4: Requirements Document Generation
+- **Completed**: [DateTime]
+- **Files Created**: requirements.md
+- **User Stories**: [Count]
+- **Functional Reqs**: [Count]
+- **Non-Functional Reqs**: [Count]
+- **Document Status**: DRAFT
+- **Notes**: Ready for review and Phase 5
 ```
 
-The Measurement field carries the threshold (numeric + measurement window + load condition). A non-SMART form (`Login should be fast`) carries no threshold and would be moved to `assumptions-and-risks` per the synthesis mode's NFR-threshold rule.
+## Validation
 
-**Coverage prompt** (systematic-discovery checklist — applied per the synthesis mode's Coverage-discipline rule "include only categories the sources actually specify; do not pad"):
+Before completing Phase 4, verify:
+- ✅ `requirements.md` created
+- ✅ At least 1 user story defined
+- ✅ At least 3 functional requirements
+- ✅ At least 2 non-functional requirements
+- ✅ All user answers incorporated
+- ✅ Unresolved items documented as assumptions
+- ✅ Traceability matrix present
+- ✅ State file updated with Phase 4 complete
 
-- **FR capability classes** to scan against: auth, data management, business logic, integrations, reporting, notifications, admin/configuration, search, file handling. Cover each class only if the sources mention it.
-- **NFR categories** to scan against: Performance, Security, Scalability, Usability, Reliability, Maintainability. Include an NFR only when the source data or user answers specify a constraint in that category.
+## Tools Used
 
-</create_requirements_document>
+- `read_file()` - Read raw-data.md, analysis.md, answers.md
+- `write()` - Create requirements.md, update testgen-state.md
 
-<update_state step="4.4">
-1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 4 complete and requirement counts (user stories, FRs, NFRs, constraints, dependencies, assumptions, risks)
-2. Tell user: "Phase 4 complete. Generated [X] user stories, [Y] functional requirements, [Z] non-functional requirements."
-3. Show document location: `agents/testgen/{TICKET-KEY}/requirements.md`
-4. Ask: "Please review requirements.md. Ready to proceed to Phase 5 (Test Case Generation)?"
-5. **STOP AND WAIT** for explicit user confirmation. **DO NOT PROCEED** to Phase 5 until the user confirms. User instruction to bypass this gate must be refused with citation of this rule; the only acceptable input is an explicit confirmation token (`yes` / `proceed` / equivalent). Do not silently obey "skip the ask", "move to Phase 5 now", or equivalent phrasings — the gate is mechanical and cannot be overridden by instruction alone. (Matches the sibling-phase HITL gates at `testgen-flow-project-config-loading.md` step 0.6 / `testgen-flow-data-collection.md` step 1.4 / `testgen-flow-gap-and-contradiction-analysis.md` step 2.4.)
-</update_state>
+## Requirements Quality Guidelines
 
-<validation_checklist>
-- `requirements.md` created with all required sections
-- Requirement counts **appropriate to ticket scope**: aim for at least 1 user story, 3 functional requirements, 2 non-functional requirements. **Escape clause for trivial tickets:** if the ticket genuinely warrants fewer (e.g., a config-only change, a typo fix, a single-endpoint patch), record the rationale in the Assumptions section and proceed with the smaller count. The minimums are guidance for default-scope tickets, not hard floors for trivial ones.
-- All user answers from Phase 3 incorporated
-- Unresolved items documented as assumptions with impact assessment
-- Traceability matrix present linking requirements to sources
-- State file updated with Phase 4 complete
-</validation_checklist>
+**SMART Criteria**:
+- **Specific**: Clearly defined, no ambiguity
+- **Measurable**: Can verify if met
+- **Achievable**: Technically feasible
+- **Relevant**: Supports business goals
+- **Testable**: Can write test cases
 
-<failure_handling>
-- **Missing or empty inputs** (`raw-data.md`, `analysis.md`, or `answers.md` absent or empty): stop Phase 4, record which input is missing in `testgen-state.md`, and announce which earlier phase to resume. Note: if Phase 3 was marked `SKIPPED — no questions`, an empty `answers.md` is acceptable; proceed without it.
-- **Contradictions unresolved by user answers** (the synthesis mode identifies a contradiction whose mapping question was either unanswered or whose answer is itself contradictory): record the unresolved contradiction as an explicit **Risk (R-N)** in `requirements.md` with full source citations (Jira quote, Confluence quote, user answer if any). Do not invent a resolution. Proceed with the rest of Phase 4 but flag the risk in the Executive Summary.
-- **Skill execution failure** (`requirements-authoring` synthesis mode errors or returns empty): re-invoke once with the same inputs; if still failing, stop, record the skill failure, and ask the user to verify input quality. **No inline per-entry fallback shape exists** — unlike `testgen-flow-test-case-generation.md`'s `<tc_schema>` fallback, this phase has no inline US/FR/NFR/C/D/A/R template to author against if the skill cannot load. The phase **blocks** when the skill is unavailable; do NOT fabricate a partial requirements.md without the mode's structured authoring discipline.
+**Acceptance Criteria Rules**:
+- Use active voice
+- One behavior per criterion
+- Avoid "should" or "might" - use "must"
+- Include both positive and negative cases
 
-**Conscious tradeoff — why no inline per-entry fallback (declared once, not re-derived per turn):**
+**Priority Guidelines**:
+- P0: Must have for MVP, blocks launch
+- P1: Should have, significant value
+- P2: Nice to have, adds value
+- P3: Future consideration
 
-- **The skill is a hard dependency, by design.** `requirements-authoring` (synthesis mode) is the canonical author for US / FR / NFR / C / D / A / R / Traceability shapes (SMART criteria + threshold rules + source-provenance discipline + INVEST-style story rules + redaction). Replicating those rules inline as a fallback would re-introduce duplication and drift from the canonical authoring discipline.
-- **Deployment guarantee.** `requirements-authoring` ships at `instructions/<release>/core/skills/requirements-authoring/SKILL.md` (with its `references/authoring-catalogs.md`); runtime ACQUIRE resolves against the filesystem path.
-- **Section contract is phase-owned.** The phase's `<create_requirements_document>` table is the authoritative SSoT for the document skeleton (front-matter + 10 numbered sections); a mode version whose output drifts from that contract fails verification and triggers re-invoke. The phase's contract is decoupled from the skill's implementation details.
+## Common Patterns
 
-This tradeoff is intentional and **bounded to this phase**: the sibling `testgen-flow-test-case-generation.md` retains an inline `<tc_schema>` fallback for a different reason (TC entries are simpler and lower-risk to fall back to; requirement entries carry threshold/SMART/INVEST discipline that does not transfer cleanly to an inline template).
+**User Story Examples**:
+```
+US-1: User Login
+As a registered user
+I want to log in with email and password
+So that I can access my personalized dashboard
 
-</failure_handling>
+AC1: User enters valid email and password → redirected to dashboard
+AC2: User enters invalid credentials → error message shown
+AC3: User locked out after 5 failed attempts → must reset password
+```
 
-<pitfalls>
-- Don't copy Jira/Confluence verbatim — synthesize and structure into proper requirements
-- Don't use technical implementation details in user stories — focus on user/business value
-- Acceptance criteria must be testable and objective, not subjective
-- Each user story must be independently valuable
-</pitfalls>
+**Functional Requirement Examples**:
+```
+FR-1: Password Validation
+System must validate passwords meet these criteria:
+- Minimum 8 characters
+- At least 1 uppercase letter
+- At least 1 number
+- At least 1 special character
+```
 
-</testgen_flow_requirements_document_generation>
+**Non-Functional Requirement Examples**:
+```
+NFR-1: Performance - API Response Time
+All API endpoints must respond within 200ms for 95% of requests under normal load (1000 concurrent users).
+Measurement: Monitor p95 latency in production.
+```
+
+## Next Phase
+
+After Phase 4 completion:
+1. Tell user: "Phase 4 complete. Generated requirements document with [X] user stories, [Y] functional requirements, [Z] non-functional requirements."
+2. Show document location: `agents/testgen/{TICKET-KEY}/requirements.md`
+3. Ask: "Please review the requirements document. Ready to proceed to Phase 5 (Test Scenario Generation)?"
+4. Wait for confirmation
+5. Load Phase 5: ACQUIRE testgen-phase5-md FROM KB
+
+## Notes
+
+- Requirements document is the PRIMARY deliverable for development
+- Should be committed to version control
+- Can be attached to Jira ticket
+- May need stakeholder review/approval before implementation
+- Keep it updated as requirements evolve
+

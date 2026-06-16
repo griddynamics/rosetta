@@ -2,99 +2,323 @@
 name: aqa-flow-code-analysis
 description: "Phase 3 Code Analysis of aqa-flow"
 alwaysApply: false
-tags: []
-baseSchema: docs/schemas/phase.md
+baseSchema: docs/schemas/rule.md
 ---
 
-<aqa_flow_code_analysis>
+# Phase 3: Code Analysis
 
-<description_and_purpose>
+## Objective
+
 Understand existing test architecture, identify reusable components, and determine where new test should be integrated.
-</description_and_purpose>
 
-<workflow_context>
-- Phase 3 of 8 in `aqa-flow`
-- Input: test plan with assertions and clarifications
-- Output artifact path (single SSoT — referenced by other sections): `plans/aqa-<test-name>-code-analysis.md` (resolve `<test-name>` per `qa-structure` `aqa-layout` slug rules)
-- Prerequisite: Phases 1 and 2 complete
-- Read-only scope (single SSoT — referenced by other sections as "the read-only scope"): read project description, page objects, similar tests, utilities; produce the report + a one-paragraph `## Code Analysis` summary in the test plan. NO edits to page objects, test files, source under analysis, `project_description.md`, or repo docs; NO running tests/lint/build. A finding that implies code work is surfaced in the report, not acted on.
-</workflow_context>
+## Prerequisites
 
-<recommended_skills>
-- `reverse-engineering` (test-automation architecture analysis mode) — performs the read-only architecture analysis below: framework/standards, page-object inventory, similar tests, reusable utilities, and the test-location decision.
-- `sensitive-data` — redaction authority for any captured source/selectors/config values before they are written to the report.
-- `qa-structure` — `<test-name>` slug rules + guards and the canonical report path (`aqa-layout`).
-- `qa-knowledge` — the 9-section code-analysis report skeleton + redaction scope (ACQUIRE its asset/reference at the cited steps).
-</recommended_skills>
+- Phase 1 and 2 completed
+- Test plan file updated with assertions and clarifications
+- User answers received
 
-<input_contract>
-The phase supplies these paths to the skill; defaults apply when not configured:
+## Phase Tasks
 
-| Input | Default path | Required content |
-|---|---|---|
-| Test plan | `plans/aqa-<test-name>.md` | Test name + clarified assertions |
-| Project description | `project_description.md` (repo root) | Framework, language, structure, coding standards |
-| Optional repo docs | `CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md` | Architecture, conventions — read when present |
-| Optional user instructions | `agents/user-instructions/` | Test guidelines, custom matchers, style |
-| Optional frontend source | repo-specific (e.g. `refsrc/<repo>/`) | Component files for selector / test-id discovery |
-| Output | `plans/aqa-<test-name>-code-analysis.md` | The report (this phase's contract, below) |
+### Task 1: Read Project Description
 
-**Input GATE.** Before analysis: test plan exists and is non-empty; project description OR one authoritative repo doc (`CONTEXT.md`/`ARCHITECTURE.md`/`IMPLEMENTATION.md`) exists; codebase root is readable. Any miss → stop Phase 3, record the gap in `agents/aqa-state.md`, ask the user. Do NOT infer framework from incidental file extensions.
+**Actions**:
+1. Locate and read `agents/user-app/project_description.md` file
+2. Extract key information:
+   - **Test Framework**: What testing framework is used? (e.g., Playwright, Selenium, Cypress)
+   - **Language**: Programming language (e.g., Python, JavaScript, TypeScript, Java)
+   - **Project Structure**: How are tests organized?
+     - Test directories
+     - Page Object locations
+     - Utility/helper locations
+     - Test data locations
+   - **Coding Standards**: 
+     - Naming conventions (files, classes, methods, variables)
+     - Code formatting rules
+     - Import organization
+     - Comment style
+   - **Test Patterns**:
+     - How tests are structured (AAA, Given-When-Then, etc.)
+     - Setup/teardown patterns
+     - Assertion patterns
+   - **Dependencies**: Required libraries and utilities
+3. Document findings in test plan
 
-**Path precedence on conflict.** When extracted standards (from `project_description.md`, user instructions) conflict with authoritative repo docs, **repo docs win** — record the conflict in the report's `## Conflicts and Precedence` section; never silently overwrite either side.
-</input_contract>
+**Expected Output**: Understanding of project standards and structure.
 
-<code_analysis_report_contract>
-`aqa-<test-name>-code-analysis.md` is **tracked + downstream-fed** (consumed by page-object and test-authoring phases) — treat as **PUBLIC by default**; redact captured values BEFORE writing per `qa-knowledge/references/redaction-scope.md`, not after. The report's 9-section structure and the test-location decision rule are the asset `qa-knowledge/assets/code-analysis-report-template.md` (ACQUIRE FROM KB) — every section present (empty optional section says `not available — see Coverage section`).
+### Task 1.5: Read and Understand Common User Instructions
 
-After writing the report, update the test plan's `## Code Analysis` section with a one-paragraph summary linking to it — do NOT duplicate report contents into the plan. This is the **phase contract**, verified by `<validation_checklist>` independent of skill internals.
-</code_analysis_report_contract>
+**Actions**:
+1. Locate and read all files in `agents/user-instructions/` directory
+2. Extract common user instructions and preferences from all files:
+   - **Test Creation Guidelines**: Specific rules or patterns for creating tests
+   - **Code Style Preferences**: Any user-specific coding style requirements
+   - **Test Data Handling**: How test data should be managed or generated
+   - **Assertion Patterns**: Preferred assertion styles or custom matchers
+   - **Setup/Teardown Requirements**: Specific setup or cleanup procedures
+   - **Naming Conventions**: User-specific naming requirements beyond project standards
+   - **Error Handling**: How errors or failures should be handled in tests
+   - **Documentation Requirements**: Any specific documentation needs
+   - **Integration Patterns**: How tests should integrate with other systems
+   - **Performance Considerations**: Any performance-related requirements
+3. Categorize instructions:
+   - **Must Follow**: Critical instructions that must be applied
+   - **Should Follow**: Important preferences that should be applied when possible
+   - **Nice to Have**: Optional preferences
+4. Document extracted instructions in test plan
+5. **Apply these instructions** throughout the test creation process:
+   - When identifying Page Objects (Task 2)
+   - When analyzing similar tests (Task 3)
+   - When identifying utilities (Task 4)
+   - When updating test plan (Task 5)
+   - Ensure instructions are referenced in Phase 6 (Test Implementation)
 
-<phase_steps>
-1. Execute codebase analysis (reads project description, page objects, similar tests)
-2. Validate findings
-3. Update state
-</phase_steps>
+**Expected Output**: Extracted user instructions documented and ready to apply in test creation.
 
-<execute_analysis step="3.1" subagent="discoverer" role="Test architecture analyst">
-1. Run the `<input_contract>` Input GATE. On any miss: stop per the `qa-structure` `aqa-layout` guards / `<input_contract>`.
-2. **ACQUIRE `qa-knowledge/assets/code-analysis-report-template.md` FROM KB first** — the bound `reverse-engineering` skill disowns the section list, so the template is load-bearing for the `discoverer`. Then USE SKILL `reverse-engineering` (test-automation architecture analysis mode) with the phase-supplied bindings: inputs + defaults = `<input_contract>`; report structure + the test-location decision rule = the `code-analysis-report-template` asset; output path = `plans/aqa-<test-name>-code-analysis.md`. USE SKILL `sensitive-data` to redact any captured source/selector/config values before writing.
-3. **Conditional-input else-paths** (anchored here so a phase-only reader sees the behavior when an optional input is absent):
-   - If `agents/user-instructions/` is **absent or empty**: record `not available — see Coverage section` in report section 2 and `not available` in section 9; Phase 3 **continues**, does not stop.
-   - If a **frontend source path is not discoverable** (no project-config reference, no `refsrc/<repo>/`): skip frontend analysis, record the gap in section 9 per the coverage epistemic-honesty rule; Phase 3 **continues**.
-4. Do not fabricate framework, page objects, or pass/fail data. Honor the read-only scope (`<workflow_context>`).
-5. **Post-analysis verification:** confirm the report exists with every section from the `code-analysis-report-template` asset and the test plan's `## Code Analysis` summary is added. If missing/incomplete: re-run once with the same bindings; if still failing, stop Phase 3, record `Phase 3 blocked: code-analysis report not produced/incomplete` in `agents/aqa-state.md`, ask the user.
-</execute_analysis>
+**Note**: If `agents/user-instructions/` directory does not exist or is empty, skip this task and proceed to Task 2. Document that no user instructions files were found.
 
-<validate_findings step="3.2">
-1. Confirm project description read
-2. Confirm user instructions extracted (if directory exists)
-3. Confirm page objects inventoried
-4. Confirm test location decided
-</validate_findings>
+### Task 2: Analyze Frontend Source Code (if available)
 
-<update_state step="3.3">
-1. Update `agents/aqa-state.md`:
-   - User Instructions: [found/not found]
-   - Existing Page Objects: [count and list]
-   - Page Objects to Create: [count and list]
-   - Similar Tests: [paths]
-   - Test Location: [directory/file]
-   - Framework: [name]
-   - Phase 3 completion timestamp
-2. Mark Phase 3 complete, Phase 4 current
-</update_state>
+**Actions**:
+1. Check if frontend source code is available:
+   ```
+   Use: Glob to check for RefSrc/tools-st-frontend/
+   ```
+2. If frontend code exists, analyze UI structure:
+   - Search for React components related to the feature under test
+   - Identify component file structure in `RefSrc/tools-st-frontend/src/`
+   - Note component props, interfaces, and data-testid attributes
+   - Document UI flow and component hierarchy
+   - Identify API calls and data models used
+3. Extract selector candidates:
+   - Look for `data-testid`, `data-test`, or `test-id` attributes
+   - Identify stable `id` and `className` patterns
+   - Note ARIA labels and semantic HTML
+4. Document findings:
+   ```markdown
+   ### Frontend Code Analysis
+   
+   #### Component: DashboardComponent (RefSrc/tools-st-frontend/src/features/dashboard/Dashboard.tsx)
+   - data-testid attributes: "welcome-message", "dashboard-title"
+   - Props: { userName: string, notifications: number }
+   - API calls: fetchDashboardData()
+   - Related components: NotificationBell, UserProfile
+   
+   #### Component: SettingsPage (RefSrc/tools-st-frontend/src/features/settings/SettingsPage.tsx)
+   - data-testid attributes: "email-input", "save-button"
+   - Form fields: email, notifications, preferences
+   ```
+5. If frontend code NOT available, skip to Task 3
 
-<validation_checklist>
-- Input GATE passed (test plan non-empty; project description or authoritative repo doc present; codebase readable)
-- All 9 sections of the `code-analysis-report-template` asset present and non-empty (empty optional → `not available — see Coverage section`)
-- Framework and standards documented; relevant page objects inventoried; similar tests and patterns documented; reusable utilities identified
-- Test location decided as `add-to-existing` or `new-file` with rationale citing the asset's test-location decision rule
-- Coverage section (9) lists every optional input as `available` / `not available — <impact>` — no silent omission
-- Conflicts and Precedence section populated (conflicts with `repo docs won`, or `None — sources consistent.`)
-- Redaction scan ran via `sensitive-data` before writing
-- No source files modified outside the report and the test plan's `## Code Analysis` summary (read-only scope)
-- Report written to `plans/aqa-<test-name>-code-analysis.md` (`<test-name>` per `qa-structure` `aqa-layout`), non-empty; test plan summary added
-</validation_checklist>
+**Expected Output**: Understanding of UI implementation and available test identifiers.
 
-</aqa_flow_code_analysis>
+### Task 3: Identify Existing Page Objects
+
+**Actions**:
+1. Search for Page Object files in the test automation codebase:
+   ```
+   Use: Glob or Grep to find Page Object files
+   Example patterns: "**/pages/**", "**/page-objects/**", "**/*Page.*"
+   ```
+2. For each relevant Page Object, analyze:
+   - What page/component does it represent?
+   - What selectors are already defined?
+   - What methods/actions are available?
+   - How are selectors organized (constants, getters, properties)?
+   - What naming patterns are used?
+3. Identify which Page Objects are relevant to this test:
+   - Which pages will the test interact with?
+   - Do Page Objects exist for all required pages?
+   - Which Page Objects need to be extended?
+4. Document findings:
+   ```markdown
+   ### Existing Page Objects
+   
+   #### LoginPage (src/pages/LoginPage.ts)
+   - Selectors: username, password, loginButton, errorMessage
+   - Methods: login(), isErrorDisplayed()
+   - Relevance: Needed for test setup
+   
+   #### DashboardPage (src/pages/DashboardPage.ts)
+   - Selectors: welcomeMessage, menuButton, userProfile
+   - Methods: navigateToProfile(), getWelcomeText()
+   - Relevance: Main test target
+   
+   #### Missing Page Objects:
+   - SettingsPage (needed for test, does not exist)
+   ```
+
+**Expected Output**: Complete inventory of relevant Page Objects and gaps.
+
+### Task 4: Search for Similar Tests
+
+**Actions**:
+1. Search for tests covering similar features or flows:
+   ```
+   Use: Grep or SemanticSearch to find related tests
+   Search for: feature names, page names, similar actions
+   ```
+2. For each similar test found, analyze:
+   - What does it test?
+   - How is it structured?
+   - What patterns does it use?
+   - Where is it located?
+   - What utilities does it import?
+   - How are assertions written?
+3. Identify the most similar tests (closest match to new test)
+4. Determine best location for new test:
+   - **Add to existing file**: If test is very similar and file is not too large
+   - **Create new file**: If test covers new area or existing file is too large
+5. Document findings:
+   ```markdown
+   ### Similar Tests
+   
+   #### tests/auth/login.test.ts
+   - Tests: User login flow
+   - Pattern: Setup -> Action -> Assert -> Cleanup
+   - Uses: LoginPage, DashboardPage
+   - Similarity: Uses same pages, similar flow
+   
+   #### tests/dashboard/navigation.test.ts
+   - Tests: Dashboard navigation
+   - Pattern: Login setup -> Multiple navigation assertions
+   - Uses: DashboardPage, utility helpers
+   - Similarity: Similar assertion style
+   
+   ### Recommended Test Location
+   - File: tests/dashboard/user-profile.test.ts (new file)
+   - Reason: New feature area, logical grouping
+   - Alternative: Add to tests/dashboard/navigation.test.ts if test is small
+   ```
+
+**Expected Output**: Understanding of existing test patterns and determined location for new test.
+
+### Task 5: Identify Reusable Utilities
+
+**Actions**:
+1. Search for utility/helper files:
+   ```
+   Use: Glob to find utility files
+   Patterns: "**/utils/**", "**/helpers/**", "**/lib/**"
+   ```
+2. Identify reusable components:
+   - Test setup helpers (login, navigation, data creation)
+   - Assertion utilities (custom matchers, wait helpers)
+   - Data generators (test data factories)
+   - Configuration utilities
+3. Document relevant utilities:
+   ```markdown
+   ### Reusable Utilities
+   
+   - `utils/test-helpers.ts`
+     - `loginAsUser(username, password)`: Automates login
+     - `waitForPageLoad()`: Smart page load wait
+   
+   - `utils/assertions.ts`
+     - `expectElementVisible(selector)`: Custom visibility assertion
+     - `expectTextContains(element, text)`: Text assertion helper
+   
+   - `utils/test-data.ts`
+     - `generateUser()`: Creates test user data
+   ```
+
+**Expected Output**: List of utilities that should be reused in new test.
+
+### Task 6: Update Test Plan with Analysis
+
+**Actions**:
+1. Add Phase 3 section to test plan:
+   ```markdown
+   ## Phase 3: Code Analysis
+   
+   ### Project Information
+   - Framework: [e.g., Playwright with TypeScript]
+   - Test Location: [Directory path]
+   - Naming Convention: [Pattern]
+   
+   ### Frontend Code Analysis (if available)
+   - Frontend Source: RefSrc/tools-st-frontend/
+   - Components Analyzed: [List]
+   - Available data-testid attributes: [List]
+   - Component Props: [Relevant props]
+   - UI Flow: [Brief description]
+   
+   ### Common User Instructions
+   - Source: `agents/user-instructions/` (all files)
+   - Must Follow: [List critical instructions]
+   - Should Follow: [List important preferences]
+   - Nice to Have: [List optional preferences]
+   - Application: These instructions MUST be applied during test implementation (Phase 6)
+   
+   ### Existing Page Objects
+   [List with relevance]
+   
+   ### Page Objects to Create/Extend
+   - [List missing Page Objects]
+   - [List Page Objects needing new selectors]
+   
+   ### Similar Tests
+   [List with file paths and similarity notes]
+   
+   ### Recommended Test Location
+   - File: [Path]
+   - Reason: [Why]
+   
+   ### Reusable Utilities
+   [List utilities to import and use]
+   
+   ### Coding Patterns to Follow
+   - Test structure: [Pattern]
+   - Naming: [Convention]
+   - Assertions: [Style]
+   - User Instructions: [Apply user instructions from agents/user-instructions/]
+   ```
+
+**Expected Output**: Test plan enhanced with architecture understanding.
+
+## Completion Criteria
+
+- [ ] `agents/user-app/project_description.md` read and understood
+- [ ] All files in `agents/user-instructions/` read and understood (if directory exists)
+- [ ] Common user instructions extracted and categorized
+- [ ] User instructions documented in test plan
+- [ ] All relevant Page Objects identified and analyzed
+- [ ] Similar tests found and patterns understood
+- [ ] Test location determined (new file vs. existing file)
+- [ ] Reusable utilities identified
+- [ ] Coding standards and conventions documented
+- [ ] Test plan updated with Phase 3 information including user instructions
+- [ ] `agents/aqa-state.md` updated with Phase 3 completion
+
+## Update State File
+
+After completing Phase 3, update `agents/aqa-state.md`:
+
+```markdown
+### Phase 3: Code Analysis
+- Completed: [DateTime]
+- User Instructions Directory: [Found/Not Found, files list if found]
+- User Instructions Applied: [Yes/No, summary if yes]
+- Existing Page Objects: [Count and list]
+- Page Objects to Create: [Count and list]
+- Similar Tests: [File paths]
+- Test Location: [Directory/File decision]
+- Framework: [Name and version]
+```
+
+Mark Phase 3 as completed and Phase 4 as current.
+
+## Next Phase
+
+Proceed to **Phase 4: Selector Identification** by executing:
+```
+ACQUIRE aqa-flow-selector-identification.md FROM KB
+```
+
+## Important Notes
+
+- **Architecture First**: Understanding existing structure prevents duplication
+- **Pattern Consistency**: New test must match existing patterns
+- **Reuse Over Reinvent**: Use existing utilities and Page Objects
+- **User Instructions**: Common user instructions from all files in `agents/user-instructions/` MUST be applied during test implementation (Phase 6)
+- **Document Decisions**: Record why specific location/approach was chosen
+- **No Assumptions**: If project structure is unclear, ask user for clarification

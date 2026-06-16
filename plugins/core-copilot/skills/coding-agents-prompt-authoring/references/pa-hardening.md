@@ -23,26 +23,6 @@ Enforce that target prompt:
 
 </hardening>
 
-<audit_survival_checks>
-
-Terse anti-cycle checks — specializations of the core principles in this file (pointers, not restatements):
-
-**SSoT & size:**
-- Mark each rule's canonical home once; elsewhere a `→ <section>` pointer. Never re-cite or restate it.
-- `references/` holds point-of-use-only material (worked examples, catalogs, per-vendor enumerations, validation specs); inline keeps only process / GATE / decision lines.
-- A stated "N sections" must equal the enumeration count.
-- Keep a pointer-only `<pitfalls>` block only when the pointer is the sole point-of-use recall; otherwise delete it.
-- Dual structure → the phase asserts the contract, the skill emits it.
-
-**Contracts, dependencies & HITL:**
-- Prep-completion + load-context bullet: required in workflows and in any skill that consumes prep/load-context output; omit only in skills that consume none (meta / authoring / writing / reasoning).
-- Vendors: config-key precedence, not literal tags — a specialization of "no hardcoded tool names" (`<hardening>`).
-- State an apparent rule-tension's reconciliation in one sentence.
-- Give one filled example per error-prone field.
-- HITL: a phase `type=` marker (the HITL attribute in a phase's header) points to the canonical HITL home — `bootstrap-hitl-questioning.md` (its rule is stated in `<hardening>`), never a parallel mechanism — keep prose and `type=` headers consistent.
-
-</audit_survival_checks>
-
 <core_principles_to_enforce_in_target_prompt>
 
 - SRP always

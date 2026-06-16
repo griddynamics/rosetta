@@ -131,16 +131,6 @@ Example logical flow: discover → extract+intake → blueprint → for_each_pro
 
 </core_principles>
 
-<rosetta canonical lists>
-For Rosetta prompts (repos `rosetta`, `cto-ims-kb`, `RulesOfPower`, or the `instructions` folder) — skip for any other system: check Rosetta's canonical lists (use them as if already existing; they define what should be what):
-
-- `docs/definitions/workflows.md`
-- `docs/definitions/templates.md`
-- `docs/definitions/agents.md`
-- `docs/definitions/skills.md`
-- `docs/definitions/rules.md`
-</rosetta canonical lists>
-
 <resources>
 
 - When needed ACQUIRE `coding-agents-prompt-authoring/references/pa-knowledge-base.md` FROM KB (large file, grep headers to auto-TOC and load only needed sections)

@@ -15,28 +15,27 @@ Senior systems analyst and domain architect. You think in state machines, not st
 
 <core_concepts>
 
-0. All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-1. Code tells you _how_; a spec captures _what_ and _why_. You're not transcribing code — you're recovering intent.
-2. "Would we rebuild this?" test — if a code path wouldn't be in fresh requirements, exclude it (legacy/infra/workaround); for a workaround, note the _underlying need_ it patched.
-3. "Why does the stakeholder care?" filter — if a product owner wouldn't care, it's implementation (7-day expiry matters; 32-byte token doesn't).
-4. "Could it be different?" test — swappable without changing the product → implementation; changing it changes the product → domain-level.
-5. "Why is it there this way?" test — a real reason, or just tech debt.
-6. Distinguish means from ends. `requests.post('https://slack.com/...')` is a means; "notify the interviewer" is the end. Specs capture ends.
-7. The "concrete detail problem" (hardest call) — sometimes a specific technology IS the domain concern. "Sign in with Google" as a user-facing choice is domain; Google as a hidden auth backend is implementation. Decide by the UI / user flow.
-8. "Multiple implementations" heuristic — one OAuth provider is probably implementation; three means the _variation_ is a domain concern worth modeling.
-9. Map the territory before extracting — entry points (routes, webhooks, cron), domain models, business-logic locations, external integrations — get the full picture first.
-10. Implicit state machines hide in nullable columns — `reminded_at`, `completed_at`, `feedback_id` combinations are secretly named states; extract them.
-11. Consolidate scattered logic — the same operation spread across handler/model/service collapses into one rule with pre/postconditions.
-12. Assertions, validators, guard clauses map to preconditions or invariants. `if x.status != 'pending': raise` → precondition; `assert balance >= 0` → possible system-wide invariant.
-13. Duplicate terminology is a blocking problem, not a footnote. "Order" vs "Purchase" → pick one, update all references; no "also known as" comments (they breed duplicate models and FK ambiguity).
-14. Replace foreign keys with relationships. `candidate_id: Integer` → `candidacy: Candidacy`. The spec cares about the relationship, not the DB id.
-15. Remove tokens, secrets, session/API keys — they implement identity, not the domain. Model the identity relationship, not the token mechanism.
-16. Dead code and historical accidents must not leak in. Check reachability, git history, ask developers — specifying never-executed paths perpetuates accidents.
-17. Capture intended behavior, not current bugs. `except: pass` → still state the intended outcome; divergence is a finding, not a transcript.
-18. Cut over-engineered abstractions ruthlessly — strategy patterns, factories, DI layers are code-organization, not domain. Go straight to the behavior.
-19. Separate integration from application logic. "How to talk to Stripe" is integration; "what to do when payment succeeds" is application logic. Specifying webhook signature verification = too deep.
-20. Configuration-driven integrations signal extraction — heavy external-service config dicts mean the integration is separable from your domain.
-21. The extracted spec is a hypothesis, not a transcript. Validate both ways — developers ("is this what it does?") and stakeholders ("is this what it _should_ do?"); the gap reveals bugs and divergence.
+1. Code tells you _how_; a spec captures _what_ and _why_. The entire point of reverse-engineering is filtering out implementation details that already exist. You're not transcribing code — you're recovering intent.
+2. Apply the "Would we rebuild this?" test. For every code path, ask: "If we rebuilt from scratch, would this be in the requirements?" If no — it's legacy, infrastructure, or a workaround — exclude it. If it's a workaround, note the _underlying need_ it was patching over.
+3. Use the "Why does the stakeholder care?" filter. If you can't articulate why a product owner would care about a detail, it's implementation. A 7-day expiry matters (candidate experience). A 32-byte token does not (security plumbing).
+4. Use the "Could it be different?" test. If a detail could be swapped out and the system would still be recognizably the same system, it's implementation. If changing it would change the product, it's domain-level.
+5. "Why it is there this way?" test. There could be a reason or just tech debt.
+6. Distinguish means from ends. `requests.post('https://slack.com/api/...')` is a _means_. "Notify the interviewer" is the _end_. Specs capture ends. Code is drowning in means.
+7. Watch for the "concrete detail problem" — it's the hardest judgment call. Sometimes a specific technology IS the domain concern. "Sign in with Google" as a user-facing choice is domain-level. Google as a hidden auth backend is implementation. Look at the UI and user flows to decide.
+8. Use the "multiple implementations" heuristic. If the codebase has one OAuth provider, it's probably implementation. If it has three, the _variation itself_ is a domain concern. Presence of multiple implementations signals a category worth modeling.
+9. Map the territory before extracting anything. Identify entry points (API routes, webhooks, cron jobs), domain models, business logic locations, and external integrations first. You need the full picture before you start pulling threads.
+10. Implicit state machines are hiding everywhere. A model with no `status` field but with nullable columns like `reminded_at`, `completed_at`, `feedback_id` is secretly a state machine. Extract those nullable-column combinations into explicit named states.
+11. Consolidate scattered logic into single rules. The same conceptual operation is often spread across an API handler (checking status), a model method (checking expiry), and a service layer (checking slot validity). Your spec collapses all of these into one coherent rule with preconditions and postconditions.
+12. Assertions, validators, and guard clauses in code map to preconditions or invariants. `if x.status != 'pending': raise` becomes a precondition. A class-level validator like `assert balance >= 0` may be a system-wide invariant instead.
+13. Treat duplicate terminology as a blocking problem, not a footnote. If two parts of the codebase call the same concept "Order" and "Purchase," pick one and update all references. Don't leave "also known as" comments — that's how you get duplicate models, redundant tables, and foreign keys pointing both ways.
+14. Replace foreign keys with relationships. `candidate_id: Integer` in code should become `candidacy: Candidacy` in the spec. IDs and foreign keys are database implementation. The spec cares about the _relationship_.
+15. Remove all tokens, secrets, and identity-implementation details. Tokens, session IDs, API keys — these implement identity and security but aren't the domain concern. If the system needs to "identify" something, model the identity relationship, not the token mechanism.
+16. Dead code and historical accidents must not leak into the spec. Check if the code is actually reachable. Check git history. Ask developers. Codebases accumulate never-executed paths, workarounds for fixed bugs, and half-built features. Specifying these perpetuates accidents.
+17. The spec should capture intended behavior, not current bugs. If code silently swallows errors with `except: pass`, the spec should still state the intended outcome. You're documenting what the system _should_ do, which may reveal that it doesn't.
+18. Cut through over-engineered abstractions ruthlessly. Strategy patterns, abstract factories, dependency injection layers — these are code-organization choices. The spec doesn't need five layers of indirection. Go straight to the actual behavior.
+19. Separate integration logic from application logic. "How to talk to Stripe" is integration (belongs in a library spec or gets abstracted away). "What to do when payment succeeds" is application logic (belongs in your spec). If you're specifying webhook signature verification, you've gone too deep.
+20. Configuration-driven integrations are a signal to extract. When you see heavy config dictionaries for external services, the integration itself is separable from your domain. Abstract it out or reference a library spec.
+21. The extracted spec is a hypothesis, not a transcript. Validate it in two directions: show developers ("Is this what it does?") and show stakeholders ("Is this what it _should_ do?"). The gap between those two answers is where the real value lives — it reveals bugs, missing features, and accidental divergence.
 
 </core_concepts>
 
@@ -62,32 +61,18 @@ Senior systems analyst and domain architect. You think in state machines, not st
 
 </rules>
 
-<analysis_modes>
-
-Two specialized modes apply the general method (`<core_concepts>`, `<rules>`) to a concrete target. Each mode EMITS findings into the artifact the calling workflow phase ASSERTS — the phase owns the report sections, output path, taxonomy, and validation contract; this skill never invents the artifact shape or path. When captured source/spec/request/response values are written, redact first → USE SKILL `sensitive-data` (canonical authority — not restated here).
-
-**Mode: test-automation architecture analysis.** Map an existing test-automation project to inform NEW test implementation — read-only, analysis only.
-- Map the territory (core-concept 9) over the test stack: framework + language, project structure (test / page-object / utility / fixture dirs), coding standards and test patterns (AAA, Given-When-Then, setup/teardown), and any captured user-instructions or repo architecture docs.
-- Inventory reusable assets: page objects (what each represents, selectors, methods, reuse-vs-extend-vs-new), similar existing tests (structure, imports, assertion style), shared utilities (login/nav/data helpers, custom matchers, generators).
-- Inform the implementation decision the phase asks for (e.g. test location: add-to-existing vs new-file) by citing the phase-supplied rule; never decide the artifact's section list yourself.
-- Epistemic honesty: every optional input (user-instructions, frontend source, repo docs) is recorded as `available` or `not available — <impact>` in the phase's coverage section. Silent omission is forbidden — downstream phases misread missing-data as no-issues. On source conflict, authoritative repo docs win; record the conflict, never silently overwrite.
-
-**Mode: API-contract extraction.** Recover endpoint contracts from a Swagger/OpenAPI spec OR backend route definitions for a phase-supplied target-endpoint list.
-- GATE: a non-empty target-endpoint list AND at least one spec/source path must be supplied by the phase. Empty/absent → stop and report back; never scan the whole codebase as a silent fallback, never fabricate the target set.
-- Locate the contract source in priority order: spec URL/file → Swagger-in-source (`swagger.json`, `openapi.yaml`, `@ApiOperation`, SpringDoc/Swashbuckle config) → framework route definitions (Express `router.*`, Spring `@*Mapping`, FastAPI/Flask decorators, .NET `[Http*]`). None found for a target → flag it back as a gap with reason; never invent an entry.
-- Per endpoint EMIT into the phase's per-endpoint template: parameters, request/response schemas + status codes, auth (mechanism / scopes / public), data dependencies (preconditions, side effects, idempotency), source citations (Swagger JSONPath AND/OR code `file:line`).
-- Reconcile: when BOTH spec and code are read, cross-check and record mismatches in the entry's discrepancies field (explicit `None.` if reconciled clean). Coverage is canonical: every target endpoint gets an entry OR a flagged gap — no silent drop.
-
-</analysis_modes>
-
 <pitfalls>
 
-- Transcribing code instead of recovering intent — the #1 failure. If the spec reads like pseudocode, you have not abstracted enough (→ core-concept 1, 6).
-- Missing implicit state machines hiding in nullable-column combinations (→ core-concept 10).
-- Specifying current bugs as intended behavior, or dead/workaround code as requirements (→ core-concepts 16, 17; note the underlying need, exclude the hack).
-- The "concrete detail trap" — over-excluding a user-facing technology or over-including infrastructure. Resolve by what the user sees (→ core-concept 7).
-- Not scoping before starting — leads to specs too broad or too narrow (→ rule "Define reverse-engineering scope before acting").
-- Mode-specific: fabricating an analysis target the phase did not supply, deciding the artifact's section list/path yourself, or silently dropping a target endpoint / omitting an absent optional input from the coverage section (→ `<analysis_modes>` GATE + coverage rules).
+- Transcribing code instead of recovering intent. The most common failure mode. If your spec reads like pseudocode of the implementation, you have not abstracted enough. A spec should be recognizable to a product owner, not just a developer.
+- Treating duplicate terminology as cosmetic. If two parts of the codebase call the same concept "Order" and "Purchase", this is a blocking problem, not a footnote. Leaving both in produces duplicate models, redundant tables, and FK ambiguity in any implementation built against the spec.
+- Including dead code in the spec. Codebases accumulate unreachable paths, workarounds for fixed bugs, and half-built features. Specifying these perpetuates accidents as requirements. Check reachability, check git history, ask developers.
+- Specifying current bugs as intended behavior. Swallowed errors, race conditions — these are bugs, not design decisions. The spec should state what the system _should_ do. Divergence between spec and code is a finding, not a mistake.
+- Missing implicit state machines. Nullable columns are the #1 hiding place for undocumented states. If a model has `reminded_at: DateTime?` and `feedback_id: Integer?`, there is a state machine hiding in the combinations. Failing to extract it means the spec has less information than the code.
+- Falling for the "concrete detail trap" in only one direction. People over-exclude (abstracting away Google when "Sign in with Google" is a user-facing feature) or over-include (specifying PostgreSQL JSONB when any storage would do). Always resolve by checking what the user sees.
+- Leaving scattered logic scattered. If your spec has the same guard condition appearing in multiple rules because the code had it in multiple places, you have not consolidated. Each conceptual operation should be one rule with all its guards.
+- Confusing the presence of a workaround with a requirement. Code paths that exist as workarounds should be excluded — but the _underlying need_ they address may be a real requirement that was never properly solved. Note the need, exclude the hack.
+- Specifying infrastructure as domain. Redis, Kafka, cron scheduling, database transactions — these are almost never domain-level. Exception: if the system explicitly promises infrastructure-level features to users (e.g., "real-time via WebSockets" as a product feature).
+- Not scoping before starting. Diving into code without establishing boundaries leads to specs that are either too broad (specifying the entire monorepo) or too narrow (missing critical adjacent systems). Scope first, always.
 
 </pitfalls>
 
