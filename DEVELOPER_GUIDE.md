@@ -159,7 +159,7 @@ docker run -d --name rosetta-redis -p 6379:6379 valkey/valkey:latest
 
 ```bash
 claude mcp add --transport stdio Rosetta \
-  --env ROSETTA_SERVER_URL=https://<developement server URL>/ \
+  --env ROSETTA_SERVER_URL=https://<development server URL>/ \
   --env ROSETTA_API_KEY=ragflow-xxxxx \
   --env VERSION=r2 \
   --env REDIS_URL=redis://localhost:6379/0 \
@@ -170,7 +170,7 @@ claude mcp add --transport stdio Rosetta \
 
 ```bash
 codex mcp add Rosetta \
-  --env ROSETTA_SERVER_URL=https://<developement server URL>/ \
+  --env ROSETTA_SERVER_URL=https://<development server URL>/ \
   --env ROSETTA_API_KEY=ragflow-xxxxx \
   --env VERSION=r2 \
   --env REDIS_URL=redis://localhost:6379/0 \
@@ -186,7 +186,7 @@ codex mcp add Rosetta \
       "command": "uvx",
       "args": ["--prerelease=allow", "ims-mcp@latest"],
       "env": {
-        "ROSETTA_SERVER_URL": "https://<developement server URL>/",
+        "ROSETTA_SERVER_URL": "https://<development server URL>/",
         "ROSETTA_API_KEY": "ragflow-xxxxx",
         "VERSION": "r2",
         "REDIS_URL": "redis://localhost:6379/0"
@@ -206,7 +206,7 @@ codex mcp add Rosetta \
       "command": "uvx",
       "args": ["--prerelease=allow", "ims-mcp@latest"],
       "env": {
-        "ROSETTA_SERVER_URL": "https://<developement server URL>/",
+        "ROSETTA_SERVER_URL": "https://<development server URL>/",
         "ROSETTA_API_KEY": "ragflow-xxxxx",
         "VERSION": "r2",
         "REDIS_URL": "redis://localhost:6379/0"
@@ -335,7 +335,7 @@ After local validation passes, test end-to-end against the dev environment.
 **Environments (two separate servers):**
 
 - **Rosetta Server (RAGFlow) prod:** `https://<production server URL>/` — document engine backend, dataset management, API keys
-- **Rosetta Server (RAGFlow) dev:** `https://<developement server URL>/` — used by STDIO MCP and CLI for publishing
+- **Rosetta Server (RAGFlow) dev:** `https://<development server URL>/` — used by STDIO MCP and CLI for publishing
 - **Rosetta HTTP MCP prod:** `<rosetta MCP production server URL>` — production MCP endpoint for end users
 - **Rosetta HTTP MCP dev:** `<rosetta MCP development server URL>` — dev MCP endpoint for integration testing
 

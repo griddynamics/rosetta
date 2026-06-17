@@ -60,7 +60,7 @@ Execute phases sequentially, do not skip!
 
 <for_each_prompt_loop step="4" subagent="prompt-engineer" role="Prompt Author" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
-1. Scope: `draft` target prompts
+1. Scope: `draft` target prompts. Subagents must draft one individual prompt file or surgical changes to one file at-a-time: it must think thoroughly about each file first, then it provides the full structure of the file with specific grounded points each section should contain or change, then it validates with schemas requirements/suggestions, and only then it can generate actual file. Repeat for each file. ALSO draft means fully ready for review prompt, just not reviewed and approved!
 2. Input: approved `Prompt Brief` + `Blueprint`. Output: `Draft Prompt Set` + optional change-log.md in FEATURE PLAN folder.
 3. Update `coding-agents-prompting-flow-state.md`.
 4. HITL when loop stalls, conflicts appear, or intent becomes unclear.

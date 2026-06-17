@@ -23,6 +23,18 @@ describe('parseFrontmatter', () => {
     expect(result.frontmatter).toBeUndefined();
   });
 
+  it('returns body=content and frontmatter=undefined when YAML is malformed and gray-matter throws (line 33 catch)', () => {
+    // gray-matter throws a YAML parse error on truly invalid YAML syntax inside the --- block.
+    // parseFrontmatter must catch it and return body=full content, frontmatter=undefined (FR-ARCH-0040).
+    // Malformed YAML: unclosed flow mapping inside frontmatter triggers a throw in gray-matter.
+    const malformed = '---\nkey: {broken: yaml: [\n---\n\n# Body after bad frontmatter\n';
+    const result = parseFrontmatter(malformed);
+    expect(result.frontmatter).toBeUndefined();
+    // body and raw must both be the full original content (graceful degradation)
+    expect(result.body).toBe(malformed);
+    expect(result.raw).toBe(malformed);
+  });
+
   it('parses tags array from frontmatter', () => {
     const content = '---\ntags: ["workflow"]\n---\n\n# Body\n';
     const result = parseFrontmatter(content);
@@ -53,6 +65,14 @@ describe('rewriteModelLine', () => {
 
   it('returns content unchanged when no frontmatter', () => {
     const content = '# No frontmatter\n';
+    expect(rewriteModelLine(content, 'new')).toBe(content);
+  });
+
+  it('returns content unchanged when content starts with --- but regex does not match full frontmatter block (line 46)', () => {
+    // Content starts with --- so the first guard passes, but the `^(---\n[\s\S]*?\n---)([\s\S]*)$`
+    // regex fails to match (e.g. single --- line, no closing ---).
+    // The `if (!fmMatch) return content` branch at line 46 must be taken.
+    const content = '---\n'; // starts with --- but has no closing --- delimiter
     expect(rewriteModelLine(content, 'new')).toBe(content);
   });
 });

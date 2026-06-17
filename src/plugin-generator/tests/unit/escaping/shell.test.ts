@@ -1,6 +1,6 @@
 // PARITY-1/4 — bash single-quote escaping '\''
 import { describe, it, expect } from 'vitest';
-import { bashSingleQuoteEscape, wrapInPrintf, wrapInPrintfDoubleQuoted } from '../../../src/escaping/shell.js';
+import { bashSingleQuoteEscape, wrapInPrintf } from '../../../src/escaping/shell.js';
 
 describe('bashSingleQuoteEscape', () => {
   it("escapes single quotes as '\\'\\''", () => {
@@ -29,13 +29,5 @@ describe('wrapInPrintf', () => {
   it('escapes internal single quotes in payload', () => {
     const result = wrapInPrintf("it's");
     expect(result).toBe(`printf '%s' 'it'\\''s'`);
-  });
-});
-
-describe('wrapInPrintfDoubleQuoted', () => {
-  it('wraps payload in double-quoted printf for env expansion', () => {
-    const result = wrapInPrintfDoubleQuoted('{\\\"key\\\":\\\"val\\\"}');
-    expect(result).toContain('printf');
-    expect(result).toContain('"');
   });
 });

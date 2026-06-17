@@ -1,10 +1,12 @@
 ---
-# Core Identity (Required)
-name: [Generic Prompt Name, must match file name without extension]
-description: [Brief description of WHEN and HOW to use this prompt and WHAT it does]
+# Core Identity (Required) — keep these live, replace the <...> value
+name: "<generic prompt name; MUST match the file name without extension>"
+description: "<what it does + when/how to use; dense keywords; MUST be < ~15 tokens>"
+# alwaysApply — keep false; true injects this into EVERY context (bloat); set true ONLY with explicit user approval [boolean] [Cursor]
+alwaysApply: false
 
-# Knowledge Base Tags (remove if empty, use the same tag to bundle, publisher will automatically add tags of parent folder names and file name with extension, and file name parts split by dash)
-tags: ["one", "second"]
+# Knowledge Base Tags — shared tag bundles related artifacts; publisher auto-adds parent-folder + file-name tags; remove if empty [array] [ex: ["tag-1", "tag-2"]]
+tags: []
 
 # do not remove baseSchema!
 baseSchema: docs/schemas/generic.md

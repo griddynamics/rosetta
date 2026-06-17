@@ -102,7 +102,7 @@ Typical environment-specific overrides:
 
 | Setting | Dev | Prod |
 |---|---|---|
-| Ingress host | `<developement server URL>` | `<production server URL>` |
+| Ingress host | `<development server URL>` | `<production server URL>` |
 | MySQL database | `ragflow-dev` | (base default) |
 | MySQL user | `ragflow-dev` | (base default) |
 

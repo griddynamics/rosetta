@@ -55,19 +55,20 @@ export function removeModelLine(content: string): string {
 }
 
 /**
- * Rewrite frontmatter model field into two YAML fields for codex.
- * Replaces "model: <old>" with "model: <gptModel>\nmodel_reasoning_effort: <effort>".
+ * Rewrite frontmatter model field for codex.
+ * When effort is defined: replaces "model: <old>" with "model: <gptModel>\nmodel_reasoning_effort: <effort>".
+ * When effort is undefined: replaces "model: <old>" with "model: <gptModel>" only (no effort line).
  * frontmatter.model is NOT updated (two-field replacement, not a single-value rewrite).
  * FR-ARCH-0046
  */
-export function rewriteCodexModelFields(content: string, gptModel: string, effort: string): string {
+export function rewriteCodexModelFields(content: string, gptModel: string, effort: string | undefined): string {
   const fmMatch = content.match(/^(---\n)([\s\S]*?)(\n---)([\s\S]*)$/);
   if (!fmMatch) return content;
   const [, openDelim, yamlBody, closeDelim, rest] = fmMatch;
-  const newYaml = yamlBody.replace(
-    /^(model:\s*)(.+)$/m,
-    `$1${gptModel}\nmodel_reasoning_effort: ${effort}`,
-  );
+  const replacement = effort !== undefined
+    ? `$1${gptModel}\nmodel_reasoning_effort: ${effort}`
+    : `$1${gptModel}`;
+  const newYaml = yamlBody.replace(/^(model:\s*)(.+)$/m, replacement);
   if (newYaml === yamlBody) return content;
   return openDelim + newYaml + closeDelim + rest;
 }

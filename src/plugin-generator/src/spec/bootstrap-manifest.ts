@@ -36,7 +36,6 @@ export const BOOTSTRAP_MANIFEST_ORDER: ReadonlyArray<BootstrapEntryRef> = [
  */
 export const CLAUDE_PLUGIN_ROOT_ENTRY = {
   command: `printf '%s' "{\\"hookSpecificOutput\\":{\\"hookEventName\\":\\"SessionStart\\",\\"additionalContext\\":\\"Rosetta Plugin Path: \${CLAUDE_PLUGIN_ROOT}\\"}}"`,
-  once: true,
 };
 
 export const CODEX_PLUGIN_ROOT_COMMAND =

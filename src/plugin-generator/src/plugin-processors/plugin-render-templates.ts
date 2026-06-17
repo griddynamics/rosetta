@@ -3,7 +3,7 @@
 
 import Handlebars from 'handlebars';
 import { updatePluginFrame } from '../frames.js';
-import type { FileProcessingFrame, PluginProcessingFrame } from '../types.js';
+import type { FileProcessingFrame, GenError, PluginProcessingFrame } from '../types.js';
 
 /**
  * pluginRenderTemplates: for each .tmpl frame, render via Handlebars → sibling (no .tmpl extension).
@@ -19,6 +19,7 @@ export function pluginRenderTemplates(
   // Compile templates and build rendered frames
   const resultFrames: FileProcessingFrame[] = [];
   let hasNewFrames = false;
+  const renderErrors: GenError[] = [];
 
   // Standalone targets (manifestOverride set) must NOT emit .tmpl files to disk.
   // Main targets: .tmpl files are preserved (they exist in the plugin source and baseline).
@@ -67,12 +68,17 @@ export function pluginRenderTemplates(
       // Missing template or render error → warn+continue (FR-GEN-0010)
       // For main targets: keep the .tmpl frame even without rendered sibling
       if (!isStandalone) resultFrames.push(frame);
+      const msg = err instanceof Error ? err.message : String(err);
+      renderErrors.push({ target: p.spec.name, file: outputTarget, message: `Template render error: ${msg}`, kind: 'soft' });
     }
   }
 
-  if (!hasNewFrames) return p;
+  if (!hasNewFrames && renderErrors.length === 0) return p;
 
   return updatePluginFrame(p, (draft) => {
     draft.frames = resultFrames as typeof draft.frames;
+    if (renderErrors.length > 0) {
+      draft.errors = [...draft.errors, ...renderErrors] as typeof draft.errors;
+    }
   });
 }

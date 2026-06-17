@@ -125,8 +125,8 @@ describe('fileRead', () => {
     }
   });
 
-  it('binary + >1 source: reads last source as content (FR-ARCH-0034)', () => {
-    // binary + >1 source → error path (reads last source, sets isBinary=true)
+  it('binary + >1 source: emits hard error on frame.errors (FR-ARCH-0034)', () => {
+    // binary + >1 source → hard GenError pushed onto frame, no throw
     const f1 = path.join(os.tmpdir(), `fileread-bin1-${Date.now()}.png`);
     const f2 = path.join(os.tmpdir(), `fileread-bin2-${Date.now()}.png`);
     fs.writeFileSync(f1, Buffer.from([0x89, 0x50, 0x4e, 0x47])); // PNG
@@ -134,9 +134,13 @@ describe('fileRead', () => {
     try {
       const frame = makeFrame([f1, f2], 'images/test.png');
       const result = fileRead(frame, makeCtx());
-      // Should set isBinary=true and use content from last source (f2)
       expect(result.isBinary).toBe(true);
-      expect(Buffer.isBuffer(result.target_contents)).toBe(true);
+      expect(result.errors).toBeDefined();
+      expect(result.errors!.length).toBe(1);
+      expect(result.errors![0].kind).toBe('hard');
+      expect(result.errors![0].message).toBe(
+        'Binary file images/test.png has 2 sources; only one source is allowed for binary files (FR-ARCH-0034/FR-ARCH-0042).',
+      );
     } finally {
       fs.unlinkSync(f1);
       fs.unlinkSync(f2);

@@ -80,7 +80,7 @@ Instructions flow up: files are published by the CLI into RAGFlow, served by Ros
 ## Environments
 
 - **Rosetta Server (RAGFlow) prod:** `https://<production server URL>/` — document engine backend, dataset management, API keys
-- **Rosetta Server (RAGFlow) dev:** `https://<developement server URL>/` — dev instance for testing publishes
+- **Rosetta Server (RAGFlow) dev:** `https://<development server URL>/` — dev instance for testing publishes
 - **Rosetta HTTP MCP prod:** `<rosetta MCP production server URL>` — production MCP endpoint for end users
 - **Rosetta HTTP MCP dev:** `<rosetta MCP development server URL>` — dev MCP endpoint for integration testing
 
@@ -299,7 +299,7 @@ For MCP setup across all IDEs, see [Get Started](https://griddynamics.github.io/
 
 RAGFlow is the document storage and retrieval engine. Rosetta uses it for ingestion, parsing, embedding, and search. Not exposed to end users directly.
 
-**Deployment:** Local via Docker Compose at `http://localhost:80`, Development at https://<developement server URL>, or hosted production.
+**Deployment:** Local via Docker Compose at `http://localhost:80`, Development at https://<development server URL>, or hosted production.
 
 **Processing pipeline:** Upload (upsert by deterministic UUID) → Parse (server-side) → Chunk → Embed → Index. Repeated publishes are idempotent.
 

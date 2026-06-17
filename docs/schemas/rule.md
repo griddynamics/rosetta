@@ -1,16 +1,20 @@
 ---
-# Core Identity (Required)
-name: [Rules Name, must match file name without extension] [obligatory]
-description: ["Rosetta" + Brief description of WHEN and HOW to use this rules list] [obligatory]
+# Core Identity (Required) — keep these live, replace the <...> value
+name: "<rule name; MUST match the file name without extension>"
+description: "Rules for <what they govern + when they apply; dense keywords; MUST be < ~15 tokens>"
+# alwaysApply — keep false; true injects this into EVERY context (bloat); set true ONLY with explicit user approval [boolean] [Cursor]
+alwaysApply: false
 
-# Optional
-globs: [File patterns (glob syntax) where the rule applies (comma-separated)] [string] [Cursor, Antigravity] [ex: '**/*.js, **/*.ts']
-paths: [File patterns (glob syntax) where the rule applies (comma-separated)] [string] [Claude Code, Windsurf] [ex: **/*.js, **/*.ts]
-alwaysApply: [When true, the rule is always active; if false, it's context-dependent] [boolean] [Cursor]
-trigger: [Controls when the rules are activated] [string] [Antigravity] [ex: glob]
+# Activation (Optional — uncomment the field(s) for your target platform)
+# globs — file patterns (glob) where the rule applies, comma-separated [string] [Cursor, Antigravity] [ex: "**/*.js, **/*.ts"]
+# globs: "**/*.ts"
+# paths — file patterns (glob) where the rule applies, comma-separated [string] [Claude Code, Windsurf] [ex: "**/*.js, **/*.ts"]
+# paths: "**/*.ts"
+# trigger — controls when the rule activates [string] [Antigravity] [ex: glob]
+# trigger: "glob"
 
-# Knowledge Base Tags (remove if empty, use the same tag to bundle, publisher will automatically add tags of parent folder names and file name with extension, and file name parts split by dash)
-tags: ["one", "second"]
+# Knowledge Base Tags — shared tag bundles related artifacts; publisher auto-adds parent-folder + file-name tags; remove if empty [array] [ex: ["tag-1", "tag-2"]]
+tags: []
 
 # do not remove baseSchema!
 baseSchema: docs/schemas/rule.md

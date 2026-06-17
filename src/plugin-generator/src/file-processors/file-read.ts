@@ -28,11 +28,18 @@ export function fileRead(frame: FileProcessingFrame, ctx: TargetContext): FilePr
 
   if (isBinary) {
     if (sources.length > 1) {
-      // FR-ARCH-0034: binary + >1 SourceFile → error; still process
+      // FR-ARCH-0034: binary + >1 SourceFile → hard error; return frame with error (do not throw)
       return updateFileFrame(frame, (draft) => {
         draft.isBinary = true;
-        // Read the last source (highest priority) as content
         draft.target_contents = fs.readFileSync(sources[sources.length - 1].origin);
+        draft.errors = [
+          ...(draft.errors ?? []),
+          {
+            target: frame.target,
+            message: `Binary file ${frame.target} has ${sources.length} sources; only one source is allowed for binary files (FR-ARCH-0034/FR-ARCH-0042).`,
+            kind: 'hard' as const,
+          },
+        ];
       });
     }
     return updateFileFrame(frame, (draft) => {

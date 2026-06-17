@@ -52,15 +52,31 @@ describe('pluginRewriteReferences', () => {
     expect(f.target_contents as string).toContain('my-workflows/example.md');
   });
 
-  it('DOES rewrite /workflows/coding-flow.md (slash-bounded)', () => {
+  it('does NOT rewrite IDE-native dot-directory paths (.windsurf/workflows/, .cursor/rules/)', () => {
+    // These are IDE-native filesystem paths in configure guides — must never be touched
     const frames = [
       makeFrame('workflows/coding-flow.md', 'commands/coding-flow.md', '# Coding Flow'),
-      makeFrame('rules/test.md', 'rules/test.md', 'Run .windsurf/workflows/coding-flow.md step.'),
+      makeFrame('configure/windsurf.md', 'configure/windsurf.md',
+        '- `.windsurf/workflows/` - Automation workflows\n' +
+        '**Location:** `.windsurf/workflows/setup.md`\n' +
+        'See `.cursor/rules/agents.mdc` for Cursor rules.\n' +
+        'See `.github/workflows/ci.yml` for CI.\n' +
+        'But workflows/coding-flow.md should be rewritten.',
+      ),
     ];
-    const p = makePluginFrame(frames, []);
+    const p = makePluginFrame(frames, [
+      { source: 'workflows/**', target: 'commands', exclude: [], processors: [] },
+    ]);
     const result = pluginRewriteReferences(p);
     const content = result.frames[1].target_contents as string;
+    // IDE-native paths: untouched
+    expect(content).toContain('.windsurf/workflows/');
+    expect(content).toContain('.windsurf/workflows/setup.md');
+    expect(content).toContain('.cursor/rules/agents.mdc');
+    expect(content).toContain('.github/workflows/ci.yml');
+    // Bare plugin-internal reference: rewritten
     expect(content).toContain('commands/coding-flow.md');
+    expect(content).not.toContain('workflows/coding-flow.md');
   });
 
   it('returns original frame when no rewrites needed', () => {
@@ -95,6 +111,26 @@ describe('pluginRewriteReferences', () => {
     const p = makePluginFrame([f2], []);
     const result = pluginRewriteReferences(p);
     expect(result).toBe(p);
+  });
+
+  it('skips verbatim frames even when content matches a rename pair (TODO-2)', () => {
+    // A configure file references "workflows/coding-flow.md" — must not be rewritten
+    const renamedFrame = makeFrame('workflows/coding-flow.md', 'commands/coding-flow.md', '# Coding Flow');
+    const verbatimFrame: FileProcessingFrame = {
+      sourcePath: 'configure/windsurf.md',
+      target: 'configure/windsurf.md',
+      isBinary: false,
+      target_contents: '.windsurf/workflows/ - Automation workflows for Cascade',
+      source: [],
+      verbatim: true,
+    };
+    const p = makePluginFrame([renamedFrame, verbatimFrame], [
+      { source: 'workflows/**', target: 'commands', exclude: [], processors: [] },
+    ]);
+    const result = pluginRewriteReferences(p);
+    // verbatim frame content must be identical — no rewrite applied
+    expect(result.frames[1].target_contents).toBe('.windsurf/workflows/ - Automation workflows for Cascade');
+    expect(result.frames[1]).toBe(verbatimFrame);
   });
 });
 

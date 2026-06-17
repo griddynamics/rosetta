@@ -104,8 +104,8 @@ describe('normalizeCodex', () => {
     expect(normalizeCodex('claude-4.8-opus-high, gemini')).toBeNull();
   });
 
-  it('defaults effort to medium for gpt without effort suffix', () => {
-    expect(normalizeCodex('gpt-5.5')).toEqual({ model: 'gpt-5.5', effort: 'medium' });
+  it('returns effort: undefined for gpt without effort suffix', () => {
+    expect(normalizeCodex('gpt-5.5')).toEqual({ model: 'gpt-5.5', effort: undefined });
   });
 
   it('returns null for empty string', () => {

@@ -99,6 +99,21 @@ When a behavior differs by IDE or vocabulary (model normalization, hook entry sh
 ### Plan Contradictions Must Go Back To The Original Author, Not Be Fixed By The Orchestrator [ACTIVE]
 When a reviewer finds contradictions in plan steps authored by an architect subagent, the correct response is to route the finding back to the architect (re-spawn or send message) for resolution — not to have the orchestrator interpret or reconcile the contradiction. The orchestrator lacks the architect's context and will produce a silent reinterpretation. Contradictory step instructions must be clarified at the source before implementation begins, or an explicit decision from the user must be captured in the plan.
 
+### Investigation Prompts Must Give Zero Hints — Let The Investigator Discover [ACTIVE]
+When spawning an architect or reviewer for open-ended investigation (audit, diff review, smell detection), never state what you expect to find, which file to look at, or what the suspected issue is. The value of independent investigation is destroyed if you prime the investigator with the answer. Frame the task as: here is the authoritative source, here is the code, reason through everything and tell me what you find. If the investigator misses something, re-spawn with a broader mandate — never with a targeted hint.
+
+### Model Maps Must Be Exhaustive Lookup Tables, Not Layered Transforms [ACTIVE]
+Each model vocabulary (Claude, GPT, Gemini) for each IDE (Cursor, Copilot) must be a single exhaustive `Record<string, string>` covering every known token variant including effort suffixes (`-high`, `-medium`, `-low`) and bare IDs. No secondary upgrade maps, no inline effort-stripping logic, no passthrough for known model families. Unknown tokens may passthrough as a fallback. This keeps normalization readable, testable, and consistent across all vocabularies.
+
+### Do Not Add Models Beyond The Authoritative Reference Scope [ACTIVE]
+When building model maps, include only models that appear in the authoritative reference (Python generator) or are explicitly requested. Do not speculatively add older model families ("for backward compat") without being asked. The user sees every extra entry and will question it. When in doubt: ask, or leave it out.
+
+### Verbatim Content SpecEntries Must Be Flagged To Skip Plugin-Level Processors [ACTIVE]
+Any SpecEntry whose source content must be emitted verbatim (e.g. configure/*.md — IDE guide documentation) must carry a `verbatim: true` flag. Plugin-level processors that rewrite content (e.g. `pluginRewriteReferences`) must check this flag and skip verbatim frames. Without this, a global content-rewriting processor will apply its rename pairs to documentation strings it was never intended to touch (e.g. `.windsurf/workflows/` → `.windsurf/commands/`). The flag is a belt-and-suspenders guard; the primary fix is the regex boundary (see next rule).
+
+### Dot-Directory Prefix Is The Boundary Between IDE-Native Paths And Plugin-Internal References [ACTIVE]
+When a content-rewriting processor applies folder rename pairs (e.g. `workflows/ → commands/`), the boundary between paths that SHOULD be rewritten and paths that MUST NOT is the dot-directory prefix. Bare tokens like `workflows/coding-flow.md` are plugin-internal and must be rewritten. Tokens preceded by a vendor dot-directory segment (`.windsurf/`, `.cursor/`, `.github/`) are IDE-native filesystem documentation and must never be rewritten. Implement this via a negative lookbehind `(?<!\.[A-Za-z][A-Za-z0-9_-]*/)` ahead of the existing word-boundary guard. Do NOT solve this with a regex lookahead or an opt-out flag alone — those are bandaids that don't capture the structural rule.
+
 ### Requirement IDs And Internal Refs Belong In Code Comments Only, Never User-Facing Strings [ACTIVE]
 Any `FR-`/`NFR-` identifier, internal path, or module name placed in a string that gets SERIALIZED or shown to a user — JSON-schema `description`, CLI argument help text, help-content fields, error messages — leaks internal traceability and violates the no-leak rule (FR-ARCH-0016); a serialized-help no-leak test enforces it. Keep all such identifiers in `//` or `/** */` comments. Before finishing any change that adds schema/arg/help/error strings, grep the diff for `\bN?FR-[A-Z]` inside quoted strings and move any hit into a comment.
 
