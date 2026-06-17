@@ -47,19 +47,19 @@ You also get better results when the project already has strong shared Rosetta c
 Typical prompts:
 
 ```text
-Automate TestRail case C12345 for the checkout confirmation flow.
+/aqa-flow Automate TestRail case C12345 for the checkout confirmation flow.
 ```
 
 ```text
-Create UI automation for the registration success scenario using TestRail case 5678 and Confluence page https://...
+/aqa-flow Create UI automation for the registration success scenario using TestRail case 5678 and Confluence page https://...
 ```
 
 ```text
-Analyze this failing automated test report for case C9012 and prepare corrections.
+/aqa-flow Analyze this failing automated test report for case C9012 and prepare corrections.
 ```
 
 ```text
-Extend the existing checkout automation with a new TestRail scenario and reuse current Page Objects.
+/aqa-flow Extend the existing checkout automation with a new TestRail scenario and reuse current Page Objects.
 ```
 
 ## How Rosetta Shapes This Workflow

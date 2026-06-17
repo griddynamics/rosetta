@@ -37,15 +37,15 @@ Use External Library Flow when AI agents need to work with a private or external
 ## How To Start
 
 ```text
-Teach AI about our internal authentication library at ../auth-sdk.
+/external-lib-flow Teach AI about our internal authentication library at ../auth-sdk.
 ```
 
 ```text
-Onboard the shared billing client from /opt/repos/billing-client so later coding tasks can use it.
+/external-lib-flow Onboard the shared billing client from /opt/repos/billing-client so later coding tasks can use it.
 ```
 
 ```text
-Document the external utilities package for AI use in this workspace. The project path is ../shared-utils.
+/external-lib-flow Document the external utilities package for AI use in this workspace. The project path is ../shared-utils.
 ```
 
 ## How Rosetta Shapes This Workflow

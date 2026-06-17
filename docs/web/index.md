@@ -473,7 +473,7 @@ Download bootstrap.md and place it in your IDE or agent's project instruction fi
       <span class="qs-success-icon">&#10003;</span>
       <div class="qs-success-body">
         <strong>You're set. Rosetta is active.</strong>
-        <span>Use the workflows directly or talk naturally after repository initialization.</span>
+        <span>Use slash commands to invoke workflows — the workflow guides AI and you along the way.</span>
       </div>
       <a href="{{ '/docs/usage-guide/' | relative_url }}" class="qs-success-link">See all workflows →</a>
     </div>

@@ -36,15 +36,15 @@ Use Research Flow when you need grounded project research before making a techni
 ## How To Start
 
 ```text
-Research OAuth 2.0 implementation options for our stack and compare the tradeoffs.
+/research-flow Research OAuth 2.0 implementation options for our stack and compare the tradeoffs.
 ```
 
 ```text
-Investigate whether our order service should use event sourcing or stay CRUD based.
+/research-flow Investigate whether our order service should use event sourcing or stay CRUD based.
 ```
 
 ```text
-Research authentication patterns for microservices in this project and recommend what fits our current architecture.
+/research-flow Research authentication patterns for microservices in this project and recommend what fits our current architecture.
 ```
 
 ## How Rosetta Shapes This Workflow

@@ -73,6 +73,10 @@
   <main id="main-content" class="docs-content">
     {{ content }}
   </main>
+  <aside class="docs-toc" aria-label="On this page">
+    <p class="docs-toc-title">On this page</p>
+    <ul class="docs-toc-list" id="docs-toc-list"></ul>
+  </aside>
 </div>
 <footer>
   <div class="footer-wrap">
@@ -372,6 +376,62 @@
   document.addEventListener('click', function(e) {
     if (!e.target.closest('.docs-search')) results.hidden = true;
   });
+})();
+</script>
+<script>
+(function() {
+  var toc = document.getElementById('docs-toc-list');
+  var tocAside = toc && toc.closest('.docs-toc');
+  if (!toc || !tocAside) return;
+
+  var content = document.querySelector('.docs-content');
+  if (!content) return;
+
+  var headings = Array.prototype.slice.call(content.querySelectorAll('h2, h3'));
+  if (headings.length < 2) { tocAside.hidden = true; return; }
+
+  var fragment = document.createDocumentFragment();
+  headings.forEach(function(h) {
+    if (!h.id) {
+      h.id = h.textContent.trim().toLowerCase()
+        .replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+    }
+    var li = document.createElement('li');
+    li.className = 'docs-toc-item docs-toc-item--' + h.tagName.toLowerCase();
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.className = 'docs-toc-link';
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    li.appendChild(a);
+    fragment.appendChild(li);
+  });
+  toc.appendChild(fragment);
+
+  var links = Array.prototype.slice.call(toc.querySelectorAll('.docs-toc-link'));
+  var activeIdx = -1;
+
+  function setActive(idx) {
+    if (idx === activeIdx) return;
+    if (activeIdx >= 0) links[activeIdx].classList.remove('active');
+    activeIdx = idx;
+    if (activeIdx >= 0) links[activeIdx].classList.add('active');
+  }
+
+  if (window.IntersectionObserver) {
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (!entry.isIntersecting) return;
+        var idx = headings.indexOf(entry.target);
+        if (idx >= 0) setActive(idx);
+      });
+    }, { rootMargin: '0px 0px -70% 0px', threshold: 0 });
+    headings.forEach(function(h) { io.observe(h); });
+  }
 })();
 </script>
 </body>

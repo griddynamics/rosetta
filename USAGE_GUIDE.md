@@ -10,18 +10,18 @@ For terminology and mental model, see [OVERVIEW.md](OVERVIEW.md). For setup, see
 
 ## How Rosetta Works
 
-Describe what you need in plain language. Rosetta handles the rest.
+Use the slash command for the respective workflow and type your request naturally. The workflow guides AI and you along the way.
 
 1. Your AI coding agent loads Rosetta's [bootstrap rules](docs/ARCHITECTURE.md#bootstrap-flow) automatically
-2. Rosetta classifies your request (coding, research, init, etc.)
+2. You use the slash command for the respective workflow (e.g. `/coding-flow`, `/research-flow`)
 3. The matching workflow, skills, and guardrails load into context
 4. The agent executes with the right instructions, approval gates, and safety constraints
 
-No special syntax. No commands to memorize. [Progressive disclosure](OVERVIEW.md#core-mental-model) keeps context clean: only what the current task needs gets loaded.
+[Progressive disclosure](OVERVIEW.md#core-mental-model) keeps context clean: only what the current task needs gets loaded.
 
 ## Workflows
 
-Rosetta classifies your request and loads the matching workflow. Each workflow defines phases, produces traceable artifacts, and enforces approval gates where decisions matter.
+Each workflow is invoked with its slash command. Use the slash command, add your request, and the workflow guides AI and you along the way. Each workflow defines phases, produces traceable artifacts, and enforces approval gates where decisions matter.
 
 <details>
 <summary><b>Init Workspace</b></summary>
@@ -73,9 +73,9 @@ Explains what Rosetta can do and how to use it in the current workspace. It is a
 **Expect:** usually no files. A discoverer subagent may prepare the catalog and matching. Your responsibility is to state the outcome you want and explicitly approve any handoff into execution.
 
 ```
-"What workflows are available?"
-"How do I use the research flow?"
-"What can Rosetta help me with?"
+/self-help-flow What workflows are available?
+/self-help-flow How do I use the research flow?
+/self-help-flow What can Rosetta help me with?
 ```
 
 </details>
@@ -103,9 +103,9 @@ Use this for implementation work after you know what needs to change. Rosetta tu
 **Expect:** discoverer, architect, engineer, executor, reviewer, and validator subagents. Artifacts can include discovery notes, specs, plans, review findings, validation findings, tests, and concise Rosetta doc updates. Your responsibility is to provide acceptance criteria, review plans before approving, and call out scope changes before implementation starts.
 
 ```
-"Add password reset functionality"
-"Fix the race condition in payment processing"
-"Implement the notification service"
+/coding-flow Add password reset functionality
+/coding-flow Fix the race condition in payment processing
+/coding-flow Implement the notification service
 ```
 
 </details>
@@ -129,8 +129,8 @@ Use this before building when expected behavior is unclear, high impact, or need
 **Expect:** requirements-engineer and requirements-reviewer subagents. HITL gates approve intent, structure, each requirement unit, and validation findings. Your responsibility is to define actors, goals, scope boundaries, non-goals, priorities, measurable thresholds, and approval decisions.
 
 ```
-"Define requirements for the checkout flow covering discount codes, tax, and retries"
-"Write requirements for the user onboarding experience"
+/requirements-authoring-flow Define requirements for the checkout flow covering discount codes, tax, and retries
+/requirements-authoring-flow Write requirements for the user onboarding experience
 ```
 
 </details>
@@ -152,8 +152,8 @@ Builds a custom workflow when no fixed Rosetta workflow fits the request. It com
 **Expect:** a tailored plan rather than a fixed artifact set. Depending on selected blocks, outputs may include a plan, specs, requirements notes, validation results, code changes, or memory updates. Your responsibility is to keep intent clear, approve or reject the plan, and decide when discoveries should change scope.
 
 ```
-"Ad-hoc: write a quick script to parse these CSV files"
-"Refactor the logging across three services"
+/adhoc-flow Write a quick script to parse these CSV files
+/adhoc-flow Refactor the logging across three services
 ```
 
 </details>
@@ -180,10 +180,10 @@ Reverse-engineers an existing codebase into grounded architecture documentation 
 **Expect:** discoverer, architect, and reviewer subagents. Every claim should trace to code/docs; diagrams must be readable in light and dark themes; generated code and refactor suggestions are out of scope. Your responsibility is to define scope, answer high-impact questions, and review whether the explanation matches real system intent.
 
 ```
-"Explain how the authentication system works"
-"What is the architecture of the payment module?"
-"Analyze the REST API architecture and write the result to analysis.md"
-"Reverse-engineer requirements from the billing module"
+/code-analysis-flow Explain how the authentication system works
+/code-analysis-flow What is the architecture of the payment module?
+/code-analysis-flow Analyze the REST API architecture and write the result to analysis.md
+/code-analysis-flow Reverse-engineer requirements from the billing module
 ```
 
 </details>
@@ -204,9 +204,9 @@ Use this for project-related research, investigation, or technical comparison th
 **Expect:** a researcher subagent, a prompt artifact before the research runs, and grounded final analysis. Your responsibility is to review the prompt because it controls what the research will and will not answer.
 
 ```
-"Research best practices for microservices authentication"
-"Investigate OAuth 2.0 implementation options for our stack"
-"Compare event sourcing vs CRUD for our order service"
+/research-flow Research best practices for microservices authentication
+/research-flow Investigate OAuth 2.0 implementation options for our stack
+/research-flow Compare event sourcing vs CRUD for our order service
 ```
 
 </details>
@@ -231,8 +231,8 @@ Creates or updates automated UI tests from a TestRail case, Confluence context, 
 **Expect:** sequential state-driven execution with QA/frontend/test implementation focus. HITL gates occur in phases 2, 6, 7, and 8; phase 4 asks for page HTML only if needed. Your responsibility is to provide the TestRail case, Confluence context, answers, page HTML when requested, run the test, and provide the report.
 
 ```
-"Write tests for the user registration feature"
-"Create QA automation for the checkout flow"
+/aqa-flow Write tests for the user registration feature
+/aqa-flow Create QA automation for the checkout flow
 ```
 
 </details>
@@ -256,8 +256,8 @@ Generates structured requirements and TestRail-ready test cases from Jira and Co
 **Expect:** one phase at a time with `testgen-state.md` updated after each phase. The required HITL gate is phase 3 before requirements generation. Your responsibility is to provide Jira input, Confluence links when auto-search is insufficient, answers, review decisions, and TestRail destination details for export.
 
 ```
-"Generate test cases for PROJ-123"
-"Create test scenarios from EPIC-789 and export to TestRail"
+/testgen-flow Generate test cases for PROJ-123
+/testgen-flow Create test scenarios from EPIC-789 and export to TestRail
 ```
 
 </details>
@@ -282,8 +282,8 @@ Large migration workflow for code conversions, platform upgrades, framework upgr
 **Expect:** heavy subagent use, often one focused subagent per phase or project. HITL confirms applicable phases, phase transitions, target-spec approval, public API changes, and implementation start. Your responsibility is to provide source/target expectations, compatibility requirements, test expectations, deployment constraints, and careful spec review.
 
 ```
-"Migrate from Java 8 to Java 21"
-"Re-architect monolith to microservices"
+/modernization-flow Migrate from Java 8 to Java 21
+/modernization-flow Re-architect monolith to microservices
 ```
 
 </details>
@@ -304,8 +304,8 @@ Onboards an external or private codebase so AI agents can use it in the current 
 **Expect:** sequential orchestration rather than named subagents. Artifacts include compressed XML for AI consumption, a short onboarding document, and an architecture rule telling agents to use the reference source. Your responsibility is to provide an accessible path and correct detected metadata if needed.
 
 ```
-"Teach AI about our internal authentication library"
-"Document the shared utilities package"
+/external-lib-flow Teach AI about our internal authentication library
+/external-lib-flow Document the shared utilities package
 ```
 
 </details>
@@ -329,9 +329,9 @@ Authors or adapts prompts for AI coding agents. Rosetta keeps orchestration thin
 **Expect:** discoverer and prompt-engineer subagents. Required artifacts include state, Discovery Notes, Reference Set, Prompt Brief, Blueprint, Draft Prompt Set, Prompt Set, Simulation Notes, and Validation Pack. HITL gates include Prompt Brief approval, ambiguous blueprint tradeoffs, stalled loops, major simulation risk, and final approval before persistence.
 
 ```
-"Create a coding workflow prompt for our internal AI agent"
-"Adapt this Claude prompt for Cursor"
-"Write prompts for our onboarding automation agent"
+/coding-agents-prompting-flow Create a coding workflow prompt for our internal AI agent
+/coding-agents-prompting-flow Adapt this Claude prompt for Cursor
+/coding-agents-prompting-flow Write prompts for our onboarding automation agent
 ```
 
 </details>
@@ -466,7 +466,7 @@ Workflows delegate phases to specialized subagents. Each has a focused role, its
 ### Feature Development
 
 ```
-You: "Add password reset functionality"
+You: /coding-flow Add password reset functionality
 
 What happens:
 1. Rosetta loads the coding workflow
@@ -484,7 +484,7 @@ What happens:
 ### Requirements Before Building
 
 ```
-You: "Define requirements for the checkout flow"
+You: /requirements-authoring-flow Define requirements for the checkout flow
 
 What happens:
 1. Rosetta loads the requirements workflow
@@ -524,7 +524,7 @@ What happens:
 ### Research
 
 ```
-You: "Investigate OAuth 2.0 options for our stack"
+You: /research-flow Investigate OAuth 2.0 options for our stack
 
 What happens:
 1. Rosetta loads the research workflow
@@ -563,8 +563,8 @@ See [PLUGINS.md](PLUGINS.md) for install commands.
 
 ## Best Practices
 
-- **Talk naturally.** Describe what you need. Rosetta figures out the right workflow.
-- **Be specific.** More context means better output and fewer questions. "Define requirements for the checkout flow covering discount codes, tax calculation, and payment retries" beats "Write requirements for checkout."
+- **Use slash commands.** Once initialized, use the slash command for the respective workflow and type your request naturally — the workflow guides AI and you along the way. See [Workflows](#workflows) for the full list.
+- **Be specific.** More context means better output and fewer questions. `/requirements-authoring-flow Define requirements for the checkout flow covering discount codes, tax calculation, and payment retries` beats `/requirements-authoring-flow Write requirements for checkout.`
 - **Read plans before approving.** The plan is your last checkpoint before work begins. Check scope, approach, and what will change.
 - **Answer questions fully.** When Rosetta asks, it targets a specific gap. Short answers lead to incomplete solutions.
 - **Write requirements first.** The requirements workflow prevents scope creep and gives you a clear acceptance baseline.

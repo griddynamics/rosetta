@@ -48,19 +48,19 @@ For small tasks, the source says the plan-review and implementation-review check
 ## How To Start
 
 ```text
-Add password reset support for the customer portal. I want to review the plan before implementation starts.
+/coding-flow Add password reset support for the customer portal. I want to review the plan before implementation starts.
 ```
 
 ```text
-Fix the race condition in payment processing. Stay inside the current service boundary and show me the plan first.
+/coding-flow Fix the race condition in payment processing. Stay inside the current service boundary and show me the plan first.
 ```
 
 ```text
-Implement notification delivery using the existing queue abstraction. The auth rules in ARCHITECTURE.md are mandatory.
+/coding-flow Implement notification delivery using the existing queue abstraction. The auth rules in ARCHITECTURE.md are mandatory.
 ```
 
 ```text
-Change the billing retry logic to match the approved requirements in docs/REQUIREMENTS. Stop for approval before coding.
+/coding-flow Change the billing retry logic to match the approved requirements in docs/REQUIREMENTS. Stop for approval before coding.
 ```
 
 ## How Rosetta Shapes This Workflow

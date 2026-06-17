@@ -46,19 +46,19 @@ The final gate is a review against the original intent, not only against the lat
 ## How To Start
 
 ```text
-Ad-hoc: write a quick script to parse these CSV files, flag malformed rows, and save a compact summary
+/adhoc-flow write a quick script to parse these CSV files, flag malformed rows, and save a compact summary
 ```
 
 ```text
-Ad-hoc: investigate this flaky local toolchain issue, produce a short fix plan, then wait for my approval before changing anything
+/adhoc-flow investigate this flaky local toolchain issue, produce a short fix plan, then wait for my approval before changing anything
 ```
 
 ```text
-Ad-hoc: refactor logging across three services without changing log semantics, then review the result
+/adhoc-flow refactor logging across three services without changing log semantics, then review the result
 ```
 
 ```text
-Ad-hoc: do discovery on this repo cleanup task, create a tracked plan, and execute only the approved steps
+/adhoc-flow do discovery on this repo cleanup task, create a tracked plan, and execute only the approved steps
 ```
 
 ## How Rosetta Shapes This Workflow

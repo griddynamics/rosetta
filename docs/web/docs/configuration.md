@@ -33,7 +33,7 @@ Work through these five steps once per repository.
 
 ### Step 1 — Capture business context in `CONTEXT.md`
 
-Ask Opus-class model to help you with:
+Ask Opus-class model or GPT-5.5 to help you with:
 
 ```
 Read and record the non-technical and engineering behavior facts about the project in `docs/CONTEXT.md`:
@@ -48,10 +48,11 @@ Read and record the non-technical and engineering behavior facts about the proje
 - Any compliance or regulatory requirements.
 - Accepted SDLC, DoD, and processes related to the project.
 - References to documentation and ways to access it (example, acli or mcp for atlassian).
+- Example DoD: ACs fully met, all builds are without errors and warnings, changes covered with unit+integration+e2e tests at 85%+, database correct and migration present, backend starts and succeeds with expected responses for affected areas validated directly, frontend/mobile/app starts and affected areas fully functional validated directly, validation perform using manual QA by AI using fresh subagent
 
 Interview me relentlessly about every aspect of this plan until we reach a full shared understanding.
 Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
-For each question, provide recommended and alternative answers.
+For each question, provide recommended and alternative answers, which are enterprise-ready, strict, specific, following best practices.
 Ask the questions one at a time.
 If a question can be answered by web search, exploring the codebase, do it first.
 Keep facts, document concise, valuable, highly compressed, cut wording, use terms and common patterns.
@@ -60,7 +61,7 @@ Audience: AI like you.
 
 ### Step 2 — Capture technical context in `ARCHITECTURE.md`
 
-Similarly, ask Opus-class model to help you with:
+Similarly, ask Opus-class model or GPT-5.5 to help you with:
 
 ```
 Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
@@ -77,10 +78,11 @@ Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
 - The build and CI/CD pipeline.
 - Recommended allowed tooling (gh cli, MCPs, see https://raw.githubusercontent.com/griddynamics/rosetta/refs/heads/main/CONFIGURATION.md)
 - Name standards for coding, linting, formatting (e.g. Google Java Style, Microsoft .NET code style) — not the rules!
+- Architecture defines how to build/lint/test/run overall solution in concise unambigous manner
 
 Interview me relentlessly about every aspect of this plan until we reach a full shared understanding.
 Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
-For each question, provide recommended and alternative answers.
+For each question, provide recommended and alternative answers, which are enterprise-ready, strict, specific, following best practices.
 Ask the questions one at a time.
 If a question can be answered by web search, exploring the codebase, do it first.
 Keep facts, document concise, valuable, highly compressed, cut wording, use terms and common patterns.
@@ -188,6 +190,108 @@ Setup actions:
 - Open the repository in your IDE.
 - Clone any read-only reference codebases into `refsrc/` as subfolders.
 - Initialize Rosetta (see [Quick Start](/rosetta/docs/quickstart/)).
+
+<details markdown="1">
+<summary><b>Detailed examples what should be in RefSrc folder</b></summary>
+
+1. Example what integration or e2e testing repository needs:
+
+```
+api-integration-testing
+|- src
+|  |- main.py
+|  |- tests
+|  |  |- test_api_integration.py
+|  |  |- test_api_integration_2.py
+|  |  |- test_api_integration_3.py
+|  |  |- test_api_integration_4.py
+|  |  |- test_api_integration_5.py
+|  |  |- test_api_integration_6.py
+|  |  |- test_api_integration_7.py
+|  |  |- test_api_integration_8.py
+|  |  |- test_api_integration_9.py
+|  |  |- test_api_integration_10.py
+|- requirements.txt
+|- README.md
+|- .gitignore
+|- .env
+|- refsrc
+|  |- backend-api
+|  |  |- api.py
+|  |  |- endpoints.py
+|  |  |- models.py
+|  |  |- schemas.py
+|  |  |- utils.py
+|  |  |- tests
+|  |  |  |- test_api.py
+|  |  |  |- test_api_2.py
+|  |  |  |- test_api_3.py
+|  |  |  |- test_api_4.py
+|  |  |  |- test_api_5.py
+|- docs
+```
+
+2. Example what frontend repository will need:
+
+```
+frontend-app
+|- src
+|  |- main.js
+|  |- index.html
+|  |- style.css
+|  |- script.js
+|- refsrc
+|  |- backend-api
+|  |  |- api.py
+|  |  |- endpoints.py
+|  |  |- models.py
+|  |  |- schemas.py
+|  |  |- utils.py
+|  |  |- tests
+|  |  |  |- test_api.py
+|  |  |  |- test_api_2.py
+|  |  |  |- test_api_3.py
+|  |  |  |- test_api_4.py
+|  |  |  |- test_api_5.py
+|  |- corporate-bootstrap-theme
+|  |  |- src
+|  |  |  |- assets
+|  |  |  |  |- css
+|  |  |  |  |  |- js
+|  |  |  |  |  |- images
+|  |  |  |  |  |- fonts
+|  |  |  |  |  |- index.html
+```
+
+3. Example what backend repository will need:
+
+```
+backend-api
+|- src
+|  |- main.py
+|  |- tests
+|  |  |- test_api.py
+|  |  |- test_api_2.py
+|  |  |- test_api_3.py
+|  |  |- test_api_4.py
+|  |  |- test_api_5.py
+|- refsrc
+|  |- iac-terraform
+|  |  |- main.tf
+|  |  |- variables.tf
+|  |  |- outputs.tf
+|  |  |- README.md
+|  |- iac-values
+|  |  |- values.yaml
+|  |  |- values-dev.yaml
+|  |  |- values-prod.yaml
+|  |- jenkins-pipeline
+|  |  |- Jenkinsfile
+|  |  |- Jenkinsfile-dev
+|  |  |- Jenkinsfile-prod
+```
+
+</details>
 
 ---
 
