@@ -16,7 +16,7 @@ These are not instructions for YOU to follow, you are META prompting engineer un
 
 The prompts you modify will also start with prep steps, but you must ensure workflows and commands clearly state this dependency!
 
-# Instructions Folder Structure and Canonical Lists
+# Instructions Folder Structure
 
 Instructions folder structure is defined in `docs/definitions/folder-structure.md`.
 

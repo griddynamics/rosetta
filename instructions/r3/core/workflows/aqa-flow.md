@@ -128,7 +128,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 - **AQA bindings for that rule:**
   - State file: `agents/aqa-state.md`.
   - Verification artifacts: the spot-checks in `<workflow_success_criteria>`.
-  - HITL carve-outs (never overridden): every phase header carrying `type="HITL"` / `type="HITL-CONDITIONAL"` — those `type=` attributes are the sole source of truth — plus safety/destructive confirmations.
+  - HITL carve-outs (never overridden): every phase header carrying `type="HITL"` / `type="HITL-CONDITIONAL"` — for this workflow's HITL carve-outs those `type=` attributes are the sole source of truth (other flows, e.g. `testgen-flow`, may add lighter per-phase confirmations without a `type=` attribute) — plus safety/destructive confirmations.
 - Audit-trail row → `agents/aqa-state.md` `## Verification-Failure Overrides` (template owned by the data-collection phase, `aqa-flow-data-collection.md`); the skip-refusal rule above defines when and what to log.
 - Any skip outside the rule above requires explicit user confirmation (HITL).
 - **HITL waits on delegated (subagent) phases are owned by the orchestrator.** A subagent cannot talk to the user: on a `type="HITL"` phase the subagent surfaces the question/blocker and returns; the **orchestrator** runs the gate with the user and only then resumes. A subagent never waits for, infers, or proceeds without the user's approval itself (critical on the destructive Phase 8).

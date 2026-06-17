@@ -8,7 +8,7 @@ export uses `scenarios-generation`'s resolved TestRail binding.
 
 ## Prerequisites
 
-- [ ] Rosetta plugin installed and active (plugin mode — the form under test)
+- [ ] Rosetta plugin installed and active — exercise the workflow via the installed plugin (plugin mode), not the raw r3 instructions
 - [ ] `agents/testgen/` writable
 - [ ] **Auth is optional for testing** (see below). For a full real run: Atlassian MCP (Jira + Confluence) authenticated, and TestRail MCP authenticated with project/suite/section IDs known.
 
@@ -44,14 +44,16 @@ Generate test cases from this pasted spec text — no Jira ticket; keep Jira out
 
 ## Per-phase quick checks
 
+> **HITL column** — `HITL` = phase carries a `type="HITL"` attribute (the workflow's formal gate marker); `gate` = phase pauses for explicit user confirmation but carries no `type=` attribute (a per-phase confirmation). TestGen pauses on **every** phase, so — unlike the QA/AQA guides, whose column mirrors `type=` one-to-one — this column reflects actual pause behavior.
+
 | Phase | HITL | File to inspect | Skill(s) | Must see |
 |---|---|---|---|---|
-| 0 — Project Config Loading | conditional | `agents/testgen/{TICKET-KEY}/initial-data.md` (+ `testgen-project-config.md`, `testgen-state.md` created) | `questioning` (only if config missing) | Initial prompt + config reference recorded; config captures data sources / retrieval method / auth assumptions; workflow **paused via `hitl`** at "Ready to proceed to Phase 1?" (no auto-proceed on silence) |
+| 0 — Project Config Loading | gate | `agents/testgen/{TICKET-KEY}/initial-data.md` (+ `testgen-project-config.md`, `testgen-state.md` created) | `questioning` (only if config missing) | Initial prompt + config reference recorded; config captures data sources / retrieval method / auth assumptions; workflow **paused via `hitl`** at "Ready to proceed to Phase 1?" (no auto-proceed on silence) |
 | 1 — Data Collection | gate | `agents/testgen/{TICKET-KEY}/raw-data.md` | `discovery` (`jira` + `confluence` bindings) | Jira Ticket Data (summary/description/status/labels/components/comments ≤10) + Confluence Documentation (page title/URL/space/content + child pages) + Data Collection Summary; workflow **paused** at "Ready to proceed to Phase 2?" |
 | 2 — Gap & Contradiction Analysis | gate | `agents/testgen/{TICKET-KEY}/analysis.md` | `requirements-use` (gap_analysis mode) | Executive Summary + sections Contradictions · Gaps · Ambiguities · Cross-Reference · Positive Findings · Risk Assessment (High/Medium/Low) · Next Steps. **Empty sections say `No issues found`** (never omitted). Paused before Phase 3. |
 | 3 — Question Generation | **HITL** | `agents/testgen/{TICKET-KEY}/questions.md` + `answers.md` | `questioning` | P0 (Critical) / P1 / P2 / P3 buckets; workflow **paused** for you to fill `answers.md`; **a P0 answered `UNKNOWN` is rejected outright** (no "default"/"placeholder"); P1 may be `UNKNOWN` with a reason |
-| 4 — Requirements Document Generation | **HITL** | `agents/testgen/{TICKET-KEY}/requirements.md` | `requirements-authoring` (synthesis mode) | Front-matter (Document Control + Executive Summary) + 10 numbered sections (US / FR / NFR / Constraints / Dependencies / Out-of-Scope / Assumptions / Risks / Traceability Matrix / Glossary); **every NFR has a measurable threshold** (SMART); Traceability Matrix present; paused at "Ready to proceed to Phase 5?" |
-| 5 — Test Case Generation | — | `agents/testgen/{TICKET-KEY}/test-scenarios.md` (+ traceability in `requirements.md`) | `scenarios-generation` (generation mode + resolved format binding), `coding` (only if writing outside the ticket dir) | `TC-001..TC-NNN` with **Steps + Expected Result** format (**not** BDD/Given-When-Then; no Post-conditions/Automation fields); each TC traces to a requirement; coverage matrix at end; lint-clean |
+| 4 — Requirements Document Generation | gate | `agents/testgen/{TICKET-KEY}/requirements.md` | `requirements-authoring` (synthesis mode) | Front-matter (Document Control + Executive Summary) + 10 numbered sections (US / FR / NFR / Constraints / Dependencies / Out-of-Scope / Assumptions / Risks / Traceability Matrix / Glossary); **every NFR has a measurable threshold** (SMART); Traceability Matrix present; paused at "Ready to proceed to Phase 5?" |
+| 5 — Test Case Generation | gate | `agents/testgen/{TICKET-KEY}/test-scenarios.md` (+ traceability in `requirements.md`) | `scenarios-generation` (generation mode + resolved format binding), `coding` (only if writing outside the ticket dir) | `TC-001..TC-NNN` with **Steps + Expected Result** format (**not** BDD/Given-When-Then; no Post-conditions/Automation fields); each TC traces to a requirement; coverage matrix at end; lint-clean |
 | 6 — Test Case Export | **HITL** | `agents/testgen/{TICKET-KEY}/export-report.md` + TMS UI | `scenarios-generation` (resolved export binding), `coding` (if updating tracked files) | Pre-export **confirmation gate** (scope: all / non-overlapping after dedup / cancel); after confirm, cases visible in the TMS with vendor-native IDs (TestRail: `C`-prefixed); **≥80% success threshold** — below 80% → outcome `PARTIAL`, HALT for your decision (retry / accept / abort); export-report has per-case status + timestamp |
 
 State file: `agents/testgen/{TICKET-KEY}/testgen-state.md` — `## Phase Completion Status` (rows 0–6) · `## Phase Details` · `## Metrics` (`P1 jira:[n]/conf:[n] · P2 …` one-liner) · `## Verification-Failure Overrides`. `Current Phase` may carry ` (BLOCKED: <reason>)`.

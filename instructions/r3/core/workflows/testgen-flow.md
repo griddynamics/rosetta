@@ -79,7 +79,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 </question_generation>
 
-<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_recommended_model="tier: complex" type="HITL">
+<requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_recommended_model="tier: complex">
 
 1. ACQUIRE `testgen-flow-requirements-document-generation.md` FROM KB
 2. Execute phase instructions.
@@ -120,6 +120,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 - **Skip-without-agreement / falsified-skip refusal** (this workflow owns the rule; subordinate to the `hitl` skill): a skip asserted but contradicted by `testgen-state.md` / disk evidence is refused — announce the specific missing state row / absent artifact, then start the earliest incomplete phase the same turn.
 - **Priority (highest never overridden → lowest):** (1) safety / destructive confirmations — incl. `<phase_5_6_standards_gate>` outside-output-dir confirmation; (2) Phase 3 + Phase 6 HITL gates (answer `questions.md` / confirm TMS target + export scope) — never skipped by user instruction; (3) per-phase user confirmation; (4) the verification-failure override below.
+- **Gate-type convention:** only the priority-(2) gates carry a `type="HITL"` attribute (Phases 3 + 6). The priority-(3) per-phase confirmations (Phases 0, 1, 2, 4, 5) are intentional user-pauses that deliberately carry **no** `type=` attribute — here `type=` marks the never-overridden gates, not every pause. (This is a two-tier model; it differs from `aqa-flow`/`qa-flow`, where every pause is a `type="HITL"`/`HITL-CONDITIONAL` gate.)
 - **Testgen binding for the override** (skip-verification gate only): the trigger is the user asserting a phase complete while `testgen-state.md` does not mark it AND the expected output is absent. Action — if `testgen-state.md` is missing, create it from the Phase 0 `<state_file_template>` first; log a row into its `## Verification-Failure Overrides` (row format owned by that template); then start the earliest incomplete phase the same turn without invoking the `hitl` ask path. Uncertainty (partial state, ambiguous assertion) → fall back to the `hitl` ask.
 - Zero-document ACQUIRE for a required dependency: stop, record in `testgen-state.md`, ask the user; never substitute silently.
 

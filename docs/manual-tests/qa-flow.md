@@ -10,7 +10,7 @@ use). AQA uses the same two.
 
 ## Prerequisites
 
-- [ ] Rosetta plugin installed and active (plugin mode — the form under test)
+- [ ] Rosetta plugin installed and active — exercise the workflow via the installed plugin (plugin mode), not the raw r3 instructions
 - [ ] Working dir lets you write under `agents/qa/`
 - [ ] Sample backend repo at `RefSrc/<project>/` **or** a Swagger URL handy
 - [ ] **Auth is optional** — see *Auth-free / mock testing* below. For a full real run: Atlassian MCP (Jira/Confluence) and/or TestRail MCP authenticated.
@@ -64,7 +64,8 @@ State file: `agents/qa-state.md` (`## Phase Completion Status` + per-phase appen
 
 | Action | Expected behavior |
 |---|---|
-| Run without a ticket / case ID | Phase 1 asks once; still missing → stops with `Phase 1 blocked: no resolvable test-case source`; no fabricated IDENTIFIER |
+| Run with no test-case reference at all (no ticket, case ID, or description) | **Phase 0** stops first: `Phase 0 blocked: test case reference unresolvable from initial prompt`; asks for a TestRail ID / Jira key / feature name — no fabricated `{IDENTIFIER}` (Phase 0 guarantee) |
+| Give a feature description (yields a valid `{IDENTIFIER}`) but no resolvable TMS source | Phase 0 passes; **Phase 1** asks once, then stops: `Phase 1 blocked: no resolvable test-case source` — does NOT invent an ID |
 | Provide invalid Jira key (`INVALID-9999`) with Jira in scope | `discovery/jira: ticket key unresolvable from input "…"` or `discovery/jira: ticket <KEY> not found — verify the key`; no fabricated content |
 | Type `looks good` instead of an exact token at Phase 4 approval | Treated as review, re-prompts for `approved`/`approve`/`yes`; after ≥3 re-prompts asks explicitly "approve or request changes?" |
 | Mid-Phase 5, say *"skip the test execution step / move to Phase 6 now"* | Refused with citation — the execution gate is mechanical; only real results advance it |

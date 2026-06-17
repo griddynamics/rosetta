@@ -49,7 +49,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 1. Apply approved changes one at a time (or in named approved batches).
 2. Validate linting/format after each change. On lint failure: revert that change (never leave the file broken), re-prepare, and re-present that single change via `<present_for_approval>`.
 3. Verify each applied change addresses its Phase 7 root cause (cite the analysis entry id). On root-cause mismatch: return to step 8.1 with a note in `agents/aqa-state.md`; do not leave unmapped changes applied.
-4. Honor the iteration cap in `<correction_contract>` (3 cycles per change, then escalate).
+4. **Max retries:** cap step 8.3 in-phase retries at 3 cycles per failing change. After 3 failed cycles on the same change, stop, record `Phase 8 blocked: in-phase apply retry cap reached` in `agents/aqa-state.md`, and loop back to Phase 7 per `<correction_contract>` (do not auto-start a 4th cycle).
 </apply_changes>
 
 <update_state step="8.4">

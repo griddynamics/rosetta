@@ -11,7 +11,7 @@ skeletons, `ACQUIRE`'d as assets at point of use). QA uses the same two.
 
 ## Prerequisites
 
-- [ ] Rosetta plugin installed and active (plugin mode — the form under test)
+- [ ] Rosetta plugin installed and active — exercise the workflow via the installed plugin (plugin mode), not the raw r3 instructions
 - [ ] Browser-automation MCP (e.g. Playwright MCP) available
 - [ ] Target repo has a test-runner configured (`npm test`, `pytest`, etc.)
 - [ ] `agents/plans/` writable
@@ -19,7 +19,7 @@ skeletons, `ACQUIRE`'d as assets at point of use). QA uses the same two.
 
 ## Auth-free / mock testing
 
-The `discovery` bindings only ever make *real* MCP calls or stop with a gap — they never fabricate. AQA works with **no TMS/doc auth** via a direct case description. Two auth-free modes:
+The `discovery` bindings only ever make *real* MCP calls or stop with a gap — they never fabricate. AQA works with **no TMS (test-management system) / doc auth** via a direct case description. Two auth-free modes:
 
 - **Mode A — source out-of-scope / provided.** Leave `testrail_base_url` / `confluence_base_url` unset (`N/A`). Phase 1 resolves **`SKIPPED_NO_CONFIG`**, records the gap in `## Access / Truncation Notes`, and proceeds on the case/feature you describe in the trigger. (One of the trigger prompts is exactly this — direct description, no case ID.)
 - **Mode B — stub MCP (canned data).** Point the TestRail/Confluence MCP at a local stub answering `mcp_testrail_*` / `confluence_*` with fixtures; the binding runs its full extract → normalize → redact → write path with zero real auth. Guardrails permit this (*"User can override (mocked data)"*).
@@ -66,7 +66,7 @@ State file: `agents/aqa-state.md` (created by Phase 1 from the `qa-structure` `a
 | Action | Expected behavior |
 |---|---|
 | Trigger without a test name or feature description | Phase 1 asks; no fabricated `<test-name>` slug |
-| Mid-Phase 2 say *"skip clarification questions"* | Refused if ≥1 Critical question would remain unanswered (aggregate cap) |
+| Mid-Phase 2 say *"skip clarification questions"* | Questions waived per-item (each unanswered Critical re-asked once, then recorded declined); **aggregate cap** escalates if ≥50% of Criticals declined (or ≥3 when <6); declining all → Phase 2 stops |
 | Mid-Phase 7 say *"fix the selector now, don't wait for Phase 8"* | Refused; Phase 7 is read-only; routed to Phase 8 |
 | Mid-Phase 8 say *"apply Change 1 and Change 3, also clean up some imports"* | Cleanup refused (out of scope); Change 1 + Change 3 applied |
 | Page-sources directory missing in Phase 7 | Selector-category failures tagged `Unknown — page sources not available; would need the selector-identification phase re-run`; non-selector failures still analyzed |

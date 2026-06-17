@@ -85,12 +85,13 @@ Read-only triage of an automated-test execution report. The caller supplies thre
 4. Identify cross-failure patterns — shared cause, setup cascade, environment-wide, category skew — and prioritize Critical/High/Medium/Low.
 5. Label each cause's evidence strength (→ `<core_concepts>`) and write findings into the caller's output artifact, redacted (→ `<core_concepts>`).
 
-GATE: read-only. Proposing or applying fixes is a separate correction phase — USE SKILL `coding`.
+GATE: read-only. Proposing or applying fixes is a separate correction phase (`debugging` for root-cause / proposed-change reasoning + `coding` for the edit).
 
 Worked evidence labels:
 
 - `Confirmed` — `report.log:142` shows TimeoutError on the old selector AND this run's page source shows the renamed selector — both sides cited.
 - `Assumption` — 30s timeout, no stack/HTTP capture, single run; to upgrade: a stack/HTTP log of backend slowness OR ≥3 reproducing reruns.
+- `Unknown` — test failed but the report carries no error message, stack, or captured artifact — nothing to cite; record the cause `Unknown` and state the capture needed (e.g. re-run with screenshot / HAR enabled).
 
 </test_execution_triage>
 
@@ -103,7 +104,7 @@ Worked evidence labels:
 - Failing test reproduces the bug
 - No regressions introduced
 - Prevention recommendation documented
-- Triage mode: every failed test has one taxonomy category, a root cause, and an evidence label; selector/response causes cite captured evidence or are labelled `Unknown`; cross-failure patterns are named or explicitly none; redaction scan ran
+- Triage mode: every failed test has one taxonomy category, a root cause, and an evidence label; selector/response causes cite captured evidence or are labeled `Unknown`; cross-failure patterns are named or explicitly none; redaction scan ran
 
 </validation_checklist>
 
