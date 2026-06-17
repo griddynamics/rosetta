@@ -26,7 +26,11 @@ Status: IN PROGRESS — r3 W1/W2/W3/W4 done; r2 visibility flags ported. Remaini
 - User-facing skills (`user-invocable: true`): all capability skills + `hitl`, `operation-manager`, `questioning`, `specflow-use`.
 - `risk-assessment`: `user-invocable: false`.
 - `reverse-engineering`, `tech-specs`: `user-invocable: true`.
-- Asset references in skills: use `ACQUIRE <skill/assets/file> FROM KB` (full path) — not bare `assets/` paths.
+- Asset references in skills: use `ACQUIRE <skill/assets/file> FROM KB` (full path) — not bare `assets/` paths. See `gitnexus/SKILL.md:46-47`, `codemap/SKILL.md:37-38`.
+- Script-as-asset pattern: scripts too large to inline → dedicated skill with `assets/*.txt`; executor ACQUIREs, renames, runs. Established by `skills/codemap/`. Apply to any future executable asset.
+- Internal notes must never appear in skill text: authoring context (structural depth, what it "is not", etc.) stays out of SKILL.md entirely. Reviewers must grep for leakage.
+- Reviewer process: MUST run `git diff HEAD` as primary input — not just read new files — to catch regressions and command-alias violations.
+- gitnexus consolidation: prior "dropped" decision reversed; `gitnexus-{cli,setup,tools}` → single `gitnexus` skill (`skills/gitnexus/`).
 - Release targeting: default `r3`; ask each request which release(s) to apply.
 - `context-engineering`: TBD placeholder in definitions, do not build.
 - `discovery`: distinct skill, separate from codemap.
