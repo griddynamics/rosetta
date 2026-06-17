@@ -25,7 +25,7 @@ End-to-end backend API test automation from test case input to working automated
 - **Phase-output gate (verify before advancing):** each phase's mandatory artifact must exist and pass its phase-file completion gate before the next phase starts — notably **Phase 4: every `ATC-NNN` in `test-specs.md` traces to a Phase 3 requirement/source**; also Phase 1 `raw-data.md`, Phase 2 `api-analysis.md`, and Phase 6 `execution-report.md` present and non-placeholder.
 
 <phase_template>
-Per-phase block format: phase file path + Input/Output + HITL gate (when present). The ACQUIRE / execute / state-update cadence is the drive loop above, not restated per-phase.
+Per-phase block format: ACQUIRE the phase file + Input/Output + HITL gate (when present) + Skills. The execute / state-update cadence is the drive loop above, not restated per-phase.
 </phase_template>
 
 <skip_rules>
@@ -57,49 +57,57 @@ This block owns ONLY the qa-flow-specific skip rules below: a set of **always-in
 </execution_policy>
 
 <project_config_loading phase="0" applies="ALL" subagent="discoverer" role="QA project config loader" type="HITL-CONDITIONAL">
-- Phase file: `qa-flow-project-config-loading.md`
+- ACQUIRE `qa-flow-project-config-loading.md` FROM KB
 - Input: user request. Output: project config file, initial data file, session directory at `agents/qa/{IDENTIFIER}/`.
 - HITL gate: **ASK USER FOR PROJECT INFO** if config does not already exist.
+- Skills: `qa-structure`, `questioning` (config-missing interview), `qa-knowledge` (redaction scope)
 </project_config_loading>
 
 <data_collection phase="1" applies="ALL" subagent="discoverer" role="QA data collector">
-- Phase file: `qa-flow-data-collection.md`
+- ACQUIRE `qa-flow-data-collection.md` FROM KB
 - Input: project config + initial data. Output: `agents/qa/{IDENTIFIER}/raw-data.md` (test cases, documentation, existing test patterns).
+- Skills: `discovery` (TMS + documentation MCP), `reverse-engineering` (existing-test + backend-source scan), `qa-structure`
 </data_collection>
 
 <api_spec_analysis phase="2" applies="ALL" subagent="discoverer" role="API spec analyst">
-- Phase file: `qa-flow-api-spec-analysis.md`
+- ACQUIRE `qa-flow-api-spec-analysis.md` FROM KB
 - Input: raw data + project config. Output: `agents/qa/{IDENTIFIER}/api-analysis.md` (endpoint contracts, auth, data dependencies).
+- Skills: `reverse-engineering` (API-contract extraction mode), `sensitive-data`, `qa-structure`, `qa-knowledge`
 </api_spec_analysis>
 
 <gap_and_requirements_clarification phase="3" applies="ALL" subagent="architect" role="Test requirements analyst" type="HITL">
-- Phase file: `qa-flow-gap-and-requirements-clarification.md`
+- ACQUIRE `qa-flow-gap-and-requirements-clarification.md` FROM KB
 - Input: raw data + API analysis. Output: `agents/qa/{IDENTIFIER}/analysis.md` (gaps, contradictions, ambiguities resolved).
 - HITL gate: **WAIT FOR USER ANSWERS** before Phase 4.
+- Skills: `requirements-use` (gap_analysis mode), `questioning`, `qa-structure`, `qa-knowledge`
 </gap_and_requirements_clarification>
 
 <test_case_specification phase="4" applies="ALL" subagent="architect" role="Test specification author" type="HITL">
-- Phase file: `qa-flow-test-case-specification.md`
+- ACQUIRE `qa-flow-test-case-specification.md` FROM KB
 - Input: all phase 1-3 outputs. Output: `agents/qa/{IDENTIFIER}/test-specs.md` (Given-When-Then scenarios).
 - HITL gate: **WAIT FOR USER APPROVAL** before Phase 5.
+- Skills: `scenarios-generation` (gwt_spec mode), `sensitive-data`, `qa-structure`, `qa-knowledge`
 </test_case_specification>
 
 <test_implementation phase="5" applies="ALL" subagent="engineer" role="Test automation engineer" type="HITL">
-- Phase file: `qa-flow-test-implementation.md`
+- ACQUIRE `qa-flow-test-implementation.md` FROM KB
 - Input: approved test specs + existing patterns + API analysis. Output: implemented test files.
 - HITL gate: **STOP AND WAIT** — user must provide actual execution results (output, report path, or pass/fail); confirmation alone does not satisfy this gate.
+- Skills: `testing` (API impl mode), `coding` (repo conventions), `qa-structure`, `qa-knowledge`
 </test_implementation>
 
 <execution_and_report_analysis phase="6" applies="ALL" subagent="engineer" role="Test failure analyst" type="HITL">
-- Phase file: `qa-flow-execution-and-report-analysis.md`
+- ACQUIRE `qa-flow-execution-and-report-analysis.md` FROM KB
 - Input: test execution report (user-provided or from `agents/user-instructions/`). Output: `agents/qa/{IDENTIFIER}/execution-report.md` (failure analysis).
 - HITL gate: **WAIT FOR USER TO PROVIDE TEST EXECUTION RESULTS**.
+- Skills: `debugging` (test-execution triage mode), `sensitive-data`, `qa-structure`, `qa-knowledge`
 </execution_and_report_analysis>
 
 <test_corrections phase="7" applies="ALL" subagent="engineer" role="Test correction engineer" type="HITL">
-- Phase file: `qa-flow-test-correction.md`
+- ACQUIRE `qa-flow-test-correction.md` FROM KB
 - Input: execution report + test files + test specs. Output: corrected test files.
 - HITL gate: **WAIT FOR USER APPROVAL** before applying changes.
+- Skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `qa-knowledge`
 </test_corrections>
 
 </workflow_phases>
@@ -130,16 +138,8 @@ Subagents:
 - `engineer` (Full): test implementation, debugging, corrections
 - `executor` (Lightweight): optional for mechanical actions (builds, installs)
 
-Skills (compact map — phase → comma-separated skill tags; a backticked name is an ACQUIRE tag — `ACQUIRE <name> FROM KB` at that phase's entry step):
-- Cross-phase: `orchestrator-contract`, `coding`, `qa-structure` (paths/identifier/state-file), `qa-knowledge` (taxonomies, redaction scope, artifact skeletons).
-- Phase 0: config init owned by Phase 0 via `questioning`.
-- Phase 1: `discovery`.
-- Phase 2: `reverse-engineering`.
-- Phase 3: `requirements-use`, `questioning`.
-- Phase 4: `scenarios-generation`, `coding`.
-- Phase 5: test-implementation done inline by this phase via `coding` + `testing`. Delegation policy: `qa-flow-test-implementation.md` `<execute_implementation step="5.1">`.
-- Phase 6: `debugging`, `sensitive-data` (read-only report-analysis triage, done inline).
-- Phase 7: `debugging`, `coding`.
+Skills (logical names — per-phase usage is listed in each phase block above; a backticked skill is an `ACQUIRE <name> FROM KB` at that phase's entry step):
+`orchestrator-contract` · `hitl` · `coding` · `discovery` · `reverse-engineering` · `requirements-use` · `questioning` · `scenarios-generation` · `testing` · `debugging` · `sensitive-data` · `qa-structure` · `qa-knowledge`. `qa-structure` (paths/identifier/state-file) and `qa-knowledge` (taxonomies, redaction scope, artifact skeletons) are cross-phase.
 
 **Rosetta KB:** zero-document ACQUIRE → `<failure_handling>`. `debugging` is invoked ad-hoc during Phase 6 (report analysis) and Phase 7 (corrections); no dedicated workflow file.
 

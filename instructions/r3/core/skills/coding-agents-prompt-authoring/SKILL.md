@@ -131,7 +131,7 @@ Example logical flow: discover → extract+intake → blueprint → for_each_pro
 
 </core_principles>
 
-<rosetta canonical lists>
+<rosetta_canonical_lists>
 Read Rosetta's canonical lists when the target IS Rosetta (repos `rosetta`, `cto-ims-kb`, `RulesOfPower`, or the `instructions` folder); skip for any other system. Use them as if already existing — they define what should be what:
 
 - `docs/definitions/workflows.md`
@@ -139,7 +139,7 @@ Read Rosetta's canonical lists when the target IS Rosetta (repos `rosetta`, `cto
 - `docs/definitions/agents.md`
 - `docs/definitions/skills.md`
 - `docs/definitions/rules.md`
-</rosetta canonical lists>
+</rosetta_canonical_lists>
 
 <resources>
 

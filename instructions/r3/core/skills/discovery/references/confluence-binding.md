@@ -22,8 +22,6 @@ Canonical storage form for any URL is `/spaces/<KEY>/pages/<numeric-id>`. When t
 
 ## Retrieval & harvesting discipline (SKILL step 3)
 
-_Method names below (`confluence_get_page`, `confluence_get_page_children`, `confluence_search`) are illustrative — call the configured Confluence MCP's equivalent page-fetch / child-pages / CQL-search tools; the literal names are not a contract._
-
 **Direct-URL path (preferred when URLs/IDs supplied):**
 1. `confluence_get_page(page_id, convert_to_markdown=True, include_metadata=True)` for each supplied page.
 2. `confluence_get_page_children()` — fetch up to 5 relevant child pages per parent, recursing to leaves or the phase's depth cap. If the API does not expose child relationships and children are still plausible, ask once for child links (or approval to continue parent-only) and record the decision (`Children fetched: yes | no (reason)`).
@@ -61,22 +59,14 @@ Refunds are issued via POST /api/v1/orders/{id}/refund; a paid order transitions
 
 ## Redaction targets (SKILL step 4 → `sensitive-data`)
 
-Confluence pages routinely embed real secrets (pasted runbooks, ops notes) and customer PII (incident write-ups). Redact at fetch time, before write:
-
-- **Credentials / tokens / keys / passwords / OAuth secrets** — grep `Bearer `, `Authorization:`, `password:`, `api_key=`, `access_token=`, `client_secret=`, JWT `eyJ...`, `BEGIN PRIVATE KEY`, `BEGIN RSA PRIVATE KEY` → `<redacted: bearer token>` / `<redacted: api key>` / `<redacted: password>` / `<redacted: client secret>` / `<redacted: private key>`.
-- **DB connection strings** — `postgresql://`, `mongodb+srv://`, `redis://` with `user:pass@` → `<redacted: connection string>` (protocol + host + db name stay verbatim).
-- **Credentialed / signed URLs** — `https://user:pass@host/...`, `?X-Amz-Signature=`, `?sig=`, `?token=` → redact the credential/signature portion only; host + path + non-secret params stay verbatim.
-- **PII** — real emails (non-`example.com`/`example.org`), phones (outside `+1-555-0100`–`0199`), card shapes `\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}`, real names/account/government IDs in incident write-ups / customer reports → `<redacted: PII — <category>>` (synthetic IETF-reserved equivalent if a shape is needed downstream).
-- **Structural content stays verbatim** — page titles, headings, business-rule prose, schema field names, endpoint paths, methods, status codes, error message templates, screenshot descriptions, in-site link targets, glossary entries. Redaction targets sensitive VALUES, not the structural documentation.
-
-Record each redaction in the artifact's redaction section; substitute a clearly-fake placeholder of the same shape when a real value would be the natural example.
+Highest-risk Confluence content: **page bodies** (pasted runbooks/ops notes embed real secrets; incident write-ups embed customer PII). Scan every captured value and redact per the canonical scope — `qa-knowledge/references/redaction-scope.md` — applied via `sensitive-data`. Structural content (page titles, headings, business-rule prose, schema field names, endpoint paths, methods, status codes, in-site link targets, glossary entries) stays verbatim. Record each redaction in the artifact's redaction section.
 
 ## Failure paths (SKILL step 3)
 
 - **Input unresolvable** (no URL/ID/terms, or URL unparseable) → stop, report `discovery/confluence: input unresolvable — supply page URL/ID or search terms`, ask. Do NOT guess.
 - **MCP not configured / not authenticated** → stop, report `discovery/confluence: Confluence MCP not configured or not authenticated — verify MCP setup`. Do NOT emit a zero-page artifact and call it done.
 - **MCP transport error** (timeout / 5xx / drop) → retry once same params; second failure → stop, report, ask to verify MCP connectivity.
-- **Authorization failure** (401/403 on ALL pages) → stop, report `discovery/confluence: Confluence rejected the request — page(s) may exist but not visible to configured credentials`, ask to verify credentials / space access. (Per-page 401/403 with others succeeding → per-page branch above, not a global stop.)
+- **Authorization failure** (401/403 on ALL pages) → stop, report `discovery/confluence: request rejected — page(s) may exist but not visible to configured credentials`, ask to verify credentials / space access. (Per-page 401/403 with others succeeding → per-page branch above, not a global stop.)
 - **Cross-domain URL** (host ≠ configured MCP site) → warn + try once; on failure stop the fetch, report `URL <url> belongs to a different Confluence host (<domain>) than the configured MCP — ask user for an in-site equivalent or accept ticket-only continuation`. Do NOT bypass to a cross-site fetch.
 - **Zero pages after URL + search + user-fallback exhausted** → the fallback GATE asks the user FIRST; only if the user supplies neither URLs nor approval-to-skip does this stop fire. On user "skip / proceed without docs" → record `Documentation: not available — user approved no-docs continuation` + a gap, proceed with an empty Documentation block. Do NOT fabricate.
 - **`confluence_get_page` returns empty body** → `[empty page]` marker + gap. Do NOT fabricate.

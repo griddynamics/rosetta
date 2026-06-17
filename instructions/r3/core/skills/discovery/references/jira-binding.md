@@ -59,22 +59,14 @@ Per-field branch: present + non-empty → include; empty/null → `None` + gap; 
 
 ## Redaction targets (SKILL step 4 → `sensitive-data`)
 
-Description and each comment body are highest-risk (Jira tickets routinely embed credentials + PII in stack-trace dumps and customer reports). Scan every captured value:
-
-- **Credentials / tokens / keys / passwords / OAuth secrets** — grep `Bearer `, `Authorization:`, `password:`, `api_key=`, `access_token=`, `client_secret=`, JWT `eyJ...`, `BEGIN PRIVATE KEY`, `BEGIN RSA PRIVATE KEY` → `<redacted: bearer token>` / `<redacted: API key>` / `<redacted: password>` / `<redacted: client secret>`.
-- **Credentialed / signed URLs** — `https://user:pass@host/...`, `?X-Amz-Signature=`, `?sig=`, `?token=` → redact the `user:pass@` segment or secret query param; host + path stay verbatim.
-- **DB connection strings** — `postgresql://user:pass@host/db`, `mongodb+srv://user:pass@...` → redact the credential portion only.
-- **PII** — real emails (non-`example.com`/`example.org`), phones (outside `+1-555-0100`–`0199`), card shapes `\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}`, real names/account/government IDs in customer-report tickets → `<redacted: PII — <category>>`.
-- **Structural content stays verbatim** — feature names, endpoint paths, HTTP methods, status codes, error message templates, field names, schema shapes. Redaction targets sensitive VALUES, not the structural ticket description.
-
-Record each redaction in the artifact's redaction section; if a real production value would be the natural example, substitute a clearly-fake placeholder of the same shape.
+Highest-risk Jira fields: the **description** and each **comment body** (tickets routinely embed credentials + PII in stack-trace dumps and customer reports). Scan every captured value and redact per the canonical scope — `qa-knowledge/references/redaction-scope.md` (sensitive values, shape-preserving placeholders, and the pre-emit re-scan list) — applied via `sensitive-data`. Structural content (feature names, endpoint paths, methods, status codes, field names, schema shapes) stays verbatim. Record each redaction in the artifact's redaction section.
 
 ## Failure paths (SKILL step 3)
 
 - **Input unresolvable** (no/malformed key, URL not a recognizable Jira pattern) → stop, report `discovery/jira: ticket key unresolvable from input "<input>"`, ask the phase/user for a canonical `PROJ-NNN` or URL. Do NOT guess.
 - **MCP transport error** (timeout / 5xx / connection drop) → retry once; second failure → stop, report the error, ask to verify Jira MCP configuration.
 - **Ticket-not-found** (404 / empty / "issue does not exist") → stop, report `discovery/jira: ticket <KEY> not found — verify the key`. Do NOT emit a partial artifact.
-- **Authorization failure** (401/403) → stop, report `discovery/jira: Jira rejected the request — ticket <KEY> may exist but is not visible to the configured credentials`, ask to verify credentials / project access.
+- **Authorization failure** (401/403) → stop, report `discovery/jira: request rejected — ticket <KEY> may exist but is not visible to the configured credentials`, ask to verify credentials / project access.
 - **Required field empty / permission-restricted / `jira_search_fields` discovery failure** → per the field-map per-field branch above (continue + gap, do not stop).
 
 ## Validation items (binding-specific, added to SKILL `<validation_checklist>`)
