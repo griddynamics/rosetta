@@ -37,7 +37,7 @@ Plan: [abs path to plan.json | "ad-hoc"]. Phase: [id]. [Step: [id].]
 ## Scope
 Root: [path] [git worktree?]
 DO: [in scope + explicit expected outputs]
-DO NOT: [out of scope / untouchable — no improvising beyond scope]
+DO NOT: [out of scope / read-only / untouchable — no improvising beyond scope]
 
 ## Constraints
 - [e.g. case sensitivity, naming, patterns to follow]

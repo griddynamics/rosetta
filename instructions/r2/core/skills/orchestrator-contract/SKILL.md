@@ -32,7 +32,7 @@ Plan: [plan.json path or "ad-hoc"]. Phase: [phase id]. Task: [task id].
 ## Scope boundaries
 Target root folder: [path] [git worktree?]
 DO: [what is in scope, explicit expected outputs and clear expectations]
-DO NOT: [what is explicitly out of scope, what not to touch — forbid out-of-scope work; do not improvise beyond defined scope]
+DO NOT: [what is explicitly out of scope, what is read-only, what not to touch — forbid out-of-scope work; do not improvise beyond defined scope]
 
 ## Constraints
 - [constraint: e.g., case sensitivity, naming conventions, patterns to follow]
