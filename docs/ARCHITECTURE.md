@@ -495,7 +495,7 @@ Codex Plugin: only OpenAI `gpt-*` models are supported.
 
 Plugins are an alternative delivery mechanism to MCP. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
 
-Each plugin contains core instructions: 20 skills, 7 agents, 4 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
+Each plugin contains core instructions: 35 skills, 7 agents, 4 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
 
 | Plugin | IDE | Mode |
 |---|---|---|
@@ -634,11 +634,11 @@ Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages.
 
 Where contributors add or change things:
 
-- **New skill:** Add `instructions/r2/core/skills/<name>/SKILL.md` (or under an org folder)
-- **New agent:** Add `instructions/r2/core/agents/<name>.md`
-- **New workflow:** Add `instructions/r2/core/workflows/<name>.md` (and phase files)
-- **New rule:** Add `instructions/r2/core/rules/<name>.md`
-- **Organization layer:** Create `instructions/r2/<org>/` with the same type structure
+- **New skill:** Add `instructions/r3/core/skills/<name>/SKILL.md` (or under an org folder; backport to `r2` if stable)
+- **New agent:** Add `instructions/r3/core/agents/<name>.md`
+- **New workflow:** Add `instructions/r3/core/workflows/<name>.md` (and phase files)
+- **New rule:** Add `instructions/r3/core/rules/<name>.md`
+- **Organization layer:** Create `instructions/r3/<org>/` with the same type structure
 - **MCP tools:** Modify `ims-mcp-server/ims_mcp/server.py`
 - **Tool prompts:** Modify `ims-mcp-server/ims_mcp/tool_prompts.py`
 - **CLI commands:** Add to `rosetta-cli/rosetta_cli/commands/`
