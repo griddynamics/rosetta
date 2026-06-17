@@ -2,7 +2,7 @@
 name: reverse-engineering
 description: "To reverse-engineer code into a spec: extract behavior and domain logic — WHAT and WHY, not HOW."
 license: Apache-2.0
-disable-model-invocation: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---

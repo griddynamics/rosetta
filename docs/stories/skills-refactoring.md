@@ -1,6 +1,6 @@
 # Story: Skills Taxonomy Reconciliation + Frontmatter Refactoring
 
-Status: IN PROGRESS — frontmatter `description` compression is complete; structural/visibility/taxonomy work remains. Confirmed scope with owner. Source = `instructions/r3/core/**` (also mirrored to r2 this pass — see Completed; never hand-edit `plugins/`).
+Status: IN PROGRESS — W2/W3 visibility flags applied in r3 (44/44 skills carry both `user-invocable` and `disable-model-invocation`); r2 port deferred to a separate PR; cross-IDE matrix deferred as W2 research-finding. Source = `instructions/r3/core/**` (r2 NOT synced this pass — r2 port is a separate PR; never hand-edit `plugins/`).
 
 **Current vs target:** Findings (F*) describe the *current* state; Workstreams (W*) describe the *target* state and the gap to close. Code may already be partway to a target — partial progress is **not** completion. Execute each workstream to its described target, never to "looks already done."
 
@@ -13,6 +13,8 @@ Status: IN PROGRESS — frontmatter `description` compression is complete; struc
 - **`questioning` kept** (not merged into `hitl`): content overlaps hitl's questioning section, but it is the lightweight, subagent-loadable form; merging would force the heavy hitl protocol into subagents. Description compressed only.
 - **Release targeting (r2 vs r3):** this pass applied to **both** (owner-approved, **one-time**). Default is `r3`; **ask each request which release(s) to apply to** — do not assume r2.
 - **Recorded into the plan below (owner-approved):** `coding-agents-prompt-adaptation` **removed** (folder + `prompt-engineer.md` ref + `docs/definitions/skills.md` + `docs/CODEMAP.md`); `hooks-authoring` **renamed → `coding-agents-hooks-authoring`** (kept). The Recommendation table and Scope reflect these.
+- **W2/W3 (visibility flags) — DONE in r3.** All 44 r3 skills carry both `user-invocable` and `disable-model-invocation`. Workflow-invoked skills: `disable-model-invocation: true`. User-visible capability skills: `disable-model-invocation: false`, `user-invocable: true`. Infra/guardrail skills: both `false`. Note: `disable-model-invocation: true` on `hitl` and other guardrail skills means they will NOT auto-activate by context — only explicit invocation. r2 port: **deferred, separate PR**. Cross-IDE matrix: **deferred, W2 research-finding** (see B7 below).
+- **Cross-IDE research finding (W2).** `plugin_generator.py` passes `disable-model-invocation` and `user-invocable` flags verbatim — no transformation (only `model` is normalized). Shell schemas mark: `disable-model-invocation` → `[Cursor, Claude Code]`; `user-invocable` and `argument-hint` → `[Claude Code]`. Per-IDE mapping (what to do when an IDE ignores a flag) is a deferred research task (W2 acceptance criteria). Applicable IDEs beyond Claude Code: TBD.
 
 ## Problem
 

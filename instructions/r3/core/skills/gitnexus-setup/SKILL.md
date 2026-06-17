@@ -2,7 +2,7 @@
 name: gitnexus-setup
 description: "To install GitNexus (repo code graph), when requested."
 tags: ["gitnexus", "code-graph", "installation", "opt-in"]
-disable-model-invocation: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---

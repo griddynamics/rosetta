@@ -2,6 +2,8 @@
 # Core Identity (Required)
 name: [Skill Name, must match parent folder name where SKILL.md file is in]
 description: ["Rosetta" + Brief description of WHEN and WHY to use this skill.]
+disable-model-invocation: [When true, the skill is only included when explicitly invoked via /skill-name. The agent will not automatically apply it based on context] [boolean] [Cursor, Claude Code]
+user-invocable: [Set to false to hide from the / menu. Use for background knowledge users shouldn't invoke directly. Default: true] [boolean] [Claude Code] [ex: false]
 
 # Licensing & Compatibility (Optional, remove if not needed)
 license: [License name or reference to bundled license file] [string] [Cursor, OpenCode] [ex: MIT]
@@ -9,9 +11,7 @@ compatibility: [Environment requirements (system packages, network access, etc.)
 dependencies: [Software packages required by your Skill] [string] [Claude Code] [ex: python>=3.8, pandas>=1.5.0]
 
 # Invocation & Discovery (Optional, remove if not needed)
-disable-model-invocation: [When true, the skill is only included when explicitly invoked via /skill-name. The agent will not automatically apply it based on context] [boolean] [Cursor, Claude Code] 
-user-invocable: [Set to false to hide from the / menu. Use for background knowledge users shouldn't invoke directly. Default: true] [boolean] [Claude Code] [ex: false]
-argument-hint: [Hint shown during autocomplete to indicate expected arguments] [string] [Claude Code] [ex: issue-number, filename]
+argument-hint: [Hint shown during autocomplete to indicate expected arguments] [string] [Claude Code] [ex: issue-number, filename] [ONLY include when user-invocable: true; REMOVE when user-invocable: false]
 
 # Tools & Model Configuration (Optional)
 allowed-tools: [Tools Claude can use without asking permission when this skill is active, dangerous, only keep it when you know exactly] [string] [Claude Code] [ex: Bash(git diff:*)]

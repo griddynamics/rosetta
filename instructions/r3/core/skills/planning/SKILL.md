@@ -2,7 +2,7 @@
 name: planning
 description: "To build execution-ready plans from approved intent/specs with EARS, sequenced WBS, and HITL checkpoints."
 license: Apache-2.0
-disable-model-invocation: false
+disable-model-invocation: true
 user-invocable: true
 argument-hint: request, tech-spec?, constraints?, scope?
 model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high
