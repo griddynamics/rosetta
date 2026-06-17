@@ -2,13 +2,13 @@
 
 - discovery
 - research
-- context-engineering
+- context-engineering (TBD)
 - planning
-- plan-manager
+- operation-manager
 - reasoning
 - questioning
 - tech-specs
-- reverse-engineering 
+- reverse-engineering
 - template-execution
 - coding-agents-prompt-authoring
 - prompt-diagnosis
@@ -28,13 +28,10 @@
 - coding
 - testing
 - debugging
-- init-workspace-context
-- init-workspace-shells
-- init-workspace-discovery
-- init-workspace-rules
-- init-workspace-patterns
-- init-workspace-documentation
-- init-workspace-verification
+- codemap
+- load-context
+- load-workflow
+- load-context-instructions
 - deviation
 - self-organization
 - self-learning
@@ -44,3 +41,8 @@
 - orchestrator-contract
 - dangerous-actions
 - risk-assessment
+- gitnexus
+- natural-writing
+- coding-agents-farm
+- coding-agents-hooks-authoring
+- specflow-use
