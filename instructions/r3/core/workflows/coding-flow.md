@@ -40,10 +40,11 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 1. Gather project context, affected areas, dependencies, constraints, requirements. SMALL: orchestrator handles inline.
 2. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: `discovery-notes.md` in FEATURE PLAN folder.
 3. Required skills: `load-context`
-4. If REQUIREMENTS in use: `requirements-use` skill is required.
-5. Additionally request to discover existing libraries, packages, search web for similar problems/tasks (if this make sense)
-6. Update `coding-flow-state.md`
-7. Do not stop until 100% clear
+4. Recommended skills: `codemap` (structural project discovery), `gitnexus` (only if already present in the current context)
+5. If REQUIREMENTS in use: `requirements-use` skill is required.
+6. Additionally request to discover existing libraries, packages, search web for similar problems/tasks (if this make sense)
+7. Update `coding-flow-state.md`
+8. Do not stop until 100% clear
 
 </discovery>
 

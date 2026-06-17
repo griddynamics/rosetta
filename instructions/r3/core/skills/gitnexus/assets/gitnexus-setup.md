@@ -1,14 +1,3 @@
----
-name: gitnexus-setup
-description: "To install GitNexus (repo code graph), when requested."
-tags: ["gitnexus", "code-graph", "installation", "opt-in"]
-disable-model-invocation: false
-user-invocable: false
-baseSchema: docs/schemas/skill.md
----
-
-<gitnexus_setup>
-
 <role>
 Installation gate for GitNexus — runs two commands, verifies the MCP connection, and hands off to GitNexus's own auto-provisioned skills and documentation.
 </role>
@@ -52,5 +41,3 @@ GitNexus should appear as `gitnexus · ✔ connected`.
 - **Stale index after edits:** `gitnexus analyze` installs a PostToolUse hook that auto-refreshes. If missing, run `npx gitnexus@latest analyze` manually between sessions.
 
 </troubleshooting>
-
-</gitnexus_setup>

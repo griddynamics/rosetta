@@ -1,14 +1,3 @@
----
-name: gitnexus-cli
-description: "To run GitNexus CLI: analyze, status, clean, wiki, list."
-tags: ["gitnexus", "cli", "indexing"]
-disable-model-invocation: false
-user-invocable: false
-baseSchema: docs/schemas/skill.md
----
-
-<gitnexus-cli>
-
 <role>
 CLI reference for GitNexus — maps commands to their flags, effects, and when to run them.
 </role>
@@ -84,5 +73,3 @@ Lists all repositories registered in `~/.gitnexus/registry.json`. The MCP `list_
 - **Embeddings slow**: Omit `--embeddings` (it's off by default) or set `OPENAI_API_KEY` for faster API-based embedding
 
 </troubleshooting>
-
-</gitnexus-cli>

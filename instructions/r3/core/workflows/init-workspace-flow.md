@@ -47,7 +47,6 @@ Validation: State file tracks every phase with file inventory; verification conf
 1. Detect mode: install, upgrade, or plugin. Set state.mode, state.plugin_active, state.composite, state.existing_files. Creates/reads gain.json.
 2. ACQUIRE `init-workspace-flow-context.md` FROM KB
 3. Update state
-4. Required: USE SKILL `init-workspace-context`
 
 </context>
 
@@ -57,7 +56,6 @@ Validation: State file tracks every phase with file inventory; verification conf
 2. Output: shell configs, bootstrap rule, load-context skill shell.
 3. ACQUIRE `init-workspace-flow-shells.md` FROM KB
 4. Update state
-5. Required: USE SKILL `init-workspace-shells`
 
 </shells>
 
@@ -67,7 +65,6 @@ Validation: State file tracks every phase with file inventory; verification conf
 2. Output: TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md, state.file_count.
 3. ACQUIRE `init-workspace-flow-discovery.md` FROM KB
 4. Update state
-5. Required: USE SKILL `init-workspace-discovery`
 
 </discovery>
 
@@ -81,14 +78,13 @@ DISABLED
 2. Output: PATTERNS folder (one .md per pattern, INDEX.md, CHANGES.md).
 3. ACQUIRE `init-workspace-flow-patterns.md` FROM KB
 4. Update state. Log gaps for Phase 8.
-5. Required: USE SKILL `init-workspace-patterns`
 
 </patterns>
 
 <gitnexus phase="6" subagent="engineer" type="HITL" role="Code-graph setup gate" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro-preview">
 
 1. Ask user exactly: "Install GitNexus for enhanced code-graph navigation? (recommended)"
-2. If yes: USE SKILL `gitnexus-setup`; log as installed in state.
+2. If yes: USE SKILL `gitnexus`; log as installed in state.
 3. If no: skip silently; log as skipped in state.
 
 </gitnexus>
@@ -99,7 +95,6 @@ DISABLED
 2. Output: CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md.
 3. ACQUIRE `init-workspace-flow-documentation.md` FROM KB
 4. Update state. Log gaps for Phase 8.
-5. Required: USE SKILL `init-workspace-documentation`
 
 </documentation>
 
@@ -119,7 +114,6 @@ DISABLED
 3. Mark state as COMPLETE.
 4. Notify user: delete `init-rosetta-shells-flow.md`.
 5. Demand user as MUST to start new chat session (highly visible message, red icon, bold, ASCII art, it must standout).
-6. Required: USE SKILL `init-workspace-verification`
 
 </verification>
 
@@ -129,7 +123,7 @@ DISABLED
 
 Phase files: `init-workspace-flow-context.md`, `init-workspace-flow-shells.md`, `init-workspace-flow-discovery.md`, `init-workspace-flow-rules.md`, `init-workspace-flow-patterns.md`, `init-workspace-flow-documentation.md`, `init-workspace-flow-questions.md`, `init-workspace-flow-verification.md`
 
-Skills: `gitnexus-setup`
+Skills: `gitnexus`
 
 State: `agents/init-workspace-flow-state.md`
 
