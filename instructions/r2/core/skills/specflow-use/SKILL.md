@@ -2,6 +2,8 @@
 name: specflow-use
 description: "To connect Rosetta with Grid Dynamics SpecFlow MCP; only when SpecFlow is mentioned and the MCP is installed."
 license: Apache-2.0
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # SpecFlow Use
