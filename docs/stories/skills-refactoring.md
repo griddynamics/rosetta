@@ -1,6 +1,6 @@
 # Story: Skills Taxonomy Reconciliation + Frontmatter Refactoring
 
-Status: IN PROGRESS — r3 W1/W2/W3/W4 done; r2 visibility flags ported. Remaining: W0 (taxonomy), W5 (guardrails reframe), W6 (doc sync), W2 cross-IDE research.
+Status: IN PROGRESS — r3 W1/W2/W3/W4 done; r2 visibility flags ported; W0/W6 done; W2 research done. Remaining: W5 (guardrails reframe), W2 generator changes.
 
 ## Done (this PR — feat/skills-visibility-flags)
 
@@ -15,10 +15,18 @@ Status: IN PROGRESS — r3 W1/W2/W3/W4 done; r2 visibility flags ported. Remaini
 
 ## Open Workstreams
 
-- **W0 — Taxonomy reconciliation.** Update `docs/definitions/skills.md`: rename `plan-manager`→`operation-manager`; add `load-context/load-workflow/load-context-instructions/codemap`; remove `init-workspace-*` (now phases), `gitnexus-{cli,setup,tools}` (now one `gitnexus`); keep `discovery` distinct, `context-engineering` TBD. Same for `docs/definitions/workflows.md` (lists unbuilt flows, omits built ones). Zero dangling `USE SKILL` / `ACQUIRE` refs after.
 - **W5 — Native-trigger reframe.** Shrink `bootstrap-guardrails.md` to a minimal pointer — remove inline trigger restatements already carried by skill descriptions. Done when: rule no longer repeats any trigger the description already carries.
-- **W6 — Doc sync.** Update `coding-agents-prompt-authoring/references/pa-rosetta.md`, `pa-rosetta-intro-for-AI.md`, `pa-schemas.md`, `pa-knowledge-base.md`, `pa-intake.md`, `docs/schemas/skill.md`, `docs/ARCHITECTURE.md` to reflect: new visibility-flag model, codemap skill, gitnexus consolidation, init-workspace-* removed, canonical skill list.
-- **W2 cross-IDE research.** Produce IDE→attribute matrix (Claude Code, Cursor, Copilot, Codex, OpenCode) for hide-from-menu vs disable-auto for both skills and commands. Apply per-IDE frontmatter; extend `plugin_generator.py` where an IDE ignores the flag.
+- **W2 generator changes** (remaining after research). Implement per-IDE flag handling in `src/plugin-generator/` (TypeScript, per-IDE processors under `src/plugin-generator/src/plugin-processors/`):
+  - **Cursor** — emit skills to repo-level `.cursor/skills/` not plugin-delivered; `disable-model-invocation` on plugin-delivered skills is broken (fully hides skill, Cursor bug)
+  - **Copilot** — switch target from `*.prompt.md` → Agent Skills (`.github/skills/`); prompt files honor neither flag
+  - **Codex** — transform `disable-model-invocation: true` → `agents/openai.yaml` sidecar `policy.allow_implicit_invocation: false`; frontmatter flag silently ignored
+  - **OpenCode** — omit hidden skills from output (neither flag supported); `hidden: true` only works for subagents
+
+## Done (this PR — feat/skills-visibility-flags)
+
+- **W0** — `docs/definitions/skills.md` and `docs/definitions/workflows.md` reconciled: plan-manager→operation-manager, init-workspace-* removed, gitnexus consolidated, codemap/load-*/natural-writing/coding-agents-* added, unbuilt workflows removed.
+- **W6** — `docs/ARCHITECTURE.md` + `docs/web/docs/architecture.md`: skill count updated (20→35, workflows 4→12), extension points updated to r3. IDE configure files updated with available frontmatter fields (`instructions/r3/core/configure/`).
+- **W2 research** — IDE→attribute matrix produced. Configure files updated with available fields per IDE.
 
 ## Confirmed decisions (keeper — needed for W0/W5/W6)
 
