@@ -92,4 +92,44 @@ describe('fileCodexAgentFormat', () => {
     };
     expect(fileCodexAgentFormat(frame, makeCtx())).toBe(frame);
   });
+
+  it('uses empty-string defaults for missing frontmatter fields (lines 23-26)', () => {
+    // Content has frontmatter but is missing name, description, model, readonly fields.
+    // All four fallbacks (??'' for strings, ===true for readonly) produce defaults:
+    // name='', description='', modelField='', readonly=false → sandbox_mode='workspace-write'
+    const content = '---\ntags: ["agent"]\n---\n\n# Minimal body\n';
+    const result = fileCodexAgentFormat(makeFrame(content), makeCtx());
+    const toml = result.target_contents as string;
+    // name and description default to empty string
+    expect(toml).toContain('name = ""');
+    expect(toml).toContain('description = ""');
+    // No model in frontmatter → no model field emitted
+    expect(toml).not.toContain('model =');
+    // readonly missing → defaults to false → workspace-write
+    expect(toml).toContain('sandbox_mode = "workspace-write"');
+  });
+
+  it('uses empty-string defaults when there is no frontmatter at all (lines 23-26)', () => {
+    // No frontmatter block at all — parseFrontmatter returns undefined,
+    // all ?? fallbacks produce empty strings, readonly===true is false.
+    const content = '# Just a plain body\n\nNo frontmatter here.\n';
+    const result = fileCodexAgentFormat(makeFrame(content), makeCtx());
+    const toml = result.target_contents as string;
+    expect(toml).toContain('name = ""');
+    expect(toml).toContain('description = ""');
+    expect(toml).toContain('sandbox_mode = "workspace-write"');
+    // Body is embedded in developer_instructions
+    expect(toml).toContain('# Just a plain body');
+  });
+
+  it('body without leading newline is used as-is without slicing (line 36)', () => {
+    // parseFrontmatter returns body starting with a non-newline character.
+    // This happens when content has no frontmatter — body === full content.
+    // The ternary `body.startsWith('\n') ? body.slice(1) : body` takes the false branch.
+    const content = 'No frontmatter — body starts directly with text.';
+    const result = fileCodexAgentFormat(makeFrame(content), makeCtx());
+    const toml = result.target_contents as string;
+    // Body should be embedded without any leading character dropped
+    expect(toml).toContain('No frontmatter — body starts directly with text.');
+  });
 });

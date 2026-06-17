@@ -140,22 +140,22 @@ describe('fileNormalizeCodexModels — gpt token with effort: two-field rewrite'
   });
 });
 
-// ─── GPT token without effort → default effort 'medium' ─────────────────────
+// ─── GPT token without effort → model line only, no model_reasoning_effort ───
 
-describe('fileNormalizeCodexModels — gpt token without effort: default effort medium', () => {
-  it('gpt-4o (no effort suffix) → model: gpt-4o and model_reasoning_effort: medium', () => {
+describe('fileNormalizeCodexModels — gpt token without effort: model line only', () => {
+  it('gpt-4o (no effort suffix) → only model: gpt-4o, no model_reasoning_effort line', () => {
     const content = '---\nmodel: gpt-4o\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-4o');
     const result = fileNormalizeCodexModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: gpt-4o\nmodel_reasoning_effort: medium');
+    expect(result.target_contents as string).toContain('model: gpt-4o');
+    expect(result.target_contents as string).not.toContain('model_reasoning_effort');
   });
 
   it('CRITICAL: source[0].frontmatter.model NOT updated for no-effort gpt token', () => {
     const content = '---\nmodel: gpt-4o\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-4o');
     const result = fileNormalizeCodexModels(frame, makeCtx());
-    // model_reasoning_effort: medium is added, but frontmatter.model stays unchanged
-    // because codex never updates frontmatter.model
+    // frontmatter.model stays unchanged — codex never updates frontmatter.model
     expect((result.source[0]?.frontmatter as any).model).toBe('gpt-4o');
   });
 });

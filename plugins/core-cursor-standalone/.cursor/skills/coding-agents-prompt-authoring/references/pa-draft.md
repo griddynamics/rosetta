@@ -21,5 +21,9 @@
 - Agent-agnostic
 - Feature-alignment to polyfill
 - Serve intended purpose
+- No content duplication or repetition
+- Compress for AI like you
+- Draft means: the best quality content, just not reviewed nor approved
+- Do not use references by numbers (ex: see phase 1, info for step 3)
 
 </draft>

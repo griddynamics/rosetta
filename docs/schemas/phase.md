@@ -1,10 +1,16 @@
 ---
 # Core Identity (Required)
-name: [Workflow-Phase Name, must match file name without extension]
-description: [Brief description of WHEN and HOW to use this phase and WHAT it does]
+name: "<phase name; MUST match the file name without extension>"
+description: "Phase <N> <Phase Name> of <parent-flow>"
+# disable-model-invocation — required for phases [boolean] [Cursor, Claude Code]
+disable-model-invocation: false
+# user-invocable — required for phases [boolean] [Claude Code]
+user-invocable: true
+# alwaysApply — keep false by default; true bloats EVERY context; override to true ONLY in special cases with explicit user approval [boolean] [Cursor]
+alwaysApply: false
 
-# Knowledge Base Tags (remove if empty, use the same tag to bundle, publisher will automatically add tags of parent folder names and file name with extension, and file name parts split by dash)
-tags: ["one", "second"]
+# Knowledge Base Tags — shared tag bundles related artifacts; publisher auto-adds parent-folder + file-name tags; remove if empty [array] [ex: ["tag-1", "tag-2"]]
+tags: []
 
 # do not remove baseSchema!
 baseSchema: docs/schemas/phase.md

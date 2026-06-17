@@ -19,10 +19,3 @@ export function wrapInPrintf(jsonPayload: string): string {
   return `printf '%s' '${bashSingleQuoteEscape(jsonPayload)}'`;
 }
 
-/**
- * Wrap a JSON payload in a double-quoted printf for env-var expansion.
- * Used for the plugin-root entry (GT-3.4) where ${CLAUDE_PLUGIN_ROOT} must expand.
- */
-export function wrapInPrintfDoubleQuoted(jsonPayload: string): string {
-  return `printf '%s' "${jsonPayload}"`;
-}

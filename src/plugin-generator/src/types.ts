@@ -27,6 +27,8 @@ export interface FileProcessingFrame {
   isBinary: boolean;
   target_contents: string | Buffer | null; // null=drop, ''=empty, else content (FR-ARCH-0036)
   source: SourceFile[];                    // structurally-shared working copy
+  errors?: GenError[];                     // file-level errors (e.g. binary+>1 source); propagated to PluginProcessingFrame
+  verbatim?: boolean;                      // when true, pluginRewriteReferences skips this frame (TODO-2)
 }
 
 // FR-ARCH-0039
@@ -47,6 +49,7 @@ export interface SpecEntry {
   target: string;
   exclude: string[];
   processors: FileProcessor[];
+  verbatim?: boolean; // when true, frames produced from this entry skip pluginRewriteReferences (TODO-2)
 }
 
 export interface IndexDecl {

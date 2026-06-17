@@ -154,4 +154,54 @@ describe('pluginProcessSpecEntries', () => {
     // Empty sourcePrefix → relativePart = full vfsPath = "rules/test.md"
     expect(targets).toContain('output/rules/test.md');
   });
+
+  it('FR-ARCH-0056: emits hard error when two SpecEntries produce frames with the same target path', () => {
+    // Two SpecEntries both glob over 'rules/shared.md' and map it to the same target 'rules/shared.md'.
+    const entry1: SpecEntry = {
+      source: 'rules/**',
+      target: 'rules',
+      exclude: [],
+      processors: [contentProc],
+    };
+    const entry2: SpecEntry = {
+      source: 'rules/**',
+      target: 'rules',
+      exclude: [],
+      processors: [contentProc],
+    };
+    const p = makePluginFrame(['rules/shared.md'], [entry1, entry2]);
+    const result = pluginProcessSpecEntries(RELEASE)(p);
+
+    const hardErrors = result.errors.filter((e) => e.kind === 'hard');
+    expect(hardErrors.length).toBeGreaterThan(0);
+
+    const conflictError = hardErrors.find((e) => e.message.includes('rules/shared.md'));
+    expect(conflictError).toBeDefined();
+    expect(conflictError!.message).toContain('Target conflict');
+    expect(conflictError!.message).toContain('"rules/shared.md"');
+    // Both entries' source and target info must appear
+    expect(conflictError!.message).toContain('source="rules/**"');
+    // The VFS source path of both conflicting frames
+    expect(conflictError!.message).toContain('file VFS path="rules/shared.md"');
+  });
+
+  it('FR-ARCH-0056: no error when all SpecEntries produce frames with distinct target paths', () => {
+    const entryA: SpecEntry = {
+      source: 'rules/**',
+      target: 'rules',
+      exclude: [],
+      processors: [contentProc],
+    };
+    const entryB: SpecEntry = {
+      source: 'workflows/**',
+      target: 'commands',
+      exclude: [],
+      processors: [contentProc],
+    };
+    const p = makePluginFrame(['rules/bootstrap.md', 'workflows/coding.md'], [entryA, entryB]);
+    const result = pluginProcessSpecEntries(RELEASE)(p);
+
+    const hardErrors = result.errors.filter((e) => e.kind === 'hard');
+    expect(hardErrors.length).toBe(0);
+  });
 });

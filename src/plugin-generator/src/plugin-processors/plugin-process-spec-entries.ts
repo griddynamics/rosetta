@@ -1,4 +1,5 @@
 // FR-ARCH-0054 — glob→frames→file pipeline for SpecEntries
+// FR-ARCH-0056 — target-path uniqueness: conflict detector over allFrames
 // NFR-0010: uses micromatch (fast-glob dependency) for in-memory VFS glob matching
 
 import path from 'path';
@@ -8,10 +9,17 @@ import { sortPaths } from '../vfs/sort.js';
 import { getLogger } from '../logging.js';
 import type {
   FileProcessingFrame,
+  GenError,
   PluginProcessingFrame,
   SpecEntry,
   TargetContext,
 } from '../types.js';
+
+/** Carries a processed frame alongside its originating SpecEntry for conflict attribution. */
+interface FrameWithEntry {
+  frame: FileProcessingFrame;
+  entry: SpecEntry;
+}
 
 /**
  * pluginProcessSpecEntries: for each SpecEntry in order →
@@ -25,7 +33,9 @@ export function pluginProcessSpecEntries(
     p: PluginProcessingFrame,
   ): PluginProcessingFrame {
     const { spec, vfs } = p;
-    const allFrames: FileProcessingFrame[] = [];
+    // FR-ARCH-0056: collect frames with their originating SpecEntry for conflict detection.
+    const allFrameEntries: FrameWithEntry[] = [];
+    const allFileErrors: GenError[] = [];
 
     const ctx: TargetContext = {
       spec,
@@ -70,7 +80,7 @@ export function pluginProcessSpecEntries(
             ghostFrame = processor(ghostFrame, ctx);
           }
           if (ghostFrame.target !== vfsPath) {
-            allFrames.push(ghostFrame);
+            allFrameEntries.push({ frame: ghostFrame, entry });
           }
           logger.debug({ target: spec.name, vfsPath, ghostTarget: ghostFrame.target }, 'FR-ARCH-0049: excluded file ghost frame for reference-rewrite lookup');
           continue;
@@ -81,6 +91,10 @@ export function pluginProcessSpecEntries(
 
         // Create frame
         let frame = createFileFrame(vf, targetPath);
+        // TODO-2: propagate verbatim flag so pluginRewriteReferences skips this frame
+        if (entry.verbatim) {
+          frame = { ...frame, verbatim: true };
+        }
 
         // Run entry processors — log per-processor input/output metadata at debug level (FR-ARCH-0050)
         for (const processor of entry.processors) {
@@ -104,23 +118,46 @@ export function pluginProcessSpecEntries(
         // pluginWrite skips null-content frames (no file emitted).
         const pathChanged = frame.target !== frame.sourcePath;
         if (frame.target_contents !== null || frame.isBinary || pathChanged) {
-          allFrames.push(frame);
+          allFrameEntries.push({ frame, entry });
+        }
+
+        // Collect file-level errors (e.g. binary+>1 source, FR-ARCH-0034/0042) for propagation
+        if (frame.errors && frame.errors.length > 0) {
+          allFileErrors.push(...frame.errors);
         }
       }
     }
 
-    // Preserve existing frames (e.g. .tmpl frames from pluginCopy) + add new content frames
-    // But deduplicate: if a frame with the same target already exists, the new one wins
-    const existingByTarget = new Map(p.frames.map(f => [f.target, f]));
-    for (const f of allFrames) {
-      existingByTarget.set(f.target, f);
+    // FR-ARCH-0056: detect target-path collisions across SpecEntries.
+    // Build a map keyed by target path; on the first collision emit a hard GenError with full attribution.
+    const seenByTarget = new Map<string, FrameWithEntry>();
+    for (const fe of allFrameEntries) {
+      const existing = seenByTarget.get(fe.frame.target);
+      if (existing) {
+        allFileErrors.push({
+          target: spec.name,
+          message:
+            `Target conflict: two SpecEntries write to the same path "${fe.frame.target}".\n` +
+            `  Entry 1: source="${existing.entry.source}" target="${existing.entry.target}", file VFS path="${existing.frame.sourcePath}"\n` +
+            `  Entry 2: source="${fe.entry.source}" target="${fe.entry.target}", file VFS path="${fe.frame.sourcePath}"`,
+          kind: 'hard',
+        });
+      } else {
+        seenByTarget.set(fe.frame.target, fe);
+      }
     }
+
+    const allFrames = allFrameEntries.map((fe) => fe.frame);
+
     // Maintain: existing .tmpl frames first, then spec-entry frames
     const existingTmplFrames = p.frames.filter(f => f.target.endsWith('.tmpl'));
     const mergedFrames = [...existingTmplFrames, ...allFrames];
 
     return updatePluginFrame(p, (draft) => {
       draft.frames = mergedFrames as typeof draft.frames;
+      if (allFileErrors.length > 0) {
+        draft.errors = [...draft.errors, ...allFileErrors] as typeof draft.errors;
+      }
     });
   };
 }

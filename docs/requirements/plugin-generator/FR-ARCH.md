@@ -594,10 +594,10 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: a frame whose frontmatter declares a model When: normalized for a `PluginTarget` Then: the model value is rewritten per that target's `ModelVocabulary`.</criteria>
     <criteria>Given: a frame with no model value When: normalized Then: its content is unchanged.</criteria>
     <criteria>Given: a target's pipeline When: inspected Then: it composes exactly the model-normalization processor for that target's vocabulary, and no such processor selects behavior by a vocabulary-kind discriminant (FR-ARCH-0005).</criteria>
-    <criteria>Given: the Python generator's CURSOR_MODEL_MAP, COPILOT_MODEL_MAP, or CLAUDE_MODEL_MAP is updated to a new model version When: the TypeScript CURSOR_CLAUDE_MAP, COPILOT_CLAUDE_MAP, COPILOT_GPT_MAP, CURSOR_GPT_UPGRADE_MAP, or CURSOR_GEMINI_MAP are inspected Then: they produce identical output values for all model token inputs present in instruction source frontmatter. (Parity enforcement: TypeScript maps must be kept in sync with Python authoritative maps.)</criteria>
+    <criteria>Given: the Python generator's CURSOR_MODEL_MAP, COPILOT_MODEL_MAP, or CLAUDE_MODEL_MAP is updated to a new model version When: the TypeScript CURSOR_CLAUDE_MAP, CURSOR_GPT_MAP, CURSOR_GEMINI_MAP, COPILOT_CLAUDE_MAP, COPILOT_GPT_MAP, or COPILOT_GEMINI_MAP are inspected Then: they produce identical output values for all model token inputs present in instruction source frontmatter. (Parity enforcement: TypeScript maps must be kept in sync with Python authoritative maps.)</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/file-processors/file-normalize-models.ts (switch dispatcher deleted; 4 helpers exported); file-normalize-claude-models.ts; file-normalize-cursor-models.ts; file-normalize-copilot-models.ts; file-normalize-codex-models.ts. Multi-vendor model ordering intentional: maintainers order models in frontmatter to select different providers per agent/skill (engineer=Sonnet, reviewer=GPT). Maps: CURSOR_CLAUDE_MAP + CURSOR_GPT_UPGRADE_MAP (gpt-5.3→5.4) + CURSOR_GEMINI_MAP (gemini-3→3.5); COPILOT_CLAUDE_MAP + COPILOT_GPT_MAP (5.3/5.3-codex→5.4) + COPILOT_GEMINI_MAP (gemini-3→3.5). Opus 4.6/4.7 entries all upgrade to 4-8 (latest). gpt-5.4 and gpt-5.5 are preserved as-is (different cost tiers).</implementationNotes>
+  <implementationNotes>src/plugin-generator/src/file-processors/file-normalize-models.ts (switch dispatcher deleted; 4 helpers exported); file-normalize-claude-models.ts; file-normalize-cursor-models.ts; file-normalize-copilot-models.ts; file-normalize-codex-models.ts. Multi-vendor model ordering intentional: maintainers order models in frontmatter to select different providers per agent/skill (engineer=Sonnet, reviewer=GPT). Maps: CURSOR_CLAUDE_MAP + CURSOR_GPT_MAP (GPT 5.3+; 5.3/5.3-codex→5.4) + CURSOR_GEMINI_MAP (gemini-3→3.5); COPILOT_CLAUDE_MAP + COPILOT_GPT_MAP (GPT 5.3+; 5.3/5.3-codex→5.4) + COPILOT_GEMINI_MAP (gemini-3→3.5). Opus 4.6/4.7→4-8. gpt-5.4 and gpt-5.5 preserved as-is (different cost tiers).</implementationNotes>
   <depends>DATA-CFG-0004, FR-ARCH-0005</depends>
 </req>
 
@@ -676,9 +676,11 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: a reference to a frame whose `target_contents` is `null` but whose path changed When: run Then: the reference is still rewritten to the final form.</criteria>
     <criteria>Given: the prose word "agents" (with an `agents`→`.codex/agents` move in effect) When: run Then: the word is unchanged; only complete `agents/<path>` references are rewritten.</criteria>
     <criteria>Given: the `frames` When: the lookup is assembled Then: it is read from the frames (`sourcePath → targetPath`) plus the entries' folder pairs, not recomputed from rename rules.</criteria>
+    <criteria>Given: a path reference preceded by a dot-directory segment such as `.windsurf/workflows/` or `.cursor/rules/` When: run Then: the reference is NOT rewritten — dot-directory-prefixed paths are IDE-native filesystem documentation, not Rosetta instruction cross-references (FR-ARCH-0037).</criteria>
+    <criteria>Given: a SpecEntry with `verbatim: true` When: `pluginRewriteReferences` runs Then: all frames produced by that entry are returned unchanged regardless of rename pairs in effect.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-rewrite-references.ts. Frame-lookup-driven; no recomputed rename rules. Ghost-frame handling included.</implementationNotes>
+  <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-rewrite-references.ts. Frame-lookup-driven; no recomputed rename rules. Ghost-frame handling included. `rewritePathToken` uses two combined negative lookbehinds: (1) `(?<!\.[A-Za-z][A-Za-z0-9_-]*/)` blocks dot-directory-prefixed IDE paths; (2) `(?<![A-Za-z0-9_-])` is the existing word-boundary guard. Verbatim frames (configure entries) are skipped at line 30 as a belt-and-suspenders guard.</implementationNotes>
   <depends>FR-ARCH-0039, FR-ARCH-0037, FR-ARCH-0054</depends>
 </req>
 
@@ -703,20 +705,21 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0051" type="FR" level="System" ticketId="" classification="technical">
   <title>pluginInjectSections() processor</title>
-  <statement>The `pluginInjectSections()` processor shall, for each injection declared on the `PluginSpec`, insert a generated section (e.g. a folder index, or the plugin-root instruction block) into a designated host frame's `target_contents` at a defined anchor, changing content only and never the target path; it shall error if the host or anchor is absent.</statement>
-  <rationale>Standalone targets deliver bootstrap through a natively auto-loaded rule/instruction file and must carry the workflow index and plugin-root instructions inside it (FR-VAR-0072). As a `PluginProcessor`, injection has the whole-plugin view it needs and is an explicit content-only stage, not a hidden in-place edit.</rationale>
+  <statement>The `pluginInjectSections()` processor shall, for each injection declared on the `PluginSpec`, insert a generated section (e.g. a folder index, or the plugin-root instruction block) into a designated host frame's `target_contents` at a defined anchor, changing content only and never the target path. When the host frame is not found, it shall fail with a hard error naming the missing host file. When the host frame is found but the anchor string is absent from its content, it shall skip the injection silently without error or warning.</statement>
+  <rationale>Standalone targets deliver bootstrap through a natively auto-loaded rule/instruction file and must carry the workflow index and plugin-root instructions inside it (FR-VAR-0072). As a `PluginProcessor`, injection has the whole-plugin view it needs and is an explicit content-only stage, not a hidden in-place edit. Graceful skip on a missing anchor enables the same injection spec to work across releases where a section may be absent (e.g. r3 plugin-files-mode.md has no PREP STEP 1 section); only a missing host frame indicates a configuration error.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-06-16</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a host frame with the defined anchor and a generated index section When: `pluginInjectSections()` runs Then: the section appears at the anchor and the target path is unchanged.</criteria>
-    <criteria>Given: a missing host or anchor When: run Then: it errors naming the host and anchor.</criteria>
+    <criteria>Given: `pluginInjectSections()` runs and the host frame is not found When: run Then: it fails with a hard error naming the missing host file.</criteria>
+    <criteria>Given: `pluginInjectSections()` runs and the host frame is found but the anchor string is not present in its content When: run Then: it skips the injection silently (no error, no warning).</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-inject-sections.ts: missing host frame pushes a hard error; missing anchor is a silent `continue` with a comment citing r3 plugin-files-mode.</implementationNotes>
   <depends>FR-ARCH-0047</depends>
 </req>
 
@@ -736,6 +739,46 @@ Architecture requirements: the configuration-driven generation model — uniform
   <implementation>Implemented</implementation>
   <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-assemble-claude-bootstrap.ts; src/plugin-generator/src/plugin-processors/plugin-assemble-cursor-bootstrap.ts; src/plugin-generator/src/plugin-processors/plugin-assemble-copilot-bootstrap.ts; src/plugin-generator/src/plugin-processors/plugin-assemble-codex-bootstrap.ts. All 4 assemblers call callback-driven assembleBootstrapPayload(p, buildEntry, buildRootEntry) and write templateContext['bootstrap_hooks'] (one fixed key). Cursor generates full bootstrap payload; cursor template omits {{{bootstrap_hooks}}} placeholder so payload is not injected — template decision per FR-VAR-0070. Monolithic plugin-assemble-bootstrap.ts deleted.</implementationNotes>
   <depends>FR-HOOK-0001, FR-HOOK-0009, FR-HOOK-0005</depends>
+</req>
+
+<req id="FR-ARCH-0056" type="FR" level="System" ticketId="" classification="technical">
+  <title>Target-path uniqueness within a plugin's frame set</title>
+  <statement>If two or more SpecEntries in a PluginSpec produce FileProcessingFrames whose target paths are identical, the generator shall fail with a hard error before writing any output, naming each conflicting target path, the VFS source path of each conflicting frame, and the SpecEntry source glob and target folder that produced each frame.</statement>
+  <rationale>Silent target-path collisions cause one SpecEntry's output to overwrite another's without any diagnostic. Because pluginWrite writes frames in order and the last writer wins silently, a collision is undetectable at the output level. Failing hard with full attribution allows authors to detect misconfigured SpecEntry source globs or target folders immediately.</rationale>
+  <source>Inferred</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-06-16</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: two SpecEntries whose FileProcessor pipelines yield frames with the same target path When: pluginProcessSpecEntries completes Then: the generator emits a hard GenError naming the target path, the VFS sourcePath of each conflicting frame, and the source glob and target folder of each contributing SpecEntry, before pluginWrite runs.</criteria>
+    <criteria>Given: all SpecEntries produce frames with distinct target paths When: pluginProcessSpecEntries completes Then: no error is raised and the pipeline proceeds normally.</criteria>
+  </acceptance>
+  <depends>FR-ARCH-0054</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>plugin-process-spec-entries.ts: replaced dead existingByTarget Map with an allFrames conflict detector; hard GenError emitted on target collision with full attribution.</implementationNotes>
+</req>
+
+<req id="FR-ARCH-0057" type="FR" level="System" ticketId="" classification="technical">
+  <title>Model vocabulary scope, upgrade rules, and Codex effort-omission rule</title>
+  <statement>The Cursor and Copilot model vocabulary maps (CURSOR_GPT_MAP, COPILOT_GPT_MAP) shall cover only GPT 5.3 and above; no entry whose key starts with `gpt-4`, `o3`, or `o4` shall be present. The following upgrade rules shall be applied during normalization: `claude-opus-4-6`, `claude-opus-4-7`, and any `claude-4.7-opus*` token shall map to `claude-opus-4-8`; `gpt-5.3` and `gpt-5.3-codex` (all effort variants) shall map to `gpt-5.4`; `gemini-3-flash` shall map to `gemini-3.5-flash`. `gpt-5.4` and `gpt-5.5` shall not be upgraded to a higher version. When a Codex normalization encounters a GPT token with no trailing effort suffix, the generator shall write only `model: <id>` and shall not write a `model_reasoning_effort` field; no default effort value is substituted.</statement>
+  <rationale>Stale or over-broad maps produce silent model downgrades or wrong IDE-specific IDs. Restricting Cursor/Copilot GPT maps to 5.3+ and encoding explicit upgrade rules prevents unintentional degradation. `gpt-5.4` and `gpt-5.5` belong to different cost tiers and must not be conflated by automatic upgrade. Requiring an explicit effort suffix in source is a content authoring contract; the generator must not silently substitute a default.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-06-16</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: a Cursor or Copilot SpecEntry normalizes a file whose frontmatter first token is `claude-opus-4-7` When: normalized Then: the output model field is `claude-opus-4-8`.</criteria>
+    <criteria>Given: a Cursor or Copilot SpecEntry normalizes a file whose frontmatter first token is `gpt-5.3-high` When: normalized Then: the output model field is `gpt-5.4`.</criteria>
+    <criteria>Given: a Codex SpecEntry normalizes a file whose frontmatter first token is `gpt-5.4` (no effort suffix) When: normalized Then: the output contains `model: gpt-5.4` and does not contain `model_reasoning_effort`.</criteria>
+    <criteria>Given: CURSOR_GPT_MAP or COPILOT_GPT_MAP is inspected When: inspected Then: no entry key starts with `gpt-4`, `o3`, or `o4`.</criteria>
+  </acceptance>
+  <depends>FR-ARCH-0046, FR-COPY-0022</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/plugin-generator/src/spec/model-maps.ts: CURSOR_GPT_MAP and COPILOT_GPT_MAP cover GPT 5.3+ only; CURSOR_CLAUDE_MAP and COPILOT_CLAUDE_MAP map opus-4-6 and opus-4-7 variants to claude-opus-4-8; normalizeCodex() returns effort: undefined when no suffix present and the Codex emitter writes only the model field in that case.</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0048" type="FR" level="System" ticketId="" classification="technical">

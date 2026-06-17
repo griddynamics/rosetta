@@ -69,34 +69,24 @@ function makeRulesEntry(normalizeModels: FileProcessor): SpecEntry {
 function makeWorkflowsEntry(
   normalizeModels: FileProcessor,
   targetFolder = 'workflows',
-  renameExt?: [string, string],
 ): SpecEntry {
-  const processors = [...BASE_PROCESSORS, normalizeModels];
-  if (renameExt) {
-    processors.push(fileRename(renameExt[0], renameExt[1]));
-  }
   return {
     source: 'workflows/**',
     target: targetFolder,
     exclude: [],
-    processors,
+    processors: [...BASE_PROCESSORS, normalizeModels],
   };
 }
 
 function makeAgentsEntry(
   normalizeModels: FileProcessor,
   targetFolder = 'agents',
-  renameExt?: [string, string],
 ): SpecEntry {
-  const processors = [...BASE_PROCESSORS, normalizeModels];
-  if (renameExt) {
-    processors.push(fileRename(renameExt[0], renameExt[1]));
-  }
   return {
     source: 'agents/**',
     target: targetFolder,
     exclude: [],
-    processors,
+    processors: [...BASE_PROCESSORS, normalizeModels],
   };
 }
 
@@ -115,6 +105,7 @@ function makeConfigureEntry(targetFolder = 'configure'): SpecEntry {
     target: targetFolder,
     exclude: [],
     processors: [...BASE_PROCESSORS],
+    verbatim: true, // TODO-2: configure files must not have references rewritten
   };
 }
 
@@ -297,6 +288,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         target: '.agents/configure',
         exclude: [],
         processors: [...BASE_PROCESSORS],
+        verbatim: true, // TODO-2: configure files must not have references rewritten
       },
       {
         source: 'templates/**',
@@ -317,7 +309,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
   // All files under .cursor/; plugin-files-mode.mdc gets injection
   const cursorStandalonePluginFilesPath = '.cursor/rules/plugin-files-mode.mdc';
   // The leading \n adds the blank line separator after the bullets section.
-  // The extra \n in section 3 adds a trailing blank before the end-tag.
+  // The trailing \n\n adds a blank line before the section end-tag.
   const cursorStandaloneInjectionText =
     `\nRosetta plugin root: ".cursor". You MUST FOLLOW ALL bootstrap* and plugin* instructions and execute every prep step in order. After prep steps, you MUST select a workflow and execute it. All workflows (commands) are stored in ".cursor/commands/<workflowtag>.md". Example ".cursor/commands/coding-flow.md".\n\n`;
 
@@ -390,6 +382,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         target: '.cursor/configure',
         exclude: [],
         processors: [...BASE_PROCESSORS],
+        verbatim: true, // TODO-2: configure files must not have references rewritten
       },
     ],
     pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCursorBootstrap),
@@ -522,6 +515,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         target: '.github/configure',
         exclude: [],
         processors: [...BASE_PROCESSORS],
+        verbatim: true, // TODO-2: configure files must not have references rewritten
       },
     ],
     pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCopilotBootstrap),

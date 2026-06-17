@@ -65,14 +65,20 @@ describe('fileBundle', () => {
     expect(content.includes('---\n---')).toBe(false);
   });
 
-  it('returns original frame for binary with >1 source (keeps last source content)', () => {
+  it('binary + >1 source: emits hard error on frame.errors (FR-ARCH-0042)', () => {
+    // binary + >1 source → hard GenError pushed onto frame, no throw
     const frame = makeFrame(
       [{ _readContent: 'binary1' }, { _readContent: 'binary2' }],
       true,
       Buffer.from([0x01]) as unknown as string,
     );
     const result = fileBundle(frame, makeCtx());
-    // Binary error path: returns frame unchanged (no throw)
     expect(result.isBinary).toBe(true);
+    expect(result.errors).toBeDefined();
+    expect(result.errors!.length).toBe(1);
+    expect(result.errors![0].kind).toBe('hard');
+    expect(result.errors![0].message).toBe(
+      'Binary file rules/test.md has 2 sources; only one source is allowed for binary files (FR-ARCH-0034/FR-ARCH-0042).',
+    );
   });
 });

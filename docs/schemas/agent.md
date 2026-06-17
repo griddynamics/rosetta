@@ -1,46 +1,62 @@
 ---
-# Core Identity (Required)
-name: [Agent Name, must match file name without extension]
-description: [ "Rosetta [lightweight subagent|full subagent]" + Brief description of WHEN and HOW to use this agent and WHAT it does]
+# Core Identity (Required) — keep these live, replace the <...> value
+name: "<agent name; MUST match the file name without extension>"
+description: "<what it does + when/how to use; dense keywords; MUST be < ~15 tokens>. <Full subagent|Lightweight subagent>"
+# alwaysApply — keep false; true injects this into EVERY context (bloat); set true ONLY with explicit user approval [boolean] [Cursor]
+alwaysApply: false
 
-# Mode (Optional, remove if not needed)
-mode: [Defines agent type] [string] [OpenCode] [ex: primary, subagent]
+# Model Configuration (Required) — stronger/high-reasoning models for thinking, cheaper ones for execution
+# model — use the FULL current model id; NEVER an alias (opus/sonnet) or a stale id: an executor on older data can't resolve aliases or newer ids and will spawn the wrong model [string] [Cursor, OpenCode, Claude Code]
+model: "<FULL current model id, e.g. claude-opus-4-8>"
+# temperature — response randomness (Optional — uncomment to enable) [float] [OpenCode]
+# temperature: 0.7
+# [Latest models: Anthropic (claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5); OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high, gpt-5.4-medium, gpt-5.4-high, gpt-5.5-high); Google (gemini-3.1-pro-preview, gemini-3-flash-preview); Z.ai (glm-5)]
+# [Families: large/smart/slow {opus, high, pro} · medium/workhorse {sonnet, medium, glm-5, kimi-k2.5, minimax-m2.5} · small/fast {haiku, glm-4.7, flash, mini, low}]
 
-# Model Configuration (Optional, remove if not needed)
-model: [Specifies which LLM model to use, any thinking/reasoning must be done with stronger models and high reasoning efforts, while execution with cheaper] [string] [Cursor, OpenCode, Claude Code] [ex: claude-4.6-sonnet]
-temperature: [Controls response randomness] [float] [OpenCode] [ex: 0.7]
+# Mode (Optional — uncomment to enable)
+# mode — agent type [string] [OpenCode] [ex: primary, subagent]
+# mode: "subagent"
 
-[Latest Models: Anthropic (claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5), OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high, gpt-5.4-medium, gpt-5.4-high, gpt-5.5-high), Google (gemini-3.1-pro-preview, gemini-3-flash-preview), Z.ai (glm-5).]
+# Tools Configuration (Optional — uncomment the line for your target platform; DANGEROUS, limit only if you know exactly)
+# tools — enabled tools as a comma-separated string [string] [Claude Code] [ex: "Read, Grep, Glob"]
+# tools: "Read, Grep, Glob"
+# tools — enabled tools as an object [object] [OpenCode] [ex: {write: false, edit: false, bash: false}]
+# tools: {write: false, edit: false, bash: false}
+# disallowedTools — tools to deny [array] [Claude Code] [ex: ["bash", "write"]]
+# disallowedTools: ["bash", "write"]
 
-[Model families: large (smart and slow) {opus, high, pro}, medium (workhorse) {sonnet, medium, glm-5, kimi-k2.5, minimax-m2.5}, small (fast, not smart) {haiku, glm-4.7, flash, mini, low} ]
+# Permission Configuration (Optional — uncomment to enable)
+# permission — access control for agent actions [object] [OpenCode] [ex: {edit: deny}]
+# permission: {edit: deny}
+# permissionMode — permission behavior [string] [Claude Code] [ex: default, acceptEdits, dontAsk, bypassPermissions, plan]
+# permissionMode: "default"
+# readonly — true = subagent runs with restricted write permissions [boolean] [Cursor]
+# readonly: false
 
-# Tools Configuration (Optional, remove if not needed)
-tools: [Array specifying which tools are enabled, dangerous, only limit if it is a must and you know exactly in advance, otherwise remove completely] [array] [Claude Code] [ex: ["read", "grep"]]
-tools: [Object specifying which tools are enabled, dangerous, only limit if it is a must and you know exactly in advance, otherwise remove completely] [object] [OpenCode] [ex: {write: false, edit: false, bash: false}]
-disallowedTools: [Array specifying which tools to deny] [array] [Claude Code] [ex: ["bash", "write"]]
+# Execution Behavior (Optional — uncomment to enable)
+# is_background — true = subagent runs in the background [boolean] [Cursor]
+# is_background: false
+# steps — max agentic iterations [int] [OpenCode]
+# steps: 10
+# disable — true = agent is disabled [boolean] [OpenCode]
+# disable: false
+# hidden — true = hidden from @ autocomplete menu [boolean] [OpenCode]
+# hidden: false
 
-# Permission Configuration (Optional, remove if not needed)
-permission: [Access control agent actions] [object] [OpenCode] [ex: {edit: deny}]
-permissionMode: [Permission behavior] [string] [Claude Code] [ex: default, acceptEdits, dontAsk, bypassPermissions, plan]
-readonly: [If true, the subagent runs with restricted write permissions] [boolean] [Cursor] 
+# Content & Extensions (Optional — uncomment to enable)
+# skills — skills loaded into agent context at startup [array] [Claude Code] [ex: ["skill1", "skill2"]]
+# skills: ["skill1", "skill2"]
+# hooks — lifecycle hooks for the subagent [object] [Claude Code] [ex: {onStart: "...", onComplete: "..."}]
+# hooks: {}
+# prompt — custom system-prompt file [string] [OpenCode] [ex: file:./prompts/code-review.txt]
+# prompt: "file:./prompts/code-review.txt"
 
-# Execution Behavior (Optional, remove if not needed)
-is_background: [If true, the subagent runs in the background] [boolean] [Cursor] 
-steps: [Maximum number of agentic iterations] [int] [OpenCode] [ex: 10]
-disable: [If true, the agent will be disabled] [boolean] [OpenCode] 
-hidden: [If true, hidden from @ autocomplete menu] [boolean] [OpenCode] 
-
-# Content & Extensions (Optional, remove if not needed)
-skills: [Array with skills to load into agent context at startup] [array] [Claude Code] [ex: ["skill1", "skill2"]]
-hooks: [Lifecycle hooks the subagent] [object] [Claude Code] [ex: {onStart: "Initialize environment", onComplete: "Clean up resources"}]
-prompt: [Specifies a custom system prompt file] [string] [OpenCode] [ex: file:./prompts/code-review.txt]
-
-# Knowledge Base Tags (remove if empty, use the same tag to bundle, publisher will automatically add tags of parent folder names and file name with extension, and file name parts split by dash)
-tags: ["one", "second"]
+# Knowledge Base Tags — shared tag bundles related artifacts; publisher auto-adds parent-folder + file-name tags; remove if empty [array] [ex: ["tag-1", "tag-2"]]
+tags: []
 
 # do not remove baseSchema!
 baseSchema: docs/schemas/agent.md
---- 
+---
 
 <[the_agent_name]>
 

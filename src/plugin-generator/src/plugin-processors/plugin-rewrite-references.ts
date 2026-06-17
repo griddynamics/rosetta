@@ -27,7 +27,7 @@ export function pluginRewriteReferences(
   // Rewrite content in all text frames
   let changed = false;
   const rewrittenFrames = frames.map((frame) => {
-    if (frame.isBinary || frame.target_contents === null) return frame;
+    if (frame.isBinary || frame.target_contents === null || frame.verbatim) return frame;
 
     const content = frame.target_contents as string;
     const newContent = applyRenamePairs(content, renamePairs);
@@ -182,13 +182,17 @@ function applyRenamePairs(content: string, pairs: Array<[string, string]>): stri
  * a preceding path separator `/`. A preceding `-` or alphanumeric is NOT a boundary
  * (so `my-workflows/` must NOT match). FR-ARCH-0037.
  *
- * Negative lookbehind (?<![A-Za-z0-9_-]) ensures the token is not part of a longer word.
- * A preceding `/` IS allowed (e.g. `.windsurf/workflows/` to `.windsurf/commands/`).
+ * Two negative lookbehinds are combined:
+ *   1. (?<!\.[A-Za-z][A-Za-z0-9_-]*\/) — rejects matches preceded by a dot-directory
+ *      segment such as `.windsurf/`, `.cursor/`, `.github/`. These are IDE-native filesystem
+ *      paths in configure guides and must never be rewritten. Only Rosetta plugin-internal
+ *      bare path tokens (e.g. `workflows/coding-flow.md`) should be rewritten.
+ *   2. (?<![A-Za-z0-9_-]) — existing word-boundary guard: not preceded by alphanumeric,
+ *      underscore, or hyphen.
  */
 function rewritePathToken(content: string, from: string, to: string): string {
-  // Escape regex special chars in 'from'
   const escaped = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  // Negative lookbehind: not preceded by alphanumeric, underscore, or hyphen
-  const regex = new RegExp('(?<![A-Za-z0-9_-])' + escaped, 'g');
+  // Block dot-directory prefixes (.windsurf/, .cursor/, .github/, etc.) AND word-like prefixes
+  const regex = new RegExp('(?<!\\.[A-Za-z][A-Za-z0-9_-]*/)(?<![A-Za-z0-9_-])' + escaped, 'g');
   return content.replace(regex, to);
 }

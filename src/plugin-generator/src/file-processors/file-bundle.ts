@@ -20,8 +20,17 @@ export function fileBundle(
   if (frame.source.length <= 1) return frame;
 
   if (frame.isBinary) {
-    // Error: binary + >1 source; just use last (highest priority) source
-    return frame;
+    // FR-ARCH-0042: binary + >1 source → hard error; return frame with error (do not throw)
+    return updateFileFrame(frame, (draft) => {
+      draft.errors = [
+        ...(draft.errors ?? []),
+        {
+          target: frame.target,
+          message: `Binary file ${frame.target} has ${frame.source.length} sources; only one source is allowed for binary files (FR-ARCH-0034/FR-ARCH-0042).`,
+          kind: 'hard' as const,
+        },
+      ];
+    });
   }
 
   // Use _readContent cached by fileRead (FR-ARCH-0033, NFR-0007, F-E fix).
