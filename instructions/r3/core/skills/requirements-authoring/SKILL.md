@@ -3,7 +3,7 @@ name: requirements-authoring
 description: "To author, update, and validate functional/non-functional requirements as atomic units with user approval."
 tags: ["requirements", "skills"]
 license: Apache-2.0
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 argument-hint: request, existing-requirements?, scope?, constraints?, stakeholders?
 context: default

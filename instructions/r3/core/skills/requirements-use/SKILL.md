@@ -3,7 +3,7 @@ name: requirements-use
 description: "To consume approved requirements for planning, implementation, and validation, with traceability and HITL."
 tags: ["requirements", "skills"]
 license: Apache-2.0
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 argument-hint: request, requirements-set?, target-scope?, constraints?, delivery-goal?
 context: default

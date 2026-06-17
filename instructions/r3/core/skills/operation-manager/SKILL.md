@@ -4,7 +4,7 @@ description: "To create, track, and coordinate execution plans via local JSON fi
 license: Apache-2.0
 dependencies: node.js
 disable-model-invocation: false
-user-invocable: false
+user-invocable: true
 allowed-tools: Bash(npx:*)
 model: claude-sonnet-4-6
 tags:

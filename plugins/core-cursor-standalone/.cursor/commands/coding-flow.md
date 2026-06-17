@@ -88,6 +88,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 3. Required skills: `coding`
 4. Recommended skills: `reasoning`, `debugging`, `sensitive-data`, `testing`, `dangerous-actions`
 5. Update `coding-flow-state.md`
+6. If SMALL also ask to validate by running locally once code review is done and there are no major issues
 
 </review_code>
 

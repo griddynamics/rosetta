@@ -2,8 +2,8 @@
 name: tech-specs
 description: "To define clear, testable tech specs from requirements — target-state architecture, contracts, interfaces."
 license: Apache-2.0
-disable-model-invocation: true
-user-invocable: false
+disable-model-invocation: false
+user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

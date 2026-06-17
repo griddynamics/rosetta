@@ -2,7 +2,7 @@
 name: coding-agents-prompt-authoring
 description: "To author, adapt, review, and validate prompts (skills, agents, workflows, rules, etc.) with brief, contracts, and a validation pack."
 license: Apache-2.0
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 argument-hint: request, existing-prompt?, constraints?, audience?
 model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high
