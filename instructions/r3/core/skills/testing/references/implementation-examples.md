@@ -144,7 +144,7 @@ UI test code matches the project's existing patterns exactly: import order (fram
 
 ## Selector mode — strategy and page-object mechanics
 
-### Part A — 4-tier selector strategy (preference order)
+### Part A (identify) — 4-tier selector strategy (preference order)
 
 | Tier | Strategy | Example (good) | Example (flag/avoid) |
 |---|---|---|---|
@@ -160,7 +160,7 @@ UI test code matches the project's existing patterns exactly: import order (fram
 
 **Flag any selector matching:** dynamic ids (`user-42-row-7`), non-unique classes (`.btn-primary` matching many elements), deep structural paths (>3 levels of `>` / `nth-child`), framework-generated class names (`MuiButton-root`, `css-1a2b3c4`).
 
-### Part B — implement selectors in page objects
+### Part B (implement) — selectors in page objects
 
 - **Extend existing:** read the file, match its exact patterns (access modifiers, data types, formatting, naming case). Add selectors in logical grouping; add helper methods (text getters, click/action, visibility checks) if the page object uses them.
 - **Create new:** use an existing page object as the structural template; copy constructor/import/class patterns exactly; follow project naming; add to barrel/index exports if used.

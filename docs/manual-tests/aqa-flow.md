@@ -2,28 +2,27 @@
 
 End-to-end smoke check for the UI / browser test-automation workflow
 (`aqa-flow.md`, 8 phases 1–8). Use for Playwright / Cypress / Selenium /
-WebdriverIO projects. Reflects the **consolidated** workflows: external data is
-pulled by the single `discovery` skill via config-resolved vendor bindings
-(`testrail` / `confluence`), not the old `mcp-*-data-collection` skills.
-Two shared skills now carry the cross-phase scaffolding — **`qa-structure`** (canonical
+WebdriverIO projects. External data is pulled by the single `discovery` skill via
+config-resolved vendor bindings (`testrail` / `confluence`). Two shared skills carry
+the cross-phase scaffolding — **`qa-structure`** (canonical
 paths, the `<test-name>` slug rules + page-sources contract, state-file shape) and
 **`qa-knowledge`** (failure taxonomy, redaction scope, and the per-phase artifact
 skeletons, `ACQUIRE`'d as assets at point of use). QA uses the same two.
 
 ## Prerequisites
 
-- [ ] Rosetta MCP loaded in the session
+- [ ] Rosetta plugin installed and active (plugin mode — the form under test)
 - [ ] Browser-automation MCP (e.g. Playwright MCP) available
 - [ ] Target repo has a test-runner configured (`npm test`, `pytest`, etc.)
 - [ ] `agents/plans/` writable
-- [ ] **Auth is optional** (see below). AQA never uses **Jira**; it reads test cases from **TestRail** (optional) and docs from **Confluence** (optional, degrades gracefully). For a full real run: TestRail and/or Confluence MCP authenticated.
+- [ ] **Auth is optional** (see below). AQA never uses **Jira**; it reads test cases from **TestRail** (optional) and docs from **Confluence** (optional; degrades to a recorded gap). For a full real run: TestRail and/or Confluence MCP authenticated.
 
 ## Auth-free / mock testing
 
-The `discovery` bindings only ever make *real* MCP calls or stop with a gap — they never fabricate. AQA already works with **no TMS/doc auth at all** via a direct case description. Two auth-free modes:
+The `discovery` bindings only ever make *real* MCP calls or stop with a gap — they never fabricate. AQA works with **no TMS/doc auth** via a direct case description. Two auth-free modes:
 
 - **Mode A — source out-of-scope / provided.** Leave `testrail_base_url` / `confluence_base_url` unset (`N/A`). Phase 1 resolves **`SKIPPED_NO_CONFIG`**, records the gap in `## Access / Truncation Notes`, and proceeds on the case/feature you describe in the trigger. (One of the trigger prompts is exactly this — direct description, no case ID.)
-- **Mode B — stub MCP (faithful canned data).** Point the TestRail/Confluence MCP at a local stub answering `mcp_testrail_*` / `confluence_*` with fixtures; the binding runs its full extract → normalize → redact → write path with zero real auth. Guardrails permit this (*"User can override (mocked data)"*).
+- **Mode B — stub MCP (canned data).** Point the TestRail/Confluence MCP at a local stub answering `mcp_testrail_*` / `confluence_*` with fixtures; the binding runs its full extract → normalize → redact → write path with zero real auth. Guardrails permit this (*"User can override (mocked data)"*).
 
 > Mode A validates the degradation path; Mode B exercises the real pull logic without credentials.
 
@@ -38,6 +37,12 @@ Add automation for login with invalid credentials. Use Playwright; follow IMPLEM
 ```
 Fix the failing test test_search_returns_results. Report at agents/user-instructions/last-run.html.
 ```
+```
+Automate the password-reset flow end-to-end with Cypress (no ticket — direct description: user requests a reset, opens the emailed link, sets a new password, logs in).
+```
+```
+Add a Playwright test that adds an item to the cart and asserts the cart-badge count. Confluence spec: https://your-org.atlassian.net/wiki/spaces/QA/pages/45678.
+```
 
 ## Per-phase quick checks
 
@@ -47,10 +52,10 @@ Fix the failing test test_search_returns_results. Report at agents/user-instruct
 | 2 — Requirements Clarification | **HITL** | Same plan file (`## Phase 2`) | `requirements-use` (gap_analysis mode), `questioning` | **`### Explicit Assertions`** present (typed: Presence / State / Content / Behavioral; one per bullet) — mandatory or the phase fails validation; workflow **paused** with questions; aggregate-cap fires if you decline most Criticals |
 | 3 — Code Analysis | — | `agents/plans/aqa-<test-name>-code-analysis.md` | `reverse-engineering` (test-arch mode), `sensitive-data` | All 9 sections (Framework/Standards · User Instructions · Frontend Analysis · Page Object Inventory · Similar Tests · Test-Location Decision · Reusable Utilities · Conflicts & Precedence · Coverage); test-location decision cites the ~400-line rule |
 | 4 — Selector Identification | conditional | Plan's `## Selector Management` (Part A) | `testing` (selector mode, Part A — read-only) | Interaction Map + Selector Availability (✅/❌/UNRESOLVABLE) + Identified Selectors (4-tier: `data-testid` > `id` > stable class/ARIA > XPath) + Fragile Selectors Flagged; **page sources captured** under `agents/plans/aqa-<test-name>-page-sources/` if any were ambiguous |
-| 5 — Selector Implementation | — | Modified page-object files + plan `### Implementation (Part B)` | `testing` (selector mode, Part B), `coding` (standards-first) | Selectors added to existing files where possible; new files only when justified; lint-clean; **no inline selectors in test code** |
-| 6 — Test Implementation | **HITL** | New/modified test file + plan `## Test Implementation` record | `testing` (UI impl mode), `coding` (standards-first) | Every Phase 2 assertion implemented OR listed in `### Uncovered Assertions` (no silent drop); lint passes; workflow **paused** for you to execute (phase does not run tests) |
+| 5 — Selector Implementation | — | Modified page-object files + plan `### Implementation (Part B)` | `testing` (selector mode, Part B), `coding` (general repo hygiene) | Selectors added to existing files where possible; new files only when justified; lint-clean; **no inline selectors in test code** |
+| 6 — Test Implementation | **HITL** | New/modified test file + plan `## Test Implementation` record | `testing` (UI impl mode), `coding` (repo conventions) | Every Phase 2 assertion implemented OR listed in `### Uncovered Assertions` (no silent drop); lint passes; workflow **paused** for you to execute (phase does not run tests) |
 | 7 — Test Report Analysis | **HITL** | `agents/plans/aqa-<test-name>-failure-analysis.md` | `debugging` (triage mode), `sensitive-data` | All 6 fields per failure (Failure name / Error type / Root cause / Evidence label / Evidence rationale / Recommendation), category from the 7-item UI taxonomy; **no source files modified by this phase** |
-| 8 — Test Corrections | **HITL** | Proposed Changes for each failure | `debugging`, `coding` (approved-apply mode) | Approval required per-change (exact token `approved`/`approve`/`yes`); **only test/page-object files modified**, never application source; iteration cap **3 cycles per change** |
+| 8 — Test Corrections | **HITL** | Proposed Changes for each failure | `debugging`, `coding` | Approval required per-change (exact token `approved`/`approve`/`yes`); **only test/page-object files modified**, never application source; iteration cap **3 cycles per change** |
 
 State file: `agents/aqa-state.md` (created by Phase 1 from the `qa-structure` `aqa-state-template` asset: `## Phase Completion Status` · `## Key Artifacts & Facts` · `## Verification-Failure Overrides`).
 
@@ -66,7 +71,7 @@ State file: `agents/aqa-state.md` (created by Phase 1 from the `qa-structure` `a
 | Mid-Phase 8 say *"apply Change 1 and Change 3, also clean up some imports"* | Cleanup refused (out of scope); Change 1 + Change 3 applied |
 | Page-sources directory missing in Phase 7 | Selector-category failures tagged `Unknown — page sources not available; would need the selector-identification phase re-run`; non-selector failures still analyzed |
 | Iteration 3 of the Phase 6→7→8 loop with failures remaining | `Phase 8 blocked: in-phase apply retry cap reached` (3 cycles/change) → escalate; no auto-start of a 4th cycle |
-| Simulate KB unavailable before Phase 7 redaction (the `redaction-scope` ACQUIRE returns zero) | **Fail-closed**: Phase 7 STOPs and reports — never emits an unscanned `failure-analysis.md`; an always-inline minimal token net still catches the obvious cases |
+| Simulate KB unavailable before Phase 7 redaction (the `redaction-scope` ACQUIRE returns zero) | **Fail-closed**: Phase 7 STOPs and reports — never emits an unscanned `failure-analysis.md` |
 
 ## Done when
 

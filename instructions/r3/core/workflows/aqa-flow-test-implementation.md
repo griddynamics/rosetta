@@ -19,13 +19,13 @@ Create the automated UI test integrating all page objects and assertions from th
 - Prerequisite: Phases 1-5 complete
 - HITL: must stop and wait for the user to execute the test (this phase does not run it)
 - Write boundary (single SSoT — referenced by other sections): writes ONLY test files (and the test plan's `## Test Implementation` record). NO edits to application source or page-object files — a missing selector/method routes back to Phase 5, never authored inline here.
-- Skills: `testing` (UI impl mode), `coding` (standards-first mode), `qa-structure` (`<test-name>` paths + AQA state shape), `qa-knowledge` (Test Implementation record)
+- Skills: `testing` (UI impl mode), `coding` (repo conventions), `qa-structure` (`<test-name>` paths + AQA state shape), `qa-knowledge` (Test Implementation record)
 </workflow_context>
 
 <implementation_handoff_contract>
 This phase OWNS the implement → validate-locally → hand-off-execution → update-state-without-closing contract. It is verified by `<validation_checklist>` independent of skill internals.
 
-- **Implement** — author the test via `testing` UI impl mode against the plan; use `coding` standards-first mode for repo conventions.
+- **Implement** — author the test via `testing` UI impl mode against the plan; use `coding` for repo conventions (read repo standards as authority; repo docs win).
 - **Validate locally** — lint/format clean on the touched test file; every Phase 2 assertion implemented OR recorded in the test plan's `### Uncovered Assertions` (silent drop forbidden).
 - **Hand off execution** — provide the exact project test-execution command; STOP and WAIT for the user to run it (`<stop_for_execution>`). The phase never executes the test itself.
 - **Update state without closing** — record outcome in `agents/aqa-state.md`, mark Phase 6 complete, set Phase 7 current; do NOT mark the overall AQA workflow COMPLETE.
@@ -41,13 +41,13 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 </phase_steps>
 
 <execute_implementation step="6.1" subagent="engineer" role="Test automation engineer">
-1. USE SKILL `coding` (standards-first mode) to read the repository standards as authority before authoring; repo docs beat model defaults.
+1. USE SKILL `coding` to read the repository standards as authority before authoring; repo docs beat model defaults.
 2. USE SKILL `testing` (UI impl mode) with the parent-supplied bindings: test plan path `plans/aqa-<test-name>.md`; write boundary = test files only (`<workflow_context>`); output record = the Test Implementation record, which the `engineer` MUST ACQUIRE from `qa-knowledge/assets/aqa-test-impl-record.md` FROM KB (per `<implementation_handoff_contract>`).
 3. Author the test using page-object methods only (no raw selectors in test code), proper waits, project assertion style. If a required selector or page-object method is missing, do NOT author it inline — stop and route back to Phase 5 (selector implementation).
 4. Record every plan assertion that cannot be implemented in the test plan's `### Uncovered Assertions` with the reason. Silent drop is forbidden.
 5. Validate locally: run the project lint/format command on the touched test file and resolve issues; emit the Test Implementation record.
 
-**Minimal test skeleton** (illustrative shape only — page-object methods, no raw selectors; adapt to the project's framework/language per `coding` standards-first):
+**Minimal test skeleton** (illustrative shape only — page-object methods, no raw selectors; adapt to the project's framework/language per `coding` repo conventions):
 
 ```typescript
 import { test, expect } from '@playwright/test';
@@ -114,5 +114,13 @@ test.describe('refund-happy-path', () => {
 - Test Implementation record appended to the test plan with all five subsections
 - User informed and execution command provided; Phase 6 marked complete without closing the AQA workflow
 </validation_checklist>
+
+<failure_handling>
+- **Missing test plan or Phase 2 assertions:** if `plans/aqa-<test-name>.md` is absent/empty or lacks the `### Explicit Assertions` subsection, stop Phase 6, record `Phase 6 blocked: missing test plan / Phase 2 assertions` in `agents/aqa-state.md`, and return to the producing phase.
+- **Missing page object or selector method** (required by the plan but not implemented in Phase 5): do NOT author it inline — stop, record `Phase 6 blocked: selector/page-object method missing — route to Phase 5` in `agents/aqa-state.md`, and return to Phase 5.
+- **`agents/aqa-state.md` missing or `<test-name>` slug unresolvable:** stop Phase 6, record the failure in chat output, ask the user to restore the state file; do not auto-recreate it and do not guess the slug.
+- **Lint failures that cannot be auto-fixed:** stop step 6.1 at validation, list the unfixable lint errors, ask the user whether to (a) edit manually, (b) suppress with project-approved overrides, or (c) abort Phase 6 to revisit the plan. Do not silently accept lint failures.
+- **Partial implementation:** if the test file is partly authored and the rest fails mid-run, record what was produced + what failed in `agents/aqa-state.md`, do not mark Phase 6 complete, and ask the user how to proceed (retry, narrow scope, or abort).
+</failure_handling>
 
 </aqa_flow_test_implementation>

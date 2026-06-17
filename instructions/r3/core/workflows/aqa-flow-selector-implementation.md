@@ -18,11 +18,11 @@ Add the selectors identified in Phase 4 to page objects, following project conve
 - Output: page objects extended/created with all required selectors; the Part B Implementation subsection recorded
 - Prerequisite: Phases 1-4 complete
 - Write boundary (single SSoT): writes ONLY page-object files (and the test plan's `## Selector Management` → Implementation subsection). No test files, fixtures, or frontend source.
-- Skills: `coding` (standards-first mode), `testing` (selector mode Part B), `qa-structure` (`<test-name>` paths + AQA state shape)
+- Skills: `coding` (general repo hygiene), `testing` (selector mode Part B), `qa-structure` (`<test-name>` paths + AQA state shape)
 </workflow_context>
 
 <skill_precedence>
-If repository general hygiene and the selector-mode page-object rules disagree: follow `testing` selector mode for selector locators, page-object accessor/getter/method conventions, and AQA-specific patterns; follow `coding` standards-first mode for general repo hygiene (formatting, shared helpers, import order) where it does not override those selector decisions. Repo docs win on general-hygiene conflicts.
+If repository general hygiene and the selector-mode page-object rules disagree: follow `testing` selector mode for selector locators, page-object accessor/getter/method conventions, and AQA-specific patterns; follow `coding` for general repo hygiene (formatting, shared helpers, import order) where it does not override those selector decisions. Repo docs win on general-hygiene conflicts.
 
 **Resolved example (positive):** repo standard prefers `camelCase` private helpers, but selector mode mandates `getSubmitButton()`-style accessors for elements touched by tests → use **`getSubmitButton()`** for page-object element access; keep **`camelCase`** for unrelated utilities (e.g. string builders) that are not selector accessors.
 
@@ -41,7 +41,7 @@ The Phase 4 Part A inventory (the test plan's `## Selector Management` section) 
 
 <execute_implementation step="5.1" subagent="engineer" role="Selector implementation specialist">
 1. Apply `<part_a_inventory_gate>` — stop if the Part A inventory is missing.
-2. USE SKILL `coding` (standards-first mode) to read the repository standards as authority for general hygiene before touching page objects; repo docs beat model defaults.
+2. USE SKILL `coding` to read the repository standards as authority for general hygiene before touching page objects; repo docs beat model defaults.
 3. USE SKILL `testing` (selector mode, Part B — implement) with the parent-supplied bindings: Part A inventory source = the test plan's `## Selector Management` section; write boundary = page-object files only (`<workflow_context>`); output = the Implementation subsection.
 4. Extend existing page objects (match existing patterns exactly: access modifiers, naming, formatting, helper-method shape) and create new ones as needed (use existing page objects as structural templates). Do not introduce new patterns from this workflow; resolve hygiene-vs-selector conflicts per `<skill_precedence>`.
 5. **Fragile-selector gate:** any selector Phase 4 flagged as fragile is NOT committed silently — replace it with a stable alternative agreed with the user, or surface it for explicit approval first. Record approval evidence in the Implementation subsection.

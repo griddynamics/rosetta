@@ -39,7 +39,7 @@ The phase supplies these paths to the skill; defaults apply when not configured:
 </input_contract>
 
 <code_analysis_report_contract>
-`aqa-<test-name>-code-analysis.md` is **tracked + downstream-fed** (consumed by page-object and test-authoring phases) — treat as **PUBLIC by default**; redact captured values BEFORE writing per `qa-knowledge/references/redaction-scope.md`, not after. The report's 9-section structure and the test-location decision rule are the asset `qa-knowledge/assets/code-analysis-report-template.md` (ACQUIRE FROM KB) — every section present (empty optional section says `not available — see Coverage section`).
+`aqa-<test-name>-code-analysis.md` is **tracked + downstream-fed** (consumed by page-object and test-authoring phases) — treat as **PUBLIC by default**; redact captured values BEFORE writing per `qa-knowledge/references/redaction-scope.md`, not after. **Pre-emit gate (MANDATORY): MUST ACQUIRE that reference FROM KB and run its grep list against the rendered artifact — emit is FORBIDDEN until the scan has run. Fail-closed: if the ACQUIRE returns zero documents (KB unavailable), STOP and report — never emit unscanned.** The report's 9-section structure and the test-location decision rule are the asset `qa-knowledge/assets/code-analysis-report-template.md` (ACQUIRE FROM KB) — every section present (empty optional section says `not available — see Coverage section`).
 
 After writing the report, update the test plan's `## Code Analysis` section with a one-paragraph summary linking to it — do NOT duplicate report contents into the plan. This is the **phase contract**, verified by `<validation_checklist>` independent of skill internals.
 </code_analysis_report_contract>
@@ -86,7 +86,7 @@ After writing the report, update the test plan's `## Code Analysis` section with
 - Test location decided as `add-to-existing` or `new-file` with rationale citing the asset's test-location decision rule
 - Coverage section (9) lists every optional input as `available` / `not available — <impact>` — no silent omission
 - Conflicts and Precedence section populated (conflicts with `repo docs won`, or `None — sources consistent.`)
-- Redaction scan ran via `sensitive-data` before writing
+- Redaction pre-emit gate ran — the `qa-knowledge/references/redaction-scope.md` grep list was executed against the rendered artifact before writing (fail-closed)
 - No source files modified outside the report and the test plan's `## Code Analysis` summary (read-only scope)
 - Report written to `plans/aqa-<test-name>-code-analysis.md` (`<test-name>` per `qa-structure` `aqa-layout`), non-empty; test plan summary added
 </validation_checklist>

@@ -15,7 +15,7 @@ Generate comprehensive test cases from the requirements document, covering all r
 - Phase 5 of 7 in `testgen-flow`
 - Input: `requirements.md` from Phase 4
 - Output: `test-scenarios.md` — test cases 
-- Skills: `scenarios-generation` (generation mode + config-resolved TMS FORMAT binding), `coding` (standards-first mode for any write outside the agents folder)
+- Skills: `scenarios-generation` (generation mode + config-resolved TMS FORMAT binding), `coding` (for any tracked write outside the agents folder; read repo standards as authority)
 - Prerequisite: Phase 0-4 complete with validated requirements
 </workflow_context>
 
@@ -32,11 +32,11 @@ Generate comprehensive test cases from the requirements document, covering all r
 </phase_steps>
 
 <scope_check step="5.0">
-**Path-scope gating** (runs before loading requirements so the agent knows whether `coding` standards-first mode is needed for any planned writes):
+**Path-scope gating** (runs before loading requirements so the agent knows whether `coding` is needed for any planned writes):
 1. List every planned output path for this phase.
 2. Check whether every path begins with `agents/testgen/{TICKET-KEY}/` (default flow: `test-scenarios.md` and the in-folder `requirements.md` traceability update in step 5.8).
-3. If yes: do **not** invoke `coding`. Record in `agents/testgen/{TICKET-KEY}/testgen-state.md`: `5.0 coding standards-first: skipped — writes scoped to agents/testgen/{TICKET-KEY}/`.
-4. If any path falls outside that folder: USE SKILL `coding` (standards-first mode) before any such write.
+3. If yes: do **not** invoke `coding`. Record in `agents/testgen/{TICKET-KEY}/testgen-state.md`: `5.0 coding: skipped — writes scoped to agents/testgen/{TICKET-KEY}/`.
+4. If any path falls outside that folder: USE SKILL `coding` before any such write (read repo standards as authority; repo docs win).
 </scope_check>
 
 <load_requirements step="5.1">

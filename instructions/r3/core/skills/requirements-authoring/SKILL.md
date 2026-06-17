@@ -372,7 +372,7 @@ HITL gates (use when):
 
 <synthesis>
 
-Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document — user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability. EMITS into the skeleton the calling phase ASSERTS; the phase owns the section contract and output path. All authoring rules above apply. Six per-requirement schemas + document wrapper + source-priority ladder → [references/authoring-catalogs.md](references/authoring-catalogs.md#synthesis-output-schemas-synthesis-mode) — load the active schema per step.
+Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document — user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability. Emit into the caller-supplied skeleton; the caller owns the section contract and output path. All authoring rules above apply. Six per-requirement schemas + document wrapper + source-priority ladder → [references/authoring-catalogs.md](references/authoring-catalogs.md#synthesis-output-schemas-synthesis-mode) — load the active schema per step.
 
 Synthesis-specific rules:
 
@@ -380,15 +380,10 @@ Synthesis-specific rules:
 - **Conflict resolution:** apply the source-priority ladder; unresolved → assumption with impact-if-wrong, listed under Risks when both sides share a tier.
 - **NFR threshold:** thresholdless NFRs move to assumptions-and-risks flagged. **One behavior per req:** split composite "A AND B" at synthesis time.
 - **Coverage discipline:** include only what sources specify; empty categories stay empty; no padding. **No verbatim copy-paste** — reshape into schema voice.
-- **Single-source flag:** primary-source-only → tag every derived assumption `Confidence: Single-source`. Produce the document even when answers/docs are missing — mark each missing-input gap as an explicit assumption. Redact before quoting (→ `<safety_boundaries>`).
+- **Single-source flag:** primary-source-only → tag every derived assumption `Confidence: Single-source`. Produce the document even when answers/docs are missing — mark each missing-input gap as an explicit assumption.
+- **Redaction:** treat the draft as PUBLIC (version-tracked, downstream-fed) — redact credentials/tokens/keys and PII before quoting source content (placeholders/synthetic values), flag each redaction inline, never infer redacted content; structural content (paths, methods, status codes, field names) is safe. USE SKILL `sensitive-data` (canonical authority).
 
 </synthesis>
-
-<safety_boundaries>
-
-The requirements document is DRAFT, version-tracked, downstream-fed — treat output as PUBLIC by default. Redact credentials/tokens/keys and PII before quoting source content (placeholders or synthetic values); flag each redaction inline; never infer redacted content. Structural content (paths, methods, status codes, field names) is safe. Canonical authority → USE SKILL `sensitive-data`.
-
-</safety_boundaries>
 
 <validation_rules>
 
@@ -490,7 +485,7 @@ The requirements document is DRAFT, version-tracked, downstream-fed — treat ou
 - Add scope without explicit approval
 - Skip boundary and failure scenarios
 - Treat requirement groupings as mere organization when they are requirements themselves
-- `<synthesis>`: verbatim source copy-paste, implementation detail in user stories, subjective/non-testable acceptance criteria, or padding empty categories
+- `<synthesis>`: implementation detail in user stories, or subjective/non-testable acceptance criteria
 
 </pitfalls>
 

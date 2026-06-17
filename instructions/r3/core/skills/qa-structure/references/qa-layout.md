@@ -5,7 +5,7 @@ description: QA (backend API) canonical session paths, {IDENTIFIER} derivation, 
 
 <qa-layout>
 
-QA (backend API) canonical paths — created/seeded at Phase 0, reused verbatim downstream:
+QA (backend API) canonical paths — created/seeded at the project-config-loading phase, reused verbatim downstream:
 
 ```
 agents/qa-state.md                       (workflow state file — one per QA project)
@@ -20,6 +20,6 @@ agents/qa/{IDENTIFIER}/initial-data.md   (this run's handoff artifact)
 
 **Underivable guard:** if none of the three sources yields a value — or the result cannot be reduced to a valid slug even after one user attempt — stop, record the gap in `agents/qa-state.md`, and ask the user once; never fabricate or guess a `{IDENTIFIER}`.
 
-**State file `agents/qa-state.md`:** header (Last Updated / Current Phase 0-7 / Test Case Source / Feature / API Base URL) + 8-row `## Phase Completion Status` + per-phase append blocks. Seed skeleton is kept inline in `qa-flow-project-config-loading.md` (Phase 0, step 0.1) — tiny + always-needed, so not a separate asset. Each phase appends only its own delta.
+**State file `agents/qa-state.md`:** header (Last Updated / Current Phase 0-7 / Test Case Source / Feature / API Base URL) + 8-row `## Phase Completion Status` + per-phase append blocks. Seed skeleton is kept inline in `qa-flow-project-config-loading.md` (project-config-loading phase, step 0.1) — tiny + always-needed, so not a separate asset. Each phase appends only its own delta.
 
 </qa-layout>

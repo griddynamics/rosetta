@@ -7,7 +7,7 @@ disable-model-invocation: false
 user-invocable: true
 argument-hint: feature-name plan-name
 allowed-tools: Bash(npx:*)
-model: claude-sonnet-4-6, gpt-5.5, gemini-3.1-pro
+model: claude-sonnet-4-6
 tags:
   - operation-manager
   - operation-manager-create
@@ -31,30 +31,11 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 
 <core_concepts>
 
-- Mechanism selection (tier the UNIVERSAL path first): the built-in todo-task fallback ACQUIRE `todo-tasks-fallback.md` FROM KB is agent-agnostic and works on every coding agent — it is the universal baseline. Preferred-when-available opt-in (both require Node.js): `rosettify` MCP if already available, else the CLI `npx rosettify@latest <command> <subcommand> <plan_file>` (on Claude Code needs the `allowed-tools: Bash(npx:*)` grant). Use an opt-in only when its prerequisites are met; otherwise fall back to the universal `todo-tasks-fallback.md`.
+- Try `rosettify` MCP first (if already available), fallback to CLI: `npx rosettify@latest <command> <subcommand> <plan_file`>, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB.
 - Always use full absolute paths for the plan file
 - Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`
 - Help: `npx rosettify@latest help plan` provides full help JSON
-- Resume behavior: `next` returns four groups: (1) in_progress steps (resume=true), (2) open eligible steps, (3) blocked steps (previously_blocked=true), (4) failed steps (previously_failed=true). **Canonical `next` output shape** (one concrete example so subagents do not have to infer field names; covers all four step groups + `count`/`plan_status`):
-
-  ```json
-  {
-    "count": 3,
-    "plan_status": "in_progress",
-    "in_progress": [
-      { "step_id": "ph-1-step-2", "phase_id": "ph-1", "resume": true, "prompt": "..." }
-    ],
-    "open": [
-      { "step_id": "ph-1-step-3", "phase_id": "ph-1", "prompt": "..." }
-    ],
-    "blocked": [
-      { "step_id": "ph-1-step-4", "phase_id": "ph-1", "previously_blocked": true, "blocked_reason": "...", "prompt": "..." }
-    ],
-    "failed": []
-  }
-  ```
-
-  Phase-complete shape: `{ "count": 0, "plan_status": "complete", "in_progress": [], "open": [], "blocked": [], "failed": [] }` — branch to step 4 of the subagent flow.
+- Resume behavior: `next` returns four groups: (1) in_progress steps (resume=true), (2) open eligible steps, (3) blocked steps (previously_blocked=true), (4) failed steps (previously_failed=true)
 - Phases are sequential: steps from a later phase do not appear until all steps in earlier phases are complete
 - Status propagation: bottom-up only (steps -> phases -> plan); plan root status is always derived, never set directly
 - `upsert` silently ignores status fields in patch -- only `update_status` modifies status
@@ -62,8 +43,6 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 </core_concepts>
 
 <process>
-
-**Self-select your flow:** if you ARE the orchestrator (you spawn/delegate phases) → Orchestrator flow below; if you are a subagent executing one assigned phase → Subagent flow below. Run exactly one.
 
 **Orchestrator flow:**
 

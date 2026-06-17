@@ -20,7 +20,7 @@ Identify missing UI selectors from frontend source code or page-source HTML and 
 - HITL: conditional — only if frontend code is unavailable or selectors are not found
 - Read-only scope (single SSoT): identify only. NO writes to page objects, test files, or frontend source.
 - Paths + `<test-name>` slug resolution + the page-sources capture path/naming contract are owned by `qa-structure` `aqa-layout`.
-- Skills: `testing` (selector mode Part A — read-only identification), `qa-structure` (`<test-name>` + page-sources path), `qa-knowledge` (page-source capture asset)
+- Skills: `testing` (selector mode Part A — read-only identification), `qa-structure` (`<test-name>` + page-sources path), `qa-knowledge` (page-source capture asset), `sensitive-data` (page-source redaction)
 </workflow_context>
 
 <failure_handling>
@@ -64,7 +64,9 @@ The capture protocol is **user-facing instruction** — the `testing` skill decl
 
 3. **STOP AND WAIT** for the user to add the page-source files. Acceptable resumption signals: the user replies with "captured" + the filename list, OR the user replies with a single filename and a "more coming" signal (partial-resumption allowed once the user confirms the rest).
 
-4. Verify the files exist at `plans/aqa-<test-name>-page-sources/` with the kebab-case naming (`<page-name>.html`). If any file is missing, malformed, or saved with the wrong name, ask the user once for a corrected filename or content; do NOT proceed to selector analysis on incomplete page-source coverage. Then continue Part A analysis.
+4. Verify the files exist at `plans/aqa-<test-name>-page-sources/` with the kebab-case naming (`<page-name>.html`). If any file is missing, malformed, or saved with the wrong name, ask the user once for a corrected filename or content; do NOT proceed to selector analysis on incomplete page-source coverage.
+
+5. **Redaction pre-emit gate (MANDATORY, fail-closed):** authenticated page-source HTML routinely embeds session/CSRF tokens and PII. Before reading or referencing any captured file, MUST ACQUIRE `qa-knowledge/references/redaction-scope.md` FROM KB and run its grep list against every saved page-source file, redacting in place via `sensitive-data` — selector analysis and any reference to page-source content are FORBIDDEN until the scan has run. Fail-closed: if the ACQUIRE returns zero documents (KB unavailable), STOP and report — never read unscanned page source. Then continue Part A analysis.
 
 </handle_page_source>
 
@@ -87,6 +89,7 @@ The capture protocol is **user-facing instruction** — the `testing` skill decl
 - Missing selectors identified from page source (if needed); page sources validated against the `qa-structure` `aqa-layout` page-sources contract or stopped per `<handle_page_source>`
 - Selector strategy documented; fragile selectors flagged with reason + recommendation
 - No page objects, test files, or frontend source modified (read-only scope)
+- Redaction pre-emit gate ran on captured page sources — `qa-knowledge/references/redaction-scope.md` grep list executed (fail-closed) before any page-source content was read or referenced; no literal tokens/PII remain
 </validation_checklist>
 
 </aqa_flow_selector_identification>

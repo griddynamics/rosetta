@@ -19,13 +19,13 @@ Implement all approved API test specifications as executable automated tests wit
 - Prerequisite: Phase 4 complete with recorded user approval of the specs
 - HITL: must stop and wait for the user to execute the tests (this phase does not run them)
 - Write boundary (single SSoT — referenced by other sections): writes test files + shared test-utility files only; synthetic data only — no hardcoded credentials, URLs, or production data.
-- Skills: `testing` (API impl mode), `coding` (standards-first mode), `qa-structure` (`{IDENTIFIER}` + artifact path), `qa-knowledge` (hand-off record fields)
+- Skills: `testing` (API impl mode), `coding` (repo conventions), `qa-structure` (`{IDENTIFIER}` + artifact path), `qa-knowledge` (hand-off record fields)
 </workflow_context>
 
 <implementation_handoff_contract>
 This phase OWNS the implement → validate-locally → hand-off-execution → update-state-without-closing contract. Verified by `<validation_checklist>` independent of skill internals.
 
-- **Implement** — author tests + shared utilities via `testing` API impl mode against the approved specs; use `coding` standards-first mode for repo conventions.
+- **Implement** — author tests + shared utilities via `testing` API impl mode against the approved specs; use `coding` for repo conventions (read repo standards as authority; repo docs win).
 - **Validate locally** — lint/format clean on touched files; every ATC implemented OR surfaced as a Gap (no silent ATC drop); tests isolated + idempotent; test-data lifecycle (create + cleanup) verified.
 - **Hand off execution** — provide the exact project test-execution command; STOP and WAIT for the user to run it (`<stop_for_execution>`). The phase never executes the tests itself.
 - **Update state without closing** — record outcome in `agents/qa-state.md`, mark Phase 5 complete, set Phase 6 current; do NOT mark the overall QA workflow COMPLETE.
@@ -42,7 +42,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 
 <execute_implementation step="5.1" subagent="engineer" role="Test automation engineer">
 1. GATE: confirm `agents/qa/{IDENTIFIER}/test-specs.md` exists, is non-empty, and `User Approval` is set in `agents/qa-state.md`; confirm `api-analysis.md` and discoverable existing patterns are present. On any failure apply `<failure_handling>` — never author from unapproved or incomplete inputs.
-2. USE SKILL `coding` (standards-first mode) to read the repository standards as authority before authoring; repo docs beat model defaults.
+2. USE SKILL `coding` to read the repository standards as authority before authoring; repo docs beat model defaults.
 3. USE SKILL `testing` (API impl mode) with the parent-supplied bindings: approved-specs path + the recorded approval signal; API-contract path; existing-patterns source; write boundary = test + shared-utility files only (`<workflow_context>`); output = the hand-off summary fields, which the `engineer` MUST ACQUIRE from `qa-knowledge/assets/qa-test-impl-record.md` FROM KB (per `<implementation_handoff_contract>`).
 4. Implement shared utilities (auth helper, data factory, response validator) — prefer EXTENDING existing helpers over parallel ones; record any extension. Every test name/docstring carries its ATC-NNN id.
 5. Record assumptions as `[ASSUMED: <field>=<value>]` (code + summary) and surface any unimplementable ATC as a Gap — no silent ATC drop.

@@ -20,7 +20,6 @@ Use when implementing features, bug fixes, refactors, or any code changes includ
 <core_concepts>
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- Principles and validation methodology below are canonical — single source of truth; other sections reference, do not restate
 
 Principles:
 
@@ -70,15 +69,6 @@ Validation methodology:
 
 </files>
 
-<implementation_modes>
-
-Two named coding-discipline modes the calling workflow PHASE binds to. The PHASE is SSoT for the in-scope file set, artifact paths, approval-token set, proposed-change template, root-cause source, and iteration cap, and owns the step sequence; this skill applies the discipline below against those bindings — it does not restate the phase's procedure, approval vocabulary, or root-cause analysis.
-
-- **standards-first mode** — before authoring/extending code, read the repository's OWN standards as authority: root canonical docs when present + the closest existing examples in the same framework/layer; repo docs beat model defaults on every conflict (surface + record conflicts); record reference paths (≤6, no large quotes) + extracted rules into the phase artifact. GATE: no readable standards → stop and ask for substitutes; never proceed on model defaults.
-- **approved-apply mode** — prepare each fix as a minimal before/after proposal in the phase's template (present, do NOT write); WAIT for explicit approval per the phase's bound token set (never infer from "looks good"/silence/a question); apply approved changes one at a time with lint after each (lint failure → revert/re-prepare, never leave a file broken); honor the in-scope file set + iteration cap; hand off re-verification (exact re-run command; update state without closing the workflow). Each edit's root-cause alignment is sequenced by the workflow's debugging step before apply — not performed here.
-
-</implementation_modes>
-
 <validation_checklist>
 
 - Code compiles without errors or warnings
@@ -87,8 +77,6 @@ Two named coding-discipline modes the calling workflow PHASE binds to. The PHASE
 - No mock/stub/fake data in dev or prod code paths
 - Files stay under 300 LOC
 - Impact analysis performed for affected methods and areas
-- standards-first mode: at least one repo doc read (or user-confirmed substitute); reference example paths + extracted rules recorded; doc-vs-code conflicts surfaced and resolved
-- approved-apply mode: every applied change had explicit approval per the phase's token set; before/after evidence exists; only in-scope files touched; lint clean (or failure resolved); re-run instruction given; state updated without closing the workflow
 
 </validation_checklist>
 
@@ -117,9 +105,7 @@ Two named coding-discipline modes the calling workflow PHASE binds to. The PHASE
 - MCP `Chrome-DevTools` — browser debugging and inspection
 - MCP `GitNexus` — codebase knowledge graph
 - MCP `Serena` — semantic code retrieval at symbol level
-- skill `debugging` — root-cause analysis (the workflow sequences it before approved-apply; not invoked from here)
-- skill `hitl` — approval-gate authority for approved-apply mode (not restated here)
-- skill `testing` — test quality bar when implementing/extending tests
+- skill `debugging` — for issues during implementation
 - skill `planning` — for implementation planning
 - skill `tech-specs` — for technical specifications
 

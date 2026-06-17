@@ -19,7 +19,7 @@ Fix identified API test failures based on the Phase 6 execution report. Prepares
 - Prerequisite: Phase 6 complete
 - HITL: explicit user approval required before applying any change (a domain-specific specialization of `hitl`)
 - In-scope file set (single SSoT): test files + shared test-utility files only. Writes outside this set are refused and escalated.
-- Skills: `coding` (approved-apply mode), `debugging` (root-cause alignment), `qa-knowledge` (proposed-change approval block + correction discipline)
+- Skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `qa-knowledge` (proposed-change approval block + correction discipline)
 </workflow_context>
 
 <correction_contract>
@@ -36,7 +36,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 <execute_corrections step="7.1" subagent="engineer" role="Test correction engineer">
 **Preparation-only:** nothing in this block modifies workspace files until step 7.3 after explicit approval in 7.2. "Preparation-only" means proposed edits paired with before/after evidence — no writes to test or product source files.
 1. USE SKILL `debugging` to align each proposed edit with a confirmed Phase 6 root cause (no symptom-only fixes).
-2. USE SKILL `coding` (approved-apply mode). Bindings grouped by owner: proposed-change source = `agents/qa/{IDENTIFIER}/execution-report.md`; proposed-change template + state file + iteration cap + loop target = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 7.2.
+2. USE SKILL `coding` to author each proposed edit (preparation-only — before/after evidence, no writes). The present → approve → apply discipline is owned by this phase: `<present_for_approval>` (7.2) + `<apply_changes>` (7.3). Bindings grouped by owner: proposed-change source = `agents/qa/{IDENTIFIER}/execution-report.md`; proposed-change template + state file + iteration cap + loop target = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 7.2.
 3. Produce one Proposed Change record per fix per the `<correction_contract>` template, citing the matching execution-report entry id (e.g. `ERR-3`). Do NOT apply anything yet.
 </execute_corrections>
 

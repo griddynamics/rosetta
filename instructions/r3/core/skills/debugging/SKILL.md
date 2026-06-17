@@ -22,8 +22,8 @@ Use when encountering errors, test failures, unexpected behavior, or when a prev
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - ALWAYS find root cause before attempting fixes; symptom fixes are failure
 - Make implicit become explicit — incorrect assumptions hide root causes
-- Evidence label per cause — `Confirmed` (both sides cited) | `Assumption` (partial; state the missing evidence) | `Unknown` (none; state what is needed); the weaker label wins ties (canonical — single source of truth; other sections reference, do not restate)
-- Redaction of captured logs, requests, responses, or page sources → USE SKILL `sensitive-data` (canonical authority — not restated here)
+- Evidence label per cause — `Confirmed` (both sides cited) | `Assumption` (partial; state the missing evidence) | `Unknown` (none; state what is needed); the weaker label wins ties
+- Redaction of captured logs, requests, responses, or page sources → USE SKILL `sensitive-data` (canonical authority)
 - Execute phases sequentially
 
 For each issue provide:
@@ -77,13 +77,13 @@ BEFORE attempting ANY fix:
 
 <test_execution_triage>
 
-Read-only triage of an automated-test execution report. The calling workflow phase is the SSoT for three bindings it supplies: the report path, the failure-category taxonomy to use, and the output-artifact contract.
+Read-only triage of an automated-test execution report. The caller supplies three bindings: the report path, the failure-category taxonomy to use, and the output-artifact contract.
 
 1. Parse the report — per-test status, error message, stack trace, duration, and captured artifacts (screenshots, page source, request/response).
-2. Categorize each failure into exactly one category from the phase-supplied taxonomy (most-proximate cause).
+2. Categorize each failure into exactly one category from the supplied taxonomy (most-proximate cause).
 3. For element/selector errors analyze the captured page source; for response/assertion errors analyze the captured request/response. No capture available → label the cause `Unknown` and state the capture needed.
 4. Identify cross-failure patterns — shared cause, setup cascade, environment-wide, category skew — and prioritize Critical/High/Medium/Low.
-5. Label each cause's evidence strength (→ `<core_concepts>`) and write findings into the phase's output artifact, redacted (→ `<core_concepts>`).
+5. Label each cause's evidence strength (→ `<core_concepts>`) and write findings into the caller's output artifact, redacted (→ `<core_concepts>`).
 
 GATE: read-only. Proposing or applying fixes is a separate correction phase — USE SKILL `coding`.
 

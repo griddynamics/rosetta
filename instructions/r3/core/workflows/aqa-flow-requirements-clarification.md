@@ -78,4 +78,10 @@ Fill gaps in understanding, clarify unknowns, and transcribe the typed assertion
 - **`### Explicit Assertions` subsection present per step 2.4** (canonical typed format + per-bullet granularity + None-clause for the zero-assertion case). Absence of the section is not acceptable.
 </validation_checklist>
 
+<failure_handling>
+- **Missing prerequisite artifact** (`plans/aqa-<test-name>.md` from Phase 1 absent or empty): stop Phase 2, record `Phase 2 blocked: missing test plan` in `agents/aqa-state.md`, and ask the user to re-run Phase 1.
+- **Zero-doc ACQUIRE** for any of `requirements-use`, `questioning`, or the `qa-knowledge/assets/aqa-clarification-templates.md` asset: apply the parent `aqa-flow.md` zero-doc rule (stop, record in `agents/aqa-state.md`, ask the user); do NOT author gap entries, questions, or the typed assertion list from memory.
+- **HITL stall** (user unresponsive on a Critical question — distinct from the answered/declined branches in `<wait_for_user>` step 2.3): do **not** auto-promote to assumption. Record `Phase 2 blocked: user-unresponsive on Critical question(s)` in `agents/aqa-state.md` and pause; do not advance to Phase 3 silently. Resume only after the user answers, explicitly approves proceeding, or downgrades the question.
+</failure_handling>
+
 </aqa_flow_requirements_clarification>

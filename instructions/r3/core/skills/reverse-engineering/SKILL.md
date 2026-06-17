@@ -64,18 +64,18 @@ Senior systems analyst and domain architect. You think in state machines, not st
 
 <analysis_modes>
 
-Two specialized modes apply the general method (`<core_concepts>`, `<rules>`) to a concrete target. Each mode EMITS findings into the artifact the calling workflow phase ASSERTS — the phase owns the report sections, output path, taxonomy, and validation contract; this skill never invents the artifact shape or path. When captured source/spec/request/response values are written, redact first → USE SKILL `sensitive-data` (canonical authority — not restated here).
+Two specialized modes apply the general method (`<core_concepts>`, `<rules>`) to a concrete target. Each mode EMITS findings into the caller-supplied artifact — the caller owns the report sections, output path, taxonomy, and validation contract; this skill never invents the artifact shape or path. When captured source/spec/request/response values are written, redact first → USE SKILL `sensitive-data` (canonical authority).
 
 **Mode: test-automation architecture analysis.** Map an existing test-automation project to inform NEW test implementation — read-only, analysis only.
 - Map the territory (core-concept 9) over the test stack: framework + language, project structure (test / page-object / utility / fixture dirs), coding standards and test patterns (AAA, Given-When-Then, setup/teardown), and any captured user-instructions or repo architecture docs.
 - Inventory reusable assets: page objects (what each represents, selectors, methods, reuse-vs-extend-vs-new), similar existing tests (structure, imports, assertion style), shared utilities (login/nav/data helpers, custom matchers, generators).
-- Inform the implementation decision the phase asks for (e.g. test location: add-to-existing vs new-file) by citing the phase-supplied rule; never decide the artifact's section list yourself.
-- Epistemic honesty: every optional input (user-instructions, frontend source, repo docs) is recorded as `available` or `not available — <impact>` in the phase's coverage section. Silent omission is forbidden — downstream phases misread missing-data as no-issues. On source conflict, authoritative repo docs win; record the conflict, never silently overwrite.
+- Inform the implementation decision the caller asks for (e.g. test location: add-to-existing vs new-file) by citing the caller-supplied rule; never decide the artifact's section list yourself.
+- Epistemic honesty: every optional input (user-instructions, frontend source, repo docs) is recorded as `available` or `not available — <impact>` in the caller's coverage section. Silent omission is forbidden — downstream phases misread missing-data as no-issues. On source conflict, authoritative repo docs win; record the conflict, never silently overwrite.
 
-**Mode: API-contract extraction.** Recover endpoint contracts from a Swagger/OpenAPI spec OR backend route definitions for a phase-supplied target-endpoint list.
-- GATE: a non-empty target-endpoint list AND at least one spec/source path must be supplied by the phase. Empty/absent → stop and report back; never scan the whole codebase as a silent fallback, never fabricate the target set.
+**Mode: API-contract extraction.** Recover endpoint contracts from a Swagger/OpenAPI spec OR backend route definitions for a caller-supplied target-endpoint list.
+- GATE: a non-empty target-endpoint list AND at least one spec/source path must be supplied by the caller. Empty/absent → stop and report back; never scan the whole codebase as a silent fallback, never fabricate the target set.
 - Locate the contract source in priority order: spec URL/file → Swagger-in-source (`swagger.json`, `openapi.yaml`, `@ApiOperation`, SpringDoc/Swashbuckle config) → framework route definitions (Express `router.*`, Spring `@*Mapping`, FastAPI/Flask decorators, .NET `[Http*]`). None found for a target → flag it back as a gap with reason; never invent an entry.
-- Per endpoint EMIT into the phase's per-endpoint template: parameters, request/response schemas + status codes, auth (mechanism / scopes / public), data dependencies (preconditions, side effects, idempotency), source citations (Swagger JSONPath AND/OR code `file:line`).
+- Per endpoint EMIT into the caller's per-endpoint template: parameters, request/response schemas + status codes, auth (mechanism / scopes / public), data dependencies (preconditions, side effects, idempotency), source citations (Swagger JSONPath AND/OR code `file:line`).
 - Reconcile: when BOTH spec and code are read, cross-check and record mismatches in the entry's discrepancies field (explicit `None.` if reconciled clean). Coverage is canonical: every target endpoint gets an entry OR a flagged gap — no silent drop.
 
 </analysis_modes>

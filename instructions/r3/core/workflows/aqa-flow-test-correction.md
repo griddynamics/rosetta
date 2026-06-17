@@ -19,7 +19,7 @@ Fix identified test failures based on the Phase 7 failure analysis. Prepares pro
 - Prerequisite: Phase 7 complete
 - HITL: explicit user approval required before applying any change (a domain-specific specialization of `hitl`)
 - In-scope file set (single SSoT): test files only (and page-object files if the Phase 7 analysis identifies a selector fix). Writes outside this set are refused and escalated.
-- Skills: `coding` (approved-apply mode), `debugging` (root-cause alignment), `qa-knowledge` (proposed-change approval block + correction discipline)
+- Skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `qa-knowledge` (proposed-change approval block + correction discipline)
 </workflow_context>
 
 <correction_contract>
@@ -36,7 +36,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 <execute_corrections step="8.1" subagent="engineer" role="Test correction engineer">
 **Guardrail:** all of step 8.1 is preparation-only; file writes are forbidden until step 8.3. "Preparation-only" means proposed edits paired with before/after evidence — no writes to test, page-object, or product source files.
 1. USE SKILL `debugging` to align each proposed edit with a confirmed Phase 7 root cause (no symptom-only fixes).
-2. USE SKILL `coding` (approved-apply mode) with the parent-supplied bindings: proposed-change source = `plans/aqa-<test-name>-failure-analysis.md`; proposed-change template = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 8.2; state file = `agents/aqa-state.md`; iteration cap = `<correction_contract>`; loop target = Phase 7.
+2. USE SKILL `coding` to author each proposed edit (preparation-only — before/after evidence, no writes). The present → approve → apply discipline is owned by this phase: `<present_for_approval>` (8.2) + `<apply_changes>` (8.3). Bindings: proposed-change source = `plans/aqa-<test-name>-failure-analysis.md`; proposed-change template = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 8.2; state file = `agents/aqa-state.md`; iteration cap = `<correction_contract>`; loop target = Phase 7.
 3. Produce one Proposed Change record per fix per the `<correction_contract>` template. Do NOT apply anything yet.
 </execute_corrections>
 
@@ -74,5 +74,12 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 - Changes address identified root causes; iteration cap honored, escalation recorded if reached
 - State updated without auto-looping; re-run instruction provided
 </validation_checklist>
+
+<failure_handling>
+- **Phase 7 analysis absent/empty:** if `plans/aqa-<test-name>-failure-analysis.md` does not exist or has no failure entries, stop Phase 8, record `Phase 8 blocked: Phase 7 failure analysis missing/empty` in `agents/aqa-state.md`, and return to Phase 7 — never fabricate proposed changes against a missing analysis.
+- **`agents/aqa-state.md` missing or `<test-name>` slug unresolvable:** stop Phase 8, record the failure in chat output, ask the user to restore the state file; do not auto-recreate it and do not guess the slug (every input/output path depends on it).
+- **Approval-gate or proposed-change asset ACQUIRE returns zero documents** (step 8.2): stop — do NOT present a correction block or run the approval gate from memory. Report the failed ACQUIRE and ask the user to fix Rosetta/KB access.
+- **No change maps to a confirmed root cause:** if `debugging` (step 8.1.1) cannot align a proposed edit to a confirmed Phase 7 root cause, do not propose it; record the unmapped failure and return to Phase 7 for deeper analysis rather than applying a symptom-only fix.
+</failure_handling>
 
 </aqa_flow_test_correction>
