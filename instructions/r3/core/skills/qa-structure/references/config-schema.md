@@ -11,9 +11,9 @@ SSoT for the QA project-config field schema. The project-config-loading phase is
 
 | Section / Key | Consumed by | Required value or accepted N/A reason |
 |---|---|---|
-| `Document Storage` — `documentation_type` | `qa-flow-documentation-mcp-subflow.md` (data-collection phase) | One of: `confluence` / `google-drive` / `local` / `none`. `N/A` only when `none`. |
-| `Document Storage` — `documentation_mcp_collection_skill` | documentation subflow step 1 (resolved vendor binding) | Vendor binding (e.g. the `discovery` confluence binding) or `N/A — documentation_type: none` |
-| `Document Storage` — `confluence_base_url` / `documentation_base_url` | documentation subflow scope detection | Base URL or `N/A — documentation_type: <non-confluence-value>` |
+| `Document Storage` — `documentation_type` | `qa-flow-data-collection.md` (step 1.2b) | One of: `confluence` / `google-drive` / `local` / `none`. `N/A` only when `none`. |
+| `Document Storage` — `documentation_mcp_collection_skill` | `qa-flow-data-collection.md` step 1.2b (resolved vendor binding) | Vendor binding (e.g. the `discovery` confluence binding) or `N/A — documentation_type: none` |
+| `Document Storage` — `confluence_base_url` / `documentation_base_url` | `qa-flow-data-collection.md` step 1.2b (scope detection) | Base URL or `N/A — documentation_type: <non-confluence-value>` |
 | `API Specification` — `swagger_url` (or path) | `qa-flow-api-spec-analysis.md` step 2.1 | URL/path, or `N/A — no Swagger spec available; code-based analysis will run` |
 | `API Specification` — `spec_format` | `qa-flow-api-spec-analysis.md` step 2.1 | One of: `OpenAPI 3.x` / `Swagger 2.0` / `N/A` |
 | `Backend Source Code` — `backend_source_path` | data-collection phase, `qa-flow-api-spec-analysis.md` step 2.1 | Path (e.g. `RefSrc/my-backend/` or `src/`) or `N/A — work from Swagger/docs only` |

@@ -96,8 +96,8 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 2. Execute phase instructions.
 3. Input: requirements.md. Output: `agents/testgen/{TICKET-KEY}/test-scenarios.md`
 4. **WAIT FOR USER** to review `test-scenarios.md` before Phase 6 export (phase-file gate, step 5.9) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
-5. Recommended skills: `scenarios-generation`, `coding`
-6. Apply `coding` per `<phase_5_6_standards_gate>`.
+5. Recommended skills: `scenarios-generation`.
+6. `coding` is NOT used for the default manual-scenario output (writes stay under `agents/testgen/{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder, per `<phase_5_6_standards_gate>`.
 7. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </test_case_generation>
@@ -108,8 +108,8 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 2. Execute phase instructions.
 3. Input: test-scenarios.md. Output: test cases exported to Test Management System **and** a local export receipt at `agents/testgen/{TICKET-KEY}/export-report.md` (TMS IDs/URLs, per-case status, timestamp). The local receipt is the on-disk evidence Phase 6 ran successfully.
 4. **WAIT FOR USER** to provide target location and confirm export.
-5. Recommended skills: `scenarios-generation`, `coding`
-6. Apply `coding` per `<phase_5_6_standards_gate>`.
+5. Recommended skills: `scenarios-generation`.
+6. `coding` is NOT used for the default flow (TMS export + receipt under `agents/testgen/{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder (e.g. embedding TMS IDs into a version-controlled file), per `<phase_5_6_standards_gate>`.
 7. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </test_case_export>
@@ -148,9 +148,10 @@ Subagents:
 
 Skills:
 - `questioning`, `requirements-authoring`, `scenarios-generation`
-- `orchestrator-contract`, `coding`
+- `orchestrator-contract`, `hitl`
 - `discovery`
 - `requirements-use`
+- `coding` (conditional — only for writes to tracked repo files outside `agents/testgen/{TICKET-KEY}/`, per `<phase_5_6_standards_gate>`)
 
 MCPs:
 - `Atlassian Jira` — ticket data extraction

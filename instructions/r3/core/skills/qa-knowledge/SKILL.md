@@ -19,7 +19,7 @@ Activate inside any QA or AQA flow phase that authors, analyzes, or corrects tes
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - This skill carries only QA/AQA-specific conventions; generic collection, analysis, authoring, triage, and redaction mechanics are owned by the phase's other loaded skills and are not restated here.
 - Load only what the current step needs: artifact skeletons are assets, ACQUIRE'd at point of use; flow-specific conventions are references — see `<resources>`.
-- Shared discipline (both flows): the proposed-change approval template, the test-implementation record, and redaction scope are single assets/references reused by QA and AQA alike — the calling phase supplies only flow-specific parameters (change-type enum, root-cause reference, loop target, state-file path).
+- Shared discipline (both flows): the proposed-change approval template (`proposed-change-template.md`) and redaction scope (`redaction-scope.md`) are single assets/references reused by QA and AQA alike — for the approval template the calling phase supplies only flow-specific parameters (change-type enum, root-cause reference, loop target, state-file path). The test-implementation record is **flow-specific**, NOT shared: two separate assets — `qa-test-impl-record.md` (QA, API hand-off) and `aqa-test-impl-record.md` (AQA, UI hand-off), per `<resources>`.
 
 </core_concepts>
 

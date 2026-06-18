@@ -20,20 +20,22 @@ Gather test case details from TMS, search documentation, and discover existing A
 - Collection skill: `discovery` (single canonical collector for TMS + documentation MCP sources). Existing-test-pattern scan: `reverse-engineering` (test-automation architecture analysis mode). This phase OWNS the raw-data aggregation contract (`<raw_data_contract>`) — `discovery` and `reverse-engineering` EMIT into the sections this phase asserts.
 - **Config-resolved vendors (NOT hardcoded).** Resolve from `qa-project-config.md` / Phase 0:
   - **TMS vendor** — first non-empty key (stop at first hit): `tms_collection_skill`, `test_case_management.mcp_collection_skill`, `mcp_test_case_collection_skill`. In-scope signal: `testrail_base_url` → binding = `testrail`; `jira_base_url` → binding = `jira`.
-  - **Documentation vendor** — see `<config_binding>` (precedence + in-scope signals owned by the documentation MCP subflow).
+  - **Documentation vendor** — see `<config_binding>` (precedence + in-scope signals).
 - Optional **documentation MCP** when `qa-project-config.md` scopes it — binding note in `<config_binding>`; procedure in `<execute_collection>` step **1.2b**.
 - Skills: `discovery` (TMS + documentation MCP collector), `reverse-engineering` (existing-test + backend-source scan), `qa-structure` (`{IDENTIFIER}` + raw-data path)
 </workflow_context>
 
 <config_binding>
-Documentation MCP scope comes from **`qa-project-config.md`** and Phase 0 only.
-**Subflow ACQUIRE tag (exact string):** `qa-flow-documentation-mcp-subflow`. The acquired fragment is the single source of truth for collection-vendor key precedence, in-scope signals, branch rules, and `<execute_documentation_mcp>` steps. The subflow resolves the documentation vendor binding (`confluence`) and invokes `USE SKILL discovery` with it.
+Documentation MCP scope comes from **`qa-project-config.md`** and Phase 0 only. This phase OWNS the resolution + collection inline (step 1.2b) — there is no separate sub-flow.
+- **Config keys (read literally; first non-empty wins, stop at first hit):** `documentation_mcp_collection_skill`, `documentation.mcp_collection_skill`, `mcp_documentation_collection_skill`, `confluence_mcp_collection_skill`. The resolved value maps to a `discovery` vendor binding (Confluence backend → binding `confluence` — the canonical example; other documentation backends, e.g. a wiki/Notion/SharePoint MCP, map to their own `discovery` binding the same way); the collection skill is ALWAYS `discovery` (which resolves + loads its own vendor binding internally).
+- **In-scope signals ("is documentation MCP in scope?"):** `documentation_type`, `type` (when its value implies a documentation backend), `confluence_base_url`, `confluence_space`, `documentation_base_url`, `documentation_mcp_server`, or any field the `qa-project-config` template documents for documentation MCP — treat absent values as absent.
+- **Raw-data heading (fixed):** `## Documentation / Confluence` under `agents/qa/{IDENTIFIER}/raw-data.md`. Do not invent a different heading unless `qa-project-config.md` explicitly instructs a rename (then write under the configured heading and note the mapping once).
 </config_binding>
 
 <raw_data_contract>
 This phase owns the raw-data aggregation artifact `agents/qa/{IDENTIFIER}/raw-data.md` and its sections — `discovery` and `reverse-engineering` emit into these, they do not define them. Required sections (empty → `N/A — <reason>`, never blank):
 - **Test Case Data** — from `discovery` (resolved TMS vendor binding); ≥1 test-case source required.
-- **Documentation / Confluence** — from the documentation MCP subflow (`discovery`, `confluence` binding) when scoped; else the subflow's `SKIPPED_NO_CONFIG` outcome row.
+- **Documentation / Confluence** — from `discovery` (resolved documentation vendor binding, e.g. `confluence`) via step 1.2b when scoped; else the `SKIPPED_NO_CONFIG` outcome row (per `<documentation_mcp_outcomes>`).
 - **Existing Test Patterns** — from `reverse-engineering` (test-automation architecture analysis); framework, HTTP client, structure/assertion/auth conventions, reusable utilities. Record env-file **path + variable names only**, never literal values.
 - **Backend Source Code Analysis** — backend path from config or discoverable `RefSrc/` docs; framework, route patterns, key dirs (or `N/A` when no path).
 - **API Endpoints Identified** — every row has Method + Source populated; partial rows tagged as gaps.
@@ -66,18 +68,25 @@ Redaction of every captured value runs inside `discovery` via `sensitive-data` b
 </verify_primary_raw_data>
 
 <documentation_mcp_optional step="1.2b">
-1.2b.1. If documentation MCP collection is **not** in scope per `qa-project-config.md`, skip this entire sub-block.
-1.2b.2. ACQUIRE `qa-flow-documentation-mcp-subflow.md` FROM KB (once per session if not already loaded).
-1.2b.3. If ACQUIRE returned **zero** documents, or the acquired markdown does not define `<execute_documentation_mcp>` with at least one numbered step: apply `<documentation_mcp_skip_path>`.
-1.2b.4. Otherwise execute **all** numbered steps inside `<execute_documentation_mcp>` in document order.
+This phase runs the documentation-MCP collection **inline** (no sub-flow). Binding resolution + in-scope signals per `<config_binding>`; record **exactly one** outcome line per `<documentation_mcp_outcomes>`.
+
+1.2b.1. **Scope check.** If no in-scope documentation-MCP signal is present (per `<config_binding>`), apply **SKIPPED_NO_CONFIG** and skip the rest of this sub-block.
+1.2b.2. **Resolve the binding.** Pick the documentation vendor binding from the first non-empty config key (per `<config_binding>`; Confluence backend → `confluence`). If in-scope signals are active but no key is set, re-read `qa-project-config.md` + Phase 0 for a default; if still none, apply **SKIPPED_NO_CONFIG** and skip.
+1.2b.3. **Collect.** ACQUIRE `discovery` FROM KB if not loaded — zero documents → apply **ACQUIRE_FAILED** (skill = `discovery`) and skip. Otherwise USE SKILL `discovery` with the resolved documentation vendor binding, passing the binding's input handle(s) and the fixed `## Documentation / Confluence` heading as the output target; `discovery` loads `references/<vendor>-binding.md` and runs harvest → redact (via `sensitive-data`) → write internally. No harvestable sources after search + user fallback → apply **EMPTY_HARVEST**; otherwise apply **COMPLETED**.
+1.2b.4. **Verify.** Confirm the `## Documentation / Confluence` heading holds **exactly one** outcome line matching the branch taken (per `<documentation_mcp_outcomes>`). On mismatch: zero rows → append the branch row; duplicate rows → keep only the most recent (latest by `agents/qa-state.md` Phase 1 timestamp); heading missing → create it, then append. After three failed re-verifies, stop and record `Phase 1 blocked: documentation-MCP verification failed after remediation` in `agents/qa-state.md`; ask the user to inspect `raw-data.md`.
 </documentation_mcp_optional>
 
-<documentation_mcp_skip_path>
-- Skip the documentation MCP subflow for this run.
-- Record failure + KB tag in `agents/qa-state.md`, then notify the user.
-- Under `## Documentation / Confluence` in `agents/qa/{IDENTIFIER}/raw-data.md`, write `**Outcome:** skipped — ACQUIRE failed` plus subflow filename + short error.
-- Continue Phase 1 (`1.2a` already completed).
-</documentation_mcp_skip_path>
+<documentation_mcp_outcomes>
+The `## Documentation / Confluence` heading carries **exactly one** outcome line (starts with `**Outcome:**`; no extra trailing `**`):
+| Branch | Trigger | Outcome line |
+| --- | --- | --- |
+| **SKIPPED_NO_CONFIG** | no documentation-MCP config / no resolvable collection skill | `**Outcome:** skipped — no documentation MCP configuration` + one-line reason |
+| **ACQUIRE_FAILED** | ACQUIRE returned zero docs for `discovery` | `**Outcome:** skipped — ACQUIRE failed` + skill name + short error |
+| **EMPTY_HARVEST** | harvesting ran but found no fetchable sources | `**Outcome:** no documentation sources after harvesting` + what was searched |
+| **COMPLETED** | `discovery` ran the resolved binding | `**Outcome:** collected via discovery (<binding>) — <page/URL count>` |
+
+Literal examples: `**Outcome:** collected via discovery (confluence) — 12 pages fetched`; `**Outcome:** no documentation sources after harvesting — searched 3 spaces, 0 pages returned`.
+</documentation_mcp_outcomes>
 
 </execute_collection>
 
@@ -98,7 +107,7 @@ Redaction of every captured value runs inside `discovery` via `sensitive-data` b
 - Test case data retrieved and documented
 - `agents/qa/{IDENTIFIER}/raw-data.md` exists (verified in step 1.2a) with core collection sections populated per `<raw_data_contract>`
 - Documentation searched (results found OR user confirmed skip)
-- Documentation MCP outcome in `raw-data.md` matches **successful 1.2b.4** execution **or** `<documentation_mcp_skip_path>`
+- Documentation MCP outcome in `raw-data.md` is exactly one `<documentation_mcp_outcomes>` branch matching the path taken in step 1.2b
 - Existing test patterns analyzed
 - Backend source code searched (if path configured in project config)
 - API endpoints identified from test cases

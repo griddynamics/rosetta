@@ -23,7 +23,7 @@ Analyze test execution results provided by the user. Identify failures, categori
 </workflow_context>
 
 <execution_report_contract>
-`execution-report.md` is **PUBLIC by default** (tracked, shared review, downstream prompt contexts) — redact BEFORE writing per `qa-knowledge/references/redaction-scope.md`, not after. **MUST ACQUIRE that reference and run its grep list against the rendered artifact as the pre-emit gate; emit FORBIDDEN until it has run** (test logs/stack traces can carry tokens). The failure classification is `qa-knowledge/references/qa-failure-taxonomy.md` (assign exactly one category per failure). The required report structure is the asset `qa-knowledge/assets/execution-report-template.md` (ACQUIRE FROM KB) — Execution Summary, Failures by Category, per-failure Failure Details (Failure name · Category · Root cause · Evidence label `Confirmed`/`Assumption`/`Unknown` · Evidence rationale · Priority), Patterns, Recommendations.
+`execution-report.md` is **PUBLIC by default** (tracked, shared review, downstream prompt contexts) — redact BEFORE writing per `qa-knowledge/references/redaction-scope.md`, not after. **MUST ACQUIRE that reference and run its grep list against the rendered artifact as the pre-emit gate; emit FORBIDDEN until it has run** (test logs/stack traces can carry tokens). The failure classification is `qa-knowledge/references/qa-failure-taxonomy.md` (assign exactly one category per failure). The required report structure is the asset `qa-knowledge/assets/execution-report-template.md` (ACQUIRE FROM KB) — Execution Summary, Failures by Category, per-failure Failure Details (**ID** `ERR-N` · Failure name · Category · Root cause · Evidence label `Confirmed`/`Assumption`/`Unknown` · Evidence rationale · Priority), Patterns, Recommendations.
 
 This is the **phase contract** and is verified by `<validation_checklist>` independent of skill internals.
 </execution_report_contract>
@@ -44,7 +44,7 @@ This is the **phase contract** and is verified by `<validation_checklist>` indep
 </execute_analysis>
 
 <review_findings step="6.2">
-1. Verify every failed test has a Failure Details entry, one `qa-failure-taxonomy` category, and a root cause.
+1. Verify every failed test has a Failure Details entry with a sequential `ERR-N` id, one `qa-failure-taxonomy` category, and a root cause.
 2. Verify each root cause carries an Evidence label + one-line rationale (definitions are canonical in the `debugging` skill `<core_concepts>` — not restated here).
 3. Verify Patterns and Recommendations are populated.
 4. Validation loop (max two cycles): if any entry is unlabeled or missing a required field, repeat steps 1–3. After two cycles with gaps, record unresolved rows in `agents/qa-state.md`, ask the user once how to label them (or approval to leave borderline items as `Assumption`), then continue only after the user responds.

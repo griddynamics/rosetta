@@ -13,14 +13,14 @@ description: QA execution-report.md skeleton — the read-only failure-triage ar
 
 - **Execution Summary** — Total / Passed / Failed / Skipped / duration.
 - **Failures by Category** — count + tests affected per the QA failure taxonomy category.
-- **Failure Details** — one entry per failed test with: Failure name · Category (one taxonomy category) · Root cause · Evidence label (`Confirmed`/`Assumption`/`Unknown`) · Evidence rationale (one-line citation) · Priority (Critical/High/Medium/Low).
+- **Failure Details** — one entry per failed test with: **ID** (`ERR-N`, sequential from `ERR-1` — the stable id the correction phase cites) · Failure name · Category (one taxonomy category) · Root cause · Evidence label (`Confirmed`/`Assumption`/`Unknown`) · Evidence rationale (one-line citation) · Priority (Critical/High/Medium/Low).
 - **Patterns** — cross-failure patterns OR an explicit `No cross-failure patterns identified`.
 - **Recommendations** — actionable items for the downstream correction phase, application defects, environment issues.
 
 **Worked example** (Failure Details entry):
 
-> **Failure name:** test_checkout_payment_timeout · **Category:** Timing / Race Condition · **Root cause:** API latency spike on `/payment` · **Evidence label:** Confirmed · **Evidence rationale:** CI log line 847 shows a 30s timeout · **Priority:** High.
+> **ID:** ERR-1 · **Failure name:** test_checkout_payment_timeout · **Category:** Timing / Race Condition · **Root cause:** API latency spike on `/payment` · **Evidence label:** Confirmed · **Evidence rationale:** CI log line 847 shows a 30s timeout · **Priority:** High.
 
-**Before writing:** all 5 sections present; the Failure Details entry count equals the `Failed` count in Execution Summary; each Category is a single taxonomy category. **Done when** all 5 sections exist and every failed test has exactly one Failure Details entry.
+**Before writing:** all 5 sections present; the Failure Details entry count equals the `Failed` count in Execution Summary; each entry has a unique sequential `ERR-N` id; each Category is a single taxonomy category. **Done when** all 5 sections exist and every failed test has exactly one Failure Details entry carrying its `ERR-N` id.
 
 </execution-report-template>

@@ -11,6 +11,7 @@ description: AQA failure-analysis.md skeleton — per-failed-test fields plus Ex
 
 `aqa-<test-name>-failure-analysis.md` must contain, per failed test:
 
+- **ID** — `F-N` (sequential from `F-1`; the stable id the correction phase cites).
 - **Failure name** — failing test identifier (function name, ATC ID, or report row).
 - **Error type** — one category from the AQA failure taxonomy.
 - **Root cause** — one-line diagnosed cause (Page Source Analysis cited for selector errors).
@@ -22,8 +23,8 @@ Plus an **Execution Summary** (Total / Passed / Failed / Skipped / duration) and
 
 **Worked example** (resolves the Root-cause vs Evidence-rationale distinction agents conflate):
 
-> **Failure name:** test_login_submit · **Error type:** Selector / Locator · **Root cause:** `#submit-btn` id removed in the latest deploy · **Evidence label:** Confirmed · **Evidence rationale:** page-source diff line 42 shows the id changed to `data-testid="login-submit"` · **Recommendation:** update the selector to `[data-testid="login-submit"]`.
+> **ID:** F-1 · **Failure name:** test_login_submit · **Error type:** Selector / Locator · **Root cause:** `#submit-btn` id removed in the latest deploy · **Evidence label:** Confirmed · **Evidence rationale:** page-source diff line 42 shows the id changed to `data-testid="login-submit"` · **Recommendation:** update the selector to `[data-testid="login-submit"]`.
 
-**Before writing:** every failed test from the run has exactly one entry; each `Evidence label` is one of `Confirmed`/`Assumption`/`Unknown`; Execution Summary counts are consistent with the run. **Done when** all of the above hold and every entry has all 6 fields populated.
+**Before writing:** every failed test from the run has exactly one entry; each `Evidence label` is one of `Confirmed`/`Assumption`/`Unknown`; Execution Summary counts are consistent with the run. **Done when** all of the above hold and every entry has all 7 fields populated (incl. its sequential `F-N` id).
 
 </failure-analysis-template>

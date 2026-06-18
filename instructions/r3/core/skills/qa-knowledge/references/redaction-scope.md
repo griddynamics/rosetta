@@ -16,6 +16,6 @@ Applies to any QA/AQA artifact that is tracked + downstream-fed (treat as **PUBL
 4. **Real PII in example bodies** — replace with synthetic on IETF reserved ranges: emails `test.user-1@example.com`; phones `+1-555-0100`–`+1-555-0199`; official PSP test cards (cite source). Field names/schema shapes stay verbatim.
 5. **JWT example values** (`eyJ...`) → `<redacted: JWT>`; describe carried claims in prose if they affect documented authorization.
 
-**Re-scan grep list (before emit):** `Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, `eyJ` (JWT), `BEGIN PRIVATE KEY`, `BEGIN RSA PRIVATE KEY`, `postgres://user:pass@`, `mongodb+srv://user:pass@`; plus emails outside `example.com`/`example.org`, phones outside the `+1-555-01xx` reserved range, card-number shapes `\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}`, and real customer names alongside any of the above.
+**Re-scan grep list (before emit):** `Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, `eyJ` (JWT), `BEGIN PRIVATE KEY`, `BEGIN RSA PRIVATE KEY`, `postgresql://user:pass@`, `mongodb+srv://user:pass@`; plus emails outside `example.com`/`example.org`, phones outside the `+1-555-01xx` reserved range, card-number shapes `\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}`, and real customer names alongside any of the above.
 
 </redaction-scope>
