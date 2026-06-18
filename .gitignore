@@ -98,9 +98,6 @@ agents/TEMP/
 refsrc/
 !refsrc/INDEX.md
 
-# Internal doc-structure planning (not for publication)
-docs/DOC-STRUCTURE-PLAN.md
-
 # Hooks build output
 src/hooks/node_modules/
 src/hooks/dist/tests/
