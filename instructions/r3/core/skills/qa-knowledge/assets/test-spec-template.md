@@ -39,7 +39,7 @@ Skeleton for `agents/qa/{IDENTIFIER}/test-specs.md`. The phase owns the section 
 ```markdown
 #### ATC-001: GET /api/v1/orders/{orderId} returns order when ID exists
 
-**Priority:** P0  **Type:** Happy Path  **Source:** TC-42 (raw-data.md), FR-7 (analysis.md)
+**Priority:** P0  **Type:** Happy Path  **Source:** TC-42 (raw-data.md), G3 (analysis.md gap)
 
 **Given:**
 - Authenticated user with role `customer`

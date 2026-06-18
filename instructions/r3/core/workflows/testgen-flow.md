@@ -43,7 +43,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 1. ACQUIRE `testgen-flow-project-config-loading.md` FROM KB
 2. Execute phase instructions.
 3. Input: user request with Jira ticket key/URL. Output: `agents/testgen/{TICKET-KEY}/initial-data.md`, project config file.
-4. Recommended skills: `questioning`
+4. Recommended skills: `questioning`, `sensitive-data` (config / initial-data redaction pre-write gate)
 5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </project_config_loading>
@@ -151,6 +151,7 @@ Skills:
 - `orchestrator-contract`, `hitl`
 - `discovery`
 - `requirements-use`
+- `sensitive-data` (redaction — Phase 0 config/initial-data pre-write gate; Phase 1 collection runs it via `discovery`)
 - `coding` (conditional — only for writes to tracked repo files outside `agents/testgen/{TICKET-KEY}/`, per `<phase_5_6_standards_gate>`)
 
 MCPs:

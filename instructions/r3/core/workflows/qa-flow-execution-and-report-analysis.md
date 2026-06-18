@@ -58,7 +58,7 @@ This is the **phase contract** and is verified by `<validation_checklist>` indep
 <validation_checklist>
 - Test execution results obtained from user
 - All results parsed and categorized per `qa-knowledge/references/qa-failure-taxonomy.md`
-- Every failure entry has all six fields (Failure name / Category / Root cause / Evidence label / Evidence rationale / Priority)
+- Every failure entry has all seven fields (ID `ERR-N` / Failure name / Category / Root cause / Evidence label / Evidence rationale / Priority), each with a unique sequential `ERR-N`
 - Patterns identified across failures (or explicit none)
 - Redaction pre-emit gate ran — the `qa-knowledge/references/redaction-scope.md` grep list was executed against the artifact before writing
 - `execution-report.md` written with all `<execution_report_contract>` sections and non-empty

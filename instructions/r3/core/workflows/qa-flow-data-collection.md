@@ -19,7 +19,7 @@ Gather test case details from TMS, search documentation, and discover existing A
 - Prerequisite: Phase 0 complete, `qa-project-config.md` and `initial-data.md` exist
 - Collection skill: `discovery` (single canonical collector for TMS + documentation MCP sources). Existing-test-pattern scan: `reverse-engineering` (test-automation architecture analysis mode). This phase OWNS the raw-data aggregation contract (`<raw_data_contract>`) — `discovery` and `reverse-engineering` EMIT into the sections this phase asserts.
 - **Config-resolved vendors (NOT hardcoded).** Resolve from `qa-project-config.md` / Phase 0:
-  - **TMS vendor** — first non-empty key (stop at first hit): `tms_collection_skill`, `test_case_management.mcp_collection_skill`, `mcp_test_case_collection_skill`. In-scope signal: `testrail_base_url` → binding = `testrail`; `jira_base_url` → binding = `jira`.
+  - **TMS vendor** — first non-empty key (stop at first hit): `testcase_mcp_collection_skill`, `test_case_management.mcp_collection_skill`, `mcp_test_case_collection_skill`, `tms_collection_skill` (`testcase_mcp_collection_skill` is the `config-schema` canonical key written by Phase 0). In-scope signal: `testrail_base_url` → binding = `testrail`; `jira_base_url` → binding = `jira`.
   - **Documentation vendor** — see `<config_binding>` (precedence + in-scope signals).
 - Optional **documentation MCP** when `qa-project-config.md` scopes it — binding note in `<config_binding>`; procedure in `<execute_collection>` step **1.2b**.
 - Skills: `discovery` (TMS + documentation MCP collector), `reverse-engineering` (existing-test + backend-source scan), `qa-structure` (`{IDENTIFIER}` + raw-data path)

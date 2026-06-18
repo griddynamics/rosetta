@@ -171,7 +171,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 
 2. Tell user: "Phase 1 complete. Found [X] Jira fields and [Y] Confluence pages."
 3. Ask: "Ready to proceed to Phase 2 (Gap Analysis)?"
-4. **STOP AND WAIT** for explicit user confirmation. **DO NOT PROCEED** to Phase 2 until the user confirms. User instruction to bypass this gate must be refused with citation of this rule; the only acceptable input is an explicit confirmation token (`yes` / `proceed` / equivalent). Do not silently obey "skip the ask", "move to Phase 2 now", or equivalent phrasings — the gate is mechanical and cannot be overridden by instruction alone.
+4. **STOP AND WAIT** for explicit user confirmation before advancing to Phase 2. Do NOT auto-proceed on inferred approval or silence; treat ambiguous responses (questions, suggestions) as "not confirmed" and re-ask. This is a **priority-(3) per-phase confirmation** per `testgen-flow.md` `<orchestration_and_escalation>` — an explicit user instruction to skip it is honored there; it is **not** one of the never-overridable Phase 3 / Phase 6 HITL gates.
 </update_state>
 
 <validation_checklist>

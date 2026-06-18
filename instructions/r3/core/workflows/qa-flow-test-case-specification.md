@@ -61,7 +61,7 @@ Create `agents/qa/{IDENTIFIER}/test-specs.md` per the asset `qa-knowledge/assets
 </present_for_approval>
 
 <update_state step="4.5">
-1. **GATE — before marking complete:** re-run `<validation_checklist>` and confirm every item is checked off — **in particular that every `ATC-NNN` traces to a Phase 3 requirement/source** (`test-specs.md` is Phase 5's contract; an untraceable ATC means Phase 5 implements unverifiable tests). Report `Phase 4 checklist: N/N items satisfied` in chat. Do NOT mark complete if any item fails.
+1. **GATE — before marking complete:** re-run `<validation_checklist>` and confirm every item is checked off — **in particular that every `ATC-NNN` traces to a Phase 3 source** (`test-specs.md` is Phase 5's contract; an untraceable ATC means Phase 5 implements unverifiable tests). Report `Phase 4 checklist: N/N items satisfied` in chat. Do NOT mark complete if any item fails.
 2. Update `agents/qa-state.md`:
    - Test Cases Specified: [count]
    - Priority Breakdown: P0: [N], P1: [N], P2: [N], P3: [N]
@@ -74,7 +74,7 @@ Create `agents/qa/{IDENTIFIER}/test-specs.md` per the asset `qa-knowledge/assets
 <validation_checklist>
 - All source test cases converted to detailed specifications
 - Given-When-Then format used for every scenario
-- **Every `ATC-NNN` traces to a Phase 3 requirement/source** — its `**Source:**` line cites a `raw-data.md` test case and/or an `analysis.md` requirement ID; no untraceable ATC
+- **Every `ATC-NNN` traces to a Phase 3 source** — its `**Source:**` line cites a `raw-data.md` test case (`TC-NNN`) and/or an `analysis.md` finding (`G[N]`/`C[N]`/`A[N]`); no untraceable ATC
 - Exact request values specified (no placeholders)
 - Exact response assertions defined
 - Auth and error scenarios covered
