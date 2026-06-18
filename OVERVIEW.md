@@ -62,7 +62,7 @@ Your IDE and coding agent ask Rosetta for instructions on each request.
 
 **Request types.** Twelve workflow types cover the SDLC: coding, requirements documentation authoring, automated QA, test generation, research, initialization, modernization, external library onboarding, code analysis, coding agents prompting, help, and ad-hoc. See the [Usage Guide — Workflows](USAGE_GUIDE.md#workflows) for details on each.
 
-**Standard pattern (P-RPA).** Every workflow follows Prepare, Research, Plan, Act. Each phase can involve subagents, skills, and HITL approval gates.
+**Standard pattern (P-RPA-V).** Every workflow follows Prepare (onboarding), Research (discovery), Plan (SDD), Act (implement), Validate (actually run or use an AI harness to verify the result works). Each phase can involve subagents, skills, and HITL approval gates.
 
 **Prepare** is executed once during repository initialization and maintained automatically by AI. It reverse-engineers business context, architecture, tech stack, and coding patterns into workspace files that every subsequent workflow uses. See [Usage Guide — Init Workspace](USAGE_GUIDE.md#workflows) for the full phase breakdown.
 
@@ -116,4 +116,3 @@ Layers at the same resource path get [bundled together](docs/ARCHITECTURE.md#bun
 - [Architecture](docs/ARCHITECTURE.md) — system structure, components, data flow
 - [Developer Guide](DEVELOPER_GUIDE.md) — repo navigation, where to change what
 - [Troubleshooting](TROUBLESHOOTING.md) — symptom-first diagnosis
-

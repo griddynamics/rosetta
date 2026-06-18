@@ -68,6 +68,10 @@ After installation, ask:
 
 STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](/rosetta/docs/installation/). Read more in the [Quick Start](/rosetta/docs/quickstart/).
 
+## Tech Demo
+
+<video src="https://github.com/user-attachments/assets/fc0ef06a-2f9c-49fa-bc05-68001dadd286" controls width="100%"></video>
+
 ## Supported IDEs and Agents
 
 - Cursor

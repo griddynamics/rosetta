@@ -40,7 +40,7 @@
     "e2e_tests": "din-repository",
     "performance_tests": "in-repository",
     "testing_harness": "verify_mcp.py",
-    "code_graph": "GitNexus"
+    "code_graph": "None"
   },
   "vocabulary": {
     "vfs": "Virtual File System, after stripping release and org prefix from the physical file path",

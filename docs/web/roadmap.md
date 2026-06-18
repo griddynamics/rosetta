@@ -44,7 +44,7 @@ permalink: /roadmap/
     <ul class="rm-list">
       <li>Centralized knowledge base with rules, guardrails, and best practices</li>
       <li>CLI for publishing and managing instructions as code</li>
-      <li>Prepare → Research → Plan → Act execution model with task classification</li>
+      <li>Prepare → Research → Plan → Act → Validate execution model with task classification</li>
     </ul>
   </div>
 </div>

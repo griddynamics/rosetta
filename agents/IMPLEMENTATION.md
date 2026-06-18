@@ -198,6 +198,7 @@ Added sticky right-side table of contents to all doc pages (`layout: docs`). Ext
 ### Documentation and Public Surface
 
 - Installation, deployment, quickstart, troubleshooting, and README content were aligned with the current transport/auth model.
+- The website introduction page now includes a dedicated `Tech Demo` section using the separate website demo video, while preserving the original intro video in `What is Rosetta`.
 - Usage guides describe workflow phases, expected subagents/artifacts, HITL gates, and user responsibilities for the unified Rosetta workflow set.
 - Docs pages rendered via the Jekyll site now convert fenced Mermaid blocks client-side in the docs layout, preserve authoring as plain ````mermaid` fences, rerender on theme changes, and scale rendered SVGs for better readability on GitHub Pages direct loads.
 - Internal/private environment details were replaced with public-safe placeholders where appropriate.

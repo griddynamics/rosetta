@@ -208,7 +208,7 @@ One `get_context_instructions` call returns all bootstrap rules bundled (core po
        Agent now has: bootstrap rules + project context + workflow instructions
 
 6. Agent executes the workflow
-   ├── Follows phases (Prepare → Research → Plan → Act)
+   ├── Follows phases (Prepare → Research → Plan → Act → Validate)
    ├── Uses ACQUIRE/USE SKILL/INVOKE SUBAGENT to load instructions progressively
    ├── Delegates to subagents, uses plan_manager for tracking
    └── Applies guardrails and HITL gates throughout
@@ -364,7 +364,7 @@ Instructions Repo ──► CLI (publish) ──► RAGFlow ──► Rosetta MC
 2. **Index.** RAGFlow parses, chunks, embeds, indexes for full-text and semantic search
 3. **Bootstrap.** Agent calls `get_context_instructions` via MCP (prep step 1), reads workspace files directly from the target repo (step 2), classifies request via MCP (step 3)
 4. **Load.** Agent uses ACQUIRE/SEARCH/LIST aliases. MCP queries by tags, bundles matching VFS paths into XML with context headers. Progressive disclosure: only what the workflow needs
-5. **Execute.** Workflow phases (Prepare → Research → Plan → Act), subagent delegation, plan_manager tracking, guardrails and HITL gates
+5. **Execute.** Workflow phases (Prepare → Research → Plan → Act → Validate), subagent delegation, plan_manager tracking, guardrails and HITL gates.
 
 ---
 

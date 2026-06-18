@@ -281,7 +281,7 @@ One `get_context_instructions` call returns all bootstrap rules bundled (core po
        Agent now has: bootstrap rules + project context + workflow instructions
 
 6. Agent executes the workflow
-   ├── Follows phases (Prepare → Research → Plan → Act)
+   ├── Follows phases (Prepare → Research → Plan → Act → Validate)
    ├── Uses ACQUIRE/USE SKILL/INVOKE SUBAGENT to load instructions progressively
    ├── Delegates to subagents, uses plan_manager for tracking
    └── Applies guardrails and HITL gates throughout
@@ -458,7 +458,7 @@ Instructions Repo ──► CLI (publish) ──► RAGFlow ──► Rosetta MC
 2. **Index.** RAGFlow parses, chunks, embeds, indexes for full-text and semantic search
 3. **Bootstrap.** Agent calls `get_context_instructions` via MCP (prep step 1), reads workspace files directly from the target repo (step 2), classifies request via MCP (step 3)
 4. **Load.** Agent uses ACQUIRE/SEARCH/LIST aliases. MCP queries by tags, bundles matching VFS paths into XML with context headers. Progressive disclosure: only what the workflow needs
-5. **Execute.** Workflow phases (Prepare → Research → Plan → Act), subagent delegation, plan_manager tracking, guardrails and HITL gates
+5. **Execute.** Workflow phases (Prepare → Research → Plan → Act → Validate), subagent delegation, plan_manager tracking, guardrails and HITL gates.
 
 ---
 
@@ -554,7 +554,7 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 | `loose-files.js` | PostToolUse (Write) | Nudges agent when `.py`/`.js` files are created without a module marker (`__init__.py` / `package.json`) |
 | `md-file-advisory.js` | PostToolUse (Write\|Edit) | Advises on markdown formatting/placement after `.md` edits |
 | `lint-format-advisory.js` | PostToolUse (Write\|Edit) | Suggests a syntax/type/lint/format check step after code edits |
-| `gitnexus-refresh.js` | PostToolUse (Write\|Edit) | Refreshes the GitNexus code-graph index when source files change |
+| `codemap-refresh.js` | PostToolUse (Write\|Edit) | Refreshes the active code-map backend when source files change. Current implementation reindexes GitNexus when `.gitnexus/` is present. Manager must review the GitNexus license before use; Graphify is the MIT-licensed alternative. TBD: detect and invoke the right codemap backend automatically across GitNexus, Graphify, and project-specific scripts or commands. |
 
 **`hooks.json` locations and forms per plugin variant** (each form references the bundles using paths appropriate to its runtime):
 

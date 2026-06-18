@@ -19,16 +19,9 @@
 
 ## What is Rosetta
 
-<table>
-  <tr>
-    <td width="50%">
-      <video src="https://github.com/user-attachments/assets/6df6e217-3e5c-4691-84ed-7440701a87de" controls width="100%"></video>
-    </td>
-    <td width="50%">
-      Rosetta is a meta-prompting, context engineering, and centralized instructions management for AI coding agents. It provides structured context - rules, skills, workflows, and sub-agents - guiding AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards. Rosetta accelerates project onboarding by reverse-engineering architecture and domain context, reducing further conversations token consumption and improving the reliability and consistency of AI-generated code.
-    </td>
-  </tr>
-</table>
+https://github.com/user-attachments/assets/6df6e217-3e5c-4691-84ed-7440701a87de
+
+Rosetta is a meta-prompting, context engineering, and centralized instructions management for AI coding agents. It provides structured context - rules, skills, workflows, and sub-agents - guiding AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards. Rosetta accelerates project onboarding by reverse-engineering architecture and domain context, reducing further conversations token consumption and improving the reliability and consistency of AI-generated code.
 
 Every AI interaction follows four phases: **Prepare** (load guardrails and context), **Research** (search the knowledge base), **Plan** (produce a reviewable plan), **Act** (execute with full context), and **Validate** (manual validation by AI). Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).
 
@@ -178,6 +171,10 @@ Complete the OAuth flow when prompted. Then ask:
 
 STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](INSTALLATION.md). Read more in the [Quickstart](QUICKSTART.md).
 
+## Tech Demo
+
+https://github.com/user-attachments/assets/fc0ef06a-2f9c-49fa-bc05-68001dadd286
+
 ## Contributing
 
 Use Rosetta plugins to develop Rosetta.
@@ -194,6 +191,10 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and e
 > [!WARNING]
 > Rosetta is intended for legitimate software engineering workflows.
 > Users are responsible for ensuring their use complies with applicable laws, regulations, and contractual obligations.
+
+## For AI Only
+
+Full information: https://griddynamics.github.io/rosetta/llms-full.txt
 
 ## License
 
