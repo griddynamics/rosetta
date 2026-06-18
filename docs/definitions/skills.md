@@ -41,7 +41,6 @@
 - orchestrator-contract
 - dangerous-actions
 - risk-assessment
-- gitnexus
 - natural-writing
 - coding-agents-farm
 - coding-agents-hooks-authoring

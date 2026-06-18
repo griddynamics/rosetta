@@ -110,7 +110,7 @@ README.md:
    - Speckit: if `memory/constitution.md` and `specs` folder exist, add "MUST ACQUIRE speckit-integration-policy.md FROM KB and execute it" to CONTEXT.md
    - Composite (state.composite = true): create top-level docs as registries with workspace-relative paths to sub-repo docs
    - If large project add "MUST USE SKILL `large-workspace-handling`" to CONTEXT.md
-   - GitNexus: if `.gitnexus/` folder exists, add "GitNexus is installed. USE SKILL `gitnexus` for graph-based code intelligence, re-indexing, status, and cleanup — supplements Rosetta skills, does not replace them." to CONTEXT.md
+   - Code-graph backend: if Phase 6 state shows a backend installed, add to CONTEXT.md: "MUST USE SKILL `codemap`, <Graphify|Gitnexus> USE IS REQUIRED." (naming the installed backend)
 
 </documentation_process>
 

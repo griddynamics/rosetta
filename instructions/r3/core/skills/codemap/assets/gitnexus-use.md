@@ -1,11 +1,4 @@
----
-name: gitnexus
-description: "To call the right GitNexus MCP tool, querying the repo code graph."
-tags: ["gitnexus", "pattern-matching", "code-intelligence"]
-disable-model-invocation: false
-user-invocable: false
-baseSchema: docs/schemas/skill.md
----
+# GitNexus usage reference
 
 <gitnexus>
 
@@ -13,9 +6,9 @@ baseSchema: docs/schemas/skill.md
 Pattern-match user intent to the appropriate GitNexus MCP tool or resource. Provides a quick-reference map of tools, resources, parameters, and worked examples.
 </role>
 
-<when_to_use_skill>
-Use whenever a GitNexus MCP tool call is needed: debugging errors, exploring code, analyzing impact, or refactoring. Consult this skill to select the right tool or resource before calling it.
-</when_to_use_skill>
+<when_to_use>
+Use whenever a GitNexus MCP tool call is needed: debugging errors, exploring code, analyzing impact, or refactoring. Consult this reference to select the right tool or resource before calling it.
+</when_to_use>
 
 <core_concepts>
 
@@ -43,18 +36,6 @@ Use whenever a GitNexus MCP tool call is needed: debugging errors, exploring cod
 
 **`cypher({query: "MATCH ..."})`** — raw Cypher graph queries; use when tools above are insufficient (read `gitnexus://repo/{name}/schema` first).
 
-- CLI usage and commands: MUST ACQUIRE `gitnexus/assets/gitnexus-cli.md` FROM KB and follow it
-- Installation and setup: MUST ACQUIRE `gitnexus/assets/gitnexus-setup.md` FROM KB and follow it
-
 </core_concepts>
-
-<templates applies="examples">
-
-Use `ACQUIRE FROM KB` to load.
-
-- `gitnexus/assets/gn-examples.md`
-
-</templates>
-
 
 </gitnexus>

@@ -2,6 +2,8 @@
 name: init-workspace-verification
 description: "Verify init completeness."
 license: Apache-2.0
+disable-model-invocation: true
+user-invocable: false
 model: claude-sonnet-4-6
 tags: ["init", "workspace", "verification", "validation"]
 baseSchema: docs/schemas/skill.md

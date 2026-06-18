@@ -2,6 +2,8 @@
 name: natural-writing
 description: "To rewrite text in a clear, natural, honest human tone — no AI slop, hype, or robotic phrasing."
 license: Apache-2.0
+disable-model-invocation: false
+user-invocable: true
 
 tags: ["natural-writing", "writing", "style", "rewrite"]
 baseSchema: docs/schemas/skill.md

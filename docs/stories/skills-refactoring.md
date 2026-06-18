@@ -8,12 +8,14 @@ Status: IN PROGRESS — r3 W1/W2/W3/W4 done; r2 visibility flags ported; W0/W6 d
 - **W3** — Phase files `user-invocable: false`; top-level flows `true`. Descriptions → `Phase N <label> of <flow>`.
 - **W2** — All 44 r3 skills carry both `user-invocable` + `disable-model-invocation`. r2 ported (35 skills). Cross-IDE matrix deferred (W2 research).
 - **W1 init-workspace** — 7 skill bodies inlined into phase files; skill folders deleted (r3 only).
-- **W1 gitnexus** — `gitnexus-{tools,cli,setup}` merged into single `gitnexus` skill with `assets/gitnexus-{cli,setup}.md` (r3 only).
+- **W1 gitnexus** — `gitnexus` skill merged into `codemap` as `assets/gitnexus-use.md`; sub-assets (`gitnexus-cli.md`, `gitnexus-setup.md`, `gn-examples.md`) moved to `codemap/assets/`; ACQUIRE trigger + inline refs added to `codemap/SKILL.md`; `skills/gitnexus/` deleted (r3 only).
 - **W1 coding-iac** — folded into `coding` via `assets/iac.md` (prior pass).
 - **codemap skill** — new `skills/codemap/` (`disable-model-invocation: true`, `user-invocable: false`); scripts in assets; wired into init-workspace-flow-discovery, coding-flow discovery (recommended), reverse-engineering.
 - **Various** — `orchestrator-contract` read-only clarification; `questioning` rules refined; `coding-flow` architect-background guidance; `coding-agents-prompt-adaptation` removed; `hooks-authoring` → `coding-agents-hooks-authoring`.
 
 ## Open Workstreams
+
+- **Hook rename — `gitnexus-refresh.js` → `codemap-refresh.js`.** Merged docs (ARCHITECTURE.md, web docs, llms-full.txt) now describe the PostToolUse hook as `codemap-refresh.js` (backend-agnostic: reindexes GitNexus when `.gitnexus/` present; auto-detecting GitNexus/Graphify/scripts is TBD), but the hook source (`hooks/src/hooks/gitnexus-refresh.js`) and built bundles still use the old name. Done when: source renamed, bundles rebuilt, plugins regenerated, docs↔code names match.
 
 - **W5 — Native-trigger reframe.** Shrink `bootstrap-guardrails.md` to a minimal pointer — remove inline trigger restatements already carried by skill descriptions. Done when: rule no longer repeats any trigger the description already carries.
 - **W2 generator changes** (remaining after research). Implement per-IDE flag handling in `src/plugin-generator/` (TypeScript, per-IDE processors under `src/plugin-generator/src/plugin-processors/`):
@@ -34,11 +36,11 @@ Status: IN PROGRESS — r3 W1/W2/W3/W4 done; r2 visibility flags ported; W0/W6 d
 - User-facing skills (`user-invocable: true`): all capability skills + `hitl`, `operation-manager`, `questioning`, `specflow-use`.
 - `risk-assessment`: `user-invocable: false`.
 - `reverse-engineering`, `tech-specs`: `user-invocable: true`.
-- Asset references in skills: use `ACQUIRE <skill/assets/file> FROM KB` (full path) — not bare `assets/` paths. See `gitnexus/SKILL.md:46-47`, `codemap/SKILL.md:37-38`.
+- Asset references in skills: use `ACQUIRE <skill/assets/file> FROM KB` (full path) — not bare `assets/` paths. See `codemap/SKILL.md`.
 - Script-as-asset pattern: scripts too large to inline → dedicated skill with `assets/*.txt`; executor ACQUIREs, renames, runs. Established by `skills/codemap/`. Apply to any future executable asset.
 - Internal notes must never appear in skill text: authoring context (structural depth, what it "is not", etc.) stays out of SKILL.md entirely. Reviewers must grep for leakage.
 - Reviewer process: MUST run `git diff HEAD` as primary input — not just read new files — to catch regressions and command-alias violations.
-- gitnexus consolidation: prior "dropped" decision reversed; `gitnexus-{cli,setup,tools}` → single `gitnexus` skill (`skills/gitnexus/`).
+- gitnexus consolidation: `gitnexus` skill merged into `codemap` as progressive-disclosure asset (`codemap/assets/gitnexus-use.md`); sub-assets co-located under `codemap/assets/`; ACQUIRE trigger in `codemap/SKILL.md`; `skills/gitnexus/` removed.
 - Release targeting: default `r3`; ask each request which release(s) to apply.
 - `context-engineering`: TBD placeholder in definitions, do not build.
 - `discovery`: distinct skill, separate from codemap.

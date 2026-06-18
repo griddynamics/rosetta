@@ -1,8 +1,4 @@
----
-name: gn-examples
-description: Worked examples for GitNexus tool selection and usage patterns.
-tags: ["gitnexus", "examples"]
----
+# GitNexus worked examples
 
 <gn-examples>
 

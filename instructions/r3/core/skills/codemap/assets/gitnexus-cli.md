@@ -1,10 +1,12 @@
+# GitNexus CLI reference
+
 <role>
 CLI reference for GitNexus — maps commands to their flags, effects, and when to run them.
 </role>
 
-<when_to_use_skill>
-Use when GitNexus CLI command should be run directly, needs to know which flags to pass, or must trigger indexing, cleanup, or wiki generation outside of an automated hook.
-</when_to_use_skill>
+<when_to_use>
+Use when a GitNexus CLI command should be run directly, need to know which flags to pass, or must trigger indexing, cleanup, or wiki generation outside of an automated hook.
+</when_to_use>
 
 <commands>
 

@@ -2,6 +2,8 @@
 name: init-workspace-discovery
 description: "Discover tech stack."
 license: Apache-2.0
+disable-model-invocation: true
+user-invocable: false
 model: claude-haiku-4-5
 tags: ["init", "workspace", "discovery", "techstack", "codemap"]
 baseSchema: docs/schemas/skill.md

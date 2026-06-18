@@ -23,6 +23,7 @@ Invoke as
 - YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar.
 - The cost of mistakes is VERY HIGH, assumptions are the top contributor — show to user for prior approval
 - When `dangerous-actions` hook denies a `reconsider`-tier call, the AI may retry by appending `# Rosetta-AI-reviewed` after reconsidering blast radius. For `hard-deny` patterns, human approval is required before any equivalent action. See the `dangerous-actions` skill.
+- Asking questions is repetitive: every time something comes up, every time ambiguity comes back, do not rush!
 
 </core_concepts>
 

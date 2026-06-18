@@ -14,13 +14,33 @@ Workspace cartographer. Produces a lightweight, top-level structural map of a pr
 
 </role>
 
-<when_to_use_skill>
+Precedence: **graphify** > **gitnexus** > **shell scripts** — use the first that is **REQUESTED** and available.
 
-Use when you need structural awareness of a project to make planning, discovery, or architectural decisions and a current codemap is not already in context. The codemap is a lightweight structural map that is fast to generate.
+Keep CODEMAP.md initialized and updated REGARDLESS.
 
-PREFER GitNexus if it is already present in the current context: if the `gitnexus` skill content is loaded, a `.gitnexus/` reference exists, or the `GitNexus` MCP is available, use GitNexus instead and SKIP codemap generation. Only generate the codemap when no such graph-based source is available.
+<graphify>
 
-</when_to_use_skill>
+IF graphify is already **REQUESTED** in current context:
+- querying the codebase, tracing dependency paths between symbols, or explaining concepts (`graphify query/path/explain`): MUST USE SKILL `graphify`
+- building or incrementally updating the knowledge graph (`/graphify <path>`, `--update`): MUST USE SKILL `graphify`
+- setting up graphify:
+  1. READ `https://raw.githubusercontent.com/safishamsi/graphify/HEAD/README.md`
+  2. install as per README — NOTE: Cursor sees and uses Claude Code skills/hooks/plugins; install for ONE platform only, not both
+  3. MUST USE SKILL `graphify` or follow the graphify rule to invoke `/graphify .` as user message from workspace root
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost)
+
+</graphify>
+
+<gitnexus>
+
+IF gitnexus is already **REQUESTED** in current context:
+- code graph queries, exploring code, debugging errors, analyzing impact, or refactoring: MUST ACQUIRE `codemap/assets/gitnexus-use.md` FROM KB and follow it
+- running CLI commands, indexing, checking status, cleaning index, or generating wiki: MUST ACQUIRE `codemap/assets/gitnexus-cli.md` FROM KB and follow it
+- installing GitNexus or registering the MCP server for the first time: MUST ACQUIRE `codemap/assets/gitnexus-setup.md` FROM KB and follow it
+- Worked examples: ACQUIRE `codemap/assets/gitnexus-examples.md` FROM KB
+- After modifying code, run `npx gitnexus@latest analyze --force` in the workspace root
+
+</gitnexus>
 
 <core_concepts>
 
@@ -32,15 +52,14 @@ PREFER GitNexus if it is already present in the current context: if the `gitnexu
 
 <how_to_generate>
 
-1. Check context first: if GitNexus is available (see `<when_to_use_skill>`), use it and SKIP these steps.
-2. The generators ship as `.txt` files to avoid IDE/shell misinterpretation. ACQUIRE and save locally, then rename:
-   - Unix/macOS: ACQUIRE `codemap/assets/codemap.sh.txt` FROM KB → save as `codemap.sh`, make executable (`chmod +x codemap.sh`)
-   - Windows: ACQUIRE `codemap/assets/codemap.ps1.txt` FROM KB → save as `codemap.ps1`
-3. Run the renamed script for the current OS against the workspace root:
-   - Unix/macOS: `./assets/codemap.sh [WORKSPACE_ROOT] [MAX_DEPTH]`
-   - Windows: `.\assets\codemap.ps1 -WorkspaceRoot <path> -MaxDepth <n>`
-   - Both default to the current directory and a depth of 4, enumerate git repositories, and write `CODEMAP.md` to the workspace root.
-4. Read the generated `CODEMAP.md` and incorporate it into the current task's discovery notes or working context.
+1. ACQUIRE the generator for the current OS FROM KB (Unix/macOS: make executable first):
+   - Unix/macOS: ACQUIRE `codemap/assets/codemap.sh.txt` FROM KB
+   - Windows: ACQUIRE `codemap/assets/codemap.ps1.txt` FROM KB
+2. Execute the script:
+   - Unix/macOS: `codemap.sh [WORKSPACE_ROOT] [MAX_DEPTH]`
+   - Windows: `codemap.ps1 -WorkspaceRoot <path> -MaxDepth <n>`
+   - Defaults: current directory, depth 4. Writes `CODEMAP.md` to workspace root.
+3. Read the generated `CODEMAP.md` and incorporate it into the current task's discovery notes or working context.
 
 </how_to_generate>
 

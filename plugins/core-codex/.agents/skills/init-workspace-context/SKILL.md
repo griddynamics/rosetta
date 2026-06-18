@@ -2,6 +2,8 @@
 name: init-workspace-context
 description: "Classify workspace mode."
 license: Apache-2.0
+disable-model-invocation: true
+user-invocable: false
 tags: ["init", "workspace", "context", "detection"]
 baseSchema: docs/schemas/skill.md
 ---

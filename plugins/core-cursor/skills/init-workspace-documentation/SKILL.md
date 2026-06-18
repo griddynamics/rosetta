@@ -2,6 +2,8 @@
 name: init-workspace-documentation
 description: "Generate workspace docs."
 license: Apache-2.0
+disable-model-invocation: true
+user-invocable: false
 model: claude-opus-4-8
 tags: ["init", "workspace", "documentation", "context", "architecture"]
 baseSchema: docs/schemas/skill.md
