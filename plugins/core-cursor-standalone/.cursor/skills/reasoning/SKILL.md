@@ -7,7 +7,7 @@ user-invocable: true
 argument-hint: problem, context?, constraints?
 model: claude-opus-4-8
 context: default
-agent: planner, prompt-engineer
+agent: planner, architect, prompt-engineer
 metadata:
   version: "1.0"
   category: "reasoning"

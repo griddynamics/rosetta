@@ -3,7 +3,7 @@ import path from 'path';
 import { describe, test, expect } from 'vitest';
 
 const BUNDLES_DIR = path.resolve(__dirname, '..', '..', 'dist', 'bundles');
-const HOOK_FILES  = ['loose-files.js', 'md-file-advisory.js', 'gitnexus-refresh.js'];
+const HOOK_FILES  = ['loose-files.js', 'md-file-advisory.js', 'codemap-refresh.js'];
 
 // For each plugin, list IDE names that must NOT appear as string literals in its bundles.
 // core-copilot allows 'claude-code' because the slim adapter has a CC-fallback for VS Code.

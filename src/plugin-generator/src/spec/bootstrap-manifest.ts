@@ -48,7 +48,7 @@ export const CODEX_PLUGIN_ROOT_COMMAND =
   `fi`;
 
 export const COPILOT_PLUGIN_ROOT_BASH =
-  `for base in "$HOME/Library/Application Support/Code/agentPlugins" "$HOME/.local/share/Code/agentPlugins"; ` +
+  `for base in "$HOME/.vscode/agent-plugins" "$HOME/.local/share/Code/agentPlugins"; ` +
   `do root="$base/github.com/griddynamics/rosetta/plugins/core-copilot"; ` +
   `if [ -f "$root/commands/coding-flow.md" ]; then ` +
   `printf '%s' "{\\"hookSpecificOutput\\":{\\"hookEventName\\":\\"SessionStart\\",\\"additionalContext\\":\\"Rosetta Plugin Path: $root\\"}}"; ` +

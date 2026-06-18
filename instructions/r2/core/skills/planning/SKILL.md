@@ -7,7 +7,7 @@ user-invocable: true
 argument-hint: request, tech-spec?, constraints?, scope?
 model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high
 context: default
-agent: planner
+agent: planner, architect
 metadata:
   version: "1.1"
   category: "planning"

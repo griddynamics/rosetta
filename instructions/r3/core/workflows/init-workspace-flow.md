@@ -84,7 +84,7 @@ DISABLED
 <code-graph phase="6" subagent="engineer" type="HITL" role="Code-graph setup gate" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro-preview">
 
 1. From the current context only, check whether code-graph capability is already covered — registered LSPs, or semantic-search / indexing MCP tools — and tell the user what is already available. Do not search for or install anything to find out.
-2. Warn the user: Graphify and GitNexus are third-party tools that index your source code; your IP is exposed to a third party, so manager approval is required before installing either.
+2. Warn the user: Third-party tool will have access to IP. Review license and policy with your manager.
 3. Ask the user to choose a code-graph backend, presenting the options in this order with cost and license:
    - **Default — `CODEMAP.md`**: built-in, no install, no third party, no cost.
    - **Graphify** (`https://github.com/safishamsi/graphify`): MIT-licensed, free.

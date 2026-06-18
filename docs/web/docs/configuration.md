@@ -147,8 +147,8 @@ MCPs are the eyes and hands of the AI — add them, but keep it balanced. Enable
 | Playwright MCP  | <https://github.com/microsoft/playwright-mcp>                         | Drive web pages via accessibility snapshots — no screenshots or vision models needed. |
 | Fetch           | <https://github.com/modelcontextprotocol/servers/tree/main/src/fetch> | Retrieve and process content from web pages and APIs.                                 |
 | Chrome DevTools | <https://github.com/ChromeDevTools/chrome-devtools-mcp>               | Full browser control: console, network tab, snapshots.                                |
-| GitNexus        | <https://github.com/abhigyanpatwari/GitNexus>                         | Index a large codebase into a knowledge graph. Manager must review the license before use; for commercial or enterprise use, see [GitNexus Enterprise Licensing](https://github.com/abhigyanpatwari/GitNexus?tab=readme-ov-file#enterprise). |
-| Graphify        | <https://github.com/safishamsi/graphify>                              | MIT-licensed alternative that turns a project into a queryable knowledge graph.       |
+| GitNexus        | <https://github.com/abhigyanpatwari/GitNexus>                         | Index a large codebase into a knowledge graph. Third-party tool will have access to IP. Review license and policy with your manager. Free for non-commercial or personal use; PAID for commercial or business use — see [GitNexus Enterprise Licensing](https://github.com/abhigyanpatwari/GitNexus?tab=readme-ov-file#enterprise). |
+| Graphify        | <https://github.com/safishamsi/graphify>                              | MIT-licensed alternative that turns a project into a queryable knowledge graph. Third-party tool will have access to IP. Review license and policy with your manager. |
 
 Use **either Playwright or Chrome DevTools, not both.**
 

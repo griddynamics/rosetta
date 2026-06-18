@@ -379,8 +379,8 @@ MCPs give the AI eyes and hands beyond the codebase.
 - **[Context7](https://github.com/upstash/context7)** — up-to-date library documentation
 - **[Playwright MCP](https://github.com/microsoft/playwright-mcp)** — interact with web pages through structured accessibility snapshots
 - **[Chrome DevTools](https://github.com/ChromeDevTools/chrome-devtools-mcp)** — full browser control with console, network tab, snapshots
-- **[GitNexus](https://github.com/abhigyanpatwari/GitNexus)** — indexes any codebase into a knowledge graph; manager must review the license before use. For commercial or enterprise use, see [GitNexus Enterprise Licensing](https://github.com/abhigyanpatwari/GitNexus?tab=readme-ov-file#enterprise).
-- **[Graphify](https://github.com/safishamsi/graphify)** — MIT-licensed alternative that turns a project into a queryable knowledge graph
+- **[GitNexus](https://github.com/abhigyanpatwari/GitNexus)** — indexes any codebase into a knowledge graph. Third-party tool will have access to IP. Review license and policy with your manager. Free for non-commercial or personal use; PAID for commercial or business use — see [GitNexus Enterprise Licensing](https://github.com/abhigyanpatwari/GitNexus?tab=readme-ov-file#enterprise).
+- **[Graphify](https://github.com/safishamsi/graphify)** — MIT-licensed alternative that turns a project into a queryable knowledge graph. Third-party tool will have access to IP. Review license and policy with your manager.
 - [Figma MCP](https://github.com/GLips/Figma-Context-MCP) — Figma integration so AI can see designs directly
 - [Jira & Confluence MCP](https://www.atlassian.com/platform/remote-mcp-server) — tickets, comments, and documentation
 - [Fetch](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch) — retrieve and process content from APIs and web pages

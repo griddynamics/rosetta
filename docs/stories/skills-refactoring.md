@@ -1,46 +1,29 @@
 # Story: Skills Taxonomy Reconciliation + Frontmatter Refactoring
 
-Status: IN PROGRESS — r3 W1/W2/W3/W4 done; r2 visibility flags ported; W0/W6 done; W2 research done. Remaining: W5 (guardrails reframe), W2 generator changes.
+> **Maintenance principle — this file SHRINKS as work lands.** When an item is implemented, collapse it to a one-line nudge and delete the detail that is no longer needed. Keep only: open work (full detail), tiny done-nudges, and durable decisions. Do not let it grow; do not keep finished how-it-was-done prose.
 
-## Done (this PR — feat/skills-visibility-flags)
+Status: IN PROGRESS — remaining: W5 (guardrails reframe), W2 generator changes.
 
-- **W4** — All descriptions compressed (verb-first ≤25 tokens). 4 critical skills kept verbatim.
-- **W3** — Phase files `user-invocable: false`; top-level flows `true`. Descriptions → `Phase N <label> of <flow>`.
-- **W2** — All 44 r3 skills carry both `user-invocable` + `disable-model-invocation`. r2 ported (35 skills). Cross-IDE matrix deferred (W2 research).
-- **W1 init-workspace** — 7 skill bodies inlined into phase files; skill folders deleted (r3 only).
-- **W1 gitnexus** — `gitnexus` skill merged into `codemap` as `assets/gitnexus-use.md`; sub-assets (`gitnexus-cli.md`, `gitnexus-setup.md`, `gn-examples.md`) moved to `codemap/assets/`; ACQUIRE trigger + inline refs added to `codemap/SKILL.md`; `skills/gitnexus/` deleted (r3 only).
-- **W1 coding-iac** — folded into `coding` via `assets/iac.md` (prior pass).
-- **codemap skill** — new `skills/codemap/` (`disable-model-invocation: true`, `user-invocable: false`); scripts in assets; wired into init-workspace-flow-discovery, coding-flow discovery (recommended), reverse-engineering.
-- **Various** — `orchestrator-contract` read-only clarification; `questioning` rules refined; `coding-flow` architect-background guidance; `coding-agents-prompt-adaptation` removed; `hooks-authoring` → `coding-agents-hooks-authoring`.
+## Open
 
-## Open Workstreams
+- **W5 — Native-trigger reframe.** Shrink `bootstrap-guardrails.md` to a minimal pointer — remove inline trigger restatements already carried by skill descriptions. Done when: the rule no longer repeats any trigger the description already carries.
+- **W2 generator changes** — per-IDE flag handling in `src/plugin-generator/src/plugin-processors/`:
+  - **Cursor** — emit skills to repo-level `.cursor/skills/`; `disable-model-invocation` on plugin-delivered skills is broken (Cursor bug — fully hides skill).
+  - **Copilot** — switch `*.prompt.md` → Agent Skills (`.github/skills/`); prompt files honor neither flag.
+  - **Codex** — `disable-model-invocation: true` → `agents/openai.yaml` `policy.allow_implicit_invocation: false`; frontmatter flag ignored.
+  - **OpenCode** — omit hidden skills (neither flag supported; `hidden: true` only works for subagents).
 
-- **Hook rename — `gitnexus-refresh.js` → `codemap-refresh.js`.** Merged docs (ARCHITECTURE.md, web docs, llms-full.txt) now describe the PostToolUse hook as `codemap-refresh.js` (backend-agnostic: reindexes GitNexus when `.gitnexus/` present; auto-detecting GitNexus/Graphify/scripts is TBD), but the hook source (`hooks/src/hooks/gitnexus-refresh.js`) and built bundles still use the old name. Done when: source renamed, bundles rebuilt, plugins regenerated, docs↔code names match.
+## Done (nudges)
 
-- **W5 — Native-trigger reframe.** Shrink `bootstrap-guardrails.md` to a minimal pointer — remove inline trigger restatements already carried by skill descriptions. Done when: rule no longer repeats any trigger the description already carries.
-- **W2 generator changes** (remaining after research). Implement per-IDE flag handling in `src/plugin-generator/` (TypeScript, per-IDE processors under `src/plugin-generator/src/plugin-processors/`):
-  - **Cursor** — emit skills to repo-level `.cursor/skills/` not plugin-delivered; `disable-model-invocation` on plugin-delivered skills is broken (fully hides skill, Cursor bug)
-  - **Copilot** — switch target from `*.prompt.md` → Agent Skills (`.github/skills/`); prompt files honor neither flag
-  - **Codex** — transform `disable-model-invocation: true` → `agents/openai.yaml` sidecar `policy.allow_implicit_invocation: false`; frontmatter flag silently ignored
-  - **OpenCode** — omit hidden skills from output (neither flag supported); `hidden: true` only works for subagents
+W0 definitions reconciled · W1 init-workspace bodies inlined · W1 gitnexus→codemap merged · W1 coding-iac→coding · codemap skill added · W2 visibility flags on all r3 + r2 skills · W2 research (IDE→attribute matrix) · W3 phase-file flags · W4 descriptions compressed · W6 ARCHITECTURE + web skill/workflow counts · codemap-refresh hook (multi-backend GitNexus/Graphify, pre-check debounce, cross-platform node+setTimeout).
 
-## Done (this PR — feat/skills-visibility-flags)
-
-- **W0** — `docs/definitions/skills.md` and `docs/definitions/workflows.md` reconciled: plan-manager→operation-manager, init-workspace-* removed, gitnexus consolidated, codemap/load-*/natural-writing/coding-agents-* added, unbuilt workflows removed.
-- **W6** — `docs/ARCHITECTURE.md` + `docs/web/docs/architecture.md`: skill count updated (20→35, workflows 4→12), extension points updated to r3. IDE configure files updated with available frontmatter fields (`instructions/r3/core/configure/`).
-- **W2 research** — IDE→attribute matrix produced. Configure files updated with available fields per IDE.
-
-## Confirmed decisions (keeper — needed for W0/W5/W6)
+## Durable decisions
 
 - `disable-model-invocation: true` ONLY for: `init-*` phases, workflow phase files, `specflow-use`.
-- User-facing skills (`user-invocable: true`): all capability skills + `hitl`, `operation-manager`, `questioning`, `specflow-use`.
-- `risk-assessment`: `user-invocable: false`.
-- `reverse-engineering`, `tech-specs`: `user-invocable: true`.
-- Asset references in skills: use `ACQUIRE <skill/assets/file> FROM KB` (full path) — not bare `assets/` paths. See `codemap/SKILL.md`.
-- Script-as-asset pattern: scripts too large to inline → dedicated skill with `assets/*.txt`; executor ACQUIREs, renames, runs. Established by `skills/codemap/`. Apply to any future executable asset.
-- Internal notes must never appear in skill text: authoring context (structural depth, what it "is not", etc.) stays out of SKILL.md entirely. Reviewers must grep for leakage.
-- Reviewer process: MUST run `git diff HEAD` as primary input — not just read new files — to catch regressions and command-alias violations.
-- gitnexus consolidation: `gitnexus` skill merged into `codemap` as progressive-disclosure asset (`codemap/assets/gitnexus-use.md`); sub-assets co-located under `codemap/assets/`; ACQUIRE trigger in `codemap/SKILL.md`; `skills/gitnexus/` removed.
-- Release targeting: default `r3`; ask each request which release(s) to apply.
-- `context-engineering`: TBD placeholder in definitions, do not build.
-- `discovery`: distinct skill, separate from codemap.
+- `user-invocable: true`: all capability skills + `hitl`, `operation-manager`, `questioning`, `specflow-use`, `reverse-engineering`, `tech-specs`. `risk-assessment`: `false`.
+- Asset refs in skills: `ACQUIRE <skill/assets/file> FROM KB` (full path) — not bare `assets/`.
+- Script-as-asset: scripts too large to inline → dedicated skill with `assets/*.txt`; executor ACQUIREs, renames, runs (established by `codemap`).
+- Internal authoring notes never appear in skill text; reviewers grep for leakage.
+- Reviewer: run `git diff HEAD` as primary input — not just new files.
+- Release targeting: default `r3`; ask which release(s) per request.
+- `context-engineering`: TBD placeholder, do not build. `discovery`: distinct skill, separate from codemap.

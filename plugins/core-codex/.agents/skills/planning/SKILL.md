@@ -8,7 +8,7 @@ argument-hint: request, tech-spec?, constraints?, scope?
 model: gpt-5.5
 model_reasoning_effort: high
 context: default
-agent: planner
+agent: planner, architect
 metadata:
   version: "1.1"
   category: "planning"

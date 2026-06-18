@@ -8,7 +8,7 @@ argument-hint: problem, context?, constraints?
 model: gpt-5.5
 model_reasoning_effort: high
 context: default
-agent: planner, prompt-engineer
+agent: planner, architect, prompt-engineer
 metadata:
   version: "1.0"
   category: "reasoning"

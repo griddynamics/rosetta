@@ -171,3 +171,7 @@ AI Coding Agents (claude code, codex, cursor, etc) are overloaded with our boots
 - References pattern: first of all, do we even need it? (those refs could already be mentioned multiple times.) If we still do, convert each item to be like in `self-help-flow.md`. The pattern is not only in references — it could be everywhere; keep the reference-pattern decision and document the bulk items to use canonical wording.
 - Scope: we must also update pa-rosetta and similar files as part of the task.
 - Decisions: do not decide yourself — tell the implementer to review and decide.
+
+---
+
+> **Maintenance principle — this story file SHRINKS as work lands.** When an item is implemented, collapse it to a one-line nudge and delete detail no longer needed. Keep only: open work (full detail), tiny done-nudges, and durable decisions. Do not let it grow; do not keep finished how-it-was-done prose.

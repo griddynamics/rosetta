@@ -106,7 +106,7 @@ Initialization must behave differently for fresh, existing, or plugin workspaces
     "e2e_tests": "[E2E_TESTS_LOCATION - e.g. in-repository, separate repo]",
     "performance_tests": "[PERFORMANCE_TESTS_LOCATION - omit if none]",
     "testing_harness": "[TESTING_HARNESS - main test entry point or script name; omit if standard]",
-    "code_graph": "[CODE_GRAPH_TOOL - e.g. GitNexus, CodeScene; omit if not used]"
+    "code_graph": "[CODE_GRAPH_TOOL - e.g. Graphify, GitNexus, CodeScene; omit if not used]"
   },
   "vocabulary": {
     "[TERM]": "[DEFINITION - domain-specific term AI should know; add more entries as needed]"

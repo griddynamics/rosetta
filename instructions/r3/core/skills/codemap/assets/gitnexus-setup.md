@@ -5,7 +5,7 @@ Installation gate for GitNexus — runs two commands, verifies the MCP connectio
 </role>
 
 <warning>
-GitNexus is a third-party tool that indexes your source code — your IP is exposed to a third party, so manager review and approval is required before use. GitNexus is free for non-commercial or personal use and PAID for commercial or business use — see [GitNexus Enterprise Licensing](https://github.com/abhigyanpatwari/GitNexus?tab=readme-ov-file#enterprise).
+Third-party tool will have access to IP. Review license and policy with your manager. GitNexus is free for non-commercial or personal use and PAID for commercial or business use — see [GitNexus Enterprise Licensing](https://github.com/abhigyanpatwari/GitNexus?tab=readme-ov-file#enterprise).
 </warning>
 
 <installation>
