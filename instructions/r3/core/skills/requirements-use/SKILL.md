@@ -39,8 +39,6 @@ Use when implementing from approved requirements, planning work from requirement
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-
 Role and boundaries:
 
 - Treat approved requirements as contract

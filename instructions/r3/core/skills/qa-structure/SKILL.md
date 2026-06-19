@@ -30,14 +30,14 @@ Router — ACQUIRE the one your current step needs (point-of-use, never all at o
 
 | When a phase needs to… | ACQUIRE |
 |---|---|
-| resolve QA paths, `{IDENTIFIER}` derivation, or the QA state-file shape | `qa-structure/references/api-qa-layout.md` |
+| resolve API-QA paths, `{IDENTIFIER}` derivation, or the QA state-file shape | `qa-structure/references/api-qa-layout.md` |
 | resolve UI-QA paths, the `<test-name>` slug rules, the page-sources contract, or the UI-QA state-file shape | `qa-structure/references/ui-qa-layout.md` |
 | load or validate the QA project-config keys (keys + consuming phase + accepted `N/A` forms) | `qa-structure/references/config-schema.md` |
-| write the QA project-config file | `qa-structure/assets/api-qa-project-config-template.md` |
+| write the API-QA project-config file | `qa-structure/assets/api-qa-project-config-template.md` |
 | run the Phase 0 user interview (config missing) | `qa-structure/assets/api-qa-config-interview.md` |
 | seed the UI-QA state file (Phase 1) | `qa-structure/assets/ui-qa-state-template.md` |
 
-The QA state-file seed and the QA per-run initial-data skeleton are tiny + always-needed, so they stay **inline** in `api-qa-flow-project-config-loading.md` rather than as assets — avoids ACQUIRE round-trips on the Phase 0 critical path.
+The API-QA state-file seed and the API-QA per-run initial-data skeleton are tiny + always-needed, so they stay **inline** in `api-qa-flow-project-config-loading.md` rather than as assets — avoids ACQUIRE round-trips on the Phase 0 critical path.
 
 </resources>
 

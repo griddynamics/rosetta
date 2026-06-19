@@ -1,11 +1,11 @@
 ---
 name: api-qa-layout
-description: QA (backend API) canonical session paths, {IDENTIFIER} derivation, and state-file shape.
+description: API-QA canonical session paths, {IDENTIFIER} derivation, and state-file shape.
 ---
 
 <api-qa-layout>
 
-QA (backend API) canonical paths — created/seeded at the project-config-loading phase, reused verbatim downstream:
+API-QA canonical paths — created/seeded at the project-config-loading phase, reused verbatim downstream:
 
 ```
 agents/api-qa-state.md                       (workflow state file — one per QA project)

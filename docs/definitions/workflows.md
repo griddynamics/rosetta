@@ -4,8 +4,8 @@
 - research-flow
 - code-analysis-flow
 - external-lib-flow
-- aqa-flow
-- qa-flow
+- ui-qa-flow
+- api-qa-flow
 - testgen-flow
 - modernization-flow
 - adhoc-flow
