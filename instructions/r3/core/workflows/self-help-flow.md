@@ -29,7 +29,7 @@ QUICKSTART REFERENCE PATTERN — use this exact style for all examples shown to 
 /requirements-authoring-flow Extract detailed business and technical requirements from ... using subagents.
 /modernization-flow Perform modernization phase 1 to reuse library refsrc/... using subagents.
 /research-flow Investigate OAuth 2.0 implementation options for our stack
-/aqa-flow Create QA automation for the checkout flow
+/ui-qa-flow Create UI test automation for the checkout flow
 ```
 
 HOW WORKFLOWS EXECUTE:
