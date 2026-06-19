@@ -2,6 +2,8 @@
 name: load-workflow
 description: "To select, activate, and resume the best-matching workflow and inject its phases. MUST."
 tags: ["rosetta-bootstrap", "core", "workflow", "orchestrator"]
+disable-model-invocation: false
+user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 <load-workflow>

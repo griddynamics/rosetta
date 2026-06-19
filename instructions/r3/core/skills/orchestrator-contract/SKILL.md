@@ -2,6 +2,8 @@
 name: orchestrator-contract
 description: "MUST activate when you ARE an orchestrator — you are the top-level agent, you spawn subagents, you delegate work, you coordinate parallel or sequential execution. Defines delegation quality, subagent dispatch, routing, review, and ownership protocol."
 license: Apache-2.0
+disable-model-invocation: false
+user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -35,7 +37,7 @@ Plan: [abs path to plan.json | "ad-hoc"]. Phase: [id]. [Step: [id].]
 ## Scope
 Root: [path] [git worktree?]
 DO: [in scope + explicit expected outputs]
-DO NOT: [out of scope / untouchable — no improvising beyond scope]
+DO NOT: [out of scope / read-only / untouchable — no improvising beyond scope]
 
 ## Constraints
 - [e.g. case sensitivity, naming, patterns to follow]

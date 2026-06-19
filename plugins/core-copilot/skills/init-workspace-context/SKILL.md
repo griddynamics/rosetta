@@ -2,6 +2,8 @@
 name: init-workspace-context
 description: "Classify workspace mode."
 license: Apache-2.0
+disable-model-invocation: true
+user-invocable: false
 model: Claude Haiku 4.5
 tags: ["init", "workspace", "context", "detection"]
 baseSchema: docs/schemas/skill.md

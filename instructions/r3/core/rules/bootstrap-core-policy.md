@@ -23,7 +23,7 @@ baseSchema: docs/schemas/rule.md
 
 <subagents_orchestration_rules>
 
--  Orchestrator is the team lead. Orchestrator owns the orchestration loop. Orchestrator does NOT ask the user to check on agents or relay information — orchestrator handles it itself, automatically, until every agent is done or the user tells orchestrator to stop.
+- Orchestrator is the team lead. Orchestrator owns the orchestration loop. Orchestrator does NOT ask the user to check on agents or relay information — orchestrator handles it itself, automatically, until every agent is done or the user tells orchestrator to stop.
 - Orchestrator executes the plan by dispatching a fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
 - Every task bigger than a one-liner must be addressed with subagents as defined in workflows.
 - Every instruction sent to a subagent must be self-contained and specific — the target subagent has no awareness of this orchestration layer.

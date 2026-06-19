@@ -256,7 +256,7 @@ Before deploying, run: `python scripts/validate.py`
 | `license` | No | string | License name or reference to bundled license file. |
 | `compatibility` | No | string | Environment requirements (system packages, network access, etc.). |
 | `metadata` | No | object | Arbitrary key-value mapping for additional metadata. |
-| `disable-model-invocation` | No | boolean | If `true`, skill only included when explicitly invoked via `/skill-name`. |
+| `disable-model-invocation` | No | boolean | If `true`, skill only included when explicitly invoked via `/skill-name`. Note: on plugin-delivered skills this flag currently makes the skill fully uninvocable (Cursor bug — works correctly for repo-level `.cursor/skills/`). |
 
 #### Optional Directories
 

@@ -30,7 +30,7 @@ ADVISORY_MARKERS = [
     "dangerous-actions.js",
     "loose-files.js",
     "md-file-advisory.js",
-    "gitnexus-refresh.js",
+    "codemap-refresh.js",
     "lint-format-advisory.js",
 ]
 

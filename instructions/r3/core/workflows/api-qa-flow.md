@@ -2,6 +2,7 @@
 name: api-qa-flow
 description: MUST apply for backend API test automation: TestRail/Jira cases → automated tests, HITL gates at spec/impl/exec/correction.
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

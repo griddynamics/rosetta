@@ -3,6 +3,7 @@ name: api-qa-flow-data-collection
 description: Phase 1 of QA workflow - Data Collection from test cases, documentation, and codebase
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

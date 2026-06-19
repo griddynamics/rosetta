@@ -2,6 +2,8 @@
 name: init-workspace-rules
 description: "Create agent rules."
 license: Apache-2.0
+disable-model-invocation: true
+user-invocable: false
 model: gpt-5.4
 model_reasoning_effort: medium
 tags: ["init", "workspace", "rules"]

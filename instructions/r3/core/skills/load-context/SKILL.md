@@ -2,6 +2,8 @@
 name: load-context
 description: "To load the most current project context; MUST during prep."
 license: Apache-2.0
+disable-model-invocation: false
+user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 <load-context>

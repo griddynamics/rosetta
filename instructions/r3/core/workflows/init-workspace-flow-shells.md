@@ -2,6 +2,7 @@
 name: init-workspace-flow-shells
 description: "Phase 2 Shells of init-workspace-flow"
 tags: ["init", "workspace", "shells", "phase"]
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 
@@ -20,7 +21,7 @@ Generates shell config files so subsequent sessions can load context and invoke 
 
 <phase_steps>
 1. Check mode, skip if plugin
-2. ACQUIRE and execute shell generation skill
+2. Execute shell generation
 3. Update state with shell status
 </phase_steps>
 
@@ -31,9 +32,72 @@ Generates shell config files so subsequent sessions can load context and invoke 
 </check_mode>
 
 <execute_shells step="2.2">
-1. ACQUIRE `init-workspace-shells/SKILL.md` FROM KB
-2. Execute shell generation per skill logic
-3. In upgrade mode: create missing shells only, preserve existing
+
+Act as a shell configuration specialist for IDE/CodingAgent workspace bootstrapping. Shell files delegate logic to KB via ACQUIRE, enabling centralized instruction updates across projects.
+
+In upgrade mode: create missing shells only, preserve existing.
+
+<core_concepts>
+
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- Shell = frontmatter + single ACQUIRE instruction, zero inline logic
+- No absolute paths in generated shells
+
+</core_concepts>
+
+<shells_process>
+
+Internal knowledge about IDE/agent shell configuration is obsolete — LIST and ACQUIRE from KB.
+
+Step 1: Identify Environment
+
+1. LIST `configure` IN KB (to understand supported IDE/CodingAgents)
+2. Detect current environment, preselect IDE/CodingAgent
+3. MUST ask user to confirm selection and provide multi-choose
+4. ACQUIRE <selected configs using TAG> FROM KB
+5. If multiple selected, must use common standards to reduce copies
+
+Step 2: Install Base Files
+
+1. ACQUIRE `skills/load-context/SKILL.md` FROM KB — install as SKILL
+2. ACQUIRE `rules/bootstrap.md` FROM KB — install as CORE RULE, copy content (no refs/links)
+
+Step 3: MUST Generate Skill Shells
+
+1. LIST `skills` IN KB with XML format
+2. ACQUIRE `skill-shell.md` FROM KB
+3. Create all skill shells, reuse frontmatter from listing
+4. Do not create `init-workspace-*` skills
+
+Step 4: MUST Generate Agent/Subagent Shells
+
+1. LIST `agents` IN KB with XML format
+2. ACQUIRE `agent-shell.md` FROM KB
+3. Create all agent/subagent shells, reuse frontmatter from listing
+
+Step 5: MUST Generate Workflow/Command Shells
+
+1. LIST `workflows` IN KB with XML format
+2. ACQUIRE `workflow-shell.md` FROM KB
+3. Create all workflow/command shells, reuse frontmatter from listing
+4. Do not create `init-workspace-*` workflows and its phases
+
+Step 6: Verify Shell Integrity
+
+1. Diff each file against its shell schema — zero structural deviations
+2. Verify: every file has ACQUIRE, no conditional logic/loops/inline instructions, all paths resolve
+3. HITL: present results, confirm with user
+
+</shells_process>
+
+<shells_validation_checklist>
+
+- Every generated file: frontmatter + ACQUIRE only, zero inline logic
+- All paths resolve, extensions match IDE config
+- User confirmed verification results
+
+</shells_validation_checklist>
+
 </execute_shells>
 
 <update_state step="2.3">

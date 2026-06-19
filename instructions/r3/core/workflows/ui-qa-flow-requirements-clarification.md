@@ -3,6 +3,7 @@ name: ui-qa-flow-requirements-clarification
 description: "Phase 2 Requirements Clarification of ui-qa-flow"
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

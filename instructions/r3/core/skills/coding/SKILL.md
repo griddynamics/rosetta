@@ -2,6 +2,8 @@
 name: coding
 description: "To implement features, fix bugs, and refactor with KISS/SOLID/DRY and systematic validation."
 license: Apache-2.0
+disable-model-invocation: false
+user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -99,12 +101,8 @@ Validation methodology:
 
 <resources>
 
-- MCP `Context7` — library documentation
-- MCP `DeepWiki` — external documentation and knowledge
-- MCP `Playwright` — browser testing and validation
-- MCP `Chrome-DevTools` — browser debugging and inspection
-- MCP `GitNexus` — codebase knowledge graph
-- MCP `Serena` — semantic code retrieval at symbol level
+- Review and use any relevant MCPs, plugins, and tools available in the current context — e.g. Playwright (browser), Context7 (library docs), Graphify (codebase knowledge graph).
+- skill `codemap` — for structural project discovery
 - skill `debugging` — for issues during implementation
 - skill `planning` — for implementation planning
 - skill `tech-specs` — for technical specifications

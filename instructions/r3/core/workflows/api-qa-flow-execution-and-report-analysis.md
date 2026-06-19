@@ -3,6 +3,7 @@ name: api-qa-flow-execution-and-report-analysis
 description: Phase 6 of QA workflow - Test Execution and Report Analysis (USER INTERACTION REQUIRED)
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

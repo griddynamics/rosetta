@@ -208,7 +208,7 @@ One `get_context_instructions` call returns all bootstrap rules bundled (core po
        Agent now has: bootstrap rules + project context + workflow instructions
 
 6. Agent executes the workflow
-   ├── Follows phases (Prepare → Research → Plan → Act)
+   ├── Follows phases (Prepare → Research → Plan → Act → Validate)
    ├── Uses ACQUIRE/USE SKILL/INVOKE SUBAGENT to load instructions progressively
    ├── Delegates to subagents, uses plan_manager for tracking
    └── Applies guardrails and HITL gates throughout
@@ -364,7 +364,7 @@ Instructions Repo ──► CLI (publish) ──► RAGFlow ──► Rosetta MC
 2. **Index.** RAGFlow parses, chunks, embeds, indexes for full-text and semantic search
 3. **Bootstrap.** Agent calls `get_context_instructions` via MCP (prep step 1), reads workspace files directly from the target repo (step 2), classifies request via MCP (step 3)
 4. **Load.** Agent uses ACQUIRE/SEARCH/LIST aliases. MCP queries by tags, bundles matching VFS paths into XML with context headers. Progressive disclosure: only what the workflow needs
-5. **Execute.** Workflow phases (Prepare → Research → Plan → Act), subagent delegation, plan_manager tracking, guardrails and HITL gates
+5. **Execute.** Workflow phases (Prepare → Research → Plan → Act → Validate), subagent delegation, plan_manager tracking, guardrails and HITL gates.
 
 ---
 
@@ -385,7 +385,7 @@ Codex Plugin: only OpenAI `gpt-*` models are supported.
 
 Plugins are an alternative delivery mechanism to MCP. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
 
-Each plugin contains core instructions: 20 skills, 7 agents, 4 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
+Each plugin contains core instructions: 35 skills, 7 agents, 12 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
 
 | Plugin | IDE |
 |---|---|
@@ -452,11 +452,11 @@ Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages.
 
 Where contributors add or change things:
 
-- **New skill:** Add `instructions/r2/core/skills/<name>/SKILL.md` (or under an org folder)
-- **New agent:** Add `instructions/r2/core/agents/<name>.md`
-- **New workflow:** Add `instructions/r2/core/workflows/<name>.md` (and phase files)
-- **New rule:** Add `instructions/r2/core/rules/<name>.md`
-- **Organization layer:** Create `instructions/r2/<org>/` with the same type structure
+- **New skill:** Add `instructions/r3/core/skills/<name>/SKILL.md` (or under an org folder; backport to `r2` if stable)
+- **New agent:** Add `instructions/r3/core/agents/<name>.md`
+- **New workflow:** Add `instructions/r3/core/workflows/<name>.md` (and phase files)
+- **New rule:** Add `instructions/r3/core/rules/<name>.md`
+- **Organization layer:** Create `instructions/r3/<org>/` with the same type structure
 - **MCP tools:** Modify `ims-mcp-server/ims_mcp/server.py`
 - **Tool prompts:** Modify `ims-mcp-server/ims_mcp/tool_prompts.py`
 - **CLI commands:** Add to `rosetta-cli/rosetta_cli/commands/`

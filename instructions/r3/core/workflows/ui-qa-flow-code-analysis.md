@@ -3,6 +3,7 @@ name: ui-qa-flow-code-analysis
 description: "Phase 3 Code Analysis of ui-qa-flow"
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

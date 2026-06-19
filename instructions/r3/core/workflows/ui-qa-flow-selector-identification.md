@@ -3,6 +3,7 @@ name: ui-qa-flow-selector-identification
 description: "Phase 4 Selector Identification of ui-qa-flow"
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

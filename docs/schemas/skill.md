@@ -18,7 +18,7 @@ alwaysApply: false
 disable-model-invocation: false
 # user-invocable — false = hidden from the / menu (background knowledge users shouldn't call directly) [boolean] [Claude Code]
 user-invocable: true
-# argument-hint — autocomplete hint for expected args (Optional — uncomment to enable) [string] [Claude Code]
+# argument-hint — autocomplete hint for expected args; ONLY include when user-invocable: true, REMOVE when user-invocable: false (Optional — uncomment to enable) [string] [Claude Code]
 # argument-hint: "issue-number | filename"
 
 # Tools & Model Configuration (Optional — uncomment a line to enable)

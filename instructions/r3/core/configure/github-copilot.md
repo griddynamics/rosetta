@@ -301,6 +301,8 @@ Create a new React component named ${input:componentName:MyComponent}.
 | `name` | Yes | string | Skill identifier (lowercase-with-hyphens). Must match parent folder name |
 | `description` | Yes | string | What the skill does and when to use it |
 | `license` | No | string | License information |
+| `user-invocable` | No | boolean | `false` = hidden from `/` menu; agent can still auto-load it (default: `true`) |
+| `disable-model-invocation` | No | boolean | `true` = agent will not auto-load; explicit `/` invocation only (default: `false`) |
 
 **Structure:**
 

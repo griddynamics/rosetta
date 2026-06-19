@@ -220,7 +220,7 @@
 
 - Proactively ask to generate and show a graph visually, also suggest which perspectives to generate it on
 - Load and process source data programmatically or AI-driven semi-programmatically to build a graph data
-- Use GitNexus for coding graph or Graphviz to build/show the UI for any graph and configure it for best visual presentation
+- Use Graphify for coding graph or Graphviz to build/show the UI for any graph and configure it for best visual presentation
 
 </visual_graph>
 

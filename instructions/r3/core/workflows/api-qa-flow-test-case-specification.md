@@ -3,6 +3,7 @@ name: api-qa-flow-test-case-specification
 description: Phase 4 of QA workflow - Detailed API Test Case Specification (HITL APPROVAL GATE)
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

@@ -11,7 +11,7 @@ import type { GenError, PluginProcessingFrame } from '../types.js';
 
 const BUNDLE_FILENAMES = [
   'dangerous-actions.js',
-  'gitnexus-refresh.js',
+  'codemap-refresh.js',
   'lint-format-advisory.js',
   'loose-files.js',
   'md-file-advisory.js',

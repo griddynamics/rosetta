@@ -1,6 +1,8 @@
 ---
 name: load-context-instructions
 description: "To detect execution mode and load the matching bootstrap instructions."
+disable-model-invocation: false
+user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 <load-context-instructions>

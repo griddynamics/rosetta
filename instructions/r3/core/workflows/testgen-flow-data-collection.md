@@ -2,6 +2,7 @@
 name: testgen-flow-data-collection
 description: "Phase 1 Data Collection of testgen-flow"
 alwaysApply: false
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

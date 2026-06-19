@@ -2,6 +2,12 @@
 name: tech-specs
 description: "To define clear, testable tech specs from requirements — target-state architecture, contracts, interfaces."
 license: Apache-2.0
+disable-model-invocation: false
+user-invocable: true
+model: gpt-5.5
+model_reasoning_effort: high
+context: default
+agent: planner, architect
 baseSchema: docs/schemas/skill.md
 ---
 

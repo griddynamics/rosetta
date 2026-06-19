@@ -45,10 +45,10 @@ If the request is implementation work, use the coding workflow instead.
 ## How To Start
 
 ```text
-"Define requirements for the checkout flow covering discount codes, tax, and retries"
-"Write requirements for the user onboarding experience with explicit actors, non-goals, and measurable performance thresholds"
-"Review these payment requirements for contradictions, missing traceability, and weak NFR wording"
-"Refactor our reporting requirements into atomic requirement units with stable IDs and approval gates"
+/requirements-authoring-flow Define requirements for the checkout flow covering discount codes, tax, and retries
+/requirements-authoring-flow Write requirements for the user onboarding experience with explicit actors, non-goals, and measurable performance thresholds
+/requirements-authoring-flow Review these payment requirements for contradictions, missing traceability, and weak NFR wording
+/requirements-authoring-flow Refactor our reporting requirements into atomic requirement units with stable IDs and approval gates
 ```
 
 ## How Rosetta Shapes This Workflow

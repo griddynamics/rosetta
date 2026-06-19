@@ -2,6 +2,8 @@
 name: debugging
 description: "To investigate errors, test failures, and unexpected behavior — root cause before fix."
 license: Apache-2.0
+disable-model-invocation: false
+user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

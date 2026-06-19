@@ -7,7 +7,7 @@ user-invocable: true
 argument-hint: request, tech-spec?, constraints?, scope?
 model: claude-opus-4-8
 context: default
-agent: planner
+agent: planner, architect
 metadata:
   version: "1.1"
   category: "planning"

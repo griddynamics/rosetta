@@ -147,7 +147,7 @@ While agentic coding accelerates development, it introduces the inherent risk of
 
 ### Rosetta's Built-In Guardrails
 Rosetta is designed to constrain erratic agent behavior and enforce safe execution paths:
-- **Structured Workflows**: Agents are guided through a strict, deterministic execution model (Prepare → Research → Plan → Act) to enforce logical consistency and prevent unprompted actions.
+- **Structured Workflows**: Agents are guided through a strict, deterministic execution model (Prepare → Research → Plan → Act → Validate) to enforce logical consistency and prevent unprompted actions.
 - **Approval Gates & Risk Assessment**: Critical actions trigger automated risk assessment prompts and require explicit approval gates, significantly reducing the likelihood of unsafe autonomous operations.
 - **Contextual Limitations**: While Rosetta provides robust guardrails and rich context, it is a guidance engine, not a deterministic compiler. AI-generated outputs can still contain security vulnerabilities or logical flaws regardless of the instructions provided.
 

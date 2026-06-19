@@ -9,7 +9,7 @@
         "hooks": [
           {
             "type": "command",
-            "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/dangerous-actions.js\" ]; then node \"$root/hooks/dangerous-actions.js\"; break; fi; done",
+            "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/dangerous-actions.js\" ]; then node \"$root/hooks/dangerous-actions.js\"; break; fi; done",
             "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\dangerous-actions.js\") { node \"$root\\hooks\\dangerous-actions.js\" }"
           }
         ]
@@ -21,12 +21,12 @@
         "hooks": [
           {
             "type": "command",
-            "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/loose-files.js\" ]; then node \"$root/hooks/loose-files.js\"; break; fi; done",
+            "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/loose-files.js\" ]; then node \"$root/hooks/loose-files.js\"; break; fi; done",
             "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\loose-files.js\") { node \"$root\\hooks\\loose-files.js\" }"
           },
           {
             "type": "command",
-            "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/md-file-advisory.js\" ]; then node \"$root/hooks/md-file-advisory.js\"; break; fi; done",
+            "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/md-file-advisory.js\" ]; then node \"$root/hooks/md-file-advisory.js\"; break; fi; done",
             "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\md-file-advisory.js\") { node \"$root\\hooks\\md-file-advisory.js\" }"
           }
         ]
@@ -36,8 +36,8 @@
         "hooks": [
           {
             "type": "command",
-            "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/gitnexus-refresh.js\" ]; then node \"$root/hooks/gitnexus-refresh.js\"; break; fi; done",
-            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\gitnexus-refresh.js\") { node \"$root\\hooks\\gitnexus-refresh.js\" }"
+            "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/codemap-refresh.js\" ]; then node \"$root/hooks/codemap-refresh.js\"; break; fi; done",
+            "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\codemap-refresh.js\") { node \"$root\\hooks\\codemap-refresh.js\" }"
           }
         ]
       },
@@ -46,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "bash": "for base in \"$HOME/Library/Application Support/Code/agentPlugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/lint-format-advisory.js\" ]; then node \"$root/hooks/lint-format-advisory.js\"; break; fi; done",
+            "bash": "for base in \"$HOME/.vscode/agent-plugins\" \"$HOME/.local/share/Code/agentPlugins\"; do root=\"$base/github.com/griddynamics/rosetta/plugins/core-copilot\"; if [ -f \"$root/hooks/lint-format-advisory.js\" ]; then node \"$root/hooks/lint-format-advisory.js\"; break; fi; done",
             "powershell": "$root = \"$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot\"; if (Test-Path \"$root\\hooks\\lint-format-advisory.js\") { node \"$root\\hooks\\lint-format-advisory.js\" }"
           }
         ]

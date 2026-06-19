@@ -3,6 +3,7 @@ name: ui-qa-flow-test-report-analysis
 description: "Phase 7 Test Report Analysis of ui-qa-flow"
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

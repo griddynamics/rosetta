@@ -4,7 +4,7 @@
 // Each bundle includes only the IDE-specific adapter code; other adapters are excluded.
 import * as esbuild from 'esbuild';
 import { fileURLToPath } from 'url';
-import { readdirSync } from 'fs';
+import { readdirSync, rmSync } from 'fs';
 import path from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -23,6 +23,10 @@ const PLUGINS = [
 
 // Auto-discover hook entry points: every .ts file in src/hooks/.
 const HOOK_SOURCES = readdirSync(hooksDir).filter(f => f.endsWith('.ts'));
+
+// Wipe the output dir first so a renamed or deleted hook leaves no orphaned
+// bundle behind (which the plugin generator would otherwise propagate).
+rmSync(outDir, { recursive: true, force: true });
 
 let bundleCount = 0;
 for (const { plugin, adapter } of PLUGINS) {

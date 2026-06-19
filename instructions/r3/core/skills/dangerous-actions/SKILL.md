@@ -2,6 +2,8 @@
 name: dangerous-actions
 description: "Rosetta CRITICAL MUST skill. MUST activate when action or its consequence is potentially dangerous, potentially irreversible, potentially destructive, or HIGH RISK. MUST activate when consequence MAYBE dangerous even if action itself seems safe. This is enterprise environment — the cost of dangerous activities is EXTREMELY HIGH, recovery may be impossible, and blast radius may affect production, shared environments, or other teams. If there is even a remote chance - load the skill."
 license: Apache-2.0
+disable-model-invocation: false
+user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 

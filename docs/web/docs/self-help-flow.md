@@ -42,14 +42,14 @@ If you want action, you must explicitly tell the coding agent to start the selec
 
 Example prompts:
 
-- `What workflows are available in this workspace?`
-- `How do I use the coding workflow to add a feature safely?`
-- `I need to understand an existing module before refactoring it. Which workflow should I use?`
-- `Use the workflow you just recommended and start from phase 1.`
+- `/self-help-flow What workflows are available in this workspace?`
+- `/self-help-flow How do I use the coding workflow to add a feature safely?`
+- `/self-help-flow I need to understand an existing module before refactoring it. Which workflow should I use?`
+- `/self-help-flow Use the workflow you just recommended and start from phase 1.`
 
 ## How Rosetta Shapes This Workflow
 
-- You ask in plain language. The coding agent reads your request, loads Rosetta instructions, and uses this workflow to answer.
+- You invoke `/self-help-flow` with your question. The coding agent reads your request, loads Rosetta instructions, and uses this workflow to answer.
 - Rosetta provides instructions only. It does not see your request, your code, or your project data. The coding agent sees those and acts on Rosetta guidance.
 - The answer is grounded in Rosetta capability listings and the matching instruction files, not only the model's built-in memory.
 - Rosetta keeps this workflow narrow. The agent lists capabilities first, then loads only the matching workflow, skill, or agent definitions.

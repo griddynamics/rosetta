@@ -41,19 +41,19 @@ The hard approvals are the `Prompt Brief` gate and the final approval before per
 ## How To Start
 
 ```text
-Create a coding workflow prompt for our internal AI agent.
+/coding-agents-prompting-flow Create a coding workflow prompt for our internal AI agent.
 ```
 
 ```text
-Adapt this Claude coding-agent prompt for Cursor and preserve the approval model.
+/coding-agents-prompting-flow Adapt this Claude coding-agent prompt for Cursor and preserve the approval model.
 ```
 
 ```text
-Write prompts for our onboarding automation agent and include validation artifacts before persistence.
+/coding-agents-prompting-flow Write prompts for our onboarding automation agent and include validation artifacts before persistence.
 ```
 
 ```text
-Review this prompt family, harden it, simulate realistic runs, and return a final prompt set plus validation pack.
+/coding-agents-prompting-flow Review this prompt family, harden it, simulate realistic runs, and return a final prompt set plus validation pack.
 ```
 
 ## How Rosetta Shapes This Workflow

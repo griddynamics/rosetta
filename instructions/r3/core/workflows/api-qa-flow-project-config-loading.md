@@ -3,6 +3,7 @@ name: api-qa-flow-project-config-loading
 description: Phase 0 of QA workflow - Project Config Loading (USER INTERACTION CONDITIONALLY REQUIRED)
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

@@ -4,7 +4,6 @@ description: "To ask targeted clarification questions only when high-impact unkn
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
-argument-hint: request, unknowns?, assumptions?, blockers?
 context: default
 agent: planner, prompt-engineer
 metadata:
@@ -29,13 +28,14 @@ Use when critical or high unknowns affect scope, security, UX, or technical deli
 
 <rules>
 
-- Ask only critical/high-impact questions.
-- Prioritize by impact: scope > security/privacy > UX > technical.
-- Ask 5-10 questions only when unknowns exist.
-- Keep one decision per question.
-- Include why it matters and safe default.
-- Track open questions with todo tasks.
-- STOP when critical blockers remain unresolved.
+- Ask critical/high/major impact questions
+- Prioritize by impact: scope > security/privacy > UX > technical
+- Ask few independent questions at a time
+- Adjust and loop with questions until crystal clear
+- Keep one decision per question
+- Include why it matters and enterprise safe defaults (best practices, safer execution, reliable handling, etc)
+- Track open questions with todo tasks
+- STOP when critical blockers remain unresolved
 
 </rules>
 

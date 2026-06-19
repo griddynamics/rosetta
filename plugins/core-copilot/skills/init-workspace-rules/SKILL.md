@@ -2,6 +2,8 @@
 name: init-workspace-rules
 description: "Create agent rules."
 license: Apache-2.0
+disable-model-invocation: true
+user-invocable: false
 model: Claude Sonnet 4.6
 tags: ["init", "workspace", "rules"]
 baseSchema: docs/schemas/skill.md

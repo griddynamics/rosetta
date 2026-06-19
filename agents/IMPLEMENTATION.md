@@ -191,9 +191,14 @@ For detailed change history, use git history and PRs instead of expanding this f
 - **SKILL.md alignment**: `dangerous-actions/SKILL.md` documents two-tier model and correct token; `hitl/SKILL.md` removes the now-incorrect AI-marker prohibition.
 - 461 hooks tests pass (7 new coverage additions: Edit/MultiEdit dangerous path, partial Write, reconsider+marker retry, MCP query field, curl|sh hard-deny).
 
+### Website — Right-side In-document TOC
+
+Added sticky right-side table of contents to all doc pages (`layout: docs`). Extracts H2/H3 headers from page content, builds anchor links, highlights active section via `IntersectionObserver`. At ≥1280px: sticky column. At 769–1280px: fixed overlay, `opacity: 0.25` default → `0.9` on hover (`0.5s` transition). At ≤768px: hidden. Panel suppressed when <2 headings. Files changed: `docs/web/_layouts/docs.html`, `docs/web/assets/styles.css`.
+
 ### Documentation and Public Surface
 
 - Installation, deployment, quickstart, troubleshooting, and README content were aligned with the current transport/auth model.
+- The website introduction page now includes a dedicated `Tech Demo` section using the separate website demo video, while preserving the original intro video in `What is Rosetta`.
 - Usage guides describe workflow phases, expected subagents/artifacts, HITL gates, and user responsibilities for the unified Rosetta workflow set.
 - Docs pages rendered via the Jekyll site now convert fenced Mermaid blocks client-side in the docs layout, preserve authoring as plain ````mermaid` fences, rerender on theme changes, and scale rendered SVGs for better readability on GitHub Pages direct loads.
 - Internal/private environment details were replaced with public-safe placeholders where appropriate.

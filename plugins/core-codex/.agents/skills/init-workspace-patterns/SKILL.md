@@ -2,6 +2,8 @@
 name: init-workspace-patterns
 description: "Extract code patterns."
 license: Apache-2.0
+disable-model-invocation: true
+user-invocable: false
 model: gpt-5.4
 model_reasoning_effort: high
 tags: ["init", "workspace", "patterns", "reverse-engineering"]

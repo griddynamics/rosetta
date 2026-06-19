@@ -2,6 +2,7 @@
 name: coding-flow
 description: "Workflow for all coding: features, fixes, refactors, unit tests, etc.; scales small to large."
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 
@@ -29,7 +30,8 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 8. If workflow is for REQUIREMENTS, MUST USE SKILL `requirements-use` and LOAD all affected requirements. Use refs to requirements for subagents.
 9. If `/goal` is set repeat phases 7-12 postponing user_review_impl and final_validation until goal is met.
 10. If migrate/modernize: implementation phase MUST use tiny batches ONLY (1-3 files), never bulk-read (other phases may); specs/plan enforce; FS-copy RECOMMENDED; no behavior change/new code; mirror source; subagents same; REQUIRED TO log <file> started/completed; Use impl subagents like MAP-REDUCE;
-11. Coding workflow state is saved to AGENTS TEMP FEATURE folder as `coding-flow-state.md` file.
+11. Run architect subagent with required model in the background and consult with it if already supported
+12. Coding workflow state is saved to AGENTS TEMP FEATURE folder as `coding-flow-state.md` file.
 
 </prerequisites>
 
@@ -38,10 +40,11 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 1. Gather project context, affected areas, dependencies, constraints, requirements. SMALL: orchestrator handles inline.
 2. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: `discovery-notes.md` in FEATURE PLAN folder.
 3. Required skills: `load-context`
-4. If REQUIREMENTS in use: `requirements-use` skill is required.
-5. Additionally request to discover existing libraries, packages, search web for similar problems/tasks (if this make sense)
-6. Update `coding-flow-state.md`
-7. Do not stop until 100% clear
+4. Recommended skills: `codemap` (structural project discovery)
+5. If REQUIREMENTS in use: `requirements-use` skill is required.
+6. Additionally request to discover existing libraries, packages, search web for similar problems/tasks (if this make sense)
+7. Update `coding-flow-state.md`
+8. Do not stop until 100% clear
 
 </discovery>
 
@@ -114,6 +117,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 3. Required skills: `coding`
 4. Recommended skills: `reasoning`, `debugging`, `sensitive-data`, `testing`, `dangerous-actions`
 5. Update `coding-flow-state.md`
+6. If SMALL also ask to validate by running locally once code review is done and there are no major issues
 
 </review_code>
 

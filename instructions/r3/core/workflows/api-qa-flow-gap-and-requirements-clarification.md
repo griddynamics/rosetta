@@ -3,6 +3,7 @@ name: api-qa-flow-gap-and-requirements-clarification
 description: Phase 3 of QA workflow - Gap Analysis and Requirements Clarification (USER INTERACTION REQUIRED)
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

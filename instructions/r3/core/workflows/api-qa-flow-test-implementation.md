@@ -3,6 +3,7 @@ name: api-qa-flow-test-implementation
 description: Phase 5 of QA workflow - API Test Implementation (USER INTERACTION REQUIRED after implementation)
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

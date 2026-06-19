@@ -42,19 +42,19 @@ Phase 3 test coverage is optional and runs only when you explicitly approve it.
 ## How To Start
 
 ```text
-Modernize this .NET Framework service to modern .NET. Preserve public contracts, document every dependency, and stop after target specs for approval.
+/modernization-flow Modernize this .NET Framework service to modern .NET. Preserve public contracts, document every dependency, and stop after target specs for approval.
 ```
 
 ```text
-Re-architect this monolith into microservices. Analyze bounded contexts, cross-project flows, and proxy boundaries before proposing the target layout.
+/modernization-flow Re-architect this monolith into microservices. Analyze bounded contexts, cross-project flows, and proxy boundaries before proposing the target layout.
 ```
 
 ```text
-Migrate this Windows-hosted application to Linux containers. Reuse existing internal libraries where possible and identify what must change for runtime, config, and deployment behavior.
+/modernization-flow Migrate this Windows-hosted application to Linux containers. Reuse existing internal libraries where possible and identify what must change for runtime, config, and deployment behavior.
 ```
 
 ```text
-Upgrade this Java 8 codebase to Java 21. If the scope stays small, use only the applicable phases, but stop and ask before skipping anything.
+/modernization-flow Upgrade this Java 8 codebase to Java 21. If the scope stays small, use only the applicable phases, but stop and ask before skipping anything.
 ```
 
 ## How Rosetta Shapes This Workflow

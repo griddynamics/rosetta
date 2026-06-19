@@ -548,7 +548,7 @@ _PLUGIN_PATH_HOOKS: dict[str, dict] = {
     "core-copilot": {
         "type": "command",
         "bash": (
-            'for base in "$HOME/Library/Application Support/Code/agentPlugins" '
+            'for base in "$HOME/.vscode/agent-plugins" '
             '"$HOME/.local/share/Code/agentPlugins"; do '
             'root="$base/github.com/griddynamics/rosetta/plugins/core-copilot"; '
             'if [ -f "$root/commands/coding-flow.md" ]; then '

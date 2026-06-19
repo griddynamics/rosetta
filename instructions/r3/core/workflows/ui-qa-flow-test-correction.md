@@ -3,6 +3,7 @@ name: ui-qa-flow-test-correction
 description: "Phase 8 Test Correction of ui-qa-flow"
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

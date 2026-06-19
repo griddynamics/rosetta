@@ -8,7 +8,7 @@ import type { PluginProcessingFrame, PluginSpec } from '../../../src/types.js';
 
 const BUNDLE_NAMES = [
   'dangerous-actions.js',
-  'gitnexus-refresh.js',
+  'codemap-refresh.js',
   'lint-format-advisory.js',
   'loose-files.js',
   'md-file-advisory.js',
@@ -134,7 +134,7 @@ describe('pluginSyncBundles', () => {
 
   it('r3: adds hard error when some bundle files are missing', () => {
     // Only provide 3 of 5 expected bundles
-    const partialBundles = ['dangerous-actions.js', 'gitnexus-refresh.js', 'lint-format-advisory.js'];
+    const partialBundles = ['dangerous-actions.js', 'codemap-refresh.js', 'lint-format-advisory.js'];
     const { hooksSource, outputDir, cleanup } = makeTempRepo('core-claude', partialBundles);
     try {
       const spec: Partial<PluginSpec> = {

@@ -7,7 +7,7 @@ user-invocable: true
 argument-hint: problem, context?, constraints?
 model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high
 context: default
-agent: planner, prompt-engineer
+agent: planner, architect, prompt-engineer
 metadata:
   version: "1.0"
   category: "reasoning"

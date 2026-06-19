@@ -3,6 +3,7 @@ name: api-qa-flow-test-correction
 description: Phase 7 of QA workflow - Test Corrections (USER APPROVAL REQUIRED)
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

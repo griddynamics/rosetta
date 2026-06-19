@@ -3,6 +3,7 @@ name: ui-qa-flow-test-implementation
 description: "Phase 6 Test Implementation of ui-qa-flow"
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

@@ -2,6 +2,8 @@
 name: self-learning
 description: "MUST activate when execution fails, user is unhappy or upset, mistake is detected, result is unexpected, mismatch between expected and actual outcome occurs, or after two consecutive mismatches with user expectations."
 license: Apache-2.0
+disable-model-invocation: false
+user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---
 

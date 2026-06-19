@@ -2,6 +2,7 @@
 name: ui-qa-flow-data-collection
 description: "Phase 1 Data Collection of ui-qa-flow"
 alwaysApply: false
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

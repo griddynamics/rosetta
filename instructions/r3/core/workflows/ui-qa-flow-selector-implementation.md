@@ -3,6 +3,7 @@ name: ui-qa-flow-selector-implementation
 description: "Phase 5 Selector Implementation of ui-qa-flow"
 alwaysApply: false
 tags: []
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 

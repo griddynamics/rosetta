@@ -1,19 +1,14 @@
----
-name: gitnexus-tools
-description: "To call the right GitNexus MCP tool, querying the repo code graph."
-tags: ["gitnexus", "pattern-matching", "code-intelligence"]
-baseSchema: docs/schemas/skill.md
----
+# GitNexus usage reference
 
-<gitnexus-tools>
+<gitnexus>
 
 <role>
 Pattern-match user intent to the appropriate GitNexus MCP tool or resource. Provides a quick-reference map of tools, resources, parameters, and worked examples.
 </role>
 
-<when_to_use_skill>
-Use whenever a GitNexus MCP tool call is needed: debugging errors, exploring code, analyzing impact, or refactoring. Consult this skill to select the right tool or resource before calling it.
-</when_to_use_skill>
+<when_to_use>
+Use whenever a GitNexus MCP tool call is needed: debugging errors, exploring code, analyzing impact, or refactoring. Consult this reference to select the right tool or resource before calling it.
+</when_to_use>
 
 <core_concepts>
 
@@ -43,13 +38,4 @@ Use whenever a GitNexus MCP tool call is needed: debugging errors, exploring cod
 
 </core_concepts>
 
-<templates applies="examples">
-
-Use `ACQUIRE FROM KB` to load.
-
-- `gitnexus-usage/assets/gn-examples.md`
-
-</templates>
-
-
-</gitnexus-tools>
+</gitnexus>

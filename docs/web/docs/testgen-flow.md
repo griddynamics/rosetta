@@ -53,21 +53,21 @@ For shared Rosetta setup and project-context customization, see [Usage Guide](/r
 Example prompts that match the workflow:
 
 ```text
-Generate test cases for PROJ-123
+/testgen-flow Generate test cases for PROJ-123
 ```
 
 ```text
-Analyze requirements for PROJ-123 with Confluence pages:
+/testgen-flow Analyze requirements for PROJ-123 with Confluence pages:
 - https://confluence.company.com/display/PROJ/Job+Post
 - https://confluence.company.com/pages/viewpage.action?pageId=123456
 ```
 
 ```text
-Analyze requirements for https://jira.company.com/browse/PROJ-123 and export the final test cases to TestRail
+/testgen-flow Analyze requirements for https://jira.company.com/browse/PROJ-123 and export the final test cases to TestRail
 ```
 
 ```text
-Generate test scenarios for PROJ-123. Use these Confluence pages and our existing test generation config.
+/testgen-flow Generate test scenarios for PROJ-123. Use these Confluence pages and our existing test generation config.
 ```
 
 ## How Rosetta Shapes This Workflow

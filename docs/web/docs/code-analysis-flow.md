@@ -57,10 +57,10 @@ For shared setup and general Rosetta usage, use [Usage Guide](/rosetta/docs/usag
 ## How To Start
 
 ```text
-"Explain how the authentication system works."
-"Analyze the payment module and document its components, data flow, and external dependencies."
-"Reverse engineer the billing API into architecture docs without proposing changes."
-"Extract requirements from the reporting module and document the current behavior first."
+/code-analysis-flow Explain how the authentication system works.
+/code-analysis-flow Analyze the payment module and document its components, data flow, and external dependencies.
+/code-analysis-flow Reverse engineer the billing API into architecture docs without proposing changes.
+/code-analysis-flow Extract requirements from the reporting module and document the current behavior first.
 ```
 
 ## How Rosetta Shapes This Workflow
