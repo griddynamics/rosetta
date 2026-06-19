@@ -6,7 +6,7 @@ permalink: /docs/api-qa-flow-r3/
 
 # API-QA Flow (r3)
 
-> This page describes the **r3** instruction line of the API-QA workflow —
+> This page describes the **r3** instruction line of the API-QA workflow --
 > backend API test automation (renamed from `qa-flow`). For UI test
 > automation use [UI-QA Flow](/rosetta/docs/ui-qa-flow-r3/); for manual test-case
 > authoring use [Test Case Generation](/rosetta/docs/testgen-flow-r3/).
@@ -36,7 +36,7 @@ This is a strict sequential workflow. Phases build on each other, `agents/api-qa
 Prepare the inputs this workflow explicitly depends on:
 
 - A TestRail case ID, a Jira ticket, or a precise description of the API behavior under test.
-- Access to the API specification — a Swagger/OpenAPI URL, or backend source where routes are defined.
+- Access to the API specification -- a Swagger/OpenAPI URL, or backend source where routes are defined.
 - Access to the target repository test code (existing API tests, HTTP client, auth helpers, data factories, assertion conventions).
 - Confluence page URLs or search terms when documentation beyond the ticket is relevant.
 - `agents/api-qa/api-qa-project-config.md` if it already exists; otherwise expect Phase 0 to create it.
@@ -75,7 +75,7 @@ For this workflow, the always-active Rosetta behavior changes the user experienc
 - Human review is built into the workflow, not added later. The agent must stop for clarification answers, spec approval, test execution, report handoff, and approval before corrections.
 - The workflow is state-driven. After each phase, the agent updates `agents/api-qa-state.md` so the work can resume cleanly after interruptions.
 - Existing project architecture wins over convenience. The agent inspects existing tests, utilities, and coding standards before writing new automation, and repository docs win over skill defaults.
-- Public artifacts are redacted before they are written. The project config and every per-session artifact pass a redaction pre-emit gate so tokens and credentials are not persisted into the workspace — auth is recorded as a mechanism plus source, never as a literal value.
+- Public artifacts are redacted before they are written. The project config and every per-session artifact pass a redaction pre-emit gate so tokens and credentials are not persisted into the workspace -- auth is recorded as a mechanism plus source, never as a literal value.
 
 ## Workflow At A Glance
 
@@ -177,7 +177,7 @@ What you provide:
 What the coding agent does:
 - Derives `{IDENTIFIER}` (Jira key → TestRail ID → kebab-case feature slug; first available wins, never fabricated).
 - Creates `agents/api-qa/{IDENTIFIER}/` and seeds `agents/api-qa-state.md`.
-- Loads the project-wide `agents/api-qa/api-qa-project-config.md`, or — when it is missing — interviews you for the required setup and creates it.
+- Loads the project-wide `agents/api-qa/api-qa-project-config.md`, or -- when it is missing -- interviews you for the required setup and creates it.
 - Redacts the config before writing it: auth is recorded as a mechanism plus source (for example `Bearer JWT from AuthHelper.get_token('admin')`), never as a literal credential. This gate is fail-closed.
 - Writes `initial-data.md`.
 
@@ -188,7 +188,7 @@ Artifacts:
 - `agents/api-qa-state.md`
 
 Recommended review:
-- The project config should capture how your team really retrieves cases, specs, and docs — not just defaults.
+- The project config should capture how your team really retrieves cases, specs, and docs -- not just defaults.
 - Confirm no literal credential was persisted (auth should read as a mechanism plus source).
 
 ### Phase 1: Data Collection
@@ -226,7 +226,7 @@ What the coding agent does:
 - Determines the spec source in priority order: Swagger URL from config, Swagger in backend source, then API route definitions in code.
 - Extracts per-endpoint request/response schemas, auth requirements, status codes, and data dependencies.
 - Reconciles the spec against the code when both are available, flagging discrepancies.
-- Cites a Swagger JSONPath or a code `file:line` for every entry — uncited entries are treated as gaps, not facts.
+- Cites a Swagger JSONPath or a code `file:line` for every entry -- uncited entries are treated as gaps, not facts.
 - Writes `api-analysis.md` after passing the redaction pre-emit gate.
 
 Artifacts:
@@ -269,7 +269,7 @@ What you provide:
 
 What the coding agent does:
 - Loads the Phase 1–3 outputs and writes Given-When-Then scenarios with stable `ATC-NNN` identifiers.
-- Traces every `ATC-NNN` back to a Phase 1 test case (`TC-NNN`) and/or a Phase 3 finding (`G[N]`/`C[N]`/`A[N]`) — an untraceable scenario fails validation.
+- Traces every `ATC-NNN` back to a Phase 1 test case (`TC-NNN`) and/or a Phase 3 finding (`G[N]`/`C[N]`/`A[N]`) -- an untraceable scenario fails validation.
 - Adds a test-file mapping, shared-utility plan, execution order, and assumptions.
 - Presents a summary and waits for approval. Approval is token-disciplined: only a clear approve/yes advances it; a rejection sends the work back to Phase 3.
 - Writes `test-specs.md` after the redaction pre-emit gate.
@@ -280,7 +280,7 @@ Artifacts:
 
 Recommended review:
 - Scenarios should cover all in-scope endpoints and the resolved gaps, not only happy paths.
-- Spot-check the `ATC-NNN` traceability — every spec should map back to a real source.
+- Spot-check the `ATC-NNN` traceability -- every spec should map back to a real source.
 
 ### Phase 5: Test Implementation
 
@@ -293,9 +293,9 @@ What you provide:
 
 What the coding agent does:
 - Confirms the specs are approved, then reads the repository coding standards as the authority (repo docs win over skill defaults).
-- Implements the tests plus shared utilities — auth helper, data factory, response validator — preferring to extend what already exists.
+- Implements the tests plus shared utilities -- auth helper, data factory, response validator -- preferring to extend what already exists.
 - Carries each `ATC-NNN` into the test name or docstring; any spec it cannot implement is surfaced as a gap, never silently dropped.
-- Uses synthetic data and config/env for runtime values — no hardcoded credentials, URLs, or production data.
+- Uses synthetic data and config/env for runtime values -- no hardcoded credentials, URLs, or production data.
 - Runs the project lint/format on the touched files and resolves issues.
 - Provides the exact test-execution command and stops. This execution gate is mechanical: the agent refuses "skip" or "move on" requests, and the only input that advances it is actual execution results.
 
@@ -330,7 +330,7 @@ Artifacts:
 - Updated `agents/api-qa-state.md`
 
 Recommended review:
-- Root causes should be evidence-based — check the `Confirmed`/`Assumption`/`Unknown` labels.
+- Root causes should be evidence-based -- check the `Confirmed`/`Assumption`/`Unknown` labels.
 - Distinguish test bugs from application bugs before approving corrections.
 
 ### Phase 7: Test Correction
@@ -342,7 +342,7 @@ What you provide:
 - Explicit approval for the proposed changes, or feedback modifying or rejecting parts of them.
 
 What the coding agent does:
-- Builds proposed changes from the Phase 6 report, each aligned to a confirmed root cause (`ERR-N`) and tagged with a change-type (assertion-fix, auth-fix, data-setup, request-shape, wait-strategy, or other) — no writes yet.
+- Builds proposed changes from the Phase 6 report, each aligned to a confirmed root cause (`ERR-N`) and tagged with a change-type (assertion-fix, auth-fix, data-setup, request-shape, wait-strategy, or other) -- no writes yet.
 - Presents the proposals with before/after code and waits for token-disciplined approval; a rejection sends the work back to Phase 6.
 - Applies approved changes incrementally, running lint after each; a change that breaks lint is reverted and re-presented, never left broken.
 - Retries a failing change in place up to three cycles, then escalates rather than looping silently.
@@ -376,10 +376,10 @@ If a clarification batch, spec, or correction proposal is vague, stop the workfl
 
 These customizations materially improve API-QA Flow:
 
-- Keep `agents/api-qa/api-qa-project-config.md` accurate. It is the single source for retrieval, spec location, test framework, and auth mechanism — and it is reused across every ticket.
+- Keep `agents/api-qa/api-qa-project-config.md` accurate. It is the single source for retrieval, spec location, test framework, and auth mechanism -- and it is reused across every ticket.
 - Point the config at the real spec source (a Swagger/OpenAPI URL or the backend routes) so Phase 2 extracts contracts instead of guessing.
 - Use `agents/user-instructions/` for team-specific test creation rules, execution-report locations, and conventions.
-- Keep existing test utilities — auth helpers, data factories, response validators — clean and current. This workflow is designed to extend them, not bypass them.
+- Keep existing test utilities -- auth helpers, data factories, response validators -- clean and current. This workflow is designed to extend them, not bypass them.
 - Record auth as a mechanism plus source in the config; never paste literal tokens or passwords.
 
 ## Artifacts You Will Get

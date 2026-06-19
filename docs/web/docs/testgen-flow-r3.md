@@ -77,7 +77,7 @@ Generate test scenarios for PROJ-123. Use these Confluence pages and our existin
 Rosetta does not generate all deliverables in one pass. It loads the workflow, executes one phase at a time, updates a state file after each phase, and expects explicit confirmation before moving forward. That changes the UX in four important ways:
 
 - The agent should surface missing information instead of guessing through contradictions or incomplete requirements.
-- The workflow stops at its human gates — the Phase 3 question-and-answer gate (fill `questions.md`, answers validated, explicit approval to continue) and the Phase 6 export gate (confirm destination and scope) — and these cannot be waived by instruction.
+- The workflow stops at its human gates -- the Phase 3 question-and-answer gate (fill `questions.md`, answers validated, explicit approval to continue) and the Phase 6 export gate (confirm destination and scope) -- and these cannot be waived by instruction.
 - Intermediate artifacts are part of the workflow, not optional debug files. They are how the next phase stays grounded.
 - Review is part of execution. The user is expected to inspect phase outputs and provide corrections before the workflow advances.
 
@@ -90,12 +90,12 @@ Rosetta itself provides instructions and routing. The coding agent performs the 
 | 0. Project Config Loading | Jira ticket key or URL, project retrieval expectations if no config exists | Parse ticket, create ticket workspace, load or create project config, ask the first-time retrieval setup question when the config is missing, redact captured config/initial data, record initial state | `testgen-state.md`, `initial-data.md`, project-level `testgen-project-config.md` if missing | Per-phase confirmation before Phase 1 (skippable by explicit instruction) |
 | 1. Data Collection | Jira input, optional Confluence URLs, extra page IDs if search fails | Resolve configured vendor bindings, then retrieve Jira fields, comments, Confluence pages, and child pages; capture raw evidence | `raw-data.md` | Per-phase confirmation before Phase 2 |
 | 2. Gap and Contradiction Analysis | No new input unless source retrieval was incomplete | Identify contradictions, gaps, ambiguities, cross-source conflicts, and risk | `analysis.md` | Per-phase confirmation before Phase 3 |
-| 3. Question Generation and User Input | Answers to clarification questions and explicit approval to continue | Generate prioritized questions, wait, validate answers, structure them | `questions.md`, `answers.md` | **Hard HITL gate** — answer, then explicitly approve Phase 4 (never skippable) |
+| 3. Question Generation and User Input | Answers to clarification questions and explicit approval to continue | Generate prioritized questions, wait, validate answers, structure them | `questions.md`, `answers.md` | **Hard HITL gate** -- answer, then explicitly approve Phase 4 (never skippable) |
 | 4. Requirements Document Generation | Validated answers and any final clarifications | Synthesize evidence into user stories, FRs, NFRs, constraints, dependencies, assumptions, and traceability | `requirements.md` | Per-phase confirmation before Phase 5 |
 | 5. Test Case Generation | Approved or reviewed requirements direction | Generate prioritized TestRail-ready test cases, merge redundant scenarios, update traceability | `test-scenarios.md`, updated traceability in `requirements.md` | Per-phase confirmation before Phase 6 or before closing |
-| 6. Test Case Export | TestRail access plus target `section_id`; project and suite details when your setup cannot detect them from the current ticket and user profile | Verify connection, map cases, confirm the destructive write, export, record results | `export-report.md`, updated `test-scenarios.md`, updated `testgen-state.md` | **Hard HITL gate** — confirm destination and export scope (never skippable) |
+| 6. Test Case Export | TestRail access plus target `section_id`; project and suite details when your setup cannot detect them from the current ticket and user profile | Verify connection, map cases, confirm the destructive write, export, record results | `export-report.md`, updated `test-scenarios.md`, updated `testgen-state.md` | **Hard HITL gate** -- confirm destination and export scope (never skippable) |
 
-> **Gate model.** Phases 3 and 6 are the two never-overridable HITL gates — the workflow refuses any instruction to skip them. Phases 0, 1, 2, 4, and 5 are per-phase confirmations: the workflow still pauses and never auto-proceeds on silence, but you can explicitly tell it to skip a given confirmation.
+> **Gate model.** Phases 3 and 6 are the two never-overridable HITL gates -- the workflow refuses any instruction to skip them. Phases 0, 1, 2, 4, and 5 are per-phase confirmations: the workflow still pauses and never auto-proceeds on silence, but you can explicitly tell it to skip a given confirmation.
 
 ## Workflow Overview
 
@@ -165,7 +165,7 @@ What the agent does:
 - Creates `agents/testgen/{TICKET-KEY}/`.
 - Finds or creates the project-level `testgen-project-config.md`.
 - If the config is missing, asks whether the default Jira-plus-Confluence retrieval scheme is accurate, waits for a YES or NO answer, and records any project-specific retrieval details the user provides.
-- Redacts the config and `initial-data.md` before writing them. Any auth detail is stored as a scheme plus source — for example `Bearer JWT from env E2E_TOKEN` — never as a literal token or password. The config is project-wide and committed, so this gate is fail-closed.
+- Redacts the config and `initial-data.md` before writing them. Any auth detail is stored as a scheme plus source -- for example `Bearer JWT from env E2E_TOKEN` -- never as a literal token or password. The config is project-wide and committed, so this gate is fail-closed.
 - Writes `initial-data.md` and initializes `testgen-state.md`.
 
 What you get:
@@ -188,7 +188,7 @@ What you provide:
 - Additional page IDs or permission workarounds if search fails.
 
 What the agent does:
-- Resolves the in-scope vendor bindings from the project config (issue tracker and documentation). Either source can resolve to "skipped — not configured", in which case the workflow proceeds on the remaining sources rather than fabricating one.
+- Resolves the in-scope vendor bindings from the project config (issue tracker and documentation). Either source can resolve to "skipped -- not configured", in which case the workflow proceeds on the remaining sources rather than fabricating one.
 - Retrieves Jira summary, description, status, issue type, priority, labels, components, assignee, reporter, comments, and available custom fields.
 - Uses provided Confluence URLs directly when available.
 - Otherwise searches Confluence using ticket-derived terms.
@@ -241,7 +241,7 @@ What the agent does:
 - Turns contradictions, gaps, and ambiguities into prioritized questions (P0 Critical through P3 Low).
 - Writes `questions.md` with clear answer slots and completion instructions.
 - Waits for the user to fill or answer them.
-- Validates the answers. A P0 (Critical) question answered `UNKNOWN` is rejected outright — it must get a substantive answer or an explicit user-authorized downgrade; the workflow does not silently default it.
+- Validates the answers. A P0 (Critical) question answered `UNKNOWN` is rejected outright -- it must get a substantive answer or an explicit user-authorized downgrade; the workflow does not silently default it.
 - Writes structured responses to `answers.md`.
 - Waits for an explicit continuation approval after validation instead of treating comments or suggestions as approval.
 
@@ -287,7 +287,7 @@ What you provide:
 
 What the agent does:
 - Reads `requirements.md`.
-- Derives scenario types: happy path, edge, negative, integration, and — only when the requirements specify a constraint in that category — performance and security.
+- Derives scenario types: happy path, edge, negative, integration, and -- only when the requirements specify a constraint in that category -- performance and security.
 - Generates TestRail-compatible cases (`TC-001..TC-NNN`) in a Steps + Expected Result format. BDD / Given-When-Then is not used.
 - Merges redundant cases into parameterized scenarios where steps are materially the same.
 - Updates the requirements traceability matrix with test scenario IDs.
@@ -312,12 +312,12 @@ What you provide:
 - Manual section creation if the environment does not support section creation through the available path.
 
 What the agent does:
-- Verifies TestRail connectivity. If the TMS is unavailable, it offers documented fallbacks — manual copy, CSV export, or deferring the export — instead of failing silently.
+- Verifies TestRail connectivity. If the TMS is unavailable, it offers documented fallbacks -- manual copy, CSV export, or deferring the export -- instead of failing silently.
 - Parses `test-scenarios.md`.
 - Maps priorities, types, preconditions, steps, expected results, and references into TestRail fields.
 - Runs a duplicate pre-scan and presents an explicit destructive-write confirmation (export all / export only non-overlapping / cancel) before any case is created. This is the second half of the hard gate and cannot be skipped.
 - Exports cases, continues past individual case failures, and records results.
-- Applies a success threshold: at least 80% of cases must export successfully. Below that, the phase is marked `PARTIAL — N/M exported` and halts for your decision (retry, accept partial, or abort).
+- Applies a success threshold: at least 80% of cases must export successfully. Below that, the phase is marked `PARTIAL -- N/M exported` and halts for your decision (retry, accept partial, or abort).
 - Writes `export-report.md` (per-case status, IDs/URLs, timestamp), updates `test-scenarios.md` with TestRail IDs, and updates `testgen-state.md` with export metrics and links.
 
 What you get:
@@ -326,7 +326,7 @@ What you get:
 What to watch for:
 - Confirm the destination section is correct before approving the export.
 - Do not assume the workflow can create the TestRail section for you; supplying `section_id` is part of the prerequisite.
-- Review failed exports individually instead of assuming the entire export succeeded — `export-report.md` lists per-case status.
+- Review failed exports individually instead of assuming the entire export succeeded -- `export-report.md` lists per-case status.
 - A below-threshold export halts as `PARTIAL`; decide retry, accept, or abort rather than assuming success.
 
 ## How To Review Results

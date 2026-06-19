@@ -278,7 +278,7 @@ What the coding agent does:
 - Extends existing Page Objects or creates new ones only when necessary.
 - Follows the exact local Page Object patterns for naming, structure, access modifiers, comments, and helper methods.
 - Adds helper methods when the current project pattern expects them.
-- Does not silently commit a selector flagged fragile in Phase 4 — it surfaces those for your call first.
+- Does not silently commit a selector flagged fragile in Phase 4 -- it surfaces those for your call first.
 - Updates the plan and state file.
 
 Artifacts:
@@ -331,7 +331,7 @@ What the coding agent does:
 - Reads the report or logs.
 - Extracts pass/fail status, counts, error messages, stack traces, duration, and artifacts.
 - Categorizes each failure per the UI-QA failure taxonomy (selector/locator, timing, assertion, setup, application, or test-code issues) and assigns it a stable `F-N` id.
-- Labels each root cause with an evidence level — `Confirmed`, `Assumption`, or `Unknown` — and records the rationale, so later corrections are grounded rather than guessed.
+- Labels each root cause with an evidence level -- `Confirmed`, `Assumption`, or `Unknown` -- and records the rationale, so later corrections are grounded rather than guessed.
 - For selector or locator failures, reads the stored page-source files and compares the failing locator to the actual DOM structure.
 - Runs a performance/flakiness pass (slow tests, intermittent pass/fail) when timing data is present.
 - Writes everything to `plans/ui-qa-<test-name>-failure-analysis.md` (which passes the redaction pre-emit gate before write).
@@ -344,7 +344,7 @@ Artifacts:
 - Updated `agents/ui-qa-state.md`
 
 Recommended review:
-- Root causes should be evidence-based, not generic guesses — check the `Confirmed`/`Assumption`/`Unknown` labels.
+- Root causes should be evidence-based, not generic guesses -- check the `Confirmed`/`Assumption`/`Unknown` labels.
 - Selector failures should reference actual page-source analysis when page sources exist.
 - Distinguish test bugs from application bugs before approving corrections.
 
