@@ -1,8 +1,8 @@
 ---
 name: qa-knowledge
-description: "Rosetta — QA/UI-QA test-automation conventions: failure taxonomies, redaction scope, authoring & correction discipline, and the artifact skeletons each phase emits."
+description: "Rosetta — QA test-automation conventions: failure taxonomies, redaction scope, authoring & correction discipline, and the artifact skeletons each phase emits."
 license: Apache-2.0
-tags: ["qa", "aqa", "skills"]
+tags: ["qa", "api-qa", "ui-qa", "skills"]
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -10,16 +10,16 @@ baseSchema: docs/schemas/skill.md
 
 <when_to_use_skill>
 
-Activate inside any QA or UI-QA flow phase that authors, analyzes, or corrects tests and needs the QA/UI-QA-domain conventions general skills don't own — failure taxonomies, redaction scope, assertion/coverage discipline, selector & page-object rules, and the artifact skeletons each phase emits. This is the HOW layer; WHERE artifacts live is owned by `qa-structure`.
+Activate inside any API-QA or UI-QA flow phase that authors, analyzes, or corrects tests and needs the QA-domain conventions general skills don't own — failure taxonomies, redaction scope, assertion/coverage discipline, selector & page-object rules, and the artifact skeletons each phase emits. This is the HOW layer; WHERE artifacts live is owned by `qa-structure`.
 
 </when_to_use_skill>
 
 <core_concepts>
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- This skill carries only QA/UI-QA-specific conventions; generic collection, analysis, authoring, triage, and redaction mechanics are owned by the phase's other loaded skills and are not restated here.
+- This skill carries only QA-specific conventions; generic collection, analysis, authoring, triage, and redaction mechanics are owned by the phase's other loaded skills and are not restated here.
 - Load only what the current step needs: artifact skeletons are assets, ACQUIRE'd at point of use; flow-specific conventions are references — see `<resources>`.
-- Shared discipline (both flows): the proposed-change approval template (`proposed-change-template.md`) and redaction scope (`redaction-scope.md`) are single assets/references reused by QA and UI-QA alike — for the approval template the calling phase supplies only flow-specific parameters (change-type enum, root-cause reference, loop target, state-file path). The test-implementation record is **flow-specific**, NOT shared: two separate assets — `api-qa-test-impl-record.md` (QA, API hand-off) and `ui-qa-test-impl-record.md` (UI-QA, UI hand-off), per `<resources>`.
+- Shared discipline (both flows): the proposed-change approval template (`proposed-change-template.md`) and redaction scope (`redaction-scope.md`) are single assets/references reused by API-QA and UI-QA alike — for the approval template the calling phase supplies only flow-specific parameters (change-type enum, root-cause reference, loop target, state-file path). The test-implementation record is **flow-specific**, NOT shared: two separate assets — `api-qa-test-impl-record.md` (API-QA, API hand-off) and `ui-qa-test-impl-record.md` (UI-QA, UI hand-off), per `<resources>`.
 
 </core_concepts>
 
@@ -29,7 +29,7 @@ Router — ACQUIRE the one your current step needs (point-of-use, never all at o
 
 | When a phase needs to… | ACQUIRE |
 |---|---|
-| present a correction for approval (QA **or** UI-QA) | `qa-knowledge/assets/proposed-change-template.md` |
+| present a correction for approval (API-QA **or** UI-QA) | `qa-knowledge/assets/proposed-change-template.md` |
 | run the explicit-approval gate (closed token list / loose-phrasing rejection / max-retry / partial approval) for a correction or spec/plan approval | `qa-knowledge/assets/approval-gate.md` |
 | emit the QA api-analysis artifact | `qa-knowledge/assets/api-analysis-template.md` |
 | emit QA test specs (Given-When-Then `ATC-NNN`) | `qa-knowledge/assets/test-spec-template.md` |

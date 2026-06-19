@@ -1,8 +1,8 @@
 ---
 name: qa-structure
-description: "Rosetta — canonical QA/UI-QA session layout, artifact paths, identifier & slug rules, and state-file shape for test-automation flows."
+description: "Rosetta — canonical QA session layout, artifact paths, identifier & slug rules, and state-file shape for test-automation flows."
 license: Apache-2.0
-tags: ["qa", "aqa", "skills"]
+tags: ["qa", "api-qa", "ui-qa", "skills"]
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -10,14 +10,14 @@ baseSchema: docs/schemas/skill.md
 
 <when_to_use_skill>
 
-Activate inside any QA or UI-QA flow phase that must create the session folder, resolve or name an artifact path, derive the `{IDENTIFIER}` / `<test-name>` slug, or seed/read the workflow state file. This is the single source for WHERE QA/UI-QA artifacts live — not for HOW to author or analyze them.
+Activate inside any API-QA or UI-QA flow phase that must create the session folder, resolve or name an artifact path, derive the `{IDENTIFIER}` / `<test-name>` slug, or seed/read the workflow state file. This is the single source for WHERE QA artifacts live — not for HOW to author or analyze them.
 
 </when_to_use_skill>
 
 <core_concepts>
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- This skill is the SSoT for QA/UI-QA paths, identifiers, and state-file shape; phases bind to the paths defined here verbatim and never invent their own.
+- This skill is the SSoT for QA paths, identifiers, and state-file shape; phases bind to the paths defined here verbatim and never invent their own.
 - **Load only your flow's layout** (progressive disclosure — the other flow's paths stay off-context): ACQUIRE `qa-structure/references/api-qa-layout.md` (QA / backend API) OR `qa-structure/references/ui-qa-layout.md` (UI-QA / UI-E2E) FROM KB — canonical paths, the `{IDENTIFIER}` / `<test-name>` slug rules, and the state-file shape live there.
 - The config-key schema (which keys exist, which phase consumes each) is reference-grade — ACQUIRE `qa-structure/references/config-schema.md` FROM KB when loading or validating project config.
 - Fill-in skeletons are assets, ACQUIRE'd at point of use, never resident — see `<resources>`.

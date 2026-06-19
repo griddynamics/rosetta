@@ -1,6 +1,6 @@
 ---
 name: proposed-change-template
-description: Shared QA/UI-QA proposed-change approval block, presented before any correction write.
+description: Shared QA proposed-change approval block, presented before any correction write.
 ---
 
 <proposed-change-template>
