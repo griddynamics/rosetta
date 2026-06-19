@@ -1,11 +1,11 @@
 ---
 name: failure-analysis-template
-description: AQA failure-analysis.md skeleton — per-failed-test fields plus Execution Summary and Patterns.
+description: UI-QA failure-analysis.md skeleton — per-failed-test fields plus Execution Summary and Patterns.
 ---
 
 <failure-analysis-template>
 
-**Required inputs:** the AQA test-run output (per-test error messages + stack traces), the AQA failure taxonomy loaded, and — for selector-class failures — the captured page-source / diff.
+**Required inputs:** the UI-QA test-run output (per-test error messages + stack traces), the UI-QA failure taxonomy loaded, and — for selector-class failures — the captured page-source / diff.
 
 **Evidence-label rule:** assign `Unknown` ONLY after page-source capture has been attempted and the cause is still unresolvable. If page sources were never captured, escalate via `qa-knowledge/assets/page-source-capture-instructions.md` before assigning `Unknown` — do not short-circuit the diagnosis.
 
@@ -13,7 +13,7 @@ description: AQA failure-analysis.md skeleton — per-failed-test fields plus Ex
 
 - **ID** — `F-N` (sequential from `F-1`; the stable id the correction phase cites).
 - **Failure name** — failing test identifier (function name, ATC ID, or report row).
-- **Error type** — one category from the AQA failure taxonomy.
+- **Error type** — one category from the UI-QA failure taxonomy.
 - **Root cause** — one-line diagnosed cause (Page Source Analysis cited for selector errors).
 - **Evidence label** — `Confirmed` / `Assumption` / `Unknown`.
 - **Evidence rationale** — one-line citation supporting the label (log line, page-source diff, repro count).

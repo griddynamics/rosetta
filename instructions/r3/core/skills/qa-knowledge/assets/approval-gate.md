@@ -1,11 +1,11 @@
 ---
 name: approval-gate
-description: Shared QA/AQA explicit-approval gate — closed-token discipline, loose-phrasing rejection, max-retry escalation, partial approval. The calling phase supplies the token list + revisit target.
+description: Shared QA/UI-QA explicit-approval gate — closed-token discipline, loose-phrasing rejection, max-retry escalation, partial approval. The calling phase supplies the token list + revisit target.
 ---
 
 <approval-gate>
 
-Present-and-wait gate before an irreversible / high-stakes step (apply corrections, approve a spec/plan). The calling phase supplies: the **closed approval-token list**, the **re-present step**, and the **revisit target** on full reject. Approval vocabulary is governed by `hitl` — this is its QA/AQA-flow specialization; the phase's closed token list is authoritative for that phase.
+Present-and-wait gate before an irreversible / high-stakes step (apply corrections, approve a spec/plan). The calling phase supplies: the **closed approval-token list**, the **re-present step**, and the **revisit target** on full reject. Approval vocabulary is governed by `hitl` — this is its QA/UI-QA-flow specialization; the phase's closed token list is authoritative for that phase.
 
 1. Present the artifact for review; **WAIT** for explicit approval. Do NOT assume approval; a message containing questions or suggestions is reviewing, not approving.
 2. **Approval = an exact closed token** (case-insensitive — `APPROVED` / `Approve` / `yes` all match the lowercase token). Anything else — `"looks good"`, `"ship it"`, `"LGTM"`, `"sounds good"`, `"go ahead"`, `"OK"`, `"go"`, a question, a suggestion, or silence — is **REVIEW, not approval**: re-prompt for an exact token. The list is **closed**; "or similar" / "etc." extension language in other loaded rules does NOT extend it.

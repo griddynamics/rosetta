@@ -1,6 +1,6 @@
 ---
 name: proposed-change-template
-description: Shared QA/AQA proposed-change approval block, presented before any correction write.
+description: Shared QA/UI-QA proposed-change approval block, presented before any correction write.
 ---
 
 <proposed-change-template>
@@ -9,7 +9,7 @@ One block per change, presented BEFORE any write; empty fields use `None`. The c
 
 ```markdown
 ### Proposed Change <N>: <one-line title>
-- **Source root cause:** <root-cause entry id — e.g. execution-report ERR-3 (QA) / failure-analysis F3 (AQA)>
+- **Source root cause:** <root-cause entry id — e.g. execution-report ERR-3 (QA) / failure-analysis F3 (UI-QA)>
 - **File:** <path>
 - **In-scope:** yes | no   (if `no`, STOP — escalate; outside the in-scope file set)
 - **Change type:** <one value from the flow's change-type enum below>
@@ -31,7 +31,7 @@ One block per change, presented BEFORE any write; empty fields use `None`. The c
 
 **Change-type enum (the phase supplies one):**
 - QA / backend API: `assertion-fix | auth-fix | data-setup | request-shape | wait-strategy | other`
-- AQA / UI-E2E: `selector-update | wait-strategy | assertion-fix | data-setup | other`
+- UI-QA / UI-E2E: `selector-update | wait-strategy | assertion-fix | data-setup | other`
 
 **Iteration cap + escalation (both flows):** cap in-phase apply retries at **3 cycles per failing change**. After 3 failed cycles on the same change, stop, record `Phase <N> blocked: in-phase apply retry cap reached` in the flow's state file, and escalate to the user. If tests still fail after corrections, return to the flow's execution/report phase — do not auto-loop.
 
@@ -59,7 +59,7 @@ One block per change, presented BEFORE any write; empty fields use `None`. The c
 - **Approval status:** approved (token: `approved`)
 ```
 
-**Worked example — AQA / UI (approved state):**
+**Worked example — UI-QA / UI (approved state):**
 
 ```markdown
 ### Proposed Change 1: Update logout-button selector

@@ -1,6 +1,6 @@
 ---
 name: code-analysis-report-template
-description: AQA code-analysis report skeleton (9 sections) plus the test-location decision rule.
+description: UI-QA code-analysis report skeleton (9 sections) plus the test-location decision rule.
 ---
 
 <code-analysis-report-template>
@@ -11,7 +11,7 @@ description: AQA code-analysis report skeleton (9 sections) plus the test-locati
 # Code Analysis — <test-name>
 
 **Generated:** <YYYY-MM-DD>
-**Test plan:** plans/aqa-<test-name>.md
+**Test plan:** plans/ui-qa-<test-name>.md
 **Sources:**
 - project_description.md: [read | missing]
 - CONTEXT.md / ARCHITECTURE.md / IMPLEMENTATION.md: [list read | missing]

@@ -1,11 +1,11 @@
 ---
 name: redaction-scope
-description: Shared QA/AQA redaction scope — sensitive vs structural content, shape-preserving placeholders, and the pre-emit re-scan list.
+description: Shared QA/UI-QA redaction scope — sensitive vs structural content, shape-preserving placeholders, and the pre-emit re-scan list.
 ---
 
 <redaction-scope>
 
-Applies to any QA/AQA artifact that is tracked + downstream-fed (treat as **PUBLIC by default**). Redact sensitive **values** before writing, then re-scan before emit; record each redaction where the consuming phase specifies. The act of redacting is performed by the phase's redaction skill — this reference defines only WHAT is in scope.
+Applies to any QA/UI-QA artifact that is tracked + downstream-fed (treat as **PUBLIC by default**). Redact sensitive **values** before writing, then re-scan before emit; record each redaction where the consuming phase specifies. The act of redacting is performed by the phase's redaction skill — this reference defines only WHAT is in scope.
 
 **Structural content stays verbatim** — endpoint paths, methods, status codes, field/schema names, validation rules, framework names, directory paths, MCP names, base/spec URLs without embedded credentials, TestRail/Jira project keys, citations. Redaction targets sensitive **values** only.
 

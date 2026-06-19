@@ -5,7 +5,7 @@ description: QA test-specs.md skeleton — Summary, Given-When-Then ATC scenario
 
 <test-spec-template>
 
-Skeleton for `agents/qa/{IDENTIFIER}/test-specs.md`. The phase owns the section list and the scenario taxonomy; the skill emits Given-When-Then ATC entries into this shape. (outer fence uses 4 backticks so the inner `markdown` example with 3 backticks does not terminate it)
+Skeleton for `agents/api-qa/{IDENTIFIER}/test-specs.md`. The phase owns the section list and the scenario taxonomy; the skill emits Given-When-Then ATC entries into this shape. (outer fence uses 4 backticks so the inner `markdown` example with 3 backticks does not terminate it)
 
 ````markdown
 # QA Test Specifications - [IDENTIFIER]

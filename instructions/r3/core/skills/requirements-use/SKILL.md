@@ -97,7 +97,7 @@ GATE: this mode does NOT act on findings, propose edits, fix gaps, or ask the us
 
 - **General multi-source variant** — find contradictions / gaps / ambiguities across all loaded sources; cross-reference the sources against each other.
 - **Test-cases-vs-API-spec variant** — cross-reference each test step against the API analysis (endpoint/method/request/response/status/auth/error coverage); emit gaps where test inputs or assertions are unsupported by the spec.
-- **Test-plan variant** — evaluate ALL five completeness dimensions (D1 steps, D2 measurability, D3 test data, D4 edge cases, D5 success criteria) of an AQA test plan; for each gap record a derived measurable assertion when one is cleanly derivable, otherwise leave it blank — never fabricate.
+- **Test-plan variant** — evaluate ALL five completeness dimensions (D1 steps, D2 measurability, D3 test data, D4 edge cases, D5 success criteria) of an UI-QA test plan; for each gap record a derived measurable assertion when one is cleanly derivable, otherwise leave it blank — never fabricate.
 
 Process: (1) load every source completely — surface missing/empty/partial inputs, never fabricate; (2) classify findings against the catalogs, one finding per item, each with a verbatim source quote + citation, an impact, and exactly one risk tier; (3) cross-reference sources (skip-with-note when a single source); (4) redact sensitive values before quoting (→ USE SKILL `sensitive-data`); (5) write findings into the caller's artifact — produce the artifact even on a clean analysis (`No issues found` / "all dimensions satisfied"), never pad with manufactured findings.
 
