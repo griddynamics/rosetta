@@ -201,7 +201,7 @@ describe('error handling', () => {
   });
 });
 
-// ── gap A: case-insensitive extension matching (extOneOfCi) ───────────────────
+// ── integration: case-insensitive extension matching (extOneOfCi) ───────────────────
 //
 // The filter uses `extOneOfCi` (case-insensitive). All other extension tests use
 // lowercase only, so the case-folding branch was previously unexercised.
@@ -218,7 +218,7 @@ describe('case-insensitive extension matching', () => {
   });
 });
 
-// ── gap B: exclusion boundary precision (notContainsAny w/ trailing slash) ────
+// ── integration: exclusion boundary precision (notContainsAny w/ trailing slash) ────
 //
 // Exclusions match exact substrings WITH a trailing slash (`dist/`, `build/`,
 // `node_modules/`). Directory names that merely share a prefix must NOT be
@@ -239,7 +239,7 @@ describe('exclusion boundary — prefix-only matches still fire', () => {
   }
 });
 
-// ── gap C: MultiEdit tool (multi-edit kind) for PostToolUse ───────────────────
+// ── integration: MultiEdit tool (multi-edit kind) for PostToolUse ───────────────────
 //
 // Claude Code maps `MultiEdit` → `multi-edit`, which the hook lists in toolKinds,
 // but only Write/Edit were previously exercised. Uses a distinct path to avoid a
@@ -257,7 +257,7 @@ describe('MultiEdit tool', () => {
   });
 });
 
-// ── gap D: file-path field fallback chain (file_path → filePath → path) ────────
+// ── integration: file-path field fallback chain (file_path → filePath → path) ────────
 //
 // Claude Code getFilePath falls back across field names; only `file_path` was
 // previously covered.
@@ -274,7 +274,7 @@ describe('file-path field extraction', () => {
   });
 });
 
-// ── gap E: Codex apply_patch — path parsed from command string ────────────────
+// ── integration: Codex apply_patch — path parsed from command string ────────────────
 //
 // Codex extracts the file path from the patch command (`*** Update File: ...`),
 // not from tool_input.file_path. Codex formatOutput is identity, so output is the
@@ -288,7 +288,7 @@ describe('Codex apply_patch', () => {
   });
 });
 
-// ── gap H4: throttle with null session_id (no-session key) ────────────────────
+// ── integration: throttle with null session_id (no-session key) ────────────────────
 //
 // makeDedupKey falls back to `no-session` when session_id is absent; two
 // consecutive session-less fires for the same file must dedupe. session_id is set
