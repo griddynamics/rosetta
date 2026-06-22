@@ -36,7 +36,7 @@ Documents sorted by `sort_order` metadata (default `1000000`), then by name. Cor
 
 ## Occurrences
 
-- `ims-mcp-server/ims_mcp/services/bundler.py` — `Bundler` class
-- `ims-mcp-server/ims_mcp/tools/instructions.py` — threshold decision
-- `ims-mcp-server/ims_mcp/tools/resources.py` — VFS resource reads
+- `src/ims-mcp-server/ims_mcp/services/bundler.py` — `Bundler` class
+- `src/ims-mcp-server/ims_mcp/tools/instructions.py` — threshold decision
+- `src/ims-mcp-server/ims_mcp/tools/resources.py` — VFS resource reads
 - `instructions/r2/core/` + `instructions/r2/grid/` (if present) — layered content

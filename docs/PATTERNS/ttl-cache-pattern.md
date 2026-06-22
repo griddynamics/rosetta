@@ -50,7 +50,7 @@ def _is_context_instructions_stale() -> bool:
 
 ## Occurrences
 
-- `ims-mcp-server/ims_mcp/clients/doc_cache.py` — `InstructionDocCache`
-- `ims-mcp-server/ims_mcp/server.py` — `_CONTEXT_INSTRUCTIONS_CACHE`, `_is_context_instructions_stale()`
-- `ims-mcp-server/ims_mcp/constants.py` — `DOC_CACHE_TTL_SECONDS`
-- `ims-mcp-server/tests/test_cache_ttl.py` — TTL behavior tests
+- `src/ims-mcp-server/ims_mcp/clients/doc_cache.py` — `InstructionDocCache`
+- `src/ims-mcp-server/ims_mcp/server.py` — `_CONTEXT_INSTRUCTIONS_CACHE`, `_is_context_instructions_stale()`
+- `src/ims-mcp-server/ims_mcp/constants.py` — `DOC_CACHE_TTL_SECONDS`
+- `src/ims-mcp-server/tests/test_cache_ttl.py` — TTL behavior tests

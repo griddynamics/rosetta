@@ -42,7 +42,7 @@ Multiple documents (core + org overlay) sharing the same VFS path are bundled to
 
 ## Occurrences
 
-- `rosetta-cli/rosetta_cli/services/document_data.py` — `_compute_resource_path()`
-- `ims-mcp-server/ims_mcp/services/bundler.py` — `_resource_path()` used for grouping
-- `ims-mcp-server/ims_mcp/tools/resources.py` — `rosetta://` URI handler
+- `src/rosetta-cli/rosetta_cli/services/document_data.py` — `_compute_resource_path()`
+- `src/ims-mcp-server/ims_mcp/services/bundler.py` — `_resource_path()` used for grouping
+- `src/ims-mcp-server/ims_mcp/tools/resources.py` — `rosetta://` URI handler
 - All `ACQUIRE ... FROM KB` command aliases throughout `instructions/r2/core/`

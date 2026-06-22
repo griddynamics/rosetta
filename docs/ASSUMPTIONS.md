@@ -15,7 +15,7 @@ All CLI and MCP server code targets RAGFlow exclusively. No abstraction layer ex
 - Resolve in: `docs/ARCHITECTURE.md`
 
 ### `ims-mcp` and `rosetta-mcp` packages are always co-versioned [MEDIUM confidence]
-`rosetta-mcp-server/` is described as a thin re-export. Assumption: version bumps are always applied to both in the same commit/release cycle.
+`src/rosetta-mcp-server/` is described as a thin re-export. Assumption: version bumps are always applied to both in the same commit/release cycle.
 - Resolve in: CI workflow analysis or `pyproject.toml` files
 
 ### Plugin generation is fully automated and never hand-edited [HIGH confidence]

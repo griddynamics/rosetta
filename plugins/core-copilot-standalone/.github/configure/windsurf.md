@@ -12,8 +12,8 @@ Windsurf supports custom configuration through repository-committed files. These
 **Configuration Locations:**
 - `AGENTS.md` - Cascade behavior instructions
 - `.windsurf/rules/` - Path-specific rules for Cascade
-- `.windsurf/prompts/` - Slash commands for Cascade
-- `.windsurf/prompts/` - Automation workflows for Cascade
+- `.windsurf/commands/` - Slash commands for Cascade
+- `.windsurf/workflows/` - Automation workflows for Cascade
 - `.windsurf/skills/` - Multi-step tasks with supporting resources
 
 ---
@@ -154,7 +154,7 @@ paths:
 
 Reusable prompts invoked with `/command-name`.
 
-**Location:** `.windsurf/prompts/`
+**Location:** `.windsurf/commands/`
 
 **File Format:** Markdown with optional YAML frontmatter
 
@@ -174,7 +174,7 @@ Reusable prompts invoked with `/command-name`.
 
 ### Example Command Files
 
-**`.windsurf/prompts/review.md`:**
+**`.windsurf/commands/review.md`:**
 
 ```markdown
 ---
@@ -216,7 +216,7 @@ Perform comprehensive code review:
 Provide specific feedback with line numbers and actionable suggestions.
 ```
 
-**`.windsurf/prompts/test.md`:**
+**`.windsurf/commands/test.md`:**
 
 ```markdown
 ---
@@ -237,7 +237,7 @@ Generate comprehensive unit tests for the selected code:
 Use appropriate mocking for external dependencies.
 ```
 
-**`.windsurf/prompts/deploy.md`:**
+**`.windsurf/commands/deploy.md`:**
 
 ```markdown
 ---
@@ -297,7 +297,7 @@ Agent: [Deploys to staging environment]
 
 Automation workflows for multi-step tasks.
 
-**Location:** `.windsurf/prompts/`
+**Location:** `.windsurf/workflows/`
 
 **File Format:** Markdown with YAML frontmatter
 
@@ -314,7 +314,7 @@ Automation workflows for multi-step tasks.
 
 ### Example Workflow Files
 
-**`.windsurf/prompts/setup.md`:**
+**`.windsurf/workflows/setup.md`:**
 
 ```markdown
 ---
@@ -329,7 +329,7 @@ description: Setup development environment for new developers
 6. Run tests to verify setup
 ```
 
-**`.windsurf/prompts/deploy.md`:**
+**`.windsurf/workflows/deploy.md`:**
 
 ```markdown
 ---
@@ -414,11 +414,11 @@ your-project/
     │   ├── typescript.md
     │   ├── react.md
     │   └── api.md
-    ├── prompts/
+    ├── commands/
     │   ├── review.md
     │   ├── test.md
     │   └── deploy.md
-    ├── prompts/
+    ├── workflows/
     │   ├── setup.md
     │   └── deploy.md
     └── skills/

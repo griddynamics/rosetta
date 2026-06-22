@@ -38,8 +38,8 @@ Tests pass plain dataclasses or `MagicMock` objects satisfying the protocol; no 
 
 ## Occurrences
 
-- `ims-mcp-server/ims_mcp/typing_utils.py` — `DocumentLike`, `DatasetLike`, `ResponseLike`, `JsonObject`
-- `ims-mcp-server/ims_mcp/services/plan_store.py` — `PlanStore` protocol
-- `ims-mcp-server/ims_mcp/migrations.py` — `RedisClient` protocol
-- `rosetta-cli/rosetta_cli/typing_utils.py` — `DatasetLike`, `DocumentLike`, `JsonDict`
-- `ims-mcp-server/tests/` — all test files using protocol-typed mocks
+- `src/ims-mcp-server/ims_mcp/typing_utils.py` — `DocumentLike`, `DatasetLike`, `ResponseLike`, `JsonObject`
+- `src/ims-mcp-server/ims_mcp/services/plan_store.py` — `PlanStore` protocol
+- `src/ims-mcp-server/ims_mcp/migrations.py` — `RedisClient` protocol
+- `src/rosetta-cli/rosetta_cli/typing_utils.py` — `DatasetLike`, `DocumentLike`, `JsonDict`
+- `src/ims-mcp-server/tests/` — all test files using protocol-typed mocks

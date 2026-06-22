@@ -9,18 +9,18 @@ baseSchema: docs/schemas/skill.md
 
 ### Hook entry rule
 
-Only files that export `defineHook(…)` AND call `runAsCli(hook, module)` belong directly in `hooks/src/hooks/`.
+Only files that export `defineHook(…)` AND call `runAsCli(hook, module)` belong directly in `src/hooks/src/hooks/`.
 Every `.ts` at the top level of that directory becomes a standalone CJS bundle distributed to all 5 IDEs (claude, codex, copilot, cursor, windsurf).
-Helper/data files without `runAsCli` belong in a named subdirectory: `hooks/src/hooks/<feature>/`.
+Helper/data files without `runAsCli` belong in a named subdirectory: `src/hooks/src/hooks/<feature>/`.
 
 ### Helper placement
 
-- Feature-local helpers → `hooks/src/hooks/<feature>/` (e.g. `hooks/src/hooks/dangerous-actions/patterns.ts`).
-- Cross-hook runtime helpers → `hooks/src/runtime/`.
+- Feature-local helpers → `src/hooks/src/hooks/<feature>/` (e.g. `src/hooks/src/hooks/dangerous-actions/patterns.ts`).
+- Cross-hook runtime helpers → `src/hooks/src/runtime/`.
 
 ### Build is non-recursive
 
-`hooks/scripts/build-bundles.mjs:24` uses `readdirSync(hooksDir).filter(f => f.endsWith('.ts'))`.
+`src/hooks/scripts/build-bundles.mjs:24` uses `readdirSync(hooksDir).filter(f => f.endsWith('.ts'))`.
 There is **no `{ recursive: true }`**. Subdirectories are invisible to the bundler.
 Adding a top-level `.ts` without `runAsCli` produces a dead bundle for all 5 IDEs.
 
@@ -28,8 +28,8 @@ Adding a top-level `.ts` without `runAsCli` produces a dead bundle for all 5 IDE
 
 When a hook needs a new tool category (e.g. `mcp-call`):
 
-1. **`hooks/src/runtime/ide-registry.ts`** — add a row to `TOOL_KINDS` with all 5 IDE columns (`null` where the event doesn't exist). `SemanticKind = keyof typeof TOOL_KINDS` so TypeScript enforces coverage.
-2. **`hooks/src/runtime/ide-rows/<ide>.ts`** — if the kind requires special logic (e.g. prefix-match for `mcp__.*`), add a conditional branch at the top of `lookupToolKind` in the IDE-row file before the table loop. Table-driven lookup alone cannot handle open-ended tool name patterns.
+1. **`src/hooks/src/runtime/ide-registry.ts`** — add a row to `TOOL_KINDS` with all 5 IDE columns (`null` where the event doesn't exist). `SemanticKind = keyof typeof TOOL_KINDS` so TypeScript enforces coverage.
+2. **`src/hooks/src/runtime/ide-rows/<ide>.ts`** — if the kind requires special logic (e.g. prefix-match for `mcp__.*`), add a conditional branch at the top of `lookupToolKind` in the IDE-row file before the table loop. Table-driven lookup alone cannot handle open-ended tool name patterns.
 3. **Hook entry** — add the new kind to `def.on.toolKinds`.
 4. **Matcher in `hooks.json.tmpl`** — widen to include new tool names/patterns.
 
@@ -37,7 +37,7 @@ Order matters: `run-hook.ts:98` gates on `toolKinds` before calling `run(ctx)`. 
 
 ### Registration
 
-Every new hook must appear in every plugin's `hooks.json`. The canonical source is `plugins/core-claude/hooks/hooks.json.tmpl` (and equivalent templates in other plugins). Direct edits to generated `hooks.json` files are overwritten on next `pre_commit.py` run.
+Every new hook must appear in every plugin's `hooks.json`. The canonical source is `plugins/core-claude/hooks/hooks.json.tmpl` (and equivalent templates in other plugins). Direct edits to generated `hooks.json` files are overwritten on the next `npx rosettify-plugins@latest` run.
 
 Paths by plugin:
 - `plugins/core-claude/hooks/hooks.json.tmpl` → `hooks.json`
@@ -48,21 +48,21 @@ Paths by plugin:
 
 ### Platform-scoped events
 
-`PreToolUse` is absent on Copilot (`'copilot': null` in `ide-registry.ts`). If a hook uses a platform-exclusive event, add its name to `CLAUDE_CODE_ONLY_HOOKS` Set in `hooks/tests/regression/hooks-registered.test.ts`. Before adding a second scoped hook, refactor the Set to `Map<string, Set<IdeName>>`.
+`PreToolUse` is absent on Copilot (`'copilot': null` in `ide-registry.ts`). If a hook uses a platform-exclusive event, add its name to `CLAUDE_CODE_ONLY_HOOKS` Set in `src/hooks/tests/regression/hooks-registered.test.ts`. Before adding a second scoped hook, refactor the Set to `Map<string, Set<IdeName>>`.
 
 ### Tests
 
-Co-locate tests in `hooks/tests/<hook-name>.test.ts`. The regression test (`hooks/tests/regression/hooks-registered.test.ts`) automatically discovers all `.ts` entries at `hooks/src/hooks/` top level and asserts each is referenced in every plugin's `hooks.json`. A new hook without registration immediately fails the regression guard.
+Co-locate tests in `src/hooks/tests/<hook-name>.test.ts`. The regression test (`src/hooks/tests/regression/hooks-registered.test.ts`) automatically discovers all `.ts` entries at `src/hooks/src/hooks/` top level and asserts each is referenced in every plugin's `hooks.json`. A new hook without registration immediately fails the regression guard.
 
 ### Sync command
 
-After any source change under `hooks/src/` or `instructions/r{2,3}/core/`:
+After any source change under `src/hooks/src/` or `instructions/r{2,3}/core/`:
 
 ```bash
 venv/bin/python scripts/pre_commit.py
 ```
 
-This builds CJS bundles, runs full test suite, and syncs `instructions/r{2,3}/core/` → all four plugin directories.
+This builds CJS bundles, runs full test suite, and runs `npx rosettify-plugins@latest` to sync `instructions/r{2,3}/core/` → all plugin directories.
 
 ### Pitfalls
 
@@ -76,12 +76,12 @@ This builds CJS bundles, runs full test suite, and syncs `instructions/r{2,3}/co
 ### Reference files
 
 ```
-hooks/scripts/build-bundles.mjs
-hooks/src/runtime/ide-registry.ts
-hooks/src/runtime/ide-rows/claude-code.ts
-hooks/src/runtime/run-hook.ts:98
+src/hooks/scripts/build-bundles.mjs
+src/hooks/src/runtime/ide-registry.ts
+src/hooks/src/runtime/ide-rows/claude-code.ts
+src/hooks/src/runtime/run-hook.ts:98
 plugins/core-claude/hooks/hooks.json.tmpl
-hooks/tests/regression/hooks-registered.test.ts
+src/hooks/tests/regression/hooks-registered.test.ts
 ```
 
 </hooks_authoring>

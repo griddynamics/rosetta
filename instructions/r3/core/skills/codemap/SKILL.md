@@ -14,9 +14,18 @@ Workspace cartographer. Produces a lightweight, top-level structural map of a pr
 
 </role>
 
-Precedence: **graphify** > **gitnexus** > **shell scripts** — use the first that is **REQUESTED** and available.
+Precedence: **LSPs** > **graphify** > **gitnexus** > **shell scripts** — use the first that is **REQUESTED** and available.
 
 Keep CODEMAP.md initialized and updated REGARDLESS.
+
+Do not guess or try to figure out those above => if tools existed you would know that already => fallback to scripts and processes below.
+
+<lsp>
+IF LSP tools are already in current context:
+- The Language Server Protocol (LSP)
+- Use already available tools / capabilities in context
+- Combine with semantic search / code index tools already available in context 
+</lsp>
 
 <graphify>
 

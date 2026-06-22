@@ -53,16 +53,16 @@ Packaging and distribution requirements for rosettify.
 ## FR-PKG-0004 Repository Location
 
 <req id="FR-PKG-0004" type="FR" level="System">
-  <title>Lives at repo root as rosettify/</title>
-  <statement>The rosettify package SHALL reside at the repository root as rosettify/ (sibling to ims-mcp-server/ and rosetta-cli/). All source, tests, config, and build artifacts SHALL be within this folder.</statement>
-  <rationale>User request: "it lives in the root (like ims-mcp-server, rosetta-cli, and now rosettify), note all artifacts in this subfolder"</rationale>
+  <title>Lives under src/ as src/rosettify/</title>
+  <statement>The rosettify package SHALL reside under `src/` as `src/rosettify/` (sibling to `src/rosetta-cli/`). All source, tests, config, and build artifacts SHALL be within this folder.</statement>
+  <rationale>User request: move rosettify under `src/` and keep all artifacts in that subfolder.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: the repo root. When: inspected. Then: rosettify/ exists as a top-level directory containing package.json, tsconfig.json, src/, and tests.</criteria>
+    <criteria>Given: the repo root. When: inspected. Then: `src/rosettify/` exists containing package.json, tsconfig.json, src/, and tests.</criteria>
   </acceptance>
 </req>
 
@@ -70,7 +70,7 @@ Packaging and distribution requirements for rosettify.
 
 <req id="FR-PKG-0005" type="FR" level="System">
   <title>Follow Semantic Versioning 2.0.0 (MAJOR.MINOR.PATCH)</title>
-  <statement>The rosettify package version SHALL follow Semantic Versioning 2.0.0 (https://semver.org). The version string in `rosettify/package.json` SHALL match the regex `^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$` and increment according to:
+  <statement>The rosettify package version SHALL follow Semantic Versioning 2.0.0 (https://semver.org). The version string in `src/rosettify/package.json` SHALL match the regex `^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$` and increment according to:
 
 - **MAJOR**: incremented for backwards-incompatible changes to the CLI command surface, MCP tool input/output schemas, plan-file JSON schema (FR-PLAN-0017), envelope shape (FR-ARCH-0011), or any documented run-delegate contract. Examples: removing a subcommand, changing a CLI positional-argument order, renaming a field in the plan JSON schema, removing an error code, breaking the help response shape.
 - **MINOR**: incremented for backwards-compatible additions. Examples: a new subcommand, a new optional input field, a new error code, a new template registered in the registry, a new help-content key.
@@ -86,7 +86,7 @@ Every release that changes published behavior SHALL be accompanied by a CHANGELO
   <status>Approved</status>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: the version field in rosettify/package.json. When: inspected. Then: it matches the semver regex above. Given: a release that removes or breaks a documented contract (CLI surface, MCP tool schema, plan schema, envelope, error code). Then: the new version's MAJOR digit is greater than the previous release's MAJOR. Given: a release that adds a new subcommand, optional field, error code, or template without breaking any existing contract. Then: MAJOR is unchanged and MINOR is incremented. Given: a release that fixes a bug without altering any documented contract. Then: MAJOR and MINOR are unchanged and PATCH is incremented. Given: any release that changes published behavior. Then: a CHANGELOG or release-notes entry exists for it.</criteria>
+    <criteria>Given: the version field in src/rosettify/package.json. When: inspected. Then: it matches the semver regex above. Given: a release that removes or breaks a documented contract (CLI surface, MCP tool schema, plan schema, envelope, error code). Then: the new version's MAJOR digit is greater than the previous release's MAJOR. Given: a release that adds a new subcommand, optional field, error code, or template without breaking any existing contract. Then: MAJOR is unchanged and MINOR is incremented. Given: a release that fixes a bug without altering any documented contract. Then: MAJOR and MINOR are unchanged and PATCH is incremented. Given: any release that changes published behavior. Then: a CHANGELOG or release-notes entry exists for it.</criteria>
   </acceptance>
 </req>
 
@@ -94,7 +94,7 @@ Every release that changes published behavior SHALL be accompanied by a CHANGELO
 
 <req id="FR-PKG-0006" type="FR" level="System">
   <title>Reported version is read from package.json</title>
-  <statement>The version reported by every frontend SHALL be read from `rosettify/package.json` at runtime; no version string SHALL be hardcoded or duplicated in source. This applies to the CLI version flag/command, the MCP server's advertised `version`, and the `version` field of the help payload. All three SHALL report the exact value of `package.json`'s `version` field, so bumping `package.json` (FR-PKG-0005) is the single action that updates every reported version.</statement>
+  <statement>The version reported by every frontend SHALL be read from `src/rosettify/package.json` at runtime; no version string SHALL be hardcoded or duplicated in source. This applies to the CLI version flag/command, the MCP server's advertised `version`, and the `version` field of the help payload. All three SHALL report the exact value of `package.json`'s `version` field, so bumping `package.json` (FR-PKG-0005) is the single action that updates every reported version.</statement>
   <rationale>A version hardcoded separately from package.json drifts — the package can claim one version while the CLI, MCP server, and help payload still report a stale literal (observed: package.json at 2.3.0 while all three reported 0.1.0). Reading from package.json makes that field the single source of truth and removes a class of silent inconsistency that misleads AI and human consumers about which surface they are on.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>

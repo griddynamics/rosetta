@@ -27,7 +27,7 @@ Rosetta MCP supports three OAuth modes, controlled by `ROSETTA_OAUTH_MODE`:
 | `oauth`  | `oauth`       | `OAuthProxy`     | `IntrospectionTokenVerifier`   | Non-OIDC providers or when real-time token revocation is a hard requirement         |
 | `github` | `github`      | `GitHubProvider` | `GitHubTokenVerifier` (auto)   | GitHub as the identity provider                                                    |
 
-All modes use `build_oauth_provider()` in [`ims-mcp-server/ims_mcp/auth/oauth.py`](../ims-mcp-server/ims_mcp/auth/oauth.py). OAuth is only activated when `ROSETTA_TRANSPORT=http` and the required env vars are set.
+All modes use `build_oauth_provider()` in [`src/ims-mcp-server/ims_mcp/auth/oauth.py`](../src/ims-mcp-server/ims_mcp/auth/oauth.py). OAuth is only activated when `ROSETTA_TRANSPORT=http` and the required env vars are set.
 
 > [!NOTE]
 > Authentication applies exclusively to HTTP-based transport. STDIO transport relies on local execution environment security.
@@ -712,7 +712,7 @@ PROXY_JWT `expires_in` mirrors the upstream `expires_in`. When the IdP always re
 - **[#3425](https://github.com/jlowin/fastmcp/issues/3425)** (closed, dup of #2862): OAuth token cache preserves stale `expires_in` after reload — affects token lifetime correctness on server restart.
 - **[#3509](https://github.com/PrefectHQ/fastmcp/issues/3509)** (open): OAuthProxy: refresh_expires_in=0 (Keycloak offline_access) causes PROXY_RT to never be issued.
 
-#3509 is directly affecting us => ims-mcp-server/ims_mcp/auth/offline_refresh_fix.py is implemented to fix that refresh_expires_in=0 to predefined value until #3509 is fixed.
+#3509 is directly affecting us => src/ims-mcp-server/ims_mcp/auth/offline_refresh_fix.py is implemented to fix that refresh_expires_in=0 to predefined value until #3509 is fixed.
 
 ---
 
@@ -721,10 +721,10 @@ PROXY_JWT `expires_in` mirrors the upstream `expires_in`. When the IdP always re
 
 | File                                                   | Purpose                                               |
 | ------------------------------------------------------ | ----------------------------------------------------- |
-| `ims-mcp-server/ims_mcp/auth/oauth.py`                 | `build_oauth_provider()` — constructs OIDCProxy, OAuthProxy, or GitHubProvider based on mode |
-| `ims-mcp-server/ims_mcp/auth/__init__.py`              | Auth module exports                                   |
-| `ims-mcp-server/ims_mcp/config.py`                     | OAuth environment variable loading                    |
-| `ims-mcp-server/ims_mcp/constants.py`                  | TTL constants (`INTROSPECTION_CACHE_TTL_SECONDS=900`, `PROXY_SESSION_TTL_SECONDS=2592000`) |
+| `src/ims-mcp-server/ims_mcp/auth/oauth.py`                 | `build_oauth_provider()` — constructs OIDCProxy, OAuthProxy, or GitHubProvider based on mode |
+| `src/ims-mcp-server/ims_mcp/auth/__init__.py`              | Auth module exports                                   |
+| `src/ims-mcp-server/ims_mcp/config.py`                     | OAuth environment variable loading                    |
+| `src/ims-mcp-server/ims_mcp/constants.py`                  | TTL constants (`INTROSPECTION_CACHE_TTL_SECONDS=900`, `PROXY_SESSION_TTL_SECONDS=2592000`) |
 
 
 | FastMCP / MCP SDK Reference                         | Key Lines                                                                                                                                           |

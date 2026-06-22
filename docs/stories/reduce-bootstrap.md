@@ -1,11 +1,38 @@
 # Story: Shrink the Running Bootstrap & Make Plugins Primary
 
-Status: DRAFT. Do not implement until approved.
-Scope: **r3 only**. Validation design: deferred.
+Status: **single plan of record for r3.** Build proceeds one-by-one with HITL checks; companion file `docs/stories/bootstrap-removed.md` is the loss-archive.
+Scope: **r3 only** (`instructions/r3/core/**`; never r2 — files differ). Executors of the resulting prompts: Sonnet 4.6 / GPT-5.4-class, later, on *other* repos. Validation design: deferred.
 
 **Authority of this story:** it defines intent, constraints, and the surfaces that must change. It does not pre-decide design. Items needing judgment are marked _[implementer: review & decide]_; items settled by the requester are marked _[decided]_. Mappings labelled "candidate" are starting points to refine, not rulings.
 
+**Roles.**
+- **User (requester)** — the **ultimate decision maker.** Senior prompt/meta-process engineer and architect. Sets scope and intent; approves or rejects every change. Work runs as **propose → user review → change** cycles: the author proposes/analyses, the user reviews and decides, the author then changes — repeat. The author does not implement unapproved changes.
+- **Author** (this work) — the AI assistant, refactoring Rosetta's own r3 instruction files *in this repo*. Moves content target-by-target, one-by-one, with HITL checks; proposes, never auto-decides. **Must read** `coding-agents-prompt-authoring/references/pa-rosetta-intro-for-AI.md` + `pa-rosetta.md` as grounding before authoring.
+- **Reviewer** — background `prompt-engineer` subagent (opus, read-only) — reviews each artifact and recommends; never edits.
+- **Executor** (downstream) — Sonnet 4.6 / GPT-5.4-class models that later run the *resulting* skills on *other* repos. When this doc says "the agent," it means this executor unless a section is explicitly about the author.
+
 **Goal:** reduce the **running context** the agent carries while executing a request — make the always-injected bootstrap as small as possible (ideally → 0) by moving content behind a user-invoked entry and on-demand skills. Constraint: do **not** merge files into one large core; splitting further is acceptable.
+
+**This is the single plan of record for r3** — intent, the seam, the concrete skill structure, the method, and sequencing all live here. The only companion file is **`docs/stories/bootstrap-removed.md`**, the loss-archive: whenever content is removed or "deleted" during the refactor, its verbatim text + provenance is recorded there so nothing is lost.
+
+## Why the bootstrap looks the way it does (the seam that drives this)
+
+The bootstrap is not five files — it is one accreted **defense system**, and each layer is scar tissue over a specific way coding agents fail. None of it exists "because someone wanted it"; every layer answers a failure mode. The reduction is simply reassigning each defense to the mechanism that addresses its *root cause*:
+
+1. **Rationalized step-skipping** ("this is simple, I'll just do it") — `EXTREMELY_IMPORTANT` / `RED_FLAGS` / `FORBIDDEN`. Root cause: always-on text has **no authority** — the model weighs it against the system prompt and its own judgment and talks itself out of it. The browbeating tries to manufacture authority through volume, and mostly fails — you cannot out-shout a model's prior.
+2. **Non-deterministic process-following** (drops steps, loses the thread after compaction) — `OPERATION_MANAGER` / `Phase 0`. A **real capability gap**, not a rationalization. Must survive intact.
+3. **Context hallucination** (answers from ambient assumptions, not *this* repo) — the prep / context-load steps. Root cause: nothing grounded the agent first.
+4. **Catastrophic safety failure** (leaks a secret, deletes data, runs a dangerous command) — `guardrails` / `sensitive-data` / `dangerous-actions`. Can happen on a one-line task.
+5. **False approval** (treats its own output as signed off, rubber-stamps, over-batches) — `hitl`.
+
+**The seam.** Two fundamentally different kinds of defense were conflated:
+
+- **Safety (4, partly 5) is unconditional.** A typo fix can still leak a secret. It must fire on *every* request regardless of phrasing.
+- **Rigor (1, 2, 3) is "how to do good work" — expensive, and a *choice*.**
+
+The `/rosetta`-only model is not packaging; it **is this seam**. A user who does not type `/rosetta` is choosing the lean path, and that choice is legitimate. The old bootstrap's real defect was not size — it was **fighting the user's lean choice with volume**, browbeating every request into heavyweight process nobody asked for. `/rosetta` makes rigor *requested*, so authority becomes **real instead of manufactured**.
+
+**Consequence for the content (why this is re-voicing, not relocation).** Once rigor is explicitly invited, the anti-rationalization mass **largely dissolves** — there is nothing left to rationalize against, so most of `RED_FLAGS` / `EXTREMELY_IMPORTANT` has no job and should be deleted, not moved. What remains becomes a *calm, confident senior-engineer procedure* ("you asked for the rigorous flow — here it is"). The coercion itself is the thing we can finally delete, because **invitation does its job.** The always-on layer then shrinks to the safety floor plus a pointer to `/rosetta` — not because smaller is the goal, but because that is all that is unconditionally true for a request the user deliberately kept lean.
 
 ## The `/rosetta` entry (linchpin)
 
@@ -21,6 +48,65 @@ Minimal shared bootstrap (tiny) **+ exactly one mode file** (tiny). Everything h
 
 **The model is a minimal always-on bootstrap *plus* skills, working together — not "bootstrap *or* skills," and not an empty bootstrap.** A small bootstrap stays always-on; the always-present skill *descriptions* (native coding-agent behavior) drive auto-activation and the skill bodies load on demand. "Toward 0" means shrinking the always-on bootstrap *prose*, not removing the bootstrap or its behavior: guardrails (`hitl`, `sensitive-data`, etc.) keep firing through their skills, not through always-on rule text.
 
+### The 4 keeps (always-on)
+
+Only these remain injected on every request:
+1. **It is `get_context_instructions` itself** — the entry / mode declaration.
+2. **Enterprise setting + `reasonable`** — enterprise env, not startup; the `reasonable` definition, compressed.
+3. **Transparency + how to use TODO tasks** — the deterministic-execution pointer.
+4. **Safe fallbacks** — when unsure → overdo; better safe than sorry.
+
+Plus: **guardrails stay always-on but heavily compressed** to terse `MUST USE SKILL <X> for <Y>` lines (sensitive-data, hitl, dangerous-actions, risk-assessment, deviation, self-learning, questioning). The **activation model is unchanged** (out of scope) — only names/wording compressed.
+
+## The skills
+
+`load-context-instructions` **stays a separate skill, unchanged** (mode detection plugin/mcp/fallback + `ph-prep`). It is **referenced, never absorbed**. `load-workflow` likewise stays separate.
+
+1. **hitl** *(improve)* — keep every operative gate, dedup the accreted instances, sharpen the core principles. **Merge "grilling"** (relentless post-discovery interview, see appendix) **into the Questioning flow** — woven in, not a bolted-on section — triggered right after discovery results, before planning/implementation. **Also update the `questioning` skill** with the technique.
+2. **load-project-context** *(new)* — `load-context` reader body **+** compressed file-map (only `docs/ARCHITECTURE.md` + `docs/CONTEXT.md` + `agents/MEMORY.md`) **+** prompt priorities (Guardrails > user explicit > CLAUDE/AGENTS/GEMINI.md > rosetta skills/workflows > system prompt; Rosetta merges, rarely overrides) **+** `hitl` as **prerequisite**. Absorbs `load-context` only.
+3. **orchestration** *(new)* — `orchestrator-contract` **+** (ref) `load-context-instructions` **+** the `plugin-files-mode` **OPERATION_MANAGER block (how-to-use)** **+** Phase-0 orchestrator init **+** `execution-policy` planning/doc-sync, validation, memory rules **+** "**workflows MUST be fully executed, no skipping**" **+** small/medium/large request examples **+** "**request size ≠ subagent task size**" **+** use of larger models **+** do not limit thinking / open-ended work. Prereqs: project context, hitl, execution-controller, orchestrator-contract.
+4. **rosetta** *(new, `/rosetta`)* — `load-workflow` **+** the `FORBIDDEN` / no-jump-straight-to-code discipline. Prereqs: `load-project-context`, `hitl`. **Always loads `orchestration`.** A calm senior-engineer procedure ("you asked for the rigorous flow — here it is") — re-voiced, not relocated browbeating.
+5. **subagent-directives** *(new)* — `subagent-contract` **+** (ref) `load-context-instructions` **+** **optional** `execution-controller` **+** Phase-0 subagent `next --target`. Prep mechanics detailed below.
+6. **execution-controller** *(rename of operation-manager)* — `operation_manager` (renamed concept/skill) **+** `execution-policy.operation_manager_rules`. The determinism control's **policy/definition**. The **how-to-use command reference lives in `orchestration`**.
+
+## Renames — deferred sweep, NOT now
+
+`load-context`→`load-project-context`, `orchestrator-contract`→`orchestration`, `subagent-contract`→`subagent-directives`, `operation-manager`/`OPERATION_MANAGER`→`execution-controller`/`EXECUTION_CONTROLLER`. Done as **one sweep AFTER** the per-skill extractions are built and checked — including the ~37 `load-context` reference sites and the shell-schema templates. Until then, new skills reference **current** names; transitional duplication is accepted. Verb vocabulary (`ACQUIRE`→`READ`/`APPLY`, below) is a separate, later pass.
+
+## Method (how we work)
+
+- Per **target** file, MOVE content from multiple source files in, **thinking & analysing** — understand *why* each piece existed (every bootstrap layer is scar tissue over a specific AI failure), **adapt rather than copy**; compression / dedup / merge allowed; **zero semantic loss**.
+- **One-by-one, slowly, checking** after each step. No big-bang.
+- **Nothing is lost.** Content removed or "deleted" is archived to **`docs/stories/bootstrap-removed.md`** with provenance; docs that referenced it point there.
+- Skills may be **larger and use progressive `assets/`** (cf. `coding`, `codemap`).
+- **Reviewer loop:** background `prompt-engineer` subagent (opus, read-only, uses `coding-agents-prompt-authoring` with `pa-rosetta-intro-for-AI.md` + `pa-rosetta.md` + `pa-hardening.md`) reviews each artifact → user approves → assistant edits → repeat.
+
+## Reference docs (orientation)
+
+- `docs/schemas/*.md` — authoring contracts each artifact's `baseSchema` points to (`skill`, `workflow`, `agent`, `rule`, `template`, `phase`, `generic`), defining its required frontmatter and body structure.
+- `docs/definitions/*.md` — canonical registries of the known artifact names (`skills`, `workflows`, `agents`, `rules`, `templates`, `folder-structure`); use only names listed there, missing → ask, and register new skills in `skills.md`.
+
+## Sequencing
+
+1. Reconcile docs (done).
+2. Build skills one-by-one (target ← sources), checking; archive removed content as we go. Start with `load-project-context`.
+3. **Rename sweep** (deferred) across all references incl. schema templates.
+4. Update `docs/definitions/skills.md`, `agents/IMPLEMENTATION.md`, `docs/ARCHITECTURE.md` bootstrap-flow, and `pa-*` contract docs (incl. the injected-bootstrap list, which still names the obsolete `bootstrap_hitl_questioning`).
+5. Regenerate plugins / publish **only when requested**.
+
+## Move-map (target ← source)
+
+| Target | ← Sources | Notes |
+|---|---|---|
+| **slim bootstrap** (4 keeps) | `bootstrap-core-policy` (process hygiene + `additional_requirements`), `bootstrap-guardrails` (compressed), `plugin-files-mode` (mode decl + aliases + sources) | guardrails → terse `MUST USE SKILL X for Y` |
+| **execution-controller** (skill) | `operation_manager` (renamed) + `execution-policy.operation_manager_rules` | policy/definition |
+| **orchestration** (skill) | `orchestrator-contract` + `core-policy.subagents_orchestration_rules` + `plugin-files-mode` OPERATION_MANAGER block (how-to-use) + Phase-0 (orchestrator init) + `execution-policy` (planning/doc-sync, validation, memory) + "workflows fully executed" + sizing examples + size≠task + larger models + don't-limit-thinking | |
+| **load-project-context** (skill) | `load-context` body + `bootstrap-rosetta-files` (ARCHITECTURE+CONTEXT+MEMORY only, compressed) + `plugin-files-mode` EI#9–10 priorities + `hitl` prereq | absorbs `load-context` only |
+| **subagent-directives** (skill) | `subagent-contract` + (ref) `load-context-instructions` + optional `execution-controller` + Phase-0 (subagent `next --target`) | |
+| **rosetta** (skill, `/rosetta`) | `load-workflow` + `execution-policy` `FORBIDDEN`/no-jump-to-code | always loads `orchestration` |
+| **DELETE → archive** | `plugin-files-mode` `EXTREMELY_IMPORTANT` (most) + `CRITICAL_RED_FLAGS` | → `bootstrap-removed.md`; salvage EI#9–10→load-project-context, EI#13–14→orchestration/execution-controller, EI#19→hitl |
+| **stays separate, unchanged** | `load-context-instructions`, `load-workflow` | referenced, not absorbed |
+
 ## Mode binding: one alias, different behavior
 
 Command aliases are written once, mode-agnostically, in every skill/workflow. Exactly one mode file is injected per environment and binds each alias to a concrete mechanism — the only place mode logic lives. Three mutually exclusive modes:
@@ -31,7 +117,7 @@ Command aliases are written once, mode-agnostically, in every skill/workflow. Ex
 
 Call sites never branch on mode. The alias vocabulary is a **closed contract**: every alias used anywhere must be bound by all three mode files, or it breaks in that mode. Defining and policing that finite set is part of this work.
 
-## Verb / alias vocabulary (W4)
+## Verb / alias vocabulary (W4) — deferred (later pass)
 
 Proposed shape: **`VERB ARTIFACT <name> [FILE <subpath>]`** — clear in plugin mode, deterministically mappable to the MCP equivalents.
 
@@ -120,12 +206,12 @@ Skills:
 </references>
 ```
 
-## Subagents (W3): `load-subagent-context` skill
+## Subagent prep mechanics (detail for skill #5 `subagent-directives`)
 
-- The same minimal bootstrap is injected to every agent. The orchestrator instructs each subagent to load its subagent skill (`load-subagent-context`). `/rosetta` and role skills load what the orchestrator needs; `load-subagent-context` loads what a subagent needs.
-- `load-subagent-context` replaces the `load-context-instructions` + `load-context` chain for subagents, allowing the "if subagent / if not" branches to be removed from the always-on bootstrap.
+- The same minimal bootstrap is injected to every agent. The orchestrator instructs each subagent to load `subagent-directives`; `/rosetta` and role skills load what the orchestrator needs.
+- `load-context-instructions` is **not** removed — it stays separate, referenced (not absorbed). This moves the "if subagent / if not" branch out of the always-on bootstrap into the skill.
 - Subagent prep: minimal seed → read `CONTEXT.md` + `ARCHITECTURE.md` (full) → grep `MEMORY.md` headers → pick up assigned steps via OPERATION_MANAGER `next --target`. No workflow selection, no full project-context load.
-- Add `load-subagent-context` to `docs/definitions/skills.md`.
+- Add `subagent-directives` to `docs/definitions/skills.md`.
 
 ## Enforcement in MCP = same as plugins (via shells)
 
@@ -136,7 +222,7 @@ MCP gets the same minimal bootstrap and behaves identically (loads skills by con
 - IN: `instructions/r3/core/**` (the ~50 files using `ACQUIRE/SEARCH/LIST`, the bootstrap + three mode files, the shell templates), `scripts/plugin_generator.py` rewrite rules, plugin regeneration, `docs/definitions/skills.md`, per-platform delivery payloads (hook / rules / MCP bundle) shrunk toward 0.
 - IN — **`docs/ARCHITECTURE.md`** (targeted): the *Command Aliases* table (new vocabulary + per-mode binding), the *Bootstrap Flow* section (replace "all rules bundled" / "all prep steps mandatory regardless of size" / "classify every request" with: minimal bootstrap + classify only on `/rosetta`), and the alias-vs-file-read boundary wording. Unchanged: RAGFlow, Bundler/VFS/tagging, the underlying MCP tools (they become the MCP binding targets), `rosettify`.
 - IN — **contract-of-record docs** (teach the new vocabulary + model, else future prompts reintroduce old terms): `coding-agents-prompt-authoring/references/pa-rosetta.md`, `pa-rosetta-intro-for-AI.md` (also correct the "all agents get the same bootstrap" claim), `pa-hardening.md` and other `pa-*` references citing aliases, the `coding-agents-prompt-authoring` SKILL, and `docs/schemas/*.md` (workflow/skill/agent schemas teach the aliases and `<references>` format). Because the refactor changes the always-on set, update the injected-bootstrap list in `pa-rosetta-intro-for-AI.md` and `pa-rosetta.md`'s load procedure to match the new minimal bootstrap (it currently names `bootstrap_hitl_questioning`, which r3 no longer has).
-- OUT: `instructions/r2/**`, MCP server behavior, project-scoped `ABOUT/QUERY/STORE` aliases.
+- OUT / deferred: `instructions/r2/**`, MCP server behavior, project-scoped `ABOUT/QUERY/STORE` aliases, the rename sweep timing (after extractions), verb vocabulary (`ACQUIRE`→`READ`/`APPLY`), MCP `bootstrap.md` / `local-files-mode.md`, guardrail-activation redesign, subagent-branch fidelity beyond what is specified.
 
 ## Open / to confirm
 
@@ -173,5 +259,17 @@ AI Coding Agents (claude code, codex, cursor, etc) are overloaded with our boots
 - Decisions: do not decide yourself — tell the implementer to review and decide.
 
 ---
+
+## Appendix — Grilling prompt (verbatim; to encode into `hitl` + `questioning`)
+
+```
+Interview me relentlessly about every aspect of this plan until we reach a full shared understanding.
+Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
+For each question, provide recommended and alternative answers, which are enterprise-ready, strict, specific, following best practices.
+Ask only few questions at a time.
+If a question can be answered by web search, exploring the codebase, do it first.
+Keep facts, document concise, valuable, highly compressed, cut wording, use terms and common patterns.
+Loop cycles until NO gaps or ambiguities left without nitpicking.
+```
 
 > **Maintenance principle — this story file SHRINKS as work lands.** When an item is implemented, collapse it to a one-line nudge and delete detail no longer needed. Keep only: open work (full detail), tiny done-nudges, and durable decisions. Do not let it grow; do not keep finished how-it-was-done prose.

@@ -16,7 +16,7 @@ Antigravity is IDE Google IDX Gemini.
 **Configuration Locations:**
 
 - `.agent/rules/` - Workspace rules
-- `.agent/prompts/` - Automation workflows
+- `.agent/workflows/` - Automation workflows
 - `.agent/skills/` - Agent skills
 
 ---
@@ -128,7 +128,7 @@ Rules can reference other files using `@filename` syntax. Relative paths resolve
 
 Workflows define a series of steps to guide the Agent through repetitive tasks, such as deploying a service or running tests. Workflows are invoked via slash commands.
 
-**Location:** `.agent/prompts/`
+**Location:** `.agent/workflows/`
 
 **File Format:** Markdown with YAML frontmatter
 
@@ -146,7 +146,7 @@ description: description of the workflow
 
 ### Example Workflow Files
 
-**`.agent/prompts/setup-feature.md`:**
+**`.agent/workflows/setup-feature.md`:**
 
 ```markdown
 ---
@@ -262,7 +262,7 @@ your-project/
 │   │   ├── agents.md         # CORE WORKSPACE RULES
 │   │   ├── typescript.md     # Language-specific rules
 │   │   └── testing.md        # Testing rules
-│   ├── prompts/
+│   ├── workflows/
 │   │   ├── setup-feature.md
 │   │   ├── reset-deps.md
 │   │   ├── create-component.md

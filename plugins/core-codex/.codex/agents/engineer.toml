@@ -1,5 +1,5 @@
 name = "engineer"
-description = "\"Implement and test to high quality under the orchestrator-assigned identity. Full subagent.\""
+description = "Implement and test to high quality under the orchestrator-assigned identity. Full subagent."
 developer_instructions = """
 <engineer>
 

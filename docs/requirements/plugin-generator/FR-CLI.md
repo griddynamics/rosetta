@@ -125,7 +125,7 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
 
 <req id="FR-CLI-0020" type="FR" level="System" ticketId="" classification="technical">
   <title>Source resolution (global source + per-source overrides)</title>
-  <statement>The generator shall take a single global `source` argument, defaulting to the current directory (`.`), and shall derive each input and output location from it using OS-aware path joining: the instruction source at `<source>/instructions`, the preserved-files source at `<source>/src/plugin-generator/plugins`, and the hooks source at `<source>/hooks`. Each derived location shall be independently overridable by its own argument — `instructionsSource`, `pluginsSource`, `hooksSource` — which, when supplied, replaces the corresponding `<source>/…` default. The generator shall not take a "repository root" argument and shall not assume it runs inside any particular repository.</statement>
+  <statement>The generator shall take a single global `source` argument, defaulting to the current directory (`.`), and shall derive each input and output location from it using OS-aware path joining: the instruction source at `<source>/instructions`, the preserved-files source at `<source>/src/rosettify-plugins/plugins`, and the hooks source at `<source>/hooks`. Each derived location shall be independently overridable by its own argument — `instructionsSource`, `pluginsSource`, `hooksSource` — which, when supplied, replaces the corresponding `<source>/…` default. The generator shall not take a "repository root" argument and shall not assume it runs inside any particular repository.</statement>
   <rationale>A self-contained utility is parameterized by a source root and optional per-input overrides, never by "the repo." Defaulting `source` to the current directory and deriving inputs from it makes the common case argument-free while keeping every input independently redirectable.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -135,7 +135,7 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: no `source` argument When: invoked Then: `source` is the current directory and the instruction source resolves to `./instructions`.</criteria>
-    <criteria>Given: `--source <dir>` When: invoked Then: instruction source = `<dir>/instructions`, preserved-files source = `<dir>/src/plugin-generator/plugins`, hooks source = `<dir>/hooks`, unless individually overridden.</criteria>
+    <criteria>Given: `--source <dir>` When: invoked Then: instruction source = `<dir>/instructions`, preserved-files source = `<dir>/src/rosettify-plugins/plugins`, hooks source = `<dir>/hooks`, unless individually overridden.</criteria>
     <criteria>Given: `--instructionsSource <dir>` (or `--pluginsSource`/`--hooksSource`) When: invoked Then: that location is used in place of its `<source>/…` default and the others remain derived from `source`.</criteria>
     <criteria>Given: the argument list When: inspected Then: there is no repository-root argument.</criteria>
   </acceptance>

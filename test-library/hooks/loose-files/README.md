@@ -1,7 +1,7 @@
 # loose-files hook — E2E test prompts
 
 Per-IDE test prompts for the `loose-files` PostToolUse hook
-(source: [`hooks/src/hooks/loose-files.ts`](../../../hooks/src/hooks/loose-files.ts)).
+(source: [`src/hooks/src/hooks/loose-files.ts`](../../../src/hooks/src/hooks/loose-files.ts)).
 
 > **Note:** unlike other `test-library/` categories, this folder does **not** follow the
 > `prompt-request.md`/`prompt-validation.md`/`trigger.txt` convention used by the Rosetta
@@ -42,7 +42,7 @@ companion files needed.
 tool. **Test 5b is Windsurf-only** because Windsurf maps both file creation and file
 modification to `post_write_code → Write` — there is no distinct Edit event, so the hook fires
 on edits too. Tests 11/12 (adapter shape edge cases) are covered by Vitest unit tests in
-`hooks/tests/adapter.<ide>.test.ts`, not E2E.
+`src/hooks/tests/adapter.<ide>.test.ts`, not E2E.
 
 ## How to run
 
@@ -93,7 +93,7 @@ Cleanup step restores `package.json` via `git checkout` and removes the
 
 ## Source of truth
 
-The hook itself: [`hooks/src/hooks/loose-files.ts`](../../../hooks/src/hooks/loose-files.ts)
+The hook itself: [`src/hooks/src/hooks/loose-files.ts`](../../../src/hooks/src/hooks/loose-files.ts)
 
 Outer-gate matchers (per IDE):
 - [`plugins/core-claude/hooks/hooks.json`](../../../plugins/core-claude/hooks/hooks.json)
@@ -103,4 +103,4 @@ Outer-gate matchers (per IDE):
 - Windsurf: `plugins/core-windsurf/` not yet created — see `prompt-windsurf.md` for the assumed hooks.json shape
 
 Compiled bundles:
-[`hooks/dist/bundles/core-<ide>/loose-files.js`](../../../hooks/dist/bundles/)
+[`src/hooks/dist/bundles/core-<ide>/loose-files.js`](../../../src/hooks/dist/bundles/)

@@ -15,7 +15,7 @@ Claude Code is Anthropic's AI-powered terminal-based coding assistant. Supports 
 
 - `CLAUDE.md` - **ROOT INSTRUCTIONS** (bootstrap, core rules, always applied)
 - `.claude/claude.md` - alternative location of root core rules file, if exists use it instead
-- `.claude/prompts/` - Custom slash commands
+- `.claude/commands/` - Custom slash commands
 - `.claude/agents/` - Custom agents (specialized assistants)
 - `.claude/skills/` - Agent skills (autonomous capabilities)
 - `.claude/plugins/` - Installable plugins (bundles of commands, agents, skills)
@@ -104,13 +104,13 @@ Rules without `paths` frontmatter apply to all files.
 
 ## Custom Slash Commands
 
-**Location:** `.claude/prompts/` (legacy, still functional) or `.claude/skills/` (recommended)
+**Location:** `.claude/commands/` (legacy, still functional) or `.claude/skills/` (recommended)
 
 **File Format:** Markdown with optional YAML frontmatter
 
 **Invocation:** `/command-name`
 
-**⚠️ IMPORTANT: Custom slash commands have been merged into skills.** Files at `.claude/prompts/review.md` and `.claude/skills/review/SKILL.md` both create `/review` and work identically. Existing `.claude/prompts/` files keep working, but skills add optional features (supporting files, invocation control). **Be aware of naming conflicts** - if a skill and command share the same name, the skill takes precedence.
+**⚠️ IMPORTANT: Custom slash commands have been merged into skills.** Files at `.claude/commands/review.md` and `.claude/skills/review/SKILL.md` both create `/review` and work identically. Existing `.claude/commands/` files keep working, but skills add optional features (supporting files, invocation control). **Be aware of naming conflicts** - if a skill and command share the same name, the skill takes precedence.
 
 ### Command File Structure
 
@@ -131,7 +131,7 @@ Filename becomes command name. Content is the prompt to execute. Commands must b
 
 ### Command Example
 
-`.claude/prompts/review.md`:
+`.claude/commands/review.md`:
 
 ```markdown
 ---
@@ -335,7 +335,7 @@ your-project/
 │   │   ├── react.md
 │   │   └── mysql.md
 │   ├── settings.json              # Project settings, team plugins
-│   ├── prompts/
+│   ├── commands/
 │   │   ├── review.md              # Code review command
 │   │   ├── deploy.md              # Deployment command
 │   │   ├── test.md                # Test generation command
@@ -351,7 +351,7 @@ your-project/
 │       └── team-standards/        # Custom plugin
 │           ├── .claude-plugin/
 │           │   └── plugin.json
-│           └── prompts/
+│           └── commands/
 ├── src/
 ├── tests/
 └── package.json
@@ -385,7 +385,7 @@ your-project/
 # DO commit shared configuration
 !.claude/CLAUDE.md
 !.claude/rules/
-!.claude/prompts/
+!.claude/commands/
 !.claude/agents/
 !.claude/skills/
 !.claude/settings.json
@@ -398,7 +398,7 @@ Claude Code reads configuration in this order:
 
 1. **`CLAUDE.md` or `.claude/claude.md`** - Root instructions (always first, highest priority)
 2. **`.claude/settings.json`** - Project settings, team plugins
-3. **`.claude/prompts/`** - Project custom commands
+3. **`.claude/commands/`** - Project custom commands
 4. **`.claude/agents/`** - Project agents
 5. **`.claude/skills/`** - Project skills
 

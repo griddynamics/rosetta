@@ -52,14 +52,14 @@ Canonical 7-point reasoning flow:
 
 4. DEVELOP
 - Use techniques: Multi-perspective, Constraint-based + precision focus, Few-shot examples + clear structure, Chain-of-thought + systematic frameworks
-- Extract actors, actions, data, and entities
+- Extract systems, actors, roles, actions, events, data, models, and entities
 - Identify dependencies, edge cases, and constraints
 - Address each sub-problem with explicit confidence (0.0-1.0)
 - Define acceptance criteria with EARS when relevant
 - Resolve assumptions and unknowns tied to public facts
 - Enhance context and shape a logical structure
-- Identify and define needed processes
-- Resolve high-impact uncertainties with targeted questions
+- Identify and define needed controls and processes
+- Relentlessly resolve impactful uncertainties with targeted questions
 
 5. DELIVER
 - Construct resulting output artifact suited to task complexity

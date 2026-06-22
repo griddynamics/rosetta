@@ -188,7 +188,7 @@ git -C "$(git rev-parse --show-toplevel)" checkout -- package.json
 
 **Verify & Report:** expect silent.
 
-> **Test 6 (`create_file` tool) — dropped from E2E.** Codex does not use such a tool (the agent creates files via Write or `apply_patch`). Adapter regression is covered by Vitest unit tests in `hooks/tests/adapter.codex.test.ts`.
+> **Test 6 (`create_file` tool) — dropped from E2E.** Codex does not use such a tool (the agent creates files via Write or `apply_patch`). Adapter regression is covered by Vitest unit tests in `src/hooks/tests/adapter.codex.test.ts`.
 
 ---
 
@@ -224,7 +224,7 @@ git -C "$(git rev-parse --show-toplevel)" checkout -- package.json
 
 **Verify & Report:** expect silent.
 
-> **Tests 11 (camelCase `filePath`) and 12 (Copilot CLI shape) — dropped from E2E.** Codex does not natively send these forms. Adapter resilience to them is covered by Vitest unit tests in `hooks/tests/adapter.codex.test.ts`.
+> **Tests 11 (camelCase `filePath`) and 12 (Copilot CLI shape) — dropped from E2E.** Codex does not natively send these forms. Adapter resilience to them is covered by Vitest unit tests in `src/hooks/tests/adapter.codex.test.ts`.
 
 ---
 

@@ -12,6 +12,6 @@ docs/web/** @omaiesh
 
 .github/ @kkhristenko51 @omaiesh
 /tools @kkhristenko51 @omaiesh
-/ims-mcp-server @kkhristenko51 @omaiesh
+/src/ims-mcp-server @kkhristenko51 @omaiesh
 /deployment @kkhristenko51 @omaiesh
-/helm-charts @kkhristenko51 @omaiesh
+/src/helm-charts @kkhristenko51 @omaiesh

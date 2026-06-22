@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'ims-mcp-server/**'
+      - 'src/ims-mcp-server/**'
   workflow_dispatch:
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
         node-version: '24'
 
     - name: Install rosettify dependencies
-      working-directory: ./rosettify
+      working-directory: ./src/rosettify
       run: npm ci
 
     - name: Run type validation
@@ -45,19 +45,19 @@ jobs:
         ./validate-types.sh
 
     - name: Build package
-      working-directory: ./ims-mcp-server
+      working-directory: ./src/ims-mcp-server
       run: |
         # V2: bootstrap.md no longer bundled (loaded from Rosetta Server at startup)
         chmod +x build.sh
         ./build.sh
 
     - name: Check package
-      working-directory: ./ims-mcp-server
+      working-directory: ./src/ims-mcp-server
       run: |
         twine check dist/*
 
     - name: Run tests
-      working-directory: ./ims-mcp-server
+      working-directory: ./src/ims-mcp-server
       run: |
         if [ -d "tests" ]; then
           pytest tests/ -v
@@ -68,7 +68,7 @@ jobs:
 
     - name: Check if version exists on PyPI
       id: check_version
-      working-directory: ./ims-mcp-server
+      working-directory: ./src/ims-mcp-server
       run: |
         # Extract version from pyproject.toml (single source of truth)
         VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
@@ -87,7 +87,7 @@ jobs:
 
     - name: Publish to PyPI
       if: steps.check_version.outputs.exists == 'false'
-      working-directory: ./ims-mcp-server
+      working-directory: ./src/ims-mcp-server
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.IMS_MCP_PYPI_PASSWORD }}
@@ -101,7 +101,7 @@ jobs:
         echo ""
         echo "PyPI does not allow re-publishing the same version."
         echo "Please increment the version number in:"
-        echo "  ims-mcp-server/pyproject.toml (version field - single source of truth)"
+        echo "  src/ims-mcp-server/pyproject.toml (version field - single source of truth)"
         echo ""
         echo "Current version: ${{ steps.check_version.outputs.version }}"
         exit 1

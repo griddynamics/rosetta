@@ -2,7 +2,7 @@
 
 This prompt is an instruction **for you, the AI agent in Windsurf (Cascade)**. You perform operations using your native tools (write_code / edit_code, run_command). The hook `.windsurf/hooks/loose-files.js` fires automatically on `post_write_code` — if it produces output, Windsurf injects it into your context. Your task is to perform a series of operations and **verify whether hook text appears in your context** after each one.
 
-> **Important — plugin not yet installed:** `plugins/core-windsurf/` does not exist yet. The compiled bundle lives at `hooks/dist/bundles/core-windsurf/loose-files.js`. Before running this prompt, copy or symlink it to `.windsurf/hooks/loose-files.js` in your test project and configure the outer-gate matcher in `.windsurf/hooks.json` (see Prerequisites). This prompt describes the intended E2E contract for when the plugin is created.
+> **Important — plugin not yet installed:** `plugins/core-windsurf/` does not exist yet. The compiled bundle lives at `src/hooks/dist/bundles/core-windsurf/loose-files.js`. Before running this prompt, copy or symlink it to `.windsurf/hooks/loose-files.js` in your test project and configure the outer-gate matcher in `.windsurf/hooks.json` (see Prerequisites). This prompt describes the intended E2E contract for when the plugin is created.
 
 > **Companion prompts:** [`prompt-claude-code.md`](./prompt-claude-code.md), [`prompt-codex.md`](./prompt-codex.md), [`prompt-copilot.md`](./prompt-copilot.md), [`prompt-cursor.md`](./prompt-cursor.md). Files are named per-IDE (`test-windsurf.js`, `helper-windsurf.js`, `/tmp/loose-files-windsurf`) — all prompts can run in parallel across different IDE sessions without conflicts.
 

@@ -1,4 +1,4 @@
--e ./rosetta-cli[dev]
--e ./ims-mcp-server[dev,redis]
+-e ./src/rosetta-cli[dev]
+-e ./src/ims-mcp-server[dev,redis]
 mypy>=2.1.0,<2.2
 pybars3>=0.9.7,<1.0

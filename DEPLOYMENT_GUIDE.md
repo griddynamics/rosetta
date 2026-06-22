@@ -179,7 +179,7 @@ Rosetta MCP is the guiding layer between IDEs and the knowledge base. It exposes
 For local development. Starts Rosetta MCP and Redis.
 
 ```yaml
-# docker-compose.yml (ims-mcp-server/)
+# docker-compose.yml (src/ims-mcp-server/)
 services:
   ims-mcp:
     image: us-central1-docker.pkg.dev/.../rosetta-mcp:<tag>
@@ -200,7 +200,7 @@ Required env vars: `ROSETTA_API_KEY`, `ROSETTA_SERVER_URL`, `REDIS_PASSWORD`.
 
 ### Kubernetes / Helm
 
-The repository ships the chart at [`helm-charts/rosetta-mcp-server/`](helm-charts/rosetta-mcp-server/). It deploys [rosetta-mcp](rosetta-mcp-server/README.md) in **HTTP** transport with ClusterIP Service, optional Ingress, optional HorizontalPodAutoscaler, and optional [External Secrets Operator](https://external-secrets.io/) wiring. Use this path when you want a shared MCP endpoint behind your ingress and identity provider (see [Architecture — Rosetta MCP](docs/ARCHITECTURE.md#rosetta-mcp)).
+The repository ships the chart at [`src/helm-charts/rosetta-mcp-server/`](src/helm-charts/rosetta-mcp-server/). It deploys [rosetta-mcp](src/rosetta-mcp-server/README.md) in **HTTP** transport with ClusterIP Service, optional Ingress, optional HorizontalPodAutoscaler, and optional [External Secrets Operator](https://external-secrets.io/) wiring. Use this path when you want a shared MCP endpoint behind your ingress and identity provider (see [Architecture — Rosetta MCP](docs/ARCHITECTURE.md#rosetta-mcp)).
 
 **Docker image:** [griddynamics/rosetta-mcp](https://hub.docker.com/r/griddynamics/rosetta-mcp) ([repository](https://hub.docker.com/repository/docker/griddynamics/rosetta-mcp/general)).
 
@@ -210,18 +210,18 @@ The repository ships the chart at [`helm-charts/rosetta-mcp-server/`](helm-chart
 - Rosetta Server (for example RAGFlow) reachable from the cluster ([Part 1](#part-1-rosetta-server-ragflow))
 - A Kubernetes `Secret` (or ExternalSecret) containing at least `ROSETTA_API_KEY`
 - If using the chart's ESO toggle (`eso.enabled`), External Secrets Operator and a `ClusterSecretStore` / `SecretStore` that match `eso.secretStoreRef`
-- **TLS for production:** Base [`values.yaml`](helm-charts/rosetta-mcp-server/values.yaml) leaves [`ingress.tls`](helm-charts/rosetta-mcp-server/values.yaml) commented out, so Ingress may expose the MCP endpoint over **plain HTTP** until you configure TLS. **Before any production deployment,** enable HTTPS at the Ingress (uncomment and populate `ingress.tls` with your certificate `Secret` and hostnames) or terminate TLS at your API gateway / load balancer in front of the chart. OAuth expects a public **HTTPS** `ROSETTA_OAUTH_BASE_URL`; see also the [guide banner](#deployment-guide) on defense in depth.
+- **TLS for production:** Base [`values.yaml`](src/helm-charts/rosetta-mcp-server/values.yaml) leaves [`ingress.tls`](src/helm-charts/rosetta-mcp-server/values.yaml) commented out, so Ingress may expose the MCP endpoint over **plain HTTP** until you configure TLS. **Before any production deployment,** enable HTTPS at the Ingress (uncomment and populate `ingress.tls` with your certificate `Secret` and hostnames) or terminate TLS at your API gateway / load balancer in front of the chart. OAuth expects a public **HTTPS** `ROSETTA_OAUTH_BASE_URL`; see also the [guide banner](#deployment-guide) on defense in depth.
 
 #### Install
 
 ##### From OCI (Docker Hub)
 
-After the workflow [Publish Rosetta MCP Helm chart](.github/workflows/publish-mcp-helm-chart.yml) runs on `main`, the chart is published as a Helm OCI artifact under the Grid Dynamics Docker Hub organization (see Chart [`name` and `version`](helm-charts/rosetta-mcp-server/Chart.yaml)).
+After the workflow [Publish Rosetta MCP Helm chart](.github/workflows/publish-mcp-helm-chart.yml) runs on `main`, the chart is published as a Helm OCI artifact under the Grid Dynamics Docker Hub organization (see Chart [`name` and `version`](src/helm-charts/rosetta-mcp-server/Chart.yaml)).
 
 ```bash
 helm registry login registry-1.docker.io
 export CHART_OCI="oci://registry-1.docker.io/griddynamics/rosetta-mcp-helm-chart"
-helm pull "${CHART_OCI}" --version "$(grep -E '^version:' helm-charts/rosetta-mcp-server/Chart.yaml | awk '{print $2}')"
+helm pull "${CHART_OCI}" --version "$(grep -E '^version:' src/helm-charts/rosetta-mcp-server/Chart.yaml | awk '{print $2}')"
 ```
 
 Or install without pulling first (pin `--version` to the chart release you verified):
@@ -238,31 +238,31 @@ Values must set `ROSETTA_SERVER_URL`, image pull credentials if your registry re
 
 ```bash
 helm dependency update    # chart has no subcharts today; optional
-helm install rosetta-mcp ./helm-charts/rosetta-mcp-server \
-  -f ./helm-charts/rosetta-mcp-server/values.yaml \
-  -f ./helm-charts/rosetta-mcp-server/values-prod.example.yaml   # adapt or use your overlay
+helm install rosetta-mcp ./src/helm-charts/rosetta-mcp-server \
+  -f ./src/helm-charts/rosetta-mcp-server/values.yaml \
+  -f ./src/helm-charts/rosetta-mcp-server/values-prod.example.yaml   # adapt or use your overlay
 ```
 
 #### Required chart configuration
 
-1. **Image** — `image.repository` defaults to `griddynamics/rosetta-mcp`; set `image.tag` or rely on the chart defaulting the tag to [`appVersion`](helm-charts/rosetta-mcp-server/Chart.yaml) in the Deployment template.
+1. **Image** — `image.repository` defaults to `griddynamics/rosetta-mcp`; set `image.tag` or rely on the chart defaulting the tag to [`appVersion`](src/helm-charts/rosetta-mcp-server/Chart.yaml) in the Deployment template.
 2. **Rosetta backend** — Set `env.vars` so `ROSETTA_SERVER_URL` resolves to Rosetta Server (in-cluster DNS or ingress URL).
 3. **API key** — Supply `ROSETTA_API_KEY` via `env.secrets` (`secretKeyRef`). Create the Kubernetes Secret first or use `eso` to sync it.
 4. **Ingress** — Set `ingress.host` and annotations. Defaults use an NGINX-style controller and placeholder host `rosetta-mcp.local`.
-5. **TLS (production)** — Enable encrypted client traffic before production use. Uncomment and complete the [`ingress.tls`](helm-charts/rosetta-mcp-server/values.yaml) block in your overlay so Ingress terminates HTTPS with a TLS `Secret` (or terminate TLS upstream and align hostnames). HTTP-only defaults are unsuitable for production; OAuth and user trust depend on HTTPS.
+5. **TLS (production)** — Enable encrypted client traffic before production use. Uncomment and complete the [`ingress.tls`](src/helm-charts/rosetta-mcp-server/values.yaml) block in your overlay so Ingress terminates HTTPS with a TLS `Secret` (or terminate TLS upstream and align hostnames). HTTP-only defaults are unsuitable for production; OAuth and user trust depend on HTTPS.
 
-Full environment-variable semantics for OAuth, Redis, analytics, and modes are the same as the application runtime; see [rosetta-mcp-server — Configuration](rosetta-mcp-server/README.md#configuration).
+Full environment-variable semantics for OAuth, Redis, analytics, and modes are the same as the application runtime; see [rosetta-mcp-server — Configuration](src/rosetta-mcp-server/README.md#configuration).
 
 #### Example values overlays
 
 The chart directory includes overlays you can copy and customize outside the repo:
 
-- [`helm-charts/rosetta-mcp-server/values-dev.example.yaml`](helm-charts/rosetta-mcp-server/values-dev.example.yaml)
-- [`helm-charts/rosetta-mcp-server/values-prod.example.yaml`](helm-charts/rosetta-mcp-server/values-prod.example.yaml)
+- [`src/helm-charts/rosetta-mcp-server/values-dev.example.yaml`](src/helm-charts/rosetta-mcp-server/values-dev.example.yaml)
+- [`src/helm-charts/rosetta-mcp-server/values-prod.example.yaml`](src/helm-charts/rosetta-mcp-server/values-prod.example.yaml)
 
 ```bash
-helm upgrade --install rosetta-mcp ./helm-charts/rosetta-mcp-server \
-  -f ./helm-charts/rosetta-mcp-server/values.yaml \
+helm upgrade --install rosetta-mcp ./src/helm-charts/rosetta-mcp-server \
+  -f ./src/helm-charts/rosetta-mcp-server/values.yaml \
   -f my-prod.yaml
 ```
 
@@ -270,12 +270,12 @@ helm upgrade --install rosetta-mcp ./helm-charts/rosetta-mcp-server \
 
 | Path | Purpose |
 |---|---|
-| [`templates/deployment.yaml`](helm-charts/rosetta-mcp-server/templates/deployment.yaml) | Deployment, env, resources |
-| [`templates/service.yaml`](helm-charts/rosetta-mcp-server/templates/service.yaml) | ClusterIP and session affinity |
-| [`templates/ingress.yaml`](helm-charts/rosetta-mcp-server/templates/ingress.yaml) | Optional Ingress |
-| [`templates/hpa.yaml`](helm-charts/rosetta-mcp-server/templates/hpa.yaml) | Optional HPA |
-| [`templates/external-secret.yaml`](helm-charts/rosetta-mcp-server/templates/external-secret.yaml) | Optional ExternalSecret (`eso.*`) |
-| [`templates/serviceaccount.yaml`](helm-charts/rosetta-mcp-server/templates/serviceaccount.yaml) | ServiceAccount |
+| [`templates/deployment.yaml`](src/helm-charts/rosetta-mcp-server/templates/deployment.yaml) | Deployment, env, resources |
+| [`templates/service.yaml`](src/helm-charts/rosetta-mcp-server/templates/service.yaml) | ClusterIP and session affinity |
+| [`templates/ingress.yaml`](src/helm-charts/rosetta-mcp-server/templates/ingress.yaml) | Optional Ingress |
+| [`templates/hpa.yaml`](src/helm-charts/rosetta-mcp-server/templates/hpa.yaml) | Optional HPA |
+| [`templates/external-secret.yaml`](src/helm-charts/rosetta-mcp-server/templates/external-secret.yaml) | Optional ExternalSecret (`eso.*`) |
+| [`templates/serviceaccount.yaml`](src/helm-charts/rosetta-mcp-server/templates/serviceaccount.yaml) | ServiceAccount |
 
 #### Deployment characteristics & defaults
 
@@ -308,7 +308,7 @@ Start with chart defaults (`ClientIP`); introduce hash-by only when justified. U
 
 #### Helm Values Reference
 
-Base keys in [`helm-charts/rosetta-mcp-server/values.yaml`](helm-charts/rosetta-mcp-server/values.yaml):
+Base keys in [`src/helm-charts/rosetta-mcp-server/values.yaml`](src/helm-charts/rosetta-mcp-server/values.yaml):
 
 | Key | Default | Description |
 |---|---|---|
@@ -317,7 +317,7 @@ Base keys in [`helm-charts/rosetta-mcp-server/values.yaml`](helm-charts/rosetta-
 | `replicaCount` | `1` | Static replicas when HPA disabled |
 | `autoscaling.enabled` | `false` | HPA toggle |
 | `ingress.enabled` | `true` | Ingress resource |
-| `ingress.tls` | Commented in base [`values.yaml`](helm-charts/rosetta-mcp-server/values.yaml); enable for production | HTTPS termination at Ingress |
+| `ingress.tls` | Commented in base [`values.yaml`](src/helm-charts/rosetta-mcp-server/values.yaml); enable for production | HTTPS termination at Ingress |
 | `service.sessionAffinity` | `ClientIP` | Pod stickiness |
 | `eso.enabled` | `false` | External Secrets Operator sync |
 

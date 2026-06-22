@@ -45,13 +45,13 @@ Requirements TBD. Starting points from user input for future batches.
 
 <req id="FR-GEN-0001" type="FR" level="System">
   <title>Generate Rosetta plugin artifacts</title>
-  <statement>rosettify generate plugin SHALL generate special artifacts (hooks, rules, skills, subagents, commands, workflows) for coding agents. Related to existing plugin_generator.py (in a different branch).</statement>
+  <statement>rosettify generate plugin SHALL generate special artifacts (hooks, rules, skills, subagents, commands, workflows) for coding agents. Superseded by `npx rosettify-plugins@latest`.</statement>
   <rationale>User request</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Draft</status>
-  <notes>Full requirements in future batch. plugin_generator.py exists in separate branch as reference.</notes>
+  <notes>Full requirements in future batch. Plugin generation is now handled by `npx rosettify-plugins@latest` (`src/rosettify-plugins/`).</notes>
 </req>
 
 ## FR-UX-0001 Human Progress Feedback (Placeholder)

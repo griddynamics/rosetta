@@ -1,14 +1,14 @@
 # plugin-generator — FR: Preserved-File Seeding, Tree Reset, Copy, Normalization, Renames
 
-> These units are the as-is behaviors carried over from the original `plugin_generator.py`, re-expressed on the unified two-tier target architecture (FR-ARCH). The **how** is normative in FR-ARCH's VFS + processor model: copy = `fileRead()`→`pluginWrite()`; model normalization = per-vocabulary model-normalization processors (FR-ARCH-0046); path changes = `fileRename()` (path only); in-body reference rewriting = `pluginRewriteReferences()` (content only, FR-ARCH-0049); the output wipe and preserved-file seeding are the `pluginCleanup()` and `pluginCopy()` plugin processors at the head of the pipeline (FR-ARCH-0035/0052/0053). There are no `pre-copy`/`pre-move` passes: a duplicated folder is an additional `SpecEntry`, a relocation is a `SpecEntry` `target` and/or `fileRename()`.
+> These units define the behaviors of `npx rosettify-plugins@latest`, re-expressed on the unified two-tier target architecture (FR-ARCH). The **how** is normative in FR-ARCH's VFS + processor model: copy = `fileRead()`→`pluginWrite()`; model normalization = per-vocabulary model-normalization processors (FR-ARCH-0046); path changes = `fileRename()` (path only); in-body reference rewriting = `pluginRewriteReferences()` (content only, FR-ARCH-0049); the output wipe and preserved-file seeding are the `pluginCleanup()` and `pluginCopy()` plugin processors at the head of the pipeline (FR-ARCH-0035/0052/0053). There are no `pre-copy`/`pre-move` passes: a duplicated folder is an additional `SpecEntry`, a relocation is a `SpecEntry` `target` and/or `fileRename()`.
 
 ## Preserved-file seeding
 
-The files a target keeps but never generates — the IDE manifest, hook templates, IDE config-folder contents, any `.mcp.json` — have a committed source under `src/plugin-generator/plugins/<target>/` (DATA-CFG-0005). The `pluginCopy()` processor (FR-ARCH-0053) copies that source into the output before generating instruction-derived content on top, so a target can be produced into a clean or empty output directory.
+The files a target keeps but never generates — the IDE manifest, hook templates, IDE config-folder contents, any `.mcp.json` — have a committed source under `src/rosettify-plugins/plugins/<target>/` (DATA-CFG-0005). The `pluginCopy()` processor (FR-ARCH-0053) copies that source into the output before generating instruction-derived content on top, so a target can be produced into a clean or empty output directory.
 
 <req id="FR-SEED-0001" type="FR" level="System" ticketId="" classification="technical">
   <title>Seed preserved files before generation</title>
-  <statement>When generating a target, the `pluginCopy()` processor (FR-ARCH-0053) shall copy that target's preserved-file source from `src/plugin-generator/plugins/<target>/` into the target output at the mirrored output-relative paths, before any instruction-derived content is produced for that target.</statement>
+  <statement>When generating a target, the `pluginCopy()` processor (FR-ARCH-0053) shall copy that target's preserved-file source from `src/rosettify-plugins/plugins/<target>/` into the target output at the mirrored output-relative paths, before any instruction-derived content is produced for that target.</statement>
   <rationale>The preserved files are an input with no instruction-source derivation; copying them first makes generation self-contained and reproducible into a clean output directory instead of depending on files already committed in the output tree.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -17,9 +17,9 @@ The files a target keeps but never generates — the IDE manifest, hook template
   <changed>2026-06-04</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: an empty target output directory When: the target is generated Then: every preserved file from `src/plugin-generator/plugins/<target>/` is present at its output-relative path and the generated content is present on top.</criteria>
+    <criteria>Given: an empty target output directory When: the target is generated Then: every preserved file from `src/rosettify-plugins/plugins/<target>/` is present at its output-relative path and the generated content is present on top.</criteria>
     <criteria>Given: the seeding step When: it runs Then: it completes before any instruction-derived content is written for that target.</criteria>
-    <criteria>Given: a clean environment with only the instruction source and `src/plugin-generator/plugins/` present When: the generator runs Then: each target output is complete with no pre-existing files required in the output tree.</criteria>
+    <criteria>Given: a clean environment with only the instruction source and `src/rosettify-plugins/plugins/` present When: the generator runs Then: each target output is complete with no pre-existing files required in the output tree.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
@@ -29,7 +29,7 @@ The files a target keeps but never generates — the IDE manifest, hook template
 
 <req id="FR-SEED-0002" type="FR" level="System" ticketId="" classification="technical">
   <title>Standalone preserved-file derivation</title>
-  <statement>A standalone target shall source its preserved files from its parent target's preserved-file source (`src/plugin-generator/plugins/<parent>/`) rather than from an independent config folder, taking the standalone-form hook template and the parent manifest version, and shall not retain the parent's marketplace-only preserved files.</statement>
+  <statement>A standalone target shall source its preserved files from its parent target's preserved-file source (`src/rosettify-plugins/plugins/<parent>/`) rather than from an independent config folder, taking the standalone-form hook template and the parent manifest version, and shall not retain the parent's marketplace-only preserved files.</statement>
   <rationale>A standalone has no independent IDE config folder; its only preserved inputs are the standalone-form template and the version, both owned by the parent, consistent with the standalone transform chain.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -40,7 +40,7 @@ The files a target keeps but never generates — the IDE manifest, hook template
   <acceptance>
     <criteria>Given: core-cursor-standalone When: generated Then: its standalone-form hook configuration derives from the parent `core-cursor` standalone-form template and its manifest version equals the parent manifest version.</criteria>
     <criteria>Given: core-copilot-standalone When: generated Then: it carries no parent marketplace-only preserved config folder and its manifest version equals the parent manifest version.</criteria>
-    <criteria>Given: a standalone target When: generated Then: no independent `src/plugin-generator/plugins/<standalone>/` config folder is required.</criteria>
+    <criteria>Given: a standalone target When: generated Then: no independent `src/rosettify-plugins/plugins/<standalone>/` config folder is required.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
@@ -168,7 +168,7 @@ The files a target keeps but never generates — the IDE manifest, hook template
     <criteria>Given: any model token present in instruction source frontmatter for a currently supported model When: normalized by any of the Claude Code, Cursor, or Copilot vocabularies Then: each vocabulary produces the current authoritative model identifier for that IDE in its expected format; no vocabulary produces a stale model identifier for a currently supported model.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/spec/model-maps.ts: normalizeClaude() scans tokens, CLAUDE_CODE_MAP maps opus/sonnet/haiku substrings to full model IDs. All vocabulary maps for Claude Code, Cursor, and Copilot must be updated together when model tiers change.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/spec/model-maps.ts: normalizeClaude() scans tokens, CLAUDE_CODE_MAP maps opus/sonnet/haiku substrings to full model IDs. All vocabulary maps for Claude Code, Cursor, and Copilot must be updated together when model tiers change.</implementationNotes>
   <notes>Concrete target examples (r3): architect `claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high` → `claude-opus-4-8`; reviewer `gpt-5.4-medium, gemini-3.1-pro-preview, claude-4.6-sonnet` → `claude-sonnet-4-6`; validator `gpt-5.4-medium, gemini-3.1-pro-preview, claude-4.6-sonnet` → `claude-sonnet-4-6`; executor `claude-4.5-haiku, gpt-5.4-low, gemini-3-flash` → `claude-haiku-4-5`.</notes>
 </req>
 
@@ -188,7 +188,7 @@ The files a target keeps but never generates — the IDE manifest, hook template
     <criteria>Given: a value with no `gpt-` entry When: normalized for Codex Then: no model fields are produced.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/spec/model-maps.ts: normalizeCodex() returns { model, effort: undefined } when no effort suffix; Codex emitter writes only `model:` field when effort is undefined.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/spec/model-maps.ts: normalizeCodex() returns { model, effort: undefined } when no effort suffix; Codex emitter writes only `model:` field when effort is undefined.</implementationNotes>
 </req>
 
 ## Renames and reference rewriting

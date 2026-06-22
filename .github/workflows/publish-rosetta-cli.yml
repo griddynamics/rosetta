@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'rosetta-cli/**'
+      - 'src/rosetta-cli/**'
       - 'requirements.txt'
   workflow_dispatch:
 
@@ -29,21 +29,21 @@ jobs:
 
     - name: Run CLI tests
       run: |
-        pytest rosetta-cli/tests -v
+        pytest src/rosetta-cli/tests -v
 
     - name: Build package
-      working-directory: ./rosetta-cli
+      working-directory: ./src/rosetta-cli
       run: |
         python -m build
 
     - name: Check package
-      working-directory: ./rosetta-cli
+      working-directory: ./src/rosetta-cli
       run: |
         twine check dist/*
 
     - name: Check if version exists on PyPI
       id: check_version
-      working-directory: ./rosetta-cli
+      working-directory: ./src/rosetta-cli
       run: |
         VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
         echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -60,7 +60,7 @@ jobs:
 
     - name: Publish to PyPI
       if: steps.check_version.outputs.exists == 'false'
-      working-directory: ./rosetta-cli
+      working-directory: ./src/rosetta-cli
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.ROSETTA_CLI_PYPI_PASSWORD }}
@@ -74,7 +74,7 @@ jobs:
         echo ""
         echo "PyPI does not allow re-publishing the same version."
         echo "Please increment the version number in:"
-        echo "  rosetta-cli/pyproject.toml"
+        echo "  src/rosetta-cli/pyproject.toml"
         echo ""
         echo "Current version: ${{ steps.check_version.outputs.version }}"
         exit 1

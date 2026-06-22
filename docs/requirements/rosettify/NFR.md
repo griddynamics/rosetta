@@ -184,7 +184,7 @@
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: vitest run. When: executed in rosettify/. Then: all tests pass, coverage includes all run delegates and error paths.</criteria>
+    <criteria>Given: vitest run. When: executed in src/rosettify/. Then: all tests pass, coverage includes all run delegates and error paths.</criteria>
   </acceptance>
 </req>
 

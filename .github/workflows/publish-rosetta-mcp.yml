@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'rosetta-mcp-server/**'
+      - 'src/rosetta-mcp-server/**'
   workflow_dispatch:
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
 
     - name: Read versions from rosetta-mcp pyproject.toml
       id: read_versions
-      working-directory: ./rosetta-mcp-server
+      working-directory: ./src/rosetta-mcp-server
       run: |
         ROSETTA_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
         DEPENDENCY_VERSION=$(grep 'ims-mcp==' pyproject.toml | sed 's/.*ims-mcp==\([^"]*\)".*/\1/')
@@ -64,12 +64,12 @@ jobs:
         exit 1
 
     - name: Build package
-      working-directory: ./rosetta-mcp-server
+      working-directory: ./src/rosetta-mcp-server
       run: |
         python -m build
 
     - name: Check package
-      working-directory: ./rosetta-mcp-server
+      working-directory: ./src/rosetta-mcp-server
       run: |
         twine check dist/*
 
@@ -92,7 +92,7 @@ jobs:
 
     - name: Publish to PyPI
       if: steps.check_version.outputs.exists == 'false'
-      working-directory: ./rosetta-mcp-server
+      working-directory: ./src/rosetta-mcp-server
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.ROSETTA_MCP_PYPI_PASSWORD }}
@@ -105,7 +105,7 @@ jobs:
         echo "::error::Version ${{ steps.check_version.outputs.version }} already exists on PyPI"
         echo ""
         echo "PyPI does not allow re-publishing the same version."
-        echo "The rosetta-mcp version is read from rosetta-mcp-server/pyproject.toml."
+        echo "The rosetta-mcp version is read from src/rosetta-mcp-server/pyproject.toml."
         echo "Bump the version there to publish a new rosetta-mcp release."
         echo ""
         echo "Current version: ${{ steps.check_version.outputs.version }}"

@@ -49,7 +49,7 @@ ACQUIRE `skills/planning/SKILL.md` FROM KB
 
 ## Occurrences
 
-- `rosetta-cli/rosetta_cli/services/document_data.py` — tag generation
-- `ims-mcp-server/ims_mcp/services/query_builder.py` — metadata condition builder
-- `ims-mcp-server/ims_mcp/tools/instructions.py` — threshold logic
+- `src/rosetta-cli/rosetta_cli/services/document_data.py` — tag generation
+- `src/ims-mcp-server/ims_mcp/services/query_builder.py` — metadata condition builder
+- `src/ims-mcp-server/ims_mcp/tools/instructions.py` — threshold logic
 - All `ACQUIRE ... FROM KB` calls in instructions (`instructions/r2/core/`)

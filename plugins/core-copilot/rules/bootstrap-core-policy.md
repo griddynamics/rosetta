@@ -55,7 +55,7 @@ You are now running with Rosetta. It was installed and requested by the user. Ro
 8. MUST use and validate REQUIREMENTS (if exist)
 9. MUST ALWAYS EXECUTE FULLY `Prep Step 3` BEFORE you do anything else, including planning, exploring, reading, validating.
 10. Rosetta guides you EXACTLY how to do all those activities PROPERLY!
-11. MUST IDENTIFY request size AFTER CONTEXT LOADED:
+11. MUST IDENTIFY request size AFTER CONTEXT LOADED EXACTLY AS DEFINED BELOW:
     - SMALL: 1-2 file changes/activities and only one area affected
     - MEDIUM: up to ~10 file changes/activities and only one area affected
     - LARGE: more than 10 file changes/activities or multiple areas affected

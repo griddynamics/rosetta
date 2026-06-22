@@ -53,6 +53,6 @@ class RosettaMigrations:
 
 ## Occurrences
 
-- `ims-mcp-server/ims_mcp/migrations.py` — full implementation
-- `ims-mcp-server/ims_mcp/server.py` — invoked in FastMCP lifespan hook
-- `ims-mcp-server/tests/test_migrations.py` — unit tests
+- `src/ims-mcp-server/ims_mcp/migrations.py` — full implementation
+- `src/ims-mcp-server/ims_mcp/server.py` — invoked in FastMCP lifespan hook
+- `src/ims-mcp-server/tests/test_migrations.py` — unit tests

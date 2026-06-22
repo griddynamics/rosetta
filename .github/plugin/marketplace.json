@@ -2,7 +2,7 @@
   "name": "rosetta",
   "metadata": {
     "description": "Rosetta 2.0 - Software Engineering Accelerator providing AI agents with unified access to instructions, workflows, skills, and business context",
-    "version": "2.0.12",
+    "version": "2.0.13",
     "pluginRoot": "./plugins"
   },
   "owner": {

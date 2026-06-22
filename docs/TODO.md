@@ -4,7 +4,7 @@ This file contains grep compatible list of very concise improvements, suggestion
 
 **Status:** Proposed
 
-**What**: ims-mcp-server/Dockerfile to use `uvx ims-mcp@<specific-version>` instead of `Python -m`. 
+**What**: src/ims-mcp-server/Dockerfile to use `uvx ims-mcp@<specific-version>` instead of `Python -m`. 
 
 ## REVIEW: Consent screen disabled in production (security evaluation needed)
 
@@ -24,7 +24,7 @@ This file contains grep compatible list of very concise improvements, suggestion
 
 - **Strict plan-step dedup** — read `plans/<name>/plan.json` and skip the advisory if a syntax/type/lint/format step is already present; currently only time-based throttle prevents double-nudge.
 - **Actual linter invocation** — replace the advisory with on-demand execution of language-appropriate tooling (per-extension map: `ruff` for `.py`, `eslint`/`tsc` for `.ts`/`.js`, `prettier` for `.css`/`.html`, etc.).
-- **Session-long throttle TTL** — extend `hooks/src/runtime/throttle.ts` with a per-hook `ttlMs` option so `lint-format-advisory` can dedupe per `(session, filePath)` for the entire session lifetime, not just 5 seconds.
+- **Session-long throttle TTL** — extend `src/hooks/src/runtime/throttle.ts` with a per-hook `ttlMs` option so `lint-format-advisory` can dedupe per `(session, filePath)` for the entire session lifetime, not just 5 seconds.
 
 
 ## TODO: Hooks adapter gaps (from QA 2026-05-23)

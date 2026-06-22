@@ -8,36 +8,36 @@ CHANGELOG.md AGENTS.md NOTICE LICENSE
 requirements.txt mypy.ini validate-types.sh
 .mcp.json .gitignore .claude-plugin .cursor-plugin .cursorignore
 
-## ims-mcp-server/ — core MCP server package (ims-mcp on PyPI)
+## src/ims-mcp-server/ — core MCP server package (ims-mcp on PyPI)
 
 pyproject.toml README.md Dockerfile build.sh DEBUGGING.md
 
-### ims-mcp-server/ims_mcp/ — main Python package
+### src/ims-mcp-server/ims_mcp/ — main Python package
 
 server.py tool_prompts.py config.py constants.py context.py migrations.py typing_utils.py
 
-#### ims-mcp-server/ims_mcp/auth/ — OAuth 2.1 and OAuthProxy support
+#### src/ims-mcp-server/ims_mcp/auth/ — OAuth 2.1 and OAuthProxy support
 
 oauth.py loopback_redirect_fix.py offline_refresh_fix.py
 
-#### ims-mcp-server/ims_mcp/clients/ — RAGFlow API clients
+#### src/ims-mcp-server/ims_mcp/clients/ — RAGFlow API clients
 
 ragflow.py dataset.py document.py doc_cache.py
 
-#### ims-mcp-server/ims_mcp/services/ — core business logic
+#### src/ims-mcp-server/ims_mcp/services/ — core business logic
 
 bundler.py authorizer.py query_builder.py keyword_search.py plan_store.py
 feedback.py invite.py _ragflow_team_api.py
 
-#### ims-mcp-server/ims_mcp/tools/ — MCP tool implementations
+#### src/ims-mcp-server/ims_mcp/tools/ — MCP tool implementations
 
 instructions.py projects.py resources.py plan_manager.py feedback.py validation.py
 
-#### ims-mcp-server/ims_mcp/analytics/ — usage tracking
+#### src/ims-mcp-server/ims_mcp/analytics/ — usage tracking
 
 tracker.py user_context.py
 
-### ims-mcp-server/tests/ — unit tests (21 files)
+### src/ims-mcp-server/tests/ — unit tests (21 files)
 
 test_bundler_and_query_builder.py test_instructions.py test_plan_manager.py test_oauth.py
 test_analytics.py test_authorizer.py test_migrations.py test_resources.py
@@ -46,33 +46,33 @@ test_cache_ttl.py test_dataset_lookup.py test_document_client.py test_feedback_s
 test_keyword_search.py test_invite.py test_origin_middleware.py test_project_naming.py
 conftest.py
 
-### ims-mcp-server/validation/ — integration / end-to-end testing
+### src/ims-mcp-server/validation/ — integration / end-to-end testing
 
 verify_mcp.py
 
-## rosetta-cli/ — CLI publisher package (rosetta-cli on PyPI)
+## src/rosetta-cli/ — CLI publisher package (rosetta-cli on PyPI)
 
 pyproject.toml README.md env.template ims_cli.py
 
-### rosetta-cli/rosetta_cli/ — main Python package
+### src/rosetta-cli/rosetta_cli/ — main Python package
 
 cli.py ims_publisher.py ragflow_client.py ims_config.py ims_auth.py typing_utils.py
 
-#### rosetta-cli/rosetta_cli/commands/ — CLI command implementations
+#### src/rosetta-cli/rosetta_cli/commands/ — CLI command implementations
 
 publish_command.py parse_command.py verify_command.py list_command.py cleanup_command.py base_command.py
 
-#### rosetta-cli/rosetta_cli/services/ — publishing services
+#### src/rosetta-cli/rosetta_cli/services/ — publishing services
 
 document_service.py dataset_service.py auth_service.py document_data.py
 
-### rosetta-cli/tests/ — unit tests (7 files)
+### src/rosetta-cli/tests/ — unit tests (7 files)
 
 test_cli.py test_command_auth_order.py test_document_data.py test_ims_config_validate.py
 test_packaged_runtime_assumptions.py test_publish_domain_scoped_orphan_cleanup.py
 test_ragflow_client_upload_exception_handling.py
 
-## rosetta-mcp-server/ — thin re-export package (rosetta-mcp on PyPI)
+## src/rosetta-mcp-server/ — thin re-export package (rosetta-mcp on PyPI)
 
 pyproject.toml README.md
 

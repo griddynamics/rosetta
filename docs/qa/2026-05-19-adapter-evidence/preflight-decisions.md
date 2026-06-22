@@ -7,4 +7,4 @@ Date: 2026-05-23
 
 ## B7: gap-issue #4 disposition
 Decision: B: OUT-OF-SCOPE
-Rationale: hooks/package.json has private:true with no main/exports; adapter is an internal tool, not a public consumable module — criterion deferred until issue #4 resolves.
+Rationale: src/hooks/package.json has private:true with no main/exports; adapter is an internal tool, not a public consumable module — criterion deferred until issue #4 resolves.

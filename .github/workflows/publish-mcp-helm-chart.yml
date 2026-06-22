@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'helm-charts/rosetta-mcp-server/**'
+      - 'src/helm-charts/rosetta-mcp-server/**'
       - '.github/workflows/publish-mcp-helm-chart.yml'
   workflow_dispatch:
 
@@ -26,7 +26,7 @@ jobs:
       - name: Set environment variables
         id: vars
         run: |
-          CHART_PATH=./helm-charts/rosetta-mcp-server
+          CHART_PATH=./src/helm-charts/rosetta-mcp-server
           VERSION="$(grep -E '^version:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
           CHART_NAME="$(grep -E '^name:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
           REPOSITORY="registry-1.docker.io/griddynamics"

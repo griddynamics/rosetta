@@ -51,7 +51,7 @@ Gap-issues filed:
 
 | AC | Status | Evidence |
 |----|--------|----------|
-| 5 IDEs with normalize() tests | PASS | hooks/tests/adapter.test.ts |
+| 5 IDEs with normalize() tests | PASS | src/hooks/tests/adapter.test.ts |
 | Live E2E capture ≥ 4 IDEs | **PENDING** | e2e-ide-matrix.txt |
 | dedupKey() verified | PASS (unit) / PENDING (live) | vitest + Task 7.5 |
 | Gap-issues filed | PASS (6 issues: #93-#98) | see Section 1 |

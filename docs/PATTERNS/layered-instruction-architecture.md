@@ -41,6 +41,6 @@ CLI always publishes the entire `/instructions` folder (`--force` for full repub
 
 - `instructions/r2/core/` — all OSS instructions (512+ files)
 - `instructions/r2/grid/` (if present) — enterprise extensions
-- `ims-mcp-server/ims_mcp/services/bundler.py` — merges layers at serve time
-- `ims-mcp-server/ims_mcp/config.py` — `INSTRUCTION_ROOT_FILTER` env var
+- `src/ims-mcp-server/ims_mcp/services/bundler.py` — merges layers at serve time
+- `src/ims-mcp-server/ims_mcp/config.py` — `INSTRUCTION_ROOT_FILTER` env var
 - `docs/ARCHITECTURE.md` — "Layered customization" section

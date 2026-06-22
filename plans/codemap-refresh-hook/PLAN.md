@@ -12,7 +12,7 @@
 | 5 — De-GitNexus shared bits (cache dir, tags) | done | Cache dir renamed ~/.cache/codemap/; log tags use [codemap-refresh][backend]. |
 | 6 — Tests (both backends + neither + both) | done | codemap-refresh.test.ts written; gitnexus-refresh.test.ts removed; all new cases added. |
 | 7 — Bundle name + templates + generators (both trees) | done | All .tmpl files updated (plugins/ + src/plugin-generator/plugins/); plugin-sync-bundles.ts + test + Python test updated. |
-| 8 — Remove stale tracked dist artifacts | done | `git rm hooks/dist/src/gitnexus-refresh.js hooks/dist/src/hooks/gitnexus-refresh.js` done. |
+| 8 — Remove stale tracked dist artifacts | done | `git rm src/hooks/dist/src/gitnexus-refresh.js src/hooks/dist/src/hooks/gitnexus-refresh.js` done. |
 | 9 — Build + regenerate (no pre_commit.py) | done | hooks build: 25 bundles OK; hook tests: 529/529 pass; generator r3: ran (pre-existing plugin-files-mode size error unrelated to this task); Python tests: 21/21 pass; TS gen tests: 439/439 pass; validate-types.sh: passed; deleted 6 stale gitnexus-refresh.js from plugin hook dirs. |
 | 10 — Verify (acceptance) | done | grep clean (only agents/TEMP historical hits); all 5 plugins have codemap-refresh.js; ARCHITECTURE.md updated to reflect actual behavior. |
 | 11 — Reconcile MEMORY + story | done | MEMORY.md line 142 updated to codemap-refresh.ts/test; skills-refactoring.md item flipped to done. |
@@ -50,7 +50,7 @@ never overload. Keep the stdout-silence, stamp/token debounce, detached-spawn, a
 ## Actor / context (for the implementing agent)
 
 - **`codemap` skill** = the workspace cartographer skill (`instructions/r3/core/skills/codemap/`). It generates `CODEMAP.md` and, when a graph backend is REQUESTED/installed, fronts GitNexus/Graphify usage. This hook is the automation that keeps an installed backend's index fresh after edits. The hook is **opt-in** — only active once a user has installed a backend (its marker exists).
-- **Hook runtime** = `hooks/src/` (TypeScript), bundled per-IDE by esbuild (`hooks/scripts/build-bundles.mjs`, auto-discovers every `*.ts` in `hooks/src/hooks/`), shipped in every plugin. Framework: `defineHook({name, on, throttle, run})`; `run-hook.ts` resolves activation; `on.fs.nearestMarker` is a single string and does NOT report which marker matched (hence in-hook detection).
+- **Hook runtime** = `src/hooks/src/` (TypeScript), bundled per-IDE by esbuild (`src/hooks/scripts/build-bundles.mjs`, auto-discovers every `*.ts` in `src/hooks/src/hooks/`), shipped in every plugin. Framework: `defineHook({name, on, throttle, run})`; `run-hook.ts` resolves activation; `on.fs.nearestMarker` is a single string and does NOT report which marker matched (hence in-hook detection).
 - **Docs already updated by `main`** to `codemap-refresh.js`; this task makes the code catch up.
 
 ---
@@ -63,7 +63,7 @@ Marker = `graphify-out/graph.json`; update command = `graphify update .`. Source
 (README `https://raw.githubusercontent.com/safishamsi/graphify/HEAD/README.md`) if these prove wrong at verify time.
 
 ### 1 — Rename source + identity
-Rename `hooks/src/hooks/gitnexus-refresh.ts` → `codemap-refresh.ts`. Rename exported symbol
+Rename `src/hooks/src/hooks/gitnexus-refresh.ts` → `codemap-refresh.ts`. Rename exported symbol
 `gitnexusRefreshHook` → `codemapRefreshHook`; `name:` value → `'codemap-refresh'`; header comment; every
 `[gitnexus-refresh]` log/debug tag → `[codemap-refresh]`.
 
@@ -87,13 +87,13 @@ Rename the cache/log dir `~/.cache/gitnexus/` → `~/.cache/codemap/`; keep `ref
 Leave the `.gitnexus/meta.json` read inside the GitNexus branch (correctly scoped).
 
 ### 6 — Tests
-Rename `hooks/tests/gitnexus-refresh.test.ts` → `codemap-refresh.test.ts`; update import path + symbol + describe
+Rename `src/hooks/tests/gitnexus-refresh.test.ts` → `codemap-refresh.test.ts`; update import path + symbol + describe
 labels. Add/adjust cases: only-`.gitnexus` (existing assertions), only-`graphify-out` (runs `graphify update .`),
 **neither → no spawn / silent no-op**, both-present → both commands scheduled. Preserve stdout-silence, debounce,
 repo-root detection, error-resilience suites.
 
 ### 7 — Bundle name + templates + generators (BOTH trees)
-- `hooks/tests/regression/bundle-isolation.test.ts` `HOOK_FILES`: `gitnexus-refresh.js` → `codemap-refresh.js`.
+- `src/hooks/tests/regression/bundle-isolation.test.ts` `HOOK_FILES`: `gitnexus-refresh.js` → `codemap-refresh.js`.
 - Replace `gitnexus-refresh.js` → `codemap-refresh.js` in every `.tmpl` under `plugins/**` and
   `src/plugin-generator/plugins/**` (Claude; Codex; Copilot `.github/plugin/hooks.json.tmpl` has bash+powershell
   occurrences; Copilot `hooks/hooks.json.tmpl`; Cursor root + `hooks/` templates).
@@ -102,10 +102,10 @@ repo-root detection, error-resilience suites.
 - `scripts/tests/test_plugin_generator.py` expected-bundle name.
 
 ### 8 — Remove stale tracked artifacts
-`git rm hooks/dist/src/gitnexus-refresh.js hooks/dist/src/hooks/gitnexus-refresh.js` (regenerated under new name).
+`git rm src/hooks/dist/src/gitnexus-refresh.js src/hooks/dist/src/hooks/gitnexus-refresh.js` (regenerated under new name).
 
 ### 9 — Build + regenerate (WITHOUT pre_commit.py)
-- Rebuild hook bundles from `hooks/` (its build script → `hooks/scripts/build-bundles.mjs`).
+- Rebuild hook bundles from `src/hooks/` (its build script → `src/hooks/scripts/build-bundles.mjs`).
 - Run hook tests (vitest) from `hooks/`.
 - Run plugin generator DIRECTLY: `venv/bin/python scripts/plugin_generator.py --release r3` (and `--release r2`
   if r2 bundles are in scope). Run the TS generator's own unit tests (`src/plugin-generator/`, vitest) since both

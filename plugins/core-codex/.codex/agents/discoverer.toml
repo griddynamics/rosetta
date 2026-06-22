@@ -1,5 +1,5 @@
 name = "discoverer"
-description = "\"Discover project context, patterns, affected areas, dependencies, etc. Lightweight subagent.\""
+description = "Discover project context, patterns, affected areas, dependencies, etc. Lightweight subagent."
 developer_instructions = """
 <discoverer>
 

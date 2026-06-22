@@ -14,7 +14,7 @@ core-claude/
   workflows/*.md + INDEX.md       [G] ← source workflows; INDEX lists tag:workflow only
   configure/*.md ; templates/shell-schemas/*  [G] ← source
   hooks/hooks.json                [G] ← rendered from hooks/hooks.json.tmpl [P]; bootstrap payload injected
-  hooks/*.js                      [G] ← synced from hooks/dist (deterministic-hooks releases only)
+  hooks/*.js                      [G] ← synced from src/hooks/dist (deterministic-hooks releases only)
 ```
 
 ## core-cursor — marketplace (bootstrap: session-start hooks)
@@ -26,7 +26,7 @@ core-cursor/
   agents/*.md ; skills/ ; configure/ ; templates/  [G] ← source (model→Cursor map)
   hooks/hooks.json.tmpl           [P] plugin-form template
   hooks.json.tmpl                 [P] standalone-form template (root; consumed by cursor-standalone)
-  hooks/hooks.json + hooks/*.js   [G] ← rendered + hooks/dist
+  hooks/hooks.json + hooks/*.js   [G] ← rendered + src/hooks/dist
 ```
 
 ## core-copilot — marketplace (bootstrap: session-start hooks, bash+PowerShell, dedup lock)
@@ -41,7 +41,7 @@ core-copilot/
   hooks.json                      [G] ← alternate-name copy of .github/plugin/hooks.json (byte-identical); runtime layout for IDE (FR-VAR-0031)
   hooks/hooks.json.tmpl           [P] standalone-form hook template (consumed by copilot-standalone)
   hooks/hooks.json                [G] ← rendered from hooks/hooks.json.tmpl; standalone-form (sessionStart: [])
-  hooks/*.js                      [G] ← synced from hooks/dist (deterministic-hooks releases only)
+  hooks/*.js                      [G] ← synced from src/hooks/dist (deterministic-hooks releases only)
   agents/*.agent.md               [G] ← source agents, renamed
   commands/*.md + INDEX.md        [G] ← renamed from workflows/
   rules/*.md + INDEX.md           [G] ← source rules (model→Copilot map)
@@ -55,7 +55,7 @@ Note: `hooks.json` (root) and `.github/plugin/hooks.json` are produced as an alt
 core-codex/
   .codex-plugin/{plugin.json [P], hooks.json.tmpl [P], hooks.json [G]}
   .codex/agents/*.toml            [G] ← source agents → Codex subagent format; sandbox from readonly flag
-  .codex/hooks/{hooks.json,*.js}  [G] ← mirrored hook config + hooks/dist
+  .codex/hooks/{hooks.json,*.js}  [G] ← mirrored hook config + src/hooks/dist
   .agents/{rules,skills,workflows,configure,templates}/ + INDEX.md  [G] ← instruction folders moved under .agents (model→gpt-*+effort)
 ```
 

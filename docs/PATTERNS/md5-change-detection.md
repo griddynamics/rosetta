@@ -38,6 +38,6 @@ hashlib.md5(hash_input.encode("utf-8")).hexdigest()
 
 ## Occurrences
 
-- `rosetta-cli/rosetta_cli/services/document_data.py` — `_calculate_hash()`, `_generate_doc_id()`
-- `rosetta-cli/rosetta_cli/services/document_service.py` — upstream status polling
+- `src/rosetta-cli/rosetta_cli/services/document_data.py` — `_calculate_hash()`, `_generate_doc_id()`
+- `src/rosetta-cli/rosetta_cli/services/document_service.py` — upstream status polling
 - Referenced in `docs/ARCHITECTURE.md` as "~77% time savings"

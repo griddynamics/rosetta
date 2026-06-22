@@ -67,8 +67,8 @@ Thumbs.db
 
 # Project-specific
 server_output.log
-rosetta-cli/server_output.log
-rosetta-cli/logs/
+src/rosetta-cli/server_output.log
+src/rosetta-cli/logs/
 
 # Local data directories
 business/
@@ -78,7 +78,7 @@ confluence-docs/
 temporary/
 *.tmp
 *.temp
-rosetta-cli/test-remote-*.sh
+src/rosetta-cli/test-remote-*.sh
 
 # Jekyll / GitHub Pages
 docs/web/_site/
@@ -99,14 +99,14 @@ refsrc/
 !refsrc/INDEX.md
 
 # Hooks build output
-hooks/node_modules/
-hooks/dist/tests/
-hooks/dist/bundles/
+src/hooks/node_modules/
+src/hooks/dist/tests/
+src/hooks/dist/bundles/
 
 # Vitest cache (root-level node_modules/.vite/)
 node_modules/.vite/
 
 .claude
-rosetta-cli/dist
-rosetta-mcp-server/dist
+src/rosetta-cli/dist
+src/rosetta-mcp-server/dist
 .worktrees/

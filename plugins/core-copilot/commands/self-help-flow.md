@@ -94,7 +94,7 @@ Scale: conversational — output is a message, no files, no state tracking.
 <match_and_acquire phase="2" subagent="discoverer" role="Capability matcher">
 
 1. Match user request against `Capability Catalog`.
-2. For each match, `ACQUIRE <selected TAG> FROM KB` (e.g., `ACQUIRE commands/coding-flow.md FROM KB`, `ACQUIRE skills/coding/SKILL.md FROM KB`, `ACQUIRE agents/engineer.md FROM KB`).
+2. For each match, `ACQUIRE <selected TAG> FROM KB` (e.g., `ACQUIRE commands/coding-flow.md FROM KB`, `ACQUIRE skills/coding/SKILL.md FROM KB`, `ACQUIRE agents/engineer.agent.md FROM KB`).
 3. Extract: purpose, when to use, what to expect, inputs/outputs, HITL gates.
 4. Input: user request + `Capability Catalog`. Output: `Matched Capabilities`.
 5. Recommended skills: any currently useful.

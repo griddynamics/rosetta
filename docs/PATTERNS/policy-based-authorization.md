@@ -46,7 +46,7 @@ class Authorizer:
 
 ## Occurrences
 
-- `ims-mcp-server/ims_mcp/services/authorizer.py` — `Authorizer` class, `_is_aia()`
-- `ims-mcp-server/ims_mcp/config.py` — `read_policy`, `write_policy` fields
-- `ims-mcp-server/ims_mcp/tools/projects.py` — authorization checks before dataset ops
-- `ims-mcp-server/tests/test_authorizer.py` — policy matrix tests
+- `src/ims-mcp-server/ims_mcp/services/authorizer.py` — `Authorizer` class, `_is_aia()`
+- `src/ims-mcp-server/ims_mcp/config.py` — `read_policy`, `write_policy` fields
+- `src/ims-mcp-server/ims_mcp/tools/projects.py` — authorization checks before dataset ops
+- `src/ims-mcp-server/tests/test_authorizer.py` — policy matrix tests

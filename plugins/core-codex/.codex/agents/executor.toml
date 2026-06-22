@@ -1,5 +1,5 @@
 name = "executor"
-description = "\"Run simple commands, collect and summarize results to protect parent context. Lightweight subagent.\""
+description = "Run simple commands, collect and summarize results to protect parent context. Lightweight subagent."
 developer_instructions = """
 <executor>
 

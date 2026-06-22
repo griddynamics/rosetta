@@ -351,7 +351,7 @@ The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instr
 
 **Environment:** `.env.dev` (dev RAGFlow) or `.env.prod` (production). Switch with `cp .env.dev .env`.
 
-For local testing use the repo virtualenv and run from `rosetta-cli/` the module directly, for example: `../venv/bin/python -m rosetta_cli version`, `../venv/bin/python -m rosetta_cli verify --env dev`, `../venv/bin/python -m rosetta_cli publish ../instructions --dry-run --env dev`, or `../venv/bin/python -m rosetta_cli parse --dataset aia-r2 --dry-run --env dev`.
+For local testing use the repo virtualenv and run from `src/rosetta-cli/` the module directly, for example: `../../venv/bin/python -m rosetta_cli version`, `../../venv/bin/python -m rosetta_cli verify --env dev`, `../../venv/bin/python -m rosetta_cli publish ../../instructions --dry-run --env dev`, or `../../venv/bin/python -m rosetta_cli parse --dataset aia-r2 --dry-run --env dev`.
 
 For deployment details, see [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md).
 
@@ -486,7 +486,7 @@ uvx rosetta-cli@latest publish instructions
 
 ### Plugins (pre-release)
 
-Instructions to `plugins` folder content must be copied with `venv/bin/python scripts/pre_commit.py` as it also adapts (implemented in `scripts/plugin_generator.py`).
+Instructions to `plugins` folder content must be regenerated with `venv/bin/python scripts/pre_commit.py` (which calls `npx rosettify-plugins@latest` internally).
 Pre-commit hook is also created, but we must not rely on it.
 Do not directly modify instructions in `plugins` folder instead edit original files in `instructions` and use script to copy/adapt.
 
@@ -506,14 +506,14 @@ Each plugin contains core instructions: 35 skills, 7 agents, 12 workflows, and b
 | `core-cursor-standalone` | Cursor | Direct extraction into repo (`.cursor/`) |
 | `core-copilot-standalone` | VS Code Copilot, JetBrains Copilot | Direct extraction into repo (`.github/`) |
 
-All plugins are generated from the **release-selected** source tree (`instructions/<release>/core/`) by the plugin generator (`scripts/plugin_generator.py`). The release is chosen by `--release` (default **r2**, matching ims-mcp's `DEFAULT_VERSION`; r3 is opt-in) and each release maps to a `template_vars` set — notably `deterministic_hooks` (false for r2 → SessionStart bootstrap only; true for r3 → full advisory hooks). `sync_generated_plugins(repo_root, release, output_dir)` is the single entry point: it builds main plugins (Pass 1 + Pass 2), then (for deterministic-hook releases) calls `sync_hooks_into_plugins` to drop fresh hook bundles into each main plugin's `hook_subdir`, then derives the standalone variants. `.tmpl` files are Handlebars templates rendered via `pybars3`.
+All plugins are generated from the **release-selected** source tree (`instructions/<release>/core/`) by the plugin generator (`npx rosettify-plugins@latest`). The release is chosen by `--release` (default **r2**, matching ims-mcp's `DEFAULT_VERSION`; r3 is opt-in); r2 uses SessionStart bootstrap only, r3 adds full advisory hooks. The generator builds main plugins then derives standalone variants. `.tmpl` files are Handlebars templates rendered by the generator.
 
-**Run it standalone:** `venv/bin/python scripts/plugin_generator.py [--release r2|r3] [--output-dir DIR] [--repo-root DIR]` — `--release` selects the instructions source (default `r2`), `--output-dir` redirects generated plugins (default `<repo-root>/plugins`), `--repo-root` sets the repo root (default: the repo containing the script). `pre_commit.py` invokes it as a subprocess with no args (→ r2). The generator copies core instructions and adapts them for the target coding agent:
+**Run it standalone:** `npx rosettify-plugins@latest [--release r2|r3] [--output DIR] [--source DIR]` — `--release` selects the instructions source (default `r2`), `--output` redirects generated plugins (default `<source>/plugins`), `--source` sets the repo root (default: current directory). `pre_commit.py` invokes it with no args (→ r2, output defaults to `<repo-root>/plugins`). The generator copies core instructions and adapts them for the target coding agent:
 
-- **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor uses `CURSOR_MODEL_MAP` (e.g. `claude-sonnet-4-6`, `gpt-5.4`); Copilot uses `COPILOT_MODEL_MAP` (e.g. `Claude Sonnet 4.6`, `GPT-5.4`); Claude Code uses full model IDs (`claude-sonnet-4-6`, `claude-opus-4-8`, `claude-haiku-4-5`).
+- **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor normalizes to short IDs (e.g. `claude-sonnet-4-6`, `gpt-5.4`); Copilot to display names (e.g. `Claude Sonnet 4.6`, `GPT-5.4`); Claude Code to full model IDs (`claude-sonnet-4-6`, `claude-opus-4-8`, `claude-haiku-4-5`).
 - **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)
-- **Directory layout** — restructures output to match IDE conventions (`.agents/` and `.codex/` for Codex, runtime configs at root for Copilot). Cursor uses `commands/` instead of `workflows/` for workflow files; Copilot uses `prompts/` with files renamed from `*.md` to `*.prompt.md`. Content references are rewritten using precise full-path replacement (`workflows/coding-flow.md` → `commands/coding-flow.md` / `prompts/coding-flow.prompt.md`) to avoid accidental partial-word matches. `PluginSyncSpec` fields `rename_folders` and `rename_files` (suffix pairs) drive both file renaming and content rewriting; the generator builds exact `path_renames` dicts at sync time.
-- **Index generation** — produces `rules/INDEX.md` and `workflows/INDEX.md` (or `commands/INDEX.md` for Cursor, `prompts/INDEX.md` for Copilot) listings. Only files with `tags: ["workflow"]` appear in the workflow index; phase files are excluded. `commands/`, `prompts/`, and `workflows/` folders all use the heading `# Rosetta Workflows Index` via `_FOLDER_TITLE_ALIASES`.
+- **Directory layout** — restructures output to match IDE conventions (`.agents/` and `.codex/` for Codex, runtime configs at root for Copilot). Cursor uses `commands/` instead of `workflows/` for workflow files; Copilot uses `prompts/` with files renamed from `*.md` to `*.prompt.md`. Content references are rewritten using precise full-path replacement (`workflows/coding-flow.md` → `commands/coding-flow.md` / `prompts/coding-flow.prompt.md`) to avoid accidental partial-word matches.
+- **Index generation** — produces `rules/INDEX.md` and `workflows/INDEX.md` (or `commands/INDEX.md` for Cursor, `prompts/INDEX.md` for Copilot) listings. Only files with `tags: ["workflow"]` appear in the workflow index; phase files are excluded. All three folder names use the heading `# Rosetta Workflows Index`.
 - **Template processing** — `.tmpl` files render to a sibling file (same path, `.tmpl` suffix removed) with platform placeholders substituted. Cursor and Copilot each ship **two** templates: a plugin-marketplace form (paths resolve under plugin install dir) and a standalone form (paths resolve from a user's project root). Both forms render into the main plugin tree; the standalone generator picks the right one for extraction.
 - **Copilot session locking** — Copilot has no native hook deduplication, so the generated hooks include a file-based lock ensuring each bootstrap entry fires exactly once per session. Other platforms use IDE-native mechanisms (Claude Code: `"once": true`; Codex and Cursor: built-in deduplication).
 
@@ -529,22 +529,22 @@ Each standard plugin has a preserved config folder (`.claude-plugin/`, `.cursor-
 | Path style in hooks.json | `node .cursor/hooks/<file>.js` | `node ".github/hooks/<file>.js"` |
 | Bootstrap delivery | Native Cursor rules (`rules/*.mdc`) | Auto-loaded `instructions/*.instructions.md` |
 
-When the source plugin contains a directory whose name matches the standalone's `subfolder` (e.g. cursor's bulk-copy would otherwise produce `.cursor/.cursor/`), `generate_standalone_plugin` merges its contents directly into `subfolder_path` to avoid nesting. Each standalone also runs IDE-specific transforms: Cursor injects `commands/INDEX.md` into `rules/plugin-files-mode.mdc`; Copilot moves `rules/bootstrap-*.md` and `rules/plugin-files-mode.md` to `instructions/*.instructions.md` (auto-loaded via `applyTo: "**"`), renames `commands/` → `prompts/` and `*.md` → `*.prompt.md`, rewrites cross-references by exact-string pass, and strips the plugin-marketplace `hooks.json`/`.mcp.json`/`templates/`. `plugin.json` for each standalone is regenerated with the source plugin's version.
+When the source plugin contains a directory whose name matches the standalone's `subfolder` (e.g. cursor's bulk-copy would otherwise produce `.cursor/.cursor/`), the generator merges its contents directly into the subfolder to avoid nesting. Each standalone also runs IDE-specific transforms: Cursor injects `commands/INDEX.md` into `rules/plugin-files-mode.mdc`; Copilot moves `rules/bootstrap-*.md` and `rules/plugin-files-mode.md` to `instructions/*.instructions.md` (auto-loaded via `applyTo: "**"`), renames `commands/` → `prompts/` and `*.md` → `*.prompt.md`, rewrites cross-references by exact-string pass, and strips the plugin-marketplace `hooks.json`/`.mcp.json`/`templates/`. `plugin.json` for each standalone is regenerated with the source plugin's version.
 
 ### Hooks Runtime
 
 Hooks are lightweight scripts that run in response to IDE tool calls (PostToolUse, PreToolUse). They inject advisory context into the AI's context window — nothing is displayed directly to the user.
 
-Source lives in `hooks/` and is compiled per-IDE before sync:
+Source lives in `src/hooks/` and is compiled per-IDE before sync:
 
 | Folder | Contents |
 |---|---|
-| `hooks/src/` | TypeScript source — adapter, lock, debug-log, hook implementations |
-| `hooks/tests/` | `node:test` unit and integration tests + fixtures |
-| `hooks/scripts/` | esbuild bundler (`build-bundles.mjs`) |
-| `hooks/dist/bundles/` | Compiled per-IDE bundles (generated, not committed) |
+| `src/hooks/src/` | TypeScript source — adapter, lock, debug-log, hook implementations |
+| `src/hooks/tests/` | `node:test` unit and integration tests + fixtures |
+| `src/hooks/scripts/` | esbuild bundler (`build-bundles.mjs`) |
+| `src/hooks/dist/bundles/` | Compiled per-IDE bundles (generated, not committed) |
 
-Each hook is bundled separately per IDE via esbuild so each bundle contains only its adapter code. To add a new hook: create the `.ts` source in `hooks/src/hooks/`, then add its filename to the `HOOK_SOURCES` array in `hooks/scripts/build-bundles.mjs`.
+Each hook is bundled separately per IDE via esbuild so each bundle contains only its adapter code. To add a new hook: create the `.ts` source in `src/hooks/src/hooks/`, then add its filename to the `HOOK_SOURCES` array in `src/hooks/scripts/build-bundles.mjs`.
 
 **Active hooks (the same five bundles ship with every plugin and standalone):**
 
@@ -562,18 +562,18 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 |---|---|---|---|
 | `core-claude` (marketplace) | `<plugin>/hooks/hooks.json` (referenced from `plugin.json`) | plugin-form | `node hooks/<file>.js` |
 | `core-cursor` (marketplace) | `<plugin>/hooks/hooks.json` (referenced from `plugin.json`) | plugin-form | `node hooks/<file>.js` |
-| `core-copilot` (marketplace) | `<plugin>/hooks.json` (root, copied from `.github/plugin/hooks.json` by `generate_copilot_runtime_layout`) | plugin-form | env-var lookup to plugin install root |
-| `core-codex` (marketplace) | `<plugin>/.codex-plugin/hooks.json` (also mirrored to `<plugin>/.codex/hooks.json` by `generate_codex_runtime_layout`) | plugin-form | `node <abs-path>/hooks/<file>.js` via shell lookup |
+| `core-copilot` (marketplace) | `<plugin>/hooks.json` (root, copied from `.github/plugin/hooks.json` at sync time) | plugin-form | env-var lookup to plugin install root |
+| `core-codex` (marketplace) | `<plugin>/.codex-plugin/hooks.json` (also mirrored to `<plugin>/.codex/hooks.json` at sync time) | plugin-form | `node <abs-path>/hooks/<file>.js` via shell lookup |
 | `core-cursor-standalone` | `.cursor/hooks.json` (top of extracted subfolder) | standalone-form | `node .cursor/hooks/<file>.js` |
 | `core-copilot-standalone` | `.github/hooks/hooks.json` (nested inside extracted subfolder) | standalone-form | `node ".github/hooks/<file>.js"` |
 
-Cursor and Copilot are the only plugins that need two distinct templates because they have distinct standalone distributions. Templates: cursor — `hooks/hooks.json.tmpl` (plugin) + `hooks.json.tmpl` at root (standalone); copilot — `.github/plugin/hooks.json.tmpl` (plugin) + `hooks/hooks.json.tmpl` (standalone). Both are rendered by `process_templates`; the standalone generator's bulk-copy lands each at the right path inside the standalone subfolder.
+Cursor and Copilot are the only plugins that need two distinct templates because they have distinct standalone distributions. Templates: cursor — `hooks/hooks.json.tmpl` (plugin) + `hooks.json.tmpl` at root (standalone); copilot — `.github/plugin/hooks.json.tmpl` (plugin) + `hooks/hooks.json.tmpl` (standalone). Both are rendered during sync; the standalone generator's bulk-copy lands each at the right path inside the standalone subfolder.
 
 - **IDE normalization** — `src/adapter.ts` detects the IDE from stdin shape and normalizes to a canonical `NormalizedInput`; detection order: codex > cursor > claude-code > windsurf > copilot
 - **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema
 - **Dedup guard** — GitHub Copilot CLI has a known bug where PostToolUse fires twice per call; `src/lock.ts` suppresses the duplicate and is activated at runtime only when the Copilot IDE is detected
 
-`scripts/pre_commit.py` builds and tests hook bundles, then runs `sync_generated_plugins`, which internally syncs bundles into each main plugin's `hook_subdir` (`plugins/core-{claude,cursor,copilot}/hooks/`, `plugins/core-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `hooks/src/` and re-run the script.
+`scripts/pre_commit.py` builds and tests hook bundles, then runs `npx rosettify-plugins@latest`, which syncs bundles into each main plugin's hooks directory (`plugins/core-{claude,cursor,copilot}/hooks/`, `plugins/core-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `src/hooks/src/` and re-run the script.
 
 ### Reference Sources (readonly, packages currently used)
 
@@ -585,7 +585,7 @@ This is for reference purposes only: do not change, do not copy.
 
 # Rosetta MCP (IMS MCP) and Rosetta CLI
 
-MUST validate MCP changes using `.env.dev` and `ims-mcp-server/validation/verify_mcp.py` (testing harness of MCP itself).
+MUST validate MCP changes using `.env.dev` and `src/ims-mcp-server/validation/verify_mcp.py` (testing harness of MCP itself).
 Integrate new features to this testing harness if needed and easy.
 MUST execute `venv/bin/python scripts/pre_commit.py` from repository root. Never filter/grep/tail its output.
 Entire `verify_mcp.py` and ALL tests must work.
@@ -596,18 +596,18 @@ Do not tail or limit output of `verify_mcp.py`, it is short already.
 Read first 100 lines of `verify_mcp.py` to get instructions ON HOW exactly it should all be done.
 
 Validation command examples:
-- `cp .env.dev .env && VERSION=r1 venv/bin/python ims-mcp-server/validation/verify_mcp.py`
-- `cp .env.dev .env && VERSION=r2 venv/bin/python ims-mcp-server/validation/verify_mcp.py`
-- `cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r2 venv/bin/python ims-mcp-server/validation/verify_mcp.py`
+- `cp .env.dev .env && VERSION=r1 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py`
+- `cp .env.dev .env && VERSION=r2 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py`
+- `cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r2 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py`
 
 Validation notes discovered during real runs:
-- MCP unit tests: `cd ims-mcp-server && PYTHONPATH=. ../venv/bin/pytest tests/` or `PYTHONPATH=ims-mcp-server venv/bin/pytest ims-mcp-server/tests`
-- CLI unit tests: `cd rosetta-cli && PYTHONPATH=. ../venv/bin/pytest tests/` or `PYTHONPATH=rosetta-cli venv/bin/pytest rosetta-cli/tests`
+- MCP unit tests: `cd src/ims-mcp-server && PYTHONPATH=. ../venv/bin/pytest tests/` or `PYTHONPATH=src/ims-mcp-server venv/bin/pytest src/ims-mcp-server/tests`
+- CLI unit tests: `cd src/rosetta-cli && PYTHONPATH=. ../../venv/bin/pytest tests/` or `PYTHONPATH=src/rosetta-cli venv/bin/pytest src/rosetta-cli/tests`
 - `verify_mcp.py` flat-list validation must allow plain filenames for `r1` and hierarchical paths for `r2`.
 
 Publishing instructions:
-- `cp .env.dev .env && PYTHONPATH=rosetta-cli venv/bin/python -m rosetta_cli publish ./instructions --dry-run`
-- `cp .env.dev .env && PYTHONPATH=rosetta-cli venv/bin/python -m rosetta_cli publish ./instructions`
+- `cp .env.dev .env && PYTHONPATH=src/rosetta-cli venv/bin/python -m rosetta_cli publish ./instructions --dry-run`
+- `cp .env.dev .env && PYTHONPATH=src/rosetta-cli venv/bin/python -m rosetta_cli publish ./instructions`
 - DO NOT FILTER OUT THE OUTPUT AS YOU WILL MISS IMPORTANT INFORMATION 
 
 Must read `docs/RAGFLOW.md` fully to understand RAGFlow actual implementation and known issues if CLI or MCP changes involve RAGFlow.
@@ -639,9 +639,9 @@ Where contributors add or change things:
 - **New workflow:** Add `instructions/r3/core/workflows/<name>.md` (and phase files)
 - **New rule:** Add `instructions/r3/core/rules/<name>.md`
 - **Organization layer:** Create `instructions/r3/<org>/` with the same type structure
-- **MCP tools:** Modify `ims-mcp-server/ims_mcp/server.py`
-- **Tool prompts:** Modify `ims-mcp-server/ims_mcp/tool_prompts.py`
-- **CLI commands:** Add to `rosetta-cli/rosetta_cli/commands/`
+- **MCP tools:** Modify `src/ims-mcp-server/ims_mcp/server.py`
+- **Tool prompts:** Modify `src/ims-mcp-server/ims_mcp/tool_prompts.py`
+- **CLI commands:** Add to `src/rosetta-cli/rosetta_cli/commands/`
 - **Website:** Edit pages in `docs/web/`
 
 After adding or changing instructions, publish with the CLI to make them available via MCP. See the [Developer Guide — Where to Change What](../DEVELOPER_GUIDE.md#where-to-change-what) for the validation steps per change type.

@@ -163,7 +163,7 @@ git -C "$(git rev-parse --show-toplevel)" checkout -- package.json
 
 **Verify & Report:** expect silent.
 
-> **Tests 11 (camelCase `filePath`) and 12 (Copilot CLI shape `toolName`/`toolArgs`) — dropped from E2E.** This test run goes through a real Copilot Agent or CLI, which forms the hook input itself — synthetic shape variants do not arise in practice. Adapter resilience to them (including dual-mode `normalize` for CC-shape vs Copilot-CLI shape) is covered by Vitest unit tests in `hooks/tests/adapter.copilot.test.ts`.
+> **Tests 11 (camelCase `filePath`) and 12 (Copilot CLI shape `toolName`/`toolArgs`) — dropped from E2E.** This test run goes through a real Copilot Agent or CLI, which forms the hook input itself — synthetic shape variants do not arise in practice. Adapter resilience to them (including dual-mode `normalize` for CC-shape vs Copilot-CLI shape) is covered by Vitest unit tests in `src/hooks/tests/adapter.copilot.test.ts`.
 
 ---
 

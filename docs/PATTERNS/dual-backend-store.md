@@ -43,6 +43,6 @@ def build_plan_store(redis_store: Any, ttl_seconds: int) -> PlanStore:
 
 ## Occurrences
 
-- `ims-mcp-server/ims_mcp/services/plan_store.py` — `MemoryPlanStore`, `RedisPlanStore`, `build_plan_store()`
-- `ims-mcp-server/ims_mcp/server.py` — `_build_redis_store()`, `_build_oauth_client_storage()`, `_PLAN_STORE`
-- `ims-mcp-server/tests/test_plan_manager.py` — tests both backends
+- `src/ims-mcp-server/ims_mcp/services/plan_store.py` — `MemoryPlanStore`, `RedisPlanStore`, `build_plan_store()`
+- `src/ims-mcp-server/ims_mcp/server.py` — `_build_redis_store()`, `_build_oauth_client_storage()`, `_PLAN_STORE`
+- `src/ims-mcp-server/tests/test_plan_manager.py` — tests both backends

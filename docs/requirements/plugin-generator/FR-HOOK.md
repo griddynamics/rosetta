@@ -73,7 +73,7 @@
     <criteria>Given: the descriptor When: inspected Then: it carries no `includeBootstrapRules` field (index inclusion uses `includeIndexEntries`).</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/types.ts (includeBootstrapRules removed); src/plugin-generator/src/spec/targets.ts (removed from all 6 specs). includeIndexEntries retained.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/types.ts (includeBootstrapRules removed); src/rosettify-plugins/src/spec/targets.ts (removed from all 6 specs). includeIndexEntries retained.</implementationNotes>
   <depends>FR-VAR-0070</depends>
 </req>
 
@@ -97,7 +97,7 @@
     <criteria>Given: the entry-building code When: inspected Then: each IDE's entry shape comes from a case-specific unit composed per spec plus shared low-level helpers, with no branch on an identity-discriminant such as `hookEntryShape` (FR-ARCH-0005).</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/bootstrap/payload.ts (buildClaudeBootstrapEntry, buildCodexBootstrapEntry, buildCopilotBootstrapEntry, buildCursorBootstrapEntry exported; hookEntryShape switch deleted); src/plugin-generator/src/escaping/json-string.ts (buildCursorHookPayloadJson added); src/plugin-generator/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (per-IDE assemblers compose their own entry builder). Template context key: bootstrap_hooks (one shared key). Join separator: `, `.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/bootstrap/payload.ts (buildClaudeBootstrapEntry, buildCodexBootstrapEntry, buildCopilotBootstrapEntry, buildCursorBootstrapEntry exported; hookEntryShape switch deleted); src/rosettify-plugins/src/escaping/json-string.ts (buildCursorHookPayloadJson added); src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (per-IDE assemblers compose their own entry builder). Template context key: bootstrap_hooks (one shared key). Join separator: `, `.</implementationNotes>
   <depends>INT-IDE-0002, FR-ARCH-0005</depends>
 </req>
 
@@ -137,7 +137,7 @@
     <criteria>Given: cursor When: assembled Then: a plugin-root path entry is generated and included in the bootstrap payload; whether it is injected into output is decided by whether the cursor template includes the `{{{bootstrap_hooks}}}` placeholder.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/spec/bootstrap-manifest.ts (CURSOR_PLUGIN_ROOT_ENTRY added); src/plugin-generator/src/bootstrap/payload.ts (buildRootEntry callback; all 4 IDEs including cursor generate plugin-root entry). Cursor previously dropped via default:return null — fixed. Plugin-root is always the final separate entry; delivery to agent is template decision (FR-VAR-0070).</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/spec/bootstrap-manifest.ts (CURSOR_PLUGIN_ROOT_ENTRY added); src/rosettify-plugins/src/bootstrap/payload.ts (buildRootEntry callback; all 4 IDEs including cursor generate plugin-root entry). Cursor previously dropped via default:return null — fixed. Plugin-root is always the final separate entry; delivery to agent is template decision (FR-VAR-0070).</implementationNotes>
 </req>
 
 <req id="FR-HOOK-0008" type="FR" level="System" ticketId="" classification="technical">
@@ -211,7 +211,7 @@
   <changed>2026-06-04</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: missing `hooks/dist` build output and a deterministic-hooks release When: generated Then: stderr names the missing build and exit status is non-zero.</criteria>
+    <criteria>Given: missing `src/hooks/dist` build output and a deterministic-hooks release When: generated Then: stderr names the missing build and exit status is non-zero.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>

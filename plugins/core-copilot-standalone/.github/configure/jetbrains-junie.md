@@ -96,7 +96,7 @@ This project uses both Junie and AI Assistant. Follow rules in `.aiassistant/rul
 
 ### Location
 
-**Directory:** `.junie/prompts/` (project root)
+**Directory:** `.junie/commands/` (project root)
 
 ### Format Requirements
 
@@ -122,11 +122,11 @@ Commands support variables in prompts:
 
 ### Usage
 
-1. Create `.junie/prompts/explain.md` with the format above
+1. Create `.junie/commands/explain.md` with the format above
 2. Use in Junie: `/explain file=src/main.kt`
 3. Commit to version control for team sharing
 
-**Note:** User-global commands can be stored in `~/.junie/prompts/` but are not project-specific.
+**Note:** User-global commands can be stored in `~/.junie/commands/` but are not project-specific.
 
 ---
 
@@ -241,7 +241,7 @@ apply: manually
 project-root/
 ├── .junie/
 │   ├── guidelines.md              # Junie core (references .aiassistant/rules/)
-│   ├── prompts/                  # Junie custom slash commands
+│   ├── commands/                  # Junie custom slash commands
 │   │   ├── [command-1].md         # Custom command
 │   │   └── [command-n].md         # Custom command
 │   └── mcp/

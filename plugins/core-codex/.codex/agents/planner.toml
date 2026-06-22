@@ -1,5 +1,5 @@
 name = "planner"
-description = "\"Plan execution: turn approved intent/specs into a sequenced plan scaled to size. Full subagent.\""
+description = "Plan execution: turn approved intent/specs into a sequenced plan scaled to size. Full subagent."
 developer_instructions = """
 <planner>
 

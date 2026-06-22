@@ -38,7 +38,7 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
   </acceptance>
   <implementation>ToBeModified</implementation>
   <implementationNotes>ToBeModified: `hookEntryShape` and any per-target/identity-discriminant behavior flag are dropped from the descriptor.</implementationNotes>
-  <notes>Target-state descriptor = `PluginSpec` = descriptor fields (name, destination, baseSubfolder, preserved-file seed source, modelVocabulary, bootstrap manifest/inclusion flags, hook config) + `SpecEntry[]` + `PluginProcessor[]`. File-tier behavior lives in each `SpecEntry`'s `FileProcessor` pipeline (`fileRead`, `fileApplyOverrides`, `fileBundle`, per-vocabulary model-normalization processors, `fileRename`, `fileCodexAgentFormat`); plugin-tier behavior is `PluginProcessor`s (`pluginCleanup`, `pluginCopy`, `pluginProcessSpecEntries`, `pluginRewriteReferences`, `pluginGenerateIndexes`, `pluginInjectSections`, `pluginAssembleBootstrap`, `pluginRenderTemplates`, `pluginWrite`). The original Python flags `rename_folders` become `SpecEntry` `target`s; `rename_files`/`rename_agents` become `fileRename()`; `pre_copy_folders` an extra `SpecEntry` (FR-COPY-0033); `pre_move_files` a relocation `SpecEntry`/`fileRename()` (FR-COPY-0034); runtime-layout moves become `SpecEntry` `target`s (FR-VAR-0030/0041). Mapping retained here only as parity provenance against `scripts/plugin_generator.py`.</notes>
+  <notes>Target-state descriptor = `PluginSpec` = descriptor fields (name, destination, baseSubfolder, preserved-file seed source, modelVocabulary, bootstrap manifest/inclusion flags, hook config) + `SpecEntry[]` + `PluginProcessor[]`. File-tier behavior lives in each `SpecEntry`'s `FileProcessor` pipeline (`fileRead`, `fileApplyOverrides`, `fileBundle`, per-vocabulary model-normalization processors, `fileRename`, `fileCodexAgentFormat`); plugin-tier behavior is `PluginProcessor`s (`pluginCleanup`, `pluginCopy`, `pluginProcessSpecEntries`, `pluginRewriteReferences`, `pluginGenerateIndexes`, `pluginInjectSections`, `pluginAssembleBootstrap`, `pluginRenderTemplates`, `pluginWrite`). The old Python flags `rename_folders` map to `SpecEntry` `target`s; `rename_files`/`rename_agents` to `fileRename()`; `pre_copy_folders` to an extra `SpecEntry` (FR-COPY-0033); `pre_move_files` to a relocation `SpecEntry`/`fileRename()` (FR-COPY-0034); runtime-layout moves to `SpecEntry` `target`s (FR-VAR-0030/0041). Implemented in `src/rosettify-plugins/src/spec/targets.ts`.</notes>
 </req>
 
 <req id="DATA-CFG-0003" type="DATA" level="System" ticketId="" classification="technical">
@@ -80,7 +80,7 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
 
 <req id="DATA-CFG-0005" type="DATA" level="System" ticketId="" classification="technical">
   <title>Preserved-file source location</title>
-  <statement>The generator shall hold a committed preserved-file source under `src/plugin-generator/plugins/<target>/`, mirroring the output-relative layout, that contains every file a target keeps but does not generate: the IDE manifest, hook templates, IDE config-folder contents, and any `.mcp.json`. Each main target's preserved files shall be sourced only from its own `src/plugin-generator/plugins/<target>/` location.</statement>
+  <statement>The generator shall hold a committed preserved-file source under `src/rosettify-plugins/plugins/<target>/`, mirroring the output-relative layout, that contains every file a target keeps but does not generate: the IDE manifest, hook templates, IDE config-folder contents, and any `.mcp.json`. Each main target's preserved files shall be sourced only from its own `src/rosettify-plugins/plugins/<target>/` location.</statement>
   <rationale>The preserved files have no derivation from the instruction source; a committed source is the only authority for them and is what makes generation into a clean output directory possible.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -89,8 +89,8 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
   <changed>2026-06-04</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: the preserved-file source When: inspected Then: `src/plugin-generator/plugins/<target>/` exists for each main target and holds that target's manifest, hook templates, and config-folder files at their output-relative paths.</criteria>
-    <criteria>Given: a file generated from the instruction source When: inspected Then: it is absent from `src/plugin-generator/plugins/<target>/`.</criteria>
+    <criteria>Given: the preserved-file source When: inspected Then: `src/rosettify-plugins/plugins/<target>/` exists for each main target and holds that target's manifest, hook templates, and config-folder files at their output-relative paths.</criteria>
+    <criteria>Given: a file generated from the instruction source When: inspected Then: it is absent from `src/rosettify-plugins/plugins/<target>/`.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>

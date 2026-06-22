@@ -19,7 +19,7 @@ Tech stack of all modules in this Rosetta repository.
 | Tests | pytest >=7.0.0 + pytest-asyncio >=0.23.0 |
 | Entry point | `ims-mcp` → `ims_mcp.server:main` |
 
-## rosetta-cli — Rosetta CLI Publisher
+## src/rosetta-cli — Rosetta CLI Publisher
 
 | Layer | Technology |
 |---|---|
@@ -66,7 +66,7 @@ Tech stack of all modules in this Rosetta repository.
 | core-claude | Auto-generated from instructions; Claude Code format |
 | core-cursor | Auto-generated from instructions; Cursor format |
 | rosetta | Bootstrap rule + MCP definition only |
-| Generator | scripts/pre_commit.py (pre-commit hook) |
+| Generator | `npx rosettify-plugins@latest` (invoked by `scripts/pre_commit.py`) |
 
 ## Shared / Repo-Wide
 

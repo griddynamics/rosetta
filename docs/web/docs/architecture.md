@@ -376,7 +376,7 @@ Instructions Repo ──► CLI (publish) ──► RAGFlow ──► Rosetta MC
 
 ### Plugins (pre-release)
 
-Instructions to `plugins` folder content must be copied with `venv/bin/python scripts/pre_commit.py` as it also adapts.
+Instructions to `plugins` folder content must be regenerated with `venv/bin/python scripts/pre_commit.py` (which calls `npx rosettify-plugins@latest` internally).
 Pre-commit hook is also created, but we must not rely on it.
 Do not directly modify instructions in `plugins` folder instead edit original files in `instructions` and use script to copy/adapt.
 
@@ -394,7 +394,7 @@ Each plugin contains core instructions: 35 skills, 7 agents, 12 workflows, and b
 | `core-copilot` | VS Code Copilot, JetBrains Copilot |
 | `core-codex` | Codex |
 
-All four are generated from a single source tree (`instructions/r2/core/`) by the plugin generator (`scripts/plugin_generator.py`). The generator copies core instructions and adapts them for the target coding agent:
+All four are generated from a single source tree (`instructions/r2/core/`) by the plugin generator (`npx rosettify-plugins@latest`). The generator copies core instructions and adapts them for the target coding agent:
 
 - **Model rewriting** — normalizes frontmatter `model:` to the platform's format
 - **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)
@@ -413,10 +413,10 @@ Source lives in `hooks/` and is compiled per-IDE before sync:
 
 | Folder | Contents |
 |---|---|
-| `hooks/src/` | TypeScript source — adapter, lock, debug-log, loose-files hook |
-| `hooks/tests/` | `node:test` unit and integration tests + fixtures |
-| `hooks/scripts/` | esbuild bundler (`build-bundles.mjs`) |
-| `hooks/dist/bundles/` | Compiled per-IDE bundles (generated, not committed) |
+| `src/hooks/src/` | TypeScript source — adapter, lock, debug-log, loose-files hook |
+| `src/hooks/tests/` | `node:test` unit and integration tests + fixtures |
+| `src/hooks/scripts/` | esbuild bundler (`build-bundles.mjs`) |
+| `src/hooks/dist/bundles/` | Compiled per-IDE bundles (generated, not committed) |
 
 Each hook is bundled separately per IDE via esbuild so each bundle contains only its adapter code.
 
@@ -424,14 +424,14 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 - **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema
 - **Dedup guard** — Copilot CLI has a known bug where PostToolUse fires twice per call; `src/lock.ts` suppresses the duplicate and is active only in the Copilot bundle
 
-Hooks are distributed by `scripts/pre_commit.py`, which builds, tests, and copies bundles into `plugins/core-*/hooks/`. Do not edit `plugins/core-*/hooks/` directly — edit source in `hooks/src/` and re-run the script.
+Hooks are distributed by `scripts/pre_commit.py`, which builds, tests, then runs `npx rosettify-plugins@latest` to sync bundles into `plugins/core-*/hooks/`. Do not edit `plugins/core-*/hooks/` directly — edit source in `src/hooks/src/` and re-run the script.
 
 ### Publishing Instructions
 
 Publish instructions to remote IMS server:
 
 ```bash
-cp rosetta-cli/.env.dev .env
+cp src/rosetta-cli/.env.dev .env
 uvx rosetta-cli@latest publish instructions
 ```
 
@@ -457,9 +457,9 @@ Where contributors add or change things:
 - **New workflow:** Add `instructions/r3/core/workflows/<name>.md` (and phase files)
 - **New rule:** Add `instructions/r3/core/rules/<name>.md`
 - **Organization layer:** Create `instructions/r3/<org>/` with the same type structure
-- **MCP tools:** Modify `ims-mcp-server/ims_mcp/server.py`
-- **Tool prompts:** Modify `ims-mcp-server/ims_mcp/tool_prompts.py`
-- **CLI commands:** Add to `rosetta-cli/rosetta_cli/commands/`
+- **MCP tools:** Modify `src/ims-mcp-server/ims_mcp/server.py`
+- **Tool prompts:** Modify `src/ims-mcp-server/ims_mcp/tool_prompts.py`
+- **CLI commands:** Add to `src/rosetta-cli/rosetta_cli/commands/`
 - **Website:** Edit pages in `docs/web/`
 
 After adding or changing instructions, publish with the CLI to make them available via MCP. See the [Developer Guide — Where to Change What](/rosetta/docs/developer-guide/#where-to-change-what) for the validation steps per change type.

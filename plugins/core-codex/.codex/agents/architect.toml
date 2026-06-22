@@ -1,5 +1,5 @@
 name = "architect"
-description = "\"Architect solution, transform intent into reliable tech specs, etc. Full subagent.\""
+description = "Architect solution, transform intent into reliable tech specs, etc. Full subagent."
 developer_instructions = """
 <architect>
 

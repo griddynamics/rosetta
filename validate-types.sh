@@ -37,12 +37,12 @@ if [ ${#MYPY_CMD[@]} -gt 0 ]; then
     "${MYPY_CMD[@]}" --config-file "$CONFIG_FILE" --no-error-summary
 fi
 
-if [ -d "$SCRIPT_DIR/rosettify/node_modules" ]; then
+if [ -d "$SCRIPT_DIR/src/rosettify/node_modules" ]; then
     echo -e "${BLUE}Running rosettify TypeScript type validation...${NC}"
-    npm --silent --prefix "$SCRIPT_DIR/rosettify" run typecheck
+    npm --silent --prefix "$SCRIPT_DIR/src/rosettify" run typecheck
 else
-    echo -e "${YELLOW}WARNING: rosettify/node_modules not found. Skipping TS type validation.${NC}"
-    echo -e "${YELLOW}To enable: npm --prefix rosettify install${NC}"
+    echo -e "${YELLOW}WARNING: src/rosettify/node_modules not found. Skipping TS type validation.${NC}"
+    echo -e "${YELLOW}To enable: npm --prefix src/rosettify install${NC}"
 fi
 
 echo -e "${GREEN}Type validation passed${NC}"

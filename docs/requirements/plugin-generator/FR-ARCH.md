@@ -40,7 +40,7 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: per-case file behavior When: a `PluginSpec` is read Then: it is carried by the case-specific `FileProcessor`s composed into the relevant `SpecEntry` pipeline, not by an identity-discriminant descriptor field (FR-ARCH-0005).</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/types.ts (PluginSpec shape); src/plugin-generator/src/spec/targets.ts (per-vocabulary FileProcessors wired per SpecEntry). Identity-discriminant fields `hookEntryShape` and `ModelVocabulary.kind` removed.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/types.ts (PluginSpec shape); src/rosettify-plugins/src/spec/targets.ts (per-vocabulary FileProcessors wired per SpecEntry). Identity-discriminant fields `hookEntryShape` and `ModelVocabulary.kind` removed.</implementationNotes>
   <depends>FR-ARCH-0001</depends>
 </req>
 
@@ -81,7 +81,7 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: a per-IDE adaptation supplied "as data" When: inspected Then: it is a value, a map, or a composed case-specific processor — never an identity-discriminant flag branched on at runtime (FR-ARCH-0005).</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/types.ts (fields removed); src/plugin-generator/src/spec/model-maps.ts (kind removed from 4 vocabulary constants); src/plugin-generator/src/spec/targets.ts (per-vocabulary processors + per-IDE assemblers composed per spec).</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/types.ts (fields removed); src/rosettify-plugins/src/spec/model-maps.ts (kind removed from 4 vocabulary constants); src/rosettify-plugins/src/spec/targets.ts (per-vocabulary processors + per-IDE assemblers composed per spec).</implementationNotes>
   <depends>FR-ARCH-0003, FR-ARCH-0035, FR-ARCH-0049, NFR-0006</depends>
 </req>
 
@@ -104,7 +104,7 @@ Architecture requirements: the configuration-driven generation model — uniform
   </acceptance>
   <depends>FR-ARCH-0002, FR-ARCH-0003, FR-ARCH-0004, NFR-0006</depends>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/types.ts (hookEntryShape, ModelVocabulary.kind removed); src/plugin-generator/src/spec/model-maps.ts (kind removed); src/plugin-generator/src/file-processors/file-normalize-models.ts (switch dispatcher deleted, 4 helpers exported); src/plugin-generator/src/file-processors/file-normalize-{claude,cursor,copilot,codex}-models.ts (new per-vocabulary processors); src/plugin-generator/src/bootstrap/payload.ts (switch deleted, callback-driven assembleBootstrapPayload, 4 entry builders exported); src/plugin-generator/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (new per-IDE assemblers); src/plugin-generator/src/plugin-processors/plugin-assemble-bootstrap.ts (deleted).</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/types.ts (hookEntryShape, ModelVocabulary.kind removed); src/rosettify-plugins/src/spec/model-maps.ts (kind removed); src/rosettify-plugins/src/file-processors/file-normalize-models.ts (switch dispatcher deleted, 4 helpers exported); src/rosettify-plugins/src/file-processors/file-normalize-{claude,cursor,copilot,codex}-models.ts (new per-vocabulary processors); src/rosettify-plugins/src/bootstrap/payload.ts (switch deleted, callback-driven assembleBootstrapPayload, 4 entry builders exported); src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (new per-IDE assemblers); src/rosettify-plugins/src/plugin-processors/plugin-assemble-bootstrap.ts (deleted).</implementationNotes>
   <notes>All 5 violation sites eliminated (C1–C4): fileNormalizeModels switch(vocabulary.kind), buildEntryForIde switch(shape), buildPluginRootEntry switch(shape), bootstrap_hooks_${shape} dynamic key, hookEntryShape+ModelVocabulary.kind identity-discriminant fields. tsc clean, 410 tests pass, r2/r3 parity verified.</notes>
 </req>
 
@@ -597,7 +597,7 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: the Python generator's CURSOR_MODEL_MAP, COPILOT_MODEL_MAP, or CLAUDE_MODEL_MAP is updated to a new model version When: the TypeScript CURSOR_CLAUDE_MAP, CURSOR_GPT_MAP, CURSOR_GEMINI_MAP, COPILOT_CLAUDE_MAP, COPILOT_GPT_MAP, or COPILOT_GEMINI_MAP are inspected Then: they produce identical output values for all model token inputs present in instruction source frontmatter. (Parity enforcement: TypeScript maps must be kept in sync with Python authoritative maps.)</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/file-processors/file-normalize-models.ts (switch dispatcher deleted; 4 helpers exported); file-normalize-claude-models.ts; file-normalize-cursor-models.ts; file-normalize-copilot-models.ts; file-normalize-codex-models.ts. Multi-vendor model ordering intentional: maintainers order models in frontmatter to select different providers per agent/skill (engineer=Sonnet, reviewer=GPT). Maps: CURSOR_CLAUDE_MAP + CURSOR_GPT_MAP (GPT 5.3+; 5.3/5.3-codex→5.4) + CURSOR_GEMINI_MAP (gemini-3→3.5); COPILOT_CLAUDE_MAP + COPILOT_GPT_MAP (GPT 5.3+; 5.3/5.3-codex→5.4) + COPILOT_GEMINI_MAP (gemini-3→3.5). Opus 4.6/4.7→4-8. gpt-5.4 and gpt-5.5 preserved as-is (different cost tiers).</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/file-processors/file-normalize-models.ts (switch dispatcher deleted; 4 helpers exported); file-normalize-claude-models.ts; file-normalize-cursor-models.ts; file-normalize-copilot-models.ts; file-normalize-codex-models.ts. Multi-vendor model ordering intentional: maintainers order models in frontmatter to select different providers per agent/skill (engineer=Sonnet, reviewer=GPT). Maps: CURSOR_CLAUDE_MAP + CURSOR_GPT_MAP (GPT 5.3+; 5.3/5.3-codex→5.4) + CURSOR_GEMINI_MAP (gemini-3→3.5); COPILOT_CLAUDE_MAP + COPILOT_GPT_MAP (GPT 5.3+; 5.3/5.3-codex→5.4) + COPILOT_GEMINI_MAP (gemini-3→3.5). Opus 4.6/4.7→4-8. gpt-5.4 and gpt-5.5 preserved as-is (different cost tiers).</implementationNotes>
   <depends>DATA-CFG-0004, FR-ARCH-0005</depends>
 </req>
 
@@ -624,7 +624,7 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0053" type="FR" level="System" ticketId="" classification="technical">
   <title>pluginCopy() processor (preserved-file seeding)</title>
-  <statement>The `pluginCopy()` processor shall copy the target's committed preserved files from `src/plugin-generator/plugins/<name>/` into the output at their mirrored output-relative paths, before instruction-derived content is produced. The seed source is the sole authority for preserved files; because cleanup wipes and `pluginCopy()` re-seeds every run, there is no "survive-the-wipe" preserved-file set in the output.</statement>
+  <statement>The `pluginCopy()` processor shall copy the target's committed preserved files from `src/rosettify-plugins/plugins/<name>/` into the output at their mirrored output-relative paths, before instruction-derived content is produced. The seed source is the sole authority for preserved files; because cleanup wipes and `pluginCopy()` re-seeds every run, there is no "survive-the-wipe" preserved-file set in the output.</statement>
   <rationale>The IDE manifest, hook templates, and config-folder files have no instruction-source derivation; seeding them from a committed source makes generation self-contained into a clean output directory and removes the former dependency on files already committed in the output tree.</rationale>
   <source>User</source>
   <priority>Must</priority>
@@ -633,7 +633,7 @@ Architecture requirements: the configuration-driven generation model — uniform
   <changed>2026-06-04</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: an empty output and `src/plugin-generator/plugins/<name>/` When: `pluginCopy()` runs Then: every preserved file is present at its output-relative path.</criteria>
+    <criteria>Given: an empty output and `src/rosettify-plugins/plugins/<name>/` When: `pluginCopy()` runs Then: every preserved file is present at its output-relative path.</criteria>
     <criteria>Given: the pipeline When: ordered Then: `pluginCopy()` runs after `pluginCleanup()` and before `pluginProcessSpecEntries()`.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
@@ -680,7 +680,7 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: a SpecEntry with `verbatim: true` When: `pluginRewriteReferences` runs Then: all frames produced by that entry are returned unchanged regardless of rename pairs in effect.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-rewrite-references.ts. Frame-lookup-driven; no recomputed rename rules. Ghost-frame handling included. `rewritePathToken` uses two combined negative lookbehinds: (1) `(?<!\.[A-Za-z][A-Za-z0-9_-]*/)` blocks dot-directory-prefixed IDE paths; (2) `(?<![A-Za-z0-9_-])` is the existing word-boundary guard. Verbatim frames (configure entries) are skipped at line 30 as a belt-and-suspenders guard.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/plugin-processors/plugin-rewrite-references.ts. Frame-lookup-driven; no recomputed rename rules. Ghost-frame handling included. `rewritePathToken` uses two combined negative lookbehinds: (1) `(?<!\.[A-Za-z][A-Za-z0-9_-]*/)` blocks dot-directory-prefixed IDE paths; (2) `(?<![A-Za-z0-9_-])` is the existing word-boundary guard. Verbatim frames (configure entries) are skipped at line 30 as a belt-and-suspenders guard.</implementationNotes>
   <depends>FR-ARCH-0039, FR-ARCH-0037, FR-ARCH-0054</depends>
 </req>
 
@@ -719,7 +719,7 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: `pluginInjectSections()` runs and the host frame is found but the anchor string is not present in its content When: run Then: it skips the injection silently (no error, no warning).</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-inject-sections.ts: missing host frame pushes a hard error; missing anchor is a silent `continue` with a comment citing r3 plugin-files-mode.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/plugin-processors/plugin-inject-sections.ts: missing host frame pushes a hard error; missing anchor is a silent `continue` with a comment citing r3 plugin-files-mode.</implementationNotes>
   <depends>FR-ARCH-0047</depends>
 </req>
 
@@ -737,7 +737,7 @@ Architecture requirements: the configuration-driven generation model — uniform
     <criteria>Given: a target's present bootstrap frames When: assembled Then: the payload is built in manifest order per FR-HOOK and exposed to template rendering.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-assemble-claude-bootstrap.ts; src/plugin-generator/src/plugin-processors/plugin-assemble-cursor-bootstrap.ts; src/plugin-generator/src/plugin-processors/plugin-assemble-copilot-bootstrap.ts; src/plugin-generator/src/plugin-processors/plugin-assemble-codex-bootstrap.ts. All 4 assemblers call callback-driven assembleBootstrapPayload(p, buildEntry, buildRootEntry) and write templateContext['bootstrap_hooks'] (one fixed key). Cursor generates full bootstrap payload; cursor template omits {{{bootstrap_hooks}}} placeholder so payload is not injected — template decision per FR-VAR-0070. Monolithic plugin-assemble-bootstrap.ts deleted.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/plugin-processors/plugin-assemble-claude-bootstrap.ts; src/rosettify-plugins/src/plugin-processors/plugin-assemble-cursor-bootstrap.ts; src/rosettify-plugins/src/plugin-processors/plugin-assemble-copilot-bootstrap.ts; src/rosettify-plugins/src/plugin-processors/plugin-assemble-codex-bootstrap.ts. All 4 assemblers call callback-driven assembleBootstrapPayload(p, buildEntry, buildRootEntry) and write templateContext['bootstrap_hooks'] (one fixed key). Cursor generates full bootstrap payload; cursor template omits {{{bootstrap_hooks}}} placeholder so payload is not injected — template decision per FR-VAR-0070. Monolithic plugin-assemble-bootstrap.ts deleted.</implementationNotes>
   <depends>FR-HOOK-0001, FR-HOOK-0009, FR-HOOK-0005</depends>
 </req>
 
@@ -778,7 +778,7 @@ Architecture requirements: the configuration-driven generation model — uniform
   </acceptance>
   <depends>FR-ARCH-0046, FR-COPY-0022</depends>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/spec/model-maps.ts: CURSOR_GPT_MAP and COPILOT_GPT_MAP cover GPT 5.3+ only; CURSOR_CLAUDE_MAP and COPILOT_CLAUDE_MAP map opus-4-6 and opus-4-7 variants to claude-opus-4-8; normalizeCodex() returns effort: undefined when no suffix present and the Codex emitter writes only the model field in that case.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/spec/model-maps.ts: CURSOR_GPT_MAP and COPILOT_GPT_MAP cover GPT 5.3+ only; CURSOR_CLAUDE_MAP and COPILOT_CLAUDE_MAP map opus-4-6 and opus-4-7 variants to claude-opus-4-8; normalizeCodex() returns effort: undefined when no suffix present and the Codex emitter writes only the model field in that case.</implementationNotes>
 </req>
 
 <req id="FR-ARCH-0048" type="FR" level="System" ticketId="" classification="technical">

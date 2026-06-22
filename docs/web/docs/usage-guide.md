@@ -612,6 +612,14 @@ See [Plugins](/rosetta/docs/plugins/) for install commands.
 
   `/<original-command> Please resume execution saved in "agents/TEMP/execution-state.md" according to flow instructions`
 
+## Compaction
+
+It is **NOT** recommended to perform compaction, but if there is reason and you cannot leave session - use this as a starting point:
+
+```
+/compact Compact context by high token compression using terms, patterns, unicode characters, terse phrases, remove formatting-except-essential/duplicates/wrong-decisions/wrong-thinking/incorrect/non-relevant information, keep regulation/policies/hitl/catalogs compressed, user intent and q&a mostly verbatim, decisions/key-points/tasks/workflows mostly verbatim, still relevant files/tool calls compressed, and etc. Main goal: able to fully continue execution without noise, keep it factual, exact, specific, actionable, etc. Avoid general summarization that looses value.
+```
+
 ## Video Tutorials
 
 **Setup:**

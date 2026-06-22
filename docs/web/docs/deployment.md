@@ -186,7 +186,7 @@ Rosetta MCP is the guiding layer between IDEs and the knowledge base. It exposes
 For local development. Starts Rosetta MCP and Redis.
 
 ```yaml
-# docker-compose.yml (ims-mcp-server/)
+# docker-compose.yml (src/ims-mcp-server/)
 services:
   ims-mcp:
     image: us-central1-docker.pkg.dev/.../rosetta-mcp:<tag>

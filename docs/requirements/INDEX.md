@@ -17,7 +17,7 @@ Requirements are organized by Rosetta component. Each component has its own fold
 
 ## rosetta-cli
 
-### rosetta-cli/README.md — `npx rosetta` CLI tool: configure command and workspace management.
+### src/rosetta-cli/README.md — `npx rosetta` CLI tool: configure command and workspace management.
 
 ## plugin-generator
 

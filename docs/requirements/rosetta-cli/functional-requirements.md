@@ -192,7 +192,7 @@
   <acceptance>
     <criteria>Given the npm package build process When `instructions/r1/bootstrap.md` is updated Then the next package build includes the updated content. Given the repository When inspected Then bootstrap content exists in exactly one location (`instructions/r1/bootstrap.md`).</criteria>
   </acceptance>
-  <notes>Build script shall copy or embed the file into the npm package distribution. Same pattern as `ims-mcp-server/build.sh` copies bootstrap into Python package resources.</notes>
+  <notes>Build script shall copy or embed the file into the npm package distribution. Same pattern as `src/ims-mcp-server/build.sh` copies bootstrap into Python package resources.</notes>
 </req>
 
 <req id="FR-0012" type="FR" level="System">

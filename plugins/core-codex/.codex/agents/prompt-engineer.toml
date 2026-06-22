@@ -1,5 +1,5 @@
 name = "prompt-engineer"
-description = "\"Author and adapt prompts — discover, draft, deliver — under HITL approvals. Full subagent.\""
+description = "Author and adapt prompts — discover, draft, deliver — under HITL approvals. Full subagent."
 developer_instructions = """
 <prompt-engineer>
 

@@ -105,21 +105,22 @@ echo -e "${CYAN}=== Rosetta Version Bumper ===${RESET}"
 echo ""
 echo "Current versions:"
 for f in \
-    "$ROOT/rosetta-cli/pyproject.toml" \
-    "$ROOT/ims-mcp-server/pyproject.toml" \
-    "$ROOT/rosetta-mcp-server/pyproject.toml"; do
+    "$ROOT/src/rosetta-cli/pyproject.toml" \
+    "$ROOT/src/ims-mcp-server/pyproject.toml" \
+    "$ROOT/src/rosetta-mcp-server/pyproject.toml"; do
     printf "  %-55s %s\n" "[toml]        ${f#$ROOT/}" "$(get_toml_version "$f")"
 done
-printf "  %-55s %s\n" "[package.json] rosettify/package.json" "$(get_json_version "$ROOT/rosettify/package.json")"
+printf "  %-55s %s\n" "[package.json] src/rosettify/package.json" "$(get_json_version "$ROOT/src/rosettify/package.json")"
+printf "  %-55s %s\n" "[package.json] src/rosettify-plugins/package.json" "$(get_json_version "$ROOT/src/rosettify-plugins/package.json")"
 for f in \
     "$ROOT/plugins/core-claude/.claude-plugin/plugin.json" \
     "$ROOT/plugins/core-cursor/.cursor-plugin/plugin.json" \
     "$ROOT/plugins/core-copilot/.github/plugin/plugin.json" \
     "$ROOT/plugins/core-codex/.codex-plugin/plugin.json" \
-    "$ROOT/src/plugin-generator/plugins/core-claude/.claude-plugin/plugin.json" \
-    "$ROOT/src/plugin-generator/plugins/core-cursor/.cursor-plugin/plugin.json" \
-    "$ROOT/src/plugin-generator/plugins/core-copilot/.github/plugin/plugin.json" \
-    "$ROOT/src/plugin-generator/plugins/core-codex/.codex-plugin/plugin.json"; do
+    "$ROOT/src/rosettify-plugins/plugins/core-claude/.claude-plugin/plugin.json" \
+    "$ROOT/src/rosettify-plugins/plugins/core-cursor/.cursor-plugin/plugin.json" \
+    "$ROOT/src/rosettify-plugins/plugins/core-copilot/.github/plugin/plugin.json" \
+    "$ROOT/src/rosettify-plugins/plugins/core-codex/.codex-plugin/plugin.json"; do
     printf "  %-55s %s\n" "[plugin.json] ${f#$ROOT/}" "$(get_json_version "$f")"
 done
 for f in \
@@ -158,12 +159,12 @@ esac
 echo ""
 
 echo "--- pyproject.toml files ---"
-bump_file_toml "$ROOT/rosetta-cli/pyproject.toml"    "n"
-bump_file_toml "$ROOT/ims-mcp-server/pyproject.toml" "y"
+bump_file_toml "$ROOT/src/rosetta-cli/pyproject.toml"    "n"
+bump_file_toml "$ROOT/src/ims-mcp-server/pyproject.toml" "y"
 
 # rosetta-mcp-server: bump version + sync ims-mcp dependency to match ims-mcp-server
-IMS_VERSION="$(get_toml_version "$ROOT/ims-mcp-server/pyproject.toml")"
-f="$ROOT/rosetta-mcp-server/pyproject.toml"
+IMS_VERSION="$(get_toml_version "$ROOT/src/ims-mcp-server/pyproject.toml")"
+f="$ROOT/src/rosetta-mcp-server/pyproject.toml"
 current="$(get_toml_version "$f")"
 rel="${f#$ROOT/}"
 if [[ "$bump_choice" == "4" ]]; then
@@ -183,8 +184,12 @@ else
 fi
 
 echo ""
-echo "--- rosettify/package.json ---"
-bump_file_json "$ROOT/rosettify/package.json" "y"
+echo "--- src/rosettify/package.json ---"
+bump_file_json "$ROOT/src/rosettify/package.json" "y"
+
+echo ""
+echo "--- src/rosettify-plugins/package.json ---"
+bump_file_json "$ROOT/src/rosettify-plugins/package.json" "y"
 
 echo ""
 echo "--- plugin.json files ---"
@@ -194,11 +199,11 @@ bump_file_json "$ROOT/plugins/core-copilot/.github/plugin/plugin.json" "y"
 bump_file_json "$ROOT/plugins/core-codex/.codex-plugin/plugin.json"    "y"
 
 echo ""
-echo "--- plugin.json files (plugin-generator preserved source) ---"
-bump_file_json "$ROOT/src/plugin-generator/plugins/core-claude/.claude-plugin/plugin.json"  "y"
-bump_file_json "$ROOT/src/plugin-generator/plugins/core-cursor/.cursor-plugin/plugin.json"  "y"
-bump_file_json "$ROOT/src/plugin-generator/plugins/core-copilot/.github/plugin/plugin.json" "y"
-bump_file_json "$ROOT/src/plugin-generator/plugins/core-codex/.codex-plugin/plugin.json"    "y"
+echo "--- plugin.json files (rosettify-plugins preserved source) ---"
+bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-claude/.claude-plugin/plugin.json"  "y"
+bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-cursor/.cursor-plugin/plugin.json"  "y"
+bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-copilot/.github/plugin/plugin.json" "y"
+bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-codex/.codex-plugin/plugin.json"    "y"
 
 echo ""
 echo "--- marketplace.json files (default: N) ---"

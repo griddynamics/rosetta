@@ -22,7 +22,7 @@ The generator assembles the bootstrap context values uniformly for every target 
     <criteria>Given: the generator When: inspected Then: it holds no per-target bootstrap-delivery-strategy field and does not branch on a delivery mechanism.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (all 4 IDEs always assemble full bootstrap); templateContext['bootstrap_hooks'] (one key, no per-IDE suffix); plugins/core-claude/hooks/hooks.json.tmpl, plugins/core-codex/.codex-plugin/hooks.json.tmpl, plugins/core-copilot/.github/plugin/hooks.json.tmpl (placeholder renamed from bootstrap_hooks_<ide> to bootstrap_hooks); cursor template has no placeholder — payload assembled but not injected.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (all 4 IDEs always assemble full bootstrap); templateContext['bootstrap_hooks'] (one key, no per-IDE suffix); plugins/core-claude/hooks/hooks.json.tmpl, plugins/core-codex/.codex-plugin/hooks.json.tmpl, plugins/core-copilot/.github/plugin/hooks.json.tmpl (placeholder renamed from bootstrap_hooks_<ide> to bootstrap_hooks); cursor template has no placeholder — payload assembled but not injected.</implementationNotes>
   <depends>INT-IDE-0002, FR-HOOK-0001, FR-HOOK-0004, FR-ARCH-0004</depends>
 </req>
 
@@ -41,7 +41,7 @@ The generator assembles the bootstrap context values uniformly for every target 
     <criteria>Given: a target with no separate in-repo distribution When: generated Then: a single hook-template form suffices.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/spec/targets.ts (cursor and copilot specs carry both hook template forms). Tied to FR-VAR-0070 bootstrap delivery rework.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/spec/targets.ts (cursor and copilot specs carry both hook template forms). Tied to FR-VAR-0070 bootstrap delivery rework.</implementationNotes>
 </req>
 
 <req id="FR-VAR-0072" type="FR" level="System" ticketId="" classification="technical">
@@ -59,7 +59,7 @@ The generator assembles the bootstrap context values uniformly for every target 
     <criteria>Given: Copilot-standalone When: generated Then: the workflow index and plugin-root instructions appear in the auto-loaded instructions file.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-inject-sections.ts; src/plugin-generator/src/spec/targets.ts (cursor-standalone and copilot-standalone injection declarations). Tied to FR-VAR-0070 bootstrap delivery rework.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/plugin-processors/plugin-inject-sections.ts; src/rosettify-plugins/src/spec/targets.ts (cursor-standalone and copilot-standalone injection declarations). Tied to FR-VAR-0070 bootstrap delivery rework.</implementationNotes>
   <depends>FR-VAR-0070, FR-ARCH-0051</depends>
 </req>
 
@@ -106,7 +106,7 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
     <criteria>Given: cursor When: bootstrap assembled Then: each entry = `{"type":"command","command":"printf '%s' '{\"additional_context\":\"<body>\"}'"}` and the plugin-root entry uses `${CURSOR_PROJECT_DIR}` for env-var expansion.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/plugin-generator/src/plugin-processors/plugin-assemble-cursor-bootstrap.ts (buildCursorBootstrapEntry, CURSOR_PLUGIN_ROOT_ENTRY); src/plugin-generator/src/escaping/json-string.ts (buildCursorHookPayloadJson); src/plugin-generator/src/spec/bootstrap-manifest.ts (CURSOR_PLUGIN_ROOT_ENTRY). Bootstrap assembled for ALL IDEs; cursor template has no {{{bootstrap_hooks}}} placeholder so payload is not injected — template decision per FR-VAR-0070.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/plugin-processors/plugin-assemble-cursor-bootstrap.ts (buildCursorBootstrapEntry, CURSOR_PLUGIN_ROOT_ENTRY); src/rosettify-plugins/src/escaping/json-string.ts (buildCursorHookPayloadJson); src/rosettify-plugins/src/spec/bootstrap-manifest.ts (CURSOR_PLUGIN_ROOT_ENTRY). Bootstrap assembled for ALL IDEs; cursor template has no {{{bootstrap_hooks}}} placeholder so payload is not injected — template decision per FR-VAR-0070.</implementationNotes>
   <depends>FR-COPY-0030, FR-COPY-0031, FR-COPY-0032, FR-GEN-0004, FR-VAR-0071, FR-VAR-0070, FR-HOOK-0005</depends>
 </req>
 

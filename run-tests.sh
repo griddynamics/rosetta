@@ -24,33 +24,30 @@ fi
 
 if [ ${#PYTEST_CMD[@]} -gt 0 ]; then
     echo -e "${BLUE}Running ims-mcp-server tests...${NC}"
-    PYTHONPATH="ims-mcp-server${PYTHONPATH:+:$PYTHONPATH}" \
-        "${PYTEST_CMD[@]}" --no-header -qq --tb=short -o console_output_style=classic ims-mcp-server/tests
+    PYTHONPATH="src/ims-mcp-server${PYTHONPATH:+:$PYTHONPATH}" \
+        "${PYTEST_CMD[@]}" --no-header -qq --tb=short -o console_output_style=classic src/ims-mcp-server/tests
 
     echo -e "${BLUE}Running rosetta-cli tests...${NC}"
-    PYTHONPATH="rosetta-cli${PYTHONPATH:+:$PYTHONPATH}" \
-        "${PYTEST_CMD[@]}" --no-header -qq --tb=short -o console_output_style=classic rosetta-cli/tests
+    PYTHONPATH="src/rosetta-cli${PYTHONPATH:+:$PYTHONPATH}" \
+        "${PYTEST_CMD[@]}" --no-header -qq --tb=short -o console_output_style=classic src/rosetta-cli/tests
 
-    echo -e "${BLUE}Running scripts tests...${NC}"
-    PYTHONPATH="scripts${PYTHONPATH:+:$PYTHONPATH}" \
-        "${PYTEST_CMD[@]}" --no-header -qq --tb=short -o console_output_style=classic scripts/tests
 fi
 
-if [ -d "$SCRIPT_DIR/rosettify/node_modules" ]; then
+if [ -d "$SCRIPT_DIR/src/rosettify/node_modules" ]; then
     echo -e "${BLUE}Running rosettify tests...${NC}"
-    npm --silent run build --prefix rosettify
-    npm --silent --prefix "$SCRIPT_DIR/rosettify" run test -- --reporter=minimal
+    npm --silent run build --prefix src/rosettify
+    npm --silent --prefix "$SCRIPT_DIR/src/rosettify" run test -- --reporter=minimal
 else
-    echo -e "${YELLOW}WARNING: rosettify/node_modules not found. Skipping rosettify tests.${NC}"
-    echo -e "${YELLOW}To enable: npm --prefix rosettify install${NC}"
+    echo -e "${YELLOW}WARNING: src/rosettify/node_modules not found. Skipping rosettify tests.${NC}"
+    echo -e "${YELLOW}To enable: npm --prefix src/rosettify install${NC}"
 fi
 
-if [ -d "$SCRIPT_DIR/hooks/node_modules" ]; then
+if [ -d "$SCRIPT_DIR/src/hooks/node_modules" ]; then
     echo -e "${BLUE}Running hooks tests...${NC}"
-    npm --silent --prefix "$SCRIPT_DIR/hooks" run test -- --reporter=minimal
+    npm --silent --prefix "$SCRIPT_DIR/src/hooks" run test -- --reporter=minimal
 else
-    echo -e "${YELLOW}WARNING: hooks/node_modules not found. Skipping hooks tests.${NC}"
-    echo -e "${YELLOW}To enable: npm --prefix hooks install${NC}"
+    echo -e "${YELLOW}WARNING: src/hooks/node_modules not found. Skipping hooks tests.${NC}"
+    echo -e "${YELLOW}To enable: npm --prefix src/hooks install${NC}"
 fi
 
 echo -e "${GREEN}Test validation passed${NC}"

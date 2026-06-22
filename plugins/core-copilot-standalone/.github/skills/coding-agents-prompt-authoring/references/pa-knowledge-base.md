@@ -440,8 +440,8 @@ Goal: not prettier — more reliable, stable, deterministic, cheaper, resilient 
 - https://github.com/dair-ai/Prompt-Engineering-Guide/blob/main/guides/prompts-advanced-usage.md
 - https://github.com/brexhq/prompt-engineering/blob/main/README.md
 - https://github.com/VoltAgent/awesome-claude-code-subagents/blob/main/categories/05-data-ai/prompt-engineer.md
-- https://github.com/wshobson/agents/blob/main/plugins/llm-application-dev/agents/prompt-engineer.md
-- https://github.com/wshobson/agents/blob/main/plugins/llm-application-dev/prompts/prompt-optimize.md
+- https://github.com/wshobson/agents/blob/main/plugins/llm-application-dev/agents/prompt-engineer.agent.md
+- https://github.com/wshobson/agents/blob/main/plugins/llm-application-dev/commands/prompt-optimize.md
 - https://github.com/wshobson/agents/blob/main/plugins/llm-application-dev/skills/prompt-engineering-patterns/SKILL.md
 - https://github.com/microsoft/amplifier/blob/amplifier-claude/docs/CREATE_YOUR_OWN_TOOLS.md
 

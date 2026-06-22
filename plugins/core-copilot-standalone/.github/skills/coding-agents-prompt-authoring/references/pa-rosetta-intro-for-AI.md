@@ -1,7 +1,7 @@
 ## What is Rosetta
 
 Rosetta is an instructions and processes enforcement for AI coding agents (like you).
-It is public OSS and central repository of rules/skills/agents/subagents/prompts/workflows stored as markdown files. 
+It is public OSS and central repository of rules/skills/agents/subagents/commands/workflows stored as markdown files. 
 These artifacts are deployed via plugins (preferred) or MCP into a target real software project repository, which has its own files and folder structure.
 
 Coding agents will always be exposed to the same Rosetta bootstrap as you are now (always injected in context): 

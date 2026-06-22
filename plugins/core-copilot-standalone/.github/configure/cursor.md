@@ -287,7 +287,7 @@ Cursor supports custom slash commands that allow you to create reusable prompts 
 
 Custom commands are defined as Markdown files in the `.cursor/commands` directory.
 
-**Location:** `.cursor/prompts/`
+**Location:** `.cursor/commands/`
 
 **File Format:** `.md` (Markdown files)
 
@@ -309,7 +309,7 @@ Custom commands are defined as Markdown files in the `.cursor/commands` director
 
 #### Example Command Files
 
-**`.cursor/prompts/review-code.md`:**
+**`.cursor/commands/review-code.md`:**
 ```markdown
 Please review the following code for:
 - Potential improvements and best practices
@@ -320,7 +320,7 @@ Please review the following code for:
 Provide specific suggestions with code examples.
 ```
 
-**`.cursor/prompts/write-tests.md`:**
+**`.cursor/commands/write-tests.md`:**
 ```markdown
 Generate comprehensive unit tests for the selected code:
 - Test all public methods and functions
@@ -330,7 +330,7 @@ Generate comprehensive unit tests for the selected code:
 - Use descriptive test names
 ```
 
-**`.cursor/prompts/add-docs.md`:**
+**`.cursor/commands/add-docs.md`:**
 ```markdown
 Add comprehensive documentation to the selected code:
 - JSDoc/docstring comments for all public APIs
@@ -339,7 +339,7 @@ Add comprehensive documentation to the selected code:
 - Parameter and return type descriptions
 ```
 
-**`.cursor/prompts/refactor.md`:**
+**`.cursor/commands/refactor.md`:**
 ```markdown
 Refactor the selected code to:
 - Follow SOLID principles
@@ -363,7 +363,7 @@ Refactor the selected code to:
 - **Add Examples:** Show expected output format when relevant
 - **Reusable:** Design commands for common, repeatable tasks
 - **Team Standards:** Use commands to enforce team conventions
-- **Version Control:** Commit `.cursor/prompts/` to share with team
+- **Version Control:** Commit `.cursor/commands/` to share with team
 
 #### Built-in Commands
 
@@ -391,7 +391,7 @@ your-project/
 │   │   ├── testing-conventions.mdc
 │   │   ├── api-design.mdc
 │   │   └── security-practices.mdc
-│   ├── prompts/
+│   ├── commands/
 │   │   ├── review-code.md
 │   │   ├── write-tests.md
 │   │   ├── add-docs.md
@@ -438,7 +438,7 @@ To share Cursor configuration with your team:
 
 1. Commit the entire `.cursor/` directory to version control:
    - `.cursor/rules/` - Project-specific rules (including `agents.mdc`)
-   - `.cursor/prompts/` - Custom slash commands
+   - `.cursor/commands/` - Custom slash commands
    - `.cursor/agents/` - Custom subagents
    - `.cursor/skills/` - Custom skills with scripts and assets
 2. Team members clone the repository with configuration included

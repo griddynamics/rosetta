@@ -26,7 +26,7 @@ Direct dependencies of all modules in this Rosetta repository.
 | pytest | >=7.0.0 | Test runner |
 | pytest-asyncio | >=0.23.0 | Async test support |
 
-## rosetta-cli (rosetta-cli v2.0.10)
+## src/rosetta-cli (rosetta-cli v2.0.10)
 
 | Package | Version Constraint | Purpose |
 |---|---|---|
@@ -36,7 +36,7 @@ Direct dependencies of all modules in this Rosetta repository.
 | requests | >=2.31.0,<3.0.0 | HTTP client |
 | tqdm | >=4.67.0,<5.0.0 | Progress bars during publish |
 
-### rosetta-cli optional[dev]
+### src/rosetta-cli optional[dev]
 
 | Package | Version Constraint | Purpose |
 |---|---|---|

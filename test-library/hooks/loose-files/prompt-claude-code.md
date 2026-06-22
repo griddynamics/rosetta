@@ -127,7 +127,7 @@ After this command `package.json` is back in place — subsequent tests in `<ROO
 
 **Verify & Report:** expect silent.
 
-> **Test 6 (`create_file` tool) — dropped from E2E.** Claude Code has no native `create_file` tool (CC uses Write for both creation and overwriting). Adapter regression for non-standard tool names is covered by Vitest unit tests in `hooks/tests/adapter.claude-code.test.ts`.
+> **Test 6 (`create_file` tool) — dropped from E2E.** Claude Code has no native `create_file` tool (CC uses Write for both creation and overwriting). Adapter regression for non-standard tool names is covered by Vitest unit tests in `src/hooks/tests/adapter.claude-code.test.ts`.
 
 ---
 
@@ -159,7 +159,7 @@ After this command `package.json` is back in place — subsequent tests in `<ROO
 
 **Verify & Report:** expect silent.
 
-> **Tests 11 (camelCase `filePath`) and 12 (Copilot CLI shape) — dropped from E2E.** Claude Code natively sends snake_case `file_path` to the hook and does not use Copilot-CLI shape — these input variants do not occur in real usage. Adapter resilience to them is covered by Vitest unit tests in `hooks/tests/adapter.claude-code.test.ts`.
+> **Tests 11 (camelCase `filePath`) and 12 (Copilot CLI shape) — dropped from E2E.** Claude Code natively sends snake_case `file_path` to the hook and does not use Copilot-CLI shape — these input variants do not occur in real usage. Adapter resilience to them is covered by Vitest unit tests in `src/hooks/tests/adapter.claude-code.test.ts`.
 
 ---
 

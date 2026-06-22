@@ -42,10 +42,10 @@ Commands registered in `rosetta_cli/cli.py` — subcommand name maps to `BaseCom
 
 ## Occurrences
 
-- `rosetta-cli/rosetta_cli/commands/base_command.py` — abstract base
-- `rosetta-cli/rosetta_cli/commands/publish_command.py` — publish
-- `rosetta-cli/rosetta_cli/commands/parse_command.py` — trigger parsing
-- `rosetta-cli/rosetta_cli/commands/verify_command.py` — health check
-- `rosetta-cli/rosetta_cli/commands/list_command.py` — list dataset
-- `rosetta-cli/rosetta_cli/commands/cleanup_command.py` — delete documents
-- `rosetta-cli/rosetta_cli/cli.py` — command registry
+- `src/rosetta-cli/rosetta_cli/commands/base_command.py` — abstract base
+- `src/rosetta-cli/rosetta_cli/commands/publish_command.py` — publish
+- `src/rosetta-cli/rosetta_cli/commands/parse_command.py` — trigger parsing
+- `src/rosetta-cli/rosetta_cli/commands/verify_command.py` — health check
+- `src/rosetta-cli/rosetta_cli/commands/list_command.py` — list dataset
+- `src/rosetta-cli/rosetta_cli/commands/cleanup_command.py` — delete documents
+- `src/rosetta-cli/rosetta_cli/cli.py` — command registry
