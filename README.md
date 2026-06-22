@@ -3,7 +3,7 @@
     <source media="(prefers-color-scheme: dark)" srcset="docs/web/assets/brand/rosetta-logo-full-color-white-text.png">
     <img src="docs/web/assets/brand/rosetta-logo-full-color-black-text.png" alt="Rosetta" width="200">
   </picture>
-  <p><strong>Meta-prompting, context engineering, and centralized instructions management for AI coding agents</strong></p>
+  <p><strong>Engineering governance and context for AI coding agents — the knowledge a senior engineer would have, compiled into every agent.</strong></p>
   <p>
     <a href="https://pypi.org/project/ims-mcp/"><img src="https://img.shields.io/pypi/v/ims-mcp.svg" alt="MCP"></a>
     <a href="https://pypi.org/project/ims-mcp/"><img src="https://img.shields.io/pypi/dm/ims-mcp.svg" alt="Downloads"></a>
@@ -21,17 +21,19 @@
 
 https://github.com/user-attachments/assets/6df6e217-3e5c-4691-84ed-7440701a87de
 
-Rosetta gives an AI coding agent the context and instructions any senior engineer would need before touching the code. As the result, AI agents work from real knowledge of your project instead of guessing. Rosetta feeds the agent your system architecture, domain rules, and engineering standards, plus a library of ready-made instructions to follow. Those instructions include:
+AI coding agents are great until you use them across a real engineering organization: every engineer ends up with their own prompts, rules, and workflows, knowledge gets trapped in silos, and because agents don't know your architecture or compliance constraints, they optimize for fast answers instead of thinking carefully. Rosetta gives an AI coding agent the context and instructions any senior engineer would have before touching the code, so agents work from real knowledge of your project instead of guessing. It feeds the agent your system architecture, domain rules, and engineering standards, plus a library of ready-made instructions to follow.
+
+The Rosetta instructions include:
 - **Rules** — always-on policies the agent must follow (guardrails, safety, conventions).
 - **Skills** — focused abilities it uses when needed (e.g. load context, write specs).
+- **Hooks** — non-negotiable guardrails that cannot be bypassed.
 - **Workflows** — step-by-step processes for a whole task (coding, testing, modernization, and more).
 - **Sub-agents** — specialized helpers the main agent hands work to (reviewer, researcher, and others).
 
 When you first set it up, Rosetta learns your project by reading the existing code and saving notes on how everything fits together, so the AI doesn't start from zero every time. As a result, the AI gets up to speed faster, spends fewer tokens in later chats, and writes code that is more reliable and consistent.
 
-Rosetta is a meta-prompting, context engineering, and centralized instructions management for AI coding agents. It provides structured context - rules, skills, workflows, and sub-agents - guiding AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards. Rosetta accelerates project onboarding by reverse-engineering architecture and domain context, reducing further conversations token consumption and improving the reliability and consistency of AI-generated code.
 
-Every AI interaction follows four phases:
+Every AI interaction follows these phases:
 - **Prepare** (load guardrails and context)
 - **Research** (search the knowledge base)
 - **Plan** (produce a reviewable plan) 
@@ -60,6 +62,26 @@ After installing, initialize your repo:
 - **Brownfield (existing repository):** *"Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]"*
 
 STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](INSTALLATION.md). Read more in the [Quickstart](QUICKSTART.md).
+
+## Who is it for
+
+**For organizations**
+- **One standard, every team** — consistent agent behavior across all tools and models.
+- **Guardrails with built-in caution** — the agent reasons about risk and stops itself before sensitive-data exposure or dangerous, irreversible actions.
+- **Workflows enforce the steps people forget** — security, tests, docs, review.
+- **Best practices codified once, enforced everywhere** — not stuck in senior heads.
+- **Centralized, versioned control** — standards as code for how every coding agent behaves.
+- **No lock-in** — switch and mix, same behavior everywhere.
+- **Smart model selection** — cheap models for routine work, strong models where quality matters.
+
+**For engineers**
+- **It learns your codebase first** — reads your architecture and conventions, so it stops guessing from a few open files.
+- **Just type a slash command** — describe the task naturally, no prompt scaffolding or new syntax to memorize.
+- **Batteries included** — ready-made flows for coding, testing, analysis, AQA, research, and more.
+- **Routine to the agent, judgment to you** — spend your time where it actually matters.
+- **AI asks first, plans, codes, then validates** — it clarifies, shows a plan, then proves it ran.
+- **Less AI babysitting** — fewer wrong turns to catch and re-prompt.
+- **Your agent, your IDE, your stack** — works with the tools you already use, no migration.
 
 <details>
 <summary><b>What Rosetta Adds to AI Coding Agents</b></summary>
@@ -129,17 +151,6 @@ AI coding agents can read code, generate code, and run commands. That is where i
 - **One-command onboarding.** New repo, new developer — productive immediately with best practices baked in.
 - **Instructions as code.** Prompts version-controlled with release management — single source of truth for all teams.
 
-## How it works
-
-Your IDE connects to the Rosetta MCP server. The server exposes guardrails and common best practices, and provides a menu of available instructions — workflows and coding conventions. The coding agent selects only what it needs for the current task; Rosetta delivers just those, keeping the agent's context lean. By design, no source code or project data reaches Rosetta.
-
-Rosetta is designed to not see your source code. It only serves knowledge and instructions to the agent. The agent loads only what it needs per request (progressive disclosure) and follows your organization's workflows.
-
-Rosetta is engineered to prevent the unintentional transmission of sensitive data through the following architectural controls:
-- **Deterministic Instruction Serving**: Instructions are delivered as MCP resources in a strictly deterministic manner. By eliminating the need for semantic search, coding agents are never required to transmit source code or sensitive context to Rosetta to retrieve instructions.
-- **Read-Only Default State**: "Write" mode is disabled and hidden by default. Enabling write capabilities requires an explicit, intentional configuration at deployment, ensuring that data persistence remains entirely outside of the end-user's control.
-- **Schema-Strict Input Validation**: All MCP tool inputs undergo rigorous validation against predefined schemas. This ensures the system rejects any unexpected payloads or "over-sharing" of data that does not match the required parameters.
-
 ## Contributing
 
 Use Rosetta plugins to develop Rosetta.
@@ -150,8 +161,9 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and e
 
 | I want to... | Read |
 |---|---|
-| Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md) |
 | Set up Rosetta | [QUICKSTART.md](QUICKSTART.md) |
+| Feed Rosetta to an AI agent (full project context) | [llms-full.txt](llms-full.txt) |
+| Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md) |
 | Learn how to use Rosetta flows | [USAGE_GUIDE.md](USAGE_GUIDE.md) |
 | Deploy Rosetta for my organization | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) |
 | Understand the system architecture | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
