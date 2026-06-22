@@ -85,7 +85,7 @@ Done when: user approves structure and requirement batching strategy.
 
 <draft phase="5" priority="must" subagent="requirements-engineer" role="Author drafting atomic requirement units" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
-Artifact: Draft Requirement Units (from `requirements-authoring/assets/ra-requirement-unit.md`).
+Artifact: Draft Requirement Units (from `requirements-authoring/assets/ra-requirement-unit.xml`).
 Done when: every in-scope requirement has schema-complete draft and explicit user decision.
 
 1. Draft in small batches using `<req>` schema

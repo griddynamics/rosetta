@@ -5,7 +5,7 @@ description: UI-QA code-analysis report skeleton (9 sections) plus the test-loca
 
 <code-analysis-report-template>
 
-`aqa-<test-name>-code-analysis.md` — non-empty, using this **9-section structure** (every section present; empty optional section says `not available — see Coverage section`). Structural content (framework names, file paths, selector attribute names, schema/field names) stays verbatim; redaction targets sensitive **values** only (scope per `qa-knowledge/references/redaction-scope.md`).
+`ui-qa-<test-name>-code-analysis.md` — non-empty, using this **9-section structure** (every section present; empty optional section says `not available — see Coverage section`). Structural content (framework names, file paths, selector attribute names, schema/field names) stays verbatim; redaction targets sensitive **values** only (scope per `qa-knowledge/references/redaction-scope.md`).
 
 ```markdown
 # Code Analysis — <test-name>

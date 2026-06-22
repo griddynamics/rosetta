@@ -39,7 +39,7 @@ Gather test case details from TestRail and feature context from Confluence, cros
 <confirm_inputs step="1.1">
 1. Verify TestRail case ID or URL provided (ask user if missing).
 2. Verify Confluence page ID or search terms provided (ask user if missing).
-3. **Resolve the `<test-name>` slug — never fabricate it** (format + authority per `qa-structure` `ui-qa-layout`). Derive a kebab-case slug from the test case title (TestRail) or the user's feature description (e.g. "checkout with valid card" → `checkout-valid-card`), then **confirm it with the user before creating `plans/ui-qa-<test-name>.md`** — e.g. "I'll name the plan `aqa-checkout-valid-card.md` — OK, or prefer another slug?". If neither a test case nor a feature description is available, STOP and ask the user; do NOT invent a slug or a placeholder.
+3. **Resolve the `<test-name>` slug — never fabricate it** (format + authority per `qa-structure` `ui-qa-layout`). Derive a kebab-case slug from the test case title (TestRail) or the user's feature description (e.g. "checkout with valid card" → `checkout-valid-card`), then **confirm it with the user before creating `plans/ui-qa-<test-name>.md`** — e.g. "I'll name the plan `ui-qa-checkout-valid-card.md` — OK, or prefer another slug?". If neither a test case nor a feature description is available, STOP and ask the user; do NOT invent a slug or a placeholder.
 4. **Respect user edits to the slug / plan.** If the user deletes, renames, or clears the slug or the plan file, treat it as rejection of the current slug — re-ask and use the user's choice; never silently re-write a slug the user removed.
 </confirm_inputs>
 
@@ -96,7 +96,7 @@ Stop Phase 1, record the failed KB tag in `agents/ui-qa-state.md`, notify the us
    1. Re-read the actual plan filename under `plans/`.
    2. If it is a non-empty, valid kebab-case slug, adopt it as authoritative.
    3. If it differs from your in-memory value, the user renamed it — adopt theirs, update state references, briefly confirm.
-   4. If it is empty / cleared / a literal placeholder (`aqa-.md`, `aqa-<test-name>.md`), it is **INVALID** — do NOT adopt, fabricate, or substitute; return to step 1.1, re-ask the user, then re-create the plan at the confirmed name.
+   4. If it is empty / cleared / a literal placeholder (`ui-qa-.md`, `ui-qa-<test-name>.md`), it is **INVALID** — do NOT adopt, fabricate, or substitute; return to step 1.1, re-ask the user, then re-create the plan at the confirmed name.
    5. Do NOT mark Phase 1 complete or advance to Phase 2 until a user-confirmed, non-empty slug exists AND `plans/ui-qa-<test-name>.md` exists at it.
 2. If `agents/ui-qa-state.md` does not exist yet, create it from the asset `qa-structure/assets/ui-qa-state-template.md` (ACQUIRE FROM KB) — Phase 1 is the first phase to write it.
 3. Update `agents/ui-qa-state.md`: confirmed `<test-name>` slug; TestRail Case [ID/URL]; Confluence Pages [URLs]; Test Goal [brief]; Test Plan File [path]; Phase 1 completion timestamp — recording the resolved facts into the `## Key Artifacts & Facts` resume anchor.

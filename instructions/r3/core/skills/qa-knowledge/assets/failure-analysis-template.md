@@ -9,7 +9,7 @@ description: UI-QA failure-analysis.md skeleton — per-failed-test fields plus 
 
 **Evidence-label rule:** assign `Unknown` ONLY after page-source capture has been attempted and the cause is still unresolvable. If page sources were never captured, escalate via `qa-knowledge/assets/page-source-capture-instructions.md` before assigning `Unknown` — do not short-circuit the diagnosis.
 
-`aqa-<test-name>-failure-analysis.md` must contain, per failed test:
+`ui-qa-<test-name>-failure-analysis.md` must contain, per failed test:
 
 - **ID** — `F-N` (sequential from `F-1`; the stable id the correction phase cites).
 - **Failure name** — failing test identifier (function name, ATC ID, or report row).
