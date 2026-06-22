@@ -141,7 +141,7 @@ refsrc examples now live in `CONFIGURATION.md`.
 
 ## 4. Reading journey
 
-README is the single front door. It routes each of the four reader profiles into its own flow. INSTALLATION and ARCHITECTURE are shared (dotted links show the second profile reusing them).
+README is the single front door. It routes each of the four reader profiles into its own flow. INSTALLATION serves both the User and Organization profiles, so it appears in each flow; ARCHITECTURE is shared (the dotted link shows the Organization reusing it).
 
 ```mermaid
 flowchart TD
@@ -172,6 +172,7 @@ flowchart TD
     end
 
     subgraph ORG["Organization — deploy company-wide"]
+        INSTO["INSTALLATION"]
         DEP["DEPLOYMENT_GUIDE"]
         SEC["SECURITY"]
     end
@@ -180,7 +181,7 @@ flowchart TD
     README -.-> ELEV
     README -->|AI| LLMS
     README -->|contributor| CONT
-    README -->|organization| DEP
+    README -->|organization| INSTO
 
     ELEV --> QS
     QS --> PLUG
@@ -200,8 +201,8 @@ flowchart TD
     ARCH --> DEV
     DEV --> REV
 
+    INSTO --> DEP
     DEP --> SEC
-    DEP -.-> INST
     DEP -.-> ARCH
 
     classDef entry fill:#1d4ed8,stroke:#0b245e,color:#ffffff;
@@ -214,7 +215,7 @@ flowchart TD
     class ELEV,QS,PLUG,MCP,INST,CONF,USAGE,FAQ,TRBL user;
     class LLMS ai;
     class CONT,OVER,ARCH,DEV,REV contrib;
-    class DEP,SEC org;
+    class INSTO,DEP,SEC org;
 ```
 
 ---
