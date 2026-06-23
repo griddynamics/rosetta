@@ -44,6 +44,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** one-paragraph what-it-is, the value proposition in brief, the routing table ("I want to… → read X"), community/license pointers.
 - **Structure:** badges/hero → one-line what-it-is → value proposition → Quick Start teaser (links out) → "I want to… → read X" routing table → who-it's-for → community/license.
 - **Excludes:** full install steps (→ QUICKSTART/INSTALLATION), mental model and concepts (→ OVERVIEW), workflow how-tos (→ USAGE_GUIDE).
+- **Sources:** ELEVATOR_SPEECH + OVERVIEW (value prop), the live doc set (routing table), PyPI badges (`ims-mcp`, `rosetta-cli`).
 
 ### OVERVIEW.md
 - **Profile:** Contributor.
@@ -52,6 +53,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** problem statement, core mental model, key concepts/terminology, session lifecycle, the "what Rosetta does not do" boundary.
 - **Structure:** problem statement → core mental model → key concepts/terminology → session lifecycle → "what Rosetta does not do".
 - **Excludes:** install/setup steps (→ INSTALLATION/QUICKSTART), per-workflow how-tos (→ USAGE_GUIDE), code-level internals (→ ARCHITECTURE/DEVELOPER_GUIDE).
+- **Sources:** ELEVATOR_SPEECH (why), `workflows/` + `skills/` (concepts/terminology), ARCHITECTURE (session lifecycle).
 
 ### ELEVATOR_SPEECH.md
 - **Profile:** User.
@@ -60,6 +62,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** the pitch — problem, solution, one-line core idea, proof.
 - **Structure:** hook/problem → solution in one line → how it helps → proof/outcome.
 - **Excludes:** setup/how-to (→ QUICKSTART), conceptual depth (→ OVERVIEW), feature reference (→ USAGE_GUIDE).
+- **Sources:** the value-proposition deck/slide, README intro, real proof points/metrics.
 
 ### QUICKSTART.md
 - **Profile:** User.
@@ -68,6 +71,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** install one-liner, initialize-once step, a short "next steps" pointing into the workflows. Happy path only.
 - **Structure:** prerequisites → install one-liner → initialize once → run your first workflow → next steps (links into CONFIGURATION/USAGE_GUIDE).
 - **Excludes:** exhaustive install modes/transports (→ INSTALLATION), workspace configuration (→ CONFIGURATION), per-workflow detail (→ USAGE_GUIDE).
+- **Sources:** INSTALLATION (canonical steps), PLUGINS/MCPs (install routes), the actual init prompt/command.
 
 ### INSTALLATION.md
 - **Profile:** User + Organization.
@@ -76,6 +80,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** all transports, bootstrap rule, verify, initialize, upgrade, uninstall, env vars. The canonical install reference.
 - **Structure:** modes overview → plugin vs MCP → transports (HTTP/STDIO/offline) → bootstrap rule → verify → initialize → upgrade → uninstall → env vars.
 - **Excludes:** post-install workspace setup (→ CONFIGURATION), per-IDE plugin walkthrough (→ PLUGINS), MCP-connect specifics (→ MCPs), org server deploy (→ DEPLOYMENT_GUIDE).
+- **Sources:** PyPI packages (`ims-mcp`, `rosetta-mcp`, `rosetta-cli`), CLI `--help`, server transport config + env vars in code.
 
 ### PLUGINS.md
 - **Profile:** User.
@@ -84,6 +89,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** per-IDE plugin steps, verify, upgrade.
 - **Structure:** prerequisites → per-IDE install steps (Claude Code, Cursor, Copilot, Codex) → verify → upgrade.
 - **Excludes:** MCP install route (→ MCPs), transport/env reference (→ INSTALLATION), workspace config (→ CONFIGURATION).
+- **Sources:** each IDE's plugin registry/config, the plugin manifest, INSTALLATION (shared verify/upgrade steps).
 
 ### MCPs.md
 - **Profile:** User.
@@ -92,6 +98,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** MCP connect, bootstrap rule, verify, common MCP issues.
 - **Structure:** prerequisites → connect the MCP → bootstrap rule → verify → common MCP issues.
 - **Excludes:** plugin install route (→ PLUGINS), full transport/env reference (→ INSTALLATION), general runtime errors (→ TROUBLESHOOTING).
+- **Sources:** MCP server endpoints/transports, the `.mcp.json` examples, INSTALLATION.
 
 ### CONFIGURATION.md
 - **Profile:** User.
@@ -100,6 +107,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** capturing CONTEXT.md / ARCHITECTURE.md, providing refsrc, defining patterns, choosing a workspace layout, ecosystem config.
 - **Structure:** capture CONTEXT.md / ARCHITECTURE.md → provide refsrc → define patterns → choose a workspace layout → ecosystem (MCPs/CLIs) config.
 - **Excludes:** install steps (→ INSTALLATION), first-run happy path (→ QUICKSTART), running workflows (→ USAGE_GUIDE).
+- **Sources:** `gain.json` schema, the Rosetta file set (CONTEXT.md / ARCHITECTURE.md / refsrc), pattern templates.
 
 ### USAGE_GUIDE.md
 - **Profile:** User.
@@ -108,6 +116,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** workflow catalog, greenfield/brownfield paths, customization, recommended MCP servers, best practices.
 - **Structure:** how to invoke a workflow (slash-command) → when to use each → workflow catalog table (links into each workflow doc) → greenfield vs brownfield → recommended MCP servers → best practices.
 - **Excludes:** install/config steps (→ INSTALLATION/CONFIGURATION), the full internal definition of each workflow (→ its own workflow doc), contributor/dev process (→ CONTRIBUTING/DEVELOPER_GUIDE).
+- **Sources:** `workflows/` (slash-commands + the actual workflow list), the recommended-MCP list.
 
 ### FAQ.md
 - **Profile:** User.
@@ -116,6 +125,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** short Q&A grouped by theme (install/detection, tokens/perf, behavior, concepts, contributing). Each answer ≤ a few lines + a link to the owning doc.
 - **Structure:** one-line intro → Q&A grouped by theme (install/detection → tokens/perf → behavior → concepts → contributing), each answer ≤ a few lines + link to the owning doc.
 - **Excludes:** step-by-step break fixes (→ TROUBLESHOOTING), full setup procedures (→ INSTALLATION/CONFIGURATION), conceptual explainers (→ OVERVIEW).
+- **Sources:** recurring questions from support channels/GitHub issues, the owning doc each answer links to.
 
 ### TROUBLESHOOTING.md
 - **Profile:** User.
@@ -124,6 +134,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** symptom → cause → fix, grouped by area (connection/auth, agent not using Rosetta, model selection, slow responses), plus contributor-side dev setup issues.
 - **Structure:** how to use this page → issues by area (connection/auth → agent not using Rosetta → model selection → slow responses) as symptom → cause → fix → contributor-side dev setup issues.
 - **Excludes:** "is this expected?" Q&A (→ FAQ), normal setup steps (→ INSTALLATION/CONFIGURATION), feature usage (→ USAGE_GUIDE).
+- **Sources:** real error strings in code/logs, common support issues, DEVELOPER_GUIDE (dev-setup issues).
 
 ### CONTRIBUTING.md
 - **Profile:** Contributor.
@@ -132,6 +143,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** what's welcome, the workflow, prompt-change rules, PR checklist, legal/CLA.
 - **Structure:** what's welcome → contribution workflow → prompt-change rules → PR checklist → legal/CLA.
 - **Excludes:** local build/run detail (→ DEVELOPER_GUIDE), review criteria (→ REVIEW), product concepts (→ OVERVIEW).
+- **Sources:** CI/PR workflow, CODEOWNERS, the CLA, prompt-change rules in REVIEW.
 
 ### DEVELOPER_GUIDE.md
 - **Profile:** Contributor.
@@ -140,6 +152,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** repo layout, local dev (MCP/CLI), validation, tests, type checking, integration testing.
 - **Structure:** repo layout → local dev setup (MCP/CLI) → run/validate → tests → type checking → integration testing.
 - **Excludes:** contribution policy/PR process (→ CONTRIBUTING), review standards (→ REVIEW), system design rationale (→ ARCHITECTURE).
+- **Sources:** top-level repo layout, build/test scripts (Makefile/CI), `pyproject.toml`.
 
 ### REVIEW.md
 - **Profile:** Contributor.
@@ -148,6 +161,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** review criteria, code + instruction standards, AI-assisted change review, approval rules.
 - **Structure:** review criteria → code standards → instruction standards → AI-assisted change review → approval rules.
 - **Excludes:** how to contribute/PR mechanics (→ CONTRIBUTING), local dev setup (→ DEVELOPER_GUIDE).
+- **Sources:** review rules in `rules/`, prompt best-practices, CI approval gates.
 
 ### SECURITY.md
 - **Profile:** Organization.
@@ -156,6 +170,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** reporting process, safe harbor, supported versions, security architecture, guardrails, shared responsibility.
 - **Structure:** how to report a vulnerability (+ contact) → safe harbor → supported versions → security architecture/posture → guardrails → shared-responsibility model.
 - **Excludes:** general deploy/ops (→ DEPLOYMENT_GUIDE), architecture internals (→ ARCHITECTURE), user troubleshooting (→ TROUBLESHOOTING).
+- **Sources:** security contact `rosetta-support@griddynamics.com`, PyPI packages, disclosure SLAs, telemetry env vars (`POSTHOG_API_KEY`), DEPLOYMENT_GUIDE (hardening).
 
 ### DEPLOYMENT_GUIDE.md
 - **Profile:** Organization.
@@ -164,6 +179,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** server (RAGFlow) + MCP deploy, Docker/Helm, Redis, env management, images.
 - **Structure:** architecture overview → prerequisites → server (RAGFlow) + MCP deploy → Docker/Helm → Redis → env management → images → operate/upgrade.
 - **Excludes:** single-user install (→ INSTALLATION), security reporting/posture (→ SECURITY), system internals (→ ARCHITECTURE).
+- **Sources:** Docker/Helm charts, RAGFlow + Redis config, deploy env vars/images in the infra manifests.
 
 ### CHANGELOG.md
 - **Profile:** User.
@@ -172,6 +188,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** the only place for change history, version-by-version.
 - **Structure:** latest release first → per-version entries (Added / Changed / Fixed / Removed) under version + date headers.
 - **Excludes:** upgrade instructions (→ INSTALLATION), feature how-tos (→ USAGE_GUIDE), roadmap/planning.
+- **Sources:** git tags + GitHub Releases, merged PRs since the last release.
 
 ### ARCHITECTURE.md
 - **Profile:** Contributor + Organization.
@@ -180,6 +197,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** system structure, components, data flow. Reused by the Organization profile.
 - **Structure:** system overview → components → data flow → boundaries/integration points.
 - **Excludes:** how to build/run locally (→ DEVELOPER_GUIDE), deploy/ops steps (→ DEPLOYMENT_GUIDE), product concepts/mental model (→ OVERVIEW).
+- **Sources:** codebase structure (server/CLI/instructions), MCP server data-flow in code, existing diagrams.
 
 ### llms-full.txt
 - **Profile:** AI.
@@ -188,6 +206,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** dense, full-text project knowledge for AI. README links here for the AI profile.
 - **Structure:** generated flat full-text of all docs in reading order; machine-optimized, no human navigation chrome.
 - **Excludes:** human-oriented navigation/routing (→ README), per-task how-tos written for humans (→ USAGE_GUIDE).
+- **Sources:** generated by the build pipeline from all human docs (no manual facts).
 
 refsrc examples now live in `CONFIGURATION.md`.
 
