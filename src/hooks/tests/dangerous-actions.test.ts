@@ -760,3 +760,303 @@ describe('retry-pattern integration — full hook via runHook', () => {
     expect(output()).toBe('');
   });
 });
+
+// G-2: rm -rf with separate / long-form flags must be detected.
+// These currently FAIL — rm-rf-recursive/-root only match a single combined
+// short-flag token (-rf). Recursive forced deletion must be caught whether the
+// flags are combined (-rf), separate (-r -f, any order/distance), or GNU long
+// form (--recursive --force). Root deletion must hard-deny in every form.
+describe('G-2: rm recursive+force — separate and long-form flags', () => {
+
+  // --- Separate short flags, varying order and distance ---
+  test('rm -r -f /tmp/x → deny (separate flags, r then f)', () => {
+    expect(evaluateDangerous(bashCtx('rm -r -f /tmp/x'))?.kind).toBe('deny');
+  });
+  test('rm -f -r /tmp/x → deny (separate flags, order reversed)', () => {
+    expect(evaluateDangerous(bashCtx('rm -f -r /tmp/x'))?.kind).toBe('deny');
+  });
+  test('rm -r -v -f /tmp/x → deny (another flag between -r and -f)', () => {
+    expect(evaluateDangerous(bashCtx('rm -r -v -f /tmp/x'))?.kind).toBe('deny');
+  });
+  test('rm -r --verbose -f /tmp/x → deny (long flag between the two)', () => {
+    expect(evaluateDangerous(bashCtx('rm -r --verbose -f /tmp/x'))?.kind).toBe('deny');
+  });
+
+  // --- GNU long-form flags, varying order and distance ---
+  test('rm --recursive --force /tmp/x → deny (long form)', () => {
+    expect(evaluateDangerous(bashCtx('rm --recursive --force /tmp/x'))?.kind).toBe('deny');
+  });
+  test('rm --force --recursive /tmp/x → deny (long form, order reversed)', () => {
+    expect(evaluateDangerous(bashCtx('rm --force --recursive /tmp/x'))?.kind).toBe('deny');
+  });
+  test('rm --recursive --verbose --force /tmp/x → deny (flag between long forms)', () => {
+    expect(evaluateDangerous(bashCtx('rm --recursive --verbose --force /tmp/x'))?.kind).toBe('deny');
+  });
+
+  // --- Mixed short + long ---
+  test('rm -r --force /tmp/x → deny (mixed short + long)', () => {
+    expect(evaluateDangerous(bashCtx('rm -r --force /tmp/x'))?.kind).toBe('deny');
+  });
+  test('rm --recursive -f /tmp/x → deny (mixed long + short)', () => {
+    expect(evaluateDangerous(bashCtx('rm --recursive -f /tmp/x'))?.kind).toBe('deny');
+  });
+
+  // --- Flags AFTER the operand (GNU getopt permutes options past operands) ---
+  test('rm /tmp/x -rf → deny (combined flags after the path)', () => {
+    expect(evaluateDangerous(bashCtx('rm /tmp/x -rf'))?.kind).toBe('deny');
+  });
+  test('rm /tmp/x -r -f → deny (separate flags after the path)', () => {
+    expect(evaluateDangerous(bashCtx('rm /tmp/x -r -f'))?.kind).toBe('deny');
+  });
+  test('rm /tmp/x --recursive --force → deny (long form after the path)', () => {
+    expect(evaluateDangerous(bashCtx('rm /tmp/x --recursive --force'))?.kind).toBe('deny');
+  });
+  test('rm --recursive /tmp/x --force → deny (flags on both sides of the path)', () => {
+    expect(evaluateDangerous(bashCtx('rm --recursive /tmp/x --force'))?.kind).toBe('deny');
+  });
+
+  // --- Root deletion must be HARD-DENY in every flag form ---
+  test('rm -r -f / → hard-deny (separate flags, root)', () => {
+    const r = evaluateDangerous(bashCtx('rm -r -f /'));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('HARD-DENY');
+  });
+  test('rm --recursive --force / → hard-deny (long form, root)', () => {
+    const r = evaluateDangerous(bashCtx('rm --recursive --force /'));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('HARD-DENY');
+  });
+  test('rm / -rf → hard-deny (root, flags after the path)', () => {
+    const r = evaluateDangerous(bashCtx('rm / -rf'));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('HARD-DENY');
+  });
+
+  // --- Guards: a single flag (no recursive+force pair) must NOT match ---
+  test('rm -r /tmp/x → null (recursive only, no force)', () => {
+    expect(evaluateDangerous(bashCtx('rm -r /tmp/x'))).toBeNull();
+  });
+  test('rm --recursive /tmp/x → null (recursive only, no force)', () => {
+    expect(evaluateDangerous(bashCtx('rm --recursive /tmp/x'))).toBeNull();
+  });
+  test('rm --force /tmp/x → null (force only, no recursive)', () => {
+    expect(evaluateDangerous(bashCtx('rm --force /tmp/x'))).toBeNull();
+  });
+});
+
+// G-3: git push with a `+` refspec prefix is an implicit force-push and must be
+// denied at the same tier as -f / --force. These currently FAIL — git-force-push
+// only matches the -f / --force flags, not the `+<refspec>` form. A `+` that is
+// NOT a leading refspec prefix (e.g. inside a branch name) must NOT be flagged.
+describe('G-3: git push force via + refspec', () => {
+
+  // --- Positive: + refspec prefix is a force-push ---
+  test('git push origin +main → deny (git-force-push)', () => {
+    const r = evaluateDangerous(bashCtx('git push origin +main'));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('git-force-push');
+  });
+  test('git push origin +feature/login → deny (+ prefix on slashed branch)', () => {
+    expect(evaluateDangerous(bashCtx('git push origin +feature/login'))?.kind).toBe('deny');
+  });
+  test('git push origin +HEAD:main → deny (+ prefix on src:dst refspec)', () => {
+    expect(evaluateDangerous(bashCtx('git push origin +HEAD:main'))?.kind).toBe('deny');
+  });
+  test('git push origin +refs/heads/main → deny (+ prefix on full ref path)', () => {
+    expect(evaluateDangerous(bashCtx('git push origin +refs/heads/main'))?.kind).toBe('deny');
+  });
+  test('git push origin main +experimental → deny (forced second refspec)', () => {
+    expect(evaluateDangerous(bashCtx('git push origin main +experimental'))?.kind).toBe('deny');
+  });
+  test('git push --set-upstream origin +main → deny (+ refspec after an option)', () => {
+    expect(evaluateDangerous(bashCtx('git push --set-upstream origin +main'))?.kind).toBe('deny');
+  });
+  test("git push origin '+main' → deny (single-quoted refspec is still literal +)", () => {
+    expect(evaluateDangerous(bashCtx("git push origin '+main'"))?.kind).toBe('deny');
+  });
+  test('git push origin "+feature/x" → deny (double-quoted refspec is still literal +)', () => {
+    expect(evaluateDangerous(bashCtx('git push origin "+feature/x"'))?.kind).toBe('deny');
+  });
+
+  // --- Same tier as -f / --force: reconsider (overridable), not hard-deny ---
+  test('git push origin +main → reconsider tier (override instruction present)', () => {
+    const r = evaluateDangerous(bashCtx('git push origin +main'));
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('Rosetta-AI-reviewed');
+    expect(reason).not.toContain('HARD-DENY');
+  });
+
+  // --- Guards: pushes without a leading + refspec are unaffected ---
+  test('git push origin main → null (no force indicator)', () => {
+    expect(evaluateDangerous(bashCtx('git push origin main'))).toBeNull();
+  });
+  test('git push origin main:main → null (colon refspec, no + prefix)', () => {
+    expect(evaluateDangerous(bashCtx('git push origin main:main'))).toBeNull();
+  });
+  test('git push origin feature/main → null (slash in branch, no +)', () => {
+    expect(evaluateDangerous(bashCtx('git push origin feature/main'))).toBeNull();
+  });
+  test('git push origin feature+x → null (+ inside name, not a leading prefix)', () => {
+    expect(evaluateDangerous(bashCtx('git push origin feature+x'))).toBeNull();
+  });
+  test('git push +main → null (+main is the repository arg, not a refspec — handled separately)', () => {
+    expect(evaluateDangerous(bashCtx('git push +main'))).toBeNull();
+  });
+  test('git push origin `+main` → null (backticks are command substitution, not a quoted refspec)', () => {
+    expect(evaluateDangerous(bashCtx('git push origin `+main`'))).toBeNull();
+  });
+});
+
+// G-4: SQL destructive coverage is narrow. Beyond DROP TABLE/DATABASE/SCHEMA and
+// TRUNCATE, these must be blocked: DELETE without WHERE, UPDATE without WHERE,
+// DROP INDEX, DROP VIEW, ALTER TABLE … DROP COLUMN. A valid WHERE clause makes a
+// DELETE/UPDATE safe and must NOT be flagged. SQL appears both as written content
+// (.sql files, MCP query fields) and inside shell commands (psql -c "…"), so both
+// the content and bash surfaces are exercised. These currently FAIL.
+describe('G-4: SQL destructive coverage', () => {
+
+  // --- DELETE without WHERE (mass row deletion) ---
+  test('DELETE FROM users (no WHERE) → deny', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'DELETE FROM users'))?.kind).toBe('deny');
+  });
+  test('delete from users (lowercase, no WHERE) → deny', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'delete from users'))?.kind).toBe('deny');
+  });
+  test('DELETE FROM a; DELETE FROM b WHERE id=1 → deny (first stmt lacks WHERE)', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'DELETE FROM a; DELETE FROM b WHERE id=1'))?.kind).toBe('deny');
+  });
+  test('DELETE FROM users WHERE id = 5 → null (valid WHERE)', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'DELETE FROM users WHERE id = 5'))).toBeNull();
+  });
+
+  // --- UPDATE without WHERE (mass mutation) ---
+  test('UPDATE users SET active = 0 (no WHERE) → deny', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'UPDATE users SET active = 0'))?.kind).toBe('deny');
+  });
+  test('UPDATE users SET active = 0 WHERE id = 5 → null (valid WHERE)', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'UPDATE users SET active = 0 WHERE id = 5'))).toBeNull();
+  });
+
+  // --- DROP INDEX / DROP VIEW ---
+  test('DROP INDEX idx_users_email → deny', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'DROP INDEX idx_users_email'))?.kind).toBe('deny');
+  });
+  test('DROP VIEW active_users → deny', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'DROP VIEW active_users'))?.kind).toBe('deny');
+  });
+
+  // --- ALTER TABLE … DROP COLUMN ---
+  test('ALTER TABLE users DROP COLUMN email → deny', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'ALTER TABLE users DROP COLUMN email'))?.kind).toBe('deny');
+  });
+  test('ALTER TABLE users ADD COLUMN email TEXT → null (ADD, not DROP)', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'ALTER TABLE users ADD COLUMN email TEXT'))).toBeNull();
+  });
+
+  // --- Other surfaces: MCP query field and shell (psql -c) ---
+  test('MCP postgres execute_query: DELETE FROM users (no WHERE) → deny', () => {
+    expect(evaluateDangerous(mcpCtx('mcp__postgres__execute_query', { query: 'DELETE FROM users' }))?.kind).toBe('deny');
+  });
+  test('bash psql -c "UPDATE accounts SET balance = 0" → deny', () => {
+    expect(evaluateDangerous(bashCtx('psql -c "UPDATE accounts SET balance = 0"'))?.kind).toBe('deny');
+  });
+  test('bash psql -c "DELETE FROM logs WHERE created < now()" → null (valid WHERE)', () => {
+    expect(evaluateDangerous(bashCtx('psql -c "DELETE FROM logs WHERE created < now()"'))).toBeNull();
+  });
+
+  // --- General guard: a plain SELECT is not destructive ---
+  test('SELECT * FROM users → null', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'SELECT * FROM users'))).toBeNull();
+  });
+});
+
+// G-5: environment files matched by name pattern. Beyond `.env` and `.env.<suffix>`,
+// a file named `<anything>.env` (production.env, staging.env, app.env) holds the
+// same secrets and must be blocked. But `.env` as a mere substring in an unrelated
+// extension (`.environment`, `foo.envx`, `prod.envfile`) must NOT be flagged.
+// These positives currently FAIL — secret-env is anchored as ^\.env(?:\..+)?$.
+describe('G-5: <anything>.env files blocked by name', () => {
+
+  // --- Positive: <prefix>.env is a secret env file ---
+  test('production.env → deny (secret-env)', () => {
+    const r = evaluateDangerous(writeCtx('/proj/production.env', 'PORT=8080'));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('secret-env');
+  });
+  test('staging.env → deny', () => {
+    expect(evaluateDangerous(writeCtx('/proj/staging.env', 'PORT=8080'))?.kind).toBe('deny');
+  });
+  test('app.env → deny', () => {
+    expect(evaluateDangerous(writeCtx('/proj/app.env', 'PORT=8080'))?.kind).toBe('deny');
+  });
+  test('nested path config/production.env → deny', () => {
+    expect(evaluateDangerous(writeCtx('/proj/config/production.env', 'PORT=8080'))?.kind).toBe('deny');
+  });
+  test('Edit prod.env → deny (path checked on edit too)', () => {
+    expect(evaluateDangerous(editCtx('/proj/prod.env', 'PORT=8080'))?.kind).toBe('deny');
+  });
+  test('MCP write_file path production.env → deny', () => {
+    expect(evaluateDangerous(mcpCtx('mcp__filesystem__write_file', { path: 'production.env', content: 'PORT=8080' }))?.kind).toBe('deny');
+  });
+
+  // --- Regression anchor: the existing .env family still blocks ---
+  test('.env → still deny', () => {
+    expect(evaluateDangerous(writeCtx('/proj/.env', 'PORT=8080'))?.kind).toBe('deny');
+  });
+
+  // --- Guards: `.env` as a substring of another extension must NOT match ---
+  test('.environment → null (.env is a prefix of the extension, not the extension)', () => {
+    expect(evaluateDangerous(writeCtx('/proj/.environment', 'PORT=8080'))).toBeNull();
+  });
+  test('foo.envx → null (.envx is not .env)', () => {
+    expect(evaluateDangerous(writeCtx('/proj/foo.envx', 'PORT=8080'))).toBeNull();
+  });
+  test('prod.envfile → null (.envfile is not .env)', () => {
+    expect(evaluateDangerous(writeCtx('/proj/prod.envfile', 'PORT=8080'))).toBeNull();
+  });
+  test('environment.ts → null (no .env extension)', () => {
+    expect(evaluateDangerous(writeCtx('/proj/environment.ts', 'export const x = 1;'))).toBeNull();
+  });
+});
+
+// G-6: when a denied Bash command, MCP shell call, or path match embeds a value
+// that matches a secret pattern, that value must be redacted in the deny reason
+// (today only the content branch redacts; bash/path/MCP-shell echo the secret raw).
+// A deny whose evidence contains NO secret is unaffected — evidence stays verbatim.
+describe('G-6: secrets redacted in bash / path / MCP-shell deny evidence', () => {
+  const AWS = 'AKIAIOSFODNN7EXAMPLE';
+
+  test('bash: dangerous command embedding an AWS key → secret redacted, danger still shown', () => {
+    const r = evaluateDangerous(bashCtx(`export AWS_KEY=${AWS} && rm -rf /tmp/x`));
+    expect(r?.kind).toBe('deny');
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).not.toContain(AWS);       // secret scrubbed
+    expect(reason).toContain('<redacted');   // redaction marker present
+    expect(reason).toContain('rm-rf');       // the actual danger is still identified
+  });
+
+  test('MCP shell field embedding an AWS key → secret redacted', () => {
+    const r = evaluateDangerous(mcpCtx('mcp__serena__execute_shell_command', { command: `echo ${AWS}; rm -rf /tmp/x` }));
+    expect(r?.kind).toBe('deny');
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).not.toContain(AWS);
+    expect(reason).toContain('<redacted');
+  });
+
+  test('path match whose path embeds an AWS key → secret redacted, path danger still shown', () => {
+    const r = evaluateDangerous(writeCtx(`/tmp/${AWS}/.env`, 'X=1'));
+    expect(r?.kind).toBe('deny');
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).not.toContain(AWS);
+    expect(reason).toContain('<redacted');
+    expect(reason).toContain('secret-env');
+  });
+
+  // --- Guard: a deny with no secret in evidence is unchanged (verbatim, no redaction) ---
+  test('bash: non-secret dangerous command → evidence shown verbatim', () => {
+    const r = evaluateDangerous(bashCtx('rm -rf /tmp/x'));
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('rm -rf /tmp/x');
+    expect(reason).not.toContain('<redacted');
+  });
+});

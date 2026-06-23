@@ -6,8 +6,22 @@ import {
   DANGEROUS_BASH,
   DANGEROUS_CONTENT,
   DANGEROUS_PATHS,
+  SECRET_VALUE_PATTERNS,
   type DangerPattern,
 } from './patterns';
+
+// Global copies of the secret detectors, for replace-all scrubbing. Built once
+// from `.source` so the stateful `g` flag never leaks back into the shared
+// (`.test()`-based) pattern objects.
+const SECRET_SCRUB_RES = SECRET_VALUE_PATTERNS.map((re) => new RegExp(re.source, 'g'));
+
+/** Replace any secret value found in `text` with `<redacted>`. Returns `text`
+ *  unchanged when it contains no secret, so non-secret evidence is unaffected. */
+function redactSecrets(text: string): string {
+  let out = text;
+  for (const re of SECRET_SCRUB_RES) out = out.replace(re, '<redacted>');
+  return out;
+}
 
 /**
  * Matches the `Rosetta-AI-reviewed` brand token with word boundaries on both sides.
@@ -36,15 +50,22 @@ const MCP_CONTENT_FIELDS = ['content', 'new_string', 'query', 'sql'] as const;
 
 type PatternHit = { result: HookResult; pattern: DangerPattern | null };
 
+/** Render the `Evidence:` line. `redact` (content branch) hides the whole payload;
+ *  otherwise the evidence is shown but with any embedded secret scrubbed first, then
+ *  truncated — so bash/path/MCP-shell denials never echo a credential back. */
+function renderEvidence(pattern: DangerPattern, evidence: string, redact: boolean): string {
+  if (redact) return `<redacted: ${pattern.id}>`;
+  const scrubbed = redactSecrets(evidence);
+  return scrubbed.length > EVIDENCE_MAX ? scrubbed.slice(0, EVIDENCE_MAX) + '…' : scrubbed;
+}
+
 function buildReconsiderDenyMessage(
   pattern: DangerPattern,
   toolKind: string,
   evidence: string,
   redact = false,
 ): string {
-  const evidenceLine = redact
-    ? `<redacted: ${pattern.id}>`
-    : (evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence);
+  const evidenceLine = renderEvidence(pattern, evidence, redact);
 
   const overrideExample =
     toolKind === 'bash'
@@ -74,9 +95,7 @@ function buildHardDenyMessage(
   evidence: string,
   redact = false,
 ): string {
-  const evidenceLine = redact
-    ? `<redacted: ${pattern.id}>`
-    : (evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence);
+  const evidenceLine = renderEvidence(pattern, evidence, redact);
 
   return [
     `HARD-DENY: ${pattern.id} — ${pattern.label} on ${toolKind}`,
