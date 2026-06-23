@@ -46,3 +46,4 @@
 - coding-agents-farm
 - coding-agents-hooks-authoring
 - specflow-use
+- rosetta
