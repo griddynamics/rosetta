@@ -11,9 +11,6 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Contributor** — develops for Rosetta. Path: CONTRIBUTING → OVERVIEW → ARCHITECTURE → DEVELOPER_GUIDE → REVIEW.
 - **Organization** — wants to deploy Rosetta company-wide. Path: INSTALLATION → DEPLOYMENT_GUIDE → SECURITY, reusing ARCHITECTURE.
 
-INSTALLATION and ARCHITECTURE intentionally serve two profiles. Everything else has one home.
-
-
 | File | One-line job | Serves | Profile |
 |---|---|---|---|
 | `README.md` | Orientation + route to the right doc. | Anyone landing on the repo. | Front door (all) |
