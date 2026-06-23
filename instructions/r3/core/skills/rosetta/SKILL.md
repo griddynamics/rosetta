@@ -11,12 +11,12 @@ baseSchema: docs/schemas/skill.md
 
 <prerequisites>
 
-- Orchestration rules, context is loaded USING SKILL `orchestration` 
-- User communication gates is loaded USING SKILL `hitl` 
+- USE SKILL `orchestrator-contract` 
+- USE SKILL `hitl` 
 
 </prerequisites>
 
-<FORBIDDEN severity="CRITICAL" required-sequence-instead="USE SKILL orchestration → USE SKILL hitl → USE FLOW `<workflow TAG>`">
+<FORBIDDEN severity="CRITICAL" required-sequence-instead="USE SKILL orchestrator-contract → USE SKILL hitl → USE FLOW `<workflow TAG>`">
 
 No code, files, scripts, or commands before workflow handoff.
 
