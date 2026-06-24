@@ -181,9 +181,11 @@ function stripQuotes(s: string): string {
  * which are anchored to a basename, e.g. `^id_rsa$`) can be applied without
  * misfiring on arbitrary words. A token is a candidate only if it is:
  *   (a) a redirection target — the file after `>`, `>>`, `>|`, `2>`, … — or
- *   (b) any token containing a `/` (i.e. it actually looks like a path).
- * So `> ~/.ssh/id_rsa` and `cat foo/.env` are checked, but a bare `id_rsa`
- * mentioned in a commit message (no slash, not a redirect target) is not.
+ *   (b) any token containing a `/` (i.e. it actually looks like a path), or
+ *   (c) an UNQUOTED leading-dot token (`vim .env`, `cat .pgpass`).
+ * So `> ~/.ssh/id_rsa`, `cat foo/.env` and a bare `vim .env` are checked, but a
+ * bare `id_rsa` in a commit message — and a `.env` inside a quoted string — are
+ * not, avoiding false hard-denies on names that merely appear in text.
  */
 function extractPathCandidates(command: string): string[] {
   const candidates = new Set<string>();
@@ -200,6 +202,16 @@ function extractPathCandidates(command: string): string[] {
   for (const raw of command.split(/[\s;&|()`]+/)) {
     const tok = stripQuotes(raw).replace(/^[<>]+/, '');
     if (tok.includes('/')) candidates.add(tok);
+  }
+
+  // (c) Bare leading-dot tokens used as a direct argument (e.g. `vim .env`,
+  //     `cat .pgpass`). Quoted regions are blanked first so a sensitive name
+  //     inside a commit message / string (`git commit -m "fix .env"`) is NOT
+  //     matched — keeping these (often hard-deny) names free of false positives.
+  const unquoted = command.replace(/"[^"]*"|'[^']*'/g, ' ');
+  for (const raw of unquoted.split(/[\s;&|()`]+/)) {
+    const tok = raw.replace(/^[<>]+/, '');
+    if (tok.startsWith('.') && !tok.includes('/')) candidates.add(tok);
   }
 
   return [...candidates];

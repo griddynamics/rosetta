@@ -979,6 +979,18 @@ describe('G-4: SQL destructive coverage', () => {
   test('UPDATE … SET col = \'a;b\' WHERE id = 5 → deny (known false positive: ; inside string)', () => {
     expect(evaluateDangerous(writeCtx('/m.sql', "UPDATE t SET col = 'a;b' WHERE id = 5"))?.kind).toBe('deny');
   });
+
+  // KNOWN LIMITATION (characterization — FALSE NEGATIVES). The WHERE search is a
+  // flat scan, so a WHERE that does not govern the statement (inside a subquery or
+  // a comment) is mistaken for the statement's own clause and the genuinely
+  // destructive statement is NOT flagged. Pinned so a future SQL-aware fix is
+  // noticed; if fixed, these should flip to `?.kind).toBe('deny')`.
+  test('UPDATE … SET x=(SELECT … WHERE …) with no outer WHERE → null (known FN: subquery WHERE)', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'UPDATE t SET x = (SELECT y FROM z WHERE z.id = 1)'))).toBeNull();
+  });
+  test('DELETE FROM users -- WHERE never → null (known FN: WHERE only in a comment)', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', 'DELETE FROM users -- WHERE never'))).toBeNull();
+  });
 });
 
 // G-5: environment files matched by name pattern. Beyond `.env` and `.env.<suffix>`,
@@ -1159,5 +1171,61 @@ describe('G-6 × G-1: secrets redacted on shell path/content deny routes', () =>
     const reason = (r as {kind:'deny';reason:string}).reason;
     expect(reason).toContain('ssh-private-key');
     expect(reason).not.toContain(AWS);
+  });
+});
+
+// G-2 follow-up: quoted flags. GNU shells strip quotes, so `rm "-rf" /` passes
+// `-rf` to rm. The recursive/force markers must therefore accept a flag token
+// preceded by a quote, not only whitespace (parallels the G-3 quoted-refspec case).
+describe('G-2 follow-up: rm with quoted flags', () => {
+  test('rm "-rf" /tmp/x → deny (double-quoted combined flags)', () => {
+    expect(evaluateDangerous(bashCtx('rm "-rf" /tmp/x'))?.kind).toBe('deny');
+  });
+  test("rm '-rf' / → hard-deny (single-quoted flags, root)", () => {
+    const r = evaluateDangerous(bashCtx("rm '-rf' /"));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('HARD-DENY');
+  });
+  test('rm "-r" "-f" /tmp/x → deny (quoted separate flags)', () => {
+    expect(evaluateDangerous(bashCtx('rm "-r" "-f" /tmp/x'))?.kind).toBe('deny');
+  });
+  test("rm '--recursive' '--force' /tmp/x → deny (quoted long flags)", () => {
+    expect(evaluateDangerous(bashCtx("rm '--recursive' '--force' /tmp/x"))?.kind).toBe('deny');
+  });
+  // Guard: a quoted normal filename (no flag pair) must not be flagged.
+  test('rm "report-final.pdf" → null (quoted filename, not flags)', () => {
+    expect(evaluateDangerous(bashCtx('rm "report-final.pdf"'))).toBeNull();
+  });
+});
+
+// G-1 follow-up: a sensitive dotfile referenced as a bare argument (no slash, no
+// redirect) — `vim .env`, `cat .pgpass`. Caught via UNQUOTED leading-dot tokens, so
+// the same name inside a quoted commit message / string is NOT hard-denied.
+describe('G-1 follow-up: bare dotfile arguments', () => {
+  test('vim .env → deny (secret-env)', () => {
+    const r = evaluateDangerous(bashCtx('vim .env'));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('secret-env');
+  });
+  test('cat .pgpass → deny (pgpass)', () => {
+    expect(evaluateDangerous(bashCtx('cat .pgpass'))?.kind).toBe('deny');
+  });
+  test('rm .env → deny (secret-env)', () => {
+    expect(evaluateDangerous(bashCtx('rm .env'))?.kind).toBe('deny');
+  });
+  test('echo x > ~/.ssh/id_rsa already covered; bare .env.local → deny', () => {
+    expect(evaluateDangerous(bashCtx('vim .env.local'))?.kind).toBe('deny');
+  });
+
+  // Guards: a sensitive name inside a QUOTED string (e.g. a commit message) must
+  // NOT be hard-denied, and unrelated dotfiles must pass.
+  test('git commit -m "fix .env loading" → null (.env inside a quoted message)', () => {
+    expect(evaluateDangerous(bashCtx('git commit -m "fix .env loading"'))).toBeNull();
+  });
+  test('git commit -m "update id_rsa docs" → null (still safe after dotfile change)', () => {
+    expect(evaluateDangerous(bashCtx('git commit -m "update id_rsa docs"'))).toBeNull();
+  });
+  test('cat .gitignore → null (dotfile, but not sensitive)', () => {
+    expect(evaluateDangerous(bashCtx('cat .gitignore'))).toBeNull();
   });
 });

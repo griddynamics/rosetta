@@ -8,16 +8,24 @@ const SQL_TRUNCATE_RE = /\btruncate\s+(?:table\s+)?\w+/i;
 // the next `;`) — so `DELETE FROM a; ... b WHERE …` still flags the unguarded
 // first statement, while `DELETE FROM a WHERE …` is left alone.
 //
-// KNOWN LIMITATION (intentional): the `;` boundary is naive — it treats the first
-// `;` as the statement terminator, but `;` is legal inside string literals,
-// quoted identifiers, comments, and dollar-quoted blocks. A `;` embedded BEFORE
-// the WHERE (e.g. `UPDATE t SET c = 'a;b' WHERE id = 5`) shortens the scan window
-// so WHERE is not seen and the (actually safe) statement is flagged. This errs
-// toward a FALSE POSITIVE, never a false negative: an embedded `;` can only make
-// the guard flag MORE, never let an unguarded DELETE/UPDATE through. Combined with
-// the `reconsider` tier (overridable via the marker) that is the safe trade-off.
-// A correct fix needs a SQL lexer (escaped quotes, dollar-quoting, comments), not
-// a regex — out of scope here. See the "known limitation" test for the pinned case.
+// KNOWN LIMITATIONS (intentional — a correct fix needs a SQL lexer, not a regex,
+// which is out of scope here). The WHERE-detection is a flat `\bwhere\b` search
+// bounded by the first `;`, so it is blind to SQL structure in two ways:
+//
+//   (a) `;` inside a string/identifier/comment/dollar-quote. A `;` embedded BEFORE
+//       the WHERE (e.g. `UPDATE t SET c = 'a;b' WHERE id = 5`) shortens the scan
+//       window so WHERE is not seen and the (safe) statement is flagged. This errs
+//       toward a FALSE POSITIVE only — an embedded `;` can never let an unguarded
+//       statement through.
+//
+//   (b) WHERE that does not actually govern the statement — inside a SUBQUERY
+//       (`UPDATE t SET x = (SELECT y FROM z WHERE z.id = 1)`) or a COMMENT
+//       (`DELETE FROM users -- WHERE never`). Here a WHERE exists in the window but
+//       not as the statement's own clause, so the (genuinely destructive) statement
+//       is NOT flagged. This is a FALSE NEGATIVE — danger passes. Accepted as a
+//       known gap on a `reconsider`-tier guard; see the "known limitation" tests.
+//
+// Both directions are pinned by characterization tests so a future change is noticed.
 const SQL_DELETE_NO_WHERE_RE = /\bdelete\s+from\b(?![^;]*\bwhere\b)/i;
 const SQL_UPDATE_NO_WHERE_RE = /\bupdate\s+\S+\s+set\b(?![^;]*\bwhere\b)/i;
 const SQL_DROP_INDEX_VIEW_RE = /\bdrop\s+(?:index|view)\b/i;
@@ -31,10 +39,12 @@ const PEM_PRIVATE_KEY_RE = /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE K
 // so the recursive flag (-r/-R/--recursive) and the force flag (-f/--force) may
 // appear combined (-rf), separate, in any order, at any distance, and on either
 // side of the target path. We require BOTH a recursive marker AND a force marker
-// somewhere in the command (each anchored to a whitespace-preceded flag token so
-// a dash inside a path like ./my-file is not mistaken for a flag).
-const RM_RECURSIVE_LA = String.raw `(?=.*\s(?:--recursive\b|-[a-zA-Z]*[rR]))`;
-const RM_FORCE_LA = String.raw `(?=.*\s(?:--force\b|-[a-zA-Z]*f))`;
+// somewhere in the command. Each flag token is anchored to a preceding whitespace
+// OR quote (`'`/`"`): the quote covers `rm "-rf" /` (the shell strips quotes and
+// passes `-rf` to rm), while still treating a dash inside a path like ./my-file —
+// preceded by a letter — as part of the name, not a flag.
+const RM_RECURSIVE_LA = String.raw `(?=.*(?:\s|['"])(?:--recursive\b|-[a-zA-Z]*[rR]))`;
+const RM_FORCE_LA = String.raw `(?=.*(?:\s|['"])(?:--force\b|-[a-zA-Z]*f))`;
 const RM_RF_GUARD = RM_RECURSIVE_LA + RM_FORCE_LA;
 // A root operand: a standalone `/` (or `/*`), i.e. a slash followed by space/end/`*`.
 const RM_ROOT_TARGET = String.raw `.*\s\/(?:\*|\s|$)`;
