@@ -1,12 +1,12 @@
 # Vendor binding: Confluence (documentation)
 
-Loaded on demand by `discovery` SKILL.md `<data_collection>` step 2 when the phase resolves the `confluence` binding. Merges the MCP transport (page fetch / CQL search / child pages) AND the harvesting discipline (direct-URL vs search precedence, child-page traversal, truncation, URL normalization, permission fallbacks) into one binding. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
+Loaded on demand by `discovery` SKILL.md `<data_collection>` when the phase resolves the `confluence` binding. Merges the MCP transport (page fetch / CQL search / child pages) AND the harvesting discipline (direct-URL vs search precedence, child-page traversal, truncation, URL normalization, permission fallbacks) into one binding. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
 
 **MCP method names below (`confluence_get_page`, `confluence_get_page_children`, `confluence_search`, and the create/update/comment write calls) are illustrative of one common Confluence MCP server — not a hardcoded contract.** Resolve the actual tool from the configured Confluence MCP binding; if it names operations differently, map by capability: page-fetch, child-page listing, CQL/text search, and (write — forbidden in this read-only binding) create/update/comment.
 
 ---
 
-## Input parsing (SKILL step 1)
+## Input parsing
 
 The phase supplies one input form; validate shape BEFORE any MCP call (malformed input → failure path "input-unresolvable"; host mismatch → "cross-domain URL"). Never retrieve against malformed input (it produces silent zero-result branches that look like "no pages found").
 

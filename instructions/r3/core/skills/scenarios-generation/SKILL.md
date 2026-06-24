@@ -1,6 +1,6 @@
 ---
 name: scenarios-generation
-description: Rosetta — design test scenarios, cases, and specs from requirements: GWT API specs, TMS-format cases, config-resolved exports.
+description: To design test scenarios, cases, and specs from requirements and contracts.
 license: Apache-2.0
 tags: []
 baseSchema: docs/schemas/skill.md
