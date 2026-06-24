@@ -56,7 +56,7 @@ Rosetta becomes a **user-invoked `/rosetta` skill**. Invoking it carries user au
 
 - Delete the adherence / anti-rationalization / red-flags prose (do not just compress it).
 - No per-request classification. Only `/rosetta` requests get the full Rosetta treatment; a plain request runs as a normal agent.
-- `/rosetta` procedure: load context → select workflow → hand off. No persistence machinery; the workflow + plan carry execution.
+- `/rosetta` procedure: prereqs (`orchestrator-contract`, `hitl`) handle context → select workflow → hand off. No persistence machinery; the workflow + plan carry execution.
 
 ## Target always-on footprint
 
@@ -165,7 +165,7 @@ The `Rosetta-v3-skill-refactoring-Main.drawio` diagram is authoritative; its tru
 | **orchestration** (skill) | `orchestrator-contract` + `core-policy.subagents_orchestration_rules` + `plugin-files-mode` OPERATION_MANAGER block (how-to-use) + Phase-0 (orchestrator init) + `execution-policy` (planning/doc-sync, validation, memory) + "workflows fully executed" + sizing examples + size≠task + larger models + don't-limit-thinking | |
 | **load-project-context** (skill) ✅ done | `load-context` body + `bootstrap-rosetta-files` **full roster** + `hitl` prereq | built + registered; leaf; priorities/merge → always-on; `load-context` removed in rename sweep |
 | **subagent-directives** (skill) | `subagent-contract` + (ref) `load-context-instructions` + optional `execution-controller` + Phase-0 (subagent `next --target`) | |
-| **rosetta** (skill, `/rosetta`) ✅ done | `load-workflow` + `execution-policy` `FORBIDDEN`/no-jump-to-code | always loads `orchestration` |
+| **rosetta** (skill, `/rosetta`) ✅ done | `load-workflow` + `execution-policy` `FORBIDDEN`/no-jump-to-code + r2 bootstrap (planning-mode storage guard) | always loads `orchestration` |
 | **DELETE → archive** | `plugin-files-mode` `EXTREMELY_IMPORTANT` (most) + `CRITICAL_RED_FLAGS` | → `bootstrap-removed.md`; salvage EI#9–10→always-on (`bootstrap-alwayson`), EI#13–14→orchestration/execution-controller, EI#19→hitl |
 | **superseded** | `load-context-instructions` (→ split: mode-detect inlined + `o-`/`sd-` MCP-only asset), `load-workflow` (→ absorbed into `rosetta`) | originals removed only after replacements approved & working |
 
