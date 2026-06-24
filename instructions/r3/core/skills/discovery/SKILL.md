@@ -1,6 +1,6 @@
 ---
 name: discovery
-description: Rosetta — gather source artifacts from Jira/Confluence/TestRail into a caller-defined raw-context artifact. Read-only.
+description: To gather source artifacts from Jira/Confluence/TestRail into a caller-defined raw-context artifact. Read-only.
 license: Apache-2.0
 tags: []
 baseSchema: docs/schemas/skill.md

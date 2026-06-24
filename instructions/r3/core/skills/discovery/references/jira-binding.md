@@ -1,12 +1,12 @@
 # Vendor binding: Jira (issue / TMS)
 
-Loaded on demand by `discovery` SKILL.md `<data_collection>` step 2 when the phase resolves the `jira` binding. Holds the Jira-specific MCP call shapes, input parsing, field map, redaction targets, failure paths, and validation items. The base SKILL.md owns the general method (extract → normalize → redact → write) and the phase-is-SSoT rule — not restated here.
+Loaded on demand by `discovery` SKILL.md `<data_collection>` when the phase resolves the `jira` binding. Holds the Jira-specific MCP call shapes, input parsing, field map, redaction targets, failure paths, and validation items. The base SKILL.md owns the general method (extract → normalize → redact → write) and the phase-is-SSoT rule — not restated here.
 
 **MCP method names below (`jira_get_issue`, `jira_search_fields`, and the create/update/transition/comment write calls) are illustrative of one common Jira MCP server — not a hardcoded contract.** Resolve the actual tool from the configured Jira MCP binding; if it names operations differently, map by capability: get-issue (with fields/expand/comment-limit), field-schema lookup, and (write — forbidden in this read-only binding) issue create/update/transition/comment.
 
 ---
 
-## Input parsing (SKILL step 1)
+## Input parsing
 
 The phase supplies a ticket key or URL. Resolve the canonical key:
 
@@ -14,7 +14,7 @@ The phase supplies a ticket key or URL. Resolve the canonical key:
 - **URL** `https://jira.company.com/browse/PROJ-123` or `https://*.atlassian.net/browse/PROJ-123` → parse the `PROJ-NNN` segment.
 - **Ambiguous / missing / malformed** → stop per failure path "input-unresolvable". Do NOT guess or pick an arbitrary key.
 
-## Retrieval (SKILL step 3)
+## Retrieval (SKILL `extract` step)
 
 ```
 # illustrative — call the configured Jira MCP's get-issue tool; this literal name is not a contract
@@ -57,11 +57,11 @@ Per-field branch: present + non-empty → include; empty/null → `None` + gap; 
 - **Comments (≤10):** 2 shown — @dev (2026-05-01): "repro confirmed on staging"
 ```
 
-## Redaction targets (SKILL step 4 → `sensitive-data`)
+## Redaction targets (SKILL `redact` step → `sensitive-data`)
 
 Highest-risk Jira fields: the **description** and each **comment body** (tickets routinely embed credentials + PII in stack-trace dumps and customer reports). Scan every captured value and redact per the canonical scope — `qa-knowledge/references/redaction-scope.md` (sensitive values, shape-preserving placeholders, and the pre-emit re-scan list) — applied via `sensitive-data`. Structural content (feature names, endpoint paths, methods, status codes, field names, schema shapes) stays verbatim. Record each redaction in the artifact's redaction section.
 
-## Failure paths (SKILL step 3)
+## Failure paths (SKILL `extract` step)
 
 - **Input unresolvable** (no/malformed key, URL not a recognizable Jira pattern) → stop, report `discovery/jira: ticket key unresolvable from input "<input>"`, ask the phase/user for a canonical `PROJ-NNN` or URL. Do NOT guess.
 - **MCP transport error** (timeout / 5xx / connection drop) → retry once; second failure → stop, report the error, ask to verify Jira MCP configuration.

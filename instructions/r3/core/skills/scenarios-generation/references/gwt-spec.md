@@ -2,15 +2,15 @@
 
 Loaded on demand by the `<gwt_spec>` mode of `scenarios-generation/SKILL.md`:
 
-- **Step 2** loads the scenario-taxonomy catalog when designing coverage.
-- **Step 3** loads the **ATC template** when writing each Given-When-Then entry.
-- **Step 4** loads the **Shared Utilities template** when identifying reusable elements.
+- The **Scenario taxonomy** step loads the scenario-taxonomy catalog when designing coverage.
+- The **Write specs** step loads the **ATC template** when writing each Given-When-Then entry.
+- The **File mapping + shared utilities** step loads the **Shared Utilities template** when identifying reusable elements.
 
 Redaction is NOT restated here — apply `sensitive-data` per SKILL `<core_concepts>` to every value written. The SKILL keeps the GATE, per-value honesty rule, coverage rule, and validation; this file holds the heavier taxonomy + template material so the resident prompt stays lean.
 
 ---
 
-## Scenario Taxonomy Catalog — used by SKILL step 2
+## Scenario Taxonomy Catalog — used by the SKILL `Scenario taxonomy` step
 
 For each test case, generate 1-N scenarios across these categories (priority defaults in parentheses):
 
@@ -41,7 +41,7 @@ For each test case, generate 1-N scenarios across these categories (priority def
 - Empty strings vs null vs missing
 - Large payloads (near limits)
 
-**Execution order** (emit in step 4): auth tests → CRUD happy paths → validation/negative → edge cases. Establish auth works before everything else; verify boundaries last.
+**Execution order** (emit in the SKILL `File mapping + shared utilities` step): auth tests → CRUD happy paths → validation/negative → edge cases. Establish auth works before everything else; verify boundaries last.
 
 **Scenario-count guardrail:** if total scenarios exceed ~50, do NOT auto-prune — ask the calling phase whether to deprioritize P2/P3, split the spec across files, or accept the volume. Scope is the phase's decision.
 
@@ -57,7 +57,7 @@ For each test case, generate 1-N scenarios across these categories (priority def
 
 ---
 
-## ATC Template (Given-When-Then) — used by SKILL step 3
+## ATC Template (Given-When-Then) — used by the SKILL `Write specs` step
 
 One entry per scenario, written into the phase's spec artifact.
 
@@ -125,7 +125,7 @@ One entry per scenario, written into the phase's spec artifact.
 
 ---
 
-## Shared Utilities Template — used by SKILL step 4
+## Shared Utilities Template — used by the SKILL `File mapping + shared utilities` step
 
 Written into the spec artifact's `## Shared Utilities Required` section.
 

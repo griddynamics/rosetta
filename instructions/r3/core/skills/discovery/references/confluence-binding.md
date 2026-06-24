@@ -20,7 +20,7 @@ The phase supplies one input form; validate shape BEFORE any MCP call (malformed
 
 Canonical storage form for any URL is `/spaces/<KEY>/pages/<numeric-id>`. When the supplied form differs (display/short), store the canonical form AND record the original-form in the page entry so reviewers can trace what was pasted.
 
-## Retrieval & harvesting discipline (SKILL step 3)
+## Retrieval & harvesting discipline (SKILL `extract` step)
 
 **Direct-URL path (preferred when URLs/IDs supplied):**
 1. `confluence_get_page(page_id, convert_to_markdown=True, include_metadata=True)` for each supplied page.
@@ -57,11 +57,11 @@ Refunds are issued via POST /api/v1/orders/{id}/refund; a paid order transitions
 - Refund Edge Cases (/spaces/PROJ/pages/12346)
 ```
 
-## Redaction targets (SKILL step 4 → `sensitive-data`)
+## Redaction targets (SKILL `redact` step → `sensitive-data`)
 
 Highest-risk Confluence content: **page bodies** (pasted runbooks/ops notes embed real secrets; incident write-ups embed customer PII). Scan every captured value and redact per the canonical scope — `qa-knowledge/references/redaction-scope.md` — applied via `sensitive-data`. Structural content (page titles, headings, business-rule prose, schema field names, endpoint paths, methods, status codes, in-site link targets, glossary entries) stays verbatim. Record each redaction in the artifact's redaction section.
 
-## Failure paths (SKILL step 3)
+## Failure paths (SKILL `extract` step)
 
 - **Input unresolvable** (no URL/ID/terms, or URL unparseable) → stop, report `discovery/confluence: input unresolvable — supply page URL/ID or search terms`, ask. Do NOT guess.
 - **MCP not configured / not authenticated** → stop, report `discovery/confluence: Confluence MCP not configured or not authenticated — verify MCP setup`. Do NOT emit a zero-page artifact and call it done.

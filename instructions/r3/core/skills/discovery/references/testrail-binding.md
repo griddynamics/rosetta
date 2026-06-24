@@ -1,12 +1,12 @@
 # Vendor binding: TestRail (TMS / test case)
 
-Loaded on demand by `discovery` SKILL.md `<data_collection>` step 2 when the phase resolves the `testrail` binding. Holds the TestRail-specific MCP call shapes, input parsing, field map, redaction targets, failure paths, and validation items. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
+Loaded on demand by `discovery` SKILL.md `<data_collection>` when the phase resolves the `testrail` binding. Holds the TestRail-specific MCP call shapes, input parsing, field map, redaction targets, failure paths, and validation items. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
 
 **MCP method names below (`mcp_testrail_get_case`, `mcp_testrail_get_case_fields`, and the update/add/delete write calls) are illustrative of one common TestRail MCP server — not a hardcoded contract.** Resolve the actual tool from the configured TestRail MCP binding; if it names operations differently, map by capability: get-case, case-field-schema lookup, and (write — forbidden in this read-only binding) case update/add/delete.
 
 ---
 
-## Input parsing (SKILL step 1)
+## Input parsing
 
 The phase supplies a test case ID or URL. Resolve the numeric case ID:
 
@@ -14,7 +14,7 @@ The phase supplies a test case ID or URL. Resolve the numeric case ID:
 - **URL** `https://*.testrail.io/index.php?/cases/view/N` or similar → parse the trailing numeric ID.
 - **Ambiguous / missing / malformed** → stop per failure path "input-unresolvable". Do NOT guess or pick an arbitrary ID.
 
-## Retrieval (SKILL step 3)
+## Retrieval (SKILL `extract` step)
 
 ```
 # illustrative — call the configured TestRail MCP's get-case tool; this literal name is not a contract
@@ -51,11 +51,11 @@ Per-field branch: present + non-empty → include (redact first if sensitive); e
 - **Expected Overall Result:** order shows `REFUNDED`; refund recorded
 ```
 
-## Redaction targets (SKILL step 4 → `sensitive-data`)
+## Redaction targets (SKILL `redact` step → `sensitive-data`)
 
 Highest-risk TestRail fields: **step text, preconditions, custom fields, and test-data examples** — these re-emit downstream (`raw-data.md` → requirements / test-scenarios / authoring, and via the `scenarios-generation` TestRail export binding back into the shared TestRail project). Scan every captured value and redact per the canonical scope — `qa-knowledge/references/redaction-scope.md` — applied via `sensitive-data`. Structural content (action verbs, expected behaviors, endpoint paths, methods, status codes, field names, schema shapes) stays verbatim. Record each redaction in the artifact's redaction section.
 
-## Failure paths (SKILL step 3)
+## Failure paths (SKILL `extract` step)
 
 - **Input unresolvable** (no/malformed ID, URL not a recognizable TestRail pattern) → stop, report `discovery/testrail: case ID unresolvable from input "<input>"`, ask for a clean numeric ID or canonical URL. Do NOT guess.
 - **MCP transport error** (timeout / 5xx / drop) → retry once same `case_id`; second failure → stop, report the error, ask to verify TestRail MCP configuration.
