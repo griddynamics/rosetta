@@ -55,7 +55,9 @@ Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).
 Install Rosetta using either plugins or MCP. Plugins are the recommended path for supported IDEs; use MCP when you need server-based or air-gapped setup.
 
 - **Plugins:** [Install Rosetta plugins](PLUGINS.md) **Recommended**
+  Claude Code · Cursor · GitHub Copilot (VS Code + JetBrains) · Codex
 - **MCP:** [Configure Rosetta MCP](MCPs.md)
+  Windsurf · JetBrains Junie · Antigravity · OpenCode · any MCP-compatible agent
 
 Follow the [Quickstart](QUICKSTART.md) to initialize your repository and the next actions.
 
