@@ -688,6 +688,22 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
     expect(reason).not.toContain('DROP TABLE');
   });
 
+  // Pin: MCP sql/query fields are checked for embedded SECRETS too, not only for
+  // destructive SQL — DANGEROUS_CONTENT carries both, and the MCP content-field loop
+  // runs the whole set. (Addresses review note: secrets in query/sql ARE covered.)
+  test('mcp execute_query with an AWS key in the query field → deny (inline-aws-key)', () => {
+    const r = evaluateDangerous(mcpCtx('mcp__postgres__execute_query', { query: "SELECT 'AKIAIOSFODNN7EXAMPLE'" }));
+    expect(r?.kind).toBe('deny');
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('inline-aws-key');
+    expect(reason).not.toContain('AKIAIOSFODNN7EXAMPLE'); // and redacted
+  });
+  test('mcp run with a PEM private key in the sql field → deny (inline-private-key)', () => {
+    const r = evaluateDangerous(mcpCtx('mcp__db__run', { sql: '-- -----BEGIN RSA PRIVATE KEY-----' }));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('inline-private-key');
+  });
+
   test('mcp filesystem write safe content → null', () => {
     expect(evaluateDangerous(mcpCtx(
       'mcp__filesystem__write_file',
@@ -899,7 +915,11 @@ describe('G-3: git push force via + refspec', () => {
   test('git push origin feature+x → null (+ inside name, not a leading prefix)', () => {
     expect(evaluateDangerous(bashCtx('git push origin feature+x'))).toBeNull();
   });
-  test('git push +main → null (+main is the repository arg, not a refspec — handled separately)', () => {
+  // NOT caught by this guard (intentional): with a single positional token, `+main`
+  // is git's REPOSITORY operand, not a refspec, so the refspec lookahead requires a
+  // repository before the `+`-token. Detecting a bare `git push +main` is out of
+  // scope for the refspec guard and tracked as a separate decision — see PR notes.
+  test('git push +main → null (+main is the repository operand; not caught by this guard)', () => {
     expect(evaluateDangerous(bashCtx('git push +main'))).toBeNull();
   });
   test('git push origin `+main` → null (backticks are command substitution, not a quoted refspec)', () => {
