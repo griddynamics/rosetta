@@ -87,23 +87,23 @@ Assemble the minimal always-on into a NEW `rules/bootstrap-alwayson.md`, kept cu
 
 ## The skills
 
-`load-context-instructions` and `load-workflow` are **superseded** (see *Reconciliation with the architecture diagram*): `load-context-instructions` splits per consumer (mode-detection inlined into each SKILL.md + an MCP-only `o-`/`sd-` asset); `load-workflow` is absorbed into `rosetta`. Both originals are removed **only after** their replacements are approved and working.
+`load-context-instructions` and `load-workflow` are **superseded** (see *Reconciliation with the architecture diagram*): `load-context-instructions` dissolves completely — mode declarations inline into each mode file (`bootstrap.md`, `plugin-files-mode.md`, `local-files-mode.md`); `get_context_instructions` (MCP only) loads always-on rules from `bootstrap-alwayson.md`; `load-workflow` is absorbed into `rosetta`. Both originals are removed **only after** their replacements are approved and working.
 
 1. **hitl** *(improve)* — keep every operative gate, dedup the accreted instances, sharpen the core principles. **Merge "grilling"** (relentless post-discovery interview, see appendix) **into the Questioning flow** — woven in, not a bolted-on section — triggered right after discovery results, before planning/implementation. **Also update the `questioning` skill** with the technique.
 2. **load-project-context** ✅ *(done)* — built + registered (`skills.md`); reviewer-passed. `load-context` body + full roster (`<bootstrap_rosetta_files>` kept verbatim) + `hitl` prereq + todo-ledger `<tasks>`; leaf (no next-steps); priorities/merge stay always-on. Absorbs `load-context`; `load-context` removed later in the rename sweep.
-3. **orchestration** *(new)* — `orchestrator-contract` **+** (ref) `load-context-instructions` **+** the `plugin-files-mode` **OPERATION_MANAGER block (how-to-use)** **+** Phase-0 orchestrator init **+** `execution-policy` planning/doc-sync, validation, memory rules **+** "**workflows MUST be fully executed, no skipping**" **+** small/medium/large request examples **+** "**request size ≠ subagent task size**" **+** use of larger models **+** do not limit thinking / open-ended work. Prereqs: project context, hitl, execution-controller, orchestrator-contract.
+3. **orchestration** *(new)* — `orchestrator-contract` **+** the `plugin-files-mode` **OPERATION_MANAGER block (how-to-use)** **+** Phase-0 orchestrator init **+** `execution-policy` planning/doc-sync, validation, memory rules **+** "**workflows MUST be fully executed, no skipping**" **+** small/medium/large request examples **+** "**request size ≠ subagent task size**" **+** use of larger models **+** do not limit thinking / open-ended work. Prereqs: project context, hitl, execution-controller, orchestrator-contract.
 4. **rosetta** ✅ *(done)* — smart router; absorbs `load-workflow`; prereqs: `orchestration`, `hitl`; FORBIDDEN/no-jump-to-code gate. **Always loads `orchestration`.** A calm senior-engineer procedure ("you asked for the rigorous flow — here it is") — re-voiced, not relocated browbeating.
-5. **subagent-directives** *(new)* — `subagent-contract` **+** (ref) `load-context-instructions` **+** **optional** `execution-controller` **+** Phase-0 subagent `next --target`. Prep mechanics detailed below.
+5. **subagent-directives** *(new)* — `subagent-contract` **+** **optional** `execution-controller` **+** Phase-0 subagent `next --target`. Prep mechanics detailed below.
 6. **execution-controller** *(rename of operation-manager)* — `operation_manager` (renamed concept/skill) **+** `execution-policy.operation_manager_rules`. The determinism control's **policy/definition**. The **how-to-use command reference lives in `orchestration`**.
 
 ## Reconciliation with the architecture diagram [decided]
 
 The `Rosetta-v3-skill-refactoring-Main.drawio` diagram is authoritative; its truths, folded in:
 
-- **`load-context-instructions` splits per consumer** (supersedes "stays unchanged") — **mode-detection** inlines into each consuming SKILL.md (`orchestration`, `subagent-directives`); the **MCP-call** part (`get_context_instructions`) becomes a per-consumer asset (`o-load-context-instructions.md`, `sd-load-context-instructions.md`) loaded **only in MCP mode** (not needed in plugin/local).
+- **`load-context-instructions` dissolves completely** (supersedes "stays unchanged" and "splits per consumer") — mode declarations inline into each mode file (`bootstrap.md`, `plugin-files-mode.md`, `local-files-mode.md`); `get_context_instructions` in MCP `bootstrap.md` loads always-on rules from `bootstrap-alwayson.md`.
 - **`rosetta` fully absorbs `load-workflow`** (supersedes "stays separate") — no more links to `load-workflow`; `rosetta` is the smart router.
 - **Entry routing:** `/rosetta` (or plain) → `rosetta` detects the best option and hands off to the workflow. **`/<workflow>` and `/<skill>` bypass `rosetta` entirely** — its skill is never called.
-- **Removal is last** (process I must not skip) — draft the new (AI) → approve → make it work → **only then remove originals**. `load-context`, `load-workflow`, `load-context-instructions`, `operation-manager`, and the contracts stay until their replacement is approved and working.
+- **Removal is last** (process I must not skip) — draft the new (AI) → approve → make it work → **only then remove originals**. `load-context`, `load-workflow`, `load-context-instructions`, `operation-manager`, and the contracts stay until their dissolution/replacement is verified and working.
 - **Todo enforcement is the always-on base**; skills add on top, never restate it (no duplication). Clarify: the **getting-ready/prep** process also MUST use todo tasks.
 - **One composable subagent-delegation template** (`[SMALL+]/[MEDIUM+]/[LARGE]`, with examples) — not three separate templates.
 - **Orchestrator decomposition strategies** (compose AND/OR; distinct from sizing): **map-reduce** · **split by roles** (different engineers) · **delegate-to-plan** (HTN-style progressive planning, orchestrator re-reviews as new facts arrive).
@@ -164,10 +164,10 @@ The `Rosetta-v3-skill-refactoring-Main.drawio` diagram is authoritative; its tru
 | **execution-controller** (skill) | `operation_manager` (renamed) + `execution-policy.operation_manager_rules` | policy/definition |
 | **orchestration** (skill) | `orchestrator-contract` + `core-policy.subagents_orchestration_rules` + `plugin-files-mode` OPERATION_MANAGER block (how-to-use) + Phase-0 (orchestrator init) + `execution-policy` (planning/doc-sync, validation, memory) + "workflows fully executed" + sizing examples + size≠task + larger models + don't-limit-thinking | |
 | **load-project-context** (skill) ✅ done | `load-context` body + `bootstrap-rosetta-files` **full roster** + `hitl` prereq | built + registered; leaf; priorities/merge → always-on; `load-context` removed in rename sweep |
-| **subagent-directives** (skill) | `subagent-contract` + (ref) `load-context-instructions` + optional `execution-controller` + Phase-0 (subagent `next --target`) | |
+| **subagent-directives** (skill) | `subagent-contract` + optional `execution-controller` + Phase-0 (subagent `next --target`) | |
 | **rosetta** (skill, `/rosetta`) ✅ done | `load-workflow` + `execution-policy` `FORBIDDEN`/no-jump-to-code + r2 bootstrap (planning-mode storage guard) | always loads `orchestration` |
 | **DELETE → archive** | `plugin-files-mode` `EXTREMELY_IMPORTANT` (most) + `CRITICAL_RED_FLAGS` | → `bootstrap-removed.md`; salvage EI#9–10→always-on (`bootstrap-alwayson`), EI#13–14→orchestration/execution-controller, EI#19→hitl |
-| **superseded** | `load-context-instructions` (→ split: mode-detect inlined + `o-`/`sd-` MCP-only asset), `load-workflow` (→ absorbed into `rosetta`) | originals removed only after replacements approved & working |
+| **superseded** | `load-context-instructions` (→ dissolved: mode declarations moved to mode files; `get_context_instructions` in MCP `bootstrap.md` loads always-on rules), `load-workflow` (→ absorbed into `rosetta`) | originals removed only after dissolution/replacement verified & working |
 
 ## Mode binding: one alias, different behavior
 
@@ -273,7 +273,6 @@ Skills:
 ## Subagent prep mechanics (detail for skill #5 `subagent-directives`)
 
 - The same minimal bootstrap is injected to every agent. The orchestrator instructs each subagent to load `subagent-directives`; `/rosetta` and role skills load what the orchestrator needs.
-- `load-context-instructions` is **not** removed — it stays separate, referenced (not absorbed). This moves the "if subagent / if not" branch out of the always-on bootstrap into the skill.
 - Subagent prep: minimal seed → read `CONTEXT.md` + `ARCHITECTURE.md` (full) → grep `MEMORY.md` headers → pick up assigned steps via OPERATION_MANAGER `next --target`. No workflow selection, no full project-context load.
 - Add `subagent-directives` to `docs/definitions/skills.md`.
 
