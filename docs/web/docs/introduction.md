@@ -7,7 +7,7 @@ permalink: /docs/introduction/
 <div align="center">
   <img class="intro-logo intro-logo--dark" src="{{ '/assets/brand/rosetta-logo-full-color-white-text.png' | relative_url }}" alt="Rosetta" width="200">
   <img class="intro-logo intro-logo--light" src="{{ '/assets/brand/rosetta-logo-full-color-black-text.png' | relative_url }}" alt="Rosetta" width="200">
-  <p><strong>Meta-prompting, context engineering, and centralized instructions management for AI coding agents</strong></p>
+  <p><strong>Engineering governance and context for AI coding agents — the knowledge a senior engineer would have, compiled into every agent.</strong></p>
   <p>
     <a href="https://pypi.org/project/ims-mcp/"><img src="https://img.shields.io/pypi/v/ims-mcp.svg" alt="PyPI"></a>
     <a href="https://pypi.org/project/ims-mcp/"><img src="https://img.shields.io/pypi/dm/ims-mcp.svg" alt="Downloads"></a>
@@ -23,7 +23,7 @@ permalink: /docs/introduction/
       <video src="https://github.com/user-attachments/assets/6df6e217-3e5c-4691-84ed-7440701a87de" controls width="100%"></video>
     </td>
     <td width="50%">
-      Rosetta is a meta-prompting, context engineering, and centralized instructions management for AI coding agents. It provides structured context - rules, skills, workflows, and sub-agents - guiding AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards. Rosetta accelerates project onboarding by reverse-engineering architecture and domain context, reducing further conversations token consumption and improving the reliability and consistency of AI-generated code.
+      AI coding agents are powerful — but hard to use consistently across a real team. Rosetta is an open-source governance and context layer that compiles your team's engineering knowledge — architecture, conventions, guardrails — into every agent, every session. Works with the tools you already use. Everything stays in your perimeter.
     </td>
   </tr>
 </table>

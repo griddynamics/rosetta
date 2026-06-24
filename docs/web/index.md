@@ -8,7 +8,7 @@ permalink: /
 <section class="hero-main" id="hero">
   <img src="{{ '/assets/brand/rosetta-logo-full-color-white-text.png' | relative_url }}" alt="Rosetta logo" class="hero-logo logo-dark">
   <img src="{{ '/assets/brand/rosetta-logo-full-color-black-text.png' | relative_url }}" alt="Rosetta logo" class="hero-logo logo-light">
-  <h1 class="hero-headline">Meta-prompting, context engineering, and centralized instructions management for AI coding agents</h1>
+  <h1 class="hero-headline">Engineering governance and context for AI coding agents</h1>
   <p class="hero-sub">
     Guides AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards.<br>
     Gives every agent the same context, standards, and guardrails — across any IDE, any team.
@@ -16,6 +16,7 @@ permalink: /
   <div class="hero-actions">
     <a href="#hero" class="button">Get Started</a>
     <a href="{{ '/overview/' | relative_url }}" class="button-ghost">See it in action</a>
+    <a href="{{ '/docs/introduction/' | relative_url }}" class="button-ghost">Documentation</a>
     <a href="https://github.com/griddynamics/rosetta" class="button-ghost" target="_blank" rel="noopener noreferrer">GitHub</a>
   </div>
 </section>
