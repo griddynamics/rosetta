@@ -172,12 +172,67 @@ export function hasAIReviewedMarker(
   });
 }
 
+function stripQuotes(s: string): string {
+  return s.replace(/^['"]+|['"]+$/g, '');
+}
+
+/**
+ * Extract path-like candidates from a shell command so DANGEROUS_PATHS (some of
+ * which are anchored to a basename, e.g. `^id_rsa$`) can be applied without
+ * misfiring on arbitrary words. A token is a candidate only if it is:
+ *   (a) a redirection target — the file after `>`, `>>`, `>|`, `2>`, … — or
+ *   (b) any token containing a `/` (i.e. it actually looks like a path).
+ * So `> ~/.ssh/id_rsa` and `cat foo/.env` are checked, but a bare `id_rsa`
+ * mentioned in a commit message (no slash, not a redirect target) is not.
+ */
+function extractPathCandidates(command: string): string[] {
+  const candidates = new Set<string>();
+
+  // (a) Redirection targets: optional fd, `>`/`>>`, optional `|`, then the target.
+  const redirectRe = /(?:^|[\s;&|()`])\d*>>?\|?\s*("[^"]*"|'[^']*'|[^\s;&|<>()]+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = redirectRe.exec(command)) !== null) {
+    const target = stripQuotes(m[1]);
+    if (target) candidates.add(target);
+  }
+
+  // (b) Any whitespace/operator-delimited token that contains a path separator.
+  for (const raw of command.split(/[\s;&|()`]+/)) {
+    const tok = stripQuotes(raw).replace(/^[<>]+/, '');
+    if (tok.includes('/')) candidates.add(tok);
+  }
+
+  return [...candidates];
+}
+
+/**
+ * Evaluate a shell command string against ALL THREE pattern sets (G-1):
+ *   1. DANGEROUS_BASH  — command patterns (rm, git push --force, …)
+ *   2. DANGEROUS_PATHS — applied to path candidates the command writes to / uses
+ *   3. DANGEROUS_CONTENT — secret values / destructive SQL embedded in the command
+ * Bash patterns are checked first so a command's primary danger (e.g. rm) is the
+ * one surfaced; an embedded secret in the evidence is still scrubbed by renderEvidence.
+ * Shared by the Bash tool and MCP shell fields so both get identical coverage.
+ */
+function evalShellString(command: string, toolKind: string): PatternHit {
+  const bashPattern = matchPatterns(DANGEROUS_BASH, command);
+  if (bashPattern) return { result: buildDenyForPattern(bashPattern, toolKind, command), pattern: bashPattern };
+
+  for (const candidate of extractPathCandidates(command)) {
+    const pathPattern = matchDangerousPath(candidate);
+    if (pathPattern) return { result: buildDenyForPattern(pathPattern, toolKind, command), pattern: pathPattern };
+  }
+
+  const contentPattern = matchPatterns(DANGEROUS_CONTENT, command);
+  if (contentPattern) return { result: buildDenyForPattern(contentPattern, toolKind, command), pattern: contentPattern };
+
+  return { result: null, pattern: null };
+}
+
 function evalBash(ctx: HookContext): PatternHit {
   const command = ctx.toolInput.command;
   if (typeof command !== 'string') return { result: null, pattern: null };
-  const pattern = matchPatterns(DANGEROUS_BASH, command);
-  if (!pattern) return { result: null, pattern: null };
-  return { result: buildDenyForPattern(pattern, 'bash', command), pattern };
+  return evalShellString(command, 'bash');
 }
 
 function evalWrite(ctx: HookContext): PatternHit {
@@ -235,8 +290,8 @@ function evalMcpCall(ctx: HookContext): PatternHit {
   for (const f of MCP_SHELL_FIELDS) {
     const v = input[f];
     if (typeof v === 'string') {
-      const pattern = matchPatterns(DANGEROUS_BASH, v);
-      if (pattern) return { result: buildDenyForPattern(pattern, ctx.toolName, v), pattern };
+      const hit = evalShellString(v, ctx.toolName);
+      if (hit.pattern) return hit;
     }
   }
   for (const f of MCP_PATH_FIELDS) {

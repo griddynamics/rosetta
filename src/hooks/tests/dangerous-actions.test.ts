@@ -968,6 +968,17 @@ describe('G-4: SQL destructive coverage', () => {
   test('SELECT * FROM users → null', () => {
     expect(evaluateDangerous(writeCtx('/m.sql', 'SELECT * FROM users'))).toBeNull();
   });
+
+  // KNOWN LIMITATION (characterization test — pins current behavior, not an ideal).
+  // The WHERE-detection boundary is the first `;`, which is naive about `;` inside
+  // string literals. Here the WHERE is genuinely present, so the statement is SAFE,
+  // but the `;` inside 'a;b' truncates the scan window before WHERE is seen, so the
+  // guard flags it. This is a deliberate FALSE POSITIVE (never a false negative) on
+  // a `reconsider`-tier pattern — see the comment on SQL_DELETE_NO_WHERE_RE.
+  // If a future SQL-aware fix lands, this expectation should flip to `toBeNull()`.
+  test('UPDATE … SET col = \'a;b\' WHERE id = 5 → deny (known false positive: ; inside string)', () => {
+    expect(evaluateDangerous(writeCtx('/m.sql', "UPDATE t SET col = 'a;b' WHERE id = 5"))?.kind).toBe('deny');
+  });
 });
 
 // G-5: environment files matched by name pattern. Beyond `.env` and `.env.<suffix>`,
@@ -1058,5 +1069,95 @@ describe('G-6: secrets redacted in bash / path / MCP-shell deny evidence', () =>
     const reason = (r as {kind:'deny';reason:string}).reason;
     expect(reason).toContain('rm -rf /tmp/x');
     expect(reason).not.toContain('<redacted');
+  });
+});
+
+// G-1: the bash branch (and MCP shell fields) must run ALL THREE pattern sets,
+// not just DANGEROUS_BASH. Writing a secret to a sensitive file or embedding a
+// secret value via the shell must be caught. A sensitive name merely MENTIONED
+// (e.g. "id_rsa" inside a commit message, not used as a path target) must NOT be
+// flagged. These positives currently FAIL — the shell path only sees DANGEROUS_BASH.
+describe('G-1: bash / MCP-shell evaluated against path and content sets', () => {
+  const AWS = 'AKIAIOSFODNN7EXAMPLE';
+
+  // --- Dangerous PATH written via the shell ---
+  test('echo … > ~/.ssh/id_rsa → deny (ssh-private-key)', () => {
+    const r = evaluateDangerous(bashCtx('echo "key" > ~/.ssh/id_rsa'));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('ssh-private-key');
+  });
+  test('printf … > /home/u/.aws/credentials → deny (aws-credentials)', () => {
+    const r = evaluateDangerous(bashCtx('printf %s "$AWS_KEY" > /home/u/.aws/credentials'));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('aws-credentials');
+  });
+  test('echo … >> .env → deny (secret-env)', () => {
+    const r = evaluateDangerous(bashCtx('echo "SECRET=1" >> .env'));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('secret-env');
+  });
+
+  // --- Secret CONTENT embedded in the shell command ---
+  test('echo <AWS key> >> config.ts → deny (inline-aws-key)', () => {
+    const r = evaluateDangerous(bashCtx(`echo "${AWS}" >> config.ts`));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('inline-aws-key');
+  });
+
+  // --- Same blind spot on the MCP shell field ---
+  test('MCP execute_shell_command writing to ~/.ssh/id_rsa → deny (ssh-private-key)', () => {
+    const r = evaluateDangerous(mcpCtx('mcp__serena__execute_shell_command', { command: 'echo k > ~/.ssh/id_rsa' }));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('ssh-private-key');
+  });
+  test('MCP execute_shell_command embedding an AWS key → deny (inline-aws-key)', () => {
+    const r = evaluateDangerous(mcpCtx('mcp__serena__execute_shell_command', { command: `printf '${AWS}' >> creds.ts` }));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('inline-aws-key');
+  });
+
+  // --- Guards: a sensitive NAME mentioned (not a path target) is not flagged ---
+  test('git commit -m "update id_rsa docs" → null (id_rsa mentioned, not a path target)', () => {
+    expect(evaluateDangerous(bashCtx('git commit -m "update id_rsa docs"'))).toBeNull();
+  });
+  test('echo hello > notes.txt → null (safe redirect target)', () => {
+    expect(evaluateDangerous(bashCtx('echo hello > notes.txt'))).toBeNull();
+  });
+  test('cat README.md → null (safe read)', () => {
+    expect(evaluateDangerous(bashCtx('cat README.md'))).toBeNull();
+  });
+});
+
+// G-6 × G-1: G-1 added two new shell deny routes (deny via the PATH set and via the
+// CONTENT set), which did not exist when G-6 was written. The evidence on those
+// routes is still the command string, so an embedded secret must remain redacted.
+// These lock that in (regression — the fix already covers them via renderEvidence).
+describe('G-6 × G-1: secrets redacted on shell path/content deny routes', () => {
+  const AWS = 'AKIAIOSFODNN7EXAMPLE';
+
+  test('bash denied for a PATH match still redacts an embedded secret', () => {
+    const r = evaluateDangerous(bashCtx(`printf '${AWS}' > ~/.ssh/id_rsa`));
+    expect(r?.kind).toBe('deny');
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('ssh-private-key'); // path danger still identified
+    expect(reason).not.toContain(AWS);           // secret scrubbed from evidence
+    expect(reason).toContain('<redacted');
+  });
+
+  test('bash denied for a CONTENT (secret) match does not echo the secret', () => {
+    const r = evaluateDangerous(bashCtx(`echo "${AWS}" >> config.ts`));
+    expect(r?.kind).toBe('deny');
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('inline-aws-key');
+    expect(reason).not.toContain(AWS);
+    expect(reason).toContain('<redacted');
+  });
+
+  test('MCP shell field denied for a PATH match still redacts an embedded secret', () => {
+    const r = evaluateDangerous(mcpCtx('mcp__serena__execute_shell_command', { command: `printf '${AWS}' > ~/.ssh/id_rsa` }));
+    expect(r?.kind).toBe('deny');
+    const reason = (r as {kind:'deny';reason:string}).reason;
+    expect(reason).toContain('ssh-private-key');
+    expect(reason).not.toContain(AWS);
   });
 });

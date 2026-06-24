@@ -13,6 +13,17 @@ const SQL_TRUNCATE_RE = /\btruncate\s+(?:table\s+)?\w+/i;
 // lookahead `(?![^;]*\bwhere\b)` scans to the end of THIS statement (bounded by
 // the next `;`) — so `DELETE FROM a; ... b WHERE …` still flags the unguarded
 // first statement, while `DELETE FROM a WHERE …` is left alone.
+//
+// KNOWN LIMITATION (intentional): the `;` boundary is naive — it treats the first
+// `;` as the statement terminator, but `;` is legal inside string literals,
+// quoted identifiers, comments, and dollar-quoted blocks. A `;` embedded BEFORE
+// the WHERE (e.g. `UPDATE t SET c = 'a;b' WHERE id = 5`) shortens the scan window
+// so WHERE is not seen and the (actually safe) statement is flagged. This errs
+// toward a FALSE POSITIVE, never a false negative: an embedded `;` can only make
+// the guard flag MORE, never let an unguarded DELETE/UPDATE through. Combined with
+// the `reconsider` tier (overridable via the marker) that is the safe trade-off.
+// A correct fix needs a SQL lexer (escaped quotes, dollar-quoting, comments), not
+// a regex — out of scope here. See the "known limitation" test for the pinned case.
 const SQL_DELETE_NO_WHERE_RE   = /\bdelete\s+from\b(?![^;]*\bwhere\b)/i;
 const SQL_UPDATE_NO_WHERE_RE   = /\bupdate\s+\S+\s+set\b(?![^;]*\bwhere\b)/i;
 const SQL_DROP_INDEX_VIEW_RE   = /\bdrop\s+(?:index|view)\b/i;
