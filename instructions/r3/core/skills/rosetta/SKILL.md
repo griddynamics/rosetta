@@ -1,6 +1,6 @@
 ---
 name: rosetta
-description: "To route a user request to the best-matching workflow before acting"
+description: Rosetta identifies and routes user request to the most matching workflow
 license: Apache-2.0
 disable-model-invocation: true
 user-invocable: true
@@ -24,10 +24,11 @@ No code, files, scripts, or commands before workflow handoff.
 
 <process>
 
-1. USE FLOW `<workflow TAG>` - load the best-matching workflow for the current request
-2. If resume/continue: load workflow state file; extract completed steps, current phase, and pending work; resume from there
-3. Hand off to the workflow — let it drive questioning, planning, execution, review, and validation; no phase skipping
-4. Keep HITL active unless user explicitly requested `fully autonomous` or `No HITL`
+1. ACQUIRE `<workflow TAG from available workflows>` FROM KB - load the most matching workflow (note: "*-flow" skills are additional workflows) and fully execute following its entire definition for all request sizes
+2. On resume/continue: load workflow state file; extract completed steps, current phase, and pending work; resume from there
+3. Workflow phases → todo tasks; open one per phase, work sequentially, close on completion
+4. In planning mode: `planning` + `tech-specs` outputs → store per system prompt, never `plans/` (read-only)
+5. Hand off to the workflow — let it drive questioning, planning, execution, review, and validation; no phase skipping
 
 </process>
 
