@@ -1,8 +1,22 @@
-# Coding-Agent Bench — Idea / Concept
+# Curiocity — a Tribunal for Coding Agents (Idea / Concept)
 
-> An evals and testing harness that drives interactive coding-agent CLIs (Claude Code, Codex, and peers) through a predefined prompt over a real pseudo-terminal, consumes each CLI's native trajectory JSON as the source of truth, auto-answers interactive prompts via an LLM only when the terminal stalls, then scores each run with an LLM judge plus deterministic checks. Built for CI/CD first, local authoring second.
+> **Name: LOCKED.** **Curiocity** is the project (the orchestrator — the "city of *curiae*"). **Curion** is the per-trial worker: one Curion presides over exactly **one case × one CLI × one repeat** — runs it, watches it, answers prompts, and judges it. (Historically a *curion* was the priest presiding over a single *curia*.) Metaphor world: **Tribunal**; both names npm-free.
 
-**Status:** Draft (ideation) — pending user review. No requirements, specs, or code yet.
+> An evals and testing harness that drives interactive coding-agent CLIs (Claude Code, Codex, Gemini, Cursor, Copilot) through a predefined prompt over a real pseudo-terminal, consumes each CLI's native trajectory JSON as the source of truth, auto-answers interactive prompts via an LLM only when the terminal stalls, then scores each run with an LLM judge plus deterministic checks. Built for CI/CD first, local authoring second.
+
+**Status:** Final (ideation concept). Name and scope locked; remaining items are feasibility spikes (see Open Questions). The next phase — requirements / architecture / build — is a separate, separately-approved effort.
+
+---
+
+## Core Principle — No Headless Mode (test like a real user)
+
+**Curiocity exercises each agent exactly the way a human uses it — in its normal interactive mode — never a headless / print / non-interactive mode (`-p`, `--print`, `exec`, SDK one-shot).** A real user does not run `claude -p`; they open the interactive TUI and work in it. That interactive path is what we must test.
+
+- **The interactive prompts ARE the thing under test.** We *want* the agent to **ask** — permission requests, clarifying questions, HITL gates. Curiocity plays the human and answers them (per `qna.md`). This is how we evaluate an agent's **HITL behavior** — e.g. whether the Rosetta HITL skill makes the agent ask the right questions before acting.
+- **Headless defeats the purpose, not just the principle.** Headless mode auto-approves/bypasses precisely those prompts, so HITL would be untestable and the run would exercise a code path users never hit.
+- **Drive the real interactive session** over a PTY, **simulating user input** and answering prompts as a user would.
+- **Args/params are allowed for invocation** — e.g. the *initial prompt* may be passed as a launch argument instead of typing it keystroke-by-keystroke. "Simulate user input" means *we do not depend on headless mode*, not that every character must be typed.
+- **Headless is OUT OF SCOPE**, not a fallback. Applies to all 5 CLIs.
 
 ---
 
@@ -25,27 +39,31 @@ This harness automates that loop: one prompt in, N agents driven to completion, 
 
 ## Goals
 
-- Drive any predefined coding-agent CLI to completion from a **single prompt file**, unattended, in a headless CI environment.
-- **Simulate a real user** at a real terminal (PTY), including typing the prompt and answering interactive sub-prompts.
+- Drive any predefined coding-agent CLI to completion from a **single prompt file**, unattended (no human), running the tool in its **normal interactive mode** (never headless `-p`/`exec`).
+- **Simulate a real user** at a real terminal (PTY) — submit the prompt (as a launch arg or typed) and answer interactive sub-prompts as a user would.
 - **Prefer native trajectory JSON** (tool calls, messages, interactions) emitted by each CLI as the authoritative record — fall back to screen-reading only when needed.
 - **Auto-answer** interactive prompts using an LLM that reads the rendered screen, but only **after deterministic stall detection** flags that the agent is waiting; guided by a predefined Q&A policy file.
 - **Two-tier models:** a fast/cheap model for high-frequency checks, a workhorse model for hard reasoning and judging.
+- **Stability testing:** repeat each case N times to measure **score range and variance**, not just a single pass — distinguishing a reliably-good agent from a lucky-once flaky one.
 - **Optionally mirror** (behind a `--mirror` flag, off by default) each agent's stdout/stderr live for local debugging.
 - **Judge** each completed run with an LLM rubric **and** deterministic checks, then emit a comparable scorecard.
 
 ## Non-Goals (v1)
 
 - Not a hosted service or dashboard — a runnable CLI suitable for local use and CI/CD jobs.
-- Not pure headless-API integration — we drive the **real interactive TUI** over a PTY; we additionally *consume* each CLI's trajectory-JSON output flag, but do not replace the interactive run with a non-interactive `-p`/`exec` mode (deferred future option).
-- Not full multi-pane/multi-terminal orchestration (see Weak Spots) — best-effort single primary PTY per agent in v1.
+- **No headless / non-interactive mode** (`-p`, `--print`, `exec`, SDK one-shot) — firmly out of scope (see Core Principle). We drive the **real interactive TUI** over a PTY; trajectory is captured from interactive-session artifacts (e.g. on-disk session transcript) and/or the screen, **not** from a headless print stream.
+- Full multi-pane/multi-terminal *capture* is **deferred** in v1 (single primary PTY) — but the terminal layer is **designed pane-ready** so it can be added if a selected tool needs it, without rework. See Risks.
 
 ---
 
-## Core Concept — The Run Loop
+## Core Concept — Orchestrator & Workers
 
-For each `(agent, task)` pair:
+- **Curiocity (orchestrator):** discovers cases under `--source`, reads the top-level config, builds the trial matrix `(agent × case × repeat)`, dispatches a **Curion** per cell in parallel, then aggregates and reports.
+- **Curion (worker):** presides over exactly one trial — one case, one CLI, one repeat. Each Curion runs the loop below in its own isolated workspace and returns a single verdict + metrics.
 
-1. **Discover & validate** the case folder; **unzip `src.zip`** (or start from an empty workspace if absent) into an isolated workspace.
+### The Run Loop (one Curion, one trial)
+
+1. **Discover & validate** the case folder; **unzip `src.zip`** into the isolated workspace.
 2. **Provision** declared **MCP servers and coding-agent plugins** into the agent's environment (e.g. install the Rosetta plugin) before launch.
 3. **Spawn** the agent CLI inside a **PTY** in that workspace, with its **trajectory-JSON output** flag enabled (per-agent config).
 4. **Wait for readiness** — detect the agent's input-ready state from the rendered screen.
@@ -61,7 +79,8 @@ For each `(agent, task)` pair:
 
 ```mermaid
 flowchart TD
-    A[case: prompt.md + config.json + src.zip] --> R[Runner]
+    ORCH[Curiocity orchestrator] -->|dispatch one per agent×case×repeat| R
+    A[case: prompt.md + config.json + src.zip] --> R[Curion worker]
     CFG[top-level config: codingagents] --> R
     QA[qna.md] --> SR
     RUB[evaluation.md] --> J
@@ -88,7 +107,7 @@ flowchart TD
     classDef dec fill:#cf222e,stroke:#82071e,color:#ffffff;
     class A,CFG,QA,RUB,PROV io;
     class SR,J ai;
-    class R,AG,TERM,TRAJ proc;
+    class ORCH,R,AG,TERM,TRAJ proc;
     class RES,REP,OP out;
     class STALL dec;
 ```
@@ -103,8 +122,7 @@ Two layers: **auto-discovered case folders** (per task, markdown-first) and a **
 
 - `--source` points to a root folder. **Each immediate subfolder is one evaluation case.**
 - A subfolder is a **valid, runnable case** only when the required files are present; otherwise it is **skipped with a logged reason**.
-- **Required per case:** `prompt.md`, `config.json`, `qna.md`, `evaluation.md`. **Optional:** `src.zip`.
-  - *Open question:* you said "4 files" then listed 5 — I'm treating the four `.md`/`.json` as **required** and `src.zip` as **optional** (no zip → empty workspace). Confirm.
+- **Required per case (all 5):** `prompt.md`, `config.json`, `qna.md`, `evaluation.md`, `src.zip`. A subfolder missing any of the five is **not** a valid case and is skipped with a logged reason.
 
 Per-case files:
 
@@ -112,7 +130,7 @@ Per-case files:
 - **`config.json`** — case-level config: which agents to run / per-case overrides, timeouts, and any **per-case MCP/plugin provisioning** (below).
 - **`qna.md`** — Q&A policy (markdown): how interactive prompts are answered — e.g. "approve file edits", "never approve deletes", plus a hard "if unsure, abort" fallback.
 - **`evaluation.md`** — evaluation criteria (markdown) for the LLM judge **and** the deterministic checks to run (build/test/lint, files that must exist, forbidden changes).
-- **`src.zip`** — source archive unzipped into the isolated workspace before the agent starts (optional).
+- **`src.zip`** — source archive (required) unzipped into the isolated workspace before the agent starts. For "from scratch" tasks, ship a minimal/empty-but-present zip.
 
 ### Top-level config (JSON)
 
@@ -174,6 +192,8 @@ Illustrative shapes (not final):
 {
   "agents": ["claude-code"],
   "timeoutSec": 1800,
+  "runs": 5,
+  "stability": { "minPassRate": 0.8, "maxStddev": 10 },
   "provision": {
     "mcps":    [ { "name": "fs", "command": "mcp-fs", "args": ["--root", "."] } ],
     "plugins": [ { "type": "claude", "source": "git+https://…/rosetta-plugin" } ]
@@ -208,9 +228,25 @@ Illustrative shapes (not final):
 - **LLM judge (semantic):** the **workhorse model** scores the **trajectory JSON** + final diff against the rubric (correctness, completeness, scope discipline, side-effects) — structured trajectory makes judging more reliable than transcript scraping.
 - **Verdict:** combine — e.g. deterministic checks must pass as a hard gate; LLM judge produces the graded score and rationale. Both are recorded.
 
+## Stability & Score Range (repeat runs)
+
+A single run is a sample, not a measurement. Agents are non-deterministic, so each case can be **run N times** and the spread reported — this is a first-class feature, not an afterthought.
+
+- **Configurable repeats, default `N=1`:** stability testing is **opt-in** per case (set `runs > 1`); single-run is the default to keep cost low. A case that cares about flakiness raises `runs`.
+- **Per-case statistics:** min / max / mean / median score, **variance / stddev**, and **pass-rate across runs** (e.g. 4/5 runs passed).
+- **Stability rating:** classify a case as *stable-pass*, *flaky*, or *stable-fail* by combining pass-rate with score spread — a tight high-scoring band beats a wide one with the same mean.
+- **Dual CI gate:** fail the pipeline if mean score is too low **or** the spread/flakiness exceeds a threshold (a "looks fine on average but unreliable" agent should not pass).
+- **Determinism aids:** fixed seeds/temperature where an agent supports them, so variance reflects the agent, not avoidable noise.
+
 ## Results & Reporting
 
-Per run: agent, task, verdict, score, rationale, wall-clock time, turn count, interactive-prompts answered, and (where parseable) token/cost. Aggregate into a side-by-side comparison across agents for the same task.
+- **Per run:** agent, case, verdict, score, rationale, turn count, interactive-prompts answered.
+- **Cost / token / time accounting (per run, rolled up per case and suite):**
+  - **Total wall-clock time** and time breakdown (agent thinking vs. harness AI vs. deterministic checks).
+  - **Total token consumption and total cost**, itemized **by model and cost tier** — the agent's own model usage (from trajectory JSON where available) *plus* the harness's **fast** and **workhorse** model usage (screen-reader + judge).
+  - This separation makes it visible *what is actually driving cost* — e.g. an agent that's cheap per run but needs many workhorse-model interventions, or an expensive agent that finishes in one shot. Different agents on different model tiers become directly comparable.
+- **Per case (across N runs):** the stability statistics above — distribution and range, not a single number — alongside mean/range of time, tokens, and cost.
+- **Aggregate:** side-by-side comparison across agents for the same case suite, surfacing *how good*, *how consistent*, and *at what cost* each agent is.
 
 ## Tech Stack (chosen: Node / TypeScript)
 
@@ -226,7 +262,7 @@ Per run: agent, task, verdict, score, rationale, wall-clock time, turn count, in
 
 The architecture must be deliberately designed, not emergent:
 
-- **Maintainability:** clear module boundaries — `runner`, `pty/terminal`, `stall-detector`, `agent-adapters` (per-CLI), `screen-reader`, `judge`, `reporting`, `config`. Per-agent quirks live behind a stable adapter interface so adding an agent is additive, not invasive.
+- **Maintainability:** clear module boundaries — `curiocity` (orchestrator/scheduler), `curion` (per-trial worker), `pty/terminal` (pane-ready: 1..N panes behind one interface), `stall-detector`, `agent-adapters` (per-CLI), `screen-reader`, `judge`, `reporting`, `config`. Per-agent quirks live behind a stable adapter interface so adding an agent is additive, not invasive.
 - **Fast execution:** deterministic-first hot loop; LLM calls only on stall; fast/workhorse tiering; parallelizable runs; trajectory JSON over screen scraping wherever possible.
 - **Reuse over rebuild:** lean on proven packages (`node-pty`, `@xterm/headless`, `execa`, `zod`, vendor SDKs) rather than hand-rolling PTY/terminal/CLI plumbing.
 - **CI-friendliness:** machine-readable output, non-zero exit on failure gates, no TTY assumptions when unattended, bounded cost/time budgets.
@@ -234,11 +270,11 @@ The architecture must be deliberately designed, not emergent:
 ## Risks & Weak Spots (called out, not hidden)
 
 - **Long scrollback buffers (user-flagged):** thousands of lines exceed a single screen and inflate LLM cost. *Mitigations:* read the rendered **visible screen** (bounded grid) rather than full history; summarize/tail intelligently; only escalate to scrollback when the visible screen is insufficient.
-- **Multi-terminal / multi-pane agents (user-flagged):** agents that spawn sub-shells, split panes, or background processes aren't fully captured by one primary PTY. *v1 scope:* single primary PTY + mirror; capture child stdout best-effort; flag unsupported topologies rather than silently mis-driving them.
+- **Multi-terminal / multi-pane agents (design-ready, implement-on-demand):** v1 drives a **single primary PTY**, but the terminal layer is built around a **pane abstraction** (a session = 1..N panes behind one interface; routing, per-pane screen rendering, and merge points are stubbed for one pane). The spike checks whether any of the 5 selected CLIs actually spawn panes/sub-terminals; if one does, full capture + input routing is implemented then — without reworking the rest. Keeps v1 lean while avoiding a future rewrite.
 - **Screen-reader misjudgment:** the LLM answers a prompt wrong (e.g. approves a destructive action). *Mitigations:* Q&A policy hard-denies dangerous replies; sandboxed/isolated workspace; "if unsure, abort" fallback; full audit log of every typed reply.
-- **Non-determinism:** agents vary run-to-run. *Mitigation:* multiple runs per task, report distribution not a single score.
+- **Non-determinism:** agents vary run-to-run. *Mitigation:* opt-in repeat runs (default `N=1`) with the stability statistics + range reporting described above.
 - **Brittle prompt detection:** TUI redesigns break patterns. *Mitigation:* config-driven signals + LLM fallback; treat detection rules as data, not code.
-- **Cost/latency:** LLM calls per prompt + judging. *Mitigation:* heuristic gating before LLM calls; configurable judge model tiers.
+- **Cost/latency:** LLM calls per prompt + judging. *Mitigation:* heuristic gating before LLM calls; configurable model tiers; cost/tokens tracked and **warned** (no hard cap, to avoid aborting and contaminating benchmark results).
 
 ## Assumptions
 
@@ -248,46 +284,58 @@ The architecture must be deliberately designed, not emergent:
 - Each agent CLI is locally installed and authenticated before a run; the harness does not manage auth.
 - Runs execute in **isolated, non-production** workspaces (low blast radius by design), primarily inside CI/CD jobs.
 
-## Open Questions (next HITL round)
+## Resolved Decisions
 
-1. **Which agents in v1?** (Claude Code + Codex only, or also Aider / Gemini CLI / Cursor-agent / others?)
-2. **Run topology:** all agents in parallel vs sequential? One workspace per agent, always isolated?
-3. **Fixture/task source:** synthetic toy repos, real repo snapshots, or both? Where do tasks live?
-4. **Determinism policy:** how many repeats per task, and how is a flaky verdict reported?
-5. **Cost ceiling:** budget caps per run / per suite, and which LLM tiers for screen-reader vs judge?
-6. **Multi-terminal support:** is best-effort single-PTY acceptable for v1, or is multi-pane capture required up front?
-7. **Output format:** JSON results + Markdown report enough, or is a richer dashboard wanted later?
-8. **Trajectory schema:** does each target CLI's JSON output carry enough to judge on (tool calls, file edits, final answer), and what's the normalized internal schema?
-9. **CI integration shape:** GitHub Actions / GitLab CI first? How are secrets/agent auth provided in the pipeline?
+1. **v1 agents (5):** **Claude Code, Codex CLI, Gemini CLI, Cursor CLI, Copilot CLI** — each gets a trajectory adapter + profile.
+2. **Case files:** **all 5 required** (`prompt.md`, `config.json`, `qna.md`, `evaluation.md`, `src.zip`); missing any → skipped.
+3. **Run topology:** **isolated workspace per `(agent × case × repeat)`, run in parallel** — no cross-talk.
+4. **Case source (v1):** **hand-authored** cases under the `--source` folder, curated for Rosetta regression + targeted benchmarks.
+5. **CI target:** **platform-agnostic CLI** — clean exit codes + JSON/Markdown artifacts any CI can consume; no platform-specific glue required.
+6. **Auth/secrets:** credentials/API keys injected as **env vars from the CI secret store**; nothing written to disk; Curio masks and never logs raw values.
+7. **Determinism:** **default `N=1`, repeats opt-in** per case; stability stats/range only when `runs > 1`.
+8. **Multi-terminal:** **start simple (single primary PTY), but design a multi-pane-ready terminal abstraction** (a session = 1..N panes behind one stable interface). Implement full multi-pane capture **only if a selected tool requires it** — determined per agent in the spike. Keeps v1 lean while avoiding a future rewrite.
+9. **Output:** **JSON + Markdown** — machine-readable JSON for CI plus a human-readable Markdown summary. (Richer dashboard deferred.)
+10. **Cost handling:** **track + warn, no hard cap** — record tokens/cost by model tier, warn on overage, never abort (keeps benchmark results uncontaminated).
+
+## MVP Scope
+
+**v1 builds for Claude Code only**, then extends to the other CLIs behind the same adapter interface. Claude Code reference notes are in **[`./mvp-claude-code.md`](./mvp-claude-code.md)** — but ⚠️ that doc was researched under the wrong premise (it recommended headless `-p`, which **violates the Core Principle** above) and is being corrected. The MVP must drive Claude Code's **interactive TUI via PTY**, let it **ask**, and answer prompts per `qna.md`. Trajectory in interactive mode comes from the on-disk session transcript and/or screen — **to verify in the spike** (not the headless print stream).
+
+## Open Questions (remaining — feasibility spikes, not pure decisions)
+
+1. **Trajectory schema:** Claude Code is researched (see `mvp-claude-code.md`); still verify its exact fields in a live run, and confirm the other 4 CLIs (Codex, Gemini, Cursor, Copilot) emit enough JSON — then define the normalized internal schema.
+2. **Multi-pane need + mechanics:** do any of the 5 CLIs actually spawn panes/sub-terminals (vs. a single PTY)? If yes, how to capture + drive them portably with `node-pty` / `@xterm/headless`; if no, the pane abstraction stays single-pane for v1.
+3. **Default model tiers:** which concrete fast vs. workhorse models to default to for screen-reader and judge (configurable per role regardless).
 
 ---
 
-## Project Name (candidates — pending selection)
+## Project Name & Command Lexicon (✅ LOCKED: Curiocity + Curion)
 
-Working title is "Coding-Agent Bench". Goal: a **unique, non-generic** name with allegorical/mythical meaning for *putting agents to the test and weighing the result*. Shortlist (etymology → why it fits):
+**Status: ✅ LOCKED — Tribunal world.** **Curiocity** = the project / orchestrator (the "city of *curiae*"). **Curion** = the per-trial worker (one case × one CLI × one repeat). Both npm-free.
 
-**Touchstone / proving theme** (a stone that tests the purity of gold — the benchmarking metaphor):
-- **Basanio** / **Basanos** — Greek *básanos*, the touchstone used to assay gold; also "trial/ordeal." The strongest fit.
-- **Kasoti** — Hindi *kasauti*, touchstone/test.
+### ⚖️ Tribunal — command lexicon
 
-**Judgment / discernment theme:**
-- **Krisio** — Greek *krísis*, the act of judging/deciding (root of "crisis"/"critic").
-- **Elencho** — Greek *élenchos*, Socratic cross-examination that refutes and tests a claim. Apt for a harness that interrogates agents.
-- **Dokimo** / **Dokimio** — Greek *dokimḗ*, proving/testing that yields *dokimos*, "approved after trial."
+| Core action | Tribunal verb |
+|---|---|
+| scaffold a new case | `arraign` |
+| discover / load cases from `--source` | `summon` |
+| drive an agent through a case (core) | `try` |
+| answer interactive prompts (the guard) | `cross-examine` |
+| judge the result | `deliberate` |
+| emit verdict / collect & report | `rule` / `docket` |
+| clean artifacts / workspaces | `dismiss` |
 
-**Weighing / scales-of-truth theme:**
-- **Mizan** / **Mizanio** — Arabic *mīzān*, the scale on which deeds are weighed; the balance of justice.
-- **Examio** — Latin *examen*, the needle/tongue of a balance (and "examination") — literally weighing.
-- **Maato** — Egyptian *Ma'at*, weighing the heart against the feather of truth. Mythical.
+### Your top‑5 names (the ones you shortlisted)
 
-**Trial / ordeal theme:**
-- **Shiren** — Japanese *shiren* (試練), a trial/ordeal one must pass.
-- **Probatum** — Latin *probatum est*, "it has been proven."
+The *curio* family carries a triple meaning: *curia* (the court) + *curious* (the probing investigator) + *cure* (fixing Rosetta).
 
-**Epistemic-standard theme:**
-- **Pramano** — Sanskrit *pramāṇa*, a valid means of knowledge / measure / proof.
+- **Curiocity** — ✅ **selected** (project / orchestrator); *curiosity* + *city of cases* (npm-free).
+- **Curion** — ✅ **selected** (per-trial worker); the priest presiding over a curia (npm-free).
+- **Curio** — cleanest bare word; npm bare name taken → use scoped `@scope/curio` (binary still `curio`).
+- **Curiata** — the Roman *Comitia Curiata*; most authentic court meaning (npm-free; you excluded it).
+- **Curiosify** — *curia/curious/cure* in one (npm-free).
 
-My top three: **Basanio**, **Krisio**, **Mizanio** — distinct, pronounceable, modern `-io` ending, and each is a clean allegory for what the tool does. (`rosettify-bench` still works as the Rosetta-tie-in fallback, but these are the genuinely-different options you asked for.)
+> Other metaphor worlds explored during selection (Augury, Forge/Assay, Pastoral, Fates, Watchtower, Arena, Dojo, Lapidary, Navigation, Distillation, Rosetta) were dropped after **Tribunal** was chosen. The Rosetta/Decipherment variant is archived in **[`./rosetta.md`](./rosetta.md)**; the reusable naming method is in **[`./name-it.md`](./name-it.md)**.
 
 ## Confidence & Caveats (reasoning summary)
 

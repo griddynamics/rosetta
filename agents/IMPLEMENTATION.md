@@ -139,6 +139,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Converted `adhoc-flow-with-plan-manager` workflow to `USE SKILL plan-manager`; data structure externalized to `pm-schema.md`.
 - All plugins (`core-claude`, `core-cursor`, `core-copilot`, `core-codex`, `core-cursor-standalone`, `core-copilot-standalone`) are auto-synced from core by `npx rosettify-plugins@latest` (invoked via `scripts/pre_commit.py`).
 - `npx rosettify-plugins@latest` materializes plugin trees from the **release-selected** source `instructions/<release>/core` (`--release`, default **r2**; r3 opt-in). `instructions/r2/core` and `instructions/r3/core` are maintained per release (shared skills/workflows kept aligned where intended).
+- **r3 bootstrap-reduction** (in progress; see `docs/stories/reduce-bootstrap.md`) — shrinking the always-on bootstrap by moving content behind a user-invoked `/rosetta` and on-demand skills. Built `load-project-context` (absorbs `load-context`; `hitl` prereq, full file roster, todo-task ledger, leaf with no next-steps); registered in `docs/definitions/skills.md`. Originals removed only after replacements are approved and working.
 
 ### Plugin Generator
 
