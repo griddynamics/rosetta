@@ -1,7 +1,7 @@
 ---
 # Core Identity (Required) — keep these live, replace the <...> value
 name: "<skill name; MUST equal the parent folder name of SKILL.md; lowercase-hyphenated>"
-description: "GENERIC form: To <verb> <what it does + when/why; dense keywords>. CRITICAL/guardrail form: 'Rosetta CRITICAL MUST skill. MUST activate when <condition>'. Budget: all skills share ~1K tokens — keep ≤ ~25 tokens and dense; over-long is ignored the same as terse, keyword-dense descriptions trigger best"
+description: "GENERIC form: To <verb> <what it does + when/why; dense keywords>. CRITICAL/guardrail form: 'Rosetta CRITICAL MUST skill. MUST activate when <condition>'. Budget: all skills share ~1K tokens — keep ≤ ~25 tokens and dense; over-long is ignored the same as terse, keyword-dense descriptions trigger best. EXCEPTION: disable-model-invocation:true => this description is actually user friendly."
 # alwaysApply — keep false; true injects this into EVERY context (bloat); set true ONLY with explicit user approval [boolean] [Cursor]
 alwaysApply: false
 
@@ -14,7 +14,7 @@ alwaysApply: false
 # dependencies: "python>=3.8, pandas>=1.5.0"
 
 # Invocation & Discovery — disable-model-invocation and user-invocable are REQUIRED: always set explicitly, even when equal to the default
-# disable-model-invocation — true = runs only when explicitly invoked via /name, never auto-applied by context [boolean] [Cursor, Claude Code]
+# disable-model-invocation — true = runs only when explicitly invoked via /name, never auto-applied by context. If true budget is not applicable. Description must be user friendly. [boolean] [Cursor, Claude Code]
 disable-model-invocation: false
 # user-invocable — false = hidden from the / menu (background knowledge users shouldn't call directly) [boolean] [Claude Code]
 user-invocable: true

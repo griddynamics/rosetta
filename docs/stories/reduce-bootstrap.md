@@ -34,6 +34,22 @@ The `/rosetta`-only model is not packaging; it **is this seam**. A user who does
 
 **Consequence for the content (why this is re-voicing, not relocation).** Once rigor is explicitly invited, the anti-rationalization mass **largely dissolves** — there is nothing left to rationalize against, so most of `RED_FLAGS` / `EXTREMELY_IMPORTANT` has no job and should be deleted, not moved. What remains becomes a *calm, confident senior-engineer procedure* ("you asked for the rigorous flow — here it is"). The coercion itself is the thing we can finally delete, because **invitation does its job.** The always-on layer then shrinks to the safety floor plus a pointer to `/rosetta` — not because smaller is the goal, but because that is all that is unconditionally true for a request the user deliberately kept lean.
 
+## Skill description field
+
+GENERIC form: "To <verb> <what it does + when/why; dense keywords>".
+CRITICAL/guardrail form: 'Rosetta CRITICAL MUST skill. MUST activate when <condition>'. 
+Budget: all skills share ~1K tokens — keep ≤ ~25 tokens and dense; over-long is ignored the same as terse, keyword-dense descriptions trigger best. 
+EXCEPTION: disable-model-invocation:true => this description is actually user friendly, no need to compress/etc.
+
+## load-context-instructions and Mode Detection
+
+load-context-instructions should dissolve completely (not needed at all).
+Instead of 'get_context_instructions' we should depend on "always-on rules" (which are in `bootstrap-alwayson.md`)
+Instead of defining IF THEN IF THEN ELSE => modes must be directly defined in respective bootstrap.md/plugin-files-mode.md/local-files-mode.md/etc. Fallback is already `load-project-context`.
+Example for plugin-files-mode.md: `Rosetta RUNNING AS PLUGIN. Rosetta Plugin Mode is Active. Always-on rules already loaded.` (since those are done via rules or hooks).
+bootstrap.md REQUIRES/ENFORCES call to `get_context_instructions` to load and follow "always-on rules".
+"always-on rules" address priorities, instructions following, most common failure modes and LIST refs to most important: HITL/Orchestration/Sensitive/Dangerous/etc skills. Example: "USE SKILL `hitl`,`orchestration`, ...". Reason: skill tool activation requires prior use of word "SKILL" and name of skill together.
+
 ## The `/rosetta` entry (linchpin)
 
 Rosetta becomes a **user-invoked `/rosetta` skill**. Invoking it carries user authority ("the user told you to do X"), which the model obeys natively — so the always-on browbeating prose is no longer needed.
@@ -164,6 +180,8 @@ Command aliases are written once, mode-agnostically, in every skill/workflow. Ex
 Call sites never branch on mode. The alias vocabulary is a **closed contract**: every alias used anywhere must be bound by all three mode files, or it breaks in that mode. Defining and policing that finite set is part of this work.
 
 ## Verb / alias vocabulary (W4) — deferred (later pass)
+
+DO NOT APPLY NEW vocabulary UNTIL that phase reached.
 
 Proposed shape: **`VERB ARTIFACT <name> [FILE <subpath>]`** — clear in plugin mode, deterministically mappable to the MCP equivalents.
 
