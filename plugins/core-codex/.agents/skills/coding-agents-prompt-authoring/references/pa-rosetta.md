@@ -90,7 +90,7 @@ Rosetta define command aliases so that it works with ALL IDEs/CodingAgents, you 
 - **Process Enforcement** - AI has tendency to skip steps, ignore items in bulleted lists, AI does not know what it fails with, AI knows a lot but it NEVER follows its own knowledge => define and enforce meta-processes for AI to follow to address issues and mistakes (examples: *in-depth* discovery, *review* after authoring, *read* business and technical context, provide steps one-by-one, subagent orchestration, etc)
 - **Meta-Prompting** - Automatically adapts prompts and rules to project-specific needs by providing aspects of thinking, best practices, meta processes engineering, and areas for AI to figure out first, fill the template, and then use that information to resolve actual user task
 - **Reverse Prompting** - Make AI to figure out information itself via discovery of code base, web searches, ask from user, etc (instead of making user to provide full specs upfront)
-- **Tell How to think, not What to think** - Hardcoding tools, prompts, tech stack, solutions, etc is a wrong path => instead make AI to think and provide proper reasoning aspects
+- **Tell How to think, not what to do** - Hardcoding tools, prompts, tech stack, solutions, etc is a wrong path => instead make AI to think and provide proper reasoning aspects
 - **Scope control** - Pass original intent with Q&A, architecture brief, current context of execution and the task to phases and subagents
 - **Agent-Agnostic** - Works across Cursor, Claude Code, GitHub Copilot, JetBrains AI, and any MCP-compatible IDE
 - **Evidence-Based** - Tackles hallucinations with required references, assumptions documentation, and unknowns tracking
