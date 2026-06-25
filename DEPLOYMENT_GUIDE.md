@@ -275,7 +275,7 @@ helm install rosetta-mcp ./src/helm-charts/rosetta-mcp-server \
    ```
 
    When `rateLimit.average` is set, the chart creates a Traefik `Middleware` CRD
-   (`<release>-rate-limit`) in the release namespace and wires it into the Ingress
+   (`<fullname>-rate-limit`) in the release namespace and wires it into the Ingress
    annotation automatically.
 
    To reference additional external middlewares (e.g. a platform-wide chain managed
