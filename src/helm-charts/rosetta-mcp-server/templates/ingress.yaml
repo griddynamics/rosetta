@@ -6,10 +6,22 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "rosetta-mcp.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+    {{- if eq (.Values.ingress.className | default "") "traefik" }}
+    {{- $middlewares := list }}
+    {{- range (.Values.ingress.traefik.middlewares | default list) }}
+    {{- $middlewares = append $middlewares . }}
+    {{- end }}
+    {{- if and .Values.ingress.traefik .Values.ingress.traefik.rateLimit .Values.ingress.traefik.rateLimit.average }}
+    {{- $middlewares = append $middlewares (printf "%s-%s-rate-limit@kubernetescrd" $.Release.Namespace (include "rosetta-mcp.fullname" $)) }}
+    {{- end }}
+    {{- if $middlewares }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ join "," $middlewares }}
+    {{- end }}
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className | quote }}
