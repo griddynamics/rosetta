@@ -8,12 +8,13 @@ metadata:
     {{- include "rosetta-mcp.labels" . | nindent 4 }}
   {{- $traefikMw := "" }}
   {{- if eq (.Values.ingress.className | default "") "traefik" }}
+  {{- $traefik := .Values.ingress.traefik | default dict }}
   {{- $middlewares := list }}
-  {{- range (.Values.ingress.traefik.middlewares | default list) }}
+  {{- range ($traefik.middlewares | default list) }}
   {{- $middlewares = append $middlewares . }}
   {{- end }}
-  {{- if and .Values.ingress.traefik .Values.ingress.traefik.rateLimit .Values.ingress.traefik.rateLimit.average }}
-  {{- $middlewares = append $middlewares (printf "%s-%s-rate-limit@kubernetescrd" $.Release.Namespace (include "rosetta-mcp.fullname" $)) }}
+  {{- if and $traefik.rateLimit $traefik.rateLimit.average }}
+  {{- $middlewares = append $middlewares (printf "%s-rate-limit@kubernetescrd" (include "rosetta-mcp.fullname" $)) }}
   {{- end }}
   {{- if $middlewares }}
   {{- $traefikMw = join "," $middlewares }}
