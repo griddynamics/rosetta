@@ -6,22 +6,32 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "rosetta-mcp.labels" . | nindent 4 }}
+  {{- $traefikMw := "" }}
+  {{- if eq (.Values.ingress.className | default "") "traefik" }}
+  {{- $middlewares := list }}
+  {{- range (.Values.ingress.traefik.middlewares | default list) }}
+  {{- $middlewares = append $middlewares . }}
+  {{- end }}
+  {{- if and .Values.ingress.traefik .Values.ingress.traefik.rateLimit .Values.ingress.traefik.rateLimit.average }}
+  {{- $middlewares = append $middlewares (printf "%s-%s-rate-limit@kubernetescrd" $.Release.Namespace (include "rosetta-mcp.fullname" $)) }}
+  {{- end }}
+  {{- if $middlewares }}
+  {{- $traefikMw = join "," $middlewares }}
+  {{- end }}
+  {{- end }}
+  {{- $userAnnotations := .Values.ingress.annotations | default dict }}
+  {{- if $traefikMw }}
+  {{- $userAnnotations = omit $userAnnotations "traefik.ingress.kubernetes.io/router.middlewares" }}
+  {{- end }}
+  {{- if or $traefikMw $userAnnotations }}
   annotations:
-    {{- if eq (.Values.ingress.className | default "") "traefik" }}
-    {{- $middlewares := list }}
-    {{- range (.Values.ingress.traefik.middlewares | default list) }}
-    {{- $middlewares = append $middlewares . }}
+    {{- if $traefikMw }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ $traefikMw }}
     {{- end }}
-    {{- if and .Values.ingress.traefik .Values.ingress.traefik.rateLimit .Values.ingress.traefik.rateLimit.average }}
-    {{- $middlewares = append $middlewares (printf "%s-%s-rate-limit@kubernetescrd" $.Release.Namespace (include "rosetta-mcp.fullname" $)) }}
-    {{- end }}
-    {{- if $middlewares }}
-    traefik.ingress.kubernetes.io/router.middlewares: {{ join "," $middlewares }}
-    {{- end }}
-    {{- end }}
-    {{- with .Values.ingress.annotations }}
+    {{- with $userAnnotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+  {{- end }}
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className | quote }}
