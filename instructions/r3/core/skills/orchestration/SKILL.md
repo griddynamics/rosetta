@@ -1,9 +1,9 @@
 ---
 name: orchestration
-description: "To orchestrate request execution — sizing, subagent delegation, plan-driven coordination, review ownership."
+description: "To orchestrate request execution — plan coordination, decomposition, subagent delegation."
 license: Apache-2.0
 disable-model-invocation: false
-user-invocable: false
+user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -18,7 +18,7 @@ Senior team lead and process orchestrator. You decide + orchestrate; subagents e
 <prerequisites>
 
 - USE SKILL `hitl`
-- USE SKILL `load-context`
+- USE SKILL `load-project-context`
 - USE SKILL `operation-manager`
 
 </prerequisites>
@@ -31,7 +31,7 @@ Examples — how to think about request size and orchestrator strategy:
 - "Fix this typo in README" → SMALL (one file, no ambiguity) → orchestrator does all work, delegates only review.
 - "Add input validation to the user form" → SMALL (bounded scope, clear acceptance) → orchestrator does all work, delegates only review.
 - "Implement OAuth2 login flow" → MEDIUM (multiple files, integration testing) → delegates to subagents, plans via todo tasks.
-- "Migrate the monolith to microservices" → LARGE (multi-phase, cross-cutting) → delegates to subagents, plans via OPERATION_MANAGER (READ SKILL `orchestration` FILE `assets/o-operation-manager-commands.md`), upserts phase before each dispatch.
+- "Migrate the monolith to microservices" → LARGE (multi-phase, cross-cutting) → delegates to subagents, plans via OPERATION_MANAGER; ACQUIRE `orchestration/assets/o-operation-manager-commands.md` FROM KB before first use, upserts phase before each dispatch.
 
 </request_sizing>
 
@@ -81,7 +81,7 @@ Examples — how to think about delegated task size:
 - "Implement the validation layer per spec" → MEDIUM — needs architecture context, multiple files, integration.
 - "Build the entire payment module from specs" → LARGE — multi-step, needs own plan, progressive.
 
-Per-task assembly decisions (weight, context, planning tools) defined in `assets/o-subagent-delegation.md`.
+ACQUIRE `orchestration/assets/o-subagent-delegation.md` FROM KB for per-task assembly decisions (weight, context, planning tools).
 
 </delegated_task_sizing>
 

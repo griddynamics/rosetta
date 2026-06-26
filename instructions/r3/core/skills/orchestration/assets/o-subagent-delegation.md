@@ -7,7 +7,7 @@ Template in `<subagent_delegation_prompt_template>` = constructor. Orchestrator 
 Assembly decisions:
 1. What (`### What should be done`) — carries objective only; bounded → SMART tasks; phased/progressive → plan ref + phase id (upsert first)
 2. Weight — how much can go wrong if subagent guesses? Self-evident → lightweight (few skills, minimal context); surface area/integration → full (project context, constraints, todo tasks)
-3. Context — what does subagent need to not guess? USE SKILL `load-context` by default · direct file refs when you know them · patterns when must match style
+3. Context — what does subagent need to not guess? USE SKILL `load-project-context` by default · direct file refs when you know them · patterns when must match style
 4. Dispatch self-test — fresh agent with only bootstrap + this prompt knows: what to do, what NOT to do, "done" condition, when to stop? Gap → not ready
 
 Examples:
@@ -55,7 +55,7 @@ RECOMMEND USE SKILL [recommended skill].
 [verbatim — carry through every step]
 
 ## Context
-[USE SKILL `load-context` — safe default; omit only for self-contained tasks]
+[USE SKILL `load-project-context` — safe default; omit only for self-contained tasks]
 [+ direct file refs · patterns — give all it needs]
 
 ## Output
