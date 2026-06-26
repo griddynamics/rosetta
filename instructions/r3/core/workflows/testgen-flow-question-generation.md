@@ -105,7 +105,7 @@ Generate specific, actionable clarification questions based on analysis findings
 1. Group questions by priority: P0 (Critical, MUST answer), P1 (High), P2 (Medium), P3 (Low)
 2. Create `agents/testgen/{TICKET-KEY}/questions.md` using the `questions.md` template defined in `<questions_template>` below
 3. Update state to "AWAITING USER INPUT"
-4. Notify user with file location and instructions
+4. Notify the user and **direct them to answer IN the file**: give the `questions.md` path and ask them to fill the `[Leave blank for user]` fields there. A short chat summary of the questions is fine for orientation, but the **authoritative answers are collected in `questions.md`** — do NOT run a chat Q&A in its place, and do NOT accept chat replies as a substitute for the file (`validate_answers`, step 3.3, reads the file, not the chat). This keeps every question visible and answerable to the user, instead of only the ones the agent chose to surface in chat.
 5. **PAUSE — WAIT FOR USER INPUT**
 
 <questions_template>

@@ -90,7 +90,8 @@ test.describe('refund-happy-path', () => {
    - Page Objects Used: [list]
    - Status: Ready for execution
    - Phase 6 completion timestamp
-2. Mark Phase 6 complete, Phase 7 current (do NOT mark overall UI-QA as COMPLETE).
+2. **GATE — do NOT mark Phase 6 complete until** `plans/ui-qa-<test-name>.md` contains the `## Test Implementation` record with all five subsections (Test File · Implementation Summary · `### Uncovered Assertions` · Conflicts and Precedence · Validation), where `### Uncovered Assertions` carries ≥1 entry **OR** the explicit None-clause. If it is absent, return to step 6.1 and emit it first — a Phase 6 marked complete without this record is a defect (the run loses its implement→validate audit trail and the Uncovered-assertion disposition). This holds on the clean path too: full coverage → write the None-clause, never omit the record.
+3. Mark Phase 6 complete, Phase 7 current (do NOT mark overall UI-QA as COMPLETE).
 
 **Canonical state-file update example:**
 

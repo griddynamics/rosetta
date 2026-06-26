@@ -54,7 +54,8 @@ This is the **phase contract**, verified by `<validation_checklist>` independent
 
 <update_state step="7.3">
 1. Update `agents/ui-qa-state.md`: Test Report Location; Tests Executed / Failed counts; Root Causes list; Phase 7 completion timestamp.
-2. Mark Phase 7 complete, Phase 8 current.
+2. **Zero-failures branch:** if the executed run reported **0 failures**, do NOT emit `plans/ui-qa-<test-name>-failure-analysis.md` (there is nothing to analyze). Instead reconcile the state's `## Key Artifacts & Facts`: set `Failure analysis (Phase 7)` = `N/A — 0 failures` and `Root causes (Phase 7)` = `None`, and record the Execution Summary (tests executed / passed) in state. Never leave the seeded `failure-analysis.md` path referenced while no such file exists — a dangling reference fails the run-completion rule in the main `ui-qa-flow.md` (a run is complete only when "the artifacts those phases reference exist"). When ≥1 failure occurred, the `<failure_analysis_contract>` artifact and its post-analysis verification (step 7.1, item 4) apply as written.
+3. Mark Phase 7 complete, Phase 8 current.
 </update_state>
 
 <validation_checklist>
