@@ -230,14 +230,37 @@ function evalPatternAndPolicy(ctx) {
  */
 function evaluateDangerous(ctx) {
     const { result, pattern } = evalPatternAndPolicy(ctx);
-    if (result === null)
-        return null;
-    if (pattern?.policy === 'hard-deny')
-        return result;
-    const input = ctx.toolInput;
-    if (hasAIReviewedMarker(input, ctx.toolName)) {
-        (0, debug_log_1.debugLog)('[dangerous-actions] AI-reviewed marker honored', { toolName: ctx.toolName });
+    if (result === null) {
+        (0, debug_log_1.debugLogHookBranch)('dangerous-actions', 'no-match-allow', {
+            toolKind: ctx.toolKind,
+            toolName: ctx.toolName,
+        });
         return null;
     }
+    if (pattern?.policy === 'hard-deny') {
+        (0, debug_log_1.debugLogHookBranch)('dangerous-actions', 'hard-deny', {
+            toolKind: ctx.toolKind,
+            toolName: ctx.toolName,
+            patternId: pattern.id,
+            patternLabel: pattern.label,
+        });
+        return result;
+    }
+    const input = ctx.toolInput;
+    if (hasAIReviewedMarker(input, ctx.toolName)) {
+        (0, debug_log_1.debugLogHookBranch)('dangerous-actions', 'ai-reviewed-marker-honored', {
+            toolKind: ctx.toolKind,
+            toolName: ctx.toolName,
+            patternId: pattern?.id ?? null,
+            patternLabel: pattern?.label ?? null,
+        });
+        return null;
+    }
+    (0, debug_log_1.debugLogHookBranch)('dangerous-actions', 'reconsider-deny', {
+        toolKind: ctx.toolKind,
+        toolName: ctx.toolName,
+        patternId: pattern?.id ?? null,
+        patternLabel: pattern?.label ?? null,
+    });
     return result;
 }

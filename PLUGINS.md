@@ -82,7 +82,8 @@ GitHub Copilot runs in VS Code and JetBrains. Use **Marketplace** install in VS 
 
 #### Standalone (VS Code and JetBrains)
 
-For JetBrains IDEs, use the standalone installation package. 
+For JetBrains IDEs, use the standalone installation package.
+
 > [!NOTE]
 > The standalone installation is also detected by VS Code, so installing Rosetta through the standalone and marketplace methods will result in duplicate tools, commands, and context.
 

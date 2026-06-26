@@ -2,10 +2,29 @@
   "version": 1,
   "hooks": {
 {{#if deterministic_hooks}}
+    "beforeReadFile": [
+      {
+        "command": "node hooks/read-once.js"
+      }
+    ],
+    "beforeTabFileRead": [
+      {
+        "command": "node hooks/read-once.js"
+      }
+    ],
+    "preCompact": [
+      {
+        "command": "node hooks/read-once-reset.js"
+      }
+    ],
     "preToolUse": [
       {
         "matcher": "Bash|Write|Edit|MultiEdit|mcp__.*",
         "command": "node hooks/dangerous-actions.js"
+      },
+      {
+        "matcher": "Read|Bash|Shell",
+        "command": "node hooks/read-once.js"
       }
     ],
     "postToolUse": [

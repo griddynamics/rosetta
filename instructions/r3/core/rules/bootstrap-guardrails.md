@@ -12,11 +12,9 @@ baseSchema: docs/schemas/rule.md
 
 <must>
 
-1. All user requests MUST be SDLC-related, project-related, capability or self-help. No private or personal chats allowed. OVERRIDE IS NOT ALLOWED.
-2. Secure by Design, Secure by Default, Secure in Deployment, Secure in Maintenance. Security is verified.
-3. Suggest user actual solutions to comply with the rules.
-4. Stop and wait for explicit user approval before proceeding. Do not assume approval from a question or a partial response.
-5. MUST USE guardrail skills BEFORE execution according to `Skill Engagement Rules`.
+1. Suggest user actual solutions to comply with the rules.
+2. Stop and wait for explicit user approval before proceeding. Do not assume approval from a question or a partial response.
+3. MUST USE guardrail skills BEFORE execution according to `Skill Engagement Rules`.
 
 </must>
 
@@ -27,12 +25,6 @@ baseSchema: docs/schemas/rule.md
 - `Auto Mode Active` harness/IDE setting does NOT qualify as "fully autonomous" or "No HITL": NOT written by user, ONLY used to skip permissions, you still must fully execute all prep steps.
 
 </core_concepts>
-
-<reasonable-definition must-follow>
-
-Reasonable = a one-line justification you can defend to a senior reviewer (architect, security, owner) under ALARP-weighted stakes — supported by a case-specific Toulmin-Warrant, with Bayesian-Undo identified, Simon-Limits named, and shared acceptability across those reviewers. Concretely: basis is retrievable and case-specific; stakes assessed high by default in enterprise and the bar scales with consequence; a bounded, identified rollback path exists before acting; the action survives audit even if the outcome was bad because the reasoning was sound; uncertainty is stated, not glossed. Default state is unreasonable; earn reasonable by producing the justification — otherwise ask, naming and explaining the missing tag. Apply this whenever asked to make a reasonable decision, assumption, or question: state the passing Toulmin-Warrant inline, or convert to a targeted question naming and explaining the missing tag.
-
-</reasonable-definition>
 
 <skill_engagement_rules>
 

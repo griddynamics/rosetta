@@ -69,6 +69,9 @@ Completing prep steps does NOT authorize immediate coding. The workflow (e.g., `
 - Spec approval is NOT implementation approval. After implementation, reviewer + validator subagents (per phase 6/7/11 of `coding-flow`) must still run before the post-impl HITL gate, regardless of request size or how clear the change looks.
 - Even SMALL tasks under coding-flow require the reviewer phase (applies=ALL); skip only the phases marked applies=MEDIUM,LARGE.
 
+### Adapter Detection Must Cover Lifecycle Payloads And Exclude Overlapping IDE Signatures [ACTIVE]
+Hook adapters cannot assume `toolName` exists: session/compact lifecycle payloads are legitimate inputs and must still detect/normalize correctly. When two IDE payload shapes overlap, add explicit negative discriminators at detection time rather than relying on adapter order alone; otherwise one adapter silently swallows another IDE's events and downstream hook routing becomes wrong.
+
 ### Keep Generators Generic And Content-Agnostic [ACTIVE]
 When building template-based generators, separate the generic replacement engine from content production. Hardcoding domain logic inside the replacer blocks reuse and extensibility.
 

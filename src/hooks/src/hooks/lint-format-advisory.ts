@@ -3,6 +3,7 @@ import path from 'path';
 import { defineHook } from '../runtime/define-hook';
 import { runAsCli } from '../runtime/run-hook';
 import { advise } from '../runtime/result-helpers';
+import { debugLogHookBranch } from '../runtime/debug-log';
 
 const MONITORED_EXTENSIONS = [
   '.html', '.css', '.js', '.ts', '.jsx', '.tsx',
@@ -28,7 +29,15 @@ export const lintFormatAdvisoryHook = defineHook({
     },
   },
   throttle: { dedupBy: ['session', 'filePath'] },
-  run: (ctx) => advise(advisoryMessage(ctx.filePath)),
+  run: (ctx) => {
+    const message = advisoryMessage(ctx.filePath);
+    debugLogHookBranch('lint-format-advisory', 'advisory-issued', {
+      filePath: ctx.filePath,
+      basename: path.basename(ctx.filePath),
+      message,
+    });
+    return advise(message);
+  },
 });
 
 runAsCli(lintFormatAdvisoryHook, module);

@@ -1,7 +1,7 @@
 {
   "_source": "constructed-from-docs",
   "_docs": "https://cursor.com/docs/reference/hooks",
-  "hook_event_name": "userPromptSubmit",
+  "hook_event_name": "beforeSubmitPrompt",
   "conversation_id": "conv-abc123",
   "generation_id": null,
   "session_id": "session-cursor-001",

@@ -1,0 +1,9 @@
+{
+  "_source": "constructed-from-docs",
+  "_docs": "https://docs.github.com/en/copilot/reference/hooks-reference",
+  "timestamp": 1704614400000,
+  "cwd": "/proj",
+  "sessionId": "copilot-session-002",
+  "trigger": "context-limit",
+  "customInstructions": "summarize aggressively"
+}

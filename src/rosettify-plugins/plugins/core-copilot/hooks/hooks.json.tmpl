@@ -3,6 +3,12 @@
   "hooks": {
     "sessionStart": []{{#if deterministic_hooks}},{{/if}}
 {{#if deterministic_hooks}}
+    "preCompact": [
+      {
+        "type": "command",
+        "command": "node \".github/hooks/read-once-reset.js\""
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|Write|Edit|create_file|replace_string_in_file|multi_replace_string_in_file|mcp__.*",
@@ -10,6 +16,15 @@
           {
             "type": "command",
             "command": "node \".github/hooks/dangerous-actions.js\""
+          }
+        ]
+      },
+      {
+        "matcher": "view|Read|bash|powershell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".github/hooks/read-once.js\""
           }
         ]
       }

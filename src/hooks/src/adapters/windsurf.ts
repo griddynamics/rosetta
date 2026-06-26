@@ -27,14 +27,14 @@ interface EventDef {
 
 // Maps Windsurf agent_action_name → { hook_event_name, tool_name, buildToolInput }
 const EVENT_MAP: Record<string, EventDef> = {
-  pre_read_code:    { hook_event_name: 'PreToolUse',  tool_name: 'Read',  buildToolInput: ({ file_path }) => ({ file_path }) },
+  pre_read_code:    { hook_event_name: 'PreRead',     tool_name: 'Read',  buildToolInput: ({ file_path }) => ({ file_path }) },
   post_read_code:   { hook_event_name: 'PostToolUse', tool_name: 'Read',  buildToolInput: ({ file_path }) => ({ file_path }) },
   pre_write_code:   { hook_event_name: 'PreToolUse',  tool_name: 'Write', buildToolInput: ({ file_path }) => ({ file_path }) },
   post_write_code:  { hook_event_name: 'PostToolUse', tool_name: 'Write', buildToolInput: ({ file_path }) => ({ file_path }) },
   pre_run_command:  { hook_event_name: 'PreToolUse',  tool_name: 'Bash',  buildToolInput: ({ command_line }) => ({ command: command_line }) },
   post_run_command: { hook_event_name: 'PostToolUse', tool_name: 'Bash',  buildToolInput: ({ command_line }) => ({ command: command_line }) },
-  pre_mcp_tool_use:  { hook_event_name: 'PreToolUse',  tool_name: ({ mcp_tool_name }) => mcp_tool_name as string, buildToolInput: ({ mcp_tool_arguments }) => (mcp_tool_arguments as Record<string, unknown>) || {} },
-  post_mcp_tool_use: { hook_event_name: 'PostToolUse', tool_name: ({ mcp_tool_name }) => mcp_tool_name as string, buildToolInput: ({ mcp_tool_arguments }) => (mcp_tool_arguments as Record<string, unknown>) || {} },
+  pre_mcp_tool_use:  { hook_event_name: 'PreToolUse',  tool_name: ({ mcp_tool_name }) => `mcp__${String(mcp_tool_name ?? '')}`, buildToolInput: ({ mcp_tool_arguments }) => (mcp_tool_arguments as Record<string, unknown>) || {} },
+  post_mcp_tool_use: { hook_event_name: 'PostToolUse', tool_name: ({ mcp_tool_name }) => `mcp__${String(mcp_tool_name ?? '')}`, buildToolInput: ({ mcp_tool_arguments }) => (mcp_tool_arguments as Record<string, unknown>) || {} },
   // Events without CC equivalent — use new canonical names
   pre_user_prompt:                       { hook_event_name: 'PrePromptSubmit', tool_name: null, buildToolInput: ({ user_prompt }) => ({ prompt: user_prompt }) },
   post_cascade_response:                 { hook_event_name: 'PostResponse',    tool_name: null, buildToolInput: ({ response }) => ({ response }) },
@@ -61,10 +61,12 @@ const normalize = (raw: Record<string, unknown>): NormalizedInput => {
     toolKind:        lookupToolKind(mappedToolName ?? ''),
     hook_event_name: mappedHookEventName,
     session_id:      trajectory_id as string,
+    execution_id:    execution_id as string,
     tool_name:       mappedToolName,
     tool_input:      eventDef ? eventDef.buildToolInput(ti) : ti,
     file_path:       getFilePath(raw) ?? '',
     cwd:             getCwd(raw) ?? undefined,
+    transcript_path: (ti.transcript_path as string) ?? undefined,
     _windsurf:       { agent_action_name, execution_id, timestamp, model_name, tool_info: ti },
   } as unknown as NormalizedInput;
 };

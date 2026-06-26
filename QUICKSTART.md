@@ -83,6 +83,22 @@ To properly set up an entire workspace, refer to [CONFIGURATION.md](CONFIGURATIO
 /requirements-authoring-flow update existing requirements for <component name> so that it <does new behavior/supports new capability>. Additionally, ... . Once done spawn subagent to validate and repeat an entire loop until there are no issues detected.
 ```
 
+### Automated QA
+
+**WHAT**: Helps user go from a test case in Test Management System to a working test in the automation framework. Give it a test case, it gathers what it needs from your code and ticket system (for example, Jira) and AQA implements the automated test, asks questions when it sees contradictions, and helps fix the test until it passes.
+
+```
+/aqa-flow Automate the test case for the checkout flow, ...
+```
+
+```
+/aqa-flow Implement automation for the test cases in suite ..., ...
+```
+
+```
+/aqa-flow Fix the failing automated test for ..., ...
+```
+
 ### Modernization
 
 **FIRST**: Document modernization goals in CONTEXT.md, document target services technical aspects in ARCHITECTURE.md, document where source code should be created, keep refsrc populated with reference code source (old code, new code, reusable libraries, configuration and documentation files, and similar).

@@ -95,9 +95,9 @@ describe('normalize — Windsurf read events', () => {
     expect(result.tool_input.file_path).toBe('/proj/utils.py');
   });
 
-  test('pre_read_code → hook_event_name PreToolUse', () => {
+  test('pre_read_code → hook_event_name PreRead', () => {
     const result = normalize(wsInput('pre_read_code', { file_path: '/proj/config.js' }));
-    expect(result.hook_event_name).toBe('PreToolUse');
+    expect(result.hook_event_name).toBe('PreRead');
     expect(result.tool_name).toBe('Read');
   });
 
@@ -114,7 +114,7 @@ describe('normalize — Windsurf MCP events', () => {
       mcp_result: 'created',
     }));
     expect(result.hook_event_name).toBe('PostToolUse');
-    expect(result.tool_name).toBe('create_issue');
+    expect(result.tool_name).toBe('mcp__create_issue');
     expect(result.tool_input).toEqual({ owner: 'org', repo: 'repo' });
   });
 

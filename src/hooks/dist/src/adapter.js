@@ -21,6 +21,7 @@ const codex_1 = require("./adapters/codex");
 const cursor_1 = require("./adapters/cursor");
 const windsurf_1 = require("./adapters/windsurf");
 const copilot_1 = require("./adapters/copilot");
+const debug_log_1 = require("./runtime/debug-log");
 // Detection is an ordered chain — a superset like codex must match before
 // claude-code, so this order is load-bearing and not derived from Object.keys.
 const DETECTION_ORDER = ['codex', 'cursor', 'claude-code', 'windsurf', 'copilot'];
@@ -33,44 +34,90 @@ const ADAPTERS = {
 };
 const detectIDE = (rawInput) => {
     if (rawInput === null || rawInput === undefined) {
+        (0, debug_log_1.debugLogBranch)('adapter', 'detect-invalid', { reason: 'null-or-undefined' });
         throw new Error('Invalid input: null or undefined');
     }
     if (typeof rawInput !== 'object' || Array.isArray(rawInput)) {
+        (0, debug_log_1.debugLogBranch)('adapter', 'detect-invalid', {
+            reason: 'non-plain-object',
+            valueType: Array.isArray(rawInput) ? 'array' : typeof rawInput,
+            rawInput,
+        });
         throw new Error('Invalid input: expected a plain object');
     }
     const raw = rawInput;
     const ide = DETECTION_ORDER.find((name) => ADAPTERS[name].detect(raw));
     if (!ide) {
+        (0, debug_log_1.debugLogBranch)('adapter', 'detect-unsupported', { keys: Object.keys(raw), rawInput: raw });
         throw new Error(`Unsupported IDE: ${JSON.stringify(Object.keys(raw))}`);
     }
+    (0, debug_log_1.debugLogBranch)('adapter', 'detect-ok', { ide, keys: Object.keys(raw) });
     return ide;
 };
 exports.detectIDE = detectIDE;
-const normalize = (rawInput) => ADAPTERS[(0, exports.detectIDE)(rawInput)].normalize(rawInput);
+const normalize = (rawInput) => {
+    const ide = (0, exports.detectIDE)(rawInput);
+    const normalized = ADAPTERS[ide].normalize(rawInput);
+    (0, debug_log_1.debugLogBranch)('adapter', 'normalize-ok', {
+        ide,
+        event: normalized.event,
+        toolKind: normalized.toolKind,
+        toolName: normalized.tool_name,
+        filePath: normalized.file_path ?? null,
+        normalizedInput: normalized,
+    });
+    return normalized;
+};
 exports.normalize = normalize;
 const formatOutput = (canonicalOutput, ide) => {
     const adapter = ide ? ADAPTERS[ide] : undefined;
-    return adapter
+    const formatted = adapter
         ? adapter.formatOutput(canonicalOutput)
         : canonicalOutput;
+    (0, debug_log_1.debugLogBranch)('adapter', 'format-output', {
+        ide: ide ?? null,
+        adapter: adapter?.name ?? null,
+        canonicalOutput,
+        formattedOutput: formatted,
+    });
+    return formatted;
 };
 exports.formatOutput = formatOutput;
 const dedupKey = (rawInput, hookName) => {
     const ide = (0, exports.detectIDE)(rawInput);
-    return ADAPTERS[ide].dedupKey?.(rawInput, hookName) ?? null;
+    const key = ADAPTERS[ide].dedupKey?.(rawInput, hookName) ?? null;
+    (0, debug_log_1.debugLogBranch)('adapter', 'dedup-key', { ide, hookName, dedupKey: key });
+    return key;
 };
 exports.dedupKey = dedupKey;
 const readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
     const chunks = [];
     stream.on('data', (chunk) => chunks.push(String(chunk)));
     stream.on('end', () => {
-        const raw = chunks.join('').trim();
+        const rawText = chunks.join('');
+        const raw = rawText.trim();
+        (0, debug_log_1.debugLogBranch)('adapter', 'stdin-received', {
+            rawInput: rawText,
+            rawBytes: Buffer.byteLength(rawText, 'utf8'),
+            trimmedEmpty: raw.length === 0,
+        });
         if (!raw)
             return reject(new Error('Invalid input: empty stdin'));
         try {
-            resolve(JSON.parse(raw));
+            const parsed = JSON.parse(raw);
+            (0, debug_log_1.debugLogBranch)('adapter', 'stdin-parsed', {
+                parsedType: Array.isArray(parsed) ? 'array' : typeof parsed,
+                parsedKeys: parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+                    ? Object.keys(parsed)
+                    : null,
+            });
+            resolve(parsed);
         }
         catch (err) {
+            (0, debug_log_1.debugLogBranch)('adapter', 'stdin-parse-error', {
+                rawInput: rawText,
+                error: err,
+            });
             reject(new Error(`JSON parse error: ${err.message}`));
         }
     });

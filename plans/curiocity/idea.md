@@ -8,15 +8,16 @@
 
 ---
 
-## Core Principle — No Headless Mode (test like a real user)
+## Core Principle — Interactive Mode + Auto Permissions (we test our harness)
 
-**Curiocity exercises each agent exactly the way a human uses it — in its normal interactive mode — never a headless / print / non-interactive mode (`-p`, `--print`, `exec`, SDK one-shot).** A real user does not run `claude -p`; they open the interactive TUI and work in it. That interactive path is what we must test.
+**What every case tests:** that **our Rosetta harness — skills, subagents, workflows, hooks, MCPs — executes properly** inside a real coding agent. The point is *our plugins behaving correctly*, not permission UX.
 
-- **The interactive prompts ARE the thing under test.** We *want* the agent to **ask** — permission requests, clarifying questions, HITL gates. Curiocity plays the human and answers them (per `qna.md`). This is how we evaluate an agent's **HITL behavior** — e.g. whether the Rosetta HITL skill makes the agent ask the right questions before acting.
-- **Headless defeats the purpose, not just the principle.** Headless mode auto-approves/bypasses precisely those prompts, so HITL would be untestable and the run would exercise a code path users never hit.
-- **Drive the real interactive session** over a PTY, **simulating user input** and answering prompts as a user would.
-- **Args/params are allowed for invocation** — e.g. the *initial prompt* may be passed as a launch argument instead of typing it keystroke-by-keystroke. "Simulate user input" means *we do not depend on headless mode*, not that every character must be typed.
-- **Headless is OUT OF SCOPE**, not a fallback. Applies to all 5 CLIs.
+- **Real interactive TUI via PTY — never headless** (`-p` / `--print` / `exec` / SDK one-shot). Interactive is how a user runs it and how our plugins actually load and behave; headless is a different code path that wouldn't validate the harness.
+- **Auto-handle permissions.** Tool-permission prompts ("Claude wants to run bash…") are noise we don't care about — run in **auto mode** so they don't block the run. (Claude Code: `--permission-mode auto`.)
+- **Substantive questions are still answered as a user.** Auto mode does **not** suppress the agent's own clarifying questions (e.g. from our HITL skill) or stop plugins/skills/subagents/MCPs from running — Curiocity answers those via `qna.md`. That *is* the harness working, and it matters.
+- **Initial prompt** is passed as a launch argument (interactive + auto-submit). We simulate user input only where needed (answering a real question, ending the session).
+- **Trajectory** = the agent's on-disk interactive **session transcript** (written automatically — no special flag) plus the screen as needed.
+- **No extremes:** not headless, and not babysitting every permission prompt. Interactive + auto, judged on whether our harness ran correctly. Applies to all 5 CLIs (the auto-permission mechanism is declared per-agent in its profile).
 
 ---
 
@@ -40,9 +41,9 @@ This harness automates that loop: one prompt in, N agents driven to completion, 
 ## Goals
 
 - Drive any predefined coding-agent CLI to completion from a **single prompt file**, unattended (no human), running the tool in its **normal interactive mode** (never headless `-p`/`exec`).
-- **Simulate a real user** at a real terminal (PTY) — submit the prompt (as a launch arg or typed) and answer interactive sub-prompts as a user would.
+- **Run as a real user** at a real terminal (PTY): submit the prompt as a launch arg, **auto-handle permission prompts**, and answer the agent's substantive questions per `qna.md`.
 - **Prefer native trajectory JSON** (tool calls, messages, interactions) emitted by each CLI as the authoritative record — fall back to screen-reading only when needed.
-- **Auto-answer** interactive prompts using an LLM that reads the rendered screen, but only **after deterministic stall detection** flags that the agent is waiting; guided by a predefined Q&A policy file.
+- **Answer the agent's substantive questions** (e.g. clarifying questions) via an LLM that reads the screen on stall, guided by `qna.md`; tool-**permission** prompts are handled by **auto mode**, not answered one-by-one.
 - **Two-tier models:** a fast/cheap model for high-frequency checks, a workhorse model for hard reasoning and judging.
 - **Stability testing:** repeat each case N times to measure **score range and variance**, not just a single pass — distinguishing a reliably-good agent from a lucky-once flaky one.
 - **Optionally mirror** (behind a `--mirror` flag, off by default) each agent's stdout/stderr live for local debugging.
@@ -258,6 +259,26 @@ A single run is a sample, not a measurement. Agents are non-deterministic, so ea
 - **Deterministic checks:** `execa` to run build/test/lint.
 - **Workspace isolation:** git worktree or temp clone per run.
 
+## Concurrency & Parallelization
+
+The trial matrix `(agent × case × repeat)` is run in parallel (see Resolved Decisions). Node/TS is single‑threaded, so the concurrency model must be explicit:
+
+- **Single‑threaded ≠ serial.** The harness work is **I/O‑bound**: each **Curion** supervises a PTY whose `claude` is a **separate OS process**, and makes async LLM calls. Node's event loop multiplexes many sessions' PTY I/O and network calls concurrently without blocking — and the actual agent compute is **already parallel across cores** because each agent is its own process. The harness only watches their I/O.
+- **Where the single thread bottlenecks:** CPU‑heavy harness work under high fan‑out — parsing large transcripts, headless‑terminal screen rendering for many sessions, judge‑payload assembly. On the main loop these serialize and add latency.
+- **Proper technique:** run each Curion (or a small pool) in **its own worker — `worker_threads`, or preferably a process‑per‑Curion (child process)** — so PTY I/O + CPU parsing per trial is isolated and uses other cores. **Curiocity (orchestrator)** owns a **bounded work queue / pool** (concurrency cap ≈ CPU cores or a configured limit) and coordinates workers via **IPC / message passing**; results stream back as each Curion finishes.
+- **Why process‑per‑Curion:** fault isolation (a hung PTY or crashed agent can't take down the suite), clean per‑trial resource teardown, and a natural 1:1 mapping to each matrix cell.
+- **Backpressure:** cap concurrency to avoid exhausting CPU / file handles / PTYs / LLM rate limits; queue the remainder. Never an unbounded fan‑out.
+
+### Buffer deadlock & backpressure on stdin/stdout (critical)
+
+Driving an interactive process over a PTY has a notorious failure mode that single‑threaded Node makes worse:
+
+- **The classic pipe/PTY deadlock (circular wait).** OS pipe / PTY buffers are finite. If the harness writes to the agent's **stdin** while the agent writes to **stdout** and nobody drains, the agent blocks writing stdout (buffer full) → stops reading its stdin → the harness blocks writing stdin (the agent's stdin buffer is full) → **both wait on each other forever**. Rule: **always be draining output while you write input** — never write‑then‑block without a concurrent reader.
+- **Don't block the event loop = don't stop draining.** Node is single‑threaded: a synchronous CPU task (parsing a huge transcript, rendering a screen) stalls the PTY read loop → buffers fill → the agent blocks → with many sessions on one loop this **head‑of‑line blocking cascades to every session**. Keep the read loop hot; push heavy parsing/judging to workers / child processes.
+- **Respect stream backpressure.** Node `write()` returns `false` when its buffer is full — await `'drain'`, chunk large prompts, don't flood the PTY. Ignoring it bloats memory and, against a non‑draining peer, deadlocks.
+- **Terminal flow control.** A PTY's line discipline can apply XON/XOFF (Ctrl‑S/Ctrl‑Q) flow control that silently pauses the agent's output; consume promptly and handle/disable flow control so output isn't throttled or lost.
+- **Process‑per‑Curion is the structural cure.** Isolating each trial in its own process means one session's CPU spike or full buffer cannot stall another session's reader — which is *why* the per‑process model above matters, beyond fault isolation.
+
 ## Architecture Quality (explicit NFRs)
 
 The architecture must be deliberately designed, not emergent:
@@ -299,11 +320,41 @@ The architecture must be deliberately designed, not emergent:
 
 ## MVP Scope
 
-**v1 builds for Claude Code only**, then extends to the other CLIs behind the same adapter interface. Claude Code reference notes are in **[`./mvp-claude-code.md`](./mvp-claude-code.md)** — but ⚠️ that doc was researched under the wrong premise (it recommended headless `-p`, which **violates the Core Principle** above) and is being corrected. The MVP must drive Claude Code's **interactive TUI via PTY**, let it **ask**, and answer prompts per `qna.md`. Trajectory in interactive mode comes from the on-disk session transcript and/or screen — **to verify in the spike** (not the headless print stream).
+**v1 builds for Claude Code only**, then extends to the other CLIs behind the same adapter interface. Launch the interactive TUI via PTY with `claude "<prompt>" --permission-mode auto` (no `-p`), and capture the trajectory by tailing the on‑disk transcript at the **directly‑computed path** `~/.claude/projects/<realpath(cwd) "/"→"-">/<session-id>.jsonl`. The interactive‑capture mechanism is **validated by experiment** — see "Findings & Decisions — Claude Code Interactive Trajectory Capture" below for the exact requirements (strip `CLAUDE_CODE*` env, run unsandboxed, fresh uuid) and the root causes of earlier failures.
+
+## Findings & Decisions — Claude Code Interactive Trajectory Capture (validated by real experiment, 2026‑06‑23)
+
+**True findings (tested, not assumed):**
+- Interactive `claude` (TUI over node‑pty, **no `--print`**) **does** persist its session transcript to `~/.claude/projects/<encoded-cwd>/<session-id>.jsonl`, **live‑appended within ~1 second** (confirmed: file present at the first 1 s poll, ≥21 lines, growing).
+- **TWO VALIDATED CAPTURE OPTIONS — alternatives, both proven; keep both (choose per agent):**
+  - **Option A — Computed path.** Tail `~/.claude/projects/<encoded-cwd>/<session-id>.jsonl`, where `<encoded-cwd>` = `realpath(cwd)` with every `/` → `-` (macOS temp dirs resolve through `/private`). We set the cwd and `--session-id`, so the path is **deterministic — no `find`/search**. Simplest; no extra config. Risk: relies on the encoding holding per agent/OS.
+  - **Option B — `SessionStart`/`Stop` hooks** (injected via `--settings`). `SessionStart` stdin gives the **authoritative `transcript_path`** (no encoding/compute); `Stop` stdin gives `last_assistant_message` + a clean completion signal (also the free‑text‑question trigger). Only the **two basic, cross‑agent hooks** are used — portable; richer per‑event hooks differ per agent and are avoided. Most robust/portable.
+  - Both validated live (~1 s latency, transcript live‑appended). A = least setup; B = most portable & authoritative. The PoC currently wires B with A as fallback, but A standalone is a fully valid alternative.
+- The live **structured** stream (`--output-format stream-json`) is **headless‑only** and is NOT used; the interactive on‑disk transcript carries the same events.
+- **`--debug` / `--debug-file` does NOT log the transcript path or write events** (its categories are `STARTUP`, `FileIndex`, `init`, `Bootstrap`, `keybindings`, hooks, etc.). So debug is **not** a way to discover the path — it's only useful as a **per‑run failure‑diagnostics log** (auth/hook/MCP errors).
+
+**Previously‑unforeseen issues (root causes of every earlier `events: 0`):**
+1. **Sandboxing.** A sandboxed harness process blocks/redirects `claude`'s writes to `~/.claude`, so no transcript appears. The harness must run **unsandboxed**.
+2. **Inherited Claude‑Code child‑session env markers.** Spawning `claude` from inside Claude Code inherits `CLAUDECODE=1`, `CLAUDE_CODE_CHILD_SESSION=1`, `CLAUDE_CODE_SESSION_ID=<parent>` → it runs as a **nested child** that doesn't persist its own transcript. **Strip `CLAUDECODE` + all `CLAUDE_CODE*`** from the child env.
+3. **Session‑id collision.** Reusing a `--session-id` → `"Session ID already in use"` and instant exit. Use a **fresh uuid per run**.
+4. **API key leaking via env.** Any `ANTHROPIC_API_KEY` in the environment is inherited by `claude` and billed (a shared/org key). The key lives **only in a config file / custom var (`CURION_LLM_KEY`)**, passed directly to the LLM client, **never in `process.env`**, never reaching `claude`.
+5. **Auth is a stored source.** `claude` uses API‑billing from `~/.claude` config (not env); independent of #4, not harness‑controlled. `CLAUDE_CONFIG_DIR` is unset (transcripts go to `~/.claude`).
+
+**Live end‑to‑end run findings (2026‑06‑23, Option A computed‑path, real `npm run dev`, exit 0):**
+- **Capture validated end‑to‑end:** `trajectory.events: 94`, tool calls captured (`Skill`, `ToolSearch`, `TaskCreate`, `Bash`, `Read`, `AskUserQuestion`, …) — confirms the Rosetta plugin ran and the trajectory is captured live via the computed path.
+- **Judge validated:** correctly returned **fail / 15** with an accurate rationale (no `SPECS.md`/`PLAN.md` artifacts produced; run ended on `AskUserQuestion` without delivering). The generic, criteria‑driven judge works.
+- **🐞 CRITICAL bug — question‑detector is over‑eager.** The interaction loop treated **normal agent tool calls as user questions** — it grabbed `TaskCreate` and `TaskUpdate` `tool_use` events and **injected Haiku‑generated "answers" into the PTY**, derailing the agent (≈30‑min run, zero deliverables). **Fix: a "question" is ONLY the `AskUserQuestion` tool (structured) or a genuine free‑text prompt — never arbitrary tool calls** (`TaskCreate`/`TaskUpdate`/`Skill`/`Bash`/`Read` are normal workflow). This is exactly the misfire Option B's `Stop`‑hook + `last_assistant_message` classification should avoid (verify in the hook‑driven run).
+
+**Decisions (locked):**
+- Trajectory capture = **interactive TUI + tail the on‑disk transcript**, located by **either Option A (computed path) or Option B (`SessionStart`/`Stop` hooks)** above — *both are valid alternatives*; choose per agent (B where `SessionStart` is supported, A otherwise). No headless. (PoC implements B with A as fallback.)
+- Child `claude` env = inherited minus `CLAUDECODE`/`CLAUDE_CODE*`; LLM key never present in env.
+- Completion / turn boundaries detected via the **`Stop` hook's `last_assistant_message`** (Option B) or **trajectory turn‑state** (Option A); on each, classify question‑vs‑done; **never inject unsolicited input**.
+- Judge input = **dynamic validation file (verbatim) + distilled trajectory + produced artifacts + Q&A log**; harness interprets no criteria.
+- A "question" we answer = **only** a genuine user question: the **`AskUserQuestion` tool** (structured) or a real **free‑text prompt**. **Never** other tool calls (`TaskCreate`/`TaskUpdate`/`Skill`/`Bash`/`Read` are normal workflow — answering them derails the agent, per the live‑run bug above). The Q&A log records each handled exchange (`{type, question, answer, timestamp}`).
 
 ## Open Questions (remaining — feasibility spikes, not pure decisions)
 
-1. **Trajectory schema:** Claude Code is researched (see `mvp-claude-code.md`); still verify its exact fields in a live run, and confirm the other 4 CLIs (Codex, Gemini, Cursor, Copilot) emit enough JSON — then define the normalized internal schema.
+1. **Other 4 CLIs (Codex, Gemini, Cursor, Copilot):** confirm each persists an equivalent on‑disk transcript (and its path/format) the same way — Claude Code is now validated; the others are not yet.
 2. **Multi-pane need + mechanics:** do any of the 5 CLIs actually spawn panes/sub-terminals (vs. a single PTY)? If yes, how to capture + drive them portably with `node-pty` / `@xterm/headless`; if no, the pane abstraction stays single-pane for v1.
 3. **Default model tiers:** which concrete fast vs. workhorse models to default to for screen-reader and judge (configurable per role regardless).
 

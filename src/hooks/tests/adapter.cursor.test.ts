@@ -7,6 +7,7 @@ import fxCursorEdit   from './fixtures/cursor-post-tool-use-edit.json';
 import fxCursorBash   from './fixtures/cursor-pre-tool-use-bash.json';
 import fxCursorStart  from './fixtures/cursor-session-start.json';
 import fxCursorPrompt from './fixtures/cursor-user-prompt-submit.json';
+import fxCursorRead   from './fixtures/cursor-before-read-file.json';
 import fxCopilot      from './fixtures/copilot-post-tool-use-write.json';
 import fxCC           from './fixtures/claude-code-post-tool-use-write.json';
 
@@ -35,6 +36,10 @@ describe('detectIDE — Cursor', () => {
     expect(detectIDE(fxCursorPrompt)).toBe('cursor');
   });
 
+  test('returns "cursor" for Cursor beforeReadFile input', () => {
+    expect(detectIDE(fxCursorRead)).toBe('cursor');
+  });
+
   test('does NOT match claude-code (conversation_id + cursor_version distinguish cursor)', () => {
     expect(detectIDE(fxCursorWrite)).not.toBe('claude-code');
   });
@@ -52,16 +57,16 @@ describe('detectIDE — Cursor', () => {
     expect(detectIDE(fxCopilot)).not.toBe('cursor');
   });
 
-  test('CC-like input missing conversation_id does NOT match cursor', () => {
-    const noCid = { ...fxCursorWrite } as Record<string, unknown>;
-    delete noCid.conversation_id;
-    expect(detectIDE(noCid)).not.toBe('cursor');
-  });
-
   test('CC-like input missing cursor_version does NOT match cursor', () => {
     const noCv = { ...fxCursorWrite } as Record<string, unknown>;
     delete noCv.cursor_version;
     expect(detectIDE(noCv)).not.toBe('cursor');
+  });
+
+  test('CC-like input missing conversation_id still matches cursor via session_id + cursor_version', () => {
+    const noCid = { ...fxCursorWrite } as Record<string, unknown>;
+    delete noCid.conversation_id;
+    expect(detectIDE(noCid)).toBe('cursor');
   });
 
 });
@@ -84,9 +89,17 @@ describe('normalize — Cursor PostToolUse', () => {
     expect(result.hook_event_name).toBe('SessionStart');
   });
 
-  test('normalizes userPromptSubmit → UserPromptSubmit', () => {
+  test('normalizes beforeSubmitPrompt → BeforeSubmitPrompt and semantic PrePromptSubmit', () => {
     const result = normalize(fxCursorPrompt);
-    expect(result.hook_event_name).toBe('UserPromptSubmit');
+    expect(result.hook_event_name).toBe('BeforeSubmitPrompt');
+    expect(result.event).toBe('PrePromptSubmit');
+  });
+
+  test('normalizes beforeReadFile → PreRead', () => {
+    const result = normalize(fxCursorRead);
+    expect(result.hook_event_name).toBe('PreRead');
+    expect(result.event).toBe('PreRead');
+    expect(result.toolKind).toBe(null);
   });
 
   test('maps conversation_id to session_id', () => {
@@ -124,6 +137,12 @@ describe('normalize — Cursor PostToolUse', () => {
   test('SessionStart — tool_name is null/undefined (no tool)', () => {
     const result = normalize(fxCursorStart);
     expect(result.tool_name == null).toBe(true);
+  });
+
+  test('beforeReadFile maps file_path and session_id', () => {
+    const result = normalize(fxCursorRead);
+    expect(result.file_path).toBe('/proj/src/readme.md');
+    expect(result.session_id).toBe(fxCursorRead.conversation_id);
   });
 
 });
@@ -233,11 +252,19 @@ describe('round-trip — Cursor (all event types)', () => {
     expect(normalized.tool_name == null).toBe(true);
   });
 
-  test('userPromptSubmit: PascalCase normalizes correctly', () => {
+  test('beforeSubmitPrompt: semantic event preserved', () => {
     const ide = detectIDE(fxCursorPrompt);
     expect(ide).toBe('cursor');
     const normalized = normalize(fxCursorPrompt);
-    expect(normalized.hook_event_name).toBe('UserPromptSubmit');
+    expect(normalized.event).toBe('PrePromptSubmit');
+  });
+
+  test('beforeReadFile: detect → normalize produces PreRead', () => {
+    const ide = detectIDE(fxCursorRead);
+    expect(ide).toBe('cursor');
+    const normalized = normalize(fxCursorRead);
+    expect(normalized.hook_event_name).toBe('PreRead');
+    expect(normalized.file_path).toBe('/proj/src/readme.md');
   });
 
   test('deny round-trip: continue:false → permission:deny in output', () => {

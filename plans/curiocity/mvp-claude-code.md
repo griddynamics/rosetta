@@ -1,494 +1,181 @@
-# Curiocity MVP — Claude Code Build Guide
+# Curiocity MVP — Driving Claude Code in Interactive TUI Mode (via PTY)
 
-> 🛑 **CORRECTION — THIS GUIDE'S RECOMMENDATION IS WRONG AND SUPERSEDED.**
-> This was researched under a mistaken premise: it recommends **headless `-p` mode**, which **violates Curiocity's Core Principle** (see [`idea.md`](./idea.md)). **We do NOT use headless mode.** Curiocity must drive Claude Code's **real interactive TUI via a PTY**, because *we want the agent to ask* (permissions, clarifying questions, HITL gates) and answer it as a human would (per `qna.md`) — that interactive/HITL behavior is the **thing under test**. Headless auto-approves/bypasses those prompts and would make HITL untestable.
+> **Scope:** MVP targets **Claude Code only**; other CLIs follow behind the same adapter. See [`idea.md`](./idea.md).
 >
-> **What is still useful here:** the launch flags that *also* apply when starting the interactive TUI — `--model`, `--mcp-config` / `--strict-mcp-config`, `--plugin-dir` / `--plugin-url`, `--add-dir`, `--settings`, env vars — plus the on-disk artifacts. **What is REJECTED:** `-p` / `--print` / `--output-format stream-json` as the *execution mode*, and any permission setting that auto-approves silently (`bypassPermissions`, blanket allowlists) — we want prompts to FIRE so we can answer them.
+> **Core principle (non-negotiable):** Curiocity drives Claude Code's **real interactive TUI over a PTY** — never headless `-p`/`--print`. **What we test is that our Rosetta plugins/skills/subagents/workflows execute properly** inside the agent. Tool-**permission** prompts are noise → run in **auto mode** (`--permission-mode auto`) so they don't block. The agent's **substantive** questions (e.g. from our HITL skill) are still answered as a human, per `qna.md`. This guide replaces the earlier headless draft.
 >
-> **Trajectory in interactive mode:** capture from Claude Code's on-disk **session transcript** (`.jsonl`, path TBD) and/or the rendered screen — NOT the headless print stream. ⚠️ To be re-researched/verified in the spike.
+> **Provenance:** `claude-code-guide` subagent on **Sonnet 4.6** (2026-06-22), from Anthropic Claude Code docs.
 >
-> **Provenance:** `claude-code-guide` subagent on Sonnet 4.6 (2026-06-19). Sections below are kept for the still-useful flags/JSON shapes; **read them through the correction above.** A corrected interactive-driving guide is pending.
+> ⚠️ **Verify before building.** Flag names, env vars, transcript paths, prompt text, and JSON shapes below are research output and may be partly model-generated or version-specific. Confirm each against the **exact installed Claude Code version** (real PTY capture) during the spike. The prioritized "Verify in Spike" list at the end is the to-do for that.
+
+**Doc sources (verify):** cli-reference, sessions, permission-modes, interactive-mode, permissions, mcp, settings, commands under `https://code.claude.com/docs/en/`.
 
 ---
 
-## 1. Headless / Non-Interactive Invocation
+## 1. Launch the interactive TUI with an initial prompt
 
-### Flags
+`claude "your prompt"` (positional arg, **no `-p`**) starts the full interactive TUI **and** pre-submits that string as the first user turn. This is the launch method.
 
-| Flag | Purpose |
+| Command | Behavior |
 |---|---|
-| `-p` / `--print` | Headless mode. Exits after one task. Required for all CI use. |
-| `--output-format stream-json` | NDJSON stream of typed events (use this for trajectory capture) |
-| `--output-format json` | Single JSON blob at exit (lighter, no streaming, but `total_cost_usd` still present) |
-| `--output-format text` | Plain text; no metadata |
-| `--input-format text` | Default. Prompt comes from CLI arg or piped stdin |
-| `--input-format stream-json` | Accept NDJSON turns on stdin for multi-turn driving |
-| `--verbose` | Emit `assistant` / `user` / tool events into stream-json (required for trajectory) |
-| `--include-partial-messages` | Emit token-level deltas (for TTFT measurement; not needed for judging) |
-| `--model <alias-or-id>` | `opus`, `sonnet`, `haiku`, `fable`, or full ID like `claude-opus-4-8` |
-| `--session-id <uuid>` | Inject a deterministic session UUID you control |
-| `--continue` / `-c` | Resume most-recent session in cwd |
-| `--resume <id-or-name>` | Resume specific session by UUID or name |
-| `--fork-session` | Resume but mint a new session ID (use with `--resume`) |
-| `--max-turns <n>` | Hard cap on agentic turns (print mode only). Exits `error_max_turns` on breach. |
-| `--max-budget-usd <n>` | Hard cost cap. Exits `error_max_budget_usd` on breach. |
-| `--bare` | Skip auto-discovery of hooks, plugins, MCP, CLAUDE.md, auto-memory. Fastest for isolated CI. |
-| `--no-session-persistence` | Don't write session to disk (useful for ephemeral workers). |
+| `claude` | interactive session, idle prompt |
+| `claude "query"` | **interactive session + auto-submits the query** ✅ use this |
+| `claude -p "query"` | headless, exits after one turn ❌ never |
 
-### Does headless need a PTY?
+**Valid interactive launch flags:** `--model <alias\|id>`, `--add-dir <path>` (repeatable), `--mcp-config <path>` + `--strict-mcp-config`, `--plugin-dir <path>` / `--plugin-url <url>` (repeatable), `--settings <path\|json>`, `--permission-mode <mode>`, `--session-id <uuid>`, `--name`/`-n`, `--continue`/`-c`, `--resume`/`-r`, `--append-system-prompt`, `--verbose`, `--ax-screen-reader` (flat text, no decorations — useful for parsing; needs a recent version).
 
-**No.** `-p` mode is pure stdin/stdout. The workspace-trust dialog is skipped automatically when stdout is not a TTY or when `-p` is used. No PTY, no screen-reading, no node-pty required.
+**Headless-only flags — never use:** `-p`/`--print`, `--output-format`, `--max-turns`, `--max-budget-usd`, `--no-session-persistence`, `--input-format`.
 
-### Full sample command (MVP canonical)
-
-```bash
-ANTHROPIC_API_KEY="sk-ant-..." \
-CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 \
-claude \
-  --bare \
-  -p "Implement the feature described in TASK.md" \
-  --output-format stream-json \
-  --verbose \
-  --model opus \
-  --permission-mode bypassPermissions \
-  --max-turns 50 \
-  --max-budget-usd 2.00 \
-  --session-id "$(uuidgen)" \
-  --mcp-config /workspace/.curion/mcp.json \
-  --strict-mcp-config \
-  --plugin-dir /workspace/.curion/plugins/rosetta \
-  --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
-  --no-session-persistence \
-  2>/dev/null
-```
-
-Redirect stderr separately; `--output-format stream-json` goes to stdout only.
-
-### Session continuation in multi-turn eval harness
-
-```bash
-# Turn 1 — capture session id from result event
-SESSION=$(claude --bare -p "Turn 1 prompt" \
-  --output-format json --model sonnet | jq -r '.session_id')
-
-# Turn 2 — inject follow-up (same session, new turn)
-claude --bare -p "Turn 2 follow-up" \
-  --resume "$SESSION" \
-  --output-format json
-```
-
-**Gotchas / version caveats:**
-- `--bare` is currently opt-in but will become the default for `-p` in a future release (docs warn of this). Use it explicitly.
-- `--no-session-persistence` requires v2.1.x; omit on older builds.
-- Piped stdin is capped at 10MB as of v2.1.128. Larger payloads must be written to a file.
-- `--session-id` lets you assign a UUID you chose, making trajectory storage deterministic.
-
----
-
-## 2. Trajectory JSON — stream-json Event Schema
-
-### How to capture
-
-```bash
-claude --bare -p "..." --output-format stream-json --verbose > trajectory.ndjson
-```
-
-Each line is a self-contained JSON object (NDJSON / newline-delimited JSON).
-
-### Top-level event types
-
-| `type` | When emitted | Key purpose |
-|---|---|---|
-| `system` | First event; also on retry/plugin-install | Session init metadata |
-| `user` | Each user turn (including injected tool results) | Input record |
-| `assistant` | Each model response | Tool calls + text |
-| `result` | Last event before process exit | Final answer + cost + usage |
-
-### `system` event (subtype `"init"`) — first event in stream
-
-```json
-{
-  "type": "system",
-  "subtype": "init",
-  "uuid": "e3b0c442-...",
-  "session_id": "550e8400-e29b-41d4-a716-446655440000",
-  "message": "Claude Code session initialized",
-  "output_style": "default",
-  "available_output_styles": ["default", "concise"],
-  "tools": ["Bash", "Read", "Edit", "Write"],
-  "plugins": [{ "name": "rosetta", "path": "/workspace/.curion/plugins/rosetta" }],
-  "plugin_errors": []
-}
-```
-
-`plugin_errors` is non-empty when a plugin failed to load — use this to fail CI fast.
-
-### `assistant` event — tool calls live here
-
-```json
-{
-  "type": "assistant",
-  "uuid": "...",
-  "session_id": "550e8400-...",
-  "parent_tool_use_id": null,
-  "message": {
-    "id": "msg_01XYZ",
-    "type": "message",
-    "role": "assistant",
-    "content": [
-      { "type": "text", "text": "I'll read the file first." },
-      {
-        "type": "tool_use",
-        "id": "toolu_01ABC",
-        "name": "Read",
-        "input": { "file_path": "/workspace/src/auth.ts" }
-      }
-    ],
-    "model": "claude-opus-4-8-20250514",
-    "stop_reason": "tool_use",
-    "usage": { "input_tokens": 512, "output_tokens": 64 }
-  }
-}
-```
-
-File edits: use the `Edit` or `Write` tool_use blocks. `input.file_path`, `input.old_string`, `input.new_string` (Edit) or `input.file_path`, `input.content` (Write).
-
-### `user` event — tool results
-
-```json
-{
-  "type": "user",
-  "uuid": "...",
-  "session_id": "550e8400-...",
-  "parent_tool_use_id": null,
-  "message": {
-    "role": "user",
-    "content": [
-      {
-        "type": "tool_result",
-        "tool_use_id": "toolu_01ABC",
-        "content": "export function login(..."
-      }
-    ]
-  }
-}
-```
-
-### `result` event (final, authoritative)
-
-```json
-{
-  "type": "result",
-  "subtype": "success",
-  "uuid": "...",
-  "session_id": "550e8400-e29b-41d4-a716-446655440000",
-  "is_error": false,
-  "num_turns": 7,
-  "duration_ms": 34210,
-  "duration_api_ms": 29800,
-  "stop_reason": "end_turn",
-  "result": "I've implemented the login feature in src/auth.ts...",
-  "total_cost_usd": 0.01842,
-  "usage": {
-    "input_tokens": 18400,
-    "output_tokens": 2100,
-    "cache_read_input_tokens": 12000,
-    "cache_creation_input_tokens": 3200
-  },
-  "modelUsage": {
-    "claude-opus-4-8-20250514": {
-      "input_tokens": 18400,
-      "output_tokens": 2100
-    }
-  },
-  "permission_denials": [],
-  "terminal_reason": "end_turn",
-  "ttft_ms": 380
-}
-```
-
-### Error subtypes on `result`
-
-| `subtype` | Meaning |
-|---|---|
-| `success` | Clean completion |
-| `error_max_turns` | `--max-turns` hit |
-| `error_max_budget_usd` | `--max-budget-usd` hit |
-| `error_during_execution` | Runtime error |
-| `error_max_structured_output_retries` | JSON schema validation failed repeatedly |
-
-Error variants omit `result` string and `structured_output` but still include `total_cost_usd`, `usage`, `num_turns`, `duration_ms`.
-
-### stream-json with partial messages (token streaming)
-
-Add `--include-partial-messages` to get `stream_event` lines between assistant events. **For Curiocity judging**, only the non-partial `assistant` events and the final `result` event are needed; partial messages are optional (useful only for TTFT measurement).
-
-**Gotchas:**
-- `--verbose` is required to get `assistant`/`user` events in stream-json. Without it you only get the `result` event.
-- `total_cost_usd` is a client-side estimate; use `usage` token counts for authoritative billing.
-- `subagent` events from child agents include a non-null `parent_tool_use_id` — use this to reconstruct the subagent tree.
-
----
-
-## 3. Interactive Permission Prompts — Critical for CI
-
-### The problem
-
-In headless `-p` mode, if Claude attempts a tool call that requires a permission prompt and none of the mechanisms below pre-approve it, the run aborts (in auto mode with repeated classifier blocks) or stalls/aborts (default mode). You must pick a strategy.
-
-### Permission mode strategies
-
-Set via `--permission-mode <mode>` or `permissions.defaultMode` in settings.
-
-| Mode | What auto-approves | CI safety | When to use |
-|---|---|---|---|
-| `default` | Reads only | Blocks on writes/bash | Never (will stall) |
-| `acceptEdits` | Reads + file edits + `mkdir/touch/mv/cp/rm/sed` | Moderate | Light tasks (read+edit only) |
-| `dontAsk` | Only tools in `permissions.allow` rules | High | Locked-down CI with explicit allowlist |
-| `auto` | Everything via AI classifier | Low-moderate | Requires Opus 4.6+ and subscription |
-| `bypassPermissions` | Everything (no prompts, no checks) | Low (use in containers) | Isolated sandboxes only |
-
-### Recommended CI approach — Option A: `dontAsk` + explicit allowlist (safest)
-
-In a settings file (via `--settings`):
-```json
-{
-  "permissions": {
-    "defaultMode": "dontAsk",
-    "allow": [
-      "Bash(npm *)", "Bash(npx *)", "Bash(git *)", "Bash(python *)",
-      "Bash(pytest *)", "Bash(ls *)", "Bash(cat *)", "Bash(find *)",
-      "Read", "Write", "Edit", "Glob", "Grep"
-    ]
-  }
-}
-```
-
-```bash
-claude --bare -p "..." \
-  --permission-mode dontAsk \
-  --settings /workspace/.curion/settings.json \
-  --output-format stream-json --verbose
-```
-
-Any tool call not in the allowlist is **auto-denied** (no blocking prompt). The `result` event has `permission_denials` entries to inspect post-run.
-
-### Option B: `bypassPermissions` (sandboxed containers)
-
-```bash
-claude --bare -p "..." --dangerously-skip-permissions \
-  --output-format stream-json --verbose
-```
-
-Equivalent to `--permission-mode bypassPermissions`. Skips all checks. Use only when the container has no internet/host access that matters. **Refuses to run as root/sudo** — run as a non-root user.
-
-### Option C: `--allowedTools` per-invocation
-
-```bash
-claude --bare -p "..." --permission-mode default \
-  --allowedTools "Bash(git log *)" "Bash(git diff *)" "Read" "Edit" \
-  --output-format stream-json --verbose
-```
-
-Trailing ` *` enables prefix matching (the space before `*` is significant).
-
-### Option D: `--permission-prompt-tool` (custom approval via MCP)
-
-```bash
-claude --bare -p "..." \
-  --permission-prompt-tool mcp__my_approval_server__approve_tool \
-  --output-format stream-json --verbose
-```
-
-Routes permission prompts to an MCP tool you control — the SDK-integrated way to implement allow/deny logic without blocking. **This is the closest analogue to Curiocity's `qna.md` guard for Claude Code.**
-
-### Does headless mode ever block on a TTY prompt?
-
-**No** — in `-p` mode with any of `dontAsk`, `bypassPermissions`, or `allowedTools` covering expected tool calls. In `default` mode without pre-approvals, Claude emits a permission request that — with no TTY — aborts rather than hanging.
-
-**Gotchas:**
-- `auto` mode requires v2.1.83+, Opus 4.6+/Sonnet 4.6+, and must live in `~/.claude/settings.json` (ignored in project/local settings).
-- Protected paths (`.git`, `.claude`, rc files) are still prompted in all modes except `bypassPermissions` (v2.1.126+).
-- `--dangerously-skip-permissions` refuses to start as root.
-
----
-
-## 4. MCP Server Provisioning
-
-### Preferred for CI: `--mcp-config <path>` + `--strict-mcp-config`
-
-```bash
-claude --bare -p "..." \
-  --mcp-config /workspace/.curion/mcp.json \
-  --strict-mcp-config \
-  --output-format stream-json --verbose
-```
-
-`--strict-mcp-config` ignores ALL other MCP sources — only the file you pass is used. Essential for reproducible CI. Inline JSON also works (`--mcp-config '{"mcpServers":{...}}'`).
-
-### `.mcp.json` format
-
-```json
-{
-  "mcpServers": {
-    "my-stdio-server": {
-      "command": "/usr/local/bin/my-server",
-      "args": ["--config", "${CLAUDE_PROJECT_DIR}/config.json"],
-      "env": { "DB_URL": "${DB_URL}", "LOG_LEVEL": "info" },
-      "timeout": 300000
-    },
-    "my-http-server": {
-      "type": "http",
-      "url": "${API_BASE_URL:-https://api.example.com}/mcp",
-      "headers": { "Authorization": "Bearer ${API_TOKEN}" },
-      "timeout": 60000
-    },
-    "my-sse-server": { "type": "sse", "url": "https://events.example.com/sse" }
-  }
-}
-```
-
-- `type` defaults to `stdio`. `http` (alias `streamable-http`), `sse`, `ws` supported.
-- Env var syntax: `${VAR}` (required) or `${VAR:-default}` — expands in `command`, `args`, `env`, `url`, `headers`.
-- `timeout`: per-tool-call ms; values < 1000 ignored.
-- MCP tool names: `mcp__<server>__<tool>`. Pre-approve with `"allow": ["mcp__my-server__*"]`.
-
-**Gotchas:** `MCP_TIMEOUT` env sets startup timeout; `MAX_MCP_OUTPUT_TOKENS` raises the 10K output cap; the server name `workspace` is reserved. In headless `-p` + `--mcp-config` + `--strict-mcp-config`, no interactive approval is required (config is trusted because explicitly passed).
-
----
-
-## 5. Plugin Provisioning (install the Rosetta plugin before the run)
-
-### Plugin structure (brief)
-
-```
-my-plugin/
-├── .claude-plugin/plugin.json   # manifest
-├── skills/<skill>/SKILL.md
-├── agents/<agent>.md
-├── hooks/hooks.json
-├── .mcp.json                    # plugin-bundled MCP servers
-└── settings.json
-```
-
-Skills namespaced as `/rosetta:<skill>`; plugin MCP tools named `mcp__plugin_<plugin>_<serverkey>__<tool>`.
-
-### CI-friendly load (no install, no interactive steps) — RECOMMENDED
-
-**`--plugin-dir <path>` — load from local dir (or `.zip`, v2.1.128+):**
-```bash
-claude --bare -p "..." --plugin-dir /workspace/.curion/plugins/rosetta \
-  --output-format stream-json --verbose
-```
-
-**`--plugin-url <url>` — fetch a zip:**
-```bash
-claude --bare -p "..." --plugin-url "https://artifacts.internal/rosetta-v1.2.3.zip" ...
-```
-
-Repeat the flag for multiple plugins. Both load the plugin **for that session only** — no marketplace, no persistent install, no prompts. This is the recommended Curiocity approach.
-
-### Verify the plugin loaded (fail fast)
-
-```bash
-claude --bare -p "..." --plugin-dir ./rosetta --output-format stream-json --verbose | \
-  tee trajectory.ndjson | \
-  jq -e 'select(.type=="system" and .subtype=="init") |
-         if (.plugin_errors|length) > 0 then error("Plugin load failed: \(.plugin_errors)") else . end' || exit 1
-```
-
-### Persistent install (for a CI base image — interactive once)
-
-```bash
-claude plugin marketplace add file:///path/to/rosetta-marketplace.json
-claude plugin install rosetta@my-marketplace --scope user
-```
-
-Then enable via settings `"enabledPlugins": { "rosetta@my-marketplace": true }` (pass with `--settings`). Note: with `--bare`, installed plugins are skipped — you must pass `--plugin-dir` explicitly. `CLAUDE_CODE_SYNC_PLUGIN_INSTALL=1` installs marketplace plugins synchronously before the first turn (experimental — prefer `--plugin-dir`).
-
-**Gotchas:** `--plugin-url` fails silently if the archive is bad/unreachable (check `plugin_errors`). Plugin MCP servers auto-connect at session start — pre-approve their tools via `--allowedTools "mcp__plugin_rosetta_*"` or a `permissions.allow` rule.
-
----
-
-## 6. Readiness & Completion Detection
-
-- **Primary signal:** the `result` event is always the last NDJSON line on stdout; the process exits after it.
-- **Exit codes:** `0` = success; `1` = error (execution error, max-turns, max-budget, plugin failure, auth failure). Always parse the `result` event for `subtype`/cost/turns rather than relying on exit code alone.
-- **Error surfacing:** `result.subtype` (`error_during_execution` / `error_max_turns` / `error_max_budget_usd`), `is_error:true`; auth failures exit 1 with **no** `result` event (message on stderr); `system/api_retry` events precede retries; plugin failures populate `plugin_errors` in `system/init`.
-- **Background tasks:** after the `result` event, background Bash gets ~5s grace then is killed (v2.1.163+); background subagents get up to 10min (`CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS`).
+**PTY requirements:** Claude Code detects interactive via `stdin.isTTY` → a real PTY (node-pty) is required. Set `TERM=xterm-256color`, a wide size (e.g. **220×50**) to avoid wrap breaking output parsing, and consider `--ax-screen-reader` + `NO_COLOR=1` for clean text. Recommended env for eval isolation: `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`, `DISABLE_AUTOUPDATER=1`, `DISABLE_AUTO_COMPACT=1`.
 
 ```typescript
-import { spawn } from 'child_process';
-const proc = spawn('claude', ['--bare','-p',prompt,'--output-format','stream-json','--verbose'],
-  { cwd: workspaceDir, env: { ...process.env, ANTHROPIC_API_KEY: key } });
-proc.on('exit', (code) => { if (code !== 0) handleError(code); });
+import * as pty from 'node-pty';
+
+function spawnClaude(o: { cwd: string; prompt: string; model?: string; mcpConfig?: string; sessionId: string; configDir: string }) {
+  const args = [o.prompt, '--permission-mode', 'auto', '--session-id', o.sessionId];
+  if (o.model) args.push('--model', o.model);
+  if (o.mcpConfig) args.push('--mcp-config', o.mcpConfig, '--strict-mcp-config');
+  return pty.spawn('claude', args, {
+    name: 'xterm-256color', cols: 220, rows: 50, cwd: o.cwd,
+    env: { ...process.env, TERM: 'xterm-256color', CLAUDE_CONFIG_DIR: o.configDir,
+           CLAUDE_CODE_DISABLE_AUTO_MEMORY: '1', DISABLE_AUTOUPDATER: '1', DISABLE_AUTO_COMPACT: '1' },
+  });
+}
 ```
 
 ---
 
-## 7. Workspace & Model Control
+## 2. Readiness detection
 
-- **cwd:** invoke from the provisioned workspace (`spawn(..., { cwd })`). `--add-dir <path>` grants extra file access (but does not load that dir's `.claude/` config).
-- **Model:** `--model opus|sonnet|haiku|fable` or a full dated ID (use the **full ID for reproducible evals**). `--fallback-model sonnet,haiku`. Env: `ANTHROPIC_MODEL`. Precedence: `--model` > `ANTHROPIC_MODEL` > settings.
-- **Bounds:** `--max-turns <n>` and `--max-budget-usd <n>` (no defaults — always set both for evals).
-- **Effort:** `--effort low|medium|high|xhigh|max` (model-dependent).
-- **Key env vars:** `ANTHROPIC_API_KEY`, `API_TIMEOUT_MS`, `CLAUDE_CODE_CONNECT_TIMEOUT_MS`, `BASH_DEFAULT_TIMEOUT_MS`, `BASH_MAX_TIMEOUT_MS`, `MCP_TIMEOUT`, `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`, `DISABLE_AUTOUPDATER=1`, `MAX_MCP_OUTPUT_TOKENS`.
-- **Third-party providers:** `CLAUDE_CODE_USE_BEDROCK` / `_VERTEX` / `_FOUNDRY` (auto mode there needs `CLAUDE_CODE_ENABLE_AUTO_MODE=1` and Opus 4.7+).
+No machine-readable "ready" event exists; detect heuristically. Startup renders a welcome box, then a status line (`model · mode · cwd`) and the idle prompt `> `. With `claude "prompt"` the agent fires immediately (you won't see idle first). Strategy: after ~600ms of no new output, strip ANSI and check the last non-empty line — `^>` = idle/ready; a permission/dialog pattern = waiting for input. On a fresh dir, the **workspace-trust dialog fires first** (§8) — handle it before anything else.
 
 ---
 
-## 8. MVP Recommendation
+## 3. Submitting input like a user
 
-**Headless stream-json is sufficient for the Claude Code MVP** — `claude --bare -p "..." --output-format stream-json --verbose` yields the complete trajectory (tool calls, file edits, messages), final answer (`result.result`), cost (`total_cost_usd`), tokens (`usage`), timing (`duration_ms`, `ttft_ms`), plugin-load verification (`system/init.plugin_errors`), and hard bounds (`--max-turns`, `--max-budget-usd`) — with **zero PTY and zero screen-reading**.
+Write prompt text + `\r` to submit. Newline-without-submit: `\x0a` (Ctrl+J) or `\` then `\r`. node-pty writes go to the PTY slave directly, so you do **not** emit bracketed-paste sequences yourself.
 
-### Recommended Curion (MVP) flow
-
-```
-1. Provision workspace (unzip src.zip into an isolated dir)
-2. Write /workspace/.curion/mcp.json        (per-run MCP servers)
-3. Write /workspace/.curion/settings.json   (per-run permissions/allowlist)
-4. Resolve /workspace/.curion/plugins/rosetta  (dir or .zip)
-5. Spawn claude with:
-     --bare -p "<prompt.md>"
-     --output-format stream-json --verbose
-     --model <pinned-full-model-id>
-     --permission-mode bypassPermissions (container) | dontAsk (with allowlist)
-     --max-turns <N> --max-budget-usd <budget>
-     --session-id <deterministic-uuid>
-     --mcp-config .../mcp.json --strict-mcp-config
-     --plugin-dir .../plugins/rosetta
-     --settings .../settings.json
-     --no-session-persistence
-   cwd = the test-case workspace
-6. Stream stdout NDJSON → trajectory store
-7. On `result`: extract answer, cost, turns, errors
-8. Exit(1) + no `result` → auth/startup failure
-9. Deterministic judges over the workspace (build/test/lint per evaluation.md)
-10. LLM judge over result + trajectory
+```typescript
+const submit = (t: pty.IPty, s: string) => t.write(s + '\r');
+const newlineNoSubmit = (t: pty.IPty, lines: string[]) => t.write(lines.join('\x0a') + '\r');
 ```
 
-### What you lose by going headless (trade-offs)
+---
 
-| Lost capability | Impact | Mitigation |
+## 4. Permissions — use AUTO mode (don't babysit prompts)
+
+**Use `--permission-mode auto`.** Tool-permission prompts (bash/edit) are noise we don't test — auto mode runs routine ops without prompting, while **plugins/skills/subagents/MCP tools run normally** and the agent's **substantive clarifying questions are NOT suppressed** (so our HITL skill still gates and we answer those via `qna.md`). A background safety classifier prevents genuinely dangerous unattended actions; after repeated blocks it falls back to prompting — handleable over the PTY (unlike headless, which aborts).
+
+**Auto-mode constraints (verify against shipped version):**
+- Claude Code **≥ v2.1.83**; model **Opus 4.6+ / Sonnet 4.6** (API). Bedrock/Vertex/Foundry: Opus 4.7+/4.8 and `CLAUDE_CODE_ENABLE_AUTO_MODE=1`.
+- `defaultMode:"auto"` is honored **only in `~/.claude/settings.json`** (user scope), ignored in project settings. The `--permission-mode auto` flag works regardless.
+- Entering auto mode drops broad allow rules (e.g. `Bash(*)`, `Bash(python*)`); narrow rules survive. Explicit `ask` rules still prompt.
+
+**Alternatives:** `bypassPermissions` (zero prompts/checks — only in a fully isolated container; no protection vs prompt-injection) and `acceptEdits` (edits auto, bash/network still prompt). **Avoid `dontAsk`** — it auto-*denies* anything not pre-allowed, so unlisted tool calls our skills make would silently fail.
+
+**Prompts that still appear even in auto mode** (handle as a user, or pre-empt):
+
+| Prompt | Detect (regex, illustrative) | Handling |
 |---|---|---|
-| Interactive plan approval | No human plan review pause | Use bypass/auto; not needed in CI |
-| `/compact` mid-session | Long runs may hit context limit | `--max-turns` + catch `error_max_turns` |
-| Real-time selective approval | Can't approve unexpected tool calls live | Pre-enumerate `--allowedTools` or use `--permission-prompt-tool` |
-| MCP OAuth (browser) | Can't complete OAuth in CI | Use header-auth/stdio MCPs; pre-auth in base image |
+| Workspace trust (first run in dir) | `Do you trust\|files in this folder` | `y\r` / `1\r`, or pre-trust (§8) |
+| MCP trust (new server) | `New MCP server\|trust this server` | `1\r`, or pre-approve via reused config dir |
+| Plugin trust (first install) | `install plugin\|trust.*plugin` | `1\r`, or pre-install before the run |
+| Auto-mode opt-in (first time only) | `Enter auto mode\|auto mode` | accept once during image setup |
+| Substantive clarifying question | idle `> `, no numbered options | answer per `qna.md` + `\r` |
 
-**node-pty is unnecessary for Claude Code.** It would only be needed to drive a CLI that has no headless mode, or to test the interactive TUI itself.
+Navigation when a prompt does appear: number keys select; Enter confirms; arrows cycle tabs; Esc cancels. Number-key selection is most reliable from a PTY. **Pre-flight** (in the base image) to eliminate the one-time prompts: run once interactively to accept workspace-trust + auto-mode opt-in, pre-install plugins, set `defaultMode:"auto"` in `~/.claude/settings.json`.
 
 ---
 
-## Open / Uncertain — Verify in the Spike (priority order)
+## 5. Trajectory capture (interactive)
 
-1. **`--bare --plugin-dir ./rosetta` actually loads** Rosetta's skills + MCP servers (confirm via `system/init.plugins` / `plugin_errors`).
-2. **`--mcp-config` + `--strict-mcp-config` + `-p`** does not stall on a "Pending approval" prompt.
-3. **`bypassPermissions` in your container** passes the non-root check (some containers run UID 0 with a non-`root` username).
-4. **`result` is emitted without `--verbose`** (verbose should only gate intermediate events).
-5. **Exact `result` field names** (`total_cost_usd`, `usage.*`, `modelUsage`, `permission_denials`, `num_turns`, `duration_ms`, `ttft_ms`) — capture a real run and diff against this doc.
-6. **Exit-code matrix** for `error_max_turns` / `error_max_budget_usd` / auth failure (run `--max-turns 1` on a multi-turn task).
-7. **`permission_denials` schema** (fields per denial) — inspect a live run with a deliberately disallowed tool.
-8. **`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`** path, only if Rosetta must come from a marketplace rather than `--plugin-dir`.
-9. **Pinned model IDs** — resolve the exact dated IDs to use for reproducible evals at run time.
-10. **Version baseline** — confirm which flags exist on the Claude Code version pinned in CI (several above are v2.1.x-gated).
+Interactive sessions persist a transcript JSONL at:
+```
+$CLAUDE_CONFIG_DIR/projects/<encoded-cwd>/<session-id>.jsonl
+   (default base ~/.claude/)
+```
+**Written automatically — no flag required.** Interactive session persistence is on by default (it's what powers `--continue`/`--resume`); there is **no analogous param** to enable it. (The thing you may recall — `--output-format stream-json` — is the *headless* live stdout stream, a different mechanism we do not use.) `<encoded-cwd>` = the cwd with every `/` replaced by `-` (verified empirically). Set a **unique `CLAUDE_CONFIG_DIR` per run** for isolation and pass `--session-id <uuid>` so you know the filename up front. The file is written **incrementally** (tail-able). Each line is a JSON event — `user`, `assistant` (with `text` and `tool_use` blocks), tool results, session metadata. This is the **authoritative trajectory** for judging. Retention defaults to 30 days (`cleanupPeriodDays`); `CLAUDE_CODE_SKIP_PROMPT_HISTORY` disables writing (don't set it). Whether per-message `usage`/cost appears inline — verify in spike; fallback is `/usage` before exit.
+
+**Cost/tokens:** may not be reliably inline per-message. Fallback: send `/usage\r` (or `/cost\r`) before exit and capture the rendered totals, or enable OpenTelemetry (`CLAUDE_CODE_ENABLE_TELEMETRY`). **Verify** whether per-message `usage` appears in the JSONL.
+
+```typescript
+import * as fs from 'fs/promises';
+function pollTranscript(p: string, onEvent: (e: any) => void) {
+  let pos = 0;
+  const iv = setInterval(async () => {
+    try { const st = await fs.stat(p); if (st.size <= pos) return;
+      const buf = await fs.readFile(p, 'utf8'); const lines = buf.slice(pos).split('\n'); pos = st.size;
+      for (const l of lines) { if (l.trim()) try { onEvent(JSON.parse(l)); } catch {} }
+    } catch {}
+  }, 300);
+  return () => clearInterval(iv);
+}
+```
+
+---
+
+## 6. Completion & idle detection; ending the session
+
+Working state shows spinners / "Running…" / "Editing…" lines; **idle** = `> ` prompt returns and no output for ~800ms (tune). More reliable than screen-scraping: watch the **transcript** for a new `assistant` turn appended after your `user` line.
+
+End cleanly: send `/exit\r` (preferred); fallback `\x04` (Ctrl+D) after ~5s; `/quit\r` is an alias; `\x03\x03` only when idle. Expect exit code `0` on clean exit (verify).
+
+```typescript
+async function close(t: pty.IPty) {
+  t.write('/exit\r');
+  return new Promise<number>(res => { t.onExit(({exitCode}) => res(exitCode));
+    setTimeout(() => { try { t.write('\x04'); } catch {} }, 5000); });
+}
+```
+
+---
+
+## 7. MCP & plugin provisioning at launch
+
+`--mcp-config <file> --strict-mcp-config` (interactive-valid) loads only our servers and ignores user/project MCP config — essential for isolation. `--plugin-dir <dir|.zip>` / `--plugin-url <url>` load session-only plugins (this is how we inject the **Rosetta** plugin). Both may trigger **trust dialogs** ("New MCP server… trust?", "install plugin?") — since each run uses a fresh `CLAUDE_CONFIG_DIR`, expect them every run; answer as a user (`1\r`) or pre-approve via a reused config dir / `--settings`. Pre-approve plugin/MCP tool calls' permissions only if you don't want those specific prompts (usually you *do* want them).
+
+---
+
+## 8. Workspace-trust dialog (fires first, on fresh dirs)
+
+First launch in a never-seen directory shows "Do you trust the files in this folder?" **before** the banner/prompt processing. Answer via PTY: `y\r` or `1\r`. Put trust-dialog detection at the **top** of the state machine (it precedes all agent output). Since Curiocity uses fresh workspace + config per run, it fires every run. (`CLAUDE_CODE_TRUST_ALL_DIRS` is rumored but unconfirmed — verify; prefer answering it as a user, which is realistic.)
+
+---
+
+## Recommended Curion MVP loop
+
+```
+LAUNCH (claude "<prompt.md>" --permission-mode auto --session-id <uuid>
+        --mcp-config … --strict-mcp-config --plugin-dir <rosetta> ; cwd=workspace)
+→ AWAIT_TRUST  (answer y\r; or pre-trusted in base image)
+→ AWAIT_READY
+→ AGENT LOOP, on each PTY chunk (ANSI-stripped):
+     trust/MCP/plugin dialog  → approve (or pre-empted in base image)
+     tool permission           → auto mode handles it (no action needed)
+     substantive question      → answer per qna.md + \r
+     idle >600ms               → emit TURN_COMPLETE
+   in parallel: tail transcript JSONL → trajectory store
+→ on TURN_COMPLETE & no pending input: (optionally /usage\r to capture cost) → /exit\r
+→ read final transcript → deterministic checks (evaluation.md) + LLM judge
+                          + judge: did our plugins/skills/subagents/workflows actually run?
+```
+
+(A fuller node-pty sketch combining §1–§6 is straightforward to assemble from the snippets above; treat all detection regexes as version-specific and confirm in the spike.)
+
+---
+
+## Verify in Spike (priority order)
+
+1. **Workspace-trust dialog** exact text/format/keystroke on the shipped version (fresh dir).
+2. **Tool-permission prompt** exact text + option layout (is `1`=Yes always? any `y/n` variants?) — capture raw PTY for a Bash and an Edit permission.
+3. **Does `claude "prompt"` fire the trust dialog before processing the prompt**, or mid-turn?
+4. **Transcript JSONL schema** — real field names/nesting; whether `usage`/cost is per-message or end-only. Dump a real transcript.
+5. **`CLAUDE_CONFIG_DIR` project-dir encoding** of the CWD; confirm `<session-id>.jsonl` filename pattern; confirm `--session-id` controls it.
+6. **Idle `> ` exact format** (with/without `--ax-screen-reader`; trailing space?).
+7. **Multi-line input** — `\x0a` inserts newline without submitting in Claude Code's input layer.
+8. **MCP trust dialog with `--strict-mcp-config`** — suppressed or still fires per server?
+9. **`--settings` inline JSON merge** behavior — confirm it doesn't pull in user `permissions.allow` that suppress prompts.
+10. **Plugin trust dialog** format for `--plugin-dir` (same as MCP?).
+11. **JSONL flush timing** — per-line flush vs batched; any partial-line writes (would break parsing).
+12. **Clean `/exit` exit code** (`0`?) and behavior under `--ax-screen-reader`.
+13. **`TERM`/size sensitivity** — does omitting `TERM=xterm-256color` degrade init; is there a clean low-noise rendering mode for parsing.

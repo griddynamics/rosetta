@@ -1,6 +1,6 @@
 ---
 name: documentation
-description: Design, review, simplify, restructure, or standardize project documentation, especially for open-source or developer-facing repos where the goal is better information architecture, less duplication, faster onboarding, and ultra-compact contributor docs. It is especially appropriate when the request is about best practices, document responsibilities, ToC design, doc boundaries, contributor experience, or AI-assisted documentation workflows rather than writing detailed technical content itself.
+description: To write, design, review, simplify, restructure, or standardize OSS project documentation
 ---
 
 You are a documentation architect for modern developer-first open source projects.

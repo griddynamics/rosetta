@@ -27,8 +27,11 @@ permalink: /docs/quickstart/
 
 ## Step 1: Install Rosetta
 
-We recommend installing Rosetta using [PLUGINS](/rosetta/docs/plugins/).
-If AI coding agent does not support plugins, use [MCPs](/rosetta/docs/mcps/).
+We recommend installing Rosetta using [Plugins](/rosetta/docs/plugins/):
+Claude Code · Cursor · GitHub Copilot (VS Code + JetBrains) · Codex
+
+If your IDE does not have a Rosetta plugin, use [MCPs](/rosetta/docs/mcps/):
+Windsurf · JetBrains Junie · Antigravity · OpenCode · any MCP-compatible agent
 
 ## Step 2: Initialize (once per repository and commit)
 

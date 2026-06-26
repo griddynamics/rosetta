@@ -6,6 +6,9 @@
 import { test, describe, expect } from 'vitest';
 
 import fxCopilot from './fixtures/copilot-post-tool-use-write.json';
+import fxCopilotView from './fixtures/copilot-pre-tool-use-view.json';
+import fxCopilotSessionStart from './fixtures/copilot-session-start.json';
+import fxCopilotPreCompact from './fixtures/copilot-pre-compact.json';
 
 import { detectIDE, normalize, formatOutput } from '../src/adapter';
 
@@ -36,6 +39,27 @@ describe('normalize — Copilot', () => {
     expect(result.hook_event_name).toBe('PreToolUse');
   });
 
+  test('view tool normalizes to PreRead', () => {
+    const result = normalize(fxCopilotView);
+    expect(result.hook_event_name).toBe('PreRead');
+    expect(result.tool_name).toBe('view');
+    expect(result.file_path).toBe('/proj/src/app.js');
+  });
+
+  test('sessionStart is inferred from source/initialPrompt', () => {
+    const result = normalize(fxCopilotSessionStart);
+    expect(result.hook_event_name).toBe('SessionStart');
+    expect(result.session_id).toBe('copilot-session-002');
+    expect(result.source).toBe('compact');
+  });
+
+  test('preCompact is inferred from trigger/customInstructions', () => {
+    const result = normalize(fxCopilotPreCompact);
+    expect(result.hook_event_name).toBe('PreCompact');
+    expect(result.session_id).toBe('copilot-session-002');
+    expect(result.trigger).toBe('context-limit');
+  });
+
   test('maps toolName (camelCase) to tool_name', () => {
     const result = normalize(fxCopilot);
     expect(result.tool_name).toBe(fxCopilot.toolName);
@@ -59,7 +83,12 @@ describe('normalize — Copilot', () => {
     expect(result.cwd).toBe(fxCopilot.cwd);
   });
 
-  test('session_id is undefined (Copilot has none)', () => {
+  test('session_id is preserved when Copilot provides it', () => {
+    const result = normalize(fxCopilotView);
+    expect(result.session_id).toBe('copilot-session-001');
+  });
+
+  test('session_id is undefined when Copilot has none', () => {
     const result = normalize(fxCopilot);
     expect(result.session_id).toBe(undefined);
   });
@@ -145,6 +174,12 @@ describe('round-trip — Copilot', () => {
 
     const output = formatOutput({ hookSpecificOutput: {} }, 'copilot');
     expect(output).toEqual({});
+  });
+
+  test('PreRead view input stays readable by runHook-level consumers', () => {
+    const normalized = normalize(fxCopilotView);
+    expect(normalized.hook_event_name).toBe('PreRead');
+    expect(normalized.tool_input.file_path).toBe('/proj/src/app.js');
   });
 
 });

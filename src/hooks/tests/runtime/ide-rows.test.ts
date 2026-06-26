@@ -13,10 +13,11 @@ describe('claude-code row', () => {
 });
 
 describe('copilot row', () => {
-  test('SessionStart raw → "SessionStart" semantic', () => expect(cpEvent('SessionStart')).toBe('SessionStart'));
+  test('sessionStart raw → "SessionStart" semantic', () => expect(cpEvent('sessionStart')).toBe('SessionStart'));
   test('PostToolUse has no raw copilot name → null', () => expect(cpEvent('PostToolUse')).toBeNull());
   test('create_file → write kind', () => expect(cpTool('create_file')).toBe('write'));
   test('replace_string_in_file → edit kind', () => expect(cpTool('replace_string_in_file')).toBe('edit'));
+  test('view → read kind', () => expect(cpTool('view')).toBe('read'));
 });
 
 describe('cursor row', () => {

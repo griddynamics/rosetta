@@ -5,6 +5,7 @@ import { Readable, Writable } from 'stream';
 import ccWrite from './fixtures/claude-code-post-tool-use-write.json';
 import ccEdit from './fixtures/claude-code-post-tool-use-edit.json';
 import cursorWrite from './fixtures/cursor-post-tool-use-write.json';
+import codexApplyPatch from './fixtures/codex-post-tool-use-apply_patch.json';
 
 import { advisoryMessage, lintFormatAdvisoryHook } from '../src/hooks/lint-format-advisory';
 import { runHook } from '../src/runtime/run-hook';
@@ -197,5 +198,111 @@ describe('error handling', () => {
 
   test('silent for unknown IDE shape', async () => {
     expect(await execute({ unknown_field: 'value' })).toBe('');
+  });
+});
+
+// ── integration: case-insensitive extension matching (extOneOfCi) ───────────────────
+//
+// The filter uses `extOneOfCi` (case-insensitive). All other extension tests use
+// lowercase only, so the case-folding branch was previously unexercised.
+
+describe('case-insensitive extension matching', () => {
+  test('fires for uppercase .TS', async () => {
+    const payload = { ...ccWrite, tool_input: { file_path: 'src/app.TS' } };
+    expect(await execute(payload)).toBe(expectedClaude('src/app.TS'));
+  });
+
+  test('fires for mixed-case .Tsx', async () => {
+    const payload = { ...ccWrite, tool_input: { file_path: 'src/app.Tsx' } };
+    expect(await execute(payload)).toBe(expectedClaude('src/app.Tsx'));
+  });
+});
+
+// ── integration: exclusion boundary precision (notContainsAny w/ trailing slash) ────
+//
+// Exclusions match exact substrings WITH a trailing slash (`dist/`, `build/`,
+// `node_modules/`). Directory names that merely share a prefix must NOT be
+// excluded.
+
+describe('exclusion boundary — prefix-only matches still fire', () => {
+  const nearMiss = [
+    'distillery/app.ts',          // `dist` ≠ `dist/`
+    'builder/app.ts',             // `build` ≠ `build/`
+    'node_modules_local/foo.ts',  // `node_modules` ≠ `node_modules/`
+  ];
+
+  for (const filePath of nearMiss) {
+    test(`fires for ${filePath}`, async () => {
+      const payload = { ...ccWrite, tool_input: { file_path: filePath } };
+      expect(await execute(payload)).toBe(expectedClaude(filePath));
+    });
+  }
+});
+
+// ── integration: MultiEdit tool (multi-edit kind) for PostToolUse ───────────────────
+//
+// Claude Code maps `MultiEdit` → `multi-edit`, which the hook lists in toolKinds,
+// but only Write/Edit were previously exercised. Uses a distinct path to avoid a
+// throttle-lock collision with the `Edit` test (same session + `src/app.ts`).
+
+describe('MultiEdit tool', () => {
+  test('fires for MultiEdit on .ts', async () => {
+    const payload = {
+      ...ccEdit,
+      tool_name: 'MultiEdit',
+      hook_event_name: 'PostToolUse',
+      tool_input: { file_path: 'src/multi-edit-app.ts' },
+    };
+    expect(await execute(payload)).toBe(expectedClaude('src/multi-edit-app.ts'));
+  });
+});
+
+// ── integration: file-path field fallback chain (file_path → filePath → path) ────────
+//
+// Claude Code getFilePath falls back across field names; only `file_path` was
+// previously covered.
+
+describe('file-path field extraction', () => {
+  test('fires when path is in camelCase filePath', async () => {
+    const payload = { ...ccWrite, tool_input: { filePath: 'src/filepath-variant.ts' } };
+    expect(await execute(payload)).toBe(expectedClaude('src/filepath-variant.ts'));
+  });
+
+  test('fires when path is in path field', async () => {
+    const payload = { ...ccWrite, tool_input: { path: 'src/path-variant.ts' } };
+    expect(await execute(payload)).toBe(expectedClaude('src/path-variant.ts'));
+  });
+});
+
+// ── integration: Codex apply_patch — path parsed from command string ────────────────
+//
+// Codex extracts the file path from the patch command (`*** Update File: ...`),
+// not from tool_input.file_path. Codex formatOutput is identity, so output is the
+// canonical hookSpecificOutput shape. Fixture targets src/app.js.
+
+describe('Codex apply_patch', () => {
+  test('fires with path parsed from command string', async () => {
+    const out = await execute(codexApplyPatch);
+    expect(out).toBe(expectedClaude('src/app.js'));
+    expect(out).toContain('app.js');
+  });
+});
+
+// ── integration: throttle with null session_id (no-session key) ────────────────────
+//
+// makeDedupKey falls back to `no-session` when session_id is absent; two
+// consecutive session-less fires for the same file must dedupe. session_id is set
+// to null (not omitted) because Claude Code detection requires the key to be
+// present. The `no-session` key is shared across all session-less calls, so a
+// Date.now()-unique path is required to avoid cross-test/cross-run lock collisions.
+
+describe('throttle without session_id', () => {
+  test('silent on immediate re-fire for same file', async () => {
+    const filePath = `no-session-${Date.now()}.ts`;
+    const payload = { ...ccWrite, session_id: null, tool_input: { file_path: filePath } };
+    const first = await execute(payload);
+    const second = await execute(payload);
+    expect(first).not.toBe('');
+    expect(second).toBe('');
   });
 });

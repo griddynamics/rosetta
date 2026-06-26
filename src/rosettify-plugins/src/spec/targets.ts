@@ -473,6 +473,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         target: '.github/rules',
         exclude: [
           ...RULES_EXCLUDES,
+          'rules/bootstrap-alwayson.md',
           'rules/bootstrap-core-policy.md',
           'rules/bootstrap-execution-policy.md',
           'rules/bootstrap-hitl-questioning.md',

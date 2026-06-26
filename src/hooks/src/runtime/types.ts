@@ -8,6 +8,12 @@ export interface HookContext {
   filePath: string;
   cwd: string;
   sessionId: string | null;
+  agentId?: string | null;
+  turnId?: string | null;
+  transcriptPath?: string | null;
+  source?: string | null;
+  reason?: string | null;
+  trigger?: string | null;
   toolInput: Readonly<Record<string, unknown>>;
   toolResponse?: unknown;
   markerRoot?: string;
@@ -38,8 +44,8 @@ export type FsPredicate = {
 };
 
 export type HookActivation = {
-  event:      SemanticEvent;
-  toolKinds:  readonly SemanticKind[];
+  event:      SemanticEvent | readonly SemanticEvent[];
+  toolKinds?: readonly SemanticKind[];
   filePath?:  FilePathPredicate;
   toolInput?: ToolInputPredicate;
   fs?:        FsPredicate;

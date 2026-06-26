@@ -12,25 +12,26 @@ import { lookupEvent, lookupToolKind, getFilePath, getCwd } from '../runtime/ide
 import type { IdeAdapter, NormalizedInput, CanonicalOutput } from '../types';
 
 const IDE = 'cursor' as const;
-const CC_SIGNATURE = ['hook_event_name', 'tool_input'] as const;
-const CURSOR_EXTRA = ['conversation_id', 'cursor_version'] as const;
+const CURSOR_SIGNATURE = ['hook_event_name', 'cursor_version'] as const;
 
 const toPascalCase = (s: string): string =>
   s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
 const detect = (raw: Record<string, unknown>): boolean =>
-  CC_SIGNATURE.every((f) => f in raw) && CURSOR_EXTRA.every((f) => f in raw);
+  CURSOR_SIGNATURE.every((f) => f in raw);
 
 const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   const { hook_event_name, conversation_id, ...rest } = raw;
   const rawEventName = hook_event_name as string;
+  const baseEvent = lookupEvent(rawEventName);
+  const toolKind = lookupToolKind((raw.tool_name as string) ?? '');
   return {
     ...rest,
     ide:          IDE,
-    event:        lookupEvent(rawEventName),
-    toolKind:     lookupToolKind(raw.tool_name as string),
-    hook_event_name: toPascalCase(rawEventName),
-    session_id:   conversation_id as string,
+    event:        baseEvent,
+    toolKind,
+    hook_event_name: baseEvent === 'PreRead' ? 'PreRead' : toPascalCase(rawEventName),
+    session_id:   ((conversation_id as string) ?? (raw.session_id as string)) as string | undefined,
     conversation_id,
     file_path:    getFilePath(raw) ?? '',
     cwd:          getCwd(raw) ?? undefined,

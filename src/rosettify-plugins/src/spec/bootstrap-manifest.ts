@@ -19,6 +19,7 @@ export const BOOTSTRAP_PREFIX =
  */
 export const BOOTSTRAP_MANIFEST_ORDER: ReadonlyArray<BootstrapEntryRef> = [
   { basename: 'plugin-files-mode', isLead: true },   // lead doc — gets the prefix
+  { basename: 'bootstrap-alwayson', isLead: false }, // r3-only; absent docs are skipped (FR-HOOK-0001)
   { basename: 'bootstrap-core-policy', isLead: false },
   { basename: 'bootstrap-execution-policy', isLead: false },
   { basename: 'bootstrap-hitl-questioning', isLead: false }, // r2-only; r3 has different set

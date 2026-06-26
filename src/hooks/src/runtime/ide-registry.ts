@@ -1,19 +1,40 @@
+import { debugLogBranch } from './debug-log';
+
 export type IdeName = 'claude-code' | 'codex' | 'cursor' | 'windsurf' | 'copilot';
 export type IdeMap<T> = Record<IdeName, T | null>;
 
 export const EVENTS = {
-  PostToolUse:     { 'claude-code': 'PostToolUse', 'codex': 'PostToolUse', 'cursor': 'postToolUse',          'windsurf': 'PostToolUse',      'copilot': null },
-  PreToolUse:      { 'claude-code': 'PreToolUse',  'codex': 'PreToolUse',  'cursor': 'preToolUse',           'windsurf': 'PreToolUse',       'copilot': null },
-  SessionStart:    { 'claude-code': 'SessionStart', 'codex': null,          'cursor': 'sessionStart',         'windsurf': null,               'copilot': 'SessionStart' },
-  PrePromptSubmit: { 'claude-code': null,           'codex': null,          'cursor': 'userPromptSubmitted',  'windsurf': 'PrePromptSubmit',  'copilot': 'userPromptSubmitted' },
+  PostToolUse:     { 'claude-code': 'PostToolUse',  'codex': 'PostToolUse',  'cursor': 'postToolUse',        'windsurf': 'PostToolUse',      'copilot': null },
+  PreToolUse:      { 'claude-code': 'PreToolUse',   'codex': 'PreToolUse',   'cursor': 'preToolUse',         'windsurf': 'PreToolUse',       'copilot': null },
+  PreRead:         { 'claude-code': null,           'codex': null,           'cursor': 'beforeReadFile',     'windsurf': 'PreRead',          'copilot': null },
+  SessionStart:    { 'claude-code': 'SessionStart', 'codex': 'SessionStart',  'cursor': 'sessionStart',       'windsurf': null,               'copilot': 'sessionStart' },
+  SessionEnd:      { 'claude-code': 'SessionEnd',   'codex': null,           'cursor': 'sessionEnd',         'windsurf': null,               'copilot': 'sessionEnd' },
+  PreCompact:      { 'claude-code': 'PreCompact',   'codex': 'PreCompact',    'cursor': 'preCompact',         'windsurf': null,               'copilot': 'preCompact' },
+  PostCompact:     { 'claude-code': 'PostCompact',  'codex': 'PostCompact',   'cursor': null,                 'windsurf': null,               'copilot': null },
+  PrePromptSubmit: { 'claude-code': 'UserPromptSubmit', 'codex': 'UserPromptSubmit', 'cursor': 'beforeSubmitPrompt', 'windsurf': 'PrePromptSubmit', 'copilot': 'userPromptSubmitted' },
 } as const satisfies Record<string, IdeMap<string>>;
 
 export type SemanticEvent = keyof typeof EVENTS;
 
 export const reverseLookupEvent = (ide: IdeName, raw: string): SemanticEvent | null => {
   for (const [key, map] of Object.entries(EVENTS)) {
-    if (map[ide] === raw) return key as SemanticEvent;
+    if (map[ide] === raw) {
+      const result = key as SemanticEvent;
+      debugLogBranch('ide-registry', 'reverse-lookup-event', {
+        ide,
+        raw,
+        result,
+        reason: 'matched-map',
+      });
+      return result;
+    }
   }
+  debugLogBranch('ide-registry', 'reverse-lookup-event', {
+    ide,
+    raw,
+    result: null,
+    reason: 'no-match',
+  });
   return null;
 };
 
@@ -64,22 +85,22 @@ export const TOOL_KINDS = {
   bash: {
     'claude-code': ['Bash'],
     'codex':       ['Bash', 'shell'],
-    'cursor':      ['Bash'],
+    'cursor':      ['Bash', 'Shell'],
     'windsurf':    ['Bash'],
-    'copilot':     null,
+    'copilot':     ['bash', 'powershell'],
   },
   read: {
     'claude-code': ['Read'],
-    'codex':       ['Read'],
+    'codex':       null,
     'cursor':      ['Read'],
     'windsurf':    ['Read'],
-    'copilot':     null,
+    'copilot':     ['view', 'Read'],
   },
   'mcp-call': {
     'claude-code': ['__mcp_sentinel__'],
-    'codex':       null,
-    'cursor':      null,
-    'windsurf':    null,
+    'codex':       ['__mcp_sentinel__'],
+    'cursor':      ['__mcp_sentinel__'],
+    'windsurf':    ['__mcp_sentinel__'],
     'copilot':     null,
   },
 } as const satisfies Record<string, IdeMap<readonly string[]>>;
@@ -87,12 +108,43 @@ export const TOOL_KINDS = {
 export type SemanticKind = keyof typeof TOOL_KINDS;
 
 export const reverseLookupToolKind = (ide: IdeName, raw: string): SemanticKind | null => {
-  if (raw.startsWith('mcp__')) return 'mcp-call';
+  if (raw.startsWith('mcp__')) {
+    if (ide !== 'codex' && /(^|__)read(_|$)/i.test(raw)) {
+      debugLogBranch('ide-registry', 'reverse-lookup-tool-kind', {
+        ide,
+        raw,
+        result: 'read',
+        reason: 'mcp-read-special-case',
+      });
+      return 'read';
+    }
+    debugLogBranch('ide-registry', 'reverse-lookup-tool-kind', {
+      ide,
+      raw,
+      result: 'mcp-call',
+      reason: 'mcp-prefix',
+    });
+    return 'mcp-call';
+  }
   for (const [key, map] of Object.entries(TOOL_KINDS)) {
     const names = map[ide];
-    if (Array.isArray(names) && (names as readonly string[]).includes(raw))
-      return key as SemanticKind;
+    if (Array.isArray(names) && (names as readonly string[]).includes(raw)) {
+      const result = key as SemanticKind;
+      debugLogBranch('ide-registry', 'reverse-lookup-tool-kind', {
+        ide,
+        raw,
+        result,
+        reason: 'matched-map',
+      });
+      return result;
+    }
   }
+  debugLogBranch('ide-registry', 'reverse-lookup-tool-kind', {
+    ide,
+    raw,
+    result: null,
+    reason: 'no-match',
+  });
   return null;
 };
 
@@ -100,16 +152,41 @@ const PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
 
 const extractFromPatch = (raw: Record<string, unknown>): string | null => {
   const command = (raw.tool_input as Record<string, unknown> | undefined)?.command as string ?? '';
-  return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? null;
+  const result = PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? null;
+  debugLogBranch('ide-registry', 'extract-from-patch', {
+    command,
+    result,
+  });
+  return result;
 };
 
 const parseToolArgsFilePath = (raw: Record<string, unknown>): string | null => {
   const { toolArgs } = raw;
-  if (!toolArgs) return null;
+  if (!toolArgs) {
+    debugLogBranch('ide-registry', 'parse-tool-args-file-path', {
+      result: null,
+      reason: 'missing-toolArgs',
+    });
+    return null;
+  }
   try {
-    const parsed = JSON.parse(toolArgs as string) as Record<string, unknown>;
-    return (parsed?.filePath as string) ?? (parsed?.file_path as string) ?? null;
-  } catch { return null; }
+    const parsed = typeof toolArgs === 'string'
+      ? JSON.parse(toolArgs) as Record<string, unknown>
+      : toolArgs as Record<string, unknown>;
+    const result = (parsed?.filePath as string) ?? (parsed?.file_path as string) ?? null;
+    debugLogBranch('ide-registry', 'parse-tool-args-file-path', {
+      result,
+      reason: 'parsed-toolArgs',
+      parsed,
+    });
+    return result;
+  } catch {
+    debugLogBranch('ide-registry', 'parse-tool-args-file-path', {
+      result: null,
+      reason: 'toolArgs-parse-failed',
+    });
+    return null;
+  }
 };
 
 export const PROPERTIES = {
@@ -146,6 +223,7 @@ export const PROPERTIES = {
     'codex':       (raw: Record<string, unknown>) => (raw.session_id as string) ?? null,
     'cursor':      (raw: Record<string, unknown>) => (raw.conversation_id as string) ?? null,
     'windsurf':    (raw: Record<string, unknown>) => (raw.trajectory_id as string) ?? null,
-    'copilot':     (_raw: Record<string, unknown>) => null,
+    'copilot':     (raw: Record<string, unknown>) =>
+      (raw.sessionId as string) ?? (raw.session_id as string) ?? null,
   },
 } as const satisfies Record<string, IdeMap<(raw: Record<string, unknown>) => string | null>>;
