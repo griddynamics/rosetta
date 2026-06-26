@@ -107,7 +107,7 @@ Built + **wired into the bootstrap manifest** (`bootstrap-manifest.ts` before `b
 
 1. **hitl** *(improve)* — keep every operative gate, dedup the accreted instances, sharpen the core principles. **Merge "grilling"** (relentless post-discovery interview, see appendix) **into the Questioning flow** — woven in, not a bolted-on section — triggered right after discovery results, before planning/implementation. **Also update the `questioning` skill** with the technique.
 2. **load-project-context** ✅ *(done)* — built + registered (`skills.md`); reviewer-passed. `load-context` body + full roster (`<bootstrap_rosetta_files>` kept verbatim) + `hitl` prereq + todo-ledger `<tasks>`; leaf (no next-steps); priorities/merge stay always-on. Absorbs `load-context`; `load-context` removed later in the rename sweep.
-3. **orchestration** *(new)* — sources: `orchestrator-contract` **+** `plugin-files-mode` **OPERATION_MANAGER block (how-to-use)** **+** Phase-0 orchestrator init **+** `execution-policy` planning/doc-sync, validation, memory rules **+** "**workflows MUST be fully executed, no skipping**" **+** "**request size ≠ subagent task size**" **+** use of larger models **+** do not limit thinking / open-ended work.
+3. **orchestration** ✅ *(done)* — sources: `orchestrator-contract` **+** `plugin-files-mode` **OPERATION_MANAGER block (how-to-use)** **+** Phase-0 orchestrator init **+** `execution-policy` planning/doc-sync, validation, memory rules **+** "**workflows MUST be fully executed, no skipping**" **+** "**request size ≠ subagent task size**" **+** use of larger models **+** do not limit thinking / open-ended work.
 
    **Resulting SKILL.md structure (from diagram):**
    - **Description** — what the orchestrator is and does.
@@ -126,7 +126,7 @@ Built + **wired into the bootstrap manifest** (`bootstrap-manifest.ts` before `b
    - Tells subagent which skills to load based on current context — INCLUDING whether to add `load-project-context` (skip if task doesn't need it or already references the files). This = **lightweight subagent execution**.
    - Request size ≠ subagent delegate task size — orchestrator sizes each delegated task independently.
 
-   **Asset:** `assets/o-subagent-delegation.md` — one composable subagent-delegation prompt template supporting all task sizes (not three separate templates).
+   **Asset:** `assets/o-subagent-delegation.md` — one composable subagent-delegation prompt template supporting all task sizes (not three separate templates). `assets/o-operation-manager-commands.md` — EC command reference.
 
    **Prereqs (current):** hitl, execution-controller
 4. **rosetta** ✅ *(done)* — smart router; absorbs `load-workflow`; prereqs: `orchestration`, `hitl`; FORBIDDEN/no-jump-to-code gate. **Always loads `orchestration`.** A calm senior-engineer procedure ("you asked for the rigorous flow — here it is") — re-voiced, not relocated browbeating.
@@ -189,7 +189,7 @@ The `Rosetta-v3-skill-refactoring-Main.drawio` diagram is authoritative; its tru
 ## Sequencing
 
 1. Reconcile docs (done).
-2. Build skills one-by-one (target ← sources), checking; archive removed content as we go. ✅ `load-project-context` done. ✅ `rosetta` done. Next candidates: `orchestration` / `subagent-directives` / `execution-controller`.
+2. Build skills one-by-one (target ← sources), checking; archive removed content as we go. ✅ `load-project-context` done. ✅ `rosetta` done. ✅ `orchestration` done. Next candidates: `subagent-directives` / `execution-controller`.
 3. **Rename sweep** (deferred) across all references incl. schema templates.
 4. Update `docs/definitions/skills.md`, `agents/IMPLEMENTATION.md`, `docs/ARCHITECTURE.md` bootstrap-flow, and `pa-*` contract docs (incl. the injected-bootstrap list, which still names the obsolete `bootstrap_hitl_questioning`).
 5. Regenerate plugins / publish **only when requested**.
@@ -200,7 +200,7 @@ The `Rosetta-v3-skill-refactoring-Main.drawio` diagram is authoritative; its tru
 |---|---|---|
 | **slim bootstrap** (4 keeps) | `bootstrap-core-policy` (process hygiene + `additional_requirements`), `bootstrap-guardrails` (compressed), `plugin-files-mode` (mode decl + aliases + sources) | guardrails → terse `MUST USE SKILL X for Y` |
 | **execution-controller** (skill) | `operation_manager` (renamed) + `execution-policy.operation_manager_rules` | policy/definition |
-| **orchestration** (skill) | `orchestrator-contract` + `core-policy.subagents_orchestration_rules` + `plugin-files-mode` OPERATION_MANAGER block (how-to-use) + Phase-0 (orchestrator init) + `execution-policy` (planning/doc-sync, validation, memory) + "workflows fully executed" + sizing examples + size≠task + larger models + don't-limit-thinking | Structure: desc → hitl → size-classify → per-size behavior; asset: `o-subagent-delegation.md` |
+| **orchestration** (skill) ✅ done | `orchestrator-contract` + `core-policy.subagents_orchestration_rules` + `plugin-files-mode` OPERATION_MANAGER block (how-to-use) + Phase-0 (orchestrator init) + `execution-policy` (planning/doc-sync, validation, memory) + "workflows fully executed" + sizing examples + size≠task + larger models + don't-limit-thinking | Structure: desc → hitl → size-classify → per-size behavior; asset: `o-subagent-delegation.md` |
 | **load-project-context** (skill) ✅ done | `load-context` body + `bootstrap-rosetta-files` **full roster** + `hitl` prereq | built + registered; leaf; priorities/merge → always-on; `load-context` removed in rename sweep |
 | **subagent-directives** (skill) | `subagent-contract` + optional `execution-controller` + Phase-0 (subagent `next --target`) | |
 | **rosetta** (skill, `/rosetta`) ✅ done | `load-workflow` + `execution-policy` `FORBIDDEN`/no-jump-to-code + r2 bootstrap (planning-mode storage guard) | always loads `orchestration` |
