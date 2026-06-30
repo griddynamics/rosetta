@@ -313,6 +313,11 @@ MCP gets the same minimal bootstrap and behaves identically (loads skills by con
 
 ---
 
+**Terminology**: verify vs validate vs anything else that start with v
+User feels like validate term maybe misleading AI, as to what is expected.
+
+---
+
 ## Appendix — Original intent & requester clarifications (verbatim, no inference)
 
 ### Original request
