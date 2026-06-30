@@ -19,7 +19,7 @@ tests:
           path: spec.rateLimit.period
           value: "1s"
 
-  - it: does not have kubernetes.io/ingress.class annotation
+  - it: does not render any annotations by default
     asserts:
       - isNull:
           path: metadata.annotations
