@@ -3,7 +3,7 @@
 # Replace placeholder hostnames and URLs with your dev environment values.
 
 image:
-  tag: "2.0.0"
+  tag: "2.0.25"
 
 ingress:
   host: rosetta-dev.example.com
