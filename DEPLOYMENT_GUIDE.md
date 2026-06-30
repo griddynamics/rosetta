@@ -263,8 +263,9 @@ helm install rosetta-mcp ./src/helm-charts/rosetta-mcp-server \
          period: "1s"
    ```
 
-   The chart creates a Traefik `Middleware` CRD (`<fullname>-rate-limit`) in the
-   release namespace and wires it into the Ingress annotation automatically.
+   The chart creates a Traefik `Middleware` custom resource (`<fullname>-rate-limit`) in the
+   release namespace and wires it into the Ingress annotation automatically (requires Traefik CRDs
+   to be installed in the cluster).
 
    To reference additional external middlewares (e.g. a platform-wide chain managed
    outside this chart), list them in `ingress.traefik.middlewares`:
