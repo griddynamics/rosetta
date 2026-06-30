@@ -19,6 +19,8 @@
 - **Trajectory** = the agent's on-disk interactive **session transcript** (written automatically — no special flag) plus the screen as needed.
 - **No extremes:** not headless, and not babysitting every permission prompt. Interactive + auto, judged on whether our harness ran correctly. Applies to all 5 CLIs (the auto-permission mechanism is declared per-agent in its profile).
 
+It must be possible to run it directly with inputs as parameters = usage mode: harness for developing hooks/prompts/skills/etc. (--input "..." --qna "..." --evaluation "...", etc). it should also be possible to to turn on features (by default off, --collect-cost --evaluate etc).
+
 ---
 
 ## Problem & Motivation

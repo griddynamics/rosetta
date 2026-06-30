@@ -51,25 +51,13 @@ Validation methodology:
 
 </core_concepts>
 
-<files>
+<sensitive-data>
 
-# DEPENDENCIES.md
+- DO NOT read, query, store, tell, write, log, or distribute any SENSITIVE information (PII, PCI, HIPAA, PHI, GDPR, SOC2, FedRAMP, Secrets, etc).
+- Identify and apply respective guidance for handling data like that
+- Guide user for correct implementation 
 
-- MUST create, use, and maintain flat list of direct project dependencies (project, package, version)
-
-# TECHSTACK.md
-
-- MUST create, use, and maintain project stack and key stack decisions
-
-# CODEMAP.md
-
-- MUST create, use, and maintain list of all folders and files with code base
-- Contains 3-4 levels deep folder structure
-- Markdown headers = workspace-relative path + recursive children count + <10 words description
-- Lists only immediate children files and only with file names
-- Excludes noise/cache/build files, files excluded by .gitignore, etc.
-
-</files>
+</sensitive-data>
 
 <validation_checklist>
 

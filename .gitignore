@@ -106,7 +106,7 @@ src/hooks/dist/bundles/
 # Vitest cache (root-level node_modules/.vite/)
 node_modules/.vite/
 
-.claude
+# Temporary build output
 src/rosetta-cli/dist
 src/rosetta-mcp-server/dist
 .worktrees/
