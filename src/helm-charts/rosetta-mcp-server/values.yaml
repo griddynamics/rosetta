@@ -102,7 +102,7 @@ ingress:
     # External middleware references (fully-qualified, e.g. "namespace-name@kubernetescrd").
     # Rendered first in the middleware chain annotation.
     middlewares: []
-    # Per-release rate limiting — creates a Traefik Middleware CRD in the release namespace.
+    # Per-release rate limiting — creates a Traefik Middleware (custom resource) in the release namespace (requires Traefik CRDs installed).
     rateLimit:
       average: 100
       burst: 200
