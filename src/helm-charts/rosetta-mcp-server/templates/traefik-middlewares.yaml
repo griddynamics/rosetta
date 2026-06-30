@@ -5,7 +5,7 @@
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: {{ include "rosetta-mcp.fullname" . }}-rate-limit
+  name: {{ regexReplaceAll "-{2,}" (printf "%s-rate-limit" (include "rosetta-mcp.fullname" .)) "-" }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "rosetta-mcp.labels" . | nindent 4 }}

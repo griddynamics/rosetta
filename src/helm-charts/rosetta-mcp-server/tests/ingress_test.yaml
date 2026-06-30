@@ -74,3 +74,11 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
+  - it: normalizes consecutive dashes in middleware annotation
+    release:
+      name: my--app
+    asserts:
+      - equal:
+          path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
+          value: "my-app-rosetta-mcp-rate-limit@kubernetescrd"

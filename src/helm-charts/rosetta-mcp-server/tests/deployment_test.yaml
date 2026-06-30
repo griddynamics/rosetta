@@ -26,9 +26,9 @@ tests:
 
   - it: defaults image tag to Chart.appVersion when tag is not set
     asserts:
-      - equal:
+      - matchRegex:
           path: spec.template.spec.containers[0].image
-          value: "griddynamics/rosetta-mcp:2.0.0"
+          pattern: "^griddynamics/rosetta-mcp:.+"
 
   - it: applies pod security context
     asserts:

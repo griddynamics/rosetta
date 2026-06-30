@@ -79,3 +79,11 @@ tests:
       - equal:
           path: spec.rateLimit.period
           value: "10s"
+
+  - it: normalizes consecutive dashes in CRD name
+    release:
+      name: my--app
+    asserts:
+      - equal:
+          path: metadata.name
+          value: my-app-rosetta-mcp-rate-limit
