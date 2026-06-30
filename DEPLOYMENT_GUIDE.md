@@ -248,35 +248,23 @@ helm install rosetta-mcp ./src/helm-charts/rosetta-mcp-server \
 1. **Image** — `image.repository` defaults to `griddynamics/rosetta-mcp`; set `image.tag` or rely on the chart defaulting the tag to [`appVersion`](src/helm-charts/rosetta-mcp-server/Chart.yaml) in the Deployment template.
 2. **Rosetta backend** — Set `env.vars` so `ROSETTA_SERVER_URL` resolves to Rosetta Server (in-cluster DNS or ingress URL).
 3. **API key** — Supply `ROSETTA_API_KEY` via `env.secrets` (`secretKeyRef`). Create the Kubernetes Secret first or use `eso` to sync it.
-4. **Ingress** — Set `ingress.host`. The chart supports both **nginx** (default) and **Traefik** ingress controllers.
+4. **Ingress** — Set `ingress.host`. The chart defaults to **Traefik** and also supports **nginx** as an alternative.
 
-   **nginx** (default):
-
-   ```yaml
-   ingress:
-     className: nginx
-     host: rosetta.example.com
-     annotations:
-       kubernetes.io/ingress.class: nginx
-   ```
-
-   **Traefik** — set `className: traefik` and configure middlewares under `ingress.traefik`:
+   **Traefik** (default) — rate limiting is enabled out of the box:
 
    ```yaml
    ingress:
      className: traefik
      host: rosetta.example.com
-     annotations: {}
      traefik:
        rateLimit:
-         average: 20
+         average: 100
          burst: 200
          period: "1s"
    ```
 
-   When `rateLimit.average` is set, the chart creates a Traefik `Middleware` CRD
-   (`<fullname>-rate-limit`) in the release namespace and wires it into the Ingress
-   annotation automatically.
+   The chart creates a Traefik `Middleware` CRD (`<fullname>-rate-limit`) in the
+   release namespace and wires it into the Ingress annotation automatically.
 
    To reference additional external middlewares (e.g. a platform-wide chain managed
    outside this chart), list them in `ingress.traefik.middlewares`:
@@ -287,13 +275,25 @@ helm install rosetta-mcp ./src/helm-charts/rosetta-mcp-server \
        middlewares:
          - "traefik-my-chain@kubernetescrd"
        rateLimit:
-         average: 20
+         average: 100
          burst: 200
          period: "1s"
    ```
 
    External middlewares are rendered first in the annotation, followed by the
    per-release rate limit.
+
+   **nginx** (alternative) — set `className: nginx` and replace the `traefik` block with nginx annotations:
+
+   ```yaml
+   ingress:
+     className: nginx
+     host: rosetta.example.com
+     annotations:
+       nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+       nginx.ingress.kubernetes.io/limit-rps: "100"
+       nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
+   ```
 5. **TLS (production)** — Enable encrypted client traffic before production use. Uncomment and complete the [`ingress.tls`](src/helm-charts/rosetta-mcp-server/values.yaml) block in your overlay so Ingress terminates HTTPS with a TLS `Secret` (or terminate TLS upstream and align hostnames). HTTP-only defaults are unsuitable for production; OAuth and user trust depend on HTTPS.
 
 Full environment-variable semantics for OAuth, Redis, analytics, and modes are the same as the application runtime; see [rosetta-mcp-server — Configuration](src/rosetta-mcp-server/README.md#configuration).
@@ -320,8 +320,10 @@ helm upgrade --install rosetta-mcp ./src/helm-charts/rosetta-mcp-server \
 | [`templates/ingress.yaml`](src/helm-charts/rosetta-mcp-server/templates/ingress.yaml) | Optional Ingress |
 | [`templates/traefik-middlewares.yaml`](src/helm-charts/rosetta-mcp-server/templates/traefik-middlewares.yaml) | Traefik Middleware CRDs (when `className: traefik`) |
 | [`templates/hpa.yaml`](src/helm-charts/rosetta-mcp-server/templates/hpa.yaml) | Optional HPA |
+| [`templates/poddisruptionbudget.yaml`](src/helm-charts/rosetta-mcp-server/templates/poddisruptionbudget.yaml) | Optional PDB (when `replicaCount > 1`) |
 | [`templates/external-secret.yaml`](src/helm-charts/rosetta-mcp-server/templates/external-secret.yaml) | Optional ExternalSecret (`eso.*`) |
 | [`templates/serviceaccount.yaml`](src/helm-charts/rosetta-mcp-server/templates/serviceaccount.yaml) | ServiceAccount |
+| [`tests/`](src/helm-charts/rosetta-mcp-server/tests/) | helm-unittest test suites |
 
 #### Deployment characteristics & defaults
 
@@ -346,7 +348,7 @@ sessionAffinityConfig:
 If `ClientIP` is insufficient behind certain proxies or high fan-out IPs, try ingress affinity on the MCP session header:
 
 ```yaml
-# NGINX Ingress (optional alternative)
+# nginx Ingress (when using className: nginx)
 nginx.ingress.kubernetes.io/upstream-hash-by: "$http_mcp_session_id"
 ```
 
@@ -363,11 +365,11 @@ Base keys in [`src/helm-charts/rosetta-mcp-server/values.yaml`](src/helm-charts/
 | `replicaCount` | `1` | Static replicas when HPA disabled |
 | `autoscaling.enabled` | `false` | HPA toggle |
 | `ingress.enabled` | `true` | Ingress resource |
-| `ingress.className` | `nginx` | Ingress controller (`nginx` or `traefik`) |
+| `ingress.className` | `traefik` | Ingress controller (`traefik` or `nginx`) |
 | `ingress.traefik.middlewares` | `[]` | External Traefik middleware references |
-| `ingress.traefik.rateLimit.average` | (unset) | Rate limit — requests per period |
-| `ingress.traefik.rateLimit.burst` | (unset) | Rate limit — max burst size |
-| `ingress.traefik.rateLimit.period` | (unset) | Rate limit — period (e.g. `"1s"`) |
+| `ingress.traefik.rateLimit.average` | `100` | Rate limit — requests per period |
+| `ingress.traefik.rateLimit.burst` | `200` | Rate limit — max burst size |
+| `ingress.traefik.rateLimit.period` | `"1s"` | Rate limit — period |
 | `ingress.tls` | Commented in base [`values.yaml`](src/helm-charts/rosetta-mcp-server/values.yaml); enable for production | HTTPS termination at Ingress |
 | `service.sessionAffinity` | `ClientIP` | Pod stickiness |
 | `eso.enabled` | `false` | External Secrets Operator sync |
