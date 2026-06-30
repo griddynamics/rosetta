@@ -10,6 +10,12 @@
     "copilot"
   ],
   "sdlc": {
+    "issue_tracker": "GitHub Issues",
+    "issue_tracker_project": "https://github.com/griddynamics/rosetta/issues",
+    "wiki": "GitHub Wiki",
+    "wiki_project": "https://github.com/griddynamics/rosetta/wiki",
+    "test_management": "TestRail",
+    "test_management_project": "CTORNDGAIN",
     "scm": "GitHub",
     "scm_project": "https://github.com/griddynamics/rosetta",
     "build_management": "Github Actions",
