@@ -6,14 +6,16 @@ image:
 
 ingress:
   host: rosetta.example.com
-  # Traefik example (uncomment to switch from nginx):
-  # className: traefik
-  # annotations: {}
-  # traefik:
-  #   rateLimit:
-  #     average: 20
-  #     burst: 200
-  #     period: "1s"
+  traefik:
+    rateLimit:
+      average: 100
+      burst: 200
+      period: "1s"
+  # nginx alternative (uncomment to switch from traefik):
+  # className: nginx
+  # annotations:
+  #   nginx.ingress.kubernetes.io/limit-rps: "100"
+  #   nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
 
 env:
   enabled: true

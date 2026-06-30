@@ -7,8 +7,6 @@ kind: Middleware
 metadata:
   name: {{ include "rosetta-mcp.fullname" . }}-rate-limit
   namespace: {{ .Release.Namespace }}
-  annotations:
-    kubernetes.io/ingress.class: {{ .Values.ingress.className }}
   labels:
     {{- include "rosetta-mcp.labels" . | nindent 4 }}
 spec:
