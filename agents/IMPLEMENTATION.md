@@ -139,7 +139,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Converted `adhoc-flow-with-plan-manager` workflow to `USE SKILL plan-manager`; data structure externalized to `pm-schema.md`.
 - All plugins (`core-claude`, `core-cursor`, `core-copilot`, `core-codex`, `core-cursor-standalone`, `core-copilot-standalone`) are auto-synced from core by `npx rosettify-plugins@latest` (invoked via `scripts/pre_commit.py`).
 - `npx rosettify-plugins@latest` materializes plugin trees from the **release-selected** source `instructions/<release>/core` (`--release`, default **r2**; r3 opt-in). `instructions/r2/core` and `instructions/r3/core` are maintained per release (shared skills/workflows kept aligned where intended).
-- **r3 bootstrap-reduction** (in progress; see `docs/stories/reduce-bootstrap.md`) — shrinking the always-on bootstrap by moving content behind a user-invoked `/rosetta` and on-demand skills. Built `load-project-context` (absorbs `load-context`; `hitl` prereq, full file roster, todo-task ledger, leaf with no next-steps); registered in `docs/definitions/skills.md`. Originals removed only after replacements are approved and working.
+- **r3 bootstrap-reduction** (in progress; see `docs/stories/reduce-bootstrap.md`) — shrinking the always-on bootstrap by moving content behind a user-invoked `/rosetta` and on-demand skills. Built `load-project-context` (absorbs `load-context`; `hitl` prereq, full file roster, todo-task ledger, leaf with no next-steps) and `rosetta` (smart router; absorbs `load-workflow`; prereqs: `orchestration` (forward-ref — planned skill, not yet built; distinct from existing `orchestrator-contract`), `hitl`; FORBIDDEN/no-jump-to-code gate); both registered in `docs/definitions/skills.md`. Built `bootstrap-alwayson` (minimal always-on floor: priorities, composite-merge, task ledger, guardrail-skill activation, core roster), wired into the plugin bootstrap manifest (`src/rosettify-plugins/src/spec/bootstrap-manifest.ts` before `bootstrap-core-policy` + Copilot rules-exclude in `targets.ts`); r2 regen byte-identical, r3 injects it (Claude hook + Copilot `instructions/`). Removed/moved content archived verbatim to `docs/stories/bootstrap-removed.md`. Originals removed only after replacements are approved and working.
 
 ### Plugin Generator
 
@@ -191,6 +191,16 @@ For detailed change history, use git history and PRs instead of expanding this f
 - **Windsurf adapter**: `permissionDecisionReason` surfaced as `additionalContext` so agents receive actionable feedback.
 - **SKILL.md alignment**: `dangerous-actions/SKILL.md` documents two-tier model and correct token; `hitl/SKILL.md` removes the now-incorrect AI-marker prohibition.
 - 461 hooks tests pass (7 new coverage additions: Edit/MultiEdit dangerous path, partial Write, reconsider+marker retry, MCP query field, curl|sh hard-deny).
+
+### Hooks — read-once + shared coordination runtime
+
+- Added a preventive `read-once` hook family in `src/hooks/src/hooks/` with shared logic in `read-once-shared.ts`; the original upstream reference is retained in source comments.
+- Shared runtime support now includes reusable file-backed coordination primitives in `src/hooks/src/runtime/file-coordination.ts` and refactors `throttle.ts`, `state-store.ts`, and `codemap-refresh.ts` onto the same low-level lock/timestamp/path helpers.
+- Runtime normalization expanded for current generated surfaces: lifecycle events now include read/session/compact boundaries, lifecycle hooks no longer require fake tool kinds, and adapters capture extra normalized context fields used by hook logic.
+- Codex read-once scope is intentionally limited to intercepted MCP-style file reads with a real file path; built-in generic `Read` is not treated as a read-once source.
+- New reset bundles cover `SessionStart`, `SessionEnd`, `PreCompact`, and `PostCompact` where the generated target exposes grounded lifecycle hooks; Windsurf remains generator-out-of-scope.
+- Generator/template wiring now ships the `read-once` bundle set for Claude, Codex, Cursor, Copilot, and the standalone Cursor/Copilot outputs.
+- Validation: `src/hooks` passed `npm run check` + `npm test` (`655` tests), and `src/rosettify-plugins` passed `npm run typecheck` + `npm run build` + `npm test` (`439` tests).
 
 ### Website — Right-side In-document TOC
 

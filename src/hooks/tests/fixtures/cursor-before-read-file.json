@@ -1,0 +1,21 @@
+{
+  "_source": "constructed-from-docs",
+  "_docs": "https://cursor.com/docs/reference/hooks",
+  "hook_event_name": "beforeReadFile",
+  "conversation_id": "conv-read-123",
+  "generation_id": "gen-read-001",
+  "session_id": "session-cursor-read-001",
+  "model": "claude-sonnet-4-20250514",
+  "cursor_version": "2.4.0",
+  "workspace_roots": ["/proj"],
+  "user_email": "dev@example.com",
+  "transcript_path": "/tmp/cursor-transcript.jsonl",
+  "tool_name": null,
+  "tool_input": {
+    "file_path": "/proj/src/readme.md"
+  },
+  "tool_output": null,
+  "tool_use_id": null,
+  "cwd": "/proj",
+  "duration": null
+}

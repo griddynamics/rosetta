@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dedupKey = exports.detectIDE = exports.formatOutput = exports.normalize = exports.readStdin = void 0;
+exports.exitCodeFor = exports.dedupKey = exports.detectIDE = exports.formatOutput = exports.normalize = exports.readStdin = void 0;
 // Slim adapter for core-copilot bundle — copilot detection with claude-code fallback.
 // VS Code may send either Copilot-specific format (toolName) or Claude-compatible format
 // (hook_event_name). The fallback handles both without including codex/cursor/windsurf.
@@ -44,3 +44,6 @@ const dedupKey = (raw, hookName) => {
     return copilot_1.copilot.detect(r) ? copilot_1.copilot.dedupKey(r, hookName) : null;
 };
 exports.dedupKey = dedupKey;
+// Both Copilot and its claude-code fallback carry deny entirely in the JSON body at exit 0.
+const exitCodeFor = (_canonical, _ide) => 0;
+exports.exitCodeFor = exitCodeFor;

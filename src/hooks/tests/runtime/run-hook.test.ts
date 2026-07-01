@@ -1,7 +1,7 @@
 import { test, describe, expect, vi, beforeEach, afterEach } from 'vitest';
-import { runHook, runAsCli } from '../../src/runtime/run-hook';
+import { runHook, runAsCli, resolveExitCode } from '../../src/runtime/run-hook';
 import { defineHook } from '../../src/runtime/define-hook';
-import { advise, sideEffect } from '../../src/runtime/result-helpers';
+import { advise, sideEffect, deny, allow } from '../../src/runtime/result-helpers';
 import { readStdin } from '../../src/adapter';
 import type { FilePathPredicate } from '../../src/runtime/types';
 import ccWrite from '../fixtures/claude-code-post-tool-use-write.json';
@@ -232,5 +232,44 @@ describe('runHook — platform dedup via adapter', () => {
     const out2: string[] = [];
     await runHook(ADVISE_HOOK, { stdout: { write: (s: string) => out2.push(s) } as unknown as NodeJS.WritableStream });
     expect(out2).toHaveLength(1);
+  });
+});
+
+describe('resolveExitCode — Bug 1 decision tree', () => {
+  const DENY_CANONICAL = { hookSpecificOutput: { permissionDecision: 'deny' as const, permissionDecisionReason: 'no' } };
+  const ALLOW_CANONICAL = { hookSpecificOutput: { permissionDecision: 'allow' as const } };
+
+  test('deny on an exit-code-driven IDE (Windsurf) → adapter exit code (2)', () => {
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'windsurf')).toBe(2);
+  });
+
+  test('deny on a JSON-body-only IDE (Cursor) → 0 (deny is carried in the body, not the exit code)', () => {
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'cursor')).toBe(0);
+  });
+
+  test('deny on Claude Code / Codex / Copilot → 0', () => {
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'claude-code')).toBe(0);
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'codex')).toBe(0);
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'copilot')).toBe(0);
+  });
+
+  test('allow → 0 regardless of IDE', () => {
+    expect(resolveExitCode(allow()!, ALLOW_CANONICAL, 'windsurf')).toBe(0);
+  });
+
+  test('_exitCode override bypasses deny-based resolution entirely', () => {
+    expect(resolveExitCode({ kind: 'deny', reason: 'no', _exitCode: 7 }, DENY_CANONICAL, 'windsurf')).toBe(7);
+  });
+
+  test('_exitCode override applies even on an allow result', () => {
+    expect(resolveExitCode({ kind: 'allow', _exitCode: 3 }, ALLOW_CANONICAL, 'cursor')).toBe(3);
+  });
+
+  test('unknown ide → 0 via exitCodeFor default, no throw', () => {
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'not-a-real-ide')).toBe(0);
+  });
+
+  test('malformed canonical that throws while resolving → 1000, not an unhandled error', () => {
+    expect(resolveExitCode(deny('no')!, null as unknown as typeof DENY_CANONICAL, 'windsurf')).toBe(1000);
   });
 });

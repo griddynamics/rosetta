@@ -15,6 +15,8 @@ const BUNDLE_FILENAMES = [
   'lint-format-advisory.js',
   'loose-files.js',
   'md-file-advisory.js',
+  'read-once.js',
+  'read-once-reset.js',
 ];
 
 /**

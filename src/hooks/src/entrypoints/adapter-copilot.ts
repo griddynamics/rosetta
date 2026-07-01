@@ -42,3 +42,6 @@ export const dedupKey = (raw: unknown, hookName: string): string | null => {
   const r = raw as Record<string, unknown>;
   return copilot.detect(r) ? copilot.dedupKey!(r, hookName) : null;
 };
+
+// Both Copilot and its claude-code fallback carry deny entirely in the JSON body at exit 0.
+export const exitCodeFor = (_canonical: CanonicalOutput, _ide?: string): number => 0;

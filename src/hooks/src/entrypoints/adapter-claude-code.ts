@@ -26,3 +26,6 @@ export const formatOutput = (
 export const detectIDE = (_raw: unknown): string => 'claude-code';
 
 export const dedupKey = (_raw: unknown, _hookName: string): string | null => null;
+
+// Claude Code deny is carried entirely in the JSON body at exit 0 — no adapter override needed.
+export const exitCodeFor = (_canonical: CanonicalOutput, _ide?: string): number => 0;

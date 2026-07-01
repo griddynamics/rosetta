@@ -8,16 +8,25 @@ export interface HookContext {
   filePath: string;
   cwd: string;
   sessionId: string | null;
+  agentId?: string | null;
+  turnId?: string | null;
+  transcriptPath?: string | null;
+  source?: string | null;
+  reason?: string | null;
+  trigger?: string | null;
   toolInput: Readonly<Record<string, unknown>>;
   toolResponse?: unknown;
   markerRoot?: string;
 }
 
+// `_exitCode`: emergency override of the process exit code, bypassing both the deny-based
+// decision and the adapter default. DO NOT use unless EXTREMELY necessary — normal hooks
+// should rely on `kind` (deny → the IDE's documented exit code; everything else → 0).
 export type HookResult =
-  | { kind: 'advise'; message: string }
-  | { kind: 'allow' }
-  | { kind: 'deny'; reason: string }
-  | { kind: 'side-effect' }
+  | { kind: 'advise'; message: string; _exitCode?: number }
+  | { kind: 'allow'; _exitCode?: number }
+  | { kind: 'deny'; reason: string; _exitCode?: number }
+  | { kind: 'side-effect'; _exitCode?: number }
   | null;
 
 export type FilePathPredicate = {
@@ -38,8 +47,8 @@ export type FsPredicate = {
 };
 
 export type HookActivation = {
-  event:      SemanticEvent;
-  toolKinds:  readonly SemanticKind[];
+  event:      SemanticEvent | readonly SemanticEvent[];
+  toolKinds?: readonly SemanticKind[];
   filePath?:  FilePathPredicate;
   toolInput?: ToolInputPredicate;
   fs?:        FsPredicate;

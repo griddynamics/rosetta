@@ -2,6 +2,7 @@ import path from 'path';
 import { defineHook } from '../runtime/define-hook';
 import { runAsCli } from '../runtime/run-hook';
 import { advise  } from '../runtime/result-helpers';
+import { debugLogHookBranch } from '../runtime/debug-log';
 
 export const advisoryMessage = (filePath: string): string => {
   const name = path.basename(filePath);
@@ -20,7 +21,15 @@ export const mdFileAdvisoryHook = defineHook({
       notBasenameOneOf:   ['README.md', 'CHANGELOG.md'],
     },
   },
-  run: (ctx) => advise(advisoryMessage(ctx.filePath)),
+  run: (ctx) => {
+    const message = advisoryMessage(ctx.filePath);
+    debugLogHookBranch('md-file-advisory', 'advisory-issued', {
+      filePath: ctx.filePath,
+      basename: path.basename(ctx.filePath),
+      message,
+    });
+    return advise(message);
+  },
 });
 
 runAsCli(mdFileAdvisoryHook, module);

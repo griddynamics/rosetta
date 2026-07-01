@@ -1,17 +1,38 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PROPERTIES = exports.reverseLookupToolKind = exports.TOOL_KINDS = exports.reverseLookupEvent = exports.EVENTS = void 0;
+const debug_log_1 = require("./debug-log");
 exports.EVENTS = {
     PostToolUse: { 'claude-code': 'PostToolUse', 'codex': 'PostToolUse', 'cursor': 'postToolUse', 'windsurf': 'PostToolUse', 'copilot': null },
     PreToolUse: { 'claude-code': 'PreToolUse', 'codex': 'PreToolUse', 'cursor': 'preToolUse', 'windsurf': 'PreToolUse', 'copilot': null },
-    SessionStart: { 'claude-code': 'SessionStart', 'codex': null, 'cursor': 'sessionStart', 'windsurf': null, 'copilot': 'SessionStart' },
-    PrePromptSubmit: { 'claude-code': null, 'codex': null, 'cursor': 'userPromptSubmitted', 'windsurf': 'PrePromptSubmit', 'copilot': 'userPromptSubmitted' },
+    PreRead: { 'claude-code': null, 'codex': null, 'cursor': 'beforeReadFile', 'windsurf': 'PreRead', 'copilot': null },
+    SessionStart: { 'claude-code': 'SessionStart', 'codex': 'SessionStart', 'cursor': 'sessionStart', 'windsurf': null, 'copilot': 'sessionStart' },
+    SessionEnd: { 'claude-code': 'SessionEnd', 'codex': null, 'cursor': 'sessionEnd', 'windsurf': null, 'copilot': 'sessionEnd' },
+    PreCompact: { 'claude-code': 'PreCompact', 'codex': 'PreCompact', 'cursor': 'preCompact', 'windsurf': null, 'copilot': 'preCompact' },
+    PostCompact: { 'claude-code': 'PostCompact', 'codex': 'PostCompact', 'cursor': null, 'windsurf': null, 'copilot': null },
+    PrePromptSubmit: { 'claude-code': 'UserPromptSubmit', 'codex': 'UserPromptSubmit', 'cursor': 'beforeSubmitPrompt', 'windsurf': 'PrePromptSubmit', 'copilot': 'userPromptSubmitted' },
+    // Blockable turn-stop (prevents the agent from stopping). No hook logic uses this yet.
+    Stop: { 'claude-code': 'Stop', 'codex': 'Stop', 'cursor': 'stop', 'windsurf': null, 'copilot': 'Stop' },
 };
 const reverseLookupEvent = (ide, raw) => {
     for (const [key, map] of Object.entries(exports.EVENTS)) {
-        if (map[ide] === raw)
-            return key;
+        if (map[ide] === raw) {
+            const result = key;
+            (0, debug_log_1.debugLogBranch)('ide-registry', 'reverse-lookup-event', {
+                ide,
+                raw,
+                result,
+                reason: 'matched-map',
+            });
+            return result;
+        }
     }
+    (0, debug_log_1.debugLogBranch)('ide-registry', 'reverse-lookup-event', {
+        ide,
+        raw,
+        result: null,
+        reason: 'no-match',
+    });
     return null;
 };
 exports.reverseLookupEvent = reverseLookupEvent;
@@ -65,48 +86,100 @@ exports.TOOL_KINDS = {
         // Cursor invokes shell commands via a tool named `Shell`, not `Bash`.
         'cursor': ['Bash', 'Shell'],
         'windsurf': ['Bash'],
-        'copilot': null,
+        'copilot': ['bash', 'powershell'],
     },
     read: {
         'claude-code': ['Read'],
-        'codex': ['Read'],
+        'codex': null,
         'cursor': ['Read'],
         'windsurf': ['Read'],
-        'copilot': null,
+        'copilot': ['view', 'Read'],
     },
     'mcp-call': {
         'claude-code': ['__mcp_sentinel__'],
-        'codex': null,
-        'cursor': null,
-        'windsurf': null,
+        'codex': ['__mcp_sentinel__'],
+        'cursor': ['__mcp_sentinel__'],
+        'windsurf': ['__mcp_sentinel__'],
         'copilot': null,
     },
 };
 const reverseLookupToolKind = (ide, raw) => {
-    if (raw.startsWith('mcp__'))
+    if (raw.startsWith('mcp__')) {
+        if (ide !== 'codex' && /(^|__)read(_|$)/i.test(raw)) {
+            (0, debug_log_1.debugLogBranch)('ide-registry', 'reverse-lookup-tool-kind', {
+                ide,
+                raw,
+                result: 'read',
+                reason: 'mcp-read-special-case',
+            });
+            return 'read';
+        }
+        (0, debug_log_1.debugLogBranch)('ide-registry', 'reverse-lookup-tool-kind', {
+            ide,
+            raw,
+            result: 'mcp-call',
+            reason: 'mcp-prefix',
+        });
         return 'mcp-call';
+    }
     for (const [key, map] of Object.entries(exports.TOOL_KINDS)) {
         const names = map[ide];
-        if (Array.isArray(names) && names.includes(raw))
-            return key;
+        if (Array.isArray(names) && names.includes(raw)) {
+            const result = key;
+            (0, debug_log_1.debugLogBranch)('ide-registry', 'reverse-lookup-tool-kind', {
+                ide,
+                raw,
+                result,
+                reason: 'matched-map',
+            });
+            return result;
+        }
     }
+    (0, debug_log_1.debugLogBranch)('ide-registry', 'reverse-lookup-tool-kind', {
+        ide,
+        raw,
+        result: null,
+        reason: 'no-match',
+    });
     return null;
 };
 exports.reverseLookupToolKind = reverseLookupToolKind;
 const PATCH_FILE_RE = /^\*\*\* (?:Update|Add|Create) File: (.+)$/m;
 const extractFromPatch = (raw) => {
     const command = raw.tool_input?.command ?? '';
-    return PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? null;
+    const result = PATCH_FILE_RE.exec(command)?.[1]?.trim() ?? null;
+    (0, debug_log_1.debugLogBranch)('ide-registry', 'extract-from-patch', {
+        command,
+        result,
+    });
+    return result;
 };
 const parseToolArgsFilePath = (raw) => {
     const { toolArgs } = raw;
-    if (!toolArgs)
+    if (!toolArgs) {
+        (0, debug_log_1.debugLogBranch)('ide-registry', 'parse-tool-args-file-path', {
+            result: null,
+            reason: 'missing-toolArgs',
+        });
         return null;
+    }
     try {
-        const parsed = JSON.parse(toolArgs);
-        return parsed?.filePath ?? parsed?.file_path ?? null;
+        const parsed = typeof toolArgs === 'string'
+            ? JSON.parse(toolArgs)
+            : toolArgs;
+        const result = parsed?.filePath ?? parsed?.file_path ?? null;
+        (0, debug_log_1.debugLogBranch)('ide-registry', 'parse-tool-args-file-path', {
+            result,
+            reason: 'parsed-toolArgs',
+            parsed,
+        });
+        return result;
     }
     catch {
+        (0, debug_log_1.debugLogBranch)('ide-registry', 'parse-tool-args-file-path', {
+            result: null,
+            reason: 'toolArgs-parse-failed',
+        });
         return null;
     }
 };
@@ -145,6 +218,6 @@ exports.PROPERTIES = {
         'codex': (raw) => raw.session_id ?? null,
         'cursor': (raw) => raw.conversation_id ?? null,
         'windsurf': (raw) => raw.trajectory_id ?? null,
-        'copilot': (_raw) => null,
+        'copilot': (raw) => raw.sessionId ?? raw.session_id ?? null,
     },
 };

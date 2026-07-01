@@ -30,7 +30,7 @@ Everything is versioned in Git and runs entirely within your organization's secu
 
 ## The Core Idea
 
-> **Teach agents how to think, not what to think.**
+> **Teach agents how to think, not what to do.**
 
 Modern models already know Python, Java, and React. What they lack is *your organization's* engineering discipline. That's what Rosetta encodes.
 

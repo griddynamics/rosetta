@@ -17,7 +17,7 @@
 //
 // Rules:
 //  - No stdout output — the agent must never see this hook.
-//  - Logs go to ~/.cache/codemap/refresh.log only.
+//  - Logs go to ~/.rosetta/rosetta.log only when ROSETTA_DEBUG=1.
 //  - No-op immediately if neither backend marker is found in the repo tree.
 //  - Each backend is scheduled independently (its own lock).
 //  - The lock is keyed by (backend, repoRoot), NOT by session — so two or three
@@ -34,7 +34,13 @@ import { spawn } from 'child_process';
 import { defineHook } from '../runtime/define-hook';
 import { runAsCli } from '../runtime/run-hook';
 import { sideEffect } from '../runtime/result-helpers';
-import { debugLog } from '../runtime/debug-log';
+import { debugLogHookBranch, getDebugLogPath, isDebugLoggingEnabled } from '../runtime/debug-log';
+import {
+  ensureDirectory,
+  hashedFilePath,
+  releaseLockFile,
+  tryAcquireTimedLock,
+} from '../runtime/file-coordination';
 import { walkUp } from '../runtime/path-utils';
 
 export const DEBOUNCE_MS = 5000;
@@ -44,21 +50,12 @@ export const DEBOUNCE_MS = 5000;
 const STALE_LOCK_MS = DEBOUNCE_MS + 60_000;
 
 // ---------------------------------------------------------------------------
-// Cache / log helpers
+// Cache / coordination helpers
 
 const ensureCacheDir = (): string => {
   const dir = path.join(os.homedir(), '.cache', 'codemap');
-  fs.mkdirSync(dir, { recursive: true });
+  ensureDirectory(dir);
   return dir;
-};
-
-const log = (cacheDir: string, message: string): void => {
-  try {
-    const ts = new Date().toISOString();
-    fs.appendFileSync(path.join(cacheDir, 'refresh.log'), `${ts}  ${message}\n`);
-  } catch {
-    // logging must never crash the hook
-  }
 };
 
 // ---------------------------------------------------------------------------
@@ -69,8 +66,7 @@ const lockPathForBackendRepo = (
   backend: string,
   repoRoot: string,
 ): string => {
-  const key = Buffer.from(`${backend}:${repoRoot}`).toString('base64').replace(/[/+=]/g, '_');
-  return path.join(cacheDir, `${key}.pending`);
+  return hashedFilePath(cacheDir, `codemap-refresh:${backend}:${repoRoot}`, '.pending');
 };
 
 // Atomically create the lock. Returns true IFF this call acquired it — i.e. no
@@ -78,38 +74,11 @@ const lockPathForBackendRepo = (
 // the cross-process atomic primitive; on contention only one caller wins. A
 // stale lock (older than STALE_LOCK_MS) is reclaimed once.
 const tryAcquireSchedule = (lockPath: string): boolean => {
-  const create = (): boolean => {
-    try {
-      const fd = fs.openSync(lockPath, 'wx');
-      fs.writeSync(fd, String(Date.now()));
-      fs.closeSync(fd);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  if (create()) return true;
-
-  // Lock exists → a refresh is already scheduled, unless the lock is stale.
-  try {
-    const created = parseInt(fs.readFileSync(lockPath, 'utf-8').trim(), 10);
-    if (Number.isFinite(created) && Date.now() - created > STALE_LOCK_MS) {
-      fs.unlinkSync(lockPath);
-      return create(); // reclaim once
-    }
-  } catch {
-    // a racing peer mutated/removed the lock — treat as already scheduled
-  }
-  return false;
+  return tryAcquireTimedLock(lockPath, { staleAfterMs: STALE_LOCK_MS });
 };
 
 const releaseSchedule = (lockPath: string): void => {
-  try {
-    fs.unlinkSync(lockPath);
-  } catch {
-    // already gone — fine
-  }
+  releaseLockFile(lockPath);
 };
 
 // ---------------------------------------------------------------------------
@@ -120,8 +89,17 @@ const getEmbeddingsFlag = (repoRoot: string): boolean => {
     const meta = JSON.parse(
       fs.readFileSync(path.join(repoRoot, '.gitnexus', 'meta.json'), 'utf-8'),
     );
-    return !!(meta.stats && meta.stats.embeddings > 0);
+    const enabled = !!(meta.stats && meta.stats.embeddings > 0);
+    debugLogHookBranch('codemap-refresh', 'embeddings-flag-detected', {
+      repoRoot,
+      enabled,
+      embeddings: meta.stats?.embeddings ?? null,
+    });
+    return enabled;
   } catch {
+    debugLogHookBranch('codemap-refresh', 'embeddings-flag-missing-or-invalid', {
+      repoRoot,
+    });
     return false;
   }
 };
@@ -133,10 +111,23 @@ const buildRefreshCommand = (backend: string, repoRoot: string): string => {
   if (backend === 'gitnexus') {
     const hadEmbeddings = getEmbeddingsFlag(repoRoot);
     const extraFlags = hadEmbeddings ? ' --embeddings' : '';
-    return `npx gitnexus analyze --force${extraFlags}`;
+    const command = `npx gitnexus analyze --force${extraFlags}`;
+    debugLogHookBranch('codemap-refresh', 'refresh-command-built', {
+      backend,
+      repoRoot,
+      command,
+      hadEmbeddings,
+    });
+    return command;
   }
-  // graphify
-  return 'graphify update .';
+  const command = 'graphify update .';
+  debugLogHookBranch('codemap-refresh', 'refresh-command-built', {
+    backend,
+    repoRoot,
+    command,
+    hadEmbeddings: false,
+  });
+  return command;
 };
 
 // Escape a value for embedding inside a single-quoted JS string literal in the
@@ -160,47 +151,86 @@ const spawnDeferredRefresh = (
   lockPath: string,
 ): void => {
   const refreshCmd = buildRefreshCommand(backend, repoRoot);
-  const logFilePath = jsEmbed(path.join(cacheDir, 'refresh.log'));
   const escapedLockPath = jsEmbed(lockPath);
   const escapedRepoRoot = jsEmbed(repoRoot);
   const escapedRefreshCmd = jsEmbed(refreshCmd);
+  const escapedDebugLogPath = jsEmbed(getDebugLogPath());
+  const debugEnabled = isDebugLoggingEnabled();
 
   // Deferred body: wait the debounce window, run the refresh once, then release
   // the lock in `finally` so a failed refresh never leaves the backend wedged.
   const deferredScript = [
-    `const cp = require('child_process'), fs = require('fs');`,
-    `setTimeout(function () {`,
+    `const cp = require('child_process'), fs = require('fs'), path = require('path');`,
+    `const DEBUG_ENABLED = ${debugEnabled ? 'true' : 'false'};`,
+    `const DEBUG_LOG_PATH = '${escapedDebugLogPath}';`,
+    `const serializeError = function (error) {`,
+    `  if (!error || typeof error !== 'object') return { message: String(error) };`,
+    `  return { name: error.name || 'Error', message: error.message || String(error), stack: error.stack || null };`,
+    `};`,
+    `const emit = function (branch, context) {`,
+    `  if (!DEBUG_ENABLED) return;`,
+    `  try { fs.mkdirSync(path.dirname(DEBUG_LOG_PATH), { recursive: true }); } catch (e0) {}`,
     `  try {`,
-    `    cp.execSync('${escapedRefreshCmd}', { cwd: '${escapedRepoRoot}', stdio: 'inherit' });`,
+    `    fs.appendFileSync(DEBUG_LOG_PATH, JSON.stringify({`,
+    `      ts: new Date().toISOString(),`,
+    `      msg: 'hook:codemap-refresh:branch:' + branch,`,
+    `      pid: process.pid,`,
+    `      ppid: process.ppid,`,
+    `      ...context,`,
+    `    }) + '\\n');`,
+    `  } catch (e1) {}`,
+    `};`,
+    `emit('deferred-process-created', { backend: '${backend}', repoRoot: '${escapedRepoRoot}', lockPath: '${escapedLockPath}', refreshCmd: '${escapedRefreshCmd}', debounceMs: ${DEBOUNCE_MS} });`,
+    `setTimeout(function () {`,
+    `  emit('deferred-exec-start', { backend: '${backend}', repoRoot: '${escapedRepoRoot}', lockPath: '${escapedLockPath}', refreshCmd: '${escapedRefreshCmd}' });`,
+    `  try {`,
+    `    cp.execSync('${escapedRefreshCmd}', { cwd: '${escapedRepoRoot}', stdio: 'ignore' });`,
+    `    emit('deferred-exec-success', { backend: '${backend}', repoRoot: '${escapedRepoRoot}', lockPath: '${escapedLockPath}', refreshCmd: '${escapedRefreshCmd}' });`,
     `  } catch (e) {`,
-    `    try { fs.appendFileSync('${logFilePath}', new Date().toISOString() + '  [codemap-refresh][${backend}] deferred error: ' + (e.message || e) + '\\n'); } catch (e2) {}`,
+    `    emit('deferred-exec-failed', { backend: '${backend}', repoRoot: '${escapedRepoRoot}', lockPath: '${escapedLockPath}', refreshCmd: '${escapedRefreshCmd}', error: serializeError(e) });`,
     `  } finally {`,
-    `    try { fs.unlinkSync('${escapedLockPath}'); } catch (e3) {}`,
+    `    emit('deferred-lock-release-start', { backend: '${backend}', repoRoot: '${escapedRepoRoot}', lockPath: '${escapedLockPath}' });`,
+    `    try {`,
+    `      fs.unlinkSync('${escapedLockPath}');`,
+    `      emit('deferred-lock-released', { backend: '${backend}', repoRoot: '${escapedRepoRoot}', lockPath: '${escapedLockPath}' });`,
+    `    } catch (e3) {`,
+    `      emit('deferred-lock-release-failed', { backend: '${backend}', repoRoot: '${escapedRepoRoot}', lockPath: '${escapedLockPath}', error: serializeError(e3) });`,
+    `    }`,
     `  }`,
     `}, ${DEBOUNCE_MS});`,
   ].join(' ');
 
-  const logFile = path.join(cacheDir, 'refresh.log');
-  let out: number;
-  try {
-    out = fs.openSync(logFile, 'a');
-  } catch {
-    releaseSchedule(lockPath); // could not even open the log — don't wedge the lock
-    return;
-  }
+  debugLogHookBranch('codemap-refresh', 'deferred-refresh-prepared', {
+    backend,
+    repoRoot,
+    lockPath,
+    refreshCmd,
+    debugEnabled,
+    debugLogPath: getDebugLogPath(),
+  });
 
   try {
     const child = spawn(process.execPath, ['-e', deferredScript], {
       cwd: repoRoot,
       detached: true,
-      stdio: ['ignore', out, out],
+      stdio: 'ignore',
     });
     child.unref();
+    debugLogHookBranch('codemap-refresh', 'deferred-refresh-spawned', {
+      backend,
+      repoRoot,
+      lockPath,
+      command: process.execPath,
+      args: ['-e', deferredScript],
+    });
   } catch (err) {
-    log(cacheDir, `[codemap-refresh][${backend}] spawn failed: ${(err as Error).message}`);
+    debugLogHookBranch('codemap-refresh', 'deferred-refresh-spawn-failed', {
+      backend,
+      repoRoot,
+      lockPath,
+      error: err as Error,
+    });
     releaseSchedule(lockPath); // nothing will run the deferred body — release now
-  } finally {
-    fs.closeSync(out);
   }
 };
 
@@ -226,6 +256,10 @@ const detectBackends = (cwd: string): BackendInfo[] => {
     results.push({ name: 'graphify', repoRoot: graphifyRoot });
   }
 
+  debugLogHookBranch('codemap-refresh', 'backends-detected', {
+    cwd,
+    backends: results,
+  });
   return results;
 };
 
@@ -242,28 +276,50 @@ export const codemapRefreshHook = defineHook({
     const backends = detectBackends(cwd);
 
     if (backends.length === 0) {
+      debugLogHookBranch('codemap-refresh', 'no-backends-noop', {
+        cwd,
+      });
       return sideEffect(); // no-op: neither backend installed
     }
 
     const cacheDir = ensureCacheDir();
+    debugLogHookBranch('codemap-refresh', 'coordination-dir-ready', {
+      cwd,
+      cacheDir,
+      backendCount: backends.length,
+    });
 
     for (const backend of backends) {
       const lockPath = lockPathForBackendRepo(cacheDir, backend.name, backend.repoRoot);
+      debugLogHookBranch('codemap-refresh', 'schedule-attempt', {
+        backend: backend.name,
+        repoRoot: backend.repoRoot,
+        lockPath,
+      });
 
       // PRE-CHECK: if a refresh is already scheduled for this backend+repo, do
       // NOT schedule another. Only the first edit in the window spawns.
       if (!tryAcquireSchedule(lockPath)) {
-        debugLog('[codemap-refresh] already scheduled — skipping', {
+        debugLogHookBranch('codemap-refresh', 'already-scheduled-skip', {
           backend: backend.name,
           repoRoot: backend.repoRoot,
+          lockPath,
         });
         continue;
       }
 
-      log(
-        cacheDir,
-        `[codemap-refresh][${backend.name}] scheduled refresh (tool=${ctx.toolName}, cwd=${ctx.cwd})`,
-      );
+      debugLogHookBranch('codemap-refresh', 'schedule-acquired', {
+        backend: backend.name,
+        repoRoot: backend.repoRoot,
+        lockPath,
+      });
+      debugLogHookBranch('codemap-refresh', 'refresh-scheduled', {
+        backend: backend.name,
+        repoRoot: backend.repoRoot,
+        lockPath,
+        toolName: ctx.toolName,
+        cwd: ctx.cwd,
+      });
       spawnDeferredRefresh(backend.name, backend.repoRoot, cacheDir, lockPath);
     }
 

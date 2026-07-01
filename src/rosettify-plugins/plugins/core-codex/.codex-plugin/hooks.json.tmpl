@@ -7,6 +7,17 @@
       }
     ]{{#if deterministic_hooks}},{{/if}}
 {{#if deterministic_hooks}}
+    "PostCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/read-once-reset.js"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|Write|Edit|apply_patch|functions.apply_patch|mcp__.*",
@@ -14,6 +25,15 @@
           {
             "type": "command",
             "command": "node .codex/hooks/dangerous-actions.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|shell|Read|View|view",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/read-once.js"
           }
         ]
       }

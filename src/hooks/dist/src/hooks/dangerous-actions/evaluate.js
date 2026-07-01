@@ -301,14 +301,39 @@ function evalPatternAndPolicy(ctx) {
  */
 function evaluateDangerous(ctx) {
     const { result, pattern } = evalPatternAndPolicy(ctx);
-    if (result === null)
-        return null;
-    if (pattern?.policy === 'advise')
-        return result;
-    const input = ctx.toolInput;
-    if (hasAIReviewedMarker(input, ctx.toolName)) {
-        (0, debug_log_1.debugLog)('[dangerous-actions] AI-reviewed marker honored', { toolName: ctx.toolName });
+    if (result === null) {
+        (0, debug_log_1.debugLogHookBranch)('dangerous-actions', 'no-match-allow', {
+            toolKind: ctx.toolKind,
+            toolName: ctx.toolName,
+        });
         return null;
     }
+    // Non-blocking advise-tier notices are always surfaced (marker is irrelevant).
+    // There is no hard-deny tier — the hook only soft-denies (reconsider) or advises.
+    if (pattern?.policy === 'advise') {
+        (0, debug_log_1.debugLogHookBranch)('dangerous-actions', 'advise', {
+            toolKind: ctx.toolKind,
+            toolName: ctx.toolName,
+            patternId: pattern.id,
+            patternLabel: pattern.label,
+        });
+        return result;
+    }
+    const input = ctx.toolInput;
+    if (hasAIReviewedMarker(input, ctx.toolName)) {
+        (0, debug_log_1.debugLogHookBranch)('dangerous-actions', 'ai-reviewed-marker-honored', {
+            toolKind: ctx.toolKind,
+            toolName: ctx.toolName,
+            patternId: pattern?.id ?? null,
+            patternLabel: pattern?.label ?? null,
+        });
+        return null;
+    }
+    (0, debug_log_1.debugLogHookBranch)('dangerous-actions', 'reconsider-deny', {
+        toolKind: ctx.toolKind,
+        toolName: ctx.toolName,
+        patternId: pattern?.id ?? null,
+        patternLabel: pattern?.label ?? null,
+    });
     return result;
 }

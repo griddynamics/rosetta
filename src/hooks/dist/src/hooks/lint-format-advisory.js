@@ -9,6 +9,7 @@ const path_1 = __importDefault(require("path"));
 const define_hook_1 = require("../runtime/define-hook");
 const run_hook_1 = require("../runtime/run-hook");
 const result_helpers_1 = require("../runtime/result-helpers");
+const debug_log_1 = require("../runtime/debug-log");
 const MONITORED_EXTENSIONS = [
     '.html', '.css', '.js', '.ts', '.jsx', '.tsx',
     '.py', '.cs', '.ps1', '.cmd', '.java', '.go', '.rs', '.md',
@@ -32,6 +33,14 @@ exports.lintFormatAdvisoryHook = (0, define_hook_1.defineHook)({
         },
     },
     throttle: { dedupBy: ['session', 'filePath'] },
-    run: (ctx) => (0, result_helpers_1.advise)((0, exports.advisoryMessage)(ctx.filePath)),
+    run: (ctx) => {
+        const message = (0, exports.advisoryMessage)(ctx.filePath);
+        (0, debug_log_1.debugLogHookBranch)('lint-format-advisory', 'advisory-issued', {
+            filePath: ctx.filePath,
+            basename: path_1.default.basename(ctx.filePath),
+            message,
+        });
+        return (0, result_helpers_1.advise)(message);
+    },
 });
 (0, run_hook_1.runAsCli)(exports.lintFormatAdvisoryHook, module);

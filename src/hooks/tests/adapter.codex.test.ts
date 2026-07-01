@@ -4,6 +4,8 @@ import { test, describe, expect } from 'vitest';
 
 import fxCodexBash  from './fixtures/codex-post-tool-use-bash.json';
 import fxCodexWrite from './fixtures/codex-post-tool-use-write.json';
+import fxCodexSessionStart from './fixtures/codex-session-start.json';
+import fxCodexMcpRead from './fixtures/codex-pre-tool-use-mcp-read.json';
 
 import { detectIDE, normalize, formatOutput } from '../src/adapter';
 
@@ -16,6 +18,10 @@ describe('detectIDE — Codex', () => {
 
   test('returns "codex" for Codex PostToolUse Write input', () => {
     expect(detectIDE(fxCodexWrite)).toBe('codex');
+  });
+
+  test('returns "codex" for Codex SessionStart input', () => {
+    expect(detectIDE(fxCodexSessionStart)).toBe('codex');
   });
 
 });
@@ -60,6 +66,31 @@ describe('normalize — Codex', () => {
     expect(result.turn_id).toBe(fxCodexWrite.turn_id);
   });
 
+  test('SessionStart: no turn_id required and source preserved', () => {
+    const result = normalize(fxCodexSessionStart);
+    expect(result.hook_event_name).toBe('SessionStart');
+    expect(result.source).toBe('compact');
+    expect(result.session_id).toBe('codex-session-001');
+  });
+
+  test('MCP filesystem read upgrades to PreRead', () => {
+    const result = normalize(fxCodexMcpRead);
+    expect(result.event).toBe('PreRead');
+    expect(result.hook_event_name).toBe('PreToolUse');
+    expect(result.toolKind).toBe('read');
+    expect(result.file_path).toBe('/proj/src/app.ts');
+  });
+
+  test('generic built-in Read is not classified as Codex read-once input', () => {
+    const result = normalize({
+      ...fxCodexMcpRead,
+      tool_name: 'Read',
+      tool_input: { file_path: '/proj/src/app.ts' },
+    });
+    expect(result.hook_event_name).toBe('PreToolUse');
+    expect(result.toolKind).toBe(null);
+  });
+
 });
 
 // ---------------------------------------------------------------------------
@@ -100,6 +131,14 @@ describe('round-trip — Codex', () => {
     const output = formatOutput(canonical, ide);
     // codex formatOutput is identity
     expect(output).toEqual(canonical);
+  });
+
+  test('SessionStart: detect → normalize preserves lifecycle fields', () => {
+    const ide = detectIDE(fxCodexSessionStart);
+    expect(ide).toBe('codex');
+    const normalized = normalize(fxCodexSessionStart);
+    expect(normalized.hook_event_name).toBe('SessionStart');
+    expect(normalized.source).toBe('compact');
   });
 
 });

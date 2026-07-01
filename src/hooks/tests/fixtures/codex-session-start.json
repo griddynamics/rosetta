@@ -1,0 +1,12 @@
+{
+  "_source": "constructed-from-docs",
+  "_docs": "https://developers.openai.com/codex/hooks",
+  "hook_event_name": "SessionStart",
+  "session_id": "codex-session-001",
+  "source": "compact",
+  "cwd": "/proj",
+  "transcript_path": "/tmp/codex-transcript.jsonl",
+  "tool_name": null,
+  "tool_input": {},
+  "model": "gpt-5.4"
+}

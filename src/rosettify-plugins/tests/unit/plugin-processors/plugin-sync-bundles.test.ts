@@ -12,6 +12,8 @@ const BUNDLE_NAMES = [
   'lint-format-advisory.js',
   'loose-files.js',
   'md-file-advisory.js',
+  'read-once.js',
+  'read-once-reset.js',
 ];
 
 function makePluginFrame(spec: Partial<PluginSpec>): PluginProcessingFrame {
@@ -133,7 +135,7 @@ describe('pluginSyncBundles', () => {
   });
 
   it('r3: adds hard error when some bundle files are missing', () => {
-    // Only provide 3 of 5 expected bundles
+    // Only provide 3 of the expected bundles
     const partialBundles = ['dangerous-actions.js', 'codemap-refresh.js', 'lint-format-advisory.js'];
     const { hooksSource, outputDir, cleanup } = makeTempRepo('core-claude', partialBundles);
     try {
@@ -147,7 +149,7 @@ describe('pluginSyncBundles', () => {
       fs.mkdirSync(targetDir, { recursive: true });
       const p = makePluginFrame(spec);
       const result = pluginSyncBundles(hooksSource, outputDir, true)(p);
-      // 2 missing files → hard error
+      // The rest are missing → hard error
       expect(result.errors.length).toBeGreaterThan(0);
       expect(result.errors[0].kind).toBe('hard');
       expect(result.errors[0].message).toContain('Missing');

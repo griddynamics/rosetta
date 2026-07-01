@@ -1,6 +1,6 @@
 // Rosetta-AI-reviewed: pattern definitions only — not executable SQL/shell
 import { advise, deny } from '../../runtime/result-helpers';
-import { debugLog } from '../../runtime/debug-log';
+import { debugLogHookBranch } from '../../runtime/debug-log';
 import type { HookContext, HookResult } from '../../runtime/types';
 import {
   DANGEROUS_BASH,
@@ -339,14 +339,41 @@ export function evalPatternAndPolicy(ctx: HookContext): { result: HookResult; pa
  */
 export function evaluateDangerous(ctx: HookContext): HookResult {
   const { result, pattern } = evalPatternAndPolicy(ctx);
-  if (result === null) return null;
+  if (result === null) {
+    debugLogHookBranch('dangerous-actions', 'no-match-allow', {
+      toolKind: ctx.toolKind,
+      toolName: ctx.toolName,
+    });
+    return null;
+  }
 
-  if (pattern?.policy === 'advise') return result;
+  // Non-blocking advise-tier notices are always surfaced (marker is irrelevant).
+  // There is no hard-deny tier — the hook only soft-denies (reconsider) or advises.
+  if (pattern?.policy === 'advise') {
+    debugLogHookBranch('dangerous-actions', 'advise', {
+      toolKind: ctx.toolKind,
+      toolName: ctx.toolName,
+      patternId: pattern.id,
+      patternLabel: pattern.label,
+    });
+    return result;
+  }
 
   const input = ctx.toolInput as Record<string, unknown>;
   if (hasAIReviewedMarker(input, ctx.toolName)) {
-    debugLog('[dangerous-actions] AI-reviewed marker honored', { toolName: ctx.toolName });
+    debugLogHookBranch('dangerous-actions', 'ai-reviewed-marker-honored', {
+      toolKind: ctx.toolKind,
+      toolName: ctx.toolName,
+      patternId: pattern?.id ?? null,
+      patternLabel: pattern?.label ?? null,
+    });
     return null;
   }
+  debugLogHookBranch('dangerous-actions', 'reconsider-deny', {
+    toolKind: ctx.toolKind,
+    toolName: ctx.toolName,
+    patternId: pattern?.id ?? null,
+    patternLabel: pattern?.label ?? null,
+  });
   return result;
 }

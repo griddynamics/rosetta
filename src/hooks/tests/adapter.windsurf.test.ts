@@ -5,7 +5,7 @@ import { test, describe, expect } from 'vitest';
 
 import fxWindsurf from './fixtures/windsurf-post-tool-use-write.json';
 
-import { detectIDE, normalize, formatOutput } from '../src/adapter';
+import { detectIDE, normalize, formatOutput, exitCodeFor } from '../src/adapter';
 
 function wsInput(agent_action_name: string, tool_info: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -95,9 +95,9 @@ describe('normalize — Windsurf read events', () => {
     expect(result.tool_input.file_path).toBe('/proj/utils.py');
   });
 
-  test('pre_read_code → hook_event_name PreToolUse', () => {
+  test('pre_read_code → hook_event_name PreRead', () => {
     const result = normalize(wsInput('pre_read_code', { file_path: '/proj/config.js' }));
-    expect(result.hook_event_name).toBe('PreToolUse');
+    expect(result.hook_event_name).toBe('PreRead');
     expect(result.tool_name).toBe('Read');
   });
 
@@ -114,7 +114,7 @@ describe('normalize — Windsurf MCP events', () => {
       mcp_result: 'created',
     }));
     expect(result.hook_event_name).toBe('PostToolUse');
-    expect(result.tool_name).toBe('create_issue');
+    expect(result.tool_name).toBe('mcp__create_issue');
     expect(result.tool_input).toEqual({ owner: 'org', repo: 'repo' });
   });
 
@@ -161,9 +161,19 @@ describe('formatOutput — Windsurf', () => {
     expect(result.additionalContext).toBe('Test');
   });
 
-  test('deny decision → _exitCode 2', () => {
+  test('deny decision → no _exitCode in the JSON body (stdout is never parsed)', () => {
     const result = formatOutput({ hookSpecificOutput: { permissionDecision: 'deny' } }, 'windsurf');
-    expect(result._exitCode).toBe(2);
+    expect(result._exitCode).toBeUndefined();
+  });
+
+  test('deny decision → exitCodeFor returns 2 (the only mechanism Windsurf honors)', () => {
+    const code = exitCodeFor({ hookSpecificOutput: { permissionDecision: 'deny' } }, 'windsurf');
+    expect(code).toBe(2);
+  });
+
+  test('non-deny decision → exitCodeFor returns 0', () => {
+    const code = exitCodeFor({ hookSpecificOutput: { permissionDecision: 'allow' } }, 'windsurf');
+    expect(code).toBe(0);
   });
 
 });

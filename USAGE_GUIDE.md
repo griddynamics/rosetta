@@ -103,8 +103,8 @@ Use this for implementation work after you know what needs to change. Rosetta tu
 **Expect:** discoverer, architect, engineer, executor, reviewer, and validator subagents. Artifacts can include discovery notes, specs, plans, review findings, validation findings, tests, and concise Rosetta doc updates. Your responsibility is to provide acceptance criteria, review plans before approving, and call out scope changes before implementation starts.
 
 ```
-/coding-flow Add password reset functionality
-/coding-flow Fix the race condition in payment processing
+/coding-flow Add password reset functionality to the auth service
+/coding-flow Identify and fix the race condition in payment processing
 /coding-flow Implement the notification service
 ```
 
@@ -153,7 +153,7 @@ Builds a custom workflow when no fixed Rosetta workflow fits the request. It com
 
 ```
 /adhoc-flow Write a quick script to parse these CSV files
-/adhoc-flow Refactor the logging across three services
+/adhoc-flow Refactor logging across the payments, orders, and billing services
 ```
 
 </details>
@@ -181,7 +181,7 @@ Reverse-engineers an existing codebase into grounded architecture documentation 
 
 ```
 /code-analysis-flow Explain how the authentication system works
-/code-analysis-flow What is the architecture of the payment module?
+/code-analysis-flow Document the architecture of the payment module
 /code-analysis-flow Analyze the REST API architecture and write the result to analysis.md
 /code-analysis-flow Reverse-engineer requirements from the billing module
 ```
@@ -204,7 +204,7 @@ Use this for project-related research, investigation, or technical comparison th
 **Expect:** a researcher subagent, a prompt artifact before the research runs, and grounded final analysis. Your responsibility is to review the prompt because it controls what the research will and will not answer.
 
 ```
-/research-flow Research best practices for microservices authentication
+/research-flow Research best practices for microservices authentication for our stack
 /research-flow Investigate OAuth 2.0 implementation options for our stack
 /research-flow Compare event sourcing vs CRUD for our order service
 ```
@@ -214,12 +214,12 @@ Use this for project-related research, investigation, or technical comparison th
 <details>
 <summary><b>Automated QA</b></summary>
 
-Creates or updates automated UI tests from a TestRail case, Confluence context, and the project test architecture. The workflow reads requirements first, clarifies assertions, analyzes existing tests and Page Objects, identifies selectors from source or page HTML, implements the test, then waits for execution results before proposing fixes.
+Takes a test case from your Test Management System (TestRail, qTest) and produces a working automated test in your automation framework. Rather than relying on the test-case description alone, the workflow also gathers what it needs from your code and ticket system (for example, Jira); it clarifies assertions, analyzes existing tests and Page Objects, identifies selectors, implements the test, asks when it sees contradictions, then waits for execution results and helps fix the test until it passes.
 
-**Use when:** automate a TestRail case or QA scenario, reuse existing Page Objects and helpers, avoid guessed selectors, or analyze a failing automated test report.
+**Use when:** automate a test case from your test management system, reuse existing Page Objects and helpers, avoid guessed selectors, or fix a failing automated test.
 
 **Phases:**
-1. Data Collection — collect TestRail, Confluence, project instructions, and create `agents/plans/aqa-<test-name>.md`
+1. Data Collection — collect the test case, ticket/Confluence context, and project instructions, and create `agents/plans/aqa-<test-name>.md`
 2. Requirements Clarification — ask assertion and behavior questions; wait for answers before code analysis
 3. Code Analysis — inspect frontend code, Page Objects, existing tests, utilities, and project conventions
 4. Selector Identification — map steps to UI elements; request page source only when selectors cannot be found
@@ -228,11 +228,12 @@ Creates or updates automated UI tests from a TestRail case, Confluence context, 
 7. Test Report Analysis — read test report output, categorize failures, and identify root causes
 8. Test Corrections — prepare fixes and require approval before applying changes
 
-**Expect:** sequential state-driven execution with QA/frontend/test implementation focus. HITL gates occur in phases 2, 6, 7, and 8; phase 4 asks for page HTML only if needed. Your responsibility is to provide the TestRail case, Confluence context, answers, page HTML when requested, run the test, and provide the report.
+**Expect:** sequential state-driven execution with QA/frontend/test implementation focus. HITL gates occur in phases 2, 6, 7, and 8; phase 4 asks for page HTML only if needed. Your responsibility is to provide the test case, any ticket or Confluence context, answers, page HTML when requested, run the test, and provide the report.
 
 ```
-/aqa-flow Write tests for the user registration feature
-/aqa-flow Create QA automation for the checkout flow
+/aqa-flow Automate the test case for the user registration flow
+/aqa-flow Implement automation for the regression suite test cases
+/aqa-flow Fix the failing automated test for the checkout flow
 ```
 
 </details>
@@ -282,8 +283,8 @@ Large migration workflow for code conversions, platform upgrades, framework upgr
 **Expect:** heavy subagent use, often one focused subagent per phase or project. HITL confirms applicable phases, phase transitions, target-spec approval, public API changes, and implementation start. Your responsibility is to provide source/target expectations, compatibility requirements, test expectations, deployment constraints, and careful spec review.
 
 ```
-/modernization-flow Migrate from Java 8 to Java 21
 /modernization-flow Re-architect monolith to microservices
+/modernization-flow Migrate the billing module from Java 8 to Java 21, one phase at a time
 ```
 
 </details>
@@ -304,7 +305,7 @@ Onboards an external or private codebase so AI agents can use it in the current 
 **Expect:** sequential orchestration rather than named subagents. Artifacts include compressed XML for AI consumption, a short onboarding document, and an architecture rule telling agents to use the reference source. Your responsibility is to provide an accessible path and correct detected metadata if needed.
 
 ```
-/external-lib-flow Teach AI about our internal authentication library
+/external-lib-flow Teach AI about our internal authentication library at <path>
 /external-lib-flow Document the shared utilities package
 ```
 
@@ -582,12 +583,29 @@ See [PLUGINS.md](PLUGINS.md) for install commands.
 
   `/<original-command> Please resume execution saved in "agents/TEMP/execution-state.md" according to flow instructions`
 
+- **If AI gets stuck.** Monitor AI if it tries to solve the same problem but gets stuck, going in loops, or diverges. You should provide inputs on how to exactly solve it or ways to tackle the problem. You can also ask AI to spawn a smarter, focused subagent to solve that problem only by filling in this template:
+
+  `Spawn subagent using <Claude Opus 4.8 | GPT-5.5> with high reasoning model to figure out the <problem/issue/task/bug> itself. Do not provide your thinking, only provide context, the problem definition, expected behavior and allowed tradeoffs/alternatives (the ultimate end goal), do not limit its decisions or reasoning.`
+
 ## Compaction
 
-It is **NOT** recommended to perform compaction, but if there is reason and you cannot leave session - use this as a starting point:
+It is **NOT** recommended to perform compaction, but if there is reason and you cannot leave session, use `/compact` with a prompt like this:
 
-```
-/compact Compact context by high token compression using terms, patterns, unicode characters, terse phrases, remove formatting-except-essential/duplicates/wrong-decisions/wrong-thinking/incorrect/non-relevant information, keep regulation/policies/hitl/catalogs compressed, user intent and q&a mostly verbatim, decisions/key-points/tasks/workflows mostly verbatim, still relevant files/tool calls compressed, and etc. Main goal: able to fully continue execution without noise, keep it factual, exact, specific, actionable, etc. Avoid general summarization that looses value.
+```text
+/compact
+Compact context by high token compression using:
+- terms, patterns, unicode characters, and terse phrases
+- remove non-essential formatting, duplicates, wrong decisions, wrong thinking,
+  incorrect information, and non-relevant information
+- keep regulation, policies, HITL, and catalogs compressed
+- keep user intent and Q&A mostly verbatim
+- keep decisions, key points, tasks, and workflows mostly verbatim
+- keep still-relevant files as-is and tool calls compressed
+
+Main goal:
+- fully continue execution without noise
+- keep it factual, exact, specific, and actionable
+- avoid general summarization that loses value
 ```
 
 ## Video Tutorials

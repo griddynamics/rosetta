@@ -380,6 +380,79 @@ The `@` symbol allows you to reference files and folders in your prompts:
 
 ---
 
+## Hooks
+
+Cursor hooks run scripts at lifecycle events. Full verified contract: [Cursor Hooks reference](https://cursor.com/docs/reference/hooks).
+
+### Hook Locations
+
+| Path | Scope |
+|------|-------|
+| `.cursor/hooks.json` | Project |
+| `~/.cursor/hooks.json` | User |
+| Enterprise (`/Library/Application Support/Cursor/`, `/etc/cursor/`, `C:\ProgramData\Cursor\`) | Org-wide |
+
+### Registration Format
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "<hookName>": [
+      { "type": "command", "command": "path/to/script", "timeout": 60, "failClosed": false, "matcher": "Shell" }
+    ]
+  }
+}
+```
+
+`failClosed` (default `false`): if `true`, a hook that crashes or returns no decision **blocks** the action (fail-closed) instead of letting it through (fail-open) — see gotcha below.
+
+### Supported Events (Rosetta-relevant)
+
+| Event | Matcher basis | Purpose |
+|-------|---------------|---------|
+| `sessionStart` | — | inject `additional_context`, set session `env` |
+| `preToolUse` (generic) + `beforeShellExecution`/`beforeReadFile`/`beforeMCPExecution` (granular) | tool type (`Shell`, `Read`, `Write`, `Task`, `MCP:<name>`) | deny / rewrite / advise before a tool runs |
+| `postToolUse` (generic) + `afterShellExecution`/`afterFileEdit`/`afterMCPExecution` (granular) | tool type | inject `additional_context` after a tool runs |
+| `subagentStart` / `subagentStop` | subagent type | observe / `followup_message` on completion |
+| `stop` | — | `followup_message` auto-submitted as the agent's next turn |
+
+**(!) Cursor fires BOTH the generic and the matching granular hook for one tool call.** Wiring a guard on both `preToolUse` and `beforeShellExecution` double-fires it — pick one layer per guard.
+
+### Output (flat snake_case — no `hookSpecificOutput` wrapper)
+
+| Field | Used on | Meaning |
+|-------|---------|---------|
+| `permission` | `preToolUse`/`before*` | `"allow"` \| `"deny"` \| `"ask"`. **(!) `"ask"` is enforced only on `beforeShellExecution`/`beforeMCPExecution`** (schema-accepted but not enforced on `preToolUse`) — and in practice shows no interactive approval UI, behaving like `"deny"`. |
+| `user_message` | deny | shown to the user; **the only deny-reason channel confirmed to reach the model** (via the following `postToolUseFailure.error_message`) |
+| `agent_message` | deny | documented as model-facing, but NOT confirmed to reach the model — do not rely on it for agent-visible content |
+| `additional_context` | `sessionStart` / `postToolUse` | injected into the conversation |
+| `updated_input` | `preToolUse` | replaces tool args before execution |
+| `followup_message` | `stop` / `subagentStop` | auto-submitted as the next turn |
+| `env` | `sessionStart` | sets vars for later **hook script** invocations only — NOT visible in the agent's own shell |
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | stdout JSON parsed |
+| `2` | blocks the action. Works standalone with no body. **(!) Pairing it with a JSON body does NOT get parsed — the raw text is shown verbatim instead of the structured fields above. Prefer exit `0` + JSON for denies.** |
+| other non-zero | hook failed — fails OPEN unless `failClosed:true` |
+
+**(!) `failClosed:true` blocks on ANY non-decisive response, not just a crash.** A `failClosed` hook must emit an explicit `permission` on every invocation — including calls where it has nothing to say — or it blocks every action on that event.
+
+### Matchers
+
+| Hook | Matches against |
+|------|------------------|
+| `preToolUse` / `postToolUse` / `postToolUseFailure` | tool type: `Shell`, `Read`, `Write`, `Task`, `MCP:<name>` |
+| `beforeShellExecution` / `afterShellExecution` | the command text |
+| `beforeReadFile` | tool type: `Read`, `TabRead` |
+| `afterFileEdit` | tool type: `Write`, `TabWrite` |
+| `subagentStart` / `subagentStop` | subagent type |
+
+---
+
 ## File Structure Example
 
 ```

@@ -537,20 +537,11 @@ describe('codemap-refresh — error resilience', () => {
     expect(lockFiles.size).toBe(0);
   });
 
-  test('log-file open failure → lock released (not wedged), no spawn', async () => {
-    // Lock acquire (wx) still succeeds; opening the log fd ('a') fails.
-    vi.spyOn(fs, 'openSync').mockImplementation((p, flags) => {
-      if (flags === 'wx') {
-        const ps = String(p);
-        if (lockFiles.has(ps)) throw Object.assign(new Error('EEXIST'), { code: 'EEXIST' });
-        lockFiles.set(ps, String(Date.now()));
-        return 99 as ReturnType<typeof fs.openSync>;
-      }
-      throw Object.assign(new Error('EACCES'), { code: 'EACCES' });
-    });
-    await expect(runHook(codemapRefreshHook)).resolves.toBeUndefined();
-    expect(mockSpawn).not.toHaveBeenCalled();
-    expect(lockFiles.size).toBe(0); // lock released despite the log-open failure
+  test('deferred script writes to shared rosetta.log path, not refresh.log', async () => {
+    await runHook(codemapRefreshHook);
+    const script = getSpawnedScript();
+    expect(script).toContain(path.join(os.homedir(), '.rosetta', 'rosetta.log'));
+    expect(script).not.toContain('refresh.log');
   });
 
 });

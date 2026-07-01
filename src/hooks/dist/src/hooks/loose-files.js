@@ -48,10 +48,27 @@ exports.looseFilesHook = (0, define_hook_1.defineHook)({
         },
     },
     run: (ctx) => {
-        if (!(0, exports.isLooseFile)(ctx.filePath))
+        const marker = MODULE_MARKERS[path_1.default.extname(ctx.filePath)] ?? null;
+        const loose = (0, exports.isLooseFile)(ctx.filePath);
+        (0, debug_log_1.debugLogHookBranch)('loose-files', 'classification', {
+            filePath: ctx.filePath,
+            marker,
+            loose,
+        });
+        if (!loose) {
+            (0, debug_log_1.debugLogHookBranch)('loose-files', 'within-module-no-advisory', {
+                filePath: ctx.filePath,
+                marker,
+            });
             return null;
-        (0, debug_log_1.debugLog)('[loose-files] nudge', { filePath: ctx.filePath });
-        return (0, result_helpers_1.advise)((0, exports.nudgeMessage)(ctx.filePath));
+        }
+        const message = (0, exports.nudgeMessage)(ctx.filePath);
+        (0, debug_log_1.debugLogHookBranch)('loose-files', 'advisory-issued', {
+            filePath: ctx.filePath,
+            marker,
+            message,
+        });
+        return (0, result_helpers_1.advise)(message);
     },
 });
 (0, run_hook_1.runAsCli)(exports.looseFilesHook, module);

@@ -10,7 +10,7 @@ WHEN TO USE THIS DOC: drop in as primary context for ANY Rosetta task — using 
 ================================================================================
 Rosetta = meta-prompting + context engineering + centralized instructions management for AI coding agents. Provides structured context (rules, skills, workflows, sub-agents) so agents operate with deep awareness of architecture, domain constraints, engineering standards. Accelerates onboarding by reverse-engineering architecture+domain into workspace files; cuts per-conversation tokens; raises reliability/consistency of AI output.
 - Open source, Apache-2.0. Owner: Grid Dynamics. Repo: github.com/griddynamics/rosetta.
-- Tagline: "Tell agents HOW to think, not WHAT to think." Models already know Python/Java/React; they lack YOUR engineering discipline.
+- Tagline: "Tell agents How to think, not what to do." Models already know Python/Java/React; they lack YOUR engineering discipline.
 - NOT a proprietary agent — works with the tools engineers already use.
 - DISCLAIMER: if your existing harness already works well, you 99% don't need it.
 - Edition: fully OSS, self-hosted, community-driven; all public agents/workflows/ skills/rules/templates included.

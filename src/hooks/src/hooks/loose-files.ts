@@ -4,7 +4,7 @@ import { defineHook } from '../runtime/define-hook';
 import { runAsCli } from '../runtime/run-hook';
 import { advise } from '../runtime/result-helpers';
 import { hasMarkerBeforeBoundary } from '../runtime/path-utils';
-import { debugLog } from '../runtime/debug-log';
+import { debugLogHookBranch } from '../runtime/debug-log';
 
 const MODULE_MARKERS: Record<string, string> = {
   '.py': '__init__.py',
@@ -45,9 +45,27 @@ export const looseFilesHook = defineHook({
     },
   },
   run: (ctx) => {
-    if (!isLooseFile(ctx.filePath)) return null;
-    debugLog('[loose-files] nudge', { filePath: ctx.filePath });
-    return advise(nudgeMessage(ctx.filePath));
+    const marker = MODULE_MARKERS[path.extname(ctx.filePath)] ?? null;
+    const loose = isLooseFile(ctx.filePath);
+    debugLogHookBranch('loose-files', 'classification', {
+      filePath: ctx.filePath,
+      marker,
+      loose,
+    });
+    if (!loose) {
+      debugLogHookBranch('loose-files', 'within-module-no-advisory', {
+        filePath: ctx.filePath,
+        marker,
+      });
+      return null;
+    }
+    const message = nudgeMessage(ctx.filePath);
+    debugLogHookBranch('loose-files', 'advisory-issued', {
+      filePath: ctx.filePath,
+      marker,
+      message,
+    });
+    return advise(message);
   },
 });
 

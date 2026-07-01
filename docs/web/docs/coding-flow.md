@@ -97,12 +97,29 @@ Rosetta provides instructions. Coding agents act on them. Rosetta itself does no
 
   `/coding-flow Please resume execution saved in "agents/TEMP/execution-state.md" according to flow instructions`
 
+- **If AI gets stuck.** Monitor AI if it tries to solve the same problem but gets stuck, going in loops, or diverges. You should provide inputs on how to exactly solve it or ways to tackle the problem. You can also ask AI to spawn a smarter, focused subagent to solve that problem only by filling in this template:
+
+  `Spawn subagent using <Claude Opus 4.8 | GPT-5.5> with high reasoning model to figure out the <problem/issue/task/bug> itself. Do not provide your thinking, only provide context, the problem definition, expected behavior and allowed tradeoffs/alternatives (the ultimate end goal), do not limit its decisions or reasoning.`
+
 ## Compaction
 
-It is **NOT** recommended to perform compaction, but if there is reason and you cannot leave session - use this as a starting point:
+It is **NOT** recommended to perform compaction, but if there is reason and you cannot leave session, use `/compact` with a prompt like this:
 
-```
-/compact Compact context by high token compression using terms, patterns, unicode characters, terse phrases, remove formatting-except-essential/duplicates/wrong-decisions/wrong-thinking/incorrect/non-relevant information, keep regulation/policies/hitl/catalogs compressed, user intent and q&a mostly verbatim, decisions/key-points/tasks/workflows mostly verbatim, still relevant files/tool calls compressed, and etc. Main goal: able to fully continue execution without noise, keep it factual, exact, specific, actionable, etc. Avoid general summarization that looses value.
+```text
+/compact
+Compact context by high token compression using:
+- terms, patterns, unicode characters, and terse phrases
+- remove non-essential formatting, duplicates, wrong decisions, wrong thinking,
+  incorrect information, and non-relevant information
+- keep regulation, policies, HITL, and catalogs compressed
+- keep user intent and Q&A mostly verbatim
+- keep decisions, key points, tasks, and workflows mostly verbatim
+- keep still-relevant files as-is and tool calls compressed
+
+Main goal:
+- fully continue execution without noise
+- keep it factual, exact, specific, and actionable
+- avoid general summarization that loses value
 ```
 
 ## Workflow Overview

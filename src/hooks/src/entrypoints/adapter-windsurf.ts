@@ -26,3 +26,7 @@ export const formatOutput = (
 export const detectIDE = (_raw: unknown): string => 'windsurf';
 
 export const dedupKey = (_raw: unknown, _hookName: string): string | null => null;
+
+// Windsurf never parses stdout (docs/hooks/windsurf.md, verified) — blocking is exit-code-only.
+export const exitCodeFor = (canonical: CanonicalOutput, _ide?: string): number =>
+  windsurf.exitCode!(canonical);

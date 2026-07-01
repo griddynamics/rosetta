@@ -26,3 +26,8 @@ export const formatOutput = (
 export const detectIDE = (_raw: unknown): string => 'cursor';
 
 export const dedupKey = (_raw: unknown, _hookName: string): string | null => null;
+
+// Cursor's exit-0 + permission:"deny" JSON deny is confirmed working and field-selective
+// (docs/hooks/cursor.md Run 1+3); pairing exit-2 with the body dumps it raw/unparsed instead
+// (Run 4) — strictly worse. No adapter override; deny stays carried in the JSON body alone.
+export const exitCodeFor = (_canonical: CanonicalOutput, _ide?: string): number => 0;

@@ -15,15 +15,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.copilot = exports.dedupKey = void 0;
 const copilot_1 = require("../runtime/ide-rows/copilot");
 const IDE = 'copilot';
-const COPILOT_SIGNATURE = ['toolName', 'timestamp', 'cwd'];
 // Copilot sends no explicit hook_event_name — infer semantic event from raw shape.
 // PostToolUse/PreToolUse are null in EVENTS (copilot doesn't send event names for tools),
 // so we derive them from the presence of toolResult.
 const inferEvent = (raw) => {
-    if ('toolName' in raw)
+    if ('toolName' in raw) {
+        const toolKind = (0, copilot_1.lookupToolKind)(raw.toolName);
+        if (toolKind === 'read')
+            return 'PreRead';
         return 'toolResult' in raw ? 'PostToolUse' : 'PreToolUse';
+    }
     if ('source' in raw || 'initialPrompt' in raw)
         return 'SessionStart';
+    if ('reason' in raw)
+        return 'SessionEnd';
+    if ('trigger' in raw || 'customInstructions' in raw || 'custom_instructions' in raw)
+        return 'PreCompact';
     if ('prompt' in raw)
         return 'PrePromptSubmit';
     return null;
@@ -43,7 +50,7 @@ const parseToolArgs = (raw) => {
     if (!toolArgs)
         return {};
     try {
-        const parsed = JSON.parse(toolArgs);
+        const parsed = typeof toolArgs === 'string' ? JSON.parse(toolArgs) : toolArgs;
         return typeof parsed === 'object' && parsed !== null
             ? parsed
             : { _raw: toolArgs };
@@ -52,22 +59,30 @@ const parseToolArgs = (raw) => {
         return { _raw: toolArgs };
     }
 };
-const detect = (raw) => COPILOT_SIGNATURE.every((f) => f in raw) && !('hook_event_name' in raw);
+const detect = (raw) => !('hook_event_name' in raw) &&
+    ('timestamp' in raw) &&
+    ('cwd' in raw) &&
+    inferEvent(raw) !== null;
 const normalize = (raw) => {
     const { toolName, cwd, toolArgs, toolResult, timestamp } = raw;
+    const normalizedToolName = typeof toolName === 'string' ? toolName : '';
     return {
         ide: IDE,
         event: inferEvent(raw),
-        toolKind: (0, copilot_1.lookupToolKind)(toolName),
+        toolKind: normalizedToolName ? (0, copilot_1.lookupToolKind)(normalizedToolName) : null,
         hook_event_name: inferHookEventName(raw),
-        session_id: undefined,
-        tool_name: toolName,
+        session_id: (raw.sessionId ?? raw.session_id) || undefined,
+        tool_name: normalizedToolName || undefined,
         tool_input: parseToolArgs(raw),
         tool_use_id: undefined,
         cwd: cwd,
         tool_response: toolResult ?? undefined,
         file_path: (0, copilot_1.getFilePath)(raw) ?? '',
-        _copilot: { timestamp, toolName, toolArgs, toolResult },
+        source: raw.source,
+        reason: raw.reason,
+        trigger: raw.trigger,
+        transcript_path: (raw.transcriptPath ?? raw.transcript_path) || undefined,
+        _copilot: { timestamp, toolName: normalizedToolName || undefined, toolArgs, toolResult },
     };
 };
 const formatOutput = (canonical) => {

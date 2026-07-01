@@ -12,12 +12,8 @@ baseSchema: docs/schemas/rule.md
 
 <process_enforcement_rules>
 
-1. Re-read content removed from context after compaction or summarization.
-2. Do not read the same files in context again and again.
-3. Be professionally direct; do not allow profanity; require politeness.
-4. Proactively use available MCPs, incorporate in plan.
-5. Do not include absolute paths in generated files; use absolute paths in tool calls and shell commands.
-6. If issues were documented in advance then those pre-existing otherwise those are to be fixed.
+1. Proactively use available MCPs, incorporate in plan.
+2. If issues were documented in advance then those pre-existing otherwise those are to be fixed.
 
 </process_enforcement_rules>
 
@@ -37,7 +33,6 @@ baseSchema: docs/schemas/rule.md
 
 1. Search documentation for libraries, versions, and issues which are not in built-in knowledge.
 2. Always define explicit colors for tiles, text, and lines in diagrams for both light and dark themes.
-3. Prefer built-in tools over shell commands.
 
 </additional_requirements>
 
