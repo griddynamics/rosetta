@@ -12,7 +12,9 @@ const TOOL_KINDS: Partial<Record<SemanticKind, readonly string[]>> = {
   edit:    ['Edit'],
   create:  ['Write'],
   replace: ['Edit'],
-  bash:    ['Bash'],
+  // Cursor runs shell commands via a tool named `Shell` (Claude Code uses `Bash`).
+  // Both must map to the `bash` kind or the dangerous-actions guard never fires in Cursor.
+  bash:    ['Bash', 'Shell'],
   read:    ['Read'],
 };
 

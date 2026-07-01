@@ -64,7 +64,8 @@ export const TOOL_KINDS = {
   bash: {
     'claude-code': ['Bash'],
     'codex':       ['Bash', 'shell'],
-    'cursor':      ['Bash'],
+    // Cursor invokes shell commands via a tool named `Shell`, not `Bash`.
+    'cursor':      ['Bash', 'Shell'],
     'windsurf':    ['Bash'],
     'copilot':     null,
   },

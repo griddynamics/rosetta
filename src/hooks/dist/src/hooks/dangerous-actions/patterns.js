@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SECRET_VALUE_PATTERNS = exports.DANGEROUS_CONTENT = exports.DANGEROUS_PATHS = exports.DANGEROUS_BASH = void 0;
+exports.DANGEROUS_CONTENT = exports.DANGEROUS_PATHS = exports.DANGEROUS_BASH = void 0;
 const SQL_DROP_RE = /\bdrop\s+(?:table|database|schema)\b/i;
 const SQL_TRUNCATE_RE = /\btruncate\s+(?:table\s+)?\w+/i;
 // DELETE / UPDATE are destructive only WITHOUT a WHERE clause. The negative
@@ -32,9 +32,6 @@ const SQL_DROP_INDEX_VIEW_RE = /\bdrop\s+(?:index|view)\b/i;
 // ALTER … DROP COLUMN within one statement; `[^;]*` keeps the DROP bound to its
 // own ALTER TABLE (so an ADD COLUMN in the same statement is not mis-flagged).
 const SQL_ALTER_DROP_COLUMN_RE = /\balter\s+table\b[^;]*\bdrop\s+column\b/i;
-// Secret VALUE detectors (the literal credential, not a file path).
-const AWS_KEY_RE = /\bAKIA[0-9A-Z]{16}\b/;
-const PEM_PRIVATE_KEY_RE = /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/;
 // `rm` recursive + force detection. GNU getopt permutes options past operands,
 // so the recursive flag (-r/-R/--recursive) and the force flag (-f/--force) may
 // appear combined (-rf), separate, in any order, at any distance, and on either
@@ -66,8 +63,8 @@ const GIT_FORCE_FLAG_LA = String.raw `(?=(?:\s+\S+)*\s+(?:-f\b|--force(?!-with-l
 // argument, not a refspec) is left alone and handled separately.
 const GIT_FORCE_REFSPEC_LA = String.raw `(?=(?:\s+-\S+)*\s+(?!-)(?!['"]?\+)\S+(?:\s+\S+)*\s+['"]?\+\S)`;
 exports.DANGEROUS_BASH = [
-    { id: 'rm-rf-root', re: new RegExp(String.raw `\brm\b` + RM_RF_GUARD + RM_ROOT_TARGET), label: 'rm -rf /', reason: 'Recursive forced removal of root filesystem — unrecoverable data loss.', policy: 'hard-deny' },
-    { id: 'rm-rf-home', re: new RegExp(String.raw `\brm\b` + RM_RF_GUARD + RM_HOME_TARGET), label: 'rm -rf $HOME', reason: 'Recursive forced removal of home directory — deletes all user files.', policy: 'hard-deny' },
+    { id: 'rm-rf-root', re: new RegExp(String.raw `\brm\b` + RM_RF_GUARD + RM_ROOT_TARGET), label: 'rm -rf /', reason: 'Recursive forced removal of root filesystem — unrecoverable data loss.', policy: 'reconsider' },
+    { id: 'rm-rf-home', re: new RegExp(String.raw `\brm\b` + RM_RF_GUARD + RM_HOME_TARGET), label: 'rm -rf $HOME', reason: 'Recursive forced removal of home directory — deletes all user files.', policy: 'reconsider' },
     { id: 'rm-rf-recursive', re: new RegExp(String.raw `\brm\b` + RM_RF_GUARD), label: 'rm -rf (generic)', reason: 'Recursive forced file removal — verify target path before proceeding.', policy: 'reconsider' },
     { id: 'sql-drop-table', re: SQL_DROP_RE, label: 'DDL DROP', reason: 'Destructive DDL statement that permanently removes a table or database.', policy: 'reconsider' },
     { id: 'sql-truncate', re: SQL_TRUNCATE_RE, label: 'TRUNCATE TABLE', reason: 'Truncates all rows from a table — non-transactional in some databases.', policy: 'reconsider' },
@@ -82,24 +79,25 @@ exports.DANGEROUS_BASH = [
     { id: 'aws-s3-rm-recursive', re: /\baws\s+s3\s+rm\b.*--recursive\b/, label: 'aws s3 rm --recursive', reason: 'Recursively deletes objects from S3 — irreversible without versioning.', policy: 'reconsider' },
     { id: 'kubectl-delete-prod', re: /\bkubectl\s+delete\b.*--all\b/, label: 'kubectl mass delete', reason: 'Deletes all resources of a type — may affect running production workloads.', policy: 'reconsider' },
     { id: 'dropdb', re: /\b(?:dropdb\b|psql\b[^"']*\bdrop\s+(?:table|database|schema)\b)/i, label: 'DB drop CLI', reason: 'CLI command that permanently removes a PostgreSQL database or table.', policy: 'reconsider' },
-    { id: 'mkfs', re: /\bmkfs(?:\.\w+)?\b/, label: 'filesystem format', reason: 'Formats a block device, destroying all data on it — unrecoverable.', policy: 'hard-deny' },
-    { id: 'dd-of-dev', re: /\bdd\b.*\bof=\/dev\//, label: 'dd to device', reason: 'Writes raw bytes directly to a block device — can corrupt OS or data.', policy: 'hard-deny' },
-    { id: 'chmod-777-recursive', re: /\bchmod\s+-R\s+0?777\b/, label: 'chmod -R 777', reason: 'Makes all files world-writable — severe security risk in shared environments.', policy: 'hard-deny' },
-    { id: 'curl-pipe-shell', re: /\bcurl\s.*\s\|\s*(?:sh|bash)\b/, label: 'curl | sh', reason: 'Executes arbitrary remote code without inspection — supply-chain risk.', policy: 'hard-deny' },
+    { id: 'mkfs', re: /\bmkfs(?:\.\w+)?\b/, label: 'filesystem format', reason: 'Formats a block device, destroying all data on it — unrecoverable.', policy: 'reconsider' },
+    { id: 'dd-of-dev', re: /\bdd\b.*\bof=\/dev\//, label: 'dd to device', reason: 'Writes raw bytes directly to a block device — can corrupt OS or data.', policy: 'reconsider' },
+    { id: 'chmod-777-recursive', re: /\bchmod\s+-R\s+0?777\b/, label: 'chmod -R 777', reason: 'Makes all files world-writable — severe security risk in shared environments.', policy: 'reconsider' },
+    { id: 'curl-pipe-shell', re: /\bcurl\s.*\s\|\s*(?:sh|bash)\b/, label: 'curl | sh', reason: 'Executes arbitrary remote code without inspection — supply-chain risk.', policy: 'reconsider' },
 ];
+// Irreversible key/credential files. These are NOT about secrecy (Rosetta does not
+// police what the user keeps in their own files) — they are flagged purely because an
+// AI overwriting one of these clobbers a file that cannot be recovered (a private key,
+// a credential store), the same data-loss class as `rm -rf` or `git reset --hard`.
+// Hence policy 'advise': a non-blocking heads-up, never a block. Normal working files
+// like `.env` are intentionally NOT listed — writing them is ordinary development.
 exports.DANGEROUS_PATHS = [
-    // Matches `.env`, the `.env.<suffix>` family, and any `<name>.env` file (e.g.
-    // production.env). `\.env$` requires `.env` to be the FULL trailing extension,
-    // so `.env` as a substring of another extension (.envx, .envfile, .environment)
-    // is not matched. Tested against both the full path and the basename.
-    { id: 'secret-env', re: /\.env$|^\.env\..+$/, label: '.env* file', reason: 'Contains application secrets and credentials — never overwrite blindly.', policy: 'hard-deny' },
-    { id: 'ssh-private-key', re: /^(?:id_rsa|id_ed25519|id_ecdsa|id_dsa)$/, label: 'SSH private key', reason: 'Writing to an SSH private key path would replace your authentication key.', policy: 'hard-deny' },
-    { id: 'aws-credentials', re: /\/\.aws\/(?:credentials|config)/, label: 'AWS credentials', reason: 'Overwrites AWS access credentials — could lock out cloud access.', policy: 'hard-deny' },
-    { id: 'gcp-credentials', re: /(?:application_default_credentials\.json|\/\.config\/gcloud\/)/, label: 'GCP credentials', reason: 'Overwrites GCP application credentials used for cloud API access.', policy: 'hard-deny' },
-    { id: 'kube-config', re: /\/\.kube\/config$/, label: 'kubeconfig', reason: 'Overwrites Kubernetes config — could disrupt cluster access for all contexts.', policy: 'hard-deny' },
-    { id: 'netrc', re: /^[._]netrc$/, label: 'netrc', reason: 'Contains plaintext credentials for network services (git, ftp, curl).', policy: 'hard-deny' },
-    { id: 'pgpass', re: /^\.pgpass$/, label: 'Postgres password', reason: 'Contains PostgreSQL connection passwords in plaintext.', policy: 'hard-deny' },
-    { id: 'gpg-private', re: /\/\.gnupg\/(?:.*\.key|private-keys-v1\.d\/)/, label: 'GPG private key', reason: 'Writing to GPG private key storage could destroy cryptographic identity.', policy: 'hard-deny' },
+    { id: 'ssh-private-key', re: /^(?:id_rsa|id_ed25519|id_ecdsa|id_dsa)$/, label: 'SSH private key', reason: 'Overwriting an existing SSH private key destroys it irreversibly — you may lose the ability to authenticate.', policy: 'advise' },
+    { id: 'aws-credentials', re: /\/\.aws\/(?:credentials|config)/, label: 'AWS credentials', reason: 'Overwriting the AWS credentials file may irreversibly replace stored access — could lock out cloud access.', policy: 'advise' },
+    { id: 'gcp-credentials', re: /(?:application_default_credentials\.json|\/\.config\/gcloud\/)/, label: 'GCP credentials', reason: 'Overwriting GCP application credentials may irreversibly replace cloud API access.', policy: 'advise' },
+    { id: 'kube-config', re: /\/\.kube\/config$/, label: 'kubeconfig', reason: 'Overwriting kubeconfig may irreversibly disrupt cluster access across all contexts.', policy: 'advise' },
+    { id: 'netrc', re: /^[._]netrc$/, label: 'netrc', reason: 'Overwriting .netrc may irreversibly destroy stored network login entries.', policy: 'advise' },
+    { id: 'pgpass', re: /^\.pgpass$/, label: 'Postgres .pgpass', reason: 'Overwriting .pgpass may irreversibly destroy stored PostgreSQL connection entries.', policy: 'advise' },
+    { id: 'gpg-private', re: /\/\.gnupg\/(?:.*\.key|private-keys-v1\.d\/)/, label: 'GPG private key', reason: 'Overwriting GPG private key storage may irreversibly destroy your cryptographic identity.', policy: 'advise' },
 ];
 exports.DANGEROUS_CONTENT = [
     { id: 'content-sql-drop-table', re: SQL_DROP_RE, label: 'DROP in payload', reason: 'Payload contains a destructive DDL statement that removes a table or database.', policy: 'reconsider' },
@@ -108,12 +106,4 @@ exports.DANGEROUS_CONTENT = [
     { id: 'content-sql-update-no-where', re: SQL_UPDATE_NO_WHERE_RE, label: 'UPDATE without WHERE in payload', reason: 'Payload contains an UPDATE without a WHERE clause — overwrites every row.', policy: 'reconsider' },
     { id: 'content-sql-drop-index-view', re: SQL_DROP_INDEX_VIEW_RE, label: 'DROP INDEX/VIEW in payload', reason: 'Payload contains a DROP INDEX or DROP VIEW statement.', policy: 'reconsider' },
     { id: 'content-sql-alter-drop-col', re: SQL_ALTER_DROP_COLUMN_RE, label: 'ALTER DROP COLUMN in payload', reason: 'Payload contains ALTER TABLE … DROP COLUMN — removes a column and its data.', policy: 'reconsider' },
-    { id: 'inline-aws-key', re: AWS_KEY_RE, label: 'AWS access key id', reason: 'Hardcoded AWS access key detected — use environment variables or secrets manager.', policy: 'hard-deny' },
-    { id: 'inline-private-key', re: PEM_PRIVATE_KEY_RE, label: 'PEM private key', reason: 'PEM private key embedded in content — store in secrets manager, not in files.', policy: 'hard-deny' },
 ];
-// Secret VALUE patterns, used both to hard-deny secrets in content (above) and to
-// scrub a secret out of any deny-reason evidence (bash command / path / MCP shell)
-// so the guard never echoes a credential back to the agent. Kept non-global here
-// (DANGEROUS_CONTENT uses `.test()`, which is stateful with the `g` flag); callers
-// that need global replacement build their own global copy from `.source`.
-exports.SECRET_VALUE_PATTERNS = [AWS_KEY_RE, PEM_PRIVATE_KEY_RE];
