@@ -36,10 +36,9 @@ const MCP_CONTENT_FIELDS = ['content', 'new_string', 'query', 'sql'] as const;
 
 type PatternHit = { result: HookResult; pattern: DangerPattern | null };
 
-/** Render the `Evidence:` line. `redact` (content branch) hides the whole payload
- *  (it can be large / arbitrary); otherwise the evidence is shown, truncated to a cap. */
-function renderEvidence(pattern: DangerPattern, evidence: string, redact: boolean): string {
-  if (redact) return `<redacted: ${pattern.id}>`;
+/** Render the `Evidence:` line: show what was actually flagged, truncated to a cap.
+ *  The hook is a tripwire, not a gateway — it never hides or rewrites the payload. */
+function renderEvidence(evidence: string): string {
   return evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence;
 }
 
@@ -47,9 +46,8 @@ function buildReconsiderDenyMessage(
   pattern: DangerPattern,
   toolKind: string,
   evidence: string,
-  redact = false,
 ): string {
-  const evidenceLine = renderEvidence(pattern, evidence, redact);
+  const evidenceLine = renderEvidence(evidence);
 
   const overrideExample =
     toolKind === 'bash'
@@ -79,9 +77,8 @@ function buildAdviseMessage(
   pattern: DangerPattern,
   toolKind: string,
   evidence: string,
-  redact = false,
 ): string {
-  const evidenceLine = renderEvidence(pattern, evidence, redact);
+  const evidenceLine = renderEvidence(evidence);
 
   return [
     `Heads-up: ${pattern.label} on ${toolKind} [${pattern.id}]`,
@@ -99,12 +96,11 @@ function buildResultForPattern(
   pattern: DangerPattern,
   toolKind: string,
   evidence: string,
-  redact = false,
 ): HookResult {
   if (pattern.policy === 'advise') {
-    return advise(buildAdviseMessage(pattern, toolKind, evidence, redact));
+    return advise(buildAdviseMessage(pattern, toolKind, evidence));
   }
-  return deny(buildReconsiderDenyMessage(pattern, toolKind, evidence, redact));
+  return deny(buildReconsiderDenyMessage(pattern, toolKind, evidence));
 }
 
 function matchPatterns(
@@ -159,67 +155,23 @@ export function hasAIReviewedMarker(
   });
 }
 
-function stripQuotes(s: string): string {
-  return s.replace(/^['"]+|['"]+$/g, '');
-}
-
 /**
- * Extract path-like candidates from a shell command so DANGEROUS_PATHS (some of
- * which are anchored to a basename, e.g. `^id_rsa$`) can be applied without
- * misfiring on arbitrary words. A token is a candidate only if it is:
- *   (a) a redirection target — the file after `>`, `>>`, `>|`, `2>`, … — or
- *   (b) any token containing a `/` (i.e. it actually looks like a path), or
- *   (c) an UNQUOTED leading-dot token (`cat .pgpass`).
- * So `> ~/.ssh/id_rsa` and a bare `cat .pgpass` are checked, but a bare `id_rsa`
- * in a commit message — and a sensitive name inside a quoted string — are not,
- * avoiding false notices on names that merely appear in text.
- */
-function extractPathCandidates(command: string): string[] {
-  const candidates = new Set<string>();
-
-  // (a) Redirection targets: optional fd, `>`/`>>`, optional `|`, then the target.
-  const redirectRe = /(?:^|[\s;&|()`])\d*>>?\|?\s*("[^"]*"|'[^']*'|[^\s;&|<>()]+)/g;
-  let m: RegExpExecArray | null;
-  while ((m = redirectRe.exec(command)) !== null) {
-    const target = stripQuotes(m[1]);
-    if (target) candidates.add(target);
-  }
-
-  // (b) Any whitespace/operator-delimited token that contains a path separator.
-  for (const raw of command.split(/[\s;&|()`]+/)) {
-    const tok = stripQuotes(raw).replace(/^[<>]+/, '');
-    if (tok.includes('/')) candidates.add(tok);
-  }
-
-  // (c) Bare leading-dot tokens used as a direct argument (e.g. `cat .pgpass`).
-  //     Quoted regions are blanked first so a sensitive name inside a commit
-  //     message / string (`git commit -m "fix .pgpass"`) is NOT matched —
-  //     keeping these names free of false positives.
-  const unquoted = command.replace(/"[^"]*"|'[^']*'/g, ' ');
-  for (const raw of unquoted.split(/[\s;&|()`]+/)) {
-    const tok = raw.replace(/^[<>]+/, '');
-    if (tok.startsWith('.') && !tok.includes('/')) candidates.add(tok);
-  }
-
-  return [...candidates];
-}
-
-/**
- * Evaluate a shell command string against ALL THREE pattern sets (G-1):
- *   1. DANGEROUS_BASH  — command patterns (rm, git push --force, …)
- *   2. DANGEROUS_PATHS — path candidates the command writes to (advise-tier notices)
- *   3. DANGEROUS_CONTENT — destructive SQL embedded in the command
+ * Evaluate a shell command string against the two pattern sets that apply to a
+ * free-form command:
+ *   1. DANGEROUS_BASH    — command patterns (rm, git push --force, …)
+ *   2. DANGEROUS_CONTENT — destructive SQL embedded in the command (e.g. psql -c "DROP …")
  * Bash patterns are checked first so a command's primary danger (e.g. rm) is the
  * one surfaced. Shared by the Bash tool and MCP shell fields so both get identical coverage.
+ *
+ * NOTE: DANGEROUS_PATHS is intentionally NOT scanned here. Those are advise-tier
+ * key/credential-file notices; a direct Write/Edit to such a file is still caught by
+ * matchDangerousPath in evalWrite/evalEdit. Extracting path targets from a free-form
+ * shell string (redirects, quoting) added real complexity for only that narrow,
+ * non-blocking case, so it was dropped.
  */
 function evalShellString(command: string, toolKind: string): PatternHit {
   const bashPattern = matchPatterns(DANGEROUS_BASH, command);
   if (bashPattern) return { result: buildResultForPattern(bashPattern, toolKind, command), pattern: bashPattern };
-
-  for (const candidate of extractPathCandidates(command)) {
-    const pathPattern = matchDangerousPath(candidate);
-    if (pathPattern) return { result: buildResultForPattern(pathPattern, toolKind, command), pattern: pathPattern };
-  }
 
   const contentPattern = matchPatterns(DANGEROUS_CONTENT, command);
   if (contentPattern) return { result: buildResultForPattern(contentPattern, toolKind, command), pattern: contentPattern };
@@ -242,7 +194,7 @@ function evalWrite(ctx: HookContext): PatternHit {
   const content = ctx.toolInput.content;
   if (typeof content === 'string') {
     const pattern = matchPatterns(DANGEROUS_CONTENT, content);
-    if (pattern) return { result: buildResultForPattern(pattern, 'write', content, true), pattern };
+    if (pattern) return { result: buildResultForPattern(pattern, 'write', content), pattern };
   }
   return { result: null, pattern: null };
 }
@@ -256,7 +208,7 @@ function evalEdit(ctx: HookContext): PatternHit {
   const newString = ctx.toolInput.new_string;
   if (typeof newString === 'string') {
     const pattern = matchPatterns(DANGEROUS_CONTENT, newString);
-    if (pattern) return { result: buildResultForPattern(pattern, 'edit', newString, true), pattern };
+    if (pattern) return { result: buildResultForPattern(pattern, 'edit', newString), pattern };
   }
   return { result: null, pattern: null };
 }
@@ -274,7 +226,7 @@ function evalMultiEdit(ctx: HookContext): PatternHit {
         const ns = (edit as Record<string, unknown>).new_string;
         if (typeof ns === 'string') {
           const pattern = matchPatterns(DANGEROUS_CONTENT, ns);
-          if (pattern) return { result: buildResultForPattern(pattern, 'multi-edit', ns, true), pattern };
+          if (pattern) return { result: buildResultForPattern(pattern, 'multi-edit', ns), pattern };
         }
       }
     }
@@ -303,7 +255,7 @@ function evalMcpCall(ctx: HookContext): PatternHit {
     const v = input[f];
     if (typeof v === 'string') {
       const pattern = matchPatterns(DANGEROUS_CONTENT, v);
-      if (pattern) return { result: buildResultForPattern(pattern, ctx.toolName, v, true), pattern };
+      if (pattern) return { result: buildResultForPattern(pattern, ctx.toolName, v), pattern };
     }
   }
   return { result: null, pattern: null };

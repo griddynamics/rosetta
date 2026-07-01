@@ -665,7 +665,7 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
     ))).toBeNull();
   });
 
-  test('mcp postgres execute_query with DROP TABLE → deny with redacted evidence', () => {
+  test('mcp postgres execute_query with DROP TABLE → deny, evidence shown verbatim (no redaction)', () => {
     const r = evaluateDangerous(mcpCtx(
       'mcp__postgres__execute_query',
       { query: 'DROP TABLE users;' }
@@ -673,8 +673,9 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
     expect(r?.kind).toBe('deny');
     const reason = (r as {kind:'deny';reason:string}).reason;
     expect(reason).toContain('content-sql-drop-table');
-    expect(reason).toContain('<redacted:');
-    expect(reason).not.toContain('DROP TABLE');
+    // Hook is a tripwire, not a gateway: it shows what it flagged, never hides it.
+    expect(reason).not.toContain('<redacted');
+    expect(reason).toContain('DROP TABLE users;');
   });
 
   // MCP sql/query fields are checked for destructive SQL only. Secret values are
@@ -1095,46 +1096,56 @@ describe('G-6 removed: secret values are not detected or redacted', () => {
   });
 });
 
-// G-1: the bash branch (and MCP shell fields) run ALL pattern sets, not just
-// DANGEROUS_BASH — the shell can write to an irreversible key/credential file, which
-// surfaces an advise-tier notice (non-blocking). Secret CONTENT is NOT detected, and
-// `.env` is ordinary. A sensitive name merely MENTIONED (e.g. "id_rsa" in a commit
-// message, not used as a path target) must NOT be flagged.
-describe('G-1: bash / MCP-shell evaluated against path and content sets', () => {
+// G-1 (simplified): a shell command is evaluated against DANGEROUS_BASH and
+// DANGEROUS_CONTENT (destructive SQL). DANGEROUS_PATHS is intentionally NOT scanned
+// from a free-form shell string — that path-extraction machinery served only a narrow
+// non-blocking advise (clobbering a key file via redirect), which a direct Write/Edit
+// still covers; it was dropped for simplicity. `.env` / secrets are never flagged.
+describe('G-1: bash / MCP-shell evaluated against bash + content (SQL) sets', () => {
   const AWS = 'AKIAIOSFODNN7EXAMPLE';
 
-  // --- Irreversible key/credential PATH written via the shell → advise notice ---
-  test('echo … > ~/.ssh/id_rsa → advise (ssh-private-key, non-blocking)', () => {
-    const r = evaluateDangerous(bashCtx('echo "key" > ~/.ssh/id_rsa'));
+  // --- Destructive SQL embedded in a shell command → still caught. The BASH set
+  //     carries the same SQL regexes and is checked first, so the surfaced id is the
+  //     bash-tier `sql-*` (the CONTENT set is a redundant fallback on the shell route). ---
+  test('bash: psql -c "DROP TABLE users" → deny (sql-drop-table via shell)', () => {
+    const r = evaluateDangerous(bashCtx('psql -c "DROP TABLE users"'));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('sql-drop-table');
+  });
+  test('MCP execute_shell_command: psql -c "TRUNCATE TABLE t" → deny (sql-truncate via shell)', () => {
+    const r = evaluateDangerous(mcpCtx('mcp__serena__execute_shell_command', { command: 'psql -c "TRUNCATE TABLE t"' }));
+    expect(r?.kind).toBe('deny');
+    expect((r as {kind:'deny';reason:string}).reason).toContain('sql-truncate');
+  });
+
+  // --- Path-to-key-file via a shell redirect is NO LONGER flagged (path scan dropped) ---
+  test('echo … > ~/.ssh/id_rsa → null (shell path scan removed; direct Write/Edit still advises)', () => {
+    expect(evaluateDangerous(bashCtx('echo "key" > ~/.ssh/id_rsa'))).toBeNull();
+  });
+  test('printf … > /home/u/.aws/credentials → null (shell path scan removed)', () => {
+    expect(evaluateDangerous(bashCtx('printf %s "$AWS_KEY" > /home/u/.aws/credentials'))).toBeNull();
+  });
+  test('MCP execute_shell_command writing to ~/.ssh/id_rsa → null (shell path scan removed)', () => {
+    expect(evaluateDangerous(mcpCtx('mcp__serena__execute_shell_command', { command: 'echo k > ~/.ssh/id_rsa' }))).toBeNull();
+  });
+
+  // --- The key-file advise still fires on a DIRECT Write/Edit (coverage preserved) ---
+  test('direct Write to ~/.ssh/id_rsa → advise (ssh-private-key) — not lost by the shell simplification', () => {
+    const r = evaluateDangerous(writeCtx('/home/user/.ssh/id_rsa', 'ssh-rsa AAAA...'));
     expect(r?.kind).toBe('advise');
     expect(adviseMessage(r)).toContain('ssh-private-key');
   });
-  test('printf … > /home/u/.aws/credentials → advise (aws-credentials)', () => {
-    const r = evaluateDangerous(bashCtx('printf %s "$AWS_KEY" > /home/u/.aws/credentials'));
-    expect(r?.kind).toBe('advise');
-    expect(adviseMessage(r)).toContain('aws-credentials');
-  });
+
+  // --- Secrets / .env are never flagged ---
   test('echo … >> .env → null (.env is ordinary, not policed)', () => {
     expect(evaluateDangerous(bashCtx('echo "SECRET=1" >> .env'))).toBeNull();
   });
-
-  // --- Secret CONTENT embedded in the shell command is NOT detected ---
   test('echo <AWS key> >> config.ts → null (no secret content detection)', () => {
     expect(evaluateDangerous(bashCtx(`echo "${AWS}" >> config.ts`))).toBeNull();
   });
 
-  // --- Same routing on the MCP shell field ---
-  test('MCP execute_shell_command writing to ~/.ssh/id_rsa → advise (ssh-private-key)', () => {
-    const r = evaluateDangerous(mcpCtx('mcp__serena__execute_shell_command', { command: 'echo k > ~/.ssh/id_rsa' }));
-    expect(r?.kind).toBe('advise');
-    expect(adviseMessage(r)).toContain('ssh-private-key');
-  });
-  test('MCP execute_shell_command embedding an AWS key → null (no secret detection)', () => {
-    expect(evaluateDangerous(mcpCtx('mcp__serena__execute_shell_command', { command: `printf '${AWS}' >> creds.ts` }))).toBeNull();
-  });
-
-  // --- Guards: a sensitive NAME mentioned (not a path target) is not flagged ---
-  test('git commit -m "update id_rsa docs" → null (id_rsa mentioned, not a path target)', () => {
+  // --- Guards: safe commands are not flagged ---
+  test('git commit -m "update id_rsa docs" → null (id_rsa merely mentioned)', () => {
     expect(evaluateDangerous(bashCtx('git commit -m "update id_rsa docs"'))).toBeNull();
   });
   test('echo hello > notes.txt → null (safe redirect target)', () => {
@@ -1170,15 +1181,12 @@ describe('G-2 follow-up: rm with quoted flags', () => {
   });
 });
 
-// G-1 follow-up: an irreversible key/credential dotfile referenced as a bare argument
-// (no slash, no redirect) — `cat .pgpass`. Caught via UNQUOTED leading-dot tokens and
-// surfaced as an advise-tier notice, so the same name inside a quoted commit message /
-// string is NOT flagged. `.env` is ordinary and is never flagged.
-describe('G-1 follow-up: bare dotfile arguments', () => {
-  test('cat .pgpass → advise (pgpass, non-blocking)', () => {
-    const r = evaluateDangerous(bashCtx('cat .pgpass'));
-    expect(r?.kind).toBe('advise');
-    expect(adviseMessage(r)).toContain('pgpass');
+// G-1 follow-up (post-simplification): a key/credential dotfile named as a bare shell
+// argument (`cat .pgpass`) is NO LONGER flagged — the shell path scan was dropped.
+// A direct Write/Edit to such a file still advises; a shell mention does not.
+describe('G-1 follow-up: bare dotfile arguments no longer flagged via shell', () => {
+  test('cat .pgpass → null (shell path scan removed)', () => {
+    expect(evaluateDangerous(bashCtx('cat .pgpass'))).toBeNull();
   });
   test('vim .env → null (.env is ordinary, not policed)', () => {
     expect(evaluateDangerous(bashCtx('vim .env'))).toBeNull();
@@ -1186,17 +1194,17 @@ describe('G-1 follow-up: bare dotfile arguments', () => {
   test('rm .env → null (.env is ordinary)', () => {
     expect(evaluateDangerous(bashCtx('rm .env'))).toBeNull();
   });
-  test('vim .env.local → null (.env family is ordinary)', () => {
-    expect(evaluateDangerous(bashCtx('vim .env.local'))).toBeNull();
+
+  // Coverage preserved on the direct path: a Write/Edit to .pgpass still advises.
+  test('direct Write to /home/u/.pgpass → advise (pgpass) — direct path still covered', () => {
+    const r = evaluateDangerous(writeCtx('/home/u/.pgpass', 'host:5432:db:user:pw'));
+    expect(r?.kind).toBe('advise');
+    expect(adviseMessage(r)).toContain('pgpass');
   });
 
-  // Guards: a sensitive name inside a QUOTED string (e.g. a commit message) must
-  // NOT be flagged, and unrelated dotfiles must pass.
-  test('git commit -m "fix .pgpass loading" → null (.pgpass inside a quoted message)', () => {
+  // Guards: unrelated dotfiles / quoted mentions still pass.
+  test('git commit -m "fix .pgpass loading" → null (mention, not a path target)', () => {
     expect(evaluateDangerous(bashCtx('git commit -m "fix .pgpass loading"'))).toBeNull();
-  });
-  test('git commit -m "update id_rsa docs" → null (id_rsa mentioned, not a path target)', () => {
-    expect(evaluateDangerous(bashCtx('git commit -m "update id_rsa docs"'))).toBeNull();
   });
   test('cat .gitignore → null (dotfile, but not sensitive)', () => {
     expect(evaluateDangerous(bashCtx('cat .gitignore'))).toBeNull();
