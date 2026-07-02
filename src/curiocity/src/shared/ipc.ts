@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { partialModelRolesSchema } from './models';
+import { fakeRouterScriptSchema } from './model-router';
 import { qnaEntrySchema } from './trajectory';
 
 /**
@@ -44,6 +45,30 @@ export const trialSpecSchema = z.object({
   evaluators: z.array(z.unknown()).default([]),
   /** Path to the case source archive (unzipped into the workspace). */
   srcZipPath: z.string().optional(),
+  /** Inline `--src <dir>` source directory (copied into the workspace). */
+  srcDir: z.string().optional(),
+  /**
+   * The resolved `AgentProfile` for this trial. Carried opaquely (like `provision`
+   * / `evaluators`) so `shared/` stays free of a `config/` dependency; the Curion
+   * re-validates it with `agentProfileSchema` on receipt.
+   */
+  profile: z.unknown(),
+  /** Registry id of the adapter (mirrors `profile.adapter`; convenience for logs). */
+  adapter: z.string(),
+  /** Run dir this trial writes its artifacts into (§14). */
+  runDir: z.string(),
+  /** `--keep-workspace`: keep the workspace even on success (§7 step 8). */
+  keepWorkspace: z.boolean().default(false),
+  /** `--mirror`: forward raw PTY frames to the parent over IPC. */
+  mirror: z.boolean().default(false),
+  /** Whether the evaluate step runs (D9 / `--evaluate`). Evaluators themselves are M3. */
+  evaluate: z.boolean().default(false),
+  /**
+   * Scripted fake model router for token-free integration tests (M2). When
+   * present the Curion builds a `FakeModelRouter` instead of a real LLM router
+   * (the real router is M3). Never set by production suite/inline runs.
+   */
+  fakeRouter: fakeRouterScriptSchema.optional(),
 });
 export type TrialSpec = z.infer<typeof trialSpecSchema>;
 
