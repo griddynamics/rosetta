@@ -307,7 +307,7 @@ Per Curion, in order:
 7. `evaluate` — evaluator pipeline + combiner (skipped when evaluation off).
 8. `teardown` — always runs (even after any failure above); then workspace deleted unless `--keep-workspace` or the trial failed (failed-trial workspaces kept, path recorded in trial.json).
 
-**Statuses:** `passed | failed | setup-error | launch-error | timeout | agent-hung | agent-crash | skipped`. Only `passed/failed` carry verdicts; error statuses are reported separately and **never enter score statistics** (D14). Their effect on exit codes: §13.
+**Statuses:** `passed | failed | setup-error | launch-error | timeout | agent-hung | agent-crash | skipped`. Only `passed/failed` carry verdicts; error statuses are reported separately and **never enter score statistics** (D14). Their effect on exit codes: §13. When evaluation is skipped (D9 inline default or `--no-evaluate`), a trial that completes interact+collect cleanly gets status `passed` with **no verdict** (`verdict` absent); score-based gates then evaluate vacuously and only statuses drive the exit code.
 
 ---
 
