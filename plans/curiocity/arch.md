@@ -435,7 +435,7 @@ Combiner (§5.4 `gated-mean` default) produces the per-trial verdict `{pass, sco
 
 ## 12. LLM Layer, Cost & Keys
 
-- **Roles → models:** config maps `fast` / `workhorse` / `judge` (defaults to workhorse) to `"provider/model"` strings; a small provider map in `llm/providers.ts` resolves the prefix to an `@ai-sdk/*` factory. Adding a provider = add dependency + one map entry. Per-agent and per-case `models` overrides merge per D13.
+- **Roles → models:** config maps `fast` / `workhorse` / `judge` (defaults to workhorse) to `"provider/model"` strings; a small provider map in `llm/providers.ts` resolves the prefix to an `@ai-sdk/*` factory. Adding a provider = add dependency + one map entry. Per-agent and per-case `models` overrides merge per D13, with the per-agent `AgentProfile.models` rung sitting between top-level `models` and case `models`: `top-level < agent profile < case < CLI`.
 - **Keys:** resolved once at orchestrator startup — `CURIOCITY_<PROVIDER>_KEY` env, falling back to provider-standard vars, or a `.env` file; typically injected by the CI secret store. Held in memory, shipped to Curions via IPC only (§4 secrets mechanism), masked in logs, never on disk.
 - **Cost meter:** every router call records `{role, model, usage}`; adapter `extractUsage` adds the agent's own tokens from the trajectory. Token counts are always reported. **Dollar amounts are computed only from the config `pricing` map** (`provider/model → {inputPer1M, outputPer1M}`); models missing from the map report tokens-only with a warning. Over configured budget → warn, never abort (P7).
 
