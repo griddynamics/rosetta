@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.exitCodeFor = exports.dedupKey = exports.detectIDE = exports.formatOutput = exports.normalize = exports.readStdin = void 0;
+exports.stderrMessageFor = exports.exitCodeFor = exports.detectIDE = exports.formatOutput = exports.normalize = exports.readStdin = void 0;
 // Slim adapter for core-claude bundle — only claude-code detection, zero other IDE code.
 const claude_code_1 = require("../adapters/claude-code");
 const readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
@@ -26,8 +26,8 @@ const formatOutput = (canonical, _ide) => claude_code_1.claudeCode.formatOutput(
 exports.formatOutput = formatOutput;
 const detectIDE = (_raw) => 'claude-code';
 exports.detectIDE = detectIDE;
-const dedupKey = (_raw, _hookName) => null;
-exports.dedupKey = dedupKey;
 // Claude Code deny is carried entirely in the JSON body at exit 0 — no adapter override needed.
 const exitCodeFor = (_canonical, _ide) => 0;
 exports.exitCodeFor = exitCodeFor;
+const stderrMessageFor = (_canonical, _ide) => undefined;
+exports.stderrMessageFor = stderrMessageFor;

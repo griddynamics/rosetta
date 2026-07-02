@@ -11,16 +11,14 @@ const CODEX_EXTRA = ['model'];
 const detect = (raw) => CC_SIGNATURE.every((f) => f in raw) &&
     CODEX_EXTRA.every((f) => f in raw) &&
     !('cursor_version' in raw);
-const READ_LIKE_MCP_RE = /(^|__)(read|read_file|get_file|open_file|cat_file)(_|$)/i;
-const isReadLikeMcpTool = (raw, toolName) => toolName.startsWith('mcp__') &&
-    READ_LIKE_MCP_RE.test(toolName) &&
-    Boolean((0, codex_1.getFilePath)(raw));
+// NOTE: Codex has NO dedicated read tool and does NOT route reads through MCP —
+// no manufacturer doc describes an MCP read path. File reads happen through the
+// shell (cat/sed/…) and are caught by read-once's `bash` path (it parses the
+// command string). Do NOT reintroduce MCP→read promotion here.
 const normalize = (raw) => {
-    const baseEvent = (0, codex_1.lookupEvent)(raw.hook_event_name);
+    const event = (0, codex_1.lookupEvent)(raw.hook_event_name);
     const toolName = raw.tool_name ?? '';
-    const readLikeMcp = isReadLikeMcpTool(raw, toolName);
-    const toolKind = readLikeMcp ? 'read' : (0, codex_1.lookupToolKind)(toolName);
-    const event = baseEvent === 'PreToolUse' && readLikeMcp ? 'PreRead' : baseEvent;
+    const toolKind = (0, codex_1.lookupToolKind)(toolName);
     return {
         ...raw,
         ide: IDE,

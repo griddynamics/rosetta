@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.exitCodeFor = exports.dedupKey = exports.detectIDE = exports.formatOutput = exports.normalize = exports.readStdin = void 0;
-// Slim adapter for core-copilot bundle — copilot detection with claude-code fallback.
-// VS Code may send either Copilot-specific format (toolName) or Claude-compatible format
-// (hook_event_name). The fallback handles both without including codex/cursor/windsurf.
+exports.stderrMessageFor = exports.exitCodeFor = exports.detectIDE = exports.formatOutput = exports.normalize = exports.readStdin = void 0;
+// Slim adapter for core-copilot bundle — copilot-only, zero other IDE code.
+// The copilot adapter itself handles both Copilot CLI's camelCase fire (toolName/toolArgs)
+// and the snake_case fire shared by VS Code + Copilot CLI's PascalCase fire (hook_event_name/
+// tool_name/tool_input) — see docs/hooks/copilot.md and adapters/copilot.ts.
 const copilot_1 = require("../adapters/copilot");
-const claude_code_1 = require("../adapters/claude-code");
 const readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
     const chunks = [];
     stream.on('data', (chunk) => chunks.push(String(chunk)));
@@ -23,27 +23,14 @@ const readStdin = (stream = process.stdin) => new Promise((resolve, reject) => {
     stream.on('error', reject);
 });
 exports.readStdin = readStdin;
-const normalize = (rawInput) => {
-    const raw = rawInput;
-    return copilot_1.copilot.detect(raw) ? copilot_1.copilot.normalize(raw) : claude_code_1.claudeCode.normalize(raw);
-};
+const normalize = (rawInput) => copilot_1.copilot.normalize(rawInput);
 exports.normalize = normalize;
-const formatOutput = (canonical, ide) => ide === 'claude-code'
-    ? claude_code_1.claudeCode.formatOutput(canonical)
-    : copilot_1.copilot.formatOutput(canonical);
+const formatOutput = (canonical, _ide) => copilot_1.copilot.formatOutput(canonical);
 exports.formatOutput = formatOutput;
-// Dedup is active only for old Copilot CLI format (fires PostToolUse twice per call).
-// VS Code Agent sends CC-shaped input and does not need dedup.
-const detectIDE = (raw) => {
-    const r = raw;
-    return copilot_1.copilot.detect(r) ? 'copilot' : 'claude-code';
-};
+const detectIDE = (_raw) => 'copilot';
 exports.detectIDE = detectIDE;
-const dedupKey = (raw, hookName) => {
-    const r = raw;
-    return copilot_1.copilot.detect(r) ? copilot_1.copilot.dedupKey(r, hookName) : null;
-};
-exports.dedupKey = dedupKey;
-// Both Copilot and its claude-code fallback carry deny entirely in the JSON body at exit 0.
+// Copilot deny is carried entirely in the JSON body at exit 0 — no adapter override needed.
 const exitCodeFor = (_canonical, _ide) => 0;
 exports.exitCodeFor = exitCodeFor;
+const stderrMessageFor = (_canonical, _ide) => undefined;
+exports.stderrMessageFor = stderrMessageFor;

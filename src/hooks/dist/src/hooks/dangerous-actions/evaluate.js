@@ -27,13 +27,10 @@ const MCP_MARKER_FIELDS = ['command', 'sql', 'query', 'new_string', 'content'];
 const MCP_SHELL_FIELDS = ['command', 'cmd', 'shell_command'];
 const MCP_PATH_FIELDS = ['path', 'file_path', 'filePath', 'target', 'target_path'];
 const MCP_CONTENT_FIELDS = ['content', 'new_string', 'query', 'sql'];
-/** Render the `Evidence:` line: show what was actually flagged, truncated to a cap.
- *  The hook is a tripwire, not a gateway — it never hides or rewrites the payload. */
-function renderEvidence(evidence) {
-    return evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence;
-}
-function buildReconsiderDenyMessage(pattern, toolKind, evidence) {
-    const evidenceLine = renderEvidence(evidence);
+function buildReconsiderDenyMessage(pattern, toolKind, evidence, redact = false) {
+    const evidenceLine = redact
+        ? `<redacted: ${pattern.id}>`
+        : (evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence);
     const overrideExample = toolKind === 'bash'
         ? ['Append `Rosetta-AI-reviewed` as a comment in the `command` field.']
         : toolKind === 'write'
@@ -53,26 +50,25 @@ function buildReconsiderDenyMessage(pattern, toolKind, evidence) {
         ...overrideExample,
     ].join('\n');
 }
-/** Non-blocking safety nudge (policy 'advise'). Warns the agent about an
- *  irreversible-loss action without denying it — the action still proceeds. */
-function buildAdviseMessage(pattern, toolKind, evidence) {
-    const evidenceLine = renderEvidence(evidence);
+function buildHardDenyMessage(pattern, toolKind, evidence, redact = false) {
+    const evidenceLine = redact
+        ? `<redacted: ${pattern.id}>`
+        : (evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence);
     return [
-        `Heads-up: ${pattern.label} on ${toolKind} [${pattern.id}]`,
+        `HARD-DENY: ${pattern.id} — ${pattern.label} on ${toolKind}`,
         `Evidence: ${evidenceLine}`,
         `Reason: ${pattern.reason}`,
         '',
-        'This is a non-blocking safety notice, not a block. Confirm this is intended — ' +
-            'that you are not clobbering a file the user still needs — before proceeding.',
+        'This pattern cannot be bypassed by the `Rosetta-AI-reviewed` marker. Human review required.',
+        'AI agent: stop and ask the user to confirm this operation with full blast-radius analysis.',
+        'Do not proceed until the user explicitly confirms with full blast-radius analysis.',
     ].join('\n');
 }
-/** Build the hook result for a matched pattern, dispatching on its policy tier.
- *  'advise' → non-blocking notice; 'reconsider' → soft-deny (overridable). */
-function buildResultForPattern(pattern, toolKind, evidence) {
-    if (pattern.policy === 'advise') {
-        return (0, result_helpers_1.advise)(buildAdviseMessage(pattern, toolKind, evidence));
-    }
-    return (0, result_helpers_1.deny)(buildReconsiderDenyMessage(pattern, toolKind, evidence));
+function buildDenyForPattern(pattern, toolKind, evidence, redact = false) {
+    const msg = pattern.policy === 'hard-deny'
+        ? buildHardDenyMessage(pattern, toolKind, evidence, redact)
+        : buildReconsiderDenyMessage(pattern, toolKind, evidence, redact);
+    return (0, result_helpers_1.deny)(msg);
 }
 function matchPatterns(patterns, value) {
     for (const p of patterns) {
@@ -121,47 +117,27 @@ function hasAIReviewedMarker(input, toolName) {
         return false;
     });
 }
-/**
- * Evaluate a shell command string against the two pattern sets that apply to a
- * free-form command:
- *   1. DANGEROUS_BASH    — command patterns (rm, git push --force, …)
- *   2. DANGEROUS_CONTENT — destructive SQL embedded in the command (e.g. psql -c "DROP …")
- * Bash patterns are checked first so a command's primary danger (e.g. rm) is the
- * one surfaced. Shared by the Bash tool and MCP shell fields so both get identical coverage.
- *
- * NOTE: DANGEROUS_PATHS is intentionally NOT scanned here. Those are advise-tier
- * key/credential-file notices; a direct Write/Edit to such a file is still caught by
- * matchDangerousPath in evalWrite/evalEdit. Extracting path targets from a free-form
- * shell string (redirects, quoting) added real complexity for only that narrow,
- * non-blocking case, so it was dropped.
- */
-function evalShellString(command, toolKind) {
-    const bashPattern = matchPatterns(patterns_1.DANGEROUS_BASH, command);
-    if (bashPattern)
-        return { result: buildResultForPattern(bashPattern, toolKind, command), pattern: bashPattern };
-    const contentPattern = matchPatterns(patterns_1.DANGEROUS_CONTENT, command);
-    if (contentPattern)
-        return { result: buildResultForPattern(contentPattern, toolKind, command), pattern: contentPattern };
-    return { result: null, pattern: null };
-}
 function evalBash(ctx) {
     const command = ctx.toolInput.command;
     if (typeof command !== 'string')
         return { result: null, pattern: null };
-    return evalShellString(command, 'bash');
+    const pattern = matchPatterns(patterns_1.DANGEROUS_BASH, command);
+    if (!pattern)
+        return { result: null, pattern: null };
+    return { result: buildDenyForPattern(pattern, 'bash', command), pattern };
 }
 function evalWrite(ctx) {
     const filePath = ctx.toolInput.file_path;
     if (typeof filePath === 'string') {
         const pattern = matchDangerousPath(filePath);
         if (pattern)
-            return { result: buildResultForPattern(pattern, 'write', filePath), pattern };
+            return { result: buildDenyForPattern(pattern, 'write', filePath), pattern };
     }
     const content = ctx.toolInput.content;
     if (typeof content === 'string') {
         const pattern = matchPatterns(patterns_1.DANGEROUS_CONTENT, content);
         if (pattern)
-            return { result: buildResultForPattern(pattern, 'write', content), pattern };
+            return { result: buildDenyForPattern(pattern, 'write', content, true), pattern };
     }
     return { result: null, pattern: null };
 }
@@ -170,13 +146,13 @@ function evalEdit(ctx) {
     if (typeof filePath === 'string') {
         const pattern = matchDangerousPath(filePath);
         if (pattern)
-            return { result: buildResultForPattern(pattern, 'edit', filePath), pattern };
+            return { result: buildDenyForPattern(pattern, 'edit', filePath), pattern };
     }
     const newString = ctx.toolInput.new_string;
     if (typeof newString === 'string') {
         const pattern = matchPatterns(patterns_1.DANGEROUS_CONTENT, newString);
         if (pattern)
-            return { result: buildResultForPattern(pattern, 'edit', newString), pattern };
+            return { result: buildDenyForPattern(pattern, 'edit', newString, true), pattern };
     }
     return { result: null, pattern: null };
 }
@@ -185,7 +161,7 @@ function evalMultiEdit(ctx) {
     if (typeof filePath === 'string') {
         const pattern = matchDangerousPath(filePath);
         if (pattern)
-            return { result: buildResultForPattern(pattern, 'multi-edit', filePath), pattern };
+            return { result: buildDenyForPattern(pattern, 'multi-edit', filePath), pattern };
     }
     const edits = ctx.toolInput.edits;
     if (Array.isArray(edits)) {
@@ -195,7 +171,7 @@ function evalMultiEdit(ctx) {
                 if (typeof ns === 'string') {
                     const pattern = matchPatterns(patterns_1.DANGEROUS_CONTENT, ns);
                     if (pattern)
-                        return { result: buildResultForPattern(pattern, 'multi-edit', ns), pattern };
+                        return { result: buildDenyForPattern(pattern, 'multi-edit', ns, true), pattern };
                 }
             }
         }
@@ -207,9 +183,9 @@ function evalMcpCall(ctx) {
     for (const f of MCP_SHELL_FIELDS) {
         const v = input[f];
         if (typeof v === 'string') {
-            const hit = evalShellString(v, ctx.toolName);
-            if (hit.pattern)
-                return hit;
+            const pattern = matchPatterns(patterns_1.DANGEROUS_BASH, v);
+            if (pattern)
+                return { result: buildDenyForPattern(pattern, ctx.toolName, v), pattern };
         }
     }
     for (const f of MCP_PATH_FIELDS) {
@@ -217,7 +193,7 @@ function evalMcpCall(ctx) {
         if (typeof v === 'string') {
             const pattern = matchDangerousPath(v);
             if (pattern)
-                return { result: buildResultForPattern(pattern, ctx.toolName, v), pattern };
+                return { result: buildDenyForPattern(pattern, ctx.toolName, v), pattern };
         }
     }
     for (const f of MCP_CONTENT_FIELDS) {
@@ -225,7 +201,7 @@ function evalMcpCall(ctx) {
         if (typeof v === 'string') {
             const pattern = matchPatterns(patterns_1.DANGEROUS_CONTENT, v);
             if (pattern)
-                return { result: buildResultForPattern(pattern, ctx.toolName, v), pattern };
+                return { result: buildDenyForPattern(pattern, ctx.toolName, v, true), pattern };
         }
     }
     return { result: null, pattern: null };
@@ -247,12 +223,8 @@ function evalPatternAndPolicy(ctx) {
 }
 /**
  * Pure evaluation for the dangerous-actions hook.
- * Applies policy tier:
- *   - 'advise'    → non-blocking notice, always surfaced (marker is irrelevant).
- *   - 'reconsider'→ soft-deny: block this attempt unless the AI-reviewed marker is
- *                   present (the AI can re-issue with it, or stop and ask the user).
- * The hook never hard-denies — a determined, user-sanctioned action is always
- * reachable via the marker. Returns null if safe (no match or marker honored).
+ * Applies policy tier: hard-deny patterns block regardless of marker.
+ * Returns null if safe (no match or marker honored on reconsider-tier pattern).
  *
  * @internal Used by unit tests.
  */
@@ -265,10 +237,8 @@ function evaluateDangerous(ctx) {
         });
         return null;
     }
-    // Non-blocking advise-tier notices are always surfaced (marker is irrelevant).
-    // There is no hard-deny tier — the hook only soft-denies (reconsider) or advises.
-    if (pattern?.policy === 'advise') {
-        (0, debug_log_1.debugLogHookBranch)('dangerous-actions', 'advise', {
+    if (pattern?.policy === 'hard-deny') {
+        (0, debug_log_1.debugLogHookBranch)('dangerous-actions', 'hard-deny', {
             toolKind: ctx.toolKind,
             toolName: ctx.toolName,
             patternId: pattern.id,

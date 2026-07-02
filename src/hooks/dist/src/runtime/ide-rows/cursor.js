@@ -17,8 +17,6 @@ const TOOL_KINDS = {
     edit: ['Edit', 'Write'],
     create: ['Write'],
     replace: ['Edit', 'Write'],
-    // Cursor runs shell commands via a tool named `Shell` (Claude Code uses `Bash`).
-    // Both must map to the `bash` kind or the dangerous-actions guard never fires in Cursor.
     bash: ['Bash', 'Shell'],
     read: ['Read'],
     'mcp-call': ['__mcp_sentinel__'],

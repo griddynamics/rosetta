@@ -83,17 +83,16 @@ exports.TOOL_KINDS = {
     bash: {
         'claude-code': ['Bash'],
         'codex': ['Bash', 'shell'],
-        // Cursor invokes shell commands via a tool named `Shell`, not `Bash`.
         'cursor': ['Bash', 'Shell'],
         'windsurf': ['Bash'],
-        'copilot': ['bash', 'powershell'],
+        'copilot': ['bash', 'powershell', 'Bash', 'run_in_terminal'],
     },
     read: {
         'claude-code': ['Read'],
         'codex': null,
         'cursor': ['Read'],
         'windsurf': ['Read'],
-        'copilot': ['view', 'Read'],
+        'copilot': ['view', 'Read', 'read_file'],
     },
     'mcp-call': {
         'claude-code': ['__mcp_sentinel__'],

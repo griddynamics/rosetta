@@ -52,18 +52,19 @@ const normalize = (raw) => {
         _windsurf: { agent_action_name, execution_id, timestamp, model_name, tool_info: ti },
     };
 };
-const formatOutput = (canonical) => {
-    const { hookSpecificOutput = {} } = canonical ?? {};
-    const { additionalContext, permissionDecision, permissionDecisionReason } = hookSpecificOutput;
-    const out = {};
-    if (additionalContext) {
-        out.additionalContext = additionalContext;
-    }
-    else if (permissionDecision === 'deny' && permissionDecisionReason) {
-        out.additionalContext = permissionDecisionReason;
-    }
-    return out;
-};
+// Windsurf never parses stdout as JSON (docs/hooks/windsurf.md, verified LR1: 9× exit 0, textLen 0)
+// — there is NO stdout output contract at all. The only hook→model text channel is stderr on a
+// blocking pre-hook (see stderrMessage below); the only decision channel is the exit code (see
+// exitCode below). So stdout carries nothing meaningful — always emit an empty object.
+const formatOutput = (_canonical) => ({});
 // Windsurf never parses stdout (docs/hooks/windsurf.md, verified) — blocking is exit-code-only.
 const exitCode = (canonical) => canonical?.hookSpecificOutput?.permissionDecision === 'deny' ? 2 : 0;
-exports.windsurf = { name: 'windsurf', detect, normalize, formatOutput, exitCode };
+// The deny reason reaches the model ONLY via stderr on a blocking (exit-2) pre-hook — the Windsurf
+// analog of permissionDecisionReason (docs/hooks/windsurf.md, Practical Conclusions 1–2 + LR1:
+// Cascade delivers the stderr verbatim, appending ": action blocked by hook"). Emitted with no
+// trailing newline so Cascade's suffix reads cleanly. Non-deny results carry no model-facing text.
+const stderrMessage = (canonical) => {
+    const { permissionDecision, permissionDecisionReason } = canonical?.hookSpecificOutput ?? {};
+    return permissionDecision === 'deny' ? permissionDecisionReason : undefined;
+};
+exports.windsurf = { name: 'windsurf', detect, normalize, formatOutput, exitCode, stderrMessage };
