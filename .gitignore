@@ -102,7 +102,6 @@ refsrc/
 src/hooks/node_modules/
 src/hooks/dist/tests/
 src/hooks/dist/bundles/
-src/hooks/dist/src/
 
 # Vitest cache (root-level node_modules/.vite/)
 node_modules/.vite/
