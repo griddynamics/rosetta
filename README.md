@@ -116,23 +116,16 @@ IDE rules (`.cursorrules`, `CLAUDE.md`, Copilot custom instructions) are useful,
 
 ## Why use it
 
-- **Context engineering, not prompt hacking.** Agents receive your conventions, architecture, and business rules automatically — structured, versioned, and ready before the first line of code. See [how it fits your workflow](OVERVIEW.md#how-rosetta-fits-into-your-workflow).
-- **Write once, run everywhere.** Agent-agnostic design adapts to any IDE and any tech stack. No per-tool maintenance.
-- **Guardrails built in.** Approval gates, risk assessment, and data protection ensure consistent AI behavior across teams. See [how Rosetta protects you](USAGE_GUIDE.md#how-rosetta-protects-you).
-- **Cross-project intelligence** _(opt-in)._ Publish business and technical context from every project into a shared knowledge base. Agents see the system, not just one repo — trace flows across services, catch breaking API changes before they ship, and assess blast radius of any change across the portfolio.
-- **One-command onboarding.** New repo, new developer — productive immediately with best practices baked in.
-- **Instructions as code.** Prompts version-controlled with release management — single source of truth for all teams.
+| For builders | For organizations |
+| --- | --- |
+| **Deep project context** — reads your architecture and conventions, not a few open files | **One standard** across every team, tool, model, and repo |
+| **Plain-language tasks** — a slash command, no prompt scaffolding or new syntax | **No vendor lock-in** — one instruction set across Claude Code, Cursor, Copilot, Codex; engineers keep their IDEs |
+| **Ready-made flows** — coding, testing, AQA, research, and more | **Versioned control** — review, approve, and roll back instructions in Git |
+| **Plans and approval gates** before code, not after the damage | **Knowledge captured once** — out of senior engineers' heads |
+| **Fresh-context review** and execution-backed validation | **Cross-project intelligence** _(opt-in)_ — agents see the system, not just one repo |
+| **Less babysitting** — fewer wrong turns to catch and re-prompt | **Runs inside your perimeter** — air-gap capable; no source code leaves |
 
-## For organizations
-
-- **One standard, every team** — consistent agent behavior across tools, models, repositories, and business units.
-- **Governance without vendor lock-in** — centralize AI rules and workflows while engineers keep using Claude Code, Cursor, Copilot, Codex, and their existing IDEs.
-- **Knowledge captured once, reused everywhere** — architecture, conventions, guardrails, and domain context stop living only in senior engineers' heads.
-- **Versioned control over AI behavior** — review, approve, release, and roll back agent instructions through Git.
-- **Guardrails built into execution** — agents reason about risk, sensitive data, dangerous actions, approvals, and validation before changes ship.
-- **Workflows enforce the steps teams skip under pressure** — planning, security checks, tests, documentation, review, and evidence-based validation.
-- **Runs inside your perimeter** — Rosetta provides instructions and context without requiring source code to leave your environment.
-- **Scales adoption safely** — teams get ready-made flows and shared best practices instead of inventing one-off prompt systems.
+See [how Rosetta fits your workflow](OVERVIEW.md#how-rosetta-fits-into-your-workflow) and [how it protects you](USAGE_GUIDE.md#how-rosetta-protects-you).
 
 <details>
 <summary><b>What Rosetta Adds to AI Coding Agents</b></summary>
