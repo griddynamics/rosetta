@@ -13,9 +13,9 @@ import { ExitCode } from '../exit-codes';
 
 /**
  * `curiocity run` (§13, D4). One command; suite vs inline is a filter, not a second
- * code path. M1 resolves config + the trial matrix and, for `--dry-run`, prints
- * them; the actual pipeline (fork/PTY/interact/evaluate) is out of scope and the
- * command exits "not implemented" after resolution.
+ * code path. Resolves config + the trial matrix, then (unless `--dry-run`) runs the
+ * bounded pool via `runSuite` — fork/PTY/interact/collect + gating — and returns the
+ * suite exit code. Evaluators + the LLM judge are the M3 layer (currently skipped).
  */
 export interface RunOptions {
   source?: string;

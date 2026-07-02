@@ -1,5 +1,6 @@
+import { dirname } from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { applyTemplate, composeLaunchPlan, filterAgentEnv } from '../../src/agents/launch';
+import { applyTemplate, composeLaunchPlan, filterAgentEnv, resolveCommand } from '../../src/agents/launch';
 import { minimatch } from '../../src/agents/minimatch';
 import type { AgentAdapter, TrialContext } from '../../src/agents/types';
 
@@ -23,6 +24,22 @@ describe('launch glue (§5.2)', () => {
       { FOO: 'bar' },
     );
     expect(out).toEqual({ PATH: '/bin', HOME: '/h', FOO: 'bar' });
+  });
+
+  it('resolveCommand (R1 preflight): resolves an absolute executable, a PATH lookup, and rejects the unresolvable', () => {
+    const node = process.execPath; // an absolute, executable path
+    const nodeDir = dirname(node);
+
+    // Absolute path to an executable resolves to itself.
+    expect(resolveCommand(node, {})).toBe(node);
+    // A path-shaped command that does not exist → null (not silently accepted).
+    expect(resolveCommand('/definitely/not/a/real/binary-xyz', { PATH: nodeDir })).toBeNull();
+    // Bare name found on PATH resolves to the joined path.
+    expect(resolveCommand('node', { PATH: nodeDir })).toBe(node);
+    // Bare name absent from PATH → null.
+    expect(resolveCommand('curiocity-nonexistent-binary-xyz', { PATH: nodeDir })).toBeNull();
+    // Bare name with an empty PATH → null.
+    expect(resolveCommand('node', {})).toBeNull();
   });
 
   it('composeLaunchPlan runs the three steps in order and merges fragments', async () => {

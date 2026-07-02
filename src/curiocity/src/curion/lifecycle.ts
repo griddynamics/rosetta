@@ -7,6 +7,7 @@ import type { TrialSpec } from '../shared/ipc';
 import type { ModelRouter } from '../shared/model-router';
 import type { QnaEntry } from '../shared/trajectory';
 import { agentRegistry } from '../agents';
+import { resolveCommand } from '../agents/launch';
 import type { CanonicalHookSpec, TrialContext } from '../agents/types';
 import { TerminalSession } from '../terminal/session';
 import { InteractionEngine, type InteractionResult } from '../interaction/engine';
@@ -147,12 +148,22 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
 
     try {
       const plan = await adapter.prepare(trialCtx, hookSpec);
+      // Launch preflight (R1): resolve the agent command on the PTY's PATH before
+      // spawning. node-pty does not throw for a missing binary — it would exit
+      // nonzero and read as `agent-crash`; an unresolvable command is a launch
+      // failure (the agent never ran), so report `launch-error` here instead.
+      const resolvedCommand = resolveCommand(plan.command, plan.env);
+      if (resolvedCommand === null) {
+        status = 'launch-error';
+        log('launch-error: agent command not found on PATH', { command: plan.command });
+        throw new LifecycleHandled();
+      }
       for (const file of plan.files) writePlanFile(file);
       for (const cmd of plan.commands) {
         await execa(cmd, { shell: true, cwd: workspace, env: opts.baseEnv, reject: true });
       }
       session = new TerminalSession({
-        command: plan.command,
+        command: resolvedCommand,
         args: plan.args,
         cwd: workspace,
         env: plan.env,

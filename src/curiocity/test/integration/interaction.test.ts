@@ -118,4 +118,15 @@ describe('§6 interaction engine — trigger table, row by row', () => {
     const { result } = await run({ scene: 'clean.json', srcZipPath: bad });
     expect(result.status).toBe('launch-error');
   });
+
+  it('launch-error (R1 preflight): unresolvable agent command → launch-error, not agent-crash', async () => {
+    // node-pty would spawn a PTY that exits nonzero for a missing binary, which the
+    // engine reads as `agent-crash`. The launch preflight resolves the command first,
+    // so an unresolvable command is reported as the accurate `launch-error`.
+    const { result } = await run({
+      scene: 'clean.json',
+      profileOverrides: { command: 'curiocity-nonexistent-binary-xyz' },
+    });
+    expect(result.status).toBe('launch-error');
+  });
 });
