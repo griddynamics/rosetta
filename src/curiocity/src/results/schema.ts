@@ -50,6 +50,8 @@ export const costBlockSchema = z
     workhorse: usageSchema.optional(),
     judge: usageSchema.optional(),
     usd: z.number().optional(),
+    /** Resolved model string per harness role (for $ itemization by model, §12). */
+    models: z.record(z.string()).optional(),
   })
   .passthrough();
 
@@ -90,6 +92,7 @@ export const statBlockSchema = z
     agent: z.string().optional(),
   })
   .passthrough();
+export type StatBlock = z.infer<typeof statBlockSchema>;
 
 /** Suite gate outcome (§13). */
 export const gateOutcomeSchema = z.object({

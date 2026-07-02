@@ -1,0 +1,102 @@
+import { describe, it, expect } from 'vitest';
+import { z } from 'zod';
+import {
+  MeteredRouter,
+  RealModelRouter,
+  resolveRoleModel,
+} from '../../src/llm/router';
+import { CostMeter } from '../../src/llm/cost-meter';
+import { FakeModelRouter } from '../../src/shared/model-router';
+import { ConfigError } from '../../src/shared/errors';
+
+/**
+ * Zero real network calls: the SDK generate functions are injected fakes. We
+ * exercise role→model resolution, provider/key lookup, client construction and
+ * usage mapping — everything up to (and including) client construction.
+ */
+const MODELS = { fast: 'anthropic/fast-x', workhorse: 'openai/work-y' };
+const KEYS = { anthropic: 'sk-a', openai: 'sk-o' };
+
+describe('resolveRoleModel (judge defaults to workhorse)', () => {
+  it('resolves fast/workhorse, and judge → workhorse when unset', () => {
+    expect(resolveRoleModel(MODELS, 'fast')).toBe('anthropic/fast-x');
+    expect(resolveRoleModel(MODELS, 'workhorse')).toBe('openai/work-y');
+    expect(resolveRoleModel(MODELS, 'judge')).toBe('openai/work-y');
+    expect(resolveRoleModel({ ...MODELS, judge: 'anthropic/judge-z' }, 'judge')).toBe('anthropic/judge-z');
+  });
+
+  it('throws when a required role model is missing', () => {
+    expect(() => resolveRoleModel({ fast: 'anthropic/x' }, 'workhorse')).toThrow(ConfigError);
+  });
+});
+
+describe('RealModelRouter (injected SDK, no network)', () => {
+  it('requires models config at construction (§12)', () => {
+    expect(() => new RealModelRouter({ models: { fast: 'anthropic/x' }, keys: KEYS })).toThrow(
+      ConfigError,
+    );
+  });
+
+  it('resolves the role model, constructs a client, maps usage', async () => {
+    const seen: { hasModel: boolean; system?: string; prompt: string }[] = [];
+    const router = new RealModelRouter({
+      models: MODELS,
+      keys: KEYS,
+      generateText: async (args) => {
+        seen.push({ hasModel: args.model !== undefined && args.model !== null, ...(args.system !== undefined ? { system: args.system } : {}), prompt: args.prompt });
+        return { text: 'hi', usage: { inputTokens: 3, outputTokens: 5 } };
+      },
+    });
+    const res = await router.generateText('fast', { system: 'sys', prompt: 'p' });
+    expect(res.text).toBe('hi');
+    expect(res.usage).toEqual({ inputTokens: 3, outputTokens: 5 });
+    expect(seen[0]).toMatchObject({ hasModel: true, system: 'sys', prompt: 'p' });
+  });
+
+  it('maps missing usage fields to zero', async () => {
+    const router = new RealModelRouter({
+      models: MODELS,
+      keys: KEYS,
+      generateObject: async () => ({ object: { score: 90, pass: true, rationale: 'ok' } }),
+    });
+    const schema = z.object({ score: z.number(), pass: z.boolean(), rationale: z.string() });
+    const res = await router.generateObject('judge', { prompt: 'p' }, schema);
+    expect(res.object.score).toBe(90);
+    expect(res.usage).toEqual({ inputTokens: 0, outputTokens: 0 });
+  });
+
+  it('throws a ConfigError when no key is resolved for the provider', async () => {
+    const router = new RealModelRouter({
+      models: MODELS,
+      keys: { anthropic: 'sk-a' }, // openai (workhorse) key absent
+      generateText: async () => ({ text: 'x' }),
+    });
+    await expect(router.generateText('workhorse', { prompt: 'p' })).rejects.toThrow(ConfigError);
+  });
+});
+
+describe('MeteredRouter (§12 cost meter)', () => {
+  it('records {role, model, usage} for every wrapped call', async () => {
+    const meter = new CostMeter();
+    const inner = new FakeModelRouter({
+      entries: [
+        { role: 'fast', kind: 'text', text: 'a', usage: { inputTokens: 10, outputTokens: 2 } },
+        { role: 'judge', kind: 'object', object: { ok: true }, usage: { inputTokens: 20, outputTokens: 4 } },
+      ],
+    });
+    const router = new MeteredRouter(inner, meter, MODELS);
+
+    await router.generateText('fast', { prompt: 'p' });
+    await router.generateObject('judge', { prompt: 'p' }, z.object({ ok: z.boolean() }));
+
+    expect(meter.records).toHaveLength(2);
+    expect(meter.records[0]).toMatchObject({ role: 'fast', model: 'anthropic/fast-x' });
+    // judge label falls back to the workhorse model (judge defaults to workhorse).
+    expect(meter.records[1]).toMatchObject({ role: 'judge', model: 'openai/work-y' });
+
+    const byRole = meter.byRole();
+    expect(byRole.fast).toEqual({ inputTokens: 10, outputTokens: 2 });
+    expect(byRole.judge).toEqual({ inputTokens: 20, outputTokens: 4 });
+    expect(meter.modelsByRole()).toEqual({ fast: 'anthropic/fast-x', judge: 'openai/work-y' });
+  });
+});

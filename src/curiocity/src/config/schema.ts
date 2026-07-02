@@ -100,6 +100,8 @@ export const topLevelConfigSchema = z.object({
   gate: gateSchema.optional(),
   concurrency: z.number().int().positive().optional(),
   out: z.string().optional(),
+  /** Optional suite $ budget (§12): over it → warn once, never abort (P7). */
+  budgetUsd: z.number().nonnegative().optional(),
 });
 export type TopLevelConfig = z.infer<typeof topLevelConfigSchema>;
 

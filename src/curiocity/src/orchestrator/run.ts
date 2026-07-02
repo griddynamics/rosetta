@@ -2,15 +2,23 @@ import pLimit from 'p-limit';
 import type { CaseDefinition } from '../cases/types';
 import type { MatrixEntry } from '../config/matrix';
 import type { ResolvedCaseConfig } from '../config/merge';
-import type { GateConfig, TopLevelConfig } from '../config/schema';
+import type { GateConfig, PricingMap, TopLevelConfig } from '../config/schema';
 import type { TrialSpec } from '../shared/ipc';
 import type { MatrixCell } from '../shared/matrix';
 import type { QnaEntry } from '../shared/trajectory';
-import { SCHEMA_VERSION, trialResultSchema, type TrialResult } from '../results/schema';
-import { createRunDir, writeSuite, writeTrial } from '../results/store';
+import {
+  SCHEMA_VERSION,
+  suiteResultSchema,
+  trialResultSchema,
+  type StatBlock,
+  type TrialResult,
+} from '../results/schema';
+import { createRunDir, writeReportFile, writeTrial } from '../results/store';
+import { renderReports } from '../reporters';
 import { runChildTrial, writeSynthesizedTrial } from './child';
 import { buildChildEnv } from './env';
-import { gatekeeper, type GateOutcome } from './gatekeeper';
+import { aggregate } from './aggregate';
+import { type GateOutcome } from './gatekeeper';
 import { buildTrialSpecs } from './spec';
 
 /**
@@ -27,9 +35,17 @@ export interface RunSuiteArgs {
   out: string;
   concurrency: number;
   gate: GateConfig;
+  /** `--collect-cost` (§12/D9): compute the cost-rollup stat + $ from pricing. Default off. */
+  collectCost?: boolean;
+  /** Config `pricing` map (§12); enables $ in cost-rollup. */
+  pricing?: PricingMap;
+  /** Optional suite $ budget: over it → warn once, never abort (P7). */
+  budgetUsd?: number;
   configDir: string;
   keepWorkspace: boolean;
   mirror: boolean;
+  /** Provider → api key, resolved once at orchestrator startup (§4/§12). */
+  keys?: Record<string, string>;
   /** Opaque config snapshot stored in suite.json. */
   configSnapshot: unknown;
   onLog?: (msg: string, fields?: Record<string, unknown>) => void;
@@ -70,6 +86,7 @@ export async function runSuite(args: RunSuiteArgs): Promise<RunSuiteResult> {
     configDir: args.configDir,
     keepWorkspace: args.keepWorkspace,
     mirror: args.mirror,
+    keys: args.keys ?? {},
   });
 
   const trials: TrialResult[] = [];
@@ -110,7 +127,26 @@ export async function runSuite(args: RunSuiteArgs): Promise<RunSuiteResult> {
     (a, b) => a.case.localeCompare(b.case) || a.agent.localeCompare(b.agent) || a.repeat - b.repeat,
   );
 
-  const gate = gatekeeper(trials, args.gate);
+  const agg = aggregate({
+    trials,
+    gate: args.gate,
+    ...(args.pricing ? { pricing: args.pricing } : {}),
+    collectCost: args.collectCost ?? false,
+  });
+
+  // Cost warnings (§12, P7): tokens-only for unpriced models; over-budget warns,
+  // never aborts.
+  for (const model of agg.unpricedModels) {
+    args.onLog?.(`cost: no pricing for model "${model}" — reporting tokens-only`);
+  }
+  if (args.budgetUsd !== undefined) {
+    const total = totalUsd(agg.groups);
+    if (total > args.budgetUsd) {
+      args.onLog?.(
+        `cost: suite $${total.toFixed(4)} exceeds budget $${args.budgetUsd.toFixed(4)} (continuing — P7)`,
+      );
+    }
+  }
 
   const matrixCells: MatrixCell[] = args.matrix.map((m) => ({
     case: m.case,
@@ -118,15 +154,31 @@ export async function runSuite(args: RunSuiteArgs): Promise<RunSuiteResult> {
     repeat: m.repeat,
   }));
 
-  writeSuite(runDir, {
+  const suite = suiteResultSchema.parse({
     schemaVersion: SCHEMA_VERSION,
     runDir,
     createdAt: new Date().toISOString(),
     config: args.configSnapshot,
     matrix: matrixCells,
-    groups: [],
-    gate: { passed: gate.passed, exitCode: gate.exitCode, failures: gate.failures },
+    groups: agg.groups,
+    gate: { passed: agg.gate.passed, exitCode: agg.gate.exitCode, failures: agg.gate.failures },
   });
 
-  return { runDir, trials, gate, exitCode: gate.exitCode };
+  // suite.json (json reporter) + suite.md (markdown reporter), §14.
+  for (const file of renderReports(['json', 'markdown'], { suite, trials })) {
+    writeReportFile(runDir, file.filename, file.content);
+  }
+
+  return { runDir, trials, gate: agg.gate, exitCode: agg.gate.exitCode };
+}
+
+/** Sum priced $ across cost-rollup stat blocks (budget check). */
+function totalUsd(groups: StatBlock[]): number {
+  let total = 0;
+  for (const g of groups) {
+    if (g.id !== 'cost-rollup') continue;
+    const usd = (g as Record<string, unknown>)['usd'];
+    if (typeof usd === 'number') total += usd;
+  }
+  return total;
 }

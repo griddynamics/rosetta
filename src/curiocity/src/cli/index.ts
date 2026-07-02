@@ -73,6 +73,8 @@ export function buildProgram(): Command {
     .option('--out <dir>', 'results output dir')
     .option('--evaluate', 'enable evaluation')
     .option('--no-evaluate', 'disable evaluation')
+    .option('--collect-cost', 'enable cost collection')
+    .option('--no-collect-cost', 'disable cost collection')
     .option('--dry-run', 'print resolved matrix + config, run nothing')
     .option('--keep-workspace', 'keep all workspaces')
     .option('--mirror', 'stream PTY output live')
@@ -83,11 +85,13 @@ export function buildProgram(): Command {
     .option('--judge-model <provider/model>', 'override judge tier')
     .action(async (opts: RunOptions, cmd: Command) => {
       try {
-        // Tri-state --evaluate/--no-evaluate: only honour it when set on the CLI,
+        // Tri-state --evaluate / --collect-cost: only honour when set on the CLI,
         // so the D9 mode default (suite ON / inline OFF) applies otherwise.
-        const source = cmd.getOptionValueSource('evaluate');
-        const evaluate = source === 'cli' ? opts.evaluate : undefined;
-        finish(await runRun({ ...opts, evaluate }));
+        const evaluate =
+          cmd.getOptionValueSource('evaluate') === 'cli' ? opts.evaluate : undefined;
+        const collectCost =
+          cmd.getOptionValueSource('collectCost') === 'cli' ? opts.collectCost : undefined;
+        finish(await runRun({ ...opts, evaluate, collectCost }));
       } catch (err) {
         handleError(err);
       }
@@ -98,6 +102,7 @@ export function buildProgram(): Command {
     .description('Recompute stats + reporters + gate from a stored run dir.')
     .argument('<resultsDir>', 'a timestamped run dir')
     .option('--reporter <list>', 'comma-separated reporter ids', 'json,markdown')
+    .option('--config <file>', 'reload gate thresholds / pricing for retroactive re-gating')
     .action((resultsDir: string, opts: ReportOptions) => {
       try {
         finish(runReport(resultsDir, opts));

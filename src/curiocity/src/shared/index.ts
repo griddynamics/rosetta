@@ -1,6 +1,7 @@
 export * from './errors';
 export * from './registry';
 export * from './logger';
+export * from './mask';
 export * from './models';
 export * from './model-router';
 export * from './trajectory';

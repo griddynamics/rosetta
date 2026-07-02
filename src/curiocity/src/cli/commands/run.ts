@@ -7,6 +7,10 @@ import { buildMatrix, type MatrixEntry } from '../../config/matrix';
 import { resolveCaseConfig, resolveGlobals, type CliOverrides } from '../../config/merge';
 import { DEFAULT_CONFIG_PATH, loadTopLevelConfig } from '../../config/loader';
 import { runSuite } from '../../orchestrator/run';
+import { resolveKeys } from '../../llm/keys';
+import { evaluatorRegistry } from '../../evaluators';
+import { evaluatorEntrySchema } from '../../config/schema';
+import type { ResolvedCaseConfig } from '../../config/merge';
 import type { PartialModelRoles } from '../../shared/models';
 import { ConfigError } from '../../shared/errors';
 import { ExitCode } from '../exit-codes';
@@ -31,6 +35,7 @@ export interface RunOptions {
   config?: string;
   out?: string;
   evaluate?: boolean;
+  collectCost?: boolean;
   dryRun?: boolean;
   keepWorkspace?: boolean;
   mirror?: boolean;
@@ -46,6 +51,31 @@ function globToRegExp(glob: string): RegExp {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, '\\$&');
   const pattern = escaped.replace(/\*/g, '.*').replace(/\?/g, '.');
   return new RegExp(`^${pattern}$`);
+}
+
+/**
+ * Validate every evaluator entry's params against its `paramsSchema` at config load
+ * (§5.4). Unknown evaluator ids and bad params fail fast as `ConfigError` (exit 2).
+ */
+function validateEvaluatorParams(resolved: ResolvedCaseConfig[]): void {
+  for (const c of resolved) {
+    for (const raw of c.evaluators) {
+      const entry = evaluatorEntrySchema.parse(raw);
+      const { use, gate: _gate, weight: _weight, ...params } = entry;
+      let paramsSchema;
+      try {
+        paramsSchema = evaluatorRegistry.get(use).paramsSchema;
+      } catch (err) {
+        throw new ConfigError(`case "${c.caseName}": ${(err as Error).message}`);
+      }
+      const res = paramsSchema.safeParse(params);
+      if (!res.success) {
+        throw new ConfigError(
+          `case "${c.caseName}" evaluator "${use}": invalid params:\n${res.error.message}`,
+        );
+      }
+    }
+  }
 }
 
 function cliModels(opts: RunOptions): PartialModelRoles {
@@ -136,7 +166,13 @@ export async function runRun(opts: RunOptions): Promise<number> {
       evaluateDefault,
     }),
   );
+  // Evaluator params are validated at config load (§5.4), before anything runs.
+  validateEvaluatorParams(resolved);
+
   const matrix = buildMatrix({ topLevel, cases: resolved });
+
+  // D9: suite → cost ON, inline → OFF (same default as evaluate); CLI overrides.
+  const collectCost = opts.collectCost ?? evaluateDefault;
 
   if (opts.dryRun) {
     const out = process.stdout;
@@ -159,6 +195,10 @@ export async function runRun(opts: RunOptions): Promise<number> {
     return ExitCode.CONFIG_ERROR;
   }
 
+  // Resolve LLM keys ONCE at startup (§4/§12): CURIOCITY_<PROVIDER>_KEY → provider
+  // standard var → src/curiocity/.env. Held in memory, shipped over IPC, never logged.
+  const keys = resolveKeys();
+
   const out = process.stdout;
   const suite = await runSuite({
     topLevel,
@@ -168,10 +208,15 @@ export async function runRun(opts: RunOptions): Promise<number> {
     out: globals.out,
     concurrency: globals.concurrency,
     gate: globals.gate,
+    collectCost,
+    ...(topLevel.pricing ? { pricing: topLevel.pricing } : {}),
+    ...(topLevel.budgetUsd !== undefined ? { budgetUsd: topLevel.budgetUsd } : {}),
+    keys,
     configDir,
     keepWorkspace: opts.keepWorkspace === true,
     mirror: opts.mirror === true,
-    configSnapshot: { globals, matrix },
+    // Snapshot pricing too so `report` can recompute $ retroactively without --config.
+    configSnapshot: { globals, matrix, ...(topLevel.pricing ? { pricing: topLevel.pricing } : {}) },
     onLog: (msg) => process.stderr.write(`${msg}\n`),
     ...(opts.mirror ? { onMirror: (data: string) => out.write(data) } : {}),
   });

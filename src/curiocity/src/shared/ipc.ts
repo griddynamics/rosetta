@@ -43,6 +43,8 @@ export const trialSpecSchema = z.object({
   teardown: z.array(z.string()).default([]),
   /** Evaluator config entries, validated by the evaluator layer later. */
   evaluators: z.array(z.unknown()).default([]),
+  /** Verdict combiner id (§5.4, default `gated-mean`). */
+  combiner: z.string().default('gated-mean'),
   /** Path to the case source archive (unzipped into the workspace). */
   srcZipPath: z.string().optional(),
   /** Inline `--src <dir>` source directory (copied into the workspace). */

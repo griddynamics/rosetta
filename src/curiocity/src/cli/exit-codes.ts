@@ -13,10 +13,3 @@ export const ExitCode = {
 } as const;
 
 export type ExitCode = (typeof ExitCode)[keyof typeof ExitCode];
-
-/**
- * Milestone stub sentinel: commands that resolve config+matrix but do not yet run.
- * Maps to CONFIG_ERROR (2): per §13, exit 1 presupposes trials ran and were gate-scored;
- * a not-implemented pipeline is "total infrastructure failure". Remove once run/report land.
- */
-export const NOT_IMPLEMENTED_EXIT = ExitCode.CONFIG_ERROR;

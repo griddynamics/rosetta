@@ -23,6 +23,8 @@ export interface BuildSpecsArgs {
   configDir: string;
   keepWorkspace: boolean;
   mirror: boolean;
+  /** Provider → api key (resolved once at startup, §4/§12); rides TrialSpec over IPC. */
+  keys: Record<string, string>;
 }
 
 export interface SkippedCell {
@@ -76,11 +78,12 @@ export function buildTrialSpecs(args: BuildSpecsArgs): BuiltSpecs {
       qna: def.qna,
       ...(resolved.evaluate && def.evaluation !== undefined ? { evaluation: def.evaluation } : {}),
       models: entry.models,
-      keys: {},
+      keys: args.keys,
       provision: resolved.provision,
       setup: [...topSetup, ...caseSetup],
       teardown: [...topTeardown, ...caseTeardown],
       evaluators: resolved.evaluators,
+      combiner: resolved.combiner,
       ...(def.srcZipPath !== undefined ? { srcZipPath: def.srcZipPath } : {}),
       ...(def.srcDir !== undefined ? { srcDir: def.srcDir } : {}),
       profile,
