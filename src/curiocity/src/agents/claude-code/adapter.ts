@@ -98,6 +98,19 @@ export class ClaudeCodeAdapter implements AgentAdapter {
    * session-start payload, `Stop` appends one JSON line per turn. The `--settings`
    * flag itself is supplied by the profile args template (`{ctrlDir}/settings.json`);
    * here we only materialize the file content at that same path.
+   *
+   * (R1, orchestrator ruling — multi-turn `stop.jsonl` integrity) `Stop` fires once
+   * per turn and is meant to produce ONE JSON line per firing. A plain `cat >>` is
+   * only newline-safe if the hook's stdin itself always ends in `\n` — that is an
+   * observed-not-guaranteed property of Claude Code's hook payload delivery. If a
+   * future/edge-case invocation ever omits the trailing newline, two consecutive
+   * turns' payloads would land on ONE physical line with no separator
+   * (`{...turn1...}{...turn2...}`), and the engine's line-split stop-signal reader
+   * would silently drop both — breaking multi-turn cases with no error surfaced.
+   * `sh -c 'cat; echo'` reads stdin verbatim then unconditionally emits a newline,
+   * so every append is line-terminated regardless of what the hook stdin looked
+   * like; `>>` outside the subshell keeps the shell-form single-string command
+   * (docs/hooks/claude-code.md: `args` omitted → shell form) and stays POSIX-only.
    */
   async renderHooks(spec: CanonicalHookSpec, ctx: TrialContext): Promise<LaunchFragment> {
     const settings = {
@@ -105,7 +118,9 @@ export class ClaudeCodeAdapter implements AgentAdapter {
         SessionStart: [
           { hooks: [{ type: 'command', command: `cat > '${spec.sessionStart.writeTo}'` }] },
         ],
-        Stop: [{ hooks: [{ type: 'command', command: `cat >> '${spec.stop.appendTo}'` }] }],
+        Stop: [
+          { hooks: [{ type: 'command', command: `sh -c 'cat; echo' >> '${spec.stop.appendTo}'` }] },
+        ],
       },
     };
     return {
@@ -304,7 +319,11 @@ export class ClaudeCodeAdapter implements AgentAdapter {
       const e = events[i]!;
       if (e.kind === 'tool_result') {
         const rp = e.payload as { tool_use_id?: string };
-        if (toolId === undefined || rp.tool_use_id === toolId) return null; // answered
+        // Only a `tool_result` that matches THIS question's id counts as "answered".
+        // An unmatched id (or a missing `toolId`, which real Claude transcripts never
+        // omit) must never be treated as an answer — that would spuriously clear a
+        // still-pending AskUserQuestion on the arrival of some unrelated tool result.
+        if (toolId !== undefined && rp.tool_use_id === toolId) return null; // answered
       }
       if (e.kind === 'user') return null; // conversation moved on
     }

@@ -12,6 +12,7 @@ import {
   composeFreeTextAnswer,
   composeStructuredAnswer,
 } from './classify';
+import { extractJsonObjectStrings } from './stop-reader';
 
 /**
  * Interaction engine (§6) — the Curion-side turn loop / state machine
@@ -143,6 +144,12 @@ export class InteractionEngine {
     return this.cachedEvents;
   }
 
+  /**
+   * (R1, orchestrator ruling) Blank lines are dropped and any line carrying more
+   * than one concatenated JSON object (the newline-loss failure mode) is
+   * defensively re-split — see `stop-reader.ts`. `processedStopCount` counts
+   * extracted JSON items, not raw lines, so it stays correct under either shape.
+   */
   private readNewStopSignals(): CanonicalStopSignal[] {
     if (!existsSync(this.stopPath)) return [];
     let content: string;
@@ -151,13 +158,13 @@ export class InteractionEngine {
     } catch {
       return [];
     }
-    const lines = content.split('\n').filter((l) => l.trim() !== '');
-    if (lines.length <= this.processedStopCount) return [];
-    const fresh = lines.slice(this.processedStopCount);
-    this.processedStopCount = lines.length;
+    const items = extractJsonObjectStrings(content);
+    if (items.length <= this.processedStopCount) return [];
+    const fresh = items.slice(this.processedStopCount);
+    this.processedStopCount = items.length;
     const signals: CanonicalStopSignal[] = [];
-    for (const line of fresh) {
-      const sig = this.adapter.parseStopSignal(line);
+    for (const item of fresh) {
+      const sig = this.adapter.parseStopSignal(item);
       if (sig) signals.push(sig);
     }
     return signals;

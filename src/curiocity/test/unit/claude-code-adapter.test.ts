@@ -185,6 +185,60 @@ describe('ClaudeCodeAdapter — structured questions (AskUserQuestion)', () => {
   it('returns null when there is no AskUserQuestion', () => {
     expect(adapter.detectStructuredQuestion(adapter.parseEvents(realisticTranscript))).toBeNull();
   });
+
+  it('stays pending on an UNRELATED tool_result (mismatched tool_use_id) — only a matching id counts as answered', () => {
+    // Guards against a false "answered" clear: a tool_result for some other tool
+    // call must never be mistaken for the AskUserQuestion's own answer.
+    const stillPending = adapter.parseEvents(
+      [
+        askLine,
+        {
+          type: 'user',
+          timestamp: '2',
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_unrelated', content: 'unrelated output' }],
+          },
+        },
+      ]
+        .map((l) => JSON.stringify(l))
+        .join('\n'),
+    );
+    expect(adapter.detectStructuredQuestion(stillPending)).toMatchObject({
+      question: 'How should the project be packaged?',
+    });
+  });
+
+  it('stays pending when the AskUserQuestion tool_use carries no id at all (defensive edge case)', () => {
+    // Real Claude transcripts always populate `id` on tool_use blocks, but the
+    // detector must not silently mis-clear if that ever fails to hold: a missing
+    // `toolId` must never make ANY subsequent tool_result count as "answered".
+    const askNoId = {
+      ...askLine,
+      message: {
+        ...askLine.message,
+        content: [{ ...askLine.message.content[0], id: undefined }],
+      },
+    };
+    const stillPending = adapter.parseEvents(
+      [
+        askNoId,
+        {
+          type: 'user',
+          timestamp: '2',
+          message: {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_something_else', content: 'x' }],
+          },
+        },
+      ]
+        .map((l) => JSON.stringify(l))
+        .join('\n'),
+    );
+    expect(adapter.detectStructuredQuestion(stillPending)).toMatchObject({
+      question: 'How should the project be packaged?',
+    });
+  });
 });
 
 describe('ClaudeCodeAdapter — computed-path encoding (§10.1 fallback)', () => {
@@ -254,7 +308,12 @@ describe('ClaudeCodeAdapter — renderHooks (settings file shape vs docs/hooks/c
     expect(ss.type).toBe('command');
     expect(ss.command).toBe(`cat > '${join(ctrlDir, 'session-start.json')}'`);
     expect(stop.type).toBe('command');
-    expect(stop.command).toBe(`cat >> '${join(ctrlDir, 'stop.jsonl')}'`);
+    // R1 (orchestrator ruling): `Stop` must guarantee a trailing newline per append
+    // regardless of whether the hook's own stdin ended in one — `cat` copies stdin
+    // verbatim, `echo` unconditionally appends the newline, `>>` (outside the
+    // subshell) appends the combined output. Plain `cat >>` would risk merging two
+    // turns onto one physical line if stdin ever lacked a trailing `\n`.
+    expect(stop.command).toBe(`sh -c 'cat; echo' >> '${join(ctrlDir, 'stop.jsonl')}'`);
   });
 
   it('the --settings flag path (profile args) matches the file renderHooks writes', async () => {
@@ -347,5 +406,54 @@ describe('ClaudeCodeAdapter — default profile validity', () => {
     expect(CLAUDE_CODE_DEFAULT_PROFILE.envRemove).toContain('CLAUDECODE');
     expect(CLAUDE_CODE_DEFAULT_PROFILE.envRemove).toContain('CLAUDE_CODE*');
     expect(CLAUDE_CODE_DEFAULT_PROFILE.envRemove).not.toContain('CLAUDE_CONFIG_DIR');
+  });
+});
+
+describe('ClaudeCodeAdapter — trust-folder dialogPattern robustness', () => {
+  // The engine re-checks `dialogPatterns` against every screen redraw for the
+  // WHOLE session (interaction/engine.ts `processDialogPatterns`), not just at
+  // startup — so a pattern must be specific enough not to fire on ordinary
+  // assistant output.
+  const trustRule = CLAUDE_CODE_DEFAULT_PROFILE.dialogPatterns!.find((r) =>
+    r.pattern.includes('trust this folder'),
+  )!;
+  const trustRe = (): RegExp => new RegExp(trustRule.pattern);
+
+  it('matches the real live dialog text (claude 2.1.198, captured verbatim)', () => {
+    // Captured live via a throwaway probe against a fresh workspace (§10.1).
+    const screen = [
+      '────────────────────────────────────────────────────────',
+      ' Accessing workspace:',
+      '',
+      ' /private/var/folders/xx/T/curiocity-claude-ws-abc123',
+      '',
+      ' Quick safety check: Is this a project you created or one you trust? (Like your own code, a well-known open source',
+      " project, or work from your team). If not, take a moment to review what's in this folder first.",
+      '',
+      " Claude Code'll be able to read, edit, and execute files here.",
+      '',
+      ' Security guide',
+      '',
+      ' ❯ 1. Yes, I trust this folder',
+      '   2. No, exit',
+      '',
+      ' Enter to confirm · Esc to cancel',
+    ].join('\n');
+    expect(trustRe().test(screen)).toBe(true);
+  });
+
+  it('does NOT false-positive on ordinary assistant prose that merely mentions folder trust', () => {
+    // A plausible real assistant utterance discussing permissions/trust — must not
+    // be mistaken for the startup dialog (no "Quick safety check" header present).
+    const chatter = [
+      'I need to check whether you trust this folder before writing outside it.',
+      "Since we're operating in a workspace you already trust this folder is fine to modify.",
+    ].join('\n');
+    expect(trustRe().test(chatter)).toBe(false);
+  });
+
+  it('does NOT false-positive on the header alone without the option text', () => {
+    const partial = 'Quick safety check: something unrelated happened here.';
+    expect(trustRe().test(partial)).toBe(false);
   });
 });

@@ -32,9 +32,15 @@ export const CLAUDE_CODE_DEFAULT_PROFILE: AgentProfile = {
   freeze: { windowMs: 10_000 },
   dialogPatterns: [
     // Trust-folder safety check on first entry to a fresh workspace (observed live,
-    // claude 2.1.198): "Is this a project you created or one you trust?" with the
-    // default choice "1. Yes, I trust this folder" highlighted — Enter confirms.
-    { pattern: 'trust this folder', send: '\r' },
+    // claude 2.1.198): "Quick safety check: Is this a project you created or one you
+    // trust?" ... "1. Yes, I trust this folder" highlighted — Enter confirms.
+    // `dialogPatterns` is re-checked on EVERY screen redraw for the whole session
+    // (not just at startup, §6), so a bare "trust this folder" substring risks a
+    // false positive if the agent's own assistant text ever discusses folder trust
+    // in a sentence shaped like the option label. Anchor on BOTH the dialog's fixed
+    // header AND the option text (in that order) — a combination real assistant
+    // prose is exceedingly unlikely to reproduce verbatim.
+    { pattern: 'Quick safety check[\\s\\S]*trust this folder', send: '\r' },
     // First-run theme picker (present only if a theme was never chosen); Enter accepts.
     { pattern: 'Choose (the|your)[^\\n]*theme', send: '\r' },
     // New-MCP-server consent (only when a workspace `.mcp.json` introduces a server).
