@@ -16,8 +16,6 @@ import {
  */
 const MARKER_RE = /\bRosetta-AI-reviewed\b/;
 
-const EVIDENCE_MAX = 120;
-
 /** User-visible payload fields where the `Rosetta-AI-reviewed` marker is accepted, by tool name.
  *  Restricted to write-time content fields only — path fields and pattern-match fields
  *  (file_path, old_string) are excluded to prevent changing the operation target. */
@@ -36,71 +34,45 @@ const MCP_CONTENT_FIELDS = ['content', 'new_string', 'query', 'sql'] as const;
 
 type PatternHit = { result: HookResult; pattern: DangerPattern | null };
 
-/** Render the `Evidence:` line: show what was actually flagged, truncated to a cap.
- *  The hook is a tripwire, not a gateway — it never hides or rewrites the payload. */
-function renderEvidence(evidence: string): string {
-  return evidence.length > EVIDENCE_MAX ? evidence.slice(0, EVIDENCE_MAX) + '…' : evidence;
+/** The write-time field an override marker should be appended to, by tool kind.
+ *  MCP tools (toolKind is the mcp__… name) fall through to the generic wording. */
+function overrideField(toolKind: string): string {
+  switch (toolKind) {
+    case 'bash':       return '`command`';
+    case 'write':      return '`content`';
+    case 'edit':       return '`new_string`';
+    case 'multi-edit': return '`new_string` (in the relevant `edits[]` entry)';
+    default:           return 'the relevant string';
+  }
 }
 
-function buildReconsiderDenyMessage(
-  pattern: DangerPattern,
-  toolKind: string,
-  evidence: string,
-): string {
-  const evidenceLine = renderEvidence(evidence);
-
-  const overrideExample =
-    toolKind === 'bash'
-      ? ['Append `Rosetta-AI-reviewed` as a comment in the `command` field.']
-      : toolKind === 'write'
-      ? ['Append `Rosetta-AI-reviewed` as a comment in the `content` field.']
-      : toolKind === 'edit'
-      ? ['Append `Rosetta-AI-reviewed` as a comment in the `new_string` field.']
-      : toolKind === 'multi-edit'
-      ? ['Append `Rosetta-AI-reviewed` as a comment in `new_string` inside the relevant `edits[]` entry.']
-      : ['Append `Rosetta-AI-reviewed` as a comment to the relevant string field.'];
-
+/** Soft-deny message (policy 'reconsider'). Per the review directive the message is
+ *  intentionally minimal: a static generic reason, one coaching line, and how to
+ *  override. It NEVER echoes the command/payload — the AI already knows what it ran. */
+function buildReconsiderDenyMessage(pattern: DangerPattern, toolKind: string): string {
   return [
-    `Dangerous action detected: ${pattern.label} [${pattern.id}]`,
-    'Did you use the skill? Did you analyse blast radius and whether you can recover it back? Did you intend dry run?',
-    `Evidence: ${evidenceLine}`,
-    `Reason: ${pattern.reason}`,
-    '',
-    'If you are sure and confirmed with the user, you can override by appending `Rosetta-AI-reviewed` comment to the tool call:',
-    ...overrideExample,
+    `Dangerous action [${pattern.id}]: ${pattern.reason}`,
+    'Check blast radius / recoverability first.',
+    `Override: append \`Rosetta-AI-reviewed\` comment to the ${overrideField(toolKind)} field if intended.`,
   ].join('\n');
 }
 
-/** Non-blocking safety nudge (policy 'advise'). Warns the agent about an
- *  irreversible-loss action without denying it — the action still proceeds. */
-function buildAdviseMessage(
-  pattern: DangerPattern,
-  toolKind: string,
-  evidence: string,
-): string {
-  const evidenceLine = renderEvidence(evidence);
-
+/** Non-blocking safety nudge (policy 'advise'). Warns without denying — the action
+ *  still proceeds. Same minimal shape: static reason, no evidence echo. */
+function buildAdviseMessage(pattern: DangerPattern): string {
   return [
-    `Heads-up: ${pattern.label} on ${toolKind} [${pattern.id}]`,
-    `Evidence: ${evidenceLine}`,
-    `Reason: ${pattern.reason}`,
-    '',
-    'This is a non-blocking safety notice, not a block. Confirm this is intended — ' +
-      'that you are not clobbering a file the user still needs — before proceeding.',
+    `Heads-up [${pattern.id}]: ${pattern.reason}`,
+    'Non-blocking notice — confirm this is intended before proceeding.',
   ].join('\n');
 }
 
 /** Build the hook result for a matched pattern, dispatching on its policy tier.
  *  'advise' → non-blocking notice; 'reconsider' → soft-deny (overridable). */
-function buildResultForPattern(
-  pattern: DangerPattern,
-  toolKind: string,
-  evidence: string,
-): HookResult {
+function buildResultForPattern(pattern: DangerPattern, toolKind: string): HookResult {
   if (pattern.policy === 'advise') {
-    return advise(buildAdviseMessage(pattern, toolKind, evidence));
+    return advise(buildAdviseMessage(pattern));
   }
-  return deny(buildReconsiderDenyMessage(pattern, toolKind, evidence));
+  return deny(buildReconsiderDenyMessage(pattern, toolKind));
 }
 
 function matchPatterns(
@@ -171,10 +143,10 @@ export function hasAIReviewedMarker(
  */
 function evalShellString(command: string, toolKind: string): PatternHit {
   const bashPattern = matchPatterns(DANGEROUS_BASH, command);
-  if (bashPattern) return { result: buildResultForPattern(bashPattern, toolKind, command), pattern: bashPattern };
+  if (bashPattern) return { result: buildResultForPattern(bashPattern, toolKind), pattern: bashPattern };
 
   const contentPattern = matchPatterns(DANGEROUS_CONTENT, command);
-  if (contentPattern) return { result: buildResultForPattern(contentPattern, toolKind, command), pattern: contentPattern };
+  if (contentPattern) return { result: buildResultForPattern(contentPattern, toolKind), pattern: contentPattern };
 
   return { result: null, pattern: null };
 }
@@ -189,12 +161,12 @@ function evalWrite(ctx: HookContext): PatternHit {
   const filePath = ctx.toolInput.file_path;
   if (typeof filePath === 'string') {
     const pattern = matchDangerousPath(filePath);
-    if (pattern) return { result: buildResultForPattern(pattern, 'write', filePath), pattern };
+    if (pattern) return { result: buildResultForPattern(pattern, 'write'), pattern };
   }
   const content = ctx.toolInput.content;
   if (typeof content === 'string') {
     const pattern = matchPatterns(DANGEROUS_CONTENT, content);
-    if (pattern) return { result: buildResultForPattern(pattern, 'write', content), pattern };
+    if (pattern) return { result: buildResultForPattern(pattern, 'write'), pattern };
   }
   return { result: null, pattern: null };
 }
@@ -203,12 +175,12 @@ function evalEdit(ctx: HookContext): PatternHit {
   const filePath = ctx.toolInput.file_path;
   if (typeof filePath === 'string') {
     const pattern = matchDangerousPath(filePath);
-    if (pattern) return { result: buildResultForPattern(pattern, 'edit', filePath), pattern };
+    if (pattern) return { result: buildResultForPattern(pattern, 'edit'), pattern };
   }
   const newString = ctx.toolInput.new_string;
   if (typeof newString === 'string') {
     const pattern = matchPatterns(DANGEROUS_CONTENT, newString);
-    if (pattern) return { result: buildResultForPattern(pattern, 'edit', newString), pattern };
+    if (pattern) return { result: buildResultForPattern(pattern, 'edit'), pattern };
   }
   return { result: null, pattern: null };
 }
@@ -217,7 +189,7 @@ function evalMultiEdit(ctx: HookContext): PatternHit {
   const filePath = ctx.toolInput.file_path;
   if (typeof filePath === 'string') {
     const pattern = matchDangerousPath(filePath);
-    if (pattern) return { result: buildResultForPattern(pattern, 'multi-edit', filePath), pattern };
+    if (pattern) return { result: buildResultForPattern(pattern, 'multi-edit'), pattern };
   }
   const edits = ctx.toolInput.edits;
   if (Array.isArray(edits)) {
@@ -226,7 +198,7 @@ function evalMultiEdit(ctx: HookContext): PatternHit {
         const ns = (edit as Record<string, unknown>).new_string;
         if (typeof ns === 'string') {
           const pattern = matchPatterns(DANGEROUS_CONTENT, ns);
-          if (pattern) return { result: buildResultForPattern(pattern, 'multi-edit', ns), pattern };
+          if (pattern) return { result: buildResultForPattern(pattern, 'multi-edit'), pattern };
         }
       }
     }
@@ -248,14 +220,14 @@ function evalMcpCall(ctx: HookContext): PatternHit {
     const v = input[f];
     if (typeof v === 'string') {
       const pattern = matchDangerousPath(v);
-      if (pattern) return { result: buildResultForPattern(pattern, ctx.toolName, v), pattern };
+      if (pattern) return { result: buildResultForPattern(pattern, ctx.toolName), pattern };
     }
   }
   for (const f of MCP_CONTENT_FIELDS) {
     const v = input[f];
     if (typeof v === 'string') {
       const pattern = matchPatterns(DANGEROUS_CONTENT, v);
-      if (pattern) return { result: buildResultForPattern(pattern, ctx.toolName, v), pattern };
+      if (pattern) return { result: buildResultForPattern(pattern, ctx.toolName), pattern };
     }
   }
   return { result: null, pattern: null };

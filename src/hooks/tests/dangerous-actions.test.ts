@@ -192,11 +192,13 @@ describe('evaluateDangerous — Bash patterns', () => {
     expect((r as {kind:'deny';reason:string}).reason).toContain('curl-pipe-shell');
   });
 
-  test('deny message contains rule id, evidence, and override instructions (soft-deny)', () => {
+  test('deny message contains rule id, generic reason, and override instructions (soft-deny)', () => {
     const r = evaluateDangerous(bashCtx('rm -rf /'));
     const reason = (r as {kind:'deny';reason:string}).reason;
     expect(reason).toContain('rm-rf-root');
-    expect(reason).toContain('Evidence:');
+    expect(reason).toContain('irreversible file deletion');  // static generic reason
+    expect(reason).not.toContain('Evidence:');               // directive: no evidence echo
+    expect(reason).not.toContain('rm -rf /');                // the command is never echoed back
     // rm -rf / is now a soft-deny (reconsider) — overridable, never an unconditional block.
     expect(reason).toContain('Rosetta-AI-reviewed');
     expect(reason).not.toContain('HARD-DENY');
@@ -564,7 +566,7 @@ describe('Rosetta-AI-reviewed — retry marker', () => {
     const r = evaluateDangerous(bashCtx('rm -rf /tmp/cache'));
     const reason = (r as {kind:'deny';reason:string}).reason;
     expect(reason).toContain('Rosetta-AI-reviewed');
-    expect(reason).toContain('override');
+    expect(reason).toContain('Override:');
   });
 
   test('Bash: mkfs (formerly hard-deny) → soft-deny with override instruction, no HARD-DENY text', () => {
@@ -665,7 +667,7 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
     ))).toBeNull();
   });
 
-  test('mcp postgres execute_query with DROP TABLE → deny, evidence shown verbatim (no redaction)', () => {
+  test('mcp postgres execute_query with DROP TABLE → deny, generic reason, no command echo', () => {
     const r = evaluateDangerous(mcpCtx(
       'mcp__postgres__execute_query',
       { query: 'DROP TABLE users;' }
@@ -673,9 +675,9 @@ describe('evaluateDangerous — MCP tool calls (mcp-call kind)', () => {
     expect(r?.kind).toBe('deny');
     const reason = (r as {kind:'deny';reason:string}).reason;
     expect(reason).toContain('content-sql-drop-table');
-    // Hook is a tripwire, not a gateway: it shows what it flagged, never hides it.
-    expect(reason).not.toContain('<redacted');
-    expect(reason).toContain('DROP TABLE users;');
+    expect(reason).toContain('unsafe schema modification');  // static generic reason
+    // Directive: no evidence echo — the flagged query is NOT returned in the message.
+    expect(reason).not.toContain('DROP TABLE users;');
   });
 
   // MCP sql/query fields are checked for destructive SQL only. Secret values are
@@ -1071,28 +1073,29 @@ describe('G-5 removed: .env-family files are never flagged', () => {
 });
 
 // G-6 removed: Rosetta never inspects, detects, or redacts secret values. A dangerous
-// command that happens to embed a credential is denied on its OWN danger (e.g. rm -rf),
-// and the evidence is echoed verbatim (truncated) — the guard does not rewrite user data.
+// command that happens to embed a credential is denied on its OWN danger (e.g. rm -rf).
+// The message carries only a static generic reason — no command, no secret, no evidence.
 describe('G-6 removed: secret values are not detected or redacted', () => {
   const AWS = 'AKIAIOSFODNN7EXAMPLE';
 
-  test('bash: rm -rf embedding an AWS key → deny on rm-rf, evidence NOT scrubbed', () => {
+  test('bash: rm -rf embedding an AWS key → deny on rm-rf, secret never surfaced', () => {
     const r = evaluateDangerous(bashCtx(`export AWS_KEY=${AWS} && rm -rf /tmp/x`));
     expect(r?.kind).toBe('deny');
     const reason = (r as {kind:'deny';reason:string}).reason;
-    expect(reason).toContain('rm-rf');          // real danger still identified
-    expect(reason).not.toContain('<redacted');  // no secret redaction anymore
+    expect(reason).toContain('rm-rf');          // real danger still identified (rule id)
+    expect(reason).not.toContain('<redacted');  // no secret redaction
+    expect(reason).not.toContain(AWS);          // no evidence echo → the secret is never printed
   });
 
   test('bash: an AWS key with no dangerous action → null (secrets alone are never flagged)', () => {
     expect(evaluateDangerous(bashCtx(`export AWS_KEY=${AWS}`))).toBeNull();
   });
 
-  test('bash: non-secret dangerous command → evidence shown verbatim', () => {
+  test('bash: dangerous command → generic reason, command NOT echoed', () => {
     const r = evaluateDangerous(bashCtx('rm -rf /tmp/x'));
     const reason = (r as {kind:'deny';reason:string}).reason;
-    expect(reason).toContain('rm -rf /tmp/x');
-    expect(reason).not.toContain('<redacted');
+    expect(reason).toContain('irreversible file deletion');  // static generic reason
+    expect(reason).not.toContain('rm -rf /tmp/x');           // no evidence echo
   });
 });
 
