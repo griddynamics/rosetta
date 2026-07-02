@@ -1,12 +1,15 @@
+import { existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { buildEphemeralCase } from '../../cases/ephemeral';
 import { discoverCases } from '../../cases/discovery';
 import type { CaseDefinition } from '../../cases/types';
 import { buildMatrix, type MatrixEntry } from '../../config/matrix';
 import { resolveCaseConfig, resolveGlobals, type CliOverrides } from '../../config/merge';
-import { loadTopLevelConfig } from '../../config/loader';
+import { DEFAULT_CONFIG_PATH, loadTopLevelConfig } from '../../config/loader';
+import { runSuite } from '../../orchestrator/run';
 import type { PartialModelRoles } from '../../shared/models';
 import { ConfigError } from '../../shared/errors';
-import { ExitCode, NOT_IMPLEMENTED_EXIT } from '../exit-codes';
+import { ExitCode } from '../exit-codes';
 
 /**
  * `curiocity run` (§13, D4). One command; suite vs inline is a filter, not a second
@@ -73,8 +76,10 @@ function printMatrix(matrix: MatrixEntry[]): void {
   }
 }
 
-export function runRun(opts: RunOptions): number {
+export async function runRun(opts: RunOptions): Promise<number> {
   const topLevel = loadTopLevelConfig(opts.config);
+  const configPath = opts.config ? resolve(opts.config) : resolve(DEFAULT_CONFIG_PATH);
+  const configDir = existsSync(configPath) ? dirname(configPath) : process.cwd();
 
   const cli: CliOverrides = {
     ...(opts.agent && opts.agent.length > 0 ? { agents: opts.agent } : {}),
@@ -154,10 +159,31 @@ export function runRun(opts: RunOptions): number {
     return ExitCode.CONFIG_ERROR;
   }
 
-  process.stderr.write(
-    `not implemented (M1): config + matrix (${matrix.length} cell(s)) resolved, ` +
-      'but the run pipeline (fork/PTY/interact/evaluate) is not part of this milestone. ' +
-      'Use --dry-run to inspect the matrix.\n',
-  );
-  return NOT_IMPLEMENTED_EXIT;
+  const out = process.stdout;
+  const suite = await runSuite({
+    topLevel,
+    cases,
+    resolvedCases: resolved,
+    matrix,
+    out: globals.out,
+    concurrency: globals.concurrency,
+    gate: globals.gate,
+    configDir,
+    keepWorkspace: opts.keepWorkspace === true,
+    mirror: opts.mirror === true,
+    configSnapshot: { globals, matrix },
+    onLog: (msg) => process.stderr.write(`${msg}\n`),
+    ...(opts.mirror ? { onMirror: (data: string) => out.write(data) } : {}),
+  });
+
+  out.write(`\nrun complete: ${suite.runDir}\n`);
+  const counts = new Map<string, number>();
+  for (const t of suite.trials) counts.set(t.status, (counts.get(t.status) ?? 0) + 1);
+  for (const [status, n] of [...counts.entries()].sort()) out.write(`  ${status}: ${n}\n`);
+  if (suite.gate.failures.length > 0) {
+    out.write('\ngate failures:\n');
+    for (const f of suite.gate.failures) out.write(`  - ${f}\n`);
+  }
+  out.write(`\nexit code: ${suite.exitCode}\n`);
+  return suite.exitCode;
 }

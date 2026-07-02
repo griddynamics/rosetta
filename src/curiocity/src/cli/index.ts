@@ -81,13 +81,13 @@ export function buildProgram(): Command {
     .option('--fast-model <provider/model>', 'override fast tier')
     .option('--workhorse-model <provider/model>', 'override workhorse tier')
     .option('--judge-model <provider/model>', 'override judge tier')
-    .action((opts: RunOptions, cmd: Command) => {
+    .action(async (opts: RunOptions, cmd: Command) => {
       try {
         // Tri-state --evaluate/--no-evaluate: only honour it when set on the CLI,
         // so the D9 mode default (suite ON / inline OFF) applies otherwise.
         const source = cmd.getOptionValueSource('evaluate');
         const evaluate = source === 'cli' ? opts.evaluate : undefined;
-        finish(runRun({ ...opts, evaluate }));
+        finish(await runRun({ ...opts, evaluate }));
       } catch (err) {
         handleError(err);
       }
