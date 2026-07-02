@@ -19,11 +19,18 @@
     "test": "vitest run",
     "test:integration": "vitest run test/integration --passWithNoTests",
     "lint": "tsc --noEmit",
-    "smoke": "node -e \"console.log('smoke: mock-agent end-to-end is not implemented in M1')\""
+    "smoke": "vitest run test/integration",
+    "postinstall": "node scripts/fix-pty-perms.mjs"
   },
   "dependencies": {
+    "@xterm/headless": "^5.5.0",
     "commander": "^13.0.0",
+    "execa": "^9.6.1",
+    "extract-zip": "^2.0.1",
+    "node-pty": "^1.1.0",
+    "p-limit": "^6.2.0",
     "pino": "^9.5.0",
+    "strip-ansi": "^7.2.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
