@@ -1,0 +1,36 @@
+{
+  "name": "curiocity",
+  "version": "0.1.0",
+  "description": "Evals/testing harness that drives interactive coding-agent CLIs over a real PTY.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "bin": {
+    "curiocity": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsx src/cli/index.ts",
+    "build": "tsup",
+    "test": "vitest run",
+    "test:integration": "vitest run test/integration --passWithNoTests",
+    "lint": "tsc --noEmit",
+    "smoke": "node -e \"console.log('smoke: mock-agent end-to-end is not implemented in M1')\""
+  },
+  "dependencies": {
+    "commander": "^13.0.0",
+    "pino": "^9.5.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
