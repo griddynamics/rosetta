@@ -7,9 +7,6 @@ const EVENTS = {
     SessionEnd: 'sessionEnd',
     PreCompact: 'preCompact',
     PrePromptSubmit: 'userPromptSubmitted',
-    // Registration guidance: register PascalCase "Stop" only — VS Code fires only PascalCase,
-    // and Copilot CLI's PascalCase fire works fine too (avoids the camelCase "agentStop" double-fire).
-    Stop: 'Stop',
 };
 const TOOL_KINDS = {
     write: ['create_file', 'create', 'Write'],
@@ -17,10 +14,8 @@ const TOOL_KINDS = {
     'multi-edit': ['multi_replace_string_in_file'],
     create: ['create_file', 'create', 'Write'],
     replace: ['replace_string_in_file', 'multi_replace_string_in_file', 'edit', 'Edit'],
-    // 'bash'/'view' = Copilot CLI camelCase fire; 'Bash' = Copilot CLI's OWN PascalCase fire
-    // (distinct from VS Code, which never sends 'Bash'); 'run_in_terminal'/'read_file' = VS Code.
-    bash: ['bash', 'powershell', 'Bash', 'run_in_terminal'],
-    read: ['view', 'Read', 'read_file'],
+    bash: ['bash', 'powershell'],
+    read: ['view', 'Read'],
 };
 const lookupEvent = (raw) => {
     for (const [k, v] of Object.entries(EVENTS)) {
@@ -49,15 +44,6 @@ const lookupToolKind = (raw) => {
 };
 exports.lookupToolKind = lookupToolKind;
 const getFilePath = (raw) => {
-    // VS Code (R3) sends tool_input as an already-parsed object.
-    const toolInput = raw.tool_input;
-    if (toolInput && typeof toolInput === 'object') {
-        const parsed = toolInput;
-        const result = parsed.filePath ?? parsed.file_path ?? null;
-        (0, debug_log_1.debugLogBranch)('ide-row:copilot', 'get-file-path', { result, reason: 'tool_input-object', parsed });
-        return result;
-    }
-    // Copilot CLI (R1) sends toolArgs as a JSON string that must be parsed.
     const toolArgs = raw.toolArgs;
     if (!toolArgs) {
         (0, debug_log_1.debugLogBranch)('ide-row:copilot', 'get-file-path', { result: null, reason: 'missing-toolArgs' });

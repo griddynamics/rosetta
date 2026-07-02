@@ -10,7 +10,6 @@ const EVENTS = {
     SessionEnd: 'sessionEnd',
     PreCompact: 'preCompact',
     PrePromptSubmit: 'beforeSubmitPrompt',
-    Stop: 'stop',
 };
 const TOOL_KINDS = {
     write: ['Write'],

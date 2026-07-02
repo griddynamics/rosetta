@@ -11,8 +11,6 @@ exports.EVENTS = {
     PreCompact: { 'claude-code': 'PreCompact', 'codex': 'PreCompact', 'cursor': 'preCompact', 'windsurf': null, 'copilot': 'preCompact' },
     PostCompact: { 'claude-code': 'PostCompact', 'codex': 'PostCompact', 'cursor': null, 'windsurf': null, 'copilot': null },
     PrePromptSubmit: { 'claude-code': 'UserPromptSubmit', 'codex': 'UserPromptSubmit', 'cursor': 'beforeSubmitPrompt', 'windsurf': 'PrePromptSubmit', 'copilot': 'userPromptSubmitted' },
-    // Blockable turn-stop (prevents the agent from stopping). No hook logic uses this yet.
-    Stop: { 'claude-code': 'Stop', 'codex': 'Stop', 'cursor': 'stop', 'windsurf': null, 'copilot': 'Stop' },
 };
 const reverseLookupEvent = (ide, raw) => {
     for (const [key, map] of Object.entries(exports.EVENTS)) {
@@ -85,14 +83,14 @@ exports.TOOL_KINDS = {
         'codex': ['Bash', 'shell'],
         'cursor': ['Bash', 'Shell'],
         'windsurf': ['Bash'],
-        'copilot': ['bash', 'powershell', 'Bash', 'run_in_terminal'],
+        'copilot': ['bash', 'powershell'],
     },
     read: {
         'claude-code': ['Read'],
         'codex': null,
         'cursor': ['Read'],
         'windsurf': ['Read'],
-        'copilot': ['view', 'Read', 'read_file'],
+        'copilot': ['view', 'Read'],
     },
     'mcp-call': {
         'claude-code': ['__mcp_sentinel__'],
