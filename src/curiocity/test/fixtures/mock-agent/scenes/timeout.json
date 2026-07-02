@@ -1,0 +1,7 @@
+{
+  "banner": "MOCK READY",
+  "steps": [
+    { "type": "print", "text": "Busy forever." },
+    { "type": "spin", "ms": 60000 }
+  ]
+}
