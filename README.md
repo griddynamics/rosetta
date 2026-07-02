@@ -25,27 +25,9 @@ AI coding agents are great — until you try to use them across a real team. Eve
 
 That's why we built Rosetta — open-source context engineering and governed instruction management for AI coding agents. It's not another proprietary agent; it works with the tools you already use (Claude Code, Cursor, Copilot, etc.) and loads a centralized source of your team's engineering instructions into every agent session. Everything is versioned in Git and runs inside your perimeter.
 
-**Encode your engineering discipline into every agent.** The model already knows Python and React; what it lacks is your architecture, standards, risk model, and delivery process. That's what Rosetta provides.
+**Teach agents how to think, not what to do.** The model already knows Python and React; what it lacks is your engineering discipline. That's what Rosetta encodes.
 
-What this means in daily work:
-
-- **It learns your codebase first** — reads your architecture and conventions, so it stops guessing from a few open files.
-- **You just describe the task** — a slash command in plain language; no prompt scaffolding or new syntax to memorize.
-- **Common flows are ready out of the box** — coding, testing, analysis, AQA, research, and more.
-- **Routine goes to the agent, judgment stays with you** — you spend your time where it actually matters.
-- **It asks first, plans, codes, then validates** — clarifies, shows a plan, then proves it ran.
-- **Less babysitting** — fewer wrong turns to catch and re-prompt.
-- **It fits your setup** — works with the agent, IDE, and stack you already use; no tool migration.
-
-Rosetta-guided work follows these phases:
-
-- **Prepare** (load guardrails and context)
-- **Research** (search the knowledge base)
-- **Plan** (produce a reviewable plan)
-- **Act** (execute with full context)
-- **Validate** (independent AI validation backed by execution evidence)
-
-Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).
+Rosetta-guided work follows five phases — **Prepare → Research → Plan → Act → Validate** — with approval gates at the key decision points. Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).
 
 > [!NOTE]
 > If you are effectively using your current setup, writing your own skills, and managing AI using your own processes, you probably don't need Rosetta.
@@ -86,19 +68,19 @@ Hosted MCP is a one-liner:
 claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp
 ```
 
-**2. Initialize your repository** — once per repo. Just ask the agent in chat:
+**2. Initialize** — ask the agent in chat once per repo, and Rosetta does the rest:
 
+```mermaid
+flowchart LR
+    D["ask in chat:<br/><b>“Initialize this repository”</b>"] --> A["Rosetta analyzes<br/>your repo"]
+    A --> W["generates workspace files<br/>TECHSTACK · CODEMAP · ARCHITECTURE · CONTEXT"]
+    W --> S["you build with<br/>/coding-flow · /aqa-flow · …"]
+
+    classDef step fill:#1f6feb,stroke:#1b4fb8,color:#ffffff;
+    class D,A,W,S step
 ```
-Initialize this repository using the respective Rosetta workflow
-```
 
-The agent analyzes your project and produces structured context files:
-
-- ✓ reverse-engineers your architecture, stack, and conventions
-- ✓ generates `TECHSTACK.md`, `CODEMAP.md`, `DEPENDENCIES.md`, `ARCHITECTURE.md`, `CONTEXT.md`
-- ✓ ready-made workflows available in your IDE
-
-Initialization is a conversational pass over your repo — the agent asks clarifying questions as it goes. See the full [Quickstart](QUICKSTART.md) and [all IDEs and detailed setup](INSTALLATION.md).
+Full setup and initialization steps are in the [Quickstart](QUICKSTART.md) · [all IDEs and detailed setup](INSTALLATION.md).
 
 > [!TIP]
 > Evaluating Rosetta with an AI agent? Point it at the machine-readable spec: <https://griddynamics.github.io/rosetta/llms-full.txt>
