@@ -67,29 +67,32 @@ export interface ResolveKeysOptions {
  * Resolve provider → api key for every known provider that has one available.
  * Providers with no resolvable key are simply omitted (a run only fails if a role
  * actually needs the missing provider, §12).
+ *
+ * Precedence is strictly tiered by SOURCE first, then by name, within each source
+ * (§12: "CURIOCITY_<PROVIDER>_KEY env, falling back to provider-standard vars, or a
+ * .env file"): process.env's `CURIOCITY_<PROVIDER>_KEY`, then process.env's
+ * provider-standard var(s); only when NEITHER is set in the environment does the
+ * `.env` file get consulted (again `CURIOCITY_<PROVIDER>_KEY` before the standard
+ * var). This ensures a live CI-injected standard env var always outranks a stale
+ * value left over in a local `.env` file.
  */
 export function resolveKeys(opts: ResolveKeysOptions = {}): Record<string, string> {
   const env = opts.env ?? process.env;
   const fileEnv =
     opts.envFilePath === null ? {} : loadEnvFile(opts.envFilePath ?? defaultEnvFilePath());
 
-  const lookup = (name: string): string | undefined => {
-    const fromEnv = env[name];
-    if (typeof fromEnv === 'string' && fromEnv.length > 0) return fromEnv;
-    const fromFile = fileEnv[name];
-    if (fromFile !== undefined && fromFile.length > 0) return fromFile;
+  const firstDefined = (source: Record<string, string | undefined>, names: string[]): string | undefined => {
+    for (const name of names) {
+      const v = source[name];
+      if (typeof v === 'string' && v.length > 0) return v;
+    }
     return undefined;
   };
 
   const keys: Record<string, string> = {};
   for (const [provider, factory] of Object.entries(providers)) {
-    const curiocityVar = lookup(`CURIOCITY_${provider.toUpperCase()}_KEY`);
-    let standard: string | undefined;
-    for (const name of factory.standardKeyEnvVars) {
-      standard = lookup(name);
-      if (standard !== undefined) break;
-    }
-    const key = curiocityVar ?? standard;
+    const names = [`CURIOCITY_${provider.toUpperCase()}_KEY`, ...factory.standardKeyEnvVars];
+    const key = firstDefined(env, names) ?? firstDefined(fileEnv, names);
     if (key !== undefined) keys[provider] = key;
   }
   return keys;

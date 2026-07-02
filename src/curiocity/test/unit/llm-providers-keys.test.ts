@@ -61,4 +61,27 @@ describe('key resolution (§12)', () => {
     const keys = resolveKeys({ env: {}, envFilePath: null });
     expect(keys).toEqual({});
   });
+
+  it('a live process-env standard var outranks a stale CURIOCITY_<PROVIDER>_KEY left in .env (§12 tiered precedence)', () => {
+    // Regression: precedence must be tiered by SOURCE first (env, then .env file),
+    // and only by name within a source — never ".env file CURIOCITY var" ahead of
+    // "process.env standard var". Otherwise a stale local .env value could shadow a
+    // live CI-injected key, e.g. sending a run to the wrong account/key silently.
+    const dir = mkdtempSync(join(tmpdir(), 'curio-env-'));
+    const envFile = join(dir, '.env');
+    writeFileSync(envFile, 'CURIOCITY_ANTHROPIC_KEY=sk-stale-from-file\n');
+
+    const keys = resolveKeys({ env: { ANTHROPIC_API_KEY: 'sk-live-ci' }, envFilePath: envFile });
+    expect(keys.anthropic).toBe('sk-live-ci');
+  });
+
+  it('the .env file is consulted only when the environment has neither name (both name orders)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'curio-env-'));
+    const envFile = join(dir, '.env');
+    writeFileSync(envFile, 'CURIOCITY_ANTHROPIC_KEY=sk-curio-from-file\nOPENAI_API_KEY=sk-standard-from-file\n');
+
+    const keys = resolveKeys({ env: {}, envFilePath: envFile });
+    expect(keys.anthropic).toBe('sk-curio-from-file');
+    expect(keys.openai).toBe('sk-standard-from-file');
+  });
 });
