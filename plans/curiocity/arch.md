@@ -22,7 +22,7 @@ An evals/testing harness that drives interactive coding-agent CLIs (v1: **Claude
 | # | Principle |
 |---|---|
 | P1 | **Interactive TUI over PTY — never headless** (`-p`/`--print`/`exec`/SDK one-shot are forbidden). Interactive is the code path where plugins actually load; that is what we test. |
-| P2 | **Auto-handle permissions** per agent profile (Claude: `--permission-mode acceptEdits` — `auto` proved insufficient live: cheap models still raise recurring "create file?" prompts that hang the session; Codex: `-a never` + sandbox). Permission prompts are noise; the agent's *own substantive questions* are answered (that's the harness working). |
+| P2 | **Auto-handle permissions** per agent profile (Claude: `--permission-mode auto` — the default; Codex: `-a never` + sandbox). **Model-capability caveat:** some models (e.g. Haiku) do NOT support auto mode and raise recurring un-clearable permission prompts under it — configs running such models must override to `acceptEdits` per case/profile. Permission prompts are noise; the agent's *own substantive questions* are answered (that's the harness working). |
 | P3 | **A "question" is ONLY**: (a) a structured question tool (Claude Code `AskUserQuestion`), or (b) a genuine free-text question in the turn-final assistant message. **Never** ordinary tool activity (`TaskCreate`/`TaskUpdate`/`Skill`/`Bash`/`Read`/…). Violating this derailed a validated live run (harness injected "answers" to normal tool calls → 30-min run, zero deliverables). Hard rule; see §6 trigger table. |
 | P4 | **Native trajectory (on-disk transcript) is authoritative**; the rendered screen is fallback evidence. Deterministic detection gates every LLM call (cost/latency bounded). |
 | P5 | **Two model tiers**: `fast` for high-frequency classification, `workhorse` for replies + judging (role `judge` defaults to workhorse). Provider+model configurable per role. |
@@ -147,7 +147,8 @@ interface AgentProfile {                 // from top-level config `codingagents`
   command: string; args: string[];       // template vars: {prompt}, {sessionId}, {workspace}, {ctrlDir}
   envRemove: string[];                   // glob patterns stripped from agent PTY env
   envSet?: Record<string, string>;
-  agentModel?: string;                   // model the agent CLI itself runs (claude: --model X; codex: -m X); D13-mergeable, per-case override via agentModels map, CLI --agent-model <agent>=<model>. Cost policy: cheap tier for the majority of testing (claude: Haiku 3.5; codex: gpt-5.4-mini); smarter models only for final validation runs.
+  agentModel?: string;                   // model the agent CLI itself runs (claude: --model X; codex: -m X); D13-mergeable, per-case override via agentModels map, CLI --agent-model <agent>=<model>. Cost policy: cheap tier for the majority of testing (claude: Sonnet 5 at LOW reasoning effort — supports auto permission mode, unlike Haiku; codex: gpt-5.4-mini); smarter/full-effort models only for final validation runs.
+  agentEffort?: string;                  // reasoning effort — a SEPARATE dimension from the model, same D13/agentEfforts-map/CLI plumbing as agentModel. Rendered per adapter: codex `-c model_reasoning_effort="<v>"`; claude via its effort surface (verify mechanism empirically against the installed CLI; the Stop-hook payload reports `effort`, so record requested vs observed like agentModel). Adapter lacking an effort surface: warn + omit, never fail the trial.
   strategy: 'json-only' | 'screen-reader' | 'hybrid';
   readiness: { bannerPattern?: string; quietMs: number };  // TUI ready-for-input signal
   submit: 'enter' | 'paste+enter';       // key sequencing for typed input (some TUIs need paste mode)
@@ -227,7 +228,9 @@ Render, don't grep raw ANSI: PTY bytes feed the headless emulator; anything read
 ```
 write("\x1b[200~")  →  write(text /* may contain \n */)  →  write("\x1b[201~")  →  write("\r")
 ```
-**`paste+enter` (the bracketed sequence above) is the default and the only mode used in practice — for ALL payloads, single-line included.** Both v1 TUIs enable bracketed paste, wrapping single-line text is harmless there, and one submit path means no content-inspection branching and no mis-classification failure class; the mock agent understands the markers too, so tests exercise the production path. `enter` (bare two-write sequence) remains profile-selectable only as a fallback for a future TUI that doesn't enable bracketed paste. Raw keystrokes (dialog answers, arrow keys, bare `\r`, Ctrl+C) go through `write()` and are never wrapped.
+**`paste+enter` (the bracketed sequence above) is the default and the only mode used in practice — for ALL payloads, single-line included.** Both v1 TUIs enable bracketed paste, wrapping single-line text is harmless there, and one submit path means no content-inspection branching and no mis-classification failure class; the mock agent understands the markers too, so tests exercise the production path. `enter` (bare two-write sequence) remains profile-selectable only as a fallback. Raw keystrokes (dialog answers, arrow keys, bare `\r`, Ctrl+C) go through `write()` and are never wrapped.
+
+**Mode is observed, not assumed (binding):** bracketed paste is a mode the *application* enables by emitting `ESC[?2004h` to the terminal (and disables with `ESC[?2004l`); the paste markers `ESC[200~`/`ESC[201~` are only meaningful while it is enabled. The harness IS the terminal side of the PTY, so `TerminalSession` tracks the app's current mode from its output stream — `@xterm/headless` parses DECSET and exposes `modes.bracketedPasteMode` — and `submitLine` wraps in paste markers **only while the app has the mode enabled**, transparently degrading to the plain two-write sequence otherwise. This replaces any static assumption: a TUI that never enables the mode (or a dialog state that temporarily disables it) automatically gets unwrapped input, with no profile knowledge required.
 
 ### 5.4 Evaluators & verdict
 
@@ -394,7 +397,7 @@ Both v1 adapters are **renderers of the same canonical specs** (§5.2 standard l
 
 ### 10.1 `claude-code` (mechanics validated by live experiment 2026-06-23 + live end-to-end PoC run)
 
-- **Launch:** `claude "<prompt>" --permission-mode acceptEdits --session-id <fresh-uuid> --settings <ctrlDir>/settings.json`, PTY cwd = workspace. (`acceptEdits`, not `auto`: live-observed with cheap agent models that `auto` still raises recurring un-clearable "create file?" permission prompts → session hang; `acceptEdits` clears them, and `bypassPermissions` is stronger than needed in an isolated workspace.)
+- **Launch:** `claude "<prompt>" --permission-mode auto --session-id <fresh-uuid> --settings <ctrlDir>/settings.json`, PTY cwd = workspace. (**`auto` is the default** — USER RULING, do not flip. Model caveat, live-observed: Haiku-class models don't support auto mode and raise recurring un-clearable "create file?" prompts → session hang. When pinning such a model, override to `acceptEdits` in the case/profile config. The cheap tier avoids this entirely by using Sonnet 5 at low reasoning effort, which supports auto.)
 - **Hooks:** injected via a `--settings` file; this settings layer **merges alongside** existing user/project/plugin hooks (validated — precondition per §5.2). Shape:
   ```json
   { "hooks": {
