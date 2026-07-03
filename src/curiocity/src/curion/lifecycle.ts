@@ -21,6 +21,8 @@ import {
 } from '../results/schema';
 import type { TrialArtifacts } from '../results/store';
 import { runEvaluatorPipeline } from './evaluate';
+import { buildAgentModelRecord } from './agent-model';
+import { computeTurnMetrics } from '../interaction/turn-metrics';
 import { buildRouter } from './router-factory';
 import { CostMeter } from '../llm/cost-meter';
 import { MeteredRouter } from '../llm/router';
@@ -265,6 +267,15 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
           promptMd: spec.prompt,
         },
         agentId: spec.agentId,
+        // External-evaluator context (§11): file paths + identity for the stdin JSON.
+        rawTranscriptPath: interaction.transcriptPath,
+        ...(spec.caseDir !== undefined ? { caseDir: spec.caseDir } : {}),
+        ...(interaction.agentModel !== undefined
+          ? { agentModel: interaction.agentModel }
+          : profile.agentModel !== undefined
+            ? { agentModel: profile.agentModel }
+            : {}),
+        sessionId: trialCtx.sessionId,
         router,
       });
       // Evaluate splits into deterministic checks vs judge-LLM (§12): the judge LLM
@@ -335,6 +346,12 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
   const harnessLlmByModel = meter.durationByModel();
   const harnessOverheadMs = Math.max(0, harnessReactMs - interactLlmMs);
 
+  // Turn metrics (§12): derived from the persisted per-turn timeline (D8 retroactive).
+  const turnMetrics = interaction ? computeTurnMetrics(interaction.timeline) : undefined;
+  // agentModel accounting (§5.2): requested (what we passed to the CLI) vs observed
+  // (what the CLI's SessionStart payload reported), with a tolerant mismatch flag.
+  const agentModelRecord = buildAgentModelRecord(profile.agentModel, interaction?.agentModel);
+
   const resultInput: TrialResultInput = {
     schemaVersion: SCHEMA_VERSION,
     agent: spec.agentId,
@@ -344,8 +361,10 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
     ...(verdict ? { verdict } : {}),
     evaluators,
     turnCount,
+    ...(turnMetrics ? { turnMetrics } : {}),
     qna,
     cost,
+    ...(agentModelRecord ? { agentModel: agentModelRecord } : {}),
     ...(transcriptSourceLabel ? { transcriptSource: transcriptSourceLabel } : {}),
     timings: {
       totalMs,

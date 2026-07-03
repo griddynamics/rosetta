@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { TerminalSession } from '../../src/terminal/session';
+import type { SubmitMode } from '../../src/terminal/types';
 
 /**
  * TerminalSession (§5.3): PTY + headless emulator. Snapshots are the rendered,
@@ -73,5 +74,47 @@ describe('TerminalSession', () => {
     await waitFor(() => s.snapshot().includes('got:English'));
     await waitFor(() => exited);
     expect(s.hasExited).toBe(true);
+  });
+
+  // §5.3 binding rule: the Enter keystroke is ALWAYS a SEPARATE PTY write, after the
+  // body — never `text\r` in one write (root cause of the M6.5 codex submit failure).
+  function captureSubmit(mode: SubmitMode, text: string): Promise<string[]> {
+    const s = new TerminalSession({
+      command: '/bin/sh',
+      args: ['-c', 'sleep 1'],
+      cwd: process.cwd(),
+      env: { PATH: process.env['PATH'] ?? '/usr/bin:/bin' },
+      submit: mode,
+    });
+    const writes: string[] = [];
+    const spy = vi.spyOn(s, 'write').mockImplementation(async (input: string) => {
+      writes.push(input);
+    });
+    return s.submitLine(text).then(() => {
+      spy.mockRestore();
+      s.kill();
+      return writes;
+    });
+  }
+
+  // Plain single-line modes: TWO writes — text, then a discrete lone CR.
+  for (const mode of ['enter', 'type+enter'] as SubmitMode[]) {
+    it(`submitLine (${mode}, single line) → [text, "\\r"]`, async () => {
+      const writes = await captureSubmit(mode, 'English');
+      expect(writes).toEqual(['English', '\r']);
+    });
+  }
+
+  // paste+enter: FOUR writes — open marker, text, close marker, discrete CR.
+  it('submitLine (paste+enter) → bracketed paste as four separate writes', async () => {
+    const writes = await captureSubmit('paste+enter', 'English');
+    expect(writes).toEqual(['\x1b[200~', 'English', '\x1b[201~', '\r']);
+  });
+
+  // A multi-line payload auto-routes to bracketed paste even under a plain profile, so
+  // an embedded newline is never read as an early submit.
+  it('submitLine auto-routes a multi-line payload to bracketed paste (enter profile)', async () => {
+    const writes = await captureSubmit('enter', 'line one\nline two');
+    expect(writes).toEqual(['\x1b[200~', 'line one\nline two', '\x1b[201~', '\r']);
   });
 });

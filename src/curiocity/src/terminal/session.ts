@@ -26,8 +26,8 @@ const DEFAULT_ROWS = 40;
 /** Chunk size for input writes; keeps a single write from flooding the PTY (§4). */
 const WRITE_CHUNK = 1024;
 
-/** Settle before the discrete Enter in `type+enter` submit mode (§5.2), so the composer
- *  does not read `text\r` as one paste burst. */
+/** Settle between the message text and the DISCRETE Enter keystroke (§5.3, binding),
+ *  so the composer does not read `text\r` as one paste burst / literal newline. */
 const SUBMIT_SETTLE_MS = 200;
 
 export interface Pane {
@@ -156,30 +156,41 @@ export class TerminalSession {
   }
 
   /**
-   * Submit a line of typed input using the profile's submit sequencing (§5.2/D15):
-   *   - `enter`       → text + CR (one write).
-   *   - `paste+enter` → bracketed-paste-wrapped text, then CR (some TUIs require
-   *                     paste mode so a multi-line/large answer is not interpreted
-   *                     key-by-key).
-   *   - `type+enter`  → text, a short SETTLE, then a DISCRETE CR. Some interactive
-   *                     composers (verified live: codex-cli 0.142.2) treat a rapid
-   *                     `text\r` burst as a multi-line PASTE and insert a newline
-   *                     instead of submitting — the answer just sits in the composer.
-   *                     Separating the Enter keystroke after the text settles makes it
-   *                     a genuine submit.
+   * Submit a line of typed input using the profile's submit sequencing (§5.2/§5.3/D15).
+   *
+   * BINDING RULE (§5.3): the Enter keystroke (`\r`) is ALWAYS a SEPARATE PTY write,
+   * sent AFTER the message body has flushed and the composer has settled. Writing the
+   * text and CR concatenated in one write is read by the claude/codex interactive
+   * composers as a bracketed-paste / literal newline INSIDE the input box — NOT a
+   * submission (the confirmed root-cause class of the M6.5 codex submit failure: the
+   * typed answer sat unsent in `›` until the freeze watchdog fired).
+   *
+   * Two body framings:
+   *   - **plain** (`enter` / `type+enter`, single-line): TWO writes — the text, then a
+   *     separate `\r`.
+   *   - **bracketed paste** (`paste+enter`, OR ANY payload containing `\n`): FOUR
+   *     writes — `\x1b[200~`, the text (embedded `\n` stay literal composer text, not
+   *     submissions), `\x1b[201~`, then a separate `\r`. A multi-line payload is routed
+   *     here automatically regardless of the profile default, because a plain
+   *     multi-line write would submit at the first embedded newline.
+   *
    * This is the only place the submit mode is applied — raw `write()` (dialog
    * keystrokes) is never auto-terminated.
    */
   async submitLine(text: string): Promise<void> {
-    if (this.submitMode === 'paste+enter') {
-      await this.write(`\x1b[200~${text}\x1b[201~\r`);
-    } else if (this.submitMode === 'type+enter') {
+    const usePaste = this.submitMode === 'paste+enter' || text.includes('\n');
+    if (usePaste) {
+      // Bracketed paste: open marker, body, close marker as DISTINCT writes so embedded
+      // newlines are held as composer text; then a settle and a discrete Enter.
+      await this.write('\x1b[200~');
       await this.write(text);
-      await new Promise((r) => setTimeout(r, SUBMIT_SETTLE_MS));
-      await this.write('\r');
+      await this.write('\x1b[201~');
     } else {
-      await this.write(`${text}\r`);
+      await this.write(text);
     }
+    // Settle so the body flushes, THEN submit with a discrete lone Enter keystroke.
+    await new Promise((r) => setTimeout(r, SUBMIT_SETTLE_MS));
+    await this.write('\r');
   }
 
   snapshot(paneId?: string): string {

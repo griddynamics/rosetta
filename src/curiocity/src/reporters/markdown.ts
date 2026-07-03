@@ -139,6 +139,43 @@ export const markdownReporter: Reporter = {
       lines.push('');
     }
 
+    // Turn metrics (§12): total turns, question turns (once per turn), interruptions
+    // (consecutive question-turns collapsed). Total vs per-trial mean.
+    const turnBlocks = suite.groups.filter((g) => g.id === 'turn-metrics') as Block[];
+    if (turnBlocks.length > 0) {
+      lines.push('## Turn metrics', '');
+      lines.push('| Case | Agent | Turns | Question turns | Interruptions | Mean turns | Mean q-turns | Mean interruptions |');
+      lines.push('|---|---|---|---|---|---|---|---|');
+      for (const t of turnBlocks) {
+        lines.push(
+          `| ${t.case ?? '?'} | ${t.agent ?? '?'} | ${int(t['turnsTotal'])} | ${int(t['questionTurns'])} | ` +
+            `${int(t['interruptions'])} | ${num(t['meanTurnsTotal'])} | ${num(t['meanQuestionTurns'])} | ` +
+            `${num(t['meanInterruptions'])} |`,
+        );
+      }
+      lines.push('');
+    }
+
+    // External-evaluator metrics (§11): per metric name, mean/min/max/stddev per group.
+    const metricBlocks = suite.groups.filter((g) => g.id === 'metrics') as Block[];
+    const metricRows: string[] = [];
+    for (const b of metricBlocks) {
+      const named = (b['metrics'] as Record<string, { mean: number; min: number; max: number; stddev: number; count: number }>) ?? {};
+      for (const [name, s] of Object.entries(named)) {
+        metricRows.push(
+          `| ${b.case ?? '?'} | ${b.agent ?? '?'} | ${name} | ${num(s.mean)} | ${num(s.min)} | ` +
+            `${num(s.max)} | ${num(s.stddev)} | ${s.count} |`,
+        );
+      }
+    }
+    if (metricRows.length > 0) {
+      lines.push('## External metrics', '');
+      lines.push('| Case | Agent | Metric | Mean | Min | Max | Stddev | Count |');
+      lines.push('|---|---|---|---|---|---|---|---|');
+      lines.push(...metricRows);
+      lines.push('');
+    }
+
     // Per-trial detail.
     lines.push('## Trials', '');
     lines.push('| Case | Agent | Repeat | Status | Score | Verdict | Transcript |');

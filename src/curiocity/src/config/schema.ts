@@ -38,6 +38,10 @@ export const agentProfileSchema = z.object({
   args: z.array(z.string()),
   envRemove: z.array(z.string()).default([]),
   envSet: z.record(z.string()).optional(),
+  /** Model the agent CLI itself runs (§5.2): claude renders `--model <id>`, codex
+   *  `-m <id>`, mock accepts+records as a no-op. D13-mergeable; per-case override via
+   *  the case `agentModels` map and CLI `--agent-model <agentId>=<model>` sit above it. */
+  agentModel: z.string().min(1).optional(),
   strategy: strategySchema,
   readiness: readinessSchema,
   submit: submitSchema,
@@ -134,5 +138,9 @@ export const caseConfigSchema = z.object({
   evaluators: z.array(evaluatorEntrySchema).default([]),
   combiner: z.string().optional(),
   models: partialModelRolesSchema.optional(),
+  /** Per-agent agent-CLI model override (§5.2): `{ "<agentId>": "<model>" }`. Overrides
+   *  the profile's `agentModel`; CLI `--agent-model` overrides this in turn (profile <
+   *  case < CLI, D13). */
+  agentModels: z.record(z.string()).optional(),
 });
 export type CaseConfig = z.infer<typeof caseConfigSchema>;

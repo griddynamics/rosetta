@@ -70,6 +70,9 @@ export class MockAdapter implements AgentAdapter {
 
   buildLaunch(ctx: TrialContext): LaunchFragment {
     const vars = templateVars(ctx);
+    // `agentModel` (§5.2) is accepted + recorded (it rides `ctx.profile` and is captured
+    // as `agentModelRequested`) but a NO-OP for the mock: the scripted TUI has no real
+    // model flag, so nothing is appended to argv.
     return {
       args: ctx.profile.args.map((a) => applyTemplate(a, vars)),
       env: filterAgentEnv(currentEnv(), ctx.profile.envRemove, ctx.profile.envSet),

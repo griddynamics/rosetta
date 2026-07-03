@@ -5,6 +5,8 @@ import { passRate } from './pass-rate';
 import { stability } from './stability';
 import { costRollup } from './cost-rollup';
 import { timeRollup } from './time-rollup';
+import { turnMetricsStat } from './turn-metrics';
+import { metrics } from './metrics';
 import type { StatContext } from './types';
 
 /**
@@ -17,13 +19,23 @@ if (!statRegistry.has('pass-rate')) statRegistry.register(passRate);
 if (!statRegistry.has('stability')) statRegistry.register(stability);
 if (!statRegistry.has('cost-rollup')) statRegistry.register(costRollup);
 if (!statRegistry.has('time-rollup')) statRegistry.register(timeRollup);
+if (!statRegistry.has('turn-metrics')) statRegistry.register(turnMetricsStat);
+if (!statRegistry.has('metrics')) statRegistry.register(metrics);
 
 export { statRegistry };
 export * from './types';
-export { scoreStats, passRate, stability, costRollup, timeRollup };
+export { scoreStats, passRate, stability, costRollup, timeRollup, turnMetricsStat, metrics };
 
 /** Deterministic display order of the built-in stats. */
-const STAT_ORDER = ['score-stats', 'pass-rate', 'stability', 'cost-rollup', 'time-rollup'];
+const STAT_ORDER = [
+  'score-stats',
+  'pass-rate',
+  'stability',
+  'cost-rollup',
+  'time-rollup',
+  'turn-metrics',
+  'metrics',
+];
 
 /** Group trials by `(case×agent)`, in deterministic order. */
 export function groupTrials(trials: TrialResult[]): Map<string, TrialResult[]> {

@@ -23,6 +23,13 @@ export const trialStatusSchema = z.enum([
 ]);
 export type TrialStatus = z.infer<typeof trialStatusSchema>;
 
+/** One named metric emitted by an evaluator (§11 `external`): value normalized 0-100. */
+export const evalMetricSchema = z.object({
+  name: z.string(),
+  value: z.number(),
+});
+export type EvalMetric = z.infer<typeof evalMetricSchema>;
+
 /** One evaluator's result (mirrors `EvalResult`, §5.4). */
 export const evalResultSchema = z.object({
   id: z.string(),
@@ -31,8 +38,30 @@ export const evalResultSchema = z.object({
   gate: z.boolean(),
   details: z.string(),
   cost: usageSchema.optional(),
+  /** Named metrics (§11 `external`), recorded per trial and rolled up per metric name. */
+  metrics: z.array(evalMetricSchema).optional(),
 });
 export type EvalResultRecord = z.infer<typeof evalResultSchema>;
+
+/** Requested-vs-observed agent-CLI model (§5.2, M6.6). `mismatch` is set only when
+ *  both are known (tolerant alias/full-id comparison); see `curion/agent-model.ts`. */
+export const agentModelRecordSchema = z.object({
+  requested: z.string().optional(),
+  observed: z.string().optional(),
+  mismatch: z.boolean().optional(),
+});
+export type AgentModelRecord = z.infer<typeof agentModelRecordSchema>;
+
+/** Turn metrics (§12), derived from the per-turn timeline. `turnsTotal` = all turns;
+ *  `questionTurns` = turns where the harness answered ≥1 question (once per turn,
+ *  regardless of question count within); `interruptions` = maximal runs of CONSECUTIVE
+ *  question-turns collapsed to one each (the choppiness measure). */
+export const turnMetricsSchema = z.object({
+  turnsTotal: z.number().int().nonnegative(),
+  questionTurns: z.number().int().nonnegative(),
+  interruptions: z.number().int().nonnegative(),
+});
+export type TurnMetrics = z.infer<typeof turnMetricsSchema>;
 
 /** Per-trial verdict from the combiner (§5.4). */
 export const verdictSchema = z.object({
@@ -62,6 +91,9 @@ export const turnTimingSchema = z.object({
   turnStart: z.number().nonnegative(),
   stopAt: z.number().nonnegative(),
   reactionDoneAt: z.number().nonnegative(),
+  /** True when the harness answered ≥1 question this turn (a "question turn", §12).
+   *  Drives the turn metrics; optional so pre-M6.6 timelines still validate. */
+  question: z.boolean().optional(),
 });
 export type TurnTiming = z.infer<typeof turnTimingSchema>;
 
@@ -111,9 +143,13 @@ export const trialResultSchema = z.object({
   verdict: verdictSchema.optional(),
   evaluators: z.array(evalResultSchema).default([]),
   turnCount: z.number().int().nonnegative().default(0),
+  /** Turn metrics derived from the per-turn timeline (§12). */
+  turnMetrics: turnMetricsSchema.optional(),
   qna: z.array(qnaEntrySchema).default([]),
   cost: costBlockSchema.optional(),
   timings: timeBlockSchema.optional(),
+  /** Requested-vs-observed agent-CLI model + mismatch flag (§5.2, M6.6). */
+  agentModel: agentModelRecordSchema.optional(),
   /** Which transcript source drove the trial (§10, Part 3.2): the injected capture
    *  hook (authoritative session-start payload) or the computed fallback location. */
   transcriptSource: z.enum(['hook', 'fallback']).optional(),

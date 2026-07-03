@@ -45,6 +45,25 @@ export interface RunOptions {
   fastModel?: string;
   workhorseModel?: string;
   judgeModel?: string;
+  agentModel?: string[];
+}
+
+/**
+ * Parse repeatable `--agent-model <agentId>=<model>` flags into a map. A malformed
+ * entry (no `=`, empty id/model) is a `ConfigError` (exit 2) rather than a silent drop.
+ */
+export function parseAgentModels(raw: string[] | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const item of raw ?? []) {
+    const eq = item.indexOf('=');
+    const id = eq >= 0 ? item.slice(0, eq).trim() : '';
+    const model = eq >= 0 ? item.slice(eq + 1).trim() : '';
+    if (id === '' || model === '') {
+      throw new ConfigError(`--agent-model must be "<agentId>=<model>", got "${item}".`);
+    }
+    out[id] = model;
+  }
+  return out;
 }
 
 /** Minimal glob (`*`, `?`) -> RegExp for `--case` filtering. */
@@ -122,6 +141,10 @@ export async function runRun(opts: RunOptions): Promise<number> {
     ...(opts.onlyEvaluator ? { onlyEvaluator: opts.onlyEvaluator } : {}),
     ...(opts.skipEvaluator ? { skipEvaluator: opts.skipEvaluator } : {}),
     models: cliModels(opts),
+    ...(() => {
+      const agentModels = parseAgentModels(opts.agentModel);
+      return Object.keys(agentModels).length > 0 ? { agentModels } : {};
+    })(),
   };
 
   // --- Mode & case set (D4/D7) ---

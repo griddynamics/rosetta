@@ -29,11 +29,13 @@ import { extractJsonObjectStrings } from './stop-reader';
 
 export type InteractionOutcome = 'done' | 'agent-hung' | 'agent-crash' | 'timeout';
 
-/** One turn's raw timeline (§12): submitted → Stop signal → harness reply typed. */
+/** One turn's raw timeline (§12): submitted → Stop signal → harness reply typed.
+ *  `question` marks a turn where the harness answered ≥1 question (drives turn metrics). */
 export interface TurnTiming {
   turnStart: number;
   stopAt: number;
   reactionDoneAt: number;
+  question: boolean;
 }
 
 export interface InteractionResult {
@@ -120,10 +122,12 @@ export class InteractionEngine {
   /** When the current turn started (prompt/answer submitted); set at ready + after each reply. */
   private currentTurnStart = 0;
 
-  /** Record one completed turn's timeline; advance the next turn's start when we replied. */
-  private recordTurn(stopAt: number, reactionDoneAt: number, advance: boolean): void {
-    this.timeline.push({ turnStart: this.currentTurnStart, stopAt, reactionDoneAt });
-    if (advance) this.currentTurnStart = reactionDoneAt;
+  /** Record one completed turn's timeline; advance the next turn's start when we replied.
+   *  `answered` (we typed a reply to a question) both marks this a question turn (§12
+   *  turn metrics) and advances the next turn's start — the two always coincide. */
+  private recordTurn(stopAt: number, reactionDoneAt: number, answered: boolean): void {
+    this.timeline.push({ turnStart: this.currentTurnStart, stopAt, reactionDoneAt, question: answered });
+    if (answered) this.currentTurnStart = reactionDoneAt;
   }
 
   constructor(deps: EngineDeps) {

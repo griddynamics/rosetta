@@ -167,11 +167,13 @@ export class ClaudeCodeAdapter implements AgentAdapter {
     };
   }
 
-  /** Step 3 — command/args/env from profile templates (envRemove filtering, session id). */
+  /** Step 3 — command/args/env from profile templates (envRemove filtering, session id).
+   *  Renders the resolved `agentModel` (§5.2) as Claude's `--model <id>` flag when set. */
   buildLaunch(ctx: TrialContext): LaunchFragment {
     const vars = templateVars(ctx);
+    const modelArgs = ctx.profile.agentModel ? ['--model', ctx.profile.agentModel] : [];
     return {
-      args: ctx.profile.args.map((a) => applyTemplate(a, vars)),
+      args: [...ctx.profile.args.map((a) => applyTemplate(a, vars)), ...modelArgs],
       // Read the LIVE process env (not the ctx): stripping CLAUDECODE/CLAUDE_CODE* here
       // is exactly what lets a claude launched from inside a Claude Code session persist
       // its own transcript instead of running as a nested child (§10.1).

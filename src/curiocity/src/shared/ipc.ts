@@ -45,6 +45,9 @@ export const trialSpecSchema = z.object({
   evaluators: z.array(z.unknown()).default([]),
   /** Verdict combiner id (§5.4, default `gated-mean`). */
   combiner: z.string().default('gated-mean'),
+  /** Case source folder (discovered cases): the `external` evaluator's `caseDir` and
+   *  the cwd for case-relative evaluator commands (§11). Absent for inline cases. */
+  caseDir: z.string().optional(),
   /** Path to the case source archive (unzipped into the workspace). */
   srcZipPath: z.string().optional(),
   /** Inline `--src <dir>` source directory (copied into the workspace). */

@@ -34,6 +34,11 @@ export interface EvaluatePipelineArgs {
   /** Case prose: rubric (evaluation.md, verbatim) + prompt. */
   caseFiles: { evaluationMd?: string; promptMd: string };
   agentId: string;
+  /** External-evaluator context (§11): on-disk transcript path + identity. */
+  rawTranscriptPath?: string;
+  caseDir?: string;
+  agentModel?: string;
+  sessionId?: string;
   router: ModelRouter;
 }
 
@@ -49,6 +54,10 @@ export async function runEvaluatorPipeline(args: EvaluatePipelineArgs): Promise<
     qnaLog: args.qna,
     caseFiles: args.caseFiles,
     agentId: args.agentId,
+    ...(args.rawTranscriptPath !== undefined ? { rawTranscriptPath: args.rawTranscriptPath } : {}),
+    ...(args.caseDir !== undefined ? { caseDir: args.caseDir } : {}),
+    ...(args.agentModel !== undefined ? { agentModel: args.agentModel } : {}),
+    ...(args.sessionId !== undefined ? { sessionId: args.sessionId } : {}),
     models: args.router,
     exec: execa,
   };
@@ -81,6 +90,7 @@ export async function runEvaluatorPipeline(args: EvaluatePipelineArgs): Promise<
       gate: gated,
       details: finalResult.details,
       ...(finalResult.cost ? { cost: finalResult.cost } : {}),
+      ...(finalResult.metrics && finalResult.metrics.length > 0 ? { metrics: finalResult.metrics } : {}),
     });
     items.push({ result: finalResult, weight: weight ?? 1 });
   }

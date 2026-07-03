@@ -207,8 +207,10 @@ export class CodexAdapter implements AgentAdapter {
     const env = filterAgentEnv(base, ctx.profile.envRemove, ctx.profile.envSet);
     const codexHome = this.codexHome(ctx);
     env.CODEX_HOME = codexHome;
+    // Render the resolved `agentModel` (§5.2) as codex's `-m <id>` flag when set.
+    const modelArgs = ctx.profile.agentModel ? ['-m', ctx.profile.agentModel] : [];
     return {
-      args: ctx.profile.args.map((a) => applyTemplate(a, vars)),
+      args: [...ctx.profile.args.map((a) => applyTemplate(a, vars)), ...modelArgs],
       env,
       // Seed the isolated home before launch: create it and (if the user is logged in
       // via auth.json) symlink their credential in so codex authenticates as them

@@ -167,6 +167,21 @@ describe('§6 interaction engine — trigger table, row by row', () => {
     expect(tm.agentPureMs!).toBeGreaterThan(tm.harnessReactMs!);
   });
 
+  it('turn metrics (§12): a multi-question turn is counted ONCE (questionTurns=1)', async () => {
+    // One Stop message bundling two questions → the harness answers it in ONE turn, so
+    // questionTurns is 1 (not 2). Then a done turn. interruptions collapses the single
+    // consecutive run to 1.
+    const { result } = await run({ scene: 'multi-question-turn.json' }, {
+      entries: [
+        { role: 'fast', object: { classification: 'question' } },
+        { role: 'workhorse', text: 'json, out.txt' },
+      ],
+    });
+    expect(result.status).toBe('passed');
+    expect(result.qna).toHaveLength(1);
+    expect(result.turnMetrics).toEqual({ turnsTotal: 2, questionTurns: 1, interruptions: 1 });
+  });
+
   it('agent-crash: PTY exits unexpectedly before a done signal', async () => {
     const { result } = await run({ scene: 'crash.json' });
     expect(result.status).toBe('agent-crash');

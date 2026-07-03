@@ -227,7 +227,7 @@ Render, don't grep raw ANSI: PTY bytes feed the headless emulator; anything read
 ```
 write("\x1b[200~")  →  write(text /* may contain \n */)  →  write("\x1b[201~")  →  write("\r")
 ```
-`enter` mode = bare two-write sequence for single-line text; `paste+enter` = the four-write bracketed sequence above. Any payload containing `\n` should use `paste+enter` regardless of the profile default.
+**`paste+enter` (the bracketed sequence above) is the default and the only mode used in practice — for ALL payloads, single-line included.** Both v1 TUIs enable bracketed paste, wrapping single-line text is harmless there, and one submit path means no content-inspection branching and no mis-classification failure class; the mock agent understands the markers too, so tests exercise the production path. `enter` (bare two-write sequence) remains profile-selectable only as a fallback for a future TUI that doesn't enable bracketed paste. Raw keystrokes (dialog answers, arrow keys, bare `\r`, Ctrl+C) go through `write()` and are never wrapped.
 
 ### 5.4 Evaluators & verdict
 

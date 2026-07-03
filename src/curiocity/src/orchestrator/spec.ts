@@ -73,13 +73,23 @@ export function buildTrialSpecs(args: BuildSpecsArgs): BuiltSpecs {
       continue;
     }
     // D13 defaults layer: adapter built-in default < top-level config (per-field).
-    const profile = resolveAgentProfile(entry.agent, args.topLevel);
+    let profile = resolveAgentProfile(entry.agent, args.topLevel);
     if (!profile) {
       skipped.push({
         cell,
         reason: `no agent profile for "${entry.agent}" (no built-in default and none configured)`,
       });
       continue;
+    }
+    // agentModel precedence (§5.2, D13): profile (adapter default < top-level config,
+    // already folded into `profile.agentModel` by `resolveAgentProfile`) < case
+    // `agentModels[agent]` < CLI `--agent-model` (both folded into
+    // `resolved.agentModels[agent]`). The resolved requested model overrides the
+    // profile rung; it flows to the adapter's `buildLaunch` (rendered as `--model`/`-m`)
+    // and is recorded as `agentModelRequested` in trial.json.
+    const requestedModel = resolved.agentModels[entry.agent] ?? profile.agentModel;
+    if (requestedModel !== undefined && requestedModel !== profile.agentModel) {
+      profile = { ...profile, agentModel: requestedModel };
     }
 
     const topSetup = args.topLevel.setup.map((s) => resolveScript(s, args.configDir));
@@ -104,6 +114,7 @@ export function buildTrialSpecs(args: BuildSpecsArgs): BuiltSpecs {
       teardown: [...topTeardown, ...caseTeardown],
       evaluators: resolved.evaluators,
       combiner: resolved.combiner,
+      ...(def.dir !== undefined ? { caseDir: def.dir } : {}),
       ...(def.srcZipPath !== undefined ? { srcZipPath: def.srcZipPath } : {}),
       ...(def.srcDir !== undefined ? { srcDir: def.srcDir } : {}),
       profile,
