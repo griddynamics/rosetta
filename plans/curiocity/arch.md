@@ -453,7 +453,14 @@ Combiner (§5.4 `gated-mean` default) produces the per-trial verdict `{pass, sco
 | `pass-rate` | passed / (passed + failed); error-status trials excluded (D14) |
 | `stability` | classification per group: **stable-pass** (pass-rate ≥ threshold, tight spread), **flaky** (mixed or wide spread), **stable-fail**. A tight high band beats a wide one with the same mean. |
 | `cost-rollup` | tokens (+$ if priced) itemized: agent usage vs harness `fast`/`workhorse`/`judge`, by model — makes visible *what drives cost* (cheap agent needing many interventions vs expensive one-shot agent) |
-| `time-rollup` | wall-clock breakdown: agent runtime vs harness-LLM time vs deterministic checks |
+| `time-rollup` | full time decomposition (see below): total wall + per-phase + pure-vs-reaction split |
+
+**Time decomposition (measured, not derived by subtraction):** each trial records
+- `totalMs` — trial wall clock (lifecycle start → end) — plus per-phase walls: `workspaceMs, setupMs, provisionMs, launchMs (spawn→ready), interactMs, collectMs, evaluateMs, teardownMs`;
+- a **per-turn timeline** inside interact: `turnStart` (prompt/answer submitted) → `stopAt` (Stop signal) → `reactionDoneAt` (harness reply typed). From it: **`agentPureMs` = Σ(stopAt − turnStart)** — the agent's own execution time, excluding ALL harness reaction — and `harnessReactMs` = Σ(reactionDoneAt − stopAt), itemized into `harnessLlmMs` (fast/workhorse call durations) vs `harnessOverheadMs` (detection windows, typing, bookkeeping);
+- **every record is keyed by concrete model id, not just role**: each usage record AND each LLM duration record carries the exact `provider/model` that served it (roles are labels; the model is the unit of account). `harnessLlmMs` therefore also itemizes per model, exactly like tokens/$ — so if fast=haiku and judge=sonnet, time, tokens, and cost each break down by model consistently across trial → group → suite;
+- inside evaluate: `checksMs` (deterministic) vs `judgeLlmMs`.
+Stored per trial, rolled up per group/suite alongside tokens; suite.md renders total vs pure side by side so slow-harness vs slow-agent is immediately visible.
 
 Because raw trial JSON is stored, new stats apply retroactively via `curiocity report` (D8).
 
