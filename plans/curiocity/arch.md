@@ -148,7 +148,6 @@ interface AgentProfile {                 // from top-level config `codingagents`
   envRemove: string[];                   // glob patterns stripped from agent PTY env
   envSet?: Record<string, string>;
   agentModel?: string;                   // model the agent CLI itself runs (claude: --model X; codex: -m X); D13-mergeable, per-case override via agentModels map, CLI --agent-model <agent>=<model>. Cost policy: cheap tier for the majority of testing (claude: Sonnet 5 at LOW reasoning effort — supports auto permission mode, unlike Haiku; codex: gpt-5.4-mini); smarter/full-effort models only for final validation runs.
-  agentEffort?: string;                  // reasoning effort — a SEPARATE dimension from the model, same D13/agentEfforts-map/CLI plumbing as agentModel. Rendered per adapter: codex `-c model_reasoning_effort="<v>"`; claude via its effort surface (verify mechanism empirically against the installed CLI; the Stop-hook payload reports `effort`, so record requested vs observed like agentModel). Adapter lacking an effort surface: warn + omit, never fail the trial.
   strategy: 'json-only' | 'screen-reader' | 'hybrid';
   readiness: { bannerPattern?: string; quietMs: number };  // TUI ready-for-input signal
   submit: 'enter' | 'paste+enter';       // key sequencing for typed input (some TUIs need paste mode)
