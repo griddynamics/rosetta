@@ -201,6 +201,8 @@ So the flow is the **same standard pipeline for every agent** — `ctrlDir → r
 
 **Hook-coexistence contract (correctness precondition):** the harness's capture hooks MUST be additive to the hooks of the plugin under test (Rosetta registers its own `SessionStart`/`Stop`/`PreToolUse` hooks — if injection replaced them, the harness would be testing nothing). Claude's `--settings` file is an additional settings layer that merges alongside existing user/project/plugin hooks (validated in the PoC); Codex's workspace `.codex/hooks.json` is a distinct config location from plugin-bundled hooks. Each adapter's integration test MUST assert both hook sets fired in one session (capture files present **and** plugin hook effects visible in the trajectory).
 
+An adapter MAY ship a built-in default `AgentProfile` (its registry `defaultProfile`) forming the D13 defaults layer, resolved at the orchestrator/spec seam by merging it **per-field under** the top-level `codingagents` config (adapter default < top-level config), so out-of-the-box runs (no config file) still reach that adapter's cells instead of skipping them.
+
 `TrajectoryEvent` (internal schema, `shared/trajectory.ts`): `{ ts, kind: 'user'|'assistant'|'tool_call'|'tool_result'|'usage'|'lifecycle', name?, payload }` — the one shape evaluators/judges/stats consume regardless of agent.
 
 ### 5.3 Terminal (pane-ready)

@@ -5,12 +5,16 @@ import type { ResolvedCaseConfig } from '../config/merge';
 import type { TopLevelConfig } from '../config/schema';
 import { trialSpecSchema, type TrialSpec } from '../shared/ipc';
 import type { MatrixCell } from '../shared/matrix';
+import { resolveAgentProfile } from './profile';
 
 /**
  * Build one `TrialSpec` per matrix cell (§4). Script paths resolve relative to the
  * file that declared them (§7 step 2): top-level scripts vs `configDir`, case
- * scripts vs the case folder. A cell whose agent has no profile in config is not
- * runnable → reported as a `skipped` cell (status `skipped`, not an infra error).
+ * scripts vs the case folder. The effective agent profile is resolved via the D13
+ * defaults layer (`resolveAgentProfile`): adapter built-in default < top-level
+ * config, per-field. A cell whose agent has NEITHER a built-in default NOR a config
+ * entry is not runnable → reported as a `skipped` cell (status `skipped`, not an
+ * infra error).
  */
 
 export interface BuildSpecsArgs {
@@ -52,14 +56,18 @@ export function buildTrialSpecs(args: BuildSpecsArgs): BuiltSpecs {
     const cell: MatrixCell = { case: entry.case, agent: entry.agent, repeat: entry.repeat };
     const def = caseByName.get(entry.case);
     const resolved = resolvedByName.get(entry.case);
-    const profile = args.topLevel.codingagents[entry.agent];
 
     if (!def || !resolved) {
       skipped.push({ cell, reason: `case "${entry.case}" not found` });
       continue;
     }
+    // D13 defaults layer: adapter built-in default < top-level config (per-field).
+    const profile = resolveAgentProfile(entry.agent, args.topLevel);
     if (!profile) {
-      skipped.push({ cell, reason: `no agent profile configured for "${entry.agent}"` });
+      skipped.push({
+        cell,
+        reason: `no agent profile for "${entry.agent}" (no built-in default and none configured)`,
+      });
       continue;
     }
 

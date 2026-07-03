@@ -48,6 +48,17 @@ export const agentProfileSchema = z.object({
 });
 export type AgentProfile = z.infer<typeof agentProfileSchema>;
 
+/**
+ * Config `codingagents` OVERRIDE layer (D13, §5.2): every field is optional. An
+ * adapter's registry `defaultProfile` supplies the base and this partial overrides
+ * it per-field; the merge happens at the orchestrator/spec seam (not here), which
+ * then re-validates the result with `agentProfileSchema`. A full profile still
+ * satisfies this schema (all fields present), so existing configs are unaffected;
+ * omitting fields simply inherits them from the adapter default.
+ */
+export const agentProfileOverrideSchema = agentProfileSchema.partial();
+export type AgentProfileOverride = z.infer<typeof agentProfileOverrideSchema>;
+
 // --- Provisioning (§9, D13, P11) ---------------------------------------------
 // Items are identified by `name`; extra fields (command, args, path, …) pass
 // through. Per-case provisioning merges by name onto the top-level defaults.
@@ -91,7 +102,9 @@ export type EvaluatorEntry = z.infer<typeof evaluatorEntrySchema>;
 // `models` is optional so that `validate` and `run --dry-run` work with no config
 // file present; a real (LLM-executing) run requires it in a later milestone.
 export const topLevelConfigSchema = z.object({
-  codingagents: z.record(agentProfileSchema).default({}),
+  // Partial overrides (D13): each entry merges per-field OVER the adapter's built-in
+  // `defaultProfile` at the orchestrator/spec seam. A full profile still validates.
+  codingagents: z.record(agentProfileOverrideSchema).default({}),
   models: modelRolesSchema.optional(),
   pricing: pricingSchema.optional(),
   provision: provisionSchema.optional(),

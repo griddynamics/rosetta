@@ -18,6 +18,7 @@ import type {
   TrialContext,
 } from '../types';
 import { computeTranscriptPath } from './transcript-path';
+import { CLAUDE_CODE_DEFAULT_PROFILE } from './profile';
 
 /**
  * `ClaudeCodeAdapter` (§10.1) — renders the canonical control protocol (§5.2) into
@@ -83,6 +84,10 @@ interface ClaudeLine {
 
 export class ClaudeCodeAdapter implements AgentAdapter {
   readonly id = 'claude-code';
+
+  /** D13 defaults layer (§5.2): the validated live-experiment profile (§10.1). A
+   *  top-level `codingagents["claude-code"]` config entry overrides it per-field. */
+  readonly defaultProfile = CLAUDE_CODE_DEFAULT_PROFILE;
 
   prepare(ctx: TrialContext, hookSpec: CanonicalHookSpec): Promise<LaunchPlan> {
     return composeLaunchPlan(this, ctx, hookSpec);

@@ -85,6 +85,16 @@ export interface TrialContext {
 export interface AgentAdapter {
   readonly id: string;
 
+  /**
+   * Optional built-in default `AgentProfile` (D13 defaults layer, §5.2). When
+   * present it is the LOWEST-precedence profile source: the orchestrator/spec seam
+   * merges it per-field UNDER `topLevel.codingagents[id]` so an out-of-the-box run
+   * (no config file) still reaches the adapter's cells instead of skipping them.
+   * The `mock` adapter ships none (its command points at a test fixture, so it
+   * always requires an explicit config profile).
+   */
+  readonly defaultProfile?: AgentProfile;
+
   /** Pre-spawn orchestration point: composes the three standard steps in order. */
   prepare(ctx: TrialContext, hookSpec: CanonicalHookSpec): Promise<LaunchPlan>;
 
