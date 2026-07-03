@@ -10,6 +10,8 @@ const POLLUTED = {
   PATH: '/usr/bin:/bin',
   HOME: '/home/tester',
   TERM: 'xterm-256color',
+  USER: 'tester',
+  LOGNAME: 'tester',
   LANG: 'en_US.UTF-8',
   LC_TIME: 'en_US.UTF-8',
   ANTHROPIC_API_KEY: 'sk-ant-super-secret-value',
@@ -21,7 +23,15 @@ const POLLUTED = {
 describe('child env scrub (§4)', () => {
   it('buildChildEnv keeps ONLY the allow-list', () => {
     const env = buildChildEnv(POLLUTED);
-    expect(Object.keys(env).sort()).toEqual(['HOME', 'LANG', 'LC_TIME', 'PATH', 'TERM']);
+    expect(Object.keys(env).sort()).toEqual([
+      'HOME',
+      'LANG',
+      'LC_TIME',
+      'LOGNAME',
+      'PATH',
+      'TERM',
+      'USER',
+    ]);
     expect(env).not.toHaveProperty('ANTHROPIC_API_KEY');
     expect(env).not.toHaveProperty('OPENAI_API_KEY');
     expect(env).not.toHaveProperty('MY_CI_TOKEN');
