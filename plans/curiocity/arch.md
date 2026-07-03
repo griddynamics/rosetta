@@ -22,7 +22,7 @@ An evals/testing harness that drives interactive coding-agent CLIs (v1: **Claude
 | # | Principle |
 |---|---|
 | P1 | **Interactive TUI over PTY — never headless** (`-p`/`--print`/`exec`/SDK one-shot are forbidden). Interactive is the code path where plugins actually load; that is what we test. |
-| P2 | **Auto-handle permissions** per agent profile (Claude: `--permission-mode auto`; Codex: `-a never` + sandbox). Permission prompts are noise; the agent's *own substantive questions* are answered (that's the harness working). |
+| P2 | **Auto-handle permissions** per agent profile (Claude: `--permission-mode acceptEdits` — `auto` proved insufficient live: cheap models still raise recurring "create file?" prompts that hang the session; Codex: `-a never` + sandbox). Permission prompts are noise; the agent's *own substantive questions* are answered (that's the harness working). |
 | P3 | **A "question" is ONLY**: (a) a structured question tool (Claude Code `AskUserQuestion`), or (b) a genuine free-text question in the turn-final assistant message. **Never** ordinary tool activity (`TaskCreate`/`TaskUpdate`/`Skill`/`Bash`/`Read`/…). Violating this derailed a validated live run (harness injected "answers" to normal tool calls → 30-min run, zero deliverables). Hard rule; see §6 trigger table. |
 | P4 | **Native trajectory (on-disk transcript) is authoritative**; the rendered screen is fallback evidence. Deterministic detection gates every LLM call (cost/latency bounded). |
 | P5 | **Two model tiers**: `fast` for high-frequency classification, `workhorse` for replies + judging (role `judge` defaults to workhorse). Provider+model configurable per role. |
@@ -394,7 +394,7 @@ Both v1 adapters are **renderers of the same canonical specs** (§5.2 standard l
 
 ### 10.1 `claude-code` (mechanics validated by live experiment 2026-06-23 + live end-to-end PoC run)
 
-- **Launch:** `claude "<prompt>" --permission-mode auto --session-id <fresh-uuid> --settings <ctrlDir>/settings.json`, PTY cwd = workspace.
+- **Launch:** `claude "<prompt>" --permission-mode acceptEdits --session-id <fresh-uuid> --settings <ctrlDir>/settings.json`, PTY cwd = workspace. (`acceptEdits`, not `auto`: live-observed with cheap agent models that `auto` still raises recurring un-clearable "create file?" permission prompts → session hang; `acceptEdits` clears them, and `bypassPermissions` is stronger than needed in an isolated workspace.)
 - **Hooks:** injected via a `--settings` file; this settings layer **merges alongside** existing user/project/plugin hooks (validated — precondition per §5.2). Shape:
   ```json
   { "hooks": {
