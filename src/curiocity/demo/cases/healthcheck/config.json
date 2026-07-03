@@ -1,0 +1,25 @@
+{
+  "agents": ["claude-code", "codex"],
+  "timeoutSec": 600,
+  "repeats": 1,
+  "evaluators": [
+    {
+      "use": "file-exists",
+      "must": [
+        "HEALTHCHECK.md",
+        "spring-boot-server/src/main/java/**/HealthController.java"
+      ],
+      "gate": true
+    },
+    {
+      "use": "llm-judge",
+      "rubric": "evaluation.md",
+      "artifacts": [
+        "**/*.md",
+        "spring-boot-server/src/main/java/**/HealthController.java"
+      ],
+      "weight": 1.0
+    }
+  ],
+  "combiner": "gated-mean"
+}
