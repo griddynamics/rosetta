@@ -49,7 +49,7 @@ for both, then the `llm-judge` (rubric = `evaluation.md`) scored the produced ar
 - **codex — 97/100.** Endpoint + docs full marks; identical correct implementation
   (`Collections.singletonMap("status","UP")`, `HttpStatus.OK`). Minor scope-discipline
   deduction because the workspace-scoped `.codex/hooks.json` (a **harness** artifact that
-  the codex adapter writes into the workspace per arch.md §10.2, not the agent's edit)
+  the codex adapter writes into the workspace per architecture.md §10.2, not the agent's edit)
   appears in the workspace diff. The judge correctly attributed it to the harness.
 
 ### Which transcript path ran (hook vs fallback)
@@ -322,7 +322,7 @@ map → reported **tokens-only** (as designed). Harness classify/judge spend rem
   arch §10.1/P2 as of this milestone — a deviation confined to `demo/curiocity.demo.json`.
   **Recommendation adopted post-M6.6 (m6-review):** the adapter's built-in default profile
   now renders `--permission-mode acceptEdits` directly (`src/agents/claude-code/profile.ts`,
-  arch.md P2/§10.1 updated to match) — the demo config's override above is gone (removed as
+  architecture.md P2/§10.1 updated to match) — the demo config's override above is gone (removed as
   redundant) because the adapter default already does this. This paragraph is left as the
   historical record of the milestone-6.6 finding that motivated the change.
 - **Time decomposition attribution for single-turn done trials (pre-existing, M6.5) — FIXED
@@ -341,11 +341,11 @@ map → reported **tokens-only** (as designed). Harness classify/judge spend rem
 
 # Milestone 6.7 — auto default + Sonnet-5-low cheap tier + agentEffort + DECSET-observed bracketed paste
 
-Four user rulings (all present in `plans/curiocity/arch.md` at HEAD `e0e33453`) landed and were
+Four user rulings (all present in `src/curiocity/docs/architecture.md` at HEAD `e0e33453`) landed and were
 live-validated on the cheap tier. This milestone also reverts the code effect of the m6-review
 agent's false-positive `acceptEdits` flip (commit `2622a502`) per the restored spec.
 
-## The four rulings (verified in arch.md at HEAD before implementing)
+## The four rulings (verified in architecture.md at HEAD before implementing)
 
 1. **Claude permission default = `auto`** (P2 + §10.1). Reverted `CLAUDE_CODE_DEFAULT_PROFILE.args`
    from `--permission-mode acceptEdits` back to `--permission-mode auto` and fixed the pinned unit

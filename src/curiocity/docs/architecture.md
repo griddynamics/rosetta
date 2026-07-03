@@ -1,6 +1,6 @@
-# Curiocity — Technical Solution Design (arch.md)
+# Curiocity — Technical Solution Design (architecture.md)
 
-**This document is self-contained and is the single source of truth for building Curiocity.** [`idea.md`](./idea.md) and [`poc.md`](./poc.md) are the historical concept/PoC records only — do not implement against them; everything binding from them is merged here. The **verified per-agent hook contracts remain separate and binding**: [`docs/hooks/claude-code.md`](../../docs/hooks/claude-code.md), [`docs/hooks/codex.md`](../../docs/hooks/codex.md) (repo root `docs/hooks/`) — implement hook payloads/registration against those files, not memory. Where this doc and any other file conflict, this doc wins (except the hook contracts, which win for hook wire formats).
+**This document is self-contained and is the single source of truth for building Curiocity.** [`idea.md`](./idea.md) and [`poc.md`](./poc.md) are the historical concept/PoC records only — do not implement against them; everything binding from them is merged here. The **verified per-agent hook contracts remain separate and binding**: [`docs/hooks/claude-code.md`](../../../docs/hooks/claude-code.md), [`docs/hooks/codex.md`](../../../docs/hooks/codex.md) (repo root `docs/hooks/`) — implement hook payloads/registration against those files, not memory. Where this doc and any other file conflict, this doc wins (except the hook contracts, which win for hook wire formats).
 
 **Audience:** the implementing model/engineer. This defines structure, interfaces, and contracts — not implementation detail.
 
@@ -393,7 +393,7 @@ Per Curion, in order:
 
 ## 10. Agent Adapters (v1)
 
-Both v1 adapters are **renderers of the same canonical specs** (§5.2 standard launch pipeline) implementing the same **Option-B hook strategy** (validated live for Claude Code 2026-06-23; hook contract verified for Codex per docs/hooks): inject `SessionStart` + `Stop` hooks → `SessionStart` payload delivers the authoritative `transcript_path`; `Stop` payload delivers `last_assistant_message` for turn classification. The sections below list only each adapter's *rendering specifics* — the flow, ctrl-dir layout, and signal shapes are core-owned and identical. Hook wire formats: implement against [`docs/hooks/claude-code.md`](../../docs/hooks/claude-code.md) / [`docs/hooks/codex.md`](../../docs/hooks/codex.md).
+Both v1 adapters are **renderers of the same canonical specs** (§5.2 standard launch pipeline) implementing the same **Option-B hook strategy** (validated live for Claude Code 2026-06-23; hook contract verified for Codex per docs/hooks): inject `SessionStart` + `Stop` hooks → `SessionStart` payload delivers the authoritative `transcript_path`; `Stop` payload delivers `last_assistant_message` for turn classification. The sections below list only each adapter's *rendering specifics* — the flow, ctrl-dir layout, and signal shapes are core-owned and identical. Hook wire formats: implement against [`docs/hooks/claude-code.md`](../../../docs/hooks/claude-code.md) / [`docs/hooks/codex.md`](../../../docs/hooks/codex.md).
 
 ### 10.1 `claude-code` (mechanics validated by live experiment 2026-06-23 + live end-to-end PoC run)
 

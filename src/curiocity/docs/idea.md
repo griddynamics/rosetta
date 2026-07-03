@@ -388,7 +388,7 @@ The *curio* family carries a triple meaning: *curia* (the court) + *curious* (th
 - **Curiata** — the Roman *Comitia Curiata*; most authentic court meaning (npm-free; you excluded it).
 - **Curiosify** — *curia/curious/cure* in one (npm-free).
 
-> Other metaphor worlds explored during selection (Augury, Forge/Assay, Pastoral, Fates, Watchtower, Arena, Dojo, Lapidary, Navigation, Distillation, Rosetta) were dropped after **Tribunal** was chosen. The Rosetta/Decipherment variant is archived in **[`./rosetta.md`](./rosetta.md)**; the reusable naming method is in **[`./name-it.md`](./name-it.md)**.
+> Other metaphor worlds explored during selection (Augury, Forge/Assay, Pastoral, Fates, Watchtower, Arena, Dojo, Lapidary, Navigation, Distillation, Rosetta) were dropped after **Tribunal** was chosen. The Rosetta/Decipherment variant is archived in **[`rosetta.md`](../../../plans/curiocity/rosetta.md)**; the reusable naming method is in **[`./name-it.md`](./name-it.md)**.
 
 ## Confidence & Caveats (reasoning summary)
 

@@ -5,7 +5,7 @@ An evals/testing harness that drives interactive coding-agent CLIs (Claude Code,
 - **Curiocity** (orchestrator) discovers cases, builds the `agent × case × repeat` matrix, forks one worker per cell, aggregates, reports, and picks the exit code.
 - **Curion** (worker) owns exactly one trial in an isolated workspace and returns one verdict + metrics.
 
-The full design lives in [`plans/curiocity/arch.md`](../../plans/curiocity/arch.md). This README is how to run it. The [`demo/`](./demo) folder is the living example.
+The full design lives in [`architecture.md`](./docs/architecture.md). This README is how to run it. The [`demo/`](./demo) folder is the living example.
 
 ## Prerequisites
 
