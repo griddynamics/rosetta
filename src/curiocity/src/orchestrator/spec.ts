@@ -1,7 +1,7 @@
 import { isAbsolute, resolve } from 'node:path';
 import type { CaseDefinition } from '../cases/types';
 import type { MatrixEntry } from '../config/matrix';
-import type { ResolvedCaseConfig } from '../config/merge';
+import { mergeModels, type ResolvedCaseConfig } from '../config/merge';
 import type { TopLevelConfig } from '../config/schema';
 import { trialSpecSchema, type TrialSpec } from '../shared/ipc';
 import type { MatrixCell } from '../shared/matrix';
@@ -15,6 +15,17 @@ import { resolveAgentProfile } from './profile';
  * config, per-field. A cell whose agent has NEITHER a built-in default NOR a config
  * entry is not runnable → reported as a `skipped` cell (status `skipped`, not an
  * infra error).
+ *
+ * (m5-review R1) `TrialSpec.models` precedence is documented (`shared/ipc.ts`) as
+ * "top-level < profile < case < CLI", but `MatrixEntry.models` (`config/matrix.ts`)
+ * is built WITHOUT the adapter registry's `defaultProfile.models` — `config/`
+ * cannot import the adapter registry (§3), so that rung isn't reachable there. It
+ * IS reachable here, after `resolveAgentProfile` has already folded
+ * `defaultProfile.models < topLevel.codingagents[agent].models` into `profile.models`.
+ * Re-merging `profile.models` under `entry.models` (whose case/CLI rungs must keep
+ * outranking it) restores the full documented chain for every role independently.
+ * Currently latent (neither built-in default profile sets `models`), but a future
+ * adapter default would otherwise be silently dropped at exactly this seam.
  */
 
 export interface BuildSpecsArgs {
@@ -85,7 +96,8 @@ export function buildTrialSpecs(args: BuildSpecsArgs): BuiltSpecs {
       prompt: def.prompt,
       qna: def.qna,
       ...(resolved.evaluate && def.evaluation !== undefined ? { evaluation: def.evaluation } : {}),
-      models: entry.models,
+      // registry-default < top-level < case < CLI, per role (see the header note).
+      models: mergeModels(profile.models, entry.models),
       keys: args.keys,
       provision: resolved.provision,
       setup: [...topSetup, ...caseSetup],

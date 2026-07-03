@@ -20,15 +20,29 @@ import type { AgentProfile } from '../../config/schema';
  *       `/hooks` content-hash trust step (verified: SessionStart + Stop both fire).
  *   The prompt is the launch argument (D15). There is NO `--session-id` flag — the id
  *   comes from the SessionStart payload / rollout `session_meta` (§10.2).
- * - **envRemove**: empty. Codex authenticates via its own `auth.json` (symlinked into
- *   the isolated home) or `OPENAI_API_KEY` (P9 — the harness never manages agent auth);
- *   the Curion child env is already allow-listed (§4), so no harness secret can reach
- *   the agent.
+ * - **envRemove**: empty — `OPENAI_API_KEY` is a legitimate, documented auth path
+ *   (below) so it must NOT be stripped unconditionally (that would break auth for a
+ *   user who has no `auth.json`). Codex authenticates via its own `auth.json`
+ *   (symlinked into the isolated home) or `OPENAI_API_KEY` (P9 — the harness never
+ *   manages agent auth). (m5-review R1) `buildLaunch` DOES conditionally strip an
+ *   ambient `OPENAI_API_KEY`/`OPENAI_BASE_URL` from the launched env, but ONLY when
+ *   `auth.json` exists and is being symlinked in — in that case a leftover key in the
+ *   invoking shell (the common case for `contract:codex` / ad-hoc runs, which read the
+ *   CURRENT process env and bypass §4's Curion-fork allow-list entirely) could
+ *   otherwise silently redirect billing away from the ChatGPT-plan credits without
+ *   ever breaking the API-key-only auth path (no `auth.json` → nothing is stripped).
  * - **strategy `hybrid`**: the on-disk rollout + `Stop` hook drive the turn loop (P4);
  *   the freeze watchdog + screen-read fallback are the backstop for the strict
  *   hook-validation "no Stop signal ever" case (§10.2, §18).
- * - **dialogPatterns**: clear the folder-trust dialog on Enter (observed live; anchored
- *   on its fixed header so ordinary assistant prose cannot match it).
+ * - **dialogPatterns**: clear the folder-trust dialog on Enter. (m5-review R1) The
+ *   engine re-checks `dialogPatterns` against every screen redraw for the WHOLE
+ *   session, not just at startup (same fact the M4 review hardened claude-code's
+ *   trust-folder pattern against) — codex's own conversational reply text is
+ *   rendered onto that same visible pane while the pattern stays armed, so a
+ *   bare-header substring risks matching ordinary assistant prose that happens to
+ *   discuss directory trust. Anchored on BOTH the dialog's fixed header AND its
+ *   highlighted option text (captured verbatim via a live probe on 0.142.2, in that
+ *   order), the same combination standard as claude-code's fix.
  * - **readiness/stall/freeze**: startup runs a trust dialog + MCP boot (~5-8s observed);
  *   the spinner animates continuously while working, so a settled/zero-change screen is
  *   a real signal (§6).
@@ -53,9 +67,14 @@ export const CODEX_DEFAULT_PROFILE: AgentProfile = {
   stall: { quietMs: 2500 },
   freeze: { windowMs: 12_000 },
   dialogPatterns: [
-    // Folder-trust dialog (observed live, codex 0.142.2): "Do you trust the contents
-    // of this directory? … › 1. Yes, continue  2. No, quit  Press enter to continue".
-    // Enter accepts the highlighted "Yes, continue". Anchored on the fixed header.
-    { pattern: 'trust the contents of this directory', send: '\r' },
+    // Folder-trust dialog, captured verbatim live (codex 0.142.2, m5-review R1
+    // probe): "Do you trust the contents of this directory? Working with untrusted
+    // contents comes with higher risk of prompt injection. Trusting the directory
+    // allows project-local config, hooks, and exec policies to load. › 1. Yes,
+    // continue  2. No, quit  Press enter to continue". Enter accepts the highlighted
+    // "Yes, continue". Anchored on BOTH the fixed header AND the option text (in
+    // that order) — a combination ordinary assistant prose is exceedingly unlikely
+    // to reproduce verbatim (same standard as claude-code's `dialogPatterns` fix).
+    { pattern: 'Do you trust the contents of this directory[\\s\\S]*Yes, continue', send: '\r' },
   ],
 };

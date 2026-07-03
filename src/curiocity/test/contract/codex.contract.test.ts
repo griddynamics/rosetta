@@ -83,6 +83,23 @@ interface TrialOut {
 async function runLiveCodexTrial(): Promise<TrialOut> {
   const workspace = mkdtempSync(join(tmpdir(), 'curiocity-codex-ws-'));
   const ctrlDir = mkdtempSync(join(tmpdir(), 'curiocity-codex-ctrl-'));
+  // (m5-review R1) Everything from here on can throw (flag/launch errors, a stalled
+  // PTY, an assertion) BEFORE this function ever reaches its `return`. Previously
+  // that left `workspace`/`ctrlDir` (and the isolated CODEX_HOME under it) orphaned
+  // in $TMPDIR forever — the caller's own cleanup only runs when this function
+  // RETURNS successfully. Confirmed live: a stale pair from an earlier aborted
+  // development run (predating the CODEX_HOME isolation fix) was still on disk at
+  // the start of this review. Guarantee cleanup here too, on every exit path.
+  try {
+    return await runLiveCodexTrialInner(workspace, ctrlDir);
+  } catch (err) {
+    rmSync(workspace, { recursive: true, force: true });
+    rmSync(ctrlDir, { recursive: true, force: true });
+    throw err;
+  }
+}
+
+async function runLiveCodexTrialInner(workspace: string, ctrlDir: string): Promise<TrialOut> {
   const logs: string[] = [];
   const log = (msg: string, fields?: Record<string, unknown>): void => {
     logs.push(`${msg}${fields ? ` ${JSON.stringify(fields)}` : ''}`);

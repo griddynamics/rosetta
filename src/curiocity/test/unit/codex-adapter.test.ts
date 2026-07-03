@@ -1,8 +1,8 @@
-import { mkdirSync, mkdtempSync, readFileSync, utimesSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it, expect } from 'vitest';
+import { afterEach, describe, it, expect } from 'vitest';
 import { CodexAdapter } from '../../src/agents/codex/adapter';
 import { CODEX_DEFAULT_PROFILE } from '../../src/agents/codex/profile';
 import { findFallbackRollout } from '../../src/agents/codex/transcript';
@@ -65,6 +65,48 @@ describe('codex default profile', () => {
   });
 });
 
+describe('CodexAdapter — trust-folder dialogPattern robustness (m5-review R1)', () => {
+  // The engine re-checks `dialogPatterns` against every screen redraw for the WHOLE
+  // session (interaction/engine.ts `processDialogPatterns`), not just at startup —
+  // same fact the M4 review hardened claude-code's trust-folder pattern against — so
+  // a pattern must be specific enough not to fire on ordinary assistant output.
+  const trustRule = CODEX_DEFAULT_PROFILE.dialogPatterns!.find((r) =>
+    r.pattern.includes('trust the contents of this directory'),
+  )!;
+  const trustRe = (): RegExp => new RegExp(trustRule.pattern);
+
+  it('matches the real live dialog text (codex 0.142.2, captured verbatim via a live probe)', () => {
+    const screen = [
+      '> You are in /private/var/folders/xx/T/curiocity-codex-ws-abc123',
+      '',
+      '  Do you trust the contents of this directory? Working with untrusted contents comes with higher risk of prompt',
+      '  injection. Trusting the directory allows project-local config, hooks, and exec policies to load.',
+      '',
+      '› 1. Yes, continue',
+      '  2. No, quit',
+      '',
+      '  Press enter to continue',
+    ].join('\n');
+    expect(trustRe().test(screen)).toBe(true);
+  });
+
+  it('does NOT false-positive on ordinary assistant prose that merely mentions directory trust', () => {
+    // A plausible real assistant utterance discussing permissions/trust — must not
+    // be mistaken for the startup dialog (no "Yes, continue" option ever follows it).
+    const chatter = [
+      'Before running this script, you should decide whether you trust the contents of this directory.',
+      "Since we're operating in a sandboxed workspace, continuing is fine either way.",
+    ].join('\n');
+    expect(trustRe().test(chatter)).toBe(false);
+  });
+
+  it('does NOT false-positive on the header alone without the option text', () => {
+    const partial =
+      'Do you trust the contents of this directory? Something unrelated happened here instead of the menu.';
+    expect(trustRe().test(partial)).toBe(false);
+  });
+});
+
 describe('codex renderHooks (docs/hooks/codex.md registration format)', () => {
   it('writes workspace .codex/hooks.json with SessionStart cat> and Stop newline-safe append', async () => {
     const c = ctx();
@@ -103,6 +145,65 @@ describe('codex buildLaunch', () => {
     // Seed commands: create the home + symlink auth.json (guarded, idempotent).
     expect(frag.commands?.some((cmd) => cmd.includes('mkdir -p'))).toBe(true);
     expect(frag.commands?.some((cmd) => cmd.includes('auth.json'))).toBe(true);
+  });
+});
+
+describe('codex buildLaunch — conditional OPENAI_API_KEY/OPENAI_BASE_URL strip (m5-review R1)', () => {
+  // `buildLaunch` reads `homedir()` and `process.env` at call time; `os.homedir()`
+  // honors `$HOME` on POSIX, so a fake HOME + a temporarily-set ambient var let us
+  // exercise both branches without touching the real ~/.codex or mocking fs. This is
+  // exactly the "ad-hoc invocation reads the CURRENT process env" gap the fix
+  // targets: an ambient key must never silently override an existing auth.json, but
+  // must NOT be stripped when auth.json doesn't exist (the documented no-auth.json
+  // fallback, §10.2).
+  const realHome = process.env.HOME;
+  const realKey = process.env.OPENAI_API_KEY;
+  let fakeHome: string;
+
+  afterEach(() => {
+    if (realHome !== undefined) process.env.HOME = realHome;
+    if (realKey !== undefined) process.env.OPENAI_API_KEY = realKey;
+    else delete process.env.OPENAI_API_KEY;
+    if (fakeHome) rmSync(fakeHome, { recursive: true, force: true });
+  });
+
+  it('auth.json present → an ambient OPENAI_API_KEY is stripped from the launched env', () => {
+    fakeHome = mkdtempSync(join(tmpdir(), 'codex-fake-home-'));
+    mkdirSync(join(fakeHome, '.codex'), { recursive: true });
+    writeFileSync(join(fakeHome, '.codex', 'auth.json'), '{}');
+    process.env.HOME = fakeHome;
+    process.env.OPENAI_API_KEY = 'sk-ambient-not-real';
+
+    const c = ctx({ ctrlDir: '/tmp/ctrl-auth-present' });
+    const frag = adapter.buildLaunch(c);
+    expect(frag.env?.OPENAI_API_KEY).toBeUndefined();
+    expect(frag.env?.OPENAI_BASE_URL).toBeUndefined();
+  });
+
+  it('no auth.json → an ambient OPENAI_API_KEY passes through (the documented no-auth.json path)', () => {
+    fakeHome = mkdtempSync(join(tmpdir(), 'codex-fake-home-'));
+    process.env.HOME = fakeHome; // no .codex/auth.json created
+    process.env.OPENAI_API_KEY = 'sk-ambient-not-real';
+
+    const c = ctx({ ctrlDir: '/tmp/ctrl-auth-absent' });
+    const frag = adapter.buildLaunch(c);
+    expect(frag.env?.OPENAI_API_KEY).toBe('sk-ambient-not-real');
+  });
+
+  it('auth.json present → an explicit envSet.OPENAI_API_KEY override still wins', () => {
+    fakeHome = mkdtempSync(join(tmpdir(), 'codex-fake-home-'));
+    mkdirSync(join(fakeHome, '.codex'), { recursive: true });
+    writeFileSync(join(fakeHome, '.codex', 'auth.json'), '{}');
+    process.env.HOME = fakeHome;
+    process.env.OPENAI_API_KEY = 'sk-ambient-not-real';
+
+    const c = ctx({ ctrlDir: '/tmp/ctrl-auth-present' });
+    const withOverride = {
+      ...c,
+      profile: { ...c.profile, envSet: { ...(c.profile.envSet ?? {}), OPENAI_API_KEY: 'sk-deliberate-override' } },
+    };
+    const frag = adapter.buildLaunch(withOverride);
+    expect(frag.env?.OPENAI_API_KEY).toBe('sk-deliberate-override');
   });
 });
 
@@ -215,6 +316,22 @@ describe('codex parseStopSignal & structured questions', () => {
 
 describe('codex fallback rollout locator (§10.2 — cwd + mtime, never newest-alone)', () => {
   // `home` here is the (isolated) CODEX_HOME; rollouts live at `<home>/sessions/…`.
+  // (m5-review R1) Every `mkdtemp` created here is tracked and removed in `afterEach`
+  // — previously these leaked on every `vitest run`/`npm run test` invocation
+  // (confirmed accumulating in $TMPDIR across many prior runs during this review).
+  const tempDirs: string[] = [];
+  function tmpDir(prefix: string): string {
+    const dir = mkdtempSync(join(tmpdir(), prefix));
+    tempDirs.push(dir);
+    return dir;
+  }
+
+  afterEach(() => {
+    while (tempDirs.length > 0) {
+      rmSync(tempDirs.pop()!, { recursive: true, force: true });
+    }
+  });
+
   function writeRollout(home: string, dateDir: string, file: string, cwd: string, mtimeMs: number): string {
     const dir = join(home, 'sessions', dateDir);
     mkdirSync(dir, { recursive: true });
@@ -227,8 +344,8 @@ describe('codex fallback rollout locator (§10.2 — cwd + mtime, never newest-a
   }
 
   it('matches by cwd + mtime≥start and returns that rollout', () => {
-    const home = mkdtempSync(join(tmpdir(), 'codex-home-'));
-    const workspace = mkdtempSync(join(tmpdir(), 'codex-ws-'));
+    const home = tmpDir('codex-home-');
+    const workspace = tmpDir('codex-ws-');
     const start = Date.now();
     const wanted = writeRollout(home, '2026/07/02', 'rollout-A.jsonl', workspace, start + 1000);
     const match = findFallbackRollout(home, workspace, start);
@@ -236,9 +353,9 @@ describe('codex fallback rollout locator (§10.2 — cwd + mtime, never newest-a
   });
 
   it('NEVER selects newest-alone: a newer rollout with a different cwd is ignored', () => {
-    const home = mkdtempSync(join(tmpdir(), 'codex-home-'));
-    const workspace = mkdtempSync(join(tmpdir(), 'codex-ws-'));
-    const other = mkdtempSync(join(tmpdir(), 'codex-other-'));
+    const home = tmpDir('codex-home-');
+    const workspace = tmpDir('codex-ws-');
+    const other = tmpDir('codex-other-');
     const start = Date.now();
     // The matching one is OLDER; a newer file belongs to a different workspace.
     const wanted = writeRollout(home, '2026/07/02', 'rollout-mine.jsonl', workspace, start + 1000);
@@ -248,8 +365,8 @@ describe('codex fallback rollout locator (§10.2 — cwd + mtime, never newest-a
   });
 
   it('excludes rollouts older than the trial start (mtime filter)', () => {
-    const home = mkdtempSync(join(tmpdir(), 'codex-home-'));
-    const workspace = mkdtempSync(join(tmpdir(), 'codex-ws-'));
+    const home = tmpDir('codex-home-');
+    const workspace = tmpDir('codex-ws-');
     const start = Date.now();
     // Same cwd but written well BEFORE the trial started → must be excluded.
     writeRollout(home, '2026/07/01', 'rollout-stale.jsonl', workspace, start - 60_000);
@@ -258,8 +375,8 @@ describe('codex fallback rollout locator (§10.2 — cwd + mtime, never newest-a
   });
 
   it('returns null when no rollout matches the workspace at all', () => {
-    const home = mkdtempSync(join(tmpdir(), 'codex-home-'));
-    const workspace = mkdtempSync(join(tmpdir(), 'codex-ws-'));
+    const home = tmpDir('codex-home-');
+    const workspace = tmpDir('codex-ws-');
     const start = Date.now();
     writeRollout(home, '2026/07/02', 'rollout-elsewhere.jsonl', '/some/other/cwd', start + 1000);
     expect(findFallbackRollout(home, workspace, start)).toBeNull();

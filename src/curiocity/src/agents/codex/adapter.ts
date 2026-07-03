@@ -182,13 +182,31 @@ export class CodexAdapter implements AgentAdapter {
    * rollout, config) lands in the throwaway home. This is the §18 per-trial agent-home
    * isolation, validated live (real config.toml byte-unchanged; auth + transcript +
    * hooks all work). The trust dialog is cleared by the profile's `dialogPatterns`.
+   *
+   * (m5-review R1) Conditional `OPENAI_API_KEY`/`OPENAI_BASE_URL` strip: when a real
+   * `auth.json` exists (so it is about to be symlinked into the isolated home), an
+   * ambient key in the CURRENT process env — the case for `contract:codex` / any
+   * direct invocation that bypasses §4's Curion-fork allow-list — would otherwise
+   * silently redirect the launched codex off the ChatGPT-plan credits and onto
+   * whatever the ambient key bills, mirroring the harness-key-leak class §10.1
+   * documents for `ANTHROPIC_API_KEY`. This is conditional (not a static
+   * `envRemove` entry) because `OPENAI_API_KEY` is ALSO the documented auth path for
+   * a user with no `auth.json` (§10.2) — stripping it unconditionally would break
+   * that path entirely. The strip happens on the BASE env, BEFORE `envRemove`/
+   * `envSet` are applied, so an explicit `envSet.OPENAI_API_KEY` (a deliberate config
+   * override, not an ambient leak) still wins, exactly like every other var.
    */
   buildLaunch(ctx: TrialContext): LaunchFragment {
     const vars = templateVars(ctx);
-    const env = filterAgentEnv(currentEnv(), ctx.profile.envRemove, ctx.profile.envSet);
+    const base = currentEnv();
+    const realAuth = join(homedir(), '.codex', 'auth.json');
+    if (existsSync(realAuth)) {
+      delete base.OPENAI_API_KEY;
+      delete base.OPENAI_BASE_URL;
+    }
+    const env = filterAgentEnv(base, ctx.profile.envRemove, ctx.profile.envSet);
     const codexHome = this.codexHome(ctx);
     env.CODEX_HOME = codexHome;
-    const realAuth = join(homedir(), '.codex', 'auth.json');
     return {
       args: ctx.profile.args.map((a) => applyTemplate(a, vars)),
       env,

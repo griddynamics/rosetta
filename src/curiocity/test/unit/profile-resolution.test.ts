@@ -5,6 +5,8 @@ import { buildMatrix } from '../../src/config/matrix';
 import { resolveCaseConfig } from '../../src/config/merge';
 import { topLevelConfigSchema, caseConfigSchema } from '../../src/config/schema';
 import { CLAUDE_CODE_DEFAULT_PROFILE } from '../../src/agents/claude-code/profile';
+import { agentRegistry } from '../../src/agents';
+import type { AgentAdapter } from '../../src/agents/types';
 import type { CaseDefinition } from '../../src/cases/types';
 
 /**
@@ -137,5 +139,95 @@ describe('buildTrialSpecs (D13 defaults reachable end-to-end)', () => {
     expect(specs).toHaveLength(0);
     expect(skipped).toHaveLength(1);
     expect(skipped[0]!.reason).toContain('ghost');
+  });
+});
+
+describe('buildTrialSpecs — registry-default `models` reach the final TrialSpec (m5-review R1)', () => {
+  // `shared/ipc.ts` documents `TrialSpec.models` precedence as
+  // "top-level < profile < case < CLI", but `MatrixEntry.models` (config/matrix.ts,
+  // pure/adapter-agnostic per §3) is folded WITHOUT the adapter registry's
+  // `defaultProfile.models` — only `resolveAgentProfile` (here, at the orchestrator
+  // seam) has both the registry default AND the config override. A fake adapter with
+  // a `models.judge` default, and no config touching `judge` at all, proves that role
+  // survives all the way to `TrialSpec.models` (the field the real router reads,
+  // `curion/router-factory.ts`), not just the discarded `profile.models`.
+  const FAKE_AGENT_ID = 'test-registry-default-models';
+  if (!agentRegistry.has(FAKE_AGENT_ID)) {
+    const fakeAdapter: AgentAdapter = {
+      id: FAKE_AGENT_ID,
+      defaultProfile: {
+        adapter: FAKE_AGENT_ID,
+        command: 'true',
+        args: ['{prompt}'],
+        envRemove: [],
+        strategy: 'json-only',
+        readiness: { quietMs: 10 },
+        submit: 'enter',
+        stall: { quietMs: 10 },
+        freeze: { windowMs: 10_000 },
+        models: { judge: 'registry-default/judge-model' },
+      },
+      prepare: () => {
+        throw new Error('unused in this test');
+      },
+      renderHooks: async () => ({}),
+      renderProvisioning: async () => ({}),
+      buildLaunch: () => ({}),
+      locateTranscript: () => {
+        throw new Error('unused in this test');
+      },
+      parseEvents: () => [],
+      classifyTurn: () => 'working',
+      parseStopSignal: () => null,
+      detectStructuredQuestion: () => null,
+      extractUsage: () => ({ inputTokens: 0, outputTokens: 0 }),
+      terminate: async () => {},
+    };
+    agentRegistry.register(fakeAdapter);
+  }
+
+  function makeCase(name: string, agents: string[]): CaseDefinition {
+    return {
+      name,
+      ephemeral: false,
+      prompt: 'Reply PONG.',
+      qna: 'If unsure, abort.',
+      config: caseConfigSchema.parse({ agents }),
+    };
+  }
+
+  function buildOneSpec(topLevel: ReturnType<typeof topLevelConfigSchema.parse>) {
+    const cases = [makeCase('pong', [FAKE_AGENT_ID])];
+    const resolvedCases = cases.map((c) =>
+      resolveCaseConfig({ caseName: c.name, topLevel, caseConfig: c.config, evaluateDefault: false }),
+    );
+    const matrix = buildMatrix({ topLevel, cases: resolvedCases });
+    const { specs } = buildTrialSpecs({
+      topLevel,
+      cases,
+      resolvedCases,
+      matrix,
+      runDir: '/tmp/does-not-matter',
+      configDir: process.cwd(),
+      keepWorkspace: false,
+      mirror: false,
+      keys: {},
+    });
+    expect(specs).toHaveLength(1);
+    return specs[0]!;
+  }
+
+  it('no config touches `judge` → the registry default judge model reaches TrialSpec.models', () => {
+    const topLevel = topLevelConfigSchema.parse({}); // no config file at all
+    const spec = buildOneSpec(topLevel);
+    expect(spec.models.judge).toBe('registry-default/judge-model');
+  });
+
+  it('top-level config DOES set `judge` → it outranks the registry default (registry-default < top-level)', () => {
+    const topLevel = topLevelConfigSchema.parse({
+      models: { fast: 'top-level/fast', workhorse: 'top-level/workhorse', judge: 'top-level/judge-override' },
+    });
+    const spec = buildOneSpec(topLevel);
+    expect(spec.models.judge).toBe('top-level/judge-override');
   });
 });
