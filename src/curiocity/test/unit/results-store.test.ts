@@ -1,5 +1,5 @@
 import { describe, it, expect, afterAll } from 'vitest';
-import { mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createRunDir, runDirName, writeTrial, writeSuite } from '../../src/results/store';
@@ -84,5 +84,58 @@ describe('results store roundtrip (§14)', () => {
       'a/claude-code/2',
       'b/codex/1',
     ]);
+  });
+});
+
+describe('loadRun — report edge cases (D8, §14): fail fast with a clear ConfigError', () => {
+  it('nonexistent run dir → ConfigError', () => {
+    expect(() => loadRun(join(tmp, 'no-such-run-dir'))).toThrow(/run dir not found/i);
+  });
+
+  it('a file path (not a directory) → ConfigError', () => {
+    const f = join(tmp, 'not-a-dir.txt');
+    writeFileSync(f, 'x');
+    expect(() => loadRun(f)).toThrow(/run dir not found/i);
+  });
+
+  it('run dir with no suite.json → ConfigError', () => {
+    const runDir = createRunDir(tmp, new Date('2026-07-02T16:00:00.000Z'));
+    expect(() => loadRun(runDir)).toThrow(/no suite\.json/i);
+  });
+
+  it('invalid suite.json (schema mismatch) → ConfigError', () => {
+    const runDir = createRunDir(tmp, new Date('2026-07-02T16:05:00.000Z'));
+    writeFileSync(join(runDir, 'suite.json'), JSON.stringify({ not: 'a suite' }));
+    expect(() => loadRun(runDir)).toThrow(/invalid suite\.json/i);
+  });
+
+  it('invalid trial.json (schema mismatch) → ConfigError naming the file', () => {
+    const runDir = createRunDir(tmp, new Date('2026-07-02T16:10:00.000Z'));
+    writeSuite(runDir, {
+      schemaVersion: SCHEMA_VERSION,
+      runDir,
+      createdAt: 'x',
+      config: {},
+      matrix: [],
+      groups: [],
+    });
+    const badDir = join(runDir, 'trials', 'c', 'a', '1');
+    mkdirSync(badDir, { recursive: true });
+    writeFileSync(join(badDir, 'trial.json'), JSON.stringify({ garbage: true }));
+    expect(() => loadRun(runDir)).toThrow(/invalid trial\.json/i);
+  });
+
+  it('run dir with a valid suite but an empty trials tree → zero trials, no throw', () => {
+    const runDir = createRunDir(tmp, new Date('2026-07-02T16:15:00.000Z'));
+    writeSuite(runDir, {
+      schemaVersion: SCHEMA_VERSION,
+      runDir,
+      createdAt: 'x',
+      config: {},
+      matrix: [],
+      groups: [],
+    });
+    const loaded = loadRun(runDir);
+    expect(loaded.trials).toEqual([]);
   });
 });

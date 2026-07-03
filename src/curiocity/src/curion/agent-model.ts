@@ -16,13 +16,26 @@ import type { AgentEffortRecord, AgentModelRecord } from '../results/schema';
  * omitted (undefined) rather than falsely reported.
  */
 
+/** Minimum length for the SHORTER id before substring containment is allowed to imply
+ *  agreement. Below this floor, only exact equality counts. Without it a 1-char token
+ *  ("4", "5") is a substring of almost every full model id (`claude-sonnet-4-5`,
+ *  `gpt-5.4-mini`) and would falsely report agreement. Two chars is the floor because
+ *  real short aliases bottom out there (OpenAI `o1`/`o3`), and those must still match
+ *  their full ids (`o1`⊂`o1-mini`). */
+const MIN_SUBSTR_LEN = 2;
+
 /** True when a requested model id and an observed model id refer to the same model
- *  (exact, or alias/short-id ⊂ full-id either direction), case-insensitive. */
+ *  (exact, or alias/short-id ⊂ full-id either direction), case-insensitive. The
+ *  substring path is gated by MIN_SUBSTR_LEN on the shorter id (see above). */
 export function agentModelsAgree(requested: string, observed: string): boolean {
   const r = requested.trim().toLowerCase();
   const o = observed.trim().toLowerCase();
   if (r === '' || o === '') return false;
-  return r === o || o.includes(r) || r.includes(o);
+  if (r === o) return true;
+  // Substring containment only when the shorter id is long enough to be a meaningful
+  // alias — never a lone digit/letter that trivially appears inside a full id.
+  if (Math.min(r.length, o.length) < MIN_SUBSTR_LEN) return false;
+  return o.includes(r) || r.includes(o);
 }
 
 /** Build the trial's agentModel record from the requested + observed ids (either may be

@@ -364,6 +364,15 @@ export class CodexAdapter implements AgentAdapter {
       case 'token_count': {
         // `last_token_usage` is the per-turn DELTA; summing deltas across events gives
         // the session total (`total_token_usage` is cumulative — summing it double-counts).
+        //
+        // COMPACTION SEMANTICS (decided, §12): after a context compaction Codex emits a
+        // `token_count` whose `last_token_usage` deltas are all ZERO while
+        // `total_token_usage` is NONZERO (the running cumulative). We DELIBERATELY key off
+        // the delta only, so such an event contributes zero — the cumulative total is
+        // already accounted for by the prior per-turn deltas, and folding it in here would
+        // double-count. The native object is still preserved verbatim on `raw`, so nothing
+        // is lost for downstream inspection. (When `last_token_usage` is absent entirely we
+        // emit no usage event at all — same zero contribution, no synthesized numbers.)
         const last = p.info?.last_token_usage;
         if (last) {
           // Codex native accounting (§12): `input_tokens` INCLUDES the cached subset

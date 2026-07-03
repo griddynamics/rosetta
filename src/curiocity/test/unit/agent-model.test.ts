@@ -143,6 +143,18 @@ describe('agentModel requested-vs-observed mismatch flag', () => {
     expect(agentModelsAgree('', 'haiku')).toBe(false);
   });
 
+  it('agentModelsAgree: minimum-length floor rejects lone-char substring false-positives', () => {
+    // A single char is a substring of almost every full id — must NOT imply agreement.
+    expect(agentModelsAgree('4', 'claude-sonnet-4-5')).toBe(false);
+    expect(agentModelsAgree('5', 'gpt-5.4-mini')).toBe(false);
+    expect(agentModelsAgree('claude-sonnet-4-5', '5')).toBe(false);
+    // Exact 1-char equality still agrees (nothing to spuriously match).
+    expect(agentModelsAgree('x', 'x')).toBe(true);
+    // Real 2-char aliases (OpenAI o1/o3) still match their full ids via substring.
+    expect(agentModelsAgree('o1', 'o1-mini')).toBe(true);
+    expect(agentModelsAgree('o3-pro', 'o3')).toBe(true);
+  });
+
   it('buildAgentModelRecord flags a genuine mismatch, clears an alias match', () => {
     expect(buildAgentModelRecord('haiku', 'claude-haiku-3-5')).toEqual({
       requested: 'haiku',

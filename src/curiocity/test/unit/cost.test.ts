@@ -89,6 +89,29 @@ describe('cost-rollup stat (§12): per model × source, no cross-model token sum
     expect(block.unpricedModels).toEqual(['openai/mystery']);
   });
 
+  it('keeps two DIFFERENT models under the SAME source separate across trials (m8-review a)', () => {
+    // Repeats of the same case can run the agent on different models (e.g. a config change
+    // between trials, or a silent CLI fallback). Those must NOT be merged into one agent
+    // figure — the (source, model) key keeps them as distinct rows so per-model $ is right.
+    const group = [
+      trial({ cost: { agent: makeUsage({ input: 1_000_000 }), models: { agent: 'anthropic/sonnet' } } }),
+      trial({ cost: { agent: makeUsage({ input: 2_000_000 }), models: { agent: 'anthropic/haiku' } } }),
+    ];
+    const block = costRollup.compute(group, { gate: DEFAULT_GATE, pricing: PRICING }) as Record<string, unknown>;
+    const items = block.items as Array<{ source: string; model: string; usage: { input: number }; usd?: number }>;
+    const agentRows = items.filter((i) => i.source === 'agent');
+    // Two separate agent rows — one per model — never a single blended row.
+    expect(agentRows.length).toBe(2);
+    expect(agentRows.find((r) => r.model === 'anthropic/sonnet')!.usage.input).toBe(1_000_000);
+    expect(agentRows.find((r) => r.model === 'anthropic/haiku')!.usage.input).toBe(2_000_000);
+    // byModel stays per-model; no cross-model token blending.
+    const byModel = block.byModel as Record<string, { usage: { input: number } }>;
+    expect(byModel['anthropic/sonnet'].usage.input).toBe(1_000_000);
+    expect(byModel['anthropic/haiku'].usage.input).toBe(2_000_000);
+    // Only $ is additive across models: sonnet 1M input @3 + haiku 2M input @1 = 5.
+    expect(block.usd).toBeCloseTo(5, 6);
+  });
+
   it('reports tokens-only with no $ when there is no pricing map (warning path)', () => {
     const group = [
       trial({ cost: { judge: makeUsage({ input: 10, output: 10 }), models: { judge: 'anthropic/sonnet' } } }),

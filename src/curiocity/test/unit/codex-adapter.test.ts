@@ -295,6 +295,47 @@ describe('codex extractUsage (token_count deltas → disjoint full breakdown §1
     expect(usage.output + usage.reasoning).toBe(816);
     expect(usage.total).toBe(62867 + 816);
   });
+
+  it('compaction: zero last_token_usage deltas + nonzero total_token_usage contribute zero, raw preserved (§12)', () => {
+    // After a context compaction, codex emits a token_count whose per-turn DELTA is all
+    // zeros while the cumulative TOTAL is nonzero. We key off the delta only, so the
+    // event contributes zero (the total is already summed from prior deltas); the native
+    // object is still preserved on `raw`.
+    const zeroDelta = {
+      input_tokens: 0,
+      output_tokens: 0,
+      cached_input_tokens: 0,
+      reasoning_output_tokens: 0,
+    };
+    const line = JSON.stringify({
+      timestamp: '2026-07-03T00:00:00.000Z',
+      type: 'event_msg',
+      payload: {
+        type: 'token_count',
+        info: { last_token_usage: zeroDelta, total_token_usage: { input_tokens: 123456 } },
+      },
+    });
+    const events = adapter.parseEvents(line);
+    const usage = events.filter((e) => e.kind === 'usage');
+    expect(usage.length).toBe(1); // the zero-delta event is still recorded (raw kept)
+    const u = usage[0]!.payload as { input: number; output: number; total: number; raw?: unknown };
+    expect(u.input).toBe(0);
+    expect(u.output).toBe(0);
+    expect(u.total).toBe(0);
+    expect(u.raw).toEqual(zeroDelta); // native object preserved verbatim
+    // extractUsage over just this event sums to zero — no double-count from the total.
+    expect(adapter.extractUsage(events).total).toBe(0);
+  });
+
+  it('compaction: absent last_token_usage emits no usage event (no synthesized numbers, §12)', () => {
+    const line = JSON.stringify({
+      timestamp: '2026-07-03T00:00:00.000Z',
+      type: 'event_msg',
+      payload: { type: 'token_count', info: { total_token_usage: { input_tokens: 999 } } },
+    });
+    const events = adapter.parseEvents(line);
+    expect(events.filter((e) => e.kind === 'usage').length).toBe(0);
+  });
 });
 
 describe('codex parseStopSignal & structured questions', () => {
