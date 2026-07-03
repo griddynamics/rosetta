@@ -22,7 +22,7 @@ import {
 import type { TrialArtifacts } from '../results/store';
 import { runEvaluatorPipeline } from './evaluate';
 import { buildAgentEffortRecord, buildAgentModelRecord } from './agent-model';
-import { computeTurnMetrics } from '../interaction/turn-metrics';
+import { computeTurnMetrics } from '../results/turn-metrics';
 import { buildRouter } from './router-factory';
 import { CostMeter } from '../llm/cost-meter';
 import { MeteredRouter } from '../llm/router';

@@ -1,5 +1,5 @@
 import type { StatBlock, TrialResult } from '../results/schema';
-import { computeTurnMetrics } from '../interaction/turn-metrics';
+import { computeTurnMetrics } from '../results/turn-metrics';
 import { completedTrials, mean, type Stat } from './types';
 
 /**

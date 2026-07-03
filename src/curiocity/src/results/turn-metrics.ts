@@ -1,9 +1,10 @@
-import type { TurnMetrics, TurnTiming } from '../results/schema';
+import type { TurnMetrics, TurnTiming } from './schema';
 
 /**
  * Turn metrics (§12), derived purely from the persisted per-turn timeline (D8 — so
- * `report` re-derives them retroactively). Kept a pure function so the collapse
- * semantics are unit-tested in isolation.
+ * `report` re-derives them retroactively). A pure reducer over `results/schema` types,
+ * so it lives here (not in `interaction/`): the `stats/` reducer must consume it without
+ * crossing the §3 module-dependency floor (stats imports only shared/ + results types).
  *
  *   - `turnsTotal`    — every recorded turn.
  *   - `questionTurns` — turns flagged as a question turn (the harness answered ≥1

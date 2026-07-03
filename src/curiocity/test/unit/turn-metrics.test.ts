@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeTurnMetrics } from '../../src/interaction/turn-metrics';
+import { computeTurnMetrics } from '../../src/results/turn-metrics';
 import { turnMetricsStat } from '../../src/stats/turn-metrics';
 import { trialResultSchema, type TrialResultInput } from '../../src/results/schema';
 
