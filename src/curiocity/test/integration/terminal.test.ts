@@ -55,16 +55,27 @@ describe('TerminalSession', () => {
     expect(s.hasExited).toBe(true);
   });
 
-  it('type+enter submits the line with a discrete Enter after a settle (§5.2, codex)', async () => {
-    // A composer that reads the whole line then echoes it — proves the discrete Enter
-    // still terminates the line (the settle only separates text from CR; the line is
-    // submitted, not left dangling).
+  it('paste+enter delivers a submitted line over a real PTY (markers stripped by consumer)', async () => {
+    // End-to-end over a real PTY with the PRODUCTION submit path (bracketed paste, §5.3):
+    // a consumer that accumulates stdin, strips the paste markers, and echoes on the
+    // trailing CR — proving the discrete Enter terminates the paste as a genuine submit.
+    const consumer = [
+      "let b='';",
+      "process.stdin.on('data',d=>{",
+      "  b+=d.toString();",
+      "  if(b.includes('\\r')||b.includes('\\n')){",
+      "    const s=b.replace(/\\x1b\\[20[01]~/g,'').replace(/[\\r\\n]+/g,'');",
+      "    process.stdout.write('got:'+s+'\\n');",
+      "    process.exit(0);",
+      "  }",
+      "});",
+    ].join('');
     const s = new TerminalSession({
-      command: '/bin/sh',
-      args: ['-c', 'read line; echo "got:$line"'],
+      command: process.execPath,
+      args: ['-e', consumer],
       cwd: process.cwd(),
       env: { PATH: process.env['PATH'] ?? '/usr/bin:/bin' },
-      submit: 'type+enter',
+      submit: 'paste+enter',
     });
     let exited = false;
     s.onExit(() => {
@@ -97,24 +108,33 @@ describe('TerminalSession', () => {
     });
   }
 
-  // Plain single-line modes: TWO writes — text, then a discrete lone CR.
-  for (const mode of ['enter', 'type+enter'] as SubmitMode[]) {
-    it(`submitLine (${mode}, single line) → [text, "\\r"]`, async () => {
+  // Bracketed paste is the production path (§5.3 ruling): every submit (paste+enter and
+  // the type+enter alias) is FOUR writes — open marker, text, close marker, discrete CR.
+  for (const mode of ['paste+enter', 'type+enter'] as SubmitMode[]) {
+    it(`submitLine (${mode}) → bracketed paste as four separate writes`, async () => {
       const writes = await captureSubmit(mode, 'English');
-      expect(writes).toEqual(['English', '\r']);
+      expect(writes).toEqual(['\x1b[200~', 'English', '\x1b[201~', '\r']);
     });
   }
 
-  // paste+enter: FOUR writes — open marker, text, close marker, discrete CR.
-  it('submitLine (paste+enter) → bracketed paste as four separate writes', async () => {
-    const writes = await captureSubmit('paste+enter', 'English');
-    expect(writes).toEqual(['\x1b[200~', 'English', '\x1b[201~', '\r']);
+  // Single-line text is wrapped just the same — no content inspection.
+  it('submitLine (paste+enter) wraps single-line text with no \\n-detection branching', async () => {
+    const writes = await captureSubmit('paste+enter', 'one-word');
+    expect(writes).toEqual(['\x1b[200~', 'one-word', '\x1b[201~', '\r']);
   });
 
-  // A multi-line payload auto-routes to bracketed paste even under a plain profile, so
-  // an embedded newline is never read as an early submit.
-  it('submitLine auto-routes a multi-line payload to bracketed paste (enter profile)', async () => {
-    const writes = await captureSubmit('enter', 'line one\nline two');
+  // A multi-line payload keeps its embedded newline as literal composer text inside the
+  // paste (never an early submit); the ONE Enter at the end submits.
+  it('submitLine (paste+enter) keeps embedded newlines literal inside the paste', async () => {
+    const writes = await captureSubmit('paste+enter', 'line one\nline two');
     expect(writes).toEqual(['\x1b[200~', 'line one\nline two', '\x1b[201~', '\r']);
+  });
+
+  // `enter` is the plain two-write FALLBACK (text, then a separate CR) — no wrapping.
+  // This is also the "raw text is never wrapped" assertion: markers appear ONLY on the
+  // bracketed-paste submit path, never on plain text / raw keystrokes.
+  it('submitLine (enter fallback) → plain [text, "\\r"] with no paste markers', async () => {
+    const writes = await captureSubmit('enter', 'English');
+    expect(writes).toEqual(['English', '\r']);
   });
 });

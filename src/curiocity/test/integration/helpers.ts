@@ -58,7 +58,9 @@ export function mockProfile(scene: string, o: MockProfileOverrides = {}): Record
     envSet: { MOCK_SCENE: scenePath(scene) },
     strategy: o.strategy ?? 'json-only',
     readiness: { bannerPattern: o.bannerPattern ?? 'MOCK READY', quietMs: o.quietMs ?? 50 },
-    submit: o.submit ?? 'enter',
+    // Default to the production submit path (bracketed paste, §5.3) so integration tests
+    // exercise the real four-write sequence; the mock TUI strips the paste markers.
+    submit: o.submit ?? 'paste+enter',
     stall: { quietMs: o.stallMs ?? 100 },
     freeze: { windowMs: o.freezeMs ?? 200 },
     ...(o.dialogPatterns ? { dialogPatterns: o.dialogPatterns } : {}),

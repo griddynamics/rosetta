@@ -27,7 +27,11 @@ export const CLAUDE_CODE_DEFAULT_PROFILE: AgentProfile = {
   envRemove: ['CLAUDECODE', 'CLAUDE_CODE*', 'ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL'],
   strategy: 'json-only',
   readiness: { quietMs: 800 },
-  submit: 'enter',
+  // Bracketed paste is the single production submit path (§5.3 ruling): text is wrapped
+  // in paste markers and Enter is a discrete follow-up write, so a typed answer is a
+  // genuine submit (never a literal newline inside the composer). `enter` is the plain
+  // fallback only, unused by v1 profiles.
+  submit: 'paste+enter',
   stall: { quietMs: 2000 },
   freeze: { windowMs: 10_000 },
   dialogPatterns: [

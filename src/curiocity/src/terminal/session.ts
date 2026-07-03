@@ -165,28 +165,29 @@ export class TerminalSession {
    * submission (the confirmed root-cause class of the M6.5 codex submit failure: the
    * typed answer sat unsent in `›` until the freeze watchdog fired).
    *
-   * Two body framings:
-   *   - **plain** (`enter` / `type+enter`, single-line): TWO writes — the text, then a
-   *     separate `\r`.
-   *   - **bracketed paste** (`paste+enter`, OR ANY payload containing `\n`): FOUR
-   *     writes — `\x1b[200~`, the text (embedded `\n` stay literal composer text, not
-   *     submissions), `\x1b[201~`, then a separate `\r`. A multi-line payload is routed
-   *     here automatically regardless of the profile default, because a plain
-   *     multi-line write would submit at the first embedded newline.
+   * **Bracketed paste is the default and only production submit path** (§5.3 ruling):
+   * every v1 profile uses `paste+enter`, so ALL submits — single-line included, no
+   * content inspection — are FOUR writes: `\x1b[200~`, the text, `\x1b[201~`, then a
+   * separate `\r`. Both v1 TUIs enable bracketed paste; wrapping single-line text is
+   * harmless, and one code path is one tested path. Embedded `\n` stay literal composer
+   * text (never an early submit).
    *
-   * This is the only place the submit mode is applied — raw `write()` (dialog
-   * keystrokes) is never auto-terminated.
+   * `enter` mode is the plain TWO-write fallback (text, then a separate `\r`), kept
+   * profile-selectable for a TUI that does not support bracketed paste; it is not used
+   * by any v1 profile.
+   *
+   * This is the only place submit sequencing is applied — raw `write()` (dialog
+   * keystrokes, arrow keys, bare `\r`, Ctrl+C terminate) is never wrapped or terminated.
    */
   async submitLine(text: string): Promise<void> {
-    const usePaste = this.submitMode === 'paste+enter' || text.includes('\n');
-    if (usePaste) {
-      // Bracketed paste: open marker, body, close marker as DISTINCT writes so embedded
-      // newlines are held as composer text; then a settle and a discrete Enter.
+    if (this.submitMode === 'enter') {
+      // Plain fallback: text, then a separate discrete Enter.
+      await this.write(text);
+    } else {
+      // Bracketed paste (default): open marker, body, close marker as DISTINCT writes.
       await this.write('\x1b[200~');
       await this.write(text);
       await this.write('\x1b[201~');
-    } else {
-      await this.write(text);
     }
     // Settle so the body flushes, THEN submit with a discrete lone Enter keystroke.
     await new Promise((r) => setTimeout(r, SUBMIT_SETTLE_MS));

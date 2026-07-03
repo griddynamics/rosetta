@@ -63,12 +63,12 @@ export const CODEX_DEFAULT_PROFILE: AgentProfile = {
   envRemove: [],
   strategy: 'hybrid',
   readiness: { quietMs: 1200 },
-  // `type+enter` (not plain `enter`): codex-cli's interactive composer reads a rapid
-  // `text\r` burst as a multi-line PASTE and inserts a newline instead of submitting
-  // (verified live during the m6.5 qna-probe: the typed answer sat unsent in `›` and the
-  // agent idled to the freeze watchdog). Sending Enter as a discrete keystroke after the
-  // text settles makes it a genuine submit.
-  submit: 'type+enter',
+  // Bracketed paste is the single production submit path (§5.3 ruling): the codex-cli
+  // composer reads a rapid `text\r` burst as a paste and inserts a newline instead of
+  // submitting (verified live during the m6.5 qna-probe: the answer sat unsent in `›`
+  // until the freeze watchdog fired). Wrapping the text in bracketed-paste markers and
+  // sending Enter as a discrete follow-up write makes it a genuine submit.
+  submit: 'paste+enter',
   stall: { quietMs: 2500 },
   freeze: { windowMs: 12_000 },
   dialogPatterns: [
