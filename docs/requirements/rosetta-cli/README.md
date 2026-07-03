@@ -1,6 +1,6 @@
 # Rosetta CLI - Requirements
 
-`npx rosetta <command>` - Node.js CLI for Rosetta operations.
+`npx -y rosetta@latest <command>` - Node.js CLI for Rosetta operations.
 
 ## Commands
 

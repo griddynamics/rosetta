@@ -25,6 +25,10 @@ describe('reverseLookupEvent', () => {
     expect(reverseLookupEvent('cursor', 'postToolUse')).toBe('PostToolUse'));
   test('unknown raw value returns null', () =>
     expect(reverseLookupEvent('claude-code', 'SomeRandomEvent')).toBeNull());
+  test('stop — cursor lowercase normalized to Stop', () =>
+    expect(reverseLookupEvent('cursor', 'stop')).toBe('Stop'));
+  test('Stop — unsupported on windsurf (no session-level lifecycle events)', () =>
+    expect(reverseLookupEvent('windsurf', 'Stop')).toBeNull());
 });
 
 describe('TOOL_KINDS — completeness', () => {

@@ -122,7 +122,7 @@ Filename becomes command name. Content is the prompt to execute. Commands must b
 - `description`: Command description (helps Claude decide when to use)
 - `argument-hint`: Hint for expected arguments
 - `allowed-tools`: Tools Claude can use without permission when this command is active. Dangerous.
-- `model`: Specific Claude model to use (`claude-haiku-4-5`, `claude-sonnet-4-6`, `claude-opus-4-8`, `inherit`)
+- `model`: Specific Claude model to use (`claude-haiku-4-5`, `claude-sonnet-5`, `claude-opus-4-8`, `inherit`)
 - `disable-model-invocation`: Set to `true` to prevent Claude from automatically invoking (only manual `/command`)
 - `user-invocable`: Set to `false` to hide from `/` menu (only Claude can invoke)
 - `context`: Set to `fork` to run in forked subagent context
@@ -204,7 +204,7 @@ Review @src/api.ts
 name: code-reviewer
 description: Reviews code for best practices, security, and maintainability
 tools: ["read", "grep"]
-model: claude-sonnet-4-6
+model: claude-sonnet-5
 ---
 
 You are a senior code reviewer.
@@ -230,7 +230,7 @@ You are a senior code reviewer.
   - MCP and tool-specific names
 - `disallowedTools`: Tools to deny, removed from inherited or specified list
 - `model`: Claude model to use
-  - `"claude-sonnet-4-6"`: Balanced (default)
+  - `"claude-sonnet-5"`: Balanced (default)
   - `"claude-opus-4-8"`: Most capable
   - `"claude-haiku-4-5"`: Fastest, more economical
   - `"inherit"`: Use same model as main conversation (default if omitted)
@@ -322,6 +322,84 @@ Type `/` in Claude Code to see the full list with autocomplete.
 
 ---
 
+## Hooks
+
+Claude Code hooks run scripts at lifecycle events. Full verified contract: [Claude Code Hooks reference](https://code.claude.com/docs/en/hooks).
+
+### Hook Locations
+
+| Path | Scope |
+|------|-------|
+| `.claude/settings.json` | Project |
+| `.claude/settings.local.json` | Project-local (not committed) |
+| `~/.claude/settings.json` | User |
+| plugin `hooks/hooks.json` | Plugin-bundled |
+| `"disableAllHooks": true` | Disables all hooks |
+
+### Registration Format
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Bash", "hooks": [ { "type": "command", "command": "path/to/script", "timeout": 5 } ] }
+    ]
+  }
+}
+```
+
+`matcher`: `"*"`/`""`/omitted = match all; alphanumeric (+ `,`/`|`) = exact string or list (e.g. `"Edit|Write"`); any other character = JS regex. Handler fields: `type` (`command`\|`http`\|`mcp_tool`\|`prompt`\|`agent`), `command`, `args`, `if` (permission rule), `timeout`, `statusMessage`, `once`, `async`/`asyncRewake`, `shell`.
+
+### Supported Events (Rosetta-relevant)
+
+| Event | Matcher basis | Purpose |
+|-------|---------------|---------|
+| `SessionStart` | session source (`startup`/`resume`/`clear`/`compact`) | inject `additionalContext` |
+| `PreToolUse` | tool name | deny / rewrite / advise before a tool runs |
+| `PostToolUse` | tool name | inject `additionalContext`; cannot block (tool already ran) |
+| `SubagentStop` | agent type | prevent a subagent from stopping (continue it) |
+| `Stop` | — (no matcher, always fires) | prevent Claude from stopping (continue the turn) |
+| `PreCompact` / `PostCompact` | compaction trigger (`manual`/`auto`) | before/after compaction; `PostCompact` has no decision control |
+
+### Input
+
+Delivered as snake_case JSON on stdin; `tool_input`/`tool_response` are parsed objects. Common (all events): `session_id`, `transcript_path`, `cwd`, `hook_event_name` (PascalCase). `permission_mode` and `effort` `{level}` are present on tool/Stop events but absent on `SessionStart`; `agent_id`/`agent_type` appear inside subagents. Tool events add `tool_name` (`Bash`, `Edit`, `Write`, `Read`, `mcp__…`), `tool_input`, `tool_use_id`; `PostToolUse` adds `tool_response` (object for Bash) + `duration_ms`. `SessionStart` adds `source`; `Stop`/`SubagentStop` add `stop_hook_active`, `last_assistant_message`; `PreCompact`/`PostCompact` add `trigger`.
+
+### Output (nested under `hookSpecificOutput` — `hookEventName` required)
+
+| Field | Used on | Meaning |
+|-------|---------|---------|
+| `hookSpecificOutput.additionalContext` | `SessionStart` / `PreToolUse` / `PostToolUse` / `Stop` / `SubagentStop` | model-visible context; **no top-level `additionalContext` for Claude Code** (unlike Copilot) |
+| `hookSpecificOutput.permissionDecision` | `PreToolUse` | `"allow"` \| `"deny"` \| `"ask"` \| `"defer"` |
+| `hookSpecificOutput.permissionDecisionReason` | `PreToolUse` | **(!) REQUIRED when `permissionDecision` is `"deny"`** |
+| `hookSpecificOutput.updatedInput` | `PreToolUse` | replaces tool args before execution |
+| `decision` | `PostToolUse` / `Stop` / `SubagentStop` | top-level `"block"`; blocks/continues (PostToolUse: feeds reason back only, tool already ran) |
+| `reason` | (with `decision`) | **(!) REQUIRED when `decision` is `"block"`** |
+| `continue` | any | `false` stops Claude entirely — **(!) overrides every other decision field** |
+| `stopReason` | with `continue:false` | **(!) shown to the USER only, never reaches Claude** |
+| `systemMessage` | any | **(!) USER-facing warning only — NOT model context.** Put model-visible text in `additionalContext` instead |
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | stdout JSON parsed as the output contract |
+| `2` | **primary block mechanism.** stdout ignored; **stderr fed to Claude** as the reason. No effect on `PostToolUse` (tool already ran) |
+| `1` / other non-zero | non-blocking error — action proceeds |
+
+**(!) Choose ONE mechanism per hook — exit 0 + JSON, or exit 2 + stderr — never both.**
+
+### Matchers
+
+| Hook | Matches against |
+|------|------------------|
+| `PreToolUse` / `PostToolUse` | tool name: `Bash`, `Edit`, `Write`, `Read`, `mcp__…`, … |
+| `SubagentStop` | agent type: `general-purpose`, `Explore`, `Plan`, custom names |
+| `SessionStart` | session source: `startup`, `resume`, `clear`, `compact` |
+| `Stop` | none — always fires |
+
+---
+
 ## File Structure Example
 
 ```
@@ -364,7 +442,7 @@ your-project/
 **Model Selection:**
 
 - `claude-haiku-4-5`: Simple, repetitive tasks
-- `claude-sonnet-4-6`: Most general-purpose work
+- `claude-sonnet-5`: Most general-purpose work
 - `claude-opus-4-8`: Most capable for complex reasoning
 
 ---

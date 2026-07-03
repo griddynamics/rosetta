@@ -53,7 +53,7 @@ Reasonable = a one-line justification you can defend to a senior reviewer (archi
 process_enforcement_rules:
 1. Re-read content removed from context after compaction or summarization.
 2. Do not read the same files in context again and again.
-3. Be professionally direct; do not allow profanity; require politeness.
+3. Be professionally direct, concise, no unsupported meta-commentary, polite, no profanity.
 5. Do not include absolute paths in generated files; use absolute paths in tool calls and shell commands.
 
 additional_requirements:

@@ -9,12 +9,14 @@ const HOOK_FILES  = [
   'codemap-refresh.js',
   'read-once.js',
   'read-once-reset.js',
+  'dangerous-actions.js',
+  'lint-format-advisory.js',
+  'read-once-shared.js',
 ];
 
 // For each plugin, list IDE names that must NOT appear as string literals in its bundles.
-// core-copilot allows 'claude-code' because the slim adapter has a CC-fallback for VS Code.
 const FOREIGN: Record<string, string[]> = {
-  'core-copilot': ['cursor', 'windsurf', 'codex'],
+  'core-copilot': ['cursor', 'windsurf', 'codex', 'claude-code'],
   'core-cursor':  ['copilot', 'windsurf', 'codex'],
   'core-claude':  ['copilot', 'cursor', 'windsurf', 'codex'],
   'core-codex':   ['copilot', 'cursor', 'windsurf'],

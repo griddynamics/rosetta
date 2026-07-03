@@ -5,7 +5,6 @@ import { test, describe, expect } from 'vitest';
 import fxCodexBash  from './fixtures/codex-post-tool-use-bash.json';
 import fxCodexWrite from './fixtures/codex-post-tool-use-write.json';
 import fxCodexSessionStart from './fixtures/codex-session-start.json';
-import fxCodexMcpRead from './fixtures/codex-pre-tool-use-mcp-read.json';
 
 import { detectIDE, normalize, formatOutput } from '../src/adapter';
 
@@ -73,17 +72,26 @@ describe('normalize — Codex', () => {
     expect(result.session_id).toBe('codex-session-001');
   });
 
-  test('MCP filesystem read upgrades to PreRead', () => {
-    const result = normalize(fxCodexMcpRead);
-    expect(result.event).toBe('PreRead');
-    expect(result.hook_event_name).toBe('PreToolUse');
-    expect(result.toolKind).toBe('read');
-    expect(result.file_path).toBe('/proj/src/app.ts');
+  // Codex has no dedicated read tool and no MCP read path — an MCP call must
+  // NEVER be reclassified as a read (it would let read-once dedupe/deny a real
+  // side-effecting MCP action). MCP stays 'mcp-call'; a bare 'Read' stays null.
+  test('MCP tool is NOT promoted to a read (stays mcp-call, event unchanged)', () => {
+    const result = normalize({
+      hook_event_name: 'PreToolUse',
+      session_id: 'codex-session-001',
+      model: 'gpt-5.5',
+      tool_name: 'mcp__filesystem__read_file',
+      tool_input: { file_path: '/proj/src/app.ts' },
+    });
+    expect(result.event).toBe('PreToolUse');
+    expect(result.toolKind).toBe('mcp-call');
   });
 
   test('generic built-in Read is not classified as Codex read-once input', () => {
     const result = normalize({
-      ...fxCodexMcpRead,
+      hook_event_name: 'PreToolUse',
+      session_id: 'codex-session-001',
+      model: 'gpt-5.5',
       tool_name: 'Read',
       tool_input: { file_path: '/proj/src/app.ts' },
     });

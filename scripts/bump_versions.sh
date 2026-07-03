@@ -112,11 +112,8 @@ for f in \
 done
 printf "  %-55s %s\n" "[package.json] src/rosettify/package.json" "$(get_json_version "$ROOT/src/rosettify/package.json")"
 printf "  %-55s %s\n" "[package.json] src/rosettify-plugins/package.json" "$(get_json_version "$ROOT/src/rosettify-plugins/package.json")"
+printf "  %-55s %s\n" "[package.json] src/rosettify-prompts/package.json" "$(get_json_version "$ROOT/src/rosettify-prompts/package.json")"
 for f in \
-    "$ROOT/plugins/core-claude/.claude-plugin/plugin.json" \
-    "$ROOT/plugins/core-cursor/.cursor-plugin/plugin.json" \
-    "$ROOT/plugins/core-copilot/.github/plugin/plugin.json" \
-    "$ROOT/plugins/core-codex/.codex-plugin/plugin.json" \
     "$ROOT/src/rosettify-plugins/plugins/core-claude/.claude-plugin/plugin.json" \
     "$ROOT/src/rosettify-plugins/plugins/core-cursor/.cursor-plugin/plugin.json" \
     "$ROOT/src/rosettify-plugins/plugins/core-copilot/.github/plugin/plugin.json" \
@@ -192,14 +189,11 @@ echo "--- src/rosettify-plugins/package.json ---"
 bump_file_json "$ROOT/src/rosettify-plugins/package.json" "y"
 
 echo ""
-echo "--- plugin.json files ---"
-bump_file_json "$ROOT/plugins/core-claude/.claude-plugin/plugin.json"  "y"
-bump_file_json "$ROOT/plugins/core-cursor/.cursor-plugin/plugin.json"  "y"
-bump_file_json "$ROOT/plugins/core-copilot/.github/plugin/plugin.json" "y"
-bump_file_json "$ROOT/plugins/core-codex/.codex-plugin/plugin.json"    "y"
+echo "--- src/rosettify-prompts/package.json ---"
+bump_file_json "$ROOT/src/rosettify-prompts/package.json" "y"
 
 echo ""
-echo "--- plugin.json files (rosettify-plugins preserved source) ---"
+echo "--- plugin.json files (rosettify-plugins preserved source; plugins/ is generated) ---"
 bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-claude/.claude-plugin/plugin.json"  "y"
 bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-cursor/.cursor-plugin/plugin.json"  "y"
 bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-copilot/.github/plugin/plugin.json" "y"

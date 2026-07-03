@@ -1,0 +1,26 @@
+{
+  "SessionStart": [
+    { "hooks": [ { "type": "command", "command": "node docs/hooks/tester.js --mode devin --tag SessionStart --output '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Diagnostic secret DEVIN-SS-3c4d. Report DS1.\"}}'", "timeout": 30 } ] }
+  ],
+  "UserPromptSubmit": [
+    { "hooks": [ { "type": "command", "command": "node docs/hooks/tester.js --mode devin --tag UserPromptSubmit --output '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"Diagnostic secret DEVIN-UPS-7a8b. Report DU2.\"}}'", "timeout": 30 } ] }
+  ],
+  "PreToolUse": [
+    { "matcher": ".*", "hooks": [ { "type": "command", "command": "node docs/hooks/tester.js --mode devin --tag PreToolUse --deny-on-match HOOK-DENY-PROBE", "timeout": 30 } ] }
+  ],
+  "PostToolUse": [
+    { "matcher": ".*", "hooks": [ { "type": "command", "command": "node docs/hooks/tester.js --mode devin --tag PostToolUse --output '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"Diagnostic secret DEVIN-PTU-5e6f. Report DP3.\"}}'", "timeout": 30 } ] }
+  ],
+  "PermissionRequest": [
+    { "matcher": ".*", "hooks": [ { "type": "command", "command": "node docs/hooks/tester.js --mode devin --tag PermissionRequest", "timeout": 30 } ] }
+  ],
+  "Stop": [
+    { "hooks": [ { "type": "command", "command": "node docs/hooks/tester.js --mode devin --tag Stop --block-stop-once", "timeout": 30 } ] }
+  ],
+  "PostCompaction": [
+    { "hooks": [ { "type": "command", "command": "node docs/hooks/tester.js --mode devin --tag PostCompaction", "timeout": 30 } ] }
+  ],
+  "SessionEnd": [
+    { "hooks": [ { "type": "command", "command": "node docs/hooks/tester.js --mode devin --tag SessionEnd", "timeout": 30 } ] }
+  ]
+}

@@ -1,0 +1,89 @@
+suite: Traefik Middlewares
+templates:
+  - traefik-middlewares.yaml
+tests:
+  - it: creates rate-limit Middleware when traefik class and rateLimit configured
+    asserts:
+      - isKind:
+          of: Middleware
+      - equal:
+          path: apiVersion
+          value: traefik.io/v1alpha1
+      - equal:
+          path: spec.rateLimit.average
+          value: 100
+      - equal:
+          path: spec.rateLimit.burst
+          value: 200
+      - equal:
+          path: spec.rateLimit.period
+          value: "1s"
+
+  - it: does not render any annotations by default
+    asserts:
+      - isNull:
+          path: metadata.annotations
+
+  - it: includes chart labels
+    asserts:
+      - exists:
+          path: metadata.labels["helm.sh/chart"]
+      - exists:
+          path: metadata.labels["app.kubernetes.io/name"]
+
+  - it: is not rendered when className is nginx
+    set:
+      ingress.className: nginx
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: is not rendered when ingress is disabled
+    set:
+      ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: is not rendered when rateLimit.average is not set
+    set:
+      ingress.traefik.rateLimit.average: null
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders with only average when burst and period are empty
+    set:
+      ingress.traefik.rateLimit:
+        average: 50
+        burst: 0
+        period: ""
+    asserts:
+      - equal:
+          path: spec.rateLimit.average
+          value: 50
+
+  - it: renders custom rate-limit values
+    set:
+      ingress.traefik.rateLimit:
+        average: 50
+        burst: 100
+        period: "10s"
+    asserts:
+      - equal:
+          path: spec.rateLimit.average
+          value: 50
+      - equal:
+          path: spec.rateLimit.burst
+          value: 100
+      - equal:
+          path: spec.rateLimit.period
+          value: "10s"
+
+  - it: normalizes consecutive dashes in CRD name
+    release:
+      name: my--app
+    asserts:
+      - equal:
+          path: metadata.name
+          value: my-app-rosetta-mcp-rate-limit

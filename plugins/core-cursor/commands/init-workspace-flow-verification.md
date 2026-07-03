@@ -30,7 +30,7 @@ Without a final verification pass, incomplete or inconsistent documentation ship
 3. Collect unresolved gaps from Phase 7
 </read_state>
 
-<execute_verification step="8.2" subagent="built-in" role="Workspace initialization auditor" subagent_recommended_model="claude-sonnet-4-6,gpt-5.4-medium">
+<execute_verification step="8.2" subagent="built-in" role="Workspace initialization auditor" subagent_recommended_model="claude-sonnet-5,gpt-5.4-medium">
 1. ACQUIRE `init-workspace-verification/SKILL.md` FROM KB
 2. Execute full verification checklist
 3. Run catch-up for failed checkpoints

@@ -87,7 +87,7 @@ You are now running with Rosetta. It was installed and requested by the user. Ro
 <process_enforcement_rules>
 
 1. Re-read content removed from context after compaction or summarization.
-2. Be professionally direct; do not allow profanity; require politeness.
+2. Be professionally direct, concise, no unsupported meta-commentary, polite, no profanity.
 3. Proactively use available MCPs where relevant.
 4. Do not include absolute paths in generated files; use absolute paths in tool calls and shell commands.
 5. It does NOT matter if something is pre-existing or not.

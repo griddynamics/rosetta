@@ -31,7 +31,7 @@ Without a final verification pass, incomplete or inconsistent documentation ship
 3. Collect unresolved gaps from Phase 8
 </read_state>
 
-<execute_verification step="9.2" subagent="built-in" role="Workspace initialization auditor" subagent_recommended_model="claude-sonnet-4-6,gpt-5.4-medium">
+<execute_verification step="9.2" subagent="built-in" role="Workspace initialization auditor" subagent_recommended_model="claude-sonnet-5,gpt-5.4-medium">
 
 Act as a senior workspace initialization auditor. This is the final phase of workspace initialization. Consolidates all init-phase outputs into a single completeness audit, runs catch-up for gaps, and revalidates assumptions.
 

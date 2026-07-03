@@ -8,6 +8,7 @@ const EVENTS: Partial<Record<SemanticEvent, string>> = {
   PreCompact: 'PreCompact',
   PostCompact: 'PostCompact',
   PrePromptSubmit: 'UserPromptSubmit',
+  Stop: 'Stop',
 };
 
 // Matches "*** (Update|Add|Create) File: <path>" in apply_patch command strings

@@ -1,0 +1,27 @@
+suite: PodDisruptionBudget
+templates:
+  - poddisruptionbudget.yaml
+tests:
+  - it: is not rendered when disabled (default)
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: creates a PDB when enabled with multiple replicas
+    set:
+      podDisruptionBudget.enabled: true
+      replicaCount: 3
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+
+  - it: is not rendered when replicaCount is 1 even if enabled
+    set:
+      podDisruptionBudget.enabled: true
+      replicaCount: 1
+    asserts:
+      - hasDocuments:
+          count: 0

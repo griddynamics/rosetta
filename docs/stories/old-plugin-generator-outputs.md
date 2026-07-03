@@ -1,7 +1,7 @@
 # Old Plugin Generator — CLI Output Examples
 
 Captured 2026-06-19 during the migration session that replaced `scripts/plugin_generator.py` with
-`npx rosettify-plugins@latest`. These are verbatim stdout/stderr outputs from the last runs of the
+`npx -y rosettify-plugins@latest`. These are verbatim stdout/stderr outputs from the last runs of the
 old Python generator before it was removed. Saved for reference — parity baseline and behavior record.
 
 Command invoked: `venv/bin/python scripts/plugin_generator.py [--release r2|r3]`
@@ -80,7 +80,7 @@ Exit code: 0
 - `core-copilot-standalone`: rewrites path refs in 16 markdown files; 5 bootstrap rules moved to instructions/
 - `core-cursor-standalone`: 9 items copied into `.cursor/`
 - Hook payloads: 9 per plugin (per-IDE bootstrap entries)
-- Template var names used: `{{{bootstrap_hooks_claude}}}`, `{{{bootstrap_hooks_codex}}}`, `{{{bootstrap_hooks_copilot}}}` (IDE-specific, per-run context — **old generator bug**, unified as `{{{bootstrap_hooks}}}` in `npx rosettify-plugins@latest`)
+- Template var names used: `{{{bootstrap_hooks_claude}}}`, `{{{bootstrap_hooks_codex}}}`, `{{{bootstrap_hooks_copilot}}}` (IDE-specific, per-run context — **old generator bug**, unified as `{{{bootstrap_hooks}}}` in `npx -y rosettify-plugins@latest`)
 
 ---
 

@@ -43,7 +43,7 @@ never overload. Keep the stdout-silence, stamp/token debounce, detached-spawn, a
 
 | Backend | Detect (walk up from cwd) | Refresh command | Notes |
 |---|---|---|---|
-| GitNexus | `.gitnexus/` exists | `npx gitnexus analyze --force` (+ `--embeddings` when `.gitnexus/meta.json` stats.embeddings > 0) | embeddings probe stays GitNexus-only |
+| GitNexus | `.gitnexus/` exists | `npx -y gitnexus@latest analyze --force` (+ `--embeddings` when `.gitnexus/meta.json` stats.embeddings > 0) | embeddings probe stays GitNexus-only |
 | Graphify | `graphify-out/graph.json` exists | `graphify update .` | AST-only, no API cost, no embeddings probe |
 | Neither | — | — | no-op: no stamp, no spawn |
 

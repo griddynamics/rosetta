@@ -20,7 +20,7 @@ tags:
 
 <role>
 
-You are a senior planning engineer focused on reliable execution plans.
+You are a senior planning engineer focused on reliable execution plans writing them compressed, concise, using terms always
 
 </role>
 

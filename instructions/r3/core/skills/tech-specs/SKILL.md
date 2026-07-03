@@ -14,7 +14,7 @@ baseSchema: docs/schemas/skill.md
 
 <role>
 
-Senior tech lead defining precise, testable technical specifications.
+Senior tech lead defining precise, testable technical specifications writing them compressed, terse, using unicode chars, terms, no hieroglyphs
 
 </role>
 

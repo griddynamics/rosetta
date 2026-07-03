@@ -28,7 +28,7 @@ The plugin generator produces ready-to-install IDE plugin distributions from a s
 
 ## Entry Points
 
-- CLI: `npx rosettify-plugins@latest [--release …] [--domain …] [--source …] [--output …]`.
+- CLI: `npx -y rosettify-plugins@latest [--release …] [--domain …] [--source …] [--output …]`.
 
 ## Global Constraints
 

@@ -4,7 +4,7 @@
 
 import { buildHookPayloadJson } from '../escaping/json-string.js';
 import { wrapInPrintf } from '../escaping/shell.js';
-import { buildCopilotBashEntry, buildCopilotPowershellEntry } from './copilot-lock.js';
+import { wrapInPsWriteOutput } from '../escaping/powershell.js';
 import {
   BOOTSTRAP_PREFIX,
   BOOTSTRAP_MANIFEST_ORDER,
@@ -13,7 +13,7 @@ import { stripFrontmatter } from '../serialize/frontmatter.js';
 import { applyFolderRewrites, buildRenamePairs } from '../plugin-processors/plugin-rewrite-references.js';
 import type { FileProcessingFrame, GenError, PluginProcessingFrame } from '../types.js';
 
-export { buildHookPayloadJson, wrapInPrintf, buildCopilotBashEntry, buildCopilotPowershellEntry, applyFolderRewrites };
+export { buildHookPayloadJson, wrapInPrintf, wrapInPsWriteOutput, applyFolderRewrites };
 
 const MAX_ENTRY_CHARS = 10000; // NFR-0004
 
@@ -52,26 +52,20 @@ export function buildCursorBootstrapEntry(command: string): string {
 /**
  * Callback type for building one per-document bootstrap entry.
  * additionalContext: the rewritten body string (prefix-prepended for lead, folder-rewritten).
- * jsonPayload: the already-built inner JSON payload string (IDE-specific format).
- * lockIndex: 0-based index of this entry in the payload (for per-entry guards like copilot lock).
  * Returns the entry JSON object string, or null to skip this entry.
- * FR-ARCH-0005: IDE-specific entry shape supplied by caller, not derived here.
+ * FR-ARCH-0005: IDE-specific entry shape (and its own JSON payload) supplied by caller, not derived here.
  */
 export type EntryBuilderFn = (
   additionalContext: string,
-  jsonPayload: string,
-  lockIndex: number,
 ) => string | null;
 
 /**
  * Callback type for building the plugin-root path entry (always the final entry).
- * lockIndex: total number of doc entries emitted before this (= final doc entry index for copilot).
  * folderPairs: rename pairs for reference-rewriting the plugin-root command string.
  * Returns the entry JSON object string, or null to omit the plugin-root entry.
  * FR-HOOK-0007
  */
 export type RootEntryBuilderFn = (
-  lockIndex: number,
   folderPairs: Array<[string, string]>,
 ) => string | null;
 
@@ -91,7 +85,6 @@ export function assembleBootstrapPayload(
   const folderPairs = buildRenamePairs(frames, spec);
 
   const entryStrings: string[] = [];
-  let lockIndex = 0;
 
   // Process manifest entries (FR-HOOK-0001: absent→skip, NFR-0006: content-agnostic)
   for (const ref of BOOTSTRAP_MANIFEST_ORDER) {
@@ -131,28 +124,31 @@ export function assembleBootstrapPayload(
       ? additionalContext
       : applyFolderRewrites(additionalContext, folderPairs);
 
-    // Size check on the JSON payload (NFR-0004)
-    const jsonPayload = buildHookPayloadJson(rewrittenContext);
-    if (jsonPayload.length > MAX_ENTRY_CHARS) {
+    // Size check on the ORIGINAL content (NFR-0004) — measured BEFORE any IDE-specific JSON
+    // wrapping/escaping. The 10,000-char budget is about the actual bootstrap document text an
+    // agent has to read, not the incidental overhead of whichever wire format carries it — a
+    // wrapped/escaped/duplicated (e.g. Copilot's merged top-level+nested emit) payload is not a
+    // bigger "entry" by this measure, and a per-IDE proxy would wrongly vary the same content's
+    // pass/fail by which IDE happens to be rendering it.
+    if (rewrittenContext.length > MAX_ENTRY_CHARS) {
       errors.push({
         target: spec.name,
         file: ref.basename,
-        message: `Bootstrap entry exceeds ${MAX_ENTRY_CHARS} chars (${jsonPayload.length})`,
+        message: `Bootstrap entry exceeds ${MAX_ENTRY_CHARS} chars (${rewrittenContext.length})`,
         kind: 'soft',
       });
     }
 
     // Build IDE-specific entry via callback
-    const entryStr = buildEntry(rewrittenContext, jsonPayload, lockIndex);
+    const entryStr = buildEntry(rewrittenContext);
 
     if (entryStr !== null) {
       entryStrings.push(entryStr);
-      lockIndex++;
     }
   }
 
   // Append plugin-root entry (GT-3.4, FR-HOOK-0007) — always last, separate
-  const pluginRootEntry = buildRootEntry(lockIndex, folderPairs);
+  const pluginRootEntry = buildRootEntry(folderPairs);
   if (pluginRootEntry !== null) {
     entryStrings.push(pluginRootEntry);
   }

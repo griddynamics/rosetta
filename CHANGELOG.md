@@ -256,7 +256,7 @@ Tooling and reliability week. A new generator now builds every IDE plugin from o
 
 **Highlights**
 
-- New plugin generator (`npx rosettify-plugins`) builds all IDE distributions from one source
+- New plugin generator (`npx -y rosettify-plugins@latest`) builds all IDE distributions from one source
 - Fixed intermittent MCP server hangs (the 502-after-minutes bug) and added full request logging
 - Code analysis can now reverse-engineer requirements from an existing codebase
 - Rosettify builds a whole plan in one call: ~50% fewer calls
@@ -264,7 +264,7 @@ Tooling and reliability week. A new generator now builds every IDE plugin from o
 
 #### Plugin generator
 
-- **Change.** `[Tooling]` One tool, `npx rosettify-plugins`, builds every distribution (Claude Code, Cursor, Copilot, Codex, and the Cursor/Copilot standalones) from a single instruction source tree. Rewritten in TypeScript on a modular pipeline architecture, replacing the old single-file Python monolith, with a full reverse-engineered requirements spec and byte-for-byte parity against the previous output. Eight critical issues were fixed along the way. (Igor Solomatov)
+- **Change.** `[Tooling]` One tool, `npx -y rosettify-plugins@latest`, builds every distribution (Claude Code, Cursor, Copilot, Codex, and the Cursor/Copilot standalones) from a single instruction source tree. Rewritten in TypeScript on a modular pipeline architecture, replacing the old single-file Python monolith, with a full reverse-engineered requirements spec and byte-for-byte parity against the previous output. Eight critical issues were fixed along the way. (Igor Solomatov)
 - **Why it helps.** Edit the instructions once and every plugin regenerates identically, so IDE variants can't drift apart. The modular architecture makes adding a new plugin practical, which was effectively impossible with the old monolith. No Python toolchain to install. The spec makes the build auditable.
 
 #### MCP server: hang fix and observability

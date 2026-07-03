@@ -271,7 +271,9 @@ enabled = false
 
 ## Hooks
 
-**Location:** `.codex/hooks.json`
+Codex runs command hooks at lifecycle events. Full verified contract: [Codex Hooks reference](https://developers.openai.com/codex/hooks).
+
+**Location:** `.codex/hooks.json` (or inline `[[hooks.<EventName>]]` blocks in `config.toml`).
 
 **Enable in `config.toml`:**
 
@@ -280,30 +282,21 @@ enabled = false
 hooks = true
 ```
 
-### Supported Events
-
-| Event | Matcher | Purpose |
-|-------|---------|---------|
-| `SessionStart` | `startup` or `resume` | Run scripts on session start/resume |
-| `PreToolUse` | Tool name (currently `Bash` only) | Block or modify before tool execution |
-| `PostToolUse` | Tool name | React after tool execution |
-| `UserPromptSubmit` | Unsupported | Process user input |
-| `Stop` | Unsupported | Intercept session stop |
-
-### Handler Configuration
+### Registration Format
 
 ```json
 {
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
-        "handlers": [
+        "matcher": "Bash|Write|Edit|apply_patch|functions.apply_patch|mcp__.*",
+        "hooks": [
           {
             "type": "command",
-            "command": "path/to/script.py",
-            "statusMessage": "Checking policy...",
-            "timeout": 600
+            "command": "path/to/script",
+            "commandWindows": "windows-specific command",
+            "timeout": 600,
+            "statusMessage": "optional UI message"
           }
         ]
       }
@@ -312,22 +305,48 @@ hooks = true
 }
 ```
 
-### Handler Input/Output
+The inner array is `"hooks"` (not `"handlers"`). `type` is always `"command"`; `timeout` defaults to 600s. Plugin command env: `PLUGIN_ROOT`, `PLUGIN_DATA` (aliases `CLAUDE_PLUGIN_ROOT`, `CLAUDE_PLUGIN_DATA`). - revalidate
 
-**Input (stdin JSON):** `session_id`, `transcript_path`, `cwd`, `hook_event_name`, `model`, `turn_id`
+### Supported Events (Rosetta-relevant)
 
-**Output (stdout JSON):**
+| Event | Matcher basis | Purpose |
+|-------|---------------|---------|
+| `SessionStart` | source: `startup`, `resume`, `clear`, `compact` | inject `additionalContext` |
+| `PreToolUse` | tool name: `Bash`, `apply_patch` (aliases `Edit`/`Write`), MCP (`mcp__…`) | deny / rewrite input / advise before a tool runs |
+| `PostToolUse` | same tool names | inject `additionalContext` / block after a tool runs |
+| `SubagentStop` | subagent type | `decision:"block"` to continue the subagent |
+| `Stop` | (matcher ignored) | `decision:"block"` to continue the turn |
 
-```json
-{
-  "continue": true,
-  "stopReason": "optional",
-  "systemMessage": "optional warning",
-  "suppressOutput": false
-}
-```
+**(!) Partial tool interception:** `PreToolUse`/`PostToolUse` intercept ONLY `Bash`, `apply_patch` (`Edit`/`Write`), and MCP tools — not every shell path.
 
-Exit code `0` with no output = success. Exit code `2` signals failure via `stderr`.
+### Input
+
+Delivered as snake_case JSON on stdin; `tool_input` is a parsed object. Common (all events): `session_id`, `transcript_path`, `cwd`, `hook_event_name` (PascalCase), `model`, `permission_mode`; turn-scoped events add `turn_id`. Tool events (`PreToolUse`/`PostToolUse`) add `tool_name`, `tool_input`, `tool_use_id`; `PostToolUse` adds `tool_response`. `SessionStart` adds `source`; `Stop`/`SubagentStop` add `stop_hook_active`, `last_assistant_message`.
+
+### Output Contract
+
+Context/permission output is **nested under `hookSpecificOutput`**; block decisions are **top-level**. Pick one path per call — except PostToolUse, which may combine a top-level `decision:"block"`+`reason` with nested `additionalContext`.
+
+| Purpose | Event(s) | Shape |
+|---------|----------|-------|
+| Inject context | `SessionStart`, `PostToolUse`, `PreToolUse` (advise) | `{"hookSpecificOutput":{"hookEventName":"<Event>","additionalContext":"text"}}` |
+| Deny a tool | `PreToolUse` | `{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"reason"}}` |
+| Rewrite tool input | `PreToolUse` | `{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","updatedInput":{"command":"…"}}}` |
+| Block / continue | `PostToolUse`, `Stop`, `SubagentStop` | `{"decision":"block","reason":"reason"}` (top-level) |
+
+- `permissionDecisionReason` / `reason` is **REQUIRED** whenever `permissionDecision` is `"deny"` or `decision` is `"block"`.
+- **(!) `permissionDecision:"ask"` is NOT supported** (parsed but rejected → the hook run is marked failed and the tool call proceeds unhooked). Same for legacy `decision:"approve"` and `continue`/`stopReason`/`suppressOutput` on `PreToolUse`.
+- **(!) `systemMessage` is a USER UI warning only — it never enters the model's context.** Put model-visible text in `additionalContext`.
+
+**(!) Strict schema validation.** Codex validates each hook's stdout against that event's exact schema. ANY extra field, or a documented field in the wrong placement, invalidates the WHOLE output — the hook is marked FAILED and the action runs **unhooked** (deny/rewrite/block do NOT apply). Emit only the documented per-event shape; never duplicate a field across top-level and nested.
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success; stdout JSON parsed |
+| `2` | Special per event — reason read from **stderr**: PreToolUse = block tool; PostToolUse = block result; Stop/SubagentStop = continue |
+| other non-zero | Hook failed; error reported, normal processing continues |
 
 ---
 

@@ -95,11 +95,12 @@ describe('normalize — Cursor PostToolUse', () => {
     expect(result.event).toBe('PrePromptSubmit');
   });
 
-  test('normalizes beforeReadFile → PreRead', () => {
+  test('normalizes beforeReadFile → PreRead, toolKind "read", tool_name "Read" (derived from the event)', () => {
     const result = normalize(fxCursorRead);
     expect(result.hook_event_name).toBe('PreRead');
     expect(result.event).toBe('PreRead');
-    expect(result.toolKind).toBe(null);
+    expect(result.toolKind).toBe('read');   // derived even though beforeReadFile has no tool_name
+    expect(result.tool_name).toBe('Read');  // Cursor's read tool name (grounded in cursor-logs.txt)
   });
 
   test('maps conversation_id to session_id', () => {

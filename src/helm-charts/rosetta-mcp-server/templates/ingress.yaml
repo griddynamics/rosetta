@@ -6,9 +6,32 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "rosetta-mcp.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
+  {{- $traefikMw := "" }}
+  {{- if eq (.Values.ingress.className | default "") "traefik" }}
+  {{- $traefik := .Values.ingress.traefik | default dict }}
+  {{- $middlewares := list }}
+  {{- range ($traefik.middlewares | default list) }}
+  {{- $middlewares = append $middlewares . }}
+  {{- end }}
+  {{- if and $traefik.rateLimit $traefik.rateLimit.average }}
+  {{- $middlewares = append $middlewares (printf "%s@kubernetescrd" (regexReplaceAll "-{2,}" (printf "%s-rate-limit" (include "rosetta-mcp.fullname" $)) "-")) }}
+  {{- end }}
+  {{- if $middlewares }}
+  {{- $traefikMw = join "," $middlewares }}
+  {{- end }}
+  {{- end }}
+  {{- $userAnnotations := .Values.ingress.annotations | default dict }}
+  {{- if $traefikMw }}
+  {{- $userAnnotations = omit $userAnnotations "traefik.ingress.kubernetes.io/router.middlewares" }}
+  {{- end }}
+  {{- if or $traefikMw $userAnnotations }}
   annotations:
+    {{- if $traefikMw }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ $traefikMw }}
+    {{- end }}
+    {{- with $userAnnotations }}
     {{- toYaml . | nindent 4 }}
+    {{- end }}
   {{- end }}
 spec:
   {{- if .Values.ingress.className }}

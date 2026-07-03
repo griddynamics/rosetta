@@ -6,6 +6,9 @@ const EVENTS: Partial<Record<SemanticEvent, string>> = {
   SessionEnd:      'sessionEnd',
   PreCompact:      'preCompact',
   PrePromptSubmit: 'userPromptSubmitted',
+  // Registration guidance: register PascalCase "Stop" only — VS Code fires only PascalCase,
+  // and Copilot CLI's PascalCase fire works fine too (avoids the camelCase "agentStop" double-fire).
+  Stop:            'Stop',
 };
 
 const TOOL_KINDS: Partial<Record<SemanticKind, readonly string[]>> = {
@@ -14,8 +17,10 @@ const TOOL_KINDS: Partial<Record<SemanticKind, readonly string[]>> = {
   'multi-edit': ['multi_replace_string_in_file'],
   create:       ['create_file', 'create', 'Write'],
   replace:      ['replace_string_in_file', 'multi_replace_string_in_file', 'edit', 'Edit'],
-  bash:         ['bash', 'powershell'],
-  read:         ['view', 'Read'],
+  // 'bash'/'view' = Copilot CLI camelCase fire; 'Bash' = Copilot CLI's OWN PascalCase fire
+  // (distinct from VS Code, which never sends 'Bash'); 'run_in_terminal'/'read_file' = VS Code.
+  bash:         ['bash', 'powershell', 'Bash', 'run_in_terminal'],
+  read:         ['view', 'Read', 'read_file'],
 };
 
 export const lookupEvent = (raw: string): SemanticEvent | null => {
@@ -45,6 +50,17 @@ export const lookupToolKind = (raw: string): SemanticKind | null => {
 };
 
 export const getFilePath = (raw: Record<string, unknown>): string | null => {
+  // VS Code (R3) sends tool_input as an already-parsed object.
+  const toolInput = raw.tool_input;
+  if (toolInput && typeof toolInput === 'object') {
+    const parsed = toolInput as Record<string, unknown>;
+    // `path` covers the CLI `view` tool (and VS Code read_file), which carries its target under `path`
+    // (grounded: docs/hooks/copilot-cli-logs.txt toolArgs `{"path":"…"}`) — not filePath/file_path.
+    const result = (parsed.filePath as string) ?? (parsed.file_path as string) ?? (parsed.path as string) ?? null;
+    debugLogBranch('ide-row:copilot', 'get-file-path', { result, reason: 'tool_input-object', parsed });
+    return result;
+  }
+  // Copilot CLI (R1) sends toolArgs as a JSON string that must be parsed.
   const toolArgs = raw.toolArgs;
   if (!toolArgs) {
     debugLogBranch('ide-row:copilot', 'get-file-path', { result: null, reason: 'missing-toolArgs' });
@@ -54,7 +70,8 @@ export const getFilePath = (raw: Record<string, unknown>): string | null => {
     const parsed = typeof toolArgs === 'string'
       ? JSON.parse(toolArgs) as Record<string, unknown>
       : toolArgs as Record<string, unknown>;
-    const result = (parsed?.filePath as string) ?? (parsed?.file_path as string) ?? null;
+    // CLI `view` carries its target under `path` (grounded: copilot-cli-logs.txt toolArgs `{"path":"…"}`).
+    const result = (parsed?.filePath as string) ?? (parsed?.file_path as string) ?? (parsed?.path as string) ?? null;
     debugLogBranch('ide-row:copilot', 'get-file-path', {
       result,
       reason: 'parsed-toolArgs',

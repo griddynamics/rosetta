@@ -346,8 +346,8 @@ Real captures via `docs/hooks/tester.js` → `~/.rosetta/hooks.log`. Run folder 
 - `docs/hooks/copilot-cli-logs.txt` — every Copilot CLI hook invocation (sessions `8abb87fa`, `41b6a7e4`).
 
 **Raw session transcripts** (the `transcript_path` captures). ⚠️ **Large JSONL dumps — do NOT read wholesale; `grep` what you need:**
-- `docs/hooks/e946202d-1afd-4ae7-9876-b7cfd1b60a6c.jsonl` (~18 KB) — VS Code session `e946202d`.
-- `docs/hooks/f46082a6-3b68-4dd7-8073-ac1cff42344d.jsonl` (~29 KB) — VS Code session `f46082a6`.
+- `docs/hooks/vs-copilot-e946202d-transcript.jsonl` (~18 KB) — VS Code session `e946202d` transcript.
+- `docs/hooks/vs-copilot-f46082a6-transcript.jsonl` (~29 KB) — VS Code session `f46082a6` transcript.
 - `docs/hooks/copilot-cli-8abb87fa-events.jsonl` (~321 KB) — Copilot CLI session `8abb87fa` session-state events (originally `events.jsonl`).
 
 ⚠️ **These are LARGE files — do NOT read them whole.** Each hook invocation is one multi-line block (full env included; secret values redacted to first-5-chars + `[…REDACTED]`). **First read the top ~100 lines to learn the block structure**, then `grep`/search for what you need rather than loading the file — e.g. `grep -nE 'hook_event_name|INVOCATION:|RESULT:' <file>`, `grep -n 'PreCompact' <file>`, or `grep -A40 '===== hook invocation' <file>`. Read by line ranges; never dump the whole file into context.

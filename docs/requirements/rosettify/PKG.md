@@ -22,7 +22,7 @@ Packaging and distribution requirements for rosettify.
 
 <req id="FR-PKG-0002" type="FR" level="System">
   <title>Single binary entry point</title>
-  <statement>The package SHALL expose a single bin entry "rosettify" that serves as the CLI entry point. The primary usage mode is via npx (`npx rosettify <command>`). Global install is supported but not required.</statement>
+  <statement>The package SHALL expose a single bin entry "rosettify" that serves as the CLI entry point. The primary usage mode is via npx (`npx -y rosettify@latest <command>`). Global install is supported but not required.</statement>
   <rationale>Standard npm CLI distribution.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -30,7 +30,7 @@ Packaging and distribution requirements for rosettify.
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: npx @griddynamics/rosettify help. When: executed. Then: outputs help JSON, exit 0.</criteria>
+    <criteria>Given: npx -y rosettify@latest help. When: executed. Then: outputs help JSON, exit 0.</criteria>
   </acceptance>
 </req>
 

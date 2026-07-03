@@ -77,13 +77,13 @@ describe('fileNormalizeClaudeModels — guard cases (same instance)', () => {
 // ─── Normalization: multi-token scanning (PARITY-9) ──────────────────────────
 
 describe('fileNormalizeClaudeModels — multi-token scanning', () => {
-  it('gpt-4o first, claude-sonnet-4-6 second: picks first claude-compatible → claude-sonnet-4-6', () => {
+  it('gpt-4o first, claude-sonnet-4-6 second: picks first claude-compatible → claude-sonnet-5', () => {
     // normalizeClaude scans ALL tokens for first claude-compatible
     const content = '---\nmodel: gpt-4o, claude-sonnet-4-6\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'gpt-4o, claude-sonnet-4-6');
     const result = fileNormalizeClaudeModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-sonnet-4-6');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-sonnet-4-6');
+    expect(result.target_contents as string).toContain('model: claude-sonnet-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-sonnet-5');
   });
 
   it('gpt-5.5-high first, claude-4.8-opus-high second: picks opus → claude-opus-4-8', () => {
@@ -106,12 +106,12 @@ describe('fileNormalizeClaudeModels — claude token normalization', () => {
     expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-4-8');
   });
 
-  it('claude-sonnet-4-6 contains sonnet → maps to claude-sonnet-4-6', () => {
+  it('claude-sonnet-4-6 contains sonnet → maps to claude-sonnet-5', () => {
     const content = '---\nmodel: claude-sonnet-4-6\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-sonnet-4-6');
     const result = fileNormalizeClaudeModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-sonnet-4-6');
-    expect((result.source[0]?.frontmatter as any).model).toBe('claude-sonnet-4-6');
+    expect(result.target_contents as string).toContain('model: claude-sonnet-5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('claude-sonnet-5');
   });
 
   it('claude-haiku-4-5 contains haiku → maps to claude-haiku-4-5', () => {

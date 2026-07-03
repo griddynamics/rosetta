@@ -2,7 +2,7 @@
 
 ## Goal
 
-Provide a Node.js CLI tool (`npx rosetta <command>`) for Rosetta operations. The first command is `configure`, which automatically installs and integrates Rosetta into one or more supported AI coding IDEs.
+Provide a Node.js CLI tool (`npx -y rosetta@latest <command>`) for Rosetta operations. The first command is `configure`, which automatically installs and integrates Rosetta into one or more supported AI coding IDEs.
 
 ## In Scope
 
