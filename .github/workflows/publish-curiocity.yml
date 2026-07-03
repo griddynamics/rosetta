@@ -1,0 +1,89 @@
+name: Publish Curiocity
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/curiocity/**'
+  workflow_dispatch:
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '24'
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: Update npm
+      run: npm install -g npm@latest
+
+    - name: Install dependencies
+      working-directory: ./src/curiocity
+      run: npm ci
+
+    - name: Run type validation
+      working-directory: ./src/curiocity
+      run: npm run lint
+
+    - name: Build package
+      working-directory: ./src/curiocity
+      run: npm run build
+
+    - name: Run tests
+      working-directory: ./src/curiocity
+      run: npm run test
+
+    - name: Check if version exists on npm
+      id: check_version
+      working-directory: ./src/curiocity
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://registry.npmjs.org/curiocity/${VERSION})
+
+        if [ "$HTTP_CODE" = "200" ]; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+          echo "::warning::Version $VERSION already exists on npm"
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+          echo "Version $VERSION is new, will publish"
+        fi
+
+    - name: Publish to npm
+      if: steps.check_version.outputs.exists == 'false'
+      working-directory: ./src/curiocity
+      run: npm publish --access public
+
+    - name: Fail if version exists
+      if: steps.check_version.outputs.exists == 'true'
+      run: |
+        echo "::error::Version ${{ steps.check_version.outputs.version }} already exists on npm"
+        echo ""
+        echo "npm does not allow re-publishing the same version."
+        echo "Please increment the version number in:"
+        echo "  src/curiocity/package.json (version field - single source of truth)"
+        echo ""
+        echo "Current version: ${{ steps.check_version.outputs.version }}"
+        exit 1
+
+    - name: Publish Success
+      if: steps.check_version.outputs.exists == 'false'
+      run: |
+        echo "Successfully published version ${{ steps.check_version.outputs.version }} to npm!"
+        echo "Package available at: https://www.npmjs.com/package/curiocity/v/${{ steps.check_version.outputs.version }}"
+        echo ""
+        echo "Install with: npm install -g curiocity@${{ steps.check_version.outputs.version }}"
+        echo "Or with npx: npx -y curiocity@latest"
