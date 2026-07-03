@@ -3,14 +3,24 @@ import type { ReportFile, Reporter, ReporterContext } from './types';
 
 /**
  * `markdown` reporter (§14): the human `suite.md`. Renders the gate outcome, a
- * per-`(case×agent)` summary (pass-rate, mean score, stability), a cost breakdown,
- * and a per-trial status list. Pure function of the computed SuiteResult + trials.
+ * per-`(case×agent)` summary (pass-rate, mean score, stability), the full cost matrix
+ * (one row per model × source, all token classes + $, §12), the time decomposition
+ * (total vs measured agent-pure, side by side), and a per-trial status list (incl.
+ * transcript source). Pure function of the computed SuiteResult + trials.
  */
 
 type Block = StatBlock & Record<string, unknown>;
 
 function num(v: unknown, digits = 1): string {
   return typeof v === 'number' ? v.toFixed(digits) : '—';
+}
+
+function int(v: unknown): string {
+  return typeof v === 'number' ? String(Math.round(v)) : '—';
+}
+
+function ms(v: unknown): string {
+  return typeof v === 'number' ? `${(v / 1000).toFixed(2)}s` : '—';
 }
 
 function indexGroups(groups: StatBlock[]): Map<string, Map<string, Block>> {
@@ -24,10 +34,12 @@ function indexGroups(groups: StatBlock[]): Map<string, Map<string, Block>> {
   return out;
 }
 
-function usageStr(u: unknown): string {
-  const usage = u as { inputTokens?: number; outputTokens?: number } | undefined;
-  if (!usage) return '0 in / 0 out';
-  return `${usage.inputTokens ?? 0} in / ${usage.outputTokens ?? 0} out`;
+interface RollupItem {
+  source: string;
+  model: string;
+  usage: { input?: number; output?: number; reasoning?: number; cacheWrite?: number; cacheRead?: number; total?: number };
+  usd?: number;
+  unpriced?: boolean;
 }
 
 export const markdownReporter: Reporter = {
@@ -72,38 +84,70 @@ export const markdownReporter: Reporter = {
         );
       }
       lines.push('');
+    }
 
-      // Cost breakdown (present only when cost-rollup ran).
-      const costBlocks = suite.groups.filter((g) => g.id === 'cost-rollup') as Block[];
-      if (costBlocks.length > 0) {
-        lines.push('## Cost', '');
-        lines.push('| Case | Agent | Agent usage | Harness (fast/workhorse/judge) | $ |');
-        lines.push('|---|---|---|---|---|');
-        for (const c of costBlocks) {
-          const harness = c['harness'] as Record<string, unknown> | undefined;
-          const h = harness
-            ? `${usageStr(harness['fast'])} · ${usageStr(harness['workhorse'])} · ${usageStr(harness['judge'])}`
-            : '—';
-          const usd = typeof c['usd'] === 'number' ? `$${(c['usd'] as number).toFixed(4)}` : 'tokens-only';
-          lines.push(`| ${c.case ?? '?'} | ${c.agent ?? '?'} | ${usageStr(c['agentUsage'])} | ${h} | ${usd} |`);
+    // Cost matrix — ONE ROW PER MODEL × SOURCE, all token classes + $ (§12). No
+    // cross-model token sums; only the $ total is additive.
+    const costBlocks = suite.groups.filter((g) => g.id === 'cost-rollup') as Block[];
+    if (costBlocks.length > 0) {
+      lines.push('## Cost (per model × source)', '');
+      lines.push('| Case | Agent | Source | Model | Input | Output | Reasoning | Cache write | Cache read | Total | $ |');
+      lines.push('|---|---|---|---|---|---|---|---|---|---|---|');
+      const unpriced = new Set<string>();
+      for (const c of costBlocks) {
+        const items = (c['items'] as RollupItem[] | undefined) ?? [];
+        for (const it of items) {
+          const u = it.usage ?? {};
+          const usd = typeof it.usd === 'number' ? `$${it.usd.toFixed(5)}` : 'tokens-only';
+          lines.push(
+            `| ${c.case ?? '?'} | ${c.agent ?? '?'} | ${it.source} | ${it.model || '—'} | ` +
+              `${int(u.input)} | ${int(u.output)} | ${int(u.reasoning)} | ${int(u.cacheWrite)} | ` +
+              `${int(u.cacheRead)} | ${int(u.total)} | ${usd} |`,
+          );
         }
-        const unpriced = new Set<string>();
-        for (const c of costBlocks) for (const m of (c['unpricedModels'] as string[]) ?? []) unpriced.add(m);
-        if (unpriced.size > 0) {
-          lines.push('', `> Unpriced models (tokens-only): ${[...unpriced].join(', ')}`);
-        }
-        lines.push('');
+        for (const m of (c['unpricedModels'] as string[]) ?? []) unpriced.add(m);
       }
+      // $ total (additive across models — the only permitted cross-model sum).
+      let totalUsd = 0;
+      let anyPriced = false;
+      for (const c of costBlocks) {
+        if (typeof c['usd'] === 'number') {
+          totalUsd += c['usd'] as number;
+          anyPriced = true;
+        }
+      }
+      if (anyPriced) lines.push('', `- **Suite $ total: $${totalUsd.toFixed(5)}** (additive across models)`);
+      if (unpriced.size > 0) {
+        lines.push('', `> Unpriced models (tokens-only): ${[...unpriced].join(', ')}`);
+      }
+      lines.push('');
+    }
+
+    // Time decomposition — total vs measured agent-pure side by side (§12).
+    const timeBlocks = suite.groups.filter((g) => g.id === 'time-rollup') as Block[];
+    if (timeBlocks.length > 0) {
+      lines.push('## Time (total vs agent-pure)', '');
+      lines.push('| Case | Agent | Total | Agent (pure) | Harness react | — LLM | — overhead | Checks | Judge LLM |');
+      lines.push('|---|---|---|---|---|---|---|---|---|');
+      for (const t of timeBlocks) {
+        lines.push(
+          `| ${t.case ?? '?'} | ${t.agent ?? '?'} | ${ms(t['totalMs'])} | ${ms(t['agentPureMs'])} | ` +
+            `${ms(t['harnessReactMs'])} | ${ms(t['harnessLlmMs'])} | ${ms(t['harnessOverheadMs'])} | ` +
+            `${ms(t['checksMs'])} | ${ms(t['judgeLlmMs'])} |`,
+        );
+      }
+      lines.push('');
     }
 
     // Per-trial detail.
     lines.push('## Trials', '');
-    lines.push('| Case | Agent | Repeat | Status | Score | Verdict |');
-    lines.push('|---|---|---|---|---|---|');
+    lines.push('| Case | Agent | Repeat | Status | Score | Verdict | Transcript |');
+    lines.push('|---|---|---|---|---|---|---|');
     for (const t of trials) {
       lines.push(
         `| ${t.case} | ${t.agent} | ${t.repeat} | ${t.status} | ` +
-          `${t.verdict ? num(t.verdict.score) : '—'} | ${t.verdict ? (t.verdict.pass ? 'pass' : 'fail') : '—'} |`,
+          `${t.verdict ? num(t.verdict.score) : '—'} | ${t.verdict ? (t.verdict.pass ? 'pass' : 'fail') : '—'} | ` +
+          `${t.transcriptSource ?? '—'} |`,
       );
     }
     lines.push('');

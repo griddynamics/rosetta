@@ -1,15 +1,16 @@
 import { discoverCases } from '../../cases/discovery';
+import { loadTopLevelConfig } from '../../config/loader';
+import { preflightAgentHomes } from '../../orchestrator/preflight';
 import { ExitCode } from '../exit-codes';
 
 /**
- * `curiocity validate --source <dir>` (§13). Fully functional in M1: discovery
- * dry-run listing valid cases + skip reasons.
- *
- * Preflight checks (P10 — agent-home writeability / unsandboxed run) require the
- * terminal + agent layers and are out of scope for M1; a note is printed instead.
+ * `curiocity validate --source <dir>` (§13): discovery dry-run listing valid cases +
+ * skip reasons, plus the P10 preflight (agent-home writeability). Preflight is skipped
+ * for mock-only matrices; a failure fails fast with a clear message (exit 2).
  */
 export interface ValidateOptions {
   source?: string;
+  config?: string;
 }
 
 export function runValidate(opts: ValidateOptions): number {
@@ -40,7 +41,19 @@ export function runValidate(opts: ValidateOptions): number {
     }
   }
 
-  out.write('\nnote: preflight checks (P10, agent-home writeability) are not implemented in M1.\n');
+  // --- P10 preflight: agent-home writeability (unsandboxed run) --------------
+  const topLevel = loadTopLevelConfig(opts.config);
+  const agentIds = [...new Set(result.valid.flatMap((c) => c.config.agents))];
+  const pre = preflightAgentHomes(agentIds, topLevel);
+  out.write('\npreflight (P10, agent-home writeability):\n');
+  if (pre.skipped) {
+    out.write('  skipped (mock-only matrix — no real agent home to check)\n');
+  } else if (pre.ok) {
+    out.write('  ok — agent homes are writeable (harness is unsandboxed)\n');
+  } else {
+    for (const e of pre.errors) process.stderr.write(`  FAIL: ${e}\n`);
+    return ExitCode.CONFIG_ERROR;
+  }
 
   if (result.valid.length === 0) {
     return ExitCode.CONFIG_ERROR;

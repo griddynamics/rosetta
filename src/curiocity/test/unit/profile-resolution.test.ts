@@ -7,6 +7,7 @@ import { topLevelConfigSchema, caseConfigSchema } from '../../src/config/schema'
 import { CLAUDE_CODE_DEFAULT_PROFILE } from '../../src/agents/claude-code/profile';
 import { agentRegistry } from '../../src/agents';
 import type { AgentAdapter } from '../../src/agents/types';
+import { zeroUsage } from '../../src/shared/trajectory';
 import type { CaseDefinition } from '../../src/cases/types';
 
 /**
@@ -180,7 +181,7 @@ describe('buildTrialSpecs — registry-default `models` reach the final TrialSpe
       classifyTurn: () => 'working',
       parseStopSignal: () => null,
       detectStructuredQuestion: () => null,
-      extractUsage: () => ({ inputTokens: 0, outputTokens: 0 }),
+      extractUsage: () => zeroUsage(),
       terminate: async () => {},
     };
     agentRegistry.register(fakeAdapter);

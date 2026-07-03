@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
 import { FakeModelRouter, ScriptExhaustedError } from '../../src/shared/model-router';
+import { makeUsage } from '../../src/shared/trajectory';
 
 const schema = z.object({ classification: z.enum(['question', 'done', 'working']) });
 
@@ -40,8 +41,8 @@ describe('FakeModelRouter (test util)', () => {
   });
 
   it('reports usage (defaults to zero tokens)', async () => {
-    const r = new FakeModelRouter({ entries: [{ text: 'x', usage: { inputTokens: 5, outputTokens: 7 } }, { text: 'y' }] });
-    expect((await r.generateText('fast', { prompt: '' })).usage).toMatchObject({ inputTokens: 5, outputTokens: 7 });
-    expect((await r.generateText('fast', { prompt: '' })).usage).toMatchObject({ inputTokens: 0, outputTokens: 0 });
+    const r = new FakeModelRouter({ entries: [{ text: 'x', usage: makeUsage({ input: 5, output: 7 }) }, { text: 'y' }] });
+    expect((await r.generateText('fast', { prompt: '' })).usage).toMatchObject({ input: 5, output: 7 });
+    expect((await r.generateText('fast', { prompt: '' })).usage).toMatchObject({ input: 0, output: 0 });
   });
 });

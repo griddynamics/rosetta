@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { ProvisionSpec } from '../../config/schema';
-import type { TrajectoryEvent, Usage } from '../../shared/trajectory';
+import { addUsage, makeUsage, zeroUsage, type TrajectoryEvent, type Usage } from '../../shared/trajectory';
 import type { TerminalSession } from '../../terminal/session';
 import { applyTemplate, composeLaunchPlan, filterAgentEnv, templateVars } from '../launch';
 import type {
@@ -128,7 +128,7 @@ export class MockAdapter implements AgentAdapter {
           events.push({
             ts: obj.ts,
             kind: 'usage',
-            payload: { inputTokens: obj.inputTokens ?? 0, outputTokens: obj.outputTokens ?? 0 },
+            payload: makeUsage({ input: obj.inputTokens ?? 0, output: obj.outputTokens ?? 0 }),
           });
           break;
         case 'lifecycle':
@@ -209,13 +209,9 @@ export class MockAdapter implements AgentAdapter {
   }
 
   extractUsage(events: TrajectoryEvent[]): AgentUsage {
-    const usage: Usage = { inputTokens: 0, outputTokens: 0 };
+    const usage = zeroUsage();
     for (const e of events) {
-      if (e.kind === 'usage') {
-        const p = e.payload as { inputTokens?: number; outputTokens?: number };
-        usage.inputTokens += p.inputTokens ?? 0;
-        usage.outputTokens += p.outputTokens ?? 0;
-      }
+      if (e.kind === 'usage') addUsage(usage, makeUsage(e.payload as Partial<Usage>));
     }
     return usage;
   }

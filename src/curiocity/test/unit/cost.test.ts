@@ -3,14 +3,16 @@ import { priceUsage } from '../../src/llm/pricing';
 import { costRollup } from '../../src/stats/cost-rollup';
 import { DEFAULT_GATE } from '../../src/config/defaults';
 import { trialResultSchema, type TrialResult } from '../../src/results/schema';
+import { makeUsage } from '../../src/shared/trajectory';
 
 const PRICING = {
-  'anthropic/sonnet': { inputPer1M: 3, outputPer1M: 15 },
+  'anthropic/sonnet': { inputPer1M: 3, outputPer1M: 15, cacheWritePer1M: 3.75, cacheReadPer1M: 0.3 },
+  'anthropic/haiku': { inputPer1M: 1, outputPer1M: 5 }, // no cache/reasoning tiers → fallbacks
 };
 
 function trial(over: Partial<TrialResult>): TrialResult {
   return trialResultSchema.parse({
-    schemaVersion: 1,
+    schemaVersion: 2,
     agent: 'mock',
     case: 'c',
     repeat: 1,
@@ -19,49 +21,77 @@ function trial(over: Partial<TrialResult>): TrialResult {
   });
 }
 
-describe('priceUsage (§12)', () => {
-  it('computes $ from the pricing map', () => {
-    const res = priceUsage('anthropic/sonnet', { inputTokens: 1_000_000, outputTokens: 1_000_000 }, PRICING);
+describe('priceUsage (§12): tiered pricing + fallbacks', () => {
+  it('prices every disjoint token class at its own rate', () => {
+    const res = priceUsage(
+      'anthropic/sonnet',
+      makeUsage({ input: 1_000_000, output: 1_000_000, cacheWrite: 1_000_000, cacheRead: 1_000_000 }),
+      PRICING,
+    );
     expect(res.unpriced).toBe(false);
-    expect(res.usd).toBeCloseTo(18, 6);
+    // 3 + 15 + 3.75 (cacheWrite) + 0.30 (cacheRead) = 22.05
+    expect(res.usd).toBeCloseTo(22.05, 6);
+  });
+
+  it('falls back: reasoning→outputPer1M, cache→inputPer1M when tiers absent', () => {
+    const res = priceUsage(
+      'anthropic/haiku',
+      makeUsage({ input: 1_000_000, output: 0, reasoning: 1_000_000, cacheRead: 1_000_000, cacheWrite: 1_000_000 }),
+      PRICING,
+    );
+    // input 1 + reasoning→output 5 + cacheRead→input 1 + cacheWrite→input 1 = 8
+    expect(res.usd).toBeCloseTo(8, 6);
   });
 
   it('reports tokens-only (unpriced) for a model missing from the map', () => {
-    const res = priceUsage('openai/mystery', { inputTokens: 100, outputTokens: 100 }, PRICING);
+    const res = priceUsage('openai/mystery', makeUsage({ input: 100, output: 100 }), PRICING);
     expect(res.unpriced).toBe(true);
     expect(res.usd).toBeUndefined();
   });
 });
 
-describe('cost-rollup stat (§12): agent + harness itemization, $ vs tokens-only', () => {
-  it('itemizes agent vs harness roles by model, prices what it can, warns on the rest', () => {
+describe('cost-rollup stat (§12): per model × source, no cross-model token sum', () => {
+  it('itemizes one entry per (source, model) with the full token breakdown + $', () => {
     const group = [
       trial({
         cost: {
-          agent: { inputTokens: 100, outputTokens: 50 },
-          judge: { inputTokens: 1_000_000, outputTokens: 0 },
-          fast: { inputTokens: 500, outputTokens: 10 },
-          models: { judge: 'anthropic/sonnet', fast: 'openai/mystery' },
+          agent: makeUsage({ input: 100, output: 50, cacheRead: 20 }),
+          judge: makeUsage({ input: 1_000_000, output: 0 }),
+          fast: makeUsage({ input: 500, output: 10 }),
+          models: { agent: 'anthropic/sonnet', judge: 'anthropic/sonnet', fast: 'openai/mystery' },
         },
       }),
     ];
     const block = costRollup.compute(group, { gate: DEFAULT_GATE, pricing: PRICING }) as Record<string, unknown>;
+    const items = block.items as Array<{ source: string; model: string; usage: { input: number }; usd?: number; unpriced: boolean }>;
 
-    // Agent vs harness itemization.
-    expect(block.agentUsage).toEqual({ inputTokens: 100, outputTokens: 50 });
-    expect((block.harness as Record<string, unknown>).judge).toEqual({ inputTokens: 1_000_000, outputTokens: 0 });
+    // One row per (source, model) — agent & judge are separate rows even on the same model.
+    const agentRow = items.find((i) => i.source === 'agent')!;
+    const judgeRow = items.find((i) => i.source === 'judge')!;
+    const fastRow = items.find((i) => i.source === 'fast')!;
+    expect(agentRow.model).toBe('anthropic/sonnet');
+    expect(agentRow.usage.input).toBe(100);
+    expect(judgeRow.usage.input).toBe(1_000_000);
+    // judge priced (sonnet input rate 3/M → $3); fast model unpriced.
+    expect(judgeRow.usd).toBeCloseTo(3, 6);
+    expect(fastRow.unpriced).toBe(true);
+    expect(fastRow.usd).toBeUndefined();
 
-    // Priced model → $; unpriced model → tokens-only + surfaced for a warning.
-    const byModel = block.byModel as Record<string, { usd?: number }>;
-    expect(byModel['anthropic/sonnet'].usd).toBeCloseTo(3, 6);
+    // No cross-MODEL token sum: byModel aggregates per model (agent+judge share sonnet),
+    // but never mixes different models into one figure.
+    const byModel = block.byModel as Record<string, { usage: { input: number }; usd?: number }>;
+    expect(byModel['anthropic/sonnet'].usage.input).toBe(1_000_100); // agent 100 + judge 1_000_000
     expect(byModel['openai/mystery'].usd).toBeUndefined();
-    expect(block.usd).toBeCloseTo(3, 6);
+
+    // Only the $ total is additive across models.
+    // judge 3 + agent(sonnet): input 100→0.0003, output 50→0.00075, cacheRead 20→0.000006
+    expect(block.usd).toBeCloseTo(3.001056, 5);
     expect(block.unpricedModels).toEqual(['openai/mystery']);
   });
 
-  it('reports tokens-only with no $ when there is no pricing map', () => {
+  it('reports tokens-only with no $ when there is no pricing map (warning path)', () => {
     const group = [
-      trial({ cost: { judge: { inputTokens: 10, outputTokens: 10 }, models: { judge: 'anthropic/sonnet' } } }),
+      trial({ cost: { judge: makeUsage({ input: 10, output: 10 }), models: { judge: 'anthropic/sonnet' } } }),
     ];
     const block = costRollup.compute(group, { gate: DEFAULT_GATE }) as Record<string, unknown>;
     expect(block.usd).toBeUndefined();

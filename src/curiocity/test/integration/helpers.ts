@@ -1,4 +1,4 @@
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +15,26 @@ export function scenePath(name: string): string {
 
 export function tmpRunDir(): string {
   return mkdtempSync(join(tmpdir(), 'curio-test-run-'));
+}
+
+/**
+ * Temp-dir hygiene (Part 3.3). Trials that end in a retained status keep their
+ * workspace (`curiocity-ws-*`) and ctrl dir (`curiocity-ctrl-*`) per §7 (production
+ * rule — unchanged). Integration tests that intentionally produce such trials must
+ * sweep their own retained dirs so a full vitest run shows no growth.
+ */
+export function listTmpAgentDirs(): string[] {
+  const t = tmpdir();
+  return readdirSync(t)
+    .filter((n) => n.startsWith('curiocity-ws-') || n.startsWith('curiocity-ctrl-'))
+    .map((n) => join(t, n));
+}
+
+/** Remove every `curiocity-ws-*`/`curiocity-ctrl-*` dir not present in the baseline. */
+export function sweepNewTmpAgentDirs(baseline: Set<string>): void {
+  for (const d of listTmpAgentDirs()) {
+    if (!baseline.has(d)) rmSync(d, { recursive: true, force: true });
+  }
 }
 
 export interface MockProfileOverrides {

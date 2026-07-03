@@ -1,7 +1,7 @@
 import { chmodSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, it, expect } from 'vitest';
+import { afterAll, describe, it, expect } from 'vitest';
 import { buildMatrix } from '../../src/config/matrix';
 import { resolveCaseConfig } from '../../src/config/merge';
 import { caseConfigSchema, topLevelConfigSchema, type GateConfig } from '../../src/config/schema';
@@ -10,7 +10,13 @@ import { DEFAULT_GATE } from '../../src/config/defaults';
 import { runSuite } from '../../src/orchestrator/run';
 import { loadRun } from '../../src/results/loader';
 import { ExitCode } from '../../src/cli/exit-codes';
-import { mockProfile, tmpRunDir } from './helpers';
+import { listTmpAgentDirs, mockProfile, sweepNewTmpAgentDirs, tmpRunDir } from './helpers';
+
+// This suite intentionally produces retained (setup-error / timeout) trials whose
+// workspace + ctrl dir are kept per §7; sweep the ones it created so a full vitest run
+// shows no `curiocity-ws-*`/`curiocity-ctrl-*` growth (Part 3.3).
+const tmpBaseline = new Set(listTmpAgentDirs());
+afterAll(() => sweepNewTmpAgentDirs(tmpBaseline));
 
 /**
  * Suite-level integration (§4/§13/§14): the bounded pool, fork+env-scrub, exit

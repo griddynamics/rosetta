@@ -11,7 +11,7 @@ import type {
   ModelRouter,
 } from '../shared/model-router';
 import type { PartialModelRoles, Role } from '../shared/models';
-import type { Usage } from '../shared/trajectory';
+import { makeUsage, type Usage } from '../shared/trajectory';
 import type { CostMeter } from './cost-meter';
 import { getProvider, parseModelRef } from './providers';
 
@@ -34,22 +34,35 @@ interface GenTextArgs {
 interface GenObjArgs extends GenTextArgs {
   schema: unknown;
 }
+/**
+ * Vercel AI SDK usage shape (v5): `inputTokens`/`outputTokens`/`totalTokens` plus
+ * `reasoningTokens` and `cachedInputTokens`. Anthropic cache-creation arrives via
+ * `providerMetadata.anthropic.cacheCreationInputTokens` (§12). We keep it loose and
+ * map ALL fields we recognize; anything unrecognized survives in `raw`.
+ */
 interface SdkUsage {
   inputTokens?: number;
   outputTokens?: number;
+  totalTokens?: number;
+  reasoningTokens?: number;
+  cachedInputTokens?: number;
 }
-type GenerateTextFn = (args: GenTextArgs) => Promise<{ text: string; usage?: SdkUsage }>;
-type GenerateObjectFn = (args: GenObjArgs) => Promise<{ object: unknown; usage?: SdkUsage }>;
+interface SdkResult {
+  usage?: SdkUsage;
+  providerMetadata?: Record<string, Record<string, unknown>>;
+}
+type GenerateTextFn = (args: GenTextArgs) => Promise<{ text: string } & SdkResult>;
+type GenerateObjectFn = (args: GenObjArgs) => Promise<{ object: unknown } & SdkResult>;
 
 const defaultGenerateText: GenerateTextFn = async (args) => {
   // Cast at the single SDK seam; the rest of the module is fully typed.
   const res = await sdkGenerateText(args as Parameters<typeof sdkGenerateText>[0]);
-  return { text: res.text, usage: res.usage };
+  return { text: res.text, usage: res.usage, providerMetadata: res.providerMetadata };
 };
 
 const defaultGenerateObject: GenerateObjectFn = async (args) => {
   const res = await sdkGenerateObject(args as Parameters<typeof sdkGenerateObject>[0]);
-  return { object: res.object, usage: res.usage };
+  return { object: res.object, usage: res.usage, providerMetadata: res.providerMetadata };
 };
 
 export interface RealModelRouterDeps {
@@ -62,8 +75,35 @@ export interface RealModelRouterDeps {
   generateObject?: GenerateObjectFn;
 }
 
-function toUsage(u: SdkUsage | undefined): Usage {
-  return { inputTokens: u?.inputTokens ?? 0, outputTokens: u?.outputTokens ?? 0 };
+function num(v: unknown): number {
+  return typeof v === 'number' && Number.isFinite(v) ? v : 0;
+}
+
+/**
+ * Map an AI SDK result (usage + providerMetadata) → the normalized full-breakdown
+ * Usage (§12, Part 1.3). The harness LLM is Anthropic in practice, whose `inputTokens`
+ * already EXCLUDES cache (cache read/creation are reported separately), so no
+ * subtraction is needed to keep the classes disjoint. `reasoningTokens`/
+ * `cachedInputTokens` map straight through; Anthropic cache-creation comes from
+ * `providerMetadata.anthropic`. Fields absent → 0. The native usage object is kept in
+ * `raw` so nothing is dropped.
+ */
+function toUsage(res: SdkResult | undefined): Usage {
+  const u = res?.usage;
+  const anthropic = res?.providerMetadata?.anthropic;
+  const cacheWrite = num(
+    anthropic?.['cacheCreationInputTokens'] ?? anthropic?.['cache_creation_input_tokens'],
+  );
+  const cacheRead = num(u?.cachedInputTokens);
+  return makeUsage({
+    input: num(u?.inputTokens),
+    output: num(u?.outputTokens),
+    reasoning: num(u?.reasoningTokens),
+    cacheRead,
+    cacheWrite,
+    ...(u?.totalTokens !== undefined ? { total: num(u.totalTokens) } : {}),
+    ...(u !== undefined ? { raw: u } : {}),
+  });
 }
 
 /** Resolve the `"provider/model"` string for a role (judge defaults to workhorse). */
@@ -109,7 +149,7 @@ export class RealModelRouter implements ModelRouter {
       ...(req.system !== undefined ? { system: req.system } : {}),
       prompt: req.prompt,
     });
-    return { text: res.text, usage: toUsage(res.usage) };
+    return { text: res.text, usage: toUsage(res) };
   }
 
   async generateObject<T>(
@@ -123,7 +163,7 @@ export class RealModelRouter implements ModelRouter {
       ...(req.system !== undefined ? { system: req.system } : {}),
       prompt: req.prompt,
     });
-    return { object: res.object as T, usage: toUsage(res.usage) };
+    return { object: res.object as T, usage: toUsage(res) };
   }
 }
 

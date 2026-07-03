@@ -7,6 +7,7 @@ import {
 } from '../../src/llm/router';
 import { CostMeter } from '../../src/llm/cost-meter';
 import { FakeModelRouter } from '../../src/shared/model-router';
+import { makeUsage } from '../../src/shared/trajectory';
 import { ConfigError } from '../../src/shared/errors';
 
 /**
@@ -49,7 +50,8 @@ describe('RealModelRouter (injected SDK, no network)', () => {
     });
     const res = await router.generateText('fast', { system: 'sys', prompt: 'p' });
     expect(res.text).toBe('hi');
-    expect(res.usage).toEqual({ inputTokens: 3, outputTokens: 5 });
+    // AI SDK usage mapped into the full breakdown (§12); native usage kept in `raw`.
+    expect(res.usage).toMatchObject({ input: 3, output: 5, reasoning: 0, cacheRead: 0, cacheWrite: 0, total: 8 });
     expect(seen[0]).toMatchObject({ hasModel: true, system: 'sys', prompt: 'p' });
   });
 
@@ -62,7 +64,7 @@ describe('RealModelRouter (injected SDK, no network)', () => {
     const schema = z.object({ score: z.number(), pass: z.boolean(), rationale: z.string() });
     const res = await router.generateObject('judge', { prompt: 'p' }, schema);
     expect(res.object.score).toBe(90);
-    expect(res.usage).toEqual({ inputTokens: 0, outputTokens: 0 });
+    expect(res.usage).toMatchObject({ input: 0, output: 0, reasoning: 0, cacheRead: 0, cacheWrite: 0, total: 0 });
   });
 
   it('throws a ConfigError when no key is resolved for the provider', async () => {
@@ -80,8 +82,8 @@ describe('MeteredRouter (§12 cost meter)', () => {
     const meter = new CostMeter();
     const inner = new FakeModelRouter({
       entries: [
-        { role: 'fast', kind: 'text', text: 'a', usage: { inputTokens: 10, outputTokens: 2 } },
-        { role: 'judge', kind: 'object', object: { ok: true }, usage: { inputTokens: 20, outputTokens: 4 } },
+        { role: 'fast', kind: 'text', text: 'a', usage: makeUsage({ input: 10, output: 2 }) },
+        { role: 'judge', kind: 'object', object: { ok: true }, usage: makeUsage({ input: 20, output: 4 }) },
       ],
     });
     const router = new MeteredRouter(inner, meter, MODELS);
@@ -95,8 +97,8 @@ describe('MeteredRouter (§12 cost meter)', () => {
     expect(meter.records[1]).toMatchObject({ role: 'judge', model: 'openai/work-y' });
 
     const byRole = meter.byRole();
-    expect(byRole.fast).toEqual({ inputTokens: 10, outputTokens: 2 });
-    expect(byRole.judge).toEqual({ inputTokens: 20, outputTokens: 4 });
+    expect(byRole.fast).toMatchObject({ input: 10, output: 2, total: 12 });
+    expect(byRole.judge).toMatchObject({ input: 20, output: 4, total: 24 });
     expect(meter.modelsByRole()).toEqual({ fast: 'anthropic/fast-x', judge: 'openai/work-y' });
   });
 });

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { CuriocityError } from './errors';
 import { roleSchema, type Role } from './models';
-import { usageSchema, type Usage } from './trajectory';
+import { usageSchema, zeroUsage, type Usage } from './trajectory';
 
 /**
  * `ModelRouter` (§5.6) — the PORT only. The real Vercel-AI-SDK-backed router is
@@ -68,7 +68,7 @@ export interface FakeRouterCall {
   req: GenerateTextRequest;
 }
 
-const ZERO_USAGE: Usage = { inputTokens: 0, outputTokens: 0 };
+const ZERO_USAGE: Usage = zeroUsage();
 
 export class FakeModelRouter implements ModelRouter {
   private index = 0;

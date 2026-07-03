@@ -46,9 +46,10 @@ export function buildProgram(): Command {
 
   program
     .command('validate')
-    .description('Discovery dry-run: list valid cases + skip reasons.')
+    .description('Discovery dry-run: list valid cases + skip reasons; P10 preflight.')
     .requiredOption('--source <dir>', 'case source folder (each immediate subfolder is one case)')
-    .action((opts: { source: string }) => {
+    .option('--config <file>', 'top-level config path (for agent-profile resolution)')
+    .action((opts: { source: string; config?: string }) => {
       try {
         finish(runValidate(opts));
       } catch (err) {

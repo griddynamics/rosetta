@@ -57,7 +57,7 @@ describe('MockAdapter (§10.3) dialect + protocol', () => {
   });
 
   it('extractUsage sums usage events', () => {
-    expect(adapter.extractUsage(adapter.parseEvents(transcript))).toMatchObject({ inputTokens: 10, outputTokens: 4 });
+    expect(adapter.extractUsage(adapter.parseEvents(transcript))).toMatchObject({ input: 10, output: 4, total: 14 });
   });
 
   it('parseStopSignal normalizes the native stop payload', () => {

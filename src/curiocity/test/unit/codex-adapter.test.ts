@@ -276,14 +276,24 @@ describe('codex parseEvents (rollout dialect, REAL fixture)', () => {
   });
 });
 
-describe('codex extractUsage (token_count last_token_usage deltas)', () => {
-  it('sums per-turn deltas to the session total (not the cumulative field)', () => {
+describe('codex extractUsage (token_count deltas → disjoint full breakdown §12)', () => {
+  it('sums per-turn deltas and decomposes into disjoint classes', () => {
     const events = adapter.parseEvents(readFileSync(FIXTURE, 'utf8'));
     const usage = adapter.extractUsage(events);
-    // From the fixture: last_token_usage inputs 15260+15654+15861+16092+0 = 62867,
-    // outputs 235+102+414+65+0 = 816 (== the final cumulative total_token_usage).
-    expect(usage.inputTokens).toBe(62867);
-    expect(usage.outputTokens).toBe(816);
+    // From the fixture last_token_usage deltas:
+    //   input_tokens  15260+15654+15861+16092+0 = 62867
+    //   cached_input  2432 +15232+15232+14208+0 = 47104  → cacheRead
+    //   output_tokens 235  +102  +414  +65   +0 = 816
+    //   reasoning     74   +0    +200  +0    +0 = 274     → reasoning
+    // Disjoint mapping (codex input INCLUDES cached, output INCLUDES reasoning):
+    expect(usage.cacheRead).toBe(47104);
+    expect(usage.reasoning).toBe(274);
+    expect(usage.input).toBe(62867 - 47104); // fresh (uncached) input = 15763
+    expect(usage.output).toBe(816 - 274); // fresh output = 542
+    // The verified per-turn delta sums are preserved as class sums.
+    expect(usage.input + usage.cacheRead).toBe(62867);
+    expect(usage.output + usage.reasoning).toBe(816);
+    expect(usage.total).toBe(62867 + 816);
   });
 });
 

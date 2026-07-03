@@ -7,6 +7,7 @@ import { buildMatrix, type MatrixEntry } from '../../config/matrix';
 import { resolveCaseConfig, resolveGlobals, type CliOverrides } from '../../config/merge';
 import { DEFAULT_CONFIG_PATH, loadTopLevelConfig } from '../../config/loader';
 import { runSuite } from '../../orchestrator/run';
+import { preflightAgentHomes } from '../../orchestrator/preflight';
 import { resolveKeys } from '../../llm/keys';
 import { evaluatorRegistry } from '../../evaluators';
 import { evaluatorEntrySchema } from '../../config/schema';
@@ -192,6 +193,19 @@ export async function runRun(opts: RunOptions): Promise<number> {
 
   if (matrix.length === 0) {
     process.stderr.write('error: no runnable trials in the resolved matrix.\n');
+    return ExitCode.CONFIG_ERROR;
+  }
+
+  // P10 preflight (agent-home writeability): fail fast before spawning anything, so a
+  // sandboxed harness (which silently produces zero transcripts) is caught up front.
+  // Skipped for mock-only matrices.
+  const pre = preflightAgentHomes(
+    matrix.map((m) => m.agent),
+    topLevel,
+  );
+  if (!pre.ok) {
+    process.stderr.write('error: P10 preflight failed:\n');
+    for (const e of pre.errors) process.stderr.write(`  - ${e}\n`);
     return ExitCode.CONFIG_ERROR;
   }
 

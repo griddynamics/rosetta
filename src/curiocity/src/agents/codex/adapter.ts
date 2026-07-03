@@ -3,7 +3,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { CuriocityError } from '../../shared/errors';
 import type { ProvisionItem, ProvisionSpec } from '../../config/schema';
-import type { TrajectoryEvent, Usage } from '../../shared/trajectory';
+import { addUsage, makeUsage, zeroUsage, type TrajectoryEvent, type Usage } from '../../shared/trajectory';
 import type { TerminalSession } from '../../terminal/session';
 import { applyTemplate, composeLaunchPlan, filterAgentEnv, templateVars } from '../launch';
 import type {
@@ -360,19 +360,23 @@ export class CodexAdapter implements AgentAdapter {
         // the session total (`total_token_usage` is cumulative — summing it double-counts).
         const last = p.info?.last_token_usage;
         if (last) {
+          // Codex native accounting (§12): `input_tokens` INCLUDES the cached subset
+          // and `output_tokens` INCLUDES reasoning. Decompose into DISJOINT classes so
+          // `total` and priced $ never double-count, while preserving the verified
+          // per-turn delta sums (input == input + cacheRead; output == output +
+          // reasoning). `raw` keeps the native object.
+          const cacheRead = num(last.cached_input_tokens);
+          const reasoning = num(last.reasoning_output_tokens);
           events.push({
             ts,
             kind: 'usage',
-            payload: {
-              inputTokens: num(last.input_tokens),
-              outputTokens: num(last.output_tokens),
-              ...(last.cached_input_tokens != null
-                ? { cachedInputTokens: num(last.cached_input_tokens) }
-                : {}),
-              ...(last.reasoning_output_tokens != null
-                ? { reasoningOutputTokens: num(last.reasoning_output_tokens) }
-                : {}),
-            },
+            payload: makeUsage({
+              input: Math.max(0, num(last.input_tokens) - cacheRead),
+              output: Math.max(0, num(last.output_tokens) - reasoning),
+              reasoning,
+              cacheRead,
+              raw: last,
+            }),
           });
         }
         break;
@@ -456,13 +460,9 @@ export class CodexAdapter implements AgentAdapter {
   }
 
   extractUsage(events: TrajectoryEvent[]): AgentUsage {
-    const usage: Usage = { inputTokens: 0, outputTokens: 0 };
+    const usage = zeroUsage();
     for (const e of events) {
-      if (e.kind === 'usage') {
-        const pl = e.payload as { inputTokens?: number; outputTokens?: number };
-        usage.inputTokens += pl.inputTokens ?? 0;
-        usage.outputTokens += pl.outputTokens ?? 0;
-      }
+      if (e.kind === 'usage') addUsage(usage, makeUsage(e.payload as Partial<Usage>));
     }
     return usage;
   }

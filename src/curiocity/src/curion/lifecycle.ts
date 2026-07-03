@@ -5,7 +5,7 @@ import { execa } from 'execa';
 import { agentProfileSchema, provisionSchema, type AgentProfile } from '../config/schema';
 import type { TrialSpec } from '../shared/ipc';
 import type { ModelRouter } from '../shared/model-router';
-import type { QnaEntry } from '../shared/trajectory';
+import { zeroUsage, type QnaEntry } from '../shared/trajectory';
 import { agentRegistry } from '../agents';
 import { resolveCommand } from '../agents/launch';
 import type { CanonicalHookSpec, TrialContext } from '../agents/types';
@@ -108,14 +108,27 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
   let qna: QnaEntry[] = [];
   let turnCount = 0;
   const artifacts: TrialArtifacts = {};
-  let agentUsage = { inputTokens: 0, outputTokens: 0 };
+  let agentUsage = zeroUsage();
   let interaction: InteractionResult | undefined;
+  // Per-phase walls (§12); every leg MEASURED, not derived by subtraction.
+  const phases = {
+    workspaceMs: 0,
+    setupMs: 0,
+    provisionMs: 0,
+    launchMs: 0,
+    interactMs: 0,
+    collectMs: 0,
+    evaluateMs: 0,
+    teardownMs: 0,
+  };
   let checksMs = 0;
-  let agentMs = 0;
-  let llmMsAfterInteract = 0;
+  let judgeLlmMs = 0;
+  let interactLlmMs = 0; // harness-LLM wall-clock recorded during interact
+  let transcriptSourceLabel: 'hook' | 'fallback' | undefined;
 
   try {
     // --- Step 1: workspace ---------------------------------------------------
+    const workspaceStart = Date.now();
     workspace = createWorkspace();
     ctrlDir = createCtrlDir();
     scriptEnv.workspace = workspace;
@@ -129,9 +142,12 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
       throw new LifecycleHandled();
     }
     snapshot = snapshotSource(workspace);
+    phases.workspaceMs = Date.now() - workspaceStart;
 
     // --- Step 2: setup -------------------------------------------------------
+    const setupStart = Date.now();
     const setupRes = await runSetup(spec.setup, scriptEnv, opts.baseEnv);
+    phases.setupMs = Date.now() - setupStart;
     if (!setupRes.ok) {
       status = 'setup-error';
       log('setup-error', { script: setupRes.failure.script, exitCode: setupRes.failure.exitCode });
@@ -157,6 +173,7 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
     };
 
     try {
+      const provisionStart = Date.now();
       const plan = await adapter.prepare(trialCtx, hookSpec);
       // Launch preflight (R1): resolve the agent command on the PTY's PATH before
       // spawning. node-pty does not throw for a missing binary — it would exit
@@ -172,6 +189,8 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
       for (const cmd of plan.commands) {
         await execa(cmd, { shell: true, cwd: workspace, env: opts.baseEnv, reject: true });
       }
+      phases.provisionMs = Date.now() - provisionStart;
+      const launchStart = Date.now();
       session = new TerminalSession({
         command: resolvedCommand,
         args: plan.args,
@@ -179,6 +198,9 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
         env: plan.env,
         submit: profile.submit,
       });
+      // launchMs = spawn→ready; readiness runs inside the engine, so its measured
+      // readyMs is added to this base once interact returns (§12).
+      phases.launchMs = Date.now() - launchStart;
     } catch (err) {
       status = 'launch-error';
       log('launch-error', { error: (err as Error).message });
@@ -205,21 +227,27 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
     });
     const interactStart = Date.now();
     interaction = await engine.run();
-    const interactMs = Date.now() - interactStart;
+    const interactWall = Date.now() - interactStart;
     turnCount = interaction.turnCount;
     qna = interaction.qna;
     agentUsage = interaction.usage;
-    // Split interact wall-clock into agent runtime vs harness-LLM (QnA) time (§12).
-    llmMsAfterInteract = meter.totalDurationMs();
-    agentMs = Math.max(0, interactMs - llmMsAfterInteract);
+    transcriptSourceLabel = interaction.transcriptSource === 'authoritative' ? 'hook' : 'fallback';
+    // Readiness (launching → ready) was measured inside the engine — bill it to
+    // launchMs (spawn→ready, §12), leaving interactMs = the turn loop after ready.
+    phases.launchMs += interaction.readyMs;
+    phases.interactMs = Math.max(0, interactWall - interaction.readyMs);
+    // Harness-LLM wall-clock recorded so far is all interact-side (QnA) LLM time.
+    interactLlmMs = meter.totalDurationMs();
 
     // --- Step 6: collect -----------------------------------------------------
+    const collectStart = Date.now();
     const diff = snapshot ? await computeDiff(snapshot, workspace) : '';
     artifacts.trajectory = interaction.events;
     const rawTranscript = readIfExists(interaction.transcriptPath);
     if (rawTranscript !== undefined) artifacts.rawTranscript = rawTranscript;
     artifacts.screen = interaction.screens.join('\n---\n');
     artifacts.diff = diff;
+    phases.collectMs = Date.now() - collectStart;
 
     // --- Step 7: evaluate (§11 pipeline + combiner) --------------------------
     if (interaction.outcome === 'done' && spec.evaluate) {
@@ -239,10 +267,11 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
         agentId: spec.agentId,
         router,
       });
-      // Deterministic-check time = evaluate wall-clock minus the judge LLM time
-      // that ran inside it (§12: checks vs harness-LLM are separate lines).
+      // Evaluate splits into deterministic checks vs judge-LLM (§12): the judge LLM
+      // time is whatever the meter accrued during evaluate; the rest is checks.
       const evalWall = Date.now() - evalStart;
-      const judgeLlmMs = meter.totalDurationMs() - llmMsAfterInteract;
+      phases.evaluateMs = evalWall;
+      judgeLlmMs = Math.max(0, meter.totalDurationMs() - interactLlmMs);
       checksMs = Math.max(0, evalWall - judgeLlmMs);
       if (evalOut.status === 'evaluated') {
         verdict = evalOut.verdict;
@@ -260,11 +289,13 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
   } finally {
     // --- Step 8: teardown (ALWAYS) ------------------------------------------
     if (workspace) {
+      const teardownStart = Date.now();
       try {
         await runTeardown(spec.teardown, scriptEnv, opts.baseEnv);
       } catch {
         // best-effort
       }
+      phases.teardownMs = Date.now() - teardownStart;
     }
     session?.kill();
   }
@@ -281,17 +312,28 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
   if (snapshot) removeDir(snapshot);
   if (ctrlDir && !workspacePath) removeDir(ctrlDir);
 
-  // Cost block (§12): agent usage + harness usage itemized per role, plus the
-  // resolved model per role (lets `cost-rollup` itemize $ by model retroactively).
+  // Cost block (§12): agent usage + harness usage itemized per role, each keyed to a
+  // concrete `provider/model` (the model is the unit of account). `models.agent` is
+  // the agent's own model where the CLI reported it (SessionStart payload).
   const harness = meter.byRole();
   const harnessModels = meter.modelsByRole();
+  const models: Record<string, string> = { ...harnessModels };
+  if (interaction?.agentModel) models.agent = interaction.agentModel;
   const cost: TrialResultInput['cost'] = {
     agent: agentUsage,
     ...(harness.fast ? { fast: harness.fast } : {}),
     ...(harness.workhorse ? { workhorse: harness.workhorse } : {}),
     ...(harness.judge ? { judge: harness.judge } : {}),
-    ...(Object.keys(harnessModels).length > 0 ? { models: harnessModels } : {}),
+    ...(Object.keys(models).length > 0 ? { models } : {}),
   };
+
+  // Time decomposition (§12): agentPureMs is MEASURED from the per-turn timeline (not
+  // interactMs − llm); harnessReactMs splits into per-model LLM time vs overhead.
+  const totalMs = Date.now() - startedAt;
+  const agentPureMs = interaction?.agentPureMs ?? 0;
+  const harnessReactMs = interaction?.harnessReactMs ?? 0;
+  const harnessLlmByModel = meter.durationByModel();
+  const harnessOverheadMs = Math.max(0, harnessReactMs - interactLlmMs);
 
   const resultInput: TrialResultInput = {
     schemaVersion: SCHEMA_VERSION,
@@ -304,11 +346,27 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
     turnCount,
     qna,
     cost,
+    ...(transcriptSourceLabel ? { transcriptSource: transcriptSourceLabel } : {}),
     timings: {
-      totalMs: Date.now() - startedAt,
-      ...(agentMs > 0 ? { agentMs } : {}),
+      totalMs,
+      workspaceMs: phases.workspaceMs,
+      setupMs: phases.setupMs,
+      provisionMs: phases.provisionMs,
+      launchMs: phases.launchMs,
+      interactMs: phases.interactMs,
+      collectMs: phases.collectMs,
+      evaluateMs: phases.evaluateMs,
+      teardownMs: phases.teardownMs,
+      agentPureMs,
+      // Legacy alias so pre-bump readers / the time-rollup stat keep working.
+      agentMs: agentPureMs,
+      harnessReactMs,
       harnessLlmMs: meter.totalDurationMs(),
-      ...(checksMs > 0 ? { checksMs } : {}),
+      harnessOverheadMs,
+      ...(Object.keys(harnessLlmByModel).length > 0 ? { harnessLlmByModel } : {}),
+      checksMs,
+      judgeLlmMs,
+      ...(interaction ? { timeline: interaction.timeline } : {}),
     },
     ...(workspacePath ? { workspacePath } : {}),
   };

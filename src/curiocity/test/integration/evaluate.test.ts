@@ -11,6 +11,7 @@ import { runReport } from '../../src/cli/commands/report';
 import { loadRun } from '../../src/results/loader';
 import { trialSpecSchema, type TrialSpec } from '../../src/shared/ipc';
 import type { FakeRouterScript } from '../../src/shared/model-router';
+import { makeUsage } from '../../src/shared/trajectory';
 import type { StatBlock } from '../../src/results/schema';
 import { ExitCode } from '../../src/cli/exit-codes';
 import { mockProfile, tmpRunDir } from './helpers';
@@ -32,7 +33,7 @@ function judgeScript(score: number, pass: boolean): FakeRouterScript {
         role: 'judge',
         kind: 'object',
         object: { score, pass, rationale: 'scripted judge' },
-        usage: { inputTokens: 1000, outputTokens: 500 },
+        usage: makeUsage({ input: 1000, output: 500 }),
       },
     ],
   };
@@ -125,13 +126,14 @@ describe('evaluate pipeline (judged, token-free)', () => {
 
     // Cost block (§12): agent usage + harness judge usage + resolved model.
     const cost = res.trials[0]!.cost!;
-    expect(cost.judge).toEqual({ inputTokens: 1000, outputTokens: 500 });
+    expect(cost.judge).toMatchObject({ input: 1000, output: 500, total: 1500 });
     expect((cost.models as Record<string, string>).judge).toBe('anthropic/sonnet');
 
-    // Time breakdown (§12): agent runtime is populated (not always 0) and
-    // harness-LLM time is a distinct field, not folded into checks.
+    // Time breakdown (§12): agent-pure runtime is MEASURED from the per-turn timeline
+    // (populated, not always 0) and harness-LLM time is a distinct field.
     const timings = res.trials[0]!.timings!;
-    expect(timings.agentMs).toBeGreaterThan(0);
+    expect(timings.agentPureMs).toBeGreaterThanOrEqual(0);
+    expect(timings.timeline!.length).toBeGreaterThan(0);
     expect(typeof timings.harnessLlmMs).toBe('number');
 
     // suite.json cost-rollup priced from the fixture.
@@ -225,7 +227,9 @@ describe('evaluate pipeline (judged, token-free)', () => {
     const suite = JSON.parse(readFileSync(join(res.runDir, 'suite.json'), 'utf8'));
     const cr = (suite.groups as StatBlock[]).find((g) => g.id === 'cost-rollup') as Record<string, unknown>;
     expect(cr.usd).toBeGreaterThan(0);
-    expect(cr.unpricedModels).toEqual([]);
+    // The harness judge model is priced; the mock agent's own model is now tracked
+    // per-source (§12) and, being absent from the pricing map, is reported tokens-only.
+    expect(cr.unpricedModels).toEqual(['mock-model']);
   });
 
   it('cost: report with an incomplete pricing map reports the model tokens-only', async () => {

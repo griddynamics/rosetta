@@ -188,8 +188,10 @@ async function runLiveCodexTrialInner(workspace: string, ctrlDir: string): Promi
     assistantTexts = result.events
       .filter((e) => e.kind === 'assistant')
       .map((e) => String((e.payload as { text?: string }).text ?? ''));
-    usageInput = result.usage.inputTokens;
-    usageOutput = result.usage.outputTokens;
+    // Disjoint classes (§12): input excludes cached tokens; add cacheRead back for
+    // the "did we account any prompt tokens" contract check. output excludes reasoning.
+    usageInput = result.usage.input + result.usage.cacheRead;
+    usageOutput = result.usage.output + result.usage.reasoning;
   } finally {
     session.kill();
   }
