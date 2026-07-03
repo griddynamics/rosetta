@@ -147,6 +147,7 @@ interface AgentProfile {                 // from top-level config `codingagents`
   command: string; args: string[];       // template vars: {prompt}, {sessionId}, {workspace}, {ctrlDir}
   envRemove: string[];                   // glob patterns stripped from agent PTY env
   envSet?: Record<string, string>;
+  agentModel?: string;                   // model the agent CLI itself runs (claude: --model X; codex: -m X); D13-mergeable, per-case override via agentModels map, CLI --agent-model <agent>=<model>. Cost policy: cheap tier for the majority of testing (claude: Haiku 3.5; codex: gpt-5.4-mini); smarter models only for final validation runs.
   strategy: 'json-only' | 'screen-reader' | 'hybrid';
   readiness: { bannerPattern?: string; quietMs: number };  // TUI ready-for-input signal
   submit: 'enter' | 'paste+enter';       // key sequencing for typed input (some TUIs need paste mode)
@@ -433,6 +434,7 @@ Built-in evaluators (all params zod-validated at config load):
 | `command` | Run build/test/lint via execa in the workspace; assert exit code. Typically `gate:true`. |
 | `trajectory-check` | Assert `tool_call` events matching a pattern occurred — the "did our plugin actually run" gate. `toolPattern` is either one regex or a **per-agent map** (tool vocabularies differ across agents; a single pattern would produce false failures on cross-agent suites). |
 | `llm-judge` | Judge-role model scores 0–100 with rationale via `generateObject`. **Input (fixed contract):** [1] `evaluation.md` verbatim, [2] distilled trajectory (tool steps, trimmed results, assistant text), [3] produced artifacts — `workspaceDiff` **plus only** files matching the evaluator's `artifacts` globs, each size-capped with explicit truncation markers (never the unbounded workspace), [4] QnA log. The harness interprets no criteria. |
+| `external` | **Pluggable deterministic evaluator, hook-style contract.** Params: `{command, args?, timeoutSec?}`. The harness runs the command with a **JSON object string on stdin**: `{workspacePath, workspaceDiffPath, trajectoryPath (normalized JSONL), rawTranscriptPath, qnaLogPath, caseDir, agentId, agentModel, sessionId}` (paths, not blobs — like hooks). The command prints a JSON object on stdout: `{"values": [{"name": "<metric>", "value": <0-100>}]}` — every value **normalized to 0–100**. Each value is recorded as a named metric on the trial and rolled up per metric name across repeats/groups (mean/min/max/stddev), per model context like all stats. Scoring integration (all optional): `scoreMetric` designates one value as this evaluator's score; `passThreshold` derives pass from it; `gate`/`weight` behave as for any evaluator; with none set, metrics are informational only. Non-zero exit / invalid JSON / timeout → evaluator error (fails the evaluator; gate-aware). |
 
 Combiner (§5.4 `gated-mean` default) produces the per-trial verdict `{pass, score, rationale}`; both deterministic results and judge output are recorded in `trial.json`.
 
@@ -459,7 +461,8 @@ Combiner (§5.4 `gated-mean` default) produces the per-trial verdict `{pass, sco
 - `totalMs` — trial wall clock (lifecycle start → end) — plus per-phase walls: `workspaceMs, setupMs, provisionMs, launchMs (spawn→ready), interactMs, collectMs, evaluateMs, teardownMs`;
 - a **per-turn timeline** inside interact: `turnStart` (prompt/answer submitted) → `stopAt` (Stop signal) → `reactionDoneAt` (harness reply typed). From it: **`agentPureMs` = Σ(stopAt − turnStart)** — the agent's own execution time, excluding ALL harness reaction — and `harnessReactMs` = Σ(reactionDoneAt − stopAt), itemized into `harnessLlmMs` (fast/workhorse call durations) vs `harnessOverheadMs` (detection windows, typing, bookkeeping);
 - **every record is keyed by concrete model id, not just role**: each usage record AND each LLM duration record carries the exact `provider/model` that served it (roles are labels; the model is the unit of account). `harnessLlmMs` therefore also itemizes per model, exactly like tokens/$ — so if fast=haiku and judge=sonnet, time, tokens, and cost each break down by model consistently across trial → group → suite;
-- inside evaluate: `checksMs` (deterministic) vs `judgeLlmMs`.
+- inside evaluate: `checksMs` (deterministic) vs `judgeLlmMs`;
+- **turn metrics** (from the same per-turn timeline): `turnsTotal` (all turns), `questionTurns` (turns where the harness answered ≥1 question — counted once per turn regardless of how many questions it contained: "how many times the agent asked"), and `interruptions` (maximal runs of CONSECUTIVE question-turns collapsed to one — the choppiness measure: 3 questions back-to-back = 1 interruption; 3 questions spread across the run = 3). Recorded per trial, rolled up per group/suite.
 Stored per trial, rolled up per group/suite alongside tokens; suite.md renders total vs pure side by side so slow-harness vs slow-agent is immediately visible.
 
 Because raw trial JSON is stored, new stats apply retroactively via `curiocity report` (D8).
