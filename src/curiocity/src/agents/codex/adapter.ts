@@ -207,10 +207,14 @@ export class CodexAdapter implements AgentAdapter {
     const env = filterAgentEnv(base, ctx.profile.envRemove, ctx.profile.envSet);
     const codexHome = this.codexHome(ctx);
     env.CODEX_HOME = codexHome;
-    // Render the resolved `agentModel` (§5.2) as codex's `-m <id>` flag when set.
+    // Render the resolved `agentModel` (§5.2) as codex's `-m <id>` flag when set, and the
+    // resolved `agentEffort` as codex's `-c model_reasoning_effort="<v>"` config override.
     const modelArgs = ctx.profile.agentModel ? ['-m', ctx.profile.agentModel] : [];
+    const effortArgs = ctx.profile.agentEffort
+      ? ['-c', `model_reasoning_effort="${ctx.profile.agentEffort}"`]
+      : [];
     return {
-      args: [...ctx.profile.args.map((a) => applyTemplate(a, vars)), ...modelArgs],
+      args: [...ctx.profile.args.map((a) => applyTemplate(a, vars)), ...modelArgs, ...effortArgs],
       env,
       // Seed the isolated home before launch: create it and (if the user is logged in
       // via auth.json) symlink their credential in so codex authenticates as them
@@ -414,16 +418,23 @@ export class CodexAdapter implements AgentAdapter {
       session_id?: string;
       transcript_path?: string;
       last_assistant_message?: string | null;
+      effort?: { level?: unknown };
     };
     try {
       obj = JSON.parse(trimmed);
     } catch {
       return null;
     }
+    // codex's Stop payload does not currently report reasoning effort; read it
+    // defensively (same `{ level }` shape as claude) so a future version that does is
+    // captured automatically. Undefined → the trial's agentEffort omits `observed`.
+    const level = obj.effort?.level;
+    const effort = typeof level === 'string' && level !== '' ? level : undefined;
     return {
       sessionId: obj.session_id ?? '',
       ...(obj.transcript_path ? { transcriptPath: obj.transcript_path } : {}),
       lastAssistantMessage: obj.last_assistant_message ?? null,
+      ...(effort !== undefined ? { effort } : {}),
     };
   }
 

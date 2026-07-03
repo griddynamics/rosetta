@@ -25,6 +25,11 @@ export interface CanonicalStopSignal {
   sessionId: string;
   transcriptPath?: string;
   lastAssistantMessage: string | null;
+  /** Observed reasoning effort the agent CLI actually ran at, when the native stop
+   *  payload reports it (§5.2). Claude's Stop hook carries `effort: { level }` (verified
+   *  live, docs/hooks/claude-code.md); adapters without it leave this undefined. Recorded
+   *  as `agentEffort.observed` and compared against the requested value like agentModel. */
+  effort?: string;
 }
 
 export interface FileToWrite {

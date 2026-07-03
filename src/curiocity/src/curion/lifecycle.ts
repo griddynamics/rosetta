@@ -21,7 +21,7 @@ import {
 } from '../results/schema';
 import type { TrialArtifacts } from '../results/store';
 import { runEvaluatorPipeline } from './evaluate';
-import { buildAgentModelRecord } from './agent-model';
+import { buildAgentEffortRecord, buildAgentModelRecord } from './agent-model';
 import { computeTurnMetrics } from '../interaction/turn-metrics';
 import { buildRouter } from './router-factory';
 import { CostMeter } from '../llm/cost-meter';
@@ -362,6 +362,16 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
   // agentModel accounting (§5.2): requested (what we passed to the CLI) vs observed
   // (what the CLI's SessionStart payload reported), with a tolerant mismatch flag.
   const agentModelRecord = buildAgentModelRecord(profile.agentModel, interaction?.agentModel);
+  // agentEffort accounting (§5.2): requested (passed to the CLI) vs observed (the Stop-hook
+  // payload's `effort`), with an exact-match mismatch flag. When an effort was requested but
+  // the adapter reported none back (no effort surface), warn + omit `observed` — never fail.
+  const agentEffortRecord = buildAgentEffortRecord(profile.agentEffort, interaction?.agentEffort);
+  if (profile.agentEffort !== undefined && interaction?.agentEffort === undefined) {
+    log('agentEffort requested but not observed (adapter reported no effort; omitting observed)', {
+      agent: spec.agentId,
+      requested: profile.agentEffort,
+    });
+  }
 
   const resultInput: TrialResultInput = {
     schemaVersion: SCHEMA_VERSION,
@@ -376,6 +386,7 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
     qna,
     cost,
     ...(agentModelRecord ? { agentModel: agentModelRecord } : {}),
+    ...(agentEffortRecord ? { agentEffort: agentEffortRecord } : {}),
     ...(transcriptSourceLabel ? { transcriptSource: transcriptSourceLabel } : {}),
     timings: {
       totalMs,

@@ -85,6 +85,7 @@ export function buildProgram(): Command {
     .option('--workhorse-model <provider/model>', 'override workhorse tier')
     .option('--judge-model <provider/model>', 'override judge tier')
     .option('--agent-model <agentId=model>', 'agent CLI model per agent id (repeatable)', collect, [])
+    .option('--agent-effort <agentId=effort>', 'agent CLI reasoning effort per agent id (repeatable)', collect, [])
     .action(async (opts: RunOptions, cmd: Command) => {
       try {
         // Tri-state --evaluate / --collect-cost: only honour when set on the CLI,

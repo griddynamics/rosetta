@@ -78,6 +78,13 @@ class HeadlessPane implements Pane {
     while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
     return lines.join('\n');
   }
+
+  /** The application's CURRENT bracketed-paste mode, as parsed from its output stream
+   *  (§5.3): true after the app emits `ESC[?2004h` (DECSET 2004), false after `ESC[?2004l`
+   *  or at startup. @xterm/headless tracks this from the emulated terminal's modes. */
+  get bracketedPasteMode(): boolean {
+    return this.term.modes.bracketedPasteMode;
+  }
 }
 
 export class TerminalSession {
@@ -144,6 +151,12 @@ export class TerminalSession {
     return this.exitInfo;
   }
 
+  /** The app's CURRENT bracketed-paste mode, observed from its output stream via DECSET
+   *  2004 (§5.3). `submitLine` consults this to decide whether to wrap in paste markers. */
+  get bracketedPasteMode(): boolean {
+    return this.pane.bracketedPasteMode;
+  }
+
   /** Raw input write, chunked + event-loop-yielding to honor backpressure (§4). */
   async write(input: string): Promise<void> {
     if (this.exited) return;
@@ -165,29 +178,34 @@ export class TerminalSession {
    * submission (the confirmed root-cause class of the M6.5 codex submit failure: the
    * typed answer sat unsent in `›` until the freeze watchdog fired).
    *
-   * **Bracketed paste is the default and only production submit path** (§5.3 ruling):
-   * every v1 profile uses `paste+enter`, so ALL submits — single-line included, no
-   * content inspection — are FOUR writes: `\x1b[200~`, the text, `\x1b[201~`, then a
-   * separate `\r`. Both v1 TUIs enable bracketed paste; wrapping single-line text is
-   * harmless, and one code path is one tested path. Embedded `\n` stay literal composer
-   * text (never an early submit).
+   * **Bracketed paste is the production submit path, but MODE-OBSERVED not assumed**
+   * (§5.3 ruling): the paste markers `\x1b[200~`/`\x1b[201~` are only meaningful while the
+   * app has bracketed-paste mode enabled (it emits DECSET `ESC[?2004h` to turn it on). Since
+   * `TerminalSession` IS the terminal side of the PTY, it tracks that mode from the app's
+   * output stream (`bracketedPasteMode`) and wraps ONLY while the mode is enabled — FOUR
+   * writes: `\x1b[200~`, the text, `\x1b[201~`, then a separate `\r`. When the mode is not
+   * enabled (a TUI that never turns it on, or a dialog state that temporarily disables it),
+   * it degrades transparently to the plain TWO-write sequence (text, then a separate `\r`).
+   * Embedded `\n` in a wrapped payload stay literal composer text (never an early submit).
    *
-   * `enter` mode is the plain TWO-write fallback (text, then a separate `\r`), kept
-   * profile-selectable for a TUI that does not support bracketed paste; it is not used
-   * by any v1 profile.
+   * `enter` mode is the explicit plain TWO-write fallback (text, then a separate `\r`),
+   * profile-selectable and never wrapped regardless of the observed mode.
    *
    * This is the only place submit sequencing is applied — raw `write()` (dialog
    * keystrokes, arrow keys, bare `\r`, Ctrl+C terminate) is never wrapped or terminated.
    */
   async submitLine(text: string): Promise<void> {
-    if (this.submitMode === 'enter') {
-      // Plain fallback: text, then a separate discrete Enter.
-      await this.write(text);
-    } else {
-      // Bracketed paste (default): open marker, body, close marker as DISTINCT writes.
+    // Wrap ONLY when the profile opts into paste AND the app currently has bracketed-paste
+    // mode enabled (observed via DECSET 2004). `enter` mode is always plain.
+    const wrap = this.submitMode !== 'enter' && this.pane.bracketedPasteMode;
+    if (wrap) {
+      // Bracketed paste: open marker, body, close marker as DISTINCT writes.
       await this.write('\x1b[200~');
       await this.write(text);
       await this.write('\x1b[201~');
+    } else {
+      // Plain: text only (the app is not in bracketed-paste mode, or `enter` fallback).
+      await this.write(text);
     }
     // Settle so the body flushes, THEN submit with a discrete lone Enter keystroke.
     await new Promise((r) => setTimeout(r, SUBMIT_SETTLE_MS));

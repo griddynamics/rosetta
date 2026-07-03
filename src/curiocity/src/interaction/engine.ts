@@ -58,6 +58,9 @@ export interface InteractionResult {
   readyMs: number;
   /** Agent model id where the CLI reported one (SessionStart payload), for per-model keying. */
   agentModel?: string;
+  /** Reasoning effort the CLI reported running at (latest Stop-hook `effort`), when any
+   *  turn's stop payload carried it (§5.2). Undefined for adapters with no effort surface. */
+  agentEffort?: string;
 }
 
 export interface EngineDeps {
@@ -119,6 +122,7 @@ export class InteractionEngine {
   private transcriptPath = '';
   private transcriptSource: 'authoritative' | 'fallback' = 'fallback';
   private agentModel: string | undefined;
+  private agentEffort: string | undefined;
   private cachedEvents: TrajectoryEvent[] = [];
   private lastTranscriptSize = -1;
   private processedStopCount = 0;
@@ -316,6 +320,10 @@ export class InteractionEngine {
     events: TrajectoryEvent[],
   ): Promise<'answered' | 'terminate' | 'keep-waiting'> {
     this.turnCount += 1;
+    // Capture the observed reasoning effort the CLI ran at (§5.2): the Stop payload
+    // reports it (claude: `effort.level`), so keep the latest non-empty value across
+    // turns — this is the observed truth compared against the requested effort.
+    if (signal.effort !== undefined && signal.effort !== '') this.agentEffort = signal.effort;
     // stopAt: the Stop signal marks the end of the agent's own execution for this turn.
     const stopAt = this.now();
     const base = this.adapter.classifyTurn(signal); // deterministic pre-gate (P4)
@@ -435,6 +443,7 @@ export class InteractionEngine {
       harnessReactMs,
       readyMs: this.readyMs,
       ...(this.agentModel !== undefined ? { agentModel: this.agentModel } : {}),
+      ...(this.agentEffort !== undefined ? { agentEffort: this.agentEffort } : {}),
     };
   }
 

@@ -9,7 +9,8 @@
   },
   "codingagents": {
     "claude-code": {
-      "agentModel": "haiku"
+      "agentModel": "claude-sonnet-5",
+      "agentEffort": "low"
     },
     "codex": {
       "agentModel": "gpt-5.4-mini"

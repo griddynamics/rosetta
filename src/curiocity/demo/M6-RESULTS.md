@@ -336,3 +336,105 @@ map → reported **tokens-only** (as designed). Harness classify/judge spend rem
   the agent's real execution time even when it all happens before the screen goes quiet.
   Regression-tested (`test/integration/interaction.test.ts`, "(R2 regression)..."). Turn
   metrics (derived from the same timeline) were unaffected and correct even before this fix.
+
+---
+
+# Milestone 6.7 — auto default + Sonnet-5-low cheap tier + agentEffort + DECSET-observed bracketed paste
+
+Four user rulings (all present in `plans/curiocity/arch.md` at HEAD `e0e33453`) landed and were
+live-validated on the cheap tier. This milestone also reverts the code effect of the m6-review
+agent's false-positive `acceptEdits` flip (commit `2622a502`) per the restored spec.
+
+## The four rulings (verified in arch.md at HEAD before implementing)
+
+1. **Claude permission default = `auto`** (P2 + §10.1). Reverted `CLAUDE_CODE_DEFAULT_PROFILE.args`
+   from `--permission-mode acceptEdits` back to `--permission-mode auto` and fixed the pinned unit
+   assertion (`test/unit/claude-code-adapter.test.ts`). The Haiku-class caveat is documented on the
+   profile: a config pinning such a model overrides to `acceptEdits`; the cheap tier avoids that by
+   using Sonnet 5 at low effort, which supports `auto`. **No `acceptEdits` override was needed** — the
+   demo config runs pure `auto` and no "create file?" prompt appeared (0 in the mirrored PTY).
+2. **Cheap tier = Sonnet 5 at low effort for claude** (§5.2). `demo/curiocity.demo.json`:
+   `codingagents.claude-code` → `agentModel: "claude-sonnet-5"` + `agentEffort: "low"`; codex stays
+   `gpt-5.4-mini`; the `haiku` pin is gone. `claude-sonnet-5` is the CLI's accepted full-name id
+   (`claude --help`: "or a model's full name"); SessionStart reports it back verbatim (exact match).
+3. **`agentEffort` field** (§5.2). New `AgentProfile.agentEffort` + per-case `agentEfforts` map +
+   CLI `--agent-effort <agentId>=<v>` (repeatable), the SAME D13 seam as `agentModel`
+   (profile < case < CLI, folded at `buildTrialSpecs`). Rendering: claude `--effort <v>` (verified on
+   the installed CLI 2.1.199: `--effort <level>` accepts low|medium|high|xhigh|max), codex
+   `-c model_reasoning_effort="<v>"`, mock no-op. Observed effort is read from the Stop-hook payload's
+   `effort.level` (verified live, `docs/hooks/claude-code.md` line 166/433) and recorded as
+   `agentEffort: {requested, observed, mismatch}` alongside `agentModel`. No effort surface → warn +
+   omit `observed`, never fail.
+4. **DECSET-observed bracketed paste** (§5.3). `TerminalSession` now tracks the app's live
+   bracketed-paste mode via `@xterm/headless` `modes.bracketedPasteMode` (exposed as
+   `session.bracketedPasteMode`); `submitLine` wraps in `\x1b[200~`/`\x1b[201~` ONLY while the app has
+   the mode enabled, degrading to the plain two-write sequence otherwise (`enter` mode is always
+   plain). The mock TUI emits `\x1b[?2004h` at startup (opt-out via scene `"bracketedPaste": false`).
+
+## Live cheap-tier suite — both cases × both agents (exit 0, all 4 passed)
+
+`run --source demo/cases --config demo/curiocity.demo.json` (Sonnet-5-low on claude, gpt-5.4-mini on
+codex), harness Anthropic only, unsandboxed per P10:
+
+| Case | Agent | agentModel (req → obs) | agentEffort (req → obs) | Status | Score | Turns / Q-turns / Interruptions |
+|---|---|---|---|---|---|---|
+| healthcheck | claude-code | claude-sonnet-5 → claude-sonnet-5, mismatch:false | low → low, mismatch:false | passed | 100 | 1 / 0 / 0 |
+| healthcheck | codex | gpt-5.4-mini → gpt-5.4-mini, mismatch:false | (not pinned — no effort surface used) | passed | 97 | 1 / 0 / 0 |
+| qna-probe | claude-code | claude-sonnet-5 → claude-sonnet-5, mismatch:false | low → low, mismatch:false | passed | 100 | 2 / 1 / 1 |
+| qna-probe | codex | gpt-5.4-mini → gpt-5.4-mini (observed omitted) | (not pinned) | passed | 100 | 2 / 1 / 1 |
+
+- **Suite gate: PASS — exit 0**, no failures, on the FIRST suite run (1 of the ≤3 cap).
+- **auto mode:** the claude profile default is `--permission-mode auto` with NO demo override; the
+  mirrored PTY showed **0** "create file?" permission prompts — sonnet-5-low handled edits cleanly
+  under `auto`, exactly as the ruling predicted (no hang, unlike Haiku under `auto` in M6.6).
+- **agentEffort observed = requested = `low`** on both claude trials, sourced from the real Stop-hook
+  `effort.level` (the observed truth) — `mismatch:false`.
+- **agentModel observed = requested = `claude-sonnet-5`** on both claude trials (exact match).
+- **QnA submits landed end-to-end** under the new DECSET-gated `submitLine`: claude answered a
+  structured `AskUserQuestion` ("English"), codex a free-text question ("English"); both cases passed
+  100 with `greeting.txt` written — proving the observed-mode submit path works live.
+- **Wrapped submits confirmed:** a targeted `--mirror` run captured the real TUIs emitting DECSET
+  `\x1b[?2004h` (bracketed-paste enable) in the raw PTY stream — so `submitLine` takes the WRAPPED
+  path (both v1 TUIs enable the mode, per §5.3). The `\x1b[?2004l` disable also appears around dialog
+  states, matching the mode-observed design.
+
+### Timings (measured)
+
+| Case | Agent | total | agent-pure |
+|---|---|---|---|
+| healthcheck | claude-code | 25.4 s | 17.8 s |
+| healthcheck | codex | 32.1 s | 24.5 s |
+| qna-probe | claude-code | 15.4 s | 10.5 s |
+| qna-probe | codex | 16.9 s | 11.3 s |
+
+Agent models `claude-sonnet-5` and `gpt-5.4-mini` are not in the demo `pricing` map → reported
+tokens-only (as designed). Harness classify/judge spend stayed cents (Anthropic only; `OPENAI_API_KEY`
+never read/used).
+
+## Suite runs used: 2 of the ≤3 cap
+
+- **Run 1 — exit 0, all 4 passed** (the evidence table above). No diagnose/retry needed.
+- **Run 2 — targeted `--mirror` on healthcheck (both agents)** to capture the raw PTY DECSET
+  enable/disable sequences (wrapped-submit evidence). Exit 0.
+
+## Tests
+
+- New `test/unit/agent-effort.test.ts`: agentEffort precedence (profile < case < CLI), rendering both
+  adapters (claude `--effort`, codex `-c model_reasoning_effort`) + mock no-op, requested-vs-observed
+  record (exact case-insensitive equality).
+- `test/unit/claude-code-adapter.test.ts`: `parseStopSignal` captures `effort.level`; permission-mode
+  assertion restored to `auto`.
+- `test/integration/terminal.test.ts`: DECSET-gated `submitLine` — WRAPPED (mode enabled, four writes),
+  UNWRAPPED fallback (mode not enabled, two writes), `enter` never wrapped even when the mode is on,
+  and a mid-session DECSET toggle proving the wrap decision tracks the app's live mode.
+- Full gates green: `tsc --noEmit` clean, `vitest run` **295/295** (0 skipped), `npm run smoke`
+  **39/39**, `npm run build` clean.
+
+## Open questions / deviations
+
+- **codex observed model omitted on qna-probe:** codex's SessionStart did not report the model id on
+  that trial, so the record carries `requested` only (no `observed`/`mismatch`) — the intended
+  omit-when-unknown behavior, not an error (same variance noted in M6.5/M6.6).
+- **No `acceptEdits` override was necessary** (item 1's conditional): sonnet-5-low ran clean under
+  `auto`, so no per-config override was added.
+- **No mid-task instruction messages were received** during this milestone.

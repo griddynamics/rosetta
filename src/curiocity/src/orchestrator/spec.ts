@@ -91,6 +91,14 @@ export function buildTrialSpecs(args: BuildSpecsArgs): BuiltSpecs {
     if (requestedModel !== undefined && requestedModel !== profile.agentModel) {
       profile = { ...profile, agentModel: requestedModel };
     }
+    // agentEffort precedence (§5.2, D13): the SAME seam as agentModel — profile
+    // (adapter default < top-level config) < case `agentEfforts[agent]` < CLI
+    // `--agent-effort` (both folded into `resolved.agentEfforts[agent]`). Rendered by
+    // the adapter's `buildLaunch` and recorded as `agentEffort.requested` in trial.json.
+    const requestedEffort = resolved.agentEfforts[entry.agent] ?? profile.agentEffort;
+    if (requestedEffort !== undefined && requestedEffort !== profile.agentEffort) {
+      profile = { ...profile, agentEffort: requestedEffort };
+    }
 
     const topSetup = args.topLevel.setup.map((s) => resolveScript(s, args.configDir));
     const topTeardown = args.topLevel.teardown.map((s) => resolveScript(s, args.configDir));

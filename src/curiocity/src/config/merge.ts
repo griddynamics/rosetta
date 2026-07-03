@@ -47,6 +47,9 @@ export interface CliOverrides {
   /** `--agent-model <agentId>=<model>` (repeatable): agent CLI model per agent id.
    *  Highest precedence in the D13 agentModel chain (profile < case < CLI, §5.2). */
   agentModels?: Record<string, string>;
+  /** `--agent-effort <agentId>=<v>` (repeatable): agent CLI reasoning effort per agent id.
+   *  Highest precedence in the D13 agentEffort chain (profile < case < CLI, §5.2). */
+  agentEfforts?: Record<string, string>;
 }
 
 /** Suite-wide settings resolved once per run. */
@@ -75,6 +78,10 @@ export interface ResolvedCaseConfig {
    *  `--agent-model` folded on top (case < CLI). The profile rung below this is applied
    *  at the spec seam (`buildTrialSpecs`), where the resolved `AgentProfile` is known. */
   agentModels: Record<string, string>;
+  /** Per-agent agent-CLI reasoning-effort override (§5.2): case `agentEfforts` map with
+   *  CLI `--agent-effort` folded on top (case < CLI). The profile rung below this is
+   *  applied at the spec seam (`buildTrialSpecs`), like `agentModels`. */
+  agentEfforts: Record<string, string>;
   evaluate: boolean;
 }
 
@@ -174,6 +181,9 @@ export function resolveCaseConfig(args: ResolveCaseArgs): ResolvedCaseConfig {
     // agentModel precedence (§5.2): case map < CLI `--agent-model`, per agent id. The
     // profile rung sits below both and is applied at the spec seam.
     agentModels: { ...(caseConfig.agentModels ?? {}), ...(cli.agentModels ?? {}) },
+    // agentEffort precedence (§5.2): case map < CLI `--agent-effort`, per agent id. The
+    // profile rung sits below both and is applied at the spec seam (same as agentModels).
+    agentEfforts: { ...(caseConfig.agentEfforts ?? {}), ...(cli.agentEfforts ?? {}) },
     evaluate: cli.evaluate ?? evaluateDefault,
   };
 }

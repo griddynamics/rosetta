@@ -70,9 +70,11 @@ export class MockAdapter implements AgentAdapter {
 
   buildLaunch(ctx: TrialContext): LaunchFragment {
     const vars = templateVars(ctx);
-    // `agentModel` (§5.2) is accepted + recorded (it rides `ctx.profile` and is captured
-    // as `agentModelRequested`) but a NO-OP for the mock: the scripted TUI has no real
-    // model flag, so nothing is appended to argv.
+    // `agentModel` and `agentEffort` (§5.2) are accepted + recorded (they ride
+    // `ctx.profile` and are captured as the requested values) but a NO-OP for the mock:
+    // the scripted TUI has no real model/effort surface, so nothing is appended to argv.
+    // An adapter with no effort surface warns + omits (never fails) — the mock simply
+    // omits, and observed effort stays undefined unless the scene emits it in `stop.jsonl`.
     return {
       args: ctx.profile.args.map((a) => applyTemplate(a, vars)),
       env: filterAgentEnv(currentEnv(), ctx.profile.envRemove, ctx.profile.envSet),
@@ -152,16 +154,26 @@ export class MockAdapter implements AgentAdapter {
   parseStopSignal(raw: string): CanonicalStopSignal | null {
     const trimmed = raw.trim();
     if (trimmed === '') return null;
-    let obj: { session_id?: string; transcript_path?: string; last_assistant_message?: string | null };
+    let obj: {
+      session_id?: string;
+      transcript_path?: string;
+      last_assistant_message?: string | null;
+      effort?: { level?: unknown };
+    };
     try {
       obj = JSON.parse(trimmed);
     } catch {
       return null;
     }
+    // Mirror the claude Stop shape (`effort: { level }`) so a scene can exercise the
+    // observed-effort path (§5.2); undefined when the scene doesn't emit it.
+    const level = obj.effort?.level;
+    const effort = typeof level === 'string' && level !== '' ? level : undefined;
     return {
       sessionId: obj.session_id ?? '',
       ...(obj.transcript_path !== undefined ? { transcriptPath: obj.transcript_path } : {}),
       lastAssistantMessage: obj.last_assistant_message ?? null,
+      ...(effort !== undefined ? { effort } : {}),
     };
   }
 

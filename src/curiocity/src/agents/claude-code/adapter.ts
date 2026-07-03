@@ -168,12 +168,16 @@ export class ClaudeCodeAdapter implements AgentAdapter {
   }
 
   /** Step 3 — command/args/env from profile templates (envRemove filtering, session id).
-   *  Renders the resolved `agentModel` (§5.2) as Claude's `--model <id>` flag when set. */
+   *  Renders the resolved `agentModel` (§5.2) as Claude's `--model <id>` flag and the
+   *  resolved `agentEffort` as `--effort <v>` (the installed CLI's effort surface — verified
+   *  on claude 2.1.199: `--effort <level>` accepts low|medium|high|xhigh|max), each only
+   *  when set. Observed effort is read back from the Stop-hook payload's `effort.level`. */
   buildLaunch(ctx: TrialContext): LaunchFragment {
     const vars = templateVars(ctx);
     const modelArgs = ctx.profile.agentModel ? ['--model', ctx.profile.agentModel] : [];
+    const effortArgs = ctx.profile.agentEffort ? ['--effort', ctx.profile.agentEffort] : [];
     return {
-      args: [...ctx.profile.args.map((a) => applyTemplate(a, vars)), ...modelArgs],
+      args: [...ctx.profile.args.map((a) => applyTemplate(a, vars)), ...modelArgs, ...effortArgs],
       // Read the LIVE process env (not the ctx): stripping CLAUDECODE/CLAUDE_CODE* here
       // is exactly what lets a claude launched from inside a Claude Code session persist
       // its own transcript instead of running as a nested child (§10.1).
@@ -283,16 +287,27 @@ export class ClaudeCodeAdapter implements AgentAdapter {
   parseStopSignal(raw: string): CanonicalStopSignal | null {
     const trimmed = raw.trim();
     if (trimmed === '') return null;
-    let obj: { session_id?: string; transcript_path?: string; last_assistant_message?: string | null };
+    let obj: {
+      session_id?: string;
+      transcript_path?: string;
+      last_assistant_message?: string | null;
+      effort?: { level?: unknown };
+    };
     try {
       obj = JSON.parse(trimmed);
     } catch {
       return null;
     }
+    // The Stop payload reports the effort the CLI ran at as `effort: { level }` (verified
+    // live on claude 2.1.199, docs/hooks/claude-code.md) — the observed-truth source for
+    // the trial's `agentEffort` record (§5.2), mirroring SessionStart `model`.
+    const level = obj.effort?.level;
+    const effort = typeof level === 'string' && level !== '' ? level : undefined;
     return {
       sessionId: obj.session_id ?? '',
       ...(obj.transcript_path !== undefined ? { transcriptPath: obj.transcript_path } : {}),
       lastAssistantMessage: obj.last_assistant_message ?? null,
+      ...(effort !== undefined ? { effort } : {}),
     };
   }
 

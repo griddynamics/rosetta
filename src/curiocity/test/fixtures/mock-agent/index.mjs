@@ -157,6 +157,10 @@ async function idleUntilTerminated() {
 }
 
 async function main() {
+  // Enable bracketed-paste mode (DECSET 2004) at startup like the real v1 TUIs do, so the
+  // harness observes it and exercises the WRAPPED submit path (§5.3). A scene may opt out
+  // with `"bracketedPaste": false` to exercise the plain (unwrapped) fallback instead.
+  if (scene.bracketedPaste !== false) out('\x1b[?2004h');
   if (scene.banner) out(`${scene.banner}\n`);
   writeSessionStart();
   appendTranscript({ type: 'user', text: prompt });

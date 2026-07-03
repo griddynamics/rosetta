@@ -1,4 +1,4 @@
-import type { AgentModelRecord } from '../results/schema';
+import type { AgentEffortRecord, AgentModelRecord } from '../results/schema';
 
 /**
  * agentModel accounting (§5.2, M6.6). M6.5 reads the model the agent CLI ACTUALLY ran
@@ -38,6 +38,40 @@ export function buildAgentModelRecord(
   };
   if (requested !== undefined && observed !== undefined) {
     record.mismatch = !agentModelsAgree(requested, observed);
+  }
+  return record;
+}
+
+/**
+ * agentEffort accounting (§5.2, M6.7). A SEPARATE dimension from the model with the same
+ * record shape: the REQUESTED effort is what we passed to the CLI (profile < case < CLI),
+ * the OBSERVED effort is what the CLI's Stop-hook payload reported (`effort.level`). Effort
+ * is a small closed enum (low/medium/high/xhigh/max), so — unlike the model's alias/full-id
+ * tolerance — agreement is exact case-insensitive equality. `mismatch` is only meaningful
+ * when BOTH sides are known; otherwise it is omitted.
+ */
+
+/** True when a requested and observed effort refer to the same level (case-insensitive). */
+export function agentEffortsAgree(requested: string, observed: string): boolean {
+  const r = requested.trim().toLowerCase();
+  const o = observed.trim().toLowerCase();
+  if (r === '' || o === '') return false;
+  return r === o;
+}
+
+/** Build the trial's agentEffort record from the requested + observed levels (either may
+ *  be undefined). Returns undefined when NEITHER is known (nothing to record). */
+export function buildAgentEffortRecord(
+  requested: string | undefined,
+  observed: string | undefined,
+): AgentEffortRecord | undefined {
+  if (requested === undefined && observed === undefined) return undefined;
+  const record: AgentEffortRecord = {
+    ...(requested !== undefined ? { requested } : {}),
+    ...(observed !== undefined ? { observed } : {}),
+  };
+  if (requested !== undefined && observed !== undefined) {
+    record.mismatch = !agentEffortsAgree(requested, observed);
   }
   return record;
 }

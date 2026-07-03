@@ -46,6 +46,7 @@ export interface RunOptions {
   workhorseModel?: string;
   judgeModel?: string;
   agentModel?: string[];
+  agentEffort?: string[];
 }
 
 /**
@@ -62,6 +63,24 @@ export function parseAgentModels(raw: string[] | undefined): Record<string, stri
       throw new ConfigError(`--agent-model must be "<agentId>=<model>", got "${item}".`);
     }
     out[id] = model;
+  }
+  return out;
+}
+
+/**
+ * Parse repeatable `--agent-effort <agentId>=<v>` flags into a map (§5.2). Same shape
+ * and error handling as `parseAgentModels`: a malformed entry is a `ConfigError` (exit 2).
+ */
+export function parseAgentEfforts(raw: string[] | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const item of raw ?? []) {
+    const eq = item.indexOf('=');
+    const id = eq >= 0 ? item.slice(0, eq).trim() : '';
+    const effort = eq >= 0 ? item.slice(eq + 1).trim() : '';
+    if (id === '' || effort === '') {
+      throw new ConfigError(`--agent-effort must be "<agentId>=<effort>", got "${item}".`);
+    }
+    out[id] = effort;
   }
   return out;
 }
@@ -144,6 +163,10 @@ export async function runRun(opts: RunOptions): Promise<number> {
     ...(() => {
       const agentModels = parseAgentModels(opts.agentModel);
       return Object.keys(agentModels).length > 0 ? { agentModels } : {};
+    })(),
+    ...(() => {
+      const agentEfforts = parseAgentEfforts(opts.agentEffort);
+      return Object.keys(agentEfforts).length > 0 ? { agentEfforts } : {};
     })(),
   };
 

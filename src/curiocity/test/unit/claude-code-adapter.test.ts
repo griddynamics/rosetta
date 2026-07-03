@@ -170,6 +170,24 @@ describe('ClaudeCodeAdapter (§10.1) — dialect parser', () => {
     expect(adapter.parseStopSignal('not json')).toBeNull();
     expect(adapter.parseStopSignal('   ')).toBeNull();
   });
+
+  it('parseStopSignal captures observed reasoning effort from `effort.level` (§5.2, M6.7)', () => {
+    // The Stop hook carries `effort: { level }` (verified live, docs/hooks/claude-code.md).
+    const sig = adapter.parseStopSignal(
+      JSON.stringify({
+        session_id: 's1',
+        permission_mode: 'auto',
+        effort: { level: 'low' },
+        last_assistant_message: 'done',
+      }),
+    );
+    expect(sig).toMatchObject({ sessionId: 's1', lastAssistantMessage: 'done', effort: 'low' });
+    // A payload with no effort object → effort omitted (undefined), not an empty string.
+    const noEffort = adapter.parseStopSignal(
+      JSON.stringify({ session_id: 's1', last_assistant_message: 'done' }),
+    );
+    expect(noEffort?.effort).toBeUndefined();
+  });
 });
 
 describe('ClaudeCodeAdapter — structured questions (AskUserQuestion)', () => {
@@ -404,7 +422,7 @@ describe('ClaudeCodeAdapter — buildLaunch env stripping (§10.1)', () => {
     const args = adapter.buildLaunch(c).args!;
     expect(args[0]).toBe('say PONG');
     expect(args).toContain('--permission-mode');
-    expect(args[args.indexOf('--permission-mode') + 1]).toBe('acceptEdits');
+    expect(args[args.indexOf('--permission-mode') + 1]).toBe('auto');
     expect(args[args.indexOf('--session-id') + 1]).toBe('uuid-xyz');
   });
 });

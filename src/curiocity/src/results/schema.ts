@@ -52,6 +52,16 @@ export const agentModelRecordSchema = z.object({
 });
 export type AgentModelRecord = z.infer<typeof agentModelRecordSchema>;
 
+/** Requested-vs-observed agent-CLI reasoning effort (§5.2). Same shape and `mismatch`
+ *  semantics as `agentModelRecordSchema` — `mismatch` only when both sides are known
+ *  (case-insensitive equality); see `curion/agent-model.ts`. */
+export const agentEffortRecordSchema = z.object({
+  requested: z.string().optional(),
+  observed: z.string().optional(),
+  mismatch: z.boolean().optional(),
+});
+export type AgentEffortRecord = z.infer<typeof agentEffortRecordSchema>;
+
 /** Turn metrics (§12), derived from the per-turn timeline. `turnsTotal` = all turns;
  *  `questionTurns` = turns where the harness answered ≥1 question (once per turn,
  *  regardless of question count within); `interruptions` = maximal runs of CONSECUTIVE
@@ -150,6 +160,8 @@ export const trialResultSchema = z.object({
   timings: timeBlockSchema.optional(),
   /** Requested-vs-observed agent-CLI model + mismatch flag (§5.2, M6.6). */
   agentModel: agentModelRecordSchema.optional(),
+  /** Requested-vs-observed agent-CLI reasoning effort + mismatch flag (§5.2, M6.7). */
+  agentEffort: agentEffortRecordSchema.optional(),
   /** Which transcript source drove the trial (§10, Part 3.2): the injected capture
    *  hook (authoritative session-start payload) or the computed fallback location. */
   transcriptSource: z.enum(['hook', 'fallback']).optional(),

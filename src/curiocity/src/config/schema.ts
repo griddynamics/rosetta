@@ -42,6 +42,11 @@ export const agentProfileSchema = z.object({
    *  `-m <id>`, mock accepts+records as a no-op. D13-mergeable; per-case override via
    *  the case `agentModels` map and CLI `--agent-model <agentId>=<model>` sit above it. */
   agentModel: z.string().min(1).optional(),
+  /** Reasoning effort the agent CLI runs at (§5.2) — a SEPARATE dimension from the model,
+   *  same D13/agentEfforts-map/CLI plumbing as `agentModel`. Rendered per adapter: claude
+   *  `--effort <v>`, codex `-c model_reasoning_effort="<v>"`, mock accepts+records as a
+   *  no-op. An adapter with no effort surface warns + omits (never fails the trial). */
+  agentEffort: z.string().min(1).optional(),
   strategy: strategySchema,
   readiness: readinessSchema,
   submit: submitSchema,
@@ -142,5 +147,9 @@ export const caseConfigSchema = z.object({
    *  the profile's `agentModel`; CLI `--agent-model` overrides this in turn (profile <
    *  case < CLI, D13). */
   agentModels: z.record(z.string()).optional(),
+  /** Per-agent agent-CLI reasoning-effort override (§5.2): `{ "<agentId>": "<effort>" }`.
+   *  Overrides the profile's `agentEffort`; CLI `--agent-effort` overrides this in turn
+   *  (profile < case < CLI, D13) — same seam as `agentModels`. */
+  agentEfforts: z.record(z.string()).optional(),
 });
 export type CaseConfig = z.infer<typeof caseConfigSchema>;
