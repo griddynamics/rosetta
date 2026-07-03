@@ -131,8 +131,11 @@ describe('evaluate pipeline (judged, token-free)', () => {
 
     // Time breakdown (§12): agent-pure runtime is MEASURED from the per-turn timeline
     // (populated, not always 0) and harness-LLM time is a distinct field.
+    // Strictly > 0 (not >= 0, a trivial bound any hardcoded-zero bug would also pass):
+    // turn 1's turnStart now anchors at PTY spawn (R2), and real fork+PTY wall clock
+    // to the Stop signal is never exactly zero.
     const timings = res.trials[0]!.timings!;
-    expect(timings.agentPureMs).toBeGreaterThanOrEqual(0);
+    expect(timings.agentPureMs).toBeGreaterThan(0);
     expect(timings.timeline!.length).toBeGreaterThan(0);
     expect(typeof timings.harnessLlmMs).toBe('number');
 
