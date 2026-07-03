@@ -5,6 +5,14 @@ import { execa } from 'execa';
  * `cwd = workspace` and `CURIOCITY_*` env. Setup scripts are concatenated
  * (top-level then case) upstream; a non-zero exit → the caller marks the trial
  * `setup-error` and skips to teardown. Teardown always runs, even after failure.
+ *
+ * TRUST MODEL (shell:true — deliberate, matches evaluators/command.ts): each entry is a
+ * user-authored shell LINE from the top-level or case `setup`/`teardown` config array
+ * (e.g. `"./install-rosetta-hook.sh"`, `"cp -r fixtures/* ."`). These are shell
+ * expressions by design and are trusted at the case-authoring level — the same party that
+ * authors the prompt/config already dictates what the harness executes. No agent output or
+ * other untrusted data is interpolated into the line. (The `external` evaluator, which runs
+ * a program with a discrete argv rather than a shell line, uses execa's array form instead.)
  */
 
 export interface ScriptEnv {

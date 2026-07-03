@@ -23,6 +23,14 @@ import type { EvalContext, EvalResult, Evaluator } from './types';
  * Error handling (gate-aware): non-zero exit / invalid JSON / a value out of 0-100 /
  * timeout all THROW here → the pipeline records the evaluator as failed (pass:false) and
  * applies the config `gate` flag, so a gated `external` failure fails the suite.
+ *
+ * TRUST MODEL (array-args, NO shell — deliberate, contrast evaluators/command.ts and
+ * curion/setup.ts): `external` invokes a PROGRAM (`command`) with a discrete argv
+ * (`args[]`), so it uses execa's array form with shell:false. Unlike the shell-line
+ * evaluators, there is no shell expression to interpret here — the command and each
+ * argument are separate values — so bypassing the shell is both correct and the safer
+ * default (no accidental word-splitting/globbing of an arg). All inputs remain case-author
+ * trusted; the contract passes PATHS on stdin, never blobs, exactly like a hook.
  */
 export const externalParamsSchema = z.object({
   /** Command to run (resolved on PATH, or an absolute path). */
