@@ -16,10 +16,20 @@ import { providers } from './providers';
  * (a masking helper is in `shared/mask.ts`).
  */
 
-/** Default `.env` location: the curiocity package root (`src/curiocity/.env`). */
+/** Resolve the default `.env` path (`<pkg>/.env`) from a module URL — correct in both modes:
+ *  - source/tests: `<pkg>/src/llm/keys.ts` → `../../.env` = `<pkg>/.env`.
+ *  - built dist: the bundle collapses the tree — this code lives in a dist-root file
+ *    (`<pkg>/dist/cli.js` or a shared chunk), so `../.env` = `<pkg>/.env`.
+ *  Exported for unit tests so both layouts are pinned. The `.env` fallback matters only
+ *  for local dev; a published package ships `dist/` only, so users pass keys via env vars. */
+export function resolveEnvFilePath(moduleUrl: string): string {
+  const isTs = moduleUrl.endsWith('.ts');
+  return fileURLToPath(new URL(isTs ? '../../.env' : '../.env', moduleUrl));
+}
+
+/** Default `.env` location: the curiocity package root (`<pkg>/.env`). */
 export function defaultEnvFilePath(): string {
-  // keys.ts lives at src/curiocity/src/llm/keys.ts → package root is two dirs up.
-  return fileURLToPath(new URL('../../.env', import.meta.url));
+  return resolveEnvFilePath(import.meta.url);
 }
 
 /**

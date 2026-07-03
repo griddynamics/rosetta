@@ -13,9 +13,27 @@ import { writeTrial } from '../results/store';
  * `trial.json` for parent-synthesized outcomes (timeout / unexpected death).
  */
 
-const isTs = import.meta.url.endsWith('.ts');
-const CURION_MAIN = fileURLToPath(new URL(isTs ? '../curion/main.ts' : '../curion/main.js', import.meta.url));
-const EXEC_ARGV = isTs ? ['--import', 'tsx'] : [];
+/**
+ * Resolve the Curion child entry from the URL of THIS module — correct in BOTH run modes:
+ *  - source/tests (tsx): this file is `src/orchestrator/child.ts`, so the sibling is
+ *    `../curion/main.ts` and the child needs `--import tsx` to run TypeScript.
+ *  - built dist: the bundle collapses the tree — this code lives in a dist-root file
+ *    (`dist/cli.js` or a shared chunk), and tsup emits the child entry at
+ *    `dist/curion/main.js`, so the sibling is `./curion/main.js` (NOT `../`, which would
+ *    escape dist).
+ * Getting this wrong makes every trial fail to load the child → `agent-crash` (the class
+ * of bug this pure function is unit-tested against; see tsup.config.ts). Exported for that
+ * test so both the .ts and simulated-.js layouts are pinned.
+ */
+export function resolveCurionEntry(moduleUrl: string): { path: string; execArgv: string[] } {
+  const isTs = moduleUrl.endsWith('.ts');
+  return {
+    path: fileURLToPath(new URL(isTs ? '../curion/main.ts' : './curion/main.js', moduleUrl)),
+    execArgv: isTs ? ['--import', 'tsx'] : [],
+  };
+}
+
+const { path: CURION_MAIN, execArgv: EXEC_ARGV } = resolveCurionEntry(import.meta.url);
 
 export interface RunChildOptions {
   spec: TrialSpec;
