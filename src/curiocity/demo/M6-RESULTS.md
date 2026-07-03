@@ -224,3 +224,108 @@ never read; harness unsandboxed per P10).
 - **Environment-specific fix generality:** the `USER`/`LOGNAME` allow-list addition is the
   correct macOS Keychain fix and is harmless on Linux/CI. It is squarely a harness/env
   bug, resolved in `src/orchestrator/env.ts`.
+
+---
+
+# Milestone 6.6 — agentModel + external evaluator + turn metrics (cheap-tier live)
+
+Three features landed and were live-validated on the **cheap agent-model tier** (the point
+of feature 1): pin the agent CLIs to cheap models for the bulk of testing.
+
+- **agentModel (§5.2):** optional `AgentProfile.agentModel` + per-case `agentModels` map +
+  CLI `--agent-model <agentId>=<model>` (repeatable), D13 precedence (profile < case < CLI).
+  Rendered by each adapter's `buildLaunch` (claude `--model <id>`, codex `-m <id>`, mock
+  no-op). Each trial records **both** the requested model and the observed model (the
+  CLI's SessionStart payload — the M6.5 recorded truth of what actually ran) plus a
+  tolerant `mismatch` flag (alias/full-id substrings agree).
+- **`external` evaluator (§11):** hook-style contract — a JSON object string of paths +
+  identity on stdin, `{"values":[{name,value 0-100}]}` on stdout, `timeoutSec`; metrics
+  recorded per trial and rolled up per metric name (mean/min/max/stddev — the new `metrics`
+  stat); optional `scoreMetric`/`passThreshold`/`gate`/`weight`; non-zero exit / bad JSON /
+  out-of-range / timeout → gate-aware evaluator error. Example `count-changed-files.mjs`
+  ships with the healthcheck case and is wired into its `config.json` (informational).
+- **Turn metrics (§12):** `turnsTotal` / `questionTurns` (once per turn regardless of
+  question count within) / `interruptions` (consecutive question-turns collapsed) derived
+  from the per-turn timeline, stored per trial, rolled up (`turn-metrics` stat), rendered
+  in `suite.md`.
+- **Submit path (§5.3, binding):** bracketed paste is the single production submit path —
+  every `submitLine` is four separate PTY writes (`\x1b[200~`, text, `\x1b[201~`, then a
+  discrete `\r`); all v1 profiles use `paste+enter`, `enter` is a plain fallback.
+
+## Cheap-tier model identifiers (verified empirically against the installed CLIs)
+
+| Agent | Requested (pinned) | Observed (SessionStart) | mismatch |
+|---|---|---|---|
+| claude-code | `haiku` (alias) | `claude-haiku-4-5-20251001` | **false** |
+| codex | `gpt-5.4-mini` | `gpt-5.4-mini` | **false** |
+
+- claude's `--model haiku` alias resolves to **`claude-haiku-4-5-20251001`** on the
+  installed CLI (2.1.199) — the cheap Haiku tier available here is 4.5, not the notional
+  "Haiku 3.5"; the tolerant comparison correctly treats alias ⊂ full-id as agreement.
+- codex accepts **`-m gpt-5.4-mini`** and reports it back verbatim (exact match).
+- Both pinned in `demo/curiocity.demo.json` via `codingagents.<id>.agentModel`.
+
+## Step-0 — pending codex QnA fix: CONFIRMED
+
+`run --case qna-probe --agent codex` (default model) → **passed**, score 90. The M6.5
+`type+enter` submit fix works live: question asked → "English" answered (recorded in the
+QnA log) → `greeting.txt` written → completed. No code fix needed (the submit path was
+subsequently generalized to bracketed paste for all modes per the §5.3 ruling).
+
+## Final cheap-tier suite — both cases × both agents (exit 0, all 4 passed)
+
+`run --source demo/cases --config demo/curiocity.demo.json` (cheap models pinned):
+
+| Case | Agent | agentModel (req → obs, mismatch) | Status | Score | Turns / Q-turns / Interruptions | External metric |
+|---|---|---|---|---|---|---|
+| healthcheck | claude-code | haiku → claude-haiku-4-5-20251001, false | passed | 100 | 1 / 0 / 0 | files-changed=2 |
+| healthcheck | codex | gpt-5.4-mini → gpt-5.4-mini, false | passed | 97 | 1 / 0 / 0 | files-changed=3 |
+| qna-probe | claude-code | haiku → claude-haiku-4-5-20251001, false | passed | 100 | 2 / 1 / 1 | — |
+| qna-probe | codex | gpt-5.4-mini → gpt-5.4-mini, false | passed | 100 | 2 / 1 / 1 | — |
+
+- **Suite gate: PASS — exit 0.** All 4 trials completed; requested == observed model for
+  every trial (all `mismatch: false`). Turn metrics populated (qna-probe: 1 question turn,
+  1 interruption; healthcheck: no questions). External `files-changed` metrics present for
+  both healthcheck trials and rendered in `suite.md` (`## External metrics`). The cheap
+  models scored well here (healthcheck 100/97, qna-probe 100/100) — an honest lower score
+  or a justified fail on a cheap model would also have been acceptable; harness correctness
+  is the bar, and all four ran clean.
+- **codex healthcheck `files-changed=3` vs claude's `2`:** codex's diff includes its own
+  workspace-scoped `.codex/hooks.json` (a harness artifact per §10.2), matching the M6
+  judge's observation — the external metric independently corroborates it.
+
+### Harness Anthropic $ (fast/workhorse/judge only; agent tokens billed to the user's CLI)
+
+Agent models `claude-haiku-4-5-20251001` and `gpt-5.4-mini` are not in the demo `pricing`
+map → reported **tokens-only** (as designed). Harness classify/judge spend remained cents.
+
+## Runs used
+
+- Step-0 codex qna-probe: 1 (passed, confirmed).
+- agentModel-identifier probes: 2 of ≤2 — (1) claude `haiku` on qna-probe revealed the
+  observed id AND surfaced the permission-prompt gap below; (2) combined qna-probe × both
+  agents with the fixed config → both passed, both identifiers confirmed.
+- Suite runs: 1 of ≤2 — the final 4-trial run above (exit 0). Second suite run not needed.
+
+## Open questions / deviations
+
+- **claude `--permission-mode auto` + a cheap model prompts for edits (harness gap the
+  cheap tier exposed).** Probe 1 (`haiku`) hung: claude asked+answered correctly, drafted
+  `greeting.txt`, then rendered a **"Do you want to create greeting.txt?"** edit-permission
+  prompt that `auto` did NOT auto-approve (M6.5's claude passed the same case on *sonnet*
+  under `auto` with no prompt — `auto` appears to delegate the decision to the model, and
+  the cheap model chose to ask). The harness has no handler for a recurring edit-permission
+  prompt (`dialogPatterns` dedupe per-pattern and so cannot clear repeated prompts), so it
+  froze → `agent-hung`. **Fix applied in the demo config only:** override claude's args to
+  `--permission-mode acceptEdits`, which deterministically auto-accepts edits (P2: "permission
+  prompts are noise"). The **adapter default remains `auto`** per arch §10.1/P2 — this is a
+  deviation confined to `demo/curiocity.demo.json`. **Recommendation:** reconsider the
+  adapter default (`acceptEdits`/`bypassPermissions`) or add recurring-permission handling,
+  since `auto` does not reliably auto-handle permissions across models.
+- **Time decomposition attribution for single-turn done trials (pre-existing, M6.5):**
+  healthcheck shows `agentPureMs ≈ 0` with the agent's work time landing in `launchMs`
+  (~17 s). Cause: claude's `json-only` readiness returns only after output settles, i.e.
+  after the agent has finished the single turn, so the turn loop sees an already-complete
+  transcript (turnStart ≈ stopAt). This is a readiness/interact boundary quirk of the M6.5
+  time-decomposition, not a M6.6 change; turn metrics (derived from the same timeline) are
+  unaffected and correct.
