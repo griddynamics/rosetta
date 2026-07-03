@@ -221,6 +221,8 @@ interface TerminalSession {              // backed by node-pty + @xterm/headless
 
 Render, don't grep raw ANSI: PTY bytes feed the headless emulator; anything reading the screen reads a clean bounded snapshot (visible grid, not scrollback — keeps LLM fallback cost bounded).
 
+**Submit rule (binding, validated live):** to submit typed input to claude/codex TUIs, write the message text, let it flush, then send the Enter sequence (`\r`) as a **separate PTY write** — never concatenated with the text. A combined `text\r` write is interpreted by the composer as a literal line feed / bracketed paste (newline inside the input box), NOT as submission. `submitLine()` implements exactly this two-write sequence for every submit mode.
+
 ### 5.4 Evaluators & verdict
 
 ```ts
