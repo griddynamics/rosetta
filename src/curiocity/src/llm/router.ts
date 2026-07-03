@@ -35,17 +35,27 @@ interface GenObjArgs extends GenTextArgs {
   schema: unknown;
 }
 /**
- * Vercel AI SDK usage shape (v5): `inputTokens`/`outputTokens`/`totalTokens` plus
- * `reasoningTokens` and `cachedInputTokens`. Anthropic cache-creation arrives via
- * `providerMetadata.anthropic.cacheCreationInputTokens` (§12). We keep it loose and
- * map ALL fields we recognize; anything unrecognized survives in `raw`.
+ * Installed Vercel AI SDK usage shape (verified against the actual `ai`/`@ai-sdk/anthropic`
+ * packages in node_modules, NOT assumed from docs — §12 "re-derive from real fixtures").
+ * The SDK's normalized `LanguageModelUsage` flattens the provider's usage into TOP-LEVEL
+ * `inputTokens`/`outputTokens` that are CACHE/REASONING-INCLUSIVE totals
+ * (`inputTokens = noCache + cacheRead + cacheWrite`, `outputTokens = text + reasoning`),
+ * with the disjoint breakdown nested under `inputTokenDetails`/`outputTokenDetails`. A
+ * flat `reasoningTokens`/`cachedInputTokens` (this module's previous assumption, and a
+ * provider-specific `providerMetadata.anthropic.cacheCreationInputTokens` reach-in) do
+ * NOT exist on the real result — they silently read as `undefined` → 0, which zeroed out
+ * reasoning/cache classes for every harness fast/workhorse/judge call while inflating
+ * `input`/`output` by the very tokens that should have been broken out (§12 bug, found by
+ * probing the installed SDK with `ai/test`'s `MockLanguageModelV3`, not by trusting this
+ * comment or the old mocked unit test). Subtracting the nested detail fields from the
+ * inclusive totals restores disjointness; `raw` keeps the full nested object.
  */
 interface SdkUsage {
   inputTokens?: number;
   outputTokens?: number;
   totalTokens?: number;
-  reasoningTokens?: number;
-  cachedInputTokens?: number;
+  inputTokenDetails?: { noCacheTokens?: number; cacheReadTokens?: number; cacheWriteTokens?: number };
+  outputTokenDetails?: { textTokens?: number; reasoningTokens?: number };
 }
 interface SdkResult {
   usage?: SdkUsage;
@@ -80,28 +90,34 @@ function num(v: unknown): number {
 }
 
 /**
- * Map an AI SDK result (usage + providerMetadata) → the normalized full-breakdown
- * Usage (§12, Part 1.3). The harness LLM is Anthropic in practice, whose `inputTokens`
- * already EXCLUDES cache (cache read/creation are reported separately), so no
- * subtraction is needed to keep the classes disjoint. `reasoningTokens`/
- * `cachedInputTokens` map straight through; Anthropic cache-creation comes from
- * `providerMetadata.anthropic`. Fields absent → 0. The native usage object is kept in
- * `raw` so nothing is dropped.
+ * Map an AI SDK result (usage) → the normalized full-breakdown Usage (§12, Part 1.3).
+ * `inputTokens`/`outputTokens` on the real, installed SDK result are CACHE/REASONING
+ * INCLUSIVE totals (verified against the actual package, see the `SdkUsage` doc above)
+ * — subtract the nested `inputTokenDetails`/`outputTokenDetails` breakdown to recover
+ * disjoint classes, so `total` (computed by `makeUsage` as the disjoint sum) is never a
+ * double count and reasoning/cache are never silently zeroed. Provider-agnostic: reads
+ * only the SDK's own normalized detail fields, not a provider-specific reach-in. Fields
+ * absent → 0 (an older/simpler mock, or a provider that reports neither detail, degrades
+ * to plain input/output with no cache/reasoning — never negative, via the `Math.max(0,…)`
+ * guard). The native usage object is kept in `raw` so nothing is dropped.
  */
 function toUsage(res: SdkResult | undefined): Usage {
   const u = res?.usage;
-  const anthropic = res?.providerMetadata?.anthropic;
-  const cacheWrite = num(
-    anthropic?.['cacheCreationInputTokens'] ?? anthropic?.['cache_creation_input_tokens'],
-  );
-  const cacheRead = num(u?.cachedInputTokens);
+  const cacheRead = num(u?.inputTokenDetails?.cacheReadTokens);
+  const cacheWrite = num(u?.inputTokenDetails?.cacheWriteTokens);
+  const reasoning = num(u?.outputTokenDetails?.reasoningTokens);
+  const input = Math.max(0, num(u?.inputTokens) - cacheRead - cacheWrite);
+  const output = Math.max(0, num(u?.outputTokens) - reasoning);
   return makeUsage({
-    input: num(u?.inputTokens),
-    output: num(u?.outputTokens),
-    reasoning: num(u?.reasoningTokens),
+    input,
+    output,
+    reasoning,
     cacheRead,
     cacheWrite,
-    ...(u?.totalTokens !== undefined ? { total: num(u.totalTokens) } : {}),
+    // `total` intentionally NOT taken from `u.totalTokens` — makeUsage's disjoint-class
+    // sum (input+output+reasoning+cacheRead+cacheWrite) equals it exactly here (the SDK
+    // itself defines totalTokens = inputTokens.total + outputTokens.total) and is more
+    // robust than depending on the SDK still reporting it.
     ...(u !== undefined ? { raw: u } : {}),
   });
 }

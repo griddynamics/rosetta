@@ -51,8 +51,43 @@ describe('RealModelRouter (injected SDK, no network)', () => {
     const res = await router.generateText('fast', { system: 'sys', prompt: 'p' });
     expect(res.text).toBe('hi');
     // AI SDK usage mapped into the full breakdown (§12); native usage kept in `raw`.
+    // No inputTokenDetails/outputTokenDetails on this minimal mock → cache/reasoning 0.
     expect(res.usage).toMatchObject({ input: 3, output: 5, reasoning: 0, cacheRead: 0, cacheWrite: 0, total: 8 });
     expect(seen[0]).toMatchObject({ hasModel: true, system: 'sys', prompt: 'p' });
+  });
+
+  it('decomposes the REAL installed AI SDK usage shape (§12 disjointness, orchestrator finding)', async () => {
+    // The installed `ai`/`@ai-sdk/anthropic` packages report `inputTokens`/`outputTokens`
+    // as CACHE/REASONING-INCLUSIVE totals, with the disjoint breakdown nested under
+    // `inputTokenDetails`/`outputTokenDetails` — verified directly against the real,
+    // installed package via `ai/test`'s `MockLanguageModelV3` (not assumed from a stale
+    // flat `reasoningTokens`/`cachedInputTokens` shape, which does not exist on the real
+    // result and previously caused reasoning/cache to silently read as 0). This test pins
+    // the router's mapping to the ACTUAL shape so a future SDK bump that changes it again
+    // is caught here instead of silently zeroing cost classes.
+    const router = new RealModelRouter({
+      models: MODELS,
+      keys: KEYS,
+      generateText: async () => ({
+        text: 'hi',
+        usage: {
+          inputTokens: 1300, // noCache(1000) + cacheRead(300) + cacheWrite(0)
+          outputTokens: 250, // text(200) + reasoning(50)
+          totalTokens: 1550,
+          inputTokenDetails: { noCacheTokens: 1000, cacheReadTokens: 300, cacheWriteTokens: 0 },
+          outputTokenDetails: { textTokens: 200, reasoningTokens: 50 },
+        },
+      }),
+    });
+    const res = await router.generateText('fast', { prompt: 'p' });
+    expect(res.usage).toMatchObject({
+      input: 1000,
+      output: 200,
+      reasoning: 50,
+      cacheRead: 300,
+      cacheWrite: 0,
+      total: 1550, // disjoint sum, never a double count of the cache/reasoning tokens
+    });
   });
 
   it('maps missing usage fields to zero', async () => {
