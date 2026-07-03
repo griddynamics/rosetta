@@ -63,7 +63,12 @@ export const CODEX_DEFAULT_PROFILE: AgentProfile = {
   envRemove: [],
   strategy: 'hybrid',
   readiness: { quietMs: 1200 },
-  submit: 'enter',
+  // `type+enter` (not plain `enter`): codex-cli's interactive composer reads a rapid
+  // `text\r` burst as a multi-line PASTE and inserts a newline instead of submitting
+  // (verified live during the m6.5 qna-probe: the typed answer sat unsent in `›` and the
+  // agent idled to the freeze watchdog). Sending Enter as a discrete keystroke after the
+  // text settles makes it a genuine submit.
+  submit: 'type+enter',
   stall: { quietMs: 2500 },
   freeze: { windowMs: 12_000 },
   dialogPatterns: [

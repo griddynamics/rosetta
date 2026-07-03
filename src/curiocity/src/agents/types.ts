@@ -122,6 +122,26 @@ export interface AgentAdapter {
   parseStopSignal(raw: string): CanonicalStopSignal | null;
   /** Detect a pending structured question in the trajectory tail (null if none). */
   detectStructuredQuestion(events: TrajectoryEvent[]): StructuredQuestion | null;
+  /**
+   * Optional SCREEN-based structured-question detection (§6 row 1). Some CLIs buffer a
+   * pending structured question and only write its `tool_use` to the transcript AFTER
+   * it is answered (verified live: Claude Code 2.1.199 `AskUserQuestion`), so while it
+   * is pending the only signal is the rendered menu. Adapters that face this implement
+   * this from the snapshot; the engine falls back to it when `detectStructuredQuestion`
+   * (transcript) finds nothing. Returns null when no on-screen menu is present.
+   */
+  detectScreenQuestion?(snapshot: string): StructuredQuestion | null;
+  /**
+   * Optional adapter-native submission of a structured answer (§6). Menu-style
+   * questions are answered by navigation keystrokes (arrows + Enter), not free text —
+   * so an adapter with a screen menu implements this; the engine uses it instead of
+   * typing the answer as a line. `answer` is the composed choice (an option label).
+   */
+  submitStructuredAnswer?(
+    session: TerminalSession,
+    question: StructuredQuestion,
+    answer: string,
+  ): Promise<void>;
   /** Extract the agent's own token usage from the trajectory (cost accounting). */
   extractUsage(events: TrajectoryEvent[]): AgentUsage;
   /** End the session cleanly (e.g. type `/exit`, send key). */

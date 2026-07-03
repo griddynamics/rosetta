@@ -3,7 +3,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { CuriocityError } from '../../shared/errors';
 import type { ProvisionSpec } from '../../config/schema';
-import type { TrajectoryEvent, Usage } from '../../shared/trajectory';
+import { addUsage, makeUsage, zeroUsage, type TrajectoryEvent, type Usage } from '../../shared/trajectory';
 import type { TerminalSession } from '../../terminal/session';
 import { applyTemplate, composeLaunchPlan, filterAgentEnv, templateVars } from '../launch';
 import type {
@@ -236,19 +236,21 @@ export class ClaudeCodeAdapter implements AgentAdapter {
         }
         if (msg.usage && typeof msg.usage === 'object') {
           const u = msg.usage;
+          // Anthropic native accounting (§12): `input_tokens` already EXCLUDES the
+          // cache tiers (cache read/creation are reported separately), and thinking
+          // is folded INTO `output_tokens` (no separate reasoning class). So the
+          // classes are already disjoint — map straight across; `raw` keeps the
+          // native object.
           events.push({
             ts,
             kind: 'usage',
-            payload: {
-              inputTokens: num(u.input_tokens),
-              outputTokens: num(u.output_tokens),
-              ...(u.cache_read_input_tokens != null
-                ? { cacheReadInputTokens: num(u.cache_read_input_tokens) }
-                : {}),
-              ...(u.cache_creation_input_tokens != null
-                ? { cacheCreationInputTokens: num(u.cache_creation_input_tokens) }
-                : {}),
-            },
+            payload: makeUsage({
+              input: num(u.input_tokens),
+              output: num(u.output_tokens),
+              cacheRead: num(u.cache_read_input_tokens),
+              cacheWrite: num(u.cache_creation_input_tokens),
+              raw: u,
+            }),
           });
         }
       } else if (obj.type === 'user') {
@@ -350,21 +352,76 @@ export class ClaudeCodeAdapter implements AgentAdapter {
     };
   }
 
-  extractUsage(events: TrajectoryEvent[]): AgentUsage {
-    const usage: Usage = { inputTokens: 0, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 };
-    for (const e of events) {
-      if (e.kind === 'usage') {
-        const p = e.payload as {
-          inputTokens?: number;
-          outputTokens?: number;
-          cacheReadInputTokens?: number;
-          cacheCreationInputTokens?: number;
-        };
-        usage.inputTokens += p.inputTokens ?? 0;
-        usage.outputTokens += p.outputTokens ?? 0;
-        (usage as Record<string, number>).cacheReadInputTokens += p.cacheReadInputTokens ?? 0;
-        (usage as Record<string, number>).cacheCreationInputTokens += p.cacheCreationInputTokens ?? 0;
+  /**
+   * SCREEN-based detection of a pending `AskUserQuestion` (§6 row 1). Verified live
+   * (Claude Code 2.1.199): the `AskUserQuestion` tool_use is NOT written to the session
+   * transcript while the question is pending — it is flushed (with its answer
+   * `tool_result`) only AFTER the user selects. So while pending, the transcript shows
+   * nothing and the only signal is the rendered menu. We parse that menu here.
+   *
+   * The menu is anchored on Claude's fixed footer hint ("↑/↓ to navigate" / "Enter to
+   * select"); options are the numbered lines (`N. Label`); the question is the last
+   * line ending in `?` above the first option. Anchoring on the footer avoids false
+   * positives on ordinary numbered prose in assistant output.
+   */
+  detectScreenQuestion(snapshot: string): StructuredQuestion | null {
+    if (!/to navigate|Enter to select|Esc to cancel/.test(snapshot)) return null;
+    const lines = snapshot.split('\n');
+    const options: string[] = [];
+    let firstOptionLine = -1;
+    for (let i = 0; i < lines.length; i += 1) {
+      // e.g. "❯ 1. English" or "  2. Spanish"; ignore indented sub-descriptions.
+      const m = /^\s*[❯>]?\s*(\d+)\.\s+(\S.*?)\s*$/.exec(lines[i]!);
+      if (m && m[2]) {
+        options.push(m[2].trim());
+        if (firstOptionLine === -1) firstOptionLine = i;
       }
+    }
+    if (options.length < 2) return null; // not a real choice menu
+    // Question = the last '?'-terminated line above the first option (fallback '').
+    let question = '';
+    for (let i = firstOptionLine - 1; i >= 0; i -= 1) {
+      const t = lines[i]!.trim();
+      if (t.endsWith('?')) {
+        question = t;
+        break;
+      }
+    }
+    return { question, options, raw: { screen: true } };
+  }
+
+  /**
+   * Answer a screen menu (`AskUserQuestion`) by NAVIGATION, not by typing a line: the
+   * menu highlights option 1 initially and is driven with ↑/↓ + Enter (per Claude's own
+   * footer hint). Map the composed answer to an option index, send that many Down
+   * arrows from the top, then Enter. Falls back to the highlighted default on no match.
+   */
+  async submitStructuredAnswer(
+    session: TerminalSession,
+    question: StructuredQuestion,
+    answer: string,
+  ): Promise<void> {
+    const options = question.options ?? [];
+    const a = answer.trim().toLowerCase();
+    let index = options.findIndex(
+      (o) => o.toLowerCase() === a || o.toLowerCase().includes(a) || a.includes(o.toLowerCase()),
+    );
+    if (index < 0) {
+      const asNum = Number.parseInt(a, 10);
+      if (Number.isInteger(asNum) && asNum >= 1 && asNum <= options.length) index = asNum - 1;
+    }
+    if (index < 0) index = 0; // default to the highlighted first option
+    for (let k = 0; k < index; k += 1) {
+      await session.write('\x1b[B'); // Down arrow
+      await new Promise((r) => setTimeout(r, 60));
+    }
+    await session.write('\r'); // Enter selects the highlighted option
+  }
+
+  extractUsage(events: TrajectoryEvent[]): AgentUsage {
+    const usage = zeroUsage();
+    for (const e of events) {
+      if (e.kind === 'usage') addUsage(usage, makeUsage(e.payload as Partial<Usage>));
     }
     return usage;
   }

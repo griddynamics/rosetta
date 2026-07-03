@@ -53,4 +53,25 @@ describe('TerminalSession', () => {
     await waitFor(() => exited);
     expect(s.hasExited).toBe(true);
   });
+
+  it('type+enter submits the line with a discrete Enter after a settle (§5.2, codex)', async () => {
+    // A composer that reads the whole line then echoes it — proves the discrete Enter
+    // still terminates the line (the settle only separates text from CR; the line is
+    // submitted, not left dangling).
+    const s = new TerminalSession({
+      command: '/bin/sh',
+      args: ['-c', 'read line; echo "got:$line"'],
+      cwd: process.cwd(),
+      env: { PATH: process.env['PATH'] ?? '/usr/bin:/bin' },
+      submit: 'type+enter',
+    });
+    let exited = false;
+    s.onExit(() => {
+      exited = true;
+    });
+    await s.submitLine('English');
+    await waitFor(() => s.snapshot().includes('got:English'));
+    await waitFor(() => exited);
+    expect(s.hasExited).toBe(true);
+  });
 });

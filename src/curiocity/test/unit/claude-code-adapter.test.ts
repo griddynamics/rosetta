@@ -100,20 +100,61 @@ describe('ClaudeCodeAdapter (§10.1) — dialect parser', () => {
     expect(events[0]!.kind).toBe('assistant');
   });
 
-  it('extractUsage sums per-message usage incl. cache fields', () => {
+  it('extractUsage maps ALL provider fields into the full breakdown (§12)', () => {
     const usage = adapter.extractUsage(adapter.parseEvents(realisticTranscript));
+    // Anthropic native: input excludes cache; cache read/creation → cacheRead/cacheWrite;
+    // thinking is folded INTO output so reasoning stays 0 (§12).
     expect(usage).toMatchObject({
-      inputTokens: 23240,
-      outputTokens: 5,
-      cacheReadInputTokens: 18588,
-      cacheCreationInputTokens: 3491,
+      input: 23240,
+      output: 5,
+      reasoning: 0,
+      cacheRead: 18588,
+      cacheWrite: 3491,
     });
+    // total = sum of the disjoint classes.
+    expect(usage.total).toBe(23240 + 5 + 18588 + 3491);
   });
 
   it('classifyTurn: empty/null → working; present message → question', () => {
     expect(adapter.classifyTurn({ sessionId: 's', lastAssistantMessage: '' })).toBe('working');
     expect(adapter.classifyTurn({ sessionId: 's', lastAssistantMessage: null })).toBe('working');
     expect(adapter.classifyTurn({ sessionId: 's', lastAssistantMessage: 'PONG' })).toBe('question');
+  });
+
+  it('detectScreenQuestion parses a pending AskUserQuestion MENU from the screen (§6 row 1)', () => {
+    // Verified reality: the AskUserQuestion tool_use is not in the transcript while
+    // pending, so it must be read from the rendered menu (real snapshot shape).
+    const menu = [
+      ' ☐ Language ',
+      '',
+      'Which language should the greeting be in?',
+      '',
+      '❯ 1. English',
+      '     greeting.txt will contain the word "Hello"',
+      '  2. Spanish',
+      '     greeting.txt will contain the word "Hola"',
+      '',
+      'Enter to select · ↑/↓ to navigate · Esc to cancel',
+    ].join('\n');
+    const sq = adapter.detectScreenQuestion!(menu);
+    expect(sq).not.toBeNull();
+    expect(sq!.question).toBe('Which language should the greeting be in?');
+    expect(sq!.options).toEqual(['English', 'Spanish']);
+    // No menu footer → not a question (ordinary numbered prose must not false-positive).
+    expect(adapter.detectScreenQuestion!('1. first thing\n2. second thing\n')).toBeNull();
+  });
+
+  it('submitStructuredAnswer navigates by arrows+Enter to the matching option', async () => {
+    const writes: string[] = [];
+    const fakeSession = { write: async (s: string) => void writes.push(s) } as unknown as import('../../src/terminal/session').TerminalSession;
+    const sq = { question: 'Which language?', options: ['English', 'Spanish'], raw: {} };
+    await adapter.submitStructuredAnswer!(fakeSession, sq, 'Spanish');
+    // Spanish is index 1 → one Down arrow then Enter.
+    expect(writes).toEqual(['\x1b[B', '\r']);
+    writes.length = 0;
+    await adapter.submitStructuredAnswer!(fakeSession, sq, 'English');
+    // English is index 0 (highlighted) → just Enter.
+    expect(writes).toEqual(['\r']);
   });
 
   it('parseStopSignal normalizes the Stop hook JSONL payload', () => {

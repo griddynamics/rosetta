@@ -10,7 +10,7 @@ import { modelRolesSchema, partialModelRolesSchema } from '../shared/models';
 
 export const strategySchema = z.enum(['json-only', 'screen-reader', 'hybrid']);
 
-export const submitSchema = z.enum(['enter', 'paste+enter']);
+export const submitSchema = z.enum(['enter', 'paste+enter', 'type+enter']);
 
 /** Deterministic startup-dialog rule: screen `pattern` (regex) -> `send` keystrokes (§6). */
 export const dialogRuleSchema = z.object({
@@ -75,6 +75,11 @@ export type ProvisionSpec = z.infer<typeof provisionSchema>;
 export const pricingEntrySchema = z.object({
   inputPer1M: z.number().nonnegative(),
   outputPer1M: z.number().nonnegative(),
+  /** Optional tiered rates (§12). Absent cache rates fall back to `inputPer1M`
+   *  (no discount); absent `reasoningPer1M` falls back to `outputPer1M`. */
+  cacheWritePer1M: z.number().nonnegative().optional(),
+  cacheReadPer1M: z.number().nonnegative().optional(),
+  reasoningPer1M: z.number().nonnegative().optional(),
 });
 export const pricingSchema = z.record(pricingEntrySchema);
 export type PricingMap = z.infer<typeof pricingSchema>;

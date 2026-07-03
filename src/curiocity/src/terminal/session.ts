@@ -26,6 +26,10 @@ const DEFAULT_ROWS = 40;
 /** Chunk size for input writes; keeps a single write from flooding the PTY (§4). */
 const WRITE_CHUNK = 1024;
 
+/** Settle before the discrete Enter in `type+enter` submit mode (§5.2), so the composer
+ *  does not read `text\r` as one paste burst. */
+const SUBMIT_SETTLE_MS = 200;
+
 export interface Pane {
   readonly id: string;
   /** Rendered visible grid, ANSI-free (§5.3). */
@@ -153,16 +157,26 @@ export class TerminalSession {
 
   /**
    * Submit a line of typed input using the profile's submit sequencing (§5.2/D15):
-   *   - `enter`       → text + CR.
+   *   - `enter`       → text + CR (one write).
    *   - `paste+enter` → bracketed-paste-wrapped text, then CR (some TUIs require
    *                     paste mode so a multi-line/large answer is not interpreted
    *                     key-by-key).
+   *   - `type+enter`  → text, a short SETTLE, then a DISCRETE CR. Some interactive
+   *                     composers (verified live: codex-cli 0.142.2) treat a rapid
+   *                     `text\r` burst as a multi-line PASTE and insert a newline
+   *                     instead of submitting — the answer just sits in the composer.
+   *                     Separating the Enter keystroke after the text settles makes it
+   *                     a genuine submit.
    * This is the only place the submit mode is applied — raw `write()` (dialog
    * keystrokes) is never auto-terminated.
    */
   async submitLine(text: string): Promise<void> {
     if (this.submitMode === 'paste+enter') {
       await this.write(`\x1b[200~${text}\x1b[201~\r`);
+    } else if (this.submitMode === 'type+enter') {
+      await this.write(text);
+      await new Promise((r) => setTimeout(r, SUBMIT_SETTLE_MS));
+      await this.write('\r');
     } else {
       await this.write(`${text}\r`);
     }

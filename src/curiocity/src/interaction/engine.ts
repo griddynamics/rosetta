@@ -29,6 +29,13 @@ import { extractJsonObjectStrings } from './stop-reader';
 
 export type InteractionOutcome = 'done' | 'agent-hung' | 'agent-crash' | 'timeout';
 
+/** One turn's raw timeline (§12): submitted → Stop signal → harness reply typed. */
+export interface TurnTiming {
+  turnStart: number;
+  stopAt: number;
+  reactionDoneAt: number;
+}
+
 export interface InteractionResult {
   outcome: InteractionOutcome;
   turnCount: number;
@@ -39,6 +46,16 @@ export interface InteractionResult {
   screens: string[];
   transcriptPath: string;
   transcriptSource: 'authoritative' | 'fallback';
+  /** Raw per-turn timeline (§12); persisted so stats re-derive retroactively (D8). */
+  timeline: TurnTiming[];
+  /** MEASURED agent execution time = Σ(stopAt − turnStart) — never subtraction (§12). */
+  agentPureMs: number;
+  /** MEASURED harness reaction time = Σ(reactionDoneAt − stopAt). */
+  harnessReactMs: number;
+  /** Readiness wall-clock (launching → ready), so lifecycle can bill launchMs vs interactMs. */
+  readyMs: number;
+  /** Agent model id where the CLI reported one (SessionStart payload), for per-model keying. */
+  agentModel?: string;
 }
 
 export interface EngineDeps {
@@ -62,6 +79,13 @@ const TERMINATE_GRACE_MS = 2000;
 
 type CheckAction = { action: 'answered' | 'terminate' | 'none' };
 
+/** Deterministic "the turn ended by asking" heuristic: the final message ends with a
+ *  question mark. Used to stop a completion marker (e.g. Codex `task_complete`) from
+ *  swallowing a genuine turn-final question without an LLM call. */
+function endsWithQuestion(msg: string | null): boolean {
+  return msg !== null && msg.trim().endsWith('?');
+}
+
 export class InteractionEngine {
   private readonly session: TerminalSession;
   private readonly adapter: AgentAdapter;
@@ -83,11 +107,24 @@ export class InteractionEngine {
 
   private transcriptPath = '';
   private transcriptSource: 'authoritative' | 'fallback' = 'fallback';
+  private agentModel: string | undefined;
   private cachedEvents: TrajectoryEvent[] = [];
   private lastTranscriptSize = -1;
   private processedStopCount = 0;
   private turnCount = 0;
   private structuredAnswered = false;
+  private readyMs = 0;
+
+  // --- Per-turn timeline (§12) -----------------------------------------------
+  private readonly timeline: TurnTiming[] = [];
+  /** When the current turn started (prompt/answer submitted); set at ready + after each reply. */
+  private currentTurnStart = 0;
+
+  /** Record one completed turn's timeline; advance the next turn's start when we replied. */
+  private recordTurn(stopAt: number, reactionDoneAt: number, advance: boolean): void {
+    this.timeline.push({ turnStart: this.currentTurnStart, stopAt, reactionDoneAt });
+    if (advance) this.currentTurnStart = reactionDoneAt;
+  }
 
   constructor(deps: EngineDeps) {
     this.session = deps.session;
@@ -117,6 +154,41 @@ export class InteractionEngine {
     const entry: QnaEntry = { type, question, answer, ts: new Date().toISOString() };
     this.qna.push(entry);
     this.onQna?.(entry);
+  }
+
+  /** Best-effort agent model id from the SessionStart ctrl payload (per-model keying,
+   *  §12). Claude/mock report `model`; Codex may not — undefined then. */
+  private readAgentModel(): string | undefined {
+    const startPath = join(this.ctx.ctrlDir, 'session-start.json');
+    if (!existsSync(startPath)) return undefined;
+    try {
+      const payload = JSON.parse(readFileSync(startPath, 'utf8')) as { model?: unknown };
+      return typeof payload.model === 'string' && payload.model !== '' ? payload.model : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Re-locate the transcript while the current path does not exist yet. Codex has no
+   * `--session-id`, so on the fallback path its rollout file may not exist at t0 (the
+   * adapter returns a non-existent sentinel); `locateTranscript` is idempotent and
+   * cheap, so we retry it until a real file appears (otherwise the trajectory stays
+   * empty forever and the agent flies blind). Once the file exists we stop re-locating.
+   */
+  private async ensureTranscript(): Promise<void> {
+    if (this.transcriptPath !== '' && existsSync(this.transcriptPath)) return;
+    try {
+      const located = await this.adapter.locateTranscript(this.ctx);
+      if (located.path !== this.transcriptPath) {
+        this.transcriptPath = located.path;
+        this.transcriptSource = located.kind;
+        this.lastTranscriptSize = -1; // force a re-read
+        if (existsSync(located.path)) this.agentModel = this.readAgentModel();
+      }
+    } catch {
+      // keep the current (sentinel) path; try again next tick
+    }
   }
 
   private transcriptSize(): number {
@@ -230,17 +302,36 @@ export class InteractionEngine {
     events: TrajectoryEvent[],
   ): Promise<'answered' | 'terminate' | 'keep-waiting'> {
     this.turnCount += 1;
+    // stopAt: the Stop signal marks the end of the agent's own execution for this turn.
+    const stopAt = this.now();
     const base = this.adapter.classifyTurn(signal); // deterministic pre-gate (P4)
-    if (base === 'working') return 'keep-waiting'; // row 4 (deterministic)
-    if (base === 'done') return 'terminate'; // row 3 (deterministic)
+    // row 4 (deterministic): a `working` continuation is NOT a turn boundary — the
+    // agent is still executing, so we don't close the turn (currentTurnStart holds).
+    if (base === 'working') return 'keep-waiting';
+    if (base === 'done') {
+      this.recordTurn(stopAt, this.now(), false); // row 3 (deterministic)
+      return 'terminate';
+    }
 
     // Deterministic completion marker in the trajectory corroborates done (P4, §10.2)
-    // → terminate without an LLM call.
-    if (this.adapter.detectCompletion?.(events)) return 'terminate'; // row 3 (deterministic)
+    // → terminate without an LLM call — BUT only when the turn-final message is not a
+    // question. Codex emits `task_complete` at the END OF EVERY turn, including a turn
+    // that ended by ASKING (verified live: it asks free-text when `request_user_input`
+    // is unavailable, then task_completes). Treating that as done swallowed the question
+    // and never answered it. A message ending in '?' is a genuine question → fall
+    // through to classification/answer; anything else keeps the cheap deterministic
+    // done-path (preserves the no-LLM done shortcut for real completions).
+    if (this.adapter.detectCompletion?.(events) && !endsWithQuestion(signal.lastAssistantMessage)) {
+      this.recordTurn(stopAt, this.now(), false); // row 3 (deterministic)
+      return 'terminate';
+    }
 
     // base === 'question': a final message is present; the fast model classifies it.
     const cls = await classifyStopMessage(this.router, signal.lastAssistantMessage);
-    if (cls === 'done') return 'terminate'; // row 3
+    if (cls === 'done') {
+      this.recordTurn(stopAt, this.now(), false); // row 3
+      return 'terminate';
+    }
     if (cls === 'working') return 'keep-waiting'; // row 4
 
     // row 2: genuine free-text question → workhorse composes the answer → typed reply.
@@ -248,6 +339,7 @@ export class InteractionEngine {
     const answer = await composeFreeTextAnswer(this.router, this.qnaPolicy, question, snapshot);
     this.recordQna('free-text', question, answer);
     await this.session.submitLine(answer);
+    this.recordTurn(stopAt, this.now(), true); // reply typed → next turn starts now
     return 'answered';
   }
 
@@ -258,14 +350,32 @@ export class InteractionEngine {
    * pending — a screen classification.
    */
   private async runChecks(snapshot: string, events: TrajectoryEvent[]): Promise<CheckAction> {
+    // The stall/freeze that triggered these checks is itself the "agent stopped"
+    // moment for timeline accounting (a structured question may fire no Stop hook).
+    const stopAt = this.now();
     // Row 1: pending structured question (stall/freeze confirms the TUI is waiting).
+    // Prefer the transcript signal; fall back to the SCREEN for CLIs that buffer the
+    // pending question out of the transcript (e.g. Claude Code AskUserQuestion).
     if (!this.structuredAnswered) {
-      const sq = this.adapter.detectStructuredQuestion(events);
+      let sq = this.adapter.detectStructuredQuestion(events);
+      let fromScreen = false;
+      if (!sq && this.adapter.detectScreenQuestion) {
+        sq = this.adapter.detectScreenQuestion(snapshot);
+        fromScreen = sq !== null;
+      }
       if (sq) {
         const answer = await composeStructuredAnswer(this.router, this.qnaPolicy, sq);
         this.recordQna('structured', sq.question, answer);
-        await this.session.submitLine(answer);
+        // A screen menu is answered by navigation keystrokes (adapter-native), not by
+        // typing a line; the transcript path uses the ordinary typed reply.
+        if (fromScreen && this.adapter.submitStructuredAnswer) {
+          await this.adapter.submitStructuredAnswer(this.session, sq, answer);
+        } else {
+          await this.session.submitLine(answer);
+        }
         this.structuredAnswered = true;
+        this.turnCount += 1;
+        this.recordTurn(stopAt, this.now(), true); // reply sent → next turn starts now
         return { action: 'answered' };
       }
     }
@@ -276,9 +386,14 @@ export class InteractionEngine {
         const answer = await composeFreeTextAnswer(this.router, this.qnaPolicy, snapshot, snapshot);
         this.recordQna('free-text', snapshot, answer);
         await this.session.submitLine(answer);
+        this.turnCount += 1;
+        this.recordTurn(stopAt, this.now(), true);
         return { action: 'answered' };
       }
-      if (kind === 'finished') return { action: 'terminate' };
+      if (kind === 'finished') {
+        this.recordTurn(stopAt, this.now(), false);
+        return { action: 'terminate' };
+      }
       // 'thinking' → keep waiting
     }
     return { action: 'none' };
@@ -286,6 +401,12 @@ export class InteractionEngine {
 
   private buildResult(outcome: InteractionOutcome): InteractionResult {
     const events = this.readEvents();
+    let agentPureMs = 0;
+    let harnessReactMs = 0;
+    for (const t of this.timeline) {
+      agentPureMs += Math.max(0, t.stopAt - t.turnStart);
+      harnessReactMs += Math.max(0, t.reactionDoneAt - t.stopAt);
+    }
     return {
       outcome,
       turnCount: this.turnCount,
@@ -295,17 +416,27 @@ export class InteractionEngine {
       screens: this.screens,
       transcriptPath: this.transcriptPath,
       transcriptSource: this.transcriptSource,
+      timeline: this.timeline,
+      agentPureMs,
+      harnessReactMs,
+      readyMs: this.readyMs,
+      ...(this.agentModel !== undefined ? { agentModel: this.agentModel } : {}),
     };
   }
 
   async run(): Promise<InteractionResult> {
+    const readyStart = this.now();
     const ready = await this.waitForReadiness();
+    this.readyMs = Math.max(0, this.now() - readyStart);
     if (ready === 'agent-crash') return this.buildResult('agent-crash');
 
     // Prompt was submitted as a launch argument (D15) → straight to the working loop.
+    // Turn 1 starts here: the prompt is already in flight.
+    this.currentTurnStart = this.now();
     const located = await this.adapter.locateTranscript(this.ctx);
     this.transcriptPath = located.path;
     this.transcriptSource = located.kind;
+    this.agentModel = this.readAgentModel();
 
     const monitor = new ChangeMonitor();
     let lastKey: string | null = null;
@@ -331,6 +462,10 @@ export class InteractionEngine {
         await this.awaitExit(TERMINATE_GRACE_MS);
         return this.buildResult('timeout');
       }
+
+      // Codex fallback: the rollout may appear after t0 — keep trying to locate it
+      // until a real transcript file exists (otherwise events stay empty forever).
+      await this.ensureTranscript();
 
       const snapshot = this.session.snapshot();
       const events = this.readEvents();

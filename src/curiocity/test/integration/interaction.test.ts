@@ -1,11 +1,18 @@
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, it, expect } from 'vitest';
+import { afterAll, describe, it, expect } from 'vitest';
 import { runTrial } from '../../src/curion/lifecycle';
 import { buildChildEnv } from '../../src/orchestrator/env';
 import { FakeModelRouter, type FakeRouterScript } from '../../src/shared/model-router';
-import { mockSpec, type MockSpecArgs } from './helpers';
+import { listTmpAgentDirs, mockSpec, sweepNewTmpAgentDirs, type MockSpecArgs } from './helpers';
+
+// Several tests below intentionally produce retained (failed/error) trials whose
+// workspace + ctrl dir are kept per §7. Sweep the ones this file created so a full
+// vitest run shows no `curiocity-ws-*`/`curiocity-ctrl-*` growth (Part 3.3). The
+// production retention rule itself is unchanged.
+const tmpBaseline = new Set(listTmpAgentDirs());
+afterAll(() => sweepNewTmpAgentDirs(tmpBaseline));
 
 /**
  * Interaction-engine coverage (§6). Runs the full trial lifecycle IN-PROCESS with
@@ -36,6 +43,9 @@ describe('§6 interaction engine — trigger table, row by row', () => {
     expect(result.verdict).toBeUndefined(); // evaluation skipped (§7)
     expect(result.qna).toEqual([]);
     expect(result.turnCount).toBe(1);
+    // transcriptSource is a RECORDED, checkable field (Part 3.2): the mock writes a
+    // session-start.json (the authoritative capture-hook payload) → 'hook'.
+    expect(result.transcriptSource).toBe('hook');
   });
 
   it('row 3 (Stop → fast classifies done) → terminate → passed', async () => {
@@ -74,6 +84,23 @@ describe('§6 interaction engine — trigger table, row by row', () => {
     expect(router!.isExhausted()).toBe(true);
   });
 
+  it('task_complete on a QUESTION turn is NOT swallowed as done (codex free-text-ask regression)', async () => {
+    // The turn ends with a `task_complete` marker AND a question ("...?"). detectCompletion
+    // must NOT terminate here — the fast classifier runs and the question is answered.
+    // The follow-up done turn (no '?') still terminates deterministically (no LLM).
+    const { result, router } = await run({ scene: 'question-then-complete.json' }, {
+      entries: [
+        { role: 'fast', object: { classification: 'question' } },
+        { role: 'workhorse', text: 'option A' },
+      ],
+    });
+    expect(result.status).toBe('passed');
+    expect(result.qna).toHaveLength(1);
+    expect(result.qna[0]).toMatchObject({ type: 'free-text', answer: 'option A' });
+    expect(router!.calls.map((c) => c.role)).toEqual(['fast', 'workhorse']);
+    expect(router!.isExhausted()).toBe(true);
+  });
+
   it('row 4 (Stop classified working) → keep waiting, then done → passed', async () => {
     // The intermediate empty-message stop is classified `working` deterministically
     // (no LLM). If the engine had terminated early, turnCount would be 1, not 2.
@@ -105,6 +132,39 @@ describe('§6 interaction engine — trigger table, row by row', () => {
     const { result } = await run({ scene: 'freeze.json', profileOverrides: { freezeMs: 200 } });
     expect(result.status).toBe('agent-hung');
     expect(result.qna).toEqual([]);
+  });
+
+  it('time decomposition (§12): agentPureMs is MEASURED from the per-turn timeline, split from harnessReact', async () => {
+    // Scene: agent thinks 250ms → asks a structured question → (harness answers via a
+    // scripted workhorse, instant) → agent works 120ms → done. So the agent-pure time
+    // (Σ stopAt−turnStart) is dominated by the two agent sleeps, while harness reaction
+    // (Σ reactionDoneAt−stopAt) is tiny (the fake router returns immediately).
+    const { result } = await run(
+      { scene: 'qna-timeline.json', profileOverrides: { stallMs: 60, freezeMs: 5000 } },
+      { entries: [{ role: 'workhorse', text: 'json' }] },
+    );
+    expect(result.status).toBe('passed');
+    expect(result.qna).toHaveLength(1);
+
+    const tm = result.timings!;
+    const timeline = tm.timeline!;
+    // Two turns: the structured-question turn, then the done turn.
+    expect(timeline.length).toBe(2);
+    for (const t of timeline) {
+      expect(t.turnStart).toBeLessThanOrEqual(t.stopAt);
+      expect(t.stopAt).toBeLessThanOrEqual(t.reactionDoneAt);
+    }
+
+    // agentPureMs is MEASURED from the timeline (Σ stopAt − turnStart), NOT derived by
+    // subtracting harness time from the interact wall — recompute and assert equality.
+    const measuredPure = timeline.reduce((s, t) => s + (t.stopAt - t.turnStart), 0);
+    const measuredReact = timeline.reduce((s, t) => s + (t.reactionDoneAt - t.stopAt), 0);
+    expect(tm.agentPureMs).toBe(measuredPure);
+    expect(tm.harnessReactMs).toBe(measuredReact);
+
+    // The agent genuinely spent time (≈370ms of sleeps); the harness reaction is small.
+    expect(tm.agentPureMs!).toBeGreaterThan(300);
+    expect(tm.agentPureMs!).toBeGreaterThan(tm.harnessReactMs!);
   });
 
   it('agent-crash: PTY exits unexpectedly before a done signal', async () => {
