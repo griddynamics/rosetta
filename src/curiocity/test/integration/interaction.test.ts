@@ -167,6 +167,35 @@ describe('§6 interaction engine — trigger table, row by row', () => {
     expect(tm.agentPureMs!).toBeGreaterThan(tm.harnessReactMs!);
   });
 
+  it('(R2 regression) single-turn agentPureMs reflects real spawn→stop work, not ready-settle skew', async () => {
+    // Reproduces the turn-1 timing misattribution bug: production claude/codex
+    // profiles have NO readiness `bannerPattern` (§10.1/§10.2 — only `quietMs`), so
+    // readiness settles only once the screen stops changing. A CLI that repaints
+    // continuously while "thinking" (spinner, live token counters) means the agent's
+    // real single-turn work happens ENTIRELY inside the spawn→ready-settle window.
+    // Before the fix, turn 1's `turnStart` was stamped at ready-settle, so
+    // `agentPureMs = stopAt - turnStart` collapsed to ~one poll tick (~25ms) while the
+    // real work silently piled up inside `launchMs`. `bannerPattern: ''` disables the
+    // banner shortcut so this scenario exercises the same quiet-based readiness path
+    // real v1 profiles use; the mock `spin` step repaints the screen every 40ms for
+    // 300ms (like a spinner), so quiet-based readiness cannot settle until spin ends.
+    const { result } = await run({
+      scene: 'turn1-spawn-anchor.json',
+      profileOverrides: { bannerPattern: '', quietMs: 80 },
+    });
+    expect(result.status).toBe('passed');
+    expect(result.turnCount).toBe(1);
+
+    const tm = result.timings!;
+    expect(tm.timeline).toHaveLength(1);
+    const turn = tm.timeline![0]!;
+    expect(turn.turnStart).toBeLessThanOrEqual(turn.stopAt);
+
+    // The fix: turn 1 is anchored at process spawn (before the 300ms spin), so the
+    // measured agent-pure time captures the real work instead of reading ~0.
+    expect(tm.agentPureMs!).toBeGreaterThanOrEqual(250);
+  });
+
   it('turn metrics (§12): a multi-question turn is counted ONCE (questionTurns=1)', async () => {
     // One Stop message bundling two questions → the harness answers it in ONE turn, so
     // questionTurns is 1 (not 2). Then a done turn. interruptions collapses the single

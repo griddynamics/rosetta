@@ -142,6 +142,7 @@ async function runLiveCodexTrialInner(workspace: string, ctrlDir: string): Promi
   const codexHome = plan.env.CODEX_HOME ?? '';
   expect(codexHome.startsWith(ctrlDir)).toBe(true);
 
+  const spawnedAt = Date.now();
   const session = new TerminalSession({
     command: resolved,
     args: plan.args,
@@ -176,6 +177,7 @@ async function runLiveCodexTrialInner(workspace: string, ctrlDir: string): Promi
       ctx,
       profile,
       router,
+      spawnedAt,
       qnaPolicy: 'Answer concisely. If unsure, abort.',
       maxWallClockMs: TIMEOUT_SEC * 1000,
       log,
@@ -285,7 +287,7 @@ describe('codex LIVE adapter contract (§15, §10.2)', () => {
       const usage = adapter.extractUsage(events);
       // eslint-disable-next-line no-console
       console.log('[contract:codex] events:', events.length, 'usage:', JSON.stringify(usage));
-      expect(usage.inputTokens).toBeGreaterThan(0);
+      expect(usage.input).toBeGreaterThan(0);
 
       // (5) Status passed.
       expect(out.outcome).toBe('done');

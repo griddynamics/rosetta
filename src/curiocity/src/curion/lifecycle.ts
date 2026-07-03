@@ -103,6 +103,9 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
   let ctrlDir: string | undefined;
   let snapshot: string | undefined;
   let session: TerminalSession | undefined;
+  // (R2) the exact instant the agent process is spawned WITH the prompt already in
+  // its launch args (D15) — anchors turn 1's timeline start; see interaction/engine.ts.
+  let spawnedAt: number | undefined;
 
   let status: TrialStatus = 'launch-error';
   let verdict: Verdict | undefined;
@@ -193,6 +196,7 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
       }
       phases.provisionMs = Date.now() - provisionStart;
       const launchStart = Date.now();
+      spawnedAt = launchStart;
       session = new TerminalSession({
         command: resolvedCommand,
         args: plan.args,
@@ -225,6 +229,7 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
       maxWallClockMs: opts.maxWallClockMs ?? spec.timeoutSec * 1000 + 10_000,
       ...(opts.pollIntervalMs !== undefined ? { pollIntervalMs: opts.pollIntervalMs } : {}),
       ...(opts.onQna ? { onQna: opts.onQna } : {}),
+      ...(spawnedAt !== undefined ? { spawnedAt } : {}),
       log,
     });
     const interactStart = Date.now();
@@ -312,6 +317,11 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
   }
 
   // --- Workspace retention (§7 step 8) --------------------------------------
+  // Still part of the spec's "teardown" step (§7: "teardown — always runs...; then
+  // workspace deleted unless --keep-workspace or the trial failed") — billed onto
+  // `teardownMs` (not a separate leg) so the 8 phase walls stay a real partition of
+  // `totalMs` (Part 3.3 sanity: this cleanup used to fall OUTSIDE every phase).
+  const retentionStart = Date.now();
   let workspacePath: string | undefined;
   if (workspace) {
     if (shouldKeepWorkspace(status, spec.keepWorkspace)) {
@@ -322,6 +332,7 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
   }
   if (snapshot) removeDir(snapshot);
   if (ctrlDir && !workspacePath) removeDir(ctrlDir);
+  phases.teardownMs += Date.now() - retentionStart;
 
   // Cost block (§12): agent usage + harness usage itemized per role, each keyed to a
   // concrete `provider/model` (the model is the unit of account). `models.agent` is

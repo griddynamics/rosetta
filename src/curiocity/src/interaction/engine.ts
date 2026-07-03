@@ -73,6 +73,14 @@ export interface EngineDeps {
   now?: () => number;
   onQna?: (entry: QnaEntry) => void;
   log?: (msg: string, fields?: Record<string, unknown>) => void;
+  /** (R2, orchestrator ruling) Wall-clock instant the agent process was spawned WITH
+   *  the prompt already in its launch args (D15). Since the prompt is a launch
+   *  argument, the agent starts working at spawn, not at readiness-settle — turn 1's
+   *  `turnStart` anchors here so `agentPureMs` reflects real agent execution time
+   *  instead of being swallowed into `launchMs`. Falls back to `now()` at the top of
+   *  `run()` when the caller doesn't know a precise spawn instant (e.g. a bare unit
+   *  test constructing the engine directly). */
+  spawnedAt?: number;
 }
 
 const DEFAULT_POLL_MS = 25;
@@ -101,6 +109,7 @@ export class InteractionEngine {
   private readonly now: () => number;
   private readonly onQna: ((entry: QnaEntry) => void) | undefined;
   private readonly log: (msg: string, fields?: Record<string, unknown>) => void;
+  private readonly spawnedAt: number | undefined;
 
   private readonly qna: QnaEntry[] = [];
   private readonly screens: string[] = [];
@@ -143,6 +152,7 @@ export class InteractionEngine {
     this.now = deps.now ?? Date.now;
     this.onQna = deps.onQna;
     this.log = deps.log ?? (() => {});
+    this.spawnedAt = deps.spawnedAt;
     this.stopPath = join(this.ctx.ctrlDir, 'stop.jsonl');
   }
 
@@ -430,13 +440,21 @@ export class InteractionEngine {
 
   async run(): Promise<InteractionResult> {
     const readyStart = this.now();
+    // (R2, orchestrator ruling) The prompt is a launch argument (D15) — the agent
+    // starts working the instant its process is spawned WITH that prompt, not when
+    // the harness's readiness detector later settles (banner/quiet). Anchoring turn
+    // 1's `turnStart` at readiness-settle instead of spawn misattributes the agent's
+    // real think time (which happens WHILE the screen is still busy, i.e. exactly
+    // the window readiness is waiting out) into `launchMs`, leaving `agentPureMs`
+    // near-zero for single-turn trials. `spawnedAt` (measured by the caller at the
+    // actual PTY spawn instant) is the correct anchor; fall back to `readyStart`
+    // (this method's own entry, still earlier than ready-settle) when the caller
+    // doesn't supply one.
+    this.currentTurnStart = this.spawnedAt ?? readyStart;
     const ready = await this.waitForReadiness();
     this.readyMs = Math.max(0, this.now() - readyStart);
     if (ready === 'agent-crash') return this.buildResult('agent-crash');
 
-    // Prompt was submitted as a launch argument (D15) → straight to the working loop.
-    // Turn 1 starts here: the prompt is already in flight.
-    this.currentTurnStart = this.now();
     const located = await this.adapter.locateTranscript(this.ctx);
     this.transcriptPath = located.path;
     this.transcriptSource = located.kind;

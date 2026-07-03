@@ -120,6 +120,7 @@ async function runLiveClaudeTrial(): Promise<TrialArtifactsOut> {
     writeFileSync(file.path, file.content);
   }
 
+  const spawnedAt = Date.now();
   const session = new TerminalSession({
     command: resolved,
     args: plan.args,
@@ -150,6 +151,7 @@ async function runLiveClaudeTrial(): Promise<TrialArtifactsOut> {
       ctx,
       profile,
       router,
+      spawnedAt,
       qnaPolicy: 'Answer concisely. If unsure, abort.',
       maxWallClockMs: TIMEOUT_SEC * 1000,
       log,
