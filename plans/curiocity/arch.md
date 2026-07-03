@@ -223,6 +223,12 @@ Render, don't grep raw ANSI: PTY bytes feed the headless emulator; anything read
 
 **Submit rule (binding, validated live):** to submit typed input to claude/codex TUIs, write the message text, let it flush, then send the Enter sequence (`\r`) as a **separate PTY write** — never concatenated with the text. A combined `text\r` write is interpreted by the composer as a literal line feed / bracketed paste (newline inside the input box), NOT as submission. `submitLine()` implements exactly this two-write sequence for every submit mode.
 
+**Bracketed paste (the `paste+enter` submit mode, precise definition):** for payloads that may contain `\n` (multi-line answers, long prompts), wrap the text in bracketed-paste markers so embedded newlines stay literal text in the composer, then submit with the separate Enter write:
+```
+write("\x1b[200~")  →  write(text /* may contain \n */)  →  write("\x1b[201~")  →  write("\r")
+```
+`enter` mode = bare two-write sequence for single-line text; `paste+enter` = the four-write bracketed sequence above. Any payload containing `\n` should use `paste+enter` regardless of the profile default.
+
 ### 5.4 Evaluators & verdict
 
 ```ts
