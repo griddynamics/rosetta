@@ -9,16 +9,7 @@
   },
   "codingagents": {
     "claude-code": {
-      "agentModel": "haiku",
-      "args": [
-        "{prompt}",
-        "--permission-mode",
-        "acceptEdits",
-        "--session-id",
-        "{sessionId}",
-        "--settings",
-        "{ctrlDir}/settings.json"
-      ]
+      "agentModel": "haiku"
     },
     "codex": {
       "agentModel": "gpt-5.4-mini"

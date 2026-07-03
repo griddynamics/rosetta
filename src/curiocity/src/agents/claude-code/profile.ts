@@ -5,10 +5,13 @@ import type { AgentProfile } from '../../config/schema';
  * The lowest-precedence layer (D13): a config `codingagents` entry overrides any of
  * these fields. Values are the validated live-experiment mechanics (§10.1):
  *
- * - **command/args**: `claude "<prompt>" --permission-mode auto --session-id <uuid>
+ * - **command/args**: `claude "<prompt>" --permission-mode acceptEdits --session-id <uuid>
  *   --settings <ctrlDir>/settings.json` (P1 interactive; P2 auto-permission; P9 fresh
- *   session id). The prompt is the launch argument (D15). The settings-file content is
- *   rendered by the adapter's `renderHooks`; this profile only names the flag/path.
+ *   session id). `acceptEdits`, not `auto`: live-observed with cheap agent models that
+ *   `auto` still raises recurring un-clearable "create file?" permission prompts that
+ *   hang the session — `acceptEdits` clears them (§10.1). The prompt is the launch
+ *   argument (D15). The settings-file content is rendered by the adapter's
+ *   `renderHooks`; this profile only names the flag/path.
  * - **envRemove**: strip `CLAUDECODE` + `CLAUDE_CODE*` (else claude runs as a nested
  *   child session and never persists a transcript) and the `ANTHROPIC_*` key vars
  *   (else the agent bills the harness key). `CLAUDE_CONFIG_DIR` is intentionally NOT
@@ -23,7 +26,7 @@ import type { AgentProfile } from '../../config/schema';
 export const CLAUDE_CODE_DEFAULT_PROFILE: AgentProfile = {
   adapter: 'claude-code',
   command: 'claude',
-  args: ['{prompt}', '--permission-mode', 'auto', '--session-id', '{sessionId}', '--settings', '{ctrlDir}/settings.json'],
+  args: ['{prompt}', '--permission-mode', 'acceptEdits', '--session-id', '{sessionId}', '--settings', '{ctrlDir}/settings.json'],
   envRemove: ['CLAUDECODE', 'CLAUDE_CODE*', 'ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL'],
   strategy: 'json-only',
   readiness: { quietMs: 800 },

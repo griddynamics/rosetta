@@ -404,7 +404,7 @@ describe('ClaudeCodeAdapter — buildLaunch env stripping (§10.1)', () => {
     const args = adapter.buildLaunch(c).args!;
     expect(args[0]).toBe('say PONG');
     expect(args).toContain('--permission-mode');
-    expect(args[args.indexOf('--permission-mode') + 1]).toBe('auto');
+    expect(args[args.indexOf('--permission-mode') + 1]).toBe('acceptEdits');
     expect(args[args.indexOf('--session-id') + 1]).toBe('uuid-xyz');
   });
 });
