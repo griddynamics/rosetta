@@ -39,7 +39,7 @@ An evals/testing harness that drives interactive coding-agent CLIs (v1: **Claude
 
 | # | Decision |
 |---|---|
-| D1 | **Single npm package** at `src/curiocity` (own `package.json`), bin `curiocity`, published for `npx curiocity`; local dev via `npm run` scripts. Strict internal module boundaries (folder = future package). |
+| D1 | **Single npm package** at `src/curiocity` (own `package.json`), bin `curiocity`, published for `npx -y curiocity@latest`; local dev via `npm run` scripts. Strict internal module boundaries (folder = future package). |
 | D2 | **Fork-always Curions**: every trial runs in a child process (fork + IPC), even at `--concurrency 1`. One code path for debug and CI. |
 | D3 | **Vercel AI SDK** (`ai` + `@ai-sdk/*`) for all harness LLM roles. New provider = dependency + config, no core change. |
 | D4 | **One `run` command**; single/debug mode = filters (`--agent`, `--case`, `--repeats`, `--concurrency`, `--mirror`, `--no-evaluate`, …). No second code path. |

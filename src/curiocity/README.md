@@ -20,8 +20,8 @@ The full design lives in [`plans/curiocity/arch.md`](../../plans/curiocity/arch.
 Published to npm, so no clone needed:
 
 ```bash
-npx -y curiocity validate --source ./cases
-npx -y curiocity run --source ./cases
+npx -y curiocity@latest validate --source ./cases
+npx -y curiocity@latest run --source ./cases
 ```
 
 Local dev from this folder:
