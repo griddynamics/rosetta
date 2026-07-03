@@ -438,3 +438,136 @@ never read/used).
 - **No `acceptEdits` override was necessary** (item 1's conditional): sonnet-5-low ran clean under
   `auto`, so no per-config override was added.
 - **No mid-task instruction messages were received** during this milestone.
+
+---
+
+# Milestone 7 — Cross-provider judge (OpenAI), cheap live proof
+
+**Outcome: WORKED, first attempt.** `judge` role resolved to an OpenAI model, made a genuine live
+call (verified via the raw provider-native usage envelope, see below), returned a real verdict, and
+was priced **separately** from the Anthropic fast/workhorse rows — the cross-provider per-model cost
+split that is the point of this milestone. Anthropic `fast`/`workhorse` were untouched (still
+Anthropic); OpenAI usage was scoped to exactly one judge call.
+
+## Reproduction command
+
+```
+cd src/curiocity
+npx tsx src/cli/index.ts run \
+  --source demo/cases --case qna-probe --agent claude-code \
+  --config <scratch-config-with-openai-pricing-added> \
+  --judge-model "openai/gpt-5.4-mini" \
+  --out <results-dir>
+```
+
+The scratch config is `demo/curiocity.demo.json` plus two added `pricing` entries
+(`openai/gpt-5.4-mini`, `openai/gpt-4o-mini` as a spare) — **not** committed into the demo config,
+so Anthropic remains the sole priced provider there (P7/§12: unpriced models degrade to
+tokens-only, never abort). `--judge-model` is the existing CLI override (`src/cli/commands/run.ts`);
+no code change was needed to route the judge role to a different provider.
+
+## 1. Static provider-path coverage (before the live call)
+
+Already covered by existing unit tests (`test/unit/llm-providers-keys.test.ts`,
+`test/unit/llm-router.test.ts`, `test/unit/cost.test.ts`, `test/unit/profile-resolution.test.ts`):
+`parseModelRef`/`getProvider` for `openai/...` refs, `CURIOCITY_OPENAI_KEY` → `OPENAI_API_KEY` →
+`.env` key resolution (including precedence/tiering regressions), `RealModelRouter` constructing an
+`openai/work-y` client end-to-end against injected (mocked) SDK calls, `judge` defaulting to
+`workhorse` and being overridable to an `openai/...` ref, `MeteredRouter` recording/labeling by the
+concrete openai model id, and `cost-rollup`'s unpriced-model warning path.
+
+**One real gap closed:** no test had ever called the actual (non-mocked) `@ai-sdk/openai`
+`createOpenAI` factory — only the generic `getProvider('openai') === providers.openai` identity was
+checked. Added two tests to `test/unit/llm-providers-keys.test.ts` that construct a real client via
+`providers.openai.model(modelId, key)` / `providers.anthropic.model(...)` with a throwaway,
+never-network-touching key, and assert `modelId`/`provider` are threaded through correctly (offline,
+zero network calls, §12 contract). Result: **297/297 unit tests pass** (295 prior + 2 new).
+
+## 2. Live run
+
+One live attempt was needed and it succeeded — no retry, no fallback model. `openai/gpt-5.4-mini`
+(the same id already pinned as codex's `agentModel` in `demo/curiocity.demo.json`, so it is a
+current, valid, accessible OpenAI model id under this project's `OPENAI_API_KEY`) resolved the
+judge role, the key resolved from `src/curiocity/.env`, and the call succeeded:
+
+```
+qna-probe × claude-code (agent: claude-sonnet-5, agentEffort: low)
+status: passed · verdict: pass, score 100 ("weighted mean 100.0 ≥ passThreshold 60")
+```
+
+**Judge verdict (real OpenAI `gpt-5.4-mini`), score 100/100:** "The agent correctly asked which
+language to use before creating anything, using the structured AskUserQuestion tool. The harness
+answered English, and the agent then created greeting.txt at the workspace root with 'Hello'. The
+artifact is correct, contains an English greeting, and no Spanish greeting appears."
+
+**Proof the call was genuinely live** (not an artifact of a stub): the judge's recorded `cost.raw`
+carries the OpenAI Responses API's native usage envelope verbatim —
+`{"input_tokens":1046,"input_tokens_details":{"cached_tokens":0},"output_tokens":77,
+"output_tokens_details":{"reasoning_tokens":0}}` — a shape the harness never invents; it only exists
+if the request actually reached OpenAI and was decomposed by the router's `toUsage()` mapping
+(§12 disjointness contract), same code path already pinned for Anthropic in M6.5/M6.6.
+
+## 3. Cross-provider per-model cost split (the key deliverable)
+
+`suite.md`'s cost table, one row per (source, model), never summed across models:
+
+| Case | Agent | Source | Model | Input | Output | Total | $ |
+|---|---|---|---|---|---|---|---|
+| qna-probe | claude-code | agent | claude-sonnet-5 | 9436 | 485 | 133459 | tokens-only |
+| qna-probe | claude-code | fast | anthropic/claude-haiku-4-5 | 262 | 9 | 271 | $0.00031 |
+| qna-probe | claude-code | workhorse | anthropic/claude-sonnet-4-6 | 194 | 4 | 198 | $0.00064 |
+| qna-probe | claude-code | **judge** | **openai/gpt-5.4-mini** | 1046 | 77 | 1123 | $0.00042 |
+
+- `judge` is keyed to `openai/gpt-5.4-mini`, entirely separate from the `fast`/`workhorse` Anthropic
+  rows — exactly the cross-provider split §12 requires ("every usage record — harness-side and
+  agent-side — carries the exact `provider/model` that served it... roles are labels; the model is
+  the unit of account").
+- **Pricing choice:** priced (not left tokens-only). `pricing` entries for `openai/gpt-5.4-mini`
+  ($0.25/1M in, $2.00/1M out) and `openai/gpt-4o-mini` ($0.15/1M in, $0.60/1M out — spare, unused
+  since no fallback was needed) were added to the scratch config. **Caveat, stated honestly:** these
+  figures are an estimate by the author (no authoritative live OpenAI price list was fetched for
+  this milestone) — the mechanism (per-model `pricing` map → `priceUsage`) is verified correct and
+  already covered by `test/unit/cost.test.ts`; the specific dollar figure for `gpt-5.4-mini` may be
+  off by some factor. Token counts (the ground truth) are exact and provider-native either way. The
+  demo config committed to the repo is untouched — this pricing entry lived only in the scratch
+  config for this run, so Anthropic remains the only *committed* priced provider.
+- Suite total: **$0.00136** (additive across models, per §12). Agent tokens (`claude-sonnet-5`)
+  remain tokens-only by design (billed to the user's own CLI auth, not in the pricing map).
+
+## 4. Spend estimate
+
+- **OpenAI (judge, this milestone's only OpenAI usage):** 1,046 in / 77 out tokens on one call ≈
+  **$0.0004** at the estimated pricing above — negligible regardless of the exact rate card.
+- **Anthropic (fast + workhorse, same run):** 456 in / 13 out tokens total ≈ **$0.00095**.
+- **Total for the entire milestone (static tests + one dry-run + one live run): well under one
+  cent of API spend**, comfortably inside the "few cents max" budget. No repeats, no retries, no
+  wasted live attempts (1 of the ≤3 cap used).
+
+## Gates
+
+- `npx tsc --noEmit` — clean.
+- `npx vitest run` — **297/297** passing (35 files; +2 new provider-construction tests).
+- `npm run smoke` — **39/39** passing.
+- `npm run build` — clean (`tsup` ESM build succeeds).
+- Nothing pushed. No secrets printed/logged/copied; `.env` never echoed; only token counts and the
+  provider's own usage envelope (no key material) appear in `trial.json`/`suite.md`.
+
+## Code changes
+
+No cross-provider code bug was exposed by the live run — the existing `llm/providers.ts` +
+`llm/router.ts` + `--judge-model` CLI override path worked correctly on the first attempt with no
+code change required. Only test coverage was added (`test/unit/llm-providers-keys.test.ts`, 2 new
+cases), committed as `curiocity(m7): ...` (not `m7-fix`, since nothing was broken).
+
+## Open questions / deviations
+
+- **Model id used (`gpt-5.4-mini`) was taken directly from the task brief / the existing codex
+  `agentModel` pin**, not independently re-verified against an OpenAI model catalog — its validity
+  was confirmed empirically by the live call succeeding, which is the strongest evidence available
+  without fetching external pricing/catalog pages (out of scope: no network research was performed,
+  per "spend as little as possible" and keeping this milestone self-contained).
+- **Pricing figures for `openai/gpt-5.4-mini` are an estimate**, not sourced from a fetched,
+  authoritative OpenAI price list (see §3 caveat above) — flagged here rather than presented as
+  fact.
+- **No mid-task instruction messages were received** during this milestone; none acted upon beyond
+  the original brief.

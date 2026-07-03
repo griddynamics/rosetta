@@ -26,6 +26,32 @@ describe('provider map (§5.6)', () => {
     expect(getProvider('openai')).toBe(providers.openai);
     expect(() => getProvider('cohere')).toThrow(/Known providers: anthropic, openai/);
   });
+
+  it('constructs a real @ai-sdk/openai client offline (bare model id + key threaded through, no network call)', () => {
+    // Closes the one gap left by the mocked router tests (which never touch the real
+    // `createOpenAI` factory): prove the openai entry in the provider map actually builds
+    // a LanguageModel bound to the given model id, exactly like the anthropic entry
+    // already exercised via judge/workhorse overrides elsewhere. Construction is pure
+    // client-object wiring — no request is sent (§12 offline contract on `.model()`).
+    // `LanguageModel` (from `ai`) is a union that also admits bare gateway-registry
+    // strings; the concrete SDK client object is a runtime detail this test asserts
+    // on directly rather than widening the shared type for one test's sake.
+    const model = providers.openai.model('gpt-4o-mini', 'sk-test-not-real') as unknown as {
+      modelId: string;
+      provider: string;
+    };
+    expect(model.modelId).toBe('gpt-4o-mini');
+    expect(model.provider).toMatch(/^openai/);
+  });
+
+  it('constructs a real @ai-sdk/anthropic client offline for comparison (same contract both providers)', () => {
+    const model = providers.anthropic.model('claude-sonnet-4-6', 'sk-test-not-real') as unknown as {
+      modelId: string;
+      provider: string;
+    };
+    expect(model.modelId).toBe('claude-sonnet-4-6');
+    expect(model.provider).toMatch(/^anthropic/);
+  });
 });
 
 describe('key resolution (§12)', () => {
