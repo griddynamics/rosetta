@@ -1,5 +1,19 @@
 # Subagent-Delegation Prompt Template
 
+<subagent_dispatch_rules>
+
+1. Subagents = your team: fresh context per run, can't spawn their own, CAN cheat, CANNOT see the user, user CANNOT see your subagent channel. So trust-but-verify, assume Murphy's law, poka-yoke the process.
+2. Orchestrator executes the plan by dispatching a fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review. Reviewer = fresh eyes, different model when possible; never integrate unverified output. Review = static inspection ≠ Validate = run on real.
+3. Tell WHAT + HOW-to-think; reward reasoning, not mechanical work. APPEND to instructions, never paraphrase/duplicate; ground via refs + MoSCoW.
+4. Quality-gate before dispatch: ambiguous → clarify first; never dispatch unclear instructions.
+5. Independent → parallel; dependent → sequential. Collision-safe writes for parallel work; TEMP folder for coordination + large I/O.
+6. Enforce focus: off-plan → the subagent STOPS and reports back, never continues.
+7. You own delegation quality end-to-end. Spawn a fresh-eyes reviewer (different model) before integrating; never integrate unverified output.
+8. Escalate: subagent → you → user; always explicit, full context.
+9. Demand subagents surface their assumptions for approval before acting — no silent assuming.
+
+</subagent_dispatch_rules>
+
 <subagent_delegation_template_usage>
 
 Template in `<subagent_delegation_prompt_template>` = constructor. Orchestrator assembles one self-contained prompt per delegated task. Subagent receives ONLY this prompt — everything it doesn't get, it will hallucinate.
