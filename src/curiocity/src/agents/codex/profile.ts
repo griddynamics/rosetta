@@ -1,0 +1,61 @@
+import type { AgentProfile } from '../../config/schema';
+
+/**
+ * Built-in default `AgentProfile` for `codingagents["codex"]` (§5.2, §10.2). The
+ * D13 defaults layer (Part A): a top-level `codingagents` entry overrides it per-field.
+ * Flags + behavior verified LIVE on codex-cli 0.142.2 (2026-07-02), which corrected
+ * two points of the documented §10.2 launch (see the adapter header + the run report):
+ *   1. `-c 'projects."<ws>".trust_level="trusted"'` does NOT suppress the folder-trust
+ *      dialog on 0.142.2 AND it PERSISTS a `[projects.…]` entry to config.toml — so it
+ *      is DROPPED here; the trust dialog is cleared by a `dialogPatterns` Enter instead.
+ *   2. To honor P11 non-mutation the adapter isolates `CODEX_HOME` per trial (set in
+ *      `buildLaunch`), so every codex write (trust state, rollout, config) lands in the
+ *      throwaway home and the user's real `~/.codex` is never touched.
+ *
+ * - **command/args**: `codex "<prompt>" -a never --sandbox workspace-write
+ *   --dangerously-bypass-hook-trust -c features.hooks=true`, PTY cwd = workspace.
+ *     - `-a never` + `--sandbox workspace-write` = the auto-permission analog (P2).
+ *     - `features.hooks=true` enables hooks so our injected `.codex/hooks.json` is
+ *       honored; `--dangerously-bypass-hook-trust` lets it run without the interactive
+ *       `/hooks` content-hash trust step (verified: SessionStart + Stop both fire).
+ *   The prompt is the launch argument (D15). There is NO `--session-id` flag — the id
+ *   comes from the SessionStart payload / rollout `session_meta` (§10.2).
+ * - **envRemove**: empty. Codex authenticates via its own `auth.json` (symlinked into
+ *   the isolated home) or `OPENAI_API_KEY` (P9 — the harness never manages agent auth);
+ *   the Curion child env is already allow-listed (§4), so no harness secret can reach
+ *   the agent.
+ * - **strategy `hybrid`**: the on-disk rollout + `Stop` hook drive the turn loop (P4);
+ *   the freeze watchdog + screen-read fallback are the backstop for the strict
+ *   hook-validation "no Stop signal ever" case (§10.2, §18).
+ * - **dialogPatterns**: clear the folder-trust dialog on Enter (observed live; anchored
+ *   on its fixed header so ordinary assistant prose cannot match it).
+ * - **readiness/stall/freeze**: startup runs a trust dialog + MCP boot (~5-8s observed);
+ *   the spinner animates continuously while working, so a settled/zero-change screen is
+ *   a real signal (§6).
+ */
+export const CODEX_DEFAULT_PROFILE: AgentProfile = {
+  adapter: 'codex',
+  command: 'codex',
+  args: [
+    '{prompt}',
+    '-a',
+    'never',
+    '--sandbox',
+    'workspace-write',
+    '--dangerously-bypass-hook-trust',
+    '-c',
+    'features.hooks=true',
+  ],
+  envRemove: [],
+  strategy: 'hybrid',
+  readiness: { quietMs: 1200 },
+  submit: 'enter',
+  stall: { quietMs: 2500 },
+  freeze: { windowMs: 12_000 },
+  dialogPatterns: [
+    // Folder-trust dialog (observed live, codex 0.142.2): "Do you trust the contents
+    // of this directory? … › 1. Yes, continue  2. No, quit  Press enter to continue".
+    // Enter accepts the highlighted "Yes, continue". Anchored on the fixed header.
+    { pattern: 'trust the contents of this directory', send: '\r' },
+  ],
+};

@@ -21,6 +21,7 @@
     "lint": "tsc --noEmit",
     "smoke": "vitest run test/integration",
     "contract:claude": "vitest run --config vitest.contract.config.ts test/contract/claude.contract.test.ts",
+    "contract:codex": "vitest run --config vitest.contract.config.ts test/contract/codex.contract.test.ts",
     "postinstall": "node scripts/fix-pty-perms.mjs"
   },
   "dependencies": {
