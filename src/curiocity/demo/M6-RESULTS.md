@@ -316,16 +316,23 @@ map → reported **tokens-only** (as designed). Harness classify/judge spend rem
   under `auto` with no prompt — `auto` appears to delegate the decision to the model, and
   the cheap model chose to ask). The harness has no handler for a recurring edit-permission
   prompt (`dialogPatterns` dedupe per-pattern and so cannot clear repeated prompts), so it
-  froze → `agent-hung`. **Fix applied in the demo config only:** override claude's args to
-  `--permission-mode acceptEdits`, which deterministically auto-accepts edits (P2: "permission
-  prompts are noise"). The **adapter default remains `auto`** per arch §10.1/P2 — this is a
-  deviation confined to `demo/curiocity.demo.json`. **Recommendation:** reconsider the
-  adapter default (`acceptEdits`/`bypassPermissions`) or add recurring-permission handling,
-  since `auto` does not reliably auto-handle permissions across models.
-- **Time decomposition attribution for single-turn done trials (pre-existing, M6.5):**
-  healthcheck shows `agentPureMs ≈ 0` with the agent's work time landing in `launchMs`
-  (~17 s). Cause: claude's `json-only` readiness returns only after output settles, i.e.
-  after the agent has finished the single turn, so the turn loop sees an already-complete
-  transcript (turnStart ≈ stopAt). This is a readiness/interact boundary quirk of the M6.5
-  time-decomposition, not a M6.6 change; turn metrics (derived from the same timeline) are
-  unaffected and correct.
+  froze → `agent-hung`. **Fix applied in the demo config only (at the time):** override
+  claude's args to `--permission-mode acceptEdits`, which deterministically auto-accepts
+  edits (P2: "permission prompts are noise"). The adapter default remained `auto` per
+  arch §10.1/P2 as of this milestone — a deviation confined to `demo/curiocity.demo.json`.
+  **Recommendation adopted post-M6.6 (m6-review):** the adapter's built-in default profile
+  now renders `--permission-mode acceptEdits` directly (`src/agents/claude-code/profile.ts`,
+  arch.md P2/§10.1 updated to match) — the demo config's override above is gone (removed as
+  redundant) because the adapter default already does this. This paragraph is left as the
+  historical record of the milestone-6.6 finding that motivated the change.
+- **Time decomposition attribution for single-turn done trials (pre-existing, M6.5) — FIXED
+  post-M6.6 (m6-review):** healthcheck showed `agentPureMs ≈ 0` with the agent's work time
+  landing in `launchMs` (~17 s). Cause: claude's `json-only` readiness returns only after
+  output settles, i.e. after the agent has finished the single turn, so the turn loop saw
+  an already-complete transcript (turnStart ≈ stopAt) — the prompt is a launch argument
+  (D15), so the agent is actually working from process spawn, not from readiness-settle.
+  Fix: turn 1's `turnStart` now anchors at the measured PTY spawn instant (passed into
+  `InteractionEngine` as `spawnedAt`) instead of post-readiness, so `agentPureMs` reflects
+  the agent's real execution time even when it all happens before the screen goes quiet.
+  Regression-tested (`test/integration/interaction.test.ts`, "(R2 regression)..."). Turn
+  metrics (derived from the same timeline) were unaffected and correct even before this fix.
