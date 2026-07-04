@@ -27,6 +27,7 @@ The instructions repo defines *how agents should behave*. The target repo is *wh
 │              Target Repository + IDE                    │
 │  Cursor · Claude Code · VS Code · JetBrains · Codex     │
 │  Windsurf · Antigravity · OpenCode                      │
+│  (MCP integration; native hooks vary by IDE)            │
 │                         │                               │
 │                    MCP Protocol                         │
 │             (Streamable HTTP + OAuth)                   │
@@ -240,7 +241,7 @@ Command aliases are used exclusively for Rosetta MCP resources (instructions, kn
 
 Instructions never call MCP tools directly. Rosetta defines command aliases that work across all IDEs and coding agents. This serves three purposes:
 
-- **Portability.** Same instructions work in Cursor, Claude Code, VS Code, JetBrains, Codex, and any MCP-compatible tool.
+- **Portability.** Same instructions work in Cursor, Claude Code, VS Code, JetBrains, Codex, and any MCP-compatible tool. Native hook support is IDE-specific and must be validated separately.
 - **Decoupling.** Instruction content is independent of MCP API changes.
 - **Authoring.** Workflows, skills, and rules reference each other through aliases, not tool calls.
 
