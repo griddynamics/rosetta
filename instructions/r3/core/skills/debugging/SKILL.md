@@ -16,7 +16,7 @@ Senior engineer specializing in systematic root cause analysis and methodical de
 </role>
 
 <when_to_use_skill>
-Use when encountering errors, test failures, unexpected behavior, or when a previous fix failed and the issue persists. For an automated-test execution report (UI or API), use the test-execution triage mode in `<test_execution_triage>`. Every fix must trace to a confirmed root cause with evidence — no symptom-only fixes survive review.
+Use when encountering errors, test failures, unexpected behavior, or when a previous fix failed and the issue persists, or for triaging. Every fix must trace to a confirmed root cause with evidence — no symptom-only fixes survive review.
 </when_to_use_skill>
 
 <core_concepts>
@@ -25,7 +25,7 @@ Use when encountering errors, test failures, unexpected behavior, or when a prev
 - ALWAYS find root cause before attempting fixes; symptom fixes are failure
 - Make implicit become explicit — incorrect assumptions hide root causes
 - Evidence label per cause — `Confirmed` (both sides cited) | `Assumption` (partial; state the missing evidence) | `Unknown` (none; state what is needed); the weaker label wins ties
-- Redaction of captured logs, requests, responses, or page sources → USE SKILL `sensitive-data` (canonical authority)
+- Redaction of captured logs, requests, responses, or page sources → USE SKILL `sensitive-data`
 - Execute phases sequentially
 
 For each issue provide:
@@ -49,6 +49,7 @@ BEFORE attempting ANY fix:
 5. Trace data flow backward — where does the bad value originate? Fix at source, not symptom
 6. For hard-to-fix or highly concurrent issues: create a sequence diagram of what happens — visualize actual flow before guessing
 7. Temporarily enable tracing in code and logs — review actual execution vs assumed execution, then remove tracing
+8. Use test_execution_triage for  analyzing failures of automated test execution.
 
 </root_cause_investigation>
 
@@ -79,17 +80,17 @@ BEFORE attempting ANY fix:
 
 <test_execution_triage>
 
-Read-only triage of an automated-test execution report. The caller supplies three bindings: the report path, the failure-category taxonomy to use, and the output-artifact contract.
+Read-only triage of an automated test execution report.
 
-1. Parse the report — per-test status, error message, stack trace, duration, and captured artifacts (screenshots, page source, request/response).
+1. Analyze the report — per-test status, error message, stack trace, duration, and captured artifacts (screenshots, page source, request/response).
 2. Categorize each failure into exactly one category from the supplied taxonomy (most-proximate cause).
-3. For element/selector errors analyze the captured page source; for response/assertion errors analyze the captured request/response. No capture available → label the cause `Unknown` and state the capture needed.
+3. Analyze source data, example: for element/selector errors analyze the captured page source; for response/assertion errors analyze the captured request/response. No source/capture available → label the cause `Unknown` and state the source/capture needed.
 4. Identify cross-failure patterns — shared cause, setup cascade, environment-wide, category skew — and prioritize Critical/High/Medium/Low.
-5. Label each cause's evidence strength (→ `<core_concepts>`) and write findings into the caller's output artifact, redacted (→ `<core_concepts>`).
+5. Label each cause's evidence strength and write findings into the caller's output artifact, redacted by core_concepts.
 
 GATE: read-only. Proposing or applying fixes is a separate correction phase (`debugging` for root-cause / proposed-change reasoning + `coding` for the edit).
 
-Worked evidence labels:
+Worked evidence labels examples:
 
 - `Confirmed` — `report.log:142` shows TimeoutError on the old selector AND this run's page source shows the renamed selector — both sides cited.
 - `Assumption` — 30s timeout, no stack/HTTP capture, single run; to upgrade: a stack/HTTP log of backend slowness OR ≥3 reproducing reruns.
@@ -106,7 +107,7 @@ Worked evidence labels:
 - Failing test reproduces the bug
 - No regressions introduced
 - Prevention recommendation documented
-- Triage mode: every failed test has one taxonomy category, a root cause, and an evidence label; selector/response causes cite captured evidence or are labeled `Unknown`; cross-failure patterns are named or explicitly none; redaction scan ran
+- Triage mode: every failed test has one taxonomy category, a root cause, and an evidence label; grounded in source/capture; cross-failure patterns are explicit; redaction scan ran
 
 </validation_checklist>
 
