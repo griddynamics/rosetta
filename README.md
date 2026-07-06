@@ -3,7 +3,7 @@
     <source media="(prefers-color-scheme: dark)" srcset="docs/web/assets/brand/rosetta-logo-full-color-white-text.png">
     <img src="docs/web/assets/brand/rosetta-logo-full-color-black-text.png" alt="Rosetta" width="200">
   </picture>
-  <p><strong>Context engineering and governed instructions for AI coding agents — your architecture, standards, workflows, and guardrails in every agent session.</strong></p>
+  <p><strong>Engineering governance and context for AI coding agents — shared instructions, architecture, standards, workflows, and guardrails in every session.</strong></p>
   <p>
     <a href="https://pypi.org/project/ims-mcp/"><img src="https://img.shields.io/pypi/v/ims-mcp.svg" alt="MCP"></a>
     <a href="https://pypi.org/project/ims-mcp/"><img src="https://img.shields.io/pypi/dm/ims-mcp.svg" alt="Downloads"></a>
@@ -23,7 +23,7 @@ https://github.com/user-attachments/assets/6df6e217-3e5c-4691-84ed-7440701a87de
 
 AI coding agents are great — until you try to use them across a real team. Everyone builds their own prompts and instructions, knowledge stays in silos, and the agent — not knowing your architecture or constraints — guesses from a few open files and confidently does the wrong thing.
 
-That's why we built Rosetta — open-source context engineering and governed instruction management for AI coding agents. It's not another proprietary agent; it works with the tools you already use (Claude Code, Cursor, Copilot, etc.) and loads a centralized source of your team's engineering instructions into every agent session. Everything is versioned in Git and runs inside your perimeter.
+That's why we built Rosetta — open-source engineering governance and context for AI coding agents. It's not another proprietary agent; it works with the tools you already use (Claude Code, Cursor, Copilot, Codex, and other MCP-compatible agents) and loads your team's shared engineering instructions into every session. Everything is versioned in Git and can run inside your perimeter.
 
 **Teach agents how to think, not what to do.** The model already knows Python and React; what it lacks is your engineering discipline. That's what Rosetta encodes.
 
@@ -59,31 +59,23 @@ Rosetta-guided work follows five phases — **Prepare → Research → Plan → 
 | Option                              | Best for                                                                       |
 | ----------------------------------- | ------------------------------------------------------------------------------ |
 | **[Plugins](PLUGINS.md)** — recommended | Day-to-day developer use (Claude Code · Cursor · Copilot · Codex)          |
-| **Hosted MCP**                      | Fast evaluation                                                                |
-| **[Self-hosted MCP](MCPs.md)**      | Enterprise / air-gapped environments (Windsurf · Junie · Antigravity · OpenCode · any MCP-compatible agent) |
-
-Hosted MCP is a one-liner:
-
-```sh
-claude mcp add --transport http Rosetta https://mcp.rosetta.griddynamics.net/mcp
-```
+| **[Hosted MCP](MCPs.md)**           | Fast evaluation for Windsurf · Junie · Antigravity · OpenCode · any MCP-compatible agent |
+| **[Self-hosted MCP](DEPLOYMENT_GUIDE.md)** | Enterprise / air-gapped deployment of the same MCP-compatible setup |
 
 **2. Initialize** — ask the agent in chat once per repo, and Rosetta does the rest:
 
 ```mermaid
 flowchart LR
-    D["ask in chat:<br/><b>“Initialize this repository”</b>"] --> A["Rosetta analyzes<br/>your repo"]
-    A --> W["generates workspace files<br/>TECHSTACK · CODEMAP · ARCHITECTURE · CONTEXT"]
-    W --> S["you build with<br/>/coding-flow · /aqa-flow · …"]
+    D["ask to initialize<br/>in chat"] --> A["Rosetta detects mode<br/>and analyzes your repo"]
+    A --> W["creates workspace baseline<br/>TECHSTACK · CODEMAP · DEPENDENCIES · CONTEXT · ARCHITECTURE"]
+    W --> Q["asks gap-filling<br/>questions"]
+    Q --> S["you build with<br/>/coding-flow · /aqa-flow · …"]
 
     classDef step fill:#1f6feb,stroke:#1b4fb8,color:#ffffff;
-    class D,A,W,S step
+    class D,A,W,Q,S step
 ```
 
 Full setup and initialization steps are in the [Quickstart](QUICKSTART.md) · [all IDEs and detailed setup](INSTALLATION.md).
-
-> [!TIP]
-> Evaluating Rosetta with an AI agent? Point it at the machine-readable spec: <https://griddynamics.github.io/rosetta/llms-full.txt>
 
 ## How it works
 
@@ -197,6 +189,7 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and e
 | I want to...                                         | Read                                       |
 | ---------------------------------------------------- | ------------------------------------------ |
 | Set up Rosetta                                       | [QUICKSTART.md](QUICKSTART.md)             |
+| Configure your coding-agent workspace                | [CONFIGURATION.md](CONFIGURATION.md)       |
 | Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md)                 |
 | Learn how to use Rosetta flows                       | [USAGE_GUIDE.md](USAGE_GUIDE.md)           |
 | Deploy Rosetta for my organization                   | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) |
