@@ -1,0 +1,12 @@
+{
+  "VSCODE_PID": "20410",
+  "VSCODE_CWD": "/",
+  "VSCODE_IPC_HOOK": "/Users/isolomatov/Library/Application Support/Code/1.12-main.sock",
+  "VSCODE_ESM_ENTRYPOINT": "vs/workbench/api/node/extensionHostProcess",
+  "VSCODE_CODE_CACHE_PATH": "/Users/isolomatov/Library/Application Support/Code/CachedData/7e7950df89d055b5a378379db9ee14290772148a",
+  "VSCODE_CRASH_REPORTER_PROCESS_TYPE": "extensionHost",
+  "VSCODE_HANDLES_UNCAUGHT_ERRORS": "true",
+  "VSCODE_NLS_CONFIG": "{\"userLocale\":\"en-us\",\"osLocale\":\"en-us\",\"resolvedLanguage\":\"en\"}",
+  "COPILOT_OTEL_FILE_EXPORTER_PATH": "/dev/null",
+  "HOME": "/Users/isolomatov"
+}

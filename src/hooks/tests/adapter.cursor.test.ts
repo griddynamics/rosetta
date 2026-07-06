@@ -95,11 +95,12 @@ describe('normalize — Cursor PostToolUse', () => {
     expect(result.event).toBe('PrePromptSubmit');
   });
 
-  test('normalizes beforeReadFile → PreRead', () => {
+  test('normalizes beforeReadFile → PreRead, toolKind "read", tool_name "Read" (derived from the event)', () => {
     const result = normalize(fxCursorRead);
     expect(result.hook_event_name).toBe('PreRead');
     expect(result.event).toBe('PreRead');
-    expect(result.toolKind).toBe(null);
+    expect(result.toolKind).toBe('read');   // derived even though beforeReadFile has no tool_name
+    expect(result.tool_name).toBe('Read');  // Cursor's read tool name (grounded in cursor-logs.txt)
   });
 
   test('maps conversation_id to session_id', () => {
@@ -145,6 +146,38 @@ describe('normalize — Cursor PostToolUse', () => {
     expect(result.session_id).toBe(fxCursorRead.conversation_id);
   });
 
+});
+
+// ---------------------------------------------------------------------------
+// Regression: Cursor runs shell commands via a tool named `Shell` (Claude Code
+// uses `Bash`). It must normalize to the `bash` semantic kind, otherwise the
+// dangerous-actions guard never fires for shell commands in Cursor.
+describe('normalize — Cursor Shell tool maps to bash kind', () => {
+  const shellPayload = (command: string): Record<string, unknown> => ({
+    ...fxCursorBash,
+    tool_name: 'Shell',
+    tool_input: { command },
+  });
+
+  test('tool_name "Shell" → toolKind "bash"', () => {
+    const result = normalize(shellPayload('git branch -D throwaway'));
+    expect(result.tool_name).toBe('Shell');
+    expect(result.toolKind).toBe('bash');
+  });
+
+  test('Shell tool_input.command is preserved', () => {
+    const result = normalize(shellPayload('git branch -D throwaway'));
+    expect((result.tool_input as { command: string }).command).toBe('git branch -D throwaway');
+  });
+
+  test('regression anchor: tool_name "Bash" still → toolKind "bash"', () => {
+    expect(normalize(fxCursorBash).toolKind).toBe('bash');
+  });
+
+  test('unrelated tool name still → null (no over-broad mapping)', () => {
+    const result = normalize({ ...fxCursorBash, tool_name: 'Grep', tool_input: {} });
+    expect(result.toolKind).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------

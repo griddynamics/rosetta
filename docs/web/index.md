@@ -529,7 +529,7 @@ Download bootstrap.md and place it in your IDE or agent's project instruction fi
 </script>
 
 <div class="qs-note" style="margin-bottom:2.2rem">
-  Agent-agnostic by design. Use frontier-class models (<strong>Claude Sonnet 4.6</strong>, <strong>GPT-5.4-medium</strong>, <strong>Gemini 3.1 Pro</strong>) or better for best results.
+  Agent-agnostic by design. Use frontier-class models (<strong>Claude Sonnet 5</strong>, <strong>GPT-5.4-medium</strong>, <strong>Gemini 3.1 Pro</strong>) or better for best results.
 </div>
 
 <!-- ===== WITHOUT vs WITH ROSETTA ===== -->

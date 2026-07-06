@@ -123,3 +123,11 @@ Verbosity kills documentation. These are hard rules.
 - Related links are for sure list; Terms definition is for sure a table
 - Fix web site content inconsistencies
 - Ask questions instead of assuming
+
+## Lessons learned (keep updating)
+
+- **npm/src/* tools are public, not internal.** `rosettify`, `rosettify-prompts`, `curiocity`, and similar packages under `src/` are published and user-facing. Default to mirroring their ARCHITECTURE.md sections on the web page — don't assume "internal tooling" and drop them.
+- **Use DOC-STRUCTURE-PLAN's per-doc contract to scope ARCHITECTURE.md sync.** Its `Excludes` line (build/run-local → DEVELOPER_GUIDE, deploy/ops → DEPLOYMENT_GUIDE) is the tiebreaker for what NOT to port to the web page: deep OAuth-mode env-var tables, Redis schema migration internals, and local `refsrc/` reference-package notes stay contributor-repo-only even when root ARCHITECTURE.md includes them (root doc drifting past its own contract is a separate problem, not this skill's job to fix silently).
+- **Root docs sometimes carry trailing AI-agent-imperative sections** (`MUST`, `DO NOT FILTER`, validation scripts) mixed into otherwise human-facing prose. Treat these as intentionally contributor/agent-only — never sync them to the public web page unless explicitly told to.
+- **Verify surprising claims against source code, don't just trust the doc.** Cross-checking `submit_feedback` against `server.py` found the tool's `@mcp.tool` decorator commented out (permanently disabled) while both root and web docs still list it as live. Flag findings like this as asides in the report; don't silently "fix" facts that are outside the sync's approved scope.
+- **Local Jekyll preview:** first run needs `bundle install` (gems aren't vendored in the repo). Then `cd docs/web && bundle exec jekyll serve --detach --port <port>`. Fetch pages with `curl -s http://127.0.0.1:<port>/rosetta/docs/<page>/`. Stop with `pkill -f "jekyll serve"`. Sanity-check rendered HTML for the new section names and for `<table>` counts (a missed blank line before a markdown table renders as a literal `|`-delimited paragraph, not a table).

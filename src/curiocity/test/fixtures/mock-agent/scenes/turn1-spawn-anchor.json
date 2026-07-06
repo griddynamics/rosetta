@@ -1,0 +1,7 @@
+{
+  "banner": "MOCK READY",
+  "steps": [
+    { "type": "spin", "ms": 300 },
+    { "type": "stop", "message": "Done spinning.", "complete": true }
+  ]
+}

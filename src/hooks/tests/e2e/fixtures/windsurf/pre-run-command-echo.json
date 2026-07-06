@@ -1,0 +1,1 @@
+{"agent_action_name":"pre_run_command","trajectory_id":"64944513-a64d-410b-af09-426251271f8b","timestamp":"2026-06-29T18:10:32.843902-04:00","execution_id":"0b8ee740-32eb-4415-a31b-6da673e21988","model_name":"SWE-1.6 Slow","tool_info":{"command_line":"echo rosetta-hook-probe","cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"}}

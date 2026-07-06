@@ -64,6 +64,15 @@ For small/trivial tasks AI treats them as just small change and never executes t
 
 Rosetta runs prep steps once per session: it loads context, classifies the request, picks a workflow, and reads relevant project files (`CONTEXT.md`, `ARCHITECTURE.md`, etc.). Subsequent messages reuse this context and are fast.
 
+**Which model should I use, and why did Rosetta burn through my token budget?**
+
+Pick a **medium** model — **Sonnet 5**, **GPT-5.4-medium**, or **gemini-3.1-pro** — and avoid Auto model selection. The two most common cost mistakes:
+
+- **Running everything on a high-reasoning/Opus model.** Opus-class models spend heavily on reasoning and can exhaust a daily balance in one sitting. Rosetta already assigns an appropriate model per subagent and switches automatically, so you do not need to force the most expensive model for the whole session.
+- **Letting Auto pick the model.** Auto often downgrades to a weaker model mid-task, producing low-quality results. Choose the model explicitly.
+
+See the model guidance in [Quickstart](/rosetta/docs/quickstart/).
+
 ---
 
 ## Behavior & Modes
@@ -119,7 +128,7 @@ The headline ones are `docs/CONTEXT.md` and `docs/ARCHITECTURE.md`. The full set
 
 **Where do I report bugs or request features?**
 
-Open an [issue](https://github.com/griddynamics/rosetta/issues).
+Open an [issue](https://github.com/griddynamics/rosetta/issues). Whenever a run fails or you see something you'd like improved, the `post-mortem` skill (`/post-mortem`) root-causes it and drafts a sanitized issue for you — submitted only with your explicit approval, with no private code or data included.
 
 **Where do I propose changes to Rosetta itself?**
 

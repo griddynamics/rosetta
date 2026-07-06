@@ -1,0 +1,38 @@
+{
+  "model": "claude-sonnet-5",
+  "maxOutputTokens": 16384,
+  "thinking": { "enabled": true, "mode": "adaptive", "effort": "high" },
+  "repetitions": 5,
+  "concurrency": 10,
+  "suites": [
+    {
+      "id": "terse-prompt-eval",
+      "description": "Compares 'think' vs 'reason' vs no compression-instruction baseline, then asks the model to critique the prompt it was just given.",
+      "variants": [
+        {
+          "id": "think",
+          "label": "MUST ONLY think...",
+          "systemPrompt": "MUST ONLY think and chat compressed/terse/unicode chars/terms/always no hieroglyphs; Exclude artifacts, tool calls, code, etc.",
+          "turns": [
+            "Think/reason what each word in this prompt is for, why it is present, think how to make it better, what failures modes are missing, etc. Only output few options for improvements."
+          ]
+        },
+        {
+          "id": "reason",
+          "label": "MUST ONLY reason...",
+          "systemPrompt": "MUST ONLY reason and chat compressed/terse/unicode chars/terms/always no hieroglyphs; Exclude artifacts, tool calls, code, etc.",
+          "turns": [
+            "Think/reason what each word in this prompt is for, why it is present, think how to make it better, what failures modes are missing, etc. Only output few options for improvements."
+          ]
+        },
+        {
+          "id": "none",
+          "label": "baseline (no priming turn)",
+          "turns": [
+            "Think/reason but do not execute it, what each word in prompt `MUST ONLY reason and chat compressed/terse/unicode chars/terms/always no hieroglyphs; Exclude artifacts, tool calls, code, etc.` is for, why it is present, think how to make it better, what failures modes are missing, etc. Only output few options for improvements."
+          ]
+        }
+      ]
+    }
+  ]
+}

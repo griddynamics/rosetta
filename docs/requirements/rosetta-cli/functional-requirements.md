@@ -12,7 +12,7 @@
   <status>Draft</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given the user runs `npx rosetta configure claudecode` from `/home/user/my-project` When the command completes Then bootstrap files and `rosetta.json` are written relative to `/home/user/my-project`.</criteria>
+    <criteria>Given the user runs `npx -y rosetta@latest configure claudecode` from `/home/user/my-project` When the command completes Then bootstrap files and `rosetta.json` are written relative to `/home/user/my-project`.</criteria>
   </acceptance>
 </req>
 
@@ -26,7 +26,7 @@
   <status>Draft</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given the user runs `npx rosetta configure claudecode,cursor` When the command completes Then `rosetta.json` exists in the workspace root and contains the configured targets and MCP preset.</criteria>
+    <criteria>Given the user runs `npx -y rosetta@latest configure claudecode,cursor` When the command completes Then `rosetta.json` exists in the workspace root and contains the configured targets and MCP preset.</criteria>
   </acceptance>
 </req>
 
@@ -61,14 +61,14 @@
 <req id="FR-0021" type="FR" level="System">
   <title>Configuration file re-use</title>
   <statement>When `rosetta.json` exists in the workspace root, the Rosetta CLI shall read it and apply stored values as defaults, which command-line flags may override.</statement>
-  <rationale>Enables `npx rosetta configure` without arguments to re-apply the previously saved configuration.</rationale>
+  <rationale>Enables `npx -y rosetta@latest configure` without arguments to re-apply the previously saved configuration.</rationale>
   <source>Usability</source>
   <ticketId></ticketId>
   <priority>Must</priority>
   <status>Draft</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given `rosetta.json` contains `{"targets": ["claudecode", "cursor"], "preset": "stdio"}` When the user runs `npx rosetta configure` without arguments Then it configures claudecode and cursor using the stdio MCP preset.</criteria>
+    <criteria>Given `rosetta.json` contains `{"targets": ["claudecode", "cursor"], "preset": "stdio"}` When the user runs `npx -y rosetta@latest configure` without arguments Then it configures claudecode and cursor using the stdio MCP preset.</criteria>
   </acceptance>
 </req>
 
@@ -82,7 +82,7 @@
   <status>Draft</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given `rosetta.json` contains `{"targets": ["claudecode"]}` When the user runs `npx rosetta configure cursor` Then `rosetta.json` is updated to include `cursor` in the targets list.</criteria>
+    <criteria>Given `rosetta.json` contains `{"targets": ["claudecode"]}` When the user runs `npx -y rosetta@latest configure cursor` Then `rosetta.json` is updated to include `cursor` in the targets list.</criteria>
   </acceptance>
 </req>
 
@@ -90,7 +90,7 @@
 
 <req id="FR-0001" type="FR" level="System">
   <title>Configure command invocation</title>
-  <statement>The Rosetta CLI shall accept the command `npx rosetta configure <targets>` where `<targets>` is a comma-separated list of IDE target names.</statement>
+  <statement>The Rosetta CLI shall accept the command `npx -y rosetta@latest configure <targets>` where `<targets>` is a comma-separated list of IDE target names.</statement>
   <rationale>Single command to configure one or more IDEs reduces onboarding friction.</rationale>
   <source>User request</source>
   <ticketId></ticketId>
@@ -98,7 +98,7 @@
   <status>Draft</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given a user runs `npx rosetta configure claudecode,cursor` When the command completes Then Rosetta is configured in both Claude Code and Cursor.</criteria>
+    <criteria>Given a user runs `npx -y rosetta@latest configure claudecode,cursor` When the command completes Then Rosetta is configured in both Claude Code and Cursor.</criteria>
   </acceptance>
 </req>
 

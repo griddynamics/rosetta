@@ -1,0 +1,10 @@
+{
+  "banner": "MOCK READY",
+  "steps": [
+    { "type": "print", "text": "Considering the request." },
+    { "type": "stop", "message": "Which option do you want?", "complete": true },
+    { "type": "await-input", "record": "free-text" },
+    { "type": "file", "path": "out.txt", "text": "hello world" },
+    { "type": "stop", "message": "Done, wrote out.txt.", "complete": true }
+  ]
+}

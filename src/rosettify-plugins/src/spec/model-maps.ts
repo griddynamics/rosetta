@@ -11,7 +11,7 @@ import type { ModelVocabulary } from '../types.js';
 // FR-COPY-0021 — Claude Code full model IDs; update here when models change
 const CLAUDE_CODE_MAP: Record<string, string> = {
   opus: 'claude-opus-4-8',
-  sonnet: 'claude-sonnet-4-6',
+  sonnet: 'claude-sonnet-5',
   haiku: 'claude-haiku-4-5',
 };
 
@@ -42,10 +42,12 @@ const CURSOR_CLAUDE_MAP: Record<string, string> = {
   'claude-4.7-opus-high': 'claude-opus-4-8',
   'claude-4.7-opus': 'claude-opus-4-8',
   'claude-opus-4-7': 'claude-opus-4-8',
-  'claude-4.6-sonnet': 'claude-sonnet-4-6',
+  'claude-4.6-sonnet': 'claude-sonnet-5',
+  'claude-5-sonnet': 'claude-sonnet-5',
   'claude-4.5-haiku': 'claude-haiku-4-5',
   'claude-opus-4-6': 'claude-opus-4-8',
-  'claude-sonnet-4-6': 'claude-sonnet-4-6',
+  'claude-sonnet-4-6': 'claude-sonnet-5',
+  'claude-sonnet-5': 'claude-sonnet-5',
   'claude-haiku-4-5': 'claude-haiku-4-5',
 };
 
@@ -96,10 +98,12 @@ const COPILOT_CLAUDE_MAP: Record<string, string> = {
   'claude-4.7-opus-high': 'Claude Opus 4.8',
   'claude-4.7-opus': 'Claude Opus 4.8',
   'claude-opus-4-7': 'Claude Opus 4.8',
-  'claude-4.6-sonnet': 'Claude Sonnet 4.6',
+  'claude-4.6-sonnet': 'Claude Sonnet 5',
+  'claude-5-sonnet': 'Claude Sonnet 5',
   'claude-4.5-haiku': 'Claude Haiku 4.5',
   'claude-opus-4-6': 'Claude Opus 4.8',
-  'claude-sonnet-4-6': 'Claude Sonnet 4.6',
+  'claude-sonnet-4-6': 'Claude Sonnet 5',
+  'claude-sonnet-5': 'Claude Sonnet 5',
   'claude-haiku-4-5': 'Claude Haiku 4.5',
 };
 

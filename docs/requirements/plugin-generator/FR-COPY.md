@@ -1,6 +1,6 @@
 # plugin-generator — FR: Preserved-File Seeding, Tree Reset, Copy, Normalization, Renames
 
-> These units define the behaviors of `npx rosettify-plugins@latest`, re-expressed on the unified two-tier target architecture (FR-ARCH). The **how** is normative in FR-ARCH's VFS + processor model: copy = `fileRead()`→`pluginWrite()`; model normalization = per-vocabulary model-normalization processors (FR-ARCH-0046); path changes = `fileRename()` (path only); in-body reference rewriting = `pluginRewriteReferences()` (content only, FR-ARCH-0049); the output wipe and preserved-file seeding are the `pluginCleanup()` and `pluginCopy()` plugin processors at the head of the pipeline (FR-ARCH-0035/0052/0053). There are no `pre-copy`/`pre-move` passes: a duplicated folder is an additional `SpecEntry`, a relocation is a `SpecEntry` `target` and/or `fileRename()`.
+> These units define the behaviors of `npx -y rosettify-plugins@latest`, re-expressed on the unified two-tier target architecture (FR-ARCH). The **how** is normative in FR-ARCH's VFS + processor model: copy = `fileRead()`→`pluginWrite()`; model normalization = per-vocabulary model-normalization processors (FR-ARCH-0046); path changes = `fileRename()` (path only); in-body reference rewriting = `pluginRewriteReferences()` (content only, FR-ARCH-0049); the output wipe and preserved-file seeding are the `pluginCleanup()` and `pluginCopy()` plugin processors at the head of the pipeline (FR-ARCH-0035/0052/0053). There are no `pre-copy`/`pre-move` passes: a duplicated folder is an additional `SpecEntry`, a relocation is a `SpecEntry` `target` and/or `fileRename()`.
 
 ## Preserved-file seeding
 
@@ -141,7 +141,7 @@ The files a target keeps but never generates — the IDE manifest, hook template
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: `model: claude-4.8-opus-high, gpt-5.5-high` for Cursor When: normalized Then: the value becomes `claude-opus-4-8` (first model overall).</criteria>
-    <criteria>Given: `model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-4.6-sonnet` for Cursor When: normalized Then: the value becomes `gpt-5.4` (first model overall).</criteria>
+    <criteria>Given: `model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-5-sonnet` for Cursor When: normalized Then: the value becomes `gpt-5.4` (first model overall).</criteria>
     <criteria>Given: a document without frontmatter When: processed Then: content is unchanged.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
@@ -151,8 +151,8 @@ The files a target keeps but never generates — the IDE manifest, hook template
 
 <req id="FR-COPY-0021" type="FR" level="System" ticketId="" classification="technical">
   <title>Claude model normalization: scan for first claude-compatible model</title>
-  <statement>For the Claude vocabulary, the Claude model-normalization processor shall scan the comma-separated `model:` list for the first claude-compatible token — defined as a token that either starts with `claude-` (case-insensitive) or contains the substring `opus`, `sonnet`, or `haiku` (case-insensitive). A matching token that contains a recognized tier substring (`opus`, `sonnet`, or `haiku`) shall be mapped to the corresponding Claude full model ID (`claude-opus-4-8`, `claude-sonnet-4-6`, or `claude-haiku-4-5`); a matching token that starts with `claude-` but contains none of the tier substrings shall map to `inherit`. The processor shall fall back to `inherit` when no claude-compatible token is found. The scan shall skip any leading non-claude tokens (e.g. `gpt-*`, `gemini-*`) without mapping them.</statement>
-  <rationale>Claude Code accepts full model IDs (`claude-opus-4-8`, `claude-sonnet-4-6`, `claude-haiku-4-5`) and `inherit`. Agents may list a preferred non-claude model first (e.g. reviewer lists `gpt-5.4-medium` first); Claude normalization must skip non-claude entries and find the first claude-compatible one. Target output: `model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-4.6-sonnet` → `claude-sonnet-4-6` (reviewer and validator agents).</rationale>
+  <statement>For the Claude vocabulary, the Claude model-normalization processor shall scan the comma-separated `model:` list for the first claude-compatible token — defined as a token that either starts with `claude-` (case-insensitive) or contains the substring `opus`, `sonnet`, or `haiku` (case-insensitive). A matching token that contains a recognized tier substring (`opus`, `sonnet`, or `haiku`) shall be mapped to the corresponding Claude full model ID (`claude-opus-4-8`, `claude-sonnet-5`, or `claude-haiku-4-5`); a matching token that starts with `claude-` but contains none of the tier substrings shall map to `inherit`. The processor shall fall back to `inherit` when no claude-compatible token is found. The scan shall skip any leading non-claude tokens (e.g. `gpt-*`, `gemini-*`) without mapping them.</statement>
+  <rationale>Claude Code accepts full model IDs (`claude-opus-4-8`, `claude-sonnet-5`, `claude-haiku-4-5`) and `inherit`. Agents may list a preferred non-claude model first (e.g. reviewer lists `gpt-5.4-medium` first); Claude normalization must skip non-claude entries and find the first claude-compatible one. Target output: `model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-5-sonnet` → `claude-sonnet-5` (reviewer and validator agents).</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -161,15 +161,15 @@ The files a target keeps but never generates — the IDE manifest, hook template
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: `model: claude-4.8-opus-high, gpt-5.5-high` When: normalized for Claude Then: result is `claude-opus-4-8` (first token contains `opus`).</criteria>
-    <criteria>Given: `model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-4.6-sonnet` When: normalized for Claude Then: result is `claude-sonnet-4-6` (scans past gpt-* and gemini-*, finds first claude-* token containing `sonnet`).</criteria>
+    <criteria>Given: `model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-5-sonnet` When: normalized for Claude Then: result is `claude-sonnet-5` (scans past gpt-* and gemini-*, finds first claude-* token containing `sonnet`).</criteria>
     <criteria>Given: `model: claude-4.5-haiku, gpt-5.4-low` When: normalized for Claude Then: result is `claude-haiku-4-5`.</criteria>
-    <criteria>Given: `model: claude-sonnet-4-6, gpt-5.4-medium` When: normalized for Claude Then: result is `claude-sonnet-4-6`.</criteria>
+    <criteria>Given: `model: claude-sonnet-5, gpt-5.4-medium` When: normalized for Claude Then: result is `claude-sonnet-5`.</criteria>
     <criteria>Given: `model: gpt-5.5-high, gemini-3.1-pro-high` (no claude token) When: normalized for Claude Then: result is `inherit`.</criteria>
     <criteria>Given: any model token present in instruction source frontmatter for a currently supported model When: normalized by any of the Claude Code, Cursor, or Copilot vocabularies Then: each vocabulary produces the current authoritative model identifier for that IDE in its expected format; no vocabulary produces a stale model identifier for a currently supported model.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
   <implementationNotes>src/rosettify-plugins/src/spec/model-maps.ts: normalizeClaude() scans tokens, CLAUDE_CODE_MAP maps opus/sonnet/haiku substrings to full model IDs. All vocabulary maps for Claude Code, Cursor, and Copilot must be updated together when model tiers change.</implementationNotes>
-  <notes>Concrete target examples (r3): architect `claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high` → `claude-opus-4-8`; reviewer `gpt-5.4-medium, gemini-3.1-pro-preview, claude-4.6-sonnet` → `claude-sonnet-4-6`; validator `gpt-5.4-medium, gemini-3.1-pro-preview, claude-4.6-sonnet` → `claude-sonnet-4-6`; executor `claude-4.5-haiku, gpt-5.4-low, gemini-3-flash` → `claude-haiku-4-5`.</notes>
+  <notes>Concrete target examples (r3): architect `claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high` → `claude-opus-4-8`; reviewer `gpt-5.4-medium, gemini-3.1-pro-preview, claude-5-sonnet` → `claude-sonnet-5`; validator `gpt-5.4-medium, gemini-3.1-pro-preview, claude-5-sonnet` → `claude-sonnet-5`; executor `claude-4.5-haiku, gpt-5.4-low, gemini-3-flash` → `claude-haiku-4-5`.</notes>
 </req>
 
 <req id="FR-COPY-0022" type="FR" level="System" ticketId="" classification="technical">

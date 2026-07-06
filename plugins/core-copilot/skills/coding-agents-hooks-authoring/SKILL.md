@@ -37,7 +37,7 @@ Order matters: `run-hook.ts:98` gates on `toolKinds` before calling `run(ctx)`. 
 
 ### Registration
 
-Every new hook must appear in every plugin's `hooks.json`. The canonical source is `plugins/core-claude/hooks/hooks.json.tmpl` (and equivalent templates in other plugins). Direct edits to generated `hooks.json` files are overwritten on the next `npx rosettify-plugins@latest` run.
+Every new hook must appear in every plugin's `hooks.json`. The canonical source is `plugins/core-claude/hooks/hooks.json.tmpl` (and equivalent templates in other plugins). Direct edits to generated `hooks.json` files are overwritten on the next `npx -y rosettify-plugins@latest` run.
 
 Paths by plugin:
 - `plugins/core-claude/hooks/hooks.json.tmpl` → `hooks.json`
@@ -62,7 +62,7 @@ After any source change under `src/hooks/src/` or `instructions/r{2,3}/core/`:
 venv/bin/python scripts/pre_commit.py
 ```
 
-This builds CJS bundles, runs full test suite, and runs `npx rosettify-plugins@latest` to sync `instructions/r{2,3}/core/` → all plugin directories.
+This builds CJS bundles, runs full test suite, and runs `npx -y rosettify-plugins@latest` to sync `instructions/r{2,3}/core/` → all plugin directories.
 
 ### Pitfalls
 

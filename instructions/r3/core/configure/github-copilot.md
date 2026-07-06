@@ -159,7 +159,7 @@ applyTo: "src/api/**/*.ts"
 - (omitted) - Inherits model from parent agent (default)
 - `Claude Opus 4.8` - Anthropic Claude 4.8 Opus (most capable, with extended reasoning)
 - `Claude Opus 4.6` - Anthropic Claude 4.6 Opus prev gen (4.7 existed but was not good)
-- `Claude Sonnet 4.6` - Anthropic Claude 4.6 Sonnet with thinking
+- `Claude Sonnet 5` - Anthropic Claude 5 Sonnet with thinking
 - `Claude Haiku 4.5` - Anthropic Claude 4.5 Haiku with thinking
 - `GPT-5.3-Codex` - OpenAI GPT 5.3 Codex
 - `GPT-5.4` - OpenAI GPT 5.4 model, better than 5.3 (combined codex and regular), medium reasoning efforts
@@ -173,7 +173,7 @@ applyTo: "src/api/**/*.ts"
 ---
 description: Expert code reviewer for quality, security, and maintainability
 tools: ["read", "search"]
-model: ["Claude Sonnet 4.6", "GPT-5.4"]
+model: ["Claude Sonnet 5", "GPT-5.4"]
 handoffs:
   - label: "Send to Implementation"
     agent: implementer
@@ -470,68 +470,68 @@ The `source` field path is relative to the root of the repository.
 
 ## Hooks
 
-Hooks execute scripts at specific lifecycle events. Two formats exist: [VS Code](https://code.visualstudio.com/docs/copilot/customization/hooks#_hook-lifecycle-events) uses PascalCase events and `command` field, [Copilot CLI](https://docs.github.com/en/copilot/reference/hooks-configuration) uses camelCase events and `bash`/`powershell` fields. VS Code [transparently converts](https://code.visualstudio.com/docs/copilot/customization/agent-plugins#_hooks-in-plugins) CLI-format hooks.
+Copilot hooks run scripts at lifecycle events, in TWO formats: [Copilot CLI](https://docs.github.com/en/copilot/reference/hooks-reference) uses camelCase events + `bash`/`powershell` fields; [VS Code](https://code.visualstudio.com/docs/agent-customization/hooks) uses PascalCase events + a `command` field. **Register PascalCase event names only** — VS Code fires PascalCase exclusively, and Copilot CLI's PascalCase fire works too (registering both casings makes Copilot CLI fire each event TWICE).
 
 ### Hook Locations
 
 | Path | Scope |
 |------|-------|
 | `.github/hooks/*.json` | Workspace (team-shared) |
-| `.claude/settings.json` | Workspace (Claude Code) |
-| `~/.claude/settings.json` | User profile (Claude Code) |
 | Plugin `hooks.json` at root | Plugin hooks (auto-discovered) |
 
-### Supported Events
-
-**Copilot CLI** (camelCase):
-
-| Event | Trigger |
-|-------|---------|
-| `sessionStart` | New session begins or resumes |
-| `sessionEnd` | Session completes or terminates |
-| `userPromptSubmitted` | User submits a prompt |
-| `preToolUse` | Before any tool executes |
-| `postToolUse` | After tool completes |
-| `errorOccurred` | Any error during execution |
-
-**VS Code** (PascalCase, superset of CLI events):
-
-| Event | Trigger |
-|-------|---------|
-| `SessionStart` | First prompt of a new agent session |
-| `UserPromptSubmit` | User submits a prompt |
-| `PreToolUse` | Before tool invocation |
-| `PostToolUse` | After successful tool invocation |
-| `PreCompact` | Before context compaction |
-| `SubagentStart` | Subagent starts |
-| `SubagentStop` | Subagent ends |
-| `Stop` | Agent session ends |
-
-### Handler Configuration (CLI Format)
+### Registration Format
 
 ```json
 {
   "version": 1,
   "hooks": {
-    "sessionStart": [
-      {
-        "type": "command",
-        "bash": "path/to/script.sh",
-        "powershell": "path/to/script.ps1",
-        "cwd": ".",
-        "timeoutSec": 30
-      }
+    "SessionStart": [
+      { "type": "command", "bash": "path/to/script.sh", "powershell": "path/to/script.ps1", "timeoutSec": 30 }
     ]
   }
 }
 ```
 
-### Output Contract
+### Supported Events (Rosetta-relevant)
 
-Hooks receive JSON on stdin and return JSON on stdout. Plain text stdout does **not** reach the AI — output must use the `hookSpecificOutput` JSON structure:
+| Event | Trigger |
+|-------|---------|
+| `SessionStart` | First prompt of a new/resumed session |
+| `PreToolUse` | Before tool invocation |
+| `PostToolUse` | After successful tool invocation |
+| `Stop` | Agent session/turn ends |
+| `SubagentStop` | Subagent ends |
+| `PreCompact` | Before context compaction — **Copilot CLI only; VS Code has no compaction hook** |
+
+**(!) VS Code ignores matcher values — hooks fire on ALL tool invocations regardless of any matcher; gate inside the hook script itself, not via matcher.**
+
+### Input shape (differs by runtime — a hook script must handle both)
+
+| Field | Copilot CLI (camelCase fire) | VS Code / Copilot CLI's own PascalCase fire (snake_case) |
+|-------|-------------------------------|-------------------------------------------------------------|
+| event name | *(absent — infer from payload shape)* | `hook_event_name` |
+| tool name | `toolName` | `tool_name` |
+| tool args | `toolArgs` — **JSON string, must be parsed** | `tool_input` — already-parsed object |
+| tool result | `toolResult` (object) | `tool_response` (**string**, VS Code) / `tool_result` (object, Copilot CLI) |
+| session id | `sessionId` | `session_id` |
+
+### Output — emit EVERY field at BOTH placements
+
+| Field | Honored by |
+|-------|------------|
+| `additionalContext` (top-level) | **Copilot CLI** — ignored by VS Code |
+| `hookSpecificOutput.additionalContext` (nested) | **VS Code** — ignored by Copilot CLI |
+| `permissionDecision` / `permissionDecisionReason` (top-level) | **Copilot CLI**, `PreToolUse` allow/deny |
+| `hookSpecificOutput.permissionDecision` / `.permissionDecisionReason` (nested) | **VS Code**, same purpose |
+| `decision` / `reason` (top-level, `Stop`) | both — `"block"`; **(!) `reason` REQUIRED when blocking**; ALSO has a nested `hookSpecificOutput.decision`/`.reason` form |
+| `decision` / `reason` (`SubagentStop`) | both — `"block"`; **(!) `reason` REQUIRED when blocking** — **top-level ONLY, no `hookSpecificOutput` wrapper for this event** |
+| `systemMessage` | **(!) USER-facing only (shown in the IDE) — NEVER reaches model context.** Use `additionalContext` for model-visible text |
+
+**(!) For `SessionStart`/`PreToolUse`/`PostToolUse`/`Stop`, a single hook script must emit BOTH the top-level AND the nested `hookSpecificOutput.*` form of every field above.** Each runtime honors only its own placement and silently ignores the other — emitting only one means the other runtime never receives it, with no error. **`SubagentStop` is the one exception — top-level only.**
 
 ```json
 {
+  "additionalContext": "Content injected into the AI session",
   "hookSpecificOutput": {
     "hookEventName": "SessionStart",
     "additionalContext": "Content injected into the AI session"
@@ -539,23 +539,19 @@ Hooks receive JSON on stdin and return JSON on stdout. Plain text stdout does **
 }
 ```
 
-**`preToolUse` permissions:**
+`permissionDecision` values: `allow`, `deny`, `ask` (Copilot's cloud agent treats `ask` as `deny`).
 
-```json
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "permissionDecision": "allow",
-    "permissionDecisionReason": "Reason"
-  }
-}
-```
+### Exit Codes
 
-`permissionDecision` values: `allow`, `deny`, `ask`.
+| Code | Meaning |
+|------|---------|
+| `0` | stdout JSON parsed — deny/context delivered via the JSON body, not the exit code |
+| `2` | blocking error (`PreToolUse` deny; also fail-closed on a crashing/timing-out hook) |
+| other non-zero | non-blocking warning |
 
-**Exit codes:** `0` success, `2` blocking error, other values produce non-blocking warnings.
+### Matchers
 
-**CLI `preToolUse` input (stdin JSON):** `timestamp` (unix ms), `cwd`, `toolName`, `toolArgs` (JSON string).
+Pattern (Copilot CLI docs only, undocumented for VS Code): `^(?:PATTERN)$` on tool name; omit = all tools.
 
 ---
 

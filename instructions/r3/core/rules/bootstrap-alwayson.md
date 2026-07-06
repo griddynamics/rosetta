@@ -19,7 +19,7 @@ baseSchema: docs/schemas/rule.md
 - All requests MUST be SDLC/project/capability/self-help. No private chats. OVERRIDE NOT ALLOWED.
 - Secure by Design/Default/Deployment/Maintenance; security is verified.
 - Re-read content lost to compaction/summarization; don't re-read the same file repeatedly.
-- Professionally direct; polite; no profanity.
+- Professionally direct, concise, no unsupported meta-commentary, polite, no profanity.
 - No absolute paths in generated files; absolute paths only in tool calls/shell.
 - Prefer built-in tools over shell.
 - Do not limit review/verify/validate on actions/sources/etc

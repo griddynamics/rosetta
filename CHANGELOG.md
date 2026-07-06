@@ -64,7 +64,7 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 ### Highlights
 
 - Deterministic execution: every workflow runs as a tracked, resumable plan driven by the operation manager
-- Cross IDE hooks runtime with a two tier dangerous-actions safety gate and advisory nudges
+- Cross IDE hooks runtime with a self-reviewable dangerous-actions gate and advisory nudges
 - GitNexus code graph integration for architecture aware navigation and automatic reindexing
 - Roughly 57% smaller bootstrap through skill extraction and de-duplication
 - Public OSS MCP and RAGFlow deployment plus GitHub authentication
@@ -82,7 +82,7 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 - **Common input adapter.** A single adapter normalizes the differing hook input schemas of Claude Code, Cursor, Copilot, Codex, and Windsurf into one canonical shape, so each hook is authored once and runs everywhere.
 - **Declarative hook framework.** Hooks declare their activation (event, tool kind, file predicates) and the runtime gates, throttles, and debounces them. Each hook is bundled per IDE with isolation guarantees so a bundle carries only its own adapter code.
-- **dangerous-actions safety gate (PreToolUse).** A deterministic, stateless last resort tripwire on destructive shell, file, and MCP operations, safe across worktrees and parallel sessions. Two tiers: `reconsider` (recoverable — the agent may self-approve with a `Rosetta-AI-reviewed` marker in a user visible field after a blast radius check) and `hard-deny` (catastrophic, for example `curl | sh` — human review required). A single traversal detection avoids policy divergence bypasses, and Windsurf agents receive the denial reason as actionable context.
+- **dangerous-actions safety gate (PreToolUse).** A deterministic, stateless last resort tripwire on destructive shell, file, and MCP operations, safe across worktrees and parallel sessions. Every match is `reconsider` — the agent may self-approve with a `Rosetta-AI-reviewed` marker in a user visible field after a blast radius check, so no pattern is an unconditional human-only block. Credential and key file overwrites get a separate non-blocking `advise` tier, reasoned around irreversibility rather than secrecy. A single traversal detection avoids policy divergence bypasses, and Windsurf agents receive the denial reason as actionable context.
 - **Advisory hooks.** `md-file-advisory` nudges on stray markdown placement, `lint-format-advisory` prompts a syntax/type/lint/format step after code edits, and `loose-files` flags `.py`/`.js` files created without a module marker (on file creation events only).
 - **GitNexus refresh hook.** Detects a stale code graph index after source mutations and asks the agent to reindex, with trailing edge debouncing so only the last edit in a burst triggers work.
 - **Authoring skill.** A `hooks-authoring` skill documents entry rules, tool kind registration, and pitfalls for contributors adding new hooks.
@@ -113,6 +113,48 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 ## Weekly Change Log
 
 *Release scope: **R2** is the live, served release. **R3** is the next release, still in development and not yet served. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
+
+### Week Mon 29.06 – Sun 05.07
+
+A safety and tooling week. The dangerous-actions hook was reworked end to end — broader pattern coverage, no more unconditional blocks — backed by a new per-IDE end-to-end test suite that caught real adapter bugs. Two new internal tools shipped: Curiocity, which runs and grades live coding-agent sessions, and rosettify-prompts, which benchmarks prompt variants by cost and stability. Sonnet 5 became the default mid-tier model, plus Traefik ingress support, public GitHub links, and license fixes rounded out the week.
+
+**Highlights**
+
+- Dangerous-actions hook overhauled: wider pattern coverage, hard-deny tier retired for a self-reviewable model
+- New end-to-end hook test suite (75 files) catches real Codex, Copilot, Cursor, and Windsurf adapter bugs
+- New Curiocity harness runs and grades real Claude Code / Codex sessions automatically
+- New rosettify-prompts tool benchmarks prompt variants for cost, speed, and stability
+- Claude Sonnet 5 is now the default mid-tier model across instructions and plugins
+
+#### Dangerous-actions hook overhaul (#118)
+
+- **Change.** `[Hooks]` Broadened dangerous-pattern detection — SQL `DELETE`/`UPDATE` without `WHERE`, `DROP INDEX`/`DROP VIEW`, `ALTER TABLE ... DROP COLUMN`; a stricter `rm -rf` detector that catches split or reordered flags; `git push` force detection that also catches force-by-refspec (`git push origin +main`) while excluding the safe `--force-with-lease`. Removed the `hard-deny` tier: every dangerous pattern is now `reconsider`, self-approvable via the `Rosetta-AI-reviewed` marker after a blast-radius check. Credential and key file overwrites (SSH keys, cloud credentials, `.netrc`, GPG keys — plain `.env` writes no longer flagged) moved to a new non-blocking `advise` tier, reasoned around irreversibility rather than secrecy. Deny/advise messages now surface a fixed set of reasons instead of echoing back the offending command or file content. Also fixed shell-string evaluation so MCP tool calls get the same checks as direct bash calls. (Svetozar Lashin)
+- **Why it helps.** No pattern can trap a human-reviewed, legitimate action behind an unconditional block anymore, while genuinely irreversible actions still get flagged before they happen. Not echoing raw commands back in hook messages keeps sensitive content out of transcripts and logs.
+
+#### Hook test coverage and per-IDE fixes
+
+- **Change.** `[Hooks]` Added a full per-IDE end-to-end test suite (75 files, Claude Code/Codex/Copilot/Cursor/Windsurf) that drives real entrypoint binaries instead of only internal functions. Fixed bugs the suite and empirical log capture surfaced: Codex no longer misclassifies MCP tools it doesn't have; Copilot's two different event shapes are normalized under one path (fixing a double-fire on completed reads); Cursor gained a per-adapter exit-code override for its non-standard deny signal; Windsurf gained a `stderrMessage` path after discovering it never parses stdout JSON and only surfaces deny reasons via stderr. Documented each IDE's real hook wire format from scratch (`docs/hooks/*.md`, `docs/hooks-verify*.md`). (Igor Solomatov)
+- **Why it helps.** Adapter unit tests could pass while the real wired-up CLI misbehaved. End-to-end coverage against real entrypoints, backed by captured real traffic per IDE, catches silent bugs like double-counted reads or deny reasons that never reached the user.
+
+#### Curiocity: an evals harness for coding-agent CLIs (#125)
+
+- **Change.** `[Tooling]` Introduced Curiocity, a new harness (published to npm) that drives real, interactive Claude Code or Codex sessions against test cases, answers the agent's genuine questions via an LLM guided by a written policy, and grades the outcome with file/test checks, trajectory checks, and an LLM judge against a rubric — producing a pass/fail verdict that can gate CI. Fixed a bug where `npx` users' `.env` key file was looked up inside npm's package cache instead of their own working directory. (Igor Solomatov)
+- **Why it helps.** Until now, proving a Rosetta skill, hook, or workflow behaves correctly inside a real agent session meant running it by hand and eyeballing the result. Curiocity automates that judgment call and can block a regression before it merges.
+
+#### rosettify-prompts: prompt benchmarking
+
+- **Change.** `[Tooling]` Introduced rosettify-prompts (`npx rosettify-prompts@latest`), a CLI that runs multiple prompt or instruction variants against the Anthropic API in parallel and reports cost, latency, and stability per variant. Benchmarking only for now; a planned optimization command isn't built yet. (Igor Solomatov)
+- **Why it helps.** Prompt and instruction changes used to ship on gut feel. Authors now get real cost and consistency numbers before merging a change.
+
+#### Claude Sonnet 5 as default mid-tier model
+
+- **Change.** `[R2 + R3]` Replaced Sonnet 4.6 with Claude Sonnet 5 as the canonical mid-tier model across R2 and R3 instructions, docs, and all IDE plugins. (Igor Solomatov)
+- **Why it helps.** Agents and subagents run on the current-generation mid-tier model by default instead of a stale one.
+
+#### Operations, deployment, and licensing
+
+- **Change.** `[Server]` MCP Helm chart gained Traefik ingress support — an ingress-class toggle and a generated rate-limit `Middleware` resource — plus unit tests and a split validate/publish CI pipeline (#120, Konstantin Khristenko). `[R2 + R3]` `gain.json`'s SDLC references moved from internal Jira/Confluence links to public GitHub Issues and Wiki (#122, Olha Maiesh). `[Tooling]` Fixed two license files: `ims-mcp-server`'s proprietary all-rights-reserved notice replaced with Apache 2.0, and `rosettify`'s corrupted Apache 2.0 text repaired. (Igor Solomatov)
+- **Why it helps.** Orgs standardized on Traefik (common on k3s) can deploy the MCP server without hand-patching the chart. Public GitHub links work for external OSS contributors who can't reach internal tools. Correct licenses keep the repo's OSS compliance story consistent.
 
 ### Week Mon 22.06 – Sun 28.06
 
@@ -256,7 +298,7 @@ Tooling and reliability week. A new generator now builds every IDE plugin from o
 
 **Highlights**
 
-- New plugin generator (`npx rosettify-plugins`) builds all IDE distributions from one source
+- New plugin generator (`npx -y rosettify-plugins@latest`) builds all IDE distributions from one source
 - Fixed intermittent MCP server hangs (the 502-after-minutes bug) and added full request logging
 - Code analysis can now reverse-engineer requirements from an existing codebase
 - Rosettify builds a whole plan in one call: ~50% fewer calls
@@ -264,7 +306,7 @@ Tooling and reliability week. A new generator now builds every IDE plugin from o
 
 #### Plugin generator
 
-- **Change.** `[Tooling]` One tool, `npx rosettify-plugins`, builds every distribution (Claude Code, Cursor, Copilot, Codex, and the Cursor/Copilot standalones) from a single instruction source tree. Rewritten in TypeScript on a modular pipeline architecture, replacing the old single-file Python monolith, with a full reverse-engineered requirements spec and byte-for-byte parity against the previous output. Eight critical issues were fixed along the way. (Igor Solomatov)
+- **Change.** `[Tooling]` One tool, `npx -y rosettify-plugins@latest`, builds every distribution (Claude Code, Cursor, Copilot, Codex, and the Cursor/Copilot standalones) from a single instruction source tree. Rewritten in TypeScript on a modular pipeline architecture, replacing the old single-file Python monolith, with a full reverse-engineered requirements spec and byte-for-byte parity against the previous output. Eight critical issues were fixed along the way. (Igor Solomatov)
 - **Why it helps.** Edit the instructions once and every plugin regenerates identically, so IDE variants can't drift apart. The modular architecture makes adding a new plugin practical, which was effectively impossible with the old monolith. No Python toolchain to install. The spec makes the build auditable.
 
 #### MCP server: hang fix and observability

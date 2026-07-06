@@ -183,11 +183,11 @@ HITL gates (use when):
 - Keep decisions separate
 - Keep questions separate
 - REQUIREMENTS/INDEX.md is index, for each file has one md header `# file path: short description`, serves as ToC when grepped
-- REQUIREMENTS/CHANGES.md is change log
+- REQUIREMENTS/CHANGES.md is the ONLY change log, TERSE
 - Each file defines one area abbreviation
 - Each file uses grep-friendly headers for sections and requirements
 - All other documents are target-state only
-- Never write change explanations
+- Requirements are absolute, no change explanations/rationale/logging
 - Consider that user input maybe provided for your understanding for you to properly make changes
 
 </information_architecture>

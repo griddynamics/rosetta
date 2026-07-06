@@ -126,7 +126,7 @@ permalink: /contribute/
   <div class="rm-feedback" style="margin-top:1.5rem">
     <div class="rm-feedback-text">
       <strong>Ready to contribute?</strong>
-      <p>Found an issue or have a suggestion? Raise a GitHub issue or email us at <a href="mailto:rosetta-support@griddynamics.com">rosetta-support@griddynamics.com</a>.</p>
+      <p>Found an issue or have a suggestion? Raise a GitHub issue or email us at <a href="mailto:rosetta-support@griddynamics.com">rosetta-support@griddynamics.com</a>. Whenever a run fails or you see something you'd like improved, the <code>post-mortem</code> skill (<code>/post-mortem</code>) drafts a sanitized issue for you — submitted only with your explicit approval.</p>
     </div>
     <div class="rm-feedback-actions">
       <a href="https://github.com/griddynamics/rosetta/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" class="rm-feedback-btn">Read CONTRIBUTING.md</a>

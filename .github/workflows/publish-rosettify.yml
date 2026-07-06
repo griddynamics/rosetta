@@ -88,4 +88,4 @@ jobs:
         echo "Package available at: https://www.npmjs.com/package/rosettify/v/${{ steps.check_version.outputs.version }}"
         echo ""
         echo "Install with: npm install -g rosettify@${{ steps.check_version.outputs.version }}"
-        echo "Or with npx: npx rosettify"
+        echo "Or with npx: npx -y rosettify@latest"

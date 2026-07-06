@@ -56,3 +56,13 @@ export function buildCursorHookPayloadJson(body: string): string {
   const escaped = jsonStringEscape(body);
   return `{"additional_context":"${escaped}"}`;
 }
+
+/**
+ * Build the compact JSON payload object for a Copilot hook entry.
+ * Copilot needs the SAME additionalContext at BOTH top-level (honored by Copilot CLI) AND
+ * nested in hookSpecificOutput (honored by VS Code) — see docs/hooks/copilot.md, Bug 2.
+ */
+export function buildCopilotHookPayloadJson(additionalContext: string): string {
+  const escaped = jsonStringEscape(additionalContext);
+  return `{"additionalContext":"${escaped}","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"${escaped}"}}`;
+}

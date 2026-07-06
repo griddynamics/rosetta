@@ -177,18 +177,18 @@ Everything MCP works with is VFS (virtual file system) resource paths. The CLI s
 
 ### MCP Tools
 
-Eight tools and one resource exposed to agents:
+Three tools and one resource are currently exposed to agents. Five write-data tools are implemented but disabled (`@mcp.tool` registration commented out in `server.py`; the feature is retired but the code is kept in case it's needed again):
 
 | Tool | Purpose |
 |---|---|
 | `get_context_instructions` | Bootstrap: load all rules and guardrails bundled (prep step 1 to 3)  |
 | `query_instructions` | Fetch instruction docs by tags (primary) or keyword search (fallback) |
 | `list_instructions` | Browse the VFS hierarchy (flat listing of immediate children) |
-| `query_project_context` *(opt-in)* | Search project-specific docs in a target repo dataset |
-| `store_project_context` *(opt-in)* | Create or update a document in a project dataset |
-| `discover_projects` *(opt-in)* | List readable project datasets |
-| `plan_manager` *(opt-in)* | Manage execution plans with phases, steps, dependencies, status. Has a `help` command for plan creators (subagents don't need it). Stores plan in REDIS. |
-| `submit_feedback` *(opt-in)* | Auto-submit structured feedback on agent sessions |
+| `query_project_context` *(disabled)* | Search project-specific docs in a target repo dataset |
+| `store_project_context` *(disabled)* | Create or update a document in a project dataset |
+| `discover_projects` *(disabled)* | List readable project datasets |
+| `plan_manager` *(disabled)* | Manage execution plans with phases, steps, dependencies, status. Has a `help` command for plan creators (subagents don't need it). Stores plan in REDIS. |
+| `submit_feedback` *(disabled)* | Auto-submit structured feedback on agent sessions |
 
 **Resource:** `rosetta://{path}` reads bundled instruction documents by VFS resource path.
 
@@ -283,7 +283,7 @@ One `get_context_instructions` call returns all bootstrap rules bundled (core po
 6. Agent executes the workflow
    ├── Follows phases (Prepare → Research → Plan → Act → Validate)
    ├── Uses ACQUIRE/USE SKILL/INVOKE SUBAGENT to load instructions progressively
-   ├── Delegates to subagents, uses plan_manager for tracking
+   ├── Delegates to subagents, tracks progress via built-in todo tasks (r3 adds the operation-manager skill, backed by `rosettify`, for larger multi-phase work)
    └── Applies guardrails and HITL gates throughout
 ```
 
@@ -326,6 +326,8 @@ For RAGFlow internals, see [RAGFLOW.md](RAGFLOW.md).
 
 The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instructions repository into RAGFlow. It handles change detection, metadata extraction, frontmatter parsing, and auto-tagging.
 
+**Requirements-first:** spec-before-code from `docs/requirements/rosetta-cli/` (authoritative; code follows).
+
 **Core commands:**
 
 | Command | What it does |
@@ -361,11 +363,13 @@ For deployment details, see [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md).
 
 Local CLI/MCP utility for AI coding agents and users. Purpose: deterministic local AI coding workflow execution and single entry point for Rosetta tooling in any project. All data and IP stays local — zero network calls during operation.
 
-Published on npm as `rosettify`. Invoked via `npx rosettify <command> [subcommand] [args]` or as a local MCP server (`rosettify --mcp`) over stdio.
+Published on npm as `rosettify`. Invoked via `npx -y rosettify@latest <command> [subcommand] [args]` or as a local MCP server (`rosettify --mcp`) over stdio.
+
+**Requirements-first:** spec-before-code from `docs/requirements/rosettify/` (authoritative; code follows).
 
 **Key points:**
 - **Dual frontend.** One CLI and one MCP server backed by the same run delegates. Identical behavior in both modes.
-- **Plan management** (current feature). `npx rosettify plan <subcommand> <plan_file>` — create, track, and advance execution plans as local JSON files. Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`.
+- **Plan management** (current feature). `npx -y rosettify@latest plan <subcommand> <plan_file>` — create, track, and advance execution plans as local JSON files. Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`.
 - **Atomic write cycle with backup chain.** Every plan mutation uses a rename-as-guard cycle: rename the plan file to `<file>.bakNNN` as the atomic lock, then write the new content. The plan's `previous_version` field tracks the prior backup path. Up to 5 backups retained; bounded to 50 retries.
 - **Template registry.** Two compiled-in template kinds (`create`, `upsert`) with strict bidirectional placeholder matching. Seed templates ship with the package.
 - **Sequential phase enforcement.** `next` returns work from the earliest incomplete phase only; later phases are blocked until all earlier phases are done.
@@ -373,6 +377,18 @@ Published on npm as `rosettify`. Invoked via `npx rosettify <command> [subcomman
 - **No network calls.** All data stays local — safe for IP-sensitive projects.
 
 Validated with `npm run typecheck`, `npm run test` (vitest, 90% line + branch coverage). Published via `.github/workflows/publish-rosettify.yml`. Version managed via `scripts/bump_versions.sh`.
+
+---
+
+## Rosettify Prompts
+
+`rosettify-prompts` (npm; `src/rosettify-prompts/`) — prompt A/B/N bench against the Anthropic API. Runs N conversation variants ×`repetitions` concurrently; compares input/output/thinking tokens, cost, latency, stability. Dev/eval tool only — not shipped to end users, not in the runtime path. Config-driven (`evals.json`); needs `ANTHROPIC_API_KEY`.
+
+---
+
+## Curiocity
+
+`curiocity` (npm; `src/curiocity/`) — evals/testing harness that drives interactive coding-agent CLIs (Claude Code, Codex) through a prompt over a real PTY, reads each CLI's native on-disk transcript as the source of truth, auto-answers the agent's genuine questions via LLM, then scores every run with deterministic checks + an LLM judge and gates CI on the aggregate. Used for CI/CD regression of the Rosetta plugin and for benchmarking agents. Case-driven (`--source <dir>` of `prompt.md`/`config.json`/`qna.md`/`evaluation.md`/`src.zip` folders); full design in [`src/curiocity/docs/architecture.md`](../src/curiocity/docs/architecture.md).
 
 ---
 
@@ -458,7 +474,7 @@ Instructions Repo ──► CLI (publish) ──► RAGFlow ──► Rosetta MC
 2. **Index.** RAGFlow parses, chunks, embeds, indexes for full-text and semantic search
 3. **Bootstrap.** Agent calls `get_context_instructions` via MCP (prep step 1), reads workspace files directly from the target repo (step 2), classifies request via MCP (step 3)
 4. **Load.** Agent uses ACQUIRE/SEARCH/LIST aliases. MCP queries by tags, bundles matching VFS paths into XML with context headers. Progressive disclosure: only what the workflow needs
-5. **Execute.** Workflow phases (Prepare → Research → Plan → Act → Validate), subagent delegation, plan_manager tracking, guardrails and HITL gates.
+5. **Execute.** Workflow phases (Prepare → Research → Plan → Act → Validate), subagent delegation, built-in todo tracking (or the r3 operation-manager skill for larger work), guardrails and HITL gates.
 
 ---
 
@@ -486,7 +502,7 @@ uvx rosetta-cli@latest publish instructions
 
 ### Plugins (pre-release)
 
-Instructions to `plugins` folder content must be regenerated with `venv/bin/python scripts/pre_commit.py` (which calls `npx rosettify-plugins@latest` internally).
+Instructions to `plugins` folder content must be regenerated with `venv/bin/python scripts/pre_commit.py` (which calls `npx -y rosettify-plugins@latest` internally).
 Pre-commit hook is also created, but we must not rely on it.
 Do not directly modify instructions in `plugins` folder instead edit original files in `instructions` and use script to copy/adapt.
 
@@ -495,7 +511,7 @@ Codex Plugin: only OpenAI `gpt-*` models are supported.
 
 Plugins are an alternative delivery mechanism to MCP. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
 
-Each plugin contains core instructions: 35 skills, 7 agents, 12 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
+Each plugin contains core instructions: 36 skills, 7 agents, 12 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
 
 | Plugin | IDE | Mode |
 |---|---|---|
@@ -506,11 +522,11 @@ Each plugin contains core instructions: 35 skills, 7 agents, 12 workflows, and b
 | `core-cursor-standalone` | Cursor | Direct extraction into repo (`.cursor/`) |
 | `core-copilot-standalone` | VS Code Copilot, JetBrains Copilot | Direct extraction into repo (`.github/`) |
 
-All plugins are generated from the **release-selected** source tree (`instructions/<release>/core/`) by the plugin generator (`npx rosettify-plugins@latest`). The release is chosen by `--release` (default **r2**, matching ims-mcp's `DEFAULT_VERSION`; r3 is opt-in); r2 uses SessionStart bootstrap only, r3 adds full advisory hooks. The generator builds main plugins then derives standalone variants. `.tmpl` files are Handlebars templates rendered by the generator.
+All plugins are generated from the **release-selected** source tree (`instructions/<release>/core/`) by the plugin generator (`rosettify-plugins`, `npx -y rosettify-plugins@latest`). **Requirements-first:** spec-before-code from `docs/requirements/plugin-generator/` (authoritative FRs/NFRs; code follows). The release is chosen by `--release` (default **r2**, matching ims-mcp's `DEFAULT_VERSION`; r3 is opt-in); r2 uses SessionStart bootstrap only, r3 adds full advisory hooks. The generator builds main plugins then derives standalone variants. `.tmpl` files are Handlebars templates rendered by the generator.
 
-**Run it standalone:** `npx rosettify-plugins@latest [--release r2|r3] [--output DIR] [--source DIR]` — `--release` selects the instructions source (default `r2`), `--output` redirects generated plugins (default `<source>/plugins`), `--source` sets the repo root (default: current directory). `pre_commit.py` invokes it with no args (→ r2, output defaults to `<repo-root>/plugins`). The generator copies core instructions and adapts them for the target coding agent:
+**Run it standalone:** `npx -y rosettify-plugins@latest [--release r2|r3] [--output DIR] [--source DIR]` — `--release` selects the instructions source (default `r2`), `--output` redirects generated plugins (default `<source>/plugins`), `--source` sets the repo root (default: current directory). `pre_commit.py` invokes it with no args (→ r2, output defaults to `<repo-root>/plugins`). The generator copies core instructions and adapts them for the target coding agent:
 
-- **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor normalizes to short IDs (e.g. `claude-sonnet-4-6`, `gpt-5.4`); Copilot to display names (e.g. `Claude Sonnet 4.6`, `GPT-5.4`); Claude Code to full model IDs (`claude-sonnet-4-6`, `claude-opus-4-8`, `claude-haiku-4-5`).
+- **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor normalizes to short IDs (e.g. `claude-sonnet-5`, `gpt-5.4`); Copilot to display names (e.g. `Claude Sonnet 5`, `GPT-5.4`); Claude Code to full model IDs (`claude-sonnet-5`, `claude-opus-4-8`, `claude-haiku-4-5`).
 - **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)
 - **Directory layout** — restructures output to match IDE conventions (`.agents/` and `.codex/` for Codex, runtime configs at root for Copilot). Cursor uses `commands/` instead of `workflows/` for workflow files; Copilot uses `prompts/` with files renamed from `*.md` to `*.prompt.md`. Content references are rewritten using precise full-path replacement (`workflows/coding-flow.md` → `commands/coding-flow.md` / `prompts/coding-flow.prompt.md`) to avoid accidental partial-word matches.
 - **Index generation** — produces `rules/INDEX.md` and `workflows/INDEX.md` (or `commands/INDEX.md` for Cursor, `prompts/INDEX.md` for Copilot) listings. Only files with `tags: ["workflow"]` appear in the workflow index; phase files are excluded. All three folder names use the heading `# Rosetta Workflows Index`.
@@ -535,12 +551,14 @@ When the source plugin contains a directory whose name matches the standalone's 
 
 Hooks are lightweight scripts that run in response to IDE tool calls (PostToolUse, PreToolUse). They inject advisory context into the AI's context window — nothing is displayed directly to the user.
 
+**Hook contracts — source of truth:** `docs/hooks/<ide>.md` (`claude-code`/`codex`/`cursor`/`copilot`/`windsurf`) — empirically verified per-IDE I/O, exit codes, matchers. Adapters + `instructions/*/configure/*.md` reconcile TO these specs, never the reverse; protocol in `docs/hooks-verify.md`.
+
 Source lives in `src/hooks/` and is compiled per-IDE before sync:
 
 | Folder | Contents |
 |---|---|
 | `src/hooks/src/` | TypeScript source — adapter, lock, debug-log, hook implementations |
-| `src/hooks/tests/` | `node:test` unit and integration tests + fixtures |
+| `src/hooks/tests/` | Vitest unit tests + fixtures, and a log-driven E2E suite (`tests/e2e/`) that replays REAL captured wire payloads (`docs/hooks/<ide>-logs.txt`) through the full pipeline (no adapter mocks) to catch canonical-mapping regressions |
 | `src/hooks/scripts/` | esbuild bundler (`build-bundles.mjs`) |
 | `src/hooks/dist/bundles/` | Compiled per-IDE bundles (generated, not committed) |
 
@@ -554,7 +572,7 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 | `loose-files.js` | PostToolUse (Write) | Nudges agent when `.py`/`.js` files are created without a module marker (`__init__.py` / `package.json`) |
 | `md-file-advisory.js` | PostToolUse (Write\|Edit) | Advises on markdown formatting/placement after `.md` edits |
 | `lint-format-advisory.js` | PostToolUse (Write\|Edit) | Suggests a syntax/type/lint/format check step after code edits |
-| `codemap-refresh.js` | PostToolUse (Write\|Edit) | Refreshes the active code-map backend when source files change. Detects GitNexus (`.gitnexus/` marker, runs `npx gitnexus analyze --force`) and Graphify (`graphify-out/graph.json` marker, runs `graphify update .`); no-op when neither is installed. When both are present, each backend gets an independent debounced refresh. Manager must review the GitNexus license before use; Graphify is the MIT-licensed alternative. |
+| `codemap-refresh.js` | PostToolUse (Write\|Edit) | Refreshes the active code-map backend when source files change. Detects GitNexus (`.gitnexus/` marker, runs `npx -y gitnexus@latest analyze --force`) and Graphify (`graphify-out/graph.json` marker, runs `graphify update .`); no-op when neither is installed. When both are present, each backend gets an independent debounced refresh. Manager must review the GitNexus license before use; Graphify is the MIT-licensed alternative. |
 
 **`hooks.json` locations and forms per plugin variant** (each form references the bundles using paths appropriate to its runtime):
 
@@ -569,11 +587,10 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 
 Cursor and Copilot are the only plugins that need two distinct templates because they have distinct standalone distributions. Templates: cursor — `hooks/hooks.json.tmpl` (plugin) + `hooks.json.tmpl` at root (standalone); copilot — `.github/plugin/hooks.json.tmpl` (plugin) + `hooks/hooks.json.tmpl` (standalone). Both are rendered during sync; the standalone generator's bulk-copy lands each at the right path inside the standalone subfolder.
 
-- **IDE normalization** — `src/adapter.ts` detects the IDE from stdin shape and normalizes to a canonical `NormalizedInput`; detection order: codex > cursor > claude-code > windsurf > copilot
+- **IDE normalization** — `src/adapter.ts` detects the IDE (env signature first, then stdin shape: codex > cursor > claude-code > windsurf > copilot) and normalizes to a canonical `NormalizedInput`, which MUST be fully mapped: a field is empty only when the value is genuinely absent from the raw input AND not derivable from the event name, another field, or the IDE's documented tool/event vocabulary
 - **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema
-- **Dedup guard** — GitHub Copilot CLI has a known bug where PostToolUse fires twice per call; `src/lock.ts` suppresses the duplicate and is activated at runtime only when the Copilot IDE is detected
 
-`scripts/pre_commit.py` builds and tests hook bundles, then runs `npx rosettify-plugins@latest`, which syncs bundles into each main plugin's hooks directory (`plugins/core-{claude,cursor,copilot}/hooks/`, `plugins/core-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `src/hooks/src/` and re-run the script.
+`scripts/pre_commit.py` builds and tests hook bundles, then runs `npx -y rosettify-plugins@latest`, which syncs bundles into each main plugin's hooks directory (`plugins/core-{claude,cursor,copilot}/hooks/`, `plugins/core-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `src/hooks/src/` and re-run the script.
 
 ### Reference Sources (readonly, packages currently used)
 

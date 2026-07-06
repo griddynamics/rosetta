@@ -1,0 +1,1 @@
+{"sessionId":"8abb87fa-4187-49e0-ba62-ded536d9ba99","timestamp":1782496844466,"cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql","toolName":"bash","toolArgs":"{\"command\":\"echo rosetta-hook-probe\",\"description\":\"Step 1: echo command\"}","toolResult":{"resultType":"success","textResultForLlm":"rosetta-hook-probe\n<shellId: 0 completed with exit code 0>"}}

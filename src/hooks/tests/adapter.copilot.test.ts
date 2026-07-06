@@ -11,6 +11,7 @@ import fxCopilotSessionStart from './fixtures/copilot-session-start.json';
 import fxCopilotPreCompact from './fixtures/copilot-pre-compact.json';
 
 import { detectIDE, normalize, formatOutput } from '../src/adapter';
+import { copilot } from '../src/adapters/copilot';
 
 // ---------------------------------------------------------------------------
 describe('detectIDE — Copilot', () => {
@@ -44,6 +45,16 @@ describe('normalize — Copilot', () => {
     expect(result.hook_event_name).toBe('PreRead');
     expect(result.tool_name).toBe('view');
     expect(result.file_path).toBe('/proj/src/app.js');
+  });
+
+  // Regression: a prior version returned 'PreRead' for ANY read-kind tool call regardless of
+  // Pre/Post, so a completed read (result already present) was ALSO mislabeled PreRead — making
+  // read-once.ts (gated on event: ['PreRead','PreToolUse']) fire a second, spurious time after
+  // the read already happened.
+  test('completed view tool (toolResult present) stays PostToolUse, NOT PreRead', () => {
+    const completedView = { timestamp: 1, cwd: '/proj', toolName: 'view', toolArgs: '{"filePath":"/proj/src/app.js"}', toolResult: { resultType: 'success', textResultForLlm: 'file contents' } };
+    const result = normalize(completedView);
+    expect(result.hook_event_name).toBe('PostToolUse');
   });
 
   test('sessionStart is inferred from source/initialPrompt', () => {
@@ -109,6 +120,104 @@ describe('normalize — Copilot', () => {
 });
 
 // ---------------------------------------------------------------------------
+// VS Code + Copilot CLI's PascalCase fire both send this snake_case shape
+// (hook_event_name, session_id, tool_name, tool_input object) — OI-3.
+// Calling copilot.normalize() directly here mirrors what the shipped core-copilot bundle
+// does (entrypoints/adapter-copilot.ts always routes through the copilot adapter now —
+// see the routing-bug finding in hooks-verify.md).
+describe('normalize — Copilot VS Code / snake_case shape (OI-3)', () => {
+
+  const vscodeRunInTerminal = {
+    hook_event_name: 'PreToolUse',
+    session_id: 'f46082a6-vscode',
+    timestamp: '2026-06-30T18:18:13.407Z',
+    cwd: '/proj',
+    tool_name: 'run_in_terminal',
+    tool_input: { command: 'echo rosetta-hook-probe', explanation: 'test', mode: 'sync' },
+    tool_use_id: 'call_abc__vscode-1',
+  };
+
+  const vscodeReadFile = {
+    hook_event_name: 'PreToolUse',
+    session_id: 'f46082a6-vscode',
+    timestamp: '2026-06-30T18:18:26.881Z',
+    cwd: '/proj',
+    tool_name: 'read_file',
+    tool_input: { filePath: '/proj/docs/HOOK-DENY-PROBE.txt', startLine: 1, endLine: 50 },
+    tool_use_id: 'call_abc__vscode-2',
+  };
+
+  const vscodePostToolUse = {
+    hook_event_name: 'PostToolUse',
+    session_id: 'f46082a6-vscode',
+    cwd: '/proj',
+    tool_name: 'run_in_terminal',
+    tool_input: { command: 'echo rosetta-hook-probe' },
+    tool_response: 'rosetta-hook-probe\n',
+    tool_use_id: 'call_abc__vscode-3',
+  };
+
+  test('run_in_terminal resolves toolKind "bash" (was null via claude-code fallback)', () => {
+    const result = copilot.normalize(vscodeRunInTerminal);
+    expect(result.toolKind).toBe('bash');
+    expect(result.tool_name).toBe('run_in_terminal');
+    expect(result.hook_event_name).toBe('PreToolUse');
+    expect(result.event).toBe('PreToolUse');
+  });
+
+  test('read_file resolves toolKind "read" and reclassifies event to PreRead', () => {
+    const result = copilot.normalize(vscodeReadFile);
+    expect(result.toolKind).toBe('read');
+    expect(result.event).toBe('PreRead');
+    expect(result.file_path).toBe('/proj/docs/HOOK-DENY-PROBE.txt');
+  });
+
+  test('tool_input object is used directly (not re-parsed as toolArgs)', () => {
+    const result = copilot.normalize(vscodeRunInTerminal);
+    expect(result.tool_input).toEqual(vscodeRunInTerminal.tool_input);
+  });
+
+  test('tool_use_id is read from snake_case field (was hardcoded undefined)', () => {
+    const result = copilot.normalize(vscodeRunInTerminal);
+    expect(result.tool_use_id).toBe('call_abc__vscode-1');
+  });
+
+  test('tool_response string (VS Code) is preserved as-is', () => {
+    const result = copilot.normalize(vscodePostToolUse);
+    expect(result.tool_response).toBe('rosetta-hook-probe\n');
+    expect(result.event).toBe('PostToolUse');
+  });
+
+  // Regression: a completed read_file (PostToolUse, result already present) must NOT be
+  // reclassified to PreRead — only the pre-read call gets that treatment (see camelCase
+  // regression test above for the same bug via the CLI shape).
+  test('completed read_file (PostToolUse) stays PostToolUse, NOT PreRead', () => {
+    const completedReadFile = {
+      hook_event_name: 'PostToolUse',
+      session_id: 'f46082a6-vscode',
+      cwd: '/proj',
+      tool_name: 'read_file',
+      tool_input: { filePath: '/proj/docs/HOOK-DENY-PROBE.txt' },
+      tool_response: 'file contents here',
+    };
+    const result = copilot.normalize(completedReadFile);
+    expect(result.event).toBe('PostToolUse');
+    expect(result.hook_event_name).toBe('PostToolUse');
+  });
+
+  test('session_id prefers snake_case', () => {
+    const result = copilot.normalize(vscodeRunInTerminal);
+    expect(result.session_id).toBe('f46082a6-vscode');
+  });
+
+  test('hook_event_name is read directly when present, not re-inferred', () => {
+    const result = copilot.normalize(vscodeRunInTerminal);
+    expect(result.hook_event_name).toBe('PreToolUse');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
 describe('formatOutput — Copilot', () => {
 
   test('maps permissionDecision deny → output.permissionDecision', () => {
@@ -160,6 +269,44 @@ describe('formatOutput — Copilot', () => {
   test('no additionalContext → hookSpecificOutput absent from output', () => {
     const result = formatOutput({ hookSpecificOutput: { hookEventName: 'PostToolUse' } }, 'copilot');
     expect(result.hookSpecificOutput).toBeUndefined();
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// Bug 2: additionalContext / permissionDecision / permissionDecisionReason must each reach
+// BOTH runtimes — VS Code honors nested hookSpecificOutput.*, Copilot CLI honors top-level.
+describe('formatOutput — Copilot merged emit (Bug 2)', () => {
+
+  test('additionalContext (e.g. SessionStart) is emitted at BOTH top-level and nested', () => {
+    const canonical = {
+      hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: 'Rosetta context' },
+    };
+    const result = formatOutput(canonical, 'copilot');
+    expect(result.additionalContext).toBe('Rosetta context');
+    expect((result.hookSpecificOutput as Record<string, unknown>).additionalContext).toBe('Rosetta context');
+  });
+
+  test('PreToolUse deny: permissionDecision + reason emitted at BOTH placements', () => {
+    const canonical = {
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'deny',
+        permissionDecisionReason: 'Blocked by policy',
+      },
+    };
+    const result = formatOutput(canonical, 'copilot');
+    expect(result.permissionDecision).toBe('deny');
+    expect(result.permissionDecisionReason).toBe('Blocked by policy');
+    const nested = result.hookSpecificOutput as Record<string, unknown>;
+    expect(nested.permissionDecision).toBe('deny');
+    expect(nested.permissionDecisionReason).toBe('Blocked by policy');
+  });
+
+  test('continue:false deny (no explicit permissionDecision) is merged too', () => {
+    const result = formatOutput({ hookSpecificOutput: {}, continue: false }, 'copilot');
+    expect(result.permissionDecision).toBe('deny');
+    expect((result.hookSpecificOutput as Record<string, unknown>).permissionDecision).toBe('deny');
   });
 
 });

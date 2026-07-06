@@ -12,7 +12,7 @@ export function bashSingleQuoteEscape(s: string): string {
 
 /**
  * Wrap a JSON payload string in a bash printf '%s' '<json>' command.
- * Used for claude and codex hook entries.
+ * Used for claude, codex, cursor, and copilot's bash entry.
  * The JSON string is single-quote-escaped.
  */
 export function wrapInPrintf(jsonPayload: string): string {

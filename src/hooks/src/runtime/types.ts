@@ -19,11 +19,14 @@ export interface HookContext {
   markerRoot?: string;
 }
 
+// `_exitCode`: emergency override of the process exit code, bypassing both the deny-based
+// decision and the adapter default. DO NOT use unless EXTREMELY necessary — normal hooks
+// should rely on `kind` (deny → the IDE's documented exit code; everything else → 0).
 export type HookResult =
-  | { kind: 'advise'; message: string }
-  | { kind: 'allow' }
-  | { kind: 'deny'; reason: string }
-  | { kind: 'side-effect' }
+  | { kind: 'advise'; message: string; _exitCode?: number }
+  | { kind: 'allow'; _exitCode?: number }
+  | { kind: 'deny'; reason: string; _exitCode?: number }
+  | { kind: 'side-effect'; _exitCode?: number }
   | null;
 
 export type FilePathPredicate = {

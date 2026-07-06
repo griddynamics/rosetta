@@ -1,0 +1,8 @@
+{
+  "banner": "MOCK READY",
+  "steps": [
+    { "type": "print", "text": "About to crash." },
+    { "type": "sleep", "ms": 50 },
+    { "type": "exit", "code": 1 }
+  ]
+}

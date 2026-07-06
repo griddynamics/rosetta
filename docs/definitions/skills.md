@@ -36,6 +36,7 @@
 - deviation
 - self-organization
 - self-learning
+- post-mortem
 - sensitive-data
 - hitl
 - subagent-contract

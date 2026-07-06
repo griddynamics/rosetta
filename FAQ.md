@@ -72,7 +72,7 @@ Rosetta runs prep steps once per session: it loads context, classifies the reque
 
 **Which model should I use, and why did Rosetta burn through my token budget?**
 
-Pick a **medium** model — **Sonnet 4.6**, **GPT-5.4-medium**, or **gemini-3.1-pro** — and avoid Auto model selection. The two most common cost mistakes:
+Pick a **medium** model — **Sonnet 5**, **GPT-5.4-medium**, or **gemini-3.1-pro** — and avoid Auto model selection. The two most common cost mistakes:
 
 - **Running everything on a high-reasoning/Opus model.** Opus-class models spend heavily on reasoning and can exhaust a daily balance in one sitting. Rosetta already assigns an appropriate model per subagent and switches automatically, so you do not need to force the most expensive model for the whole session.
 - **Letting Auto pick the model.** Auto often downgrades to a weaker model mid-task, producing low-quality results. Choose the model explicitly.

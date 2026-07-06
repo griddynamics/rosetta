@@ -1,0 +1,23 @@
+{{- if and .Values.ingress.enabled (eq (.Values.ingress.className | default "") "traefik") }}
+
+{{- if and .Values.ingress.traefik .Values.ingress.traefik.rateLimit .Values.ingress.traefik.rateLimit.average }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ regexReplaceAll "-{2,}" (printf "%s-rate-limit" (include "rosetta-mcp.fullname" .)) "-" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "rosetta-mcp.labels" . | nindent 4 }}
+spec:
+  rateLimit:
+    average: {{ .Values.ingress.traefik.rateLimit.average }}
+    {{- with .Values.ingress.traefik.rateLimit.burst }}
+    burst: {{ . }}
+    {{- end }}
+    {{- with .Values.ingress.traefik.rateLimit.period }}
+    period: {{ . | quote }}
+    {{- end }}
+{{- end }}
+
+{{- end }}

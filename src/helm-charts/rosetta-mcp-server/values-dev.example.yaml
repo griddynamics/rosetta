@@ -3,10 +3,20 @@
 # Replace placeholder hostnames and URLs with your dev environment values.
 
 image:
-  tag: "2.0.0"
+  tag: "2.0.25"
 
 ingress:
   host: rosetta-dev.example.com
+  traefik:
+    rateLimit:
+      average: 20
+      burst: 200
+      period: "1s"
+  # nginx alternative (uncomment to switch from traefik):
+  # className: nginx
+  # annotations:
+  #   nginx.ingress.kubernetes.io/limit-rps: "20"
+  #   nginx.ingress.kubernetes.io/limit-burst-multiplier: "10"
 
 env:
   enabled: true

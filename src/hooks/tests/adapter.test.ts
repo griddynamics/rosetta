@@ -12,7 +12,7 @@ import fxCopilot  from './fixtures/copilot-post-tool-use-write.json';
 import fxUnknown  from './fixtures/unknown-ide-input.json';
 import ccMultiEdit from './fixtures/claude-code-pre-tool-use-multi-edit.json';
 
-import { detectIDE, normalize, formatOutput, dedupKey } from '../src/adapter';
+import { detectIDE, normalize, formatOutput } from '../src/adapter';
 
 // ---------------------------------------------------------------------------
 describe('detectIDE — all IDEs', () => {
@@ -56,6 +56,59 @@ describe('detectIDE — all IDEs', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Env-based detection (added alongside the Copilot VS Code routing-bug fix, hooks-verify.md):
+// Copilot's VS Code snake_case fire is structurally indistinguishable from Claude Code's own
+// wire shape (both carry hook_event_name + session_id). Each IDE's own runtime env signature
+// resolves this before shape-based DETECTION_ORDER ever runs.
+describe('detectIDE — env-based detection (Copilot VS Code routing-bug fix)', () => {
+
+  // Structurally identical to a genuine Claude Code PreToolUse payload — this is exactly
+  // the ambiguity that broke toolKind resolution for VS Code Copilot before the fix.
+  const ambiguousSnakeCasePayload = {
+    hook_event_name: 'PreToolUse',
+    session_id: 'ambiguous-session',
+    cwd: '/proj',
+    tool_name: 'run_in_terminal',
+    tool_input: { command: 'echo hi' },
+  };
+
+  test('VSCODE_* env → resolves to copilot, not claude-code', () => {
+    expect(detectIDE(ambiguousSnakeCasePayload, { VSCODE_PID: '123' })).toBe('copilot');
+  });
+
+  test('COPILOT_CLI=1 env → resolves to copilot', () => {
+    expect(detectIDE(ambiguousSnakeCasePayload, { COPILOT_CLI: '1' })).toBe('copilot');
+  });
+
+  test('CLAUDECODE=1 env → resolves to claude-code', () => {
+    expect(detectIDE(ambiguousSnakeCasePayload, { CLAUDECODE: '1' })).toBe('claude-code');
+  });
+
+  test('Cursor env wins over generic VSCODE_* even though Cursor is a VS Code fork', () => {
+    expect(detectIDE(ambiguousSnakeCasePayload, { CURSOR_VERSION: '3.9.16', VSCODE_PID: '123' })).toBe('cursor');
+  });
+
+  test('CODEX_MANAGED_BY_NPM env → resolves to codex', () => {
+    expect(detectIDE(ambiguousSnakeCasePayload, { CODEX_MANAGED_BY_NPM: '1' })).toBe('codex');
+  });
+
+  test('CODEIUM_* env → resolves to windsurf', () => {
+    expect(detectIDE(ambiguousSnakeCasePayload, { CODEIUM_EDITOR_APP_ROOT: '/Applications/Devin.app' })).toBe('windsurf');
+  });
+
+  test('no env (default {}) falls back to existing shape-based detection unchanged', () => {
+    // Documents the known residual limitation: without env, this ambiguous shape still
+    // resolves via claude-code's shape signature, exactly as before this fix.
+    expect(detectIDE(ambiguousSnakeCasePayload)).toBe('claude-code');
+  });
+
+  test('irrelevant env vars do not interfere — shape-based fallback still resolves correctly', () => {
+    expect(detectIDE(fxCopilot, { SOME_OTHER_VAR: 'x' })).toBe('copilot');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
 describe('normalize — per-IDE shape assertions (B4 fix: toMatchObject replaces tautological loop)', () => {
 
   test('claude-code: PostToolUse Write → canonical shape', () => {
@@ -90,11 +143,13 @@ describe('normalize — per-IDE shape assertions (B4 fix: toMatchObject replaces
     expect(normalize(fxCursor).ide).toBe('cursor');
   });
 
-  test('windsurf: PostToolUse Write → canonical shape', () => {
+  test('windsurf: PostToolUse write_code → canonical multi-edit shape', () => {
+    // Windsurf write events carry tool_info.edits=[{old_string,new_string}] (MultiEdit shape) →
+    // toolKind multi-edit, so edit content is scanned via evalMultiEdit (docs/hooks-verify.md OI-8).
     const r = normalize(fxWindsurf);
     expect(r.ide).toBe('windsurf');
     expect(r.event).toBe('PostToolUse');
-    expect(r.toolKind).toBe('write');
+    expect(r.toolKind).toBe('multi-edit');
   });
 
   test('copilot: PostToolUse inferred from toolResult (no explicit hook_event_name)', () => {
@@ -151,30 +206,6 @@ describe('formatOutput — delegates to correct adapter', () => {
     };
     const result = formatOutput(canonical, 'copilot');
     expect(result.permissionDecision).toBe('deny');
-  });
-
-});
-
-// ---------------------------------------------------------------------------
-describe('dedupKey — idempotent for same input (B5 fix)', () => {
-
-  test('copilot: same input/hookName produces identical key twice', () => {
-    const k1 = dedupKey(fxCopilot, 'PostToolUse');
-    const k2 = dedupKey(fxCopilot, 'PostToolUse');
-    expect(k1).not.toBeNull();
-    expect(k1).toBe(k2);
-  });
-
-  test('codex: does not throw for any input', () => {
-    expect(() => dedupKey(fxCodex, 'PostToolUse')).not.toThrow();
-  });
-
-  test('claude-code: different hookName → different key (if non-null)', () => {
-    const k1 = dedupKey(ccWrite, 'PostToolUse');
-    const k2 = dedupKey(ccWrite, 'PreToolUse');
-    if (k1 !== null && k2 !== null) {
-      expect(k1).not.toBe(k2);
-    }
   });
 
 });

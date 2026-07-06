@@ -1,0 +1,10 @@
+{
+  "banner": "MOCK READY",
+  "steps": [
+    { "type": "print", "text": "I have a couple of things to clarify." },
+    { "type": "stop", "message": "Which format do you want, and what filename should I use?" },
+    { "type": "await-input", "record": "free-text" },
+    { "type": "file", "path": "out.txt", "text": "hello world" },
+    { "type": "stop", "message": "Done, wrote the file.", "complete": true }
+  ]
+}
