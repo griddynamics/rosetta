@@ -1,0 +1,10 @@
+{
+  "banner": "MOCK READY",
+  "steps": [
+    { "type": "print", "text": "Starting." },
+    { "type": "stop", "message": "" },
+    { "type": "print", "text": "Still going." },
+    { "type": "file", "path": "out.txt", "text": "hello world" },
+    { "type": "stop", "message": "Now complete.", "complete": true }
+  ]
+}

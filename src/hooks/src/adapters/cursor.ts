@@ -8,7 +8,7 @@
 // hook_event_name casing: Cursor uses camelCase ("postToolUse") vs CC PascalCase ("PostToolUse").
 // normalize() derives the semantic event via registry (which handles the casing difference).
 
-import { lookupEvent, lookupToolKind, getFilePath, getCwd } from '../runtime/ide-rows/cursor';
+import { lookupEvent, lookupToolKind, getFilePath, getCwd, getToolName } from '../runtime/ide-rows/cursor';
 import type { IdeAdapter, NormalizedInput, CanonicalOutput } from '../types';
 
 const IDE = 'cursor' as const;
@@ -24,15 +24,24 @@ const normalize = (raw: Record<string, unknown>): NormalizedInput => {
   const { hook_event_name, conversation_id, ...rest } = raw;
   const rawEventName = hook_event_name as string;
   const baseEvent = lookupEvent(rawEventName);
-  const toolKind = lookupToolKind((raw.tool_name as string) ?? '');
+  // Cursor's granular read hooks (beforeReadFile/beforeTabFileRead) omit tool_name and put file_path
+  // at the top level. Derive the tool name from the event (grounded — see getToolName) so the canonical
+  // carries it, then resolve toolKind from that name. This is what makes read-once (['read','bash'])
+  // see Cursor's native read event instead of silently skipping it (docs/hooks-verify.md OI-8).
+  const toolName = getToolName(raw);
+  const toolKind = lookupToolKind(toolName ?? '');
   return {
     ...rest,
     ide:          IDE,
     event:        baseEvent,
     toolKind,
+    tool_name:    toolName,
     hook_event_name: baseEvent === 'PreRead' ? 'PreRead' : toPascalCase(rawEventName),
     session_id:   ((conversation_id as string) ?? (raw.session_id as string)) as string | undefined,
     conversation_id,
+    // Canonical must be fully populated; tool_input is only genuinely absent on wrapper-less events
+    // (e.g. beforeReadFile) — default to {} so downstream (isFullRead, evalToolInput) never sees undefined.
+    tool_input:   (raw.tool_input as Record<string, unknown>) ?? {},
     file_path:    getFilePath(raw) ?? '',
     cwd:          getCwd(raw) ?? undefined,
   } as unknown as NormalizedInput;
@@ -49,4 +58,8 @@ const formatOutput = (canonical?: CanonicalOutput): Record<string, unknown> => {
   return out;
 };
 
+// No exitCode() override: Cursor's exit-0 + permission:"deny" JSON deny is confirmed working and
+// field-selective (docs/hooks/cursor.md Run 1+3). Pairing exit-2 with the JSON body was tested
+// (Run 4) and Cursor does NOT parse it — it dumps the raw text verbatim, a worse delivery than the
+// exit-0 path, for no functional gain. Default exitCode (0) is correct; do not add a deny->2 override.
 export const cursor: IdeAdapter = { name: 'cursor', detect, normalize, formatOutput };

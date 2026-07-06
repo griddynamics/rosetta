@@ -5,7 +5,7 @@ import { test, describe, expect } from 'vitest';
 
 import fxWindsurf from './fixtures/windsurf-post-tool-use-write.json';
 
-import { detectIDE, normalize, formatOutput } from '../src/adapter';
+import { detectIDE, normalize, formatOutput, exitCodeFor, stderrMessageFor } from '../src/adapter';
 
 function wsInput(agent_action_name: string, tool_info: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -34,16 +34,19 @@ describe('detectIDE — Windsurf', () => {
 // ---------------------------------------------------------------------------
 describe('normalize — Windsurf write events', () => {
 
-  test('post_write_code → hook_event_name PostToolUse, tool_name Write', () => {
+  test('post_write_code → hook_event_name PostToolUse, tool_name MultiEdit', () => {
+    // Windsurf write events carry tool_info.edits=[{old_string,new_string}] — the MultiEdit shape —
+    // so they normalize to MultiEdit/multi-edit (not Write), which is what routes the edit content
+    // through dangerous-actions.evalMultiEdit for scanning (docs/hooks-verify.md OI-8).
     const result = normalize(fxWindsurf);
     expect(result.hook_event_name).toBe('PostToolUse');
-    expect(result.tool_name).toBe('Write');
+    expect(result.tool_name).toBe('MultiEdit');
   });
 
-  test('pre_write_code → hook_event_name PreToolUse, tool_name Write', () => {
+  test('pre_write_code → hook_event_name PreToolUse, tool_name MultiEdit', () => {
     const result = normalize(wsInput('pre_write_code', { file_path: '/proj/a.py' }));
     expect(result.hook_event_name).toBe('PreToolUse');
-    expect(result.tool_name).toBe('Write');
+    expect(result.tool_name).toBe('MultiEdit');
     expect(result.tool_input.file_path).toBe('/proj/a.py');
   });
 
@@ -156,14 +159,52 @@ describe('normalize — Windsurf non-tool events', () => {
 // ---------------------------------------------------------------------------
 describe('formatOutput — Windsurf', () => {
 
-  test('additionalContext preserved', () => {
+  test('advisory additionalContext → empty stdout (stdout is never parsed by Cascade)', () => {
     const result = formatOutput({ hookSpecificOutput: { additionalContext: 'Test' } }, 'windsurf');
-    expect(result.additionalContext).toBe('Test');
+    expect(result).toEqual({});
   });
 
-  test('deny decision → _exitCode 2', () => {
-    const result = formatOutput({ hookSpecificOutput: { permissionDecision: 'deny' } }, 'windsurf');
-    expect(result._exitCode).toBe(2);
+  test('deny decision → empty stdout body (reason travels on stderr, not stdout)', () => {
+    const result = formatOutput({ hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: 'nope' } }, 'windsurf');
+    expect(result).toEqual({});
+  });
+
+  test('deny decision → exitCodeFor returns 2 (the only mechanism Windsurf honors)', () => {
+    const code = exitCodeFor({ hookSpecificOutput: { permissionDecision: 'deny' } }, 'windsurf');
+    expect(code).toBe(2);
+  });
+
+  test('non-deny decision → exitCodeFor returns 0', () => {
+    const code = exitCodeFor({ hookSpecificOutput: { permissionDecision: 'allow' } }, 'windsurf');
+    expect(code).toBe(0);
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+describe('stderrMessage — Windsurf (the only hook→model text channel)', () => {
+
+  test('deny → reason returned for stderr (verbatim, no trailing newline)', () => {
+    const msg = stderrMessageFor({ hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: 'blocked: secret file' } }, 'windsurf');
+    expect(msg).toBe('blocked: secret file');
+  });
+
+  test('allow → no stderr message', () => {
+    const msg = stderrMessageFor({ hookSpecificOutput: { permissionDecision: 'allow', additionalContext: 'ctx' } }, 'windsurf');
+    expect(msg).toBeUndefined();
+  });
+
+  test('deny without a reason → undefined (nothing to say)', () => {
+    const msg = stderrMessageFor({ hookSpecificOutput: { permissionDecision: 'deny' } }, 'windsurf');
+    expect(msg).toBeUndefined();
+  });
+
+  test('other IDEs carry deny reason in stdout JSON, not stderr → undefined', () => {
+    const canonical = { hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: 'x' } };
+    expect(stderrMessageFor(canonical, 'claude-code')).toBeUndefined();
+    expect(stderrMessageFor(canonical, 'cursor')).toBeUndefined();
+    expect(stderrMessageFor(canonical, 'codex')).toBeUndefined();
+    expect(stderrMessageFor(canonical, 'copilot')).toBeUndefined();
   });
 
 });

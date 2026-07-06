@@ -45,7 +45,7 @@ Validation: State file tracks every phase with file inventory; verification conf
 
 </context>
 
-<shells phase="2" default="true" subagent="engineer" conditional role="Shell file generator" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium">
+<shells phase="2" default="true" subagent="engineer" conditional role="Shell file generator" subagent_required_model="claude-sonnet-5, gpt-5.4-medium">
 
 1. Generate shell files for skills, agents, workflows. Skip if state.plugin_active.
 2. Output: shell configs, bootstrap rule, load-context skill shell.
@@ -65,11 +65,11 @@ Validation: State file tracks every phase with file inventory; verification conf
 
 </discovery>
 
-<rules phase="4" optional="true" permanently-disabled subagent="built-in" role="Agent rules configurator" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium">
+<rules phase="4" optional="true" permanently-disabled subagent="built-in" role="Agent rules configurator" subagent_required_model="claude-sonnet-5, gpt-5.4-medium">
 DISABLED
 </rules>
 
-<patterns phase="5" subagent="engineer" role="Pattern extractor" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro-preview">
+<patterns phase="5" subagent="engineer" role="Pattern extractor" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro-preview">
 
 1. Extract coding and architectural patterns into reusable templates.
 2. Output: PATTERNS folder (one .md per pattern, INDEX.md, CHANGES.md).
@@ -98,7 +98,7 @@ DISABLED
 
 </questions>
 
-<verification phase="8" subagent="reviewer" role="Completeness validator" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium">
+<verification phase="8" subagent="reviewer" role="Completeness validator" subagent_required_model="claude-sonnet-5, gpt-5.4-medium">
 
 1. Verify all files exist, run validation checklist, suggest next steps.
 2. ACQUIRE `init-workspace-flow-verification.md` FROM KB

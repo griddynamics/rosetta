@@ -1,0 +1,26 @@
+suite: Service
+templates:
+  - service.yaml
+tests:
+  - it: creates a ClusterIP Service
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.type
+          value: ClusterIP
+
+  - it: configures session affinity for stateful MCP sessions
+    asserts:
+      - equal:
+          path: spec.sessionAffinity
+          value: ClientIP
+      - equal:
+          path: spec.sessionAffinityConfig.clientIP.timeoutSeconds
+          value: 3600
+
+  - it: exposes the configured port
+    asserts:
+      - equal:
+          path: spec.ports[0].port
+          value: 8000

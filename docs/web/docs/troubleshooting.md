@@ -51,7 +51,7 @@ permalink: /docs/troubleshooting/
 
 **Wrong model causes poor or inconsistent results**
 
-Use **Sonnet 4.6**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection. Weaker models skip tool calls, hallucinate instructions, or ignore MCP prompts entirely.
+Use **Sonnet 5**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection. Weaker models skip tool calls, hallucinate instructions, or ignore MCP prompts entirely.
 
 ## Slow or Empty Responses
 
@@ -103,5 +103,6 @@ Common causes: unsupported file format, oversized documents, malformed markdown.
 
 ## Still Stuck?
 
+- Run the `post-mortem` skill (`/post-mortem`) on a failed run — or anything you'd like to work better. It root-causes the behavior, recommends fixes, and can draft a sanitized issue that is submitted only with your explicit approval
 - [Open an issue](https://github.com/griddynamics/rosetta/issues)
 - [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)

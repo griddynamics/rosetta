@@ -2,7 +2,7 @@
 name: validator
 description: "Validate that implementation matches intent via execution and evidence. Full subagent."
 mode: subagent
-model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-4.6-sonnet
+model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-5-sonnet
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

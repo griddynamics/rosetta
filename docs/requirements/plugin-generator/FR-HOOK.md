@@ -83,40 +83,23 @@
   <rationale>Each IDE expects a different hook schema and quoting; the exact schema is owned by the IDE guide, not duplicated here. Because the shapes differ by IDE, each is a case-specific entry builder composed per target rather than a switch on an identity-discriminant (FR-ARCH-0005).</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Approved</status>
+  <status>Draft</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-11</changed>
+  <changed>2026-06-30</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: any target When: assembled Then: each entry conforms to that IDE's session-start hook schema per its guide, with content transported intact.</criteria>
     <criteria>Given: a target whose command interpreter requires it When: assembled Then: entries carry the interpreter-specific command form(s) with correct escaping.</criteria>
     <criteria>Given: claude When: assembled Then: each entry = `{"type":"command","command":"printf '%s' '<json>'","once":true}` under `SessionStart[0]` with `matcher:"startup"`.</criteria>
     <criteria>Given: codex When: assembled Then: each entry = `{"type":"command","command":"printf '%s' '<json>'","statusMessage":"Loading Rosetta bootstrap","timeout":30}` (no `once`) under `SessionStart[0]` with `matcher:"startup|resume"`.</criteria>
-    <criteria>Given: copilot When: assembled Then: each entry = `{"type":"command","bash":"<lock+printf>","powershell":"<lock+Write-Output>"}` under lowercase `sessionStart` (no matcher, `version:1`); the lock key carries a 0-based entry index.</criteria>
+    <criteria>Given: copilot When: assembled Then: each entry = `{"type":"command","bash":"printf '%s' '<json>'","powershell":"Write-Output '<json>'"}` under lowercase `sessionStart` (no matcher, `version:1`).</criteria>
+    <criteria>Given: copilot's embedded JSON payload When: inspected Then: it is `{"additionalContext":"<body>","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"<body>"}}` — additionalContext at BOTH top-level (honored by Copilot CLI) AND nested in hookSpecificOutput (honored by VS Code); neither placement alone reaches both runtimes (docs/hooks/copilot.md).</criteria>
     <criteria>Given: entries within a payload When: serialized Then: they are joined by `, ` (comma-space) and inserted raw into the template's `{{{bootstrap_hooks}}}` placeholder.</criteria>
     <criteria>Given: the entry-building code When: inspected Then: each IDE's entry shape comes from a case-specific unit composed per spec plus shared low-level helpers, with no branch on an identity-discriminant such as `hookEntryShape` (FR-ARCH-0005).</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/bootstrap/payload.ts (buildClaudeBootstrapEntry, buildCodexBootstrapEntry, buildCopilotBootstrapEntry, buildCursorBootstrapEntry exported; hookEntryShape switch deleted); src/rosettify-plugins/src/escaping/json-string.ts (buildCursorHookPayloadJson added); src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (per-IDE assemblers compose their own entry builder). Template context key: bootstrap_hooks (one shared key). Join separator: `, `.</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/bootstrap/payload.ts (buildClaudeBootstrapEntry, buildCodexBootstrapEntry, buildCopilotBootstrapEntry, buildCursorBootstrapEntry exported; hookEntryShape switch deleted); src/rosettify-plugins/src/escaping/json-string.ts (buildCursorHookPayloadJson, buildCopilotHookPayloadJson added — the latter emits the merged top-level+nested shape); src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.ts (per-IDE assemblers compose their own entry builder). Template context key: bootstrap_hooks (one shared key). Join separator: `, `.</implementationNotes>
   <depends>INT-IDE-0002, FR-ARCH-0005</depends>
-</req>
-
-<req id="FR-HOOK-0006" type="FR" level="System" ticketId="" classification="technical">
-  <title>Once-per-session delivery</title>
-  <statement>The generator shall ensure each bootstrap entry takes effect at most once per session, using the IDE's native deduplication where available and a generated per-entry guard for IDEs that lack it.</statement>
-  <rationale>Repeated bootstrap injection wastes context; Copilot fires hooks twice.</rationale>
-  <source>Sources</source>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
-  <verification>Test</verification>
-  <acceptance>
-    <criteria>Given: Claude When: assembled Then: entries carry the native once flag.</criteria>
-    <criteria>Given: an IDE lacking native deduplication When: assembled Then: entries carry a per-entry session guard.</criteria>
-  </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
 </req>
 
 <req id="FR-HOOK-0007" type="FR" level="System" ticketId="" classification="technical">
@@ -134,10 +117,11 @@
     <criteria>Given: claude/codex/copilot for r2 When: assembled Then: the SessionStart payload has 9 entries (8 docs + 1 plugin-root); for r3, 8 entries.</criteria>
     <criteria>Given: the claude plugin-root entry When: inspected Then: command = `printf '%s' "{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Rosetta Plugin Path: ${CLAUDE_PLUGIN_ROOT}\"}}"` with `"once": true`.</criteria>
     <criteria>Given: the codex plugin-root entry When: inspected Then: it is a workspace-root probe resolving to `$workspace_root/.agents` with `statusMessage`+`timeout`; the copilot one is an agentPlugins-base probe (`commands/coding-flow.md`) resolving to `$root` with bash+powershell.</criteria>
+    <criteria>Given: the copilot plugin-root entry When: inspected Then: its embedded JSON is `{"additionalContext":"Rosetta Plugin Path: <root>","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Rosetta Plugin Path: <root>"}}` — same merged top-level+nested requirement as FR-HOOK-0005's doc entries (docs/hooks/copilot.md).</criteria>
     <criteria>Given: cursor When: assembled Then: a plugin-root path entry is generated and included in the bootstrap payload; whether it is injected into output is decided by whether the cursor template includes the `{{{bootstrap_hooks}}}` placeholder.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/spec/bootstrap-manifest.ts (CURSOR_PLUGIN_ROOT_ENTRY added); src/rosettify-plugins/src/bootstrap/payload.ts (buildRootEntry callback; all 4 IDEs including cursor generate plugin-root entry). Cursor previously dropped via default:return null — fixed. Plugin-root is always the final separate entry; delivery to agent is template decision (FR-VAR-0070).</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/spec/bootstrap-manifest.ts (CURSOR_PLUGIN_ROOT_ENTRY added; COPILOT_PLUGIN_ROOT_BASH/POWERSHELL updated to the merged top-level+nested shape); src/rosettify-plugins/src/bootstrap/payload.ts (buildRootEntry callback; all 4 IDEs including cursor generate plugin-root entry). Cursor previously dropped via default:return null — fixed. Plugin-root is always the final separate entry; delivery to agent is template decision (FR-VAR-0070).</implementationNotes>
 </req>
 
 <req id="FR-HOOK-0008" type="FR" level="System" ticketId="" classification="technical">

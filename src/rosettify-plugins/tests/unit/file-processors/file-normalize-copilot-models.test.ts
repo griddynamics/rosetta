@@ -94,12 +94,12 @@ describe('fileNormalizeCopilotModels — claude token to display name', () => {
     expect((result.source[0]?.frontmatter as any).model).toBe('Claude Opus 4.8');
   });
 
-  it('claude-sonnet-4-6 → Claude Sonnet 4.6', () => {
+  it('claude-sonnet-4-6 → Claude Sonnet 5', () => {
     const content = '---\nmodel: claude-sonnet-4-6\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-sonnet-4-6');
     const result = fileNormalizeCopilotModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: Claude Sonnet 4.6');
-    expect((result.source[0]?.frontmatter as any).model).toBe('Claude Sonnet 4.6');
+    expect(result.target_contents as string).toContain('model: Claude Sonnet 5');
+    expect((result.source[0]?.frontmatter as any).model).toBe('Claude Sonnet 5');
   });
 
   it('claude-haiku-4-5 → Claude Haiku 4.5', () => {

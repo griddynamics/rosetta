@@ -1,6 +1,6 @@
 // PARITY-1 — JSON string escaping for additionalContext payload
 import { describe, it, expect } from 'vitest';
-import { jsonStringEscape, buildHookPayloadJson } from '../../../src/escaping/json-string.js';
+import { jsonStringEscape, buildHookPayloadJson, buildCopilotHookPayloadJson } from '../../../src/escaping/json-string.js';
 
 describe('jsonStringEscape', () => {
   it('escapes backslash as \\\\', () => {
@@ -63,5 +63,24 @@ describe('buildHookPayloadJson', () => {
   it('escapes backslashes in additionalContext', () => {
     const result = buildHookPayloadJson('path\\to\\file');
     expect(result).toContain('path\\\\to\\\\file');
+  });
+});
+
+// Bug 2 (docs/hooks/copilot.md): Copilot needs additionalContext at BOTH top-level
+// (Copilot CLI honors this) AND nested in hookSpecificOutput (VS Code honors this).
+describe('buildCopilotHookPayloadJson', () => {
+  it('produces compact JSON payload with BOTH top-level and nested additionalContext', () => {
+    const result = buildCopilotHookPayloadJson('Hello World');
+    expect(result).toBe(
+      '{"additionalContext":"Hello World","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Hello World"}}'
+    );
+  });
+
+  it('is valid JSON', () => {
+    const result = buildCopilotHookPayloadJson('Say "hello"\nLine2');
+    expect(() => JSON.parse(result)).not.toThrow();
+    const parsed = JSON.parse(result);
+    expect(parsed.additionalContext).toBe('Say "hello"\nLine2');
+    expect(parsed.hookSpecificOutput.additionalContext).toBe('Say "hello"\nLine2');
   });
 });

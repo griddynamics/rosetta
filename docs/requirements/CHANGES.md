@@ -1,6 +1,6 @@
 # Requirements Change Log
 
-- 2026-06-19: plugin-generator — `scripts/plugin_generator.py` (Python) and its tests removed. `npx rosettify-plugins@latest` (`src/rosettify-plugins/`) is now the canonical generator. Requirements in `docs/requirements/plugin-generator/` updated to reference the new implementation: dead `scripts/plugin_generator.py:NNN` line citations removed from GLOSSARY/ASSUMPTIONS/MODEL; FR-COPY preamble, ASSUMPTIONS AC-1/AC-4/AC-7/QF-1/QF-3/QF-4/QF-5, MODEL DATA-CFG-0002 notes, and INDEX Status section updated accordingly.
+- 2026-06-19: plugin-generator — `scripts/plugin_generator.py` (Python) and its tests removed. `npx -y rosettify-plugins@latest` (`src/rosettify-plugins/`) is now the canonical generator. Requirements in `docs/requirements/plugin-generator/` updated to reference the new implementation: dead `scripts/plugin_generator.py:NNN` line citations removed from GLOSSARY/ASSUMPTIONS/MODEL; FR-COPY preamble, ASSUMPTIONS AC-1/AC-4/AC-7/QF-1/QF-3/QF-4/QF-5, MODEL DATA-CFG-0002 notes, and INDEX Status section updated accordingly.
 
 - 2026-02-15: Initial draft of Rosetta CLI requirements, `configure` command (FR-0001 through FR-0016, NFR-0001 through NFR-0005).
 - 2026-02-15: Applied decisions: MCP server name "Rosetta", native CLI tools for claudecode/codex/opencode, windsurf kept as regular draft target, bootstrap bundled from single source of truth.

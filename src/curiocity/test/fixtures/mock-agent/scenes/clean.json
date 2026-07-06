@@ -1,0 +1,10 @@
+{
+  "banner": "MOCK READY",
+  "steps": [
+    { "type": "print", "text": "Analyzing the task." },
+    { "type": "tool", "name": "Read", "text": "reading files" },
+    { "type": "file", "path": "out.txt", "text": "hello world" },
+    { "type": "tool", "name": "Bash", "text": "ls -la" },
+    { "type": "stop", "message": "Created out.txt with the requested content.", "complete": true }
+  ]
+}

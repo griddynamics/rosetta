@@ -34,7 +34,7 @@ Primary plan manager for orchestrators and subagents. Creates, tracks, and execu
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Plan file lives in FEATURE PLAN folder: `<feature_plan_folder_full_path>/plan.json`
-- CLI: `npx rosettify@latest plan <subcommand> <plan_file> [args...]`
+- CLI: `npx -y rosettify@latest plan <subcommand> <plan_file> [args...]`
 - Always use full absolute paths for the plan file
 - Six subcommands for `plan` command: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`
 - Resume behavior: `next` returns four groups: (1) in_progress steps (resume=true), (2) open eligible steps, (3) blocked steps (previously_blocked=true), (4) failed steps (previously_failed=true)
@@ -50,24 +50,24 @@ Primary plan manager for orchestrators and subagents. Creates, tracks, and execu
 
 **Orchestrator flow:**
 
-1. Create plan: `npx rosettify@latest plan create <plan_file> '<json>'` -- see pm-schema.md for JSON structure
-2. Upsert phases and steps: `npx rosettify@latest plan upsert <plan_file> entire_plan [kind] '<json>'`
+1. Create plan: `npx -y rosettify@latest plan create <plan_file> '<json>'` -- see pm-schema.md for JSON structure
+2. Upsert phases and steps: `npx -y rosettify@latest plan upsert <plan_file> entire_plan [kind] '<json>'`
 3. Delegate steps to subagents -- pass plan file path and step IDs
 4. Loop: call `next` until `plan_status: complete` and `count: 0`
 
 **Subagent flow:**
 
-1. Get next steps: `npx rosettify@latest plan next <plan_file> [limit]`
+1. Get next steps: `npx -y rosettify@latest plan next <plan_file> [limit]`
 2. Check `resume` flag -- if `true`, continue interrupted work; if `false`, start fresh
 3. Execute step
-4. Update: `npx rosettify@latest plan update_status <plan_file> <step-id> complete`
+4. Update: `npx -y rosettify@latest plan update_status <plan_file> <step-id> complete`
 5. Repeat from step 1
 
 </process>
 
 <validation_checklist>
 
-- `npx rosettify@latest plan help` exits without error and returns structured help JSON
+- `npx -y rosettify@latest plan help` exits without error and returns structured help JSON
 - `show_status` output: plan root status is derived (never manually set)
 - `next` output: in_progress steps appear before open steps; blocked and failed steps are included with flags
 - `show_status` phase status matches aggregate of its steps after `update_status`

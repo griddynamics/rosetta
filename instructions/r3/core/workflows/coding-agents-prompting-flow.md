@@ -32,7 +32,7 @@ Execute phases sequentially, do not skip!
 
 </prerequisites>
 
-<discover step="1" subagent="discoverer" role="Context discoverer" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
+<discover step="1" subagent="discoverer" role="Context discoverer" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Discover project-local context, relevant prompt-family artifacts, and required references for this request.
 2. Input: request + optional existing prompt. Output: `Discovery Notes` + `Reference Set`.

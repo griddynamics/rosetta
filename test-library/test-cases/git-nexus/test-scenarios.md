@@ -138,8 +138,8 @@ See TC-021 and TC-022 for dedicated mode-specific test cases.
 7. Wait for Phase 6 to complete
 
 **Expected Results**:
-- After step 5: Agent runs `npx gitnexus@latest analyze --skip-agents-md`
-- After step 5: Agent runs `npx gitnexus@latest setup`
+- After step 5: Agent runs `npx -y gitnexus@latest analyze --skip-agents-md`
+- After step 5: Agent runs `npx -y gitnexus@latest setup`
 - After step 6: Both commands complete without errors
 - After step 7: `.gitnexus/` directory exists in PROJECT (verify with `ls -la .gitnexus/`). Phase 6 logged as "installed" in state file
 - After step 7: GitNexus is added to MCP config. Running `/mcp` shows `gitnexus · ✔ connected`
@@ -198,7 +198,7 @@ See TC-021 and TC-022 for dedicated mode-specific test cases.
 
 **Steps**:
 1. Open terminal in PROJECT root
-2. Run `npx gitnexus@latest status`
+2. Run `npx -y gitnexus@latest status`
 3. Note the symbol count and relationship count
 4. Open a new agent chat session
 5. Ask: "Use GitNexus query tool to search for [a known function in PROJECT]"
@@ -346,7 +346,7 @@ See TC-021 and TC-022 for dedicated mode-specific test cases.
 10. Ask the new agent: "Use GitNexus query to search for [a known function in PROJECT]"
 
 **Expected Results**:
-- After step 5: Agent executes `npx gitnexus@latest analyze --skip-agents-md` and `npx gitnexus@latest setup`
+- After step 5: Agent executes `npx -y gitnexus@latest analyze --skip-agents-md` and `npx -y gitnexus@latest setup`
 - After step 6: Phase 9 verification passes
 - After step 7: `.gitnexus/` directory exists with index files
 - After step 8: CONTEXT.md contains "GitNexus is installed. USE SKILL `gitnexus-tools`... USE SKILL `gitnexus-cli`..."
@@ -471,7 +471,7 @@ See TC-021 and TC-022 for dedicated mode-specific test cases.
 **Steps**:
 1. Record the content hash and modification timestamp of `AGENTS.md`: run `md5 AGENTS.md` (or `md5sum`) and `stat AGENTS.md`
 2. If `CLAUDE.md` exists, record its hash and timestamp as well
-3. Run `npx gitnexus@latest analyze --skip-agents-md` in PROJECT root
+3. Run `npx -y gitnexus@latest analyze --skip-agents-md` in PROJECT root
 4. Wait for indexing to complete
 5. Record the content hash and modification timestamp of `AGENTS.md` again
 6. If `CLAUDE.md` exists, record its hash and timestamp again
@@ -529,7 +529,7 @@ See TC-021 and TC-022 for dedicated mode-specific test cases.
 
 ---
 
-### TC-017: `npx gitnexus@latest status` reports correct index state (Happy Path)
+### TC-017: `npx -y gitnexus@latest status` reports correct index state (Happy Path)
 
 **Related Requirement**: FR-2
 **Type**: Happy Path
@@ -540,7 +540,7 @@ See TC-021 and TC-022 for dedicated mode-specific test cases.
 
 **Steps**:
 1. Set up the state as described in Test Data
-2. Run `npx gitnexus@latest status` in PROJECT root
+2. Run `npx -y gitnexus@latest status` in PROJECT root
 3. Observe the output
 
 **Expected Results**:
@@ -550,7 +550,7 @@ See TC-021 and TC-022 for dedicated mode-specific test cases.
 | State | Setup | Expected output |
 |-------|-------|----------------|
 | No index | Remove `.gitnexus/` directory | Reports "not indexed" or equivalent |
-| Valid index | Run `npx gitnexus@latest analyze --skip-agents-md` first | Reports: repo name, last updated timestamp, symbol count > 0, relationship count > 0 |
+| Valid index | Run `npx -y gitnexus@latest analyze --skip-agents-md` first | Reports: repo name, last updated timestamp, symbol count > 0, relationship count > 0 |
 
 **Traceability**:
 - **Functional Requirement**: FR-2

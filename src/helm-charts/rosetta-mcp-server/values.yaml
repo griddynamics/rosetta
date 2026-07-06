@@ -3,30 +3,29 @@ fullnameOverride: ""
 
 replicaCount: 1
 
-# Health probes (optional)
-# Example (edit as needed):
-# livenessProbe:
-#   tcpSocket:
-#     port: port8000
-#   periodSeconds: 30
-#   timeoutSeconds: 5
-#   failureThreshold: 3
+# Health probes
+livenessProbe:
+  tcpSocket:
+    port: port8000
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
 
-# readinessProbe:
-#   httpGet:
-#     path: /healthz
-#     port: port8000
-#   periodSeconds: 10
-#   timeoutSeconds: 5
-#   failureThreshold: 3
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: port8000
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
 
-# startupProbe:
-#   httpGet:
-#     path: /healthz
-#     port: port8000
-#   periodSeconds: 10
-#   timeoutSeconds: 5
-#   failureThreshold: 40
+startupProbe:
+  httpGet:
+    path: /healthz
+    port: port8000
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 40
 
 # PodDisruptionBudget — enable when replicaCount > 1 (or autoscaling minReplicas > 1)
 podDisruptionBudget:
@@ -93,13 +92,31 @@ service:
 
 ingress:
   enabled: true
-  className: nginx
+  className: traefik
   host: rosetta-mcp.local
-  annotations:
-    kubernetes.io/ingress.class: nginx
+  annotations: {}
   paths:
     - /
-  # Production: enable TLS below (or terminate TLS upstream). Defaults leave MCP on HTTP at the Ingress until configured.
+  # Traefik-specific settings (applied when className is "traefik").
+  traefik:
+    # External middleware references (fully-qualified, e.g. "namespace-name@kubernetescrd").
+    # Rendered first in the middleware chain annotation.
+    middlewares: []
+    # Per-release rate limiting — creates a Traefik Middleware (custom resource) in the release namespace (requires Traefik CRDs installed).
+    rateLimit:
+      average: 100
+      burst: 200
+      period: "1s"
+  # --- nginx alternative ---
+  # To use nginx instead of Traefik, set:
+  #   className: nginx
+  #   annotations:
+  #     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  #     nginx.ingress.kubernetes.io/limit-rps: "100"
+  #     nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
+  # and remove the traefik section above.
+  #
+  # TLS: enable below or terminate TLS upstream (e.g. cloud LB, cert-manager).
   # tls:
   #   - secretName: rosetta-mcp-tls
   #     hosts:

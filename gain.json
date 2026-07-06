@@ -10,10 +10,10 @@
     "copilot"
   ],
   "sdlc": {
-    "issue_tracker": "Jira",
-    "issue_tracker_project": "https://griddynamics.atlassian.net/jira/software/c/projects/CTORNDGAIN/boards/6077",
-    "wiki": "Confluence",
-    "wiki_project": "https://griddynamics.atlassian.net/wiki/spaces/RNDM/pages/3927834626/Rosetta+Knowledge+Base",
+    "issue_tracker": "GitHub Issues",
+    "issue_tracker_project": "https://github.com/griddynamics/rosetta/issues",
+    "wiki": "GitHub Wiki",
+    "wiki_project": "https://github.com/griddynamics/rosetta/wiki",
     "test_management": "TestRail",
     "test_management_project": "CTORNDGAIN",
     "scm": "GitHub",

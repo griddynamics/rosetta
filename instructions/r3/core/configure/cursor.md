@@ -150,8 +150,8 @@ The `model` field accepts the following model id values:
 - `auto` - Selects cheapest matching model, avoid use of it!
 - `composer-2-fast` - Uses a very fast and cheap model (for simple tasks, like executing a predefined set of scripts and analyzing the output)
 - `claude-4.8-opus-high-thinking` - Anthropic Claude 4.8 Opus (most capable, with extended reasoning, expensive)
-- `claude-4.6-sonnet` - Anthropic Claude 4.6 Sonnet
-- `claude-4.6-sonnet-thinking` - Anthropic Claude 4.6 Sonnet with extended reasoning
+- `claude-5-sonnet` - Anthropic Claude 5 Sonnet
+- `claude-5-sonnet-thinking` - Anthropic Claude 5 Sonnet with extended reasoning
 - `claude-4.5-haiku` - Anthropic Claude 4.5 Haiku
 - `claude-4.5-haiku-thinking` - Anthropic Claude 4.5 Haiku with thinking
 - `gpt-5.1-codex-max` - OpenAI GPT 5.1 Codex Max
@@ -256,7 +256,7 @@ Before deploying, run: `python scripts/validate.py`
 | `license` | No | string | License name or reference to bundled license file. |
 | `compatibility` | No | string | Environment requirements (system packages, network access, etc.). |
 | `metadata` | No | object | Arbitrary key-value mapping for additional metadata. |
-| `disable-model-invocation` | No | boolean | If `true`, skill only included when explicitly invoked via `/skill-name`. Note: on plugin-delivered skills this flag currently makes the skill fully uninvocable (Cursor bug — works correctly for repo-level `.cursor/skills/`). |
+| `disable-model-invocation` | No | boolean | If `true`, skill only included when explicitly invoked via `/skill-name`. Note: on plugin-delivered skills this flag currently makes the skill fully uninvocable (Cursor bug — works correctly for repo-level `.cursor/skills/`). - revalidate |
 
 #### Optional Directories
 
@@ -377,6 +377,83 @@ The `@` symbol allows you to reference files and folders in your prompts:
 - `@directory/` - Include entire directory
 - `@directory/**/*.ts` - Include TypeScript files in directory
 - Multiple selections: `@src/api @tests/api`
+
+---
+
+## Hooks
+
+Cursor hooks run scripts at lifecycle events. Full verified contract: [Cursor Hooks reference](https://cursor.com/docs/reference/hooks).
+
+### Hook Locations
+
+| Path | Scope |
+|------|-------|
+| `.cursor/hooks.json` | Project |
+| `~/.cursor/hooks.json` | User |
+| Enterprise (`/Library/Application Support/Cursor/`, `/etc/cursor/`, `C:\ProgramData\Cursor\`) | Org-wide |
+
+### Registration Format
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "<hookName>": [
+      { "type": "command", "command": "path/to/script", "timeout": 60, "failClosed": false, "matcher": "Shell" }
+    ]
+  }
+}
+```
+
+`failClosed` (default `false`): if `true`, a hook that crashes or returns no decision **blocks** the action (fail-closed) instead of letting it through (fail-open) — see gotcha below.
+
+### Supported Events (Rosetta-relevant)
+
+| Event | Matcher basis | Purpose |
+|-------|---------------|---------|
+| `sessionStart` | — | inject `additional_context`, set session `env` |
+| `preToolUse` (generic) + `beforeShellExecution`/`beforeReadFile`/`beforeMCPExecution` (granular) | tool type (`Shell`, `Read`, `Write`, `Task`, `MCP:<name>`) | deny / rewrite / advise before a tool runs |
+| `postToolUse` (generic) + `afterShellExecution`/`afterFileEdit`/`afterMCPExecution` (granular) | tool type | inject `additional_context` after a tool runs |
+| `subagentStart` / `subagentStop` | subagent type | observe / `followup_message` on completion |
+| `stop` | — | `followup_message` auto-submitted as the agent's next turn |
+
+**(!) Cursor fires BOTH the generic and the matching granular hook for one tool call.** Wiring a guard on both `preToolUse` and `beforeShellExecution` double-fires it — pick one layer per guard.
+
+### Input
+
+Delivered as snake_case JSON on stdin; `tool_input` is an object. Common (all events): `conversation_id` (= `session_id`), `generation_id`, `model`, `hook_event_name` (camelCase), `cursor_version`, `workspace_roots`, `user_email`, `transcript_path` (may be `null`). Tool events (`preToolUse`/`postToolUse`) add `tool_name` (`Shell`, `Read`, `Write`, `Grep`, `Task`, `MCP:<name>`), `tool_input`, `tool_use_id`, `cwd`; `postToolUse` adds `tool_output` (JSON string) + `duration`.
+
+### Output (flat snake_case — no `hookSpecificOutput` wrapper)
+
+| Field | Used on | Meaning |
+|-------|---------|---------|
+| `permission` | `preToolUse`/`before*` | `"allow"` \| `"deny"` \| `"ask"`. **(!) `"ask"` is enforced only on `beforeShellExecution`/`beforeMCPExecution`** (schema-accepted but not enforced on `preToolUse`) — and in practice shows no interactive approval UI, behaving like `"deny"`. |
+| `user_message` | deny | shown to the user; **the only deny-reason channel confirmed to reach the model** (via the following `postToolUseFailure.error_message`) |
+| `agent_message` | deny | documented as model-facing, but NOT confirmed to reach the model — do not rely on it for agent-visible content |
+| `additional_context` | `sessionStart` / `postToolUse` | injected into the conversation |
+| `updated_input` | `preToolUse` | replaces tool args before execution |
+| `followup_message` | `stop` / `subagentStop` | auto-submitted as the next turn |
+| `env` | `sessionStart` | sets vars for later **hook script** invocations only — NOT visible in the agent's own shell |
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | stdout JSON parsed |
+| `2` | blocks the action. Works standalone with no body. **(!) Pairing it with a JSON body does NOT get parsed — the raw text is shown verbatim instead of the structured fields above. Prefer exit `0` + JSON for denies.** |
+| other non-zero | hook failed — fails OPEN unless `failClosed:true` |
+
+**(!) `failClosed:true` blocks on ANY non-decisive response, not just a crash.** A `failClosed` hook must emit an explicit `permission` on every invocation — including calls where it has nothing to say — or it blocks every action on that event.
+
+### Matchers
+
+| Hook | Matches against |
+|------|------------------|
+| `preToolUse` / `postToolUse` / `postToolUseFailure` | tool type: `Shell`, `Read`, `Write`, `Task`, `MCP:<name>` |
+| `beforeShellExecution` / `afterShellExecution` | the command text |
+| `beforeReadFile` | tool type: `Read`, `TabRead` |
+| `afterFileEdit` | tool type: `Write`, `TabWrite` |
+| `subagentStart` / `subagentStop` | subagent type |
 
 ---
 

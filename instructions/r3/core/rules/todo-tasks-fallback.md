@@ -11,7 +11,7 @@ baseSchema: docs/schemas/rule.md
 
 <when>
 
-Use this rule when `rosettify` MCP fails AND `npx rosettify@latest` also fails.
+Use this rule when `rosettify` MCP fails AND `npx -y rosettify@latest` also fails.
 
 </when>
 

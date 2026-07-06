@@ -30,7 +30,7 @@ IMPORTANT! If the task is to reverse engineer requirements, spawn MULTIPLE subag
 
 </prerequisites>
 
-<discovery phase="1" priority="must" subagent="discoverer" role="Context analyst collecting project and scope signals" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
+<discovery phase="1" priority="must" subagent="discoverer" role="Context analyst collecting project and scope signals" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro">
 
 Artifact: Discovery Summary (context, existing requirements, constraints, affected files).
 Done when: scope boundaries and relevant requirement files are identified.
@@ -98,7 +98,7 @@ Done when: every in-scope requirement has schema-complete draft and explicit use
 
 </draft>
 
-<validate phase="6" priority="must" subagent="reviewer" role="Quality reviewer checking correctness, conflicts, and gaps" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6" must-be-subagent>
+<validate phase="6" priority="must" subagent="reviewer" role="Quality reviewer checking correctness, conflicts, and gaps" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5" must-be-subagent>
 
 Artifact: Validation Report (rubric results, conflict checks, gap checks, risks).
 Done when: checklist passes and unresolved issues are either fixed or explicitly deferred.

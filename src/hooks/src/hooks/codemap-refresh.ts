@@ -12,7 +12,7 @@
 // schedule again. A stale lock (its sleeper died) is reclaimed automatically.
 //
 // Supported backends (detected by walking up from cwd):
-//   GitNexus  — marker: .gitnexus/              command: npx gitnexus analyze --force
+//   GitNexus  — marker: .gitnexus/              command: npx -y gitnexus@latest analyze --force
 //   Graphify  — marker: graphify-out/graph.json command: graphify update .
 //
 // Rules:
@@ -111,7 +111,7 @@ const buildRefreshCommand = (backend: string, repoRoot: string): string => {
   if (backend === 'gitnexus') {
     const hadEmbeddings = getEmbeddingsFlag(repoRoot);
     const extraFlags = hadEmbeddings ? ' --embeddings' : '';
-    const command = `npx gitnexus analyze --force${extraFlags}`;
+    const command = `npx -y gitnexus@latest analyze --force${extraFlags}`;
     debugLogHookBranch('codemap-refresh', 'refresh-command-built', {
       backend,
       repoRoot,

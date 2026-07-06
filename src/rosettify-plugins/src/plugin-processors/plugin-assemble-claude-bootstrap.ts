@@ -24,12 +24,12 @@ export function pluginAssembleClaudeBootstrap(
 ): PluginProcessingFrame {
   const { payload, errors } = assembleBootstrapPayload(
     p,
-    (additionalContext, _jsonPayload, _lockIndex) => {
+    (additionalContext) => {
       const jsonPayload = buildHookPayloadJson(additionalContext);
       const command = wrapInPrintf(jsonPayload);
       return buildClaudeBootstrapEntry(command);
     },
-    (_lockIndex, _folderPairs) => buildClaudeBootstrapEntry(CLAUDE_PLUGIN_ROOT_ENTRY.command),
+    (_folderPairs) => buildClaudeBootstrapEntry(CLAUDE_PLUGIN_ROOT_ENTRY.command),
   );
   return updatePluginFrame(p, (draft) => {
     draft.templateContext = { ...draft.templateContext, bootstrap_hooks: payload };

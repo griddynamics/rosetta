@@ -109,7 +109,7 @@ Steps → Phases → Plan root. Plan root status is always derived; never set di
       "depends_on": ["ph-1"],
       "subagent": "engineer",
       "role": "Senior software engineer",
-      "model": "claude-sonnet-4-6",
+      "model": "claude-sonnet-5",
       "steps": [
         {
           "id": "s-2",

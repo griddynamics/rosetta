@@ -59,19 +59,20 @@ ISO/IEC 25010 buckets. Metrics and conditions stated.
 
 <req id="NFR-0004" type="NFR" level="System" ticketId="" classification="technical">
   <title>Bootstrap context size limit</title>
-  <statement>The generator shall treat any single bootstrap context entry exceeding 10000 characters (after escaping) as a soft error: it shall report each offending target and file, still emit the output, and set a non-zero exit status.</statement>
-  <rationale>Compatibility: IDE session-start context has a size budget; the run completes so all problems surface at once, and the non-zero exit signals the violation.</rationale>
+  <statement>The generator shall treat any single bootstrap context entry's ORIGINAL content — the bootstrap document text itself, measured BEFORE any IDE-specific JSON wrapping/escaping/duplication — exceeding 10000 characters as a soft error: it shall report each offending target and file, still emit the output, and set a non-zero exit status. The limit is about the actual content an agent has to read, not the incidental size of whichever wire format carries it; the same content must not pass or fail the check depending on which IDE's entry shape happens to be measured.</statement>
+  <rationale>Compatibility: IDE session-start context has a size budget; the run completes so all problems surface at once, and the non-zero exit signals the violation. The limit applies to the original content so the same document gets the same verdict regardless of which IDE's wire format happens to carry it.</rationale>
   <source>User</source>
   <priority>Must</priority>
-  <status>Approved</status>
+  <status>Draft</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-07-01</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: an entry over 10000 chars When: assembled Then: a violation is reported naming the target and file, the output is still emitted, and exit status is non-zero.</criteria>
+    <criteria>Given: a document whose ORIGINAL content (after the bootstrap prefix and folder rewrites, before any IDE JSON wrapping) is over 10000 chars When: assembled for ANY IDE Then: a violation is reported naming the target and file, the output is still emitted, and exit status is non-zero.</criteria>
+    <criteria>Given: a document whose original content is under 10000 chars but whose wrapped/escaped/IDE-specific entry (e.g. Copilot's merged top-level+nested emit, which duplicates the content) would exceed 10000 chars if measured post-wrapping When: assembled Then: NO violation is reported — the check is IDE-shape-independent.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify-plugins/src/bootstrap/payload.ts (assembleBootstrapPayload checks `rewrittenContext.length` — the additionalContext body, post-prefix/post-folder-rewrite, pre-JSON-wrapping); src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,codex,cursor,copilot}-bootstrap.ts (EntryBuilderFn callback signature).</implementationNotes>
 </req>
 
 <req id="NFR-0005" type="NFR" level="System" ticketId="" classification="technical">

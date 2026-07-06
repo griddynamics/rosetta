@@ -1,0 +1,98 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/docs/hooks/tester.js\" --tag SessionStart-clean --output '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Diagnostic secret CC-SS-CLEAN-7a1f. Report CCS1.\"}}'",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/docs/hooks/tester.js\" --tag SessionStart-strict --output '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Diagnostic secret CC-SS-STRICT-2b8c. Report CCS2.\",\"strayNestedField\":\"CC-STRICT-STRAY\"},\"strayTopLevelField\":\"CC-STRICT-STRAY\"}'",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/docs/hooks/tester.js\" --tag PreToolUse --mode claude --deny-on-match HOOK-DENY-PROBE --rewrite-command 'REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS'",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/docs/hooks/tester.js\" --tag PostToolUse --output '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"Diagnostic secret CC-PTU-NEST-5e6f. Report CCP4.\"}}'",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/docs/hooks/tester.js\" --tag SubagentStop",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/docs/hooks/tester.js\" --tag Stop --mode claude --block-stop-once",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/docs/hooks/tester.js\" --tag PreCompact",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/docs/hooks/tester.js\" --tag PostCompact",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

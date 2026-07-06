@@ -35,7 +35,32 @@ export interface IdeAdapter {
   detect:       (raw: Record<string, unknown>) => boolean;
   normalize:    (raw: Record<string, unknown>) => NormalizedInput;
   formatOutput: (canonical?: CanonicalOutput) => Record<string, unknown>;
-  // Platform-level dedup: return a stable key per logical tool call to collapse duplicate
-  // events emitted by the IDE. Return null to disable dedup for this adapter.
-  dedupKey?:    (raw: Record<string, unknown>, hookName: string) => string | null;
+  // Process exit code for this IDE's deny mechanism. Default (unset) = 0 — correct for IDEs whose
+  // deny is carried entirely in the JSON body at exit 0 (Claude Code, Codex, Copilot, Cursor —
+  // for Cursor this is deliberate, see adapters/cursor.ts). Only implement this for an IDE whose
+  // deny is exit-code-driven, and only once verified empirically (Windsurf: docs/hooks/windsurf.md).
+  exitCode?:    (canonical: CanonicalOutput) => number;
+  // Text to write to the process's STDERR (not stdout). Default (unset) = nothing. Only for IDEs
+  // whose sole hook→model text channel is stderr — i.e. stdout is never parsed as JSON, so a deny
+  // reason must be delivered via stderr on a blocking (exit-2) pre-hook. Verified only for Windsurf
+  // (docs/hooks/windsurf.md: Cascade "will see the error message from stderr"). Every other IDE
+  // carries its deny reason in the stdout JSON body and leaves this unset.
+  stderrMessage?: (canonical: CanonicalOutput) => string | undefined;
+}
+
+export type AdapterEnv = Record<string, string | undefined>;
+
+// The full adapter API surface consumed by run-hook.ts. Both the multi-IDE dispatcher (adapter.ts)
+// and each slim per-IDE bundle entrypoint (entrypoints/adapter-*.ts, via makeEntrypoint) expose an
+// `adapter: AdapterApi` object. run-hook.ts imports `{ adapter }` from '../adapter'; the bundler
+// aliases '../adapter' to the per-IDE entrypoint at build time (scripts/build-bundles.mjs). Adding a
+// new method here is a single-file change to make-entrypoint.ts + adapter.ts's object, not an edit
+// across every entrypoint in lockstep (was the cost noted in hooks-verify.md OI-5).
+export interface AdapterApi {
+  readStdin: (stream?: NodeJS.ReadableStream) => Promise<unknown>;
+  detectIDE: (rawInput: unknown, env?: AdapterEnv) => string;
+  normalize: (rawInput: unknown, env?: AdapterEnv) => NormalizedInput;
+  formatOutput: (canonicalOutput: CanonicalOutput | Record<string, unknown>, ide?: string) => Record<string, unknown>;
+  exitCodeFor: (canonicalOutput: CanonicalOutput, ide?: string) => number;
+  stderrMessageFor: (canonicalOutput: CanonicalOutput, ide?: string) => string | undefined;
 }

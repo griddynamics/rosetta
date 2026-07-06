@@ -1,7 +1,7 @@
 import { test, describe, expect, vi, beforeEach, afterEach } from 'vitest';
-import { runHook, runAsCli } from '../../src/runtime/run-hook';
+import { runHook, runAsCli, resolveExitCode, executeHook } from '../../src/runtime/run-hook';
 import { defineHook } from '../../src/runtime/define-hook';
-import { advise, sideEffect } from '../../src/runtime/result-helpers';
+import { advise, sideEffect, deny, allow } from '../../src/runtime/result-helpers';
 import { readStdin } from '../../src/adapter';
 import type { FilePathPredicate } from '../../src/runtime/types';
 import ccWrite from '../fixtures/claude-code-post-tool-use-write.json';
@@ -18,7 +18,10 @@ const copilotCreateFile = {
 
 vi.mock('../../src/adapter', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../src/adapter')>();
-  return { ...actual, readStdin: vi.fn() };
+  // run-hook.ts calls adapter.readStdin (the object), so the stub must live on BOTH the named
+  // export (this test reads it back via mockRead) and the adapter object — same fn reference.
+  const readStdin = vi.fn();
+  return { ...actual, readStdin, adapter: { ...actual.adapter, readStdin } };
 });
 
 const mockRead = (raw: Record<string, unknown>) =>
@@ -209,8 +212,14 @@ describe('runHook — fs.nearestMarker gate', () => {
   });
 });
 
-describe('runHook — platform dedup via adapter', () => {
-  test('Copilot raw sent twice — second call is silent (platform dedup)', async () => {
+// Platform-level dedup removed 2026-06-30: it existed to collapse TWO invocations Copilot CLI
+// made for a SINGLE registered hook per real event — a Copilot-side runtime bug, independent
+// of registration casing. GitHub has since fixed it (confirmed empirically: one registration
+// now yields exactly one invocation), so every IDE — Copilot included — now behaves like Claude
+// Code always did here: an identical raw payload sent twice both fire, because they're two
+// separate real invocations, not a single duplicated one.
+describe('runHook — no platform dedup (removed 2026-06-30, see define-hook.ts)', () => {
+  test('Copilot: identical raw sent twice — both fire', async () => {
     mockRead(copilotCreateFile);
     const out1: string[] = [];
     await runHook(ADVISE_HOOK, { stdout: { write: (s: string) => out1.push(s) } as unknown as NodeJS.WritableStream });
@@ -219,10 +228,10 @@ describe('runHook — platform dedup via adapter', () => {
     mockRead(copilotCreateFile);
     const out2: string[] = [];
     await runHook(ADVISE_HOOK, { stdout: { write: (s: string) => out2.push(s) } as unknown as NodeJS.WritableStream });
-    expect(out2).toHaveLength(0);
+    expect(out2).toHaveLength(1);
   });
 
-  test('Claude Code raw sent twice — both fire (no platform dedup for CC)', async () => {
+  test('Claude Code: identical raw sent twice — both fire', async () => {
     mockRead(ccWrite);
     const out1: string[] = [];
     await runHook(ADVISE_HOOK, { stdout: { write: (s: string) => out1.push(s) } as unknown as NodeJS.WritableStream });
@@ -232,5 +241,130 @@ describe('runHook — platform dedup via adapter', () => {
     const out2: string[] = [];
     await runHook(ADVISE_HOOK, { stdout: { write: (s: string) => out2.push(s) } as unknown as NodeJS.WritableStream });
     expect(out2).toHaveLength(1);
+  });
+});
+
+describe('resolveExitCode — Bug 1 decision tree', () => {
+  const DENY_CANONICAL = { hookSpecificOutput: { permissionDecision: 'deny' as const, permissionDecisionReason: 'no' } };
+  const ALLOW_CANONICAL = { hookSpecificOutput: { permissionDecision: 'allow' as const } };
+
+  test('deny on an exit-code-driven IDE (Windsurf) → adapter exit code (2)', () => {
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'windsurf')).toBe(2);
+  });
+
+  test('deny on a JSON-body-only IDE (Cursor) → 0 (deny is carried in the body, not the exit code)', () => {
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'cursor')).toBe(0);
+  });
+
+  test('deny on Claude Code / Codex / Copilot → 0', () => {
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'claude-code')).toBe(0);
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'codex')).toBe(0);
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'copilot')).toBe(0);
+  });
+
+  test('allow → 0 regardless of IDE', () => {
+    expect(resolveExitCode(allow()!, ALLOW_CANONICAL, 'windsurf')).toBe(0);
+  });
+
+  test('_exitCode override bypasses deny-based resolution entirely', () => {
+    expect(resolveExitCode({ kind: 'deny', reason: 'no', _exitCode: 7 }, DENY_CANONICAL, 'windsurf')).toBe(7);
+  });
+
+  test('_exitCode override applies even on an allow result', () => {
+    expect(resolveExitCode({ kind: 'allow', _exitCode: 3 }, ALLOW_CANONICAL, 'cursor')).toBe(3);
+  });
+
+  test('unknown ide → 0 via exitCodeFor default, no throw', () => {
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'not-a-real-ide')).toBe(0);
+  });
+
+  test('malformed canonical that throws while resolving → 1000, not an unhandled error', () => {
+    expect(resolveExitCode(deny('no')!, null as unknown as typeof DENY_CANONICAL, 'windsurf')).toBe(1000);
+  });
+});
+
+// A deny reason MUST be delivered through each IDE's own contract, and MUST NOT leak onto a channel
+// that IDE does not read. Windsurf: stderr + exit 2, stdout carries nothing. Every other IDE (Claude
+// Code here): stdout JSON body, stderr stays empty, exit 0. Verified END-TO-END through executeHook
+// (the full pipeline: detect → normalize → run → canonical → formatOutput → resolveExitCode →
+// stderrMessageFor) so it can never silently regress for a "wrong IDE". The report is asserted via
+// executeHook; that runHook/runAsCli actually WRITE report.stderrMessage is a separate check below.
+const REASON = 'blocked: reading a secret';
+const DENY_HOOK = defineHook({
+  name: 'deny-any-pre',
+  on: { event: 'PreToolUse' },
+  run: () => deny(REASON),
+});
+const runToReport = async (raw: Record<string, unknown>) => {
+  mockRead(raw);
+  const out: string[] = [];
+  const report = await executeHook(DENY_HOOK, {
+    stdout: { write: (s: string) => out.push(s) } as unknown as NodeJS.WritableStream,
+  });
+  return { out, report };
+};
+
+describe('deny delivery per IDE contract (executeHook, end-to-end)', () => {
+  const wsPreCommand = {
+    agent_action_name: 'pre_run_command',
+    trajectory_id: 'traj-ws-1',
+    execution_id: 'exec-ws-1',
+    timestamp: '2026-06-30T10:00:00-04:00',
+    model_name: 'SWE-1.6 Slow',
+    tool_info: { command_line: 'cat secret.txt', cwd: '/proj' },
+  };
+  const ccPreCommand = {
+    hook_event_name: 'PreToolUse',
+    tool_name: 'Bash',
+    tool_input: { command: 'cat secret.txt' },
+    session_id: 'cc-sess-1',
+    cwd: '/proj',
+  };
+
+  test('Windsurf: reason → stderrMessage, stdout empty ({}), exit 2', async () => {
+    const { out, report } = await runToReport(wsPreCommand);
+    // Cascade never parses stdout → the reason is NOT there; only "{}" is emitted.
+    expect(out).toEqual(['{}']);
+    // Windsurf's ONLY hook→model channel is stderr; its ONLY block mechanism is exit 2.
+    expect(report.stderrMessage).toBe(REASON);
+    expect(report.exitCode).toBe(2);
+  });
+
+  test('Claude Code (stdout-JSON IDE): reason → stdout body, NO stderr, exit 0', async () => {
+    const { out, report } = await runToReport(ccPreCommand);
+    // The reason must travel in the stdout JSON body — NOT stderr.
+    expect(report.stderrMessage).toBeUndefined();
+    expect(report.exitCode).toBe(0);
+    const parsed = JSON.parse(out[0]);
+    expect(parsed.hookSpecificOutput.permissionDecision).toBe('deny');
+    expect(parsed.hookSpecificOutput.permissionDecisionReason).toBe(REASON);
+  });
+
+  test('Windsurf non-deny (advise) → no stderrMessage, exit 0', async () => {
+    mockRead(wsPreCommand);
+    const adviseHook = defineHook({ name: 'ws-advise', on: { event: 'PreToolUse' }, run: () => advise('fyi') });
+    const report = await executeHook(adviseHook, {
+      stdout: { write: () => {} } as unknown as NodeJS.WritableStream,
+    });
+    expect(report.stderrMessage).toBeUndefined();
+    expect(report.exitCode).toBe(0);
+  });
+});
+
+describe('runHook actually WRITES report.stderrMessage to the stderr stream', () => {
+  const wsPreCommand = {
+    agent_action_name: 'pre_run_command', trajectory_id: 'traj-ws-2', execution_id: 'exec-ws-2',
+    timestamp: '2026-06-30T10:00:00-04:00', model_name: 'SWE-1.6 Slow',
+    tool_info: { command_line: 'cat secret.txt', cwd: '/proj' },
+  };
+
+  test('Windsurf deny → REASON written to the provided stderr stream', async () => {
+    mockRead(wsPreCommand);
+    const err: string[] = [];
+    await runHook(DENY_HOOK, {
+      stdout: { write: () => {} } as unknown as NodeJS.WritableStream,
+      stderr: { write: (s: string) => err.push(s) } as unknown as NodeJS.WritableStream,
+    });
+    expect(err).toEqual([REASON]);
   });
 });

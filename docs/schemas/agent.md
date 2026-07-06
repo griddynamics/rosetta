@@ -10,7 +10,7 @@ alwaysApply: false
 model: "<FULL current model id, e.g. claude-opus-4-8>"
 # temperature — response randomness (Optional — uncomment to enable) [float] [OpenCode]
 # temperature: 0.7
-# [Latest models: Anthropic (claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5); OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high, gpt-5.4-medium, gpt-5.4-high, gpt-5.5-high); Google (gemini-3.1-pro-preview, gemini-3-flash-preview); Z.ai (glm-5)]
+# [Latest models: Anthropic (claude-opus-4-8, claude-sonnet-5, claude-haiku-4-5); OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high, gpt-5.4-medium, gpt-5.4-high, gpt-5.5-high); Google (gemini-3.1-pro-preview, gemini-3-flash-preview); Z.ai (glm-5)]
 # [Families: large/smart/slow {opus, high, pro} · medium/workhorse {sonnet, medium, glm-5, kimi-k2.5, minimax-m2.5} · small/fast {haiku, glm-4.7, flash, mini, low}]
 
 # Mode (Optional — uncomment to enable)

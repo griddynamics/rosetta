@@ -6,22 +6,25 @@ const debugLogHookMock = vi.hoisted(() => vi.fn());
 const debugLogBranchMock = vi.hoisted(() => vi.fn());
 
 vi.mock('../../src/adapter', () => ({
-  readStdin: readStdinMock,
-  detectIDE: () => 'codex',
-  normalize: (raw: Record<string, unknown>): NormalizedInput => ({
-    ...raw,
-    ide: 'codex',
-    event: 'PostToolUse',
-    toolKind: 'write',
-    hook_event_name: 'PostToolUse',
-    tool_name: 'Write',
-    tool_input: { file_path: '/proj/src/note.md' },
-    file_path: '/proj/src/note.md',
-    cwd: '/proj',
-    session_id: 'session-1',
-  } as NormalizedInput),
-  formatOutput: (canonicalOutput: Record<string, unknown>) => canonicalOutput,
-  dedupKey: () => null,
+  adapter: {
+    readStdin: readStdinMock,
+    detectIDE: () => 'codex',
+    normalize: (raw: Record<string, unknown>): NormalizedInput => ({
+      ...raw,
+      ide: 'codex',
+      event: 'PostToolUse',
+      toolKind: 'write',
+      hook_event_name: 'PostToolUse',
+      tool_name: 'Write',
+      tool_input: { file_path: '/proj/src/note.md' },
+      file_path: '/proj/src/note.md',
+      cwd: '/proj',
+      session_id: 'session-1',
+    } as NormalizedInput),
+    formatOutput: (canonicalOutput: Record<string, unknown>) => canonicalOutput,
+    exitCodeFor: () => 0,
+    stderrMessageFor: () => undefined,
+  },
 }));
 
 vi.mock('../../src/runtime/debug-log', () => ({

@@ -19,9 +19,11 @@ baseSchema: docs/schemas/rule.md
 - All requests MUST be SDLC/project/capability/self-help. No private chats. OVERRIDE NOT ALLOWED.
 - Secure by Design/Default/Deployment/Maintenance; security is verified.
 - Re-read content lost to compaction/summarization; don't re-read the same file repeatedly.
-- Professionally direct; polite; no profanity.
+- Professionally direct, concise, no unsupported meta-commentary, polite, no profanity.
 - No absolute paths in generated files; absolute paths only in tool calls/shell.
 - Prefer built-in tools over shell.
+- Do not limit review/verify/validate on actions/sources/etc
+- Accuracy and Depth over speed — don't rush, take the time
 
 </high_important_core_policies>
 
@@ -40,12 +42,12 @@ Test: survives audit even if the outcome was bad, because the reasoning was soun
 <intrinsics>
 
 - coded ≠ done · tests passing ≠ actually works
-- review = static inspection · validation = run it / manual QA by a subagent
+- review = static inspection · validation = run it & manual QA by a subagent
 - done = ultimately works: usable, correct, real value
 - confidence ≠ evidence · trust but verify
 - existence ≠ implementation ≠ integration
 - current paths ≠ deployed paths
-- accuracy over speed — don't rush, take the time
+- accepted result ≠ fast result
 
 </intrinsics>
 
@@ -68,7 +70,7 @@ Orchestrator/top-agent (not subagents): USE SKILL `hitl`, `orchestration`, `ques
 
 <core_rosetta_files>
 
-Keep current as work lands:
+Keep current as work lands concise for next session consistency:
 - `docs/CONTEXT.md` — business + behavior + target state.
 - `docs/ARCHITECTURE.md` — architecture + technical requirements.
 - `agents/MEMORY.md` — root causes, what worked and failed.

@@ -2,11 +2,7 @@
 
 import { test, describe, expect, vi, afterEach } from 'vitest';
 import { Readable, Writable } from 'stream';
-import { existsSync, unlinkSync } from 'fs';
 import fs from 'fs';
-import { createHash } from 'crypto';
-import path from 'path';
-import os from 'os';
 
 import ccWrite from './fixtures/claude-code-post-tool-use-write.json';
 import copilotCC from './fixtures/copilot-post-tool-use-cc-format.json';
@@ -98,13 +94,6 @@ const capture = () => {
   return { writable, output(): string { return chunks.join(''); } };
 };
 
-// Mirror Copilot platform-dedup key format (adapters/copilot.ts dedupKey).
-const lockPathFor = (hookName: string, toolName: string, toolArgs: string): string => {
-  const key = `copilot:${hookName}:${toolName}:${toolArgs}`;
-  const fp = createHash('sha256').update(key).digest('hex').slice(0, 16);
-  return path.join(os.tmpdir(), `rosetta-hooks-${fp}.lock`);
-};
-
 // Builds a Copilot-shaped raw input (old format, no hook_event_name).
 const makeCopilotRaw = (filePath: string) => ({
   timestamp: 1704614400000,
@@ -174,30 +163,27 @@ describe('runHook — nudge output shape', () => {
 
 });
 
-// ---------------------------------------------------------------------------
-describe('runHook — platform dedup silences Copilot duplicates', () => {
+// Platform-level dedup removed 2026-06-30 (see define-hook.ts): it existed to collapse TWO
+// invocations Copilot CLI made for a SINGLE registered hook per real event — a Copilot-side
+// runtime bug, now fixed by GitHub (confirmed empirically). Copilot no longer needs special
+// treatment here — an identical raw payload sent twice is two real invocations, same as CC.
+describe('runHook — no platform dedup (Copilot behaves like every other IDE)', () => {
 
-  test('Copilot: second identical call within TTL is silenced', async () => {
+  test('Copilot: identical raw sent twice — both fire', async () => {
     const uniq = Math.random().toString(36).slice(2);
-    const filePath = `/tmp/rosetta-test-copilot-dedup-${uniq}.py`;
+    const filePath = `/tmp/rosetta-test-copilot-nodedup-${uniq}.py`;
     const raw = makeCopilotRaw(filePath);
-    const lp = lockPathFor('loose-files', raw.toolName, raw.toolArgs);
-    if (existsSync(lp)) unlinkSync(lp);
 
-    try {
-      const { writable: out1, output: get1 } = capture();
-      await runHook(looseFilesHook, { stdin: toStream(raw), stdout: out1 });
-      expect(get1().length > 0, 'first Copilot call should emit nudge').toBeTruthy();
+    const { writable: out1, output: get1 } = capture();
+    await runHook(looseFilesHook, { stdin: toStream(raw), stdout: out1 });
+    expect(get1().length > 0, 'first Copilot call should emit nudge').toBeTruthy();
 
-      const { writable: out2, output: get2 } = capture();
-      await runHook(looseFilesHook, { stdin: toStream(raw), stdout: out2 });
-      expect(get2()).toBe('');
-    } finally {
-      if (existsSync(lp)) unlinkSync(lp);
-    }
+    const { writable: out2, output: get2 } = capture();
+    await runHook(looseFilesHook, { stdin: toStream(raw), stdout: out2 });
+    expect(get2().length > 0, 'second Copilot call must also emit nudge (no platform dedup)').toBeTruthy();
   });
 
-  test('Claude Code: duplicate call is NOT silenced (no platform dedup for CC)', async () => {
+  test('Claude Code: identical raw sent twice — both fire', async () => {
     const uniq = Math.random().toString(36).slice(2);
     const filePath = `/tmp/rosetta-test-cc-nodedup-${uniq}.py`;
     const sessionId = `test-cc-${uniq}`;

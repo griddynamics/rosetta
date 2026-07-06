@@ -31,7 +31,7 @@ Extract recurring code structures into explicit reusable pattern templates. With
 3. Read state.mode for dual-mode behavior
 </read_state>
 
-<execute_extraction step="5.2" subagent="built-in" role="Senior pattern analyst extracting reusable conventions" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro-preview">
+<execute_extraction step="5.2" subagent="built-in" role="Senior pattern analyst extracting reusable conventions" subagent_recommended_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro-preview">
 
 Act as a senior pattern architect — recovers reusable structural conventions from code. Codebases accumulate implicit recurring structures that drift without formal documentation. Extract them into explicit reusable templates so agents and contributors produce consistent code. Requires CODEMAP.md on disk.
 

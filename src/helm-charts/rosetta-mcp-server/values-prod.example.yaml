@@ -2,10 +2,20 @@
 # Use with: helm install -f values.yaml -f values-prod.yaml ...
 
 image:
-  tag: "2.0.0"
+  tag: "2.0.25"
 
 ingress:
   host: rosetta.example.com
+  traefik:
+    rateLimit:
+      average: 100
+      burst: 200
+      period: "1s"
+  # nginx alternative (uncomment to switch from traefik):
+  # className: nginx
+  # annotations:
+  #   nginx.ingress.kubernetes.io/limit-rps: "100"
+  #   nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
 
 env:
   enabled: true

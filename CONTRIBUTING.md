@@ -19,7 +19,7 @@
 - **Bug fixes** — in any component
 - **Website** — content and layout updates in `docs/web/`
 - **Feature requests** — open an issue describing the problem and your proposed solution
-- **Feedback** — positive or negative, both matter. Tell us what works well, what frustrates you, what confuses you. File an issue or start a discussion.
+- **Feedback** — positive or negative, both matter. Tell us what works well, what frustrates you, what confuses you. File an issue or start a discussion. Whenever a run fails, frustrates you, or shows anything you'd like improved, the `post-mortem` skill can root-cause it and draft a sanitized issue for you — it submits only with your explicit approval.
 
 Not sure where your idea fits? Open an issue first.
 

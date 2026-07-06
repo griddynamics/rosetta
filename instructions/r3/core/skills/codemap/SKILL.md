@@ -47,7 +47,7 @@ IF gitnexus is already **REQUESTED** in current context:
 - running CLI commands, indexing, checking status, cleaning index, or generating wiki: MUST ACQUIRE `codemap/assets/gitnexus-cli.md` FROM KB and follow it
 - installing GitNexus or registering the MCP server for the first time: MUST ACQUIRE `codemap/assets/gitnexus-setup.md` FROM KB and follow it
 - Worked examples: ACQUIRE `codemap/assets/gitnexus-examples.md` FROM KB
-- After modifying code, run `npx gitnexus@latest analyze --force` in the workspace root
+- After modifying code, run `npx -y gitnexus@latest analyze --force` in the workspace root
 
 </gitnexus>
 

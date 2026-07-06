@@ -14,7 +14,7 @@ Third-party tool will have access to IP. Review license and policy with your man
 
 **Step 1 — Index the repository:**
 ```bash
-npx gitnexus@latest analyze --skip-agents-md
+npx -y gitnexus@latest analyze --skip-agents-md
 ```
 Indexes the codebase into `.gitnexus/` and auto-provisions editor-specific skills, hooks, and context files where supported.
 
@@ -22,7 +22,7 @@ Add `.gitnexus` to `.gitignore` — the index is local and not committed.
 
 **Step 2 — Register the MCP server (one-time):**
 ```bash
-npx gitnexus@latest setup
+npx -y gitnexus@latest setup
 ```
 Auto-detects installed editors and writes the global MCP config.
 
@@ -36,9 +36,9 @@ GitNexus should appear as `gitnexus · ✔ connected`.
 
 <troubleshooting>
 
-- **MCP not connecting:** Run `npx gitnexus@latest setup` again.
+- **MCP not connecting:** Run `npx -y gitnexus@latest setup` again.
 - **`vector`/`fts` extension errors:** These download from a third-party CDN at index time and may fail on restricted networks. Core graph navigation still works without them.
 - **Slow indexing:** ~5 min for a medium repo (~4k symbols). For very large repos, use `--worker-timeout 60` to increase worker idle timeout.
-- **Stale index after edits:** `gitnexus analyze` installs a PostToolUse hook that auto-refreshes. If missing, run `npx gitnexus@latest analyze` manually between sessions.
+- **Stale index after edits:** `gitnexus analyze` installs a PostToolUse hook that auto-refreshes. If missing, run `npx -y gitnexus@latest analyze` manually between sessions.
 
 </troubleshooting>

@@ -35,7 +35,7 @@ Extract recurring code structures into explicit reusable pattern templates. With
 1. ACQUIRE `init-workspace-patterns/SKILL.md` FROM KB
 </acquire_skills>
 
-<execute_extraction step="5.3" subagent="built-in" role="Senior pattern analyst extracting reusable conventions" subagent_recommended_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro-preview">
+<execute_extraction step="5.3" subagent="built-in" role="Senior pattern analyst extracting reusable conventions" subagent_recommended_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro-preview">
 1. Read CODEMAP, identify distinct modules
 2. Required skill `init-workspace-patterns`
 3. Spawn built-in subagent per module scope for pattern extraction

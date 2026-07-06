@@ -48,11 +48,13 @@ export const CODEX_PLUGIN_ROOT_COMMAND =
   `printf '%s' "{\\"hookSpecificOutput\\":{\\"hookEventName\\":\\"SessionStart\\",\\"additionalContext\\":\\"Rosetta Plugin Path: $workspace_root/.agents\\"}}"; ` +
   `fi`;
 
+// Copilot needs additionalContext at BOTH top-level (Copilot CLI) AND nested in
+// hookSpecificOutput (VS Code) — see docs/hooks/copilot.md, Bug 2.
 export const COPILOT_PLUGIN_ROOT_BASH =
   `for base in "$HOME/.vscode/agent-plugins" "$HOME/.local/share/Code/agentPlugins"; ` +
   `do root="$base/github.com/griddynamics/rosetta/plugins/core-copilot"; ` +
   `if [ -f "$root/commands/coding-flow.md" ]; then ` +
-  `printf '%s' "{\\"hookSpecificOutput\\":{\\"hookEventName\\":\\"SessionStart\\",\\"additionalContext\\":\\"Rosetta Plugin Path: $root\\"}}"; ` +
+  `printf '%s' "{\\"additionalContext\\":\\"Rosetta Plugin Path: $root\\",\\"hookSpecificOutput\\":{\\"hookEventName\\":\\"SessionStart\\",\\"additionalContext\\":\\"Rosetta Plugin Path: $root\\"}}"; ` +
   `break; ` +
   `fi; ` +
   `done`;
@@ -60,7 +62,7 @@ export const COPILOT_PLUGIN_ROOT_BASH =
 export const COPILOT_PLUGIN_ROOT_POWERSHELL =
   `$root = "$env:LOCALAPPDATA\\Code\\agentPlugins\\github.com\\griddynamics\\rosetta\\plugins\\core-copilot"; ` +
   `if (Test-Path "$root\\commands\\coding-flow.md") { ` +
-  `Write-Output ('{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Rosetta Plugin Path: ' + $root + '"}}') ` +
+  `Write-Output ('{"additionalContext":"Rosetta Plugin Path: ' + $root + '","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Rosetta Plugin Path: ' + $root + '"}}') ` +
   `}`;
 
 /**

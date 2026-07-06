@@ -4,13 +4,16 @@ on:
   push:
     branches:
       - main
-    paths:
+    paths: &chart_paths
       - 'src/helm-charts/rosetta-mcp-server/**'
       - '.github/workflows/publish-mcp-helm-chart.yml'
+  pull_request:
+    paths: *chart_paths
+
   workflow_dispatch:
 
 jobs:
-  package-helm-chart:
+  validate:
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -23,35 +26,42 @@ jobs:
         with:
           version: v3.20.2
 
-      - name: Set environment variables
-        id: vars
+      - name: Install helm-unittest plugin
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version 0.6.3
+
+      - name: Lint, template, and unit test chart
         run: |
+          CHART_PATH=./src/helm-charts/rosetta-mcp-server
+          helm lint "$CHART_PATH"
+          helm template helm-test "$CHART_PATH" >/dev/null
+          helm unittest "$CHART_PATH"
+
+  publish:
+    needs: validate
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+
+      - name: Set up Helm
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2
+        with:
+          version: v3.20.2
+
+      - name: Package and push Helm chart (OCI / Docker Hub)
+        run: |
+          set -euo pipefail
           CHART_PATH=./src/helm-charts/rosetta-mcp-server
           VERSION="$(grep -E '^version:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
           CHART_NAME="$(grep -E '^name:' "${CHART_PATH}/Chart.yaml" | awk '{print $2}' | tr -d '"')"
           REPOSITORY="registry-1.docker.io/griddynamics"
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "chart_name=${CHART_NAME}" >> "$GITHUB_OUTPUT"
-          echo "chart_path=${CHART_PATH}" >> "$GITHUB_OUTPUT"
-          echo "repository=${REPOSITORY}" >> "$GITHUB_OUTPUT"
           echo "Package version: ${VERSION}"
           echo "Chart name: ${CHART_NAME}"
           echo "OCI registry prefix: oci://${REPOSITORY}"
-
-      - name: Lint and syntax check chart
-        run: |
-          helm lint "${{ steps.vars.outputs.chart_path }}"
-          helm template helm-test "${{ steps.vars.outputs.chart_path }}" >/dev/null
-
-      - name: Package and push Helm chart (OCI / Docker Hub)
-        if: github.ref_name == 'main'
-        run: |
-          set -euo pipefail
-          CHART="${{ steps.vars.outputs.chart_path }}"
-          VERSION="${{ steps.vars.outputs.version }}"
-          CHART_NAME="${{ steps.vars.outputs.chart_name }}"
-          REPOSITORY="${{ steps.vars.outputs.repository }}"
-          helm package "$CHART" --version "${VERSION}"
+          helm package "$CHART_PATH" --version "${VERSION}"
           PKG="${CHART_NAME}-${VERSION}.tgz"
           echo "${{ secrets.DOCKERHUB_OAT }}" | helm registry login registry-1.docker.io \
             -u "${{ secrets.DOCKERHUB_LOGIN }}" \

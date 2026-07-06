@@ -19,7 +19,7 @@ Solution: Meta-workflow — construct a bespoke plan from building blocks, persi
 <models>
 
 - large (smart, slow): claude-opus-4-8, gpt-5.3-codex-high, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-preview
-- medium (workhorse): claude-sonnet-4-6, gpt-5.3-codex-medium, gpt-5.4-medium, glm-5, kimi-k2.5, minimax-m2.5
+- medium (workhorse): claude-sonnet-5, gpt-5.3-codex-medium, gpt-5.4-medium, glm-5, kimi-k2.5, minimax-m2.5
 - small (fast): claude-haiku-4-5, gpt-5-mini, gemini-3-flash-preview
 
 Match to cognitive demand. Match to current tool.
@@ -28,7 +28,7 @@ Match to cognitive demand. Match to current tool.
 
 <OPERATION_MANAGER>
 
-- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB
+- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx -y rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB
 - Commands:
   - `help plan` provides full information
   - `plan next <plan_file> [limit] [--target <phase_id>]` — get next steps to execute
@@ -91,7 +91,7 @@ Compose these into plan phases/steps to build any execution workflow.
 
 </build_plan>
 
-<review_plan phase="3" if="MEDIUM, LARGE" subagent="reviewer" role="Plan reviewer of AI automated tasks" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6" must-be-subagent>
+<review_plan phase="3" if="MEDIUM, LARGE" subagent="reviewer" role="Plan reviewer of AI automated tasks" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5" must-be-subagent>
 
 1. Review: completeness, sequencing, dependency correctness, prompt clarity, etc.
 2. Subagent to query by full path to plan.json. Orchestrator to upsert fixes.

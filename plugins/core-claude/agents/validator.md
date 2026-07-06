@@ -2,7 +2,7 @@
 name: validator
 description: "Validate that implementation matches intent via execution and evidence. Full subagent."
 mode: subagent
-model: claude-sonnet-4-6
+model: claude-sonnet-5
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

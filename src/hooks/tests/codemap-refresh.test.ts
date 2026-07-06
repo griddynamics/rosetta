@@ -11,7 +11,9 @@ const { mockSpawn } = vi.hoisted(() => ({ mockSpawn: vi.fn() }));
 
 vi.mock('../src/adapter', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/adapter')>();
-  return { ...actual, readStdin: vi.fn() };
+  // run-hook.ts calls adapter.readStdin (the object) — stub it there too, same fn as the named export.
+  const readStdin = vi.fn();
+  return { ...actual, readStdin, adapter: { ...actual.adapter, readStdin } };
 });
 
 vi.mock('child_process', () => ({ spawn: mockSpawn }));
@@ -240,9 +242,9 @@ describe('codemap-refresh — GitNexus only backend', () => {
     expect(callOpts.cwd).toBe(REPO_ROOT);
   });
 
-  test('spawned script contains npx gitnexus analyze --force', async () => {
+  test('spawned script contains npx -y gitnexus@latest analyze --force', async () => {
     await runHook(codemapRefreshHook);
-    expect(getSpawnedScript()).toContain('npx gitnexus analyze --force');
+    expect(getSpawnedScript()).toContain('npx -y gitnexus@latest analyze --force');
   });
 
 });
@@ -282,9 +284,9 @@ describe('codemap-refresh — Graphify only backend', () => {
     expect(getSpawnedScript()).toContain('graphify update .');
   });
 
-  test('spawned script does NOT contain npx gitnexus', async () => {
+  test('spawned script does NOT contain npx -y gitnexus@latest', async () => {
     await runHook(codemapRefreshHook);
-    expect(getSpawnedScript()).not.toContain('npx gitnexus');
+    expect(getSpawnedScript()).not.toContain('npx -y gitnexus@latest');
   });
 
   test('no --embeddings flag for Graphify', async () => {
@@ -315,7 +317,7 @@ describe('codemap-refresh — both backends present', () => {
   test('both backends → gitnexus command in one script', async () => {
     await runHook(codemapRefreshHook);
     const scripts = mockSpawn.mock.calls.map((call) => (call as [string, string[]])[1][1]);
-    expect(scripts.some((s) => s.includes('npx gitnexus analyze --force'))).toBe(true);
+    expect(scripts.some((s) => s.includes('npx -y gitnexus@latest analyze --force'))).toBe(true);
   });
 
   test('both backends → graphify command in one script', async () => {
@@ -464,7 +466,7 @@ describe('codemap-refresh — analyze command in deferred script (GitNexus)', ()
   test('no meta.json → script contains analyze --force without --embeddings', async () => {
     await runHook(codemapRefreshHook);
     const script = getSpawnedScript();
-    expect(script).toContain('npx gitnexus analyze --force');
+    expect(script).toContain('npx -y gitnexus@latest analyze --force');
     expect(script).not.toContain('--embeddings');
   });
 

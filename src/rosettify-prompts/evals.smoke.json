@@ -1,0 +1,16 @@
+{
+  "model": "claude-sonnet-5",
+  "maxOutputTokens": 2048,
+  "thinking": { "enabled": true, "mode": "adaptive", "effort": "low" },
+  "repetitions": 1,
+  "concurrency": 3,
+  "suites": [
+    {
+      "id": "smoke",
+      "variants": [
+        { "id": "think", "turns": ["MUST ONLY think and chat compressed/terse/unicode chars/terms/always no hieroglyphs; Exclude artifacts, tool calls, code, etc.", "In one short sentence, what is 2+2?"] },
+        { "id": "none", "turns": ["In one short sentence, what is 2+2?"] }
+      ]
+    }
+  ]
+}

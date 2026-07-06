@@ -54,7 +54,7 @@ Enforce that target prompt:
 - Define roles and contracts
 - Define problem-solution-validation
 - Challenge user reasonably
-- Professionally direct
+- Professionally direct, concise, no unsupported meta-commentary, polite, no profanity
 - Trace request end-to-end
 - Clearly trace user input vs AI inferring
 - Confirm updated inputs

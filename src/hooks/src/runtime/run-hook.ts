@@ -1,12 +1,12 @@
 import path from 'path';
-import { readStdin, detectIDE, normalize, formatOutput, dedupKey } from '../adapter';
+import { adapter } from '../adapter';
 import { acquireOnce } from './throttle';
 import { collectEnvironment, debugLogBranch, debugLogHook } from './debug-log';
 import { toRelative, walkUp } from './path-utils';
 import type { HookDefinition, HookContext, HookResult, FilePathPredicate, ToolInputPredicate } from './types';
 import type { NormalizedInput, CanonicalOutput } from '../types';
 
-interface HookExecutionReport {
+export interface HookExecutionReport {
   exitCode: number;
   wroteOutput: boolean;
   status: 'completed' | 'skipped' | 'error';
@@ -25,6 +25,17 @@ const HOOK_ENV_NAMES = [
   'USERPROFILE',
 ] as const;
 
+type Env = Record<string, string | undefined>;
+
+// Some IDEs (Windsurf) deliver a hook's deny reason to the model only via stderr. The CLI
+// entrypoint and the in-process test seam must surface it identically — one helper, one behavior.
+const writeStderrMessage = (
+  report: HookExecutionReport,
+  stderr: NodeJS.WritableStream = process.stderr,
+): void => {
+  if (report.stderrMessage) stderr.write(report.stderrMessage);
+};
+
 export const runAsCli = (def: HookDefinition, mod: NodeModule): void => {
   if (require.main !== mod) return;
   let exitReport: HookExecutionReport | null = null;
@@ -37,9 +48,9 @@ export const runAsCli = (def: HookDefinition, mod: NodeModule): void => {
       reason: exitReport?.reason ?? null,
     });
   });
-  executeHook(def).then((report) => {
+  executeHook(def, { env: process.env }).then((report) => {
     exitReport = report;
-    if (report.stderrMessage) process.stderr.write(report.stderrMessage);
+    writeStderrMessage(report);
     debugLogHook(def.name, 'cli-exit', report);
     process.exit(report.exitCode);
   });
@@ -59,7 +70,7 @@ const toHookContext = (norm: NormalizedInput): HookContext => ({
   source:       (norm.source as string) ?? null,
   reason:       (norm.reason as string) ?? null,
   trigger:      (norm.trigger as string) ?? null,
-  toolInput:    norm.tool_input,
+  toolInput:    norm.tool_input ?? {},
   toolResponse: norm.tool_response,
 });
 
@@ -71,6 +82,19 @@ const toCanonical = (result: NonNullable<HookResult>, ctx: HookContext): Canonic
   if (result.kind === 'allow')
     return { hookSpecificOutput: { hookEventName: ctx.event ?? '', permissionDecision: 'allow' } };
   return {};
+};
+
+// `_exitCode` on the HookResult overrides everything else — emergency escape hatch, not for
+// normal use (see runtime/types.ts). Otherwise: deny -> the IDE adapter's exit code (0 unless the
+// adapter overrides it); everything else -> 0. A failure resolving the code itself -> 1000.
+export const resolveExitCode = (result: NonNullable<HookResult>, canonical: CanonicalOutput, ide: string): number => {
+  try {
+    if (result._exitCode != null) return result._exitCode;
+    if (canonical.hookSpecificOutput?.permissionDecision === 'deny') return adapter.exitCodeFor(canonical, ide);
+    return 0;
+  } catch {
+    return 1000;
+  }
 };
 
 const makeDedupKey = (
@@ -225,16 +249,25 @@ const evalToolInput = (ti: ToolInputPredicate, ctx: HookContext): boolean => {
 
 export const runHook = async (
   def: HookDefinition,
-  opts: { stdin?: NodeJS.ReadableStream; stdout?: NodeJS.WritableStream } = {},
+  opts: { stdin?: NodeJS.ReadableStream; stdout?: NodeJS.WritableStream; stderr?: NodeJS.WritableStream; env?: Env } = {},
 ): Promise<void> => {
-  await executeHook(def, opts);
+  const report = await executeHook(def, opts);
+  // Mirror runAsCli: an IDE whose deny reason travels on stderr (Windsurf) needs it written here too,
+  // so non-CLI/test consumers of runHook observe the same behavior. Defaults to process.stderr.
+  writeStderrMessage(report, opts.stderr);
 };
 
-const executeHook = async (
+// Exported so tests can assert the full HookExecutionReport (exit code, stderrMessage, wroteOutput)
+// end-to-end. runHook/runAsCli are the production wrappers; keep their contracts (void / process
+// side effects) stable and assert the report through this instead.
+export const executeHook = async (
   def: HookDefinition,
-  opts: { stdin?: NodeJS.ReadableStream; stdout?: NodeJS.WritableStream } = {},
+  opts: { stdin?: NodeJS.ReadableStream; stdout?: NodeJS.WritableStream; env?: Env } = {},
 ): Promise<HookExecutionReport> => {
-  const { stdin = process.stdin, stdout = process.stdout } = opts;
+  // env defaults to {} (NOT process.env) so calling this from a test doesn't leak the host
+  // shell's own IDE env vars (e.g. this repo's dev shell commonly has CLAUDECODE=1 set) into
+  // detection — only runAsCli (the real CLI entrypoint) opts in with the real process.env.
+  const { stdin = process.stdin, stdout = process.stdout, env = {} } = opts;
   try {
     debugLogHook(def.name, 'received', {
       activation: def.on,
@@ -249,11 +282,11 @@ const executeHook = async (
       },
     });
 
-    const raw = await readStdin(stdin);
+    const raw = await adapter.readStdin(stdin);
     debugLogHook(def.name, 'raw-input', { rawInput: raw });
 
-    const ide = detectIDE(raw);
-    const norm = normalize(raw);
+    const ide = adapter.detectIDE(raw, env);
+    const norm = adapter.normalize(raw, env);
 
     debugLogHook(def.name, 'normalized', {
       ide,
@@ -340,17 +373,6 @@ const executeHook = async (
     const ctx = markerRoot !== undefined ? { ...ctx0, markerRoot } : ctx0;
     debugLogHook(def.name, 'context-final', { hookContext: ctx });
 
-    // Platform-level dedup: collapses duplicate events from IDEs that fire multiple times per call.
-    const platformKey = dedupKey(raw, def.name);
-    if (platformKey !== null && !acquireOnce(platformKey)) {
-      debugLogHook(def.name, 'skipped', {
-        reason: 'platform-dedup',
-        platformKey,
-      });
-      return { exitCode: 0, wroteOutput: false, status: 'skipped', reason: 'platform-dedup' };
-    }
-    debugLogHook(def.name, 'platform-dedup', { platformKey });
-
     if (def.throttle && 'dedupBy' in def.throttle) {
       const dedupKeyValue = makeDedupKey(def.throttle.dedupBy, ctx, def.name);
       if (!acquireOnce(dedupKeyValue)) {
@@ -387,17 +409,24 @@ const executeHook = async (
       return { exitCode: 0, wroteOutput: false, status: 'completed', reason: 'null-result' };
     }
     if (result.kind === 'side-effect') {
+      const sideEffectExitCode = result._exitCode ?? 0;
       debugLogHook(def.name, 'completed', {
-        exitCode: 0,
+        exitCode: sideEffectExitCode,
         wroteOutput: false,
         reason: 'side-effect',
       });
-      return { exitCode: 0, wroteOutput: false, status: 'completed', reason: 'side-effect' };
+      return { exitCode: sideEffectExitCode, wroteOutput: false, status: 'completed', reason: 'side-effect' };
     }
 
     const canonicalOutput = toCanonical(result, ctx);
-    const formattedOutput = formatOutput(canonicalOutput, ide);
+    const formattedOutput = adapter.formatOutput(canonicalOutput, ide);
     const outputText = JSON.stringify(formattedOutput);
+    const exitCode = resolveExitCode(result, canonicalOutput, ide);
+    // Some IDEs deliver the deny reason to the model via STDERR, not the stdout JSON body (Windsurf:
+    // stdout is never parsed — see adapters/windsurf.ts). stderrMessageFor is unset for every other
+    // IDE, so this is a no-op for them. Written by runAsCli/runHook, not here (executeHook is I/O-free
+    // for stderr; it only owns stdout).
+    const stderrMessage = adapter.stderrMessageFor(canonicalOutput, ide) || undefined;
     // TODO: json-cycle is only needed because this log entry carries both
     // canonicalOutputFull and finalOutputFull, which may be the same object
     // reference. Split these into two independent debugLogHook calls and remove
@@ -411,11 +440,12 @@ const executeHook = async (
     });
     stdout.write(outputText);
     debugLogHook(def.name, 'completed', {
-      exitCode: 0,
+      exitCode,
       wroteOutput: true,
       finalOutputBytes: Buffer.byteLength(outputText, 'utf8'),
+      stderrMessageBytes: stderrMessage ? Buffer.byteLength(stderrMessage, 'utf8') : 0,
     });
-    return { exitCode: 0, wroteOutput: true, status: 'completed' };
+    return { exitCode, wroteOutput: true, status: 'completed', ...(stderrMessage ? { stderrMessage } : {}) };
   } catch (err) {
     const error = err as Error;
     debugLogHook(def.name, 'error', { error });

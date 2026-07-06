@@ -1,0 +1,132 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --output '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Diagnostic secret CODEX-SS-NEST-3c4d. Report CSN2.\"}}' --tag SessionStart",
+            "timeout": 30,
+            "statusMessage": "Rosetta hook test: SessionStart"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --output '{\"hookSpecificOutput\":{\"hookEventName\":\"SubagentStart\",\"additionalContext\":\"Diagnostic secret CODEX-SUBSTART-NEST-5e6f. Report CSS3.\"}}' --tag SubagentStart",
+            "timeout": 30,
+            "statusMessage": "Rosetta hook test: SubagentStart"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --tag PreToolUse --deny-on-match HOOK-DENY-PROBE --rewrite-command 'REWRITE_ME_PRETOOLUSE::echo PRETOOLUSE-HOOK-REWROTE-THIS' --mode codex",
+            "timeout": 30,
+            "statusMessage": "Rosetta hook test: PreToolUse"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --tag PermissionRequest",
+            "timeout": 30,
+            "statusMessage": "Rosetta hook test: PermissionRequest"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --output '{\"systemMessage\":\"PostToolUse systemMessage marker CODEX-PTU-SYSMSG.\",\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"PostToolUse nested additionalContext marker CODEX-PTU-NEST. Report CPN4.\"}}' --tag PostToolUse",
+            "timeout": 30,
+            "statusMessage": "Rosetta hook test: PostToolUse"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --tag PreCompact",
+            "timeout": 30,
+            "statusMessage": "Rosetta hook test: PreCompact"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --tag PostCompact",
+            "timeout": 30,
+            "statusMessage": "Rosetta hook test: PostCompact"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --output '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"Diagnostic secret CODEX-UPS-NEST-7a8b. Report CUP5.\"}}' --tag UserPromptSubmit",
+            "timeout": 30,
+            "statusMessage": "Rosetta hook test: UserPromptSubmit"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --tag SubagentStop",
+            "timeout": 30,
+            "statusMessage": "Rosetta hook test: SubagentStop"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --tag Stop --block-stop-once --mode codex",
+            "timeout": 30,
+            "statusMessage": "Rosetta hook test: Stop"
+          }
+        ]
+      }
+    ]
+  }
+}

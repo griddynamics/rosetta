@@ -1,0 +1,84 @@
+suite: Ingress
+templates:
+  - ingress.yaml
+tests:
+  - it: creates an Ingress with traefik class by default
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: spec.ingressClassName
+          value: "traefik"
+
+  - it: sets the host from values
+    set:
+      ingress.host: myapp.example.com
+    asserts:
+      - equal:
+          path: spec.rules[0].host
+          value: "myapp.example.com"
+
+  - it: adds rate-limit middleware annotation when traefik rateLimit is configured
+    asserts:
+      - isNotNull:
+          path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
+      - matchRegex:
+          path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
+          pattern: ".*-rate-limit@kubernetescrd$"
+
+  - it: includes external middlewares in annotation
+    set:
+      ingress.traefik.middlewares:
+        - "traefik-chain-public@kubernetescrd"
+    asserts:
+      - matchRegex:
+          path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
+          pattern: "^traefik-chain-public@kubernetescrd,"
+
+  - it: does not render middleware annotation when className is nginx
+    set:
+      ingress.className: nginx
+      ingress.annotations:
+        nginx.ingress.kubernetes.io/limit-rps: "100"
+    asserts:
+      - isNull:
+          path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/limit-rps"]
+          value: "100"
+
+  - it: does not set ingressClassName when className is empty
+    set:
+      ingress.className: ""
+    asserts:
+      - isNull:
+          path: spec.ingressClassName
+
+  - it: renders TLS when configured
+    set:
+      ingress.tls:
+        - secretName: my-tls
+          hosts:
+            - rosetta.example.com
+    asserts:
+      - equal:
+          path: spec.tls[0].secretName
+          value: my-tls
+      - equal:
+          path: spec.tls[0].hosts[0]
+          value: rosetta.example.com
+
+  - it: is not rendered when ingress is disabled
+    set:
+      ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: normalizes consecutive dashes in middleware annotation
+    release:
+      name: my--app
+    asserts:
+      - equal:
+          path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
+          value: "my-app-rosetta-mcp-rate-limit@kubernetescrd"

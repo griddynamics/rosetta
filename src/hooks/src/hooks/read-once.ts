@@ -1,5 +1,5 @@
 import { defineHook } from '../runtime/define-hook';
-import { runAsCli, runHook } from '../runtime/run-hook';
+import { runAsCli } from '../runtime/run-hook';
 import { handleReadOnce } from './read-once-shared';
 
 export const readOnceHook = defineHook({

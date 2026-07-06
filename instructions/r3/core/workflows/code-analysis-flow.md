@@ -35,7 +35,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </prerequisites>
 
-<context_load phase="1" applies="ALL" subagent="discoverer" role="Context gatherer for analysis scope" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
+<context_load phase="1" applies="ALL" subagent="discoverer" role="Context gatherer for analysis scope" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Read all lines of `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md`; grep headers of `docs/CODEMAP.md`, `docs/TECHSTACK.md`, `docs/DEPENDENCIES.md` if present.
 2. Input: user analysis request. Output: loaded project context + entry points (APIs, webhooks, CLIs, cron jobs).
@@ -44,7 +44,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </context_load>
 
-<scope_and_classify phase="2" applies="ALL" subagent="discoverer" role="Scope and size scanner" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
+<scope_and_classify phase="2" applies="ALL" subagent="discoverer" role="Scope and size scanner" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Classify target codebase: LARGE if 100+ files recursively or 4+ modules; otherwise SMALL.
 2. Identify target scope (repo, module, feature, path glob). Record boundaries and non-goals.
@@ -107,7 +107,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </summarize>
 
-<review phase="8" applies="ALL" subagent="reviewer" role="Analysis quality reviewer" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6" must-be-subagent>
+<review phase="8" applies="ALL" subagent="reviewer" role="Analysis quality reviewer" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5" must-be-subagent>
 
 1. Inspect outputs for groundedness (every claim linked), accuracy, coverage of scope, absence of generated/suggested code, assumption/unknown documentation, and Mermaid diagram legibility in light and dark themes.
 2. Input: analysis artifacts + scope + context. Output: review findings and recommendations.

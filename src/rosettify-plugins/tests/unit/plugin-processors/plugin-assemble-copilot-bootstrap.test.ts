@@ -1,4 +1,4 @@
-// FR-ARCH-0055, FR-VAR-0070 — pluginAssembleCopilotBootstrap: bash+powershell entries, per-entry session locks
+// FR-ARCH-0055, FR-VAR-0070 — pluginAssembleCopilotBootstrap: bash+powershell entries
 import { describe, it, expect } from 'vitest';
 import { pluginAssembleCopilotBootstrap } from '../../../src/plugin-processors/plugin-assemble-copilot-bootstrap.js';
 import type { FileProcessingFrame, PluginProcessingFrame, PluginSpec } from '../../../src/types.js';
@@ -97,29 +97,43 @@ describe('pluginAssembleCopilotBootstrap — entry shape', () => {
   });
 });
 
-// ─── Session lock indices ─────────────────────────────────────────────────────
-
-describe('pluginAssembleCopilotBootstrap — session lock indices', () => {
-  it('entry 0 bash contains -0.lock (lock index 0)', () => {
+// Bug 2 (docs/hooks/copilot.md): additionalContext must be emitted at BOTH top-level
+// (Copilot CLI) AND nested in hookSpecificOutput (VS Code) — neither alone reaches both.
+describe('pluginAssembleCopilotBootstrap — merged additionalContext emit (Bug 2)', () => {
+  it('doc entries carry BOTH top-level and nested additionalContext', () => {
     const frames = [makeDocFrame('plugin-files-mode', '\n# Body\n')];
     const p = makePluginFrame(frames);
     const result = pluginAssembleCopilotBootstrap(p);
     const payload = result.templateContext['bootstrap_hooks'] as string;
-    expect(payload).toContain('-0.lock');
+    expect(payload).toContain('\\"additionalContext\\"');
+    expect(payload).toContain('\\"hookSpecificOutput\\"');
+    // top-level additionalContext appears before the nested hookSpecificOutput wrapper
+    const topLevelIndex = payload.indexOf('\\"additionalContext\\"');
+    const nestedWrapperIndex = payload.indexOf('\\"hookSpecificOutput\\"');
+    expect(topLevelIndex).toBeGreaterThanOrEqual(0);
+    expect(nestedWrapperIndex).toBeGreaterThan(topLevelIndex);
   });
 
-  it('entry 0 bash contains rosetta-bs-*.lock (stale-lock cleanup)', () => {
-    // Entry 0 includes stale-lock find/delete: find /tmp -maxdepth 1 -name "rosetta-bs-*.lock"
+  it('plugin-root entry carries BOTH top-level and nested additionalContext', () => {
     const frames = [makeDocFrame('plugin-files-mode', '\n# Body\n')];
     const p = makePluginFrame(frames);
     const result = pluginAssembleCopilotBootstrap(p);
     const payload = result.templateContext['bootstrap_hooks'] as string;
-    // stale-lock cleanup uses -mmin +1 -delete pattern
-    expect(payload).toContain('rosetta-bs-*.lock');
+    // The plugin-root entry (agentPlugins probe) also uses COPILOT_PLUGIN_ROOT_BASH/POWERSHELL,
+    // which must carry both placements too.
+    const rootSection = payload.slice(payload.indexOf('agentPlugins'));
+    expect(rootSection).toContain('additionalContext');
+    expect(rootSection).toContain('hookSpecificOutput');
   });
+});
 
-  it('with 2 doc frames: entry 1 bash contains -1.lock', () => {
-    // plugin-files-mode (lockIndex=0) + bootstrap-core-policy (lockIndex=1)
+// ─── No session lock (removed) ─────────────────────────────────────────────────
+// Session lock removed: it guarded a Copilot-side bug where a single registered hook was
+// invoked TWICE per real event — GitHub has since fixed it (see FR-HOOK-0006, hooks-verify.md).
+// Entries are now plain printf/Write-Output, identical in shape to every other IDE's entries.
+
+describe('pluginAssembleCopilotBootstrap — no session lock', () => {
+  it('entries do NOT contain any lock file reference', () => {
     const frames = [
       makeDocFrame('plugin-files-mode', '\n# Lead\n'),
       makeDocFrame('bootstrap-core-policy', '\n# Policy\n'),
@@ -127,22 +141,36 @@ describe('pluginAssembleCopilotBootstrap — session lock indices', () => {
     const p = makePluginFrame(frames);
     const result = pluginAssembleCopilotBootstrap(p);
     const payload = result.templateContext['bootstrap_hooks'] as string;
-    expect(payload).toContain('-1.lock');
+    expect(payload).not.toContain('.lock');
+    expect(payload).not.toContain('rosetta-bs-');
   });
 
-  it('with 2 doc frames: entry 1 does NOT contain rosetta-bs-*.lock (no stale cleanup)', () => {
-    // Only entry 0 has stale-lock cleanup; entry 1+ skip it
-    const frames = [
-      makeDocFrame('plugin-files-mode', '\n# Lead\n'),
-      makeDocFrame('bootstrap-core-policy', '\n# Policy\n'),
-    ];
+  it('entries do NOT read/extract session_id from stdin', () => {
+    const frames = [makeDocFrame('plugin-files-mode', '\n# Body\n')];
     const p = makePluginFrame(frames);
     const result = pluginAssembleCopilotBootstrap(p);
     const payload = result.templateContext['bootstrap_hooks'] as string;
-    // Entry 0 bash has the stale-lock (rosetta-bs-*.lock), entry 1 does not
-    // Count occurrences: only 1 stale cleanup (from entry 0)
-    const staleCleanupCount = (payload.match(/rosetta-bs-\*\.lock/g) || []).length;
-    expect(staleCleanupCount).toBe(1);
+    expect(payload).not.toContain('SESSION_ID');
+    expect(payload).not.toContain('$Sid');
+    expect(payload).not.toContain('[Console]::In.ReadToEnd()');
+  });
+
+  it("bash entry is a plain printf, matching Claude/Codex/Cursor's pattern", () => {
+    const frames = [makeDocFrame('plugin-files-mode', '\n# Body\n')];
+    const p = makePluginFrame(frames);
+    const result = pluginAssembleCopilotBootstrap(p);
+    const payload = result.templateContext['bootstrap_hooks'] as string;
+    expect(payload).toContain("printf '%s' '");
+  });
+
+  it('powershell entry is a plain Write-Output, no lock wrapper', () => {
+    const frames = [makeDocFrame('plugin-files-mode', '\n# Body\n')];
+    const p = makePluginFrame(frames);
+    const result = pluginAssembleCopilotBootstrap(p);
+    const payload = result.templateContext['bootstrap_hooks'] as string;
+    expect(payload).toContain('Write-Output');
+    expect(payload).not.toContain('New-Item');
+    expect(payload).not.toContain('Test-Path $Lk');
   });
 });
 
@@ -196,6 +224,20 @@ describe('pluginAssembleCopilotBootstrap — NFR-0004 soft error', () => {
     // Real bodies are ~8000 chars; copilot's bash+powershell don't inflate the size check
     const normalBody = '\n' + 'A'.repeat(8000);
     const frames = [makeDocFrame('plugin-files-mode', normalBody)];
+    const p = makePluginFrame(frames);
+    const result = pluginAssembleCopilotBootstrap(p);
+    const softErrors = result.errors.filter((e) => e.kind === 'soft');
+    expect(softErrors.length).toBe(0);
+  });
+
+  // The limit is about the ORIGINAL content, not the JSON wrapping/escaping around it.
+  // A newline-heavy body (typical of real markdown bootstrap docs) escapes to nearly 1.5x its
+  // raw length (each \n -> \\n). Raw content here is 9180 chars (under budget); the
+  // JSON-wrapped/escaped form is 13761 chars (over budget) — before this fix, the check
+  // measured the wrapped form and would have wrongly flagged this as oversized.
+  it('newline-heavy body under 10000 raw chars → NO soft error, even though its escaped/wrapped form would exceed 10000', () => {
+    const newlineHeavyBody = '\n' + 'A\n'.repeat(4500); // raw content (with prefix) = 9180 chars
+    const frames = [makeDocFrame('plugin-files-mode', newlineHeavyBody)];
     const p = makePluginFrame(frames);
     const result = pluginAssembleCopilotBootstrap(p);
     const softErrors = result.errors.filter((e) => e.kind === 'soft');
