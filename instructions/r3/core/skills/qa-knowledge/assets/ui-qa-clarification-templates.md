@@ -6,7 +6,7 @@ UI-QA Phase 2 templates — gap entry, clarification questions message, and the 
 
 **Completeness dimensions** (the gap-entry `Dimension` field): **D1** steps clarity · **D2** result measurability · **D3** test data · **D4** edge cases · **D5** success criteria. (Full catalog is owned by the `requirements-use` gap_analysis mode; this gloss anchors the template so it is self-contained.)
 
-**Prerequisite + inputs:** the test plan at `plans/ui-qa-<test-name>.md` must be populated (Test Steps + Expected Overall Result) before these templates apply. If the plan is absent or a dimension cannot be evaluated, STOP and report to the caller before creating gap entries.
+**Prerequisite + inputs:** the test plan at `plans/ui-qa-<test-name>.md` must be populated (Test Steps + Expected Overall Result) before these templates apply. If the plan is absent or a dimension cannot be evaluated, STOP and report before creating gap entries.
 
 **Router:** use only the section your current step needs — **Gap entry** (record a gap), **Clarification questions message** (the user-facing ask), or **Test-plan clarification section** (write results back to the plan).
 

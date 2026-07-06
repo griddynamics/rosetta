@@ -185,7 +185,7 @@ Load when drafting or validating requirement units → [references/requirement-c
 
 <synthesis>
 
-Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document — user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability. Emit into the caller-supplied skeleton; the caller owns the section contract and output path. All authoring rules above apply. Six per-requirement schemas + document wrapper + source-priority ladder → [references/authoring-catalogs.md](references/authoring-catalogs.md#synthesis-output-schemas-synthesis-mode) — load the active schema per step.
+Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document — user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability. Emit into the provided skeleton; the section contract and output path are given. All authoring rules above apply. Six per-requirement schemas + document wrapper + source-priority ladder → [references/authoring-catalogs.md](references/authoring-catalogs.md#synthesis-output-schemas-synthesis-mode) — load the active schema per step.
 
 Synthesis-specific rules:
 

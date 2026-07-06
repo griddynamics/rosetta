@@ -83,10 +83,10 @@ BEFORE attempting ANY fix:
 Read-only triage of an automated-test execution report: categorize each failure and record the findings.
 
 1. Analyze the report — per-test status, error message, stack trace, duration, and captured artifacts (screenshots, page source, request/response).
-2. Categorize each failure into exactly one category from the applicable failure taxonomy (most-proximate cause).
+2. Categorize each failure into exactly one category from the provided failure taxonomy (most-proximate cause).
 3. Analyze source data, example: for element/selector errors analyze the captured page source; for response/assertion errors analyze the captured request/response. No source/capture available → label the cause `Unknown` and state the source/capture needed.
 4. Identify cross-failure patterns — shared cause, setup cascade, environment-wide, category skew — and prioritize Critical/High/Medium/Low.
-5. Label each cause's evidence strength (→ `<core_concepts>`) and write findings into the findings artifact, redacted (→ `<core_concepts>`).
+5. Label each cause's evidence strength (→ `<core_concepts>`) and write findings into the provided findings artifact, redacted (→ `<core_concepts>`).
 
 Worked evidence labels examples:
 

@@ -17,7 +17,7 @@ Use when you need to create the QA session folder, resolve or name an artifact p
 <core_concepts>
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- This skill is the SSoT for QA paths, identifiers, and state-file shape; callers bind to the paths defined here verbatim and never invent their own.
+- This skill is the SSoT for QA paths, identifiers, and state-file shape; the paths defined here are used verbatim and never reinvented.
 - **Load only your flow's layout** (progressive disclosure — the other flow's paths stay off-context): ACQUIRE `qa-structure/references/api-qa-layout.md` (QA / backend API) OR `qa-structure/references/ui-qa-layout.md` (UI-QA / UI-E2E) FROM KB — canonical paths, the `{IDENTIFIER}` / `<test-name>` slug rules, and the state-file shape live there.
 - The config-key schema (which keys exist and what consumes each) is reference-grade — ACQUIRE `qa-structure/references/config-schema.md` FROM KB when loading or validating project config.
 - Fill-in skeletons are assets, ACQUIRE'd at point of use, never resident — see `<resources>`.
