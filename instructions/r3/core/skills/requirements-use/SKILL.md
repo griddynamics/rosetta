@@ -91,7 +91,7 @@ HITL gates (use when):
 
 Analysis-only mode: examine collected multi-source data (Jira, Confluence, TestRail, API spec, test cases, a test plan) for contradictions, gaps, ambiguities, and inconsistencies before downstream work. This mode EMITS categorized findings into the caller-supplied artifact — the caller owns the finding-entry template, section list, output path, and validation contract; this mode never invents the artifact shape or path. Detection catalogs (contradiction / gap / ambiguity / cross-reference probes, the three-tier risk scheme, per-finding authoring discipline) live in [references/gap-analysis-catalogs.md](references/gap-analysis-catalogs.md) — load on demand when classifying.
 
-GATE: this mode does NOT act on findings, propose edits, fix gaps, or ask the user directly — surface each as a finding and stop. It does NOT generate user-facing questions: the caller + `questioning` skill own that (→ `<dependencies>` questions flow). Variants:
+This mode is analysis-only: it does NOT act on findings, propose edits, fix gaps, or ask the user directly — it surfaces each as a finding and stops. It does NOT generate user-facing questions. Variants:
 
 - **General multi-source variant** — find contradictions / gaps / ambiguities across all loaded sources; cross-reference the sources against each other.
 - **Test-cases-vs-API-spec variant** — cross-reference each test step against the API analysis (endpoint/method/request/response/status/auth/error coverage); emit gaps where test inputs or assertions are unsupported by the spec.
@@ -197,14 +197,13 @@ Process: (1) load every source completely — surface missing/empty/partial inpu
 - Treating Draft as Approved
 - Assuming unspecified behavior
 - Ignoring requirement priority and status
-- `<gap_analysis>`: acting on findings, asking the user directly, or padding a clean analysis — all violate the mode GATE
+- `<gap_analysis>`: acting on findings, asking the user directly, or padding a clean analysis — all violate the analysis-only boundary
 
 </pitfalls>
 
 <resources>
 
 Use `ACQUIRE FROM KB` to load.
-- workflow `requirements-use-flow`
 - reference `requirements-use/references/gap-analysis-catalogs.md` (`<gap_analysis>` detection catalogs)
 - asset `requirements-use/assets/ru-traceability-matrix.md`
 - asset `requirements-use/assets/ru-change-log.md`

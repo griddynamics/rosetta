@@ -71,7 +71,7 @@ General method (all modes): read the supplied inputs → match the repository's 
 4. Write ONLY test files (and the caller's hand-off record). Missing selector/page-object method → do not author it inline; surface it to the caller for selector implementation.
 
 **API impl mode** (implement approved API specs as executable tests with shared utils):
-1. GATE: approved-specs artifact + recorded approval + API-contract artifact + discoverable existing patterns all present (caller supplies the paths + the approval signal). Missing/unapproved → stop and report back; never author from unapproved specs.
+1. Requires: approved-specs artifact + recorded approval + API-contract artifact + discoverable existing patterns all present (caller supplies the paths + the approval signal). Missing/unapproved → stop and report back; never author from unapproved specs.
 2. Implement shared utilities (auth helper, data factory, response validator) — prefer EXTENDING existing helpers over parallel ones; record any extension.
 3. Implement test files per the file mapping; every test name/docstring carries its ATC-NNN id. Rules + multi-language examples in the reference ("API impl mode").
 4. Record assumptions as `[ASSUMED: <field>=<value>]` (code + hand-off) and surface unimplementable ATCs as Gaps — no silent ATC drop.

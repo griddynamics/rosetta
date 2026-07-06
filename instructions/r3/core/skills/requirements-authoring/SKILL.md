@@ -251,7 +251,6 @@ Beyond the rubric: validate feasibility against constraints; validate groupings 
 
 Use `ACQUIRE FROM KB` to load.
 
-- workflow `requirements-flow`
 - rule `rules/requirements-best-practices.md`
 - reference `requirements-authoring/references/requirement-catalogs.md`
 - reference `requirements-authoring/references/quality-principles.md`

@@ -34,7 +34,7 @@ Use to DESIGN scenarios/specs; `testing` IMPLEMENTS them. Use to DESIGN test sce
 
 Mode: author Given-When-Then API test specifications from raw test cases + endpoint contracts + resolved clarifications. The caller supplies all input/output paths and the spec artifact's section list. **Minimum output:** one Given-When-Then ATC entry per scenario (all fields) + an `## Excluded Test Cases` section + file-mapping / shared-utilities / execution-order sections.
 
-1. **Load + GATE.** Read the caller-supplied inputs (raw test cases; endpoint contracts; gap analysis / clarifications). Before authoring:
+1. **Load + validate.** Read the caller-supplied inputs (raw test cases; endpoint contracts; gap analysis / clarifications). Before authoring:
    - Endpoint contracts missing/empty → stop, report `scenarios-generation: endpoint contracts not loaded` to the caller. Do NOT fabricate request/response shapes.
    - Test case targets an endpoint not in the loaded contracts → flag `unmappable: <id> targets <METHOD> <path>` back; never invent the endpoint.
    - Material gap unresolved (auth mechanism, status semantics, contested required fields) → stop, ask the caller to complete gap clarification before authoring.
@@ -62,7 +62,7 @@ Mode: produce test scenarios/cases into the caller-defined artifact in the calle
 When the artifact format or destination is a specific TMS vendor (TestRail, etc.), the caller resolves the vendor from project config (config-key precedence, stop at first non-empty hit; e.g. `tms_export_skill` / `testrail_export_skill` / `test_case_management_mcp`, plus in-scope signals like `testrail_base_url` / `testrail_project_id`) and passes the resolved vendor binding to this skill. This skill never hardcodes the vendor and never reads config itself.
 
 - **FORMAT binding** (`generation` mode) → load `references/<vendor>-format.md` for the case template, field rules, naming conventions, and worked examples.
-- **EXPORT binding** (export phases) → load `references/<vendor>-export.md` for connection verify, priority/type field mappings, MCP API signatures, ID formats, and the destructive-write confirmation gate.
+- **EXPORT binding** (export mode) → load `references/<vendor>-export.md` for connection verify, priority/type field mappings, MCP API signatures, ID formats, and the destructive-write confirmation gate.
 
 If the caller reports the binding empty but scope is active → it re-reads config; still absent → the caller early-exits `SKIPPED_NO_CONFIG`. The skill does not improvise a vendor.
 

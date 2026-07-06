@@ -49,7 +49,7 @@ BEFORE attempting ANY fix:
 5. Trace data flow backward — where does the bad value originate? Fix at source, not symptom
 6. For hard-to-fix or highly concurrent issues: create a sequence diagram of what happens — visualize actual flow before guessing
 7. Temporarily enable tracing in code and logs — review actual execution vs assumed execution, then remove tracing
-8. Use test_execution_triage for  analyzing failures of automated test execution.
+8. Use test_execution_triage for analyzing failures of automated test execution.
 
 </root_cause_investigation>
 
@@ -80,15 +80,13 @@ BEFORE attempting ANY fix:
 
 <test_execution_triage>
 
-Read-only triage of an automated test execution report.
+Read-only triage of an automated-test execution report: categorize each failure and record the findings.
 
 1. Analyze the report — per-test status, error message, stack trace, duration, and captured artifacts (screenshots, page source, request/response).
-2. Categorize each failure into exactly one category from the supplied taxonomy (most-proximate cause).
+2. Categorize each failure into exactly one category from the applicable failure taxonomy (most-proximate cause).
 3. Analyze source data, example: for element/selector errors analyze the captured page source; for response/assertion errors analyze the captured request/response. No source/capture available → label the cause `Unknown` and state the source/capture needed.
 4. Identify cross-failure patterns — shared cause, setup cascade, environment-wide, category skew — and prioritize Critical/High/Medium/Low.
-5. Label each cause's evidence strength and write findings into the caller's output artifact, redacted by core_concepts.
-
-GATE: read-only. Proposing or applying fixes is a separate correction phase (`debugging` for root-cause / proposed-change reasoning + `coding` for the edit).
+5. Label each cause's evidence strength (→ `<core_concepts>`) and write findings into the findings artifact, redacted (→ `<core_concepts>`).
 
 Worked evidence labels examples:
 
