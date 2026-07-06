@@ -42,7 +42,7 @@ End-to-end test automation from requirements gathering to test implementation. U
 1. ACQUIRE `ui-qa-flow-data-collection.md` FROM KB
 2. Execute phase instructions.
 3. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: test plan file created at `plans/ui-qa-<test-name>.md`
-4. Recommended skills: `discovery`
+4. Recommended skills: `data-collection`
 5. Update `agents/ui-qa-state.md`
 
 </data_collection>
@@ -155,7 +155,7 @@ Logical names only — full descriptions live where each is consumed (subagent c
 
 **Subagents:** `discoverer` · `architect` · `engineer`.
 
-**Skills:** `orchestrator-contract` · `hitl` · `coding` · `questioning` · `testing` · `debugging` · `sensitive-data` · `requirements-use` · `reverse-engineering` · `discovery` · `qa-structure` · `qa-knowledge`.
+**Skills:** `orchestrator-contract` · `hitl` · `coding` · `questioning` · `testing` · `debugging` · `sensitive-data` · `requirements-use` · `reverse-engineering` · `data-collection` · `qa-structure` · `qa-knowledge`.
 
 **MCPs:** Test case management (default: `TestRail`) · Documentation (default: `Atlassian Confluence`) · Browser automation (default: `Playwright`).
 

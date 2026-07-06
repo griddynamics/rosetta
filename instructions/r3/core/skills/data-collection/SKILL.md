@@ -1,12 +1,12 @@
 ---
-name: discovery
+name: data-collection
 description: To gather source artifacts from Jira/Confluence/TestRail into a caller-defined raw-context artifact. Read-only.
 license: Apache-2.0
 tags: []
 baseSchema: docs/schemas/skill.md
 ---
 
-<discovery>
+<data_collection>
 
 <role>
 
@@ -31,13 +31,13 @@ Load when a caller needs to pull tickets / test-cases / docs from a system-of-re
 
 </core_concepts>
 
-<data_collection>
+<collection>
 
 The single mode of this skill: collect from one or more vendor sources into the caller's raw-context artifact. Four steps, applied per resolved binding.
 
 1. **Receive bindings from the caller.** The caller supplies (a) the resolved vendor binding(s) — `jira` | `confluence` | `testrail` — already config-resolved by the caller (this skill does NOT resolve vendors from config); (b) the output-artifact path + the section/contract the caller owns; (c) the input handle(s) per vendor (ticket key/URL, case ID/URL, page ID/URL/search terms). Missing a required binding or input → stop and report back to the caller; do NOT guess a vendor, pick a default, or fabricate an input handle.
 
-2. **Load the matching binding reference.** For each resolved vendor, load `references/<vendor>-binding.md` on demand (lazy-loading convention, stated once): `references/jira-binding.md`, `references/confluence-binding.md`, `references/testrail-binding.md`. Each binding holds that vendor's MCP call shapes, input parsing, field map, query shapes (JQL/CQL), retrieval discipline, redaction targets, failure paths, and validation checklist — the single source of truth for vendor specifics.
+2. **Load the matching binding reference.** For each resolved vendor, load its role-named binding on demand (lazy-loading convention, stated once) — the caller's resolved vendor maps to a file by role: issue (`jira`) → `references/issue-vendor-binding.md`, test-case/TMS (`testrail`) → `references/tms-vendor-binding.md`, documentation (`confluence`) → `references/documentation-vendor-binding.md`. Each binding holds that role's MCP call shapes, input parsing, field map, query shapes (JQL/CQL), retrieval discipline, redaction targets, failure paths, and validation checklist — vendor-specific, with a canonical vendor as its worked example. The file is named by role; the vendor named in each is the reference implementation.
 
 3. **Extract + normalize** per the binding's field map. Per field: present + non-empty → include in the caller's section; empty/null → write `None` + record a gap; permission-restricted → `<restricted by permissions>` + gap; transport/not-found/auth failures → follow the binding's failure path (retry-once on transport, then stop + report; never emit a partial-but-unflagged artifact). Capture provenance (source IDs, URLs, query used, ranking) where the binding specifies it.
 
@@ -45,7 +45,7 @@ The single mode of this skill: collect from one or more vendor sources into the 
 
 When a caller supplies MULTIPLE bindings, run steps 2–4 per vendor and emit each vendor's output into the section the caller assigns it; the caller owns any cross-vendor aggregation/reconciliation.
 
-</data_collection>
+</collection>
 
 <validation_checklist>
 
@@ -72,4 +72,4 @@ Generic gate (the per-vendor binding adds its own item-level checklist, loaded w
 
 </pitfalls>
 
-</discovery>
+</data_collection>

@@ -1,6 +1,6 @@
-# Vendor binding: Jira (issue / TMS)
+# Vendor binding: Issue vendor (canonical example: Jira)
 
-Loaded on demand by `discovery` SKILL.md `<data_collection>` when the phase resolves the `jira` binding. Holds the Jira-specific MCP call shapes, input parsing, field map, redaction targets, failure paths, and validation items. The base SKILL.md owns the general method (extract → normalize → redact → write) and the phase-is-SSoT rule — not restated here.
+Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the issue vendor binding. **Canonical example: Jira** — the MCP call shapes, JQL, and field map below are Jira's; for another issue tracker (Linear, GitHub Issues, Azure Boards) map by capability, keeping the same method. Holds the issue-vendor MCP call shapes, input parsing, field map, redaction targets, failure paths, and validation items. The base SKILL.md owns the general method (extract → normalize → redact → write) and the phase-is-SSoT rule — not restated here.
 
 **MCP method names below (`jira_get_issue`, `jira_search_fields`, and the create/update/transition/comment write calls) are illustrative of one common Jira MCP server — not a hardcoded contract.** Resolve the actual tool from the configured Jira MCP binding; if it names operations differently, map by capability: get-issue (with fields/expand/comment-limit), field-schema lookup, and (write — forbidden in this read-only binding) issue create/update/transition/comment.
 
@@ -63,10 +63,10 @@ Highest-risk Jira fields: the **description** and each **comment body** (tickets
 
 ## Failure paths (SKILL `extract` step)
 
-- **Input unresolvable** (no/malformed key, URL not a recognizable Jira pattern) → stop, report `discovery/jira: ticket key unresolvable from input "<input>"`, ask the phase/user for a canonical `PROJ-NNN` or URL. Do NOT guess.
+- **Input unresolvable** (no/malformed key, URL not a recognizable Jira pattern) → stop, report `data-collection/jira: ticket key unresolvable from input "<input>"`, ask the phase/user for a canonical `PROJ-NNN` or URL. Do NOT guess.
 - **MCP transport error** (timeout / 5xx / connection drop) → retry once; second failure → stop, report the error, ask to verify Jira MCP configuration.
-- **Ticket-not-found** (404 / empty / "issue does not exist") → stop, report `discovery/jira: ticket <KEY> not found — verify the key`. Do NOT emit a partial artifact.
-- **Authorization failure** (401/403) → stop, report `discovery/jira: request rejected — ticket <KEY> may exist but is not visible to the configured credentials`, ask to verify credentials / project access.
+- **Ticket-not-found** (404 / empty / "issue does not exist") → stop, report `data-collection/jira: ticket <KEY> not found — verify the key`. Do NOT emit a partial artifact.
+- **Authorization failure** (401/403) → stop, report `data-collection/jira: request rejected — ticket <KEY> may exist but is not visible to the configured credentials`, ask to verify credentials / project access.
 - **Required field empty / permission-restricted / `jira_search_fields` discovery failure** → per the field-map per-field branch above (continue + gap, do not stop).
 
 ## Validation items (binding-specific, added to SKILL `<validation_checklist>`)

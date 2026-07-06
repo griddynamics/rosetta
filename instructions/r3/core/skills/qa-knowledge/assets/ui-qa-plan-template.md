@@ -5,9 +5,9 @@ description: UI-QA test-plan skeleton (plans/ui-qa-<test-name>.md) — Test Case
 
 <ui-qa-plan-template>
 
-Output template for `plans/ui-qa-<test-name>.md`. `## Access / Truncation Notes` is populated from the **`discovery`** collection skill's disclosure (truncation, permission denials, `[empty page]`, cross-domain fallbacks); never omit.
+Output template for `plans/ui-qa-<test-name>.md`. `## Access / Truncation Notes` is populated from the **`data-collection`** skill's disclosure (truncation, permission denials, `[empty page]`, cross-domain fallbacks); never omit.
 
-**Inputs required:** the TestRail Case ID, the Confluence page URL(s), and `discovery`'s collection disclosure output.
+**Inputs required:** the TestRail Case ID, the Confluence page URL(s), and `data-collection`'s disclosure output.
 
 **Data-absence branches:** TestRail case inaccessible (missing / deleted / permission-denied) → set all TestRail-sourced fields to `N/A — TestRail case inaccessible` and record it in `## Access / Truncation Notes`. TestRail case has no steps → write `None — steps absent from TestRail case` in Test Steps. Confluence page inaccessible → write `None — Confluence page inaccessible` in the affected Feature Context field and record it in `## Access / Truncation Notes`.
 

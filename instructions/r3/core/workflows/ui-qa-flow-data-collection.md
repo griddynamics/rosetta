@@ -16,7 +16,7 @@ Gather test case details from TestRail and feature context from Confluence, cros
 - Phase 1 of 8 in `ui-qa-flow`
 - Input: TestRail case ID or URL, Confluence page ID or search terms (from user)
 - Output: `plans/ui-qa-<test-name>.md` with test case info and feature context
-- Collection skill: `discovery` (single canonical collector). This phase resolves the in-scope collection vendor binding(s) from project config and passes them to `discovery`; `discovery` loads `references/<vendor>-binding.md`. ACQUIRE `discovery` before USE if not already loaded.
+- Collection skill: `data-collection` (single canonical collector). This phase resolves the in-scope collection vendor binding(s) from project config and passes them to `data-collection`; `data-collection` loads the matching role-named `references/<role>-vendor-binding.md`. ACQUIRE `data-collection` before USE if not already loaded.
 - **Config-resolved vendors (vendors are NOT hardcoded).** Resolve from the UI-QA project config:
   - **TMS vendor** — first non-empty key (stop at first hit): `testcase_mcp_collection_skill`, `test_case_management.mcp_collection_skill`, `mcp_test_case_collection_skill`, `tms_collection_skill` (`testcase_mcp_collection_skill` is the `config-schema` canonical key). In-scope signal: `testrail_base_url` (or a TMS server/base-URL field) present → TestRail in scope → vendor binding = `testrail`.
   - **Documentation vendor** — first non-empty key: `documentation_mcp_collection_skill`, `documentation.mcp_collection_skill`, `mcp_documentation_collection_skill`, `confluence_mcp_collection_skill`. In-scope signals: `confluence_base_url` / `confluence_space` present → Confluence in scope → vendor binding = `confluence`.
@@ -25,7 +25,7 @@ Gather test case details from TestRail and feature context from Confluence, cros
 - Zero-document ACQUIRE for any required tag in step 1.2 / 1.3: apply `<zero_doc_protocol>`.
 - **ACQUIRE success:** Rosetta returns **≥1 non-empty** instruction document for the tag.
 - Prerequisite: TestRail and Confluence MCPs configured; Rosetta/KB access sufficient to resolve the tags above when needed.
-- Skills: `discovery` (TestRail + Confluence collector), `qa-structure` (slug + UI-QA paths + state template), `qa-knowledge` (UI-QA test-plan skeleton + redaction scope)
+- Skills: `data-collection` (TestRail + Confluence collector), `qa-structure` (slug + UI-QA paths + state template), `qa-knowledge` (UI-QA test-plan skeleton + redaction scope)
 </workflow_context>
 
 <phase_steps>
@@ -53,10 +53,10 @@ External content pulled in this phase — TestRail case fields (title, descripti
 
 <gather_testrail step="1.2" subagent="discoverer" role="UI-QA data collector">
 1. Resolve the **TMS vendor binding** per `<workflow_context>` (TestRail in scope when `testrail_base_url` / a TMS server field is set → binding = `testrail`). If unresolvable with scope active, apply `<zero_doc_protocol>`.
-2. ACQUIRE `discovery` FROM KB if not already loaded. On zero documents: apply `<zero_doc_protocol>`.
-3. USE SKILL `discovery` with the resolved TMS vendor binding (`testrail`), passing the TestRail case ID/URL input and this phase's test-case output contract; `discovery` loads `references/testrail-binding.md`.
+2. ACQUIRE `data-collection` FROM KB if not already loaded. On zero documents: apply `<zero_doc_protocol>`.
+3. USE SKILL `data-collection` with the resolved TMS vendor binding (`testrail`), passing the TestRail case ID/URL input and this phase's test-case output contract; `data-collection` loads `references/tms-vendor-binding.md`.
 4. Extract: case ID, title, description, preconditions, step-by-step actions with expected results, test goal, priority, test type.
-5. Redaction of any captured value runs inside `discovery` via `sensitive-data` before write (scope per `qa-knowledge/references/redaction-scope.md`).
+5. Redaction of any captured value runs inside `data-collection` via `sensitive-data` before write (scope per `qa-knowledge/references/redaction-scope.md`).
 </gather_testrail>
 
 <gather_confluence step="1.3" subagent="discoverer" role="UI-QA data collector">
@@ -67,16 +67,16 @@ Stop Phase 1, record the failed KB tag in `agents/ui-qa-state.md`, notify the us
 
 <acquire_skills>
 1. Resolve the **Documentation vendor binding** per `<workflow_context>` (Confluence in scope when `confluence_base_url` / `confluence_space` is set → binding = `confluence`). If unresolvable with scope active, apply `<zero_doc_protocol>`.
-2. ACQUIRE `discovery` FROM KB if not already loaded. On zero documents: apply `<zero_doc_protocol>`.
+2. ACQUIRE `data-collection` FROM KB if not already loaded. On zero documents: apply `<zero_doc_protocol>`.
 </acquire_skills>
 
 <harvest_and_fetch>
-1. USE SKILL `discovery` with the resolved documentation vendor binding (`confluence`), passing the Confluence page ID/URL/search-terms input and this phase's feature-context output contract. `discovery` loads `references/confluence-binding.md`, which carries the harvesting discipline (URL shapes, child pages, truncation, deduplication) AND the authenticated MCP reads/searches in one binding.
-2. Redaction of any captured page body runs inside `discovery` via `sensitive-data` before write (scope per `qa-knowledge/references/redaction-scope.md`).
+1. USE SKILL `data-collection` with the resolved documentation vendor binding (`confluence`), passing the Confluence page ID/URL/search-terms input and this phase's feature-context output contract. `data-collection` loads `references/documentation-vendor-binding.md`, which carries the harvesting discipline (URL shapes, child pages, truncation, deduplication) AND the authenticated MCP reads/searches in one binding.
+2. Redaction of any captured page body runs inside `data-collection` via `sensitive-data` before write (scope per `qa-knowledge/references/redaction-scope.md`).
 </harvest_and_fetch>
 
 <access_notes_policy>
-**Disclosure rule (canonical — single source of truth; other sections reference, do not restate).** `discovery` (`confluence` binding) is the single source for page bodies, truncation flags, and permission status. Record every truncation, permission denial, `[empty page]`, or cross-domain fallback it reports into `## Access / Truncation Notes` (template in the `qa-knowledge/assets/ui-qa-plan-template.md` asset); never omit. Permission-restricted pages appear as `<restricted by permissions>`, never as empty content.
+**Disclosure rule (canonical — single source of truth; other sections reference, do not restate).** `data-collection` (`confluence` binding) is the single source for page bodies, truncation flags, and permission status. Record every truncation, permission denial, `[empty page]`, or cross-domain fallback it reports into `## Access / Truncation Notes` (template in the `qa-knowledge/assets/ui-qa-plan-template.md` asset); never omit. Permission-restricted pages appear as `<restricted by permissions>`, never as empty content.
 </access_notes_policy>
 
 <extract_context>

@@ -67,7 +67,7 @@ This block owns ONLY the api-qa-flow-specific skip rules below: a set of **alway
 <data_collection phase="1" applies="ALL" subagent="discoverer" role="QA data collector">
 - ACQUIRE `api-qa-flow-data-collection.md` FROM KB
 - Input: project config + initial data. Output: `agents/api-qa/{IDENTIFIER}/raw-data.md` (test cases, documentation, existing test patterns).
-- Skills: `discovery` (TMS + documentation MCP), `reverse-engineering` (existing-test + backend-source scan), `qa-structure`
+- Skills: `data-collection` (TMS + documentation MCP), `reverse-engineering` (existing-test + backend-source scan), `qa-structure`
 </data_collection>
 
 <api_spec_analysis phase="2" applies="ALL" subagent="discoverer" role="API spec analyst">
@@ -140,7 +140,7 @@ Subagents:
 - `executor` (Lightweight): optional for mechanical actions (builds, installs)
 
 Skills (logical names — per-phase usage is listed in each phase block above; a backticked skill is an `ACQUIRE <name> FROM KB` at that phase's entry step):
-`orchestrator-contract` · `hitl` · `coding` · `discovery` · `reverse-engineering` · `requirements-use` · `questioning` · `scenarios-generation` · `testing` · `debugging` · `sensitive-data` · `qa-structure` · `qa-knowledge`. `qa-structure` (paths/identifier/state-file) and `qa-knowledge` (taxonomies, redaction scope, artifact skeletons) are cross-phase.
+`orchestrator-contract` · `hitl` · `coding` · `data-collection` · `reverse-engineering` · `requirements-use` · `questioning` · `scenarios-generation` · `testing` · `debugging` · `sensitive-data` · `qa-structure` · `qa-knowledge`. `qa-structure` (paths/identifier/state-file) and `qa-knowledge` (taxonomies, redaction scope, artifact skeletons) are cross-phase.
 
 **Rosetta KB:** zero-document ACQUIRE → `<failure_handling>`. `debugging` is invoked ad-hoc during Phase 6 (report analysis) and Phase 7 (corrections); no dedicated workflow file.
 

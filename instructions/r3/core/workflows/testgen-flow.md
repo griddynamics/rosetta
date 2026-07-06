@@ -29,11 +29,11 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 - MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
 - **Trigger prompt example:** `Analyze requirements for PROJ-123` (also: bare key `PROJ-123`, full Jira URL). Jira-only and Jira+Confluence input formats are enumerated in `testgen-flow-project-config-loading.md` step 0.1.
 - **Per-phase failure cases — owned by phase files:**
-  - *Jira ticket not found* → `testgen-flow-data-collection.md` + the `discovery` skill's Jira failure handling.
-  - *No Confluence results* → `testgen-flow-data-collection.md` + the `discovery` skill's Confluence failure handling.
+  - *Jira ticket not found* → `testgen-flow-data-collection.md` + the `data-collection` skill's Jira failure handling.
+  - *No Confluence results* → `testgen-flow-data-collection.md` + the `data-collection` skill's Confluence failure handling.
   - *User declines / does not answer questions* → `testgen-flow-question-generation.md` `<failure_handling>` "User explicitly declines to answer".
   - *Incomplete / missing requirements inputs* → `testgen-flow-requirements-document-generation.md` `<failure_handling>` "Missing or empty inputs".
-  - *CQL search example + ranking rule* → the `discovery` skill's Confluence CQL/ranking behavior.
+  - *CQL search example + ranking rule* → the `data-collection` skill's Confluence CQL/ranking behavior.
   - *Initial-prompt format examples* → `testgen-flow-project-config-loading.md`.
   - **Phase 6 80%-export-success threshold** → `testgen-flow-test-case-export.md` (`Threshold (80%) met` field + `PARTIAL — N/M exported` state).
   - **Phase 5 test-case-count guidance** → `testgen-flow-test-case-generation.md` `<validation_checklist>`.
@@ -54,7 +54,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 1. ACQUIRE `testgen-flow-data-collection.md` FROM KB
 2. Execute phase instructions.
 3. Input: initial user request, initial-data.md. Output: `agents/testgen/{TICKET-KEY}/raw-data.md` with Jira + Confluence data.
-4. Recommended skills: `discovery`
+4. Recommended skills: `data-collection`
 5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 </data_collection>
@@ -150,9 +150,9 @@ Subagents:
 Skills:
 - `questioning`, `requirements-authoring`, `scenarios-generation`
 - `orchestrator-contract`, `hitl`
-- `discovery`
+- `data-collection`
 - `requirements-use`
-- `sensitive-data` (redaction — Phase 0 config/initial-data pre-write gate; Phase 1 collection runs it via `discovery`)
+- `sensitive-data` (redaction — Phase 0 config/initial-data pre-write gate; Phase 1 collection runs it via `data-collection`)
 - `coding` (conditional — only for writes to tracked repo files outside `agents/testgen/{TICKET-KEY}/`, per `<phase_5_6_standards_gate>`)
 
 MCPs:

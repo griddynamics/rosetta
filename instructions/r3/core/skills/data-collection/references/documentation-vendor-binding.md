@@ -1,6 +1,6 @@
-# Vendor binding: Confluence (documentation)
+# Vendor binding: Documentation vendor (canonical example: Confluence)
 
-Loaded on demand by `discovery` SKILL.md `<data_collection>` when the phase resolves the `confluence` binding. Merges the MCP transport (page fetch / CQL search / child pages) AND the harvesting discipline (direct-URL vs search precedence, child-page traversal, truncation, URL normalization, permission fallbacks) into one binding. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
+Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the documentation vendor binding. **Canonical example: Confluence** — the MCP transport (page fetch / CQL search / child pages) and harvesting discipline below are Confluence's; for another documentation backend (Notion, SharePoint, wiki) map by capability, keeping the same method. Merges the MCP transport AND the harvesting discipline (direct-URL vs search precedence, child-page traversal, truncation, URL normalization, permission fallbacks) into one binding. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
 
 **MCP method names below (`confluence_get_page`, `confluence_get_page_children`, `confluence_search`, and the create/update/comment write calls) are illustrative of one common Confluence MCP server — not a hardcoded contract.** Resolve the actual tool from the configured Confluence MCP binding; if it names operations differently, map by capability: page-fetch, child-page listing, CQL/text search, and (write — forbidden in this read-only binding) create/update/comment.
 
@@ -63,10 +63,10 @@ Highest-risk Confluence content: **page bodies** (pasted runbooks/ops notes embe
 
 ## Failure paths (SKILL `extract` step)
 
-- **Input unresolvable** (no URL/ID/terms, or URL unparseable) → stop, report `discovery/confluence: input unresolvable — supply page URL/ID or search terms`, ask. Do NOT guess.
-- **MCP not configured / not authenticated** → stop, report `discovery/confluence: Confluence MCP not configured or not authenticated — verify MCP setup`. Do NOT emit a zero-page artifact and call it done.
+- **Input unresolvable** (no URL/ID/terms, or URL unparseable) → stop, report `data-collection/confluence: input unresolvable — supply page URL/ID or search terms`, ask. Do NOT guess.
+- **MCP not configured / not authenticated** → stop, report `data-collection/confluence: Confluence MCP not configured or not authenticated — verify MCP setup`. Do NOT emit a zero-page artifact and call it done.
 - **MCP transport error** (timeout / 5xx / drop) → retry once same params; second failure → stop, report, ask to verify MCP connectivity.
-- **Authorization failure** (401/403 on ALL pages) → stop, report `discovery/confluence: request rejected — page(s) may exist but not visible to configured credentials`, ask to verify credentials / space access. (Per-page 401/403 with others succeeding → per-page branch above, not a global stop.)
+- **Authorization failure** (401/403 on ALL pages) → stop, report `data-collection/confluence: request rejected — page(s) may exist but not visible to configured credentials`, ask to verify credentials / space access. (Per-page 401/403 with others succeeding → per-page branch above, not a global stop.)
 - **Cross-domain URL** (host ≠ configured MCP site) → warn + try once; on failure stop the fetch, report `URL <url> belongs to a different Confluence host (<domain>) than the configured MCP — ask user for an in-site equivalent or accept ticket-only continuation`. Do NOT bypass to a cross-site fetch.
 - **Zero pages after URL + search + user-fallback exhausted** → the fallback GATE asks the user FIRST; only if the user supplies neither URLs nor approval-to-skip does this stop fire. On user "skip / proceed without docs" → record `Documentation: not available — user approved no-docs continuation` + a gap, proceed with an empty Documentation block. Do NOT fabricate.
 - **`confluence_get_page` returns empty body** → `[empty page]` marker + gap. Do NOT fabricate.

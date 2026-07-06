@@ -1,6 +1,6 @@
-# Vendor binding: TestRail (TMS / test case)
+# Vendor binding: TMS / test-case vendor (canonical example: TestRail)
 
-Loaded on demand by `discovery` SKILL.md `<data_collection>` when the phase resolves the `testrail` binding. Holds the TestRail-specific MCP call shapes, input parsing, field map, redaction targets, failure paths, and validation items. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
+Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the TMS (test-case) vendor binding. **Canonical example: TestRail** — the MCP call shapes and field map below are TestRail's; for another test-case manager map by capability, keeping the same method. Holds the TMS-vendor MCP call shapes, input parsing, field map, redaction targets, failure paths, and validation items. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
 
 **MCP method names below (`mcp_testrail_get_case`, `mcp_testrail_get_case_fields`, and the update/add/delete write calls) are illustrative of one common TestRail MCP server — not a hardcoded contract.** Resolve the actual tool from the configured TestRail MCP binding; if it names operations differently, map by capability: get-case, case-field-schema lookup, and (write — forbidden in this read-only binding) case update/add/delete.
 
@@ -57,10 +57,10 @@ Highest-risk TestRail fields: **step text, preconditions, custom fields, and tes
 
 ## Failure paths (SKILL `extract` step)
 
-- **Input unresolvable** (no/malformed ID, URL not a recognizable TestRail pattern) → stop, report `discovery/testrail: case ID unresolvable from input "<input>"`, ask for a clean numeric ID or canonical URL. Do NOT guess.
+- **Input unresolvable** (no/malformed ID, URL not a recognizable TestRail pattern) → stop, report `data-collection/testrail: case ID unresolvable from input "<input>"`, ask for a clean numeric ID or canonical URL. Do NOT guess.
 - **MCP transport error** (timeout / 5xx / drop) → retry once same `case_id`; second failure → stop, report the error, ask to verify TestRail MCP configuration.
-- **Case-not-found** (404 / empty / "case does not exist") → stop, report `discovery/testrail: case <ID> not found — verify the ID is correct and accessible by the configured credentials`. Do NOT emit a partial/empty artifact, do NOT fabricate fields.
-- **Authorization failure** (401/403) → stop, report `discovery/testrail: request rejected — case <ID> may exist but is not visible to the configured credentials`, ask to verify credentials / project access.
+- **Case-not-found** (404 / empty / "case does not exist") → stop, report `data-collection/testrail: case <ID> not found — verify the ID is correct and accessible by the configured credentials`. Do NOT emit a partial/empty artifact, do NOT fabricate fields.
+- **Authorization failure** (401/403) → stop, report `data-collection/testrail: request rejected — case <ID> may exist but is not visible to the configured credentials`, ask to verify credentials / project access.
 - **Required field empty** (title/steps/expected results missing) → proceed, record the empty field in gaps, do NOT fabricate; the artifact still emits but flags the gap.
 - **`mcp_testrail_get_case_fields` discovery fails** → proceed with directly-exposed fields + the cryptic-names note above; do not stop.
 
