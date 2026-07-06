@@ -113,6 +113,7 @@ done
 printf "  %-55s %s\n" "[package.json] src/rosettify/package.json" "$(get_json_version "$ROOT/src/rosettify/package.json")"
 printf "  %-55s %s\n" "[package.json] src/rosettify-plugins/package.json" "$(get_json_version "$ROOT/src/rosettify-plugins/package.json")"
 printf "  %-55s %s\n" "[package.json] src/rosettify-prompts/package.json" "$(get_json_version "$ROOT/src/rosettify-prompts/package.json")"
+printf "  %-55s %s\n" "[package.json] src/curiocity/package.json" "$(get_json_version "$ROOT/src/curiocity/package.json")"
 for f in \
     "$ROOT/src/rosettify-plugins/plugins/core-claude/.claude-plugin/plugin.json" \
     "$ROOT/src/rosettify-plugins/plugins/core-cursor/.cursor-plugin/plugin.json" \
@@ -191,6 +192,10 @@ bump_file_json "$ROOT/src/rosettify-plugins/package.json" "y"
 echo ""
 echo "--- src/rosettify-prompts/package.json ---"
 bump_file_json "$ROOT/src/rosettify-prompts/package.json" "y"
+
+echo ""
+echo "--- src/curiocity/package.json ---"
+bump_file_json "$ROOT/src/curiocity/package.json" "y"
 
 echo ""
 echo "--- plugin.json files (rosettify-plugins preserved source; plugins/ is generated) ---"

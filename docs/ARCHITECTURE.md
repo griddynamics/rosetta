@@ -386,6 +386,12 @@ Validated with `npm run typecheck`, `npm run test` (vitest, 90% line + branch co
 
 ---
 
+## Curiocity
+
+`curiocity` (npm; `src/curiocity/`) — evals/testing harness that drives interactive coding-agent CLIs (Claude Code, Codex) through a prompt over a real PTY, reads each CLI's native on-disk transcript as the source of truth, auto-answers the agent's genuine questions via LLM, then scores every run with deterministic checks + an LLM judge and gates CI on the aggregate. Used for CI/CD regression of the Rosetta plugin and for benchmarking agents. Case-driven (`--source <dir>` of `prompt.md`/`config.json`/`qna.md`/`evaluation.md`/`src.zip` folders); full design in [`src/curiocity/docs/architecture.md`](../src/curiocity/docs/architecture.md).
+
+---
+
 ## Instruction Structure
 
 Instructions live in `/instructions/r2/` in the instructions repository, using a layered folder structure.

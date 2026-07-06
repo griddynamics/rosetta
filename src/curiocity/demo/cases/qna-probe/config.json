@@ -1,0 +1,16 @@
+{
+  "agents": ["claude-code", "codex"],
+  "timeoutSec": 600,
+  "repeats": 1,
+  "evaluators": [
+    { "use": "file-exists", "must": ["greeting.txt"], "gate": true },
+    { "use": "command", "run": "grep -iq hello greeting.txt", "gate": true },
+    {
+      "use": "llm-judge",
+      "rubric": "evaluation.md",
+      "artifacts": ["greeting.txt"],
+      "weight": 1.0
+    }
+  ],
+  "combiner": "gated-mean"
+}

@@ -1,0 +1,21 @@
+{
+  "models": {
+    "fast": "anthropic/claude-haiku-4-5",
+    "workhorse": "anthropic/claude-sonnet-4-6"
+  },
+  "pricing": {
+    "anthropic/claude-haiku-4-5": { "inputPer1M": 1.0, "outputPer1M": 5.0 },
+    "anthropic/claude-sonnet-4-6": { "inputPer1M": 3.0, "outputPer1M": 15.0 }
+  },
+  "codingagents": {
+    "claude-code": {
+      "agentModel": "claude-sonnet-5",
+      "agentEffort": "low"
+    },
+    "codex": {
+      "agentModel": "gpt-5.4-mini"
+    }
+  },
+  "gate": { "minScore": 60, "minPassRate": 0.8, "maxStddev": 10 },
+  "concurrency": 2
+}

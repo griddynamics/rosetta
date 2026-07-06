@@ -1,0 +1,13 @@
+{
+  "agents": ["claude-code", "codex"],
+  "timeoutSec": 900,
+  "repeats": 2,
+  "provision": { "mcps": [], "plugins": [] },
+  "setup": ["./setup-fixture.sh"],
+  "teardown": [],
+  "evaluators": [
+    { "use": "file-exists", "must": ["out.txt"], "gate": true },
+    { "use": "llm-judge", "rubric": "evaluation.md", "weight": 1.0 }
+  ],
+  "combiner": "gated-mean"
+}

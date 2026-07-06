@@ -1,0 +1,8 @@
+{
+  "banner": "MOCK READY",
+  "steps": [
+    { "type": "print", "text": "Thinking about it, but producing nothing." },
+    { "type": "tool", "name": "Read", "text": "looked around" },
+    { "type": "stop", "message": "I did not create the requested file.", "complete": true }
+  ]
+}
