@@ -30,9 +30,9 @@ Synthesize Jira data, Confluence documentation, and user answers into a comprehe
 
 <load_sources step="4.1">
 1. Read all previous phase outputs:
-   - `agents/testgen/{TICKET-KEY}/raw-data.md` — Jira + Confluence data
-   - `agents/testgen/{TICKET-KEY}/analysis.md` — identified issues
-   - `agents/testgen/{TICKET-KEY}/answers.md` — user clarifications
+   - `plans/testgen-{TICKET-KEY}/raw-data.md` — Jira + Confluence data
+   - `plans/testgen-{TICKET-KEY}/analysis.md` — identified issues
+   - `plans/testgen-{TICKET-KEY}/answers.md` — user clarifications
 </load_sources>
 
 <synthesize_requirements step="4.2" subagent="architect" role="Requirements engineer">
@@ -45,7 +45,7 @@ Synthesize Jira data, Confluence documentation, and user answers into a comprehe
 
 <create_requirements_document step="4.3">
 
-Create `agents/testgen/{TICKET-KEY}/requirements.md`. The `requirements-authoring` synthesis mode emits per its `<synthesis>` rules and its synthesis output schemas (owned internally by the skill).
+Create `plans/testgen-{TICKET-KEY}/requirements.md`. The `requirements-authoring` synthesis mode emits per its `<synthesis>` rules and its synthesis output schemas (owned internally by the skill).
 
 **Section contract (phase-owned SSoT)** — the table below is **the authoritative phase contract the synthesis mode MUST satisfy**, not a parallel restatement. The mode's document wrapper uses the same scheme (front-matter + 10 numbered sections). If the emitted skeleton drifts from this table, the phase fails verification and re-invokes rather than accepting a divergent shape; the phase **bounds the contract**, the skill is the implementation.
 
@@ -122,9 +122,9 @@ The Measurement field carries the threshold (numeric + measurement window + load
 </create_requirements_document>
 
 <update_state step="4.4">
-1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 4 complete and requirement counts (user stories, FRs, NFRs, constraints, dependencies, assumptions, risks)
+1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 4 complete and requirement counts (user stories, FRs, NFRs, constraints, dependencies, assumptions, risks)
 2. Tell user: "Phase 4 complete. Generated [X] user stories, [Y] functional requirements, [Z] non-functional requirements."
-3. Show document location: `agents/testgen/{TICKET-KEY}/requirements.md`
+3. Show document location: `plans/testgen-{TICKET-KEY}/requirements.md`
 4. Ask: "Please review requirements.md. Ready to proceed to Phase 5 (Test Case Generation)?"
 5. **STOP AND WAIT** for explicit user confirmation before advancing to Phase 5. Do NOT auto-proceed on inferred approval or silence; treat ambiguous responses (questions, suggestions) as "not confirmed" and re-ask. This is a **priority-(3) per-phase confirmation** per `testgen-flow.md` `<orchestration_and_escalation>` — an explicit user instruction to skip it is honored there; it is **not** one of the never-overridable Phase 3 / Phase 6 HITL gates. (Matches the sibling per-phase confirmations at `testgen-flow-project-config-loading.md` step 0.6 / `testgen-flow-data-collection.md` step 1.4 / `testgen-flow-gap-and-contradiction-analysis.md` step 2.4.)
 </update_state>

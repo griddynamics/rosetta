@@ -1,7 +1,6 @@
----
-name: failure-analysis-template
-description: UI-QA failure-analysis.md skeleton — per-failed-test fields plus Execution Summary and Patterns.
----
+# UI-QA failure-analysis template (asset of the `qa-knowledge` skill)
+
+UI-QA failure-analysis.md skeleton — per-failed-test fields plus Execution Summary and Patterns.
 
 <failure-analysis-template>
 

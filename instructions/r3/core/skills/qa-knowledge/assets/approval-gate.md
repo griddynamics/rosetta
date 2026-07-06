@@ -1,7 +1,6 @@
----
-name: approval-gate
-description: Shared QA explicit-approval gate — closed-token discipline, loose-phrasing rejection, max-retry escalation, partial approval. The calling phase supplies the token list + revisit target.
----
+# QA approval gate (asset of the `qa-knowledge` skill)
+
+Shared QA explicit-approval gate — closed-token discipline, loose-phrasing rejection, max-retry escalation, partial approval. The calling phase supplies the token list + revisit target.
 
 <approval-gate>
 

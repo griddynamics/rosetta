@@ -15,7 +15,7 @@ Implement all approved API test specifications as executable automated tests wit
 
 <workflow_context>
 - Phase 5 of 8 in `api-qa-flow`
-- Input: approved test specs `agents/api-qa/{IDENTIFIER}/test-specs.md` + existing patterns + API analysis (`api-analysis.md`); resolve `{IDENTIFIER}` from `agents/api-qa-state.md`
+- Input: approved test specs `plans/api-qa-{IDENTIFIER}/test-specs.md` + existing patterns + API analysis (`api-analysis.md`); resolve `{IDENTIFIER}` from `agents/api-qa-state.md`
 - Output: implemented test files + shared utilities, lint-clean; state updated; user given an execution command
 - Prerequisite: Phase 4 complete with recorded user approval of the specs
 - HITL: must stop and wait for the user to execute the tests (this phase does not run them)
@@ -42,7 +42,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 </phase_steps>
 
 <execute_implementation step="5.1" subagent="engineer" role="Test automation engineer">
-1. GATE: confirm `agents/api-qa/{IDENTIFIER}/test-specs.md` exists, is non-empty, and `User Approval` is set in `agents/api-qa-state.md`; confirm `api-analysis.md` and discoverable existing patterns are present. On any failure apply `<failure_handling>` — never author from unapproved or incomplete inputs.
+1. GATE: confirm `plans/api-qa-{IDENTIFIER}/test-specs.md` exists, is non-empty, and `User Approval` is set in `agents/api-qa-state.md`; confirm `api-analysis.md` and discoverable existing patterns are present. On any failure apply `<failure_handling>` — never author from unapproved or incomplete inputs.
 2. USE SKILL `coding` to read the repository standards as authority before authoring; repo docs beat model defaults.
 3. USE SKILL `testing` (API impl mode) with the parent-supplied bindings: approved-specs path + the recorded approval signal; API-contract path; existing-patterns source; write boundary = test + shared-utility files only (`<workflow_context>`); output = the hand-off summary fields, which the `engineer` MUST ACQUIRE from `qa-knowledge/assets/api-qa-test-impl-record.md` FROM KB (per `<implementation_handoff_contract>`).
 4. Implement shared utilities (auth helper, data factory, response validator) — prefer EXTENDING existing helpers over parallel ones; record any extension. Every test name/docstring carries its ATC-NNN id.
@@ -89,7 +89,7 @@ Run `<validation_checklist>` — the authoritative exit gate. Every item must be
 </validation_checklist>
 
 <failure_handling>
-- **Missing Phase 4 specs or approval:** if `agents/api-qa/{IDENTIFIER}/test-specs.md` is absent/empty, or `User Approval` is unset in `agents/api-qa-state.md`, stop Phase 5, record `Phase 5 blocked: missing Phase 4 spec/approval`, and return to Phase 4.
+- **Missing Phase 4 specs or approval:** if `plans/api-qa-{IDENTIFIER}/test-specs.md` is absent/empty, or `User Approval` is unset in `agents/api-qa-state.md`, stop Phase 5, record `Phase 5 blocked: missing Phase 4 spec/approval`, and return to Phase 4.
 - **Missing `agents/api-qa-state.md`:** stop Phase 5, record the failure in chat output, ask the user to restore the state file (do not auto-recreate without consent).
 - **Lint failures that cannot be auto-fixed:** stop step 5.1 at validation, list the unfixable lint errors, ask the user whether to (a) edit manually before continuing, (b) suppress with project-approved overrides, or (c) abort Phase 5 to revisit specs. Do not silently accept lint failures.
 - **Partial implementation:** if some test files are created and others fail mid-run, record what was produced + what failed in `agents/api-qa-state.md`, do not mark Phase 5 complete, and ask the user how to proceed (retry, narrow scope, or abort).

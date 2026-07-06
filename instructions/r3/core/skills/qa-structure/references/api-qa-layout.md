@@ -9,12 +9,12 @@ API-QA canonical paths — created/seeded at the project-config-loading phase, r
 
 ```
 agents/api-qa-state.md                       (workflow state file — one per QA project)
-agents/api-qa/api-qa-project-config.md           (project-wide config — shared across ALL tickets)
-agents/api-qa/{IDENTIFIER}/                   (per-ticket session directory)
-agents/api-qa/{IDENTIFIER}/initial-data.md   (this run's handoff artifact)
+plans/api-qa-{IDENTIFIER}/api-qa-project-config.md           (per-session config — inside this run's feature plan folder)
+plans/api-qa-{IDENTIFIER}/                   (per-ticket session directory)
+plans/api-qa-{IDENTIFIER}/initial-data.md   (this run's handoff artifact)
 ```
 
-**`{IDENTIFIER}` derivation:** prefer Jira key (`PROJ-123`) → TestRail case ID (`C12345`) → sanitized kebab-case feature (`order-lookup`); first non-empty wins; recorded once in `api-qa-state.md` and reused as the session-dir name everywhere. The project config is project-wide, NOT per-`{IDENTIFIER}` — every session reads the one shared file.
+**`{IDENTIFIER}` derivation:** prefer Jira key (`PROJ-123`) → TestRail case ID (`C12345`) → sanitized kebab-case feature (`order-lookup`); first non-empty wins; recorded once in `api-qa-state.md` and reused as the session-dir name everywhere. The project config lives in the per-`{IDENTIFIER}` feature plan folder — one copy per session, NOT a shared project-wide file — so parallel sessions and commits never collide. Only `agents/api-qa-state.md` stays a shared singleton (resume anchor).
 
 **Slug format (sanitized-feature branch + any user-supplied identifier):** lowercase ASCII kebab-case — letters, digits, hyphens only; no spaces or paths; max 80 chars. Reserved names rejected: `state`, `index`, `api-qa-state`.
 

@@ -16,7 +16,7 @@ Analyze test execution results provided by the user. Identify failures, categori
 <workflow_context>
 - Phase 6 of 8 in `api-qa-flow`
 - Input: test execution report or output (user-provided or from `agents/user-instructions/`)
-- Output artifact path (single SSoT — referenced by other sections): `agents/api-qa/{IDENTIFIER}/execution-report.md` (resolve `{IDENTIFIER}` from `agents/api-qa-state.md`)
+- Output artifact path (single SSoT — referenced by other sections): `plans/api-qa-{IDENTIFIER}/execution-report.md` (resolve `{IDENTIFIER}` from `agents/api-qa-state.md`)
 - Prerequisite: Phase 5 complete, tests executed by user
 - HITL: may need to ask user for test execution results
 - Read-only scope (single SSoT — referenced by other sections as "the read-only scope"): parse / categorize / root-cause / label evidence / recommend. NO production code edits, NO writes to test or product source files. Refuse "just fix it now" / "patch and move on" with citation of this scope; the only acceptable user inputs are report location, evidence/labeling clarifications, or explicit approval to leave borderline items as `Assumption`.
@@ -38,10 +38,10 @@ This is the **phase contract** and is verified by `<validation_checklist>` indep
 
 <execute_analysis step="6.1" subagent="engineer" role="Test failure analyst">
 1. If the test report location is unknown and not in `agents/user-instructions/` (keywords: "test report", "report location", "test output", "report path"): ask user and **WAIT** until a report is available or the user confirms none.
-2. **ACQUIRE `qa-knowledge/references/api-qa-failure-taxonomy.md`, `qa-knowledge/assets/execution-report-template.md`, and `qa-knowledge/references/redaction-scope.md` FROM KB first** — load-bearing for the `engineer`. Then USE SKILL `debugging` (test-execution triage mode) with the parent-supplied bindings: report path; taxonomy = the `api-qa-failure-taxonomy` reference; output contract = `<execution_report_contract>`; output path = `agents/api-qa/{IDENTIFIER}/execution-report.md`. USE SKILL `sensitive-data` for redaction, then run the `redaction-scope` grep list as the pre-emit gate before writing.
+2. **ACQUIRE `qa-knowledge/references/api-qa-failure-taxonomy.md`, `qa-knowledge/assets/execution-report-template.md`, and `qa-knowledge/references/redaction-scope.md` FROM KB first** — load-bearing for the `engineer`. Then USE SKILL `debugging` (test-execution triage mode) with the parent-supplied bindings: report path; taxonomy = the `api-qa-failure-taxonomy` reference; output contract = `<execution_report_contract>`; output path = `plans/api-qa-{IDENTIFIER}/execution-report.md`. USE SKILL `sensitive-data` for redaction, then run the `redaction-scope` grep list as the pre-emit gate before writing.
 3. Do not fabricate failures, stack traces, or pass/fail counts. If inputs are missing, contradictory, or look tampered with, say so in `execution-report.md` and ask the user for verifiable artifacts.
 4. Honor the read-only scope (`<workflow_context>`).
-5. **Post-analysis verification:** confirm `agents/api-qa/{IDENTIFIER}/execution-report.md` exists with every `<execution_report_contract>` section. If missing/incomplete: re-run triage once with the same bindings; if still failing, stop Phase 6, record `Phase 6 blocked: execution-report.md not produced/incomplete` in `agents/api-qa-state.md`, and ask the user.
+5. **Post-analysis verification:** confirm `plans/api-qa-{IDENTIFIER}/execution-report.md` exists with every `<execution_report_contract>` section. If missing/incomplete: re-run triage once with the same bindings; if still failing, stop Phase 6, record `Phase 6 blocked: execution-report.md not produced/incomplete` in `agents/api-qa-state.md`, and ask the user.
 </execute_analysis>
 
 <review_findings step="6.2">

@@ -1,7 +1,6 @@
----
-name: code-analysis-report-template
-description: UI-QA code-analysis report skeleton (9 sections) plus the test-location decision rule.
----
+# UI-QA code-analysis report template (asset of the `qa-knowledge` skill)
+
+UI-QA code-analysis report skeleton (9 sections) plus the test-location decision rule.
 
 <code-analysis-report-template>
 

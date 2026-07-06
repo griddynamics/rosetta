@@ -1,8 +1,8 @@
 # Vendor binding: Documentation vendor (canonical example: Confluence)
 
-Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the documentation vendor binding. **Canonical example: Confluence** — the MCP transport (page fetch / CQL search / child pages) and harvesting discipline below are Confluence's; for another documentation backend (Notion, SharePoint, wiki) map by capability, keeping the same method. Merges the MCP transport AND the harvesting discipline (direct-URL vs search precedence, child-page traversal, truncation, URL normalization, permission fallbacks) into one binding. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
+Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the documentation vendor binding. **Canonical example: Confluence** — the capabilities (page fetch / CQL search / child pages) and harvesting discipline below use Confluence; for another documentation backend (Notion, SharePoint, wiki) map by capability, keeping the same method. Merges the vendor capabilities AND the harvesting discipline (direct-URL vs search precedence, child-page traversal, truncation, URL normalization, permission fallbacks) into one binding. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
 
-**MCP method names below (`confluence_get_page`, `confluence_get_page_children`, `confluence_search`, and the create/update/comment write calls) are illustrative of one common Confluence MCP server — not a hardcoded contract.** Resolve the actual tool from the configured Confluence MCP binding; if it names operations differently, map by capability: page-fetch, child-page listing, CQL/text search, and (write — forbidden in this read-only binding) create/update/comment.
+**Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured documentation MCP binding: **get page**, **list child pages**, **search** (CQL/text), and — write, forbidden in this read-only binding — **create / update page / add comment**.
 
 ---
 
@@ -23,16 +23,16 @@ Canonical storage form for any URL is `/spaces/<KEY>/pages/<numeric-id>`. When t
 ## Retrieval & harvesting discipline (SKILL `extract` step)
 
 **Direct-URL path (preferred when URLs/IDs supplied):**
-1. `confluence_get_page(page_id, convert_to_markdown=True, include_metadata=True)` for each supplied page.
-2. `confluence_get_page_children()` — fetch up to 5 relevant child pages per parent, recursing to leaves or the phase's depth cap. If the API does not expose child relationships and children are still plausible, ask once for child links (or approval to continue parent-only) and record the decision (`Children fetched: yes | no (reason)`).
+1. **Get page** for each supplied page — convert the body to markdown and include metadata.
+2. **List child pages** — fetch up to 5 relevant child pages per parent, recursing to leaves or the phase's depth cap. If the API does not expose child relationships and children are still plausible, ask once for child links (or approval to continue parent-only) and record the decision (`Children fetched: yes | no (reason)`).
 
 **Search path (when no URLs supplied):**
 1. Build a CQL query — combine the space filter AND a label/term predicate. **Always include `space =` when the project key is known** (dominant noise reducer; unscoped search breaks deterministic ranking).
    - Worked: `space = PROJ AND (label = "feature-x" OR text ~ "checkout refund")`
    - Fallback (labels unknown): `space = PROJ AND text ~ "<key-term>"`
-2. `confluence_search(query=cql_query, limit=10)`. Zero results → jump to the fallback GATE (ask the user first); only after the user supplies nothing does the "zero-pages" failure stop apply.
+2. **Search** with the CQL query (cap ~10 results). Zero results → jump to the fallback GATE (ask the user first); only after the user supplies nothing does the "zero-pages" failure stop apply.
 3. **Deterministic ranking** — fixed priority `title-match > label-match > body-match`; in-tier tiebreaker = MCP relevance score / recency. Record the CQL + top-N page IDs + ranking in the artifact's `Search Provenance` section for reproducibility.
-4. Retrieve top 3–5 pages via `confluence_get_page(...)` (same error branches as the direct path), then their child pages.
+4. Retrieve top 3–5 pages via **get page** (same error branches as the direct path), then their child pages.
 
 **Cross-vendor:** when this binding runs beside Jira/TestRail, derive search terms from the upstream ticket (labels, components, summary keywords) the phase passes in; the phase owns merging the documentation section with the ticket section.
 
@@ -69,7 +69,7 @@ Highest-risk Confluence content: **page bodies** (pasted runbooks/ops notes embe
 - **Authorization failure** (401/403 on ALL pages) → stop, report `data-collection/confluence: request rejected — page(s) may exist but not visible to configured credentials`, ask to verify credentials / space access. (Per-page 401/403 with others succeeding → per-page branch above, not a global stop.)
 - **Cross-domain URL** (host ≠ configured MCP site) → warn + try once; on failure stop the fetch, report `URL <url> belongs to a different Confluence host (<domain>) than the configured MCP — ask user for an in-site equivalent or accept ticket-only continuation`. Do NOT bypass to a cross-site fetch.
 - **Zero pages after URL + search + user-fallback exhausted** → the fallback GATE asks the user FIRST; only if the user supplies neither URLs nor approval-to-skip does this stop fire. On user "skip / proceed without docs" → record `Documentation: not available — user approved no-docs continuation` + a gap, proceed with an empty Documentation block. Do NOT fabricate.
-- **`confluence_get_page` returns empty body** → `[empty page]` marker + gap. Do NOT fabricate.
+- **Get page returns empty body** → `[empty page]` marker + gap. Do NOT fabricate.
 
 ## Output sections (within the phase-owned artifact)
 
@@ -83,4 +83,4 @@ The phase owns the artifact path + heading; this binding emits, in order: per-pa
 - Zero-result / no-docs path ends in an explicit recorded user decision, not a silent empty.
 - Permission errors recorded as `<restricted by permissions>`, never masked as empty content.
 - Search Provenance populated (CQL + top-N IDs + ranking) whenever the search path ran.
-- Read-only: no `confluence_create_page` / `confluence_update_page` / `confluence_add_comment` or equivalent write call was made.
+- Read-only: no **create / update page / add comment** (or equivalent) write call was made.

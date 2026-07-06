@@ -1,7 +1,6 @@
----
-name: ui-qa-plan-template
-description: UI-QA test-plan skeleton (plans/ui-qa-<test-name>.md) — Test Case Information, Feature Context, Access / Cross-Reference notes.
----
+# UI-QA test-plan template (asset of the `qa-knowledge` skill)
+
+UI-QA test-plan skeleton (plans/ui-qa-<test-name>.md) — Test Case Information, Feature Context, Access / Cross-Reference notes.
 
 <ui-qa-plan-template>
 

@@ -33,7 +33,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 </phase_steps>
 
 <extract_jira step="1.1">
-1. **Read `agents/testgen/{TICKET-KEY}/initial-data.md`** (contributes the original user prompt and a pointer to the project config) and the original user request.
+1. **Read `plans/testgen-{TICKET-KEY}/initial-data.md`** (contributes the original user prompt and a pointer to the project config) and the original user request.
 2. Resolve the **Issue vendor binding** per `<workflow_context>` (`jira_base_url` set → binding = `jira`). If unresolvable with scope active, re-read config; still absent → record the gap and stop Phase 1.
 3. ACQUIRE `data-collection` FROM KB if not already loaded.
 4. Extract ticket key from user input (parse from URL if needed). **Ticket-key extraction failure path:** if no key can be parsed (no URL, malformed input, ambiguous candidates): stop Phase 1, ask the user once for the exact ticket key (`PROJ-NNN` form), do not proceed until the user provides it. After 2 unsuccessful re-asks, record `Phase 1 blocked: ticket key unresolvable` in `testgen-state.md` and stop.
@@ -51,7 +51,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 <create_raw_data step="1.3">
 **Minimum-output contract (asserted by this phase independent of skill internals):** `raw-data.md` MUST capture, at minimum — Jira: summary, description, status, priority, labels, components, comments; Confluence (when not skipped): page title, URL, content. Missing any of these = phase incomplete, regardless of what `data-collection` (`jira` / `confluence` bindings) defines internally.
 
-1. Create `agents/testgen/{TICKET-KEY}/raw-data.md` with structure:
+1. Create `plans/testgen-{TICKET-KEY}/raw-data.md` with structure:
    ```markdown
 # Raw Data - [TICKET-KEY]
 
@@ -150,7 +150,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 
 <update_state step="1.4">
 
-1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` per the canonical state-file schema (owned by `testgen-flow-project-config-loading.md` `<state_file_template>`, via `testgen-flow.md` `<state_and_outputs>` — this phase does NOT restate the full schema; it produces the Phase 1 delta the schema slots in).
+1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` per the canonical state-file schema (owned by `testgen-flow-project-config-loading.md` `<state_file_template>`, via `testgen-flow.md` `<state_and_outputs>` — this phase does NOT restate the full schema; it produces the Phase 1 delta the schema slots in).
 
    **Phase 1 delta — required fields (slot into the schema's `## Phase Completion Status` and `## Phase Details` blocks):**
 
@@ -164,7 +164,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
    - Jira Ticket: [TICKET-KEY]
    - Jira Fields Captured: [count] (summary, description, status, priority, plus any extracted custom fields)
    - Confluence Pages: [count] (or `0 — user approved skip` if no docs)
-   - Files Created: agents/testgen/{TICKET-KEY}/raw-data.md
+   - Files Created: plans/testgen-{TICKET-KEY}/raw-data.md
    - Notes: [partial-load flags from get_confluence step 1.2, or ticket-key-extraction notes from step 1.1, or `None`]
    ```
 

@@ -1,7 +1,6 @@
----
-name: ui-qa-state-template
-description: UI-QA state-file template — initialized at Phase 1 and updated by every later phase.
----
+# UI-QA state-file template (asset of the `qa-structure` skill)
+
+UI-QA state-file template — initialized at Phase 1 and updated by every later phase.
 
 <ui-qa-state-template>
 

@@ -1,11 +1,10 @@
----
-name: api-qa-project-config-template
-description: API-QA project-config markdown skeleton written to agents/api-qa/api-qa-project-config.md at Phase 0.
----
+# API-QA project-config template (asset of the `qa-structure` skill)
+
+API-QA project-config markdown skeleton written to plans/api-qa-{IDENTIFIER}/api-qa-project-config.md at Phase 0.
 
 <api-qa-project-config-template>
 
-Written to the canonical path `agents/api-qa/api-qa-project-config.md` (project-wide; shared across every API-QA session for this project). Populate each section from the user's answers. **`qa-structure/references/config-schema.md` is the single authority for which keys are required and their accepted values / `N/A — <reason>` forms — not restated per-field below;** the required keys carry `[per config-schema]` placeholders. Mark optional fields `TBD — <reason>` when discovery is intentionally deferred.
+Written to `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md` inside this run's feature plan folder — one copy per API-QA session, never a shared project-wide file (a shared file collides across parallel sessions and commits). Resolve `{IDENTIFIER}` from `agents/api-qa-state.md`. Populate each section from the user's answers. **`qa-structure/references/config-schema.md` is the single authority for which keys are required and their accepted values / `N/A — <reason>` forms — not restated per-field below;** the required keys carry `[per config-schema]` placeholders. Mark optional fields `TBD — <reason>` when discovery is intentionally deferred.
 
 ```markdown
 # API-QA Project Config

@@ -19,14 +19,14 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed.
 - **ONE PHASE AT A TIME:** ACQUIRE phase file, execute, update state, move to next.
-- **DO NOT SKIP PHASES:** Each builds on the previous. Skip gates: only with **explicit user instruction**, **or** when `testgen-state.md` marks the phase complete **and** its expected output file exists under `agents/testgen/{TICKET-KEY}/`; otherwise resume from the earliest incomplete phase. The **explicit user instruction** skip NEVER applies to the Phase 3 / Phase 6 HITL gates — those are rule 2 of `<orchestration_and_escalation>` and are never overridden.
+- **DO NOT SKIP PHASES:** Each builds on the previous. Skip gates: only with **explicit user instruction**, **or** when `testgen-state.md` marks the phase complete **and** its expected output file exists under `plans/testgen-{TICKET-KEY}/`; otherwise resume from the earliest incomplete phase. The **explicit user instruction** skip NEVER applies to the Phase 3 / Phase 6 HITL gates — those are rule 2 of `<orchestration_and_escalation>` and are never overridden.
 - **Phase-file load failure:** if ACQUIRE of a phase file returns zero documents, retry once, then HALT and report — do not improvise the phase.
 - **Transition precedence:** `<orchestration_and_escalation>` priority hierarchy.
-- **STATE TRACKING:** Update `agents/testgen/{TICKET-KEY}/testgen-state.md` after each phase.
+- **STATE TRACKING:** Update `plans/testgen-{TICKET-KEY}/testgen-state.md` after each phase.
 - **SELF-CHECK BETWEEN PHASES:** Before advancing, verify the state row was updated, the expected output file exists and is non-empty, the phase's `## Metrics` count is populated (a thin `0`/`1` → re-check the artifact), and any HITL approval (Phase 3, 6) is recorded.
 - The drive-loop cadence above is owned by this workflow — the inline bullets are authoritative. When a phase delegates work to subagents, dispatch per `USE SKILL orchestrator-contract` (ACQUIRE if not loaded).
 - MUST use todo tasks for tracking progress.
-- MUST create output directory `agents/testgen/{TICKET-KEY}/` at start.
+- MUST create output directory `plans/testgen-{TICKET-KEY}/` at start.
 - **Trigger prompt example:** `Analyze requirements for PROJ-123` (also: bare key `PROJ-123`, full Jira URL). Jira-only and Jira+Confluence input formats are enumerated in `testgen-flow-project-config-loading.md` step 0.1.
 - **Per-phase failure cases — owned by phase files:**
   - *Jira ticket not found* → `testgen-flow-data-collection.md` + the `data-collection` skill's Jira failure handling.
@@ -43,9 +43,9 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 1. ACQUIRE `testgen-flow-project-config-loading.md` FROM KB
 2. Execute phase instructions.
-3. Input: user request with Jira ticket key/URL. Output: `agents/testgen/{TICKET-KEY}/initial-data.md`, project config file.
+3. Input: user request with Jira ticket key/URL. Output: `plans/testgen-{TICKET-KEY}/initial-data.md`, project config file.
 4. Recommended skills: `questioning`, `sensitive-data` (config / initial-data redaction pre-write gate)
-5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+5. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
 
 </project_config_loading>
 
@@ -53,9 +53,9 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 1. ACQUIRE `testgen-flow-data-collection.md` FROM KB
 2. Execute phase instructions.
-3. Input: initial user request, initial-data.md. Output: `agents/testgen/{TICKET-KEY}/raw-data.md` with Jira + Confluence data.
+3. Input: initial user request, initial-data.md. Output: `plans/testgen-{TICKET-KEY}/raw-data.md` with Jira + Confluence data.
 4. Recommended skills: `data-collection`
-5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+5. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
 
 </data_collection>
 
@@ -63,9 +63,9 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 1. ACQUIRE `testgen-flow-gap-and-contradiction-analysis.md` FROM KB
 2. Execute phase instructions.
-3. Input: raw-data.md. Output: `agents/testgen/{TICKET-KEY}/analysis.md` with contradictions, gaps, ambiguities.
+3. Input: raw-data.md. Output: `plans/testgen-{TICKET-KEY}/analysis.md` with contradictions, gaps, ambiguities.
 4. Recommended skills: `requirements-use`
-5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+5. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
 
 </gap_and_contradiction_analysis>
 
@@ -73,10 +73,10 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 1. ACQUIRE `testgen-flow-question-generation.md` FROM KB
 2. Execute phase instructions.
-3. Input: analysis.md. Output: `agents/testgen/{TICKET-KEY}/questions.md`, `agents/testgen/{TICKET-KEY}/answers.md`.
+3. Input: analysis.md. Output: `plans/testgen-{TICKET-KEY}/questions.md`, `plans/testgen-{TICKET-KEY}/answers.md`.
 4. **WAIT FOR USER** to fill answers in questions.md. Explicit approval required.
 5. Recommended skills: `questioning`
-6. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+6. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
 
 </question_generation>
 
@@ -84,10 +84,10 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 1. ACQUIRE `testgen-flow-requirements-document-generation.md` FROM KB
 2. Execute phase instructions.
-3. Input: raw-data.md + analysis.md + answers.md. Output: `agents/testgen/{TICKET-KEY}/requirements.md`.
+3. Input: raw-data.md + analysis.md + answers.md. Output: `plans/testgen-{TICKET-KEY}/requirements.md`.
 4. **WAIT FOR USER** to review `requirements.md` before Phase 5 (phase-file gate, step 4.4) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
 5. Recommended skills: `requirements-authoring`
-6. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+6. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
 
 </requirements_document_generation>
 
@@ -95,11 +95,11 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 1. ACQUIRE `testgen-flow-test-case-generation.md` FROM KB
 2. Execute phase instructions.
-3. Input: requirements.md. Output: `agents/testgen/{TICKET-KEY}/test-scenarios.md`
+3. Input: requirements.md. Output: `plans/testgen-{TICKET-KEY}/test-scenarios.md`
 4. **WAIT FOR USER** to review `test-scenarios.md` before Phase 6 export (phase-file gate, step 5.9) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
 5. Recommended skills: `scenarios-generation`.
-6. `coding` is NOT used for the default manual-scenario output (writes stay under `agents/testgen/{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder, per `<phase_5_6_standards_gate>`.
-7. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+6. `coding` is NOT used for the default manual-scenario output (writes stay under `plans/testgen-{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder, per `<phase_5_6_standards_gate>`.
+7. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
 
 </test_case_generation>
 
@@ -107,11 +107,11 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 1. ACQUIRE `testgen-flow-test-case-export.md` FROM KB
 2. Execute phase instructions.
-3. Input: test-scenarios.md. Output: test cases exported to Test Management System **and** a local export receipt at `agents/testgen/{TICKET-KEY}/export-report.md` (TMS IDs/URLs, per-case status, timestamp). The local receipt is the on-disk evidence Phase 6 ran successfully.
+3. Input: test-scenarios.md. Output: test cases exported to Test Management System **and** a local export receipt at `plans/testgen-{TICKET-KEY}/export-report.md` (TMS IDs/URLs, per-case status, timestamp). The local receipt is the on-disk evidence Phase 6 ran successfully.
 4. **WAIT FOR USER** to provide target location and confirm export.
 5. Recommended skills: `scenarios-generation`.
-6. `coding` is NOT used for the default flow (TMS export + receipt under `agents/testgen/{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder (e.g. embedding TMS IDs into a version-controlled file), per `<phase_5_6_standards_gate>`.
-7. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
+6. `coding` is NOT used for the default flow (TMS export + receipt under `plans/testgen-{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder (e.g. embedding TMS IDs into a version-controlled file), per `<phase_5_6_standards_gate>`.
+7. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
 
 </test_case_export>
 
@@ -128,13 +128,13 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 </orchestration_and_escalation>
 
 <phase_5_6_standards_gate>
-- Phases 5-6: apply `coding` whenever the phase writes any file outside `agents/testgen/{TICKET-KEY}/` — including "mixed outputs" (writes both inside and outside) or when repository edit scope was not explicitly confirmed in chat. When in doubt, apply.
-- Examples: apply for `cypress/e2e/login.spec.ts`; skip when writing only `agents/testgen/{TICKET-KEY}/test-scenarios.md`.
+- Phases 5-6: apply `coding` whenever the phase writes any file outside `plans/testgen-{TICKET-KEY}/` — including "mixed outputs" (writes both inside and outside) or when repository edit scope was not explicitly confirmed in chat. When in doubt, apply.
+- Examples: apply for `cypress/e2e/login.spec.ts`; skip when writing only `plans/testgen-{TICKET-KEY}/test-scenarios.md`.
 </phase_5_6_standards_gate>
 
 <state_and_outputs>
 
-`testgen-state.md` (sections `## Phase Completion Status`, `## Phase Details`, `## Metrics`, `## Verification-Failure Overrides`) and the per-ticket output-directory layout are **initialized and owned by Phase 0** (`testgen-flow-project-config-loading.md`) — see it for the canonical layout. Each subsequent phase updates the state file per `<workflow_phases>` and writes its output (paths in each phase block) under `agents/testgen/{TICKET-KEY}/`.
+`testgen-state.md` (sections `## Phase Completion Status`, `## Phase Details`, `## Metrics`, `## Verification-Failure Overrides`) and the per-ticket output-directory layout are **initialized and owned by Phase 0** (`testgen-flow-project-config-loading.md`) — see it for the canonical layout. Each subsequent phase updates the state file per `<workflow_phases>` and writes its output (paths in each phase block) under `plans/testgen-{TICKET-KEY}/`.
 
 Expected per-ticket artifact set (one validation can confirm all phases ran): `initial-data.md` + project config (Phase 0) · `raw-data.md` (1) · `analysis.md` (2) · `questions.md` + `answers.md` (3) · `requirements.md` (4) · `test-scenarios.md` (5) · `export-report.md` (6) · `testgen-state.md` (all). Full schema/layout owned by Phase 0.
 
@@ -153,7 +153,7 @@ Skills:
 - `data-collection`
 - `requirements-use`
 - `sensitive-data` (redaction — Phase 0 config/initial-data pre-write gate; Phase 1 collection runs it via `data-collection`)
-- `coding` (conditional — only for writes to tracked repo files outside `agents/testgen/{TICKET-KEY}/`, per `<phase_5_6_standards_gate>`)
+- `coding` (conditional — only for writes to tracked repo files outside `plans/testgen-{TICKET-KEY}/`, per `<phase_5_6_standards_gate>`)
 
 MCPs:
 - `Atlassian Jira` — ticket data extraction

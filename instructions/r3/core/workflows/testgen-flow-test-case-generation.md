@@ -35,13 +35,13 @@ Generate comprehensive test cases from the requirements document, covering all r
 <scope_check step="5.0">
 **Path-scope gating** (runs before loading requirements so the agent knows whether `coding` is needed for any planned writes):
 1. List every planned output path for this phase.
-2. Check whether every path begins with `agents/testgen/{TICKET-KEY}/` (default flow: `test-scenarios.md` and the in-folder `requirements.md` traceability update in step 5.8).
-3. If yes: do **not** invoke `coding`. Record in `agents/testgen/{TICKET-KEY}/testgen-state.md`: `5.0 coding: skipped — writes scoped to agents/testgen/{TICKET-KEY}/`.
+2. Check whether every path begins with `plans/testgen-{TICKET-KEY}/` (default flow: `test-scenarios.md` and the in-folder `requirements.md` traceability update in step 5.8).
+3. If yes: do **not** invoke `coding`. Record in `plans/testgen-{TICKET-KEY}/testgen-state.md`: `5.0 coding: skipped — writes scoped to plans/testgen-{TICKET-KEY}/`.
 4. If any path falls outside that folder: USE SKILL `coding` before any such write (read repo standards as authority; repo docs win).
 </scope_check>
 
 <load_requirements step="5.1">
-1. Read `agents/testgen/{TICKET-KEY}/requirements.md`
+1. Read `plans/testgen-{TICKET-KEY}/requirements.md`
 2. Extract all user stories (US-N), functional requirements (FR-N), non-functional requirements (NFR-N) with acceptance criteria
 3. Extract constraints and dependencies that affect test design
 </load_requirements>
@@ -84,7 +84,7 @@ Common patterns for minimum coverage:
 
 <generate_test_cases step="5.3" subagent="engineer" role="Test case design engineer">
 
-**Resolve the TMS FORMAT vendor binding first** (config-resolved — do NOT hardcode the vendor): read the resolved FORMAT vendor from project config, taking the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `agents/testgen/testgen-project-config.md` (project-wide, per Phase 0 step 0.3) / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `scenarios-generation` for the vendor-specific case format (the skill resolves and loads its own format internally). If the keys are empty but a TMS is clearly in scope, re-read config for a default; if still absent, fall back to the inline `<tc_schema>` template below (record the fallback per `<failure_handling>`).
+**Resolve the TMS FORMAT vendor binding first** (config-resolved — do NOT hardcode the vendor): read the resolved FORMAT vendor from project config, taking the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `plans/testgen-{TICKET-KEY}/testgen-project-config.md` (per Phase 0 step 0.3) / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `scenarios-generation` for the vendor-specific case format (the skill resolves and loads its own format internally). If the keys are empty but a TMS is clearly in scope, re-read config for a default; if still absent, fall back to the inline `<tc_schema>` template below (record the fallback per `<failure_handling>`).
 
 1. USE SKILL `scenarios-generation` (generation mode) passing the resolved FORMAT vendor binding for test case format.
 2. Create 2-5 test cases per requirement covering different test types from step 5.2.
@@ -217,7 +217,7 @@ TC-003: Viewer cannot create Job Post
 </build_traceability>
 
 <create_test_document step="5.7">
-1. Create `agents/testgen/{TICKET-KEY}/test-scenarios.md` with this structure:
+1. Create `plans/testgen-{TICKET-KEY}/test-scenarios.md` with this structure:
 
 ```markdown
 # Test Cases - [TICKET-KEY]
@@ -275,11 +275,11 @@ TC-003: Viewer cannot create Job Post
 </create_test_document>
 
 <update_traceability step="5.8">
-1. Update `agents/testgen/{TICKET-KEY}/requirements.md` traceability matrix with test case IDs
+1. Update `plans/testgen-{TICKET-KEY}/requirements.md` traceability matrix with test case IDs
 </update_traceability>
 
 <update_state step="5.9">
-1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 5 complete and metrics (total test cases, merged count, priority breakdown, coverage)
+1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 5 complete and metrics (total test cases, merged count, priority breakdown, coverage)
 2. Tell user: "Phase 5 complete. Generated [X] test cases ([Y] merged for efficiency). All requirements covered."
 3. Ask: "Please review `test-scenarios.md`. Ready to proceed to Phase 6 (TestRail Export)?"
 4. **STOP AND WAIT for explicit user confirmation. DO NOT PROCEED to Phase 6 until the user confirms.** Only an explicit confirmation token (`yes` / `proceed` / equivalent) unblocks Phase 6; treat ambiguous responses (questions, suggestions, silence) as not confirmed and re-ask. (Matches the Phase 4 gate at `testgen-flow-requirements-document-generation.md` step 4.4.)
@@ -299,7 +299,7 @@ TC-003: Viewer cannot create Job Post
 </validation_checklist>
 
 <failure_handling>
-- **Missing or empty input** (`requirements.md` absent at `agents/testgen/{TICKET-KEY}/requirements.md`, OR present but empty / contains no `## ` section headings): stop Phase 5, record `Phase 5 blocked: requirements.md missing or empty at <path>` in `agents/testgen/{TICKET-KEY}/testgen-state.md`, and ask the user to rerun Phase 4 (Requirements Document Generation). Do NOT fabricate test cases from raw-data.md / analysis.md / answers.md — those are upstream inputs, not Phase 5's authoritative source. (Mirrors the sibling `testgen-flow-requirements-document-generation.md` `<failure_handling>` "Missing or empty inputs" rule.)
+- **Missing or empty input** (`requirements.md` absent at `plans/testgen-{TICKET-KEY}/requirements.md`, OR present but empty / contains no `## ` section headings): stop Phase 5, record `Phase 5 blocked: requirements.md missing or empty at <path>` in `plans/testgen-{TICKET-KEY}/testgen-state.md`, and ask the user to rerun Phase 4 (Requirements Document Generation). Do NOT fabricate test cases from raw-data.md / analysis.md / answers.md — those are upstream inputs, not Phase 5's authoritative source. (Mirrors the sibling `testgen-flow-requirements-document-generation.md` `<failure_handling>` "Missing or empty inputs" rule.)
 - **`requirements.md` exists but has zero requirements to test** (the file is structurally valid but has no `US-N` / `FR-N` / `NFR-N` entries — e.g. Phase 4 was trivially completed against an out-of-scope ticket): stop, record `Phase 5 blocked: requirements.md contains zero testable requirements` in `testgen-state.md`, and surface to the user as a Critical question (`No requirements to generate test cases from — should Phase 4 re-run, or is the ticket genuinely out-of-scope for test coverage?`). Do NOT emit a `test-scenarios.md` with zero TCs and call the phase done.
 - **`requirements.md` unreadable / corrupt** (parse error, permission denied): stop, report the IO/parse error with the file path, ask the user to inspect.
 - **Skill execution failure** (`scenarios-generation` / its resolved FORMAT binding errors, returns empty, or returns an incompatible shape; OR no FORMAT vendor resolvable from config): fall back to the inline `<tc_schema>` template in step 5.3 — that is exactly why it is restated inline. Record `Phase 5 note: scenarios-generation fallback applied — used inline tc_schema` in `testgen-state.md`. Continue Phase 5.

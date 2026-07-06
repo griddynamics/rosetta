@@ -1,7 +1,6 @@
----
-name: ui-qa-clarification-templates
-description: UI-QA Phase 2 templates — gap entry, clarification questions message, and the test-plan clarification section (typed Explicit Assertions).
----
+# UI-QA clarification templates (asset of the `qa-knowledge` skill)
+
+UI-QA Phase 2 templates — gap entry, clarification questions message, and the test-plan clarification section (typed Explicit Assertions).
 
 <ui-qa-clarification-templates>
 

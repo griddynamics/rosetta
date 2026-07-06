@@ -15,7 +15,7 @@ Fix identified API test failures based on the Phase 6 execution report. Prepares
 
 <workflow_context>
 - Phase 7 of 8 in `api-qa-flow`
-- Input: execution report from Phase 6 (`agents/api-qa/{IDENTIFIER}/execution-report.md`; resolve `{IDENTIFIER}` from `agents/api-qa-state.md`)
+- Input: execution report from Phase 6 (`plans/api-qa-{IDENTIFIER}/execution-report.md`; resolve `{IDENTIFIER}` from `agents/api-qa-state.md`)
 - Output: corrected test code, ready for re-testing
 - Prerequisite: Phase 6 complete
 - HITL: explicit user approval required before applying any change (a domain-specific specialization of `hitl`)
@@ -37,7 +37,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 <execute_corrections step="7.1" subagent="engineer" role="Test correction engineer">
 **Preparation-only:** nothing in this block modifies workspace files until step 7.3 after explicit approval in 7.2. "Preparation-only" means proposed edits paired with before/after evidence — no writes to test or product source files.
 1. USE SKILL `debugging` to align each proposed edit with a confirmed Phase 6 root cause (no symptom-only fixes).
-2. USE SKILL `coding` to author each proposed edit (preparation-only — before/after evidence, no writes). The present → approve → apply discipline is owned by this phase: `<present_for_approval>` (7.2) + `<apply_changes>` (7.3). Bindings grouped by owner: proposed-change source = `agents/api-qa/{IDENTIFIER}/execution-report.md`; proposed-change template + state file + iteration cap + loop target = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 7.2.
+2. USE SKILL `coding` to author each proposed edit (preparation-only — before/after evidence, no writes). The present → approve → apply discipline is owned by this phase: `<present_for_approval>` (7.2) + `<apply_changes>` (7.3). Bindings grouped by owner: proposed-change source = `plans/api-qa-{IDENTIFIER}/execution-report.md`; proposed-change template + state file + iteration cap + loop target = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 7.2.
 3. Produce one Proposed Change record per fix per the `<correction_contract>` template, citing the matching execution-report entry id (e.g. `ERR-3`). Do NOT apply anything yet.
 </execute_corrections>
 
@@ -49,7 +49,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 <apply_changes step="7.3">
 1. Apply approved changes one at a time (or in named approved batches).
 2. Validate linting/format after each change. On lint failure: revert that change (never leave the file broken), re-prepare a corrected version, and re-present that single change via `<present_for_approval>`.
-3. Verify each applied change addresses its root cause by cross-referencing it to the matching entry in `agents/api-qa/{IDENTIFIER}/execution-report.md` (cite the entry id, e.g. `ERR-3`). On root-cause mismatch: return to step 7.1 with a note in `agents/api-qa-state.md`; do not leave unmapped changes applied.
+3. Verify each applied change addresses its root cause by cross-referencing it to the matching entry in `plans/api-qa-{IDENTIFIER}/execution-report.md` (cite the entry id, e.g. `ERR-3`). On root-cause mismatch: return to step 7.1 with a note in `agents/api-qa-state.md`; do not leave unmapped changes applied.
 4. **Max retries:** cap step 7.3 in-phase retries at 3 cycles per failing change. After 3 failed cycles on the same change, stop, record `Phase 7 blocked: in-phase apply retry cap reached` in `agents/api-qa-state.md`, and escalate to the user.
 </apply_changes>
 
@@ -77,7 +77,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 </validation_checklist>
 
 <failure_handling>
-- **Execution report absent/empty:** if `agents/api-qa/{IDENTIFIER}/execution-report.md` does not exist or has no failure entries, stop Phase 7, record `Phase 7 blocked: Phase 6 execution report missing/empty` in `agents/api-qa-state.md`, and return to Phase 6 — never fabricate proposed changes against a missing report.
+- **Execution report absent/empty:** if `plans/api-qa-{IDENTIFIER}/execution-report.md` does not exist or has no failure entries, stop Phase 7, record `Phase 7 blocked: Phase 6 execution report missing/empty` in `agents/api-qa-state.md`, and return to Phase 6 — never fabricate proposed changes against a missing report.
 - **`agents/api-qa-state.md` missing or `{IDENTIFIER}` unresolvable:** stop Phase 7, record the failure in chat output, ask the user to restore the state file; do not auto-recreate it and do not guess `{IDENTIFIER}` (every input/output path depends on it).
 - **Proposed-change asset ACQUIRE returns zero documents** (step 7.2): stop — do NOT present a correction block authored from memory. Report the failed ACQUIRE and ask the user to fix Rosetta/KB access.
 - **No change maps to a confirmed root cause:** if `debugging` (step 7.1.1) cannot align a proposed edit to a confirmed Phase 6 root cause, do not propose it; record the unmapped failure and return to Phase 6 for deeper analysis rather than applying a symptom-only fix.

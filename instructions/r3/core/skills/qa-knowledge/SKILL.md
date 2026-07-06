@@ -1,6 +1,6 @@
 ---
 name: qa-knowledge
-description: "Rosetta — QA test-automation conventions: failure taxonomies, redaction scope, authoring & correction discipline, and the artifact skeletons each phase emits."
+description: "To supply the QA-domain conventions API-QA and UI-QA phases need: failure taxonomies, redaction scope, authoring & correction discipline, and the artifact skeletons each phase emits."
 license: Apache-2.0
 tags: ["qa", "api-qa", "ui-qa", "skills"]
 baseSchema: docs/schemas/skill.md
@@ -10,16 +10,14 @@ baseSchema: docs/schemas/skill.md
 
 <when_to_use_skill>
 
-Activate inside any API-QA or UI-QA flow phase that authors, analyzes, or corrects tests and needs the QA-domain conventions general skills don't own — failure taxonomies, redaction scope, assertion/coverage discipline, selector & page-object rules, and the artifact skeletons each phase emits. This is the HOW layer; WHERE artifacts live is owned by `qa-structure`.
+Use when authoring, analyzing, or correcting automated backend-API or UI/E2E tests and you need QA-domain conventions: failure taxonomies, redaction scope, assertion & coverage discipline, selector & page-object rules, and the artifact skeletons these tasks emit.
 
 </when_to_use_skill>
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- This skill carries only QA-specific conventions; generic collection, analysis, authoring, triage, and redaction mechanics are owned by the phase's other loaded skills and are not restated here.
-- Load only what the current step needs: artifact skeletons are assets, ACQUIRE'd at point of use; flow-specific conventions are references — see `<resources>`.
-- Shared discipline (both flows): the proposed-change approval template (`proposed-change-template.md`) and redaction scope (`redaction-scope.md`) are single assets/references reused by API-QA and UI-QA alike — for the approval template the calling phase supplies only flow-specific parameters (change-type enum, root-cause reference, loop target, state-file path). The test-implementation record is **flow-specific**, NOT shared: two separate assets — `api-qa-test-impl-record.md` (API-QA, API hand-off) and `ui-qa-test-impl-record.md` (UI-QA, UI hand-off), per `<resources>`.
+- Load only what the current task needs: artifact skeletons are assets, ACQUIRE'd at point of use; conventions are references — see `<resources>`.
+- The proposed-change approval template (`proposed-change-template.md`) and redaction scope (`redaction-scope.md`) apply to both backend-API and UI/E2E test work; the test-implementation record does not — use `api-qa-test-impl-record.md` for backend-API hand-off and `ui-qa-test-impl-record.md` for UI hand-off (per `<resources>`).
 
 </core_concepts>
 
@@ -27,7 +25,7 @@ Activate inside any API-QA or UI-QA flow phase that authors, analyzes, or correc
 
 Router — ACQUIRE the one your current step needs (point-of-use, never all at once):
 
-| When a phase needs to… | ACQUIRE |
+| When you need to… | ACQUIRE |
 |---|---|
 | present a correction for approval (API-QA **or** UI-QA) | `qa-knowledge/assets/proposed-change-template.md` |
 | run the explicit-approval gate (closed token list / loose-phrasing rejection / max-retry / partial approval) for a correction or spec/plan approval | `qa-knowledge/assets/approval-gate.md` |
@@ -36,13 +34,13 @@ Router — ACQUIRE the one your current step needs (point-of-use, never all at o
 | record the QA test-implementation hand-off | `qa-knowledge/assets/api-qa-test-impl-record.md` |
 | emit the QA execution report | `qa-knowledge/assets/execution-report-template.md` |
 | record QA gap-analysis findings (G/C/A) | `qa-knowledge/assets/gap-finding-templates.md` |
-| build the UI-QA test plan (Phase 1) | `qa-knowledge/assets/ui-qa-plan-template.md` |
+| build the UI-QA test plan | `qa-knowledge/assets/ui-qa-plan-template.md` |
 | emit the UI-QA code-analysis report | `qa-knowledge/assets/code-analysis-report-template.md` |
-| run UI-QA Phase-2 clarification (gap entry / questions / typed assertions) | `qa-knowledge/assets/ui-qa-clarification-templates.md` |
+| run UI-QA clarification (gap entry / questions / typed assertions) | `qa-knowledge/assets/ui-qa-clarification-templates.md` |
 | record the UI-QA test-implementation | `qa-knowledge/assets/ui-qa-test-impl-record.md` |
 | emit the UI-QA failure analysis | `qa-knowledge/assets/failure-analysis-template.md` |
 | send the page-source capture message to the user | `qa-knowledge/assets/page-source-capture-instructions.md` |
-| redact before writing **any** tracked artifact (both flows) | `qa-knowledge/references/redaction-scope.md` |
+| redact before writing **any** tracked artifact | `qa-knowledge/references/redaction-scope.md` |
 | classify a QA backend-API failure | `qa-knowledge/references/api-qa-failure-taxonomy.md` |
 | classify an UI-QA UI/E2E failure | `qa-knowledge/references/ui-qa-failure-taxonomy.md` |
 
@@ -53,7 +51,7 @@ Router — ACQUIRE the one your current step needs (point-of-use, never all at o
 Flag/refuse these before proceeding:
 
 - Redacting "from memory" instead of running the `redaction-scope` grep list as the pre-emit gate — and emitting anyway when that ACQUIRE failed (the gate is **fail-closed**: stop, never emit unscanned).
-- A subagent writing an artifact from memory instead of ACQUIRE-ing its skeleton/template first.
+- Writing an artifact from memory instead of ACQUIRE-ing its skeleton/template first.
 - Silent ATC / assertion drop — every ATC (QA) or typed assertion (UI-QA) is implemented **or** recorded (Gap / Uncovered), never dropped.
 - Collapsing multiple ATCs / assertions into one bullet — one per bullet.
 - Inventing an artifact's shape the skill owns instead of ACQUIRE-ing the asset.

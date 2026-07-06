@@ -1,7 +1,6 @@
----
-name: api-qa-config-interview
-description: Verbatim user-prompt interview asked at QA Phase 0 when the project config does not yet exist.
----
+# API-QA config interview (asset of the `qa-structure` skill)
+
+Verbatim user-prompt interview asked at QA Phase 0 when the project config does not yet exist.
 
 <api-qa-config-interview>
 
@@ -47,6 +46,6 @@ Please answer what you know — I can discover the rest from code and docs.
 
 **After the interview (agent-facing, not part of the verbatim message):**
 - **Coverage check:** before proceeding, confirm the answers cover (1) documentation storage, (2) Swagger/OpenAPI availability, and (3) test-case management. If any is missing, trigger the one-follow-up rule (cap 2 rounds total).
-- **Output:** populate `qa-structure/assets/api-qa-project-config-template.md` with these answers (applying its redaction note), then write the result to `agents/api-qa/api-qa-project-config.md`.
+- **Output:** populate `qa-structure/assets/api-qa-project-config-template.md` with these answers (applying its redaction note), then write the result to `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md`.
 
 </api-qa-config-interview>

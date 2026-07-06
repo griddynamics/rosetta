@@ -30,7 +30,7 @@ Generate specific, actionable clarification questions based on analysis findings
 </phase_steps>
 
 <generate_questions step="3.1">
-1. Read `agents/testgen/{TICKET-KEY}/analysis.md`
+1. Read `plans/testgen-{TICKET-KEY}/analysis.md`
 2. USE SKILL `questioning` to formulate targeted clarification questions from analysis findings
 3. For each **contradiction**: present both conflicting source quotes, ask which is correct, offer options (a/b/c/other)
 4. For each **gap**: explain what's missing and why needed, provide examples or options
@@ -103,7 +103,7 @@ Generate specific, actionable clarification questions based on analysis findings
 
 <create_questions_document step="3.2">
 1. Group questions by priority: P0 (Critical, MUST answer), P1 (High), P2 (Medium), P3 (Low)
-2. Create `agents/testgen/{TICKET-KEY}/questions.md` using the `questions.md` template defined in `<questions_template>` below
+2. Create `plans/testgen-{TICKET-KEY}/questions.md` using the `questions.md` template defined in `<questions_template>` below
 3. Update state to "AWAITING USER INPUT"
 4. Notify the user and **direct them to answer IN the file**: give the `questions.md` path and ask them to fill the `[Leave blank for user]` fields there. A short chat summary of the questions is fine for orientation, but the **authoritative answers are collected in `questions.md`** — do NOT run a chat Q&A in its place, and do NOT accept chat replies as a substitute for the file (`validate_answers`, step 3.3, reads the file, not the chat). This keeps every question visible and answerable to the user, instead of only the ones the agent chose to surface in chat.
 5. **PAUSE — WAIT FOR USER INPUT**
@@ -115,7 +115,7 @@ Generate specific, actionable clarification questions based on analysis findings
 
 **Created**: [DateTime]
 **Phase**: 3 - Question Generation
-**Source Analysis**: agents/testgen/[TICKET-KEY]/analysis.md
+**Source Analysis**: plans/testgen-[TICKET-KEY]/analysis.md
 
 ---
 
@@ -181,7 +181,7 @@ For each question below, replace `[Leave blank for user]` with your answer (or `
 </validate_answers>
 
 <create_answers_document step="3.4">
-1. Create `agents/testgen/{TICKET-KEY}/answers.md` using template below
+1. Create `plans/testgen-{TICKET-KEY}/answers.md` using template below
 
 
 
@@ -246,7 +246,7 @@ For each question below, replace `[Leave blank for user]` with your answer (or `
 </create_answers_document>
 
 <update_state step="3.5">
-1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 3 complete. **State delta (per `testgen-flow.md` SELF-CHECK):** set the Phase 3 `## Phase Completion Status` row to complete; populate `## Phase Details` (questions generated, P0/P1 answered, unresolved/UNKNOWN counts, files created: `questions.md`, `answers.md`); update `## Metrics`.
+1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 3 complete. **State delta (per `testgen-flow.md` SELF-CHECK):** set the Phase 3 `## Phase Completion Status` row to complete; populate `## Phase Details` (questions generated, P0/P1 answered, unresolved/UNKNOWN counts, files created: `questions.md`, `answers.md`); update `## Metrics`.
 2. Tell user: "Phase 3 complete. [X] questions answered, [Y] unresolved."
 3. If unresolved: "We'll document assumptions for unresolved items."
 4. Ask: "Ready to proceed to Phase 4 (Requirements Generation)?"

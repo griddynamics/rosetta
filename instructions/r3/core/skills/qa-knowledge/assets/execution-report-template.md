@@ -1,7 +1,6 @@
----
-name: execution-report-template
-description: QA execution-report.md skeleton — the read-only failure-triage artifact written at Phase 6.
----
+# API-QA execution-report template (asset of the `qa-knowledge` skill)
+
+QA execution-report.md skeleton — the read-only failure-triage artifact written at Phase 6.
 
 <execution-report-template>
 

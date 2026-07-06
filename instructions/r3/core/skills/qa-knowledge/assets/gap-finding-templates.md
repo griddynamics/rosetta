@@ -1,7 +1,6 @@
----
-name: gap-finding-templates
-description: QA gap-analysis finding-entry forms — G[N] gaps, C[N] contradictions, A[N] ambiguities.
----
+# QA gap-finding templates (asset of the `qa-knowledge` skill)
+
+QA gap-analysis finding-entry forms — G[N] gaps, C[N] contradictions, A[N] ambiguities.
 
 <gap-finding-templates>
 

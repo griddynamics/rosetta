@@ -16,7 +16,7 @@ Convert test cases into detailed, implementation-ready API test specifications u
 <workflow_context>
 - Phase 4 of 8 in `api-qa-flow`
 - Input: all phase 1-3 outputs (raw data, API analysis, gap analysis)
-- Output: `agents/api-qa/{IDENTIFIER}/test-specs.md` with Given-When-Then scenarios, file mapping, shared utilities
+- Output: `plans/api-qa-{IDENTIFIER}/test-specs.md` with Given-When-Then scenarios, file mapping, shared utilities
 - Prerequisite: Phase 3 complete, all user clarifications received
 - HITL: explicit user approval required before Phase 5
 - Skills: `scenarios-generation` (gwt_spec mode), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path), `qa-knowledge` (test-specs skeleton + ATC conventions)
@@ -33,9 +33,9 @@ Convert test cases into detailed, implementation-ready API test specifications u
 <load_inputs step="4.1">
 
 Read completely:
-1. `agents/api-qa/{IDENTIFIER}/raw-data.md` — original test cases and patterns
-2. `agents/api-qa/{IDENTIFIER}/api-analysis.md` — endpoint contracts
-3. `agents/api-qa/{IDENTIFIER}/analysis.md` — clarifications and resolved gaps
+1. `plans/api-qa-{IDENTIFIER}/raw-data.md` — original test cases and patterns
+2. `plans/api-qa-{IDENTIFIER}/api-analysis.md` — endpoint contracts
+3. `plans/api-qa-{IDENTIFIER}/analysis.md` — clarifications and resolved gaps
 
 </load_inputs>
 
@@ -51,7 +51,7 @@ Read completely:
 
 **Before presenting:** every item in `<validation_checklist>` below must be satisfied for the produced file. Items that are not yet verifiable at this step (e.g., user approval) are checked at step 4.5.
 
-Create `agents/api-qa/{IDENTIFIER}/test-specs.md` per the asset `qa-knowledge/assets/test-spec-template.md` (ACQUIRE FROM KB) — it carries the full skeleton: Summary, Test Scenarios (per-endpoint `ATC-NNN` Given-When-Then with a worked example), Test File Mapping, Shared Utilities, Execution Order, Assumptions.
+Create `plans/api-qa-{IDENTIFIER}/test-specs.md` per the asset `qa-knowledge/assets/test-spec-template.md` (ACQUIRE FROM KB) — it carries the full skeleton: Summary, Test Scenarios (per-endpoint `ATC-NNN` Given-When-Then with a worked example), Test File Mapping, Shared Utilities, Execution Order, Assumptions.
 
 </produce_output>
 

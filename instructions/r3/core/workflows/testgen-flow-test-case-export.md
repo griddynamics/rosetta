@@ -38,7 +38,7 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 **This phase OWNS the export contract** — what gets pushed (the approved case set from `test-scenarios.md`), ID handling (vendor-format case IDs written back per step 6.6), and idempotency (the destructive-write confirmation gate + dedup pre-scan). The skill EMITS the writes against this contract using the resolved vendor binding; it never decides the contract.
 
 1. If updating tracked repository files (for example embedding TMS IDs into `test-scenarios.md` under version control): USE SKILL `coding` first (read repo standards as authority; repo docs win).
-2. **Resolve the TMS EXPORT vendor binding from project config** (config-resolved — do NOT hardcode the vendor): take the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `agents/testgen/testgen-project-config.md` (project-wide, per Phase 0 step 0.3) / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `scenarios-generation` for the vendor-specific export contract (the skill resolves and loads its own export binding internally).
+2. **Resolve the TMS EXPORT vendor binding from project config** (config-resolved — do NOT hardcode the vendor): take the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `plans/testgen-{TICKET-KEY}/testgen-project-config.md` (per Phase 0 step 0.3) / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `scenarios-generation` for the vendor-specific export contract (the skill resolves and loads its own export binding internally).
 3. If the keys are empty but a TMS is clearly in scope, re-read config for a default; if still absent, the export cannot run on the MCP path → fall through to the step 6.2 fallbacks (manual copy / CSV / defer).
 4. USE SKILL `scenarios-generation` passing the resolved EXPORT vendor binding. All subsequent steps use the connection check, field mappings, API calls, and ID formats it defines for that vendor.
 </identify_skill>
@@ -46,8 +46,8 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 <verify_connection step="6.2">
 1. Test TMS MCP connection using the method defined in the TMS export skill
 2. **On connection failure:** inform user, verify MCP config and credentials. Retry once. On a second failure, present the **documented alternatives** below and let the user choose; do not silently abort:
-   - **Manual copy:** export the test cases as plain markdown for the user to paste into the TMS UI. Artifact: keep `agents/testgen/{TICKET-KEY}/test-scenarios.md` as-is; record the user's confirmation of manual export in `export-report.md` (see step 6.6).
-   - **CSV export:** generate `agents/testgen/{TICKET-KEY}/test-scenarios.csv` with one row per test case (columns: `TC_ID,Title,Priority,Type,Source_Requirements,Preconditions,Steps,Expected_Result,Tags`). Record the CSV path + row count in `export-report.md`.
+   - **Manual copy:** export the test cases as plain markdown for the user to paste into the TMS UI. Artifact: keep `plans/testgen-{TICKET-KEY}/test-scenarios.md` as-is; record the user's confirmation of manual export in `export-report.md` (see step 6.6).
+   - **CSV export:** generate `plans/testgen-{TICKET-KEY}/test-scenarios.csv` with one row per test case (columns: `TC_ID,Title,Priority,Type,Source_Requirements,Preconditions,Steps,Expected_Result,Tags`). Record the CSV path + row count in `export-report.md`.
    - **Defer:** mark Phase 6 as `BLOCKED — TMS unavailable` in `testgen-state.md` and stop, awaiting user to fix MCP access.
 3. **On chosen fallback:** the corresponding artifact path becomes the on-disk evidence of Phase 6 (replacing the TMS-IDs receipt section of `export-report.md`). **Still write `export-report.md` per the step 6.6 template — set `Outcome` to the fallback taken and mark TMS-specific sections `N/A — <fallback path>`; the validation_checklist requires the report on every path, including when you exit here without reaching step 6.6 on the happy path.**
 </verify_connection>
@@ -58,7 +58,7 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 </get_target_location>
 
 <parse_and_map step="6.4">
-1. Read `agents/testgen/{TICKET-KEY}/test-scenarios.md`
+1. Read `plans/testgen-{TICKET-KEY}/test-scenarios.md`
 2. Parse each TC-NNN: title, type, priority, preconditions, steps, expected results, test data, requirements
 3. Apply priority mapping from TMS export skill
 4. Apply type mapping from TMS export skill
@@ -82,14 +82,14 @@ This step makes the ownership claimed in step 6.1 operational: it runs BEFORE th
 
 <update_documents step="6.6">
 1. Update `test-scenarios.md`: add TMS case ID and link to each test case, add export summary at top with target info and result table.
-2. **Write `agents/testgen/{TICKET-KEY}/export-report.md`** using the template below. This artifact is the on-disk receipt that the validation_checklist verifies; do NOT skip this step on any execution path (full TMS export, manual-copy fallback, CSV fallback, or partial-export under the 80% threshold). Sections that don't apply to the path taken are explicitly marked `N/A — <reason>`, not omitted.
+2. **Write `plans/testgen-{TICKET-KEY}/export-report.md`** using the template below. This artifact is the on-disk receipt that the validation_checklist verifies; do NOT skip this step on any execution path (full TMS export, manual-copy fallback, CSV fallback, or partial-export under the 80% threshold). Sections that don't apply to the path taken are explicitly marked `N/A — <reason>`, not omitted.
 
 ```markdown
 # Phase 6 Export Report — [TICKET-KEY]
 
 **Completed:** [ISO-8601 timestamp]
 **Outcome:** FULL_EXPORT | PARTIAL_EXPORT | MANUAL_COPY_FALLBACK | CSV_FALLBACK | DEFERRED
-**Source artifact:** agents/testgen/[TICKET-KEY]/test-scenarios.md
+**Source artifact:** plans/testgen-[TICKET-KEY]/test-scenarios.md
 
 ## Target
 
@@ -119,7 +119,7 @@ This step makes the ownership claimed in step 6.1 operational: it runs BEFORE th
 [Present only when Outcome is MANUAL_COPY_FALLBACK / CSV_FALLBACK / DEFERRED; otherwise this section is `N/A — full TMS export path taken`.]
 
 - **Path taken:** MANUAL_COPY | CSV | DEFERRED
-- **Artifact path:** [e.g., `agents/testgen/[TICKET-KEY]/test-scenarios.csv` for CSV, or `agents/testgen/[TICKET-KEY]/test-scenarios.md` for manual-copy]
+- **Artifact path:** [e.g., `plans/testgen-[TICKET-KEY]/test-scenarios.csv` for CSV, or `plans/testgen-[TICKET-KEY]/test-scenarios.md` for manual-copy]
 - **Row count (CSV) / case count (manual):** [N]
 - **User confirmation of manual export:** [verbatim user reply, with timestamp, for MANUAL_COPY path; otherwise N/A]
 - **Reason for defer:** [verbatim error / MCP state, for DEFERRED path; otherwise N/A]
@@ -132,7 +132,7 @@ This step makes the ownership claimed in step 6.1 operational: it runs BEFORE th
 - ...
 ```
 
-3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 6 complete (or `PARTIAL — N/M exported` per the validation_checklist 80% threshold rule). Reference the export-report.md path from the state file's Phase 6 entry.
+3. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 6 complete (or `PARTIAL — N/M exported` per the validation_checklist 80% threshold rule). Reference the export-report.md path from the state file's Phase 6 entry.
 4. Report completion to the user with TMS link, export statistics, AND the export-report.md path so they can audit the run.
 </update_documents>
 

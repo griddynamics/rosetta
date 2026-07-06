@@ -1,7 +1,6 @@
----
-name: page-source-capture-instructions
-description: Verbatim user-facing message for capturing page-source HTML for UI-QA selector identification.
----
+# UI-QA page-source capture instructions (asset of the `qa-knowledge` skill)
+
+Verbatim user-facing message for capturing page-source HTML for UI-QA selector identification.
 
 <page-source-capture-instructions>
 

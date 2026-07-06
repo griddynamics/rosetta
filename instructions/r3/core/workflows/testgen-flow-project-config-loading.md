@@ -38,12 +38,12 @@ Find or create the project config file, obtain project-specific data retrieval c
 </parse_input>
 
 <setup_directory step="0.2">
-1. Create `agents/testgen/{TICKET-KEY}/` (full per-ticket layout in `<output_directory>` below).
+1. Create `plans/testgen-{TICKET-KEY}/` (full per-ticket layout in `<output_directory>` below).
 2. Initialize `testgen-state.md` from `<state_file_template>` below. At init the Phase 0 row is `[ ] Phase 0: Project Config Loading - In progress` (all others Not started); step 0.6 flips it to `[x] ... Completed` only after the config and initial-data files exist.
 </setup_directory>
 
 <load_project_config step="0.3">
-1. Search for `testgen-project-config.md` at the canonical path `agents/testgen/testgen-project-config.md` (project-wide, **not** per-ticket — the same config is shared across all tickets).
+1. Search for `testgen-project-config.md` at `plans/testgen-{TICKET-KEY}/testgen-project-config.md` (per-ticket, inside this ticket's feature plan folder — one copy per run, **not** a shared project-wide file, so parallel sessions and commits never collide).
 2. **Branches (exhaustive):**
    - **File exists AND non-empty:** skip to step 0.5.
    - **File missing OR exists but empty:** proceed to step 0.4 (do NOT create an empty placeholder file — step 0.4 will write the populated file).
@@ -64,7 +64,7 @@ Contiguous 1–5 sequence. The `<example_format_of_question>` block below is the
    **Validation failure paths:**
    - If user said YES to default but the default cannot run in the environment (no MCP, no auth): re-prompt up to 2 times naming exactly which field(s) are absent. After 2 unsuccessful re-prompts, stop Phase 0, record `Phase 0 blocked: default unrunnable — missing <field>` in `testgen-state.md`, and ask the user to supply a complete answer before continuing.
    - If user said NO but did not name source / method / auth: re-prompt up to 2 times naming the missing fields explicitly. After 2 unsuccessful re-prompts, stop Phase 0, record `Phase 0 blocked: incomplete config answer` in `testgen-state.md`, and ask the user to supply a complete answer before continuing.
-5. **Apply the `<safety_boundaries>` redaction-at-intake gate**, then save the validated configuration to `agents/testgen/testgen-project-config.md` (canonical path per step 0.3).
+5. **Apply the `<safety_boundaries>` redaction-at-intake gate**, then save the validated configuration to `plans/testgen-{TICKET-KEY}/testgen-project-config.md` (path per step 0.3).
 
 <example_format_of_question>
 ```markdown
@@ -87,7 +87,7 @@ you can provide them here as well.
 </obtain_project_info>
 
 <create_initial_data step="0.5">
-1. **Apply the `<safety_boundaries>` redaction-at-intake gate** (the user prompt + pasted links written here can carry credentials), then create `agents/testgen/{TICKET-KEY}/initial-data.md`:
+1. **Apply the `<safety_boundaries>` redaction-at-intake gate** (the user prompt + pasted links written here can carry credentials), then create `plans/testgen-{TICKET-KEY}/initial-data.md`:
 
 ```markdown
 # Initial data - [TICKET-KEY]
@@ -98,7 +98,7 @@ you can provide them here as well.
 </create_initial_data>
 
 <update_state step="0.6">
-1. Update `agents/testgen/{TICKET-KEY}/testgen-state.md` with Phase 0 complete
+1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 0 complete
 2. Tell user: "Phase 0 complete. Project setup ready."
 3. Ask: "Ready to proceed to Phase 1 (Data Collection)?"
 4. Gate the advance to Phase 1 via USE SKILL `hitl` (the canonical approval/escalation home): require explicit user confirmation; do NOT auto-proceed on inferred approval or silence; treat ambiguous responses as "not confirmed" and re-ask.
@@ -106,7 +106,7 @@ you can provide them here as well.
 
 <state_file_template>
 
-`agents/testgen/{TICKET-KEY}/testgen-state.md` — created here in Phase 0, updated by every subsequent phase:
+`plans/testgen-{TICKET-KEY}/testgen-state.md` — created here in Phase 0, updated by every subsequent phase:
 
 ```markdown
 # Test Generation State - <Ticket ID>
@@ -152,10 +152,11 @@ Completeness signal (one line; `—` until the phase runs; a thin `0`/`1` where 
 
 <output_directory>
 
-All phase outputs stored under `agents/testgen/{TICKET-KEY}/`:
+All phase outputs stored under `plans/testgen-{TICKET-KEY}/`:
 
 ```
-agents/testgen/{TICKET-KEY}/
+plans/testgen-{TICKET-KEY}/
+├── testgen-project-config.md  # Phase 0: project config (data sources, retrieval, auth) — one copy per ticket
 ├── testgen-state.md        # State tracking (updated each phase)
 ├── initial-data.md         # Phase 0: Initial user input + project config ref
 ├── raw-data.md             # Phase 1: Jira + Confluence data
@@ -171,17 +172,17 @@ agents/testgen/{TICKET-KEY}/
 
 <safety_boundaries>
 
-`agents/testgen/testgen-project-config.md` is **tracked + project-wide** (committed to VCS, read by every TestGen ticket); `agents/testgen/{TICKET-KEY}/initial-data.md` captures the user prompt + any pasted links verbatim — treat both as **PUBLIC by default**. The **Auth assumptions** answer (step 0.4) and pasted URLs can carry credential-shaped values that would persist into the repo unredacted.
+`plans/testgen-{TICKET-KEY}/testgen-project-config.md` is **tracked** (committed to VCS as part of this ticket's feature plan folder); `plans/testgen-{TICKET-KEY}/initial-data.md` captures the user prompt + any pasted links verbatim — treat both as **PUBLIC by default**. The **Auth assumptions** answer (step 0.4) and pasted URLs can carry credential-shaped values that would persist into the repo unredacted.
 
 **Redaction at intake (pre-write gate, MANDATORY):** before writing the config OR `initial-data.md`, MUST ACQUIRE `qa-knowledge/references/redaction-scope.md` FROM KB and run its re-scan grep list against the content to be written, redacting via `sensitive-data` — writing is FORBIDDEN until that scan has run. **Fail-closed:** if that ACQUIRE returns zero documents (KB unavailable), STOP and report — never write an unscanned config/initial-data. Always-present minimal floor (so a scan runs even if the KB fetch fails) — at minimum grep for: `Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, `eyJ` (JWT), `BEGIN PRIVATE KEY`, `user:pass@`. On a hit, replace the literal with a mechanism+source description and add a one-line `## Additional Notes`: `Original answer included a literal <kind> — redacted; request mechanism+source from user if the env-var name is unknown.` Record auth as **scheme + source**, never literal values (e.g. `Bearer JWT from env E2E_TOKEN`). Structural content — endpoint paths, framework names, base/spec URLs without embedded credentials, ticket/project keys — stays verbatim.
 
 </safety_boundaries>
 
 <validation_checklist>
-- `agents/testgen/{TICKET-KEY}/` directory exists
-- `agents/testgen/testgen-project-config.md` (project-wide, not per-ticket) exists with non-empty content covering data sources, retrieval method, and auth assumptions
-- `agents/testgen/{TICKET-KEY}/initial-data.md` created with user prompt and config reference
-- `agents/testgen/{TICKET-KEY}/testgen-state.md` created with Phase 0 marked complete
+- `plans/testgen-{TICKET-KEY}/` directory exists
+- `plans/testgen-{TICKET-KEY}/testgen-project-config.md` (per-ticket, in the feature plan folder) exists with non-empty content covering data sources, retrieval method, and auth assumptions
+- `plans/testgen-{TICKET-KEY}/initial-data.md` created with user prompt and config reference
+- `plans/testgen-{TICKET-KEY}/testgen-state.md` created with Phase 0 marked complete
 - Redaction pre-write gate ran — `qa-knowledge/references/redaction-scope.md` grep list executed against the config + `initial-data.md` before write (fail-closed); no literal credential persisted; any redaction noted in `## Additional Notes`
 </validation_checklist>
 

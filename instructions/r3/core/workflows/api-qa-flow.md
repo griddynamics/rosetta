@@ -12,7 +12,7 @@ baseSchema: docs/schemas/workflow.md
 
 End-to-end backend API test automation from test case input to working automated tests. (Source-system + tool enumeration owned by the frontmatter `description` field — not restated here.)
 
-**At completion the user has:** corrected, passing API test files in the repository; the per-session artifacts under `agents/api-qa/{IDENTIFIER}/` (`raw-data.md`, `api-analysis.md`, `analysis.md`, `test-specs.md`, `execution-report.md`); and `agents/api-qa-state.md` recording phase completion, metrics, and HITL approvals.
+**At completion the user has:** corrected, passing API test files in the repository; the per-session artifacts under `plans/api-qa-{IDENTIFIER}/` (`raw-data.md`, `api-analysis.md`, `analysis.md`, `test-specs.md`, `execution-report.md`); and `agents/api-qa-state.md` recording phase completion, metrics, and HITL approvals.
 
 </description_and_purpose>
 
@@ -36,13 +36,13 @@ This block owns ONLY the api-qa-flow-specific skip rules below: a set of **alway
 - **Always-in-force carve-outs** (the override never suppresses these):
   1. Per-phase HITL gates (Phases 3-7 marked `type="HITL"`) — explicit user approval per the `hitl` skill.
   2. NO ASSUMPTIONS rule (above) — every non-skip-gate decision.
-  3. Safety / destructive confirmations — file deletion, edits outside `agents/api-qa/{IDENTIFIER}/`, comparable irreversible actions.
+  3. Safety / destructive confirmations — file deletion, edits outside `plans/api-qa-{IDENTIFIER}/`, comparable irreversible actions.
 
 - **Verification-failure unilateral-start override** — subordinate to the `hitl` skill + the carve-outs above; the only no-ask deviation, applies only at this skip-verification gate.
 
   | Precondition (ALL true, independently verified) | Action |
   |---|---|
-  | (a) user asserts Phases 0-2 complete this turn AND (b) `agents/api-qa-state.md` marks them complete AND (c) `raw-data.md` + `api-analysis.md` exist under `agents/api-qa/{IDENTIFIER}/` | **Print (a)/(b)/(c) each with its concrete evidence** (user-assertion quote · the api-qa-state rows · the two artifact paths), then skip Phases 0-2 and resume at Phase 3. Any precondition not showable with concrete evidence → treat as uncertain (last row). |
+  | (a) user asserts Phases 0-2 complete this turn AND (b) `agents/api-qa-state.md` marks them complete AND (c) `raw-data.md` + `api-analysis.md` exist under `plans/api-qa-{IDENTIFIER}/` | **Print (a)/(b)/(c) each with its concrete evidence** (user-assertion quote · the api-qa-state rows · the two artifact paths), then skip Phases 0-2 and resume at Phase 3. Any precondition not showable with concrete evidence → treat as uncertain (last row). |
   | Any of (a)/(b)/(c) false AND user instruction unambiguous | Print failing conditions; begin Phase 0 same turn. |
   | Any precondition uncertain | Fall back to normal HITL ask. **Ambiguity defaults to ASK.** |
 
@@ -54,38 +54,38 @@ This block owns ONLY the api-qa-flow-specific skip rules below: a set of **alway
 - USE SKILL `coding` before implementation or correction work that touches repository test code or shared utilities (if not already loaded: ACQUIRE `coding` FROM KB).
 - **Repository coding standards:** follow `<coding_standards_precedence>`.
 - Prefer extending existing test files and utilities over creating new ones.
-- **Overall workflow done when:** every phase required for this run is marked complete in `agents/api-qa-state.md`, expected artifacts for those phases exist under `agents/api-qa/{IDENTIFIER}/` (and related paths named in phase docs), and the user accepts the last test outcome or explicitly stops the run.
+- **Overall workflow done when:** every phase required for this run is marked complete in `agents/api-qa-state.md`, expected artifacts for those phases exist under `plans/api-qa-{IDENTIFIER}/` (and related paths named in phase docs), and the user accepts the last test outcome or explicitly stops the run.
 </execution_policy>
 
 <project_config_loading phase="0" applies="ALL" subagent="discoverer" role="QA project config loader" type="HITL-CONDITIONAL">
 - ACQUIRE `api-qa-flow-project-config-loading.md` FROM KB
-- Input: user request. Output: project config file, initial data file, session directory at `agents/api-qa/{IDENTIFIER}/`.
+- Input: user request. Output: project config file, initial data file, session directory at `plans/api-qa-{IDENTIFIER}/`.
 - HITL gate: **ASK USER FOR PROJECT INFO** if config does not already exist.
 - Skills: `qa-structure`, `questioning` (config-missing interview), `qa-knowledge` (redaction scope)
 </project_config_loading>
 
 <data_collection phase="1" applies="ALL" subagent="discoverer" role="QA data collector">
 - ACQUIRE `api-qa-flow-data-collection.md` FROM KB
-- Input: project config + initial data. Output: `agents/api-qa/{IDENTIFIER}/raw-data.md` (test cases, documentation, existing test patterns).
+- Input: project config + initial data. Output: `plans/api-qa-{IDENTIFIER}/raw-data.md` (test cases, documentation, existing test patterns).
 - Skills: `data-collection` (TMS + documentation MCP), `reverse-engineering` (existing-test + backend-source scan), `qa-structure`
 </data_collection>
 
 <api_spec_analysis phase="2" applies="ALL" subagent="discoverer" role="API spec analyst">
 - ACQUIRE `api-qa-flow-api-spec-analysis.md` FROM KB
-- Input: raw data + project config. Output: `agents/api-qa/{IDENTIFIER}/api-analysis.md` (endpoint contracts, auth, data dependencies).
+- Input: raw data + project config. Output: `plans/api-qa-{IDENTIFIER}/api-analysis.md` (endpoint contracts, auth, data dependencies).
 - Skills: `reverse-engineering` (API-contract extraction mode), `sensitive-data`, `qa-structure`, `qa-knowledge`
 </api_spec_analysis>
 
 <gap_and_requirements_clarification phase="3" applies="ALL" subagent="architect" role="Test requirements analyst" type="HITL">
 - ACQUIRE `api-qa-flow-gap-and-requirements-clarification.md` FROM KB
-- Input: raw data + API analysis. Output: `agents/api-qa/{IDENTIFIER}/analysis.md` (gaps, contradictions, ambiguities resolved).
+- Input: raw data + API analysis. Output: `plans/api-qa-{IDENTIFIER}/analysis.md` (gaps, contradictions, ambiguities resolved).
 - HITL gate: **WAIT FOR USER ANSWERS** before Phase 4.
 - Skills: `requirements-use` (gap_analysis mode), `questioning`, `qa-structure`, `qa-knowledge`
 </gap_and_requirements_clarification>
 
 <test_case_specification phase="4" applies="ALL" subagent="architect" role="Test specification author" type="HITL">
 - ACQUIRE `api-qa-flow-test-case-specification.md` FROM KB
-- Input: all phase 1-3 outputs. Output: `agents/api-qa/{IDENTIFIER}/test-specs.md` (Given-When-Then scenarios).
+- Input: all phase 1-3 outputs. Output: `plans/api-qa-{IDENTIFIER}/test-specs.md` (Given-When-Then scenarios).
 - HITL gate: **WAIT FOR USER APPROVAL** before Phase 5.
 - Skills: `scenarios-generation` (gwt_spec mode), `sensitive-data`, `qa-structure`, `qa-knowledge`
 </test_case_specification>
@@ -99,7 +99,7 @@ This block owns ONLY the api-qa-flow-specific skip rules below: a set of **alway
 
 <execution_and_report_analysis phase="6" applies="ALL" subagent="engineer" role="Test failure analyst" type="HITL">
 - ACQUIRE `api-qa-flow-execution-and-report-analysis.md` FROM KB
-- Input: test execution report (user-provided or from `agents/user-instructions/`). Output: `agents/api-qa/{IDENTIFIER}/execution-report.md` (failure analysis).
+- Input: test execution report (user-provided or from `agents/user-instructions/`). Output: `plans/api-qa-{IDENTIFIER}/execution-report.md` (failure analysis).
 - HITL gate: **WAIT FOR USER TO PROVIDE TEST EXECUTION RESULTS**.
 - Skills: `debugging` (test-execution triage mode), `sensitive-data`, `qa-structure`, `qa-knowledge`
 </execution_and_report_analysis>
@@ -121,7 +121,7 @@ Example: if a skill suggests `/tests/api/` but `ARCHITECTURE.md` requires `/qa/a
 <failure_handling>
 - **Zero-doc ACQUIRE** for a required phase workflow: stop, record in `agents/api-qa-state.md`, ask the user — no undocumented prompts (see also `orchestrator-contract` skill when loaded).
 - **Missing prior artifact:** do not fabricate; with user agreement re-run the producing phase, or stop and ask the user to restore it.
-- **Unreadable `agents/api-qa-state.md`:** pause, rebuild minimal phase pointers from `agents/api-qa/{IDENTIFIER}/` when possible, then ask the user to confirm.
+- **Unreadable `agents/api-qa-state.md`:** pause, rebuild minimal phase pointers from `plans/api-qa-{IDENTIFIER}/` when possible, then ask the user to confirm.
 - **State-note example (zero-doc ACQUIRE):** `Phase 5 blocked: ACQUIRE api-qa-flow-test-implementation.md returned zero documents at 2026-05-25T15:00Z; awaiting user action.`
 </failure_handling>
 

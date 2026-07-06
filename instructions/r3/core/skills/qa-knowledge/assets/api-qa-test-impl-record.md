@@ -1,7 +1,6 @@
----
-name: api-qa-test-impl-record
-description: QA Phase 5 hand-off summary fields — the test-implementation record the testing skill returns and the phase verifies.
----
+# API-QA test-implementation record (asset of the `qa-knowledge` skill)
+
+QA Phase 5 hand-off summary fields — the test-implementation record the testing skill returns and the phase verifies.
 
 <api-qa-test-impl-record>
 

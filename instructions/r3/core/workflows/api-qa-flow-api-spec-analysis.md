@@ -16,7 +16,7 @@ Analyze Swagger/OpenAPI specification or codebase API definitions to extract end
 <workflow_context>
 - Phase 2 of 8 in `api-qa-flow`
 - Input: raw data from Phase 1 + project config (Swagger URL if available)
-- Output artifact path (single SSoT — referenced by other sections): `agents/api-qa/{IDENTIFIER}/api-analysis.md` (resolve `{IDENTIFIER}` from `agents/api-qa-state.md`)
+- Output artifact path (single SSoT — referenced by other sections): `plans/api-qa-{IDENTIFIER}/api-analysis.md` (resolve `{IDENTIFIER}` from `agents/api-qa-state.md`)
 - Prerequisite: Phase 1 complete, `raw-data.md` exists with identified endpoints
 - Read-only scope: locate spec/source, extract contracts, reconcile, write the analysis artifact. NO edits to backend source or product code.
 - Skills: `reverse-engineering` (API-contract extraction mode), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path), `qa-knowledge` (api-analysis skeletons + redaction scope)
@@ -56,7 +56,7 @@ Decision point: Swagger available -> full spec analysis. No Swagger -> code-base
 
 <execute_analysis step="2.2" subagent="discoverer" role="API spec analyst">
 
-1. **ACQUIRE `qa-knowledge/assets/api-analysis-template.md` and `qa-knowledge/references/redaction-scope.md` FROM KB first** — the bound `reverse-engineering` skill disowns the output shape and the redaction list, so they are load-bearing for the `discoverer`. Then USE SKILL `reverse-engineering` (API-contract extraction mode) with the phase-supplied bindings: target-endpoint list (Phase 1 test cases) + spec source (step 2.1) = `<input_contract>`; per-endpoint output shape + Analysis Summary metrics = the `api-analysis-template` asset; redaction scope = the `redaction-scope` reference; validation = `<validation_checklist>`; output path = `agents/api-qa/{IDENTIFIER}/api-analysis.md`. The skill GATEs on the two required inputs before locating the spec. USE SKILL `sensitive-data` to redact before writing.
+1. **ACQUIRE `qa-knowledge/assets/api-analysis-template.md` and `qa-knowledge/references/redaction-scope.md` FROM KB first** — the bound `reverse-engineering` skill disowns the output shape and the redaction list, so they are load-bearing for the `discoverer`. Then USE SKILL `reverse-engineering` (API-contract extraction mode) with the phase-supplied bindings: target-endpoint list (Phase 1 test cases) + spec source (step 2.1) = `<input_contract>`; per-endpoint output shape + Analysis Summary metrics = the `api-analysis-template` asset; redaction scope = the `redaction-scope` reference; validation = `<validation_checklist>`; output path = `plans/api-qa-{IDENTIFIER}/api-analysis.md`. The skill GATEs on the two required inputs before locating the spec. USE SKILL `sensitive-data` to redact before writing.
 2. The skill extracts per endpoint: contracts, auth requirements, data dependencies, and reconciles spec-vs-code when both sources are read.
 3. Coverage is mandatory: every target endpoint gets a contract entry OR is flagged back as a gap with reason — no silent drop. Do not fabricate schemas, status codes, or auth requirements without a source.
 
@@ -64,7 +64,7 @@ Decision point: Swagger available -> full spec analysis. No Swagger -> code-base
 
 <produce_output step="2.3">
 
-Create `agents/api-qa/{IDENTIFIER}/api-analysis.md`. The phase owns the document **section list** below; the verbatim per-endpoint contract entry and the Analysis Summary metrics are the asset `qa-knowledge/assets/api-analysis-template.md` (ACQUIRE FROM KB). The skill EMITS into these, the phase ASSERTS them.
+Create `plans/api-qa-{IDENTIFIER}/api-analysis.md`. The phase owns the document **section list** below; the verbatim per-endpoint contract entry and the Analysis Summary metrics are the asset `qa-knowledge/assets/api-analysis-template.md` (ACQUIRE FROM KB). The skill EMITS into these, the phase ASSERTS them.
 
 **Required section list** (in order; every section must be present-or-`N/A — <reason>`):
 

@@ -1,11 +1,10 @@
----
-name: test-spec-template
-description: QA test-specs.md skeleton — Summary, Given-When-Then ATC scenarios, file mapping, shared utilities, execution order.
----
+# API-QA test-spec template (asset of the `qa-knowledge` skill)
+
+QA test-specs.md skeleton — Summary, Given-When-Then ATC scenarios, file mapping, shared utilities, execution order.
 
 <test-spec-template>
 
-Skeleton for `agents/api-qa/{IDENTIFIER}/test-specs.md`. The phase owns the section list and the scenario taxonomy; the skill emits Given-When-Then ATC entries into this shape. (outer fence uses 4 backticks so the inner `markdown` example with 3 backticks does not terminate it)
+Skeleton for `plans/api-qa-{IDENTIFIER}/test-specs.md`. The phase owns the section list and the scenario taxonomy; the skill emits Given-When-Then ATC entries into this shape. (outer fence uses 4 backticks so the inner `markdown` example with 3 backticks does not terminate it)
 
 ````markdown
 # QA Test Specifications - [IDENTIFIER]

@@ -16,7 +16,7 @@ Cross-reference test cases, documentation, and API spec to identify gaps, contra
 <workflow_context>
 - Phase 3 of 8 in `api-qa-flow`
 - Input: raw data (Phase 1) + API analysis (Phase 2) + project config
-- Output: `agents/api-qa/{IDENTIFIER}/analysis.md` with gaps resolved, user answers documented
+- Output: `plans/api-qa-{IDENTIFIER}/analysis.md` with gaps resolved, user answers documented
 - Prerequisite: Phases 1 and 2 complete
 - HITL: user answers required before Phase 4
 - Skills: `requirements-use` (gap_analysis mode), `questioning` (clarification batch), `qa-structure` (`{IDENTIFIER}` + analysis path), `qa-knowledge` (G/C/A finding forms)
@@ -54,7 +54,7 @@ Cross-reference test cases, documentation, and API spec to identify gaps, contra
 <update_plan step="3.3">
 1. Process user answers
 2. Update analysis document with questions, answers, and resolved items
-3. Verify `agents/api-qa/{IDENTIFIER}/analysis.md` created with **all required sections** (see `<analysis_md_contract>` below)
+3. Verify `plans/api-qa-{IDENTIFIER}/analysis.md` created with **all required sections** (see `<analysis_md_contract>` below)
 </update_plan>
 
 <analysis_md_contract>

@@ -1,7 +1,6 @@
----
-name: ui-qa-test-impl-record
-description: UI-QA Test Implementation record — appended to the test plan after authoring.
----
+# UI-QA test-implementation record (asset of the `qa-knowledge` skill)
+
+UI-QA Test Implementation record — appended to the test plan after authoring.
 
 <ui-qa-test-impl-record>
 

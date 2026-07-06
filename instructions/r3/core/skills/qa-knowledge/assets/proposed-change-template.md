@@ -1,7 +1,6 @@
----
-name: proposed-change-template
-description: Shared QA proposed-change approval block, presented before any correction write.
----
+# QA proposed-change template (asset of the `qa-knowledge` skill)
+
+Shared QA proposed-change approval block, presented before any correction write.
 
 <proposed-change-template>
 

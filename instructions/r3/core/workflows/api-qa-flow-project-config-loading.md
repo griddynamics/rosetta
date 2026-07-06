@@ -17,7 +17,7 @@ Initialize the QA session directory, load the existing project config or collect
 - Phase 0 of 8 in `api-qa-flow`
 - Input (REQUIRED): user request with test case reference (TestRail ID, Jira ticket, or direct description)
 - Input (OPTIONAL, when provided by user): Swagger/OpenAPI spec URL or path, Confluence/docs page URLs, backend source code locations
-- Output (canonical paths owned by `qa-structure`): project-wide `agents/api-qa/api-qa-project-config.md`; per-session `agents/api-qa/{IDENTIFIER}/initial-data.md`; workflow state `agents/api-qa-state.md`.
+- Output (paths owned by `qa-structure`): per-session `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md` and `plans/api-qa-{IDENTIFIER}/initial-data.md`; shared workflow state `agents/api-qa-state.md`.
 - Prerequisite: starting new QA flow
 - HITL: conditional — user is questioned ONLY if the project config does not already exist
 - Skills: `qa-structure` (paths / `{IDENTIFIER}` / config schema / state shape), `questioning` (config-missing interview), `qa-knowledge` (redaction scope for the pre-write gate)
@@ -25,7 +25,7 @@ Initialize the QA session directory, load the existing project config or collect
 
 <phase_steps>
 1. Parse user input, derive `{IDENTIFIER}`, and create the session directory + state-file stub.
-2. Load the project-wide config, or collect project info from the user and create it.
+2. Load this session's config if present, or collect project info from the user and create it.
 3. Create the initial-data file and mark Phase 0 complete.
 </phase_steps>
 
@@ -38,7 +38,7 @@ Initialize the QA session directory, load the existing project config or collect
    - **Additional context** (OPTIONAL): Swagger URL, Confluence pages, API documentation links.
    - Supported phrasings: `"Write API tests for TC-1234"`, `"Automate backend tests for PROJ-123"`, `"Create API tests for the user registration endpoint"`, `"Automate TC-1234 with Swagger: https://api.example.com/swagger"`.
 2. **Derive `{IDENTIFIER}`** per the `qa-structure` rule (Jira key → TestRail ID → kebab-case feature). On multiple candidates, first non-empty wins; record the chosen value + rejected candidates in `initial-data.md`.
-3. **Create the session directory** `agents/api-qa/{IDENTIFIER}/` and write the **state-file stub** (below — kept inline, always needed) to `agents/api-qa-state.md`. The full per-phase update schema is owned by `api-qa-flow.md` `<state_file>`; this stub is only the seed:
+3. **Create the session directory** `plans/api-qa-{IDENTIFIER}/` and write the **state-file stub** (below — kept inline, always needed) to `agents/api-qa-state.md`. The full per-phase update schema is owned by `api-qa-flow.md` `<state_file>`; this stub is only the seed:
 
    ```markdown
    # API QA State - <Test Name / Feature>
@@ -47,7 +47,7 @@ Initialize the QA session directory, load the existing project config or collect
    **Current Phase**: 0
    **Test Case Source**: [TestRail ID / Jira Ticket / Manual]
    **Feature**: [Feature Name]
-   **IDENTIFIER**: [the {IDENTIFIER} value chosen above — must match agents/api-qa/{IDENTIFIER}/ directory]
+   **IDENTIFIER**: [the {IDENTIFIER} value chosen above — must match plans/api-qa-{IDENTIFIER}/ directory]
 
    ## Phase Completion Status
 
@@ -60,8 +60,8 @@ Initialize the QA session directory, load the existing project config or collect
    - [ ] Phase 6: Execution & Report Analysis
    - [ ] Phase 7: Test Corrections
    ```
-4. **Load or create the project config** at the canonical path `agents/api-qa/api-qa-project-config.md` (project-wide, NOT per-`{IDENTIFIER}`): if the file exists AND is non-empty → `<config_exists>`; if it is missing OR empty → `<config_missing>`.
-5. **Verify** the per-session directory `agents/api-qa/{IDENTIFIER}/` exists and the project-wide config is non-empty at the canonical path before proceeding.
+4. **Load or create the project config** at `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md` (per-session, inside the feature plan folder): if the file exists AND is non-empty → `<config_exists>`; if it is missing OR empty → `<config_missing>`.
+5. **Verify** the feature plan folder `plans/api-qa-{IDENTIFIER}/` exists and the config is non-empty before proceeding.
 
 </execute_config>
 
@@ -78,13 +78,13 @@ Initialize the QA session directory, load the existing project config or collect
 </config_missing>
 
 <create_initial_data step="0.2">
-Write `agents/api-qa/{IDENTIFIER}/initial-data.md` using the inline template below (kept inline — tiny + always needed); all four fields populated from the parsed input (`None` only for additional-links):
+Write `plans/api-qa-{IDENTIFIER}/initial-data.md` using the inline template below (kept inline — tiny + always needed); all four fields populated from the parsed input (`None` only for additional-links):
 
 ```markdown
 # Initial Data — [IDENTIFIER]
 
 **Initial user prompt:** [verbatim user text that started this QA run]
-**Project config file:** agents/api-qa/api-qa-project-config.md
+**Project config file:** plans/api-qa-{IDENTIFIER}/api-qa-project-config.md
 **Test case reference:** [TestRail ID / Jira key / direct description summary]
 **Additional links provided:** [list URLs verbatim, or `None`]
 ```
@@ -101,7 +101,7 @@ Write `agents/api-qa/{IDENTIFIER}/initial-data.md` using the inline template bel
 
 <safety_boundaries>
 
-`agents/api-qa/api-qa-project-config.md` is **tracked + project-wide** (committed to VCS, read by every QA session) — treat as PUBLIC by default. User-supplied answers can carry credential-shaped values that would persist into the repo without redaction.
+`plans/api-qa-{IDENTIFIER}/api-qa-project-config.md` is **tracked** (committed to VCS as part of this run's feature plan folder) — treat as PUBLIC by default. User-supplied answers can carry credential-shaped values that would persist into the repo without redaction.
 
 **Auth fields — record mechanism + source, never literal values:** record the **scheme name** (`OAuth2 client-credentials` / `JWT Bearer` / `API Key in X-Api-Key header` / `Basic Auth` / `Session cookie` / `None`) and the **strategy + source** (e.g. `Bearer JWT from AuthHelper.get_token('admin'); credentials in env vars E2E_USER + E2E_PASS`). **Never paste** actual tokens, passwords, JSON contents, API key values, or OAuth `client_secret` — regardless of "test"/"throwaway" labels. `Test Case Management` access tokens (TestRail API key, Jira PAT) → record as `MCP-managed` or `env var <NAME>`.
 
@@ -117,16 +117,16 @@ Write `agents/api-qa/{IDENTIFIER}/initial-data.md` using the inline template bel
 - **User-pasted literal credential in an answer:** apply `<safety_boundaries>` Redaction-at-intake. If the env-var name is unknown, ask once.
 - **Existing config file malformed / missing required config-schema keys:** treat as `config-incomplete` — re-run only the collect-from-user branch (`questioning`) for the missing keys, then re-write the config preserving clean sections, and re-verify. Surface the corruption in `initial-data.md` notes. Do NOT advance to Phase 1 with an incomplete config — Phase 1's documentation-MCP collection (step 1.2b) will silently degrade if `documentation_mcp_collection_skill` is absent rather than `N/A`-tagged.
 - **`agents/api-qa-state.md` or `api-qa-project-config.md` unwritable** (permission denied, file locked, disk full): pause, report the filesystem error with the path; do not mark Phase 0 complete.
-- **Session directory `agents/api-qa/{IDENTIFIER}/` not created:** create it directly (simple mkdir), then re-run verification. If the create fails, stop and report the filesystem error.
+- **Session directory `plans/api-qa-{IDENTIFIER}/` not created:** create it directly (simple mkdir), then re-run verification. If the create fails, stop and report the filesystem error.
 
 </failure_handling>
 
 <validation_checklist>
-- `agents/api-qa/{IDENTIFIER}/` directory exists
-- `api-qa-project-config.md` exists at the canonical path (per `qa-structure`) with non-empty content — either pre-existing or freshly written
+- `plans/api-qa-{IDENTIFIER}/` directory exists
+- `api-qa-project-config.md` exists in the feature plan folder (per `qa-structure`) with non-empty content — either pre-existing or freshly written
 - **Every required key from `qa-structure/references/config-schema.md` is present** — populated with a real value OR explicitly marked `N/A — <reason>`; no key absent / blank / `TBD` without a documented next-step
 - `initial-data.md` created per the inline initial-data template (step 0.2) with all four required fields populated
-- `agents/api-qa-state.md` created with Phase 0 marked complete and `IDENTIFIER:` field matching the `agents/api-qa/{IDENTIFIER}/` directory name
+- `agents/api-qa-state.md` created with Phase 0 marked complete and `IDENTIFIER:` field matching the `plans/api-qa-{IDENTIFIER}/` directory name
 - `{IDENTIFIER}` value identical across (a) directory name, (b) api-qa-state.md IDENTIFIER field, (c) initial-data.md path; no fabricated `{IDENTIFIER}`
 - Redaction pre-write gate ran — `qa-knowledge/references/redaction-scope.md` (ACQUIRE FROM KB) loaded and its grep list executed against the config before write; no literal credential persisted; any redaction noted in `## Additional Notes`
 - No failure-handling condition from `<failure_handling>` is currently active — every listed scenario has either not been triggered or has been remediated

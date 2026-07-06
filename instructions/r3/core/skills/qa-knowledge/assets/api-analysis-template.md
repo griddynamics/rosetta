@@ -1,11 +1,10 @@
----
-name: api-analysis-template
-description: QA api-analysis.md output skeletons — the per-endpoint contract entry and the Analysis Summary metrics block.
----
+# API analysis template (asset of the `qa-knowledge` skill)
+
+QA api-analysis.md output skeletons — the per-endpoint contract entry and the Analysis Summary metrics block.
 
 <api-analysis-template>
 
-Skeletons for `agents/api-qa/{IDENTIFIER}/api-analysis.md`. The phase owns the document section list; this asset holds the verbatim per-endpoint contract entry and the Analysis Summary metrics. Structural content (paths, methods, status codes, field/schema names, validation rules, citations, auth-mechanism names) is verbatim functional content; redaction targets sensitive **values** only — see `qa-knowledge/references/redaction-scope.md`.
+Skeletons for `plans/api-qa-{IDENTIFIER}/api-analysis.md`. The phase owns the document section list; this asset holds the verbatim per-endpoint contract entry and the Analysis Summary metrics. Structural content (paths, methods, status codes, field/schema names, validation rules, citations, auth-mechanism names) is verbatim functional content; redaction targets sensitive **values** only — see `qa-knowledge/references/redaction-scope.md`.
 
 ## Per-endpoint contract entry
 
