@@ -1,16 +1,16 @@
-# QA proposed-change template (asset of the `qa-knowledge` skill)
+# QA proposed-change template
 
 Shared QA proposed-change approval block, presented before any correction write.
 
 <proposed-change-template>
 
-One block per change, presented BEFORE any write; empty fields use `None`. The calling phase supplies the flow-specific **change-type enum**, the **root-cause reference**, the **state-file path**, and the **loop-back phase**; this asset owns the shape plus the approval / iteration-cap rules.
+One block per change, presented BEFORE any write; empty fields use `None`. Phase supplies the **change-type enum**, **root-cause reference**, **state-file path**, **loop-back phase**; this asset owns the shape plus approval/iteration-cap rules.
 
 ```markdown
 ### Proposed Change <N>: <one-line title>
-- **Source root cause:** <root-cause entry id — e.g. execution-report ERR-3 (QA) / failure-analysis F3 (UI-QA)>
+- **Source root cause:** <root-cause entry id -- e.g. execution-report ERR-3 (QA) / failure-analysis F3 (UI-QA)>
 - **File:** <path>
-- **In-scope:** yes | no   (if `no`, STOP — escalate; outside the in-scope file set)
+- **In-scope:** yes | no   (if `no`, STOP -- escalate; outside the in-scope file set)
 - **Change type:** <one value from the flow's change-type enum below>
 
 **Before:**
@@ -22,7 +22,7 @@ One block per change, presented BEFORE any write; empty fields use `None`. The c
 + <added line(s)>
 ~~~
 
-- **Reason:** <one-line — how this fix addresses the root cause>
+- **Reason:** <one-line -- how this fix addresses the root cause>
 - **Impact:** <only the cited test? other tests sharing the helper/factory? page-object consumers?>
 - **Risk:** Low | Medium | High
 - **Approval status:** pending | approved (token: `<exact user token>`) | rejected | partial (hunks <list>)
@@ -32,9 +32,9 @@ One block per change, presented BEFORE any write; empty fields use `None`. The c
 - QA / backend API: `assertion-fix | auth-fix | data-setup | request-shape | wait-strategy | other`
 - UI-QA / UI-E2E: `selector-update | wait-strategy | assertion-fix | data-setup | other`
 
-**Iteration cap + escalation (both flows):** cap in-phase apply retries at **3 cycles per failing change**. After 3 failed cycles on the same change, stop, record `Phase <N> blocked: in-phase apply retry cap reached` in the flow's state file, and escalate to the user. If tests still fail after corrections, return to the flow's execution/report phase — do not auto-loop.
+**Iteration cap (both flows):** cap in-phase apply retries at **3 cycles per failing change**. After 3 failed cycles, stop, record `Phase <N> blocked: in-phase apply retry cap reached` in the state file, escalate. If tests still fail after corrections, return to the execution/report phase -- do not auto-loop.
 
-**Worked example — QA / API (approved state):**
+**Worked example -- QA / API (approved state):**
 
 ```markdown
 ### Proposed Change 1: Use status-matcher instead of raw .code compare
@@ -58,7 +58,7 @@ One block per change, presented BEFORE any write; empty fields use `None`. The c
 - **Approval status:** approved (token: `approved`)
 ```
 
-**Worked example — UI-QA / UI (approved state):**
+**Worked example -- UI-QA / UI (approved state):**
 
 ```markdown
 ### Proposed Change 1: Update logout-button selector
@@ -77,7 +77,7 @@ One block per change, presented BEFORE any write; empty fields use `None`. The c
 ~~~
 
 - **Reason:** Frontend renamed the data-testid; page-source confirms the new value.
-- **Impact:** logout.spec.ts only — no other test references the old selector.
+- **Impact:** logout.spec.ts only -- no other test references the old selector.
 - **Risk:** Low
 - **Approval status:** approved (token: `approved`)
 ```

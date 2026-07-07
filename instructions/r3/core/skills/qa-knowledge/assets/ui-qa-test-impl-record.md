@@ -1,16 +1,16 @@
-# UI-QA test-implementation record (asset of the `qa-knowledge` skill)
+# UI-QA test-implementation record
 
-UI-QA Test Implementation record — appended to the test plan after authoring.
+UI-QA Test Implementation record -- appended to the test plan after authoring.
 
 <ui-qa-test-impl-record>
 
-**Append to** `plans/ui-qa-<test-name>.md` — the test-plan file (same `<test-name>` slug used throughout the UI-QA run).
+**Append to** `plans/ui-qa-<test-name>.md` -- the test-plan file (same `<test-name>` slug used throughout the UI-QA run).
 
 **Inputs required:** the test plan's Explicit Assertions, the test file path, the page objects used, and any user-instruction-vs-repo-doc conflicts encountered.
 
-**Constraints (read first):** all five subsections are required and ordered; empty subsections use `None — <reason>`, never blank; repo docs win on any conflict; no plan assertion is silently dropped (it is implemented OR listed under Uncovered Assertions). **Done when** all five subsections carry real values or an explicit `None — …` and the Validation checklist is fully checked.
+**Constraints:** five subsections, ordered; empty → `None -- <reason>`, never blank; repo docs win on conflict; no plan assertion silently dropped (implement OR list under Uncovered Assertions). **Done when** all five carry a real value or `None -- …` and the Validation checklist is fully checked.
 
-Template — fill each subsection:
+Template -- fill each subsection:
 
 ```markdown
 ### Test File
@@ -25,12 +25,12 @@ Template — fill each subsection:
 - Utilities used: <list, or None>
 
 ### Uncovered Assertions
-- "<assertion>" — reason: <…>
-- (or `None — every plan assertion implemented`)
+- "<assertion>" -- reason: <…>
+- (or `None -- every plan assertion implemented`)
 
 ### Conflicts and Precedence
 - <user-instruction vs repo-doc conflict> → resolved in favor of repo docs: <what was applied>
-- (or `None — sources consistent`)
+- (or `None -- sources consistent`)
 
 ### Validation
 - [ ] All plan assertions implemented or recorded as Uncovered
@@ -45,7 +45,7 @@ Template — fill each subsection:
 
 - **Test File:** `tests/e2e/checkout/refund.spec.ts` · extended existing · `refund-happy-path`
 - **Implementation Summary:** 7/9 implemented · 2 uncovered · page objects `CheckoutPage, RefundPage` · utilities `None`
-- **Uncovered Assertions:** "Confirmation email received after checkout" — reason: no mail-inbox fixture in scope; the missing page-object method was escalated to the selector-implementation step for resolution.
+- **Uncovered Assertions:** "Confirmation email received after checkout" -- reason: no mail-inbox fixture in scope; the missing page-object method was escalated to the selector-implementation step for resolution.
 - **Conflicts and Precedence:** user asked for `data-cy` selectors but `ARCHITECTURE.md` mandates `data-testid` → applied `data-testid` (repo docs win).
 - **Validation:** all boxes checked after the local lint + assertion-coverage pass.
 

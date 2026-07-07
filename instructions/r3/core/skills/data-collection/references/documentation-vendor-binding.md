@@ -1,8 +1,8 @@
-# Vendor binding: Documentation vendor (canonical example: Confluence)
+# Vendor binding: Documentation vendor
 
-Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the documentation vendor binding. **Canonical example: Confluence** — the capabilities (page fetch / CQL search / child pages) and harvesting discipline below use Confluence; for another documentation backend (Notion, SharePoint, wiki) map by capability, keeping the same method. Merges the vendor capabilities AND the harvesting discipline (direct-URL vs search precedence, child-page traversal, truncation, URL normalization, permission fallbacks) into one binding. The base SKILL.md owns the general method and the phase-is-SSoT rule — not restated here.
+Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the documentation vendor binding. **Canonical example: Confluence** -- capabilities (page fetch / CQL search / child pages) and harvesting discipline below use Confluence; for another backend (Notion, SharePoint, wiki) map by capability, same method. Base SKILL.md owns the general method and phase-is-SSoT rule -- not restated here.
 
-**Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured documentation MCP binding: **get page**, **list child pages**, **search** (CQL/text), and — write, forbidden in this read-only binding — **create / update page / add comment**.
+**Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured documentation MCP binding: **get page**, **list child pages**, **search** (CQL/text), and -- write, forbidden in this read-only binding -- **create / update page / add comment**.
 
 ---
 
@@ -13,9 +13,9 @@ The phase supplies one input form; validate shape BEFORE any MCP call (malformed
 | Input form | Accepted shape | Validation |
 |---|---|---|
 | Page ID | numeric (Cloud) or alphanumeric (some Server) | non-empty + matches host ID format |
-| URL — display | `https://<host>.atlassian.net/wiki/spaces/<SPACE>/pages/<ID>/<slug>` | parse host+space+ID; host MUST match configured MCP site |
-| URL — direct | `https://<host>/wiki/pages/viewpage.action?pageId=<ID>` | parse `pageId`; host MUST match |
-| URL — short | `https://<host>/x/<short-id>` | resolve via MCP; host MUST match |
+| URL -- display | `https://<host>.atlassian.net/wiki/spaces/<SPACE>/pages/<ID>/<slug>` | parse host+space+ID; host MUST match configured MCP site |
+| URL -- direct | `https://<host>/wiki/pages/viewpage.action?pageId=<ID>` | parse `pageId`; host MUST match |
+| URL -- short | `https://<host>/x/<short-id>` | resolve via MCP; host MUST match |
 | Search terms | keywords / labels / components / project key | ≥1 keyword OR ≥1 label/component/project key |
 
 Canonical storage form for any URL is `/spaces/<KEY>/pages/<numeric-id>`. When the supplied form differs (display/short), store the canonical form AND record the original-form in the page entry so reviewers can trace what was pasted.
@@ -23,15 +23,15 @@ Canonical storage form for any URL is `/spaces/<KEY>/pages/<numeric-id>`. When t
 ## Retrieval & harvesting discipline (SKILL `extract` step)
 
 **Direct-URL path (preferred when URLs/IDs supplied):**
-1. **Get page** for each supplied page — convert the body to markdown and include metadata.
-2. **List child pages** — fetch up to 5 relevant child pages per parent, recursing to leaves or the phase's depth cap. If the API does not expose child relationships and children are still plausible, ask once for child links (or approval to continue parent-only) and record the decision (`Children fetched: yes | no (reason)`).
+1. **Get page** for each supplied page -- convert the body to markdown and include metadata.
+2. **List child pages** -- fetch up to 5 relevant child pages per parent, recursing to leaves or the phase's depth cap. If the API does not expose child relationships and children are still plausible, ask once for child links (or approval to continue parent-only) and record the decision (`Children fetched: yes | no (reason)`).
 
 **Search path (when no URLs supplied):**
-1. Build a CQL query — combine the space filter AND a label/term predicate. **Always include `space =` when the project key is known** (dominant noise reducer; unscoped search breaks deterministic ranking).
+1. Build a CQL query -- combine the space filter AND a label/term predicate. **Always include `space =` when the project key is known** (dominant noise reducer; unscoped search breaks deterministic ranking).
    - Worked: `space = PROJ AND (label = "feature-x" OR text ~ "checkout refund")`
    - Fallback (labels unknown): `space = PROJ AND text ~ "<key-term>"`
 2. **Search** with the CQL query (cap ~10 results). Zero results → jump to the fallback GATE (ask the user first); only after the user supplies nothing does the "zero-pages" failure stop apply.
-3. **Deterministic ranking** — fixed priority `title-match > label-match > body-match`; in-tier tiebreaker = MCP relevance score / recency. Record the CQL + top-N page IDs + ranking in the artifact's `Search Provenance` section for reproducibility.
+3. **Deterministic ranking** -- fixed priority `title-match > label-match > body-match`; in-tier tiebreaker = MCP relevance score / recency. Record the CQL + top-N page IDs + ranking in the artifact's `Search Provenance` section for reproducibility.
 4. Retrieve top 3–5 pages via **get page** (same error branches as the direct path), then their child pages.
 
 **Cross-vendor:** when this binding runs beside Jira/TestRail, derive search terms from the upstream ticket (labels, components, summary keywords) the phase passes in; the phase owns merging the documentation section with the ticket section.
@@ -43,7 +43,7 @@ Canonical storage form for any URL is `/spaces/<KEY>/pages/<numeric-id>`. When t
 ## Per-page branch (normalize into the phase's section)
 
 - **Present + content non-empty** → include (Page header: URL / Space / Labels / Updated / Type / Status; `#### Content`; `#### Child Pages`); redact body first.
-- **Permission-restricted** (body 401/403 OR MCP indicates restriction) → `<restricted by permissions> — body not retrievable with configured Confluence MCP credentials` + a gap entry. A 401/403 is NOT empty content; never silently treat as missing.
+- **Permission-restricted** (body 401/403 OR MCP indicates restriction) → `<restricted by permissions> -- body not retrievable with configured Confluence MCP credentials` + a gap entry. A 401/403 is NOT empty content; never silently treat as missing.
 - **Content empty** (retrieved but body empty) → `[empty page]` marker + gap.
 
 **Rendered example** (one normalized page entry in `raw-data.md`):
@@ -59,21 +59,21 @@ Refunds are issued via POST /api/v1/orders/{id}/refund; a paid order transitions
 
 ## Redaction targets (SKILL `redact` step → `sensitive-data`)
 
-Highest-risk Confluence content: **page bodies** (pasted runbooks/ops notes embed real secrets; incident write-ups embed customer PII). Scan every captured value and redact per the canonical scope — `qa-knowledge/references/redaction-scope.md` — applied via `sensitive-data`. Structural content (page titles, headings, business-rule prose, schema field names, endpoint paths, methods, status codes, in-site link targets, glossary entries) stays verbatim. Record each redaction in the artifact's redaction section.
+Highest-risk: **page bodies** (runbooks/ops notes embed secrets; incident write-ups embed PII). Redact per SKILL `<collection>` step 4. Verbatim structure (adds to step 4's generic list): headings, business-rule prose, in-site link targets, glossary entries.
 
 ## Failure paths (SKILL `extract` step)
 
-- **Input unresolvable** (no URL/ID/terms, or URL unparseable) → stop, report `data-collection/confluence: input unresolvable — supply page URL/ID or search terms`, ask. Do NOT guess.
-- **MCP not configured / not authenticated** → stop, report `data-collection/confluence: Confluence MCP not configured or not authenticated — verify MCP setup`. Do NOT emit a zero-page artifact and call it done.
-- **MCP transport error** (timeout / 5xx / drop) → retry once same params; second failure → stop, report, ask to verify MCP connectivity.
-- **Authorization failure** (401/403 on ALL pages) → stop, report `data-collection/confluence: request rejected — page(s) may exist but not visible to configured credentials`, ask to verify credentials / space access. (Per-page 401/403 with others succeeding → per-page branch above, not a global stop.)
-- **Cross-domain URL** (host ≠ configured MCP site) → warn + try once; on failure stop the fetch, report `URL <url> belongs to a different Confluence host (<domain>) than the configured MCP — ask user for an in-site equivalent or accept ticket-only continuation`. Do NOT bypass to a cross-site fetch.
-- **Zero pages after URL + search + user-fallback exhausted** → the fallback GATE asks the user FIRST; only if the user supplies neither URLs nor approval-to-skip does this stop fire. On user "skip / proceed without docs" → record `Documentation: not available — user approved no-docs continuation` + a gap, proceed with an empty Documentation block. Do NOT fabricate.
+- **Input unresolvable** (no URL/ID/terms, or URL unparseable) → stop, report `data-collection/confluence: input unresolvable -- supply page URL/ID or search terms`, ask. Do NOT guess.
+- **MCP not configured / not authenticated** → stop, report `data-collection/confluence: Confluence MCP not configured or not authenticated -- verify MCP setup`. Do NOT emit a zero-page artifact and call it done.
+- **MCP transport error** → per SKILL `<collection>` step 3 (retry once, then stop + report); ask to verify MCP connectivity.
+- **Authorization failure** (401/403 on ALL pages) → stop, report `data-collection/confluence: request rejected -- page(s) may exist but not visible to configured credentials`, ask to verify credentials / space access. (Per-page 401/403 with others succeeding → per-page branch above, not a global stop.)
+- **Cross-domain URL** (host ≠ configured MCP site) → warn + try once; on failure stop the fetch, report `URL <url> belongs to a different Confluence host (<domain>) than the configured MCP -- ask user for an in-site equivalent or accept ticket-only continuation`. Do NOT bypass to a cross-site fetch.
+- **Zero pages after URL + search + user-fallback exhausted** → the fallback GATE asks the user FIRST; only if the user supplies neither URLs nor approval-to-skip does this stop fire. On user "skip / proceed without docs" → record `Documentation: not available -- user approved no-docs continuation` + a gap, proceed with an empty Documentation block. Do NOT fabricate.
 - **Get page returns empty body** → `[empty page]` marker + gap. Do NOT fabricate.
 
 ## Output sections (within the phase-owned artifact)
 
-The phase owns the artifact path + heading; this binding emits, in order: per-page entries (header + `#### Content` + `#### Child Pages`); `Search Provenance` (CQL + top-N IDs + ranking, or `N/A — URL-driven retrieval`); `Gaps` (empty/restricted/cross-domain pages, or `None.`); redaction section (or `None.`). Every section present; empties use `None.`.
+The phase owns the artifact path + heading; this binding emits, in order: per-page entries (header + `#### Content` + `#### Child Pages`); `Search Provenance` (CQL + top-N IDs + ranking, or `N/A -- URL-driven retrieval`); `Gaps` (empty/restricted/cross-domain pages, or `None.`); redaction section (or `None.`). Every section present; empties use `None.`.
 
 ## Validation items (binding-specific, added to SKILL `<validation_checklist>`)
 

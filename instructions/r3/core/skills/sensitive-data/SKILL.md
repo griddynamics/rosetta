@@ -12,11 +12,12 @@ baseSchema: docs/schemas/skill.md
 <process>
 
 1. DO NOT read, query, store, tell, write, log, or distribute any SENSITIVE information (PII, PCI, HIPAA, PHI, GDPR, SOC2, FedRAMP, Secrets, etc)
-2. IF encountered — report without exposing raw value
-3. IF needed as-is — MUST ask explicit user approval first
-4. User may override (mocked data)
+2. IF encountered -- report without exposing raw value
+3. IF needed as-is -- MUST ask explicit user approval first
+4. User may override (mocked data) -- when you need placeholder PII, use IETF reserved ranges: emails `test.user-1@example.com`; phones `+1-555-0100`–`+1-555-0199`; official PSP test cards (cite source)
 5. NEVER output, echo, print, log, summarize, or reference the raw value of any sensitive data in chat or in any file
 6. MASK immediately using `[REDACTED:<type>]` (e.g. `[REDACTED:API_KEY]`, `[REDACTED:PASSWORD]`)
+7. Before you output or write anything, re-scan it for: `Bearer `, `Authorization:`, `password:`, `api_key=`, `client_secret`, `eyJ` (JWT), `BEGIN PRIVATE KEY`, `BEGIN RSA PRIVATE KEY`, `postgresql://user:pass@`, `mongodb+srv://user:pass@`; plus emails outside `example.com`/`example.org`, phones outside the `+1-555-01xx` reserved range, card-number shapes `\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}`, and real customer names alongside any of the above. Fail-closed -- if the scan cannot run, do not emit
 
 </process>
 

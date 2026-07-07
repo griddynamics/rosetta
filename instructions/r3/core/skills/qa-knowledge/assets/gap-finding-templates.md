@@ -1,16 +1,16 @@
 # QA gap-finding templates (asset of the `qa-knowledge` skill)
 
-QA gap-analysis finding-entry forms — G[N] gaps, C[N] contradictions, A[N] ambiguities.
+QA gap-analysis finding-entry forms -- G[N] gaps, C[N] contradictions, A[N] ambiguities.
 
 <gap-finding-templates>
 
-Finding-entry shapes for `analysis.md` (one per finding). Quote source text verbatim; redact credentials/PII in any quoted line before writing (scope per `qa-knowledge/references/redaction-scope.md`; the gap_analysis mode applies the redaction skill).
+Finding-entry shapes for `analysis.md` (one per finding). Quote source text verbatim; redact credentials/PII in any quoted line before writing (via the always-on `sensitive-data` skill, which the gap_analysis mode applies).
 
-**Classify each finding into exactly one type:** **G (Gap)** — information is absent entirely · **C (Contradiction)** — two sources state conflicting facts · **A (Ambiguity)** — one source uses language with ≥2 valid interpretations. When a finding fits more than one type, file under the **most actionable** (C > A > G) and add a cross-reference in its `Impact` / `Needs Clarification` field.
+**Classify each finding into exactly one type:** **G (Gap)** -- information is absent entirely · **C (Contradiction)** -- two sources state conflicting facts · **A (Ambiguity)** -- one source uses language with ≥2 valid interpretations. When a finding fits more than one type, file under the **most actionable** (C > A > G) and add a cross-reference in its `Impact` / `Needs Clarification` field.
 
 **Source vocabulary** (for `Source` / `Source 1|2` fields): one of `Test Case`, `Swagger/OpenAPI`, `Docs`, `User Instructions`.
 
-**Before writing:** each finding has a unique sequential index (`G1, G2…` / `C1, C2…` / `A1, A2…`); every `[Quote]` holds actual verbatim source text; no `[placeholder]` bracket remains; `Impact` is never blank. **Done when** all findings are indexed and complete with no residual placeholders.
+**Done when** every finding has a unique sequential index (`G1…`/`C1…`/`A1…`), each `[Quote]` holds verbatim source text, no `[placeholder]` remains, and `Impact` is non-blank.
 
 ```markdown
 ### G[N]: [Brief Title]
@@ -21,8 +21,8 @@ Finding-entry shapes for `analysis.md` (one per finding). Quote source text verb
 **Suggested Question**: [How to ask for this]
 
 ### C[N]: [Brief Title]
-**Source 1**: [Test Case / Swagger / Docs] — "[Quote]"
-**Source 2**: [Test Case / Swagger / Docs] — "[Quote]"
+**Source 1**: [Test Case / Swagger / Docs] -- "[Quote]"
+**Source 2**: [Test Case / Swagger / Docs] -- "[Quote]"
 **Impact**: [Why this matters for test automation]
 **Needs Clarification**: [Specific question]
 
@@ -38,14 +38,14 @@ Finding-entry shapes for `analysis.md` (one per finding). Quote source text verb
 ```markdown
 ### G1: Order-status enum not specified
 **Type**: Response
-**Context**: GET /api/v1/orders/{id} — `status` field
+**Context**: GET /api/v1/orders/{id} -- `status` field
 **Missing Information**: the set of valid `status` values is not listed in Swagger or the test case
 **Impact**: cannot assert status transitions; negative tests for invalid status are unauthorable
 **Suggested Question**: What are the allowed `order.status` values and their transitions?
 
 ### C1: Conflicting success status code
-**Source 1**: Swagger/OpenAPI — "POST /orders returns 201"
-**Source 2**: Test Case TC-42 — "expect 200 on create"
+**Source 1**: Swagger/OpenAPI -- "POST /orders returns 201"
+**Source 2**: Test Case TC-42 -- "expect 200 on create"
 **Impact**: the happy-path status assertion would be wrong against one of the sources
 **Needs Clarification**: Is order-create success 200 or 201?
 

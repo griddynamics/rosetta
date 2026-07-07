@@ -1,14 +1,14 @@
-# API analysis template (asset of the `qa-knowledge` skill)
+# API analysis template
 
-QA api-analysis.md output skeletons — the per-endpoint contract entry and the Analysis Summary metrics block.
+QA api-analysis.md output skeletons: per-endpoint contract entry + Analysis Summary metrics block.
 
 <api-analysis-template>
 
-Skeletons for `plans/api-qa-{IDENTIFIER}/api-analysis.md`. The phase owns the document section list; this asset holds the verbatim per-endpoint contract entry and the Analysis Summary metrics. Structural content (paths, methods, status codes, field/schema names, validation rules, citations, auth-mechanism names) is verbatim functional content; redaction targets sensitive **values** only — see `qa-knowledge/references/redaction-scope.md`.
+Skeletons for `plans/api-qa-{IDENTIFIER}/api-analysis.md`. Phase defines sections. Asset = endpoint contracts + Analysis Summary metrics. Preserve verbatim: paths, methods, status codes, field/schema names, validation rules, citations, auth names. Redact sensitive **values** only, via `sensitive-data`.
 
 ## Per-endpoint contract entry
 
-One entry per target endpoint, in this order; every subsection present with real values OR explicit `N/A — <reason>` / `None`.
+One entry per target endpoint, in this order; every subsection present with real values OR explicit `N/A -- <reason>` / `None`.
 
 ````markdown
 ## Endpoint Contract: <METHOD> <path>
@@ -21,11 +21,11 @@ One entry per target endpoint, in this order; every subsection present with real
 **Path parameters:**
 | Name | Type | Required | Constraints |
 |------|------|----------|-------------|
-(or `None`) — **Query parameters:** same shape or `None` — **Header parameters:** same shape or `None`
+(or `None`) -- **Query parameters:** same shape or `None` -- **Header parameters:** same shape or `None`
 
 ### Request Body
-**Content-Type:** [e.g. `application/json`, or `N/A — no body`]
-**Schema:** ```json { ... } ``` — **Example:** ```json { ... } ```
+**Content-Type:** [e.g. `application/json`, or `N/A -- no body`]
+**Schema:** ```json { ... } ``` -- **Example:** ```json { ... } ```
 
 ### Responses
 | Status | Content-Type | Schema | Example |
@@ -33,21 +33,21 @@ One entry per target endpoint, in this order; every subsection present with real
 
 ### Auth
 - **Mechanism:** [Bearer JWT / OAuth2 / API Key / Basic / Session-Cookie / None]
-- **Required scopes / permissions:** [list or N/A] — **Public endpoint:** [yes / no]
+- **Required scopes / permissions:** [list or N/A] -- **Public endpoint:** [yes / no]
 
 ### Data Dependencies
 - **Preconditions:** [required DB state, entity relationships, ordering]
-- **Side effects:** [created / modified / deleted] — **Idempotent:** [yes / no + rationale if non-obvious]
+- **Side effects:** [created / modified / deleted] -- **Idempotent:** [yes / no + rationale if non-obvious]
 
 ### Source Citations
 - Swagger: [JSONPath, e.g. `paths./api/v1/orders/{orderId}.get`] or `N/A`
 - Code: [file:line for handler + DTO/model] or `N/A`
 
 ### Notes / Discrepancies
-[Spec-vs-code mismatches, deprecated markers, missing schemas, undocumented status codes. `Source: hybrid` entries MUST have a non-empty Notes — a recorded mismatch OR explicit `None.` confirming reconciliation ran. Also record each applied redaction here.]
+[Spec-vs-code mismatches, deprecated markers, missing schemas, undocumented status codes. `Source: hybrid` entries MUST have a non-empty Notes: a recorded mismatch OR explicit `None.` confirming reconciliation ran. Also record each applied redaction here.]
 ````
 
-**Worked entry** (`Source: hybrid` with a real discrepancy — demonstrates code-as-supplement and a recorded gap):
+**Worked entry** (`Source: hybrid` with a real discrepancy -- demonstrates code-as-supplement and a recorded gap):
 
 ````markdown
 ## Endpoint Contract: GET /api/v1/orders/{orderId}
@@ -62,10 +62,10 @@ One entry per target endpoint, in this order; every subsection present with real
 |------|------|----------|-------------|
 | orderId | string | yes | UUID v4; pattern `[0-9a-f-]{36}` |
 
-**Query parameters:** None — **Header parameters:** `Authorization: Bearer <jwt>` (required); `Accept` defaults `application/json`
+**Query parameters:** None -- **Header parameters:** `Authorization: Bearer <jwt>` (required); `Accept` defaults `application/json`
 
 ### Request Body
-**Content-Type:** N/A — no body
+**Content-Type:** N/A -- no body
 
 ### Responses
 | Status | Content-Type | Schema | Example |
@@ -76,11 +76,11 @@ One entry per target endpoint, in this order; every subsection present with real
 | 404 | application/problem+json | `NotFound` | `{"type":"not_found","title":"Order o-123 does not exist"}` |
 
 ### Auth
-- **Mechanism:** Bearer JWT — **Required scopes / permissions:** `orders:read` — **Public endpoint:** no
+- **Mechanism:** Bearer JWT -- **Required scopes / permissions:** `orders:read` -- **Public endpoint:** no
 
 ### Data Dependencies
 - **Preconditions:** order exists; `orders.customer_id` matches the caller (else 403).
-- **Side effects:** None (read-only). — **Idempotent:** yes (GET).
+- **Side effects:** None (read-only). -- **Idempotent:** yes (GET).
 
 ### Source Citations
 - Swagger: `paths./api/v1/orders/{orderId}.get`

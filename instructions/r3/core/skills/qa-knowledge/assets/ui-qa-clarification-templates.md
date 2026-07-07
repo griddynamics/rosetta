@@ -1,31 +1,31 @@
-# UI-QA clarification templates (asset of the `qa-knowledge` skill)
+# UI-QA clarification templates
 
-UI-QA Phase 2 templates — gap entry, clarification questions message, and the test-plan clarification section (typed Explicit Assertions).
+UI-QA Phase 2 templates -- gap entry, clarification questions message, and the test-plan clarification section (typed Explicit Assertions).
 
 <ui-qa-clarification-templates>
 
-**Completeness dimensions** (the gap-entry `Dimension` field): **D1** steps clarity · **D2** result measurability · **D3** test data · **D4** edge cases · **D5** success criteria. (Full catalog is owned by the `requirements-use` gap_analysis mode; this gloss anchors the template so it is self-contained.)
+**Completeness dimensions** (gap-entry `Dimension` field): **D1** steps clarity · **D2** result measurability · **D3** test data · **D4** edge cases · **D5** success criteria. (Full catalog owned by the `requirements-use` gap_analysis mode.)
 
-**Prerequisite + inputs:** the test plan at `plans/ui-qa-<test-name>.md` must be populated (Test Steps + Expected Overall Result) before these templates apply. If the plan is absent or a dimension cannot be evaluated, STOP and report before creating gap entries.
+**Prerequisite:** the plan `plans/ui-qa-<test-name>.md` must have Test Steps + Expected Overall Result before these templates apply. If it is absent or a dimension cannot be evaluated, STOP and report.
 
-**Router:** use only the section your current step needs — **Gap entry** (record a gap), **Clarification questions message** (the user-facing ask), or **Test-plan clarification section** (write results back to the plan).
+**Router:** use only the section your step needs: **Gap entry** (record a gap), **Clarification questions message** (user-facing ask), **Test-plan clarification section** (write results back).
 
-**Done when:** all gap entries are written + prioritized, the clarification message has been sent, user responses are documented in the plan, and `### Explicit Assertions` is populated. After populating Explicit Assertions, verify each gap entry's `Derived assertion` appears in the list (one-to-one — no silent drop).
+**Done when:** all gap entries written + prioritized, clarification message sent, user responses documented in the plan, `### Explicit Assertions` populated. Verify each gap entry's `Derived assertion` appears there (one-to-one, no silent drop).
 
 ## Gap entry
 
-Each gap is recorded as one entry; if all five dimensions are satisfied, emit the single line `No gaps identified — all five completeness dimensions (D1–D5) satisfied by the Phase 1 plan.`
+Each gap is recorded as one entry; if all five dimensions are satisfied, emit the single line `No gaps identified -- all five completeness dimensions (D1–D5) satisfied by the Phase 1 plan.`
 
 ```markdown
 ### G-N: [Brief gap title]
 - **Dimension:** D1 | D2 | D3 | D4 | D5
 - **Priority:** Critical (blocks test design) | Should (impairs quality) | Optional
-- **Confidence:** High (clearly a gap) | Low (borderline — flag for prioritization)
+- **Confidence:** High (clearly a gap) | Low (borderline -- flag for prioritization)
 - **Context:** [What is unclear/missing; cite section/step number when possible]
 - **Derived assertion (if applicable):** [Concrete measurable form, e.g. `response.statusCode == 200` or `page.title == "Order Confirmed"`. Blank if none derivable from the plan as written.]
 ```
 
-Specificity expectation for the downstream question (exact-text-vs-contains, timing budget, single-decision-per-question) is owned by the questioning step — e.g. *"After Logout, assert exact text `'Success!'` OR that the message **contains** `'Success'` (case-insensitive)? Acceptable wait window — 2s, 5s, or match existing similar tests?"* Vague *"is the user logged out?"* questions are forbidden.
+Specificity expectation for the downstream question (exact-text-vs-contains, timing budget, single-decision-per-question) is owned by the questioning step -- e.g. *"After Logout, assert exact text `'Success!'` OR that the message **contains** `'Success'` (case-insensitive)? Acceptable wait window -- 2s, 5s, or match existing similar tests?"* Vague *"is the user logged out?"* questions are forbidden.
 
 ## Clarification questions message
 
@@ -52,7 +52,7 @@ Please provide answers so I can proceed with test implementation.
 
 ## Test-plan clarification section
 
-`### Explicit Assertions` is **mandatory** — every assertion listed here MUST be implemented OR recorded as Uncovered in the implementation record (no silent drops). Carry every `Derived assertion` from the gap entries into the typed list; zero derived assertions → emit the None-clause, never omit the section. Add this section to `plans/ui-qa-<test-name>.md`:
+`### Explicit Assertions` is **mandatory**: each listed assertion MUST be implemented OR recorded as Uncovered downstream (no silent drops). Carry every gap-entry `Derived assertion` into the typed list; zero derived → emit the None-clause, never omit the section. Add to `plans/ui-qa-<test-name>.md`:
 
 ```markdown
 ## Phase 2: Requirements Clarification
@@ -74,24 +74,24 @@ Please provide answers so I can proceed with test implementation.
 ...
 
 ### Open Questions
-- [Each declined or unanswered question — `declined by user — <reason>` or `unanswered (Edge/Optional)` — citing the question. If none: `None — all questions answered.`]
+- [Each declined or unanswered question -- `declined by user -- <reason>` or `unanswered (Edge/Optional)` -- citing the question. If none: `None -- all questions answered.`]
 
-### Explicit Assertions (mandatory — transcribed from step 2.1 gap analysis)
+### Explicit Assertions (mandatory -- transcribed from step 2.1 gap analysis)
 
-Each assertion carries a **type** (Presence / State / Content / Behavioral) and a **subject** (UI element or system observable). One bullet per assertion; do NOT collapse multiple assertions into one line. This clarification step writes **only** typed bullets here (no status field); the `### Uncovered Assertions` section is owned and written by the downstream implementation step — this step never pre-marks status.
+Each assertion carries a **type** (Presence / State / Content / Behavioral) and a **subject** (UI element or system observable). One bullet per assertion; never collapse. Write **only** typed bullets here (no status field); `### Uncovered Assertions` is owned by the downstream implementation step -- never pre-mark status.
 
 - **Presence:** [element/observable] is [present | absent | visible | hidden] after [trigger condition].
 - **State:** [element] is [enabled | disabled | selected | unselected | loading | settled] after [trigger].
 - **Content:** [element] displays/contains [exact value or pattern] after [trigger].
 - **Behavioral:** [action] produces [observable result] within [timing constraint, if any].
-- (If the gap analysis derived zero assertions: `None — no observable behavior derivable from current clarifications; the implementation step will surface this as Uncovered`.)
+- (If the gap analysis derived zero assertions: `None -- no observable behavior derivable from current clarifications; the implementation step will surface this as Uncovered`.)
 ```
 
-**Filled-in worked example** (the exact-vs-contains specificity distinction is the most error-prone field for this type):
+**Worked example** (exact-vs-contains is the most error-prone field here):
 
 ```markdown
 - **Content:** `#login-toast` displays exact text `"Login successful"` (not `contains "successful"`) after clicking the **Sign In** button.
-- **Content:** `#error-banner` contains substring `"network"` (case-insensitive) after a request timeout (do NOT assert exact text — the upstream service formats the rest of the message).
+- **Content:** `#error-banner` contains substring `"network"` (case-insensitive) after a request timeout (do NOT assert exact text -- the upstream service formats the rest of the message).
 ```
 
 Apply the same shape (typed prefix → subject → exact-or-contains qualifier → trigger) to every assertion.

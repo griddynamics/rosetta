@@ -4,7 +4,7 @@ Verbatim user-prompt interview asked at QA Phase 0 when the project config does 
 
 <api-qa-config-interview>
 
-Asked verbatim (through the phase's structured-questioning step) only when the project config does not already exist. Validate the answer covers at minimum: document storage (or confirmation docs are in-repo), Swagger/OpenAPI availability, and where test cases come from. If a required field is missing, ask ONE follow-up naming exactly the missing fields (cap: 2 rounds total). This interview is designed to cover every **required** key in `qa-structure/references/config-schema.md` — load that reference to verify coverage if unsure.
+Ask verbatim (via the phase's structured-questioning step) only when the project config does not exist. Confirm the answer covers at minimum: document storage (or docs are in-repo), Swagger/OpenAPI availability, and where test cases come from. If a required field is missing, ask ONE follow-up naming the missing fields (cap: 2 rounds). Covers every **required** key in `config-schema.md` -- load it to verify coverage if unsure.
 
 ```
 To automate backend API tests effectively, I need the following project details:
@@ -44,8 +44,7 @@ To automate backend API tests effectively, I need the following project details:
 Please answer what you know — I can discover the rest from code and docs.
 ```
 
-**After the interview (agent-facing, not part of the verbatim message):**
-- **Coverage check:** before proceeding, confirm the answers cover (1) documentation storage, (2) Swagger/OpenAPI availability, and (3) test-case management. If any is missing, trigger the one-follow-up rule (cap 2 rounds total).
-- **Output:** populate `qa-structure/assets/api-qa-project-config-template.md` with these answers (applying its redaction note), then write the result to `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md`.
+**After the interview (agent-facing):**
+- **Output:** populate `qa-structure/assets/api-qa-project-config-template.md` with the answers (apply its redaction note), then write to `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md`.
 
 </api-qa-config-interview>
