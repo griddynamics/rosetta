@@ -1,6 +1,6 @@
 # Requirements Authoring -- general authoring catalogs
 
-Loaded on demand by `requirements-authoring` SKILL.md when drafting and validating requirement units: unit shape, schema fields, ID conventions, language constructs, FR/EARS, NFR, acceptance, verification, and traceability catalogs. The orientation layer (role, concepts/principles, authoring flow, information architecture) stays inline in SKILL.md. Synthesis-mode output schemas live in [authoring-catalogs.md](authoring-catalogs.md); quality-principle rules (SRP/DRY/KISS/MECE) in [quality-principles.md](quality-principles.md).
+Loaded on demand by `requirements-authoring` SKILL.md when drafting and validating requirement units: unit shape, schema fields, ID conventions, language constructs, FR/EARS, NFR, acceptance, verification, and traceability catalogs. The orientation layer (role, concepts/principles, authoring flow, information architecture) stays inline in SKILL.md. Synthesis-mode output schemas: ACQUIRE `requirements-authoring/references/authoring-catalogs.md` FROM KB; quality-principle rules (SRP/DRY/KISS/MECE): ACQUIRE `requirements-authoring/references/quality-principles.md` FROM KB.
 
 ## Unit of requirement
 

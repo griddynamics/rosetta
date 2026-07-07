@@ -1,7 +1,7 @@
 ---
 name: requirements-authoring
 description: "To author, update, and validate functional/non-functional requirements as atomic units with user approval."
-tags: ["requirements", "skills"]
+tags: ["requirements", "skills", "requirements-authoring", "requirements-validation"]
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
@@ -12,9 +12,6 @@ metadata:
   version: "1.0"
   category: "requirements-engineering"
   tags: "requirements functional non-functional traceability hitl"
-tags:
-  - requirements-authoring
-  - requirements-validation
 ---
 
 <requirements-authoring>
@@ -31,7 +28,7 @@ Use when creating, updating, reviewing, or refactoring requirements and building
 
 <dependencies>
 
-- ACQUIRE `questions.md` FROM KB for Q&A.
+- USE SKILL `questioning` for Q&A.
 - Prep steps completed
 - Use CONTEXT, ARCHITECTURE, IMPLEMENTATION, ASSUMPTIONS, TECHSTACK docs.
 
@@ -83,7 +80,7 @@ HITL gates (use when):
 - Follow YAGNI always
 - Enforce MECE always
 - Enforce MoSCoW always
-- Detailed SRP/DRY/KISS/MECE rules → [references/quality-principles.md](references/quality-principles.md)
+- Detailed SRP/DRY/KISS/MECE rules -- ACQUIRE `requirements-authoring/references/quality-principles.md` FROM KB
 - Keep requirement units short
 - Prefer explicit over implicit
 - Prefer root cause over symptoms
@@ -158,7 +155,7 @@ HITL gates (use when):
 
 <requirement_catalogs>
 
-Load when drafting or validating requirement units → [references/requirement-catalogs.md](references/requirement-catalogs.md): unit shape, schema fields, ID conventions, language constructs, FR/EARS, NFR, acceptance, verification, traceability. Full fill-in unit template → asset `requirements-authoring/assets/ra-requirement-unit.xml`.
+Load when drafting or validating requirement units -- ACQUIRE `requirements-authoring/references/requirement-catalogs.md` FROM KB: unit shape, schema fields, ID conventions, language constructs, FR/EARS, NFR, acceptance, verification, traceability. Full fill-in unit template -- ACQUIRE `requirements-authoring/assets/ra-requirement-unit.xml` FROM KB.
 
 </requirement_catalogs>
 
@@ -185,7 +182,7 @@ Load when drafting or validating requirement units → [references/requirement-c
 
 <synthesis>
 
-Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document -- user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability. Emit into the provided skeleton (section contract + output path given). All authoring rules above apply. Six per-requirement schemas + document wrapper + source-priority ladder → [references/authoring-catalogs.md](references/authoring-catalogs.md#synthesis-output-schemas-synthesis-mode), load the active schema per step.
+Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document -- user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability. Emit into the provided skeleton (section contract + output path given). All authoring rules above apply. Six per-requirement schemas + document wrapper + source-priority ladder -- ACQUIRE `requirements-authoring/references/authoring-catalogs.md` FROM KB, load the active schema per step.
 
 Synthesis rules:
 

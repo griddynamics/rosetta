@@ -1,6 +1,6 @@
 # Requirements Authoring -- Synthesis schemas (`<synthesis>` mode)
 
-Loaded on demand by the `requirements-authoring` `<synthesis>` mode. General authoring catalogs (unit template, EARS, schema fields, ID/filesystem/refactoring conventions) live inline in `SKILL.md`; this reference holds ONLY the synthesis output schemas.
+Loaded on demand by the `requirements-authoring` `<synthesis>` mode. General authoring catalogs (unit template, EARS, schema fields, ID/filesystem/refactoring conventions) live in `requirement-catalogs.md` (ACQUIRE FROM KB); this reference holds ONLY the synthesis output schemas.
 
 # Synthesis output schemas (`<synthesis>` mode)
 

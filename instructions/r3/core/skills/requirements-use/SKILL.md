@@ -1,7 +1,7 @@
 ---
 name: requirements-use
 description: "To consume approved requirements for planning, implementation, and validation, with traceability and HITL."
-tags: ["requirements", "skills"]
+tags: ["requirements", "skills", "requirements-use", "requirements-traceability"]
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
@@ -12,9 +12,6 @@ metadata:
   version: "1.0"
   category: "requirements-engineering"
   tags: "requirements usage traceability implementation validation hitl"
-tags:
-  - requirements-use
-  - requirements-traceability
 ---
 
 <requirements-use>
