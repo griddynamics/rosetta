@@ -1,10 +1,10 @@
-# Testing — implementation-mode examples and templates
+# Testing -- implementation-mode examples and templates
 
-Loaded on demand from `SKILL.md` `<implementation_modes>`. The base `SKILL.md` keeps the general method (read inputs → match repo patterns → emit → record gaps) and quality bar inline; this file holds the verbose multi-language code, selector tables, and templates so neither calling phase carries detail it does not need. The calling workflow PHASE owns the artifact paths, taxonomy, and output contract — these examples are shape references only.
+Loaded on demand from `SKILL.md` `<implementation_modes>`. The base `SKILL.md` keeps the method (read inputs → match repo patterns → emit → record gaps) and quality bar inline; this file holds the verbose code, selector tables, and templates. The calling PHASE owns artifact paths, taxonomy, and output contract -- these examples are shape references only.
 
 ---
 
-## API impl mode — shared utilities + test files (Python / TypeScript / Java)
+## API impl mode -- shared utilities + test files (Python / TypeScript / Java)
 
 ### Auth helper (Python / pytest)
 
@@ -32,7 +32,7 @@ class TestDataFactory:
         return api_client.post("/api/v1/users", json=data).json()
 ```
 
-### Test file — canonical ATC-001 entry (Python / pytest)
+### Test file -- canonical ATC-001 entry (Python / pytest)
 
 ```python
 import os, pytest, requests
@@ -57,7 +57,7 @@ class TestUserEndpoints:
         assert "id" in body and isinstance(body["id"], int)
 ```
 
-### TypeScript / Jest — auth helper + ATC test
+### TypeScript / Jest -- auth helper + ATC test
 
 ```typescript
 // src/test-helpers/auth.ts
@@ -88,7 +88,7 @@ describe("User Endpoints — /api/v1/users", () => {
 });
 ```
 
-### Java / JUnit 5 + RestAssured — ATC test
+### Java / JUnit 5 + RestAssured -- ATC test
 
 ```java
 import io.restassured.RestAssured;
@@ -110,7 +110,7 @@ class UserEndpointsTest {
 }
 ```
 
-**Other languages** (C# / Go / Ruby): same shape — Auth helper → Test data factory → ATC test. Adapt fixture mechanism, assertion library, and naming to the project's existing patterns.
+**Other languages** (C# / Go / Ruby): same shape -- Auth helper → Test data factory → ATC test. Adapt fixture, assertion library, and naming to the project's patterns.
 
 ### API impl rules (language-agnostic)
 
@@ -120,20 +120,20 @@ class UserEndpointsTest {
 - **Error responses:** verify error status codes (400/401/403/404/409/422/500), body format, and messages.
 - **Auth coverage:** valid auth (success), no auth (401), invalid auth (401), insufficient permission (403).
 - **No hardcoded sleeps:** use the framework's wait/retry primitives tied to an observable condition.
-- **Priority order:** P0 happy-path CRUD → P1 auth/negative → P2 edge/boundary → P3 rare. A spec's priority field overrides this default.
-- **Traceability:** every test function name or docstring carries its ATC-NNN id. Loss of ATC↔test traceability is a regression.
+- **Priority order:** P0 happy-path CRUD → P1 auth/negative → P2 edge/boundary → P3 rare. A spec's priority field overrides this.
+- **Traceability:** every test function name or docstring carries its ATC-NNN id. Losing ATC↔test traceability is a regression.
 
 ---
 
-## UI impl mode — test authoring shape (page objects + assertions)
+## UI impl mode -- test authoring shape (page objects + assertions)
 
-UI test code matches the project's existing patterns exactly: import order (framework → pages → utilities → types), describe/suite organization, hooks (`beforeEach`/`afterEach`), shared fixtures.
+UI test code matches the project's patterns exactly: import order (framework → pages → utilities → types), describe/suite organization, hooks (`beforeEach`/`afterEach`), shared fixtures.
 
-- **Setup** — initialize page objects, reuse login/navigation helpers, navigate to start point.
-- **Actions** — use page-object methods (never raw selectors in test code); proper waits (visibility, network idle); no hardcoded sleeps.
-- **Assertions** — project assertion style (expect / custom matchers); specific and measurable; assertion messages if the project convention uses them.
-- **Cleanup** — only if the test creates/modifies state; `try/finally` or `afterEach`, matching similar tests.
-- **Docs** — case reference (e.g. TestRail) as a comment; inline comments only for non-obvious logic.
+- **Setup** -- initialize page objects, reuse login/navigation helpers, navigate to start point.
+- **Actions** -- use page-object methods (never raw selectors in test code); proper waits (visibility, network idle); no hardcoded sleeps.
+- **Assertions** -- project assertion style (expect / custom matchers); specific and measurable; assertion messages if the project uses them.
+- **Cleanup** -- only if the test creates/modifies state; `try/finally` or `afterEach`, matching similar tests.
+- **Docs** -- case reference (e.g. TestRail) as a comment; inline comments only for non-obvious logic.
 
 **Implemented vs uncovered worked example:**
 
@@ -142,9 +142,9 @@ UI test code matches the project's existing patterns exactly: import order (fram
 
 ---
 
-## Selector mode — strategy and page-object mechanics
+## Selector mode -- strategy and page-object mechanics
 
-### Part A (identify) — 4-tier selector strategy (preference order)
+### Part A (identify) -- 4-tier selector strategy (preference order)
 
 | Tier | Strategy | Example (good) | Example (flag/avoid) |
 |---|---|---|---|
@@ -155,16 +155,16 @@ UI test code matches the project's existing patterns exactly: import order (fram
 
 **Good vs fragile pair:**
 
-- Good: `[data-testid="logout-button"]` — stable hook added by frontend; survives copy changes, restyling, DOM reorder.
-- Fragile (must flag): `body > div.app-shell > header > nav > div:nth-child(2) > button.MuiButton-root` — depends on framework-generated classes AND exact nesting. Flag as `fragile: structural + MUI-generated class — request data-testid from frontend team`.
+- Good: `[data-testid="logout-button"]` -- stable hook added by frontend; survives copy changes, restyling, DOM reorder.
+- Fragile (must flag): `body > div.app-shell > header > nav > div:nth-child(2) > button.MuiButton-root` -- depends on framework-generated classes AND exact nesting. Flag as `fragile: structural + MUI-generated class — request data-testid from frontend team`.
 
 **Flag any selector matching:** dynamic ids (`user-42-row-7`), non-unique classes (`.btn-primary` matching many elements), deep structural paths (>3 levels of `>` / `nth-child`), framework-generated class names (`MuiButton-root`, `css-1a2b3c4`).
 
-### Part B (implement) — selectors in page objects
+### Part B (implement) -- selectors in page objects
 
 - **Extend existing:** read the file, match its exact patterns (access modifiers, data types, formatting, naming case). Add selectors in logical grouping; add helper methods (text getters, click/action, visibility checks) if the page object uses them.
 - **Create new:** use an existing page object as the structural template; copy constructor/import/class patterns exactly; follow project naming; add to barrel/index exports if used.
-- **Fragile-selector gate (Part B safety rule):** any selector Part A flagged as fragile MUST either be replaced with a stable alternative agreed with the user, OR surfaced for explicit approval before commit — never silently implemented.
+- **Fragile-selector gate (Part B safety rule):** any selector Part A flagged as fragile MUST either be replaced with a stable alternative agreed with the user, OR surfaced for explicit approval before commit -- never silently implemented.
 
 ### `## Selector Management` output template (written into the phase artifact)
 

@@ -1,8 +1,8 @@
-# TestRail FORMAT Binding — scenarios-generation
+# TestRail FORMAT Binding -- scenarios-generation
 
-Config-resolved **vendor binding** loaded by `<generation>` mode (via `<vendor_binding>`) when the phase resolves the TMS vendor to TestRail. Holds the TestRail-compatible case template, field rules, naming conventions, and worked examples.
+Config-resolved **vendor binding** loaded by `<generation>` mode (via `<vendor_binding>`) when the TMS vendor resolves to TestRail. Holds the TestRail-compatible case template, field rules, naming conventions, and worked examples.
 
-Redaction is NOT restated here — apply `sensitive-data` per SKILL `<core_concepts>` (replace credentials/PII/credentialed-URL **values** with shape-preserving placeholders; structural content — paths, methods, status codes, error-message templates, field names — stays verbatim). The per-value honesty + no-silent-drop coverage rules also live in the SKILL.
+Redaction is NOT restated here -- apply `sensitive-data` per SKILL `<core_concepts>` (replace credentials/PII/credentialed-URL **values** with shape-preserving placeholders; structural content -- paths, methods, status codes, error-message templates, field names -- stays verbatim). Per-value honesty + no-silent-drop coverage rules also live in the SKILL.
 
 ---
 
@@ -10,8 +10,8 @@ Redaction is NOT restated here — apply `sensitive-data` per SKILL `<core_conce
 
 - **MUST** use Steps + Expected Results format (maps to TestRail `custom_steps_separated` / `custom_expected`)
 - **MUST NOT** use BDD Given-When-Then format
-- **MUST NOT** include a `Post-conditions` field — encode teardown into the framework or note residual side effects in Expected Results
-- **MUST NOT** include an `Automation` field — that is TMS metadata, not case body
+- **MUST NOT** include a `Post-conditions` field -- encode teardown into the framework or note residual side effects in Expected Results
+- **MUST NOT** include an `Automation` field -- that is TMS metadata, not case body
 - Each step is a single user action; each expected result states the observable outcome after that step
 - Steps numbered sequentially; expected results reference which step they follow
 
@@ -51,14 +51,14 @@ Redaction is NOT restated here — apply `sensitive-data` per SKILL `<core_conce
 
 ## Naming conventions
 
-Include the test type in parentheses; use descriptive titles referencing the key action or entity.
+Include the test type in parentheses; use descriptive titles naming the key action or entity.
 
 - Good: "User Login with Valid Credentials (Happy Path)", "Unauthorized Roles Cannot Create Job Post (Negative)", "Search with Empty Query Returns All Results (Edge Case)"
 - Poor: "Test Login", "Check Search", "TC for Admin"
 
 ## Gap-marker discipline (per-value honesty for TestRail fields)
 
-When a field cannot be sourced from inputs, leave a visible `gap: <reason>` marker — never invent a value:
+When a field cannot be sourced from inputs, leave a visible `gap: <reason>` marker -- never invent a value:
 
 - `Related Requirement` → `gap: no requirement traced — <reason>` (do not invent `FR-X`)
 - `Traceability — User Story` → `gap: no user story traced — <reason>` (do not invent `US-X`)
@@ -66,7 +66,7 @@ When a field cannot be sourced from inputs, leave a visible `gap: <reason>` mark
 - `Traceability — Functional / Non-Functional Requirement` → `gap: FR not in source` / `gap: not applicable — <reason>`
 - `Priority` → `gap: priority not supplied — defaulting to P2 pending review` AND set Priority to P2. This is the one field where a flagged default is acceptable (every TestRail case requires a priority); the marker forces a reviewer pass.
 
-A case carrying gap markers is still complete — the gaps are visible. A case carrying a fabricated `FR-99` is not — it presents false traceability.
+A case with gap markers is still complete -- the gaps are visible. One with a fabricated `FR-99` is not -- it presents false traceability.
 
 ## Parameterization
 
@@ -74,8 +74,8 @@ Cap at 5 parameter sets per case. If more, split into multiple cases (TC-A, TC-B
 
 ## Failure handling
 
-- **Scenario intent ambiguous** (vague "test the login flow" without happy/negative/edge): stop, ask for the test type — naming requires it and guessing pollutes suite organization.
-- **Step decomposition impossible** (high-level "user pays for cart" with no detail): stop, ask the phase for the action sequence. Do NOT invent steps — fabricated steps fail at execution.
+- **Scenario intent ambiguous** (vague "test the login flow" without happy/negative/edge): stop, ask for the test type -- naming requires it; guessing pollutes suite organization.
+- **Step decomposition impossible** (high-level "user pays for cart" with no detail): stop, ask the phase for the action sequence. Do NOT invent steps -- fabricated steps fail at execution.
 
 ---
 
@@ -189,9 +189,9 @@ Cap at 5 parameter sets per case. If more, split into multiple cases (TC-A, TC-B
 
 ## Pre-emit validation greps (TestRail format)
 
-- **Format compliance** — grep the case body for `Given `, `When `, `Then `, `Post-conditions`, `Automation`. None must appear.
-- **Step / expected-result discipline** — steps numbered sequentially; every expected result references its step (`After step N: ...`); no multi-action steps joined by `and` / commas.
-- **Naming** — parenthesized type label present.
-- **Parameterization** — Test Data table present ⇒ Preconditions states execution count and references Test Data; set count ≤ 5 (else split).
-- **Gap markers** — every traceability + required field is real OR carries a gap marker; no fabrication.
-- **Redaction re-scan** — per `sensitive-data`: scan Steps + Expected Results + Test Data + Preconditions for `Bearer `, real-looking passwords, emails not on `example.com`/`example.org`, phone numbers outside `+1-555-0100`–`+1-555-0199`, card-number shapes, and `user:pass@` credentialed URLs.
+- **Format compliance** -- grep the case body for `Given `, `When `, `Then `, `Post-conditions`, `Automation`. None must appear.
+- **Step / expected-result discipline** -- steps numbered sequentially; every expected result references its step (`After step N: ...`); no multi-action steps joined by `and` / commas.
+- **Naming** -- parenthesized type label present.
+- **Parameterization** -- Test Data table present ⇒ Preconditions states execution count and references Test Data; set count ≤ 5 (else split).
+- **Gap markers** -- every traceability + required field is real OR carries a gap marker; no fabrication.
+- **Redaction re-scan** -- per `sensitive-data`: scan Steps + Expected Results + Test Data + Preconditions for `Bearer `, real-looking passwords, emails not on `example.com`/`example.org`, phone numbers outside `+1-555-0100`–`+1-555-0199`, card-number shapes, and `user:pass@` credentialed URLs.

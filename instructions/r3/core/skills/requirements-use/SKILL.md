@@ -89,15 +89,15 @@ HITL gates (use when):
 
 <gap_analysis>
 
-Analysis-only mode: examine collected multi-source data (Jira, Confluence, TestRail, API spec, test cases, a test plan) for contradictions, gaps, ambiguities, and inconsistencies before downstream work. This mode EMITS categorized findings into the provided artifact — the finding-entry template, section list, output path, and validation contract are given; this mode never invents the artifact shape or path. Detection catalogs (contradiction / gap / ambiguity / cross-reference probes, the three-tier risk scheme, per-finding authoring discipline) live in [references/gap-analysis-catalogs.md](references/gap-analysis-catalogs.md) — load on demand when classifying.
+Analysis-only mode: examine collected multi-source data (Jira, Confluence, TestRail, API spec, test cases, a test plan) for contradictions, gaps, ambiguities, and inconsistencies before downstream work. EMITS categorized findings into the provided artifact -- the finding-entry template, section list, output path, and validation contract are given; never invent the artifact shape or path. Detection catalogs (contradiction / gap / ambiguity / cross-reference probes, three-tier risk scheme, per-finding discipline) → [references/gap-analysis-catalogs.md](references/gap-analysis-catalogs.md), load on demand.
 
-This mode is analysis-only: it does NOT act on findings, propose edits, fix gaps, or ask the user directly — it surfaces each as a finding and stops. It does NOT generate user-facing questions. Variants:
+Analysis-only: do NOT act on findings, propose edits, fix gaps, ask the user, or generate questions -- surface each as a finding and stop. Variants:
 
-- **General multi-source variant** — find contradictions / gaps / ambiguities across all loaded sources; cross-reference the sources against each other.
-- **Test-cases-vs-API-spec variant** — cross-reference each test step against the API analysis (endpoint/method/request/response/status/auth/error coverage); emit gaps where test inputs or assertions are unsupported by the spec.
-- **Test-plan variant** — evaluate ALL five completeness dimensions (D1 steps, D2 measurability, D3 test data, D4 edge cases, D5 success criteria) of an UI-QA test plan; for each gap record a derived measurable assertion when one is cleanly derivable, otherwise leave it blank — never fabricate.
+- **General multi-source** -- contradictions / gaps / ambiguities across all loaded sources; cross-reference sources against each other.
+- **Test-cases-vs-API-spec** -- cross-reference each test step against the API analysis (endpoint/method/request/response/status/auth/error); emit gaps where inputs/assertions are spec-unsupported.
+- **Test-plan** -- evaluate all five completeness dimensions (D1 steps, D2 measurability, D3 test data, D4 edge cases, D5 success criteria); per gap record a derived measurable assertion when cleanly derivable, else leave blank -- never fabricate.
 
-Process: (1) load every source completely — surface missing/empty/partial inputs, never fabricate; (2) classify findings against the catalogs, one finding per item, each with a verbatim source quote + citation, an impact, and exactly one risk tier; (3) cross-reference sources (skip-with-note when a single source); (4) redact sensitive values before quoting (→ USE SKILL `sensitive-data`); (5) write findings into the provided artifact — produce the artifact even on a clean analysis (`No issues found` / "all dimensions satisfied"), never pad with manufactured findings.
+Process: (1) load every source completely -- surface missing/empty/partial, never fabricate; (2) classify against the catalogs, one finding per item, each with a verbatim quote + citation, impact, and one risk tier; (3) cross-reference sources (skip-with-note if single-source); (4) redact before quoting (→ USE SKILL `sensitive-data`); (5) write findings -- produce the artifact even when clean (`No issues found` / "all dimensions satisfied"), never pad.
 
 </gap_analysis>
 
@@ -197,7 +197,7 @@ Process: (1) load every source completely — surface missing/empty/partial inpu
 - Treating Draft as Approved
 - Assuming unspecified behavior
 - Ignoring requirement priority and status
-- `<gap_analysis>`: acting on findings, asking the user directly, or padding a clean analysis — all violate the analysis-only boundary
+- `<gap_analysis>`: acting on findings, asking the user directly, or padding a clean analysis -- all violate the analysis-only boundary
 
 </pitfalls>
 

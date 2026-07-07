@@ -1,16 +1,16 @@
-# GWT Spec — Scenario Taxonomy + Templates
+# GWT Spec -- Scenario Taxonomy + Templates
 
 Loaded on demand by the `<gwt_spec>` mode of `scenarios-generation/SKILL.md`:
 
-- The **Scenario taxonomy** step loads the scenario-taxonomy catalog when designing coverage.
-- The **Write specs** step loads the **ATC template** when writing each Given-When-Then entry.
-- The **File mapping + shared utilities** step loads the **Shared Utilities template** when identifying reusable elements.
+- **Scenario taxonomy** step: the scenario-taxonomy catalog.
+- **Write specs** step: the **ATC template**.
+- **File mapping + shared utilities** step: the **Shared Utilities template**.
 
-Redaction is NOT restated here — apply `sensitive-data` per SKILL `<core_concepts>` to every value written. The SKILL keeps the GATE, per-value honesty rule, coverage rule, and validation; this file holds the heavier taxonomy + template material so the resident prompt stays lean.
+Redaction is NOT restated here -- apply `sensitive-data` per SKILL `<core_concepts>` to every value written. The SKILL keeps the gate, per-value honesty rule, coverage rule, and validation; this file holds the heavier taxonomy + templates.
 
 ---
 
-## Scenario Taxonomy Catalog — used by the SKILL `Scenario taxonomy` step
+## Scenario Taxonomy Catalog -- used by the SKILL `Scenario taxonomy` step
 
 For each test case, generate 1-N scenarios across these categories (priority defaults in parentheses):
 
@@ -41,23 +41,23 @@ For each test case, generate 1-N scenarios across these categories (priority def
 - Empty strings vs null vs missing
 - Large payloads (near limits)
 
-**Execution order** (emit in the SKILL `File mapping + shared utilities` step): auth tests → CRUD happy paths → validation/negative → edge cases. Establish auth works before everything else; verify boundaries last.
+**Execution order** (emit in the SKILL `File mapping + shared utilities` step): auth tests → CRUD happy paths → validation/negative → edge cases. Auth first, boundaries last.
 
-**Scenario-count guardrail:** if total scenarios exceed ~50, do NOT auto-prune — ask the calling phase whether to deprioritize P2/P3, split the spec across files, or accept the volume. Scope is the phase's decision.
+**Scenario-count guardrail:** if total scenarios exceed ~50, do NOT auto-prune -- ask the calling phase whether to deprioritize P2/P3, split the spec across files, or accept the volume.
 
 ---
 
-## Decision rules — apply while filling the ATC template
+## Decision rules -- apply while filling the ATC template
 
 - **Partial endpoint contract** (some fields known, some absent): author the mappable parts; mark each unknown value `[ASSUMED: …]` (per-value honesty rule); if a *core* field stays unresolved, flag the case in `## Excluded Test Cases`.
-- **Structurally incomplete ATC** — a required *structural* field (`Endpoint`, `Type`, `Priority`) cannot be determined (e.g. the test case names no API path): write `gap: <field> — <reason>` in that field AND record the ATC in `## Excluded Test Cases` with the missing field listed. Never author a structurally incomplete ATC silently; never fabricate the field.
-- **Source field** (traceability): if no source reference is traceable, write `gap: no source reference — <reason>` — never invent a TC / ticket number.
-- **Duplicate test cases** (same endpoint + intent across the input list): emit ONE ATC, list the merged source ids in `**Source**` — do not emit near-identical duplicates.
-- **Inapplicable test type** for an endpoint (e.g. no Auth category on a public endpoint): omit that category and record the omission + reason in `## Excluded Test Cases` — do not invent an auth scenario.
+- **Structurally incomplete ATC** -- a required *structural* field (`Endpoint`, `Type`, `Priority`) cannot be determined (e.g. the test case names no API path): write `gap: <field> — <reason>` in that field AND record the ATC in `## Excluded Test Cases` with the missing field listed. Never author it silently or fabricate the field.
+- **Source field** (traceability): if no source reference is traceable, write `gap: no source reference — <reason>` -- never invent a TC / ticket number.
+- **Duplicate test cases** (same endpoint + intent across the input list): emit ONE ATC, list the merged source ids in `**Source**` -- do not emit near-identical duplicates.
+- **Inapplicable test type** for an endpoint (e.g. no Auth category on a public endpoint): omit that category and record the omission + reason in `## Excluded Test Cases` -- do not invent an auth scenario.
 
 ---
 
-## ATC Template (Given-When-Then) — used by the SKILL `Write specs` step
+## ATC Template (Given-When-Then) -- used by the SKILL `Write specs` step
 
 One entry per scenario, written into the phase's spec artifact.
 
@@ -125,7 +125,7 @@ One entry per scenario, written into the phase's spec artifact.
 
 ---
 
-## Shared Utilities Template — used by the SKILL `File mapping + shared utilities` step
+## Shared Utilities Template -- used by the SKILL `File mapping + shared utilities` step
 
 Written into the spec artifact's `## Shared Utilities Required` section.
 
@@ -197,9 +197,9 @@ Written into the spec artifact's `## Shared Utilities Required` section.
 
 ---
 
-## Worked examples — Auth failure + Boundary (structural contrast vs Happy Path)
+## Worked examples -- Auth failure + Boundary (structural contrast vs Happy Path)
 
-Auth failure — `Given` = no token; `Then` = 401 with **no resource-body assertion**:
+Auth failure -- `Given` = no token; `Then` = 401 with **no resource-body assertion**:
 
 ```markdown
 ### ATC-014: GET /api/v1/orders/{orderId} rejects an unauthenticated request
@@ -210,7 +210,7 @@ Auth failure — `Given` = no token; `Then` = 401 with **no resource-body assert
 **Assumptions**: None — 401 derived from the endpoint's auth contract.
 ```
 
-Edge/Boundary — value at the limit; `Then` asserts boundary handling, not a happy body:
+Edge/Boundary -- value at the limit; `Then` asserts boundary handling, not a happy body:
 
 ```markdown
 ### ATC-022: GET /api/v1/orders/{orderId} handles a max-length order id

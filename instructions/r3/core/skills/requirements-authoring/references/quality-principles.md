@@ -1,6 +1,6 @@
-# Requirements Authoring — quality principles (SRP/DRY/KISS/MECE)
+# Requirements Authoring -- quality principles (SRP/DRY/KISS/MECE)
 
-Loaded on demand by `requirements-authoring` SKILL.md. Expands the `core_principles_to_enforce` summary bullets (Follow SRP/DRY/KISS/MECE always) into concrete rules applied to requirement units, sections, and files.
+Loaded on demand by `requirements-authoring` SKILL.md. Expands the `core_principles_to_enforce` bullets (SRP/DRY/KISS/MECE) into concrete rules for requirement units, sections, and files.
 
 ## SRP rules
 

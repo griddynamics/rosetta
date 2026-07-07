@@ -185,24 +185,22 @@ Load when drafting or validating requirement units → [references/requirement-c
 
 <synthesis>
 
-Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document — user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability. Emit into the provided skeleton; the section contract and output path are given. All authoring rules above apply. Six per-requirement schemas + document wrapper + source-priority ladder → [references/authoring-catalogs.md](references/authoring-catalogs.md#synthesis-output-schemas-synthesis-mode) — load the active schema per step.
+Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document -- user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability. Emit into the provided skeleton (section contract + output path given). All authoring rules above apply. Six per-requirement schemas + document wrapper + source-priority ladder → [references/authoring-catalogs.md](references/authoring-catalogs.md#synthesis-output-schemas-synthesis-mode), load the active schema per step.
 
-Synthesis-specific rules:
+Synthesis rules:
 
-- **Source provenance:** every requirement carries an explicit `Source` field (source row, ticket, page section, or user-answer index); absent provenance = fabrication.
-- **Conflict resolution:** apply the source-priority ladder; unresolved → assumption with impact-if-wrong, listed under Risks when both sides share a tier.
-- **NFR threshold:** thresholdless NFRs move to assumptions-and-risks flagged. **One behavior per req:** split composite "A AND B" at synthesis time.
-- **Coverage discipline:** include only what sources specify; empty categories stay empty; no padding. **No verbatim copy-paste** — reshape into schema voice.
-- **Single-source flag:** primary-source-only → tag every derived assumption `Confidence: Single-source`. Produce the document even when answers/docs are missing — mark each missing-input gap as an explicit assumption.
-- **Redaction:** treat the draft as PUBLIC (version-tracked, downstream-fed) — redact credentials/tokens/keys and PII before quoting source content (placeholders/synthetic values), flag each redaction inline, never infer redacted content; structural content (paths, methods, status codes, field names) is safe. USE SKILL `sensitive-data` (canonical authority).
+- **Source provenance:** every requirement carries an explicit `Source` (row, ticket, page section, or user-answer index); absent provenance = fabrication.
+- **Conflict resolution:** apply the source-priority ladder; unresolved → assumption with impact-if-wrong, under Risks when both sides share a tier.
+- **NFR threshold:** thresholdless NFRs → assumptions-and-risks, flagged. **One behavior per req:** split composite "A AND B" at synthesis.
+- **Coverage:** include only what sources specify; empty categories stay empty; no padding. **No verbatim copy-paste** -- reshape into schema voice.
+- **Single-source flag:** primary-source-only → tag each derived assumption `Confidence: Single-source`. Produce the document even with missing answers/docs -- mark each missing-input gap as an explicit assumption.
+- **Redaction:** treat the draft as PUBLIC (version-tracked, downstream-fed) -- redact credentials/tokens/keys + PII before quoting (placeholders/synthetic), flag each redaction inline, never infer redacted content; structural content (paths, methods, status codes, field names) is safe. USE SKILL `sensitive-data`.
 
 </synthesis>
 
 <validation>
 
-Run the full validation / conflict / gap / governance checklist from asset `requirements-authoring/assets/ra-validation-rubric.md` (`ACQUIRE FROM KB`) — structure, quality, language, verification, traceability, conflicts, gaps, governance. Fill true/false per field with a short note for any false.
-
-Beyond the rubric: validate feasibility against constraints; validate groupings are not requirements in disguise; detect ordering issues and actor/responsibility conflicts.
+Run the full validation / conflict / gap / governance checklist from asset `requirements-authoring/assets/ra-validation-rubric.md` (`ACQUIRE FROM KB`) -- structure, quality, language, verification, traceability, conflicts, gaps, governance. Fill true/false per field, with a short note for any false. Beyond the rubric: validate feasibility against constraints; check groupings aren't requirements in disguise; detect ordering and actor/responsibility conflicts.
 
 </validation>
 

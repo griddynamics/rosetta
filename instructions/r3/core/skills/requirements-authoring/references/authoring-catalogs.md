@@ -1,10 +1,10 @@
-# Requirements Authoring — Synthesis schemas (`<synthesis>` mode)
+# Requirements Authoring -- Synthesis schemas (`<synthesis>` mode)
 
-Loaded on demand by the `requirements-authoring` `<synthesis>` mode. The general authoring catalogs (unit template, EARS, schema fields, ID/filesystem/refactoring conventions) live inline in `SKILL.md`; this reference holds ONLY the synthesis-document output schemas.
+Loaded on demand by the `requirements-authoring` `<synthesis>` mode. General authoring catalogs (unit template, EARS, schema fields, ID/filesystem/refactoring conventions) live inline in `SKILL.md`; this reference holds ONLY the synthesis output schemas.
 
 # Synthesis output schemas (`<synthesis>` mode)
 
-Six per-requirement schemas + the document wrapper. Loaded on demand by `<synthesis>` steps: read only the active schema rather than holding all six in working memory.
+Six per-requirement schemas plus the document wrapper. Read only the active schema per step rather than holding all six in working memory.
 
 ## user-stories
 
@@ -145,4 +145,4 @@ Front-matter (Document Control + Executive Summary) + 10 numbered sections in or
 
 ## Synthesis source-priority ladder
 
-When sources conflict, resolve in order: (1) **User answers** (highest — explicit human decisions); (2) **Primary source** (Jira ticket, TestRail case); (3) **Supporting docs** (Confluence); (4) **Analysis insights** (derived from gap/contradiction analysis). If unresolved, document as an assumption with impact-if-wrong (and list under Risks with Probability: High when both sides are at the same priority tier).
+When sources conflict, resolve in order: (1) **User answers** (highest -- explicit human decisions); (2) **Primary source** (Jira ticket, TestRail case); (3) **Supporting docs** (Confluence); (4) **Analysis insights** (from gap/contradiction analysis). If unresolved, document as an assumption with impact-if-wrong (and list under Risks with Probability: High when both sides are at the same priority tier).

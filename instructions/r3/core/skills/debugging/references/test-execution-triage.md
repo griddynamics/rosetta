@@ -1,0 +1,22 @@
+---
+name: test-execution-triage
+description: "Read-only triage of an automated-test execution report — categorize each failure, ground it in captured source, label evidence strength."
+---
+
+<test-execution-triage>
+
+Read-only triage of an automated-test execution report: categorize each failure and record the findings.
+
+1. Analyze the report — per-test status, error message, stack trace, duration, and captured artifacts (screenshots, page source, request/response).
+2. Categorize each failure into exactly one category from the provided failure taxonomy (most-proximate cause).
+3. Analyze source data, example: for element/selector errors analyze the captured page source; for response/assertion errors analyze the captured request/response. No source/capture available → label the cause `Unknown` and state the source/capture needed.
+4. Identify cross-failure patterns — shared cause, setup cascade, environment-wide, category skew — and prioritize Critical/High/Medium/Low.
+5. Label each cause's evidence strength (→ debugging SKILL `<core_concepts>` evidence-label rule) and write findings into the provided findings artifact, redacted (→ `<core_concepts>`).
+
+Worked evidence labels examples:
+
+- `Confirmed` — `report.log:142` shows TimeoutError on the old selector AND this run's page source shows the renamed selector — both sides cited.
+- `Assumption` — 30s timeout, no stack/HTTP capture, single run; to upgrade: a stack/HTTP log of backend slowness OR ≥3 reproducing reruns.
+- `Unknown` — test failed but the report carries no error message, stack, or captured artifact — nothing to cite; record the cause `Unknown` and state the capture needed (e.g. re-run with screenshot / HAR enabled).
+
+</test-execution-triage>
