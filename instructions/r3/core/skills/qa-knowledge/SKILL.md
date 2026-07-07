@@ -2,6 +2,8 @@
 name: qa-knowledge
 description: "To supply the QA-domain conventions: failure taxonomies, authoring & correction discipline, and artifact skeletons."
 license: Apache-2.0
+disable-model-invocation: false
+user-invocable: false
 tags: ["qa", "api-qa", "ui-qa"]
 baseSchema: docs/schemas/skill.md
 ---
@@ -50,7 +52,7 @@ Router -- ACQUIRE the one your current step needs (point-of-use, never all at on
 
 Flag/refuse these before proceeding:
 
-- Redacting from memory instead of running the `sensitive-data` re-scan grep list (item 7) as the pre-emit gate -- or emitting when the scan could not run (**fail-closed**: stop, never emit unscanned).
+- Redacting from memory instead of running the `sensitive-data` pre-emit re-scan grep gate -- or emitting when the scan could not run (**fail-closed**: stop, never emit unscanned).
 - Writing an artifact from memory instead of ACQUIRE-ing its skeleton/template first.
 - Silent ATC / assertion drop -- every ATC (QA) or typed assertion (UI-QA) is implemented **or** recorded (Gap / Uncovered), never dropped.
 - Collapsing multiple ATCs / assertions into one bullet -- one per bullet.

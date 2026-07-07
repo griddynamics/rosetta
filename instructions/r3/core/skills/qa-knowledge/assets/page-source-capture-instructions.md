@@ -34,7 +34,7 @@ I need the HTML source of the page(s) under test to verify selectors. Please cap
 
 After capture (agent-facing -- outside the verbatim message):
 
-- Authenticated page HTML routinely embeds session/CSRF tokens and PII. Apply the `sensitive-data` pre-emit re-scan gate (item 7) to every saved page-source file before reading/referencing it -- treat as a tracked artifact (fail-closed: no scan, do not proceed).
+- Authenticated page HTML routinely embeds session/CSRF tokens and PII. Apply the `sensitive-data` pre-emit re-scan gate to every saved page-source file before reading/referencing it -- treat as a tracked artifact (fail-closed: no scan, do not proceed).
 - Not-captured branch: if the user cannot capture (no app access, login wall, incomplete SPA outerHTML) or files are missing/empty/garbled -- do NOT guess selectors. Stop, re-run the selector-identification phase or escalate (mirrors the taxonomy's `page sources not available` branch).
 
 </page-source-capture-instructions>

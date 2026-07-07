@@ -1,7 +1,9 @@
 ---
 name: qa-structure
-description: "Rosetta -- canonical QA session layout, artifact paths, identifier & slug rules, and state-file shape for test-automation flows."
+description: "To resolve QA session paths, identifiers/slugs, and state-file shape for test-automation flows."
 license: Apache-2.0
+disable-model-invocation: false
+user-invocable: false
 tags: ["qa", "api-qa", "ui-qa"]
 baseSchema: docs/schemas/skill.md
 ---
@@ -16,7 +18,6 @@ Use when you need to create the QA session folder, resolve or name an artifact p
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - This skill is the SSoT for QA paths, identifiers, and state-file shape; paths here are used verbatim, never reinvented.
 - **Load only your flow's layout** (progressive disclosure): ACQUIRE `qa-structure/references/api-qa-layout.md` (backend API) XOR `qa-structure/references/ui-qa-layout.md` (UI/E2E) FROM KB -- canonical paths + each flow's slug authority, guards, and state-file fields live there.
 - **Slug format (both flows):** lowercase ASCII kebab-case -- letters, digits, hyphens only; no spaces/paths; ≤80 chars; reserved: `state`, `index`, and the flow's own `*-state` name.
