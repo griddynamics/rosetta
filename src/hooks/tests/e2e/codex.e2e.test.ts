@@ -6,10 +6,14 @@
 // verify: detection (env + shape), normalization (every field), and each Rosetta hook's output /
 // exit code / stderr against the verified contract in docs/hooks/codex.md.
 //
-// Codex shares Claude Code's wire signature but adds `model` + `turn_id`. Its `formatOutput` is an
-// identity pass-through of the canonical shape (like Claude), so nested `hookSpecificOutput` and the
-// top-level `continue:false` on deny travel verbatim. Codex has NO exitCode override → deny is exit
-// 0 with the reason carried in the JSON body (per docs/hooks/codex.md Exit Codes + resolveExitCode).
+// Codex shares Claude Code's wire signature but adds `model` + `turn_id`. Codex validates output with a
+// STRICT per-event schema, so its `formatOutput` PROJECTS the canonical shape down to exactly the fields
+// that event allows: a PreToolUse deny is the nested `permissionDecision:"deny"` shape with NO top-level
+// `continue`; every advisory (Pre or Post) is `additionalContext` ONLY, with NO `permissionDecision`.
+// Codex has NO exitCode override → deny is exit 0 with the reason carried in the JSON body (per
+// docs/hooks/codex.md Exit Codes + resolveExitCode). Every emitted output below is checked against the
+// closed-world validator `assertCodexOutput` (adapters/codex-output.ts), which rejects ANY undocumented
+// field for the event — so a future leaked field fails the suite rather than shipping to Codex.
 //
 // (!) ENV-TIER DETECTION IS LOAD-BEARING FOR CODEX. Codex's shape detect() requires `tool_input`
 // (+ `model`), so ONLY PreToolUse / PostToolUse detect as codex by shape alone. Every other captured
@@ -39,7 +43,13 @@ import { detectIDE, normalize } from '../../src/adapter';
 import { dangerousActionsHook } from '../../src/hooks/dangerous-actions';
 import { readOnceHook } from '../../src/hooks/read-once';
 import { readOnceResetHook } from '../../src/hooks/read-once-reset';
+import { mdFileAdvisoryHook } from '../../src/hooks/md-file-advisory';
 import { rawFixture, jsonFixture, runReal, type Env } from './helpers';
+import { assertCodexOutput } from '../../src/adapters/codex-output';
+
+// Exact key sets a valid Codex output may carry, per event — used to assert the CLOSED shape (not a
+// lone field-absence check): the nested key set must equal exactly this, so any leaked field fails.
+const keysOf = (o: unknown): string[] => Object.keys(o as Record<string, unknown>).sort();
 
 // read-once persists to $HOME/.rosetta/state via a module-level STATE_ROOT bound at IMPORT time —
 // an on-disk backend we deliberately swap for an in-memory one so this suite is HERMETIC and
@@ -297,13 +307,17 @@ describe('codex E2E — read-once', () => {
     expect(second.report.exitCode).toBe(0);    // codex advise → exit 0
     expect(second.report.stderrMessage).toBeUndefined();
     const out = JSON.parse(second.stdout[0]);
-    expect(out.hookSpecificOutput.hookEventName).toBe('PreToolUse'); // codex nested shape
-    expect(out.hookSpecificOutput.permissionDecision).toBe('allow');
+    assertCodexOutput('PreToolUse', out);      // strict: rejects any field not in the PreToolUse schema
+    // advise is a NON-blocking context injection → additionalContext ONLY (a permissionDecision:"allow"
+    // here would auto-approve the tool). Exact key set, not a lone absence check.
+    expect(keysOf(out)).toEqual(['hookSpecificOutput']);
+    expect(keysOf(out.hookSpecificOutput)).toEqual(['additionalContext', 'hookEventName']);
+    expect(out.hookSpecificOutput.hookEventName).toBe('PreToolUse');
     expect(out.hookSpecificOutput.additionalContext).toContain('read-once:');
     expect(out.hookSpecificOutput.additionalContext).toContain('notes.md');
   });
 
-  test('stateful (deny mode): unchanged re-read → deny in JSON body (continue:false), exit 0, NO stderr', async () => {
+  test('stateful (deny mode): unchanged re-read → deny in JSON body (nested only, NO top-level continue), exit 0, NO stderr', async () => {
     process.env.READ_ONCE_MODE = 'deny';
     const file = path.join(tmp, 'secret.txt');
     fs.writeFileSync(file, 'top secret');
@@ -313,10 +327,53 @@ describe('codex E2E — read-once', () => {
     expect(second.report.exitCode).toBe(0);    // codex deny is carried in the body, not the exit code
     expect(second.report.stderrMessage).toBeUndefined();
     const out = JSON.parse(second.stdout[0]);
+    assertCodexOutput('PreToolUse', out);      // strict: `continue:false` is unsupported on PreToolUse → must be absent
+    // Closed shape: nested deny ONLY, no top-level `continue` (it would mark the hook FAILED on Codex).
+    expect(keysOf(out)).toEqual(['hookSpecificOutput']);
+    expect(keysOf(out.hookSpecificOutput)).toEqual(['hookEventName', 'permissionDecision', 'permissionDecisionReason']);
     expect(out.hookSpecificOutput.hookEventName).toBe('PreToolUse');
     expect(out.hookSpecificOutput.permissionDecision).toBe('deny');
     expect(out.hookSpecificOutput.permissionDecisionReason).toContain('read-once:');
-    expect(out.continue).toBe(false);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hook: md-file-advisory (PostToolUse advisory) — proves LEAK A fixed end-to-end. We drive a REAL Codex
+// PostToolUse Write wire for a .md file and assert the emitted output is the STRICT PostToolUse advise
+// shape: additionalContext ONLY, NO permissionDecision (which is NOT in Codex's PostToolUse schema →
+// whole-output rejection + unhooked run if present). The other PostToolUse nudges (loose-files,
+// lint-format-advisory) emit the IDENTICAL advise→PostToolUse output shape, covered by the strict-schema
+// unit suite (adapter.codex.test.ts); md-file-advisory is the deterministic (pure path-based) trigger.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('codex E2E — md-file-advisory (PostToolUse advise, strict schema)', () => {
+  // Real Codex PostToolUse Write wire for `file`, spread from a captured PostToolUse payload.
+  const postWriteOf = (file: string): string => {
+    const base = JSON.parse(fx('post-bash-echo.json')) as Record<string, unknown>;
+    return JSON.stringify({
+      ...base,
+      tool_name: 'Write',
+      tool_input: { file_path: file, content: '# notes\n' },
+      tool_response: { filePath: file },
+    });
+  };
+
+  test('.md write → advise: additionalContext ONLY (no permissionDecision), exit 0', async () => {
+    const { stdout, report } = await runReal(mdFileAdvisoryHook, postWriteOf('/proj/notes.md'), REAL_ENV);
+    expect(report.exitCode).toBe(0);
+    expect(report.stderrMessage).toBeUndefined();
+    const out = JSON.parse(stdout[0]);
+    assertCodexOutput('PostToolUse', out);     // strict: permissionDecision is NOT a PostToolUse field
+    expect(keysOf(out)).toEqual(['hookSpecificOutput']);
+    expect(keysOf(out.hookSpecificOutput)).toEqual(['additionalContext', 'hookEventName']);
+    expect(out.hookSpecificOutput.hookEventName).toBe('PostToolUse');
+    expect(out.hookSpecificOutput.additionalContext).toContain('[Rosetta Advisory]');
+  });
+
+  test('.md write under docs/ → gated out (no advisory), no stdout, exit 0', async () => {
+    const { stdout, report } = await runReal(mdFileAdvisoryHook, postWriteOf('/proj/docs/notes.md'), REAL_ENV);
+    expect(report.status).toBe('skipped');
+    expect(report.exitCode).toBe(0);
+    expect(stdout).toEqual([]);
   });
 });
 

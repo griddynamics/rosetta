@@ -264,17 +264,18 @@ describe('windsurf E2E — dangerous-actions', () => {
   });
 
   // ── DOWNSTREAM-PROOF for the edits-carried-through fix: dangerous CONTENT inside the real Windsurf
-  // pre_write_code edits[] is now scanned (was dropped when mapped to Write) → DENY (exit 2 + stderr). ──
-  test('SHAPE(pre_write_code) + PEM key in edits[].new_string → DENY: exit 2 + stderr reason', async () => {
+  // pre_write_code edits[] is scanned (was dropped when mapped to Write) → soft-deny (exit 2 + stderr).
+  // Uses a DANGEROUS_CONTENT match (SQL DROP); the inline secret detectors were removed in #118. ──
+  test('SHAPE(pre_write_code) + SQL DROP in edits[].new_string → DENY: exit 2 + stderr reason', async () => {
     const base = JSON.parse(fx('pre-write-probe.json')) as Record<string, unknown>;
     const ti = { ...(base.tool_info as Record<string, unknown>),
-      edits: [{ old_string: '', new_string: '-----BEGIN RSA PRIVATE KEY-----\nMIIabc\n-----END RSA PRIVATE KEY-----' }] };
+      edits: [{ old_string: '', new_string: 'DROP TABLE users;' }] };
     const payload = JSON.stringify({ ...base, tool_info: ti });
     const { stdout, report } = await runReal(dangerousActionsHook, payload);
-    expect(report.exitCode).toBe(2);                    // (!) edit content is now inspectable & blocked
+    expect(report.exitCode).toBe(2);                    // (!) edit content is inspectable & soft-denied
     expect(report.wroteOutput).toBe(true);
     expect(report.stderrMessage).toBeDefined();
-    expect(report.stderrMessage).toContain('inline-private-key');
+    expect(report.stderrMessage).toContain('content-sql-drop-table');
     expect(stdout).toEqual(['{}']);
   });
 
@@ -286,7 +287,6 @@ describe('windsurf E2E — dangerous-actions', () => {
     expect(report.wroteOutput).toBe(true);
     // (!) The deny reason reaches Cascade ONLY via stderr — NOT in the stdout body.
     expect(report.stderrMessage).toBeDefined();
-    expect(report.stderrMessage).toContain('HARD-DENY');
     expect(report.stderrMessage).toContain('rm-rf-root');
     // (!) stdout is the empty formatOutput body — Cascade never parses it (no permissionDecision here).
     expect(stdout).toEqual(['{}']);
@@ -296,7 +296,7 @@ describe('windsurf E2E — dangerous-actions', () => {
   test('SHAPE(pre_run_command) + `git reset --hard` → reconsider DENY: exit 2 + stderr reason', async () => {
     const { stdout, report } = await runReal(dangerousActionsHook, dangerousRun('git reset --hard HEAD~3'));
     expect(report.exitCode).toBe(2);
-    expect(report.stderrMessage).toContain('git reset --hard');
+    expect(report.stderrMessage).toContain('git-reset-hard');
     expect(report.stderrMessage).toContain('Rosetta-AI-reviewed'); // reconsider tier offers override
     expect(stdout).toEqual(['{}']);
   });
