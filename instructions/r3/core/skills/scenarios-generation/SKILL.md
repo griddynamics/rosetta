@@ -2,6 +2,8 @@
 name: scenarios-generation
 description: To design test scenarios, cases, and specs from requirements and contracts.
 license: Apache-2.0
+disable-model-invocation: false
+user-invocable: true
 tags: []
 baseSchema: docs/schemas/skill.md
 ---

@@ -28,7 +28,7 @@ The PHASE supplies the bindings: authored case-set source path, `project_id`, `s
      ⚠ TestRail does NOT deduplicate by title — re-running creates duplicate cases (by design; preserves history). The <overlap_count> matching titles WILL become duplicates if exported again.
      Proceed?  (a) export all <N>  (b) export only the <N - overlap_count> non-matching titles  (c) cancel
      ```
-   - **WAIT for an explicit `a` / `b` / `c`.** Ambiguous responses ("ok", "looks good", silence) are NOT approval -- re-ask once, then default to `c` (cancel). Inferred approval is forbidden -- this is a destructive external write.
+   - **Obtain an explicit `a` / `b` / `c` through the HITL gate (USE SKILL `hitl`)** before any write -- that gate governs approval vocabulary, ambiguity handling, and re-ask/cancel semantics; do not re-derive them here. This is a destructive external write: never infer approval (cancellation is the safe default -- see Operational rules).
    - On `c`: stop, record the cancellation in the workflow state, do not call `mcp_testrail_add_case` even once.
 8. **Export each approved case** -- `mcp_testrail_add_case(section_id, title, priority_id, type_id, refs, custom_steps_separated)` for the approved set (`a` = full list; `b` = non-overlapping subset). ~0.5s delay between calls; back off further on 429. On individual failure: log error, continue. Record each created case's C-prefixed ID with its title.
 9. **Post-export** -- TestRail case IDs are C-prefixed (e.g., `C12345`); use this format in document updates and links, and write the IDs back to the source artifact in a defined shape:
