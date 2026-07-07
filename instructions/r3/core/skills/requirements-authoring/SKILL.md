@@ -83,6 +83,7 @@ HITL gates (use when):
 - Follow YAGNI always
 - Enforce MECE always
 - Enforce MoSCoW always
+- Detailed SRP/DRY/KISS/MECE rules → [references/quality-principles.md](references/quality-principles.md)
 - Keep requirement units short
 - Prefer explicit over implicit
 - Prefer root cause over symptoms
@@ -120,43 +121,6 @@ HITL gates (use when):
 
 </initialization>
 
-<srp_rules>
-
-- One purpose per file
-- One topic per section
-- One behavior per requirement
-- One actor per action
-
-</srp_rules>
-
-<dry_rules>
-
-- Avoid duplicated requirements or meaning
-- Reference IDs, not copies
-- Centralize shared definitions
-- Centralize shared constraints
-- Reuse patterns and templates
-
-</dry_rules>
-
-<kiss_rules>
-
-- Prefer short simple sentences
-- Use common domain words
-- Avoid nested conditionals
-- Split complex requirements early
-
-</kiss_rules>
-
-<mece_rules>
-
-- Use non-overlapping categories
-- Cover all in-scope needs
-- Keep scope boundaries explicit
-- Separate FRs from NFRs
-
-</mece_rules>
-
 <filesystem_rules>
 
 - Write only under REQUIREMENTS folder
@@ -192,162 +156,11 @@ HITL gates (use when):
 
 </information_architecture>
 
-<unit_of_requirement>
+<requirement_catalogs>
 
-- Use `<req>` as unit
-- One `<req>` per need
-- One outcome per `<req>`
-- Keep `<req>` atomic
-- Keep `<req>` independently testable
-- Keep `<req>` implementation free
-- Check if grouping of multiple requirements is a requirement itself
+Load when drafting or validating requirement units → [references/requirement-catalogs.md](references/requirement-catalogs.md): unit shape, schema fields, ID conventions, language constructs, FR/EARS, NFR, acceptance, verification, traceability. Full fill-in unit template → asset `requirements-authoring/assets/ra-requirement-unit.xml`.
 
-</unit_of_requirement>
-
-<requirement_schema>
-
-- Require id, type, level
-- Require title and statement
-- Require rationale and source
-- Require priority and status
-- Require acceptance criteria
-- Require verification method
-- Optional dependencies and risks
-- Optional notes and links
-
-</requirement_schema>
-
-<id_rules>
-
-- Use stable unique IDs
-- Use `FR-[AREA]-####` for FRs
-- Use `NFR-####` for NFRs
-- Use `INT-[AREA]-####` for interfaces
-- Use `DATA-[AREA]-####` for data
-- Never reuse retired IDs
-- Never renumber existing IDs
-
-</id_rules>
-
-<requirement_unit_template>
-
-```xml
-<req id="FR-AREA-0001" type="FR" level="System" ticketId="JIRA-0000" classification="business|technical">
-  <title>...</title>
-  <statement>...</statement>
-  <rationale>...</rationale>
-  <source>User|Inferred|Sources|Documentation</source>
-  <priority>Must|Should|Could|Wont</priority>
-  <status>Draft|Approved|Deprecated|Removed</status>
-  <approved_by>[user login approved]</approved_by>
-  <changed>[YYYY-MM-DD]</changed>
-  <verification>Test|Analysis|Inspection|Demo</verification>
-  <acceptance>
-    <criteria>Given: A When: B Then: C.</criteria>
-    <criteria>Given: X When: Y Then: Z.</criteria>
-  </acceptance>
-  <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
-  <implementation>NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved</implementation>
-  <implementationNotes>[CONCISE: Implemented: aggregated files affected, NotStarted/Planned/ToBeRemoved: nothing, ToBeModified: what was originally documented but now dropped]</implementationNotes>
-  <notes>...</notes>
-</req>
-```
-
-</requirement_unit_template>
-
-<language_constructs>
-
-- Use shall for mandatory
-- Use should for preferred
-- Use may for optional
-- Use shall not to forbid
-- Avoid will statements
-- Use active voice
-- Use present tense
-- Avoid vague adjectives
-- Avoid and or constructs
-- Avoid subjective qualifiers
-- Avoid ambiguous time words
-- Prefer measurable quantities
-- Quantify every threshold
-- Define terms in glossary
-- Use consistent terminology
-- Separate normative and informative
-- Specify outcomes, not designs
-- Avoid implementation details
-- Avoid UI-only descriptions
-- Avoid internal code names
-- Use one meaning per term
-
-</language_constructs>
-
-<functional_requirements>
-
-- Use EARS patterns
-- Pick one pattern
-- Avoid multiple triggers
-- Avoid multiple responses
-- Split compound requirements
-- Link FRs to scenarios
-- Include error behaviors
-- Switch both implementation status and req status
-
-</functional_requirements>
-
-<ears_patterns>
-
-- `<ubiq><S> shall <R>.</ubiq>`
-- `<event>When <T>, <S> shall <R>.</event>`
-- `<state>While <X>, <S> shall <R>.</state>`
-- `<optional>Where <O>, <S> shall <R>.</optional>`
-- `<unwanted>If <F>, <S> shall <M>.</unwanted>`
-
-</ears_patterns>
-
-<nonfunctional_requirements>
-
-- Use ISO 25010 buckets
-- Include metric and threshold
-- Include measurement conditions
-- Include measurement method
-- Prefer percentiles over averages
-- State limits and constraints
-- Tie NFRs to scenarios
-- Avoid subjective quality words
-- Update existing requirements with new schema
-
-</nonfunctional_requirements>
-
-<acceptance_criteria>
-
-- Use Given/When/Then format
-- Use `Given:<G> When:<W> Then:<T>.`
-- Keep criteria independently testable
-- Cover happy path
-- Cover unhappy path
-- Cover boundary conditions
-- Cover error handling
-
-</acceptance_criteria>
-
-<verification_methods>
-
-- Prefer Test where possible
-- Use Analysis for proofs
-- Use Inspection for artifacts
-- Use Demo for behaviors
-
-</verification_methods>
-
-<traceability_rules>
-
-- Link each req to source
-- Link each req to goal
-- Link each req to tests
-- Update traceability matrix
-- Keep forward and backward links
-
-</traceability_rules>
+</requirement_catalogs>
 
 <authoring_flow>
 
@@ -370,48 +183,28 @@ HITL gates (use when):
 
 </authoring_flow>
 
-<validation_rules>
+<synthesis>
 
-- Validate correctness with sources
-- Validate completeness against scope
-- Validate consistency across files
-- Validate non-redundancy across files
-- Validate feasibility with constraints
-- Validate atomicity per `<req>`
-- Validate verifiability per `<req>`
-- Validate unambiguity per `<req>`
-- Validate trace links present
-- Validate overall consistency
-- Validate groupings are not requirements in disguise
+Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document — user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability. Emit into the provided skeleton; the section contract and output path are given. All authoring rules above apply. Six per-requirement schemas + document wrapper + source-priority ladder → [references/authoring-catalogs.md](references/authoring-catalogs.md#synthesis-output-schemas-synthesis-mode) — load the active schema per step.
 
-</validation_rules>
+Synthesis-specific rules:
 
-<conflict_checks>
+- **Source provenance:** every requirement carries an explicit `Source` field (source row, ticket, page section, or user-answer index); absent provenance = fabrication.
+- **Conflict resolution:** apply the source-priority ladder; unresolved → assumption with impact-if-wrong, listed under Risks when both sides share a tier.
+- **NFR threshold:** thresholdless NFRs move to assumptions-and-risks flagged. **One behavior per req:** split composite "A AND B" at synthesis time.
+- **Coverage discipline:** include only what sources specify; empty categories stay empty; no padding. **No verbatim copy-paste** — reshape into schema voice.
+- **Single-source flag:** primary-source-only → tag every derived assumption `Confidence: Single-source`. Produce the document even when answers/docs are missing — mark each missing-input gap as an explicit assumption.
+- **Redaction:** treat the draft as PUBLIC (version-tracked, downstream-fed) — redact credentials/tokens/keys and PII before quoting source content (placeholders/synthetic values), flag each redaction inline, never infer redacted content; structural content (paths, methods, status codes, field names) is safe. USE SKILL `sensitive-data` (canonical authority).
 
-- Detect duplicate IDs
-- Detect duplicate statements
-- Detect contradictory shall clauses
-- Detect incompatible thresholds
-- Detect circular dependencies
-- Detect mismatched terminology
-- Detect ordering issues
-- Detect actors and responsibilities
-- Detect ambiguity
+</synthesis>
 
-</conflict_checks>
+<validation>
 
-<gap_checks>
+Run the full validation / conflict / gap / governance checklist from asset `requirements-authoring/assets/ra-validation-rubric.md` (`ACQUIRE FROM KB`) — structure, quality, language, verification, traceability, conflicts, gaps, governance. Fill true/false per field with a short note for any false.
 
-- Ensure each goal traced
-- Ensure each actor covered
-- Ensure each scenario covered
-- Ensure each interface specified
-- Ensure each data entity defined
-- Ensure each NFR measurable
-- Ensure each risk recorded
-- Ensure questions tracked
+Beyond the rubric: validate feasibility against constraints; validate groupings are not requirements in disguise; detect ordering issues and actor/responsibility conflicts.
 
-</gap_checks>
+</validation>
 
 <refactoring_rules>
 
@@ -424,26 +217,6 @@ HITL gates (use when):
 - Preserve stable requirement IDs
 
 </refactoring_rules>
-
-<validation_checklist>
-
-- Scope and goals are explicit
-- Non-goals are explicit
-- Actors are explicit
-- Requirement schema is complete
-- IDs are stable and unique
-- FRs and NFRs are separated
-- NFRs are measurable
-- Language is unambiguous
-- Acceptance uses Given/When/Then
-- Verification method exists per req
-- Trace links exist
-- Conflicts are resolved
-- Gap checks pass
-- User approved each req unit
-- Final user approval captured
-
-</validation_checklist>
 
 <best_practices>
 
@@ -470,6 +243,7 @@ HITL gates (use when):
 - Add scope without explicit approval
 - Skip boundary and failure scenarios
 - Treat requirement groupings as mere organization when they are requirements themselves
+- `<synthesis>`: implementation detail in user stories, or subjective/non-testable acceptance criteria
 
 </pitfalls>
 
@@ -477,10 +251,11 @@ HITL gates (use when):
 
 Use `ACQUIRE FROM KB` to load.
 
-- workflow `requirements-flow`
 - rule `rules/requirements-best-practices.md`
+- reference `requirements-authoring/references/requirement-catalogs.md`
+- reference `requirements-authoring/references/quality-principles.md`
 - asset `requirements-authoring/assets/ra-intent-capture.md`
-- asset `requirements-authoring/assets/ra-requirement-unit.md`
+- asset `requirements-authoring/assets/ra-requirement-unit.xml`
 - asset `requirements-authoring/assets/ra-validation-rubric.md`
 - asset `requirements-authoring/assets/ra-change-log.md`
 
