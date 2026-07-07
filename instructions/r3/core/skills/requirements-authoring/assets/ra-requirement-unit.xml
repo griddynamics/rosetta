@@ -1,6 +1,7 @@
-# Atomic requirement unit template (asset of the `requirements-authoring` skill)
-
-Canonical atomic requirement unit template
+---
+name: ra-requirement-unit
+description: Canonical atomic requirement unit template
+---
 
 <ra-requirement-unit>
 

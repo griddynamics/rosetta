@@ -89,7 +89,7 @@ HITL gates (use when):
 
 <gap_analysis>
 
-Analysis-only mode: examine collected multi-source data (Jira, Confluence, TestRail, API spec, test cases, a test plan) for contradictions, gaps, ambiguities, and inconsistencies before downstream work. EMITS categorized findings into the provided artifact -- the finding-entry template, section list, output path, and validation contract are given; never invent the artifact shape or path. Detection catalogs (contradiction / gap / ambiguity / cross-reference probes, three-tier risk scheme, per-finding discipline) → [references/gap-analysis-catalogs.md](references/gap-analysis-catalogs.md), load on demand.
+Analysis-only mode: examine collected multi-source data (Jira, Confluence, TestRail, API spec, test cases, a test plan) for contradictions, gaps, ambiguities, and inconsistencies before downstream work. EMITS categorized findings into the provided artifact -- the finding-entry template, section list, output path, and validation contract are given; never invent the artifact shape or path. Detection catalogs (contradiction / gap / ambiguity / cross-reference probes, three-tier risk scheme, per-finding discipline) -- ACQUIRE `references/gap-analysis-catalogs.md` FROM KB on demand when classifying.
 
 Analysis-only: do NOT act on findings, propose edits, fix gaps, ask the user, or generate questions -- surface each as a finding and stop. Variants:
 

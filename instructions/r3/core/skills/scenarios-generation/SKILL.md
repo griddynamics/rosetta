@@ -41,9 +41,9 @@ Mode: author Given-When-Then API test specs from raw test cases + endpoint contr
    - Test case targets an endpoint not in the loaded contracts → flag `unmappable: <id> targets <METHOD> <path>`; never invent the endpoint.
    - Material gap unresolved (auth mechanism, status semantics, contested required fields) → stop and request clarification before authoring.
    - Partial completeness → author the mappable subset and emit an `## Excluded Test Cases` section listing each exclusion + reason.
-2. **Scenario taxonomy.** For each test case generate 1-N scenarios across the taxonomy -- Happy Path (P0), Validation/Negative (P1), Auth (P1), Resource (P1-P2), Edge/Boundary (P2-P3). Full per-category catalog with priority defaults → `references/gwt-spec.md` (load when designing coverage).
-3. **Write specs.** One Given-When-Then entry per scenario using the ATC template → `references/gwt-spec.md` (load at write time). Apply the per-value honesty rule (→ `<core_concepts>`) to every value.
-4. **File mapping + shared utilities + execution order.** Map scenarios to test files; identify reusable auth helpers / data factories / response validators; order auth → CRUD happy → negative → edge. Templates + a worked ATC example → `references/gwt-spec.md`.
+2. **Scenario taxonomy.** For each test case generate 1-N scenarios across the taxonomy -- Happy Path (P0), Validation/Negative (P1), Auth (P1), Resource (P1-P2), Edge/Boundary (P2-P3). Full per-category catalog with priority defaults -- ACQUIRE `references/gwt-spec.md` FROM KB when designing coverage.
+3. **Write specs.** One Given-When-Then entry per scenario using the ATC template -- ACQUIRE `references/gwt-spec.md` FROM KB at write time. Apply the per-value honesty rule (→ `<core_concepts>`) to every value.
+4. **File mapping + shared utilities + execution order.** Map scenarios to test files; identify reusable auth helpers / data factories / response validators; order auth → CRUD happy → negative → edge. Templates + a worked ATC example -- ACQUIRE `references/gwt-spec.md` FROM KB.
 5. **Redact + verify coverage.** Scan emitted values and redact (→ `<core_concepts>`). Confirm every input test case is an ATC entry OR in `## Excluded Test Cases`.
 
 </gwt_spec>
@@ -63,8 +63,8 @@ Mode: produce test scenarios/cases into the provided artifact in the provided fo
 
 When the artifact format or destination is a specific TMS vendor (TestRail, etc.), the vendor is resolved from project config upstream (config-key precedence, stop at first non-empty hit; e.g. `tms_export_skill` / `testrail_export_skill` / `test_case_management_mcp`, plus in-scope signals like `testrail_base_url` / `testrail_project_id`) and provided as a resolved binding. This skill never hardcodes the vendor and never reads config itself.
 
-- **FORMAT binding** (`generation` mode) → load `references/<vendor>-format.md` for the case template, field rules, naming conventions, and worked examples.
-- **EXPORT binding** (export mode) → load `references/<vendor>-export.md` for connection verify, priority/type field mappings, MCP API signatures, ID formats, and the destructive-write confirmation gate.
+- **FORMAT binding** (`generation` mode) → ACQUIRE `references/<vendor>-format.md` FROM KB for the case template, field rules, naming conventions, and worked examples.
+- **EXPORT binding** (export mode) → ACQUIRE `references/<vendor>-export.md` FROM KB for connection verify, priority/type field mappings, MCP API signatures, ID formats, and the destructive-write confirmation gate.
 
 If the binding is empty but scope is active, config is re-read upstream; still absent → skip the work as `SKIPPED_NO_CONFIG`. Never improvise a vendor.
 
