@@ -1,6 +1,6 @@
 # Vendor binding: Documentation vendor
 
-Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the documentation vendor binding. **Canonical example: Confluence** -- capabilities (page fetch / CQL search / child pages) and harvesting discipline below use Confluence; for another backend (Notion, SharePoint, wiki) map by capability, same method. Base SKILL.md owns the general method and phase-is-SSoT rule -- not restated here.
+Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the documentation vendor binding. **Canonical example: Confluence** -- capabilities (page fetch / CQL search / child pages) and harvesting discipline below use Confluence; for another backend (Notion, SharePoint, wiki) map by capability, same method. Base SKILL.md owns the general method -- not restated here.
 
 **Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured documentation MCP binding: **get page**, **list child pages**, **search** (CQL/text), and -- write, forbidden in this read-only binding -- **create / update page / add comment**.
 
@@ -66,6 +66,7 @@ Highest-risk: **page bodies** (runbooks/ops notes embed secrets; incident write-
 - **Input unresolvable** (no URL/ID/terms, or URL unparseable) → stop, report `data-collection/confluence: input unresolvable -- supply page URL/ID or search terms`, ask. Do NOT guess.
 - **MCP not configured / not authenticated** → stop, report `data-collection/confluence: Confluence MCP not configured or not authenticated -- verify MCP setup`. Do NOT emit a zero-page artifact and call it done.
 - **MCP transport error** → per SKILL `<collection>` step 3 (retry once, then stop + report); ask to verify MCP connectivity.
+- **Page not found** (404 / deleted, for a supplied page ID or URL) → stop, report `data-collection/confluence: page <id/url> not found -- verify the ID/URL is correct and accessible`, ask. Do NOT treat as an empty page or silently gap it. (Applies to direct URL/ID retrieval; missing search hits use the zero-pages GATE below.)
 - **Authorization failure** (401/403 on ALL pages) → stop, report `data-collection/confluence: request rejected -- page(s) may exist but not visible to configured credentials`, ask to verify credentials / space access. (Per-page 401/403 with others succeeding → per-page branch above, not a global stop.)
 - **Cross-domain URL** (host ≠ configured MCP site) → warn + try once; on failure stop the fetch, report `URL <url> belongs to a different Confluence host (<domain>) than the configured MCP -- ask user for an in-site equivalent or accept ticket-only continuation`. Do NOT bypass to a cross-site fetch.
 - **Zero pages after URL + search + user-fallback exhausted** → the fallback GATE asks the user FIRST; only if the user supplies neither URLs nor approval-to-skip does this stop fire. On user "skip / proceed without docs" → record `Documentation: not available -- user approved no-docs continuation` + a gap, proceed with an empty Documentation block. Do NOT fabricate.

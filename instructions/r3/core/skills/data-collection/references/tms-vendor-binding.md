@@ -1,6 +1,6 @@
 # Vendor binding: TMS / test-case vendor
 
-Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the TMS (test-case) vendor binding. **Canonical example: TestRail** -- the field map and examples below use TestRail; for another test-case manager map by capability, same method. Base SKILL.md owns the general method and phase-is-SSoT rule -- not restated here.
+Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the TMS (test-case) vendor binding. **Canonical example: TestRail** -- the field map and examples below use TestRail; for another test-case manager map by capability, same method. Base SKILL.md owns the general method -- not restated here.
 
 **Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured TMS MCP binding: **get case**, **get case fields** (case-field-schema lookup), and -- write, forbidden in this read-only binding -- case **update / add / delete**.
 
@@ -50,7 +50,7 @@ Per-field branch per SKILL `<collection>` step 3 (redact sensitive values first)
 
 ## Redaction targets (SKILL `redact` step → `sensitive-data`)
 
-Highest-risk: **step text, preconditions, custom fields, test-data** -- these re-emit downstream (`raw-data.md` → requirements/scenarios/authoring, and via `scenarios-generation` back to the shared TestRail project). Redact per SKILL `<collection>` step 4; structure (action verbs, expected behaviors, endpoint paths, methods, status codes, field/schema names) stays verbatim.
+Highest-risk: **step text, preconditions, custom fields, test-data** -- these re-emit downstream (`raw-data.md` → requirements / test-scenarios / authoring) and can be exported back into the shared TestRail project. Redact per SKILL `<collection>` step 4; structure (action verbs, expected behaviors, endpoint paths, methods, status codes, field/schema names) stays verbatim.
 
 ## Failure paths (SKILL `extract` step)
 

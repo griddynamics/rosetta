@@ -1,6 +1,6 @@
 # Vendor binding: Issue vendor
 
-Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the issue vendor binding. **Canonical example: Jira** -- the field map and examples below use Jira; for another tracker (Linear, GitHub Issues, Azure Boards) map by capability, same method. Base SKILL.md owns the general method (extract → normalize → redact → write) and phase-is-SSoT rule -- not restated here.
+Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the issue vendor binding. **Canonical example: Jira** -- the field map and examples below use Jira; for another tracker (Linear, GitHub Issues, Azure Boards) map by capability, same method. Base SKILL.md owns the general method (extract → normalize → redact → write) -- not restated here.
 
 **Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured issue-tracker MCP binding: **get issue** (with fields / expand / comment-limit), **search fields** (field-schema lookup), and -- write, forbidden in this read-only binding -- issue **create / update / transition / add comment**.
 

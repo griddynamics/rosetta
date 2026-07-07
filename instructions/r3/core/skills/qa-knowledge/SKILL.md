@@ -4,7 +4,7 @@ description: "To supply the QA-domain conventions: failure taxonomies, authoring
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: false
-tags: ["qa", "api-qa", "ui-qa"]
+tags: []
 baseSchema: docs/schemas/skill.md
 ---
 

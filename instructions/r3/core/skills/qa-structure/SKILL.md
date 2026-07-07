@@ -4,7 +4,7 @@ description: "To resolve QA session paths, identifiers/slugs, and state-file sha
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: false
-tags: ["qa", "api-qa", "ui-qa"]
+tags: []
 baseSchema: docs/schemas/skill.md
 ---
 
