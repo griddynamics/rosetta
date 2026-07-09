@@ -1,8 +1,3 @@
----
-name: test-execution-triage
-description: "Read-only triage of an automated-test execution report — categorize each failure, ground it in captured source, label evidence strength."
----
-
 <test-execution-triage>
 
 Read-only triage of an automated-test execution report: categorize each failure and record the findings.
