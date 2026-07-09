@@ -1,6 +1,6 @@
 {
   "name": "rosettify-prompts",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Bench/eval prompt variants using Anthropic: tokens, thinking tokens, cost, latency, and stability across repeated, concurrent runs",
   "license": "Apache-2.0",
   "author": "Rosetta Team <rosetta-support@griddynamics.com>",
@@ -25,7 +25,8 @@
     "dist",
     "README.md",
     "env.template",
-    "evals.json"
+    "evals.json",
+    "evals.smoke.json"
   ],
   "engines": {
     "node": ">=20.0.0"

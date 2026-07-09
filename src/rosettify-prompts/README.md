@@ -6,7 +6,8 @@ compare tokens, cost, latency, and stability across variants.
 
 This is a general-purpose prompt bench, not a fixed test suite. The bundled
 `evals.json` is one example config (comparing a few instruction-wording
-variants). Replace it with whatever you're actually benching.
+variants: three prompted variants plus a baseline). Replace it with whatever
+you're actually benching.
 
 ## What it does
 
@@ -25,6 +26,8 @@ variants). Replace it with whatever you're actually benching.
 - **Metrics**: input/output/thinking tokens, cost, latency, and text-shape
   metrics (char/word count, unicode-symbol density) per turn and aggregated
   per variant.
+- **Optional evals**: add `suites[].eval.assertions` when you want a judge
+  pass/partial/fail score, reasons, suggestions, and confidence per assertion.
 
 ## Setup
 
@@ -35,6 +38,10 @@ directory you run the command from:
 export ANTHROPIC_API_KEY=sk-ant-...
 # or: echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
 ```
+
+To target an Anthropic-compatible endpoint, set `ROSETTIFY_PROMPTS_BASE_URL`.
+Base URL precedence is `ROSETTIFY_PROMPTS_BASE_URL`,
+`ROSETTIFY_PROMPTS_ANTHROPIC_BASE_URL`, then `ANTHROPIC_BASE_URL`.
 
 ## Quick start
 
@@ -58,6 +65,7 @@ Each run writes `report.json` (raw per-turn data for every run) and
 | Command | Description |
 | --- | --- |
 | `bench` (default) | Run all suites and write a report |
+| `optimize` | Rewrite prompt/skill files through a 3-phase optimization pipeline |
 | `validate [path]` | Validate a config without calling the API |
 
 | Flag | Applies to | Description |
@@ -66,13 +74,71 @@ Each run writes `report.json` (raw per-turn data for every run) and
 | `-o, --out <dir>` | `bench` | Report output dir. Default: `results/<timestamp>` |
 | `--concurrency <n>` | `bench` | Overrides `concurrency` from the config |
 | `--dry-run` | `bench` | Prints planned jobs, makes no API calls |
+| `--target <file>` | `optimize` | Target file to optimize and output. Repeatable |
+| `--supporting <file>` | `optimize` | Supporting context file. Repeatable, not output |
+| `--additional <text>` | `optimize` | Extra optimization goal injected into optimizer context. Repeatable |
+| `--out <dir>` | `optimize` | Directory for optimized target files, `trace.json`, and `report.md` |
+| `--model <id>` | `optimize` | Model used for optimization |
+| `--max-output-tokens <n>` | `optimize` | Maximum output tokens per optimizer call. Default: `32000` |
+| `--trace-full-prompts` | `optimize` | Store full prompt bodies in `trace.json`. Default stores hashes/metadata |
+| `--dry-run` | `optimize` | Prints the stage plan, makes no API calls, and writes no files |
 
-## Roadmap
+## Optimize
 
-- **`optimize`** (planned, not implemented yet): shrink a prompt while keeping
-  or improving its behavior, with dedicated modes for skills, subagents, and
-  workflows, since each has different structural conventions worth optimizing
-  for differently.
+`optimize` rewrites one or more target files through 3 phase conversations plus
+a final global preservation audit. Each phase contains several follow-up steps
+in the same conversation. Step calls propose surgical changes only; the phase
+finalizer/loss checker is the step that applies accepted changes and returns
+complete files, keeping everything else verbatim.
+
+The run starts with a cacheable setup containing only repeated context: optimizer
+purpose, line-purpose lens, schemas, `--additional`, and read-only supporting
+files. Each phase then sends a cacheable setup with only that phase goal and the
+current target files at phase start. Each step is sent fresh as a narrow
+follow-up containing only that step's exact hardcoded reference text and AI
+issues. Full hardening/pattern references are not sent globally.
+
+```bash
+npx -y rosettify-prompts@latest optimize \
+  --target SKILL.md \
+  --target references/foo.md \
+  --target assets/bar.md \
+  --supporting my-special-context.md \
+  --additional "Prefer terse wording; keep examples concrete." \
+  --out results/optimized-prompt \
+  --model claude-sonnet-5 \
+  --max-output-tokens 32000
+```
+
+The 3 phases are:
+
+- Architecture + Intent
+- Execution + Review Mechanics
+- Compression + Pattern Integration
+
+Each phase is logged as it completes
+(`[n/3] <phase> — before Xw -> after Yw — Nms`), and calls are routed through
+the SDK's streaming API so long-running calls at high `--max-output-tokens`
+values don't hit the SDK's non-streaming timeout guard.
+
+`--target` files are under edit and are output under `--out`, preserving their
+relative paths. `--supporting` files are loaded as context only and are not
+rewritten. `--additional` strings become extra optimizer goals in the stable
+optimizer context.
+
+The hardening and patterns references are built into the package as prompt
+constants, based on the package's prompt-authoring references. They are not CLI
+inputs.
+
+Outputs:
+
+- optimized target files, preserving relative paths under `--out`.
+- `trace.json`: phase/call metadata, prompt hashes, durations, and outputs.
+  Use `--trace-full-prompts` only when debugging prompt bodies.
+- `report.md`: compact summary of inputs, stage sizes, and final size.
+
+Use `--dry-run` to validate the command shape and print the exact stage plan
+without creating an API client or writing files.
 
 ## Writing a config
 
@@ -117,14 +183,17 @@ Fields:
 - `suites[].variants[].turns`: the whole point. An ordered list of user
   messages, any length, independent per variant. Optionally pair with
   `systemPrompt` and/or a `label` for the report.
+- `suites[].eval` (optional): judge assertions for a suite. Each assertion has
+  `id`, `text`, and optional `rubric`; judge output is normalized to
+  `{ "text": string, "passed": "pass"|"partial"|"fail", "reasons": string,
+  "suggestions": string, "confidence": number }`.
 - `pricingOverrides`: `{ "<model>": { "input": <$/MTok>, "output": <$/MTok> } }`,
   merged over the built-in table in `src/pricing.ts`. Use it when a model's
   price changes or isn't in the table yet.
 
-`evals.json` in this package is a worked example: it compares two
-instruction-wording variants (each priming the conversation with a
-compression instruction, then asking Claude to critique it) against a
-one-turn baseline with no priming. Use it as a template, not as the schema.
+`evals.json` in this package is a worked example: it compares three prompted
+instruction-wording variants against a one-turn baseline with no priming. Use
+it as a template, not as the schema.
 
 ## Metrics
 
@@ -157,7 +226,7 @@ npm test
 committed. Once dependencies are installed, `npm run bench` behaves exactly
 like `npx -y rosettify-prompts@latest bench` (same CLI, same flags).
 
-`evals.smoke.json` is a cheap 2-job fixture (low effort, trivial prompt) for
+`evals.smoke.json` is a cheap 3-job fixture (low effort, trivial prompt) for
 checking API connectivity end to end without burning much budget:
 
 ```bash

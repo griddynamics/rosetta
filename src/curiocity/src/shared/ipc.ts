@@ -36,6 +36,8 @@ export const trialSpecSchema = z.object({
   models: partialModelRolesSchema,
   /** Provider LLM keys, resolved once by the parent (§4/§12); masked in logs. */
   keys: z.record(z.string()).default({}),
+  /** Provider LLM base URLs, resolved once by the parent (§4/§12/Bifrost). */
+  baseUrls: z.record(z.string()).default({}),
   /** Merged provisioning (MCPs + plugins), passed through opaquely for M1. */
   provision: z.record(z.unknown()).default({}),
   /** Concatenated setup / teardown scripts (D14). */

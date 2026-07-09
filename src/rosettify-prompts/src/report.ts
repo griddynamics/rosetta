@@ -7,6 +7,8 @@ function summarizeVariant(suiteId: string, variantId: string, label: string | un
   const scoped = runs.filter((r) => r.suiteId === suiteId && r.variantId === variantId);
   const successes = scoped.filter((r) => !r.error);
   const failures = scoped.length - successes.length;
+  const evalItems = successes.flatMap((r) => r.evalResult ?? []);
+  const evalErrors = successes.filter((r) => r.evalError).length;
 
   return {
     suiteId,
@@ -14,6 +16,11 @@ function summarizeVariant(suiteId: string, variantId: string, label: string | un
     label,
     successes: successes.length,
     failures,
+    evalPasses: evalItems.filter((r) => r.passed === 'pass').length,
+    evalPartials: evalItems.filter((r) => r.passed === 'partial').length,
+    evalFailures: evalItems.filter((r) => r.passed === 'fail').length,
+    evalErrors,
+    evalConfidence: computeFieldStats(evalItems.map((r) => r.confidence)),
     inputTokens: computeFieldStats(successes.map((r) => r.totals.inputTokens)),
     outputTokens: computeFieldStats(successes.map((r) => r.totals.outputTokens)),
     thinkingTokens: computeFieldStats(
@@ -62,17 +69,40 @@ export function renderMarkdownReport(report: BenchReport): string {
     if (suite.description) lines.push(`${suite.description}`);
     lines.push('');
     lines.push(
-      '| Variant | n (ok/fail) | Input tok | Output tok | Thinking tok | Cost (USD) | Latency (ms) |',
+      '| Variant | n (ok/fail) | Eval pass/partial/fail/error | Eval confidence | Input tok | Output tok | Thinking tok | Cost (USD) | Latency (ms) |',
     );
-    lines.push('| --- | --- | --- | --- | --- | --- | --- |');
+    lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- |');
     for (const variant of suite.variants) {
       const s = report.summaries.find((x) => x.suiteId === suite.id && x.variantId === variant.id);
       if (!s) continue;
       lines.push(
-        `| ${variant.label ?? variant.id} | ${s.successes}/${s.failures} | ${fmtStats(s.inputTokens)} | ${fmtStats(s.outputTokens)} | ${fmtStats(s.thinkingTokens)} | ${fmtStats(s.costUsd, 4)} | ${fmtStats(s.latencyMs)} |`,
+        `| ${variant.label ?? variant.id} | ${s.successes}/${s.failures} | ${s.evalPasses}/${s.evalPartials}/${s.evalFailures}/${s.evalErrors} | ${fmtStats(s.evalConfidence, 1)} | ${fmtStats(s.inputTokens)} | ${fmtStats(s.outputTokens)} | ${fmtStats(s.thinkingTokens)} | ${fmtStats(s.costUsd, 4)} | ${fmtStats(s.latencyMs)} |`,
       );
     }
     lines.push('');
+
+    if (suite.eval) {
+      lines.push('### Eval reasons and suggestions (repetition 0)');
+      lines.push('');
+      for (const variant of suite.variants) {
+        const run = report.runs.find(
+          (r) => r.suiteId === suite.id && r.variantId === variant.id && r.repetition === 0,
+        );
+        lines.push(`**${variant.label ?? variant.id}**`);
+        if (run?.evalError) {
+          lines.push(`_eval error: ${run.evalError}_`);
+        } else if (!run?.evalResult?.length) {
+          lines.push('_no eval result_');
+        } else {
+          for (const item of run.evalResult) {
+            lines.push(
+              `- ${item.text}: ${item.passed}, confidence ${fmtNum(item.confidence, 1)}. Reasons: ${item.reasons} Suggestions: ${item.suggestions}`,
+            );
+          }
+        }
+        lines.push('');
+      }
+    }
 
     lines.push('### Sample final replies (repetition 0)');
     lines.push('');
