@@ -25,7 +25,7 @@ baseSchema: docs/schemas/rule.md
 - Every instruction sent to a subagent must be self-contained and specific — the target subagent has no awareness of this orchestration layer.
 - Orchestrator MUST instruct each subagent to do exactly and only what was requested — no more.
 - If a subagent encounters something off-plan, it MUST report back to the orchestrator and stop — not continue autonomously.
-- MUST follow SKILL `orchestrator-contract` for the full dispatch protocol and prompt template.
+- MUST follow SKILL `orchestration` for the full dispatch protocol and prompt template.
 
 </subagents_orchestration_rules>
 

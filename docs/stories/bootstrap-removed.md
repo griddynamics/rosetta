@@ -59,3 +59,526 @@ process_enforcement_rules:
 additional_requirements:
 3. Prefer built-in tools over shell commands.
 ```
+
+### `orchestrator-contract` skill — moved to `orchestration`
+- **Source:** `instructions/r3/core/skills/orchestrator-contract/SKILL.md` (entire skill).
+- **Disposition:** `MOVED-to-orchestration` (adapted + re-voiced: `<context>` / `<request_sizing>` / `<process>` / `<subagent_prompt_template>`; failure-handling template field moved to `subagent-directives`).
+- **Rationale:** superseded by the rebuilt `orchestration` skill; live references swapped to `orchestration` in `bootstrap-core-policy`, `bootstrap-guardrails`, `hitl`, `rosetta`, `pa-rosetta-intro-for-AI`.
+
+```
+---
+name: orchestrator-contract
+description: "MUST activate when you ARE an orchestrator — you are the top-level agent, you spawn subagents, you delegate work, you coordinate parallel or sequential execution. Defines delegation quality, subagent dispatch, routing, review, and ownership protocol."
+license: Apache-2.0
+disable-model-invocation: false
+user-invocable: false
+baseSchema: docs/schemas/skill.md
+---
+
+<orchestrator_contract>
+
+<prerequisites>
+
+- OPERATION_MANAGER active
+- Context loaded — USE SKILL `load-context`
+
+</prerequisites>
+
+<process>
+
+Topology:
+
+1. MUST delegate when platform supports subagents — you decide + orchestrate, never do their work.
+2. You = top-level senior lead + meta-process engineer. Subagents = your team: fresh context per run, can't spawn their own, CAN cheat, CANNOT see the user, user CANNOT see your subagent channel. So trust-but-verify, assume Murphy's law, poka-yoke the process. Adapt management best practices to the request. Tell WHAT + HOW-to-think; reward reasoning, not mechanical work. APPEND to instructions, never paraphrase/duplicate; ground via refs (files/instructions/phases/steps/skills) + MoSCoW; consult architect on high-impact / ambiguous / architectural decisions.
+
+Dispatch:
+
+3. Subagent prompt MUST use this template — concise, dense, factual, specific, DRY, include only what applies:
+
+"""
+You are [role]. [Lightweight|Full] subagent.
+Plan: [abs path to plan.json | "ad-hoc"]. Phase: [id]. [Step: [id].]
+
+## Tasks (SMART)
+- [task]
+
+## Scope
+Root: [path] [git worktree?]
+DO: [in scope + explicit expected outputs]
+DO NOT: [out of scope / read-only / untouchable — no improvising beyond scope]
+
+## Constraints
+- [e.g. case sensitivity, naming, patterns to follow]
+
+## Acceptance
+- [done when: measurable condition]
+
+## Failure → MUST STOP + explain + report
+- [cannot execute as specified | off-plan | would exceed scope | other condition]
+
+## Skills
+MUST USE SKILL `subagent-contract`, `operation-manager`[, required skill].
+RECOMMEND USE SKILL [recommended skill].
+
+## Original user request
+[verbatim — carry through every step]
+
+## Context
+[full context + refs; subagent knows only bootstrap + prep + this prompt → give all it needs]
+
+## Output
+Message: [define content + format — consistent, unambiguous, complete, so you can verify it]
+Files: [optional; high volume → unique path per subagent + format/template]
+MUST return: results, summary, side effects, anomalies, discoveries, contract changes, deviations, inconsistencies, insights.
+
+## Evidence
+[claims/findings/recommendations → proofs: deep links w/ line ranges + brief quotes; facts ≠ assumptions]
+
+[free-form: anything else not covered]
+"""
+
+4. Quality-gate before dispatch: ambiguous → clarify first; never dispatch unclear instructions.
+5. Lightweight = generic/built-in/small (build, tests). Full = specialized role / larger work.
+6. Equip each subagent at dispatch: standard tools + required skills.
+
+Routing:
+
+7. Independent → parallel; dependent → sequential.
+8. TEMP folder for coordination + large I/O.
+9. Parallel writes → collision-safe strategy (no shared-file races).
+
+Quality:
+
+10. You own delegation quality end-to-end.
+11. MUST spawn reviewer subagent to verify delegated work — fresh eyes, different model if possible; never integrate unverified output. Review = static inspection (advice) ≠ Validate = run on real/sample (catches real issues, costly).
+12. Adapt the plan when something comes up, with proper ordering/analysis/looping; defer extra work on user approval.
+13. Contexts < overload threshold; minimal state transitions.
+14. Escalate: subagent → orchestrator → user; always explicit, full context.
+
+</process>
+
+</orchestrator_contract>
+```
+
+### `subagent-contract` skill — moved to `subagent-directives`
+- **Source:** `instructions/r3/core/skills/subagent-contract/SKILL.md` (entire skill).
+- **Disposition:** `MOVED-to-subagent-directives` (pure duties kept + reinforcements; identity/input-contract narration `DELETED-as-obsolete` — the dispatch prompt is self-describing; "cannot spawn subagents" deleted as decided false).
+- **Rationale:** superseded by `subagent-directives`; live reference swapped in `bootstrap-guardrails`.
+
+```
+---
+name: subagent-contract
+description: "MUST activate when you ARE a subagent — you were spawned by an orchestrator, you received a delegated task, you are executing within a subagent context. Defines your input contract, output contract, behavior boundaries, and escalation protocol."
+license: Apache-2.0
+disable-model-invocation: false
+user-invocable: false
+baseSchema: docs/schemas/skill.md
+---
+
+<subagent_contract>
+
+<process>
+
+Identity:
+
+1. You are a spawned executor with fresh context.
+2. You cannot spawn other subagents.
+3. Scope is exactly what orchestrator defined.
+
+Input contract:
+
+4. Prompt starts with: role, [lightweight|full] type, plan.json path, phase/task id, SMART tasks, required and recommended skills.
+5. All context comes from orchestrator prompt. You know nothing except shared bootstrap, prep steps, and this contract. Expect original user request/intent to be provided.
+6. Lightweight = small clear tasks. Full = specialized, larger work with Rosetta prep steps.
+7. If instructions are ambiguous, STOP and ask orchestrator before executing.
+
+Output contract:
+
+8. Write to unique file path defined by orchestrator.
+9. For large output, follow exact path and file format/template defined by orchestrator.
+10. Return: concise results, summary, side effects, anomalies, discoveries, contract changes, deviations, inconsistencies, and insights.
+
+Behavior:
+
+11. MUST STOP and EXPLAIN if cannot execute as requested or off-plan.
+12. Do not improvise beyond scope.
+13. Keep standard agent tools available as required.
+14. Initialize required skills on start.
+15. Subagents ask orchestrator; orchestrator asks user.
+
+</process>
+
+<pitfalls>
+
+- Silently continuing when blocked.
+- Assuming context not provided in prompt.
+
+</pitfalls>
+
+</subagent_contract>
+```
+
+### `todo-tasks-fallback` rule — dissolved into the EC assets
+- **Source:** `instructions/r3/core/rules/todo-tasks-fallback.md` (entire rule).
+- **Disposition:** `COMPRESSED-into-orchestration/assets/o-session-execution-controller.md` `<todo-tasks-fallback>` (orchestrator-only fallback: mirror plan as todo tasks, isolated lists, `Tasks Created: [ids]`) + `subagent-directives/assets/s-session-execution-controller.md` (subagent: CLI fails → blocked + report; isolated list, dependency ordering, `Tasks Created` woven into step 3b). Ledger mechanics `DELETED-as-obsolete` (duplicate of `bootstrap-alwayson` `<tasks>`); `<orchestrator-tasks>`/`<subagent-tasks>` skill sequences `DELETED-as-obsolete` (name superseded skills; covered by `bootstrap-alwayson` `<skill_engagement_rules>` + the dispatch prompt `Skills*` field).
+- **Rationale:** fallback is orchestrator-only in the new model; alias lines in `bootstrap.md` / `plugin-files-mode.md` / `local-files-mode.md` / `adhoc-flow.md` / `operation-manager` re-pointed inline (no rule ACQUIRE).
+
+```
+---
+name: todo-tasks-fallback
+description: Fallback execution guardrail when OPERATION_MANAGER (rosettify) is unavailable — use built-in todo task tools instead.
+alwaysApply: false
+trigger: on_fallback
+tags: ["rosetta-bootstrap", "core", "fallback"]
+baseSchema: docs/schemas/rule.md
+---
+
+<todo-tasks-fallback severity="CRITICAL" use="ON_FALLBACK">
+
+<when>
+
+Use this rule when `rosettify` MCP fails AND `npx -y rosettify@latest` also fails.
+
+</when>
+
+<rules>
+
+1. Each agent creates its own independent todo list for its own scope — orchestrator and subagent lists are isolated and invisible to each other
+2. Create ALL tasks for your scope IMMEDIATELY — as the very first action, before any other work
+3. Only one task `in_progress` at a time; mark `completed` before starting the next
+4. Never skip tasks; add new tasks when scope changes
+5. Output to user after creating tasks: `Tasks Created: [task ids]`
+
+</rules>
+
+<orchestrator-tasks>
+
+1. MUST USE SKILL `load-context-instructions`
+2. MUST USE SKILL `load-context` 
+3. MUST USE SKILL `orchestrator-contract` before dispatching any subagents. MUST USE SKILL `hitl` unless explicitly requested in prompt with exactly `No HITL`.
+4. MUST USE SKILL `load-workflow`
+5. Add and update todo tasks reflecting the loaded workflow's phases. Output: `Tasks Created: [ids]`.
+6. Execute the loaded workflow end-to-end.
+
+</orchestrator-tasks>
+
+<subagent-tasks>
+
+1. MUST USE SKILL `load-context-instructions`
+2. MUST USE SKILL `load-context`
+3. MUST USE SKILL `subagent-contract`
+4. Create todo tasks for this phase's scope. Identify dependencies and order before acting.
+5. Execute planned todo tasks and adopt changes. Update task status as work progresses.
+6. Proceed with the original assigned request, following all guardrails and HITL rules.
+
+</subagent-tasks>
+
+<execution-loop>
+
+`next pending task` → mark `in_progress` → execute → mark `completed` → repeat until no `pending` or `in_progress` tasks remain
+
+</execution-loop>
+
+</todo-tasks-fallback>
+```
+
+### `load-context-instructions` skill — dissolved (mode logic → mode files; body was duplication)
+- **Source:** `instructions/r3/core/skills/load-context-instructions/SKILL.md` (entire skill).
+- **Disposition:** `DELETED-as-dissolved` — one surviving atom `MOVED-to-bootstrap.md` (Workspace Startup Procedure: "output truncated + file path provided → read the entire file; preview is NOT enough").
+- **Rationale:** mode-detection IF/THEN chain is superseded by one-mode-file-per-environment; plugin/MCP/fallback bodies duplicate `plugin-files-mode.md` aliases, Phase 0 gates, and `load-project-context`; next-steps duplicate the `bootstrap.md` startup chain. Refs removed: `bootstrap.md` startup chain now calls `get_context_instructions` directly; `load-context` prereq line deleted; rosettify templates already rewritten.
+
+```
+---
+name: load-context-instructions
+description: "To detect execution mode and load the matching bootstrap instructions."
+disable-model-invocation: false
+user-invocable: false
+baseSchema: docs/schemas/skill.md
+---
+<load-context-instructions>
+
+<prerequisites>
+
+- OPERATION_MANAGER is in use for deterministic execution
+
+</prerequisites>
+
+<mode-detection>
+
+- If `RUNNING AS A PLUGIN` is in context → Plugin mode
+- Else if `get_context_instructions` tool is available → MCP mode
+- Else → Fallback mode
+
+</mode-detection>
+
+<plugin-mode>
+
+1. Instructions already loaded via startup hook — `get_context_instructions` is complete; do NOT call Rosetta MCP
+2. Create todo tasks using OPERATION_MANAGER
+3. Locate and execute ALL `ph-prep` plan steps from loaded bootstrap rules in full
+4. Gate: DO NOT proceed to any action until all ph-prep steps confirmed complete
+
+</plugin-mode>
+
+<mcp-mode>
+
+1. Call `get_context_instructions` MCP tool — blocking gate, do not proceed until complete
+2. If output truncated and file path provided — read the entire file; preview is NOT enough
+3. Create todo tasks using OPERATION_MANAGER 
+4. Execute ALL `ph-prep` steps upserted by returned instructions — no skipping, no partial execution
+5. Gate: DO NOT proceed to any action until all ph-prep steps confirmed complete
+
+</mcp-mode>
+
+<fallback-mode>
+
+1. Find and load the following files from the repository: `bootstrap.md`, `bootstrap-core-policy.md`, `bootstrap-execution-policy.md`, `bootstrap-guardrails.md`, `bootstrap-rosetta-files.md`. Skip any that are missing.  
+2. List `docs/*.md` and workspace root `*.md` files to gather context
+
+</fallback-mode>
+
+<next-steps>
+
+- Read project context 
+- MUST USE SKILL `load-context`
+
+</next-steps>
+
+</load-context-instructions>
+```
+
+### `plan-manager` skill (r2) — compressed into r2 `adhoc-flow`
+- **Source:** `instructions/r2/core/skills/plan-manager/SKILL.md` + `assets/pm-schema.md` (entire skill; **r2**, user-directed exception to the r2-untouched scope).
+- **Disposition:** `COMPRESSED-into-instructions/r2/core/workflows/adhoc-flow.md` (`<plan_manager>` orchestrator process + `<subagent_plan_manager_instructions>`).
+- **Rationale:** plan machinery removed as a standalone r2 skill — everything runs on built-in todo tasks; `adhoc-flow` alone keeps the rosettify plan CLI, inlined; schema reference dropped — `npx -y rosettify@latest help plan` provides it.
+
+```
+---
+name: plan-manager
+description: "To create, track, and coordinate execution plans via local JSON files."
+license: Apache-2.0
+dependencies: node.js
+disable-model-invocation: false
+user-invocable: true
+argument-hint: feature-name plan-name
+allowed-tools: Bash(npx:*)
+model: claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro-preview
+tags:
+  - plan-manager
+  - plan-manager-create
+  - plan-manager-use
+baseSchema: docs/schemas/skill.md
+---
+
+<plan-manager>
+
+<role>
+
+Senior execution planner and tracker for plan-driven workflows.
+
+</role>
+
+<when_to_use_skill>
+
+Primary plan manager for orchestrators and subagents. Creates, tracks, and executes plans as local JSON files.
+
+</when_to_use_skill>
+
+<core_concepts>
+
+- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- Plan file lives in FEATURE PLAN folder: `<feature_plan_folder_full_path>/plan.json`
+- CLI: `npx -y rosettify@latest plan <subcommand> <plan_file> [args...]`
+- Always use full absolute paths for the plan file
+- Six subcommands for `plan` command: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`
+- Resume behavior: `next` returns four groups: (1) in_progress steps (resume=true), (2) open eligible steps, (3) blocked steps (previously_blocked=true), (4) failed steps (previously_failed=true)
+- Phases are sequential: steps from a later phase do not appear until all steps in earlier phases are complete
+- Status propagation: bottom-up only (steps -> phases -> plan); plan root status is always derived, never set directly
+- Phase status updates are rejected (phase_status_is_derived); `entire_plan` target is rejected for update_status (invalid_target)
+- `upsert` silently ignores status fields in patch -- only `update_status` modifies status
+- ACQUIRE `plan-manager/assets/pm-schema.md` FROM KB for data structure reference
+
+</core_concepts>
+
+<process>
+
+**Orchestrator flow:**
+
+1. Create plan: `npx -y rosettify@latest plan create <plan_file> '<json>'` -- see pm-schema.md for JSON structure
+2. Upsert phases and steps: `npx -y rosettify@latest plan upsert <plan_file> entire_plan [kind] '<json>'`
+3. Delegate steps to subagents -- pass plan file path and step IDs
+4. Loop: call `next` until `plan_status: complete` and `count: 0`
+
+**Subagent flow:**
+
+1. Get next steps: `npx -y rosettify@latest plan next <plan_file> [limit]`
+2. Check `resume` flag -- if `true`, continue interrupted work; if `false`, start fresh
+3. Execute step
+4. Update: `npx -y rosettify@latest plan update_status <plan_file> <step-id> complete`
+5. Repeat from step 1
+
+</process>
+
+<validation_checklist>
+
+- `npx -y rosettify@latest plan help` exits without error and returns structured help JSON
+- `show_status` output: plan root status is derived (never manually set)
+- `next` output: in_progress steps appear before open steps; blocked and failed steps are included with flags
+- `show_status` phase status matches aggregate of its steps after `update_status`
+
+</validation_checklist>
+
+<pitfalls>
+
+- Not checking `resume` flag on `next` results -- causes duplicate work on resumed sessions
+- Forgetting `update_status` after step completion -- plan remains stale
+- Plan root status cannot be set directly -- it is always derived from phases
+- Attempting to set phase status directly -- rejected as phase_status_is_derived
+</pitfalls>
+
+<resources>
+
+- Asset: ACQUIRE `plan-manager/assets/pm-schema.md` FROM KB -- plan JSON structure
+- Flow: USE FLOW `adhoc-flow`
+
+</resources>
+
+</plan-manager>
+```
+
+`assets/pm-schema.md` verbatim (superseded by `npx -y rosettify@latest help plan`; same semantics also live in r3 `orchestration/assets/o-session-execution-controller.md` `<schema>`):
+
+````
+# Plan JSON Schema Reference
+
+## Data Structure
+
+```
+plan:
+  name: str                    # required
+  description: str             # default: ""
+  status: StatusEnum           # derived bottom-up, never set directly
+  created_at: ISO8601          # set on create
+  updated_at: ISO8601          # updated on every write
+  phases[]:
+    id: str                    # required, unique across entire plan
+    name: str                  # required
+    description: str           # default: ""
+    status: StatusEnum         # derived from steps
+    depends_on: [phase-id]     # default: []
+    subagent: str              # optional
+    role: str                  # optional
+    model: str                 # optional
+    steps[]:
+      id: str                  # required, unique across entire plan
+      name: str                # required
+      prompt: str              # required
+      status: StatusEnum       # default: open
+      depends_on: [step-id]    # default: [], cross-phase allowed
+      subagent: str            # optional
+      role: str                # optional
+      model: str               # optional
+```
+
+## Status Enum
+
+`open | in_progress | complete | blocked | failed`
+
+## Status Propagation (Bottom-Up)
+
+Steps → Phases → Plan root. Plan root status is always derived; never set directly.
+
+| Children condition | Derived status |
+|---|---|
+| All `complete` | `complete` |
+| Any `failed` | `failed` |
+| Any `blocked` | `blocked` |
+| Any `in_progress` or `complete` | `in_progress` |
+| Otherwise | `open` |
+
+## Dependency Rules
+
+- `depends_on` at step level: list of step IDs (cross-phase allowed)
+- `depends_on` at phase level: list of phase IDs
+- A step/phase is eligible only when all `depends_on` IDs have `status: complete`
+- IDs must be unique across the entire plan (phases and steps share a single namespace)
+
+## Constants
+
+| Constant | Limit |
+|---|---|
+| Max phases per plan | 100 |
+| Max steps per phase | 100 |
+| Max deps per item | 50 |
+| Max string field length | 20000 chars |
+| Max name field length | 256 chars |
+
+## Minimal Plan Example
+
+```json
+{
+  "name": "my-plan",
+  "description": "Simple example",
+  "status": "open",
+  "created_at": "2026-01-01T00:00:00.000Z",
+  "updated_at": "2026-01-01T00:00:00.000Z",
+  "phases": []
+}
+```
+
+## Full Plan Example
+
+```json
+{
+  "name": "feature-x",
+  "description": "Implement feature X end-to-end",
+  "status": "in_progress",
+  "created_at": "2026-01-01T00:00:00.000Z",
+  "updated_at": "2026-01-02T12:00:00.000Z",
+  "phases": [
+    {
+      "id": "ph-1",
+      "name": "Design",
+      "description": "Create technical specs",
+      "status": "complete",
+      "depends_on": [],
+      "steps": [
+        {
+          "id": "s-1",
+          "name": "Write tech specs",
+          "prompt": "Write technical specs for feature X covering API, data model, and edge cases.",
+          "status": "complete",
+          "depends_on": []
+        }
+      ]
+    },
+    {
+      "id": "ph-2",
+      "name": "Implementation",
+      "description": "Code the feature",
+      "status": "in_progress",
+      "depends_on": ["ph-1"],
+      "subagent": "engineer",
+      "role": "Senior software engineer",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "id": "s-2",
+          "name": "Implement API endpoint",
+          "prompt": "Implement the REST API endpoint for feature X per the tech specs in plans/feature-x/plan.json step s-1.",
+          "status": "in_progress",
+          "depends_on": ["s-1"]
+        },
+        {
+          "id": "s-3",
+          "name": "Implement data layer",
+          "prompt": "Implement the data model and repository layer for feature X.",
+          "status": "open",
+          "depends_on": ["s-1"]
+        }
+      ]
+    }
+  ]
+}
+```
+````

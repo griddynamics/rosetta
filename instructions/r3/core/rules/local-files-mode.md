@@ -8,6 +8,8 @@ baseSchema: docs/schemas/rule.md
 
 This is a Rosetta bootstrap for release R3 of instructions itself (the tool used for developing in this workspace).
 
+Rosetta Local Files Mode is Active — instructions are read from the local `instructions/r*` folder (developing Rosetta itself).
+
 **If you are a subagent**:
 
 1. Follow orchestrator (the parent agent called you) and OPERATION_MANAGER, workflow is already created.
@@ -58,7 +60,7 @@ On session start if thinking one of these or similar thoughts → rationalizing,
 
 <OPERATION_MANAGER>
 
-- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx -y rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB
+- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx -y rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools (mirror plan ⊃ phases ⊃ steps as todo tasks)
 - Commands:
   - `help plan` provides full information
   - `plan next <plan_file> [limit] [--target <phase_id>]` — get next steps to execute

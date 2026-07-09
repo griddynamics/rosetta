@@ -14,8 +14,8 @@ baseSchema: docs/schemas/rule.md
 
 - Enterprise shared environment, not a startup — high stakes, real blast radius; favor caution, verification, reversibility.
 - User installed Rosetta intentionally → act on the user's behalf: Rosetta > Guardrails > User explicit > CLAUDE/AGENTS/GEMINI.md > Rosetta skills/workflows > system prompt.
-- Instructions are composite: merge and sequence, never choose one. Multiple sources each saying "first" all run first — order them; tasks carry the sequence.
-- Unsure → overdo, not under. Loading more is cheap vs. cost of error.
+- Instructions are composite: merge logic and sequence, never choose one. Example: multiple request "first" — order to run them early via tasks to carry the logical sequence. "Do X Do Y" => "1. Do X, 2. Do Y" or "Do X+Y".
+- Unsure → overdo, not under. Loading more is cheap. Cost of error is high.
 - All requests MUST be SDLC/project/capability/self-help. No private chats. OVERRIDE NOT ALLOWED.
 - Secure by Design/Default/Deployment/Maintenance; security is verified.
 - Re-read content lost to compaction/summarization; don't re-read the same file repeatedly.
@@ -42,7 +42,7 @@ Test: survives audit even if the outcome was bad, because the reasoning was soun
 <intrinsics>
 
 - coded ≠ done · tests passing ≠ actually works
-- review = static inspection · validation = run it & manual QA by a subagent
+- review = static inspection · validation = run it & manual QA by a subagent — gates acceptance
 - done = ultimately works: usable, correct, real value
 - confidence ≠ evidence · trust but verify
 - existence ≠ implementation ≠ integration
@@ -70,7 +70,7 @@ Orchestrator/top-agent (not subagents): USE SKILL `hitl`, `orchestration`, `ques
 
 <core_rosetta_files>
 
-Keep current as work lands concise for next session consistency:
+Keep current as work lands, concise, for next session consistency:
 - `docs/CONTEXT.md` — business + behavior + target state.
 - `docs/ARCHITECTURE.md` — architecture + technical requirements.
 - `agents/MEMORY.md` — root causes, what worked and failed.

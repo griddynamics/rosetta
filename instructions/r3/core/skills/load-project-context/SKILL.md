@@ -21,8 +21,8 @@ MUST run as todo tasks — getting-ready included:
 </tasks>
 
 <project-files>
-1. `echo "=== docs/CONTEXT.md ==="; cat docs/CONTEXT.md; echo "=== docs/ARCHITECTURE.md ==="; cat docs/ARCHITECTURE.md`
-2. `grep -nE "^#{1,3} " agents/IMPLEMENTATION.md agents/MEMORY.md docs/PATTERNS/INDEX.md docs/REQUIREMENTS/INDEX.md refsrc/INDEX.md`
+1. `grep -nE "^#{1,3} " docs/CONTEXT.md docs/ARCHITECTURE.md agents/IMPLEMENTATION.md agents/MEMORY.md docs/PATTERNS/INDEX.md docs/REQUIREMENTS/INDEX.md refsrc/INDEX.md`
+2. MUST then read the sections relevant to the request by line-range.
 Prefer built-in tools over bash where available.
 </project-files>
 

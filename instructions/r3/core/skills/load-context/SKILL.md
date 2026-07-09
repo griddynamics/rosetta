@@ -8,13 +8,6 @@ baseSchema: docs/schemas/skill.md
 ---
 <load-context>
 
-<prerequisites>
-
-- Rosetta context instructions already loaded USING SKILL `load-context-instructions` 
-- OPERATION_MANAGER is in use for deterministic execution
-
-</prerequisites>
-
 <project-files>
 Execute in order:
 

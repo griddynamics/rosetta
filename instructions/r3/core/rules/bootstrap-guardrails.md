@@ -35,10 +35,10 @@ If `X` is not loaded, MUST discover it via ToolSearch, fallback to ACQUIRE "<X>/
 <always_on>
 <!-- Continuously active. Re-evaluate every turn. -->
 
-- `load-context` — canonical current context loader, enforced by plan step `s-read-docs`
-- `orchestrator-contract` — enforced by plan step `s-orchestrator-contract`, before spawning any subagents, defines orchestrator role and required actions
-- `subagent-contract` — enforced by plan step `s-subagent-contract`, before reading inputs, defines subagent role and required actions
-- `hitl` — enforced by plan step `s-orchestrator-contract` for continuous enforcement
+- `load-project-context` — canonical current context loader, enforced by plan step `s-read-docs`
+- `orchestration` — enforced by plan step `s-orchestration`, before spawning any subagents, defines orchestrator role and required actions
+- `subagent-directives` — enforced by plan step `s-subagent-directives`, before reading inputs, defines subagent role and required actions
+- `hitl` — enforced by plan step `s-orchestration` for continuous enforcement
 - MUST USE SKILL `hitl` ALWAYS. IT CHANGES HOW YOU ARE SUPPOSED TO WORK WITH USER. HITL is MANDATORY for ALL tasks by default — planning, execution, validation, review - no assumption or guessing. THE ONLY exception: user DIRECTLY EXPLICITLY requests with EXACTLY "fully autonomous" or "No HITL". YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar. MUST NOT assume anything—even reasonably. Do not assume approval from a question or a partial response.
 - MUST USE SKILL `sensitive-data` — on any sensitive or possibly sensitive data encountered or could be encountered. NEVER output, echo, print, log, summarize, or reference raw values.
 - MUST USE SKILL `self-learning` — on failures, mismatches, or user unhappiness.

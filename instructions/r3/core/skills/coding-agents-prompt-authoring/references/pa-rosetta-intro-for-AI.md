@@ -14,7 +14,7 @@ References to files in that structure are valid by design (except init-workspace
 
 Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` in current rosetta repo to better understand rosetta implementation itself. Remember that current and target repositories ARE DIFFERENT (this content is only available in this repo!).
 
-MUST USE SKILL `orchestrator-contract` for all subagent dispatches.
+MUST USE SKILL `orchestration` for all subagent dispatches.
 MUST USE SKILL `coding-agents-prompt-authoring` to review and to harden the changes and at least must include pa-rosetta.md, pa-patterns, pa-hardening.md, pa-schemas.md.
 Subagents MUST USE SKILL `coding-agents-prompt-authoring` with references listed above (and more if they determine additional references are needed).
 

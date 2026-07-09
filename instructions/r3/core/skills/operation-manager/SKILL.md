@@ -30,7 +30,7 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 
 <core_concepts>
 
-- Try `rosettify` MCP first (if already available), fallback to CLI: `npx -y rosettify@latest <command> <subcommand> <plan_file`>, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB.
+- Try `rosettify` MCP first (if already available), fallback to CLI: `npx -y rosettify@latest <command> <subcommand> <plan_file`>, if it fails too MUST FALLBACK to built-in todo task tools (mirror plan ⊃ phases ⊃ steps as todo tasks).
 - Always use full absolute paths for the plan file
 - Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`
 - Help: `npx -y rosettify@latest help plan` provides full help JSON
@@ -91,7 +91,6 @@ Primary operation manager for orchestrators and subagents. Creates, tracks, and 
 <resources>
 
 - Flow: USE FLOW `adhoc-flow`
-- Rule: ACQUIRE `todo-tasks-fallback.md` FROM KB -- built-in todo task tools fallback
 
 </resources>
 

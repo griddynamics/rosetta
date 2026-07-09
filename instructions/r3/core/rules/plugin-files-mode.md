@@ -11,6 +11,8 @@ baseSchema: docs/schemas/rule.md
 
 This is a Rosetta bootstrap for release R3 of instructions itself (the tool used for developing in this workspace).
 
+Rosetta RUNNING AS PLUGIN. Rosetta Plugin Mode is Active. Always-on rules already loaded.
+
 **If you are a subagent**:
 
 1. Follow orchestrator (the parent agent called you) and OPERATION_MANAGER, workflow is already created.
@@ -59,7 +61,7 @@ On session start if thinking one of these or similar thoughts → rationalizing,
 
 <OPERATION_MANAGER>
 
-- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx -y rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB
+- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx -y rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools (mirror plan ⊃ phases ⊃ steps as todo tasks)
 - Commands:
   - `help plan` provides full information
   - `plan next <plan_file> [limit] [--target <phase_id>]` — get next steps to execute
@@ -98,9 +100,8 @@ Step 2+: Call OPERATION_MANAGER `next <plan_file> [limit] [--target <phase_id>]`
 - Once all `ph-prep` completes, tell user once: `Context loaded using Rosetta: [workflow selected and brief summary]` and execute workflow.
 - "\*-flow" skills are additional workflows
 
-# LOCAL FILES MODE FOR PLUGINS
+# PLUGIN MODE USES LOCAL PLUGIN FILES
 
-- RUNNING AS A PLUGIN
 - Rosetta/KB MCP means you MUST USE local plugin files: `skills/`, `agents/`, `workflows/`, `rules/` are bundled at plugin root
 
 # COMMAND ALIASES - PLUGIN MODE

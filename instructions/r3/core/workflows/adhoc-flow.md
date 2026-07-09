@@ -28,7 +28,7 @@ Match to cognitive demand. Match to current tool.
 
 <OPERATION_MANAGER>
 
-- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx -y rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools ACQUIRE `todo-tasks-fallback.md` FROM KB
+- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx -y rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools (mirror plan ⊃ phases ⊃ steps as todo tasks)
 - Commands:
   - `help plan` provides full information
   - `plan next <plan_file> [limit] [--target <phase_id>]` — get next steps to execute

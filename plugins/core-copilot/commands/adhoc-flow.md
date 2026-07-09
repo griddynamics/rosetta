@@ -11,7 +11,7 @@ baseSchema: docs/schemas/workflow.md
 <description_and_purpose>
 
 Problem: Fixed workflows cannot cover the combinatorial space of real requests; orchestrators lock into rigid classification.
-Solution: Meta-workflow — construct a bespoke plan from building blocks, persist via `plan-manager` skill, review, execute with tracking. Each user turn can extend, adapt, or restart.
+Solution: Meta-workflow — construct a bespoke plan from building blocks, persist as a plan file (see `<plan_manager>`), review, execute with tracking. Each user turn can extend, adapt, or restart.
 
 </description_and_purpose>
 
@@ -27,21 +27,38 @@ Match to cognitive demand. Match to current tool.
 
 <plan_manager>
 
-USE SKILL `plan-manager` as the main execution planner (file-based, via `npx -y rosettify@latest plan`).
-
-Orchestrator and subagents:
-- MUST use plan-manager as main execution planner; todo tasks/built-in planners are for tracking INSIDE step execution only.
-- MUST USE `next` to drive execution loop until `plan_status: complete` and `count: 0`.
-- MUST USE `update_status` after each step.
-- MUST USE `upsert` to adapt plan mid-execution (add/remove phases/steps).
+Execution plans are local JSON files driven via CLI: `npx -y rosettify@latest plan <subcommand> <plan_file>`. Always use full absolute paths for the plan file. Todo tasks/built-in planners are for tracking INSIDE step execution only.
 
 Orchestrator:
-- MUST tell subagents all above MUST as MUST (within their scope).
-- MUST tell subagents: "tell orchestrator to modify plan if work is outside your scope".
 
-ACQUIRE `plan-manager/assets/pm-schema.md` FROM KB for data structure reference.
+1. `npx -y rosettify@latest help plan` to confirm available subcommands and the plan JSON structure.
+2. Create plan: `plan create <plan_file> '<json>'` — plan ⊃ phases ⊃ steps. Use ONLY plain `create`/`upsert` — NEVER `create-with-template`/`upsert-with-template`: template-seeded prep steps reference skills by names that do not match this release's skills.
+3. Upsert phases and steps every time something new comes up; adapt continuously — reorder, re-analyze, add, re-scope as discovery/subagent returns shift reality.
+4. Delegate a target to a subagent — add to the subagent prompt, right after the `You are [role/specialization]...` line: `Plan: [absolute plan.json path]. Phase: [phase id]. [Step: [step id].]`, and include `<subagent_plan_manager_instructions>`. Subagent owns that target end-to-end. Decide which phases run in parallel — parallel subagents MUST each own a distinct phase (collision-free).
+5. Loop: `next` → dispatch/execute → `update_status` — until no steps remain.
+6. Track: `show_status` / `query` for state; clear `blocked`/`failed` steps so subagents can retry.
+7. Close: confirm the plan derives to `complete` (never set root directly), verify via `show_status`/`query`; keep the plan and core Rosetta files current as phases land.
 
 </plan_manager>
+
+<subagent_plan_manager_instructions>
+
+1. Receive your target from the prompt's `Plan: [absolute plan.json path]. Phase: [phase id]. [Step: [step id].]` line.
+2. `npx -y rosettify@latest plan next <plan_file> --target <phase_id>` (target = your phase, or step id if the prompt scopes to one) — pull the next step.
+   - `resume:true` → step is already `in_progress`; skip 3a, go to 3b.
+   - `previously_blocked:true` / `previously_failed:true` → orchestrator cleared the path; verify preconditions carefully first, then 3a.
+   - open → 3a.
+   - `count:0` and `plan_status:complete` → target complete; go to step 4.
+3. For the returned step — ONE at a time:
+   a. `npx -y rosettify@latest plan update_status <plan_file> <step_id> in_progress`.
+   b. Split the step's prompt into todo tasks (your own isolated list — invisible to other agents); order by dependencies; output `Tasks Created: [task ids]`; execute; close each on verifiable evidence.
+   c. `npx -y rosettify@latest plan update_status <plan_file> <step_id> <status>`:
+      - `complete` — done with verifiable evidence → back to step 2 for the next step.
+      - `blocked` — cannot proceed → step 4, report reason.
+      - `failed` — execution failed → step 4, report error + root cause.
+4. At target end (or on `blocked`/`failed`), report to the orchestrator per your prompt's `## Output` and `## Evidence` sections — `blocked` carries the reason, `failed` carries the error + root cause.
+
+</subagent_plan_manager_instructions>
 
 <building_blocks>
 
@@ -50,12 +67,12 @@ Compose these into plan phases/steps to build any execution workflow.
 - **discover-research**: scan project context and KB; research external knowledge if needed; deliver summarized references
 - **requirements-capture**: reverse-engineer or interrogate requirements; persist intent as source of truth
 - **reasoning-decomposition**: USE SKILL `reasoning` (7D) to decompose into sub-problems with decisions and trade-offs
-- **plan-wbs**: USE SKILL `planning` to build sequenced WBS; persist via `plan-manager upsert` with subagent/role/model
+- **plan-wbs**: USE SKILL `planning` to build sequenced WBS; persist via plan `upsert` with subagent/role/model
 - **tech-specs**: USE SKILL `tech-specs` to generate target technical implementation specs; makes AI to figure out entire solution, instead of discovering something as a surprise
 - **subagent-delegation**: provide role + context/refs; route parallel/sequential; enforce focus — report back if off-plan
 - **delegate-but-verify**: use subagent delegation, but verify both reasoning and results
 - **critically-review**: critically review inputs, outputs, reasoning, completeness, ambiguity, results of user, subagents, tools, scripts, etc.
-- **execute-track**: plan-manager next → execute → update_status; `upsert` to adapt mid-execution; loop
+- **execute-track**: plan `next` → execute → `update_status`; `upsert` to adapt mid-execution; loop
 - **modify-review**: modify then review with different agent/model
 - **review-validate**: review (static inspection against intent) + validate (run locally, call/use local, runtime evidence on real tasks)
 - **memory-learn**: root-cause failures → reusable preventive rules → update AGENT MEMORY.md

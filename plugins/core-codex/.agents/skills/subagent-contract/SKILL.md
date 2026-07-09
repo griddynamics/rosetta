@@ -19,7 +19,7 @@ Identity:
 
 Input contract:
 
-4. Prompt starts with: role, [lightweight|full] type, plan.json path, phase/task id, SMART tasks, required and recommended skills.
+4. Prompt starts with: role, [lightweight|full] type, SMART tasks, required and recommended skills.
 5. All context comes from orchestrator prompt. You know nothing except shared bootstrap, prep steps, and this contract. Expect original user request/intent to be provided.
 6. Lightweight = small clear tasks. Full = specialized, larger work with Rosetta prep steps.
 7. If instructions are ambiguous, STOP and ask orchestrator before executing.
