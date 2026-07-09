@@ -2,9 +2,8 @@
 name: qa-knowledge
 description: "To supply the QA-domain conventions: failure taxonomies, authoring & correction discipline, and artifact skeletons."
 license: Apache-2.0
-disable-model-invocation: false
+disable-model-invocation: true
 user-invocable: false
-tags: []
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -12,23 +11,23 @@ baseSchema: docs/schemas/skill.md
 
 <when_to_use_skill>
 
-Use when authoring, analyzing, or correcting backend-API or UI/E2E tests and needing QA conventions: failure taxonomies, assertion & coverage discipline, selector & page-object rules, and the artifact skeletons these tasks emit.
+Use when authoring, analyzing, or correcting backend-API or UI/E2E tests and needing QA conventions: failure taxonomies, assertion & coverage discipline, selector & page-object rules, and the artifact skeletons these tasks emit. TestRail/Jira/Confluence are used as canonical examples, adapt to current case.
 
 </when_to_use_skill>
 
 <core_concepts>
 
 - Load only what the current task needs;
-- artifact skeletons are assets, ACQUIRE'd at point of use;
+- artifact skeletons are assets, ACQUIRE FROM KB at point of use;
 - conventions are references -- see `<resources>`.
 
 </core_concepts>
 
 <resources>
 
-Router -- ACQUIRE the one your current step needs (point-of-use, never all at once):
+Router -- ACQUIRE FROM KB the one your current step needs (point-of-use, never all at once):
 
-| When you need to… | ACQUIRE |
+| When you need to… | ACQUIRE ... FROM KB |
 |---|---|
 | present a correction for approval (API-QA **or** UI-QA) | `qa-knowledge/assets/proposed-change-template.md` |
 | run the explicit-approval gate for a correction or spec/plan approval | `qa-knowledge/assets/approval-gate.md` |

@@ -4,7 +4,7 @@ Verbatim user-prompt interview asked at QA Phase 0 when the project config does 
 
 <api-qa-config-interview>
 
-Ask verbatim (via the phase's structured-questioning step) only when the project config does not exist. Confirm the answer covers at minimum: document storage (or docs are in-repo), Swagger/OpenAPI availability, and where test cases come from. If a required field is missing, ask ONE follow-up naming the missing fields (cap: 2 rounds). Covers every **required** key in `config-schema.md` -- load it to verify coverage if unsure.
+Adapt and ask (via the structured-questioning step) only when the project config does not exist. Confirm the answer covers at minimum: document storage (or docs are in-repo), Swagger/OpenAPI availability, and where test cases come from. If a required field is missing, ask ONE follow-up naming the missing fields (cap: 2 rounds). Covers every **required** key in `config-schema.md` -- load it to verify coverage if unsure.
 
 ```
 To automate backend API tests effectively, I need the following project details:

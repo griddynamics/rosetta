@@ -1,6 +1,6 @@
 # Vendor binding: Documentation vendor
 
-Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the documentation vendor binding. **Canonical example: Confluence** -- capabilities (page fetch / CQL search / child pages) and harvesting discipline below use Confluence; for another backend (Notion, SharePoint, wiki) map by capability, same method. Base SKILL.md owns the general method -- not restated here.
+Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the documentation vendor binding. **Canonical example: Confluence** -- capabilities (page fetch / CQL search / child pages) and harvesting discipline below use Confluence; for another backend (Notion, SharePoint, wiki) map by capability, same method. Base SKILL.md owns the general method -- not restated here. All specs/queries/MCP/URL here use Confluence as example, adapt target wiki system by example.
 
 **Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured documentation MCP binding: **get page**, **list child pages**, **search** (CQL/text), and -- write, forbidden in this read-only binding -- **create / update page / add comment**.
 
@@ -57,15 +57,15 @@ Refunds are issued via POST /api/v1/orders/{id}/refund; a paid order transitions
 - Refund Edge Cases (/spaces/PROJ/pages/12346)
 ```
 
-## Redaction targets (SKILL `redact` step → `sensitive-data`)
+## Redaction targets (SKILL `sensitive-data`)
 
 Highest-risk: **page bodies** (runbooks/ops notes embed secrets; incident write-ups embed PII). Redact per SKILL `<collection>` step 4. Verbatim structure (adds to step 4's generic list): headings, business-rule prose, in-site link targets, glossary entries.
 
 ## Failure paths (SKILL `extract` step)
 
 - **Input unresolvable** (no URL/ID/terms, or URL unparseable) → stop, report `data-collection/confluence: input unresolvable -- supply page URL/ID or search terms`, ask. Do NOT guess.
-- **MCP not configured / not authenticated** → stop, report `data-collection/confluence: Confluence MCP not configured or not authenticated -- verify MCP setup`. Do NOT emit a zero-page artifact and call it done.
-- **MCP transport error** → per SKILL `<collection>` step 3 (retry once, then stop + report); ask to verify MCP connectivity.
+- **MCP/CLI/Fetch not configured / not authenticated** → stop, report `data-collection/confluence: Confluence MCP not configured or not authenticated -- verify MCP setup`. Do NOT emit a zero-page artifact and call it done.
+- **MCP/CLI/Fetch transport error** → per SKILL `<collection>` step 3 (retry once, then stop + report); ask to verify MCP connectivity.
 - **Page not found** (404 / deleted, for a supplied page ID or URL) → stop, report `data-collection/confluence: page <id/url> not found -- verify the ID/URL is correct and accessible`, ask. Do NOT treat as an empty page or silently gap it. (Applies to direct URL/ID retrieval; missing search hits use the zero-pages GATE below.)
 - **Authorization failure** (401/403 on ALL pages) → stop, report `data-collection/confluence: request rejected -- page(s) may exist but not visible to configured credentials`, ask to verify credentials / space access. (Per-page 401/403 with others succeeding → per-page branch above, not a global stop.)
 - **Cross-domain URL** (host ≠ configured MCP site) → warn + try once; on failure stop the fetch, report `URL <url> belongs to a different Confluence host (<domain>) than the configured MCP -- ask user for an in-site equivalent or accept ticket-only continuation`. Do NOT bypass to a cross-site fetch.

@@ -1,8 +1,8 @@
 # Vendor binding: TMS / test-case vendor
 
-Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the TMS (test-case) vendor binding. **Canonical example: TestRail** -- the field map and examples below use TestRail; for another test-case manager map by capability, same method. Base SKILL.md owns the general method -- not restated here.
+Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the TMS (test-case) vendor binding. **Canonical example: TestRail** -- the field map and examples below use TestRail; for another test-case manager map by capability, same method. Base SKILL.md owns the general method -- not restated here.  All specs/queries/MCP/URL here use TestRail as example, adapt target issue tracker system by example.
 
-**Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured TMS MCP binding: **get case**, **get case fields** (case-field-schema lookup), and -- write, forbidden in this read-only binding -- case **update / add / delete**.
+**Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured TMS MCP/CLI/Fetch binding: **get case**, **get case fields** (case-field-schema lookup), and -- write, forbidden in this read-only binding -- case **update / add / delete**.
 
 ---
 
@@ -48,14 +48,14 @@ Per-field branch per SKILL `<collection>` step 3 (redact sensitive values first)
 - **Expected Overall Result:** order shows `REFUNDED`; refund recorded
 ```
 
-## Redaction targets (SKILL `redact` step → `sensitive-data`)
+## Redaction targets (SKILL `sensitive-data`)
 
 Highest-risk: **step text, preconditions, custom fields, test-data** -- these re-emit downstream (`raw-data.md` → requirements / test-scenarios / authoring) and can be exported back into the shared TestRail project. Redact per SKILL `<collection>` step 4; structure (action verbs, expected behaviors, endpoint paths, methods, status codes, field/schema names) stays verbatim.
 
 ## Failure paths (SKILL `extract` step)
 
 - **Input unresolvable** (no/malformed ID, URL not a recognizable TestRail pattern) → stop, report `data-collection/testrail: case ID unresolvable from input "<input>"`, ask for a clean numeric ID or canonical URL. Do NOT guess.
-- **MCP transport error** → per SKILL `<collection>` step 3 (retry once, then stop + report; same case ID); ask to verify the TestRail MCP configuration.
+- **MCP/CLI/Fetch transport error** → per SKILL `<collection>` step 3 (retry once, then stop + report; same case ID); ask to verify the TestRail MCP/CLI/Fetch configuration.
 - **Case-not-found** (404 / empty / "case does not exist") → stop, report `data-collection/testrail: case <ID> not found -- verify the ID is correct and accessible by the configured credentials`. Do NOT emit a partial/empty artifact, do NOT fabricate fields.
 - **Authorization failure** (401/403) → stop, report `data-collection/testrail: request rejected -- case <ID> may exist but is not visible to the configured credentials`, ask to verify credentials / project access.
 - **Required field empty** (title/steps/expected results missing) → proceed, record the empty field in gaps, do NOT fabricate; the artifact still emits but flags the gap.

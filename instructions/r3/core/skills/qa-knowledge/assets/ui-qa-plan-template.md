@@ -4,7 +4,7 @@ UI-QA test-plan skeleton (plans/ui-qa-<test-name>.md) -- Test Case Information, 
 
 <ui-qa-plan-template>
 
-Output template for `plans/ui-qa-<test-name>.md`. Populate `## Access / Truncation Notes` from `data-collection`'s disclosure (truncation, permission denials, `[empty page]`, cross-domain fallbacks); never omit.
+Output template for `plans/ui-qa-<test-name>.md`. Populate `## Access / Truncation Notes` from `data-collection`'s disclosure (truncation, permission denials, `[empty page]`, cross-domain fallbacks); never omit. TestRail (TMS), Confluence (Wiki), Jira (issue tracker) used here as an example, replace with what currently used.
 
 **Inputs required:** the TestRail Case ID, the Confluence page URL(s), and `data-collection`'s disclosure output.
 
