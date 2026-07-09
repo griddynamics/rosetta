@@ -4,7 +4,7 @@ UI-QA state-file template -- initialized at Phase 1 and updated by every later p
 
 <ui-qa-state-template>
 
-`agents/ui-qa-state.md` -- initialized at Phase 1 (first phase to write it), updated by every later phase:
+`agents/TEMP/<FEATURE>/ui-qa-state.md` -- initialized at Phase 1 (first phase to write it), updated by every later phase:
 
 ```markdown
 # UI-QA State - <Test Name>

@@ -162,7 +162,7 @@ Goal: start from project reality instead of isolated files.
 
 - Required user input: the analysis request.
 - Agent actions: read `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and `agents/IMPLEMENTATION.md`; grep headers of `docs/CODEMAP.md`, `docs/TECHSTACK.md`, and `docs/DEPENDENCIES.md` when present; identify entry points such as APIs, webhooks, CLIs, and cron jobs.
-- Produced artifacts: updated `agents/code-analysis-flow-state.md`.
+- Produced artifacts: updated `agents/TEMP/<FEATURE>/code-analysis-flow-state.md`.
 - Review expectation: no formal gate, but bad entry point discovery will distort all later phases.
 - What to watch: cross cutting behavior that spans more than one entry point.
 
@@ -172,7 +172,7 @@ Goal: choose the correct analysis shape.
 
 - Required user input: scope boundaries and non goals when the request is ambiguous.
 - Agent actions: classify the target as `LARGE` if it spans `100+` files recursively or `4+` modules; otherwise `SMALL`. Record scope boundaries and `module-list` for large analysis.
-- Produced artifacts: updated `agents/code-analysis-flow-state.md` with `scope`, `size`, and `module-list` when applicable.
+- Produced artifacts: updated `agents/TEMP/<FEATURE>/code-analysis-flow-state.md` with `scope`, `size`, and `module-list` when applicable.
 - Review expectation: no formal gate, but this is the point where a wrong size decision starts.
 - What to watch: a broad feature being forced into `SMALL` and losing module boundaries.
 
@@ -182,7 +182,7 @@ Goal: resolve only the unknowns that materially affect analysis accuracy.
 
 - Required user input: answers to targeted scope, terminology, and intent questions.
 - Agent actions: ask up to 10 MECE questions, one decision per question, only for critical or high impact unknowns; record resolved answers and unresolved assumptions.
-- Produced artifacts: updated `agents/code-analysis-flow-state.md` and documented assumptions in the final output.
+- Produced artifacts: updated `agents/TEMP/<FEATURE>/code-analysis-flow-state.md` and documented assumptions in the final output.
 - Review expectation: yes. If this phase stops for your input, answer directly or accept the safe default knowingly.
 - What to watch: vague nouns such as "billing system" or "auth flow" that hide multiple distinct scopes.
 
@@ -251,7 +251,7 @@ Goal: let the human owner confirm the analysis matches real system intent.
 Goal: close the workflow with traceable state.
 
 - Required user input: explicit approval from phase 9.
-- Agent actions: update `IMPLEMENTATION.md` with a brief pointer to produced artifacts and mark `agents/code-analysis-flow-state.md` complete with phase evidence and artifact paths.
+- Agent actions: update `IMPLEMENTATION.md` with a brief pointer to produced artifacts and mark `agents/TEMP/<FEATURE>/code-analysis-flow-state.md` complete with phase evidence and artifact paths.
 - Produced artifacts: completed workflow state and implementation pointer.
 - Review expectation: no new gate. This phase records closure after approval.
 - What to watch: missing artifact paths or incomplete phase evidence in the state file.
@@ -293,7 +293,7 @@ These customizations materially improve this workflow:
 
 Always:
 
-- `agents/code-analysis-flow-state.md`
+- `agents/TEMP/<FEATURE>/code-analysis-flow-state.md`
 - review findings from phase 8
 
 For `SMALL` scope:
