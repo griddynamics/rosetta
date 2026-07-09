@@ -1,8 +1,7 @@
 # TestRail EXPORT Binding -- scenarios-generation
 
-Config-resolved **vendor binding** loaded by the export phase (via `<vendor_binding>`) when the TMS vendor resolves to TestRail. Holds connection verification, field mappings, MCP tool signatures, the destructive-write confirmation gate, and post-export ID handling.
+Holds connection verification, field mappings, MCP tool signatures, the destructive-write confirmation gate, and post-export ID handling.
 
-Redaction is NOT restated here -- apply `sensitive-data` per SKILL `<core_concepts>` to every case title, step, expected result, and preconditions block before any write. Structural content (paths, methods, status codes, error templates, field names) stays verbatim.
 
 The PHASE supplies the bindings: authored case-set source path, `project_id`, `suite_id`, `section_id`, workflow-state path, and any per-instance priority/type override tables. Missing `project_id` / `suite_id` / case-set path → the export cannot run; stop and report `scenarios-generation testrail-export: required input missing — <name>`. Do NOT pick defaults for these -- the safety gate against exporting to the wrong project depends on them being explicit. Collect `section_id` from the user at step 2 if not pre-supplied.
 
@@ -85,6 +84,7 @@ TestRail `priority_id` / `type_id` are NOT enums -- they are foreign keys into p
 - Cancellation is safe -- aborting at the gate produces no writes; preferred over best-guess export.
 - Rate limit: ~0.5s between `mcp_testrail_add_case` calls is the floor; back off further on 429.
 - Removing a destructive-write safeguard (dedup pre-scan, confirmation gate, redaction) is forbidden -- degrade content, never the gate.
+- **Redact** via `sensitive-data` before any write.
 
 ## Pre-write validation greps
 

@@ -1,12 +1,21 @@
-# Requirements Authoring -- Synthesis schemas (`<synthesis>` mode)
+# Authoring Catalogs
 
-Loaded on demand by the `requirements-authoring` `<synthesis>` mode. General authoring catalogs (unit template, EARS, schema fields, ID/filesystem/refactoring conventions) live in `requirement-catalogs.md` (ACQUIRE FROM KB); this reference holds ONLY the synthesis output schemas.
+Requirements Authoring: Synthesis method + output schemas (`<synthesis>` mode)
 
-# Synthesis output schemas (`<synthesis>` mode)
+## Synthesis rules
+
+- **Source provenance:** every requirement carries an explicit `Source` (row, ticket, page section, or user-answer index); absent provenance = fabrication.
+- **One behavior per req:** split composite "A AND B" into separate requirements at synthesis time.
+- **No verbatim copy-paste:** reshape source text into the schema voice; include only what the sources specify -- empty categories stay empty, no padding (per-schema Coverage notes below).
+- **Single-source flag:** when only a primary source is available, tag each derived assumption `Confidence: Single-source`; still produce the document when answers/docs are missing -- mark each missing-input gap as an explicit assumption.
+- **Conflict resolution:** apply the source-priority ladder (below); an unresolved conflict becomes an assumption with impact-if-wrong (under Risks when both sides share a tier).
+- **NFR threshold:** thresholdless NFRs move to `assumptions-and-risks`, flagged (see the per-NFR Threshold rule below).
+
+## Synthesis output schemas (`<synthesis>` mode)
 
 Six per-requirement schemas plus the document wrapper. Read only the active schema per step rather than holding all six in working memory.
 
-## user-stories
+### user-stories
 
 As-a / I-want / So-that; each story independently valuable.
 
@@ -28,7 +37,7 @@ As-a / I-want / So-that; each story independently valuable.
 
 Synthesis guidelines: no implementation detail (user/business value only); AC uses "must"; cover happy/unhappy/boundary; each AC independently testable.
 
-## functional-requirements
+### functional-requirements
 
 ```markdown
 ### FR-[N]: [Title]
@@ -46,7 +55,7 @@ Synthesis guidelines: no implementation detail (user/business value only); AC us
 
 Coverage: include FRs only from capability classes the sources actually mention (auth, data management, business logic, integrations, reporting, notifications, admin/config, search, file handling). Do not pad.
 
-## non-functional-requirements
+### non-functional-requirements
 
 ```markdown
 ### NFR-[N]: [Category] - [Title]
@@ -59,7 +68,7 @@ Coverage: include FRs only from capability classes the sources actually mention 
 
 Threshold rule: every NFR MUST include a concrete numeric or categorical threshold in `Measurement` (`p95 < 200ms`, `WCAG 2.1 AA`, `uptime ≥ 99.9%`). NFRs without a verifiable threshold move to `assumptions-and-risks` with a missing-threshold flag. Coverage: include an NFR per category only if a constraint is actually specified.
 
-## constraints-and-dependencies
+### constraints-and-dependencies
 
 ```markdown
 ### C-[N]: [Title]
@@ -78,7 +87,7 @@ Threshold rule: every NFR MUST include a concrete numeric or categorical thresho
 **Risk**: [Impact if unavailable]
 ```
 
-## assumptions-and-risks
+### assumptions-and-risks
 
 ```markdown
 ### A-[N]: [Assumption]
@@ -96,7 +105,7 @@ Threshold rule: every NFR MUST include a concrete numeric or categorical thresho
 **Mitigation**: [How to reduce or handle]
 ```
 
-## traceability-matrix
+### traceability-matrix
 
 ```markdown
 | Requirement ID | Source | User Story | Test Scenario |
@@ -105,7 +114,7 @@ Threshold rule: every NFR MUST include a concrete numeric or categorical thresho
 | NFR-1 | User Answer Q5 | - | [placeholder for test phase] |
 ```
 
-## Document wrapper (synthesis output)
+### Document wrapper (synthesis output)
 
 Front-matter (Document Control + Executive Summary) + 10 numbered sections in order. Validation greps target the numbered sections; front-matter is not numbered.
 
@@ -143,6 +152,6 @@ Front-matter (Document Control + Executive Summary) + 10 numbered sections in or
 ## 10. Glossary
 ```
 
-## Synthesis source-priority ladder
+### Synthesis source-priority ladder
 
 When sources conflict, resolve in order: (1) **User answers** (highest -- explicit human decisions); (2) **Primary source** (Jira ticket, TestRail case); (3) **Supporting docs** (Confluence); (4) **Analysis insights** (from gap/contradiction analysis). If unresolved, document as an assumption with impact-if-wrong (and list under Risks with Probability: High when both sides are at the same priority tier).

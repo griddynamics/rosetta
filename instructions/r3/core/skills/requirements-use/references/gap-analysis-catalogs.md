@@ -1,6 +1,22 @@
 # Gap Analysis -- Detection Catalogs (requirements-use `<gap_analysis>` mode)
 
-Loaded on demand by the `<gap_analysis>` mode of `requirements-use/SKILL.md` when classifying findings. The mode keeps the method, GATEs, redaction rule, and emit contract inline; this file holds the probe catalogs to scan against. The calling phase owns the finding-entry template and output shape -- these catalogs drive *what to look for*, never *how to format output*.
+Loaded on demand when running the `<gap_analysis>` mode of `requirements-use/SKILL.md`. SKILL.md keeps only the mode's purpose, the analysis-only hard boundary, and the emit-into-provided-artifact rule resident; this file holds the runnable method (variants + process) and the probe catalogs to scan against. The calling phase owns the finding-entry template and output shape -- this file drives *what to look for* and *how to run the analysis*, never *how to format output*.
+
+---
+
+## Variants
+
+- **General multi-source** -- contradictions / gaps / ambiguities across all loaded sources; cross-reference sources against each other.
+- **Test-cases-vs-API-spec** -- cross-reference each test step against the API analysis (endpoint/method/request/response/status/auth/error); emit gaps where inputs/assertions are spec-unsupported (probes: the API/test-spec gap variant below).
+- **Test-plan** -- evaluate all five completeness dimensions D1–D5 (the test-plan gap variant below); per gap record a derived measurable assertion when cleanly derivable, else leave blank -- never fabricate.
+
+## Process
+
+1. **Load** every source completely -- surface missing/empty/partial, never fabricate.
+2. **Classify** against the probe catalogs below -- one finding per item, each with a verbatim quote + citation, impact, and exactly one risk tier (tiers → *Risk / priority tiers*; per-finding form → *Authoring discipline*, both below).
+3. **Cross-reference** sources against each other (single-source → skip with an explicit note; → *Cross-reference probes*).
+4. **Redact** before quoting (→ USE SKILL `sensitive-data`; → *Authoring discipline*).
+5. **Emit** findings into the provided artifact -- produce it even when clean (`No issues found` / "all dimensions satisfied"), never pad.
 
 ---
 

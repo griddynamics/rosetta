@@ -86,15 +86,11 @@ HITL gates (use when):
 
 <gap_analysis>
 
-Analysis-only mode: examine collected multi-source data (Jira, Confluence, TestRail, API spec, test cases, a test plan) for contradictions, gaps, ambiguities, and inconsistencies before downstream work. EMITS categorized findings into the provided artifact -- the finding-entry template, section list, output path, and validation contract are given; never invent the artifact shape or path. Detection catalogs (contradiction / gap / ambiguity / cross-reference probes, three-tier risk scheme, per-finding discipline) -- ACQUIRE `references/gap-analysis-catalogs.md` FROM KB on demand when classifying.
+Analysis-only mode: scan collected multi-source data (Jira, Confluence, TestRail, API spec, test cases, test plan) for contradictions, gaps, ambiguities, and inconsistencies before downstream work, emitting categorized findings into the provided artifact (finding-entry template, section list, output path, and validation contract are given - never invent the artifact shape or path).
 
-Analysis-only: do NOT act on findings, propose edits, fix gaps, ask the user, or generate questions -- surface each as a finding and stop. Variants:
+**Hard boundary (analysis-only):** do NOT act on findings, propose edits, fix gaps, ask the user, or generate questions - surface each as a finding and STOP; redact before quoting.
 
-- **General multi-source** -- contradictions / gaps / ambiguities across all loaded sources; cross-reference sources against each other.
-- **Test-cases-vs-API-spec** -- cross-reference each test step against the API analysis (endpoint/method/request/response/status/auth/error); emit gaps where inputs/assertions are spec-unsupported.
-- **Test-plan** -- evaluate all five completeness dimensions (D1 steps, D2 measurability, D3 test data, D4 edge cases, D5 success criteria); per gap record a derived measurable assertion when cleanly derivable, else leave blank -- never fabricate.
-
-Process: (1) load every source completely -- surface missing/empty/partial, never fabricate; (2) classify against the catalogs, one finding per item, each with a verbatim quote + citation, impact, and one risk tier; (3) cross-reference sources (skip-with-note if single-source); (4) redact before quoting (→ USE SKILL `sensitive-data`); (5) write findings -- produce the artifact even when clean (`No issues found` / "all dimensions satisfied"), never pad.
+To run it, ACQUIRE `references/gap-analysis-catalogs.md` FROM KB - the variants, the load→classify→cross-reference→redact→emit process, the detection probes, the three-tier risk scheme, and the per-finding discipline all live there.
 
 </gap_analysis>
 
@@ -201,7 +197,7 @@ Process: (1) load every source completely -- surface missing/empty/partial, neve
 <resources>
 
 Use `ACQUIRE FROM KB` to load.
-- reference `requirements-use/references/gap-analysis-catalogs.md` (`<gap_analysis>` detection catalogs)
+- reference `requirements-use/references/gap-analysis-catalogs.md` (`<gap_analysis>` method + detection catalogs)
 - asset `requirements-use/assets/ru-traceability-matrix.md`
 - asset `requirements-use/assets/ru-change-log.md`
 

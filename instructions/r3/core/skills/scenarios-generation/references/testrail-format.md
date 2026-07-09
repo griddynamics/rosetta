@@ -1,8 +1,6 @@
 # TestRail FORMAT Binding -- scenarios-generation
 
-Config-resolved **vendor binding** loaded by `<generation>` mode (via `<vendor_binding>`) when the TMS vendor resolves to TestRail. Holds the TestRail-compatible case template, field rules, naming conventions, and worked examples.
-
-Redaction is NOT restated here -- apply `sensitive-data` per SKILL `<core_concepts>` (replace credentials/PII/credentialed-URL **values** with shape-preserving placeholders; structural content -- paths, methods, status codes, error-message templates, field names -- stays verbatim). Per-value honesty + no-silent-drop coverage rules also live in the SKILL.
+Holds the TestRail-compatible case template, field rules, naming conventions, and worked examples.
 
 ---
 

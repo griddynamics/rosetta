@@ -1,16 +1,8 @@
-# GWT Spec -- Scenario Taxonomy + Templates
+# GWT Spec
 
-Loaded on demand by the `<gwt_spec>` mode of `scenarios-generation/SKILL.md`:
+Heavier taxonomy + templates.
 
-- **Scenario taxonomy** step: the scenario-taxonomy catalog.
-- **Write specs** step: the **ATC template**.
-- **File mapping + shared utilities** step: the **Shared Utilities template**.
-
-Redaction is NOT restated here -- apply `sensitive-data` per SKILL `<core_concepts>` to every value written. The SKILL keeps the gate, per-value honesty rule, coverage rule, and validation; this file holds the heavier taxonomy + templates.
-
----
-
-## Scenario Taxonomy Catalog -- used by the SKILL `Scenario taxonomy` step
+## Scenario Taxonomy Catalog -- used by `Scenario taxonomy` step
 
 For each test case, generate 1-N scenarios across these categories (priority defaults in parentheses):
 
@@ -57,7 +49,7 @@ For each test case, generate 1-N scenarios across these categories (priority def
 
 ---
 
-## ATC Template (Given-When-Then) -- used by the SKILL `Write specs` step
+## ATC Template (Given-When-Then) -- used by `Write specs` step
 
 One entry per scenario, written into the phase's spec artifact.
 
@@ -125,7 +117,7 @@ One entry per scenario, written into the phase's spec artifact.
 
 ---
 
-## Shared Utilities Template -- used by the SKILL `File mapping + shared utilities` step
+## Shared Utilities Template -- used by `File mapping + shared utilities` step
 
 Written into the spec artifact's `## Shared Utilities Required` section.
 
