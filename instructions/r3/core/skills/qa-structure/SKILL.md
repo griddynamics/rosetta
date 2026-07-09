@@ -50,7 +50,7 @@ The API-QA state-file seed and the API-QA per-run initial-data skeleton are tiny
 Flag/refuse these before proceeding:
 
 - Fabricating or guessing a `<test-name>` / `{IDENTIFIER}` slug instead of confirming with the user (or stopping when underivable).
-- Writing the project config or any per-session artifact to a shared `agents/` path instead of the per-session feature plan folder (`plans/api-qa-{IDENTIFIER}/` or `plans/testgen-{TICKET-KEY}/`) -- a shared path collides across parallel sessions and commits.
+- Writing the project config or any per-session artifact to a shared `agents/` path instead of the per-session feature plan folder (`plans/ui-qa-<test-name>/`, `plans/api-qa-{IDENTIFIER}/`, or `plans/testgen-{TICKET-KEY}/`) -- a shared path collides across parallel sessions and commits.
 - Leaving a required config key absent instead of `N/A -- <reason>` -- a later grep silently misses an absent key.
 - Inventing a non-canonical artifact path instead of binding to the layout reference verbatim.
 - Loading both flows' layouts when only one applies (`api-qa-layout` XOR `ui-qa-layout`).

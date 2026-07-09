@@ -1,6 +1,6 @@
-# API-QA project-config template (asset of the `qa-structure` skill)
+# API-QA project-config template
 
-API-QA project-config markdown skeleton written to plans/api-qa-{IDENTIFIER}/api-qa-project-config.md at Phase 0.
+API-QA project-config markdown skeleton written to plans/api-qa-{IDENTIFIER}/api-qa-project-config.md.
 
 <api-qa-project-config-template>
 

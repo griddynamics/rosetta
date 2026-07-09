@@ -1,6 +1,6 @@
 # Vendor binding: Issue vendor
 
-Loaded on demand by `data-collection` SKILL.md `<collection>` when the phase resolves the issue vendor binding. **Canonical example: Jira** -- the field map and examples below use Jira; for another tracker (Linear, GitHub Issues, Azure Boards) map by capability, same method. Base SKILL.md owns the general method (extract → normalize → redact → write) -- not restated here. All specs/queries/MCP/URL here use Jira as example, adapt target issue tracker system by example.
+**Canonical issue vendor example: Jira** -- the field map and examples below use Jira; for another tracker (Linear, GitHub Issues, Azure Boards) map by capability, same method. Base SKILL.md owns the general method (extract → normalize → redact → write) -- not restated here. All specs/queries/MCP/URL here use Jira as example, adapt target issue tracker system by example.
 
 **Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured issue-tracker MCP/CLI/Fetch binding: **get issue** (with fields / expand / comment-limit), **search fields** (field-schema lookup), and -- write, forbidden in this read-only binding -- issue **create / update / transition / add comment**.
 
@@ -14,11 +14,11 @@ The phase supplies a ticket key or URL. Resolve the canonical key:
 - **URL** `https://jira.company.com/browse/PROJ-123` or `https://*.atlassian.net/browse/PROJ-123` → parse the `PROJ-NNN` segment.
 - **Ambiguous / missing / malformed** → stop per failure path "input-unresolvable". Do NOT guess or pick an arbitrary key.
 
-## Retrieval (SKILL `extract` step)
+## Retrieval (`extract + normalize` step)
 
-**Get issue** by its canonical key. Fetch the whole issue -- do NOT restrict the response to a fixed field list; the field map below is the minimal set to normalize, not a retrieval filter. Request rendered fields (so HTML descriptions convert to markdown) and cap comments at 10.
+**Get issue** by its canonical key. Fetch the whole issue -- do NOT restrict the response to a fixed field list; the field map below is the minimal set to normalize, not a retrieval filter. Request rendered fields (so HTML descriptions convert to markdown).
 
-- **Custom fields:** if the issue returns cryptic IDs (`customfield_10012`), use **search fields** to resolve names. Discovery failure → list the cryptic IDs + a gap note `Custom field schema unavailable -- field names may be cryptic`. Do not stop.
+- **Custom fields:** use **search fields** to resolve names when the issue returns cryptic IDs (`customfield_10012`). Discovery failure → list the cryptic IDs + a gap note `Custom field schema unavailable -- field names may be cryptic`. Do not stop.
 - **Comment cap:** at most 10 comments; if more exist, record a gap `Comments: showing 10 most recent; <total> total exist`.
 
 ## Field map (normalize into the phase's section)
@@ -37,7 +37,7 @@ The phase supplies a ticket key or URL. Resolve the canonical key:
 
 Per-field branch per SKILL `<collection>` step 3; Jira restricted-gap message: `<field>: not visible to configured Jira credentials`. Continue extraction.
 
-**Rendered example** (a normalized Jira issue block in `raw-data.md`):
+**Rendered example** (a normalized Jira issue block in the phase's output artifact):
 
 ```markdown
 ### PROJ-123 — Login returns 500 on empty username
@@ -48,7 +48,7 @@ Per-field branch per SKILL `<collection>` step 3; Jira restricted-gap message: `
 - **Comments (≤10):** 2 shown — @dev (2026-05-01): "repro confirmed on staging"
 ```
 
-## Redaction targets (SKILL `sensitive-data`)
+## Redaction targets
 
 Highest-risk: the **description** and each **comment body** (embed credentials/PII in stack traces and customer reports). Redact per SKILL `<collection>` step 4; structure (feature names, endpoint paths, methods, status codes, field/schema names) stays verbatim.
 
@@ -66,4 +66,4 @@ Highest-risk: the **description** and each **comment body** (embed credentials/P
 - Summary + Description present or in gaps; every empty/restricted required field in gaps.
 - Comment cap ≤10 honored with the overflow gap note when more exist.
 - Custom-field discovery attempted on cryptic `customfield_NNNNN` IDs.
-- Read-only: no **create / update / transition / add-comment** (or equivalent) write call was made.
+- Read-only: none of the forbidden write operations (see Operations) was called.

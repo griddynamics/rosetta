@@ -1,6 +1,6 @@
-# API-QA config interview (asset of the `qa-structure` skill)
+# API-QA config interview
 
-Verbatim user-prompt interview asked at QA Phase 0 when the project config does not yet exist.
+Verbatim user-prompt interview asked when the project config does not yet exist.
 
 <api-qa-config-interview>
 

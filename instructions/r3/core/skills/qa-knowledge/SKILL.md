@@ -34,13 +34,13 @@ Router -- ACQUIRE FROM KB the one your current step needs (point-of-use, never a
 | emit the QA api-analysis artifact | `qa-knowledge/assets/api-analysis-template.md` |
 | emit QA test specs (Given-When-Then `ATC-NNN`) | `qa-knowledge/assets/test-spec-template.md` |
 | record the API-QA test-implementation | `qa-knowledge/assets/api-qa-test-impl-record.md` |
-| emit the QA execution report | `qa-knowledge/assets/execution-report-template.md` |
+| emit the API-QA execution report | `qa-knowledge/assets/failure-report-template.md` |
 | record QA gap-analysis findings (G/C/A) | `qa-knowledge/assets/gap-finding-templates.md` |
 | build the UI-QA test plan | `qa-knowledge/assets/ui-qa-plan-template.md` |
 | emit the UI-QA code-analysis report | `qa-knowledge/assets/code-analysis-report-template.md` |
 | run UI-QA clarification (gap entry / questions / typed assertions) | `qa-knowledge/assets/ui-qa-clarification-templates.md` |
 | record the UI-QA test-implementation | `qa-knowledge/assets/ui-qa-test-impl-record.md` |
-| emit the UI-QA failure analysis | `qa-knowledge/assets/failure-analysis-template.md` |
+| emit the UI-QA failure analysis | `qa-knowledge/assets/failure-report-template.md` |
 | send the page-source capture message to the user | `qa-knowledge/assets/page-source-capture-instructions.md` |
 | classify a QA backend-API failure | `qa-knowledge/references/api-qa-failure-taxonomy.md` |
 | classify an UI-QA UI/E2E failure | `qa-knowledge/references/ui-qa-failure-taxonomy.md` |

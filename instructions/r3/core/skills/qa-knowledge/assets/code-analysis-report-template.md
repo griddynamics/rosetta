@@ -4,13 +4,13 @@ UI-QA code-analysis report skeleton (9 sections) plus the test-location decision
 
 <code-analysis-report-template>
 
-`ui-qa-<test-name>-code-analysis.md` -- non-empty, this **9-section structure** (every section present; empty optional → `not available -- see Coverage section`). Structure (framework names, file paths, selector attribute names, schema/field names) stays verbatim; redact sensitive **values** only, via `sensitive-data`.
+`plans/ui-qa-<test-name>/code-analysis.md` -- non-empty, this **9-section structure** (every section present; empty optional → `not available -- see Coverage section`). Structure (framework names, file paths, selector attribute names, schema/field names) stays verbatim; redact sensitive **values** only, via `sensitive-data`.
 
 ```markdown
 # Code Analysis -- <test-name>
 
 **Generated:** <YYYY-MM-DD>
-**Test plan:** plans/ui-qa-<test-name>.md
+**Test plan:** plans/ui-qa-<test-name>/test-plan.md
 **Sources:**
 - project_description.md: [read | missing]
 - CONTEXT.md / ARCHITECTURE.md / IMPLEMENTATION.md: [list read | missing]

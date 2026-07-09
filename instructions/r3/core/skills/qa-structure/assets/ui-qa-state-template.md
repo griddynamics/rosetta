@@ -1,10 +1,10 @@
-# UI-QA state-file template (asset of the `qa-structure` skill)
+# UI-QA state-file template
 
-UI-QA state-file template -- initialized at Phase 1 and updated by every later phase.
+UI-QA state-file template -- initialized by the first phase and updated by every later phase.
 
 <ui-qa-state-template>
 
-`agents/TEMP/<FEATURE>/ui-qa-state.md` -- initialized at Phase 1 (first phase to write it), updated by every later phase:
+`agents/TEMP/<FEATURE>/ui-qa-state.md` -- initialized by the first phase to write it, updated by every later phase:
 
 ```markdown
 # UI-QA State - <Test Name>
@@ -31,11 +31,11 @@ Resume anchor — full per-phase detail lives in each phase's own artifacts; rec
 
 | Artifact / fact | Value |
 |---|---|
-| Plan file (Phases 1–2) | `plans/ui-qa-<test-name>.md` |
-| Code analysis (Phase 3) | `plans/ui-qa-<test-name>-code-analysis.md` |
-| Page sources (Phase 4) | `plans/ui-qa-<test-name>-page-sources/` |
+| Plan file (Phases 1–2) | `plans/ui-qa-<test-name>/test-plan.md` |
+| Code analysis (Phase 3) | `plans/ui-qa-<test-name>/code-analysis.md` |
+| Page sources (Phase 4) | `plans/ui-qa-<test-name>/page-sources/` |
 | Test file(s) (Phase 6) | [paths, or `TBD`] |
-| Failure analysis (Phase 7) | [`plans/ui-qa-<test-name>-failure-analysis.md` once produced, or `N/A — 0 failures`] |
+| Failure analysis (Phase 7) | [`plans/ui-qa-<test-name>/failure-analysis.md` once produced, or `N/A — 0 failures`] |
 | Root causes (Phase 7) | [one line per confirmed root cause; `None` when 0 failures; full detail in the failure-analysis artifact] |
 | HITL approvals | [one line per gate — approving phase + ISO timestamp, e.g. `Phase 2 / 2026-… (answers)`, `Phase 8 / 2026-… (corrections)`; or `N/A`] |
 

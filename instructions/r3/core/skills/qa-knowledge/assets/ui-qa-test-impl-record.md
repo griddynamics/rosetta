@@ -4,7 +4,7 @@ UI-QA Test Implementation record -- appended to the test plan after authoring.
 
 <ui-qa-test-impl-record>
 
-**Append to** `plans/ui-qa-<test-name>.md` -- the test-plan file (same `<test-name>` slug used throughout the UI-QA run).
+**Append to** `plans/ui-qa-<test-name>/test-plan.md` -- the test-plan file (same `<test-name>` slug used throughout the UI-QA run).
 
 **Inputs required:** the test plan's Explicit Assertions, the test file path, the page objects used, and any user-instruction-vs-repo-doc conflicts encountered.
 
