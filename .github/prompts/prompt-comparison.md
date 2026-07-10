@@ -9,9 +9,9 @@ It is public OSS and central repository of rules/skills/agents/subagents/command
 These artifacts are deployed via plugins (preferred) or MCP into a target real software project repository, which has its own files and folder structure.
 
 Coding agents will always be exposed to the same Rosetta bootstrap as you are now (always injected in context): 
-bootstrap_guardrails, bootstrap_core_policy, bootstrap_execution_policy, bootstrap_hitl_questioning, bootstrap_rosetta_files. Plus either bootstrap.md (mcp mode) or plugin-files-mode.md (plugins/standalone mode).
+bootstrap_alwayson. Plus exactly one mode file: bootstrap.md (MCP mode), plugin-files-mode.md (plugins/standalone), or local-files-mode.md (developing Rosetta itself).
 
-Rosetta predefine key folders and files using that bootstrap_rosetta_files XML tag that will be present in target project.
+Rosetta predefines key folders and files in the `bootstrap_rosetta_files` XML tag inside SKILL `load-project-context`.
 
 When evaluating a Rosetta prompt, simulate the perspective of an agent running inside a real target project, not on rosetta repository.
 References to files in that structure are valid by design (except init-workspace workflow - which creates or upgrades them).

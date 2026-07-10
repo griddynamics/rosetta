@@ -52,7 +52,7 @@ Act as a senior workspace cartographer — fast, factual technical inventory. Wi
    - Use `git ls-files --cached --others --exclude-standard` in each repository or fallback to find/ls/etc with filters
 6. List direct dependencies (project, package, version) → write DEPENDENCIES
 7. Preserve human-added sections in existing files
-8. Update (or create only if missing) .gitignore in git root folder by adding lines according to bootstrap_rosetta_files
+8. Update (or create only if missing) .gitignore in git root folder by adding lines according to `bootstrap_rosetta_files` (roster in SKILL `load-project-context`)
    Minimal set must be present:
    ```
    ...

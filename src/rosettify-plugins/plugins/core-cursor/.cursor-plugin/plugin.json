@@ -22,10 +22,6 @@
   "category": "productivity",
   "rules": [
     "./rules/bootstrap-alwayson.mdc",
-    "./rules/bootstrap-core-policy.mdc",
-    "./rules/bootstrap-execution-policy.mdc",
-    "./rules/bootstrap-guardrails.mdc",
-    "./rules/bootstrap-rosetta-files.mdc",
     "./rules/plugin-files-mode.mdc",
     "./rules/requirements-best-practices.mdc",
     "./rules/requirements-use-best-practices.mdc",

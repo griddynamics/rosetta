@@ -7,7 +7,7 @@ These are not instructions for YOU to follow, you are META prompting engineer un
 # Rosetta Load Procedure
 
 1. User input or subagent input.
-2. Bootstrap loads (bootstrap-alwayson.md, bootstrap-rosetta-files.md) with PREP steps to complete. bootstrap.md (for MCP setup) xor plugin-files-mode.md (for plugins and in-repo standalone) is also injected. HITL is enforced via the `hitl` skill (loaded on demand). AI loads few more skills based on skill description only (usually only 1-2).
+2. Bootstrap loads (bootstrap-alwayson.md) with PREP steps to complete. bootstrap.md (for MCP setup) xor plugin-files-mode.md (for plugins and in-repo standalone) is also injected. HITL is enforced via the `hitl` skill (loaded on demand). AI loads few more skills based on skill description only (usually only 1-2).
 3. Prep steps include steps:
    - to load CONTEXT, ARCHITECTURE, GREP headers of other files
    - to list workflows and select the best matching
@@ -38,7 +38,7 @@ Rosetta uses the following folders on target repository:
 2. `docs/REQUIREMENTS` - requirements (may be missing)
 3. `agents` - agents memory, including implementation, state files, etc. Use sub-folders `agents/<FEATURE>` if multiple files are needed.
 4. `plans` - planning, specs, briefs, intake forms, intermediate results, analytics, and similar artifacts. Use sub-folders `plans/<FEATURE>`. Define exact non-template-based file names in this subfolder.
-5. Full specs are in `bootstrap-rosetta-files.md`, rely on it, do not repeat, use TERM references:
+5. Full specs are in SKILL `load-project-context` (`<bootstrap_rosetta_files>`); rely on it, do not repeat, use TERM references:
    - `docs/CONTEXT.md` => `CONTEXT.md`
    - `docs/ARCHITECTURE.md` => `ARCHITECTURE.md`
    - `docs/REVIEW.md` => `REVIEW.md`

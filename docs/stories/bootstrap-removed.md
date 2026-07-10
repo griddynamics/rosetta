@@ -820,3 +820,47 @@ Receiving a user request → immediately writing code, files, scripts, or comman
 
 </rosetta:bootstrap_execution_policy>
 ```
+
+### `bootstrap-rosetta-files` rule (r3) — dissolved (roster lives in `load-project-context`)
+- **Source:** `instructions/r3/core/rules/bootstrap-rosetta-files.md` (entire rule).
+- **Disposition:** `COMPRESSED-into-load-project-context` (`<bootstrap_rosetta_files>` section — same tag name kept; full 19-item roster preserved compressed).
+- **Rationale:** alwayson-only ruling — the file roster is needed when loading context, not on every request; `load-project-context` is enforced early (plan step `s-read-docs`). Refs swapped: `init-workspace-flow-context`/`-discovery` now point the `bootstrap_rosetta_files` tag at SKILL `load-project-context`; `pa-rosetta.md` (bootstrap list + "full specs" pointer) and `pa-rosetta-intro-for-AI.md` (list + XML-tag sentence) updated. Build source: `CODEX_PLUGIN_ROOT_COMMAND` workspace-root sentinel switched `.agents/rules/bootstrap-rosetta-files.md` → `.agents/rules/plugin-files-mode.md` (present in BOTH r2 and r3 output; codex test updated); Cursor seed `plugin.json` `rules[]` pruned to the r3 set (dead `.mdc` entries removed: core-policy, execution-policy, guardrails, rosetta-files); `BOOTSTRAP_MANIFEST_ORDER` entry + copilot exclude kept (content-agnostic; still serve r2).
+
+```
+---
+name: bootstrap-rosetta-files
+description: Defines workspace rosetta files.
+alwaysApply: true
+applyTo: "**"
+trigger: always_on
+tags: ["rosetta-bootstrap", "rosetta", "policy"]
+baseSchema: docs/schemas/rule.md
+---
+
+<bootstrap_rosetta_files compact="NEVER" optimize="NEVER" summarize="AS-IS">
+
+All rosetta files below: SRP, DRY, MECE, very concise. Each file starts with a self-describing sentence of its purpose. Grep-friendly topical headers. Headers include status. No explicit ToC. All committed to SCM unless stated otherwise.
+It must be possible to grep by headers and receive useful information and ToC.
+
+1. `gain.json` defines and overrides general SDLC setup and locations of Rosetta files; this file wins in conflicts.
+2. `docs/CONTEXT.md`. Business and overall context, target state only, no technical details, no change log, no explanation of changes.
+3. `docs/ARCHITECTURE.md`. Architecture, and all technical requirements. Modules, workspace structure, testing architecture, styling, building blocks, etc.
+4. `docs/TODO.md`. Improvements, suggestions, large TODOs, etc. Create if missing.
+5. `docs/ASSUMPTIONS.md`. Assumptions, Unknowns, etc.
+6. `docs/TECHSTACK.md`. Tech stack of all modules.
+7. `docs/DEPENDENCIES.md`. Dependencies of all modules.
+8. `docs/CODEMAP.md`. Code map of the workspace.
+9. `docs/REQUIREMENTS/*`. Original requirements. May be missing. `docs/REQUIREMENTS/INDEX.md` is index. `docs/REQUIREMENTS/CHANGES.md` is change log.
+10. `docs/PATTERNS/*`. Coding and architectural patterns. May be missing. `docs/PATTERNS/INDEX.md` is index. `docs/PATTERNS/CHANGES.md` is change log.
+11. `agents/IMPLEMENTATION.md`. Current state of implementation very concise. Structure to prevent git conflicts. The only implementation change log.
+12. `agents/MEMORY.md`. Very brief root causes of errors and mistakes, brief actions tried and actions succeeded, both positive and negative. Create if missing.
+13. `plans/<FEATURE>/<FEATURE>-PLAN.md`. Execution plan.
+14. `plans/<FEATURE>/<FEATURE>-SPECS.md`. Tech specs.
+15. `plans/<FEATURE>/plan.json`. Operation manager execution tracking file.
+16. `plans/<FEATURE>/*`. Feature implementation supporting files.
+17. `refsrc/*`. Source code used only for knowledge! Exclude from SCM with single exception `refsrc/INDEX.md` to be committed.
+18. `agents/TEMP/<FEATURE>`. Temporary folder used during feature implementation. Exclude `agents/TEMP` from SCM.
+19. `docs/raw`. Folder with raw input files for requirements.
+
+</bootstrap_rosetta_files>
+```
