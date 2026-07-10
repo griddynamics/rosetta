@@ -132,7 +132,7 @@ The `Rosetta-v3-skill-refactoring-Main.drawio` diagram is authoritative; its tru
 
 ✅ `load-context`→`load-project-context` swept (all r3 sites incl. shell-schema templates; skill removed). ✅ `orchestrator-contract`→`orchestration`, `subagent-contract`→`subagent-directives`, `operation-manager` skill dissolved. Remaining sweep items:
 - ✅ `OPERATION_MANAGER` eliminated from r3: 8 workflow prereq lines → `MUST use todo tasks for reliability`; `adhoc-flow` → `MUST USE SKILL orchestration FULLY` + both assets, and its stale `plan-manager` names → EXECUTION_CONTROLLER; template step `ph-prep-s-load-workflow` deleted with its `rosetta` mention (FR-PLAN-0035 + asset + src + tests updated, 447 pass).
-- **Queued: token-compression pass** — `bootstrap-alwayson`, the 3 mode files, `orchestration/SKILL.md`: terse phrases, unicode chars, terms, abbreviations (compression subagent; zero semantic loss).
+- **Queued: token-compression pass** — `bootstrap-alwayson`, the 3 mode files, `orchestration/SKILL.md`, `hitl/SKILL.md`: terse phrases, unicode chars, terms, abbreviations (compression subagent; zero semantic loss). While at `hitl`: also fix its stale description (see Queued checks).
 - **Rename `bootstrap.md` → `mcp-files-mode.md`** — and fix all references (docs, website, `.github/prompts`, pa-* contract docs, bootstrap-manifest/targets when r3 regen lands) — by the end.
 - Verb vocabulary (`ACQUIRE`→`READ`/`APPLY`, below) is a separate, later pass.
 
@@ -203,6 +203,15 @@ Command aliases are written once, mode-agnostically, in every skill/workflow. Ex
 - **Local / in-repo dev mode → `local-files-mode.md`**: aliases bind to literal local reads from the `instructions/r*` folder (developing Rosetta itself).
 
 Call sites never branch on mode. The alias vocabulary is a **closed contract**: every alias used anywhere must be bound by all three mode files, or it breaks in that mode. Defining and policing that finite set is part of this work.
+
+## Queued checks & small inconsistencies (document ALL of them, however small)
+
+- **Prep-steps canonicalization check** — prep = exactly the **3 canonical actions** (`get_context_instructions` → SKILL `load-project-context` → SKILL `hitl`), bound per mode file (plugin binds 2 — its step 1 is a no-op, rules already loaded). Every reference must say **`Rosetta Prep Steps`** — no step numbering, no variants. Known offenders:
+  - `hitl` description: "load as Prep Step 3 Step 2 — immediately after orchestration, right before loading any workflow" — stale numbering AND stale workflow-loading assumption (workflow loading is user-only now); fix during the compression pass.
+  - `pa-rosetta.md` §2–3: "PREP steps to complete" + "Prep steps include steps:" — verify the list names exactly the 3 canonical actions and the current always-on set.
+  - Non-canonical phrasings: `requirements-authoring-flow.md` "PREP steps completed before discovery" · `requirements-authoring/SKILL.md` "Prep steps completed".
+  - 39 files already use the canonical `Rosetta prep steps` phrase — the sweep is wording-only, no behavior change.
+- **Subagent descriptions token-compression check** — review `agents/*.md` frontmatter descriptions and LLM-compress if useful (terse phrases, terms, abbreviations). They are already ~10–14 words each; gain may be marginal — decide per file; keep the `Full/Lightweight subagent` suffix (orchestrator routing signal).
 
 ✅ **`Rosetta prep steps` bound per mode** — the ~25 `All Rosetta prep steps MUST be FULLY completed` callers are now actionable everywhere: each mode file carries a `# Rosetta Prep Steps` section (execute in order, once per session). MCP = `get_context_instructions` (blocking) → SKILL `load-project-context` → SKILL `hitl` · plugin = SKILL `load-project-context` → SKILL `hitl` (always-on rules auto-loaded) · local = exact file refs (`rules/bootstrap-alwayson.md`, `skills/load-project-context/SKILL.md`, `skills/hitl/SKILL.md`); local `execute prep steps` alias rebound to this section. Part of the closed alias contract.
 
