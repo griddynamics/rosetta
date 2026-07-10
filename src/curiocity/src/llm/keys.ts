@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { providers } from './providers';
+import { ConfigError } from '../shared/errors';
 
 /**
  * LLM key resolution (§4/§12). Resolved ONCE at orchestrator startup, held in
@@ -13,8 +14,10 @@ import { providers } from './providers';
  * working directory — i.e. wherever the CLI was invoked from.
  *
  * IMPORTANT: this module deliberately reads `.env`, but NEVER logs a value and
- * never returns anything but the provider→key map. Callers must keep it out of logs
- * (a masking helper is in `shared/mask.ts`).
+ * never returns anything but provider-scoped config maps. Callers must keep secrets
+ * out of logs (a masking helper is in `shared/mask.ts`). Base URL resolution uses
+ * the same source-tier precedence: process env first, then cwd `.env`, with name
+ * precedence within each source.
  */
 
 /** Default `.env` location: `.env` in the invoking process's cwd. */
@@ -63,6 +66,29 @@ export interface ResolveKeysOptions {
   envFilePath?: string | null;
 }
 
+export type ResolveBaseUrlsOptions = ResolveKeysOptions;
+
+function firstDefined(source: Record<string, string | undefined>, names: string[]): string | undefined {
+  for (const name of names) {
+    const v = source[name];
+    if (typeof v === 'string' && v.length > 0) return v;
+  }
+  return undefined;
+}
+
+function validateBaseUrl(value: string, sourceName: string, provider: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new ConfigError(`${sourceName} for provider "${provider}" must be a valid http(s) URL, got "${value}".`);
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new ConfigError(`${sourceName} for provider "${provider}" must use http:// or https://, got "${value}".`);
+  }
+  return value;
+}
+
 /**
  * Resolve provider → api key for every known provider that has one available.
  * Providers with no resolvable key are simply omitted (a run only fails if a role
@@ -81,14 +107,6 @@ export function resolveKeys(opts: ResolveKeysOptions = {}): Record<string, strin
   const fileEnv =
     opts.envFilePath === null ? {} : loadEnvFile(opts.envFilePath ?? defaultEnvFilePath());
 
-  const firstDefined = (source: Record<string, string | undefined>, names: string[]): string | undefined => {
-    for (const name of names) {
-      const v = source[name];
-      if (typeof v === 'string' && v.length > 0) return v;
-    }
-    return undefined;
-  };
-
   const keys: Record<string, string> = {};
   for (const [provider, factory] of Object.entries(providers)) {
     const names = [`CURIOCITY_${provider.toUpperCase()}_KEY`, ...factory.standardKeyEnvVars];
@@ -96,4 +114,42 @@ export function resolveKeys(opts: ResolveKeysOptions = {}): Record<string, strin
     if (key !== undefined) keys[provider] = key;
   }
   return keys;
+}
+
+/**
+ * Resolve provider → base URL for every known provider that has one configured.
+ *
+ * Name precedence within each source:
+ *   CURIOCITY_<PROVIDER>_BASE_URL → <PROVIDER>_BASE_URL → CURIOCITY_BASE_URL
+ *
+ * `CURIOCITY_BASE_URL` intentionally fans out to every provider. It is for
+ * multi-provider gateways (for example Bifrost) that expose Anthropic/OpenAI-style
+ * routes behind one origin; use provider-specific vars when providers need
+ * different origins.
+ *
+ * Source precedence matches `resolveKeys`: process.env is exhausted first, then
+ * the `.env` file is consulted with the same name order. Resolved values are
+ * validated here so malformed URLs fail before TrialSpecs/child workers are built.
+ */
+export function resolveBaseUrls(opts: ResolveBaseUrlsOptions = {}): Record<string, string> {
+  const env = opts.env ?? process.env;
+  const fileEnv =
+    opts.envFilePath === null ? {} : loadEnvFile(opts.envFilePath ?? defaultEnvFilePath());
+
+  const baseUrls: Record<string, string> = {};
+  for (const provider of Object.keys(providers)) {
+    const upper = provider.toUpperCase();
+    const names = [`CURIOCITY_${upper}_BASE_URL`, `${upper}_BASE_URL`, 'CURIOCITY_BASE_URL'];
+    for (const source of [env, fileEnv]) {
+      const sourceName = names.find((name) => {
+        const value = source[name];
+        return typeof value === 'string' && value.length > 0;
+      });
+      if (sourceName !== undefined) {
+        baseUrls[provider] = validateBaseUrl(source[sourceName]!, sourceName, provider);
+        break;
+      }
+    }
+  }
+  return baseUrls;
 }

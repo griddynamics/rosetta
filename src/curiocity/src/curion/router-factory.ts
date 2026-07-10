@@ -50,7 +50,7 @@ export function buildRouter(spec: TrialSpec, meter: CostMeter): ModelRouter {
   if (spec.fakeRouter) {
     inner = new FakeModelRouter(spec.fakeRouter);
   } else if (models.fast && models.workhorse) {
-    inner = new RealModelRouter({ models, keys: spec.keys });
+    inner = new RealModelRouter({ models, keys: spec.keys, baseUrls: spec.baseUrls });
   } else {
     inner = new UnavailableRouter();
   }

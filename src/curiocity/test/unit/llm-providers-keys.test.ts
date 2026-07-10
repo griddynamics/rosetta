@@ -3,7 +3,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { getProvider, parseModelRef, providers } from '../../src/llm/providers';
-import { defaultEnvFilePath, parseDotEnv, resolveKeys } from '../../src/llm/keys';
+import { defaultEnvFilePath, parseDotEnv, resolveBaseUrls, resolveKeys } from '../../src/llm/keys';
+import { trialSpecSchema } from '../../src/shared/ipc';
 import { ConfigError } from '../../src/shared/errors';
 
 describe('provider map (§5.6)', () => {
@@ -44,6 +45,16 @@ describe('provider map (§5.6)', () => {
     expect(model.provider).toMatch(/^openai/);
   });
 
+  it('passes a baseURL into the real @ai-sdk/openai client offline', () => {
+    const model = providers.openai.model('gpt-4o-mini', 'sk-test-not-real', 'https://bifrost.example/openai') as unknown as {
+      config: { url(args: { path: string; modelId: string }): URL };
+      modelId: string;
+    };
+    expect(String(model.config.url({ path: '/v1/responses', modelId: model.modelId }))).toBe(
+      'https://bifrost.example/openai/v1/responses',
+    );
+  });
+
   it('constructs a real @ai-sdk/anthropic client offline for comparison (same contract both providers)', () => {
     const model = providers.anthropic.model('claude-sonnet-4-6', 'sk-test-not-real') as unknown as {
       modelId: string;
@@ -51,6 +62,15 @@ describe('provider map (§5.6)', () => {
     };
     expect(model.modelId).toBe('claude-sonnet-4-6');
     expect(model.provider).toMatch(/^anthropic/);
+  });
+
+  it('passes a baseURL into the real @ai-sdk/anthropic client offline', () => {
+    const model = providers.anthropic.model(
+      'claude-sonnet-4-6',
+      'sk-test-not-real',
+      'https://bifrost.example/anthropic',
+    ) as unknown as { config: { baseURL: string } };
+    expect(model.config.baseURL).toBe('https://bifrost.example/anthropic');
   });
 });
 
@@ -113,5 +133,111 @@ describe('key resolution (§12)', () => {
     const keys = resolveKeys({ env: {}, envFilePath: envFile });
     expect(keys.anthropic).toBe('sk-curio-from-file');
     expect(keys.openai).toBe('sk-standard-from-file');
+  });
+});
+
+describe('base URL resolution (§12/Bifrost)', () => {
+  it('fans CURIOCITY_BASE_URL out to every provider for multi-provider gateways like Bifrost', () => {
+    const baseUrls = resolveBaseUrls({
+      env: { CURIOCITY_BASE_URL: 'https://bifrost.example/gateway' },
+      envFilePath: null,
+    });
+
+    expect(baseUrls).toEqual(
+      Object.fromEntries(Object.keys(providers).map((provider) => [provider, 'https://bifrost.example/gateway'])),
+    );
+  });
+
+  it('prefers CURIOCITY_<PROVIDER>_BASE_URL over <PROVIDER>_BASE_URL over CURIOCITY_BASE_URL', () => {
+    const baseUrls = resolveBaseUrls({
+      env: {
+        CURIOCITY_ANTHROPIC_BASE_URL: 'https://curio-anthropic.example',
+        ANTHROPIC_BASE_URL: 'https://anthropic.example',
+        CURIOCITY_BASE_URL: 'https://global.example',
+      },
+      envFilePath: null,
+    });
+    expect(baseUrls.anthropic).toBe('https://curio-anthropic.example');
+    expect(baseUrls.openai).toBe('https://global.example');
+  });
+
+  it('falls back to the .env file with the same name order when env has no base URL', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'curio-env-'));
+    const envFile = join(dir, '.env');
+    writeFileSync(
+      envFile,
+      [
+        'CURIOCITY_BASE_URL=https://file-global.example',
+        'OPENAI_BASE_URL=https://file-openai.example',
+        'CURIOCITY_ANTHROPIC_BASE_URL=https://file-anthropic.example',
+      ].join('\n'),
+    );
+
+    const baseUrls = resolveBaseUrls({ env: {}, envFilePath: envFile });
+    expect(baseUrls.anthropic).toBe('https://file-anthropic.example');
+    expect(baseUrls.openai).toBe('https://file-openai.example');
+  });
+
+  it('a live env base URL outranks a stale provider-specific .env value', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'curio-env-'));
+    const envFile = join(dir, '.env');
+    writeFileSync(envFile, 'CURIOCITY_OPENAI_BASE_URL=https://stale-file.example\n');
+
+    const baseUrls = resolveBaseUrls({
+      env: { OPENAI_BASE_URL: 'https://live-env.example' },
+      envFilePath: envFile,
+    });
+    expect(baseUrls.openai).toBe('https://live-env.example');
+  });
+
+  it('throws ConfigError for malformed resolved base URLs before building clients', () => {
+    expect(() =>
+      resolveBaseUrls({
+        env: { OPENAI_BASE_URL: 'not a url' },
+        envFilePath: null,
+      }),
+    ).toThrow(ConfigError);
+  });
+
+  it('throws ConfigError for non-http(s) resolved base URLs', () => {
+    expect(() =>
+      resolveBaseUrls({
+        env: { CURIOCITY_BASE_URL: 'ftp://bifrost.example' },
+        envFilePath: null,
+      }),
+    ).toThrow(/http:\/\/ or https:\/\//);
+  });
+
+  it('TrialSpec IPC carries baseUrls and defaults to an empty map', () => {
+    const withBaseUrls = trialSpecSchema.parse({
+      agentId: 'a',
+      caseName: 'c',
+      repeat: 1,
+      timeoutSec: 1,
+      prompt: 'p',
+      qna: 'q',
+      models: {},
+      keys: {},
+      baseUrls: { openai: 'https://bifrost.example/openai' },
+      profile: {},
+      adapter: 'mock',
+      runDir: '/tmp/run',
+    });
+    expect(withBaseUrls.baseUrls.openai).toBe('https://bifrost.example/openai');
+
+    const withoutBaseUrls = trialSpecSchema.parse({
+      agentId: 'a',
+      caseName: 'c',
+      repeat: 1,
+      timeoutSec: 1,
+      prompt: 'p',
+      qna: 'q',
+      models: {},
+      keys: {},
+      profile: {},
+      adapter: 'mock',
+      runDir: '/tmp/run',
+    });
+    expect(withoutBaseUrls.baseUrls).toEqual({});
   });
 });

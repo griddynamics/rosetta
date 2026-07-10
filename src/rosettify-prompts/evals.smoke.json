@@ -7,8 +7,23 @@
   "suites": [
     {
       "id": "smoke",
+      "eval": {
+        "assertions": [
+          {
+            "id": "answers-four",
+            "text": "The final reply states that 2+2 equals 4.",
+            "rubric": "Pass if the answer clearly contains 4 as the result; fail otherwise."
+          },
+          {
+            "id": "short-answer",
+            "text": "The final reply is one short sentence.",
+            "rubric": "Pass if the answer is a single short sentence; partial if concise but not a sentence; fail if verbose."
+          }
+        ]
+      },
       "variants": [
         { "id": "think", "turns": ["MUST ONLY think and chat compressed/terse/unicode chars/terms/always no hieroglyphs; Exclude artifacts, tool calls, code, etc.", "In one short sentence, what is 2+2?"] },
+        { "id": "think-reason-plan-chat", "turns": ["MUST ONLY think, reason, plan, and chat in compressed/terse/unicode chars/terms/always no hieroglyphs - exclude artifacts, any tool calls, all code, etc.", "In one short sentence, what is 2+2?"] },
         { "id": "none", "turns": ["In one short sentence, what is 2+2?"] }
       ]
     }

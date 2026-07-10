@@ -48,3 +48,6 @@
 - coding-agents-hooks-authoring
 - specflow-use
 - rosetta
+- data-collection
+- qa-knowledge
+- qa-structure

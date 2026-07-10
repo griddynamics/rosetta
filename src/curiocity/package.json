@@ -1,6 +1,6 @@
 {
   "name": "curiocity",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Evals/testing harness that drives interactive coding-agent CLIs over a real PTY.",
   "type": "module",
   "license": "Apache-2.0",

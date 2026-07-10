@@ -56,6 +56,22 @@ describe('RealModelRouter (injected SDK, no network)', () => {
     expect(seen[0]).toMatchObject({ hasModel: true, system: 'sys', prompt: 'p' });
   });
 
+  it('passes the resolved provider base URL into the constructed model client', async () => {
+    let seenBaseURL: string | undefined;
+    const router = new RealModelRouter({
+      models: MODELS,
+      keys: KEYS,
+      baseUrls: { anthropic: 'https://bifrost.example/anthropic', openai: 'https://bifrost.example/openai' },
+      generateText: async (args) => {
+        seenBaseURL = (args.model as unknown as { config?: { baseURL?: string } }).config?.baseURL;
+        return { text: 'hi' };
+      },
+    });
+
+    await router.generateText('fast', { prompt: 'p' });
+    expect(seenBaseURL).toBe('https://bifrost.example/anthropic');
+  });
+
   it('decomposes the REAL installed AI SDK usage shape (§12 disjointness, orchestrator finding)', async () => {
     // The installed `ai`/`@ai-sdk/anthropic` packages report `inputTokens`/`outputTokens`
     // as CACHE/REASONING-INCLUSIVE totals, with the disjoint breakdown nested under

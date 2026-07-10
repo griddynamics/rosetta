@@ -166,6 +166,8 @@ The **agent's own model/effort** is a separate dimension from the harness roles:
 
 **Keys.** Resolved once at startup, held in memory, shipped to workers over IPC, masked in logs, never written to disk. Per provider, precedence is `CURIOCITY_<PROVIDER>_KEY` then the provider-standard var (e.g. `ANTHROPIC_API_KEY`), checked first in the environment, then in a `.env` file in the current working directory. A provider with no key is fine unless a role actually needs it.
 
+**Base URLs.** Optional provider base URLs use the same source precedence and are validated as `http://` or `https://` before any trial starts. Per provider, precedence is `CURIOCITY_<PROVIDER>_BASE_URL`, then `<PROVIDER>_BASE_URL`, then `CURIOCITY_BASE_URL`. `CURIOCITY_BASE_URL` intentionally fans out to every provider for multi-provider gateways like Bifrost; use provider-specific vars when providers need different origins or route prefixes.
+
 ## Stats
 
 Computed per `(case × agent)` group and suite-wide, from stored trial JSON (so `report` applies new stats retroactively):

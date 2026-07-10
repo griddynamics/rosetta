@@ -46,6 +46,8 @@ export interface RunSuiteArgs {
   mirror: boolean;
   /** Provider → api key, resolved once at orchestrator startup (§4/§12). */
   keys?: Record<string, string>;
+  /** Provider → base URL, resolved once at orchestrator startup (§4/§12/Bifrost). */
+  baseUrls?: Record<string, string>;
   /** Opaque config snapshot stored in suite.json. */
   configSnapshot: unknown;
   onLog?: (msg: string, fields?: Record<string, unknown>) => void;
@@ -87,6 +89,7 @@ export async function runSuite(args: RunSuiteArgs): Promise<RunSuiteResult> {
     keepWorkspace: args.keepWorkspace,
     mirror: args.mirror,
     keys: args.keys ?? {},
+    baseUrls: args.baseUrls ?? {},
   });
 
   const trials: TrialResult[] = [];

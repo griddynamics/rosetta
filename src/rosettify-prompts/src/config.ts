@@ -29,6 +29,17 @@ const variantSchema = z.object({
   turns: z.array(z.string().min(1)).min(1),
 });
 
+const evalAssertionSchema = z.object({
+  id: z.string().min(1),
+  text: z.string().min(1),
+  rubric: z.string().min(1).optional(),
+});
+
+const evalSchema = z.object({
+  judgePrompt: z.string().min(1).optional(),
+  assertions: z.array(evalAssertionSchema).min(1),
+});
+
 const suiteSchema = z.object({
   id: z.string().min(1),
   description: z.string().optional(),
@@ -36,6 +47,7 @@ const suiteSchema = z.object({
   maxOutputTokens: z.number().int().positive().optional(),
   thinking: thinkingSchema.optional(),
   repetitions: z.number().int().positive().optional(),
+  eval: evalSchema.optional(),
   variants: z.array(variantSchema).min(1),
 });
 
@@ -84,6 +96,13 @@ export function parseConfig(raw: unknown): BenchConfig {
         throw new Error(`Suite "${suite.id}": duplicate variant id "${variant.id}".`);
       }
       ids.add(variant.id);
+    }
+    const evalIds = new Set<string>();
+    for (const assertion of suite.eval?.assertions ?? []) {
+      if (evalIds.has(assertion.id)) {
+        throw new Error(`Suite "${suite.id}": duplicate eval assertion id "${assertion.id}".`);
+      }
+      evalIds.add(assertion.id);
     }
   }
   return parsed;
