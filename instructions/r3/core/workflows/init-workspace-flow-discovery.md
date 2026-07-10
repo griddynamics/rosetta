@@ -37,7 +37,7 @@ Act as a senior workspace cartographer — fast, factual technical inventory. Wi
 
 <discovery_process>
 
-1. All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+1. All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 2. Read existing TECHSTACK, CODEMAP, DEPENDENCIES — update if present, create if missing
 3. Detect languages, frameworks, build tools, package managers, runtime environments → write TECHSTACK
 4. Existing documentation may be stale or incomplete, prioritize source code artifacts over pre-existing documents

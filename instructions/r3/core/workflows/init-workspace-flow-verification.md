@@ -37,7 +37,7 @@ Act as a senior workspace initialization auditor. This is the final phase of wor
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 
 </core_concepts>
 
@@ -63,7 +63,7 @@ INIT INTEGRITY:
 11. Composite workspace: top-level docs as registries if composite
 12. File inventory built before creation/update decisions
 13. Shell files: frontmatter + single ACQUIRE, zero inline logic
-14. load-context shell and bootstrap rule installed
+14. load-project-context shell and bootstrap rule installed
 15. Shells match schema — no structural deviations, no absolute paths
 16. docs/PATTERNS/ with INDEX.md; each pattern in 2+ locations; INDEX.md is consistent
 

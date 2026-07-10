@@ -10,7 +10,7 @@ export const forOrchestrator = {
   name: "for-orchestrator",
   brief: "Bootstrap a new plan with the Rosetta orchestrator preparation phase.",
   placeholders: ["plan-name", "plan-description"] as const,
-  produces: "A new plan with one preparation phase (ph-prep) of 4 Rosetta orchestrator bootstrap steps.",
+  produces: "A new plan with one preparation phase (ph-prep) of 3 Rosetta orchestrator bootstrap steps.",
   content: {
     name: "[plan-name]",
     description: "[plan-description]",
@@ -33,14 +33,9 @@ export const forOrchestrator = {
             prompt: "MUST USE SKILL `orchestration` before dispatching any subagents. MUST USE SKILL `hitl` unless explicitly requested in prompt with exactly `No HITL`.",
           },
           {
-            id: "ph-prep-s-load-workflow",
-            name: "Load workflow",
-            prompt: "MUST USE SKILL `rosetta` to select and load the workflow.",
-          },
-          {
             id: "ph-prep-s-add-workflow-phases",
             name: "Add workflow phases",
-            prompt:"Add workflow phases from the loaded workflow into this plan — one plan phase per workflow phase, each with dedicated, detailed, and specific steps. Must add phase to identify request size after intial discovery. Include state-restore and resume steps if applicable.",
+            prompt:"Add phases from the active workflow (the one the user invoked), if any, into this plan — one plan phase per workflow phase, each with dedicated, detailed, and specific steps; no active workflow → derive phases directly from the request. Must add phase to identify request size after initial discovery. Include state-restore and resume steps if applicable.",
           },
         ],
       },

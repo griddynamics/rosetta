@@ -21,7 +21,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 <prerequisites phase="0" applies="ALL">
 
 1. All Rosetta prep steps MUST be FULLY completed
-2. MUST USE OPERATION_MANAGER for deterministic execution
+2. MUST use todo tasks for reliability
 3. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping
 4. Phases are sequential; module analysis in LARGE codebases runs in parallel via SKILL `large-workspace-handling`.
 5. Orchestrator trusts skills to own execution internals; coordinates sequence, artifacts, state, and approvals only.
@@ -39,7 +39,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 1. Read all lines of `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md`; grep headers of `docs/CODEMAP.md`, `docs/TECHSTACK.md`, `docs/DEPENDENCIES.md` if present.
 2. Input: user analysis request. Output: loaded project context + entry points (APIs, webhooks, CLIs, cron jobs).
-3. Recommended skills: `load-context`
+3. Recommended skills: `load-project-context`
 4. Update `code-analysis-flow-state.md`.
 
 </context_load>
@@ -140,7 +140,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 - Skill `large-workspace-handling` — partition 100+ file workspaces; Summarization & Indexing strategy for analysis; parallel subagent dispatch with explicit scope boundaries.
 - Skill `questioning` — batch critical/high MECE questions; safe defaults; persist Q&A.
 - Skill `reasoning` — 7D decomposition for classification and review.
-- Skill `load-context` — load Rosetta project context files.
+- Skill `load-project-context` — load Rosetta project context files.
 - Subagents: `discoverer` (context/scope), `architect` (analysis/summary/requirements), `reviewer` (quality review).
 
 </references>

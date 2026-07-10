@@ -40,7 +40,7 @@ Act as a senior technical writer — recovers intent from code, not transcribes 
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - ACQUIRE `reverse-engineering/SKILL.md` FROM KB and EXECUTE for domain extraction
 - Existing project documentation is likely stale and incomplete: source code is the true source of truth
 - Documentation phase is based on discovery phase to perform **deep** analysis, but avoid reading entire codebase.

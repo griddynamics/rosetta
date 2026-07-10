@@ -19,6 +19,7 @@ Your prompt says `Use EXECUTION_CONTROLLER` with a plan_file (absolute) + target
 - Status enum: `open | in_progress | complete | blocked | failed`.
 - `next` returns four groups: in_progress (`resume=true`) · open eligible · blocked (`previously_blocked=true`) · failed (`previously_failed=true`).
 - `npx -y rosettify@latest help plan` if more information is required.
+- The plan changes outside your view — always pull fresh `next`; never cache steps.
 
 </core_concepts>
 
@@ -52,6 +53,7 @@ Your prompt says `Use EXECUTION_CONTROLLER` with a plan_file (absolute) + target
 - Not checking the `resume` flag on `next` results — causes duplicate work on resumed sessions.
 - Forgetting `update_status` after step completion — plan remains stale.
 - Loading more than one step at a time — breaks the one-`in_progress` discipline.
+- Delegating your prep steps — execute them yourself.
 
 </pitfalls>
 

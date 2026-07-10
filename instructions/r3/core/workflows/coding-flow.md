@@ -20,8 +20,8 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 <prerequisites phase="0" applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
-2. MUST USE OPERATION_MANAGER for deterministic execution
+1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-project-context` loaded and fully executed.
+2. MUST use todo tasks for reliability
 3. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping, if in doubt - select the safest / longest path, no deviation from the workflow is allowed
 4. Phases are sequential. Independent tasks can run in parallel
 5. When debugging is needed, INVOKE SUBAGENT `engineer` with `debugging` skill to save LLM context
@@ -39,7 +39,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 1. Gather project context, affected areas, dependencies, constraints, requirements. SMALL: orchestrator handles inline.
 2. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: `discovery-notes.md` in FEATURE PLAN folder.
-3. Required skills: `load-context`
+3. Required skills: `load-project-context`
 4. Recommended skills: `codemap` (structural project discovery)
 5. If REQUIREMENTS in use: `requirements-use` skill is required.
 6. Additionally request to discover existing libraries, packages, search web for similar problems/tasks (if this make sense)
@@ -186,7 +186,7 @@ Subagents:
 
 Skills:
 
-- `coding`, `testing`, `tech-specs`, `planning`, `reasoning`, `debugging`, `questioning`, `load-context`
+- `coding`, `testing`, `tech-specs`, `planning`, `reasoning`, `debugging`, `questioning`, `load-project-context`
 
 MCPs:
 

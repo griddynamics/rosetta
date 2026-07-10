@@ -20,7 +20,8 @@ The orchestration LARGE band (session-level plan across many files/areas). You b
 - Help: `npx -y rosettify@latest help plan` provides full help JSON — run first to learn which subcommands each model supports.
 - Phases are sequential: steps from a later phase do not appear until all steps in earlier phases are complete.
 - Status propagation: bottom-up only (steps → phases → plan); plan root status is always derived, never set directly.
-- `upsert` silently ignores status fields in patch — only `update_status` modifies status.
+- `upsert` follows RFC 7396: null removes keys, nested objects merge (not replace), scalars replace; status fields in a patch are silently ignored — only `update_status` modifies status.
+- The plan changes outside your view (subagents, upserts) — always pull fresh `next`; never cache steps.
 
 </core_concepts>
 
@@ -28,9 +29,9 @@ The orchestration LARGE band (session-level plan across many files/areas). You b
 
 1. `npx -y rosettify@latest help plan` to confirm available subcommands/models.
 2. Create plan: `plan create-with-template <plan_file> for-orchestrator '<plan-name>' '<plan-description>' '<phase-steps-json>'` — seeds the `ph-prep` phase and appends your actual work steps to it.
-3. Add every new phase via `plan upsert-with-template <plan_file> <phase-id> for-subagent '<phase-name>' '<phase-description>' '<phase-steps-json>'` — seeds the subagent prep steps and appends your actual steps; plain `upsert` only for follow-up steps and patching existing items. Adapt continuously — reorder, re-analyze, add, re-scope as discovery/subagent returns shift reality.
+3. Add every new phase via `plan upsert-with-template <plan_file> <phase-id> for-subagent '<phase-name>' '<phase-description>' '<phase-steps-json>'` — seeds the subagent prep steps and appends your actual steps; plain `upsert` only for follow-up steps and patching existing items. Adapt continuously — reorder, re-analyze, add, re-scope as discovery/subagent returns shift reality. Every plan create/change → output `Plan has been changed: [summary]`.
 4. Delegate a target to a subagent: provide plan_file + phase_id (optionally step_id). Subagent owns that target end-to-end. Decide which phases run in parallel — parallel subagents MUST each own a distinct phase (collision-free).
-5. Loop: `next` → dispatch/execute → `update_status` — until no steps remain.
+5. Loop: `next` → dispatch/execute → `update_status` — not done until `plan_status: complete` AND `count: 0` in `next` output.
 6. Track: `show_status` / `query` for state; clear `blocked`/`failed` steps so subagents can retry.
 7. Close: confirm the plan derives to `complete` (never set root directly), verify via `show_status`/`query`; keep the plan and core Rosetta files current as phases land.
 
@@ -59,6 +60,7 @@ Tasks now live in the EXECUTION_CONTROLLER plan: `Tasks*` contains only phase/st
 <pitfalls>
 
 - Forgetting `update_status` after step completion — plan remains stale.
+- Delegating `ph-prep` steps — every agent executes its own prep, never delegates it.
 - Setting plan root status directly — it is always derived from phases.
 - Setting phase status directly — rejected as `phase_status_is_derived`.
 

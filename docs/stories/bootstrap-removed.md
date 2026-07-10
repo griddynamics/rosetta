@@ -864,3 +864,534 @@ It must be possible to grep by headers and receive useful information and ToC.
 
 </bootstrap_rosetta_files>
 ```
+
+### mode-file shared skeleton — subagent/non-subagent intros, EXTREMELY_IMPORTANT, CRITICAL_RED_FLAGS, OPERATION_MANAGER, Phase 0
+**Source**: `instructions/r3/core/rules/bootstrap.md` (representative verbatim below); identical in `plugin-files-mode.md` (minus EI#9–10, items renumbered −2 from #11 on) and `local-files-mode.md`.
+**Disposition** (per atom; EI numbering per bootstrap.md/local-files-mode.md):
+- Subagent intro #1 (follow orchestrator + OPERATION_MANAGER) — DELETED-as-duplicate of `subagent-directives` process #1–#2 + `s-session-execution-controller.md`.
+- Subagent intro #2 (granular todo tasks) — DELETED-as-duplicate of `bootstrap-alwayson` `<tasks>`.
+- Subagent intro #3 (look around, don't deviate) — MOVED-to-`subagent-directives` (process line).
+- Non-subagent intro #1 + #3 (meta-process engineer / assume senior team lead) — DELETED-as-duplicate of `orchestration` context #2.
+- Non-subagent intro #2 (resume: check workflow state) — DELETED-as-duplicate of `rosetta` process #2.
+- EI#1, #2, #3, #5 (Rosetta-requested / tells-how / no-rationalizing / non-negotiable) — DELETED-as-obsolete: invitation replaces coercion (`/rosetta` seam); nothing left to rationalize against.
+- EI#4 (execute FULLY) — DELETED-as-duplicate of alwayson don't-skip + slash-full-execution + `rosetta` #5 no-phase-skipping.
+- EI#6 (no proceed without context/contracts/workflow) — DELETED-as-duplicate of alwayson never-jump-to-code.
+- EI#7 (load more is safer) — DELETED-as-duplicate of alwayson "Unsure → overdo" + do-not-limit-review.
+- EI#8 (automated agent, do more) — COMPRESSED-into-`bootstrap-alwayson` accuracy bullet (user-approved wording: "you're an automated agent, already fast: don't rush, invest in breadth/depth, double discovery and planning").
+- EI#9, #10 (merge behavior / priorities; bootstrap.md + local-files-mode.md copies) — DELETED-as-duplicate of alwayson (plugin copies archived earlier).
+- EI#11 (knowing ≠ following · coded ≠ fulfilled) — DELETED-as-duplicate of alwayson `<intrinsics>`.
+- EI#12 (skills BEFORE action, even 1%) — COMPRESSED-into-`bootstrap-alwayson` `<skill_engagement_rules>` as mental hook.
+- EI#13 (MUST ALWAYS OPERATION_MANAGER, top critical guardrail) — DELETED-as-obsolete: contradicts decided EC-is-LARGE-only sizing; phrase "not planning — execution control" salvaged into `orchestration` LARGE band.
+- EI#14 (tasks as first/second tool call) — COMPRESSED-into-`bootstrap-alwayson` `<tasks>` ("as one of your very first tool calls").
+- EI#15 (WHAT not HOW, reverse-engineer intent) — DELETED-as-duplicate of `o-team-manager.md` "Reconstruct intent" bullet + `hitl` #48.
+- EI#16 (process first, implementation second) — DELETED-as-duplicate of alwayson never-jump-to-code + `rosetta` `<FORBIDDEN>`.
+- EI#17 (planning-mode MoSCoW documentation) — MOVED-to-`orchestration` process "Plan mode" item (rephrased + merged per user ruling: reads execute now; the presented system plan file records `MUST USE SKILL` entries, plan + specs, and the implementation workflow — mini-loops, phases, steps, subagent + model per step — in MoSCoW and the directive language given).
+- EI#18 (ph-prep without delegation) — MOVED-to-`o-session-execution-controller.md` + `s-session-execution-controller.md` (pitfalls).
+- EI#19 (approval covers only the exact action) — MOVED-to-`bootstrap-alwayson` core policies; also already enforced in `hitl` #17/#20/#27.
+- CRITICAL_RED_FLAGS (all 5 bullets) — DELETED-as-obsolete: anti-rationalization coercion dissolved by the `/rosetta` seam (story ruling).
+- OPERATION_MANAGER section — DELETED-as-duplicate of EC assets; salvaged into `o-session-execution-controller.md`: RFC 7396 semantics, "Plan has been changed: [summary]" output rule, plan-changes-outside → always pull fresh `next`, loop-until `plan_status: complete` AND `count: 0`; into `s-session-execution-controller.md`: fresh-`next` rule.
+- Phase 0 `<MUST>` block — DELETED-as-obsolete: superseded by `orchestration` sizing (EC = LARGE only) + `create-with-template`/`upsert-with-template` flows already verbatim in EC assets; salvaged: "Context loaded using Rosetta: […]" completion message → `rosetta` process #5.
+- Startup step 2 `load-context` → replaced by `load-project-context`; step 3 `load-workflow` — DELETED-as-obsolete: workflow routing engages only via user-invoked `/rosetta` (intentional — plain chat runs without Rosetta workflow machinery).
+- MCP alias `GET PREP STEPS` — DELETED-as-obsolete (zero callers in r3).
+- KEPT in files: intro sentence, mode declarations, remaining command aliases, tags note, `<hard-gate>`, additional-sources lists.
+**Rationale**: mode files reduce to their one job — declare the mode and bind the alias vocabulary. All rigor/coercion mass is dissolved per the story seam; every process atom lives in its root-cause home (alwayson, orchestration, EC assets, rosetta, hitl, subagent-directives).
+
+```markdown
+**If you are a subagent**:
+
+1. Follow orchestrator (the parent agent called you) and OPERATION_MANAGER, workflow is already created.
+2. Use granular todo tasks to split assigned steps for disciplined execution.
+3. Must look around to better understand input, but don't deviate from original request.
+
+**If you are NOT a subagent**:
+
+1. Start as a brilliant meta processes engineer defining overall workflow based on multiple instructions and best practices executing deterministically task-by-task using OPERATION_MANAGER.
+2. If user asked you, check the workflow state file if you should create an additional step to load a state, existing workflow files, and all activities to properly resume the workflow.
+3. Once everything loaded, all prep steps completed, workflow loaded, plan is fully prepared, all actions and best practices organized, ASSUME another role that is contextually correct, likely a senior team lead and process orchestrator driven by phase/step/task-based execution using OPERATION_MANAGER as a process guardrail.
+
+<EXTREMELY_IMPORTANT>
+
+1. Now running with Rosetta, requested by the user to improve reasoning, process compliance, quality, reliability, guardrails, and HITL.
+2. Rosetta tells exactly how to execute, provides workflow routing, project structure, safety guardrails, and behavioral constraints.
+3. Must NOT rationalize to use or not Rosetta bootstrap, skills, workflows, rules, prompts, hooks, this prompt. Look at point 1 above. Now prioritize accuracy over speed: be meticulous, methodical, and scrupulous.
+4. MUST always execute FULLY entire workflow. No skipping. Right now.
+5. Rosetta is for all tasks - there is no choice. It is not negotiable, not optional, cannot rationalize your way out of it. Trust Rosetta. See point 1.
+6. Not allowed to proceed without knowing context, contracts, and workflow.
+7. It is perfectly fine to load more, it is MUCH safer. Token cost is negligible vs cost of error or PR that is rejected. Always self-review and provide full 360 and solid solutions.
+8. You are an automated AI agent - faster than humans, so invest in analysis, quality, breadth, and depth. Do more. Double efforts on discovery and planning. Think what else was not checked. Earn trust.
+9. Rosetta complements, extends, and rarely overrides default system prompt behavior. Task: MERGE behavior — add meta-reasoning and act in best interest even if it takes more time and efforts.
+10. Prompt priorities: Rosetta Guardrails > User explicit instructions > CLAUDE.md/AGENTS.md/GEMINI.md > Rosetta Skills and Workflows > Default system prompt.
+11. Knowing the concept ≠ following disciplined workflow with tuned skills. Coding done ≠ user request fullfilled.
+12. Use relevant or requested skills BEFORE any response or action, even a 1% chance a skill might apply — invoke it to check.
+13. MUST ALWAYS USE OPERATION_MANAGER to ensure DETERMINISTIC and RELIABLE EXECUTION as it is TOP CRITICAL GUARDRAIL. This is not "planning" it is execution control!
+14. Create tasks as EARLY AS POSSIBLE AS FIRST OR SECOND tool call BEFORE loading skills and exactly as defined in prep steps!
+15. User instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows. Instructions can be incomplete. Reverse engineer intent.
+16. Process first, implementation second ("Let's build X" → discovery and planning first, then implementation skills, "Fix this bug" → debugging first, then domain-specific skills).
+17. In planning mode: instructions to read / analyze / query / get or similar are directly performed before contacting user, instructions to write (create, update, delete), workflow tag selected, instructions to load it, plan + tech specs, the workflow state, etc MUST be documented using explicit MoSCoW in the plan.
+18. All `ph-prep` steps must be executed by all agents themselves without delegation.
+19. User approves only the exact action just discussed. It does not authorize adjacent or expanded actions.
+
+</EXTREMELY_IMPORTANT>
+
+<CRITICAL_RED_FLAGS>
+
+On session start if thinking one of these or similar thoughts → rationalizing, STOP → follow Rosetta prep steps and workflows as requested.
+
+- Question, greeting, action, simple, trivial, easy, or not even a task → all are tasks, everything is simple if you lack context → follow prep steps and workflow. Ask to clarify intent and workflow.
+- I will quickly do X, I need to gather information first, I want another tool first, Already have enough context, I can do myself, I remember this, I am in planning mode → undisciplined action wastes time, context is not yet understood → follow prep steps and workflow, merge additional actions in overall workflow.
+- Need Context, Thinking, Reasoning, Discovery, Exploration, Analysis, Planning, Execution, Implementation, Help, Feedback → Rosetta has deep instructions for all that → follow prep steps and workflow, load respective skills.
+- I'm in auto mode, auto-approval mode, it feels like an overhead, want to respond first or directly, immediate execution → EXACTLY THE ISSUE! Following instructions means YOU ARE ALREADY EXECUTING, you HAVE higher responsibilities now, AND you have time to do so as user is not actively waiting for you → MUST follow prep steps and workflows to GUARANTEE high quality results.
+- Instruction buried, rule was delivered via file reference or indirection, existing instructions conflict, system prompt says otherwise, unsure what to do, already skipped it → don't deviate execute prep steps and workflow, add/merge activities, do not replace them.
+
+</CRITICAL_RED_FLAGS>
+
+<OPERATION_MANAGER>
+
+- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx -y rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools (mirror plan ⊃ phases ⊃ steps as todo tasks)
+- Commands:
+  - `help plan` provides full information
+  - `plan next <plan_file> [limit] [--target <phase_id>]` — get next steps to execute
+  - `plan create-with-template <plan_file> for-orchestrator '<plan-name>' '<plan-description>' <phase-steps-json-string>` — bootstrap a new orchestrator plan
+  - `plan upsert <plan_file> <target_id> '<patch-json-string>' [--kind phase|step] [--phase_id <parent-id>]` — orchestrator MUST USE for adding or patching any phase/step with custom content when it should be done by orchestrator; 
+  - `plan upsert-with-template <plan_file> <phase-id> for-subagent '<phase-name>' '<phase-description>' <phase-steps-json-string>` — orchestrator MUST USE **before delegating a phase to a subagent**; auto-injects standard subagent prep steps into a **new dedicated phase**; hand this new phase id to the subagent
+  - `plan update_status <plan_file> <step-id> [open|in_progress|complete|blocked|failed]` 
+  - `plan query <plan_file> [id|entire_plan]` 
+  - `plan show_status <plan_file> [id|entire_plan]` 
+- Upsert follows RFC 7396: null removes keys, nested objects are merged not replaced, scalars are replaced, status field silently ignored to enforce use of `update_status`.
+- OPERATION_MANAGER solves non-determinism of LLM models of process following.
+- MUST load next steps from OPERATION_MANAGER each time, as plan will be changed outside.
+- MUST execute plan via loop: call `next`, execute, `update_status`.
+- LOOP IS NEVER DONE until `plan_status: complete` AND `count: 0` in `next` output. Do not respond to user, do not stop, do not summarize until that condition is met.
+- MUST upsert a plan because of new tasks, inputs, findings.
+- Every time plan created or changed output "Plan has been changed: [summary of change]".
+
+</OPERATION_MANAGER>
+
+<MUST never_superseded="true" directly_user_requested="true" compact="false" compress="false" execute_once_per_session="true">
+
+# Phase 0: Initialize Operation manager
+
+Step 1:
+
+- **Orchestrator** → OPERATION_MANAGER `create-with-template plans/<FEATURE>/plan.json for-orchestrator "<FEATURE_OR_SESSION_ID>" "<USER_REQUEST_SUMMARY>" "<PHASE_STEPS_JSON_STRING>"` — derive FEATURE from user request; use `session` if unclear.
+
+- **Subagent** → Plan is already created. Call OPERATION_MANAGER `next <plan_file> --target <phase_id>` to receive assigned steps. Do not create a new plan.
+
+**Orchestrator — when delegating to subagents**: before handing off each phase, create a **dedicated new subagent phase** (id must NOT already exist in the plan, e.g. `<work-phase-id>-prep`): OPERATION_MANAGER `upsert-with-template <plan_file> <phase-id> for-subagent "<phase-name>" "<phase-description>" <phase-steps-json-string>`. Pass new `<phase-id>` to the subagent — not the original work phase id.
+
+Step 2+: Call OPERATION_MANAGER `next <plan_file> [limit] [--target <phase_id>]`
+
+- Must fully complete `ph-prep` in planning and execution modes: reading files, selecting workflow, loading it, analyzing workflow state, etc. Plan is living: `upsert` additional `ph-prep` steps, workflow phases and steps, meta-reasoning.
+- Create once per session. Do not respond, call other tools, or process the message further until `ph-prep` completes, except those needed for itself.
+- Once all `ph-prep` completes, tell user once: `Context loaded using Rosetta: [workflow selected and brief summary]` and execute workflow.
+- "\*-flow" skills are additional workflows
+
+# Workspace Startup Procedure (steps 2–3 as removed; step 1 kept in file)
+
+2. MUST USE SKILL `load-context`.
+3. MUST USE SKILL `load-workflow`.
+
+- `GET PREP STEPS` → `get_context_instructions()`.
+
+</MUST>
+```
+
+### mode-file per-file uniques — plugin/local alias deltas
+**Source**: `instructions/r3/core/rules/plugin-files-mode.md`, `local-files-mode.md`.
+**Disposition**:
+- plugin `GET PREP STEPS`, `EXECUTE PREP STEPS` → execute `ph-prep` steps — DELETED-as-obsolete (zero callers; ph-prep lives in EC templates).
+- plugin `get_context_instructions` binding "continue with `ph-prep` steps" — COMPRESSED-in-place to "already loaded, continue".
+- local `call "get_context_instructions"` binding "read all `instructions/r3/core/rules/bootstrap-*.md` files as one bundle" — rebound to `bootstrap-alwayson.md` only (old glob would now wrongly pull the MCP mode file `bootstrap.md`).
+- local `# Available Workflows` list — DELETED-as-duplicate: descriptions live in the workflow files' frontmatter; discovery = `LIST workflows IN KB`; routing = user-invoked `rosetta`.
+**Rationale**: alias bindings stay; everything that assumed the Phase-0/prep machinery or duplicated per-file metadata goes.
+
+```markdown
+- `GET PREP STEPS`, `EXECUTE PREP STEPS` → execute `ph-prep` steps.
+- `get_context_instructions` => already loaded, continue with `ph-prep` steps. Instruct subagents to not call Rosetta MCP.
+- `call "get_context_instructions"` or `execute prep steps` => read all `instructions/r3/core/rules/bootstrap-*.md` files as one bundle
+
+# Available Workflows (format: `Tag` - Description)
+
+- `coding-flow` - Rosetta coding and implementation workflow, includes discovery, tech specs, tech plan, subagent plan review, user plan review, implementation, subagent review implementation, validation, user review, and final validation with reviewer gates, HITL gates, and subagent delegation.
+- `init-workspace-flow` - Rosetta workflow to initialize or upgrade a workspace, includes identify context, init proxying shells for target skills/agents/commands, workspace discovery, copy rules (optional, not recommended), identify patterns used, generate documentation, clarify questions, verification.
+- `requirements-authoring-flow` - Rosetta workflow for requirements authoring (creating, updating, improving, reviewing). Guides AI through discovery, intent capture, iterative requirement drafting with mandatory user approvals, validation, and delivery. Contains discovery, research, intent capture, outline, drafting, validating, and finalization
+- `self-help-flow` - Rosetta self-help. Ask about capabilities, learn how to use them, get guidance on developing with Rosetta, or seamlessly switch to executing any discovered workflow. Answers "what can you do", "how do I use X", "how modernization works", "what workflows are available", etc.
+- `adhoc-flow` - Rosetta ad-hoc adaptive meta-workflow that constructs, tracks, reviews, and executes a tailored execution plan per user request using building blocks and available instructions. If none other matches start here.
+- etc.
+```
+
+### load-context — project-context loading prep skill
+**Source**: `instructions/r3/core/skills/load-context/SKILL.md` (whole skill directory removed).
+**Disposition**: DELETED-as-dissolved — `<project-files>` + `<troubleshooting>` live expanded in `load-project-context` (`<project-files>` grep-headers + read-by-range, troubleshooting → `init-workspace-flow`); `<next-steps>` (load-workflow chain) DELETED-as-obsolete — routing engages only via user-invoked `/rosetta`.
+**Rationale**: superseded by `load-project-context` (built, registered, reviewer-passed); all r3 references swapped `load-context` → `load-project-context` in this sweep.
+
+```markdown
+---
+name: load-context
+description: "To load the most current project context; MUST during prep."
+license: Apache-2.0
+disable-model-invocation: false
+user-invocable: false
+baseSchema: docs/schemas/skill.md
+---
+<load-context>
+
+<project-files>
+Execute in order:
+
+1. Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` — FULL CONTENT, ALL LINES
+2. Grep headers of `agents/IMPLEMENTATION.md`, `agents/MEMORY.md`, `docs/PATTERNS/INDEX.md`, `docs/REQUIREMENTS/INDEX.md`, and `refsrc/INDEX.md`
+   ```bash
+   grep -n "^#{1,3}" agents/IMPLEMENTATION.md agents/MEMORY.md docs/PATTERNS/INDEX.md docs/REQUIREMENTS/INDEX.md refsrc/INDEX.md
+   ```
+3. Use built-in tools instead of bash grep if available 
+
+</project-files>
+
+<troubleshooting>
+
+If any file is unavailable (not found) — it simply does not exist yet. Continue without it, do NOT stop or treat this as an error, and STRONGLY suggest workspace initialization using workflow `init-workspace-flow.md`.
+
+</troubleshooting>
+
+<next-steps>
+
+- Load and fully execute the selected workflow.
+- MUST USE SKILL `load-workflow`
+
+</next-steps>
+
+</load-context>
+```
+
+### load-workflow — workflow selection/resume prep skill
+**Source**: `instructions/r3/core/skills/load-workflow/SKILL.md` (whole skill directory removed).
+**Disposition**: DELETED-as-dissolved — process #1 (ACQUIRE workflow TAG + execute fully for all sizes) and #2 (resume from workflow state) live as `rosetta` process #1–#2; #3 (auto vs `No HITL`) DELETED-as-duplicate of `hitl` (canonical opt-out home); #4 (OM upsert todo tasks) DELETED-as-obsolete (EC = LARGE-only; tasks = alwayson `<tasks>`); prerequisites DELETED-as-obsolete.
+**Rationale**: absorbed into `rosetta` (the smart router, user-invoked); per the seam, workflow classification no longer runs on every request.
+
+```markdown
+---
+name: load-workflow
+description: "To select, activate, and resume the best-matching workflow and inject its phases. MUST."
+tags: ["rosetta-bootstrap", "core", "workflow", "orchestrator"]
+disable-model-invocation: false
+user-invocable: false
+baseSchema: docs/schemas/skill.md
+---
+<load-workflow>
+
+<prerequisites>
+
+- OPERATION_MANAGER is active
+- Project context is loaded USING SKILL `load-context`
+
+</prerequisites>
+
+<process>
+
+1. ACQUIRE `<workflow TAG from available workflows>` FROM KB — load the most matching workflow; fully execute following its definition for ALL request sizes
+2. If user asked to continue or resume: load workflow state file, extract completed steps, current phase, and pending work
+3. Handle planning and auto mode correctly — distinguish auto vs `No HITL`
+4. USE OPERATION_MANAGER to upsert todo tasks 
+
+</process>
+
+<next-steps>
+
+- Execute all accumulated plan phases and steps
+
+</next-steps>
+
+</load-workflow>
+```
+
+### operation-manager — plan-driven execution skill (+ om-schema asset)
+**Source**: `instructions/r3/core/skills/operation-manager/SKILL.md` + `assets/om-schema.md` (whole skill directory removed).
+**Disposition**: DELETED-as-dissolved — split by actor into `orchestration/assets/o-session-execution-controller.md` (orchestrator flow, core concepts, validation, pitfalls, compressed schema) and `subagent-directives/assets/s-session-execution-controller.md` (subagent flow); MCP-first dropped (EXECUTION_CONTROLLER = CLI-only, decided); `om-schema.md` COMPRESSED-into `o-session-execution-controller` `<schema>`; `<resources>` adhoc-flow pointer DELETED-as-obsolete.
+**Rationale**: no standalone skill — EC engages only through the `orchestration` LARGE band; both assets verified carrying every operational atom (incl. the RFC 7396 / fresh-`next` / "Plan has been changed" salvages landed this sweep).
+
+```markdown
+---
+name: operation-manager
+description: "To create, track, and coordinate execution plans via local JSON files."
+license: Apache-2.0
+dependencies: node.js
+disable-model-invocation: false
+user-invocable: true
+allowed-tools: Bash(npx:*)
+model: claude-sonnet-5
+tags:
+  - operation-manager
+  - operation-manager-create
+  - operation-manager-use
+baseSchema: docs/schemas/skill.md
+---
+
+<operation-manager>
+
+<role>
+
+Senior execution planner and tracker for plan-driven workflows.
+
+</role>
+
+<when_to_use_skill>
+
+Primary operation manager for orchestrators and subagents. Creates, tracks, and executes plans as local JSON files.
+
+</when_to_use_skill>
+
+<core_concepts>
+
+- Try `rosettify` MCP first (if already available), fallback to CLI: `npx -y rosettify@latest <command> <subcommand> <plan_file`>, if it fails too MUST FALLBACK to built-in todo task tools (mirror plan ⊃ phases ⊃ steps as todo tasks).
+- Always use full absolute paths for the plan file
+- Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`
+- Help: `npx -y rosettify@latest help plan` provides full help JSON
+- Resume behavior: `next` returns four groups: (1) in_progress steps (resume=true), (2) open eligible steps, (3) blocked steps (previously_blocked=true), (4) failed steps (previously_failed=true)
+- Phases are sequential: steps from a later phase do not appear until all steps in earlier phases are complete
+- Status propagation: bottom-up only (steps -> phases -> plan); plan root status is always derived, never set directly
+- `upsert` silently ignores status fields in patch -- only `update_status` modifies status
+
+</core_concepts>
+
+<process>
+
+**Orchestrator flow:**
+
+1. Use `npx -y rosettify@latest help plan` to understand which subcommands are available for which models 
+2. Create plan
+3. Upsert phases and steps every time something new comes up
+4. Delegate phase to a subagent: provide plan_file and phase_id. Orchestrator decides which phases run in parallel — parallel subagents must each own a distinct phase.
+5. Loop: get next steps → execute → update status — until no steps remain.
+
+**Subagent flow:**
+
+1. Receive `plan_file` (absolute path) and `phase_id` from the orchestrator prompt. Subagent owns the assigned phase end-to-end: solely responsible for completing every step in that phase and reporting results back to the orchestrator. Use `npx -y rosettify@latest help plan` if more information is required.
+2. Call `npx -y rosettify@latest plan next <plan_file> --target <phase_id>`.
+   - If `resume:true` on a returned step → that step is already `in_progress`; skip step 3a, go directly to 3b.
+   - If `previously_blocked:true` or `previously_failed:true` on a returned step
+  → orchestrator has cleared the path; attempt carefully, verify preconditions first, go to 3a step
+   - If open, go to 3a step
+   - If `count:0` and `plan_status:complete` → phase is complete; go to step 4.
+3. For the returned step:
+   a. `npx -y rosettify@latest plan update_status <plan_file> <step_id> in_progress`
+   b. Execute the step's prompt.
+   c. `npx -y rosettify@latest plan update_status <plan_file> <step_id> <status>`:
+      - `complete` — done with verifiable evidence; return to step 2
+      - `blocked` — cannot proceed; go to step 4 and report reason to orchestrator
+      - `failed` — execution failed; go to step 4 and report error and root cause
+4. Report back to orchestrator: results, side effects, anomalies, deviations.
+
+</process>
+
+<validation_checklist>
+
+- `npx -y rosettify@latest help plan` exits without error and returns structured help JSON
+- `show_status` phase status matches aggregate of its steps after `update_status`
+- use `plan query <plan_file> [entire_plan | phase-id | step-id]` to verify the entire plan, a phase, or a step
+
+</validation_checklist>
+
+<pitfalls>
+
+- Not checking `resume` flag on `next` results -- causes duplicate work on resumed sessions
+- Forgetting `update_status` after step completion -- plan remains stale
+- Plan root status cannot be set directly -- it is always derived from phases
+- Attempting to set phase status directly -- rejected as phase_status_is_derived
+</pitfalls>
+
+<resources>
+
+- Flow: USE FLOW `adhoc-flow`
+
+</resources>
+
+</operation-manager>
+```
+
+`assets/om-schema.md` (verbatim): schema/status-enum/propagation-table/dependency-rules/constants identical to `o-session-execution-controller.md` `<schema>` (compressed form retains every rule and constant); the two JSON plan examples (minimal + feature-x full) dropped as illustrative only — reproducible from the schema.
+
+#### om-schema.md (verbatim)
+
+````markdown
+# Plan JSON Schema Reference
+
+## Data Structure
+
+```
+plan:
+  name: str                    # required
+  description: str             # default: ""
+  status: StatusEnum           # derived bottom-up, never set directly
+  created_at: ISO8601          # set on create
+  updated_at: ISO8601          # updated on every write
+  phases[]:
+    id: str                    # required, unique across entire plan
+    name: str                  # required
+    description: str           # default: ""
+    status: StatusEnum         # derived from steps
+    depends_on: [phase-id]     # default: []
+    subagent: str              # optional
+    role: str                  # optional
+    model: str                 # optional
+    steps[]:
+      id: str                  # required, unique across entire plan
+      name: str                # required
+      prompt: str              # required
+      status: StatusEnum       # default: open
+      depends_on: [step-id]    # default: [], cross-phase allowed
+      subagent: str            # optional
+      role: str                # optional
+      model: str               # optional
+```
+
+## Status Enum
+
+`open | in_progress | complete | blocked | failed`
+
+## Status Propagation (Bottom-Up)
+
+Steps → Phases → Plan root. Plan root status is always derived; never set directly.
+
+| Children condition | Derived status |
+|---|---|
+| All `complete` | `complete` |
+| Any `failed` | `failed` |
+| Any `blocked` | `blocked` |
+| Any `in_progress` or `complete` | `in_progress` |
+| Otherwise | `open` |
+
+## Dependency Rules
+
+- `depends_on` at step level: list of step IDs (cross-phase allowed)
+- `depends_on` at phase level: list of phase IDs
+- A step/phase is eligible only when all `depends_on` IDs have `status: complete`
+- IDs must be unique across the entire plan (phases and steps share a single namespace)
+
+## Constants
+
+| Constant | Limit |
+|---|---|
+| Max phases per plan | 100 |
+| Max steps per phase | 100 |
+| Max deps per item | 50 |
+| Max string field length | 20000 chars |
+| Max name field length | 256 chars |
+
+## Minimal Plan Example
+
+```json
+{
+  "name": "my-plan",
+  "description": "Simple example",
+  "status": "open",
+  "created_at": "2026-01-01T00:00:00.000Z",
+  "updated_at": "2026-01-01T00:00:00.000Z",
+  "phases": []
+}
+```
+
+## Full Plan Example
+
+```json
+{
+  "name": "feature-x",
+  "description": "Implement feature X end-to-end",
+  "status": "in_progress",
+  "created_at": "2026-01-01T00:00:00.000Z",
+  "updated_at": "2026-01-02T12:00:00.000Z",
+  "phases": [
+    {
+      "id": "ph-1",
+      "name": "Design",
+      "description": "Create technical specs",
+      "status": "complete",
+      "depends_on": [],
+      "steps": [
+        {
+          "id": "s-1",
+          "name": "Write tech specs",
+          "prompt": "Write technical specs for feature X covering API, data model, and edge cases.",
+          "status": "complete",
+          "depends_on": []
+        }
+      ]
+    },
+    {
+      "id": "ph-2",
+      "name": "Implementation",
+      "description": "Code the feature",
+      "status": "in_progress",
+      "depends_on": ["ph-1"],
+      "subagent": "engineer",
+      "role": "Senior software engineer",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "id": "s-2",
+          "name": "Implement API endpoint",
+          "prompt": "Implement the REST API endpoint for feature X per the tech specs in plans/feature-x/plan.json step s-1.",
+          "status": "in_progress",
+          "depends_on": ["s-1"]
+        },
+        {
+          "id": "s-3",
+          "name": "Implement data layer",
+          "prompt": "Implement the data model and repository layer for feature X.",
+          "status": "open",
+          "depends_on": ["s-1"]
+        }
+      ]
+    }
+  ]
+}
+```
+````
+
+### workflow OPERATION_MANAGER remnants + template `rosetta` step — EC is orchestrator/LARGE-only; `rosetta` is user-only
+**Source**: `instructions/r3/core/workflows/adhoc-flow.md` (inline section + prereq), 8 workflow prereq lines (`requirements-authoring`, `init-workspace`, `self-help`, `research`, `coding`, `external-lib`, `modernization`, `code-analysis` flows), `docs/requirements/rosettify/assets/templates/create-for-orchestrator.json` + `src/rosettify/src/commands/plan/templates/create/for-orchestrator.ts`.
+**Disposition**:
+- `adhoc-flow` `<OPERATION_MANAGER>` section — DELETED-as-duplicate of `o-session-execution-controller.md` (every atom incl. RFC 7396, fresh-`next`, "Plan has been changed", loop-until lives there); replaced by `<orchestration severity="CRITICAL">` demanding SKILL `orchestration` FULLY + BOTH assets — plan-driven execution is this workflow's core idea (user ruling).
+- 8× prereq `MUST USE OPERATION_MANAGER for deterministic execution` — DELETED-as-obsolete (EC = orchestrator + LARGE only); replaced with `MUST use todo tasks for reliability` (adhoc-flow: with the orchestration-FULLY line instead).
+- `adhoc-flow` stale `plan-manager` names (×3: description, plan-wbs, execute-track) — renamed to EXECUTION_CONTROLLER (that skill was dissolved long ago).
+- Template step `ph-prep-s-load-workflow` — DELETED-as-obsolete: the `rosetta` router is user-invoked ONLY and must never be mentioned/requested/recommended by any instruction or template; the phase-adding step now covers the no-active-workflow case. FR-PLAN-0035 + asset + src + step-count tests updated (3 seeded steps; 447 pass).
+**Rationale**: new entry-path model — plain chat = minimal Rosetta (alwayson basics), `/rosetta` = routed flow, `/<flow>` = direct workflow; nothing routes to Rosetta on the AI's initiative.
+
+```markdown
+2. MUST USE OPERATION_MANAGER for deterministic execution
+```
+
+adhoc-flow inline section (verbatim; command list was a shortened copy of the mode-file section archived above):
+
+```markdown
+<OPERATION_MANAGER>
+
+- `OPERATION_MANAGER` is a command alias to use `rosettify` MCP (if already is in context), fallback to `npx -y rosettify@latest <command> <subcommand> <plan_file>`, if it fails too MUST FALLBACK to built-in todo task tools (mirror plan ⊃ phases ⊃ steps as todo tasks)
+- Commands:
+  - `help plan` provides full information
+  - `plan next <plan_file> [limit] [--target <phase_id>]` — get next steps to execute
+  - `plan create-with-template <plan_file> for-orchestrator '<plan-name>' '<plan-description>'` — bootstrap a new orchestrator plan
+  - `plan upsert-with-template <plan_file> <phase-id> for-subagent '<phase-name>' '<phase-description>'` — orchestrator MUST USE for adding prep steps for subagent
+  - `plan update_status <plan_file> <step-id> [open|in_progress|complete|blocked|failed]` 
+  - `plan query <plan_file> [id|entire_plan]` 
+  - `plan show_status <plan_file> [id|entire_plan]` 
+- Upsert follows RFC 7396: null removes keys, nested objects are merged not replaced, scalars are replaced, status field silently ignored to enforce use of `update_status`.
+- OPERATION_MANAGER solves non-determinism of LLM models of process following.
+- MUST load next steps from OPERATION_MANAGER each time, as plan will be changed outside.
+- MUST execute plan via loop: call `next`, execute, `update_status`.
+- LOOP IS NEVER DONE until `plan_status: complete` AND `count: 0` in `next` output. Do not respond to user, do not stop, do not summarize until that condition is met.
+- MUST upsert a plan because of new tasks, inputs, findings.
+- Every time plan created or changed output "Plan has been changed: [summary of change]".
+
+</OPERATION_MANAGER>
+```
+
+Template step (verbatim, from both the FR asset JSON and the registered template):
+
+```json
+{
+  "id": "ph-prep-s-load-workflow",
+  "name": "Load workflow",
+  "prompt": "MUST USE SKILL `rosetta` to select and load the workflow."
+}
+```

@@ -23,10 +23,11 @@ baseSchema: docs/schemas/rule.md
 - No absolute paths in generated files; absolute paths only in tool calls/shell.
 - Prefer built-in tools over shell.
 - Do not limit review/verify/validate on actions/sources/etc
-- Accuracy and Depth over speed — don't rush, take the time
+- Accuracy and Depth over speed — you're an automated agent, already fast: don't rush, invest in breadth/depth, double discovery and planning.
 - Never jump from request straight to code/files/commands — workflow prep first, regardless of clarity, auto-mode, or permissions.
 - Don't skip instructions; impossible → report and continue with the rest.
 - User-invoked slash SKILL/COMMAND/WORKFLOW → execute it fully.
+- User approval covers only the exact action just discussed — never adjacent or expanded actions.
 - Enforce SRP, DRY, KISS, MECE, YAGNI; prevent scope creep.
 
 </high_important_core_policies>
@@ -59,7 +60,7 @@ Test: survives audit even if the outcome was bad, because the reasoning was soun
 
 Tasks = execution ledger — survives dropped steps & compaction.
 MUST run everything (getting-ready included) as todo tasks:
-- list up front · one `in_progress` · close before next · never skip
+- list up front as one of your very first tool calls · one `in_progress` · close before next · never skip
 - re-read to resume · update as facts surface
 - close on evidence, not assumption (coded ≠ done)
 
@@ -68,7 +69,7 @@ MUST run everything (getting-ready included) as todo tasks:
 <skill_engagement_rules>
 
 "USE SKILL `X`" = call the Skill named `X`; reconstructing behavior from memory does NOT satisfy; not loaded → ToolSearch, fallback ACQUIRE "<X>/SKILL.md" FROM KB.
-Skill descriptions say when; engage BEFORE execution; a guardrail blocks an action → suggest compliant solutions.
+Skill descriptions say when; engage BEFORE any response or action — even a 1% chance a skill applies → invoke it to check; a guardrail blocks an action → suggest compliant solutions.
 All agents: USE SKILL `sensitive-data`, `dangerous-actions`, `deviation`, `self-learning`, `self-organization`.
 Orchestrator/top-agent (not subagents): USE SKILL `hitl`, `orchestration`, `questioning`, `risk-assessment`, `load-project-context`.
 Subagents: USE SKILL `subagent-directives`.

@@ -22,7 +22,7 @@ Use when large workspaces exceed single-agent context window. Partitions into wr
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - If CODEMAP.md missing, ACQUIRE `init-workspace-flow-discovery.md` FROM KB and follow its discovery process to create ONLY CODEMAP.md
 - Grep `#` headers of CODEMAP before scoping
 

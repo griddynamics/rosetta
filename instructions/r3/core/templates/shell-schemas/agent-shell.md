@@ -61,7 +61,7 @@ baseSchema: docs/schemas/agent.md
 </role>
 
 <prerequisites>
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 </prerequisites>
 
 <instructions>

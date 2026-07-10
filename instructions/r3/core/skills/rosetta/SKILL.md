@@ -28,7 +28,7 @@ No code, files, scripts, or commands before workflow handoff.
 2. On resume/continue: load workflow state file; extract completed steps, current phase, and pending work; resume from there
 3. Workflow phases → todo tasks; open one per phase, work sequentially, close on completion
 4. In planning mode: `planning` + `tech-specs` outputs → store per system prompt, never `plans/` (read-only)
-5. Hand off to the workflow — let it drive questioning, planning, execution, review, and validation; no phase skipping
+5. Hand off to the workflow — tell the user once `Context loaded using Rosetta: [workflow selected + brief summary]`, then let it drive questioning, planning, execution, review, and validation; no phase skipping
 
 </process>
 

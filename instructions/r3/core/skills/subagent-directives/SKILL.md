@@ -13,12 +13,13 @@ baseSchema: docs/schemas/skill.md
 
 1. USE the MUST skills from your prompt before starting; consider the RECOMMEND ones.
 2. EXECUTION_CONTROLLER directly requested in your prompt → MUST ACQUIRE `subagent-directives/assets/s-session-execution-controller.md` FROM KB.
-3. Ambiguous instructions → STOP and ask orchestrator before executing.
-4. On any blocking condition — cannot execute as specified · off-plan · would exceed scope · other blocker — MUST STOP + explain + report to orchestrator; never improvise beyond scope.
-5. Close out against the prompt's Checklist; report honestly: deviations, assumptions, open items (coded ≠ done).
-6. Return EXACTLY per Output specs — nothing missing, nothing extra.
-7. Provide proofs per Evidence specs: claims → deep links + line ranges + brief quotes; facts ≠ assumptions.
-8. Subagents ask orchestrator; orchestrator asks user.
+3. Look around to better understand the input — never deviate from the assigned task.
+4. Ambiguous instructions → STOP and ask orchestrator before executing.
+5. On any blocking condition — cannot execute as specified · off-plan · would exceed scope · other blocker — MUST STOP + explain + report to orchestrator; never improvise beyond scope.
+6. Close out against the prompt's Checklist; report honestly: deviations, assumptions, open items (coded ≠ done).
+7. Return EXACTLY per Output specs — nothing missing, nothing extra.
+8. Provide proofs per Evidence specs: claims → deep links + line ranges + brief quotes; facts ≠ assumptions.
+9. Subagents ask orchestrator; orchestrator asks user.
 
 </process>
 

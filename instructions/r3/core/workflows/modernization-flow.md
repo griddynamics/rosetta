@@ -39,7 +39,7 @@ This modernization process is designed to systematically analyze, specify, and i
 
 **Phase 0: Prerequisites** 
 1. All Rosetta prep steps MUST be FULLY completed
-2. MUST USE OPERATION_MANAGER for deterministic execution
+2. MUST use todo tasks for reliability
 
 **Phase 1: Existing Library Analysis for Reusing in Target State** [modernization-flow-reuse.md]
 1. ACQUIRE modernization-flow-reuse.md FROM KB

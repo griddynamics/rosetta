@@ -15,7 +15,7 @@ Generates shell config files so subsequent sessions can load context and invoke 
 <workflow_context>
 - Phase 2 of 9 in init-workspace-flow
 - Input: state.mode, state.plugin_active
-- Output: shell configs, bootstrap rule, load-context shell
+- Output: shell configs, bootstrap rule, load-project-context shell
 - Prerequisite: Phase 1 complete, state.mode set
 </workflow_context>
 
@@ -39,7 +39,7 @@ In upgrade mode: create missing shells only, preserve existing.
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Shell = frontmatter + single ACQUIRE instruction, zero inline logic
 - No absolute paths in generated shells
 
@@ -59,7 +59,7 @@ Step 1: Identify Environment
 
 Step 2: Install Base Files
 
-1. ACQUIRE `skills/load-context/SKILL.md` FROM KB — install as SKILL
+1. ACQUIRE `skills/load-project-context/SKILL.md` FROM KB — install as SKILL
 2. ACQUIRE `rules/bootstrap.md` FROM KB — install as CORE RULE, copy content (no refs/links)
 
 Step 3: MUST Generate Skill Shells
@@ -112,7 +112,7 @@ Step 6: Verify Shell Integrity
 - Plugin mode: phase marked skipped, no shell files modified
 - Install mode: all expected shell files exist on disk
 - Upgrade mode: only missing shells created, existing preserved
-- Bootstrap rule file exists with ACQUIRE instruction for load-context
+- Bootstrap rule file exists with ACQUIRE instruction for load-project-context
 </validation_checklist>
 
 </init_workspace_flow_shells>

@@ -20,7 +20,7 @@ Validation: State file tracks every phase with file inventory; verification conf
 <prerequisites phase="0", applies="ALL">
 
 1. All Rosetta prep steps MUST be FULLY completed
-2. MUST USE OPERATION_MANAGER for deterministic execution
+2. MUST use todo tasks for reliability
 3. MUST FOLLOW THIS WORKFLOW EXACTLY AND FULLY.
 4. MUST extensively use subagents as this is a large workflow.
 5. Sequential phases. Each updates `agents/init-workspace-flow-state.md`. Optional phases marked as skipped. Keep state file very brief.
@@ -53,7 +53,7 @@ Validation: State file tracks every phase with file inventory; verification conf
 <shells phase="2" default="true" subagent="engineer" conditional role="Shell file generator" subagent_required_model="claude-sonnet-5, gpt-5.4-medium">
 
 1. Generate shell files for skills, agents, workflows. Skip if state.plugin_active.
-2. Output: shell configs, bootstrap rule, load-context skill shell.
+2. Output: shell configs, bootstrap rule, load-project-context skill shell.
 3. ACQUIRE `init-workspace-flow-shells.md` FROM KB
 4. Update state
 

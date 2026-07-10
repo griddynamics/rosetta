@@ -25,7 +25,7 @@ Use when research requires systematic exploration with grounded references, mult
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Meta-prompting approach: prepare an optimized research prompt enforcing all rules below, then execute it as a separate subagent
 - MUST NOT update CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, and create any other documents EXCEPT those mentioned explicitly
 

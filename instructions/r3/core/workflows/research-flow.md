@@ -16,8 +16,8 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 <prerequisites phase="0", applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
-2. MUST USE OPERATION_MANAGER for deterministic execution
+1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-project-context` loaded and fully executed.
+2. MUST use todo tasks for reliability
 3. Orchestrator trusts the system and skills; coordinates sequence, artifacts, state, and approvals only.
 4. Execute phases sequentially.
 5. Agent state tracker file `research-flow-state.md` is stored in FEATURE TEMP folder.

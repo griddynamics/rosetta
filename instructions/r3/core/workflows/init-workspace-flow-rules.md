@@ -47,7 +47,7 @@ Local copies of Rosetta instructions enable AI agents to load rules without Rose
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Rules consumed by AI agents, not humans
 - **Full-copy mode** — copies complete file content from Rosetta to local workspace
 - **Adapt** — copy content AS-IS; adapt ONLY IDE format: extension, frontmatter, directory. Never rewrite instruction content.

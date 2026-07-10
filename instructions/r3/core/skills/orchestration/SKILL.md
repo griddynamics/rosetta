@@ -30,7 +30,7 @@ baseSchema: docs/schemas/skill.md
 
 - ~1-2 files, one area → SMALL → hold it yourself on a todo-task ledger; use subagents for fresh-eye review.
 - ~up to 10 files, one area → MEDIUM → keep the todo-task ledger; build and manage a subagent team — no longer a worker. MUST ACQUIRE `orchestration/assets/o-team-manager.md` FROM KB.
-- 10+ files, or several areas → LARGE → use session-level EXECUTION_CONTROLLER (plan ⊃ phases ⊃ steps ⊃ tasks). MUST ACQUIRE `orchestration/assets/o-session-execution-controller.md` FROM KB.
+- 10+ files, or several areas → LARGE → use session-level EXECUTION_CONTROLLER (plan ⊃ phases ⊃ steps ⊃ tasks) — not "planning": execution control. MUST ACQUIRE `orchestration/assets/o-session-execution-controller.md` FROM KB.
 
 Important:
 
@@ -58,6 +58,10 @@ Quality:
 7. Adapt the plan when something comes up — reorder, re-analyze, loop. Keep steps explicit and actionable.
 8. Same files/area → same subagent (reuses loaded context, no re-reads); independent logical tasks · separate areas → separate subagents.
 9. Escalate: subagent → orchestrator → user, carrying full context.
+
+Plan mode:
+
+10. Execute all read/analyze/query work yourself now; the presented system plan file carries everything else — record `MUST USE SKILL <name>` entries (workflow, skills), incorporate the plan + specs, and define the implementation workflow — mini-loops, phases, steps, subagent + model per step — in MoSCoW and the same directive language you were given.
 
 </process>
 

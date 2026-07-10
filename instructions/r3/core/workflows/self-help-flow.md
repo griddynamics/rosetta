@@ -78,8 +78,8 @@ Direct skill and subagent invocation is ONLY appropriate for targeted, self-cont
 
 <prerequisites phase="0", applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
-2. MUST USE OPERATION_MANAGER for deterministic execution
+1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-project-context` loaded and fully executed.
+2. MUST use todo tasks for reliability
 3. Phases are sequential. Orchestrator coordinates; trust skills and subagents to execute.
 4. Scale: conversational — output is a message, no files, no state tracking.
 
