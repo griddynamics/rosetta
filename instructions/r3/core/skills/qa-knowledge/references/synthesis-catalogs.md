@@ -1,6 +1,6 @@
-# Authoring Catalogs
+# Synthesis Catalogs
 
-Requirements Authoring: Synthesis method + output schemas (`<synthesis>` mode)
+Synthesis method + output schemas (testing `<synthesis>` mode)
 
 ## Synthesis rules
 

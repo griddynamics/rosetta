@@ -44,6 +44,15 @@ Router -- ACQUIRE FROM KB the one your current step needs (point-of-use, never a
 | send the page-source capture message to the user | `qa-knowledge/assets/page-source-capture-instructions.md` |
 | classify a QA backend-API failure | `qa-knowledge/references/api-qa-failure-taxonomy.md` |
 | classify an UI-QA UI/E2E failure | `qa-knowledge/references/ui-qa-failure-taxonomy.md` |
+| synthesize collected sources into a requirements document (testing `<synthesis>`) | `qa-knowledge/references/synthesis-catalogs.md` |
+| run QA gap-analysis detection (testing `<gap_analysis>`) | `qa-knowledge/references/gap-analysis-catalogs.md` |
+| design Given-When-Then API specs -- taxonomy + ATC template (testing `<scenario_design>`) | `qa-knowledge/references/gwt-spec.md` |
+| format test cases for TestRail (scenario_design vendor binding) | `qa-knowledge/references/testrail-format.md` |
+| export a case set to TestRail (vendor binding + destructive-write gate) | `qa-knowledge/references/testrail-export.md` |
+| fork a TMS EXPORT binding to another vendor | `qa-knowledge/references/vendor-fork-guide.md` |
+| implement UI / API / selector tests -- code + selector tables + templates (testing `<implementation_modes>`) | `qa-knowledge/references/implementation-examples.md` |
+| analyze test-automation architecture or extract API contracts (testing `<code_analysis>`, via reverse-engineering) | `qa-knowledge/references/analysis-modes.md` |
+| triage automated-test execution failures (testing `<test_execution_triage>`) | `qa-knowledge/references/test-execution-triage.md` |
 
 </resources>
 

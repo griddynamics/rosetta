@@ -63,12 +63,6 @@ Senior systems analyst and domain architect. You think in state machines, not st
 
 </rules>
 
-<analysis_modes>
-
-Two specialized modes apply the general method to a concrete target: **test-automation architecture analysis** (map a test project to inform new tests) and **API-contract extraction** (recover endpoint contracts from a spec or backend routes). On entering either, **ACQUIRE `reverse-engineering/references/analysis-modes.md` FROM KB** -- per-mode procedure, required inputs, and emit templates; never resident.
-
-</analysis_modes>
-
 <pitfalls>
 
 - Transcribing code instead of recovering intent. The most common failure mode. If your spec reads like pseudocode of the implementation, you have not abstracted enough. A spec should be recognizable to a product owner, not just a developer.

@@ -1,6 +1,6 @@
 ---
 name: testing
-description: "To write thorough, isolated, idempotent tests — 80%+ coverage, external-only mocking, scenario-driven."
+description: "To engineer tests end-to-end — synthesize requirements, analyze gaps, design scenarios/specs/cases, implement thorough isolated tests (80%+ coverage), and triage failures."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
@@ -11,13 +11,21 @@ baseSchema: docs/schemas/skill.md
 
 <role>
 
-Senior test engineer and quality specialist. Designs thorough, isolated, fast test suites.
+Senior test engineer and QA specialist. Owns the QA-engineering flow end to end: turn requirements and contracts into scenarios/specs, implement thorough, isolated, fast test suites, and triage failures -- without inventing behavior the sources do not state.
 
 </role>
 
 <when_to_use_skill>
-Use when writing or updating tests, verifying implementation correctness, setting up test infrastructure, or browser-based testing. Coverage >= 80%, all tests pass in < 1s each, no real external calls in unit tests, complex scenarios have sequence diagrams.
+Use for any QA-engineering work: synthesizing collected sources into a requirements document, analyzing multi-source data for gaps/contradictions, designing test scenarios / specs / TMS cases from requirements or API contracts, implementing or updating tests (UI / API / selectors), triaging automated-test failures, or setting up test infrastructure. Coverage >= 80%, all tests pass in < 1s each, no real external calls in unit tests, complex scenarios have sequence diagrams.
 </when_to_use_skill>
+
+<dependencies>
+
+- **MUST USE SKILL `reverse-engineering`** for the `<code_analysis>` mode (test-automation architecture analysis, API-contract extraction) -- this skill drives it toward the QA target, never re-implements code reading.
+- USE SKILL `coding` for repo conventions; `debugging` for failing tests; `sensitive-data` for redaction (canonical authority).
+- ACQUIRE QA skeletons / taxonomies / catalogs from `qa-knowledge` and QA paths / identifiers / state from `qa-structure` at point of use -- never invent artifact shapes or paths.
+
+</dependencies>
 
 <core_concepts>
 
@@ -27,6 +35,12 @@ Principles:
 
 - KISS, SOLID, SRP, DRY, YAGNI, MECE — always
 - Scope creep prevention: apply ONLY what was requested, do not add unrequested tests, refactors, or improvements
+
+QA authoring discipline (design / synthesis / gap / triage modes):
+
+- Per-value honesty: every concrete value (request fields, params, assertions, test data, requirement source) traces to a loaded contract/source, a user clarification, or an explicit `[ASSUMED: ...]` / `gap: ...` marker -- no confident fabrication.
+- Coverage is total: every input requirement / test case / failure maps to ≥1 emitted item OR an explicit excluded/gap entry -- no silent drops.
+- Redaction: scan every emitted artifact and redact credentials/tokens/PII/credentialed-URLs before writing → USE SKILL `sensitive-data`.
 
 Quality bar:
 
@@ -58,9 +72,45 @@ Infrastructure:
 
 </core_concepts>
 
+<code_analysis>
+
+Mode: recover **test-automation architecture** (map an existing test project to inform new tests) or **extract API contracts** (from a spec or backend routes) so scenario design and implementation have a grounded target. **MUST USE SKILL `reverse-engineering`** for the code→intent method (WHAT/WHY, not HOW) -- this skill only steers it toward the QA target, it never reads code its own ad-hoc way. ACQUIRE `qa-knowledge/references/analysis-modes.md` FROM KB for the per-mode procedure, required inputs, and emit templates.
+
+</code_analysis>
+
+<synthesis>
+
+Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document (user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability) for the tests to target. Emit into the provided skeleton (section contract + output path given).
+
+**Safety:** the draft is PUBLIC (version-tracked, downstream-fed) -- redact before quoting (→ `sensitive-data`); never infer redacted content.
+
+ACQUIRE `qa-knowledge/references/synthesis-catalogs.md` FROM KB -- the synthesis rules (provenance, source-priority ladder, NFR threshold, single-source flag, no-copy-paste), the six per-requirement output schemas, and the document wrapper; load the active schema per step.
+
+</synthesis>
+
+<gap_analysis>
+
+Analysis-only mode: scan collected multi-source data (Jira, Confluence, TestRail, API spec, test cases, test plan) for contradictions, gaps, ambiguities, and inconsistencies before design, emitting categorized findings into the provided artifact (never invent its shape or path).
+
+**Hard boundary (analysis-only):** do NOT act on findings, propose edits, fix gaps, ask the user, or generate questions -- surface each as a finding and STOP; redact before quoting (→ `sensitive-data`).
+
+ACQUIRE `qa-knowledge/references/gap-analysis-catalogs.md` FROM KB -- variants, the load→classify→cross-reference→redact→emit process, the detection probes, the three-tier risk scheme, and the per-finding discipline.
+
+</gap_analysis>
+
+<scenario_design>
+
+Mode: design test scenarios / specs / cases from requirements or API contracts -- happy/negative/boundary/auth coverage, exact values, traceability. Emit into the provided artifact (taxonomy, section list, path, coverage contract given). Per-value honesty + total coverage apply (→ `<core_concepts>`). This DESIGNS; `<implementation_modes>` turns the specs into runnable tests.
+
+- **gwt_spec** (Given-When-Then API specs from raw cases + endpoint contracts): validate inputs (contracts missing → stop, never fabricate shapes; case targeting an unloaded endpoint → flag `unmappable: <id>`, never invent it); generate 1-N scenarios per case across the taxonomy (Happy P0 / Negative P1 / Auth P1 / Resource P1-2 / Edge P2-3); one ATC entry per scenario; map scenarios to files + shared utilities + execution order; emit `## Excluded Test Cases`. ACQUIRE `qa-knowledge/references/gwt-spec.md` FROM KB for the taxonomy catalog + ATC template.
+- **generation** (cases into a given format, e.g. TMS Steps + Expected-Result): fill the given field schema; parameterize within the cap; every required field populated or `gap:`-marked; each input requirement → ≥1 case or a flagged gap.
+- **vendor format/export** (TMS destination, e.g. TestRail): the vendor is resolved from project config upstream and provided as a binding -- never hardcode it or read config here. ACQUIRE `qa-knowledge/references/<vendor>-format.md` (case template / field rules) or `qa-knowledge/references/<vendor>-export.md` (connection verify, field mappings, MCP signatures, destructive-write confirmation gate, post-export IDs) FROM KB. Shipped: `testrail-format.md`, `testrail-export.md`; forking another TMS → `vendor-fork-guide.md`. Empty binding + active scope → `SKIPPED_NO_CONFIG`.
+
+</scenario_design>
+
 <implementation_modes>
 
-Three test-implementation modes -- authoring UI tests, API tests, selectors/page objects. Inputs (paths, failure/assertion taxonomy, output target, write boundary, iteration cap) are provided; apply the technique to whatever is given. **On entering a mode, ACQUIRE `testing/references/implementation-examples.md` FROM KB** -- verbose code, the 4-tier selector table, output templates ("the reference"); never resident.
+Three test-implementation modes -- authoring UI tests, API tests, selectors/page objects. Inputs (paths, failure/assertion taxonomy, output target, write boundary, iteration cap) are provided; apply the technique to whatever is given. **On entering a mode, ACQUIRE `qa-knowledge/references/implementation-examples.md` FROM KB** -- verbose code, the 4-tier selector table, output templates ("the reference"); never resident.
 
 General method: read inputs → match repo patterns (USE SKILL `coding` for conventions) → emit code/artifact → record every gap explicitly (no silent drops) → run `<validation_checklist>`.
 
@@ -83,6 +133,12 @@ General method: read inputs → match repo patterns (USE SKILL `coding` for conv
 
 </implementation_modes>
 
+<test_execution_triage>
+
+Read-only mode: categorize each failure in an automated-test execution report and record findings (no fixes). ACQUIRE `qa-knowledge/references/test-execution-triage.md` FROM KB -- the categorize → source-analysis → cross-pattern → evidence-label procedure and worked examples; assign one category per failure from the flow's failure taxonomy (qa-knowledge `api-qa-failure-taxonomy` / `ui-qa-failure-taxonomy`). For fixing a confirmed root cause, hand off to SKILL `debugging`.
+
+</test_execution_triage>
+
 <validation_checklist>
 
 - Coverage >= 80% across major functionality
@@ -97,6 +153,9 @@ General method: read inputs → match repo patterns (USE SKILL `coding` for conv
 - Tests are idempotent — same result on every run
 - Previous server instances killed before test run
 - Impl modes: every plan assertion / ATC is implemented OR recorded as uncovered/gap (no silent drop); UI/selector modes touch only the permitted file set; selector Part A is read-only; fragile selectors never silently committed; lint/format clean on touched files
+- Synthesis: every requirement carries a Source; conflicts resolved via the source-priority ladder or flagged as an assumption; thresholdless NFRs flagged
+- Gap analysis: each finding has a verbatim quote + citation + impact + exactly one risk tier; analysis-only (no fixes/questions); a clean analysis still emits the artifact
+- Scenario design: total coverage (every case/requirement → ≥1 ATC/case or an excluded/gap entry); per-value honesty holds; auth-protected endpoints have ≥1 auth-failure scenario; vendor export passed the destructive-write gate
 
 </validation_checklist>
 
@@ -113,6 +172,11 @@ General method: read inputs → match repo patterns (USE SKILL `coding` for conv
 
 - Test data leaking into dev or prod environments
 - Coverage gaps in error paths and edge cases
+- Confident fabrication of values or traceability IDs instead of an `[ASSUMED: ...]` / `gap: ...` marker
+- Silently dropping an unmappable case / requirement / finding instead of recording it in the excluded/gap section
+- Skipping negative / auth / boundary coverage -- these catch most real defects
+- Acting on gap-analysis findings, asking the user, or padding a clean analysis -- all violate the analysis-only boundary
+- Re-reading code ad hoc in `<code_analysis>` instead of driving SKILL `reverse-engineering`
 
 </pitfalls>
 
@@ -121,7 +185,9 @@ General method: read inputs → match repo patterns (USE SKILL `coding` for conv
 - Review and use any relevant MCPs, plugins, and tools available in the current context — e.g. Playwright (browser), Appium (mobile), Context7 (library docs).
 - skill `coding` -- repo conventions as authority; authoring and applying code changes
 - skill `debugging` — for test failures and unexpected behavior
-- ACQUIRE `testing/references/implementation-examples.md` FROM KB -- multi-language code, 4-tier selector table, output templates (lazy-loaded per `<implementation_modes>`)
+- skill `reverse-engineering` — the code→intent method behind `<code_analysis>`
+- skill `qa-knowledge` — QA taxonomies, artifact skeletons, and the mode catalogs below; `qa-structure` — QA paths / identifiers / state; `sensitive-data` — redaction
+- ACQUIRE FROM KB, lazy per mode, from `qa-knowledge/references/`: `implementation-examples.md`, `gwt-spec.md`, `testrail-format.md`, `testrail-export.md`, `vendor-fork-guide.md`, `gap-analysis-catalogs.md`, `synthesis-catalogs.md`, `analysis-modes.md`, `test-execution-triage.md`
 
 </resources>
 

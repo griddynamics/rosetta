@@ -1,6 +1,6 @@
 ---
 name: analysis-modes
-description: "Two reverse-engineering analysis modes — test-automation architecture analysis and API-contract extraction — applying the general method to a concrete target."
+description: "QA code-analysis modes (testing `<code_analysis>`) — test-automation architecture analysis and API-contract extraction — applying reverse-engineering's method to a concrete target."
 ---
 
 <analysis-modes>

@@ -19,7 +19,6 @@
 - security
 - simulation
 - backward-compatibility
-- scenarios-generation
 - data-generation
 - documentation
 - large-file-handling

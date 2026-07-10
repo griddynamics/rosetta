@@ -1,6 +1,6 @@
 # TMS EXPORT binding -- vendor fork guide
 
-Loaded ONLY when forking an existing EXPORT binding to another TMS (Zephyr / Xray / qTest / Polarion). Copy the canonical binding (ACQUIRE `references/testrail-export.md` FROM KB) to `references/<vendor>-export.md` and rebind only the vendor-specific items below; keep the process shape, destructive-write confirmation gate, and redaction discipline verbatim. Gather these first:
+Loaded ONLY when forking an existing EXPORT binding to another TMS (Zephyr / Xray / qTest / Polarion). Copy the canonical binding (ACQUIRE `qa-knowledge/references/testrail-export.md` FROM KB) to `qa-knowledge/references/<vendor>-export.md` and rebind only the vendor-specific items below; keep the process shape, destructive-write confirmation gate, and redaction discipline verbatim. Gather these first:
 
 | Rebind item | TestRail value | Replace with |
 |---|---|---|

@@ -16,7 +16,7 @@ Senior engineer specializing in systematic root cause analysis and methodical de
 </role>
 
 <when_to_use_skill>
-Use when encountering errors, test failures, unexpected behavior, or when a previous fix failed and the issue persists, or for triaging. Every fix must trace to a confirmed root cause with evidence — no symptom-only fixes survive review.
+Use when encountering errors, test failures, unexpected behavior, or when a previous fix failed and the issue persists. Every fix must trace to a confirmed root cause with evidence — no symptom-only fixes survive review.
 </when_to_use_skill>
 
 <core_concepts>
@@ -49,7 +49,6 @@ BEFORE attempting ANY fix:
 5. Trace data flow backward — where does the bad value originate? Fix at source, not symptom
 6. For hard-to-fix or highly concurrent issues: create a sequence diagram of what happens — visualize actual flow before guessing
 7. Temporarily enable tracing in code and logs — review actual execution vs assumed execution, then remove tracing
-8. Use test_execution_triage for analyzing failures of automated test execution.
 
 </root_cause_investigation>
 
@@ -78,12 +77,6 @@ BEFORE attempting ANY fix:
 
 </implementation>
 
-<test_execution_triage>
-
-Read-only mode: categorize each failure in an automated-test execution report and record findings (no fixes). On entering, **ACQUIRE `debugging/references/test-execution-triage.md` FROM KB** -- the categorize → source-analysis → cross-pattern → evidence-label procedure and worked examples; never resident.
-
-</test_execution_triage>
-
 <validation_checklist>
 
 - Root cause identified with evidence before any fix attempted
@@ -93,7 +86,6 @@ Read-only mode: categorize each failure in an automated-test execution report an
 - Failing test reproduces the bug
 - No regressions introduced
 - Prevention recommendation documented
-- Triage mode: every failed test has one taxonomy category, a root cause, and an evidence label; grounded in source/capture; cross-failure patterns are explicit; redaction scan ran
 
 </validation_checklist>
 
@@ -110,7 +102,6 @@ Read-only mode: categorize each failure in an automated-test execution report an
 - Attempting fixes before tracing the root cause
 - Stacking multiple fixes without validating each
 - Each fix reveals a new problem elsewhere — likely a design issue, not a bug
-- Categorizing failures without populating a root cause and an evidence label
 
 </pitfalls>
 

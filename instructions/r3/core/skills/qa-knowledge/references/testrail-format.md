@@ -1,4 +1,4 @@
-# TestRail FORMAT Binding -- scenarios-generation
+# TestRail FORMAT Binding -- testing (scenario_design)
 
 Holds the TestRail-compatible case template, field rules, naming conventions, and worked examples.
 

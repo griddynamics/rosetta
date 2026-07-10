@@ -1,9 +1,9 @@
-# TestRail EXPORT Binding -- scenarios-generation
+# TestRail EXPORT Binding -- testing (scenario_design)
 
 Holds connection verification, field mappings, MCP tool signatures, the destructive-write confirmation gate, and post-export ID handling.
 
 
-The PHASE supplies the bindings: authored case-set source path, `project_id`, `suite_id`, `section_id`, workflow-state path, and any per-instance priority/type override tables. Missing `project_id` / `suite_id` / case-set path → the export cannot run; stop and report `scenarios-generation testrail-export: required input missing — <name>`. Do NOT pick defaults for these -- the safety gate against exporting to the wrong project depends on them being explicit. Collect `section_id` from the user at step 2 if not pre-supplied.
+The PHASE supplies the bindings: authored case-set source path, `project_id`, `suite_id`, `section_id`, workflow-state path, and any per-instance priority/type override tables. Missing `project_id` / `suite_id` / case-set path → the export cannot run; stop and report `testing testrail-export: required input missing — <name>`. Do NOT pick defaults for these -- the safety gate against exporting to the wrong project depends on them being explicit. Collect `section_id` from the user at step 2 if not pre-supplied.
 
 ---
 
@@ -97,4 +97,4 @@ TestRail `priority_id` / `type_id` are NOT enums -- they are foreign keys into p
 
 ## Swapping to another TMS vendor
 
-To fork this binding for another TMS (Zephyr / Xray / qTest / Polarion): ACQUIRE `scenarios-generation/references/vendor-fork-guide.md` FROM KB, copy this file to `references/<vendor>-export.md`, and rebind only the vendor-specific items per that guide's Rebind table -- keeping the process shape, the destructive-write confirmation gate, and the redaction discipline verbatim.
+To fork this binding for another TMS (Zephyr / Xray / qTest / Polarion): ACQUIRE `qa-knowledge/references/vendor-fork-guide.md` FROM KB, copy this file to `qa-knowledge/references/<vendor>-export.md`, and rebind only the vendor-specific items per that guide's Rebind table -- keeping the process shape, the destructive-write confirmation gate, and the redaction discipline verbatim.

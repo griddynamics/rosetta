@@ -1,6 +1,6 @@
-# Gap Analysis -- Detection Catalogs (requirements-use `<gap_analysis>` mode)
+# Gap Analysis -- Detection Catalogs (testing `<gap_analysis>` mode)
 
-Loaded on demand when running the `<gap_analysis>` mode of `requirements-use/SKILL.md`. SKILL.md keeps only the mode's purpose, the analysis-only hard boundary, and the emit-into-provided-artifact rule resident; this file holds the runnable method (variants + process) and the probe catalogs to scan against. The calling phase owns the finding-entry template and output shape -- this file drives *what to look for* and *how to run the analysis*, never *how to format output*.
+Loaded on demand when running the `<gap_analysis>` mode of `testing/SKILL.md`. SKILL.md keeps only the mode's purpose, the analysis-only hard boundary, and the emit-into-provided-artifact rule resident; this file holds the runnable method (variants + process) and the probe catalogs to scan against. The calling phase owns the finding-entry template and output shape -- this file drives *what to look for* and *how to run the analysis*, never *how to format output*.
 
 ---
 

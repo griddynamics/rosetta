@@ -1,7 +1,7 @@
 ---
 name: requirements-use
 description: "To consume approved requirements for planning, implementation, and validation, with traceability and HITL."
-tags: ["requirements", "skills", "requirements-use", "requirements-traceability"]
+tags: ["requirements", "skills"]
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
@@ -12,6 +12,9 @@ metadata:
   version: "1.0"
   category: "requirements-engineering"
   tags: "requirements usage traceability implementation validation hitl"
+tags:
+  - requirements-use
+  - requirements-traceability
 ---
 
 <requirements-use>
@@ -83,16 +86,6 @@ HITL gates (use when):
 9. HITL: get final coverage approval
 
 </process>
-
-<gap_analysis>
-
-Analysis-only mode: scan collected multi-source data (Jira, Confluence, TestRail, API spec, test cases, test plan) for contradictions, gaps, ambiguities, and inconsistencies before downstream work, emitting categorized findings into the provided artifact (finding-entry template, section list, output path, and validation contract are given - never invent the artifact shape or path).
-
-**Hard boundary (analysis-only):** do NOT act on findings, propose edits, fix gaps, ask the user, or generate questions - surface each as a finding and STOP; redact before quoting.
-
-To run it, ACQUIRE `references/gap-analysis-catalogs.md` FROM KB - the variants, the load→classify→cross-reference→redact→emit process, the detection probes, the three-tier risk scheme, and the per-finding discipline all live there.
-
-</gap_analysis>
 
 <core_principles_to_enforce>
 
@@ -190,14 +183,13 @@ To run it, ACQUIRE `references/gap-analysis-catalogs.md` FROM KB - the variants,
 - Treating Draft as Approved
 - Assuming unspecified behavior
 - Ignoring requirement priority and status
-- `<gap_analysis>`: acting on findings, asking the user directly, or padding a clean analysis -- all violate the analysis-only boundary
 
 </pitfalls>
 
 <resources>
 
 Use `ACQUIRE FROM KB` to load.
-- reference `requirements-use/references/gap-analysis-catalogs.md` (`<gap_analysis>` method + detection catalogs)
+- workflow `requirements-use-flow`
 - asset `requirements-use/assets/ru-traceability-matrix.md`
 - asset `requirements-use/assets/ru-change-log.md`
 

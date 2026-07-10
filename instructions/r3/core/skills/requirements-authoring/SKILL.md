@@ -1,7 +1,7 @@
 ---
 name: requirements-authoring
 description: "To author, update, and validate functional/non-functional requirements as atomic units with user approval."
-tags: ["requirements", "skills", "requirements-authoring", "requirements-validation"]
+tags: ["requirements", "skills"]
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
@@ -12,6 +12,9 @@ metadata:
   version: "1.0"
   category: "requirements-engineering"
   tags: "requirements functional non-functional traceability hitl"
+tags:
+  - requirements-authoring
+  - requirements-validation
 ---
 
 <requirements-authoring>
@@ -28,7 +31,7 @@ Use when creating, updating, reviewing, or refactoring requirements and building
 
 <dependencies>
 
-- USE SKILL `questioning` for Q&A.
+- ACQUIRE `questions.md` FROM KB for Q&A.
 - Prep steps completed
 - Use CONTEXT, ARCHITECTURE, IMPLEMENTATION, ASSUMPTIONS, TECHSTACK docs.
 
@@ -367,16 +370,6 @@ HITL gates (use when):
 
 </authoring_flow>
 
-<synthesis>
-
-Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document (user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability). Emit into the provided skeleton (section contract + output path given); all authoring rules above apply.
-
-**Safety:** the draft is PUBLIC (version-tracked, downstream-fed) -- redact credentials/tokens/keys + PII before quoting (→ `sensitive-data`); never infer redacted content.
-
-To run it, ACQUIRE `requirements-authoring/references/authoring-catalogs.md` FROM KB -- the synthesis rules (provenance, source-priority ladder, NFR threshold, single-source flag, no-copy-paste), the six per-requirement output schemas, and the document wrapper all live there; load the active schema per step.
-
-</synthesis>
-
 <validation_rules>
 
 - Validate correctness with sources
@@ -477,7 +470,6 @@ To run it, ACQUIRE `requirements-authoring/references/authoring-catalogs.md` FRO
 - Add scope without explicit approval
 - Skip boundary and failure scenarios
 - Treat requirement groupings as mere organization when they are requirements themselves
-- `<synthesis>`: implementation detail in user stories, or subjective/non-testable acceptance criteria
 
 </pitfalls>
 
@@ -485,8 +477,8 @@ To run it, ACQUIRE `requirements-authoring/references/authoring-catalogs.md` FRO
 
 Use `ACQUIRE FROM KB` to load.
 
+- workflow `requirements-flow`
 - rule `rules/requirements-best-practices.md`
-- reference `requirements-authoring/references/authoring-catalogs.md`
 - asset `requirements-authoring/assets/ra-intent-capture.md`
 - asset `requirements-authoring/assets/ra-requirement-unit.xml`
 - asset `requirements-authoring/assets/ra-validation-rubric.md`
