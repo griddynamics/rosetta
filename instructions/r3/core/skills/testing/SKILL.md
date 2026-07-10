@@ -82,6 +82,7 @@ Infrastructure:
 - design test cases/specs (incl. TMS/TestRail), **not runnable** → `scenario_design`
 - write **runnable** tests UI/API/selectors (`.spec`/`.test`) → `implementation_modes`
 - categorize run-report failures, no fixing → `test_execution_triage`
+- no route matches cleanly (e.g. "assess coverage & suggest improvements") → state the closest-mode interpretation and confirm, or ask which deliverable is wanted, BEFORE proceeding -- never silently pick the nearest mode
 
 </mode_selection>
 
