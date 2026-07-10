@@ -43,14 +43,14 @@ This SKILL.md is a router. For any non-trivial question, read the relevant `refe
 
 | When the user asks about… | Read |
 |---|---|
-| Architecture overview, the three layers, data flow | `references/01-architecture.md` |
-| Concept collection schema, building it from source data, indexing handler | `references/02-concept-indexing.md` |
-| Phrase tagging mechanics: shingles, lookup, scoring, multi-language, fuzzy/word-break/prefix | `references/03-tagging.md` |
-| Graph construction (JGraphT), vertices/edges, paths, quasi-positions for multi-word syns | `references/04-graph-paths.md` |
-| Ambiguity resolution between competing interpretations (Path vs Shingle resolvers) | `references/05-ambiguity-resolution.md` |
-| Building the final Solr query from tagged paths, Sm query model, dependency groups | `references/06-query-building.md` |
-| Adapting this to a new domain: schema design, concept sources, stages config | `references/07-applying-to-domain.md` |
-| Sm* query model implementation — full code for SmQuery/SmBoolean/SmTerm and the Solr translator fabric | `references/08-query-model-implementation.md` |
+| Architecture overview, the three layers, data flow | READ SKILL FILE `references/01-architecture.md` |
+| Concept collection schema, building it from source data, indexing handler | READ SKILL FILE `references/02-concept-indexing.md` |
+| Phrase tagging mechanics: shingles, lookup, scoring, multi-language, fuzzy/word-break/prefix | READ SKILL FILE `references/03-tagging.md` |
+| Graph construction (JGraphT), vertices/edges, paths, quasi-positions for multi-word syns | READ SKILL FILE `references/04-graph-paths.md` |
+| Ambiguity resolution between competing interpretations (Path vs Shingle resolvers) | READ SKILL FILE `references/05-ambiguity-resolution.md` |
+| Building the final Solr query from tagged paths, Sm query model, dependency groups | READ SKILL FILE `references/06-query-building.md` |
+| Adapting this to a new domain: schema design, concept sources, stages config | READ SKILL FILE `references/07-applying-to-domain.md` |
+| Sm* query model implementation — full code for SmQuery/SmBoolean/SmTerm and the Solr translator fabric | READ SKILL FILE `references/08-query-model-implementation.md` |
 
 </references>
 

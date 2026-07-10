@@ -67,21 +67,23 @@ Rosetta definitions policy:
 - Use mandatory wording for required behavior
 - Avoid optional qualifiers for required behavior
 
-Any file stored inside of `instructions` will be uploaded to Rosetta Server, and will only be available via ACQUIRE/SEARCH/LIST commands maintaining similar folder structure (without CORE/GRID). If you know prefix path prefer listing. The only that will be in context are shells of SKILL (acquires SKILL.md internally), SUBAGENT (acquires agents/<agent>.md). All other references must be wrapped in commands or told to be ACQUIRE'd.
+Any file stored inside of `instructions` will be uploaded to Rosetta Server, and will only be available via the typed command aliases below, maintaining similar folder structure (without CORE/GRID). If you know the folder, prefer LIST. The only files in context are shells of SKILL (loads SKILL.md internally), SUBAGENT (loads agents/<agent>.md); shells are MCP-only copy-paste proxies and keep the raw `MUST ACQUIRE … FROM KB` form internally. All other (authored) references must use the typed aliases.
 
 # Rosetta Command Aliases
 
-Rosetta define command aliases so that it works with ALL IDEs/CodingAgents, you must follow it as it is critical requirement:
+Rosetta defines command aliases so that it works with ALL IDEs/CodingAgents. In plugin mode they need NO mapping — typed aliases operate natively on the plugin files; the MCP (`bootstrap.md`) and local (`local-files-mode.md`) mode files map each alias to their mechanisms. You must follow it as it is critical requirement. Verbs: `READ` = load into context, no execution · `APPLY` = load + FULLY execute · `USE`/`INVOKE` = activate typed artifact. Plural = plural noun + comma list (`READ RULES a.md, b.md`); `APPLY PHASES` forbidden — phases are one-at-a-time. The set below is CLOSED — never invent aliases outside it:
 
-1. `ACQUIRE [grandparentfolder/][parentfolder/]<filename.md> FROM KB` to load rule, template, asset, etc. Supported three options: file name, parent folder with filename and three parts: `ACQUIRE requirements.md FROM KB`, `ACQUIRE agents/reviewer.md FROM KB`, `ACQUIRE requirements/skill.md FROM KB`, `ACQUIRE requirements/references/req-best-practices.md FROM KB`
-2. `LIST <folder> IN KB` to list immediate children (folders and files) in folder. GRID/CORE will be cut during upload: `core/agents/<name>.md` => `agents/<name>.md`. Prefer listing over searching if you know folder in advance.
-3. `SEARCH <keywords> IN KB` to search an entire knowledge base by keywords
-4. `USE SKILL <skill-name>` to use the skill, note skill is matching name of SKILL.md frontmatter. skill folder name must match that skill name, no .md extension!
-5. `INVOKE SUBAGENT <agent-name>` to call or execute subagent, no .md extension!
-6. `USE FLOW <flow-name>` to use a workflow or command, no .md extension!
-7. `ACQUIRE <file[.md]> ABOUT <PROJECT>` to read project-scoped documentation, PROJECT is a repository name with fallback to logical project name
-8. `QUERY <KEYWORDS> IN <PROJECT>` to search project documentation by keywords
-9. `STORE <file[.md]> TO <PROJECT>` to create or update a file in project documentation
+1. `USE SKILL <skill-name>` to use the skill, note skill is matching name of SKILL.md frontmatter. skill folder name must match that skill name, no .md extension! `READ SKILL <skill-name>` loads it without executing (e.g. to install a copy).
+2. `USE FLOW <flow-name>.md` to use a workflow or command, full filename with .md! `READ FLOW <flow-name>.md` loads it without executing (e.g. to browse/advise).
+3. `INVOKE SUBAGENT <agent-name>` to call or execute subagent, no .md extension! `READ SUBAGENT <agent-name>` loads the definition only.
+4. `APPLY PHASE <file>.md` to load + FULLY execute the next phase body of a running workflow. Filename only, never a folder path.
+5. `READ RULE <file>.md` / `APPLY RULE <file>.md` to load / load+execute a rule. Full filename with .md.
+6. `READ TEMPLATE <file>.md` to load a template.
+7. `READ CONFIGURE <tool>.md` to load an IDE/CodingAgent configure spec.
+8. `READ SKILL FILE <subpath>` / `APPLY SKILL FILE <subpath>` for a file of the CURRENT skill (`assets/…`, `references/…`). NEVER carries a skill name — only a skill's own files may use it; any other artifact expresses intent ("run validation using the `X` skill's rubric") and lets the skill route (skill isolation is grammar-enforced). Cross-skill resolution: NEVER name another skill's internal files or paths (file names change) — express intent with the typed alias plus the topic keywords the target skill routes on: `USE SKILL \`solr-extending\` to apply plugin wiring`, never `solr-extending/references/06-plugin-wiring.md`.
+9. `LIST <folder>` to list immediate children (folders and files) in folder. GRID/CORE will be cut during upload: `core/agents/<name>.md` => `agents/<name>.md`. Prefer listing when you know the folder in advance.
+
+Project-scoped verbs (`ACQUIRE … ABOUT`, `QUERY … IN`, `STORE … TO`) are NOT part of the contract — never author them (dropped: security/privacy; a separate plugin will own project datasets).
 
 # Rosetta Principles
 

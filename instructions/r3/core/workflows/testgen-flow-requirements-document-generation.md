@@ -507,7 +507,7 @@ After Phase 4 completion:
 2. Show document location: `agents/testgen/{TICKET-KEY}/requirements.md`
 3. Ask: "Please review the requirements document. Ready to proceed to Phase 5 (Test Scenario Generation)?"
 4. Wait for confirmation
-5. Load Phase 5: ACQUIRE testgen-phase5-md FROM KB
+5. Load Phase 5: APPLY PHASE testgen-flow-test-case-generation.md
 
 ## Notes
 

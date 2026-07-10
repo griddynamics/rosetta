@@ -13,7 +13,7 @@ baseSchema: docs/schemas/workflow.md
 
 [MAIN INTENTION: workflows defined here should be reusable and adaptable, the file must be small and short, skills already define how things work! Be concise! Save tokens! Recommend skills, but do not limit, add hook to add any currently available and useful]
 
-[ONLY FOR TEMPLATE EXECUTOR: imperative bullet points, shorter lines, distinguish references to repository files vs instructions; skill/subagent names will be in context already, so just reference it. the rest of instruction folder files: rules/templates/workflows/assets/subfolders of skill/etc must be ACQUIRE'd / SEARCH'd / LIST'd to be used]
+[ONLY FOR TEMPLATE EXECUTOR: imperative bullet points, shorter lines, distinguish references to repository files vs instructions; skill/subagent names will be in context already, so just reference it. the rest of instruction folder files: rules/templates/workflows/assets/subfolders of skill/etc must be loaded via the typed aliases (USE SKILL/FLOW, INVOKE SUBAGENT, APPLY PHASE, READ|APPLY RULE|TEMPLATE|SKILL FILE, LIST) to be used]
 
 [Latest Models: Anthropic (claude-opus-4-8, claude-sonnet-5, claude-haiku-4-5), OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high, gpt-5.4-medium, gpt-5.4-high, gpt-5.5-high), Google (gemini-3.1-pro-preview, gemini-3-flash-preview), Z.ai (glm-5).]
 

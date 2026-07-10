@@ -47,7 +47,7 @@ Core flow:
 
 1. USE SKILL `reasoning`
 2. Derive functional requirements in EARS form
-3. ACQUIRE `planning/assets/pl-wbs.md` FROM KB and draft technical WBS
+3. APPLY SKILL FILE `assets/pl-wbs.md` and draft technical WBS
 4. Enrich each step with prerequisites, consequences, and watch-fors
 5. Close gaps and consistency issues
 6. Integrate mistake-proofing controls into acceptance criteria
@@ -141,11 +141,9 @@ Use `INVOKE SUBAGENT` for agents, `USE SKILL` for skills.
 
 <templates applies="LARGE">
 
-Use `ACQUIRE FROM KB` to load.
-
-- `planning/assets/pl-functional-requirements.md`
-- `planning/assets/pl-wbs.md`
-- `planning/assets/pl-risk-and-unknowns.md`
+- READ SKILL FILE `assets/pl-functional-requirements.md`
+- READ SKILL FILE `assets/pl-wbs.md`
+- READ SKILL FILE `assets/pl-risk-and-unknowns.md`
 
 </templates>
 

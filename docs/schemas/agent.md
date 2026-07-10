@@ -60,7 +60,7 @@ baseSchema: docs/schemas/agent.md
 
 <[the_agent_name]>
 
-[ONLY FOR TEMPLATE EXECUTOR: imperative bullet points, shorter lines, distinguish references to repository files vs instructions; skill/subagent names will be in context already, so just reference it. the rest of instruction folder files: rules/templates/workflows/assets/subfolders of skill/etc must be ACQUIRE'd / SEARCH'd / LIST'd to be used]
+[ONLY FOR TEMPLATE EXECUTOR: imperative bullet points, shorter lines, distinguish references to repository files vs instructions; skill/subagent names will be in context already, so just reference it. the rest of instruction folder files: rules/templates/workflows/assets/subfolders of skill/etc must be loaded via the typed aliases (USE SKILL/FLOW, INVOKE SUBAGENT, APPLY PHASE, READ|APPLY RULE|TEMPLATE|SKILL FILE, LIST) to be used]
 
 <role>
 
@@ -111,7 +111,7 @@ baseSchema: docs/schemas/agent.md
 
 <required_rules_and_restrictions>
 
-[Optional, agent-specific rules and links to common ones using `ACQUIRE FROM KB` commands]
+[Optional, agent-specific rules and links to common ones using `READ RULE`/`APPLY RULE` aliases]
 
 </required_rules_and_restrictions>
 

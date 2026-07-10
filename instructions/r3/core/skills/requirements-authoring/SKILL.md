@@ -31,8 +31,8 @@ Use when creating, updating, reviewing, or refactoring requirements and building
 
 <dependencies>
 
-- ACQUIRE `questions.md` FROM KB for Q&A.
 - Prep steps completed
+- USE SKILL `questioning` for Q&A.
 - Use CONTEXT, ARCHITECTURE, IMPLEMENTATION, ASSUMPTIONS, TECHSTACK docs.
 
 </dependencies>
@@ -475,14 +475,12 @@ HITL gates (use when):
 
 <resources>
 
-Use `ACQUIRE FROM KB` to load.
-
-- workflow `requirements-flow`
-- rule `rules/requirements-best-practices.md`
-- asset `requirements-authoring/assets/ra-intent-capture.md`
-- asset `requirements-authoring/assets/ra-requirement-unit.md`
-- asset `requirements-authoring/assets/ra-validation-rubric.md`
-- asset `requirements-authoring/assets/ra-change-log.md`
+- READ FLOW `requirements-authoring-flow.md`
+- READ RULE `requirements-best-practices.md`
+- READ SKILL FILE `assets/ra-intent-capture.md`
+- READ SKILL FILE `assets/ra-requirement-unit.xml`
+- READ SKILL FILE `assets/ra-validation-rubric.md`
+- READ SKILL FILE `assets/ra-change-log.md`
 
 </resources>
 

@@ -372,7 +372,7 @@ After Phase 1 completion:
 1. Tell user: "Phase 1 complete. Found [X] Jira fields and [Y] Confluence pages."
 2. Ask: "Ready to proceed to Phase 2 (Gap Analysis)?"
 3. Wait for confirmation
-4. Load Phase 2: ACQUIRE testgen-phase2-md FROM KB
+4. Load Phase 2: APPLY PHASE testgen-flow-gap-and-contradiction-analysis.md
 
 ## Notes
 

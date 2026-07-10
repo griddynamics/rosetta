@@ -2,7 +2,7 @@
 
 This file covers the `solrconfig.xml` decisions a schema audit must check: commit strategy (`autoCommit` / `autoSoftCommit`), the query caches, `schemaFactory`, `luceneMatchVersion`, classloading (`<lib>`), update processor chains, and request-handler defaults. The schema (`managed-schema`) decides field types and analysis; `solrconfig.xml` decides **how the index is written, refreshed, and queried**. The two are reviewed together because a perfect schema with a broken commit or cache config still fails in production.
 
-For getting **custom plugin jars** onto the classpath and registering them (the `<lib>` directive in depth, `sharedLib`, Solr Packages, classloader hierarchy), see the sibling skill reference `solr-extending/references/06-plugin-wiring.md`. This file references `<lib>` only as a config-review item and defers the packaging detail there.
+For getting **custom plugin jars** onto the classpath and registering them (the `<lib>` directive in depth, `sharedLib`, Solr Packages, classloader hierarchy), USE SKILL `solr-extending` to apply plugin wiring. This file references `<lib>` only as a config-review item and defers the packaging detail there.
 
 ---
 
@@ -109,7 +109,7 @@ For runtime schema edits, the managed factory is the one to use; it is also the 
 <lib dir="${solr.install.dir}/dist/" regex="solr-myplugin-.*\.jar"/>
 ```
 
-The `<lib>` directive loads per-core jars from disk. In Solr 9.x it is **deprecated and disabled by default** for security (arbitrary jars from disk), so seeing `<lib>` in a 9.x config is a flag — confirm it is intended and that the install has re-enabled it, or migrate to `sharedLib` / Solr Packages. The full packaging story (`sharedLib`, Packages, signing, classloader hierarchy, re-enabling `<lib>`) lives in `solr-extending/references/06-plugin-wiring.md`; a schema/solrconfig review only needs to confirm the directive is present-for-a-reason and not a leftover.
+The `<lib>` directive loads per-core jars from disk. In Solr 9.x it is **deprecated and disabled by default** for security (arbitrary jars from disk), so seeing `<lib>` in a 9.x config is a flag — confirm it is intended and that the install has re-enabled it, or migrate to `sharedLib` / Solr Packages. For the full packaging story (`sharedLib`, Packages, signing, classloader hierarchy, re-enabling `<lib>`) USE SKILL `solr-extending` to apply plugin wiring; a schema/solrconfig review only needs to confirm the directive is present-for-a-reason and not a leftover.
 
 ---
 
@@ -131,7 +131,7 @@ An `updateRequestProcessorChain` is a pipeline every document passes through on 
 - The chain marked `default="true"` runs for updates that don't name a chain via `update.chain`.
 - `AddSchemaFieldsUpdateProcessorFactory` is the **schemaless / field-guessing** processor — it requires `ManagedIndexSchemaFactory`. In production schemas you usually want this **off** (set `update.autoCreateFields=false`) so a typo'd field name doesn't silently create a guessed field of the wrong type.
 - `RunUpdateProcessorFactory` must be **last** — it's what actually writes the doc. Any processor after it never runs.
-- Custom processors are registered here as `<processor class="...">`; the registration syntax for custom plugin processors is in `solr-extending/references/06-plugin-wiring.md`.
+- Custom processors are registered here as `<processor class="...">`; for the registration syntax of custom plugin processors USE SKILL `solr-extending` to apply plugin wiring.
 
 ---
 
@@ -175,7 +175,7 @@ Each row: the symptom to look for → the finding → the fix.
 | 7 | Large `autowarmCount` + frequent commits | Warming outlasts commit interval, stalls visibility | Lower `autowarmCount` (or `0` for sub-second soft commits) |
 | 8 | `ClassicIndexSchemaFactory` but Schema API expected | Runtime schema edits silently rejected (read-only) | Switch to `ManagedIndexSchemaFactory` (9.x default) |
 | 9 | Stale `luceneMatchVersion` after an upgrade | Components run in unintended back-compat behavior | Set to the deployed Solr/Lucene version |
-| 10 | `<lib>` directive present in a 9.x config | Deprecated/disabled-by-default jar loading | Confirm intent; migrate to `sharedLib`/Packages — see `solr-extending/references/06-plugin-wiring.md` |
+| 10 | `<lib>` directive present in a 9.x config | Deprecated/disabled-by-default jar loading | Confirm intent; migrate to `sharedLib`/Packages — USE SKILL `solr-extending` to apply plugin wiring |
 | 11 | `AddSchemaFieldsUpdateProcessorFactory` active in prod | Field-guessing creates wrong-typed fields from typos | Set `update.autoCreateFields=false`; define fields explicitly |
 | 12 | A processor after `RunUpdateProcessorFactory` | That processor never runs (Run writes the doc) | Make `RunUpdateProcessorFactory` last in the chain |
 | 13 | Giant `OR` chains hitting `maxBooleanClauses` | `too many boolean clauses` errors | Use `{!terms}` (TermInSetQuery); raise `maxBooleanClauses` only if needed |
@@ -185,6 +185,6 @@ Each row: the symptom to look for → the finding → the fix.
 
 ## Related references
 
-- `solr-extending/references/06-plugin-wiring.md` — jar packaging, `<lib>`/`sharedLib`/Packages, classloader hierarchy, registering custom processors and handlers.
+- USE SKILL `solr-extending` to apply plugin wiring — jar packaging, `<lib>`/`sharedLib`/Packages, classloader hierarchy, registering custom processors and handlers.
 - `01-field-types.md`, `03-docvalues-stored-indexed.md` — the schema-side decisions reviewed alongside this file.
 - `06-anti-patterns.md` — the anti-pattern catalog and Solr 9.x version-compat landmines.

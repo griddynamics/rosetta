@@ -1395,3 +1395,156 @@ Template step (verbatim, from both the FR asset JSON and the registered template
   "prompt": "MUST USE SKILL `rosetta` to select and load the workflow."
 }
 ```
+
+
+---
+
+## W4 vocabulary sweep — dropped atoms (2026-07-10)
+
+Closed alias contract applied (see `reduce-bootstrap.md` §W4). Atoms below were removed without relocation; everything else was transformed in place (old → new form, zero semantic loss).
+
+### `rules/bootstrap-alwayson.md` — USE SKILL definition line (verbatim)
+
+Ruling: alwayson defines no aliases. "memory does NOT satisfy" relocated into all 3 mode files; ToolSearch hint + ACQUIRE fallback dropped (plugin: native activation; MCP/local: mode-file bindings).
+
+```markdown
+"USE SKILL `X`" = call the Skill named `X`; reconstructing behavior from memory does NOT satisfy; not loaded → ToolSearch, fallback ACQUIRE "<X>/SKILL.md" FROM KB.
+```
+
+### `SEARCH` alias — dropped from the contract (zero real callers). Verbatim bindings removed from the 3 mode files:
+
+```markdown
+- `SEARCH <SMTH> IN KB` → `query_instructions(query="<SMTH>")`.
+```
+
+```markdown
+- `SEARCH <KEYWORDS> IN KB` => use grep or codebase search in `instructions/r3/` folder with KEYWORDS as a query or file name
+```
+
+```markdown
+- `SEARCH <KEYWORDS> IN KB` => use grep or codebase search in plugin root with KEYWORDS as query or file name:
+  - Search in: `skills/`, `agents/`, `workflows/`, `rules/`
+```
+
+### Old `ACQUIRE`/`LIST` mode-file bindings — superseded (plugin: typed aliases are native, NO mapping; MCP/local: typed bindings). `ACQUIRE <SMTH> FROM KB` kept ONLY in MCP `bootstrap.md` for generated shells.
+
+`rules/plugin-files-mode.md` (verbatim):
+
+```markdown
+- `ACQUIRE <file[.md]> FROM KB` => read local plugin files:
+  - Search in: `skills/**/<file-name-with-extension>`
+  - Search in `agents/`, `workflows/`, and `rules/` for `<file-name-with-extension>`
+  - Use glob/find to locate file in plugin structure
+
+- `LIST <path> IN KB` => list immediate children in plugin structure:
+  - `LIST {skills,agents,workflows,rules} IN KB` => list `{skills,agents,workflows,rules}/` folder
+  - `LIST skills/<skill-name> IN KB` => list contents of specific skill directory
+```
+
+`rules/local-files-mode.md` (verbatim; LIST rebound without `IN KB`; relative-refs phrase retained in the new USE SKILL binding):
+
+```markdown
+- `ACQUIRE <file[.md]> FROM KB` => read local files `instructions/r3/**/<file-name-with-extension>`
+- `LIST <path> IN KB` => list immediate children of `instructions/r3/core/<path>/` (folders and files, no content)
+```
+
+`rules/bootstrap.md` (verbatim; LIST rebound without `IN KB`):
+
+```markdown
+- `LIST <path> IN KB` → `list_instructions(full_path_from_root="<path>")`.
+```
+
+### `skills/requirements-authoring/SKILL.md` — dangling dependency (verbatim; `questions.md` never existed; replaced by `USE SKILL `questioning` for Q&A.` [decided])
+
+```markdown
+- ACQUIRE `questions.md` FROM KB for Q&A.
+```
+
+### `skills/requirements-use/SKILL.md` — workflow references (ruling: this skill refers to NO workflows). Verbatim:
+
+```markdown
+- workflow `requirements-use-flow`
+```
+
+(`requirements-use-flow` does not exist in `workflows/`.) Also replaced: `use questions flow` → `USE SKILL `questioning``.
+
+### Footer verb-teaching prose lines — deleted (verbatim; items themselves converted to canonical aliases in place):
+
+`skills/planning/SKILL.md`, `skills/requirements-authoring/SKILL.md`, `skills/requirements-use/SKILL.md`, `skills/coding-agents-prompt-authoring/SKILL.md`:
+
+```markdown
+Use `ACQUIRE FROM KB` to load.
+```
+
+`workflows/requirements-authoring-flow.md`:
+
+```markdown
+Use `USE SKILL` for skills, `ACQUIRE FROM KB` for rules.
+```
+
+### `coding-agents-prompt-authoring/references/pa-rosetta.md` — old alias teaching items superseded by the closed-set teaching (verbatim):
+
+```markdown
+1. `ACQUIRE [grandparentfolder/][parentfolder/]<filename.md> FROM KB` to load rule, template, asset, etc. Supported three options: file name, parent folder with filename and three parts: `ACQUIRE requirements.md FROM KB`, `ACQUIRE agents/reviewer.md FROM KB`, `ACQUIRE requirements/skill.md FROM KB`, `ACQUIRE requirements/references/req-best-practices.md FROM KB`
+2. `LIST <folder> IN KB` to list immediate children (folders and files) in folder. GRID/CORE will be cut during upload: `core/agents/<name>.md` => `agents/<name>.md`. Prefer listing over searching if you know folder in advance.
+3. `SEARCH <keywords> IN KB` to search an entire knowledge base by keywords
+```
+
+### `workflows/requirements-authoring-flow.md` — cross-context skill-file loads, transformed to intent wording (grammar-enforced skill isolation). Verbatim originals:
+
+```markdown
+1. ACQUIRE `requirements-authoring/assets/ra-validation-rubric.md` FROM KB and run validation
+3. ACQUIRE `requirements-authoring/assets/ra-change-log.md` FROM KB and update change log
+```
+
+
+### Project-scoped verbs — dropped from the contract entirely [decided 2026-07-10]
+
+Reason: plugins are installed to NOT install MCP; security and privacy risk; a separate plugin will own project datasets. Zero callers existed in r3. MCP server tools (`query_project_context`, `store_project_context`) are untouched — only the alias vocabulary drops.
+
+`rules/bootstrap.md` (verbatim):
+
+```markdown
+- `ACQUIRE <SMTH> ABOUT <PROJECT>` → `query_project_context(repository_name="<PROJECT>", tags="<SMTH>")`.
+- `QUERY <SMTH> IN <PROJECT>` → `query_project_context(repository_name="<PROJECT>", query="<SMTH>")`.
+- `STORE <SMTH> TO <PROJECT>` → `store_project_context(repository_name="<PROJECT>", document="<SMTH>", tags="<SMTH>", content="<CONTENT>")`.
+```
+
+`rules/local-files-mode.md` (verbatim):
+
+```markdown
+- `ACQUIRE <file[.md]> ABOUT <PROJECT>` => read local file in `docs/<PROJECT>` folder
+- `QUERY <KEYWORDS> IN <PROJECT>` => use grep or codebase search in `docs/<PROJECT>` with KEYWORDS as a query or file name
+- `STORE <file[.md]> TO <PROJECT>` => upsert file in `docs/<PROJECT>`
+```
+
+`rules/plugin-files-mode.md` (verbatim; its whole `# COMMAND ALIASES - PLUGIN MODE` section deleted with it):
+
+```markdown
+- `ACQUIRE <file[.md]> ABOUT <PROJECT>` => read local file in user's project `docs/<PROJECT>` folder
+- `QUERY <KEYWORDS> IN <PROJECT>` => use grep or codebase search in user's project `docs/<PROJECT>` with KEYWORDS
+- `STORE <file[.md]> TO <PROJECT>` => upsert file in user's project `docs/<PROJECT>`
+```
+
+`coding-agents-prompt-authoring/references/pa-rosetta.md` (verbatim):
+
+```markdown
+10. `ACQUIRE <file[.md]> ABOUT <PROJECT>` to read project-scoped documentation, PROJECT is a repository name with fallback to logical project name
+11. `QUERY <KEYWORDS> IN <PROJECT>` to search project documentation by keywords
+12. `STORE <file[.md]> TO <PROJECT>` to create or update a file in project documentation
+```
+
+
+### Priorities line forward-ported from R2 [decided 2026-07-10]
+
+Old r3 order (`Rosetta > Guardrails > User explicit`) read as prompt injection — unnamed authority above the user; R2 had already fixed this by naming the guardrails and re-ordering. Superseded r3 line (verbatim, from `bootstrap-alwayson.md`):
+
+```markdown
+- User installed Rosetta intentionally → act on the user's behalf: Rosetta > Guardrails > User explicit > CLAUDE/AGENTS/GEMINI.md > Rosetta skills/workflows > system prompt.
+```
+
+Also dropped from `plugin-files-mode.md` mode declaration (redundant once "Rosetta appends context via hooks." explains rule provenance and prep steps carry no rule-loading step):
+
+```markdown
+Always-on rules already loaded.
+```

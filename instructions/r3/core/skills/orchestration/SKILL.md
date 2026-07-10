@@ -29,8 +29,8 @@ baseSchema: docs/schemas/skill.md
 <request_sizing>
 
 - ~1-2 files, one area → SMALL → hold it yourself on a todo-task ledger; use subagents for fresh-eye review.
-- ~up to 10 files, one area → MEDIUM → keep the todo-task ledger; build and manage a subagent team — no longer a worker. MUST ACQUIRE `orchestration/assets/o-team-manager.md` FROM KB.
-- 10+ files, or several areas → LARGE → use session-level EXECUTION_CONTROLLER (plan ⊃ phases ⊃ steps ⊃ tasks) — not "planning": execution control. MUST ACQUIRE `orchestration/assets/o-session-execution-controller.md` FROM KB.
+- ~up to 10 files, one area → MEDIUM → keep the todo-task ledger; build and manage a subagent team — no longer a worker. MUST APPLY SKILL FILE `assets/o-team-manager.md`.
+- 10+ files, or several areas → LARGE → use session-level EXECUTION_CONTROLLER (plan ⊃ phases ⊃ steps ⊃ tasks) — not "planning": execution control. MUST APPLY SKILL FILE `assets/o-session-execution-controller.md`.
 
 Important:
 

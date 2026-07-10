@@ -11,7 +11,7 @@ tags: []
 baseSchema: docs/schemas/template.md
 ---
 
-[ONLY FOR TEMPLATE EXECUTOR: imperative bullet points, shorter lines, distinguish references to repository files vs instructions; skill/subagent names will be in context already, so just reference it. the rest of instruction folder files: rules/templates/workflows/assets/subfolders of skill/etc must be ACQUIRE'd / SEARCH'd / LIST'd to be used]
+[ONLY FOR TEMPLATE EXECUTOR: imperative bullet points, shorter lines, distinguish references to repository files vs instructions; skill/subagent names will be in context already, so just reference it. the rest of instruction folder files: rules/templates/workflows/assets/subfolders of skill/etc must be loaded via the typed aliases (USE SKILL/FLOW, INVOKE SUBAGENT, APPLY PHASE, READ|APPLY RULE|TEMPLATE|SKILL FILE, LIST) to be used]
 
 <[the_template_name]>
 

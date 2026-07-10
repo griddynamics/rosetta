@@ -32,7 +32,7 @@ Principles:
 - Zero tolerance: no cheating, no pre-existing excuses (pre-existing = documented in advance; otherwise fix it), no warnings, no errors. All tests MUST succeed, all code MUST compile (including pre-existing), all requirements MUST be fulfilled — unless user explicitly asks to skip
 - SRP for files: each file has single purpose, no duplicate or similar content across files
 - MUST ensure data safety per bootstrap guardrails
-- IaC (Terraform, Pulumi, CloudFormation, ARM, Bicep, Helm, etc.): MUST follow `assets/iac.md`
+- IaC (Terraform, Pulumi, CloudFormation, ARM, Bicep, Helm, etc.): MUST APPLY SKILL FILE `assets/iac.md`
 - Documentation: ONLY as instructed by rules or user
 - Address root cause, if you think you found it, investigate more
 - Prefer consistent and reliable solutions

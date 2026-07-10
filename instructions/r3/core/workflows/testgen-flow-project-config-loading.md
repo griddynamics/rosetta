@@ -156,6 +156,6 @@ After Phase 0 completion:
 1. Tell user: "Phase 0 complete. Project setup complete"
 2. Ask: "Ready to proceed to Phase 1 (Data Retrieval)?"
 3. Wait for confirmation
-4. Load Phase 1: ACQUIRE testgen-phase1-md FROM KB
+4. Load Phase 1: APPLY PHASE testgen-flow-data-collection.md
 
 ## Notes

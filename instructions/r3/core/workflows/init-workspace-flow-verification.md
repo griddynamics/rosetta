@@ -71,7 +71,7 @@ CROSS-FILE CONSISTENCY:
 
 17. TECHSTACK frameworks appear in ARCHITECTURE
 18. CONTEXT, ARCHITECTURE, IMPLEMENTATION complement — no duplication
-19. coding.md ACQUIRED FROM KB and used as file creation reference
+19. skill `coding` loaded and used as file creation reference
 20. greppable headers used in all files
 
 CONDITIONAL (if rules requested, N/A otherwise):
@@ -141,7 +141,7 @@ ASSUMPTIONS REVALIDATION:
 
    "/modernization-flow Perform modernization phase 2 to analyze service module ... using subagents. Target microservice name is ... ."
 
-   "/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must use `coding-flow.md` to actually implement and as the main flow. Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."
+   "/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must USE FLOW `coding-flow.md` to actually implement and as the main flow. Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."
    ```
 </next_steps>
 

@@ -6,6 +6,8 @@ alwaysApply: true
 baseSchema: docs/schemas/rule.md
 ---
 
+<rosetta:local_files_mode REQUIRED="true" OVERRIDABLE="FALSE" PLAN_MODE="FULLY COMPATIBLE" severity="CRITICAL" use="ALWAYS" compact="NEVER" summarize="AS-IS">
+
 This is a Rosetta bootstrap for release R3 of instructions itself (the tool used for developing in this workspace).
 
 Rosetta Local Files Mode is Active — instructions are read from the local `instructions/r*` folder (developing Rosetta itself).
@@ -20,18 +22,14 @@ Rosetta Local Files Mode is Active — instructions are read from the local `ins
 
 # Command Aliases:
 
-- `ACQUIRE <file[.md]> FROM KB` => read local files `instructions/r3/**/<file-name-with-extension>`
-- `SEARCH <KEYWORDS> IN KB` => use grep or codebase search in `instructions/r3/` folder with KEYWORDS as a query or file name
-- `LIST <path> IN KB` => list immediate children of `instructions/r3/core/<path>/` (folders and files, no content)
-- `USE SKILL <skill-name>` => use SKILL from `instructions/r3/core/skills/<skill-name>/SKILL.md`, all relative references in skill are relative to skill folder itself
-- `INVOKE SUBAGENT <agent-name>[.md]` => Call/Execute/Start/Spawn/Invoke <agent-name> subagent:
-  - Definition location `instructions/r3/core/agents/<agent-name>.md`
-  - Always prepend `Must fully assume agent from "{path to <agent-name>.md file}"`
-  - If subagent not available, use generic task executor agent
-- `USE FLOW <flow-name>[.md]` => use command or workflow from `instructions/r3/core/workflows/<flow-name>.md`
-- `ACQUIRE <file[.md]> ABOUT <PROJECT>` => read local file in `docs/<PROJECT>` folder
-- `QUERY <KEYWORDS> IN <PROJECT>` => use grep or codebase search in `docs/<PROJECT>` with KEYWORDS as a query or file name
-- `STORE <file[.md]> TO <PROJECT>` => upsert file in `docs/<PROJECT>`
+Root = `instructions/r3/core/`. Loading = reading the actual file — reconstructing or assuming behavior does NOT satisfy. `READ` = load only; `APPLY`/`USE`/`INVOKE` = load + FULLY execute/act.
+
+- `USE SKILL <name>` / `READ SKILL <name>` (read = content only) => `<root>/skills/<name>/SKILL.md`; relative references inside a skill resolve against its folder
+- `READ SKILL FILE <subpath>` / `APPLY SKILL FILE <subpath>` => `<root>/skills/<current-skill>/<subpath>` (only a skill's own files use this)
+- `USE FLOW <file>.md` / `READ FLOW <file>.md` / `APPLY PHASE <file>.md` => `<root>/workflows/<file>.md`
+- `INVOKE SUBAGENT <name>` => Call/Execute/Start/Spawn <name> subagent; definition `<root>/agents/<name>.md`; always prepend `Must fully assume agent from "{path}"`; unavailable → generic task executor. `READ SUBAGENT <name>` => definition only
+- `READ RULE <file>.md` / `APPLY RULE <file>.md` => `<root>/rules/<file>.md` · `READ TEMPLATE <file>.md` => `<root>/templates/**/<file>.md` · `READ CONFIGURE <tool>.md` => `<root>/configure/<tool>.md`
+- `LIST <path>` => list immediate children of `<root>/<path>/` (folders and files, no content)
 - `call "get_context_instructions"` or `execute prep steps` => execute `# Rosetta Prep Steps` above (this mode file is already in context)
 
 # ADDITIONAL SOURCES
@@ -40,3 +38,5 @@ Rosetta Local Files Mode is Active — instructions are read from the local `ins
 - SKILL in `instructions/r3/core/skills/*/SKILL.md`
 - AGENT, SUBAGENT in `instructions/r3/core/agents/*.md`
 - WORKFLOW, COMMAND in `instructions/r3/core/workflows/*.md`
+
+</rosetta:local_files_mode>

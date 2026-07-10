@@ -430,7 +430,7 @@ After Phase 3 completion:
 2. If unresolved: "We'll document assumptions for unresolved items."
 3. Ask: "Ready to proceed to Phase 4 (Requirements Generation)?"
 4. Wait for confirmation
-5. Load Phase 4: ACQUIRE testgen-phase4-md FROM KB
+5. Load Phase 4: APPLY PHASE testgen-flow-requirements-document-generation.md
 
 ## Notes
 

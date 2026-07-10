@@ -33,7 +33,7 @@ Use when implementing from approved requirements, planning work from requirement
 
 - Use approved requirements as source of truth.
 - Use CONTEXT, ARCHITECTURE, IMPLEMENTATION docs.
-- If requirements are missing or unclear, use questions flow.
+- If requirements are missing or unclear, USE SKILL `questioning`.
 
 </dependencies>
 
@@ -188,10 +188,8 @@ HITL gates (use when):
 
 <resources>
 
-Use `ACQUIRE FROM KB` to load.
-- workflow `requirements-use-flow`
-- asset `requirements-use/assets/ru-traceability-matrix.md`
-- asset `requirements-use/assets/ru-change-log.md`
+- READ SKILL FILE `assets/ru-traceability-matrix.md`
+- READ SKILL FILE `assets/ru-change-log.md`
 
 </resources>
 

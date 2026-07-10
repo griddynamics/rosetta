@@ -238,9 +238,9 @@ You don't replace eDisMax; you replace the **query-from-string** step with a muc
 
 ## What this skill does NOT cover
 
-- **Vector/embedding semantic search**: fundamentally different mechanism. See `solr-query/references/07-knn.md`.
+- **Vector/embedding semantic search**: fundamentally different mechanism. USE SKILL `solr-query` to apply kNN/vector search.
 - **Neural rerankers / cross-encoders**: layer that goes on top of retrieval.
-- **Generic LTR**: see `solr-query/references/12-relevancy.md` for brief mention.
-- **Schema design for the catalog itself**: covered by the `solr-schema` skill.
+- **Generic LTR**: USE SKILL `solr-query` to apply relevancy tuning (brief LTR mention).
+- **Schema design for the catalog itself**: USE SKILL `solr-schema`.
 
 This skill is specifically for **dictionary-driven phrase tagging + graph-based path resolution + structured query construction** — a particular architecture that's powerful for domains with curated taxonomies.

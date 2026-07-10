@@ -48,7 +48,7 @@ Use also when porting prompts between agents/IDEs, or migrating rules between fo
 - For small prompts, keep analytical artifacts in memory and return them in the message
 - Do not project analytical artifacts into generated target prompts.
 - Intentional: checklist/best-practices/pitfalls are maintained in `references/*` to keep this file small
-- Prompt adaptation and porting MUST follow `references/pa-adapt.md`
+- Prompt adaptation and porting MUST APPLY SKILL FILE `references/pa-adapt.md`
 
 Prompt classification:
 
@@ -87,20 +87,20 @@ Maintain this boundaries:
 - Use keywords as semantic contract cues (for example: `validation report`, `specification`) that may guide execution quality without adding sibling awareness.
 
 
-Based on the task `ACQUIRE FROM KB` and apply:
+Based on the task, load (READ/APPLY SKILL FILE) and apply:
 
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-extract.md` FROM KB to extract and structure requirements from existing prompt when original prompt file is present
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-intake.md` FROM KB to elicit and structure requirements (including extracted), prepare prompt brief as source of truth
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-adapt.md` FROM KB when porting prompts between agents/IDEs, or migrating rules between formats
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-blueprint.md` FROM KB to design prompt structure, actors, contracts, schemas, prepare concise blueprint using prompt-brief
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-draft.md` FROM KB to create starting prompt content using prompt-brief and blueprint, prepare drafts as target prompt files
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-hardening.md` FROM KB to critically review and evaluate against intent and prompt-brief, or comparison mode for refactor
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-edit.md` FROM KB to apply changes and feedback surgically to target prompt files
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-best-practices.md` FROM KB for standard prompting best practices during review
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-patterns.md` FROM KB for patterns to use in prompt architecture during review
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-schemas.md` FROM KB for prompt classification, specific templates, relationships during design and final formatting
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-rosetta.md` FROM KB for Rosetta prompts (repos: `rosetta`, `cto-ims-kb`, `RulesOfPower`, `instructions` folder) during design and review
-- ACQUIRE `coding-agents-prompt-authoring/references/pa-simulation.md` FROM KB for tracing and simulation of target prompt execution
+- APPLY SKILL FILE `references/pa-extract.md` to extract and structure requirements from existing prompt when original prompt file is present
+- APPLY SKILL FILE `references/pa-intake.md` to elicit and structure requirements (including extracted), prepare prompt brief as source of truth
+- APPLY SKILL FILE `references/pa-adapt.md` when porting prompts between agents/IDEs, or migrating rules between formats
+- APPLY SKILL FILE `references/pa-blueprint.md` to design prompt structure, actors, contracts, schemas, prepare concise blueprint using prompt-brief
+- APPLY SKILL FILE `references/pa-draft.md` to create starting prompt content using prompt-brief and blueprint, prepare drafts as target prompt files
+- APPLY SKILL FILE `references/pa-hardening.md` to critically review and evaluate against intent and prompt-brief, or comparison mode for refactor
+- APPLY SKILL FILE `references/pa-edit.md` to apply changes and feedback surgically to target prompt files
+- READ SKILL FILE `references/pa-best-practices.md` for standard prompting best practices during review
+- READ SKILL FILE `references/pa-patterns.md` for patterns to use in prompt architecture during review
+- READ SKILL FILE `references/pa-schemas.md` for prompt classification, specific templates, relationships during design and final formatting
+- READ SKILL FILE `references/pa-rosetta.md` for Rosetta prompts (repos: `rosetta`, `cto-ims-kb`, `RulesOfPower`, `instructions` folder) during design and review
+- APPLY SKILL FILE `references/pa-simulation.md` for tracing and simulation of target prompt execution
 
 Example logical flow: discover → extract+intake → blueprint → for_each_prompt_loop(draft → hardening → edit) → simulate → validate
 
@@ -133,7 +133,7 @@ Example logical flow: discover → extract+intake → blueprint → for_each_pro
 
 <resources>
 
-- When needed ACQUIRE `coding-agents-prompt-authoring/references/pa-knowledge-base.md` FROM KB (large file, grep headers to auto-TOC and load only needed sections)
+- When needed READ SKILL FILE `references/pa-knowledge-base.md` (large file, grep headers to auto-TOC and load only needed sections)
 - https://agentskills.io/what-are-skills
 - https://agentskills.io/specification
 - https://code.claude.com/docs/en/skills
@@ -146,12 +146,10 @@ Example logical flow: discover → extract+intake → blueprint → for_each_pro
 
 <templates>
 
-Use `ACQUIRE FROM KB` to load.
-
-- `coding-agents-prompt-authoring/assets/pa-prompt-brief.md`
-- `coding-agents-prompt-authoring/assets/pa-meta-prompt.md`
-- `coding-agents-prompt-authoring/assets/pa-validation-report.md`
-- `coding-agents-prompt-authoring/assets/pa-change-log.md`
+- READ SKILL FILE `assets/pa-prompt-brief.md`
+- READ SKILL FILE `assets/pa-meta-prompt.md`
+- READ SKILL FILE `assets/pa-validation-report.md`
+- READ SKILL FILE `assets/pa-change-log.md`
 
 </templates>
 

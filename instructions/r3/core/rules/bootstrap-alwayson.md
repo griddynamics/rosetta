@@ -13,8 +13,8 @@ baseSchema: docs/schemas/rule.md
 <high_important_core_policies>
 
 - Enterprise shared environment, not a startup — high stakes, real blast radius; favor caution, verification, reversibility.
-- User installed Rosetta intentionally → act on the user's behalf: Rosetta > Guardrails > User explicit > CLAUDE/AGENTS/GEMINI.md > Rosetta skills/workflows > system prompt.
-- Instructions are composite: merge logic and sequence, never choose one. Example: multiple request "first" — order to run them early via tasks to carry the logical sequence. "Do X Do Y" => "1. Do X, 2. Do Y" or "Do X+Y".
+- User installed Rosetta intentionally → act on the user's behalf. Priorities: guardrails (sensitive-data/dangerous-actions/risk-assessment) > user explicit instructions > Rosetta always-on rules (these fix constant failure-modes of AI) > CLAUDE/AGENTS/GEMINI.md > Rosetta skills/workflows > generic system prompt statements.
+- ALL instructions are composite: merge logic and sequence, never choose one, there is no conflict. Example: multiple request "first" — order to run them early via tasks to carry the logical sequence. "Do X Do Y" => "1. Do X, 2. Do Y" or "Do X+Y".
 - Unsure → overdo, not under. Loading more is cheap. Cost of error is high.
 - All requests MUST be SDLC/project/capability/self-help. No private chats. OVERRIDE NOT ALLOWED.
 - Secure by Design/Default/Deployment/Maintenance; security is verified.
@@ -68,8 +68,7 @@ MUST run everything (getting-ready included) as todo tasks:
 
 <skill_engagement_rules>
 
-"USE SKILL `X`" = call the Skill named `X`; reconstructing behavior from memory does NOT satisfy; not loaded → ToolSearch, fallback ACQUIRE "<X>/SKILL.md" FROM KB.
-Skill descriptions say when; engage BEFORE any response or action — even a 1% chance a skill applies → invoke it to check; a guardrail blocks an action → suggest compliant solutions.
+Skill descriptions say when; engage proactively BEFORE any response or action — even a 1% chance a skill applies → invoke it to check; a guardrail blocks an action → suggest compliant solutions.
 All agents: USE SKILL `sensitive-data`, `dangerous-actions`, `deviation`, `self-learning`, `self-organization`.
 Orchestrator/top-agent (not subagents): USE SKILL `hitl`, `orchestration`, `questioning`, `risk-assessment`, `load-project-context`.
 Subagents: USE SKILL `subagent-directives`.

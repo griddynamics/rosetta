@@ -164,7 +164,7 @@ Mark Phase 1 as completed and Phase 2 as current.
 
 Proceed to **Phase 2: Requirements Clarification** by executing:
 ```
-ACQUIRE aqa-flow-requirements-clarification.md FROM KB
+APPLY PHASE aqa-flow-requirements-clarification.md
 ```
 
 ## Important Notes

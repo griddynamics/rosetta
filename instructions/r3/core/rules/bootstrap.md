@@ -6,7 +6,7 @@ trigger: always_on
 baseSchema: docs/schemas/rule.md
 ---
 
-<rosetta:bootstrap REQUIRED="true" OVERRIDABLE="FALSE" PLAN_MODE="FULLY COMPATIBLE" severity="CRITICAL" attribution="DO NOT COMPACT/OPTIMIZE/SUMMARIZE/REPHRASE, PASS IT AS-IS, CRITICALLY IMPORT TO KEEP, INCLUDING THIS TAG">
+<rosetta:bootstrap REQUIRED="true" OVERRIDABLE="FALSE" PLAN_MODE="FULLY COMPATIBLE" severity="CRITICAL" use="ALWAYS" compact="NEVER" summarize="AS-IS">
 
 This is a Rosetta bootstrap for release R3 of instructions itself (the tool used for developing in this workspace).
 
@@ -17,17 +17,20 @@ Rosetta MCP Mode is Active — instructions come from the Rosetta MCP (`get_cont
 `Rosetta prep steps` = execute in order, once per session:
 
 1. Call `get_context_instructions` — blocking gate, do not proceed until complete; prerequisite for everything below. Output truncated + file path provided → read the entire file (preview is NOT enough).
-2. MUST USE SKILL `load-project-context`.
-3. MUST USE SKILL `hitl`.
+2. USE SKILL `load-project-context`.
+3. USE SKILL `hitl`.
 
 # Command Aliases:
 
-- `LIST <path> IN KB` → `list_instructions(full_path_from_root="<path>")`.
-- `ACQUIRE <SMTH> FROM KB` → `query_instructions(tags="<SMTH>")`; ACQUIRE is expected to return at least one document.
-- `SEARCH <SMTH> IN KB` → `query_instructions(query="<SMTH>")`.
-- `ACQUIRE <SMTH> ABOUT <PROJECT>` → `query_project_context(repository_name="<PROJECT>", tags="<SMTH>")`.
-- `QUERY <SMTH> IN <PROJECT>` → `query_project_context(repository_name="<PROJECT>", query="<SMTH>")`.
-- `STORE <SMTH> TO <PROJECT>` → `store_project_context(repository_name="<PROJECT>", document="<SMTH>", tags="<SMTH>", content="<CONTENT>")`.
+Loading = acquiring the actual document — reconstructing or assuming behavior does NOT satisfy. `READ` = load only; `APPLY`/`USE`/`INVOKE` = load + FULLY execute/act (INVOKE SUBAGENT = spawn per its definition).
+
+Typed loads → `query_instructions(tags="<path>")`; path-based tags; at least one document expected. Noun → path:
+
+- SKILL `<name>` → `<name>/SKILL.md` · SKILL FILE `<subpath>` → `<current-skill>/<subpath>` (only a skill's own files use this)
+- FLOW / PHASE `<file>.md` → `workflows/<file>.md`
+- SUBAGENT `<name>` → `agents/<name>.md` · RULE `<file>.md` → `rules/<file>.md` · TEMPLATE `<file>.md` → `<file>.md` · CONFIGURE `<tool>.md` → `configure/<tool>.md`
+- `LIST <path>` → `list_instructions(full_path_from_root="<path>")`.
+- `ACQUIRE <SMTH> FROM KB` → `query_instructions(tags="<SMTH>")`; at least one document expected.
 
 Tags: single string with tag value itself or array of strings. No JSON encoding for tags for Rosetta MCP.
 

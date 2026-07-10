@@ -97,6 +97,8 @@ Built + **wired into the bootstrap manifest** (`bootstrap-manifest.ts` before `b
   - `orchestration` — request size ≠ task size · completion ≠ goal achievement
   - Already placed (no action): `review=static vs validate`, `trust but verify`, `if anything could go wrong it will`, `current paths ≠ deployed`, `accuracy over speed`.
 - **Merge XML sections further** — went 7→5; could consolidate more to cut section noise.
+- ✅ **Priorities forward-ported from R2 [decided]** — old r3 `Rosetta > Guardrails > User explicit` read as prompt injection (unnamed authority above the user). Now: guardrails named (sensitive-data/dangerous-actions/risk-assessment, no hitl) > user explicit > always-on rules "(these fix constant failure-modes of AI)" > CLAUDE/AGENTS/GEMINI.md > skills/workflows > generic system prompt; "Merge all; priority resolves only true conflicts." Composite bullet: "ALL instructions … there is no conflict." Named tiers + self-identified purpose = the anti-injection fix; user-explicit above always-on is deliberate (lean choice is legitimate). Old line archived.
+- ✅ **Mode-file hardening [decided]** — all 3 mode files carry root-tag attrs `severity="CRITICAL" use="ALWAYS" compact="NEVER" summarize="AS-IS"` (replacing verbose `attribution=`; local gained a root tag). Memory clause broadened: "reconstructing **or assuming** behavior does NOT satisfy". Plugin decl: "Rosetta appends context via hooks." replaces "Always-on rules already loaded" (archived). Open: `bootstrap.md` closes with self-closing `<rosetta:bootstrap/>` instead of `</rosetta:bootstrap>` — pre-existing, fix pending user say-so.
 - ✅ **Compress `reasonable-definition`** — paragraph → chain-of-thought checklist (~half tokens). Kept anchors as name+gloss (Toulmin/ALARP/Bayesian/Simon — load-bearing knowledge-pulls; gloss makes them fire). Burden-inversion folded in as a tag (`by default unreasonable — earn it; else just ASK`); audit-survives kept as closing `Test`. Full original still in `bootstrap-removed.md`.
 
 ## The skills
@@ -134,7 +136,7 @@ The `Rosetta-v3-skill-refactoring-Main.drawio` diagram is authoritative; its tru
 - ✅ `OPERATION_MANAGER` eliminated from r3: 8 workflow prereq lines → `MUST use todo tasks for reliability`; `adhoc-flow` → `MUST USE SKILL orchestration FULLY` + both assets, and its stale `plan-manager` names → EXECUTION_CONTROLLER; template step `ph-prep-s-load-workflow` deleted with its `rosetta` mention (FR-PLAN-0035 + asset + src + tests updated, 447 pass).
 - **Queued: token-compression pass** — `bootstrap-alwayson`, the 3 mode files, `orchestration/SKILL.md`, `hitl/SKILL.md`: terse phrases, unicode chars, terms, abbreviations (compression subagent; zero semantic loss). While at `hitl`: also fix its stale description (see Queued checks).
 - **Rename `bootstrap.md` → `mcp-files-mode.md`** — and fix all references (docs, website, `.github/prompts`, pa-* contract docs, bootstrap-manifest/targets when r3 regen lands) — by the end.
-- Verb vocabulary (`ACQUIRE`→`READ`/`APPLY`, below) is a separate, later pass.
+- ✅ Verb vocabulary applied (see W4 section — finalized + swept).
 
 ## Method (how we work)
 
@@ -198,11 +200,11 @@ The `Rosetta-v3-skill-refactoring-Main.drawio` diagram is authoritative; its tru
 
 Command aliases are written once, mode-agnostically, in every skill/workflow. Exactly one mode file is injected per environment and binds each alias to a concrete mechanism — the only place mode logic lives. Three mutually exclusive modes:
 
-- **Plugin mode → `plugin-files-mode.md`**: aliases bind to literal local reads from the plugin install location.
-- **MCP mode → `bootstrap.md`**: aliases bind to MCP behavior plus MCP-only mappings ("X means Y by doing Z", e.g. `query_instructions` / `rosetta://{path}`). The `FILE <subpath>` form is deterministic in MCP: RAGFlow stores **path-based tags (2-/3-part)** and the VFS merges/bundles the same tree as `plugin_generator.py`, so `READ SKILL x FILE assets/y.md` resolves the exact file (`ACQUIRE x/assets/y.md FROM KB`), not a fuzzy query.
+- **Plugin mode → `plugin-files-mode.md`**: NO alias mapping — typed aliases work natively on plugin files; the file carries only mode declaration, prep steps, and the local-plugin-files statement (sources merged in) — nothing else. `get_context_instructions` is MCP-only (its prep prerequisite).
+- **MCP mode → `bootstrap.md`**: aliases bind to MCP behavior plus MCP-only mappings ("X means Y by doing Z", e.g. `query_instructions` / `rosetta://{path}`). The `FILE <subpath>` form is deterministic in MCP: RAGFlow stores **path-based tags (2-/3-part)** and the VFS merges/bundles the same tree as `plugin_generator.py`, so `READ SKILL FILE assets/y.md` (nameless — resolves against the current skill `x`) maps to the exact file via tags `x/assets/y.md`, not a fuzzy query.
 - **Local / in-repo dev mode → `local-files-mode.md`**: aliases bind to literal local reads from the `instructions/r*` folder (developing Rosetta itself).
 
-Call sites never branch on mode. The alias vocabulary is a **closed contract**: every alias used anywhere must be bound by all three mode files, or it breaks in that mode. Defining and policing that finite set is part of this work.
+Call sites never branch on mode. The alias vocabulary is a **closed contract**: every alias used anywhere must work in all three modes — natively in plugin mode, via the mapping in MCP/local mode files — or it breaks in that mode. Defining and policing that finite set is part of this work.
 
 ## Queued checks & small inconsistencies (document ALL of them, however small)
 
@@ -215,47 +217,55 @@ Call sites never branch on mode. The alias vocabulary is a **closed contract**: 
 
 ✅ **`Rosetta prep steps` bound per mode** — the ~25 `All Rosetta prep steps MUST be FULLY completed` callers are now actionable everywhere: each mode file carries a `# Rosetta Prep Steps` section (execute in order, once per session). MCP = `get_context_instructions` (blocking) → SKILL `load-project-context` → SKILL `hitl` · plugin = SKILL `load-project-context` → SKILL `hitl` (always-on rules auto-loaded) · local = exact file refs (`rules/bootstrap-alwayson.md`, `skills/load-project-context/SKILL.md`, `skills/hitl/SKILL.md`); local `execute prep steps` alias rebound to this section. Part of the closed alias contract.
 
-## Verb / alias vocabulary (W4) — deferred (later pass)
+## Verb / alias vocabulary (W4) — ✅ FINALIZED + ✅ APPLIED (P3 sweep executed 2026-07-10)
 
-DO NOT APPLY NEW vocabulary UNTIL that phase reached.
+The set below is **closed** — it supersedes the earlier `READ SKILL the-skill FILE …` anchor (skill-name form overruled by the isolation ruling) and all candidate tables. **P3 sweep done:** ~200 sites across 59 files migrated (6 parallel lanes + mode-file bindings + templates + coding-agents-prompt-authoring + docs/ARCHITECTURE.md + docs/schemas boilerplate); zero old-vocabulary remnants in r3 core (project-scoped ABOUT/QUERY/STORE kept, out of scope); all alias targets machine-verified to resolve; 444+447 tests pass.
 
-Proposed shape: **`VERB ARTIFACT <name> [FILE <subpath>]`** — clear in plugin mode, deterministically mappable to the MCP equivalents.
+**Shape: `VERB NOUN <name>[.md] [FILE <subpath>]` — typed nouns, never raw folder paths.** Rationale [user]: per-tool plugin folders differ (some tools have no `rules/` and call them prompts; workflows land in `commands/`/`.codex/`…) — the noun abstracts the folder; each mode file binds noun→location/mechanism. Plugin mode needs **NO mapping** — typed aliases operate natively on plugin files (the whole point of the vocabulary); ONLY the MCP/local mode files map the nouns to KB queries / `instructions/r3` paths.
 
-Two verb families:
+### The closed set
 
-- **Typed artifacts** keep the canonical verbs **`USE SKILL`**, **`USE FLOW`**, **`INVOKE SUBAGENT`** — each means "load and act on this artifact."
-- **Generic files** (assets, references, rules, templates): **`READ`** = load into context; **`APPLY`** = read and execute the file's contents.
+| Alias | Semantics | Name form |
+|---|---|---|
+| `USE SKILL <name>` | activate skill (load + act) | folder name, no `.md` |
+| `USE FLOW <name>.md` | invoke a whole workflow from the top | full filename |
+| `INVOKE SUBAGENT <name>` | spawn subagent as an actor | name only, no `.md` |
+| `APPLY PHASE <file>.md` | load + FULLY execute the next phase body of a running workflow (~35 sites) | full filename, path never included |
+| `READ RULE <file>.md` / `APPLY RULE <file>.md` | load / load+execute a rule | full filename |
+| `READ TEMPLATE <file>.md` | load a template (shell-schemas etc.) | full filename |
+| `READ CONFIGURE <tool>.md` | load an IDE/CodingAgent configure spec [decided] | full filename |
+| `READ SKILL FILE <subpath>` / `APPLY SKILL FILE <subpath>` | file of **this** skill (`assets/…`, `references/…`) | subpath only — **never carries a skill name** |
+| `READ SKILL <name>` · `READ FLOW <name>.md` · `READ SUBAGENT <name>` | raw non-executing load (installer copies, self-help browsing) | per noun rule above |
+| `LIST <path>` | enumerate immediate children of a KB folder | `skills` · `skills/<name>` · `configure` … |
 
-Anchor example _[decided]_: `ACQUIRE the-skill/assets/some-file.md FROM KB` → **`READ SKILL the-skill FILE assets/some-file.md`** (plugin: read `skills/the-skill/assets/some-file.md`; MCP: maps to the `ACQUIRE` equivalent).
+**Semantics rules [all decided]:**
+- **READ = load into context; APPLY = load + execute. Default to APPLY when in doubt.** `USE`/`INVOKE` = typed activation.
+- **Plural = plural noun + comma list**: `READ RULES a.md, b.md` · `APPLY SKILL FILES assets/x.md, assets/y.md`. **`APPLY PHASES` is forbidden** — phases are strictly one-at-a-time.
+- **`SEARCH` is dropped** from the contract entirely (zero real callers) — remove bindings from all 3 mode files + pa-docs.
+- **`ACQUIRE <path> FROM KB` survives ONLY as the MCP shell mechanism [decided]** — generated shell files (skill/agent/workflow proxies) are copy-paste from `templates/shell-schemas/*` and keep verbatim `MUST ACQUIRE … FROM KB and FULLY EXECUTE`; shells exist ONLY in MCP-mode workspaces; `bootstrap.md` binds `ACQUIRE` for them. Authored instructions never use it. init-workspace is the special consumer: in MCP mode it starts when NOTHING except MCP + `bootstrap.md` exists — its own steps use typed aliases (all bound by `bootstrap.md`), while everything DESCRIBING generated shell content says ACQUIRE.
+- **Skill isolation is grammar-enforced**: `SKILL FILE` never takes a name → no artifact *can* reference another skill's internals. **Strict**: only a skill's own files may use `SKILL FILE`; workflows/agents express intent instead ("run validation using the `requirements-authoring` skill's validation rubric") and the skill routes to its own asset. The 2 offenders in `requirements-authoring-flow.md` get reworded this way. Audit fact: all ~28 existing skill-file ACQUIREs are already self-references — the rule costs nothing.
+- Whole-skill loads from flows stay legal via `USE SKILL <name>` (init-workspace, large-workspace-handling → `reverse-engineering`).
+- **alwayson must not define `USE SKILL` or any alias at all** — alias definitions/bindings live in mode files only. `bootstrap-alwayson.md` line "USE SKILL `X` = …, fallback ACQUIRE …" → relocate carefully, do NOT blindly delete (the "reconstructing behavior from memory does NOT satisfy" semantics must survive in the binding). MCP binding: `USE SKILL <name>` => acquire `<name>/SKILL.md` from KB, then FULLY EXECUTE.
+- Dynamic/tag sites (`ACQUIRE <selected TAG> FROM KB` in self-help/init-workspace): agent selects via `LIST`, then uses the typed verb (`READ FLOW/SKILL/SUBAGENT …` to browse; `USE`/`APPLY`/`INVOKE` to act).
+- Project-scoped `ABOUT/QUERY/STORE` — **dropped from the contract everywhere [decided]** (plugins exist to NOT install MCP; security/privacy; separate plugin planned); archived verbatim.
 
-### Transformation patterns to apply
+### P3 sweep — ✅ done · audited · intent-repaired
 
-- **P1 — load:** `ACQUIRE <x> FROM KB` → `READ …` for generic files, or `USE SKILL` / `USE FLOW` / `INVOKE SUBAGENT` when `<x>` is a skill/flow/subagent.
-  - `ACQUIRE rules/bootstrap.md FROM KB` → `READ RULE bootstrap`
-  - `ACQUIRE reverse-engineering/SKILL.md FROM KB` → `USE SKILL reverse-engineering`
-- **P2 — load + execute** _[decided]_: `ACQUIRE <x> FROM KB and (FULLY) EXECUTE` → `APPLY …` for generic files. (Typed artifacts already imply execute via `USE`/`INVOKE`.)
-  - `ACQUIRE speckit-integration-policy.md FROM KB and execute it` → `APPLY RULE speckit-integration-policy`
-  - `ACQUIRE requirements-authoring/assets/ra-validation-rubric.md FROM KB and run validation` → `APPLY SKILL requirements-authoring FILE assets/ra-validation-rubric.md`
-- **P3 — bulk normalization:** alias terms appear throughout (phase bodies, steps, examples, schemas, docs, footers). Normalize every occurrence of `ACQUIRE/SEARCH/LIST` and any non-canonical wording to the canonical vocabulary across all files.
-  - `SEARCH <keywords> IN KB` and `LIST skills IN KB` → the canonical listing/search verbs (see below)
+~200 sites / 59 files; zero old-vocab remnants; every alias target machine-verified; tests pass; dropped atoms archived verbatim → `bootstrap-removed.md` §"W4 vocabulary sweep". Durable rulings beyond the table: testgen `testgen-phaseN-md` tags resolve via the declared phase ordering · installer raw loads = READ · footer verb-teaching prose deleted, items canonicalized · `questions.md` dangler → `USE SKILL \`questioning\`` [decided] · prep steps carry no MUST [decided] · NO meta-commentary in instruction files, exempt: `coding-agents-prompt-authoring` [decided] · alwayson defines NO alias (the reconstructing/assuming-does-not-satisfy clause lives in mode files) · plugin mode file = mode decl + prep steps + merged local-files/sources statement + project verbs, nothing else; `get_context_instructions` exists ONLY in MCP prep [decided] · mode-file mappings compressed to noun→path form; plural + `APPLY PHASES` authoring rules live ONLY in `pa-rosetta.md`.
 
-### Candidate mapping of actual r3 usage — _[implementer: review & decide]_
+**Cross-skill resolution — [decided] + ✅ applied:** a skill must NEVER name another skill's internal files or paths (file names change) — express intent with the typed alias + topic keywords the target routes on: `USE SKILL \`solr-extending\` to apply plugin wiring`. All ~11 solr cross-skill sites reworded to this form; documented in `pa-rosetta.md` §Command Aliases item 8; `pa-hardening.md` now instructs reviewers to actively hunt cross-skill refs and require the intent form.
 
-Audit basis for the vocabulary; finalize per category.
+**[decided] `requirements-use/SKILL.md` refers to NO workflows at all** — `READ FLOW requirements-use-flow.md` footer line deleted; "use questions flow" → `USE SKILL \`questioning\``.
 
-| # | Pattern today | ~Count | Candidate |
-|---|---------------|--------|-----------|
-| 1 | `ACQUIRE aqa-flow-data-collection.md FROM KB` (phase chaining) | ~35 | `USE FLOW aqa-flow-data-collection` |
-| 2 | `ACQUIRE reverse-engineering/SKILL.md FROM KB` (skill load) | ~12 | `USE SKILL reverse-engineering` |
-| 3 | `ACQUIRE planning/assets/pl-wbs.md FROM KB` (skill asset/ref) | ~20 | P1 `READ SKILL planning FILE assets/pl-wbs.md` · P2 `APPLY SKILL requirements-authoring FILE assets/ra-validation-rubric.md` |
-| 4 | `ACQUIRE rules/bootstrap.md FROM KB` (rule/template) | ~8 | P1 `READ RULE bootstrap` · P2 `APPLY RULE speckit-integration-policy` |
-| 5 | `ACQUIRE agents/<x>.md … EXECUTE` (subagent) | ~1 | `INVOKE SUBAGENT <x>` |
-| 6 | `ACQUIRE <selected TAG> FROM KB` (tag/dynamic) | ~6 | agent selects, then uses the typed verb above |
+**Full-diff audit ✅ done** (line-by-line git diff of all 59 files + repo-wide scan). Fixed en route: codemap script assets APPLY→READ (scripts are saved/chmod'd, executed in the NEXT step) · `READ CONFIGURE <selected configs using TAG>` → `<each selected tool>.md` (stale tag jargon, 2 files) · `USE WORKFLOW`→`USE FLOW` (`modernization-flow-implement.md`) + example prompt in `init-workspace-flow-verification.md` · `REVIEW.md` alias examples → typed set · `llms-full.txt` COMMAND ALIASES block → closed set. Left alone deliberately: `init-workspace-flow.md` `<references>` phase-file manifest (phase 4 is permanently-disabled — footer is the only place naming its file); `load-project-context` "suggest workflow `init-workspace-flow.md`" (user-facing suggestion, names not loads).
 
-- **`LIST`** (~10 uses, enumerates folders) — _[implementer: review & decide]_ keep as a mode-bound listing verb (e.g. `LIST SKILLS` / `LIST WORKFLOWS` / `LIST AGENTS`) or replace with the generated `INDEX.md`.
-- **`SEARCH`** (~0 real callers) — _[implementer: review & decide]_ keep or drop.
-- **Dangling ref:** `ACQUIRE questions.md FROM KB` in `requirements-authoring/SKILL.md` targets a non-existent file — _[implementer: review & decide]_ fix or remove.
-- **`USE FLOW` vs `RUN WORKFLOW`** — _[implementer: review & decide]_ (`USE FLOW` is the existing canonical term).
+**Intent-repair pass ✅** (violations of original intent found on user challenge): `plugin-files-mode.md` had gained a typed-noun binding table — REMOVED; plugin mode carries NO alias mapping (one declarative line + `get_context_instructions` no-op + project verbs + ADDITIONAL SOURCES only), and the "one mode file binds each alias" phrasing corrected everywhere (pa-rosetta, ARCHITECTURE, llms-full, story). Meta-commentary stripped from instruction files ("(the skill routes to it)" ×3, ACQUIRE-binding provenance note); `pa-meta-prompt.md` brief step re-voiced to intent with no internal file name (generated prompts obey isolation). alwayson now defines NO alias at all (memory-does-not-satisfy clause lives in the 3 mode files); local `USE SKILL` binding regained "all relative references in skill are relative to skill folder itself". All dropped atoms archived verbatim → `bootstrap-removed.md` §"W4 vocabulary sweep — dropped atoms" (alwayson USE-SKILL line incl. ToolSearch hint, SEARCH bindings ×3, old ACQUIRE/LIST bindings, questions.md dangler, requirements-use workflow ref, footer verb-teaching prose, pa-rosetta old alias items, the 2 cross-context ACQUIRE originals).
+
+**Open after sweep:**
+- `specflow-use/references/specflow-schema.md:23` bare same-dir self-ref (`see specflow-vocabulary.md`) — cosmetic, out of grep patterns.
+- `docs/web/**`, `docs/PATTERNS/**`, `docs/reviews/**` still use old vocabulary **deliberately** — they document the published r2 product; sync when r3 publishes (same batch as the `bootstrap.md`→`mcp-files-mode.md` rename). Exception: `docs/web/docs/review.md` alias examples synced with root `REVIEW.md` (source/mirror must not diverge).
+- **r3-publish batch additions** (found by repo-wide scan; all serve the live r2 KB today — do NOT touch before publish): `src/ims-mcp-server/ims_mcp/tool_prompts.py` (MCP tool descriptions teach ACQUIRE/SEARCH/LIST + `USE SKILL load-context`) · `DEVELOPER_GUIDE.md:49` MCP authoring one-liner (`MUST ACQUIRE coding-agents-prompting-flow.md FROM KB`).
+- `agents/TEMP/old-gen-r2/**` carries old vocabulary — generation artifacts in TEMP, ignore/delete at will.
 
 ### `<references>` footers — _[implementer: review & decide]_ per file
 
@@ -286,7 +296,7 @@ Skills:
 - USE SKILL `requirements-authoring` — authoring, reviewing, validating requirements
 
 Rules:
-- READ RULE `requirements-best-practices` — requirements quality and process rules
+- READ RULE `requirements-best-practices.md` — requirements quality and process rules
 
 </references>
 ```
@@ -321,15 +331,13 @@ MCP gets the same minimal bootstrap and behaves identically (loads skills by con
 - IN: `instructions/r3/core/**` (the ~50 files using `ACQUIRE/SEARCH/LIST`, the bootstrap + three mode files, the shell templates), `scripts/plugin_generator.py` rewrite rules, plugin regeneration, `docs/definitions/skills.md`, per-platform delivery payloads (hook / rules / MCP bundle) shrunk toward 0.
 - IN — **`docs/ARCHITECTURE.md`** (targeted): the *Command Aliases* table (new vocabulary + per-mode binding), the *Bootstrap Flow* section (replace "all rules bundled" / "all prep steps mandatory regardless of size" / "classify every request" with: minimal bootstrap + classify only on `/rosetta`), and the alias-vs-file-read boundary wording. Unchanged: RAGFlow, Bundler/VFS/tagging, the underlying MCP tools (they become the MCP binding targets), `rosettify`.
 - IN — **contract-of-record docs** (teach the new vocabulary + model, else future prompts reintroduce old terms): `coding-agents-prompt-authoring/references/pa-rosetta.md`, `pa-rosetta-intro-for-AI.md` (also correct the "all agents get the same bootstrap" claim), `pa-hardening.md` and other `pa-*` references citing aliases, the `coding-agents-prompt-authoring` SKILL, and `docs/schemas/*.md` (workflow/skill/agent schemas teach the aliases and `<references>` format). Because the refactor changes the always-on set, update the injected-bootstrap list in `pa-rosetta-intro-for-AI.md` and `pa-rosetta.md`'s load procedure to match the new minimal bootstrap (it currently names `bootstrap_hitl_questioning`, which r3 no longer has).
-- OUT / deferred: `instructions/r2/**`, MCP server behavior, project-scoped `ABOUT/QUERY/STORE` aliases, the rename sweep timing (after extractions), verb vocabulary (`ACQUIRE`→`READ`/`APPLY`), MCP `bootstrap.md` / `local-files-mode.md`, guardrail-activation redesign, subagent-branch fidelity beyond what is specified.
+- OUT / deferred: `instructions/r2/**`, MCP server behavior, the rename sweep timing (after extractions), guardrail-activation redesign, subagent-branch fidelity beyond what is specified. (Verb vocabulary + all three mode-file bindings: ✅ done. Project-scoped `ABOUT/QUERY/STORE`: ✅ dropped everywhere [decided] — plugins exist to NOT install MCP; security/privacy risk; separate plugin will own project datasets; archived.)
 
 ## Open / to confirm
 
-**Gate:** items 1 and 3 are a prerequisite — finalize the closed alias set **before** any P3 bulk normalization and before the three mode files bind aliases. The verb *shape* is `[decided]`; the *complete set* and per-category mapping are not.
-
-1. **Verb vocabulary** — confirm the `VERB ARTIFACT <name> [FILE <subpath>]` shape and the per-category mapping, including whether flow **phase** files use `USE FLOW` or `APPLY`. (`USE SKILL` / `USE FLOW` / `INVOKE SUBAGENT` already exist canonically in `pa-rosetta.md`; this work formalizes them and adds only `READ` / `APPLY` + the `FILE <subpath>` form.)
+1. ~~Verb vocabulary~~ ✅ decided — see the finalized W4 section (shape, per-category mapping, `APPLY PHASE` for phase files).
 2. **Minimal bootstrap contents** — what irreducibly stays always-on once the adherence prose is gone.
-3. **Closed alias set** — finalize the complete vocabulary so all three mode files can bind every alias.
+3. ~~Closed alias set~~ ✅ decided — W4 table is the complete contract; remaining work is *binding* it in the three mode files + P3 normalization (still gated behind the sweep phase).
 
 ---
 

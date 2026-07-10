@@ -312,7 +312,7 @@ Mark Phase 3 as completed and Phase 4 as current.
 
 Proceed to **Phase 4: Selector Identification** by executing:
 ```
-ACQUIRE aqa-flow-selector-identification.md FROM KB
+APPLY PHASE aqa-flow-selector-identification.md
 ```
 
 ## Important Notes
