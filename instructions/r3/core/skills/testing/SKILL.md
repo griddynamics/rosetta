@@ -106,7 +106,7 @@ Analysis-only: scan collected multi-source data for contradictions / gaps / ambi
 
 <scenario_design>
 
-Design test scenarios / specs / cases from requirements or contracts (**not runnable** -- runnable tests are `<implementation_modes>`). Per-value honesty + total coverage (→ `<core_concepts>`). ACQUIRE per target FROM KB: Given-When-Then API specs → `gwt-spec.md`; TMS-format cases → `testrail-format.md`; TMS export → `testrail-export.md` (fork a TMS → `vendor-fork-guide.md`). The TMS vendor is resolved from config upstream and provided -- never hardcode it; empty binding + active scope → `SKIPPED_NO_CONFIG`.
+Design test scenarios / specs / cases from requirements or contracts (**not runnable** -- runnable tests are `<implementation_modes>`). Per-value honesty + total coverage (→ `<core_concepts>`). ACQUIRE per target FROM KB: Given-When-Then API specs → `gwt-spec.md`; TMS-format cases → `<vendor>-format.md`; TMS export → `<vendor>-export.md`. The TMS `<vendor>` is resolved from config upstream and provided (TestRail shipped: `testrail-format.md` / `testrail-export.md`; fork another TMS → `vendor-fork-guide.md`) -- never hardcode the vendor; empty binding + active scope → `SKIPPED_NO_CONFIG`.
 
 </scenario_design>
 
