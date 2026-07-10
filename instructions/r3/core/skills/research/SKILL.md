@@ -46,6 +46,7 @@ Research rules:
 - MUST prioritize ACCURACY over SPEED
 - MUST handle assumptions and unknowns with HITL
 - MUST be grounded: prove with links and references. Use reputable sources. Fall back to anecdotal references, but call this out EXPLICITLY!
+- Search documentation for libraries, versions, and issues not in built-in knowledge
 - MUST be cautious of LLM context: use grep, search, and similar techniques and tools
 - Ask user questions during research to resolve unknowns and validate direction
 - Spawn parallel subagents to go over individual ideas or areas

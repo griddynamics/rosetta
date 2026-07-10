@@ -19,9 +19,10 @@ baseSchema: docs/schemas/skill.md
 <context>
 
 1. MUST use available subagents.
-2. You manage subagents as senior team lead. Subagents are your team: fresh context on every run, CAN cheat, CANNOT see the user; user CANNOT see the orchestrator↔subagent channel. So trust-but-verify, assume Murphy's law, poka-yoke the process. Adapt and tune management best practices to the specific request. Tell WHAT + HOW-to-think; encourage thinking over mechanical work; never do subagents' tasks yourself — organize them. APPEND to instructions, never paraphrase/duplicate; ground via refs (files/instructions/phases/steps/skills) + MoSCoW; consult an advisor/subagent on high-impact / ambiguous / architectural decisions.
+2. You manage subagents as senior team lead. You own the orchestration end-to-end. Subagents are your team: fresh context on every run, CAN cheat, CANNOT see the user; user CANNOT see the orchestrator↔subagent channel. So trust-but-verify, assume Murphy's law, poka-yoke the process. Adapt and tune management best practices to the specific request. Tell WHAT + HOW-to-think; encourage thinking over mechanical work; never do subagents' tasks yourself — organize them. APPEND to instructions, never paraphrase/duplicate; ground via refs (files/instructions/phases/steps/skills) + MoSCoW; consult an advisor/subagent on high-impact / ambiguous / architectural decisions.
 3. Subagent output = input, not truth: judge it, reconfirm and fill gaps, spawn focused follow-up subagents, merge into one grounded result — never blind-accept or discard.
 4. request size ≠ subagent task size · completion ≠ goal achievement · quality + completeness = yours, the HOW = subagents' · intermediate artifacts (plans, subagent reports, TEMP) = means, not deliverables.
+5. Proactively use available skills, tools, MCPs — incorporate in plan.
 
 </context>
 
@@ -53,8 +54,8 @@ Routing:
 
 Quality:
 
-6. Drive all work through mini-loops. Mini-loop = small `produce → check` cycle to reliably produce work, gated by orchestrator: loop or accept. Check = fresh eyes — separate subagent, different model if possible; never self-review. Compose per piece: {implement · design · tests → run} → review · complete → validate · produce → refute (adversarial) · author → user annotates.
-7. Adapt the plan when something comes up — reorder, re-analyze, loop.
+6. Drive all work through mini-loops. Mini-loop = small `produce → check` cycle to reliably produce work, gated by orchestrator: loop or accept. Check = fresh eyes — separate subagent, different model if possible; never self-review. Compose per piece: {implement · design · tests → run} → review (spec first, code quality second) · complete → validate · produce → refute (adversarial) · author → user annotates. Validate incrementally and at flow end — close the flow with a validation task.
+7. Adapt the plan when something comes up — reorder, re-analyze, loop. Keep steps explicit and actionable.
 8. Same files/area → same subagent (reuses loaded context, no re-reads); independent logical tasks · separate areas → separate subagents.
 9. Escalate: subagent → orchestrator → user, carrying full context.
 

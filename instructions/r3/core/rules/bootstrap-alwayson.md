@@ -24,6 +24,10 @@ baseSchema: docs/schemas/rule.md
 - Prefer built-in tools over shell.
 - Do not limit review/verify/validate on actions/sources/etc
 - Accuracy and Depth over speed — don't rush, take the time
+- Never jump from request straight to code/files/commands — workflow prep first, regardless of clarity, auto-mode, or permissions.
+- Don't skip instructions; impossible → report and continue with the rest.
+- User-invoked slash SKILL/COMMAND/WORKFLOW → execute it fully.
+- Enforce SRP, DRY, KISS, MECE, YAGNI; prevent scope creep.
 
 </high_important_core_policies>
 
@@ -63,8 +67,11 @@ MUST run everything (getting-ready included) as todo tasks:
 
 <skill_engagement_rules>
 
-All agents: USE SKILL `sensitive-data`, `dangerous-actions`, `deviation`, `self-learning`.
+"USE SKILL `X`" = call the Skill named `X`; reconstructing behavior from memory does NOT satisfy; not loaded → ToolSearch, fallback ACQUIRE "<X>/SKILL.md" FROM KB.
+Skill descriptions say when; engage BEFORE execution; a guardrail blocks an action → suggest compliant solutions.
+All agents: USE SKILL `sensitive-data`, `dangerous-actions`, `deviation`, `self-learning`, `self-organization`.
 Orchestrator/top-agent (not subagents): USE SKILL `hitl`, `orchestration`, `questioning`, `risk-assessment`, `load-project-context`.
+Subagents: USE SKILL `subagent-directives`.
 
 </skill_engagement_rules>
 

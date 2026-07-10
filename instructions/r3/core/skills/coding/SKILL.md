@@ -29,7 +29,7 @@ Principles:
 - Scope creep prevention: apply ONLY what was requested, do not add non-requested features, refactors, or improvements
 - Multi-environment: all code MUST be configurable for local, dev, test, production
 - Minimal changes: simpler is better
-- Zero tolerance: no cheating, no pre-existing excuses, no warnings, no errors. All tests MUST succeed, all code MUST compile (including pre-existing), all requirements MUST be fulfilled — unless user explicitly asks to skip
+- Zero tolerance: no cheating, no pre-existing excuses (pre-existing = documented in advance; otherwise fix it), no warnings, no errors. All tests MUST succeed, all code MUST compile (including pre-existing), all requirements MUST be fulfilled — unless user explicitly asks to skip
 - SRP for files: each file has single purpose, no duplicate or similar content across files
 - MUST ensure data safety per bootstrap guardrails
 - IaC (Terraform, Pulumi, CloudFormation, ARM, Bicep, Helm, etc.): MUST follow `assets/iac.md`
@@ -73,6 +73,7 @@ Validation methodology:
 <best_practices>
 
 - Search and check existing code and dependencies before writing new
+- Search documentation for libraries, versions, and issues not in built-in knowledge
 - Exhaust existing patterns before introducing new; iterate on existing code; remove old implementation if replaced
 - Verify current folder when using relative paths in scripts or commands
 - Keep temporary scripts in SCRIPTS folder at workspace root

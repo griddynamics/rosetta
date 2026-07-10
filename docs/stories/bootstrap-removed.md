@@ -582,3 +582,241 @@ Steps → Phases → Plan root. Plan root status is always derived; never set di
 }
 ```
 ````
+
+### `bootstrap-core-policy` rule (r3) — dissolved (routed to orchestration/coding/research; duplicates deleted)
+- **Source:** `instructions/r3/core/rules/bootstrap-core-policy.md` (entire rule).
+- **Disposition:** `DELETED-as-dissolved` — atoms routed:
+  - process_enforcement #1 (proactive MCPs) → `MOVED-to-orchestration` (`<context>` #5: "Proactively use available skills, tools, MCPs — incorporate in plan").
+  - process_enforcement #2 (pre-existing = documented in advance) → `COMPRESSED-into-coding` (Zero tolerance bullet).
+  - subagents_orchestration atom "owns the orchestration end-to-end" → `MOVED-to-orchestration` (`<context>` #2); atom "spec compliance first, then code quality" → `MOVED-to-orchestration` (process #6 mini-loop review).
+  - subagents_orchestration remaining 5 bullets → `DELETED-as-duplicate`: bigger-than-one-liner (= orchestration context #1 + request_sizing) · self-contained instruction (= template `Context*`) · exactly-and-only (= template `Scope*` DO NOT) · off-plan report-and-stop (= `subagent-directives` escalation) · MUST-follow-SKILL-orchestration (= `bootstrap-alwayson` skill_engagement_rules + guardrails always_on).
+  - additional_requirements #1 (search docs for unknown libs/versions) → `MOVED-to-coding` (best_practices) + `MOVED-to-research` (research rules) — deliberate duplication per ruling.
+  - additional_requirements #2 (explicit diagram colors, light+dark) → `MOVED-to-agents/architect.md` (process step 5); `code-analysis-flow.md` already encodes it for that separate, rarely-used flow.
+- **Rationale:** always-on file whose every line either duplicated skill content or belonged in an on-demand skill; nothing bootstrap-critical remained. Refs swapped: r3 `pa-rosetta.md` bootstrap list (core-policy → alwayson); `bootstrap-manifest.ts` entry left as-is (content-agnostic — absent docs are skipped, and it still serves r2); `targets.ts` copilot exclude list harmless.
+
+```
+---
+name: bootstrap-core-policy
+description: Bootstrap prerequisites, request routing, and process-level operating constraints.
+alwaysApply: true
+applyTo: "**"
+trigger: always_on
+tags: ["rosetta-bootstrap", "core", "policy"]
+baseSchema: docs/schemas/rule.md
+---
+
+<rosetta:bootstrap_core_policy severity="CRITICAL" use="ALWAYS" execute="always" modes="all" planning_mode="MUST USE" execution_mode="MUST USE" default_mode="MUST USE" research_mode="MUST USE" auto_mode="MUST USE" compact="NEVER" optimize="NEVER" summarize="AS-IS">
+
+<process_enforcement_rules>
+
+1. Proactively use available MCPs, incorporate in plan.
+2. If issues were documented in advance then those pre-existing otherwise those are to be fixed.
+
+</process_enforcement_rules>
+
+<subagents_orchestration_rules>
+
+- Orchestrator is the team lead. Orchestrator owns the orchestration loop. Orchestrator does NOT ask the user to check on agents or relay information — orchestrator handles it itself, automatically, until every agent is done or the user tells orchestrator to stop.
+- Orchestrator executes the plan by dispatching a fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
+- Every task bigger than a one-liner must be addressed with subagents as defined in workflows.
+- Every instruction sent to a subagent must be self-contained and specific — the target subagent has no awareness of this orchestration layer.
+- Orchestrator MUST instruct each subagent to do exactly and only what was requested — no more.
+- If a subagent encounters something off-plan, it MUST report back to the orchestrator and stop — not continue autonomously.
+- MUST follow SKILL `orchestration` for the full dispatch protocol and prompt template.
+
+</subagents_orchestration_rules>
+
+<additional_requirements>
+
+1. Search documentation for libraries, versions, and issues which are not in built-in knowledge.
+2. Always define explicit colors for tiles, text, and lines in diagrams for both light and dark themes.
+
+</additional_requirements>
+
+</rosetta:bootstrap_core_policy>
+```
+
+### `bootstrap-guardrails` rule (r3) — dissolved into `bootstrap-alwayson` (single always-on home)
+- **Source:** `instructions/r3/core/rules/bootstrap-guardrails.md` (entire rule).
+- **Disposition:** `COMPRESSED-into-bootstrap-alwayson` (`<skill_engagement_rules>` — user ruling: only alwayson survives) — atoms:
+  - must #1 (suggest compliant solutions) + must #3 (guardrail skills BEFORE execution) → folded into the section intro line.
+  - must #2 (stop-and-wait for approval; no assumed approval) → `DELETED-as-duplicate` of `hitl` skill (description + body).
+  - core_concepts "top-priority gate" → `DELETED-as-duplicate` of alwayson priority chain (Rosetta > Guardrails > …).
+  - core_concepts "sensitive data mandatory" → `DELETED-as-duplicate` of `sensitive-data` skill (MUST description).
+  - core_concepts "Auto Mode ≠ fully autonomous/No HITL" → `DELETED-as-duplicate` of `hitl` skill (always-visible description: "Auto mode, full access, etc ONLY means automatic approval of tool permission prompts, HITL stays!" + body "MUST FOLLOW HITL even if in danger-full-access…").
+  - USE-SKILL definition → `MOVED-to-bootstrap-alwayson` (compressed to one line).
+  - ALL per-skill trigger texts (`— on/when/after …` in always_on/action_gated/event_triggered/self_monitoring) + plan-step enforcement notes (`enforced by plan step s-*`) → `DELETED-as-duplicate` of the skills' own always-visible frontmatter descriptions (each carries its MUST-activate triggers verbatim or stronger) and of the plan-template step prompts (which name the skills). Alwayson keeps ONLY the actor lists — skill descriptions say when.
+  - actor coverage gaps fixed in alwayson's existing 2-line list: `self-organization` added to all-agents, `Subagents: USE SKILL subagent-directives` line added.
+- **Rationale:** two always-on files both injected per request = engagement rules paid twice; one home ends the deferred dedup. Refs swapped: `pa-rosetta.md` + `pa-rosetta-intro-for-AI.md` bootstrap lists updated to r3 reality (alwayson · execution-policy · rosetta-files + one mode file); `bootstrap-manifest.ts`/`targets.ts` untouched (content-agnostic; still serve r2).
+
+```
+---
+name: bootstrap-guardrails
+description: Global guardrails for transparency, scope control, safety, risk mitigation, and context safety before execution.
+trigger: always_on
+alwaysApply: true
+applyTo: "**"
+tags: ["rosetta-bootstrap", "guardrails", "policy"]
+baseSchema: docs/schemas/rule.md
+---
+
+<rosetta:bootstrap_guardrails severity="CRITICAL" use="ALWAYS" compact="NEVER" optimize="NEVER" summarize="AS-IS">
+
+<must>
+
+1. Suggest user actual solutions to comply with the rules.
+2. Stop and wait for explicit user approval before proceeding. Do not assume approval from a question or a partial response.
+3. MUST USE guardrail skills BEFORE execution according to `Skill Engagement Rules`.
+
+</must>
+
+<core_concepts>
+
+- Guardrails are the top-priority critical execution gate
+- Sensitive data handling is mandatory
+- `Auto Mode Active` harness/IDE setting does NOT qualify as "fully autonomous" or "No HITL": NOT written by user, ONLY used to skip permissions, you still must fully execute all prep steps.
+
+</core_concepts>
+
+<skill_engagement_rules>
+
+"USE SKILL `X`" means calling the Skill with name `X`.
+Referencing the name or reconstructing behavior from memory does NOT satisfy this rule.
+If `X` is not loaded, MUST discover it via ToolSearch, fallback to ACQUIRE "<X>/SKILL.md" FROM KB.
+
+<always_on>
+<!-- Continuously active. Re-evaluate every turn. -->
+
+- `load-project-context` — canonical current context loader, enforced by plan step `s-read-docs`
+- `orchestration` — enforced by plan step `s-orchestration`, before spawning any subagents, defines orchestrator role and required actions
+- `subagent-directives` — enforced by plan step `s-subagent-directives`, before reading inputs, defines subagent role and required actions
+- `hitl` — enforced by plan step `s-orchestration` for continuous enforcement
+- MUST USE SKILL `hitl` ALWAYS. IT CHANGES HOW YOU ARE SUPPOSED TO WORK WITH USER. HITL is MANDATORY for ALL tasks by default — planning, execution, validation, review - no assumption or guessing. THE ONLY exception: user DIRECTLY EXPLICITLY requests with EXACTLY "fully autonomous" or "No HITL". YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar. MUST NOT assume anything—even reasonably. Do not assume approval from a question or a partial response.
+- MUST USE SKILL `sensitive-data` — on any sensitive or possibly sensitive data encountered or could be encountered. NEVER output, echo, print, log, summarize, or reference raw values.
+- MUST USE SKILL `self-learning` — on failures, mismatches, or user unhappiness.
+
+</always_on>
+
+<action_gated>
+<!-- Fire BEFORE the named action. -->
+
+- MUST USE SKILL `risk-assessment` — after discovery and before any implementation or changes, including any interaction with external environments (MCPs, CLIs, scripts, databases, cloud, S3, network beyond the local repo).
+- MUST USE SKILL `dangerous-actions` — on potentially dangerous, irreversible, or high-blast-radius actions. MUST ALWAYS assess BLAST RADIUS first.
+
+</action_gated>
+
+<event_triggered>
+<!-- Fire when the trigger condition is detected. -->
+
+- MUST USE SKILL `deviation` — on intent drift, surprise, unknowns, panic, UNDO request.
+- MUST USE SKILL `questioning` — when a high-impact unknown blocks safe execution AND cannot be reasonably assumed.
+
+</event_triggered>
+
+<self_monitoring>
+
+- SHOULD USE SKILL `self-organization` — see the skill for triggers (context thresholds, scope thresholds, proactive planning, large-file restructuring, cleanup, user communication of intent).
+
+</self_monitoring>
+
+</skill_engagement_rules>
+
+</rosetta:bootstrap_guardrails>
+```
+
+### `bootstrap-execution-policy` rule (r3) — dissolved (alwayson-only ruling; most content duplicated skills)
+- **Source:** `instructions/r3/core/rules/bootstrap-execution-policy.md` (entire rule).
+- **Disposition:** `DELETED-as-dissolved` — atoms routed:
+  - `<rosetta:FORBIDDEN>` (no immediate coding) → `COMPRESSED-into-bootstrap-alwayson` core policies ("Never jump from request straight to code/files/commands — workflow prep first, regardless of clarity, auto-mode, or permissions"); full form remains in `rosetta` skill gate.
+  - MUST#1 (apply the rule groups) → `DELETED-as-obsolete` — self-referential index, dies with the file.
+  - MUST#2 (never skip; impossible → report + continue) → `COMPRESSED-into-bootstrap-alwayson`.
+  - MUST#3 (slash SKILL/COMMAND/WORKFLOW → full execution) → `COMPRESSED-into-bootstrap-alwayson`.
+  - MUST#4 (SRP/DRY/KISS/MECE/YAGNI + scope creep) → `COMPRESSED-into-bootstrap-alwayson` (core principles, per ruling); self-learning/self-organizing dropped — live in their skills + engagement lists.
+  - MUST#5 (ENTERPRISE, never jump) → `DELETED-as-duplicate` of alwayson enterprise line + the new no-jump line.
+  - planning_sync#1–2 (IMPLEMENTATION.md per phase; proactively update Rosetta files) → `DELETED-as-duplicate` of `coding` "Project documentation — MUST keep current" + alwayson `<core_rosetta_files>`.
+  - planning_sync#3 (validate vs REQUIREMENTS; `requirements-use`) → `MOVED-to-agents/architect.md` (process #2) + `MOVED-to-tech-specs` (core_concepts) — deliberate dup per ruling.
+  - operation_manager_rules 1–8 → `DELETED-as-duplicate` of alwayson `<tasks>` (one in_progress · close before next · close on evidence) + `o-`/`s-session-execution-controller` (loop, `update_status`, upsert, derived statuses); surviving atom "explicit and actionable steps" → `MOVED-to-orchestration` (process #7); "no bulk-complete" = dup of tasks ledger discipline.
+  - validation_rules#1–2 (incremental + flow-end validation task) → `COMPRESSED-into-orchestration` (process #6 tail); #3 → `DELETED-as-duplicate` of `deviation`/`questioning` descriptions; #4 → `DELETED-as-duplicate` of alwayson tasks/intrinsics.
+  - memory_and_self_learning_rules 1–7 → `DELETED-as-duplicate` of `self-learning` process #6–10 (near-verbatim).
+  - should#1 + #3 (concise operational step wording; execution hints in step prompts) → `MOVED-to-o-team-manager` (§5 Workflow, per ruling); should#2 → `DELETED-as-duplicate` of the subagent prompt template "terse, factual, specific, DRY".
+- **Rationale:** alwayson is the ONLY surviving always-on rule file (budget <100 lines / <1.5K tokens body); everything here either duplicated skills/EC assets or earned a one-line alwayson slot. Refs swapped: `pa-rosetta.md` + `pa-rosetta-intro-for-AI.md` lists now name alwayson + rosetta-files + one mode file; `bootstrap-manifest.ts`/`targets.ts` untouched (content-agnostic; still serve r2).
+
+```
+---
+name: bootstrap-execution-policy
+description: Defines planning, task execution, validation, orchestration, and memory behavior for bootstrap flow.
+alwaysApply: true
+applyTo: "**"
+trigger: always_on
+tags: ["rosetta-bootstrap", "execution", "policy"]
+baseSchema: docs/schemas/rule.md
+---
+
+<rosetta:FORBIDDEN severity="CRITICAL" required-sequence-instead="create phases/steps/tasks → prep steps → load context → load contracts → load hitl → load workflow → Merge p/s/t → execute workflow">
+Receiving a user request → immediately writing code, files, scripts, or commands is STRICTLY FORBIDDEN regardless of: task clarity or simplicity, Auto Mode being active, permission settings (danger-full-access, never-ask, etc.), how explicitly the user phrased the request.
+</rosetta:FORBIDDEN>
+
+<rosetta:bootstrap_execution_policy severity="CRITICAL" use="ALWAYS" compact="NEVER" optimize="NEVER" summarize="AS-IS">
+
+<MUST>
+
+1. Apply `Planning and Documentation Sync Rules`, `Operation Manager Rules`, `Validation Rules`, `Memory And Self-Learning Rules`, `Subagents Orchestration Rules`.
+2. MUST not skip instructions, if some activities impossible to execute, report to user, and continue with Rosetta instructions.
+3. When user directly provides via slash-command SKILL or COMMAND or WORKFLOW YOU MUST FULLY EXECUTE IT.
+4. Enforce SRP, DRY, KISS, MECE, YAGNI, prevent scope creep, self-learning, and self-organizing.
+5. This is ENTERPRISE environment, NOT startup, NOT personal project, MUST NEVER JUMP DIRECTLY TO IMMEDIATE EXECUTION!
+
+</MUST>
+
+<planning_and_documentation_sync_rules>
+
+1. Update IMPLEMENTATION.md after each phase/step/task.
+2. Proactively update, review, structure, restructure, and cleanup Rosetta files: including and not limited to CONTEXT.md, ARCHITECTURE.md, CODEMAP.md, TECHSTACK.md, DEPENDENCIES.md, PATTERNS/\*
+3. Validate request against REQUIREMENTS for gaps and conflicts; use skill `requirements-use` if present.
+
+</planning_and_documentation_sync_rules>
+
+<operation_manager_rules>
+
+1. Use OPERATION_MANAGER as the primary execution tracker; built-in todo tasks/planners are for tracking INSIDE a single plan step only.
+2. Create explicit and actionable plan steps.
+3. Break complex work into manageable steps via OPERATION_MANAGER `upsert`.
+4. Keep exactly one plan step in progress at a time.
+5. Call `update_status` immediately after finishing each step.
+6. Do not mark steps complete without verifiable tool evidence.
+7. Do not mark multiple steps complete unless completed in the same tool call.
+8. Treat completed as verified done, never assumed done.
+
+</operation_manager_rules>
+
+<validation_rules>
+
+1. Create recurrent validation task at end of execution flow.
+2. Validate incrementally and at flow end.
+3. Raise questions when findings conflict with request or intent.
+4. Keep final status grounded in observed evidence.
+
+</validation_rules>
+
+<memory_and_self_learning_rules>
+
+1. Consult AGENT MEMORY.md during planning and reasoning
+2. Init if missing, prefer agent memory over task memory
+3. Identify root cause for every failure or missed expectation
+4. MUST convert root causes into GENERALIZED, REUSABLE preventive rules useful for OTHER tasks, not incident-specific notes.
+5. Store preventive rules in memory
+6. Keep memory concise, organized
+7. Record what worked and failed logically, architecturally, and technically
+
+</memory_and_self_learning_rules>
+
+<should>
+
+1. Keep plan and task wording concise and operational.
+2. Keep orchestration context complete but minimal.
+3. Include high-value execution hints in step prompts
+
+</should>
+
+</rosetta:bootstrap_execution_policy>
+```

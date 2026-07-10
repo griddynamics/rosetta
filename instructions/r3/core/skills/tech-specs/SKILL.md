@@ -26,6 +26,7 @@ Use when requirements need translation into specs, architecture needs documentat
 
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - Discovery MUST be completed before writing specs
+- Validate request against REQUIREMENTS for gaps and conflicts; USE SKILL `requirements-use` if present
 - MCPs and external sources MUST be used to acquire context (DeepWiki, Context7, Web Search)
 
 Tech specs define target state; plan defines steps to reach it.
