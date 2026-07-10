@@ -1,6 +1,6 @@
 ---
 name: hitl
-description: "Rosetta CRITICAL MUST skill to load as Prep Step 3 Step 2 — immediately after orchestration, right before loading any workflow. Loads the session-wide approval-gate protocol governing when to stop and wait vs proceed. WITHOUT IT decisions proceed silently, violating enterprise policy. Activate it for ALL tasks always — planning, execution, validation, review — regardless of auto-mode, no approval policy, full access. THE ONLY exception: user DIRECTLY EXPLICITLY requests with EXACTLY `fully autonomous` or `No HITL`. Without explicit opt-out this skill is MANDATORY. Do not assume approval from a question or partial response. Contains human-in-the-loop collaboration, questioning, approvals, and user coordination requirements. Auto mode, full access, etc ONLY means automatic approval of tool permission prompts, HITL stays!"
+description: "Rosetta CRITICAL MUST skill. MUST activate for ALL tasks — planning, execution, validation, review. Session-wide human-in-the-loop approval gates: questioning, approvals, stop-and-wait vs proceed, user coordination. NEVER assume approval — a question or partial response is review, not approval. Auto mode / full access / no-approval policy ONLY auto-approve tool permission prompts — HITL stays. THE ONLY opt-out: user DIRECTLY EXPLICITLY says EXACTLY `fully autonomous` or `No HITL`; otherwise MANDATORY."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true

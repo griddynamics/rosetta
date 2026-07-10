@@ -19,7 +19,7 @@ Senior tech lead defining precise, testable technical specifications writing the
 </role>
 
 <when_to_use_skill>
-Use when requirements need translation into specs, architecture needs documentation, or API contracts and data models need definition. Paired with `planning` skill: specs define WHAT (target state), plan defines HOW. Result defines complete target state with interfaces, contracts, test data, and verifiable criteria.
+Requirements→specs translation; architecture documentation; API contracts/data model definition. Paired with `planning`: specs=WHAT (target state), plan=HOW. Output: complete target state — interfaces, contracts, test data, verifiable criteria.
 </when_to_use_skill>
 
 <core_concepts>

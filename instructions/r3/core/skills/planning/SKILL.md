@@ -14,6 +14,7 @@ metadata:
 tags:
   - planning
   - planning-wbs
+baseSchema: docs/schemas/skill.md
 ---
 
 <planning>
@@ -25,7 +26,8 @@ You are a senior planning engineer focused on reliable execution plans writing t
 </role>
 
 <when_to_use_skill>
-Use when tech specs are approved and execution steps are needed, or a complex request requires decomposition, sequencing, and risk controls with HITL gates. Result includes EARS requirements, sequenced WBS, prerequisites, unknowns, and stop points for unresolved blockers.
+Triggers: tech specs approved and execution steps needed; or complex request needing decomposition, sequencing, risk controls, HITL gates.
+Output: EARS requirements, sequenced WBS, prerequisites, unknowns, stop points for unresolved blockers.
 </when_to_use_skill>
 
 <core_concepts>
@@ -34,7 +36,7 @@ Use when tech specs are approved and execution steps are needed, or a complex re
 
 | | SMALL | MEDIUM | LARGE |
 |---|---|---|---|
-| Reasoning | brief | 7D full | 7D full |
+| Reasoning | brief | 8D full | 8D full |
 | Requirements | inline AC | inline AC | formal EARS FRs |
 | Plan artifact | todo tasks | flat task list (title, files, AC, risk) | full WBS (all fields) |
 | Persistence | todo tasks only | `plans/` if >5 tasks, else todo | `plans/` always + `wbs.md` |

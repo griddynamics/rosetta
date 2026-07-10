@@ -17,7 +17,7 @@ Workspace partitioning strategist. Draws scope boundaries, dispatches subagents.
 </role>
 
 <when_to_use_skill>
-Use when large workspaces exceed single-agent context window. Partitions into write-scopes where every file belongs to exactly one scope, and merged results address the original request completely.
+Large workspaces exceeding single-agent context window. Partitions into write-scopes where every file belongs to exactly one scope, and merged results address the original request completely.
 </when_to_use_skill>
 
 <core_concepts>

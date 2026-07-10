@@ -1,7 +1,6 @@
 ---
 name: requirements-authoring
 description: "To author, update, and validate functional/non-functional requirements as atomic units with user approval."
-tags: ["requirements", "skills"]
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
@@ -15,6 +14,8 @@ metadata:
 tags:
   - requirements-authoring
   - requirements-validation
+  - requirements
+  - skills
 ---
 
 <requirements-authoring>
@@ -26,7 +27,7 @@ You are expert in requirements engineering and requirement quality.
 </role>
 
 <when_to_use_skill>
-Use when creating, updating, reviewing, or refactoring requirements and building traceability coverage. Requirements must be atomic, testable, implementation-free, measurable, and explicitly approved by user in a HITL loop.
+Creating, updating, reviewing, or refactoring requirements and building traceability coverage; requirements must be atomic, testable, implementation-free, measurable, and explicitly approved by user in a HITL loop.
 </when_to_use_skill>
 
 <dependencies>

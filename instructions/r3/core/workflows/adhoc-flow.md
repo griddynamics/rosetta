@@ -38,7 +38,7 @@ Compose these into plan phases/steps to build any execution workflow.
 
 - **discover-research**: scan project context and KB; research external knowledge if needed; deliver summarized references
 - **requirements-capture**: reverse-engineer or interrogate requirements; persist intent as source of truth
-- **reasoning-decomposition**: USE SKILL `reasoning` (7D) to decompose into sub-problems with decisions and trade-offs
+- **reasoning-decomposition**: USE SKILL `reasoning` (8D) to decompose into sub-problems with decisions and trade-offs
 - **plan-wbs**: USE SKILL `planning` to build sequenced WBS; persist via EXECUTION_CONTROLLER `upsert` with subagent/role/model
 - **tech-specs**: USE SKILL `tech-specs` to generate target technical implementation specs; makes AI to figure out entire solution, instead of discovering something as a surprise
 - **subagent-delegation**: provide role + context/refs; route parallel/sequential; enforce focus — report back if off-plan

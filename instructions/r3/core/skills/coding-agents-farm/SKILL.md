@@ -26,7 +26,7 @@ Farm Leader: senior orchestration engineer controlling multiple coding agent CLI
 </role>
 
 <when_to_use_skill>
-Use when a task benefits from parallel execution across multiple coding agents — large features decomposable into independent subtasks, cross-validation by different models/providers, or throughput-critical work. Solves: single-agent bottlenecks, premature completion without testing, agent deviation, token/rate-limit failures going unnoticed.
+Parallel execution across multiple coding agents: large features decomposable into independent subtasks, cross-validation by different models/providers, throughput-critical work. Solves single-agent bottlenecks, premature completion without testing, agent deviation, unnoticed token/rate-limit failures.
 </when_to_use_skill>
 
 <core_concepts>

@@ -184,3 +184,19 @@ When scoping a hook to a single platform (e.g. claude-code only), add it to the 
 
 ### Official GitHub Pages Setup And Deploy Actions Are Still Node 20 Upstream [ACTIVE]
 As of 2026-03-18, `actions/configure-pages@v5` and `actions/deploy-pages@v4` still declare `runs.using: node20`, so those warnings are not removable by a repo-local version bump.
+
+### r3 Closed Alias Vocabulary — Bindings Live In Mode Files, Plugin Has NONE [ACTIVE]
+The r3 contract is `USE SKILL/FLOW · INVOKE SUBAGENT · APPLY PHASE · READ|APPLY RULE/TEMPLATE/CONFIGURE/SKILL FILE · READ SKILL/FLOW/SUBAGENT · LIST` (taught in `coding-agents-prompt-authoring/references/pa-rosetta.md`, plan of record in `docs/stories/reduce-bootstrap.md` §W4). Plugin mode needs NO mapping (aliases operate natively on plugin files); ONLY `bootstrap.md` (MCP) and `local-files-mode.md` carry mappings. `ACQUIRE <x> FROM KB` survives ONLY inside generated shell files + its MCP binding; `SEARCH` and project-scoped `ABOUT/QUERY/STORE` are dropped entirely. `SKILL FILE` never carries a skill name — cross-skill = intent form `USE SKILL `x` to <do y>`; naming another skill's internal FILE is forbidden, plain skill-NAME prose is fine.
+
+### Every r3 Skill Folder Has README.md — Update It When Changing A Skill [ACTIVE]
+Maintainer doc (plain markdown, NO XML, never loaded at runtime): why/when/how, mental hooks, invariants, editing guide + coupling list. Spec: `coding-agents-prompt-authoring/references/pa-schemas.md` `<skill_authoring>`. Rationale belongs in README, never in SKILL.md (no meta-commentary in instruction files; sole exemption: coding-agents-prompt-authoring).
+
+### Reference-Sweep Greps Must Include BARE Filenames [ACTIVE]
+Prefix-based greps (`(assets|references)/<file>`) miss cross-skill pins written as bare filenames ("see solr-query `12-relevancy.md`") — the solr family hid 6 such pins from the vocabulary sweep. Sweep with: alias keywords + `(assets|references)/` + `SKILL.md` mentions + bare `NN-*.md`-style filenames + verb-less table cells; then machine-verify every target resolves.
+
+### Rosetta Is The MD Files — The Agent Is The Actor [ACTIVE]
+Never write "Rosetta drives/does/runs X" in docs or READMEs; the agent executing under Rosetta instructions acts. Also: mode files are declared by injection, not probed; alwayson defines NO aliases.
+
+### Requirement Records: Master Template + Folder-Namespaced IDs [ACTIVE]
+Master `<req>` shape = `requirements-authoring/SKILL.md` inline `<requirement_unit_template>` (mirrored in `assets/ra-requirement-unit.xml`). `docs/requirements/<product>/` records conform to it; `changed` dates derive from that product's CHANGES.md batches; NEVER fill `implementation` status without validating against the code. IDs are folder-namespaced (rosetta-cli `FR-00NN` vs plugin-generator `FR-CLI-NNNN` coexist); renaming ids is a user decision.
+

@@ -12,7 +12,7 @@
 <requirements-and-intent>
 
 - Requirements could be reverse engineered, a must if starting from something existing
-- "Interrogate" user to get requirements using questioning.md skill
+- "Interrogate" user to get requirements — USE SKILL `questioning`
 - Persist the intent and pass it across entire workflow
 - Clearly define which requirements are directly provided by users and which were deducted by AI
 - Ensure original requirements and intent is always verified with through out the entire process as source of truth

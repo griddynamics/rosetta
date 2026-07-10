@@ -47,6 +47,15 @@ Note:
 - Reusable knowledge/instructions loaded into agents on demand
 - Skill folder contents is internal implementation of the skill (and it will change eventually)
 - Skill references its content using file paths relatively to the skill folder
+- Skill folder MUST contain `README.md` — maintainer doc: normal markdown, NO XML tags, never loaded at runtime. Write it answering: "If I execute this skill for a related task — what does it give me, what hooks me, what is unexpected?" Sections:
+  - `# <skill-name>` + one-line essence
+  - `## Why it exists` — failure mode fixed; value over plain model judgment
+  - `## When to engage` — compressed triggers, actor (all/orchestrator/subagent), prereqs
+  - `## How it works` — SKILL.md flow + assets/references routing map
+  - `## Mental hooks & unexpected rules` — short verbatim quotes of the deliberately surprising/load-bearing lines + what each does to the executor
+  - `## Invariants — do not change` — exact markers/names/wording others depend on (external contracts, alias grammar, frontmatter description ≤ ~25 tokens driving auto-activation, names registered in `docs/definitions/`) and why each is locked
+  - `## Editing guide` — safe vs handle-with-care; where new content belongs (SKILL.md vs assets/ vs references/); who references this skill
+- README rules: ground every claim in file text; effect over invented origin (intent not evident → flag, don't fabricate); no history/changelog; ≤ ~80 lines
 
 </skill_authoring>
 

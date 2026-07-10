@@ -139,7 +139,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 - Skill `requirements-authoring` — atomic, testable, EARS-phrased functional and non-functional requirements with per-unit HITL.
 - Skill `large-workspace-handling` — partition 100+ file workspaces; Summarization & Indexing strategy for analysis; parallel subagent dispatch with explicit scope boundaries.
 - Skill `questioning` — batch critical/high MECE questions; safe defaults; persist Q&A.
-- Skill `reasoning` — 7D decomposition for classification and review.
+- Skill `reasoning` — 8D decomposition for classification and review.
 - Skill `load-project-context` — load Rosetta project context files.
 - Subagents: `discoverer` (context/scope), `architect` (analysis/summary/requirements), `reviewer` (quality review).
 

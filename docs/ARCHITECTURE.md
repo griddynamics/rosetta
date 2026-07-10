@@ -400,6 +400,7 @@ Instructions live in `/instructions/r2/` in the instructions repository, using a
 │   ├── skills/
 │   │   └── <name>/
 │   │       ├── SKILL.md
+│   │       ├── README.md    ← maintainer doc (r3; never loaded at runtime)
 │   │       ├── references/
 │   │       └── assets/
 │   ├── agents/

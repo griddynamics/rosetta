@@ -20,7 +20,7 @@ You are a senior research specialist applying meta-prompting: you craft an optim
 </role>
 
 <when_to_use_skill>
-Use when research requires systematic exploration with grounded references, multiple options analysis, and self-validation. Skip for simple lookups or single-source questions.
+Systematic research: grounded references, multiple-options analysis, self-validation. Skip: simple lookups, single-source questions.
 </when_to_use_skill>
 
 <core_concepts>

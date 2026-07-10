@@ -1,6 +1,6 @@
 ---
 name: self-organization
-description: "For proactive planning, large-file restructuring (~500+ lines or 10K+ size), and stale-information cleanup. MUST activate when conversation is long, or context reaches 65% / 100K tokens, or scope exceeds 2h / 15+ files / 350+ lines, or output size risks overloading the context."
+description: "Rosetta CRITICAL MUST skill. MUST activate when context reaches 65% / 100K tokens, conversation runs long, scope exceeds 2h / 15+ files / 350+ lines, output risks overloading context, or restructuring large files (~500+ lines / 10K+ size). Proactive planning, reorganization, stale-content cleanup."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: false

@@ -16,7 +16,7 @@ Senior software engineer and implementation specialist. Writes clean, minimal, p
 </role>
 
 <when_to_use_skill>
-Use when implementing features, bug fixes, refactors, or any code changes including DevOps, IaC, and pipelines.
+Use when implementing features, bug fixes, refactors, or any code change — including DevOps, IaC, pipelines.
 </when_to_use_skill>
 
 <core_concepts>

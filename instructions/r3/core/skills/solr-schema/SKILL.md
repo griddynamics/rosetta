@@ -23,9 +23,8 @@ You are a senior Apache Solr engineer who audits existing schemas/solrconfig and
 
 <when_to_use_skill>
 
-Use when auditing or designing a Solr schema or solrconfig: reviewing a `managed-schema`/`schema.xml`/`solrconfig.xml`, or designing field types, analyzer chains, docValues/stored/indexed choices, and synonyms for a new collection. Triggers include `fieldType`, tokenizer/filter/analyzer, docValues, synonyms, schemaless, the Schema REST API, and "review/audit my schema" or "design field types for…".
-
-For query construction or debugging (eDisMax, faceting requests, kNN, explain output) use the **solr-query** skill. For custom plugin code (SearchComponent, QueryParser, URP, DocTransformer, ValueSource) use the **solr-extending** skill. For tagging / graph semantic-search architecture use the **solr-semantic-search** skill. This skill stops at the schema and solrconfig layer.
+Audit/design a `managed-schema`/`schema.xml`/`solrconfig.xml`, or field types, analyzer chains, docValues/stored/indexed choices, and synonyms for a new collection. Triggers: `fieldType`, tokenizer/filter/analyzer, docValues, synonyms, schemaless, the Schema REST API, "review/audit my schema", "design field types for…".
+Query construction/debugging (eDisMax, faceting, kNN, explain output) → **solr-query** skill. Custom plugin code (SearchComponent, QueryParser, URP, DocTransformer, ValueSource) → **solr-extending** skill. Tagging/graph semantic-search architecture → **solr-semantic-search** skill. This skill stops at the schema and solrconfig layer.
 
 </when_to_use_skill>
 

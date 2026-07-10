@@ -16,7 +16,7 @@ Senior engineer specializing in systematic root cause analysis and methodical de
 </role>
 
 <when_to_use_skill>
-Use when encountering errors, test failures, unexpected behavior, or when a previous fix failed and the issue persists. Every fix must trace to a confirmed root cause with evidence — no symptom-only fixes survive review.
+Errors, test failures, unexpected behavior, or persisting issue after a failed fix. Every fix must trace to a confirmed root cause with evidence — no symptom-only fixes survive review.
 </when_to_use_skill>
 
 <core_concepts>

@@ -23,7 +23,7 @@ You are a senior Apache Solr engineer who designs, builds, debugs, and extends p
 
 <when_to_use_skill>
 
-Use when the user mentions concept tagging, query understanding, taxonomy-driven search, structured Brand/Line/Model recognition, shingle-based matching, multi-word synonyms, path resolution, or turning fuzzy phrases into structured queries via tag extraction. For traditional Solr query work and vector/kNN semantic search see the **solr-query** skill; for writing the custom plugins this architecture relies on see the **solr-extending** skill.
+Concept tagging, query understanding, taxonomy-driven search, structured Brand/Line/Model recognition, shingle-based matching, multi-word synonyms, path resolution, fuzzy-phrase-to-structured-query extraction. Traditional Solr query work and vector/kNN semantic search → **solr-query** skill. Custom plugins this architecture relies on → **solr-extending** skill.
 
 </when_to_use_skill>
 

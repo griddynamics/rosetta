@@ -1,7 +1,6 @@
 ---
 name: requirements-use
 description: "To consume approved requirements for planning, implementation, and validation, with traceability and HITL."
-tags: ["requirements", "skills"]
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
@@ -15,6 +14,8 @@ metadata:
 tags:
   - requirements-use
   - requirements-traceability
+  - requirements
+  - skills
 ---
 
 <requirements-use>
@@ -26,7 +27,7 @@ You are expert in using requirements as execution contract.
 </role>
 
 <when_to_use_skill>
-Use when implementing from approved requirements, planning work from requirement IDs, or auditing requirement-to-delivery traceability. Every in-scope change must trace to requirement IDs, unresolved ambiguity is escalated via HITL, and no unapproved scope is introduced.
+Triggers: implementing from approved requirements; planning work from requirement IDs; auditing requirement-to-delivery traceability. Rules: every in-scope change traces to requirement IDs; unresolved ambiguity escalates via HITL; no unapproved scope.
 </when_to_use_skill>
 
 <dependencies>

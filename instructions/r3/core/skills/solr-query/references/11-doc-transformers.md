@@ -252,4 +252,4 @@ If the built-ins aren't enough, you can write your own. Common patterns:
 - **`[hierarchical]`** — extension of `[child]` for multi-level nested schemas with `_nest_path_`, supporting per-level limit and explicit type filtering.
 - **`[prefixFilter]`** — filter values of a multi-valued field by prefix list (e.g., return only `taxonomy_path_ss` values starting with `electronics/` or `tools/`).
 
-For implementing these, see `solr-extending` skill, reference `02-doc-transformer.md`.
+For implementing these, USE SKILL `solr-extending` to apply custom DocTransformer development.

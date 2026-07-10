@@ -22,7 +22,7 @@ You are a senior Apache Solr engineer who constructs correct queries and debugs 
 
 <when_to_use_skill>
 
-Use when constructing or debugging Solr queries: `q`/`fq`, parser selection, eDisMax, block join, JSON Facets, kNN/hybrid vectors, scoring, or `explain` output — or when a query returns wrong or no results. For analyzer chains, synonyms, and field types use the **solr-schema** skill; for custom SearchComponent/QueryParser/URP development use the **solr-extending** skill.
+Constructing/debugging Solr queries: `q`/`fq`, parser selection, eDisMax, block join, JSON Facets, kNN/hybrid vectors, scoring, `explain` output, or wrong/no results. Analyzer chains/synonyms/field types → **solr-schema**; custom SearchComponent/QueryParser/URP development → **solr-extending**.
 
 </when_to_use_skill>
 

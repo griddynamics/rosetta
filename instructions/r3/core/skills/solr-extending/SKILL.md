@@ -22,7 +22,7 @@ You are a senior Apache Solr engineer who builds production-grade custom plugins
 
 <when_to_use_skill>
 
-Use when developing custom Solr plugins: SearchComponent, DocTransformer/TransformerFactory, QParser/QParserPlugin, UpdateRequestProcessor (URP), ValueSourceParser/function queries, RequestHandlerBase subclasses, or plugin jar packaging and solrconfig.xml wiring. For query construction (eDisMax, block join, JSON Facets) or relevancy tuning (BM25, boosts) USE SKILL `solr-query`; for custom analyzers/tokenizers/filters USE SKILL `solr-schema`.
+Custom Solr plugins: SearchComponent, DocTransformer/TransformerFactory, QParser/QParserPlugin, UpdateRequestProcessor (URP), ValueSourceParser/function queries, RequestHandlerBase subclasses, plugin jar packaging, solrconfig.xml wiring. Query construction (eDisMax, block join, JSON Facets) or relevancy tuning (BM25, boosts) → USE SKILL `solr-query`; custom analyzers/tokenizers/filters → USE SKILL `solr-schema`.
 
 </when_to_use_skill>
 

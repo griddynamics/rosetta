@@ -206,6 +206,28 @@ Command aliases are written once, mode-agnostically, in every skill/workflow. Ex
 
 Call sites never branch on mode. The alias vocabulary is a **closed contract**: every alias used anywhere must work in all three modes — natively in plugin mode, via the mapping in MCP/local mode files — or it breaks in that mode. Defining and policing that finite set is part of this work.
 
+## Skill README.md layer — ✅ done [decided]
+
+Every r3 skill folder (34/34) carries `README.md` — maintainer doc, plain markdown, NO XML, never loaded at runtime; answers WHY/WHEN/HOW/value-over-model-judgment + mental hooks + invariants (external contracts, locked wording) + editing guide, written from "if I execute this skill, what hooks me, what is unexpected?". Standard lives in `coding-agents-prompt-authoring/references/pa-schemas.md` `<skill_authoring>`; SKILL.md core_concepts requires creating/updating it when authoring skills. `<when_to_use_skill>` compressed in 14 SKILL.md files (zero semantic loss; cross-skill routing sentences + thresholds kept; `testing` left as-is — already dense). QA'd: no raw XML, no task leakage, no emojis, ≤80 lines, tests pass.
+
+**Findings from the README pass — rulings applied:**
+- ✅ [decided] `load-project-context` hitl `<prerequisites>` = intended enforcement (guarantees hitl even when the skill is invoked alone) — documented in its README.
+- ✅ solr cross-skill FILENAME pins fixed → intent form (6 sites: solr-extending refs ×4, solr-query `11-doc-transformers.md`, solr-semantic-search `06-query-building.md`). [decided] plain skill-NAME prose mentions are accepted; only sibling file paths are forbidden — documented in the solr READMEs.
+- ✅ duplicate top-level `tags:` keys merged (requirements-authoring, requirements-use) · `baseSchema` added (planning, reasoning, questioning) · `risk-assessment` description now carries the canonical guardrail prefix.
+- ✅ [decided] multi-vendor CSV `model:` is intended — plugin generator selects per target agent; `agent:` with `context: default` kept as affinity metadata — documented in the READMEs.
+- ✅ orphan `planning/assets/pl-validation-rubric.md` deleted (archived verbatim) · phantom `USE FLOW requirements-use-flow` dropped from `rules/requirements-use-best-practices.md` (list renumbered).
+
+**Second ruling round — applied:**
+- ✅ 7D→8D (adhoc-flow, code-analysis-flow, planning scaling table).
+- ✅ [decided] `hitl` description rewritten: canonical guardrail form, prep refs removed (no value), compressed but triggerable+actionable; KEPT verbatim: opt-out exception (`fully autonomous`/`No HITL`) + auto-mode/full-access override ("ONLY auto-approve tool permission prompts — HITL stays"). `self-organization` description → guardrail form, all numeric thresholds kept. Budget exception for guardrail descriptions recorded in hitl README.
+- ✅ [decided] requirement-unit master = `requirements-authoring/SKILL.md` inline XML. `ra-requirement-unit.xml` aligned (implementation enum + separate implementationNotes). `docs/requirements/rosetta-cli/*` records mechanically conformed (ticketId attr, classification, approved_by empty = Draft, changed dates derived from CHANGES.md batches). NOT retrofitted: per-record `implementation` status (needs validation against `src/rosetta-cli`, not authoring) and ID scheme (plain `FR-00NN` kept: `FR-CLI-` would collide with plugin-generator's set; cross-product NFR ids already collide — folder-namespacing is the de-facto convention; rename = user decision).
+- ✅ `pa-patterns.md` stale ref → `USE SKILL \`questioning\``. [decided] `rules/coding-iac-best-practices.md` overlap: ignore.
+- ✅ [decided] `model:` frontmatter ids intentionally DIFFER per target tool; plugin generator maps them — coding-agents-farm README corrected (was flagged as typo/inconsistency).
+- ✅ [decided] `coding/SKILL.md` inline `sensitive-data` section is intentional (additive layering) — documented in its README.
+- ✅ Rosetta-as-actor check: one README (specflow-use) anthropomorphized "Rosetta" as the acting client — fixed to "the agent" (Rosetta = the MD files); all other READMEs clean.
+
+**Still open (decide):** `planning` `plans/` persistence vs `rosetta` planning-mode never-`plans/` override — accepted as intended (mode-specific exception) unless overruled · rosetta-cli requirement-ID scheme migration (see above).
+
 ## Queued checks & small inconsistencies (document ALL of them, however small)
 
 - **Prep-steps canonicalization check** — prep = exactly the **3 canonical actions** (`get_context_instructions` → SKILL `load-project-context` → SKILL `hitl`), bound per mode file (plugin binds 2 — its step 1 is a no-op, rules already loaded). Every reference must say **`Rosetta Prep Steps`** — no step numbering, no variants. Known offenders:

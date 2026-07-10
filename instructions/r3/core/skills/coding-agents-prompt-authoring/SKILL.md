@@ -29,10 +29,8 @@ You are a senior prompt engineer and an expert in meta prompting and meta proces
 
 <when_to_use_skill>
 
-Problem this skill solves:
-Authoring, refactoring, reviewing, editing, improving prompts to be reliable, small, clear, specific, with Human-in-the-Loop and actively addressing assumptions, hallucinations, and "AI slop" in general.
-Prompts include skills, agents, subagents, workflows, rules, templates, commands, or just any generic prompt.
-Use also when porting prompts between agents/IDEs, or migrating rules between formats.
+Author/refactor/review/edit/improve any prompt (skill, agent/subagent, workflow, rule, template, command, generic) for reliability, brevity, clarity, specificity, HITL, and anti-assumption/anti-hallucination/anti-AI-slop.
+Also for porting prompts between agents/IDEs, or migrating rules between formats.
 
 </when_to_use_skill>
 
@@ -48,6 +46,7 @@ Use also when porting prompts between agents/IDEs, or migrating rules between fo
 - For small prompts, keep analytical artifacts in memory and return them in the message
 - Do not project analytical artifacts into generated target prompts.
 - Intentional: checklist/best-practices/pitfalls are maintained in `references/*` to keep this file small
+- Every skill folder contains `README.md` (maintainer doc; spec: READ SKILL FILE `references/pa-schemas.md`) — create/update it whenever authoring or changing a skill
 - Prompt adaptation and porting MUST APPLY SKILL FILE `references/pa-adapt.md`
 
 Prompt classification:
