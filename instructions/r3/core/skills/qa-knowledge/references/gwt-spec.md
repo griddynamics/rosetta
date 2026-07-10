@@ -39,6 +39,14 @@ For each test case, generate 1-N scenarios across these categories (priority def
 
 ---
 
+## Process (authoring a GWT spec)
+
+1. **Validate inputs** -- raw test cases + endpoint contracts + resolved clarifications. Contracts missing/empty → stop (never fabricate request/response shapes). A case targeting an endpoint absent from the loaded contracts → flag `unmappable: <id>` and record it in `## Excluded Test Cases`; never invent the endpoint.
+2. **Generate coverage** -- 1-N scenarios per case across the taxonomy above (priority defaults per bucket).
+3. **Author** -- one ATC entry per scenario using the ATC template; apply per-value honesty to every value.
+4. **Map + order** -- map scenarios to test files, identify shared utilities, order auth → CRUD happy → negative → edge.
+5. **Coverage check** -- every input case is an ATC entry OR listed in `## Excluded Test Cases`; no silent drop.
+
 ## Decision rules -- apply while filling the ATC template
 
 - **Partial endpoint contract** (some fields known, some absent): author the mappable parts; mark each unknown value `[ASSUMED: …]` (per-value honesty rule); if a *core* field stays unresolved, flag the case in `## Excluded Test Cases`.

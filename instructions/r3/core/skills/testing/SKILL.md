@@ -88,70 +88,37 @@ Infrastructure:
 
 <code_analysis>
 
-Mode: recover **test-automation architecture** (map an existing test project to inform new tests) or **extract API contracts** (from a spec or backend routes) so scenario design and implementation have a grounded target. **MUST USE SKILL `reverse-engineering`** for the code→intent method (WHAT/WHY, not HOW) -- this skill only steers it toward the QA target, it never reads code its own ad-hoc way. ACQUIRE `analysis-modes.md` FROM KB for the per-mode procedure, required inputs, and emit-template pointers (the concrete templates are the qa-knowledge assets it names -- `api-analysis-template.md` for endpoint contracts, `code-analysis-report-template.md` for test-architecture).
+Recover **test-automation architecture** or **extract API contracts** to ground design + implementation. **MUST USE SKILL `reverse-engineering`** for the code→intent method. ACQUIRE `analysis-modes.md` FROM KB (per-mode procedure, inputs, and emit-template pointers).
 
 </code_analysis>
 
 <synthesis>
 
-Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user answers, gap/contradiction analysis) into ONE structured requirements document (user stories, FRs, NFRs, constraints, dependencies, assumptions, risks, traceability) for the tests to target. Emit into the provided skeleton (section contract + output path given).
-
-**Safety:** the draft is PUBLIC (version-tracked, downstream-fed) -- redact before quoting (→ `sensitive-data`); never infer redacted content.
-
-ACQUIRE `synthesis-catalogs.md` FROM KB -- the synthesis rules (provenance, source-priority ladder, NFR threshold, single-source flag, no-copy-paste), the six per-requirement output schemas, and the document wrapper; load the active schema per step.
+Synthesize collected multi-source data into ONE structured requirements document, emitted into the provided skeleton. **Redact before quoting** (→ `sensitive-data`); never infer redacted content. ACQUIRE `synthesis-catalogs.md` FROM KB (rules, per-requirement output schemas, document wrapper; load the active schema per step).
 
 </synthesis>
 
 <gap_analysis>
 
-Analysis-only mode: scan collected multi-source data (Jira, Confluence, TestRail, API spec, test cases, test plan) for contradictions, gaps, ambiguities, and inconsistencies before design, emitting categorized findings into the provided artifact (never invent its shape or path).
-
-**Hard boundary (analysis-only):** do NOT act on findings, propose edits, fix gaps, ask the user, or generate questions -- surface each as a finding and STOP; redact before quoting (→ `sensitive-data`).
-
-ACQUIRE `gap-analysis-catalogs.md` FROM KB -- variants, the load→classify→cross-reference→redact→emit process, the detection probes, the three-tier risk scheme, and the per-finding discipline. ACQUIRE `gap-finding-templates.md` FROM KB for the G/C/A finding-entry format to emit into (never invent it).
+Analysis-only: scan collected multi-source data for contradictions / gaps / ambiguities before design, emitting categorized findings into the provided artifact. **Hard boundary: do NOT act on findings, edit, fix, ask, or generate questions -- surface each and STOP; redact before quoting** (→ `sensitive-data`). ACQUIRE `gap-analysis-catalogs.md` (method + probes + risk tiers) and `gap-finding-templates.md` (G/C/A entry format) FROM KB.
 
 </gap_analysis>
 
 <scenario_design>
 
-Mode: design test scenarios / specs / cases from requirements or API contracts -- happy/negative/boundary/auth coverage, exact values, traceability. Emit into the provided artifact (taxonomy, section list, path, coverage contract given). Per-value honesty + total coverage apply (→ `<core_concepts>`). This DESIGNS; `<implementation_modes>` turns the specs into runnable tests.
-
-- **gwt_spec** (Given-When-Then API specs from raw cases + endpoint contracts): validate inputs (contracts missing → stop, never fabricate shapes; case targeting an unloaded endpoint → flag `unmappable: <id>`, never invent it); generate 1-N scenarios per case across the taxonomy (Happy P0 / Negative P1 / Auth P1 / Resource P1-2 / Edge P2-3); one ATC entry per scenario; map scenarios to files + shared utilities + execution order; emit `## Excluded Test Cases`. ACQUIRE `gwt-spec.md` FROM KB for the taxonomy catalog + ATC template.
-- **generation** (cases into a given format, e.g. TMS Steps + Expected-Result): fill the given field schema; parameterize within the cap; every required field populated or `gap:`-marked; each input requirement → ≥1 case or a flagged gap.
-- **vendor format/export** (TMS destination, e.g. TestRail): the vendor is resolved from project config upstream and provided as a binding -- never hardcode it or read config here. ACQUIRE `<vendor>-format.md` (case template / field rules) or `<vendor>-export.md` (connection verify, field mappings, MCP signatures, destructive-write confirmation gate, post-export IDs) FROM KB. Shipped: `testrail-format.md`, `testrail-export.md`; forking another TMS → `vendor-fork-guide.md`. Empty binding + active scope → `SKIPPED_NO_CONFIG`.
+Design test scenarios / specs / cases from requirements or contracts (**not runnable** -- runnable tests are `<implementation_modes>`). Per-value honesty + total coverage (→ `<core_concepts>`). ACQUIRE per target FROM KB: Given-When-Then API specs → `gwt-spec.md`; TMS-format cases → `testrail-format.md`; TMS export → `testrail-export.md` (fork a TMS → `vendor-fork-guide.md`). The TMS vendor is resolved from config upstream and provided -- never hardcode it; empty binding + active scope → `SKIPPED_NO_CONFIG`.
 
 </scenario_design>
 
 <implementation_modes>
 
-A general unit/integration default plus three QA-flow sub-modes -- UI tests, API tests, selectors/page objects. This mode emits **runnable test code**; designing test cases / specs (incl. TMS cases) is `<scenario_design>`, not this mode. Inputs (paths, failure/assertion taxonomy, output target, write boundary, iteration cap) are provided; apply the technique to whatever is given. **For the QA-flow sub-modes, ACQUIRE `implementation-examples.md` FROM KB** -- verbose code, the 4-tier selector table, output templates ("the reference"); never resident. The general mode needs only `<core_concepts>`.
-
-General method: read inputs → match repo patterns (USE SKILL `coding` for conventions) → emit code/artifact → record every gap explicitly (no silent drops) → run `<validation_checklist>`.
-
-**General unit/integration mode (default)** -- a plain "write/update tests for `<code>`" request with no QA-flow artifacts: author unit/integration tests for the code under test per the quality bar + mocking policy (`<core_concepts>`); no test plan, ATC specs, page objects, or approvals required. Reach for a QA sub-mode below only when its specific inputs (test plan / approved specs / page sources) are actually provided.
-
-**UI impl mode** (page objects + assertions from a test plan):
-1. Consolidate the plan: steps, explicit assertions, file-location decision, similar-test patterns, page-object methods, user instructions.
-2. Author using page-object methods only (no raw selectors), proper waits, project assertion style -- shape in the reference.
-3. Record every unimplementable plan assertion in `### Uncovered Assertions` with the reason -- no silent drop.
-4. Write ONLY test files + hand-off record. Missing selector/method → surface it for selector implementation, never author inline.
-
-**API impl mode** (approved API specs → executable tests + shared utils):
-1. Requires approved-specs + recorded approval + API-contract + existing patterns (all provided). Missing/unapproved → stop and report.
-2. Implement shared utilities (auth helper, data factory, response validator) -- prefer EXTENDING existing over parallel; record extensions.
-3. Implement test files per the file mapping; every test name/docstring carries its ATC-NNN id. Rules + examples in the reference.
-4. Record assumptions as `[ASSUMED: <field>=<value>]` (code + hand-off); surface unimplementable ATCs as Gaps -- no silent drop.
-
-**Selector mode** (Part A identify, Part B implement -- two separate steps, never conflated):
-- **Part A (read-only identify):** map each step to UI interactions → check page objects (✅ EXISTS / ❌ MISSING / ❌ UNRESOLVABLE) → search frontend source (`data-testid` first) → analyze supplied page-source HTML for missing selectors via the 4-tier strategy. No source → stop, report; never fabricate from naming guesses. 4-tier table + fragile-pattern list in the reference.
-- **Part B (write page objects only):** extend/create page objects matching project patterns; mechanics in the reference. Fragile-selector gate: never silently commit a Part-A-flagged fragile selector -- replace with a stable one or get approval.
-- Output: the `## Selector Management` record (template in the reference). Part A writes Interaction Map / Availability / Identified Selectors / Fragile Flagged; Part B adds Implementation.
+Emit **runnable test code** (designing cases/specs is `<scenario_design>`, not here). **General unit/integration mode (default):** a plain "write/update tests for `<code>`" request -- author unit/integration tests for the code under test per the quality bar + mocking policy (`<core_concepts>`); no test plan, ATC specs, page objects, or approvals required. **QA-flow sub-modes** -- UI (page objects from a test plan), API (approved specs → executable tests; missing approval → stop and report), selector (Part A identify → Part B implement page objects) -- used only when their inputs (test plan / approved specs / page sources) are provided: ACQUIRE `implementation-examples.md` FROM KB (method, multi-language code, 4-tier selector table, output templates).
 
 </implementation_modes>
 
 <test_execution_triage>
 
-Read-only mode: categorize each failure in an automated-test execution report and record findings (no fixes). ACQUIRE `test-execution-triage.md` FROM KB -- the categorize → source-analysis → cross-pattern → evidence-label procedure and worked examples; assign one category per failure from the flow's failure taxonomy (qa-knowledge `api-qa-failure-taxonomy` / `ui-qa-failure-taxonomy`). For fixing a confirmed root cause, hand off to SKILL `debugging`.
+Read-only: categorize each failure in an execution report and record findings -- **no fixes** (fixing a confirmed root cause hands off to SKILL `debugging`). ACQUIRE `test-execution-triage.md` FROM KB (procedure + evidence labels); assign one category per failure from the flow's failure taxonomy (`api-qa-failure-taxonomy.md` / `ui-qa-failure-taxonomy.md`).
 
 </test_execution_triage>
 
