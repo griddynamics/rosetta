@@ -193,3 +193,9 @@ Cap at 5 parameter sets per case. If more, split into multiple cases (TC-A, TC-B
 - **Parameterization** -- Test Data table present ⇒ Preconditions states execution count and references Test Data; set count ≤ 5 (else split).
 - **Gap markers** -- every traceability + required field is real OR carries a gap marker; no fabrication.
 - **Redaction re-scan** -- per `sensitive-data`: scan Steps + Expected Results + Test Data + Preconditions for `Bearer `, real-looking passwords, emails not on `example.com`/`example.org`, phone numbers outside `+1-555-0100`–`+1-555-0199`, card-number shapes, and `user:pass@` credentialed URLs.
+
+---
+
+## Swapping to another TMS vendor
+
+The case template, rules, naming, gap-marker discipline, and validation greps above are vendor-agnostic. The only TestRail-specific binding is the **Steps + Expected Results field mapping** (`custom_steps_separated` / `custom_expected`, per Format rules). To target another TMS (Zephyr / Xray / qTest / Polarion): ACQUIRE `qa-knowledge/references/vendor-fork-guide.md` FROM KB, copy this file to `qa-knowledge/references/<vendor>-format.md`, and rebind that field mapping per the guide's Rebind table (`Step / precond fields` row) -- keeping the template shape, gap-marker discipline, and redaction greps verbatim.

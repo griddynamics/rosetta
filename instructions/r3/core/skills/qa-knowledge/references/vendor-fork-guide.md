@@ -1,6 +1,6 @@
-# TMS EXPORT binding -- vendor fork guide
+# TMS binding -- vendor fork guide (format + export)
 
-Loaded ONLY when forking an existing EXPORT binding to another TMS (Zephyr / Xray / qTest / Polarion). Copy the canonical binding (ACQUIRE `qa-knowledge/references/testrail-export.md` FROM KB) to `qa-knowledge/references/<vendor>-export.md` and rebind only the vendor-specific items below; keep the process shape, destructive-write confirmation gate, and redaction discipline verbatim. Gather these first:
+Loaded when forking a TMS binding -- **FORMAT** and/or **EXPORT** -- to another vendor (Zephyr / Xray / qTest / Polarion). Copy the canonical binding (ACQUIRE `qa-knowledge/references/testrail-format.md` and/or `testrail-export.md` FROM KB) to `qa-knowledge/references/<vendor>-format.md` / `<vendor>-export.md` and rebind only the vendor-specific items below; keep the template + process shape, the destructive-write confirmation gate, and the redaction discipline verbatim. The FORMAT binding's sole vendor-specific item is the Steps/Expected field mapping (the `Step / precond fields` row below); the other rows are EXPORT-only. Gather these first:
 
 | Rebind item | TestRail value | Replace with |
 |---|---|---|

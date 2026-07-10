@@ -13,7 +13,7 @@ Synthesis method + output schemas (testing `<synthesis>` mode)
 
 ## Synthesis output schemas (`<synthesis>` mode)
 
-Six per-requirement schemas plus the document wrapper. Read only the active schema per step rather than holding all six in working memory.
+The per-section output schemas below (one per numbered document section) plus the document wrapper. Read only the active schema per step rather than holding all of them in working memory.
 
 ### user-stories
 
@@ -114,9 +114,25 @@ Threshold rule: every NFR MUST include a concrete numeric or categorical thresho
 | NFR-1 | User Answer Q5 | - | [placeholder for test phase] |
 ```
 
+### out-of-scope
+
+Bullet list of capabilities/behaviors **explicitly excluded** from this release, each with a one-line reason. Include only items a source or user decision actually excluded -- never pad; empty section stays empty.
+
+```markdown
+- [Excluded capability / behavior] -- excluded because [reason / deferred to <phase>]
+```
+
+### glossary
+
+Term → definition pairs for domain terms and acronyms used in the document. One entry per term; definition sourced from inputs, else `gap: term undefined in sources`.
+
+```markdown
+- **[Term / acronym]**: [definition]
+```
+
 ### Document wrapper (synthesis output)
 
-Front-matter (Document Control + Executive Summary) + 10 numbered sections in order. Validation greps target the numbered sections; front-matter is not numbered.
+Front-matter (Document Control + Executive Summary) + 10 numbered sections in order. The pre-emit validation greps (below) target the numbered sections; front-matter is not numbered.
 
 ```markdown
 # Requirements Document - [Title]
@@ -155,3 +171,12 @@ Front-matter (Document Control + Executive Summary) + 10 numbered sections in or
 ### Synthesis source-priority ladder
 
 When sources conflict, resolve in order: (1) **User answers** (highest -- explicit human decisions); (2) **Primary source** (Jira ticket, TestRail case); (3) **Supporting docs** (Confluence); (4) **Analysis insights** (from gap/contradiction analysis). If unresolved, document as an assumption with impact-if-wrong (and list under Risks with Probability: High when both sides are at the same priority tier).
+
+## Pre-emit validation greps (synthesis document)
+
+- **Section completeness** -- all ten numbered headers present (`## 1.` … `## 10.`) in order, plus front-matter (Document Control + Executive Summary). Empty sections stay present with an explicit `None.`
+- **Source provenance** -- every `### US-` / `FR-` / `NFR-` / `C-` / `D-` entry carries a non-blank `**Source**` line (absent Source = fabrication).
+- **NFR threshold** -- every `### NFR-` has a concrete numeric/categorical threshold in `**Measurement**`; any thresholdless NFR was moved to `assumptions-and-risks` and flagged.
+- **One behavior per req** -- no requirement statement joins two behaviors with ` AND `/`&` (split at synthesis).
+- **Traceability** -- every FR/NFR appears in the Traceability Matrix with a real Source; no invented IDs.
+- **Redaction re-scan** -- per `sensitive-data`: scan quoted source text for `Bearer `, real-looking passwords, emails off `example.com`/`example.org`, phones outside `+1-555-0100`–`+1-555-0199`, card-number shapes, and `user:pass@` credentialed URLs.

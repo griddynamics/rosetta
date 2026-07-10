@@ -2,7 +2,7 @@
 
 Heavier taxonomy + templates.
 
-## Scenario Taxonomy Catalog -- used by `Scenario taxonomy` step
+## Scenario Taxonomy Catalog -- used when designing scenario coverage
 
 For each test case, generate 1-N scenarios across these categories (priority defaults in parentheses):
 
@@ -33,7 +33,7 @@ For each test case, generate 1-N scenarios across these categories (priority def
 - Empty strings vs null vs missing
 - Large payloads (near limits)
 
-**Execution order** (emit in the SKILL `File mapping + shared utilities` step): auth tests → CRUD happy paths → validation/negative → edge cases. Auth first, boundaries last.
+**Execution order** (emit when mapping scenarios to files + utilities): auth tests → CRUD happy paths → validation/negative → edge cases. Auth first, boundaries last.
 
 **Scenario-count guardrail:** if total scenarios exceed ~50, do NOT auto-prune -- ask the calling phase whether to deprioritize P2/P3, split the spec across files, or accept the volume.
 
@@ -49,7 +49,7 @@ For each test case, generate 1-N scenarios across these categories (priority def
 
 ---
 
-## ATC Template (Given-When-Then) -- used by `Write specs` step
+## ATC Template (Given-When-Then) -- used when authoring ATC entries
 
 One entry per scenario, written into the phase's spec artifact.
 
@@ -117,7 +117,7 @@ One entry per scenario, written into the phase's spec artifact.
 
 ---
 
-## Shared Utilities Template -- used by `File mapping + shared utilities` step
+## Shared Utilities Template -- used when identifying shared utilities
 
 Written into the spec artifact's `## Shared Utilities Required` section.
 

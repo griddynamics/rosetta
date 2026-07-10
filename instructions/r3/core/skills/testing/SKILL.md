@@ -23,7 +23,7 @@ Use for any QA-engineering work: synthesizing collected sources into a requireme
 
 - **MUST USE SKILL `reverse-engineering`** for the `<code_analysis>` mode (test-automation architecture analysis, API-contract extraction) -- this skill drives it toward the QA target, never re-implements code reading.
 - USE SKILL `coding` for repo conventions; `debugging` for failing tests; `sensitive-data` for redaction (canonical authority).
-- ACQUIRE QA skeletons / taxonomies / catalogs from `qa-knowledge` and QA paths / identifiers / state from `qa-structure` at point of use -- never invent artifact shapes or paths.
+- ACQUIRE QA skeletons / taxonomies / catalogs from `qa-knowledge` and QA paths / identifiers / state from `qa-structure` at point of use -- never invent artifact shapes or paths. (`qa-knowledge` / `qa-structure` are passive **library skills** -- `disable-model-invocation`; the reference/asset paths this skill ACQUIREs are their published `<resources>` router entries -- a stable public contract, not private internals. This is the sanctioned library-skill consumption pattern.)
 
 </dependencies>
 
@@ -80,7 +80,7 @@ Infrastructure:
 - sources → one requirements doc → `synthesis`
 - find gaps/contradictions, no fixing → `gap_analysis`
 - design test cases/specs (incl. TMS/TestRail), **not runnable** → `scenario_design`
-- write **runnable** tests UI/API/selectors (`.spec`/`.test`) → `implementation_modes`
+- write/update **runnable tests** -- plain unit/integration (default), or UI / API / selector for QA flows (`.spec`/`.test`) → `implementation_modes`
 - categorize run-report failures, no fixing → `test_execution_triage`
 - no route matches cleanly (e.g. "assess coverage & suggest improvements") → state the closest-mode interpretation and confirm, or ask which deliverable is wanted, BEFORE proceeding -- never silently pick the nearest mode
 
@@ -88,7 +88,7 @@ Infrastructure:
 
 <code_analysis>
 
-Mode: recover **test-automation architecture** (map an existing test project to inform new tests) or **extract API contracts** (from a spec or backend routes) so scenario design and implementation have a grounded target. **MUST USE SKILL `reverse-engineering`** for the code→intent method (WHAT/WHY, not HOW) -- this skill only steers it toward the QA target, it never reads code its own ad-hoc way. ACQUIRE `qa-knowledge/references/analysis-modes.md` FROM KB for the per-mode procedure, required inputs, and emit templates.
+Mode: recover **test-automation architecture** (map an existing test project to inform new tests) or **extract API contracts** (from a spec or backend routes) so scenario design and implementation have a grounded target. **MUST USE SKILL `reverse-engineering`** for the code→intent method (WHAT/WHY, not HOW) -- this skill only steers it toward the QA target, it never reads code its own ad-hoc way. ACQUIRE `qa-knowledge/references/analysis-modes.md` FROM KB for the per-mode procedure, required inputs, and emit-template pointers (the concrete templates are the qa-knowledge assets it names -- `api-analysis-template.md` for endpoint contracts, `code-analysis-report-template.md` for test-architecture).
 
 </code_analysis>
 
@@ -124,9 +124,11 @@ Mode: design test scenarios / specs / cases from requirements or API contracts -
 
 <implementation_modes>
 
-Three test-implementation modes -- authoring UI tests, API tests, selectors/page objects. This mode emits **runnable test code**; designing test cases / specs (incl. TMS cases) is `<scenario_design>`, not this mode. Inputs (paths, failure/assertion taxonomy, output target, write boundary, iteration cap) are provided; apply the technique to whatever is given. **On entering a mode, ACQUIRE `qa-knowledge/references/implementation-examples.md` FROM KB** -- verbose code, the 4-tier selector table, output templates ("the reference"); never resident.
+A general unit/integration default plus three QA-flow sub-modes -- UI tests, API tests, selectors/page objects. This mode emits **runnable test code**; designing test cases / specs (incl. TMS cases) is `<scenario_design>`, not this mode. Inputs (paths, failure/assertion taxonomy, output target, write boundary, iteration cap) are provided; apply the technique to whatever is given. **For the QA-flow sub-modes, ACQUIRE `qa-knowledge/references/implementation-examples.md` FROM KB** -- verbose code, the 4-tier selector table, output templates ("the reference"); never resident. The general mode needs only `<core_concepts>`.
 
 General method: read inputs → match repo patterns (USE SKILL `coding` for conventions) → emit code/artifact → record every gap explicitly (no silent drops) → run `<validation_checklist>`.
+
+**General unit/integration mode (default)** -- a plain "write/update tests for `<code>`" request with no QA-flow artifacts: author unit/integration tests for the code under test per the quality bar + mocking policy (`<core_concepts>`); no test plan, ATC specs, page objects, or approvals required. Serves coding-flow's always-on Tests step and any direct unit-test request. Reach for a QA sub-mode below only when its specific inputs (test plan / approved specs / page sources) are actually provided.
 
 **UI impl mode** (page objects + assertions from a test plan):
 1. Consolidate the plan: steps, explicit assertions, file-location decision, similar-test patterns, page-object methods, user instructions.
@@ -170,6 +172,8 @@ Read-only mode: categorize each failure in an automated-test execution report an
 - Synthesis: every requirement carries a Source; conflicts resolved via the source-priority ladder or flagged as an assumption; thresholdless NFRs flagged
 - Gap analysis: each finding has a verbatim quote + citation + impact + exactly one risk tier; analysis-only (no fixes/questions); a clean analysis still emits the artifact
 - Scenario design: total coverage (every case/requirement → ≥1 ATC/case or an excluded/gap entry); per-value honesty holds; auth-protected endpoints have ≥1 auth-failure scenario; vendor export passed the destructive-write gate
+- Test-execution triage: every failure has exactly one taxonomy category and exactly one evidence label; `Unknown` states the missing capture; cross-failure Patterns present whenever ≥2 failures share a cause; read-only -- no fixes/edits
+- Code analysis: (API-contract) every target endpoint has an entry OR a flagged gap, each with source citations + a Notes/Discrepancies field (`None.` if reconciled clean); (test-arch) every optional input marked `available` / `not available -- <impact>`; read-only -- drives `reverse-engineering`, never reads code ad hoc
 
 </validation_checklist>
 
