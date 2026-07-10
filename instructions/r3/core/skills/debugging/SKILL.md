@@ -24,8 +24,6 @@ Use when encountering errors, test failures, unexpected behavior, or when a prev
 - All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
 - ALWAYS find root cause before attempting fixes; symptom fixes are failure
 - Make implicit become explicit — incorrect assumptions hide root causes
-- Evidence label per cause -- `Confirmed` (both sides cited) | `Assumption` (partial; state the missing evidence) | `Unknown` (none; state what is needed); the weaker label wins ties
-- Redaction of captured logs, requests, responses, or page sources → USE SKILL `sensitive-data`
 - Execute phases sequentially
 
 For each issue provide:
