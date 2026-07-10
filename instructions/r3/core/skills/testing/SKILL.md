@@ -108,7 +108,7 @@ Analysis-only mode: scan collected multi-source data (Jira, Confluence, TestRail
 
 **Hard boundary (analysis-only):** do NOT act on findings, propose edits, fix gaps, ask the user, or generate questions -- surface each as a finding and STOP; redact before quoting (→ `sensitive-data`).
 
-ACQUIRE `qa-knowledge/references/gap-analysis-catalogs.md` FROM KB -- variants, the load→classify→cross-reference→redact→emit process, the detection probes, the three-tier risk scheme, and the per-finding discipline.
+ACQUIRE `qa-knowledge/references/gap-analysis-catalogs.md` FROM KB -- variants, the load→classify→cross-reference→redact→emit process, the detection probes, the three-tier risk scheme, and the per-finding discipline. ACQUIRE `qa-knowledge/assets/gap-finding-templates.md` FROM KB for the G/C/A finding-entry format to emit into (never invent it).
 
 </gap_analysis>
 
