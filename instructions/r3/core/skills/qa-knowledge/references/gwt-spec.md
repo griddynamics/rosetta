@@ -58,7 +58,7 @@ One entry per scenario, written into the phase's spec artifact.
 
 **Source**: [Original test case reference — TC-1234 / PROJ-123 / Manual]
 **Priority**: P0 / P1 / P2 / P3
-**Type**: Happy Path / Negative / Auth / Edge Case / Error Handling
+**Type**: Happy Path / Negative / Auth / Resource / Edge Case
 **Endpoint**: [METHOD] [PATH]
 
 **Given**:

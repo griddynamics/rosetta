@@ -1,6 +1,6 @@
 ---
 name: testing
-description: "To engineer tests end-to-end — synthesize requirements, analyze gaps, design scenarios/specs/cases, implement thorough isolated tests (80%+ coverage), and triage failures."
+description: "To engineer tests end-to-end — requirements & gap analysis, scenario/spec design, implementation, and failure triage."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
@@ -23,7 +23,7 @@ Use for any QA-engineering work: synthesizing collected sources into a requireme
 
 - **MUST USE SKILL `reverse-engineering`** for the `<code_analysis>` mode (test-automation architecture analysis, API-contract extraction) -- this skill drives it toward the QA target, never re-implements code reading.
 - USE SKILL `coding` for repo conventions; `debugging` for failing tests; `sensitive-data` for redaction (canonical authority).
-- ACQUIRE QA skeletons / taxonomies / catalogs from `qa-knowledge` and QA paths / identifiers / state from `qa-structure` at point of use -- never invent artifact shapes or paths. (`qa-knowledge` / `qa-structure` are passive **library skills** -- `disable-model-invocation`; the reference/asset paths this skill ACQUIREs are their published `<resources>` router entries -- a stable public contract, not private internals. This is the sanctioned library-skill consumption pattern.)
+- ACQUIRE QA skeletons / taxonomies / catalogs from `qa-knowledge` and QA paths / identifiers / state from `qa-structure` at point of use -- never invent artifact shapes or paths.
 
 </dependencies>
 
@@ -88,7 +88,7 @@ Infrastructure:
 
 <code_analysis>
 
-Mode: recover **test-automation architecture** (map an existing test project to inform new tests) or **extract API contracts** (from a spec or backend routes) so scenario design and implementation have a grounded target. **MUST USE SKILL `reverse-engineering`** for the code→intent method (WHAT/WHY, not HOW) -- this skill only steers it toward the QA target, it never reads code its own ad-hoc way. ACQUIRE `qa-knowledge/references/analysis-modes.md` FROM KB for the per-mode procedure, required inputs, and emit-template pointers (the concrete templates are the qa-knowledge assets it names -- `api-analysis-template.md` for endpoint contracts, `code-analysis-report-template.md` for test-architecture).
+Mode: recover **test-automation architecture** (map an existing test project to inform new tests) or **extract API contracts** (from a spec or backend routes) so scenario design and implementation have a grounded target. **MUST USE SKILL `reverse-engineering`** for the code→intent method (WHAT/WHY, not HOW) -- this skill only steers it toward the QA target, it never reads code its own ad-hoc way. ACQUIRE `analysis-modes.md` FROM KB for the per-mode procedure, required inputs, and emit-template pointers (the concrete templates are the qa-knowledge assets it names -- `api-analysis-template.md` for endpoint contracts, `code-analysis-report-template.md` for test-architecture).
 
 </code_analysis>
 
@@ -98,7 +98,7 @@ Mode: synthesize collected multi-source data (Jira, Confluence, TestRail, user a
 
 **Safety:** the draft is PUBLIC (version-tracked, downstream-fed) -- redact before quoting (→ `sensitive-data`); never infer redacted content.
 
-ACQUIRE `qa-knowledge/references/synthesis-catalogs.md` FROM KB -- the synthesis rules (provenance, source-priority ladder, NFR threshold, single-source flag, no-copy-paste), the six per-requirement output schemas, and the document wrapper; load the active schema per step.
+ACQUIRE `synthesis-catalogs.md` FROM KB -- the synthesis rules (provenance, source-priority ladder, NFR threshold, single-source flag, no-copy-paste), the six per-requirement output schemas, and the document wrapper; load the active schema per step.
 
 </synthesis>
 
@@ -108,7 +108,7 @@ Analysis-only mode: scan collected multi-source data (Jira, Confluence, TestRail
 
 **Hard boundary (analysis-only):** do NOT act on findings, propose edits, fix gaps, ask the user, or generate questions -- surface each as a finding and STOP; redact before quoting (→ `sensitive-data`).
 
-ACQUIRE `qa-knowledge/references/gap-analysis-catalogs.md` FROM KB -- variants, the load→classify→cross-reference→redact→emit process, the detection probes, the three-tier risk scheme, and the per-finding discipline. ACQUIRE `qa-knowledge/assets/gap-finding-templates.md` FROM KB for the G/C/A finding-entry format to emit into (never invent it).
+ACQUIRE `gap-analysis-catalogs.md` FROM KB -- variants, the load→classify→cross-reference→redact→emit process, the detection probes, the three-tier risk scheme, and the per-finding discipline. ACQUIRE `gap-finding-templates.md` FROM KB for the G/C/A finding-entry format to emit into (never invent it).
 
 </gap_analysis>
 
@@ -116,19 +116,19 @@ ACQUIRE `qa-knowledge/references/gap-analysis-catalogs.md` FROM KB -- variants, 
 
 Mode: design test scenarios / specs / cases from requirements or API contracts -- happy/negative/boundary/auth coverage, exact values, traceability. Emit into the provided artifact (taxonomy, section list, path, coverage contract given). Per-value honesty + total coverage apply (→ `<core_concepts>`). This DESIGNS; `<implementation_modes>` turns the specs into runnable tests.
 
-- **gwt_spec** (Given-When-Then API specs from raw cases + endpoint contracts): validate inputs (contracts missing → stop, never fabricate shapes; case targeting an unloaded endpoint → flag `unmappable: <id>`, never invent it); generate 1-N scenarios per case across the taxonomy (Happy P0 / Negative P1 / Auth P1 / Resource P1-2 / Edge P2-3); one ATC entry per scenario; map scenarios to files + shared utilities + execution order; emit `## Excluded Test Cases`. ACQUIRE `qa-knowledge/references/gwt-spec.md` FROM KB for the taxonomy catalog + ATC template.
+- **gwt_spec** (Given-When-Then API specs from raw cases + endpoint contracts): validate inputs (contracts missing → stop, never fabricate shapes; case targeting an unloaded endpoint → flag `unmappable: <id>`, never invent it); generate 1-N scenarios per case across the taxonomy (Happy P0 / Negative P1 / Auth P1 / Resource P1-2 / Edge P2-3); one ATC entry per scenario; map scenarios to files + shared utilities + execution order; emit `## Excluded Test Cases`. ACQUIRE `gwt-spec.md` FROM KB for the taxonomy catalog + ATC template.
 - **generation** (cases into a given format, e.g. TMS Steps + Expected-Result): fill the given field schema; parameterize within the cap; every required field populated or `gap:`-marked; each input requirement → ≥1 case or a flagged gap.
-- **vendor format/export** (TMS destination, e.g. TestRail): the vendor is resolved from project config upstream and provided as a binding -- never hardcode it or read config here. ACQUIRE `qa-knowledge/references/<vendor>-format.md` (case template / field rules) or `qa-knowledge/references/<vendor>-export.md` (connection verify, field mappings, MCP signatures, destructive-write confirmation gate, post-export IDs) FROM KB. Shipped: `testrail-format.md`, `testrail-export.md`; forking another TMS → `vendor-fork-guide.md`. Empty binding + active scope → `SKIPPED_NO_CONFIG`.
+- **vendor format/export** (TMS destination, e.g. TestRail): the vendor is resolved from project config upstream and provided as a binding -- never hardcode it or read config here. ACQUIRE `<vendor>-format.md` (case template / field rules) or `<vendor>-export.md` (connection verify, field mappings, MCP signatures, destructive-write confirmation gate, post-export IDs) FROM KB. Shipped: `testrail-format.md`, `testrail-export.md`; forking another TMS → `vendor-fork-guide.md`. Empty binding + active scope → `SKIPPED_NO_CONFIG`.
 
 </scenario_design>
 
 <implementation_modes>
 
-A general unit/integration default plus three QA-flow sub-modes -- UI tests, API tests, selectors/page objects. This mode emits **runnable test code**; designing test cases / specs (incl. TMS cases) is `<scenario_design>`, not this mode. Inputs (paths, failure/assertion taxonomy, output target, write boundary, iteration cap) are provided; apply the technique to whatever is given. **For the QA-flow sub-modes, ACQUIRE `qa-knowledge/references/implementation-examples.md` FROM KB** -- verbose code, the 4-tier selector table, output templates ("the reference"); never resident. The general mode needs only `<core_concepts>`.
+A general unit/integration default plus three QA-flow sub-modes -- UI tests, API tests, selectors/page objects. This mode emits **runnable test code**; designing test cases / specs (incl. TMS cases) is `<scenario_design>`, not this mode. Inputs (paths, failure/assertion taxonomy, output target, write boundary, iteration cap) are provided; apply the technique to whatever is given. **For the QA-flow sub-modes, ACQUIRE `implementation-examples.md` FROM KB** -- verbose code, the 4-tier selector table, output templates ("the reference"); never resident. The general mode needs only `<core_concepts>`.
 
 General method: read inputs → match repo patterns (USE SKILL `coding` for conventions) → emit code/artifact → record every gap explicitly (no silent drops) → run `<validation_checklist>`.
 
-**General unit/integration mode (default)** -- a plain "write/update tests for `<code>`" request with no QA-flow artifacts: author unit/integration tests for the code under test per the quality bar + mocking policy (`<core_concepts>`); no test plan, ATC specs, page objects, or approvals required. Serves coding-flow's always-on Tests step and any direct unit-test request. Reach for a QA sub-mode below only when its specific inputs (test plan / approved specs / page sources) are actually provided.
+**General unit/integration mode (default)** -- a plain "write/update tests for `<code>`" request with no QA-flow artifacts: author unit/integration tests for the code under test per the quality bar + mocking policy (`<core_concepts>`); no test plan, ATC specs, page objects, or approvals required. Reach for a QA sub-mode below only when its specific inputs (test plan / approved specs / page sources) are actually provided.
 
 **UI impl mode** (page objects + assertions from a test plan):
 1. Consolidate the plan: steps, explicit assertions, file-location decision, similar-test patterns, page-object methods, user instructions.
@@ -151,7 +151,7 @@ General method: read inputs → match repo patterns (USE SKILL `coding` for conv
 
 <test_execution_triage>
 
-Read-only mode: categorize each failure in an automated-test execution report and record findings (no fixes). ACQUIRE `qa-knowledge/references/test-execution-triage.md` FROM KB -- the categorize → source-analysis → cross-pattern → evidence-label procedure and worked examples; assign one category per failure from the flow's failure taxonomy (qa-knowledge `api-qa-failure-taxonomy` / `ui-qa-failure-taxonomy`). For fixing a confirmed root cause, hand off to SKILL `debugging`.
+Read-only mode: categorize each failure in an automated-test execution report and record findings (no fixes). ACQUIRE `test-execution-triage.md` FROM KB -- the categorize → source-analysis → cross-pattern → evidence-label procedure and worked examples; assign one category per failure from the flow's failure taxonomy (qa-knowledge `api-qa-failure-taxonomy` / `ui-qa-failure-taxonomy`). For fixing a confirmed root cause, hand off to SKILL `debugging`.
 
 </test_execution_triage>
 
@@ -205,7 +205,7 @@ Read-only mode: categorize each failure in an automated-test execution report an
 - skill `debugging` — for test failures and unexpected behavior
 - skill `reverse-engineering` — the code→intent method behind `<code_analysis>`
 - skill `qa-knowledge` — QA taxonomies, artifact skeletons, and the mode catalogs below; `qa-structure` — QA paths / identifiers / state; `sensitive-data` — redaction
-- ACQUIRE FROM KB, lazy per mode, from `qa-knowledge/references/`: `implementation-examples.md`, `gwt-spec.md`, `testrail-format.md`, `testrail-export.md`, `vendor-fork-guide.md`, `gap-analysis-catalogs.md`, `synthesis-catalogs.md`, `analysis-modes.md`, `test-execution-triage.md`
+- ACQUIRE FROM KB, lazy per mode (files held by the `qa-knowledge` library): `implementation-examples.md`, `gwt-spec.md`, `testrail-format.md`, `testrail-export.md`, `vendor-fork-guide.md`, `gap-analysis-catalogs.md`, `synthesis-catalogs.md`, `analysis-modes.md`, `test-execution-triage.md`
 
 </resources>
 

@@ -19,7 +19,7 @@ Skeleton for `plans/api-qa-{IDENTIFIER}/test-specs.md`. The phase owns the secti
 
 - **Total Test Scenarios**: [Count]
 - **Priority Breakdown**: P0: [N], P1: [N], P2: [N], P3: [N]
-- **Type Breakdown**: Happy Path: [N], Negative: [N], Auth: [N], Edge Case: [N]
+- **Type Breakdown**: Happy Path: [N], Negative: [N], Auth: [N], Resource: [N], Edge Case: [N]
 - **Endpoints Covered**: [Count]
 - **Test Files Planned**: [Count]
 
