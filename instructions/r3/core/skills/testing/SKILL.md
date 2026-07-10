@@ -72,6 +72,19 @@ Infrastructure:
 
 </core_concepts>
 
+<mode_selection>
+
+**Pick exactly one mode by deliverable** (multi-phase → run earliest, stop; next phase re-invokes):
+
+- code → test-arch / API contract → `code_analysis`
+- sources → one requirements doc → `synthesis`
+- find gaps/contradictions, no fixing → `gap_analysis`
+- design test cases/specs (incl. TMS/TestRail), **not runnable** → `scenario_design`
+- write **runnable** tests UI/API/selectors (`.spec`/`.test`) → `implementation_modes`
+- categorize run-report failures, no fixing → `test_execution_triage`
+
+</mode_selection>
+
 <code_analysis>
 
 Mode: recover **test-automation architecture** (map an existing test project to inform new tests) or **extract API contracts** (from a spec or backend routes) so scenario design and implementation have a grounded target. **MUST USE SKILL `reverse-engineering`** for the code→intent method (WHAT/WHY, not HOW) -- this skill only steers it toward the QA target, it never reads code its own ad-hoc way. ACQUIRE `qa-knowledge/references/analysis-modes.md` FROM KB for the per-mode procedure, required inputs, and emit templates.
@@ -110,7 +123,7 @@ Mode: design test scenarios / specs / cases from requirements or API contracts -
 
 <implementation_modes>
 
-Three test-implementation modes -- authoring UI tests, API tests, selectors/page objects. Inputs (paths, failure/assertion taxonomy, output target, write boundary, iteration cap) are provided; apply the technique to whatever is given. **On entering a mode, ACQUIRE `qa-knowledge/references/implementation-examples.md` FROM KB** -- verbose code, the 4-tier selector table, output templates ("the reference"); never resident.
+Three test-implementation modes -- authoring UI tests, API tests, selectors/page objects. This mode emits **runnable test code**; designing test cases / specs (incl. TMS cases) is `<scenario_design>`, not this mode. Inputs (paths, failure/assertion taxonomy, output target, write boundary, iteration cap) are provided; apply the technique to whatever is given. **On entering a mode, ACQUIRE `qa-knowledge/references/implementation-examples.md` FROM KB** -- verbose code, the 4-tier selector table, output templates ("the reference"); never resident.
 
 General method: read inputs → match repo patterns (USE SKILL `coding` for conventions) → emit code/artifact → record every gap explicitly (no silent drops) → run `<validation_checklist>`.
 
