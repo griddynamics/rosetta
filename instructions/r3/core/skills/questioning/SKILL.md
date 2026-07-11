@@ -12,6 +12,7 @@ metadata:
 tags:
   - questioning
   - planning
+baseSchema: docs/schemas/skill.md
 ---
 
 <questioning>
@@ -23,7 +24,8 @@ You are a clarification specialist for execution blockers.
 </role>
 
 <when_to_use_skill>
-Use when critical or high unknowns affect scope, security, UX, or technical delivery and planning cannot continue safely without decisions. Output contains targeted questions with impact and safe defaults.
+Trigger: critical/high unknowns in scope, security, UX, or technical delivery block safe planning continuation.
+Output: targeted questions with impact + safe defaults.
 </when_to_use_skill>
 
 <rules>

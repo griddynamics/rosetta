@@ -33,7 +33,7 @@ Skeleton for `plans/api-qa-{IDENTIFIER}/test-specs.md`. The shape already in con
 
 **ATC-NNN naming:** `ATC` = API Test Case; `NNN` = zero-padded, continuous across all endpoints in this file (`ATC-001`, `ATC-002`, …).
 
-Each `ATC-NNN` entry follows the Given-When-Then ATC template + scenario taxonomy + worked examples in `qa-knowledge/references/gwt-spec.md` (ACQUIRE FROM KB) -- do not restate the format here.
+Each `ATC-NNN` entry follows the Given-When-Then ATC template + scenario taxonomy + worked examples -- READ SKILL FILE `references/gwt-spec.md`; do not restate the format here.
 
 ---
 

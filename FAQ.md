@@ -129,11 +129,11 @@ See [OVERVIEW.md](OVERVIEW.md) for the full picture.
 
 **Where do I put project-specific overrides?**
 
-In `gain.json` at the repo root. It defines SDLC setup and locations of Rosetta files and wins in any conflict with default Rosetta conventions. See [bootstrap-rosetta-files](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap-rosetta-files.md?plain=1) for the canonical file list.
+In `gain.json` at the repo root. It defines SDLC setup and locations of Rosetta files and wins in any conflict with default Rosetta conventions. See the [load-project-context skill](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/load-project-context/SKILL.md?plain=1) (`<bootstrap_rosetta_files>`) for the canonical file list.
 
 **What files does Rosetta create in my repo?**
 
-The headline ones are `docs/CONTEXT.md` and `docs/ARCHITECTURE.md`. The full set (including `TODO.md`, `ASSUMPTIONS.md`, `TECHSTACK.md`, `DEPENDENCIES.md`, `CODEMAP.md`, `IMPLEMENTATION.md`, `MEMORY.md`, and the `plans/` and `refsrc/` directories) is documented in the `bootstrap-rosetta-files` rule. <!-- TODO: link to a user-friendly explainer once one exists -->
+The headline ones are `docs/CONTEXT.md` and `docs/ARCHITECTURE.md`. The full set (including `TODO.md`, `ASSUMPTIONS.md`, `TECHSTACK.md`, `DEPENDENCIES.md`, `CODEMAP.md`, `IMPLEMENTATION.md`, `MEMORY.md`, and the `plans/` and `refsrc/` directories) is documented in the `load-project-context` skill (`<bootstrap_rosetta_files>` section). <!-- TODO: link to a user-friendly explainer once one exists -->
 
 ---
 

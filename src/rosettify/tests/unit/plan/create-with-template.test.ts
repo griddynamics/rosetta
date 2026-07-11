@@ -175,8 +175,8 @@ describe("cmdCreateWithTemplate — FR-PLAN-0030 empty string values", () => {
 // ---------------------------------------------------------------------------
 
 describe("cmdCreateWithTemplate — FR-PLAN-0043 phase-steps injection", () => {
-  // FR-PLAN-0043 — phase-steps array of 2 valid steps → ph-prep has 5 seeded + 2 injected
-  it("appends 2 injected steps after 5 seeded steps in ph-prep phase", async () => {
+  // FR-PLAN-0043 — phase-steps array of 2 valid steps → ph-prep has 3 seeded + 2 injected
+  it("appends 2 injected steps after 3 seeded steps in ph-prep phase", async () => {
     const file = planFile();
     const injectedSteps = [
       { id: "ph-prep-s-custom-one", name: "Custom Step One", prompt: "Do custom one" },
@@ -194,11 +194,11 @@ describe("cmdCreateWithTemplate — FR-PLAN-0043 phase-steps injection", () => {
     const plan = loadPlan(file)!;
     const prepPhase = plan.phases.find((p) => p.id === "ph-prep")!;
     expect(prepPhase).toBeDefined();
-    // 5 seeded + 2 injected = 7 total
-    expect(prepPhase.steps.length).toBe(7);
-    // Seeded steps come first (5 of them)
-    const seededCount = 5;
-    // Injected steps at positions 5 and 6
+    // 3 seeded + 2 injected = 5 total
+    expect(prepPhase.steps.length).toBe(5);
+    // Seeded steps come first (3 of them)
+    const seededCount = 3;
+    // Injected steps at positions 3 and 4
     const injected0 = prepPhase.steps[seededCount] as { id: string; name: string };
     const injected1 = prepPhase.steps[seededCount + 1] as { id: string; name: string };
     expect(injected0.id).toBe("ph-prep-s-custom-one");
@@ -207,8 +207,8 @@ describe("cmdCreateWithTemplate — FR-PLAN-0043 phase-steps injection", () => {
     expect(injected1.name).toBe("Custom Step Two");
   });
 
-  // FR-PLAN-0043 — phase-steps = "[]" → ph-prep has exactly 5 seeded steps
-  it("empty phase-steps array leaves ph-prep with exactly 5 seeded steps", async () => {
+  // FR-PLAN-0043 — phase-steps = "[]" → ph-prep has exactly 3 seeded steps
+  it("empty phase-steps array leaves ph-prep with exactly 3 seeded steps", async () => {
     const file = planFile();
     const result = await cmdCreateWithTemplate(
       file,
@@ -222,7 +222,7 @@ describe("cmdCreateWithTemplate — FR-PLAN-0043 phase-steps injection", () => {
     const plan = loadPlan(file)!;
     const prepPhase = plan.phases.find((p) => p.id === "ph-prep")!;
     expect(prepPhase).toBeDefined();
-    expect(prepPhase.steps.length).toBe(5);
+    expect(prepPhase.steps.length).toBe(3);
   });
 
   // FR-PLAN-0043 — backward compatibility: omitting phase-steps is treated as [] (not an error)
@@ -240,7 +240,7 @@ describe("cmdCreateWithTemplate — FR-PLAN-0043 phase-steps injection", () => {
     expect(result.ok).toBe(true);
     const plan = loadPlan(file)!;
     const prep = plan.phases.find((p) => p.id === "ph-prep")!;
-    expect(prep.steps).toHaveLength(5);
+    expect(prep.steps).toHaveLength(3);
   });
 
   // FR-PLAN-0043 — phase-steps = "not json" → invalid_phase_steps

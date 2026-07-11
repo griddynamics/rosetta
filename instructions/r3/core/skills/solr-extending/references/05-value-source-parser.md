@@ -2,7 +2,7 @@
 
 A `ValueSourceParser` lets you add new functions usable in `bf=`, `boost=`, `sort=`, `{!func}`, `{!frange}` — anywhere Solr accepts function syntax. Use for: domain-specific scoring math that's not expressible with built-in functions.
 
-For built-in functions and how to use them, see solr-query skill, reference `09-function-spatial.md`. This file is about **adding your own**.
+For built-in functions and how to use them, USE SKILL `solr-query` to apply function queries and spatial. This file is about **adding your own**.
 
 ## When justified
 

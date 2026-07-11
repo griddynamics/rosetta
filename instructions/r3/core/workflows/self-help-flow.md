@@ -78,8 +78,8 @@ Direct skill and subagent invocation is ONLY appropriate for targeted, self-cont
 
 <prerequisites phase="0", applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
-2. MUST USE OPERATION_MANAGER for deterministic execution
+1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-project-context` loaded and fully executed.
+2. MUST use todo tasks for reliability
 3. Phases are sequential. Orchestrator coordinates; trust skills and subagents to execute.
 4. Scale: conversational — output is a message, no files, no state tracking.
 
@@ -88,9 +88,9 @@ Direct skill and subagent invocation is ONLY appropriate for targeted, self-cont
 <list_capabilities phase="1" subagent="discoverer" role="KB catalog lister">
 
 1. List capabilities from KB with XML format:
-   - `LIST workflows IN KB`
-   - `LIST skills IN KB`, then `LIST skills/<name> IN KB` for each.
-   - `LIST agents IN KB`
+   - `LIST workflows`
+   - `LIST skills`, then `LIST skills/<name>` for each.
+   - `LIST agents`
 2. Build `Capability Catalog`: name, type (workflow/skill/agent), description — from frontmatter only.
 3. Input: user request. Output: `Capability Catalog`.
 4. Recommended skills: any currently useful.
@@ -100,7 +100,7 @@ Direct skill and subagent invocation is ONLY appropriate for targeted, self-cont
 <match_and_acquire phase="2" subagent="discoverer" role="Capability matcher">
 
 1. Match user request against `Capability Catalog`.
-2. For each match, `ACQUIRE <selected TAG> FROM KB` (e.g., `ACQUIRE workflows/coding-flow.md FROM KB`, `ACQUIRE skills/coding/SKILL.md FROM KB`, `ACQUIRE agents/engineer.md FROM KB`).
+2. For each match, load it: `READ FLOW <name>.md` / `READ SKILL <name>` / `READ SUBAGENT <name>` per its type (e.g., `READ FLOW coding-flow.md`).
 3. Extract: purpose, when to use, what to expect, inputs/outputs, HITL gates.
 4. Input: user request + `Capability Catalog`. Output: `Matched Capabilities`.
 5. Recommended skills: any currently useful.
@@ -124,23 +124,12 @@ Direct skill and subagent invocation is ONLY appropriate for targeted, self-cont
 <handoff phase="4" optional="true" type="orchestrator">
 
 1. Triggered when user shifts from help to action (e.g., "run that workflow", "let's do coding").
-2. `ACQUIRE <selected TAG> FROM KB` for target workflow if not already acquired.
+2. `READ FLOW <selected workflow>.md` if not already loaded.
 3. Adopt acquired workflow as active flow; start from its phase 1.
 4. Self-help-flow yields control — does not wrap the adopted workflow.
 
 </handoff>
 
 </workflow_phases>
-
-<references>
-
-Subagents:
-- INVOKE SUBAGENT `discoverer` — KB listing, acquisition, and guidance
-
-Skills:
-- USE SKILL `reasoning`
-- USE SKILL `natural-writing`
-
-</references>
 
 </self_help_flow>

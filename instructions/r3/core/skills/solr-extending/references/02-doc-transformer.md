@@ -2,7 +2,7 @@
 
 A DocTransformer adds, modifies, or computes fields on each result document. It runs **per result doc** during response writing, after the query has executed and produced a DocList.
 
-For built-in transformers (`[child]`, `[subquery]`, `[explain]`, etc.) and the `[child]` vs `[subquery]` performance discussion, see the **solr-query** skill, reference `11-doc-transformers.md`. This file focuses on **writing your own** transformer.
+For built-in transformers (`[child]`, `[subquery]`, `[explain]`, etc.) and the `[child]` vs `[subquery]` performance discussion, USE SKILL `solr-query` to apply document transformers. This file focuses on **writing your own** transformer.
 
 ## Anatomy
 

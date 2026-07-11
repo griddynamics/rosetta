@@ -26,42 +26,42 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 ## Test Generation Flow - Phase Overview
 
 **Phase 0: Project Config Loading** [testgen-flow-project-config-loading.md]
-1. ACQUIRE testgen-flow-project-config-loading.md FROM KB
+1. APPLY PHASE testgen-flow-project-config-loading.md
 2. Execute phase instructions
 3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 
 **Phase 1: Data Collection** [testgen-flow-data-collection.md]
-1. ACQUIRE testgen-flow-data-collection.md FROM KB
+1. APPLY PHASE testgen-flow-data-collection.md
 2. Execute phase instructions
 3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 4. Validate by listing raw-data.md file
 
 **Phase 2: Gap & Contradiction Analysis** [testgen-flow-gap-and-contradiction-analysis.md]
-1. ACQUIRE testgen-flow-gap-and-contradiction-analysis.md FROM KB
+1. APPLY PHASE testgen-flow-gap-and-contradiction-analysis.md
 2. Execute phase instructions
 3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 4. Validate analysis.md with identified gaps
 
 **Phase 3: Question Generation & User Input** [testgen-flow-question-generation.md] ⭐ **HITL APPROVAL GATE**
-1. ACQUIRE testgen-flow-question-generation.md FROM KB
+1. APPLY PHASE testgen-flow-question-generation.md
 2. Execute phase instructions
 3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 4. **WAIT FOR USER** to fill answers in questions.md
 
 **Phase 4: Requirements Document Generation** [testgen-flow-requirements-document-generation.md]
-1. ACQUIRE testgen-flow-requirements-document-generation.md FROM KB
+1. APPLY PHASE testgen-flow-requirements-document-generation.md
 2. Execute phase instructions (requires completed answers.md)
 3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 4. Validate requirements.md structure
 
 **Phase 5: Test Case Generation** [testgen-flow-test-case-generation.md]
-1. ACQUIRE testgen-flow-test-case-generation.md FROM KB
+1. APPLY PHASE testgen-flow-test-case-generation.md
 2. Execute phase instructions
 3. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 4. Validate test-scenarios.md (10-30 test cases typical)
 
 **Phase 6: Test Case Export** [testgen-flow-test-case-export.md] ⭐
-1. ACQUIRE testgen-flow-test-case-export.md FROM KB
+1. APPLY PHASE testgen-flow-test-case-export.md
 4. Execute phase instructions
 5. Update `agents/testgen/{TICKET-KEY}/testgen-state.md`
 

@@ -15,7 +15,7 @@ For each plugin type, the registration in `solrconfig.xml`:
 | `TransformerFactory` | `<transformer name="X" class="..."/>` |
 | `UpdateRequestProcessorFactory` | `<processor class="..."/>` inside an `<updateRequestProcessorChain>` |
 | Custom Analyzer/Tokenizer/Filter | (in schema, not solrconfig — see solr-schema skill) |
-| `SimilarityFactory` (per-field) | (in schema fieldType, not solrconfig — see solr-query `12-relevancy.md`) |
+| `SimilarityFactory` (per-field) | (in schema fieldType, not solrconfig — USE SKILL `solr-query` to apply relevancy tuning) |
 
 `name=` is the public name (used by users in queries / fl / etc.). `class=` is the fully-qualified Java class.
 

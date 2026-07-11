@@ -12,7 +12,7 @@
 <requirements-and-intent>
 
 - Requirements could be reverse engineered, a must if starting from something existing
-- "Interrogate" user to get requirements using questioning.md skill
+- "Interrogate" user to get requirements — USE SKILL `questioning`
 - Persist the intent and pass it across entire workflow
 - Clearly define which requirements are directly provided by users and which were deducted by AI
 - Ensure original requirements and intent is always verified with through out the entire process as source of truth
@@ -94,7 +94,7 @@
 - Provide clear concise role with knowledge for subagent to assume as first sentence of the input
 - Provide clear task, considering that subagent has no your context, use SMART at minimum
 - Provide context or references (better) for lightweight agents to be successful, including all relevant files, all types of prompts that are required to effectively complete the work, instruct to NOT do more than requested
-- Provide context or references (better), only mention to complete prep steps, so that you both rely on common knowledge, tell exact phases, steps, and tasks to do (but do not explain), SMART, DRY, KISS is minimum, instruct to NOT do more than requested
+- For full subagents, require `subagent-directives` + task-needed skills, provide exact phases/steps/tasks (do not explain), apply SMART/DRY/KISS, and instruct to NOT do more than requested
 - Large inputs: write input to a file in FEATURE TEMP folder, reference as MUST to auto-toc grep and read, critical requirements go first in the file
 - Large output: provide exact path to folder where to put output files inside FEATURE TEMP folder, if output is not part of the contract, tell subagent exactly what file name, format, and minimal template it should use
 - Let subagents read and write common files (be careful for parallel agents modifying the same file)
@@ -191,6 +191,7 @@
 - Ask questions until crystal clear without nitpicking
 - User can only REVIEW maximum 2 pages of simple text, and this does NOT limit result which could be much larger
 - User appreciates TLDR and similar
+- The human is here to work WITH the AI, not to be worked around — together → result, separately → waste; prompts must drive co-working/co-authoring, not autonomous hand-offs (drop "human-on-the-loop" framing that pushes the human out)
 
 </human-issues>
 
@@ -215,6 +216,20 @@
 - AI constantly injects instructions/reasoning/information given to him into final outputs, even though those for its own reasoning only (examples: AI makes mistakes - user tells to fix because of X - AI applies correct fix and additionally adds that X to the final document - instead of just fixing - producing useless slop; AI reads requirements and specifications - implements changes - internal requirement identifiers slip in output to user; etc.)
 - AI does not understand deeply purpose => example: when asks for review it limits reviewer so that it can't review much, instead it should have provided original intent with clarifications from user and then ask for code review, logic review, architecture review, and check for gaps/inconsistencies/dependencies/alternatives, etc.
 - AI does not understand prompting: ask fresh eye subagent to review, ask it why EACH line exists, what failure it addresses, what is the purpose, then ask for improvements; Feedback should be analyzed the following: incorrect understanding => to be fixed, incorrect improvement suggestions or suggestion deviating from idea => to fix original (it did not understand), correct improvement suggestions to add something => it did understand and it already understood what should be done more (so NO NEED to apply that suggestion), correct improvement suggestion to rephrase something (it DID understand, think twice whether that should be changed at all), suggestions to cut/rephrase something => maybe incorrect (weights were previously adjusted with => that's why it worked => removing words leads to weights loosing value => no longer follows/understands).
+- AI thinks in extremes — offers yes/no or a fixed 2-3 way split (false trichotomy) where reality is a blend on a continuum that adapts as facts arrive; reason on the spectrum and compose, do not pick an end
+- AI over-prescribes rigid mechanics/routing (if/then, fixed splits) where the executor should judge and compose; teach how to decide and hand a palette to choose from, do not hardcode the choice
+- AI overfits to a single strong reference/example — it replicates that example's shape (sections, order) instead of extracting the principles and designing for the actual context; mine principles, do not clone structure
+- No output, no thought — without emitting a message/artifact the AI only pretends to think; producing even an intermediate output forces it to finalize and build on top. Externalize each decision (write the message / write the file) as a step, then "only then proceed"
+- Passive consumption over active construction — AI and authors default to pre-baking content for the AI to fill/follow; the reliable pattern makes the executing AI construct the artifact for its own situation and output it — active/proactive beats passive
+- Over-abstraction → hallucination — stripping concrete specifics (numbers, samples, process) severs the AI's grasp on reality and it hallucinates; keep the specifics AND layer the decision model on top (blend, not either/or)
+- Wrong-altitude specificity — AI swings between verbose prose and cryptic shorthand; both fail. Shorthand like "decide/reconfirm/split/merge" leaves a fresh agent unable to recover the problem OR the action. Write at the altitude where a fresh reader grasps the problem AND the concrete action
+- AI reverses settled decisions (last-speaker bias) — it abandons an agreed decision the moment a new voice (reviewer, schema, doc) differs, instead of holding it unless genuinely overridden; on a conflicting source, surface the conflict and reconcile, never silently flip
+- AI handles subagent/tool output in binary — takes a return as either truth (integrates blindly) or noise (neglects it); instead judge it against the definition of done, reconfirm and fill gaps, split independent follow-ups to focused subagents, and merge findings into one grounded result (not accept-or-reject)
+- Actor confusion — AI mis-assigns who performs an action, e.g. the orchestrator validates a claim himself instead of orchestrating verification (spawn reviewer → validator) and only tracking status; name the actor per action (orchestrator orchestrates, subagents execute, validator validates)
+- Blind pass-through of request structure — big request in → big dispatch out; AI forwards the request whole instead of decomposing it into the smallest independent actions and recomposing them into right-sized tasks (a task may still be large — the work decides)
+- AI deletes substance when told "too long" — it removes content (intrinsics, failure-framing, items marked KEEP) instead of compressing by transformation (intrinsic → process); densify, do not delete
+- Process compliance must be structurally reinforced — AI skips/forgets process unless the structure forces the next move; reinforce by composing keep-in-the-dark (JIT: reveal only the next step so loading it is the only move), prerequisites, next-steps chaining, output-as-gate (write the decision/file as a step, then "only then proceed"), and the task ledger (one in_progress, close on evidence)
+- AI writes descriptions/summaries as WHAT it does instead of WHY the user benefits, and ignores UI truncation (menus show only the first few words) — lead with the benefit/differentiator in the first words, dense, no skill-name repetition, drop words that restate the obvious
 
 </ai-issues>
 

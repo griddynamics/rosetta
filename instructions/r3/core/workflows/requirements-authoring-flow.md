@@ -16,8 +16,8 @@ Prevents premature drafting by enforcing HITL gates where every `<req>` unit rec
 
 <prerequisites phase="0", applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-context` loaded and fully executed.
-2. MUST USE OPERATION_MANAGER for deterministic execution
+1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-project-context` loaded and fully executed.
+2. MUST use todo tasks for reliability
 3. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping
 4. Every phase MUST update `requirements-authoring-flow-state.md` in FEATURE TEMP with: phase name, status, artifact produced, and open questions.
 5. Orchestrator and subagents MUST USE SKILL `requirements-authoring`.
@@ -35,7 +35,7 @@ IMPORTANT! If the task is to reverse engineer requirements, spawn MULTIPLE subag
 Artifact: Discovery Summary (context, existing requirements, constraints, affected files).
 Done when: scope boundaries and relevant requirement files are identified.
 
-1. Complete all preparation steps (PREP 1-3)
+1. Complete all Rosetta prep steps
 2. Detect environment and project structure
 3. Read existing requirements, glossary, assumptions, constraints
 4. Identify requirement areas (FR, NFR, interfaces, data, traceability)
@@ -85,7 +85,7 @@ Done when: user approves structure and requirement batching strategy.
 
 <draft phase="5" priority="must" subagent="requirements-engineer" role="Author drafting atomic requirement units" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
 
-Artifact: Draft Requirement Units (from `requirements-authoring/assets/ra-requirement-unit.md`).
+Artifact: Draft Requirement Units (per the `requirements-authoring` skill's requirement-unit asset).
 Done when: every in-scope requirement has schema-complete draft and explicit user decision.
 
 1. Draft in small batches using `<req>` schema
@@ -103,7 +103,7 @@ Done when: every in-scope requirement has schema-complete draft and explicit use
 Artifact: Validation Report (rubric results, conflict checks, gap checks, risks).
 Done when: checklist passes and unresolved issues are either fixed or explicitly deferred.
 
-1. ACQUIRE `requirements-authoring/assets/ra-validation-rubric.md` FROM KB and run validation
+1. Run validation using the `requirements-authoring` skill's validation rubric
 2. Run conflict checks and gap checks
 3. Verify traceability source -> goal -> req -> test
 4. HITL: review findings with user as a narrative / story /walk-through
@@ -132,7 +132,7 @@ Done when: artifacts are stored in target location and state file is complete.
 
 1. Deliver final approved requirement set
 2. Update index and links
-3. ACQUIRE `requirements-authoring/assets/ra-change-log.md` FROM KB and update change log
+3. Update the change log using the `requirements-authoring` skill's change-log asset
 4. Mark state as complete
 5. Required skills: `requirements-authoring`
 6. Coding must be performed using `coding-flow` (ask, recommend, switch)
@@ -143,15 +143,7 @@ Done when: artifacts are stored in target location and state file is complete.
 
 <references>
 
-Use `USE SKILL` for skills, `ACQUIRE FROM KB` for rules.
-
-Skills:
-
-- skill `requirements-authoring` - authoring, reviewing, validating requirements
-
-Rules:
-
-- rule `rules/requirements-best-practices.md` - requirements quality and process rules
+- READ RULE `requirements-best-practices.md` — requirements quality and process rules
 
 </references>
 
@@ -160,7 +152,7 @@ Rules:
 - Every phase produced its artifact
 - No must phase skipped or merged
 - Should phase skipped only with reason
-- PREP steps completed before discovery
+- Rosetta prep steps completed before discovery
 - Intent capture approved before outline and draft
 - Structure approved before drafting
 - Each `<req>` explicitly user-approved

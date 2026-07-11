@@ -31,7 +31,7 @@ Use for QA-engineering work on backend-API or UI/E2E tests: synthesizing collect
 
 <core_concepts>
 
-- Load only what the current task needs; artifact skeletons are assets, conventions/catalogs are references -- ACQUIRE FROM KB at point of use (see `<resources>`).
+- Load only what the current task needs; artifact skeletons are assets, conventions/catalogs are references -- READ SKILL FILE at point of use (see `<resources>`).
 - Per-value honesty: every concrete value traces to a loaded source, a user clarification, or an explicit `[ASSUMED: ...]` / `gap: ...` marker -- no confident fabrication.
 - Coverage is total: every input requirement / case / failure maps to ≥1 emitted item OR an explicit excluded/gap entry -- no silent drops.
 - Redaction: scan every emitted artifact and redact credentials/tokens/PII/credentialed-URLs before writing → USE SKILL `sensitive-data`.
@@ -40,7 +40,7 @@ Use for QA-engineering work on backend-API or UI/E2E tests: synthesizing collect
 
 <mode_selection>
 
-Pick exactly one mode by deliverable (multi-phase → run the earliest, stop; the next phase re-invokes); ACQUIRE its reference from `<resources>`. No clean match → name the closest mode and confirm, never silently pick. (Plain unit/integration tests are skill `testing`, not a mode here.)
+Pick exactly one mode by deliverable (multi-phase → run the earliest, stop; the next phase re-invokes); read its reference via `<resources>`. No clean match → name the closest mode and confirm, never silently pick. (Plain unit/integration tests are skill `testing`, not a mode here.)
 
 - code → test-arch map / API contract → **code_analysis** (analysis, no tests; via prereq skill `reverse-engineering`)
 - collected sources → one requirements doc → **synthesis** (redact before quoting)
@@ -53,34 +53,34 @@ Pick exactly one mode by deliverable (multi-phase → run the earliest, stop; th
 
 <resources>
 
-Router -- ACQUIRE FROM KB the one your current step needs (point-of-use, never all at once):
+Router -- READ SKILL FILE for the one your current step needs (point-of-use, never all at once):
 
-| When you need to… | ACQUIRE ... FROM KB |
+| When you need to… | Command |
 |---|---|
-| present a correction for approval (API-QA **or** UI-QA) | `qa-knowledge/assets/proposed-change-template.md` |
-| run the explicit-approval gate for a correction or spec/plan approval | `qa-knowledge/assets/approval-gate.md` |
-| emit the QA api-analysis artifact | `qa-knowledge/assets/api-analysis-template.md` |
-| emit QA test specs (Given-When-Then `ATC-NNN`) | `qa-knowledge/assets/test-spec-template.md` |
-| record the API-QA test-implementation | `qa-knowledge/assets/api-qa-test-impl-record.md` |
-| emit the API-QA execution report | `qa-knowledge/assets/failure-report-template.md` |
-| record QA gap-analysis findings (G/C/A) | `qa-knowledge/assets/gap-finding-templates.md` |
-| build the UI-QA test plan | `qa-knowledge/assets/ui-qa-plan-template.md` |
-| emit the UI-QA code-analysis report | `qa-knowledge/assets/code-analysis-report-template.md` |
-| run UI-QA clarification (gap entry / questions / typed assertions) | `qa-knowledge/assets/ui-qa-clarification-templates.md` |
-| record the UI-QA test-implementation | `qa-knowledge/assets/ui-qa-test-impl-record.md` |
-| emit the UI-QA failure analysis | `qa-knowledge/assets/failure-report-template.md` |
-| send the page-source capture message to the user | `qa-knowledge/assets/page-source-capture-instructions.md` |
-| classify a QA backend-API failure | `qa-knowledge/references/api-qa-failure-taxonomy.md` |
-| classify an UI-QA UI/E2E failure | `qa-knowledge/references/ui-qa-failure-taxonomy.md` |
-| synthesize collected sources into a requirements document (`<synthesis>` mode) | `qa-knowledge/references/synthesis-catalogs.md` |
-| run QA gap-analysis detection (`<gap_analysis>` mode) | `qa-knowledge/references/gap-analysis-catalogs.md` |
-| design Given-When-Then API specs -- taxonomy + ATC template (`<scenario_design>` mode) | `qa-knowledge/references/gwt-spec.md` |
-| format test cases for TestRail (scenario_design vendor binding) | `qa-knowledge/references/testrail-format.md` |
-| export a case set to TestRail (vendor binding + destructive-write gate) | `qa-knowledge/references/testrail-export.md` |
-| fork a TMS format/export binding to another vendor | `qa-knowledge/references/vendor-fork-guide.md` |
-| implement UI / API / selector tests -- code + selector tables + templates (`<implementation_modes>` mode) | `qa-knowledge/references/implementation-examples.md` |
-| analyze test-automation architecture or extract API contracts (`<code_analysis>` mode, via reverse-engineering) | `qa-knowledge/references/analysis-modes.md` |
-| triage automated-test execution failures (`<test_execution_triage>` mode) | `qa-knowledge/references/test-execution-triage.md` |
+| present a correction for approval (API-QA **or** UI-QA) | READ SKILL FILE `assets/proposed-change-template.md` |
+| run the explicit-approval gate for a correction or spec/plan approval | READ SKILL FILE `assets/approval-gate.md` |
+| emit the QA api-analysis artifact | READ SKILL FILE `assets/api-analysis-template.md` |
+| emit QA test specs (Given-When-Then `ATC-NNN`) | READ SKILL FILE `assets/test-spec-template.md` |
+| record the API-QA test-implementation | READ SKILL FILE `assets/api-qa-test-impl-record.md` |
+| emit the API-QA execution report | READ SKILL FILE `assets/failure-report-template.md` |
+| record QA gap-analysis findings (G/C/A) | READ SKILL FILE `assets/gap-finding-templates.md` |
+| build the UI-QA test plan | READ SKILL FILE `assets/ui-qa-plan-template.md` |
+| emit the UI-QA code-analysis report | READ SKILL FILE `assets/code-analysis-report-template.md` |
+| run UI-QA clarification (gap entry / questions / typed assertions) | READ SKILL FILE `assets/ui-qa-clarification-templates.md` |
+| record the UI-QA test-implementation | READ SKILL FILE `assets/ui-qa-test-impl-record.md` |
+| emit the UI-QA failure analysis | READ SKILL FILE `assets/failure-report-template.md` |
+| send the page-source capture message to the user | READ SKILL FILE `assets/page-source-capture-instructions.md` |
+| classify a QA backend-API failure | READ SKILL FILE `references/api-qa-failure-taxonomy.md` |
+| classify an UI-QA UI/E2E failure | READ SKILL FILE `references/ui-qa-failure-taxonomy.md` |
+| synthesize collected sources into a requirements document (`<synthesis>` mode) | READ SKILL FILE `references/synthesis-catalogs.md` |
+| run QA gap-analysis detection (`<gap_analysis>` mode) | READ SKILL FILE `references/gap-analysis-catalogs.md` |
+| design Given-When-Then API specs -- taxonomy + ATC template (`<scenario_design>` mode) | READ SKILL FILE `references/gwt-spec.md` |
+| format test cases for TestRail (scenario_design vendor binding) | READ SKILL FILE `references/testrail-format.md` |
+| export a case set to TestRail (vendor binding + destructive-write gate) | READ SKILL FILE `references/testrail-export.md` |
+| fork a TMS format/export binding to another vendor | READ SKILL FILE `references/vendor-fork-guide.md` |
+| implement UI / API / selector tests -- code + selector tables + templates (`<implementation_modes>` mode) | READ SKILL FILE `references/implementation-examples.md` |
+| analyze test-automation architecture or extract API contracts (`<code_analysis>` mode, via reverse-engineering) | READ SKILL FILE `references/analysis-modes.md` |
+| triage automated-test execution failures (`<test_execution_triage>` mode) | READ SKILL FILE `references/test-execution-triage.md` |
 
 </resources>
 
@@ -102,10 +102,10 @@ Per active mode, before emitting:
 Flag/refuse these before proceeding:
 
 - Redacting from memory instead of running the `sensitive-data` pre-emit re-scan grep gate -- or emitting when the scan could not run (**fail-closed**: stop, never emit unscanned).
-- Writing an artifact from memory instead of ACQUIRE-ing its skeleton/template first.
+- Writing an artifact from memory instead of using READ SKILL FILE for its skeleton/template first.
 - Silent ATC / assertion drop -- every ATC (QA) or typed assertion (UI-QA) is implemented **or** recorded (Gap / Uncovered), never dropped.
 - Collapsing multiple ATCs / assertions into one bullet -- one per bullet.
-- Inventing an artifact's shape the skill owns instead of ACQUIRE-ing the asset.
+- Inventing an artifact's shape the skill owns instead of using READ SKILL FILE for the asset.
 - Restating a taxonomy or template inline instead of pointing to its reference/asset (DRY).
 
 </anti_patterns>

@@ -6,7 +6,6 @@ import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
 import {
   COMMON_CONTEXT,
-  OPTIMIZE_PHASES,
   OPTIMIZE_STEPS,
   STEP_REFERENCE_SECTIONS,
   type OptimizeContent,
@@ -18,13 +17,18 @@ const execFileAsync = promisify(execFile);
 
 interface OptimizeCall {
   system?: OptimizeContent;
+  thinking?: unknown;
+  output_config?: unknown;
   messages: Array<{ role: 'user' | 'assistant'; content: OptimizeContent }>;
 }
 
 function textOf(content: OptimizeContent | undefined): string {
   if (!content) return '';
   if (typeof content === 'string') return content;
-  return content.map((block) => block.text).join('\n');
+  return content
+    .filter((block): block is typeof block & { text: string } => typeof block.text === 'string')
+    .map((block) => block.text)
+    .join('\n');
 }
 
 function isCacheable(content: OptimizeContent | undefined): boolean {
@@ -46,12 +50,14 @@ function fakeClient(calls: OptimizeCall[], paths = ['SKILL.md']): OptimizeClient
       async create(params) {
         calls.push({
           system: params.system,
+          thinking: params.thinking,
+          output_config: params.output_config,
           messages: params.messages.map((message) => ({ ...message })),
         });
         const prompt = textOf(params.messages.at(-1)?.content);
-        const isFinalizing = prompt.includes('Return corrected complete target files only') ||
-          prompt.includes('Final global preservation audit/fix');
-        const text = isFinalizing
+        // FINALIZE-DRAFT and the final value-lost audit both materialize complete files.
+        const isMaterializing = prompt.includes('Return FINAL_FILES_JSON.');
+        const text = isMaterializing
           ? responseFor(paths, calls.length)
           : JSON.stringify({
               changes: paths.map((filePath) => ({
@@ -63,7 +69,11 @@ function fakeClient(calls: OptimizeCall[], paths = ['SKILL.md']): OptimizeClient
               })),
             });
         return {
-          content: [{ type: 'text', text }],
+          // Full content includes a thinking block so we can assert same-session replay.
+          content: [
+            { type: 'thinking', thinking: `reasoning ${calls.length}`, signature: `sig-${calls.length}` },
+            { type: 'text', text },
+          ],
           stop_reason: 'end_turn',
           usage: {
             input_tokens: 100 + calls.length,
@@ -100,20 +110,28 @@ async function tempWorkspace(): Promise<{
   return { dir, outDir: path.join(dir, 'out'), target, target2, supporting };
 }
 
+/** Total API calls for a given step limit: content steps + mid value-lost (if >=3) + finalize + final. */
+function expectedCalls(stepLimit: number): number {
+  return stepLimit + (stepLimit >= 3 ? 1 : 0) + 2;
+}
+
 describe('optimize prompts', () => {
-  it('defines 3 logical phases plus final audit', () => {
-    expect(OPTIMIZE_PHASES.map((phase) => phase.id)).toEqual([
-      'architecture-intent',
-      'execution-review',
-      'compression-patterns',
+  it('defines 7 intent-combined steps with the expected members', () => {
+    expect(OPTIMIZE_STEPS.map((step) => step.id)).toEqual([
+      'inventory-intent',
+      'actors-contracts',
+      'execution-delegation',
+      'review-failure',
+      'patterns-simulation',
+      'compression',
+      'consistency-minimality',
     ]);
-    expect(OPTIMIZE_STEPS).toEqual([
+    expect(OPTIMIZE_STEPS.flatMap((step) => step.members)).toEqual([
       'inventory-ledger',
       'requirements-intent',
       'actor-boundaries',
       'responsibility-slicing',
       'contracts',
-      'hierarchy-priority',
       'workflow-semantics',
       'subagent-orchestration',
       'hitl-user-loop',
@@ -125,16 +143,25 @@ describe('optimize prompts', () => {
       'compactness',
       'final-consistency',
       'final-minimality',
+      'hierarchy-priority',
     ]);
   });
 
-  it('keeps exact hardening, patterns, and AI issue text split by step', () => {
-    expect(STEP_REFERENCE_SECTIONS['actor-boundaries'].hardening).toContain('Maintains Workflow/Phase/Subagent/Skill/Rule boundaries');
-    expect(STEP_REFERENCE_SECTIONS['subagent-orchestration'].patterns).toContain('<subagents-orchestration>');
-    expect(STEP_REFERENCE_SECTIONS['review-validate'].patterns).toContain('Review IS statically reviewing some result for some intent');
-    expect(STEP_REFERENCE_SECTIONS.compactness.hardening).toContain('Rephrase, restructure, compress for much more compact prompt without loosing value');
-    expect(STEP_REFERENCE_SECTIONS.compactness.aiIssues).toContain('Keep the concrete anchor');
-    expect(STEP_REFERENCE_SECTIONS['failure-mode-hardening'].aiIssues).toContain('F1');
+  it('merges member reference text verbatim into combined steps and dedupes duplicate lines', () => {
+    expect(STEP_REFERENCE_SECTIONS['inventory-intent'].objectives).toHaveLength(2);
+    expect(STEP_REFERENCE_SECTIONS['inventory-intent'].objectives[0]).toContain('Identify every behavior');
+    expect(STEP_REFERENCE_SECTIONS['actors-contracts'].hardening).toContain('Maintains Workflow/Phase/Subagent/Skill/Rule boundaries');
+    expect(STEP_REFERENCE_SECTIONS['execution-delegation'].patterns).toContain('<subagents-orchestration>');
+    expect(STEP_REFERENCE_SECTIONS['review-failure'].patterns).toContain('Review IS statically reviewing some result for some intent');
+    expect(STEP_REFERENCE_SECTIONS['review-failure'].aiIssues).toContain('F1');
+    expect(STEP_REFERENCE_SECTIONS.compression.hardening).toContain('Rephrase, restructure, compress for much more compact prompt without loosing value');
+    expect(STEP_REFERENCE_SECTIONS.compression.aiIssues).toContain('Keep the concrete anchor');
+    expect(STEP_REFERENCE_SECTIONS['consistency-minimality'].hardening).toContain('# Five-Axis Audit');
+    expect(STEP_REFERENCE_SECTIONS['consistency-minimality'].hardening).toContain('# Surface Area Reduction');
+    expect(STEP_REFERENCE_SECTIONS['consistency-minimality'].hardening).toContain('Respect instruction hierarchy');
+    // "- No logical conflicts" appears in both final-consistency and hierarchy-priority; deduped to one.
+    const hardening = STEP_REFERENCE_SECTIONS['consistency-minimality'].hardening ?? '';
+    expect((hardening.match(/^- No logical conflicts$/gm) ?? []).length).toBe(1);
   });
 
   it('uses target/supporting/additional semantics and writes every target preserving relative paths', async () => {
@@ -167,7 +194,7 @@ describe('optimize prompts', () => {
     expect(path.dirname(target)).toBe(dir);
   });
 
-  it('runs phase conversations with step follow-ups and one phase loss reviewer/fixer', async () => {
+  it('runs one growing conversation: 10 ordered ops with two value-lost checks', async () => {
     const calls: OptimizeCall[] = [];
     const { outDir, target } = await tempWorkspace();
 
@@ -178,35 +205,113 @@ describe('optimize prompts', () => {
       maxOutputTokens: 2048,
     });
 
-    const expectedCalls = OPTIMIZE_PHASES.reduce((sum, phase) => sum + phase.steps.length + 1, 0) + 1;
-    expect(calls).toHaveLength(expectedCalls);
-    expect(result.trace.phases).toHaveLength(3);
-    expect(result.trace.finalAudit?.prompt).toBeUndefined();
-
-    const firstPhaseCalls = calls.slice(0, OPTIMIZE_PHASES[0].steps.length + 1);
-    firstPhaseCalls.forEach((call, index) => {
-      expect(call.messages).toHaveLength(index * 2 + 2);
+    expect(calls).toHaveLength(10);
+    // One conversation: each call sends the whole prior history plus the new user prompt.
+    calls.forEach((call, index) => {
+      expect(call.messages).toHaveLength(2 * (index + 1));
     });
-    const phaseSetup = calls[0].messages[0].content;
-    const firstStep = calls[0].messages.at(-1)?.content;
+
+    // SESSION SETUP is the cached first user message (not its own call), carrying the originals.
+    const setup = calls[0].messages[0].content;
     expect(isCacheable(calls[0].system)).toBe(true);
-    expect(isCacheable(phaseSetup)).toBe(true);
-    expect(textOf(phaseSetup)).toContain('CURRENT_TARGET_FILES');
-    expect(textOf(firstStep)).toContain('Step: inventory-ledger');
-    expect(textOf(firstStep)).toContain('Do this:');
-    expect(textOf(firstStep)).toContain('Requirements could be reverse engineered');
-    expect(textOf(firstStep)).not.toContain('Use cached RUN SETUP');
-    expect(textOf(firstStep)).not.toContain('Exact hardening reference text');
-    expect(textOf(firstStep)).toContain('Return STEP_CHANGES_JSON only.');
-    expect(textOf(firstStep)).not.toContain('Skill prompt with mental hook');
-    expect(textOf(firstStep)).not.toContain('Step: requirements-intent');
-    expect(calls[1].messages[2].content).toContain('"changes"');
-    const finalizer = firstPhaseCalls.at(-1)?.messages.at(-1)?.content;
-    expect(textOf(finalizer)).toContain('Phase loss reviewer/fixer');
-    expect(textOf(finalizer)).toContain('Use the phase-start CURRENT_TARGET_FILES already provided');
-    expect(textOf(finalizer)).not.toContain('Use cached CURRENT_TARGET_FILES');
-    expect(textOf(finalizer)).not.toContain('Skill prompt with mental hook');
-    expect(textOf(finalizer)).not.toContain('Original target files:');
+    expect(isCacheable(setup)).toBe(true);
+    expect(textOf(setup)).toContain('SESSION SETUP');
+    expect(textOf(setup)).toContain('ORIGINAL_TARGET_FILE');
+    expect(textOf(setup)).toContain('Skill prompt with mental hook');
+
+    // Moving cache breakpoint sits on the last block of the last (user) message each call.
+    const lastMessage = calls[0].messages.at(-1)?.content;
+    expect(Array.isArray(lastMessage) && lastMessage.at(-1)?.cache_control?.type).toBe('ephemeral');
+
+    // Ordered pipeline, identified by each call's final user prompt.
+    const step1 = calls[0].messages.at(-1)?.content;
+    expect(textOf(step1)).toContain('Combined step: Inventory & Intent (inventory-intent)');
+    expect(textOf(step1)).toContain('Do all of these sub-objectives');
+    expect(textOf(step1)).toContain('Identify every behavior');
+    expect(textOf(step1)).toContain('Clarify intended audience');
+    expect(textOf(step1)).toContain('Requirements could be reverse engineered');
+    expect(textOf(step1)).toContain('Return STEP_CHANGES_JSON only.');
+    expect(textOf(step1)).not.toContain('Skill prompt with mental hook');
+
+    expect(textOf(calls[2].messages.at(-1)?.content)).toContain('execution-delegation');
+    expect(textOf(calls[3].messages.at(-1)?.content)).toContain('Mid-run value-lost');
+    expect(textOf(calls[8].messages.at(-1)?.content)).toContain('Finalize draft');
+
+    const finalPrompt = textOf(calls[9].messages.at(-1)?.content);
+    expect(finalPrompt).toContain('Final global preservation audit');
+    // Final value-lost is instructions only: no re-rendered original/draft file blocks.
+    expect(finalPrompt).not.toContain('ORIGINAL_TARGET_FILE');
+    expect(finalPrompt).not.toContain('Skill prompt with mental hook');
+
+    expect(result.trace.phases).toHaveLength(1);
+    expect(result.trace.phases[0].steps).toEqual(OPTIMIZE_STEPS.map((step) => step.id));
+    expect(result.trace.phases[0].prompts.map((prompt) => prompt.step)).toEqual([
+      'session-setup',
+      'inventory-intent',
+      'actors-contracts',
+      'execution-delegation',
+      'value-lost-mid',
+      'review-failure',
+      'patterns-simulation',
+      'compression',
+      'consistency-minimality',
+      'finalize-draft',
+    ]);
+    expect(result.trace.finalAudit?.prompt).toBeUndefined();
+  });
+
+  it('replays full assistant content (thinking + text) into later turns', async () => {
+    const calls: OptimizeCall[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    await runPromptOptimization(fakeClient(calls), {
+      targetPaths: [target],
+      outDir,
+      model: 'claude-test',
+      maxOutputTokens: 2048,
+    });
+
+    const assistantTurns = calls[1].messages.filter((message) => message.role === 'assistant');
+    expect(assistantTurns).toHaveLength(1);
+    const blocks = assistantTurns[0].content;
+    expect(Array.isArray(blocks)).toBe(true);
+    expect((blocks as Array<{ type: string; thinking?: string }>).some(
+      (block) => block.type === 'thinking' && block.thinking === 'reasoning 1',
+    )).toBe(true);
+  });
+
+  it('always sends adaptive thinking (summarized) and defaults effort to high', async () => {
+    const calls: OptimizeCall[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    const result = await runPromptOptimization(fakeClient(calls), {
+      targetPaths: [target],
+      outDir,
+      model: 'claude-test',
+      maxOutputTokens: 2048,
+    });
+
+    for (const call of calls) {
+      expect(call.thinking).toEqual({ type: 'adaptive', display: 'summarized' });
+      expect(call.output_config).toEqual({ effort: 'high' });
+    }
+    expect(result.trace.effort).toBe('high');
+  });
+
+  it('honors an explicit effort level', async () => {
+    const calls: OptimizeCall[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    const result = await runPromptOptimization(fakeClient(calls), {
+      targetPaths: [target],
+      outDir,
+      model: 'claude-test',
+      maxOutputTokens: 2048,
+      effort: 'max',
+    });
+
+    expect(calls[0].output_config).toEqual({ effort: 'max' });
+    expect(result.trace.effort).toBe('max');
   });
 
   it('records per-call request, usage, cache, reasoning, cost, and response stats', async () => {
@@ -220,24 +325,24 @@ describe('optimize prompts', () => {
       maxOutputTokens: 2048,
     });
 
-    const firstStep = result.trace.phases[0].prompts.find((prompt) => prompt.step === 'inventory-ledger');
+    const firstStep = result.trace.phases[0].prompts.find((prompt) => prompt.step === 'inventory-intent');
     expect(firstStep?.promptStats.words).toBeGreaterThan(0);
     expect(firstStep?.callStats?.request.messages.count).toBe(2);
     expect(firstStep?.callStats?.request.appendedMessages.count).toBe(2);
-    expect(firstStep?.callStats?.request.appendedMessages.cacheableBlocks).toBe(1);
     expect(firstStep?.callStats?.response.usage.inputTokens).toBeGreaterThan(0);
     expect(firstStep?.callStats?.response.usage.outputTokens).toBeGreaterThan(0);
     expect(firstStep?.callStats?.response.usage.cacheCreationInputTokens).toBe(50);
     expect(firstStep?.callStats?.response.usage.reasoningTokens).toBe(6);
     expect(firstStep?.callStats?.response.usage.standardCostUsd).toBeGreaterThan(0);
 
-    const secondStep = result.trace.phases[0].prompts.find((prompt) => prompt.step === 'requirements-intent');
+    const secondStep = result.trace.phases[0].prompts.find((prompt) => prompt.step === 'actors-contracts');
     expect(secondStep?.callStats?.request.messages.count).toBe(4);
     expect(secondStep?.callStats?.request.appendedMessages.count).toBe(2);
-    expect(secondStep?.callStats?.request.appendedMessages.cacheableBlocks).toBe(0);
     expect(secondStep?.callStats?.response.usage.cacheReadInputTokens).toBe(40);
 
-    expect(result.trace.finalAudit?.callStats.request.appendedMessages.count).toBe(1);
+    // The final value-lost audit is the last call and reviews the draft in-conversation.
+    expect(result.trace.finalAudit?.callStats.request.messages.count).toBe(20);
+    expect(result.trace.finalAudit?.callStats.request.appendedMessages.count).toBe(2);
     expect(result.trace.finalAudit?.callStats.response.usage.rawUsage).toBeDefined();
   });
 
@@ -250,22 +355,23 @@ describe('optimize prompts', () => {
       outDir,
       model: 'claude-sonnet-5',
       maxOutputTokens: 2048,
-      phaseLimit: 1,
+      stepLimit: 1,
       traceRaw: true,
     });
 
     expect(result.trace.anthropicBetas).toEqual(['thinking-token-count-2026-05-13']);
     expect(result.files?.rawTracePath).toBe(path.join(outDir, 'raw-calls.jsonl'));
-    expect(calls[0]).toMatchObject({ system: expect.anything() });
     const rawLines = (await readFile(result.files!.rawTracePath!, 'utf-8')).trim().split('\n');
-    expect(rawLines).toHaveLength(OPTIMIZE_PHASES[0].steps.length + 2);
+    // stepLimit 1 => 1 content step + finalize + final value-lost = 3 calls.
+    expect(rawLines).toHaveLength(expectedCalls(1));
     const firstRaw = JSON.parse(rawLines[0]);
     expect(firstRaw.request.betas).toEqual(['thinking-token-count-2026-05-13']);
+    expect(firstRaw.request.thinking).toEqual({ type: 'adaptive', display: 'summarized' });
     expect(firstRaw.response.usage.output_tokens_details.thinking_tokens).toBeGreaterThan(0);
     expect(firstRaw.callStats.response.usage.reasoningTokens).toBeGreaterThan(0);
   });
 
-  it('can run only the first phase and still perform final audit', async () => {
+  it('can limit content steps and still finalize + final value-lost + serialize', async () => {
     const calls: OptimizeCall[] = [];
     const { outDir, target } = await tempWorkspace();
 
@@ -274,22 +380,41 @@ describe('optimize prompts', () => {
       outDir,
       model: 'claude-test',
       maxOutputTokens: 2048,
-      phaseLimit: 1,
+      stepLimit: 1,
     });
 
-    expect(result.trace.phaseLimit).toBe(1);
-    expect(result.trace.totalAvailablePhases).toBe(3);
-    expect(result.trace.phases.map((phase) => phase.phase)).toEqual(['architecture-intent']);
+    expect(result.trace.stepLimit).toBe(1);
+    expect(result.trace.totalSteps).toBe(7);
+    expect(result.trace.phases[0].steps).toEqual(['inventory-intent']);
     expect(result.trace.finalAudit).toBeDefined();
-    expect(calls).toHaveLength(OPTIMIZE_PHASES[0].steps.length + 2);
-    expect(calls.map((call) => textOf(call.messages.at(-1)?.content)).join('\n')).not.toContain('Execution + Review Mechanics');
-    expect(calls.map((call) => textOf(call.messages.at(-1)?.content)).join('\n')).not.toContain('Compression + Pattern Integration');
+    expect(calls).toHaveLength(expectedCalls(1));
+    const allPrompts = calls.map((call) => textOf(call.messages.at(-1)?.content)).join('\n');
+    expect(allPrompts).not.toContain('actors-contracts');
+    expect(allPrompts).not.toContain('Mid-run value-lost'); // below the >=3 threshold
+    expect(allPrompts).toContain('Finalize draft');
+    expect(allPrompts).toContain('Final global preservation audit');
     expect(await readFile(path.join(outDir, 'SKILL.md'), 'utf-8')).toContain('optimized SKILL.md');
-    expect(await readFile(path.join(outDir, 'trace.json'), 'utf-8')).toContain('"phaseLimit": 1');
-    expect(await readFile(path.join(outDir, 'report.md'), 'utf-8')).toContain('Phases run: 1/3 + final audit');
+    expect(await readFile(path.join(outDir, 'trace.json'), 'utf-8')).toContain('"stepLimit": 1');
+    expect(await readFile(path.join(outDir, 'report.md'), 'utf-8')).toContain('Steps run: 1/7');
   });
 
-  it('rejects invalid phase limits before model calls', async () => {
+  it('runs the mid value-lost review once the third step is reached', async () => {
+    const calls: OptimizeCall[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    await runPromptOptimization(fakeClient(calls), {
+      targetPaths: [target],
+      outDir,
+      model: 'claude-test',
+      maxOutputTokens: 2048,
+      stepLimit: 3,
+    });
+
+    expect(calls).toHaveLength(expectedCalls(3));
+    expect(textOf(calls[3].messages.at(-1)?.content)).toContain('Mid-run value-lost');
+  });
+
+  it('rejects invalid step limits before model calls', async () => {
     let calls = 0;
     const { outDir, target } = await tempWorkspace();
     const client: OptimizeClient = {
@@ -305,9 +430,9 @@ describe('optimize prompts', () => {
         outDir,
         model: 'claude-test',
         maxOutputTokens: 2048,
-        phaseLimit: 4,
+        stepLimit: 8,
       }),
-    ).rejects.toThrow(/--phase-limit/);
+    ).rejects.toThrow(/--step-limit/);
     expect(calls).toBe(0);
   });
 
@@ -325,7 +450,7 @@ describe('optimize prompts', () => {
 
     expect(textOf(calls[0].system)).toContain('Additional user optimization goals:');
     expect(textOf(calls[0].system)).toContain('Preserve domain terminology exactly.');
-    expect(textOf(calls[0].messages[0].content)).not.toContain('Preserve domain terminology exactly.');
+    expect(textOf(calls[0].messages.at(-1)?.content)).not.toContain('Preserve domain terminology exactly.');
     expect(textOf(calls[0].system)).not.toContain('<patterns mix-and-match="any">');
     expect(textOf(calls[0].system)).not.toContain('<hardening>');
   });
@@ -417,18 +542,21 @@ describe('optimize prompts', () => {
       '--dry-run',
     ]);
 
-    expect(stdout).toContain('Optimize plan OK: 3/3 phase(s) + final audit.');
+    expect(stdout).toContain('Optimize plan OK: 7/7 step(s), one conversation.');
     expect(stdout).toContain(path.resolve(target));
     expect(stdout).toContain(path.resolve(target2));
     expect(stdout).toContain(path.resolve(supporting));
     expect(stdout).toContain('Prefer terse wording; keep examples concrete.');
-    expect(stdout).toContain('Phase limit: 3');
-    expect(stdout).toContain('Architecture + Intent');
-    expect(stdout).toContain('Execution + Review Mechanics');
-    expect(stdout).toContain('Final global preservation audit/fix');
+    expect(stdout).toContain('Step limit: 7');
+    expect(stdout).toContain('Inventory & Intent (inventory-intent)');
+    expect(stdout).toContain('Execution & Delegation (execution-delegation)');
+    expect(stdout).toContain('VALUE-LOST #1 (mid review)');
+    expect(stdout).toContain('FINALIZE-DRAFT');
+    expect(stdout).toContain('VALUE-LOST #2 (final)');
+    expect(stdout).toContain('SERIALIZE (write files)');
   });
 
-  it('CLI dry-run can limit execution to the first phase plus final audit', async () => {
+  it('CLI dry-run can limit execution to the first content step', async () => {
     const { outDir, target } = await tempWorkspace();
 
     const { stdout } = await execFileAsync(process.execPath, [
@@ -442,16 +570,18 @@ describe('optimize prompts', () => {
       outDir,
       '--model',
       'claude-test',
-      '--phase-limit',
+      '--step-limit',
       '1',
       '--dry-run',
     ]);
 
-    expect(stdout).toContain('Optimize plan OK: 1/3 phase(s) + final audit.');
-    expect(stdout).toContain('Phase limit: 1');
-    expect(stdout).toContain('Architecture + Intent');
-    expect(stdout).not.toContain('Execution + Review Mechanics');
-    expect(stdout).toContain('Final global preservation audit/fix');
+    expect(stdout).toContain('Optimize plan OK: 1/7 step(s), one conversation.');
+    expect(stdout).toContain('Step limit: 1');
+    expect(stdout).toContain('Inventory & Intent (inventory-intent)');
+    expect(stdout).not.toContain('Review, Validation & Failure Hardening');
+    expect(stdout).not.toContain('VALUE-LOST #1 (mid review)');
+    expect(stdout).toContain('FINALIZE-DRAFT');
+    expect(stdout).toContain('VALUE-LOST #2 (final)');
   });
 
   it('renders optimizer reports with token, cache, reasoning, cost, and appended-message stats', async () => {
@@ -471,6 +601,7 @@ describe('optimize prompts', () => {
     expect(report).toContain('Total cache read input tokens:');
     expect(report).toContain('Total reasoning tokens:');
     expect(report).toContain('Est. standard cost USD');
+    expect(report).toContain('Steps run: 7/7');
     expect(report).toContain('Appended messages');
     expect(report).toContain('Cache read tok');
     expect(report).toContain('Reasoning tok');

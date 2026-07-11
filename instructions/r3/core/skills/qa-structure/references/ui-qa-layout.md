@@ -24,6 +24,6 @@ plans/ui-qa-<test-name>/failure-analysis.md   (test-report-analysis)
 
 </slug_rules>
 
-**State file `agents/TEMP/<FEATURE>/ui-qa-state.md`:** adds `## Key Artifacts & Facts` (resume anchor) + `## Verification-Failure Overrides` to the standard shape (per SKILL). Full skeleton → asset `qa-structure/assets/ui-qa-state-template.md`.
+**State file `agents/TEMP/<FEATURE>/ui-qa-state.md`:** adds `## Key Artifacts & Facts` (resume anchor) + `## Verification-Failure Overrides` to the standard shape (per SKILL). Full skeleton → READ SKILL FILE `assets/ui-qa-state-template.md`.
 
 </ui-qa-layout>

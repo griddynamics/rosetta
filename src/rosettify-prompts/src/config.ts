@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { z } from 'zod';
 import type { BenchConfig } from './types.js';
 
@@ -37,6 +38,8 @@ const evalAssertionSchema = z.object({
 
 const evalSchema = z.object({
   judgePrompt: z.string().min(1).optional(),
+  // Per-suite judge mode override; falls back to the global judgeMode, then 'combined'.
+  mode: z.enum(['combined', 'individual']).optional(),
   assertions: z.array(evalAssertionSchema).min(1),
 });
 
@@ -73,6 +76,13 @@ const benchConfigSchema = z.object({
   // you hit rate limits.
   concurrency: z.number().int().positive().default(10),
   pricingOverrides: z.record(z.string(), pricingSchema).optional(),
+  // Extra context text appended to every variant's system prompt. CLI --additional appends more.
+  additional: z.array(z.string().min(1)).default([]),
+  // Supporting file paths (resolved relative to this config file by loadConfig) injected, context-only,
+  // into every variant's system prompt. CLI --supporting appends more (resolved relative to cwd).
+  supporting: z.array(z.string().min(1)).default([]),
+  // Global default judge mode; per-suite eval.mode overrides it, CLI --judge-mode overrides both.
+  judgeMode: z.enum(['combined', 'individual']).default('combined'),
   suites: z.array(suiteSchema).min(1),
 });
 
@@ -108,26 +118,40 @@ export function parseConfig(raw: unknown): BenchConfig {
   return parsed;
 }
 
-export function loadConfig(path: string): BenchConfig {
+export function loadConfig(configPath: string): BenchConfig {
   let text: string;
   try {
-    text = readFileSync(path, 'utf-8');
+    text = readFileSync(configPath, 'utf-8');
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       throw new Error(
-        `Config file not found: ${path}\n` +
+        `Config file not found: ${configPath}\n` +
           'Pass --evals <path>, or create an evals.json in the current directory.',
       );
     }
-    throw new Error(`Could not read config file ${path}: ${(err as Error).message}`);
+    throw new Error(`Could not read config file ${configPath}: ${(err as Error).message}`);
   }
 
   let raw: unknown;
   try {
     raw = JSON.parse(text);
   } catch (err) {
-    throw new Error(`Config file is not valid JSON: ${path}\n  ${(err as Error).message}`);
+    throw new Error(`Config file is not valid JSON: ${configPath}\n  ${(err as Error).message}`);
   }
 
-  return parseConfig(raw);
+  const config = parseConfig(raw);
+
+  // Resolve config-declared supporting files relative to the config file's directory and read them
+  // now, so the runner receives contents (not paths). The CLI appends its own --supporting on top.
+  const configDir = path.dirname(path.resolve(configPath));
+  config.supportingFiles = (config.supporting ?? []).map((supportingPath) => {
+    const absolute = path.isAbsolute(supportingPath) ? supportingPath : path.join(configDir, supportingPath);
+    try {
+      return { path: absolute, content: readFileSync(absolute, 'utf-8') };
+    } catch (err) {
+      throw new Error(`Could not read supporting file "${supportingPath}" (resolved to ${absolute}): ${(err as Error).message}`);
+    }
+  });
+
+  return config;
 }

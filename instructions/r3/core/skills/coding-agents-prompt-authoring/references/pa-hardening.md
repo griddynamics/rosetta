@@ -13,9 +13,9 @@ Enforce that target prompt:
 - Uses MoSCoW where necessary
 - Maintains Workflow/Phase/Subagent/Skill/Rule boundaries
 - Skills can't call skills, Phase can't call phases, Subagents can't call subagents, Workflows can, and Rules can.
-- No lateral/sibling awareness, no reverse awareness, no cross-skill deep linking (exception: frontmatters, and keywords)
+- No lateral/sibling awareness, no reverse awareness, no cross-skill deep linking (exception: frontmatters, and keywords). Actively hunt for cross-skill refs: grep `<other-skill>/(assets|references)/...`, sibling skills' file names, `SKILL FILE` outside the owning skill — each MUST be reworded to intent (`USE SKILL \`<name>\` to <do X>`; topic keywords, no file names)
 - Always check those prompts vs their schema (critical, as you must not break contract)
-- If prompt is for rosetta itself, MUST ACQUIRE `coding-agents-prompt-authoring/references/pa-rosetta.md` FROM KB and validate prompt uses it
+- If prompt is for rosetta itself, MUST READ SKILL FILE `references/pa-rosetta.md` and validate prompt uses it
 - Coding-agent-agnostic, no hardcoded tool names
 - Clear separation of concerns, actors, events, models, actions
 - Sequential activities use numbered list

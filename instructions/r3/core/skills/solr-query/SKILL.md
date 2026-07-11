@@ -22,7 +22,7 @@ You are a senior Apache Solr engineer who constructs correct queries and debugs 
 
 <when_to_use_skill>
 
-Use when constructing or debugging Solr queries: `q`/`fq`, parser selection, eDisMax, block join, JSON Facets, kNN/hybrid vectors, scoring, or `explain` output — or when a query returns wrong or no results. For analyzer chains, synonyms, and field types use the **solr-schema** skill; for custom SearchComponent/QueryParser/URP development use the **solr-extending** skill.
+Constructing/debugging Solr queries: `q`/`fq`, parser selection, eDisMax, block join, JSON Facets, kNN/hybrid vectors, scoring, `explain` output, or wrong/no results. Analyzer chains/synonyms/field types → **solr-schema**; custom SearchComponent/QueryParser/URP development → **solr-extending**.
 
 </when_to_use_skill>
 
@@ -42,18 +42,18 @@ This SKILL.md is a router. For any non-trivial question, read the relevant `refe
 
 | When the user asks about… | Read |
 |---|---|
-| Lucene syntax (operators, escaping, wildcards, ranges, fuzzy) | `references/01-lucene-syntax.md` |
-| Local params, parser selection, `{!parser ...}`, `v=$param` deref | `references/02-local-params.md` |
-| eDisMax: qf/pf/pf2/pf3/mm/bf/bq/boost/tie | `references/03-edismax.md` |
-| Block join: `{!parent}`, `{!child}`, `[child]`, 3-level | `references/04-block-join.md` |
-| JSON Facets: terms/range/query, nested sub-facets, `domain` | `references/05-json-facets.md` |
-| Multi-select faceting via `{!tag=}` and `excludeTags` | `references/06-tag-exclude.md` |
-| Dense vector / kNN search, hybrid lexical+vector ranking | `references/07-knn.md` |
-| Reading `debug=true` explain output, score forensics | `references/08-explain.md` |
-| Function queries, geofilt, bbox, distance | `references/09-function-spatial.md` |
-| Cross-cutting anti-patterns and frequent errors | `references/10-common-errors.md` |
-| Document transformers — `[child]`, `[subquery]`, `[explain]` | `references/11-doc-transformers.md` |
-| Relevancy tuning — BM25, similarity choice, scoring, LTR | `references/12-relevancy.md` |
+| Lucene syntax (operators, escaping, wildcards, ranges, fuzzy) | READ SKILL FILE `references/01-lucene-syntax.md` |
+| Local params, parser selection, `{!parser ...}`, `v=$param` deref | READ SKILL FILE `references/02-local-params.md` |
+| eDisMax: qf/pf/pf2/pf3/mm/bf/bq/boost/tie | READ SKILL FILE `references/03-edismax.md` |
+| Block join: `{!parent}`, `{!child}`, `[child]`, 3-level | READ SKILL FILE `references/04-block-join.md` |
+| JSON Facets: terms/range/query, nested sub-facets, `domain` | READ SKILL FILE `references/05-json-facets.md` |
+| Multi-select faceting via `{!tag=}` and `excludeTags` | READ SKILL FILE `references/06-tag-exclude.md` |
+| Dense vector / kNN search, hybrid lexical+vector ranking | READ SKILL FILE `references/07-knn.md` |
+| Reading `debug=true` explain output, score forensics | READ SKILL FILE `references/08-explain.md` |
+| Function queries, geofilt, bbox, distance | READ SKILL FILE `references/09-function-spatial.md` |
+| Cross-cutting anti-patterns and frequent errors | READ SKILL FILE `references/10-common-errors.md` |
+| Document transformers — `[child]`, `[subquery]`, `[explain]` | READ SKILL FILE `references/11-doc-transformers.md` |
+| Relevancy tuning — BM25, similarity choice, scoring, LTR | READ SKILL FILE `references/12-relevancy.md` |
 
 </references>
 
@@ -82,7 +82,7 @@ Call these out before answering the literal question:
 - `{!edismax}` inside `fq` — eDisMax is for the user `q`; `fq` doesn't score.
 - `mm=3` (hard absolute) in production — use a `2<75%` formula.
 - Long `field:(a OR b OR ... OR z)` for many values — use `{!terms f=field}a,b,…,z`.
-- kNN with a restrictive `fq` and small `topK` — post-filtering can leave zero results; raise `topK` or use `preFilter` (see `references/07-knn.md`).
+- kNN with a restrictive `fq` and small `topK` — post-filtering can leave zero results; raise `topK` or use `preFilter` (READ SKILL FILE `references/07-knn.md`).
 
 </anti_patterns>
 

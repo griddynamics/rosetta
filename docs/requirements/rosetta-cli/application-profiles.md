@@ -1,12 +1,14 @@
 # Application Profiles: Rosetta CLI
 
-<req id="FR-0023" type="FR" level="System">
+<req id="FR-0023" type="FR" level="System" ticketId="" classification="technical">
   <title>Application profile registry</title>
   <statement>The Rosetta CLI shall maintain a built-in registry of application profiles, where each profile defines the target IDE's MCP configuration method, MCP configuration file path, MCP configuration JSON schema, bootstrap file path, bootstrap formatting rules, and command line templates for native CLI targets.</statement>
   <rationale>Centralizes per-IDE configuration knowledge in one place, enabling consistent behavior across all targets and simplifying addition of new targets.</rationale>
   <source>User request</source>
   <priority>Must</priority>
   <status>Draft</status>
+  <approved_by></approved_by>
+  <changed>2026-02-16</changed>
   <verification>Inspection</verification>
   <acceptance>
     <criteria>

@@ -3,6 +3,7 @@ import type {
   BenchConfig,
   EvalAssertionConfig,
   EvalResultItem,
+  JudgeMode,
   RunResult,
   SuiteConfig,
   TextMetrics,
@@ -10,11 +11,44 @@ import type {
   VariantConfig,
 } from './types.js';
 import { computeCostUsd } from './pricing.js';
+import { renderDataBlock } from './delimiters.js';
 
 const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 504]);
+/** Retry a transient API failure up to this many times (exponential backoff) before giving up. */
+const MAX_RETRIES = 3;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Bounded-concurrency gate shared by ALL API work (variant conversations AND judge calls), so the
+ * whole batch respects `concurrency` while groups pipeline independently — a repetition whose
+ * variants finish early gets judged while other repetitions are still generating. */
+type Limiter = <T>(fn: () => Promise<T>) => Promise<T>;
+
+function createLimiter(max: number): Limiter {
+  let active = 0;
+  const queue: Array<() => void> = [];
+  const pump = (): void => {
+    while (active < max && queue.length > 0) {
+      active++;
+      const start = queue.shift()!;
+      start();
+    }
+  };
+  return <T>(fn: () => Promise<T>): Promise<T> =>
+    new Promise<T>((resolve, reject) => {
+      queue.push(() => {
+        Promise.resolve()
+          .then(fn)
+          .then(resolve, reject)
+          .finally(() => {
+            active--;
+            pump();
+          });
+      });
+      pump();
+    });
 }
 
 function computeTextMetrics(text: string): TextMetrics {
@@ -31,7 +65,7 @@ function computeTextMetrics(text: string): TextMetrics {
   return { chars, words, unicodeSymbols };
 }
 
-async function withRetry<T>(fn: () => Promise<T>, retries = 4): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, retries = MAX_RETRIES): Promise<T> {
   let attempt = 0;
   for (;;) {
     try {
@@ -126,6 +160,38 @@ export function validateEvalResultItem(raw: unknown): EvalResultItem {
   };
 }
 
+/** CLI override > per-suite eval.mode > config default > 'combined'. */
+function resolveJudgeMode(config: BenchConfig, suite: SuiteConfig): JudgeMode {
+  return config.judgeModeOverride ?? suite.eval?.mode ?? config.judgeMode ?? 'combined';
+}
+
+/** Effective system prompt for a variant: its own prompt (if any), then the run-wide --additional
+ * text, then --supporting files as delimited untrusted-data blocks. Applied to VARIANTS ONLY — the
+ * judge never sees this augmentation. An empty base prompt just means the system becomes the
+ * injected context alone; returns undefined only when there is nothing at all to send. */
+function buildVariantSystem(config: BenchConfig, variant: VariantConfig): string | undefined {
+  const parts: string[] = [];
+  if (variant.systemPrompt) parts.push(variant.systemPrompt);
+  if (config.additional?.length) parts.push(config.additional.join('\n\n'));
+  if (config.supportingFiles?.length) {
+    parts.push(
+      config.supportingFiles
+        .map((file, index) =>
+          renderDataBlock(
+            `SUPPORTING_FILE ${index + 1}: ${file.path}`,
+            `SUPPORTING_FILE_${index + 1}_${file.path}`,
+            file.content,
+            'supporting file content',
+          ),
+        )
+        .join('\n\n'),
+    );
+  }
+  return parts.length > 0 ? parts.join('\n\n') : undefined;
+}
+
+// ---- individual-mode judge (one answer, judged alone) --------------------------------------------
+
 function buildEvalPrompt(assertion: EvalAssertionConfig, judgePrompt: string | undefined, turns: TurnResult[]): string {
   const final = turns[turns.length - 1]?.assistantText ?? '';
   return [
@@ -146,22 +212,28 @@ function buildEvalPrompt(assertion: EvalAssertionConfig, judgePrompt: string | u
     .join('\n\n');
 }
 
-async function runEvalAssertions(
+async function runIndividualEval(
   client: Anthropic,
   model: string,
   suite: SuiteConfig,
   turns: TurnResult[],
+  limit: Limiter,
 ): Promise<{ evalResult?: EvalResultItem[]; evalError?: string }> {
   if (!suite.eval) return {};
   const results: EvalResultItem[] = [];
   for (const assertion of suite.eval.assertions) {
     try {
-      const response = await withRetry(() =>
-        client.messages.create({
-          model,
-          max_tokens: 2048,
-          messages: [{ role: 'user', content: buildEvalPrompt(assertion, suite.eval?.judgePrompt, turns) }],
-        }),
+      const response = await limit(() =>
+        withRetry(() =>
+          client.messages.create({
+            model,
+            max_tokens: 2048,
+            // Judges score, they don't deliberate — disabling thinking keeps the JSON verdict
+            // deterministic and leaves the whole token budget for the output (no truncation).
+            thinking: { type: 'disabled' },
+            messages: [{ role: 'user', content: buildEvalPrompt(assertion, suite.eval?.judgePrompt, turns) }],
+          }),
+        ),
       );
       results.push(validateEvalResultItem(extractJsonObject(extractText(response))));
     } catch (err) {
@@ -176,7 +248,127 @@ async function runEvalAssertions(
   return { evalResult: results };
 }
 
-async function runVariantOnce(
+// ---- combined-mode judge (all variants of one repetition judged together) ------------------------
+
+interface CombinedCandidate {
+  variantId: string;
+  finalText: string;
+}
+
+function buildCombinedEvalPrompt(
+  assertion: EvalAssertionConfig,
+  judgePrompt: string | undefined,
+  candidates: CombinedCandidate[],
+): string {
+  return [
+    'Evaluate multiple candidate responses to the same task against ONE assertion.',
+    'Each candidate is a different prompt variant answering the same task. Give an absolute score for EACH candidate (pass/partial/fail on its own merits). You are shown all candidates together so you can notice when one omits or gets wrong something the others handle — use that as context, not as a forced ranking.',
+    'Return ONLY a JSON object with this exact shape:',
+    '{"scores":[{"variantId":"<exact id given>","text":"<assertion id or short text>","passed":"pass|partial|fail","reasons":"<why>","suggestions":"<fix or empty>","confidence":0}]}',
+    'Include exactly one entry per candidate, using the exact variantId provided. confidence is 0 to 100.',
+    judgePrompt ? `Additional judge instruction:\n${judgePrompt}` : '',
+    `Assertion id: ${assertion.id}`,
+    `Assertion text:\n${assertion.text}`,
+    assertion.rubric ? `Assertion rubric:\n${assertion.rubric}` : '',
+    'Candidate responses:',
+    ...candidates.map((c) => `--- variantId: ${c.variantId} ---\nFinal response:\n${c.finalText}`),
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+}
+
+/** Judges all successful variants of one (suite, repetition) together, per assertion, and mutates
+ * each variant's RunResult with its per-assertion evalResult (or evalError). Never throws — a judge
+ * failure is isolated to the affected variant(s) so the batch keeps going. */
+async function runCombinedEval(
+  client: Anthropic,
+  model: string,
+  suite: SuiteConfig,
+  results: RunResult[],
+  limit: Limiter,
+): Promise<void> {
+  if (!suite.eval) return;
+  const active = results.filter((r) => !r.error);
+  if (active.length === 0) return;
+
+  const perVariant = new Map<string, EvalResultItem[]>();
+  const failed = new Set<string>();
+  const byVariantId = new Map(active.map((r) => [r.variantId, r]));
+  const setEvalError = (variantId: string, assertion: EvalAssertionConfig, err: unknown): void => {
+    const result = byVariantId.get(variantId);
+    if (result && !result.evalError) {
+      result.evalError = `Eval assertion "${assertion.id}" failed: ${err instanceof Error ? err.message : String(err)}`;
+    }
+    failed.add(variantId);
+  };
+
+  for (const assertion of suite.eval.assertions) {
+    const candidates = active.filter((r) => !failed.has(r.variantId));
+    if (candidates.length === 0) break;
+    let scores: unknown;
+    try {
+      // Scale the token budget with the candidate count (each candidate needs its own verdict
+      // object) so more variants don't truncate the JSON; thinking disabled for the same reason
+      // as individual mode.
+      const response = await limit(() =>
+        withRetry(() =>
+          client.messages.create({
+            model,
+            max_tokens: 2048 + candidates.length * 1024,
+            thinking: { type: 'disabled' },
+            messages: [
+              {
+                role: 'user',
+                content: buildCombinedEvalPrompt(
+                  assertion,
+                  suite.eval?.judgePrompt,
+                  candidates.map((c) => ({ variantId: c.variantId, finalText: c.turns[c.turns.length - 1]?.assistantText ?? '' })),
+                ),
+              },
+            ],
+          }),
+        ),
+      );
+      // Accept either the requested {"scores":[...]} envelope or a bare top-level array, which
+      // models frequently return when asked for "scores".
+      const parsed = extractJsonObject(extractText(response)) as unknown;
+      scores = Array.isArray(parsed) ? parsed : (parsed as { scores?: unknown })?.scores;
+      if (!Array.isArray(scores)) throw new Error('combined judge did not return a "scores" array');
+    } catch (err) {
+      // Group-level judge failure for this assertion: mark every current candidate and stop
+      // (prior assertions' results are retained per variant below).
+      for (const c of candidates) setEvalError(c.variantId, assertion, err);
+      break;
+    }
+
+    const byId = new Map<string, unknown>();
+    for (const score of scores) {
+      const variantId = (score as { variantId?: unknown })?.variantId;
+      if (typeof variantId === 'string') byId.set(variantId, score);
+    }
+    for (const c of candidates) {
+      try {
+        const raw = byId.get(c.variantId);
+        if (!raw) throw new Error('combined judge returned no score for this variant');
+        const item = validateEvalResultItem(raw);
+        const list = perVariant.get(c.variantId) ?? [];
+        list.push(item);
+        perVariant.set(c.variantId, list);
+      } catch (err) {
+        setEvalError(c.variantId, assertion, err);
+      }
+    }
+  }
+
+  for (const result of active) {
+    const items = perVariant.get(result.variantId);
+    if (items && items.length > 0) result.evalResult = items;
+  }
+}
+
+// ---- variant conversation (turns only; eval is attached by the group) ----------------------------
+
+async function runVariantConversation(
   client: Anthropic,
   config: BenchConfig,
   suite: SuiteConfig,
@@ -186,9 +378,9 @@ async function runVariantOnce(
   const model = suite.model ?? config.model;
   const maxTokens = suite.maxOutputTokens ?? config.maxOutputTokens;
   const thinking = suite.thinking ?? config.thinking;
+  const system = buildVariantSystem(config, variant);
 
-  // Fresh, isolated history per (variant, repetition) — no state is shared
-  // across runs, which is what makes them safe to execute concurrently.
+  // Fresh, isolated history per (variant, repetition) — no state is shared across runs.
   const history: Anthropic.MessageParam[] = [];
   const turns: TurnResult[] = [];
   let totalInput = 0;
@@ -216,7 +408,7 @@ async function runVariantOnce(
           ...(thinking.enabled && thinking.mode === 'adaptive'
             ? { output_config: { effort: thinking.effort } }
             : {}),
-          ...(variant.systemPrompt ? { system: variant.systemPrompt } : {}),
+          ...(system ? { system } : {}),
           messages: history,
         }),
       );
@@ -260,18 +452,14 @@ async function runVariantOnce(
       });
     }
 
-    const { evalResult, evalError } = await runEvalAssertions(client, model, suite, turns);
     const costUsd = computeCostUsd(totalInput, totalOutput, model, config.pricingOverrides);
     const totalLatencyMs = turns.reduce((acc, t) => acc + t.latencyMs, 0);
-
     return {
       suiteId: suite.id,
       variantId: variant.id,
       repetition,
       model,
       turns,
-      ...(evalResult ? { evalResult } : {}),
-      ...(evalError ? { evalError } : {}),
       totals: {
         inputTokens: totalInput,
         outputTokens: totalOutput,
@@ -300,6 +488,54 @@ async function runVariantOnce(
   }
 }
 
+/** One (suite, repetition) pipeline. Never rejects — variant and judge failures are isolated so a
+ * single failed API call marks only that variant-repetition and never fails the batch. */
+async function runGroup(
+  client: Anthropic,
+  config: BenchConfig,
+  suite: SuiteConfig,
+  repetition: number,
+  limit: Limiter,
+  report: (result: RunResult) => void,
+): Promise<RunResult[]> {
+  const model = suite.model ?? config.model;
+  const mode = resolveJudgeMode(config, suite);
+
+  // Launch every variant's conversation for this repetition concurrently (bounded by the limiter).
+  const conversationPromises = suite.variants.map((variant) =>
+    limit(() => runVariantConversation(client, config, suite, variant, repetition)),
+  );
+
+  // Individual mode: judge each variant as soon as ITS conversation resolves — no group barrier.
+  if (suite.eval && mode === 'individual') {
+    return Promise.all(
+      conversationPromises.map(async (conversation) => {
+        const result = await conversation;
+        if (result.error) {
+          report(result);
+          return result;
+        }
+        const { evalResult, evalError } = await runIndividualEval(client, model, suite, result.turns, limit);
+        const finalResult: RunResult = {
+          ...result,
+          ...(evalResult ? { evalResult } : {}),
+          ...(evalError ? { evalError } : {}),
+        };
+        report(finalResult);
+        return finalResult;
+      }),
+    );
+  }
+
+  // Combined mode (or no eval): await all this repetition's variants, then judge them together.
+  const results = await Promise.all(conversationPromises);
+  if (suite.eval && mode === 'combined') {
+    await runCombinedEval(client, model, suite, results, limit);
+  }
+  for (const result of results) report(result);
+  return results;
+}
+
 interface Job {
   suite: SuiteConfig;
   variant: VariantConfig;
@@ -321,31 +557,32 @@ function buildJobs(config: BenchConfig): Job[] {
 
 export type ProgressCallback = (done: number, total: number, result: RunResult) => void;
 
-/** Runs every (suite, variant, repetition) job as an independent conversation.
- * Jobs share no state, so up to `config.concurrency` of them run in parallel. */
+/** Runs every (suite, variant, repetition) as an independent conversation under one shared
+ * concurrency limit. Repetition groups pipeline independently: each fires its judge (combined) or
+ * per-variant judges (individual) as soon as its own conversations resolve — no global barrier, no
+ * sequential passes. A failed variant-repetition (after retries) is recorded with `error` and the
+ * batch continues. */
 export async function runBenchSuite(
   client: Anthropic,
   config: BenchConfig,
   onProgress?: ProgressCallback,
 ): Promise<RunResult[]> {
-  const jobs = buildJobs(config);
-  const results: RunResult[] = new Array(jobs.length);
-  let cursor = 0;
+  const total = buildJobs(config).length;
+  const limit = createLimiter(Math.max(1, config.concurrency));
   let completed = 0;
+  const report = (result: RunResult): void => {
+    completed++;
+    onProgress?.(completed, total, result);
+  };
 
-  async function worker(): Promise<void> {
-    for (;;) {
-      const idx = cursor++;
-      if (idx >= jobs.length) return;
-      const job = jobs[idx];
-      const result = await runVariantOnce(client, config, job.suite, job.variant, job.repetition);
-      results[idx] = result;
-      completed++;
-      onProgress?.(completed, jobs.length, result);
+  const groupPromises: Array<Promise<RunResult[]>> = [];
+  for (const suite of config.suites) {
+    const reps = suite.repetitions ?? config.repetitions;
+    for (let r = 0; r < reps; r++) {
+      groupPromises.push(runGroup(client, config, suite, r, limit, report));
     }
   }
 
-  const workerCount = Math.max(1, Math.min(config.concurrency, jobs.length));
-  await Promise.all(Array.from({ length: workerCount }, () => worker()));
-  return results;
+  const grouped = await Promise.all(groupPromises);
+  return grouped.flat();
 }

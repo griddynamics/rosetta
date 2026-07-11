@@ -37,8 +37,8 @@ Act as a senior pattern architect — recovers reusable structural conventions f
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- ACQUIRE `reverse-engineering/SKILL.md` FROM KB — apply "Would we rebuild this?" test: pattern = recurring structure surviving a from-scratch rewrite; one-off = historical accident
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
+- USE SKILL `reverse-engineering` — apply "Would we rebuild this?" test: pattern = recurring structure surviving a from-scratch rewrite; one-off = historical accident
 - Pattern qualifies only if found in 2+ places
 - INDEX.md and CHANGES.md must be possible to grep by md headers (top 3 levels). Must not use tables. Instructions ask to grep files to populate list of those items in context.
 

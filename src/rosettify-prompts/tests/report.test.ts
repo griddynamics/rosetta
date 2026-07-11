@@ -83,4 +83,33 @@ describe('buildReport', () => {
     expect(markdown).toContain('Reasons: reason Suggestions: suggestion');
     expect(markdown).not.toContain('Evidence');
   });
+
+  it('surfaces judge mode and injected additional/supporting context in the header', () => {
+    const augmented: BenchConfig = {
+      ...config,
+      judgeModeOverride: 'individual',
+      additional: ['shared context'],
+      supportingFiles: [{ path: '/abs/ref.md', content: 'x' }],
+    };
+    const markdown = renderMarkdownReport(buildReport(augmented, [run(0, 'pass', 90)]));
+    expect(markdown).toContain('Judge mode: individual');
+    expect(markdown).toContain('Additional context blocks (in every variant system prompt): 1');
+    expect(markdown).toContain('Supporting files (in every variant system prompt): /abs/ref.md');
+  });
+
+  it('defaults the header judge mode to combined', () => {
+    const markdown = renderMarkdownReport(buildReport(config, [run(0, 'pass', 90)]));
+    expect(markdown).toContain('Judge mode: combined');
+  });
+
+  it('strips supporting-file bodies from the embedded config (keeps paths)', () => {
+    const augmented: BenchConfig = {
+      ...config,
+      supportingFiles: [{ path: '/abs/ref.md', content: 'SECRET BODY' }],
+    };
+    const report = buildReport(augmented, [run(0, 'pass', 90)]);
+    expect(report.config.supportingFiles?.[0].path).toBe('/abs/ref.md');
+    expect(report.config.supportingFiles?.[0].content).toBe('');
+    expect(JSON.stringify(report)).not.toContain('SECRET BODY');
+  });
 });

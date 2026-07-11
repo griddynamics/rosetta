@@ -30,10 +30,25 @@ export interface EvalAssertionConfig {
   rubric?: string;
 }
 
+/** How the eval judge scores variants:
+ * - 'combined' (default): all variants of one (suite, repetition) are judged together in a single
+ *   call per assertion, so the judge sees every candidate and can notice omissions; it still returns
+ *   an absolute score per variant.
+ * - 'individual': each variant's answer is judged alone (legacy behavior). */
+export type JudgeMode = 'combined' | 'individual';
+
 export interface EvalConfig {
   /** Optional extra evaluator instruction applied to every assertion in this suite. */
   judgePrompt?: string;
+  /** Per-suite judge mode override. Falls back to BenchConfig.judgeMode, then 'combined'. */
+  mode?: JudgeMode;
   assertions: EvalAssertionConfig[];
+}
+
+/** A supporting file's resolved contents, injected (context-only) into every variant system prompt. */
+export interface SupportingFile {
+  path: string;
+  content: string;
 }
 
 export interface SuiteConfig {
@@ -66,6 +81,17 @@ export interface BenchConfig {
   concurrency: number;
   /** Optional overrides/additions merged over the built-in pricing table. */
   pricingOverrides?: Record<string, ModelPricing>;
+  /** Extra context text appended to EVERY variant's system prompt (config + CLI --additional). */
+  additional?: string[];
+  /** Supporting file paths as declared in config (resolved relative to the config file). */
+  supporting?: string[];
+  /** Resolved supporting file contents, injected (context-only) into every variant system prompt.
+   * Populated by loadConfig (config paths) and the CLI (--supporting paths); consumed by the runner. */
+  supportingFiles?: SupportingFile[];
+  /** Config-level default judge mode (below per-suite eval.mode). Defaults to 'combined'. */
+  judgeMode?: JudgeMode;
+  /** CLI --judge-mode: a hard global override that beats per-suite eval.mode. Not read from JSON. */
+  judgeModeOverride?: JudgeMode;
   suites: SuiteConfig[];
 }
 

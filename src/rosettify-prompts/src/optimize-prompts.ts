@@ -1,48 +1,51 @@
-export const OPTIMIZE_PHASES = [
+// Single-session optimize pipeline: 7 intent-combined content steps run in one conversation.
+// Each combined step merges several fine-grained sub-steps that share the same intent; their exact
+// reference text is preserved verbatim and unioned (duplicate lines deduped within the combined step).
+
+export const OPTIMIZE_STEPS = [
   {
-    id: 'architecture-intent',
-    label: 'Architecture + Intent',
-    goal: 'Establish prompt purpose, preservation inventory, actors, boundaries, contracts, and hierarchy.',
-    steps: [
-      'inventory-ledger',
-      'requirements-intent',
-      'actor-boundaries',
-      'responsibility-slicing',
-      'contracts',
-      'hierarchy-priority',
-    ],
+    id: 'inventory-intent',
+    label: 'Inventory & Intent',
+    members: ['inventory-ledger', 'requirements-intent'],
   },
   {
-    id: 'execution-review',
-    label: 'Execution + Review Mechanics',
-    goal: 'Define workflow, subagents, HITL, validation, review, and failure handling.',
-    steps: [
-      'workflow-semantics',
-      'subagent-orchestration',
-      'hitl-user-loop',
-      'review-validate',
-      'failure-mode-hardening',
-    ],
+    id: 'actors-contracts',
+    label: 'Actors, Boundaries & Contracts',
+    members: ['actor-boundaries', 'responsibility-slicing', 'contracts'],
   },
   {
-    id: 'compression-patterns',
-    label: 'Compression + Pattern Integration',
-    goal: 'Integrate useful patterns, simulate execution, remove slop, and compact surgically.',
-    steps: [
-      'pattern-integration',
-      'simulation',
-      'anti-slop',
-      'compactness',
-      'final-consistency',
-      'final-minimality',
-    ],
+    id: 'execution-delegation',
+    label: 'Execution & Delegation',
+    members: ['workflow-semantics', 'subagent-orchestration', 'hitl-user-loop'],
+  },
+  {
+    id: 'review-failure',
+    label: 'Review, Validation & Failure Hardening',
+    members: ['review-validate', 'failure-mode-hardening'],
+  },
+  {
+    id: 'patterns-simulation',
+    label: 'Patterns & Simulation',
+    members: ['pattern-integration', 'simulation'],
+  },
+  {
+    id: 'compression',
+    label: 'Compression',
+    members: ['anti-slop', 'compactness'],
+  },
+  {
+    id: 'consistency-minimality',
+    label: 'Consistency & Minimality',
+    members: ['final-consistency', 'final-minimality', 'hierarchy-priority'],
   },
 ] as const;
 
-export type OptimizePhaseId = (typeof OPTIMIZE_PHASES)[number]['id'];
-export type OptimizeStepId = (typeof OPTIMIZE_PHASES)[number]['steps'][number];
+export type OptimizeStepId = (typeof OPTIMIZE_STEPS)[number]['id'];
+export type OptimizeSubStepId = (typeof OPTIMIZE_STEPS)[number]['members'][number];
 
-export const OPTIMIZE_STEPS = OPTIMIZE_PHASES.flatMap((phase) => phase.steps);
+/** The whole run is one conversation; the trace keeps a single "phase" for reporting continuity. */
+export const OPTIMIZE_SESSION = { id: 'optimize-session', label: 'Optimize session' } as const;
+export type OptimizePhaseId = typeof OPTIMIZE_SESSION.id;
 
 export const COMMON_CONTEXT = `You optimize prompt/skill files for a future coding agent.
 
@@ -107,7 +110,8 @@ Rules:
 - Compact accepted wording; final files should not grow unless preserving critical value requires it.
 - No markdown fences, commentary, analysis, or extra top-level keys.`;
 
-export const STEP_REFERENCE_SECTIONS: Record<OptimizeStepId, { objective: string; hardening?: string; patterns?: string; aiIssues?: string }> = {
+/** Exact per-sub-step reference text. Verbatim source of truth; merged per combined step below. */
+const SUBSTEP_REFERENCE_SECTIONS: Record<OptimizeSubStepId, { objective: string; hardening?: string; patterns?: string; aiIssues?: string }> = {
   'inventory-ledger': {
     objective: 'Identify every behavior, constraint, artifact, input/output, dependency, and value that must survive optimization.',
     hardening: `- Trace request end-to-end
@@ -395,3 +399,44 @@ export const STEP_REFERENCE_SECTIONS: Record<OptimizeStepId, { objective: string
 - Coded != done.`,
   },
 };
+
+/** Union member field texts, deduping identical (trimmed) lines and collapsing blank runs. */
+function mergeUnique(texts: Array<string | undefined>): string | undefined {
+  const present = texts.filter((text): text is string => Boolean(text));
+  if (present.length === 0) return undefined;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const text of present) {
+    for (const line of text.split('\n')) {
+      if (line.trim() === '') {
+        if (out.length > 0 && out[out.length - 1] !== '') out.push('');
+        continue;
+      }
+      if (seen.has(line)) continue;
+      seen.add(line);
+      out.push(line);
+    }
+  }
+  while (out.length > 0 && out[0] === '') out.shift();
+  while (out.length > 0 && out[out.length - 1] === '') out.pop();
+  return out.join('\n');
+}
+
+function buildCombinedSection(members: readonly OptimizeSubStepId[]): {
+  objectives: string[];
+  hardening?: string;
+  patterns?: string;
+  aiIssues?: string;
+} {
+  return {
+    objectives: members.map((member) => SUBSTEP_REFERENCE_SECTIONS[member].objective),
+    hardening: mergeUnique(members.map((member) => SUBSTEP_REFERENCE_SECTIONS[member].hardening)),
+    patterns: mergeUnique(members.map((member) => SUBSTEP_REFERENCE_SECTIONS[member].patterns)),
+    aiIssues: mergeUnique(members.map((member) => SUBSTEP_REFERENCE_SECTIONS[member].aiIssues)),
+  };
+}
+
+/** Combined-step reference sections: one entry per combined step, verbatim union of its members. */
+export const STEP_REFERENCE_SECTIONS = Object.fromEntries(
+  OPTIMIZE_STEPS.map((step) => [step.id, buildCombinedSection(step.members)]),
+) as Record<OptimizeStepId, { objectives: string[]; hardening?: string; patterns?: string; aiIssues?: string }>;

@@ -96,4 +96,4 @@ TestRail `priority_id` / `type_id` are NOT enums -- they are foreign keys into p
 
 ## Swapping to another TMS vendor
 
-To fork this binding for another TMS (Zephyr / Xray / qTest / Polarion): ACQUIRE `qa-knowledge/references/vendor-fork-guide.md` FROM KB, copy this file to `qa-knowledge/references/<vendor>-export.md`, and rebind only the vendor-specific items per that guide's Rebind table -- keeping the process shape, the destructive-write confirmation gate, and the redaction discipline verbatim.
+To fork this binding for another TMS (Zephyr / Xray / qTest / Polarion): READ SKILL FILE `references/vendor-fork-guide.md`, copy this file to `references/<vendor>-export.md`, and rebind only the vendor-specific items per that guide's Rebind table -- keeping the process shape, the destructive-write confirmation gate, and the redaction discipline verbatim.

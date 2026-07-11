@@ -258,9 +258,7 @@ After corrections are applied:
 
 ## Important Notes
 
-- **CRITICAL**: NEVER apply changes without explicit user approval
-- **User Approval Format**: User must type "approved", "yes", or similar explicit approval
-- **No Assumptions**: If user provides feedback, it's review, not approval - wait for explicit approval
+- **CRITICAL**: NEVER apply changes without strict approval — user must type "approved" or "yes"
 - **Incremental Fixes**: Apply changes one at a time, validate each
 - **Preserve Intent**: Ensure fixes don't change test intent or requirements
 - **Documentation**: Document all changes for traceability

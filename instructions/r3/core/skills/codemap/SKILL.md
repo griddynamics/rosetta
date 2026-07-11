@@ -43,10 +43,10 @@ IF graphify is already **REQUESTED** in current context:
 <gitnexus>
 
 IF gitnexus is already **REQUESTED** in current context:
-- code graph queries, exploring code, debugging errors, analyzing impact, or refactoring: MUST ACQUIRE `codemap/assets/gitnexus-use.md` FROM KB and follow it
-- running CLI commands, indexing, checking status, cleaning index, or generating wiki: MUST ACQUIRE `codemap/assets/gitnexus-cli.md` FROM KB and follow it
-- installing GitNexus or registering the MCP server for the first time: MUST ACQUIRE `codemap/assets/gitnexus-setup.md` FROM KB and follow it
-- Worked examples: ACQUIRE `codemap/assets/gitnexus-examples.md` FROM KB
+- code graph queries, exploring code, debugging errors, analyzing impact, or refactoring: MUST APPLY SKILL FILE `assets/gitnexus-use.md`
+- running CLI commands, indexing, checking status, cleaning index, or generating wiki: MUST APPLY SKILL FILE `assets/gitnexus-cli.md`
+- installing GitNexus or registering the MCP server for the first time: MUST APPLY SKILL FILE `assets/gitnexus-setup.md`
+- Worked examples: READ SKILL FILE `assets/gitnexus-examples.md`
 - After modifying code, run `npx -y gitnexus@latest analyze --force` in the workspace root
 
 </gitnexus>
@@ -61,9 +61,9 @@ IF gitnexus is already **REQUESTED** in current context:
 
 <how_to_generate>
 
-1. ACQUIRE the generator for the current OS FROM KB (Unix/macOS: make executable first):
-   - Unix/macOS: ACQUIRE `codemap/assets/codemap.sh.txt` FROM KB
-   - Windows: ACQUIRE `codemap/assets/codemap.ps1.txt` FROM KB
+1. Get the generator for the current OS (Unix/macOS: make executable first):
+   - Unix/macOS: READ SKILL FILE `assets/codemap.sh.txt`
+   - Windows: READ SKILL FILE `assets/codemap.ps1.txt`
 2. Execute the script:
    - Unix/macOS: `codemap.sh [WORKSPACE_ROOT] [MAX_DEPTH]`
    - Windows: `codemap.ps1 -WorkspaceRoot <path> -MaxDepth <n>`

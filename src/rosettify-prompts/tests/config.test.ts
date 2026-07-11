@@ -118,6 +118,38 @@ describe('parseConfig', () => {
     expect(config.suites[0].eval?.assertions[0].id).toBe('a1');
   });
 
+  it('defaults judgeMode to combined and additional/supporting to empty', () => {
+    const config = parseConfig(minimalSuite());
+    expect(config.judgeMode).toBe('combined');
+    expect(config.additional).toEqual([]);
+    expect(config.supporting).toEqual([]);
+  });
+
+  it('parses additional, supporting paths, global judgeMode, and per-suite eval.mode', () => {
+    const config = parseConfig(
+      minimalSuite({
+        additional: ['shared context'],
+        supporting: ['refs/a.md'],
+        judgeMode: 'individual',
+        suites: [
+          {
+            id: 'suite-a',
+            eval: { mode: 'combined', assertions: [{ id: 'a1', text: 'ok' }] },
+            variants: [{ id: 'v1', turns: ['hi'] }],
+          },
+        ],
+      }),
+    );
+    expect(config.additional).toEqual(['shared context']);
+    expect(config.supporting).toEqual(['refs/a.md']);
+    expect(config.judgeMode).toBe('individual');
+    expect(config.suites[0].eval?.mode).toBe('combined');
+  });
+
+  it('rejects an invalid judgeMode', () => {
+    expect(() => parseConfig(minimalSuite({ judgeMode: 'sideways' }))).toThrow();
+  });
+
   it('rejects duplicate eval assertion ids within a suite', () => {
     expect(() =>
       parseConfig(
@@ -165,6 +197,22 @@ describe('loadConfig', () => {
     );
     const config = loadConfig(file);
     expect(config.suites[0].id).toBe('suite-a');
+  });
+
+  it('reads config-declared supporting files relative to the config file', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'rosettify-prompts-test-'));
+    writeFileSync(path.join(dir, 'ref.md'), 'REF BODY', 'utf-8');
+    writeFileSync(path.join(dir, 'evals.json'), JSON.stringify(minimalSuite({ supporting: ['ref.md'] })), 'utf-8');
+    const config = loadConfig(path.join(dir, 'evals.json'));
+    expect(config.supportingFiles).toHaveLength(1);
+    expect(config.supportingFiles?.[0].content).toBe('REF BODY');
+    expect(config.supportingFiles?.[0].path).toBe(path.join(dir, 'ref.md'));
+  });
+
+  it('gives a clean error when a supporting file is missing', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'rosettify-prompts-test-'));
+    writeFileSync(path.join(dir, 'evals.json'), JSON.stringify(minimalSuite({ supporting: ['nope.md'] })), 'utf-8');
+    expect(() => loadConfig(path.join(dir, 'evals.json'))).toThrow(/Could not read supporting file "nope\.md"/);
   });
 
   it('loads the checked-in example configs', () => {

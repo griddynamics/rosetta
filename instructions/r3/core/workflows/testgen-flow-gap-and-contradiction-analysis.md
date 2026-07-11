@@ -361,7 +361,7 @@ After Phase 2 completion:
 2. Show high-risk issues requiring urgent clarification
 3. Ask: "Ready to proceed to Phase 3 (Question Generation)?"
 4. Wait for confirmation
-5. Load Phase 3: ACQUIRE testgen-phase3-md FROM KB
+5. Load Phase 3: APPLY PHASE testgen-flow-question-generation.md
 
 ## Notes
 

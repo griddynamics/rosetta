@@ -429,7 +429,7 @@ describe("CLI — plan create-with-template (FR-PLAN-0030)", () => {
     expect(r.status).toBe(0);
     const tree = r.json as { phases: { id: string; steps: unknown[] }[] };
     const prep = tree.phases.find((p) => p.id === "ph-prep")!;
-    expect(prep.steps).toHaveLength(5);
+    expect(prep.steps).toHaveLength(3);
   });
 
   it("placeholder substitution: plan-name appears in file on disk", () => {
@@ -463,11 +463,11 @@ describe("CLI — plan create-with-template (FR-PLAN-0030)", () => {
     const raw = fs.readFileSync(file, "utf8");
     expect(raw).toContain("ph-prep-s-my-custom");
     expect(raw).toContain("My Custom Step");
-    // The plan must have ph-prep with 6 steps (5 seeded + 1 injected)
+    // The plan must have ph-prep with 4 steps (3 seeded + 1 injected)
     const plan = JSON.parse(raw) as { phases: Array<{ id: string; steps: unknown[] }> };
     const prepPhase = plan.phases.find((p) => p.id === "ph-prep")!;
     expect(prepPhase).toBeDefined();
-    expect(prepPhase.steps.length).toBe(6);
+    expect(prepPhase.steps.length).toBe(4);
   });
 });
 

@@ -45,6 +45,6 @@ Please answer what you know — I can discover the rest from code and docs.
 ```
 
 **After the interview (agent-facing):**
-- **Output:** populate `qa-structure/assets/api-qa-project-config-template.md` with the answers (apply its redaction note), then write to `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md`.
+- **Output:** READ SKILL FILE `assets/api-qa-project-config-template.md`, populate it with the answers (apply its redaction note), then write to `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md`.
 
 </api-qa-config-interview>

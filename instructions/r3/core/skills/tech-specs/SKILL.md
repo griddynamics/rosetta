@@ -19,13 +19,14 @@ Senior tech lead defining precise, testable technical specifications writing the
 </role>
 
 <when_to_use_skill>
-Use when requirements need translation into specs, architecture needs documentation, or API contracts and data models need definition. Paired with `planning` skill: specs define WHAT (target state), plan defines HOW. Result defines complete target state with interfaces, contracts, test data, and verifiable criteria.
+Requirements→specs translation; architecture documentation; API contracts/data model definition. Paired with `planning`: specs=WHAT (target state), plan=HOW. Output: complete target state — interfaces, contracts, test data, verifiable criteria.
 </when_to_use_skill>
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Discovery MUST be completed before writing specs
+- Validate request against REQUIREMENTS for gaps and conflicts; USE SKILL `requirements-use` if present
 - MCPs and external sources MUST be used to acquire context (DeepWiki, Context7, Web Search)
 
 Tech specs define target state; plan defines steps to reach it.

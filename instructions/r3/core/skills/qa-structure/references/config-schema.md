@@ -5,7 +5,7 @@ Schema with required keys, the phase that consumes each, and accepted N/A forms.
 
 <config-schema>
 
-The project-config-loading phase completes only when every required key below holds a real value or explicit `N/A -- <reason>` (or `TBD -- <next-step>` where noted). Carrying asset: ACQUIRE `qa-structure/assets/api-qa-project-config-template.md` FROM KB.
+The project-config-loading phase completes only when every required key below holds a real value or explicit `N/A -- <reason>` (or `TBD -- <next-step>` where noted). Carrying asset: READ SKILL FILE `assets/api-qa-project-config-template.md`.
 
 **Required keys (consumed by later phases -- vendor resolution downstream binds to these by exact name):**
 

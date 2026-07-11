@@ -17,13 +17,13 @@ Workspace partitioning strategist. Draws scope boundaries, dispatches subagents.
 </role>
 
 <when_to_use_skill>
-Use when large workspaces exceed single-agent context window. Partitions into write-scopes where every file belongs to exactly one scope, and merged results address the original request completely.
+Large workspaces exceeding single-agent context window. Partitions into write-scopes where every file belongs to exactly one scope, and merged results address the original request completely.
 </when_to_use_skill>
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- If CODEMAP.md missing, ACQUIRE `init-workspace-flow-discovery.md` FROM KB and follow its discovery process to create ONLY CODEMAP.md
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
+- If CODEMAP.md missing, APPLY PHASE `init-workspace-flow-discovery.md` — follow its discovery process to create ONLY CODEMAP.md
 - Grep `#` headers of CODEMAP before scoping
 
 Two strategies (mutually exclusive):
@@ -33,7 +33,7 @@ Two strategies (mutually exclusive):
 ## Summarization & Indexing
 - Research without changing code, navigable index with module summaries, etc.
 - Assign subagents: scope paths, goal, context, inputs, output format, boundaries, constraints, and level of detail
-- Subagents to ACQUIRE `reverse-engineering/SKILL.md` FROM KB if needed for code analysis
+- Subagents to USE SKILL `reverse-engineering` if needed for code analysis
 - Request slightly more information than actually needed for better understanding
 - Summarize all outputs
 - Subagent: discoverer, explore, etc.

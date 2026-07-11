@@ -37,7 +37,7 @@ Act as a senior workspace initialization auditor. This is the final phase of wor
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 
 </core_concepts>
 
@@ -63,7 +63,7 @@ INIT INTEGRITY:
 11. Composite workspace: top-level docs as registries if composite
 12. File inventory built before creation/update decisions
 13. Shell files: frontmatter + single ACQUIRE, zero inline logic
-14. load-context shell and bootstrap rule installed
+14. load-project-context shell and bootstrap rule installed
 15. Shells match schema — no structural deviations, no absolute paths
 16. docs/PATTERNS/ with INDEX.md; each pattern in 2+ locations; INDEX.md is consistent
 
@@ -71,14 +71,14 @@ CROSS-FILE CONSISTENCY:
 
 17. TECHSTACK frameworks appear in ARCHITECTURE
 18. CONTEXT, ARCHITECTURE, IMPLEMENTATION complement — no duplication
-19. coding.md ACQUIRED FROM KB and used as file creation reference
+19. skill `coding` loaded and used as file creation reference
 20. greppable headers used in all files
 
 CONDITIONAL (if rules requested, N/A otherwise):
 
 21. KB SEARCHED for IDE/Agent rules — agent's built-in knowledge is obsolete, verify KB was queried
 22. Existing rules checked before creating new
-23. Root agents file uses bootstrap.md template
+23. Root agents file uses mcp-files-mode.md template
 24. Tech-specific agent files created
 25. Local instructions with MoSCoW emphasis
 26. Weekly check mechanism with release version
@@ -141,7 +141,7 @@ ASSUMPTIONS REVALIDATION:
 
    "/modernization-flow Perform modernization phase 2 to analyze service module ... using subagents. Target microservice name is ... ."
 
-   "/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must use `coding-flow.md` to actually implement and as the main flow. Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."
+   "/modernization-flow Perform modernization phase 8 for target service to analyze service module ... using subagents. Must USE FLOW `coding-flow.md` to actually implement and as the main flow. Once done spawn subagent to validate and repeat an entire loop until there are no issues detected."
    ```
 </next_steps>
 

@@ -1,52 +1,52 @@
 # Skills
 
-- discovery
+- discovery (not yet)
 - research
 - context-engineering (TBD)
 - planning
-- operation-manager
 - reasoning
 - questioning
 - tech-specs
 - reverse-engineering
-- template-execution
+- template-execution (not yet)
 - coding-agents-prompt-authoring
-- prompt-diagnosis
+- prompt-diagnosis (not yet)
 - large-workspace-handling
-- technical-summarization
-- review
-- design
-- security
-- simulation
-- backward-compatibility
-- data-generation
-- documentation
-- large-file-handling
+- technical-summarization (not yet)
+- review (not yet)
+- design (not yet)
+- security (not yet)
+- simulation (not yet)
+- backward-compatibility (not yet)
+- data-generation (not yet)
+- documentation (not yet)
+- large-file-handling (not yet)
 - requirements-authoring
 - requirements-use
 - coding
 - testing
 - debugging
 - codemap
-- load-context
 - load-project-context
-- load-workflow
-- load-context-instructions
 - deviation
 - self-organization
 - self-learning
 - post-mortem
 - sensitive-data
 - hitl
-- subagent-contract
-- orchestrator-contract
 - dangerous-actions
 - risk-assessment
 - natural-writing
 - coding-agents-farm
 - coding-agents-hooks-authoring
 - specflow-use
+- solr-extending
+- solr-query
+- solr-schema
+- solr-semantic-search
 - rosetta
 - data-collection
 - qa-knowledge
 - qa-structure
+- orchestration
+- subagent-directives

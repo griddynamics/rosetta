@@ -27,7 +27,7 @@ Validation: Every recommendation traces to a specific contract or intent element
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Artifacts to review available
 - Original intent, contracts, or specifications provided by orchestrator
 

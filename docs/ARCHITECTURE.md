@@ -173,7 +173,7 @@ All three modes issue FastMCP JWTs to MCP clients and store upstream tokens in R
 
 Everything MCP works with is VFS (virtual file system) resource paths. The CLI strips instruction root prefixes during publishing, so `core/skills/planning/SKILL.md` becomes `skills/planning/SKILL.md`. Files at the same resource path get bundled together.
 
-**Tags are the primary access mechanism.** `ACQUIRE <path> FROM KB` queries by tags, which provides the most direct and fastest access. The CLI's auto-tagging was designed specifically for this: every folder name, filename, and composite pair/triple becomes a tag, so agents can request exactly what they need. Keyword search via `SEARCH` is the fallback for discovery.
+**Tags are the primary access mechanism.** Typed load aliases (`USE SKILL`, `READ RULE`, `APPLY PHASE`, ...) query by tags, which provides the most direct and fastest access. The CLI's auto-tagging was designed specifically for this: every folder name, filename, and composite pair/triple becomes a tag, so agents can request exactly what they need. Keyword search (`query_instructions(query=...)`) remains an MCP-level fallback for discovery.
 
 ### MCP Tools
 
@@ -181,7 +181,7 @@ Three tools and one resource are currently exposed to agents. Five write-data to
 
 | Tool | Purpose |
 |---|---|
-| `get_context_instructions` | Bootstrap: load all rules and guardrails bundled (prep step 1 to 3)  |
+| `get_context_instructions` | MCP bootstrap gate: load `bootstrap-alwayson.md` |
 | `query_instructions` | Fetch instruction docs by tags (primary) or keyword search (fallback) |
 | `list_instructions` | Browse the VFS hierarchy (flat listing of immediate children) |
 | `query_project_context` *(disabled)* | Search project-specific docs in a target repo dataset |
@@ -194,7 +194,7 @@ Three tools and one resource are currently exposed to agents. Five write-data to
 
 ### Bundler
 
-The Bundler merges multiple documents at the same VFS resource path into a single XML response. When an agent ACQUIREs a skill, core and organization files at that path are concatenated into one payload:
+The Bundler merges multiple documents at the same VFS resource path into a single XML response. When an agent loads a skill (`USE SKILL`), core and organization files at that path are concatenated into one payload:
 
 ```xml
 <rosetta:file id="..." dataset="..." path="skills/planning/SKILL.md" name="..." tags="..." frontmatter="...">
@@ -231,12 +231,12 @@ A full instruction suite listing is ~400 tokens. Frontmatter attributes (extract
 
 MCP manages context size through two mechanisms:
 
-- **Query list threshold (5).** When `query_instructions` matches 5 or fewer documents, MCP returns full bundled content. When more than 5 match, it returns a listing instead, with a header guiding the agent to ACQUIRE specific files by their unique tags. This keeps responses bounded regardless of knowledge base size.
+- **Query list threshold (5).** When `query_instructions` matches 5 or fewer documents, MCP returns full bundled content. When more than 5 match, it returns a listing instead, with a header guiding the agent to load specific files by their unique tags. This keeps responses bounded regardless of knowledge base size.
 - **Context headers.** Every MCP response includes a descriptive header explaining what the returned information is and how to act on it.
 
 ### Command Aliases
 
-Command aliases are used exclusively for Rosetta MCP resources (instructions, knowledge base, project datasets). Workspace files in the target repository (`docs/CONTEXT.md`, `agents/IMPLEMENTATION.md`, etc.) are read directly from the filesystem. This boundary is intentional: when an agent sees `ACQUIRE ... FROM KB`, it knows it is calling Rosetta MCP; when it reads a file, it knows it is working with target repository files.
+Command aliases are used exclusively for Rosetta resources (instructions, knowledge base). Workspace files in the target repository (`docs/CONTEXT.md`, `agents/IMPLEMENTATION.md`, etc.) are read directly from the filesystem. This boundary is intentional: when an agent sees a typed alias (`USE SKILL ...`, `READ RULE ...`), it knows it is loading Rosetta instructions through the active mode; when it reads a file, it knows it is working with target repository files.
 
 Instructions never call MCP tools directly. Rosetta defines command aliases that work across all IDEs and coding agents. This serves three purposes:
 
@@ -244,50 +244,48 @@ Instructions never call MCP tools directly. Rosetta defines command aliases that
 - **Decoupling.** Instruction content is independent of MCP API changes.
 - **Authoring.** Workflows, skills, and rules reference each other through aliases, not tool calls.
 
-| Alias | Maps to |
+| Alias | Semantics |
 |---|---|
-| `GET PREP STEPS` | `get_context_instructions()` |
-| `ACQUIRE <path> FROM KB` | `query_instructions(tags="<path>")` |
-| `SEARCH <keywords> IN KB` | `query_instructions(query="<keywords>")` |
-| `LIST <folder> IN KB` | `list_instructions(full_path_from_root="<folder>")` |
-| `USE SKILL <name>` | Load skill (fetches `SKILL.md` internally) |
-| `INVOKE SUBAGENT <name>` | Call subagent (fetches `agents/<name>.md`) |
-| `USE FLOW <name>` | Use workflow or command |
-| `ACQUIRE <file> ABOUT <project>` | `query_project_context(repository_name, tags)` |
-| `QUERY <keywords> IN <project>` | `query_project_context(repository_name, query)` |
-| `STORE <file> TO <project>` | `store_project_context(repository_name, ...)` |
+| `USE SKILL <name>` / `READ SKILL <name>` | Activate skill (loads `SKILL.md`, acts on it) / load content only |
+| `READ SKILL FILE <subpath>` / `APPLY SKILL FILE <subpath>` | Load / load+execute a file of the CURRENT skill; never names a skill (isolation is grammar-enforced) |
+| `USE FLOW <name>.md` / `READ FLOW <name>.md` | Invoke a whole workflow / load without executing |
+| `APPLY PHASE <file>.md` | Load + fully execute the next phase body of a running workflow |
+| `INVOKE SUBAGENT <name>` / `READ SUBAGENT <name>` | Spawn subagent / load its definition only |
+| `READ RULE <file>.md` / `APPLY RULE <file>.md` | Load / load+execute a rule |
+| `READ TEMPLATE <file>.md` | Load a template |
+| `READ CONFIGURE <tool>.md` | Load an IDE/agent configure spec |
+| `LIST <path>` | Enumerate immediate children of a KB folder |
+| `ACQUIRE <path> FROM KB` | MCP-only, generated shells: `query_instructions(tags="<path>")` |
 | `/rosetta` | Engage only the Rosetta flow |
 
-ACQUIRE expects a VFS resource path: filename, parent/filename, or grandparent/parent/filename. LIST preferred over SEARCH when the folder is known.
+Verbs: `READ` = load into context; `APPLY` = load + fully execute; `USE`/`INVOKE` = activate. In plugin mode the typed aliases need NO mapping — they operate natively on the plugin files; the MCP mode file (`mcp-files-mode.md`: `query_instructions`/`list_instructions` by path-based tags) and local mode file (`local-files-mode.md`: reads from `instructions/r3`) map each alias to their mechanisms. In MCP, typed loads resolve via VFS resource paths (filename, parent/filename, or grandparent/parent/filename); LIST preferred when the folder is known.
 
 ### Bootstrap Flow
 
-One `get_context_instructions` call returns all bootstrap rules bundled (core policy, execution policy, guardrails, HITL, rosetta files description). Three prep steps guide the agent on what to do next:
+The runtime footprint is minimal: `bootstrap-alwayson.md` (core policies, `reasonable`, tasks, skill engagement, core files) plus exactly one mode file. MCP and local mode files bind command aliases to their mechanisms; plugin mode needs no mapping because aliases operate natively on plugin files. Everything heavy loads on demand behind skills and workflows:
 
 ```
-1. Agent connects to Rosetta MCP
+1. Agent starts: MCP connects / plugin or local `bootstrap-alwayson.md` loads
 
-2. Server + tool instructions enforce: "call get_context_instructions first"
+2. Rosetta Prep Steps (bound per mode file, once per session)
+   ├── MCP:    get_context_instructions → USE SKILL load-project-context → USE SKILL hitl
+   ├── Plugin: USE SKILL load-project-context → USE SKILL hitl (`bootstrap-alwayson.md` auto-loaded)
+   └── Local:  read bootstrap-alwayson.md → USE SKILL load-project-context → USE SKILL hitl
 
-3. Prep Step 1 — get_context_instructions
-   └── Returns bundled bootstrap-* rules: core policy, execution policy,
-       guardrails, HITL questioning, workspace file definitions
+3. Routing — the user chooses the entry
+   ├── plain request → lean path: `bootstrap-alwayson.md`; skills auto-engage per descriptions
+   ├── /rosetta <request> → rosetta skill selects and hands off to the best workflow
+   └── /<workflow> <request> → that workflow directly (bypasses rosetta)
 
-4. Prep Step 2 — Load project context (direct file reads from target repository)
-   └── Read CONTEXT.md, ARCHITECTURE.md; grep headers of other workspace files
-
-5. Prep Step 3 — Classify and route
-   └── LIST workflows IN KB; ACQUIRE matching workflows
-       Agent now has: bootstrap rules + project context + workflow instructions
-
-6. Agent executes the workflow
-   ├── Follows phases (Prepare → Research → Plan → Act → Validate)
-   ├── Uses ACQUIRE/USE SKILL/INVOKE SUBAGENT to load instructions progressively
-   ├── Delegates to subagents, tracks progress via built-in todo tasks (r3 adds the operation-manager skill, backed by `rosettify`, for larger multi-phase work)
+4. Agent executes the workflow
+   ├── Follows phases (Prepare → Research → Plan → Act → Validate); chains phase files via APPLY PHASE
+   ├── Uses USE SKILL / INVOKE SUBAGENT / READ|APPLY RULE|TEMPLATE|SKILL FILE to load progressively
+   ├── Delegates to subagents, tracks progress via built-in todo tasks
+   │   (LARGE work adds the EXECUTION_CONTROLLER plan, backed by `rosettify`)
    └── Applies guardrails and HITL gates throughout
 ```
 
-All three prep steps are mandatory regardless of task size. The agent calls `get_context_instructions` exactly once per session.
+Requests are classified only when the user invokes `/rosetta`; a plain request legitimately runs lean. In MCP mode the agent calls `get_context_instructions` exactly once per session.
 
 **Key environment variables:** `ROSETTA_SERVER_URL`, `ROSETTA_API_KEY`, `INSTRUCTION_ROOT_FILTER`, `REDIS_URL`
 
@@ -345,7 +343,7 @@ The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instr
 **Change detection:** MD5 hash of content. Only modified files publish (~77% time savings). Use `--force` to bypass.
 
 **Auto-tagging and metadata extraction.** The CLI reads each file during publishing and extracts everything MCP needs to serve it efficiently:
-- **Tags:** all folder names + filename + composite pairs/triples (`core/skills`, `r2/core/skills`, etc.). These are what `ACQUIRE FROM KB` queries against.
+- **Tags:** all folder names + filename + composite pairs/triples (`core/skills`, `r2/core/skills`, etc.). These are what the typed load aliases query against.
 - **Frontmatter:** parsed from file content, saved as metadata. Exposed later in `<rosetta:file>` attributes so agents see document structure without loading full content.
 - **Resource path:** `skills/planning/SKILL.md` (org prefix stripped). This is the VFS path used everywhere in MCP.
 - **Domain** (`core`), **release** (`r2`), **collection** (`aia-r2`): derived from folder structure.
@@ -402,6 +400,7 @@ Instructions live in `/instructions/r2/` in the instructions repository, using a
 │   ├── skills/
 │   │   └── <name>/
 │   │       ├── SKILL.md
+│   │       ├── README.md    ← maintainer doc (r3; never loaded at runtime)
 │   │       ├── references/
 │   │       └── assets/
 │   ├── agents/
@@ -423,7 +422,7 @@ Instructions live in `/instructions/r2/` in the instructions repository, using a
 
 **Layered customization.** Core provides the universal foundation. Organization folders extend or override it. Files at the same VFS resource path get **bundled together** by the Bundler. `INSTRUCTION_ROOT_FILTER` controls which layers are included (e.g., `CORE,GRID`).
 
-**Component relationships.** Workflows invoke subagents. Subagents use skills. All reference rules. Templates live inside skills. Guardrails are rules. See [Overview — Key Concepts](../OVERVIEW.md#key-concepts) for definitions.
+**Component relationships.** Workflows invoke subagents. Subagents use skills. Templates live inside skills. Guardrails are primarily on-demand skills engaged through always-on actor lists and skill descriptions. See [Overview — Key Concepts](../OVERVIEW.md#key-concepts) for definitions.
 
 **Naming.** Lowercase, dash-separated, globally unique filenames. Entry points: `SKILL.md` for skills, `<name>.md` for agents, workflows, and rules.
 
@@ -458,7 +457,7 @@ Rosetta initializes and maintains a standard file structure in **target reposito
 - `refsrc/*` — reference source code for knowledge only (excluded from SCM except `refsrc/INDEX.md`)
 - `agents/TEMP/<FEATURE>` — temporary files during implementation (excluded from SCM)
 
-Prep step 2 loads `CONTEXT.md` and `ARCHITECTURE.md` from the target repository. The agent updates `IMPLEMENTATION.md` and `MEMORY.md` as it works. See [Installation — Workspace Files Created](../INSTALLATION.md#workspace-files-created) for the full list of committed and excluded files.
+The `load-project-context` prep action reads `CONTEXT.md` and `ARCHITECTURE.md` from the target repository. The agent updates `IMPLEMENTATION.md` and `MEMORY.md` as it works. See [Installation — Workspace Files Created](../INSTALLATION.md#workspace-files-created) for the full list of committed and excluded files.
 
 **State management and recovery.** For medium and large tasks, workflows create plan, spec, and state files in `plans/` and `agents/`. These files persist execution state to disk, so if a failure occurs (context loss, crash, timeout), the agent or a new session can resume from the last recorded state rather than starting over.
 
@@ -472,9 +471,9 @@ Instructions Repo ──► CLI (publish) ──► RAGFlow ──► Rosetta MC
 
 1. **Publish.** CLI reads `.md` files from instructions repo, extracts tags + frontmatter + metadata, generates deterministic UUID, upserts into dataset
 2. **Index.** RAGFlow parses, chunks, embeds, indexes for full-text and semantic search
-3. **Bootstrap.** Agent calls `get_context_instructions` via MCP (prep step 1), reads workspace files directly from the target repo (step 2), classifies request via MCP (step 3)
-4. **Load.** Agent uses ACQUIRE/SEARCH/LIST aliases. MCP queries by tags, bundles matching VFS paths into XML with context headers. Progressive disclosure: only what the workflow needs
-5. **Execute.** Workflow phases (Prepare → Research → Plan → Act → Validate), subagent delegation, built-in todo tracking (or the r3 operation-manager skill for larger work), guardrails and HITL gates.
+3. **Prepare.** In MCP mode, the agent calls `get_context_instructions` once, then uses `load-project-context` and `hitl`; plugin and local modes bind the same canonical `Rosetta Prep Steps` to their native mechanisms
+4. **Route and load.** A plain request stays lean; `/rosetta` classifies and selects a workflow; `/<workflow>` invokes that workflow directly. Typed aliases (USE/READ/APPLY/LIST) progressively load only the selected instruction artifacts
+5. **Execute.** Workflow phases, subagent delegation, and built-in todo tracking drive work. LARGE work adds the orchestrator-only EXECUTION_CONTROLLER backed by `rosettify`; guardrail skills and HITL gates apply throughout.
 
 ---
 
@@ -669,12 +668,12 @@ After adding or changing instructions, publish with the CLI to make them availab
 
 - **Release-based versioning over branch-based.** Releases (r1, r2) coexist in the same repo. Enables A/B testing and rollback, but folder structure carries the version.
 - **RAGFlow as the knowledge layer.** Chunking, embedding, and search out of the box. Adds a deployment dependency (Docker or hosted). STDIO transport partially mitigates this.
-- **Tags as primary access, not search.** ACQUIRE by tag is faster and more precise than keyword search. But requires the auto-tagging scheme to produce useful tags from folder structure.
+- **Tags as primary access, not search.** Loading by tag is faster and more precise than keyword search. But requires the auto-tagging scheme to produce useful tags from folder structure.
 - **XML bundling with threshold.** Structured `<rosetta:file>` output with metadata attributes. The threshold of 5 prevents context overflow by switching to listing mode. Requires agents to make follow-up requests for specific files. Plus `<rosetta:folder>`
 - **Command aliases over direct tool calls.** Portable across IDEs, decoupled from MCP API changes. An indirection layer contributors must learn.
 - **Full-folder publishing only.** Prevents broken metadata extraction. Change detection keeps incremental publishes fast.
 - **Layered customization over multi-tenancy.** Org folders extend core, not replace it. Requires unique filenames across the tree.
-- **Subagent/Skills/Commands Shells.** Create small proxies with proper frontmatters. Proxies use `ACQUIRE FROM KB` commands to load actual content. Coding agents expect Subagents/Skills/Commands in specific format in specific locations in the repository. Copying to repo make them stale. Not copying - native features of coding agents don't work. Shells resolve that. Plugins resolve this issue as well, but it only works in claude code.
+- **Subagent/Skills/Commands Shells.** Create small proxies with proper frontmatters. Proxies use raw `ACQUIRE FROM KB` commands to load actual content (copy-paste shells, MCP mode only). Coding agents expect Subagents/Skills/Commands in specific format in specific locations in the repository. Copying to repo make them stale. Not copying - native features of coding agents don't work. Shells resolve that. Plugins resolve this issue as well, but it only works in claude code.
 - **Single API key as dataset owner.** `ROSETTA_API_KEY` must belong to the owner of all datasets. Simplifies access control (one key sees everything), but that key is a high-value secret. Rotate it through your secrets manager.
 - **Server-controlled VERSION.** `VERSION` is not set by clients. The server decides which release (r1, r2) to serve. Enables managed rollouts and prevents version drift across teams.
 - **Streamable HTTP as default transport.** Stateful connections allow server-to-IDE callbacks and richer interaction. Requires sticky sessions when scaling horizontally. STDIO remains the escape hatch for air-gapped or single-user setups.

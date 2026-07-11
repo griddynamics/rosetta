@@ -38,8 +38,8 @@ Act as a workspace initialization classifier — fast, precise, zero-waste.
 Initialization must behave differently for fresh, existing, or plugin workspaces. Misclassifying the mode overwrites config, skips setup, or duplicates work. This is the first skill in the init flow — runs before all others. Also generates or updates `gain.json` with SDLC tooling configuration collected from the user.
 
 <core_concepts>
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- Three modes: install (no files per `bootstrap_rosetta_files`), upgrade (some files per `bootstrap_rosetta_files` exist), plugin (LLM context already contains "RUNNING AS A PLUGIN")
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
+- Three modes: install (no files per `bootstrap_rosetta_files` — the roster in SKILL `load-project-context`), upgrade (some files per `bootstrap_rosetta_files` exist), plugin (LLM context already contains "RUNNING AS A PLUGIN")
 - `gain.json` is the single source of truth for SDLC tooling; it wins in conflicts with other files
 </core_concepts>
 

@@ -245,18 +245,18 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0043 phase-steps injection", () => {
     const plan = loadPlan(file)!;
     const phase = plan.phases.find((p) => p.id === "ph-impl")!;
     expect(phase).toBeDefined();
-    // 6 seeded + 2 injected = 8 total
-    expect(phase.steps.length).toBe(8);
-    // Injected steps at positions 6 and 7 with exact IDs (NOT forced to ph-impl-s- pattern)
-    const injected0 = phase.steps[6] as { id: string; name: string };
-    const injected1 = phase.steps[7] as { id: string; name: string };
+    // 5 seeded + 2 injected = 7 total
+    expect(phase.steps.length).toBe(7);
+    // Injected steps at positions 5 and 6 with exact IDs (NOT forced to ph-impl-s- pattern)
+    const injected0 = phase.steps[5] as { id: string; name: string };
+    const injected1 = phase.steps[6] as { id: string; name: string };
     expect(injected0.id).toBe("ph-impl-x1");
     expect(injected0.name).toBe("Extra Step X1");
     expect(injected1.id).toBe("custom-step-2");
     expect(injected1.name).toBe("Custom Step 2");
   });
 
-  // FR-PLAN-0043 — phase-steps = "[]" → phase has exactly 6 seeded steps
+  // FR-PLAN-0043 — phase-steps = "[]" → phase has exactly 5 seeded steps
   it("empty phase-steps leaves upserted phase with exactly 6 seeded steps", async () => {
     const file = planFile();
     await createPlanFile(file);
@@ -274,7 +274,7 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0043 phase-steps injection", () => {
     const plan = loadPlan(file)!;
     const phase = plan.phases.find((p) => p.id === "ph-impl")!;
     expect(phase).toBeDefined();
-    expect(phase.steps.length).toBe(6);
+    expect(phase.steps.length).toBe(5);
   });
 
   // FR-PLAN-0043 — backward compatibility: omitting phase-steps is treated as [] (not an error)
@@ -295,7 +295,7 @@ describe("cmdUpsertWithTemplate — FR-PLAN-0043 phase-steps injection", () => {
     expect(result.ok).toBe(true);
     const plan = loadPlan(file)!;
     const phase = plan.phases.find((p) => p.id === "ph-impl")!;
-    expect(phase.steps).toHaveLength(6);
+    expect(phase.steps).toHaveLength(5);
   });
 
   // FR-PLAN-0043 — phase-steps = "not json" → invalid_phase_steps

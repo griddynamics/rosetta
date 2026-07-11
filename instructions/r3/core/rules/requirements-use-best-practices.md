@@ -13,16 +13,15 @@ Validation: Every in-scope result maps to approved requirement IDs with explicit
 
 <must>
 
-1. USE FLOW `requirements-use-flow` fully
-2. Confirm in-scope requirement IDs first
-3. Keep HITL back-and-forth active
-4. Escalate ambiguity before proceeding
-5. Map each task to requirement ID
-6. Map each test to requirement ID
-7. Keep assumptions explicit and approved
-8. Reject untraceable scope additions
-9. Report coverage gaps explicitly
-10. Capture final user coverage approval
+1. Confirm in-scope requirement IDs first
+2. Keep HITL back-and-forth active
+3. Escalate ambiguity before proceeding
+4. Map each task to requirement ID
+5. Map each test to requirement ID
+6. Keep assumptions explicit and approved
+7. Reject untraceable scope additions
+8. Report coverage gaps explicitly
+9. Capture final user coverage approval
 
 </must>
 

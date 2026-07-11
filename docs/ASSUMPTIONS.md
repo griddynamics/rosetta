@@ -53,5 +53,5 @@ Both folders are listed as optional Rosetta workspace files. No content exists i
 - Resolve in: Phase 7 HITL review
 
 ### `gain.json` schema [HIGH confidence]
-`gain.json` defines SDLC setup and overrides Rosetta file locations. Schema was inferred from `bootstrap-rosetta-files.md`. Created with defaults for this repo.
+`gain.json` defines SDLC setup and overrides Rosetta file locations. Schema was inferred from the Rosetta files roster (now the `<bootstrap_rosetta_files>` section of the `load-project-context` skill). Created with defaults for this repo.
 - Resolve in: `gain.json` (created), confirmed by Rosetta MCP bootstrap

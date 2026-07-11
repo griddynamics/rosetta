@@ -31,53 +31,53 @@ This agent handles end-to-end test automation from requirements gathering to tes
 ## AQA Flow - Phase Overview
 
 **Phase 1: Data Collection** [aqa-flow-data-collection.md]
-1. ACQUIRE aqa-flow-data-collection.md FROM KB
+1. APPLY PHASE aqa-flow-data-collection.md
 2. Execute phase instructions
 3. Update `agents/aqa-state.md`
 4. Validate gathered data
 
 **Phase 2: Requirements Clarification** [aqa-flow-requirements-clarification.md] ⭐ **USER INTERACTION REQUIRED**
-1. ACQUIRE aqa-flow-requirements-clarification.md FROM KB
+1. APPLY PHASE aqa-flow-requirements-clarification.md
 2. Execute phase instructions
 3. **WAIT FOR USER ANSWERS** before Phase 3
 4. Update `agents/aqa-state.md`
 
 **Phase 3: Code Analysis** [aqa-flow-code-analysis.md]
-1. ACQUIRE aqa-flow-code-analysis.md FROM KB
+1. APPLY PHASE aqa-flow-code-analysis.md
 2. Execute phase instructions
 3. Analyze frontend source code if available 
 4. Update `agents/aqa-state.md`
 5. Validate analysis findings
 
 **Phase 4: Selector Identification** [aqa-flow-selector-identification.md] ⭐ **USER INTERACTION CONDITIONALLY REQUIRED**
-1. ACQUIRE aqa-flow-selector-identification.md FROM KB
+1. APPLY PHASE aqa-flow-selector-identification.md
 2. Execute phase instructions
 3. Search frontend code for selectors first
 4. **WAIT FOR USER TO PROVIDE PAGE SOURCE** only if frontend code unavailable or selectors not found
 5. Update `agents/aqa-state.md`
 
 **Phase 5: Selector Implementation** [aqa-flow-selector-implementation.md]
-1. ACQUIRE aqa-flow-selector-implementation.md FROM KB
+1. APPLY PHASE aqa-flow-selector-implementation.md
 2. Execute phase instructions
 3. Update `agents/aqa-state.md`
 4. Validate selectors added
 
 **Phase 6: Test Implementation** [aqa-flow-test-implementation.md]
-1. ACQUIRE aqa-flow-test-implementation.md FROM KB
+1. APPLY PHASE aqa-flow-test-implementation.md
 2. Execute phase instructions
 3. Update `agents/aqa-state.md`
 4. Validate test created
 5. **STOP AND WAIT** for user to execute test
 
 **Phase 7: Test Report Analysis** [aqa-flow-test-report-analysis.md] ⭐ **USER INTERACTION REQUIRED**
-1. ACQUIRE aqa-flow-test-report-analysis.md FROM KB
+1. APPLY PHASE aqa-flow-test-report-analysis.md
 2. Execute phase instructions
 3. **WAIT FOR USER TO PROVIDE TEST REPORT** (if not in agents/user-instructions/ files)
 4. Update `agents/aqa-state.md`
 5. Analyze test failures and root causes
 
 **Phase 8: Test Corrections** [aqa-flow-test-correction.md] ⭐ **USER APPROVAL REQUIRED**
-1. ACQUIRE aqa-flow-test-correction.md FROM KB
+1. APPLY PHASE aqa-flow-test-correction.md
 2. Execute phase instructions
 3. **WAIT FOR USER APPROVAL** before applying changes
 4. Update `agents/aqa-state.md`

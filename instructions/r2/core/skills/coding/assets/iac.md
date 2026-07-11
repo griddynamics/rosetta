@@ -43,7 +43,7 @@ Use when implementing features, bug fixes, refactors, or any code changes includ
 3. **Dependency Mapping** - Create execution graphs with proper order
 4. Etc.
 
-### Understand the Request
+### Step 1: Understand the Request
 
 - Analyze what the user is asking for
 - Identify resource types (S3, RDS, VPC, etc.)
@@ -51,9 +51,9 @@ Use when implementing features, bug fixes, refactors, or any code changes includ
 - Extract project name, environment, region if provided
 - Use 
 
-### Check Knowledge Base and available MCPs for Company Policies
+### Step 2: Check Knowledge Base and available MCPs for Company Policies
 
-**CRITICAL:** Always check and search using all available tools
+**CRITICAL:** Always check and search using all available tools, if not found - ask user for information
 
 ### Step 3: Gather Cloud Context & Check Conflicts
 
@@ -76,13 +76,13 @@ If issues detected - document, resolve with user, HITL.
 
 <coding>
 
-**CRITICAL:** ALWAYS try module catalog and template-based generation first! 
-**CRITICAL:** ALWAYS fetch modules/templates from repository!
-**CRITICAL:** MUST check existing infrastructure for existing resources.
-**CRITICAL:** MUST ALWAYS apply security best practices. Run security and validation tools on generated code.
-**CRITICAL:** MUST search approved modules/templates/catalogs.
-**CRITICAL:** MUST perform risk assessment (blast radius analysis, consequences, pre-requisites, simulation: what will happen with what when this will deploying or deployed).
-**CRITICAL:** MUST NOT use CLIs to change settings or anything manually (who will do that in prod?). CLIs must only be used for READ-ONLY purposes.
+1. **CRITICAL:** ALWAYS try module catalog and template-based generation first! 
+2. **CRITICAL:** MUST search approved modules/templates/catalogs.
+3. **CRITICAL:** ALWAYS fetch modules/templates from repository!
+4. **CRITICAL:** MUST check existing infrastructure for existing resources.
+5. **CRITICAL:** MUST ALWAYS apply security best practices. Run security and validation tools on generated code.
+6. **CRITICAL:** MUST perform risk assessment (blast radius analysis, consequences, pre-requisites, simulation: what will happen with what when this will deploying or deployed).
+7. **CRITICAL:** MUST NOT use CLIs to change settings or anything manually (who will do that in prod?). CLIs must only be used for READ-ONLY purposes.
 
 **TOP PRIORITY:** YOU MUST NOT CONTINUE IF ANY CRITICAL ITEMS ABOVE ARE NOT MET. MUST ASK USER FOR INFORMATION AND DETAILS! NO SKIPPING! COST OF SKIPPING: SECURITY INCIDENT WITH CIO, CISO, AND MULTIMILLION FINES!
 

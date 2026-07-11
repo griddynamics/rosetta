@@ -1,6 +1,6 @@
 ---
 name: risk-assessment
-description: "MUST activate before execution when environment has access to databases, cloud services, S3, or similar external systems, and when assessing environment risk level."
+description: "CRITICAL. MUST activate before execution when environment has access to databases, cloud services, S3, or similar external systems, and when assessing environment risk level."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: false

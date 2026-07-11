@@ -6,7 +6,7 @@ Shared failure-triage report skeleton. API-QA emits `execution-report.md`; UI-QA
 
 **Inputs required:** the test run output (per-test pass/fail/skip + duration; ≥1 failure with error message + stack trace) and the flow's failure taxonomy. UI selector failures also need the captured page-source/diff.
 **Unavailable metric:** emit `N/A -- <reason>` (e.g. `duration: N/A -- interrupted`), never blank.
-**Evidence label `Unknown` (UI):** assign ONLY after page-source capture was attempted and the cause is still unresolvable; ACQUIRE `qa-knowledge/assets/page-source-capture-instructions.md` FROM KB and escalate first if page sources were never captured.
+**Evidence label `Unknown` (UI):** assign ONLY after page-source capture was attempted and the cause is still unresolvable; APPLY SKILL FILE `assets/page-source-capture-instructions.md` and escalate first if page sources were never captured.
 
 Non-empty report, sections:
 

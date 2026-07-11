@@ -8,7 +8,7 @@ export { computeFieldStats } from './stats.js';
 export { DEFAULT_PRICING, resolvePricing, computeCostUsd } from './pricing.js';
 export {
   COMMON_CONTEXT,
-  OPTIMIZE_PHASES,
+  OPTIMIZE_SESSION,
   OPTIMIZE_STEPS,
   renderOptimizeReport,
   runPromptOptimization,
@@ -21,6 +21,7 @@ export type {
   OptimizeResult,
   OptimizePhaseTrace,
   OptimizeStepId,
+  OptimizeSubStepId,
   OptimizeTrace,
 } from './optimize.js';
 export type {

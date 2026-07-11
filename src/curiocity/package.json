@@ -1,6 +1,6 @@
 {
   "name": "curiocity",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "description": "Evals/testing harness that drives interactive coding-agent CLIs over a real PTY.",
   "type": "module",
   "license": "Apache-2.0",
@@ -33,6 +33,9 @@
     "contract:claude": "vitest run --config vitest.contract.config.ts test/contract/claude.contract.test.ts",
     "contract:codex": "vitest run --config vitest.contract.config.ts test/contract/codex.contract.test.ts",
     "postinstall": "node scripts/fix-pty-perms.mjs"
+  },
+  "allowScripts": {
+    "node-pty": true
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.7",

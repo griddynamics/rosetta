@@ -63,6 +63,7 @@ describe('runBenchSuite eval failure semantics', () => {
         {
           id: 'suite-a',
           eval: {
+            mode: 'individual',
             assertions: [{ id: 'assertion-a', text: 'Must be valid.' }],
           },
           variants: [{ id: 'variant-a', turns: ['hello'] }],
@@ -123,6 +124,7 @@ describe('runBenchSuite eval failure semantics', () => {
         {
           id: 'suite-a',
           eval: {
+            mode: 'individual',
             assertions: [
               { id: 'assertion-a', text: 'Must be valid.' },
               { id: 'assertion-b', text: 'Must also be valid.' },
@@ -273,5 +275,265 @@ describe('thinking token derivation', () => {
     expect(run.turns[0].thinkingTokens).toBeNull();
     expect(run.turns[0].thinkingTokensSource).toBeNull();
     expect(run.totals.thinkingTokens).toBeNull();
+  });
+});
+
+const NO_THINKING = { enabled: false, mode: 'adaptive', budgetTokens: 1024, effort: 'low', display: 'omitted' } as const;
+
+describe('variant system prompt augmentation', () => {
+  it('appends --additional then --supporting (delimited) after each variant prompt; empty base gets injected context alone', async () => {
+    const systems: Array<string | undefined> = [];
+    const config: BenchConfig = {
+      model: 'm',
+      maxOutputTokens: 128,
+      thinking: NO_THINKING,
+      repetitions: 1,
+      concurrency: 1, // deterministic order: withbase then nobase
+      additional: ['ADD-CTX'],
+      supportingFiles: [{ path: 'ref.md', content: 'REF-CONTENT' }],
+      suites: [
+        {
+          id: 's',
+          variants: [
+            { id: 'withbase', systemPrompt: 'BASE-PROMPT', turns: ['hi'] },
+            { id: 'nobase', turns: ['hi'] },
+          ],
+        },
+      ],
+    };
+    const client = {
+      messages: {
+        async create(params: { system?: string }) {
+          systems.push(params.system);
+          return { content: [{ type: 'text', text: 'ok' }], usage: { input_tokens: 1, output_tokens: 1 }, stop_reason: 'end_turn' };
+        },
+      },
+    } as unknown as Anthropic;
+
+    await runBenchSuite(client, config);
+
+    expect(systems).toHaveLength(2);
+    const [withBase, noBase] = systems as string[];
+    expect(withBase.indexOf('BASE-PROMPT')).toBeGreaterThanOrEqual(0);
+    expect(withBase.indexOf('BASE-PROMPT')).toBeLessThan(withBase.indexOf('ADD-CTX'));
+    expect(withBase.indexOf('ADD-CTX')).toBeLessThan(withBase.indexOf('REF-CONTENT'));
+    expect(withBase).toContain('SUPPORTING_FILE 1: ref.md');
+    expect(withBase).toContain('DO_NOT_FOLLOW');
+    expect(noBase).not.toContain('BASE-PROMPT');
+    expect(noBase.startsWith('ADD-CTX')).toBe(true);
+    expect(noBase).toContain('REF-CONTENT');
+  });
+});
+
+describe('combined judge mode (default)', () => {
+  function combinedConfig(repetitions: number): BenchConfig {
+    return {
+      model: 'm',
+      maxOutputTokens: 128,
+      thinking: NO_THINKING,
+      repetitions,
+      concurrency: 4,
+      suites: [
+        {
+          id: 's',
+          eval: { assertions: [{ id: 'a1', text: 'be good' }] },
+          variants: [
+            { id: 'v1', turns: ['hi'] },
+            { id: 'v2', turns: ['hi'] },
+          ],
+        },
+      ],
+    };
+  }
+
+  function combinedClient(counters: { judge: number; conv: number }): Anthropic {
+    return {
+      messages: {
+        async create(params: { messages: Array<{ content: unknown }> }) {
+          const prompt = String(params.messages[params.messages.length - 1]?.content ?? '');
+          if (prompt.includes('Candidate responses:')) {
+            counters.judge++;
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify({
+                    scores: [
+                      { variantId: 'v1', text: 'a1', passed: 'pass', reasons: 'good', suggestions: '', confidence: 95 },
+                      { variantId: 'v2', text: 'a1', passed: 'fail', reasons: 'bad', suggestions: 'fix', confidence: 40 },
+                    ],
+                  }),
+                },
+              ],
+              usage: { input_tokens: 5, output_tokens: 5 },
+              stop_reason: 'end_turn',
+            };
+          }
+          counters.conv++;
+          return { content: [{ type: 'text', text: 'answer' }], usage: { input_tokens: 1, output_tokens: 1 }, stop_reason: 'end_turn' };
+        },
+      },
+    } as unknown as Anthropic;
+  }
+
+  it('judges all variants together in one call per assertion and maps scores by variantId (combined is the default)', async () => {
+    const counters = { judge: 0, conv: 0 };
+    const runs = await runBenchSuite(combinedClient(counters), combinedConfig(1));
+
+    expect(counters.conv).toBe(2);
+    expect(counters.judge).toBe(1); // one combined call for the single assertion, not one per variant
+    const v1 = runs.find((r) => r.variantId === 'v1')!;
+    const v2 = runs.find((r) => r.variantId === 'v2')!;
+    expect(v1.evalResult).toEqual([{ text: 'a1', passed: 'pass', reasons: 'good', suggestions: '', confidence: 95 }]);
+    expect(v2.evalResult?.[0].passed).toBe('fail');
+    expect(v1.error).toBeUndefined();
+    expect(v2.error).toBeUndefined();
+  });
+
+  it('runs one combined judge call per repetition (per-repetition grouping)', async () => {
+    const counters = { judge: 0, conv: 0 };
+    await runBenchSuite(combinedClient(counters), combinedConfig(2));
+    expect(counters.conv).toBe(4);
+    expect(counters.judge).toBe(2); // one per repetition
+  });
+
+  it('isolates a bad per-variant score: the other variant is still scored and the batch does not fail', async () => {
+    const client = {
+      messages: {
+        async create(params: { messages: Array<{ content: unknown }> }) {
+          const prompt = String(params.messages[params.messages.length - 1]?.content ?? '');
+          if (prompt.includes('Candidate responses:')) {
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify({
+                    scores: [
+                      { variantId: 'v1', text: 'a1', passed: 'pass', reasons: 'ok', suggestions: '', confidence: 90 },
+                      { variantId: 'v2', text: 'a1', passed: 'nope', reasons: 'x', suggestions: '', confidence: 50 },
+                    ],
+                  }),
+                },
+              ],
+              usage: { input_tokens: 5, output_tokens: 5 },
+              stop_reason: 'end_turn',
+            };
+          }
+          return { content: [{ type: 'text', text: 'answer' }], usage: { input_tokens: 1, output_tokens: 1 }, stop_reason: 'end_turn' };
+        },
+      },
+    } as unknown as Anthropic;
+
+    const runs = await runBenchSuite(client, combinedConfig(1));
+    const v1 = runs.find((r) => r.variantId === 'v1')!;
+    const v2 = runs.find((r) => r.variantId === 'v2')!;
+    expect(v1.evalResult?.[0].passed).toBe('pass');
+    expect(v2.evalResult).toBeUndefined();
+    expect(v2.evalError).toMatch(/Eval assertion "a1" failed/);
+    expect(v1.error).toBeUndefined();
+    expect(v2.error).toBeUndefined();
+  });
+
+  it('accepts a bare top-level array from the judge (not only the {scores} envelope)', async () => {
+    const client = {
+      messages: {
+        async create(params: { messages: Array<{ content: unknown }> }) {
+          const prompt = String(params.messages[params.messages.length - 1]?.content ?? '');
+          if (prompt.includes('Candidate responses:')) {
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify([
+                    { variantId: 'v1', text: 'a1', passed: 'pass', reasons: 'g', suggestions: '', confidence: 88 },
+                    { variantId: 'v2', text: 'a1', passed: 'partial', reasons: 'm', suggestions: '', confidence: 60 },
+                  ]),
+                },
+              ],
+              usage: { input_tokens: 5, output_tokens: 5 },
+              stop_reason: 'end_turn',
+            };
+          }
+          return { content: [{ type: 'text', text: 'answer' }], usage: { input_tokens: 1, output_tokens: 1 }, stop_reason: 'end_turn' };
+        },
+      },
+    } as unknown as Anthropic;
+
+    const runs = await runBenchSuite(client, combinedConfig(1));
+    expect(runs.find((r) => r.variantId === 'v1')!.evalResult?.[0].passed).toBe('pass');
+    expect(runs.find((r) => r.variantId === 'v2')!.evalResult?.[0].passed).toBe('partial');
+  });
+
+  it('disables thinking on judge calls', async () => {
+    const judgeThinking: unknown[] = [];
+    const client = {
+      messages: {
+        async create(params: { messages: Array<{ content: unknown }>; thinking?: unknown }) {
+          const prompt = String(params.messages[params.messages.length - 1]?.content ?? '');
+          if (prompt.includes('Candidate responses:')) {
+            judgeThinking.push(params.thinking);
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify({
+                    scores: [
+                      { variantId: 'v1', text: 'a1', passed: 'pass', reasons: 'g', suggestions: '', confidence: 90 },
+                      { variantId: 'v2', text: 'a1', passed: 'pass', reasons: 'g', suggestions: '', confidence: 90 },
+                    ],
+                  }),
+                },
+              ],
+              usage: { input_tokens: 5, output_tokens: 5 },
+              stop_reason: 'end_turn',
+            };
+          }
+          return { content: [{ type: 'text', text: 'answer' }], usage: { input_tokens: 1, output_tokens: 1 }, stop_reason: 'end_turn' };
+        },
+      },
+    } as unknown as Anthropic;
+
+    await runBenchSuite(client, combinedConfig(1));
+    expect(judgeThinking).toEqual([{ type: 'disabled' }]);
+  });
+});
+
+describe('failure isolation', () => {
+  it('records a failed variant conversation as error without failing the batch', async () => {
+    const config: BenchConfig = {
+      model: 'm',
+      maxOutputTokens: 128,
+      thinking: NO_THINKING,
+      repetitions: 1,
+      concurrency: 4,
+      suites: [
+        {
+          id: 's',
+          variants: [
+            { id: 'v-boom', turns: ['BOOM'] },
+            { id: 'v-ok', turns: ['ok'] },
+          ],
+        },
+      ],
+    };
+    const client = {
+      messages: {
+        async create(params: { messages: Array<{ content: unknown }> }) {
+          const prompt = String(params.messages[params.messages.length - 1]?.content ?? '');
+          if (prompt.includes('BOOM')) {
+            throw Object.assign(new Error('bad request'), { status: 400 }); // non-retryable
+          }
+          return { content: [{ type: 'text', text: 'answer' }], usage: { input_tokens: 1, output_tokens: 1 }, stop_reason: 'end_turn' };
+        },
+      },
+    } as unknown as Anthropic;
+
+    const runs = await runBenchSuite(client, config);
+    expect(runs).toHaveLength(2);
+    const boom = runs.find((r) => r.variantId === 'v-boom')!;
+    const ok = runs.find((r) => r.variantId === 'v-ok')!;
+    expect(boom.error).toMatch(/bad request/);
+    expect(ok.error).toBeUndefined();
+    expect(ok.turns[0].assistantText).toBe('answer');
   });
 });

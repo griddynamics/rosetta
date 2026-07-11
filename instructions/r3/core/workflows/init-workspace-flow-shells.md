@@ -15,7 +15,7 @@ Generates shell config files so subsequent sessions can load context and invoke 
 <workflow_context>
 - Phase 2 of 9 in init-workspace-flow
 - Input: state.mode, state.plugin_active
-- Output: shell configs, bootstrap rule, load-context shell
+- Output: shell configs, bootstrap rule, load-project-context shell
 - Prerequisite: Phase 1 complete, state.mode set
 </workflow_context>
 
@@ -33,13 +33,13 @@ Generates shell config files so subsequent sessions can load context and invoke 
 
 <execute_shells step="2.2">
 
-Act as a shell configuration specialist for IDE/CodingAgent workspace bootstrapping. Shell files delegate logic to KB via ACQUIRE, enabling centralized instruction updates across projects.
+Act as a shell configuration specialist for IDE/CodingAgent workspace bootstrapping. Shell files delegate logic to KB via `ACQUIRE … FROM KB`, enabling centralized instruction updates across projects.
 
 In upgrade mode: create missing shells only, preserve existing.
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Shell = frontmatter + single ACQUIRE instruction, zero inline logic
 - No absolute paths in generated shells
 
@@ -47,38 +47,38 @@ In upgrade mode: create missing shells only, preserve existing.
 
 <shells_process>
 
-Internal knowledge about IDE/agent shell configuration is obsolete — LIST and ACQUIRE from KB.
+Internal knowledge about IDE/agent shell configuration is obsolete — LIST and READ from KB.
 
 Step 1: Identify Environment
 
-1. LIST `configure` IN KB (to understand supported IDE/CodingAgents)
+1. LIST `configure` (to understand supported IDE/CodingAgents)
 2. Detect current environment, preselect IDE/CodingAgent
 3. MUST ask user to confirm selection and provide multi-choose
-4. ACQUIRE <selected configs using TAG> FROM KB
+4. READ CONFIGURE `<tool>.md` for each selected IDE/CodingAgent
 5. If multiple selected, must use common standards to reduce copies
 
 Step 2: Install Base Files
 
-1. ACQUIRE `skills/load-context/SKILL.md` FROM KB — install as SKILL
-2. ACQUIRE `rules/bootstrap.md` FROM KB — install as CORE RULE, copy content (no refs/links)
+1. READ SKILL `load-project-context` — install as SKILL
+2. READ RULE `mcp-files-mode.md` — install as CORE RULE, copy content (no refs/links)
 
 Step 3: MUST Generate Skill Shells
 
-1. LIST `skills` IN KB with XML format
-2. ACQUIRE `skill-shell.md` FROM KB
+1. LIST `skills` with XML format
+2. READ TEMPLATE `skill-shell.md`
 3. Create all skill shells, reuse frontmatter from listing
 4. Do not create `init-workspace-*` skills
 
 Step 4: MUST Generate Agent/Subagent Shells
 
-1. LIST `agents` IN KB with XML format
-2. ACQUIRE `agent-shell.md` FROM KB
+1. LIST `agents` with XML format
+2. READ TEMPLATE `agent-shell.md`
 3. Create all agent/subagent shells, reuse frontmatter from listing
 
 Step 5: MUST Generate Workflow/Command Shells
 
-1. LIST `workflows` IN KB with XML format
-2. ACQUIRE `workflow-shell.md` FROM KB
+1. LIST `workflows` with XML format
+2. READ TEMPLATE `workflow-shell.md`
 3. Create all workflow/command shells, reuse frontmatter from listing
 4. Do not create `init-workspace-*` workflows and its phases
 
@@ -112,7 +112,7 @@ Step 6: Verify Shell Integrity
 - Plugin mode: phase marked skipped, no shell files modified
 - Install mode: all expected shell files exist on disk
 - Upgrade mode: only missing shells created, existing preserved
-- Bootstrap rule file exists with ACQUIRE instruction for load-context
+- Bootstrap rule file exists with a typed load instruction for load-project-context
 </validation_checklist>
 
 </init_workspace_flow_shells>

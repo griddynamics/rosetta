@@ -253,7 +253,7 @@ Mark Phase 7 as completed and Phase 8 as current.
 
 After analysis is complete, proceed to **Phase 8: Test Corrections** by executing:
 ```
-ACQUIRE aqa-flow-test-correction.md FROM KB
+APPLY PHASE aqa-flow-test-correction.md
 ```
 
 ## Important Notes

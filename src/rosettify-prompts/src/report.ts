@@ -40,9 +40,15 @@ export function buildReport(config: BenchConfig, runs: RunResult[]): BenchReport
       summaries.push(summarizeVariant(suite.id, variant.id, variant.label, runs));
     }
   }
+  // Keep supporting-file paths in the embedded config, but drop their bodies so report.json doesn't
+  // bloat with (or leak) full file contents. Paths are enough for traceability; markdown shows them.
+  const reportConfig: BenchConfig = config.supportingFiles?.length
+    ? { ...config, supportingFiles: config.supportingFiles.map((file) => ({ path: file.path, content: '' })) }
+    : config;
+
   return {
     generatedAt: new Date().toISOString(),
-    config,
+    config: reportConfig,
     runs,
     summaries,
   };
@@ -62,6 +68,16 @@ export function renderMarkdownReport(report: BenchReport): string {
   lines.push('# rosettify-prompts bench report');
   lines.push('');
   lines.push(`Generated: ${report.generatedAt}`);
+  const judgeMode = report.config.judgeModeOverride ?? report.config.judgeMode ?? 'combined';
+  lines.push(`Judge mode: ${judgeMode}`);
+  if (report.config.additional?.length) {
+    lines.push(`Additional context blocks (in every variant system prompt): ${report.config.additional.length}`);
+  }
+  if (report.config.supportingFiles?.length) {
+    lines.push(
+      `Supporting files (in every variant system prompt): ${report.config.supportingFiles.map((f) => f.path).join(', ')}`,
+    );
+  }
   lines.push('');
 
   for (const suite of report.config.suites) {

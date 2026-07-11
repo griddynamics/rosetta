@@ -188,7 +188,7 @@ Mark Phase 2 as completed and Phase 3 as current.
 
 After user provides all answers, proceed to **Phase 3: Code Analysis** by executing:
 ```
-ACQUIRE aqa-flow-code-analysis.md FROM KB
+APPLY PHASE aqa-flow-code-analysis.md
 ```
 
 ## Important Notes

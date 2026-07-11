@@ -20,6 +20,6 @@ Public docs: https://griddynamics.github.io/cto-rnd-gain-mcp/
 
 ## Status Enum
 
-Values for the `status` field — see `specflow-vocabulary.md` for user-facing meanings.
+Values for the `status` field — for user-facing meanings READ SKILL FILE `references/specflow-vocabulary.md`.
 
 `pending | analysis | initializing | running | completed | failed`
