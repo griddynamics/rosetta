@@ -4,10 +4,10 @@ Test-automation architecture analysis + API-contract extraction.
 
 <analysis-modes>
 
-Both modes apply reverse-engineering's method (`<core_concepts>`, `<rules>`) to a concrete QA target and EMIT findings into the provided artifact (report sections, output path, taxonomy, validation contract given) -- never invent the artifact shape or path. Redact captured source/spec/request/response values before writing → USE SKILL `sensitive-data`.
+Both modes apply reverse-engineering's method to a concrete QA target and EMIT findings into the provided artifact (report sections, output path, taxonomy, validation contract given) -- never invent the artifact shape or path. Redact captured source/spec/request/response values before writing → USE SKILL `sensitive-data`.
 
 **Mode: test-automation architecture analysis.** Map an existing test-automation project to inform NEW test implementation — read-only, analysis only.
-- Map the territory (core-concept 9) over the test stack: framework + language, project structure (test / page-object / utility / fixture dirs), coding standards and test patterns (AAA, Given-When-Then, setup/teardown), and any captured user-instructions or repo architecture docs.
+- Apply reverse-engineering's map-the-territory discipline over the test stack: framework + language, project structure (test / page-object / utility / fixture dirs), coding standards and test patterns (AAA, Given-When-Then, setup/teardown), and any captured user-instructions or repo architecture docs.
 - Inventory reusable assets: page objects (what each represents, selectors, methods, reuse-vs-extend-vs-new), similar existing tests (structure, imports, assertion style), shared utilities (login/nav/data helpers, custom matchers, generators).
 - Inform the requested implementation decision (e.g. test location: add-to-existing vs new-file) by citing the provided rule; never decide the artifact's section list yourself.
 - EMIT into the provided code-analysis report structure -- UI-QA: READ SKILL FILE `assets/code-analysis-report-template.md` (concrete section template + test-location worked example).
