@@ -4,7 +4,7 @@ API-QA project-config markdown skeleton written to plans/api-qa-{IDENTIFIER}/api
 
 <api-qa-project-config-template>
 
-Write to `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md` -- one copy per session (see SKILL anti-pattern). Resolve `{IDENTIFIER}` from `agents/TEMP/<FEATURE>/api-qa-state.md`; populate each section from the user's answers. **`config-schema.md` is the single authority for required keys and accepted `N/A -- <reason>` forms -- not restated per-field;** required keys carry `[per config-schema]` placeholders. Mark deferred optional fields `TBD -- <reason>`.
+Write to `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md` -- one copy per session (see SKILL anti-pattern). Resolve `{IDENTIFIER}` from `agents/TEMP/<FEATURE>/api-qa-state.md`; populate each section from the user's answers. **`config-schema.md` is the single authority for required keys and accepted `N/A -- <reason>` forms;** required keys carry `[per config-schema]` placeholders. Mark deferred optional fields `TBD -- <reason>`.
 
 ```markdown
 # API-QA Project Config

@@ -1,8 +1,6 @@
-# Gap Analysis -- Detection Catalogs (testing `<gap_analysis>` mode)
+# Gap Analysis - Detection Catalogs (qa-knowledge `<gap_analysis>` mode)
 
-Loaded on demand when running the `<gap_analysis>` mode of `testing/SKILL.md`. SKILL.md keeps only the mode's purpose, the analysis-only hard boundary, and the emit-into-provided-artifact rule resident; this file holds the runnable method (variants + process) and the probe catalogs to scan against. The G/C/A finding-entry format is the sibling asset `qa-knowledge/assets/gap-finding-templates.md` (ACQUIRE FROM KB); the calling phase owns only the output artifact path + section list. This file drives *what to look for* and *how to run the analysis*, never *how to format output*.
-
----
+The runnable gap-analysis method (variants + process) and the probe catalogs to scan against. Drives *what to look for* and *how to run the analysis*, never *how to format output*. The G/C/A finding-entry **format** is the asset `gap-finding-templates.md` (ACQUIRE FROM KB).
 
 ## Variants
 

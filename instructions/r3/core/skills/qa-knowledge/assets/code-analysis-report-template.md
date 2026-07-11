@@ -49,7 +49,7 @@ UI-QA code-analysis report skeleton (9 sections) plus the test-location decision
 - Each optional input listed `available` or `not available -- <downstream impact>`. Silent omission forbidden -- downstream phases misread missing-data as no-issues.
 ```
 
-**Test-location decision rule** (the phase owns this; the skill applies it):
+**How to apply Test-location decision rule**:
 - **Add to existing file** if (a) the feature is a direct extension of an existing test class/describe, AND (b) the file stays under ~400 lines after addition.
 - **Create new file** if (a) it's a new area, OR (b) the file would exceed ~400 lines, OR (c) the existing setup/teardown shape doesn't fit.
 

@@ -1,13 +1,13 @@
 # Synthesis Catalogs
 
-Synthesis method + output schemas (testing `<synthesis>` mode)
+Synthesis method + output schemas (qa-knowledge `<synthesis>` mode)
 
 ## Synthesis rules
 
 - **Source provenance:** every requirement carries an explicit `Source` (row, ticket, page section, or user-answer index); absent provenance = fabrication.
 - **One behavior per req:** split composite "A AND B" into separate requirements at synthesis time.
 - **No verbatim copy-paste:** reshape source text into the schema voice; include only what the sources specify -- empty categories stay empty, no padding (per-schema Coverage notes below).
-- **Single-source flag:** when only a primary source is available, tag each derived assumption `Confidence: Single-source`; still produce the document when answers/docs are missing -- mark each missing-input gap as an explicit assumption.
+- **Single-source flag:** tag each derived assumption `Confidence: Single-source` when only a primary source is available; still produce the document when answers/docs are missing -- mark each missing-input gap as an explicit assumption.
 - **Conflict resolution:** apply the source-priority ladder (below); an unresolved conflict becomes an assumption with impact-if-wrong (under Risks when both sides share a tier).
 - **NFR threshold:** thresholdless NFRs move to `assumptions-and-risks`, flagged (see the per-NFR Threshold rule below).
 

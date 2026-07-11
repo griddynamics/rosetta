@@ -1,6 +1,6 @@
 # Vendor binding: Issue vendor
 
-**Canonical issue vendor example: Jira** -- the field map and examples below use Jira; for another tracker (Linear, GitHub Issues, Azure Boards) map by capability, same method. Base SKILL.md owns the general method (extract → normalize → redact → write) -- not restated here. All specs/queries/MCP/URL here use Jira as example, adapt target issue tracker system by example.
+**Canonical issue vendor example: Jira** -- the field map and examples below use Jira; for another tracker (Linear, GitHub Issues, Azure Boards) map by capability, same method. All specs/queries/MCP/URL here use Jira as example, adapt target issue tracker system by example.
 
 **Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured issue-tracker MCP/CLI/Fetch binding: **get issue** (with fields / expand / comment-limit), **search fields** (field-schema lookup), and -- write, forbidden in this read-only binding -- issue **create / update / transition / add comment**.
 

@@ -1,4 +1,4 @@
-# TestRail FORMAT Binding -- testing (scenario_design)
+# TestRail FORMAT Binding -- qa-knowledge (scenario_design)
 
 Holds the TestRail-compatible case template, field rules, naming conventions, and worked examples.
 

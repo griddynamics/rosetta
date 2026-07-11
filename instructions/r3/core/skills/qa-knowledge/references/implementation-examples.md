@@ -1,6 +1,6 @@
-# Testing -- implementation-mode examples and templates
+# QA test-implementation examples & templates (`<implementation_modes>`)
 
-Loaded on demand from `SKILL.md` `<implementation_modes>`. The base `SKILL.md` keeps the method (read inputs → match repo patterns → emit → record gaps) and quality bar inline; this file holds the verbose code, selector tables, and templates. The calling PHASE owns artifact paths, taxonomy, and output contract -- these examples are shape references only.
+Verbose per-language test code, the 4-tier selector table, and output templates for UI / API / selector implementation - shape references only.
 
 ---
 

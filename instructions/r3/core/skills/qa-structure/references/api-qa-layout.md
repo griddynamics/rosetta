@@ -15,6 +15,6 @@ plans/api-qa-{IDENTIFIER}/initial-data.md   (this run's handoff artifact)
 
 **`{IDENTIFIER}` derivation:** Jira key (`PROJ-123`) → TestRail case ID (`C12345`) → sanitized kebab-case feature (`order-lookup`); first non-empty wins; recorded once in `api-qa-state.md`, reused as the session-dir name. Project config lives in the per-`{IDENTIFIER}` plan folder (one copy per session -- see anti-pattern); only `agents/TEMP/<FEATURE>/api-qa-state.md` is a shared singleton (resume anchor). Slug format + underivable rule: see SKILL `<core_concepts>` (underivable trigger here = none of the three sources yields a value).
 
-**State file `agents/TEMP/<FEATURE>/api-qa-state.md`:** header = Last Updated / Current Phase 0-7 / Test Case Source / Feature / API Base URL (standard shape per SKILL). Seed skeleton kept inline in the project-config-loading phase -- tiny + always-needed, not a separate asset.
+**State file `agents/TEMP/<FEATURE>/api-qa-state.md`:** header = Last Updated / Current Phase 0-7 / Test Case Source / Feature / API Base URL (standard shape per SKILL).
 
 </api-qa-layout>

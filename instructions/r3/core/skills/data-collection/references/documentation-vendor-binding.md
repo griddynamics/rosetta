@@ -1,6 +1,6 @@
 # Vendor binding: Documentation vendor
 
-**Canonical vendor example: Confluence** -- capabilities (page fetch / search / child pages) and harvesting discipline below use Confluence; for another backend (Notion, SharePoint, wiki) map by capability, same method. Base SKILL.md owns the general method -- not restated here. All specs/queries/MCP/URL here use Confluence as example, adapt target wiki system by example.
+**Canonical vendor example: Confluence** -- capabilities (page fetch / search / child pages) and harvesting discipline below use Confluence; for another backend (Notion, SharePoint, wiki) map by capability, same method. All specs/queries/MCP/URL here use Confluence as example, adapt target wiki system by example.
 
 **Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured documentation MCP binding: **get page**, **list child pages**, **search** (structured query or free text), and -- write, forbidden in this read-only binding -- **create / update page / add comment**.
 
@@ -34,7 +34,7 @@ Store each page under a **stable canonical reference** the backend guarantees (f
 3. **Deterministic ranking** -- fixed priority `title-match > label-match > body-match`; in-tier tiebreaker = MCP relevance score / recency. Record the query + top-N page IDs + ranking in the artifact's `Search Provenance` section for reproducibility.
 4. Retrieve top 3–5 pages via **get page** (same error branches as the direct path), then their child pages.
 
-**Cross-vendor:** when this binding runs beside Jira/TestRail, derive search terms from the upstream ticket (labels, components, summary keywords) the phase passes in; the phase owns merging the documentation section with the ticket section.
+**Cross-vendor:** when this binding runs beside Jira/TestRail, derive search terms from the upstream ticket (labels, components, summary keywords) already present in context.
 
 **Normalization discipline:**
 - **Truncate** pages over the phase's word budget (default ~5000 words); insert a banner naming the budget, the section where truncation happened, and the omitted section headings, e.g. `<!-- truncated: 5000-word budget reached at section 'Deployment Steps'; remaining 3 sections omitted: 'Monitoring', 'Rollback', 'Appendix' -->`. Keep headings + first sections intact.
@@ -73,7 +73,7 @@ Highest-risk: **page bodies** (runbooks/ops notes embed secrets; incident write-
 
 ## Output sections (within the phase-owned artifact)
 
-The phase owns the artifact path + heading; this binding emits, in order: per-page entries (per the per-page branch above); `Search Provenance` (search query + top-N IDs + ranking, or `N/A -- URL-driven retrieval`); `Gaps` (empty/restricted/cross-domain pages, or `None.`); redaction section (or `None.`). Every section present; empties use `None.`.
+This binding emits, in order: per-page entries (per the per-page branch above); `Search Provenance` (search query + top-N IDs + ranking, or `N/A -- URL-driven retrieval`); `Gaps` (empty/restricted/cross-domain pages, or `None.`); redaction section (or `None.`). Every section present; empties use `None.`.
 
 ## Validation items (binding-specific, added to SKILL `<validation_checklist>`)
 

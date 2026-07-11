@@ -1,6 +1,6 @@
 # Vendor binding: TMS / test-case vendor
 
-**Canonical test-case vendor example: TestRail** -- the field map and examples below use TestRail; for another test-case manager map by capability, same method. Base SKILL.md owns the general method -- not restated here.  All specs/queries/MCP/URL here use TestRail as example, adapt target test-case management system by example.
+**Canonical test-case vendor example: TestRail** -- the field map and examples below use TestRail; for another test-case manager map by capability, same method. All specs/queries/MCP/URL here use TestRail as example, adapt target test-case management system by example.
 
 **Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured TMS MCP/CLI/Fetch binding: **get case**, **get case fields** (case-field-schema lookup), and -- write, forbidden in this read-only binding -- case **update / add / delete**.
 
