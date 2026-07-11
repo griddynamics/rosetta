@@ -8,7 +8,7 @@ Without this skill, an agent doing QA work will invent artifact shapes from memo
 Use when authoring, analyzing, or correcting backend-API or UI/E2E tests and you need QA conventions rather than path/layout rules. It is non-user-invocable helper knowledge (`disable-model-invocation: true`, `user-invocable: false`) intended to be loaded by QA workflows and adjacent skills. TestRail/Jira/Confluence are canonical examples only; adapt the conventions to the current case.
 
 ## How it works
-Single flat `SKILL.md` with `assets/` and `references/` subfolders. Root `<qa_knowledge>` contains `<when_to_use_skill>`, `<core_concepts>`, `<resources>`, and `<anti_patterns>`. The core behavior is routing: look at the current QA step, then ACQUIRE exactly one template or taxonomy from the router table at point of use. Assets own skeletons and output formats; references own classification conventions. The skill explicitly refuses memory-based artifact authoring and silent assertion loss.
+Single flat `SKILL.md` with `assets/` and `references/` subfolders. Root `<qa_knowledge>` contains `<when_to_use_skill>`, `<core_concepts>`, `<resources>`, and `<anti_patterns>`. The core behavior is routing: look at the current QA step, then READ SKILL FILE for exactly one template or taxonomy from the router table at point of use. Assets own skeletons and output formats; references own classification conventions. The skill explicitly refuses memory-based artifact authoring and silent assertion loss.
 
 ## Mental hooks & unexpected rules
 - "Load only what the current task needs" — never bulk-load the whole QA library.

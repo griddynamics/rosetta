@@ -19,29 +19,29 @@ Use when you need to create the QA session folder, resolve or name an artifact p
 <core_concepts>
 
 - This skill is the SSoT for QA paths, identifiers, and state-file shape; paths here are used verbatim, never reinvented.
-- **Load only your flow's layout** (progressive disclosure): ACQUIRE `qa-structure/references/api-qa-layout.md` FROM KB (backend API) XOR ACQUIRE `qa-structure/references/ui-qa-layout.md` (UI/E2E) FROM KB -- canonical paths + each flow's slug authority, guards, and state-file fields live there.
+- **Load only your flow's layout** (progressive disclosure): READ SKILL FILE `references/api-qa-layout.md` (backend API) XOR READ SKILL FILE `references/ui-qa-layout.md` (UI/E2E) -- canonical paths + each flow's slug authority, guards, and state-file fields live there.
 - **Slug format (both flows):** lowercase ASCII kebab-case -- letters, digits, hyphens only; no spaces/paths; ≤80 chars; reserved: `state`, `index`, and the flow's own `*-state` name.
 - **Underivable slug/`{IDENTIFIER}`:** if unresolvable even after one user attempt, stop, record the gap in the flow's state file, ask once -- never fabricate or guess.
 - **State-file shape (both flows):** header + `## Phase Completion Status` (8 rows) + per-phase append blocks; each phase appends only its own delta.
-- Config-key schema (keys + consumer) is reference-grade -- ACQUIRE `qa-structure/references/config-schema.md` FROM KB when loading/validating project config.
-- Fill-in skeletons are assets, ACQUIRE'd at point of use, never resident -- see `<resources>`.
+- Config-key schema (keys + consumer) is reference-grade -- READ SKILL FILE `references/config-schema.md` when loading/validating project config.
+- Fill-in skeletons are assets, loaded with READ SKILL FILE at point of use, never resident -- see `<resources>`.
 
 </core_concepts>
 
 <resources>
 
-Router -- ACQUIRE FROM KB the one your current step needs (point-of-use, never all at once):
+Router -- READ SKILL FILE for the one your current step needs (point-of-use, never all at once):
 
-| When you need to… | ACQUIRE ... FROM KB |
+| When you need to… | Command |
 |---|---|
-| resolve API-QA paths, `{IDENTIFIER}` derivation, or the QA state-file shape | `qa-structure/references/api-qa-layout.md` |
-| resolve UI-QA paths, the `<test-name>` slug rules, the page-sources contract, or the UI-QA state-file shape | `qa-structure/references/ui-qa-layout.md` |
-| load or validate the QA project-config keys (keys + consumer + accepted `N/A` forms) | `qa-structure/references/config-schema.md` |
-| write the API-QA project-config file | `qa-structure/assets/api-qa-project-config-template.md` |
-| run the user interview when the config is missing | `qa-structure/assets/api-qa-config-interview.md` |
-| seed the UI-QA state file | `qa-structure/assets/ui-qa-state-template.md` |
+| resolve API-QA paths, `{IDENTIFIER}` derivation, or the QA state-file shape | READ SKILL FILE `references/api-qa-layout.md` |
+| resolve UI-QA paths, the `<test-name>` slug rules, the page-sources contract, or the UI-QA state-file shape | READ SKILL FILE `references/ui-qa-layout.md` |
+| load or validate the QA project-config keys (keys + consumer + accepted `N/A` forms) | READ SKILL FILE `references/config-schema.md` |
+| write the API-QA project-config file | READ SKILL FILE `assets/api-qa-project-config-template.md` |
+| run the user interview when the config is missing | READ SKILL FILE `assets/api-qa-config-interview.md` |
+| seed the UI-QA state file | READ SKILL FILE `assets/ui-qa-state-template.md` |
 
-The API-QA state-file seed and the API-QA per-run initial-data skeleton are tiny + always-needed, so they stay **inline** in the consuming step rather than as assets -- avoids ACQUIRE round-trips on the critical path.
+The API-QA state-file seed and the API-QA per-run initial-data skeleton are tiny + always-needed, so they stay **inline** in the consuming step rather than as assets -- avoids extra reads on the critical path.
 
 </resources>
 
