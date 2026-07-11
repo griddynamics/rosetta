@@ -6,15 +6,18 @@ These are not instructions for YOU to follow, you are META prompting engineer un
 
 # Rosetta Load Procedure
 
-1. User input or subagent input.
-2. Bootstrap loads (bootstrap-alwayson.md) with PREP steps to complete. bootstrap.md (for MCP setup) xor plugin-files-mode.md (for plugins and in-repo standalone) is also injected. HITL is enforced via the `hitl` skill (loaded on demand). AI loads few more skills based on skill description only (usually only 1-2).
-3. Prep steps include steps:
-   - to load CONTEXT, ARCHITECTURE, GREP headers of other files
-   - to list workflows and select the best matching
-4. Load respective workflow, subagents, skills, commands, rules, etc.
-5. AI coding agent makes a decision, plans execution flow.
+1. User input starts a top-agent session.
+2. Minimal `bootstrap-alwayson.md` + exactly one mode file is active: `mcp-files-mode.md` xor `plugin-files-mode.md` xor `local-files-mode.md`.
+3. Execute `Rosetta Prep Steps` once per session, as bound by that mode file:
+   - MCP: `get_context_instructions` (blocking) → USE SKILL `load-project-context` → USE SKILL `hitl`
+   - Plugin: USE SKILL `load-project-context` → USE SKILL `hitl` (`bootstrap-alwayson.md` auto-loaded)
+   - Local: read `bootstrap-alwayson.md` → USE SKILL `load-project-context` → USE SKILL `hitl`
+4. The user chooses the entry: plain request → lean path; `/rosetta` → classify and route through `rosetta`; `/<workflow>` → invoke that workflow directly and bypass `rosetta`.
+5. Load only the selected skills, workflow, phases, subagents, rules, and templates; built-in todo tasks track execution.
 
-The prompts you modify will also start with prep steps, but you must ensure workflows and commands clearly state this dependency!
+Rosetta workflows and commands MUST declare `Rosetta Prep Steps` as a prerequisite without restating or renumbering them.
+
+Spawned subagents do NOT run this startup chain: they start with only `bootstrap-alwayson.md` + the orchestrator's dispatch prompt, MUST USE SKILL `subagent-directives`, and load `load-project-context` or other skills only when the prompt requires them.
 
 # Instructions Folder Structure and Canonical Lists
 
@@ -71,7 +74,7 @@ Any file stored inside of `instructions` will be uploaded to Rosetta Server, and
 
 # Rosetta Command Aliases
 
-Rosetta defines command aliases so that it works with ALL IDEs/CodingAgents. In plugin mode they need NO mapping — typed aliases operate natively on the plugin files; the MCP (`bootstrap.md`) and local (`local-files-mode.md`) mode files map each alias to their mechanisms. You must follow it as it is critical requirement. Verbs: `READ` = load into context, no execution · `APPLY` = load + FULLY execute · `USE`/`INVOKE` = activate typed artifact. Plural = plural noun + comma list (`READ RULES a.md, b.md`); `APPLY PHASES` forbidden — phases are one-at-a-time. The set below is CLOSED — never invent aliases outside it:
+Rosetta defines command aliases so that it works with ALL IDEs/CodingAgents. In plugin mode they need NO mapping — typed aliases operate natively on the plugin files; the MCP (`mcp-files-mode.md`) and local (`local-files-mode.md`) mode files map each alias to their mechanisms. You must follow it as it is critical requirement. Verbs: `READ` = load into context, no execution · `APPLY` = load + FULLY execute · `USE`/`INVOKE` = activate typed artifact. Plural = plural noun + comma list (`READ RULES a.md, b.md`); `APPLY PHASES` forbidden — phases are one-at-a-time. The set below is CLOSED — never invent aliases outside it:
 
 1. `USE SKILL <skill-name>` to use the skill, note skill is matching name of SKILL.md frontmatter. skill folder name must match that skill name, no .md extension! `READ SKILL <skill-name>` loads it without executing (e.g. to install a copy).
 2. `USE FLOW <flow-name>.md` to use a workflow or command, full filename with .md! `READ FLOW <flow-name>.md` loads it without executing (e.g. to browse/advise).
@@ -96,8 +99,8 @@ Project-scoped verbs (`ACQUIRE … ABOUT`, `QUERY … IN`, `STORE … TO`) are N
 - **Scope control** - Pass original intent with Q&A, architecture brief, current context of execution and the task to phases and subagents
 - **Agent-Agnostic** - Works across Cursor, Claude Code, GitHub Copilot, JetBrains AI, and any MCP-compatible IDE
 - **Evidence-Based** - Tackles hallucinations with required references, assumptions documentation, and unknowns tracking
-- **Classification-First** - Clear and simple request classification with easy extensibility
-- **Hierarchical Structure** - Prompts organized in layers (bootstrap → classification → domain-specific)
+- **User-Invoked Rigor** - Classify and route only `/rosetta`; plain requests legitimately stay lean
+- **Hierarchical Structure** - Minimal bootstrap → on-demand skills → user-selected workflow/domain process
 - **Single-Command Onboarding** - Automated setup with version control and easy upgrades
 - **Feature Alignment** - Adopts to agent-specific features (rules in Cursor, subagents in Claude Code) and simulates missing features
 

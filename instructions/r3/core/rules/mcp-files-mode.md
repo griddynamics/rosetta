@@ -1,5 +1,5 @@
 ---
-name: bootstrap
+name: mcp-files-mode
 description: Rosetta MCP Mode Bootstrap
 alwaysApply: true
 trigger: always_on
@@ -40,4 +40,4 @@ On MCP failure: retry once; if it fails again, YOU MUST ASK USER how to proceed 
 
 </hard-gate>
 
-<rosetta:bootstrap/>
+</rosetta:bootstrap>

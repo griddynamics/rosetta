@@ -1,6 +1,6 @@
 # hitl/SKILL.md — saved good alternative (2026-07-10)
 
-Pre-dense-compression version: structured + probe-hardened across 2 clean Sonnet-5 experiment rounds; fuller wording. Kept as the fallback alternative to the denser-worded version now in instructions/r3/core/skills/hitl/SKILL.md. Verbatim:
+Pre-dense-compression version: structured + probe-hardened across 2 clean Sonnet-5 experiment rounds; fuller wording. Kept as the fallback alternative to the denser-worded version now in instructions/r3/core/skills/hitl/SKILL.md. WARNING before any swap-back: later rulings removed content still present below — the dangerous-actions HOOK-mechanics bullet (reconsider/hard-deny tiers + Rosetta-AI-reviewed marker; added in error, lives ONLY in dangerous-actions) and the WHY/HOW + artifacts philosophy bullets; rule on dangerous actions must stay plain "ALWAYS require explicit approval". Verbatim:
 
 ```
 ---

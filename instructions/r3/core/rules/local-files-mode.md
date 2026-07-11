@@ -16,7 +16,7 @@ Rosetta Local Files Mode is Active — instructions are read from the local `ins
 
 `Rosetta prep steps` = execute in order, once per session:
 
-1. Read `instructions/r3/core/rules/bootstrap-alwayson.md` — always-on rules (skip if already in context).
+1. Read `instructions/r3/core/rules/bootstrap-alwayson.md` (skip if already in context).
 2. USE SKILL `load-project-context` — `instructions/r3/core/skills/load-project-context/SKILL.md`.
 3. USE SKILL `hitl` — `instructions/r3/core/skills/hitl/SKILL.md`.
 

@@ -181,7 +181,7 @@ Three tools and one resource are currently exposed to agents. Five write-data to
 
 | Tool | Purpose |
 |---|---|
-| `get_context_instructions` | Bootstrap: load all rules and guardrails bundled (prep step 1 to 3)  |
+| `get_context_instructions` | MCP bootstrap gate: load `bootstrap-alwayson.md` |
 | `query_instructions` | Fetch instruction docs by tags (primary) or keyword search (fallback) |
 | `list_instructions` | Browse the VFS hierarchy (flat listing of immediate children) |
 | `query_project_context` *(disabled)* | Search project-specific docs in a target repo dataset |
@@ -262,18 +262,18 @@ Verbs: `READ` = load into context; `APPLY` = load + fully execute; `USE`/`INVOKE
 
 ### Bootstrap Flow
 
-The always-on footprint is minimal: `bootstrap-alwayson` (core policies, `reasonable`, tasks, skill engagement, core files) plus exactly one mode file that binds the command aliases. Everything heavy loads on demand behind skills and workflows:
+The runtime footprint is minimal: `bootstrap-alwayson.md` (core policies, `reasonable`, tasks, skill engagement, core files) plus exactly one mode file. MCP and local mode files bind command aliases to their mechanisms; plugin mode needs no mapping because aliases operate natively on plugin files. Everything heavy loads on demand behind skills and workflows:
 
 ```
-1. Agent starts: MCP connects / plugin or local always-on rules load
+1. Agent starts: MCP connects / plugin or local `bootstrap-alwayson.md` loads
 
 2. Rosetta Prep Steps (bound per mode file, once per session)
    ├── MCP:    get_context_instructions → USE SKILL load-project-context → USE SKILL hitl
-   ├── Plugin: USE SKILL load-project-context → USE SKILL hitl (always-on rules auto-loaded)
+   ├── Plugin: USE SKILL load-project-context → USE SKILL hitl (`bootstrap-alwayson.md` auto-loaded)
    └── Local:  read bootstrap-alwayson.md → USE SKILL load-project-context → USE SKILL hitl
 
 3. Routing — the user chooses the entry
-   ├── plain request → lean path: always-on basics; skills auto-engage per descriptions
+   ├── plain request → lean path: `bootstrap-alwayson.md`; skills auto-engage per descriptions
    ├── /rosetta <request> → rosetta skill selects and hands off to the best workflow
    └── /<workflow> <request> → that workflow directly (bypasses rosetta)
 
@@ -422,7 +422,7 @@ Instructions live in `/instructions/r2/` in the instructions repository, using a
 
 **Layered customization.** Core provides the universal foundation. Organization folders extend or override it. Files at the same VFS resource path get **bundled together** by the Bundler. `INSTRUCTION_ROOT_FILTER` controls which layers are included (e.g., `CORE,GRID`).
 
-**Component relationships.** Workflows invoke subagents. Subagents use skills. All reference rules. Templates live inside skills. Guardrails are rules. See [Overview — Key Concepts](../OVERVIEW.md#key-concepts) for definitions.
+**Component relationships.** Workflows invoke subagents. Subagents use skills. Templates live inside skills. Guardrails are primarily on-demand skills engaged through always-on actor lists and skill descriptions. See [Overview — Key Concepts](../OVERVIEW.md#key-concepts) for definitions.
 
 **Naming.** Lowercase, dash-separated, globally unique filenames. Entry points: `SKILL.md` for skills, `<name>.md` for agents, workflows, and rules.
 
@@ -457,7 +457,7 @@ Rosetta initializes and maintains a standard file structure in **target reposito
 - `refsrc/*` — reference source code for knowledge only (excluded from SCM except `refsrc/INDEX.md`)
 - `agents/TEMP/<FEATURE>` — temporary files during implementation (excluded from SCM)
 
-Prep step 2 loads `CONTEXT.md` and `ARCHITECTURE.md` from the target repository. The agent updates `IMPLEMENTATION.md` and `MEMORY.md` as it works. See [Installation — Workspace Files Created](../INSTALLATION.md#workspace-files-created) for the full list of committed and excluded files.
+The `load-project-context` prep action reads `CONTEXT.md` and `ARCHITECTURE.md` from the target repository. The agent updates `IMPLEMENTATION.md` and `MEMORY.md` as it works. See [Installation — Workspace Files Created](../INSTALLATION.md#workspace-files-created) for the full list of committed and excluded files.
 
 **State management and recovery.** For medium and large tasks, workflows create plan, spec, and state files in `plans/` and `agents/`. These files persist execution state to disk, so if a failure occurs (context loss, crash, timeout), the agent or a new session can resume from the last recorded state rather than starting over.
 
@@ -471,9 +471,9 @@ Instructions Repo ──► CLI (publish) ──► RAGFlow ──► Rosetta MC
 
 1. **Publish.** CLI reads `.md` files from instructions repo, extracts tags + frontmatter + metadata, generates deterministic UUID, upserts into dataset
 2. **Index.** RAGFlow parses, chunks, embeds, indexes for full-text and semantic search
-3. **Bootstrap.** Agent calls `get_context_instructions` via MCP (prep step 1), reads workspace files directly from the target repo (step 2), classifies request via MCP (step 3)
-4. **Load.** Agent uses the typed aliases (USE/READ/APPLY/LIST). MCP queries by tags, bundles matching VFS paths into XML with context headers. Progressive disclosure: only what the workflow needs
-5. **Execute.** Workflow phases (Prepare → Research → Plan → Act → Validate), subagent delegation, built-in todo tracking (or the r3 operation-manager skill for larger work), guardrails and HITL gates.
+3. **Prepare.** In MCP mode, the agent calls `get_context_instructions` once, then uses `load-project-context` and `hitl`; plugin and local modes bind the same canonical `Rosetta Prep Steps` to their native mechanisms
+4. **Route and load.** A plain request stays lean; `/rosetta` classifies and selects a workflow; `/<workflow>` invokes that workflow directly. Typed aliases (USE/READ/APPLY/LIST) progressively load only the selected instruction artifacts
+5. **Execute.** Workflow phases, subagent delegation, and built-in todo tracking drive work. LARGE work adds the orchestrator-only EXECUTION_CONTROLLER backed by `rosettify`; guardrail skills and HITL gates apply throughout.
 
 ---
 

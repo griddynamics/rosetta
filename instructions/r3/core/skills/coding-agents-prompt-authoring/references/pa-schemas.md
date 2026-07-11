@@ -61,7 +61,8 @@ Note:
 
 <workflow_and_command_authoring workflow-schema="docs/schemas/workflow.md" workflow-phase-schema="docs/schemas/phase.md">
 
-- Ensure preparation steps as prerequisite
+- MUST declare `Rosetta Prep Steps` as a prerequisite without restating or renumbering them
+- Dispatched subagents MUST USE SKILL `subagent-directives` + assigned skills
 - Small workflows are just defined in the one file
 - Large workflows contain phase definitions in separate files
 - Workflows must define subagents with role/specialization for each phase
@@ -69,7 +70,7 @@ Note:
 - Each phase is intended to be ran by at least one independent subagent
 - Workflows must adapt to the SIZE and COMPLEXITY of the user request
 - Workflows used as templates, multiple workflows COULD be combined
-- Usually we have prep steps (prerequisite), discovery (required, local files and context), research (optional, external knowledge via tools and MCPs), questioning (required, but may have no questions), planning (required, but may be lightweight), specifications (different for each workflow, may be lightweight), execution (required), and self-validation (required)
+- Typical phases after `Rosetta Prep Steps`: discovery (required, local files and context), research (optional, external knowledge via tools and MCPs), questioning (required, but may have no questions), planning (required, but may be lightweight), specifications (different for each workflow, may be lightweight), execution (required), and self-validation (required)
 - EXTREMELY IMPORTANT to prevent AI coding agents to not proceed fully autonomously while user trying to catch it to stop, but instead to proactively work with the user
 
 </workflow_and_command_authoring>
@@ -82,15 +83,15 @@ Note:
 
 <agent_and_subagent_authoring schema="docs/schemas/agent.md">
 
-- Ensure preparation steps as prerequisite
+- Top-agent definitions require `Rosetta Prep Steps`; spawned subagents start with `bootstrap-alwayson.md` + dispatch prompt and require `subagent-directives` + assigned skills
 - Define explicitly inputs and outputs
 - Subagents are local parallel threads, not external servers
 - Subagents start with fresh context — include all references
 - Subagents are executors using multiple skills and invoked as defined by workflows
 - All those parties contracts should be coherent but not exact
 - Distinguish and tailor for lightweight and full subagents:
-  - Lightweight: extremely small and simple, minimal context, simple and shallow tasks, optionally invokes Rosetta, assumes roles based on the input, short living, entire task, input/output/context is all defined as the subagent input. System prompt is minimal. Examples: project builder, package installer, test runner, log analyzer, etc. Idea is to make it work with verbose tools to execute small actions and to summarize result to prevent full subagents context from overflowing with noise.
-  - Full: assumes the role from the input, defines Rosetta prep steps as a prerequisite, and relies on that context. Longer running vs lightweight. Deep tasks. Inputs/Outputs are defined. Context is discovered in addition to the input. System prompt is comprehensive. Subagents must not be specialized, subagent definition should be small, instead orchestrator will provide specialization, skills matter most.
+  - Lightweight: extremely small and simple, minimal context, simple and shallow tasks, loads only assigned skills, assumes roles based on the input, short living, entire task, input/output/context is all defined as the subagent input. System prompt is minimal. Examples: project builder, package installer, test runner, log analyzer, etc. Idea is to make it work with verbose tools to execute small actions and to summarize result to prevent full subagents context from overflowing with noise.
+  - Full: assumes the role from the input; starts with `bootstrap-alwayson.md` + the dispatch prompt; requires `subagent-directives` + task-needed skills. Longer running vs lightweight. Deep tasks. Inputs/Outputs are defined. Context is discovered only when assigned. System prompt is comprehensive. Subagents must not be specialized; the orchestrator provides specialization, skills matter most.
 - Instruct as a MUST that subagent MUST STOP, EXPLAIN THE REASONS, and LET PARENT agent or user to make decision if subagent cannot execute work as requested or according to original intent. It is much simpler this way.
 
 </agent_and_subagent_authoring>

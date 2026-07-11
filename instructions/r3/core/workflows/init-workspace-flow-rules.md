@@ -51,7 +51,7 @@ Local copies of Rosetta instructions enable AI agents to load rules without Rose
 - Rules consumed by AI agents, not humans
 - **Full-copy mode** — copies complete file content from Rosetta to local workspace
 - **Adapt** — copy content AS-IS; adapt ONLY IDE format: extension, frontmatter, directory. Never rewrite instruction content.
-- **Exclusion set** — `init-workspace-*` skills/workflows, `templates/shell-schemas/*`, `configure/*`, `rules/bootstrap.md` MUST NOT BE copied
+- **Exclusion set** — `init-workspace-*` skills/workflows, `templates/shell-schemas/*`, `configure/*`, `rules/mcp-files-mode.md` MUST NOT BE copied
 - **Bundled reads** — when a KB read returns multiple `<rosetta:file>` sections, strip tags, merge into one file with one frontmatter
 - **state.mode** — `init` creates all files; `upgrade` fills gaps only, never overwrites human-customized files
 - Make sure that you follow original activation conditions, MUST never make all rules to be ALWAYS activated/loaded (overflows context)

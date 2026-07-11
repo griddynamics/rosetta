@@ -94,7 +94,7 @@
 - Provide clear concise role with knowledge for subagent to assume as first sentence of the input
 - Provide clear task, considering that subagent has no your context, use SMART at minimum
 - Provide context or references (better) for lightweight agents to be successful, including all relevant files, all types of prompts that are required to effectively complete the work, instruct to NOT do more than requested
-- Provide context or references (better), only mention to complete prep steps, so that you both rely on common knowledge, tell exact phases, steps, and tasks to do (but do not explain), SMART, DRY, KISS is minimum, instruct to NOT do more than requested
+- For full subagents, require `subagent-directives` + task-needed skills, provide exact phases/steps/tasks (do not explain), apply SMART/DRY/KISS, and instruct to NOT do more than requested
 - Large inputs: write input to a file in FEATURE TEMP folder, reference as MUST to auto-toc grep and read, critical requirements go first in the file
 - Large output: provide exact path to folder where to put output files inside FEATURE TEMP folder, if output is not part of the contract, tell subagent exactly what file name, format, and minimal template it should use
 - Let subagents read and write common files (be careful for parallel agents modifying the same file)

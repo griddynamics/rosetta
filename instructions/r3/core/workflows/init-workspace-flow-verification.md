@@ -78,7 +78,7 @@ CONDITIONAL (if rules requested, N/A otherwise):
 
 21. KB SEARCHED for IDE/Agent rules — agent's built-in knowledge is obsolete, verify KB was queried
 22. Existing rules checked before creating new
-23. Root agents file uses bootstrap.md template
+23. Root agents file uses mcp-files-mode.md template
 24. Tech-specific agent files created
 25. Local instructions with MoSCoW emphasis
 26. Weekly check mechanism with release version

@@ -4,8 +4,7 @@ Rosetta is an instructions and processes enforcement for AI coding agents (like 
 It is public OSS and central repository of rules/skills/agents/subagents/commands/workflows stored as markdown files. 
 These artifacts are deployed via plugins (preferred) or MCP into a target real software project repository, which has its own files and folder structure.
 
-Coding agents will always be exposed to the same Rosetta bootstrap as you are now (always injected in context): 
-bootstrap_alwayson. Plus exactly one mode file: bootstrap.md (MCP mode), plugin-files-mode.md (plugins/standalone), or local-files-mode.md (developing Rosetta itself).
+Top-agent sessions receive `bootstrap-alwayson.md` plus exactly one mode file: `mcp-files-mode.md` (MCP), `plugin-files-mode.md` (plugin/standalone), or `local-files-mode.md` (developing Rosetta). Spawned subagents receive only `bootstrap-alwayson.md` + their dispatch prompt, which requires `subagent-directives` and any task-needed skills. Heavy process loads on demand through skills and workflows; the plugin mode file carries no alias mapping because typed aliases operate natively on plugin files.
 
 Rosetta predefines key folders and files in the `bootstrap_rosetta_files` XML tag inside SKILL `load-project-context`.
 

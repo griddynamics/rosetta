@@ -60,7 +60,7 @@ Step 1: Identify Environment
 Step 2: Install Base Files
 
 1. READ SKILL `load-project-context` — install as SKILL
-2. READ RULE `bootstrap.md` — install as CORE RULE, copy content (no refs/links)
+2. READ RULE `mcp-files-mode.md` — install as CORE RULE, copy content (no refs/links)
 
 Step 3: MUST Generate Skill Shells
 

@@ -77,7 +77,7 @@ Scope*: root <path> [git worktree] · DO <in-scope + expected outputs> · DO NOT
 Checklist*: <ACs · NFRs · FRs · open-ended>
 Skills*: MUST USE SKILL `subagent-directives`[, `load-project-context`, <required>] · [RECOMMEND USE SKILL <skill>]
 Original request*: <verbatim + agreed clarifications — carry through every step>
-Context*: <all it needs — refs · files · decisions; subagent starts with ONLY `bootstrap_alwayson` + this prompt>
+Context*: <all it needs — refs · files · decisions; subagent starts with ONLY `bootstrap-alwayson.md` + this prompt>
 Output specs*: message <content + format — unambiguous, so orchestrator can verify> · [files: <high volume → unique path per subagent + format>] · MUST return: results · summary · side effects · anomalies · discoveries · contract changes · deviations · inconsistencies · insights
 Evidence specs*: <proofs you demand back — per claim: deep links + line ranges + brief quotes; facts ≠ assumptions>
 [<free-form: anything not covered>]
