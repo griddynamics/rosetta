@@ -132,15 +132,4 @@ Direct skill and subagent invocation is ONLY appropriate for targeted, self-cont
 
 </workflow_phases>
 
-<references>
-
-Subagents:
-- INVOKE SUBAGENT `discoverer` — KB listing, acquisition, and guidance
-
-Skills:
-- USE SKILL `reasoning`
-- USE SKILL `natural-writing`
-
-</references>
-
 </self_help_flow>

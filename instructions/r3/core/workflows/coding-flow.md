@@ -175,19 +175,6 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 <references>
 
-Subagents:
-
-- `discoverer` (Lightweight): context discovery
-- `architect` (Full): tech specs and architecture
-- `engineer` (Full): implementation and testing
-- `executor` (Lightweight): builds, tests, packages, mechanical actions
-- `reviewer` (Full): logical inspection against intent, provides recommendations
-- `validator` (Full): verification through actual execution
-
-Skills:
-
-- `coding`, `testing`, `tech-specs`, `planning`, `reasoning`, `debugging`, `questioning`, `load-project-context`
-
 MCPs:
 
 - `DeepWiki`, `Context7` — external documentation and library knowledge

@@ -35,7 +35,7 @@ IMPORTANT! If the task is to reverse engineer requirements, spawn MULTIPLE subag
 Artifact: Discovery Summary (context, existing requirements, constraints, affected files).
 Done when: scope boundaries and relevant requirement files are identified.
 
-1. Complete all preparation steps (PREP 1-3)
+1. Complete all Rosetta prep steps
 2. Detect environment and project structure
 3. Read existing requirements, glossary, assumptions, constraints
 4. Identify requirement areas (FR, NFR, interfaces, data, traceability)
@@ -143,12 +143,6 @@ Done when: artifacts are stored in target location and state file is complete.
 
 <references>
 
-Skills:
-
-- USE SKILL `requirements-authoring` — authoring, reviewing, validating requirements
-
-Rules:
-
 - READ RULE `requirements-best-practices.md` — requirements quality and process rules
 
 </references>
@@ -158,7 +152,7 @@ Rules:
 - Every phase produced its artifact
 - No must phase skipped or merged
 - Should phase skipped only with reason
-- PREP steps completed before discovery
+- Rosetta prep steps completed before discovery
 - Intent capture approved before outline and draft
 - Structure approved before drafting
 - Each `<req>` explicitly user-approved

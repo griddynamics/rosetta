@@ -23,7 +23,7 @@ Execute phases sequentially, do not skip!
 
 <prerequisites>
 
-1. Preparation steps are mandatory prerequisites and must be completed before phase 1.
+1. All Rosetta prep steps MUST be FULLY completed before phase 1.
 2. Workflow execution starts only after prerequisites are satisfied.
 3. Orchestrator and subagents MUST USE SKILL `coding-agents-prompt-authoring`.
 4. MUST just-in-time load each phase's skills
@@ -97,25 +97,6 @@ Execute phases sequentially, do not skip!
 </validate>
 
 </workflow_phases>
-
-<references>
-
-Use `INVOKE SUBAGENT` for agents.
-
-Subagents to use:
-
-1. agent `discoverer`
-2. agent `prompt-engineer`
-
-Contracts:
-
-1. Preparation steps are prerequisites before phase 1.
-2. `Discovery Notes` + `Reference Set` are required before intake starts.
-3. `Prompt Brief` is required input from phase 3 onward.
-4. Load only references needed by current phase.
-5. Workflow defines sequence/contracts; skills define execution internals.
-
-</references>
 
 <validation_checklist>
 

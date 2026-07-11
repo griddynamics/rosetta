@@ -127,10 +127,6 @@ DISABLED
 
 Phase files: `init-workspace-flow-context.md`, `init-workspace-flow-shells.md`, `init-workspace-flow-discovery.md`, `init-workspace-flow-rules.md`, `init-workspace-flow-patterns.md`, `init-workspace-flow-documentation.md`, `init-workspace-flow-questions.md`, `init-workspace-flow-verification.md`
 
-Skills: `codemap`
-
-State: `agents/init-workspace-flow-state.md`
-
 </references>
 
 <pitfalls>

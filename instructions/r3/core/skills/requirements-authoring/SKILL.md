@@ -32,7 +32,7 @@ Creating, updating, reviewing, or refactoring requirements and building traceabi
 
 <dependencies>
 
-- Prep steps completed
+- Rosetta prep steps completed
 - USE SKILL `questioning` for Q&A.
 - Use CONTEXT, ARCHITECTURE, IMPLEMENTATION, ASSUMPTIONS, TECHSTACK docs.
 
