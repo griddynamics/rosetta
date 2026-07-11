@@ -367,7 +367,7 @@ HITL gates (use when):
 - Once drafting is done proactively seek user approval
 - Self-review, then narrate to user as a first-time story
 - Full and specific words and phrases
-- Explicit approval, do not assume approval, user questions/comments do not mean it was approved
+- Explicit approval
 
 </authoring_flow>
 

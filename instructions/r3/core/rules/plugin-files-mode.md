@@ -9,21 +9,10 @@ baseSchema: docs/schemas/rule.md
 
 <rosetta:plugin_files_mode REQUIRED="true" OVERRIDABLE="FALSE" PLAN_MODE="FULLY COMPATIBLE" severity="CRITICAL" use="ALWAYS" compact="NEVER" summarize="AS-IS">
 
-This is a Rosetta bootstrap for release R3 of instructions itself (the tool used for developing in this workspace).
+Rosetta bootstrap, release R3 of instructions itself (the tool developing this workspace). RUNNING AS PLUGIN — Plugin Mode Active, context appended via hooks.
 
-Rosetta RUNNING AS PLUGIN. Rosetta Plugin Mode is Active. Rosetta appends context via hooks.
+Rosetta Prep Steps = execute once per session: USE SKILL `load-project-context`, `hitl`.
 
-# Rosetta Prep Steps
-
-`Rosetta prep steps` = execute in order, once per session:
-
-1. USE SKILL `load-project-context`.
-2. USE SKILL `hitl`.
-
-# PLUGIN MODE USES LOCAL PLUGIN FILES
-
-- Rosetta/KB MCP means you MUST USE local plugin files, bundled at plugin root: RULE in `rules/*.md` · SKILL in `skills/*/SKILL.md` · AGENT, SUBAGENT in `agents/*.md` · WORKFLOW, COMMAND in `workflows/*.md` · CONFIGURE in `configure/*.md`
-- Do not load instructions from Rosetta MCP.
-- Loading = reading the actual plugin file; reconstructing or assuming behavior does NOT satisfy.
+PLUGIN MODE USES LOCAL PLUGIN FILES — any Rosetta/KB MCP mention => MUST USE local plugin files bundled at plugin root, NEVER Rosetta MCP: RULE `rules/*.md`, SKILL `skills/*/SKILL.md`, AGENT/SUBAGENT `agents/*.md`, WORKFLOW/COMMAND `workflows/*.md`, CONFIGURE `configure/*.md`. Loading = reading the actual plugin file; reconstructing/assuming does NOT satisfy.
 
 </rosetta:plugin_files_mode>

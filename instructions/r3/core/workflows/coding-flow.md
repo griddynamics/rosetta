@@ -64,7 +64,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 1. Present main solution first and then alternatives, do not assume user is in context, give him full information with TLDR.
 1. Present specs, plan, and review findings. User MUST approve: "Yes, I reviewed the design" or "Approve, the design was reviewed".
-1. Do NOT assume approval. Anything else = review feedback, iterate.
+1. Strict approval; anything else = review feedback, iterate.
 1. SMALL: combine with Phase 6 into single checkpoint.
 
 </user_review_design>
@@ -93,7 +93,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 <user_review_plan phase="6" applies="ALL" type="HITL">
 
 1. Present specs, plan, and review findings. User MUST approve: "Yes, I reviewed the plan" or "Approve, the plan and specs were reviewed".
-2. Do NOT assume approval. Anything else = review feedback, iterate.
+2. Strict approval; anything else = review feedback, iterate.
 
 </user_review_plan>
 
@@ -135,7 +135,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 <user_review_impl phase="10" applies="ALL" type="HITL">
 
 1. Present implementation, review findings, and validation findings. User MUST approve: "Yes, I approve the implementation".
-2. Do NOT assume approval. Do NOT proceed to tests until explicit approval.
+2. Strict approval required before proceeding to tests.
 3. SMALL: combined with Phase 12 checkpoint.
 
 </user_review_impl>

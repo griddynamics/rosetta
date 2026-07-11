@@ -120,7 +120,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 <user_review phase="9" applies="ALL" type="HITL">
 
 1. Present final artifacts and review findings. User MUST approve: "Yes, I reviewed the analysis" or "Approve, the analysis was reviewed".
-2. Do NOT assume approval. Anything else = feedback; iterate on the phase that owns the affected artifact (`analyze_small`, `analyze_large_parallel`, `summarize`, or `requirements_branch`).
+2. Strict approval; anything else = feedback, iterate on the phase that owns the affected artifact (`analyze_small`, `analyze_large_parallel`, `summarize`, or `requirements_branch`).
 
 </user_review>
 

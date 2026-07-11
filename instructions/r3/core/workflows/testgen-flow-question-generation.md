@@ -20,7 +20,7 @@ baseSchema: docs/schemas/phase.md
 
 Generate specific, actionable clarification questions based on analysis findings, collect user answers, and validate completeness before proceeding to requirements generation.
 
-⭐ **HITL GATE**: This phase requires human input. MUST WAIT for user to provide answers before Phase 4. Explicit user approval required. Do not assume user approved. User must type "yes" or "approved". If user asks questions or provides suggestions it is not approval, it means user is reviewing it!
+⭐ **HITL GATE**: MUST WAIT for user answers before Phase 4. Strict approval required — user must type "yes" or "approved".
 
 ## Requirements
 
