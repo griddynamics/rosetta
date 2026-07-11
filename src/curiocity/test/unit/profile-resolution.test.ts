@@ -141,6 +141,38 @@ describe('buildTrialSpecs (D13 defaults reachable end-to-end)', () => {
     expect(skipped).toHaveLength(1);
     expect(skipped[0]!.reason).toContain('ghost');
   });
+
+  it('propagates resolved baseUrls into TrialSpec without constructing network clients', () => {
+    const topLevel = topLevelConfigSchema.parse({});
+    const cases = [makeCase('pong', ['claude-code'])];
+    const resolvedCases = cases.map((c) =>
+      resolveCaseConfig({ caseName: c.name, topLevel, caseConfig: c.config, evaluateDefault: false }),
+    );
+    const matrix = buildMatrix({ topLevel, cases: resolvedCases });
+
+    const { specs, skipped } = buildTrialSpecs({
+      topLevel,
+      cases,
+      resolvedCases,
+      matrix,
+      runDir: '/tmp/does-not-matter',
+      configDir: process.cwd(),
+      keepWorkspace: false,
+      mirror: false,
+      keys: {},
+      baseUrls: {
+        anthropic: 'https://bifrost.example/anthropic',
+        openai: 'https://bifrost.example/openai',
+      },
+    });
+
+    expect(skipped).toHaveLength(0);
+    expect(specs).toHaveLength(1);
+    expect(specs[0]!.baseUrls).toEqual({
+      anthropic: 'https://bifrost.example/anthropic',
+      openai: 'https://bifrost.example/openai',
+    });
+  });
 });
 
 describe('buildTrialSpecs — registry-default `models` reach the final TrialSpec (m5-review R1)', () => {

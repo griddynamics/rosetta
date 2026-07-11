@@ -8,7 +8,7 @@ import { resolveCaseConfig, resolveGlobals, type CliOverrides } from '../../conf
 import { DEFAULT_CONFIG_PATH, loadTopLevelConfig } from '../../config/loader';
 import { runSuite } from '../../orchestrator/run';
 import { preflightAgentHomes } from '../../orchestrator/preflight';
-import { resolveKeys } from '../../llm/keys';
+import { resolveBaseUrls, resolveKeys } from '../../llm/keys';
 import { evaluatorRegistry } from '../../evaluators';
 import { evaluatorEntrySchema } from '../../config/schema';
 import type { ResolvedCaseConfig } from '../../config/merge';
@@ -258,6 +258,8 @@ export async function runRun(opts: RunOptions): Promise<number> {
   // Resolve LLM keys ONCE at startup (§4/§12): CURIOCITY_<PROVIDER>_KEY → provider
   // standard var → cwd .env. Held in memory, shipped over IPC, never logged.
   const keys = resolveKeys();
+  // Resolve Bifrost/base URLs once with the same source-tier precedence as keys.
+  const baseUrls = resolveBaseUrls();
 
   const out = process.stdout;
   const suite = await runSuite({
@@ -272,6 +274,7 @@ export async function runRun(opts: RunOptions): Promise<number> {
     ...(topLevel.pricing ? { pricing: topLevel.pricing } : {}),
     ...(topLevel.budgetUsd !== undefined ? { budgetUsd: topLevel.budgetUsd } : {}),
     keys,
+    baseUrls,
     configDir,
     keepWorkspace: opts.keepWorkspace === true,
     mirror: opts.mirror === true,

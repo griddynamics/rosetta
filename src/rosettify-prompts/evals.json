@@ -8,6 +8,26 @@
     {
       "id": "terse-prompt-eval",
       "description": "Compares 'think' vs 'reason' vs no compression-instruction baseline, then asks the model to critique the prompt it was just given.",
+      "eval": {
+        "judgePrompt": "Judge whether the assistant produced useful prompt-improvement options without blindly obeying or restating the prompt under critique.",
+        "assertions": [
+          {
+            "id": "specific-failure-modes",
+            "text": "The reply identifies concrete failure modes or risks in the compressed/terse instruction.",
+            "rubric": "Pass if at least one specific failure mode is named; partial if risks are only generic; fail if no failure mode is discussed."
+          },
+          {
+            "id": "actionable-improvements",
+            "text": "The reply gives actionable improvement options rather than only describing the existing prompt.",
+            "rubric": "Pass if multiple concrete changes are proposed; partial if only one vague change is proposed; fail if no improvement option is given."
+          },
+          {
+            "id": "does-not-execute-compression",
+            "text": "The reply evaluates the prompt as data and does not over-compress itself into unreadable unicode shorthand.",
+            "rubric": "Pass if the reply remains readable while discussing the compression instruction; fail if it primarily follows the compression style being critiqued."
+          }
+        ]
+      },
       "variants": [
         {
           "id": "think",
@@ -21,6 +41,14 @@
           "id": "reason",
           "label": "MUST ONLY reason...",
           "systemPrompt": "MUST ONLY reason and chat compressed/terse/unicode chars/terms/always no hieroglyphs; Exclude artifacts, tool calls, code, etc.",
+          "turns": [
+            "Think/reason what each word in this prompt is for, why it is present, think how to make it better, what failures modes are missing, etc. Only output few options for improvements."
+          ]
+        },
+        {
+          "id": "think-reason-plan-chat",
+          "label": "MUST ONLY think, reason, plan, and chat...",
+          "systemPrompt": "MUST ONLY think, reason, plan, and chat in compressed/terse/unicode chars/terms/always no hieroglyphs - exclude artifacts, any tool calls, all code, etc.",
           "turns": [
             "Think/reason what each word in this prompt is for, why it is present, think how to make it better, what failures modes are missing, etc. Only output few options for improvements."
           ]

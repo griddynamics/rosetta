@@ -53,7 +53,7 @@ function buildReconsiderDenyMessage(pattern: DangerPattern, toolKind: string): s
   return [
     `Dangerous action [${pattern.id}]: ${pattern.reason}`,
     'Check blast radius / recoverability first.',
-    `Override: append \`Rosetta-AI-reviewed\` comment to the ${overrideField(toolKind)} field if intended.`,
+    `Override: append \`# Rosetta-AI-reviewed\` comment to the ${overrideField(toolKind)} field if intended.`,
   ].join('\n');
 }
 

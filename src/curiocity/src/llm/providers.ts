@@ -17,17 +17,17 @@ export interface ProviderFactory {
   readonly standardKeyEnvVars: readonly string[];
   /** Construct a language model for a bare model id with an explicit api key.
    *  Offline: builds the client object only — no network call happens here. */
-  model(modelId: string, apiKey: string): LanguageModel;
+  model(modelId: string, apiKey: string, baseURL?: string): LanguageModel;
 }
 
 export const providers: Record<string, ProviderFactory> = {
   anthropic: {
     standardKeyEnvVars: ['ANTHROPIC_API_KEY'],
-    model: (modelId, apiKey) => createAnthropic({ apiKey })(modelId),
+    model: (modelId, apiKey, baseURL) => createAnthropic({ apiKey, ...(baseURL ? { baseURL } : {}) })(modelId),
   },
   openai: {
     standardKeyEnvVars: ['OPENAI_API_KEY'],
-    model: (modelId, apiKey) => createOpenAI({ apiKey })(modelId),
+    model: (modelId, apiKey, baseURL) => createOpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) })(modelId),
   },
 };
 

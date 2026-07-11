@@ -85,6 +85,8 @@ export interface RealModelRouterDeps {
   models: PartialModelRoles;
   /** Provider → api key (resolved at orchestrator startup, §12). */
   keys: Record<string, string>;
+  /** Provider → base URL (resolved at orchestrator startup, §12/Bifrost). */
+  baseUrls?: Record<string, string>;
   /** Injectable SDK calls (tests supply fakes so no network is touched). */
   generateText?: GenerateTextFn;
   generateObject?: GenerateObjectFn;
@@ -195,7 +197,7 @@ export class RealModelRouter implements ModelRouter {
           `Set CURIOCITY_${provider.toUpperCase()}_KEY or the provider-standard var.`,
       );
     }
-    return getProvider(provider).model(modelId, key);
+    return getProvider(provider).model(modelId, key, this.deps.baseUrls?.[provider]);
   }
 
   async generateText(role: Role, req: GenerateTextRequest): Promise<{ text: string; usage: Usage }> {

@@ -7,6 +7,10 @@ import fxCodexWrite from './fixtures/codex-post-tool-use-write.json';
 import fxCodexSessionStart from './fixtures/codex-session-start.json';
 
 import { detectIDE, normalize, formatOutput } from '../src/adapter';
+import { toCanonical } from '../src/runtime/run-hook';
+import { advise, allow, deny, sideEffect } from '../src/runtime/result-helpers';
+import type { HookContext, HookResult } from '../src/runtime/types';
+import { assertCodexOutput, expectedCodexExit } from '../src/adapters/codex-output';
 
 // ---------------------------------------------------------------------------
 describe('detectIDE — Codex', () => {
@@ -102,43 +106,87 @@ describe('normalize — Codex', () => {
 });
 
 // ---------------------------------------------------------------------------
-describe('formatOutput — Codex', () => {
+// formatOutput — Codex STRICT SCHEMA.
+// These drive the REAL canonical shape (toCanonical) through the codex adapter's formatOutput — NOT a
+// fabricated object — and validate the result against the CLOSED-WORLD Codex schema (assertCodexOutput
+// rejects ANY undocumented field per event) PLUS an exact toStrictEqual on the whole object (pins the
+// contract and catches the semantic auto-approve leak, which is schema-valid but wrong).
+// Codex ONLY — other IDEs are not strict and are not validated this way.
+// ---------------------------------------------------------------------------
+const ctxFor = (event: string): HookContext => ({ event } as unknown as HookContext);
+// These helpers are typed to return HookResult (nullable) but never return null; assert non-null for toCanonical.
+const codexOut = (result: HookResult, event: string): Record<string, unknown> =>
+  formatOutput(toCanonical(result as NonNullable<HookResult>, ctxFor(event)), 'codex');
 
-  test('identity pass-through (same schema as Claude Code)', () => {
-    const canonical = {
-      hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'x' },
-    };
-    const result = formatOutput(canonical, 'codex');
-    expect(result).toEqual(canonical);
+describe('formatOutput — Codex strict schema', () => {
+
+  test('PostToolUse advise → additionalContext only (NO permissionDecision), exit 0', () => {
+    const out = codexOut(advise('nudge text'), 'PostToolUse');
+    assertCodexOutput('PostToolUse', out);
+    expect(out).toStrictEqual({
+      hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'nudge text' },
+    });
+    expect(expectedCodexExit('PostToolUse', out)).toBe(0);
+  });
+
+  test('PreToolUse deny → nested deny only (NO top-level continue), exit 0', () => {
+    const out = codexOut(deny('blocked reason'), 'PreToolUse');
+    assertCodexOutput('PreToolUse', out);
+    expect(out).toStrictEqual({
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'deny',
+        permissionDecisionReason: 'blocked reason',
+      },
+    });
+    expect(expectedCodexExit('PreToolUse', out)).toBe(0);
+  });
+
+  test('PreToolUse advise → additionalContext only (NO permissionDecision:allow → no auto-approve)', () => {
+    const out = codexOut(advise('context text'), 'PreToolUse');
+    assertCodexOutput('PreToolUse', out);
+    expect(out).toStrictEqual({
+      hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: 'context text' },
+    });
+  });
+
+  test('PreToolUse allow (defensive; never emitted by a real hook) → permissionDecision allow only', () => {
+    const out = codexOut(allow(), 'PreToolUse');
+    assertCodexOutput('PreToolUse', out);
+    expect(out).toStrictEqual({
+      hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'allow' },
+    });
+  });
+
+  test('side-effect / null → empty object, no stdout', () => {
+    const out = codexOut(sideEffect(), 'PostToolUse');
+    assertCodexOutput('PostToolUse', out);
+    expect(out).toStrictEqual({});
   });
 
 });
 
 // ---------------------------------------------------------------------------
-describe('round-trip — Codex', () => {
+describe('round-trip — Codex (detect → normalize → strict-schema output)', () => {
 
-  test('Bash: detect → normalize → formatOutput produces valid codex output', () => {
+  test('Bash PostToolUse: detect → normalize → advise output is schema-valid', () => {
     const ide = detectIDE(fxCodexBash);
     expect(ide).toBe('codex');
     const normalized = normalize(fxCodexBash);
     expect(normalized.model).toBe(fxCodexBash.model);
     expect(normalized.turn_id).toBe(fxCodexBash.turn_id);
-    const canonical = { hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'x' } };
-    const output = formatOutput(canonical, ide);
-    // codex formatOutput is identity
-    expect(output).toEqual(canonical);
+    const out = codexOut(advise('x'), 'PostToolUse');
+    assertCodexOutput('PostToolUse', out);
   });
 
-  test('Write: detect → normalize → formatOutput produces valid codex output', () => {
+  test('Write PostToolUse: detect → normalize → advise output is schema-valid', () => {
     const ide = detectIDE(fxCodexWrite);
     expect(ide).toBe('codex');
     const normalized = normalize(fxCodexWrite);
     expect(normalized.tool_name).toBe('Write');
     expect(normalized.model).toBe(fxCodexWrite.model);
-    const canonical = { hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: 'y' } };
-    const output = formatOutput(canonical, ide);
-    // codex formatOutput is identity
-    expect(output).toEqual(canonical);
+    const out = codexOut(advise('y'), 'PostToolUse');
+    assertCodexOutput('PostToolUse', out);
   });
 
   test('SessionStart: detect → normalize preserves lifecycle fields', () => {

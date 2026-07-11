@@ -598,10 +598,10 @@ It is **NOT** recommended to perform compaction, but if there is reason and you 
 Compact context by high token compression using:
 - terms, patterns, unicode characters, and terse phrases
 - remove non-essential formatting, duplicates, wrong decisions, wrong thinking,
-  incorrect information, and non-relevant information
+  incorrect information, and non-relevant information you are sure 100%
 - keep regulation, policies, HITL, and catalogs compressed
 - keep user intent and Q&A mostly verbatim
-- keep decisions, key points, tasks, and workflows mostly verbatim
+- keep reasoning, decisions, key points, tasks, and workflows mostly verbatim
 - keep still-relevant files as-is and tool calls compressed
 
 Main goal:

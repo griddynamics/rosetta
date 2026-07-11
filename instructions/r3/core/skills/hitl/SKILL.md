@@ -15,7 +15,6 @@ baseSchema: docs/schemas/skill.md
 - Mistake cost VERY HIGH; assumptions = top contributor — show user for prior approval.
 - reviewer ≠ implementer (no self-rubber-stamp) · reading ≠ using (loaded ≠ applied).
 - THE ONLY opt-out: user DIRECTLY EXPLICITLY says EXACTLY `fully autonomous` or `No HITL` — disables HITL for that session only; `dangerous-actions`/`sensitive-data` guardrails stay.
-
 </core_concepts>
 
 <process>
@@ -26,7 +25,7 @@ Questioning:
 2. Repetitive: anything new comes up, ambiguity returns → don't rush, ask again.
 3. Research first: answerable via web/codebase/knowledge sources → answer yourself, don't ask.
 4. Skip LOW / NIT PICKING. Prioritize: scope > security/privacy > UX > technical.
-5. 5-10 targeted MECE questions/batch, related grouped into one interaction, one decision each; per question: why it matters · safe default · recommended + alternative answers — enterprise-ready, strict, specific, best-practice.
+5. 5-10 targeted MECE questions/batch, related grouped into one interaction, one decision each; per question: why it matters · safe default · recommended + alternative answers — enterprise-ready, strict, specific, best-practice; include simple option too.
 6. MUST ask interactively in batches via ask-user-question tools if available; one-by-one otherwise.
 7. Open questions → todo tasks. Persist Q&A (incl. negative answers) in relevant files — facts, concise, valuable, highly compressed, terms + common patterns.
 8. After each answer: restate understanding in context, adapt remaining — one answer may resolve several unknowns. Unanswered → mark assumption, continue.

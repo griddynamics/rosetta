@@ -74,7 +74,10 @@ const toHookContext = (norm: NormalizedInput): HookContext => ({
   toolResponse: norm.tool_response,
 });
 
-const toCanonical = (result: NonNullable<HookResult>, ctx: HookContext): CanonicalOutput => {
+// Exported for tests: lets the Codex strict-schema suites drive the REAL canonical shape through each
+// adapter's formatOutput (rather than a fabricated object). Behavior unchanged — this is the same
+// builder used by executeHook below.
+export const toCanonical = (result: NonNullable<HookResult>, ctx: HookContext): CanonicalOutput => {
   if (result.kind === 'advise')
     return { hookSpecificOutput: { hookEventName: ctx.event ?? '', permissionDecision: 'allow', additionalContext: result.message } };
   if (result.kind === 'deny')

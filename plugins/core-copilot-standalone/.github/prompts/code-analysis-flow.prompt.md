@@ -21,7 +21,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 - No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping
 - Phases are sequential; module analysis in LARGE codebases runs in parallel via `large-workspace-handling`.
 - Orchestrator trusts skills to own execution internals; coordinates sequence, artifacts, state, and approvals only.
-- State file: `agents/TEMP/code-analysis-flow-state.md` updated after each phase.
+- State file: `agents/TEMP/<FEATURE>/code-analysis-flow-state.md` updated after each phase.
 - Documentation principle: ground with links; no code generation, no suggestions, no speculation. See `best_practices` for sizing and diagram rules.
 - If `/goal` is set repeat phases 4-8 until goal is met.
 - If task is to extract/document/reverse engineer requirements or specifications from existing app/code:

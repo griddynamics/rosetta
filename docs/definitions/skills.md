@@ -46,5 +46,8 @@
 - solr-schema
 - solr-semantic-search
 - rosetta
+- data-collection
+- qa-knowledge
+- qa-structure
 - orchestration
 - subagent-directives

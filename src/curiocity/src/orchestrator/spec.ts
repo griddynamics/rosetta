@@ -40,6 +40,8 @@ export interface BuildSpecsArgs {
   mirror: boolean;
   /** Provider → api key (resolved once at startup, §4/§12); rides TrialSpec over IPC. */
   keys: Record<string, string>;
+  /** Provider → base URL (resolved once at startup, §4/§12/Bifrost); rides TrialSpec over IPC. */
+  baseUrls?: Record<string, string>;
 }
 
 export interface SkippedCell {
@@ -117,6 +119,7 @@ export function buildTrialSpecs(args: BuildSpecsArgs): BuiltSpecs {
       // registry-default < top-level < case < CLI, per role (see the header note).
       models: mergeModels(profile.models, entry.models),
       keys: args.keys,
+      baseUrls: args.baseUrls ?? {},
       provision: resolved.provision,
       setup: [...topSetup, ...caseSetup],
       teardown: [...topTeardown, ...caseTeardown],

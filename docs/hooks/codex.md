@@ -314,14 +314,18 @@ Regex string matched against `tool_name`. Use `"*"`, `""`, or omit to match all.
 
 | Field | Type | Ref | Notes |
 |---|---|---|---|
-| `decision` | `"block"` | R1 | top-level; blocks the tool result |
+| `decision` | `"block"` | R1 | top-level; does NOT undo the completed command — Codex records the feedback, **replaces the tool result** with it, and continues the model from that message |
 | `reason` | string | R1 | **(!) REQUIRED when `decision` is `"block"`** |
-| `continue` | `false` | R1 | top-level; stops normal processing |
+| `continue` | `false` | R1 | top-level; stops normal processing of the original tool result and continues from the feedback/stop text. **(!) Supported on PostToolUse (contrast PreToolUse, where `continue:false` is unsupported and FAILS the hook)** |
 | `hookSpecificOutput.hookEventName` | `"PostToolUse"` | R1 | nested |
 | `hookSpecificOutput.additionalContext` | string | R1 | nested; added as extra developer context |
 | `systemMessage` | string | R1 | UI warning (supported for PostToolUse) |
 
+> **(!) `permissionDecision` is NOT a PostToolUse field.** It is valid only on PreToolUse. Under strict validation, emitting `permissionDecision` in a PostToolUse output invalidates the whole output → the hook runs unhooked.
+
 > **(!) Parsed but NOT supported for PostToolUse (verbatim, R1):** *"`updatedMCPToolOutput` and `suppressOutput` are parsed but not supported yet. Codex marks the hook run as failed, reports the error, and continues normal processing of the tool result."*
+
+> **TODO(validate):** the PostToolUse `decision:"block"` / `continue:false` semantics (replaces result + continues from feedback; does not undo the command) and the "`permissionDecision` invalid on PostToolUse" note above were reconciled to the official OpenAI hooks reference (R1) but not yet re-confirmed by a live-hook run. Re-verify via `docs/hooks/tester.js` and remove this marker.
 
 ### Matcher (R1)
 
