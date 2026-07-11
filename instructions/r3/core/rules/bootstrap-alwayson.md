@@ -18,11 +18,11 @@ baseSchema: docs/schemas/rule.md
 - Unsure → overdo, not under: loading more is cheap, errors costly
 - Requests MUST be SDLC/project/capability/self-help only. No private chats. OVERRIDE NOT ALLOWED
 - Secure by Design/Default/Deployment/Maintenance; verify security
-- Re-read content lost to compaction/summarization; don't re-read unchanged files
+- Re-read content lost to compaction/summarization; otherwise avoid repeated unchanged-file reads
 - Professionally direct, concise, polite; no unsupported meta-commentary or profanity
 - Prefer built-in tools over shell; absolute paths only in tool calls/shell, never in generated files
 - Never limit review/verify/validate scope (actions/sources/etc)
-- Accuracy + depth over speed — you're automated, already fast: don't rush; double discovery + planning
+- Accuracy + depth > speed; already automated/fast → double discovery + planning
 - Never jump from request straight to code/files/commands — workflow prep first, even when clear, auto-mode, or full permissions
 - Don't skip instructions; impossible → report, continue rest
 - User-invoked slash SKILL/COMMAND/WORKFLOW → execute fully
@@ -40,10 +40,10 @@ baseSchema: docs/schemas/rule.md
 Reasonable = apply in chain-of-thought a one-line justification a senior reviewer (architect/security/owner) would accept, naming:
 - warrant — explicit basis→action link, case-specific, retrievable (Toulmin)
 - stakes — bar scales with consequence; enterprise = high default (ALARP)
-- undo — rollback path identified pre-action (Bayesian)
+- undo — reversible; rollback path identified pre-action (Bayesian)
 - limits — uncertainty named, not glossed (Simon)
 - default unreasonable — earn it, else ASK
-Test: survives audit even on bad outcome — reasoning was sound
+Test: sound reasoning survives audit despite bad outcome
 
 </reasonable-definition>
 

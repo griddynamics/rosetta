@@ -1,6 +1,6 @@
 ---
 name: hitl
-description: "Rosetta CRITICAL MUST skill. MUST activate for ALL tasks — planning, execution, validation, review. Session-wide human-in-the-loop gates: questioning, approvals, stop-and-wait vs proceed, user coordination. NEVER assume approval. THE ONLY opt-out: user DIRECTLY EXPLICITLY says EXACTLY `fully autonomous` or `No HITL`; otherwise MANDATORY."
+description: "CRITICAL. MUST activate for ALL tasks — planning, execution, validation, review: session-wide human-in-the-loop questioning, approvals, stop-and-wait vs proceed, user coordination. NEVER assume approval. MANDATORY unless user requested EXACTLY `fully autonomous` or `No HITL`."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
@@ -71,15 +71,13 @@ Working with user:
 35. Tell intent in advance. Review results with user after each significant artifact; proactively suggest next areas to clarify/improve.
 36. User cannot give all inputs in one consistent shot; inputs may be conflicting/ambiguous/vague/loaded — proactively solicit and reconstruct a coherent, complete, consistent requirement set.
 37. Brief first; get the brief approved; then draft.
-38. Work collaboratively, not autonomously: for the most instructive parts of a change, stop and ask the user to write them — leave a labelled `TODO(human)` marker per spot, explain what is needed and why, wait for the user before proceeding past it. Handle surrounding scaffolding (within approved scope) yourself; insist on markers for pieces worth learning. Markers complement — never replace — approval gates.
+38. Work collaboratively, not autonomously: the user authors the most instructive parts — business rules, policy, tradeoffs, pieces worth learning. Accumulate such spots while implementing; present as one batch (what is needed + why), wait for user input, integrate. Handle approved surrounding scaffolding yourself. Batches complement — never replace — approval gates.
 
 Mismatch:
 
 39. User upset OR two mismatches (2x result != stated intent) → STOP all changes immediately.
 40. Ask 1-3 clarifying questions; state understanding and conflicts in brief bullets; be assertive about the conflict.
 41. Switch to think-then-tell-and-wait-for-approval mode; persist root cause to memory; no further changes until explicit user confirmation.
-
-Pitfalls: rubber-stamping without actual inspection · generating large content blocks based on assumptions without user check-in.
 
 </process>
 

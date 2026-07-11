@@ -18,7 +18,7 @@ File not found = not created yet → continue, do NOT error; STRONGLY suggest wo
 
 <bootstrap_rosetta_files>
 
-Rosetta files load in context: SRP/DRY/MECE, terse; md headers give grep + line-range loading (Auto-TOC) — read by header/range, not whole-file; preserve that property when editing.
+Rosetta files: terse, SRP/DRY/MECE. Markdown headers = Auto-TOC (grep + line-range): load by header/range, never whole-file; preserve when editing.
 
 - `gain.json` — SDLC setup + Rosetta file locations; wins conflicts
 - `docs/CONTEXT.md` — business + behavior + target state; no tech, no changelog

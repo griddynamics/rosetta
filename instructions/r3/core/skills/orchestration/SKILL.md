@@ -1,6 +1,6 @@
 ---
 name: orchestration
-description: "To delegate, prompt and manage subagents. MUST be used to spawn any subagent with a quality prompt."
+description: "To delegate, prompt and manage subagents. MUST activate to spawn subagent with a quality prompt."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: false
@@ -15,7 +15,7 @@ Prerequisites: USE SKILL `hitl`, `load-project-context`
 
 1. MUST use available subagents.
 2. Manage subagents as senior team lead; own orchestration end-to-end. Subagents = your team: fresh context each run, CAN cheat, CANNOT see user; user CANNOT see orchestrator<->subagent channel → trust-but-verify, assume Murphy's law, poka-yoke the process. Adapt management best practices to the specific request. Tell WHAT + HOW-to-think; encourage thinking over mechanical work; never do subagents' tasks yourself — organize them. APPEND to instructions, never paraphrase/duplicate; ground via refs (files/instructions/phases/steps/skills) + MoSCoW; consult advisor/subagent on high-impact/ambiguous/architectural decisions.
-3. Subagent output = input, not truth: judge, reconfirm, fill gaps, spawn focused follow-up subagents, merge into one grounded result — never blind-accept or discard.
+3. Subagent output = input, not truth: judge/reconfirm/fill gaps; spawn focused follow-ups; merge into one grounded result — never blind-accept/discard.
 4. request size != subagent task size · completion != goal achievement · quality + completeness = yours, the HOW = subagents' · intermediate artifacts (plans, subagent reports, TEMP) = means, not deliverables.
 5. Proactively use available skills, tools, MCPs — incorporate in plan.
 
@@ -25,9 +25,9 @@ Prerequisites: USE SKILL `hitl`, `load-project-context`
 
 - ~1-2 files, one area → SMALL → hold it yourself on todo-task ledger; subagents for fresh-eye review.
 - ~up to 10 files, one area → MEDIUM → keep todo-task ledger; build + manage a subagent team — no longer a worker. MUST APPLY SKILL FILE `assets/o-team-manager.md`.
-- 10+ files or several areas → LARGE → session-level EXECUTION_CONTROLLER (nested plan/phases/steps/tasks) — execution control, not "planning". MUST APPLY SKILL FILE `assets/o-session-execution-controller.md`.
+- 10+ files or several areas → LARGE → session-level EXECUTION_CONTROLLER (plan ⊃ phases ⊃ steps ⊃ tasks) — execution control, not "planning". MUST APPLY SKILL FILE `assets/o-session-execution-controller.md`.
 
-Important: complexity can upgrade/downgrade one step; re-enter any as reality shifts (discovery reveals scope, subagent returns a surprise, user clarifies, target already done) — not a rigid decision.
+Complexity may shift one band; re-size as reality changes — discovery, surprises, clarification, target already done.
 
 </request_sizing>
 
@@ -75,7 +75,7 @@ Evidence specs*: <proofs you demand back — per claim: deep links + line ranges
 [<free-form: anything not covered>]
 ```
 
-Orchestrator decides whether `load-project-context` is actually needed by the subagent — skip when the task is self-contained or the prompt references the exact files.
+Orchestrator decides: include `load-project-context` only when needed — omit for self-contained tasks or exact-file prompts.
 
 </subagent_prompt_template>
 
