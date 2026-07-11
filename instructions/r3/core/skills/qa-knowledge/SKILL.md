@@ -25,7 +25,7 @@ Use for QA-engineering work on backend-API or UI/E2E tests: synthesizing collect
 
 - **MUST USE SKILL `reverse-engineering`** for the `code_analysis` mode (test-automation architecture analysis, API-contract extraction).
 - USE SKILL `coding` for repo conventions; `debugging` for failing tests; `sensitive-data` for redaction (canonical authority).
-- ACQUIRE QA paths / identifiers / state from `qa-structure` at point of use.
+- USE SKILL `qa-structure` for QA paths / identifiers / state at point of use.
 
 </dependencies>
 
@@ -35,6 +35,7 @@ Use for QA-engineering work on backend-API or UI/E2E tests: synthesizing collect
 - Per-value honesty: every concrete value traces to a loaded source, a user clarification, or an explicit `[ASSUMED: ...]` / `gap: ...` marker -- no confident fabrication.
 - Coverage is total: every input requirement / case / failure maps to ≥1 emitted item OR an explicit excluded/gap entry -- no silent drops.
 - Redaction: scan every emitted artifact and redact credentials/tokens/PII/credentialed-URLs before writing → USE SKILL `sensitive-data`.
+- Invocation: an owning phase supplies bindings (paths, IDs, workflow-state path) and deferred decisions. Standalone (no phase) -- ask the user for each and surface outputs to them; never write an assumed workflow-state path. "Ask the phase" in a reference = ask the user; never stall on a decision that cannot arrive.
 
 </core_concepts>
 
@@ -48,6 +49,7 @@ Pick exactly one mode by deliverable (multi-phase → run the earliest, stop; th
 - design test **cases/specs** incl. TMS, **not runnable** → **scenario_design**
 - write **runnable** QA tests (UI / API / selectors) from a plan/specs → **implementation_modes**
 - categorize run-report failures, no fixing → **test_execution_triage** (read-only)
+- propose fixes for failing QA tests + gain explicit approval to apply → **correction** (HITL-gated: present → approve → apply; via `coding` / `debugging`)
 
 </mode_selection>
 
@@ -57,8 +59,8 @@ Router -- READ SKILL FILE for the one your current step needs (point-of-use, nev
 
 | When you need to… | Command |
 |---|---|
-| present a correction for approval (API-QA **or** UI-QA) | READ SKILL FILE `assets/proposed-change-template.md` |
-| run the explicit-approval gate for a correction or spec/plan approval | READ SKILL FILE `assets/approval-gate.md` |
+| present a correction for approval (API-QA **or** UI-QA) (`<correction>` mode) | READ SKILL FILE `assets/proposed-change-template.md` |
+| run the explicit-approval gate for a correction or spec/plan approval (`<correction>` mode) | READ SKILL FILE `assets/approval-gate.md` |
 | emit the QA api-analysis artifact | READ SKILL FILE `assets/api-analysis-template.md` |
 | emit QA test specs (Given-When-Then `ATC-NNN`) | READ SKILL FILE `assets/test-spec-template.md` |
 | record the API-QA test-implementation | READ SKILL FILE `assets/api-qa-test-impl-record.md` |
@@ -75,8 +77,8 @@ Router -- READ SKILL FILE for the one your current step needs (point-of-use, nev
 | synthesize collected sources into a requirements document (`<synthesis>` mode) | READ SKILL FILE `references/synthesis-catalogs.md` |
 | run QA gap-analysis detection (`<gap_analysis>` mode) | READ SKILL FILE `references/gap-analysis-catalogs.md` |
 | design Given-When-Then API specs -- taxonomy + ATC template (`<scenario_design>` mode) | READ SKILL FILE `references/gwt-spec.md` |
-| format test cases for TestRail (scenario_design vendor binding) | READ SKILL FILE `references/testrail-format.md` |
-| export a case set to TestRail (vendor binding + destructive-write gate) | READ SKILL FILE `references/testrail-export.md` |
+| format test cases for the configured TMS (scenario_design vendor binding) | READ SKILL FILE `references/<vendor>-format.md` (`<vendor>` from project config; TestRail shipped → `testrail-format.md`) |
+| export a case set to the configured TMS (vendor binding + destructive-write gate) | READ SKILL FILE `references/<vendor>-export.md` (`<vendor>` from project config; TestRail shipped → `testrail-export.md`) |
 | fork a TMS format/export binding to another vendor | READ SKILL FILE `references/vendor-fork-guide.md` |
 | implement UI / API / selector tests -- code + selector tables + templates (`<implementation_modes>` mode) | READ SKILL FILE `references/implementation-examples.md` |
 | analyze test-automation architecture or extract API contracts (`<code_analysis>` mode, via reverse-engineering) | READ SKILL FILE `references/analysis-modes.md` |
@@ -94,6 +96,7 @@ Per active mode, before emitting:
 - scenario_design: total coverage (every case/requirement → ≥1 ATC/case or an excluded/gap entry); per-value honesty holds; auth-protected endpoints have ≥1 auth-failure scenario; vendor export passed the destructive-write gate.
 - implementation_modes: every plan assertion / ATC implemented OR recorded as uncovered/gap (no silent drop); page objects only (no raw selectors); lint/format clean on touched files.
 - test_execution_triage: every failure has exactly one taxonomy category and exactly one evidence label; `Unknown` states the missing capture; cross-failure Patterns present when ≥2 failures share a cause; read-only.
+- correction: each proposed change presented before any write; explicit approval obtained through the approval gate (no inferred approval); lint/format clean after each applied change; on reject or retry-cap, stop and report (no silent apply).
 
 </validation_checklist>
 
