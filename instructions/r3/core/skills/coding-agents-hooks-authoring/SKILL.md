@@ -74,6 +74,7 @@ This builds CJS bundles, runs full test suite, and runs `npx -y rosettify-plugin
 - **Regex `[rf]{2,}` false positives** — matches `rm -rr` and `rm -ff`. Require both flags with lookaheads: `/\brm\s+-(?=[a-zA-Z]*[rR])(?=[a-zA-Z]*[fF])[a-zA-Z]+\b/`.
 - **`$`-anchor vs trailing slash** — path patterns like `/\.kube\/config$` fail when tested against `filePath` with trailing slash. Always test against `normalizedPath = filePath.replace(/\/+$/, '')`.
 - **Matcher without toolKinds mapping** — adding a name to the JSON matcher but not to `lookupToolKind` and `def.on.toolKinds` is inert.
+- Updating instructions/* and plugins/* which serve completely different purpose.
 
 ### Reference files
 

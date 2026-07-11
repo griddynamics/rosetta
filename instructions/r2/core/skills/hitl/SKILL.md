@@ -22,7 +22,6 @@ Invoke as
 - When output is wrong, fix the harness — not the artifact
 - YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar.
 - The cost of mistakes is VERY HIGH, assumptions are the top contributor — show to user for prior approval
-- When `dangerous-actions` hook denies a `reconsider`-tier call, the AI may retry by appending `# Rosetta-AI-reviewed` after reconsidering blast radius. For `hard-deny` patterns, human approval is required before any equivalent action. See the `dangerous-actions` skill.
 - Asking questions is a repetitive process: every time something comes up, every time ambiguity comes back, do not rush!
 - Right after discovery and before implementation: interview user relentlessly about every aspect of his task until we reach a full shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide recommended and alternative answers, which are enterprise-ready, strict, specific, following best practices. Ask only few questions at a time. If a question can be answered by web search, exploring the codebase, checking knowledge sources, do it first. Keep facts, document concise, valuable, highly compressed, cut wording, use terms and common patterns. Loop cycles until NO gaps or ambiguities left without nitpicking.
 

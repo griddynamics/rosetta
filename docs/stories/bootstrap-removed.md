@@ -1615,3 +1615,135 @@ Execution-ready requires all critical criteria scoring 2.
 </pl-validation-rubric>
 
 ```
+
+## `skills/hitl/SKILL.md` — pre-compression body (2026-07-10)
+
+Structured + token-compressed (zero semantic loss intended; group order preserved: Questioning → Approval → Gates → Workflows/plans → Working with user → Mismatch); grilling paragraph moved from core_concepts into Questioning head; `reviewer ≠ implementer · reading ≠ using` intrinsic added; `TODO(human)` collaborative-writing rule added. Restored from ancestor `bootstrap-hitl-questioning.md` (lost at the 2b3b7ae4 rule→skill conversion): root-tag attrs `severity="CRITICAL" use="ALWAYS" back-and-forth-with-user="REQUIRED"` · ~2-pages-per-review-pass limit + TLDR hooks · `Yes, I understand consequences` example + tighten-wording · dangerous-actions-always-explicit-approval · Q&A incl. negative answers · one-answer-may-resolve-multiple-unknowns · batches-via-tools-else-one-by-one · user-is-not-always-right · mismatch persist-root-cause-to-memory. NOT restored (lives in `risk-assessment` skill): the MEDIUM/HIGH/CRITICAL risk ladder. Second pass same day (clean Sonnet-5 probe/compare experiment): MUST restored on ask-user-question-tools; gates un-merged to one trigger per line ("final acceptance — ALWAYS a gate"); negative approval list added (`ok`/`looks good`/`sure, go ahead`/👍 NEVER approval); dangerous-actions blanket scoped by tier (`hard-deny` vs `reconsider`); mismatch + confidence-threshold defined; opt-out operationalized (HITL only, guardrail skills stay); sizing cross-ref → `orchestration`; rules 6/7 and 18/19 split; TODO(human) scaffolding bounded "(within approved scope)". Third pass (experiment round 2): opt-out moved to core_concepts end + session-scoped; negative-ack list + tiering split to own rules; "Brief first" back to unconditional; "never assume it approved" + "valuable" + markers-complement-not-replace-gates re-added; 43 rules final. Fourth pass: word-level dense rewording (terms/unicode/dropped filler, ~4% chars; locked strings + README-quoted lines verbatim); fuller-worded version saved as `docs/stories/hitl-skill-good-alternative.md`. Frontmatter description unchanged. Full original body verbatim (after frontmatter):
+
+```
+Invoke as
+
+<hitl>
+
+<core_concepts>
+
+- "WHY" loop: idea → requirements → working software → learn → evolve
+- "HOW" loop: specs → code → tests → stories → features
+- Human gatekeeps every artifact in HOW loop. Good: human judgement breaks agent spirals fast. Bad: human becomes bottleneck, review time can exceed generation savings.
+- Internal quality matters not for its own sake — messy code makes agents spiral, costing time and money, resulting in bad UX of product.
+- Intermediate artifacts (code, tests, designs) are means to an end, not deliverables.
+- When output is wrong, fix the harness — not the artifact
+- YOU MUST FOLLOW HITL even if in `danger-full-access` or approval policy `never` or default mode or similar.
+- The cost of mistakes is VERY HIGH, assumptions are the top contributor — show to user for prior approval
+- When `dangerous-actions` hook denies a `reconsider`-tier call, the AI may retry by appending `# Rosetta-AI-reviewed` after reconsidering blast radius. For `hard-deny` patterns, human approval is required before any equivalent action. See the `dangerous-actions` skill.
+- Asking questions is a repetitive process: every time something comes up, every time ambiguity comes back, do not rush!
+- Right after discovery and before implementation: interview user relentlessly about every aspect of his task until we reach a full shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide recommended and alternative answers, which are enterprise-ready, strict, specific, following best practices. Ask only few questions at a time. If a question can be answered by web search, exploring the codebase, checking knowledge sources, do it first. Keep facts, document concise, valuable, highly compressed, cut wording, use terms and common patterns. Loop cycles until NO gaps or ambiguities left without nitpicking.
+</core_concepts>
+
+<process>
+
+Questioning:
+
+1. Ask until assumptions, ambiguities, gaps, conflicts resolved.
+2. Skip LOW or NIT PICKING.
+3. Prioritize: scope > security/privacy > UX > technical.
+4. 5-10 targeted MECE questions per batch.
+5. One decision per question.
+6. Include why it matters and safe default.
+7. Group related questions into a single interaction.
+8. Track open questions using todo tasks.
+9. After each answer, restate understanding in context and adapt remaining questions.
+10. Mark unanswered as assumption and continue.
+11. Persist Q&A in relevant files.
+12. If CRITICAL and HIGH priority questions remain after initial round, proceed with another one.
+13. STOP and escalate unresolved critical blockers.
+14. MUST NOT assume anything—even reasonably. Task must be crystal clear. Suggest and confirm instead of guessing.
+15. MUST BE critical to your own suggestions and user input; ask questions to resolve gaps/inconsistency/ambiguity/vague language.
+16. MUST use ask user question tools if available.
+
+Approval:
+
+17. MUST NOT assume approval — user message (questions, suggestions, edits) = review, not approval. User questions are only questions.
+18. Accepted: `Yes, I approve`, `Approve, the plan was reviewed`, etc.
+19. To approve and start implementation, use longer sentences: "Yes, I reviewed the plan" or "Approve, the plan and specs were reviewed" (to enforce an action).
+20. Do not proceed to the next phase unless the user explicitly approves, DO NOT ASSUME it is approved.
+21. Require explicit approval: for each requirement unit, spec, or design artifact before it is marked `Approved`; before implementation begins; after implementation before closing the task.
+22. Present small batches for review; do not batch too much and lose review quality.
+23. Keep status `Draft` until approved.
+24. Proactively review new or updated content with user as a narrative.
+25. Clearly separate user-provided vs AI-inferred.
+26. High+ risk: require EXACT sentence to type.
+27. Additional scope requires ADDITIONAL approval.
+28. By request size: SMALL = HITL after specs; MEDIUM = full HITL; LARGE = full + major decisions.
+29. USER may review by directly providing comments in the files.
+
+HITL gates (required at minimum):
+
+30. Ambiguous, conflicting, or unclear intent.
+31. Risky, destructive, or irreversible action.
+32. Scope change or de-scoping proposed.
+33. Critical tradeoffs needing MoSCoW decision.
+34. Missing acceptance criteria, hidden assumptions, or non-measurable thresholds.
+35. Conflicting requirement clauses are found.
+36. Requirement appears stale or contradictory.
+37. Final acceptance on requirement coverage is required.
+38. Adaptation has no direct target equivalent.
+39. Architecture or design tradeoffs are ambiguous.
+40. Simulation or review exposes major behavioral risk.
+41. Context conflicts with stated user intent.
+42. Confidence below reliable threshold.
+
+In gates:
+
+- Propose clear options with tradeoffs.
+- Wait for explicit user decision before proceeding.
+- Do not extend scope without user approval.
+- Do not silently reinterpret requirements.
+- Do not claim done without traceability evidence.
+
+Workflows MUST include HITL checkpoints in:
+
+- Discovery and intent capture (confirm scope and goals).
+- Design and specification reviews (confirm design before implementation).
+- Test case specification (confirm test scenarios before execution).
+- Final delivery (confirm coverage before closing).
+
+Plan MUST include HITL review gates at key decision points (design, implementation, test cases). Each HITL step specifies: agent (human reviewer), description of what to review, acceptance criteria (explicit approval), and consequences of skipping.
+
+Working with user:
+
+43. Tell intent in advance.
+44. Back-and-forth IS required, not optional.
+45. HITL collaboration is a core principle, not optional enhancement.
+46. Challenge user reasonably.
+47. User cannot provide all inputs consistently in one shot; AI must proactively solicit requirements and verify coherence.
+48. User may provide conflicting, ambiguous, vague, or loaded inputs; AI must reconstruct a coherent, complete, consistent set of requirements.
+49. Proactively suggest next areas to clarify and improve.
+50. Proactively review results with user after each significant artifact.
+51. Prompt brief first; get approved; then draft.
+52. Ask questions until crystal clear, without nitpicking.
+53. Review as story + changelog, not raw diff.
+
+Mismatch:
+
+54. If user is upset or after two mismatches: STOP all changes immediately.
+55. Ask 1-3 clarifying questions.
+56. State understanding and conflicts in brief bullets.
+57. Be assertive about the conflict.
+58. Switch to think-then-tell-and-wait-for-approval mode.
+59. Wait for explicit user confirmation before any further changes.
+
+</process>
+
+<pitfalls>
+
+- Rubber-stamping without actual inspection.
+- Treating user message as implicit approval.
+- Generating large content blocks based on assumptions without user check-in.
+
+</pitfalls>
+
+</hitl>
+```
+
+Dropped outright: stray pre-root-tag fragment `Invoke as` (leftover, no schema meaning).
