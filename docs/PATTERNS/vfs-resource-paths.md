@@ -8,7 +8,7 @@ Physical paths (`instructions/r2/core/skills/planning/SKILL.md`) change when rel
 
 ## When to Use
 
-- All `ACQUIRE`, `LIST`, and `rosetta://` references in instructions.
+- All `ACQUIRE` (generated MCP shells), `LIST`, and `rosetta://` references.
 - Adding new skills/agents/workflows — VFS path is derived automatically by CLI.
 - Cross-release compatibility: same VFS path works for r1, r2, and future releases.
 
@@ -45,4 +45,4 @@ Multiple documents (core + org overlay) sharing the same VFS path are bundled to
 - `src/rosetta-cli/rosetta_cli/services/document_data.py` — `_compute_resource_path()`
 - `src/ims-mcp-server/ims_mcp/services/bundler.py` — `_resource_path()` used for grouping
 - `src/ims-mcp-server/ims_mcp/tools/resources.py` — `rosetta://` URI handler
-- All `ACQUIRE ... FROM KB` command aliases throughout `instructions/r2/core/`
+- Generated MCP shells (`ACQUIRE ... FROM KB`) and the alias bindings in `instructions/r3/core/rules/mcp-files-mode.md`
