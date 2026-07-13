@@ -4,14 +4,12 @@ This script validates:
 1) tool input schemas include parameter descriptions,
 2) resource template registration exists,
 3) VFS resource reads return bundled content,
-4) (disabled) project lifecycle: discover -> store (force) -> discover -> query (tags + query) -> delete,
+4) invalid-input checks for read tools,
 5) list_instructions returns folder/file listings for known path prefixes,
 6) list_instructions(full_path_from_root="all") returns full listing with acquire/bundling note,
 7) query_instructions >5 file limit returns listing format instead of content,
-8) (disabled) invalid-input checks for write-data tools,
-9) (disabled) plan_manager: all 6 commands end-to-end,
-10) get_context_instructions cache TTL (5-minute expiration) and frontmatter stripping (default off, include_frontmatter=True preserves it),
-11) tool-level response caching for query_instructions and list_instructions.
+8) get_context_instructions cache TTL (5-minute expiration) and frontmatter stripping (default off, include_frontmatter=True preserves it),
+9) tool-level response caching for query_instructions and list_instructions.
 
 Required environment:
 - VERSION: release version used for dataset selection (e.g. r2)
@@ -19,44 +17,19 @@ Required environment:
 Optional environment:
 - VFS_STRICT: strict mode toggle. Default is strict (1).
   Set VFS_STRICT=0 only for diagnostic runs.
-- REDIS_URL: Redis connection URL for testing RedisPlanStore backend.
-  If not set, plan_manager tests use in-memory MemoryPlanStore instead.
-  Example: redis://localhost:6379/0
-- ROSETTA_ALLOWED_SCOPES: optional explicit scopes for project-data tools.
-  Defaults to allow_write_data for this verification harness.
 
 Runtime requirement:
 - Network access to configured Rosetta/RAGFlow endpoint and readable instruction dataset
   for the selected VERSION (e.g. aia-r2 when VERSION=r2).
 
-Run examples:
+Run example:
   cp .env.dev .env && VERSION=r2 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
-  cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r2 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
-
-Redis/Valkey Setup (for REDIS_URL testing):
-
-  1. Start Valkey container:
-     podman run -d --name rosetta-redis -p 6379:6379 docker.io/valkey/valkey:latest
-     (optionally: podman machine start)
-
-  2. Verify it's running:
-     podman ps | grep rosetta-redis
-     podman logs rosetta-redis
-
-  3. Run tests with Redis:
-     cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r2 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
-
-  4. Stop and cleanup when done:
-     podman stop rosetta-redis
-     podman rm rosetta-redis
-     podman machine stop podman-machine-default  # Optional: to free resources
 """
 
 import asyncio
 import os
 import re
 import sys
-import uuid
 from typing import List
 
 # Suppress noisy DEBUG/INFO logs from FastMCP internals during verification.
@@ -79,10 +52,6 @@ if os.path.exists(env_file):
             if line and not line.startswith("#") and "=" in line:
                 key, _, value = line.partition("=")
                 os.environ.setdefault(key.strip(), value.strip())
-
-# Project-data checks in this harness require the client-data scope unless the
-# caller explicitly overrides it.
-os.environ.setdefault("ROSETTA_ALLOWED_SCOPES", "allow_write_data")
 
 from fastmcp import Client
 from ims_mcp.server import mcp  # import the FastMCP instance directly
@@ -161,8 +130,8 @@ async def main() -> None:
     # Connect to the MCP server via in-memory transport
     print("Connecting to MCP server via in-memory transport...")
     async with Client(mcp) as client:
-        # Bootstrap session: call get_context_instructions to enable
-        # scope-gated tools (write_data) for this session.
+        # Bootstrap session: call get_context_instructions first, mirroring
+        # the prep-step contract agents follow.
         print("\nBootstrapping session via get_context_instructions...")
         await client.call_tool("get_context_instructions", {})
         print("Session bootstrapped.")
@@ -268,15 +237,9 @@ async def main() -> None:
         if strict_vfs and connection_errors:
             errors.append(f"VFS resource read had {connection_errors} error response(s)")
 
-        # ── Invalid Input Verification ────────────────────────────────
-        # Write-data tools are permanently disabled (@mcp.tool commented out).
-        # Invalid input checks for those tools are skipped.
-        # To re-enable: uncomment the @mcp.tool decorators in server.py
-        # and uncomment this section.
-
+        # 4. Invalid input checks for read tools
         print("\n=== Invalid Input Verification ===")
 
-        # Read-only tool input checks (still active)
         try:
             result = await client.call_tool("query_instructions", {"tags": ""})
             text = extract_text(result)
@@ -294,258 +257,6 @@ async def main() -> None:
                 errors.append("resource read traversal path was not rejected clearly")
         except Exception as exc:
             errors.append(f"resource invalid-input check failed: {exc}")
-
-        # Write-data tool input checks — disabled (tools not registered).
-        # To re-enable: uncomment @mcp.tool decorators in server.py and
-        # uncomment this block.
-        #
-        # try:
-        #     result = await client.call_tool("query_project_context", {"repository_name": "demo"})
-        #     text = extract_text(result)
-        #     print(f"  query_project_context without query/tags: {text[:160]}")
-        #     if text != "Error: at least one of query or tags is required":
-        #         errors.append("query_project_context missing explicit required-input error")
-        # except Exception as exc:
-        #     errors.append(f"query_project_context invalid-input check failed: {exc}")
-        #
-        # try:
-        #     result = await client.call_tool("store_project_context", {
-        #         "repository_name": "demo",
-        #         "document": "../BAD.md",
-        #         "tags": ["test"],
-        #         "content": "x",
-        #     })
-        #     text = extract_text(result)
-        #     print(f"  store_project_context with traversal path: {text[:160]}")
-        #     if "must not contain empty, '.' or '..' path segments" not in text:
-        #         errors.append("store_project_context traversal path was not rejected clearly")
-        # except Exception as exc:
-        #     errors.append(f"store_project_context invalid-input check failed: {exc}")
-        #
-        # try:
-        #     result = await client.call_tool("query_project_context", {
-        #         "repository_name": "../bad",
-        #         "tags": ["test"],
-        #     })
-        #     text = extract_text(result)
-        #     print(f"  query_project_context with invalid repository_name: {text[:160]}")
-        #     if text != "Error: repository_name must not contain '/' or '\\' characters":
-        #         errors.append("query_project_context invalid repository_name was not rejected clearly")
-        # except Exception as exc:
-        #     errors.append(f"query_project_context invalid-repository check failed: {exc}")
-        #
-        # try:
-        #     result = await client.call_tool("store_project_context", {
-        #         "repository_name": "../bad",
-        #         "document": "BAD.md",
-        #         "tags": ["test"],
-        #         "content": "x",
-        #         "force": True,
-        #     })
-        #     text = extract_text(result)
-        #     print(f"  store_project_context with invalid repository_name: {text[:160]}")
-        #     if text != "Error: repository_name must not contain '/' or '\\' characters":
-        #         errors.append("store_project_context invalid repository_name was not rejected clearly")
-        # except Exception as exc:
-        #     errors.append(f"store_project_context invalid-repository check failed: {exc}")
-        #
-        # try:
-        #     result = await client.call_tool("query_project_context", {
-        #         "repository_name": "demo",
-        #         "tags": "",
-        #     })
-        #     text = extract_text(result)
-        #     print(f"  query_project_context with blank string tag: {text[:160]}")
-        #     if text != "Error: tags must not be empty":
-        #         errors.append("query_project_context blank string tag was not rejected clearly")
-        # except Exception as exc:
-        #     errors.append(f"query_project_context blank-tag check failed: {exc}")
-        #
-        # try:
-        #     result = await client.call_tool("discover_projects", {"query": "x" * 257})
-        #     text = extract_text(result)
-        #     print(f"  discover_projects with oversized query: {text[:160]}")
-        #     if text != "Error: query must be at most 256 characters":
-        #         errors.append("discover_projects oversized query was not rejected clearly")
-        # except Exception as exc:
-        #     errors.append(f"discover_projects oversized-query check failed: {exc}")
-        #
-        # try:
-        #     result = await client.call_tool("store_project_context", {
-        #         "repository_name": "demo",
-        #         "document": "nested//BAD.md",
-        #         "tags": ["test"],
-        #         "content": "x",
-        #     })
-        #     text = extract_text(result)
-        #     print(f"  store_project_context with double-slash path: {text[:160]}")
-        #     if "must not contain empty, '.' or '..' path segments" not in text:
-        #         errors.append("store_project_context double-slash path was not rejected clearly")
-        # except Exception as exc:
-        #     errors.append(f"store_project_context double-slash invalid-input check failed: {exc}")
-        #
-        # try:
-        #     result = await client.call_tool("submit_feedback", {
-        #         "request_mode": "   ",
-        #         "feedback": {
-        #             "summary": "x",
-        #             "root_cause": "y",
-        #             "prompt_suggestions": "z",
-        #             "context": "c",
-        #         },
-        #     })
-        #     text = extract_text(result)
-        #     print(f"  submit_feedback with blank request_mode: {text[:160]}")
-        #     if text != "Error: request_mode must not be empty":
-        #         errors.append("submit_feedback blank request_mode was not rejected clearly")
-        # except Exception as exc:
-        #     errors.append(f"submit_feedback invalid-input check failed: {exc}")
-        #
-        # try:
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "upsert",
-        #         "plan_name": f"verify-invalid-root-{uuid.uuid4().hex[:8]}",
-        #         "data": {"kind": "phase", "name": "Bad Root"},
-        #     })
-        #     text = extract_text(result)
-        #     print(f"  plan_manager with root kind field: {text[:160]}")
-        #     if text != "Error: Use data.kind='phase' or data.kind='step' when creating a new item":
-        #         errors.append("plan_manager root kind field was not rejected with plain Error contract")
-        # except Exception as exc:
-        #     errors.append(f"plan_manager invalid root-kind check failed: {exc}")
-
-        # ── Project Lifecycle Verification ─────────────────────────────
-        # Write-data tools are permanently disabled (@mcp.tool commented out).
-        # Project lifecycle checks are skipped.
-        # To re-enable: uncomment the @mcp.tool decorators in server.py
-        # and uncomment this section.
-
-        # print("\n=== Project Lifecycle Verification ===")
-        # test_project = f"mcp-verify-{uuid.uuid4().hex[:8]}"
-        # test_doc = "VERIFY-TEST.md"
-        # test_content_v1 = "# Verification Test V1\nThis is the initial verification document."
-        # test_content_v2 = "# Verification Test V2\nThis is the updated verification document."
-        # test_tags = ["test", "verification"]
-        # dataset_name = f"project-{test_project}"
-        #
-        # try:
-        #     # Step 1: discover — project must not exist yet
-        #     print(f"\n  Step 1: Discover projects (expect '{test_project}' absent)")
-        #     result = await client.call_tool("discover_projects", {"query": test_project})
-        #     discover_text = extract_text(result)
-        #     print(f"    Result: {discover_text[:200]}")
-        #     if test_project in discover_text and "No projects found" not in discover_text:
-        #         errors.append(f"Project '{test_project}' already exists before test")
-        #
-        #     # Step 2: store with force — creates project and document
-        #     print(f"\n  Step 2: Store document with force=true (v1)")
-        #     result = await client.call_tool("store_project_context", {
-        #         "repository_name": test_project,
-        #         "document": test_doc,
-        #         "tags": test_tags,
-        #         "content": test_content_v1,
-        #         "force": True,
-        #     })
-        #     store_text = extract_text(result)
-        #     print(f"    Result: {store_text[:200]}")
-        #     if not store_text.startswith("Stored"):
-        #         errors.append(f"store_project_context (v1) failed: {store_text}")
-        #
-        #     # Step 3: discover — project must now appear
-        #     print(f"\n  Step 3: Discover projects (expect '{test_project}' present)")
-        #     result = await client.call_tool("discover_projects", {"query": test_project})
-        #     discover_text = extract_text(result)
-        #     print(f"    Result: {discover_text[:200]}")
-        #     if test_project not in discover_text:
-        #         errors.append(f"Project '{test_project}' not found after store")
-        #
-        #     # Step 4: query — v1 document must be retrievable
-        #     print(f"\n  Step 4: Query project context (expect v1)")
-        #     result = await client.call_tool("query_project_context", {
-        #         "repository_name": test_project,
-        #         "tags": test_tags,
-        #     })
-        #     query_text = extract_text(result)
-        #     print(f"    Result: {query_text[:200]}...")
-        #     if not is_successful_bundle(query_text):
-        #         errors.append(f"query_project_context (v1) did not return bundled content: {query_text[:100]}")
-        #     elif "V1" not in query_text:
-        #         errors.append(f"query_project_context (v1) content mismatch: expected V1 marker")
-        #     if f'path="{test_doc}"' not in query_text:
-        #         errors.append(f"query_project_context (v1) missing path attribute for '{test_doc}'")
-        #
-        #     # Step 4b: query with explicit multi-word query parameter
-        #     print(f"\n  Step 4b: Query project context with query parameter (expect v1)")
-        #     result = await client.call_tool("query_project_context", {
-        #         "repository_name": test_project,
-        #         "query": "verification test document",
-        #     })
-        #     query_by_text = extract_text(result)
-        #     print(f"    Result: {query_by_text[:200]}...")
-        #     if not is_successful_bundle(query_by_text):
-        #         errors.append(f"query_project_context (v1 query=...) did not return bundled content: {query_by_text[:100]}")
-        #     elif "V1" not in query_by_text:
-        #         errors.append("query_project_context (v1 query=...) content mismatch: expected V1 marker")
-        #
-        #     # Step 5: store again (update) — same document name, new content
-        #     print(f"\n  Step 5: Store document again (update, v2)")
-        #     result = await client.call_tool("store_project_context", {
-        #         "repository_name": test_project,
-        #         "document": test_doc,
-        #         "tags": test_tags,
-        #         "content": test_content_v2,
-        #     })
-        #     store_text = extract_text(result)
-        #     print(f"    Result: {store_text[:200]}")
-        #     if not store_text.startswith("Stored"):
-        #         errors.append(f"store_project_context (v2 update) failed: {store_text}")
-        #
-        #     # Step 6: query — must return v2, not v1
-        #     print(f"\n  Step 6: Query project context (expect v2)")
-        #     result = await client.call_tool("query_project_context", {
-        #         "repository_name": test_project,
-        #         "tags": test_tags,
-        #     })
-        #     query_text = extract_text(result)
-        #     print(f"    Result: {query_text[:200]}...")
-        #     if not is_successful_bundle(query_text):
-        #         errors.append(f"query_project_context (v2) did not return bundled content: {query_text[:100]}")
-        #     elif "V2" not in query_text:
-        #         errors.append(f"query_project_context (v2) content mismatch: expected V2 marker, got V1")
-        #     if f'path="{test_doc}"' not in query_text:
-        #         errors.append(f"query_project_context (v2) missing path attribute for '{test_doc}'")
-        #
-        #     # Step 6b: query with explicit multi-word query parameter after update
-        #     print(f"\n  Step 6b: Query project context with query parameter (expect v2)")
-        #     result = await client.call_tool("query_project_context", {
-        #         "repository_name": test_project,
-        #         "query": "verification test document",
-        #     })
-        #     query_by_text = extract_text(result)
-        #     print(f"    Result: {query_by_text[:200]}...")
-        #     if not is_successful_bundle(query_by_text):
-        #         errors.append(f"query_project_context (v2 query=...) did not return bundled content: {query_by_text[:100]}")
-        #     elif "V2" not in query_by_text:
-        #         errors.append("query_project_context (v2 query=...) content mismatch: expected V2 marker")
-        #
-        # finally:
-        #     # Cleanup: delete the test dataset via SDK
-        #     print(f"\n  Cleanup: Deleting test dataset '{dataset_name}'")
-        #     try:
-        #         from ims_mcp.server import _RAGFLOW
-        #         if _RAGFLOW:
-        #             datasets = _RAGFLOW.list_datasets(page=1, page_size=1000)
-        #             for ds in datasets:
-        #                 if ds.name == dataset_name:
-        #                     _RAGFLOW.delete_datasets([ds.id])
-        #                     print(f"    Deleted dataset '{dataset_name}' (id: {ds.id})")
-        #                     break
-        #             else:
-        #                 print(f"    Dataset '{dataset_name}' not found (already clean)")
-        #         else:
-        #             print("    WARNING: _RAGFLOW not available, manual cleanup needed")
-        #     except Exception as cleanup_exc:
-        #         print(f"    WARNING: cleanup failed: {cleanup_exc}")
 
         # 5. Verify list_instructions returns folder/file listings
         print("\n=== List Instructions Verification ===")
@@ -713,195 +424,6 @@ async def main() -> None:
                 )
         except Exception as exc:
             errors.append(f"query_instructions defensive ceiling check failed: {exc}")
-
-        # ── Plan Manager Verification ──────────────────────────────────
-        # Write-data tools are permanently disabled (@mcp.tool commented out).
-        # Plan manager checks are skipped.
-        # To re-enable: uncomment the @mcp.tool decorators in server.py
-        # and uncomment this section.
-
-        # print("\n=== Plan Manager Verification ===")
-        # plan_name = f"verify-plan-{uuid.uuid4().hex[:8]}"
-        # try:
-        #     # 7-help. help command
-        #     print("\n  7-help. help command")
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "help",
-        #         "plan_name": "unused",
-        #     })
-        #     help_text = extract_text(result)
-        #     print(f"    Result: {help_text[:160]}")
-        #     if "Commands:" not in help_text:
-        #         errors.append(f"plan_manager help missing 'Commands:': {help_text[:100]}")
-        #
-        #     # 7a. upsert entire_plan — create a plan with two phases and steps
-        #     print(f"\n  7a. upsert entire_plan (create plan '{plan_name}')")
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "upsert",
-        #         "plan_name": plan_name,
-        #         "target_id": "entire_plan",
-        #         "data": {
-        #             "name": "Verify Plan",
-        #             "phases": [
-        #                 {
-        #                     "id": "p1",
-        #                     "name": "Phase One",
-        #                     "steps": [
-        #                         {"id": "s1", "name": "Step A", "prompt": "Do step A"},
-        #                         {"id": "s2", "name": "Step B", "prompt": "Do step B", "depends_on": ["s1"]},
-        #                     ],
-        #                 },
-        #                 {
-        #                     "id": "p2",
-        #                     "name": "Phase Two",
-        #                     "steps": [
-        #                         {"id": "s3", "name": "Step C", "prompt": "Do step C", "depends_on": ["s2"]},
-        #                     ],
-        #                 },
-        #             ],
-        #         },
-        #     })
-        #     upsert_text = extract_text(result)
-        #     print(f"    Result: {upsert_text[:200]}")
-        #     if '"ok": true' not in upsert_text and "'ok': True" not in upsert_text and "ok" not in upsert_text.lower():
-        #         errors.append(f"plan_manager upsert entire_plan failed: {upsert_text[:100]}")
-        #
-        #     # 7b. query entire_plan
-        #     print(f"\n  7b. query entire_plan")
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "query",
-        #         "plan_name": plan_name,
-        #         "target_id": "entire_plan",
-        #     })
-        #     query_text = extract_text(result)
-        #     print(f"    Result: {query_text[:300]}")
-        #     if "Phase One" not in query_text:
-        #         errors.append(f"plan_manager query entire_plan missing 'Phase One': {query_text[:100]}")
-        #     if "Step A" not in query_text:
-        #         errors.append(f"plan_manager query entire_plan missing 'Step A': {query_text[:100]}")
-        #
-        #     # 7c. show_status
-        #     print(f"\n  7c. show_status entire_plan")
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "show_status",
-        #         "plan_name": plan_name,
-        #         "target_id": "entire_plan",
-        #     })
-        #     status_text = extract_text(result)
-        #     print(f"    Result: {status_text[:300]}")
-        #     if "step_progress_pct" not in status_text:
-        #         errors.append(f"plan_manager show_status missing 'step_progress_pct': {status_text[:100]}")
-        #     if "open" not in status_text:
-        #         errors.append(f"plan_manager show_status missing 'open' status: {status_text[:100]}")
-        #
-        #     # 7d. next — only s1 has no deps, so only s1 should be returned
-        #     print(f"\n  7d. next (expect only s1 — only step with no deps)")
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "next",
-        #         "plan_name": plan_name,
-        #         "target_id": "entire_plan",
-        #         "limit": 0,
-        #     })
-        #     next_text = extract_text(result)
-        #     print(f"    Result: {next_text[:300]}")
-        #     if "s1" not in next_text:
-        #         errors.append(f"plan_manager next missing 's1' (no-dep step): {next_text[:100]}")
-        #     if "s2" in next_text:
-        #         errors.append(f"plan_manager next incorrectly included 's2' (depends on s1): {next_text[:100]}")
-        #
-        #     # 7e. update_status s1 → complete
-        #     print(f"\n  7e. update_status s1 → complete")
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "update_status",
-        #         "plan_name": plan_name,
-        #         "target_id": "s1",
-        #         "new_status": "complete",
-        #     })
-        #     update_text = extract_text(result)
-        #     print(f"    Result: {update_text[:200]}")
-        #     if "complete" not in update_text and "ok" not in update_text.lower():
-        #         errors.append(f"plan_manager update_status s1 failed: {update_text[:100]}")
-        #
-        #     # 7f. next after s1 complete — s2 should now be available
-        #     print(f"\n  7f. next after s1=complete (expect s2)")
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "next",
-        #         "plan_name": plan_name,
-        #         "target_id": "entire_plan",
-        #     })
-        #     next_text2 = extract_text(result)
-        #     print(f"    Result: {next_text2[:300]}")
-        #     if "s2" not in next_text2:
-        #         errors.append(f"plan_manager next missing 's2' after s1 complete: {next_text2[:100]}")
-        #
-        #     # 7g. upsert patch step s2 (add description via null-removal test)
-        #     print(f"\n  7g. upsert patch step s2 (merge-patch)")
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "upsert",
-        #         "plan_name": plan_name,
-        #         "target_id": "s2",
-        #         "data": {"name": "Step B Updated"},
-        #     })
-        #     patch_text = extract_text(result)
-        #     print(f"    Result: {patch_text[:200]}")
-        #     if "ok" not in patch_text.lower():
-        #         errors.append(f"plan_manager upsert patch step failed: {patch_text[:100]}")
-        #
-        #     # Verify patch was applied
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "query",
-        #         "plan_name": plan_name,
-        #         "target_id": "s2",
-        #     })
-        #     query_s2 = extract_text(result)
-        #     if "Step B Updated" not in query_s2:
-        #         errors.append(f"plan_manager patch not applied: 'Step B Updated' missing in s2 query: {query_s2[:100]}")
-        #     # Original prompt must still be there (merge, not replace)
-        #     if "Do step B" not in query_s2:
-        #         errors.append(f"plan_manager patch wiped original prompt: missing 'Do step B' in s2: {query_s2[:100]}")
-        #
-        #     # 7h. subagent fields: create plan with subagent/role/model, verify next output
-        #     print(f"\n  7h. subagent fields in next output")
-        #     sa_plan = f"verify-sa-{uuid.uuid4().hex[:8]}"
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "upsert",
-        #         "plan_name": sa_plan,
-        #         "target_id": "entire_plan",
-        #         "data": {
-        #             "name": "Subagent Plan",
-        #             "phases": [{
-        #                 "id": "p1",
-        #                 "name": "Phase",
-        #                 "subagent": "code-gen",
-        #                 "role": "Senior Python dev",
-        #                 "model": "claude-4-opus",
-        #                 "steps": [
-        #                     {"id": "s1", "name": "Step", "prompt": "do it",
-        #                      "subagent": "test-writer", "role": "QA engineer", "model": "gpt-4o"},
-        #                 ],
-        #             }],
-        #         },
-        #     })
-        #     sa_upsert = extract_text(result)
-        #     if "ok" not in sa_upsert.lower():
-        #         errors.append(f"plan_manager subagent upsert failed: {sa_upsert[:100]}")
-        #
-        #     result = await client.call_tool("plan_manager", {
-        #         "command": "next",
-        #         "plan_name": sa_plan,
-        #         "target_id": "entire_plan",
-        #     })
-        #     sa_next = extract_text(result)
-        #     print(f"    next result: {sa_next[:300]}")
-        #     for expected in ("phase_subagent", "phase_role", "phase_model",
-        #                      '"subagent"', '"role"', '"model"'):
-        #         if expected not in sa_next:
-        #             errors.append(f"plan_manager next missing {expected} in subagent plan")
-        #
-        #     print(f"\n  All plan_manager checks completed for plan '{plan_name}'")
-        #
-        # except Exception as exc:
-        #     errors.append(f"plan_manager integration test failed: {exc}")
 
         # 8. Verify get_context_instructions cache TTL (integration test)
         print("\n=== Bootstrap Instructions Cache TTL Verification ===")

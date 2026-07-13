@@ -13,9 +13,6 @@ def test_tool_descriptions_are_externalized():
 
     # Verify server.py uses description= parameter
     assert "description=PROMPT_" in server_source
-    # Only 3 tools are registered; the write-data tools (submit_feedback,
-    # query_project_context, store_project_context, discover_projects,
-    # plan_manager) were removed as dead code (disabled + unreachable).
     assert server_source.count("@mcp.tool(name=") == 3
     assert server_source.count("description=PROMPT_GET_CONTEXT_INSTRUCTIONS") == 1
     assert server_source.count("description=PROMPT_QUERY_INSTRUCTIONS") == 1

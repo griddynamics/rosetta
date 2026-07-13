@@ -305,8 +305,8 @@ def test_server_normalize_tags_preserves_blank_string_for_validation():
 def test_server_parse_allowed_scopes_supports_comma_and_space_lists():
     from ims_mcp.config import parse_scopes
 
-    assert parse_scopes(" allow_write_data, alpha beta , allow_write_data ") == (
-        "allow_write_data",
+    assert parse_scopes(" gamma, alpha beta , gamma ") == (
+        "gamma",
         "alpha",
         "beta",
     )
