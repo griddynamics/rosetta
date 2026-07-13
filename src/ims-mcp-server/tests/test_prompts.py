@@ -13,15 +13,13 @@ def test_tool_descriptions_are_externalized():
 
     # Verify server.py uses description= parameter
     assert "description=PROMPT_" in server_source
-    assert server_source.count("@mcp.tool(name=") == 8
+    # Only 3 tools are registered; the write-data tools (submit_feedback,
+    # query_project_context, store_project_context, discover_projects,
+    # plan_manager) were removed as dead code (disabled + unreachable).
+    assert server_source.count("@mcp.tool(name=") == 3
     assert server_source.count("description=PROMPT_GET_CONTEXT_INSTRUCTIONS") == 1
     assert server_source.count("description=PROMPT_QUERY_INSTRUCTIONS") == 1
     assert server_source.count("description=PROMPT_LIST_INSTRUCTIONS") == 1
-    assert server_source.count("description=PROMPT_SUBMIT_FEEDBACK") == 1
-    assert server_source.count("description=PROMPT_QUERY_PROJECT_CONTEXT") == 1
-    assert server_source.count("description=PROMPT_STORE_PROJECT_CONTEXT") == 1
-    assert server_source.count("description=PROMPT_DISCOVER_PROJECTS") == 1
-    assert server_source.count("description=PROMPT_PLAN_MANAGER") == 1
 
     # Verify prompts are defined in tool_prompts.py
     # Note: PROMPT_GET_CONTEXT_INSTRUCTIONS and PROMPT_SERVER_INSTRUCTIONS are now selected in server.py
@@ -32,11 +30,6 @@ def test_tool_descriptions_are_externalized():
     assert "PROMPT_SERVER_INSTRUCTIONS_HARD = " in prompts_source
     assert "PROMPT_QUERY_INSTRUCTIONS = " in prompts_source
     assert "PROMPT_LIST_INSTRUCTIONS = " in prompts_source
-    assert "PROMPT_SUBMIT_FEEDBACK = " in prompts_source
-    assert "PROMPT_QUERY_PROJECT_CONTEXT = " in prompts_source
-    assert "PROMPT_STORE_PROJECT_CONTEXT = " in prompts_source
-    assert "PROMPT_DISCOVER_PROJECTS = " in prompts_source
-    assert "PROMPT_PLAN_MANAGER_HELP = " in prompts_source
 
     # Verify mode selection logic is in server.py
     assert "ROSETTA_MODE" in server_source
@@ -48,8 +41,6 @@ def test_tool_descriptions_are_externalized():
     assert "get_context_instructions before ANY response or action" not in server_source
     assert "Fetch instruction docs. Prefer tags for known files and families" in prompts_source
     assert "Fetch instruction docs. Prefer tags for known files and families" not in server_source
-    assert "List readable project datasets. Run before creating new project context." in prompts_source
-    assert "List readable project datasets. Run before creating new project context." not in server_source
 
 
 def _get_server_prompts():
@@ -206,11 +197,6 @@ def test_readme_documents_full_tool_surface():
         "### 1. get_context_instructions",
         "### 2. query_instructions",
         "### 3. list_instructions",
-        "### 4. submit_feedback",
-        "### 5. discover_projects",
-        "### 6. query_project_context",
-        "### 7. store_project_context",
-        "### 8. plan_manager",
         "### rosetta://{path*}",
     ):
         assert heading in readme

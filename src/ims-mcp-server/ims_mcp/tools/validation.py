@@ -5,13 +5,8 @@ from __future__ import annotations
 import json
 
 from ims_mcp.constants import (
-    MAX_CONTENT_LENGTH,
-    MAX_DISCOVER_QUERY_LENGTH,
-    MAX_FEEDBACK_FIELD_LENGTH,
     MAX_PATH_LENGTH,
-    MAX_PROJECT_NAME_LENGTH,
     MAX_QUERY_LENGTH,
-    MAX_REQUEST_MODE_LENGTH,
     MAX_TAG_LENGTH,
     MAX_TAGS,
 )
@@ -120,48 +115,6 @@ def normalize_relative_path(value: str, *, field: str) -> tuple[str | None, str 
 
 def normalize_query(value: str | None, *, field: str = "query") -> tuple[str | None, str | None]:
     return normalize_optional_text(value, field=field, max_length=MAX_QUERY_LENGTH)
-
-
-def normalize_discover_query(value: str | None) -> tuple[str | None, str | None]:
-    return normalize_optional_text(value, field="query", max_length=MAX_DISCOVER_QUERY_LENGTH)
-
-
-def normalize_project_name(value: str) -> tuple[str | None, str | None]:
-    normalized, err = require_text(value, field="repository_name", max_length=MAX_PROJECT_NAME_LENGTH)
-    if err:
-        return None, err
-
-    assert normalized is not None
-    if normalized in {".", ".."}:
-        return None, "Error: repository_name must not be '.' or '..'"
-    if "/" in normalized or "\\" in normalized:
-        return None, "Error: repository_name must not contain '/' or '\\' characters"
-    if any(ord(ch) < 32 for ch in normalized):
-        return None, "Error: repository_name must not contain control characters"
-
-    return normalized, None
-
-
-def normalize_content(value: str) -> tuple[str | None, str | None]:
-    normalized, err = require_text(value, field="content", max_length=MAX_CONTENT_LENGTH)
-    if err:
-        return None, err
-    return normalized, None
-
-
-def normalize_request_mode(value: str) -> tuple[str | None, str | None]:
-    return require_text(value, field="request_mode", max_length=MAX_REQUEST_MODE_LENGTH)
-
-
-def normalize_feedback_text(value: object, *, field: str) -> tuple[str | None, str | None]:
-    if not isinstance(value, str):
-        return None, f"Error: feedback.{field} must be a string"
-    normalized = value.strip()
-    if not normalized:
-        return None, f"Error: feedback.{field} must not be empty"
-    if len(normalized) > MAX_FEEDBACK_FIELD_LENGTH:
-        return None, f"Error: feedback.{field} must be at most {MAX_FEEDBACK_FIELD_LENGTH} characters"
-    return normalized, None
 
 
 def normalize_format(value: str | None, *, field: str = "format") -> tuple[str | None, str | None]:

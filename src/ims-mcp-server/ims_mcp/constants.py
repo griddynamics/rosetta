@@ -80,8 +80,6 @@ POLICY_TEAM = "team"
 POLICY_NONE = "none"
 VALID_POLICIES = {POLICY_ALL, POLICY_TEAM, POLICY_NONE}
 
-PROJECT_DATASET_PREFIX = "project-"
-
 TAG_MCP_SERVER_INSTRUCTIONS = "MCP_SERVER_INSTRUCTIONS"
 TAG_BOOTSTRAP = "rosetta-bootstrap"
 TAG_WORKFLOW = "workflow"
@@ -93,7 +91,6 @@ INSTRUCTION_DATASET_TEMPLATE = "aia-{version}"
 
 XML_FILE_OPEN = '<rosetta:file id="{id}" dataset="{dataset}" path="{path}" name="{name}" tags="{tags}">\n'
 XML_FILE_CLOSE = "</rosetta:file>\n"
-XML_DATASET = '<rosetta:dataset id="{id}" name="{name}"/>\n'
 XML_FILE_LIST_OPEN = '<rosetta:file id="{id}" dataset="{dataset}" path="{path}" name="{name}" tags="{tags}">\n'
 XML_FILE_LIST_CLOSE = "</rosetta:file>"
 XML_FOLDER_LIST = '<rosetta:folder dataset="{dataset}" path="{path}" />'
@@ -110,11 +107,6 @@ COMPATIBILITY_MODE_UPGRADE_NOTICE = (
     f"\nUpgrade guide: {COMPATIBILITY_MODE_UPGRADE_URL}"
     "\n</rosetta:compatibility_notice>"
 )
-COMPATIBILITY_MODE_ERROR = (
-    "Error: this feature is not available in legacy compatibility mode. "
-    f"Upgrade to HTTP mode to use this tool: {COMPATIBILITY_MODE_UPGRADE_URL}"
-)
-
 QUERY_LIST_THRESHOLD = 5
 # Defensive ceiling: when a tag/keyword query returns more docs than this, we
 # assume the server-side metadata_condition filter was bypassed (RAGFlow 0.25.x
@@ -144,27 +136,14 @@ DISABLE_VALUES = {"", "NO", "DISABLED", "DISABLE", "0", "FALSE", "OFF"}
 TOOL_GET_CONTEXT_INSTRUCTIONS = "get_context_instructions"
 TOOL_QUERY_INSTRUCTIONS = "query_instructions"
 TOOL_LIST_INSTRUCTIONS = "list_instructions"
-TOOL_SUBMIT_FEEDBACK = "submit_feedback"
-TOOL_QUERY_PROJECT_CONTEXT = "query_project_context"
-TOOL_STORE_PROJECT_CONTEXT = "store_project_context"
-TOOL_DISCOVER_PROJECTS = "discover_projects"
-TOOL_PLAN_MANAGER = "plan_manager"
-
-SCOPE_ALLOW_WRITE_DATA = "allow_write_data"
-TAG_WRITE_DATA = "write_data"
 
 REPOSITORY_CACHE_TTL_SECONDS = 300
 
 # Tool contract limits
 MAX_QUERY_LENGTH = 2_000
-MAX_DISCOVER_QUERY_LENGTH = 256
 MAX_PATH_LENGTH = 512
-MAX_PROJECT_NAME_LENGTH = 256
 MAX_TAGS = 50
 MAX_TAG_LENGTH = 128
-MAX_CONTENT_LENGTH = 200_000
-MAX_REQUEST_MODE_LENGTH = 128
-MAX_FEEDBACK_FIELD_LENGTH = 8_000
 
 # Plan manager
 ENV_PLAN_TTL_DAYS = "ROSETTA_PLAN_TTL_DAYS"
@@ -197,10 +176,3 @@ DEFAULT_HEALTHZ_CACHE_TTL = 10  # s; dampens flap
 
 ENV_OAUTH_HTTP_TIMEOUT = "ROSETTA_OAUTH_HTTP_TIMEOUT"
 DEFAULT_OAUTH_HTTP_TIMEOUT = 10  # s; matches FastMCP introspection default
-PLAN_KEY_PREFIX = "plan:"
-VALID_PLAN_STATUSES = {"open", "in_progress", "complete", "blocked", "failed"}
-PLAN_MAX_PHASES = 100
-PLAN_MAX_STEPS_PER_PHASE = 100
-PLAN_MAX_DEPENDENCIES_PER_ITEM = 50
-PLAN_MAX_STRING_LENGTH = 20_000
-PLAN_MAX_NAME_LENGTH = 256

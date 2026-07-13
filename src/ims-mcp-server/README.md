@@ -16,9 +16,6 @@ This package provides a FastMCP server that connects to Rosetta servers for adva
 - 🧭 **Context Bootstrap** - `get_context_instructions` loads bootstrap rules for agent setup
 - 📚 **Instruction Retrieval** - `query_instructions` fetches docs by keyword or tags
 - 🗂️ **Instruction Browsing** - `list_instructions` lists folders/files by virtual path prefix
-- 🗂️ **Project Context Management** - discover, query, and store project datasets
-- 📝 **Feedback Capture** - structured `submit_feedback` for workflow learning loops
-- 📋 **Execution Plans** - `plan_manager` stores and manages AI execution plans
 - 🔗 **Instruction Resources** - `rosetta://{path*}` resource template for bundled reads
 - 🌐 **Environment-Based Config** - Zero configuration, reads from environment variables
 - 🔐 **STDIO + HTTP OAuth** - API-key runtime plus OAuth proxy support for HTTP transports
@@ -74,7 +71,7 @@ Rosetta MCP supports two runtime modes:
 | `ROSETTA_HTTP_HOST` | Runtime (HTTP) | `0.0.0.0` | HTTP bind host |
 | `ROSETTA_HTTP_PORT` | Runtime (HTTP) | `8000` | HTTP bind port |
 | `REDIS_URL` | Runtime (HTTP) | Empty | Optional Redis session store; empty uses in-memory store |
-| `ROSETTA_ALLOWED_SCOPES` | Runtime (STDIO env / HTTP request header) | Empty | Comma-separated scopes. `allow_write_data` is required for `discover_projects`, `query_project_context`, `store_project_context`, `plan_manager`, and `submit_feedback` |
+| `ROSETTA_ALLOWED_SCOPES` | Runtime (STDIO env / HTTP request header) | Empty | Comma-separated scopes. Opt-in mechanism for tool visibility; no currently-registered tool consumes a scope |
 | `ROSETTA_ALLOWED_ORIGINS` | Runtime (HTTP) | Empty | Comma-separated `Origin` allowlist |
 | `ROSETTA_OAUTH_MODE` | Runtime (HTTP OAuth) | `oauth` | `oauth` (introspection), `oidc` (JWT via discovery doc), or `github` (GitHub OAuth) |
 | `ROSETTA_OAUTH_OIDC_CONFIG_URL` | Runtime (HTTP OAuth, oidc) | Empty | IdP OIDC discovery URL (e.g. `https://keycloak.host/realms/x/.well-known/openid-configuration`) |
@@ -96,7 +93,6 @@ Rosetta MCP supports two runtime modes:
 | `ROSETTA_USER_EMAIL` | Runtime (authz) | `rosetta@example.com` | STDIO identity and HTTP fallback identity |
 | `ROSETTA_INVITE_EMAILS` | Runtime (authz) | Empty | Comma-separated invite list for project dataset creation flow |
 | `ROSETTA_MODE` | Runtime (prompts) | `HARD` | Prompt mode selection: `HARD` or `SOFT` |
-| `ROSETTA_PLAN_TTL_DAYS` | Runtime (plan manager) | `5` | Plan expiry in days |
 | `INSTRUCTION_ROOT_FILTER` | Runtime (instructions query) | Empty | Comma-separated root tags filter |
 | `IMS_DEBUG` | Runtime (debug) | Disabled | Enable debug logs (`1`, `true`, `yes`, `on`) |
 | `FASTMCP_LOG_LEVEL` | Runtime (debug) | `INFO` | Set to `DEBUG` alongside `IMS_DEBUG=1` for full FastMCP internals (auth, middleware) |
@@ -134,12 +130,6 @@ STDIO keeps API-key access and does not use OAuth. User identity for authorizati
 ROSETTA_USER_EMAIL=rosetta@example.com
 ```
 
-Project-data tools are additionally gated by:
-
-```bash
-ROSETTA_ALLOWED_SCOPES=allow_write_data
-```
-
 ### HTTP Mode
 
 Set:
@@ -156,10 +146,6 @@ Optional HTTP runtime settings:
 |----------|-------------|---------|
 | `REDIS_URL` | Shared session store for multi-instance deployments | In-memory store |
 | `ROSETTA_ALLOWED_ORIGINS` | Comma-separated allowlist for `Origin` header validation | No restriction |
-
-Project-data tools in HTTP mode read scopes from the `ROSETTA_ALLOWED_SCOPES` request header.
-The header must include `allow_write_data` for `discover_projects`, `query_project_context`,
-`store_project_context`, `plan_manager`, and `submit_feedback`.
 
 OAuth variables for HTTP mode:
 
@@ -210,8 +196,7 @@ Add to `.cursor/mcp.json` (or equivalent client config):
         "ROSETTA_TRANSPORT": "stdio",
         "ROSETTA_SERVER_URL": "https://<production server URL>",
         "ROSETTA_API_KEY": "your-rosetta-api-key",
-        "ROSETTA_USER_EMAIL": "you@example.com",
-        "ROSETTA_ALLOWED_SCOPES": "allow_write_data"
+        "ROSETTA_USER_EMAIL": "you@example.com"
       }
     }
   }
@@ -328,131 +313,6 @@ Validation notes:
 ```python
 list_instructions(path_prefix="rules")
 list_instructions(path_prefix="all")
-```
-
-### 4. submit_feedback
-
-Requires `allow_write_data` in `ROSETTA_ALLOWED_SCOPES`.
-
-Store workflow feedback for continuous improvement.
-
-**Parameters:**
-- `request_mode` (str): Non-empty workflow mode, e.g. `coding.md`
-- `feedback` (dict): Structured payload with required keys:
-  - `summary` (non-empty)
-  - `root_cause` (non-empty)
-  - `prompt_suggestions` (non-empty string or non-empty list of strings)
-  - `context` (non-empty)
-
-**Example:**
-```python
-submit_feedback(
-    request_mode="coding.md",
-    feedback={
-        "summary": "User asked for README fixes.",
-        "root_cause": "README had stale tool docs.",
-        "prompt_suggestions": "Keep README in sync with tool surface.",
-        "context": "ims-mcp-server README alignment"
-    }
-)
-```
-
-### 5. discover_projects
-
-List readable project datasets (`project-*`) available in Rosetta Server.
-
-Requires `allow_write_data` in `ROSETTA_ALLOWED_SCOPES`.
-
-**Parameters:**
-- `query` (str, optional): Name filter; empty or whitespace-only means no filter
-
-Validation notes:
-- `query`: up to 256 characters
-
-**Example:**
-```python
-discover_projects(query="rulesofpower")
-```
-
-### 6. query_project_context
-
-Query documents inside a project dataset.
-
-Requires `allow_write_data` in `ROSETTA_ALLOWED_SCOPES`.
-
-**Parameters:**
-- `repository_name` (str): Project name
-- `query` (str, optional): Keyword query
-- `tags` (list[str], optional): Tag filter
-- `topic` (str, optional): Tracking-only intent hint
-
-At least one of `query` or `tags` is required.
-
-Validation notes:
-- `repository_name`: up to 256 characters
-- `query`: up to 2000 characters
-- `tags`: up to 50 items, each up to 128 characters
-
-**Example:**
-```python
-query_project_context(
-    repository_name="rulesofpower",
-    tags=["architecture"]
-)
-```
-
-### 7. store_project_context
-
-Create or update a project context document.
-
-Requires `allow_write_data` in `ROSETTA_ALLOWED_SCOPES`.
-
-**Parameters:**
-- `repository_name` (str): Project name
-- `document` (str): Relative document path
-- `tags` (list[str]): 1-50 non-empty document tags
-- `content` (str): Non-empty document body
-- `force` (bool, optional): If `true`, creates dataset when missing
-
-Validation notes:
-- `repository_name`, `document`, and `content` must be non-empty
-- `document` must not be absolute and must not contain `.` or `..` path segments
-- `repository_name`: up to 256 characters
-- `document`: up to 512 characters
-- `content`: up to 200000 characters
-- `tags`: 1-50 items, each up to 128 characters
-
-**Example:**
-```python
-store_project_context(
-    repository_name="rulesofpower",
-    document="ARCHITECTURE.md",
-    tags=["architecture", "backend"],
-    content="# Architecture\\n...",
-    force=True
-)
-```
-
-### 8. plan_manager
-
-Manage execution plans stored in Rosetta.
-
-Requires `allow_write_data` in `ROSETTA_ALLOWED_SCOPES`.
-
-**Parameters:**
-- `command` (str): `upsert`, `query`, `show_status`, `update_status`, or `next`
-- `plan_name` (str): Non-empty plan identifier
-- `target_id` (str, optional): `entire_plan`, phase id, or step id
-- `data` (dict | str, optional): RFC 7396 merge-patch payload for `upsert`
-- `new_status` (str, optional): New status for `update_status`
-- `limit` (int, optional): Max items returned by `next`; `0` means all
-
-**Example:**
-```python
-plan_manager(
-    command="query",
-    plan_name="rulesofpower-hardening",
-)
 ```
 
 ## Resource Template

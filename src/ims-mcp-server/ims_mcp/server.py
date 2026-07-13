@@ -34,22 +34,14 @@ from ims_mcp.clients.dataset import DatasetLookup
 from ims_mcp.clients.doc_cache import InstructionDocCache
 from ims_mcp.clients.document import DocumentClient
 from ims_mcp.clients.ragflow import RagflowClient
-from ims_mcp.config import RosettaConfig, parse_scopes
+from ims_mcp.config import RosettaConfig
 from ims_mcp.constants import (
     DOC_CACHE_TTL_SECONDS,
-    ENV_ALLOWED_SCOPES,
     ENV_ROSETTA_MODE,
-    SCOPE_ALLOW_WRITE_DATA,
-    TAG_WRITE_DATA,
     TAG_MCP_SERVER_INSTRUCTIONS,
-    TOOL_DISCOVER_PROJECTS,
     TOOL_GET_CONTEXT_INSTRUCTIONS,
     TOOL_LIST_INSTRUCTIONS,
-    TOOL_PLAN_MANAGER,
     TOOL_QUERY_INSTRUCTIONS,
-    TOOL_QUERY_PROJECT_CONTEXT,
-    TOOL_STORE_PROJECT_CONTEXT,
-    TOOL_SUBMIT_FEEDBACK,
     TRANSPORT_HTTP,
     TRANSPORT_STDIO,
 )
@@ -57,39 +49,20 @@ from ims_mcp.tracing import _log_prefix as _log_prefix_fn
 from ims_mcp.services.authorizer import Authorizer
 from ims_mcp.context import CallContext
 from ims_mcp.services.bundler import Bundler
-from ims_mcp.services.feedback import FeedbackService
 from ims_mcp.services.query_builder import QueryBuilder
 from ims_mcp.tool_prompts import (
-    PROMPT_DISCOVER_PROJECTS,
     PROMPT_GET_CONTEXT_INSTRUCTIONS_HARD,
     PROMPT_GET_CONTEXT_INSTRUCTIONS_SOFT,
     PROMPT_LIST_INSTRUCTIONS,
-    PROMPT_PLAN_MANAGER,
     PROMPT_QUERY_INSTRUCTIONS,
-    PROMPT_QUERY_PROJECT_CONTEXT,
     PROMPT_SERVER_INSTRUCTIONS_HARD,
     PROMPT_SERVER_INSTRUCTIONS_SOFT,
-    PROMPT_STORE_PROJECT_CONTEXT,
-    PROMPT_SUBMIT_FEEDBACK,
 )
-from ims_mcp.tools.feedback import submit_feedback as submit_feedback_tool
 from ims_mcp.tools.instructions import list_instructions as list_instructions_tool
 from ims_mcp.tools.instructions import query_instructions as query_instructions_tool
 from ims_mcp.tools.instructions import get_context_instructions as get_context_instructions_tool
-from ims_mcp.tools.projects import (
-    discover_projects as discover_projects_tool,
-)
-from ims_mcp.tools.projects import (
-    query_project_context as query_project_context_tool,
-)
-from ims_mcp.tools.projects import (
-    store_project_context as store_project_context_tool,
-)
 from ims_mcp.tools.resources import read_instruction_resource
-from ims_mcp.tools.plan_manager import plan_manager_tool
-from ims_mcp.services.plan_store import build_plan_store
 from ims_mcp.tracing import get_request_trace_id, instrument_ragflow_client, traced_execution
-from ims_mcp.typing_utils import JsonObject
 
 AsyncStringFactory: TypeAlias = Callable[[], Awaitable[str]]
 
@@ -285,7 +258,6 @@ def _build_redis_store() -> AsyncKeyValue | None:
 
 
 _REDIS_STORE = _build_redis_store()
-_PLAN_STORE = build_plan_store(_REDIS_STORE, _CONFIG.plan_ttl_days * 86400)
 
 
 def _get_raw_redis_client(store: object) -> Any:
@@ -323,7 +295,6 @@ _DOCUMENT_CLIENT = DocumentClient()
 _QUERY_BUILDER = QueryBuilder()
 _BUNDLER = Bundler(_DOCUMENT_CLIENT)
 _DOC_CACHE = InstructionDocCache(_DOCUMENT_CLIENT)
-_FEEDBACK = FeedbackService()
 
 # ── Tool-level response cache ─────────────────────────────────────
 # Caches the final response string of read tools so that identical
@@ -522,20 +493,6 @@ async def _healthz_handler(request: Any) -> Any:
         return Response(content=_json.dumps(result), media_type="application/json", status_code=503)
 
 
-# Write-data tools are permanently disabled (feature no longer used).
-# The tool functions and their implementations are kept intact so we can
-# re-enable them later if needed — only the @mcp.tool registrations are
-# commented out below.
-#
-# Previously this block dynamically enabled/disabled write tools:
-# if _CONFIG.transport == TRANSPORT_HTTP:
-#     mcp.disable(tags={TAG_WRITE_DATA})
-#     _logger.info("Write-data tools hidden by default (HTTP mode, revealed per-session via scopes)")
-# elif SCOPE_ALLOW_WRITE_DATA not in _CONFIG.allowed_scopes:
-#     mcp.disable(tags={TAG_WRITE_DATA})
-#     _logger.info("Write-data tools disabled (STDIO mode, allow_write_data scope not present)")
-
-
 async def _log(ctx: Context | None, level: str, message: str) -> None:
     if not ctx:
         return
@@ -564,28 +521,6 @@ def _resolve_user_email() -> str:
         except Exception:
             pass
     return _CONFIG.user_email
-
-# ROSETTA_ALLOWED_SCOPES is not a security feature, it is only used to control tool visibility as OPT-IN mechanism.
-
-def _resolve_allowed_scopes() -> tuple[str, ...]:
-    if _CONFIG.transport == TRANSPORT_HTTP:
-        try:
-            from fastmcp.server.dependencies import get_http_headers
-
-            # include_all keeps custom application headers such as ROSETTA_ALLOWED_SCOPES.
-            headers = get_http_headers(include_all=True)
-        except Exception:
-            headers = {}
-        return parse_scopes(headers.get(ENV_ALLOWED_SCOPES.lower()) or "")
-    return _CONFIG.allowed_scopes
-
-
-def _require_write_data_scope() -> str | None:
-    allowed_scopes = _resolve_allowed_scopes()
-    logging.getLogger("ims_mcp").info("Resolved allowed scopes: %s", list(allowed_scopes))
-    if SCOPE_ALLOW_WRITE_DATA in allowed_scopes:
-        return None
-    return f"Error: this feature is not available for your user account!"
 
 
 async def _build_call_context(tool_name: str, params: dict[str, Any], ctx: Context | None) -> CallContext:
@@ -680,16 +615,6 @@ async def _read_resource(path: str, ctx: Context | None = None) -> str:
 async def get_context_instructions(
     ctx: Context | None = None,
 ) -> str:
-    # Write-data tool visibility is permanently disabled.
-    # Previously this block revealed write_data tools per-session:
-    # if (
-    #     _CONFIG.transport == TRANSPORT_HTTP
-    #     and ctx is not None
-    #     and SCOPE_ALLOW_WRITE_DATA in _resolve_allowed_scopes()
-    # ):
-    #     await ctx.enable_components(tags={TAG_WRITE_DATA})
-    #     await _log(ctx, "info", "Write-data tools enabled for this session (allow_write_data scope present)")
-
     if not _RAGFLOW:
         return "Error: ROSETTA_API_KEY is required"
 
@@ -793,173 +718,6 @@ async def list_instructions(
     if result and not result.startswith("Error:"):
         _TOOL_CACHE[cache_key] = result
     return result
-
-
-# ── Write-data tools ──────────────────────────────────────────────
-# These tools are permanently disabled (feature no longer used).
-# The @mcp.tool annotations are commented out so the tools are not
-# registered with the MCP server.  All function bodies, imports, and
-# logic are kept intact so we can re-enable them later if needed.
-# To re-enable: uncomment the @mcp.tool and @track_tool_call lines.
-
-# @mcp.tool(name=TOOL_SUBMIT_FEEDBACK, description=PROMPT_SUBMIT_FEEDBACK, tags={TAG_WRITE_DATA})
-# @track_tool_call
-async def submit_feedback(
-    request_mode: Annotated[str, Field(description='Workflow classification. Examples: "coding.md", "help.md", "research.md", "aqa.md".')],
-    feedback: Annotated[JsonObject, Field(description="Structured brief feedback payload.")],
-    ctx: Context | None = None,
-) -> str:
-
-    scope_err = _require_write_data_scope()
-    if scope_err:
-        return scope_err
-    if not _RAGFLOW:
-        return "Error: ROSETTA_API_KEY is required"
-    await _log(ctx, "info", "Submitting feedback")
-    call_ctx = await _build_call_context(
-        TOOL_SUBMIT_FEEDBACK,
-        {"request_mode": request_mode, "feedback": feedback},
-        ctx,
-    )
-    return await _retry_once(
-        lambda: submit_feedback_tool(
-            call_ctx=call_ctx,
-            feedback_service=_FEEDBACK,
-            request_mode=request_mode,
-            feedback=feedback,
-        ),
-        operation="submit_feedback",
-    )
-
-
-# @mcp.tool(name=TOOL_QUERY_PROJECT_CONTEXT, description=PROMPT_QUERY_PROJECT_CONTEXT, tags={TAG_WRITE_DATA})
-# @track_tool_call
-async def query_project_context(
-    repository_name: Annotated[str, Field(description="Project/workspace name.")],
-    query: Annotated[str | None, Field(description="Keyword search text for project context documents.")] = None,
-    tags: Annotated[list[str] | str | None, Field(description="Filter by context tags. Single tag string or array of tags.")] = None,
-    ctx: Context | None = None,
-) -> str:
-    scope_err = _require_write_data_scope()
-    if scope_err:
-        return scope_err
-
-    if not _RAGFLOW:
-        return "Error: ROSETTA_API_KEY is required"
-
-    normalized_tags, tags_err = _normalize_tags(tags)
-    if tags_err:
-        return tags_err
-    await _log(ctx, "info", f"Querying project context for {repository_name}")
-    call_ctx = await _build_call_context(
-        TOOL_QUERY_PROJECT_CONTEXT,
-        {"repository_name": repository_name, "query": query, "tags": normalized_tags},
-        ctx,
-    )
-    return await _retry_once(
-        lambda: query_project_context_tool(
-            call_ctx=call_ctx,
-            document_client=_DOCUMENT_CLIENT,
-            bundler=_BUNDLER,
-            query_builder=_QUERY_BUILDER,
-            repository_name=repository_name,
-            query=query,
-            tags=normalized_tags,
-            topic=None, # no topic, as it creates too many results and noise
-        ),
-        operation="query_project_context",
-    )
-
-
-# @mcp.tool(name=TOOL_STORE_PROJECT_CONTEXT, description=PROMPT_STORE_PROJECT_CONTEXT, tags={TAG_WRITE_DATA})
-# @track_tool_call
-async def store_project_context(
-    repository_name: Annotated[str, Field(description="Project/workspace name.")],
-    document: Annotated[str, Field(description='Document name. Examples: "ARCHITECTURE.md"')],
-    tags: Annotated[list[str] | str, Field(description='Tags to categorize the document. Single tag string or array of tags.')],
-    content: Annotated[str, Field(description="The actual content of the document.")],
-    force: Annotated[bool, Field(description="Do not force. Try to discover the repository first. If true, create repository dataset if it doesn't exist.")] = False,
-    ctx: Context | None = None,
-) -> str:
-    scope_err = _require_write_data_scope()
-    if scope_err:
-        return scope_err
-
-    if not _RAGFLOW:
-        return "Error: ROSETTA_API_KEY is required"
-    normalized_tags, tags_err = _normalize_tags(tags)
-    if tags_err:
-        return tags_err
-    normalized_tags = normalized_tags or []
-    await _log(ctx, "info", f"Storing project context for {repository_name}")
-    call_ctx = await _build_call_context(
-        TOOL_STORE_PROJECT_CONTEXT,
-        {
-            "repository_name": repository_name,
-            "document": document,
-            "tags": normalized_tags,
-            "force": force,
-        },
-        ctx,
-    )
-    return await _retry_once(
-        lambda: store_project_context_tool(
-            call_ctx=call_ctx,
-            document_client=_DOCUMENT_CLIENT,
-            repository_name=repository_name,
-            document=document,
-            tags=normalized_tags,
-            content=content,
-            force=force,
-        ),
-        operation="store_project_context",
-    )
-
-
-# @mcp.tool(name=TOOL_DISCOVER_PROJECTS, description=PROMPT_DISCOVER_PROJECTS, tags={TAG_WRITE_DATA})
-# @track_tool_call
-async def discover_projects(
-    query: Annotated[str | None, Field(description="Optional search term to filter projects by name.")] = None,
-    ctx: Context | None = None,
-) -> str:
-    scope_err = _require_write_data_scope()
-    if scope_err:
-        return scope_err
-
-    if not _RAGFLOW:
-        return "Error: ROSETTA_API_KEY is required"
-    await _log(ctx, "info", "Discovering project datasets")
-    call_ctx = await _build_call_context(TOOL_DISCOVER_PROJECTS, {"query": query}, ctx)
-    return await _retry_once(
-        lambda: discover_projects_tool(call_ctx=call_ctx, query=query),
-        operation="discover_projects",
-    )
-
-
-# @mcp.tool(name=TOOL_PLAN_MANAGER, description=PROMPT_PLAN_MANAGER, tags={TAG_WRITE_DATA})
-# @track_tool_call
-async def plan_manager(
-    command: Annotated[str, Field(description="Command to execute.")],
-    plan_name: Annotated[str, Field(description="Plan identifier string.")] = "",
-    target_id: Annotated[str, Field(description='Target scope: "entire_plan" (default), or phase-id/step-id.')] = "entire_plan",
-    data: Annotated[JsonObject | str | None, Field(description="RFC 7396 merge-patch payload for upsert. Accepts a JSON object or JSON-object string.")] = None,
-    new_status: Annotated[str | None, Field(description="New status for update_status. open|in_progress|complete|blocked|failed.")] = None,
-    limit: Annotated[int, Field(description="Max steps returned by next (0 = all).")] = 0,
-    ctx: Context | None = None,
-) -> str:
-    scope_err = _require_write_data_scope()
-    if scope_err:
-        return scope_err
-    await _log(ctx, "info", f"plan_manager command={command} plan={plan_name} target={target_id}")
-    return await plan_manager_tool(
-        command=command,
-        plan_name=plan_name,
-        target_id=target_id,
-        data=data,
-        new_status=new_status,
-        limit=limit,
-        store=_PLAN_STORE,
-    )
 
 
 class OriginValidationMiddleware:
