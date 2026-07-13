@@ -407,7 +407,7 @@ Required for STDIO transport. Optional otherwise.
 | `ROSETTA_SERVER_URL`      | `[RAGFlow production server URL]`      | Rosetta Server base URL. **Required.**                                                                                                                      |
 | `ROSETTA_API_KEY`         | (empty)                    | API key for Rosetta Server access. **Required.**                                                                                                            |
 | `ROSETTA_USER_EMAIL`      | `rosetta@example.com`      | User identity for authorization checks                                                                                                                      |
-| `ROSETTA_MODE`            | `HARD`                     | `HARD` adds more content to context with stricter requirements. `SOFT` is lighter and allows more agent independence, better when bootstrap.md is also used |
+| `ROSETTA_MODE`            | `HARD`                     | `HARD` adds more content to context with stricter requirements. `SOFT` is lighter and allows more agent independence, better when mcp-files-mode.md is also used |
 | `ROSETTA_INVITE_EMAILS`   | (empty)                    | Comma-separated emails auto-invited on project dataset creation                                                                                             |
 | `INSTRUCTION_ROOT_FILTER` | (empty)                    | Comma-separated root tags filter for instructions                                                                                                           |
 | `IMS_DEBUG`               | disabled                   | Enable debug logs (`1`, `true`, `yes`, `on`)                                                                                                                |
@@ -444,8 +444,8 @@ Install `rosetta` via VS Code Copilot Plugins (not VS Code extensions).
 
 1. Download `core-copilot-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
 2. Create a `.github` folder in your repository and extract the archive contents into it
-3. Delete files not needed for JetBrains: `.github/.mcp.json`, `.github/hooks.json`, `.github/templates`, `.github/rules/bootstrap.md`
-4. Copy the contents of `.github/rules/plugin-files-mode.md` into `.github/copilot-instructions.md` and append before the closing `</plugin_files_mode>` tag: `Rosetta plugin root: ".github", get_context_instructions: must read fully all five "cat .github/rules/bootstrap-*.md" files all lines. You MUST FOLLOW ALL instructions and then MUST select workflow and execute it. All workflows are stored in ".github/rules/<workflowtag>.md".`
+3. Delete files not needed for JetBrains: `.github/.mcp.json`, `.github/hooks.json`, `.github/templates`
+4. Copy the contents of `.github/rules/plugin-files-mode.md` into `.github/copilot-instructions.md` and append before the closing `</plugin_files_mode>` tag: `Rosetta plugin root: ".github", get_context_instructions: must read fully all "cat .github/rules/bootstrap-*.md" files all lines. You MUST FOLLOW ALL instructions and then MUST select workflow and execute it. All workflows are stored in ".github/rules/<workflowtag>.md".`
 5. Enable in JetBrains GitHub Copilot settings: Agent Mode, Custom Agent, Coding Agent, Subagent, Skills
 
 #### Codex
@@ -482,21 +482,21 @@ Applies to HTTP and STDIO modes.
 
 Skip if using [Plugin](#plugin-based-installation) or [Offline](#offline-installation-no-mcp) installation.
 
-Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and add it to your IDE's instruction file (keep entire contents, including YAML frontmatter):
+Download [mcp-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/rules/mcp-files-mode.md?plain=1) and add it to your IDE's instruction file (keep entire contents, including YAML frontmatter):
 
-| IDE                        | Destination                       |
-| -------------------------- | --------------------------------- |
-| Cursor                     | `.cursor/rules/bootstrap.mdc`     |
-| Claude Code                | `.claude/claude.md`               |
-| VS Code / GitHub Copilot   | `.github/copilot-instructions.md` |
-| GitHub Copilot (JetBrains) | `.github/copilot-instructions.md` |
-| JetBrains Junie            | `.junie/guidelines.md`            |
-| Windsurf                   | `.windsurf/rules/bootstrap.md`    |
-| Antigravity                | `.agent/rules/bootstrap.md`       |
-| OpenCode                   | `AGENTS.md`                       |
+| IDE                        | Destination                            |
+| -------------------------- | -------------------------------------- |
+| Cursor                     | `.cursor/rules/mcp-files-mode.mdc`     |
+| Claude Code                | `.claude/claude.md`                    |
+| VS Code / GitHub Copilot   | `.github/copilot-instructions.md`      |
+| GitHub Copilot (JetBrains) | `.github/copilot-instructions.md`      |
+| JetBrains Junie            | `.junie/guidelines.md`                 |
+| Windsurf                   | `.windsurf/rules/mcp-files-mode.md`    |
+| Antigravity                | `.agent/rules/mcp-files-mode.md`       |
+| OpenCode                   | `AGENTS.md`                            |
 
 > [!NOTE]
-> Some tools (Cline, Kilo) do not read MCP server prompts. For these, bootstrap.md is always required.
+> Some tools (Cline, Kilo) do not read MCP server prompts. For these, mcp-files-mode.md is always required.
 
 ## Step 3: Verify
 

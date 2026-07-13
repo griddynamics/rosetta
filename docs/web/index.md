@@ -304,7 +304,7 @@ Download core-copilot-standalone-*.zip from the <a href="https://github.com/grid
 }
 
 Bootstrap rule destination:
-.agent/rules/bootstrap.md</pre>
+.agent/rules/mcp-files-mode.md</pre>
               <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"serverUrl":"https://mcp.rosetta.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
@@ -322,7 +322,7 @@ Bootstrap rule destination:
 }
 
 Bootstrap rule destination:
-.windsurf/rules/bootstrap.md</pre>
+.windsurf/rules/mcp-files-mode.md</pre>
               <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"url":"https://mcp.rosetta.griddynamics.net/mcp"}}}'>Copy</button>
             </div>
           </div>
@@ -372,7 +372,7 @@ Bootstrap rule destination:
               <pre class="qs-code">https://mcp.rosetta.griddynamics.net/mcp
 
 Bootstrap rule:
-Download bootstrap.md and place it in your IDE or agent's project instruction file.</pre>
+Download mcp-files-mode.md and place it in your IDE or agent's project instruction file.</pre>
               <button class="qs-copy" data-copy="https://mcp.rosetta.griddynamics.net/mcp">Copy</button>
             </div>
           </div>

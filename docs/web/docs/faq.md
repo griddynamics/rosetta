@@ -17,7 +17,7 @@ permalink: /docs/faq/
 
 1. AI coding agent loads CONTEXT.md and ARCHITECTURE.md files - if not it misses the entire context
 2. AI coding agent loads workflow - if not it is taking shortcut delivering subpar results
-3. AI coding agent loads hitl and orchestrator-contract - if not it will not engage user and hallucinate
+3. AI coding agent engages the `hitl` and `orchestration` skills - if not it will not engage user and hallucinate
 
 If none of these are true, Rosetta is not active for this session. See [INSTALLATION.md](/rosetta/docs/installation/).
 
@@ -127,7 +127,7 @@ If you already have a sophisticated harness for the one workflow you care about,
 **What's the difference between a skill, workflow, agent, and rule?**
 
 - **Rule** — always-on policy the agent must follow (e.g. guardrails, HITL questioning, file naming). Loaded at the start of every session.
-- **Skill** — a focused capability the agent invokes for a specific need (e.g. `load-context`, `questioning`, `tech-specs`). Invoked on demand.
+- **Skill** — a focused capability the agent invokes for a specific need (e.g. `load-project-context`, `questioning`, `tech-specs`). Invoked on demand.
 - **Workflow** — an end-to-end multi-phase process for a class of request (e.g. coding, modernization, research). One per top-level request.
 - **Agent / subagent** — a specialized role spawned by the orchestrator to do delegated work in isolation (e.g. reviewer, researcher, engineer).
 

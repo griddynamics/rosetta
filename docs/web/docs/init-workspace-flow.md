@@ -75,7 +75,7 @@ In practice, that changes the user experience in four ways:
 | Phase | What you provide | What agents do | What artifacts appear | Review gate |
 |---|---|---|---|---|
 | 1. Context | Repository access and current session context | Detect install, upgrade, or plugin mode, detect composite status, inventory existing Rosetta files | `agents/init-workspace-flow-state.md` updated with mode, flags, and inventory | No |
-| 2. Shells | Nothing extra unless upgrade context matters | Generate or preserve shells, bootstrap rule, and load-context shell, or skip in plugin mode | Shell configs, bootstrap rule, load-context shell, state update | No |
+| 2. Shells | Nothing extra unless upgrade context matters | Generate or preserve shells, bootstrap rule, and load-project-context shell, or skip in plugin mode | Shell configs, bootstrap rule, load-project-context shell, state update | No |
 | 3. Discovery | Codebase access | Analyze tech stack, structure, dependencies, file count, and composite layout | `docs/TECHSTACK.md`, `docs/CODEMAP.md`, `docs/DEPENDENCIES.md`, state update | No |
 | 4. Rules | Nothing. This phase is disabled in the active workflow. | Record disabled or skipped status and continue | Explicit disabled or skipped status in state | No. Disabled in the active workflow |
 | 5. Patterns | Source code and module structure | Extract recurring coding and architecture patterns, often with module-scoped subagents | `docs/PATTERNS/INDEX.md`, pattern files, `docs/PATTERNS/CHANGES.md`, state update | No |
@@ -158,11 +158,11 @@ sequenceDiagram
 **Agent actions:**
 - Read state
 - Skip the phase if `state.plugin_active == true`
-- Generate shells, bootstrap rule, and load-context shell in install mode
+- Generate shells, bootstrap rule, and load-project-context shell in install mode
 - Create only missing shells in upgrade mode
 - Record created, updated, or skipped status in state
 
-**Produced artifacts:** shell configs, bootstrap rule, load-context shell, updated state
+**Produced artifacts:** shell configs, bootstrap rule, load-project-context shell, updated state
 
 **Review expectation:** if you are upgrading, verify that existing shells were preserved instead of overwritten.
 
@@ -311,7 +311,7 @@ Review the outputs in two passes.
 ## Artifacts You Will Get
 
 - `agents/init-workspace-flow-state.md`
-- Shell configs, bootstrap rule, and load-context shell when not in plugin mode
+- Shell configs, bootstrap rule, and load-project-context shell when not in plugin mode
 - `docs/TECHSTACK.md`
 - `docs/CODEMAP.md`
 - `docs/DEPENDENCIES.md`

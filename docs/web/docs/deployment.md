@@ -329,8 +329,8 @@ GitHub endpoints are hardcoded. Create a GitHub OAuth App at [github.com/setting
 
 **ROSETTA_MODE:**
 
-- `HARD`: Adds more content to context, stricter requirements. Allows to not use `bootstrap.md`.
-- `SOFT`: Lighter context, more agent independence, must be used with `bootstrap.md`.
+- `HARD`: Adds more content to context, stricter requirements. Allows to not use `mcp-files-mode.md`.
+- `SOFT`: Lighter context, more agent independence, must be used with `mcp-files-mode.md`.
 
 **Network:** Place Rosetta MCP behind an API gateway or ingress controller with TLS. The OAuth flow requires HTTPS.
 
