@@ -40,13 +40,13 @@ fork/clone → branch → edit → validate → push → PR
      - Author a new prompt using local instructions:
 
        ```
-       MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       MUST FULLY EXECUTE `instructions/r3/core/workflows/coding-agents-prompting-flow.md` to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
        ```
 
      - Author a new prompt via Rosetta MCP:
 
        ```
-       MUST ACQUIRE coding-agents-prompting-flow.md FROM KB AND FULLY EXECUTE IT to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
+       USE FLOW coding-agents-prompting-flow.md to author a new R3 Rosetta <skill/agent/workflow/rule/prompt family> `<name>`: <description of what it should be>
        ```
 
      Include in every prompt-change PR: a prompt brief (goal, non-goals, constraints), before/after behavior examples, and validation evidence (attach to the PR description).
