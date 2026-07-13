@@ -165,8 +165,8 @@ export function pluginProcessSpecEntries(
 /**
  * Check if a VFS path matches an exclude pattern.
  * Supports:
- *   - Exact path: 'rules/bootstrap.md'
- *   - Folder prefix: 'rules/bootstrap.md' also matches children via startsWith
+ *   - Exact path: 'rules/mcp-files-mode.md'
+ *   - Folder prefix: 'rules/mcp-files-mode.md' also matches children via startsWith
  *   - Glob ending in **: 'templates/shell-schemas/**' matches any path under that folder
  * GT-8, FR-COPY-0011
  */
@@ -192,7 +192,7 @@ function matchVfsGlob(paths: string[], pattern: string): string[] {
 
 /**
  * Compute the target path from a source pattern, target base, and actual VFS path.
- * Example: source="rules/**", target="rules", vfsPath="rules/bootstrap.md" → "rules/bootstrap.md"
+ * Example: source="rules/**", target="rules", vfsPath="rules/mcp-files-mode.md" → "rules/mcp-files-mode.md"
  */
 function computeTargetPath(sourcePattern: string, targetBase: string, vfsPath: string): string {
   // Strip the glob part to get the source prefix
