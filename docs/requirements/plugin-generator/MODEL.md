@@ -18,7 +18,7 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
-  <notes>Template variables currently observed: `release` (name) and `deterministic_hooks` (bool).</notes>
+  <notes>Template variables currently observed: `release` (name) and `deterministic_hooks` (bool). A CLI argument may override `deterministic_hooks` per run (FR-CLI-0012); the override replaces the descriptor value at resolution time, so the effective variable set remains the single input to rendering.</notes>
 </req>
 
 <req id="DATA-CFG-0002" type="DATA" level="System" ticketId="" classification="technical">

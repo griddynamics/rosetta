@@ -65,7 +65,7 @@ Each run writes `report.json` (raw per-turn data for every run) and
 | Command | Description |
 | --- | --- |
 | `bench` (default) | Run all suites and write a report |
-| `optimize` | Rewrite prompt/skill files through a 3-phase optimization pipeline |
+| `optimize` | Rewrite prompt/skill files through a single-conversation, loss-reviewed pipeline |
 | `validate [path]` | Validate a config without calling the API |
 
 | Flag | Applies to | Description |
@@ -81,22 +81,33 @@ Each run writes `report.json` (raw per-turn data for every run) and
 | `--model <id>` | `optimize` | Model used for optimization |
 | `--max-output-tokens <n>` | `optimize` | Maximum output tokens per optimizer call. Default: `32000` |
 | `--trace-full-prompts` | `optimize` | Store full prompt bodies in `trace.json`. Default stores hashes/metadata |
+| `--enable-questions` | `optimize` | Let the optimizer ask clarifying questions interactively. Requires a TTY (unless `--dry-run`) |
 | `--dry-run` | `optimize` | Prints the stage plan, makes no API calls, and writes no files |
 
 ## Optimize
 
-`optimize` rewrites one or more target files through 3 phase conversations plus
-a final global preservation audit. Each phase contains several follow-up steps
-in the same conversation. Step calls propose surgical changes only; the phase
-finalizer/loss checker is the step that applies accepted changes and returns
-complete files, keeping everything else verbatim.
+`optimize` rewrites one or more target files as ONE growing conversation. Each
+message replays the full prior history (including the model's own thinking), so
+later steps build on everything already proposed. Content steps propose surgical
+changes only; the finalize-draft and final value-lost steps materialize the
+accepted changes into complete files, keeping everything else verbatim.
 
-The run starts with a cacheable setup containing only repeated context: optimizer
-purpose, line-purpose lens, schemas, `--additional`, and read-only supporting
-files. Each phase then sends a cacheable setup with only that phase goal and the
-current target files at phase start. Each step is sent fresh as a narrow
-follow-up containing only that step's exact hardcoded reference text and AI
-issues. Full hardening/pattern references are not sent globally.
+The conversation is:
+
+- **Run setup** (cached system prompt): optimizer purpose, line-purpose lens,
+  the `STEP_CHANGES_JSON`/`FINAL_FILES_JSON` schemas, `--additional` goals, and
+  read-only supporting files.
+- **Session setup** (cached first user message): the original target files, the
+  source of truth and start state for the whole run.
+- **7 combined content steps**, each delivered just-in-time as its own message
+  with only that step's exact reference text — never batched up front — so the
+  model works each concern in turn: Inventory & Intent, Actors/Boundaries &
+  Contracts, Execution & Delegation, Review/Validation & Failure Hardening,
+  Patterns & Simulation, Compression, Consistency & Minimality.
+- A **mid value-lost review** after step 3, restoring anything the proposals so
+  far weakened.
+- **Finalize-draft**: materialize accepted proposals into complete files.
+- **Final value-lost audit**: a last pass comparing originals vs the draft.
 
 ```bash
 npx -y rosettify-prompts@latest optimize \
@@ -110,16 +121,29 @@ npx -y rosettify-prompts@latest optimize \
   --max-output-tokens 32000
 ```
 
-The 3 phases are:
+Each call is logged as it runs (`[step n/N] <step> — …`), and calls are routed
+through the SDK's streaming API so long-running calls at high
+`--max-output-tokens` values don't hit the SDK's non-streaming timeout guard.
+Use `--step-limit N` to run only the first N content steps before finalizing.
 
-- Architecture + Intent
-- Execution + Review Mechanics
-- Compression + Pattern Integration
+### Interactive questions
 
-Each phase is logged as it completes
-(`[n/3] <phase> — before Xw -> after Yw — Nms`), and calls are routed through
-the SDK's streaming API so long-running calls at high `--max-output-tokens`
-values don't hit the SDK's non-streaming timeout guard.
+With `--enable-questions`, each proposal step (the 7 content steps and the mid
+value-lost review) may also raise clarifying questions when genuine ambiguity
+blocks a strictly better proposal. The app asks each fresh question in the
+terminal (Enter to skip), then appends the answers to the conversation keyed by
+the model's own question id — question text is never repeated — so every later
+step and the finalize pass honor them. Within a batch you can navigate with `<`
+(previous) and `>` (next) and revise earlier answers; a final summary asks for
+confirmation before anything is sent, and once sent the answers are final.
+Because `<` and `>` are navigation commands, they cannot be entered as literal
+answer text. Questions and answers are recorded in
+`trace.json` and rendered as a `## Questions & Answers` table in `report.md`.
+
+The flag requires an interactive terminal (a TTY); it errors out early otherwise
+(except under `--dry-run`, which only prints the plan). With the flag off
+(the default), behavior is unchanged: no questions are requested and every
+request is byte-identical to a run without the feature.
 
 `--target` files are under edit and are output under `--out`, preserving their
 relative paths. `--supporting` files are loaded as context only and are not
@@ -232,7 +256,3 @@ checking API connectivity end to end without burning much budget:
 ```bash
 npm run bench -- --evals evals.smoke.json --out results/smoke
 ```
-
-## TODO
-
-- Ability to ask questions during optimization

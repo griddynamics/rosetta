@@ -7,6 +7,8 @@ import { createAnthropicClient, createOptimizeClient, type StreamingAnthropicCli
 import { runBenchSuite } from './runner.js';
 import { buildReport, writeReportFiles } from './report.js';
 import { OPTIMIZE_STEPS, runPromptOptimization } from './optimize.js';
+import { createTerminalAsker } from './ask.js';
+import { colorsEnabled, createPalette } from './colors.js';
 import type { JudgeMode, SupportingFile, ThinkingEffort } from './types.js';
 
 const program = new Command();
@@ -63,6 +65,11 @@ function readSupportingFiles(paths: string[]): SupportingFile[] {
 function fmtStat(value: number | null | undefined, digits = 0): string {
   if (typeof value !== 'number' || !Number.isFinite(value)) return 'n/a';
   return digits > 0 ? value.toFixed(digits) : String(value);
+}
+
+/** Screen-only duration: rounded whole seconds. trace.json keeps exact milliseconds. */
+function fmtDur(ms: number): string {
+  return `${Math.round(ms / 1000)}s`;
 }
 
 program
@@ -157,6 +164,7 @@ program
   .option('--no-default-anthropic-beta', 'do not include optimize default Anthropic beta headers')
   .option('--trace-full-prompts', 'store full prompt bodies in trace.json (default stores hashes/metadata)', false)
   .option('--trace-raw', 'append raw optimizer request/response JSONL to raw-calls.jsonl under --out', false)
+  .option('--enable-questions', 'let the optimizer ask clarifying questions interactively (requires a TTY)', false)
   .option('--dry-run', 'print the stage plan without calling the API or writing files', false)
   .action(
     async (opts: {
@@ -172,6 +180,7 @@ program
       defaultAnthropicBeta: boolean;
       traceFullPrompts: boolean;
       traceRaw: boolean;
+      enableQuestions: boolean;
       dryRun: boolean;
     }) => {
       if (!opts.target.length) {
@@ -197,6 +206,7 @@ program
             additional: opts.additional,
             traceFullPrompts: opts.traceFullPrompts,
             traceRaw: opts.traceRaw,
+            enableQuestions: opts.enableQuestions,
             dryRun: true,
           },
         );
@@ -216,6 +226,7 @@ program
         console.log('Thinking: adaptive (display: summarized), replayed across the single session');
         console.log(`Anthropic betas: ${anthropicBetas.length > 0 ? anthropicBetas.join(', ') : '(none)'}`);
         console.log(`Raw trace: ${opts.traceRaw ? path.join(path.resolve(opts.out), 'raw-calls.jsonl') : '(disabled)'}`);
+        console.log(`Interactive questions: ${opts.enableQuestions ? 'enabled' : 'disabled'}`);
         console.log('Pipeline (one conversation):');
         console.log('- SESSION SETUP (cached: run setup + original target files)');
         OPTIMIZE_STEPS.slice(0, stepLimit).forEach((step, index) => {
@@ -227,6 +238,13 @@ program
         console.log('- SERIALIZE (write files)');
         return;
       }
+
+      if (opts.enableQuestions && !process.stdin.isTTY) {
+        throw new Error('--enable-questions requires an interactive terminal (TTY); omit it or use --dry-run');
+      }
+
+      const palette = createPalette(colorsEnabled(process.stdout));
+      let totalCostUsd = 0;
 
       // The optimize content type carries opaque passthrough (thinking) blocks that are looser than
       // the SDK's strict ContentBlockParam union; bridge the concrete client through the adapter.
@@ -245,29 +263,38 @@ program
           additional: opts.additional,
           traceFullPrompts: opts.traceFullPrompts,
           traceRaw: opts.traceRaw,
+          enableQuestions: opts.enableQuestions,
+          askQuestions: opts.enableQuestions ? createTerminalAsker() : undefined,
         },
         (event) => {
           if (event.type === 'call') {
             const usage = event.callStats.response.usage;
+            totalCostUsd += usage.standardCostUsd ?? 0;
             const request = event.callStats.request;
             const stepOrdinal =
               event.step === 'finalize-draft' || event.step === 'final-value-lost' || event.step === 'value-lost-mid'
                 ? event.step
                 : `step ${event.doneSteps + 1}/${event.totalSteps}`;
-            console.log(
-              `[${stepOrdinal}] ${event.step} — ` +
-              `dur=${event.callStats.durationMs}ms stop=${event.callStats.stopReason ?? 'n/a'} ` +
+            // Anchor (bracket + step id) is bold cyan so it's easy to scan; dur/cost stay normal
+            // (the important numbers); the verbose middle recedes in dim.
+            const anchor = palette.boldCyan(`[${stepOrdinal}] ${event.step}`);
+            const dur = `dur=${fmtDur(event.callStats.durationMs)}`;
+            const middle = palette.dim(
+              `stop=${event.callStats.stopReason ?? 'n/a'} ` +
               `sys=${request.system?.words ?? 0}w/${request.system?.chars ?? 0}c/${request.system?.blocks ?? 0}b/cacheB${request.system?.cacheableBlocks ?? 0} ` +
               `msgs=${request.messages.count}(u${request.messages.userCount}/a${request.messages.assistantCount})/${request.messages.words}w/${request.messages.chars}c/cacheB${request.messages.cacheableBlocks} ` +
               `append=+${request.appendedMessages.count}/${request.appendedMessages.words}w/${request.appendedMessages.chars}c/cacheB${request.appendedMessages.cacheableBlocks} ` +
               `resp=${event.callStats.response.words}w/${event.callStats.response.chars}c ` +
-              `tok=in${fmtStat(usage.inputTokens)} out${fmtStat(usage.outputTokens)} cacheCreate${fmtStat(usage.cacheCreationInputTokens)} cacheRead${fmtStat(usage.cacheReadInputTokens)} cached${fmtStat(usage.cachedInputTokens)} reason${fmtStat(usage.reasoningTokens)} ` +
-              `cost=$${fmtStat(usage.standardCostUsd, 6)}`,
+              `tok: in=${fmtStat(usage.inputTokens)} out=${fmtStat(usage.outputTokens)} cacheCreate=${fmtStat(usage.cacheCreationInputTokens)} cacheRead=${fmtStat(usage.cacheReadInputTokens)} cached=${fmtStat(usage.cachedInputTokens)} reason=${fmtStat(usage.reasoningTokens)}`,
             );
+            const cost = `cost=$${fmtStat(usage.standardCostUsd, 6)}`;
+            console.log(`${anchor} — ${dur} ${middle} ${cost}`);
             return;
           }
           console.log(
-            `[${event.doneSteps}/${event.totalSteps} steps] ${event.phase.label} — before ${event.phase.beforeLength.words}w -> after ${event.phase.afterLength.words}w — ${event.phase.durationMs}ms`,
+            palette.green(
+              `[${event.doneSteps}/${event.totalSteps} steps] ${event.phase.label} — before ${event.phase.beforeLength.words}w -> after ${event.phase.afterLength.words}w — ${fmtDur(event.phase.durationMs)} — total cost=$${totalCostUsd.toFixed(6)}`,
+            ),
           );
         },
       );

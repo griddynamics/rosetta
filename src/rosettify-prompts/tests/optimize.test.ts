@@ -10,6 +10,8 @@ import {
   STEP_REFERENCE_SECTIONS,
   type OptimizeContent,
   type OptimizeClient,
+  type OptimizeQuestion,
+  type OptimizeQuestionAsker,
   runPromptOptimization,
 } from '../src/optimize.js';
 
@@ -44,7 +46,10 @@ function responseFor(paths: string[], callNumber: number): string {
   });
 }
 
-function fakeClient(calls: OptimizeCall[], paths = ['SKILL.md']): OptimizeClient {
+/** Optional per-call (1-based) questions merged into that call's response JSON. */
+type QuestionsByCall = Record<number, unknown>;
+
+function fakeClient(calls: OptimizeCall[], paths = ['SKILL.md'], questionsByCall: QuestionsByCall = {}): OptimizeClient {
   return {
     messages: {
       async create(params) {
@@ -57,9 +62,14 @@ function fakeClient(calls: OptimizeCall[], paths = ['SKILL.md']): OptimizeClient
         const prompt = textOf(params.messages.at(-1)?.content);
         // FINALIZE-DRAFT and the final value-lost audit both materialize complete files.
         const isMaterializing = prompt.includes('Return FINAL_FILES_JSON.');
-        const text = isMaterializing
-          ? responseFor(paths, calls.length)
-          : JSON.stringify({
+        const base: Record<string, unknown> = isMaterializing
+          ? {
+              files: paths.map((filePath) => ({
+                path: filePath,
+                content: `optimized ${filePath} call ${calls.length}`,
+              })),
+            }
+          : {
               changes: paths.map((filePath) => ({
                 path: filePath,
                 intent: `proposal ${calls.length}`,
@@ -67,7 +77,9 @@ function fakeClient(calls: OptimizeCall[], paths = ['SKILL.md']): OptimizeClient
                 replace: 'replacement snippet',
                 preserves: ['concrete anchor'],
               })),
-            });
+            };
+        const questions = questionsByCall[calls.length];
+        const text = JSON.stringify(questions === undefined ? base : { ...base, questions });
         return {
           // Full content includes a thinking block so we can assert same-session replay.
           content: [
@@ -86,6 +98,20 @@ function fakeClient(calls: OptimizeCall[], paths = ['SKILL.md']): OptimizeClient
         };
       },
     },
+  };
+}
+
+interface AskInvocation {
+  questions: OptimizeQuestion[];
+  step: string;
+  stepLabel: string;
+}
+
+/** Records every invocation and returns canned answers keyed by question id (missing id = skip). */
+function fakeAsker(answersById: Record<string, string>, log: AskInvocation[]): OptimizeQuestionAsker {
+  return async (questions, context) => {
+    log.push({ questions, step: context.step, stepLabel: context.stepLabel });
+    return questions.map((question) => answersById[question.id] ?? '');
   };
 }
 
@@ -610,5 +636,264 @@ describe('optimize prompts', () => {
     expect(report).toContain('Appended messages');
     expect(report).toContain('Cache read tok');
     expect(report).toContain('Reasoning tok');
+  });
+
+  it('flag off ignores emitted questions and keeps single-text-block user messages', async () => {
+    const calls: OptimizeCall[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    const result = await runPromptOptimization(
+      fakeClient(calls, ['SKILL.md'], { 1: [{ id: 'q1', question: 'Would this help?' }] }),
+      { targetPaths: [target], outDir, model: 'claude-test', maxOutputTokens: 2048 },
+    );
+
+    for (const call of calls) {
+      expect(textOf(call.system)).not.toContain('STEP_QUESTIONS_JSON');
+      for (const message of call.messages) {
+        expect(textOf(message.content)).not.toContain('USER_ANSWERS');
+        if (message.role === 'user') {
+          expect(Array.isArray(message.content) && message.content.length).toBe(1);
+        }
+      }
+    }
+    expect(result.trace.enableQuestions).toBe(false);
+    expect(result.trace.phases[0].prompts.every((prompt) => prompt.questions === undefined)).toBe(true);
+  });
+
+  it('asks emitted questions, appends answers by id only, and records them in trace and report', async () => {
+    const calls: OptimizeCall[] = [];
+    const log: AskInvocation[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    const result = await runPromptOptimization(
+      fakeClient(calls, ['SKILL.md'], {
+        1: [
+          { id: 'q1', question: 'Q one?' },
+          { id: 'q2', question: 'Q two?', why: 'because' },
+        ],
+      }),
+      {
+        targetPaths: [target],
+        outDir,
+        model: 'claude-test',
+        maxOutputTokens: 2048,
+        enableQuestions: true,
+        askQuestions: fakeAsker({ q1: 'answer one' }, log),
+      },
+    );
+
+    expect(log).toHaveLength(1);
+    expect(log[0].step).toBe('inventory-intent');
+    expect(log[0].stepLabel).toBe('Inventory & Intent');
+    expect(log[0].questions).toHaveLength(2);
+
+    // The step-2 user message carries the answers block plus the normal prompt as two text blocks.
+    const nextUser = calls[1].messages.at(-1)?.content;
+    expect(Array.isArray(nextUser) && nextUser.length).toBe(2);
+    const answersBlock = textOf(Array.isArray(nextUser) ? [nextUser[0]] : undefined);
+    expect(answersBlock).toContain('USER_ANSWERS');
+    expect(answersBlock).toContain('q1: answer one');
+    expect(answersBlock).not.toContain('Q one?');
+    expect(answersBlock).not.toContain('q2');
+
+    const firstStep = result.trace.phases[0].prompts.find((prompt) => prompt.step === 'inventory-intent');
+    expect(firstStep?.questions).toHaveLength(2);
+    const answered = firstStep?.questions?.find((record) => record.id === 'q1');
+    const skipped = firstStep?.questions?.find((record) => record.id === 'q2');
+    expect(answered).toMatchObject({ question: 'Q one?', answer: 'answer one', skipped: false });
+    expect(skipped).toMatchObject({ question: 'Q two?', answer: '', skipped: true });
+    expect(result.trace.enableQuestions).toBe(true);
+
+    const report = await readFile(result.files!.reportPath, 'utf-8');
+    expect(report).toContain('## Questions & Answers');
+    expect(report).toContain('answer one');
+    expect(report).toContain('(skipped)');
+  });
+
+  it('never re-asks a question by id or by identical text across steps', async () => {
+    const calls: OptimizeCall[] = [];
+    const log: AskInvocation[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    await runPromptOptimization(
+      fakeClient(calls, ['SKILL.md'], {
+        // Step 1 also emits a within-batch duplicate id (different text) that must collapse to one.
+        1: [
+          { id: 'a', question: 'Same question?' },
+          { id: 'a', question: 'Different text same id?' },
+        ],
+        2: [
+          { id: 'a', question: 'Same question?' },
+          { id: 'b', question: 'Same question?' },
+        ],
+      }),
+      {
+        targetPaths: [target],
+        outDir,
+        model: 'claude-test',
+        maxOutputTokens: 2048,
+        enableQuestions: true,
+        askQuestions: fakeAsker({ a: 'answered', b: 'answered-b' }, log),
+      },
+    );
+
+    expect(log).toHaveLength(1);
+    expect(log[0].questions.map((question) => question.id)).toEqual(['a']);
+  });
+
+  it('drops malformed question entries without calling the asker', async () => {
+    const calls: OptimizeCall[] = [];
+    const log: AskInvocation[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    const result = await runPromptOptimization(
+      fakeClient(calls, ['SKILL.md'], {
+        1: [{ question: 'no id' }, { id: '', question: 'empty id' }, { id: 'no-question' }, 'string', 42],
+      }),
+      {
+        targetPaths: [target],
+        outDir,
+        model: 'claude-test',
+        maxOutputTokens: 2048,
+        enableQuestions: true,
+        askQuestions: fakeAsker({}, log),
+      },
+    );
+
+    expect(log).toHaveLength(0);
+    expect(calls).toHaveLength(10);
+    expect(result.trace.phases[0].prompts.every((prompt) => prompt.questions === undefined)).toBe(true);
+  });
+
+  it('leaves the conversation shape unchanged when every question is skipped', async () => {
+    const calls: OptimizeCall[] = [];
+    const log: AskInvocation[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    const result = await runPromptOptimization(
+      fakeClient(calls, ['SKILL.md'], { 1: [{ id: 'q1', question: 'Q?' }] }),
+      {
+        targetPaths: [target],
+        outDir,
+        model: 'claude-test',
+        maxOutputTokens: 2048,
+        enableQuestions: true,
+        askQuestions: fakeAsker({}, log),
+      },
+    );
+
+    for (const call of calls) {
+      for (const message of call.messages) {
+        expect(textOf(message.content)).not.toContain('USER_ANSWERS');
+        if (message.role === 'user') expect(Array.isArray(message.content) && message.content.length).toBe(1);
+      }
+    }
+    const firstStep = result.trace.phases[0].prompts.find((prompt) => prompt.step === 'inventory-intent');
+    expect(firstStep?.questions?.[0]).toMatchObject({ id: 'q1', skipped: true });
+  });
+
+  it('flushes answers from the last content step into finalize and ignores questions in FINAL_FILES_JSON', async () => {
+    const calls: OptimizeCall[] = [];
+    const log: AskInvocation[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    await runPromptOptimization(
+      fakeClient(calls, ['SKILL.md'], {
+        1: [{ id: 'q1', question: 'Q?' }],
+        2: [{ id: 'fq', question: 'Finalize Q?' }],
+      }),
+      {
+        targetPaths: [target],
+        outDir,
+        model: 'claude-test',
+        maxOutputTokens: 2048,
+        stepLimit: 1,
+        enableQuestions: true,
+        askQuestions: fakeAsker({ q1: 'yes' }, log),
+      },
+    );
+
+    expect(calls).toHaveLength(expectedCalls(1));
+    expect(log).toHaveLength(1);
+    expect(log[0].step).toBe('inventory-intent');
+
+    // FINALIZE-DRAFT (call 2) carries the flushed answers; the final value-lost call (call 3) does not.
+    const finalizeUser = calls[1].messages.at(-1)?.content;
+    expect(Array.isArray(finalizeUser) && finalizeUser.length).toBe(2);
+    expect(textOf(Array.isArray(finalizeUser) ? [finalizeUser[0]] : undefined)).toContain('q1: yes');
+    expect(Array.isArray(calls[2].messages.at(-1)?.content) && (calls[2].messages.at(-1)?.content as unknown[]).length).toBe(1);
+  });
+
+  it('records questions as skipped when the flag is on but no asker is provided', async () => {
+    const calls: OptimizeCall[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    const result = await runPromptOptimization(
+      fakeClient(calls, ['SKILL.md'], { 1: [{ id: 'q1', question: 'Q?' }] }),
+      { targetPaths: [target], outDir, model: 'claude-test', maxOutputTokens: 2048, enableQuestions: true },
+    );
+
+    expect(calls).toHaveLength(10);
+    for (const call of calls) {
+      for (const message of call.messages) expect(textOf(message.content)).not.toContain('USER_ANSWERS');
+    }
+    const firstStep = result.trace.phases[0].prompts.find((prompt) => prompt.step === 'inventory-intent');
+    expect(firstStep?.questions?.[0]).toMatchObject({ id: 'q1', skipped: true });
+  });
+
+  it('lets the mid value-lost review ask, flushing answers into the next step', async () => {
+    const calls: OptimizeCall[] = [];
+    const log: AskInvocation[] = [];
+    const { outDir, target } = await tempWorkspace();
+
+    await runPromptOptimization(
+      fakeClient(calls, ['SKILL.md'], { 4: [{ id: 'm1', question: 'Mid Q?' }] }),
+      {
+        targetPaths: [target],
+        outDir,
+        model: 'claude-test',
+        maxOutputTokens: 2048,
+        stepLimit: 4,
+        enableQuestions: true,
+        askQuestions: fakeAsker({ m1: 'mid answer' }, log),
+      },
+    );
+
+    const midInvocation = log.find((invocation) => invocation.step === 'value-lost-mid');
+    expect(midInvocation?.stepLabel).toBe('Mid-run value-lost review');
+    // calls[3] is the mid value-lost call; calls[4] is the next content step carrying the answers.
+    const nextUser = calls[4].messages.at(-1)?.content;
+    expect(Array.isArray(nextUser) && nextUser.length).toBe(2);
+    expect(textOf(Array.isArray(nextUser) ? [nextUser[0]] : undefined)).toContain('m1: mid answer');
+  });
+
+  it('CLI dry-run reports interactive questions enabled/disabled', async () => {
+    const { outDir, target } = await tempWorkspace();
+    const argsFor = (extra: string[]): string[] => [
+      '--import', 'tsx/esm', 'src/cli.ts', 'optimize',
+      '--target', target, '--out', outDir, '--model', 'claude-test', '--dry-run', ...extra,
+    ];
+
+    const enabled = await execFileAsync(process.execPath, argsFor(['--enable-questions']));
+    expect(enabled.stdout).toContain('Interactive questions: enabled');
+    const disabled = await execFileAsync(process.execPath, argsFor([]));
+    expect(disabled.stdout).toContain('Interactive questions: disabled');
+  });
+
+  it('CLI errors when --enable-questions is used without a TTY and not dry-run', async () => {
+    const { outDir, target } = await tempWorkspace();
+
+    let error: { code?: number; stderr?: string } | undefined;
+    try {
+      await execFileAsync(process.execPath, [
+        '--import', 'tsx/esm', 'src/cli.ts', 'optimize',
+        '--target', target, '--out', outDir, '--model', 'claude-test', '--enable-questions',
+      ]);
+    } catch (err) {
+      error = err as { code?: number; stderr?: string };
+    }
+    expect(error).toBeDefined();
+    expect(error?.code).toBe(1);
+    expect(String(error?.stderr)).toMatch(/interactive terminal/);
   });
 });

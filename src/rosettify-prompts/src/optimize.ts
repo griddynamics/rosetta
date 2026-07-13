@@ -10,6 +10,7 @@ import {
   OPTIMIZE_SESSION,
   OPTIMIZE_STEPS,
   STEP_CHANGES_JSON,
+  STEP_QUESTIONS_JSON,
   STEP_REFERENCE_SECTIONS,
   type OptimizePhaseId,
   type OptimizeStepId,
@@ -23,6 +24,7 @@ export {
   OPTIMIZE_SESSION,
   OPTIMIZE_STEPS,
   STEP_CHANGES_JSON,
+  STEP_QUESTIONS_JSON,
   STEP_REFERENCE_SECTIONS,
   type OptimizePhaseId,
   type OptimizeStepId,
@@ -83,6 +85,26 @@ export interface OptimizeResponse {
   usage?: unknown;
 }
 
+/** A clarifying question the optimizer may raise during a proposal step. `id` is a short kebab slug
+ * the model assigns; answers come back keyed by it so question text is never repeated. */
+export interface OptimizeQuestion {
+  id: string;
+  question: string;
+  why?: string;
+}
+
+/** A question plus its resolution, recorded in the trace of the call that asked it. */
+export interface OptimizeQuestionRecord extends OptimizeQuestion {
+  answer: string;
+  skipped: boolean;
+}
+
+/** Injected asker: returns one answer per question (same order); empty/whitespace = skipped. */
+export type OptimizeQuestionAsker = (
+  questions: OptimizeQuestion[],
+  context: { step: OptimizeStepId | typeof VALUE_LOST_MID; stepLabel: string },
+) => Promise<string[]>;
+
 export interface OptimizeOptions {
   targetPaths: string[];
   outDir: string;
@@ -98,6 +120,10 @@ export interface OptimizeOptions {
   dryRun?: boolean;
   /** Adaptive-thinking depth passed as output_config.effort. Defaults to 'high'. */
   effort?: ThinkingEffort;
+  /** Let proposal steps raise clarifying questions the app asks the user, then feeds answers back. */
+  enableQuestions?: boolean;
+  /** Interactive asker invoked once per step that raises fresh questions. Omit for non-interactive. */
+  askQuestions?: OptimizeQuestionAsker;
 }
 
 export interface OptimizeFileTrace {
@@ -185,6 +211,7 @@ export interface OptimizePhaseTrace {
     output: string;
     durationMs: number;
     callStats?: OptimizeCallStats;
+    questions?: OptimizeQuestionRecord[];
   }>;
   beforeLength: { chars: number; words: number };
   afterLength: { chars: number; words: number };
@@ -206,6 +233,7 @@ export interface OptimizeTrace {
   supportingFiles: OptimizeFileTrace[];
   phases: OptimizePhaseTrace[];
   traceFullPrompts: boolean;
+  enableQuestions: boolean;
   finalAudit?: {
     promptHash: string;
     promptStats: OptimizeContentStats;
@@ -348,6 +376,44 @@ function extractJsonObject(text: string): unknown {
   }
 }
 
+/** Lenient parse of an optional "questions" array from a STEP_CHANGES_JSON response. Malformed JSON,
+ * wrong shapes, or entries missing a non-empty id/question are dropped; caps at 3. Never throws. */
+function parseStepQuestions(output: string): OptimizeQuestion[] {
+  let parsed: unknown;
+  try {
+    parsed = extractJsonObject(output);
+  } catch {
+    return [];
+  }
+  const rawQuestions = (parsed as { questions?: unknown })?.questions;
+  if (!Array.isArray(rawQuestions)) return [];
+  const questions: OptimizeQuestion[] = [];
+  for (const raw of rawQuestions) {
+    if (typeof raw !== 'object' || raw === null) continue;
+    const entry = raw as { id?: unknown; question?: unknown; why?: unknown };
+    if (typeof entry.id !== 'string' || entry.id.trim() === '') continue;
+    if (typeof entry.question !== 'string' || entry.question.trim() === '') continue;
+    const question: OptimizeQuestion = { id: entry.id.trim(), question: entry.question };
+    if (typeof entry.why === 'string' && entry.why.trim() !== '') question.why = entry.why;
+    questions.push(question);
+    if (questions.length === 3) break;
+  }
+  return questions;
+}
+
+/** Normalized question text used as a dedupe safety net against the model reusing new ids. */
+function normalizeQuestionKey(question: string): string {
+  return question.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/** A USER_ANSWERS block that references answers by question id only (text is already in context). */
+function renderAnswersBlock(records: OptimizeQuestionRecord[]): string {
+  return [
+    'USER_ANSWERS:',
+    ...records.filter((record) => !record.skipped).map((record) => `${record.id}: ${record.answer}`),
+  ].join('\n');
+}
+
 function commonAncestor(paths: string[]): string {
   if (paths.length === 0) throw new Error('At least one --target file is required');
   const splitPaths = paths.map((filePath) => path.resolve(filePath).split(path.sep));
@@ -407,6 +473,7 @@ function renderAdditional(additional: string[]): string {
 function buildRunSetup(options: {
   additional: string[];
   supportingFiles: OptimizeFileTrace[];
+  enableQuestions: boolean;
 }): string {
   return [
     'RUN SETUP: cache this stable optimizer context. The entire optimization runs as ONE conversation.',
@@ -416,6 +483,12 @@ function buildRunSetup(options: {
     'Schemas are named STEP_CHANGES_JSON and FINAL_FILES_JSON. Later messages may reference those names.',
     STEP_CHANGES_JSON,
     FINAL_FILES_JSON,
+    ...(options.enableQuestions
+      ? [
+          'This run also permits an optional STEP_QUESTIONS_JSON "questions" key on STEP_CHANGES_JSON responses. Later messages may reference this schema by name.',
+          STEP_QUESTIONS_JSON,
+        ]
+      : []),
     'Supporting files are context only. Do not output rewritten supporting files unless the same path is also a target.',
     ...renderFileBlocks(options.supportingFiles, 'SUPPORTING_FILE'),
   ].join('\n\n');
@@ -442,7 +515,7 @@ function buildSessionSetup(originalFiles: OptimizedFile[]): string {
 // focused concern per turn forces the model to work each concern in turn.
 // Keep step instructions fresh, separate, and just-in-time.
 // ============================================================================
-function buildStepPrompt(step: (typeof OPTIMIZE_STEPS)[number]): string {
+function buildStepPrompt(step: (typeof OPTIMIZE_STEPS)[number], enableQuestions: boolean): string {
   const refs = STEP_REFERENCE_SECTIONS[step.id];
   const checklist = refs.objectives.map((objective, index) => `${index + 1}. ${objective}`).join('\n');
   return [
@@ -454,10 +527,13 @@ function buildStepPrompt(step: (typeof OPTIMIZE_STEPS)[number]): string {
     'Do this step as a surgical change proposal over all target files. Preserve cross-file relationships and supporting-file references.',
     'Think through the line-purpose lens before changing anything. Keep concrete anchors and model-weight-sensitive wording unless a safer compact equivalent preserves the same behavior.',
     'Propose changes against the original target files. Return STEP_CHANGES_JSON only.',
+    enableQuestions
+      ? 'If genuine ambiguity blocks a strictly better proposal, you may add a STEP_QUESTIONS_JSON "questions" key (max 3, unique kebab ids); never repeat a question already asked or answered.'
+      : '',
   ].filter(Boolean).join('\n\n');
 }
 
-function buildMidValueLostPrompt(): string {
+function buildMidValueLostPrompt(enableQuestions: boolean): string {
   return [
     'Mid-run value-lost reviewer/fixer.',
     OPTIMIZE_INVARIANT,
@@ -465,7 +541,10 @@ function buildMidValueLostPrompt(): string {
     'Internally create a concise loss ledger: lost value, weakened constraint, broken file relationship, removed mental hook, deleted concrete anchor, actor confusion, missing validation, changed scope, or prompt-injection obedience.',
     'Propose ONLY restoration changes that recover lost value or fix a broken proposal. Do not materialize files yet. Do not add nice-to-haves.',
     'Return STEP_CHANGES_JSON only.',
-  ].join('\n\n');
+    enableQuestions
+      ? 'If genuine ambiguity blocks a strictly better proposal, you may add a STEP_QUESTIONS_JSON "questions" key (max 3, unique kebab ids); never repeat a question already asked or answered.'
+      : '',
+  ].filter(Boolean).join('\n\n');
 }
 
 function buildFinalizePrompt(): string {
@@ -761,6 +840,11 @@ export function renderOptimizeReport(trace: OptimizeTrace): string {
     }))
     .join('\n');
   const totals = totalUsage(allCallStats(trace));
+  const escapeCell = (text: string): string => text.replace(/\r?\n/g, ' ').replace(/\|/g, '\\|').trim();
+  const questionRows = trace.phases
+    .flatMap((phase) => phase.prompts.flatMap((prompt) => (prompt.questions ?? []).map((record) => (
+      `| ${prompt.step} | ${escapeCell(record.question)} | ${record.skipped ? '(skipped)' : escapeCell(record.answer)} |`
+    ))));
   return [
     '# Prompt Optimization Report',
     '',
@@ -802,6 +886,14 @@ export function renderOptimizeReport(trace: OptimizeTrace): string {
     promptRows,
     ...(trace.finalAudit ? [
       `| ${OPTIMIZE_SESSION.label} | ${FINAL_VALUE_LOST} | ${trace.finalAudit.promptStats.words} | ${trace.finalAudit.callStats.request.messages.count} | ${trace.finalAudit.callStats.request.appendedMessages.count} | ${trace.finalAudit.callStats.request.appendedMessages.words} | ${trace.finalAudit.durationMs} | ${formatNullable(trace.finalAudit.callStats.response.usage.inputTokens)} | ${formatNullable(trace.finalAudit.callStats.response.usage.outputTokens)} | ${formatNullable(trace.finalAudit.callStats.response.usage.cacheCreationInputTokens)} | ${formatNullable(trace.finalAudit.callStats.response.usage.cacheReadInputTokens)} | ${formatReasoningTokens(trace.finalAudit.callStats.response.usage)} | ${formatNullable(trace.finalAudit.callStats.response.usage.standardCostUsd, 6)} | ${trace.finalAudit.callStats.stopReason ?? ''} |`,
+    ] : []),
+    ...(questionRows.length > 0 ? [
+      '',
+      '## Questions & Answers',
+      '',
+      '| Step | Question | Answer |',
+      '| --- | --- | --- |',
+      ...questionRows,
     ] : []),
     '',
   ].join('\n');
@@ -851,9 +943,10 @@ export async function runPromptOptimization(
   const outDir = path.resolve(options.outDir);
   const additional = options.additional ?? [];
   const traceFullPrompts = options.traceFullPrompts ?? false;
+  const enableQuestions = options.enableQuestions ?? false;
   const anthropicBetas = options.anthropicBetas ?? DEFAULT_OPTIMIZE_ANTHROPIC_BETAS;
   const rawTracePath = options.traceRaw ? path.join(outDir, 'raw-calls.jsonl') : undefined;
-  const system = cacheableText(buildRunSetup({ additional, supportingFiles }));
+  const system = cacheableText(buildRunSetup({ additional, supportingFiles, enableQuestions }));
 
   if (options.dryRun) {
     const trace: OptimizeTrace = {
@@ -871,6 +964,7 @@ export async function runPromptOptimization(
       supportingFiles,
       phases: [],
       traceFullPrompts,
+      enableQuestions,
       finalLength: {
         chars: filesCharCount(currentFiles),
         words: filesWordCount(currentFiles),
@@ -890,6 +984,58 @@ export async function runPromptOptimization(
   let previousRequestMessageCount = 0;
   let doneSteps = 0;
 
+  // Interactive-question run state: dedupe asked questions across the whole run (by id and by a
+  // normalized-text safety net), and queue answered questions to prepend to the next user message.
+  const askedIds = new Set<string>();
+  const askedTextKeys = new Set<string>();
+  let pendingAnswers: OptimizeQuestionRecord[] = [];
+
+  // Build the next user message content. With no pending answers (always so when the flag is off),
+  // returns a single text block — byte-identical to before. Otherwise prepends a USER_ANSWERS block
+  // so role alternation and the moving cache breakpoint stay intact.
+  const buildUserContent = (prompt: string): OptimizeContentBlock[] => {
+    if (pendingAnswers.length === 0) return textBlocks(prompt);
+    const answersBlock = renderAnswersBlock(pendingAnswers);
+    pendingAnswers = [];
+    return [{ type: 'text', text: answersBlock }, { type: 'text', text: prompt }];
+  };
+
+  // After a proposal turn, parse fresh questions, ask them, record answers, and queue the answered.
+  const collectQuestions = async (
+    step: OptimizeStepId | typeof VALUE_LOST_MID,
+    stepLabel: string,
+    output: string,
+  ): Promise<OptimizeQuestionRecord[] | undefined> => {
+    if (!enableQuestions) return undefined;
+    const batchIds = new Set<string>();
+    const batchTextKeys = new Set<string>();
+    const fresh: OptimizeQuestion[] = [];
+    for (const question of parseStepQuestions(output)) {
+      const textKey = normalizeQuestionKey(question.question);
+      if (
+        askedIds.has(question.id) || batchIds.has(question.id) ||
+        askedTextKeys.has(textKey) || batchTextKeys.has(textKey)
+      ) continue;
+      batchIds.add(question.id);
+      batchTextKeys.add(textKey);
+      fresh.push(question);
+    }
+    if (fresh.length === 0) return undefined;
+    for (const question of fresh) {
+      askedIds.add(question.id);
+      askedTextKeys.add(normalizeQuestionKey(question.question));
+    }
+    const answers = options.askQuestions
+      ? await options.askQuestions(fresh, { step, stepLabel })
+      : fresh.map(() => '');
+    const records: OptimizeQuestionRecord[] = fresh.map((question, index) => {
+      const answer = (answers[index] ?? '').trim();
+      return { ...question, answer, skipped: answer.length === 0 };
+    });
+    pendingAnswers.push(...records.filter((record) => !record.skipped));
+    return records;
+  };
+
   // SESSION SETUP: cache the stable run setup (system) + original target files (first user message).
   const setup = cacheableText(buildSessionSetup(originalFiles));
   messages.push({ role: 'user', content: setup });
@@ -903,9 +1049,11 @@ export async function runPromptOptimization(
   // Run one proposal call, appending the full response (thinking + text) as the assistant turn.
   const runProposalCall = async (
     step: OptimizeStepId | typeof VALUE_LOST_MID,
+    stepLabel: string,
     prompt: string,
   ): Promise<void> => {
-    messages.push({ role: 'user', content: textBlocks(prompt) });
+    const userContent = buildUserContent(prompt);
+    messages.push({ role: 'user', content: userContent });
     const { text: output, content, durationMs, callStats } = await complete(
       client,
       options.model,
@@ -920,7 +1068,15 @@ export async function runPromptOptimization(
     );
     previousRequestMessageCount = messages.length;
     messages.push({ role: 'assistant', content });
-    prompts.push({ step, ...tracePrompt(textBlocks(prompt), traceFullPrompts), output, durationMs, callStats });
+    const questions = await collectQuestions(step, stepLabel, output);
+    prompts.push({
+      step,
+      ...tracePrompt(userContent, traceFullPrompts),
+      output,
+      durationMs,
+      callStats,
+      ...(questions ? { questions } : {}),
+    });
     onProgress?.({
       type: 'call',
       phase: OPTIMIZE_SESSION.id,
@@ -936,16 +1092,18 @@ export async function runPromptOptimization(
   // instructions arrive as their own user message here, just-in-time — never
   // batched up front or cached — so the model addresses each concern in turn.
   for (let index = 0; index < selectedSteps.length; index++) {
-    await runProposalCall(selectedSteps[index].id, buildStepPrompt(selectedSteps[index]));
+    await runProposalCall(selectedSteps[index].id, selectedSteps[index].label, buildStepPrompt(selectedSteps[index], enableQuestions));
     doneSteps++;
     // VALUE-LOST #1 (middle review) runs after step 3 (Execution & Delegation).
     if (index === 2) {
-      await runProposalCall(VALUE_LOST_MID, buildMidValueLostPrompt());
+      await runProposalCall(VALUE_LOST_MID, 'Mid-run value-lost review', buildMidValueLostPrompt(enableQuestions));
     }
   }
 
-  // FINALIZE-DRAFT: materialize all accumulated proposals into complete draft files.
-  messages.push({ role: 'user', content: textBlocks(buildFinalizePrompt()) });
+  // FINALIZE-DRAFT: materialize all accumulated proposals into complete draft files. Route through
+  // buildUserContent so answers from the last content step flush into this message.
+  const finalizeContent = buildUserContent(buildFinalizePrompt());
+  messages.push({ role: 'user', content: finalizeContent });
   const finalize = await complete(
     client,
     options.model,
@@ -963,7 +1121,7 @@ export async function runPromptOptimization(
   currentFiles = parseOptimizedFiles(finalize.text, targetRelativePaths);
   prompts.push({
     step: FINALIZE_DRAFT,
-    ...tracePrompt(textBlocks(buildFinalizePrompt()), traceFullPrompts),
+    ...tracePrompt(finalizeContent, traceFullPrompts),
     output: finalize.text,
     durationMs: finalize.durationMs,
     callStats: finalize.callStats,
@@ -985,7 +1143,8 @@ export async function runPromptOptimization(
 
   // VALUE-LOST #2 (final): original (cached setup) vs draft (prior message); instructions only.
   const finalPrompt = buildFinalValueLostPrompt();
-  messages.push({ role: 'user', content: textBlocks(finalPrompt) });
+  const finalContent = buildUserContent(finalPrompt);
+  messages.push({ role: 'user', content: finalContent });
   const finalAudit = await complete(
     client,
     options.model,
@@ -1041,8 +1200,9 @@ export async function runPromptOptimization(
     supportingFiles,
     phases: [phaseTrace],
     traceFullPrompts,
+    enableQuestions,
     finalAudit: {
-      ...tracePrompt(textBlocks(finalPrompt), traceFullPrompts),
+      ...tracePrompt(finalContent, traceFullPrompts),
       output: finalAudit.text,
       durationMs: finalAudit.durationMs,
       callStats: finalAudit.callStats,

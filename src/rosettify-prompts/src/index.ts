@@ -13,11 +13,15 @@ export {
   renderOptimizeReport,
   runPromptOptimization,
 } from './optimize.js';
+export { createTerminalAsker } from './ask.js';
 export type {
   OptimizeClient,
   OptimizeOptions,
   OptimizePhaseId,
   OptimizeProgressCallback,
+  OptimizeQuestion,
+  OptimizeQuestionAsker,
+  OptimizeQuestionRecord,
   OptimizeResult,
   OptimizePhaseTrace,
   OptimizeStepId,

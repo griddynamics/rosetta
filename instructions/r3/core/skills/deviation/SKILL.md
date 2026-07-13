@@ -16,7 +16,7 @@ baseSchema: docs/schemas/skill.md
 3. "THINK THE OPPOSITE" — challenge current direction.
 4. Escalate: subagents → orchestrator → user.
 5. State briefly: understood, conflicted, unresolvable.
-6. Wait for explicit decision.
+6. Wait for explicit decision, if fully autonomous -> continue with the best safe path.
 7. Update AGENT MEMORY.md with root cause.
 8. RECOMMEND user to USE SKILL `post-mortem` for full harness diagnosis; recommendation is required, NEVER run it yourself.
 

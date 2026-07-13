@@ -110,6 +110,21 @@ Rules:
 - Compact accepted wording; final files should not grow unless preserving critical value requires it.
 - No markdown fences, commentary, analysis, or extra top-level keys.`;
 
+export const STEP_QUESTIONS_JSON = `STEP_QUESTIONS_JSON:
+{
+  "questions": [
+    { "id": "<short-kebab-slug>", "question": "<one specific clarifying question>", "why": "<optional: what proposal this unblocks>" }
+  ]
+}
+Rules:
+- This run only: you MAY add a top-level "questions" key to a STEP_CHANGES_JSON response, overriding its no-extra-keys rule.
+- Ask only on genuine ambiguity that blocks a strictly better proposal; otherwise omit the key.
+- "id" is required: a short unique kebab slug you assign; answers come back keyed by it, so never repeat question text.
+- Max 3 questions per step.
+- Never repeat a question already asked or answered earlier in this conversation.
+- Answers arrive as USER_ANSWERS blocks referencing your ids and are authoritative; unanswered ids → proceed on best judgment, do not re-ask.
+- Never ask in FINAL_FILES_JSON responses.`;
+
 /** Exact per-sub-step reference text. Verbatim source of truth; merged per combined step below. */
 const SUBSTEP_REFERENCE_SECTIONS: Record<OptimizeSubStepId, { objective: string; hardening?: string; patterns?: string; aiIssues?: string }> = {
   'inventory-ledger': {

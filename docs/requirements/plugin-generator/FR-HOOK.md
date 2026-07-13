@@ -167,21 +167,22 @@
 
 <req id="FR-HOOK-0020" type="FR" level="System" ticketId="" classification="technical">
   <title>Deterministic-hooks gating</title>
-  <statement>Where the selected release enables deterministic hooks, the generator shall place hook bundles into each target; otherwise it shall remove any stale hook bundle artifacts from preserved hook folders.</statement>
-  <rationale>Only deterministic-hook releases ship runtime advisory hook code; other releases must stay lean.</rationale>
+  <statement>Where the effective deterministic-hooks value (FR-CLI-0012) is enabled, the generator shall place hook bundles into each target; otherwise it shall remove any stale hook bundle artifacts from preserved hook folders.</statement>
+  <rationale>Only deterministic-hook generations ship runtime advisory hook code; other generations must stay lean. Gating on the effective value keeps the behavior value-driven whether it comes from the release descriptor or a per-run override.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-07-13</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: release r3 When: generated Then: each target's hook folder contains the compiled bundles and shared assets.</criteria>
     <criteria>Given: release r2 When: generated Then: no compiled bundle artifacts remain in hook folders.</criteria>
+    <criteria>Given: release r3 with the deterministic-hooks override set to false When: generated Then: no compiled bundle artifacts remain in hook folders.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
-  <depends>DATA-CFG-0001</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/plugin-processors/plugin-sync-bundles.ts gates on the value it receives; src/rosettify-plugins/src/generate.ts passes the effective release (FR-CLI-0012) into buildAllSpecs and the template context.</implementationNotes>
+  <depends>DATA-CFG-0001, FR-CLI-0012</depends>
 </req>
 
 <req id="FR-HOOK-0021" type="FR" level="System" ticketId="" classification="technical">

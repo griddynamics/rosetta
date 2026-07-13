@@ -20,12 +20,19 @@ export async function generate(options: GenerateOptions): Promise<number> {
   const { instructionsSource, pluginsSource, hooksSource, outputDir } = sources;
 
   // Validate release (FR-CLI-0010/0011)
-  const release = getRelease(releaseName);
-  if (!release) {
+  const descriptor = getRelease(releaseName);
+  if (!descriptor) {
     const known = listReleases().join(', ');
     process.stderr.write(`Unknown release: "${releaseName}". Known releases: ${known}\n`);
     return 1;
   }
+
+  // FR-CLI-0012: effective deterministic-hooks value — CLI override when supplied,
+  // otherwise the release descriptor's value
+  const release =
+    options.deterministicHooks === undefined
+      ? descriptor
+      : { ...descriptor, deterministicHooks: options.deterministicHooks };
 
   // Build VFS (FR-ARCH-0010–0014, FR-CLI-0030/0031)
   // instructionsSource is the resolved instructions root (FR-CLI-0020)
