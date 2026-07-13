@@ -50,12 +50,6 @@ def test_http_port_must_be_in_valid_range(monkeypatch):
     assert cfg.http_port == 8000
 
 
-def test_allowed_scopes_parsing(monkeypatch):
-    monkeypatch.setenv("ROSETTA_ALLOWED_SCOPES", "alpha, project_read beta alpha")
-    cfg = RosettaConfig.from_env()
-    assert cfg.allowed_scopes == ("alpha", "project_read", "beta")
-
-
 @pytest.mark.parametrize(
     "r2r_url, expected",
     [

@@ -71,7 +71,6 @@ Rosetta MCP supports two runtime modes:
 | `ROSETTA_HTTP_HOST` | Runtime (HTTP) | `0.0.0.0` | HTTP bind host |
 | `ROSETTA_HTTP_PORT` | Runtime (HTTP) | `8000` | HTTP bind port |
 | `REDIS_URL` | Runtime (HTTP) | Empty | Optional Redis session store; empty uses in-memory store |
-| `ROSETTA_ALLOWED_SCOPES` | Runtime (STDIO env / HTTP request header) | Empty | Comma-separated scopes. Opt-in mechanism for tool visibility; no currently-registered tool consumes a scope |
 | `ROSETTA_ALLOWED_ORIGINS` | Runtime (HTTP) | Empty | Comma-separated `Origin` allowlist |
 | `ROSETTA_OAUTH_MODE` | Runtime (HTTP OAuth) | `oauth` | `oauth` (introspection), `oidc` (JWT via discovery doc), or `github` (GitHub OAuth) |
 | `ROSETTA_OAUTH_OIDC_CONFIG_URL` | Runtime (HTTP OAuth, oidc) | Empty | IdP OIDC discovery URL (e.g. `https://keycloak.host/realms/x/.well-known/openid-configuration`) |
@@ -89,9 +88,7 @@ Rosetta MCP supports two runtime modes:
 | `ROSETTA_JWT_SIGNING_KEY` | Runtime (HTTP OAuth) | Empty | Secret for signing FastMCP JWTs; if unset, derived from client secret |
 | `FERNET_KEY` | Runtime (HTTP OAuth) | Empty | Fernet key for encrypting OAuth token storage in Redis |
 | `ROSETTA_READ_POLICY` | Runtime (authz) | `all` | `all`, `team`, `none` for project dataset reads |
-| `ROSETTA_WRITE_POLICY` | Runtime (authz) | `all` | `all`, `team`, `none` for project dataset writes/creates |
 | `ROSETTA_USER_EMAIL` | Runtime (authz) | `rosetta@example.com` | STDIO identity and HTTP fallback identity |
-| `ROSETTA_INVITE_EMAILS` | Runtime (authz) | Empty | Comma-separated invite list for project dataset creation flow |
 | `ROSETTA_MODE` | Runtime (prompts) | `HARD` | Prompt mode selection: `HARD` or `SOFT` |
 | `INSTRUCTION_ROOT_FILTER` | Runtime (instructions query) | Empty | Comma-separated root tags filter |
 | `IMS_DEBUG` | Runtime (debug) | Disabled | Enable debug logs (`1`, `true`, `yes`, `on`) |
@@ -172,9 +169,7 @@ Authorization policy variables (dataset-level):
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `ROSETTA_READ_POLICY` | `all`, `team`, `none` for read access on `project-*` datasets | `all` |
-| `ROSETTA_WRITE_POLICY` | `all`, `team`, `none` for write/create on `project-*` datasets | `all` |
 | `ROSETTA_USER_EMAIL` | Fallback user email (used in STDIO, and HTTP fallback) | `rosetta@example.com` |
-| `ROSETTA_INVITE_EMAILS` | Comma-separated emails auto-invited on project dataset creation | Empty |
 
 OAuth callback URL examples:
 - Production: `https://rosetta.example.com/auth/callback`

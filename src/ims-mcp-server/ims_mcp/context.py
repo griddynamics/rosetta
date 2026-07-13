@@ -30,6 +30,5 @@ class CallContext:
         if self.authorizer is None:
             self.authorizer = Authorizer(
                 self.config.read_policy,
-                self.config.write_policy,
                 config=self.config,
             )

@@ -14,25 +14,21 @@ from ims_mcp.constants import (
     DEFAULT_HTTP_HOST,
     DEFAULT_HTTP_PORT,
     DEFAULT_OAUTH_CALLBACK_PATH,
-    DEFAULT_PLAN_TTL_DAYS,
     DEFAULT_POSTHOG_HOST,
     DEFAULT_READ_POLICY,
     DEFAULT_SERVER_PUBLIC_KEY_PEM,
     DEFAULT_SERVER_URL,
     DEFAULT_USER_EMAIL,
     DEFAULT_VERSION,
-    DEFAULT_WRITE_POLICY,
     ENV_LEGACY_R2R_API_BASE,
     ENV_LEGACY_R2R_EMAIL,
     ENV_LEGACY_R2R_PASSWORD,
     ENV_ALLOWED_ORIGINS,
-    ENV_ALLOWED_SCOPES,
     ENV_FERNET_KEY,
     ENV_HTTP_HOST,
     ENV_HTTP_PORT,
     ENV_IMS_DEBUG,
     ENV_INSTRUCTION_ROOT_FILTER,
-    ENV_INVITE_EMAILS,
     ENV_OAUTH_AUTHORIZATION_ENDPOINT,
     ENV_OAUTH_BASE_URL,
     ENV_OAUTH_CALLBACK_PATH,
@@ -50,7 +46,6 @@ from ims_mcp.constants import (
     OAUTH_MODE_GITHUB,
     OAUTH_MODE_OAUTH,
     OAUTH_MODE_OIDC,
-    ENV_PLAN_TTL_DAYS,
     ENV_POSTHOG_API_KEY,
     ENV_POSTHOG_HOST,
     ENV_READ_POLICY,
@@ -60,7 +55,6 @@ from ims_mcp.constants import (
     ENV_TRANSPORT,
     ENV_USER_EMAIL,
     ENV_VERSION,
-    ENV_WRITE_POLICY,
     INSTRUCTION_DATASET_TEMPLATE,
     TRANSPORT_HTTP,
     TRANSPORT_STDIO,
@@ -115,17 +109,6 @@ def _normalize_callback_path(value: str) -> str:
     if not normalized.startswith("/"):
         normalized = "/" + normalized
     return normalized
-
-
-def parse_scopes(value: str) -> tuple[str, ...]:
-    scopes: list[str] = []
-    seen: set[str] = set()
-    for raw_scope in value.replace(",", " ").split():
-        scope = raw_scope.strip()
-        if scope and scope not in seen:
-            seen.add(scope)
-            scopes.append(scope)
-    return tuple(scopes)
 
 
 def _has_non_empty_env(name: str) -> bool:
@@ -318,11 +301,7 @@ class RosettaConfig:
     oauth_required_scopes: list[str] | None
     # Authorization policies
     read_policy: str
-    write_policy: str
     user_email: str
-    invite_emails: list[str]
-    # Plan manager
-    plan_ttl_days: int
     # Observability + timeout knobs (A1)
     ragflow_http_timeout: int = DEFAULT_RAGFLOW_HTTP_TIMEOUT
     tool_timeout: int = DEFAULT_TOOL_TIMEOUT
@@ -333,7 +312,6 @@ class RosettaConfig:
     healthz_ragflow_timeout: int = DEFAULT_HEALTHZ_RAGFLOW_TIMEOUT
     healthz_cache_ttl: int = DEFAULT_HEALTHZ_CACHE_TTL
     oauth_http_timeout: int = DEFAULT_OAUTH_HTTP_TIMEOUT
-    allowed_scopes: tuple[str, ...] = ()
     # Set to True when running in legacy compatibility mode (STDIO + R2R credentials).
     compatibility_mode: bool = False
 
@@ -348,15 +326,9 @@ class RosettaConfig:
         raw_origins = os.getenv(ENV_ALLOWED_ORIGINS, "")
         allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
 
-        raw_invite = os.getenv(ENV_INVITE_EMAILS, "")
-        invite_emails = [e.strip() for e in raw_invite.split(",") if e.strip()]
-
         read_policy = os.getenv(ENV_READ_POLICY, DEFAULT_READ_POLICY).lower().strip() or DEFAULT_READ_POLICY
-        write_policy = os.getenv(ENV_WRITE_POLICY, DEFAULT_WRITE_POLICY).lower().strip() or DEFAULT_WRITE_POLICY
         if read_policy not in VALID_POLICIES:
             read_policy = DEFAULT_READ_POLICY
-        if write_policy not in VALID_POLICIES:
-            write_policy = DEFAULT_WRITE_POLICY
 
         config = cls(
             server_url=os.getenv(ENV_ROSETTA_SERVER_URL, DEFAULT_SERVER_URL).rstrip("/"),
@@ -372,7 +344,6 @@ class RosettaConfig:
             redis_url=os.getenv(ENV_REDIS_URL, "").strip() or None,
             fernet_key=os.getenv(ENV_FERNET_KEY, "").strip() or None,
             allowed_origins=allowed_origins,
-            allowed_scopes=parse_scopes(os.getenv(ENV_ALLOWED_SCOPES, "")),
             oauth_authorization_endpoint=os.getenv(ENV_OAUTH_AUTHORIZATION_ENDPOINT, "").strip(),
             oauth_token_endpoint=os.getenv(ENV_OAUTH_TOKEN_ENDPOINT, "").strip(),
             oauth_introspection_endpoint=os.getenv(ENV_OAUTH_INTROSPECTION_ENDPOINT, "").strip(),
@@ -393,10 +364,7 @@ class RosettaConfig:
             oauth_revocation_endpoint=os.getenv(ENV_OAUTH_REVOCATION_ENDPOINT, "").strip(),
             oauth_jwt_signing_key=os.getenv(ENV_OAUTH_JWT_SIGNING_KEY, "").strip() or None,
             read_policy=read_policy,
-            write_policy=write_policy,
             user_email=os.getenv(ENV_USER_EMAIL, DEFAULT_USER_EMAIL).strip() or DEFAULT_USER_EMAIL,
-            invite_emails=invite_emails,
-            plan_ttl_days=_parse_int(os.getenv(ENV_PLAN_TTL_DAYS, ""), DEFAULT_PLAN_TTL_DAYS),
             # Observability + timeout knobs (A1)
             ragflow_http_timeout=_parse_int(
                 os.getenv(ENV_RAGFLOW_HTTP_TIMEOUT, ""), DEFAULT_RAGFLOW_HTTP_TIMEOUT

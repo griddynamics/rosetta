@@ -97,12 +97,6 @@ class _SelectiveAuthorizer:
     def can_read(self, dataset_name: str, user_email: str) -> bool:
         return dataset_name in self.readable
 
-    def can_write(self, dataset_name: str, user_email: str) -> bool:
-        return dataset_name in self.readable
-
-    def can_create(self, user_email: str) -> bool:
-        return True
-
 
 def make_call_ctx(*, authorizer=None, ragflow=None, dataset_lookup=None) -> CallContext:
     config = RosettaConfig.from_env()
@@ -117,7 +111,7 @@ def make_call_ctx(*, authorizer=None, ragflow=None, dataset_lookup=None) -> Call
         tool_name="test",
         params={},
         user_email="tester@example.com",
-        authorizer=authorizer or Authorizer("all", "all", config=config),
+        authorizer=authorizer or Authorizer("all", config=config),
     )
 
 
@@ -300,13 +294,3 @@ def test_server_normalize_tags_preserves_blank_string_for_validation():
 
     assert _normalize_tags("") == (None, "Error: tags must not be empty")
     assert _normalize_tags(" tag ") == (["tag"], None)
-
-
-def test_server_parse_allowed_scopes_supports_comma_and_space_lists():
-    from ims_mcp.config import parse_scopes
-
-    assert parse_scopes(" gamma, alpha beta , gamma ") == (
-        "gamma",
-        "alpha",
-        "beta",
-    )

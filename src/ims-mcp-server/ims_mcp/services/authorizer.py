@@ -12,11 +12,11 @@ def _normalize_email(email: str | None) -> str:
 
 
 class Authorizer:
-    """Enforces read/write/create policies on datasets.
+    """Enforces read policies on datasets.
 
     Rules:
-        - ``aia-*`` datasets: read always allowed, write always denied.
-        - ``project-*`` datasets: governed by *read_policy* / *write_policy*.
+        - ``aia-*`` datasets: read always allowed.
+        - ``project-*`` datasets: governed by *read_policy*.
         - Policy ``all``  → everybody.
         - Policy ``team`` → team members or pending invites in owner teams.
         - Policy ``none`` → nobody.
@@ -25,13 +25,11 @@ class Authorizer:
     def __init__(
         self,
         read_policy: str,
-        write_policy: str,
         *,
         config: RosettaConfig,
         team_api: RAGFlowTeamAPI | None = None,
     ) -> None:
         self._read_policy = read_policy
-        self._write_policy = write_policy
         self._config = config
         self._team_api = team_api
 
@@ -43,19 +41,6 @@ class Authorizer:
         if _is_aia(dataset_name):
             return True
         return self._evaluate(self._read_policy, dataset_name, user_email)
-
-    def can_write(self, dataset_name: str, user_email: str) -> bool:
-        if _is_aia(dataset_name):
-            return False
-        return self._evaluate(self._write_policy, dataset_name, user_email)
-
-    def can_create(self, user_email: str) -> bool:
-        """Dataset creation follows write policy."""
-        if self._write_policy == POLICY_ALL:
-            return True
-        if self._write_policy == POLICY_TEAM:
-            return True  # everybody can create; current user auto-invited
-        return False  # POLICY_NONE
 
     # ------------------------------------------------------------------
     # Internals

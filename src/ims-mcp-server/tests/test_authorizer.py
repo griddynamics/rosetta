@@ -53,62 +53,37 @@ def _make_config() -> RosettaConfig:
         oauth_oidc_config_url="",
         oauth_required_scopes=None,
         read_policy="all",
-        write_policy="all",
         user_email="rosetta@example.com",
-        invite_emails=[],
-        plan_ttl_days=5,
     )
 
 
 class TestAiaDatasets:
-    """aia-* datasets: always read, never write."""
+    """aia-* datasets: always readable."""
 
     @pytest.mark.parametrize("policy", ["all", "team", "none"])
     def test_aia_read_always_allowed(self, policy):
-        auth = Authorizer(read_policy=policy, write_policy=policy, config=_make_config())
+        auth = Authorizer(read_policy=policy, config=_make_config())
         assert auth.can_read("aia-r1", "user@example.com") is True
 
-    @pytest.mark.parametrize("policy", ["all", "team", "none"])
-    def test_aia_write_always_denied(self, policy):
-        auth = Authorizer(read_policy=policy, write_policy=policy, config=_make_config())
-        assert auth.can_write("aia-r1", "user@example.com") is False
-
     def test_aia_r2(self):
-        auth = Authorizer(read_policy="none", write_policy="all", config=_make_config())
+        auth = Authorizer(read_policy="none", config=_make_config())
         assert auth.can_read("aia-r2", "user@example.com") is True
-        assert auth.can_write("aia-r2", "user@example.com") is False
 
 
 class TestProjectDatasetsAllPolicy:
     """project-* with policy=all."""
 
     def test_read_all(self):
-        auth = Authorizer(read_policy="all", write_policy="none", config=_make_config())
+        auth = Authorizer(read_policy="all", config=_make_config())
         assert auth.can_read("project-myapp", "anyone@example.com") is True
-
-    def test_write_all(self):
-        auth = Authorizer(read_policy="none", write_policy="all", config=_make_config())
-        assert auth.can_write("project-myapp", "anyone@example.com") is True
-
-    def test_create_all(self):
-        auth = Authorizer(read_policy="none", write_policy="all", config=_make_config())
-        assert auth.can_create("anyone@example.com") is True
 
 
 class TestProjectDatasetsNonePolicy:
     """project-* with policy=none."""
 
     def test_read_none(self):
-        auth = Authorizer(read_policy="none", write_policy="all", config=_make_config())
+        auth = Authorizer(read_policy="none", config=_make_config())
         assert auth.can_read("project-myapp", "user@example.com") is False
-
-    def test_write_none(self):
-        auth = Authorizer(read_policy="all", write_policy="none", config=_make_config())
-        assert auth.can_write("project-myapp", "user@example.com") is False
-
-    def test_create_none(self):
-        auth = Authorizer(read_policy="all", write_policy="none", config=_make_config())
-        assert auth.can_create("user@example.com") is False
 
 
 class TestProjectDatasetsTeamPolicy:
@@ -123,10 +98,10 @@ class TestProjectDatasetsTeamPolicy:
                 ]
             },
         )
-        auth = Authorizer(read_policy="team", write_policy="none", config=_make_config(), team_api=team_api)
+        auth = Authorizer(read_policy="team", config=_make_config(), team_api=team_api)
         assert auth.can_read("project-myapp", "member@example.com") is True
 
-    def test_write_team_pending_invite_is_authorized(self):
+    def test_read_team_pending_invite_is_authorized(self):
         team_api = _FakeTeamAPI(
             teams=[{"tenant_id": "tenant-1", "role": "owner"}],
             members_by_tenant={
@@ -135,28 +110,22 @@ class TestProjectDatasetsTeamPolicy:
                 ]
             },
         )
-        auth = Authorizer(read_policy="none", write_policy="team", config=_make_config(), team_api=team_api)
-        assert auth.can_write("project-myapp", "invitee@example.com") is True
+        auth = Authorizer(read_policy="team", config=_make_config(), team_api=team_api)
+        assert auth.can_read("project-myapp", "invitee@example.com") is True
 
     def test_team_policy_denies_non_member(self):
         team_api = _FakeTeamAPI(
             teams=[{"tenant_id": "tenant-1", "role": "owner"}],
             members_by_tenant={"tenant-1": [{"email": "other@example.com", "role": "normal"}]},
         )
-        auth = Authorizer(read_policy="team", write_policy="team", config=_make_config(), team_api=team_api)
+        auth = Authorizer(read_policy="team", config=_make_config(), team_api=team_api)
         assert auth.can_read("project-myapp", "missing@example.com") is False
-        assert auth.can_write("project-myapp", "missing@example.com") is False
 
     def test_team_policy_propagates_api_errors(self):
         auth = Authorizer(
             read_policy="team",
-            write_policy="none",
             config=_make_config(),
             team_api=_FakeTeamAPI(list_teams_error=RuntimeError("tenant lookup failed")),
         )
         with pytest.raises(RuntimeError, match="tenant lookup failed"):
             auth.can_read("project-myapp", "member@example.com")
-
-    def test_create_team(self):
-        auth = Authorizer(read_policy="none", write_policy="team", config=_make_config())
-        assert auth.can_create("member@example.com") is True
