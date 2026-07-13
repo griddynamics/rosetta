@@ -18,6 +18,7 @@ Prerequisites: USE SKILL `hitl`, `load-project-context`
 3. Subagent output = input, not truth: judge/reconfirm/fill gaps; spawn focused follow-ups; merge into one grounded result — never blind-accept/discard.
 4. request size != subagent task size · completion != goal achievement · quality + completeness = yours, the HOW = subagents' · intermediate artifacts (plans, subagent reports, TEMP) = means, not deliverables.
 5. Proactively use available skills, tools, MCPs — incorporate in plan.
+6. Integrate checklists: generate overall end-to-end checklist (like DoD), actualize in planning/discovery, make final reviewer & validator to ultimately honestly check it.
 
 </context>
 
