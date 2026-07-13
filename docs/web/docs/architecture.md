@@ -337,7 +337,7 @@ Instructions Repo ──► CLI (publish) ──► RAGFlow ──► Rosetta MC
 
 ### Prerequisites
 
-- Python 3.12 (virtual environment at repo root: `venv/`)
+- Python 3.12 — ONE virtual environment at repo root: `venv/`. MUST be used for ALL Python code in this repo: every `src/*` package, tests, validation scripts, tools, ad-hoc runs. MUST NOT create any other venv (no `.venv`, no per-package venvs).
 
 ### Plugins (pre-release)
 
