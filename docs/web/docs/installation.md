@@ -444,8 +444,8 @@ Install `rosetta` via VS Code Copilot Plugins (not VS Code extensions).
 
 1. Download `core-copilot-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
 2. Create a `.github` folder in your repository and extract the archive contents into it
-3. Delete files not needed for JetBrains: `.github/.mcp.json`, `.github/hooks.json`, `.github/templates`
-4. Copy the contents of `.github/rules/plugin-files-mode.md` into `.github/copilot-instructions.md` and append before the closing `</plugin_files_mode>` tag: `Rosetta plugin root: ".github", get_context_instructions: must read fully all "cat .github/rules/bootstrap-*.md" files all lines. You MUST FOLLOW ALL instructions and then MUST select workflow and execute it. All workflows are stored in ".github/rules/<workflowtag>.md".`
+3. Delete files not needed for JetBrains: `.github/hooks.json`, `.github/hooks`
+4. Copy the contents of `.github/rules/plugin-files-mode.md` into `.github/copilot-instructions.md` and append before the closing `</rosetta:plugin_files_mode>` tag: `Rosetta plugin root: ".github", get_context_instructions: must read fully all "cat .github/rules/bootstrap-*.md" files all lines. You MUST FOLLOW ALL instructions. Workflows (user-invoked /<flow>) are stored in ".github/commands/<flow>.md".`
 5. Enable in JetBrains GitHub Copilot settings: Agent Mode, Custom Agent, Coding Agent, Subagent, Skills
 
 #### Codex

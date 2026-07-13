@@ -33,6 +33,7 @@ Coding and architectural patterns extracted from the Rosetta workspace. Each fil
 | Pattern | File | Description |
 |---|---|---|
 | Command Pattern (CLI) | `command-pattern-cli.md` | All CLI commands inherit BaseCommand for shared auth/timing; implement only execute() |
+| Vocabulary Migration | `vocabulary-migration.md` | Three-rule sweep for command-vocabulary changes: convert teaching text, keep mechanism text, skip dated records |
 | Protocol-Based Typing | `protocol-based-typing.md` | typing.Protocol interfaces for SDK objects decouple business logic from RAGFlow SDK |
 | Env-Backed Dataclass Config | `env-backed-dataclass-config.md` | All env vars read in single RosettaConfig.from_env() factory; injected at startup |
 | Pre-Commit Plugin Sync | `pre-commit-plugin-sync.md` | Pre-commit hook regenerates IDE plugin artifacts from instructions source on every commit |
