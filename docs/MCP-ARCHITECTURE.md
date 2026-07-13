@@ -101,7 +101,7 @@ Everything MCP works with is VFS (virtual file system) resource paths. The CLI s
 
 ## MCP Tools
 
-Three tools and one resource are exposed to agents. The earlier write-data tools (`query_project_context`, `store_project_context`, `discover_projects`, `plan_manager`, `submit_feedback`) are retired and removed.
+Three tools and one resource are exposed to agents.
 
 | Tool | Purpose |
 |---|---|
