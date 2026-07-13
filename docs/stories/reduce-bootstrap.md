@@ -1,6 +1,6 @@
 # Story: Shrink the Running Bootstrap & Make Plugins Primary
 
-Status: **single plan of record for r3.** Structural decomposition ✅ · compression pass ✅ · in-branch-now batch ✅ — remaining: ONLY the publish-gated batch (own section, deferred to `on-v3-release`). Companions: `docs/stories/bootstrap-removed.md` (loss-archive — verbatim text + provenance of everything removed) · `docs/stories/reduce-bootstrap-mental-model.md` (`orchestration` grounding).
+Status: **single plan of record for r3.** Structural decomposition ✅ · compression pass ✅ · in-branch-now batch ✅ · publish-gated batch ✅ (landed on `on-v3-release`, draft PR #130 — merge ONLY at v3 release) — remaining: plugin regen + publish (on request) + PR merge at release. Companions: `docs/stories/bootstrap-removed.md` (loss-archive — verbatim text + provenance of everything removed) · `docs/stories/reduce-bootstrap-mental-model.md` (`orchestration` grounding).
 Scope: **r3 only** (`instructions/r3/core/**`; never r2 — r2 is live/published, r3 not deployed → intermediate inconsistency is an authoring concern, not runtime risk). Executors of the results: Sonnet 4.6 / GPT-5.4-class, later, on *other* repos. Validation design: deferred.
 
 **Authority:** this story defines intent, constraints, surfaces. _[decided]_ = settled by requester; _[implementer: review & decide]_ = author judgment, propose first.
@@ -87,17 +87,13 @@ Footer only repeats inline-invoked deps → **remove**; else **convert items to 
 
 **Closed decisions [decided 2026-07-11] — non-issues, do not re-raise:** requirement IDs are per-PROJECT namespaces (`docs/requirements/<project>/` are separate projects, not folders — same ID in two projects is fine by design) · `rosetta/SKILL.md:30` is the plan-mode (platform read-only) override of `planning`'s persistence table, not a conflict · MCP TEMPLATE tag is filename-only because MCP tags cannot carry a `templates/**` glob — intended · lpc `hitl` prerequisite = engagement guarantee (skills execute at any time), not load-order · CLAUDE/AGENTS/GEMINI.md are read natively by all coding agents, never via lpc roster · pa-knowledge-base's ~100K per-task budget is a GOAL, not a stale limit — do not touch.
 
-## r3-publish batch — deferred to branch `on-v3-release` [decided]
+## r3-publish batch — landed on `on-v3-release` (draft PR #130; merge ONLY at v3 release)
 
-**Solution:** all publish-gated work happens in the dedicated branch **`on-v3-release`** — created 2026-07-13 with tracking **draft PR #130** (in-branch work was done and merged via #121). Until the batch starts: do NOT touch these surfaces (they serve the live r2 product today); collect items here as found and mirror them to the PR checklist.
+- ✅ Batch landed 2026-07-13, 5 commits, tests 447+444+9 green: docs/web sync (download links/tables/prose → `instructions/r3/core/rules/mcp-files-mode.md` + closed vocabulary; `architecture.md` `ACQUIRE` sites kept — they document the generated-shell mechanism) · docs/PATTERNS occurrence claims scoped to shells + mode-file bindings (mechanism docs keep `ACQUIRE`) · `tool_prompts.py` closed vocabulary (`SEARCH`/`ABOUT`/`QUERY`/`STORE` alias teachings dropped, `LIST <path>` per `mcp-files-mode.md:24`, `load-project-context`; `ACQUIRE FROM KB` mapping kept — shell mechanism) · rosettify-plugins doc-comment examples · `DEVELOPER_GUIDE.md` `USE FLOW` form + r3 path.
+- Durable rulings [flagged in PR for override]: `docs/reviews/**` = dated review records → verbatim, never resync · `targets.ts` runtime excludes unchanged — engine content-agnostic, r2 exclude still guards r2 generation · `agents/TEMP/old-gen-r2` is gitignored (never in repo) — nothing to delete; local copy = parity e2e baseline, kept.
+- ⏳ Open in this batch: plugin regeneration + publish (only when requested) · JetBrains install steps (`installation.md`) + the appended workflow-selection sentence need re-validation against actual regenerated r3 zips.
 
-Batch contents:
-- `docs/web/**`, `docs/PATTERNS/**`, `docs/reviews/**` — still old vocabulary deliberately (document published r2); sync to the closed alias set. (Exception already applied: `docs/web/docs/review.md` synced with root `REVIEW.md` — source/mirror must not diverge.)
-- `bootstrap.md` → `mcp-files-mode.md` reference fixes in r2-serving code/config: `src/rosettify-plugins/src/spec/targets.ts`, `src/rosettify-plugins/src/plugin-processors/plugin-process-spec-entries.ts`, `bootstrap-manifest.ts` r2 entries, plus website/docs mentions.
-- `src/ims-mcp-server/ims_mcp/tool_prompts.py` — MCP tool descriptions still teach `ACQUIRE/SEARCH/LIST` + `USE SKILL load-context`.
-- `DEVELOPER_GUIDE.md:49` — MCP authoring one-liner (`MUST ACQUIRE coding-agents-prompting-flow.md FROM KB`).
-- Plugin regeneration + publish itself (only when requested).
-- `agents/TEMP/old-gen-r2/**` — generation artifacts, delete at will in the batch.
+New publish-gated items found later: collect here and mirror to the PR #130 checklist.
 
 ---
 
