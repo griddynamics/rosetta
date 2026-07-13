@@ -89,7 +89,7 @@ Footer only repeats inline-invoked deps → **remove**; else **convert items to 
 
 ## r3-publish batch — deferred to branch `on-v3-release` [decided]
 
-**Solution:** all publish-gated work happens in a dedicated branch **`on-v3-release`** with a **draft PR** tracking it. The branch is created **only when we start these activities — after all other r3 work is done and merged to `main`**. Until then: do NOT touch these surfaces (they serve the live r2 product today); collect items here as found.
+**Solution:** all publish-gated work happens in the dedicated branch **`on-v3-release`** — created 2026-07-13 with tracking **draft PR #130** (in-branch work was done and merged via #121). Until the batch starts: do NOT touch these surfaces (they serve the live r2 product today); collect items here as found and mirror them to the PR checklist.
 
 Batch contents:
 - `docs/web/**`, `docs/PATTERNS/**`, `docs/reviews/**` — still old vocabulary deliberately (document published r2); sync to the closed alias set. (Exception already applied: `docs/web/docs/review.md` synced with root `REVIEW.md` — source/mirror must not diverge.)
