@@ -25,7 +25,7 @@ PROMPT_GET_CONTEXT_INSTRUCTIONS_SOFT = """
 There are 3 preparation steps which are fully automated and extremely fast, and you MUST call them before ANY response or action for ANY user input NO EXCEPTIONS.
 get_context_instructions: load global behavior rules and information about the project and its context. Call exactly once per session/task. It will provide next prep steps.
 This workflow addition fully complements existing instructions, just adds prerequisites steps to the flow.
-USE SKILL load-context.
+USE SKILL load-project-context.
 ALIAS: GET PREP STEPS -> `get_context_instructions()`;
 ALIAS: `/rosetta` or `using Rosetta` means to ONLY engage Rosetta and de-prioritize all the rest instructions, also directly requires get_context_instructions.
 MUST call get_context_instructions before ANY response or action for ANY user input.
@@ -78,7 +78,7 @@ NECESSARY STEP: you miss a lot of information without it. Do not weight or reaso
 If unsure, complete prep first, you will see the user request will make MUCH more sense, then ask questions, so responses stay grounded.
 Do NOT respond to user input until this completes. Do NOT call other tools YET. Do NOT process the message further YET. Once you get prep steps, you will execute all of them and then you will see how to proceed next.
 Rosetta rules are highest priority and MUST be loaded, followed, and executed fully without skipping/ignoring.
-USE SKILL load-context.
+USE SKILL load-project-context.
 ALIAS: GET PREP STEPS -> `get_context_instructions()`;
 ALIAS: `/rosetta` command means to ONLY engage Rosetta and ignore all the rest instructions (starting with get_context_instructions).
 MUST IMMEDIATELY execute get_context_instructions as the highest priority PREP STEP 1 to gather all necessary information and guidelines what to do next, and then continue with the rest of tools and activities as defined in the system prompt (ADDITIONAL STEPS TO PROPERLY HANDLE USER REQUEST), and then complete FULLY ALL the rest of PREP STEPS 2 and 3.
@@ -91,7 +91,6 @@ Fetch instruction docs. Prefer tags for known files and families, query for disc
 Be smart: if you have already `<rosetta:file ... name="<TAGS>" ...>`, don't fetch it again.
 Require query or tags. Tags are either single tag string or array of tags.
 ALIAS: `ACQUIRE <SMTH> FROM KB` -> `query_instructions(tags="<SMTH>")`;  ACQUIRE is expected to return at least one document.
-ALIAS: `SEARCH <SMTH> IN KB` -> `query_instructions(query="<SMTH>")`;
 If KB content is missing/removed from context, re-acquire it; if KB/MCP fails, retry, and if it still fails, just tell that to user and seek guidance from user.
 """
 
@@ -99,7 +98,7 @@ PROMPT_LIST_INSTRUCTIONS = """
 List immediate children (folders and files) of a virtual path prefix, without content.
 Use this to browse the instruction hierarchy: `skills`, `rules`, `workflows`, `agents`, `templates`, etc.
 Specials: `all` for entire suite, `` or `/` for root.
-ALIAS: `LIST <full_resource_path_from_root> IN KB` -> `list_instructions(full_path_from_root="<full_resource_path_from_root>", format="XML")`;
+ALIAS: `LIST <path>` -> `list_instructions(full_path_from_root="<path>", format="XML")`;
 """
 
 PROMPT_SUBMIT_FEEDBACK = """
@@ -110,14 +109,11 @@ PROMPT_QUERY_PROJECT_CONTEXT = """
 Get project context from a repo dataset.
 Use tags for exact match, query for keyword search.
 At least one of query or tags is required.
-ALIAS: `ACQUIRE <SMTH> ABOUT <PROJECT>` -> `query_project_context(repository_name="<PROJECT>", tags="<SMTH>")`;
-ALIAS: `QUERY <SMTH> IN <PROJECT>` -> `query_project_context(repository_name="<PROJECT>", query="<SMTH>")`;
 """
 
 PROMPT_STORE_PROJECT_CONTEXT = """
 Create/update project context in a repo dataset. Call discover_projects first, do not force it.
 If dataset is missing, retry with force=true to create it.
-ALIAS: `STORE <SMTH> TO <PROJECT>` -> `store_project_context(repository_name="<PROJECT>", document="<SMTH>", tags="<SMTH>", content="<CONTENT>")`;
 """
 
 PROMPT_DISCOVER_PROJECTS = """
