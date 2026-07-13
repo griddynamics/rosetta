@@ -11,13 +11,13 @@ npm install -g rosettify-plugins
 Or run it directly:
 
 ```bash
-npx -y rosettify-plugins@latest --source . --release r2 --domain core
+npx -y rosettify-plugins@latest --source . --release r3 --domain core
 ```
 
 ## Usage
 
 ```bash
-rosettify-plugins --source . --release r2 --domain core
+rosettify-plugins --source . --release r3 --domain core
 ```
 
 Key inputs derived from `--source`:

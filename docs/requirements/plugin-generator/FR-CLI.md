@@ -43,13 +43,13 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
 
 <req id="FR-CLI-0010" type="FR" level="System" ticketId="" classification="technical">
   <title>Release selection with default</title>
-  <statement>The generator shall select the instruction release from the release argument, defaulting to `r2` when not supplied.</statement>
+  <statement>The generator shall select the instruction release from the release argument, defaulting to `r3` when not supplied.</statement>
   <rationale>Releases coexist; the stable release is the default.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-07-13</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: no release argument When: invoked Then: release `r2` is used.</criteria>

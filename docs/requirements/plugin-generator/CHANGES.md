@@ -1,5 +1,15 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-07-13 — Default release r2 → r3 (FR-CLI-0010)
+
+**Files:** `FR-CLI.md`
+
+**Original:** FR-CLI-0010 defaulted the release argument to `r2`.
+
+**Changed:** Default is `r3` — at v3 release r3 becomes the stable release, and the rationale ("the stable release is the default") resolves to r3. Requested by project owner; lands via branch `on-v3-release` (PR #130), merged only at v3 release. Code: `src/rosettify-plugins/src/cli.ts` `--release` default.
+
+---
+
 ## 2026-06-04 — Baseline reconciliation (three contradictions)
 
 **Context:** Implementation planning for the TypeScript/npx re-implementation revealed three contradictions between the reverse-engineered requirements and the actual generator baseline output (`agents/TEMP/old-gen-r2/`, `agents/TEMP/old-gen-r3/`). Per project owner's instruction, requirements are corrected to match baseline; status set to Draft pending owner review.

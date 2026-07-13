@@ -15,7 +15,7 @@ program
   .name('rosettify-plugins')
   .description('Generate Rosetta IDE plugins from instruction sources')
   .version('1.0.0')
-  .option('--release <r>', 'Release name (e.g. r2, r3)', 'r2')
+  .option('--release <r>', 'Release name (e.g. r2, r3)', 'r3')
   .option('--domain <list>', 'Comma-separated domain list (e.g. core)', 'core')
   .option('--source <dir>', 'Source root directory (default: current directory)', process.cwd())
   .option('--instructionsSource <dir>', 'Override instruction source directory (default: <source>/instructions)')
