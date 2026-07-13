@@ -17,7 +17,7 @@ permalink: /docs/faq/
 
 1. AI coding agent loads CONTEXT.md and ARCHITECTURE.md files - if not it misses the entire context
 2. AI coding agent loads workflow - if not it is taking shortcut delivering subpar results
-3. AI coding agent engages the `hitl` and `orchestration` skills - if not it will not engage user and hallucinate
+3. AI coding agent loads the `hitl` and `orchestration` skills - if not it will not engage user and hallucinate
 
 If none of these are true, Rosetta is not active for this session. See [INSTALLATION.md](/rosetta/docs/installation/).
 

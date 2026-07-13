@@ -179,7 +179,7 @@ Check the admin panel at `https://<your-host>/admin`. Verify document upload and
 
 ## Part 2: Rosetta MCP
 
-Rosetta MCP is the guiding layer between IDEs and the knowledge base. It exposes guardrails and common best practices, and provides a menu of instructions for coding agents to select on demand — delivering only what is needed. Manages sessions via Redis and handles OAuth authentication. See [Architecture — Rosetta MCP](/rosetta/docs/architecture/#rosetta-mcp) for capabilities.
+Rosetta MCP is the guiding layer between IDEs and the knowledge base. It exposes guardrails and common best practices, and provides a menu of instructions for coding agents to select on demand — delivering only what is needed. Manages sessions via Redis and handles OAuth authentication. See [MCP Architecture](/rosetta/docs/mcp-architecture/) for capabilities.
 
 ### Docker Compose
 
@@ -220,7 +220,7 @@ Rosetta MCP uses a shared Helm chart (v1.17.x). Configuration is values-only (no
 
 **Deployment strategy:** RollingUpdate (maxSurge: 1, maxUnavailable: 0). Single replica by default, HPA available (2-10 replicas, 70% CPU / 80% memory targets).
 
-**Session affinity:** MCP uses [Streamable HTTP](/rosetta/docs/architecture/#rosetta-mcp) (stateful). The server holds session state and can call back the IDE. When running multiple replicas, every request from a client must reach the same pod. Configure sticky sessions on the Kubernetes Service:
+**Session affinity:** MCP uses [Streamable HTTP](/rosetta/docs/mcp-architecture/#rosetta-mcp-server) (stateful). The server holds session state and can call back the IDE. When running multiple replicas, every request from a client must reach the same pod. Configure sticky sessions on the Kubernetes Service:
 
 ```yaml
 # Recommended: Service-level ClientIP affinity

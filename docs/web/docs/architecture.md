@@ -96,80 +96,11 @@ Instructions flow up: files are published by the CLI into RAGFlow, served by Ros
 
 ## Rosetta MCP
 
-The MCP server is the guiding layer between IDEs and the knowledge base. It exposes guardrails and common best practices, and provides a structured menu of available instructions; the coding agent selects what it needs, and Rosetta delivers only those — preventing context overload. Published on PyPI as `ims-mcp`. Built on [FastMCP v3](https://gofastmcp.com/) (latest stable) with [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy) for authentication and [RAGFlow](https://ragflow.io/) as the document engine backend. Speaks in VFS resource paths, adds context headers describing what information means and how to use it, and controls context size automatically.
+MCP is the **secondary** delivery mode — plugins are primary ([Rosettify](#rosettify) generates and installs them). MCP serves teams that want centrally managed, always-fresh instructions with nothing copied into the repository. Published on PyPI as `ims-mcp`.
 
-**Transport options:**
-- **Streamable HTTP with OAuth** (default). Stateful: the server holds session state and can issue callbacks to the IDE. Zero local dependencies. Cursor, Claude Code, and Codex connect directly. When scaling to multiple replicas, sticky sessions are required (see [Deployment](/rosetta/docs/deployment/)).
-- **STDIO** for air-gapped environments. Runs `uvx ims-mcp` locally with API key auth.
+Server internals live in **[MCP Architecture](/rosetta/docs/mcp-architecture/)** — read it when you touch any of: the `ims-mcp` server (FastMCP v3), transports (Streamable HTTP + OAuth 2.1, STDIO), authentication and policy-based authorization, VFS resource paths and auto-tagging (tag-based retrieval), the MCP tools (`get_context_instructions`, `query_instructions`, `list_instructions`) and the `rosetta://{path}` resource, document bundling (core + organization overlays, `sort_order`, `INSTRUCTION_ROOT_FILTER`), XML/flat listings, context overflow prevention (query list threshold, context headers), `mcp-files-mode.md` alias bindings, or `ACQUIRE … FROM KB` generated shells.
 
-**Authentication:** HTTP uses OAuth 2.1 via [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy) (supports any provider: Keycloak, GitHub, Google, Azure). Cached token introspection. STDIO uses `ROSETTA_API_KEY`. Policy-based authorization: `aia-*` read-only, `project-*` configurable.
-
-### VFS and Tags
-
-Everything MCP works with is VFS (virtual file system) resource paths. The CLI strips instruction root prefixes during publishing, so `core/skills/planning/SKILL.md` becomes `skills/planning/SKILL.md`. Files at the same resource path get bundled together.
-
-**Tags are the primary access mechanism.** Typed load aliases (`USE SKILL`, `READ RULE`, `APPLY PHASE`, ...) query by tags, which provides the most direct and fastest access. The CLI's auto-tagging was designed specifically for this: every folder name, filename, and composite pair/triple becomes a tag, so agents can request exactly what they need. Keyword search (`query_instructions(query=...)`) remains an MCP-level fallback for discovery.
-
-### MCP Tools
-
-Three tools and one resource are currently exposed to agents. Five write-data tools are implemented but disabled (the feature is retired but the code is kept in case it's needed again):
-
-| Tool | Purpose |
-|---|---|
-| `get_context_instructions` | MCP bootstrap gate: loads `bootstrap-alwayson.md` |
-| `query_instructions` | Fetch instruction docs by tags (primary) or keyword search (fallback) |
-| `list_instructions` | Browse the VFS hierarchy (flat listing of immediate children) |
-| `query_project_context` *(disabled)* | Search project-specific docs in a target repo dataset |
-| `store_project_context` *(disabled)* | Create or update a document in a project dataset |
-| `discover_projects` *(disabled)* | List readable project datasets |
-| `plan_manager` *(disabled)* | Manage execution plans with phases, steps, dependencies, status. Has a `help` command for plan creators (subagents don't need it). Stores plan in REDIS. |
-| `submit_feedback` *(disabled)* | Auto-submit structured feedback on agent sessions |
-
-**Resource:** `rosetta://{path}` reads bundled instruction documents by VFS resource path.
-
-### Bundler
-
-The Bundler merges multiple documents at the same VFS resource path into a single XML response. When an agent loads a skill (`USE SKILL`), core and organization files at that path are concatenated into one payload:
-
-```xml
-<rosetta:file id="..." dataset="..." path="skills/planning/SKILL.md" name="..." tags="..." frontmatter="...">
-  [document content from core]
-</rosetta:file>
-<rosetta:file id="..." dataset="..." path="skills/planning/SKILL.md" name="..." tags="..." frontmatter="...">
-  [document content from organization overlay]
-</rosetta:file>
-```
-
-Documents sorted by `sort_order` (default: 1000000), then by name. `INSTRUCTION_ROOT_FILTER` controls which layers are included (e.g., `CORE,GRID`).
-
-### Listing
-
-Listing shows what exists in the VFS without loading content. Implemented by `list_instructions` to browse the instruction hierarchy. Two formats:
-
-**XML format** (default) includes metadata attributes:
-```xml
-<rosetta:folder dataset="..." path="skills/" />
-<rosetta:folder dataset="..." path="rules/" />
-<rosetta:file id="..." path="skills/planning/SKILL.md" name="..." tag="skills/planning/SKILL.md" frontmatter="..." />
-```
-
-**Flat format** returns resource paths only:
-```
-skills/planning/SKILL.md
-skills/coding/SKILL.md
-rules/guardrails.md
-```
-
-A full instruction suite listing is ~400 tokens. Frontmatter attributes (extracted by CLI during publishing) let agents understand document purpose from the listing alone, without follow-up reads.
-
-### Context Overflow Prevention
-
-MCP manages context size through two mechanisms:
-
-- **Query list threshold (5).** When `query_instructions` matches 5 or fewer documents, MCP returns full bundled content. When more than 5 match, it returns a listing instead, with a header guiding the agent to load specific files by their unique tags. This keeps responses bounded regardless of knowledge base size.
-- **Context headers.** Every MCP response includes a descriptive header explaining what the returned information is and how to act on it.
-
-### Command Aliases
+## Command Aliases
 
 Command aliases are used exclusively for Rosetta resources (instructions, knowledge base). Workspace files in the target repository (`docs/CONTEXT.md`, `agents/IMPLEMENTATION.md`, etc.) are read directly from the filesystem. This boundary is intentional: when an agent sees a typed alias (`USE SKILL ...`, `READ RULE ...`), it knows it is loading Rosetta instructions through the active mode; when it reads a file, it knows it is working with target repository files.
 
@@ -197,7 +128,7 @@ Rosetta runs in three delivery modes, and the aliases resolve differently in eac
 
 Verbs: `READ` = load into context; `APPLY` = load + fully execute; `USE`/`INVOKE` = activate. In plugin mode the typed aliases need NO mapping — they operate natively on the plugin files; the MCP mode file (`mcp-files-mode.md`: `query_instructions`/`list_instructions` by path-based tags) and local mode file (`local-files-mode.md`: reads from `instructions/r3`) map each alias to their mechanisms. In MCP, typed loads resolve via VFS resource paths (filename, parent/filename, or grandparent/parent/filename); LIST preferred when the folder is known.
 
-### Bootstrap Flow
+## Bootstrap Flow
 
 The runtime footprint is minimal: `bootstrap-alwayson.md` (core policies, `reasonable`, tasks, skill engagement, core files) plus exactly one mode file. MCP and local mode files bind command aliases to their mechanisms; plugin mode needs no mapping because aliases operate natively on plugin files. Everything heavy loads on demand behind skills and workflows:
 
@@ -223,10 +154,6 @@ The runtime footprint is minimal: `bootstrap-alwayson.md` (core policies, `reaso
 ```
 
 Requests are classified only when the user invokes `/rosetta`; a plain request legitimately runs lean. In MCP mode the agent calls `get_context_instructions` exactly once per session.
-
-**Key environment variables:** `ROSETTA_SERVER_URL`, `ROSETTA_API_KEY`, `INSTRUCTION_ROOT_FILTER`, `REDIS_URL`
-
-For MCP setup across all IDEs, see [Get Started](https://griddynamics.github.io/rosetta/#quick-start).
 
 ---
 
@@ -563,6 +490,7 @@ After adding or changing instructions, publish with the CLI to make them availab
 
 ## Related Docs
 
+- [MCP Architecture](/rosetta/docs/mcp-architecture/) — `ims-mcp` server internals: transports, authentication, VFS/tags, tools, bundler, listings, overflow prevention
 - [Developer Guide](/rosetta/docs/developer-guide/) — repo navigation, where to change what
 - [Contributing](/rosetta/docs/contributing/) — fastest path to a merged PR
 - [Usage Guide](/rosetta/docs/usage-guide/) — how to use Rosetta flows

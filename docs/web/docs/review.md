@@ -92,7 +92,7 @@ Duplication in instructions is a maintenance and correctness hazard.
 
 - **Search for existing coverage.** Before approving a new instruction, verify no other file already covers the same topic.
 - **One canonical source.** If content exists in two places, pick one home and make the other a reference.
-- **Bundler-aware.** Core and org files at the same VFS resource path get [bundled](/rosetta/docs/architecture/#bundler). Verify that overlapping paths complement, not contradict.
+- **Bundler-aware.** Core and org files at the same VFS resource path get [bundled](/rosetta/docs/mcp-architecture/#bundler). Verify that overlapping paths complement, not contradict.
 
 ### CI Pipeline Checks
 

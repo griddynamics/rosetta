@@ -113,7 +113,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 
 - Rosetta operates across the full Software Development Lifecycle: planning, requirements, implementation, QA, release, and operations
 - Agent-agnostic: works with Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE
-- Integrates via [Model Context Protocol (MCP)](/rosetta/docs/architecture/#rosetta-mcp), the standard transport for AI agent instructions
+- Integrates via [Model Context Protocol (MCP)](/rosetta/docs/mcp-architecture/), the standard transport for AI agent instructions
 - Security model: Rosetta is designed to only serve knowledge and instructions to agents — it does not see or process source code. No code leaves the organization's perimeter by design. Rosetta itself does not store any project data. Opt-in features (project datasets, plan_manager, usage analytics) can be enabled in your deployment for cross-project intelligence, execution tracking, and adoption visibility; when enabled, your infrastructure stores the data and you are responsible for it. plan_manager receives execution plans created by AI, which may contain project-specific information. Usage analytics (PostHog) collects basic operational metadata — IP address, user email, coding agent with version, tool called, and tool parameters — when you deploy and configure a PostHog instance on your infrastructure.
 - Grounded in production experience, not theory. Active feedback loop from real projects.
 
