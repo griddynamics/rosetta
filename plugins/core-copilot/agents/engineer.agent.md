@@ -27,7 +27,7 @@ Validation: Deliverables compile, pass tests, and align with orchestrator-provid
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Task context, scope, and role specialization provided by orchestrator
 - Relevant project context and tech specs available
 

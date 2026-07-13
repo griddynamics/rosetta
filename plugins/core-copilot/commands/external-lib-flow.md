@@ -2,6 +2,7 @@
 name: external-lib-flow
 description: "Workflow for onboarding an external private library so AI can use it without source access."
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 
@@ -21,6 +22,10 @@ baseSchema: docs/schemas/workflow.md
 - Update ARCHITECTURE.md based on template `MUST use RefSrc/{project-name}.xml and RefSrc/{project-name}-onboarding.md. MUST use grep or search with those, because those are big files.`. Combine this rule for multiple external dependencies.
 
 ## Onboarding Flow
+
+**Phase 0: Prerequsites**
+1. All Rosetta prep steps MUST be FULLY completed
+3. MUST use todo tasks for reliability
 
 **Phase 1: Discovery**
 1. Ask project path

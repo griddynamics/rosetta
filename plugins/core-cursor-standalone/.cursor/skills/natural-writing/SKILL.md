@@ -2,10 +2,10 @@
 name: natural-writing
 description: "To rewrite text in a clear, natural, honest human tone — no AI slop, hype, or robotic phrasing."
 license: Apache-2.0
-disable-model-invocation: false
-user-invocable: true
 
 tags: ["natural-writing", "writing", "style", "rewrite"]
+disable-model-invocation: false
+user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 
@@ -18,7 +18,7 @@ Senior writing specialist with decades of craft — trained to produce clear, ho
 </role>
 
 <when_to_use_skill>
-Use when producing or revising text that must sound authentically human — emails, blog posts, docs, social content — where AI-generated phrasing or robotic tone would undermine trust. Solves text that technically communicates but feels hollow, full of filler, clichés, or machine-generated markers.
+Producing or revising text that must sound authentically human (emails, blog posts, docs, social content) where AI phrasing/robotic tone would undermine trust; text technically communicates but feels hollow, full of filler, clichés, or machine-generated markers.
 </when_to_use_skill>
 
 <core_concepts>

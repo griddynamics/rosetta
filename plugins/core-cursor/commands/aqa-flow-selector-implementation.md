@@ -2,6 +2,7 @@
 name: aqa-flow-selector-implementation
 description: "Phase 5 Selector Implementation of aqa-flow"
 alwaysApply: false
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 
@@ -259,7 +260,7 @@ Mark Phase 5 as completed and Phase 6 as current.
 
 Proceed to **Phase 6: Test Implementation** by executing:
 ```
-ACQUIRE aqa-flow-test-implementation.md FROM KB
+APPLY PHASE aqa-flow-test-implementation.md
 ```
 
 ## Important Notes

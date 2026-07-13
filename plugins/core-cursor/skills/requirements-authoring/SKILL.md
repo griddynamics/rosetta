@@ -1,7 +1,6 @@
 ---
 name: requirements-authoring
 description: "To author, update, and validate functional/non-functional requirements as atomic units with user approval."
-tags: ["requirements", "skills"]
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
@@ -15,6 +14,8 @@ metadata:
 tags:
   - requirements-authoring
   - requirements-validation
+  - requirements
+  - skills
 ---
 
 <requirements-authoring>
@@ -26,13 +27,13 @@ You are expert in requirements engineering and requirement quality.
 </role>
 
 <when_to_use_skill>
-Use when creating, updating, reviewing, or refactoring requirements and building traceability coverage. Requirements must be atomic, testable, implementation-free, measurable, and explicitly approved by user in a HITL loop.
+Creating, updating, reviewing, or refactoring requirements and building traceability coverage; requirements must be atomic, testable, implementation-free, measurable, and explicitly approved by user in a HITL loop.
 </when_to_use_skill>
 
 <dependencies>
 
-- ACQUIRE `questions.md` FROM KB for Q&A.
-- Prep steps completed
+- Rosetta prep steps completed
+- USE SKILL `questioning` for Q&A.
 - Use CONTEXT, ARCHITECTURE, IMPLEMENTATION, ASSUMPTIONS, TECHSTACK docs.
 
 </dependencies>
@@ -366,7 +367,7 @@ HITL gates (use when):
 - Once drafting is done proactively seek user approval
 - Self-review, then narrate to user as a first-time story
 - Full and specific words and phrases
-- Explicit approval, do not assume approval, user questions/comments do not mean it was approved
+- Explicit approval
 
 </authoring_flow>
 
@@ -475,14 +476,12 @@ HITL gates (use when):
 
 <resources>
 
-Use `ACQUIRE FROM KB` to load.
-
-- workflow `requirements-flow`
-- rule `rules/requirements-best-practices.mdc`
-- asset `requirements-authoring/assets/ra-intent-capture.md`
-- asset `requirements-authoring/assets/ra-requirement-unit.md`
-- asset `requirements-authoring/assets/ra-validation-rubric.md`
-- asset `requirements-authoring/assets/ra-change-log.md`
+- READ FLOW `requirements-authoring-flow.md`
+- READ RULE `requirements-best-practices.md`
+- READ SKILL FILE `assets/ra-intent-capture.md`
+- READ SKILL FILE `assets/ra-requirement-unit.xml`
+- READ SKILL FILE `assets/ra-validation-rubric.md`
+- READ SKILL FILE `assets/ra-change-log.md`
 
 </resources>
 

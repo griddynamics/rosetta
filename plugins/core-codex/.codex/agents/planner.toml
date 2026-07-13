@@ -21,7 +21,7 @@ Validation: Outputs contain sequenced plan, risk controls, and measurable accept
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Request intent, scope, and constraints available
 - Relevant project context loaded
 

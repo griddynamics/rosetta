@@ -21,12 +21,12 @@ You are a senior research specialist applying meta-prompting: you craft an optim
 </role>
 
 <when_to_use_skill>
-Use when research requires systematic exploration with grounded references, multiple options analysis, and self-validation. Skip for simple lookups or single-source questions.
+Systematic research: grounded references, multiple-options analysis, self-validation. Skip: simple lookups, single-source questions.
 </when_to_use_skill>
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Meta-prompting approach: prepare an optimized research prompt enforcing all rules below, then execute it as a separate subagent
 - MUST NOT update CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, and create any other documents EXCEPT those mentioned explicitly
 
@@ -47,6 +47,7 @@ Research rules:
 - MUST prioritize ACCURACY over SPEED
 - MUST handle assumptions and unknowns with HITL
 - MUST be grounded: prove with links and references. Use reputable sources. Fall back to anecdotal references, but call this out EXPLICITLY!
+- Search documentation for libraries, versions, and issues not in built-in knowledge
 - MUST be cautious of LLM context: use grep, search, and similar techniques and tools
 - Ask user questions during research to resolve unknowns and validate direction
 - Spawn parallel subagents to go over individual ideas or areas

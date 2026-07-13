@@ -2,6 +2,7 @@
 name: aqa-flow-selector-identification
 description: "Phase 4 Selector Identification of aqa-flow"
 alwaysApply: false
+user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 
@@ -342,7 +343,7 @@ Mark Phase 4 as completed and Phase 5 as current.
 
 After selectors are identified (either from frontend code or page source), proceed to **Phase 5: Selector Implementation** by executing:
 ```
-ACQUIRE aqa-flow-selector-implementation.md FROM KB
+APPLY PHASE aqa-flow-selector-implementation.md
 ```
 
 ## Important Notes

@@ -1,6 +1,6 @@
 ---
 name: dangerous-actions
-description: "Rosetta CRITICAL MUST skill. MUST activate when action or its consequence is potentially dangerous, potentially irreversible, potentially destructive, or HIGH RISK. MUST activate when consequence MAYBE dangerous even if action itself seems safe. This is enterprise environment — the cost of dangerous activities is EXTREMELY HIGH, recovery may be impossible, and blast radius may affect production, shared environments, or other teams. If there is even a remote chance - load the skill."
+description: "CRITICAL. MUST activate when action OR its consequence is potentially dangerous/irreversible/destructive, or HIGH RISK — even if it seems safe. Even a remote chance activate."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: false
@@ -14,7 +14,7 @@ baseSchema: docs/schemas/skill.md
 1. Assess BLAST RADIUS before execution.
 2. "THINK THE OPPOSITE" — what if this goes wrong?
 3. Consider safer alternatives.
-4. MUST REQUIRE EXPLICIT user approval for hard-deny tier (see below).
+4. MUST REQUIRE EXPLICIT user approval.
 
 Examples (not limited):
 

@@ -18,7 +18,7 @@ Use when implementing features, bug fixes, refactors, or any code changes includ
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - **Module-Based Generation** - Use company-approved modules first (fast, reliable, free)
 - **Template-Based Generation** - Use company-approved templates second (fast, reliable, free)
 - **LLM Fallback** - Generate code with LLM if no module and no template available

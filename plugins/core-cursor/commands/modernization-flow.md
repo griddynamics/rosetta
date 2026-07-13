@@ -3,6 +3,7 @@ name: modernization-flow
 description: "Workflow for converting, modernizing, upgrading, or re-architecting code (e.g. C++→Java, monolith→microservices), etc."
 alwaysApply: false
 tags: ["workflow"]
+user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 
@@ -25,7 +26,7 @@ This modernization process is designed to systematically analyze, specify, and i
 - **MUST** use only applicable phases according to the target of the modernization (acquire user approval first and store it in state), as those phases are for multi-project cross-tech modernization. Do not take shortcuts within the phase!
 - Prioritize ACCURACY over SPEED!
 - THIS is very large workflow: MUST use best matching available separate subagents for each phase, top level agent is orchestrator, orchestrator must be smart with reading/writing files (avoid, fallback to grep and reading line-ranges, as those are very large)
-- Phase subagents must contain additionally: "MUST ACQUIRE <phase.md> FROM KB AND FULLY EXECUTE ALL STEPS", goal, context, original user request, inputs, expected outputs, and summary in the format useful for orchestrator, subagents must be informed they are used as subagents.
+- Phase subagents must contain additionally: "MUST APPLY PHASE <phase.md> — FULLY EXECUTE ALL STEPS", goal, context, original user request, inputs, expected outputs, and summary in the format useful for orchestrator, subagents must be informed they are used as subagents.
 
 ### User Customizations
 
@@ -36,51 +37,55 @@ This modernization process is designed to systematically analyze, specify, and i
 
 ## Modernization Flow - Phase Overview
 
+**Phase 0: Prerequisites** 
+1. All Rosetta prep steps MUST be FULLY completed
+2. MUST use todo tasks for reliability
+
 **Phase 1: Existing Library Analysis for Reusing in Target State** [modernization-flow-reuse.md]
-1. ACQUIRE modernization-flow-reuse.md FROM KB
+1. APPLY PHASE modernization-flow-reuse.md
 2. Execute phase instructions
 3. Update `agents/modernization-flow-state.md` with brief state
 4. Validate by listing files in respective folders
 
 **Phase 2: Old Code Analysis, Generating Original Specs** [modernization-flow-analysis.md]
-1. ACQUIRE modernization-flow-analysis.md FROM KB
+1. APPLY PHASE modernization-flow-analysis.md
 2. Execute phase instructions
 3. Update `agents/modernization-flow-state.md` with brief state
 4. Validate by listing files in respective folders
 
 **Phase 3: Pre-Modernization Test Coverage (OPTIONAL)** [modernization-flow-testing.md]
 **NOTE: Execute this phase if user explicitly approves it**
-1. ACQUIRE modernization-flow-testing.md FROM KB
+1. APPLY PHASE modernization-flow-testing.md
 2. Execute phase instructions
 3. Update `agents/modernization-flow-state.md` with brief state
 4. Validate by listing files in respective folders
 
 **Phase 4: Class Group Analysis** [modernization-flow-grouping.md]
-1. ACQUIRE modernization-flow-grouping.md FROM KB
+1. APPLY PHASE modernization-flow-grouping.md
 2. Execute phase instructions
 3. Update `agents/modernization-flow-state.md` with brief state
 4. Validate by listing files in respective folders
 
 **Phase 5: Cross-Project Analysis** [modernization-flow-crossproject.md]
-1. ACQUIRE modernization-flow-crossproject.md FROM KB
+1. APPLY PHASE modernization-flow-crossproject.md
 2. Execute phase instructions
 3. Update `agents/modernization-flow-state.md` with brief state
 4. Validate by listing files in respective folders
 
 **Phase 6: Implementation Mapping, Generating Target Specs** [modernization-flow-mapping.md]
-1. ACQUIRE modernization-flow-mapping.md FROM KB
+1. APPLY PHASE modernization-flow-mapping.md
 2. Execute phase instructions
 3. Update `agents/modernization-flow-state.md` with brief state
 4. Validate by listing files in respective folders
 
 **Phase 7: Final Review** [modernization-flow-review.md]
-1. ACQUIRE modernization-flow-review.md FROM KB
+1. APPLY PHASE modernization-flow-review.md
 2. Execute phase instructions
 3. Update `agents/modernization-flow-state.md` with brief state
 4. Validate by listing files in respective folders
 
 **Phase 8: Implementation** [modernization-flow-implement.md]
-1. ACQUIRE modernization-flow-implement.md FROM KB
+1. APPLY PHASE modernization-flow-implement.md
 2. Get explicit human approval
 3. Follow approved target specs
 4. Implement one project at-a-time

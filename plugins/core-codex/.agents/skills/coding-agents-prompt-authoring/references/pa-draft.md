@@ -1,6 +1,6 @@
 <draft>
 
-- Small prompts
+- Small prompt rules, extensive coverage, clear concerns
 - Precise wording
 - Avoid filler text
 - Avoid AI slop

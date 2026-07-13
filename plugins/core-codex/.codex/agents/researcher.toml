@@ -15,7 +15,7 @@ Offload deep research from orchestrator context. Validation: every conclusion ha
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md read
 - Research scope and feature name provided by orchestrator
 

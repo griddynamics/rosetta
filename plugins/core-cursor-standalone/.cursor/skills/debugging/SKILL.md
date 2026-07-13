@@ -16,12 +16,12 @@ Senior engineer specializing in systematic root cause analysis and methodical de
 </role>
 
 <when_to_use_skill>
-Use when encountering errors, test failures, unexpected behavior, or when a previous fix failed and the issue persists. Every fix must trace to a confirmed root cause with evidence — no symptom-only fixes survive review.
+Errors, test failures, unexpected behavior, or persisting issue after a failed fix. Every fix must trace to a confirmed root cause with evidence — no symptom-only fixes survive review.
 </when_to_use_skill>
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - ALWAYS find root cause before attempting fixes; symptom fixes are failure
 - Make implicit become explicit — incorrect assumptions hide root causes
 - Execute phases sequentially

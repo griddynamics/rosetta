@@ -21,7 +21,7 @@ Validation: Requirements are atomic and testable, traceability is explicit, and 
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Discovery phase complete with context and affected requirement areas identified
 - Scope, constraints, and existing requirements provided by orchestrator
 

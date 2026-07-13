@@ -4,17 +4,16 @@ Rosetta is an instructions and processes enforcement for AI coding agents (like 
 It is public OSS and central repository of rules/skills/agents/subagents/commands/workflows stored as markdown files. 
 These artifacts are deployed via plugins (preferred) or MCP into a target real software project repository, which has its own files and folder structure.
 
-Coding agents will always be exposed to the same Rosetta bootstrap as you are now (always injected in context): 
-bootstrap_guardrails, bootstrap_core_policy, bootstrap_execution_policy, bootstrap_hitl_questioning, bootstrap_rosetta_files. Plus either bootstrap.md (mcp mode) or plugin-files-mode.md (plugins/standalone mode).
+Top-agent sessions receive `bootstrap-alwayson.md` plus exactly one mode file: `mcp-files-mode.md` (MCP), `plugin-files-mode.md` (plugin/standalone), or `local-files-mode.md` (developing Rosetta). Spawned subagents receive only `bootstrap-alwayson.md` + their dispatch prompt, which requires `subagent-directives` and any task-needed skills. Heavy process loads on demand through skills and workflows; the plugin mode file carries no alias mapping because typed aliases operate natively on plugin files.
 
-Rosetta predefine key folders and files using that bootstrap_rosetta_files XML tag that will be present in target project.
+Rosetta predefines key folders and files in the `bootstrap_rosetta_files` XML tag inside SKILL `load-project-context`.
 
 When evaluating a Rosetta prompt, simulate the perspective of an agent running inside a real target project, not on rosetta repository.
 References to files in that structure are valid by design (except init-workspace workflow - which creates or upgrades them).
 
 Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` in current rosetta repo to better understand rosetta implementation itself. Remember that current and target repositories ARE DIFFERENT (this content is only available in this repo!).
 
-MUST USE SKILL `orchestrator-contract` for all subagent dispatches.
+MUST USE SKILL `orchestration` for all subagent dispatches.
 MUST USE SKILL `coding-agents-prompt-authoring` to review and to harden the changes and at least must include pa-rosetta.md, pa-patterns, pa-hardening.md, pa-schemas.md.
 Subagents MUST USE SKILL `coding-agents-prompt-authoring` with references listed above (and more if they determine additional references are needed).
 

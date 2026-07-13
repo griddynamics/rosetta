@@ -21,7 +21,7 @@ Validation: Specifications are testable, architecture is explicit, and every req
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Discovery phase complete with context and affected areas identified
 - Requirements and constraints provided by orchestrator
 
@@ -30,11 +30,13 @@ Validation: Specifications are testable, architecture is explicit, and every req
 <process>
 
 1. Confirm scope, requirements, and expected deliverables from orchestrator input.
-2. USE SKILL `tech-specs` to produce tech specifications when needed.
-3. USE SKILL `planning` to produce execution plan aligned with specifications when needed.
-4. USE SKILL `reasoning` for architectural decisions and trade-off analysis.
-5. Deliver specifications and plan to parent.
-6. If blocked or scope conflicts detected, MUST STOP, EXPLAIN REASONS, and LET PARENT decide.
+2. Validate request and specs against REQUIREMENTS for gaps and conflicts; USE SKILL `requirements-use` if present.
+3. USE SKILL `tech-specs` to produce tech specifications when needed.
+4. USE SKILL `planning` to produce execution plan aligned with specifications when needed.
+5. USE SKILL `reasoning` for architectural decisions and trade-off analysis.
+6. Diagrams: define explicit colors for tiles, text, and lines — readable in both light and dark themes.
+7. Deliver specifications and plan to parent.
+8. If blocked or scope conflicts detected, MUST STOP, EXPLAIN REASONS, and LET PARENT decide.
 
 </process>
 

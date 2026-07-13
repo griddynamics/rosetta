@@ -18,7 +18,7 @@ When the user mentions SpecFlow or works in a SpecFlow-enabled project:
 
 1. **Detect** `gain.json` at the workspace root (and up to 2 parents). If missing, SpecFlow MCP will create it on the first tool call (together with `specflow_session.json`).
 2. **Load** and summarize the project context.
-3. **Guide** the user to the right phase using `references/specflow-mcp-tools.md`.
+3. **Guide** the user to the right phase — APPLY SKILL FILE `references/specflow-mcp-tools.md`.
 
 ## Step 1: Detect gain.json
 
@@ -51,7 +51,7 @@ Compare `gain.json.versions.rosetta` with the current Rosetta version:
 
 ## Step 3: Guide the User Journey
 
-Read `references/specflow-mcp-tools.md` to route the user to the correct phase (pregeneration, generation, or post-run).
+APPLY SKILL FILE `references/specflow-mcp-tools.md` to route the user to the correct phase (pregeneration, generation, or post-run).
 
 ## Step 4: Consolidate Review Feedback
 
@@ -66,6 +66,6 @@ That skill handles iterative requirement updates with explicit user approval —
 
 Read as needed:
 
-- `references/specflow-mcp-tools.md` — Phase routing and post-run skill bootstrap.
-- `references/specflow-vocabulary.md` — Status values and checkpoint gates users encounter in responses.
-- `references/specflow-schema.md` — Session files, version channels, and status enum quick lookup.
+- APPLY SKILL FILE `references/specflow-mcp-tools.md` — Phase routing and post-run skill bootstrap.
+- READ SKILL FILE `references/specflow-vocabulary.md` — Status values and checkpoint gates users encounter in responses.
+- READ SKILL FILE `references/specflow-schema.md` — Session files, version channels, and status enum quick lookup.

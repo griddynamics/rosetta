@@ -47,7 +47,7 @@ Output: Brief, Final Prompt, Validation Pack, Traceability.
 <task>
 {{Make sure to adapt tasks to workflow based on prompting flow}}
 
-1) ACQUIRE `coding-agents-prompt-authoring/assets/pa-prompt-brief.md` FROM KB and write prompt brief.
+1) Write the prompt brief using the `coding-agents-prompt-authoring` skill's prompt-brief template.
 2) Ask questions until it is crystal clear.
 3) Proactively review it with user explaining as story and how it works.
 4) Draft Final Prompt: roles, I/O schema, boundaries, Human-in-the-Loop.

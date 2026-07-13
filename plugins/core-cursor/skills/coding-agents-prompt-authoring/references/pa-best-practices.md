@@ -10,7 +10,7 @@
 - Label assumptions explicitly
 - Prefer schemas + examples
 - Include checklist + tests + failure modes
-- Insert Human-in-the-Loop gates, if not covered already by `bootstrap-hitl-questioning.md`
+- Insert Human-in-the-Loop gates, if not covered already by `hitl` skill
 - Keep diffs surgical
 - Prefer existing standards, patterns, simple solutions
 - Time and temporal references and relationships explicit
@@ -22,7 +22,7 @@
   - If skills are used just sequentially, you just load all of them
   - If subagents are used, how do you pass information, reasoning and build result on top of previous results, without loading all previous skills and documents (prevent AI from doing it)
   - How do you maintain source of truth and overall intent clearly (persisted requirements flow?)
-  - Think about cognitive layering, step-by-step flows, preventing loss of context, slicing rules, improvements to be made each step, information and business flows, architecture of the entire set of prompts, value adding pipeline, tracking decisions (both positive and negative), intermediate artifacts are concise but useful, use standard prep steps for you advantage, prevent artifacts duplicating content of rules and skills, ensure there are criticizing reviewers (without nitpicking, results of review are recommendations, as reviewer maybe wrong), validators are those which actually run in reality.
+  - Think about cognitive layering, step-by-step flows, preventing loss of context, slicing rules, improvements to be made each step, information and business flows, architecture of the entire set of prompts, value adding pipeline, tracking decisions (both positive and negative), intermediate artifacts are concise but useful, use `Rosetta Prep Steps` to your advantage, prevent artifacts duplicating content of rules and skills, ensure there are criticizing reviewers (without nitpicking, results of review are recommendations, as reviewer maybe wrong), validators are those which actually run in reality.
 
 </best_practices>
 
@@ -65,7 +65,7 @@
 - Ignore token limits for input/output space
 - No test cases or acceptance criteria
 - No Human-in-the-Loop gates for ambiguous, assumptions, tradeoffs
-- Duplicating `bootstrap-hitl-questioning.md`
+- Duplicating `hitl` skill
 
 **Format**
 

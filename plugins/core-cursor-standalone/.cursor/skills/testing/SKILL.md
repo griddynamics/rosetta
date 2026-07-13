@@ -21,7 +21,7 @@ Use when writing or updating tests, verifying implementation correctness, settin
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 
 Principles:
 
@@ -92,13 +92,7 @@ Infrastructure:
 
 <resources>
 
-- MCP `Playwright` — browser-based testing
-- MCP `Chrome-DevTools` — browser debugging and inspection
-- MCP `Appium` — mobile testing
-- MCP `Context7` — library documentation
-- MCP `DeepWiki` — external documentation and knowledge
-- MCP `GitNexus` — codebase knowledge graph
-- MCP `Serena` — semantic code retrieval at symbol level
+- Review and use any relevant MCPs, plugins, and tools available in the current context — e.g. Playwright (browser), Appium (mobile), Context7 (library docs).
 - skill `coding` — implementation context and validation methodology
 - skill `debugging` — for test failures and unexpected behavior
 

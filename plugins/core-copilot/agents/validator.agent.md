@@ -21,7 +21,7 @@ Execute real validation tasks locally — git changes, specs, builds, tests, MCP
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Implementation or test artifacts ready for validation
 - Validation scope and acceptance criteria provided by orchestrator
 

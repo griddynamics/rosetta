@@ -21,7 +21,8 @@ Validation: Delivered artifacts satisfy assigned contract, include required HITL
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- `bootstrap-alwayson.md` + dispatch context loaded; MUST USE SKILL `subagent-directives`
+- Load `load-project-context` only when required by the assigned task
 - Assigned contract, inputs, and references are provided or resolved
 - Required schemas/templates are available when contract requires them
 

@@ -63,8 +63,8 @@ Use when porting prompts between agents/IDEs, adapting KB prompts to local conte
 
 - Configuration for each IDE/agent changes frequently
 - KB is maintained up to date
-- LIST `configure` IN KB
-- ACQUIRE the guaranteed-unique 3-part or 2-part tag FROM KB
+- LIST `configure`
+- READ CONFIGURE the selected `<tool>.md`
 
 </knowledge_base>
 
