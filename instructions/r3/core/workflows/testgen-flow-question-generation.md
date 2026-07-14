@@ -248,7 +248,7 @@ For each question below, replace `[Leave blank for user]` with your answer (or `
 2. Tell user: "Phase 3 complete. [X] questions answered, [Y] unresolved."
 3. If unresolved: "We'll document assumptions for unresolved items."
 4. Ask: "Ready to proceed to Phase 4 (Requirements Generation)?"
-5. **STOP AND WAIT for explicit user confirmation. DO NOT PROCEED to Phase 4 until the user confirms.** Treat ambiguous responses (further questions, suggestions, silence) as not confirmed and re-ask — this matches the Phase 1/2 update_state enforcement and the `<workflow_context>` HITL-GATE rule.
+5. **STOP AND WAIT for explicit user confirmation. DO NOT PROCEED to Phase 4 until the user confirms.** Treat ambiguous responses (further questions, suggestions, silence) as not confirmed and re-ask — per this flow's per-phase confirmation discipline and the `<workflow_context>` HITL-GATE rule.
 </update_state>
 
 <validation_checklist>

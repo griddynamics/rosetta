@@ -126,7 +126,7 @@ The Measurement field carries the threshold (numeric + measurement window + load
 2. Tell user: "Phase 4 complete. Generated [X] user stories, [Y] functional requirements, [Z] non-functional requirements."
 3. Show document location: `plans/testgen-{TICKET-KEY}/requirements.md`
 4. Ask: "Please review requirements.md. Ready to proceed to Phase 5 (Test Case Generation)?"
-5. **STOP AND WAIT** for explicit user confirmation before advancing to Phase 5. Do NOT auto-proceed on inferred approval or silence; treat ambiguous responses (questions, suggestions) as "not confirmed" and re-ask. This is a **priority-(3) per-phase confirmation** per `testgen-flow.md` `<orchestration_and_escalation>` — an explicit user instruction to skip it is honored there; it is **not** one of the never-overridable Phase 3 / Phase 6 HITL gates. (Matches the sibling per-phase confirmations at `testgen-flow-project-config-loading.md` step 0.6 / `testgen-flow-data-collection.md` step 1.4 / `testgen-flow-gap-and-contradiction-analysis.md` step 2.4.)
+5. **STOP AND WAIT** for explicit user confirmation before advancing to Phase 5. Do NOT auto-proceed on inferred approval or silence; treat ambiguous responses (questions, suggestions) as "not confirmed" and re-ask. This is a **priority-(3) per-phase confirmation** per `testgen-flow.md` `<orchestration_and_escalation>` — an explicit user instruction to skip it is honored there; it is **not** one of the never-overridable Phase 3 / Phase 6 HITL gates. (The same per-phase confirmation discipline applies across this flow's non-HITL phases.)
 </update_state>
 
 <validation_checklist>
@@ -141,7 +141,7 @@ The Measurement field carries the threshold (numeric + measurement window + load
 <failure_handling>
 - **Missing or empty inputs** (`raw-data.md`, `analysis.md`, or `answers.md` absent or empty): stop Phase 4, record which input is missing in `testgen-state.md`, and announce which earlier phase to resume. Note: if Phase 3 was marked `SKIPPED — no questions`, an empty `answers.md` is acceptable; proceed without it.
 - **Contradictions unresolved by user answers** (the synthesis mode identifies a contradiction whose mapping question was either unanswered or whose answer is itself contradictory): record the unresolved contradiction as an explicit **Risk (R-N)** in `requirements.md` with full source citations (Jira quote, Confluence quote, user answer if any). Do not invent a resolution. Proceed with the rest of Phase 4 but flag the risk in the Executive Summary.
-- **Skill execution failure** (`qa-knowledge` synthesis mode errors or returns empty): re-invoke once with the same inputs; if still failing, stop, record the skill failure, and ask the user to verify input quality. **No inline per-entry fallback shape exists** — unlike `testgen-flow-test-case-generation.md`'s `<tc_schema>` fallback, this phase has no inline US/FR/NFR/C/D/A/R template to author against if the skill cannot load. The phase **blocks** when the skill is unavailable; do NOT fabricate a partial requirements.md without the mode's structured authoring discipline.
+- **Skill execution failure** (`qa-knowledge` synthesis mode errors or returns empty): re-invoke once with the same inputs; if still failing, stop, record the skill failure, and ask the user to verify input quality. **No inline per-entry fallback shape exists** — this phase has no inline US/FR/NFR/C/D/A/R template to author against if the skill cannot load. The phase **blocks** when the skill is unavailable; do NOT fabricate a partial requirements.md without the mode's structured authoring discipline.
 
 **Conscious tradeoff — why no inline per-entry fallback (declared once, not re-derived per turn):**
 
@@ -149,7 +149,7 @@ The Measurement field carries the threshold (numeric + measurement window + load
 - **Deployment guarantee.** `qa-knowledge` is a published core skill, always available via USE SKILL `qa-knowledge` — not an optional dependency.
 - **Section contract is phase-owned.** The phase's `<create_requirements_document>` table is the authoritative SSoT for the document skeleton (front-matter + 10 numbered sections); a mode version whose output drifts from that contract fails verification and triggers re-invoke. The phase's contract is decoupled from the skill's implementation details.
 
-This tradeoff is intentional and **bounded to this phase**: the sibling `testgen-flow-test-case-generation.md` retains an inline `<tc_schema>` fallback for a different reason (TC entries are simpler and lower-risk to fall back to; requirement entries carry threshold/SMART/INVEST discipline that does not transfer cleanly to an inline template).
+This tradeoff is intentional and **bounded to this phase**: simple test-case entries elsewhere in this flow can safely keep an inline fallback shape, but requirement entries carry threshold/SMART/INVEST discipline that does not transfer cleanly to an inline template.
 
 </failure_handling>
 

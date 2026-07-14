@@ -31,7 +31,7 @@ Initialize the AQA session directory, load the existing project config or collec
 
 <execute_config step="0.1" subagent="discoverer" role="AQA project config loader">
 
-USE SKILL `qa-structure` for the session layout, `{IDENTIFIER}` derivation, and the config-key schema (its `api-aqa-layout` and `config-schema` references — the skill loads its own files). This phase performs session initialization DIRECTLY (no dedicated init skill); it delegates only user-questioning to `questioning`. On the config-missing branch it performs a bounded set of loads (layout, config schema, then the interview + config-template assets at step 0.1.4) — load each at its step via the owning skill; never write an artifact from memory.
+USE SKILL `qa-structure` for the session layout, `{IDENTIFIER}` derivation, and the config-key schema — the skill routes on those topics and loads its own files. This phase performs session initialization DIRECTLY (no dedicated init skill); it delegates only user-questioning to `questioning`. On the config-missing branch it performs a bounded set of loads (layout, config schema, then the interview + config template at step 0.1.4) — load each at its step via the owning skill; never write an artifact from memory.
 
 1. **Parse initial user input.** Extract:
    - **Test case reference** (REQUIRED): TestRail ID, Jira ticket key/URL, or direct test-case description.
@@ -71,9 +71,9 @@ USE SKILL `qa-structure` for the session layout, `{IDENTIFIER}` derivation, and 
 </config_exists>
 
 <config_missing step="0.1.4b">
-1. Collect project info from the user — USE SKILL `questioning` asking the verbatim interview prompt owned by `qa-structure` (its `api-aqa-config-interview` asset).
+1. Collect project info from the user — USE SKILL `questioning` asking the verbatim config-missing interview prompt owned by `qa-structure`.
 2. Validate the answer covers at minimum: document storage, Swagger/OpenAPI availability, and the test-case source. If a required field is missing, ask ONE follow-up naming exactly the missing fields — cap 2 rounds total.
-3. Write the populated config using `qa-structure`'s config template (its `api-aqa-project-config-template` asset), applying `<safety_boundaries>` redaction at intake.
+3. Write the populated config using `qa-structure`'s config template, applying `<safety_boundaries>` redaction at intake.
 4. Required keys + accepted `N/A` forms are in `qa-structure`'s config-key schema.
 </config_missing>
 
@@ -115,7 +115,7 @@ Write `plans/api-aqa-{IDENTIFIER}/initial-data.md` using the inline template bel
 - **`{IDENTIFIER}` underivable / ambiguous** (no Jira key, no TestRail ID, no usable feature name — or several): apply the `qa-structure` precedence (Jira key → TestRail ID → kebab-case; first non-empty wins) and record chosen + rejected candidates in `initial-data.md`. If still none, ask the user once (naming the three preference levels). After one unsuccessful re-ask, record `Phase 0 blocked: IDENTIFIER unresolvable — awaiting user supply` and stop. Do NOT pick a default like `unknown` or `tmp-N` — `{IDENTIFIER}` is referenced in every downstream phase's paths and a guess pollutes the entire AQA session.
 - **User questioning still incomplete after follow-up** (a required field — doc storage, Swagger availability, or test-case source — is still missing after the 2-round cap): stop, record `Phase 0 blocked: minimum project info not obtained after follow-up — missing: <list>` in `agents/TEMP/<FEATURE>/api-aqa-state.md`. Do NOT silently fall back to TBD for fields the user actually declined. (`TBD — will discover from codebase/spec` is acceptable only when the user explicitly opts into discovery.)
 - **User-pasted literal credential in an answer:** apply `<safety_boundaries>` Redaction-at-intake. If the env-var name is unknown, ask once.
-- **Existing config file malformed / missing required config-schema keys:** treat as `config-incomplete` — re-run only the collect-from-user branch (`questioning`) for the missing keys, then re-write the config preserving clean sections, and re-verify. Surface the corruption in `initial-data.md` notes. Do NOT advance to Phase 1 with an incomplete config — Phase 1's documentation-MCP collection (step 1.2b) will silently degrade if `documentation_mcp_collection_skill` is absent rather than `N/A`-tagged.
+- **Existing config file malformed / missing required config-schema keys:** treat as `config-incomplete` — re-run only the collect-from-user branch (`questioning`) for the missing keys, then re-write the config preserving clean sections, and re-verify. Surface the corruption in `initial-data.md` notes. Do NOT advance to Phase 1 with an incomplete config — Phase 1's documentation collection will silently degrade if `documentation_mcp_collection_skill` is absent rather than `N/A`-tagged.
 - **`agents/TEMP/<FEATURE>/api-aqa-state.md` or `api-aqa-project-config.md` unwritable** (permission denied, file locked, disk full): pause, report the filesystem error with the path; do not mark Phase 0 complete.
 - **Session directory `plans/api-aqa-{IDENTIFIER}/` not created:** create it directly (simple mkdir), then re-run verification. If the create fails, stop and report the filesystem error.
 
