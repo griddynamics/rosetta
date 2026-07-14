@@ -19,7 +19,8 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 - Output: test cases created in TMS
 - Prerequisite: Phase 5 complete, user reviewed test cases, TMS MCP configured
 - HITL: user must provide target location in TMS (e.g., section, folder, suite)
-- Skills: USE SKILL `qa-knowledge` (`scenario_design` mode) with the resolved TMS EXPORT provider (e.g. `testrail`, the canonical example) for connection, field mappings, and API details; USE SKILL `coding` when updating tracked repository markdown such as `test-scenarios.md` with TMS IDs (read repo standards as authority); USE SKILL `hitl` for the destructive-write confirmation.
+- Required skills: `qa-knowledge` (`scenario_design` mode) with the resolved TMS EXPORT provider (e.g. `testrail`, the canonical example) for connection, field mappings, and API details
+- Recommended skills: `coding` (when updating tracked repository markdown such as `test-scenarios.md` with TMS IDs — read repo standards as authority), `hitl` (destructive-write confirmation)
 </workflow_context>
 
 <phase_steps>

@@ -19,7 +19,7 @@ Analyze Swagger/OpenAPI specification or codebase API definitions to extract end
 - Output artifact path (single SSoT — referenced by other sections): `plans/api-aqa-{IDENTIFIER}/api-analysis.md` (resolve `{IDENTIFIER}` from `agents/TEMP/<FEATURE>/api-aqa-state.md`)
 - Prerequisite: Phase 1 complete, `raw-data.md` exists with identified endpoints
 - Read-only scope: locate spec/source, extract contracts, reconcile, write the analysis artifact. NO edits to backend source or product code.
-- Skills: `qa-knowledge` (`code_analysis` mode — API-contract extraction; supplies the api-analysis skeleton), `reverse-engineering` (extraction engine of that mode), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path)
+- Required skills: `qa-knowledge` (`code_analysis` mode — API-contract extraction; supplies the api-analysis skeleton), `reverse-engineering` (extraction engine of that mode), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path)
 </workflow_context>
 
 <input_contract>

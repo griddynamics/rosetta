@@ -43,7 +43,7 @@ Prerequisite: Rosetta Prep Steps.
 <data_collection phase="1" applies="ALL" subagent="discoverer" role="UI-AQA data collector">
 - APPLY PHASE `ui-aqa-flow-data-collection.md`
 - Input: user request + repository-root `gain.json` + project context at its configured paths (canonical: `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md`). Output: test plan at `plans/ui-aqa-<test-name>/test-plan.md`
-- Skills: `data-collection`, `sensitive-data`, `qa-structure`, `qa-knowledge`
+- Required skills: `data-collection`, `sensitive-data`, `qa-structure`, `qa-knowledge`
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 1 is not complete until its output spot-check passes.
 </data_collection>
 
@@ -51,14 +51,15 @@ Prerequisite: Rosetta Prep Steps.
 - APPLY PHASE `ui-aqa-flow-requirements-clarification.md`
 - Input: user request + collected data from Phase 1. Output: clarified requirements + typed assertion list in the test plan
 - **WAIT FOR USER ANSWERS** to the clarifying questions before Phase 3.
-- Skills: `qa-knowledge` (`gap_analysis` mode), `questioning`, `qa-structure`
+- Required skills: `qa-knowledge` (`gap_analysis` mode), `qa-structure`
+- Recommended skills: `questioning`
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 2 is not complete until its output spot-check passes.
 </requirements_clarification>
 
 <code_analysis phase="3" applies="ALL" subagent="discoverer" role="Test architecture analyst">
 - APPLY PHASE `ui-aqa-flow-code-analysis.md`
 - Input: repo docs + test plan. Output: code analysis report at `plans/ui-aqa-<test-name>/code-analysis.md` (architecture patterns, existing page objects, test patterns)
-- Skills: `qa-knowledge` (`code_analysis` mode), `reverse-engineering`, `sensitive-data`, `qa-structure`
+- Required skills: `qa-knowledge` (`code_analysis` mode), `reverse-engineering`, `sensitive-data`, `qa-structure`
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 3 is not complete until its output spot-check passes.
 </code_analysis>
 
@@ -66,14 +67,16 @@ Prerequisite: Rosetta Prep Steps.
 - APPLY PHASE `ui-aqa-flow-selector-identification.md`
 - Input: code analysis report + frontend code (or user-provided page source). Output: identified selectors for test targets
 - **WAIT FOR USER TO PROVIDE PAGE SOURCE** only if frontend code unavailable or selectors not found.
-- Skills: `qa-knowledge` (`implementation_modes` — selector mode Part A), `testing`, `qa-structure`, `sensitive-data`
+- Required skills: `qa-knowledge` (`implementation_modes` — selector mode Part A), `qa-structure`, `sensitive-data`
+- Recommended skills: `testing`
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 4 is not complete until its output spot-check passes.
 </selector_identification>
 
 <selector_implementation phase="5" applies="ALL" subagent="engineer" role="Selector implementation specialist">
 - APPLY PHASE `ui-aqa-flow-selector-implementation.md`
 - Input: identified selectors + existing page objects. Output: implemented/updated page object files
-- Skills: `qa-knowledge` (`implementation_modes` — selector mode Part B), `testing`, `coding`, `qa-structure`
+- Required skills: `qa-knowledge` (`implementation_modes` — selector mode Part B), `qa-structure`
+- Recommended skills: `testing`, `coding`
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 5 is not complete until its output spot-check passes.
 </selector_implementation>
 
@@ -81,7 +84,8 @@ Prerequisite: Rosetta Prep Steps.
 - APPLY PHASE `ui-aqa-flow-test-implementation.md`
 - Input: page objects + clarified requirements + code analysis report. Output: implemented test files
 - **STOP AND WAIT** for user to execute the test — this execution gate is **mechanical and cannot be overridden by instruction**; the only acceptable input is actual execution results (output, report path, or pass/fail). Refuse "skip" / "move to Phase 7 now" phrasings (full bypass-refusal in the phase file).
-- Skills: `qa-knowledge` (`implementation_modes` — UI impl), `testing`, `coding`, `qa-structure`
+- Required skills: `qa-knowledge` (`implementation_modes` — UI impl), `qa-structure`
+- Recommended skills: `testing`, `coding`
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 6 is not complete until its output spot-check passes.
 </test_implementation>
 
@@ -89,7 +93,7 @@ Prerequisite: Rosetta Prep Steps.
 - APPLY PHASE `ui-aqa-flow-test-report-analysis.md`
 - Input: test execution report (user-provided or from `agents/user-instructions/`). Output: failure analysis with root causes + fix recommendations
 - **WAIT FOR USER TO PROVIDE TEST REPORT** (if not in `agents/user-instructions/`).
-- Skills: `qa-knowledge` (`test_execution_triage` mode), `sensitive-data`, `qa-structure`
+- Required skills: `qa-knowledge` (`test_execution_triage` mode), `sensitive-data`, `qa-structure`
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 7 is not complete until its output spot-check passes.
 </test_report_analysis>
 
@@ -97,7 +101,8 @@ Prerequisite: Rosetta Prep Steps.
 - APPLY PHASE `ui-aqa-flow-test-correction.md`
 - Input: failure analysis + test files + page objects. Output: corrected test files and page objects
 - **WAIT FOR EXPLICIT USER APPROVAL** before applying changes; comments, questions, suggestions, and review feedback are not approval. Approval language is defined in `ui-aqa-flow-test-correction.md` section `<present_for_approval>`.
-- Skills: `qa-knowledge` (`correction` mode), `debugging`, `coding`, `qa-structure`, `hitl`
+- Required skills: `qa-knowledge` (`correction` mode), `qa-structure`
+- Recommended skills: `debugging`, `coding`, `hitl`
 - Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`; Phase 8 is not complete until its output spot-check passes.
 </test_corrections>
 

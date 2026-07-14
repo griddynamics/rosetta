@@ -17,7 +17,7 @@ Generate specific, actionable clarification questions based on analysis findings
 - Phase 3 of 7 in `testgen-flow`
 - Input: `analysis.md` from Phase 2
 - Output: `questions.md` (for user), `answers.md` (structured user responses)
-- Skills: `questioning`
+- Recommended skills: `questioning`
 - Prerequisite: Phase 0, 1, 2 complete
 - **HITL GATE**: MUST WAIT for user to provide answers. Explicit approval required. Do not assume user approved — if user sends questions or suggestions, that is reviewing, not approval.
 </workflow_context>

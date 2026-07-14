@@ -21,7 +21,8 @@ Identify missing UI selectors from frontend source code or page-source HTML and 
 - HITL: conditional — only if frontend code is unavailable or selectors are not found
 - Read-only scope (single SSoT): identify only. NO writes to page objects, test files, or frontend source.
 - Paths + `<test-name>` slug resolution + the page-sources capture path/naming contract are owned by `qa-structure`'s UI layout reference.
-- Skills: `qa-knowledge` (`implementation_modes` — selector mode Part A, read-only identification; page-source capture message), `testing`, `qa-structure` (`<test-name>` + page-sources path), `sensitive-data` (page-source redaction)
+- Required skills: `qa-knowledge` (`implementation_modes` — selector mode Part A, read-only identification; page-source capture message), `qa-structure` (`<test-name>` + page-sources path), `sensitive-data` (page-source redaction)
+- Recommended skills: `testing`
 </workflow_context>
 
 <failure_handling>

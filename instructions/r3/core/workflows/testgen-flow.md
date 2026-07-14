@@ -47,7 +47,9 @@ Prerequisite: Rosetta Prep Steps.
 
 - APPLY PHASE `testgen-flow-project-config-loading.md`
 - Input: user request with an Issue Tracker ticket key/URL. Output: `plans/testgen-{TICKET-KEY}/initial-data.md`, project config file.
-- Recommended skills: `questioning`, `sensitive-data` (config / initial-data redaction pre-write gate)
+- Required skills: `sensitive-data` (config / initial-data redaction pre-write gate)
+- Recommended skills: `questioning`
+- Update `plans/testgen-{TICKET-KEY}/testgen-state.md`; Phase 0 is not complete until its output spot-check passes.
 
 </project_config_loading>
 
@@ -55,7 +57,8 @@ Prerequisite: Rosetta Prep Steps.
 
 - APPLY PHASE `testgen-flow-data-collection.md`
 - Input: initial user request, initial-data.md. Output: `plans/testgen-{TICKET-KEY}/raw-data.md` with Issue Tracker + Wiki data.
-- Recommended skills: `data-collection`
+- Required skills: `data-collection`
+- Update `plans/testgen-{TICKET-KEY}/testgen-state.md`; Phase 1 is not complete until its output spot-check passes.
 
 </data_collection>
 
@@ -63,7 +66,8 @@ Prerequisite: Rosetta Prep Steps.
 
 - APPLY PHASE `testgen-flow-gap-and-contradiction-analysis.md`
 - Input: raw-data.md. Output: `plans/testgen-{TICKET-KEY}/analysis.md` with contradictions, gaps, ambiguities.
-- Recommended skills: `qa-knowledge` (`gap_analysis` mode)
+- Required skills: `qa-knowledge` (`gap_analysis` mode)
+- Update `plans/testgen-{TICKET-KEY}/testgen-state.md`; Phase 2 is not complete until its output spot-check passes.
 
 </gap_and_contradiction_analysis>
 
@@ -73,6 +77,7 @@ Prerequisite: Rosetta Prep Steps.
 - Input: analysis.md. Output: `plans/testgen-{TICKET-KEY}/questions.md`, `plans/testgen-{TICKET-KEY}/answers.md`.
 - **WAIT FOR USER** to fill answers in questions.md. Explicit approval required.
 - Recommended skills: `questioning`
+- Update `plans/testgen-{TICKET-KEY}/testgen-state.md`; Phase 3 is not complete until its output spot-check passes.
 
 </question_generation>
 
@@ -81,7 +86,8 @@ Prerequisite: Rosetta Prep Steps.
 - APPLY PHASE `testgen-flow-requirements-document-generation.md`
 - Input: raw-data.md + analysis.md + answers.md. Output: `plans/testgen-{TICKET-KEY}/requirements.md`.
 - **WAIT FOR USER** to review `requirements.md` before Phase 5 (phase-file gate, step 4.4) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
-- Recommended skills: `qa-knowledge` (`synthesis` mode)
+- Required skills: `qa-knowledge` (`synthesis` mode)
+- Update `plans/testgen-{TICKET-KEY}/testgen-state.md`; Phase 4 is not complete until its output spot-check passes.
 
 </requirements_document_generation>
 
@@ -90,7 +96,8 @@ Prerequisite: Rosetta Prep Steps.
 - APPLY PHASE `testgen-flow-test-case-generation.md`
 - Input: requirements.md. Output: `plans/testgen-{TICKET-KEY}/test-scenarios.md`
 - **WAIT FOR USER** to review `test-scenarios.md` before Phase 6 export (phase-file gate, step 5.9) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
-- Recommended skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS FORMAT binding).
+- Required skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS FORMAT binding).
+- Update `plans/testgen-{TICKET-KEY}/testgen-state.md`; Phase 5 is not complete until its output spot-check passes.
 - `coding` is NOT used for the default manual-scenario output (writes stay under `plans/testgen-{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder, per `<phase_5_6_standards_gate>`.
 
 </test_case_generation>
@@ -100,7 +107,8 @@ Prerequisite: Rosetta Prep Steps.
 - APPLY PHASE `testgen-flow-test-case-export.md`
 - Input: test-scenarios.md. Output: test cases exported to Test Management System **and** a local export receipt at `plans/testgen-{TICKET-KEY}/export-report.md` (TMS IDs/URLs, per-case status, timestamp). The local receipt is the on-disk evidence Phase 6 ran successfully.
 - **WAIT FOR USER** to provide target location and confirm export.
-- Recommended skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS EXPORT binding).
+- Required skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS EXPORT binding).
+- Update `plans/testgen-{TICKET-KEY}/testgen-state.md`; Phase 6 is not complete until its output spot-check passes.
 - `coding` is NOT used for the default flow (TMS export + receipt under `plans/testgen-{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder (e.g. embedding TMS IDs into a version-controlled file), per `<phase_5_6_standards_gate>`.
 
 </test_case_export>

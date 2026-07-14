@@ -17,7 +17,7 @@ Synthesize Issue Tracker data, Wiki documentation, and user answers into a compr
 - Phase 4 of 7 in `testgen-flow`
 - Input: `raw-data.md`, `analysis.md`, `answers.md`
 - Output: `requirements.md` — primary deliverable for test case generation
-- Skills: `qa-knowledge` (`synthesis` mode)
+- Required skills: `qa-knowledge` (`synthesis` mode)
 - Prerequisite: Phase 0-3 complete with validated user answers
 - Priority order for source resolution: User answers > Issue Tracker ticket > Wiki > Analysis insights
 </workflow_context>

@@ -72,7 +72,7 @@ Router -- READ SKILL FILE for the one your current step needs (point-of-use, nev
 | record the UI-AQA test-implementation | READ SKILL FILE `assets/ui-aqa-test-impl-record.md` |
 | emit the UI-AQA failure analysis | READ SKILL FILE `assets/failure-report-template.md` |
 | send the page-source capture message to the user | READ SKILL FILE `assets/page-source-capture-instructions.md` |
-| classify a QA backend-API failure | READ SKILL FILE `references/api-aqa-failure-taxonomy.md` |
+| classify an API-AQA backend-API failure | READ SKILL FILE `references/api-aqa-failure-taxonomy.md` |
 | classify an UI-AQA UI/E2E failure | READ SKILL FILE `references/ui-aqa-failure-taxonomy.md` |
 | synthesize collected sources into a requirements document (`<synthesis>` mode) | READ SKILL FILE `references/synthesis-catalogs.md` |
 | run QA gap-analysis detection (`<gap_analysis>` mode) | READ SKILL FILE `references/gap-analysis-catalogs.md` |

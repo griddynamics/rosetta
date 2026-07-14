@@ -19,7 +19,8 @@ Cross-reference test cases, documentation, and API spec to identify gaps, contra
 - Output: `plans/api-aqa-{IDENTIFIER}/analysis.md` with gaps resolved, user answers documented
 - Prerequisite: Phases 1 and 2 complete
 - HITL: user answers required before Phase 4
-- Skills: `qa-knowledge` (`gap_analysis` mode + G/C/A finding forms), `questioning` (clarification batch), `qa-structure` (`{IDENTIFIER}` + analysis path)
+- Required skills: `qa-knowledge` (`gap_analysis` mode + G/C/A finding forms), `qa-structure` (`{IDENTIFIER}` + analysis path)
+- Recommended skills: `questioning` (clarification batch)
 </workflow_context>
 
 <phase_steps>

@@ -20,7 +20,8 @@ Initialize the AQA session directory, load the existing project config or collec
 - Output (paths owned by `qa-structure`): per-session `plans/api-aqa-{IDENTIFIER}/api-aqa-project-config.md` and `plans/api-aqa-{IDENTIFIER}/initial-data.md`; shared workflow state `agents/TEMP/<FEATURE>/api-aqa-state.md`.
 - Prerequisite: starting new AQA flow
 - HITL: conditional — user is questioned ONLY if the project config does not already exist
-- Skills: `qa-structure` (paths / `{IDENTIFIER}` / config schema / state shape), `questioning` (config-missing interview), `sensitive-data` (redaction at intake)
+- Required skills: `qa-structure` (paths / `{IDENTIFIER}` / config schema / state shape), `sensitive-data` (redaction at intake)
+- Recommended skills: `questioning` (config-missing interview)
 </workflow_context>
 
 <phase_steps>

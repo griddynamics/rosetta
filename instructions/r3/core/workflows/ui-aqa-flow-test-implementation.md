@@ -20,7 +20,8 @@ Create the automated UI test integrating all page objects and assertions from th
 - Prerequisite: Phases 1-5 complete
 - HITL: must stop and wait for the user to execute the test (this phase does not run it)
 - Write boundary (single SSoT — referenced by other sections): writes ONLY test files (and the test plan's `## Test Implementation` record). NO edits to application source or page-object files — a missing selector/method routes back to Phase 5, never authored inline here.
-- Skills: `qa-knowledge` (`implementation_modes` — UI impl + the Test Implementation record), `testing`, `coding` (repo conventions), `qa-structure` (`<test-name>` paths + state shape)
+- Required skills: `qa-knowledge` (`implementation_modes` — UI impl + the Test Implementation record), `qa-structure` (`<test-name>` paths + state shape)
+- Recommended skills: `testing`, `coding` (repo conventions)
 </workflow_context>
 
 <implementation_handoff_contract>

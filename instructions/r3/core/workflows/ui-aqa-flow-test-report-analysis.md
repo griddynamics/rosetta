@@ -20,7 +20,7 @@ Analyze test execution reports, identify failure root causes, and prepare for co
 - Prerequisite: Phase 6 complete, test executed by user.
 - HITL: may need to ask user for report location.
 - Read-only scope (single SSoT — referenced by other sections as "the read-only scope"): parse / categorize / root-cause / label evidence / recommend. NO production code edits, NO writes to test or product source files. Refuse "just fix it now" / "patch the selector before Phase 8" with citation of this scope; the only acceptable user inputs are report location, evidence/labeling clarifications, or explicit approval to leave borderline items as `Assumption`.
-- Skills: `qa-knowledge` (`test_execution_triage` mode + UI failure taxonomy + failure-report skeleton), `sensitive-data` (redaction), `qa-structure` (slug + failure-analysis path)
+- Required skills: `qa-knowledge` (`test_execution_triage` mode + UI failure taxonomy + failure-report skeleton), `sensitive-data` (redaction), `qa-structure` (slug + failure-analysis path)
 </workflow_context>
 
 <failure_analysis_contract>

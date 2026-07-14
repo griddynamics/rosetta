@@ -20,7 +20,8 @@ Fix identified API test failures based on the Phase 6 execution report. Prepares
 - Prerequisite: Phase 6 complete
 - HITL: explicit user approval required before applying any change (a domain-specific specialization of `hitl`)
 - In-scope file set (single SSoT): test files + shared test-utility files only. Writes outside this set are refused and escalated.
-- Skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `qa-knowledge` (`correction` mode — proposed-change block + approval gate + correction discipline), `qa-structure` (run paths + `api-aqa-state.md`), `hitl` (explicit approval)
+- Required skills: `qa-knowledge` (`correction` mode — proposed-change block + approval gate + correction discipline), `qa-structure` (run paths + `api-aqa-state.md`)
+- Recommended skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `hitl` (explicit approval)
 </workflow_context>
 
 <correction_contract>

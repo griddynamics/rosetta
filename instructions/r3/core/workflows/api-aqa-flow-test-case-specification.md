@@ -19,7 +19,8 @@ Convert test cases into detailed, implementation-ready API test specifications u
 - Output: `plans/api-aqa-{IDENTIFIER}/test-specs.md` with Given-When-Then scenarios, file mapping, shared utilities
 - Prerequisite: Phase 3 complete, all user clarifications received
 - HITL: explicit user approval required before Phase 5
-- Skills: `qa-knowledge` (`scenario_design` mode + test-specs skeleton + ATC conventions), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path), `hitl` (explicit approval)
+- Required skills: `qa-knowledge` (`scenario_design` mode + test-specs skeleton + ATC conventions), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path)
+- Recommended skills: `hitl` (explicit approval)
 </workflow_context>
 
 <phase_steps>

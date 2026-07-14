@@ -17,7 +17,8 @@ Generate comprehensive test cases from the requirements document, covering all r
 - Phase 5 of 7 in `testgen-flow`
 - Input: `requirements.md` from Phase 4
 - Output: `test-scenarios.md` — test cases
-- Skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS FORMAT binding), `coding` (for any tracked write outside the ticket folder; read repo standards as authority)
+- Required skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS FORMAT binding)
+- Recommended skills: `coding` (for any tracked write outside the ticket folder; read repo standards as authority)
 - Prerequisite: Phase 0-4 complete with validated requirements
 </workflow_context>
 

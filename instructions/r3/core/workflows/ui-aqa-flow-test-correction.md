@@ -20,7 +20,8 @@ Fix identified test failures based on the Phase 7 failure analysis. Prepares pro
 - Prerequisite: Phase 7 complete
 - HITL: explicit user approval required before applying any change (a domain-specific specialization of `hitl`)
 - In-scope file set (single SSoT): test files only (and page-object files if the Phase 7 analysis identifies a selector fix). Writes outside this set are refused and escalated.
-- Skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `qa-knowledge` (`correction` mode — proposed-change block + approval gate + correction discipline), `qa-structure` (run paths + state), `hitl` (explicit approval)
+- Required skills: `qa-knowledge` (`correction` mode — proposed-change block + approval gate + correction discipline), `qa-structure` (run paths + state)
+- Recommended skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `hitl` (explicit approval)
 </workflow_context>
 
 <correction_contract>

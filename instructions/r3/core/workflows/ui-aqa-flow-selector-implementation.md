@@ -19,7 +19,8 @@ Add the selectors identified in Phase 4 to page objects, following project conve
 - Output: page objects extended/created with all required selectors; the Part B Implementation subsection recorded
 - Prerequisite: Phases 1-4 complete
 - Write boundary (single SSoT): writes ONLY page-object files (and the test plan's `## Selector Management` → Implementation subsection). No test files, fixtures, or frontend source.
-- Skills: `coding` (general repo hygiene), `qa-knowledge` (`implementation_modes` — selector mode Part B), `testing`, `qa-structure` (`<test-name>` paths + state shape)
+- Required skills: `qa-knowledge` (`implementation_modes` — selector mode Part B), `qa-structure` (`<test-name>` paths + state shape)
+- Recommended skills: `coding` (general repo hygiene), `testing`
 </workflow_context>
 
 <skill_precedence>

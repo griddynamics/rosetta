@@ -24,7 +24,7 @@ Gather test-case details from the configured Test Management System (TMS) and fe
   3. Reconcile with available integrations and prior confirmed context. If evidence conflicts or remains ambiguous, ask only for the unresolved provider/input; never silently choose between conflicting systems.
   4. Missing `gain.json` or missing provider fields does not block a direct-description run: ask for what is needed, use the answer for this run, and record unavailable external sources.
 - TestRail (TMS), Confluence (Wiki), and Jira (Issue Tracker) are canonical examples. Adapt identifiers, URLs, requests, query syntax, and calls to the resolved target system.
-- Skills: `data-collection`, `sensitive-data`, `qa-structure`, `qa-knowledge`
+- Required skills: `data-collection`, `sensitive-data`, `qa-structure`, `qa-knowledge`
 </workflow_context>
 
 <phase_steps>

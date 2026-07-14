@@ -17,7 +17,7 @@ Analyze the Issue Tracker ticket and Wiki documentation to identify contradictio
 - Phase 2 of 7 in `testgen-flow`
 - Input: `raw-data.md` from Phase 1
 - Output: `analysis.md` with categorized contradictions, gaps, ambiguities, risk assessment
-- Skills: `qa-knowledge` (`gap_analysis` mode)
+- Required skills: `qa-knowledge` (`gap_analysis` mode)
 - Prerequisite: Phase 0, Phase 1 complete
 </workflow_context>
 

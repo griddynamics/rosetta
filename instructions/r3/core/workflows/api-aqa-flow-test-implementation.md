@@ -20,7 +20,8 @@ Implement all approved API test specifications as executable automated tests wit
 - Prerequisite: Phase 4 complete with recorded user approval of the specs
 - HITL: must stop and wait for the user to execute the tests (this phase does not run them)
 - Write boundary (single SSoT — referenced by other sections): writes test files + shared test-utility files only; synthetic data only — no hardcoded credentials, URLs, or production data.
-- Skills: `qa-knowledge` (`implementation_modes` — API impl + hand-off record fields), `testing` (test quality discipline), `coding` (repo conventions), `qa-structure` (`{IDENTIFIER}` + artifact path)
+- Required skills: `qa-knowledge` (`implementation_modes` — API impl + hand-off record fields), `qa-structure` (`{IDENTIFIER}` + artifact path)
+- Recommended skills: `testing` (test quality discipline), `coding` (repo conventions)
 </workflow_context>
 
 <implementation_handoff_contract>

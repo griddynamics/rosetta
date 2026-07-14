@@ -19,7 +19,7 @@ Understand existing test architecture, identify reusable components, and determi
 - Output artifact path (single SSoT — referenced by other sections): `plans/ui-aqa-<test-name>/code-analysis.md` (resolve `<test-name>` per `qa-structure`'s UI layout slug rules)
 - Prerequisite: Phases 1 and 2 complete
 - Read-only scope (single SSoT — referenced by other sections as "the read-only scope"): read project description, configured project context, page objects, similar tests, utilities; produce the report + a one-paragraph `## Code Analysis` summary in the test plan. NO edits to page objects, test files, source under analysis, `project_description.md`, `gain.json`, or repo docs; NO running tests/lint/build. A finding that implies code work is surfaced in the report, not acted on.
-- Skills: `qa-knowledge` (`code_analysis` mode), `reverse-engineering` (test-automation architecture analysis), `sensitive-data` (redaction), `qa-structure` (slug + report path)
+- Required skills: `qa-knowledge` (`code_analysis` mode), `reverse-engineering` (test-automation architecture analysis), `sensitive-data` (redaction), `qa-structure` (slug + report path)
 </workflow_context>
 
 <input_contract>

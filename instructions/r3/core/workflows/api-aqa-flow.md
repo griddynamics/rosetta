@@ -62,54 +62,67 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 - APPLY PHASE `api-aqa-flow-project-config-loading.md`
 - Input: user request. Output: project config file, initial data file, session directory at `plans/api-aqa-{IDENTIFIER}/`.
 - HITL gate: **ASK USER FOR PROJECT INFO** if config does not already exist.
-- Skills: `qa-structure`, `questioning` (config-missing interview), `sensitive-data` (redaction at intake)
+- Required skills: `qa-structure`, `sensitive-data` (redaction at intake)
+- Recommended skills: `questioning` (config-missing interview)
+- Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 0 is not complete until its output spot-check passes.
 </project_config_loading>
 
 <data_collection phase="1" applies="ALL" subagent="discoverer" role="AQA data collector">
 - APPLY PHASE `api-aqa-flow-data-collection.md`
 - Input: project config + initial data. Output: `plans/api-aqa-{IDENTIFIER}/raw-data.md` (test cases, documentation, existing test patterns).
-- Skills: `data-collection` (TMS + Wiki collector), `qa-knowledge` (`code_analysis` mode — existing-test + backend-source scan), `reverse-engineering`, `qa-structure`
+- Required skills: `data-collection` (TMS + Wiki collector), `qa-knowledge` (`code_analysis` mode — existing-test + backend-source scan), `reverse-engineering`, `qa-structure`
+- Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 1 is not complete until its output spot-check passes.
 </data_collection>
 
 <api_spec_analysis phase="2" applies="ALL" subagent="discoverer" role="API spec analyst">
 - APPLY PHASE `api-aqa-flow-api-spec-analysis.md`
 - Input: raw data + project config. Output: `plans/api-aqa-{IDENTIFIER}/api-analysis.md` (endpoint contracts, auth, data dependencies).
-- Skills: `qa-knowledge` (`code_analysis` mode — API-contract extraction), `reverse-engineering`, `sensitive-data`, `qa-structure`
+- Required skills: `qa-knowledge` (`code_analysis` mode — API-contract extraction), `reverse-engineering`, `sensitive-data`, `qa-structure`
+- Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 2 is not complete until its output spot-check passes.
 </api_spec_analysis>
 
 <gap_and_requirements_clarification phase="3" applies="ALL" subagent="architect" role="Test requirements analyst" type="HITL">
 - APPLY PHASE `api-aqa-flow-gap-and-requirements-clarification.md`
 - Input: raw data + API analysis. Output: `plans/api-aqa-{IDENTIFIER}/analysis.md` (gaps, contradictions, ambiguities resolved).
 - HITL gate: **WAIT FOR USER ANSWERS** before Phase 4.
-- Skills: `qa-knowledge` (`gap_analysis` mode), `questioning`, `qa-structure`
+- Required skills: `qa-knowledge` (`gap_analysis` mode), `qa-structure`
+- Recommended skills: `questioning`
+- Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 3 is not complete until its output spot-check passes.
 </gap_and_requirements_clarification>
 
 <test_case_specification phase="4" applies="ALL" subagent="architect" role="Test specification author" type="HITL">
 - APPLY PHASE `api-aqa-flow-test-case-specification.md`
 - Input: all phase 1-3 outputs. Output: `plans/api-aqa-{IDENTIFIER}/test-specs.md` (Given-When-Then scenarios).
 - HITL gate: **WAIT FOR EXPLICIT USER APPROVAL** before Phase 5; comments, questions, suggestions, and review feedback are not approval.
-- Skills: `qa-knowledge` (`scenario_design` mode), `sensitive-data`, `qa-structure`, `hitl`
+- Required skills: `qa-knowledge` (`scenario_design` mode), `sensitive-data`, `qa-structure`
+- Recommended skills: `hitl`
+- Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 4 is not complete until its output spot-check passes.
 </test_case_specification>
 
 <test_implementation phase="5" applies="ALL" subagent="engineer" role="Test automation engineer" type="HITL">
 - APPLY PHASE `api-aqa-flow-test-implementation.md`
 - Input: approved test specs + existing patterns + API analysis. Output: implemented test files.
 - HITL gate: **STOP AND WAIT** — user must provide actual execution results (output, report path, or pass/fail); confirmation alone does not satisfy this gate.
-- Skills: `qa-knowledge` (`implementation_modes` — API impl), `testing`, `coding` (repo conventions), `qa-structure`
+- Required skills: `qa-knowledge` (`implementation_modes` — API impl), `qa-structure`
+- Recommended skills: `testing`, `coding` (repo conventions)
+- Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 5 is not complete until its output spot-check passes.
 </test_implementation>
 
 <execution_and_report_analysis phase="6" applies="ALL" subagent="engineer" role="Test failure analyst" type="HITL">
 - APPLY PHASE `api-aqa-flow-execution-and-report-analysis.md`
 - Input: test execution report (user-provided or from `agents/user-instructions/`). Output: `plans/api-aqa-{IDENTIFIER}/execution-report.md` (failure analysis).
 - HITL gate: **WAIT FOR USER TO PROVIDE TEST EXECUTION RESULTS**.
-- Skills: `qa-knowledge` (`test_execution_triage` mode), `sensitive-data`, `qa-structure`
+- Required skills: `qa-knowledge` (`test_execution_triage` mode), `sensitive-data`, `qa-structure`
+- Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 6 is not complete until its output spot-check passes.
 </execution_and_report_analysis>
 
 <test_corrections phase="7" applies="ALL" subagent="engineer" role="Test correction engineer" type="HITL">
 - APPLY PHASE `api-aqa-flow-test-correction.md`
 - Input: execution report + test files + test specs. Output: corrected test files.
 - HITL gate: **WAIT FOR EXPLICIT USER APPROVAL** before applying changes; comments, questions, suggestions, and review feedback are not approval.
-- Skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `qa-knowledge` (`correction` mode), `qa-structure`, `hitl`
+- Required skills: `qa-knowledge` (`correction` mode), `qa-structure`
+- Recommended skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `hitl`
+- Update `agents/TEMP/<FEATURE>/api-aqa-state.md`; Phase 7 is not complete until its output spot-check passes.
 </test_corrections>
 
 </workflow_phases>

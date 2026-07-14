@@ -20,7 +20,8 @@ Fill gaps in understanding, clarify unknowns, and transcribe the typed assertion
 - Prerequisite: Phase 1 complete
 - HITL: user answers required before Phase 3
 - **Assertion authority chain:** gap analysis (step 2.1, `qa-knowledge` `gap_analysis` mode) → transcription per step 2.4 (canonical typed format + mandatory `### Explicit Assertions` subsection + None-clause) → Phase 6 validates implemented OR Uncovered. If transcription is skipped, Phase 6 validation has no anchor and tests may silently under-assert.
-- Skills: `qa-knowledge` (`gap_analysis` mode, test-plan variant + Phase 2 templates: gap entry / questions / typed assertions), `questioning` (clarification batch), `qa-structure` (`<test-name>` paths + state shape)
+- Required skills: `qa-knowledge` (`gap_analysis` mode, test-plan variant + Phase 2 templates: gap entry / questions / typed assertions), `qa-structure` (`<test-name>` paths + state shape)
+- Recommended skills: `questioning` (clarification batch)
 </workflow_context>
 
 <phase_steps>

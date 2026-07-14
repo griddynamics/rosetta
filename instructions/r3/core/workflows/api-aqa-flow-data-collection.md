@@ -21,7 +21,7 @@ Gather test case details from the configured TMS, search the configured Wiki, an
 - Collection skill: `data-collection` (single canonical collector for TMS + Wiki sources) — this phase resolves each in-scope provider and passes its role + provider to the skill; the skill loads the role-named binding. Existing-test-pattern scan: `qa-knowledge` (`code_analysis` mode, via `reverse-engineering`). This phase OWNS the raw-data aggregation contract (`<raw_data_contract>`) — the skills EMIT into the sections this phase asserts.
 - **Provider resolution (merge evidence; providers are NOT hardcoded).** Providers were resolved in Phase 0 and recorded in `api-aqa-project-config.md` (`tms_provider`, `wiki_provider` + base URLs, prefilled from `gain.json` `sdlc.*`). Reconcile with explicit user names/handles (which win for this run), recognizable provider URLs (valid evidence when unambiguous), and available integrations. If evidence conflicts or remains ambiguous, ask only about the unresolved provider/input; never silently choose between conflicting systems.
 - Optional **Wiki collection** when in scope — signals in `<config_binding>`; procedure in `<execute_collection>` step **1.2b**.
-- Skills: `data-collection` (TMS + Wiki collector), `qa-knowledge` (`code_analysis` mode — existing-test + backend-source scan), `reverse-engineering`, `qa-structure` (`{IDENTIFIER}` + raw-data path)
+- Required skills: `data-collection` (TMS + Wiki collector), `qa-knowledge` (`code_analysis` mode — existing-test + backend-source scan), `reverse-engineering`, `qa-structure` (`{IDENTIFIER}` + raw-data path)
 </workflow_context>
 
 <config_binding>
