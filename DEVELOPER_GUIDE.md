@@ -577,7 +577,7 @@ Replace markdown sections in workflow and phase files with XML tags (`<context>`
 | File type | Schema | Example |
 |---|---|---|
 | Workflow | `docs/schemas/workflow.md` | `instructions/r2/core/workflows/coding-flow.md` |
-| Phase | `docs/schemas/phase.md` | `instructions/r2/core/workflows/testgen-flow-data-collection.md` |
+| Phase | `docs/schemas/phase.md` | `instructions/r3/core/workflows/testgen-flow-data-collection.md` |
 | Skill | `docs/schemas/skill.md` | `instructions/r2/core/skills/coding-agents-prompt-authoring/SKILL.md` |
 
 #### AI-assisted prompt for workflows
@@ -586,7 +586,7 @@ Replace markdown sections in workflow and phase files with XML tags (`<context>`
 
 #### AI-assisted prompt for phases
 
-> There's an example of the format `instructions/r2/core/workflows/testgen-flow-data-collection.md`. There's a schema for phases `docs/schemas/phase.md`. Please use it for reformatting `[phase_file]`.
+> There's an example of the format `instructions/r3/core/workflows/testgen-flow-data-collection.md`. There's a schema for phases `docs/schemas/phase.md`. Please use it for reformatting `[phase_file]`.
 
 #### AI-assisted prompt for skills
 

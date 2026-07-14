@@ -19,8 +19,8 @@ Expect one phase at a time, a state file updated after each phase, and explicit 
 - Generate QA scenarios from a Jira ticket with traceability back to Jira and Confluence.
 - Turn fragmented ticket and documentation inputs into a structured `requirements.md` before test design.
 - Resolve contradictions, missing details, and ambiguities before automated QA work starts.
-- Prepare TestRail-ready manual test cases or feed later automation work such as `aqa-flow`.
-- Create a durable artifact set under `agents/testgen/{TICKET-KEY}/` for audit and reuse.
+- Prepare TestRail-ready manual test cases or feed later automation work such as `ui-aqa-flow` / `api-aqa-flow`.
+- Create a durable artifact set under `plans/testgen-{TICKET-KEY}/` for audit and reuse.
 
 ## When Not To Use This Workflow
 
@@ -41,7 +41,7 @@ Prepare the minimum inputs that materially affect output quality:
 
 Workflow-specific preparation that improves results:
 
-- Maintain a project-level `testgen-project-config.md` in the agent-specific directory so the workflow knows your expected retrieval process and any mandatory reference sources.
+- The retrieval config `testgen-project-config.md` lives inside each ticket's `plans/testgen-{TICKET-KEY}/` folder — one copy per run, so parallel tickets never collide. Reuse an earlier ticket's config as the reference when answering the setup question.
 - If that config does not exist yet, expect Phase 0 to create it, ask a first-time setup question about whether the default Jira-plus-Confluence retrieval scheme is correct, and store your YES or NO answer plus any retrieval details for future runs.
 - Point the agent to critical supporting material such as domain glossaries, compliance rules, API contracts, DDL, and configuration files when Jira and Confluence alone are incomplete.
 - If your project relies on custom source systems beyond default Jira and Confluence retrieval, define that explicitly in the project config instead of expecting the agent to infer it.
@@ -156,8 +156,8 @@ What you provide:
 
 What the agent does:
 - Parses the Jira input.
-- Creates `agents/testgen/{TICKET-KEY}/`.
-- Finds or creates the project-level `testgen-project-config.md`.
+- Creates `plans/testgen-{TICKET-KEY}/`.
+- Finds or creates `plans/testgen-{TICKET-KEY}/testgen-project-config.md`.
 - If the config is missing, asks whether the default Jira-plus-Confluence retrieval scheme is accurate, waits for a YES or NO answer, and records any project-specific retrieval details the user provides.
 - Writes `initial-data.md` and initializes `testgen-state.md`.
 
@@ -242,8 +242,8 @@ What you get:
 
 What to watch for:
 - This is the hard HITL gate. The workflow is not supposed to continue without human answers.
-- Critical questions must not be left blank.
-- If the user marks items `UNKNOWN`, the workflow should carry them forward as assumptions, not silently resolve them.
+- Critical (P0) questions must not be left blank, and `UNKNOWN` is rejected for them outright — a P0 closes only with a real answer or an explicit user-authorized priority downgrade.
+- If the user marks P1 items `UNKNOWN`, the workflow carries them forward as assumptions, not silently resolved.
 - Follow-up questions, suggestions, or review comments are not approval by themselves.
 
 ### Phase 4: Requirements Document Generation
@@ -307,9 +307,10 @@ What the agent does:
 - Verifies TestRail connectivity.
 - Parses `test-scenarios.md`.
 - Maps priorities, types, preconditions, steps, expected results, and references into TestRail fields.
+- Runs a dedup pre-scan of the target suite and presents the export plan (target, case count, likely duplicates) for explicit confirmation before any write.
 - Exports cases, continues past individual case failures, and records results.
-- Updates `test-scenarios.md` with TestRail IDs and export summary.
-- Updates `testgen-state.md` with export metrics and links.
+- Updates `test-scenarios.md` with TestRail IDs and writes the export receipt `export-report.md` (per-case status, outcome, timestamp).
+- Updates `testgen-state.md` with export metrics and links. Below an 80% success rate the phase halts as `PARTIAL` for your decision (retry / accept / abort).
 
 What you get:
 - Exported test cases in TestRail plus updated local artifacts showing what was created.
@@ -347,8 +348,9 @@ The highest-value customizations for `testgen-flow` are specific to evidence ret
 
 ## Artifacts You Will Get
 
-Common ticket-level artifacts under `agents/testgen/{TICKET-KEY}/`:
+Ticket-level artifacts under `plans/testgen-{TICKET-KEY}/`:
 
+- `testgen-project-config.md` for the data sources, retrieval method, and auth assumptions (one copy per ticket).
 - `testgen-state.md` for phase status, metrics, and progress evidence.
 - `initial-data.md` for the starting prompt and linked project config reference.
 - `raw-data.md` for Jira and Confluence evidence.
@@ -357,10 +359,7 @@ Common ticket-level artifacts under `agents/testgen/{TICKET-KEY}/`:
 - `answers.md` for validated responses and unresolved items.
 - `requirements.md` for stories, requirements, constraints, assumptions, and traceability.
 - `test-scenarios.md` for prioritized TestRail-compatible cases and, after export, TestRail IDs.
-
-Common project-level artifact:
-
-- `testgen-project-config.md` in the repo’s agent-specific directory if the workflow had to create or update project retrieval instructions.
+- `export-report.md` for the Phase 6 export receipt (outcome, per-case status, fallback details).
 
 ## Common Mistakes
 
@@ -375,11 +374,11 @@ Common project-level artifact:
 
 Authoritative workflow sources:
 
-- [testgen-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow.md)
-- [testgen-flow-project-config-loading.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-project-config-loading.md)
-- [testgen-flow-data-collection.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-data-collection.md)
-- [testgen-flow-gap-and-contradiction-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-gap-and-contradiction-analysis.md)
-- [testgen-flow-question-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-question-generation.md)
-- [testgen-flow-requirements-document-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-requirements-document-generation.md)
-- [testgen-flow-test-case-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-test-case-generation.md)
-- [testgen-flow-test-case-export.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/testgen-flow-test-case-export.md)
+- [testgen-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow.md)
+- [testgen-flow-project-config-loading.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-project-config-loading.md)
+- [testgen-flow-data-collection.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-data-collection.md)
+- [testgen-flow-gap-and-contradiction-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-gap-and-contradiction-analysis.md)
+- [testgen-flow-question-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-question-generation.md)
+- [testgen-flow-requirements-document-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-requirements-document-generation.md)
+- [testgen-flow-test-case-generation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-test-case-generation.md)
+- [testgen-flow-test-case-export.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/testgen-flow-test-case-export.md)

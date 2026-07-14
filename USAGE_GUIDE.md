@@ -214,12 +214,12 @@ Use this for project-related research, investigation, or technical comparison th
 <details>
 <summary><b>Automated QA</b></summary>
 
-Takes a test case from your Test Management System (TestRail, qTest) and produces a working automated test in your automation framework. Rather than relying on the test-case description alone, the workflow also gathers what it needs from your code and ticket system (for example, Jira); it clarifies assertions, analyzes existing tests and Page Objects, identifies selectors, implements the test, asks when it sees contradictions, then waits for execution results and helps fix the test until it passes.
+Two test-automation workflows plus a compatibility router. `ui-aqa-flow` takes a test case from your Test Management System (TestRail, qTest) and produces a working automated UI test: it gathers context from your code and ticket system, clarifies assertions, analyzes existing tests and Page Objects, identifies selectors without guessing, implements the test, then waits for execution results and helps fix the test until it passes. `api-aqa-flow` automates backend API tests: it loads a project config, collects test cases and docs, extracts endpoint contracts from Swagger/OpenAPI or code, writes Given-When-Then specs for your approval, implements them with shared utilities, and triages your execution results. `/aqa-flow` remains as a router that dispatches to the right flow (or to Test Case Generation) and asks when the request is unclear.
 
-**Use when:** automate a test case from your test management system, reuse existing Page Objects and helpers, avoid guessed selectors, or fix a failing automated test.
+**Use when:** automate a test case from your test management system (UI or API), reuse existing Page Objects and helpers, avoid guessed selectors or invented endpoint schemas, or fix a failing automated test.
 
-**Phases:**
-1. Data Collection — collect the test case, ticket/Confluence context, and project instructions, and create `agents/plans/aqa-<test-name>.md`
+**UI AQA phases:**
+1. Data Collection — collect the test case, ticket/Confluence context, and project instructions, and create `plans/ui-aqa-<test-name>/test-plan.md`
 2. Requirements Clarification — ask assertion and behavior questions; wait for answers before code analysis
 3. Code Analysis — inspect frontend code, Page Objects, existing tests, utilities, and project conventions
 4. Selector Identification — map steps to UI elements; request page source only when selectors cannot be found
@@ -228,12 +228,14 @@ Takes a test case from your Test Management System (TestRail, qTest) and produce
 7. Test Report Analysis — read test report output, categorize failures, and identify root causes
 8. Test Corrections — prepare fixes and require approval before applying changes
 
-**Expect:** sequential state-driven execution with QA/frontend/test implementation focus. HITL gates occur in phases 2, 6, 7, and 8; phase 4 asks for page HTML only if needed. Your responsibility is to provide the test case, any ticket or Confluence context, answers, page HTML when requested, run the test, and provide the report.
+**API AQA phases:** 0. Project Config Loading → 1. Data Collection → 2. API Spec Analysis → 3. Gap & Requirements Clarification → 4. Test Case Specification (approval gate) → 5. Test Implementation (you execute) → 6. Execution & Report Analysis → 7. Test Corrections (approval gate); artifacts under `plans/api-aqa-{IDENTIFIER}/`.
+
+**Expect:** sequential state-driven execution (state under `agents/TEMP/<FEATURE>/`). Your responsibility is to provide the test case and context, answers, page HTML when requested, spec/fix approvals, run the tests, and provide the reports.
 
 ```
-/aqa-flow Automate the test case for the user registration flow
-/aqa-flow Implement automation for the regression suite test cases
-/aqa-flow Fix the failing automated test for the checkout flow
+/ui-aqa-flow Automate the test case for the user registration flow
+/api-aqa-flow Implement automation for the API regression suite test cases
+/ui-aqa-flow Fix the failing automated test for the checkout flow
 ```
 
 </details>
@@ -246,7 +248,7 @@ Generates structured requirements and TestRail-ready test cases from Jira and Co
 **Use when:** a Jira ticket, epic, or story needs QA scenarios; requirements need traceability to Jira and Confluence; or gaps and contradictions must be resolved before tests are written.
 
 **Phases:**
-0. Project Config Loading — load/create project test generation config and initialize `agents/testgen/{TICKET-KEY}/`
+0. Project Config Loading — load/create project test generation config and initialize `plans/testgen-{TICKET-KEY}/`
 1. Data Collection — retrieve Jira fields, comments, linked docs, Confluence pages, and child pages into `raw-data.md`
 2. Gap and Contradiction Analysis — identify contradictions, gaps, ambiguities, risks, and source conflicts in `analysis.md`
 3. Question Generation and User Input — generate `questions.md`, wait for answers, and save `answers.md`

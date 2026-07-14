@@ -402,4 +402,4 @@ The old code in `refsrc/` keeps its own `docs/CONTEXT.md` and `docs/ARCHITECTURE
 ### Generate specs and test coverage for the old code
 
 - Use `/requirements-authoring-flow` or `Allium` to generate specs from the existing old code.
-- Use `/coding-flow` for unit tests and `/aqa-flow` for e2e tests to cover the old code before you change it.
+- Use `/coding-flow` for unit tests and `/ui-aqa-flow` for e2e tests to cover the old code before you change it.

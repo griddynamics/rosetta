@@ -69,7 +69,7 @@ flowchart LR
     D["ask to initialize<br/>in chat"] --> A["Rosetta detects mode<br/>and analyzes your repo"]
     A --> W["creates workspace baseline<br/>TECHSTACK · CODEMAP · DEPENDENCIES · CONTEXT · ARCHITECTURE"]
     W --> Q["asks gap-filling<br/>questions"]
-    Q --> S["you build with<br/>/coding-flow · /aqa-flow · …"]
+    Q --> S["you build with<br/>/coding-flow · /ui-aqa-flow · …"]
 
     classDef step fill:#1f6feb,stroke:#1b4fb8,color:#ffffff;
     class D,A,W,Q,S step

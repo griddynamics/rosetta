@@ -234,12 +234,12 @@ Read full workflow: [Research Flow](/rosetta/docs/research-flow/)
 <details markdown="1">
 <summary><b>Automated QA</b></summary>
 
-Creates or updates automated UI tests from a TestRail case, Confluence context, and the project test architecture. The workflow reads requirements first, clarifies assertions, analyzes existing tests and Page Objects, identifies selectors from source or page HTML, implements the test, then waits for execution results before proposing fixes.
+Two test-automation workflows plus a compatibility router. `ui-aqa-flow` creates or updates automated UI tests from a TestRail case, Confluence context, and the project test architecture: it clarifies assertions, analyzes existing tests and Page Objects, identifies selectors from source or page HTML, implements the test, then waits for execution results before proposing fixes. `api-aqa-flow` automates backend API tests: it loads a project config, collects test cases and docs, extracts endpoint contracts from Swagger/OpenAPI or code, writes Given-When-Then specs for approval, implements them, and triages your execution results. `/aqa-flow` routes to the right flow (or to Test Case Generation) and asks when the request is unclear.
 
-**Use when:** automate a TestRail case or QA scenario, reuse existing Page Objects and helpers, avoid guessed selectors, or analyze a failing automated test report.
+**Use when:** automate a TestRail case or QA scenario (UI or API), reuse existing Page Objects and helpers, avoid guessed selectors or invented endpoint schemas, or analyze a failing automated test report.
 
-**Phases:**
-1. Data Collection — collect TestRail, Confluence, project instructions, and create `agents/plans/aqa-<test-name>.md`
+**UI-AQA phases:**
+1. Data Collection — collect TestRail, Confluence, project instructions, and create `plans/ui-aqa-<test-name>/test-plan.md`
 2. Requirements Clarification — ask assertion and behavior questions; wait for answers before code analysis
 3. Code Analysis — inspect frontend code, Page Objects, existing tests, utilities, and project conventions
 4. Selector Identification — map steps to UI elements; request page source only when selectors cannot be found
@@ -248,14 +248,17 @@ Creates or updates automated UI tests from a TestRail case, Confluence context, 
 7. Test Report Analysis — read test report output, categorize failures, and identify root causes
 8. Test Corrections — prepare fixes and require approval before applying changes
 
-**Expect:** sequential state-driven execution with QA/frontend/test implementation focus. HITL gates occur in phases 2, 6, 7, and 8; phase 4 asks for page HTML only if needed. Your responsibility is to provide the TestRail case, Confluence context, answers, page HTML when requested, run the test, and provide the report.
+**API-AQA phases:** 0. Project Config Loading → 1. Data Collection → 2. API Spec Analysis → 3. Gap & Requirements Clarification → 4. Test Case Specification (approval gate) → 5. Test Implementation (you execute) → 6. Execution & Report Analysis → 7. Test Corrections (approval gate); artifacts under `plans/api-aqa-{IDENTIFIER}/`.
+
+**Expect:** sequential state-driven execution (state under `agents/TEMP/<FEATURE>/`). Your responsibility is to provide the QA source and context, answers, page HTML when requested, spec/fix approvals, run the tests, and provide the reports.
 
 ```
+/ui-aqa-flow Create QA automation for the checkout flow
+/api-aqa-flow Write backend API tests for TC-1234. Swagger: https://api.example.com/swagger.json
 /aqa-flow Write tests for the user registration feature
-/aqa-flow Create QA automation for the checkout flow
 ```
 
-Read full workflow: [AQA Flow](/rosetta/docs/aqa-flow/)
+Read full workflows: [UI AQA Flow](/rosetta/docs/ui-aqa-flow/) · [API AQA Flow](/rosetta/docs/api-aqa-flow/) · [AQA router](/rosetta/docs/aqa-flow/)
 
 </details>
 
@@ -267,7 +270,7 @@ Generates structured requirements and TestRail-ready test cases from Jira and Co
 **Use when:** a Jira ticket, epic, or story needs QA scenarios; requirements need traceability to Jira and Confluence; or gaps and contradictions must be resolved before tests are written.
 
 **Phases:**
-0. Project Config Loading — load/create project test generation config and initialize `agents/testgen/{TICKET-KEY}/`
+0. Project Config Loading — load/create project test generation config and initialize `plans/testgen-{TICKET-KEY}/`
 1. Data Collection — retrieve Jira fields, comments, linked docs, Confluence pages, and child pages into `raw-data.md`
 2. Gap and Contradiction Analysis — identify contradictions, gaps, ambiguities, risks, and source conflicts in `analysis.md`
 3. Question Generation and User Input — generate `questions.md`, wait for answers, and save `answers.md`
