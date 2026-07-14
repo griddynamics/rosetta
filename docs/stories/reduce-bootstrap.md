@@ -99,6 +99,7 @@ Batch contents:
 - `DEVELOPER_GUIDE.md:49` — MCP authoring one-liner (`MUST ACQUIRE coding-agents-prompting-flow.md FROM KB`).
 - Plugin regeneration + publish itself (only when requested).
 - `agents/TEMP/old-gen-r2/**` — generation artifacts, delete at will in the batch.
+- ✅ AQA-split docs sync landed on `on-v3-release` (2026-07-14, after the #131 port): website per-flow pages `ui-aqa-flow.md` + `api-aqa-flow.md` + `aqa-flow.md` router page + nav; testgen page re-pathed (`plans/testgen-{TICKET-KEY}/`, per-ticket config, export receipt/80% threshold/P0-UNKNOWN, r3 links); root `QUICKSTART.md`/`USAGE_GUIDE.md`/`CONFIGURATION.md`/`README.md` + both `llms-full.txt` copies updated to the split. Plugin regeneration re-runs AFTER #131 lands in main (same pinned flags).
 
 ---
 
