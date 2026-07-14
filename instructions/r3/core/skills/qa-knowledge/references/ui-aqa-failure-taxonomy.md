@@ -1,8 +1,8 @@
-# UI-QA failure taxonomy
+# UI-AQA failure taxonomy
 
 Exhaustive, mutually-exclusive categories for UI/E2E-QA test-execution triage.
 
-<ui-qa-failure-taxonomy>
+<ui-aqa-failure-taxonomy>
 
 Assign **exactly one** category per failure (the most-proximate cause):
 
@@ -14,6 +14,6 @@ Assign **exactly one** category per failure (the most-proximate cause):
 6. **Test code**: logic error, wrong helper API, missing await/async
 7. **Unknown**: failure occurred but no usable evidence (explicit catch-all)
 
-Selector/Locator entries MUST analyze the captured page source under `plans/ui-qa-<test-name>/page-sources/`. If that directory is missing, tag `Unknown: page sources not available; needs the selector-identification phase re-run` -- never silently skip.
+Selector/Locator entries MUST analyze the captured page source under `plans/ui-aqa-<test-name>/page-sources/`. If that directory is missing, tag `Unknown: page sources not available; needs the selector-identification phase re-run` -- never silently skip.
 
-</ui-qa-failure-taxonomy>
+</ui-aqa-failure-taxonomy>

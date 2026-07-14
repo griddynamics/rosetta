@@ -33,7 +33,7 @@ The runnable gap-analysis method (variants + process) and the probe catalogs to 
 - **Business logic** -- unexplained calculations, incomplete rules, missing workflow steps.
 - **Dependency** -- unlisted external systems, undocumented API endpoints, unspecified third-party services.
 - **API/test-spec variant** (test-cases-vs-API-spec): missing endpoint details (path/method/version/base URL), request details (required fields/types/validation/headers/Content-Type), response details (status codes/body schema/error format/headers), auth details (mechanism/credentials/token flow/roles), test-data details (input values/expected values/preconditions/cleanup), edge cases (empty/null, over-limit, invalid type, duplicates, concurrency, rate limiting).
-- **Test-plan variant** (UI-QA plan completeness -- five dimensions, all MUST be evaluated):
+- **Test-plan variant** (UI-AQA plan completeness -- five dimensions, all MUST be evaluated):
   - **D1 -- Steps clarity:** concrete actor, action, target -- no vague steps.
   - **D2 -- Result measurability:** observable values, not "works correctly" / "as expected".
   - **D3 -- Test data:** values, sources, lifecycle defined.
@@ -61,7 +61,7 @@ The runnable gap-analysis method (variants + process) and the probe catalogs to 
 - **Medium / Should** -- can proceed but quality or correctness is affected.
 - **Low / Optional** -- minor clarification; will not block.
 
-Each finding receives exactly one tier. For the UI-QA test-plan variant, also tag **Confidence: High** (clearly a gap) or **Confidence: Low** (borderline -- flag for the phase to prioritize). For gaps expressible as a concrete measurable assertion (e.g. `response.statusCode == 200`, `page.title == "Order Confirmed"`), record the derived assertion in the entry; otherwise leave it blank -- never fabricate.
+Each finding receives exactly one tier. For the UI-AQA test-plan variant, also tag **Confidence: High** (clearly a gap) or **Confidence: Low** (borderline -- flag for the phase to prioritize). For gaps expressible as a concrete measurable assertion (e.g. `response.statusCode == 200`, `page.title == "Order Confirmed"`), record the derived assertion in the entry; otherwise leave it blank -- never fabricate.
 
 ## Authoring discipline for every finding
 

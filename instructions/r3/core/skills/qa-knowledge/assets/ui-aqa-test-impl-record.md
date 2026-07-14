@@ -1,10 +1,10 @@
-# UI-QA test-implementation record
+# UI-AQA test-implementation record
 
-UI-QA Test Implementation record -- appended to the test plan after authoring.
+UI-AQA Test Implementation record -- appended to the test plan after authoring.
 
-<ui-qa-test-impl-record>
+<ui-aqa-test-impl-record>
 
-**Append to** `plans/ui-qa-<test-name>/test-plan.md` -- the test-plan file (same `<test-name>` slug used throughout the UI-QA run).
+**Append to** `plans/ui-aqa-<test-name>/test-plan.md` -- the test-plan file (same `<test-name>` slug used throughout the UI-AQA run).
 
 **Inputs required:** the test plan's Explicit Assertions, the test file path, the page objects used, and any user-instruction-vs-repo-doc conflicts encountered.
 
@@ -49,4 +49,4 @@ Template -- fill each subsection:
 - **Conflicts and Precedence:** user asked for `data-cy` selectors but `ARCHITECTURE.md` mandates `data-testid` → applied `data-testid` (repo docs win).
 - **Validation:** all boxes checked after the local lint + assertion-coverage pass.
 
-</ui-qa-test-impl-record>
+</ui-aqa-test-impl-record>

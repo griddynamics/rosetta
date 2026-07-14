@@ -8,11 +8,11 @@ Without this skill, an agent doing QA setup will invent folder names, guess slug
 Use when you need to create a QA session folder, derive `{IDENTIFIER}` or `<test-name>`, resolve an artifact path, or seed/read the QA state/config files. It owns WHERE QA artifacts live, not HOW QA artifacts are authored or analyzed. Like `qa-knowledge`, it is helper-only (`disable-model-invocation: true`, `user-invocable: false`) and is expected to be loaded by QA workflows.
 
 ## How it works
-Single flat `SKILL.md` with `assets/` and `references/` subfolders. Root `<qa_structure>` contains `<when_to_use_skill>`, `<core_concepts>`, `<resources>`, and `<anti_patterns>`. The central mechanic is progressive disclosure: load exactly one layout reference (`api-qa-layout.md` XOR `ui-qa-layout.md`) for the active flow, optionally load `config-schema.md` for config validation, then READ SKILL FILE for the matching template asset only when the current step needs it. Slug rules, reserved words, and the 8-row phase-status state-file shape are defined here and must be used verbatim.
+Single flat `SKILL.md` with `assets/` and `references/` subfolders. Root `<qa_structure>` contains `<when_to_use_skill>`, `<core_concepts>`, `<resources>`, and `<anti_patterns>`. The central mechanic is progressive disclosure: load exactly one layout reference (`api-aqa-layout.md` XOR `ui-aqa-layout.md`) for the active flow, optionally load `config-schema.md` for config validation, then READ SKILL FILE for the matching template asset only when the current step needs it. Slug rules, reserved words, and the 8-row phase-status state-file shape are defined here and must be used verbatim.
 
 ## Mental hooks & unexpected rules
 - "This skill is the SSoT for QA paths, identifiers, and state-file shape" — downstream QA steps should not improvise their own locations.
-- Layout loading is XOR, not additive: load `api-qa-layout` or `ui-qa-layout`, never both unless a task truly spans both flows.
+- Layout loading is XOR, not additive: load `api-aqa-layout` or `ui-aqa-layout`, never both unless a task truly spans both flows.
 - "Underivable slug" is a stop condition after one user attempt; guessing is explicitly forbidden.
 - Shared `agents/` output is treated as a collision bug; per-session `plans/...` folders are mandatory.
 

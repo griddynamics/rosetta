@@ -10,7 +10,7 @@ Both modes apply reverse-engineering's method to a concrete QA target and EMIT f
 - Apply reverse-engineering's map-the-territory discipline over the test stack: framework + language, project structure (test / page-object / utility / fixture dirs), coding standards and test patterns (AAA, Given-When-Then, setup/teardown), and any captured user-instructions or repo architecture docs.
 - Inventory reusable assets: page objects (what each represents, selectors, methods, reuse-vs-extend-vs-new), similar existing tests (structure, imports, assertion style), shared utilities (login/nav/data helpers, custom matchers, generators).
 - Inform the requested implementation decision (e.g. test location: add-to-existing vs new-file) by citing the provided rule; never decide the artifact's section list yourself.
-- EMIT into the provided code-analysis report structure -- UI-QA: READ SKILL FILE `assets/code-analysis-report-template.md` (concrete section template + test-location worked example).
+- EMIT into the provided code-analysis report structure -- UI-AQA: READ SKILL FILE `assets/code-analysis-report-template.md` (concrete section template + test-location worked example).
 - Epistemic honesty: every optional input (user-instructions, frontend source, repo docs) is recorded as `available` or `not available — <impact>` in the coverage section. Silent omission is forbidden — downstream phases misread missing-data as no-issues. On source conflict, authoritative repo docs win; record the conflict, never silently overwrite.
 
 **Mode: API-contract extraction.** Recover endpoint contracts from a Swagger/OpenAPI spec OR backend route definitions for a provided target-endpoint list.

@@ -1,10 +1,10 @@
-# UI-QA test-plan template
+# UI-AQA test-plan template
 
-UI-QA test-plan skeleton (plans/ui-qa-<test-name>/test-plan.md) -- Test Case Information, Feature Context, Access / Cross-Reference notes.
+UI-AQA test-plan skeleton (plans/ui-aqa-<test-name>/test-plan.md) -- Test Case Information, Feature Context, Access / Cross-Reference notes.
 
-<ui-qa-plan-template>
+<ui-aqa-plan-template>
 
-Output template for `plans/ui-qa-<test-name>/test-plan.md`. Populate `## Access / Truncation Notes` from `data-collection`'s disclosure (truncation, permission denials, `[empty page]`, cross-domain fallbacks); never omit. TestRail (TMS), Confluence (Wiki), Jira (issue tracker) used here as an example, replace with what currently used.
+Output template for `plans/ui-aqa-<test-name>/test-plan.md`. Populate `## Access / Truncation Notes` from `data-collection`'s disclosure (truncation, permission denials, `[empty page]`, cross-domain fallbacks); never omit. TestRail (TMS), Confluence (Wiki), Jira (issue tracker) used here as an example, replace with what currently used.
 
 **Inputs required:** the TestRail Case ID, the Confluence page URL(s), and `data-collection`'s disclosure output.
 
@@ -15,7 +15,7 @@ Output template for `plans/ui-qa-<test-name>/test-plan.md`. Populate `## Access 
 **Done when** every section holds a real value or explicit `N/A -- <reason>` (no blank section): Test Case Information, Feature Context, Access / Truncation Notes, Cross-Reference Notes.
 
 ```markdown
-# UI-QA Test Plan - <Test Name>
+# UI-AQA Test Plan - <Test Name>
 
 **Created**: [DateTime]
 **TestRail Case**: [ID/URL]
@@ -61,4 +61,4 @@ Output template for `plans/ui-qa-<test-name>/test-plan.md`. Populate `## Access 
 - [Gaps, contradictions, or observations between TestRail and Confluence -- e.g. `TestRail step 3 expects 200; Confluence references 204 -- [CONFLICT -- await clarification]`]
 ```
 
-</ui-qa-plan-template>
+</ui-aqa-plan-template>

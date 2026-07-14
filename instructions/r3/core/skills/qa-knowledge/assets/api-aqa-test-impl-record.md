@@ -1,8 +1,8 @@
-# API-QA test-implementation record
+# API-AQA test-implementation record
 
 Hand-off fields the testing skill returns and the phase verifies.
 
-<api-qa-test-impl-record>
+<api-aqa-test-impl-record>
 
 **Field rule:** every field carries a real value, `None -- …`, or `[UNKNOWN: <what is needed>]` (e.g. lint toolchain absent, framework version unknown) -- never blank, never omit a section. **Done when** all fields are filled and `### Ready for re-test` carries a yes/no + reason.
 
@@ -28,4 +28,4 @@ Summary fields in order:
 - Ran locally: lint + the 12 new ATC tests (all pass). Waived: full-suite regression (user-approved -- residual risk: a cross-module side-effect would surface only in CI).
 ```
 
-</api-qa-test-impl-record>
+</api-aqa-test-impl-record>

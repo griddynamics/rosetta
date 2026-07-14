@@ -1,12 +1,12 @@
-# UI-QA clarification templates
+# UI-AQA clarification templates
 
-UI-QA requirements-clarification templates -- gap entry, clarification questions message, and the test-plan clarification section (typed Explicit Assertions).
+UI-AQA requirements-clarification templates -- gap entry, clarification questions message, and the test-plan clarification section (typed Explicit Assertions).
 
-<ui-qa-clarification-templates>
+<ui-aqa-clarification-templates>
 
-**Completeness dimensions** (gap-entry `Dimension` field): **D1** steps clarity · **D2** result measurability · **D3** test data · **D4** edge cases · **D5** success criteria. (Full catalog owned by the `requirements-use` gap_analysis mode.)
+**Completeness dimensions** (gap-entry `Dimension` field): **D1** steps clarity · **D2** result measurability · **D3** test data · **D4** edge cases · **D5** success criteria. (Full catalog: the `<gap_analysis>` mode's test-plan variant -- READ SKILL FILE `references/gap-analysis-catalogs.md`.)
 
-**Prerequisite:** the plan `plans/ui-qa-<test-name>/test-plan.md` must have Test Steps + Expected Overall Result before these templates apply. If it is absent or a dimension cannot be evaluated, STOP and report.
+**Prerequisite:** the plan `plans/ui-aqa-<test-name>/test-plan.md` must have Test Steps + Expected Overall Result before these templates apply. If it is absent or a dimension cannot be evaluated, STOP and report.
 
 **Router:** use only the section your step needs: **Gap entry** (record a gap), **Clarification questions message** (user-facing ask), **Test-plan clarification section** (write results back).
 
@@ -52,7 +52,7 @@ Please provide answers so I can proceed with test implementation.
 
 ## Test-plan clarification section
 
-`### Explicit Assertions` is **mandatory**: each listed assertion MUST be implemented OR recorded as Uncovered downstream (no silent drops). Carry every gap-entry `Derived assertion` into the typed list; zero derived → emit the None-clause, never omit the section. Add to `plans/ui-qa-<test-name>/test-plan.md`:
+`### Explicit Assertions` is **mandatory**: each listed assertion MUST be implemented OR recorded as Uncovered downstream (no silent drops). Carry every gap-entry `Derived assertion` into the typed list; zero derived → emit the None-clause, never omit the section. Add to `plans/ui-aqa-<test-name>/test-plan.md`:
 
 ```markdown
 ## Phase 2: Requirements Clarification
@@ -96,4 +96,4 @@ Each assertion carries a **type** (Presence / State / Content / Behavioral) and 
 
 Apply the same shape (typed prefix → subject → exact-or-contains qualifier → trigger) to every assertion.
 
-</ui-qa-clarification-templates>
+</ui-aqa-clarification-templates>

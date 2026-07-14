@@ -1,10 +1,10 @@
-# API-QA test-spec template
+# API-AQA test-spec template
 
 QA test-specs.md skeleton -- Summary, Given-When-Then ATC scenarios, file mapping, shared utilities, execution order.
 
 <test-spec-template>
 
-Skeleton for `plans/api-qa-{IDENTIFIER}/test-specs.md`. The shape already in context; the skill emits Given-When-Then ATC entries into this shape. (Outer fence = 4 backticks so the inner 3-backtick example doesn't terminate it.)
+Skeleton for `plans/api-aqa-{IDENTIFIER}/test-specs.md`. The shape already in context; the skill emits Given-When-Then ATC entries into this shape. (Outer fence = 4 backticks so the inner 3-backtick example doesn't terminate it.)
 
 ````markdown
 # QA Test Specifications - [IDENTIFIER]

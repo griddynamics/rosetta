@@ -1,8 +1,8 @@
-# API-QA config interview
+# API-AQA config interview
 
 Verbatim user-prompt interview asked when the project config does not yet exist.
 
-<api-qa-config-interview>
+<api-aqa-config-interview>
 
 Adapt and ask (via the structured-questioning step) only when the project config does not exist. Confirm the answer covers at minimum: document storage (or docs are in-repo), Swagger/OpenAPI availability, and where test cases come from. If a required field is missing, ask ONE follow-up naming the missing fields (cap: 2 rounds). Covers every **required** key in the config schema -- to verify coverage if unsure, READ SKILL FILE `references/config-schema.md`.
 
@@ -45,6 +45,6 @@ Please answer what you know — I can discover the rest from code and docs.
 ```
 
 **After the interview (agent-facing):**
-- **Output:** READ SKILL FILE `assets/api-qa-project-config-template.md`, populate it with the answers (apply its redaction note), then write to `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md`.
+- **Output:** READ SKILL FILE `assets/api-aqa-project-config-template.md`, populate it with the answers (apply its redaction note), then write to `plans/api-aqa-{IDENTIFIER}/api-aqa-project-config.md`.
 
-</api-qa-config-interview>
+</api-aqa-config-interview>

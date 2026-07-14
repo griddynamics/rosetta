@@ -2,7 +2,7 @@
 
 Holds connection verification, field mappings, MCP tool signatures, the destructive-write confirmation gate, and post-export ID handling.
 
-Bindings are already in context: authored case-set source path, `project_id`, `suite_id`, `section_id`, workflow-state path, and any per-instance priority/type override tables. Missing `project_id` / `suite_id` / case-set path → the export cannot run; stop and report `testing testrail-export: required input missing — <name>`. Do NOT pick defaults for these -- the safety gate against exporting to the wrong project depends on them being explicit. Collect `section_id` from the user at step 2 if not pre-supplied.
+Bindings are already in context: authored case-set source path, `project_id`, `suite_id`, `section_id`, workflow-state path, and any per-instance priority/type override tables. Missing `project_id` / `suite_id` / case-set path → the export cannot run; stop and report `testrail-export: required input missing — <name>`. Do NOT pick defaults for these -- the safety gate against exporting to the wrong project depends on them being explicit. Collect `section_id` from the user at step 2 if not pre-supplied.
 
 ---
 

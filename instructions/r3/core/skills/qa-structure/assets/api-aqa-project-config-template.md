@@ -1,13 +1,13 @@
-# API-QA project-config template
+# API-AQA project-config template
 
-API-QA project-config markdown skeleton written to plans/api-qa-{IDENTIFIER}/api-qa-project-config.md.
+API-AQA project-config markdown skeleton written to plans/api-aqa-{IDENTIFIER}/api-aqa-project-config.md.
 
-<api-qa-project-config-template>
+<api-aqa-project-config-template>
 
-Write to `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md` -- one copy per session (see SKILL anti-pattern). Resolve `{IDENTIFIER}` from `agents/TEMP/<FEATURE>/api-qa-state.md`; populate each section from the user's answers. **`config-schema.md` is the single authority for required keys and accepted `N/A -- <reason>` forms;** required keys carry `[per config-schema]` placeholders. Mark deferred optional fields `TBD -- <reason>`.
+Write to `plans/api-aqa-{IDENTIFIER}/api-aqa-project-config.md` -- one copy per session (see SKILL anti-pattern). Resolve `{IDENTIFIER}` from `agents/TEMP/<FEATURE>/api-aqa-state.md`; populate each section from the user's answers. **`config-schema.md` is the single authority for required keys and accepted `N/A -- <reason>` forms;** required keys carry `[per config-schema]` placeholders. Mark deferred optional fields `TBD -- <reason>`.
 
 ```markdown
-# API-QA Project Config
+# API-AQA Project Config
 
 **Created**: [DateTime]
 **Last Updated**: [DateTime]
@@ -48,4 +48,4 @@ Write to `plans/api-qa-{IDENTIFIER}/api-qa-project-config.md` -- one copy per se
 - [If Redaction-at-intake was applied: `Original auth answer included a literal <kind> — redacted; agent should request mechanism+source description from user if env var name is unknown.`]
 ```
 
-</api-qa-project-config-template>
+</api-aqa-project-config-template>

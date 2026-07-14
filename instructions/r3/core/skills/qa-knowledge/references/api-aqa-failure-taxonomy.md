@@ -1,8 +1,8 @@
-# API-QA failure-taxonomy
+# API-AQA failure-taxonomy
 
 Exhaustive, mutually-exclusive categories for backend-QA test-execution triage.
 
-<api-qa-failure-taxonomy>
+<api-aqa-failure-taxonomy>
 
 Assign **exactly one** category per failure (the most-proximate cause):
 
@@ -17,4 +17,4 @@ Assign **exactly one** category per failure (the most-proximate cause):
 
 When the cause is undeterminable from evidence, tag `Unknown` -- never force-fit.
 
-</api-qa-failure-taxonomy>
+</api-aqa-failure-taxonomy>
