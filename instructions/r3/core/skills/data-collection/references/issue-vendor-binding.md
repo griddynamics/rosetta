@@ -1,18 +1,19 @@
 # Vendor binding: Issue vendor
 
-**Canonical issue vendor example: Jira** -- the field map and examples below use Jira; for another tracker (Linear, GitHub Issues, Azure Boards) map by capability, same method. All specs/queries/MCP/URL here use Jira as example, adapt target issue tracker system by example.
+**Canonical Issue Tracker example: Jira.** The field map and worked key/URL shapes below illustrate Jira. For another Issue Tracker, preserve the role contract and adapt handles/URLs, requests/calls, fields, errors, and terminology to that system.
 
-**Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured issue-tracker MCP/CLI/Fetch binding: **get issue** (with fields / expand / comment-limit), **search fields** (field-schema lookup), and -- write, forbidden in this read-only binding -- issue **create / update / transition / add comment**.
+**Operations below are named by capability, not by a fixed tool name.** Resolve each through the configured Issue Tracker integration: **get issue** (with fields / expand / comment-limit), **search fields** (field-schema lookup), and -- write, forbidden in this read-only binding -- issue **create / update / transition / add comment**.
 
 ---
 
 ## Input parsing
 
-The phase supplies a ticket key or URL. Resolve the canonical key:
+The phase supplies an issue handle or URL. Apply the resolved Issue Tracker's identifier rules. Jira example:
 
 - **Plain key** `PROJ-123` → use directly.
 - **URL** `https://jira.company.com/browse/PROJ-123` or `https://*.atlassian.net/browse/PROJ-123` → parse the `PROJ-NNN` segment.
-- **Ambiguous / missing / malformed** → stop per failure path "input-unresolvable". Do NOT guess or pick an arbitrary key.
+- **Other Issue Tracker** → parse its stable issue number/key according to its canonical handle/URL shape.
+- **Ambiguous / missing / malformed** → stop per failure path "input-unresolvable". Do NOT guess or pick an arbitrary issue.
 
 ## Retrieval (`extract + normalize` step)
 
@@ -35,7 +36,7 @@ The phase supplies a ticket key or URL. Resolve the canonical key:
 | Comments (≤10) | `comment` | per-comment author + date + body; redact bodies |
 | Custom fields | `customfield_*` | resolve names via **search fields**; `None -- no custom fields populated` if empty |
 
-Per-field branch per SKILL `<collection>` step 3; Jira restricted-gap message: `<field>: not visible to configured Jira credentials`. Continue extraction.
+Per-field branch per SKILL `<collection>` step 3; restricted-gap message: `<field>: not visible to configured Issue Tracker credentials`. Continue extraction.
 
 **Rendered example** (a normalized Jira issue block in the phase's output artifact):
 
@@ -54,10 +55,10 @@ Highest-risk: the **description** and each **comment body** (embed credentials/P
 
 ## Failure paths (SKILL `extract` step)
 
-- **Input unresolvable** (no/malformed key, URL not a recognizable Jira pattern) → stop, report `data-collection/jira: ticket key unresolvable from input "<input>"`, ask the phase/user for a canonical `PROJ-NNN` or URL. Do NOT guess.
-- **MCP/CLI/Fetch transport error** → per SKILL `<collection>` step 3 (retry once, then stop + report); ask to verify the Jira MCP/CLI/Fetch configuration.
-- **Ticket-not-found** (404 / empty / "issue does not exist") → stop, report `data-collection/jira: ticket <KEY> not found -- verify the key`. Do NOT emit a partial artifact.
-- **Authorization failure** (401/403) → stop, report `data-collection/jira: request rejected -- ticket <KEY> may exist but is not visible to the configured credentials`, ask to verify credentials / project access.
+- **Input unresolvable** → stop, report `data-collection/<issue-tracker>: issue handle unresolvable from input "<input>"`, ask for a canonical handle/URL for the resolved Issue Tracker.
+- **Integration transport error** → retry once, then stop + report; ask to verify the configured Issue Tracker integration.
+- **Issue-not-found** → stop, report `data-collection/<issue-tracker>: issue <handle> not found -- verify the reference`. Do NOT emit a partial artifact.
+- **Authorization failure** (401/403 or provider equivalent) → stop, report `data-collection/<issue-tracker>: request rejected -- issue <handle> may exist but is not visible to the configured credentials`, ask to verify access.
 - **Required field empty / permission-restricted / search-fields discovery failure** → per the field-map per-field branch above (continue + gap, do not stop).
 
 ## Validation items (binding-specific, added to SKILL `<validation_checklist>`)
