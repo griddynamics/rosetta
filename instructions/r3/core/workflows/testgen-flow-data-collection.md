@@ -2,6 +2,7 @@
 name: testgen-flow-data-collection
 description: "Phase 1 Data Collection of testgen-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -9,46 +10,47 @@ baseSchema: docs/schemas/phase.md
 <testgen_flow_data_collection>
 
 <description_and_purpose>
-Extract all relevant data from Jira ticket and related Confluence/Google Drive documentation to establish baseline for gap analysis and requirements generation.
+Extract all relevant data from the Issue Tracker ticket and related Wiki / documentation sources to establish baseline for gap analysis and requirements generation.
 </description_and_purpose>
 
 <workflow_context>
 - Phase 1 of 7 in `testgen-flow`
 - Input: initial user request + `initial-data.md`
-- Output: `raw-data.md` with extracted Jira and Confluence data
+- Output: `raw-data.md` with extracted Issue Tracker and Wiki data
 - Prerequisite: Phase 0 complete
-- Collection skill: `data-collection` (single canonical collector). This phase resolves the in-scope vendor binding(s) from config and passes them to `data-collection` (which resolves and loads its own vendor binding internally).
-- **Config-resolved vendors (NOT hardcoded).** Resolve from the testgen project config / `initial-data.md` pointer:
-  - **Issue vendor** — first non-empty key (stop at first hit): `issue_mcp_collection_skill`, `issue_collection_skill`, `issue_tracker.mcp_collection_skill`. In-scope signal: `jira_base_url` present → binding = `jira`.
-  - **Documentation vendor** — first non-empty key: `documentation_mcp_collection_skill`, `documentation.mcp_collection_skill`, `mcp_documentation_collection_skill`, `confluence_mcp_collection_skill`. In-scope signals: `confluence_base_url` / `confluence_space` present → binding = `confluence`.
-  - **Fallback:** resolved vendor empty but scope clearly active → re-read config; still absent → `SKIPPED_NO_CONFIG` (record the gap + skip that source, do not fabricate a vendor).
-- MCPs: Jira, Confluence (or equivalent)
+- Collection skill: `data-collection` (single canonical collector). This phase resolves each in-scope provider and passes its role + provider to the skill; the skill loads the role-named binding.
+- **Provider resolution (merge evidence; providers are NOT hardcoded):**
+  1. Providers were resolved in Phase 0 (`testgen-project-config.md` data sources, prefilled from `gain.json` `sdlc.issue_tracker(_project)` / `sdlc.wiki(_project)`).
+  2. Reconcile with explicit user names/handles (which win for this run) and recognizable provider URLs in `initial-data.md` (valid evidence when unambiguous).
+  3. Evidence conflicting or ambiguous → ask only about the unresolved provider/input; never silently choose between conflicting systems.
+  4. Wiki scope clearly absent → `SKIPPED_NO_CONFIG` (record the gap + skip that source, do not fabricate a provider). The Issue Tracker source is required.
+- Integrations: Issue Tracker + Wiki per the parent Terminology (Jira and Confluence are the canonical examples throughout this phase).
 </workflow_context>
 
 <phase_steps>
-1. Extract Jira ticket data
-2. Get Confluence documentation
+1. Extract Issue Tracker ticket data
+2. Get Wiki documentation
 3. Create raw data document
 4. Update state file
 </phase_steps>
 
-<extract_jira step="1.1">
+<extract_ticket step="1.1">
 1. **Read `plans/testgen-{TICKET-KEY}/initial-data.md`** (contributes the original user prompt and a pointer to the project config) and the original user request.
-2. Resolve the **Issue vendor binding** per `<workflow_context>` (`jira_base_url` set → binding = `jira`). If unresolvable with scope active, re-read config; still absent → record the gap and stop Phase 1.
+2. Resolve the **Issue Tracker provider** per `<workflow_context>`. If unresolvable with scope active, re-read config; still absent → record the gap and stop Phase 1.
 3. Extract ticket key from user input (parse from URL if needed). **Ticket-key extraction failure path:** if no key can be parsed (no URL, malformed input, ambiguous candidates): stop Phase 1, ask the user once for the exact ticket key (`PROJ-NNN` form), do not proceed until the user provides it. After 2 unsuccessful re-asks, record `Phase 1 blocked: ticket key unresolvable` in `testgen-state.md` and stop.
-4. USE SKILL `data-collection` with the resolved issue vendor binding (`jira`), passing the resolved ticket key and the Jira section of `<create_raw_data>`'s minimum-output contract; the skill loads its own issue vendor binding. Retrieve fields: summary, description, status, issuetype, priority, labels, components, assignee, reporter, comments (up to 10). Redaction runs inside `data-collection` via `sensitive-data` before write.
+4. USE SKILL `data-collection` with role `Issue Tracker`, the resolved provider, the resolved ticket key, and the ticket section of `<create_raw_data>`'s minimum-output contract; the skill loads its issue binding and adapts the canonical Jira examples to the target system. Retrieve fields: summary, description, status, issuetype, priority, labels, components, assignee, reporter, comments (up to 10). Redaction runs inside `data-collection` via `sensitive-data` before write.
 
-</extract_jira>
+</extract_ticket>
 
-<get_confluence step="1.2">
-1. Resolve the **Documentation vendor binding** per `<workflow_context>` (`confluence_base_url` / `confluence_space` set → binding = `confluence`). If documentation MCP is not in scope, apply `SKIPPED_NO_CONFIG`: record `Confluence Source: Skipped — no documentation MCP configuration` and proceed Jira-only.
-2. USE SKILL `data-collection` with the resolved documentation vendor binding (`confluence`), passing the Confluence input handle(s) and the Confluence section of `<create_raw_data>`'s contract. The skill's documentation vendor binding owns URL parsing, direct-URL-vs-search precedence, child-page traversal, truncation, deduplication, permission fallbacks, AND the authenticated MCP reads/searches in one binding — no second skill to reconcile against. Redaction runs inside `data-collection` via `sensitive-data` before write.
+<get_wiki step="1.2">
+1. Resolve the **Wiki provider** per `<workflow_context>`. If no Wiki is in scope, apply `SKIPPED_NO_CONFIG`: record `Wiki Source: Skipped — no Wiki configured` and proceed ticket-only.
+2. USE SKILL `data-collection` with role `Wiki`, the resolved provider, the Wiki input handle(s), and the Wiki section of `<create_raw_data>`'s contract. The skill's documentation binding owns URL parsing, direct-URL-vs-search precedence, child-page traversal, truncation, deduplication, permission fallbacks, AND the authenticated reads/searches in one binding — no second skill to reconcile against; its canonical Confluence examples adapt to the target system. Redaction runs inside `data-collection` via `sensitive-data` before write.
 3. **Search-term seed (passed to `data-collection` when no URLs supplied):** project key (from ticket key), labels, component names, key terms from summary/description.
-4. **Fallback**: when the binding reports zero pages after URL + search + its ask-once user fallback, record `Confluence Source: not available — proceeded Jira-only` in the data collection summary and continue. Do NOT fabricate documentation content.
-</get_confluence>
+4. **Fallback**: when the binding reports zero pages after URL + search + its ask-once user fallback, record `Wiki Source: not available — proceeded ticket-only` in the data collection summary and continue. Do NOT fabricate documentation content.
+</get_wiki>
 
 <create_raw_data step="1.3">
-**Minimum-output contract (asserted by this phase independent of skill internals):** `raw-data.md` MUST capture, at minimum — Jira: summary, description, status, priority, labels, components, comments; Confluence (when not skipped): page title, URL, content. Missing any of these = phase incomplete, regardless of what `data-collection` (`jira` / `confluence` bindings) defines internally.
+**Minimum-output contract (asserted by this phase independent of skill internals):** `raw-data.md` MUST capture, at minimum — ticket: summary, description, status, priority, labels, components, comments; Wiki (when not skipped): page title, URL, content. Missing any of these = phase incomplete, regardless of what the `data-collection` role bindings define internally. The template below shows Jira/Confluence field names as canonical examples — adapt labels to the resolved providers.
 
 1. Create `plans/testgen-{TICKET-KEY}/raw-data.md` with structure:
    ```markdown
@@ -56,14 +58,15 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 
 **Extracted**: [DateTime]
 **Phase**: 1 - Data Collection
-**Confluence Source**: [User-provided URLs / Auto-search / User-provided after search / Skipped]
+**Providers**: [resolved Issue Tracker / Wiki]
+**Wiki Source**: [User-provided URLs / Auto-search / User-provided after search / Skipped]
 
 ---
 
-## Jira Ticket Data
+## Issue Tracker Ticket Data
 
 ### Ticket: [KEY]
-**URL**: [Jira URL]
+**URL**: [Ticket URL]
 **Summary**: [Summary]
 **Type**: [Issue Type]
 **Status**: [Status]
@@ -100,10 +103,10 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 
 ---
 
-## Confluence Documentation
+## Wiki Documentation
 
 ### Page 1: [Page Title]
-**URL**: [Confluence URL]
+**URL**: [Wiki page URL]
 **Space**: [Space Key]
 **Labels**: [Labels]
 **Updated**: [Date]
@@ -119,7 +122,7 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 ---
 
 ### Page 2: [Child Page Title]
-**URL**: [Confluence URL]
+**URL**: [Wiki page URL]
 **Space**: [Space Key]
 **Parent Page**: [Parent Title] - [URL]
 **Labels**: [Labels]
@@ -137,9 +140,9 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
 
 ## Data Collection Summary
 
-- **Jira Ticket**: [KEY]
-- **Jira Fields Extracted**: [Count]
-- **Confluence Pages Found**: [Count]
+- **Ticket**: [KEY]
+- **Ticket Fields Extracted**: [Count]
+- **Wiki Pages Found**: [Count]
 - **Total Content Size**: [Approximate word count]
 - **Search Terms Used**: [List]
 - **Notes**: [Any issues during extraction]
@@ -160,54 +163,55 @@ Extract all relevant data from Jira ticket and related Confluence/Google Drive d
    # In `## Phase Details`, append:
    ### Phase 1
    - Completed: [ISO datetime]
-   - Jira Ticket: [TICKET-KEY]
-   - Jira Fields Captured: [count] (summary, description, status, priority, plus any extracted custom fields)
-   - Confluence Pages: [count] (or `0 — user approved skip` if no docs)
+   - Ticket: [TICKET-KEY]
+   - Ticket Fields Captured: [count] (summary, description, status, priority, plus any extracted custom fields)
+   - Wiki Pages: [count] (or `0 — user approved skip` if no docs)
    - Files Created: plans/testgen-{TICKET-KEY}/raw-data.md
-   - Notes: [partial-load flags from get_confluence step 1.2, or ticket-key-extraction notes from step 1.1, or `None`]
+   - Notes: [partial-load flags from get_wiki step 1.2, or ticket-key-extraction notes from step 1.1, or `None`]
    ```
 
    Update `**Current Phase**: 1` → `**Current Phase**: 2` and refresh `**Last Updated**` at the top of the file.
 
-2. Tell user: "Phase 1 complete. Found [X] Jira fields and [Y] Confluence pages."
+2. Tell user: "Phase 1 complete. Found [X] ticket fields and [Y] Wiki pages."
 3. Ask: "Ready to proceed to Phase 2 (Gap Analysis)?"
 4. **STOP AND WAIT** for explicit user confirmation before advancing to Phase 2. Do NOT auto-proceed on inferred approval or silence; treat ambiguous responses (questions, suggestions) as "not confirmed" and re-ask. This is a **priority-(3) per-phase confirmation** per `testgen-flow.md` `<orchestration_and_escalation>` — an explicit user instruction to skip it is honored there; it is **not** one of the never-overridable Phase 3 / Phase 6 HITL gates.
 </update_state>
 
 <validation_checklist>
-- `raw-data.md` created with Jira section populated
-- Confluence section has at least 1 page OR user confirmed skip
-- All key Jira fields captured (summary, description, status, priority)
+- `raw-data.md` created with the ticket section populated
+- Wiki section has at least 1 page OR user confirmed skip
+- All key ticket fields captured (summary, description, status, priority)
 - State file updated with Phase 1 complete
 </validation_checklist>
 
 <pitfalls>
-- Confluence search may miss child pages — always perform child-page traversal per `data-collection`'s `confluence` binding for each found page
-- Large Confluence pages should be truncated at ~5000 words with truncation noted
-- Confluence URL formats vary (display, direct, short) — be flexible in parsing
-- User-provided URLs from different Confluence domains may not be accessible via configured MCP
+- Wiki search may miss child pages — always perform child-page traversal per `data-collection`'s documentation binding for each found page
+- Large Wiki pages should be truncated at ~5000 words with truncation noted
+- Wiki URL formats vary (display, direct, short) — be flexible in parsing
+- User-provided URLs from a different Wiki domain may not be accessible via the configured integration
+- Treating a canonical vendor example (Jira/Confluence) as the configured provider
 </pitfalls>
 <common_issues>
 
-**Issue**: Jira ticket not found
+**Issue**: Ticket not found
 **Solution**: Verify ticket key with user, check permissions
 
-**Issue**: Confluence search returns 0 results
-**Solution**: Ask user for page URLs, or proceed with Jira-only analysis
+**Issue**: Wiki search returns 0 results
+**Solution**: Ask user for page URLs, or proceed with ticket-only analysis
 
-**Issue**: Confluence page too large
+**Issue**: Wiki page too large
 **Solution**: Include first 5000 words, note truncation in raw-data.md
 
 **Issue**: Custom fields not recognized
-**Solution**: Invoke the search-fields operation per `data-collection`'s `jira` binding (or equivalent MCP) to enumerate available field names
+**Solution**: Invoke the search-fields operation per `data-collection`'s issue binding (or equivalent integration) to enumerate available field names
 
-**Issue**: Confluence search finds parent but misses child pages
-**Solution**: Always perform the child-page traversal operation per `data-collection`'s `confluence` binding (or equivalent MCP) for each found page
+**Issue**: Wiki search finds parent but misses child pages
+**Solution**: Always perform the child-page traversal operation per `data-collection`'s documentation binding (or equivalent integration) for each found page
 
-**Issue**: User provided invalid Confluence URL
-**Solution**: Try to parse page ID, if fails ask user for correct URL or page ID
+**Issue**: User provided an invalid Wiki URL
+**Solution**: Try to parse the page handle; if that fails ask user for a correct URL or page ID
 
-**Issue**: Confluence URL is from different domain
-**Solution**: Warn user that Jira MCP might not have access, try anyway, fallback to asking for accessible pages
+**Issue**: Wiki URL is from a different domain
+**Solution**: The URL is still valid provider evidence — try the matching available integration once; on failure report the host mismatch and ask for an accessible equivalent or approval to continue without that source
 </common_issues>
 </testgen_flow_data_collection>

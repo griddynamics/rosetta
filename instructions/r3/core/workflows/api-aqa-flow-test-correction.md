@@ -2,7 +2,7 @@
 name: api-aqa-flow-test-correction
 description: "Phase 7 Test Corrections of api-aqa-flow (USER APPROVAL REQUIRED)"
 alwaysApply: false
-tags: []
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -20,7 +20,7 @@ Fix identified API test failures based on the Phase 6 execution report. Prepares
 - Prerequisite: Phase 6 complete
 - HITL: explicit user approval required before applying any change (a domain-specific specialization of `hitl`)
 - In-scope file set (single SSoT): test files + shared test-utility files only. Writes outside this set are refused and escalated.
-- Skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `qa-knowledge` (`correction` mode — proposed-change block + approval gate + correction discipline)
+- Skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `qa-knowledge` (`correction` mode — proposed-change block + approval gate + correction discipline), `qa-structure` (run paths + `api-aqa-state.md`), `hitl` (explicit approval)
 </workflow_context>
 
 <correction_contract>
@@ -36,28 +36,28 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 
 <execute_corrections step="7.1" subagent="engineer" role="Test correction engineer">
 **Preparation-only:** nothing in this block modifies workspace files until step 7.3 after explicit approval in 7.2. "Preparation-only" means proposed edits paired with before/after evidence — no writes to test or product source files.
-1. USE SKILL `debugging` to align each proposed edit with a confirmed Phase 6 root cause (no symptom-only fixes).
+1. USE SKILL `qa-structure` to resolve run paths/`api-aqa-state.md`. USE SKILL `debugging` to align each proposed edit with a confirmed Phase 6 root cause (no symptom-only fixes).
 2. USE SKILL `qa-knowledge` (`correction` mode) and USE SKILL `coding` to author each proposed edit (preparation-only — before/after evidence, no writes). The present → approve → apply discipline is owned by this phase: `<present_for_approval>` (7.2) + `<apply_changes>` (7.3). Bindings grouped by owner: proposed-change source = `plans/api-aqa-{IDENTIFIER}/execution-report.md`; proposed-change template + state file + iteration cap + loop target = `<correction_contract>`; in-scope file set = `<workflow_context>`; approval-token set = step 7.2.
 3. Produce one Proposed Change record per fix per the `<correction_contract>` template, citing the matching execution-report entry id (e.g. `ERR-3`). Do NOT apply anything yet.
 </execute_corrections>
 
 <present_for_approval step="7.2">
 1. Present all proposed changes with before/after code per the template.
-2. **Approval gate:** apply `qa-knowledge`'s shared approval gate over the presented changes — it owns token discipline, re-prompt caps, partial approval, and reject handling. Bindings: closed token list = `approved` / `approve` / `yes` (authoritative for this phase); re-present step = 7.2; full-reject revisit target = Phase 6. Strict approval per SKILL `hitl`.
+2. **Approval gate:** apply `qa-knowledge`'s shared approval gate and USE SKILL `hitl`. Ask for an explicit, scoped affirmative such as `Yes, I approve applying API-AQA corrections C1 and C3.` Approval must unambiguously use `approved`, `approve`, `yes`, or an equivalent affirmative tied to the presented changes. Comments, questions, suggestions, edits, and partial review are not approval. Partial approval applies only to named changes/hunks; re-present changed proposals (re-present step = 7.2); full rejection returns to Phase 6.
 </present_for_approval>
 
 <apply_changes step="7.3">
 1. Apply approved changes one at a time (or in named approved batches).
 2. Validate linting/format after each change. On lint failure: revert that change (never leave the file broken), re-prepare a corrected version, and re-present that single change via `<present_for_approval>`.
 3. Verify each applied change addresses its root cause by cross-referencing it to the matching entry in `plans/api-aqa-{IDENTIFIER}/execution-report.md` (cite the entry id, e.g. `ERR-3`). On root-cause mismatch: return to step 7.1 with a note in `agents/TEMP/<FEATURE>/api-aqa-state.md`; do not leave unmapped changes applied.
-4. **Max retries:** apply the `<correction_contract>` iteration cap — on the 3rd failed cycle for the same change, stop, record `Phase 7 blocked: in-phase apply retry cap reached` in the state file, escalate to the user.
+4. **Max retries:** apply the `<correction_contract>` iteration cap — on the 3rd failed cycle for the same change, stop, record `Phase 7 blocked: in-phase apply retry cap reached` in `api-aqa-state.md`, escalate to the user.
 </apply_changes>
 
 <update_state step="7.4">
 1. Update `agents/TEMP/<FEATURE>/api-aqa-state.md`:
    - Issues Fixed: [count]
    - Changes Applied: [count]
-   - User Approval: [datetime + exact token]
+   - User Approval: [datetime + exact approval statement + approved IDs/hunks]
    - Files Modified: [list]
    - Status: Ready for re-testing
    - Phase 7 completion timestamp
@@ -69,7 +69,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 <validation_checklist>
 - Phase 6 analysis reviewed; each proposed change linked to a confirmed root cause (execution-report entry id cited)
 - Proposed changes prepared with before/after code per the `<correction_contract>` template
-- User approval explicitly received per the exact closed token set (no inferred approval); partial approval applied only to named hunks
+- User approval explicitly received per `<present_for_approval>` (no inferred approval); partial approval applied only to named changes/hunks
 - All approved changes applied; only in-scope files touched
 - Linting/format checked and fixed after each change (lint failure reverted + re-presented, never left broken)
 - Changes address identified root causes; iteration cap honored, escalation recorded if reached
@@ -79,7 +79,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 <failure_handling>
 - **Execution report absent/empty:** if `plans/api-aqa-{IDENTIFIER}/execution-report.md` does not exist or has no failure entries, stop Phase 7, record `Phase 7 blocked: Phase 6 execution report missing/empty` in `agents/TEMP/<FEATURE>/api-aqa-state.md`, and return to Phase 6 — never fabricate proposed changes against a missing report.
 - **`agents/TEMP/<FEATURE>/api-aqa-state.md` missing or `{IDENTIFIER}` unresolvable:** stop Phase 7, record the failure in chat output, ask the user to restore the state file; do not auto-recreate it and do not guess `{IDENTIFIER}` (every input/output path depends on it).
-- **Proposed-change template unavailable** (the `qa-knowledge` load fails at step 7.1): stop — do NOT present a correction block authored from memory. Report the failed load and ask the user to fix Rosetta access.
+- **Required skill, approval gate, or proposed-change template unavailable** (`qa-structure`, `debugging`, `qa-knowledge`, `coding`, or `hitl` fails to load at step 7.1/7.2): retry once, then stop — do NOT present a correction block or run the approval gate from memory. Report the failed load and ask the user to fix Rosetta access.
 - **No change maps to a confirmed root cause:** if `debugging` (step 7.1.1) cannot align a proposed edit to a confirmed Phase 6 root cause, do not propose it; record the unmapped failure and return to Phase 6 for deeper analysis rather than applying a symptom-only fix.
 </failure_handling>
 

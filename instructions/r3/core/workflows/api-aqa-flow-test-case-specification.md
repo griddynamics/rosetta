@@ -2,7 +2,7 @@
 name: api-aqa-flow-test-case-specification
 description: "Phase 4 Test Case Specification of api-aqa-flow (HITL APPROVAL GATE)"
 alwaysApply: false
-tags: []
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -19,7 +19,7 @@ Convert test cases into detailed, implementation-ready API test specifications u
 - Output: `plans/api-aqa-{IDENTIFIER}/test-specs.md` with Given-When-Then scenarios, file mapping, shared utilities
 - Prerequisite: Phase 3 complete, all user clarifications received
 - HITL: explicit user approval required before Phase 5
-- Skills: `qa-knowledge` (`scenario_design` mode + test-specs skeleton + ATC conventions), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path)
+- Skills: `qa-knowledge` (`scenario_design` mode + test-specs skeleton + ATC conventions), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path), `hitl` (explicit approval)
 </workflow_context>
 
 <phase_steps>
@@ -57,8 +57,8 @@ Create `plans/api-aqa-{IDENTIFIER}/test-specs.md` per `qa-knowledge`'s test-spec
 
 <present_for_approval step="4.4">
 1. Present summary to user: total scenarios, priority breakdown, endpoints covered.
-2. **Approval gate:** USE SKILL `qa-knowledge` to run its shared approval gate — it owns token discipline, re-prompt caps, partial approval, and reject handling. Bindings: closed token list = `approved` / `approve` / `yes` (authoritative for this phase); re-present step = 4.3; full-reject revisit target = Phase 3. Treat partial approve as a change request that drops the rejected scenarios. Proceed to step 4.5 only on an exact token match. Strict approval per SKILL `hitl`.
-3. **DO NOT PROCEED** to Phase 5 without an exact approval token.
+2. **Approval gate:** apply `qa-knowledge`'s shared approval gate and USE SKILL `hitl`. Ask for an explicit, scoped affirmative such as `Yes, I approve the test specs.` Approval must unambiguously use `approved`, `approve`, `yes`, or an equivalent affirmative tied to the presented specs. Comments, questions, suggestions, edits, and partial review are not approval. Bindings: re-present step = 4.3; full-reject revisit target = Phase 3. Treat partial approve as a change request that drops the rejected scenarios.
+3. **DO NOT PROCEED** to Phase 5 without explicit approval.
 </present_for_approval>
 
 <update_state step="4.5">
@@ -67,7 +67,7 @@ Create `plans/api-aqa-{IDENTIFIER}/test-specs.md` per `qa-knowledge`'s test-spec
    - Test Cases Specified: [count]
    - Priority Breakdown: P0: [N], P1: [N], P2: [N], P3: [N]
    - Endpoints Covered: [count]
-   - User Approval: [datetime]
+   - User Approval: [datetime + exact approval statement]
    - Phase 4 completion timestamp
 3. Mark Phase 4 complete, Phase 5 current
 </update_state>
@@ -81,7 +81,7 @@ Create `plans/api-aqa-{IDENTIFIER}/test-specs.md` per `qa-knowledge`'s test-spec
 - Auth and error scenarios covered
 - Test file mapping defined
 - Shared utilities identified
-- User approval received
+- Explicit user approval received (comments, questions, or suggestions are not approval)
 </validation_checklist>
 
 <failure_handling>

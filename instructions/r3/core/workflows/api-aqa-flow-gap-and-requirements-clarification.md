@@ -2,7 +2,7 @@
 name: api-aqa-flow-gap-and-requirements-clarification
 description: "Phase 3 Gap & Requirements Clarification of api-aqa-flow (USER INTERACTION REQUIRED)"
 alwaysApply: false
-tags: []
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---

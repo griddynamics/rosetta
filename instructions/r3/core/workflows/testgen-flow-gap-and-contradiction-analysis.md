@@ -2,6 +2,7 @@
 name: testgen-flow-gap-and-contradiction-analysis
 description: "Phase 2 Gap & Contradiction Analysis of testgen-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -9,7 +10,7 @@ baseSchema: docs/schemas/phase.md
 <testgen_flow_gap_and_contradiction_analysis>
 
 <description_and_purpose>
-Analyze Jira ticket and Confluence documentation to identify contradictions, gaps, ambiguities, and inconsistencies that need clarification before requirements generation.
+Analyze the Issue Tracker ticket and Wiki documentation to identify contradictions, gaps, ambiguities, and inconsistencies that need clarification before requirements generation.
 </description_and_purpose>
 
 <workflow_context>
@@ -29,18 +30,18 @@ Analyze Jira ticket and Confluence documentation to identify contradictions, gap
 
 <load_raw_data step="2.1">
 1. Read `plans/testgen-{TICKET-KEY}/raw-data.md` completely
-2. Extract key sections: Jira description and acceptance criteria, labels, components, priority, each Confluence page content, comments from both sources
+2. Extract key sections: ticket description and acceptance criteria, labels, components, priority, each Wiki page content, comments from both sources
 3. **Failure paths:**
    - **`raw-data.md` missing:** stop Phase 2, record `Phase 2 blocked: raw-data.md missing` in `testgen-state.md`, and ask user to rerun Phase 1.
-   - **`raw-data.md` exists but key sections empty** (no Jira description / no Confluence content): record the empty sections as gaps for Phase 3 to surface, and proceed — do not silently fabricate content.
+   - **`raw-data.md` exists but key sections empty** (no ticket description / no Wiki content): record the empty sections as gaps for Phase 3 to surface, and proceed — do not silently fabricate content.
    - **`raw-data.md` corrupt / unparseable:** stop Phase 2, record the parse error, and ask user to inspect the file.
 </load_raw_data>
 
 <run_analysis step="2.2" subagent="architect" role="Requirements gap analyst">
 1. USE SKILL `qa-knowledge` (`gap_analysis` mode, general multi-source variant). The mode is analysis-only and EMITS categorized findings into this phase's `<analysis_document_contract>` artifact; it never invents the artifact shape or path.
-2. Sources to analyze: Jira ticket data + Confluence page data from `raw-data.md`.
+2. Sources to analyze: Issue Tracker ticket data + Wiki page data from `raw-data.md`.
 3. Identify contradictions, gaps, ambiguities per the mode's detection catalogs — contradiction (value-mismatch / logic-conflict / requirement-conflict), gap (functional / non-functional / data / business-logic / dependency), and ambiguity (vague-term) probes. This phase does NOT restate the taxonomies; it invokes them through the mode and OWNS the output document below.
-4. Cross-reference Jira vs Confluence for information present only in one source (single-source case → skip-with-note).
+4. Cross-reference ticket vs Wiki for information present only in one source (single-source case → skip-with-note).
 </run_analysis>
 
 <create_analysis_document step="2.3">
@@ -57,7 +58,7 @@ The document has these sections in order; empty finding sections carry `No issue
 # Analysis - [TICKET-KEY]
 
 **Analyzed**: [DateTime]
-**Sources**: [Jira ticket + Confluence pages analyzed]
+**Sources**: [Issue Tracker ticket + Wiki pages analyzed]
 
 ---
 
@@ -93,8 +94,8 @@ The document has these sections in order; empty finding sections carry `No issue
 3. Recommended: Review with [Stakeholder role] before proceeding
 
 ## Analysis Metadata
-- **Jira Fields Analyzed**: [List key fields]
-- **Confluence Pages Analyzed**: [Count and titles]
+- **Ticket Fields Analyzed**: [List key fields]
+- **Wiki Pages Analyzed**: [Count and titles]
 - **Analysis Duration**: [Time spent]
 - **Manual Review**: [Areas requiring human judgment]
 ```
@@ -107,7 +108,7 @@ The document has these sections in order; empty finding sections carry `No issue
 
 | ❌ Vague | ✅ Specific |
 |---|---|
-| `Some details missing.` | `User authentication method not specified — Jira mentions "secure login" but does not name OAuth, SAML, or basic auth; needed for Phase 4 requirements.` |
+| `Some details missing.` | `User authentication method not specified — the ticket mentions "secure login" but does not name OAuth, SAML, or basic auth; needed for Phase 4 requirements.` |
 
 Name the specific concept that's missing or conflicting, quote the source text, explain why the gap blocks the next phase.
 

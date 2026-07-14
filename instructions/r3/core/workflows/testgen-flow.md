@@ -1,6 +1,6 @@
 ---
 name: testgen-flow
-description: "Workflow for generating test cases from requirements (Jira/Confluence), exporting to TestRail, etc."
+description: "Workflow for generating test cases from requirements (Issue Tracker / Wiki sources), exporting to a Test Management System, etc."
 alwaysApply: false
 tags: ["workflow"]
 user-invocable: true
@@ -11,7 +11,11 @@ baseSchema: docs/schemas/workflow.md
 
 <description_and_purpose>
 
-Systematic requirements analysis from Jira tickets and Confluence documentation to structured requirements and test scenarios. Extracts data, identifies gaps, clarifies unknowns via HITL, generates requirements document, and produces test cases with export to a Test Management System (Phase 6, user-triggered — the user may choose not to trigger it, but it is a fully-specified phase, not informally skippable). Designed for BA/QA engineers and requirements engineers.
+Systematic requirements analysis from Issue Tracker tickets and Wiki documentation to structured requirements and test scenarios. Extracts data, identifies gaps, clarifies unknowns via HITL, generates requirements document, and produces test cases with export to a Test Management System (Phase 6, user-triggered — the user may choose not to trigger it, but it is a fully-specified phase, not informally skippable). Designed for BA/QA engineers and requirements engineers.
+
+Prerequisite: Rosetta Prep Steps.
+
+**Terminology.** External systems are named by role throughout this workflow and its phases: **Issue Tracker**, **Wiki**, and **Test Management System (TMS)**. Jira, Confluence, and TestRail are canonical examples only — adapt identifiers, URLs, requests, calls, and query syntax to the systems resolved for the current project (from repository-root `gain.json`, explicit user input, recognizable URLs/handles, and available integrations).
 
 </description_and_purpose>
 
@@ -27,10 +31,10 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 - When a phase delegates work to subagents, dispatch per USE SKILL `orchestration`.
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `plans/testgen-{TICKET-KEY}/` at start.
-- **Trigger prompt example:** `Analyze requirements for PROJ-123` (also: bare key `PROJ-123`, full Jira URL). Jira-only and Jira+Confluence input formats are enumerated in `testgen-flow-project-config-loading.md` step 0.1.
+- **Trigger prompt example:** `Analyze requirements for PROJ-123` (also: bare key `PROJ-123`, full ticket URL). Ticket-only and ticket+Wiki input formats are enumerated in `testgen-flow-project-config-loading.md` step 0.1.
 - **Per-phase failure cases — owned by phase files:**
-  - *Jira ticket not found* → `testgen-flow-data-collection.md` + the `data-collection` skill's Jira failure handling.
-  - *No Confluence results* → `testgen-flow-data-collection.md` + the `data-collection` skill's Confluence failure handling.
+  - *Ticket not found* → `testgen-flow-data-collection.md` + the `data-collection` skill's Issue Tracker failure handling.
+  - *No Wiki results* → `testgen-flow-data-collection.md` + the `data-collection` skill's Wiki failure handling.
   - *User declines / does not answer questions* → `testgen-flow-question-generation.md` `<failure_handling>` "User explicitly declines to answer".
   - *Incomplete / missing requirements inputs* → `testgen-flow-requirements-document-generation.md` `<failure_handling>` "Missing or empty inputs".
   - *Documentation search query example + ranking rule* → the `data-collection` skill's documentation-binding search/ranking behavior.
@@ -42,7 +46,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 <project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_recommended_model="tier: workhorse">
 
 - APPLY PHASE `testgen-flow-project-config-loading.md`
-- Input: user request with Jira ticket key/URL. Output: `plans/testgen-{TICKET-KEY}/initial-data.md`, project config file.
+- Input: user request with an Issue Tracker ticket key/URL. Output: `plans/testgen-{TICKET-KEY}/initial-data.md`, project config file.
 - Recommended skills: `questioning`, `sensitive-data` (config / initial-data redaction pre-write gate)
 
 </project_config_loading>
@@ -50,7 +54,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 <data_collection phase="1" subagent="discoverer" role="Requirements data collector" subagent_recommended_model="tier: workhorse">
 
 - APPLY PHASE `testgen-flow-data-collection.md`
-- Input: initial user request, initial-data.md. Output: `plans/testgen-{TICKET-KEY}/raw-data.md` with Jira + Confluence data.
+- Input: initial user request, initial-data.md. Output: `plans/testgen-{TICKET-KEY}/raw-data.md` with Issue Tracker + Wiki data.
 - Recommended skills: `data-collection`
 
 </data_collection>
@@ -128,14 +132,11 @@ Expected per-ticket artifact set (one validation can confirm all phases ran): `i
 
 <references>
 
-Cross-phase skills: `qa-knowledge` (gap analysis, synthesis, scenario design + TMS bindings — loads its own assets at point of use); `data-collection` (Jira + Confluence collection); `questioning`; `sensitive-data` (redaction — Phase 0 config/initial-data pre-write gate; Phase 1 collection runs it via `data-collection`); `coding` (conditional — only for writes to tracked repo files outside `plans/testgen-{TICKET-KEY}/`, per `<phase_5_6_standards_gate>`).
+Subagents: `discoverer` · `architect` · `engineer`.
 
-MCPs:
-- `Atlassian Jira` — ticket data extraction
-- `Atlassian Confluence` — documentation retrieval
-- `TestRail` — test case export (Phase 6, when TMS is TestRail)
-- `Google Drive` — additional documentation (if configured)
-- MCP names are illustrative; equivalent configured providers are acceptable when mapped in project config.
+Cross-phase skills: `qa-knowledge` (gap analysis, synthesis, scenario design + TMS bindings — loads its own assets at point of use); `data-collection` (Issue Tracker + Wiki collection); `questioning`; `sensitive-data` (redaction — Phase 0 config/initial-data pre-write gate; Phase 1 collection runs it via `data-collection`); `coding` (conditional — only for writes to tracked repo files outside `plans/testgen-{TICKET-KEY}/`, per `<phase_5_6_standards_gate>`).
+
+Integrations: Issue Tracker (ticket data extraction), Wiki (documentation retrieval), TMS (Phase 6 export), and additional documentation stores (e.g. Google Drive) when configured — per `<description_and_purpose>` Terminology.
 
 </references>
 
@@ -143,7 +144,7 @@ MCPs:
 
 - Sequential execution only: each phase builds on the previous
 - No assumptions: document all unknowns, ask user via HITL gates
-- Evidence-based: all requirements reference actual Jira/Confluence content
+- Evidence-based: all requirements reference actual Issue Tracker / Wiki content
 - Traceability: link requirements to source and test cases to requirements
 - On completion: link `requirements.md` + exported cases back to the source ticket (attachment/comment) and archive `testgen-state.md` + outputs for traceability
 
@@ -154,7 +155,7 @@ MCPs:
 - Each phase has corresponding output file in output directory
 - State file reflects accurate phase completion status
 - HITL gates (Phase 3, 6) have explicit user approval evidence
-- Requirements trace back to Jira/Confluence sources
+- Requirements trace back to Issue Tracker / Wiki sources
 - Test cases trace back to requirements
 
 </validation_checklist>
@@ -162,7 +163,7 @@ MCPs:
 <pitfalls>
 
 - Skipping Phase 3 HITL gate leads to assumptions in requirements
-- Confluence child pages often contain critical detail — always check for children
+- Wiki child pages often contain critical detail — always check for children
 - TMS MCP may lack container creation — user may need to create target locations manually in TMS UI
 - Merging redundant test cases too aggressively can lose coverage
 

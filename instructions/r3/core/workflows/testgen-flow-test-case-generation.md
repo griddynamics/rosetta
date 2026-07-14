@@ -2,6 +2,7 @@
 name: testgen-flow-test-case-generation
 description: "Phase 5 Test Case Generation of testgen-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -76,16 +77,16 @@ Common patterns for minimum coverage:
 
 <generate_test_cases step="5.3" subagent="engineer" role="Test case design engineer">
 
-**Resolve the TMS FORMAT vendor binding first** (config-resolved — do NOT hardcode the vendor): read the resolved FORMAT vendor from project config, taking the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `plans/testgen-{TICKET-KEY}/testgen-project-config.md` (per Phase 0 step 0.3) / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `qa-knowledge` (`scenario_design` mode) for the vendor-specific case format (the skill loads its own `<vendor>-format` binding internally). If the keys are empty but a TMS is clearly in scope, re-read config for a default; if still absent, fall back to the inline `<tc_schema>` template below (record the fallback per `<failure_handling>`).
+**Resolve the TMS FORMAT provider first** (merge evidence — do NOT hardcode the vendor): read the TMS provider from `plans/testgen-{TICKET-KEY}/testgen-project-config.md` (data sources / provider fields written by Phase 0, prefilled from `gain.json` `sdlc.test_management(_project)`), explicit user input (wins for this run), or a recognizable TMS URL/handle; conflicting evidence → ask about the TMS only. The resolved provider (e.g. `testrail`, the canonical example) is passed to `qa-knowledge` (`scenario_design` mode) for the vendor-specific case format (the skill loads its own `<vendor>-format` binding internally). If no provider resolves but a TMS is clearly in scope, re-read config; if still absent, fall back to the inline `<tc_schema>` template below (record the fallback per `<failure_handling>`).
 
-1. USE SKILL `qa-knowledge` (`scenario_design` mode) passing the resolved FORMAT vendor binding for test case format.
+1. USE SKILL `qa-knowledge` (`scenario_design` mode) passing the resolved TMS provider for the test case format.
 2. Create 2-5 test cases per requirement covering different test types from step 5.2.
 3. Apply `<format_rules>` (forbidden fields), `<tc_schema>` (field-level template), and `<title_quality>` (naming) sub-blocks below.
 
 <format_rules>
 **Single source of truth for TMS-compatibility constraints** — referenced by `<tc_schema>` Notes, `<validation_checklist>`, and `<pitfalls>`; do not restate elsewhere.
 
-Test cases MUST use the **`Steps + Expected Result`** shape so they map cleanly to TestRail's `custom_steps_separated` / `custom_expected` fields used by Phase 6 export.
+Test cases MUST use the **`Steps + Expected Result`** shape so they map cleanly to the TMS's separated steps/expected fields used by Phase 6 export (TestRail's `custom_steps_separated` / `custom_expected` are the canonical example).
 
 **NOT permitted** (each breaks Phase 6 export — re-grep `test-scenarios.md` per `<validation_checklist>`):
 - BDD / Gherkin / Given-When-Then format — `Given `, `When `, `Then ` step shapes
@@ -218,7 +219,7 @@ TC-003: Viewer cannot create Job Post
 
 **Generated**: [DateTime]
 **Phase**: 5 - Test Case Generation
-**Jira Ticket**: [KEY] - [Summary]
+**Ticket**: [KEY] - [Summary]
 ---
 
 ## Executive Summary

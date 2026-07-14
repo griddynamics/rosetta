@@ -2,7 +2,7 @@
 name: ui-aqa-flow-test-implementation
 description: "Phase 6 Test Implementation of ui-aqa-flow"
 alwaysApply: false
-tags: []
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -42,27 +42,12 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 </phase_steps>
 
 <execute_implementation step="6.1" subagent="engineer" role="Test automation engineer">
-1. USE SKILL `coding` to read the repository standards as authority before authoring; repo docs beat model defaults.
+1. USE SKILL `qa-structure` to resolve run paths/state. USE SKILL `coding` to read the repository standards as authority before authoring; repo docs beat model defaults.
 2. USE SKILL `qa-knowledge` (`implementation_modes` — UI impl) and USE SKILL `testing` with the parent-supplied bindings: test plan path `plans/ui-aqa-<test-name>/test-plan.md`; write boundary = test files only (`<workflow_context>`); output record = the Test Implementation record per `<implementation_handoff_contract>`.
 3. Author the test using page-object methods only (no raw selectors in test code), proper waits, project assertion style. If a required selector or page-object method is missing, do NOT author it inline — stop and route back to Phase 5 (selector implementation).
 4. Record every plan assertion that cannot be implemented in the test plan's `### Uncovered Assertions` with the reason. Silent drop is forbidden.
 5. Validate locally: run the project lint/format command on the touched test file and resolve issues; emit the Test Implementation record.
 
-**Minimal test skeleton** (illustrative shape only — page-object methods, no raw selectors; adapt to the project's framework/language per `coding` repo conventions):
-
-```typescript
-import { test, expect } from '@playwright/test';
-import { CheckoutPage } from '../pages/CheckoutPage';
-
-test.describe('refund-happy-path', () => {
-  test('issues a full refund', async ({ page }) => {
-    const checkout = new CheckoutPage(page);              // page object — never raw selectors
-    await checkout.goto();
-    await checkout.requestRefund('full');                 // ATC-mapped action
-    expect(await checkout.refundStatus()).toBe('Refunded'); // typed assertion from the plan
-  });
-});
-```
 </execute_implementation>
 
 <validate step="6.2">

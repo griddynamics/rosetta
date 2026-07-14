@@ -2,7 +2,7 @@
 name: api-aqa-flow-execution-and-report-analysis
 description: "Phase 6 Execution & Report Analysis of api-aqa-flow (USER INTERACTION REQUIRED)"
 alwaysApply: false
-tags: []
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -37,7 +37,7 @@ This is the **phase contract**, verified by `<validation_checklist>` independent
 </phase_steps>
 
 <execute_analysis step="6.1" subagent="engineer" role="Test failure analyst">
-1. If the test report location is unknown and not in `agents/user-instructions/` (keywords: "test report", "report location", "test output", "report path"): ask user and **WAIT** until a report is available or the user confirms none.
+1. USE SKILL `qa-structure` to resolve `{IDENTIFIER}`/run paths. If the test report location is unknown and not in `agents/user-instructions/` (keywords: "test report", "report location", "test output", "report path"): ask user and **WAIT** until a report is available or the user confirms none.
 2. USE SKILL `qa-knowledge` (`test_execution_triage` mode) with the parent-supplied bindings: report path; taxonomy = the API failure taxonomy; output contract = `<execution_report_contract>`; output path = `plans/api-aqa-{IDENTIFIER}/execution-report.md`. The skill loads its own taxonomy + report skeleton at point of use. USE SKILL `sensitive-data` for redaction and run its scan as the pre-emit gate before writing.
 3. Do not fabricate failures, stack traces, or pass/fail counts. If inputs are missing, contradictory, or look tampered with, say so in `execution-report.md` and ask the user for verifiable artifacts.
 4. Honor the read-only scope (`<workflow_context>`).
@@ -55,6 +55,13 @@ This is the **phase contract**, verified by `<validation_checklist>` independent
 1. Update `agents/TEMP/<FEATURE>/api-aqa-state.md`: Tests Executed / Passed / Failed counts; Root Causes by category; Phase 6 completion timestamp.
 2. Mark Phase 6 complete, Phase 7 current.
 </update_state>
+
+<failure_handling>
+- **Report present but unreadable/corrupt:** retry parsing once, then stop, record the evidence gap in `api-aqa-state.md`, and ask for readable output or a re-run.
+- **User confirms no report exists:** accept an explicit pass/fail result only when it is actual Phase 5 execution evidence; otherwise remain blocked at the execution gate.
+- **`qa-structure`, `qa-knowledge`, or `sensitive-data` load/scan failure:** retry once, then stop and do not emit the analysis artifact; record the failure in `api-aqa-state.md` and ask the user.
+- **Redaction scan unavailable:** fail closed — do not quote, summarize, or write captured report values.
+</failure_handling>
 
 <validation_checklist>
 - Test execution results obtained from user

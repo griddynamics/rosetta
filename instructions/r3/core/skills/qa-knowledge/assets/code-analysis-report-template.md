@@ -12,8 +12,9 @@ UI-AQA code-analysis report skeleton (9 sections) plus the test-location decisio
 **Generated:** <YYYY-MM-DD>
 **Test plan:** plans/ui-aqa-<test-name>/test-plan.md
 **Sources:**
+- gain.json: [read | missing]
 - project_description.md: [read | missing]
-- CONTEXT.md / ARCHITECTURE.md / IMPLEMENTATION.md: [list read | missing]
+- docs/CONTEXT.md / docs/ARCHITECTURE.md / agents/IMPLEMENTATION.md: [list read, including gain.json overrides | missing]
 - agents/user-instructions/: [N files read | not available]
 - Frontend source: [path | not available]
 

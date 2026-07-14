@@ -2,6 +2,7 @@
 name: testgen-flow-requirements-document-generation
 description: "Phase 4 Requirements Document of testgen-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -9,7 +10,7 @@ baseSchema: docs/schemas/phase.md
 <testgen_flow_requirements_document_generation>
 
 <description_and_purpose>
-Synthesize Jira data, Confluence documentation, and user answers into a comprehensive, structured requirements document with user stories, functional/non-functional requirements, constraints, and traceability.
+Synthesize Issue Tracker data, Wiki documentation, and user answers into a comprehensive, structured requirements document with user stories, functional/non-functional requirements, constraints, and traceability.
 </description_and_purpose>
 
 <workflow_context>
@@ -18,7 +19,7 @@ Synthesize Jira data, Confluence documentation, and user answers into a comprehe
 - Output: `requirements.md` — primary deliverable for test case generation
 - Skills: `qa-knowledge` (`synthesis` mode)
 - Prerequisite: Phase 0-3 complete with validated user answers
-- Priority order for source resolution: User answers > Jira > Confluence > Analysis insights
+- Priority order for source resolution: User answers > Issue Tracker ticket > Wiki > Analysis insights
 </workflow_context>
 
 <phase_steps>
@@ -30,17 +31,17 @@ Synthesize Jira data, Confluence documentation, and user answers into a comprehe
 
 <load_sources step="4.1">
 1. Read all previous phase outputs:
-   - `plans/testgen-{TICKET-KEY}/raw-data.md` — Jira + Confluence data
+   - `plans/testgen-{TICKET-KEY}/raw-data.md` — Issue Tracker + Wiki data
    - `plans/testgen-{TICKET-KEY}/analysis.md` — identified issues
    - `plans/testgen-{TICKET-KEY}/answers.md` — user clarifications
 </load_sources>
 
 <synthesize_requirements step="4.2" subagent="architect" role="Requirements engineer">
 1. USE SKILL `qa-knowledge` (`synthesis` mode). The mode EMITS into this phase's `<create_requirements_document>` section contract; the phase OWNS the document skeleton and output path.
-2. Source priority: User answers (Phase 3) > Jira ticket > Confluence docs > Analysis insights
+2. Source priority: User answers (Phase 3) > Issue Tracker ticket > Wiki docs > Analysis insights
 3. Resolve contradictions using user answers; fill gaps using user answers; flag unresolved items as assumptions
 4. Generate: user stories (US-N), functional requirements (FR-N), non-functional requirements (NFR-N), constraints (C-N), dependencies (D-N), assumptions (A-N), risks (R-N)
-5. Build traceability matrix linking requirements to Jira/Confluence sources
+5. Build traceability matrix linking requirements to ticket/Wiki sources
 </synthesize_requirements>
 
 <create_requirements_document step="4.3">
@@ -80,8 +81,8 @@ Executive Summary must include:
 - [Key capability 2]
 
 **Sources**:
-- Jira: [TICKET-KEY]
-- Confluence: [N] pages
+- Ticket: [TICKET-KEY]
+- Wiki: [N] pages
 - User Clarifications: [N] questions answered
 
 **Source Resolution**:
@@ -94,7 +95,7 @@ Traceability Matrix must include Test Scenario placeholder column:
 ```markdown
 | Requirement ID | Source | User Story | Test Scenario |
 |----------------|--------|------------|---------------|
-| FR-1 | Jira DESC | US-1 | To be generated (Phase 5) |
+| FR-1 | Ticket DESC | US-1 | To be generated (Phase 5) |
 | NFR-1 | User Answer Q5 | - | To be generated (Phase 5) |
 ```
 
@@ -109,7 +110,7 @@ All requirements must follow SMART criteria: Specific, Measurable, Achievable, R
 **Category**: Performance
 **Measurement**: p95 < 200ms for the `POST /api/v1/auth/login` endpoint, measured at the load balancer over a 5-minute window at 1000 concurrent users.
 **Priority**: P0 Critical
-**Source**: User Answer Q5 + Confluence "SLO catalog"
+**Source**: User Answer Q5 + Wiki page "SLO catalog"
 ```
 
 The Measurement field carries the threshold (numeric + measurement window + load condition). A non-SMART form (`Login should be fast`) carries no threshold and would be moved to `assumptions-and-risks` per the synthesis mode's NFR-threshold rule.
@@ -140,13 +141,13 @@ The Measurement field carries the threshold (numeric + measurement window + load
 
 <failure_handling>
 - **Missing or empty inputs** (`raw-data.md`, `analysis.md`, or `answers.md` absent or empty): stop Phase 4, record which input is missing in `testgen-state.md`, and announce which earlier phase to resume. Note: if Phase 3 was marked `SKIPPED — no questions`, an empty `answers.md` is acceptable; proceed without it.
-- **Contradictions unresolved by user answers** (the synthesis mode identifies a contradiction whose mapping question was either unanswered or whose answer is itself contradictory): record the unresolved contradiction as an explicit **Risk (R-N)** in `requirements.md` with full source citations (Jira quote, Confluence quote, user answer if any). Do not invent a resolution. Proceed with the rest of Phase 4 but flag the risk in the Executive Summary.
+- **Contradictions unresolved by user answers** (the synthesis mode identifies a contradiction whose mapping question was either unanswered or whose answer is itself contradictory): record the unresolved contradiction as an explicit **Risk (R-N)** in `requirements.md` with full source citations (ticket quote, Wiki quote, user answer if any). Do not invent a resolution. Proceed with the rest of Phase 4 but flag the risk in the Executive Summary.
 - **Skill execution failure** (`qa-knowledge` synthesis mode errors or returns empty): re-invoke once with the same inputs; if still failing, stop, record the skill failure, and ask the user to verify input quality. **No inline per-entry fallback exists, by design** — the synthesis mode is a hard dependency (canonical owner of the US/FR/NFR/C/D/A/R shapes, SMART/threshold/provenance discipline); requirement entries carry authoring discipline that does not transfer to an inline template. The phase **blocks** when the skill is unavailable; do NOT fabricate a partial requirements.md.
 
 </failure_handling>
 
 <pitfalls>
-- Don't copy Jira/Confluence verbatim — synthesize and structure into proper requirements
+- Don't copy ticket/Wiki content verbatim — synthesize and structure into proper requirements
 - Don't use technical implementation details in user stories — focus on user/business value
 - Acceptance criteria must be testable and objective, not subjective
 - Each user story must be independently valuable

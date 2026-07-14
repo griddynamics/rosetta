@@ -2,7 +2,7 @@
 name: api-aqa-flow-api-spec-analysis
 description: "Phase 2 API Spec Analysis of api-aqa-flow"
 alwaysApply: false
-tags: []
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -19,7 +19,7 @@ Analyze Swagger/OpenAPI specification or codebase API definitions to extract end
 - Output artifact path (single SSoT — referenced by other sections): `plans/api-aqa-{IDENTIFIER}/api-analysis.md` (resolve `{IDENTIFIER}` from `agents/TEMP/<FEATURE>/api-aqa-state.md`)
 - Prerequisite: Phase 1 complete, `raw-data.md` exists with identified endpoints
 - Read-only scope: locate spec/source, extract contracts, reconcile, write the analysis artifact. NO edits to backend source or product code.
-- Skills: `qa-knowledge` (`code_analysis` mode — API-contract extraction; supplies the api-analysis skeleton), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path)
+- Skills: `qa-knowledge` (`code_analysis` mode — API-contract extraction; supplies the api-analysis skeleton), `reverse-engineering` (extraction engine of that mode), `sensitive-data` (redaction), `qa-structure` (`{IDENTIFIER}` + artifact path)
 </workflow_context>
 
 <input_contract>
@@ -56,7 +56,7 @@ Decision point: Swagger available -> full spec analysis. No Swagger -> code-base
 
 <execute_analysis step="2.2" subagent="discoverer" role="API spec analyst">
 
-1. USE SKILL `qa-knowledge` (`code_analysis` mode — API-contract extraction) with the phase-supplied bindings: target-endpoint list (Phase 1 test cases) + spec source (step 2.1) = `<input_contract>`; per-endpoint output shape + Analysis Summary metrics = `qa-knowledge`'s api-analysis template (the skill loads its own asset); validation = `<validation_checklist>`; output path = `plans/api-aqa-{IDENTIFIER}/api-analysis.md`. The mode GATEs on the two required inputs before locating the spec. USE SKILL `sensitive-data` to redact before writing.
+1. USE SKILL `reverse-engineering` and USE SKILL `qa-knowledge` (`code_analysis` mode — API-contract extraction) with the phase-supplied bindings: target-endpoint list (Phase 1 test cases) + spec source (step 2.1) = `<input_contract>`; per-endpoint output shape + Analysis Summary metrics = `qa-knowledge`'s api-analysis template (the skill loads its own asset); validation = `<validation_checklist>`; output path = `plans/api-aqa-{IDENTIFIER}/api-analysis.md`. The mode GATEs on the two required inputs before locating the spec. USE SKILL `sensitive-data` to redact before writing.
 2. The mode extracts per endpoint: contracts, auth requirements, data dependencies, and reconciles spec-vs-code when both sources are read.
 3. Coverage is mandatory: every target endpoint gets a contract entry OR is flagged back as a gap with reason — no silent drop. Do not fabricate schemas, status codes, or auth requirements without a source.
 

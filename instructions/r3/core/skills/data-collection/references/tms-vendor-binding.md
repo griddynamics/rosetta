@@ -1,18 +1,19 @@
 # Vendor binding: TMS / test-case vendor
 
-**Canonical test-case vendor example: TestRail** -- the field map and examples below use TestRail; for another test-case manager map by capability, same method. All specs/queries/MCP/URL here use TestRail as example, adapt target test-case management system by example.
+**Canonical TMS example: TestRail.** The field map and worked identifiers/URLs below illustrate TestRail. For another TMS, preserve the role contract and adapt identifier parsing, requests/calls, fields, URLs, errors, and terminology to that system.
 
-**Operations below are named by capability, not by a fixed tool name.** Resolve each to the actual tool exposed by the configured TMS MCP/CLI/Fetch binding: **get case**, **get case fields** (case-field-schema lookup), and -- write, forbidden in this read-only binding -- case **update / add / delete**.
+**Operations below are named by capability, not by a fixed tool name.** Resolve each through the configured TMS integration: **get case**, **get case fields** (case-field-schema lookup), and -- write, forbidden in this read-only binding -- case **update / add / delete**.
 
 ---
 
 ## Input parsing
 
-The phase supplies a test case ID or URL. Resolve the numeric case ID:
+The phase supplies a test-case handle or URL. Apply the resolved TMS's identifier rules. TestRail example:
 
 - **Numeric ID** `12345` or `C12345` (strip the `C` prefix) → use directly.
 - **URL** `https://*.testrail.io/index.php?/cases/view/N` or similar → parse the trailing numeric ID.
-- **Ambiguous / missing / malformed** → stop per failure path "input-unresolvable". Do NOT guess or pick an arbitrary ID.
+- **Other TMS** → parse its stable case key/ID according to its canonical URL/handle shape.
+- **Ambiguous / missing / malformed** → stop per failure path "input-unresolvable". Do NOT guess or pick an arbitrary case.
 
 ## Retrieval (`extract + normalize` step)
 
@@ -33,7 +34,7 @@ The phase supplies a test case ID or URL. Resolve the numeric case ID:
 | Expected Overall Result | required; empty → gap |
 | Custom fields | API endpoint, HTTP method, etc. when present; resolve via **get case fields** |
 
-Per-field branch per SKILL `<collection>` step 3 (redact sensitive values first); TestRail empty/missing gap note: `missing in TestRail source` -- never blank, assume, or fabricate.
+Per-field branch per SKILL `<collection>` step 3 (redact sensitive values first); gap note: `missing in <TMS> source` -- never blank, assume, or fabricate.
 
 **Rendered example** (one normalized case in the phase's output artifact -- one step with a proper expected result, one with the gap marker):
 
@@ -50,14 +51,14 @@ Per-field branch per SKILL `<collection>` step 3 (redact sensitive values first)
 
 ## Redaction targets
 
-Highest-risk: **step text, preconditions, custom fields, test-data** -- these re-emit downstream (the phase's output artifact → requirements / test-scenarios / authoring) and can be exported back into the shared TestRail project. Redact per SKILL `<collection>` step 4; structure (action verbs, expected behaviors, endpoint paths, methods, status codes, field/schema names) stays verbatim.
+Highest-risk: **step text, preconditions, custom fields, test-data** -- these re-emit downstream and may be exported back into a shared TMS project. Redact per SKILL `<collection>` step 4; structure stays verbatim.
 
 ## Failure paths (SKILL `extract` step)
 
-- **Input unresolvable** (no/malformed ID, URL not a recognizable TestRail pattern) → stop, report `data-collection/testrail: case ID unresolvable from input "<input>"`, ask for a clean numeric ID or canonical URL. Do NOT guess.
-- **MCP/CLI/Fetch transport error** → per SKILL `<collection>` step 3 (retry once, then stop + report; same case ID); ask to verify the TestRail MCP/CLI/Fetch configuration.
-- **Case-not-found** (404 / empty / "case does not exist") → stop, report `data-collection/testrail: case <ID> not found -- verify the ID is correct and accessible by the configured credentials`. Do NOT emit a partial/empty artifact, do NOT fabricate fields.
-- **Authorization failure** (401/403) → stop, report `data-collection/testrail: request rejected -- case <ID> may exist but is not visible to the configured credentials`, ask to verify credentials / project access.
+- **Input unresolvable** → stop, report `data-collection/<tms>: case handle unresolvable from input "<input>"`, ask for a canonical handle/URL for the resolved TMS. Do NOT guess.
+- **Integration transport error** → per SKILL `<collection>` step 3 (retry once, then stop + report with the same case handle); ask to verify the configured TMS integration.
+- **Case-not-found** → stop, report `data-collection/<tms>: case <handle> not found -- verify the handle and configured access`. Do NOT emit a partial/empty artifact.
+- **Authorization failure** (401/403 or provider equivalent) → stop, report `data-collection/<tms>: request rejected -- case <handle> may exist but is not visible to the configured credentials`, ask to verify project access.
 - **Required field empty** (title/steps/expected results missing) **or get-case-fields discovery fails** → proceed via the field-map per-field branch above (continue + gap/note, do NOT fabricate or stop); the artifact still emits but flags the gap.
 
 ## Validation items (binding-specific, added to SKILL `<validation_checklist>`)

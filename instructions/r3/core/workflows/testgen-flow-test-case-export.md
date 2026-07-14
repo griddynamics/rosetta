@@ -2,6 +2,7 @@
 name: testgen-flow-test-case-export
 description: "Phase 6 Test Case Export of testgen-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -18,7 +19,7 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 - Output: test cases created in TMS
 - Prerequisite: Phase 5 complete, user reviewed test cases, TMS MCP configured
 - HITL: user must provide target location in TMS (e.g., section, folder, suite)
-- Skills: USE SKILL `qa-knowledge` (`scenario_design` mode) with the config-resolved TMS EXPORT vendor binding (e.g. `testrail`) for connection, field mappings, and API details; USE SKILL `coding` when updating tracked repository markdown such as `test-scenarios.md` with TMS IDs (read repo standards as authority).
+- Skills: USE SKILL `qa-knowledge` (`scenario_design` mode) with the resolved TMS EXPORT provider (e.g. `testrail`, the canonical example) for connection, field mappings, and API details; USE SKILL `coding` when updating tracked repository markdown such as `test-scenarios.md` with TMS IDs (read repo standards as authority); USE SKILL `hitl` for the destructive-write confirmation.
 </workflow_context>
 
 <phase_steps>
@@ -38,9 +39,9 @@ Export test cases from `test-scenarios.md` to a Test Management System (TMS) via
 **This phase OWNS the export contract** — what gets pushed (the approved case set from `test-scenarios.md`), ID handling (vendor-format case IDs written back per step 6.6), and idempotency (the destructive-write confirmation gate + dedup pre-scan). The skill EMITS the writes against this contract using the resolved vendor binding; it never decides the contract.
 
 1. If updating tracked repository files (for example embedding TMS IDs into `test-scenarios.md` under version control): USE SKILL `coding` first (read repo standards as authority; repo docs win).
-2. **Resolve the TMS EXPORT vendor binding from project config** (config-resolved — do NOT hardcode the vendor): take the first non-empty hit in precedence order — `tms_export_skill`, `testrail_export_skill`, `test_case_management_mcp` — plus in-scope signals such as `testrail_base_url` / `testrail_project_id` in `plans/testgen-{TICKET-KEY}/testgen-project-config.md` (per Phase 0 step 0.3) / Phase 0 output. The resolved binding (e.g. `testrail`) is passed to `qa-knowledge` (`scenario_design` mode) for the vendor-specific export contract (the skill loads its own `<vendor>-export` binding internally).
-3. If the keys are empty but a TMS is clearly in scope, re-read config for a default; if still absent, the export cannot run on the MCP path → fall through to the step 6.2 fallbacks (manual copy / CSV / defer).
-4. USE SKILL `qa-knowledge` (`scenario_design` mode) passing the resolved EXPORT vendor binding. All subsequent steps use the connection check, field mappings, API calls, and ID formats it defines for that vendor.
+2. **Resolve the TMS EXPORT provider** (merge evidence — do NOT hardcode the vendor): read the TMS provider from `plans/testgen-{TICKET-KEY}/testgen-project-config.md` (data sources / provider fields written by Phase 0, prefilled from `gain.json` `sdlc.test_management(_project)`), explicit user input (wins for this run), or a recognizable TMS URL/handle; conflicting evidence → ask about the TMS only. The resolved provider (e.g. `testrail`, the canonical example) is passed to `qa-knowledge` (`scenario_design` mode) for the vendor-specific export contract (the skill loads its own `<vendor>-export` binding internally).
+3. If no provider resolves but a TMS is clearly in scope, re-read config; if still absent, the export cannot run on the integration path → fall through to the step 6.2 fallbacks (manual copy / CSV / defer).
+4. USE SKILL `qa-knowledge` (`scenario_design` mode) passing the resolved EXPORT provider. All subsequent steps use the connection check, field mappings, API calls, and ID formats it defines for that provider.
 </identify_skill>
 
 <verify_connection step="6.2">

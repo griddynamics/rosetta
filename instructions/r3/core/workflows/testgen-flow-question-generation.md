@@ -2,6 +2,7 @@
 name: testgen-flow-question-generation
 description: "Phase 3 Question Generation of testgen-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -43,13 +44,13 @@ Generate specific, actionable clarification questions based on analysis findings
 ### Q[N]: [Issue ID] - [Brief Title]
 **Issue Type**: Contradiction
 **Context**: 
-- Jira states: "[quote]"
-- Confluence states: "[quote]"
+- Ticket states: "[quote]"
+- Wiki states: "[quote]"
 
 **Question**: Which statement is correct, or should we use a different approach?
 **Options**:
-  a) Use Jira version: [specific value]
-  b) Use Confluence version: [specific value]
+  a) Use the ticket version: [specific value]
+  b) Use the Wiki version: [specific value]
   c) Use alternative: [specify]
   d) Other (please specify)
 

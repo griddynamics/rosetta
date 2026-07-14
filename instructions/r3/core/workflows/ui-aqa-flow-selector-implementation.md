@@ -2,7 +2,7 @@
 name: ui-aqa-flow-selector-implementation
 description: "Phase 5 Selector Implementation of ui-aqa-flow"
 alwaysApply: false
-tags: []
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -34,6 +34,10 @@ If repository general hygiene and the selector-mode page-object rules disagree: 
 The Phase 4 Part A inventory (the test plan's `## Selector Management` section) MUST exist and be non-empty before any page-object write. If absent/empty: stop Phase 5, record `Phase 5 blocked: Part A selector inventory missing — Phase 4 must run first` in `agents/TEMP/<FEATURE>/ui-aqa-state.md`, and ask the user. Do NOT re-run Part A identification inside this phase — that is a phase-scope violation.
 </part_a_inventory_gate>
 
+<load_failure>
+If `qa-structure`, `qa-knowledge`, `testing`, or `coding` cannot be loaded: retry once; if it still fails, stop, record the failed skill in `agents/TEMP/<FEATURE>/ui-aqa-state.md`, and ask the user. Do not author page objects from memory.
+</load_failure>
+
 <phase_steps>
 1. Execute selector implementation (step 5.1)
 2. Validate implementation (step 5.2)
@@ -41,7 +45,7 @@ The Phase 4 Part A inventory (the test plan's `## Selector Management` section) 
 </phase_steps>
 
 <execute_implementation step="5.1" subagent="engineer" role="Selector implementation specialist">
-1. Apply `<part_a_inventory_gate>` — stop if the Part A inventory is missing.
+1. USE SKILL `qa-structure` to resolve run paths/state. Apply `<part_a_inventory_gate>` — stop if the Part A inventory is missing.
 2. USE SKILL `coding` to read the repository standards as authority for general hygiene before touching page objects; repo docs beat model defaults.
 3. USE SKILL `qa-knowledge` (`implementation_modes` — selector mode, Part B: implement) and USE SKILL `testing` with the parent-supplied bindings: Part A inventory source = the test plan's `## Selector Management` section; write boundary = page-object files only (`<workflow_context>`); output = the Implementation subsection.
 4. Extend existing page objects (match existing patterns exactly: access modifiers, naming, formatting, helper-method shape) and create new ones as needed (use existing page objects as structural templates). Do not introduce new patterns from this workflow; resolve hygiene-vs-selector conflicts per `<skill_precedence>`.

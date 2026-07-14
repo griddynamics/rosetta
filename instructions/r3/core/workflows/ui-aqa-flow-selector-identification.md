@@ -2,7 +2,7 @@
 name: ui-aqa-flow-selector-identification
 description: "Phase 4 Selector Identification of ui-aqa-flow"
 alwaysApply: false
-tags: []
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -36,13 +36,13 @@ If the code-analysis file is missing, the slug stays ambiguous in `agents/TEMP/<
 </phase_steps>
 
 <resolve_inputs step="4.0">
-1. Resolve `<test-name>` per `qa-structure`'s UI layout slug rules (the slug matches the Phase 1 run folder `plans/ui-aqa-<test-name>/`; use `agents/TEMP/<FEATURE>/ui-aqa-state.md` if unclear).
+1. USE SKILL `qa-structure` and resolve `<test-name>` per its UI layout slug rules (the slug matches the Phase 1 run folder; use `ui-aqa-state.md` if unclear).
 2. Verify `plans/ui-aqa-<test-name>/code-analysis.md` exists and is the single canonical input for this run.
 3. If verification fails: apply `<failure_handling>`.
 </resolve_inputs>
 
 <execute_identification step="4.1" subagent="engineer" role="Selector identification specialist">
-1. USE SKILL `qa-knowledge` (`implementation_modes` — selector mode, Part A: read-only identify) with the parent-supplied bindings: test plan path; code-analysis path; page-sources directory + capture contract = `qa-structure`'s UI layout; output = the `## Selector Management` section's Part A subsections in the test plan.
+1. USE SKILL `testing` and USE SKILL `qa-knowledge` (`implementation_modes` — selector mode, Part A: read-only identify) with the parent-supplied bindings: test plan path; code-analysis path; page-sources directory + capture contract = `qa-structure`'s UI layout; output = the `## Selector Management` section's Part A subsections in the test plan.
 2. Execute Part A only (Interaction Map → Selector Availability → frontend-source search → page-source analysis for still-missing selectors). If all selectors are found in frontend code, skip step 4.2.
 3. Honor the read-only scope (`<workflow_context>`).
 
@@ -88,7 +88,7 @@ If the code-analysis file is missing, the slug stays ambiguous in `agents/TEMP/<
 - Missing selectors identified from page source (if needed); page sources validated against `qa-structure`'s page-sources contract or stopped per `<handle_page_source>`
 - Selector strategy documented; fragile selectors flagged with reason + recommendation
 - No page objects, test files, or frontend source modified (read-only scope)
-- Redaction pre-emit gate ran on captured page sources — `sensitive-data` scan executed (fail-closed) before any page-source content was read or referenced; no literal tokens/PII remain
+- Redaction pre-read gate ran on captured page sources — `sensitive-data` scan executed (fail-closed) before any page-source content was read or referenced; no literal tokens/PII remain
 </validation_checklist>
 
 </ui_aqa_flow_selector_identification>

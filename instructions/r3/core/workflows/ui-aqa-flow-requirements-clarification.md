@@ -2,7 +2,7 @@
 name: ui-aqa-flow-requirements-clarification
 description: "Phase 2 Requirements Clarification of ui-aqa-flow"
 alwaysApply: false
-tags: []
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -32,7 +32,7 @@ Fill gaps in understanding, clarify unknowns, and transcribe the typed assertion
 </phase_steps>
 
 <identify_gaps step="2.1">
-1. USE SKILL `qa-knowledge` (`gap_analysis` mode, test-plan variant). The mode is analysis-only; it evaluates all five completeness dimensions (D1 steps clarity / D2 result measurability / D3 test data / D4 edge cases / D5 success criteria) of the Phase 1 test plan and EMITS, per gap, the **gap entry** from `qa-knowledge`'s UI clarification templates (the skill loads its own asset) — this phase OWNS the question-prep contract; the mode never invents the artifact shape.
+1. USE SKILL `qa-structure` to resolve the run paths and state file. USE SKILL `qa-knowledge` (`gap_analysis` mode, test-plan variant). The mode is analysis-only; it evaluates all five completeness dimensions (D1 steps clarity / D2 result measurability / D3 test data / D4 edge cases / D5 success criteria) of the Phase 1 test plan and EMITS, per gap, the **gap entry** from `qa-knowledge`'s UI clarification templates (the skill loads its own asset) — this phase OWNS the question-prep contract; the mode never invents the artifact shape.
 2. Per gap, the entry carries a **`Derived assertion (if applicable)` field** — a typed (Presence / State / Content / Behavioral) measurable assertion form, OR blank when no measurable form is derivable from the plan as written (never fabricate). This is the source step 2.4 transcribes from.
 3. Prepare the list of unknowns and ambiguities (with Derived assertion populated where applicable) for step 2.2's question generation.
 </identify_gaps>

@@ -12,7 +12,7 @@ baseSchema: docs/schemas/skill.md
 
 <when_to_use_skill>
 
-Use when you need to create the QA session folder, resolve or name an artifact path, derive the `{IDENTIFIER}` / `<test-name>` slug, or seed/read the QA state file. This is the single source for WHERE QA artifacts live -- not for HOW to author or analyze them. TestRail/Jira/Confluence are used as canonical examples, adapt to current case.
+Use when you need to create the QA session folder, resolve or name an artifact path, derive the `{IDENTIFIER}` / `<test-name>` slug, or seed/read the QA state file. This is the single source for WHERE QA artifacts live -- not for HOW to author or analyze them. Use TMS, Issue Tracker, and Wiki as the roles; TestRail, Jira, and Confluence are canonical examples only.
 
 </when_to_use_skill>
 
@@ -23,7 +23,8 @@ Use when you need to create the QA session folder, resolve or name an artifact p
 - **Slug format (both flows):** lowercase ASCII kebab-case -- letters, digits, hyphens only; no spaces/paths; ≤80 chars; reserved: `state`, `index`, and the flow's own `*-state` name.
 - **Underivable slug/`{IDENTIFIER}`:** if unresolvable even after one user attempt, stop, record the gap in the flow's state file, ask once -- never fabricate or guess.
 - **State-file shape (both flows):** header + `## Phase Completion Status` (8 rows) + per-phase append blocks; each phase appends only its own delta.
-- Config-key schema (keys + consumer) is reference-grade -- READ SKILL FILE `references/config-schema.md` when loading/validating project config.
+- Repository-root `gain.json.sdlc` is the primary SDLC-provider configuration. Merge it with explicit user input, recognizable provider URLs/handles, and available integrations; ask only when evidence conflicts or remains unresolved.
+- The API-AQA per-run config-key schema is reference-grade -- READ SKILL FILE `references/config-schema.md` only when loading/validating that run artifact.
 - Fill-in skeletons are assets, loaded with READ SKILL FILE at point of use, never resident -- see `<resources>`.
 
 </core_concepts>
@@ -36,7 +37,7 @@ Router -- READ SKILL FILE for the one your current step needs (point-of-use, nev
 |---|---|
 | resolve API-AQA paths, `{IDENTIFIER}` derivation, or the QA state-file shape | READ SKILL FILE `references/api-aqa-layout.md` |
 | resolve UI-AQA paths, the `<test-name>` slug rules, the page-sources contract, or the UI-AQA state-file shape | READ SKILL FILE `references/ui-aqa-layout.md` |
-| load or validate the QA project-config keys (keys + consumer + accepted `N/A` forms) | READ SKILL FILE `references/config-schema.md` |
+| load or validate the API-AQA per-run config keys (keys + consumer + accepted `N/A` forms) | READ SKILL FILE `references/config-schema.md` |
 | write the API-AQA project-config file | READ SKILL FILE `assets/api-aqa-project-config-template.md` |
 | run the user interview when the config is missing | READ SKILL FILE `assets/api-aqa-config-interview.md` |
 | seed the UI-AQA state file | READ SKILL FILE `assets/ui-aqa-state-template.md` |

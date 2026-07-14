@@ -12,10 +12,9 @@ Write to `plans/api-aqa-{IDENTIFIER}/api-aqa-project-config.md` -- one copy per 
 **Created**: [DateTime]
 **Last Updated**: [DateTime]
 
-## Document Storage
-- **documentation_type**: [per config-schema]
-- **documentation_mcp_collection_skill**: [per config-schema]
-- **confluence_base_url / documentation_base_url**: [per config-schema]
+## Wiki / Document Storage
+- **wiki_provider**: [per config-schema]
+- **wiki_base_url**: [per config-schema]
 - **Location**: [URLs, space keys, paths]
 
 ## API Specification
@@ -27,10 +26,8 @@ Write to `plans/api-aqa-{IDENTIFIER}/api-aqa-project-config.md` -- one copy per 
 - **Framework**: [Spring / Express / FastAPI / .NET / Other / TBD]
 
 ## Test Case Management
-- **system**: [per config-schema]
-- **testrail_base_url**: [per config-schema]
-- **jira_base_url**: [per config-schema]
-- **testcase_mcp_collection_skill**: [per config-schema]
+- **tms_provider**: [per config-schema]
+- **tms_base_url**: [per config-schema]
 - **project_id / suite_id**: [per config-schema]
 - **Access**: [MCP-managed / env var <NAME> / manual]
 

@@ -11,7 +11,7 @@ UI-AQA state-file template -- initialized by the first phase and updated by ever
 
 **Last Updated**: [DateTime]
 **Current Phase**: [1-8 or COMPLETE]
-**TestRail Case**: [Test Case ID/URL]
+**TMS Case**: [Provider + case handle/URL, or `N/A — direct description`]
 **Feature**: [Feature Name]
 
 ## Phase Completion Status
@@ -24,6 +24,8 @@ UI-AQA state-file template -- initialized by the first phase and updated by ever
 - [ ] Phase 6: Test Implementation
 - [ ] Phase 7: Test Report Analysis
 - [ ] Phase 8: Test Corrections
+
+For a zero-failure run, close the final row as `- [x] Phase 8: Test Corrections — N/A, no failures`; do not leave an incomplete checkbox or invent a correction artifact.
 
 ## Key Artifacts & Facts
 
@@ -38,6 +40,7 @@ Resume anchor — full per-phase detail lives in each phase's own artifacts; rec
 | Failure analysis (Phase 7) | [`plans/ui-aqa-<test-name>/failure-analysis.md` once produced, or `N/A — 0 failures`] |
 | Root causes (Phase 7) | [one line per confirmed root cause; `None` when 0 failures; full detail in the failure-analysis artifact] |
 | HITL approvals | [one line per gate — approving phase + ISO timestamp, e.g. `Phase 2 / 2026-… (answers)`, `Phase 8 / 2026-… (corrections)`; or `N/A`] |
+| External sources | [TMS/Wiki providers + canonical handles/URLs; direct description; unavailable sources + reason] |
 
 ## Verification-Failure Overrides
 

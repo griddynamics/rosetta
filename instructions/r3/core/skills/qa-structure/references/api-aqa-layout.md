@@ -13,7 +13,7 @@ plans/api-aqa-{IDENTIFIER}/                   (per-ticket session directory)
 plans/api-aqa-{IDENTIFIER}/initial-data.md   (this run's handoff artifact)
 ```
 
-**`{IDENTIFIER}` derivation:** Jira key (`PROJ-123`) → TestRail case ID (`C12345`) → sanitized kebab-case feature (`order-lookup`); first non-empty wins; recorded once in `api-aqa-state.md`, reused as the session-dir name. Project config lives in the per-`{IDENTIFIER}` plan folder (one copy per session -- see anti-pattern); only `agents/TEMP/<FEATURE>/api-aqa-state.md` is a shared singleton (resume anchor). Slug format + underivable rule: see SKILL `<core_concepts>` (underivable trigger here = none of the three sources yields a value).
+**`{IDENTIFIER}` derivation:** Issue Tracker key (Jira example: `PROJ-123`) → TMS case ID (TestRail example: `C12345`) → sanitized kebab-case feature (`order-lookup`); first non-empty wins; recorded once in `api-aqa-state.md`, reused as the session-dir name. Project config lives in the per-`{IDENTIFIER}` plan folder (one copy per session -- see anti-pattern); only `agents/TEMP/<FEATURE>/api-aqa-state.md` is a shared singleton (resume anchor). Slug format + underivable rule: see SKILL `<core_concepts>` (underivable trigger here = none of the three sources yields a value).
 
 **State file `agents/TEMP/<FEATURE>/api-aqa-state.md`:** header = Last Updated / Current Phase 0-7 / Test Case Source / Feature / API Base URL (standard shape per SKILL).
 

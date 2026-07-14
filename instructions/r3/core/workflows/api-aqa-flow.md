@@ -1,6 +1,6 @@
 ---
 name: api-aqa-flow
-description: "Workflow for backend API test automation: TMS/Jira test cases → automated API tests, HITL-gated."
+description: "Workflow for backend API test automation: TMS / Issue Tracker test cases → automated API tests, HITL-gated."
 alwaysApply: false
 tags: ["workflow"]
 user-invocable: true
@@ -12,6 +12,10 @@ baseSchema: docs/schemas/workflow.md
 <description_and_purpose>
 
 End-to-end backend API test automation from test case input to working automated tests.
+
+Prerequisite: Rosetta Prep Steps.
+
+**Terminology.** External systems are named by role throughout this workflow and its phases: **Test Management System (TMS)**, **Issue Tracker**, and **Wiki**. TestRail, Jira, and Confluence are canonical examples only — adapt identifiers, URLs, requests, calls, and query syntax to the systems resolved for the current project (from repository-root `gain.json`, explicit user input, recognizable URLs/handles, and available integrations).
 
 **At completion the user has:** corrected, passing API test files in the repository; the per-session artifacts under `plans/api-aqa-{IDENTIFIER}/` (`raw-data.md`, `api-analysis.md`, `analysis.md`, `test-specs.md`, `execution-report.md`); and `agents/TEMP/<FEATURE>/api-aqa-state.md` recording phase completion, metrics, and HITL approvals.
 
@@ -64,13 +68,13 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 <data_collection phase="1" applies="ALL" subagent="discoverer" role="AQA data collector">
 - APPLY PHASE `api-aqa-flow-data-collection.md`
 - Input: project config + initial data. Output: `plans/api-aqa-{IDENTIFIER}/raw-data.md` (test cases, documentation, existing test patterns).
-- Skills: `data-collection` (TMS + documentation MCP), `qa-knowledge` (`code_analysis` mode — existing-test + backend-source scan), `qa-structure`
+- Skills: `data-collection` (TMS + Wiki collector), `qa-knowledge` (`code_analysis` mode — existing-test + backend-source scan), `reverse-engineering`, `qa-structure`
 </data_collection>
 
 <api_spec_analysis phase="2" applies="ALL" subagent="discoverer" role="API spec analyst">
 - APPLY PHASE `api-aqa-flow-api-spec-analysis.md`
 - Input: raw data + project config. Output: `plans/api-aqa-{IDENTIFIER}/api-analysis.md` (endpoint contracts, auth, data dependencies).
-- Skills: `qa-knowledge` (`code_analysis` mode — API-contract extraction), `sensitive-data`, `qa-structure`
+- Skills: `qa-knowledge` (`code_analysis` mode — API-contract extraction), `reverse-engineering`, `sensitive-data`, `qa-structure`
 </api_spec_analysis>
 
 <gap_and_requirements_clarification phase="3" applies="ALL" subagent="architect" role="Test requirements analyst" type="HITL">
@@ -83,8 +87,8 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 <test_case_specification phase="4" applies="ALL" subagent="architect" role="Test specification author" type="HITL">
 - APPLY PHASE `api-aqa-flow-test-case-specification.md`
 - Input: all phase 1-3 outputs. Output: `plans/api-aqa-{IDENTIFIER}/test-specs.md` (Given-When-Then scenarios).
-- HITL gate: **WAIT FOR USER APPROVAL** before Phase 5.
-- Skills: `qa-knowledge` (`scenario_design` mode), `sensitive-data`, `qa-structure`
+- HITL gate: **WAIT FOR EXPLICIT USER APPROVAL** before Phase 5; comments, questions, suggestions, and review feedback are not approval.
+- Skills: `qa-knowledge` (`scenario_design` mode), `sensitive-data`, `qa-structure`, `hitl`
 </test_case_specification>
 
 <test_implementation phase="5" applies="ALL" subagent="engineer" role="Test automation engineer" type="HITL">
@@ -104,15 +108,15 @@ This block owns ONLY the api-aqa-flow-specific skip rules below: a set of **alwa
 <test_corrections phase="7" applies="ALL" subagent="engineer" role="Test correction engineer" type="HITL">
 - APPLY PHASE `api-aqa-flow-test-correction.md`
 - Input: execution report + test files + test specs. Output: corrected test files.
-- HITL gate: **WAIT FOR USER APPROVAL** before applying changes.
-- Skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `qa-knowledge` (`correction` mode)
+- HITL gate: **WAIT FOR EXPLICIT USER APPROVAL** before applying changes; comments, questions, suggestions, and review feedback are not approval.
+- Skills: `coding` (authors the proposed/applied edits), `debugging` (root-cause alignment), `qa-knowledge` (`correction` mode), `qa-structure`, `hitl`
 </test_corrections>
 
 </workflow_phases>
 
 <coding_standards_precedence>
-Conflict rule is binary: if guidance from a loaded skill conflicts with repository markdown (`CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION.md`, and `project_description.md` if present) on naming, structure/layout, tooling, or test patterns, repository markdown wins and the conflicting skill snippet is ignored for that decision. If there is no conflict, apply both.
-Example: if a skill suggests `/tests/api/` but `ARCHITECTURE.md` requires `/qa/api/tests/`, use `/qa/api/tests/`.
+Conflict rule is binary: if guidance from a loaded skill conflicts with repository markdown (`docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md` — or the paths `gain.json` configures — and `project_description.md` if present) on naming, structure/layout, tooling, or test patterns, repository markdown wins and the conflicting skill snippet is ignored for that decision. If there is no conflict, apply both. `gain.json` wins for file locations.
+Example: if a skill suggests `/tests/api/` but `docs/ARCHITECTURE.md` requires `/qa/api/tests/`, use `/qa/api/tests/`.
 </coding_standards_precedence>
 
 <failure_handling>
@@ -130,12 +134,11 @@ Example: if a skill suggests `/tests/api/` but `ARCHITECTURE.md` requires `/qa/a
 
 <references>
 
+Subagents: `discoverer` · `architect` · `engineer` · `executor` (optional, mechanical actions).
+
 Cross-phase skills: `qa-structure` (paths / identifier / state-file shape) and `qa-knowledge` (modes, taxonomies, artifact skeletons — loads its own assets at point of use).
 
-MCPs:
-- `TestRail` — test case management
-- `Jira MCP` — Jira issues + Confluence documentation
-- MCP names are illustrative; equivalent configured providers are acceptable when mapped in project config.
+Integrations: TMS, Issue Tracker, and Wiki per `<description_and_purpose>` Terminology.
 
 </references>
 

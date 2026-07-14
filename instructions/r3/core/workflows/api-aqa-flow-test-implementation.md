@@ -2,7 +2,7 @@
 name: api-aqa-flow-test-implementation
 description: "Phase 5 Test Implementation of api-aqa-flow (USER INTERACTION REQUIRED after implementation)"
 alwaysApply: false
-tags: []
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -42,7 +42,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 </phase_steps>
 
 <execute_implementation step="5.1" subagent="engineer" role="Test automation engineer">
-1. GATE: confirm `plans/api-aqa-{IDENTIFIER}/test-specs.md` exists, is non-empty, and `User Approval` is set in `agents/TEMP/<FEATURE>/api-aqa-state.md`; confirm `api-analysis.md` and discoverable existing patterns are present. On any failure apply `<failure_handling>` — never author from unapproved or incomplete inputs.
+1. USE SKILL `qa-structure` to resolve `{IDENTIFIER}`/run paths. GATE: confirm `plans/api-aqa-{IDENTIFIER}/test-specs.md` exists, is non-empty, and `User Approval` is set in `agents/TEMP/<FEATURE>/api-aqa-state.md`; confirm `api-analysis.md` and discoverable existing patterns are present. On any failure apply `<failure_handling>` — never author from unapproved or incomplete inputs.
 2. USE SKILL `coding` to read the repository standards as authority before authoring; repo docs beat model defaults.
 3. USE SKILL `qa-knowledge` (`implementation_modes` — API impl) and USE SKILL `testing` with the parent-supplied bindings: approved-specs path + the recorded approval signal; API-contract path; existing-patterns source; write boundary = test + shared-utility files only (`<workflow_context>`); output = the hand-off summary fields per `<implementation_handoff_contract>`.
 4. Implement shared utilities (auth helper, data factory, response validator) — prefer EXTENDING existing helpers over parallel ones; record any extension. Every test name/docstring carries its ATC-NNN id.

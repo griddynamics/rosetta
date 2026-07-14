@@ -46,7 +46,7 @@ Template -- fill each subsection:
 - **Test File:** `tests/e2e/checkout/refund.spec.ts` · extended existing · `refund-happy-path`
 - **Implementation Summary:** 7/9 implemented · 2 uncovered · page objects `CheckoutPage, RefundPage` · utilities `None`
 - **Uncovered Assertions:** "Confirmation email received after checkout" -- reason: no mail-inbox fixture in scope; the missing page-object method was escalated to the selector-implementation step for resolution.
-- **Conflicts and Precedence:** user asked for `data-cy` selectors but `ARCHITECTURE.md` mandates `data-testid` → applied `data-testid` (repo docs win).
+- **Conflicts and Precedence:** user asked for `data-cy` selectors but `docs/ARCHITECTURE.md` mandates `data-testid` → applied `data-testid` (repo docs win).
 - **Validation:** all boxes checked after the local lint + assertion-coverage pass.
 
 </ui-aqa-test-impl-record>

@@ -6,7 +6,7 @@ Shared failure-triage report skeleton. API-AQA emits `execution-report.md`; UI-A
 
 **Inputs required:** the test run output (per-test pass/fail/skip + duration; ≥1 failure with error message + stack trace) and the flow's failure taxonomy. UI selector failures also need the captured page-source/diff.
 **Unavailable metric:** emit `N/A -- <reason>` (e.g. `duration: N/A -- interrupted`), never blank.
-**Evidence label `Unknown` (UI):** assign ONLY after page-source capture was attempted and the cause is still unresolvable; APPLY SKILL FILE `assets/page-source-capture-instructions.md` and escalate first if page sources were never captured.
+**Evidence label `Unknown` (UI):** use when required evidence is unavailable or remains inconclusive after the feasible capture path. If page-source capture was never attempted and remains feasible, APPLY SKILL FILE `assets/page-source-capture-instructions.md` and escalate first; if capture is impossible, state why and name the evidence needed.
 
 Non-empty report, sections:
 

@@ -2,6 +2,7 @@
 name: testgen-flow-project-config-loading
 description: "Phase 0 Project Config Loading of testgen-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
@@ -14,9 +15,9 @@ Find or create the project config file, obtain project-specific data retrieval c
 
 <workflow_context>
 - Phase 0 of 7 in `testgen-flow`
-- Input: user request with Jira ticket key/URL
+- Input: user request with an Issue Tracker ticket key/URL (Jira `PROJ-123` is the canonical example)
 - Output: `initial-data.md`, project config file, initialized state
-- Prerequisite: user provided Jira ticket key or URL
+- Prerequisite: user provided an Issue Tracker ticket key or URL
 </workflow_context>
 
 <phase_steps>
@@ -29,12 +30,12 @@ Find or create the project config file, obtain project-specific data retrieval c
 </phase_steps>
 
 <parse_input step="0.1">
-1. Extract Jira ticket key or URL from user prompt (REQUIRED)
+1. Extract the Issue Tracker ticket key or URL from the user prompt (REQUIRED) — Jira shapes are the canonical examples; adapt parsing to the resolved tracker.
 2. Accept formats:
-   - **Jira only:** `PROJ-123`, a full Jira URL, or `Analyze requirements for PROJ-123`.
-   - **Jira + Confluence:** the ticket key/URL plus one or more Confluence page URLs, e.g. `Analyze PROJ-123, docs: https://<confluence>/pages/123` or a full Jira URL with several Confluence URLs.
-   - **Jira + other documentation URLs** (e.g. Google Drive): the ticket plus any documentation links the project config lists as data sources.
-3. Any non-Jira links pasted here are captured verbatim into `initial-data.md` and carried into Phase 1 data collection, resolved there per the project config's data sources.
+   - **Ticket only:** `PROJ-123`, a full ticket URL, or `Analyze requirements for PROJ-123`.
+   - **Ticket + Wiki:** the ticket key/URL plus one or more Wiki page URLs, e.g. `Analyze PROJ-123, docs: https://<wiki>/pages/123`.
+   - **Ticket + other documentation URLs** (e.g. Google Drive): the ticket plus any documentation links the project config lists as data sources.
+3. Any non-ticket links pasted here are captured verbatim into `initial-data.md` and carried into Phase 1 data collection, resolved there per the project config's data sources. A recognizable provider URL is valid provider evidence.
 </parse_input>
 
 <setup_directory step="0.2">
@@ -53,11 +54,11 @@ Find or create the project config file, obtain project-specific data retrieval c
 
 Contiguous 1–5 sequence. The `<example_format_of_question>` block below is the verbatim question text used by step 2 — it is **not** a numbered step and the sequence does not restart after it.
 
-1. USE SKILL `questioning`.
-2. Ask the user about knowledge base and data retrieval setup using the verbatim question text in `<example_format_of_question>` below.
+1. **Pre-fill from `gain.json` (merge evidence; do not force one source):** read repository-root `gain.json`; use `sdlc.issue_tracker(_project)`, `sdlc.wiki(_project)`, and `sdlc.test_management(_project)` when populated, plus recognizable provider URLs from the prompt. Explicit user input wins for this run; a missing `gain.json` never blocks the phase. Name the prefilled providers in the question below so the user confirms rather than re-supplies them.
+2. USE SKILL `questioning`. Ask the user about knowledge base and data retrieval setup using the question text in `<example_format_of_question>` below (adapt its canonical provider names to the prefilled ones).
 3. Process the user's answer — confirm the default scheme OR capture their customization.
 4. **Validate the answer provides sufficient information.** Minimum required fields:
-   - **Data sources** (which of: Jira, Confluence, attached docs, other URLs)
+   - **Data sources** (which of: Issue Tracker, Wiki, attached docs, other URLs — resolved providers recorded by name)
    - **Retrieval method** per source (MCP-based / direct URL / search-by-keywords)
    - **Auth assumptions** (MCP already configured / token in env / requires per-call OAuth)
 
@@ -71,9 +72,9 @@ Contiguous 1–5 sequence. The `<example_format_of_question>` block below is the
 According to test generation process rules, I require more details related to your project - How should I retrieve the information necessary for test case generation?
 As a reference, I provide the default Data Retrieval scheme below:
 ** Default Setup **
-- retrieve Jira ticket fields (summary+description)
-- retrieve provided Confluence documents, if any
-- search for Confluence pages using keywords extracted from the ticket
+- retrieve the Issue Tracker ticket fields (summary+description) — e.g. Jira
+- retrieve provided Wiki documents, if any — e.g. Confluence
+- search the Wiki for pages using keywords extracted from the ticket
 - combine all the information as a basis for test case generation
 
 Is the above accurate for your project?
@@ -113,7 +114,8 @@ you can provide them here as well.
 
 **Last Updated**: [DateTime]
 **Current Phase**: [0-6 or COMPLETE; if a phase halts, append " (BLOCKED: <reason>)", e.g. "0 (BLOCKED: incomplete config answer)"]
-**Jira Ticket**: [TICKET-KEY]
+**Ticket**: [Issue Tracker key, e.g. PROJ-123]
+**Providers**: [resolved Issue Tracker / Wiki / TMS, or N/A per role]
 
 ## Phase Completion Status
 
@@ -129,9 +131,9 @@ you can provide them here as well.
 
 ### Phase 1
 - Completed: [DateTime]
-- Jira Ticket: [KEY]
+- Ticket: [KEY]
 - Files Created: [List]
-- Confluence Pages: [Count]
+- Wiki Pages: [Count]
 - Notes: [Any relevant notes]
 
 [Add sections for each completed phase]
@@ -139,7 +141,7 @@ you can provide them here as well.
 ## Metrics
 
 Completeness signal (one line; `—` until the phase runs; a thin `0`/`1` where more is expected → re-check the artifact):
-`P1 jira:[n]/conf:[n] · P2 contradictions:[n]/gaps:[n]/ambig:[n] · P3 questions:[n]/answered:[n] · P4 stories:[n]/FR:[n]/NFR:[n] · P5 scenarios:[n] · P6 exported:[n]/[n]`
+`P1 ticket-fields:[n]/wiki:[n] · P2 contradictions:[n]/gaps:[n]/ambig:[n] · P3 questions:[n]/answered:[n] · P4 stories:[n]/FR:[n]/NFR:[n] · P5 scenarios:[n] · P6 exported:[n]/[n]`
 
 ## Verification-Failure Overrides
 
@@ -159,7 +161,7 @@ plans/testgen-{TICKET-KEY}/
 ├── testgen-project-config.md  # Phase 0: project config (data sources, retrieval, auth) — one copy per ticket
 ├── testgen-state.md        # State tracking (updated each phase)
 ├── initial-data.md         # Phase 0: Initial user input + project config ref
-├── raw-data.md             # Phase 1: Jira + Confluence data
+├── raw-data.md             # Phase 1: Issue Tracker + Wiki data
 ├── analysis.md             # Phase 2: Gap analysis
 ├── questions.md            # Phase 3: Generated questions
 ├── answers.md              # Phase 3: User answers (HITL)
