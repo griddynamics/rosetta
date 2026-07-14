@@ -64,7 +64,7 @@ Decision point: Swagger available -> full spec analysis. No Swagger -> code-base
 
 <produce_output step="2.3">
 
-Create `plans/api-aqa-{IDENTIFIER}/api-analysis.md`. The phase owns the document **section list** below; the verbatim per-endpoint contract entry and the Analysis Summary metrics are `qa-knowledge`'s api-analysis template (loaded by the skill at point of use). The skill EMITS into these, the phase ASSERTS them.
+Create `plans/api-aqa-{IDENTIFIER}/api-analysis.md`. The phase owns the document **section list** below; the verbatim per-endpoint contract entry and the Analysis Summary metrics are `qa-knowledge`'s api-analysis template. The skill EMITS into these, the phase ASSERTS them.
 
 **Required section list** (in order; every section must be present-or-`N/A — <reason>`):
 
@@ -78,7 +78,7 @@ Create `plans/api-aqa-{IDENTIFIER}/api-analysis.md`. The phase owns the document
 </produce_output>
 
 <redaction_contract>
-`api-analysis.md` is **tracked + downstream-fed** (read by test-design / test-implementation / correction phases) — **PUBLIC by default**. Redact via USE SKILL `sensitive-data` BEFORE writing. **Pre-emit gate (MANDATORY): run the `sensitive-data` scan against the rendered artifact — emit is FORBIDDEN until that scan has run. Fail-closed: if the skill cannot be loaded or run, STOP and report — never emit unscanned.** Record each redaction in the entry's `Notes / Discrepancies`. Swagger specs and code routinely embed real secrets in `securitySchemes`, example bodies, and citation snippets.
+`api-analysis.md` is **tracked + downstream-fed** — PUBLIC by default. USE SKILL `sensitive-data`: scan the rendered artifact BEFORE writing, **fail-closed** (no scan → no emit); record each redaction in the entry's `Notes / Discrepancies`. Swagger specs and code routinely embed real secrets in `securitySchemes`, example bodies, and citation snippets.
 </redaction_contract>
 
 <validate_findings step="2.4">

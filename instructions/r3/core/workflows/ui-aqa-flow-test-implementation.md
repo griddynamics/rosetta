@@ -31,7 +31,7 @@ This phase OWNS the implement → validate-locally → hand-off-execution → up
 - **Hand off execution** — provide the exact project test-execution command; STOP and WAIT for the user to run it (`<stop_for_execution>`). The phase never executes the test itself.
 - **Update state without closing** — record outcome in `agents/TEMP/<FEATURE>/ui-aqa-state.md`, mark Phase 6 complete, set Phase 7 current; do NOT mark the overall UI-AQA workflow COMPLETE.
 
-**Test Implementation record** → `qa-knowledge`'s UI test-implementation record (the skill loads its own asset for the full rendering template). Five ordered subsections + their required top-level fields (inline anchor so the output contract is verifiable from this file): **Test File** (path · framework); **Implementation Summary** (assertions implemented/total · page objects used); **Uncovered Assertions** (`### Uncovered Assertions` — per entry: assertion · reason · disposition); **Conflicts and Precedence** (doc-vs-skill conflict · resolution); **Validation** (lint status · coverage).
+**Test Implementation record** → `qa-knowledge`'s UI test-implementation record (full rendering template owned by the skill). Five ordered subsections: **Test File** (path · framework); **Implementation Summary** (assertions implemented/total · page objects used); **Uncovered Assertions** (per entry: assertion · reason · disposition); **Conflicts and Precedence** (doc-vs-skill conflict · resolution); **Validation** (lint status · coverage).
 </implementation_handoff_contract>
 
 <phase_steps>
@@ -90,7 +90,7 @@ test.describe('refund-happy-path', () => {
    - Page Objects Used: [list]
    - Status: Ready for execution
    - Phase 6 completion timestamp
-2. **GATE — do NOT mark Phase 6 complete until** `plans/ui-aqa-<test-name>/test-plan.md` contains the `## Test Implementation` record with all five subsections (Test File · Implementation Summary · `### Uncovered Assertions` · Conflicts and Precedence · Validation), where `### Uncovered Assertions` carries ≥1 entry **OR** the explicit None-clause. If it is absent, return to step 6.1 and emit it first — a Phase 6 marked complete without this record is a defect (the run loses its implement→validate audit trail and the Uncovered-assertion disposition). This holds on the clean path too: full coverage → write the None-clause, never omit the record.
+2. **GATE — do NOT mark Phase 6 complete until** `plans/ui-aqa-<test-name>/test-plan.md` contains the `## Test Implementation` record with all five subsections, where `### Uncovered Assertions` carries ≥1 entry **OR** the explicit None-clause (on the clean path too: full coverage → write the None-clause, never omit the record). If absent, return to step 6.1 and emit it first — without this record the run loses its implement→validate audit trail and the Uncovered-assertion disposition.
 3. Mark Phase 6 complete, Phase 7 current (do NOT mark overall UI-AQA as COMPLETE).
 
 **Canonical state-file update example:**

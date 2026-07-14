@@ -40,9 +40,9 @@ The phase supplies these paths to the skill; defaults apply when not configured:
 </input_contract>
 
 <code_analysis_report_contract>
-`plans/ui-aqa-<test-name>/code-analysis.md` is **tracked + downstream-fed** (consumed by page-object and test-authoring phases) — treat as **PUBLIC by default**; redact captured values BEFORE writing via USE SKILL `sensitive-data`, not after. **Pre-emit gate (MANDATORY): run the `sensitive-data` scan against the rendered artifact — emit is FORBIDDEN until the scan has run. Fail-closed: if the skill cannot be loaded or run, STOP and report — never emit unscanned.** The report's 9-section structure and the test-location decision rule are `qa-knowledge`'s code-analysis report template (the skill loads its own asset) — every section present (empty optional section says `not available — see Coverage section`).
+`plans/ui-aqa-<test-name>/code-analysis.md` is **tracked + downstream-fed** — PUBLIC by default. USE SKILL `sensitive-data`: scan the rendered artifact BEFORE writing, **fail-closed** (no scan → no emit). The report's 9-section structure and the test-location decision rule are `qa-knowledge`'s code-analysis report template — every section present (empty optional section says `not available — see Coverage section`).
 
-After writing the report, update the test plan's `## Code Analysis` section with a one-paragraph summary linking to it — do NOT duplicate report contents into the plan. This is the **phase contract**, verified by `<validation_checklist>` independent of skill internals.
+After writing the report, update the test plan's `## Code Analysis` section with a one-paragraph summary linking to it — do NOT duplicate report contents into the plan.
 </code_analysis_report_contract>
 
 <phase_steps>
@@ -54,7 +54,7 @@ After writing the report, update the test plan's `## Code Analysis` section with
 <execute_analysis step="3.1" subagent="discoverer" role="Test architecture analyst">
 1. Run the `<input_contract>` Input GATE. On any miss: stop per the `qa-structure` UI-layout guards / `<input_contract>`.
 2. USE SKILL `qa-knowledge` (`code_analysis` mode — test-automation architecture analysis) with the phase-supplied bindings: inputs + defaults = `<input_contract>`; report structure + the test-location decision rule = the skill's code-analysis report template; output path = `plans/ui-aqa-<test-name>/code-analysis.md`. USE SKILL `sensitive-data` to redact any captured source/selector/config values before writing.
-3. **Conditional-input else-paths** (anchored here so a phase-only reader sees the behavior when an optional input is absent):
+3. **Conditional-input else-paths:**
    - If `agents/user-instructions/` is **absent or empty**: record `not available — see Coverage section` in report section 2 and `not available` in section 9; Phase 3 **continues**, does not stop.
    - If a **frontend source path is not discoverable** (no project-config reference, no `RefSrc/<repo>/`): skip frontend analysis, record the gap in section 9 per the coverage epistemic-honesty rule; Phase 3 **continues**.
 4. Do not fabricate framework, page objects, or pass/fail data. Honor the read-only scope (`<workflow_context>`).

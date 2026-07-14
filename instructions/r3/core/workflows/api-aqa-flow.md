@@ -11,7 +11,7 @@ baseSchema: docs/schemas/workflow.md
 
 <description_and_purpose>
 
-End-to-end backend API test automation from test case input to working automated tests. (Source-system + tool enumeration owned by the frontmatter `description` field — not restated here.)
+End-to-end backend API test automation from test case input to working automated tests.
 
 **At completion the user has:** corrected, passing API test files in the repository; the per-session artifacts under `plans/api-aqa-{IDENTIFIER}/` (`raw-data.md`, `api-analysis.md`, `analysis.md`, `test-specs.md`, `execution-report.md`); and `agents/TEMP/<FEATURE>/api-aqa-state.md` recording phase completion, metrics, and HITL approvals.
 
@@ -23,12 +23,8 @@ End-to-end backend API test automation from test case input to working automated
 - All Rosetta prep steps MUST be FULLY completed, SKILL `load-project-context` loaded and fully executed.
 - NO ASSUMPTIONS: never assume endpoints, payloads, auth mechanisms, or response schemas — ask the user when missing.
 - MUST use todo tasks; prioritize ACCURACY over SPEED.
-- **Drive loop (owned by this workflow):** execute phases in order — for each: APPLY PHASE its phase file → update `agents/TEMP/<FEATURE>/api-aqa-state.md` → verify the phase-output gate → next; keep todos matched to the active phase; never batch-load future phases; never skip without approval (`<skip_rules>`). When a phase delegates work to subagents, dispatch per USE SKILL `orchestration`. This workflow specifies only api-aqa-flow-specific deltas in each phase block below.
+- **Drive loop (owned by this workflow):** execute phases in order — for each: APPLY PHASE its phase file → update `agents/TEMP/<FEATURE>/api-aqa-state.md` → verify the phase-output gate → next; keep todos matched to the active phase; never batch-load future phases; never skip without approval (`<skip_rules>`). When a phase delegates work to subagents, dispatch per USE SKILL `orchestration`.
 - **Phase-output gate (verify before advancing):** each phase's mandatory artifact must exist and pass its phase-file completion gate before the next phase starts — notably **Phase 4: every `ATC-NNN` in `test-specs.md` traces to a Phase 3 source** (a `raw-data.md` test case and/or an `analysis.md` `G[N]`/`C[N]`/`A[N]` finding); also Phase 1 `raw-data.md`, Phase 2 `api-analysis.md`, and Phase 6 `execution-report.md` present and non-placeholder.
-
-<phase_template>
-Per-phase block format: APPLY PHASE the phase file + Input/Output + HITL gate (when present) + Skills. The execute / state-update cadence is the drive loop above, not restated per-phase.
-</phase_template>
 
 <skip_rules>
 

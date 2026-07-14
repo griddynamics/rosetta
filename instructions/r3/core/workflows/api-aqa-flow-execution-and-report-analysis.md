@@ -24,9 +24,9 @@ Analyze test execution results provided by the user. Identify failures, categori
 </workflow_context>
 
 <execution_report_contract>
-`execution-report.md` is **PUBLIC by default** (tracked, shared review, downstream prompt contexts) — redact BEFORE writing via USE SKILL `sensitive-data`, not after. **Run the `sensitive-data` scan against the rendered artifact as the pre-emit gate; emit FORBIDDEN until it has run — fail-closed** (test logs/stack traces can carry tokens). The failure classification is `qa-knowledge`'s API failure taxonomy (assign exactly one category per failure). The required report structure is `qa-knowledge`'s failure-report template, API variant (the skill loads its own asset) — Execution Summary, Failures by Category, per-failure Failure Details (**ID** `ERR-N` · Failure name · Category · Root cause · Evidence label `Confirmed`/`Assumption`/`Unknown` · Evidence rationale · Priority), Patterns, Recommendations.
+`execution-report.md` is **tracked + downstream-fed** — PUBLIC by default. USE SKILL `sensitive-data`: scan the rendered artifact BEFORE writing, **fail-closed** (no scan → no emit; test logs/stack traces can carry tokens). The failure classification is `qa-knowledge`'s API failure taxonomy (exactly one category per failure); the report structure is `qa-knowledge`'s failure-report template, API variant (the skill loads its own asset) — Execution Summary, Failures by Category, per-failure Failure Details (**ID** `ERR-N` · Failure name · Category · Root cause · Evidence label `Confirmed`/`Assumption`/`Unknown` · Evidence rationale · Priority), Patterns, Recommendations.
 
-This is the **phase contract** and is verified by `<validation_checklist>` independent of skill internals.
+This is the **phase contract**, verified by `<validation_checklist>` independent of skill internals.
 </execution_report_contract>
 
 <phase_steps>
@@ -59,7 +59,7 @@ This is the **phase contract** and is verified by `<validation_checklist>` indep
 <validation_checklist>
 - Test execution results obtained from user
 - All results parsed and categorized per `qa-knowledge`'s API failure taxonomy
-- Every failure entry has all seven fields (ID `ERR-N` / Failure name / Category / Root cause / Evidence label / Evidence rationale / Priority), each with a unique sequential `ERR-N`
+- Every failure entry has all seven contract fields with a unique sequential `ERR-N`
 - Patterns identified across failures (or explicit none)
 - Redaction pre-emit gate ran — the `sensitive-data` scan was executed against the artifact before writing
 - `execution-report.md` written with all `<execution_report_contract>` sections and non-empty

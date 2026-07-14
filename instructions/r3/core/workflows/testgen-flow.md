@@ -24,7 +24,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 - **Transition precedence:** `<orchestration_and_escalation>` priority hierarchy.
 - **STATE TRACKING:** Update `plans/testgen-{TICKET-KEY}/testgen-state.md` after each phase.
 - **SELF-CHECK BETWEEN PHASES:** Before advancing, verify the state row was updated, the expected output file exists and is non-empty, the phase's `## Metrics` count is populated (a thin `0`/`1` → re-check the artifact), and any HITL approval (Phase 3, 6) is recorded.
-- The drive-loop cadence above is owned by this workflow — the inline bullets are authoritative. When a phase delegates work to subagents, dispatch per USE SKILL `orchestration`.
+- When a phase delegates work to subagents, dispatch per USE SKILL `orchestration`.
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `plans/testgen-{TICKET-KEY}/` at start.
 - **Trigger prompt example:** `Analyze requirements for PROJ-123` (also: bare key `PROJ-123`, full Jira URL). Jira-only and Jira+Confluence input formats are enumerated in `testgen-flow-project-config-loading.md` step 0.1.
@@ -41,77 +41,63 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 <project_config_loading phase="0" subagent="discoverer" role="Project configuration analyst" subagent_recommended_model="tier: workhorse">
 
-1. APPLY PHASE `testgen-flow-project-config-loading.md`
-2. Execute phase instructions.
-3. Input: user request with Jira ticket key/URL. Output: `plans/testgen-{TICKET-KEY}/initial-data.md`, project config file.
-4. Recommended skills: `questioning`, `sensitive-data` (config / initial-data redaction pre-write gate)
-5. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
+- APPLY PHASE `testgen-flow-project-config-loading.md`
+- Input: user request with Jira ticket key/URL. Output: `plans/testgen-{TICKET-KEY}/initial-data.md`, project config file.
+- Recommended skills: `questioning`, `sensitive-data` (config / initial-data redaction pre-write gate)
 
 </project_config_loading>
 
 <data_collection phase="1" subagent="discoverer" role="Requirements data collector" subagent_recommended_model="tier: workhorse">
 
-1. APPLY PHASE `testgen-flow-data-collection.md`
-2. Execute phase instructions.
-3. Input: initial user request, initial-data.md. Output: `plans/testgen-{TICKET-KEY}/raw-data.md` with Jira + Confluence data.
-4. Recommended skills: `data-collection`
-5. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
+- APPLY PHASE `testgen-flow-data-collection.md`
+- Input: initial user request, initial-data.md. Output: `plans/testgen-{TICKET-KEY}/raw-data.md` with Jira + Confluence data.
+- Recommended skills: `data-collection`
 
 </data_collection>
 
 <gap_and_contradiction_analysis phase="2" subagent="architect" role="Requirements gap analyst" subagent_recommended_model="tier: complex">
 
-1. APPLY PHASE `testgen-flow-gap-and-contradiction-analysis.md`
-2. Execute phase instructions.
-3. Input: raw-data.md. Output: `plans/testgen-{TICKET-KEY}/analysis.md` with contradictions, gaps, ambiguities.
-4. Recommended skills: `qa-knowledge` (`gap_analysis` mode)
-5. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
+- APPLY PHASE `testgen-flow-gap-and-contradiction-analysis.md`
+- Input: raw-data.md. Output: `plans/testgen-{TICKET-KEY}/analysis.md` with contradictions, gaps, ambiguities.
+- Recommended skills: `qa-knowledge` (`gap_analysis` mode)
 
 </gap_and_contradiction_analysis>
 
 <question_generation phase="3" subagent="architect" role="Requirements clarification analyst" subagent_recommended_model="tier: complex" type="HITL">
 
-1. APPLY PHASE `testgen-flow-question-generation.md`
-2. Execute phase instructions.
-3. Input: analysis.md. Output: `plans/testgen-{TICKET-KEY}/questions.md`, `plans/testgen-{TICKET-KEY}/answers.md`.
-4. **WAIT FOR USER** to fill answers in questions.md. Explicit approval required.
-5. Recommended skills: `questioning`
-6. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
+- APPLY PHASE `testgen-flow-question-generation.md`
+- Input: analysis.md. Output: `plans/testgen-{TICKET-KEY}/questions.md`, `plans/testgen-{TICKET-KEY}/answers.md`.
+- **WAIT FOR USER** to fill answers in questions.md. Explicit approval required.
+- Recommended skills: `questioning`
 
 </question_generation>
 
 <requirements_document_generation phase="4" subagent="architect" role="Requirements engineer" subagent_recommended_model="tier: complex">
 
-1. APPLY PHASE `testgen-flow-requirements-document-generation.md`
-2. Execute phase instructions.
-3. Input: raw-data.md + analysis.md + answers.md. Output: `plans/testgen-{TICKET-KEY}/requirements.md`.
-4. **WAIT FOR USER** to review `requirements.md` before Phase 5 (phase-file gate, step 4.4) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
-5. Recommended skills: `qa-knowledge` (`synthesis` mode)
-6. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
+- APPLY PHASE `testgen-flow-requirements-document-generation.md`
+- Input: raw-data.md + analysis.md + answers.md. Output: `plans/testgen-{TICKET-KEY}/requirements.md`.
+- **WAIT FOR USER** to review `requirements.md` before Phase 5 (phase-file gate, step 4.4) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
+- Recommended skills: `qa-knowledge` (`synthesis` mode)
 
 </requirements_document_generation>
 
 <test_case_generation phase="5" subagent="engineer" role="Test case design engineer" subagent_recommended_model="tier: workhorse">
 
-1. APPLY PHASE `testgen-flow-test-case-generation.md`
-2. Execute phase instructions.
-3. Input: requirements.md. Output: `plans/testgen-{TICKET-KEY}/test-scenarios.md`
-4. **WAIT FOR USER** to review `test-scenarios.md` before Phase 6 export (phase-file gate, step 5.9) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
-5. Recommended skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS FORMAT binding).
-6. `coding` is NOT used for the default manual-scenario output (writes stay under `plans/testgen-{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder, per `<phase_5_6_standards_gate>`.
-7. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
+- APPLY PHASE `testgen-flow-test-case-generation.md`
+- Input: requirements.md. Output: `plans/testgen-{TICKET-KEY}/test-scenarios.md`
+- **WAIT FOR USER** to review `test-scenarios.md` before Phase 6 export (phase-file gate, step 5.9) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
+- Recommended skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS FORMAT binding).
+- `coding` is NOT used for the default manual-scenario output (writes stay under `plans/testgen-{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder, per `<phase_5_6_standards_gate>`.
 
 </test_case_generation>
 
 <test_case_export phase="6" subagent="engineer" role="Test case export specialist" subagent_recommended_model="tier: workhorse" type="HITL">
 
-1. APPLY PHASE `testgen-flow-test-case-export.md`
-2. Execute phase instructions.
-3. Input: test-scenarios.md. Output: test cases exported to Test Management System **and** a local export receipt at `plans/testgen-{TICKET-KEY}/export-report.md` (TMS IDs/URLs, per-case status, timestamp). The local receipt is the on-disk evidence Phase 6 ran successfully.
-4. **WAIT FOR USER** to provide target location and confirm export.
-5. Recommended skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS EXPORT binding).
-6. `coding` is NOT used for the default flow (TMS export + receipt under `plans/testgen-{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder (e.g. embedding TMS IDs into a version-controlled file), per `<phase_5_6_standards_gate>`.
-7. Update `plans/testgen-{TICKET-KEY}/testgen-state.md`
+- APPLY PHASE `testgen-flow-test-case-export.md`
+- Input: test-scenarios.md. Output: test cases exported to Test Management System **and** a local export receipt at `plans/testgen-{TICKET-KEY}/export-report.md` (TMS IDs/URLs, per-case status, timestamp). The local receipt is the on-disk evidence Phase 6 ran successfully.
+- **WAIT FOR USER** to provide target location and confirm export.
+- Recommended skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS EXPORT binding).
+- `coding` is NOT used for the default flow (TMS export + receipt under `plans/testgen-{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder (e.g. embedding TMS IDs into a version-controlled file), per `<phase_5_6_standards_gate>`.
 
 </test_case_export>
 
@@ -121,7 +107,7 @@ Systematic requirements analysis from Jira tickets and Confluence documentation 
 
 - **Skip-without-agreement / falsified-skip refusal** (this workflow owns the rule; subordinate to the `hitl` skill): a skip asserted but contradicted by `testgen-state.md` / disk evidence is refused — announce the specific missing state row / absent artifact, then start the earliest incomplete phase the same turn.
 - **Priority (highest never overridden → lowest):** (1) safety / destructive confirmations — incl. `<phase_5_6_standards_gate>` outside-output-dir confirmation; (2) Phase 3 + Phase 6 HITL gates (answer `questions.md` / confirm TMS target + export scope) — never skipped by user instruction; (3) per-phase user confirmation; (4) the verification-failure override below.
-- **Gate-type convention:** only the priority-(2) gates carry a `type="HITL"` attribute (Phases 3 + 6). The priority-(3) per-phase confirmations (Phases 0, 1, 2, 4, 5) are intentional user-pauses that deliberately carry **no** `type=` attribute — here `type=` marks the never-overridden gates, not every pause. (This is a two-tier model; it differs from `ui-aqa-flow`/`api-aqa-flow`, where every pause is a `type="HITL"`/`HITL-CONDITIONAL` gate.)
+- **Gate-type convention:** only the priority-(2) gates carry a `type="HITL"` attribute (Phases 3 + 6). The priority-(3) per-phase confirmations (Phases 0, 1, 2, 4, 5) are intentional user-pauses that deliberately carry **no** `type=` attribute — here `type=` marks the never-overridden gates, not every pause.
 - **Testgen binding for the override** (skip-verification gate only): the trigger is the user asserting a phase complete while `testgen-state.md` does not mark it AND the expected output is absent. Action — if `testgen-state.md` is missing, create it from the Phase 0 `<state_file_template>` first; log a row into its `## Verification-Failure Overrides` (row format owned by that template); then start the earliest incomplete phase the same turn without invoking the `hitl` ask path. Uncertainty (partial state, ambiguous assertion) → fall back to the `hitl` ask.
 - Load failure for a required phase file or skill: retry once, stop, record in `testgen-state.md`, ask the user; never substitute silently.
 

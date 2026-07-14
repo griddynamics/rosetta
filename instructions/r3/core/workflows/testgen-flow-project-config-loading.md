@@ -172,9 +172,9 @@ plans/testgen-{TICKET-KEY}/
 
 <safety_boundaries>
 
-`plans/testgen-{TICKET-KEY}/testgen-project-config.md` is **tracked** (committed to VCS as part of this ticket's feature plan folder); `plans/testgen-{TICKET-KEY}/initial-data.md` captures the user prompt + any pasted links verbatim — treat both as **PUBLIC by default**. The **Auth assumptions** answer (step 0.4) and pasted URLs can carry credential-shaped values that would persist into the repo unredacted.
+`plans/testgen-{TICKET-KEY}/testgen-project-config.md` and `initial-data.md` (verbatim user prompt + pasted links) are **tracked** — PUBLIC by default; the **Auth assumptions** answer (step 0.4) and pasted URLs can carry credential-shaped values. Record auth as **scheme + source** (e.g. `Bearer JWT from env E2E_TOKEN`), never literal values.
 
-**Redaction at intake (pre-write gate, MANDATORY):** before writing the config OR `initial-data.md`, USE SKILL `sensitive-data` and run its scan list against the content to be written — writing is FORBIDDEN until that scan has run. **Fail-closed:** if the skill cannot be loaded or run, STOP and report — never write an unscanned config/initial-data. On a hit, replace the literal with a mechanism+source description and add a one-line `## Additional Notes`: `Original answer included a literal <kind> — redacted; request mechanism+source from user if the env-var name is unknown.` Record auth as **scheme + source**, never literal values (e.g. `Bearer JWT from env E2E_TOKEN`). Structural content — endpoint paths, framework names, base/spec URLs without embedded credentials, ticket/project keys — stays verbatim.
+**Redaction at intake (pre-write gate, fail-closed):** USE SKILL `sensitive-data` and run its scan against the config AND `initial-data.md` BEFORE writing — no scan (skill unavailable included) → STOP, never write unscanned. On a hit, replace the literal with mechanism+source and add to `## Additional Notes`: `Original answer included a literal <kind> — redacted; request mechanism+source from user if the env-var name is unknown.` Structure (endpoint paths, framework names, credential-free URLs, ticket/project keys) stays verbatim.
 
 </safety_boundaries>
 

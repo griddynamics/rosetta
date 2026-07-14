@@ -57,7 +57,7 @@ Create `plans/api-aqa-{IDENTIFIER}/test-specs.md` per `qa-knowledge`'s test-spec
 
 <present_for_approval step="4.4">
 1. Present summary to user: total scenarios, priority breakdown, endpoints covered.
-2. **Approval gate:** USE SKILL `qa-knowledge` to run its shared approval gate (closed-token discipline · loose-phrasing rejection · max-retry escalation · partial approval · change/reject handling). Bindings: closed token list = `approved` / `approve` / `yes`; re-present step = 4.3; full-reject revisit target = Phase 3 (revisit gap analysis). Treat partial approve as a change request that drops the rejected scenarios. Proceed to step 4.5 only on an exact token match; the token list is this phase's authoritative specialization. Strict approval per SKILL `hitl`.
+2. **Approval gate:** USE SKILL `qa-knowledge` to run its shared approval gate — it owns token discipline, re-prompt caps, partial approval, and reject handling. Bindings: closed token list = `approved` / `approve` / `yes` (authoritative for this phase); re-present step = 4.3; full-reject revisit target = Phase 3. Treat partial approve as a change request that drops the rejected scenarios. Proceed to step 4.5 only on an exact token match. Strict approval per SKILL `hitl`.
 3. **DO NOT PROCEED** to Phase 5 without an exact approval token.
 </present_for_approval>
 

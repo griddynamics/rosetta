@@ -43,14 +43,14 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 
 <present_for_approval step="8.2">
 1. Present all proposed changes with before/after code per the template.
-2. **Approval gate:** apply `qa-knowledge`'s shared approval gate over the presented changes (closed-token discipline · loose-phrasing rejection · max-retry escalation · partial approval · change/reject handling). Bindings: closed token list = `approved` / `approve` / `yes`; re-present step = 8.2; full-reject revisit target = Phase 7. The token list is this phase's authoritative specialization. Strict approval per SKILL `hitl`.
+2. **Approval gate:** apply `qa-knowledge`'s shared approval gate over the presented changes — it owns token discipline, re-prompt caps, partial approval, and reject handling. Bindings: closed token list = `approved` / `approve` / `yes` (authoritative for this phase); re-present step = 8.2; full-reject revisit target = Phase 7. Strict approval per SKILL `hitl`.
 </present_for_approval>
 
 <apply_changes step="8.3">
 1. Apply approved changes one at a time (or in named approved batches).
 2. Validate linting/format after each change. On lint failure: revert that change (never leave the file broken), re-prepare, and re-present that single change via `<present_for_approval>`.
 3. Verify each applied change addresses its Phase 7 root cause (cite the analysis entry id). On root-cause mismatch: return to step 8.1 with a note in `agents/TEMP/<FEATURE>/ui-aqa-state.md`; do not leave unmapped changes applied.
-4. **Max retries:** cap step 8.3 in-phase retries at 3 cycles per failing change. After 3 failed cycles on the same change, stop, record `Phase 8 blocked: in-phase apply retry cap reached` in `agents/TEMP/<FEATURE>/ui-aqa-state.md`, and loop back to Phase 7 per `<correction_contract>` (do not auto-start a 4th cycle).
+4. **Max retries:** apply the `<correction_contract>` iteration cap — on the 3rd failed cycle for the same change, stop, record `Phase 8 blocked: in-phase apply retry cap reached` in the state file, loop back to Phase 7 (do not auto-start a 4th cycle).
 </apply_changes>
 
 <update_state step="8.4">

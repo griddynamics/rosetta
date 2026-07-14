@@ -43,14 +43,14 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 
 <present_for_approval step="7.2">
 1. Present all proposed changes with before/after code per the template.
-2. **Approval gate:** apply `qa-knowledge`'s shared approval gate over the presented changes (closed-token discipline · loose-phrasing rejection · max-retry escalation · partial approval · change/reject handling). Bindings: closed token list = `approved` / `approve` / `yes`; re-present step = 7.2; full-reject revisit target = Phase 6. The token list is this phase's authoritative specialization. Strict approval per SKILL `hitl`.
+2. **Approval gate:** apply `qa-knowledge`'s shared approval gate over the presented changes — it owns token discipline, re-prompt caps, partial approval, and reject handling. Bindings: closed token list = `approved` / `approve` / `yes` (authoritative for this phase); re-present step = 7.2; full-reject revisit target = Phase 6. Strict approval per SKILL `hitl`.
 </present_for_approval>
 
 <apply_changes step="7.3">
 1. Apply approved changes one at a time (or in named approved batches).
 2. Validate linting/format after each change. On lint failure: revert that change (never leave the file broken), re-prepare a corrected version, and re-present that single change via `<present_for_approval>`.
 3. Verify each applied change addresses its root cause by cross-referencing it to the matching entry in `plans/api-aqa-{IDENTIFIER}/execution-report.md` (cite the entry id, e.g. `ERR-3`). On root-cause mismatch: return to step 7.1 with a note in `agents/TEMP/<FEATURE>/api-aqa-state.md`; do not leave unmapped changes applied.
-4. **Max retries:** cap step 7.3 in-phase retries at 3 cycles per failing change. After 3 failed cycles on the same change, stop, record `Phase 7 blocked: in-phase apply retry cap reached` in `agents/TEMP/<FEATURE>/api-aqa-state.md`, and escalate to the user.
+4. **Max retries:** apply the `<correction_contract>` iteration cap — on the 3rd failed cycle for the same change, stop, record `Phase 7 blocked: in-phase apply retry cap reached` in the state file, escalate to the user.
 </apply_changes>
 
 <update_state step="7.4">

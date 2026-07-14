@@ -57,8 +57,6 @@ If the code-analysis file is missing, the slug stays ambiguous in `agents/TEMP/<
 
 <handle_page_source step="4.2" condition="selectors still missing">
 
-The capture protocol is **user-facing instruction** — the implementing skill declares page sources as an input but does NOT own the capture protocol. Non-technical users need the literal steps, not an abstract pointer.
-
 1. Create directory `plans/ui-aqa-<test-name>/page-sources/` (same `<test-name>` slug resolved in step 4.0; path/naming contract per `qa-structure`).
 
 2. **Send the user the verbatim capture-instruction message** — USE SKILL `qa-knowledge` to send its page-source capture instructions verbatim. Do NOT paraphrase; non-technical users rely on the literal F12 / right-click steps.
@@ -67,7 +65,7 @@ The capture protocol is **user-facing instruction** — the implementing skill d
 
 4. Verify the files exist at `plans/ui-aqa-<test-name>/page-sources/` with the kebab-case naming (`<page-name>.html`). If any file is missing, malformed, or saved with the wrong name, ask the user once for a corrected filename or content; do NOT proceed to selector analysis on incomplete page-source coverage.
 
-5. **Redaction pre-emit gate (MANDATORY, fail-closed):** authenticated page-source HTML routinely embeds session/CSRF tokens and PII. Before reading or referencing any captured file, USE SKILL `sensitive-data` and run its scan against every saved page-source file, redacting in place — selector analysis and any reference to page-source content are FORBIDDEN until the scan has run. Fail-closed: if the skill cannot be loaded or run, STOP and report — never read unscanned page source. Then continue Part A analysis.
+5. **Redaction pre-read gate (fail-closed):** authenticated page-source HTML routinely embeds session/CSRF tokens and PII. USE SKILL `sensitive-data`: scan every saved page-source file and redact in place BEFORE reading or referencing any of it — no scan → no read. Then continue Part A analysis.
 
 </handle_page_source>
 

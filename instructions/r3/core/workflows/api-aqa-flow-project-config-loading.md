@@ -38,7 +38,7 @@ USE SKILL `qa-structure` for the session layout, `{IDENTIFIER}` derivation, and 
    - **Additional context** (OPTIONAL): Swagger URL, Confluence pages, API documentation links.
    - Supported phrasings: `"Write API tests for TC-1234"`, `"Automate backend tests for PROJ-123"`, `"Create API tests for the user registration endpoint"`, `"Automate TC-1234 with Swagger: https://api.example.com/swagger"`.
 2. **Derive `{IDENTIFIER}`** per the `qa-structure` rule (Jira key → TestRail ID → kebab-case feature). On multiple candidates, first non-empty wins; record the chosen value + rejected candidates in `initial-data.md`.
-3. **Create the session directory** `plans/api-aqa-{IDENTIFIER}/` and write the **state-file stub** (below — kept inline, always needed) to `agents/TEMP/<FEATURE>/api-aqa-state.md`. The full per-phase update schema is owned by `api-aqa-flow.md` `<state_file>`; this stub is only the seed:
+3. **Create the session directory** `plans/api-aqa-{IDENTIFIER}/` and write the **state-file stub** below to `agents/TEMP/<FEATURE>/api-aqa-state.md`. The full per-phase update schema is owned by `api-aqa-flow.md` `<state_file>`; this stub is only the seed:
 
    ```markdown
    # API AQA State - <Test Name / Feature>
@@ -78,7 +78,7 @@ USE SKILL `qa-structure` for the session layout, `{IDENTIFIER}` derivation, and 
 </config_missing>
 
 <create_initial_data step="0.2">
-Write `plans/api-aqa-{IDENTIFIER}/initial-data.md` using the inline template below (kept inline — tiny + always needed); all four fields populated from the parsed input (`None` only for additional-links):
+Write `plans/api-aqa-{IDENTIFIER}/initial-data.md` using the template below; all four fields populated from the parsed input (`None` only for additional-links):
 
 ```markdown
 # Initial Data — [IDENTIFIER]
@@ -101,11 +101,9 @@ Write `plans/api-aqa-{IDENTIFIER}/initial-data.md` using the inline template bel
 
 <safety_boundaries>
 
-`plans/api-aqa-{IDENTIFIER}/api-aqa-project-config.md` is **tracked** (committed to VCS as part of this run's feature plan folder) — treat as PUBLIC by default. User-supplied answers can carry credential-shaped values that would persist into the repo without redaction.
+`plans/api-aqa-{IDENTIFIER}/api-aqa-project-config.md` is **tracked** — PUBLIC by default; user answers can carry credential-shaped values. **Auth fields record scheme + strategy + source** (e.g. `Bearer JWT from AuthHelper; credentials in env vars E2E_USER + E2E_PASS`), **never literal** tokens/passwords/keys/`client_secret` — regardless of "test"/"throwaway" labels; TMS/Jira access tokens → `MCP-managed` or `env var <NAME>`.
 
-**Auth fields — record mechanism + source, never literal values:** record the **scheme name** (`OAuth2 client-credentials` / `JWT Bearer` / `API Key in X-Api-Key header` / `Basic Auth` / `Session cookie` / `None`) and the **strategy + source** (e.g. `Bearer JWT from AuthHelper.get_token('admin'); credentials in env vars E2E_USER + E2E_PASS`). **Never paste** actual tokens, passwords, JSON contents, API key values, or OAuth `client_secret` — regardless of "test"/"throwaway" labels. `Test Case Management` access tokens (TestRail API key, Jira PAT) → record as `MCP-managed` or `env var <NAME>`.
-
-**Redaction at intake (pre-write gate, MANDATORY):** before writing the config, USE SKILL `sensitive-data` and run its scan list against the populated config — writing is FORBIDDEN until that scan has run. **Fail-closed:** if the skill cannot be loaded or run, STOP and report — never write an unscanned config. On a hit, replace the literal with a mechanism+source description and add a one-line `## Additional Notes`: `Original auth answer included a literal <kind> — redacted; request mechanism+source from user if env var name is unknown.` Structural content — endpoint paths, framework names, base/spec URLs without embedded credentials, project keys — stays verbatim; redaction targets sensitive VALUES only.
+**Redaction at intake (pre-write gate, fail-closed):** USE SKILL `sensitive-data` and run its scan against the populated config BEFORE writing — no scan (skill unavailable included) → STOP, never write unscanned. On a hit, replace the literal with mechanism+source and add to `## Additional Notes`: `Original auth answer included a literal <kind> — redacted; request mechanism+source from user if env var name is unknown.` Structure (endpoint paths, framework names, credential-free URLs, project keys) stays verbatim; redaction targets sensitive VALUES only.
 
 </safety_boundaries>
 

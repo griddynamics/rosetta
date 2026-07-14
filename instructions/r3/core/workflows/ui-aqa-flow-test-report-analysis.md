@@ -24,9 +24,9 @@ Analyze test execution reports, identify failure root causes, and prepare for co
 </workflow_context>
 
 <failure_analysis_contract>
-The analysis artifact is **PUBLIC by default** — redact BEFORE writing via USE SKILL `sensitive-data`, not after. **Run the `sensitive-data` scan against the rendered artifact as the pre-emit gate; emit FORBIDDEN until it has run — fail-closed** (logs/screenshots/page sources can carry tokens or PII). The failure classification is `qa-knowledge`'s UI failure taxonomy (assign exactly one category per failure; Selector/Locator entries cite the captured page source). The required artifact structure is `qa-knowledge`'s failure-report template, UI variant (the skill loads its own asset) — per failed test: **ID** `F-N` · Failure name · Error type · Root cause · Evidence label (`Confirmed`/`Assumption`/`Unknown`) · Evidence rationale · Recommendation; plus an Execution Summary and a Patterns section.
+The analysis artifact is **tracked + downstream-fed** — PUBLIC by default. USE SKILL `sensitive-data`: scan the rendered artifact BEFORE writing, **fail-closed** (no scan → no emit; logs/screenshots/page sources can carry tokens or PII). The failure classification is `qa-knowledge`'s UI failure taxonomy (exactly one category per failure; Selector/Locator entries cite the captured page source). The artifact structure is `qa-knowledge`'s failure-report template, UI variant — per failed test: **ID** `F-N` · Failure name · Error type · Root cause · Evidence label (`Confirmed`/`Assumption`/`Unknown`) · Evidence rationale · Recommendation; plus an Execution Summary and a Patterns section.
 
-Example entry (grounding, independent of the skill asset): `**ID:** F-1 · **Failure:** login-redirect-missing · **Error type:** Selector/Locator · **Root cause:** login button selector `#submit` renamed to `#login-submit` · **Evidence:** Confirmed · **Rationale:** report stack trace + captured page source both cited · **Recommendation:** update the selector in the LoginPage page object (Phase 8).`
+Example entry: `**ID:** F-1 · **Failure:** login-redirect-missing · **Error type:** Selector/Locator · **Root cause:** login button selector `#submit` renamed to `#login-submit` · **Evidence:** Confirmed · **Rationale:** report stack trace + captured page source both cited · **Recommendation:** update the selector in the LoginPage page object (Phase 8).`
 
 This is the **phase contract**, verified by `<validation_checklist>` independent of skill internals.
 </failure_analysis_contract>
@@ -54,14 +54,14 @@ This is the **phase contract**, verified by `<validation_checklist>` independent
 
 <update_state step="7.3">
 1. Update `agents/TEMP/<FEATURE>/ui-aqa-state.md`: Test Report Location; Tests Executed / Failed counts; Root Causes list; Phase 7 completion timestamp.
-2. **Zero-failures branch:** if the executed run reported **0 failures**, do NOT emit `plans/ui-aqa-<test-name>/failure-analysis.md` (there is nothing to analyze). Instead reconcile the state's `## Key Artifacts & Facts`: set `Failure analysis (Phase 7)` = `N/A — 0 failures` and `Root causes (Phase 7)` = `None`, and record the Execution Summary (tests executed / passed) in state. Never leave the seeded `failure-analysis.md` path referenced while no such file exists — a dangling reference fails the run-completion rule in the main `ui-aqa-flow.md` (a run is complete only when "the artifacts those phases reference exist"). When ≥1 failure occurred, the `<failure_analysis_contract>` artifact and its post-analysis verification (step 7.1, item 4) apply as written.
+2. **Zero-failures branch:** if the executed run reported **0 failures**, do NOT emit `plans/ui-aqa-<test-name>/failure-analysis.md` (there is nothing to analyze). Instead reconcile the state's `## Key Artifacts & Facts`: set `Failure analysis (Phase 7)` = `N/A — 0 failures` and `Root causes (Phase 7)` = `None`, and record the Execution Summary (tests executed / passed) in state. Never leave the seeded `failure-analysis.md` path referenced while no such file exists — a dangling reference fails the parent's run-completion rule. When ≥1 failure occurred, the `<failure_analysis_contract>` artifact and its post-analysis verification (step 7.1, item 4) apply as written.
 3. Mark Phase 7 complete, Phase 8 current.
 </update_state>
 
 <validation_checklist>
 - Test report located and parsed
 - All failures categorized per `qa-knowledge`'s UI failure taxonomy; selector errors cite page-source evidence or are tagged `Unknown` per that taxonomy
-- Every failure entry has all seven fields (ID `F-N` / Failure name / Error type / Root cause / Evidence label / Evidence rationale / Recommendation), each with a unique sequential `F-N`
+- Every failure entry has all seven contract fields with a unique sequential `F-N`
 - Patterns section populated (or explicit none), including the performance/flakiness pass — slow tests flagged + flakiness noted, or `performance data not available in report` recorded
 - Redaction pre-emit gate ran — the `sensitive-data` scan was executed against the artifact before writing
 - Analysis artifact written to the `<workflow_context>` output path and non-empty
