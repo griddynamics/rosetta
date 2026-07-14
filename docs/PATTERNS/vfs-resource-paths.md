@@ -10,7 +10,7 @@ Physical paths (`instructions/r3/core/skills/planning/SKILL.md`) change when rel
 
 - All `ACQUIRE` (generated MCP shells), `LIST`, and `rosetta://` references.
 - Adding new skills/agents/workflows — VFS path is derived automatically by CLI.
-- Cross-release compatibility: same VFS path works for r1, r2, r3, and future releases.
+- Cross-release compatibility: same VFS path works across releases (r1, r2, r3).
 
 ## Path Computation
 

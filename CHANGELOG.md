@@ -125,6 +125,7 @@ The R3 cutover week. R3 flipped from dormant to the live, served release: the se
 - `verify_mcp.py` retargeted to r3
 - Docs and website resynced to R3-current; R2 documented as previous release, backports only
 - `rosettify-plugins` bumped to 1.0.10 with r3 as the default release
+- Versioning model: R3 is the final numbered release — changes now ship as incremental updates within `r3`, not as new release folders
 
 #### R3 becomes the served release
 

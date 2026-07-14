@@ -29,7 +29,7 @@ See the [Quick Start Guide](/rosetta/docs/quickstart/) for the fastest path, or 
 
 **R3** is the current release — use it for production work. **R2** is the previous release, still supported but receiving backported fixes only. **R1** is out of support.
 
-Rosetta supports the current release and the one before it (N-1) so when a new release ships, the previous one keeps working while you migrate. See [OVERVIEW.md](/rosetta/docs/overview/) for the rationale.
+R3 is the final numbered release — changes ship as incremental updates within it, so there is no future release to migrate to. R2 keeps working with backported fixes while you move to R3. See [OVERVIEW.md](/rosetta/docs/overview/) for the rationale.
 
 **How do I upgrade to R3?**
 

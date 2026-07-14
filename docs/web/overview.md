@@ -144,7 +144,7 @@ permalink: /overview/
   </div>
   <div class="principle">
     <h4>Release-based versioning</h4>
-    <p>Instructions organized by release (r1, r2, r3). New instructions develop without breaking stable agents. Rollback is always possible.</p>
+    <p>Instructions organized by release (r1, r2, r3). R3 is the final numbered release; updates land incrementally without breaking stable agents. Rollback is always possible.</p>
   </div>
   <div class="principle">
     <h4>Rules-as-code</h4>

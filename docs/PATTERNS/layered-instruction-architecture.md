@@ -9,7 +9,7 @@ Organizations need to customize prompts without diverging from upstream OSS upda
 ## When to Use
 
 - Adding organization-specific extensions to any core skill, agent, or workflow.
-- Building a new release (r4, etc.) — new folder under `instructions/`.
+- Maintaining the release folders under `instructions/` (`r3` current, `r2` backports only).
 - Controlled rollout: `INSTRUCTION_ROOT_FILTER=CORE,GRID` includes both; `CORE` alone serves only OSS content.
 
 ## Folder Structure

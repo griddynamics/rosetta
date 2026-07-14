@@ -21,9 +21,9 @@ Each orchestrator/subagent instance can handle at most 7 prompt files (hard cap)
 
 ## How to think about Rosetta
 
-`instructions` folder has folders for releases (r1, r2, r3, etc).
+`instructions` folder has folders for releases (r1, r2, r3).
 One agent works with only one release (no cross refs), upgrades switch releases to latest. 
-N-1 is supported.
+R3 is the final numbered release and receives incremental updates; R2 (previous) receives backported fixes only.
 Instructions are uploaded to RAGFlow (all releases as separate datasets), where MCP reads it from latest stable dataset only.
 Instructions are also copied and adapted by plugin generator to generate coding agent plugins (to avoid MCP altogether).
 Instructions (skills, rules, templates, prompts, workflows, commands, agents, subagents) are used by AI coding agents themselves, those are not user facing.

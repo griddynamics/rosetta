@@ -81,7 +81,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 - Agent-agnostic            never lock to one IDE/model; adopt native features, simulate missing.
 - Progressive disclosure    load in stages; only what the task needs; prevent context overflow.
 - Classification-first      auto-classify before any work; classification drives what loads.
-- Release-based versioning  r1/r2/r3; safe evolution, rollback, A/B. N-1 supported.
+- Release-based versioning  r1/r2/r3 folders; r3 = final numbered release, evolves via incremental in-place updates; r2 backports only.
 - Rules-as-code             author/version/review/approve AI behavior like app code.
 - Security by design         no source transfer; air-gap capable; inside perimeter.
 - Inversion of control       Rosetta exposes guardrails + a MENU; agent selects; Rosetta delivers just those → lean context, IP protected.
@@ -160,7 +160,7 @@ ENVIRONMENTS (URLs as placeholders per source; public endpoints real): RAGFlow p
 ================================================================================
 7 · RELEASE MODEL + BOOTSTRAP (R3 = current release; R2 = previous, backports only)
 ================================================================================
-- instructions/ has per-release folders (r1, r2, r3). One agent works within ONE release (no cross-refs); upgrade = switch to latest; N-1 supported. All releases uploaded to RAGFlow as separate datasets; MCP serves latest-stable only. Server-controlled VERSION (clients don't set it) → managed rollouts, no drift.
+- instructions/ has per-release folders (r1, r2, r3). r3 is the final numbered release — changes land as incremental updates within r3 (no new release folders). One agent works within ONE release (no cross-refs); upgrade = switch to latest. All releases uploaded to RAGFlow as separate datasets; MCP serves latest-stable only. Server-controlled VERSION (clients don't set it) → managed rollouts, no drift.
 - R3 is the current served release; plugins/CLI/verify target r3; per-session runtime = `bootstrap-alwayson.md` + exactly ONE mode file. R2 is the previous release — supported, backported fixes only. Upgrade via "Initialize this repository using the respective Rosetta workflow (upgrade to R3)".
 
 R3 MODEL (how it works):
@@ -377,7 +377,7 @@ Definitions policy (Rosetta prompts only): use names from docs/definitions/{work
 19 · FAQ ESSENTIALS
 ================================================================================
 - Installed for this repo? Agent loads CONTEXT.md+ARCHITECTURE.md, loads a workflow, loads hitl+ orchestrator-contract. If none → Rosetta not active.
-- Which release? R3 (current); supports current + N-1 (R2 = previous, backports only) so previous keeps working during migration.
+- Which release? R3 (current, final numbered release — evolves via incremental updates). R2 = previous, backports only; keeps working while you migrate.
 - Plugin vs MCP? Plugin when available (local, faster, no OAuth drops, no egress review); MCP otherwise.
 - More tokens? Yes, with purpose — fewer wrong-path executions, guardrails/security/risk, less back-and-forth, spec-driven + discovery/design/review/validation, more reliable. (Small tasks often have side effects AI must find first.)
 - First message slower? Prep runs once/session (context+classify+workflow+files); rest fast.

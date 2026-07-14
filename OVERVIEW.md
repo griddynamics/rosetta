@@ -23,7 +23,7 @@ Design principles:
 
 **Classification-first.** Every request is auto-classified into a [workflow type](USAGE_GUIDE.md#workflows) before any work begins. Classification drives which instructions, skills, and rules load. Provided workflows are used as templates.
 
-**Release-based versioning.** Instructions are organized by release (r1, r2, r3). New instructions can be developed without breaking agents on stable versions. Rollback is always possible. See [Architecture — Tradeoffs](docs/ARCHITECTURE.md#tradeoffs) for rationale.
+**Release-based versioning.** Instructions are organized by release (r1, r2, r3). R3 is the final numbered release and evolves through incremental updates, without breaking agents on it. Rollback is always possible. See [Architecture — Tradeoffs](docs/ARCHITECTURE.md#tradeoffs) for rationale.
 
 **Rules-as-code.** AI behavior is authored, versioned, reviewed, and approved through standard engineering workflows. Same rigor as application code. See [Contributing — Prompt Changes](CONTRIBUTING.md#prompt-changes) for the authoring process.
 
@@ -47,7 +47,7 @@ These terms are defined here and referenced everywhere else.
 | **Rule**           | Persistent constraint applied globally or by path pattern. Defines best practices, guardrails, guidelines.                                  |
 | **Subagent**       | Delegated specialist with fresh context and its own system prompt. Alias: **Agent**. Examples: orchestrator, planner, executor, and others. |
 | **Template**       | Parameterized prompt with variables and validated placeholders.                                                                             |
-| **Release**        | Versioned instruction set (r1, r2, r3). Enables safe evolution, rollback, and A/B testing.                                                  |
+| **Release**        | Versioned instruction set (r1, r2, r3). R3 is the final numbered release; updates land incrementally within it.                             |
 | **Guardrails**     | Safety measures: scope limits, data protection, transparency rules, approval gates, risk assessment.                                        |
 | **HITL**           | Human-in-the-loop. Approval gates at critical decision points (specs, plans, risky actions).                                                |
 | **Meta-prompting** | Rosetta MCP consults the AI agent on what should be done and how using meta-prompts.                                                        |
@@ -87,7 +87,7 @@ Read more about the [bootstrap flow](docs/ARCHITECTURE.md#bootstrap-flow) in the
                 ↓
 5. Execute     Plan, approve (HITL gate), execute with subagents, validate, loop
                 ↓
-6. Evolve      New releases developed safely; rollback if needed
+6. Evolve      Updates ship incrementally to the current release; rollback if needed
 ```
 
 ## Three-Layer Architecture
