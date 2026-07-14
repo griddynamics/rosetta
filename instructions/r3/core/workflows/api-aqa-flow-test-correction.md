@@ -44,7 +44,7 @@ The phase OWNS the iteration cap and the escalation contract. The proposed-chang
 
 <present_for_approval step="7.2">
 1. Present all proposed changes with before/after code per the template.
-2. **Approval gate:** apply `qa-knowledge`'s shared approval gate and USE SKILL `hitl`. Ask for an explicit, scoped affirmative such as `Yes, I approve applying API-AQA corrections C1 and C3.` Approval must unambiguously use `approved`, `approve`, `yes`, or an equivalent affirmative tied to the presented changes. Comments, questions, suggestions, edits, and partial review are not approval. Partial approval applies only to named changes/hunks; re-present changed proposals (re-present step = 7.2); full rejection returns to Phase 6.
+2. **Approval gate:** USE SKILL `qa-knowledge` to run its shared approval gate; USE SKILL `hitl`. Approval = an exact token from the closed list `approved` / `approve` / `yes` (case-insensitive), scoped to the named changes — no `"or equivalent"` / `"or similar"` phrasing extends it. Comments, questions, suggestions, edits, and partial review are REVIEW, not approval. Partial approval applies only to named changes/hunks; re-present changed proposals (re-present step = 7.2); full rejection returns to Phase 6.
 </present_for_approval>
 
 <apply_changes step="7.3">
