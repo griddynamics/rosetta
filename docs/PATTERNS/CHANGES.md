@@ -1,5 +1,9 @@
 # Patterns Change Log
 
+## 2026-07-14 — Release examples resynced to r3
+
+R3 is now the current released version. Release-specific examples across the pattern files were resynced from r2 to r3: dataset names (`aia-r3`), instruction source paths (`instructions/r3/core/`), the plugin-generator invocation (`npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false`), and the `DEFAULT_VERSION` config sample. Pattern mechanics are unchanged; only the release labels in examples moved.
+
 ## 2026-03-27 — Initial extraction (Phase 5, init-workspace-flow upgrade)
 
 Mode: upgrade. All patterns created from scratch (no prior PATTERNS/ folder existed).

@@ -9,14 +9,14 @@ Organizations need to customize prompts without diverging from upstream OSS upda
 ## When to Use
 
 - Adding organization-specific extensions to any core skill, agent, or workflow.
-- Building a new release (r3, etc.) — new folder under `instructions/`.
+- Building a new release (r4, etc.) — new folder under `instructions/`.
 - Controlled rollout: `INSTRUCTION_ROOT_FILTER=CORE,GRID` includes both; `CORE` alone serves only OSS content.
 
 ## Folder Structure
 
 ```
 instructions/
-  r2/
+  r3/
     core/         ← OSS foundation (ships with Rosetta, filter key: CORE)
       skills/
       agents/
@@ -39,8 +39,8 @@ CLI always publishes the entire `/instructions` folder (`--force` for full repub
 
 ## Occurrences
 
-- `instructions/r2/core/` — all OSS instructions (512+ files)
-- `instructions/r2/grid/` (if present) — enterprise extensions
+- `instructions/r3/core/` — all OSS instructions
+- `instructions/r3/grid/` (if present) — enterprise extensions
 - `src/ims-mcp-server/ims_mcp/services/bundler.py` — merges layers at serve time
 - `src/ims-mcp-server/ims_mcp/config.py` — `INSTRUCTION_ROOT_FILTER` env var
 - `docs/ARCHITECTURE.md` — "Layered customization" section

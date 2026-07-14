@@ -267,4 +267,4 @@ Shared Rosetta customization, IDE rules, and MCP guidance already live in [Usage
 
 ## Source Files
 
-- [research-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/research-flow.md)
+- [research-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/research-flow.md)

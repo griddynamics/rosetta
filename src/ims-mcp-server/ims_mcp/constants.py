@@ -64,7 +64,7 @@ N6OhtOQEcnrU97r9H0iZOWwbw3pVrZiUkuRD1R56Wzs2wIDAQAB
 
 # Default values
 
-DEFAULT_VERSION = "r2"
+DEFAULT_VERSION = "r3"
 DEFAULT_POSTHOG_HOST = "https://eu.i.posthog.com"
 DEFAULT_SORT_ORDER = 1_000_000
 DEFAULT_USER_EMAIL = "rosetta@example.com"

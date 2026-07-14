@@ -14,11 +14,11 @@ Organization customizations must extend core instructions without replacing them
 ## Output Format
 
 ```xml
-<rosetta:file id="<uuid>" dataset="aia-r2" path="skills/planning/SKILL.md"
+<rosetta:file id="<uuid>" dataset="aia-r3" path="skills/planning/SKILL.md"
               name="core/skills/planning/SKILL.md" tags="...">
   [core document content]
 </rosetta:file>
-<rosetta:file id="<uuid>" dataset="aia-r2" path="skills/planning/SKILL.md"
+<rosetta:file id="<uuid>" dataset="aia-r3" path="skills/planning/SKILL.md"
               name="grid/skills/planning/SKILL.md" tags="...">
   [organization overlay content]
 </rosetta:file>
@@ -39,4 +39,4 @@ Documents sorted by `sort_order` metadata (default `1000000`), then by name. Cor
 - `src/ims-mcp-server/ims_mcp/services/bundler.py` — `Bundler` class
 - `src/ims-mcp-server/ims_mcp/tools/instructions.py` — threshold decision
 - `src/ims-mcp-server/ims_mcp/tools/resources.py` — VFS resource reads
-- `instructions/r2/core/` + `instructions/r2/grid/` (if present) — layered content
+- `instructions/r3/core/` + `instructions/r3/grid/` (if present) — layered content

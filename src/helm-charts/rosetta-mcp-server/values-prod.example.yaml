@@ -23,7 +23,7 @@ env:
     - name: ROSETTA_SERVER_URL
       value: "http://ragflow.example.svc.cluster.local:80"
     - name: VERSION
-      value: "r2"
+      value: "r3"
     - name: ROSETTA_TRANSPORT
       value: "http"
     - name: ROSETTA_HTTP_HOST

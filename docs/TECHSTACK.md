@@ -51,7 +51,7 @@ Tech stack of all modules in this Rosetta repository.
 | Hosting | GitHub Pages |
 | Styles | Custom CSS (`assets/styles.css`) |
 
-## instructions/r2/core — Prompt Library
+## instructions/r3/core — Prompt Library
 
 | Layer | Technology |
 |---|---|

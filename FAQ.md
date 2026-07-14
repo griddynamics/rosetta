@@ -21,13 +21,13 @@ See the [Quick Start Guide](QUICKSTART.md) for the fastest path, or [INSTALLATIO
 
 **Which Rosetta release should I use?**
 
-**R2** is the current stable release — use it for production work.
+**R3** is the current release — use it for production work. R2 is the previous release, still supported and receiving backported fixes only.
 
 Rosetta supports the current release and the one before it (N-1) so when a new release ships, the previous one keeps working while you migrate. See [OVERVIEW.md](OVERVIEW.md) for the rationale.
 
-**How do I upgrade from R1 to R2?**
+**How do I upgrade to R3?**
 
-Open a new chat in your IDE and type: `Initialize this repository using the respective Rosetta workflow (upgrade R1 to R2)`. Rosetta will detect the existing R1 layout and migrate it.
+Open a new chat in your IDE and type: `Initialize this repository using the respective Rosetta workflow (upgrade to R3)`. Rosetta will detect the existing layout and migrate it.
 
 **Plugin install or MCP install — which should I use?**
 

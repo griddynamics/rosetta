@@ -59,7 +59,7 @@ The instructions repo defines *how agents should behave*. The target repo is *wh
                          │ PUSH
               ┌──────────┴──────────┐
               │  Instructions Repo  │
-              │  /instructions/r2/  │
+              │  /instructions/r3/  │
               │                     │
               │  core/ · <org>/     │
               │  skills · agents    │
@@ -162,8 +162,9 @@ RAGFlow is the document storage and retrieval engine. Rosetta uses it for ingest
 | Dataset | Purpose |
 |---|---|
 | `aia` | Base fallback (files without a release) |
-| `aia-r1` | R1 release (stable) |
-| `aia-r2` | R2 release (current) |
+| `aia-r3` | R3 release (current) |
+| `aia-r2` | R2 release (previous; backports only) |
+| `aia-r1` | R1 release (out of support) |
 | `project-*` | Per-repository collections in target repos (per OAuth policy) |
 
 Instruction dataset names auto-generated from template `aia-{release}`.
@@ -191,23 +192,23 @@ The CLI (`rosetta-cli`, published on PyPI) publishes instructions from the instr
 | `uvx rosetta-cli@latest publish instructions --dry-run` | Preview what would be published |
 | `parse` | Trigger server-side document parsing |
 | `verify` | Test connection and health |
-| `list-dataset --dataset aia-r2` | List documents in a dataset |
-| `cleanup-dataset --dataset aia-r2` | Delete documents from a dataset |
+| `list-dataset --dataset aia-r3` | List documents in a dataset |
+| `cleanup-dataset --dataset aia-r3` | Delete documents from a dataset |
 
 **Critical rule:** Always publish the entire `/instructions` folder. Never subfolders or single files (breaks tag extraction).
 
 **Change detection:** MD5 hash of content. Only modified files publish (~77% time savings). Use `--force` to bypass.
 
 **Auto-tagging and metadata extraction.** The CLI reads each file during publishing and extracts everything MCP needs to serve it efficiently:
-- **Tags:** all folder names + filename + composite pairs/triples (`core/skills`, `r2/core/skills`, etc.). These are what the typed load aliases query against.
+- **Tags:** all folder names + filename + composite pairs/triples (`core/skills`, `r3/core/skills`, etc.). These are what the typed load aliases query against.
 - **Frontmatter:** parsed from file content, saved as metadata. Exposed later in `<rosetta:file>` attributes so agents see document structure without loading full content.
 - **Resource path:** `skills/planning/SKILL.md` (org prefix stripped). This is the VFS path used everywhere in MCP.
-- **Domain** (`core`), **release** (`r2`), **collection** (`aia-r2`): derived from folder structure.
-- **Title:** `[r2][core][skills][planning] SKILL.md` (tag-in-title format).
+- **Domain** (`core`), **release** (`r3`), **collection** (`aia-r3`): derived from folder structure.
+- **Title:** `[r3][core][skills][planning] SKILL.md` (tag-in-title format).
 
 **Environment:** `.env.dev` (dev RAGFlow) or `.env.prod` (production). Switch with `cp .env.dev .env`.
 
-For local testing use the repo virtualenv and run from `src/rosetta-cli/` the module directly, for example: `../../venv/bin/python -m rosetta_cli version`, `../../venv/bin/python -m rosetta_cli verify --env dev`, `../../venv/bin/python -m rosetta_cli publish ../../instructions --dry-run --env dev`, or `../../venv/bin/python -m rosetta_cli parse --dataset aia-r2 --dry-run --env dev`.
+For local testing use the repo virtualenv and run from `src/rosetta-cli/` the module directly, for example: `../../venv/bin/python -m rosetta_cli version`, `../../venv/bin/python -m rosetta_cli verify --env dev`, `../../venv/bin/python -m rosetta_cli publish ../../instructions --dry-run --env dev`, or `../../venv/bin/python -m rosetta_cli parse --dataset aia-r3 --dry-run --env dev`.
 
 For deployment details, see [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md).
 
@@ -248,15 +249,15 @@ Validated with `npm run typecheck`, `npm run test` (vitest, 90% line + branch co
 
 ## Instruction Structure
 
-Instructions live in `/instructions/r2/` in the instructions repository, using a layered folder structure.
+Instructions live in `/instructions/r3/` in the instructions repository, using a layered folder structure.
 
 ```
-/instructions/r2/
+/instructions/r3/
 ├── core/                  ← Rosetta instruction source
 │   ├── skills/
 │   │   └── <name>/
 │   │       ├── SKILL.md
-│   │       ├── README.md    ← maintainer doc (r3; never loaded at runtime)
+│   │       ├── README.md    ← maintainer doc (never loaded at runtime)
 │   │       ├── references/
 │   │       └── assets/
 │   ├── agents/
@@ -366,7 +367,7 @@ Codex Plugin: only OpenAI `gpt-*` models are supported.
 
 Plugins are an alternative delivery mechanism to MCP. They deliver instructions directly to the user's profile or repository — no MCP connection or server needed. Instructions are copied at install time, so the agent works entirely from local files.
 
-Each plugin contains core instructions: 36 skills, 7 agents, 12 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
+Each plugin contains core instructions: 37 skills, 10 agents, 12 workflows, and bootstrap rules. The content is identical across plugins — only the format differs per IDE.
 
 | Plugin | IDE | Mode |
 |---|---|---|
@@ -377,9 +378,9 @@ Each plugin contains core instructions: 36 skills, 7 agents, 12 workflows, and b
 | `core-cursor-standalone` | Cursor | Direct extraction into repo (`.cursor/`) |
 | `core-copilot-standalone` | VS Code Copilot, JetBrains Copilot | Direct extraction into repo (`.github/`) |
 
-All plugins are generated from the **release-selected** source tree (`instructions/<release>/core/`) by the plugin generator (`rosettify-plugins`, `npx -y rosettify-plugins@latest`). **Requirements-first:** spec-before-code from `docs/requirements/plugin-generator/` (authoritative FRs/NFRs; code follows). The release is chosen by `--release` (default **r2**, matching ims-mcp's `DEFAULT_VERSION`; r3 is opt-in); r2 uses SessionStart bootstrap only, r3 adds full advisory hooks. The per-release hook posture can be overridden per run with `--deterministic-hooks true|false` (e.g. `--release r3 --deterministic-hooks false` builds r3 without advisory hooks); when omitted, the release's default applies. The generator builds main plugins then derives standalone variants. `.tmpl` files are Handlebars templates rendered by the generator.
+All plugins are generated from the **release-selected** source tree (`instructions/<release>/core/`) by the plugin generator (`rosettify-plugins`, `npx -y rosettify-plugins@latest`). **Requirements-first:** spec-before-code from `docs/requirements/plugin-generator/` (authoritative FRs/NFRs; code follows). The release is chosen by `--release` (default **r3**, matching ims-mcp's `DEFAULT_VERSION`); each release descriptor carries its hook posture (r2: SessionStart bootstrap only; r3: deterministic advisory hooks by default), overridable per run with `--deterministic-hooks true|false` (e.g. `--release r3 --deterministic-hooks false` builds r3 without advisory hooks); when omitted, the release's default applies. The generator builds main plugins then derives standalone variants. `.tmpl` files are Handlebars templates rendered by the generator.
 
-**Run it standalone:** `npx -y rosettify-plugins@latest [--release r2|r3] [--output DIR] [--source DIR]` — `--release` selects the instructions source (default `r2`), `--output` redirects generated plugins (default `<source>/plugins`), `--source` sets the repo root (default: current directory). `pre_commit.py` invokes it with no args (→ r2, output defaults to `<repo-root>/plugins`). The generator copies core instructions and adapts them for the target coding agent:
+**Run it standalone:** `npx -y rosettify-plugins@latest [--release r2|r3] [--output DIR] [--source DIR]` — `--release` selects the instructions source (default `r3`), `--output` redirects generated plugins (default `<source>/plugins`), `--source` sets the repo root (default: current directory). `pre_commit.py` invokes it with `--release r3 --deterministic-hooks false`, so the shipped plugins are r3 content with SessionStart bootstrap only. The generator copies core instructions and adapts them for the target coding agent:
 
 - **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor normalizes to short IDs (e.g. `claude-sonnet-5`, `gpt-5.4`); Copilot to display names (e.g. `Claude Sonnet 5`, `GPT-5.4`); Claude Code to full model IDs (`claude-sonnet-5`, `claude-opus-4-8`, `claude-haiku-4-5`).
 - **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)
@@ -419,7 +420,7 @@ Source lives in `src/hooks/` and is compiled per-IDE before sync:
 
 Each hook is bundled separately per IDE via esbuild so each bundle contains only its adapter code. To add a new hook: create the `.ts` source in `src/hooks/src/hooks/`, then add its filename to the `HOOK_SOURCES` array in `src/hooks/scripts/build-bundles.mjs`.
 
-**Active hooks (the same five bundles ship with every plugin and standalone):**
+**Available hooks (synced into every plugin and standalone when deterministic hooks are enabled; the shipped plugins are currently generated with `--deterministic-hooks false`, so they carry SessionStart bootstrap only):**
 
 | Hook | Event | Purpose |
 |---|---|---|
@@ -445,7 +446,7 @@ Cursor and Copilot are the only plugins that need two distinct templates because
 - **IDE normalization** — `src/adapter.ts` detects the IDE (env signature first, then stdin shape: codex > cursor > claude-code > windsurf > copilot) and normalizes to a canonical `NormalizedInput`, which MUST be fully mapped: a field is empty only when the value is genuinely absent from the raw input AND not derivable from the event name, another field, or the IDE's documented tool/event vocabulary
 - **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema
 
-`scripts/pre_commit.py` builds and tests hook bundles, then runs `npx -y rosettify-plugins@latest`, which syncs bundles into each main plugin's hooks directory (`plugins/core-{claude,cursor,copilot}/hooks/`, `plugins/core-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `src/hooks/src/` and re-run the script.
+`scripts/pre_commit.py` builds and tests hook bundles, then runs `npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false`; when deterministic hooks are enabled the generator syncs the bundles into each main plugin's hooks directory (`plugins/core-{claude,cursor,copilot}/hooks/`, `plugins/core-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `src/hooks/src/` and re-run the script.
 
 ### Reference Sources (readonly, packages currently used)
 
@@ -461,21 +462,20 @@ MUST validate MCP changes using `.env.dev` and `src/ims-mcp-server/validation/ve
 Integrate new features to this testing harness if needed and easy.
 MUST execute `venv/bin/python scripts/pre_commit.py` from repository root. Never filter/grep/tail its output.
 Entire `verify_mcp.py` and ALL tests must work.
-Always run `verify_mcp.py`: with R2 only.
+Always run `verify_mcp.py`: with R3 only. When backporting a change to R2, also run it with `VERSION=r2`.
 If REDIS-dependent feature is affected RUN verify_mcp.py with and without REDIS_URL (example: `plan_manager` tool).
 Must run `validate-types.sh` (repo root) if code was changed.
 Do not tail or limit output of `verify_mcp.py`, it is short already.
 Read first 100 lines of `verify_mcp.py` to get instructions ON HOW exactly it should all be done.
 
 Validation command examples:
-- `cp .env.dev .env && VERSION=r1 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py`
-- `cp .env.dev .env && VERSION=r2 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py`
-- `cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r2 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py`
+- `cp .env.dev .env && VERSION=r3 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py`
+- `cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r3 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py`
 
 Validation notes discovered during real runs:
 - MCP unit tests: `cd src/ims-mcp-server && PYTHONPATH=. ../venv/bin/pytest tests/` or `PYTHONPATH=src/ims-mcp-server venv/bin/pytest src/ims-mcp-server/tests`
 - CLI unit tests: `cd src/rosetta-cli && PYTHONPATH=. ../../venv/bin/pytest tests/` or `PYTHONPATH=src/rosetta-cli venv/bin/pytest src/rosetta-cli/tests`
-- `verify_mcp.py` flat-list validation must allow plain filenames for `r1` and hierarchical paths for `r2`.
+- `verify_mcp.py` flat-list validation must allow plain filenames for `r1` and hierarchical paths for `r2`/`r3`.
 
 Publishing instructions:
 - `cp .env.dev .env && PYTHONPATH=src/rosetta-cli venv/bin/python -m rosetta_cli publish ./instructions --dry-run`
@@ -506,7 +506,7 @@ Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages.
 
 Where contributors add or change things:
 
-- **New skill:** Add `instructions/r3/core/skills/<name>/SKILL.md` (or under an org folder; backport to `r2` if stable)
+- **New skill:** Add `instructions/r3/core/skills/<name>/SKILL.md` (or under an org folder; backport to `r2` only for fixes)
 - **New agent:** Add `instructions/r3/core/agents/<name>.md`
 - **New workflow:** Add `instructions/r3/core/workflows/<name>.md` (and phase files)
 - **New rule:** Add `instructions/r3/core/rules/<name>.md`
@@ -522,7 +522,7 @@ After adding or changing instructions, publish with the CLI to make them availab
 
 ## Tradeoffs
 
-- **Release-based versioning over branch-based.** Releases (r1, r2) coexist in the same repo. Enables A/B testing and rollback, but folder structure carries the version.
+- **Release-based versioning over branch-based.** Releases (r2, r3) coexist in the same repo. Enables A/B testing and rollback, but folder structure carries the version.
 - **RAGFlow as the knowledge layer.** Chunking, embedding, and search out of the box. Adds a deployment dependency (Docker or hosted). STDIO transport partially mitigates this.
 - **Tags as primary access, not search.** Loading by tag is faster and more precise than keyword search. But requires the auto-tagging scheme to produce useful tags from folder structure.
 - **XML bundling with threshold.** Structured `<rosetta:file>` output with metadata attributes. The threshold of 5 prevents context overflow by switching to listing mode. Requires agents to make follow-up requests for specific files. Plus `<rosetta:folder>`
@@ -531,7 +531,7 @@ After adding or changing instructions, publish with the CLI to make them availab
 - **Layered customization over multi-tenancy.** Org folders extend core, not replace it. Requires unique filenames across the tree.
 - **Subagent/Skills/Commands Shells.** Create small proxies with proper frontmatters. Proxies use raw `ACQUIRE FROM KB` commands to load actual content (copy-paste shells, MCP mode only). Coding agents expect Subagents/Skills/Commands in specific format in specific locations in the repository. Copying to repo make them stale. Not copying - native features of coding agents don't work. Shells resolve that. Plugins resolve this issue as well, but it only works in claude code.
 - **Single API key as dataset owner.** `ROSETTA_API_KEY` must belong to the owner of all datasets. Simplifies access control (one key sees everything), but that key is a high-value secret. Rotate it through your secrets manager.
-- **Server-controlled VERSION.** `VERSION` is not set by clients. The server decides which release (r1, r2) to serve. Enables managed rollouts and prevents version drift across teams.
+- **Server-controlled VERSION.** `VERSION` is not set by clients. The server decides which release (r2, r3) to serve. Enables managed rollouts and prevents version drift across teams.
 - **Streamable HTTP as default transport.** Stateful connections allow server-to-IDE callbacks and richer interaction. Requires sticky sessions when scaling horizontally. STDIO remains the escape hatch for air-gapped or single-user setups.
 - **OAuthProxy over direct provider integration.** Bridges any OAuth provider to MCP's Dynamic Client Registration expectation. Adds a layer, but avoids coupling to a specific identity provider. `offline_access` scope enables authenticate-once behavior via refresh tokens.
 - **FERNET_KEY for token encryption at rest.** OAuth tokens in Redis are encrypted, not stored plain. Adds a required secret for production, but prevents token theft if Redis is compromised.

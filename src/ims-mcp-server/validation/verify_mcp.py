@@ -12,7 +12,7 @@ This script validates:
 9) tool-level response caching for query_instructions and list_instructions.
 
 Required environment:
-- VERSION: release version used for dataset selection (e.g. r2)
+- VERSION: release version used for dataset selection (e.g. r3)
 
 Optional environment:
 - VFS_STRICT: strict mode toggle. Default is strict (1).
@@ -20,10 +20,10 @@ Optional environment:
 
 Runtime requirement:
 - Network access to configured Rosetta/RAGFlow endpoint and readable instruction dataset
-  for the selected VERSION (e.g. aia-r2 when VERSION=r2).
+  for the selected VERSION (e.g. aia-r3 when VERSION=r3).
 
 Run example:
-  cp .env.dev .env && VERSION=r2 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
+  cp .env.dev .env && VERSION=r3 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
 """
 
 import asyncio
@@ -58,11 +58,11 @@ from ims_mcp.server import mcp  # import the FastMCP instance directly
 
 
 def get_test_resource_paths() -> List[str]:
-    """Return candidate resource_path values for R2."""
+    """Return candidate resource_path values for the current release (hierarchical paths, r2+)."""
     return [
         "rules/requirements-best-practices.md",
         "agents/prompt-engineer.md",
-        "workflows/requirements-flow.md",
+        "workflows/requirements-authoring-flow.md",
     ]
 
 
@@ -178,8 +178,8 @@ async def main() -> None:
         print("\n=== VFS Resource Read Verification ===")
         version = (os.environ.get("VERSION") or "").strip()
         if not version:
-            errors.append("VERSION environment variable is required (example: VERSION=r2)")
-            version = "r2"
+            errors.append("VERSION environment variable is required (example: VERSION=r3)")
+            version = "r3"
         strict_vfs = os.environ.get("VFS_STRICT", "1").lower() not in {"0", "false", "no"}
         candidate_paths = get_test_resource_paths()
         bundle_found = False
@@ -379,7 +379,7 @@ async def main() -> None:
         # 7a. Verify query_instructions listing path (>QUERY_LIST_THRESHOLD,
         #     <=QUERY_TOO_MANY_THRESHOLD) → header + listing.
         print("\n=== Query Instructions Listing Threshold Verification (>5 and <=25) ===")
-        # 'workflow' (singular) lands in the listing band on aia-r2 with both
+        # 'workflow' (singular) lands in the listing band on aia-r3 with both
         # core and grid overlays published (~12 docs). 'workflows' (plural)
         # exceeds the ceiling once grid is included.
         listing_tags = ["workflow"]
@@ -407,9 +407,9 @@ async def main() -> None:
         # 7b. Verify query_instructions defensive ceiling (>QUERY_TOO_MANY_THRESHOLD)
         #     → non-cacheable Error refusing to bundle.
         print("\n=== Query Instructions Defensive Ceiling Verification (>25) ===")
-        # 'r2' tags every doc in the release — guaranteed to exceed the
+        # The release tag (e.g. 'r3') tags every doc in the release — guaranteed to exceed the
         # defensive ceiling regardless of dataset size.
-        ceiling_tags = ["r2"]
+        ceiling_tags = [version]
         try:
             result = await client.call_tool("query_instructions", {"tags": ceiling_tags})
             ceiling_text = extract_text(result)

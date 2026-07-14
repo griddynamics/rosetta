@@ -6,53 +6,74 @@ permalink: /roadmap/
 
 <section class="hero">
   <h1>Roadmap</h1>
-  <p>R2 is now live. See what shipped, what's coming next, and what's in the backlog.</p>
+  <p>R3 is now live. See what shipped, what's coming next, and what's in the backlog.</p>
 </section>
 
 <div class="rm-tabs" role="tablist">
-  <button class="rm-tab active" data-tab="r2" role="tab">R2 — Current Release</button>
-  <button class="rm-tab" data-tab="r1" role="tab">R1 — Previous Release</button>
+  <button class="rm-tab active" data-tab="r3" role="tab">R3 — Current Release</button>
+  <button class="rm-tab" data-tab="r2" role="tab">R2 — Previous Release</button>
+  <button class="rm-tab" data-tab="r1" role="tab">R1 — Out of Support</button>
   <button class="rm-tab" data-tab="backlog" role="tab">Backlog</button>
 </div>
 
-<!-- R1 -->
-<div class="rm-panel" id="rm-r1">
+<!-- R3 -->
+<div class="rm-panel active" id="rm-r3">
   <div class="rm-panel-intro">
-    <span class="release-badge release-badge--stable">Previous Release</span>
-    <p>Delivered the core Rosetta experience — centralized knowledge delivery, automated repo initialization, and structured workflows across all major AI coding IDEs.</p>
+    <span class="release-badge release-badge--stable">Production · Stable</span>
+    <p>Deterministic, self-guarding execution. Every workflow runs as a tracked, resumable plan, guardrails and advisories fire at the moment of action across every IDE, and a leaner bootstrap keeps each session fast.</p>
   </div>
 
   <div class="rm-group">
-    <div class="rm-label">IDE Integration</div>
+    <div class="rm-label">Deterministic Execution</div>
     <ul class="rm-list">
-      <li>One-command setup across Cursor, Claude Code, VS Code, Windsurf, JetBrains, and any MCP-compatible tool</li>
-      <li>Automatic knowledge retrieval and context injection into every AI session</li>
+      <li>Every workflow runs as a tracked, resumable plan — create, advance, and audit each step</li>
+      <li>Sequential phase gates keep the agent on process: preparation, guardrails, HITL, and risk checks are explicit steps</li>
+      <li>Plan and act modes supported directly, with atomic writes and resume-after-failure</li>
+      <li>Graceful fallback to built-in task tracking when the operation manager is unavailable</li>
     </ul>
   </div>
 
   <div class="rm-group">
-    <div class="rm-label">Repository Onboarding</div>
+    <div class="rm-label">Cross-IDE Guardrails &amp; Advisories</div>
     <ul class="rm-list">
-      <li>Automated analysis of tech stack, dependencies, and architecture</li>
-      <li>Project documentation generated in minutes, not days</li>
-      <li>Agent rules and workflows configured per project</li>
+      <li>A hooks runtime enforces guardrails and advisories at the moment of action</li>
+      <li>Self-reviewable dangerous-actions gate on destructive shell, file, and MCP operations — safe across worktrees and parallel sessions</li>
+      <li>Advisory nudges for markdown placement, syntax/type/lint/format steps, and stray module files</li>
+      <li>One input adapter normalizes Claude Code, Cursor, Copilot, Codex, and Windsurf — author a hook once, run it everywhere</li>
     </ul>
   </div>
 
   <div class="rm-group">
-    <div class="rm-label">Knowledge &amp; Workflows</div>
+    <div class="rm-label">Leaner Bootstrap</div>
     <ul class="rm-list">
-      <li>Centralized knowledge base with rules, guardrails, and best practices</li>
-      <li>CLI for publishing and managing instructions as code</li>
-      <li>Prepare → Research → Plan → Act → Validate execution model with task classification</li>
+      <li>Per-session bootstrap roughly half its former size through skill extraction and de-duplication</li>
+      <li>Progressive disclosure — thin skills load heavy assets only on demand</li>
+      <li>Self-initializing preparation: agents load context, select the workflow, and commit to phases before acting</li>
+    </ul>
+  </div>
+
+  <div class="rm-group">
+    <div class="rm-label">Automated QA &amp; Test Generation</div>
+    <ul class="rm-list">
+      <li>Expanded automated-QA flow family — dedicated UI and API AQA flows plus test-case generation</li>
+      <li>Structured phases from data collection and requirements clarification through selector implementation, execution, and test correction</li>
+    </ul>
+  </div>
+
+  <div class="rm-group">
+    <div class="rm-label">Code Graph &amp; Deployment</div>
+    <ul class="rm-list">
+      <li>GitNexus code-graph integration for architecture-aware navigation and automatic reindexing</li>
+      <li>Public OSS Rosetta MCP and RAGFlow deployment for open-source and demo environments</li>
+      <li>GitHub authentication for MCP access</li>
     </ul>
   </div>
 </div>
 
 <!-- R2 -->
-<div class="rm-panel active" id="rm-r2">
+<div class="rm-panel" id="rm-r2">
   <div class="rm-panel-intro">
-    <span class="release-badge release-badge--stable">Production · Stable</span>
+    <span class="release-badge release-badge--stable">Previous Release · Backports Only</span>
     <p>Enterprise-grade release with flexible deployment, built-in security, an expanded workflow library, and intelligent agent orchestration. Backwards-compatible with R1.</p>
   </div>
 
@@ -119,10 +140,44 @@ permalink: /roadmap/
   </div>
 </div>
 
+<!-- R1 -->
+<div class="rm-panel" id="rm-r1">
+  <div class="rm-panel-intro">
+    <span class="release-badge release-badge--stable">Out of Support</span>
+    <p>Delivered the core Rosetta experience — centralized knowledge delivery, automated repo initialization, and structured workflows across all major AI coding IDEs.</p>
+  </div>
+
+  <div class="rm-group">
+    <div class="rm-label">IDE Integration</div>
+    <ul class="rm-list">
+      <li>One-command setup across Cursor, Claude Code, VS Code, Windsurf, JetBrains, and any MCP-compatible tool</li>
+      <li>Automatic knowledge retrieval and context injection into every AI session</li>
+    </ul>
+  </div>
+
+  <div class="rm-group">
+    <div class="rm-label">Repository Onboarding</div>
+    <ul class="rm-list">
+      <li>Automated analysis of tech stack, dependencies, and architecture</li>
+      <li>Project documentation generated in minutes, not days</li>
+      <li>Agent rules and workflows configured per project</li>
+    </ul>
+  </div>
+
+  <div class="rm-group">
+    <div class="rm-label">Knowledge &amp; Workflows</div>
+    <ul class="rm-list">
+      <li>Centralized knowledge base with rules, guardrails, and best practices</li>
+      <li>CLI for publishing and managing instructions as code</li>
+      <li>Prepare → Research → Plan → Act → Validate execution model with task classification</li>
+    </ul>
+  </div>
+</div>
+
 <!-- Backlog -->
 <div class="rm-panel" id="rm-backlog">
   <div class="rm-panel-intro">
-    <p>We're focused on R2. The backlog captures directions we're exploring — not commitments. Priorities shift based on community feedback and production learnings.</p>
+    <p>We're focused on R3. The backlog captures directions we're exploring — not commitments. Priorities shift based on community feedback and production learnings.</p>
   </div>
 
   <div class="rm-group">

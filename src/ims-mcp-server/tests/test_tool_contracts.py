@@ -75,7 +75,7 @@ class _DatasetLookup:
 
 class _Ragflow:
     def __init__(self, datasets=None):
-        self._datasets = datasets or [SimpleNamespace(id="instruction-dataset", name="aia-r2")]
+        self._datasets = datasets or [SimpleNamespace(id="instruction-dataset", name="aia-r3")]
         self.created = []
 
     def list_datasets(self, page=1, page_size=1000):

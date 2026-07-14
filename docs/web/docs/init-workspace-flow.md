@@ -23,7 +23,7 @@ Phase 7 is the main question-and-correction checkpoint, where you answer reflect
 ## When To Use This Workflow
 
 - Initialize a repository that does not yet have Rosetta workspace files
-- Upgrade an older Rosetta workspace, including R1 to R2
+- Upgrade an older Rosetta workspace to R3 (from R1 or R2)
 - Generate shells for skills, agents, and workflows in non-plugin setups
 - Build the first `docs/TECHSTACK.md`, `docs/CODEMAP.md`, `docs/DEPENDENCIES.md`, `docs/CONTEXT.md`, and `docs/ARCHITECTURE.md`
 - Extract reusable patterns into `docs/PATTERNS/`
@@ -55,7 +55,7 @@ Initialize this repository using the respective Rosetta workflow, this is a new 
 # Brownfield (existing repository)
 Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]
 
-Upgrade this repository from Rosetta R1 to R2
+Upgrade this repository to Rosetta R3
 Initialize subagents and workflows
 ```
 
@@ -336,12 +336,12 @@ Review the outputs in two passes.
 
 ## Source Files
 
-- [init-workspace-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/init-workspace-flow.md)
-- [init-workspace-flow-context.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/init-workspace-flow-context.md)
-- [init-workspace-flow-shells.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/init-workspace-flow-shells.md)
-- [init-workspace-flow-discovery.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/init-workspace-flow-discovery.md)
-- [init-workspace-flow-rules.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/init-workspace-flow-rules.md)
-- [init-workspace-flow-patterns.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/init-workspace-flow-patterns.md)
-- [init-workspace-flow-documentation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/init-workspace-flow-documentation.md)
-- [init-workspace-flow-questions.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/init-workspace-flow-questions.md)
-- [init-workspace-flow-verification.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/init-workspace-flow-verification.md)
+- [init-workspace-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow.md)
+- [init-workspace-flow-context.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-context.md)
+- [init-workspace-flow-shells.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-shells.md)
+- [init-workspace-flow-discovery.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-discovery.md)
+- [init-workspace-flow-rules.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-rules.md)
+- [init-workspace-flow-patterns.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-patterns.md)
+- [init-workspace-flow-documentation.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-documentation.md)
+- [init-workspace-flow-questions.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-questions.md)
+- [init-workspace-flow-verification.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/init-workspace-flow-verification.md)

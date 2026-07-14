@@ -17,9 +17,9 @@ inputs:
     required: false
     default: 'false'
   version:
-    description: 'Instructions release version (e.g. r2)'
+    description: 'Instructions release version (e.g. r3)'
     required: false
-    default: 'r2'
+    default: 'r3'
   dataset_default:
     description: 'Default dataset name'
     required: false

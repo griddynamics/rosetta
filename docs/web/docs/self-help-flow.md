@@ -254,4 +254,4 @@ Check the guidance message before you approve a handoff.
 
 ## Source
 
-This page is based on `instructions/r2/core/workflows/self-help-flow.md`.
+This page is based on `instructions/r3/core/workflows/self-help-flow.md`.

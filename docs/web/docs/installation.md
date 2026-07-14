@@ -463,7 +463,7 @@ For environments without network access to Rosetta Server.
 1. Disable or remove Rosetta MCP from your IDE configuration
 2. Download `instructions.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
 3. Extract to `instructions/` in your repository or workspace
-4. Copy the contents of [local-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/local-files-mode.md?plain=1) into your IDE's instruction file (keep frontmatter!):
+4. Copy the contents of [local-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/rules/local-files-mode.md?plain=1) into your IDE's instruction file (keep frontmatter!):
 
 | IDE                        | Destination                           |
 | -------------------------- | ------------------------------------- |

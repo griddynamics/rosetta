@@ -78,49 +78,53 @@ pyproject.toml README.md
 
 ## instructions/ — prompt library (published to RAGFlow)
 
-### instructions/r2/core/ — OSS foundation layer
+### instructions/r3/core/ — OSS foundation layer (current release)
 
-#### instructions/r2/core/skills/ — 20 skill folders (34 files total)
+#### instructions/r3/core/skills/ — 37 skill folders
 
-coding/ debugging/ init-workspace-context/
-init-workspace-discovery/ init-workspace-documentation/ init-workspace-patterns/
-init-workspace-rules/ init-workspace-shells/ init-workspace-verification/
-large-workspace-handling/ load-context/ planning/ questioning/ reasoning/
-requirements-authoring/ requirements-use/ reverse-engineering/ tech-specs/ testing/
+codemap/ coding/ coding-agents-farm/ coding-agents-hooks-authoring/
+coding-agents-prompt-authoring/ dangerous-actions/ data-collection/ debugging/
+deviation/ hitl/ large-workspace-handling/ load-project-context/ natural-writing/
+orchestration/ planning/ post-mortem/ qa-knowledge/ qa-structure/ questioning/
+reasoning/ requirements-authoring/ requirements-use/ research/ reverse-engineering/
+risk-assessment/ rosetta/ self-learning/ self-organization/ sensitive-data/
+solr-extending/ solr-query/ solr-schema/ solr-semantic-search/ specflow-use/
+subagent-directives/ tech-specs/ testing/
 
-#### instructions/r2/core/agents/ — 7 agent files
+#### instructions/r3/core/agents/ — 10 agent files
 
-architect.md discoverer.md engineer.md executor.md planner.md reviewer.md validator.md
+architect.md discoverer.md engineer.md executor.md planner.md
+prompt-engineer.md requirements-engineer.md researcher.md reviewer.md validator.md
 
-#### instructions/r2/core/workflows/ — 14 workflow files
+#### instructions/r3/core/workflows/ — 12 top-level workflows (+ phase files)
 
-init-workspace-flow.md init-workspace-flow-discovery.md init-workspace-flow-shells.md
-init-workspace-flow-context.md init-workspace-flow-patterns.md init-workspace-flow-rules.md
-init-workspace-flow-documentation.md init-workspace-flow-questions.md init-workspace-flow-verification.md
-coding-flow.md adhoc-flow.md code-analysis-flow.md requirements-authoring-flow.md self-help-flow.md
+adhoc-flow.md aqa-flow.md code-analysis-flow.md coding-agents-prompting-flow.md
+coding-flow.md external-lib-flow.md init-workspace-flow.md modernization-flow.md
+requirements-authoring-flow.md research-flow.md self-help-flow.md testgen-flow.md
+(init-workspace-flow-*, aqa-flow-*, modernization-flow-*, testgen-flow-* phase files)
 
-#### instructions/r2/core/rules/ — 10 rule files
+#### instructions/r3/core/rules/ — 9 rule files
 
-bootstrap-core-policy.md bootstrap-execution-policy.md bootstrap-guardrails.md
-bootstrap-rosetta-files.md bootstrap.md
-local-files-mode.md plugin-files-mode.md requirements-best-practices.md
-requirements-use-best-practices.md speckit-integration-policy.md
+bootstrap-alwayson.md coding-iac-best-practices.md
+local-files-mode.md mcp-files-mode.md plugin-files-mode.md prompt-best-practices.md
+requirements-best-practices.md requirements-use-best-practices.md speckit-integration-policy.md
 
-#### instructions/r2/core/configure/ — 7 configure files
+#### instructions/r3/core/configure/ — 8 configure files
 
-IDE/agent configuration instructions
+antigravity.md claude-code.md codex.md cursor.md github-copilot.md
+jetbrains-junie.md opencode.md windsurf.md
 
-#### instructions/r2/core/templates/ — 3 template files
+#### instructions/r3/core/templates/ — shell-schema templates
 
-Reusable prompt templates
+shell-schemas/ (workflow-shell.md agent-shell.md skill-shell.md)
 
 ## plugins/ — IDE plugin definitions (156 files, auto-generated)
 
-### plugins/core-claude/ — Claude Code plugin (generated from instructions/r2/core/)
+### plugins/core-claude/ — Claude Code plugin (generated from instructions/r3/core/)
 
 agents/ configure/ rules/ skills/ templates/
 
-### plugins/core-cursor/ — Cursor plugin (generated from instructions/r2/core/)
+### plugins/core-cursor/ — Cursor plugin (generated from instructions/r3/core/)
 
 agents/ configure/ rules/ skills/ templates/
 

@@ -418,9 +418,9 @@ This is the last validator gate. If the report does not match the real dependenc
 
 ## Source Files
 
-- [coding-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/coding-flow.md)
+- [coding-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/coding-flow.md)
 - [usage-guide.md](https://github.com/griddynamics/rosetta/blob/main/docs/web/docs/usage-guide.md)
 - [overview.md](https://github.com/griddynamics/rosetta/blob/main/docs/web/docs/overview.md)
 - [review.md](https://github.com/griddynamics/rosetta/blob/main/docs/web/docs/review.md)
 - [developer-guide.md](https://github.com/griddynamics/rosetta/blob/main/docs/web/docs/developer-guide.md)
-- No separate `coding-flow` phase files exist under `instructions/r2/core/workflows/` in this repo.
+- No separate `coding-flow` phase files exist under `instructions/r3/core/workflows/` in this repo.

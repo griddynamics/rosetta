@@ -402,7 +402,7 @@ Required for STDIO transport. Optional otherwise.
 | `ROSETTA_SERVER_URL`      | `http://localhost:80`      | Rosetta Server base URL. **Required.**                                                                                                                      |
 | `ROSETTA_API_KEY`         | (empty)                    | API key for Rosetta Server access. **Required.**                                                                                                            |
 | `ROSETTA_USER_EMAIL`      | `rosetta@example.com`      | User identity for authorization checks                                                                                                                      |
-| `ROSETTA_MODE`            | `HARD`                     | `HARD` adds more content to context with stricter requirements. `SOFT` is lighter and allows more agent independence, better when bootstrap.md is also used |
+| `ROSETTA_MODE`            | `HARD`                     | `HARD` adds more content to context with stricter requirements. `SOFT` is lighter and allows more agent independence, better when mcp-files-mode.md is also used |
 | `ROSETTA_INVITE_EMAILS`   | (empty)                    | Comma-separated emails auto-invited on project dataset creation                                                                                             |
 | `INSTRUCTION_ROOT_FILTER` | (empty)                    | Comma-separated root tags filter for instructions                                                                                                           |
 | `IMS_DEBUG`               | disabled                   | Enable debug logs (`1`, `true`, `yes`, `on`)                                                                                                                |
@@ -458,7 +458,7 @@ For environments without network access to Rosetta Server.
 1. Disable or remove Rosetta MCP from your IDE configuration
 2. Download `instructions.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
 3. Extract to `instructions/` in your repository or workspace
-4. Copy the contents of [local-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/local-files-mode.md?plain=1) into your IDE's instruction file (keep frontmatter!):
+4. Copy the contents of [local-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/rules/local-files-mode.md?plain=1) into your IDE's instruction file (keep frontmatter!):
 
 | IDE                        | Destination                           |
 | -------------------------- | ------------------------------------- |
@@ -480,21 +480,21 @@ Applies to HTTP and STDIO modes.
 
 Skip if using [Plugin](#plugin-based-installation) or [Offline](#offline-installation-no-mcp) installation.
 
-Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and add it to your IDE's instruction file (keep entire contents, including YAML frontmatter):
+Download [mcp-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/rules/mcp-files-mode.md?plain=1) and add it to your IDE's instruction file (keep entire contents, including YAML frontmatter):
 
-| IDE                        | Destination                       |
-| -------------------------- | --------------------------------- |
-| Cursor                     | `.cursor/rules/bootstrap.mdc`     |
-| Claude Code                | `.claude/claude.md`               |
-| VS Code / GitHub Copilot   | `.github/copilot-instructions.md` |
-| GitHub Copilot (JetBrains) | `.github/copilot-instructions.md` |
-| JetBrains Junie            | `.junie/guidelines.md`            |
-| Windsurf                   | `.windsurf/rules/bootstrap.md`    |
-| Antigravity                | `.agent/rules/bootstrap.md`       |
-| OpenCode                   | `AGENTS.md`                       |
+| IDE                        | Destination                            |
+| -------------------------- | -------------------------------------- |
+| Cursor                     | `.cursor/rules/mcp-files-mode.mdc`     |
+| Claude Code                | `.claude/claude.md`                    |
+| VS Code / GitHub Copilot   | `.github/copilot-instructions.md`      |
+| GitHub Copilot (JetBrains) | `.github/copilot-instructions.md`      |
+| JetBrains Junie            | `.junie/guidelines.md`                 |
+| Windsurf                   | `.windsurf/rules/mcp-files-mode.md`    |
+| Antigravity                | `.agent/rules/mcp-files-mode.md`       |
+| OpenCode                   | `AGENTS.md`                            |
 
 > [!NOTE]
-> Some tools (Cline, Kilo) do not read MCP server prompts. For these, bootstrap.md is always required.
+> Some tools (Cline, Kilo) do not read MCP server prompts. For these, mcp-files-mode.md is always required.
 
 ## Step 3: Verify
 

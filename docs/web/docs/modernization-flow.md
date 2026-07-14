@@ -309,12 +309,12 @@ Check that implementation only starts after explicit approval, that the agent is
 
 ## Source Files
 
-- Workflow entry: [modernization-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/modernization-flow.md)
-- Phase 1: [modernization-flow-reuse.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/modernization-flow-reuse.md)
-- Phase 2: [modernization-flow-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/modernization-flow-analysis.md)
-- Phase 3: [modernization-flow-testing.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/modernization-flow-testing.md)
-- Phase 4: [modernization-flow-grouping.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/modernization-flow-grouping.md)
-- Phase 5: [modernization-flow-crossproject.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/modernization-flow-crossproject.md)
-- Phase 6: [modernization-flow-mapping.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/modernization-flow-mapping.md)
-- Phase 7: [modernization-flow-review.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/modernization-flow-review.md)
-- Phase 8: [modernization-flow-implement.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/modernization-flow-implement.md)
+- Workflow entry: [modernization-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/modernization-flow.md)
+- Phase 1: [modernization-flow-reuse.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/modernization-flow-reuse.md)
+- Phase 2: [modernization-flow-analysis.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/modernization-flow-analysis.md)
+- Phase 3: [modernization-flow-testing.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/modernization-flow-testing.md)
+- Phase 4: [modernization-flow-grouping.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/modernization-flow-grouping.md)
+- Phase 5: [modernization-flow-crossproject.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/modernization-flow-crossproject.md)
+- Phase 6: [modernization-flow-mapping.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/modernization-flow-mapping.md)
+- Phase 7: [modernization-flow-review.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/modernization-flow-review.md)
+- Phase 8: [modernization-flow-implement.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/modernization-flow-implement.md)

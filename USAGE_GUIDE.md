@@ -49,7 +49,7 @@ Sets up a repository so AI coding agents can work with Rosetta context from the 
 # Brownfield (existing repository)
 "Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]"
 
-"Upgrade this repository from Rosetta R1 to R2"
+"Upgrade this repository from Rosetta R1 to R3"
 "Initialize subagents and workflows"
 ```
 

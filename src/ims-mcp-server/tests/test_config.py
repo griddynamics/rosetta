@@ -12,7 +12,7 @@ def test_from_env_defaults(monkeypatch):
     monkeypatch.delenv("ROSETTA_OAUTH_CALLBACK_PATH", raising=False)
     cfg = RosettaConfig.from_env()
     assert cfg.server_url == "http://localhost:80"
-    assert cfg.instruction_dataset == "aia-r2"
+    assert cfg.instruction_dataset == "aia-r3"
     assert cfg.oauth_callback_path == "/auth/callback"
 
 

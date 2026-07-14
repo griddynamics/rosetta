@@ -166,18 +166,18 @@ Add to `opencode.json`:
 
 ## Step 2: Add Bootstrap Rule
 
-Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and add it to your IDE's instruction file (keep entire contents, including YAML frontmatter):
+Download [mcp-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/rules/mcp-files-mode.md?plain=1) and add it to your IDE's instruction file (keep entire contents, including YAML frontmatter):
 
-| IDE                        | Destination                       |
-| -------------------------- | --------------------------------- |
-| Cursor                     | `.cursor/rules/bootstrap.mdc`     |
-| Claude Code                | `.claude/claude.md`               |
-| VS Code / GitHub Copilot   | `.github/copilot-instructions.md` |
-| GitHub Copilot (JetBrains) | `.github/copilot-instructions.md` |
-| JetBrains Junie            | `.junie/guidelines.md`            |
-| Windsurf                   | `.windsurf/rules/bootstrap.md`    |
-| Antigravity                | `.agent/rules/bootstrap.md`       |
-| OpenCode/Cursor            | `AGENTS.md`                       |
+| IDE                        | Destination                            |
+| -------------------------- | -------------------------------------- |
+| Cursor                     | `.cursor/rules/mcp-files-mode.mdc`     |
+| Claude Code                | `.claude/claude.md`                    |
+| VS Code / GitHub Copilot   | `.github/copilot-instructions.md`      |
+| GitHub Copilot (JetBrains) | `.github/copilot-instructions.md`      |
+| JetBrains Junie            | `.junie/guidelines.md`                 |
+| Windsurf                   | `.windsurf/rules/mcp-files-mode.md`    |
+| Antigravity                | `.agent/rules/mcp-files-mode.md`       |
+| OpenCode/Cursor            | `AGENTS.md`                            |
 
 ## Step 3: Verify
 

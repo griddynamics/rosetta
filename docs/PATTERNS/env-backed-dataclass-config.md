@@ -17,7 +17,7 @@ Scattered `os.getenv()` calls throughout service code make configuration hard to
 # constants.py — env var name constants
 ENV_ROSETTA_SERVER_URL = "ROSETTA_SERVER_URL"
 ENV_REDIS_URL = "REDIS_URL"
-DEFAULT_VERSION = "r2"
+DEFAULT_VERSION = "r3"
 
 # config.py
 @dataclass

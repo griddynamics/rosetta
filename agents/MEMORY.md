@@ -162,8 +162,8 @@ Src: `loose-files.ts`, `md-file-advisory.ts`, `codemap-refresh.ts`. Tests: `adap
 ### Test Runner Is vitest [ACTIVE]
 Canonical: `npx vitest run` (not `node --test`). All tests: `cd src/hooks && npm test`.
 
-### Plugin Generator Source Is Release-Selected (Default r2) [ACTIVE]
-`npx -y rosettify-plugins@latest` is release-aware: `--release` selects `instructions/<release>/core` and defaults to **r2**, matching ims-mcp's `DEFAULT_VERSION = "r2"`. r3 is opt-in via `--release r3`. To affect plugin output for a given release, edit that release's `instructions/<release>/core`; sync shared skills/workflows across `r2` and `r3` when they are meant to stay aligned.
+### Plugin Generator Source Is Release-Selected (Default r3) [ACTIVE]
+`npx -y rosettify-plugins@latest` is release-aware: `--release` selects `instructions/<release>/core` and defaults to **r3** (the current release). `pre_commit.py` pins `--release r3 --deterministic-hooks false`. To affect current plugin output, edit `instructions/r3/core`; backport to `instructions/r2/core` only for fixes (r2 is the previous release, backports only).
 
 ### Hook Build Auto-Discovers All *.ts In src/hooks/src/hooks/ [ACTIVE]
 `src/hooks/scripts/build-bundles.mjs` uses `readdirSync` — no explicit list. Adding a new `.ts` file is sufficient to include it in the build. The regression test (`hooks-registered.test.ts`) performs the same discovery and cross-checks `hooks.json` registration.

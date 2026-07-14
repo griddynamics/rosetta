@@ -1,6 +1,6 @@
 # Changelog
 
-## R2 [RELEASED, SUPPORTED]
+## R2 [RELEASED, PREVIOUS — BACKPORTS ONLY]
 
 ### Overview
 
@@ -55,11 +55,11 @@ Rosetta is a meta-prompting, context engineering, and centralized instructions m
 
 ---
 
-## R3 [IN-DEVELOPMENT, NOT RELEASED]
+## R3 [RELEASED, CURRENT]
 
 ### Overview
 
-R3 advances Rosetta from governed assistance to deterministic, self-guarding execution. Where R2 made organization wide AI development consistent, R3 makes it reproducible and safe by default: a deterministic operation manager drives every workflow step, a cross IDE hooks runtime enforces guardrails and advisories at the moment of action, and the bootstrap that loads on every session is roughly half its former size. R3 ships dormant alongside R2 — R2 remains the default served release — so teams adopt the new model deliberately.
+R3 advances Rosetta from governed assistance to deterministic, self-guarding execution. Where R2 made organization wide AI development consistent, R3 makes it reproducible and safe by default: a deterministic operation manager drives every workflow step, a cross IDE hooks runtime enforces guardrails and advisories at the moment of action, and the bootstrap that loads on every session is roughly half its former size. R3 is the served release; R2 remains supported with backported fixes.
 
 ### Highlights
 
@@ -112,7 +112,34 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 ## Weekly Change Log
 
-*Release scope: **R2** is the live, served release. **R3** is the next release, still in development and not yet served. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
+*Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
+
+### Week Mon 13.07 – Sun 19.07
+
+The R3 cutover week. R3 flipped from dormant to the live, served release: the server now defaults to `VERSION=r3` and serves `aia-r3`, the plugins ship from `instructions/r3`, `verify_mcp.py` targets r3, and the docs and website were resynced to describe R3 as the current release. R2 steps back to previous-release status — still supported, but receiving backported fixes only. The plugin generator was bumped and now defaults to r3.
+
+**Highlights**
+
+- Server default release flipped to R3: `VERSION=r3`, serving the `aia-r3` dataset
+- Plugins regenerated from `instructions/r3` (SessionStart bootstrap only; deterministic advisory hooks available via the generator flag)
+- `verify_mcp.py` retargeted to r3
+- Docs and website resynced to R3-current; R2 documented as previous release, backports only
+- `rosettify-plugins` bumped to 1.0.10 with r3 as the default release
+
+#### R3 becomes the served release
+
+- **Change.** `[Server]` Flipped the served release to R3 — the MCP server now defaults to `VERSION=r3` and serves the `aia-r3` dataset, with `aia-r2` retained as the previous release for N-1 support. `verify_mcp.py` was retargeted to r3 (`VERSION=r2` still runs when validating backports). (Igor Solomatov)
+- **Why it helps.** Teams pulling instructions now get the R3 model by default — lean always-on bootstrap plus on-demand skills — while R2 consumers keep working during migration.
+
+#### Plugins and generator on r3
+
+- **Change.** `[Tooling]` Plugins are now generated from `instructions/r3/core`; `pre_commit.py` pins `npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false`, so shipped plugins carry the SessionStart bootstrap only, with deterministic advisory hooks available via the generator flag. `rosettify-plugins` was bumped to 1.0.10 and now defaults to `--release r3`. (Igor Solomatov)
+- **Why it helps.** Editing `instructions/r3/core` and committing regenerates every plugin from the current release automatically; r2 stays reachable via `--release r2` for backports.
+
+#### Docs and website resync
+
+- **Change.** `[Docs]` Resynced the knowledge dump (`llms-full.txt`), changelog, patterns, code map, tech stack, and definitions to describe R3 as the current release and R2 as the previous release receiving backports only. (Igor Solomatov)
+- **Why it helps.** The front-door and agent-facing docs now state current truth, so agents and readers stop treating R2 as the default.
 
 ### Week Mon 06.07 – Sun 12.07
 

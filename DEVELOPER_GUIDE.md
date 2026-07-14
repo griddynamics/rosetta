@@ -34,7 +34,7 @@ fork/clone → branch → edit → validate → push → PR
      - Refactor an old prompt into the new format using local instructions:
 
        ```
-       MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
+       MUST FULLY EXECUTE `instructions/r3/core/workflows/coding-agents-prompting-flow.md` to refactor old Rosetta prompt `<prompt full path>` as R3 prompt family in Rosetta.
        ```
 
      - Author a new prompt using local instructions:
@@ -91,7 +91,8 @@ fork/clone → branch → edit → validate → push → PR
 ```
 rosetta/
 ├── instructions/         ← Prompts: skills, agents, workflows, rules, templates
-│   └── r2/
+│   ├── r2/               ← Previous release (supported; backports only)
+│   └── r3/               ← Current release
 │       ├── core/         ← Rosetta instruction source
 │       └── <org>/        ← Optional organization extensions (e.g., acme/)
 ├── src/ims-mcp-server/       ← Rosetta MCP server (PyPI: ims-mcp)
@@ -161,7 +162,7 @@ docker run -d --name rosetta-redis -p 6379:6379 valkey/valkey:latest
 claude mcp add --transport stdio Rosetta \
   --env ROSETTA_SERVER_URL=https://<development server URL>/ \
   --env ROSETTA_API_KEY=ragflow-xxxxx \
-  --env VERSION=r2 \
+  --env VERSION=r3 \
   --env REDIS_URL=redis://localhost:6379/0 \
   -- uvx --prerelease=allow ims-mcp@latest
 ```
@@ -172,7 +173,7 @@ claude mcp add --transport stdio Rosetta \
 codex mcp add Rosetta \
   --env ROSETTA_SERVER_URL=https://<development server URL>/ \
   --env ROSETTA_API_KEY=ragflow-xxxxx \
-  --env VERSION=r2 \
+  --env VERSION=r3 \
   --env REDIS_URL=redis://localhost:6379/0 \
   -- uvx --prerelease=allow ims-mcp@latest
 ```
@@ -188,7 +189,7 @@ codex mcp add Rosetta \
       "env": {
         "ROSETTA_SERVER_URL": "https://<development server URL>/",
         "ROSETTA_API_KEY": "ragflow-xxxxx",
-        "VERSION": "r2",
+        "VERSION": "r3",
         "REDIS_URL": "redis://localhost:6379/0"
       }
     }
@@ -208,7 +209,7 @@ codex mcp add Rosetta \
       "env": {
         "ROSETTA_SERVER_URL": "https://<development server URL>/",
         "ROSETTA_API_KEY": "ragflow-xxxxx",
-        "VERSION": "r2",
+        "VERSION": "r3",
         "REDIS_URL": "redis://localhost:6379/0"
       }
     }
@@ -218,7 +219,7 @@ codex mcp add Rosetta \
 
 **API key:** Get yours from the RAGFlow UI. The dataset you test against must be **owned by user of this API key**.
 
-**VERSION:** Set explicitly here for local development testing. Always test with both `VERSION=r1` and `VERSION=r2`.
+**VERSION:** Set explicitly here for local development testing. Always test with `VERSION=r3`; also test `VERSION=r2` when backporting.
 
 **Pre-release builds:** Version suffixes like `b00` trigger automatic pre-release publishing. Use `--prerelease=allow` with uvx to pull these builds.
 
@@ -265,14 +266,13 @@ The `--dry-run` flag shows what would be published (new, changed, unchanged file
 
 ```bash
 # From repo root, with the root venv activated
-cp .env.dev .env && VERSION=r1 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
-cp .env.dev .env && VERSION=r2 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
+cp .env.dev .env && VERSION=r3 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
 
 # With Redis (tests plan_manager with RedisPlanStore)
-cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r2 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
+cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r3 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
 ```
 
-Run both r1 and r2. If your change touches Redis-dependent features, run with and without `REDIS_URL`.
+Run r3; also r2 when backporting. If your change touches Redis-dependent features, run with and without `REDIS_URL`.
 
 ### Unit tests
 
@@ -402,7 +402,7 @@ If you changed CLI commands, first test the checkout from source with the repo v
 cd src/rosetta-cli
 ../../venv/bin/python -m rosetta_cli publish ../../instructions --dry-run --env dev
 ../../venv/bin/python -m rosetta_cli publish ../../instructions --env dev
-../../venv/bin/python -m rosetta_cli list-dataset --dataset aia-r2 --env dev
+../../venv/bin/python -m rosetta_cli list-dataset --dataset aia-r3 --env dev
 ```
 
 After push/merge and package publish, repeat the same checks through the published package:
@@ -410,7 +410,7 @@ After push/merge and package publish, repeat the same checks through the publish
 ```bash
 uvx rosetta-cli@latest publish instructions --dry-run --env dev
 uvx rosetta-cli@latest publish instructions --env dev
-uvx rosetta-cli@latest list-dataset --dataset aia-r2 --env dev
+uvx rosetta-cli@latest list-dataset --dataset aia-r3 --env dev
 ```
 
 ---
@@ -419,11 +419,11 @@ uvx rosetta-cli@latest list-dataset --dataset aia-r2 --env dev
 
 | Change type            | Location                                              | Validation                               |
 | ---------------------- | ----------------------------------------------------- | ---------------------------------------- |
-| New/modified skill     | `instructions/r2/core/skills/<name>/SKILL.md`         | Publish, test via MCP                    |
-| New/modified agent     | `instructions/r2/core/agents/<name>.md`               | Publish, test via MCP                    |
-| New/modified workflow  | `instructions/r2/core/workflows/<name>.md`            | Publish, test via MCP                    |
-| New/modified rule      | `instructions/r2/core/rules/<name>.md`                | Publish, test via MCP                    |
-| Organization extension | `instructions/r2/<org>/` (same type structure)        | Publish, test via MCP                    |
+| New/modified skill     | `instructions/r3/core/skills/<name>/SKILL.md`         | Publish, test via MCP                    |
+| New/modified agent     | `instructions/r3/core/agents/<name>.md`               | Publish, test via MCP                    |
+| New/modified workflow  | `instructions/r3/core/workflows/<name>.md`            | Publish, test via MCP                    |
+| New/modified rule      | `instructions/r3/core/rules/<name>.md`                | Publish, test via MCP                    |
+| Organization extension | `instructions/r3/<org>/` (same type structure)        | Publish, test via MCP                    |
 | MCP tool or prompt     | `src/ims-mcp-server/ims_mcp/server.py`, `tool_prompts.py` | verify_mcp.py, pytest, validate-types.sh |
 | CLI command            | `src/rosetta-cli/rosetta_cli/commands/`               | pytest, dry-run, publish to dev          |
 | Website                | `docs/web/`                                           | Local Jekyll build                       |
@@ -450,7 +450,7 @@ See [plan/INDEX.md](plan/INDEX.md) for the full document routing map. The short 
 
 ---
 
-## Upgrading workflows from R1 to R2
+## Upgrading workflows from R1 to R3
 
 ### Step 1: Move and rename files
 
@@ -471,10 +471,10 @@ agents/instructions/
     └── (shared rules and utilities)
 ```
 
-#### R2 target structure
+#### R3 target structure
 
 ```text
-instructions/r2/
+instructions/r3/
 ├── core/
 │   ├── workflows/
 │   │   ├── workflow-name-flow.md
@@ -490,7 +490,7 @@ instructions/r2/
 
 #### Naming conventions
 
-| R1 | R2 |
+| R1 | R3 |
 |---|---|
 | `workflow_name.md` | `workflow-name-flow.md` |
 | `workflow_name-phaseN.md` | `workflow-name-flow-phase-name.md` |
@@ -501,7 +501,7 @@ Key changes:
 - Workflow files get `-flow` suffix
 - Phase files include descriptive name instead of just a number
 - Skills are extracted into their own folder with a `SKILL.md` entry point
-- Scope moved from `agents/instructions/{core,advanced,common}/r1/` to `instructions/r2/core/`
+- Scope moved from `agents/instructions/{core,advanced,common}/r1/` to `instructions/r3/core/`
 
 ### Step 2: Add YAML frontmatter
 
@@ -558,7 +558,7 @@ AI-assisted only; manual is not practical for this step.
 
 Execute the following prompt to extract reusable skills from workflow phases:
 
-> MUST FULLY EXECUTE `instructions/r2/core/workflows/coding-agents-prompting-flow.md` to refactor skills out of full Rosetta workflow with phases `[workflow_file]` as R2 prompt family.
+> MUST FULLY EXECUTE `instructions/r3/core/workflows/coding-agents-prompting-flow.md` to refactor skills out of full Rosetta workflow with phases `[workflow_file]` as R3 prompt family.
 
 #### Acceptance criteria
 
@@ -566,7 +566,7 @@ Execute the following prompt to extract reusable skills from workflow phases:
 - Refactored files (`SKILL.md`, phase files) were reviewed for correctness
 - Main sections use XML tags per schema (`<context>`, `<workflow_phases>`, etc.)
 
-### Step 4: Convert content to R2 XML format
+### Step 4: Convert content to R3 XML format
 
 AI-assisted recommended; manual also possible.
 
@@ -576,13 +576,13 @@ Replace markdown sections in workflow and phase files with XML tags (`<context>`
 
 | File type | Schema | Example |
 |---|---|---|
-| Workflow | `docs/schemas/workflow.md` | `instructions/r2/core/workflows/coding-flow.md` |
+| Workflow | `docs/schemas/workflow.md` | `instructions/r3/core/workflows/coding-flow.md` |
 | Phase | `docs/schemas/phase.md` | `instructions/r3/core/workflows/testgen-flow-data-collection.md` |
-| Skill | `docs/schemas/skill.md` | `instructions/r2/core/skills/coding-agents-prompt-authoring/SKILL.md` |
+| Skill | `docs/schemas/skill.md` | `instructions/r3/core/skills/coding-agents-prompt-authoring/SKILL.md` |
 
 #### AI-assisted prompt for workflows
 
-> There's an example of the format `instructions/r2/core/workflows/coding-flow.md`. There's a schema for workflows `docs/schemas/workflow.md`. Please use it for reformatting `[workflow_file]`.
+> There's an example of the format `instructions/r3/core/workflows/coding-flow.md`. There's a schema for workflows `docs/schemas/workflow.md`. Please use it for reformatting `[workflow_file]`.
 
 #### AI-assisted prompt for phases
 
@@ -605,6 +605,10 @@ Lessons learned from multiple transformation attempts:
 - **Missing subagent contracts** — if a subagent is defined in a workflow/phase file, its input and output must be defined as well
 - **Unnecessary skill proliferation** — double-check whether new skills are truly needed; reuse existing ones when possible
 - **Lost instructions** — refactoring can inadvertently delete content (examples, edge cases); test the refactored flow after each step to confirm output still meets expectations
+
+### Upgrading a workspace from R2 to R3
+
+Upgrading a workspace from R2 to R3 requires no structural migration — the folder layout is unchanged. The differences are the consolidated bootstrap (one always-on rule plus one mode file) and the revised command vocabulary. For sweeping documentation to the R3 vocabulary, see [PATTERNS/vocabulary-migration.md](docs/PATTERNS/vocabulary-migration.md).
 
 ---
 

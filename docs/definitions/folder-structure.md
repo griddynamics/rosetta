@@ -5,15 +5,15 @@
 
 # New Folder Structure
 
-- **Base structure:** `/instructions/r2/core/<type>/<name>/[files]`
+- **Base structure:** `/instructions/r3/core/<type>/<name>/[files]`
   - Types: `skills`, `agents`, `workflows`, `rules`, `commands`
   - Base = Rosetta instruction source
-- **Organization-specific customizations:** `/instructions/r2/<org>/<type>/<name>/[files]`
+- **Organization-specific customizations:** `/instructions/r3/<org>/<type>/<name>/[files]`
   - Organizations: `acme` (ACME Corp), etc.
   - Organization files extend or override core implementations (layered customization, not multi-tenancy)
-- **Resulting ResourcePath:** Strip `/instructions/r2/core/` OR `/instructions/r2/<org>/` prefix
-  - Example: `/instructions/r2/core/skills/my-skill/SKILL.md` → `skills/my-skill/SKILL.md`
-  - Example: `/instructions/r2/acme/skills/my-skill/SKILL.md` → `skills/my-skill/SKILL.md`
+- **Resulting ResourcePath:** Strip `/instructions/r3/core/` OR `/instructions/r3/<org>/` prefix
+  - Example: `/instructions/r3/core/skills/my-skill/SKILL.md` → `skills/my-skill/SKILL.md`
+  - Example: `/instructions/r3/acme/skills/my-skill/SKILL.md` → `skills/my-skill/SKILL.md`
 - **Bundling behavior:** Core + Organization files with same ResourcePath get bundled together
   - Optional filtering: INSTRUCTION_ROOT_FILTER env var controls which organizations to include (e.g., `CORE,ACME` includes only base + ACME Corp)
   - Default file sort_order: 1000000 always

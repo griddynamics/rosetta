@@ -68,7 +68,7 @@ jobs:
           api_key: ${{ secrets.RAGFLOW_API_KEY }}
           base_url: ${{ secrets.RAGFLOW_BASE_URL || 'https://ims-dev.evergreen.gcp.griddynamics.net/' }}
           prerelease: 'true'
-          version: r2
+          version: r3
           dataset_default: aia
           dataset_template: aia-{release}
 
@@ -80,7 +80,7 @@ jobs:
           api_key: ${{ secrets.OSS_RAGFLOW_API_KEY }}
           base_url: ${{ secrets.OSS_RAGFLOW_BASE_URL }}
           prerelease: 'false'
-          version: r2
+          version: r3
           dataset_default: aia
           dataset_template: aia-{release}
 
@@ -92,7 +92,7 @@ jobs:
           api_key: ${{ secrets.PROD_RAGFLOW_API_KEY }}
           base_url: ${{ secrets.PROD_RAGFLOW_BASE_URL }}
           prerelease: 'false'
-          version: r2
+          version: r3
           dataset_default: aia
           dataset_template: aia-{release}
 

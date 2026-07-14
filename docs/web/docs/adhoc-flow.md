@@ -326,8 +326,7 @@ Ad-hoc Flow does not define one fixed artifact set beyond the tracked plan. The 
 
 ## Source Files
 
-- [adhoc-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/workflows/adhoc-flow.md)
-- [plan-manager SKILL.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/skills/plan-manager/SKILL.md)
-- [plan-manager pm-schema.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/skills/plan-manager/assets/pm-schema.md)
+- [adhoc-flow.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/adhoc-flow.md)
+- [planning SKILL.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/planning/SKILL.md)
 
 This workflow does not define separate phase files. The authoritative phase definitions live in the main workflow file above.

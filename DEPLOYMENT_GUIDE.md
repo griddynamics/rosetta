@@ -381,7 +381,7 @@ Representative environment-specific overrides:
 |---|---|---|
 | Ingress host | `rosetta-dev.example.com` | `rosetta.example.com` |
 | `ROSETTA_SERVER_URL` | `http://ragflow-dev.<cluster-domain>:80` | `http://ragflow-prod.<cluster-domain>:80` |
-| `VERSION` | `r2` | `r2` |
+| `VERSION` | `r3` | `r3` |
 | `ROSETTA_MODE` | `SOFT` | `SOFT` |
 | `ROSETTA_OAUTH_MODE` | `oauth` | `oauth` |
 | `ROSETTA_OAUTH_REQUIRED_SCOPES` | `offline_access` | `offline_access` |
@@ -469,8 +469,8 @@ GitHub endpoints are hardcoded. Create a GitHub OAuth App at [github.com/setting
 
 **ROSETTA_MODE:**
 
-- `HARD`: Adds more content to context, stricter requirements. Allows to not use `bootstrap.md`.
-- `SOFT`: Lighter context, more agent independence, must be used with `bootstrap.md`.
+- `HARD`: Adds more content to context, stricter requirements. Allows to not use `mcp-files-mode.md`.
+- `SOFT`: Lighter context, more agent independence, must be used with `mcp-files-mode.md`.
 
 **Network:** Place Rosetta MCP behind an API gateway or ingress controller with TLS. The OAuth flow requires HTTPS.
 
