@@ -36,7 +36,11 @@ import { pluginSyncBundles } from '../plugin-processors/plugin-sync-bundles.js';
 import { pluginWrite } from '../plugin-processors/plugin-write.js';
 
 // Standard excludes (FR-COPY-0011, GT-8)
-const RULES_EXCLUDES = ['rules/bootstrap.md', 'rules/local-files-mode.md'];
+const RULES_EXCLUDES = [
+  'rules/bootstrap.md', // r2 MCP mode
+  'rules/mcp-files-mode.md', // r3 MCP mode
+  'rules/local-files-mode.md',
+];
 // FR-COPY-0011, GT-8: exclude entire templates/shell-schemas/** folder (authoring-only schemas)
 const TEMPLATES_EXCLUDES = ['templates/shell-schemas/**'];
 

@@ -22,7 +22,7 @@ You are a senior Apache Solr engineer who builds production-grade custom plugins
 
 <when_to_use_skill>
 
-Use when developing custom Solr plugins: SearchComponent, DocTransformer/TransformerFactory, QParser/QParserPlugin, UpdateRequestProcessor (URP), ValueSourceParser/function queries, RequestHandlerBase subclasses, or plugin jar packaging and solrconfig.xml wiring. For query construction (eDisMax, block join, JSON Facets) use the **solr-query** skill; for relevancy tuning (BM25, boosts) see solr-query reference `12-relevancy.md`; for custom analyzers/tokenizers/filters use the **solr-schema** skill.
+Custom Solr plugins: SearchComponent, DocTransformer/TransformerFactory, QParser/QParserPlugin, UpdateRequestProcessor (URP), ValueSourceParser/function queries, RequestHandlerBase subclasses, plugin jar packaging, solrconfig.xml wiring. Query construction (eDisMax, block join, JSON Facets) or relevancy tuning (BM25, boosts) → USE SKILL `solr-query`; custom analyzers/tokenizers/filters → USE SKILL `solr-schema`.
 
 </when_to_use_skill>
 
@@ -43,12 +43,12 @@ This SKILL.md is a router. For any non-trivial question, read the relevant `refe
 
 | When the user asks about… | Read |
 |---|---|
-| `SearchComponent` lifecycle (prepare/process), distributed mode, registration | `references/01-search-component.md` |
-| `DocTransformer` / `TransformerFactory` — per-doc augmentation, examples | `references/02-doc-transformer.md` |
-| `QParser` / `QParserPlugin` — custom query syntax | `references/03-query-parser.md` |
-| `UpdateRequestProcessor` (URP) — indexing-time transformations | `references/04-update-processor.md` |
-| `ValueSourceParser` — custom function queries for `bf=`/`sort=` | `references/05-value-source-parser.md` |
-| `solrconfig.xml` wiring, jar packaging, classloading, version compat | `references/06-plugin-wiring.md` |
+| `SearchComponent` lifecycle (prepare/process), distributed mode, registration | READ SKILL FILE `references/01-search-component.md` |
+| `DocTransformer` / `TransformerFactory` — per-doc augmentation, examples | READ SKILL FILE `references/02-doc-transformer.md` |
+| `QParser` / `QParserPlugin` — custom query syntax | READ SKILL FILE `references/03-query-parser.md` |
+| `UpdateRequestProcessor` (URP) — indexing-time transformations | READ SKILL FILE `references/04-update-processor.md` |
+| `ValueSourceParser` — custom function queries for `bf=`/`sort=` | READ SKILL FILE `references/05-value-source-parser.md` |
+| `solrconfig.xml` wiring, jar packaging, classloading, version compat | READ SKILL FILE `references/06-plugin-wiring.md` |
 
 </references>
 
@@ -62,7 +62,7 @@ This SKILL.md is a router. For any non-trivial question, read the relevant `refe
 | Compute something from doc fields usable in `bf=` / `sort=` | **ValueSourceParser** |
 | Modify documents during indexing (clean fields, derive values, dedupe) | **UpdateRequestProcessor** |
 | Wholly new request endpoint with custom output | **RequestHandlerBase** subclass |
-| Custom analyzer/tokenizer/filter | (use the **solr-schema** skill) |
+| Custom analyzer/tokenizer/filter | (USE SKILL `solr-schema`) |
 
 The most common mistake is SearchComponent vs DocTransformer confusion:
 
@@ -94,7 +94,7 @@ Push back on these before answering the literal question:
 - **SearchComponent for per-doc enrichment** — you must walk the DocList yourself; easy to break sorting/highlighting. DocTransformer is the right tool.
 - **QParser accepting arbitrary unescaped user input** — injection risk. Parse via `SolrParams`, validate field names against the schema.
 - **URP that throws on bad input** — one bad doc kills bulk indexing. Tolerate gracefully or apply `IgnoreCommitOptimizeUpdateProcessorFactory` semantics.
-- **SearchComponent not overriding `distributedProcess()`** — works standalone, breaks silently in SolrCloud (see `references/01-search-component.md`).
+- **SearchComponent not overriding `distributedProcess()`** — works standalone, breaks silently in SolrCloud (READ SKILL FILE `references/01-search-component.md`).
 - **Plugin jar via `<lib>` directive in modern Solr** — deprecated; use Solr packages or the `sharedLib` directory.
 - **Plugin with mutable instance state** — instances are reused across threads.
 

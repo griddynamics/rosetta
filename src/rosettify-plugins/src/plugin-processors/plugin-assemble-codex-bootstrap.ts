@@ -24,12 +24,12 @@ export function pluginAssembleCodexBootstrap(
 ): PluginProcessingFrame {
   const { payload, errors } = assembleBootstrapPayload(
     p,
-    (additionalContext, _jsonPayload, _lockIndex) => {
+    (additionalContext) => {
       const jsonPayload = buildHookPayloadJson(additionalContext);
       const command = wrapInPrintf(jsonPayload);
       return buildCodexBootstrapEntry(command);
     },
-    (_lockIndex, _folderPairs) => buildCodexBootstrapEntry(CODEX_PLUGIN_ROOT_COMMAND),
+    (_folderPairs) => buildCodexBootstrapEntry(CODEX_PLUGIN_ROOT_COMMAND),
   );
   return updatePluginFrame(p, (draft) => {
     draft.templateContext = { ...draft.templateContext, bootstrap_hooks: payload };

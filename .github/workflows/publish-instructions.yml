@@ -137,23 +137,61 @@ jobs:
           echo "All plugin archives created."
 
       - name: Create GitHub Release
+        id: release
         if: ${{ github.event_name == 'push' || inputs.create_release }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DATE="${{ steps.plugins.outputs.date }}"
-          TAG="release-${DATE}-${GITHUB_SHA::7}"
+          PLUGIN_JSON="${GITHUB_WORKSPACE}/plugins/core-claude/.claude-plugin/plugin.json"
+          VERSION=$(jq -r '.version' "$PLUGIN_JSON")
+          if [[ ! "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "::error::Invalid version in ${PLUGIN_JSON}: ${VERSION}"
+            exit 1
+          fi
 
-          gh release create "${TAG}" \
-            --title "Release ${DATE}" \
+          MAJOR="${BASH_REMATCH[1]}"
+          MINOR="${BASH_REMATCH[2]}"
+          PATCH="${BASH_REMATCH[3]}"
+
+          TAG_MAJOR="v${MAJOR}"
+          TAG_MINOR="v${MAJOR}.${MINOR}"
+          TAG_PATCH="v${MAJOR}.${MINOR}.${PATCH}"
+          DATE=$(date +'%Y%m%d')
+          RELEASE_TITLE="${TAG_PATCH} ${DATE}"
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag_major=${TAG_MAJOR}" >> "$GITHUB_OUTPUT"
+          echo "tag_minor=${TAG_MINOR}" >> "$GITHUB_OUTPUT"
+          echo "tag_patch=${TAG_PATCH}" >> "$GITHUB_OUTPUT"
+          echo "release_title=${RELEASE_TITLE}" >> "$GITHUB_OUTPUT"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Create or move version tags to the current commit (v2, v2.0, v2.0.55)
+          for tag in "$TAG_MAJOR" "$TAG_MINOR" "$TAG_PATCH"; do
+            git tag -f "$tag" "$GITHUB_SHA"
+            git push origin "refs/tags/${tag}" --force
+            echo "Updated tag ${tag} -> ${GITHUB_SHA}"
+          done
+
+          gh release create "${TAG_PATCH}" \
+            --title "${RELEASE_TITLE}" \
             --generate-notes \
             --latest \
+            --target "${GITHUB_SHA}" \
             instructions.zip \
             ${{ steps.plugins.outputs.archives }} \
-          || gh release upload "${TAG}" \
-            --clobber \
-            instructions.zip \
-            ${{ steps.plugins.outputs.archives }}
+          || {
+            gh release edit "${TAG_PATCH}" \
+              --title "${RELEASE_TITLE}" \
+              --latest \
+              --target "${GITHUB_SHA}"
+            gh release upload "${TAG_PATCH}" \
+              --clobber \
+              instructions.zip \
+              ${{ steps.plugins.outputs.archives }}
+          }
 
       - name: Summary
         if: always()
@@ -167,6 +205,11 @@ jobs:
           echo "- **Targets:**${TARGETS:-none}" >> $GITHUB_STEP_SUMMARY
           echo "- **Folders:** instructions/, plugins/" >> $GITHUB_STEP_SUMMARY
           echo "- **Plugin Archives:** ${{ steps.plugins.outputs.archives }}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ steps.release.outputs.tag_patch }}" ]; then
+            echo "- **Version:** ${{ steps.release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Tags:** ${{ steps.release.outputs.tag_major }}, ${{ steps.release.outputs.tag_minor }}, ${{ steps.release.outputs.tag_patch }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Release:** ${{ steps.release.outputs.release_title }}" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ job.status }}" == "success" ]; then
             echo "**Status:** Successfully published" >> $GITHUB_STEP_SUMMARY

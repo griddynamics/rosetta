@@ -96,7 +96,7 @@ Artifacts:
 - Define roles and contracts
 - Define problem-solution-validation
 - Challenge user reasonably
-- Professionally direct
+- Professionally direct, concise, no unsupported meta-commentary, polite, no profanity
 - Trace request end-to-end
 - Separate AI vs human
 - Confirm updated inputs

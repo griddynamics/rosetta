@@ -144,3 +144,29 @@ DATA-CFG-0004 acceptance criteria updated: `Claude→'sonnet'` → `Claude→'cl
 ARCHITECTURE.md plugin section updated: "Claude Code uses short names (`sonnet`, `opus`, `haiku`)" → "Claude Code uses full model IDs (`claude-sonnet-4-6`, `claude-opus-4-8`, `claude-haiku-4-5`)".
 
 **Status:** FR-COPY-0021 stays `Draft` (pending implementation). DATA-CFG-0004 remains `Approved` (acceptance criteria updated in place).
+
+## 2026-07-13 — Per-run deterministic-hooks override (new FR-CLI-0012)
+
+**Files:** `FR-CLI.md`, `FR-HOOK.md`, `MODEL.md`, `GLOSSARY.md`, `INDEX.md`
+
+**Change:** New FR-CLI-0012: an optional CLI argument overrides the release descriptor's `deterministic_hooks` template variable per run (e.g. r3 without deterministic hooks), replacing the value before rendering and hook-bundle sync. FR-HOOK-0020 rekeyed from "the selected release enables" to "the effective deterministic-hooks value" (+1 override criterion, depends +FR-CLI-0012). DATA-CFG-0001 notes and GLOSSARY updated with the effective-value concept; single-source-of-configuration intact (override replaces the descriptor value at resolution time).
+
+**Status:** FR-CLI-0012 and FR-HOOK-0020 `Approved` by owner 2026-07-13. Implemented same day (cli.ts, generate.ts, types.ts + generate.test.ts override matrix; 447 tests pass).
+
+## 2026-07-01 — Copilot dedup workaround retired; NFR-0004 measures raw content
+
+### RECONCILIATION-12 — FR-HOOK-0006 retired
+
+**Files:** `FR-HOOK.md`, `FR-VAR.md`, `ASSUMPTIONS.md`
+
+**Change:** Copilot's duplicate-invocation bug (root of `FR-HOOK-0006`) is fixed upstream; the per-entry lock workaround is removed from code. `FR-HOOK-0006` deleted — fully redundant with `FR-HOOK-0005`'s own entry-shape criteria. `FR-VAR.md` references redirected to `FR-HOOK-0005`. `ASSUMPTIONS.md` QF-3 marked resolved.
+
+**Status:** No remaining `FR-HOOK-0006` references in the requirements tree.
+
+### RECONCILIATION-13 — NFR-0004 measures original content, not wrapped payload
+
+**Files:** `NFR.md`
+
+**Change:** The 10,000-char check measured the JSON-wrapped/escaped payload (a Claude-shaped proxy), giving Copilot's merged-emit entries a false pass. Now measures the raw content directly — IDE-shape-independent.
+
+**Status:** `Draft` (implementation changed; pending re-approval).

@@ -2,7 +2,7 @@
 name: engineer
 description: "Implement and test to high quality under the orchestrator-assigned identity. Full subagent."
 mode: subagent
-model: claude-4.6-sonnet, gpt-5.4-medium, gemini-3-flash
+model: claude-5-sonnet, gpt-5.4-medium, gemini-3-flash
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---
@@ -27,7 +27,7 @@ Validation: Deliverables compile, pass tests, and align with orchestrator-provid
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Task context, scope, and role specialization provided by orchestrator
 - Relevant project context and tech specs available
 

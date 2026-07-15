@@ -95,11 +95,11 @@ describe('fileNormalizeCursorModels — claude token mapping', () => {
     expect((result.source[0]?.frontmatter as any).model).toBe('claude-opus-4-8');
   });
 
-  it('claude-4.6-sonnet → CURSOR_CLAUDE_MAP → claude-sonnet-4-6', () => {
+  it('claude-4.6-sonnet → CURSOR_CLAUDE_MAP → claude-sonnet-5', () => {
     const content = '---\nmodel: claude-4.6-sonnet\ntags: []\n---\n# Body\n';
     const frame = makeFrame(content, 'claude-4.6-sonnet');
     const result = fileNormalizeCursorModels(frame, makeCtx());
-    expect(result.target_contents as string).toContain('model: claude-sonnet-4-6');
+    expect(result.target_contents as string).toContain('model: claude-sonnet-5');
   });
 });
 

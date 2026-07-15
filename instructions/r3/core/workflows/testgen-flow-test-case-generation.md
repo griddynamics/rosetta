@@ -2,268 +2,232 @@
 name: testgen-flow-test-case-generation
 description: "Phase 5 Test Case Generation of testgen-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 
-# Test Generation Phase 5: Test Case Generation
+<testgen_flow_test_case_generation>
 
-## Prerequisites
+<description_and_purpose>
+Generate comprehensive test cases from the requirements document, covering all requirement types with appropriate test scenarios. Merge redundant cases via parameterization, build coverage matrix.
+</description_and_purpose>
 
-- Phase 0 MUST be complete
-- Phase 1 MUST be complete
-- Phase 2 MUST be complete
-- Phase 3 MUST be complete
-- Phase 4 MUST be complete
-- `agents/testgen/{TICKET-KEY}/requirements.md` exists with validated requirements
-- `agents/testgen/{TICKET-KEY}/testgen-state.md` shows Phase 4 complete
+<workflow_context>
+- Phase 5 of 7 in `testgen-flow`
+- Input: `requirements.md` from Phase 4
+- Output: `test-scenarios.md` — test cases
+- Required skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS FORMAT binding)
+- Recommended skills: `coding` (for any tracked write outside the ticket folder; read repo standards as authority)
+- Prerequisite: Phase 0-4 complete with validated requirements
+</workflow_context>
 
-## Objective
+<phase_steps>
+1. Load requirements
+2. Identify test scenario types per requirement
+3. Generate test cases in TMS format
+4. Prioritize test cases
+5. Merge redundant test cases
+6. Build traceability and coverage
+7. Create test cases document
+8. Update traceability in requirements
+9. Update state file
+</phase_steps>
 
-Generate comprehensive test scenarios in Given-When-Then format from requirements document to enable test automation and quality assurance.
+<load_requirements step="5.1">
+1. Read `plans/testgen-{TICKET-KEY}/requirements.md`
+2. Extract all user stories (US-N), functional requirements (FR-N), non-functional requirements (NFR-N) with acceptance criteria
+3. Extract constraints and dependencies that affect test design
+</load_requirements>
 
-## Requirements
-
-### Step 1: Load Requirements
-
-Read `agents/testgen/{TICKET-KEY}/requirements.md` completely.
-
-Extract:
-- All user stories (US-1, US-2, ...)
-- All functional requirements (FR-1, FR-2, ...)
-- All non-functional requirements (NFR-1, NFR-2, ...)
-- Acceptance criteria for each
-- Constraints and dependencies
-
-### Step 2: Identify Test Scenario Types
-
+<identify_test_types step="5.2">
 For each requirement, determine test scenario types needed:
 
-**Happy Path**:
-- Primary flow, all valid inputs
-- Expected normal usage
-- All preconditions met
+- **Happy Path**: primary flow, all valid inputs, all preconditions met
+- **Edge Cases**: boundary values (min, max, zero, empty), special characters, large data sets
+- **Negative Tests**: invalid inputs, missing required fields, unauthorized access, timeouts
+- **Integration Tests**: external system interactions, API calls, database operations
+- **Performance Tests** (for NFRs): load, stress, concurrent users, response time
+- **Security Tests** (for security NFRs): auth failures, authorization violations, injection, XSS
 
-**Edge Cases**:
-- Boundary values (min, max, zero, empty)
-- Special characters
-- Large data sets
-- Long strings
-- Multiple items
+**Scope guard:** generate **Performance** and **Security** test types ONLY when the requirements / NFRs specify a constraint in that category — never invent injection / XSS / load tests without a source requirement (mirrors the Phase 4 NFR coverage-discipline: cover only what the sources specify, do not pad).
 
-**Negative Tests**:
-- Invalid inputs
-- Missing required fields
-- Unauthorized access
-- Network failures
-- Timeout scenarios
+Common patterns for minimum coverage:
 
-**Integration Tests**:
-- External system interactions
-- API calls
-- Database operations
-- Third-party services
+**CRUD Operations** (4+ scenarios):
+- Create with valid data (Happy Path)
+- Read existing record (Happy Path)
+- Update existing record (Happy Path)
+- Delete record (Happy Path)
+- Create with invalid data (Negative)
+- Read/Update/Delete non-existent record (Negative)
 
-**Performance Tests** (for NFRs):
-- Load testing
-- Stress testing
-- Concurrent users
-- Response time verification
+**Authentication** (5+ scenarios):
+- Login with valid credentials (Happy Path)
+- Login with invalid password (Negative)
+- Login with non-existent user (Negative)
+- Login after account locked (Negative)
+- Logout successfully (Happy Path)
 
-**Security Tests** (for security NFRs):
-- Authentication failures
-- Authorization violations
-- SQL injection
-- XSS attacks
-- CSRF protection
+**API Calls** (4+ scenarios):
+- Successful request with valid data (Happy Path)
+- Request with invalid data (Negative)
+- Request with missing auth token (Negative)
+- Request with network timeout (Negative)
+</identify_test_types>
 
-### Step 3: Generate Test Cases (TestRail Format)
+<generate_test_cases step="5.3" subagent="engineer" role="Test case design engineer">
 
-For each requirement, create 2-5 test cases covering different types.
+**Resolve the TMS FORMAT provider first** (merge evidence — do NOT hardcode the vendor): read the TMS provider from `plans/testgen-{TICKET-KEY}/testgen-project-config.md` (data sources / provider fields written by Phase 0, prefilled from `gain.json` `sdlc.test_management(_project)`), explicit user input (wins for this run), or a recognizable TMS URL/handle; conflicting evidence → ask about the TMS only. The resolved provider (e.g. `testrail`, the canonical example) is passed to `qa-knowledge` (`scenario_design` mode) for the vendor-specific case format (the skill loads its own `<vendor>-format` binding internally). If no provider resolves but a TMS is clearly in scope, re-read config; if still absent, fall back to the inline `<tc_schema>` template below (record the fallback per `<failure_handling>`).
 
-**Test Case Template** (TestRail-compatible):
+1. USE SKILL `qa-knowledge` (`scenario_design` mode) passing the resolved TMS provider for the test case format.
+2. Create 2-5 test cases per requirement covering different test types from step 5.2.
+3. Apply `<format_rules>` (forbidden fields), `<tc_schema>` (field-level template), and `<title_quality>` (naming) sub-blocks below.
+
+<format_rules>
+**Single source of truth for TMS-compatibility constraints** — referenced by `<tc_schema>` Notes, `<validation_checklist>`, and `<pitfalls>`; do not restate elsewhere.
+
+Test cases MUST use the **`Steps + Expected Result`** shape so they map cleanly to the TMS's separated steps/expected fields used by Phase 6 export (TestRail's `custom_steps_separated` / `custom_expected` are the canonical example).
+
+**NOT permitted** (each breaks Phase 6 export — re-grep `test-scenarios.md` per `<validation_checklist>`):
+- BDD / Gherkin / Given-When-Then format — `Given `, `When `, `Then ` step shapes
+- `Post-conditions` field — encode teardown into the test framework or note residual side effects in Expected Result
+- `Automation` field — automation status is TMS metadata or framework concern, not part of the case body
+
+The `qa-knowledge` scenario_design FORMAT binding enforces these on the normal path; the rules are restated here once so they survive when the skill cannot load.
+</format_rules>
+
+<tc_schema>
+Every test case (TC-NNN) MUST have these fields, in this order. If the `qa-knowledge` scenario_design mode (or its resolved FORMAT binding) is unavailable or returns an incompatible shape, use this template so Phase 5 output is self-contained:
+
 ```markdown
-### TC-[N]: [Test Case Title]
-**Related Requirement**: [US-X / FR-X / NFR-X]
-**Type**: Happy Path / Edge Case / Negative / Integration / Performance / Security
-**Priority**: P0 (Critical) / P1 (High) / P2 (Medium) / P3 (Low)
+### TC-NNN: [Concise test case title]
 
-**Preconditions**:
-- [Setup requirement 1]
-- [Setup requirement 2]
-- [For parameterized tests]: Execute this test case [N] times with different parameters (see Test Data)
+**Priority:** P0 | P1 | P2 | P3
+**Type:** Happy Path | Edge Case | Negative | Integration | Performance | Security
+**Source Requirement(s):** US-N, FR-N, NFR-N (one or more)
 
-**Steps**:
-1. [Action step 1]
-2. [Action step 2]
-3. [Action step 3]
+**Preconditions:**
+- [Precondition 1]
+- [Precondition 2]
 
-**Expected Results**:
-- After step 1: [Expected outcome]
-- After step 2: [Expected outcome]
-- After step 3: [Expected outcome]
+**Test Data:**
+| Field | Value | Notes |
+|-------|-------|-------|
+| [field] | [value] | [optional notes] |
 
-**Test Data**:
-| Parameter | Value 1 | Value 2 | Value 3 |
-|-----------|---------|---------|---------|
-| [Param 1] | [Val]   | [Val]   | [Val]   |
-| [Param 2] | [Val]   | [Val]   | [Val]   |
+**Steps:**
+1. [Action] → [observable system response]
+2. [Action] → [observable system response]
+3. [Action] → [observable system response]
 
-**Notes**:
-[Additional context, edge cases, or clarifications]
+**Expected Result:**
+- [Specific, observable, testable outcome — concrete values, not "works correctly"]
+
+**Tags / Suite:** [optional taxonomy hooks for TMS]
 ```
 
-**IMPORTANT: Merge Redundant Test Cases**
+**Notes:**
+- `TC-NNN` is a continuous zero-padded sequence across the whole `test-scenarios.md` file (`TC-001`, `TC-002`, …).
+- "Steps" must be observable user/system actions paired with observable responses — not paraphrased intent.
+- "Expected Result" must be objectively verifiable; avoid "should work", "as expected", "appropriate response".
+- Forbidden fields + step shapes: see `<format_rules>` (single SSoT).
+</tc_schema>
 
-If multiple test cases have:
-- Same steps
-- Same expected results
-- Only difference is input data or user role
+<title_quality>
+Titles must be specific enough that a reader can guess scope without opening the case:
 
-**Merge into ONE test case** with:
-- Parameterized test data table
-- Precondition stating: "Execute this test case with each parameter set"
+| Good (specific) | Bad (vague) |
+|---|---|
+| `User Login with Valid Credentials (Happy Path)` | `Test Login` |
+| `User Login Fails on 6th Wrong Password (Lockout)` | `Check Login` |
+| `Search Returns Results for Partial Match` | `Check Search` |
+| `Create Order with Out-of-Stock Item (Negative)` | `Test Order` |
 
-**Example - BEFORE (Redundant)**:
-```
-TC-001: Admin cannot create Job Post
-TC-002: Manager cannot create Job Post  
-TC-003: Viewer cannot create Job Post
-```
+**Anti-pattern:** multiple TCs with identical steps differing only by role or input value → merge per step 5.5 (role/input becomes a parameter), do not split into separate TCs.
+</title_quality>
+</generate_test_cases>
 
-**Example - AFTER (Merged)**:
-```
-TC-001: Unauthorized roles cannot create Job Post
+<prioritize step="5.4">
+Assign priority to each test case:
 
-Preconditions:
-- User is logged in with one of the unauthorized roles (see Test Data)
-- Execute this test case 3 times, once for each role
+- **P0 (Critical)**: core business functionality, auth/authorization, data integrity, payments, security, compliance
+- **P1 (High)**: major features, common workflows, data validation, error handling, integration points
+- **P2 (Medium)**: secondary features, edge cases, performance optimizations, UI/UX
+- **P3 (Low)**: minor features, rare edge cases, cosmetic issues
+</prioritize>
 
-Test Data:
-| Role    | Expected Error Message |
-|---------|------------------------|
-| Admin   | "Insufficient permissions" |
-| Manager | "Insufficient permissions" |
-| Viewer  | "Insufficient permissions" |
-
-Steps:
-1. Navigate to Job Post creation page
-2. Attempt to create a new Job Post
-3. Observe system response
-
-Expected Results:
-- After step 1: Page loads or access denied based on role
-- After step 2: Creation attempt rejected
-- After step 3: Error message displayed as per Test Data table
-```
-
-### Step 4: Prioritize Test Scenarios
-
-Assign priority based on:
-
-**P0 (Critical)**:
-- Core business functionality
-- User authentication/authorization
-- Data integrity
-- Payment/financial transactions
-- Security vulnerabilities
-- Compliance requirements
-
-**P1 (High)**:
-- Major features
-- Common user workflows
-- Data validation
-- Error handling
-- Integration points
-
-**P2 (Medium)**:
-- Secondary features
-- Edge cases
-- Nice-to-have functionality
-- Performance optimizations
-- UI/UX improvements
-
-**P3 (Low)**:
-- Minor features
-- Rare edge cases
-- Future enhancements
-- Cosmetic issues
-
-### Step 5: Identify Redundant Test Cases for Merging
-
-**Scan all generated test cases** for redundancy patterns:
+<merge_redundant step="5.5">
+Scan all test cases for redundancy and merge to reduce maintenance.
 
 **Pattern 1: Same Steps, Different Roles**
-- If 3+ test cases have identical steps but different user roles
+- 3+ test cases with identical steps but different user roles
 - Merge into 1 parameterized test case with role as parameter
 
 **Pattern 2: Same Steps, Different Input Values**
-- If 3+ test cases test same functionality with different input data
+- 3+ test cases testing same functionality with different input data
 - Merge into 1 parameterized test case with input table
 
 **Pattern 3: Same Steps, Different Error Messages**
-- If 3+ test cases test same validation with different invalid inputs
+- 3+ test cases testing same validation with different invalid inputs
 - Merge into 1 parameterized test case with input/error pairs
 
 **Pattern 4: Same Steps, Different Entities**
-- If test cases repeat for "Create Job Post", "Edit Job Post", "Delete Job Post"
-- Consider if they can share test case with entity type as parameter
+- Test cases repeating for "Create X", "Edit X", "Delete X"
+- Consider entity type as parameter if steps are similar
 
-**Merging Rules**:
+**Merging rules**:
 - Only merge if steps are 80%+ identical
 - Keep separate if expected results significantly differ
-- Keep separate if test complexity increases too much when merged
+- Keep separate if complexity increases too much when merged
 - Maximum 5 parameter sets per merged test case (split if more)
 
-**After merging**:
-- Renumber test cases (TC-001, TC-002, etc.)
-- Update coverage matrix
-- Reduce total test case count by ~30-50%
+**After merging**: renumber test cases (TC-001, TC-002...), update coverage matrix
+**Target reduction**: ~30-50% fewer test cases
 
-### Step 6: Link to Requirements
+**Before (redundant)**:
+```
+TC-001: Admin cannot create Job Post
+TC-002: Manager cannot create Job Post
+TC-003: Viewer cannot create Job Post
+```
+**After (merged)**: single TC-001 with role as parameter (see the `qa-knowledge` scenario_design FORMAT binding for the parameterized format example)
+</merge_redundant>
 
-Create traceability from scenarios back to requirements:
+<build_traceability step="5.6">
+1. Link every test case back to its source requirement (US-N, FR-N, NFR-N)
+2. Build coverage matrix: every requirement must have at least 1 test case
+3. Flag any requirements without test coverage
 
 ```markdown
-**Traceability**:
-- **User Story**: US-[N]
-- **Acceptance Criterion**: AC[N]
-- **Functional Requirement**: FR-[N]
-- **Non-Functional Requirement**: NFR-[N] (if applicable)
+## Coverage Matrix
+
+| Requirement | Test Case IDs | Count | Status |
+|-------------|---------------|-------|--------|
+| US-1 | TC-001, TC-002, TC-003 | 3 | Covered |
+| FR-1 | TC-001, TC-002, TC-003, TC-006 | 4 | Covered |
+| NFR-1 | TC-020 | 1 | Covered |
 ```
+</build_traceability>
 
-### Step 7: Create Test Cases Document (TestRail Export Ready)
+<create_test_document step="5.7">
+**Write scope:** default outputs stay under `plans/testgen-{TICKET-KEY}/` (`test-scenarios.md` here, the `requirements.md` traceability update in step 5.8) — no `coding` activation needed; record `coding: skipped — writes scoped to plans/testgen-{TICKET-KEY}/` in `testgen-state.md`. Any write outside that folder → USE SKILL `coding` first, per `testgen-flow.md` `<phase_5_6_standards_gate>`.
 
-**File**: `agents/testgen/{TICKET-KEY}/test-scenarios.md`
+1. Create `plans/testgen-{TICKET-KEY}/test-scenarios.md` with this structure:
 
-**Format**:
 ```markdown
 # Test Cases - [TICKET-KEY]
 
 **Generated**: [DateTime]
 **Phase**: 5 - Test Case Generation
-**Jira Ticket**: [KEY] - [Summary]
-**Status**: READY FOR TESTRAIL IMPORT
-**Format**: TestRail-compatible
-
----
-
-## Document Control
-
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | [Date] | AI Agent | Initial generation from requirements |
-
+**Ticket**: [KEY] - [Summary]
 ---
 
 ## Executive Summary
 
 **Total Test Cases**: [Count]
 **Merged/Optimized**: [Original count] → [Final count] (reduced by [%])
-**Coverage**:
-- User Stories: [X] covered
-- Functional Requirements: [Y] covered
-- Non-Functional Requirements: [Z] covered
+**Coverage**: [X] user stories, [Y] FRs, [Z] NFRs covered
 
 **Priority Breakdown**:
 - P0 (Critical): [Count]
@@ -275,423 +239,74 @@ Create traceability from scenarios back to requirements:
 - Happy Path: [Count]
 - Edge Cases: [Count]
 - Negative Tests: [Count]
-- Integration Tests: [Count]
-- Performance Tests: [Count]
-- Security Tests: [Count]
+- Integration: [Count]
+- Performance: [Count]
+- Security: [Count]
 
-**Parameterized Test Cases**: [Count] (tests with multiple parameter sets)
+**Parameterized Test Cases**: [Count]
 
 ---
 
 ## Priority 0 Test Cases (Critical)
-
-[List all P0 test cases]
-
-### TC-001: User Login with Valid Credentials (Happy Path)
-**Related Requirement**: US-1, FR-1
-**Type**: Happy Path
-**Priority**: P0
-
-**Preconditions**:
-- User account exists in database
-- User is not already logged in
-- Login page is accessible
-
-**Steps**:
-1. Navigate to login page
-2. Enter valid email "user@example.com" in email field
-3. Enter valid password "Test1234!" in password field
-4. Click "Login" button
-
-**Expected Results**:
-- After step 1: Login page displayed with email and password fields
-- After step 2: Email field populated
-- After step 3: Password field masked
-- After step 4: User redirected to dashboard with "Welcome, User" message
-
-**Test Data**:
-| Email | Password | Expected Page |
-|-------|----------|---------------|
-| user@example.com | Test1234! | Dashboard |
-
-**Traceability**:
-- **User Story**: US-1 (User Login)
-- **Acceptance Criterion**: AC1
-- **Functional Requirement**: FR-1 (Authentication)
-
-**Notes**: Primary authentication flow, must work 100%
-
----
-
-### TC-002: User Login with Invalid Credentials (Negative)
-**Related Requirement**: US-1, FR-1
-**Type**: Negative
-**Priority**: P0
-
-**Preconditions**:
-- User account exists in database
-- User is not logged in
-- Execute this test case 3 times with different invalid credential combinations (see Test Data)
-
-**Steps**:
-1. Navigate to login page
-2. Enter email from Test Data
-3. Enter password from Test Data
-4. Click "Login" button
-5. Observe error message and page state
-
-**Expected Results**:
-- After step 1: Login page displayed
-- After step 2-3: Fields populated
-- After step 4: Login attempt processed
-- After step 5: Error message displayed as per Test Data, user remains on login page
-
-**Test Data**:
-| Scenario | Email | Password | Expected Error |
-|----------|-------|----------|----------------|
-| Invalid password | user@example.com | wrong | "Invalid credentials" |
-| Invalid email | wrong@example.com | Test1234! | "Invalid credentials" |
-| Both invalid | wrong@example.com | wrong | "Invalid credentials" |
-
-**Traceability**:
-- **User Story**: US-1 (User Login)
-- **Acceptance Criterion**: AC2
-- **Functional Requirement**: FR-1 (Authentication)
-
-**Notes**: Security critical - ensure credentials not revealed in error message
-
----
-
-[Continue with all P0 test cases]
-
----
+[TC entries per `<tc_schema>` — or the resolved FORMAT-binding case format when the `qa-knowledge` scenario_design mode loaded; `<tc_schema>` is the normative fallback shape]
 
 ## Priority 1 Test Cases (High)
-
-[List all P1 test cases using same template]
-
-### TC-010: [Test Case Title]
-[Full details]
-
----
+[TC entries]
 
 ## Priority 2 Test Cases (Medium)
-
-[List all P2 test cases]
-
----
+[TC entries]
 
 ## Priority 3 Test Cases (Low)
-
-[List all P3 test cases]
+[TC entries]
 
 ---
 
 ## Coverage Matrix
-
-| Requirement | Test Case IDs | Count | Status |
-|-------------|---------------|-------|--------|
-| US-1 | TC-001, TC-002, TC-003 | 3 | ✅ Covered |
-| US-2 | TC-004, TC-005 | 2 | ✅ Covered |
-| FR-1 | TC-001, TC-002, TC-003, TC-006 | 4 | ✅ Covered |
-| FR-2 | TC-007, TC-008 | 2 | ✅ Covered |
-| NFR-1 | TC-020 | 1 | ✅ Covered |
-
----
-
-## Test Data Management
-
-### Test Users
-| Username | Email | Password | Role | Notes |
-|----------|-------|----------|------|-------|
-| testuser1 | user1@test.com | Test1234! | User | Standard user |
-| testadmin | admin@test.com | Admin1234! | Admin | Full access |
-
-### Test Data Sets
-- **Small Dataset**: 10 records
-- **Medium Dataset**: 100 records
-- **Large Dataset**: 10,000 records
-
-### Environment Requirements
-- Test database with seed data
-- Mock external APIs
-- Test email server (e.g., MailHog)
-- Test file storage
-
----
-
-## TestRail Import Instructions
-
-### CSV Export Format
-Test cases are formatted for TestRail CSV import:
-- Title: Test case name
-- Steps: Numbered action steps
-- Expected Results: Outcome after each step
-- Preconditions: Setup requirements
-- Priority: P0-P3 mapping
-- Type: Test type category
-- References: Linked requirements
-
-### Import Steps
-1. Copy test cases from this document
-2. Format as CSV with columns: ID, Title, Priority, Type, Preconditions, Steps, Expected Results, Test Data, References
-3. Import to TestRail via CSV import tool
-4. Verify links to requirements in TestRail
-
-### Parameterized Test Execution
-For test cases with "Execute this test case N times":
-1. In TestRail, create test runs for each parameter set
-2. OR use TestRail's data-driven testing feature
-3. OR execute manually with each data row
-
----
-
-## Test Execution Roadmap
-
-### Phase 1: P0 Test Cases (Week 1)
-- [TC-001] to [TC-009]
-- Must pass before production deploy
-
-### Phase 2: P1 Test Cases (Week 2)
-- [TC-010] to [TC-020]
-- Complete before feature complete
-
-### Phase 3: P2+P3 Test Cases (Week 3)
-- [TC-021] onwards
-- Complete before release
-
----
+[Table from step 5.6]
 
 ## Appendices
-
-### Appendix A: Test Environment Setup
-[Instructions for setting up test environment]
-
-### Appendix B: Known Limitations
-[Test cases not covered, why, and alternatives]
-
-### Appendix C: Future Test Cases
-[Test cases to add in future iterations]
-
-### Appendix D: Merged Test Cases Log
-[Record of redundant test cases that were merged]
-
-**Example**:
-| Original IDs | Merged Into | Reason |
-|--------------|-------------|--------|
-| TC-015, TC-016, TC-017 | TC-015 | Same steps, different roles - now parameterized |
-| TC-022, TC-023, TC-024, TC-025 | TC-022 | Same validation, different inputs - now parameterized |
-
----
-
-## Next Steps
-
-1. Review test scenarios
-2. Set up test environment
-3. Implement automated tests (can use AQA agent flow)
-4. Execute tests and track results
-5. Update traceability matrix with test status
+- Merged Test Cases Log (original IDs → merged ID → reason)
+- Known Limitations
 ```
+</create_test_document>
 
-### Step 8: Update Traceability in Requirements
+<update_traceability step="5.8">
+1. Update `plans/testgen-{TICKET-KEY}/requirements.md` traceability matrix with test case IDs
+</update_traceability>
 
-Update `agents/testgen/{TICKET-KEY}/requirements.md` traceability matrix:
+<update_state step="5.9">
+1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 5 complete and metrics (total test cases, merged count, priority breakdown, coverage)
+2. Tell user: "Phase 5 complete. Generated [X] test cases ([Y] merged for efficiency). All requirements covered."
+3. Ask: "Please review `test-scenarios.md`. Ready to proceed to Phase 6 (TMS Export)?"
+4. **STOP AND WAIT for explicit user confirmation. DO NOT PROCEED to Phase 6 until the user confirms.** Only an exact confirmation token (`yes` / `proceed`) unblocks Phase 6 — no `"or equivalent"` / `"or similar"` phrasing extends it; treat ambiguous responses (questions, suggestions, silence) as not confirmed and re-ask. This is a **priority-(3) per-phase confirmation** per `testgen-flow.md` `<orchestration_and_escalation>`.
+</update_state>
 
-Add test scenario IDs to the matrix:
-```markdown
-| Requirement ID | Source | User Story | Test Scenario |
-|----------------|--------|------------|---------------|
-| FR-1 | Jira DESC | US-1 | TS-001, TS-002, TS-003, TS-006 |
-| FR-2 | Confluence Page 1 | US-2 | TS-007, TS-008 |
-| NFR-1 | User Answer Q5 | - | TS-020 |
-```
+<validation_checklist>
+- `test-scenarios.md` created
+- At least 10 test cases defined (typical: 15-40 before merging, 10-25 after)
+- Redundant test cases merged with parameterized test data
+- Each requirement has at least 1 test case
+- Priority distribution reasonable (more P0/P1 than P2/P3)
+- Coverage matrix shows all requirements covered
+- Traceability matrix in requirements.md updated with test IDs
+- State file updated with Phase 5 complete
+- **Format compliance** per `<format_rules>` — re-grep `test-scenarios.md` for `Given `/`When `/`Then `/`**Post-conditions**:`/`**Automation**:`; any hit is a Phase-6-breaking defect.
+- **Title quality** per `<title_quality>` — no vague titles (`Test X` / `Check Y` / `Verify Z`). Spot-check P2/P3 cases where vague titles tend to slip in.
+</validation_checklist>
 
-### Step 9: Update State File (Final)
+<failure_handling>
+- **`requirements.md` unusable** (absent / empty / no `## ` section headings / unreadable / zero `US-N`-`FR-N`-`NFR-N` entries): stop Phase 5 and record the specific reason in `testgen-state.md` (`Phase 5 blocked: requirements.md <missing|empty|unreadable|zero testable requirements> at <path>`). Route: missing/empty/unreadable → ask the user to rerun Phase 4 (or inspect the file on an IO/parse error); zero testable requirements → surface as a Critical question (`No requirements to generate test cases from — should Phase 4 re-run, or is the ticket genuinely out-of-scope for test coverage?`). Do NOT fabricate test cases from raw-data.md / analysis.md / answers.md (upstream inputs, not Phase 5's authoritative source) and do NOT emit a `test-scenarios.md` with zero TCs and call the phase done.
+- **Skill execution failure** (the `qa-knowledge` scenario_design mode / its resolved FORMAT binding errors, returns empty, or returns an incompatible shape; OR no FORMAT vendor resolvable from config): fall back to the inline `<tc_schema>` template in step 5.3. Record `Phase 5 note: scenario_design fallback applied — used inline tc_schema` in `testgen-state.md`. Continue Phase 5.
+- **Output write failure** (`test-scenarios.md` unwritable — permission denied, disk full): pause, report the filesystem error with the file path, do NOT mark Phase 5 complete.
+- **Coverage gap surfaced by step 5.6** (some requirement has zero test cases after step 5.3 + step 5.5): per step 5.6 — flag in the coverage matrix and surface to the user, do NOT silently skip the requirement.
+</failure_handling>
 
-Update `agents/testgen/{TICKET-KEY}/testgen-state.md`:
+<pitfalls>
+- Happy-path-only coverage → `<identify_test_types>` step 5.2 minimum-coverage patterns.
+- Skipping the merge pass → `<merge_redundant>` step 5.5.
+- Requirement without a TC → `<build_traceability>` step 5.6 coverage matrix.
+- BDD / Given-When-Then or forbidden fields (`Post-conditions` / `Automation`) → `<format_rules>` (single SSoT).
+- Vague TC titles → `<title_quality>` good-vs-bad table.
+</pitfalls>
 
-```markdown
-## Phase Completion Status
-
-- [x] Phase 1: Data Collection - Completed [Date]
-- [x] Phase 2: Gap Analysis - Completed [Date]
-- [x] Phase 3: Question Generation - Completed [Date]
-- [x] Phase 4: Requirements Generation - Completed [Date]
-- [x] Phase 5: Test Scenarios - Completed [DateTime]
-
-## Metrics
-
-- Jira Fields Extracted: [Count]
-- Confluence Pages Analyzed: [Count]
-- Contradictions Found: [Count]
-- Gaps Identified: [Count]
-- Questions Generated: [Count]
-- Questions Answered: [Count]
-- User Stories Created: [Count]
-- Functional Requirements: [Count]
-- Non-Functional Requirements: [Count]
-- Test Scenarios: [Count]
-- Test Coverage: [X]% of requirements
-
-## Phase Details
-
-[...]
-
-### Phase 5: Test Scenario Generation
-- **Completed**: [DateTime]
-- **Files Created**: test-scenarios.md
-- **Total Scenarios**: [Count]
-- **P0 Scenarios**: [Count]
-- **P1 Scenarios**: [Count]
-- **Requirements Covered**: [X] / [Total]
-- **Status**: COMPLETE ✅
-- **Notes**: All phases complete, ready for implementation
-
----
-
-## Requirements Analysis COMPLETE
-
-**Deliverables**:
-1. ✅ Raw data extraction
-2. ✅ Gap analysis
-3. ✅ User clarifications
-4. ✅ Requirements document
-5. ✅ Test scenarios
-
-**Next Steps**:
-1. Review and approve requirements.md
-2. Implement based on user stories
-3. Implement automated tests using test-scenarios.md
-4. Consider using AQA agent for test implementation
-```
-
-## Validation
-
-Before completing Phase 5, verify:
-- ✅ `test-scenarios.md` created
-- ✅ At least 10 test cases defined (typical: 15-40 before merging, 10-25 after)
-- ✅ All test cases use TestRail-compatible format (Steps + Expected Results)
-- ✅ NO BDD format (Given-When-Then) - use Steps and Expected Results
-- ✅ NO "Post-conditions" field
-- ✅ NO "Automation" field
-- ✅ Redundant test cases merged with parameterized test data
-- ✅ Each requirement has at least 1 test case
-- ✅ Priority distribution reasonable (more P0/P1 than P2/P3)
-- ✅ Coverage matrix shows all requirements covered
-- ✅ Traceability back to requirements documented
-- ✅ State file updated with Phase 5 complete
-
-## Tools Used
-
-- `read_file()` - Read requirements.md
-- `write()` - Create test-scenarios.md, update requirements.md, update testgen-state.md
-
-## Test Case Generation Guidelines
-
-**Good Test Cases** (TestRail Format):
-- Specific and actionable steps
-- Clear Steps and Expected Results structure (NOT Given-When-Then)
-- Includes exact test data in table format
-- Specifies expected outcome after each step
-- Has clear preconditions (NOT post-conditions)
-- Parameterized when testing same flow multiple times
-
-**Poor Test Cases**:
-- Vague or ambiguous steps
-- Missing test data
-- Unclear expected results
-- No traceability
-- Using BDD format (Given-When-Then)
-- Duplicate test cases that should be merged
-
-**Test Case Naming**:
-- Use descriptive titles
-- Include test type: (Happy Path), (Negative), (Edge Case)
-- Reference key entity or action
-- For merged tests: Use general title covering all parameter sets
-
-**Examples**:
-- ✅ "User Login with Valid Credentials (Happy Path)"
-- ✅ "User Login with Invalid Credentials (Negative)" [parameterized with 3 scenarios]
-- ✅ "Unauthorized Roles Cannot Create Job Post (Negative)" [parameterized with 3 roles]
-- ❌ "Test Login"
-- ❌ "Check Search"
-- ❌ Creating separate TC-001, TC-002, TC-003 for Admin/Manager/Viewer with same steps
-
-## Common Test Patterns
-
-**CRUD Operations** (4 scenarios minimum):
-- Create with valid data (Happy Path)
-- Read existing record (Happy Path)
-- Update existing record (Happy Path)
-- Delete record (Happy Path)
-- Create with invalid data (Negative)
-- Read non-existent record (Negative)
-- Update non-existent record (Negative)
-- Delete non-existent record (Negative)
-
-**Authentication** (5 scenarios minimum):
-- Login with valid credentials (Happy Path)
-- Login with invalid password (Negative)
-- Login with non-existent user (Negative)
-- Login after account locked (Negative)
-- Logout successfully (Happy Path)
-
-**API Calls** (4 scenarios minimum):
-- Successful request with valid data (Happy Path)
-- Request with invalid data (Negative)
-- Request with missing auth token (Negative)
-- Request with network timeout (Negative)
-
-## Integration with AQA Agent
-
-Test scenarios from this phase can feed directly into AQA agent:
-1. Use test-scenarios.md as input to AQA Phase 1
-2. AQA will implement automated tests
-3. Maintains traceability from requirements → scenarios → tests
-
-## Completion
-
-Tell user:
-```
-🎉 Requirements Analysis COMPLETE!
-
-All 5 phases finished successfully:
-✅ Phase 1: Data Collection ([X] sources including child pages)
-✅ Phase 2: Gap Analysis ([Y] issues found)
-✅ Phase 3: User Clarifications ([Z] questions answered)
-✅ Phase 4: Requirements ([N] user stories, [M] requirements)
-✅ Phase 5: Test Cases ([Q] test cases, [R] merged for efficiency)
-
-**Deliverables**:
-📄 agents/testgen/{TICKET-KEY}/requirements.md - Use for implementation
-📄 agents/testgen/{TICKET-KEY}/test-scenarios.md - TestRail-ready test cases
-
-**Test Case Summary**:
-- Format: TestRail-compatible (Steps + Expected Results)
-- Optimized: Redundant tests merged with parameterized data
-- Ready for import to TestRail
-
-**Next Steps**:
-1. Review and approve requirements document
-2. Import test cases to TestRail (CSV format ready)
-3. Begin development using user stories
-4. Execute test cases in TestRail
-5. Link documents to Jira ticket
-
-**TestRail Import**:
-Test cases are formatted for direct TestRail CSV import.
-Follow instructions in Appendix for import steps.
-```
-
-## Notes
-
-- This is the final phase of requirements analysis
-- Test cases should be comprehensive but practical
-- Format is TestRail-compatible (NOT BDD format)
-- Focus on P0/P1 test cases first
-- Merge redundant test cases to reduce maintenance overhead
-- Can iterate and add more test cases later
-- Keep test cases updated as requirements evolve
-- Parameterized test data reduces test case count by 30-50%
-
+</testgen_flow_test_case_generation>

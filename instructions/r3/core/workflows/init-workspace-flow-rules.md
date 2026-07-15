@@ -47,12 +47,12 @@ Local copies of Rosetta instructions enable AI agents to load rules without Rose
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Rules consumed by AI agents, not humans
 - **Full-copy mode** — copies complete file content from Rosetta to local workspace
 - **Adapt** — copy content AS-IS; adapt ONLY IDE format: extension, frontmatter, directory. Never rewrite instruction content.
-- **Exclusion set** — `init-workspace-*` skills/workflows, `templates/shell-schemas/*`, `configure/*`, `rules/bootstrap.md` MUST NOT BE copied
-- **Bundled ACQUIRE** — when ACQUIRE returns multiple `<rosetta:file>` sections, strip tags, merge into one file with one frontmatter
+- **Exclusion set** — `init-workspace-*` skills/workflows, `templates/shell-schemas/*`, `configure/*`, `rules/mcp-files-mode.md` MUST NOT BE copied
+- **Bundled reads** — when a KB read returns multiple `<rosetta:file>` sections, strip tags, merge into one file with one frontmatter
 - **state.mode** — `init` creates all files; `upgrade` fills gaps only, never overwrites human-customized files
 - Make sure that you follow original activation conditions, MUST never make all rules to be ALWAYS activated/loaded (overflows context)
 
@@ -60,14 +60,14 @@ Local copies of Rosetta instructions enable AI agents to load rules without Rose
 
 <rules_process>
 
-Internal knowledge about IDE/agent configuration is obsolete — LIST and ACQUIRE from KB.
+Internal knowledge about IDE/agent configuration is obsolete — LIST and READ from KB.
 
 Step 1: Identify Environment
 
-1. LIST `configure` IN KB with XML format (to understand supported IDE/CodingAgents)
+1. LIST `configure` with XML format (to understand supported IDE/CodingAgents)
 2. Detect current environment, preselect IDE/CodingAgent
 3. MUST ask user to confirm selection and provide multi-choose
-4. ACQUIRE <selected configs using TAG> FROM KB
+4. READ CONFIGURE `<tool>.md` for each selected IDE/CodingAgent
 5. If multiple selected, use common standards to reduce copies
 
 Step 2: Read Workspace Context
@@ -76,17 +76,17 @@ Step 2: Read Workspace Context
 
 Step 3: Discover Full Rosetta Content (subagent)
 
-1. LIST `all` FROM KB with format=flat, save to FEATURE TEMP folder as `list-all-output.md`
+1. LIST `all` with format=flat, save to FEATURE TEMP folder as `list-all-output.md`
 2. Parse into content-type groups (rules, skills, agents, workflows, commands)
 3. Apply exclusion set
 4. Report: total count, per-type count, excluded count
 
 Step 4: MUST Install Root Entry Point and Bootstrap Rules
 
-1. ACQUIRE `rules/local-files-mode.md` FROM KB — install as root entry point per IDE configure spec
+1. READ RULE `local-files-mode.md` — install as root entry point per IDE configure spec
 2. Embed Rosetta version marker (e.g., "R3") in core root file for staleness detection
 3. Apply IDE-specific frontmatter format from configure file
-4. ACQUIRE each `rules/bootstrap-*.md` FROM KB — install as individual rule files per IDE configure spec
+4. READ RULES `bootstrap-*.md` (each individually) — install as individual rule files per IDE configure spec
 
 Step 5: MUST Generate All Content Files
 
@@ -94,7 +94,7 @@ For each content type from filtered list (non-bootstrap rules, skills, agents, w
 
 1. Map ResourcePaths to local file paths using configure file rules
 2. If state.mode=upgrade: skip existing human-customized files
-3. ACQUIRE each resource FROM KB
+3. READ each resource using its typed alias (READ SKILL/FLOW/SUBAGENT/RULE/TEMPLATE)
 4. Write to local path with IDE-specific format adaptation
 5. Preserve skill subdirectory structures (assets/, references/, scripts/)
 6. If multiple IDEs: write shared content to common location where possible
@@ -104,7 +104,7 @@ Step 6: Verify and Report (HITL)
 1. Count files per type, compare against expected from filtered list minus exclusions
 2. Verify: no absolute paths in generated files
 3. Verify: root entry point file contains version marker
-4. Verify: bundled ACQUIRE content merged correctly (no `<rosetta:file>` tags, single frontmatter per file)
+4. Verify: bundled reads content merged correctly (no `<rosetta:file>` tags, single frontmatter per file)
 5. If state.mode=upgrade: report diff summary (added, skipped with reason)
 6. MUST get explicit user confirmation before closing
 
@@ -119,7 +119,7 @@ Step 6: Verify and Report (HITL)
 
 <rules_pitfalls>
 
-- ACQUIRE/SEARCH/LIST commands inside instruction content are local-files-mode aliases — do NOT remove or replace them
+- USE SKILL / USE FLOW / INVOKE SUBAGENT / APPLY PHASE / READ|APPLY RULE|TEMPLATE|SKILL FILE / LIST aliases — and `ACQUIRE`/`QUERY`/`STORE` forms (shell + project-scoped) — inside instruction content are mode-bound aliases: do NOT remove or replace them
 
 </rules_pitfalls>
 

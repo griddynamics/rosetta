@@ -109,12 +109,12 @@ describe('pluginAssembleCodexBootstrap — entry shape', () => {
 // ─── Plugin-root entry ────────────────────────────────────────────────────────
 
 describe('pluginAssembleCodexBootstrap — plugin-root entry (workspace-root traversal)', () => {
-  it('plugin-root contains workspace-root traversal path (.agents/rules/bootstrap-rosetta-files.md)', () => {
+  it('plugin-root contains workspace-root traversal path (.agents/rules/plugin-files-mode.md)', () => {
     const frames = [makeDocFrame('plugin-files-mode', '\n# Body\n')];
     const p = makePluginFrame(frames);
     const result = pluginAssembleCodexBootstrap(p);
     const payload = result.templateContext['bootstrap_hooks'] as string;
-    expect(payload).toContain('.agents/rules/bootstrap-rosetta-files.md');
+    expect(payload).toContain('.agents/rules/plugin-files-mode.md');
   });
 
   it('plugin-root contains $workspace_root/.agents path', () => {

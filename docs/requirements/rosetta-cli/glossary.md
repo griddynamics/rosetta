@@ -2,7 +2,7 @@
 
 | Term | Definition |
 |------|-----------|
-| **Rosetta CLI** | The npm package (`rosetta` on npmjs.com) providing `npx rosetta <command>` operations. `configure` is the first command. |
+| **Rosetta CLI** | The npm package (`rosetta` on npmjs.com) providing `npx -y rosetta@latest <command>` operations. `configure` is the first command. |
 | **Rosetta MCP** | The MCP server package (`ims-mcp` on PyPI) that AI agents connect to. |
 | **Rosetta Server** | The backend system storing instructions and datasets. |
 | **Target** | An IDE or tool that Rosetta CLI configures (e.g., `claudecode`, `windsurf`). |
@@ -12,5 +12,5 @@
 | **HTTP MCP preset** | MCP preset using HTTP transport with OAuth 2.1 parameters (provider URL, client ID, redirect URI). |
 | **MCP config file** | IDE-specific JSON file declaring MCP server connections. |
 | **Bootstrap file** | IDE-specific rules/instruction file containing Rosetta prep steps. |
-| **Workspace** | The current working directory where `npx rosetta` is executed. Treated as the project root. |
+| **Workspace** | The current working directory where `npx -y rosetta@latest` is executed. Treated as the project root. |
 | **rosetta.json** | Version-controllable configuration file in the workspace root storing targets, MCP preset, and non-secret parameter overrides. |

@@ -89,16 +89,16 @@ Must apply fully canonical 8-point reasoning flow:
 After DEBRIEF passes, **do not stop at the single surviving answer.** Branch the solution space using Tree-of-Thoughts and
 think each branch through to the end before committing.
 
-- Branch. Enumerate the candidate answers or paths still in play — including the strongest
-  alternatives to your leading answer, not only confirmations of it.
-- Expand relentlessly. Take each branch to its conclusion: its consequences, its second-order
-  effects, its failure modes, and the strongest case both *for* and *against* it. Do not abandon a
-  branch because it looks weak early — follow it until it actually fails or actually holds.
-- Score. Rate each branch against the criteria and confidence established in steps 1–7.
-- Prune. Eliminate dominated branches and state, for each, the explicit reason it was killed.
-- Commit. Choose the surviving branch and give its rationale. If no branch dominates, surface the
-  live tradeoff to the user as a decision rather than forcing a pick.
-- Output. Answer fully
+MUST use the following algorithm:
+  1. Branch. Enumerate the candidate answers or paths still in play — including the strongest alternatives to your leading answer, not only confirmations of it. Ask few targeted questions. If question can be answered from artifacts - read/search them.
+  2. Expand relentlessly. Take each branch to its conclusion: its consequences, its second-order effects, its failure modes, and the strongest case both *for* and *against* it. Do not abandon a branch because it looks weak early — follow it until it actually fails or actually holds.
+  3. Score. Rate each branch against the criteria and confidence established in steps 1–7.
+  4. Prune. Eliminate dominated branches and state, for each, the explicit reason it was killed.
+  5. Commit. Choose the surviving branch and give its rationale. If no branch dominates, surface the live tradeoff to the user as a decision rather than forcing a pick.
+  6. Output state.
+  7. Loop 1-7 into depth with more branches until crystal clear.
+
+Once loop completed: output answer fully.
 
 Boundaries:
 

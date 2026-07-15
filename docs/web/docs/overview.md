@@ -21,7 +21,7 @@ permalink: /docs/overview/
 
 ## Core Mental Model
 
-Rosetta is an **open-source governance and context layer** for AI coding agents. It provides structured context — rules, skills, workflows, and sub-agents — guiding AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards. Rosetta also accelerates project onboarding by reverse-engineering architecture and domain context, improving the reliability and consistency of AI-generated code.
+Rosetta is **open-source engineering governance and context** for AI coding agents. It provides structured context — rules, skills, workflows, and sub-agents — guiding AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards. Rosetta also accelerates project onboarding by reverse-engineering architecture and domain context, improving the reliability and consistency of AI-generated code.
 
 Design principles:
 

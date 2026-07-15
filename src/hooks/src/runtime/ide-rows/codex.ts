@@ -8,6 +8,7 @@ const EVENTS: Partial<Record<SemanticEvent, string>> = {
   PreCompact: 'PreCompact',
   PostCompact: 'PostCompact',
   PrePromptSubmit: 'UserPromptSubmit',
+  Stop: 'Stop',
 };
 
 // Matches "*** (Update|Add|Create) File: <path>" in apply_patch command strings
@@ -22,6 +23,13 @@ const TOOL_KINDS: Partial<Record<SemanticKind, readonly string[]>> = {
   bash:    ['Bash', 'shell'],
   'mcp-call': ['__mcp_sentinel__'],
 };
+
+// Reverse of EVENTS: semantic event → the RAW Codex wire literal that its output schema requires.
+// Identity for most events; the one real remap is PrePromptSubmit → "UserPromptSubmit". Falls back to
+// the semantic name for events not in the map. Used by the adapter's formatOutput so emitted
+// hookEventName is always the raw literal Codex validates against (fixes the SemanticEvent leak).
+export const rawEventName = (semantic: string | undefined): string =>
+  semantic ? (EVENTS[semantic as SemanticEvent] ?? semantic) : '';
 
 export const lookupEvent = (raw: string): SemanticEvent | null => {
   for (const [k, v] of Object.entries(EVENTS)) {

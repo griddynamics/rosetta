@@ -98,15 +98,14 @@ agents/TEMP/
 refsrc/
 !refsrc/INDEX.md
 
-# Hooks build output
-src/hooks/node_modules/
-src/hooks/dist/tests/
-src/hooks/dist/bundles/
+# Per-package build output (src/<pkg>/)
+src/*/node_modules/
+src/*/dist/
+src/*/*.egg-info/
+src/*/.pytest_cache/
 
 # Vitest cache (root-level node_modules/.vite/)
 node_modules/.vite/
 
 # Temporary build output
-src/rosetta-cli/dist
-src/rosetta-mcp-server/dist
 .worktrees/

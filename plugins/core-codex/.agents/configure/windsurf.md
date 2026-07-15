@@ -404,6 +404,77 @@ description: Brief description for auto-invocation
 
 ---
 
+## Hooks
+
+Cascade hooks run shell scripts at agent lifecycle events. Full verified contract: [Cascade Hooks reference](https://docs.windsurf.com/windsurf/cascade/hooks). Windsurf is now **Devin Desktop**; the flat Cascade schema is unchanged.
+
+### Hook Locations
+
+| Path | Scope |
+|------|-------|
+| `.devin/hooks.json` | Project (**current**) |
+| `.windsurf/hooks.json` | Project (legacy alias — same format) |
+| `~/.codeium/windsurf/hooks.json` | User |
+| `~/.codeium/hooks.json` | User (JetBrains plugin) |
+| Enterprise (`/Library/Application Support/Windsurf/`, `/etc/windsurf/`, `C:\ProgramData\Windsurf\`) | Org-wide |
+
+### Registration Format (flat Cascade)
+
+```json
+{
+  "hooks": {
+    "<event_name>": [
+      { "command": "path/to/script", "powershell": "windows-command", "show_output": false, "working_directory": "optional" }
+    ]
+  }
+}
+```
+
+`command` runs on macOS/Linux via `bash -c` (and on Windows as the `powershell` fallback); `powershell` takes precedence on Windows. `show_output` renders the hook's stdout/stderr in the Cascade **UI** only — it does NOT inject anything into the model's context. **(!) There is no `matcher` field** — every registered hook fires unconditionally on its event; gate inside the script.
+
+### Supported Events (Rosetta-relevant)
+
+Tool events are **split per operation** — there is no generic `PreToolUse`/`PostToolUse`. Only `pre_*` hooks can block (exit 2); all `post_*` hooks are observational.
+
+| Rosetta event | Windsurf event(s) | Blockable |
+|---------------|-------------------|:---------:|
+| PreToolUse (read) | `pre_read_code` | yes |
+| PreToolUse (write) | `pre_write_code` | yes |
+| PreToolUse (shell) | `pre_run_command` | yes |
+| PreToolUse (MCP) | `pre_mcp_tool_use` | yes |
+| PostToolUse | `post_read_code` / `post_write_code` / `post_run_command` / `post_mcp_tool_use` | no |
+
+**(!) No session-lifecycle events** — there is no `SessionStart`, `SessionEnd`, `Stop`, `AgentStop`, or `SubagentStop`. The closest analogs are `pre_user_prompt` (turn start) and `post_cascade_response` (turn end); they are per-turn, not per-session, and post-hooks cannot block.
+
+### Input
+
+Delivered as JSON on stdin. Common (all events): `agent_action_name`, `trajectory_id` (Windsurf has no separate session id — Rosetta uses this as the `session_id`), `execution_id`, `timestamp` (ISO 8601), `model_name`, `tool_info`. The `tool_info` payload is event-specific: read → `file_path`; write → `file_path` + `edits[]`; command → `command_line` + `cwd`; MCP → `mcp_server_name` + `mcp_tool_name` + `mcp_tool_arguments`.
+
+### Output — exit code + stderr only (NO stdout JSON contract)
+
+**(!) Cascade never parses stdout as JSON.** There is no `permissionDecision`/`additionalContext`/`continue`/`hookSpecificOutput` contract — emitting such JSON has zero effect. A hook communicates through exactly two channels:
+
+| Channel | Behavior |
+|---------|----------|
+| process exit code | the decision — `0` proceed, `2` block (see below) |
+| **stderr** (on a blocking `pre_*` hook) | **the only hook→model text channel** — the deny reason. Cascade delivers it verbatim, appending `: action blocked by hook`. Write the reason to stderr, then `exit 2`. |
+
+There is **no non-blocking context injection**: exit-0 hooks and all post-hooks pass nothing to the model.
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | success — action proceeds |
+| `2` | **pre-hooks only:** blocks the action; the hook's stderr is surfaced to the agent. Post-hooks cannot block. |
+| other non-zero | error — non-blocking, action proceeds |
+
+### Matchers
+
+None. Config has no matcher/glob field — every registered hook fires on its event, so all gating (which file, which command) happens inside the hook script off the stdin JSON.
+
+---
+
 ## File Structure Example
 
 ```

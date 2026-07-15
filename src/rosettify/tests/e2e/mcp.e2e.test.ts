@@ -492,11 +492,11 @@ describe("MCP — plan create-with-template (FR-PLAN-0030)", () => {
     const raw = fs.readFileSync(file, "utf8");
     expect(raw).toContain("ph-prep-s-mcp-custom");
     expect(raw).toContain("MCP Custom Step");
-    // ph-prep should have 6 steps (5 seeded + 1 injected)
+    // ph-prep should have 4 steps (3 seeded + 1 injected)
     const plan = JSON.parse(raw) as { phases: Array<{ id: string; steps: unknown[] }> };
     const prepPhase = plan.phases.find((p) => p.id === "ph-prep")!;
     expect(prepPhase).toBeDefined();
-    expect(prepPhase.steps.length).toBe(6);
+    expect(prepPhase.steps.length).toBe(4);
   });
 });
 

@@ -13,6 +13,9 @@ const TOOL_KINDS: Partial<Record<SemanticKind, readonly string[]>> = {
   edit:    ['Write'],
   create:  ['Write'],
   replace: ['Write'],
+  // pre/post_write_code carry an edits[] {old_string,new_string} array (docs/hooks/windsurf.md) →
+  // mapped to MultiEdit by the adapter so dangerous-actions can scan edit content.
+  'multi-edit': ['MultiEdit'],
   bash:    ['Bash'],
   read:    ['Read'],
   'mcp-call': ['__mcp_sentinel__'],

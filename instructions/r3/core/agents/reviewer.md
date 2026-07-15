@@ -2,7 +2,7 @@
 name: reviewer
 description: "Review artifacts against intent and contracts, recommend, etc. Full subagent."
 mode: subagent
-model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-4.6-sonnet
+model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-5-sonnet
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---
@@ -27,7 +27,7 @@ Validation: Every recommendation traces to a specific contract or intent element
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Artifacts to review available
 - Original intent, contracts, or specifications provided by orchestrator
 

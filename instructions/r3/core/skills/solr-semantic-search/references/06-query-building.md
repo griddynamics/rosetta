@@ -255,7 +255,7 @@ Which fails for any product missing the position attribute, even if it's a valid
 | `1<-25%` | 1 | 2 | 4 | 8 |
 | `1<-1 5<80%` | 1 | 1 | 4 | 8 |
 
-Same syntax as eDisMax mm — see solr-query skill, `03-edismax.md` for full spec.
+Same syntax as eDisMax mm — USE SKILL `solr-query` to apply eDisMax for the full spec.
 
 For semantic search, `minShouldMatch` is per-stage. Strict stages: `100%` (full phrase). Lenient: `2<-25%`.
 

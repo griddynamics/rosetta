@@ -81,7 +81,7 @@ def run_tests() -> int:
 def main() -> int:
     checks = [
         Check(name="hooks build",     runner=build_hooks),
-        Check(name="plugin sync",     runner=lambda: run_command(["npx", "rosettify-plugins@latest"])),
+        Check(name="plugin sync",     runner=lambda: run_command(["npx", "-y", "rosettify-plugins@latest"])),
         Check(name="type validation", runner=run_type_validation),
         Check(name="tests",           runner=run_tests),
     ]

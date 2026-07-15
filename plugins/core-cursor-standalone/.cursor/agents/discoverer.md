@@ -2,7 +2,7 @@
 name: discoverer
 description: "Discover project context, patterns, affected areas, dependencies, etc. Lightweight subagent."
 mode: subagent
-model: claude-sonnet-4-6
+model: claude-sonnet-5
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

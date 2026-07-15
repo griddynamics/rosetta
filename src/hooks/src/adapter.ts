@@ -3,7 +3,20 @@
 // Loads IDE-specific adapters and delegates detection, normalization, and
 // output formatting to the matching adapter.
 //
-// Detection order (most specific → least specific):
+// Detection is two-tiered — an optional `env` (default {}) is checked FIRST, per
+// ENV_DETECTION_ORDER below; only if no env var matches does detection fall back to payload
+// shape. This exists because some payloads are structurally ambiguous by shape alone (e.g.
+// Copilot's VS Code fire mirrors Claude Code's own wire shape) — see docs/hooks/copilot.md.
+// Note: this module is never shipped to production bundles (each IDE's bundle is pinned at
+// build time to its own slim entrypoint in `entrypoints/`, see scripts/build-bundles.mjs), so
+// for the 5 shipped bundles env-detection is redundant (bundle identity already disambiguates
+// the IDE) — but it IS reachable and load-bearing for any consumer of this module directly,
+// including `run-hook.ts`'s `runAsCli` (the real, non-bundled CLI entrypoint), which passes
+// `process.env` through `executeHook`'s `env` opt. Callers that don't want real env — e.g.
+// tests, to avoid the host shell's own IDE env vars (this repo's dev shell commonly has
+// CLAUDECODE=1) leaking into detection — get the safe default {} by omitting the opt.
+//
+// Shape-based fallback order (most specific → least specific):
 //   1. codex        — CC fields + model + turn_id
 //   2. cursor       — CC fields + conversation_id + cursor_version
 //   3. claude-code  — CC fields (hook_event_name + tool_input + session_id)
@@ -21,8 +34,8 @@ import { windsurf } from './adapters/windsurf';
 import { copilot } from './adapters/copilot';
 import { debugLogBranch } from './runtime/debug-log';
 
-import type { IdeAdapter, NormalizedInput, CanonicalOutput } from './types';
-export type { NormalizedInput, CanonicalOutput, IdeAdapter } from './types';
+import type { IdeAdapter, NormalizedInput, CanonicalOutput, AdapterApi } from './types';
+export type { NormalizedInput, CanonicalOutput, IdeAdapter, AdapterApi } from './types';
 
 // Detection is an ordered chain — a superset like codex must match before
 // claude-code, so this order is load-bearing and not derived from Object.keys.
@@ -36,7 +49,29 @@ const ADAPTERS = {
   copilot,
 } as Record<string, IdeAdapter>;
 
-export const detectIDE = (rawInput: unknown): string => {
+type Env = Record<string, string | undefined>;
+
+const hasVarWithPrefix = (env: Env, prefix: string): boolean =>
+  Object.keys(env).some((k) => k.startsWith(prefix));
+
+// Some IDE payloads are structurally ambiguous by shape alone — most notably Copilot's VS
+// Code snake_case fire, which mirrors Claude Code's own wire shape (hook_event_name +
+// session_id + tool_input) closely enough that shape-based detect() cannot tell them apart.
+// Each IDE's own runtime env signature (verified per docs/hooks/<ide>.md) resolves this
+// unambiguously and is checked FIRST; shape-based DETECTION_ORDER below is the fallback for
+// when none of these env vars are present (e.g. a sandboxed/stripped environment).
+// Ordered most-specific first: Cursor is a VS Code fork (carries VSCODE_* too), so its own
+// CURSOR_VERSION must be checked before the generic VSCODE_* Copilot catch-all.
+const ENV_DETECTION_ORDER: ReadonlyArray<{ ide: string; test: (env: Env) => boolean }> = [
+  { ide: 'cursor',      test: (env) => Boolean(env.CURSOR_VERSION) },
+  { ide: 'claude-code', test: (env) => env.CLAUDECODE === '1' },
+  { ide: 'codex',       test: (env) => Boolean(env.CODEX_MANAGED_BY_NPM) || Boolean(env.CODEX_MANAGED_PACKAGE_ROOT) },
+  { ide: 'copilot',     test: (env) => env.COPILOT_CLI === '1' },
+  { ide: 'windsurf',    test: (env) => hasVarWithPrefix(env, 'CODEIUM_') || hasVarWithPrefix(env, 'WINDSURF_') },
+  { ide: 'copilot',     test: (env) => hasVarWithPrefix(env, 'VSCODE_') },
+];
+
+export const detectIDE = (rawInput: unknown, env: Env = {}): string => {
   if (rawInput === null || rawInput === undefined) {
     debugLogBranch('adapter', 'detect-invalid', { reason: 'null-or-undefined' });
     throw new Error('Invalid input: null or undefined');
@@ -50,17 +85,22 @@ export const detectIDE = (rawInput: unknown): string => {
     throw new Error('Invalid input: expected a plain object');
   }
   const raw = rawInput as Record<string, unknown>;
+  const envMatch = ENV_DETECTION_ORDER.find((e) => e.test(env));
+  if (envMatch) {
+    debugLogBranch('adapter', 'detect-ok', { ide: envMatch.ide, keys: Object.keys(raw), via: 'env' });
+    return envMatch.ide;
+  }
   const ide = DETECTION_ORDER.find((name) => ADAPTERS[name].detect(raw));
   if (!ide) {
     debugLogBranch('adapter', 'detect-unsupported', { keys: Object.keys(raw), rawInput: raw });
     throw new Error(`Unsupported IDE: ${JSON.stringify(Object.keys(raw))}`);
   }
-  debugLogBranch('adapter', 'detect-ok', { ide, keys: Object.keys(raw) });
+  debugLogBranch('adapter', 'detect-ok', { ide, keys: Object.keys(raw), via: 'shape' });
   return ide;
 };
 
-export const normalize = (rawInput: unknown): NormalizedInput => {
-  const ide = detectIDE(rawInput);
+export const normalize = (rawInput: unknown, env: Env = {}): NormalizedInput => {
+  const ide = detectIDE(rawInput, env);
   const normalized = ADAPTERS[ide].normalize(rawInput as Record<string, unknown>);
   debugLogBranch('adapter', 'normalize-ok', {
     ide,
@@ -90,11 +130,20 @@ export const formatOutput = (
   return formatted;
 };
 
-export const dedupKey = (rawInput: unknown, hookName: string): string | null => {
-  const ide = detectIDE(rawInput);
-  const key = ADAPTERS[ide].dedupKey?.(rawInput as Record<string, unknown>, hookName) ?? null;
-  debugLogBranch('adapter', 'dedup-key', { ide, hookName, dedupKey: key });
-  return key;
+export const exitCodeFor = (canonicalOutput: CanonicalOutput, ide?: string): number => {
+  const adapter = ide ? ADAPTERS[ide as keyof typeof ADAPTERS] : undefined;
+  const code = adapter?.exitCode?.(canonicalOutput) ?? 0;
+  debugLogBranch('adapter', 'exit-code-for', { ide: ide ?? null, adapter: adapter?.name ?? null, code });
+  return code;
+};
+
+// Text an IDE wants written to STDERR (not stdout). Unset for every IDE except Windsurf, whose
+// only hook→model text channel is stderr on a blocking pre-hook (see adapters/windsurf.ts).
+export const stderrMessageFor = (canonicalOutput: CanonicalOutput, ide?: string): string | undefined => {
+  const adapter = ide ? ADAPTERS[ide as keyof typeof ADAPTERS] : undefined;
+  const message = adapter?.stderrMessage?.(canonicalOutput);
+  debugLogBranch('adapter', 'stderr-message-for', { ide: ide ?? null, adapter: adapter?.name ?? null, hasMessage: Boolean(message) });
+  return message;
 };
 
 export const readStdin = (stream: NodeJS.ReadableStream = process.stdin): Promise<unknown> =>
@@ -130,3 +179,16 @@ export const readStdin = (stream: NodeJS.ReadableStream = process.stdin): Promis
     });
     stream.on('error', reject);
   });
+
+// The multi-IDE adapter API surface, as an object matching the per-IDE bundle entrypoints'
+// `adapter` export (entrypoints/adapter-*.ts via makeEntrypoint). run-hook.ts imports `{ adapter }`
+// from '../adapter' and the bundler swaps this module for the pinned per-IDE entrypoint at build
+// time (scripts/build-bundles.mjs). The named exports above stay for direct test imports.
+export const adapter: AdapterApi = {
+  readStdin,
+  detectIDE,
+  normalize,
+  formatOutput,
+  exitCodeFor,
+  stderrMessageFor,
+};

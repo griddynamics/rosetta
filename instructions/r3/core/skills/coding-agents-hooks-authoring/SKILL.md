@@ -39,7 +39,7 @@ Order matters: `run-hook.ts:98` gates on `toolKinds` before calling `run(ctx)`. 
 
 ### Registration
 
-Every new hook must appear in every plugin's `hooks.json`. The canonical source is `plugins/core-claude/hooks/hooks.json.tmpl` (and equivalent templates in other plugins). Direct edits to generated `hooks.json` files are overwritten on the next `npx rosettify-plugins@latest` run.
+Every new hook must appear in every plugin's `hooks.json`. The canonical source is `plugins/core-claude/hooks/hooks.json.tmpl` (and equivalent templates in other plugins). Direct edits to generated `hooks.json` files are overwritten on the next `npx -y rosettify-plugins@latest` run.
 
 Paths by plugin:
 - `plugins/core-claude/hooks/hooks.json.tmpl` → `hooks.json`
@@ -64,7 +64,7 @@ After any source change under `src/hooks/src/` or `instructions/r{2,3}/core/`:
 venv/bin/python scripts/pre_commit.py
 ```
 
-This builds CJS bundles, runs full test suite, and runs `npx rosettify-plugins@latest` to sync `instructions/r{2,3}/core/` → all plugin directories.
+This builds CJS bundles, runs full test suite, and runs `npx -y rosettify-plugins@latest` to sync `instructions/r{2,3}/core/` → all plugin directories.
 
 ### Pitfalls
 
@@ -74,6 +74,7 @@ This builds CJS bundles, runs full test suite, and runs `npx rosettify-plugins@l
 - **Regex `[rf]{2,}` false positives** — matches `rm -rr` and `rm -ff`. Require both flags with lookaheads: `/\brm\s+-(?=[a-zA-Z]*[rR])(?=[a-zA-Z]*[fF])[a-zA-Z]+\b/`.
 - **`$`-anchor vs trailing slash** — path patterns like `/\.kube\/config$` fail when tested against `filePath` with trailing slash. Always test against `normalizedPath = filePath.replace(/\/+$/, '')`.
 - **Matcher without toolKinds mapping** — adding a name to the JSON matcher but not to `lookupToolKind` and `def.on.toolKinds` is inert.
+- Updating instructions/* and plugins/* which serve completely different purpose.
 
 ### Reference files
 

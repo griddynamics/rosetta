@@ -66,7 +66,7 @@ Tech stack of all modules in this Rosetta repository.
 | core-claude | Auto-generated from instructions; Claude Code format |
 | core-cursor | Auto-generated from instructions; Cursor format |
 | rosetta | Bootstrap rule + MCP definition only |
-| Generator | `npx rosettify-plugins@latest` (invoked by `scripts/pre_commit.py`) |
+| Generator | `npx -y rosettify-plugins@latest` (invoked by `scripts/pre_commit.py`) |
 
 ## Shared / Repo-Wide
 

@@ -40,8 +40,8 @@ Act as a senior technical writer — recovers intent from code, not transcribes 
 
 <core_concepts>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-- ACQUIRE `reverse-engineering/SKILL.md` FROM KB and EXECUTE for domain extraction
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
+- USE SKILL `reverse-engineering` for domain extraction
 - Existing project documentation is likely stale and incomplete: source code is the true source of truth
 - Documentation phase is based on discovery phase to perform **deep** analysis, but avoid reading entire codebase.
 - Select which files to read, group organize by modules/batches/groups and must assign to subagents to execute.
@@ -107,7 +107,7 @@ README.md:
 - Create in workspace and in each repository root README.md files if missing
 
 6. Special cases:
-   - Speckit: if `memory/constitution.md` and `specs` folder exist, add "MUST ACQUIRE speckit-integration-policy.md FROM KB and execute it" to CONTEXT.md
+   - Speckit: if `memory/constitution.md` and `specs` folder exist, add "MUST APPLY RULE speckit-integration-policy.md" to CONTEXT.md
    - Composite (state.composite = true): create top-level docs as registries with workspace-relative paths to sub-repo docs
    - If large project add "MUST USE SKILL `large-workspace-handling`" to CONTEXT.md
    - Code-graph backend: if Phase 6 state shows a backend installed, add to CONTEXT.md: "MUST USE SKILL `codemap`, <Graphify|Gitnexus> USE IS REQUIRED." (naming the installed backend)

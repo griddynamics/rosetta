@@ -25,7 +25,7 @@ allowed-tools: "[Tools Claude can use without asking permission when this skill 
 # model — [Model to use when this skill is active] [string] [Claude Code] [ex: claude-3.5-sonnet]
 model: "[Model to use when this skill is active]"
 
-# [Latest Models: Anthropic (claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5), OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high, gpt-5.4-medium, gpt-5.5-high), Google (gemini-3.1-pro-preview, gemini-3-flash-preview), Z.ai (glm-5).]
+# [Latest Models: Anthropic (claude-opus-4-8, claude-sonnet-5, claude-haiku-4-5), OpenAI (gpt-5.3-codex-medium, gpt-5.3-codex-high, gpt-5.4-medium, gpt-5.5-high), Google (gemini-3.1-pro-preview, gemini-3-flash-preview), Z.ai (glm-5).]
 
 # Execution Context (Optional)
 # context — [Set to 'fork' to run in a forked subagent context] [string] [Claude Code]

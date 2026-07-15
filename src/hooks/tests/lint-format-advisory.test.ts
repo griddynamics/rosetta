@@ -9,6 +9,7 @@ import codexApplyPatch from './fixtures/codex-post-tool-use-apply_patch.json';
 
 import { advisoryMessage, lintFormatAdvisoryHook } from '../src/hooks/lint-format-advisory';
 import { runHook } from '../src/runtime/run-hook';
+import { assertCodexOutput } from '../src/adapters/codex-output';
 
 // ── helper ────────────────────────────────────────────────────────────────────
 
@@ -277,14 +278,18 @@ describe('file-path field extraction', () => {
 // ── integration: Codex apply_patch — path parsed from command string ────────────────
 //
 // Codex extracts the file path from the patch command (`*** Update File: ...`),
-// not from tool_input.file_path. Codex formatOutput is identity, so output is the
-// canonical hookSpecificOutput shape. Fixture targets src/app.js.
+// not from tool_input.file_path. Codex's formatOutput PROJECTS the canonical shape to its STRICT
+// PostToolUse schema: additionalContext ONLY — NO permissionDecision (illegal on PostToolUse → the
+// whole output would be rejected). Validated closed-world via assertCodexOutput. Fixture targets src/app.js.
 
 describe('Codex apply_patch', () => {
-  test('fires with path parsed from command string', async () => {
+  test('fires with path parsed from command string; strict PostToolUse advise shape (no permissionDecision)', async () => {
     const out = await execute(codexApplyPatch);
-    expect(out).toBe(expectedClaude('src/app.js'));
-    expect(out).toContain('app.js');
+    const parsed = JSON.parse(out);
+    assertCodexOutput('PostToolUse', parsed);
+    expect(parsed).toStrictEqual({
+      hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: advisoryMessage('src/app.js') },
+    });
   });
 });
 

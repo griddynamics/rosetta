@@ -77,6 +77,30 @@ EARS-phrased functional requirements for invocation, source resolution, run mode
   <implementationNotes></implementationNotes>
 </req>
 
+<req id="FR-CLI-0012" type="FR" level="System" ticketId="" classification="technical">
+  <title>Deterministic-hooks override</title>
+  <statement>The generator shall resolve the effective `deterministic_hooks` template variable as: the deterministic-hooks argument's boolean value when the argument is supplied, otherwise the selected release descriptor's `deterministic_hooks` value as the default. The effective value shall be resolved before template rendering and hook-bundle synchronization.</statement>
+  <rationale>Operators need to generate a release with the opposite hook posture (e.g. r3 without deterministic hooks) without defining a new release descriptor.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-07-13</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: `--release r3 --deterministic-hooks false` When: generated Then: no compiled hook bundle artifacts are placed and rendered configuration is valid JSON without advisory blocks.</criteria>
+    <criteria>Given: `--release r2 --deterministic-hooks true` and present hook build output When: generated Then: hook bundles are placed and rendered configuration contains advisory blocks and is valid JSON.</criteria>
+    <criteria>Given: `--deterministic-hooks true` and no release argument When: invoked Then: the default release (FR-CLI-0010) is used with an effective `deterministic_hooks` value of true.</criteria>
+    <criteria>Given: `--release r3` and no deterministic-hooks argument and present hook build output When: generated Then: the effective `deterministic_hooks` value is true — hook bundles are placed and rendered configuration contains advisory blocks.</criteria>
+    <criteria>Given: no deterministic-hooks argument When: invoked Then: the effective value defaults to the selected release descriptor's `deterministic_hooks` value (r2 → false, r3 → true).</criteria>
+    <criteria>Given: a deterministic-hooks argument with a non-boolean value When: invoked Then: it reports usage and exits non-zero without generating output.</criteria>
+  </acceptance>
+  <depends>DATA-CFG-0001, FR-CLI-0010</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/cli.ts (`--deterministic-hooks` option + boolean arg parser), src/rosettify-plugins/src/generate.ts (effective-release resolution), src/rosettify-plugins/src/types.ts (GenerateOptions.deterministicHooks), tests/unit/generate.test.ts (override matrix).</implementationNotes>
+  <notes>The override replaces the descriptor value at resolution time; downstream behavior (FR-GEN-0011 conditionals, FR-HOOK-0020 gating, FR-HOOK-0021 presence check) reads only the effective value and needs no awareness of the override's origin.</notes>
+</req>
+
 ## Source (domain) resolution — NEW
 
 <req id="FR-CLI-0030" type="FR" level="System" ticketId="" classification="technical">

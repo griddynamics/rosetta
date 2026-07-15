@@ -2,7 +2,7 @@
 
 A QParser converts a string (the `q` body or `fq` body) into a Lucene `Query` object. Custom QParsers let you support new query syntax — typically domain-specific shortcuts — without users having to compose complex Lucene/edismax expressions.
 
-For built-in parsers and how to use them (`{!term}`, `{!terms}`, `{!parent}`, etc.), see solr-query skill, reference `02-local-params.md`. This file is about **writing your own**.
+For built-in parsers and how to use them (`{!term}`, `{!terms}`, `{!parent}`, etc.), USE SKILL `solr-query` to apply local params and parser selection. This file is about **writing your own**.
 
 ## When to write a custom QParser
 

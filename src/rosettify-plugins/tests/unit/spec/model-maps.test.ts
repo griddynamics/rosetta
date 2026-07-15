@@ -17,8 +17,8 @@ describe('normalizeClaude', () => {
     expect(normalizeClaude('claude-4.8-opus-high')).toBe('claude-opus-4-8');
   });
 
-  it('maps sonnet token to "claude-sonnet-4-6"', () => {
-    expect(normalizeClaude('claude-4.6-sonnet')).toBe('claude-sonnet-4-6');
+  it('maps sonnet token to "claude-sonnet-5"', () => {
+    expect(normalizeClaude('claude-4.6-sonnet')).toBe('claude-sonnet-5');
   });
 
   it('maps haiku token to "claude-haiku-4-5"', () => {
@@ -33,8 +33,8 @@ describe('normalizeClaude', () => {
     expect(normalizeClaude('gpt-5.5-high, gemini-3.1')).toBeNull();
   });
 
-  it('handles reviewer case: gpt,gemini,claude-sonnet → claude-sonnet-4-6', () => {
-    expect(normalizeClaude('gpt-5.4-medium, gemini-3.1-pro, claude-4.6-sonnet')).toBe('claude-sonnet-4-6');
+  it('handles reviewer case: gpt,gemini,claude-sonnet → claude-sonnet-5', () => {
+    expect(normalizeClaude('gpt-5.4-medium, gemini-3.1-pro, claude-4.6-sonnet')).toBe('claude-sonnet-5');
   });
 });
 
@@ -52,8 +52,8 @@ describe('normalizeCursor', () => {
     expect(normalizeCursor('gpt-5.4-high, other')).toBe('gpt-5.4');
   });
 
-  it('maps claude-4.6-sonnet to claude-sonnet-4-6', () => {
-    expect(normalizeCursor('claude-4.6-sonnet')).toBe('claude-sonnet-4-6');
+  it('maps claude-4.6-sonnet to claude-sonnet-5', () => {
+    expect(normalizeCursor('claude-4.6-sonnet')).toBe('claude-sonnet-5');
   });
 
   it('returns null for empty string', () => {

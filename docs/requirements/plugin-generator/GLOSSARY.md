@@ -17,7 +17,8 @@ One meaning per term. Used consistently across all requirement files.
 - **Bootstrap prefix** — A fixed lead-in string attached to the one designated lead bootstrap document of each target (the first bootstrap-classified entry in the manifest).
 - **Template** — A Handlebars source file (`*.tmpl`) rendered to a sibling file with the `.tmpl` suffix removed, using release variables plus bootstrap payload values.
 - **Hook bundle** — A pre-compiled per-IDE runtime hook artifact consumed from `src/hooks/dist/` and copied into a target's hook folder.
-- **Deterministic hooks** — A per-release flag selecting whether advisory runtime hooks (and their bundles) are included (`r2`: off; `r3`: on).
+- **Deterministic hooks** — A per-release flag selecting whether advisory runtime hooks (and their bundles) are included (`r2`: off; `r3`: on). Overridable per run by a CLI argument (FR-CLI-0012).
+- **Effective deterministic-hooks value** — The `deterministic_hooks` value after applying the CLI override where supplied, otherwise the release descriptor value. All gating and rendering reads this value (FR-CLI-0012, FR-HOOK-0020).
 - **Folder index** — A generated `INDEX.md` listing a folder's documents with descriptions, used as a table of contents.
 - **Transform spec** — The declarative per-target description of all adaptations (renames, normalizations, generated indexes, templates, layouts) applied to produce that target. See `MODEL.md`.
 - **VirtualFile** — One entry in the VFS: a single prospective output file at a VFS path, holding an ordered collection of `SourceFile`s plus, during processing, its resolved target path, binary flag, and target contents. Class name: `VirtualFile`. (Rewrite term; use instead of the bare word "file".)

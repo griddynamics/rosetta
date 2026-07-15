@@ -18,7 +18,7 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
-  <notes>Template variables currently observed: `release` (name) and `deterministic_hooks` (bool).</notes>
+  <notes>Template variables currently observed: `release` (name) and `deterministic_hooks` (bool). A CLI argument may override `deterministic_hooks` per run (FR-CLI-0012); the override replaces the descriptor value at resolution time, so the effective variable set remains the single input to rendering.</notes>
 </req>
 
 <req id="DATA-CFG-0002" type="DATA" level="System" ticketId="" classification="technical">
@@ -70,7 +70,7 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
   <changed>2026-06-10</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: logical key `sonnet` When: normalized Then: Claude→`claude-sonnet-4-6`, Cursor→`claude-sonnet-4-6`, Copilot→`Claude Sonnet 4.6`.</criteria>
+    <criteria>Given: logical key `sonnet` When: normalized Then: Claude→`claude-sonnet-5`, Cursor→`claude-sonnet-5`, Copilot→`Claude Sonnet 5`.</criteria>
     <criteria>Given: a `gpt-*` value When: normalized for Codex Then: a base model and optional reasoning-effort are derived.</criteria>
   </acceptance>
   <implementation>ToBeModified</implementation>

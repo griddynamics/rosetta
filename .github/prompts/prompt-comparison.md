@@ -8,17 +8,16 @@ Rosetta is an instructions and processes enforcement for AI coding agents (like 
 It is public OSS and central repository of rules/skills/agents/subagents/commands/workflows stored as markdown files. 
 These artifacts are deployed via plugins (preferred) or MCP into a target real software project repository, which has its own files and folder structure.
 
-Coding agents will always be exposed to the same Rosetta bootstrap as you are now (always injected in context): 
-bootstrap_guardrails, bootstrap_core_policy, bootstrap_execution_policy, bootstrap_hitl_questioning, bootstrap_rosetta_files. Plus either bootstrap.md (mcp mode) or plugin-files-mode.md (plugins/standalone mode).
+Top-agent sessions receive `bootstrap-alwayson.md` plus exactly one mode file: `mcp-files-mode.md` (MCP), `plugin-files-mode.md` (plugin/standalone), or `local-files-mode.md` (developing Rosetta). Spawned subagents receive only `bootstrap-alwayson.md` + their dispatch prompt, which requires `subagent-directives` and any task-needed skills. Heavy process loads on demand through skills and workflows; the plugin mode file carries no alias mapping because typed aliases operate natively on plugin files.
 
-Rosetta predefine key folders and files using that bootstrap_rosetta_files XML tag that will be present in target project.
+Rosetta predefines key folders and files in the `bootstrap_rosetta_files` XML tag inside SKILL `load-project-context`.
 
 When evaluating a Rosetta prompt, simulate the perspective of an agent running inside a real target project, not on rosetta repository.
 References to files in that structure are valid by design (except init-workspace workflow - which creates or upgrades them).
 
 Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` in current rosetta repo to better understand rosetta implementation itself. Remember that current and target repositories ARE DIFFERENT (this content is only available in this repo!).
 
-MUST USE SKILL `orchestrator-contract` for all subagent dispatches.
+MUST USE SKILL `orchestration` for all subagent dispatches.
 MUST USE SKILL `coding-agents-prompt-authoring` to review and to harden the changes and at least must include pa-rosetta.md, pa-patterns, pa-hardening.md, pa-schemas.md.
 Subagents MUST USE SKILL `coding-agents-prompt-authoring` with references listed above (and more if they determine additional references are needed).
 
@@ -46,13 +45,13 @@ Use references `rosetta`, `cto-ims-kb`, `RulesOfPower` (all must be).
 1. **Analyze diff**: Read the provided diff file. Assess size (line count, word count, number of files). Check whether the PR contains changes outside `instructions/` that may affect prompt behavior — run `git diff --stat <base_ref>...HEAD` to see the full PR scope and factor non-instruction changes into your reasoning.
 2. **Evaluate prompts**:
    - **Small changes** (≤7 files AND ≤1000 changed lines total): evaluate all files yourself.
-   - **Large changes** (>7 files OR >1000 changed lines): spawn parallel subagents using the Task tool. Provide each subagent with the FULL and EXACT context: diff file path, base ref, their assigned file subset, and their output path in `.tmp/agents/`. Group files by release folder, then by prompt family. MUST USE SKILL `orchestrator-contract` for every subagent dispatch. Each subagent writes its JSON results to `.tmp/agents/{subagent-id}.json`.
+   - **Large changes** (>7 files OR >1000 changed lines): spawn parallel subagents using the Task tool. Provide each subagent with the FULL and EXACT context: diff file path, base ref, their assigned file subset, and their output path in `.tmp/agents/`. Group files by release folder, then by prompt family. MUST USE SKILL `orchestration` for every subagent dispatch. Each subagent writes its JSON results to `.tmp/agents/{subagent-id}.json`.
    - Pass "How to think about Rosetta to subagents"
    - Always extend context to remove blind spots (example: changes made to skill asset only, but you still load unmodified SKILL.md to understand full context; same with workflows, phases, rules, bootstraps)
    - Do not report the same issue multiple times
 3. **Recombine**: Merge all subagent JSON outputs (or your own results) into a single JSON array.
-4. **Prompt engineer review**: Spawn a subagent (prompt engineer role) to review the combined JSON results. Allow the subagent to read repository files for additional context. The reviewer verifies findings are grounded, removes false positives, and flags missed regressions. MUST USE SKILL `orchestrator-contract`.
-5. **Behavioral simulation**: Spawn a subagent to simulate how coding agents would behave with the new prompt versions versus the base versions. Identify behavioral regressions, safety gaps, or improvements. MUST USE SKILL `orchestrator-contract`.
+4. **Prompt engineer review**: Spawn a subagent (prompt engineer role) to review the combined JSON results. Allow the subagent to read repository files for additional context. The reviewer verifies findings are grounded, removes false positives, and flags missed regressions. MUST USE SKILL `orchestration`.
+5. **Behavioral simulation**: Spawn a subagent to simulate how coding agents would behave with the new prompt versions versus the base versions. Identify behavioral regressions, safety gaps, or improvements. MUST USE SKILL `orchestration`.
 6. **Finalize**: Incorporate review and simulation feedback into the JSON findings. Write the final array to the output file path provided in the prompt.
 
 ## File Reference Validation Rules

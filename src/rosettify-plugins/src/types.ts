@@ -166,4 +166,5 @@ export interface GenerateOptions {
   domain: string;
   dryRun: boolean;
   verbose: boolean;
+  deterministicHooks?: boolean; // FR-CLI-0012 — per-run override; undefined → release descriptor value
 }

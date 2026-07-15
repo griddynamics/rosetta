@@ -158,6 +158,77 @@ describe('generate() — error coverage', () => {
     expect(outputFiles).toBeGreaterThan(0);
   });
 
+  it('r3 with deterministic-hooks override false → exit 0, no bundles, no advisory blocks (FR-CLI-0012, FR-HOOK-0020)', async () => {
+    const repo = buildFakeRepo();
+    // Provide r3 instructions by copying the r2 sample tree into the r3 slot
+    const instrR3Core = path.join(repo, 'instructions', 'r3', 'core');
+    fs.mkdirSync(instrR3Core, { recursive: true });
+    copyDirSync(path.join(SAMPLE_INSTRUCTIONS_DIR, 'r2', 'core'), instrR3Core);
+    try {
+      const outputDir = path.join(repo, 'out-r3-nohooks');
+      const code = await generate({
+        sources: buildSources(repo, outputDir),
+        release: 'r3',
+        domain: 'core',
+        dryRun: false,
+        verbose: false,
+        deterministicHooks: false,
+      });
+      expect(code).toBe(0);
+      const hookDir = path.join(outputDir, 'core-claude', 'hooks');
+      // FR-HOOK-0020: no compiled bundle artifacts placed
+      expect(fs.existsSync(path.join(hookDir, 'dangerous-actions.js'))).toBe(false);
+      // FR-GEN-0011: rendered config is valid JSON without advisory blocks
+      const parsed = JSON.parse(fs.readFileSync(path.join(hookDir, 'hooks.json'), 'utf-8'));
+      expect(parsed.hooks.PreToolUse).toBeUndefined();
+    } finally {
+      fs.rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('r2 with deterministic-hooks override true and missing bundle files → exit 1, advisory blocks rendered (FR-CLI-0012, FR-HOOK-0021)', async () => {
+    const repo = buildFakeRepo(); // bundle dirs exist but hold no bundle files
+    try {
+      const outputDir = path.join(repo, 'out-r2-hooks');
+      const code = await generate({
+        sources: buildSources(repo, outputDir),
+        release: 'r2',
+        domain: 'core',
+        dryRun: false,
+        verbose: false,
+        deterministicHooks: true,
+      });
+      // Effective value true → bundles required → missing files are a hard error
+      expect(code).toBe(1);
+      // Run-to-completion: advisory blocks still rendered for the effective value
+      const parsed = JSON.parse(fs.readFileSync(path.join(outputDir, 'core-claude', 'hooks', 'hooks.json'), 'utf-8'));
+      expect(parsed.hooks.PreToolUse).toBeDefined();
+    } finally {
+      fs.rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('no deterministic-hooks override → release descriptor default applies (r2 → off) (FR-CLI-0012 fallback)', async () => {
+    const repo = buildFakeRepo();
+    try {
+      const outputDir = path.join(repo, 'out-r2-default');
+      const code = await generate({
+        sources: buildSources(repo, outputDir),
+        release: 'r2',
+        domain: 'core',
+        dryRun: false,
+        verbose: false,
+      });
+      expect(code).toBe(0);
+      const hookDir = path.join(outputDir, 'core-claude', 'hooks');
+      expect(fs.existsSync(path.join(hookDir, 'dangerous-actions.js'))).toBe(false);
+      const parsed = JSON.parse(fs.readFileSync(path.join(hookDir, 'hooks.json'), 'utf-8'));
+      expect(parsed.hooks.PreToolUse).toBeUndefined();
+    } finally {
+      fs.rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
   it('r3 with missing bundles → returns exit code 1 (hard error propagation)', async () => {
     // r3 = deterministicHooks; bundles dir exists but files are missing → pluginSyncBundles → hard error
     const r3Repo = buildFakeRepo();

@@ -1,0 +1,1 @@
+{"hook_event_name":"PreToolUse","session_id":"8abb87fa-4187-49e0-ba62-ded536d9ba99","timestamp":"2026-06-26T18:00:44.330Z","cwd":"/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql","tool_name":"Bash","tool_input":{"command":"echo rosetta-hook-probe","description":"Step 1: echo command"}}

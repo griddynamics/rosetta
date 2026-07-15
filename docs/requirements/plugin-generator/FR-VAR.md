@@ -112,7 +112,7 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
 
 ## Copilot (`core-copilot`) — marketplace
 
-`workflows`→`commands`, agents→`*.agent.md`, Copilot model vocabulary, runtime config at plugin root, `.github` preserved. Bootstrap via **session-start hooks** with a per-entry dedup lock (Copilot fires hooks twice).
+`workflows`→`commands`, agents→`*.agent.md`, Copilot model vocabulary, runtime config at plugin root, `.github` preserved. Bootstrap via **session-start hooks** (entry shape: FR-HOOK-0005).
 
 <req id="FR-VAR-0030" type="FR" level="System" ticketId="" classification="technical">
   <title>Copilot output</title>
@@ -132,7 +132,7 @@ Native folder names, short model names, hooks, `.claude-plugin` manifest. Bootst
   </acceptance>
   <implementation>ToBeModified</implementation>
   <implementationNotes>ToBeModified: clean-architecture re-implementation (runtime layout via SpecEntry, RECON-2). corrected to match generator baseline; pending owner review — original stated "root copy expressed as a SpecEntry/fileRename() target" without clarifying that .github/plugin/hooks.json also remains (both present, not renamed); original omitted hooks/hooks.json (standalone-form) entirely; baseline MD5 confirms root hooks.json = .github/plugin/hooks.json (b53bc4cfbc0c19eb6ceebd4717211b6c for r2)</implementationNotes>
-  <depends>FR-COPY-0031, FR-COPY-0033, FR-HOOK-0006, FR-VAR-0071</depends>
+  <depends>FR-COPY-0031, FR-COPY-0033, FR-HOOK-0005, FR-VAR-0071</depends>
 </req>
 
 <req id="FR-VAR-0031" type="FR" level="System" ticketId="" classification="technical">

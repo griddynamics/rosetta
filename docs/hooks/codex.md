@@ -14,8 +14,13 @@ Findings NOT obvious from the per-event tables below:
 
 1. **(!) Strict schema validation — EXACT fields, NO additional fields.** Codex validates each hook's stdout against that event's schema. Any extra field, or a documented field in the wrong place, invalidates the WHOLE output (`hook returned invalid <event> JSON output`); the hook is marked FAILED and runs **unhooked** (deny/rewrite/block do NOT apply). Emit only the documented per-event shape — no optional extras, no duplicating a field across placements.
 2. **(!) `systemMessage` is a USER warning, NOT model context.** It surfaces in the UI (as a `warning:`) and never enters the model's context — use `additionalContext` when the model needs to see the text.
+3. **(!) Catching file reads takes extra work — Codex has no read tool with a clear path (guidance / opinion).** Where other agents expose a dedicated read tool that hands a hook a structured `tool_input.file_path`, Codex reads files through the **shell** — typically `cat`/`sed`, but it may fall back to any shell command (`head`, `tail`, `awk`, `less`, …). So a read arrives only as the opaque `Bash` `command` string, and the hook must parse that string itself to recover the path.
 
----
+   How hard to parse depends on the cost of a MISS for your goal:
+   - **Miss is cheap (e.g. de-duplicating reads) → stay lenient / fail-open.** Match only dead-simple single-file readers and skip anything with shell metacharacters (pipes, redirects, `;`/`&&`, subshells, substitutions): better to let an ambiguous command through than to misclassify it. (`read-once.ts` takes exactly this approach — an example, not the contract.)
+   - **Miss is costly (e.g. blocking a dangerous action) → you CANNOT skip complex commands**, because that is precisely where the target hides. Such a hook MAY need to fully tokenize/parse the entire shell command rather than bail out on complexity — its safe default flips from "let it through" to "inspect harder / deny."
+
+   **(!) Do NOT treat MCP calls as reads.** There is no Codex MCP read path in any doc, and an MCP tool is never a passive read — it performs an action. Classifying an `mcp__…read…` call as a "read" would let a read hook dedupe or block a real side-effecting call and silently break it. Reads on Codex are shell-only.
 
 ## Capability Matrix (Codex)
 
@@ -109,7 +114,7 @@ All fields cite **R1** unless a row is marked otherwise.
 | `timeout` | number (seconds) | default **600** | R1 |
 | `statusMessage` | string | optional UI status text | R1 |
 
-Plugin command environment: `PLUGIN_ROOT`, `PLUGIN_DATA` (compatibility aliases `CLAUDE_PLUGIN_ROOT`, `CLAUDE_PLUGIN_DATA`). (R1)
+Plugin command environment: `PLUGIN_ROOT`, `PLUGIN_DATA` (compatibility aliases `CLAUDE_PLUGIN_ROOT`, `CLAUDE_PLUGIN_DATA`). (R1) - revalidate (doc-grounded only; not observed in live logs — plugin-env vars require a plugin-bundled hook)
 
 ---
 
@@ -252,7 +257,7 @@ For `PreToolUse`, `PostToolUse`, `PermissionRequest`, and `SubagentStart`, these
 
 ### Matcher (R1)
 
-Regex string matched against `tool_name`. Use `"*"`, `""`, or omit to match all. Supported tools: `Bash`, `apply_patch` (aliases `Edit`, `Write`), MCP tools (e.g. `mcp__filesystem__read_file`).
+Regex string matched against `tool_name`. Use `"*"`, `""`, or omit to match all. Supported tools: `Bash`, `apply_patch` (aliases `Edit`, `Write`), MCP tools (e.g. `mcp__server__tool`).
 
 ---
 
@@ -309,14 +314,18 @@ Regex string matched against `tool_name`. Use `"*"`, `""`, or omit to match all.
 
 | Field | Type | Ref | Notes |
 |---|---|---|---|
-| `decision` | `"block"` | R1 | top-level; blocks the tool result |
+| `decision` | `"block"` | R1 | top-level; does NOT undo the completed command — Codex records the feedback, **replaces the tool result** with it, and continues the model from that message |
 | `reason` | string | R1 | **(!) REQUIRED when `decision` is `"block"`** |
-| `continue` | `false` | R1 | top-level; stops normal processing |
+| `continue` | `false` | R1 | top-level; stops normal processing of the original tool result and continues from the feedback/stop text. **(!) Supported on PostToolUse (contrast PreToolUse, where `continue:false` is unsupported and FAILS the hook)** |
 | `hookSpecificOutput.hookEventName` | `"PostToolUse"` | R1 | nested |
 | `hookSpecificOutput.additionalContext` | string | R1 | nested; added as extra developer context |
 | `systemMessage` | string | R1 | UI warning (supported for PostToolUse) |
 
+> **(!) `permissionDecision` is NOT a PostToolUse field.** It is valid only on PreToolUse. Under strict validation, emitting `permissionDecision` in a PostToolUse output invalidates the whole output → the hook runs unhooked.
+
 > **(!) Parsed but NOT supported for PostToolUse (verbatim, R1):** *"`updatedMCPToolOutput` and `suppressOutput` are parsed but not supported yet. Codex marks the hook run as failed, reports the error, and continues normal processing of the tool result."*
+
+> **TODO(validate):** the PostToolUse `decision:"block"` / `continue:false` semantics (replaces result + continues from feedback; does not undo the command) and the "`permissionDecision` invalid on PostToolUse" note above were reconciled to the official OpenAI hooks reference (R1) but not yet re-confirmed by a live-hook run. Re-verify via `docs/hooks/tester.js` and remove this marker.
 
 ### Matcher (R1)
 
@@ -444,7 +453,7 @@ Real captures via `docs/hooks/tester.js` → `~/.rosetta/hooks.log`; run folder 
 
 **Full cleaned log:** `docs/hooks/codex-logs.txt` — every hook invocation of the Codex run (one session; old/unrelated sessions removed; all env-var values redacted except the non-secret `CODEX_MANAGED_*` markers). ⚠️ **Do NOT read it whole** — `grep` what you need (e.g. `grep -nE 'hook_event_name|RESULT:|PROCESSOR:' docs/hooks/codex-logs.txt`).
 
-**Raw session transcript:** `docs/hooks/rollout-2026-06-26T19-11-51-019f0634-3175-7702-b55c-e256f2966840.jsonl` (~71 KB) — the full Codex session JSONL (the `transcript_path` recorded in the run). ⚠️ **Large dump — do NOT read wholesale**; `grep` for what you need.
+**Raw session transcript:** `docs/hooks/codex-019f0634-transcript.jsonl` (~71 KB) — the full Codex session JSONL (session `019f0634`; original filename `rollout-2026-06-26T19-11-51-019f0634-…jsonl`, still the `transcript_path` recorded in the run log). ⚠️ **Large dump — do NOT read wholesale**; `grep` for what you need.
 
 **Runtime env signature (Codex CLI):** `CODEX_MANAGED_BY_NPM=1`, `CODEX_MANAGED_PACKAGE_ROOT=/opt/homebrew/lib/node_modules/@openai/codex`. No `VSCODE_*`, no `COPILOT_CLI`.
 

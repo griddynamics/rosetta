@@ -25,7 +25,7 @@ baseSchema: docs/schemas/workflow.md
 
 **Phase 0: Prerequsites**
 1. All Rosetta prep steps MUST be FULLY completed
-3. MUST USE OPERATION_MANAGER for deterministic execution
+3. MUST use todo tasks for reliability
 
 **Phase 1: Discovery**
 1. Ask project path

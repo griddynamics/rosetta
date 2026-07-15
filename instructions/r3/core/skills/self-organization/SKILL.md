@@ -1,6 +1,6 @@
 ---
 name: self-organization
-description: "For proactive planning, large-file restructuring (~500+ lines or 10K+ size), and stale-information cleanup. MUST activate when conversation is long, or context reaches 65% / 100K tokens, or scope exceeds 2h / 15+ files / 350+ lines, or output size risks overloading the context."
+description: "CRITICAL. MUST activate at 65%+ context usage, 2h / 15+ file / 350+ line scope, or large-file restructuring. Proactive planning, reorganization, stale-content cleanup."
 license: Apache-2.0
 disable-model-invocation: false
 user-invocable: false
@@ -11,34 +11,13 @@ baseSchema: docs/schemas/skill.md
 
 <process>
 
-Planning:
-
-1. Plan proactively. Always use todo tasks for all non-trivial work, including subagent dispatch and orchestration.
-2. Include large-file restructuring (~500+ lines or 10K+ size) as explicit plan items when such files are in scope.
-3. Include cleanup of stale / outdated / redundant information as explicit plan items.
-
-Context:
-
-4. At 65% or 100K tokens — output `"WARNING! High context consumption, consider using new session!"`.
-5. At 75% or 120K tokens — output `"CRITICAL! Context consumption is very high, you must start a new session!"`.
-
-Scope:
-
-6. Over 2h or 15+ files or 350+ line spec — propose scope reduction.
-7. User may explicitly override.
-
-Output:
-
-8. Max ~2 pages per review pass.
-9. TLDR or summary hooks for long outputs.
-
-Communication:
-
-10. Announce self-organization intent to the user in advance. Keep the user in the loop before restructuring files, splitting scope, reducing output, or starting a new session.
-
-Output overflow:
-
-11. Write in batches, section-by-section
+1. Plan proactively; run everything as todo tasks per always-on `<tasks>`, incl. subagent dispatch/orchestration.
+2. Explicit plan items for: restructuring large in-scope files (~500+ lines / 10K+ size) · cleanup of stale/outdated/redundant content.
+3. At 65% context → output "WARNING! High context consumption, consider using new session!"; at 75% → output "CRITICAL! Context consumption is very high, you must start a new session!".
+4. Over 2h / 15+ files / 350+ line spec → propose scope reduction; user may override.
+5. Max ~2 pages per review pass; TLDR/summary hooks for long outputs.
+6. Announce self-organization intent in advance — keep user in loop before restructuring files, splitting scope, reducing output, or starting a new session.
+7. Output overflow → write in batches, section-by-section.
 
 </process>
 

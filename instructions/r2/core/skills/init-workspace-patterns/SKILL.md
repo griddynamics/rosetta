@@ -4,7 +4,7 @@ description: "Extract code patterns."
 license: Apache-2.0
 disable-model-invocation: true
 user-invocable: false
-model: claude-sonnet-4-6, gpt-5.4-high, gemini-3.1-pro-preview
+model: claude-sonnet-5, gpt-5.4-high, gemini-3.1-pro-preview
 tags: ["init", "workspace", "patterns", "reverse-engineering"]
 baseSchema: docs/schemas/skill.md
 ---

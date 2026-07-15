@@ -10,29 +10,19 @@
       "depends_on": [],
       "steps": [
         {
-          "id": "ph-prep-s-load-context-instructions",
-          "name": "Load bootstrap context",
-          "prompt": "USE SKILL `load-context-instructions`. Execute ALL returned prep steps."
-        },
-        {
           "id": "ph-prep-s-read-docs",
           "name": "Read project context",
-          "prompt": "USE SKILL `load-context` as the canonical current context loader. The skill is required even when its expected outputs already look satisfied."
+          "prompt": "USE SKILL `load-project-context` as the canonical current context loader. The skill is required even when its expected outputs already look satisfied."
         },
         {
-          "id": "ph-prep-s-orchestrator-contract",
-          "name": "Load orchestrator contract",
-          "prompt": "MUST USE SKILL `orchestrator-contract` as first action before dispatching any subagents. MUST USE SKILL `hitl` unless explicitly requested in prompt with exactly `No HITL`."
-        },
-        {
-          "id": "ph-prep-s-load-workflow",
-          "name": "Load workflow",
-          "prompt": "MUST USE SKILL `load-workflow`."
+          "id": "ph-prep-s-orchestration",
+          "name": "Load orchestration",
+          "prompt": "MUST USE SKILL `orchestration` before dispatching any subagents. MUST USE SKILL `hitl` unless explicitly requested in prompt with exactly `No HITL`."
         },
         {
           "id": "ph-prep-s-add-workflow-phases",
           "name": "Add workflow phases",
-          "prompt": "Add workflow phases from the loaded workflow into this plan — one plan phase per workflow phase, each with dedicated, detailed, and specific steps. Must add phase to identify request size after intial discovery. Include state-restore and resume steps if applicable."
+          "prompt": "Add phases from the active workflow (the one the user invoked), if any, into this plan — one plan phase per workflow phase, each with dedicated, detailed, and specific steps; no active workflow → derive phases directly from the request. Must add phase to identify request size after initial discovery. Include state-restore and resume steps if applicable."
         }
       ]
     }

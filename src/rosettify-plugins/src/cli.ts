@@ -2,12 +2,19 @@
 // FR-CLI-0001–0060 — commander wiring, flag parsing, exit-status aggregation
 // FR-CLI-0020: --source (default: cwd) + per-source overrides (--instructionsSource, --pluginsSource, --hooksSource)
 
-import { Command } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { initLogger } from './logging.js';
 import { generate } from './generate.js';
 import type { GenerateOptions, ResolvedSources } from './types.js';
+
+// FR-CLI-0012: explicit boolean only; anything else is a usage error (exit ≠ 0)
+function parseBooleanArg(value: string): boolean {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  throw new InvalidArgumentError('Expected "true" or "false".');
+}
 
 const program = new Command();
 
@@ -22,6 +29,7 @@ program
   .option('--pluginsSource <dir>', 'Override preserved-files source directory (default: <source>/src/rosettify-plugins/plugins)')
   .option('--hooksSource <dir>', 'Override hooks source directory (default: <source>/src/hooks)')
   .option('--output <dir>', 'Output directory (default: <source>/plugins)')
+  .option('--deterministic-hooks <bool>', "Override the release's deterministic_hooks value (true|false); default: the release descriptor value", parseBooleanArg)
   .option('--dry-run', 'Print what would be written, but do not write', false)
   .option('--verbose', 'Enable verbose logging', false);
 
@@ -79,6 +87,7 @@ async function main(): Promise<void> {
     domain: opts.domain as string,
     dryRun,
     verbose,
+    deterministicHooks: opts.deterministicHooks as boolean | undefined, // FR-CLI-0012
   };
 
   const exitCode = await generate(options);

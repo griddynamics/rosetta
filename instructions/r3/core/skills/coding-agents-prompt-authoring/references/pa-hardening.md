@@ -7,19 +7,19 @@ Enforce that target prompt:
 - Actively involves user
 - Has User Involvement and HITL ONLY via `hitl` skill (to support full automation)
 - Asks questions until crystal clear without nitpicking
-- Use common and domain terms
+- Use common and domain terms & abbreviations
 - Defines target audience
 - Challenges user reasonably
 - Uses MoSCoW where necessary
 - Maintains Workflow/Phase/Subagent/Skill/Rule boundaries
 - Skills can't call skills, Phase can't call phases, Subagents can't call subagents, Workflows can, and Rules can.
-- No lateral/sibling awareness, no reverse awareness, no cross-skill deep linking (exception: frontmatters, and keywords)
+- No lateral/sibling awareness, no reverse awareness, no cross-skill deep linking (exception: frontmatters, and keywords). Actively hunt for cross-skill refs: grep `<other-skill>/(assets|references)/...`, sibling skills' file names, `SKILL FILE` outside the owning skill — each MUST be reworded to intent ("USE SKILL `<name>` to <do X>"; topic keywords, no file names)
 - Always check those prompts vs their schema (critical, as you must not break contract)
-- If prompt is for rosetta itself, MUST ACQUIRE `coding-agents-prompt-authoring/references/pa-rosetta.md` FROM KB and validate prompt uses it
+- If prompt is for rosetta itself, MUST READ SKILL FILE `references/pa-rosetta.md` and validate prompt uses it
 - Coding-agent-agnostic, no hardcoded tool names
 - Clear separation of concerns, actors, events, models, actions
 - Sequential activities use numbered list
-- Rephrase, restructure, compress for much more compact prompt without loosing value, including but not limited to removing useless words, duplication, abbreviation, using unicode characters and icons, phrases instead of full sentences (except user facing), never soften prompts
+- Rephrase, restructure, compress for much more compact prompt without loosing value, including but not limited to removing useless words, duplication, abbreviation, using unicode characters and icons, phrases instead of full sentences (except user facing), never soften prompts, replace obvious facts AI already knows into one-two word nudges (topics, terms, abbreviations, etc), intrinsics (X is Y, A != B, C > D, F not G, etc), and steppers (A->B->C, etc.), remove meta-explanation (X is needed because Y, A no longer does B, etc), etc.
 
 </hardening>
 
@@ -54,7 +54,7 @@ Enforce that target prompt:
 - Define roles and contracts
 - Define problem-solution-validation
 - Challenge user reasonably
-- Professionally direct
+- Professionally direct, concise, no unsupported meta-commentary, polite, no profanity
 - Trace request end-to-end
 - Clearly trace user input vs AI inferring
 - Confirm updated inputs

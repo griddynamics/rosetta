@@ -2,7 +2,7 @@
 name: validator
 description: "Validate that implementation matches intent via execution and evidence. Full subagent."
 mode: subagent
-model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-4.6-sonnet
+model: gpt-5.4-medium, gemini-3.1-pro-preview, claude-5-sonnet
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---
@@ -21,7 +21,7 @@ Execute real validation tasks locally — git changes, specs, builds, tests, MCP
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - Implementation or test artifacts ready for validation
 - Validation scope and acceptance criteria provided by orchestrator
 

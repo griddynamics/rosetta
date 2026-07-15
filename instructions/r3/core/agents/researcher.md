@@ -2,7 +2,7 @@
 name: researcher
 description: "Run deep research with grounded references, systematic exploration, self-validation, etc. Full subagent."
 mode: subagent
-model: claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro
+model: claude-5-sonnet, gpt-5.4-medium, gemini-3.1-pro
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---
@@ -21,7 +21,7 @@ Offload deep research from orchestrator context. Validation: every conclusion ha
 
 <prerequisites>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
+- All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
 - CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md read
 - Research scope and feature name provided by orchestrator
 

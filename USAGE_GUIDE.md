@@ -587,6 +587,8 @@ See [PLUGINS.md](PLUGINS.md) for install commands.
 
   `Spawn subagent using <Claude Opus 4.8 | GPT-5.5> with high reasoning model to figure out the <problem/issue/task/bug> itself. Do not provide your thinking, only provide context, the problem definition, expected behavior and allowed tradeoffs/alternatives (the ultimate end goal), do not limit its decisions or reasoning.`
 
+- **Run a post-mortem on anything you want improved.** Not just failures — whenever a run disappointed you, fought you, or simply could have gone better, invoke the `post-mortem` skill (`/post-mortem`). It root-causes the behavior across your prompt, workspace files, local config, and Rosetta instructions, and recommends concrete fixes. If a defect is in Rosetta itself, it can also file sanitized feedback as a [Rosetta issue](https://github.com/griddynamics/rosetta/issues) — only with your explicit approval of the exact draft. Nothing is submitted without your sanction; no private code or data leaves your repository.
+
 ## Compaction
 
 It is **NOT** recommended to perform compaction, but if there is reason and you cannot leave session, use `/compact` with a prompt like this:
@@ -596,10 +598,10 @@ It is **NOT** recommended to perform compaction, but if there is reason and you 
 Compact context by high token compression using:
 - terms, patterns, unicode characters, and terse phrases
 - remove non-essential formatting, duplicates, wrong decisions, wrong thinking,
-  incorrect information, and non-relevant information
+  incorrect information, and non-relevant information you are sure 100%
 - keep regulation, policies, HITL, and catalogs compressed
 - keep user intent and Q&A mostly verbatim
-- keep decisions, key points, tasks, and workflows mostly verbatim
+- keep reasoning, decisions, key points, tasks, and workflows mostly verbatim
 - keep still-relevant files as-is and tool calls compressed
 
 Main goal:
@@ -627,6 +629,7 @@ These videos were recorded in different IDEs to show that Rosetta works everywhe
 
 ## Getting Help
 
+- Run `/post-mortem` after a run that failed — or one you'd simply like to improve. It diagnoses the root cause, recommends fixes, and can draft a sanitized GitHub issue that is submitted only with your explicit approval
 - [Website](https://griddynamics.github.io/rosetta/)
 - [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)
 

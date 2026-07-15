@@ -1,0 +1,10 @@
+{
+  "banner": "MOCK READY",
+  "steps": [
+    { "type": "print", "text": "I need a decision before continuing." },
+    { "type": "structured-question", "question": "Which output format?", "options": ["json", "yaml"] },
+    { "type": "await-input", "record": "structured" },
+    { "type": "file", "path": "out.txt", "text": "hello world" },
+    { "type": "stop", "message": "Done using your selection.", "complete": true }
+  ]
+}

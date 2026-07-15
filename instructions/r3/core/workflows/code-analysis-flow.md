@@ -21,11 +21,11 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 <prerequisites phase="0" applies="ALL">
 
 1. All Rosetta prep steps MUST be FULLY completed
-2. MUST USE OPERATION_MANAGER for deterministic execution
+2. MUST use todo tasks for reliability
 3. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping
 4. Phases are sequential; module analysis in LARGE codebases runs in parallel via SKILL `large-workspace-handling`.
 5. Orchestrator trusts skills to own execution internals; coordinates sequence, artifacts, state, and approvals only.
-6. State file: `agents/TEMP/code-analysis-flow-state.md` updated after each phase.
+6. State file: `agents/TEMP/<FEATURE>/code-analysis-flow-state.md` updated after each phase.
 7. Documentation principle: ground with links; no code generation, no suggestions, no speculation. See `best_practices` for sizing and diagram rules.
 8. If `/goal` is set repeat phases 4-8 until goal is met.
 9. If task is to extract/document/reverse engineer requirements or specifications from existing app/code:
@@ -35,16 +35,16 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </prerequisites>
 
-<context_load phase="1" applies="ALL" subagent="discoverer" role="Context gatherer for analysis scope" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
+<context_load phase="1" applies="ALL" subagent="discoverer" role="Context gatherer for analysis scope" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Read all lines of `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md`; grep headers of `docs/CODEMAP.md`, `docs/TECHSTACK.md`, `docs/DEPENDENCIES.md` if present.
 2. Input: user analysis request. Output: loaded project context + entry points (APIs, webhooks, CLIs, cron jobs).
-3. Recommended skills: `load-context`
+3. Recommended skills: `load-project-context`
 4. Update `code-analysis-flow-state.md`.
 
 </context_load>
 
-<scope_and_classify phase="2" applies="ALL" subagent="discoverer" role="Scope and size scanner" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro">
+<scope_and_classify phase="2" applies="ALL" subagent="discoverer" role="Scope and size scanner" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro">
 
 1. Classify target codebase: LARGE if 100+ files recursively or 4+ modules; otherwise SMALL.
 2. Identify target scope (repo, module, feature, path glob). Record boundaries and non-goals.
@@ -107,7 +107,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 
 </summarize>
 
-<review phase="8" applies="ALL" subagent="reviewer" role="Analysis quality reviewer" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-4-6" must-be-subagent>
+<review phase="8" applies="ALL" subagent="reviewer" role="Analysis quality reviewer" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5" must-be-subagent>
 
 1. Inspect outputs for groundedness (every claim linked), accuracy, coverage of scope, absence of generated/suggested code, assumption/unknown documentation, and Mermaid diagram legibility in light and dark themes.
 2. Input: analysis artifacts + scope + context. Output: review findings and recommendations.
@@ -120,7 +120,7 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 <user_review phase="9" applies="ALL" type="HITL">
 
 1. Present final artifacts and review findings. User MUST approve: "Yes, I reviewed the analysis" or "Approve, the analysis was reviewed".
-2. Do NOT assume approval. Anything else = feedback; iterate on the phase that owns the affected artifact (`analyze_small`, `analyze_large_parallel`, `summarize`, or `requirements_branch`).
+2. Strict approval; anything else = feedback, iterate on the phase that owns the affected artifact (`analyze_small`, `analyze_large_parallel`, `summarize`, or `requirements_branch`).
 
 </user_review>
 
@@ -132,18 +132,6 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 </finalize>
 
 </workflow_phases>
-
-<references>
-
-- Skill `reverse-engineering` — extract WHAT and WHY; strip HOW; detect implicit state machines; consolidate scattered logic; exclude dead code and workarounds.
-- Skill `requirements-authoring` — atomic, testable, EARS-phrased functional and non-functional requirements with per-unit HITL.
-- Skill `large-workspace-handling` — partition 100+ file workspaces; Summarization & Indexing strategy for analysis; parallel subagent dispatch with explicit scope boundaries.
-- Skill `questioning` — batch critical/high MECE questions; safe defaults; persist Q&A.
-- Skill `reasoning` — 7D decomposition for classification and review.
-- Skill `load-context` — load Rosetta project context files.
-- Subagents: `discoverer` (context/scope), `architect` (analysis/summary/requirements), `reviewer` (quality review).
-
-</references>
 
 <best_practices>
 

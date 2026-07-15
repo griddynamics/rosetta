@@ -44,6 +44,18 @@ Use the **plugin** when one is available for your IDE. Plugins bundle the bootst
 
 Use the **MCP** install when no plugin path exists for your IDE — e.g. Windsurf, Antigravity, OpenCode, or JetBrains Junie. See [PLUGINS.md](/rosetta/docs/plugins/) for the IDEs that currently ship a plugin, and [INSTALLATION.md](/rosetta/docs/installation/) for MCP setup.
 
+**I ran init — am I ready to go?**
+
+No. Init generates a starting skeleton, but the agent only knows what the workspace tells it. Before real work, give it the three things it cannot infer from code:
+
+- **Business context** → `CONTEXT.md`: the project goal, domain rules, stakeholders, issue tracker, and how a ticket becomes shipped work.
+- **Technical context** → `ARCHITECTURE.md`: how to run/build/test it, service and external-library dependencies, auth and routing, and your coding/style standards.
+- **Reference code** → `refsrc/`: read-only copies of code the agent can't otherwise see (e.g. the backend for a frontend repo, corporate libraries, a recently-updated framework), listed in `refsrc/INDEX.md`.
+
+Then define reusable **patterns** so generated code stays consistent, and configure your **ecosystem** (a few MCPs/CLIs). Add this yourself — do not just ask the AI to "improve" the generated docs; without new facts it only rephrases them and often makes them worse.
+
+See [CONFIGURATION.md](/rosetta/docs/configuration/) for the full per-repository checklist and the multi-repo / modernization layouts.
+
 ---
 
 ## Token Usage & Performance
@@ -62,7 +74,16 @@ For small/trivial tasks AI treats them as just small change and never executes t
 
 **Why does the first message in a session take longer?**
 
-Rosetta runs prep steps once per session: it loads context, classifies the request, picks a workflow, and reads relevant project files (`CONTEXT.md`, `ARCHITECTURE.md`, etc.). Subsequent messages reuse this context and are fast.
+Rosetta runs prep steps once per session: it loads context and reads relevant project files (`CONTEXT.md`, `ARCHITECTURE.md`, etc.). Subsequent messages reuse this context and are fast.
+
+**Which model should I use, and why did Rosetta burn through my token budget?**
+
+Pick a **medium** model — **Sonnet 5**, **GPT-5.4-medium**, or **gemini-3.1-pro** — and avoid Auto model selection. The two most common cost mistakes:
+
+- **Running everything on a high-reasoning/Opus model.** Opus-class models spend heavily on reasoning and can exhaust a daily balance in one sitting. Rosetta already assigns an appropriate model per subagent and switches automatically, so you do not need to force the most expensive model for the whole session.
+- **Letting Auto pick the model.** Auto often downgrades to a weaker model mid-task, producing low-quality results. Choose the model explicitly.
+
+See the model guidance in [Quickstart](/rosetta/docs/quickstart/).
 
 ---
 
@@ -74,7 +95,7 @@ Yes. Rosetta runs in every mode. Permission modes and Auto mode only change what
 
 **Can I skip the prep steps for a trivial one-line change?**
 
-No. Prep steps are a blocking gate and run once per session. They are lightweight (load context, classify request, pick workflow) and are designed so even trivial tasks get the right routing. The savings from skipping are tiny; the cost of skipping and getting the wrong answer is high.
+No. Prep steps are a blocking gate and run once per session. They are lightweight (load context, read project files) and are designed so even trivial tasks start from the right context. The savings from skipping are tiny; the cost of skipping and getting the wrong answer is high.
 
 **How do I opt out of HITL (human-in-the-loop) for a single task?**
 
@@ -83,6 +104,13 @@ Include the literal phrase `fully autonomous` or `no HITL` in your request. This
 **The agent stopped following Rosetta mid-session. What happened?**
 
 Most likely an expired MCP OAuth token. See [TROUBLESHOOTING.md](/rosetta/docs/troubleshooting/#agent-not-using-rosetta) — re-authenticate through your IDE's MCP settings.
+
+**When should I start a new chat session versus continue in the same one?**
+
+- **Same session** for follow-ups on the work just done — the agent fixed something the wrong way, missed an edge case, or you want to refine the same change.
+- **New session** when you move to a different feature, a new dependency, or an unrelated change. Each top-level request should start fresh so context stays lean.
+
+Reusing one long session for many unrelated tasks bloats context and degrades results. (A common mistake is running every task in a chat that started with "what can you do?" — start a new session for the real task.)
 
 ---
 
@@ -107,11 +135,11 @@ See [OVERVIEW.md](/rosetta/docs/overview/) for the full picture.
 
 **Where do I put project-specific overrides?**
 
-In `gain.json` at the repo root. It defines SDLC setup and locations of Rosetta files and wins in any conflict with default Rosetta conventions. See [bootstrap-rosetta-files](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap-rosetta-files.md?plain=1) for the canonical file list.
+In `gain.json` at the repo root. It defines SDLC setup and locations of Rosetta files and wins in any conflict with default Rosetta conventions. See the [load-project-context skill](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/load-project-context/SKILL.md?plain=1) (`<bootstrap_rosetta_files>`) for the canonical file list.
 
 **What files does Rosetta create in my repo?**
 
-The headline ones are `docs/CONTEXT.md` and `docs/ARCHITECTURE.md`. The full set (including `TODO.md`, `ASSUMPTIONS.md`, `TECHSTACK.md`, `DEPENDENCIES.md`, `CODEMAP.md`, `IMPLEMENTATION.md`, `MEMORY.md`, and the `plans/` and `refsrc/` directories) is documented in the `bootstrap-rosetta-files` rule. <!-- TODO: link to a user-friendly explainer once one exists -->
+The headline ones are `docs/CONTEXT.md` and `docs/ARCHITECTURE.md`. The full set (including `TODO.md`, `ASSUMPTIONS.md`, `TECHSTACK.md`, `DEPENDENCIES.md`, `CODEMAP.md`, `IMPLEMENTATION.md`, `MEMORY.md`, and the `plans/` and `refsrc/` directories) is documented in the `load-project-context` skill (`<bootstrap_rosetta_files>` section). <!-- TODO: link to a user-friendly explainer once one exists -->
 
 ---
 
@@ -119,7 +147,7 @@ The headline ones are `docs/CONTEXT.md` and `docs/ARCHITECTURE.md`. The full set
 
 **Where do I report bugs or request features?**
 
-Open an [issue](https://github.com/griddynamics/rosetta/issues).
+Open an [issue](https://github.com/griddynamics/rosetta/issues). Whenever a run fails or you see something you'd like improved, the `post-mortem` skill (`/post-mortem`) root-causes it and drafts a sanitized issue for you — submitted only with your explicit approval, with no private code or data included.
 
 **Where do I propose changes to Rosetta itself?**
 

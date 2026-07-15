@@ -20,14 +20,14 @@ Validation: State file tracks every phase with file inventory; verification conf
 <prerequisites phase="0", applies="ALL">
 
 1. All Rosetta prep steps MUST be FULLY completed
-2. MUST USE OPERATION_MANAGER for deterministic execution
+2. MUST use todo tasks for reliability
 3. MUST FOLLOW THIS WORKFLOW EXACTLY AND FULLY.
 4. MUST extensively use subagents as this is a large workflow.
 5. Sequential phases. Each updates `agents/init-workspace-flow-state.md`. Optional phases marked as skipped. Keep state file very brief.
 6. No rush, Take your time, Be thorough, ACCURACY > SPEED
 7. Dual-mode: every phase reads `state.mode` → check-exists → identify-gaps → create/update → preserve-human-content → report-changes.
 8. Composite workspace: documentation phases to create top-level index referencing sub-repository docs.
-9. IF state.file_count >= 50 (set by Phase 3): pass "ACQUIRE `large-workspace-handling/SKILL.md` FROM KB" to Phase 5, 7, 8 subagents.
+9. IF state.file_count >= 50 (set by Phase 3): pass "USE SKILL `large-workspace-handling`" to Phase 5, 7, 8 subagents.
 10. Create `agents/init-workspace-flow-state.md`.
 11. Conditional phases:
   - If you have already in context "RUNNING AS A PLUGIN": MUST NOT EXECUTE "shells" phase 2
@@ -45,16 +45,16 @@ Validation: State file tracks every phase with file inventory; verification conf
 <context phase="1" subagent="engineer" role="Workspace mode detector" subagent_required_model="claude-haiku-4-5, gemini-3-flash-preview">
 
 1. Detect mode: install, upgrade, or plugin. Set state.mode, state.plugin_active, state.composite, state.existing_files. Creates/reads gain.json.
-2. ACQUIRE `init-workspace-flow-context.md` FROM KB
+2. APPLY PHASE init-workspace-flow-context.md
 3. Update state
 
 </context>
 
-<shells phase="2" default="true" subagent="engineer" conditional role="Shell file generator" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium">
+<shells phase="2" default="true" subagent="engineer" conditional role="Shell file generator" subagent_required_model="claude-sonnet-5, gpt-5.4-medium">
 
 1. Generate shell files for skills, agents, workflows. Skip if state.plugin_active.
-2. Output: shell configs, bootstrap rule, load-context skill shell.
-3. ACQUIRE `init-workspace-flow-shells.md` FROM KB
+2. Output: shell configs, bootstrap rule, load-project-context skill shell.
+3. APPLY PHASE init-workspace-flow-shells.md
 4. Update state
 
 </shells>
@@ -63,25 +63,25 @@ Validation: State file tracks every phase with file inventory; verification conf
 
 1. Analyze workspace tech stack, structure, file count.
 2. Output: TECHSTACK.md, CODEMAP.md, DEPENDENCIES.md, state.file_count.
-3. ACQUIRE `init-workspace-flow-discovery.md` FROM KB
+3. APPLY PHASE init-workspace-flow-discovery.md
 4. Update state
 
 </discovery>
 
-<rules phase="4" optional="true" permanently-disabled subagent="built-in" role="Agent rules configurator" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium">
+<rules phase="4" optional="true" permanently-disabled subagent="built-in" role="Agent rules configurator" subagent_required_model="claude-sonnet-5, gpt-5.4-medium">
 DISABLED
 </rules>
 
-<patterns phase="5" subagent="engineer" role="Pattern extractor" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro-preview">
+<patterns phase="5" subagent="engineer" role="Pattern extractor" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro-preview">
 
 1. Extract coding and architectural patterns into reusable templates.
 2. Output: PATTERNS folder (one .md per pattern, INDEX.md, CHANGES.md).
-3. ACQUIRE `init-workspace-flow-patterns.md` FROM KB
+3. APPLY PHASE init-workspace-flow-patterns.md
 4. Update state. Log gaps for Phase 8.
 
 </patterns>
 
-<code-graph phase="6" subagent="engineer" type="HITL" role="Code-graph setup gate" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium, gemini-3.1-pro-preview">
+<code-graph phase="6" subagent="engineer" type="HITL" role="Code-graph setup gate" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro-preview">
 
 1. From the current context only, check whether code-graph capability is already covered — registered LSPs, or semantic-search / indexing MCP tools — and tell the user what is already available. Do not search for or install anything to find out.
 2. Warn the user: Third-party tool will have access to IP. Review license and policy with your manager.
@@ -97,7 +97,7 @@ DISABLED
 
 1. Create project documentation from workspace analysis.
 2. Output: CONTEXT.md, ARCHITECTURE.md, IMPLEMENTATION.md, ASSUMPTIONS.md, AGENT MEMORY.md.
-3. ACQUIRE `init-workspace-flow-documentation.md` FROM KB
+3. APPLY PHASE init-workspace-flow-documentation.md
 4. Update state. Log gaps for Phase 8.
 
 </documentation>
@@ -105,16 +105,16 @@ DISABLED
 <questions phase="8" type="HITL" role="Reflective gap-filler">
 
 1. Review all docs, identify gaps, ask user reflective questions, update affected files via subagents.
-2. ACQUIRE `init-workspace-flow-questions.md` FROM KB
+2. APPLY PHASE init-workspace-flow-questions.md
 3. Update state
 4. Required: USE SKILL `questioning`
 
 </questions>
 
-<verification phase="9" subagent="reviewer" role="Completeness validator" subagent_required_model="claude-sonnet-4-6, gpt-5.4-medium">
+<verification phase="9" subagent="reviewer" role="Completeness validator" subagent_required_model="claude-sonnet-5, gpt-5.4-medium">
 
 1. Verify all files exist, run validation checklist, suggest next steps.
-2. ACQUIRE `init-workspace-flow-verification.md` FROM KB
+2. APPLY PHASE init-workspace-flow-verification.md
 3. Mark state as COMPLETE.
 4. Notify user: delete `init-rosetta-shells-flow.md`.
 5. Demand user as MUST to start new chat session (highly visible message, red icon, bold, ASCII art, it must standout).
@@ -126,10 +126,6 @@ DISABLED
 <references>
 
 Phase files: `init-workspace-flow-context.md`, `init-workspace-flow-shells.md`, `init-workspace-flow-discovery.md`, `init-workspace-flow-rules.md`, `init-workspace-flow-patterns.md`, `init-workspace-flow-documentation.md`, `init-workspace-flow-questions.md`, `init-workspace-flow-verification.md`
-
-Skills: `codemap`
-
-State: `agents/init-workspace-flow-state.md`
 
 </references>
 

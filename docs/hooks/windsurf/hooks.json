@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "pre_read_code": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag pre_read_code --deny-on-match HOOK-DENY-PROBE", "show_output": true }
+    ],
+    "post_read_code": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag post_read_code", "show_output": true }
+    ],
+    "pre_write_code": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag pre_write_code", "show_output": true }
+    ],
+    "post_write_code": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag post_write_code", "show_output": true }
+    ],
+    "pre_run_command": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag pre_run_command --deny-on-match HOOK-DENY-PROBE", "show_output": true }
+    ],
+    "post_run_command": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag post_run_command", "show_output": true }
+    ],
+    "pre_mcp_tool_use": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag pre_mcp_tool_use", "show_output": true }
+    ],
+    "post_mcp_tool_use": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag post_mcp_tool_use", "show_output": true }
+    ],
+    "pre_user_prompt": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag pre_user_prompt", "show_output": true }
+    ],
+    "post_cascade_response": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag post_cascade_response", "show_output": true }
+    ],
+    "post_cascade_response_with_transcript": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag post_cascade_response_with_transcript", "show_output": true }
+    ],
+    "post_setup_worktree": [
+      { "command": "node docs/hooks/tester.js --mode windsurf --tag post_setup_worktree", "show_output": true }
+    ]
+  }
+}

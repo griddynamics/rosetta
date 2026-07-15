@@ -27,13 +27,13 @@ export function pluginAssembleCursorBootstrap(
 ): PluginProcessingFrame {
   const { payload, errors } = assembleBootstrapPayload(
     p,
-    (additionalContext, _jsonPayload, _lockIndex) => {
+    (additionalContext) => {
       // Cursor uses additional_context format, NOT hookSpecificOutput
       const jsonPayload = buildCursorHookPayloadJson(additionalContext);
       const command = wrapInPrintf(jsonPayload);
       return buildCursorBootstrapEntry(command);
     },
-    (_lockIndex, _folderPairs) => buildCursorBootstrapEntry(CURSOR_PLUGIN_ROOT_ENTRY.command),
+    (_folderPairs) => buildCursorBootstrapEntry(CURSOR_PLUGIN_ROOT_ENTRY.command),
   );
   // Generator ALWAYS generates full cursor bootstrap. Template decides injection.
   return updatePluginFrame(p, (draft) => {
