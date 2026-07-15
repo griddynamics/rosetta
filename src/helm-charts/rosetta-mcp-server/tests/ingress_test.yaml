@@ -21,6 +21,8 @@ tests:
   - it: adds namespace-prefixed rate-limit middleware annotation
     release:
       namespace: myns
+    set:
+      ingress.traefik.rateLimit.average: 1
     asserts:
       - isNotNull:
           path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
@@ -81,6 +83,8 @@ tests:
     release:
       name: my--app
       namespace: myns
+    set:
+      ingress.traefik.rateLimit.average: 1
     asserts:
       - equal:
           path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
