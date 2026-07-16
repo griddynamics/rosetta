@@ -478,7 +478,7 @@ For full version: download additional enterprise instructions from respective re
 
 Applies to HTTP and STDIO modes.
 
-Skip if using [Plugin](#plugin-based-installation-pre-release) or [Offline](#offline-installation-no-mcp) installation.
+Skip if using [Plugin](#plugin-based-installation) or [Offline](#offline-installation-no-mcp) installation.
 
 Download [bootstrap.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r2/core/rules/bootstrap.md?plain=1) and add it to your IDE's instruction file (keep entire contents, including YAML frontmatter):
 
