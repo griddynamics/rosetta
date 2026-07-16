@@ -188,7 +188,7 @@ Summarize to user: which CLIs ran which tasks, success/failure per orchestrator,
 - [Copilot CLI](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli) — prompt mode, yolo
 - [Gemini CLI](https://google-gemini.github.io/gemini-cli/docs/cli/headless.html) — headless mode, output formats
 - [OpenCode CLI](https://opencode.ai/docs/cli) — run command, agents
-- [Goose CLI](https://block.github.io/goose/docs/guides/running-tasks/) — headless recipes, config
+- [Goose CLI](https://goose-docs.ai/docs/guides/running-tasks/) — headless recipes, config
 - [Git Worktrees](https://git-scm.com/docs/git-worktree) — isolation strategy
 
 </resources>

@@ -511,9 +511,9 @@ Production-ready agent and command templates for AI to reference and adapt:
 
 ## Additional Resources
 
-- [Claude Code Overview](https://docs.claude.com/docs/claude-code/overview)
-- [Claude Code Settings](https://docs.claude.com/docs/claude-code/settings)
-- [Subagents Documentation](https://docs.claude.com/docs/claude-code/subagents)
-- [Slash Commands Reference](https://docs.claude.com/docs/claude-code/slash-commands)
-- [Agent Skills Guide](https://docs.claude.com/docs/claude-code/skills)
-- [Plugins Guide](https://docs.claude.com/docs/claude-code/plugins)
+- [Claude Code Overview](https://docs.claude.com/en/docs/claude-code/overview)
+- [Claude Code Settings](https://docs.claude.com/en/docs/claude-code/settings)
+- [Subagents Documentation](https://docs.claude.com/en/docs/claude-code/subagents)
+- [Slash Commands Reference](https://docs.claude.com/en/docs/claude-code/slash-commands)
+- [Agent Skills Guide](https://docs.claude.com/en/docs/claude-code/skills)
+- [Plugins Guide](https://docs.claude.com/en/docs/claude-code/plugins)

@@ -17,7 +17,7 @@ Single flat `SKILL.md` with `assets/` and `references/` subfolders. Root `<qa_kn
 - The `sensitive-data` pre-emit scan is part of QA artifact correctness, not an optional cleanup step.
 
 ## Invariants — do not change
-- `name: qa-knowledge` must equal the folder name and the registration in [docs/definitions/skills.md](/Users/isolomatov/Sources/GAIN/rosetta/docs/definitions/skills.md:55).
+- `name: qa-knowledge` must equal the folder name and the registration in [docs/definitions/skills.md](../../../../../docs/definitions/skills.md).
 - `disable-model-invocation: true` / `user-invocable: false` must stay: this skill is a routed helper, not a user-facing command.
 - The asset/reference split is load-bearing: templates stay in `assets/`, conventions in `references/`.
 - The router table is the canonical entry point; if an artifact or taxonomy is added, wire it into `<resources>`.

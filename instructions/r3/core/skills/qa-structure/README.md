@@ -17,7 +17,7 @@ Single flat `SKILL.md` with `assets/` and `references/` subfolders. Root `<qa_st
 - Shared `agents/` output is treated as a collision bug; per-session `plans/...` folders are mandatory.
 
 ## Invariants — do not change
-- `name: qa-structure` must equal the folder name and the registration in [docs/definitions/skills.md](/Users/isolomatov/Sources/GAIN/rosetta/docs/definitions/skills.md:56).
+- `name: qa-structure` must equal the folder name and the registration in [docs/definitions/skills.md](../../../../../docs/definitions/skills.md).
 - `disable-model-invocation: true` / `user-invocable: false` must stay: this is a support skill, not a direct user command.
 - The slug contract is load-bearing: lowercase ASCII kebab-case, letters/digits/hyphens only, max 80 chars, reserved `state`, `index`, and the flow's `*-state` name.
 - The state-file shape rule ("header + `## Phase Completion Status` (8 rows) + per-phase append blocks") is canonical.
