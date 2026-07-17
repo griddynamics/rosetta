@@ -46,7 +46,7 @@ Find or create the project config file, obtain project-specific data retrieval c
 <load_project_config step="0.3">
 1. Search for `testgen-project-config.md` at `plans/testgen-{TICKET-KEY}/testgen-project-config.md` (per-ticket, inside this ticket's feature plan folder — one copy per run, **not** a shared project-wide file, so parallel sessions and commits never collide).
 2. **Branches (exhaustive):**
-   - **File exists AND non-empty:** skip to step 0.5.
+   - **File exists AND non-empty:** echo the resolved ticket key once (e.g. "Using ticket [TICKET-KEY], config already on file.") then skip to step 0.5 — do not re-run step 0.4's question.
    - **File missing OR exists but empty:** proceed to step 0.4 (do NOT create an empty placeholder file — step 0.4 will write the populated file).
 </load_project_config>
 
@@ -55,7 +55,7 @@ Find or create the project config file, obtain project-specific data retrieval c
 Contiguous 1–5 sequence. The `<example_format_of_question>` block below is the verbatim question text used by step 2 — it is **not** a numbered step and the sequence does not restart after it.
 
 1. **Pre-fill from `gain.json` (merge evidence; do not force one source):** read repository-root `gain.json`; use `sdlc.issue_tracker(_project)`, `sdlc.wiki(_project)`, and `sdlc.test_management(_project)` when populated, plus recognizable provider URLs from the prompt. Explicit user input wins for this run; a missing `gain.json` never blocks the phase. Name the prefilled providers in the question below so the user confirms rather than re-supplies them.
-2. USE SKILL `questioning`. Ask the user about knowledge base and data retrieval setup using the question text in `<example_format_of_question>` below (adapt its canonical provider names to the prefilled ones).
+2. USE SKILL `questioning`. Ask the user about knowledge base and data retrieval setup using the question text in `<example_format_of_question>` below (adapt its canonical provider names to the prefilled ones), prefixed with the parsed ticket key so a mis-parsed key is caught before config is written.
 3. Process the user's answer — confirm the default scheme OR capture their customization.
 4. **Validate the answer provides sufficient information.** Minimum required fields:
    - **Data sources** (which of: Issue Tracker, Wiki, attached docs, other URLs — resolved providers recorded by name)
@@ -69,6 +69,8 @@ Contiguous 1–5 sequence. The `<example_format_of_question>` block below is the
 
 <example_format_of_question>
 ```markdown
+Parsed ticket: [TICKET-KEY] — reply with the correct key here if this is wrong.
+
 According to test generation process rules, I require more details related to your project - How should I retrieve the information necessary for test case generation?
 As a reference, I provide the default Data Retrieval scheme below:
 ** Default Setup **

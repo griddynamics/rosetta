@@ -124,9 +124,8 @@ The Measurement field carries the threshold (numeric + measurement window + load
 
 <update_state step="4.4">
 1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 4 complete and requirement counts (user stories, FRs, NFRs, constraints, dependencies, assumptions, risks)
-2. Tell user: "Phase 4 complete. Generated [X] user stories, [Y] functional requirements, [Z] non-functional requirements. Proceeding to Phase 5 (Test Case Generation)."
-3. Show document location: `plans/testgen-{TICKET-KEY}/requirements.md` and invite the user to review/correct it at any time.
-4. USE SKILL `hitl` for the design/spec-review checkpoint on `requirements.md` before Phase 5.
+2. Tell user: "Phase 4 complete. Generated [X] user stories, [Y] functional requirements, [Z] non-functional requirements." Show document location: `plans/testgen-{TICKET-KEY}/requirements.md`.
+3. USE SKILL `hitl` for the design/spec-review checkpoint on `requirements.md`. Proceed to Phase 5 only once `hitl` clears this checkpoint — silently, if its criteria don't require a pause, or after explicit approval if they do. Do not announce "proceeding" before this checkpoint resolves.
 </update_state>
 
 <validation_checklist>

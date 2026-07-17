@@ -27,7 +27,7 @@ Prerequisite: Rosetta Prep Steps.
 - **Phase-file load failure:** if APPLY PHASE for a phase file returns nothing, retry once, then HALT and report — do not improvise the phase.
 - **Transition precedence:** `<orchestration_and_escalation>` priority hierarchy.
 - **STATE TRACKING:** Update `plans/testgen-{TICKET-KEY}/testgen-state.md` after each phase.
-- **SELF-CHECK BETWEEN PHASES:** Before advancing, verify the state row was updated, the expected output file exists and is non-empty, the phase's `## Metrics` count is populated (a thin `0`/`1` → re-check the artifact), and any HITL approval (Phase 3, 6) is recorded.
+- **SELF-CHECK BETWEEN PHASES (hard precondition, including for auto-continue):** Before advancing — auto-continue included, not just explicit gates — verify the state row was updated, the expected output file exists and is non-empty, the phase's `## Metrics` count is populated (a thin `0`/`1` → re-check the artifact), any HITL approval (Phase 3, 6) is recorded, and any `hitl`-checkpoint outcome (Phase 4, 5) is noted.
 - When a phase delegates work to subagents, dispatch per USE SKILL `orchestration`.
 - MUST use todo tasks for tracking progress.
 - MUST create output directory `plans/testgen-{TICKET-KEY}/` at start.
@@ -95,7 +95,7 @@ Prerequisite: Rosetta Prep Steps.
 
 - APPLY PHASE `testgen-flow-test-case-generation.md`
 - Input: requirements.md. Output: `plans/testgen-{TICKET-KEY}/test-scenarios.md`
-- Present a summary of `test-scenarios.md` (phase-file step 5.9); Phase 6 is invoked on demand (not auto-entered) and carries the HITL gate per the `<orchestration_and_escalation>` Gate-type convention.
+- Present a summary of `test-scenarios.md` (phase-file step 5.9); hand-off goes through the `hitl` skill's test-case-spec checkpoint. Separately, Phase 6 is invoked on demand (not auto-entered) and carries its own HITL gate — see the `<orchestration_and_escalation>` Gate-type convention.
 - Required skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS FORMAT binding).
 - Update `testgen-state.md`; Phase 5 is not complete until its output spot-check passes.
 - `coding` is NOT used for the default manual-scenario output (writes stay under `plans/testgen-{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder, per `<phase_5_6_standards_gate>`.
@@ -119,7 +119,7 @@ Prerequisite: Rosetta Prep Steps.
 
 - **Skip-without-agreement / falsified-skip refusal** (this workflow owns the rule; subordinate to the `hitl` skill): a skip asserted but contradicted by `testgen-state.md` / disk evidence is refused — announce the specific missing state row / absent artifact, then start the earliest incomplete phase the same turn.
 - **Priority (highest never overridden → lowest):** (1) safety / destructive confirmations — incl. `<phase_5_6_standards_gate>` outside-output-dir confirmation; (2) Phase 3 + Phase 6 HITL gates (answer `questions.md` / confirm TMS target + export scope) — never skipped by user instruction; (3) per-phase informational status update (no stop); (4) the verification-failure override below.
-- **Gate-type convention:** only type="HITL" phase headers (3, 6) stop and wait for a reply — the workflow's only fully-specified HITL gates. USE SKILL `hitl` for any other stop/ask decision; do not invent bespoke phase-level "ready to proceed?" logic — except Phase 2's zero-issues branch, a distinct skip-permission decision, not a progress ask. Phases 0, 1, 2 carry no type= attribute: continuing is the default, expected action, so each ends with a one-line status update and continues automatically to the next phase. Phase 4's hand-off to Phase 5 goes through `hitl`'s design/spec-review checkpoint (step 4.4) instead of an automatic continue. Phase 5 also carries no type= attribute and ends with a one-line status update, but does not auto-continue into Phase 6 — Phase 6 is invoked on demand and is itself the HITL gate. Ordinary mid-flow user feedback (a question or correction raised in the same turn) is normal conversation to handle and continue past, not a phase gate.
+- **Gate-type convention:** only type="HITL" phase headers (3, 6) stop and wait for a reply — the workflow's only fully-specified HITL gates. USE SKILL `hitl` for any other stop/ask decision; do not invent bespoke phase-level "ready to proceed?" logic — except Phase 2's zero-issues branch, a distinct skip-permission decision, not a progress ask. Phases 0, 1, 2 carry no type= attribute: continuing is the default, expected action, so each ends with a one-line status update and continues automatically to the next phase. Phase 4's hand-off to Phase 5 goes through `hitl`'s design/spec-review checkpoint (step 4.4) instead of an automatic continue. Phase 5's hand-off similarly goes through `hitl`'s test-case-spec checkpoint (step 5.9); Phase 5 also carries no type= attribute, but regardless of that checkpoint's outcome it does not auto-continue into Phase 6 — Phase 6 is invoked on demand and is itself the HITL gate. Ordinary mid-flow user feedback (a question or correction raised in the same turn) is normal conversation to handle and continue past, not a phase gate.
 - **Testgen binding for the override** (skip-verification gate only): the trigger is the user asserting a phase complete while `testgen-state.md` does not mark it AND the expected output is absent. Action — if `testgen-state.md` is missing, create it from the Phase 0 `<state_file_template>` first; log a row into its `## Verification-Failure Overrides` (row format owned by that template); then start the earliest incomplete phase the same turn without invoking the `hitl` ask path. Uncertainty (partial state, ambiguous assertion) → fall back to the `hitl` ask.
 - Load failure for a required phase file or skill: retry once, stop, record in `testgen-state.md`, ask the user; never substitute silently.
 
@@ -162,7 +162,7 @@ Integrations: Issue Tracker (ticket data extraction), Wiki (documentation retrie
 
 - Each phase has corresponding output file in output directory
 - State file reflects accurate phase completion status
-- HITL gates (Phase 3, 6) have explicit user approval evidence
+- HITL gates (Phase 3, 6) have explicit user approval evidence; `hitl`-checkpoint outcomes (Phase 4, 5) are noted, whether cleared silently or via explicit approval
 - Requirements trace back to Issue Tracker / Wiki sources
 - Test cases trace back to requirements
 
