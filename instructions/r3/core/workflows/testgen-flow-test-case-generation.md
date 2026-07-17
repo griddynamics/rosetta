@@ -277,7 +277,7 @@ TC-003: Viewer cannot create Job Post
 <update_state step="5.9">
 1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 5 complete and metrics (total test cases, merged count, priority breakdown, coverage)
 2. Tell user: "Phase 5 complete. Generated [X] test cases ([Y] merged for efficiency). All requirements covered." Show the document location.
-3. USE SKILL `hitl` for the test-case-spec checkpoint on `test-scenarios.md` — silently, if its criteria don't require a pause, or after explicit approval if they do. Separately, Phase 6 (TMS export) is invoked on demand, never auto-entered, regardless of this checkpoint's outcome — the run may also end here at Phase 5.
+3. **Mandatory stop.** USE SKILL `hitl` for the test-case-spec checkpoint on `test-scenarios.md` (per `hitl` rule 15/32: explicit approval required, no next phase without it). Always pause and wait for explicit approval — never clear silently. Separately, Phase 6 (TMS export) is invoked on demand, never auto-entered regardless of this approval — the run may also end here at Phase 5.
 </update_state>
 
 <validation_checklist>
