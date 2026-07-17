@@ -4,7 +4,7 @@ QA gap-analysis finding-entry forms -- G[N] gaps, C[N] contradictions, A[N] ambi
 
 <gap-finding-templates>
 
-Finding-entry shapes for the gap-analysis artifact (one per finding). Quote source text verbatim; redact credentials/PII in any quoted line before writing (via the always-on `sensitive-data` skill, which the gap_analysis mode applies).
+Finding-entry shapes for the gap-analysis artifact (one per finding). Redact credentials/PII in any quoted line before writing (→ `sensitive-data`); for the full per-finding authoring discipline (verbatim quotes, citation, concrete impact) READ SKILL FILE `references/gap-analysis-catalogs.md`.
 
 **Classify each finding into exactly one type:** **G (Gap)** -- information is absent entirely · **C (Contradiction)** -- two sources state conflicting facts · **A (Ambiguity)** -- one source uses language with ≥2 valid interpretations. When a finding fits more than one type, file under the **most actionable** (C > A > G) and add a cross-reference in its `Impact` / `Needs Clarification` field.
 

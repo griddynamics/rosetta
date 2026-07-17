@@ -14,9 +14,10 @@ Generates shell config files so subsequent sessions can load context and invoke 
 
 <workflow_context>
 - Phase 2 of 9 in init-workspace-flow
-- Input: state.mode, state.plugin_active
+- Input: state.mode, state.plugin_active, IDEs
 - Output: shell configs, bootstrap rule, load-project-context shell
 - Prerequisite: Phase 1 complete, state.mode set
+- This is simple mechanical AND systematic phase (do not overthink)
 </workflow_context>
 
 <phase_steps>

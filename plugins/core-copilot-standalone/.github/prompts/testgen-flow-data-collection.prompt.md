@@ -2,205 +2,71 @@
 name: testgen-flow-data-collection
 description: "Phase 1 Data Collection of testgen-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 
-# Test Generation Phase 1: Data Collection
+<testgen_flow_data_collection>
 
-## Prerequisites
+<description_and_purpose>
+Extract all relevant data from the Issue Tracker ticket and related Wiki / documentation sources to establish baseline for gap analysis and requirements generation.
+</description_and_purpose>
 
-- MUST be starting new test generation flow
-- User provided Jira ticket key or URL
-- Jira MCP configured and accessible
+<workflow_context>
+- Phase 1 of 7 in `testgen-flow`
+- Input: initial user request + `initial-data.md`
+- Output: `raw-data.md` with extracted Issue Tracker and Wiki data
+- Prerequisite: Phase 0 complete
+- Collection skill: `data-collection` (single canonical collector). This phase resolves each in-scope provider and passes its role + provider to the skill; the skill loads the role-named binding.
+- **Provider resolution (merge evidence; providers are NOT hardcoded):**
+  1. Providers were resolved in Phase 0 (`testgen-project-config.md` data sources, prefilled from `gain.json` `sdlc.issue_tracker(_project)` / `sdlc.wiki(_project)`).
+  2. Reconcile with explicit user names/handles (which win for this run) and recognizable provider URLs in `initial-data.md` (valid evidence when unambiguous).
+  3. Evidence conflicting or ambiguous → ask only about the unresolved provider/input; never silently choose between conflicting systems.
+  4. Wiki scope clearly absent → `SKIPPED_NO_CONFIG` (record the gap + skip that source, do not fabricate a provider). The Issue Tracker source is required.
+- Integrations: Issue Tracker + Wiki per the parent Terminology (Jira and Confluence are the canonical examples throughout this phase).
+</workflow_context>
 
-## Objective
+<phase_steps>
+1. Extract Issue Tracker ticket data
+2. Get Wiki documentation
+3. Create raw data document
+4. Update state file
+</phase_steps>
 
-Extract all relevant data from Jira ticket and related Confluence documentation to establish baseline for analysis.
+<extract_ticket step="1.1">
+1. **Read `plans/testgen-{TICKET-KEY}/initial-data.md`** (contributes the original user prompt and a pointer to the project config) and the original user request.
+2. Resolve the **Issue Tracker provider** per `<workflow_context>`. If unresolvable with scope active, re-read config; still absent → record the gap and stop Phase 1.
+3. Extract ticket key from user input (parse from URL if needed). **Ticket-key extraction failure path:** if no key can be parsed (no URL, malformed input, ambiguous candidates): stop Phase 1, ask the user once for the exact ticket key (`PROJ-NNN` form), do not proceed until the user provides it. After 2 unsuccessful re-asks, record `Phase 1 blocked: ticket key unresolvable` in `testgen-state.md` and stop.
+4. USE SKILL `data-collection` with role `Issue Tracker`, the resolved provider, the resolved ticket key, and the ticket section of `<create_raw_data>`'s minimum-output contract; the skill loads its issue binding and adapts the canonical Jira examples to the target system. Retrieve fields: summary, description, status, issuetype, priority, labels, components, assignee, reporter, comments (up to 10). Redaction runs inside `data-collection` via `sensitive-data` before write.
 
-## Requirements
+</extract_ticket>
 
-### Step 1: Parse Initial User Input
+<get_wiki step="1.2">
+1. Resolve the **Wiki provider** per `<workflow_context>`. If no Wiki is in scope, apply `SKIPPED_NO_CONFIG`: record `Wiki Source: Skipped — no Wiki configured` and proceed ticket-only.
+2. USE SKILL `data-collection` with role `Wiki`, the resolved provider, the Wiki input handle(s), and the Wiki section of `<create_raw_data>`'s contract. The skill's documentation binding owns URL parsing, direct-URL-vs-search precedence, child-page traversal, truncation, deduplication, permission fallbacks, AND the authenticated reads/searches in one binding — no second skill to reconcile against; its canonical Confluence examples adapt to the target system. Redaction runs inside `data-collection` via `sensitive-data` before write.
+3. **Search-term seed (passed to `data-collection` when no URLs supplied):** project key (from ticket key), labels, component names, key terms from summary/description.
+4. **Fallback**: when the binding reports zero pages after URL + search + its ask-once user fallback, record `Wiki Source: not available — proceeded ticket-only` in the data collection summary and continue. Do NOT fabricate documentation content.
+</get_wiki>
 
-**Extract from user's initial prompt**:
-1. **Jira ticket**: Key or URL (REQUIRED)
-2. **Confluence URLs**: List of URLs (REQUIRED)
+<create_raw_data step="1.3">
+**Minimum-output contract (asserted by this phase independent of skill internals):** `raw-data.md` MUST capture, at minimum — ticket: summary, description, status, priority, labels, components, comments; Wiki (when not skipped): page title, URL, content. Missing any of these = phase incomplete, regardless of what the `data-collection` role bindings define internally. The template below shows Jira/Confluence field names as canonical examples — adapt labels to the resolved providers.
 
-**Supported formats**:
-```
-"Analyze requirements for PROJ-123"
-"Analyze requirements for PROJ-123 with Confluence: https://confluence.com/display/PROJ/Page"
-"Analyze PROJ-123, Confluence pages: URL1, URL2, URL3"
-"PROJ-123 + https://confluence.com/display/PROJ/Auth"
-```
-
-**Parse Confluence URLs**:
-- Extract from patterns: "with Confluence", "Confluence:", "Confluence docs:", "Confluence pages:"
-- Accept comma-separated or line-separated URLs
-- URLs may be:
-  - Display format: `https://confluence.company.com/display/SPACE/Page+Title`
-  - Direct format: `https://confluence.company.com/pages/viewpage.action?pageId=123456`
-  - Short format: `https://confluence.company.com/x/AbCdEf`
-
-**If Confluence URLs provided**:
-- Extract page IDs from URLs
-- Skip automatic search (Step 3)
-- Go directly to retrieving specified pages
-
-**If no Confluence URLs provided**:
-- Proceed with automatic search (Step 3)
-
-### Step 2: Setup Output Directory
-
-Create output directory structure:
-```
-agents/testgen/{TICKET-KEY}/
-└── testgen-state.md (initialize)
-```
-
-### Step 3: Extract Jira Ticket Data
-
-**Use**: Jira and/or Confluence MCPs respectively, snippets below will contain example pseudo-function calls for better understanding `mcp_Jira_MCP_jira_get_issue`, `mcp_Jira_MCP_confluence_get_page`, `mcp_Jira_MCP_confluence_search`, `mcp_Jira_MCP_confluence_get_page_children`.
-
-**Extract ticket key** from user input:
-- Format: "PROJ-123" or URL "https://jira.company.com/browse/PROJ-123"
-- Parse key from URL if needed
-
-**Retrieve issue** with comprehensive fields:
-```python
-mcp_Jira_MCP_jira_get_issue(
-    issue_key="PROJ-123",
-    fields="summary,description,status,issuetype,assignee,priority,reporter,labels,components,created,updated",
-    expand="renderedFields",
-    comment_limit=10
-)
-```
-
-**Capture**:
-- Summary, description (both raw and rendered)
-- Issue type, status, priority
-- Labels, components
-- Assignee, reporter
-- Comments (up to 10 recent)
-- Created/updated dates
-- Custom fields if present (epic link, story points, etc.)
-
-### Step 4: Get Confluence Documentation
-
-**Decision Point**: Did user provide Confluence URLs in initial prompt?
-
-#### Option A: User Provided Confluence URLs
-
-**If URLs provided in initial prompt**:
-1. Parse page IDs from URLs
-2. For each URL, extract:
-   - Page ID from URL parameters (pageId=123456)
-   - Or use space + title from display URL
-3. Retrieve pages directly using `mcp_Jira_MCP_confluence_get_page()`
-4. Check each page for child pages (REQUIRED)
-5. Skip automatic search
-
-**Tell user**:
-```
-✅ Using provided Confluence pages:
-   - [Page 1 Title] (from URL)
-   - [Page 2 Title] (from URL)
-🔍 Checking for child pages...
-```
-
-#### Option B: No URLs Provided - Auto-Search
-
-**Use**: `mcp_Jira_MCP_confluence_search()`
-
-**Extract search terms** from Jira ticket:
-- Project key (from ticket key)
-- Labels (if present)
-- Component names (if present)
-- Key terms from summary/description
-
-**Build CQL query**:
-```
-type=page AND space={PROJECT_KEY} AND (text ~ "{term1}" OR text ~ "{term2}")
-```
-
-**Search Confluence**:
-```python
-mcp_Jira_MCP_confluence_search(
-    query=cql_query,
-    limit=10
-)
-```
-
-**Rank results** by relevance:
-- Title matches ticket terms
-- Labels match ticket labels
-- Content matches key terms
-
-**Get top 3-5 pages**:
-```python
-mcp_Jira_MCP_confluence_get_page(
-    page_id=page_id,
-    convert_to_markdown=True,
-    include_metadata=True
-)
-```
-
-**IMPORTANT: Check for child pages** (nested documents often missed by search):
-```python
-mcp_Jira_MCP_confluence_get_page_children(
-    parent_id=page_id,
-    include_content=True,
-    convert_to_markdown=True,
-    limit=10
-)
-```
-
-For each parent page found:
-1. Get parent page content
-2. Check if parent has child pages
-3. If child pages found, retrieve content of relevant child pages (up to 5 most relevant)
-4. Include both parent and child pages in analysis
-
-**Example**: 
-- Parent: "Job Post" (overview)
-- Children: "Create a Job Post", "Edit a Job Post", "Delete a Job Post"
-- Capture ALL relevant pages, not just parent
-
-**Capture**:
-- Page title, URL
-- Page content (markdown)
-- Labels, space
-- Created/updated dates
-- Author
-- Parent/child relationships (if applicable)
-
-**Fallback**: If search returns no results or insufficient results, ask user:
-"No Confluence pages found automatically. Please provide Confluence page URLs, IDs, or titles (comma-separated), or type 'skip' to proceed with Jira data only."
-
-**If user provides URLs at this point**:
-- Parse the URLs
-- Extract page IDs or use space + title
-- Retrieve specified pages
-- Check for child pages
-
-### Step 5: Create Raw Data Document
-
-**File**: `agents/testgen/{TICKET-KEY}/raw-data.md`
-
-**Format**:
-```markdown
+1. Create `plans/testgen-{TICKET-KEY}/raw-data.md` with structure:
+   ```markdown
 # Raw Data - [TICKET-KEY]
 
 **Extracted**: [DateTime]
 **Phase**: 1 - Data Collection
-**Confluence Source**: [User-provided URLs / Auto-search / User-provided after search / Skipped]
+**Providers**: [resolved Issue Tracker / Wiki]
+**Wiki Source**: [User-provided URLs / Auto-search / User-provided after search / Skipped]
 
 ---
 
-## Jira Ticket Data
+## Issue Tracker Ticket Data
 
 ### Ticket: [KEY]
-**URL**: [Jira URL]
+**URL**: [Ticket URL]
 **Summary**: [Summary]
 **Type**: [Issue Type]
 **Status**: [Status]
@@ -237,10 +103,10 @@ For each parent page found:
 
 ---
 
-## Confluence Documentation
+## Wiki Documentation
 
 ### Page 1: [Page Title]
-**URL**: [Confluence URL]
+**URL**: [Wiki page URL]
 **Space**: [Space Key]
 **Labels**: [Labels]
 **Updated**: [Date]
@@ -256,7 +122,7 @@ For each parent page found:
 ---
 
 ### Page 2: [Child Page Title]
-**URL**: [Confluence URL]
+**URL**: [Wiki page URL]
 **Space**: [Space Key]
 **Parent Page**: [Parent Title] - [URL]
 **Labels**: [Labels]
@@ -274,115 +140,77 @@ For each parent page found:
 
 ## Data Collection Summary
 
-- **Jira Ticket**: [KEY]
-- **Jira Fields Extracted**: [Count]
-- **Confluence Pages Found**: [Count]
+- **Ticket**: [KEY]
+- **Ticket Fields Extracted**: [Count]
+- **Wiki Pages Found**: [Count]
 - **Total Content Size**: [Approximate word count]
 - **Search Terms Used**: [List]
 - **Notes**: [Any issues during extraction]
-```
+   ```
 
-### Step 6: Update State File
+</create_raw_data>
 
-**File**: `agents/testgen/{TICKET-KEY}/testgen-state.md`
+<update_state step="1.4">
 
-**Create initial state**:
-```markdown
-# Test Generation State - [TICKET-KEY]
+1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` per the canonical state-file schema (owned by `testgen-flow-project-config-loading.md` `<state_file_template>`, via `testgen-flow.md` `<state_and_outputs>` — this phase does NOT restate the full schema; it produces the Phase 1 delta the schema slots in).
 
-**Last Updated**: [DateTime]
-**Current Phase**: 1 - Data Collection (COMPLETED)
-**Jira Ticket**: [TICKET-KEY]
-**Confluence Pages**: [Count pages, list URLs]
-**Confluence Source**: [User-provided URLs / Auto-search]
+   **Phase 1 delta — required fields (slot into the schema's `## Phase Completion Status` and `## Phase Details` blocks):**
 
-## Phase Completion Status
+   ```markdown
+   # In `## Phase Completion Status`:
+   - [x] Phase 1: Data Collection - Completed [ISO datetime]
 
-- [x] Phase 1: Data Collection - Completed [DateTime]
-- [ ] Phase 2: Gap Analysis - Not Started
-- [ ] Phase 3: Question Generation - Not Started
-- [ ] Phase 4: Requirements Generation - Not Started
-- [ ] Phase 5: Test Scenarios - Not Started
+   # In `## Phase Details`, append:
+   ### Phase 1
+   - Completed: [ISO datetime]
+   - Ticket: [TICKET-KEY]
+   - Ticket Fields Captured: [count] (summary, description, status, priority, plus any extracted custom fields)
+   - Wiki Pages: [count] (or `0 — user approved skip` if no docs)
+   - Files Created: plans/testgen-{TICKET-KEY}/raw-data.md
+   - Notes: [partial-load flags from get_wiki step 1.2, or ticket-key-extraction notes from step 1.1, or `None`]
+   ```
 
-## Metrics
+   Update `**Current Phase**: 1` → `**Current Phase**: 2` and refresh `**Last Updated**` at the top of the file.
 
-- Jira Fields Extracted: [Count]
-- Confluence Pages Analyzed: [Count]
-- Total Content Size: [Word count]
-- Contradictions Found: 0
-- Gaps Identified: 0
-- Questions Generated: 0
-- User Stories Created: 0
-- Test Scenarios: 0
+2. Tell user: "Phase 1 complete. Found [X] ticket fields and [Y] Wiki pages."
 
-## Phase Details
+</update_state>
 
-### Phase 1: Data Collection
-- **Completed**: [DateTime]
-- **Jira Ticket**: [KEY]
-- **Files Created**: raw-data.md, testgen-state.md
-- **Confluence Pages**: [Count]
-- **Search Terms**: [List]
-- **Notes**: [Any relevant notes or issues]
-```
+<validation_checklist>
+- `raw-data.md` created with the ticket section populated
+- Wiki section has at least 1 page OR user confirmed skip
+- All key ticket fields captured (summary, description, status, priority)
+- State file updated with Phase 1 complete
+</validation_checklist>
 
-## Validation
+<pitfalls>
+- Wiki search may miss child pages — always perform child-page traversal per `data-collection`'s documentation binding for each found page
+- Large Wiki pages should be truncated at ~5000 words with truncation noted
+- Wiki URL formats vary (display, direct, short) — be flexible in parsing
+- User-provided URLs from a different Wiki domain may not be accessible via the configured integration
+- Treating a canonical vendor example (Jira/Confluence) as the configured provider
+</pitfalls>
+<common_issues>
 
-Before completing Phase 1, verify:
-- ✅ `agents/testgen/{TICKET-KEY}/` directory exists
-- ✅ `raw-data.md` created with Jira section populated
-- ✅ Confluence section has at least 1 page OR user confirmed skip
-- ✅ `testgen-state.md` created with Phase 1 marked complete
-- ✅ All key Jira fields captured (summary, description, status, priority)
-
-## Tools Used
-
-- `mcp_Jira_MCP_jira_get_issue()` - Jira ticket extraction
-- `mcp_Jira_MCP_confluence_search()` - Confluence page search
-- `mcp_Jira_MCP_confluence_get_page()` - Confluence page content retrieval
-- `mcp_Jira_MCP_confluence_get_page_children()` - Confluence child page discovery
-- `write()` - File creation
-
-## Common Issues
-
-**Issue**: Jira ticket not found  
+**Issue**: Ticket not found
 **Solution**: Verify ticket key with user, check permissions
 
-**Issue**: Confluence search returns 0 results  
-**Solution**: Ask user for page URLs, or proceed with Jira-only analysis
+**Issue**: Wiki search returns 0 results
+**Solution**: Ask user for page URLs, or proceed with ticket-only analysis
 
-**Issue**: Confluence page too large  
+**Issue**: Wiki page too large
 **Solution**: Include first 5000 words, note truncation in raw-data.md
 
-**Issue**: Custom fields not recognized  
-**Solution**: Use `mcp_Jira_MCP_jira_search_fields()` to discover field names
+**Issue**: Custom fields not recognized
+**Solution**: Invoke the search-fields operation per `data-collection`'s issue binding (or equivalent integration) to enumerate available field names
 
-**Issue**: Confluence search finds parent but misses child pages  
-**Solution**: Always check for child pages using `confluence_get_page_children()` for each found page
+**Issue**: Wiki search finds parent but misses child pages
+**Solution**: Always perform the child-page traversal operation per `data-collection`'s documentation binding (or equivalent integration) for each found page
 
-**Issue**: User provided invalid Confluence URL  
-**Solution**: Try to parse page ID, if fails ask user for correct URL or page ID
+**Issue**: User provided an invalid Wiki URL
+**Solution**: Try to parse the page handle; if that fails ask user for a correct URL or page ID
 
-**Issue**: Confluence URL is from different domain  
-**Solution**: Warn user that Jira MCP might not have access, try anyway, fallback to asking for accessible pages
-
-## Next Phase
-
-After Phase 1 completion:
-1. Tell user: "Phase 1 complete. Found [X] Jira fields and [Y] Confluence pages."
-2. Ask: "Ready to proceed to Phase 2 (Gap Analysis)?"
-3. Wait for confirmation
-4. Load Phase 2: APPLY PHASE testgen-flow-gap-and-contradiction-analysis.md
-
-## Notes
-
-- Confluence search may need tuning based on organization's Confluence structure
-- Some Jira instances have custom fields - capture all available
-- Confluence pages may be in different spaces - search broadly initially
-- **User can provide Confluence URLs in initial prompt** - this skips auto-search
-- If user provides specific page URLs/IDs, use those directly instead of search
-- **CRITICAL**: Always check for child pages - nested documentation often contains the most relevant details
-- Example: "Job Post" parent may have children "Create a Job Post", "Edit a Job Post", etc.
-- Retrieve up to 10 child pages per parent, prioritize by relevance to ticket
-- Confluence URL formats vary - be flexible in parsing (display URLs, direct URLs, short URLs)
-
+**Issue**: Wiki URL is from a different domain
+**Solution**: The URL is still valid provider evidence — try the matching available integration once; on failure report the host mismatch and ask for an accessible equivalent or approval to continue without that source
+</common_issues>
+</testgen_flow_data_collection>

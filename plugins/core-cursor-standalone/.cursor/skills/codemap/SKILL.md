@@ -25,6 +25,7 @@ IF LSP tools are already in current context:
 - The Language Server Protocol (LSP)
 - Use already available tools / capabilities in context
 - Combine with semantic search / code index tools already available in context 
+- Prefer LSP over Grep/Read for code navigation
 </lsp>
 
 <graphify>
@@ -32,10 +33,6 @@ IF LSP tools are already in current context:
 IF graphify is already **REQUESTED** in current context:
 - querying the codebase, tracing dependency paths between symbols, or explaining concepts (`graphify query/path/explain`): MUST USE SKILL `graphify`
 - building or incrementally updating the knowledge graph (`/graphify <path>`, `--update`): MUST USE SKILL `graphify`
-- setting up graphify:
-  1. READ `https://raw.githubusercontent.com/safishamsi/graphify/HEAD/README.md`
-  2. install as per README — NOTE: Cursor sees and uses Claude Code skills/hooks/plugins; install for ONE platform only, not both
-  3. MUST USE SKILL `graphify` or follow the graphify rule to invoke `/graphify .` as user message from workspace root
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost)
 
 </graphify>
@@ -45,7 +42,6 @@ IF graphify is already **REQUESTED** in current context:
 IF gitnexus is already **REQUESTED** in current context:
 - code graph queries, exploring code, debugging errors, analyzing impact, or refactoring: MUST APPLY SKILL FILE `assets/gitnexus-use.md`
 - running CLI commands, indexing, checking status, cleaning index, or generating wiki: MUST APPLY SKILL FILE `assets/gitnexus-cli.md`
-- installing GitNexus or registering the MCP server for the first time: MUST APPLY SKILL FILE `assets/gitnexus-setup.md`
 - Worked examples: READ SKILL FILE `assets/gitnexus-examples.md`
 - After modifying code, run `npx -y gitnexus@latest analyze --force` in the workspace root
 

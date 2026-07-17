@@ -9,6 +9,10 @@ baseSchema: docs/schemas/skill.md
 
 <rosetta>
 
+<purpose>
+Routing user request to proper workflow and high process adherence.
+</purpose>
+
 <prerequisites>
 
 - USE SKILL `orchestration` 
@@ -16,17 +20,11 @@ baseSchema: docs/schemas/skill.md
 
 </prerequisites>
 
-<FORBIDDEN severity="CRITICAL" required-sequence-instead="USE SKILL orchestration → USE SKILL hitl → USE FLOW `<workflow TAG>`">
-
-No code, files, scripts, or commands before workflow handoff.
-
-</FORBIDDEN>
-
 <process>
 
-1. USE FLOW `<most matching workflow>.md` (note: "*-flow" skills are additional workflows) — fully execute following its entire definition for all request sizes
+1. USE FLOW `<most matching workflow>.md` (note: "*-flow" skills are additional workflows) — YOU MUST fully execute loaded workflow following its entire definition for all request sizes, workflow WAS created to fix your failure modes (deviations, and weak process adherence, and shallow analysis), workflow is PRIMARY deterministic process to resolve the original user request
 2. On resume/continue: load workflow state file; extract completed steps, current phase, and pending work; resume from there
-3. Workflow phases → todo tasks; open one per phase, work sequentially, close on completion
+3. Once flow is loaded you MUST use workflow phases to immediately create/update todo tasks; open one per phase, work sequentially, close on completion immediately
 4. In planning mode: `planning` + `tech-specs` outputs → store per system prompt, never `plans/` (read-only)
 5. Hand off to the workflow — tell the user once `Context loaded using Rosetta: [workflow selected + brief summary]`, then let it drive questioning, planning, execution, review, and validation; no phase skipping
 

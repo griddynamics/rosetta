@@ -4,7 +4,7 @@ QA api-analysis.md output skeletons: per-endpoint contract entry + Analysis Summ
 
 <api-analysis-template>
 
-Skeletons for `plans/api-qa-{IDENTIFIER}/api-analysis.md`. Phase defines sections. Asset = endpoint contracts + Analysis Summary metrics. Preserve verbatim: paths, methods, status codes, field/schema names, validation rules, citations, auth names. Redact sensitive **values** only, via `sensitive-data`.
+Skeletons for `plans/api-aqa-{IDENTIFIER}/api-analysis.md`. Phase defines sections. Asset = endpoint contracts + Analysis Summary metrics. Preserve verbatim: paths, methods, status codes, field/schema names, validation rules, citations, auth names. Redact sensitive **values** only, via `sensitive-data`.
 
 ## Per-endpoint contract entry
 

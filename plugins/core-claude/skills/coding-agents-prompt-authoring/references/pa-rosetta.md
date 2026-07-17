@@ -19,19 +19,9 @@ Rosetta workflows and commands MUST declare `Rosetta Prep Steps` as a prerequisi
 
 Spawned subagents do NOT run this startup chain: they start with only `bootstrap-alwayson.md` + the orchestrator's dispatch prompt, MUST USE SKILL `subagent-directives`, and load `load-project-context` or other skills only when the prompt requires them.
 
-# Instructions Folder Structure and Canonical Lists
+# Instructions Folder Structure
 
 Instructions folder structure is defined in `docs/definitions/folder-structure.md`.
-
-Must check canonical lists of workflows, templates, subagents, skills, rules Rosetta has or to be implemented (you must use them as if those are already exist):
-
-- `docs/definitions/workflows.md`
-- `docs/definitions/templates.md`
-- `docs/definitions/agents.md`
-- `docs/definitions/skills.md`
-- `docs/definitions/rules.md`
-
-This list above defines what should be what, you must read it.
 
 Rosetta runs with AI coding agents on top of target repository. All rosetta prompts are coding-agent-agnostic.
 

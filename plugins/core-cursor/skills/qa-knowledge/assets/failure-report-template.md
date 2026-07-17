@@ -1,12 +1,12 @@
 # QA failure-report template
 
-Shared failure-triage report skeleton. API-QA emits `execution-report.md`; UI-QA emits `plans/ui-qa-<test-name>/failure-analysis.md`. Same record spine + two variant deltas.
+Shared failure-triage report skeleton. API-AQA emits `execution-report.md`; UI-AQA emits `plans/ui-aqa-<test-name>/failure-analysis.md`. Same record spine + two variant deltas.
 
 <failure-report-template>
 
 **Inputs required:** the test run output (per-test pass/fail/skip + duration; ≥1 failure with error message + stack trace) and the flow's failure taxonomy. UI selector failures also need the captured page-source/diff.
 **Unavailable metric:** emit `N/A -- <reason>` (e.g. `duration: N/A -- interrupted`), never blank.
-**Evidence label `Unknown` (UI):** assign ONLY after page-source capture was attempted and the cause is still unresolvable; APPLY SKILL FILE `assets/page-source-capture-instructions.md` and escalate first if page sources were never captured.
+**Evidence label `Unknown` (UI):** use when required evidence is unavailable or remains inconclusive after the feasible capture path. If page-source capture was never attempted and remains feasible, APPLY SKILL FILE `assets/page-source-capture-instructions.md` and escalate first; if capture is impossible, state why and name the evidence needed.
 
 Non-empty report, sections:
 
@@ -15,8 +15,8 @@ Non-empty report, sections:
 - **Patterns** -- cross-failure patterns, or `No cross-failure patterns identified`.
 
 **Variant deltas:**
-- **API-QA (`execution-report.md`):** ID prefix `ERR-N` (from `ERR-1`); final field **Priority** (Critical/High/Medium/Low); also emit **Failures by Category** (count + tests affected, per taxonomy category) and **Recommendations** (actionable items for the correction phase).
-- **UI-QA (`plans/ui-qa-<test-name>/failure-analysis.md`):** ID prefix `F-N` (from `F-1`); the Category field is labelled **Error type**; final field **Recommendation** (one-line remediation, applied downstream); Root cause cites Page Source Analysis for selector errors.
+- **API-AQA (`execution-report.md`):** ID prefix `ERR-N` (from `ERR-1`); final field **Priority** (Critical/High/Medium/Low); also emit **Failures by Category** (count + tests affected, per taxonomy category) and **Recommendations** (actionable items for the correction phase).
+- **UI-AQA (`plans/ui-aqa-<test-name>/failure-analysis.md`):** ID prefix `F-N` (from `F-1`); the Category field is labelled **Error type**; final field **Recommendation** (one-line remediation, applied downstream); Root cause cites Page Source Analysis for selector errors.
 
 **Examples** (Root cause vs Evidence rationale -- commonly conflated):
 > API · **ID:** ERR-1 · **Failure name:** test_checkout_payment_timeout · **Category:** Timing / Race Condition · **Root cause:** API latency spike on `/payment` · **Evidence label:** Confirmed · **Evidence rationale:** CI log line 847 shows a 30s timeout · **Priority:** High.

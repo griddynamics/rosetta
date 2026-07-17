@@ -20,7 +20,6 @@ SKILL.md is one flow with a tool-precedence gate up front (LSP > graphify > gitn
 Below that, `<core_concepts>` defines the CODEMAP.md contract, `<how_to_generate>` names the OS-specific script to read and run, and `<how_to_use_output>` tells the caller to treat CODEMAP.md as the discovery baseline and hands large workspaces to `large-workspace-handling`.
 
 - `assets/codemap.sh.txt` / `codemap.ps1.txt` — the actual generators: enumerate tracked files via `git ls-files --cached --others --exclude-standard`, filter by a fixed extension/exact-name allowlist, infer a per-directory description by name/content heuristics, and emit `CODEMAP.md` headers with recursive file counts.
-- `assets/gitnexus-setup.md` — first-time install/MCP registration, plus the commercial-use licensing warning.
 - `assets/gitnexus-cli.md` — CLI command/flag reference (analyze/status/clean/wiki/list).
 - `assets/gitnexus-use.md` — MCP tool/resource reference (query/context/impact/detect_changes/rename/cypher, `gitnexus://repo/...` resources).
 - `assets/gitnexus-examples.md` — four worked debugging/exploration/impact/rename scenarios chaining those tools.

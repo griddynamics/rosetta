@@ -41,6 +41,7 @@ Act as a senior pattern architect — recovers reusable structural conventions f
 - USE SKILL `reverse-engineering` — apply "Would we rebuild this?" test: pattern = recurring structure surviving a from-scratch rewrite; one-off = historical accident
 - Pattern qualifies only if found in 2+ places
 - INDEX.md and CHANGES.md must be possible to grep by md headers (top 3 levels). Must not use tables. Instructions ask to grep files to populate list of those items in context.
+- Limit OVERALL to 10-15 most important patterns, limit reading samples up to 2 files per pattern.
 
 </core_concepts>
 
@@ -50,9 +51,8 @@ Orchestration: Read CODEMAP, identify distinct modules; spawn built-in subagent 
 
 1. Read CODEMAP.md — scope extraction per module
    - if not enough use shell to list recursively all files with minimal output parameters
-   - limit top 10-15 most common patterns
-   - limit reading samples to 2-3 files per pattern
-   - add 2-3 more patterns as you see fit
+   - list interesting targets folders/files with extensions, folder filters (excluding caches, builds, noise, etc)
+   - this listing itself gives enough information on what is the most common
 2. Dual-mode:
    - CHECK-EXISTS: read docs/PATTERNS/ and INDEX.md
    - IDENTIFY-GAPS: compare existing patterns against codebase
@@ -70,7 +70,6 @@ Orchestration: Read CODEMAP, identify distinct modules; spawn built-in subagent 
 </extraction_process>
 
 <extraction_validation_checklist>
-- Every pattern represents a genuinely recurring structure (2+ occurrences)
 - INDEX.md lists all pattern files
 - CHANGES.md tracks all actions taken
 - No human-curated content overwritten in upgrade mode
@@ -92,7 +91,7 @@ Orchestration: Read CODEMAP, identify distinct modules; spawn built-in subagent 
 </validation_checklist>
 
 <pitfalls>
-- Do not extract implementation details as patterns — only genuinely recurring structures
+- Do not extract implementation details as patterns — only recurring structures
 - Scope subagents by CODEMAP module boundaries, not arbitrary directory splits
 </pitfalls>
 

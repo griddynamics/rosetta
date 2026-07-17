@@ -1,6 +1,6 @@
 {
   "name": "rosetta",
-  "version": "2.0.58",
+  "version": "3.0.0",
   "description": "Rosetta for Codex - Software Engineering Accelerator instruction set, workflows, and guardrails.",
   "author": {
     "name": "Grid Dynamics",

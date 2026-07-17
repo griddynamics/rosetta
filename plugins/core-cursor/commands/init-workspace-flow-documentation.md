@@ -45,6 +45,7 @@ Act as a senior technical writer — recovers intent from code, not transcribes 
 - Existing project documentation is likely stale and incomplete: source code is the true source of truth
 - Documentation phase is based on discovery phase to perform **deep** analysis, but avoid reading entire codebase.
 - Select which files to read, group organize by modules/batches/groups and must assign to subagents to execute.
+- All docs MUST BE COMPRESSED, TERSE, CONCISE as those are ALWAYS loaded in LLM context.
 
 </core_concepts>
 
@@ -66,6 +67,7 @@ CONTEXT.md:
 - Self-defines purpose, content type, style
 - Bulleted business context, purpose, domain — stakeholder perspective
 - No technical details
+- Limit to 100 lines, if there is MORE => keep CONTEXT.md with core CONTEXT plus index to per-feature <FEATURE>-CONTEXT.md files with a set of terms what it contains.
 
 ARCHITECTURE.md:
 - What this doc is for and what it should contain, self-defining style
@@ -73,6 +75,7 @@ ARCHITECTURE.md:
 - Architecture, modules, workspace structure, testing, styling, building blocks
 - No business context — reference CONTEXT.md
 - Reference CODEMAP.md for file structure
+- Limit to 150 lines, if there is MORE => keep ARCHITECTURE.md with core ARCHITECTURE plus index to per-area <AREA>-ARCHITECTURE.md files with a set of terms what it contains.
 
 IMPLEMENTATION.md:
 - What this doc is for and what it should contain, self-defining style

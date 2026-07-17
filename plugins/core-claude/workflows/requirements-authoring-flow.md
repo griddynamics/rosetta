@@ -30,7 +30,7 @@ IMPORTANT! If the task is to reverse engineer requirements, spawn MULTIPLE subag
 
 </prerequisites>
 
-<discovery phase="1" priority="must" subagent="discoverer" role="Context analyst collecting project and scope signals" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro">
+<discovery phase="1" priority="must" subagent="discoverer" role="Context analyst collecting project and scope signals" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gpt-5.6-terra">
 
 Artifact: Discovery Summary (context, existing requirements, constraints, affected files).
 Done when: scope boundaries and relevant requirement files are identified.
@@ -45,7 +45,7 @@ Done when: scope boundaries and relevant requirement files are identified.
 
 </discovery>
 
-<research phase="2" priority="should" subagent="requirements-engineer" role="Researcher collecting standards and prior decisions" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
+<research phase="2" priority="should" subagent="requirements-engineer" role="Researcher collecting standards and prior decisions" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
 
 Artifact: Research Notes (sources, constraints, prior art, reusable requirement patterns).
 Done when: relevant references are gathered OR no additional sources are needed.
@@ -58,7 +58,7 @@ Skip when: local context is complete and no external standards are needed.
 
 </research>
 
-<intent_capture phase="3" priority="must" subagent="requirements-engineer" role="Requirements analyst capturing intent and assumptions" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
+<intent_capture phase="3" priority="must" subagent="requirements-engineer" role="Requirements analyst capturing intent and assumptions" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
 
 Artifact: Intent Capture.
 Done when: intent is restated, scope and goals confirmed, assumptions listed, and questions resolved.
@@ -71,7 +71,7 @@ Done when: intent is restated, scope and goals confirmed, assumptions listed, an
 
 </intent_capture>
 
-<outline phase="4" priority="must" subagent="requirements-engineer" role="Information architect proposing MECE requirement layout" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
+<outline phase="4" priority="must" subagent="requirements-engineer" role="Information architect proposing MECE requirement layout" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
 
 Artifact: Requirement Outline (areas, file mapping, ID strategy, traceability plan).
 Done when: user approves structure and requirement batching strategy.
@@ -83,7 +83,7 @@ Done when: user approves structure and requirement batching strategy.
 
 </outline>
 
-<draft phase="5" priority="must" subagent="requirements-engineer" role="Author drafting atomic requirement units" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
+<draft phase="5" priority="must" subagent="requirements-engineer" role="Author drafting atomic requirement units" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
 
 Artifact: Draft Requirement Units (per the `requirements-authoring` skill's requirement-unit asset).
 Done when: every in-scope requirement has schema-complete draft and explicit user decision.
@@ -98,7 +98,7 @@ Done when: every in-scope requirement has schema-complete draft and explicit use
 
 </draft>
 
-<validate phase="6" priority="must" subagent="reviewer" role="Quality reviewer checking correctness, conflicts, and gaps" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5" must-be-subagent>
+<validate phase="6" priority="must" subagent="reviewer" role="Quality reviewer checking correctness, conflicts, and gaps" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5, grok-4.5, gpt-5.6-terra" must-be-subagent>
 
 Artifact: Validation Report (rubric results, conflict checks, gap checks, risks).
 Done when: checklist passes and unresolved issues are either fixed or explicitly deferred.
@@ -125,7 +125,7 @@ Done when: checklist passes and unresolved issues are either fixed or explicitly
 
 </user_review>
 
-<finalization phase="8" priority="must" subagent="requirements-engineer" role="Business analyst finalizing requirement artifacts" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high">
+<finalization phase="8" priority="must" subagent="requirements-engineer" role="Business analyst finalizing requirement artifacts" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
 
 Artifact: Final Requirements Set, Validation Pack, Traceability Matrix, Change Log.
 Done when: artifacts are stored in target location and state file is complete.

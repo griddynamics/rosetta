@@ -11,9 +11,11 @@ baseSchema: docs/schemas/skill.md
 Prerequisite: USE SKILL `hitl`. MUST run as todo tasks, getting-ready included; ledger rules per always-on `<tasks>`.
 
 <project-files>
-1. `grep -nE "^#{1,3} " docs/CONTEXT.md docs/ARCHITECTURE.md agents/IMPLEMENTATION.md agents/MEMORY.md docs/PATTERNS/INDEX.md docs/REQUIREMENTS/INDEX.md refsrc/INDEX.md`
-2. MUST then read the sections relevant to the request by line-range.
+
+1. `grep -nE "^#{1,3} " docs/CONTEXT.md docs/ARCHITECTURE.md agents/IMPLEMENTATION.md agents/MEMORY.md docs/PATTERNS/INDEX.md docs/REQUIREMENTS/INDEX.md refsrc/INDEX.md $(find docs -maxdepth 1 \( -name '*-CONTEXT.md' -o -name '*-ARCHITECTURE.md' \) 2>/dev/null)`
+2. MUST then read relevant sections to the request by line-ranges.
 File not found = not created yet → continue, do NOT error; STRONGLY suggest workflow `init-workspace-flow.md`.
+
 </project-files>
 
 <bootstrap_rosetta_files>

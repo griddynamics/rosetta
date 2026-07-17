@@ -1,5 +1,5 @@
 # qa-knowledge
-QA convention router: loads the right artifact skeletons, failure taxonomies, and correction discipline for API-QA and UI-QA work.
+QA convention router: loads the right artifact skeletons, failure taxonomies, and correction discipline for API-AQA and UI-AQA work.
 
 ## Why it exists
 Without this skill, an agent doing QA work will invent artifact shapes from memory, restate taxonomies inline, drop assertions or ATCs silently, or emit artifacts without rerunning the sensitive-data gate. `qa-knowledge` fixes that by centralizing QA-domain conventions and forcing point-of-use loading of the exact asset or reference the current step needs.
@@ -13,11 +13,11 @@ Single flat `SKILL.md` with `assets/` and `references/` subfolders. Root `<qa_kn
 ## Mental hooks & unexpected rules
 - "Load only what the current task needs" — never bulk-load the whole QA library.
 - "artifact skeletons are assets" — if you are about to write a QA artifact from memory, you are already off contract.
-- "every ATC (QA) or typed assertion (UI-QA) is implemented or recorded, never dropped" — omission must be explicit gap accounting, not disappearance.
+- "every ATC (QA) or typed assertion (UI-AQA) is implemented or recorded, never dropped" — omission must be explicit gap accounting, not disappearance.
 - The `sensitive-data` pre-emit scan is part of QA artifact correctness, not an optional cleanup step.
 
 ## Invariants — do not change
-- `name: qa-knowledge` must equal the folder name and the registration in [docs/definitions/skills.md](/Users/isolomatov/Sources/GAIN/rosetta/docs/definitions/skills.md:55).
+- `name: qa-knowledge` must equal the folder name and the registration in [docs/definitions/skills.md](../../../../../docs/definitions/skills.md).
 - `disable-model-invocation: true` / `user-invocable: false` must stay: this skill is a routed helper, not a user-facing command.
 - The asset/reference split is load-bearing: templates stay in `assets/`, conventions in `references/`.
 - The router table is the canonical entry point; if an artifact or taxonomy is added, wire it into `<resources>`.

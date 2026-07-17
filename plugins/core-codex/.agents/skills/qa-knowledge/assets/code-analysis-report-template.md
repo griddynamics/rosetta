@@ -1,19 +1,20 @@
-# UI-QA code-analysis report template
+# UI-AQA code-analysis report template
 
-UI-QA code-analysis report skeleton (9 sections) plus the test-location decision rule.
+UI-AQA code-analysis report skeleton (9 sections) plus the test-location decision rule.
 
 <code-analysis-report-template>
 
-`plans/ui-qa-<test-name>/code-analysis.md` -- non-empty, this **9-section structure** (every section present; empty optional → `not available -- see Coverage section`). Structure (framework names, file paths, selector attribute names, schema/field names) stays verbatim; redact sensitive **values** only, via `sensitive-data`.
+`plans/ui-aqa-<test-name>/code-analysis.md` -- non-empty, this **9-section structure** (every section present; empty optional → `not available -- see Coverage section`). Structure (framework names, file paths, selector attribute names, schema/field names) stays verbatim; redact sensitive **values** only, via `sensitive-data`.
 
 ```markdown
 # Code Analysis -- <test-name>
 
 **Generated:** <YYYY-MM-DD>
-**Test plan:** plans/ui-qa-<test-name>/test-plan.md
+**Test plan:** plans/ui-aqa-<test-name>/test-plan.md
 **Sources:**
+- gain.json: [read | missing]
 - project_description.md: [read | missing]
-- CONTEXT.md / ARCHITECTURE.md / IMPLEMENTATION.md: [list read | missing]
+- docs/CONTEXT.md / docs/ARCHITECTURE.md / agents/IMPLEMENTATION.md: [list read, including gain.json overrides | missing]
 - agents/user-instructions/: [N files read | not available]
 - Frontend source: [path | not available]
 
@@ -49,7 +50,7 @@ UI-QA code-analysis report skeleton (9 sections) plus the test-location decision
 - Each optional input listed `available` or `not available -- <downstream impact>`. Silent omission forbidden -- downstream phases misread missing-data as no-issues.
 ```
 
-**Test-location decision rule** (the phase owns this; the skill applies it):
+**How to apply Test-location decision rule**:
 - **Add to existing file** if (a) the feature is a direct extension of an existing test class/describe, AND (b) the file stays under ~400 lines after addition.
 - **Create new file** if (a) it's a new area, OR (b) the file would exceed ~400 lines, OR (c) the existing setup/teardown shape doesn't fit.
 

@@ -8,7 +8,7 @@ One block per change, presented BEFORE any write; empty fields use `None`. Phase
 
 ```markdown
 ### Proposed Change <N>: <one-line title>
-- **Source root cause:** <root-cause entry id -- e.g. execution-report ERR-3 (QA) / failure-analysis F3 (UI-QA)>
+- **Source root cause:** <root-cause entry id -- e.g. execution-report ERR-3 (QA) / failure-analysis F3 (UI-AQA)>
 - **File:** <path>
 - **In-scope:** yes | no   (if `no`, STOP -- escalate; outside the in-scope file set)
 - **Change type:** <one value from the flow's change-type enum below>
@@ -30,7 +30,7 @@ One block per change, presented BEFORE any write; empty fields use `None`. Phase
 
 **Change-type enum (the phase supplies one):**
 - QA / backend API: `assertion-fix | auth-fix | data-setup | request-shape | wait-strategy | other`
-- UI-QA / UI-E2E: `selector-update | wait-strategy | assertion-fix | data-setup | other`
+- UI-AQA / UI-E2E: `selector-update | wait-strategy | assertion-fix | data-setup | other`
 
 **Iteration cap (both flows):** cap in-phase apply retries at **3 cycles per failing change**. After 3 failed cycles, stop, record `Phase <N> blocked: in-phase apply retry cap reached` in the state file, escalate. If tests still fail after corrections, return to the execution/report phase -- do not auto-loop.
 
@@ -58,7 +58,7 @@ One block per change, presented BEFORE any write; empty fields use `None`. Phase
 - **Approval status:** approved (token: `approved`)
 ```
 
-**Worked example -- UI-QA / UI (approved state):**
+**Worked example -- UI-AQA / UI (approved state):**
 
 ```markdown
 ### Proposed Change 1: Update logout-button selector
