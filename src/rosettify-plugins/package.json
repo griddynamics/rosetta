@@ -53,5 +53,8 @@
     "tsx": "^4.19.4",
     "typescript": "^6.0.0",
     "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "js-yaml": "3.15.0"
   }
 }
