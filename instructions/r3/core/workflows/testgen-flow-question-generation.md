@@ -246,9 +246,8 @@ For each question below, replace `[Leave blank for user]` with your answer (or `
 
 <update_state step="3.5">
 1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 3 complete. **State delta (per `testgen-flow.md` SELF-CHECK):** set the Phase 3 `## Phase Completion Status` row to complete; populate `## Phase Details` (questions generated, P0/P1 answered, unresolved/UNKNOWN counts, files created: `questions.md`, `answers.md`); update `## Metrics`.
-2. Tell user: "Phase 3 complete. [X] questions answered, [Y] unresolved."
+2. Tell user: "Phase 3 complete. [X] questions answered, [Y] unresolved. Proceeding to Phase 4 (Requirements Generation)."
 3. If unresolved: "We'll document assumptions for unresolved items."
-4. Continue automatically to Phase 4.
 </update_state>
 
 <validation_checklist>

@@ -173,7 +173,6 @@ Extract all relevant data from the Issue Tracker ticket and related Wiki / docum
    Update `**Current Phase**: 1` → `**Current Phase**: 2` and refresh `**Last Updated**` at the top of the file.
 
 2. Tell user: "Phase 1 complete. Found [X] ticket fields and [Y] Wiki pages. Proceeding to Phase 2 (Gap Analysis)."
-3. Continue automatically to Phase 2.
 </update_state>
 
 <validation_checklist>

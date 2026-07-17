@@ -103,7 +103,6 @@ you can provide them here as well.
 <update_state step="0.6">
 1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 0 complete
 2. Tell user: "Phase 0 complete. Project setup ready. Proceeding to Phase 1 (Data Collection)."
-3. Continue automatically to Phase 1.
 </update_state>
 
 <state_file_template>
