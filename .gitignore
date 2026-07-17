@@ -1,3 +1,7 @@
+# E2E test runtime artifacts (generated plugin, built src.zip)
+tests/e2e-tests/.runtime/
+tests/e2e-tests/*/src.zip
+
 # Python
 __pycache__/
 *.py[cod]

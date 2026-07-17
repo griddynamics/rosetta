@@ -3,6 +3,7 @@
 
 import path from 'path';
 import { fileURLToPath } from 'url';
+import type { Writable } from 'stream';
 import type { PluginSpec, SpecEntry, FileProcessor, PluginProcessor, ReleaseDescriptor } from '../types.js';
 import {
   CLAUDE_VOCABULARY,
@@ -57,6 +58,8 @@ export interface SpecBuildContext {
   release: ReleaseDescriptor;
   /** FR-CLI-0050: when true, all pipeline processors skip disk writes */
   dryRun?: boolean;
+  /** FR-ARCH-0045/FR-CLI-0050: dry-run output sink; defaults to process.stdout */
+  out?: Writable;
 }
 
 // ─── Standard SpecEntries builders ──────────────────────────────────────────
@@ -127,7 +130,7 @@ function makeTemplatesEntry(targetFolder = 'templates', normalizeModels?: FilePr
 // ─── Factory function for all six PluginSpecs ──────────────────────────────
 
 export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
-  const { pluginsSource, hooksSource, outputDir, release, dryRun = false } = ctx;
+  const { pluginsSource, hooksSource, outputDir, release, dryRun = false, out = process.stdout } = ctx;
   const pluginsRoot = pluginsSource; // alias for readability in spec constructors
 
   // ── core-claude ───────────────────────────────────────────────────────────
@@ -155,7 +158,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
       makeConfigureEntry(),
       makeTemplatesEntry('templates', fileNormalizeClaudeModels),
     ],
-    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleClaudeBootstrap),
+    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleClaudeBootstrap, out),
   };
 
   // ── core-cursor ────────────────────────────────────────────────────────────
@@ -193,7 +196,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
       makeConfigureEntry(),
       makeTemplatesEntry('templates', fileNormalizeCursorModels),
     ],
-    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCursorBootstrap),
+    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCursorBootstrap, out),
   };
 
   // ── core-copilot ───────────────────────────────────────────────────────────
@@ -237,7 +240,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
     mirrors: [
       { from: '.github/plugin/hooks.json', to: 'hooks.json' },
     ],
-    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCopilotBootstrap),
+    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCopilotBootstrap, out),
   };
 
   // ── core-codex ─────────────────────────────────────────────────────────────
@@ -306,7 +309,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
     mirrors: [
       { from: '.codex-plugin/hooks.json', to: '.codex/hooks.json' },
     ],
-    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCodexBootstrap),
+    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCodexBootstrap, out),
   };
 
   // ── core-cursor-standalone ────────────────────────────────────────────────
@@ -389,7 +392,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         verbatim: true, // TODO-2: configure files must not have references rewritten
       },
     ],
-    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCursorBootstrap),
+    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCursorBootstrap, out),
   };
 
   // ── core-copilot-standalone ───────────────────────────────────────────────
@@ -523,7 +526,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         verbatim: true, // TODO-2: configure files must not have references rewritten
       },
     ],
-    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCopilotBootstrap),
+    pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCopilotBootstrap, out),
   };
 
   return [coreClaude, coreCursor, coreCopilot, coreCodex, coreCursorStandalone, coreCopilotStandalone];
@@ -542,6 +545,7 @@ function buildPipeline(
   release: ReleaseDescriptor,
   dryRun: boolean,
   bootstrapAssembler: PluginProcessor,
+  out: Writable = process.stdout,
 ) {
   const pipeline = [
     pluginCleanup(outputDir, dryRun),         // FR-CLI-0050: no-op in dry-run
@@ -556,7 +560,7 @@ function buildPipeline(
     pluginMirrorFiles,
     // FR-CLI-0020: hooksSource is <source>/hooks; bundles at <hooksSource>/dist/bundles/<bundleSource>
     pluginSyncBundles(hooksSource, outputDir, release.deterministicHooks, dryRun), // FR-CLI-0050
-    pluginWrite(outputDir, dryRun),           // FR-ARCH-0045: emit paths+contents in dry-run
+    pluginWrite(outputDir, dryRun, out),      // FR-ARCH-0045: emit paths+contents to the output sink in dry-run
   ];
   return pipeline;
 }

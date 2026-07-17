@@ -1,0 +1,645 @@
+{
+  "schemaVersion": 2,
+  "runDir": "tests/e2e-tests/.runtime/results/run-2026-07-16T16-56-09-189Z/run-2026-07-16T16-56-09Z",
+  "createdAt": "2026-07-16T17:07:58.951Z",
+  "config": {
+    "globals": {
+      "out": "tests/e2e-tests/.runtime/results/run-2026-07-16T16-56-09-189Z",
+      "concurrency": 1,
+      "gate": {
+        "minScore": 60,
+        "minPassRate": 0.8,
+        "maxStddev": 10
+      }
+    },
+    "matrix": [
+      {
+        "case": "coding-rosetta",
+        "agent": "claude-code",
+        "repeat": 1,
+        "timeoutSec": 1800,
+        "models": {
+          "fast": "anthropic/claude-sonnet-5",
+          "workhorse": "anthropic/claude-sonnet-5",
+          "judge": "anthropic/claude-sonnet-5"
+        },
+        "combiner": "gated-mean",
+        "evaluate": true
+      },
+      {
+        "case": "coding-vanilla",
+        "agent": "claude-code",
+        "repeat": 1,
+        "timeoutSec": 1800,
+        "models": {
+          "fast": "anthropic/claude-sonnet-5",
+          "workhorse": "anthropic/claude-sonnet-5",
+          "judge": "anthropic/claude-sonnet-5"
+        },
+        "combiner": "gated-mean",
+        "evaluate": true
+      },
+      {
+        "case": "coding-vanilla-full",
+        "agent": "claude-code",
+        "repeat": 1,
+        "timeoutSec": 1800,
+        "models": {
+          "fast": "anthropic/claude-sonnet-5",
+          "workhorse": "anthropic/claude-sonnet-5",
+          "judge": "anthropic/claude-sonnet-5"
+        },
+        "combiner": "gated-mean",
+        "evaluate": true
+      }
+    ],
+    "pricing": {
+      "anthropic/claude-sonnet-5": {
+        "inputPer1M": 3,
+        "outputPer1M": 15
+      },
+      "claude-sonnet-5": {
+        "inputPer1M": 3,
+        "outputPer1M": 15
+      }
+    }
+  },
+  "matrix": [
+    {
+      "case": "coding-rosetta",
+      "agent": "claude-code",
+      "repeat": 1
+    },
+    {
+      "case": "coding-vanilla",
+      "agent": "claude-code",
+      "repeat": 1
+    },
+    {
+      "case": "coding-vanilla-full",
+      "agent": "claude-code",
+      "repeat": 1
+    }
+  ],
+  "groups": [
+    {
+      "id": "score-stats",
+      "case": "coding-rosetta",
+      "agent": "claude-code",
+      "count": 1,
+      "min": 89,
+      "max": 89,
+      "mean": 89,
+      "median": 89,
+      "stddev": 0
+    },
+    {
+      "id": "pass-rate",
+      "case": "coding-rosetta",
+      "agent": "claude-code",
+      "passed": 1,
+      "failed": 0,
+      "errors": 0,
+      "completed": 1,
+      "passRate": 1
+    },
+    {
+      "id": "stability",
+      "case": "coding-rosetta",
+      "agent": "claude-code",
+      "classification": "stable-pass",
+      "passRate": 1,
+      "stddev": 0,
+      "repeats": 1
+    },
+    {
+      "id": "cost-rollup",
+      "case": "coding-rosetta",
+      "agent": "claude-code",
+      "items": [
+        {
+          "source": "agent",
+          "model": "claude-sonnet-5",
+          "usage": {
+            "input": 134,
+            "output": 25607,
+            "reasoning": 0,
+            "cacheWrite": 116432,
+            "cacheRead": 4358822,
+            "total": 4500995
+          },
+          "usd": 13.810269,
+          "unpriced": false
+        },
+        {
+          "source": "fast",
+          "model": "anthropic/claude-sonnet-5",
+          "usage": {
+            "input": 2345,
+            "output": 33,
+            "reasoning": 0,
+            "cacheWrite": 0,
+            "cacheRead": 0,
+            "total": 2378
+          },
+          "usd": 0.007529999999999999,
+          "unpriced": false
+        },
+        {
+          "source": "workhorse",
+          "model": "anthropic/claude-sonnet-5",
+          "usage": {
+            "input": 4744,
+            "output": 32,
+            "reasoning": 0,
+            "cacheWrite": 0,
+            "cacheRead": 0,
+            "total": 4776
+          },
+          "usd": 0.014712,
+          "unpriced": false
+        },
+        {
+          "source": "judge",
+          "model": "anthropic/claude-sonnet-5",
+          "usage": {
+            "input": 29379,
+            "output": 2284,
+            "reasoning": 0,
+            "cacheWrite": 0,
+            "cacheRead": 0,
+            "total": 31663
+          },
+          "usd": 0.12239699999999999,
+          "unpriced": false
+        }
+      ],
+      "byModel": {
+        "claude-sonnet-5": {
+          "usage": {
+            "input": 134,
+            "output": 25607,
+            "reasoning": 0,
+            "cacheWrite": 116432,
+            "cacheRead": 4358822,
+            "total": 4500995
+          },
+          "usd": 13.810269
+        },
+        "anthropic/claude-sonnet-5": {
+          "usage": {
+            "input": 36468,
+            "output": 2349,
+            "reasoning": 0,
+            "cacheWrite": 0,
+            "cacheRead": 0,
+            "total": 38817
+          },
+          "usd": 0.14463900000000002
+        }
+      },
+      "usd": 13.954907999999998,
+      "unpricedModels": []
+    },
+    {
+      "id": "time-rollup",
+      "case": "coding-rosetta",
+      "agent": "claude-code",
+      "totalMs": 499095,
+      "workspaceMs": 76,
+      "setupMs": 0,
+      "provisionMs": 2,
+      "launchMs": 147214,
+      "interactMs": 323235,
+      "collectMs": 71,
+      "evaluateMs": 28473,
+      "teardownMs": 24,
+      "agentPureMs": 458996,
+      "harnessReactMs": 10958,
+      "harnessLlmMs": 35348,
+      "harnessOverheadMs": 407,
+      "checksMs": 3676,
+      "judgeLlmMs": 24797,
+      "agentMs": 458996,
+      "harnessLlmByModel": {
+        "anthropic/claude-sonnet-5": 35348
+      }
+    },
+    {
+      "id": "turn-metrics",
+      "case": "coding-rosetta",
+      "agent": "claude-code",
+      "turnsTotal": 3,
+      "questionTurns": 2,
+      "interruptions": 1,
+      "meanTurnsTotal": 3,
+      "meanQuestionTurns": 2,
+      "meanInterruptions": 1,
+      "trials": 1
+    },
+    {
+      "id": "metrics",
+      "case": "coding-rosetta",
+      "agent": "claude-code",
+      "metrics": {
+        "manual_qa_ran_service": {
+          "mean": 1,
+          "min": 1,
+          "max": 1,
+          "stddev": 0,
+          "count": 1
+        },
+        "manual_qa_hit_endpoint": {
+          "mean": 1,
+          "min": 1,
+          "max": 1,
+          "stddev": 0,
+          "count": 1
+        },
+        "manual_qa_verified": {
+          "mean": 1,
+          "min": 1,
+          "max": 1,
+          "stddev": 0,
+          "count": 1
+        },
+        "hook_events_declared": {
+          "mean": 1,
+          "min": 1,
+          "max": 1,
+          "stddev": 0,
+          "count": 1
+        },
+        "hook_events_checked": {
+          "mean": 1,
+          "min": 1,
+          "max": 1,
+          "stddev": 0,
+          "count": 1
+        },
+        "hook_events_fired": {
+          "mean": 1,
+          "min": 1,
+          "max": 1,
+          "stddev": 0,
+          "count": 1
+        },
+        "hook_events_plugin_matched": {
+          "mean": 1,
+          "min": 1,
+          "max": 1,
+          "stddev": 0,
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "score-stats",
+      "case": "coding-vanilla",
+      "agent": "claude-code",
+      "count": 1,
+      "min": 38,
+      "max": 38,
+      "mean": 38,
+      "median": 38,
+      "stddev": 0
+    },
+    {
+      "id": "pass-rate",
+      "case": "coding-vanilla",
+      "agent": "claude-code",
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "completed": 1,
+      "passRate": 0
+    },
+    {
+      "id": "stability",
+      "case": "coding-vanilla",
+      "agent": "claude-code",
+      "classification": "stable-fail",
+      "passRate": 0,
+      "stddev": 0,
+      "repeats": 1
+    },
+    {
+      "id": "cost-rollup",
+      "case": "coding-vanilla",
+      "agent": "claude-code",
+      "items": [
+        {
+          "source": "agent",
+          "model": "claude-sonnet-5",
+          "usage": {
+            "input": 18,
+            "output": 1439,
+            "reasoning": 0,
+            "cacheWrite": 20512,
+            "cacheRead": 315340,
+            "total": 337309
+          },
+          "usd": 1.029195,
+          "unpriced": false
+        },
+        {
+          "source": "fast",
+          "model": "anthropic/claude-sonnet-5",
+          "usage": {
+            "input": 391,
+            "output": 11,
+            "reasoning": 0,
+            "cacheWrite": 0,
+            "cacheRead": 0,
+            "total": 402
+          },
+          "usd": 0.001338,
+          "unpriced": false
+        },
+        {
+          "source": "judge",
+          "model": "anthropic/claude-sonnet-5",
+          "usage": {
+            "input": 4173,
+            "output": 639,
+            "reasoning": 0,
+            "cacheWrite": 0,
+            "cacheRead": 0,
+            "total": 4812
+          },
+          "usd": 0.022104,
+          "unpriced": false
+        }
+      ],
+      "byModel": {
+        "claude-sonnet-5": {
+          "usage": {
+            "input": 18,
+            "output": 1439,
+            "reasoning": 0,
+            "cacheWrite": 20512,
+            "cacheRead": 315340,
+            "total": 337309
+          },
+          "usd": 1.029195
+        },
+        "anthropic/claude-sonnet-5": {
+          "usage": {
+            "input": 4564,
+            "output": 650,
+            "reasoning": 0,
+            "cacheWrite": 0,
+            "cacheRead": 0,
+            "total": 5214
+          },
+          "usd": 0.023442
+        }
+      },
+      "usd": 1.052637,
+      "unpricedModels": []
+    },
+    {
+      "id": "time-rollup",
+      "case": "coding-vanilla",
+      "agent": "claude-code",
+      "totalMs": 38584,
+      "workspaceMs": 64,
+      "setupMs": 0,
+      "provisionMs": 1,
+      "launchMs": 21586,
+      "interactMs": 2906,
+      "collectMs": 62,
+      "evaluateMs": 13943,
+      "teardownMs": 22,
+      "agentPureMs": 21592,
+      "harnessReactMs": 2300,
+      "harnessLlmMs": 12221,
+      "harnessOverheadMs": 0,
+      "checksMs": 4022,
+      "judgeLlmMs": 9921,
+      "agentMs": 21592,
+      "harnessLlmByModel": {
+        "anthropic/claude-sonnet-5": 12221
+      }
+    },
+    {
+      "id": "turn-metrics",
+      "case": "coding-vanilla",
+      "agent": "claude-code",
+      "turnsTotal": 1,
+      "questionTurns": 0,
+      "interruptions": 0,
+      "meanTurnsTotal": 1,
+      "meanQuestionTurns": 0,
+      "meanInterruptions": 0,
+      "trials": 1
+    },
+    {
+      "id": "metrics",
+      "case": "coding-vanilla",
+      "agent": "claude-code",
+      "metrics": {
+        "manual_qa_ran_service": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stddev": 0,
+          "count": 1
+        },
+        "manual_qa_hit_endpoint": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stddev": 0,
+          "count": 1
+        },
+        "manual_qa_verified": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stddev": 0,
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "score-stats",
+      "case": "coding-vanilla-full",
+      "agent": "claude-code",
+      "count": 1,
+      "min": 57,
+      "max": 57,
+      "mean": 57,
+      "median": 57,
+      "stddev": 0
+    },
+    {
+      "id": "pass-rate",
+      "case": "coding-vanilla-full",
+      "agent": "claude-code",
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "completed": 1,
+      "passRate": 0
+    },
+    {
+      "id": "stability",
+      "case": "coding-vanilla-full",
+      "agent": "claude-code",
+      "classification": "stable-fail",
+      "passRate": 0,
+      "stddev": 0,
+      "repeats": 1
+    },
+    {
+      "id": "cost-rollup",
+      "case": "coding-vanilla-full",
+      "agent": "claude-code",
+      "items": [
+        {
+          "source": "agent",
+          "model": "claude-sonnet-5",
+          "usage": {
+            "input": 54,
+            "output": 6411,
+            "reasoning": 0,
+            "cacheWrite": 32120,
+            "cacheRead": 1087794,
+            "total": 1126379
+          },
+          "usd": 3.4560690000000003,
+          "unpriced": false
+        },
+        {
+          "source": "fast",
+          "model": "anthropic/claude-sonnet-5",
+          "usage": {
+            "input": 479,
+            "output": 11,
+            "reasoning": 0,
+            "cacheWrite": 0,
+            "cacheRead": 0,
+            "total": 490
+          },
+          "usd": 0.001602,
+          "unpriced": false
+        },
+        {
+          "source": "judge",
+          "model": "anthropic/claude-sonnet-5",
+          "usage": {
+            "input": 13772,
+            "output": 1391,
+            "reasoning": 0,
+            "cacheWrite": 0,
+            "cacheRead": 0,
+            "total": 15163
+          },
+          "usd": 0.062181,
+          "unpriced": false
+        }
+      ],
+      "byModel": {
+        "claude-sonnet-5": {
+          "usage": {
+            "input": 54,
+            "output": 6411,
+            "reasoning": 0,
+            "cacheWrite": 32120,
+            "cacheRead": 1087794,
+            "total": 1126379
+          },
+          "usd": 3.4560690000000003
+        },
+        "anthropic/claude-sonnet-5": {
+          "usage": {
+            "input": 14251,
+            "output": 1402,
+            "reasoning": 0,
+            "cacheWrite": 0,
+            "cacheRead": 0,
+            "total": 15653
+          },
+          "usd": 0.063783
+        }
+      },
+      "usd": 3.519852,
+      "unpricedModels": []
+    },
+    {
+      "id": "time-rollup",
+      "case": "coding-vanilla-full",
+      "agent": "claude-code",
+      "totalMs": 171199,
+      "workspaceMs": 66,
+      "setupMs": 0,
+      "provisionMs": 1,
+      "launchMs": 33442,
+      "interactMs": 118745,
+      "collectMs": 49,
+      "evaluateMs": 18878,
+      "teardownMs": 16,
+      "agentPureMs": 148373,
+      "harnessReactMs": 2879,
+      "harnessLlmMs": 18595,
+      "harnessOverheadMs": 0,
+      "checksMs": 3162,
+      "judgeLlmMs": 15716,
+      "agentMs": 148373,
+      "harnessLlmByModel": {
+        "anthropic/claude-sonnet-5": 18595
+      }
+    },
+    {
+      "id": "turn-metrics",
+      "case": "coding-vanilla-full",
+      "agent": "claude-code",
+      "turnsTotal": 1,
+      "questionTurns": 0,
+      "interruptions": 0,
+      "meanTurnsTotal": 1,
+      "meanQuestionTurns": 0,
+      "meanInterruptions": 0,
+      "trials": 1
+    },
+    {
+      "id": "metrics",
+      "case": "coding-vanilla-full",
+      "agent": "claude-code",
+      "metrics": {
+        "manual_qa_ran_service": {
+          "mean": 1,
+          "min": 1,
+          "max": 1,
+          "stddev": 0,
+          "count": 1
+        },
+        "manual_qa_hit_endpoint": {
+          "mean": 1,
+          "min": 1,
+          "max": 1,
+          "stddev": 0,
+          "count": 1
+        },
+        "manual_qa_verified": {
+          "mean": 1,
+          "min": 1,
+          "max": 1,
+          "stddev": 0,
+          "count": 1
+        }
+      }
+    }
+  ],
+  "gate": {
+    "passed": false,
+    "exitCode": 1,
+    "failures": [
+      "coding-vanilla::claude-code: mean score 38.0 < minScore 60",
+      "coding-vanilla::claude-code: pass-rate 0.00 < minPassRate 0.8",
+      "coding-vanilla-full::claude-code: mean score 57.0 < minScore 60",
+      "coding-vanilla-full::claude-code: pass-rate 0.00 < minPassRate 0.8"
+    ]
+  }
+}

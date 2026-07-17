@@ -17,6 +17,8 @@ Rosetta Prep Steps = execute once per session:
 
 Command Aliases — actual-document acquisition required; reconstruction/assumption != loading. READ = load; APPLY/USE/INVOKE = load + FULLY act; INVOKE SUBAGENT = spawn per definition.
 
+If MCP call returns back truncated result => you must read it fully, **instructions are CRITICAL to fully follow**, MCP is just a way to deliver them to multiple teams/projects.
+
 Typed loads: `query_instructions(tags="<path>")`; expect >=1 document. Noun → path:
 
 - SKILL `<name>` → `<name>/SKILL.md`, SKILL FILE `<subpath>` → `<current-skill>/<subpath>` (a skill's own files only)

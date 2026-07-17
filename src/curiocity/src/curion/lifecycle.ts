@@ -256,6 +256,17 @@ export async function runTrial(spec: TrialSpec, opts: RunTrialOptions): Promise<
     if (rawTranscript !== undefined) artifacts.rawTranscript = rawTranscript;
     artifacts.screen = interaction.screens.join('\n---\n');
     artifacts.diff = diff;
+    // Transcript views (§14 addendum): each adapter converts ITS OWN raw transcript +
+    // the normalized events into human-readable markdown. Defensive by design — a
+    // view-rendering bug must never fail the trial, so this is best-effort/try-catch.
+    try {
+      artifacts.views = adapter.buildTranscriptViews(rawTranscript ?? '', interaction.events, {
+        prompt: spec.prompt,
+        qnaLog: qna,
+      });
+    } catch (err) {
+      log('transcript view build failed (non-fatal)', { error: (err as Error).message });
+    }
     phases.collectMs = Date.now() - collectStart;
 
     // --- Step 7: evaluate (§11 pipeline + combiner) --------------------------

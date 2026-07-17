@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { TrajectoryEvent } from '../shared/trajectory';
+import type { TranscriptViews } from '../agents/transcript-views';
 import {
   suiteResultSchema,
   trialResultSchema,
@@ -45,6 +46,9 @@ export interface TrialArtifacts {
   screen?: string;
   /** Unified workspace diff vs unzipped source -> `workspace.diff`. */
   diff?: string;
+  /** Human-readable transcript views (built by the adapter, §14 addendum) ->
+   *  `views/<name>.md`, one file per view. */
+  views?: TranscriptViews;
 }
 
 /** Write one trial's `trial.json` (+ optional artifacts). Returns the trial dir. */
@@ -67,6 +71,13 @@ export function writeTrial(runDir: string, result: TrialResultInput, artifacts: 
   }
   if (artifacts.diff !== undefined) {
     writeFileSync(join(dir, 'workspace.diff'), artifacts.diff, 'utf8');
+  }
+  if (artifacts.views !== undefined) {
+    const viewsDir = join(dir, 'views');
+    mkdirSync(viewsDir, { recursive: true });
+    for (const [name, markdown] of Object.entries(artifacts.views)) {
+      writeFileSync(join(viewsDir, `${name}.md`), markdown, 'utf8');
+    }
   }
 
   return dir;

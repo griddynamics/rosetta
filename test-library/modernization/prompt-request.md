@@ -1,1 +1,1 @@
-Upgrade Spring Boot to Java 21. Analyze the current code and document what needs to change. Save analysis to `docs/modernization-analysis.md` and state to `agents/modernization-state.md`.
+/modernization-flow Upgrade Spring Boot to Java 21. Analyze the current code and document what needs to change. Save analysis to `docs/modernization-analysis.md` and state to `agents/modernization-state.md`.

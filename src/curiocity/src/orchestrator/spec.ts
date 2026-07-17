@@ -2,7 +2,7 @@ import { isAbsolute, resolve } from 'node:path';
 import type { CaseDefinition } from '../cases/types';
 import type { MatrixEntry } from '../config/matrix';
 import { mergeModels, type ResolvedCaseConfig } from '../config/merge';
-import type { TopLevelConfig } from '../config/schema';
+import type { ProvisionSpec, TopLevelConfig } from '../config/schema';
 import { trialSpecSchema, type TrialSpec } from '../shared/ipc';
 import type { MatrixCell } from '../shared/matrix';
 import { resolveAgentProfile } from './profile';
@@ -56,6 +56,22 @@ export interface BuiltSpecs {
 
 function resolveScript(script: string, base: string): string {
   return isAbsolute(script) ? script : resolve(base, script);
+}
+
+/**
+ * Resolve each plugin's relative `path` against the case directory so the child/adapter
+ * receive absolute `--plugin-dir` targets. Absolute paths pass through unchanged; plugins
+ * without a `path` are left as-is (the adapter reports the missing-path error).
+ */
+export function resolveProvisionPluginPaths(provision: ProvisionSpec, baseDir: string): ProvisionSpec {
+  return {
+    ...provision,
+    plugins: provision.plugins.map((p) =>
+      typeof p.path === 'string' && p.path.length > 0 && !isAbsolute(p.path)
+        ? { ...p, path: resolve(baseDir, p.path) }
+        : p,
+    ),
+  };
 }
 
 export function buildTrialSpecs(args: BuildSpecsArgs): BuiltSpecs {
@@ -120,7 +136,7 @@ export function buildTrialSpecs(args: BuildSpecsArgs): BuiltSpecs {
       models: mergeModels(profile.models, entry.models),
       keys: args.keys,
       baseUrls: args.baseUrls ?? {},
-      provision: resolved.provision,
+      provision: resolveProvisionPluginPaths(resolved.provision, caseBase),
       setup: [...topSetup, ...caseSetup],
       teardown: [...topTeardown, ...caseTeardown],
       evaluators: resolved.evaluators,

@@ -8,6 +8,7 @@ import { command } from '../../src/evaluators/command';
 import { trajectoryCheck, resolveToolPattern } from '../../src/evaluators/trajectory-check';
 import {
   assembleJudgePrompt,
+  capTextHeadTail,
   distillTrajectory,
   judgeLogger,
   llmJudge,
@@ -70,6 +71,19 @@ describe('command (§11)', () => {
   it('honours a non-zero expectExitCode', async () => {
     const res = await command.evaluate(ctx({}), { run: 'exit 2', expectExitCode: 2 });
     expect(res.pass).toBe(true);
+  });
+  it('on failure, details includes a tail of the command output for diagnosis', async () => {
+    const res = await command.evaluate(ctx({}), { run: 'echo DIAG_MARKER_STDOUT; echo DIAG_MARKER_STDERR 1>&2; exit 3' });
+    expect(res.pass).toBe(false);
+    expect(res.details).toContain('DIAG_MARKER_STDOUT');
+    expect(res.details).toContain('DIAG_MARKER_STDERR');
+    expect(res.details).toContain('--- output (last 1500 chars) ---');
+  });
+  it('on pass, details does not append any output tail', async () => {
+    const res = await command.evaluate(ctx({}), { run: 'echo hello world' });
+    expect(res.pass).toBe(true);
+    expect(res.details).toBe('`echo hello world` exited 0 (expected 0)');
+    expect(res.details).not.toContain('--- output');
   });
 });
 
@@ -139,6 +153,31 @@ describe('llm-judge assembled prompt (§11 fixed contract [1]-[4])', () => {
     ]);
     expect(text).toContain('assistant: done');
     expect(text).toContain('[truncated: tool_result showed');
+  });
+
+  it('capTextHeadTail keeps BOTH ends of a long text with a middle elision marker', () => {
+    const text = `HEAD${'x'.repeat(50000)}TAIL`;
+    const capped = capTextHeadTail(text, 1000, 'trajectory');
+    expect(capped.startsWith('HEAD')).toBe(true);
+    expect(capped.endsWith('TAIL')).toBe(true);
+    expect(capped).toContain('[truncated: trajectory — omitted');
+    expect(capped.length).toBeLessThan(text.length);
+  });
+
+  it('distillTrajectory preserves the DELIVERY tail of a long run (head+tail cap, not head-only)', () => {
+    const events: TrajectoryEvent[] = [
+      { ts: 0, kind: 'assistant', payload: { text: 'DISCOVERY_START exploring the codebase' } },
+      ...Array.from({ length: 500 }, (_, i) => ({
+        ts: i + 1,
+        kind: 'assistant' as const,
+        payload: { text: `work step ${'z'.repeat(60)}` },
+      })),
+      { ts: 999, kind: 'assistant', payload: { text: 'DELIVERY_DONE validated /api/health live 200' } },
+    ];
+    const text = distillTrajectory(events);
+    expect(text).toContain('DISCOVERY_START'); // head survives
+    expect(text).toContain('DELIVERY_DONE'); // tail survives — head-only truncation would drop it
+    expect(text).toContain('[truncated: trajectory');
   });
 
   it('scores via the judge role (generateObject) and returns the verdict fields', async () => {

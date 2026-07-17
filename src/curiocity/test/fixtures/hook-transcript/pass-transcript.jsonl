@@ -1,0 +1,7 @@
+{"type":"user","message":{"role":"user","content":"do the thing"}}
+{"type":"attachment","attachment":{"type":"hook_success","hookName":"SessionStart:startup","hookEvent":"SessionStart","stdout":"{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"plugin_bootstrap_marker now active\"}}","stderr":"","exitCode":0}}
+{"type":"assistant","message":{"role":"assistant","content":"working on it"}}
+{"type":"system","subtype":"pre_tool_use_hook_summary","hookCount":1,"hookInfos":[{"command":"node \"/abs/plugin/hooks/read-once.js\"","durationMs":12}],"hookErrors":[]}
+{"type":"system","subtype":"post_tool_use_hook_summary","hookCount":1,"hookInfos":[{"command":"node \"/abs/plugin/hooks/loose-files.js\"","durationMs":9}],"hookErrors":[]}
+{"type":"assistant","message":{"role":"assistant","content":"done"}}
+{"type":"system","subtype":"stop_hook_summary","hookCount":1,"hookInfos":[{"command":"sh -c 'cat; echo' >> '/tmp/ctrl/stop.jsonl'","durationMs":36}],"hookErrors":[]}

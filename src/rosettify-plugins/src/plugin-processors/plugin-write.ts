@@ -2,17 +2,20 @@
 
 import fs from 'fs';
 import path from 'path';
+import type { Writable } from 'stream';
 import type { PluginProcessingFrame } from '../types.js';
 import { getLogger } from '../logging.js';
 
 /**
  * pluginWrite: write all frames to the output directory.
  * Frames with null target_contents → no file (FR-ARCH-0036).
- * Dry-run → emit to log, write nothing (FR-CLI-0050).
+ * Dry-run → emit to the output sink, write nothing (FR-CLI-0050).
  * Encoding: UTF-8, LF only (NFR encoding).
+ * @param out - dry-run output sink (FR-ARCH-0045 "to the output"); defaults to
+ *   process.stdout for the CLI, injectable so callers/tests provide their own.
  * FR-ARCH-0045
  */
-export function pluginWrite(outputDir: string, dryRun: boolean) {
+export function pluginWrite(outputDir: string, dryRun: boolean, out: Writable = process.stdout) {
   return function pluginWriteProcessor(
     p: PluginProcessingFrame,
   ): PluginProcessingFrame {
@@ -26,14 +29,15 @@ export function pluginWrite(outputDir: string, dryRun: boolean) {
       const outputPath = path.join(targetDir, frame.target);
 
       if (dryRun) {
-        // FR-ARCH-0045, FR-CLI-0050: emit full target path AND full target contents to stdout.
-        // Binary frames emit a placeholder (binary content is not printable).
+        // FR-ARCH-0045, FR-CLI-0050: emit full target path AND full target contents to the
+        // output sink (default process.stdout). Binary frames emit a placeholder (binary
+        // content is not printable). Diagnostic logging stays on the level-gated logger.
         logger.info({ path: outputPath }, 'dry-run: would write');
         if (frame.isBinary) {
-          process.stdout.write(`=== DRY-RUN: ${outputPath} (binary) ===\n`);
+          out.write(`=== DRY-RUN: ${outputPath} (binary) ===\n`);
         } else {
           const content = frame.target_contents as string;
-          process.stdout.write(`=== DRY-RUN: ${outputPath} ===\n${content}\n`);
+          out.write(`=== DRY-RUN: ${outputPath} ===\n${content}\n`);
         }
         continue;
       }

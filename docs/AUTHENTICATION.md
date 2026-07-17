@@ -708,7 +708,7 @@ PROXY_JWT `expires_in` mirrors the upstream `expires_in`. When the IdP always re
 ### Relevant Open Issues
 
 - **[#3492](https://github.com/jlowin/fastmcp/pull/3492)** (open): Fixes OAuthProxy to prefer IdP-granted scopes over client-requested scopes. When an IdP silently downgrades scopes (per RFC 6749 §5.1), the proxy was storing the requested scopes, not the granted ones. Directly relevant to `offline_access` handling.
-- **[#3465](https://github.com/jlowin/fastmcp/pull/3465)** (merged): Fixes scope patching in `load_access_token` for OIDCProxy when `verify_id_token=True`.
+- **[#3248](https://github.com/jlowin/fastmcp/pull/3248)** (merged): Fixes scope patching in `load_access_token` for OIDCProxy when `verify_id_token=True`.
 - **[#3425](https://github.com/jlowin/fastmcp/issues/3425)** (closed, dup of #2862): OAuth token cache preserves stale `expires_in` after reload — affects token lifetime correctness on server restart.
 - **[#3509](https://github.com/PrefectHQ/fastmcp/issues/3509)** (open): OAuthProxy: refresh_expires_in=0 (Keycloak offline_access) causes PROXY_RT to never be issued.
 

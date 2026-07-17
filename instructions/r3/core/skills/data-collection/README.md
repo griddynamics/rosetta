@@ -18,7 +18,7 @@ Single flat `SKILL.md` plus three role-named binding references in `references/`
 - Redaction is mandatory before write because output is public by default; if `sensitive-data` cannot run, stop instead of emitting.
 
 ## Invariants — do not change
-- `name: data-collection` must equal the folder name and the registration in [docs/definitions/skills.md](/Users/isolomatov/Sources/GAIN/rosetta/docs/definitions/skills.md:54).
+- `name: data-collection` must equal the folder name and the registration in [docs/definitions/skills.md](../../../../../docs/definitions/skills.md).
 - `disable-model-invocation: true` / `user-invocable: false` must stay: this is background helper behavior, not a user-facing command.
 - The role-named binding convention is load-bearing: issue tracker → `references/issue-vendor-binding.md`, TMS → `references/tms-vendor-binding.md`, documentation → `references/documentation-vendor-binding.md`.
 - `<restricted by permissions>` is semantic output, not cosmetic wording; changing it breaks the restricted-vs-empty distinction the skill is built around.

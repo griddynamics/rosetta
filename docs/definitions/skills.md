@@ -18,7 +18,6 @@
 - security (not yet)
 - simulation (not yet)
 - backward-compatibility (not yet)
-- scenarios-generation (not yet)
 - data-generation (not yet)
 - documentation (not yet)
 - large-file-handling (not yet)

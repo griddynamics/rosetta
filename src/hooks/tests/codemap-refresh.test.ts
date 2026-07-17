@@ -7,7 +7,10 @@ import os from 'os';
 
 // vi.mock factories are hoisted to top-of-file before any let/const initializers,
 // so mockSpawn must be declared with vi.hoisted() to be available inside them.
-const { mockSpawn } = vi.hoisted(() => ({ mockSpawn: vi.fn() }));
+const { mockSpawn, stateByNamespace } = vi.hoisted(() => ({
+  mockSpawn: vi.fn(),
+  stateByNamespace: new Map<string, unknown>(),
+}));
 
 vi.mock('../src/adapter', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/adapter')>();
@@ -18,9 +21,36 @@ vi.mock('../src/adapter', async (importOriginal) => {
 
 vi.mock('child_process', () => ({ spawn: mockSpawn }));
 
+vi.mock('../src/runtime/state-store', () => ({
+  readNamespacedState: <T>(namespace: string, fallback: T): T => {
+    const current = stateByNamespace.get(namespace);
+    return current == null ? JSON.parse(JSON.stringify(fallback)) as T : current as T;
+  },
+  mutateNamespacedState: async <T>(
+    namespace: string,
+    fallback: T,
+    mutate: (current: T) => T,
+  ): Promise<T> => {
+    const current = stateByNamespace.get(namespace) == null
+      ? JSON.parse(JSON.stringify(fallback)) as T
+      : stateByNamespace.get(namespace) as T;
+    const next = mutate(current);
+    stateByNamespace.set(namespace, next);
+    return next;
+  },
+}));
+
 import { readStdin } from '../src/adapter';
-import { codemapRefreshHook, DEBOUNCE_MS } from '../src/hooks/codemap-refresh';
-import { runHook } from '../src/runtime/run-hook';
+import {
+  CODEMAP_NUDGE_MESSAGE,
+  CODEMAP_NUDGE_NAMESPACE,
+  codemapRefreshHook,
+  DEBOUNCE_MS,
+  isFileCreation,
+} from '../src/hooks/codemap-refresh';
+import { runHook, executeHook } from '../src/runtime/run-hook';
+import type { HookContext } from '../src/runtime/types';
+import type { TimestampedEntries } from '../src/runtime/state-ops';
 
 import ccWrite from './fixtures/claude-code-post-tool-use-write.json';
 import ccEdit  from './fixtures/claude-code-post-tool-use-edit.json';
@@ -111,12 +141,24 @@ const mockNeitherBackend = () => {
   vi.spyOn(fs, 'existsSync').mockReturnValue(false);
 };
 
+const captureStdout = async (raw: Record<string, unknown>): Promise<string> => {
+  mockRead(raw);
+  let out = '';
+  const stdout = { write: (chunk: string | Uint8Array) => { out += String(chunk); return true; } } as unknown as NodeJS.WritableStream;
+  await executeHook(codemapRefreshHook, { stdout });
+  return out;
+};
+
+const uniqueSession = (label: string): string =>
+  `codemap-nudge-${label}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
   vi.restoreAllMocks();
   mockSpawn.mockReset();
   lockFiles = new Map();
+  stateByNamespace.clear();
 
   // Suppress real filesystem side-effects
   vi.spyOn(fs, 'mkdirSync').mockReturnValue(undefined);
@@ -193,27 +235,132 @@ describe('codemap-refresh — tool filter', () => {
 });
 
 // ---------------------------------------------------------------------------
-describe('codemap-refresh — neither backend → silent no-op', () => {
+describe('codemap-refresh — neither backend → once-per-session CODEMAP nudge', () => {
 
-  test('no backend markers anywhere → no spawn', async () => {
+  test('Write create → advise with CODEMAP nudge (no spawn)', async () => {
     mockNeitherBackend();
-    await runHook(codemapRefreshHook);
+    const out = await captureStdout(makeInput({
+      session_id: uniqueSession('create'),
+    }));
+    expect(mockSpawn).not.toHaveBeenCalled();
+    expect(out).toContain(CODEMAP_NUDGE_MESSAGE);
+  });
+
+  test('second Write create in same session → silent (no re-nudge)', async () => {
+    mockNeitherBackend();
+    const session_id = uniqueSession('once');
+    const first = await captureStdout(makeInput({ session_id }));
+    const second = await captureStdout(makeInput({
+      session_id,
+      tool_input: { file_path: `${REPO_ROOT}/other.py`, content: 'x' },
+      tool_response: { type: 'create', filePath: `${REPO_ROOT}/other.py`, originalFile: null },
+    }));
+    expect(first).toContain(CODEMAP_NUDGE_MESSAGE);
+    expect(second).toBe('');
     expect(mockSpawn).not.toHaveBeenCalled();
   });
 
-  test('no backend markers → no lock acquired', async () => {
+  test('Edit (not creation) → silent no-op', async () => {
     mockNeitherBackend();
-    await runHook(codemapRefreshHook);
-    expect(lockFiles.size).toBe(0);
+    const out = await captureStdout({
+      ...ccEdit,
+      cwd: REPO_ROOT,
+      session_id: uniqueSession('edit'),
+    });
+    expect(out).toBe('');
+    expect(mockSpawn).not.toHaveBeenCalled();
   });
 
-  test('no backend markers → no stdout output', async () => {
+  test('Write update (overwrite existing) → silent no-op', async () => {
     mockNeitherBackend();
-    const writeSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true);
-    await runHook(codemapRefreshHook);
-    expect(writeSpy).not.toHaveBeenCalled();
+    const out = await captureStdout(makeInput({
+      session_id: uniqueSession('update'),
+      tool_response: {
+        type: 'update',
+        filePath: `${REPO_ROOT}/utils/helper.py`,
+        originalFile: 'old',
+      },
+    }));
+    expect(out).toBe('');
+    expect(mockSpawn).not.toHaveBeenCalled();
   });
 
+  test('different sessions each get one nudge', async () => {
+    mockNeitherBackend();
+    const a = await captureStdout(makeInput({ session_id: uniqueSession('sess-a') }));
+    const b = await captureStdout(makeInput({ session_id: uniqueSession('sess-b') }));
+    expect(a).toContain(CODEMAP_NUDGE_MESSAGE);
+    expect(b).toContain(CODEMAP_NUDGE_MESSAGE);
+  });
+
+  test('backend present → no CODEMAP nudge (refresh path only)', async () => {
+    const out = await captureStdout(makeInput({
+      session_id: uniqueSession('with-backend'),
+    }));
+    expect(out).toBe('');
+    expect(mockSpawn).toHaveBeenCalledOnce();
+  });
+
+  test('no backend markers → session recorded in shared state-store', async () => {
+    mockNeitherBackend();
+    await captureStdout(makeInput({ session_id: uniqueSession('lock') }));
+    const state = stateByNamespace.get(CODEMAP_NUDGE_NAMESPACE) as { sessions: TimestampedEntries };
+    expect(Object.keys(state.sessions)).toHaveLength(1);
+  });
+
+});
+
+describe('isFileCreation', () => {
+  const base = {
+    ide: 'claude-code' as const,
+    event: 'PostToolUse' as const,
+    toolKind: 'write' as const,
+    toolName: 'Write',
+    filePath: '/proj/a.ts',
+    cwd: '/proj',
+    sessionId: 's1',
+    toolInput: {},
+  };
+
+  test('Write + type create → true', () => {
+    expect(isFileCreation({
+      ...base,
+      toolResponse: { type: 'create', originalFile: null },
+    } as HookContext)).toBe(true);
+  });
+
+  test('Write + type update → false', () => {
+    expect(isFileCreation({
+      ...base,
+      toolResponse: { type: 'update', originalFile: 'old' },
+    } as HookContext)).toBe(false);
+  });
+
+  test('Edit toolKind → false', () => {
+    expect(isFileCreation({
+      ...base,
+      toolKind: 'edit',
+      toolName: 'Edit',
+    } as HookContext)).toBe(false);
+  });
+
+  test('apply_patch Add File → true', () => {
+    expect(isFileCreation({
+      ...base,
+      toolKind: 'write',
+      toolName: 'apply_patch',
+      toolInput: { command: '*** Add File: /proj/new.ts\n+x\n' },
+    } as HookContext)).toBe(true);
+  });
+
+  test('apply_patch Update File → false', () => {
+    expect(isFileCreation({
+      ...base,
+      toolKind: 'write',
+      toolName: 'apply_patch',
+      toolInput: { command: '*** Update File: /proj/a.ts\n-x\n+y\n' },
+    } as HookContext)).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -564,8 +711,9 @@ describe('codemap-refresh — never writes to stdout', () => {
     expect(writeSpy).not.toHaveBeenCalled();
   });
 
-  test('no-op path (neither backend) → nothing written to process.stdout', async () => {
+  test('no-op path (neither backend, not a creation) → nothing written to process.stdout', async () => {
     mockNeitherBackend();
+    mockRead({ ...ccEdit, cwd: REPO_ROOT, session_id: uniqueSession('stdout-edit') });
     const writeSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true);
     await runHook(codemapRefreshHook);
     expect(writeSpy).not.toHaveBeenCalled();

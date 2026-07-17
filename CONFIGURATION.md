@@ -70,7 +70,7 @@ Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
 - Authentication, authorization, and routing for the deployed application.
 - A brief description of the deployment infrastructure and environments.
 - The build and CI/CD pipeline.
-- Recommended allowed tooling (gh cli, MCPs, see https://raw.githubusercontent.com/griddynamics/rosetta/refs/heads/main/CONFIGURATION.md)
+- Recommended allowed tooling (gh cli, ripgrep, MCPs, see https://raw.githubusercontent.com/griddynamics/rosetta/refs/heads/main/CONFIGURATION.md)
 - Name standards for coding, linting, formatting (e.g. Google Java Style, Microsoft .NET code style) — not the rules!
 - Architecture defines how to build/lint/test/run overall solution in concise unambigous manner
 
@@ -124,6 +124,7 @@ Prefer a CLI over the matching MCP when one exists — it costs no context.
 
 - `gh` — GitHub CLI: pull requests, issues, releases, and CI checks.
 - `acli` — Atlassian CLI: Jira and Confluence from the terminal.
+- `rg` - ripgrep - the most of new AI models prefer it over grep
 
 #### Available CLIs
 

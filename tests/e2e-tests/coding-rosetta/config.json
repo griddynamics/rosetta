@@ -1,0 +1,45 @@
+{
+  "agents": ["claude-code"],
+  "timeoutSec": 1800,
+  "repeats": 1,
+  "provision": {
+    "plugins": [
+      { "name": "rosetta", "path": "../../../plugins/core-claude" }
+    ]
+  },
+  "evaluators": [
+    {
+      "use": "file-exists",
+      "must": ["**/spring-boot-server/src/main/java/**/*Health*Controller.java"],
+      "gate": true
+    },
+    {
+      "use": "command",
+      "run": "cd \"$(find . -type d -name spring-boot-server | head -1)\" && ./mvnw -q -Dstyle.color=never test",
+      "expectExitCode": 0,
+      "gate": true
+    },
+    {
+      "use": "manual-qa-check",
+      "urlPattern": "/api/health",
+      "successPattern": "\"status\"\\s*:\\s*\"UP\""
+    },
+    {
+      "use": "hook-transcript-check",
+      "pluginManifest": "../../../plugins/core-claude/hooks/hooks.json"
+    },
+    {
+      "use": "llm-judge",
+      "rubric": "evaluation.md",
+      "artifacts": [
+        "**/plans/**/*.md",
+        "**/docs/*.md",
+        "**/agents/*.md",
+        "**/spring-boot-server/src/main/java/**/*Health*Controller.java",
+        "**/spring-boot-server/src/test/**/*Health*.java"
+      ],
+      "weight": 1.0
+    }
+  ],
+  "combiner": "gated-mean"
+}

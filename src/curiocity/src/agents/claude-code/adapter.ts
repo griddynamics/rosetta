@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { CuriocityError } from '../../shared/errors';
+import { ConfigError } from '../../shared/errors';
 import type { ProvisionSpec } from '../../config/schema';
 import { addUsage, makeUsage, zeroUsage, type TrajectoryEvent, type Usage } from '../../shared/trajectory';
 import type { TerminalSession } from '../../terminal/session';
@@ -19,6 +19,15 @@ import type {
 } from '../types';
 import { computeTranscriptPath } from './transcript-path';
 import { CLAUDE_CODE_DEFAULT_PROFILE } from './profile';
+import {
+  renderConversation,
+  renderSkills,
+  renderTools,
+  type ToolCall,
+  type TranscriptViews,
+  type Turn,
+  type ViewContext,
+} from '../transcript-views';
 
 /**
  * `ClaudeCodeAdapter` (§10.1) — renders the canonical control protocol (§5.2) into
@@ -134,36 +143,47 @@ export class ClaudeCodeAdapter implements AgentAdapter {
   }
 
   /**
-   * Step 2 — materialize provisioning workspace-scoped ONLY (P11). MCPs go into a
-   * workspace `.mcp.json`; nothing under `~/.claude` is ever touched. A ProvisionSpec
-   * item that cannot be satisfied workspace-scoped (Claude plugins install into the
-   * user's global `~/.claude`) fails the provision step with a clear message rather
-   * than mutating global agent state.
+   * Step 2 — materialize provisioning SESSION-scoped ONLY (P11); nothing under
+   * `~/.claude` is ever touched. Plugins are rendered as a `--plugin-dir <path>` launch
+   * arg per plugin (verified: `claude --plugin-dir <path>` loads a plugin from a
+   * directory or .zip for that session only, never mutating the global `~/.claude`).
+   * A plugin item MUST carry a `path` (resolved to absolute by the orchestrator, before
+   * this ever runs) — one without a `path` fails the provision step with a clear
+   * message rather than silently doing nothing. MCPs go into a workspace `.mcp.json`,
+   * exactly as before.
    */
   async renderProvisioning(spec: ProvisionSpec, ctx: TrialContext): Promise<LaunchFragment> {
-    if (spec.plugins.length > 0) {
-      const names = spec.plugins.map((p) => p.name).join(', ');
-      throw new CuriocityError(
-        `claude-code adapter cannot provision plugins workspace-scoped (P11): [${names}]. ` +
-          'Claude plugins install into the user’s global ~/.claude, which the harness must ' +
-          'never mutate. Pre-install the plugin in the agent’s environment, or express the ' +
-          'capability as a workspace MCP under `provision.mcps` instead.',
-        'PROVISION_UNSUPPORTED',
-      );
+    const pluginArgs: string[] = [];
+    for (const p of spec.plugins) {
+      if (typeof p.path !== 'string' || p.path.length === 0) {
+        throw new ConfigError(
+          `claude-code plugin "${p.name}" requires a "path" (a plugin directory or .zip). ` +
+            'It is passed to Claude Code as a session-scoped `--plugin-dir`, so it never mutates ' +
+            'the global ~/.claude (P11-compliant).',
+        );
+      }
+      pluginArgs.push('--plugin-dir', p.path);
     }
-    if (spec.mcps.length === 0) return {};
-    const mcpServers: Record<string, unknown> = {};
-    for (const item of spec.mcps) {
-      const { name, ...rest } = item;
-      mcpServers[name] = rest;
-    }
-    return {
-      files: [
+
+    let mcpFiles: LaunchFragment['files'];
+    if (spec.mcps.length > 0) {
+      const mcpServers: Record<string, unknown> = {};
+      for (const item of spec.mcps) {
+        const { name, ...rest } = item;
+        mcpServers[name] = rest;
+      }
+      mcpFiles = [
         {
           path: join(ctx.workspace, '.mcp.json'),
           content: JSON.stringify({ mcpServers }, null, 2),
         },
-      ],
+      ];
+    }
+
+    if (pluginArgs.length === 0 && mcpFiles === undefined) return {};
+    return {
+      ...(pluginArgs.length > 0 ? { args: pluginArgs } : {}),
+      ...(mcpFiles !== undefined ? { files: mcpFiles } : {}),
     };
   }
 
@@ -446,5 +466,87 @@ export class ClaudeCodeAdapter implements AgentAdapter {
   /** End the session cleanly (§10.1): type the `/exit` slash command. */
   async terminate(session: TerminalSession): Promise<void> {
     await session.write('/exit\r');
+  }
+
+  /**
+   * Build human-readable transcript views (§14 addendum). `conversation`/`tools`/
+   * `skills` are format-independent — this adapter reduces its OWN normalized
+   * `events` (produced by `parseEvents` above) into the common `Turn[]`/`ToolCall[]`
+   * intermediates and hands them to the shared renderers. `hooks` is CC-specific: it
+   * is built directly from `rawTranscript` (this adapter's native session-JSONL),
+   * because hooks are a native concept the normalized trajectory doesn't carry.
+   */
+  buildTranscriptViews(rawTranscript: string, events: TrajectoryEvent[], ctx: ViewContext): TranscriptViews {
+    const turns: Turn[] = [];
+    const toolCalls: ToolCall[] = [];
+    for (const e of events) {
+      if (e.kind === 'assistant' || e.kind === 'user') {
+        const text = (e.payload as { text?: string } | undefined)?.text ?? '';
+        turns.push({ role: e.kind, text });
+      } else if (e.kind === 'tool_call') {
+        const input = (e.payload as { input?: unknown } | undefined)?.input;
+        toolCalls.push({ name: e.name ?? '', input });
+      }
+    }
+    return {
+      conversation: renderConversation(ctx, turns, toolCalls),
+      hooks: this.renderHooksView(rawTranscript),
+      tools: renderTools(toolCalls),
+      skills: renderSkills(toolCalls),
+    };
+  }
+
+  /**
+   * `# Hooks` — built from the RAW native Claude Code session-JSONL (CC-specific;
+   * no other agent's transcript has this shape). Two signals, both observed live
+   * (docs/hooks/claude-code.md): (a) `attachment` lines whose `attachment.type`
+   * starts with `hook` — one per hook firing, preferring the human `hookName` when
+   * present; (b) `system` lines whose `subtype` ends `_hook_summary` — Claude's own
+   * per-event summary of which hook commands ran (+ any `hookErrors`).
+   */
+  private renderHooksView(rawTranscript: string): string {
+    const lines: string[] = ['# Hooks', '', '_(from the raw Claude Code transcript)_', ''];
+    interface HookLine {
+      type?: string;
+      subtype?: string;
+      attachment?: { type?: string; hookName?: string };
+      hookInfos?: Array<{ command?: string }>;
+      hookErrors?: unknown;
+    }
+    const parsed: HookLine[] = [];
+    for (const line of rawTranscript.split('\n')) {
+      const trimmed = line.trim();
+      if (trimmed === '') continue;
+      try {
+        parsed.push(JSON.parse(trimmed) as HookLine);
+      } catch {
+        // ignore malformed lines
+      }
+    }
+
+    let fired = 0;
+    for (const e of parsed) {
+      const att = e.attachment;
+      if (att && typeof att.type === 'string' && att.type.startsWith('hook')) {
+        fired += 1;
+        lines.push(`- **hook fired:** ${att.hookName ?? att.type}`);
+      }
+    }
+    if (fired === 0) lines.push('- (no hook-attachment entries found)');
+
+    lines.push('', '## Hook summaries', '');
+    let found = 0;
+    for (const e of parsed) {
+      if (e.type === 'system' && typeof e.subtype === 'string' && e.subtype.endsWith('_hook_summary')) {
+        found += 1;
+        const cmds = (e.hookInfos ?? []).map((h) => h.command ?? '');
+        lines.push(`- **${e.subtype}** (${cmds.length} cmd):`);
+        for (const c of cmds) lines.push(`    - \`${c.slice(0, 140)}\``);
+        if (e.hookErrors) lines.push(`    - ERRORS: ${JSON.stringify(e.hookErrors).slice(0, 200)}`);
+      }
+    }
+    if (found === 0) lines.push('- (no *_hook_summary entries)');
+
+    return lines.join('\n');
   }
 }

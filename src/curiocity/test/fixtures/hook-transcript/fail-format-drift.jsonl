@@ -1,0 +1,4 @@
+{"type":"user","message":{"role":"user","content":"do the thing"}}
+{"type":"system","subtype":"some_other_summary","hookCount":1,"hookInfos":[{"command":"node \"/abs/plugin/hooks/read-once.js\"","durationMs":12}]}
+{"type":"assistant","message":{"role":"assistant","content":"done"}}
+{"type":"system","subtype":"init","message":"session initialized"}

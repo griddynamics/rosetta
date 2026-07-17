@@ -10,6 +10,12 @@ NC='\033[0m'
 
 echo -e "${BLUE}=== Rosetta Test Validation ===${NC}"
 
+# Quiet the packages' structured (pino) loggers to warnings+errors only, so runs
+# surface real problems without the info-level flood. Both default to 'warn' and
+# stay overridable from the caller's environment.
+export ROSETTIFY_PLUGINS_LOG_LEVEL="${ROSETTIFY_PLUGINS_LOG_LEVEL:-warn}"
+export CURIOCITY_LOG_LEVEL="${CURIOCITY_LOG_LEVEL:-warn}"
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PYTEST_BIN="$SCRIPT_DIR/venv/bin/pytest"
 
@@ -33,21 +39,21 @@ if [ ${#PYTEST_CMD[@]} -gt 0 ]; then
 
 fi
 
-if [ -d "$SCRIPT_DIR/src/rosettify/node_modules" ]; then
-    echo -e "${BLUE}Running rosettify tests...${NC}"
-    npm --silent run build --prefix src/rosettify
-    npm --silent --prefix "$SCRIPT_DIR/src/rosettify" run test -- --reporter=minimal
-else
-    echo -e "${YELLOW}WARNING: src/rosettify/node_modules not found. Skipping rosettify tests.${NC}"
-    echo -e "${YELLOW}To enable: npm --prefix src/rosettify install${NC}"
-fi
+test_ts() {  # $1 = path under repo root, $2 = "build" to build first
+    local dir="$SCRIPT_DIR/$1" name; name="$(basename "$1")"
+    if [ -d "$dir/node_modules" ]; then
+        echo -e "${BLUE}Running $name tests...${NC}"
+        [ "${2:-}" = "build" ] && npm --silent --prefix "$dir" run build
+        npm --silent --prefix "$dir" run test -- --reporter=minimal
+    else
+        echo -e "${YELLOW}WARNING: $1/node_modules not found. Skipping $name tests (npm --prefix $1 install).${NC}"
+    fi
+}
 
-if [ -d "$SCRIPT_DIR/src/hooks/node_modules" ]; then
-    echo -e "${BLUE}Running hooks tests...${NC}"
-    npm --silent --prefix "$SCRIPT_DIR/src/hooks" run test -- --reporter=minimal
-else
-    echo -e "${YELLOW}WARNING: src/hooks/node_modules not found. Skipping hooks tests.${NC}"
-    echo -e "${YELLOW}To enable: npm --prefix src/hooks install${NC}"
-fi
+test_ts src/curiocity
+test_ts src/hooks
+test_ts src/rosettify          build
+test_ts src/rosettify-plugins
+test_ts src/rosettify-prompts
 
 echo -e "${GREEN}Test validation passed${NC}"

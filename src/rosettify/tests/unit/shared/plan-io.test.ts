@@ -10,6 +10,15 @@ import { readPlanWithRetry, atomicWriteWithBackup } from "../../../src/shared/pl
 import type { Plan } from "../../../src/commands/plan/core.js";
 import { savePlan } from "../../../src/commands/plan/core.js";
 
+// Node's built-in "fs" is a frozen ESM namespace — vi.spyOn can't redefine its properties
+// directly. Re-exporting a plain (spy-able) object via vi.mock is the standard workaround,
+// letting individual tests below spy on mkdirSync/statSync/renameSync to simulate lock
+// contention and rename failures without touching real concurrency/timing.
+vi.mock("fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("fs")>();
+  return { ...actual };
+});
+
 let tmpDir: string;
 
 beforeEach(() => {
@@ -353,5 +362,161 @@ describe("atomicWriteWithBackup — FR-PLAN-0024 corrupted plan → plan_file_co
 
     expect(result.ok).toBe(false);
     expect(result.error).toBe("plan_file_corrupted");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// atomicWriteWithBackup — lock-acquisition edge cases (FR-PLAN-0024 step 0a)
+// ---------------------------------------------------------------------------
+
+describe("atomicWriteWithBackup — FR-PLAN-0024 lock acquisition edge cases", () => {
+  // Non-EEXIST mkdir failure (e.g. a transient EPERM/EIO) — logged as a warning and the
+  // whole cycle restarts, distinct from the EEXIST "another writer holds the lock" path.
+  it("retries when mkdirSync fails with a non-EEXIST error", async () => {
+    const file = planFile();
+    savePlan(file, makePlan({ name: "Original" }));
+
+    let calls = 0;
+    const realMkdirSync = fs.mkdirSync.bind(fs);
+    vi.spyOn(fs, "mkdirSync").mockImplementation(((...args: unknown[]) => {
+      calls++;
+      if (calls === 1) {
+        const e = new Error("simulated EPERM") as NodeJS.ErrnoException;
+        e.code = "EPERM";
+        throw e;
+      }
+      return (realMkdirSync as (...a: unknown[]) => unknown)(...args);
+    }) as never);
+
+    const result = await atomicWriteWithBackup<Plan, string>(
+      file,
+      (plan) => ({ ok: true, result: "ok", updated: { ...plan, name: "Updated", updated_at: new Date().toISOString() } }),
+      savePlan,
+      { maxRetries: 5 },
+    );
+
+    expect(result.ok).toBe(true);
+    expect(calls).toBeGreaterThanOrEqual(2);
+  });
+
+  // EEXIST + lock not stale — a fresh lock from a concurrent writer causes a short
+  // spin-wait and retry; the lock must NOT be forcibly removed.
+  it("waits and retries when the lock is held but not stale", async () => {
+    const file = planFile();
+    savePlan(file, makePlan({ name: "Original" }));
+
+    let calls = 0;
+    const realMkdirSync = fs.mkdirSync.bind(fs);
+    vi.spyOn(fs, "mkdirSync").mockImplementation(((...args: unknown[]) => {
+      calls++;
+      if (calls === 1) {
+        const e = new Error("EEXIST") as NodeJS.ErrnoException;
+        e.code = "EEXIST";
+        throw e;
+      }
+      return (realMkdirSync as (...a: unknown[]) => unknown)(...args);
+    }) as never);
+    vi.spyOn(fs, "statSync").mockReturnValueOnce({ mtimeMs: Date.now() } as fs.Stats);
+    const rmdirSpy = vi.spyOn(fs, "rmdirSync");
+
+    const result = await atomicWriteWithBackup<Plan, string>(
+      file,
+      (plan) => ({ ok: true, result: "ok", updated: { ...plan, name: "Updated", updated_at: new Date().toISOString() } }),
+      savePlan,
+      { maxRetries: 5 },
+    );
+
+    expect(result.ok).toBe(true);
+    // Only the final lock release should call rmdirSync — a fresh lock must not also
+    // trigger the stale-lock forced-removal call.
+    expect(rmdirSpy).toHaveBeenCalledTimes(1);
+  });
+
+  // EEXIST + lock IS stale (held longer than the 30s crash-assumption window) — the stale
+  // lock is forcibly removed so the cycle can make progress.
+  it("removes a stale lock and retries", async () => {
+    const file = planFile();
+    savePlan(file, makePlan({ name: "Original" }));
+
+    let calls = 0;
+    const realMkdirSync = fs.mkdirSync.bind(fs);
+    vi.spyOn(fs, "mkdirSync").mockImplementation(((...args: unknown[]) => {
+      calls++;
+      if (calls === 1) {
+        const e = new Error("EEXIST") as NodeJS.ErrnoException;
+        e.code = "EEXIST";
+        throw e;
+      }
+      return (realMkdirSync as (...a: unknown[]) => unknown)(...args);
+    }) as never);
+    vi.spyOn(fs, "statSync").mockReturnValueOnce({ mtimeMs: Date.now() - 40_000 } as fs.Stats);
+
+    const result = await atomicWriteWithBackup<Plan, string>(
+      file,
+      (plan) => ({ ok: true, result: "ok", updated: { ...plan, name: "Updated", updated_at: new Date().toISOString() } }),
+      savePlan,
+      { maxRetries: 5 },
+    );
+
+    expect(result.ok).toBe(true);
+  });
+
+  // EEXIST, but the lock directory disappears between the EEXIST error and the stat call
+  // (another writer released it mid-race) — statSync throws, caught harmlessly, retried.
+  it("retries harmlessly when the lock disappears between EEXIST and statSync", async () => {
+    const file = planFile();
+    savePlan(file, makePlan({ name: "Original" }));
+
+    let calls = 0;
+    const realMkdirSync = fs.mkdirSync.bind(fs);
+    vi.spyOn(fs, "mkdirSync").mockImplementation(((...args: unknown[]) => {
+      calls++;
+      if (calls === 1) {
+        const e = new Error("EEXIST") as NodeJS.ErrnoException;
+        e.code = "EEXIST";
+        throw e;
+      }
+      return (realMkdirSync as (...a: unknown[]) => unknown)(...args);
+    }) as never);
+    vi.spyOn(fs, "statSync").mockImplementationOnce(() => {
+      throw new Error("ENOENT: lock vanished");
+    });
+
+    const result = await atomicWriteWithBackup<Plan, string>(
+      file,
+      (plan) => ({ ok: true, result: "ok", updated: { ...plan, name: "Updated", updated_at: new Date().toISOString() } }),
+      savePlan,
+      { maxRetries: 5 },
+    );
+
+    expect(result.ok).toBe(true);
+  });
+
+  // Primary rename (plan file → bak path, step 5) fails inside the lock — warns and restarts
+  // the whole cycle from step 1 (distinct from the post-rename write-failure rollback path
+  // covered by the "backup_create_failed" test above).
+  it("restarts the cycle when the primary rename fails", async () => {
+    const file = planFile();
+    savePlan(file, makePlan({ name: "Original" }));
+
+    let calls = 0;
+    const realRenameSync = fs.renameSync.bind(fs);
+    vi.spyOn(fs, "renameSync").mockImplementation(((...args: unknown[]) => {
+      calls++;
+      if (calls === 1) {
+        throw new Error("simulated rename failure");
+      }
+      return (realRenameSync as (...a: unknown[]) => unknown)(...args);
+    }) as never);
+
+    const result = await atomicWriteWithBackup<Plan, string>(
+      file,
+      (plan) => ({ ok: true, result: "ok", updated: { ...plan, name: "Updated", updated_at: new Date().toISOString() } }),
+      savePlan,
+      { maxRetries: 5 },
+    );
+
+    expect(result.ok).toBe(true);
+    expect(calls).toBeGreaterThanOrEqual(2);
   });
 });

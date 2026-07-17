@@ -17,13 +17,25 @@ describe('launch glue (§5.2)', () => {
     expect(minimatch('ab', 'a?')).toBe(true);
   });
 
-  it('filterAgentEnv strips envRemove globs and applies envSet', () => {
+  it('filterAgentEnv strips envRemove globs and applies envSet (allowlisted API keys survive)', () => {
     const out = filterAgentEnv(
       { PATH: '/bin', CLAUDECODE: '1', CLAUDE_CODE_X: 'y', ANTHROPIC_API_KEY: 'sk-x', HOME: '/h' },
       ['CLAUDECODE', 'CLAUDE_CODE*', 'ANTHROPIC_*'],
       { FOO: 'bar' },
     );
-    expect(out).toEqual({ PATH: '/bin', HOME: '/h', FOO: 'bar' });
+    // ANTHROPIC_API_KEY is in the global AGENT_API_KEY_ALLOWLIST, so it survives the
+    // 'ANTHROPIC_*' envRemove pattern even though the pattern would otherwise strip it.
+    expect(out).toEqual({ PATH: '/bin', HOME: '/h', ANTHROPIC_API_KEY: 'sk-x', FOO: 'bar' });
+  });
+
+  it('filterAgentEnv: allowlisted API key is kept even when explicitly named in envRemove', () => {
+    const out = filterAgentEnv(
+      { ANTHROPIC_API_KEY: 'sk-ant-x', CLAUDECODE: '1', FOO: 'bar' },
+      ['CLAUDECODE', 'ANTHROPIC_API_KEY'],
+      undefined,
+    );
+    expect(out).toEqual({ ANTHROPIC_API_KEY: 'sk-ant-x', FOO: 'bar' });
+    expect(out).not.toHaveProperty('CLAUDECODE');
   });
 
   it('resolveCommand (R1 preflight): resolves an absolute executable, a PATH lookup, and rejects the unresolvable', () => {

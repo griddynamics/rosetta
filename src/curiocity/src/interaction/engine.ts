@@ -127,7 +127,6 @@ export class InteractionEngine {
   private lastTranscriptSize = -1;
   private processedStopCount = 0;
   private turnCount = 0;
-  private structuredAnswered = false;
   private readyMs = 0;
 
   // --- Per-turn timeline (§12) -----------------------------------------------
@@ -378,7 +377,12 @@ export class InteractionEngine {
     // Row 1: pending structured question (stall/freeze confirms the TUI is waiting).
     // Prefer the transcript signal; fall back to the SCREEN for CLIs that buffer the
     // pending question out of the transcript (e.g. Claude Code AskUserQuestion).
-    if (!this.structuredAnswered) {
+    // Runs on EVERY settled screen (per-episode) — never latched off after the first
+    // answer, so multi-gate and multi-part (tabbed) questions each get answered as they
+    // surface (answer → Enter advances → observe next → answer → … → Submit). Re-answer
+    // of the SAME screen is prevented by run()'s per-episode change gate (screen-change
+    // is the sole detector), not by a one-shot flag.
+    {
       let sq = this.adapter.detectStructuredQuestion(events);
       let fromScreen = false;
       if (!sq && this.adapter.detectScreenQuestion) {
@@ -395,7 +399,6 @@ export class InteractionEngine {
         } else {
           await this.session.submitLine(answer);
         }
-        this.structuredAnswered = true;
         this.turnCount += 1;
         this.recordTurn(stopAt, this.now(), true); // reply sent → next turn starts now
         return { action: 'answered' };
@@ -558,8 +561,10 @@ export class InteractionEngine {
             return this.buildResult('done');
           }
           if (res.action === 'answered') {
+            // Restart the freeze timer after injecting input, but KEEP `lastKey`: the
+            // just-answered screen stays the current episode so it is not re-answered.
+            // A real screen change (menu clears / next tab or question) re-arms the gate.
             monitor.reset();
-            lastKey = null;
           }
         }
         continue;
@@ -575,8 +580,10 @@ export class InteractionEngine {
           return this.buildResult('done');
         }
         if (res.action === 'answered') {
+          // Restart the stall timer after injecting input, but KEEP `lastKey`: the
+          // just-answered screen stays the current episode so it is not re-answered.
+          // A real screen change (menu clears / next tab or question) re-arms the gate.
           monitor.reset();
-          lastKey = null;
         }
         continue;
       }

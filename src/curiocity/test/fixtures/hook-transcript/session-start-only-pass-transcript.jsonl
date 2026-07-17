@@ -1,0 +1,4 @@
+{"type":"user","message":{"role":"user","content":"do the thing"}}
+{"type":"attachment","attachment":{"type":"hook_success","hookName":"SessionStart:startup","hookEvent":"SessionStart","stdout":"{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Rosetta injected_context_fingerprint loaded via plugin_bootstrap_signature\"}}","stderr":"","exitCode":0}}
+{"type":"assistant","message":{"role":"assistant","content":"working on it"}}
+{"type":"system","subtype":"stop_hook_summary","hookCount":1,"hookInfos":[{"command":"sh -c 'cat; echo' >> '/tmp/ctrl/stop.jsonl'","durationMs":36}],"hookErrors":[]}

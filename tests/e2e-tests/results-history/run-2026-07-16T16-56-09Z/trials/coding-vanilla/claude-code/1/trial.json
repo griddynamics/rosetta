@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 2,
+  "agent": "claude-code",
+  "case": "coding-vanilla",
+  "repeat": 1,
+  "status": "failed",
+  "verdict": {
+    "pass": false,
+    "score": 38,
+    "rationale": "weighted mean 38.0 < passThreshold 60"
+  },
+  "evaluators": [
+    {
+      "id": "file-exists",
+      "pass": true,
+      "gate": true,
+      "details": "all file-exists constraints satisfied"
+    },
+    {
+      "id": "command",
+      "pass": true,
+      "gate": true,
+      "details": "`cd \"$(find . -type d -name spring-boot-server | head -1)\" && ./mvnw -q -Dstyle.color=never test` exited 0 (expected 0)"
+    },
+    {
+      "id": "manual-qa-check",
+      "pass": false,
+      "gate": false,
+      "details": "manual QA: none (no live run detected)",
+      "metrics": [
+        {
+          "name": "manual_qa_ran_service",
+          "value": 0
+        },
+        {
+          "name": "manual_qa_hit_endpoint",
+          "value": 0
+        },
+        {
+          "name": "manual_qa_verified",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "llm-judge",
+      "pass": false,
+      "score": 38,
+      "gate": false,
+      "details": "1) API contract correctness (20/20): New HealthController in correct package, @GetMapping resolving to /api/health via @RequestMapping(\"/api\"), returns {\"status\":\"UP\"} with HTTP 200 via ResponseEntity.ok, matching CORS/style conventions seen in RatingController. Full credit. 2) Implementation quality (10/10): Clean, idiomatic, no smells — concise use of Map.of and ResponseEntity. 3) Discovery & design (7/10): Agent did explore existing code (found Application.java, listed Controllers, read RatingController for style) before writing, so not blind-wrote; however no explicit design statement/consideration beyond mirroring an existing controller — partial credit. 4) Specs & plan (0/10): No tech-spec or implementation-plan artifacts were produced. 5. Code review evidence (0/10): No self- or reviewer code review step occurred; agent went straight from write to summary. 6. Automated test (0/15): No JUnit/MockMvc test file was written — score is 0 per rubric. 7. Manual QA by AI (0/15): No evidence the agent ran the service or curled the endpoint; only static file creation happened. 8. Documentation quality (2.5/5): No new docs were created/updated, but no inaccurate docs were introduced either; the terse final chat summary is accurate but not a docs artifact — partial/minimal credit. 9. Scope discipline (5/5): Change is fully scoped — only the new controller file was added, no edits to pom.xml, application.properties, or unrelated files. Validation approach: NONE — the agent neither wrote an automated test nor performed manual/live QA of the endpoint. Weighted total ≈ 20+10+7+0+0+0+0+2.5+5 = 38.5, rounded to 38.",
+      "cost": {
+        "input": 4173,
+        "output": 639,
+        "reasoning": 0,
+        "cacheWrite": 0,
+        "cacheRead": 0,
+        "total": 4812,
+        "raw": {
+          "inputTokens": 4173,
+          "inputTokenDetails": {
+            "noCacheTokens": 4173,
+            "cacheReadTokens": 0,
+            "cacheWriteTokens": 0
+          },
+          "outputTokens": 639,
+          "outputTokenDetails": {},
+          "totalTokens": 4812,
+          "raw": {
+            "input_tokens": 4173,
+            "output_tokens": 639,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 0
+            },
+            "output_tokens_details": {
+              "thinking_tokens": 0
+            },
+            "service_tier": "standard",
+            "inference_geo": "global"
+          }
+        }
+      },
+      "confidenceLevel": 85
+    }
+  ],
+  "turnCount": 1,
+  "turnMetrics": {
+    "turnsTotal": 1,
+    "questionTurns": 0,
+    "interruptions": 0
+  },
+  "qna": [],
+  "cost": {
+    "agent": {
+      "input": 18,
+      "output": 1439,
+      "reasoning": 0,
+      "cacheWrite": 20512,
+      "cacheRead": 315340,
+      "total": 337309
+    },
+    "fast": {
+      "input": 391,
+      "output": 11,
+      "reasoning": 0,
+      "cacheWrite": 0,
+      "cacheRead": 0,
+      "total": 402
+    },
+    "judge": {
+      "input": 4173,
+      "output": 639,
+      "reasoning": 0,
+      "cacheWrite": 0,
+      "cacheRead": 0,
+      "total": 4812
+    },
+    "models": {
+      "fast": "anthropic/claude-sonnet-5",
+      "judge": "anthropic/claude-sonnet-5",
+      "agent": "claude-sonnet-5"
+    }
+  },
+  "timings": {
+    "totalMs": 38584,
+    "workspaceMs": 64,
+    "setupMs": 0,
+    "provisionMs": 1,
+    "launchMs": 21586,
+    "interactMs": 2906,
+    "collectMs": 62,
+    "evaluateMs": 13943,
+    "teardownMs": 22,
+    "agentPureMs": 21592,
+    "harnessReactMs": 2300,
+    "harnessLlmMs": 12221,
+    "harnessOverheadMs": 0,
+    "harnessLlmByModel": {
+      "anthropic/claude-sonnet-5": 12221
+    },
+    "checksMs": 4022,
+    "judgeLlmMs": 9921,
+    "agentMs": 21592,
+    "timeline": [
+      {
+        "turnStart": 1784221468957,
+        "stopAt": 1784221490549,
+        "reactionDoneAt": 1784221492849,
+        "question": false
+      }
+    ]
+  },
+  "agentModel": {
+    "requested": "claude-sonnet-5",
+    "observed": "claude-sonnet-5",
+    "mismatch": false
+  },
+  "agentEffort": {
+    "requested": "medium",
+    "observed": "medium",
+    "mismatch": false
+  },
+  "transcriptSource": "hook",
+  "workspacePath": "/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-1qR8nI"
+}

@@ -1,0 +1,13 @@
+{
+  "banner": "MOCK READY",
+  "steps": [
+    { "type": "print", "text": "Design gate first." },
+    { "type": "structured-question", "question": "Approve the design?", "options": ["Yes, approved", "No"] },
+    { "type": "await-input", "record": "structured" },
+    { "type": "print", "text": "Implementing after design approval..." },
+    { "type": "file", "path": "out.txt", "text": "hello world" },
+    { "type": "structured-question", "question": "Approve the implementation?", "options": ["Yes, approve", "No"] },
+    { "type": "await-input", "record": "structured" },
+    { "type": "stop", "message": "Done after both approvals.", "complete": true }
+  ]
+}

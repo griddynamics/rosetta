@@ -215,6 +215,7 @@ describe('buildTrialSpecs — registry-default `models` reach the final TrialSpe
       detectStructuredQuestion: () => null,
       extractUsage: () => zeroUsage(),
       terminate: async () => {},
+      buildTranscriptViews: () => ({}),
     };
     agentRegistry.register(fakeAdapter);
   }

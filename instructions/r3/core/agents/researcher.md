@@ -2,7 +2,7 @@
 name: researcher
 description: "Run deep research with grounded references, systematic exploration, self-validation, etc. Full subagent."
 mode: subagent
-model: claude-5-sonnet, gpt-5.4-medium, gemini-3.1-pro
+model: claude-5-sonnet, gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gpt-5.6-terra
 readonly: false
 baseSchema: docs/schemas/agent.md
 ---

@@ -250,25 +250,23 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     // This test covers the preserved-file path (sample-plugins have hooks/ dirs with .tmpl files).
     const dryOutputDir = path.join(tmpRepo, 'dry-output');
 
-    // Capture stdout to verify full contents are emitted (FR-ARCH-0045, FR-CLI-0050, G-2)
-    let capturedStdout = '';
-    const originalWrite = process.stdout.write.bind(process.stdout);
-    (process.stdout as NodeJS.WriteStream).write = ((chunk: string | Uint8Array, ...rest: unknown[]) => {
-      if (typeof chunk === 'string') capturedStdout += chunk;
-      return true;
-    }) as typeof process.stdout.write;
+    // FR-ARCH-0045/FR-CLI-0050: dry-run emits "to the output" — inject our own sink
+    // instead of the process stdout (no monkeypatching, no log-level coupling).
+    let captured = '';
+    const sink = new PassThrough();
+    sink.on('data', (chunk: Buffer | string) => {
+      captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
+    });
 
-    try {
-      await generate({
-        sources: buildSources(tmpRepo, dryOutputDir),
-        release: 'r2',
-        domain: 'core',
-        dryRun: true,
-        verbose: false,
-      });
-    } finally {
-      (process.stdout as NodeJS.WriteStream).write = originalWrite;
-    }
+    await generate({
+      sources: buildSources(tmpRepo, dryOutputDir),
+      release: 'r2',
+      domain: 'core',
+      dryRun: true,
+      verbose: false,
+      out: sink,
+    });
+    sink.end();
 
     // FR-CLI-0050: dry-run MUST NOT write anything to disk — zero files, zero directories.
     const dryFiles = listFilesRecursive(dryOutputDir);
@@ -276,12 +274,12 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     // The output directory itself must not have been created either
     expect(fs.existsSync(dryOutputDir), 'dry-run output directory must not exist').toBe(false);
 
-    // FR-ARCH-0045, G-2: dry-run must emit full target path AND full contents to stdout
-    // Verify a known file's content substring appears in the captured stdout
-    expect(capturedStdout, 'dry-run stdout must be non-empty').toContain('DRY-RUN:');
+    // FR-ARCH-0045, G-2: dry-run must emit full target path AND full contents to the output sink
+    // Verify a known file's content substring appears in the captured output
+    expect(captured, 'dry-run output must be non-empty').toContain('DRY-RUN:');
     // bootstrap-core-policy.md has known content "# Core Policy"
-    expect(capturedStdout, 'dry-run must emit bootstrap-core-policy.md path in stdout').toContain('bootstrap-core-policy.md');
-    expect(capturedStdout, 'dry-run must emit file content (# Core Policy) to stdout').toContain('# Core Policy');
+    expect(captured, 'dry-run must emit bootstrap-core-policy.md path').toContain('bootstrap-core-policy.md');
+    expect(captured, 'dry-run must emit file content (# Core Policy)').toContain('# Core Policy');
   });
 
   it('unknown release → exit 1, no output', async () => {
@@ -322,6 +320,11 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
         captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
       });
 
+      // Discard the dry-run dump (FR-ARCH-0045 "to the output") — this test measures
+      // logger lines only, so the content dump must not reach the console.
+      const discard = new PassThrough();
+      discard.resume();
+
       initLogger(verboseMode, sink);
       await generate({
         sources: buildSources(tmpRepo, outDir),
@@ -329,6 +332,7 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
         domain: 'core',
         dryRun: true, // dry-run: no disk side effects
         verbose: verboseMode,
+        out: discard,
       });
       sink.end();
 
@@ -338,7 +342,8 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     const verboseLines = await countLogLines(true, verboseOutputDir);
     const normalLines = await countLogLines(false, normalOutputDir);
 
-    // Reset logger after test
+    // Reset the logger to the ambient (env/default) level so this test does not leak
+    // its raised level into sibling tests — initLogger(false) re-reads the env.
     initLogger(false);
 
     // FR-CLI-0051: verbose MUST produce strictly more log lines than normal mode

@@ -1,6 +1,7 @@
 import { accessSync, constants, statSync } from 'node:fs';
 import { delimiter, isAbsolute, join } from 'node:path';
 import { minimatch } from './minimatch';
+import { AGENT_API_KEY_ALLOWLIST } from '../orchestrator/env';
 import type { AgentAdapter, CanonicalHookSpec, LaunchFragment, LaunchPlan, TrialContext } from './types';
 
 /**
@@ -32,6 +33,11 @@ export function templateVars(ctx: TrialContext): Record<string, string> {
  * (stripped) then `envSet` (added/overridden). This is the ONLY env the agent
  * process sees; the base is already the Curion's allow-listed env (§4), so secrets
  * cannot reach the agent even by accident.
+ *
+ * Keys in `AGENT_API_KEY_ALLOWLIST` (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) are always
+ * kept, overriding any `envRemove` pattern that would otherwise strip them — this is
+ * what lets the agent authenticate via a forwarded key in CI, where there is no
+ * interactive OAuth session.
  */
 export function filterAgentEnv(
   base: Record<string, string>,
@@ -40,6 +46,10 @@ export function filterAgentEnv(
 ): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(base)) {
+    if (AGENT_API_KEY_ALLOWLIST.has(key)) {
+      out[key] = value;
+      continue;
+    }
     if (envRemove.some((pattern) => minimatch(key, pattern))) continue;
     out[key] = value;
   }

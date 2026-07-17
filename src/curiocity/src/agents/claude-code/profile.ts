@@ -15,10 +15,15 @@ import type { AgentProfile } from '../../config/schema';
  *   the launch argument (D15). The settings-file content is rendered by the adapter's
  *   `renderHooks`; this profile only names the flag/path.
  * - **envRemove**: strip `CLAUDECODE` + `CLAUDE_CODE*` (else claude runs as a nested
- *   child session and never persists a transcript) and the `ANTHROPIC_*` key vars
- *   (else the agent bills the harness key). `CLAUDE_CONFIG_DIR` is intentionally NOT
- *   listed — it must remain unset so transcripts land in `~/.claude` and the agent's
- *   own stored auth is used (P9); the computed-fallback path assumes `~/.claude`.
+ *   child session and never persists a transcript) and `ANTHROPIC_AUTH_TOKEN` /
+ *   `ANTHROPIC_BASE_URL` (harness-internal endpoint/auth overrides that must not leak
+ *   into the agent). `CLAUDE_CONFIG_DIR` is intentionally NOT listed — it must remain
+ *   unset so transcripts land in `~/.claude` and the agent's own stored auth is used
+ *   (P9); the computed-fallback path assumes `~/.claude`. `ANTHROPIC_API_KEY` is
+ *   deliberately NOT in this list: API-key forwarding is governed solely by the global
+ *   `AGENT_API_KEY_ALLOWLIST` (in `orchestrator/env.ts`, applied by `filterAgentEnv`),
+ *   which unconditionally keeps it. In CI — where there is no interactive OAuth session
+ *   — the agent authenticates via that forwarded key instead of stored OAuth.
  * - **strategy `json-only`**: the on-disk trajectory + `Stop` hook drive the turn loop
  *   (P4); the screen is only fallback evidence, so no LLM screen-reads are made.
  * - **dialogPatterns**: deterministic clears for the known startup dialogs (trust
@@ -29,7 +34,7 @@ export const CLAUDE_CODE_DEFAULT_PROFILE: AgentProfile = {
   adapter: 'claude-code',
   command: 'claude',
   args: ['{prompt}', '--permission-mode', 'auto', '--session-id', '{sessionId}', '--settings', '{ctrlDir}/settings.json'],
-  envRemove: ['CLAUDECODE', 'CLAUDE_CODE*', 'ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL'],
+  envRemove: ['CLAUDECODE', 'CLAUDE_CODE*', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL'],
   strategy: 'json-only',
   readiness: { quietMs: 800 },
   // Bracketed paste is the single production submit path (§5.3 ruling): text is wrapped

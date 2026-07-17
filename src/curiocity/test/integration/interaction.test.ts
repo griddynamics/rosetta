@@ -69,6 +69,28 @@ describe('§6 interaction engine — trigger table, row by row', () => {
     expect(router!.isExhausted()).toBe(true);
   });
 
+  it('row 1 (regression): TWO sequential structured gates are BOTH answered (no one-shot latch)', async () => {
+    // A multi-gate workflow (e.g. coding-flow: design gate → work → final gate) asks a
+    // SECOND structured question after the first is answered. Detection must run on every
+    // settled screen — never latched off after the first answer — or the agent hangs at
+    // the second gate (freeze watchdog → agent-hung). This is the exact bug the removed
+    // `structuredAnswered` one-shot caused.
+    const { result, router } = await run({ scene: 'two-gates.json' }, {
+      entries: [
+        { role: 'workhorse', text: 'Yes, approved' },
+        { role: 'workhorse', text: 'Yes, approve' },
+      ],
+    });
+    expect(result.status).toBe('passed');
+    expect(result.qna).toHaveLength(2);
+    expect(result.qna.map((q) => q.question)).toEqual([
+      'Approve the design?',
+      'Approve the implementation?',
+    ]);
+    expect(router!.calls.map((c) => c.role)).toEqual(['workhorse', 'workhorse']);
+    expect(router!.isExhausted()).toBe(true);
+  });
+
   it('row 2 (Stop → fast classifies question) → workhorse free-text answer → typed reply', async () => {
     const { result, router } = await run({ scene: 'free-text-question.json' }, {
       entries: [

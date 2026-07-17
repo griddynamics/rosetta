@@ -105,7 +105,9 @@ export interface AgentAdapter {
 
   /** Step 1 — render the canonical hook spec into agent-native registration. */
   renderHooks(spec: CanonicalHookSpec, ctx: TrialContext): Promise<LaunchFragment>;
-  /** Step 2 — materialize the merged ProvisionSpec natively, workspace-scoped (P11). */
+  /** Step 2 — materialize the merged ProvisionSpec natively without global mutation (P11):
+   *  plugins are session-scoped via `--plugin-dir` (never touches the global `~/.claude`);
+   *  MCPs remain workspace-scoped (a workspace `.mcp.json`). */
   renderProvisioning(spec: ProvisionSpec, ctx: TrialContext): Promise<LaunchFragment>;
   /** Step 3 — command/args/env from profile templates (envRemove filtering, session id). */
   buildLaunch(ctx: TrialContext): LaunchFragment;
@@ -151,4 +153,15 @@ export interface AgentAdapter {
   extractUsage(events: TrajectoryEvent[]): AgentUsage;
   /** End the session cleanly (e.g. type `/exit`, send key). */
   terminate(session: TerminalSession): Promise<void>;
+
+  /**
+   * Build human-readable transcript "views" from this agent's OWN raw transcript
+   * (knowing its native specifics) + the normalized events, converting specialized →
+   * common. Returns viewName → markdown.
+   */
+  buildTranscriptViews(
+    rawTranscript: string,
+    events: TrajectoryEvent[],
+    ctx: import('./transcript-views').ViewContext,
+  ): import('./transcript-views').TranscriptViews;
 }

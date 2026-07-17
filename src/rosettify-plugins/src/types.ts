@@ -1,5 +1,7 @@
 // FR-ARCH-0001/0002/0003/0030/0036/0039 — all PascalCase domain types, camelCase processor factories
 
+import type { Writable } from 'stream';
+
 export type DirectiveToken = string;
 
 export interface SourceFile {
@@ -167,4 +169,5 @@ export interface GenerateOptions {
   dryRun: boolean;
   verbose: boolean;
   deterministicHooks?: boolean; // FR-CLI-0012 — per-run override; undefined → release descriptor value
+  out?: Writable;               // FR-ARCH-0045/FR-CLI-0050 — dry-run output sink; defaults to process.stdout
 }

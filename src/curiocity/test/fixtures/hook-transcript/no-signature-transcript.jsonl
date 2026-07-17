@@ -1,0 +1,3 @@
+{"type":"user","message":{"role":"user","content":"do the thing"}}
+{"type":"system","subtype":"pre_tool_use_hook_summary","hookCount":1,"hookInfos":[{"command":"jq '.' < /dev/null","durationMs":4}],"hookErrors":[]}
+{"type":"assistant","message":{"role":"assistant","content":"done"}}

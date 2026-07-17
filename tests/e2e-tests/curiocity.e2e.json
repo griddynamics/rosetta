@@ -1,0 +1,19 @@
+{
+  "models": {
+    "fast": "anthropic/claude-sonnet-5",
+    "workhorse": "anthropic/claude-sonnet-5",
+    "judge": "anthropic/claude-sonnet-5"
+  },
+  "pricing": {
+    "anthropic/claude-sonnet-5": { "inputPer1M": 3.0, "outputPer1M": 15.0 },
+    "claude-sonnet-5": { "inputPer1M": 3.0, "outputPer1M": 15.0 }
+  },
+  "codingagents": {
+    "claude-code": {
+      "agentModel": "claude-sonnet-5",
+      "agentEffort": "low"
+    }
+  },
+  "gate": { "minScore": 60, "minPassRate": 0.8, "maxStddev": 10 },
+  "concurrency": 1
+}

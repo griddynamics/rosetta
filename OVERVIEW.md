@@ -17,7 +17,7 @@ Rosetta is a **meta-prompting, context engineering, and centralized instructions
 
 Design principles:
 
-**Agent-agnostic.** Works across Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Adopts agent-specific features where available, simulates them where not.
+**Agent-agnostic.** Works through MCP across Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Adopts agent-specific features where available; native hooks remain IDE-specific and require per-IDE validation.
 
 **Progressive disclosure.** Instructions load in stages (bootstrap, classification, workflow-specific, sub-instructions) to [prevent context overflow](docs/MCP-ARCHITECTURE.md#context-overflow-prevention). The agent gets only what it needs for the current task.
 

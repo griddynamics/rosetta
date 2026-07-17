@@ -1,71 +1,59 @@
 import { CuriocityError } from '../shared/errors';
 
 /**
- * Child env scrubbing (§4). Curions are forked with an EXPLICIT allow-list — PATH,
- * HOME, TERM, the user-identity pair (USER/LOGNAME) and locale vars, nothing else —
- * so CI-provided secret env (API keys) is never inherited by default `fork` behavior.
- * LLM keys travel to the child only inside `TrialSpec` over IPC; the agent PTY env is
- * then derived from this scrubbed base (§5.2 `envRemove`/`envSet`), so no secret can
- * reach the agent even by accident.
+ * Child env scrubbing (§4). Curions are forked with the FULL parent env passed through —
+ * so toolchains the case/agent may shell out to (`JAVA_HOME`, `MAVEN_OPTS`, `GOPATH`, …)
+ * keep working exactly as they would in a normal shell — MINUS provider secret vars:
+ * anything matching `ANTHROPIC_*`/`OPENAI_*` (case-insensitive) is stripped, EXCEPT the
+ * two whitelisted keys the harness must forward for auth (`AGENT_API_KEY_ALLOWLIST`).
+ * LLM keys otherwise travel to the child inside `TrialSpec` over IPC; the agent PTY env
+ * is then derived from this deny-listed base (§5.2 `envRemove`/`envSet`).
  *
- * USER/LOGNAME are on the allow-list because the agent CLIs resolve their OWN stored
- * auth through them: on macOS, Claude Code's Keychain-backed OAuth credential lookup
- * needs `USER` to identify the login context, and without it `claude` reports
- * "Not logged in" even though HOME/~/.claude are readable (validated live 2026-07-02).
- * Neither is secret-shaped (see `keyLooksSecret`), so they pass `assertNoSecrets`.
+ * NOTE — deliberate trade-off: OTHER secrets already present in the environment (e.g.
+ * `AWS_*`, `GITHUB_TOKEN`, `GOOGLE_APPLICATION_CREDENTIALS`) are intentionally passed
+ * through unmodified. This harness is meant to behave like a normal shell/CI step, not
+ * a secret vault; only the two provider-key families this harness itself forwards for
+ * agent auth are singled out for stripping.
  */
 
-/** Exact allow-listed env keys. */
-const ALLOW_EXACT = new Set([
-  'PATH',
-  'HOME',
-  'TERM',
-  'USER',
-  'LOGNAME',
-  'LANG',
-  'LANGUAGE',
-  'LC_ALL',
-  'LC_CTYPE',
-]);
-/** Allow-listed prefixes (locale family, e.g. LC_TIME, LC_NUMERIC). */
-const ALLOW_PREFIX = ['LC_'];
+/**
+ * Env vars explicitly allowed to reach the child (and, via `filterAgentEnv`, the agent
+ * PTY) irrespective of adapter. These are agent/judge API keys the harness MUST forward
+ * in CI, where there is no interactive OAuth session. They are exempted from the
+ * `ANTHROPIC_*`/`OPENAI_*` strip below — every other var matching those prefixes is
+ * still stripped. Single global allowlist (no per-adapter filtering).
+ */
+export const AGENT_API_KEY_ALLOWLIST = new Set(['ANTHROPIC_API_KEY', 'OPENAI_API_KEY']);
 
-function isAllowed(key: string): boolean {
-  if (ALLOW_EXACT.has(key)) return true;
-  return ALLOW_PREFIX.some((p) => key.startsWith(p));
-}
+/** Key prefixes stripped from the child env (provider secrets), unless whitelisted above. */
+const STRIP_PREFIXES = [/^ANTHROPIC_/i, /^OPENAI_/i];
 
-/** Key looks secret (provider key vars). */
-function keyLooksSecret(key: string): boolean {
-  return /^(ANTHROPIC|OPENAI|AWS|AZURE|GOOGLE|GEMINI|COHERE|MISTRAL|GROQ)_/i.test(key) || /API_?KEY|SECRET|TOKEN/i.test(key);
-}
-
-/** Value looks like an API key/token (e.g. `sk-...`). */
-function valueLooksSecret(value: string): boolean {
-  return /\bsk-[A-Za-z0-9_-]{8,}/.test(value) || /\b(sk|pk)-(live|proj|ant)/i.test(value);
+/** True if `key` is a provider-secret-shaped var that must be stripped from the child env. */
+export function shouldStrip(key: string): boolean {
+  return !AGENT_API_KEY_ALLOWLIST.has(key) && STRIP_PREFIXES.some((re) => re.test(key));
 }
 
 /**
- * Assert none of the env entries are secret-shaped (defense in depth). Throws so a
- * leak is caught before a child/PTY is ever spawned.
+ * Defense-in-depth: assert none of the surviving env entries still match a strip prefix
+ * without being whitelisted (i.e. `buildChildEnv`'s strip logic regressed). Throws so a
+ * leak is caught before a child/PTY is ever spawned. Deliberately does NOT check generic
+ * `API_KEY|SECRET|TOKEN` shapes or value shapes — those vars pass through by design under
+ * the deny-list model (see file doc comment).
  */
-export function assertNoSecrets(env: Record<string, string>): void {
-  for (const [key, value] of Object.entries(env)) {
-    if (keyLooksSecret(key)) {
+export function assertNoProviderSecrets(env: Record<string, string>): void {
+  for (const key of Object.keys(env)) {
+    if (shouldStrip(key)) {
       throw new CuriocityError(`Refusing to pass secret-shaped env var "${key}" to a child.`, 'SECRET_LEAK');
-    }
-    if (valueLooksSecret(value)) {
-      throw new CuriocityError(`Refusing to pass secret-shaped value for env var "${key}" to a child.`, 'SECRET_LEAK');
     }
   }
 }
 
-/** Build the allow-listed child env from a source env (default `process.env`). */
+/** Build the child env from a source env (default `process.env`): full pass-through minus provider secrets. */
 export function buildChildEnv(source: NodeJS.ProcessEnv = process.env): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(source)) {
-    if (typeof value === 'string' && isAllowed(key)) out[key] = value;
+    if (typeof value === 'string' && !shouldStrip(key)) out[key] = value;
   }
-  assertNoSecrets(out);
+  assertNoProviderSecrets(out);
   return out;
 }

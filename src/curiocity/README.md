@@ -102,6 +102,7 @@ An evaluator that **throws** (e.g. the judge's model key returns `insufficient_q
 - **`file-exists`** — globs that must / must-not exist in the final workspace.
 - **`command`** — run a build/test/lint string via shell; assert the exit code.
 - **`trajectory-check`** — assert `tool_call` events matched a pattern (the "did our plugin actually run" gate). `toolPattern` is one regex or a per-agent map.
+- **`hook-transcript-check`** — proves a Claude Code **plugin's own hooks** fired, distinct from Curiocity's always-present capture hooks. Version-agnostic: derives the expected hook events dynamically from whatever the live, checked-in `plugins/core-claude/hooks/hooks.json` declares — today just `SessionStart`, so the check verifies `SessionStart` fired the plugin's own command; if the plugin later declares `PreToolUse`/`PostToolUse`/etc., the check adapts automatically, no doc or code change needed. It then scans the run's raw transcript for `system` entries whose `subtype` ends `_hook_summary` and confirms each expected event both fired and ran the plugin's own command (matched by `.js` script basename, or a `hookSpecificOutput` token for printf-style `SessionStart` hooks). Params: `pluginManifest`, `ignoreEvents` (default `["PostCompact"]`), `requireCommands` (default `true`); emits `hook_events_{declared,checked,fired,plugin_matched}` metrics. The event→subtype mapping itself is empirically confirmed only for `Stop` → `stop_hook_summary`; other event names fall back to the same snake_case + `_hook_summary` pattern — which is why it fails loud, rather than silently passing, if the transcript has zero recognizable `*_hook_summary` entries.
 - **`llm-judge`** — judge model scores 0–100 from `evaluation.md` + distilled trajectory + produced artifacts (`artifacts` globs, size-capped) + QnA log. The result also carries `confidenceLevel` (0–100, self-reported — the judge's own estimate of how solid its verdict is, required in its output schema) and `perplexityLevel` (0–100, measured from token logprobs over the generated output when the provider exposes them; absent otherwise, e.g. Anthropic models — warned once per model per run, never an error).
 - **`external`** — run any program that reads a JSON object (file **paths**, not blobs) on stdin and prints this object on stdout:
 
@@ -138,10 +139,10 @@ Top-level config sketch:
 ```jsonc
 {
   "codingagents": { "claude-code": { /* profile */ }, "codex": { /* profile */ } },
-  "models":  { "fast": "anthropic/claude-haiku-4-5", "workhorse": "anthropic/claude-sonnet-4-6" },
+  "models":  { "fast": "anthropic/claude-haiku-4-5", "workhorse": "anthropic/claude-sonnet-5" },
   "pricing": {                                      // optional; enables $ in cost-rollup
     "anthropic/claude-haiku-4-5":  { "inputPer1M": 1.0, "outputPer1M": 5.0 },
-    "anthropic/claude-sonnet-4-6": { "inputPer1M": 3.0, "outputPer1M": 15.0 }
+    "anthropic/claude-sonnet-5": { "inputPer1M": 3.0, "outputPer1M": 15.0 }
   },
   "provision": { "mcps": [], "plugins": [] },
   "setup": [], "teardown": [],
@@ -151,11 +152,15 @@ Top-level config sketch:
 }
 ```
 
+**Plugins.** A `provision.plugins` entry is `{ "name": "...", "path": "<dir-or-.zip>" }`; a relative `path` resolves against the case directory (a plugin without a `path` is a config error). Only `claude-code` provisions plugins today — rendered as a session-scoped `claude --plugin-dir <path>` flag per plugin, so `~/.claude` is never touched; `codex` doesn't support plugins yet. MCPs are unchanged (the claude-code adapter still renders them into a workspace `.mcp.json`; codex renders MCPs its own way, via `-c` overrides).
+
 **Setup/teardown and the `command` evaluator run user-authored shell lines** (`shell:true`) — they take shell syntax by design and are trusted at the case-authoring level. The `external` evaluator invokes a program with an explicit argv (no shell). No agent output is ever interpolated into a shell command.
 
 ## Models, effort & cost
 
 Three harness roles map to `"provider/model"` strings: `fast` (high-frequency classification), `workhorse` (question replies), `judge` (defaults to workhorse). Providers: `anthropic`, `openai` (add one = dependency + a line in `llm/providers.ts`).
+
+**Canonical current Anthropic model ids** (use these exactly; don't invent variants): Haiku 4.5 = `claude-haiku-4-5`, Sonnet 5 = `claude-sonnet-5`, Opus 4.8 = `claude-opus-4-8`. Curiocity's harness-role strings take an `anthropic/` provider prefix (e.g. `anthropic/claude-sonnet-5`); the agent's own `agentModel` field takes the bare id (e.g. `claude-sonnet-5`).
 
 The **agent's own model/effort** is a separate dimension from the harness roles: set `agentModel`/`agentEffort` on the profile, per-case, or via `--agent-model`/`--agent-effort`.
 
@@ -165,6 +170,8 @@ The **agent's own model/effort** is a separate dimension from the harness roles:
 - An optional `budgetUsd` over-budget warns once and keeps going.
 
 **Keys.** Resolved once at startup, held in memory, shipped to workers over IPC, masked in logs, never written to disk. Per provider, precedence is `CURIOCITY_<PROVIDER>_KEY` then the provider-standard var (e.g. `ANTHROPIC_API_KEY`), checked first in the environment, then in a `.env` file in the current working directory. A provider with no key is fine unless a role actually needs it.
+
+**Env forwarded to the agent.** Curiocity forwards the child/agent environment on a deny-list basis: the full parent env passes through (so toolchains like `JAVA_HOME`/Maven work as they would in a normal shell), and only vars matching `ANTHROPIC_*`/`OPENAI_*` (case-insensitive) are stripped — except exactly two provider keys, `ANTHROPIC_API_KEY` and `OPENAI_API_KEY`, which are forwarded straight through to the agent CLI (via `filterAgentEnv`), irrespective of adapter or `envRemove` config: in CI there's no interactive OAuth session, so the harness must forward the key for the agent to authenticate, and the same key also feeds the harness's own judge/QnA LLM calls. The exemption is exact-match only, so a near-miss name like `MY_ANTHROPIC_API_KEY` doesn't match the strip prefix and simply passes through like any other env var. NOTE: other secrets already in the environment (`AWS_*`, `GITHUB_TOKEN`, …) are intentionally passed through too — a deliberate trade-off so the harness behaves like a normal shell/CI step, not a secret vault.
 
 **Base URLs.** Optional provider base URLs use the same source precedence and are validated as `http://` or `https://` before any trial starts. Per provider, precedence is `CURIOCITY_<PROVIDER>_BASE_URL`, then `<PROVIDER>_BASE_URL`, then `CURIOCITY_BASE_URL`. `CURIOCITY_BASE_URL` intentionally fans out to every provider for multi-provider gateways like Bifrost; use provider-specific vars when providers need different origins or route prefixes.
 
@@ -213,6 +220,8 @@ npm run smoke      # integration only: full fork+PTY loop against the mock agent
 ```
 
 Contract tests against your locally installed CLIs: `npm run contract:claude`, `npm run contract:codex`. Live E2E is manual/nightly and needs authenticated CLIs.
+
+**E2E suite** (`tests/e2e-tests/`): two live cases — `coding-vanilla` (plain Claude Code, control) and `coding-rosetta` (Claude Code + the live, checked-in `plugins/core-claude` plugin, referenced via a relative `../../../plugins/core-claude` path and loaded via `--plugin-dir`) — both run the same health-endpoint coding task through the full gated lifecycle; `coding-rosetta` additionally gates on `hook-transcript-check`. Each case's `src.zip` is the maintainer-provided fixture archive copied verbatim from `test-library/`: `coding-vanilla` uses `spring-boot-react-mysql-not-initialized.zip`, `coding-rosetta` uses `spring-boot-react-mysql-initialized.zip` (a Rosetta-pre-initialized workspace) — neither archive is reprocessed. Both run against the base config `tests/e2e-tests/curiocity.e2e.json`. `tests/e2e-tests/build-src-zip.mjs` is a manual-only utility for deriving a fresh fixture locally; it is not used by the workflow or any automated path. The manual `.github/workflows/e2e-testing.yml` workflow (`workflow_dispatch`) verifies the live plugin is present, stages the fixtures, runs Curiocity, and uploads all evidence.
 
 ### Known `npm audit` findings
 

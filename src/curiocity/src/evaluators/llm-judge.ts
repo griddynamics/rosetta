@@ -46,13 +46,30 @@ export type JudgeOutput = z.infer<typeof judgeOutputSchema>;
 /** Per-file / per-diff character caps (bounding; never the unbounded workspace). */
 export const MAX_FILE_CHARS = 4000;
 export const MAX_DIFF_CHARS = 12000;
-export const MAX_TRAJECTORY_CHARS = 8000;
+export const MAX_TRAJECTORY_CHARS = 16000;
 const MAX_TOOL_RESULT_CHARS = 500;
 
 function capText(text: string, max: number, label: string): string {
   if (text.length <= max) return text;
   const kept = text.slice(0, max);
   return `${kept}\n...[truncated: ${label} showed ${max} of ${text.length} chars]...`;
+}
+
+/**
+ * Head+tail cap for the trajectory. A long run's shape lives at BOTH ends — the
+ * discovery / design / planning up front and the implementation / delivery / live
+ * validation at the close. Head-only truncation (`capText`) silently drops the tail,
+ * which under-credits exactly the thorough-workflow dimensions (discovery & design,
+ * validation) a judge is meant to reward. Keep the first and last halves with an
+ * explicit middle-elision marker. Files/diffs/tool-results keep the cheaper head cap.
+ */
+export function capTextHeadTail(text: string, max: number, label: string): string {
+  if (text.length <= max) return text;
+  const half = Math.floor(max / 2);
+  const head = text.slice(0, half);
+  const tail = text.slice(text.length - half);
+  const omitted = text.length - 2 * half;
+  return `${head}\n...[truncated: ${label} — omitted ${omitted} chars from the middle; showed first ${half} + last ${half} of ${text.length}]...\n${tail}`;
 }
 
 /** [2] Distill the trajectory to compact text: tool steps, trimmed results, prose. */
@@ -82,7 +99,7 @@ export function distillTrajectory(events: TrajectoryEvent[]): string {
         break;
     }
   }
-  return capText(lines.join('\n'), MAX_TRAJECTORY_CHARS, 'trajectory');
+  return capTextHeadTail(lines.join('\n'), MAX_TRAJECTORY_CHARS, 'trajectory');
 }
 
 function summarizePayload(payload: unknown): string {

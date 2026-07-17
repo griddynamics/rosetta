@@ -1,1 +1,1 @@
-Write tests for the health-check API feature. Start from requirements discovery, create test strategy and design test scenarios. Save the test plan to `plans/AQA-HEALTHCHECK-PLAN.md` and state to `agents/aqa-state.md`.
+/api-aqa-flow Write tests for the health-check API feature. Start from requirements discovery, create test strategy and design test scenarios. Save the test plan to `plans/AQA-HEALTHCHECK-PLAN.md` and state to `agents/aqa-state.md`.

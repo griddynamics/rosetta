@@ -3,6 +3,7 @@ import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { ClaudeCodeAdapter } from '../../src/agents/claude-code/adapter';
+import { ConfigError } from '../../src/shared/errors';
 import { CLAUDE_CODE_DEFAULT_PROFILE } from '../../src/agents/claude-code/profile';
 import { computeTranscriptPath, encodeCwd } from '../../src/agents/claude-code/transcript-path';
 import { agentProfileSchema } from '../../src/config/schema';
@@ -389,13 +390,13 @@ describe('ClaudeCodeAdapter — renderHooks (settings file shape vs docs/hooks/c
 });
 
 describe('ClaudeCodeAdapter — buildLaunch env stripping (§10.1)', () => {
-  it('strips CLAUDECODE, CLAUDE_CODE*, ANTHROPIC_* keys; keeps HOME/PATH; leaves CLAUDE_CONFIG_DIR untouched', () => {
+  it('strips CLAUDECODE, CLAUDE_CODE*, ANTHROPIC_AUTH_TOKEN/BASE_URL; keeps HOME/PATH and the allowlisted ANTHROPIC_API_KEY; leaves CLAUDE_CONFIG_DIR untouched', () => {
     const saved = { ...process.env };
     try {
       process.env.CLAUDECODE = '1';
       process.env.CLAUDE_CODE_ENTRYPOINT = 'cli';
       process.env.CLAUDE_CODE_SESSION_ID = 'abc';
-      process.env.ANTHROPIC_API_KEY = 'sk-should-be-stripped';
+      process.env.ANTHROPIC_API_KEY = 'sk-should-survive';
       process.env.ANTHROPIC_AUTH_TOKEN = 'tok';
       process.env.ANTHROPIC_BASE_URL = 'http://x';
       process.env.CLAUDE_CONFIG_DIR = '/should/remain';
@@ -405,7 +406,10 @@ describe('ClaudeCodeAdapter — buildLaunch env stripping (§10.1)', () => {
       expect(env.CLAUDECODE).toBeUndefined();
       expect(env.CLAUDE_CODE_ENTRYPOINT).toBeUndefined();
       expect(env.CLAUDE_CODE_SESSION_ID).toBeUndefined();
-      expect(env.ANTHROPIC_API_KEY).toBeUndefined();
+      // ANTHROPIC_API_KEY is in the global AGENT_API_KEY_ALLOWLIST (src/orchestrator/env.ts):
+      // it survives the profile's `ANTHROPIC_*` envRemove pattern so the agent can
+      // authenticate via the forwarded key in CI.
+      expect(env.ANTHROPIC_API_KEY).toBe('sk-should-survive');
       expect(env.ANTHROPIC_AUTH_TOKEN).toBeUndefined();
       expect(env.ANTHROPIC_BASE_URL).toBeUndefined();
       // Neither set nor stripped by the adapter — it just is not in envRemove.
@@ -428,10 +432,56 @@ describe('ClaudeCodeAdapter — buildLaunch env stripping (§10.1)', () => {
 });
 
 describe('ClaudeCodeAdapter — renderProvisioning (P11)', () => {
-  it('rejects plugin provisioning with a clear P11 message (no global mutation)', async () => {
+  it('renders a plugin as a session-scoped --plugin-dir launch arg (no global mutation)', async () => {
+    const frag = await adapter.renderProvisioning(
+      { mcps: [], plugins: [{ name: 'rosetta', path: '/abs/plugin/core-claude' }] },
+      ctx(),
+    );
+    expect(frag.args).toEqual(['--plugin-dir', '/abs/plugin/core-claude']);
+    expect(frag.files).toBeUndefined();
+  });
+
+  it('renders multiple plugins as repeated --plugin-dir flags', async () => {
+    const frag = await adapter.renderProvisioning(
+      {
+        mcps: [],
+        plugins: [
+          { name: 'a', path: '/a' },
+          { name: 'b', path: '/b' },
+        ],
+      },
+      ctx(),
+    );
+    expect(frag.args).toEqual(['--plugin-dir', '/a', '--plugin-dir', '/b']);
+  });
+
+  it('rejects a plugin without a path (ConfigError → exit 2)', async () => {
     await expect(
       adapter.renderProvisioning({ mcps: [], plugins: [{ name: 'rosetta' }] }, ctx()),
-    ).rejects.toThrow(/P11|plugins|~\/\.claude/);
+    ).rejects.toThrow(/path/);
+    await expect(
+      adapter.renderProvisioning({ mcps: [], plugins: [{ name: 'rosetta' }] }, ctx()),
+    ).rejects.toBeInstanceOf(ConfigError);
+  });
+
+  it('rejects a plugin with an empty-string path', async () => {
+    await expect(
+      adapter.renderProvisioning({ mcps: [], plugins: [{ name: 'rosetta', path: '' }] }, ctx()),
+    ).rejects.toThrow(/path/);
+  });
+
+  it('renders both --plugin-dir args and the .mcp.json file when plugins and mcps are both present', async () => {
+    const workspace = '/tmp/ws-both';
+    const frag = await adapter.renderProvisioning(
+      {
+        mcps: [{ name: 'rosetta', command: 'node', args: ['server.js'] }],
+        plugins: [{ name: 'p', path: '/abs/p' }],
+      },
+      ctx({ workspace }),
+    );
+    expect(frag.args).toEqual(['--plugin-dir', '/abs/p']);
+    expect(frag.files).toHaveLength(1);
+    expect(frag.files![0]!.path).toBe(join(workspace, '.mcp.json'));
   });
 
   it('renders MCPs into a workspace .mcp.json (workspace-scoped only)', async () => {
@@ -465,6 +515,80 @@ describe('ClaudeCodeAdapter — default profile validity', () => {
     expect(CLAUDE_CODE_DEFAULT_PROFILE.envRemove).toContain('CLAUDECODE');
     expect(CLAUDE_CODE_DEFAULT_PROFILE.envRemove).toContain('CLAUDE_CODE*');
     expect(CLAUDE_CODE_DEFAULT_PROFILE.envRemove).not.toContain('CLAUDE_CONFIG_DIR');
+  });
+});
+
+describe('ClaudeCodeAdapter — buildTranscriptViews (§14 addendum)', () => {
+  // A small fixture RAW transcript (native CC session-JSONL shape): the normal
+  // user/assistant/tool_use lines PLUS the CC-specific hook signals (an
+  // `attachment` line for SessionStart and a `system`/`*_hook_summary` line).
+  const rawLines = [
+    { type: 'user', timestamp: '1', message: { role: 'user', content: 'Please package this project.' } },
+    {
+      type: 'assistant',
+      timestamp: '2',
+      message: {
+        role: 'assistant',
+        content: [{ type: 'text', text: 'Sure, packaging now.' }],
+        usage: { input_tokens: 1, output_tokens: 1 },
+      },
+    },
+    {
+      type: 'assistant',
+      timestamp: '3',
+      message: {
+        role: 'assistant',
+        content: [
+          {
+            type: 'tool_use',
+            id: 'toolu_ask1',
+            name: 'AskUserQuestion',
+            input: { questions: [{ question: 'Single package or monorepo?' }] },
+          },
+        ],
+        usage: { input_tokens: 1, output_tokens: 1 },
+      },
+    },
+    { type: 'attachment', attachment: { type: 'hook', hookName: 'SessionStart' } },
+    {
+      type: 'system',
+      subtype: 'stop_hook_summary',
+      hookInfos: [{ command: "sh -c 'cat; echo' >> '/ctrl/stop.jsonl'" }],
+    },
+  ]
+    .map((l) => JSON.stringify(l))
+    .join('\n');
+
+  const events = adapter.parseEvents(rawLines);
+  const views = adapter.buildTranscriptViews(rawLines, events, {
+    prompt: 'Package this project as a single npm package.',
+    qnaLog: [{ question: 'Single package or monorepo?', answer: 'Single package' }],
+  });
+
+  it('returns all four views', () => {
+    expect(Object.keys(views).sort()).toEqual(['conversation', 'hooks', 'skills', 'tools']);
+  });
+
+  it('conversation contains the task, an agent OUT, and the kept AskUserQuestion tool call', () => {
+    expect(views.conversation).toContain('Package this project as a single npm package.');
+    expect(views.conversation).toContain('Sure, packaging now.');
+    expect(views.conversation).toContain('OUT (agent → AskUserQuestion)');
+    expect(views.conversation).toContain('Single package or monorepo?');
+    expect(views.conversation).toContain('Single package');
+  });
+
+  it('hooks lists the SessionStart hook and the stop_hook_summary', () => {
+    expect(views.hooks).toContain('SessionStart');
+    expect(views.hooks).toContain('stop_hook_summary');
+    expect(views.hooks).toContain("cat; echo");
+  });
+
+  it('tools lists the AskUserQuestion tool call', () => {
+    expect(views.tools).toContain('AskUserQuestion');
+  });
+
+  it('skills reports no skill loads for this fixture', () => {
+    expect(views.skills).toContain('(no skill loads detected)');
   });
 });
 

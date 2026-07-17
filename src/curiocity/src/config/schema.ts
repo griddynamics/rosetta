@@ -71,7 +71,9 @@ export type AgentProfileOverride = z.infer<typeof agentProfileOverrideSchema>;
 // --- Provisioning (§9, D13, P11) ---------------------------------------------
 // Items are identified by `name`; extra fields (command, args, path, …) pass
 // through. Per-case provisioning merges by name onto the top-level defaults.
-export const provisionItemSchema = z.object({ name: z.string().min(1) }).passthrough();
+export const provisionItemSchema = z
+  .object({ name: z.string().min(1), path: z.string().optional() })
+  .passthrough();
 export type ProvisionItem = z.infer<typeof provisionItemSchema>;
 
 export const provisionSchema = z.object({

@@ -119,6 +119,12 @@ describe('generate() — processor throws synchronously (lines 91-99 catch block
     // Step 3: A hard error is appended to allErrors, anyError = true, and the loop continues.
     // Step 4: generate() returns 1 (exit failure).
     const { generate } = await import('../../src/generate.js');
+    const { PassThrough } = await import('stream');
+
+    // Non-throwing specs still run their real pipeline (incl. the dry-run dump);
+    // discard that output so this exit-code test stays quiet (FR-ARCH-0045).
+    const discard = new PassThrough();
+    discard.resume();
 
     const code = await generate({
       sources: buildSources(tmpRepo, outputDir),
@@ -126,6 +132,7 @@ describe('generate() — processor throws synchronously (lines 91-99 catch block
       domain: 'core',
       dryRun: true,
       verbose: false,
+      out: discard,
     });
 
     // Hard error from the thrown processor → exit code must be 1

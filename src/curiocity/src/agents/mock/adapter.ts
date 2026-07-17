@@ -15,6 +15,15 @@ import type {
   TranscriptSource,
   TrialContext,
 } from '../types';
+import {
+  renderConversation,
+  renderSkills,
+  renderTools,
+  type ToolCall,
+  type TranscriptViews,
+  type Turn,
+  type ViewContext,
+} from '../transcript-views';
 
 /**
  * `MockAdapter` (§10.3, D10) — the reference `AgentAdapter` and the integration-test
@@ -234,5 +243,27 @@ export class MockAdapter implements AgentAdapter {
   async terminate(session: TerminalSession): Promise<void> {
     // The mock idles on stdin after its scene; `/exit` makes it exit 0 cleanly.
     await session.write('/exit\r');
+  }
+
+  /** Reference impl (§10.3, §14 addendum) — same shared-renderer pattern as the real
+   *  adapters; the mock has no native hooks concept, so `hooks` is a stub. */
+  buildTranscriptViews(_rawTranscript: string, events: TrajectoryEvent[], ctx: ViewContext): TranscriptViews {
+    const turns: Turn[] = [];
+    const toolCalls: ToolCall[] = [];
+    for (const e of events) {
+      if (e.kind === 'assistant' || e.kind === 'user') {
+        const text = (e.payload as { text?: string } | undefined)?.text ?? '';
+        turns.push({ role: e.kind, text });
+      } else if (e.kind === 'tool_call') {
+        const input = (e.payload as { input?: unknown } | undefined)?.input;
+        toolCalls.push({ name: e.name ?? '', input });
+      }
+    }
+    return {
+      conversation: renderConversation(ctx, turns, toolCalls),
+      hooks: '# Hooks — mock\n\n(hooks view not implemented for this agent yet)',
+      tools: renderTools(toolCalls),
+      skills: renderSkills(toolCalls),
+    };
   }
 }

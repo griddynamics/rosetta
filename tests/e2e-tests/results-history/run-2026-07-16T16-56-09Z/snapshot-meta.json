@@ -1,0 +1,11 @@
+{
+  "sourcePath": "tests/e2e-tests/.runtime/results/run-2026-07-16T16-56-09-189Z/run-2026-07-16T16-56-09Z",
+  "curiocityVersion": "0.2.0",
+  "gitCommit": "604cc5a73c3d0c6fc53d761be14ad0866edaca55",
+  "gitDirty": true,
+  "suiteCreatedAt": "2026-07-16T17:07:58.951Z",
+  "snapshottedAt": "2026-07-16T17:18:19.941Z",
+  "corrections": [
+    "coding-vanilla manual_qa_verified: 1 → 0 — recomputed against the unchanged stored transcript under the manual-qa-check response-window fix (verified is now scoped to a live client-tool response, not arbitrary transcript text). Composite level was already 'none' (ran=0, hit=0); only the standalone metric changed. This run was produced by a dist built before that fix."
+  ]
+}

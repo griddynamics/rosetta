@@ -59,6 +59,10 @@ Initialization must behave differently for fresh, existing, or plugin workspaces
 2. Ask user for anything unresolved in a single batch. All fields optional. Prioritize critical fields first. Leave placeholders for skipped fields
 3. If `gain.json` already exists: read it, ask only about gaps and placeholders; never overwrite confirmed values
 4. If running as subagent: output `gain_json_draft` (template with auto-detected values filled in, all other fields left as template placeholders) to orchestrator; instruct orchestrator to ask user to fill in each placeholder field, and leave any unanswered fields exactly as the placeholder in the template
+5. IDE supported:
+   - Plugins: Claude Code, Codex, Copilot (VSCode, IDEA, CLI), Cursor
+   - MCP: Additionally Gemini CLI, Antigravity CLI, CLINE, OpenCode, etc. Only requirement - Full MCP Support with Authentication
+6. Ask in this phase multi-select question about IDE user wants to use.
 
 </gain_json_generation>
 

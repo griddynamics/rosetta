@@ -4,7 +4,9 @@
 - research-flow
 - code-analysis-flow
 - external-lib-flow
-- aqa-flow
+- aqa-flow (router: ui-aqa / api-aqa / testgen)
+- ui-aqa-flow
+- api-aqa-flow
 - modernization-flow
 - adhoc-flow
 - coding-agents-prompting-flow

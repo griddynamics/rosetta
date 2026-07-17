@@ -21,6 +21,9 @@ export const commandParamsSchema = z.object({
   expectExitCode: z.number().int().default(0),
 });
 
+/** Tail length (chars) of captured command output appended to failure `details`. */
+const OUTPUT_TAIL_CHARS = 1500;
+
 export const command: Evaluator = {
   id: 'command',
   paramsSchema: commandParamsSchema,
@@ -38,6 +41,13 @@ export const command: Evaluator = {
       });
       exitCode = typeof res.exitCode === 'number' ? res.exitCode : (res.failed ? 1 : 0);
       details = `\`${p.run}\` exited ${exitCode} (expected ${p.expectExitCode})`;
+      if (exitCode !== p.expectExitCode) {
+        const output = (res.all ?? res.stdout ?? res.stderr ?? '').toString();
+        const tail = output.slice(-OUTPUT_TAIL_CHARS);
+        if (tail.length > 0) {
+          details += `\n--- output (last ${OUTPUT_TAIL_CHARS} chars) ---\n${tail}`;
+        }
+      }
     } catch (err) {
       exitCode = -1;
       details = `\`${p.run}\` failed to run: ${(err as Error).message}`;

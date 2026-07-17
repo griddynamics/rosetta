@@ -2,75 +2,63 @@
 name: testgen-flow-question-generation
 description: "Phase 3 Question Generation of testgen-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
 
-# Test Generation Phase 3: Question Generation 
+<testgen_flow_question_generation>
 
-## Prerequisites
+<description_and_purpose>
+Generate specific, actionable clarification questions based on analysis findings, collect user answers, and validate completeness. This is the primary HITL gate — user input is required before proceeding to requirements generation.
+</description_and_purpose>
 
-- Phase 0 MUST be complete
-- Phase 1 MUST be complete
-- Phase 2 MUST be complete
-- `agents/testgen/{TICKET-KEY}/analysis.md` exists with identified issues
-- `agents/testgen/{TICKET-KEY}/testgen-state.md` shows Phase 2 complete
+<workflow_context>
+- Phase 3 of 7 in `testgen-flow`
+- Input: `analysis.md` from Phase 2
+- Output: `questions.md` (for user), `answers.md` (structured user responses by AI based on answers in `questions.md`)
+- Recommended skills: `questioning`
+- Prerequisite: Phase 0, 1, 2 complete
+- **HITL GATE**: MUST WAIT for user to provide answers. Explicit approval required. Do not assume user approved — if user sends questions or suggestions, that is reviewing, not approval.
+</workflow_context>
 
-## Objective
+<phase_steps>
+1. Generate clarification questions (loads analysis + formats by issue type) → step 3.1
+2. Prioritize and create questions document → step 3.2
+3. Validate user answers → step 3.3
+4. Create answers document → step 3.4
+5. Update state file → step 3.5
+</phase_steps>
 
-Generate specific, actionable clarification questions based on analysis findings, collect user answers, and validate completeness before proceeding to requirements generation.
+<generate_questions step="3.1">
+1. Read `plans/testgen-{TICKET-KEY}/analysis.md`
+2. USE SKILL `questioning` to formulate targeted clarification questions from analysis findings
+3. For each **contradiction**: present both conflicting source quotes, ask which is correct, offer options (a/b/c/other)
+4. For each **gap**: explain what's missing and why needed, provide examples or options
+5. For each **ambiguity**: quote vague statement, ask for specific definition or measurement
+6. Related issues can be combined: e.g., `Q5: G3, G4, A2 - User Permissions Model`
+7. Quality rules: specific, actionable, includes context, offers options — NOT vague or open-ended
 
-⭐ **HITL GATE**: MUST WAIT for user answers before Phase 4. Strict approval required — user must type "yes" or "approved".
-
-## Requirements
-
-### Step 1: Load Analysis Data
-
-Read `agents/testgen/{TICKET-KEY}/analysis.md` completely.
-
-Extract:
-- All contradictions (C1, C2, ...)
-- All gaps (G1, G2, ...)
-- All ambiguities (A1, A2, ...)
-- Risk assessments
-
-### Step 2: Generate Clarification Questions
-
-For each issue, create specific, actionable question.
-
-**Question Quality Rules**:
-- ✅ Specific and actionable
-- ✅ Includes context from sources
-- ✅ Offers multiple choice when possible
-- ✅ References issue ID
-- ❌ Not vague or open-ended
-- ❌ Not asking multiple things in one question
-
-**Question Format**:
-
-**For Contradictions**:
+<question_format_for_contradictions>
 ```markdown
 ### Q[N]: [Issue ID] - [Brief Title]
 **Issue Type**: Contradiction
 **Context**: 
-- Jira states: "[quote]"
-- Confluence states: "[quote]"
+- Ticket states: "[quote]"
+- Wiki states: "[quote]"
 
 **Question**: Which statement is correct, or should we use a different approach?
 **Options**:
-  a) Use Jira version: [specific value]
-  b) Use Confluence version: [specific value]
+  a) Use the ticket version: [specific value]
+  b) Use the Wiki version: [specific value]
   c) Use alternative: [specify]
   d) Other (please specify)
 
 **Your Answer**: 
 [Leave blank for user]
-
-**Follow-up (if needed)**: 
-[Leave blank for user]
 ```
-
-**For Gaps**:
+</question_format_for_contradictions>
+<question_format_for_gaps>
 ```markdown
 ### Q[N]: [Issue ID] - [Brief Title]
 **Issue Type**: Gap (Functional/Non-Functional/Data/Business Logic/Dependency)
@@ -84,12 +72,9 @@ For each issue, create specific, actionable question.
 
 **Your Answer**: 
 [Leave blank for user]
-
-**Additional Details** (optional): 
-[Leave blank for user]
 ```
-
-**For Ambiguities**:
+</question_format_for_gaps>
+<question_format_for_ambiguities> 
 ```markdown
 ### Q[N]: [Issue ID] - [Brief Title]
 **Issue Type**: Ambiguity
@@ -103,183 +88,105 @@ For each issue, create specific, actionable question.
 **Your Answer**: 
 [Leave blank for user]
 ```
+</question_format_for_ambiguities>
 
-### Step 3: Prioritize Questions
+<good_questions>
+- "Should the authentication use OAuth 2.0, SAML, or Basic Auth?"
+- "What is the maximum response time requirement (in milliseconds)?"
+- "Should users be able to delete records permanently, or soft-delete only?"
+</good_questions>
 
-Group by priority (based on risk from Phase 2):
+<poor_questions>
+- "How should authentication work?" (too broad)
+- "Should it be fast?" (vague)
+- "Tell me about the feature." (not specific)
+</poor_questions>
+</generate_questions>
 
-**Priority 0 (Critical)**: Blocks implementation
-**Priority 1 (High)**: Significant quality impact  
-**Priority 2 (Medium)**: Affects approach
-**Priority 3 (Low)**: Minor clarification
+<create_questions_document step="3.2">
+1. Group questions by priority: P0 (Critical, MUST answer), P1 (High), P2 (Medium), P3 (Low)
+2. Create `plans/testgen-{TICKET-KEY}/questions.md` using the `questions.md` template defined in `<questions_template>` below
+3. Update state to "AWAITING USER INPUT"
+4. Notify the user and **direct them to give answers by editing the file**: give the `questions.md` path and ask them to fill the `[Leave blank for user]` fields there. A short chat summary of the questions is fine for orientation, but the **authoritative answers are collected in `questions.md`** — do NOT run a chat Q&A in its place, and do NOT accept chat replies as a substitute for the file (`validate_answers`, step 3.3, reads the file, not the chat). This keeps every question visible and answerable to the user, instead of only the ones the agent chose to surface in chat.
+5. **PAUSE — WAIT FOR USER INPUT**
 
-### Step 4: Create Questions Document
-
-**File**: `agents/testgen/{TICKET-KEY}/questions.md`
-
-**Format**:
-```markdown
+<questions_template>
+`questions.md` template:
+````markdown
 # Clarification Questions - [TICKET-KEY]
 
-**Generated**: [DateTime]
+**Created**: [DateTime]
 **Phase**: 3 - Question Generation
-**Total Questions**: [Count]
-**Status**: AWAITING USER INPUT ⏳
-
----
-
-## Instructions for User
-
-Please answer each question below. For each question:
-1. Fill in the **Your Answer** field
-2. Optionally provide additional details in **Follow-up** or **Additional Details**
-3. If you don't know the answer, write "UNKNOWN - need to research"
-4. After completing all questions, save this file and notify the AI agent
-
-**Important**: All P0 (Critical) questions MUST be answered to proceed.
+**Source Analysis**: plans/testgen-[TICKET-KEY]/analysis.md
 
 ---
 
 ## Summary
 
 - **Total Questions**: [Count]
-- **P0 (Critical)**: [Count] - MUST answer
-- **P1 (High)**: [Count] - Should answer
-- **P2 (Medium)**: [Count] - Recommended
-- **P3 (Low)**: [Count] - Optional
+- **P0 (Critical, MUST answer)**: [Count]
+- **P1 (High)**: [Count]
+- **P2 (Medium)**: [Count]
+- **P3 (Low)**: [Count]
 
 ---
 
-## Priority 0 Questions (Critical - MUST Answer)
+## How to Answer
 
-[List P0 questions using format from Step 2]
-
-### Q1: C1 - [Title]
-[Full question]
-
-### Q2: G5 - [Title]
-[Full question]
+For each question below, replace `[Leave blank for user]` with your answer (or `UNKNOWN — need to research with [stakeholder]` if you cannot answer right now). All **P0** must be answered before Phase 4 proceeds; P1 must be answered or marked UNKNOWN.
 
 ---
 
-## Priority 1 Questions (High - Should Answer)
+## P0 Questions (Critical)
 
-[List P1 questions]
+[Insert Q-entries here using `<question_format_for_contradictions>` / `<question_format_for_gaps>` / `<question_format_for_ambiguities>` formats above, grouped under this section]
 
----
+## P1 Questions (High)
 
-## Priority 2 Questions (Medium - Recommended)
+[Same; if none, omit the section]
 
-[List P2 questions]
+## P2 Questions (Medium)
 
----
+[Same; optional, may remain blank per `<validate_answers>` rule]
 
-## Priority 3 Questions (Low - Optional)
+## P3 Questions (Low)
 
-[List P3 questions]
+[Same; optional, may remain blank per `<validate_answers>` rule]
 
 ---
 
 ## Additional Questions or Comments
 
-If you have additional information, concerns, or questions not covered above, please add them here:
-
-**Your Additional Input**:
-[Leave blank for user]
+[If you have information, constraints, edge cases, or context NOT covered by the questions above, add it here. This free-text is the channel for user-volunteered input and is carried into Phase 4 requirements.]
 
 ---
 
-## Completion Checklist
+## Completion Checklist (tick before notifying the agent)
 
-Before notifying the AI agent, verify:
-- [ ] All P0 questions answered
-- [ ] All P1 questions answered (or marked UNKNOWN)
-- [ ] P2/P3 questions reviewed
+- [ ] All P0 questions answered (no blanks)
+- [ ] P1 answered or marked `UNKNOWN — need to research with [stakeholder]`
 - [ ] File saved
+- [ ] When complete, tell the agent: "answers ready"
+````
+</questions_template>
+</create_questions_document>
 
-**When complete, tell AI**: "Questions answered" or "I've filled in the answers"
-```
+<validate_answers step="3.3">
+1. When user notifies answers are ready, read `questions.md`
+2. Verify per-priority acceptance criteria:
+   - **P0:** every P0 question must be answered with a substantive, factual answer (not blank). **UNKNOWN is rejected outright for P0** — no exceptions: do NOT accept UNKNOWN paired with a "default", "best guess", "placeholder", or "we'll figure out later". The only ways to close a P0 are (a) an actual answer from the user, or (b) the user explicitly authorizing a priority downgrade of the question (which the agent must record as `P0 → P1 (user-authorized downgrade)` in `answers.md` before treating UNKNOWN as acceptable). Phase 3 stays open until every P0 is resolved by (a) or (b).
+   - **P1:** every P1 question must be answered OR explicitly marked `UNKNOWN — need to research with [stakeholder]`.
+   - **P2 and P3:** may remain blank; proceed regardless. Blank P2/P3 entries are recorded as deferred but do not block Phase 4.
+3. Verify answers are substantive (not just "yes" or "ok")
+4. If validation fails: tell user which questions still need answers, wait again
+5. If validation passes: proceed to create answers document
+</validate_answers>
 
-### Step 5: Update State and Wait for User
+<create_answers_document step="3.4">
+1. Create `plans/testgen-{TICKET-KEY}/answers.md` using template below
 
-Update `agents/testgen/{TICKET-KEY}/testgen-state.md`:
-
-```markdown
-## Phase Completion Status
-
-- [x] Phase 1: Data Collection - Completed [Date]
-- [x] Phase 2: Gap Analysis - Completed [Date]
-- [⏳] Phase 3: Question Generation - AWAITING USER INPUT
-- [ ] Phase 4: Requirements Generation - Not Started
-- [ ] Phase 5: Test Scenarios - Not Started
-
-## Metrics
-
-[...]
-- Questions Generated: [Count]
-- Questions Answered: 0
-[...]
-
-## Phase Details
-
-[...]
-
-### Phase 3: Question Generation & User Input
-- **Questions Generated**: [DateTime]
-- **Files Created**: questions.md
-- **Total Questions**: [Count]
-- **P0 Questions**: [Count]
-- **P1 Questions**: [Count]
-- **Status**: Awaiting user input ⏳
-- **Notes**: User notified, waiting for answers
-```
-
-**Notify User**:
-```
-Phase 3 complete. Generated [N] clarification questions ([X] critical, [Y] high priority).
-
-Please review and answer questions in: agents/testgen/{TICKET-KEY}/questions.md
-
-Instructions:
-1. Open questions.md
-2. Fill in "Your Answer" for each question
-3. Save the file
-4. Tell me: "Questions answered"
-
-I'll wait for your input before proceeding to Phase 4 (Requirements Generation).
-```
-
-**⏸️ PAUSE HERE - WAIT FOR USER INPUT**
-
-### Step 6: Validate User Answers (When User Notifies)
-
-When user says "questions answered" or similar:
-
-1. Read `agents/testgen/{TICKET-KEY}/questions.md`
-2. Check for filled "Your Answer" fields
-3. Validate:
-   - ✅ All P0 questions have answers (not blank)
-   - ✅ All P1 questions have answers or "UNKNOWN"
-   - ✅ Answers are substantive (not just "yes" or "ok")
-
-**If validation fails**:
-```
-I checked questions.md and found:
-- [X] P0 questions still unanswered
-- [Y] P1 questions incomplete
-
-Please complete the missing answers and let me know when done.
-```
-
-**If validation passes**, proceed to Step 7.
-
-### Step 7: Create Answers Document
-
-**File**: `agents/testgen/{TICKET-KEY}/answers.md`
-
-Extract and structure all user answers.
-
-**Format**:
+<answers_template>
+`answers.md` template:
 ```markdown
 # User Answers - [TICKET-KEY]
 
@@ -304,7 +211,7 @@ Extract and structure all user answers.
 **Question**: [Original question summary]
 **Answer**: [User's answer]
 **Follow-up**: [If provided]
-**Status**: ✅ Resolved / ⚠️ Needs Research (if UNKNOWN)
+**Status**: Resolved
 
 ### Q2: [Issue ID] - [Title]
 [Same format]
@@ -312,8 +219,6 @@ Extract and structure all user answers.
 ---
 
 ## Unresolved Issues (Marked UNKNOWN)
-
-[List questions user marked as needing research]
 
 ### Q[N]: [Issue ID] - [Title]
 **Question**: [Summary]
@@ -335,107 +240,37 @@ Extract and structure all user answers.
 2. Incorporate all resolved answers
 3. Document assumptions for unresolved issues
 4. Flag unresolved issues in requirements document
+
 ```
+</answers_template>
+</create_answers_document>
 
-### Step 8: Finalize Phase 3
+<update_state step="3.5">
+1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 3 complete. **State delta (per `testgen-flow.md` SELF-CHECK):** set the Phase 3 `## Phase Completion Status` row to complete; populate `## Phase Details` (questions generated, P0/P1 answered, unresolved/UNKNOWN counts, files created: `questions.md`, `answers.md`); update `## Metrics`.
+2. Tell user: "Phase 3 complete. [X] questions answered, [Y] unresolved."
+3. If unresolved: "We'll document assumptions for unresolved items."
+</update_state>
 
-Update `agents/testgen/{TICKET-KEY}/testgen-state.md`:
+<validation_checklist>
+- `questions.md` created with all questions from analysis
+- User provided answers (file modified after creation)
+- All P0 questions answered (not blank)
+- `answers.md` created with structured answers
+- State file updated with Phase 3 complete
+</validation_checklist>
 
-```markdown
-## Phase Completion Status
+<failure_handling>
+- **Missing `analysis.md`:** stop Phase 3, record `Phase 3 blocked: analysis.md missing` in `testgen-state.md`, ask user to rerun Phase 2.
+- **Zero questions to generate** (Phase 2 produced no contradictions / gaps / ambiguities): inform the user, mark Phase 3 as `SKIPPED — no questions` in `testgen-state.md`, and advance to Phase 4 directly (do not create an empty `questions.md`).
+- **Unparseable user answers** (file structurally broken — missing Q-entries, malformed markdown, answers in wrong fields): tell the user which entries are unparseable, ask them to re-edit the file. Cap at 2 re-asks. After 2 unsuccessful cycles, stop Phase 3, record `Phase 3 blocked: unparseable answers after 2 retries`, and ask the user whether to re-do `questions.md` from scratch or escalate.
+- **User explicitly declines to answer** (says "skip", "I don't know any of these", or similar): treat as a stall — do not silently downgrade P0 to UNKNOWN; stop, record `Phase 3 blocked: user-declined-answers on P0`, ask whether to re-open Phase 2 or escalate scope.
+</failure_handling>
 
-- [x] Phase 1: Data Collection - Completed [Date]
-- [x] Phase 2: Gap Analysis - Completed [Date]
-- [x] Phase 3: Question Generation - Completed [DateTime]
-- [ ] Phase 4: Requirements Generation - Not Started
-- [ ] Phase 5: Test Scenarios - Not Started
+<pitfalls>
+- Do NOT assume user approved — messages with questions or suggestions mean reviewing, not approval
+- User may need time to research answers — be patient
+- If user repeatedly cannot answer, suggest involving a different stakeholder
+- Always document assumptions for unresolved questions marked UNKNOWN
+</pitfalls>
 
-## Metrics
-
-[...]
-- Questions Generated: [Count]
-- Questions Answered: [Count]
-- Questions Unresolved: [Count marked UNKNOWN]
-[...]
-
-## Phase Details
-
-[...]
-
-### Phase 3: Question Generation & User Input
-- **Questions Generated**: [DateTime]
-- **User Answers Received**: [DateTime]
-- **Files Created**: questions.md, answers.md
-- **Total Questions**: [Count]
-- **Answered**: [Count]
-- **Unresolved**: [Count]
-- **Notes**: Ready for Phase 4
-```
-
-## Validation
-
-Before completing Phase 3, verify:
-- ✅ `questions.md` created with all questions
-- ✅ User provided answers (file modified after creation)
-- ✅ All P0 questions answered (not blank)
-- ✅ `answers.md` created with structured answers
-- ✅ State file updated with Phase 3 complete
-- ✅ User notified to proceed to Phase 4
-
-## Tools Used
-
-- `read_file()` - Read agents/testgen/{TICKET-KEY}/analysis.md, agents/testgen/{TICKET-KEY}/questions.md
-- `write()` - Create agents/testgen/{TICKET-KEY}/questions.md, agents/testgen/{TICKET-KEY}/answers.md, update agents/testgen/{TICKET-KEY}/testgen-state.md
-
-## Question Generation Tips
-
-**Good Questions**:
-- "Should the authentication use OAuth 2.0, SAML, or Basic Auth?"
-- "What is the maximum response time requirement (in milliseconds)?"
-- "Should users be able to delete records permanently, or soft-delete only?"
-
-**Poor Questions**:
-- "How should authentication work?" (too broad)
-- "Should it be fast?" (vague)
-- "Tell me about the feature." (not specific)
-
-**Multiple Issues, One Question**:
-If related issues can be resolved by one answer, combine them:
-```
-### Q5: G3, G4, A2 - User Permissions Model
-[Combined question addressing all three issues]
-```
-
-## Common Patterns
-
-**Contradiction Question**:
-- Present both conflicting sources
-- Ask which to use or suggest compromise
-- Offer specific options
-
-**Gap Question**:
-- Explain what's missing
-- Why it's needed
-- Provide examples or options
-
-**Ambiguity Question**:
-- Quote vague statement
-- Ask for specific measurement or definition
-- Give examples of what you need to know
-
-## Next Phase
-
-After Phase 3 completion:
-1. Tell user: "Phase 3 complete. [X] questions answered, [Y] unresolved."
-2. If unresolved: "We'll document assumptions for unresolved items."
-3. Ask: "Ready to proceed to Phase 4 (Requirements Generation)?"
-4. Wait for confirmation
-5. Load Phase 4: APPLY PHASE testgen-flow-requirements-document-generation.md
-
-## Notes
-
-- This is the ONLY HITL gate in the flow - critical to get user input here
-- Be patient - user may need time to research answers
-- If user repeatedly cannot answer, consider involving different stakeholder
-- Document all assumptions made for unresolved questions
-
+</testgen_flow_question_generation>

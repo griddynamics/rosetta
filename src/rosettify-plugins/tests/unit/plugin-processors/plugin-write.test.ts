@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { PassThrough } from 'stream';
 import { pluginWrite } from '../../../src/plugin-processors/plugin-write.js';
 import type { FileProcessingFrame, PluginProcessingFrame, PluginSpec } from '../../../src/types.js';
 
@@ -80,7 +81,9 @@ describe('pluginWrite', () => {
     try {
       const frame = makeFrame('rules/test.md', '# Hello\n');
       const p = makePluginFrame([frame]);
-      pluginWrite(outputDir, true)(p);
+      const discard = new PassThrough();
+      discard.resume(); // this test checks disk side effects only; discard the dump
+      pluginWrite(outputDir, true, discard)(p);
       const targetDir = path.join(outputDir, 'core-claude');
       // No files written
       expect(fs.existsSync(targetDir)).toBe(false);
@@ -89,31 +92,29 @@ describe('pluginWrite', () => {
     }
   });
 
-  it('dry-run emits full target path AND full contents to stdout (FR-ARCH-0045, FR-CLI-0050, G-2)', () => {
+  it('dry-run emits full target path AND full contents to the output sink (FR-ARCH-0045, FR-CLI-0050, G-2)', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'write-test-'));
     const outputDir = path.join(tmpDir, 'output');
     try {
       const frame = makeFrame('rules/test.md', '# Hello World\nContent here.\n');
       const p = makePluginFrame([frame]);
 
-      let capturedStdout = '';
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      (process.stdout as NodeJS.WriteStream).write = ((chunk: string | Uint8Array, ...rest: unknown[]) => {
-        if (typeof chunk === 'string') capturedStdout += chunk;
-        return true;
-      }) as typeof process.stdout.write;
+      // FR-ARCH-0045: dry-run emits "to the output" — inject our own sink instead of
+      // writing to the process's stdout (no monkeypatching, no log-level coupling).
+      let captured = '';
+      const sink = new PassThrough();
+      sink.on('data', (chunk: Buffer | string) => {
+        captured += typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
+      });
 
-      try {
-        pluginWrite(outputDir, true)(p);
-      } finally {
-        (process.stdout as NodeJS.WriteStream).write = originalWrite;
-      }
+      pluginWrite(outputDir, true, sink)(p);
+      sink.end();
 
       // Must emit the full target path
-      expect(capturedStdout).toContain('rules/test.md');
+      expect(captured).toContain('rules/test.md');
       // Must emit the full file contents
-      expect(capturedStdout).toContain('# Hello World');
-      expect(capturedStdout).toContain('Content here.');
+      expect(captured).toContain('# Hello World');
+      expect(captured).toContain('Content here.');
       // Must NOT write any files to disk
       expect(fs.existsSync(path.join(outputDir, 'core-claude'))).toBe(false);
     } finally {

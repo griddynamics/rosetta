@@ -802,21 +802,22 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0045" type="FR" level="System" ticketId="" classification="technical">
   <title>pluginWrite() processor with dry-run</title>
-  <statement>The `pluginWrite()` processor shall produce, for each frame, a file at the frame's target path under the output directory according to its `target_contents` state — creating no file when `target_contents` is `null`, and creating the file otherwise — and under dry-run it shall instead emit each frame's full target path and full target contents to the output and write nothing to disk.</statement>
-  <rationale>Single content egress for the whole plugin; honors removal vs. emptiness; dry-run gives a complete preview without side effects.</rationale>
+  <statement>The `pluginWrite()` processor shall produce, for each frame, a file at the frame's target path under the output directory according to its `target_contents` state — creating no file when `target_contents` is `null`, and creating the file otherwise — and under dry-run it shall instead emit each frame's full target path and full target contents to the output sink and write nothing to disk. The output sink shall be caller-provided, defaulting to the process standard output, so consumers and tests can capture or redirect the dry-run preview without patching global streams.</statement>
+  <rationale>Single content egress for the whole plugin; honors removal vs. emptiness; dry-run gives a complete preview without side effects; an injectable sink keeps the preview testable and decoupled from the process stdout.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-07-17</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a frame with non-null `target_contents` When: written Then: the file appears at the target path under the output directory.</criteria>
     <criteria>Given: a frame with `target_contents` `null` When: written Then: no file is created.</criteria>
-    <criteria>Given: dry-run When: written Then: the full path and full content of each frame are emitted and no file is created.</criteria>
+    <criteria>Given: dry-run When: written Then: the full path and full content of each frame are emitted to the output sink and no file is created.</criteria>
+    <criteria>Given: a caller-provided output sink When: dry-run is written Then: the preview is emitted to that sink instead of the process standard output.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify-plugins/src/plugin-processors/plugin-write.ts (tri-state write + dry-run emit to the `out` sink); sink threaded via `GenerateOptions.out` (default process.stdout) through src/rosettify-plugins/src/generate.ts and src/rosettify-plugins/src/spec/targets.ts (buildAllSpecs/buildPipeline). Covered by src/rosettify-plugins/tests/unit/plugin-processors/plugin-write.test.ts and tests/e2e/sample.e2e.test.ts.</implementationNotes>
   <depends>FR-CLI-0050</depends>
 </req>
 
@@ -824,19 +825,20 @@ Architecture requirements: the configuration-driven generation model — uniform
 
 <req id="FR-ARCH-0050" type="FR" level="System" ticketId="" classification="technical">
   <title>Decision and I/O logging without content</title>
-  <statement>The generator shall log every decision and every processor's input and output frame metadata — per `PluginProcessor` and, within `pluginProcessSpecEntries()`, per `FileProcessor` — excluding the actual file content, and shall expand logging detail under verbose mode.</statement>
-  <rationale>Full traceability of two-tier pipeline behavior without leaking or bloating logs with file bodies.</rationale>
+  <statement>The generator shall log every decision and every processor's input and output frame metadata — per `PluginProcessor` and, within `pluginProcessSpecEntries()`, per `FileProcessor` — excluding the actual file content, and shall expand logging detail under verbose mode. The minimum log level shall be resolvable with the usual inheritance: the `info` default is overridden by the `ROSETTIFY_PLUGINS_LOG_LEVEL` environment variable, which is in turn overridden by the verbose flag (which forces `debug`) — so operators can quiet a run to warnings/errors (`warn`) without editing code and automated callers avoid log-flooding.</statement>
+  <rationale>Full traceability of two-tier pipeline behavior without leaking or bloating logs with file bodies; a configurable threshold lets non-interactive callers (pre-commit, CI, AI agents) keep output to actionable warnings/errors.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-07-17</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a run When: logs are inspected Then: each decision and each processor's input/output frame metadata is logged at both tiers and no file body appears.</criteria>
     <criteria>Given: verbose mode When: enabled Then: per-frame, per-processor detail is logged.</criteria>
+    <criteria>Given: `ROSETTIFY_PLUGINS_LOG_LEVEL=warn` and no verbose flag When: invoked Then: info/debug diagnostics are suppressed and only warnings/errors are emitted; Given the verbose flag is also set Then it wins and debug detail is emitted regardless of the environment variable.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify-plugins/src/logging.ts (pino factory; level precedence: `info` default, then `ROSETTIFY_PLUGINS_LOG_LEVEL`, then verbose which forces `debug`); per-PluginProcessor input/output metadata logging in src/rosettify-plugins/src/generate.ts and per-FileProcessor detail in src/rosettify-plugins/src/plugin-processors/plugin-process-spec-entries.ts (no file content). Covered by src/rosettify-plugins/tests/e2e/sample.e2e.test.ts (verbose emits more log lines than non-verbose).</implementationNotes>
   <depends>FR-CLI-0051, NFR-0010</depends>
 </req>

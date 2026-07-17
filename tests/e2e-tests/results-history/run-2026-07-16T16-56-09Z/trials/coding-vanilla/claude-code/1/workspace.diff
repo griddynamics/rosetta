@@ -1,0 +1,21 @@
+diff -ruN /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-BECcgf/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/HealthController.java /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-1qR8nI/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/HealthController.java
+--- /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-BECcgf/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/HealthController.java	1969-12-31 19:00:00
++++ /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-1qR8nI/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/HealthController.java	2026-07-16 13:04:46
+@@ -0,0 +1,17 @@
++package com.bezkoder.spring.datajpa.controller;
++
++import org.springframework.http.ResponseEntity;
++import org.springframework.web.bind.annotation.*;
++
++import java.util.Map;
++
++@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081"})
++@RestController
++@RequestMapping("/api")
++public class HealthController {
++
++  @GetMapping("/health")
++  public ResponseEntity<Map<String, String>> health() {
++    return ResponseEntity.ok(Map.of("status", "UP"));
++  }
++}

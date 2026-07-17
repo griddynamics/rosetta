@@ -15,17 +15,24 @@
 //   GitNexus  — marker: .gitnexus/              command: npx -y gitnexus@latest analyze --force
 //   Graphify  — marker: graphify-out/graph.json command: graphify update .
 //
-// Rules:
-//  - No stdout output — the agent must never see this hook.
+// When NEITHER backend is present:
+//  - On a file-creation tool use only, advise the agent once per session to
+//    update CODEMAP.md. Edits of existing files stay silent.
+//  - Once-per-session uses the shared state-store + state-ops session ledger
+//    (same pattern as read-once), not a bespoke lock file.
+//
+// Rules (backend path):
+//  - No stdout output — the agent must never see the refresh side-effect.
 //  - Logs go to ~/.rosetta/rosetta.log only when ROSETTA_DEBUG=1.
-//  - No-op immediately if neither backend marker is found in the repo tree.
 //  - Each backend is scheduled independently (its own lock).
 //  - The lock is keyed by (backend, repoRoot), NOT by session — so two or three
 //    agent sessions editing the SAME repo coalesce into one refresh, while
 //    different repos schedule independently.
 //  - Opt-in: only active when installed by the user (not auto-loaded).
 //
-// Exports (for testability): codemapRefreshHook, DEBOUNCE_MS
+// Exports (for testability): codemapRefreshHook, DEBOUNCE_MS,
+//   CODEMAP_NUDGE_MESSAGE, CODEMAP_NUDGE_NAMESPACE, isFileCreation,
+//   tryClaimSessionNudge
 
 import fs from 'fs';
 import path from 'path';
@@ -33,7 +40,7 @@ import os from 'os';
 import { spawn } from 'child_process';
 import { defineHook } from '../runtime/define-hook';
 import { runAsCli } from '../runtime/run-hook';
-import { sideEffect } from '../runtime/result-helpers';
+import { advise, sideEffect } from '../runtime/result-helpers';
 import { debugLogHookBranch, getDebugLogPath, isDebugLoggingEnabled } from '../runtime/debug-log';
 import {
   ensureDirectory,
@@ -41,9 +48,26 @@ import {
   releaseLockFile,
   tryAcquireTimedLock,
 } from '../runtime/file-coordination';
+import {
+  hasTimestampedEntry,
+  normalizeSessionKey,
+  setTimestampedEntry,
+  type TimestampedEntries,
+} from '../runtime/state-ops';
+import { mutateNamespacedState } from '../runtime/state-store';
 import { walkUp } from '../runtime/path-utils';
+import type { HookContext, HookResult } from '../runtime/types';
 
 export const DEBOUNCE_MS = 5000;
+
+// Exact nudge text when no graphify/gitnexus backend is installed and a new
+// file was created. Kept as a constant so tests assert the wire string.
+export const CODEMAP_NUDGE_MESSAGE =
+  '[Rosetta Advisory] check to update CODEMAP since files has been created!';
+
+export const CODEMAP_NUDGE_NAMESPACE = 'hook:codemap-nudge';
+
+const CREATE_PATCH_RE = /^\*\*\* (?:Add|Create) File:/m;
 
 // A lock older than this is treated as stale (its deferred process must have
 // died) and is reclaimed, so a crashed sleeper can never wedge a backend.
@@ -79,6 +103,96 @@ const tryAcquireSchedule = (lockPath: string): boolean => {
 
 const releaseSchedule = (lockPath: string): void => {
   releaseLockFile(lockPath);
+};
+
+// ---------------------------------------------------------------------------
+// No-backend CODEMAP nudge — file creation + once-per-session via state-store
+
+type CodemapNudgeState = { sessions: TimestampedEntries };
+
+const defaultNudgeState = (): CodemapNudgeState => ({ sessions: {} });
+
+/** True when this PostToolUse represents creating a new file (not editing one). */
+export const isFileCreation = (ctx: HookContext): boolean => {
+  if (ctx.toolKind === 'edit' || ctx.toolKind === 'multi-edit' || ctx.toolKind === 'replace') {
+    return false;
+  }
+
+  // Codex apply_patch: only Add/Create File headers count as creation.
+  if (ctx.toolName === 'apply_patch' || ctx.toolName === 'functions.apply_patch') {
+    const command = String(ctx.toolInput.command ?? '');
+    return CREATE_PATCH_RE.test(command);
+  }
+
+  const resp = ctx.toolResponse;
+  if (resp && typeof resp === 'object' && !Array.isArray(resp)) {
+    const r = resp as Record<string, unknown>;
+    if (r.type === 'update') return false;
+    if (r.type === 'create') return true;
+    if ('originalFile' in r) return r.originalFile == null;
+  }
+
+  // Write/create tools without an explicit update signal → treat as creation.
+  return (
+    ctx.toolKind === 'write' ||
+    ctx.toolKind === 'create' ||
+    ctx.toolName === 'create_file'
+  );
+};
+
+/** Claim the once-per-session nudge. Returns true only on the first claim. */
+export const tryClaimSessionNudge = async (
+  ide: string,
+  sessionId: string | null,
+): Promise<boolean> => {
+  const sessionKey = normalizeSessionKey(ide, sessionId);
+  const now = Date.now();
+  let claimed = false;
+  try {
+    await mutateNamespacedState(CODEMAP_NUDGE_NAMESPACE, defaultNudgeState(), (current) => {
+      if (hasTimestampedEntry(current.sessions, sessionKey, now)) {
+        return current;
+      }
+      claimed = true;
+      return { sessions: setTimestampedEntry(current.sessions, sessionKey, now) };
+    });
+  } catch (err) {
+    debugLogHookBranch('codemap-refresh', 'nudge-state-unavailable', {
+      sessionKey,
+      error: (err as Error).message,
+    });
+    return false;
+  }
+  return claimed;
+};
+
+const maybeAdviseCodemapNudge = async (ctx: HookContext): Promise<HookResult> => {
+  if (!isFileCreation(ctx)) {
+    debugLogHookBranch('codemap-refresh', 'no-backends-not-creation', {
+      cwd: ctx.cwd,
+      toolKind: ctx.toolKind,
+      toolName: ctx.toolName,
+    });
+    return sideEffect();
+  }
+
+  if (!(await tryClaimSessionNudge(ctx.ide, ctx.sessionId))) {
+    debugLogHookBranch('codemap-refresh', 'no-backends-nudge-already-sent', {
+      cwd: ctx.cwd,
+      ide: ctx.ide,
+      sessionId: ctx.sessionId,
+    });
+    return sideEffect();
+  }
+
+  debugLogHookBranch('codemap-refresh', 'no-backends-codemap-nudge', {
+    cwd: ctx.cwd,
+    ide: ctx.ide,
+    sessionId: ctx.sessionId,
+    toolName: ctx.toolName,
+    filePath: ctx.filePath,
+  });
+  return advise(CODEMAP_NUDGE_MESSAGE);
 };
 
 // ---------------------------------------------------------------------------
@@ -271,15 +385,12 @@ export const codemapRefreshHook = defineHook({
     event: 'PostToolUse',
     toolKinds: ['write', 'edit', 'multi-edit'],
   },
-  run: (ctx) => {
+  run: async (ctx) => {
     const cwd = ctx.cwd || process.cwd();
     const backends = detectBackends(cwd);
 
     if (backends.length === 0) {
-      debugLogHookBranch('codemap-refresh', 'no-backends-noop', {
-        cwd,
-      });
-      return sideEffect(); // no-op: neither backend installed
+      return maybeAdviseCodemapNudge(ctx);
     }
 
     const cacheDir = ensureCacheDir();

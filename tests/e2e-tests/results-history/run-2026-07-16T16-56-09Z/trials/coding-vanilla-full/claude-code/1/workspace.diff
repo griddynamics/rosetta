@@ -1,0 +1,103 @@
+diff -ruN /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/HealthController.java /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/HealthController.java
+--- /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/HealthController.java	1969-12-31 19:00:00
++++ /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/HealthController.java	2026-07-16 13:05:39
+@@ -0,0 +1,22 @@
++package com.bezkoder.spring.datajpa.controller;
++
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.web.bind.annotation.CrossOrigin;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++
++import java.util.Collections;
++import java.util.Map;
++
++@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081"})
++@RestController
++@RequestMapping("/api")
++public class HealthController {
++
++    @GetMapping("/health")
++    public ResponseEntity<Map<String, String>> health() {
++        return new ResponseEntity<>(Collections.singletonMap("status", "UP"), HttpStatus.OK);
++    }
++}
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/SpringBootDataJpaApplication.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/SpringBootDataJpaApplication.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/config/WebConfig.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/config/WebConfig.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/controller/CommentController.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/controller/CommentController.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/controller/HealthController.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/controller/HealthController.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/controller/RatingController.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/controller/RatingController.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/controller/TutorialController.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/controller/TutorialController.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/dto/CommentDTO.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/dto/CommentDTO.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/dto/CreateCommentRequest.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/dto/CreateCommentRequest.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/dto/CreateRatingRequest.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/dto/CreateRatingRequest.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/dto/RatingDTO.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/dto/RatingDTO.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/dto/TutorialStatsDTO.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/dto/TutorialStatsDTO.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/model/Comment.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/model/Comment.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/model/Rating.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/model/Rating.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/model/Tutorial.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/model/Tutorial.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/repository/CommentRepository.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/repository/CommentRepository.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/repository/RatingRepository.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/repository/RatingRepository.class differ
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/repository/TutorialRepository.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/classes/com/bezkoder/spring/datajpa/repository/TutorialRepository.class differ
+diff -ruN /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+--- /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst	1969-12-31 19:00:00
++++ /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst	2026-07-16 13:05:46
+@@ -0,0 +1 @@
++com/bezkoder/spring/datajpa/controller/HealthController.class
+diff -ruN /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+--- /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst	2026-07-16 13:05:07
++++ /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst	2026-07-16 13:07:13
+@@ -1,28 +1,17 @@
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/repository/TagRepository.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/SpringBootDataJpaApplication.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/RatingDTO.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/repository/CommentRepository.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/CreateRatingRequest.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/model/Tag.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/CreateCategoryRequest.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/RatingController.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/CommentController.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/CreateTagRequest.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/model/Rating.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/TutorialController.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/repository/TutorialRepository.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/TagDTO.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/TutorialStatsDTO.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/CategoryController.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/CreateCommentRequest.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/repository/RatingRepository.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/repository/CategoryRepository.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/CategoryDTO.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/CommentDTO.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/model/Category.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/model/Tutorial.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/AssignCategoryRequest.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/TagController.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/AssignTagsRequest.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/config/WebConfig.java
+-/Users/isolomatov/Sources/Clones/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/model/Comment.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/TutorialController.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/model/Comment.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/repository/TutorialRepository.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/RatingDTO.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/CommentController.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/model/Tutorial.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/HealthController.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/model/Rating.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/repository/RatingRepository.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/CreateCommentRequest.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/config/WebConfig.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/TutorialStatsDTO.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/CreateRatingRequest.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/controller/RatingController.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/repository/CommentRepository.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/SpringBootDataJpaApplication.java
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/main/java/com/bezkoder/spring/datajpa/dto/CommentDTO.java
+diff -ruN /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst
+--- /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst	1969-12-31 19:00:00
++++ /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst	2026-07-16 13:07:13
+@@ -0,0 +1 @@
++/private/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/src/test/java/com/bezkoder/spring/datajpa/SpringBootDataJpaApplicationTests.java
+Binary files /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-src-akGKOx/spring-boot-react-mysql/spring-boot-server/target/test-classes/com/bezkoder/spring/datajpa/SpringBootDataJpaApplicationTests.class and /var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr/spring-boot-react-mysql/spring-boot-server/target/test-classes/com/bezkoder/spring/datajpa/SpringBootDataJpaApplicationTests.class differ

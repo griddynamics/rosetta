@@ -1,1 +1,1 @@
-Add a health-check API endpoint. Perform discovery and create tech specs and implementation plan. Save specs to `plans/healthcheck/healthcheck-SPECS.md` and plan to `plans/healthcheck/healthcheck-PLAN.md`.
+/coding-flow Add a health-check API endpoint. Perform discovery and create tech specs and implementation plan. Save specs to `plans/healthcheck/healthcheck-SPECS.md` and plan to `plans/healthcheck/healthcheck-PLAN.md`.

@@ -18,13 +18,17 @@ tests:
           path: spec.rules[0].host
           value: "myapp.example.com"
 
-  - it: adds rate-limit middleware annotation when traefik rateLimit is configured
+  - it: adds namespace-prefixed rate-limit middleware annotation
+    release:
+      namespace: myns
+    set:
+      ingress.traefik.rateLimit.average: 1
     asserts:
       - isNotNull:
           path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
       - matchRegex:
           path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
-          pattern: ".*-rate-limit@kubernetescrd$"
+          pattern: "^myns-.*-rate-limit@kubernetescrd$"
 
   - it: includes external middlewares in annotation
     set:
@@ -75,10 +79,13 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: normalizes consecutive dashes in middleware annotation
+  - it: normalizes consecutive dashes in middleware annotation with namespace prefix
     release:
       name: my--app
+      namespace: myns
+    set:
+      ingress.traefik.rateLimit.average: 1
     asserts:
       - equal:
           path: metadata.annotations["traefik.ingress.kubernetes.io/router.middlewares"]
-          value: "my-app-rosetta-mcp-rate-limit@kubernetescrd"
+          value: "myns-my-app-rosetta-mcp-rate-limit@kubernetescrd"

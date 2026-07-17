@@ -1,0 +1,3 @@
+{"type":"user","message":{"role":"user","content":"do the thing"}}
+{"type":"assistant","message":{"role":"assistant","content":"working on it, no plugin context was injected"}}
+{"type":"system","subtype":"stop_hook_summary","hookCount":1,"hookInfos":[{"command":"sh -c 'cat; echo' >> '/tmp/ctrl/stop.jsonl'","durationMs":36}],"hookErrors":[]}

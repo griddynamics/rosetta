@@ -2,10 +2,10 @@
 name: reasoning
 description: "To apply structured 8D meta-cognitive reasoning thinking to complex problems, then answer clearly with caveats. Must use when asked to think or reason."
 license: Apache-2.0
-disable-model-invocation: false
+disable-model-invocation: true
 user-invocable: true
 argument-hint: problem, context?, constraints?
-model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high
+model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol
 context: default
 agent: planner, architect, prompt-engineer
 baseSchema: docs/schemas/skill.md

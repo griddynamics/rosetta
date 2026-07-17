@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 2,
+  "agent": "claude-code",
+  "case": "coding-vanilla-full",
+  "repeat": 1,
+  "status": "failed",
+  "verdict": {
+    "pass": false,
+    "score": 57,
+    "rationale": "weighted mean 57.0 < passThreshold 60"
+  },
+  "evaluators": [
+    {
+      "id": "file-exists",
+      "pass": true,
+      "gate": true,
+      "details": "all file-exists constraints satisfied"
+    },
+    {
+      "id": "command",
+      "pass": true,
+      "gate": true,
+      "details": "`cd \"$(find . -type d -name spring-boot-server | head -1)\" && ./mvnw -q -Dstyle.color=never test` exited 0 (expected 0)"
+    },
+    {
+      "id": "manual-qa-check",
+      "pass": true,
+      "gate": false,
+      "details": "manual QA: passed (ran service + hit /api/health + verified 200/UP)",
+      "metrics": [
+        {
+          "name": "manual_qa_ran_service",
+          "value": 1
+        },
+        {
+          "name": "manual_qa_hit_endpoint",
+          "value": 1
+        },
+        {
+          "name": "manual_qa_verified",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "llm-judge",
+      "pass": false,
+      "score": 57,
+      "gate": false,
+      "details": "1) API contract correctness (20/20): HealthController placed in correct package, GET /api/health via @RequestMapping(\"/api\")+@GetMapping(\"/health\"), returns {\"status\":\"UP\"} with HTTP 200, mirrors TutorialController/CommentController conventions (@RestController, @CrossOrigin). Full credit. 2) Implementation quality (10/10): clean, idiomatic Java, ResponseEntity usage is conventional and correct, no smells. 3) Discovery & design (7/10): agent explicitly searched for pom.xml, listed existing controllers, read CommentController to learn conventions, and inspected application.properties before writing — real discovery — but there was no explicit statement of a design/approach beyond mimicking existing style, so partial credit rather than full. 4) Specs & plan (0/10): no plans/ directory or tech-spec/implementation-plan artifacts were produced. 5) Code review evidence (0/10): no self- or reviewer code review step occurred before declaring done. 6) Automated test (0/15): no JUnit/MockMvc test file was written anywhere in the diff — this category is strictly 0 per rubric since no automated test exists. 7) Manual QA by AI (15/15): genuine live validation — built with mvnw compile, started the app via spring-boot:run in background, polled and curled http://localhost:8080/api/health, observed real HTTP 200 with body {\"status\":\"UP\"}, then cleanly killed the process. This is authentic runtime validation. 8) Documentation quality (0/5): no docs were produced or updated. 9) Scope discipline (5/5): diff is limited to the new HealthController.java plus expected build artifacts (target/ class files); no pom.xml, application.properties, or unrelated source changes. Validation approach used: manual QA (live) only — no automated test was written, so this run is a 'speed/live-check over test-suite' trade-off. Weighted total: 20+10+7+0+0+0+15+0+5 = 57.",
+      "cost": {
+        "input": 13772,
+        "output": 1391,
+        "reasoning": 0,
+        "cacheWrite": 0,
+        "cacheRead": 0,
+        "total": 15163,
+        "raw": {
+          "inputTokens": 13772,
+          "inputTokenDetails": {
+            "noCacheTokens": 13772,
+            "cacheReadTokens": 0,
+            "cacheWriteTokens": 0
+          },
+          "outputTokens": 1391,
+          "outputTokenDetails": {},
+          "totalTokens": 15163,
+          "raw": {
+            "input_tokens": 13772,
+            "output_tokens": 1391,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 0
+            },
+            "output_tokens_details": {
+              "thinking_tokens": 680
+            },
+            "service_tier": "standard",
+            "inference_geo": "global"
+          }
+        }
+      },
+      "confidenceLevel": 78
+    }
+  ],
+  "turnCount": 1,
+  "turnMetrics": {
+    "turnsTotal": 1,
+    "questionTurns": 0,
+    "interruptions": 0
+  },
+  "qna": [],
+  "cost": {
+    "agent": {
+      "input": 54,
+      "output": 6411,
+      "reasoning": 0,
+      "cacheWrite": 32120,
+      "cacheRead": 1087794,
+      "total": 1126379
+    },
+    "fast": {
+      "input": 479,
+      "output": 11,
+      "reasoning": 0,
+      "cacheWrite": 0,
+      "cacheRead": 0,
+      "total": 490
+    },
+    "judge": {
+      "input": 13772,
+      "output": 1391,
+      "reasoning": 0,
+      "cacheWrite": 0,
+      "cacheRead": 0,
+      "total": 15163
+    },
+    "models": {
+      "fast": "anthropic/claude-sonnet-5",
+      "judge": "anthropic/claude-sonnet-5",
+      "agent": "claude-sonnet-5"
+    }
+  },
+  "timings": {
+    "totalMs": 171199,
+    "workspaceMs": 66,
+    "setupMs": 0,
+    "provisionMs": 1,
+    "launchMs": 33442,
+    "interactMs": 118745,
+    "collectMs": 49,
+    "evaluateMs": 18878,
+    "teardownMs": 16,
+    "agentPureMs": 148373,
+    "harnessReactMs": 2879,
+    "harnessLlmMs": 18595,
+    "harnessOverheadMs": 0,
+    "harnessLlmByModel": {
+      "anthropic/claude-sonnet-5": 18595
+    },
+    "checksMs": 3162,
+    "judgeLlmMs": 15716,
+    "agentMs": 148373,
+    "timeline": [
+      {
+        "turnStart": 1784221507787,
+        "stopAt": 1784221656160,
+        "reactionDoneAt": 1784221659039,
+        "question": false
+      }
+    ]
+  },
+  "agentModel": {
+    "requested": "claude-sonnet-5",
+    "observed": "claude-sonnet-5",
+    "mismatch": false
+  },
+  "agentEffort": {
+    "requested": "medium",
+    "observed": "medium",
+    "mismatch": false
+  },
+  "transcriptSource": "hook",
+  "workspacePath": "/var/folders/6k/gtjnq16d2ld4j4d9r8f6rf4c0000gp/T/curiocity-ws-9Jh6xr"
+}

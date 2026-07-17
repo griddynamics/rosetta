@@ -5,7 +5,7 @@ license: Apache-2.0
 disable-model-invocation: false
 user-invocable: true
 argument-hint: tasks-or-plan, cli-selection?, model-preferences?
-model: claude-4.8-opus-high, gpt-5.5-high
+model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol
 context: default
 metadata:
   version: "1.0"
@@ -67,7 +67,7 @@ YOUR INTERNAL KNOWLEDGE ABOUT MODEL NAMES, CLI FLAGS, AND TOOL VERSIONS IS STALE
 Model selection guidance:
 - Anthropic: `claude-sonnet-5` (workhorse), `claude-opus-4-8` (complex), `claude-haiku-4-5` (fast)
 - OpenAI: `gpt-5.4` (workhorse), `gpt-5.5-high` (complex)
-- Google: `gemini-3.1-pro-preview` (workhorse), `gemini-3-flash-preview` (fast)
+- Google: `gemini-3.1-pro-preview` (workhorse), `gemini-3.5-flash` (fast)
 - Copilot: select via `--model`; supports claude, gpt, gemini families through GitHub
 - OpenCode: prefix with provider, e.g. `anthropic/claude-sonnet-5`, `openai/gpt-5.4`
 - Goose: set in `~/.config/goose/profiles.yaml`
@@ -188,7 +188,7 @@ Summarize to user: which CLIs ran which tasks, success/failure per orchestrator,
 - [Copilot CLI](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli) — prompt mode, yolo
 - [Gemini CLI](https://google-gemini.github.io/gemini-cli/docs/cli/headless.html) — headless mode, output formats
 - [OpenCode CLI](https://opencode.ai/docs/cli) — run command, agents
-- [Goose CLI](https://block.github.io/goose/docs/guides/running-tasks/) — headless recipes, config
+- [Goose CLI](https://goose-docs.ai/docs/guides/running-tasks/) — headless recipes, config
 - [Git Worktrees](https://git-scm.com/docs/git-worktree) — isolation strategy
 
 </resources>

@@ -1,1 +1,1 @@
-Analyse the code and explain how the REST API in this project works. What's the architecture and how do the components fit together? Consolidated analysis MUST be stored as a single file analysis.md.
+/code-analysis-flow Analyze the code and explain how the REST API in this project works. What's the architecture and how do the components fit together? Consolidated analysis MUST be stored as a single file analysis.md.

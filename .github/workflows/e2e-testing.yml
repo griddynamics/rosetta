@@ -1,0 +1,321 @@
+name: E2E Testing (Curiocity)
+
+# Manually-triggered end-to-end run of the Curiocity coding suite. Two cases exist under
+# tests/e2e-tests: `coding-vanilla` (plain Claude Code) and `coding-rosetta` (Claude Code +
+# the live checked-in plugins/core-claude, whatever version is committed). Each case's
+# src.zip is a maintainer-provided test-library archive copied verbatim. workflow_dispatch only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Which cases to run'
+        type: choice
+        options:
+          - all
+          - vanilla
+          - vanilla-full
+          - rosetta
+        default: all
+      trials:
+        description: 'Repeats per case (--repeats)'
+        type: string
+        default: "1"
+      agent_model:
+        description: 'Claude Code agent model (--agent-model claude-code=<v>)'
+        type: string
+        default: claude-sonnet-5
+      agent_effort:
+        description: 'Claude Code agent reasoning effort (--agent-effort claude-code=<v>)'
+        type: string
+        default: low
+      fast_model:
+        description: 'Fast-tier model override (--fast-model)'
+        type: string
+        default: anthropic/claude-sonnet-5
+      workhorse_model:
+        description: 'Workhorse-tier model override (--workhorse-model)'
+        type: string
+        default: anthropic/claude-sonnet-5
+      judge_model:
+        description: 'Judge-tier model override (--judge-model)'
+        type: string
+        default: anthropic/claude-sonnet-5
+      timeout_sec:
+        description: 'Per-trial wall-clock cap in seconds (--timeout)'
+        type: string
+        default: "1800"
+      concurrency:
+        description: 'Bounded pool size (--concurrency)'
+        type: string
+        default: "1"
+      keep_workspaces:
+        description: 'Keep trial workspaces in the results dir (--keep-workspace)'
+        type: boolean
+        default: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    env:
+      RESULTS_DIR: curiocity-results
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install OS dependencies (node-pty native build)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Install Claude Code CLI
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          claude --version
+
+      - name: Build curiocity
+        working-directory: src/curiocity
+        run: |
+          npm ci
+          npm run build
+
+      # The coding-rosetta case references the LIVE repo plugin at plugins/core-claude
+      # (whatever version is checked in) — no plugin generation, no dormant copy.
+      - name: Verify live Rosetta plugin present
+        run: |
+          PLUGIN_HOOKS="plugins/core-claude/hooks/hooks.json"
+          if [ ! -f "$PLUGIN_HOOKS" ]; then
+            echo "::error::Live plugin manifest not found: $PLUGIN_HOOKS"
+            exit 1
+          fi
+          echo "Live plugin hooks manifest: $PLUGIN_HOOKS"
+
+      # Stage each case's src.zip by COPYING the maintainer-provided fixture archives
+      # verbatim (no reprocessing). These archives must be committed for CI to find them.
+      - name: Stage case fixtures
+        run: |
+          cp test-library/spring-boot-react-mysql-not-initialized.zip tests/e2e-tests/coding-vanilla/src.zip
+          cp test-library/spring-boot-react-mysql-not-initialized.zip tests/e2e-tests/coding-vanilla-full/src.zip
+          cp test-library/spring-boot-react-mysql-initialized.zip tests/e2e-tests/coding-rosetta/src.zip
+
+      - name: Validate case sources
+        run: node src/curiocity/dist/cli.js validate --source tests/e2e-tests
+
+      - name: Run Curiocity E2E suite
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          mkdir -p "$RESULTS_DIR"
+
+          case "${{ inputs.suite }}" in
+            vanilla)
+              CASE_ARGS="--case coding-vanilla"
+              ;;
+            vanilla-full)
+              CASE_ARGS="--case coding-vanilla-full"
+              ;;
+            rosetta)
+              CASE_ARGS="--case coding-rosetta"
+              ;;
+            *)
+              CASE_ARGS=""
+              ;;
+          esac
+
+          KEEP_ARGS=""
+          if [ "${{ inputs.keep_workspaces }}" = "true" ]; then
+            KEEP_ARGS="--keep-workspace"
+          fi
+
+          set +e
+          # shellcheck disable=SC2086 # CASE_ARGS/KEEP_ARGS are intentionally unquoted to expand into 0..N CLI flags
+          node src/curiocity/dist/cli.js run \
+            --source tests/e2e-tests \
+            --config tests/e2e-tests/curiocity.e2e.json \
+            --out "$RESULTS_DIR" \
+            $CASE_ARGS \
+            --repeats "${{ inputs.trials }}" \
+            --agent-model claude-code=${{ inputs.agent_model }} \
+            --agent-effort claude-code=${{ inputs.agent_effort }} \
+            --fast-model "${{ inputs.fast_model }}" \
+            --workhorse-model "${{ inputs.workhorse_model }}" \
+            --judge-model "${{ inputs.judge_model }}" \
+            --timeout "${{ inputs.timeout_sec }}" \
+            --concurrency "${{ inputs.concurrency }}" \
+            $KEEP_ARGS \
+            --collect-cost \
+            2>&1 | tee "$RESULTS_DIR-run.log"
+          echo "CURIOCITY_EXIT=${PIPESTATUS[0]}" >> "$GITHUB_ENV"
+          set -e
+        shell: bash
+
+      - name: Verify result artifacts
+        id: verify
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          MISSING=0
+
+          RUN_DIR=$(find "$RESULTS_DIR" -maxdepth 1 -type d -name 'run-*' | head -n1)
+
+          if [ -z "$RUN_DIR" ]; then
+            echo "❌ No run-* directory found under $RESULTS_DIR"
+            echo "artifact_check=fail" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Run directory: $RUN_DIR"
+          echo ""
+          echo "Checklist:"
+
+          for f in suite.json suite.md; do
+            if [ -f "$RUN_DIR/$f" ]; then
+              echo "  ✅ $RUN_DIR/$f"
+            else
+              echo "  ❌ MISSING: $RUN_DIR/$f"
+              MISSING=1
+            fi
+          done
+
+          if [ -d "$RUN_DIR/trials" ]; then
+            while IFS= read -r -d '' TRIAL_DIR; do
+              CASE_NAME=$(basename "$(dirname "$(dirname "$TRIAL_DIR")")")
+              echo ""
+              echo "Trial: $TRIAL_DIR (case=$CASE_NAME)"
+
+              for f in trial.json trajectory.jsonl raw-transcript.jsonl screen.log workspace.diff; do
+                if [ -f "$TRIAL_DIR/$f" ]; then
+                  echo "  ✅ $f"
+                else
+                  echo "  ❌ MISSING: $TRIAL_DIR/$f"
+                  MISSING=1
+                fi
+              done
+
+              if [ "$CASE_NAME" = "coding-rosetta" ] && [ -f "$TRIAL_DIR/trial.json" ]; then
+                # metrics are pretty-printed {"name": "...", "value": N} objects, one field
+                # per line, so pull the number off the line *following* the name match.
+                DECLARED=$(grep -A1 '"name": "hook_events_declared"' "$TRIAL_DIR/trial.json" | grep -oE '[0-9]+' | head -n1)
+                MATCHED=$(grep -A1 '"name": "hook_events_plugin_matched"' "$TRIAL_DIR/trial.json" | grep -oE '[0-9]+' | head -n1)
+                if [ -n "$DECLARED" ] || [ -n "$MATCHED" ]; then
+                  echo "  ℹ️ hook-coverage: hook_events_declared=${DECLARED:-n/a}, hook_events_plugin_matched=${MATCHED:-n/a}"
+                else
+                  echo "  ⚠️ hook-coverage metrics not found in trial.json (evaluator may not have run)"
+                fi
+              fi
+            done < <(find "$RUN_DIR/trials" -mindepth 3 -maxdepth 3 -type d -print0)
+          else
+            echo "  ❌ MISSING: $RUN_DIR/trials directory"
+            MISSING=1
+          fi
+
+          echo ""
+          if [ "$MISSING" -eq 0 ]; then
+            echo "✅ All expected artifacts present."
+            echo "artifact_check=pass" >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ One or more expected artifacts are missing (see ❌ lines above)."
+            echo "artifact_check=fail" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "run_dir=$RUN_DIR" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload result artifacts
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-results
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            curiocity-results/**
+            curiocity-results-run.log
+
+      - name: Write step summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Curiocity E2E — ${{ inputs.suite }}"
+            echo ""
+            echo "| Input | Value |"
+            echo "|---|---|"
+            echo "| suite | ${{ inputs.suite }} |"
+            echo "| trials | ${{ inputs.trials }} |"
+            echo "| agent_model | ${{ inputs.agent_model }} |"
+            echo "| agent_effort | ${{ inputs.agent_effort }} |"
+            echo "| fast_model | ${{ inputs.fast_model }} |"
+            echo "| workhorse_model | ${{ inputs.workhorse_model }} |"
+            echo "| judge_model | ${{ inputs.judge_model }} |"
+            echo "| timeout_sec | ${{ inputs.timeout_sec }} |"
+            echo "| concurrency | ${{ inputs.concurrency }} |"
+            echo "| keep_workspaces | ${{ inputs.keep_workspaces }} |"
+            echo ""
+
+            case "$CURIOCITY_EXIT" in
+              0) echo "### ✅ Gate outcome: all gates passed (exit 0)" ;;
+              1) echo "### ❌ Gate outcome: gate failure — score/pass-rate/flakiness threshold not met (exit 1)" ;;
+              2) echo "### ⚠️ Gate outcome: config/infra failure — invalid config or no runnable trials (exit 2)" ;;
+              3) echo "### ⚠️ Gate outcome: partial infra failure — some trials errored, remaining gates passed (exit 3)" ;;
+              *) echo "### ⚠️ Gate outcome: unknown exit code ($CURIOCITY_EXIT)" ;;
+            esac
+            echo ""
+
+            RUN_DIR=$(find "$RESULTS_DIR" -maxdepth 1 -type d -name 'run-*' | head -n1)
+
+            if [ -n "$RUN_DIR" ] && [ -f "$RUN_DIR/suite.md" ]; then
+              echo "### Suite report"
+              echo ""
+              cat "$RUN_DIR/suite.md"
+              echo ""
+            else
+              echo "### Suite report"
+              echo ""
+              echo "_suite.md not found under $RESULTS_DIR/run-*_"
+              echo ""
+            fi
+
+            if [ -n "$RUN_DIR" ]; then
+              ROSETTA_TRIAL=$(find "$RUN_DIR/trials/coding-rosetta" -mindepth 2 -maxdepth 2 -name 'trial.json' 2>/dev/null | head -n1)
+              if [ -n "$ROSETTA_TRIAL" ]; then
+                echo "### Hook coverage (coding-rosetta)"
+                echo ""
+                DECLARED=$(grep -A1 '"name": "hook_events_declared"' "$ROSETTA_TRIAL" | grep -oE '[0-9]+' | head -n1)
+                MATCHED=$(grep -A1 '"name": "hook_events_plugin_matched"' "$ROSETTA_TRIAL" | grep -oE '[0-9]+' | head -n1)
+                echo "- hook_events_declared: ${DECLARED:-n/a}"
+                echo "- hook_events_plugin_matched: ${MATCHED:-n/a}"
+                echo ""
+              fi
+            fi
+
+            echo "<details><summary>Artifact inventory</summary>"
+            echo ""
+            echo '```'
+            find "$RESULTS_DIR" -type f 2>/dev/null | sed "s|^$RESULTS_DIR/||"
+            echo '```'
+            echo ""
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Reflect Curiocity gate outcome
+        if: always()
+        run: exit "${CURIOCITY_EXIT:-1}"

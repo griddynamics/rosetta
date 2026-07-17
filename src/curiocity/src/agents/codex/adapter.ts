@@ -19,6 +19,15 @@ import type {
 } from '../types';
 import { CODEX_DEFAULT_PROFILE } from './profile';
 import { findFallbackRollout } from './transcript';
+import {
+  renderConversation,
+  renderSkills,
+  renderTools,
+  type ToolCall,
+  type TranscriptViews,
+  type Turn,
+  type ViewContext,
+} from '../transcript-views';
 
 /**
  * `CodexAdapter` (§10.2) — renders the canonical control protocol (§5.2) into
@@ -500,6 +509,35 @@ export class CodexAdapter implements AgentAdapter {
     await session.write('\x03');
     await new Promise((r) => setTimeout(r, 300));
     await session.write('\x03');
+  }
+
+  /**
+   * Build human-readable transcript views (§14 addendum). `conversation`/`tools`/
+   * `skills` reduce THIS adapter's own normalized `events` (from `parseEvents`
+   * above) into the shared `Turn[]`/`ToolCall[]` intermediates and hand them to the
+   * format-independent renderers — portable across agents by construction. Codex has
+   * no hooks-summary transcript concept (§10.2, docs/hooks/codex.md: strict output
+   * validation means hook firings leave no native trace to read back), so `hooks`
+   * stays a minimal stub rather than reverse-engineering an unsupported signal.
+   */
+  buildTranscriptViews(_rawTranscript: string, events: TrajectoryEvent[], ctx: ViewContext): TranscriptViews {
+    const turns: Turn[] = [];
+    const toolCalls: ToolCall[] = [];
+    for (const e of events) {
+      if (e.kind === 'assistant' || e.kind === 'user') {
+        const text = (e.payload as { text?: string } | undefined)?.text ?? '';
+        turns.push({ role: e.kind, text });
+      } else if (e.kind === 'tool_call') {
+        const input = (e.payload as { input?: unknown } | undefined)?.input;
+        toolCalls.push({ name: e.name ?? '', input });
+      }
+    }
+    return {
+      conversation: renderConversation(ctx, turns, toolCalls),
+      hooks: '# Hooks — codex\n\n(hooks view not implemented for this agent yet)',
+      tools: renderTools(toolCalls),
+      skills: renderSkills(toolCalls),
+    };
   }
 }
 

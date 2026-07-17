@@ -14,7 +14,8 @@ metadata:
   {{- $middlewares = append $middlewares . }}
   {{- end }}
   {{- if and $traefik.rateLimit $traefik.rateLimit.average }}
-  {{- $middlewares = append $middlewares (printf "%s@kubernetescrd" (regexReplaceAll "-{2,}" (printf "%s-rate-limit" (include "rosetta-mcp.fullname" $)) "-")) }}
+  {{- $mwName := regexReplaceAll "-{2,}" (printf "%s-rate-limit" (include "rosetta-mcp.fullname" $)) "-" }}
+  {{- $middlewares = append $middlewares (printf "%s-%s@kubernetescrd" $.Release.Namespace $mwName) }}
   {{- end }}
   {{- if $middlewares }}
   {{- $traefikMw = join "," $middlewares }}

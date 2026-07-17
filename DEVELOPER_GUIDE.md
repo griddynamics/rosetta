@@ -435,7 +435,7 @@ Always publish the **entire** `/instructions` folder. Never subfolders or single
 
 ## How Documentation Is Organized
 
-See [plan/INDEX.md](plan/INDEX.md) for the full document routing map. The short version:
+The short version:
 
 - **README** — orientation, what and why
 - **QUICKSTART** — zero to working setup

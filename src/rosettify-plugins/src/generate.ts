@@ -16,7 +16,7 @@ import type { GenerateOptions, GenError, PluginProcessingFrame } from './types.j
  */
 export async function generate(options: GenerateOptions): Promise<number> {
   const logger = getLogger();
-  const { sources, release: releaseName, domain, dryRun } = options;
+  const { sources, release: releaseName, domain, dryRun, out } = options;
   const { instructionsSource, pluginsSource, hooksSource, outputDir } = sources;
 
   // Validate release (FR-CLI-0010/0011)
@@ -54,6 +54,7 @@ export async function generate(options: GenerateOptions): Promise<number> {
     outputDir,
     release,
     dryRun,
+    out,
   });
 
   // Template context for all targets

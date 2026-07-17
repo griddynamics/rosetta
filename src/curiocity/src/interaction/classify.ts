@@ -70,7 +70,7 @@ export async function composeStructuredAnswer(
   const options = question.options && question.options.length > 0 ? `\nOptions: ${question.options.join(', ')}` : '';
   const { text } = await router.generateText('workhorse', {
     system: qnaPolicy,
-    prompt: `The coding agent asked a structured question:\n${question.question}${options}\n\nReply with the single best answer per the policy above.`,
+    prompt: `The coding agent asked a structured question:\n${question.question}${options}\n\nReply with the single best answer per the policy above. Answer only THIS question — it may be one of several asked together and answered one at a time. If this is a final submit/confirmation step, choose to submit/proceed unless the work clearly violates the policy (a cancel/abort option discards all prior answers).`,
   });
   return text;
 }
