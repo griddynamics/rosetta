@@ -124,10 +124,9 @@ The Measurement field carries the threshold (numeric + measurement window + load
 
 <update_state step="4.4">
 1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 4 complete and requirement counts (user stories, FRs, NFRs, constraints, dependencies, assumptions, risks)
-2. Tell user: "Phase 4 complete. Generated [X] user stories, [Y] functional requirements, [Z] non-functional requirements."
-3. Show document location: `plans/testgen-{TICKET-KEY}/requirements.md`
-4. Ask: "Please review requirements.md. Ready to proceed to Phase 5 (Test Case Generation)?"
-5. **STOP AND WAIT** for explicit user confirmation before advancing to Phase 5. Do NOT auto-proceed on inferred approval or silence; treat ambiguous responses (questions, suggestions) as "not confirmed" and re-ask. This is a **priority-(3) per-phase confirmation** per `testgen-flow.md` `<orchestration_and_escalation>` — an explicit user instruction to skip it is honored there; it is **not** one of the never-overridable Phase 3 / Phase 6 HITL gates.
+2. Tell user: "Phase 4 complete. Generated [X] user stories, [Y] functional requirements, [Z] non-functional requirements. Proceeding to Phase 5 (Test Case Generation)."
+3. Show document location: `plans/testgen-{TICKET-KEY}/requirements.md` and invite the user to review/correct it at any time.
+4. Continue automatically to Phase 5.
 </update_state>
 
 <validation_checklist>

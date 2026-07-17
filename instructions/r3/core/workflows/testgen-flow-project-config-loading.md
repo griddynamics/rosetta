@@ -100,9 +100,8 @@ you can provide them here as well.
 
 <update_state step="0.6">
 1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 0 complete
-2. Tell user: "Phase 0 complete. Project setup ready."
-3. Ask: "Ready to proceed to Phase 1 (Data Collection)?"
-4. Gate the advance to Phase 1 via USE SKILL `hitl` (the canonical approval/escalation home): require explicit user confirmation; do NOT auto-proceed on inferred approval or silence; treat ambiguous responses as "not confirmed" and re-ask.
+2. Tell user: "Phase 0 complete. Project setup ready. Proceeding to Phase 1 (Data Collection)."
+3. Continue automatically to Phase 1.
 </update_state>
 
 <state_file_template>

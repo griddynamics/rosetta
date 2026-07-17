@@ -172,9 +172,8 @@ Extract all relevant data from the Issue Tracker ticket and related Wiki / docum
 
    Update `**Current Phase**: 1` → `**Current Phase**: 2` and refresh `**Last Updated**` at the top of the file.
 
-2. Tell user: "Phase 1 complete. Found [X] ticket fields and [Y] Wiki pages."
-3. Ask: "Ready to proceed to Phase 2 (Gap Analysis)?"
-4. **STOP AND WAIT** for explicit user confirmation before advancing to Phase 2. Do NOT auto-proceed on inferred approval or silence; treat ambiguous responses (questions, suggestions) as "not confirmed" and re-ask. This is a **priority-(3) per-phase confirmation** per `testgen-flow.md` `<orchestration_and_escalation>` — an explicit user instruction to skip it is honored there; it is **not** one of the never-overridable Phase 3 / Phase 6 HITL gates.
+2. Tell user: "Phase 1 complete. Found [X] ticket fields and [Y] Wiki pages. Proceeding to Phase 2 (Gap Analysis)."
+3. Continue automatically to Phase 2.
 </update_state>
 
 <validation_checklist>

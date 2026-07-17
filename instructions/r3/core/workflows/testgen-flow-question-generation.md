@@ -248,8 +248,7 @@ For each question below, replace `[Leave blank for user]` with your answer (or `
 1. Update `plans/testgen-{TICKET-KEY}/testgen-state.md` with Phase 3 complete. **State delta (per `testgen-flow.md` SELF-CHECK):** set the Phase 3 `## Phase Completion Status` row to complete; populate `## Phase Details` (questions generated, P0/P1 answered, unresolved/UNKNOWN counts, files created: `questions.md`, `answers.md`); update `## Metrics`.
 2. Tell user: "Phase 3 complete. [X] questions answered, [Y] unresolved."
 3. If unresolved: "We'll document assumptions for unresolved items."
-4. Ask: "Ready to proceed to Phase 4 (Requirements Generation)?"
-5. **STOP AND WAIT for explicit user confirmation. DO NOT PROCEED to Phase 4 until the user confirms.** Treat ambiguous responses (further questions, suggestions, silence) as not confirmed and re-ask — per this flow's per-phase confirmation discipline and the `<workflow_context>` HITL-GATE rule.
+4. Continue automatically to Phase 4.
 </update_state>
 
 <validation_checklist>

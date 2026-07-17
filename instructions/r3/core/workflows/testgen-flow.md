@@ -85,7 +85,7 @@ Prerequisite: Rosetta Prep Steps.
 
 - APPLY PHASE `testgen-flow-requirements-document-generation.md`
 - Input: raw-data.md + analysis.md + answers.md. Output: `plans/testgen-{TICKET-KEY}/requirements.md`.
-- **WAIT FOR USER** to review `requirements.md` before Phase 5 (phase-file gate, step 4.4) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
+- Present a summary of `requirements.md` (phase-file step 4.4), then continue automatically to Phase 5 per the `<orchestration_and_escalation>` Gate-type convention.
 - Required skills: `qa-knowledge` (`synthesis` mode)
 - Update `testgen-state.md`; Phase 4 is not complete until its output spot-check passes.
 
@@ -95,7 +95,7 @@ Prerequisite: Rosetta Prep Steps.
 
 - APPLY PHASE `testgen-flow-test-case-generation.md`
 - Input: requirements.md. Output: `plans/testgen-{TICKET-KEY}/test-scenarios.md`
-- **WAIT FOR USER** to review `test-scenarios.md` before Phase 6 export (phase-file gate, step 5.9) — present a summary and require explicit confirmation; per-phase confirmation per `<orchestration_and_escalation>` priority (3).
+- Present a summary of `test-scenarios.md` (phase-file step 5.9); Phase 6 is invoked on demand (not auto-entered) and carries the HITL gate per the `<orchestration_and_escalation>` Gate-type convention.
 - Required skills: `qa-knowledge` (`scenario_design` mode + config-resolved TMS FORMAT binding).
 - Update `testgen-state.md`; Phase 5 is not complete until its output spot-check passes.
 - `coding` is NOT used for the default manual-scenario output (writes stay under `plans/testgen-{TICKET-KEY}/`); apply it only if a write targets tracked repo files outside that folder, per `<phase_5_6_standards_gate>`.
@@ -118,8 +118,8 @@ Prerequisite: Rosetta Prep Steps.
 <orchestration_and_escalation>
 
 - **Skip-without-agreement / falsified-skip refusal** (this workflow owns the rule; subordinate to the `hitl` skill): a skip asserted but contradicted by `testgen-state.md` / disk evidence is refused — announce the specific missing state row / absent artifact, then start the earliest incomplete phase the same turn.
-- **Priority (highest never overridden → lowest):** (1) safety / destructive confirmations — incl. `<phase_5_6_standards_gate>` outside-output-dir confirmation; (2) Phase 3 + Phase 6 HITL gates (answer `questions.md` / confirm TMS target + export scope) — never skipped by user instruction; (3) per-phase user confirmation; (4) the verification-failure override below.
-- **Gate-type convention:** only the priority-(2) gates carry a `type="HITL"` attribute (Phases 3 + 6). The priority-(3) per-phase confirmations (Phases 0, 1, 2, 4, 5) are intentional user-pauses that deliberately carry **no** `type=` attribute — here `type=` marks the never-overridden gates, not every pause.
+- **Priority (highest never overridden → lowest):** (1) safety / destructive confirmations — incl. `<phase_5_6_standards_gate>` outside-output-dir confirmation; (2) Phase 3 + Phase 6 HITL gates (answer `questions.md` / confirm TMS target + export scope) — never skipped by user instruction; (3) per-phase informational status update (no stop); (4) the verification-failure override below.
+- **Gate-type convention:** only type="HITL" phases (3, 6) stop and wait for a reply — the workflow's only fully-specified HITL gates. USE SKILL `hitl` for any other stop/ask decision; do not invent bespoke phase-level "ready to proceed?" logic. Phases 0, 1, 2, 4, 5 carry no type= attribute: continuing is the default, expected action, so each ends with a one-line status update and continues automatically to the next phase. Ordinary mid-flow user feedback (a question, correction, or objection raised in the same turn) is normal conversation to handle and continue past, not a phase gate.
 - **Testgen binding for the override** (skip-verification gate only): the trigger is the user asserting a phase complete while `testgen-state.md` does not mark it AND the expected output is absent. Action — if `testgen-state.md` is missing, create it from the Phase 0 `<state_file_template>` first; log a row into its `## Verification-Failure Overrides` (row format owned by that template); then start the earliest incomplete phase the same turn without invoking the `hitl` ask path. Uncertainty (partial state, ambiguous assertion) → fall back to the `hitl` ask.
 - Load failure for a required phase file or skill: retry once, stop, record in `testgen-state.md`, ask the user; never substitute silently.
 
