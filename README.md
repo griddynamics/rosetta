@@ -58,9 +58,11 @@ Rosetta-guided work follows five phases — **Prepare → Research → Plan → 
 
 | Option                              | Best for                                                                       |
 | ----------------------------------- | ------------------------------------------------------------------------------ |
-| **[Plugins](PLUGINS.md)** — recommended | Day-to-day developer use (Claude Code · Cursor · Copilot · Codex)          |
-| **[Hosted MCP](MCPs.md)**           | Fast evaluation for Windsurf · Junie · Antigravity · OpenCode · any MCP-compatible agent |
-| **[Self-hosted MCP](DEPLOYMENT_GUIDE.md)** | Enterprise / air-gapped deployment of the same MCP-compatible setup |
+| **[Plugins](PLUGINS.md)** — recommended | Everyone with a supported IDE (Claude Code · Cursor · Copilot · Codex). Files install locally — no server, no live connection needed. |
+| **[Hosted MCP](MCPs.md)** — evaluation only | Try Rosetta with zero setup, or use any other MCP-compatible agent (Windsurf · Junie · Antigravity · OpenCode). Public demo endpoint — do not point production or sensitive repos at it. |
+| **[Self-hosted MCP](docs/mcp/DEPLOYMENT_GUIDE.md)** — optional | MCP in production: your own MCP server and RAGFlow inside your perimeter. Only needed if you specifically require centrally-managed, always-fresh instructions with nothing copied into repos — most teams don't. |
+
+MCP is a secondary, optional delivery mode. If your IDE supports plugins, start there.
 
 **2. Initialize** — ask the agent in chat once per repo, and Rosetta does the rest:
 
@@ -115,7 +117,7 @@ IDE rules (`.cursorrules`, `CLAUDE.md`, Copilot custom instructions) are useful,
 | **Ready-made flows** — coding, testing, AQA, research, and more | **Versioned control** — review, approve, and roll back instructions in Git |
 | **Plans and approval gates** before code, not after the damage | **Knowledge captured once** — out of senior engineers' heads |
 | **Fresh-context review** and execution-backed validation | **Cross-project intelligence** _(opt-in)_ — agents see the system, not just one repo |
-| **Less babysitting** — fewer wrong turns to catch and re-prompt | **Runs inside your perimeter** — air-gap capable; no source code leaves |
+| **Less babysitting** — fewer wrong turns to catch and re-prompt | **Runs inside your perimeter** — works with limited internet access; no source code leaves |
 
 See [how Rosetta fits your workflow](OVERVIEW.md#how-rosetta-fits-into-your-workflow) and [how it protects you](USAGE_GUIDE.md#how-rosetta-protects-you).
 
@@ -170,7 +172,7 @@ AI coding agents can read code, generate code, and run commands. But that is onl
 
     Rosetta instructs the agent to write execution state — plans, specs, phase progress, flow status — to disk files. If a session fails, the next session resumes from the last recorded checkpoint. Medium and large tasks become resumable multi-session workflows instead of all-or-nothing gambles.
 
-11. **Security by design — no source code leaves your perimeter.** Instruction delivery is deterministic: the agent requests content by tag, not by sending source code for analysis. There is no semantic search over your codebase. No code transfers to Rosetta servers. Write mode is disabled by default and requires explicit deployment configuration to enable. Schema-strict input validation rejects any unexpected payloads. The architecture is air-gap capable and runs entirely inside your organization's perimeter.
+11. **Security by design — no source code leaves your perimeter.** Instruction delivery is deterministic: the agent requests content by tag, not by sending source code for analysis. There is no semantic search over your codebase. No code transfers to Rosetta servers. Write mode is disabled by default and requires explicit deployment configuration to enable. Schema-strict input validation rejects any unexpected payloads. The architecture works with limited internet access and runs entirely inside your organization's perimeter.
 
 12. **One system, every AI tool, customizable at every level.** Rosetta works across Cursor, Claude Code, VS Code, JetBrains, Windsurf, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Instructions are written once and adapt to each environment. Organizations that switch between AI tools or use multiple tools simultaneously keep their entire instruction investment intact. No vendor lock-in. No per-tool maintenance.
 
@@ -189,10 +191,12 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and e
 | I want to...                                         | Read                                       |
 | ---------------------------------------------------- | ------------------------------------------ |
 | Set up Rosetta                                       | [QUICKSTART.md](QUICKSTART.md)             |
+| Install as a plugin (recommended)                    | [PLUGINS.md](PLUGINS.md)                   |
+| Connect over MCP (optional, secondary)               | [MCPs.md](MCPs.md)                         |
 | Configure your coding-agent workspace                | [CONFIGURATION.md](CONFIGURATION.md)       |
 | Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md)                 |
 | Learn how to use Rosetta flows                       | [USAGE_GUIDE.md](USAGE_GUIDE.md)           |
-| Deploy Rosetta for my organization                   | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) |
+| Deploy Rosetta for my organization                   | [DEPLOYMENT_GUIDE.md](docs/mcp/DEPLOYMENT_GUIDE.md) |
 | Understand the system architecture                   | [ARCHITECTURE.md](docs/ARCHITECTURE.md)    |
 | Navigate the codebase                                | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)   |
 | Contribute a change                                  | [CONTRIBUTING.md](CONTRIBUTING.md)         |

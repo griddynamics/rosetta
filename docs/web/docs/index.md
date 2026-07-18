@@ -38,7 +38,7 @@ Rosetta is an open-source governance and context layer for AI coding agents. The
   <a href="/rosetta/docs/mcps/" class="docs-index-card">
     <p class="docs-index-card-cat">Getting Started</p>
     <p class="docs-index-card-title">MCPs</p>
-    <p class="docs-index-card-desc">Connect Rosetta over HTTP MCP for IDEs that do not support Rosetta plugins.</p>
+    <p class="docs-index-card-desc">Optional, secondary path: connect over HTTP MCP when your IDE has no Rosetta plugin.</p>
   </a>
   <a href="/rosetta/docs/faq/" class="docs-index-card">
     <p class="docs-index-card-cat">Getting Started</p>

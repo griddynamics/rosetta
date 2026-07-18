@@ -30,7 +30,7 @@ This file contains grep compatible list of very concise improvements, suggestion
 ## TODO: Hooks adapter gaps (from QA 2026-05-23)
 
 - **Gemini CLI hook validation** — https://github.com/griddynamics/rosetta/issues/93
-- **Antigravity support docs update** — https://github.com/griddynamics/rosetta/issues/94 — AC: update ARCHITECTURE.md:28-29 and CONTEXT.md:107 within 1 sprint
+- **Antigravity support docs update** — https://github.com/griddynamics/rosetta/issues/94 — AC: update MCP-ARCHITECTURE.md:17-18 and CONTEXT.md:107 within 1 sprint (moved from ARCHITECTURE.md:28-29 when the MCP-only System Overview diagram relocated to MCP-ARCHITECTURE.md)
 - **Unknown-tool fallback live test** — https://github.com/griddynamics/rosetta/issues/95
 - **Adapter as public consumable module** — https://github.com/griddynamics/rosetta/issues/96
 - **OpenCode + JetBrains/Junie validation** — https://github.com/griddynamics/rosetta/issues/97

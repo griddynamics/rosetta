@@ -21,7 +21,7 @@ permalink: /docs/deployment/
 |---|---|---|---|
 | Hosted | Cloud Kubernetes | Cloud Kubernetes (HTTP transport) | Teams, production |
 | Local | Docker Compose | Docker Compose or STDIO | Development, evaluation |
-| Air-gapped | Docker Compose (offline models) | STDIO (offline instructions) | Regulated environments |
+| Limited Internet Access | Docker Compose (offline models) | STDIO (offline instructions) | Regulated environments |
 
 Rosetta MCP connects to RAGFlow as its backend. Deploy RAGFlow first.
 
@@ -29,7 +29,7 @@ Rosetta MCP connects to RAGFlow as its backend. Deploy RAGFlow first.
 
 ## Part 1: Rosetta Server (RAGFlow)
 
-RAGFlow provides document storage, embedding, retrieval, and the admin UI. It runs with Elasticsearch, Redis, and MinIO as supporting services, backed by an external MySQL database. For RAGFlow's role in the system, see [Architecture — RAGFlow](/rosetta/docs/architecture/#ragflow-rosetta-server).
+RAGFlow provides document storage, embedding, retrieval, and the admin UI. It runs with Elasticsearch, Redis, and MinIO as supporting services, backed by an external MySQL database. For RAGFlow's role in the system, see [MCP Architecture — RAGFlow](/rosetta/docs/mcp-architecture/#ragflow-rosetta-server).
 
 Upstream docs: [Configuration](https://ragflow.io/docs/dev/configurations) | [Helm Chart](https://github.com/infiniflow/ragflow/tree/main/helm) | [Build Docker Image](https://ragflow.io/docs/dev/build_docker_image) | [Admin UI](https://ragflow.io/docs/admin_ui) | [GitHub](https://github.com/infiniflow/ragflow)
 

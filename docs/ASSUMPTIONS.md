@@ -8,7 +8,7 @@ Revalidated after major documentation or architecture changes.
 
 ### Redis is optional in all deployment modes [HIGH confidence]
 Redis is used for OAuth session storage and plan_manager; in-memory fallback exists for local dev. Assumption: no hard runtime dependency in single-instance STDIO mode.
-- Resolve in: `docs/ARCHITECTURE.md`, `DEPLOYMENT_GUIDE.md`
+- Resolve in: `docs/ARCHITECTURE.md`, `docs/mcp/DEPLOYMENT_GUIDE.md`
 
 ### RAGFlow is the only supported document engine [HIGH confidence]
 All CLI and MCP server code targets RAGFlow exclusively. No abstraction layer exists for alternative backends.
@@ -26,7 +26,7 @@ All CLI and MCP server code targets RAGFlow exclusively. No abstraction layer ex
 
 ### `ROSETTA_API_KEY` grants access to all datasets [HIGH confidence]
 Documented in ARCHITECTURE.md Tradeoffs: single API key as dataset owner. Assumption: no per-dataset key segmentation exists today.
-- Resolve in: `docs/ARCHITECTURE.md`, `docs/AUTHENTICATION.md`
+- Resolve in: `docs/ARCHITECTURE.md`, `docs/mcp/AUTHENTICATION.md`
 
 ### Source code never leaves the organization perimeter [HIGH confidence]
 By design: Rosetta delivers instructions only, does not ingest or process project source code.
@@ -40,11 +40,11 @@ No documented migration path found. Assumption: agents re-publish all instructio
 
 ### Sticky session requirement for horizontal scaling [MEDIUM confidence]
 ARCHITECTURE.md states sticky sessions are required for Streamable HTTP. The exact load-balancer configuration (header, cookie, IP) is unspecified.
-- Resolve in: `DEPLOYMENT_GUIDE.md`
+- Resolve in: `docs/mcp/DEPLOYMENT_GUIDE.md`
 
 ### `FERNET_KEY` rotation procedure [LOW confidence]
 FERNET_KEY encrypts OAuth tokens in Redis. No rotation runbook found in current docs.
-- Resolve in: `DEPLOYMENT_GUIDE.md`, `docs/AUTHENTICATION.md`
+- Resolve in: `docs/mcp/DEPLOYMENT_GUIDE.md`, `docs/mcp/AUTHENTICATION.md`
 
 ## Workspace Init Unknowns
 

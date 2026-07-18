@@ -6,10 +6,10 @@ Each doc answers one question for one reader at one moment. If a file answers tw
 
 Four reader types. Every doc serves one primary profile. README is the shared front door that routes all four.
 
-- **User** — wants to use Rosetta on their own project. The primary audience. Path: README → QUICKSTART → install (PLUGINS / MCPs / INSTALLATION) → CONFIGURATION → USAGE_GUIDE, with FAQ and TROUBLESHOOTING for support.
+- **User** — wants to use Rosetta on their own project. The primary audience. Path: README → QUICKSTART → install (PLUGINS — recommended / MCPs — optional, secondary / INSTALLATION — full reference) → CONFIGURATION → USAGE_GUIDE, with FAQ and TROUBLESHOOTING for support.
 - **AI** — a coding agent reading the repo to learn Rosetta. Path: README points it to `llms-full.txt`, one dense machine-readable source.
-- **Contributor** — develops for Rosetta. Path: CONTRIBUTING → OVERVIEW → ARCHITECTURE → DEVELOPER_GUIDE → REVIEW.
-- **Organization** — wants to deploy Rosetta company-wide. Path: INSTALLATION → DEPLOYMENT_GUIDE → SECURITY, reusing ARCHITECTURE.
+- **Contributor** — develops for Rosetta. Path: CONTRIBUTING → OVERVIEW → CONTEXT → ARCHITECTURE → DEVELOPER_GUIDE → REVIEW. MCP-CONTEXT and MCP-ARCHITECTURE are optional deep-dives reached from CONTEXT/ARCHITECTURE, not separate stops on the main path.
+- **Organization** — wants to roll out Rosetta company-wide. For nearly all organizations this is the User path at scale (plugins distributed via IDE marketplaces) — no server to deploy. Path: INSTALLATION → docs/mcp/DEPLOYMENT_GUIDE → SECURITY exists only for the rare organization that specifically needs self-hosted, centrally-managed MCP; reuses ARCHITECTURE/MCP-ARCHITECTURE.
 
 | File | One-line job | Serves | Profile |
 |---|---|---|---|
@@ -17,8 +17,8 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 | `ELEVATOR_SPEECH.md` | 30-second pitch for the unconvinced. | Someone asked "what is Rosetta?" in a hallway. | User |
 | `QUICKSTART.md` | Fastest path to a working setup. | A user who decided to try it. | User |
 | `INSTALLATION.md` | Complete setup reference, all modes and transports. | A user or org with a non-default setup. | User + Organization |
-| `PLUGINS.md` | Plugin install path, per IDE. | Users on the plugin install route. | User |
-| `MCPs.md` | MCP install path. | Users on the MCP install route. | User |
+| `PLUGINS.md` | Plugin install path, per IDE. Recommended default; never mentions MCP. | Users on the plugin install route (nearly everyone). | User |
+| `MCPs.md` | MCP install path — optional, secondary. | Users with no plugin path for their IDE, or a specific centrally-managed-instructions need. | User |
 | `CONFIGURATION.md` | Post-install workspace setup (includes refsrc examples). | A user asking "now what?". | User |
 | `USAGE_GUIDE.md` | How to run the workflows day to day. | A configured user doing real work. | User |
 | `FAQ.md` | Fast answers to recurring real questions. | Anyone scanning before a full guide. | User |
@@ -26,12 +26,15 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 | `CHANGELOG.md` | Release history. | Existing users checking what moved. | User |
 | `llms-full.txt` | Dense, machine-readable source of the whole project. | An AI agent reading the repo. | AI |
 | `OVERVIEW.md` | Mental model. How to think about Rosetta. | A contributor getting oriented. | Contributor |
-| `ARCHITECTURE.md` | System structure, components, data flow. | Contributors and org deployers. | Contributor + Organization |
+| `docs/CONTEXT.md` | Business context, requirements, target state. No technical detail. | Contributors, architects, stakeholders. | Contributor |
+| `docs/MCP-CONTEXT.md` | Business case, data responsibility, and opt-in features for self-hosted MCP. Optional, secondary. | Stakeholders evaluating whether they need self-hosted MCP. | Contributor + Organization (optional) |
+| `ARCHITECTURE.md` | System structure, components, data flow — plugin delivery flow is the primary path documented here. | Contributors and org deployers. | Contributor + Organization |
+| `docs/MCP-ARCHITECTURE.md` | `ims-mcp` server internals: RAGFlow, CLI, transports, OAuth, VFS/tags, bundler. Optional, secondary — reached only via ARCHITECTURE.md's pointer. | Contributors touching the MCP server, or ops staffing a self-hosted deployment. | Contributor + Organization (optional) |
 | `CONTRIBUTING.md` | How to make a correct contribution. | A first-time contributor. | Contributor |
 | `DEVELOPER_GUIDE.md` | Navigate and build the codebase. | Contributors writing code. | Contributor |
 | `REVIEW.md` | Standards for evaluating a change. | Reviewers and PR authors. | Contributor |
 | `SECURITY.md` | Report vulnerabilities + security posture. | Security-conscious users and orgs. | Organization |
-| `DEPLOYMENT_GUIDE.md` | Deploy Rosetta server org-wide. | Platform / infra owners. | Organization |
+| `docs/mcp/DEPLOYMENT_GUIDE.md` | Deploy self-hosted Rosetta MCP + RAGFlow. Optional, secondary — only for orgs that specifically need it. | Platform / infra owners self-hosting MCP. | Organization (optional) |
 
 `refsrc-examples.md` is removed — its content now lives in `CONFIGURATION.md` as a collapsible section.
 
@@ -54,6 +57,24 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Structure:** problem statement → core mental model → key concepts/terminology → session lifecycle → "what Rosetta does not do".
 - **Excludes:** install/setup steps (→ INSTALLATION/QUICKSTART), per-workflow how-tos (→ USAGE_GUIDE), code-level internals (→ ARCHITECTURE/DEVELOPER_GUIDE).
 - **Sources:** ELEVATOR_SPEECH (why), `workflows/` + `skills/` (concepts/terminology), ARCHITECTURE (session lifecycle).
+
+### docs/CONTEXT.md
+- **Profile:** Contributor.
+- **Audience:** contributors, architects, and stakeholders who need the business purpose, domain, and requirements behind Rosetta.
+- **Answers:** "Why does Rosetta exist, who does it serve, what does success look like?"
+- **Owns:** why Rosetta exists, what it is, value delivery per stakeholder, business requirements, domain/operating context, target state, design philosophy. Bulleted, no technical detail, no changelog.
+- **Structure:** why Rosetta exists → what Rosetta is → value delivery → business requirements → domain/operating context → target state → edition → design philosophy.
+- **Excludes:** technical architecture (→ ARCHITECTURE), self-hosted MCP business case and opt-in-feature data responsibility (→ MCP-CONTEXT — short reference stub only), user guide (→ USAGE_GUIDE), changelog.
+- **Sources:** business requirements docs, stakeholder interviews, ARCHITECTURE (for the technical pointer), OVERVIEW.
+
+### docs/MCP-CONTEXT.md
+- **Profile:** Contributor + Organization (optional).
+- **Audience:** stakeholders deciding whether to self-host Rosetta MCP. Optional, secondary — most readers of CONTEXT.md never need this file.
+- **Answers:** "Do we actually need self-hosted MCP, and what does opting into it involve?"
+- **Owns:** when self-hosted MCP is actually needed (vs. plugins), the opt-in features (project datasets, `plan_manager`, PostHog analytics) and who's responsible for the resulting data, which CONTEXT.md value-props are gated behind this opt-in stack.
+- **Structure:** when you need this → opt-in features and data responsibility → value delivery specific to self-hosted MCP.
+- **Excludes:** general business case (→ CONTEXT), technical internals (→ MCP-ARCHITECTURE), deployment steps (→ docs/mcp/DEPLOYMENT_GUIDE).
+- **Sources:** CONTEXT.md's opt-in-feature bullet, MCP-ARCHITECTURE.md, DEPLOYMENT_GUIDE.md.
 
 ### ELEVATOR_SPEECH.md
 - **Profile:** User.
@@ -78,26 +99,26 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Audience:** a user whose setup is non-default (HTTP/STDIO, offline, specific IDE).
 - **Answers:** "Every supported way to install, in full."
 - **Owns:** all transports, bootstrap rule, verify, initialize, upgrade, uninstall, env vars. The canonical install reference.
-- **Structure:** modes overview → plugin vs MCP → transports (HTTP/STDIO/offline) → bootstrap rule → verify → initialize → upgrade → uninstall → env vars.
-- **Excludes:** post-install workspace setup (→ CONFIGURATION), per-IDE plugin walkthrough (→ PLUGINS), MCP-connect specifics (→ MCPs), org server deploy (→ DEPLOYMENT_GUIDE).
+- **Structure:** modes overview, plugin-first (Plugin → HTTP → STDIO → Offline) → plugin install → offline install (rare — developing Rosetta itself, or no plugin available) → HTTP/STDIO transports (MCP, optional) → bootstrap rule → verify → initialize → upgrade → uninstall → env vars.
+- **Excludes:** post-install workspace setup (→ CONFIGURATION), per-IDE plugin walkthrough (→ PLUGINS), MCP-connect specifics (→ MCPs), self-hosted server deploy (→ docs/mcp/DEPLOYMENT_GUIDE).
 - **Sources:** PyPI packages (`ims-mcp`, `rosetta-mcp`, `rosetta-cli`), CLI `--help`, server transport config + env vars in code.
 
 ### PLUGINS.md
 - **Profile:** User.
-- **Audience:** a user installing via plugin, per IDE (Claude Code, Cursor, Copilot, Codex).
+- **Audience:** a user installing via plugin, per IDE (Claude Code, Cursor, Copilot, Codex). The recommended default for nearly every user.
 - **Answers:** "Plugin install for my IDE?"
 - **Owns:** per-IDE plugin steps, verify, upgrade.
 - **Structure:** prerequisites → per-IDE install steps (Claude Code, Cursor, Copilot, Codex) → verify → upgrade.
-- **Excludes:** MCP install route (→ MCPs), transport/env reference (→ INSTALLATION), workspace config (→ CONFIGURATION).
+- **Excludes:** MCP install route — **never mentions MCP, not even a pointer** (one-directional split; MCPs.md may point back here, this file never points there), transport/env reference (→ INSTALLATION), workspace config (→ CONFIGURATION).
 - **Sources:** each IDE's plugin registry/config, the plugin manifest, INSTALLATION (shared verify/upgrade steps).
 
 ### MCPs.md
 - **Profile:** User.
-- **Audience:** a user connecting the Rosetta MCP.
-- **Answers:** "Connect the MCP and confirm it works?"
-- **Owns:** MCP connect, bootstrap rule, verify, common MCP issues.
-- **Structure:** prerequisites → connect the MCP → bootstrap rule → verify → common MCP issues.
-- **Excludes:** plugin install route (→ PLUGINS), full transport/env reference (→ INSTALLATION), general runtime errors (→ TROUBLESHOOTING).
+- **Audience:** a user with no plugin path for their IDE (Windsurf, Junie, Antigravity, OpenCode), or a specific need for centrally-managed instructions. Optional, secondary — most users don't need this file at all.
+- **Answers:** "I've decided I need MCP — connect it and confirm it works?"
+- **Owns:** MCP connect, bootstrap rule, verify, common MCP issues, the hosted-vs-self-hosted distinction (hosted endpoint = evaluation only; production = self-hosted, see docs/mcp/DEPLOYMENT_GUIDE.md).
+- **Structure:** who actually needs this (→ PLUGINS if not) → prerequisites → connect the MCP → bootstrap rule → verify → common MCP issues.
+- **Excludes:** plugin install route (→ PLUGINS), full transport/env reference (→ INSTALLATION), general runtime errors (→ TROUBLESHOOTING), self-hosted deployment steps (→ docs/mcp/DEPLOYMENT_GUIDE).
 - **Sources:** MCP server endpoints/transports, the `.mcp.json` examples, INSTALLATION.
 
 ### CONFIGURATION.md
@@ -169,16 +190,16 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Answers:** "How do I report a vuln, and what's the security posture?"
 - **Owns:** reporting process, safe harbor, supported versions, security architecture, guardrails, shared responsibility.
 - **Structure:** how to report a vulnerability (+ contact) → safe harbor → supported versions → security architecture/posture → guardrails → shared-responsibility model.
-- **Excludes:** general deploy/ops (→ DEPLOYMENT_GUIDE), architecture internals (→ ARCHITECTURE), user troubleshooting (→ TROUBLESHOOTING).
-- **Sources:** security contact `rosetta-support@griddynamics.com`, PyPI packages, disclosure SLAs, telemetry env vars (`POSTHOG_API_KEY`), DEPLOYMENT_GUIDE (hardening).
+- **Excludes:** general deploy/ops (→ docs/mcp/DEPLOYMENT_GUIDE), architecture internals (→ ARCHITECTURE), user troubleshooting (→ TROUBLESHOOTING).
+- **Sources:** security contact `rosetta-support@griddynamics.com`, PyPI packages, disclosure SLAs, telemetry env vars (`POSTHOG_API_KEY`), docs/mcp/DEPLOYMENT_GUIDE (hardening).
 
-### DEPLOYMENT_GUIDE.md
-- **Profile:** Organization.
-- **Audience:** platform/infra owner rolling Rosetta out org-wide.
-- **Answers:** "How do I deploy and operate the Rosetta server?"
+### docs/mcp/DEPLOYMENT_GUIDE.md
+- **Profile:** Organization (optional).
+- **Audience:** platform/infra owner self-hosting Rosetta MCP. Optional, secondary — moved fully under `docs/mcp/` because it is 100% MCP content; most organizations roll out via plugins and never need this file.
+- **Answers:** "We've decided we need self-hosted MCP — how do I deploy and operate it?"
 - **Owns:** server (RAGFlow) + MCP deploy, Docker/Helm, Redis, env management, images.
-- **Structure:** architecture overview → prerequisites → server (RAGFlow) + MCP deploy → Docker/Helm → Redis → env management → images → operate/upgrade.
-- **Excludes:** single-user install (→ INSTALLATION), security reporting/posture (→ SECURITY), system internals (→ ARCHITECTURE).
+- **Structure:** who actually needs this (optional framing up front) → deployment modes → prerequisites → server (RAGFlow) + MCP deploy → Docker/Helm → Redis → env management → images → operate/upgrade.
+- **Excludes:** single-user install (→ INSTALLATION), security reporting/posture (→ SECURITY), system internals (→ ARCHITECTURE/MCP-ARCHITECTURE), business case for self-hosting (→ MCP-CONTEXT).
 - **Sources:** Docker/Helm charts, RAGFlow + Redis config, deploy env vars/images in the infra manifests.
 
 ### CHANGELOG.md
@@ -194,10 +215,19 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Profile:** Contributor + Organization.
 - **Audience:** a contributor or org deployer who needs system internals.
 - **Answers:** "How is Rosetta built — components, data flow, boundaries?"
-- **Owns:** system structure, components, data flow. Reused by the Organization profile.
-- **Structure:** system overview → components → data flow → boundaries/integration points.
-- **Excludes:** how to build/run locally (→ DEVELOPER_GUIDE), deploy/ops steps (→ DEPLOYMENT_GUIDE), product concepts/mental model (→ OVERVIEW).
-- **Sources:** codebase structure (server/CLI/instructions), MCP server data-flow in code, existing diagrams.
+- **Owns:** system structure, components, data flow, with the **plugin delivery flow as the primary, fully-documented path** (its own diagram and data flow). MCP content is a short reference stub with keywords, not a summary — depth lives entirely in MCP-ARCHITECTURE.md.
+- **Structure:** system overview (plugin diagram) → plugin delivery flow → key principles → command aliases → bootstrap flow → instruction structure → workspace files → development (plugin generator) → tradeoffs (mode-agnostic ones only) → MCP-ARCHITECTURE pointer.
+- **Excludes:** how to build/run locally (→ DEVELOPER_GUIDE), deploy/ops steps (→ docs/mcp/DEPLOYMENT_GUIDE), product concepts/mental model (→ OVERVIEW), **all MCP-specific internals — diagram, RAGFlow, CLI, environments, OAuth, tradeoffs (→ MCP-ARCHITECTURE, moved fully, not summarized here)**.
+- **Sources:** codebase structure (server/CLI/instructions), the plugin generator (`rosettify-plugins`), existing diagrams.
+
+### docs/MCP-ARCHITECTURE.md
+- **Profile:** Contributor + Organization (optional).
+- **Audience:** contributors working on the `ims-mcp` server, RAGFlow, or the Rosetta CLI, or diagnosing MCP-mode behavior. Optional, secondary — reached only via ARCHITECTURE.md's pointer, never a starting point.
+- **Answers:** "How does the MCP delivery pipeline actually work, end to end?"
+- **Owns:** the full MCP pipeline diagram (Instructions Repo → CLI → RAGFlow → `ims-mcp` → IDE), environments, RAGFlow, Rosetta CLI, authentication overview, Redis migrations, VFS/tags, MCP tools, bundler, listings, context overflow prevention, MCP delivery flow, MCP-only development/validation, MCP-specific tradeoffs.
+- **Structure:** system overview (MCP diagram) → server → environments → RAGFlow → CLI → authentication → Redis migrations → VFS/tags → tools → bundler → listing → context overflow → MCP delivery flow → development → tradeoffs.
+- **Excludes:** the plugin path (→ ARCHITECTURE, one-directional pointer back only), OAuth proxy deep internals (→ AUTHENTICATION.md), deployment steps (→ docs/mcp/DEPLOYMENT_GUIDE).
+- **Sources:** `src/ims-mcp-server/`, FastMCP/RAGFlow docs, `docs/mcp/AUTHENTICATION.md`, `docs/mcp/RAGFLOW.md`.
 
 ### llms-full.txt
 - **Profile:** AI.
@@ -227,7 +257,7 @@ Cross-cutting rules every doc follows, on top of its §2 contract. These are the
 
 ## 4. User Reading Journey
 
-README is the single front door. It routes each of the four reader profiles into its own flow. INSTALLATION serves both the User and Organization profiles, so it appears in each flow; ARCHITECTURE is shared (the dotted link shows the Organization reusing it).
+README is the single front door. It routes each of the four reader profiles into its own flow. Plugins are drawn first in every path where plugins and MCP appear together — MCP is optional and secondary throughout, never a peer choice. INSTALLATION serves both the User and Organization profiles, so it appears in each flow; ARCHITECTURE is shared (the dotted link shows the Organization reusing it). MCP-ARCHITECTURE, MCP-CONTEXT, and docs/mcp/AUTHENTICATION.md / RAGFLOW.md are deliberately absent from this diagram — they are optional deep-dives reached by a pointer from ARCHITECTURE/CONTEXT/MCP-ARCHITECTURE, never a required stop on any reader's path.
 
 ```mermaid
 flowchart TD
@@ -236,8 +266,8 @@ flowchart TD
     subgraph USER["User — use Rosetta"]
         ELEV["ELEVATOR_SPEECH"]
         QS["QUICKSTART"]
-        PLUG["PLUGINS"]
-        MCP["MCPs"]
+        PLUG["PLUGINS<br/>(recommended)"]
+        MCP["MCPs<br/>(optional, secondary)"]
         INST["INSTALLATION"]
         CONF["CONFIGURATION"]
         USAGE["USAGE_GUIDE"]
@@ -252,14 +282,15 @@ flowchart TD
     subgraph CONTRIB["Contributor — develop for Rosetta"]
         CONT["CONTRIBUTING"]
         OVER["OVERVIEW"]
+        CTX["CONTEXT"]
         ARCH["ARCHITECTURE"]
         DEV["DEVELOPER_GUIDE"]
         REV["REVIEW"]
     end
 
-    subgraph ORG["Organization — deploy company-wide"]
+    subgraph ORG["Organization — self-hosted MCP (optional, rare)"]
         INSTO["INSTALLATION"]
-        DEP["DEPLOYMENT_GUIDE"]
+        DEP["docs/mcp/<br/>DEPLOYMENT_GUIDE"]
         SEC["SECURITY"]
     end
 
@@ -267,14 +298,14 @@ flowchart TD
     README -.-> ELEV
     README -->|AI| LLMS
     README -->|contributor| CONT
-    README -->|organization| INSTO
+    README -.->|organization,<br/>only if self-hosting| INSTO
 
     ELEV --> QS
     QS --> PLUG
-    QS --> MCP
+    QS -.->|no plugin path, or<br/>specific MCP need| MCP
     QS --> INST
     PLUG --> INST
-    MCP --> INST
+    MCP -.-> INST
     QS --> CONF
     INST --> CONF
     CONF --> USAGE
@@ -283,7 +314,8 @@ flowchart TD
     FAQ <--> TRBL
 
     CONT --> OVER
-    OVER --> ARCH
+    OVER --> CTX
+    CTX --> ARCH
     ARCH --> DEV
     DEV --> REV
 
@@ -300,7 +332,7 @@ flowchart TD
     class README entry;
     class ELEV,QS,PLUG,MCP,INST,CONF,USAGE,FAQ,TRBL user;
     class LLMS ai;
-    class CONT,OVER,ARCH,DEV,REV contrib;
+    class CONT,OVER,CTX,ARCH,DEV,REV contrib;
     class INSTO,DEP,SEC org;
 ```
 

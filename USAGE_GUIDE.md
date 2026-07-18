@@ -345,7 +345,7 @@ Every request benefits from these regardless of workflow.
 
 - **Execution policies** enforce plan-driven work, incremental validation, and memory-based self-learning. The agent consults `agents/MEMORY.md` during planning and records lessons learned. See [Architecture — Workspace Files](docs/ARCHITECTURE.md#workspace-files) for the full file list.
 - **HITL and questioning rules** govern how the agent interacts with you. Questions are batched (5-10 per round), prioritized by impact, each targeting a single decision. If something is unclear, Rosetta stops and asks.
-- **[Subagent orchestration](docs/ARCHITECTURE.md#rosetta-mcp)** defines how work gets delegated. Subagents start with fresh context, receive explicit scope boundaries, and return concise results. Independent work runs in parallel.
+- **[Subagent orchestration](docs/ARCHITECTURE.md#bootstrap-flow)** defines how work gets delegated. Subagents start with fresh context, receive explicit scope boundaries, and return concise results. Independent work runs in parallel.
 
 ## Customization
 
@@ -615,8 +615,8 @@ Main goal:
 ## Video Tutorials
 
 **Setup:**
-- [Install Using MCP](https://vimeo.com/1174124251/f38e017d8d?fl=ml&fe=ec) (3 min)
 - [Install without MCP](https://vimeo.com/1174124213/c50179147c?fl=ml&fe=ec) (2 min)
+- [Install Using MCP](https://vimeo.com/1174124251/f38e017d8d?fl=ml&fe=ec) (3 min)
 - [Initialize Repo](https://vimeo.com/1174124165/8f5fbd7775?fl=ml&fe=ec) (4 min)
 
 **Configuration:**
@@ -641,6 +641,6 @@ These videos were recorded in different IDEs to show that Rosetta works everywhe
 - [Quick Start](QUICKSTART.md) — zero to working setup
 - [Installation](INSTALLATION.md) — all setup modes and environment variables
 - [Architecture](docs/ARCHITECTURE.md) — system structure, components, data flow
-- [Deployment Guide](DEPLOYMENT_GUIDE.md) — org-wide deployment
+- [Deployment Guide](docs/mcp/DEPLOYMENT_GUIDE.md) — org-wide deployment
 - [Contributing](CONTRIBUTING.md) — fastest path to a merged PR
 - [Troubleshooting](TROUBLESHOOTING.md) — symptom-first diagnosis

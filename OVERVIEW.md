@@ -17,7 +17,7 @@ Rosetta is a **meta-prompting, context engineering, and centralized instructions
 
 Design principles:
 
-**Agent-agnostic.** Works through MCP across Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Adopts agent-specific features where available; native hooks remain IDE-specific and require per-IDE validation.
+**Agent-agnostic.** Works across Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE — via a plugin where supported, via MCP otherwise. Adopts agent-specific features where available; native hooks remain IDE-specific and require per-IDE validation.
 
 **Progressive disclosure.** Instructions load in stages (bootstrap, classification, workflow-specific, sub-instructions) to [prevent context overflow](docs/MCP-ARCHITECTURE.md#context-overflow-prevention). The agent gets only what it needs for the current task.
 
@@ -27,7 +27,7 @@ Design principles:
 
 **Rules-as-code.** AI behavior is authored, versioned, reviewed, and approved through standard engineering workflows. Same rigor as application code. See [Contributing — Prompt Changes](CONTRIBUTING.md#prompt-changes) for the authoring process.
 
-**Security by design.** No source code transfer. Air-gap capable. Runs inside the organization's perimeter. See [Context — Design Philosophy](docs/CONTEXT.md#design-philosophy) for the full set.
+**Security by design.** No source code transfer. Works with limited internet access. Runs inside the organization's perimeter. See [Context — Design Philosophy](docs/CONTEXT.md#design-philosophy) for the full set.
 
 **Inversion of control.** Rosetta is designed to not see or process source code or project data. It exposes guardrails, common best practices, and a menu of available instructions. The coding agent selects only what it needs; Rosetta delivers just those — keeping context lean and IP protected.
 
@@ -98,7 +98,7 @@ Instructions are organized in three layers that merge at runtime:
 - **Organization** — your company's conventions and policies
 - **Project** — local repo docs and configs
 
-Layers at the same resource path get [bundled together](docs/MCP-ARCHITECTURE.md#bundler). This is layered customization, not multi-tenancy. See [Architecture](docs/ARCHITECTURE.md) for component details and data flow.
+Layers at the same resource path get merged: in Plugin mode, the generator merges them at build time; in MCP mode, they're [bundled together](docs/MCP-ARCHITECTURE.md#bundler) at request time. This is layered customization, not multi-tenancy. See [Architecture](docs/ARCHITECTURE.md) for component details and data flow.
 
 ## What Rosetta Does Not Do
 

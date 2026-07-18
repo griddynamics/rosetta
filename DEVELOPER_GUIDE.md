@@ -105,7 +105,8 @@ rosetta/
 │   └── tests/            ← CLI unit tests
 ├── deployment/           ← Helm charts (RAGFlow)
 ├── plugins/              ← IDE plugin definitions
-├── docs/                 ← Deep documentation (Architecture, RAGFlow, Context)
+├── docs/                 ← Deep documentation (Architecture, Context)
+│   ├── mcp/              ← MCP-only deep reference (Authentication, RAGFlow, self-hosted Deployment Guide)
 │   └── web/              ← Jekyll website (GitHub Pages)
 └── refsrc/               ← Reference sources (read-only, resolves AI stale knowledge)
 ```
@@ -429,7 +430,7 @@ uvx rosetta-cli@latest list-dataset --dataset aia-r3 --env dev
 | Website                | `docs/web/`                                           | Local Jekyll build                       |
 | Documentation          | `docs/`, repo root `.md` files                        | Use AI to check consistency              |
 
-Always publish the **entire** `/instructions` folder. Never subfolders or single files (breaks tag extraction). See [Architecture — Rosetta CLI](docs/ARCHITECTURE.md#rosetta-cli) for details on auto-tagging and change detection.
+Always publish the **entire** `/instructions` folder. Never subfolders or single files (breaks tag extraction). See [MCP Architecture — Rosetta CLI](docs/MCP-ARCHITECTURE.md#rosetta-cli) for details on auto-tagging and change detection.
 
 ---
 
@@ -439,13 +440,16 @@ The short version:
 
 - **README** — orientation, what and why
 - **QUICKSTART** — zero to working setup
+- **PLUGINS** — install as a plugin (recommended)
+- **MCPs** — install via MCP (optional, secondary)
 - **OVERVIEW** — mental model, terminology
 - **CONTRIBUTING** — PR workflow, checklist
 - **DEVELOPER_GUIDE** (this doc) — repo navigation, local dev
-- **docs/ARCHITECTURE** — system structure, components, data flow
+- **docs/CONTEXT** — business context, target state (docs/MCP-CONTEXT for the self-hosted MCP business case)
+- **docs/ARCHITECTURE** — system structure, components, data flow (docs/MCP-ARCHITECTURE for MCP server internals)
 - **REVIEW** — what reviewers check
 - **USAGE_GUIDE** — how to use Rosetta flows
-- **DEPLOYMENT_GUIDE** — RAGFlow, MCP, Helm deployment
+- **docs/mcp/DEPLOYMENT_GUIDE** — self-hosted MCP: RAGFlow, MCP, Helm deployment (optional, secondary)
 - **TROUBLESHOOTING** — symptom-first diagnosis
 
 ---
@@ -620,5 +624,5 @@ Upgrading a workspace from R2 to R3 requires no structural migration — the fol
 - [Overview](OVERVIEW.md) — mental model, key concepts
 - [Review Standards](REVIEW.md) — what reviewers verify
 - [Usage Guide](USAGE_GUIDE.md) — how to use Rosetta flows
-- [Deployment Guide](DEPLOYMENT_GUIDE.md) — RAGFlow, MCP, Helm deployment
+- [Deployment Guide](docs/mcp/DEPLOYMENT_GUIDE.md) — RAGFlow, MCP, Helm deployment
 - [Troubleshooting](TROUBLESHOOTING.md) — symptom-first diagnosis

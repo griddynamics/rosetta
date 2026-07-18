@@ -36,9 +36,9 @@ Apply to all changes: code, instructions, config, docs. Reject if violated.
 
 ## Code Review Criteria
 
-For MCP server, CLI, tooling, and infrastructure changes.
+For the plugin generator, MCP server, CLI, tooling, and infrastructure changes.
 
-- **Backward compatibility.** Do not break existing MCP clients, CLI workflows, or published instruction contracts. If a breaking change is unavoidable, document it in the PR and provide a migration path.
+- **Backward compatibility.** Do not break existing plugin consumers, MCP clients, CLI workflows, or published instruction contracts. If a breaking change is unavoidable, document it in the PR and provide a migration path.
 - **No hardcoded paths or env vars in application code.** Configuration belongs in environment, config files, or CLI arguments.
 - **Self-documenting outputs.** MCP responses and CLI output must be understandable without external explanation.
 - **Explicit contracts.** Tool inputs, outputs, and error cases are defined and tested. No silent failures.
@@ -86,7 +86,7 @@ Duplication in instructions is a maintenance and correctness hazard.
 
 - **Search for existing coverage.** Before approving a new instruction, verify no other file already covers the same topic.
 - **One canonical source.** If content exists in two places, pick one home and make the other a reference.
-- **Bundler-aware.** Core and org files at the same VFS resource path get [bundled](docs/MCP-ARCHITECTURE.md#bundler). Verify that overlapping paths complement, not contradict.
+- **Overlap-aware.** Core and org files at the same resource path get merged: by the plugin generator at build time, or [bundled](docs/MCP-ARCHITECTURE.md#bundler) at request time in MCP mode. Verify that overlapping paths complement, not contradict.
 
 ### CI Pipeline Checks
 

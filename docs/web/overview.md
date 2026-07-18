@@ -9,7 +9,98 @@ permalink: /overview/
 <p>Rosetta is a meta-prompting, context engineering, and centralized instructions management for AI coding agents. It provides structured context - rules, skills, workflows, and sub-agents - guiding AI systems to operate with a deep understanding of system architecture, domain constraints, and engineering standards. Rosetta also accelerates project onboarding by reverse-engineering architecture and domain context, improving the reliability and consistency of AI-generated code.</p>
 <p>When you type a request in your IDE, the agent loads context from Rosetta first — then follows your organization's proven workflows. Rosetta is designed so that source code stays on your machine.</p>
 
-<div class="arch-v2" id="arch-v2">
+<p class="section-subtitle">Plugins — recommended. Generated once, installed locally. No server, no live connection.</p>
+
+<div class="arch-v2 arch-v2-anim" id="arch-v2-plugin">
+
+  <div class="arch-v2-flow">
+    <!-- Left: IDE -->
+    <div class="arch-v2-satellite">
+      <div class="arch-v2-sat-icon">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="6" width="40" height="28" rx="3" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M16 38h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M24 34v4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M14 16l4 4-4 4" stroke="var(--gd-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 24h8" stroke="var(--gd-gold)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="arch-v2-sat-label">Your IDE</div>
+      <div class="arch-v2-sat-sub">Claude Code · Cursor<br>Copilot · Codex</div>
+    </div>
+
+    <!-- Connector left -->
+    <div class="arch-v2-conn">
+      <div class="arch-v2-conn-line"></div>
+      <span class="arch-v2-conn-label">Install once — no live connection</span>
+    </div>
+
+    <!-- Center: Rosetta Plugin (hero) -->
+    <div class="arch-v2-hub">
+      <div class="arch-v2-hub-glow"></div>
+      <div class="arch-v2-hub-inner">
+        <img src="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}" alt="Rosetta" class="arch-v2-hub-logo">
+        <div class="arch-v2-hub-title">Rosetta Plugin</div>
+        <div class="arch-v2-hub-desc">Bundled locally · Native IDE format</div>
+        <div class="arch-v2-layers-label">Instruction Layers</div>
+        <div class="arch-v2-layers">
+          <span class="arch-v2-layer">Core</span>
+          <span class="arch-v2-layer">Organization</span>
+          <span class="arch-v2-layer">Project</span>
+        </div>
+        <div class="arch-v2-lifecycle">
+          <span class="arch-v2-lc-step" data-step="1">Start</span>
+          <span class="arch-v2-lc-arrow">→</span>
+          <span class="arch-v2-lc-step" data-step="2">Bootstrap</span>
+          <span class="arch-v2-lc-arrow">→</span>
+          <span class="arch-v2-lc-step" data-step="3">Classify</span>
+          <span class="arch-v2-lc-arrow">→</span>
+          <span class="arch-v2-lc-step" data-step="4">Load</span>
+          <span class="arch-v2-lc-arrow">→</span>
+          <span class="arch-v2-lc-step" data-step="5">Execute</span>
+          <span class="arch-v2-lc-arrow">→</span>
+          <span class="arch-v2-lc-step" data-step="6">Evolve</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector right -->
+    <div class="arch-v2-conn">
+      <div class="arch-v2-conn-line"></div>
+      <span class="arch-v2-conn-label">Generated once, at build time</span>
+    </div>
+
+    <!-- Right: Instructions Repo -->
+    <div class="arch-v2-satellite">
+      <div class="arch-v2-sat-icon">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 15a3 3 0 013-3h9l4 5h17a3 3 0 013 3v15a3 3 0 01-3 3H9a3 3 0 01-3-3V15z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M6 20h36" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+          <circle cx="18" cy="30" r="2" fill="var(--gd-gold)"/>
+          <circle cx="30" cy="26" r="2" fill="var(--gd-gold)"/>
+        </svg>
+      </div>
+      <div class="arch-v2-sat-label">Instructions Repo</div>
+      <div class="arch-v2-sat-sub">core · org · project<br>via Rosettify generator</div>
+    </div>
+  </div>
+
+  <!-- Annotations -->
+  <div class="arch-v2-annotations">
+    <div class="arch-v2-anno">
+      <h4>Progressive Disclosure</h4>
+      <p>Instructions load on demand. The agent gets only what it needs for your specific request — context stays focused, responses stay precise.</p>
+    </div>
+    <div class="arch-v2-anno">
+      <h4>Three-Layer Instructions</h4>
+      <p><strong>Core</strong> · <strong>Organization</strong> · <strong>Project</strong> — merged into the plugin package at build time by the generator, from your Instructions Repo.</p>
+    </div>
+  </div>
+</div>
+
+<p class="section-subtitle" style="margin-top:2.5rem;">MCP — optional, secondary. For IDEs without a Rosetta plugin, or centrally-managed instructions via RAGFlow. Most teams don't need this.</p>
+
+<div class="arch-v2 arch-v2-anim" id="arch-v2-mcp">
 
   <div class="arch-v2-flow">
     <!-- Left: IDE -->
@@ -41,7 +132,7 @@ permalink: /overview/
       <div class="arch-v2-hub-glow"></div>
       <div class="arch-v2-hub-inner">
         <img src="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}" alt="Rosetta" class="arch-v2-hub-logo">
-        <div class="arch-v2-hub-title">Rosetta MCP or Plugin</div>
+        <div class="arch-v2-hub-title">Rosetta MCP</div>
         <div class="arch-v2-hub-desc">VFS · Bundler · Tags · Context headers</div>
         <div class="arch-v2-layers-label">Instruction Layers</div>
         <div class="arch-v2-layers">
@@ -106,23 +197,24 @@ permalink: /overview/
 
 <script>
 (function(){
-  var section = document.getElementById('arch-v2');
-  if (!section) return;
-  var steps = section.querySelectorAll('.arch-v2-lc-step');
-  var idx = 0;
-  function cycle() {
-    steps.forEach(function(s) { s.classList.remove('is-active'); });
-    steps[idx].classList.add('is-active');
-    idx = (idx + 1) % steps.length;
-  }
-  var obs = new IntersectionObserver(function(entries) {
-    if (entries[0].isIntersecting) {
-      cycle();
-      setInterval(cycle, 1200);
-      obs.unobserve(section);
+  document.querySelectorAll('.arch-v2-anim').forEach(function(section){
+    var steps = section.querySelectorAll('.arch-v2-lc-step');
+    if (!steps.length) return;
+    var idx = 0;
+    function cycle() {
+      steps.forEach(function(s) { s.classList.remove('is-active'); });
+      steps[idx].classList.add('is-active');
+      idx = (idx + 1) % steps.length;
     }
-  }, { threshold: 0.3 });
-  obs.observe(section);
+    var obs = new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting) {
+        cycle();
+        setInterval(cycle, 1200);
+        obs.unobserve(section);
+      }
+    }, { threshold: 0.3 });
+    obs.observe(section);
+  });
 })();
 </script>
 
@@ -152,7 +244,7 @@ permalink: /overview/
   </div>
   <div class="principle">
     <h4>Security by design</h4>
-    <p>No source code transfer. Air-gap capable. Runs inside the organization's perimeter.</p>
+    <p>No source code transfer. Works with limited internet access. Runs inside the organization's perimeter.</p>
   </div>
   <div class="principle">
     <h4>Batteries included</h4>

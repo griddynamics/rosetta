@@ -10,9 +10,11 @@ permalink: /docs/troubleshooting/
 
 **When should I read this?** When something isn't working and you need a quick fix.
 
+Most sections below are MCP-specific (connection, OAuth, server issues) — if you installed via a plugin, these don't apply to you; skip to [Agent Not Using Rosetta](#agent-not-using-rosetta).
+
 ---
 
-## Connection & Authentication
+## Connection & Authentication (MCP)
 
 **OAuth prompt does not appear**
 - Restart your IDE and retry the connection
@@ -32,12 +34,17 @@ permalink: /docs/troubleshooting/
 
 ## Agent Not Using Rosetta
 
-**Agent ignores Rosetta tools entirely**
+**If you installed via a plugin:**
+- Check for a conflicting plugin installed alongside Rosetta (JUXT, Superpowers, GSD, AI-DevKit) — see [Plugins](/rosetta/docs/plugins/)
+- Verify the plugin is actually installed and enabled in your IDE's plugin/marketplace settings
+- Reinstall: standalone plugins need a fresh zip extraction on upgrade, they don't auto-update
+
+**If you installed via MCP (agent ignores Rosetta tools entirely):**
 - Confirm the MCP server shows as connected in your IDE's MCP settings
 - Add a [bootstrap rule](/rosetta/docs/installation/) to your project. This is the universal fallback for any IDE or agent that doesn't reliably read MCP server prompts
 - Download [mcp-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/rules/mcp-files-mode.md?plain=1) and place it in your IDE's instruction file (see [MCPs Installation](/rosetta/docs/mcps/#step-2-add-bootstrap-rule) Step 2 for paths)
 
-**Agent used Rosetta before but stopped**
+**Agent used Rosetta before but stopped (MCP)**
 - Check re-authentication (see above)
 - Verify the model hasn't changed. Auto model selection often picks models that don't follow MCP instructions well
 - Re-add the bootstrap rule if it was removed
@@ -51,9 +58,9 @@ permalink: /docs/troubleshooting/
 
 **Wrong model causes poor or inconsistent results**
 
-Use **Sonnet 5**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection. Weaker models skip tool calls, hallucinate instructions, or ignore MCP prompts entirely.
+Use **Sonnet 5**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection. Weaker models skip tool calls, hallucinate instructions, or ignore loaded rules entirely (plugin or MCP).
 
-## Slow or Empty Responses
+## Slow or Empty Responses (MCP)
 
 - Check your network can reach your Rosetta MCP host
 - Rosetta Server (RAGFlow) may be temporarily unavailable. Retry after a few minutes
@@ -77,7 +84,7 @@ For full local development setup, see the [Developer Guide](/rosetta/docs/develo
 
 ### Publishing
 
-Read more about CLI commands and change detection in [Architecture — Rosetta CLI](/rosetta/docs/architecture/#rosetta-cli).
+Read more about CLI commands and change detection in [MCP Architecture — Rosetta CLI](/rosetta/docs/mcp-architecture/#rosetta-cli).
 
 **"No changes detected"**
 - Files are unchanged since last publish. This is working as intended

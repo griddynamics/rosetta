@@ -6,8 +6,8 @@ permalink: /docs/mcps/
 
 # MCPs Installation
 
-**Who is this for?** New users setting up Rosetta for the first time.
-**When should I read this?** When you want to go from zero to a working setup.
+**Who is this for?** Teams that specifically need MCP: your IDE has no Rosetta plugin (Windsurf, Junie, Antigravity, OpenCode, or another MCP-compatible agent), or you need centrally-managed, always-fresh instructions with nothing copied into the repo. If your IDE supports [Plugins](/rosetta/docs/plugins/), start there instead — most teams don't need MCP.
+**When should I read this?** When you've decided MCP is the right fit and want to go from zero to a working setup.
 
 ---
 
@@ -20,6 +20,9 @@ permalink: /docs/mcps/
 > [!NOTE]
 > Rosetta is designed to never use or see data or IP.
 > Instead it uses inversion of control, by providing a "menu" to AI coding agents.
+
+> [!NOTE]
+> The endpoint below (`mcp.rosetta.griddynamics.net`) is a **public hosted instance for evaluation only** — do not point production or sensitive repositories at it. Production use of MCP means deploying your own MCP server and RAGFlow inside your organization's perimeter — see [Deployment Guide](/rosetta/docs/deployment/).
 
 ## Step 1: Connect Rosetta MCP
 
@@ -199,9 +202,9 @@ It should use Rosetta MCP to retrieve agents, guardrails, and instructions:
 
 ## Common Issues
 
-- **OAuth prompt does not appear:** restart your IDE and retry the connection. Read more in [Troubleshooting — Connection & Authentication](/rosetta/docs/troubleshooting/#connection--authentication).
+- **OAuth prompt does not appear:** restart your IDE and retry the connection. Read more in [Troubleshooting — Connection & Authentication](/rosetta/docs/troubleshooting/#connection--authentication-mcp).
 - **Agent ignores Rosetta tools:** confirm the MCP server shows as connected in your IDE's MCP settings. Add a [bootstrap rule](/rosetta/docs/installation/) if the agent still skips Rosetta. Read more in [Troubleshooting — Agent Not Using Rosetta](/rosetta/docs/troubleshooting/#agent-not-using-rosetta).
-- **Slow or empty responses:** check your network can reach your Rosetta MCP host. See [TROUBLESHOOTING.md](/rosetta/docs/troubleshooting/#slow-or-empty-responses).
+- **Slow or empty responses:** check your network can reach your Rosetta MCP host. See [TROUBLESHOOTING.md](/rosetta/docs/troubleshooting/#slow-or-empty-responses-mcp).
 
 ## Next Steps
 
@@ -220,7 +223,7 @@ Once the MCP is verified:
 
 ## Video Tutorials
 
+- [Install without MCP](https://vimeo.com/1174124213/c50179147c?fl=ml&fe=ec) — limited internet access
 - [Install Using MCP](https://vimeo.com/1174124251/f38e017d8d?fl=ml&fe=ec) — step-by-step setup
-- [Install without MCP](https://vimeo.com/1174124213/c50179147c?fl=ml&fe=ec) — air-gapped environments
 - [Initialize with Antigravity](https://vimeo.com/1174124165/8f5fbd7775?fl=ml&fe=ec) — project initialization
 - [Subagents and Workflows in Claude Code](https://vimeo.com/1174124272/96056d5cc5?fl=ml&fe=ec) — advanced configuration

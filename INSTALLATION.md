@@ -1,7 +1,7 @@
 # Installation
 
 **Who is this for?** Complete setup reference for all installation modes.
-**When should I read this?** When you need the full picture: HTTP, STDIO, plugins, offline, or environment variables. For the fastest path, see [QUICKSTART.md](QUICKSTART.md).
+**When should I read this?** When you need the full picture: plugins, offline, or the optional MCP modes (HTTP, STDIO) and their environment variables. For the fastest path, see [QUICKSTART.md](QUICKSTART.md).
 
 > [!CAUTION]
 > You must receive a prior approval from your manager and company to use it.
@@ -13,21 +13,61 @@
 
 ## Choose Your Mode
 
-|                    | HTTP          | STDIO                                   | Plugin                                       | Offline                                     |
-| ------------------ | --------------------------- | --------------------------------------- | -------------------------------------------- | ------------------------------------------- |
-| Setup              | Single URL, OAuth automatic | Env vars, API key per user              | IDE-specific install or extract zip          | Download zip, copy files                    |
-| Local dependencies | None                        | Python 3.12+, uvx                       | None                                         | None                                        |
-| Auth               | OAuth via browser           | API key from Rosetta Server             | None                                         | None                                        |
-| Network            | Requires internet           | Requires internet                       | Download only                                | No network needed (with local models)       |
-| Best for           | Most users                  | Custom configs, controlled environments | Claude Code, VS Code Copilot, Codex          | Air-gapped or highly regulated environments |
+|                    | Plugin                              | HTTP (MCP, optional)                                             | STDIO (MCP, optional)                       | Offline                                     |
+| ------------------ | ------------------------------------ | ------------------------------------------------------------------ | -------------------------------------------- | -------------------------------------------- |
+| Setup              | IDE-specific install or extract zip  | Single URL, OAuth automatic                                       | Env vars, API key per user                   | Download zip, copy files                     |
+| Local dependencies | None                                  | None                                                                | Python 3.12+, uvx                            | None                                          |
+| Auth               | None                                  | OAuth via browser                                                   | API key from Rosetta Server                  | None                                          |
+| Network            | Download only                        | Requires internet                                                   | Requires internet                            | No network needed (with local models)        |
+| Best for           | Most users — recommended             | IDEs with no Rosetta plugin, or centrally-managed deployments      | Custom configs, controlled MCP environments  | Very rarely needed — developing Rosetta itself, or a plugin genuinely unavailable |
 
 ## Step 1: Install
 
-Pick one mode and follow its section.
+Pick one mode and follow its section. Start with Plugin unless you have a specific reason to use MCP (HTTP or STDIO) — see [MCPs.md](MCPs.md) for when that applies.
 
-### HTTP Transport
+### Plugin-Based Installation
 
-One URL, no local dependencies, OAuth handles authentication automatically.
+Rosetta publishes plugins for supported IDEs. Each plugin installs the full Rosetta instruction set locally.
+
+Read more about plugin contents and capabilities in [PLUGINS.md](PLUGINS.md).
+
+#### Claude Code
+
+```sh
+claude plugin marketplace add griddynamics/rosetta
+claude plugin install rosetta@rosetta
+```
+
+Updating after installation:
+
+```sh
+claude plugin marketplace update rosetta
+claude plugin update rosetta@rosetta
+```
+
+#### VS Code / GitHub Copilot
+
+Install `rosetta` via VS Code Copilot Plugins (not VS Code extensions).
+
+#### JetBrains / GitHub Copilot
+
+1. Download `core-copilot-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
+2. Create a `.github` folder in your repository and extract the archive contents into it
+3. Delete files not needed for JetBrains: `.github/.mcp.json`, `.github/hooks.json`, `.github/templates`, `.github/rules/bootstrap.md`
+4. Copy the contents of `.github/rules/plugin-files-mode.md` into `.github/copilot-instructions.md` and append before the closing `</plugin_files_mode>` tag: `Rosetta plugin root: ".github", get_context_instructions: must read fully all five "cat .github/rules/bootstrap-*.md" files all lines. You MUST FOLLOW ALL instructions and then MUST select workflow and execute it. All workflows are stored in ".github/rules/<workflowtag>.md".`
+5. Enable in JetBrains GitHub Copilot settings: Agent Mode, Custom Agent, Coding Agent, Subagent, Skills
+
+#### Codex
+
+Download `core-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest), extract on top of the repository, and enable hooks:
+
+```sh
+codex features enable hooks
+```
+
+### HTTP Transport (MCP, optional)
+
+One URL, no local dependencies, OAuth handles authentication automatically. Use this only if your IDE has no Rosetta plugin, or you specifically need centrally-managed instructions — see [MCPs.md](MCPs.md).
 
 <details>
 <summary><b>Cursor</b></summary>
@@ -177,7 +217,7 @@ Add to `opencode.json`:
 
 Any MCP client that supports HTTP transport can connect using the endpoint URL. Complete the OAuth flow when prompted.
 
-### STDIO Transport
+### STDIO Transport (MCP, optional)
 
 STDIO runs Rosetta MCP as a local process. Your IDE launches it and communicates over stdin/stdout.
 
@@ -409,51 +449,11 @@ Required for STDIO transport. Optional otherwise.
 | `POSTHOG_API_KEY`         | (disabled)                 | Your PostHog project API key. Opt-in usage analytics — set to enable, omit or set to `DISABLED` to disable                                                  |
 | `POSTHOG_HOST`            | `https://eu.i.posthog.com` | Your PostHog instance URL, e.g. `https://posthog.internal.company.com`                                                                                      |
 
-Do not set `VERSION`. It uses a server-controlled default for managed upgrades. See [Architecture — Tradeoffs](docs/ARCHITECTURE.md#tradeoffs) for rationale.
-
-### Plugin-Based Installation (pre-release)
-
-Rosetta publishes plugins for supported IDEs. Each plugin installs the full Rosetta instruction set locally.
-
-Read more about plugin contents and capabilities in [PLUGINS.md](PLUGINS.md).
-
-#### Claude Code
-
-```sh
-claude plugin marketplace add griddynamics/rosetta
-claude plugin install rosetta@rosetta
-```
-
-Updating after installation:
-
-```sh
-claude plugin marketplace update rosetta
-claude plugin update rosetta@rosetta
-```
-
-#### VS Code / GitHub Copilot
-
-Install `rosetta` via VS Code Copilot Plugins (not VS Code extensions).
-
-#### JetBrains / GitHub Copilot
-
-1. Download `core-copilot-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
-2. Create a `.github` folder in your repository and extract the archive contents into it
-3. Delete files not needed for JetBrains: `.github/.mcp.json`, `.github/hooks.json`, `.github/templates`, `.github/rules/bootstrap.md`
-4. Copy the contents of `.github/rules/plugin-files-mode.md` into `.github/copilot-instructions.md` and append before the closing `</plugin_files_mode>` tag: `Rosetta plugin root: ".github", get_context_instructions: must read fully all five "cat .github/rules/bootstrap-*.md" files all lines. You MUST FOLLOW ALL instructions and then MUST select workflow and execute it. All workflows are stored in ".github/rules/<workflowtag>.md".`
-5. Enable in JetBrains GitHub Copilot settings: Agent Mode, Custom Agent, Coding Agent, Subagent, Skills
-
-#### Codex
-
-Download `core-codex-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest), extract on top of the repository, and enable hooks:
-
-```sh
-codex features enable hooks
-```
+Do not set `VERSION`. It uses a server-controlled default for managed upgrades. See [MCP Architecture — Tradeoffs](docs/MCP-ARCHITECTURE.md#tradeoffs) for rationale.
 
 ### Offline Installation (No MCP)
 
-For environments without network access to Rosetta Server.
+Very rarely needed today — plugins cover the same "no server, no live connection" need for virtually everyone. Mainly used when developing Rosetta itself, or in the rare case a plugin genuinely isn't available for your IDE.
 
 1. Disable or remove Rosetta MCP from your IDE configuration
 2. Download `instructions.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest)
@@ -470,7 +470,6 @@ For environments without network access to Rosetta Server.
 | JetBrains Junie            | `.junie/guidelines.md`                |
 | Antigravity                | `.agent/rules/local-files-mode.md`    |
 | OpenCode                   | `AGENTS.md`                           |
-
 
 For full version: download additional enterprise instructions from respective repositories.
 
@@ -566,18 +565,12 @@ After initialization, Rosetta maintains these files in your repository. Read mor
 
 ## Upgrading
 
+- **Plugins:** Plugins auto-upgrade or can be updated via `claude plugin update`.
 - **HTTP:** No action needed. Server-side upgrades apply automatically.
 - **STDIO:** `uvx ims-mcp@latest` always pulls the newest published version. No manual step needed.
-- **Plugins:** Plugins auto-upgrade or can be updated via `claude plugin update`.
 - **Offline:** Download the latest `instructions.zip` from [releases](https://github.com/griddynamics/rosetta/releases/latest) and replace the contents of `instructions/`.
 
 ## Uninstalling
-
-**HTTP/STDIO MCP:**
-
-- **Claude Code:** `claude mcp remove Rosetta`
-- **Codex:** `codex mcp remove Rosetta`
-- **Cursor, VS Code, Windsurf, JetBrains, Antigravity, OpenCode:** Remove the Rosetta entry from your MCP configuration file
 
 **Plugins:**
 
@@ -585,13 +578,21 @@ After initialization, Rosetta maintains these files in your repository. Read mor
 - **VS Code / GitHub Copilot:** Remove the Copilot agent plugin
 - **Codex:** Delete the extracted plugin files from the repository
 
+**HTTP/STDIO MCP:**
+
+- **Claude Code:** `claude mcp remove Rosetta`
+- **Codex:** `codex mcp remove Rosetta`
+- **Cursor, VS Code, Windsurf, JetBrains, Antigravity, OpenCode:** Remove the Rosetta entry from your MCP configuration file
+
 **Offline:**
 
 - Delete the `instructions/` directory and the IDE instruction file content you added
 
 ## Related Docs
 
+- [PLUGINS.md](PLUGINS.md) - plugin contents and capabilities
 - [QUICKSTART.md](QUICKSTART.md) - fastest path to a working setup
+- [MCPs.md](MCPs.md) - when and how to use the optional MCP path
 - [OVERVIEW.md](OVERVIEW.md) - mental model and terminology
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - common issues and fixes
-- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - org-wide server deployment
+- [DEPLOYMENT_GUIDE.md](docs/mcp/DEPLOYMENT_GUIDE.md) - org-wide server deployment

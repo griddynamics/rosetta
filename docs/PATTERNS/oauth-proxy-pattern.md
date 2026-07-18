@@ -47,4 +47,4 @@ MCP Client → FastMCP JWT → OAuthProxy/OIDCProxy → upstream IdP token (Redi
 - `src/ims-mcp-server/ims_mcp/auth/offline_refresh_fix.py` — refresh token patch
 - `src/ims-mcp-server/ims_mcp/auth/loopback_redirect_fix.py` — loopback redirect patch
 - `src/ims-mcp-server/ims_mcp/server.py` — `_build_oauth_client_storage()`, `_OAUTH_PROVIDER`
-- `docs/AUTHENTICATION.md` — full two-leg proxy architecture
+- `docs/mcp/AUTHENTICATION.md` — full two-leg proxy architecture

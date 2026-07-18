@@ -3,7 +3,7 @@ Code map of the Rosetta workspace — modules, key files, and entry points, 3-4 
 ## / — repo root (512 files total)
 
 README.md OVERVIEW.md QUICKSTART.md USAGE_GUIDE.md DEVELOPER_GUIDE.md CONTRIBUTING.md
-DEPLOYMENT_GUIDE.md INSTALLATION.md TROUBLESHOOTING.md REVIEW.md SECURITY.md
+INSTALLATION.md TROUBLESHOOTING.md REVIEW.md SECURITY.md
 CHANGELOG.md AGENTS.md NOTICE LICENSE
 requirements.txt mypy.ini validate-types.sh
 .mcp.json .gitignore .claude-plugin .cursor-plugin .cursorignore
@@ -152,9 +152,13 @@ styles.css brand/
 
 ### docs/ — architecture and reference docs
 
-CONTEXT.md ARCHITECTURE.md AUTHENTICATION.md RAGFLOW.md TODO.md
+CONTEXT.md ARCHITECTURE.md MCP-CONTEXT.md MCP-ARCHITECTURE.md TODO.md
 TECHSTACK.md CODEMAP.md DEPENDENCIES.md
-definitions/ images/ requirements/ schemas/
+definitions/ images/ requirements/ schemas/ mcp/
+
+### docs/mcp/ — MCP-only deep reference (self-hosted deployment)
+
+AUTHENTICATION.md RAGFLOW.md DEPLOYMENT_GUIDE.md
 
 ## agents/ — workspace agent state files
 

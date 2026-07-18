@@ -160,7 +160,7 @@ permalink: /
       <div class="adds-num">9</div>
       <div class="adds-body">
         <strong>Security by design.</strong>
-        Rosetta never sees your code. Instruction delivery is deterministic — the agent requests by tag, not by sending source code. No semantic search over your codebase. Air-gap capable. Runs inside your perimeter.
+        Rosetta never sees your code. Instruction delivery is deterministic — the agent requests by tag, not by sending source code. No semantic search over your codebase. Works with limited internet access. Runs inside your perimeter.
       </div>
     </div>
 
@@ -219,7 +219,7 @@ permalink: /
         </div>
         <div class="qs-step-body">
           <h3 class="qs-step-title">Install Rosetta</h3>
-          <p class="qs-step-desc">Use plugins where they are supported. Use MCP only for agents without a Rosetta plugin path.</p>
+          <p class="qs-step-desc">Use plugins where they are supported. Use MCP only for agents without a Rosetta plugin path — the endpoint below is a public evaluation instance; self-host MCP for production.</p>
           <div class="qs-trust-badge">
             <svg class="qs-trust-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             <span>Rosetta is designed to never use or see your data or IP.</span>
@@ -245,7 +245,7 @@ permalink: /
 
           <!-- Tab: Claude Code -->
           <div class="qs-content active" data-tab-content="claude">
-            <p class="qs-content-hint">Install the Rosetta plugin from the Claude Code marketplace. Deep links: <a href="{{ '/docs/plugins/#claude-code' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation-pre-release' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Install the Rosetta plugin from the Claude Code marketplace. Deep links: <a href="{{ '/docs/plugins/#claude-code' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
               <pre class="qs-code"><span class="qs-prompt">$</span> claude plugin marketplace add griddynamics/rosetta
 <span class="qs-prompt">$</span> claude plugin install rosetta@rosetta</pre>
@@ -256,7 +256,7 @@ claude plugin install rosetta@rosetta">Copy</button>
 
           <!-- Tab: Cursor -->
           <div class="qs-content" data-tab-content="cursor">
-            <p class="qs-content-hint">Use a Cursor team marketplace when available. If not, extract the standalone package into the repository. Deep links: <a href="{{ '/docs/plugins/#cursor' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation-pre-release' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Use a Cursor team marketplace when available. If not, extract the standalone package into the repository. Deep links: <a href="{{ '/docs/plugins/#cursor' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
               <pre class="qs-code"><span class="qs-comment"># Team marketplace repository</span>
 https://github.com/griddynamics/rosetta
@@ -269,7 +269,7 @@ Download core-cursor-standalone-*.zip from the <a href="https://github.com/gridd
 
           <!-- Tab: VS Code / GitHub Copilot -->
           <div class="qs-content" data-tab-content="copilot">
-            <p class="qs-content-hint">For VS Code, add Rosetta as a Copilot plugin marketplace and install <code>rosetta</code> from agent customizations. For JetBrains Copilot, use the standalone package. Deep links: <a href="{{ '/docs/plugins/#github-copilot' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation-pre-release' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">For VS Code, add Rosetta as a Copilot plugin marketplace and install <code>rosetta</code> from agent customizations. For JetBrains Copilot, use the standalone package. Deep links: <a href="{{ '/docs/plugins/#github-copilot' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
               <pre class="qs-code"><span class="qs-comment"># VS Code setting: chat.plugins.marketplaces</span>
 https://github.com/griddynamics/rosetta
@@ -282,7 +282,7 @@ Download core-copilot-standalone-*.zip from the <a href="https://github.com/grid
 
           <!-- Tab: Codex -->
           <div class="qs-content" data-tab-content="codex">
-            <p class="qs-content-hint">Extract the standalone Codex plugin package into the repository, then enable hooks. Deep links: <a href="{{ '/docs/plugins/#codex' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation-pre-release' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Extract the standalone Codex plugin package into the repository, then enable hooks. Deep links: <a href="{{ '/docs/plugins/#codex' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
               <pre class="qs-code">Download core-codex-*.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into the repository.
 

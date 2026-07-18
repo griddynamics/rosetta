@@ -35,13 +35,13 @@ Rosetta-guided work follows five phases: **Prepare** (load guardrails and contex
 - **Context engineering, not prompt hacking.** Agents receive your conventions, architecture, and business rules automatically — structured, versioned, and ready before the first line of code. See [how it fits your workflow](/rosetta/docs/overview/#how-rosetta-fits-into-your-workflow).
 - **Write once, run everywhere.** Agent-agnostic design adapts to any IDE and any tech stack. No per-tool maintenance.
 - **Guardrails built in.** Approval gates, risk assessment, and data protection ensure consistent AI behavior across teams. See [how Rosetta protects you](/rosetta/docs/usage-guide/#how-rosetta-protects-you).
-- **Cross-project intelligence** *(opt-in).* Publish business and technical context from every project into a shared knowledge base. Agents see the system, not just one repo — trace flows across services, catch breaking API changes before they ship, and assess blast radius of any change across the portfolio.
+- **Cross-project intelligence** *(opt-in, self-hosted MCP).* Publish business and technical context from every project into a shared knowledge base. Agents see the system, not just one repo — trace flows across services, catch breaking API changes before they ship, and assess blast radius of any change across the portfolio.
 - **One-command onboarding.** New repo, new developer — productive immediately with best practices baked in.
 - **Instructions as code.** Prompts version-controlled with release management — single source of truth for all teams.
 
 ## How it works
 
-Your IDE connects to the Rosetta MCP server. The server exposes guardrails and common best practices, and provides a menu of available instructions — workflows and coding conventions. The coding agent selects only what it needs for the current task; Rosetta delivers just those, keeping the agent's context lean. By design, no source code or project data reaches Rosetta.
+Your IDE loads Rosetta as a plugin — the default, with no server and no live connection needed — or connects to the Rosetta MCP server if your IDE has no plugin or you need centrally-managed instructions. Either way, Rosetta exposes guardrails and common best practices, and provides a menu of available instructions — workflows and coding conventions. The coding agent selects only what it needs for the current task; Rosetta delivers just those, keeping the agent's context lean. By design, no source code or project data reaches Rosetta.
 
 Rosetta is designed to not see your source code or IP. It only serves knowledge and instructions to the agent. The agent loads only what it needs per request (progressive disclosure) and follows your organization's workflows.
 
@@ -66,7 +66,7 @@ After installation, ask:
 
 **Brownfield (existing repository):** *"Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]"*
 
-STDIO transport is available for air-gapped environments. [All IDEs and detailed setup](/rosetta/docs/installation/). Read more in the [Quick Start](/rosetta/docs/quickstart/).
+STDIO transport is available for environments with limited internet access. [All IDEs and detailed setup](/rosetta/docs/installation/). Read more in the [Quick Start](/rosetta/docs/quickstart/).
 
 ## Tech Demo
 
@@ -83,7 +83,7 @@ STDIO transport is available for air-gapped environments. [All IDEs and detailed
 - Antigravity
 - OpenCode
 
-Works with any MCP-compatible tool.
+Works with any other IDE too — via a plugin where supported, via MCP otherwise.
 
 ## Documentation
 

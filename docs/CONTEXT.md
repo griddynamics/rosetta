@@ -48,7 +48,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 
 ### For Directors
 
-- Adoption and usage tracking with per-feature visibility
+- Adoption and usage tracking with per-feature visibility *(opt-in, self-hosted MCP — see [MCP-CONTEXT.md](MCP-CONTEXT.md))*
 - Department-wide governance with centralized management
 - Always-current technology information and curated business knowledge
 - A/B testing capability for SDLC experimentation
@@ -58,7 +58,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 
 - Measurable outcomes with reduced implementation risk
 - Governance and compliance coverage
-- Transparent adoption and usage metrics
+- Transparent adoption and usage metrics *(opt-in, self-hosted MCP — see [MCP-CONTEXT.md](MCP-CONTEXT.md))*
 - Cost efficiency when introducing AI to the organization
 - IP protection preventing intellectual property leakage
 - Future-proofing: adapts to new models and tools with minimal effort
@@ -92,7 +92,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 - Instructions are versioned, reviewed, and approved like code (rules-as-code)
 - Built-in guardrails, risk assessment, and human-in-the-loop checkpoints
 - Adoption tracking and usage analytics per feature, team, and project
-- Runs inside the organization's perimeter (air-gap capable)
+- Runs inside the organization's perimeter (works with limited internet access)
 
 ### Quality
 
@@ -104,9 +104,8 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 ## Domain and Operating Context
 
 - Rosetta operates across the full Software Development Lifecycle: planning, requirements, implementation, QA, release, and operations
-- Agent-agnostic: works through MCP with Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Native hook support is IDE-specific; Antigravity and OpenCode hooks are not currently supported or tested.
-- Integrates via [Model Context Protocol (MCP)](ARCHITECTURE.md#rosetta-mcp), the standard transport for AI agent instructions
-- Security model: Rosetta is designed to only serve knowledge and instructions to agents — it does not see or process source code. No code leaves the organization's perimeter by design. Rosetta itself does not store any project data. Opt-in features (project datasets, plan_manager, submit_feedback, usage analytics) can be enabled in your deployment for cross-project intelligence, execution tracking, and adoption visibility; when enabled, your infrastructure stores the data and you are responsible for it. plan_manager receives execution plans created by AI, which may contain project-specific information. Usage analytics (PostHog) collects basic operational metadata — IP address, user email, coding agent with version, tool called, and tool parameters — when you deploy and configure a PostHog instance on your infrastructure.
+- Agent-agnostic: works with Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE — via a plugin where supported, via MCP otherwise. Native hook support is IDE-specific; Antigravity and OpenCode hooks are not currently supported or tested.
+- Security model: Rosetta is designed to only serve knowledge and instructions to agents — it does not see or process source code. No code leaves the organization's perimeter by design. Rosetta itself does not store any project data. Self-hosted MCP deployments can opt into additional features (cross-project intelligence, execution tracking, adoption analytics) — see [MCP-CONTEXT.md](MCP-CONTEXT.md) for what those involve and who's responsible for the data. None of them exist in plugin mode.
 - Grounded in production experience, not theory. Active feedback loop from real projects.
 
 ## Target State
@@ -133,7 +132,7 @@ These principles shape every product and architectural decision:
 - **Classification-first.** Every request is auto-classified before work begins. Classification drives what loads. See [Usage Guide — Workflows](../USAGE_GUIDE.md#workflows) for available request types.
 - **Release-based versioning.** Develop new instructions without breaking agents on stable versions.
 - **Rules-as-code.** AI behavior is authored, versioned, reviewed, and approved through standard engineering workflows.
-- **Security by design.** No source code transfer. Air-gap capable. Runs inside the organization's perimeter.
+- **Security by design.** No source code transfer. Works with limited internet access. Runs inside the organization's perimeter.
 - **Batteries included.** Ship proven defaults. Make the right thing the easy thing.
 
 ## Related Docs
@@ -141,11 +140,12 @@ These principles shape every product and architectural decision:
 - [README](../README.md): What Rosetta is and where to start
 - [Overview](../OVERVIEW.md): Mental model, terminology, design principles
 - [Architecture](ARCHITECTURE.md): System structure, components, data flow
+- [MCP Context](MCP-CONTEXT.md): Business case, data responsibility, and opt-in features for self-hosted MCP (optional, secondary)
 - [Developer Guide](../DEVELOPER_GUIDE.md): Repo navigation, where to change what
 - [Contributing](../CONTRIBUTING.md): Fastest path to merged PR
 - [Review](../REVIEW.md): What reviewers verify, what authors provide
 - [Quickstart](../QUICKSTART.md): Zero to working setup
 - [Usage Guide](../USAGE_GUIDE.md): How to use Rosetta day-to-day
-- [Deployment Guide](../DEPLOYMENT_GUIDE.md): Server and infrastructure setup
+- [Deployment Guide](mcp/DEPLOYMENT_GUIDE.md): Server and infrastructure setup
 - [Troubleshooting](../TROUBLESHOOTING.md): Symptom-first diagnosis
 - [Installation](../INSTALLATION.md): Full setup reference for complex environments

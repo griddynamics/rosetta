@@ -87,7 +87,7 @@ For custom implementations, we recommend the following best practices:
 To mitigate Man-in-the-Middle (MITM) attacks—including interception or unauthorized tampering of messages between the MCP client (IDE) and the Rosetta server—deployments must adhere to the following standards:
 - **Encrypted Communication**: All MCP connections utilize TLS-encrypted HTTP (HTTPS) for both streamable-HTTP and Server-Sent Events (SSE) transports, ensuring data-in-transit confidentiality.
 - **Robust Authentication**: Access is governed by OAuth 2.0 (where supported), providing a standardized framework for secure authentication and authorization.
-- **Network Isolation**: For high-security or air-gapped environments, STDIO transport is available. This enables fully local process communication, effectively eliminating the network attack surface
+- **Network Isolation**: For high-security environments or those with limited internet access, STDIO transport is available. This enables fully local process communication, effectively eliminating the network attack surface
 - **Credential Hygiene**: Rotate OAuth tokens and API keys on a predefined regular cadence to minimize the impact of potential credential compromise.
 - **Secret Management**: Strictly avoid embedding API keys or OAuth secrets in version-controlled configuration files; instead, use secure environment variables or a dedicated secret management vault.
 - **Rate limiting**: Implement rate limiting:

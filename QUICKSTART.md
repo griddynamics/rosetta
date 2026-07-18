@@ -123,13 +123,13 @@ To explore all workflows (coding, requirements authoring, modernization, and mor
 
 - [Usage Guide](USAGE_GUIDE.md) — see all Rosetta workflows
 - [Overview](OVERVIEW.md) — mental model and terminology
-- [Deployment Guide](DEPLOYMENT_GUIDE.md) — org-wide deployment
+- [Deployment Guide](docs/mcp/DEPLOYMENT_GUIDE.md) — org-wide deployment
 - [Contributing](CONTRIBUTING.md) — make your first contribution
 - [Architecture](docs/ARCHITECTURE.md) — system internals
 
 ## Video Tutorials
 
+- [Install without MCP](https://vimeo.com/1174124213/c50179147c?fl=ml&fe=ec) — limited internet access
 - [Install Using MCP](https://vimeo.com/1174124251/f38e017d8d?fl=ml&fe=ec) — step-by-step setup
-- [Install without MCP](https://vimeo.com/1174124213/c50179147c?fl=ml&fe=ec) — air-gapped environments
 - [Initialize with Antigravity](https://vimeo.com/1174124165/8f5fbd7775?fl=ml&fe=ec) — project initialization
 - [Subagents and Workflows in Claude Code](https://vimeo.com/1174124272/96056d5cc5?fl=ml&fe=ec) — advanced configuration
