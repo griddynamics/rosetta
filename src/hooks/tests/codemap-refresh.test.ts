@@ -667,7 +667,9 @@ describe('codemap-refresh — error resilience', () => {
 
   test('empty stdin (readStdin rejects) → no crash, no spawn', async () => {
     (readStdin as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('empty stdin'));
-    await expect(runHook(codemapRefreshHook)).resolves.toBeUndefined();
+    // Discard the stderr advisory contract so this error-path test stays quiet.
+    const stderr = { write: () => true } as unknown as NodeJS.WritableStream;
+    await expect(runHook(codemapRefreshHook, { stderr })).resolves.toBeUndefined();
     expect(mockSpawn).not.toHaveBeenCalled();
   });
 
@@ -675,7 +677,8 @@ describe('codemap-refresh — error resilience', () => {
     (readStdin as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error('Unsupported IDE: [foo]'),
     );
-    await expect(runHook(codemapRefreshHook)).resolves.toBeUndefined();
+    const stderr = { write: () => true } as unknown as NodeJS.WritableStream;
+    await expect(runHook(codemapRefreshHook, { stderr })).resolves.toBeUndefined();
     expect(mockSpawn).not.toHaveBeenCalled();
   });
 

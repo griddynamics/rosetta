@@ -13,11 +13,15 @@ import { assertCodexOutput } from '../src/adapters/codex-output';
 
 // ── helper ────────────────────────────────────────────────────────────────────
 
+// Discards the hook's stderr advisory contract so error-path tests don't flood the
+// runner. runHook writes report.stderrMessage to this stream (defaults to process.stderr).
+const nullStderr = new Writable({ write(_chunk, _enc, cb) { cb(); } });
+
 async function execute(payload: unknown): Promise<string> {
   let output = '';
   const stdin = Readable.from([JSON.stringify(payload)]);
   const stdout = new Writable({ write(chunk, _, cb) { output += String(chunk); cb(); } });
-  await runHook(lintFormatAdvisoryHook, { stdin, stdout });
+  await runHook(lintFormatAdvisoryHook, { stdin, stdout, stderr: nullStderr });
   return output;
 }
 
@@ -185,7 +189,7 @@ describe('error handling', () => {
     let output = '';
     const stdin = Readable.from(['']);
     const stdout = new Writable({ write(chunk, _, cb) { output += String(chunk); cb(); } });
-    await runHook(lintFormatAdvisoryHook, { stdin, stdout });
+    await runHook(lintFormatAdvisoryHook, { stdin, stdout, stderr: nullStderr });
     expect(output).toBe('');
   });
 
@@ -193,7 +197,7 @@ describe('error handling', () => {
     let output = '';
     const stdin = Readable.from(['not-json']);
     const stdout = new Writable({ write(chunk, _, cb) { output += String(chunk); cb(); } });
-    await runHook(lintFormatAdvisoryHook, { stdin, stdout });
+    await runHook(lintFormatAdvisoryHook, { stdin, stdout, stderr: nullStderr });
     expect(output).toBe('');
   });
 

@@ -29,6 +29,19 @@ const FIXTURES_DIR = path.join(__dirname, '..', 'fixtures');
 const SAMPLE_INSTRUCTIONS_DIR = path.join(FIXTURES_DIR, 'sample-instructions');
 const SAMPLE_PLUGINS_DIR = path.join(FIXTURES_DIR, 'sample-plugins');
 
+// generate() writes user-facing error messages (unknown release, unresolved sources)
+// directly to process.stderr (generate.ts). Error-path tests only assert the exit code,
+// so redirect stderr to a no-op for the duration of the call to keep the run quiet.
+async function silencingStderr<T>(fn: () => Promise<T>): Promise<T> {
+  const orig = process.stderr.write.bind(process.stderr);
+  (process.stderr as NodeJS.WriteStream).write = (() => true) as typeof process.stderr.write;
+  try {
+    return await fn();
+  } finally {
+    (process.stderr as NodeJS.WriteStream).write = orig;
+  }
+}
+
 // Build a minimal fake repo that:
 // - has instructions/r2/{core,acme}/  (from our fixture tree)
 // - has plugins/ (from sample-plugins fixtures)
@@ -284,25 +297,25 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
 
   it('unknown release → exit 1, no output', async () => {
     const badOutputDir = path.join(tmpRepo, 'bad-output');
-    const code = await generate({
+    const code = await silencingStderr(() => generate({
       sources: buildSources(tmpRepo, badOutputDir),
       release: 'r99',
       domain: 'core',
       dryRun: false,
       verbose: false,
-    });
+    }));
     expect(code).toBe(1);
   });
 
   it('missing domain → exit 1, no output', async () => {
     const badOutputDir = path.join(tmpRepo, 'bad-output-domain');
-    const code = await generate({
+    const code = await silencingStderr(() => generate({
       sources: buildSources(tmpRepo, badOutputDir),
       release: 'r2',
       domain: 'nonexistent-domain',
       dryRun: false,
       verbose: false,
-    });
+    }));
     expect(code).toBe(1);
   });
 

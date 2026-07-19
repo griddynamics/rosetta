@@ -7,6 +7,19 @@ import { fileURLToPath } from 'url';
 import { generate } from '../../src/index.js';
 import type { ResolvedSources } from '../../src/types.js';
 
+// generate() writes user-facing error messages (unknown release, unresolved sources)
+// directly to process.stderr (generate.ts). Error-path tests only assert the exit code,
+// so redirect stderr to a no-op for the duration of the call to keep the run quiet.
+async function silencingStderr<T>(fn: () => Promise<T>): Promise<T> {
+  const orig = process.stderr.write.bind(process.stderr);
+  (process.stderr as NodeJS.WriteStream).write = (() => true) as typeof process.stderr.write;
+  try {
+    return await fn();
+  } finally {
+    (process.stderr as NodeJS.WriteStream).write = orig;
+  }
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES_DIR = path.join(__dirname, '..', 'fixtures');
 const SAMPLE_INSTRUCTIONS_DIR = path.join(FIXTURES_DIR, 'sample-instructions');
@@ -77,13 +90,13 @@ describe('generate() — error coverage', () => {
 
   it('unknown release → returns exit code 1 (FR-CLI-0010)', async () => {
     const outputDir = path.join(tmpRepo, 'out-bad-release');
-    const code = await generate({
+    const code = await silencingStderr(() => generate({
       sources: buildSources(tmpRepo, outputDir),
       release: 'r999',
       domain: 'core',
       dryRun: false,
       verbose: false,
-    });
+    }));
     expect(code).toBe(1);
   });
 
@@ -93,13 +106,13 @@ describe('generate() — error coverage', () => {
     fs.mkdirSync(path.join(emptyRepo, '.git'), { recursive: true });
     try {
       const outputDir = path.join(emptyRepo, 'out');
-      const code = await generate({
+      const code = await silencingStderr(() => generate({
         sources: buildSources(emptyRepo, outputDir),
         release: 'r2',
         domain: 'core',
         dryRun: false,
         verbose: false,
-      });
+      }));
       expect(code).toBe(1);
     } finally {
       fs.rmSync(emptyRepo, { recursive: true, force: true });
@@ -190,14 +203,14 @@ describe('generate() — error coverage', () => {
     const repo = buildFakeRepo(); // bundle dirs exist but hold no bundle files
     try {
       const outputDir = path.join(repo, 'out-r2-hooks');
-      const code = await generate({
+      const code = await silencingStderr(() => generate({
         sources: buildSources(repo, outputDir),
         release: 'r2',
         domain: 'core',
         dryRun: false,
         verbose: false,
         deterministicHooks: true,
-      });
+      }));
       // Effective value true → bundles required → missing files are a hard error
       expect(code).toBe(1);
       // Run-to-completion: advisory blocks still rendered for the effective value
@@ -241,13 +254,13 @@ describe('generate() — error coverage', () => {
     }
     try {
       const outputDir = path.join(r3Repo, 'out-r3');
-      const code = await generate({
+      const code = await silencingStderr(() => generate({
         sources: buildSources(r3Repo, outputDir),
         release: 'r3',
         domain: 'core',
         dryRun: false,
         verbose: false,
-      });
+      }));
       // Missing bundles → hard errors → exit 1
       expect(code).toBe(1);
     } finally {

@@ -9,6 +9,10 @@ import cursorWrite from './fixtures/cursor-post-tool-use-write.json';
 import { mdFileAdvisoryHook, advisoryMessage } from '../src/hooks/md-file-advisory';
 import { runHook } from '../src/runtime/run-hook';
 
+// Discards the hook's stderr advisory contract so error-path tests don't flood the
+// runner. runHook writes report.stderrMessage to this stream (defaults to process.stderr).
+const nullStderr = new Writable({ write(_chunk, _enc, cb) { cb(); } });
+
 // ---------------------------------------------------------------------------
 // Helper: run mdFileAdvisoryHook with an in-memory payload; returns stdout string.
 // ---------------------------------------------------------------------------
@@ -21,7 +25,7 @@ async function execute(payload: unknown): Promise<string> {
       cb();
     },
   });
-  await runHook(mdFileAdvisoryHook, { stdin, stdout });
+  await runHook(mdFileAdvisoryHook, { stdin, stdout, stderr: nullStderr });
   return output;
 }
 
@@ -192,7 +196,7 @@ describe('runHook — error handling', () => {
     let output = '';
     const stdin = Readable.from(['']);
     const stdout = new Writable({ write(chunk, _, cb) { output += String(chunk); cb(); } });
-    await runHook(mdFileAdvisoryHook, { stdin, stdout });
+    await runHook(mdFileAdvisoryHook, { stdin, stdout, stderr: nullStderr });
     expect(output).toBe('');
   });
 
@@ -200,7 +204,7 @@ describe('runHook — error handling', () => {
     let output = '';
     const stdin = Readable.from(['not-json']);
     const stdout = new Writable({ write(chunk, _, cb) { output += String(chunk); cb(); } });
-    await runHook(mdFileAdvisoryHook, { stdin, stdout });
+    await runHook(mdFileAdvisoryHook, { stdin, stdout, stderr: nullStderr });
     expect(output).toBe('');
   });
 
