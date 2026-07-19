@@ -123,9 +123,9 @@ To explore all workflows (coding, requirements authoring, modernization, and mor
 
 - [Usage Guide](USAGE_GUIDE.md) — see all Rosetta workflows
 - [Overview](OVERVIEW.md) — mental model and terminology
-- [Deployment Guide](docs/mcp/DEPLOYMENT_GUIDE.md) — org-wide deployment
 - [Contributing](CONTRIBUTING.md) — make your first contribution
 - [Architecture](docs/ARCHITECTURE.md) — system internals
+- [Deployment Guide](docs/mcp/DEPLOYMENT_GUIDE.md) — self-hosted MCP (optional, rarely needed)
 
 ## Video Tutorials
 

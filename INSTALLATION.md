@@ -7,7 +7,7 @@
 > You must receive a prior approval from your manager and company to use it.
 
 > [!WARNING]
-> Use **Sonnet 5**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
+> Use **Sonnet 5 medium**, **GPT-5.4-medium**, **gemini-3.1-pro** or newer models. Avoid Auto model selection.
 
 ---
 
@@ -503,7 +503,10 @@ Applies to all installation modes. Ask the agent:
 What can you do, Rosetta?
 ```
 
-It should use Rosetta MCP to retrieve agents, guardrails, and instructions:
+The agent should follow Rosetta's prompts and list its workflows:
+
+- **Plugin or Offline:** it loads the Rosetta instructions bundled locally — no MCP call.
+- **HTTP or STDIO (MCP):** it retrieves agents, guardrails, and instructions over Rosetta MCP (shown below).
 
 <img src="docs/images/Rosetta-ProperResponse1.png" alt="Rosetta proper response" width="355"/> <img src="docs/images/Rosetta-ProperResponse2.png" alt="Rosetta proper response" width="300"/>
 

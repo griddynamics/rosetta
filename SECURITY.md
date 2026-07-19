@@ -46,6 +46,8 @@ Security fixes are applied to the **current release and one prior release (N-1)*
 
 ## Security Architecture
 
+> Plugin mode (nearly all users) runs no server and makes no network calls at request time — there is no MCP attack surface to secure. The posture below applies to self-hosted MCP deployments.
+
 ### Design Principles
 
 Rosetta is designed around a strict separation: it only serves instructions and knowledge to AI coding agents and **never receives, processes, or stores the source code or project data**. The Rosetta MCP serves the context (rules, workflows, conventions) on demand.

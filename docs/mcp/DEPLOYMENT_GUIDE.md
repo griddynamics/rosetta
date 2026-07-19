@@ -396,7 +396,7 @@ Representative environment-specific overrides:
 
 ### Redis
 
-Rosetta MCP uses Redis for OAuth token storage, session state, and `plan_manager` execution plans. Configure the connection via `REDIS_URL` (provided as a secret) and `REDIS_DB` (logical database index, e.g. `2`).
+Rosetta MCP uses Redis for OAuth token storage, session state, and `execution_controller` execution plans. Configure the connection via `REDIS_URL` (provided as a secret) and `REDIS_DB` (logical database index, e.g. `2`).
 
 **Database isolation:** Use `REDIS_DB` to select a logical database within a shared Redis instance. Set different values per environment to avoid key collisions.
 

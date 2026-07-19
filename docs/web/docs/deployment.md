@@ -6,9 +6,9 @@ permalink: /docs/deployment/
 
 # Deployment Guide
 
-**Who is this for?** Engineers deploying Rosetta infrastructure for their organization.
+**Who is this for?** Engineers deploying self-hosted Rosetta MCP infrastructure for their organization. This is optional — only needed if you specifically require centrally-managed instructions or an IDE with no Rosetta plugin; most teams should use [Plugins](/rosetta/docs/plugins/) instead.
 
-**When should I read this?** When you need to stand up Rosetta Server (RAGFlow) and Rosetta MCP for your team. For single-user setup, see [Quick Start](/rosetta/docs/quickstart/). For client/IDE configuration, see [Installation](/rosetta/docs/installation/).
+**When should I read this?** When you've decided you need self-hosted MCP and want to stand up Rosetta Server (RAGFlow) and Rosetta MCP for your team. For single-user setup, see [Quick Start](/rosetta/docs/quickstart/). For client/IDE configuration, see [Installation](/rosetta/docs/installation/).
 
 > [!WARNING]
 > **Never expose RAGFlow or Rosetta MCP directly to the internet.** Always place an API gateway, reverse proxy, or firewall in front of both services. Both have application-level authentication (RAGFlow: user accounts, OIDC/SSO, API keys; Rosetta MCP: OAuth 2.1), but network-level protection is still required as a defense-in-depth measure.
@@ -207,63 +207,213 @@ Required env vars: `ROSETTA_API_KEY`, `ROSETTA_SERVER_URL`, `REDIS_PASSWORD`.
 
 ### Kubernetes / Helm
 
-Rosetta MCP uses a shared Helm chart (v1.17.x). Configuration is values-only (no custom chart).
+The repository ships the chart at [`src/helm-charts/rosetta-mcp-server/`](https://github.com/griddynamics/rosetta/tree/main/src/helm-charts/rosetta-mcp-server). It deploys [rosetta-mcp](https://github.com/griddynamics/rosetta/blob/main/src/rosetta-mcp-server/README.md) in **HTTP** transport with ClusterIP Service, optional Ingress, optional HorizontalPodAutoscaler, and optional [External Secrets Operator](https://external-secrets.io/) wiring. Use this path when you want a shared MCP endpoint behind your ingress and identity provider (see [MCP Architecture — Rosetta MCP Server](/rosetta/docs/mcp-architecture/#rosetta-mcp-server)).
 
-**Image:** `https://hub.docker.com/repository/docker/griddynamics/rosetta-mcp/general`
+**Docker image:** [griddynamics/rosetta-mcp](https://hub.docker.com/r/griddynamics/rosetta-mcp) ([repository](https://hub.docker.com/repository/docker/griddynamics/rosetta-mcp/general)).
 
-**Resources:**
+#### Prerequisites
 
-| | Requests | Limits |
-|---|---|---|
-| CPU | 250m | 1000m |
-| Memory | 512Mi | 1Gi |
+- Kubernetes 1.25+ (for `autoscaling/v2` HPA)
+- Rosetta Server (for example RAGFlow) reachable from the cluster ([Part 1](#part-1-rosetta-server-ragflow))
+- A Kubernetes `Secret` (or ExternalSecret) containing at least `ROSETTA_API_KEY`
+- If using the chart's ESO toggle (`eso.enabled`), External Secrets Operator and a `ClusterSecretStore` / `SecretStore` that match `eso.secretStoreRef`
+- **TLS for production:** Base [`values.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/values.yaml) leaves [`ingress.tls`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/values.yaml) commented out, so Ingress may expose the MCP endpoint over **plain HTTP** until you configure TLS. **Before any production deployment,** enable HTTPS at the Ingress (uncomment and populate `ingress.tls` with your certificate `Secret` and hostnames) or terminate TLS at your API gateway / load balancer in front of the chart. OAuth expects a public **HTTPS** `ROSETTA_OAUTH_BASE_URL`; see also the [guide banner](#deployment-guide) on defense in depth.
 
-**Deployment strategy:** RollingUpdate (maxSurge: 1, maxUnavailable: 0). Single replica by default, HPA available (2-10 replicas, 70% CPU / 80% memory targets).
+#### Install
 
-**Session affinity:** MCP uses [Streamable HTTP](/rosetta/docs/mcp-architecture/#rosetta-mcp-server) (stateful). The server holds session state and can call back the IDE. When running multiple replicas, every request from a client must reach the same pod. Configure sticky sessions on the Kubernetes Service:
+##### From OCI (Docker Hub)
+
+After the workflow [Publish Rosetta MCP Helm chart](https://github.com/griddynamics/rosetta/blob/main/.github/workflows/publish-mcp-helm-chart.yml) runs on `main`, the chart is published as a Helm OCI artifact under the Grid Dynamics Docker Hub organization (see Chart [`name` and `version`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/Chart.yaml)).
+
+```bash
+helm registry login registry-1.docker.io
+export CHART_OCI="oci://registry-1.docker.io/griddynamics/rosetta-mcp-helm-chart"
+helm pull "${CHART_OCI}" --version "$(grep -E '^version:' src/helm-charts/rosetta-mcp-server/Chart.yaml | awk '{print $2}')"
+```
+
+Or install without pulling first (pin `--version` to the chart release you verified):
+
+```bash
+helm install rosetta-mcp "${CHART_OCI}" \
+  --version 0.2.0 \
+  -f my-values.yaml
+```
+
+Values must set `ROSETTA_SERVER_URL`, image pull credentials if your registry requires them, TLS (for production), and secrets such as `ROSETTA_API_KEY`. Chart name in OCI is **`rosetta-mcp-helm-chart`** (Helm package basename), while workload labels use `nameOverride: rosetta-mcp` from values.
+
+##### From a local clone
+
+```bash
+helm dependency update    # chart has no subcharts today; optional
+helm install rosetta-mcp ./src/helm-charts/rosetta-mcp-server \
+  -f ./src/helm-charts/rosetta-mcp-server/values.yaml \
+  -f ./src/helm-charts/rosetta-mcp-server/values-prod.example.yaml   # adapt or use your overlay
+```
+
+#### Required chart configuration
+
+1. **Image** — `image.repository` defaults to `griddynamics/rosetta-mcp`; set `image.tag` or rely on the chart defaulting the tag to [`appVersion`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/Chart.yaml) in the Deployment template.
+2. **Rosetta backend** — Set `env.vars` so `ROSETTA_SERVER_URL` resolves to Rosetta Server (in-cluster DNS or ingress URL).
+3. **API key** — Supply `ROSETTA_API_KEY` via `env.secrets` (`secretKeyRef`). Create the Kubernetes Secret first or use `eso` to sync it.
+4. **Ingress** — Set `ingress.host`. The chart defaults to **Traefik** and also supports **nginx** as an alternative.
+
+   **Traefik** (default) — rate limiting is enabled out of the box:
+
+   ```yaml
+   ingress:
+     className: traefik
+     host: rosetta.example.com
+     traefik:
+       rateLimit:
+         average: 100
+         burst: 200
+         period: "1s"
+   ```
+
+   The chart creates a Traefik `Middleware` custom resource (`<fullname>-rate-limit`) in the
+   release namespace and wires it into the Ingress annotation automatically (requires Traefik CRDs
+   to be installed in the cluster).
+
+   To reference additional external middlewares (e.g. a platform-wide chain managed
+   outside this chart), list them in `ingress.traefik.middlewares`:
+
+   ```yaml
+   ingress:
+     traefik:
+       middlewares:
+         - "traefik-my-chain@kubernetescrd"
+       rateLimit:
+         average: 100
+         burst: 200
+         period: "1s"
+   ```
+
+   External middlewares are rendered first in the annotation, followed by the
+   per-release rate limit.
+
+   **nginx** (alternative) — set `className: nginx` and replace the `traefik` block with nginx annotations:
+
+   ```yaml
+   ingress:
+     className: nginx
+     host: rosetta.example.com
+     annotations:
+       nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+       nginx.ingress.kubernetes.io/limit-rps: "100"
+       nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
+   ```
+5. **TLS (production)** — Enable encrypted client traffic before production use. Uncomment and complete the [`ingress.tls`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/values.yaml) block in your overlay so Ingress terminates HTTPS with a TLS `Secret` (or terminate TLS upstream and align hostnames). HTTP-only defaults are unsuitable for production; OAuth and user trust depend on HTTPS.
+
+Full environment-variable semantics for OAuth, Redis, analytics, and modes are the same as the application runtime; see [rosetta-mcp-server — Configuration](https://github.com/griddynamics/rosetta/blob/main/src/rosetta-mcp-server/README.md#configuration).
+
+#### Example values overlays
+
+The chart directory includes overlays you can copy and customize outside the repo:
+
+- [`src/helm-charts/rosetta-mcp-server/values-dev.example.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/values-dev.example.yaml)
+- [`src/helm-charts/rosetta-mcp-server/values-prod.example.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/values-prod.example.yaml)
+
+```bash
+helm upgrade --install rosetta-mcp ./src/helm-charts/rosetta-mcp-server \
+  -f ./src/helm-charts/rosetta-mcp-server/values.yaml \
+  -f my-prod.yaml
+```
+
+#### Chart layout
+
+| Path | Purpose |
+|---|---|
+| [`templates/deployment.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/templates/deployment.yaml) | Deployment, env, resources |
+| [`templates/service.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/templates/service.yaml) | ClusterIP and session affinity |
+| [`templates/ingress.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/templates/ingress.yaml) | Optional Ingress |
+| [`templates/traefik-middlewares.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/templates/traefik-middlewares.yaml) | Traefik Middleware CRDs (when `className: traefik`) |
+| [`templates/hpa.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/templates/hpa.yaml) | Optional HPA |
+| [`templates/poddisruptionbudget.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/templates/poddisruptionbudget.yaml) | Optional PDB (when `replicaCount > 1`) |
+| [`templates/external-secret.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/templates/external-secret.yaml) | Optional ExternalSecret (`eso.*`) |
+| [`templates/serviceaccount.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/templates/serviceaccount.yaml) | ServiceAccount |
+| [`tests/`](https://github.com/griddynamics/rosetta/tree/main/src/helm-charts/rosetta-mcp-server/tests) | helm-unittest test suites |
+
+#### Deployment characteristics & defaults
+
+The chart applies these behaviors by default unless you override values:
+
+| Topic | Detail |
+|---|---|
+| **Resources** | Requests: CPU 250m, memory 512Mi. Limits: CPU 1000m, memory 1Gi. |
+| **Replicas & HPA** | With `autoscaling.enabled: false`, `replicaCount` is honored. With HPA enabled, the Deployment initially uses `autoscaling.minReplicas`. When HPA is on, scaling is commonly 2–10 replicas (~70% CPU / ~80% memory targets). |
+| **Rolling updates** | `RollingUpdate` with `maxSurge: 1`, `maxUnavailable: 0`. |
+| **Security context** | Non-root UID/GID/fsGroup `1000`, capabilities dropped, `allowPrivilegeEscalation: false`. |
+
+**Session affinity:** The Service defaults to `ClientIP` with ~1h stickiness — important for [Streamable HTTP](/rosetta/docs/mcp-architecture/#rosetta-mcp-server) when you run multiple replicas:
 
 ```yaml
-# Recommended: Service-level ClientIP affinity
 sessionAffinity: ClientIP
 sessionAffinityConfig:
   clientIP:
-    timeoutSeconds: 3600  # 1h stickiness
+    timeoutSeconds: 3600
 ```
 
-Alternative: ingress-level stickiness using the MCP session ID header:
+If `ClientIP` is insufficient behind certain proxies or high fan-out IPs, try ingress affinity on the MCP session header:
 
 ```yaml
-# Ingress annotation (NGINX)
+# nginx Ingress (when using className: nginx)
 nginx.ingress.kubernetes.io/upstream-hash-by: "$http_mcp_session_id"
 ```
 
-Start with `ClientIP` affinity. It covers most deployments without extra ingress configuration.
+Start with chart defaults (`ClientIP`); introduce hash-by only when justified. Use shared Redis (`REDIS_URL` + secrets) for multi-replica OAuth and sessions ([Redis](#redis) below).
 
-**Security context:** Runs as non-root user `rosetta` (UID 1000), all capabilities dropped.
+#### Helm Values Reference
 
-### Helm Values Reference
-
-Base values (`values.yaml`):
+Base keys in [`src/helm-charts/rosetta-mcp-server/values.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/values.yaml):
 
 | Key | Default | Description |
 |---|---|---|
-| `ports` | `[8000]` | Container port |
-| `image.tag` | (per release) | Image version |
-| `replicaCount` | `1` | Pod replicas |
+| `ports` | `[8000]` | Container/service port |
+| `image.repository` | `griddynamics/rosetta-mcp` | Container image; Deployment uses `image.tag` or falls back to Chart `appVersion` when tag is unset |
+| `replicaCount` | `1` | Static replicas when HPA disabled |
 | `autoscaling.enabled` | `false` | HPA toggle |
-| `ingress.enabled` | `true` | NGINX ingress |
+| `ingress.enabled` | `true` | Ingress resource |
+| `ingress.className` | `traefik` | Ingress controller (`traefik` or `nginx`) |
+| `ingress.traefik.middlewares` | `[]` | External Traefik middleware references |
+| `ingress.traefik.rateLimit.average` | `100` | Rate limit — requests per period |
+| `ingress.traefik.rateLimit.burst` | `200` | Rate limit — max burst size |
+| `ingress.traefik.rateLimit.period` | `"1s"` | Rate limit — period |
+| `ingress.tls` | Commented in base [`values.yaml`](https://github.com/griddynamics/rosetta/blob/main/src/helm-charts/rosetta-mcp-server/values.yaml); enable for production | HTTPS termination at Ingress |
+| `service.sessionAffinity` | `ClientIP` | Pod stickiness |
+| `eso.enabled` | `false` | External Secrets Operator sync |
 
-Environment overrides:
+Representative environment-specific overrides:
 
 | Setting | Dev | Prod |
 |---|---|---|
 | Ingress host | `rosetta-dev.example.com` | `rosetta.example.com` |
 | `ROSETTA_SERVER_URL` | `http://ragflow-dev.<cluster-domain>:80` | `http://ragflow-prod.<cluster-domain>:80` |
+| `VERSION` | `r3` | `r3` |
 | `ROSETTA_MODE` | `SOFT` | `SOFT` |
+| `ROSETTA_OAUTH_MODE` | `oauth` | `oauth` |
+| `ROSETTA_OAUTH_REQUIRED_SCOPES` | `offline_access` | `offline_access` |
+| `ROSETTA_OAUTH_VALID_SCOPES` | (empty) | (empty) |
+| `REDIS_DB` | `2` | `2` |
+| `FASTMCP_ENABLE_RICH_LOGGING` | `false` | `false` |
+| `FASTMCP_LOG_LEVEL` | `DEBUG` | (unset) |
 | `IMS_DEBUG` | `1` | (unset) |
 | Keycloak realm | `<dev-realm>` | `<prod-realm>` |
 | Service account | `<dev-service-account>` | `<prod-service-account>` |
 | ESO secret source | `<dev-secret-source>` | `<prod-secret-source>` |
+
+### Redis
+
+Rosetta MCP uses Redis for OAuth token storage, session state, and `execution_controller` execution plans. Configure the connection via `REDIS_URL` (provided as a secret) and `REDIS_DB` (logical database index, e.g. `2`).
+
+**Database isolation:** Use `REDIS_DB` to select a logical database within a shared Redis instance. Set different values per environment to avoid key collisions.
+
+**Data invalidation:** Redis data is not schema-versioned and requires no migration scripts. However, existing sessions and stored plans become inaccessible after:
+
+- Rotating `FERNET_KEY` (tokens can no longer be decrypted)
+- Changing `REDIS_DB` (data is in a different logical database)
+- Flushing the Redis database (`redis-cli -n <db> FLUSHDB`)
+
+Users must re-authenticate and in-flight plans are lost after any of these. Plan key rotations accordingly in production.
 
 ### Security
 
@@ -374,6 +524,13 @@ Key differences between environments:
 3. **GitOps sync**: Your CD tool (Argo, Flux, or similar) detects new image tags and applies rolling updates to the dev environment.
 
 Production deploys require a manual image tag bump in `values-prod.yaml`.
+
+## Rosetta Images, Packages
+
+- https://pypi.org/project/ims-mcp/ (retiring)
+- https://pypi.org/project/rosetta-mcp/
+- https://pypi.org/project/rosetta-cli/
+- https://hub.docker.com/repository/docker/griddynamics/rosetta-mcp/general
 
 ---
 

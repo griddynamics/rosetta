@@ -113,7 +113,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 - Every AI coding agent in the organization receives consistent, expert-prepared instructions from day one
 - Knowledge is versioned, searchable, and automatically synchronized
 - Best practices evolve safely with rollback capability
-- Business context flows to agents via semantic search, not manual copy-paste
+- Business context flows to agents on demand through Rosetta's structured instruction delivery, not manual copy-paste
 - Organizations govern AI behavior with the same rigor they govern code
 - Instruction authoring, review, and publishing is a standard engineering workflow
 
@@ -121,7 +121,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 
 - **Rosetta:** Fully open-source, complete source code, self-hosted, community-driven. Includes all public agents, workflows, skills, rules, and templates.
 
-For a comparison of installation modes (HTTP, STDIO, Plugin, Offline), see the [Installation — Choose Your Mode](../INSTALLATION.md#choose-your-mode) table.
+For a comparison of installation modes (Plugin, Offline, and the optional MCP transports HTTP and STDIO), see the [Installation — Choose Your Mode](../INSTALLATION.md#choose-your-mode) table.
 
 ## Design Philosophy
 
@@ -146,6 +146,6 @@ These principles shape every product and architectural decision:
 - [Review](../REVIEW.md): What reviewers verify, what authors provide
 - [Quickstart](../QUICKSTART.md): Zero to working setup
 - [Usage Guide](../USAGE_GUIDE.md): How to use Rosetta day-to-day
-- [Deployment Guide](mcp/DEPLOYMENT_GUIDE.md): Server and infrastructure setup
+- [Deployment Guide](mcp/DEPLOYMENT_GUIDE.md): Self-hosted MCP server and infrastructure setup (optional, rarely needed)
 - [Troubleshooting](../TROUBLESHOOTING.md): Symptom-first diagnosis
 - [Installation](../INSTALLATION.md): Full setup reference for complex environments

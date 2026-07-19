@@ -23,7 +23,7 @@ If you are migrating or modernizing a codebase, do the steps below first, then r
 ## 1. Install and Onboard
 
 1. Connect Rosetta to your IDE — follow the [Quick Start](/rosetta/docs/quickstart/).
-2. Onboard the repository to Rosetta (Quick Start, Step 3). This is required before the steps below.
+2. Onboard the repository to Rosetta (Quick Start, Step 2). This is required before the steps below.
 
 ---
 

@@ -115,7 +115,7 @@ rosetta/
 
 - **Python 3.12+**
 - **uvx** (included with [uv](https://docs.astral.sh/uv/getting-started/installation/))
-- **Podman or Docker** (optional, for Redis, used by full MCP plan_manager tests)
+- **Podman or Docker** (optional, for Redis, used by full MCP execution_controller tests)
 
 ---
 
@@ -143,7 +143,7 @@ Use this when changing MCP server code, tool prompts, or bundler logic.
 
 Run MCP locally in STDIO mode against the dev RAGFlow instance.
 
-### Redis (optional, for plan_manager)
+### Redis (optional, for execution_controller)
 
 Start a Redis-compatible container:
 
@@ -269,7 +269,7 @@ The `--dry-run` flag shows what would be published (new, changed, unchanged file
 # From repo root, with the root venv activated
 cp .env.dev .env && VERSION=r3 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
 
-# With Redis (tests plan_manager with RedisPlanStore)
+# With Redis (tests execution_controller with RedisPlanStore)
 cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r3 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
 ```
 

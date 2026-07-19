@@ -50,8 +50,8 @@ These terms are defined here and referenced everywhere else.
 | **Release**        | Versioned instruction set (r1, r2, r3). R3 is the final numbered release; updates land incrementally within it.                             |
 | **Guardrails**     | Safety measures: scope limits, data protection, transparency rules, approval gates, risk assessment.                                        |
 | **HITL**           | Human-in-the-loop. Approval gates at critical decision points (specs, plans, risky actions).                                                |
-| **Meta-prompting** | Rosetta MCP consults the AI agent on what should be done and how using meta-prompts.                                                        |
-| **Rosetta**        | MCP and CLI of Instruction and Instructions Management System.                                                                                 |
+| **Meta-prompting** | Rosetta consults the AI agent on what should be done and how using meta-prompts.                                                            |
+| **Rosetta**        | Instruction Management System for AI coding agents, delivered primarily as IDE plugins; MCP and CLI are optional delivery modes.             |
 | **Prompt**         | Skill, Rule, Workflow, Command, Subagent, Agent, Template, or any generic prompt. **Rosetta prompt** prompt for Rosetta.                    |
 | **Shells**         | Small prompt proxies with proper fronmatters created during onboarding so that coding agents are aware of skill, agents, commands.          |
 

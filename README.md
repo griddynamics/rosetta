@@ -134,7 +134,7 @@ AI coding agents can read code, generate code, and run commands. But that is onl
 
 1. **Deep project context instead of blind guessing.** Without structured context, coding agents read a few line ranges around the problem and guess the rest. They do not know the architecture, the business rules, the conventions, or the dependencies. They assume. The result is code that appears correct on the surface but violates constraints the agent never knew existed. Imagine hiring a developer from outside your organization, handing them ten lines of code with zero documentation, and asking them to fix the system properly. That is how every coding agent works by default. Planning mode partially addresses this — at much higher token cost — and the agent still has to guess the purpose and target because it has no business context.
 
-   Rosetta instructions reverse this. During repository initialization, the agent — guided by Rosetta — reverse-engineers the project's architecture, tech stack, business context, coding patterns, and dependencies into structured workspace files. The agent reads these before every task. Context loads progressively — bootstrap rules first, then project context, then only the skills and workflow the current task needs. When a query returns more than five documents, Rosetta MCP switches to a listing so the agent picks exactly what it needs. Context stays lean. Reasoning stays sharp. Token efficiency is high because the agent is not loading irrelevant material or re-discovering the project from scratch on every request.
+   Rosetta instructions reverse this. During repository initialization, the agent — guided by Rosetta — reverse-engineers the project's architecture, tech stack, business context, coding patterns, and dependencies into structured workspace files. The agent reads these before every task. Context loads progressively — bootstrap rules first, then project context, then only the skills and workflow the current task needs. Context stays lean. Reasoning stays sharp. Token efficiency is high because the agent is not loading irrelevant material or re-discovering the project from scratch on every request.
 
 2. **Guardrails and enforced safe behavior.** Coding agents rarely question their own actions. They do not question their understanding. They do not think about whether something is right or wrong. They just do it. They do not reliably assess what they have access to — databases, cloud services, S3 buckets. They do not handle sensitive data with care. They can copy personal data, credentials, and regulated information into logs, messages, and outputs without a second thought. They rarely evaluate whether an action is dangerous or irreversible.
 
@@ -196,13 +196,13 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and e
 | Configure your coding-agent workspace                | [CONFIGURATION.md](CONFIGURATION.md)       |
 | Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md)                 |
 | Learn how to use Rosetta flows                       | [USAGE_GUIDE.md](USAGE_GUIDE.md)           |
-| Deploy Rosetta for my organization                   | [DEPLOYMENT_GUIDE.md](docs/mcp/DEPLOYMENT_GUIDE.md) |
 | Understand the system architecture                   | [ARCHITECTURE.md](docs/ARCHITECTURE.md)    |
 | Navigate the codebase                                | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)   |
 | Contribute a change                                  | [CONTRIBUTING.md](CONTRIBUTING.md)         |
 | Debug a problem                                      | [TROUBLESHOOTING.md](TROUBLESHOOTING.md)   |
 | See release history                                  | [CHANGELOG.md](CHANGELOG.md)               |
 | Security Policy                                      | [SECURITY.md](SECURITY.md)                 |
+| Self-host MCP for my organization (optional, rare)   | [DEPLOYMENT_GUIDE.md](docs/mcp/DEPLOYMENT_GUIDE.md) |
 
 ## Community
 

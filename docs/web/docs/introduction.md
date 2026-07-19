@@ -92,11 +92,11 @@ Works with any other IDE too — via a plugin where supported, via MCP otherwise
 | Understand what Rosetta is and how to think about it | [Overview](/rosetta/docs/overview/) |
 | Set up Rosetta | [Quick Start](/rosetta/docs/quickstart/) |
 | Learn how to use Rosetta flows | [Usage Guide](/rosetta/docs/usage-guide/) |
-| Deploy Rosetta for my organization | [Deployment](/rosetta/docs/deployment/) |
 | Understand the system architecture | [Architecture](/rosetta/docs/architecture/) |
 | Navigate the codebase | [Developer Guide](/rosetta/docs/developer-guide/) |
 | Contribute a change | [Contributing](/rosetta/docs/contributing/) |
 | Debug a problem | [Troubleshooting](/rosetta/docs/troubleshooting/) |
+| Self-host MCP for my organization (optional, rare) | [Deployment](/rosetta/docs/deployment/) |
 
 ## Contributing
 

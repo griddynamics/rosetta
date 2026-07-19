@@ -324,7 +324,7 @@ Integrate new features to this testing harness if needed and easy.
 MUST execute `venv/bin/python scripts/pre_commit.py` from repository root. Never filter/grep/tail its output.
 Entire `verify_mcp.py` and ALL tests must work.
 Always run `verify_mcp.py`: with R3 only. When backporting a change to R2, also run it with `VERSION=r2`.
-If REDIS-dependent feature is affected RUN verify_mcp.py with and without REDIS_URL (example: `plan_manager` tool).
+If REDIS-dependent feature is affected RUN verify_mcp.py with and without REDIS_URL (example: `execution_controller` tool).
 Must run `validate-types.sh` (repo root) if code was changed.
 Do not tail or limit output of `verify_mcp.py`, it is short already.
 Read first 100 lines of `verify_mcp.py` to get instructions ON HOW exactly it should all be done.

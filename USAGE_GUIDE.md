@@ -641,6 +641,6 @@ These videos were recorded in different IDEs to show that Rosetta works everywhe
 - [Quick Start](QUICKSTART.md) — zero to working setup
 - [Installation](INSTALLATION.md) — all setup modes and environment variables
 - [Architecture](docs/ARCHITECTURE.md) — system structure, components, data flow
-- [Deployment Guide](docs/mcp/DEPLOYMENT_GUIDE.md) — org-wide deployment
 - [Contributing](CONTRIBUTING.md) — fastest path to a merged PR
 - [Troubleshooting](TROUBLESHOOTING.md) — symptom-first diagnosis
+- [Deployment Guide](docs/mcp/DEPLOYMENT_GUIDE.md) — self-hosted MCP (optional, rarely needed)

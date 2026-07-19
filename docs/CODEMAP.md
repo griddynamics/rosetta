@@ -31,7 +31,7 @@ feedback.py invite.py _ragflow_team_api.py
 
 #### src/ims-mcp-server/ims_mcp/tools/ — MCP tool implementations
 
-instructions.py projects.py resources.py plan_manager.py feedback.py validation.py
+instructions.py projects.py resources.py execution_controller.py feedback.py validation.py
 
 #### src/ims-mcp-server/ims_mcp/analytics/ — usage tracking
 
@@ -39,7 +39,7 @@ tracker.py user_context.py
 
 ### src/ims-mcp-server/tests/ — unit tests (21 files)
 
-test_bundler_and_query_builder.py test_instructions.py test_plan_manager.py test_oauth.py
+test_bundler_and_query_builder.py test_instructions.py test_execution_controller.py test_oauth.py
 test_analytics.py test_authorizer.py test_migrations.py test_resources.py
 test_tool_contracts.py test_prompts.py test_validation.py test_config.py
 test_cache_ttl.py test_dataset_lookup.py test_document_client.py test_feedback_service.py

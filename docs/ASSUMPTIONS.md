@@ -7,7 +7,7 @@ Revalidated after major documentation or architecture changes.
 ## Architecture Assumptions
 
 ### Redis is optional in all deployment modes [HIGH confidence]
-Redis is used for OAuth session storage and plan_manager; in-memory fallback exists for local dev. Assumption: no hard runtime dependency in single-instance STDIO mode.
+Redis is used for OAuth session storage and execution_controller; in-memory fallback exists for local dev. Assumption: no hard runtime dependency in single-instance STDIO mode.
 - Resolve in: `docs/ARCHITECTURE.md`, `docs/mcp/DEPLOYMENT_GUIDE.md`
 
 ### RAGFlow is the only supported document engine [HIGH confidence]

@@ -15,7 +15,7 @@ permalink: /docs/mcps/
 > You must receive a prior approval from your manager and company to use it.
 
 > [!WARNING]
-> Use **Sonnet 5**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection.
+> Use **Sonnet 5 medium**, **GPT-5.4-medium**, **gemini-3.1-pro** or newer models. Avoid Auto model selection.
 
 > [!NOTE]
 > Rosetta is designed to never use or see data or IP.
@@ -217,9 +217,9 @@ Once the MCP is verified:
 
 - [Usage Guide](/rosetta/docs/usage-guide/) — how to use Rosetta flows
 - [Overview](/rosetta/docs/overview/) — mental model and terminology
-- [Deployment Guide](/rosetta/docs/deployment/) — org-wide deployment
 - [Contributing](/rosetta/docs/contributing/) — make your first contribution
 - [Architecture](/rosetta/docs/architecture/) — system internals
+- [Deployment Guide](/rosetta/docs/deployment/) — self-hosted MCP (optional, rarely needed)
 
 ## Video Tutorials
 

@@ -102,11 +102,11 @@ Verbs: `READ` = load into context; `APPLY` = load + fully execute; `USE`/`INVOKE
 The runtime footprint is minimal: `bootstrap-alwayson.md` (core policies, `reasonable`, tasks, skill engagement, core files) plus exactly one mode file. MCP and local mode files bind command aliases to their mechanisms; plugin mode needs no mapping because aliases operate natively on plugin files. Everything heavy loads on demand behind skills and workflows:
 
 ```
-1. Agent starts: MCP connects / plugin or local `bootstrap-alwayson.md` loads
+1. Agent starts: plugin or local `bootstrap-alwayson.md` loads / MCP connects
 
 2. Rosetta Prep Steps (bound per mode file, once per session)
-   ├── MCP:    get_context_instructions → USE SKILL load-project-context → USE SKILL hitl
    ├── Plugin: USE SKILL load-project-context → USE SKILL hitl (`bootstrap-alwayson.md` auto-loaded)
+   ├── MCP:    get_context_instructions → USE SKILL load-project-context → USE SKILL hitl
    └── Local:  read bootstrap-alwayson.md → USE SKILL load-project-context → USE SKILL hitl
 
 3. Routing — the user chooses the entry

@@ -51,7 +51,7 @@ Most sections below are MCP-specific (connection, OAuth, server issues) — if y
 
 **Wrong model causes poor or inconsistent results**
 
-Use **Sonnet 5**, **GPT-5.4-medium**, **gemini-3.1-pro** or better models. Avoid Auto model selection. Weaker models skip tool calls, hallucinate instructions, or ignore loaded rules entirely (plugin or MCP).
+Use **Sonnet 5 medium**, **GPT-5.4-medium**, **gemini-3.1-pro** or newer models. Avoid Auto model selection. Weaker models skip tool calls, hallucinate instructions, or ignore loaded rules entirely (plugin or MCP).
 
 ## Slow or Empty Responses (MCP)
 
