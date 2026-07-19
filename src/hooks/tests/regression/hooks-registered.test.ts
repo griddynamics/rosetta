@@ -2,14 +2,17 @@
 // in every plugin's hooks.json. If a hook is bundled but not registered, it is silently
 // never invoked by the IDE.
 //
-// Release-aware: deterministic (advisory) hooks ship only from r3+ (plugin.json major >= 3).
-// For r2 the advisory hooks are intentionally absent, so the per-hook checks only report
-// when the plugin's manifest version is r3+. The check is not disabled — it self-gates on
-// the committed release.
+// Release-aware: deterministic (advisory) hooks ship one-by-one from the designated hooks
+// release (see shipsHooks / HOOKS_RELEASE). Below it the advisory hooks are intentionally
+// absent, so the per-hook checks self-skip. At/above it the check is presence-based: a hook
+// is validated only when its generated bundle is present in the plugin's hook folder, so a
+// not-yet-released hook is silently skipped. The check is not disabled — it self-gates on
+// the committed release and the committed artifacts.
 
-import { readdirSync, readFileSync } from 'fs';
+import { readdirSync, readFileSync, existsSync } from 'fs';
 import path from 'path';
 import { describe, test, expect } from 'vitest';
+import { shipsHooks } from '../helpers/release';
 
 const ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const HOOKS_DIR = path.resolve(ROOT, 'src', 'hooks', 'src', 'hooks');
@@ -34,15 +37,7 @@ const discoverHooks = (): string[] =>
     .filter(f => f.endsWith('.ts'))
     .map(f => f.replace('.ts', ''));
 
-// Advisory (deterministic) hooks ship only from r3+ (manifest major >= 3).
-const releaseMajor = (manifestPath: string): number => {
-  try {
-    const version = String(JSON.parse(readFileSync(manifestPath, 'utf-8')).version ?? '0');
-    return parseInt(version.split('.')[0], 10) || 0;
-  } catch { return 0; }
-};
-
-describe('hooks-registered — all src hooks appear in every plugin hooks.json (r3+)', () => {
+describe('hooks-registered — bundled src hooks appear in every plugin hooks.json (from the hooks release)', () => {
   const hookNames = discoverHooks();
 
   test('at least one hook is discovered in src/', () => {
@@ -53,8 +48,6 @@ describe('hooks-registered — all src hooks appear in every plugin hooks.json (
     describe(`plugin: ${plugin}`, () => {
       let rawJson: string | null = null;
       try { rawJson = readFileSync(jsonPath, 'utf-8'); } catch { /* missing file */ }
-
-      const isR3 = releaseMajor(manifestPath) >= 3;
 
       test(`hooks.json exists and is valid JSON`, () => {
         // Non-gated guard: holds for every release (r2 or r3+), so the committed
@@ -68,8 +61,14 @@ describe('hooks-registered — all src hooks appear in every plugin hooks.json (
         if (CLAUDE_CODE_ONLY_HOOKS.has(hookName) && plugin !== 'core-claude') continue;
 
         test(`${hookName}.js is referenced`, () => {
-          if (!isR3) return;     // r2 ships no advisory hooks — only report for r3+
-          if (!rawJson) return;  // file-missing case handled above
+          if (!shipsHooks(manifestPath)) return; // advisory hooks ship from the hooks release onward
+          if (!rawJson) return;                  // file-missing case handled above
+          // Presence-based: only a hook whose bundle is actually generated into the plugin
+          // folder must be registered. A not-yet-released hook (no bundle) is skipped, which
+          // supports the one-by-one rollout and ignores shared libs (e.g. read-once-shared)
+          // that are never bundled.
+          const bundlePath = path.join(path.dirname(jsonPath), `${hookName}.js`);
+          if (!existsSync(bundlePath)) return;
           expect(rawJson).toContain(`${hookName}.js`);
         });
       }
