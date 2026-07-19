@@ -1,32 +1,32 @@
 """
 Base Command Abstract Class
 
-Defines the interface and common functionality for all IMS CLI commands.
+Defines the interface and common functionality for all Rosetta CLI commands.
 """
 
 import time
 from abc import ABC, abstractmethod
 
-from ..ims_config import IMSConfig
+from ..rosetta_config import RosettaConfig
 from ..ragflow_client import RAGFlowClient
 from ..typing_utils import CommandArgs
 
 
 class BaseCommand(ABC):
     """
-    Abstract base class for all IMS CLI commands.
+    Abstract base class for all Rosetta CLI commands.
     
     Provides common functionality for authentication, timing, and error handling.
     Each command must implement the execute() method.
     """
     
-    def __init__(self, client: RAGFlowClient, config: IMSConfig):
+    def __init__(self, client: RAGFlowClient, config: RosettaConfig):
         """
         Initialize command with RAGFlow client and configuration.
         
         Args:
             client: RAGFlow client instance
-            config: IMS configuration
+            config: Rosetta configuration
         """
         self.client = client
         self.config = config

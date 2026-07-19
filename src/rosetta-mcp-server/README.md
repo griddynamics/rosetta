@@ -16,9 +16,6 @@ This package provides a FastMCP server that connects to Rosetta servers for adva
 - 🧭 **Context Bootstrap** - `get_context_instructions` loads bootstrap rules for agent setup
 - 📚 **Instruction Retrieval** - `query_instructions` fetches docs by keyword or tags
 - 🗂️ **Instruction Browsing** - `list_instructions` lists folders/files by virtual path prefix
-- 🗂️ **Project Context Management** - discover, query, and store project datasets
-- 📝 **Feedback Capture** - structured `submit_feedback` for workflow learning loops
-- 📋 **Execution Plans** - `plan_manager` stores and manages AI execution plans
 - 🔗 **Instruction Resources** - `rosetta://{path*}` resource template for bundled reads
 - 🌐 **Environment-Based Config** - Zero configuration, reads from environment variables
 - 🔐 **STDIO + HTTP OAuth** - API-key runtime plus OAuth proxy support for HTTP transports
@@ -53,7 +50,7 @@ rosetta-mcp
 You can also run it as a module:
 
 ```bash
-python -m ims_mcp
+python -m rosetta_mcp
 ```
 
 ## Configuration
@@ -91,14 +88,11 @@ Rosetta MCP supports two runtime modes:
 | `ROSETTA_JWT_SIGNING_KEY` | Runtime (HTTP OAuth) | Empty | Secret for signing FastMCP JWTs; if unset, derived from client secret |
 | `FERNET_KEY` | Runtime (HTTP OAuth) | Empty | Fernet key for encrypting OAuth token storage in Redis |
 | `ROSETTA_READ_POLICY` | Runtime (authz) | `all` | `all`, `team`, `none` for project dataset reads |
-| `ROSETTA_WRITE_POLICY` | Runtime (authz) | `all` | `all`, `team`, `none` for project dataset writes/creates |
 | `ROSETTA_USER_EMAIL` | Runtime (authz) | `rosetta@example.com` | STDIO identity and HTTP fallback identity |
-| `ROSETTA_INVITE_EMAILS` | Runtime (authz) | Empty | Comma-separated invite list for project dataset creation flow |
 | `ROSETTA_MODE` | Runtime (prompts) | `HARD` | Prompt mode selection: `HARD` or `SOFT` |
-| `ROSETTA_PLAN_TTL_DAYS` | Runtime (plan manager) | `5` | Plan expiry in days |
 | `INSTRUCTION_ROOT_FILTER` | Runtime (instructions query) | Empty | Comma-separated root tags filter |
-| `IMS_DEBUG` | Runtime (debug) | Disabled | Enable debug logs (`1`, `true`, `yes`, `on`) |
-| `FASTMCP_LOG_LEVEL` | Runtime (debug) | `INFO` | Set to `DEBUG` alongside `IMS_DEBUG=1` for full FastMCP internals (auth, middleware) |
+| `ROSETTA_DEBUG` | Runtime (debug) | Disabled | Enable debug logs (`1`, `true`, `yes`, `on`); legacy alias `IMS_DEBUG` still honored |
+| `FASTMCP_LOG_LEVEL` | Runtime (debug) | `INFO` | Set to `DEBUG` alongside `ROSETTA_DEBUG=1` for full FastMCP internals (auth, middleware) |
 | `FASTMCP_ENABLE_RICH_LOGGING` | Runtime (debug) | `true` | Set to `false` to disable Rich formatting — use in production/Grafana to prevent multiline log splitting |
 | `POSTHOG_API_KEY` | Runtime (analytics) | Disabled | Your PostHog project API key (opt-in, set to enable) |
 | `POSTHOG_HOST` | Runtime (analytics) | `https://eu.i.posthog.com` | PostHog endpoint |
@@ -113,8 +107,8 @@ Rosetta MCP supports two runtime modes:
 | `ROSETTA_SERVER_URL` | Rosetta Server base URL | `https://<production server URL>/` |
 | `ROSETTA_API_KEY` | API key used by Rosetta MCP to access Rosetta Server | Required |
 | `VERSION` | Instruction release used for instruction dataset resolution (`aia-{version}`) | `r1` |
-| `IMS_DEBUG` | Enable debug logging to stderr (`1/true/yes/on`) | Disabled |
-| `FASTMCP_LOG_LEVEL` | Set to `DEBUG` alongside `IMS_DEBUG=1` for full FastMCP internals | `INFO` |
+| `ROSETTA_DEBUG` | Enable debug logging to stderr (`1/true/yes/on`); legacy alias `IMS_DEBUG` still honored | Disabled |
+| `FASTMCP_LOG_LEVEL` | Set to `DEBUG` alongside `ROSETTA_DEBUG=1` for full FastMCP internals | `INFO` |
 | `FASTMCP_ENABLE_RICH_LOGGING` | Set to `false` to disable Rich formatting (use in production/Grafana) | `true` |
 | `POSTHOG_API_KEY` | Your PostHog project API key (opt-in, disabled by default) | Disabled |
 | `POSTHOG_HOST` | PostHog host | `https://eu.i.posthog.com` |
@@ -175,9 +169,7 @@ Authorization policy variables (dataset-level):
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `ROSETTA_READ_POLICY` | `all`, `team`, `none` for read access on `project-*` datasets | `all` |
-| `ROSETTA_WRITE_POLICY` | `all`, `team`, `none` for write/create on `project-*` datasets | `all` |
 | `ROSETTA_USER_EMAIL` | Fallback user email (used in STDIO, and HTTP fallback) | `rosetta@example.com` |
-| `ROSETTA_INVITE_EMAILS` | Comma-separated emails auto-invited on project dataset creation | Empty |
 
 OAuth callback URL examples:
 - Production: `https://rosetta.example.com/auth/callback`
@@ -316,121 +308,6 @@ Validation notes:
 ```python
 list_instructions(path_prefix="rules")
 list_instructions(path_prefix="all")
-```
-
-### 4. submit_feedback
-
-Store workflow feedback for continuous improvement.
-
-**Parameters:**
-- `request_mode` (str): Non-empty workflow mode, e.g. `coding.md`
-- `feedback` (dict): Structured payload with required keys:
-  - `summary` (non-empty)
-  - `root_cause` (non-empty)
-  - `prompt_suggestions` (non-empty string or non-empty list of strings)
-  - `context` (non-empty)
-
-**Example:**
-```python
-submit_feedback(
-    request_mode="coding.md",
-    feedback={
-        "summary": "User asked for README fixes.",
-        "root_cause": "README had stale tool docs.",
-        "prompt_suggestions": "Keep README in sync with tool surface.",
-        "context": "ims-mcp-server README alignment"
-    }
-)
-```
-
-### 5. discover_projects
-
-List readable project datasets (`project-*`) available in Rosetta Server.
-
-**Parameters:**
-- `query` (str, optional): Name filter; empty or whitespace-only means no filter
-
-Validation notes:
-- `query`: up to 256 characters
-
-**Example:**
-```python
-discover_projects(query="rulesofpower")
-```
-
-### 6. query_project_context
-
-Query documents inside a project dataset.
-
-**Parameters:**
-- `repository_name` (str): Project name
-- `query` (str, optional): Keyword query
-- `tags` (list[str], optional): Tag filter
-- `topic` (str, optional): Tracking-only intent hint
-
-At least one of `query` or `tags` is required.
-
-Validation notes:
-- `repository_name`: up to 256 characters
-- `query`: up to 2000 characters
-- `tags`: up to 50 items, each up to 128 characters
-
-**Example:**
-```python
-query_project_context(
-    repository_name="rulesofpower",
-    tags=["architecture"]
-)
-```
-
-### 7. store_project_context
-
-Create or update a project context document.
-
-**Parameters:**
-- `repository_name` (str): Project name
-- `document` (str): Relative document path
-- `tags` (list[str]): 1-50 non-empty document tags
-- `content` (str): Non-empty document body
-- `force` (bool, optional): If `true`, creates dataset when missing
-
-Validation notes:
-- `repository_name`, `document`, and `content` must be non-empty
-- `document` must not be absolute and must not contain `.` or `..` path segments
-- `repository_name`: up to 256 characters
-- `document`: up to 512 characters
-- `content`: up to 200000 characters
-- `tags`: 1-50 items, each up to 128 characters
-
-**Example:**
-```python
-store_project_context(
-    repository_name="rulesofpower",
-    document="ARCHITECTURE.md",
-    tags=["architecture", "backend"],
-    content="# Architecture\\n...",
-    force=True
-)
-```
-
-### 8. plan_manager
-
-Manage execution plans stored in Rosetta.
-
-**Parameters:**
-- `command` (str): `upsert`, `query`, `show_status`, `update_status`, or `next`
-- `plan_name` (str): Non-empty plan identifier
-- `target_id` (str, optional): `entire_plan`, phase id, or step id
-- `data` (dict | str, optional): RFC 7396 merge-patch payload for `upsert`
-- `new_status` (str, optional): New status for `update_status`
-- `limit` (int, optional): Max items returned by `next`; `0` means all
-
-**Example:**
-```python
-plan_manager(
-    command="query",
-    plan_name="rulesofpower-hardening",
-)
 ```
 
 ## Resource Template

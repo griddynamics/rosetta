@@ -19,8 +19,8 @@ IDE plugin trees are derived artifacts, not source. Manual sync is error-prone a
 
 1. **hooks build** — compiles TypeScript hooks via `npm --prefix src/hooks run build:quiet`
 2. **plugin sync** — runs `npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false` (output to `<repo-root>/plugins`)
-3. **type validation** — runs `validate-types.sh` or mypy
-4. **tests** — runs the full test suite via `run-tests.sh`
+3. **type validation** — runs `src/validate-types.sh` or mypy
+4. **tests** — runs the full test suite via `src/run-tests.sh`
 
 ## What Gets Generated
 

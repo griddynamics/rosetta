@@ -13,19 +13,19 @@ Mode: upgrade. All patterns created from scratch (no prior PATTERNS/ folder exis
 | File | Pattern | Source Modules |
 |---|---|---|
 | `shell-proxy-pattern.md` | Shell Proxy | `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `plugins/` |
-| `tag-based-retrieval.md` | Tag-Based Retrieval | `src/rosetta-cli/rosetta_cli/services/document_data.py`, `src/ims-mcp-server/services/query_builder.py` |
-| `document-bundling.md` | Document Bundling | `src/ims-mcp-server/services/bundler.py` |
-| `vfs-resource-paths.md` | VFS Resource Paths | `src/rosetta-cli/rosetta_cli/services/document_data.py`, `src/ims-mcp-server/tools/resources.py` |
+| `tag-based-retrieval.md` | Tag-Based Retrieval | `src/rosetta-cli/rosetta_cli/services/document_data.py`, `src/rosetta-mcp-server/services/query_builder.py` |
+| `document-bundling.md` | Document Bundling | `src/rosetta-mcp-server/services/bundler.py` |
+| `vfs-resource-paths.md` | VFS Resource Paths | `src/rosetta-cli/rosetta_cli/services/document_data.py`, `src/rosetta-mcp-server/tools/resources.py` |
 | `layered-instruction-architecture.md` | Layered Instruction Architecture | `instructions/r2/core/`, `instructions/r2/grid/` |
 | `md5-change-detection.md` | MD5 Change Detection | `src/rosetta-cli/rosetta_cli/services/document_data.py` |
-| `dual-backend-store.md` | Dual-Backend Store | `src/ims-mcp-server/services/plan_store.py`, `src/ims-mcp-server/server.py` |
-| `ttl-cache-pattern.md` | TTL Cache | `src/ims-mcp-server/clients/doc_cache.py`, `src/ims-mcp-server/server.py` |
-| `redis-schema-migrations.md` | Redis Schema Migrations | `src/ims-mcp-server/migrations.py` |
-| `oauth-proxy-pattern.md` | OAuth Proxy | `src/ims-mcp-server/auth/oauth.py`, `src/ims-mcp-server/server.py` |
-| `policy-based-authorization.md` | Policy-Based Authorization | `src/ims-mcp-server/services/authorizer.py` |
+| `dual-backend-store.md` | Dual-Backend Store | `src/rosetta-mcp-server/rosetta_mcp/server.py`, `src/rosetta-mcp-server/rosetta_mcp/auth/oauth.py` |
+| `ttl-cache-pattern.md` | TTL Cache | `src/rosetta-mcp-server/clients/doc_cache.py`, `src/rosetta-mcp-server/server.py` |
+| `redis-schema-migrations.md` | Redis Schema Migrations | `src/rosetta-mcp-server/migrations.py` |
+| `oauth-proxy-pattern.md` | OAuth Proxy | `src/rosetta-mcp-server/auth/oauth.py`, `src/rosetta-mcp-server/server.py` |
+| `policy-based-authorization.md` | Policy-Based Authorization | `src/rosetta-mcp-server/services/authorizer.py` |
 | `command-pattern-cli.md` | Command Pattern (CLI) | `src/rosetta-cli/rosetta_cli/commands/` |
-| `protocol-based-typing.md` | Protocol-Based Typing | `src/ims-mcp-server/typing_utils.py`, `src/rosetta-cli/typing_utils.py`, `src/ims-mcp-server/migrations.py` |
-| `env-backed-dataclass-config.md` | Env-Backed Dataclass Config | `src/ims-mcp-server/config.py`, `src/ims-mcp-server/constants.py` |
+| `protocol-based-typing.md` | Protocol-Based Typing | `src/rosetta-mcp-server/typing_utils.py`, `src/rosetta-cli/typing_utils.py`, `src/rosetta-mcp-server/migrations.py` |
+| `env-backed-dataclass-config.md` | Env-Backed Dataclass Config | `src/rosetta-mcp-server/config.py`, `src/rosetta-mcp-server/constants.py` |
 | `pre-commit-plugin-sync.md` | Pre-Commit Plugin Sync | `scripts/pre_commit.py`, `plugins/` |
 
 ### Skipped

@@ -61,7 +61,7 @@ Instructions flow up at build time: the plugin generator reads the instructions 
 
 Generator internals (model rewriting, per-IDE format, hooks bundling, standalone variants) are in [Development — Plugins](#plugins) below.
 
-> **MCP is a separate, optional delivery pipeline.** Its system diagram, RAGFlow, CLI publishing, environments, and protocol details live entirely in **[MCP-ARCHITECTURE.md](MCP-ARCHITECTURE.md)** — read it when you touch any of: the `ims-mcp` server (FastMCP v3), transports (Streamable HTTP + OAuth 2.1, STDIO), authentication and OAuth modes, Redis schema migrations, VFS resource paths and auto-tagging, the MCP tools and `rosetta://{path}` resource, document bundling, RAGFlow (datasets, processing pipeline), Rosetta CLI (publish/parse/verify commands, auto-tagging), or MCP-specific environments and validation.
+> **MCP is a separate, optional delivery pipeline.** Its system diagram, RAGFlow, CLI publishing, environments, and protocol details live entirely in **[MCP-ARCHITECTURE.md](MCP-ARCHITECTURE.md)** — read it when you touch any of: the `rosetta-mcp` server (FastMCP v3), transports (Streamable HTTP + OAuth 2.1, STDIO), authentication and OAuth modes, Redis schema migrations, VFS resource paths and auto-tagging, the MCP tools and `rosetta://{path}` resource, document bundling, RAGFlow (datasets, processing pipeline), Rosetta CLI (publish/parse/verify commands, auto-tagging), or MCP-specific environments and validation.
 
 ---
 
@@ -277,7 +277,7 @@ Each plugin contains core instructions: 37 skills, 10 agents, 12 workflows, and 
 | `core-cursor-standalone` | Cursor | Direct extraction into repo (`.cursor/`) |
 | `core-copilot-standalone` | VS Code Copilot, JetBrains Copilot | Direct extraction into repo (`.github/`) |
 
-All plugins are generated from the **release-selected** source tree (`instructions/<release>/core/`) by the plugin generator (`rosettify-plugins`, `npx -y rosettify-plugins@latest`). **Requirements-first:** spec-before-code from `docs/requirements/plugin-generator/` (authoritative FRs/NFRs; code follows). The release is chosen by `--release` (default **r3**, matching ims-mcp's `DEFAULT_VERSION`); each release descriptor carries its hook posture (r2: SessionStart bootstrap only; r3: deterministic advisory hooks by default), overridable per run with `--deterministic-hooks true|false` (e.g. `--release r3 --deterministic-hooks false` builds r3 without advisory hooks); when omitted, the release's default applies. The generator builds main plugins then derives standalone variants. `.tmpl` files are Handlebars templates rendered by the generator.
+All plugins are generated from the **release-selected** source tree (`instructions/<release>/core/`) by the plugin generator (`rosettify-plugins`, `npx -y rosettify-plugins@latest`). **Requirements-first:** spec-before-code from `docs/requirements/plugin-generator/` (authoritative FRs/NFRs; code follows). The release is chosen by `--release` (default **r3**, matching rosetta-mcp's `DEFAULT_VERSION`); each release descriptor carries its hook posture (r2: SessionStart bootstrap only; r3: deterministic advisory hooks by default), overridable per run with `--deterministic-hooks true|false` (e.g. `--release r3 --deterministic-hooks false` builds r3 without advisory hooks); when omitted, the release's default applies. The generator builds main plugins then derives standalone variants. `.tmpl` files are Handlebars templates rendered by the generator.
 
 **Run it standalone:** `npx -y rosettify-plugins@latest [--release r2|r3] [--output DIR] [--source DIR]` — `--release` selects the instructions source (default `r3`), `--output` redirects generated plugins (default `<source>/plugins`), `--source` sets the repo root (default: current directory). `pre_commit.py` invokes it with `--release r3 --deterministic-hooks false`, so the shipped plugins are r3 content with SessionStart bootstrap only. The generator copies core instructions and adapts them for the target coding agent:
 
@@ -369,8 +369,8 @@ Where contributors add or change things:
 - **New workflow:** Add `instructions/r3/core/workflows/<name>.md` (and phase files)
 - **New rule:** Add `instructions/r3/core/rules/<name>.md`
 - **Organization layer:** Create `instructions/r3/<org>/` with the same type structure
-- **MCP tools:** Modify `src/ims-mcp-server/ims_mcp/server.py`
-- **Tool prompts:** Modify `src/ims-mcp-server/ims_mcp/tool_prompts.py`
+- **MCP tools:** Modify `src/rosetta-mcp-server/rosetta_mcp/server.py`
+- **Tool prompts:** Modify `src/rosetta-mcp-server/rosetta_mcp/tool_prompts.py`
 - **CLI commands:** Add to `src/rosetta-cli/rosetta_cli/commands/`
 - **Website:** Edit pages in `docs/web/`
 
@@ -393,7 +393,7 @@ MCP-specific tradeoffs (RAGFlow as knowledge layer, tags vs. search, XML bundlin
 
 - [Plugins](../PLUGINS.md) — install and verify a Rosetta plugin
 - [MCPs](../MCPs.md) — install and verify Rosetta MCP (optional, secondary)
-- [MCP Architecture](MCP-ARCHITECTURE.md) — `ims-mcp` server internals, RAGFlow, CLI, environments, OAuth modes, Redis migrations, VFS/tags, tools, bundler, listings, overflow prevention
+- [MCP Architecture](MCP-ARCHITECTURE.md) — `rosetta-mcp` server internals, RAGFlow, CLI, environments, OAuth modes, Redis migrations, VFS/tags, tools, bundler, listings, overflow prevention
 - [Developer Guide](../DEVELOPER_GUIDE.md) — repo navigation, where to change what
 - [Contributing](../CONTRIBUTING.md) — fastest path to a merged PR
 - [Usage Guide](../USAGE_GUIDE.md) — how to use Rosetta flows

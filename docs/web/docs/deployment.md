@@ -186,9 +186,9 @@ Rosetta MCP is the guiding layer between IDEs and the knowledge base. It exposes
 For local development. Starts Rosetta MCP and Redis.
 
 ```yaml
-# docker-compose.yml (src/ims-mcp-server/)
+# docker-compose.yml (src/rosetta-mcp-server/)
 services:
-  ims-mcp:
+  rosetta-mcp:
     image: us-central1-docker.pkg.dev/.../rosetta-mcp:<tag>
     ports: ["8000:8000"]
     environment:
@@ -396,7 +396,7 @@ Representative environment-specific overrides:
 | `REDIS_DB` | `2` | `2` |
 | `FASTMCP_ENABLE_RICH_LOGGING` | `false` | `false` |
 | `FASTMCP_LOG_LEVEL` | `DEBUG` | (unset) |
-| `IMS_DEBUG` | `1` | (unset) |
+| `ROSETTA_DEBUG` (alias: `IMS_DEBUG`) | `1` | (unset) |
 | Keycloak realm | `<dev-realm>` | `<prod-realm>` |
 | Service account | `<dev-service-account>` | `<prod-service-account>` |
 | ESO secret source | `<dev-secret-source>` | `<prod-secret-source>` |
@@ -515,11 +515,11 @@ Key differences between environments:
 - **Keycloak realms:** `<dev-realm>` (dev) vs `<prod-realm>` (prod)
 - **Secret sources:** environment-specific bundles in your secret manager
 - **Service accounts:** environment-specific Kubernetes service accounts
-- **Debug flags:** `IMS_DEBUG=1` in dev only
+- **Debug flags:** `ROSETTA_DEBUG=1` in dev only
 
 **CI/CD flow (merge to main auto-deploys to dev):**
 
-1. **Build and publish image** (`ims-mcp-build.yaml`): Triggers on push to main when MCP source or Dockerfile changes. Runs typecheck, builds Docker image, pushes to container registry.
+1. **Build and publish image** (`rosetta-mcp-build.yaml`): Triggers on push to main when MCP source or Dockerfile changes. Runs typecheck, builds Docker image, pushes to container registry.
 2. **Publish instructions** (`publish-instructions.yml`): Triggers on push to main when instruction content changes. Syncs instructions to Rosetta Server so dev always has the latest rules, agents, and skills.
 3. **GitOps sync**: Your CD tool (Argo, Flux, or similar) detects new image tags and applies rolling updates to the dev environment.
 
@@ -527,7 +527,7 @@ Production deploys require a manual image tag bump in `values-prod.yaml`.
 
 ## Rosetta Images, Packages
 
-- https://pypi.org/project/ims-mcp/ (retiring)
+- https://pypi.org/project/rosetta-mcp/ (retiring)
 - https://pypi.org/project/rosetta-mcp/
 - https://pypi.org/project/rosetta-cli/
 - https://hub.docker.com/repository/docker/griddynamics/rosetta-mcp/general

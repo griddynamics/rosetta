@@ -1,4 +1,4 @@
-"""Shared typing helpers for IMS CLI tools."""
+"""Shared typing helpers for Rosetta CLI tools."""
 
 from __future__ import annotations
 

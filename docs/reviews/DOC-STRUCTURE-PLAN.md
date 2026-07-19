@@ -29,7 +29,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 | `docs/CONTEXT.md` | Business context, requirements, target state. No technical detail. | Contributors, architects, stakeholders. | Contributor |
 | `docs/MCP-CONTEXT.md` | Business case, data responsibility, and opt-in features for self-hosted MCP. Optional, secondary. | Stakeholders evaluating whether they need self-hosted MCP. | Contributor + Organization (optional) |
 | `ARCHITECTURE.md` | System structure, components, data flow — plugin delivery flow is the primary path documented here. | Contributors and org deployers. | Contributor + Organization |
-| `docs/MCP-ARCHITECTURE.md` | `ims-mcp` server internals: RAGFlow, CLI, transports, OAuth, VFS/tags, bundler. Optional, secondary — reached only via ARCHITECTURE.md's pointer. | Contributors touching the MCP server, or ops staffing a self-hosted deployment. | Contributor + Organization (optional) |
+| `docs/MCP-ARCHITECTURE.md` | `rosetta-mcp` server internals: RAGFlow, CLI, transports, OAuth, VFS/tags, bundler. Optional, secondary — reached only via ARCHITECTURE.md's pointer. | Contributors touching the MCP server, or ops staffing a self-hosted deployment. | Contributor + Organization (optional) |
 | `CONTRIBUTING.md` | How to make a correct contribution. | A first-time contributor. | Contributor |
 | `DEVELOPER_GUIDE.md` | Navigate and build the codebase. | Contributors writing code. | Contributor |
 | `REVIEW.md` | Standards for evaluating a change. | Reviewers and PR authors. | Contributor |
@@ -47,7 +47,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** one-paragraph what-it-is, the value proposition in brief, the routing table ("I want to… → read X"), community/license pointers.
 - **Structure:** badges/hero → one-line what-it-is → value proposition → Quick Start teaser (links out) → "I want to… → read X" routing table → who-it's-for → community/license.
 - **Excludes:** full install steps (→ QUICKSTART/INSTALLATION), mental model and concepts (→ OVERVIEW), workflow how-tos (→ USAGE_GUIDE).
-- **Sources:** ELEVATOR_SPEECH + OVERVIEW (value prop), the live doc set (routing table), PyPI badges (`ims-mcp`, `rosetta-cli`).
+- **Sources:** ELEVATOR_SPEECH + OVERVIEW (value prop), the live doc set (routing table), PyPI badges (`rosetta-mcp`, `rosetta-cli`).
 
 ### OVERVIEW.md
 - **Profile:** Contributor.
@@ -71,7 +71,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Profile:** Contributor + Organization (optional).
 - **Audience:** stakeholders deciding whether to self-host Rosetta MCP. Optional, secondary — most readers of CONTEXT.md never need this file.
 - **Answers:** "Do we actually need self-hosted MCP, and what does opting into it involve?"
-- **Owns:** when self-hosted MCP is actually needed (vs. plugins), the opt-in features (project datasets, `plan_manager`, PostHog analytics) and who's responsible for the resulting data, which CONTEXT.md value-props are gated behind this opt-in stack.
+- **Owns:** when self-hosted MCP is actually needed (vs. plugins), the opt-in feature (PostHog analytics) and who's responsible for the resulting data, which CONTEXT.md value-props are gated behind this opt-in stack.
 - **Structure:** when you need this → opt-in features and data responsibility → value delivery specific to self-hosted MCP.
 - **Excludes:** general business case (→ CONTEXT), technical internals (→ MCP-ARCHITECTURE), deployment steps (→ docs/mcp/DEPLOYMENT_GUIDE).
 - **Sources:** CONTEXT.md's opt-in-feature bullet, MCP-ARCHITECTURE.md, DEPLOYMENT_GUIDE.md.
@@ -101,7 +101,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** all transports, bootstrap rule, verify, initialize, upgrade, uninstall, env vars. The canonical install reference.
 - **Structure:** modes overview, plugin-first (Plugin → HTTP → STDIO → Offline) → plugin install → offline install (rare — developing Rosetta itself, or no plugin available) → HTTP/STDIO transports (MCP, optional) → bootstrap rule → verify → initialize → upgrade → uninstall → env vars.
 - **Excludes:** post-install workspace setup (→ CONFIGURATION), per-IDE plugin walkthrough (→ PLUGINS), MCP-connect specifics (→ MCPs), self-hosted server deploy (→ docs/mcp/DEPLOYMENT_GUIDE).
-- **Sources:** PyPI packages (`ims-mcp`, `rosetta-mcp`, `rosetta-cli`), CLI `--help`, server transport config + env vars in code.
+- **Sources:** PyPI packages (`rosetta-mcp`, `rosetta-mcp`, `rosetta-cli`), CLI `--help`, server transport config + env vars in code.
 
 ### PLUGINS.md
 - **Profile:** User.
@@ -222,12 +222,12 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 
 ### docs/MCP-ARCHITECTURE.md
 - **Profile:** Contributor + Organization (optional).
-- **Audience:** contributors working on the `ims-mcp` server, RAGFlow, or the Rosetta CLI, or diagnosing MCP-mode behavior. Optional, secondary — reached only via ARCHITECTURE.md's pointer, never a starting point.
+- **Audience:** contributors working on the `rosetta-mcp` server, RAGFlow, or the Rosetta CLI, or diagnosing MCP-mode behavior. Optional, secondary — reached only via ARCHITECTURE.md's pointer, never a starting point.
 - **Answers:** "How does the MCP delivery pipeline actually work, end to end?"
-- **Owns:** the full MCP pipeline diagram (Instructions Repo → CLI → RAGFlow → `ims-mcp` → IDE), environments, RAGFlow, Rosetta CLI, authentication overview, Redis migrations, VFS/tags, MCP tools, bundler, listings, context overflow prevention, MCP delivery flow, MCP-only development/validation, MCP-specific tradeoffs.
+- **Owns:** the full MCP pipeline diagram (Instructions Repo → CLI → RAGFlow → `rosetta-mcp` → IDE), environments, RAGFlow, Rosetta CLI, authentication overview, Redis migrations, VFS/tags, MCP tools, bundler, listings, context overflow prevention, MCP delivery flow, MCP-only development/validation, MCP-specific tradeoffs.
 - **Structure:** system overview (MCP diagram) → server → environments → RAGFlow → CLI → authentication → Redis migrations → VFS/tags → tools → bundler → listing → context overflow → MCP delivery flow → development → tradeoffs.
 - **Excludes:** the plugin path (→ ARCHITECTURE, one-directional pointer back only), OAuth proxy deep internals (→ AUTHENTICATION.md), deployment steps (→ docs/mcp/DEPLOYMENT_GUIDE).
-- **Sources:** `src/ims-mcp-server/`, FastMCP/RAGFlow docs, `docs/mcp/AUTHENTICATION.md`, `docs/mcp/RAGFLOW.md`.
+- **Sources:** `src/rosetta-mcp-server/`, FastMCP/RAGFlow docs, `docs/mcp/AUTHENTICATION.md`, `docs/mcp/RAGFLOW.md`.
 
 ### llms-full.txt
 - **Profile:** AI.

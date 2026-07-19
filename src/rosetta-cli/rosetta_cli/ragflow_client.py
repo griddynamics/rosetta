@@ -1,7 +1,7 @@
 """
-RAGFlow Client Wrapper for IMS Publishing
+RAGFlow Client Wrapper for Rosetta Publishing
 
-This module provides a wrapper around the ragflow-sdk for IMS-specific operations.
+This module provides a wrapper around the ragflow-sdk for Rosetta-specific operations.
 
 Key Features:
 - Dataset management with template resolution (aia-{release})
@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional, cast
 from ragflow_sdk import RAGFlow
 from ragflow_sdk.modules.dataset import DataSet
 from ragflow_sdk.modules.document import Document
-from .ims_utils import retry_call
+from .rosetta_utils import retry_call
 from .typing_utils import DatasetLike, DocumentLike, JsonDict
 
 
@@ -51,7 +51,7 @@ def _timed(label: str) -> _Timer:
 
 @dataclass
 class DocumentMetadata:
-    """Metadata structure for IMS documents"""
+    """Metadata structure for Rosetta documents"""
     tags: list[str]
     domain: str
     release: str
@@ -90,7 +90,7 @@ class RAGFlowClient:
     Wrapper class for RAGFlow SDK operations.
     
     Provides high-level methods for dataset and document management
-    with IMS-specific functionality like tag-in-title format and
+    with Rosetta-specific functionality like tag-in-title format and
     change detection.
     
     Usage:
@@ -572,7 +572,7 @@ class RAGFlowClient:
         # Ensure dataset exists (dry_run gates the underlying create_dataset call)
         dataset = self._ensure_dataset(
             resolved_name,
-            f"IMS Knowledge - Release {metadata.release}" if metadata.release else "IMS Knowledge",
+            f"Rosetta Knowledge - Release {metadata.release}" if metadata.release else "Rosetta Knowledge",
             dry_run=dry_run,
         )
         if dataset is None:

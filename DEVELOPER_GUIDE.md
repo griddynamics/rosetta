@@ -95,8 +95,8 @@ rosetta/
 │   └── r3/               ← Current release
 │       ├── core/         ← Rosetta instruction source
 │       └── <org>/        ← Optional organization extensions (e.g., acme/)
-├── src/ims-mcp-server/       ← Rosetta MCP server (PyPI: ims-mcp)
-│   ├── ims_mcp/          ← Server source code
+├── src/rosetta-mcp-server/       ← Rosetta MCP server (PyPI: rosetta-mcp)
+│   ├── rosetta_mcp/          ← Server source code
 │   ├── tests/            ← Unit tests (pytest)
 │   └── validation/       ← verify_mcp.py integration test
 ├── src/rosetta-cli/      ← Rosetta CLI package (PyPI: rosetta-cli)
@@ -165,7 +165,7 @@ claude mcp add --transport stdio Rosetta \
   --env ROSETTA_API_KEY=ragflow-xxxxx \
   --env VERSION=r3 \
   --env REDIS_URL=redis://localhost:6379/0 \
-  -- uvx --prerelease=allow ims-mcp@latest
+  -- uvx --prerelease=allow rosetta-mcp@latest
 ```
 
 **Codex:**
@@ -176,7 +176,7 @@ codex mcp add Rosetta \
   --env ROSETTA_API_KEY=ragflow-xxxxx \
   --env VERSION=r3 \
   --env REDIS_URL=redis://localhost:6379/0 \
-  -- uvx --prerelease=allow ims-mcp@latest
+  -- uvx --prerelease=allow rosetta-mcp@latest
 ```
 
 **Cursor** (`.cursor/mcp.json`):
@@ -186,7 +186,7 @@ codex mcp add Rosetta \
   "mcpServers": {
     "Rosetta": {
       "command": "uvx",
-      "args": ["--prerelease=allow", "ims-mcp@latest"],
+      "args": ["--prerelease=allow", "rosetta-mcp@latest"],
       "env": {
         "ROSETTA_SERVER_URL": "https://<development server URL>/",
         "ROSETTA_API_KEY": "ragflow-xxxxx",
@@ -206,7 +206,7 @@ codex mcp add Rosetta \
     "Rosetta": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["--prerelease=allow", "ims-mcp@latest"],
+      "args": ["--prerelease=allow", "rosetta-mcp@latest"],
       "env": {
         "ROSETTA_SERVER_URL": "https://<development server URL>/",
         "ROSETTA_API_KEY": "ragflow-xxxxx",
@@ -267,10 +267,10 @@ The `--dry-run` flag shows what would be published (new, changed, unchanged file
 
 ```bash
 # From repo root, with the root venv activated
-cp .env.dev .env && VERSION=r3 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
+cp .env.dev .env && VERSION=r3 venv/bin/python src/rosetta-mcp-server/validation/verify_mcp.py
 
-# With Redis (tests execution_controller with RedisPlanStore)
-cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r3 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py
+# With Redis (tests OAuth client/token storage — the dual-backend store path)
+cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r3 venv/bin/python src/rosetta-mcp-server/validation/verify_mcp.py
 ```
 
 Run r3; also r2 when backporting. If your change touches Redis-dependent features, run with and without `REDIS_URL`.
@@ -279,7 +279,7 @@ Run r3; also r2 when backporting. If your change touches Redis-dependent feature
 
 ```bash
 # MCP server tests
-venv/bin/pytest src/ims-mcp-server/tests
+venv/bin/pytest src/rosetta-mcp-server/tests
 
 # CLI tests
 venv/bin/pytest src/rosetta-cli/tests
@@ -288,7 +288,7 @@ venv/bin/pytest src/rosetta-cli/tests
 ### Type checking
 
 ```bash
-./validate-types.sh
+./src/validate-types.sh
 ```
 
 Run this after any Python code change.
@@ -425,7 +425,7 @@ uvx rosetta-cli@latest list-dataset --dataset aia-r3 --env dev
 | New/modified workflow  | `instructions/r3/core/workflows/<name>.md`            | Publish, test via MCP                    |
 | New/modified rule      | `instructions/r3/core/rules/<name>.md`                | Publish, test via MCP                    |
 | Organization extension | `instructions/r3/<org>/` (same type structure)        | Publish, test via MCP                    |
-| MCP tool or prompt     | `src/ims-mcp-server/ims_mcp/server.py`, `tool_prompts.py` | verify_mcp.py, pytest, validate-types.sh |
+| MCP tool or prompt     | `src/rosetta-mcp-server/rosetta_mcp/server.py`, `tool_prompts.py` | verify_mcp.py, pytest, src/validate-types.sh |
 | CLI command            | `src/rosetta-cli/rosetta_cli/commands/`               | pytest, dry-run, publish to dev          |
 | Website                | `docs/web/`                                           | Local Jekyll build                       |
 | Documentation          | `docs/`, repo root `.md` files                        | Use AI to check consistency              |

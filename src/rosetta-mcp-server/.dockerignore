@@ -1,0 +1,97 @@
+# Docker ignore file for Rosetta MCP Server
+# Excludes unnecessary files from Docker build context to speed up builds
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# Testing
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Legacy files (V2 loads from server, not bundled)
+rosetta_mcp/resources/bootstrap.md
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.travis.yml
+.gitlab-ci.yml
+
+# Build scripts (not needed in container)
+build.sh
+.pypirc
+
+# Security / Secrets (should never be in Docker image)
+*.pem
+*.key
+*.p12
+*.pfx
+.env
+.env.*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.log
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Tests (not needed in production image)
+tests/
+test/
+*_test.py
+test_*.py
+
+# Development tools
+Makefile
+setup.py
+setup.cfg
+
+# Publishing metadata
+QUICKSTART.md
+SECURITY.md
+DEBUGGING.md
+PUBLISHING.md
+LICENSE

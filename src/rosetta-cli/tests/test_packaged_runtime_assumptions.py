@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from rosetta_cli.ims_config import find_env_file
-from rosetta_cli.ims_utils import resolve_workspace_root
+from rosetta_cli.rosetta_config import find_env_file
+from rosetta_cli.rosetta_utils import resolve_workspace_root
 
 
 def test_find_env_file_prefers_explicit_env_var(tmp_path: Path, monkeypatch):

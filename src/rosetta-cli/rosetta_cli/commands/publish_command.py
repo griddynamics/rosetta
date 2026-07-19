@@ -4,9 +4,9 @@ Publish Command - Upload knowledge base content to RAGFlow
 
 from pathlib import Path
 
-from ..ims_publisher import ContentPublisher
+from ..rosetta_publisher import ContentPublisher
 from ..services.auth_service import AuthService
-from ..ims_utils import resolve_workspace_root
+from ..rosetta_utils import resolve_workspace_root
 
 from .base_command import BaseCommand
 from ..typing_utils import CommandArgs

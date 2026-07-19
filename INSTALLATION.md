@@ -251,7 +251,7 @@ Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project):
   "mcpServers": {
     "Rosetta": {
       "command": "uvx",
-      "args": ["ims-mcp@latest"],
+      "args": ["rosetta-mcp@latest"],
       "env": {
         "ROSETTA_SERVER_URL": "https://<production server URL>/",
         "ROSETTA_API_KEY": "your-api-key",
@@ -272,7 +272,7 @@ claude mcp add --transport stdio Rosetta \
   --env ROSETTA_SERVER_URL=https://<production server URL>/ \
   --env ROSETTA_API_KEY=your-api-key \
   --env ROSETTA_USER_EMAIL=you@example.com \
-  -- uvx ims-mcp@latest
+  -- uvx rosetta-mcp@latest
 ```
 
 </details>
@@ -285,7 +285,7 @@ codex mcp add Rosetta \
   --env ROSETTA_SERVER_URL=https://<production server URL>/ \
   --env ROSETTA_API_KEY=your-api-key \
   --env ROSETTA_USER_EMAIL=you@example.com \
-  -- uvx ims-mcp@latest
+  -- uvx rosetta-mcp@latest
 ```
 
 </details>
@@ -301,7 +301,7 @@ Add to `.vscode/mcp.json` or `~/.mcp.json`:
     "Rosetta": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["ims-mcp@latest"],
+      "args": ["rosetta-mcp@latest"],
       "env": {
         "ROSETTA_SERVER_URL": "https://<production server URL>/",
         "ROSETTA_API_KEY": "your-api-key",
@@ -325,7 +325,7 @@ Add to `~/.config/github-copilot/intellij/mcp.json`:
     "Rosetta": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["ims-mcp@latest"],
+      "args": ["rosetta-mcp@latest"],
       "env": {
         "ROSETTA_SERVER_URL": "https://<production server URL>/",
         "ROSETTA_API_KEY": "your-api-key",
@@ -350,7 +350,7 @@ Restart IDE after changes.
   "mcpServers": {
     "Rosetta": {
       "command": "uvx",
-      "args": ["ims-mcp@latest"],
+      "args": ["rosetta-mcp@latest"],
       "env": {
         "ROSETTA_SERVER_URL": "https://<production server URL>/",
         "ROSETTA_API_KEY": "your-api-key",
@@ -373,7 +373,7 @@ Add to your Windsurf MCP config:
   "mcpServers": {
     "Rosetta": {
       "command": "uvx",
-      "args": ["ims-mcp@latest"],
+      "args": ["rosetta-mcp@latest"],
       "env": {
         "ROSETTA_SERVER_URL": "https://<production server URL>/",
         "ROSETTA_API_KEY": "your-api-key",
@@ -396,7 +396,7 @@ Add to your Antigravity MCP config:
   "mcpServers": {
     "Rosetta": {
       "command": "uvx",
-      "args": ["ims-mcp@latest"],
+      "args": ["rosetta-mcp@latest"],
       "env": {
         "ROSETTA_SERVER_URL": "https://<production server URL>/",
         "ROSETTA_API_KEY": "your-api-key",
@@ -419,7 +419,7 @@ Add to `opencode.json`:
   "mcp": {
     "Rosetta": {
       "type": "local",
-      "command": ["uvx", "ims-mcp@latest"],
+      "command": ["uvx", "rosetta-mcp@latest"],
       "enabled": true,
       "env": {
         "ROSETTA_SERVER_URL": "https://<production server URL>/",
@@ -443,9 +443,8 @@ Required for STDIO transport. Optional otherwise.
 | `ROSETTA_API_KEY`         | (empty)                    | API key for Rosetta Server access. **Required.**                                                                                                            |
 | `ROSETTA_USER_EMAIL`      | `rosetta@example.com`      | User identity for authorization checks                                                                                                                      |
 | `ROSETTA_MODE`            | `HARD`                     | `HARD` adds more content to context with stricter requirements. `SOFT` is lighter and allows more agent independence, better when mcp-files-mode.md is also used |
-| `ROSETTA_INVITE_EMAILS`   | (empty)                    | Comma-separated emails auto-invited on project dataset creation                                                                                             |
 | `INSTRUCTION_ROOT_FILTER` | (empty)                    | Comma-separated root tags filter for instructions                                                                                                           |
-| `IMS_DEBUG`               | disabled                   | Enable debug logs (`1`, `true`, `yes`, `on`)                                                                                                                |
+| `ROSETTA_DEBUG`               | disabled                   | Enable debug logs (`1`, `true`, `yes`, `on`); legacy alias `IMS_DEBUG` still honored                                                                                                                |
 | `POSTHOG_API_KEY`         | (disabled)                 | Your PostHog project API key. Opt-in usage analytics — set to enable, omit or set to `DISABLED` to disable                                                  |
 | `POSTHOG_HOST`            | `https://eu.i.posthog.com` | Your PostHog instance URL, e.g. `https://posthog.internal.company.com`                                                                                      |
 
@@ -570,7 +569,7 @@ After initialization, Rosetta maintains these files in your repository. Read mor
 
 - **Plugins:** Plugins auto-upgrade or can be updated via `claude plugin update`.
 - **HTTP:** No action needed. Server-side upgrades apply automatically.
-- **STDIO:** `uvx ims-mcp@latest` always pulls the newest published version. No manual step needed.
+- **STDIO:** `uvx rosetta-mcp@latest` always pulls the newest published version. No manual step needed.
 - **Offline:** Download the latest `instructions.zip` from [releases](https://github.com/griddynamics/rosetta/releases/latest) and replace the contents of `instructions/`.
 
 ## Uninstalling

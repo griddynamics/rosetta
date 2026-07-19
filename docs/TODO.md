@@ -4,7 +4,7 @@ This file contains grep compatible list of very concise improvements, suggestion
 
 **Status:** Proposed
 
-**What**: src/ims-mcp-server/Dockerfile to use `uvx ims-mcp@<specific-version>` instead of `Python -m`. 
+**What**: src/rosetta-mcp-server/Dockerfile to use `uvx rosetta-mcp@<specific-version>` instead of `Python -m`. 
 
 ## REVIEW: Consent screen disabled in production (security evaluation needed)
 

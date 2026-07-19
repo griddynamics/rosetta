@@ -13,11 +13,11 @@ from .commands.list_command import ListCommand
 from .commands.parse_command import ParseCommand
 from .commands.publish_command import PublishCommand
 from .commands.verify_command import VerifyCommand
-from .ims_config import IMSConfig
+from .rosetta_config import RosettaConfig
 from .ragflow_client import RAGFlowClient
 from .typing_utils import CommandArgs
 
-CommandClass: TypeAlias = Callable[[RAGFlowClient, IMSConfig], BaseCommand]
+CommandClass: TypeAlias = Callable[[RAGFlowClient, RosettaConfig], BaseCommand]
 
 
 # Command registry mapping command names to their classes
@@ -35,7 +35,7 @@ def _print_version() -> None:
     print(f"Rosetta Version: {_CLI_VERSION}")
 
 
-def execute_command(command_name: str, args: CommandArgs, client: RAGFlowClient, config: IMSConfig) -> int:
+def execute_command(command_name: str, args: CommandArgs, client: RAGFlowClient, config: RosettaConfig) -> int:
     """
     Execute a command by name using the command registry.
     
@@ -361,7 +361,7 @@ Frontmatter Metadata (publish flow):
     
     try:
         # Load configuration
-        config = IMSConfig.from_env(env_file=args.env_file, environment=args.env)
+        config = RosettaConfig.from_env(env_file=args.env_file, environment=args.env)
         
         # Validate configuration
         config.validate()

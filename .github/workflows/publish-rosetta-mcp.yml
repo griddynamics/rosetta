@@ -21,73 +21,68 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install dependencies
+    - name: Create venv and install dependencies
       run: |
-        python -m pip install --upgrade pip
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
         pip install build twine
+        echo "$GITHUB_WORKSPACE/venv/bin" >> $GITHUB_PATH
 
-    - name: Read versions from rosetta-mcp pyproject.toml
-      id: read_versions
-      working-directory: ./src/rosetta-mcp-server
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+
+    - name: Install rosettify dependencies
+      working-directory: ./src/rosettify
+      run: npm ci
+
+    - name: Run type validation
       run: |
-        ROSETTA_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-        DEPENDENCY_VERSION=$(grep 'ims-mcp==' pyproject.toml | sed 's/.*ims-mcp==\([^"]*\)".*/\1/')
-
-        echo "rosetta_version=$ROSETTA_VERSION" >> $GITHUB_OUTPUT
-        echo "dependency_version=$DEPENDENCY_VERSION" >> $GITHUB_OUTPUT
-        echo "Read rosetta-mcp version: $ROSETTA_VERSION"
-        echo "Read ims-mcp dependency version: $DEPENDENCY_VERSION"
-
-    - name: Wait for ims-mcp dependency on PyPI
-      env:
-        DEPENDENCY_VERSION: ${{ steps.read_versions.outputs.dependency_version }}
-      run: |
-        ATTEMPTS=30
-        SLEEP_SECONDS=10
-
-        for attempt in $(seq 1 "$ATTEMPTS"); do
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://pypi.org/pypi/ims-mcp/${DEPENDENCY_VERSION}/json")
-
-          if [ "$HTTP_CODE" = "200" ]; then
-            echo "ims-mcp ${DEPENDENCY_VERSION} is available on PyPI"
-            exit 0
-          fi
-
-          echo "ims-mcp ${DEPENDENCY_VERSION} is not available on PyPI yet (attempt ${attempt}/${ATTEMPTS}, status ${HTTP_CODE})"
-
-          if [ "$attempt" -lt "$ATTEMPTS" ]; then
-            sleep "$SLEEP_SECONDS"
-          fi
-        done
-
-        echo "::error::Timed out waiting for ims-mcp ${DEPENDENCY_VERSION} to appear on PyPI"
-        exit 1
+        chmod +x src/validate-types.sh
+        ./src/validate-types.sh
 
     - name: Build package
       working-directory: ./src/rosetta-mcp-server
       run: |
-        python -m build
+        # V2: bootstrap.md no longer bundled (loaded from Rosetta Server at startup)
+        chmod +x build.sh
+        ./build.sh
 
     - name: Check package
       working-directory: ./src/rosetta-mcp-server
       run: |
         twine check dist/*
 
+    - name: Run tests
+      working-directory: ./src/rosetta-mcp-server
+      run: |
+        if [ -d "tests" ]; then
+          pytest tests/ -v
+        else
+          echo "No tests directory found, skipping tests"
+        fi
+      continue-on-error: false
+
     - name: Check if version exists on PyPI
       id: check_version
+      working-directory: ./src/rosetta-mcp-server
       run: |
-        ROSETTA_VERSION="${{ steps.read_versions.outputs.rosetta_version }}"
-        echo "version=$ROSETTA_VERSION" >> $GITHUB_OUTPUT
+        # Extract version from pyproject.toml (single source of truth)
+        VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
 
         # Check if version exists on PyPI using the JSON API (most reliable method)
-        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://pypi.org/pypi/rosetta-mcp/${ROSETTA_VERSION}/json)
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://pypi.org/pypi/rosetta-mcp/${VERSION}/json)
 
         if [ "$HTTP_CODE" = "200" ]; then
           echo "exists=true" >> $GITHUB_OUTPUT
-          echo "::warning::Version $ROSETTA_VERSION already exists on PyPI"
+          echo "::warning::Version $VERSION already exists on PyPI"
         else
           echo "exists=false" >> $GITHUB_OUTPUT
-          echo "Version $ROSETTA_VERSION is new, will publish"
+          echo "Version $VERSION is new, will publish"
         fi
 
     - name: Publish to PyPI
@@ -105,8 +100,8 @@ jobs:
         echo "::error::Version ${{ steps.check_version.outputs.version }} already exists on PyPI"
         echo ""
         echo "PyPI does not allow re-publishing the same version."
-        echo "The rosetta-mcp version is read from src/rosetta-mcp-server/pyproject.toml."
-        echo "Bump the version there to publish a new rosetta-mcp release."
+        echo "Please increment the version number in:"
+        echo "  src/rosetta-mcp-server/pyproject.toml (version field - single source of truth)"
         echo ""
         echo "Current version: ${{ steps.check_version.outputs.version }}"
         exit 1
@@ -114,7 +109,7 @@ jobs:
     - name: Publish Success
       if: steps.check_version.outputs.exists == 'false'
       run: |
-        echo "Successfully published rosetta-mcp ${{ steps.check_version.outputs.version }} to PyPI!"
+        echo "Successfully published version ${{ steps.check_version.outputs.version }} to PyPI!"
         echo "Package available at: https://pypi.org/project/rosetta-mcp/${{ steps.check_version.outputs.version }}/"
         echo ""
         echo "Install with: pip install rosetta-mcp==${{ steps.check_version.outputs.version }}"

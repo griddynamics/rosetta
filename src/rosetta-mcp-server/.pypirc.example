@@ -1,0 +1,28 @@
+# PyPI Configuration File for rosetta-mcp Publishing
+# 
+# ⚠️  SECURITY NOTICE ⚠️
+# This file should contain a REAL project-scoped PyPI token for rosetta-mcp.
+# 
+# Token Details:
+# - Scope: Project-specific (rosetta-mcp ONLY)
+# - Permissions: Upload new versions to rosetta-mcp package only
+# - Risk: Limited - can only affect the rosetta-mcp package
+# 
+# This token should be created for repository-based publishing.
+# Anyone with repo access can publish updates to rosetta-mcp.
+#
+# To generate: https://pypi.org/manage/project/rosetta-mcp/settings/
+#
+# Steps:
+# 1. First publish to PyPI using personal token (see PUBLISHING.md)
+# 2. After first publish, create project-scoped token at URL above
+# 3. Replace PLACEHOLDER below with actual token
+# 4. Copy this file to .pypirc (already in .gitignore)
+
+[distutils]
+index-servers =
+    pypi
+
+[pypi]
+username = __token__
+password = PLACEHOLDER-GENERATE-TOKEN-AFTER-FIRST-PUBLISH

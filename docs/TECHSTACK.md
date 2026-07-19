@@ -1,6 +1,6 @@
 Tech stack of all modules in this Rosetta repository.
 
-## ims-mcp-server — Rosetta MCP Server
+## rosetta-mcp-server — Rosetta MCP Server
 
 | Layer | Technology |
 |---|---|
@@ -15,9 +15,9 @@ Tech stack of all modules in this Rosetta repository.
 | Transport | Streamable HTTP (default, port 8000) or STDIO |
 | Container | Docker multi-stage, python:3.12-slim base |
 | Build | setuptools >=61.0 + wheel |
-| Type checking | mypy (strict, via validate-types.sh) |
+| Type checking | mypy (strict, via src/validate-types.sh) |
 | Tests | pytest >=7.0.0 + pytest-asyncio >=0.23.0 |
-| Entry point | `ims-mcp` → `ims_mcp.server:main` |
+| Entry point | `rosetta-mcp` → `rosetta_mcp.server:main` |
 
 ## src/rosetta-cli — Rosetta CLI Publisher
 
@@ -39,8 +39,8 @@ Tech stack of all modules in this Rosetta repository.
 | Layer | Technology |
 |---|---|
 | Language | Python 3.10+ |
-| Dependency | ims-mcp ==2.0.13 (pin) |
-| Entry point | `rosetta-mcp` → `ims_mcp.server:main` |
+| Dependency | rosetta-mcp ==2.0.13 (pin) |
+| Entry point | `rosetta-mcp` → `rosetta_mcp.server:main` |
 
 ## docs/web — Public Website
 

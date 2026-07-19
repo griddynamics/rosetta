@@ -7,20 +7,20 @@ Eliminates code duplication across commands.
 
 from typing import List, Optional
 
-from ..ims_config import IMSConfig
+from ..rosetta_config import RosettaConfig
 from ..ragflow_client import RAGFlowClient
 
 
 class DatasetService:
     """Service for handling dataset operations"""
     
-    def __init__(self, client: RAGFlowClient, config: IMSConfig):
+    def __init__(self, client: RAGFlowClient, config: RosettaConfig):
         """
         Initialize DatasetService.
         
         Args:
             client: RAGFlow client instance
-            config: IMS configuration
+            config: Rosetta configuration
         """
         self.client = client
         self.config = config

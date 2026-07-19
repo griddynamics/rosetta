@@ -12,8 +12,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-TYPECHECK_SCRIPT = REPO_ROOT / "validate-types.sh"
-TEST_SCRIPT = REPO_ROOT / "run-tests.sh"
+TYPECHECK_SCRIPT = REPO_ROOT / "src" / "validate-types.sh"
+TEST_SCRIPT = REPO_ROOT / "src" / "run-tests.sh"
 MYPY_CONFIG = REPO_ROOT / "mypy.ini"
 @dataclass(frozen=True)
 class Check:

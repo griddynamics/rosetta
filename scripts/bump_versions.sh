@@ -157,12 +157,12 @@ esac
 echo ""
 
 echo "--- pyproject.toml files ---"
-bump_file_toml "$ROOT/src/rosetta-cli/pyproject.toml"    "n"
-bump_file_toml "$ROOT/src/ims-mcp-server/pyproject.toml" "y"
+bump_file_toml "$ROOT/src/rosetta-cli/pyproject.toml"        "n"
+bump_file_toml "$ROOT/src/rosetta-mcp-server/pyproject.toml" "y"
 
-# rosetta-mcp-server: bump version + sync ims-mcp dependency to match ims-mcp-server
-IMS_VERSION="$(get_toml_version "$ROOT/src/ims-mcp-server/pyproject.toml")"
-f="$ROOT/src/rosetta-mcp-server/pyproject.toml"
+# ims-mcp-server: bump version + sync rosetta-mcp dependency to match rosetta-mcp-server
+ROSETTA_VERSION="$(get_toml_version "$ROOT/src/rosetta-mcp-server/pyproject.toml")"
+f="$ROOT/src/ims-mcp-server/pyproject.toml"
 current="$(get_toml_version "$f")"
 rel="${f#$ROOT/}"
 if [[ "$bump_choice" == "4" ]]; then
@@ -172,10 +172,10 @@ elif [[ "$bump_type" == "pre" ]]; then
 else
     new_version="$(bump_semver "$current" "$bump_type")"
 fi
-if ask_yn "Bump $rel  ($current → $new_version, ims-mcp → $IMS_VERSION)?" "y"; then
+if ask_yn "Bump $rel  ($current → $new_version, rosetta-mcp → $ROSETTA_VERSION)?" "y"; then
     sedi "s/^version = \"${current}\"/version = \"${new_version}\"/" "$f"
-    old_ims="$(grep 'ims-mcp==' "$f" | sed 's/.*ims-mcp==\([^"]*\)".*/\1/')"
-    sedi "s/\"ims-mcp==${old_ims}\"/\"ims-mcp==${IMS_VERSION}\"/" "$f"
+    old_rosetta="$(grep 'rosetta-mcp==' "$f" | sed 's/.*rosetta-mcp==\([^"]*\)".*/\1/')"
+    sedi "s/\"rosetta-mcp==${old_rosetta}\"/\"rosetta-mcp==${ROSETTA_VERSION}\"/" "$f"
     echo -e "  ${GREEN}Updated${RESET}"
 else
     echo "  Skipped"

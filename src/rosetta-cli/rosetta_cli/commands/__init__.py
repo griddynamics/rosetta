@@ -1,4 +1,4 @@
-"""IMS Commands Package - Command pattern implementations for IMS CLI"""
+"""Rosetta Commands Package - Command pattern implementations for Rosetta CLI"""
 
 from .base_command import BaseCommand
 

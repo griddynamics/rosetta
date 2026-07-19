@@ -11,7 +11,7 @@ Please include:
 
 - A description of the vulnerability and its potential impact
 - Steps to reproduce or a proof of concept
-- Affected component(s) (e.g., `ims-mcp-server`, `rosetta-cli`, `rosetta-mcp-server`, instructions, RAGFlow deployment)
+- Affected component(s) (e.g., `rosetta-mcp-server`, `rosetta-cli`, `rosetta-mcp-server`, instructions, RAGFlow deployment)
 - Your suggested severity (Critical / High / Medium / Low)
 
 ### Response Commitment
@@ -37,7 +37,7 @@ Security fixes are applied to the **current release and one prior release (N-1)*
 
 | Component | Package | Supported |
 |---|---|---|
-| Rosetta MCP Server | [`ims-mcp`](https://pypi.org/project/ims-mcp/) | Current and N-1 |
+| Rosetta MCP Server | [`rosetta-mcp`](https://pypi.org/project/rosetta-mcp/) | Current and N-1 |
 | Rosetta MCP Server | [`rosetta-mcp`](https://pypi.org/project/rosetta-mcp/) | Current and N-1 |
 | Rosetta CLI | [`rosetta-cli`](https://pypi.org/project/rosetta-cli/) | Current and N-1 |
 | Instructions | Published via GitHub Releases | Current and N-1 |
@@ -129,7 +129,7 @@ Use of an LLM gateway is strongly recommended  in sensitive environments to cent
 
 ### Supply Chain Security
 
-**Risk:** Compromise of published packages (`ims-mcp`, `rosetta-mcp`, `rosetta-cli`) or their dependencies.
+**Risk:** Compromise of published packages (`rosetta-mcp`, `rosetta-mcp`, `rosetta-cli`) or their dependencies.
 
 **Mitigations:**
 - Packages are published to PyPI via automated CI/CD pipelines with controlled access.
@@ -174,7 +174,7 @@ To maintain a secure software supply chain, custom deployments and end-users mus
 
 ## Scope and Limitations
 
-This policy covers the Rosetta open-source project as published at [github.com/griddynamics/rosetta](https://github.com/griddynamics/rosetta), including the `ims-mcp`, `rosetta-mcp`, and `rosetta-cli` PyPI packages and the published instruction sets.
+This policy covers the Rosetta open-source project as published at [github.com/griddynamics/rosetta](https://github.com/griddynamics/rosetta), including the `rosetta-mcp`, `rosetta-mcp`, and `rosetta-cli` PyPI packages and the published instruction sets.
 
 This policy does **not** cover:
 - Hosted or managed Rosetta deployments operated by Grid Dynamics or third parties (these may have their own security policies).

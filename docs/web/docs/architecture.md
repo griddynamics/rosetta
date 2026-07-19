@@ -67,7 +67,7 @@ Instructions flow up at build time: the plugin generator reads the instructions 
 
 Generator internals (model rewriting, per-IDE format, hooks bundling, standalone variants) are in [Development — Plugins](#plugins) below.
 
-> **MCP is a separate, optional delivery pipeline.** Its system diagram, RAGFlow, CLI publishing, environments, and protocol details live entirely in **[MCP Architecture](/rosetta/docs/mcp-architecture/)** — read it when you touch any of: the `ims-mcp` server (FastMCP v3), transports (Streamable HTTP + OAuth 2.1, STDIO), authentication, VFS resource paths and auto-tagging, the MCP tools and `rosetta://{path}` resource, document bundling, RAGFlow (datasets, processing pipeline), Rosetta CLI (publish/parse/verify commands, auto-tagging), or MCP environments.
+> **MCP is a separate, optional delivery pipeline.** Its system diagram, RAGFlow, CLI publishing, environments, and protocol details live entirely in **[MCP Architecture](/rosetta/docs/mcp-architecture/)** — read it when you touch any of: the `rosetta-mcp` server (FastMCP v3), transports (Streamable HTTP + OAuth 2.1, STDIO), authentication, VFS resource paths and auto-tagging, the MCP tools and `rosetta://{path}` resource, document bundling, RAGFlow (datasets, processing pipeline), Rosetta CLI (publish/parse/verify commands, auto-tagging), or MCP environments.
 
 ---
 
@@ -280,7 +280,7 @@ Each plugin contains core instructions: 37 skills, 10 agents, 12 workflows, and 
 | `core-cursor-standalone` | Cursor | Direct extraction into repo (`.cursor/`) |
 | `core-copilot-standalone` | VS Code Copilot, JetBrains Copilot | Direct extraction into repo (`.github/`) |
 
-All plugins are generated from a single source tree (`instructions/r3/core/`) by the plugin generator (`npx -y rosettify-plugins@latest`). The generator's `--release` defaults to `r3`, matching the ims-mcp `DEFAULT_VERSION`. Each release descriptor also carries a hook posture: r2 ships SessionStart bootstrap only, while r3 enables the deterministic advisory hooks by default — overridable via `--deterministic-hooks`. The generator builds main plugins then derives the standalone variants from them. The generator copies core instructions and adapts them for the target coding agent:
+All plugins are generated from a single source tree (`instructions/r3/core/`) by the plugin generator (`npx -y rosettify-plugins@latest`). The generator's `--release` defaults to `r3`, matching the rosetta-mcp `DEFAULT_VERSION`. Each release descriptor also carries a hook posture: r2 ships SessionStart bootstrap only, while r3 enables the deterministic advisory hooks by default — overridable via `--deterministic-hooks`. The generator builds main plugins then derives the standalone variants from them. The generator copies core instructions and adapts them for the target coding agent:
 
 - **Model rewriting** — selects the first model from the frontmatter `model:` comma-separated list and normalizes it to the platform's format. Cursor normalizes to short IDs (e.g. `claude-sonnet-5`, `gpt-5.4`); Copilot to display names (e.g. `Claude Sonnet 5`, `GPT-5.4`); Claude Code to full model IDs (`claude-sonnet-5`, `claude-opus-4-8`, `claude-haiku-4-5`).
 - **Agent file format** — converts agent markdown to the IDE's expected format (`.agent.md` for Copilot, `.toml` for Codex)
@@ -370,8 +370,8 @@ Where contributors add or change things:
 - **New workflow:** Add `instructions/r3/core/workflows/<name>.md` (and phase files)
 - **New rule:** Add `instructions/r3/core/rules/<name>.md`
 - **Organization layer:** Create `instructions/r3/<org>/` with the same type structure
-- **MCP tools:** Modify `src/ims-mcp-server/ims_mcp/server.py`
-- **Tool prompts:** Modify `src/ims-mcp-server/ims_mcp/tool_prompts.py`
+- **MCP tools:** Modify `src/rosetta-mcp-server/rosetta_mcp/server.py`
+- **Tool prompts:** Modify `src/rosetta-mcp-server/rosetta_mcp/tool_prompts.py`
 - **CLI commands:** Add to `src/rosetta-cli/rosetta_cli/commands/`
 - **Website:** Edit pages in `docs/web/`
 
@@ -394,7 +394,7 @@ MCP-specific tradeoffs (RAGFlow as knowledge layer, tags vs. search, XML bundlin
 
 - [Plugins](/rosetta/docs/plugins/) — install and verify a Rosetta plugin
 - [MCPs Installation](/rosetta/docs/mcps/) — install and verify Rosetta MCP (optional, secondary)
-- [MCP Architecture](/rosetta/docs/mcp-architecture/) — `ims-mcp` server internals, RAGFlow, CLI, environments, authentication, VFS/tags, tools, bundler, listings, overflow prevention
+- [MCP Architecture](/rosetta/docs/mcp-architecture/) — `rosetta-mcp` server internals, RAGFlow, CLI, environments, authentication, VFS/tags, tools, bundler, listings, overflow prevention
 - [Developer Guide](/rosetta/docs/developer-guide/) — repo navigation, where to change what
 - [Contributing](/rosetta/docs/contributing/) — fastest path to a merged PR
 - [Usage Guide](/rosetta/docs/usage-guide/) — how to use Rosetta flows

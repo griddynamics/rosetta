@@ -1,4 +1,4 @@
-// FR-PLAN-0005 — authoritative values from ims_mcp/constants.py
+// FR-PLAN-0005 — authoritative values from rosetta_mcp/constants.py
 
 export const PLAN_MAX_PHASES = 100;
 export const PLAN_MAX_STEPS_PER_PHASE = 100;

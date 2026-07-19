@@ -59,7 +59,7 @@ env:
       value: ""
     - name: ROSETTA_OAUTH_EXTRA_SCOPES
       value: "openid email profile offline_access"
-    - name: IMS_DEBUG
+    - name: ROSETTA_DEBUG
       value: "1"
     - name: FASTMCP_LOG_LEVEL
       value: "DEBUG"

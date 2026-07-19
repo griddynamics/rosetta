@@ -12,6 +12,7 @@ docs/web/** @omaiesh
 
 .github/ @omaiesh
 /tools @omaiesh
+/src/rosetta-mcp-server @omaiesh
 /src/ims-mcp-server @omaiesh
 /deployment @omaiesh
 /src/helm-charts @omaiesh

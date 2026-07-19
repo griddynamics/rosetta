@@ -8,7 +8,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 ## Current State
 
 - Rosetta is an OSS instruction platform with:
-  - a Python MCP server in `src/ims-mcp-server/`
+  - a Python MCP server in `src/rosetta-mcp-server/`
   - a Python CLI in `src/rosetta-cli/`
   - public documentation in `docs/` and `docs/web/`
   - deployment examples under `deployment/`
@@ -22,7 +22,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 ### MCP Server
 
 - Refactored into a modular package structure with dedicated `config`, `context`, `services`, `tools`, `auth`, and `analytics` modules.
-- PostHog analytics parity restored in `ims_mcp/analytics/tracker.py`: added `$referring_domain`, `$screen_name`, `$title`, `error_type`/`error_message` on soft errors, `$pageview` and `$web_vitals` events, `error_status_code` on HTTP exceptions, `$browser`/`$browser_version` in exception context, `on_error` logging on Posthog constructor, inner try/except isolating analytics failures from tool results; all exception sites use `logger.warning`. Fixed `feedback.py` `distinct_id` to `call_ctx.username` (was composite `username@repository`). 18 new test cases added covering all acceptance criteria including boundary conditions.
+- PostHog analytics parity restored in `rosetta_mcp/analytics/tracker.py`: added `$referring_domain`, `$screen_name`, `$title`, `error_type`/`error_message` on soft errors, `$pageview` and `$web_vitals` events, `error_status_code` on HTTP exceptions, `$browser`/`$browser_version` in exception context, `on_error` logging on Posthog constructor, inner try/except isolating analytics failures from tool results; all exception sites use `logger.warning`. Fixed `feedback.py` `distinct_id` to `call_ctx.username` (was composite `username@repository`). 18 new test cases added covering all acceptance criteria including boundary conditions.
 - Core MCP tools are implemented, including:
   - `get_context_instructions`
   - `query_instructions`
@@ -41,7 +41,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 - MCP dataset lookup caches dataset objects as well as name/id mappings, avoiding repeated dataset-open calls during instruction/resource/project tool execution.
 - Analytics repository detection caches MCP roots per HTTP session and uses a fixed singleton cache key for STDIO/local transports.
 
-### MCP Server — HTTP Observability + RC1 Hang Fix (ims-mcp-http-observability)
+### MCP Server — HTTP Observability + RC1 Hang Fix (rosetta-mcp-http-observability)
 
 - **RC1 fix (A3/A4):** All sync RAGFlow calls that previously blocked the asyncio event loop are now offloaded via `asyncio.to_thread` + `asyncio.wait_for` using the new `offload()` helper in `tracing.py`. Leaf sites: `list_docs_with_keyword_fallback`, `ragflow.retrieve` in `tools/instructions.py`; `doc_cache.get_all_docs_async` in `clients/doc_cache.py` (used by `list_instructions` and `read_instruction_resource`). Cache reads/writes remain on the event-loop thread (SPECS A-1).
 - **RAGFlow timeout injection (A2/DD-3):** `_traced_http_method` in `tracing.py` now calls `kwargs.setdefault("timeout", _get_ragflow_http_timeout())` before every RAGFlow HTTP call, defaulting to 60s.
@@ -56,7 +56,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 - **SSE chunk tracing (B4/REQ-OBS-5):** `_send` wrapper logs one compact INFO per SSE chunk (seq+bytes); payload only under DEBUG.
 - **Error logging (C1):** Added `logger.error`/`logger.exception` at all `return "Error: ..."` sites in `tools/instructions.py` and `tools/resources.py`.
 - **exc_info in tracing (C3):** `traced_execution` and `_traced_http_method` failures now log with `exc_info=True`.
-- **Transport loggers wired (C4):** `mcp.server.streamable_http` and `mcp.server.streamable_http_manager` loggers attached to the ims-mcp handler at startup.
+- **Transport loggers wired (C4):** `mcp.server.streamable_http` and `mcp.server.streamable_http_manager` loggers attached to the rosetta-mcp handler at startup.
 - **Origin-block log (C5/REQ-OBS-7):** `OriginValidationMiddleware` now WARN-logs rejected origins with origin/path/client.
 - **`/healthz` endpoint (D1-D3):** Registered via `@mcp.custom_route("/healthz", methods=["GET"])`; genuinely unauthenticated (no `RequireAuthMiddleware`); probes RAGFlow off-loop via `asyncio.to_thread` + `asyncio.wait_for(timeout=healthz_ragflow_timeout)`; result cached for `healthz_cache_ttl`; returns 200/503/disabled JSON per spec §4.2.
 - **Dockerfile (E0/E1):** Added `ENV PYTHONFAULTHANDLER=1` and `HEALTHCHECK` using Python stdlib urllib.
@@ -167,7 +167,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Workflow maintenance included:
   - Bun runtime override for Claude workflows
   - build/publish pipeline repairs
-  - rosetta-mcp publish gating that waits for the matching `ims-mcp` version to appear on PyPI before upload
+  - rosetta-mcp publish gating that waits for the matching `rosetta-mcp` version to appear on PyPI before upload
   - native Git pre-commit hook shim with a shared Python entrypoint under `scripts/`
   - generated plugin trees sourced from `instructions/r3/core` for all six plugin variants
   - plugin-specific packaging transforms for model metadata, generated indexes, and local marketplace/manifests

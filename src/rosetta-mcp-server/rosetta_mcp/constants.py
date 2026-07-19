@@ -1,0 +1,171 @@
+"""Shared constants for Rosetta MCP V2."""
+
+from typing import Literal
+
+ENV_ROSETTA_SERVER_URL = "ROSETTA_SERVER_URL"
+ENV_VERSION = "VERSION"
+ENV_ROSETTA_API_KEY = "ROSETTA_API_KEY"
+ENV_LEGACY_R2R_API_BASE = "R2R_API_BASE"
+ENV_LEGACY_R2R_EMAIL = "R2R_EMAIL"
+ENV_LEGACY_R2R_PASSWORD = "R2R_PASSWORD"
+ENV_POSTHOG_API_KEY = "POSTHOG_API_KEY"
+ENV_POSTHOG_HOST = "POSTHOG_HOST"
+ENV_ROSETTA_DEBUG = "ROSETTA_DEBUG"
+ENV_IMS_DEBUG = "IMS_DEBUG"  # deprecated alias, still honored
+ENV_INSTRUCTION_ROOT_FILTER = "INSTRUCTION_ROOT_FILTER"
+ENV_ROSETTA_MODE = "ROSETTA_MODE"
+ENV_TRANSPORT = "ROSETTA_TRANSPORT"
+ENV_HTTP_HOST = "ROSETTA_HTTP_HOST"
+ENV_HTTP_PORT = "ROSETTA_HTTP_PORT"
+ENV_REDIS_URL = "REDIS_URL"
+ENV_FERNET_KEY = "FERNET_KEY"
+ENV_ALLOWED_ORIGINS = "ROSETTA_ALLOWED_ORIGINS"
+
+# OAuth configuration (HTTP transports only)
+ENV_OAUTH_AUTHORIZATION_ENDPOINT = "ROSETTA_OAUTH_AUTHORIZATION_ENDPOINT"
+ENV_OAUTH_TOKEN_ENDPOINT = "ROSETTA_OAUTH_TOKEN_ENDPOINT"
+ENV_OAUTH_INTROSPECTION_ENDPOINT = "ROSETTA_OAUTH_INTROSPECTION_ENDPOINT"
+ENV_OAUTH_CLIENT_ID = "ROSETTA_OAUTH_CLIENT_ID"
+ENV_OAUTH_CLIENT_SECRET = "ROSETTA_OAUTH_CLIENT_SECRET"
+ENV_OAUTH_BASE_URL = "ROSETTA_OAUTH_BASE_URL"
+ENV_OAUTH_CALLBACK_PATH = "ROSETTA_OAUTH_CALLBACK_PATH"
+ENV_OAUTH_SCOPE = "ROSETTA_OAUTH_VALID_SCOPES"
+ENV_OAUTH_EXTRA_SCOPES = "ROSETTA_OAUTH_EXTRA_SCOPES"
+ENV_OAUTH_REVOCATION_ENDPOINT = "ROSETTA_OAUTH_REVOCATION_ENDPOINT"
+ENV_OAUTH_JWT_SIGNING_KEY = "ROSETTA_JWT_SIGNING_KEY"
+ENV_OAUTH_MODE = "ROSETTA_OAUTH_MODE"
+ENV_OAUTH_OIDC_CONFIG_URL = "ROSETTA_OAUTH_OIDC_CONFIG_URL"
+ENV_OAUTH_REQUIRED_SCOPES = "ROSETTA_OAUTH_REQUIRED_SCOPES"
+OAUTH_MODE_OAUTH = "oauth"
+OAUTH_MODE_OIDC = "oidc"
+OAUTH_MODE_GITHUB = "github"
+
+# Authorization policies
+ENV_READ_POLICY = "ROSETTA_READ_POLICY"
+ENV_USER_EMAIL = "ROSETTA_USER_EMAIL"
+
+HEADER_API_KEY = "x-rosetta-api-key"
+
+DEFAULT_HTTP_HOST = "0.0.0.0"
+DEFAULT_HTTP_PORT = 8000
+TRANSPORT_STDIO: Literal["stdio"] = "stdio"
+TRANSPORT_HTTP: Literal["http"] = "http"
+
+# RAGFlow configuration. Note, public key is only used for ADDITIONALLY encrypting password fields.
+
+DEFAULT_SERVER_URL = "http://localhost:80"
+DEFAULT_SERVER_PUBLIC_KEY_PEM = """-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArq9XTUSeYr2+N1h3Afl/z8Ds
+e/2yD0ZGrKwx+EEEcdsBLca9Ynmx3nIB5obmLlSfmskLpBo0UACBmB5rEjBp2Q2f3AG3
+Hjd4B+gNCG6BDaawuDlgANIhGnaTLrIqWrrcm4EMzJOnAOI1fgzJRsOOUEfaS318Eq9O
+VO3apEyCCt0lOQK6PuksduOjVxtltDav+guVAA068NrPYmRNabVKRNLJpL8w4D44sfth
+5RvZ3q9t+6RTArpEtc5sh5ChzvqPOzKGMXW83C95TxmXqpbK6olN4RevSfVjEAgCydH6H
+N6OhtOQEcnrU97r9H0iZOWwbw3pVrZiUkuRD1R56Wzs2wIDAQAB
+-----END PUBLIC KEY-----"""
+
+# Default values
+
+DEFAULT_VERSION = "r3"
+DEFAULT_POSTHOG_HOST = "https://eu.i.posthog.com"
+DEFAULT_SORT_ORDER = 1_000_000
+DEFAULT_USER_EMAIL = "rosetta@example.com"
+DEFAULT_READ_POLICY = "all"
+DEFAULT_OAUTH_CALLBACK_PATH = "/auth/callback"
+
+POLICY_ALL = "all"
+POLICY_TEAM = "team"
+POLICY_NONE = "none"
+VALID_POLICIES = {POLICY_ALL, POLICY_TEAM, POLICY_NONE}
+
+TAG_MCP_SERVER_INSTRUCTIONS = "MCP_SERVER_INSTRUCTIONS"
+TAG_BOOTSTRAP = "rosetta-bootstrap"
+TAG_WORKFLOW = "workflow"
+
+WORKFLOWS_PATH_PREFIX = "workflows"
+WORKFLOWS_PSEUDO_FILE_HEADER = "\n\n## Available Workflows (format: `Tag` - Description):\n"
+
+INSTRUCTION_DATASET_TEMPLATE = "aia-{version}"
+
+XML_FILE_OPEN = '<rosetta:file id="{id}" dataset="{dataset}" path="{path}" name="{name}" tags="{tags}">\n'
+XML_FILE_CLOSE = "</rosetta:file>\n"
+XML_FILE_LIST_OPEN = '<rosetta:file id="{id}" dataset="{dataset}" path="{path}" name="{name}" tags="{tags}">\n'
+XML_FILE_LIST_CLOSE = "</rosetta:file>"
+XML_FOLDER_LIST = '<rosetta:folder dataset="{dataset}" path="{path}" />'
+XML_FRONTMATTER_OPEN = "<frontmatter{attrs}>"
+XML_FRONTMATTER_CLOSE = "</frontmatter>"
+XML_CONTENT_NOT_LOADED = "<content_not_loaded/>"
+
+COMPATIBILITY_MODE_UPGRADE_URL = "https://github.com/griddynamics/rosetta/blob/main/QUICKSTART.md"
+COMPATIBILITY_MODE_UPGRADE_NOTICE = (
+    "\n\n<rosetta:compatibility_notice>"
+    "\nThis Rosetta MCP is running in legacy compatibility mode."
+    "\nSome features are unavailable in this mode."
+    "\nYou MUST ask the user to upgrade to HTTP mode."
+    f"\nUpgrade guide: {COMPATIBILITY_MODE_UPGRADE_URL}"
+    "\n</rosetta:compatibility_notice>"
+)
+QUERY_LIST_THRESHOLD = 5
+# Defensive ceiling: when a tag/keyword query returns more docs than this, we
+# assume the server-side metadata_condition filter was bypassed (RAGFlow 0.25.x
+# silently drops the filter when it matches zero docs and returns every doc in
+# the dataset) and refuse to bundle. Set well above QUERY_LIST_THRESHOLD so
+# legitimately large listings still pass through the listing path.
+QUERY_TOO_MANY_THRESHOLD = 25
+DOC_CACHE_TTL_SECONDS = 1800  # 30 minutes
+PROXY_SESSION_TTL_SECONDS = 30 * 24 * 3600  # 30 days; aligns with common offline-session idle windows
+INTROSPECTION_CACHE_TTL_SECONDS = 15 * 60  # 15 min max for active tokens
+INTROSPECTION_NEGATIVE_CACHE_TTL_SECONDS = 60  # 1 min for inactive/failed tokens
+
+ANALYTICS_MCP_SERVER = "Rosetta"
+TECHNICAL_PARAMS = {
+    "limit",
+    "offset",
+    "page",
+    "compact_view",
+    "model",
+    "temperature",
+    "max_tokens",
+}
+
+POSTHOG_PLACEHOLDER = "__POSTHOG_API_KEY_PLACEHOLDER__"
+DISABLE_VALUES = {"", "NO", "DISABLED", "DISABLE", "0", "FALSE", "OFF"}
+
+TOOL_GET_CONTEXT_INSTRUCTIONS = "get_context_instructions"
+TOOL_QUERY_INSTRUCTIONS = "query_instructions"
+TOOL_LIST_INSTRUCTIONS = "list_instructions"
+
+REPOSITORY_CACHE_TTL_SECONDS = 300
+
+# Tool contract limits
+MAX_QUERY_LENGTH = 2_000
+MAX_PATH_LENGTH = 512
+MAX_TAGS = 50
+MAX_TAG_LENGTH = 128
+
+# Observability + timeout knobs (A1)
+ENV_RAGFLOW_HTTP_TIMEOUT = "ROSETTA_RAGFLOW_HTTP_TIMEOUT"
+DEFAULT_RAGFLOW_HTTP_TIMEOUT = 60  # s; 20-30× normal 2-3s miss; well below gateway tens-of-min
+
+ENV_TOOL_TIMEOUT = "ROSETTA_TOOL_TIMEOUT"
+DEFAULT_TOOL_TIMEOUT = 120  # s; per-call ceiling > RAGFlow timeout incl. retry-once
+
+ENV_REDIS_SOCKET_TIMEOUT = "ROSETTA_REDIS_SOCKET_TIMEOUT"
+DEFAULT_REDIS_SOCKET_TIMEOUT = 5  # s; tolerates blips, kills half-open
+
+ENV_REDIS_SOCKET_CONNECT_TIMEOUT = "ROSETTA_REDIS_SOCKET_CONNECT_TIMEOUT"
+DEFAULT_REDIS_SOCKET_CONNECT_TIMEOUT = 2  # s; fail closed quickly
+
+ENV_REDIS_HEALTH_CHECK_INTERVAL = "ROSETTA_REDIS_HEALTH_CHECK_INTERVAL"
+DEFAULT_REDIS_HEALTH_CHECK_INTERVAL = 30  # s; proactively detects dead conns
+
+ENV_INFLIGHT_WARN_THRESHOLD = "ROSETTA_INFLIGHT_WARN_THRESHOLD"
+DEFAULT_INFLIGHT_WARN_THRESHOLD = 30  # s; warn on requests slower than worst normal ×10
+
+ENV_HEALTHZ_RAGFLOW_TIMEOUT = "ROSETTA_HEALTHZ_RAGFLOW_TIMEOUT"
+DEFAULT_HEALTHZ_RAGFLOW_TIMEOUT = 5  # s; probe must be snappy
+
+ENV_HEALTHZ_CACHE_TTL = "ROSETTA_HEALTHZ_CACHE_TTL"
+DEFAULT_HEALTHZ_CACHE_TTL = 10  # s; dampens flap
+
+ENV_OAUTH_HTTP_TIMEOUT = "ROSETTA_OAUTH_HTTP_TIMEOUT"
+DEFAULT_OAUTH_HTTP_TIMEOUT = 10  # s; matches FastMCP introspection default

@@ -38,8 +38,8 @@ src/rosetta-cli/
 │   ├── cli.py              # CLI entry point
 │   ├── commands/           # Command implementations
 │   ├── services/           # Shared business logic
-│   ├── ims_config.py       # Configuration management
-│   ├── ims_publisher.py    # Publishing orchestration
+│   ├── rosetta_config.py       # Configuration management
+│   ├── rosetta_publisher.py    # Publishing orchestration
 │   └── ragflow_client.py   # RAGFlow SDK wrapper
 ├── env.template            # Environment configuration template
 ├── tests/                  # CLI unit tests
@@ -302,29 +302,29 @@ client.verify_connection()
 client.get_system_health()
 ```
 
-#### IMSConfig (`ims_config.py`)
+#### RosettaConfig (`rosetta_config.py`)
 
 Configuration management with smart .env discovery:
 
 ```python
-from rosetta_cli.ims_config import IMSConfig
+from rosetta_cli.rosetta_config import RosettaConfig
 
 # Auto-discover .env (searches cwd, script dir, git root)
-config = IMSConfig.from_env()
+config = RosettaConfig.from_env()
 
 # Use specific environment
-config = IMSConfig.from_env(environment="production")
+config = RosettaConfig.from_env(environment="production")
 
 # Validate configuration
 config.validate()
 ```
 
-#### ContentPublisher (`ims_publisher.py`)
+#### ContentPublisher (`rosetta_publisher.py`)
 
 Publishing logic with metadata extraction:
 
 ```python
-from rosetta_cli.ims_publisher import ContentPublisher
+from rosetta_cli.rosetta_publisher import ContentPublisher
 
 publisher = ContentPublisher(client, config, workspace_root)
 
@@ -448,10 +448,10 @@ uvx rosetta-cli@latest publish ../../instructions --force
 ```python
 from pathlib import Path
 from rosetta_cli.ragflow_client import RAGFlowClient, DocumentMetadata
-from rosetta_cli.ims_config import IMSConfig
-from rosetta_cli.ims_publisher import ContentPublisher
+from rosetta_cli.rosetta_config import RosettaConfig
+from rosetta_cli.rosetta_publisher import ContentPublisher
 
-config = IMSConfig.from_env()
+config = RosettaConfig.from_env()
 client = RAGFlowClient(
     api_key=config.api_key,
     base_url=config.base_url,

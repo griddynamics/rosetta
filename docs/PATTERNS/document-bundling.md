@@ -36,7 +36,7 @@ Documents sorted by `sort_order` metadata (default `1000000`), then by name. Cor
 
 ## Occurrences
 
-- `src/ims-mcp-server/ims_mcp/services/bundler.py` — `Bundler` class
-- `src/ims-mcp-server/ims_mcp/tools/instructions.py` — threshold decision
-- `src/ims-mcp-server/ims_mcp/tools/resources.py` — VFS resource reads
+- `src/rosetta-mcp-server/rosetta_mcp/services/bundler.py` — `Bundler` class
+- `src/rosetta-mcp-server/rosetta_mcp/tools/instructions.py` — threshold decision
+- `src/rosetta-mcp-server/rosetta_mcp/tools/resources.py` — VFS resource reads
 - `instructions/r3/core/` + `instructions/r3/grid/` (if present) — layered content

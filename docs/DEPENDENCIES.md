@@ -1,6 +1,6 @@
 Direct dependencies of all modules in this Rosetta repository.
 
-## ims-mcp-server (ims-mcp v2.0.13)
+## rosetta-mcp-server (rosetta-mcp v2.0.13)
 
 | Package | Version Constraint | Purpose |
 |---|---|---|
@@ -11,13 +11,13 @@ Direct dependencies of all modules in this Rosetta repository.
 | cryptography | >=43.0.0 | Fernet encryption for Redis token storage |
 | uuid7-standard | >=1.0.0,<2.0.0 | UUID v7 generation for deterministic document IDs |
 
-### ims-mcp-server optional[redis]
+### rosetta-mcp-server optional[redis]
 
 | Package | Version Constraint | Purpose |
 |---|---|---|
 | py-key-value-aio[redis] | >=0.4.4,<0.5.0 | Async Redis client for session/plan store |
 
-### ims-mcp-server optional[dev]
+### rosetta-mcp-server optional[dev]
 
 | Package | Version Constraint | Purpose |
 |---|---|---|
@@ -48,14 +48,14 @@ Direct dependencies of all modules in this Rosetta repository.
 
 | Package | Version Constraint | Purpose |
 |---|---|---|
-| ims-mcp | ==2.0.13 | Core MCP server (pinned exact version) |
+| rosetta-mcp | ==2.0.13 | Core MCP server (pinned exact version) |
 
 ## Shared Dev (requirements.txt)
 
 | Package | Version Constraint | Purpose |
 |---|---|---|
 | rosetta-cli[dev] | editable | CLI development install |
-| ims-mcp-server[dev,redis] | editable | MCP server development install |
+| rosetta-mcp-server[dev,redis] | editable | MCP server development install |
 | mypy | >=1.10.0 | Static type checking |
 
 ## docs/web (Gemfile)

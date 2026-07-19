@@ -50,6 +50,6 @@ ACQUIRE `skills/planning/SKILL.md` FROM KB
 ## Occurrences
 
 - `src/rosetta-cli/rosetta_cli/services/document_data.py` — tag generation
-- `src/ims-mcp-server/ims_mcp/services/query_builder.py` — metadata condition builder
-- `src/ims-mcp-server/ims_mcp/tools/instructions.py` — threshold logic
+- `src/rosetta-mcp-server/rosetta_mcp/services/query_builder.py` — metadata condition builder
+- `src/rosetta-mcp-server/rosetta_mcp/tools/instructions.py` — threshold logic
 - Generated MCP shells (`ACQUIRE ... FROM KB`) and the alias bindings in `instructions/r3/core/rules/mcp-files-mode.md`

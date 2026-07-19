@@ -49,10 +49,10 @@ class RosettaMigrations:
 - Version tracked in `rosetta:redis-schema-version` (plain integer in Redis).
 - Lock key: `rosetta:migration-lock`, TTL 60s (auto-expires on crash).
 - Double-check-lock pattern: re-read version after acquiring lock.
-- All activity logged at `INFO` under `ims_mcp.migrations`.
+- All activity logged at `INFO` under `rosetta_mcp.migrations`.
 
 ## Occurrences
 
-- `src/ims-mcp-server/ims_mcp/migrations.py` — full implementation
-- `src/ims-mcp-server/ims_mcp/server.py` — invoked in FastMCP lifespan hook
-- `src/ims-mcp-server/tests/test_migrations.py` — unit tests
+- `src/rosetta-mcp-server/rosetta_mcp/migrations.py` — full implementation
+- `src/rosetta-mcp-server/rosetta_mcp/server.py` — invoked in FastMCP lifespan hook
+- `src/rosetta-mcp-server/tests/test_migrations.py` — unit tests

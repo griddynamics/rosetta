@@ -1,10 +1,10 @@
 # MCP Architecture
 
-**Who is this for?** Contributors working on the `ims-mcp` server, RAGFlow, the Rosetta CLI, or diagnosing MCP-mode behavior.
+**Who is this for?** Contributors working on the `rosetta-mcp` server, RAGFlow, the Rosetta CLI, or diagnosing MCP-mode behavior.
 
 **When should I read this?** After [ARCHITECTURE.md](ARCHITECTURE.md). MCP is the secondary, optional delivery mode — plugins are primary and most teams don't need MCP. MCP serves teams that want centrally managed, always-fresh instructions with nothing copied into the repository.
 
-Covers: the full MCP pipeline (Instructions Repo → CLI → RAGFlow → `ims-mcp` server → IDE), environments, RAGFlow (datasets, processing pipeline), Rosetta CLI (publish/parse/verify commands, auto-tagging), transports (Streamable HTTP + OAuth 2.1, STDIO), authentication and OAuth modes, Redis schema migrations, VFS resource paths and auto-tagging (tag-based retrieval), the MCP tools (`get_context_instructions`, `query_instructions`, `list_instructions`) and the `rosetta://{path}` resource, document bundling (core + organization overlays, `sort_order`, `INSTRUCTION_ROOT_FILTER`), XML/flat listings, context overflow prevention, MCP server development and validation, and MCP-specific tradeoffs. The [command aliases](ARCHITECTURE.md#command-aliases) themselves are mode-agnostic and documented in Architecture; in MCP mode they are bound to server calls by `mcp-files-mode.md`, and generated shells use `ACQUIRE <path> FROM KB` verbatim.
+Covers: the full MCP pipeline (Instructions Repo → CLI → RAGFlow → `rosetta-mcp` server → IDE), environments, RAGFlow (datasets, processing pipeline), Rosetta CLI (publish/parse/verify commands, auto-tagging), transports (Streamable HTTP + OAuth 2.1, STDIO), authentication and OAuth modes, Redis schema migrations, VFS resource paths and auto-tagging (tag-based retrieval), the MCP tools (`get_context_instructions`, `query_instructions`, `list_instructions`) and the `rosetta://{path}` resource, document bundling (core + organization overlays, `sort_order`, `INSTRUCTION_ROOT_FILTER`), XML/flat listings, context overflow prevention, MCP server development and validation, and MCP-specific tradeoffs. The [command aliases](ARCHITECTURE.md#command-aliases) themselves are mode-agnostic and documented in Architecture; in MCP mode they are bound to server calls by `mcp-files-mode.md`, and generated shells use `ACQUIRE <path> FROM KB` verbatim.
 
 ---
 
@@ -23,7 +23,7 @@ Covers: the full MCP pipeline (Instructions Repo → CLI → RAGFlow → `ims-mc
                          │ PULL
               ┌──────────▼──────────┐
               │    Rosetta MCP      │
-              │   (ims-mcp on PyPI) │
+              │   (rosetta-mcp on PyPI) │
               │                     │
               │  VFS resource paths │
               │  Bundler · Tags     │
@@ -64,12 +64,12 @@ Plugins have their own, separate delivery pipeline (generator, not CLI/RAGFlow) 
 
 ## Rosetta MCP Server
 
-The MCP server is the guiding layer between IDEs and the knowledge base. It exposes guardrails and common best practices, and provides a structured menu of available instructions; the coding agent selects what it needs, and Rosetta delivers only those — preventing context overload. Published on PyPI as `ims-mcp`. Built on [FastMCP v3](https://gofastmcp.com/) (latest stable) with [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy) for authentication and [RAGFlow](https://ragflow.io/) as the document engine backend. Speaks in VFS resource paths, adds context headers describing what information means and how to use it, and controls context size automatically.
-MCP changes are validated with `pytest`, `validate-types.sh`, and the end-to-end `verify_mcp.py` integration check.
+The MCP server is the guiding layer between IDEs and the knowledge base. It exposes guardrails and common best practices, and provides a structured menu of available instructions; the coding agent selects what it needs, and Rosetta delivers only those — preventing context overload. Published on PyPI as `rosetta-mcp`. Built on [FastMCP v3](https://gofastmcp.com/) (latest stable) with [OAuthProxy](https://gofastmcp.com/servers/auth/oauth-proxy) for authentication and [RAGFlow](https://ragflow.io/) as the document engine backend. Speaks in VFS resource paths, adds context headers describing what information means and how to use it, and controls context size automatically.
+MCP changes are validated with `pytest`, `src/validate-types.sh`, and the end-to-end `verify_mcp.py` integration check.
 
 **Transport options:**
 - **Streamable HTTP with OAuth** (default). Stateful: the server holds session state and can issue callbacks to the IDE. Zero local dependencies. Cursor, Claude Code, and Codex connect directly. When scaling to multiple replicas, sticky sessions are required (see [DEPLOYMENT_GUIDE.md](mcp/DEPLOYMENT_GUIDE.md)).
-- **STDIO** for environments with limited internet access. Runs `uvx ims-mcp` locally with API key auth.
+- **STDIO** for environments with limited internet access. Runs `uvx rosetta-mcp` locally with API key auth.
 
 **Key environment variables:** `ROSETTA_SERVER_URL`, `ROSETTA_API_KEY`, `INSTRUCTION_ROOT_FILTER`, `REDIS_URL`
 
@@ -200,13 +200,13 @@ All three modes issue FastMCP JWTs to MCP clients and store upstream tokens in R
 
 ## Redis Schema Migrations
 
-`ims_mcp/migrations.py` runs sequential schema migrations against Redis on every server startup via the FastMCP lifespan hook. Migrations are numbered methods (`_migrate_to_N`); only those ahead of the stored version run.
+`rosetta_mcp/migrations.py` runs sequential schema migrations against Redis on every server startup via the FastMCP lifespan hook. Migrations are numbered methods (`_migrate_to_N`); only those ahead of the stored version run.
 
 **Key details:**
 - Version tracked in `rosetta:redis-schema-version` (plain integer)
 - Distributed lock (`rosetta:migration-lock`, 60 s TTL) prevents concurrent runs across pods on rolling deploys
 - Each migration runs exactly once; safe to deploy to multiple replicas simultaneously
-- All migration activity logged at `INFO` level under `ims_mcp.migrations`
+- All migration activity logged at `INFO` level under `rosetta_mcp.migrations`
 
 **Current migrations:**
 
@@ -319,22 +319,22 @@ Additional publish examples:
 
 ### Validation
 
-MUST validate MCP changes using `.env.dev` and `src/ims-mcp-server/validation/verify_mcp.py` (testing harness of MCP itself).
+MUST validate MCP changes using `.env.dev` and `src/rosetta-mcp-server/validation/verify_mcp.py` (testing harness of MCP itself).
 Integrate new features to this testing harness if needed and easy.
 MUST execute `venv/bin/python scripts/pre_commit.py` from repository root. Never filter/grep/tail its output.
 Entire `verify_mcp.py` and ALL tests must work.
 Always run `verify_mcp.py`: with R3 only. When backporting a change to R2, also run it with `VERSION=r2`.
 If REDIS-dependent feature is affected RUN verify_mcp.py with and without REDIS_URL (example: `execution_controller` tool).
-Must run `validate-types.sh` (repo root) if code was changed.
+Must run `src/validate-types.sh` if code was changed.
 Do not tail or limit output of `verify_mcp.py`, it is short already.
 Read first 100 lines of `verify_mcp.py` to get instructions ON HOW exactly it should all be done.
 
 Validation command examples:
-- `cp .env.dev .env && VERSION=r3 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py`
-- `cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r3 venv/bin/python src/ims-mcp-server/validation/verify_mcp.py`
+- `cp .env.dev .env && VERSION=r3 venv/bin/python src/rosetta-mcp-server/validation/verify_mcp.py`
+- `cp .env.dev .env && REDIS_URL="redis://localhost:6379/0" VERSION=r3 venv/bin/python src/rosetta-mcp-server/validation/verify_mcp.py`
 
 Validation notes discovered during real runs:
-- MCP unit tests: `cd src/ims-mcp-server && PYTHONPATH=. ../venv/bin/pytest tests/` or `PYTHONPATH=src/ims-mcp-server venv/bin/pytest src/ims-mcp-server/tests`
+- MCP unit tests: `cd src/rosetta-mcp-server && PYTHONPATH=. ../venv/bin/pytest tests/` or `PYTHONPATH=src/rosetta-mcp-server venv/bin/pytest src/rosetta-mcp-server/tests`
 - CLI unit tests: `cd src/rosetta-cli && PYTHONPATH=. ../../venv/bin/pytest tests/` or `PYTHONPATH=src/rosetta-cli venv/bin/pytest src/rosetta-cli/tests`
 - `verify_mcp.py` flat-list validation must allow plain filenames for `r1` and hierarchical paths for `r2`/`r3`.
 

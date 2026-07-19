@@ -38,7 +38,7 @@ Requirements are organized by Rosetta component. Each component has its own fold
 
 ## Planned Components
 
-### rosetta-mcp — MCP server package (`ims-mcp` on PyPI). Planned.
+### rosetta-mcp — MCP server package (`rosetta-mcp` on PyPI). Planned.
 ### rosetta-server — Backend instruction management system. Planned.
 ### publishing-tools — CLI tools for publishing instructions to Rosetta Server. Planned.
 

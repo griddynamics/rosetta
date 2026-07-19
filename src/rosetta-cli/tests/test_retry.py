@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from rosetta_cli.ims_utils import is_transient_ragflow, retry_call
+from rosetta_cli.rosetta_utils import is_transient_ragflow, retry_call
 
 
 def test_success_first_attempt():
@@ -25,7 +25,7 @@ def test_transient_then_succeed():
             raise Exception("Documents not found: ['x']")
         return "ok"
 
-    with patch("rosetta_cli.ims_utils.time.sleep"):
+    with patch("rosetta_cli.rosetta_utils.time.sleep"):
         assert retry_call(fn, label="t") == "ok"
     assert calls["n"] == 2
 
@@ -49,7 +49,7 @@ def test_transient_exhausted():
         calls["n"] += 1
         raise Exception("The dataset doesn't own the document")
 
-    with patch("rosetta_cli.ims_utils.time.sleep"):
+    with patch("rosetta_cli.rosetta_utils.time.sleep"):
         with pytest.raises(Exception, match="doesn't own"):
             retry_call(fn, attempts=3, label="t")
     assert calls["n"] == 3
@@ -65,7 +65,7 @@ def test_jitter_in_range():
             raise Exception("Failed to update metadata")
         return "ok"
 
-    with patch("rosetta_cli.ims_utils.time.sleep", side_effect=sleeps.append):
+    with patch("rosetta_cli.rosetta_utils.time.sleep", side_effect=sleeps.append):
         retry_call(fn, attempts=3, jitter_ms_range=(150, 250), label="t")
 
     assert len(sleeps) == 2

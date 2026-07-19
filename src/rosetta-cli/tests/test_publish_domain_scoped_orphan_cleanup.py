@@ -1,7 +1,7 @@
 from pathlib import Path
 from uuid import uuid4
 
-from rosetta_cli.ims_publisher import ContentPublisher
+from rosetta_cli.rosetta_publisher import ContentPublisher
 
 
 class _FakeDoc:

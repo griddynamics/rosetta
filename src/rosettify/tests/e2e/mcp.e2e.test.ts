@@ -2,7 +2,7 @@
  * MCP E2E tests — spawns rosettify --mcp as a subprocess and communicates
  * via JSON-RPC 2.0 over stdio (newline-delimited).
  *
- * Pattern modelled after src/ims-mcp-server/validation/verify_mcp.py.
+ * Pattern modelled after src/rosetta-mcp-server/validation/verify_mcp.py.
  *
  * Requires: npm run build must have been run first.
  */

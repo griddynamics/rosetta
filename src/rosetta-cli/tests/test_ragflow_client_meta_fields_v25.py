@@ -147,7 +147,7 @@ def test_transient_update_is_retried():
     dataset = _FakeDataset(doc)
     client = _make_client(dataset)
 
-    with patch("rosetta_cli.ims_utils.time.sleep"):
+    with patch("rosetta_cli.rosetta_utils.time.sleep"):
         client.upload_document(
             file_path=None,
             metadata=_make_metadata(frontmatter=None),

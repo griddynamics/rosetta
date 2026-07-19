@@ -49,7 +49,7 @@ For the plugin generator, MCP server, CLI, tooling, and infrastructure changes.
 - **No hardcoded paths or env vars in application code.** Configuration belongs in environment, config files, or CLI arguments.
 - **Self-documenting outputs.** MCP responses and CLI output must be understandable without external explanation.
 - **Explicit contracts.** Tool inputs, outputs, and error cases are defined and tested. No silent failures.
-- **Type safety.** `validate-types.sh` must pass. New code includes type annotations.
+- **Type safety.** `src/validate-types.sh` must pass. New code includes type annotations.
 - **Test coverage.** New behavior has tests. Changed behavior updates existing tests. Both unit and integration (`verify_mcp.py`) where applicable.
 
 ---

@@ -6,10 +6,10 @@ on:
     branches:
       - main
     paths:
-      - 'src/ims-mcp-server/ims_mcp/**'
-      - 'src/ims-mcp-server/pyproject.toml'
+      - 'src/rosetta-mcp-server/rosetta_mcp/**'
+      - 'src/rosetta-mcp-server/pyproject.toml'
       - '.github/workflows/rosetta-mcp-dockerhub.yaml'
-      - 'src/ims-mcp-server/Dockerfile'
+      - 'src/rosetta-mcp-server/Dockerfile'
 
 permissions:
   contents: read
@@ -26,7 +26,7 @@ jobs:
       - name: Extract version from pyproject.toml
         id: extract-version
         run: |
-          VERSION=$(grep '^version = ' src/ims-mcp-server/pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          VERSION=$(grep '^version = ' src/rosetta-mcp-server/pyproject.toml | sed 's/version = "\(.*\)"/\1/')
           echo "Extracted version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
@@ -60,8 +60,8 @@ jobs:
 
       - name: Run type validation
         run: |
-          chmod +x validate-types.sh
-          ./validate-types.sh
+          chmod +x src/validate-types.sh
+          ./src/validate-types.sh
 
   build-and-push:
     needs:
@@ -101,8 +101,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
-          context: src/ims-mcp-server
-          file: src/ims-mcp-server/Dockerfile
+          context: src/rosetta-mcp-server
+          file: src/rosetta-mcp-server/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

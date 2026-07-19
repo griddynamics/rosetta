@@ -5,39 +5,38 @@ Code map of the Rosetta workspace — modules, key files, and entry points, 3-4 
 README.md OVERVIEW.md QUICKSTART.md USAGE_GUIDE.md DEVELOPER_GUIDE.md CONTRIBUTING.md
 INSTALLATION.md TROUBLESHOOTING.md REVIEW.md SECURITY.md
 CHANGELOG.md AGENTS.md NOTICE LICENSE
-requirements.txt mypy.ini validate-types.sh
+requirements.txt mypy.ini src/validate-types.sh
 .mcp.json .gitignore .claude-plugin .cursor-plugin .cursorignore
 
-## src/ims-mcp-server/ — core MCP server package (ims-mcp on PyPI)
+## src/rosetta-mcp-server/ — core MCP server package (rosetta-mcp on PyPI)
 
 pyproject.toml README.md Dockerfile build.sh DEBUGGING.md
 
-### src/ims-mcp-server/ims_mcp/ — main Python package
+### src/rosetta-mcp-server/rosetta_mcp/ — main Python package
 
 server.py tool_prompts.py config.py constants.py context.py migrations.py typing_utils.py
 
-#### src/ims-mcp-server/ims_mcp/auth/ — OAuth 2.1 and OAuthProxy support
+#### src/rosetta-mcp-server/rosetta_mcp/auth/ — OAuth 2.1 and OAuthProxy support
 
 oauth.py loopback_redirect_fix.py offline_refresh_fix.py
 
-#### src/ims-mcp-server/ims_mcp/clients/ — RAGFlow API clients
+#### src/rosetta-mcp-server/rosetta_mcp/clients/ — RAGFlow API clients
 
 ragflow.py dataset.py document.py doc_cache.py
 
-#### src/ims-mcp-server/ims_mcp/services/ — core business logic
+#### src/rosetta-mcp-server/rosetta_mcp/services/ — core business logic
 
-bundler.py authorizer.py query_builder.py keyword_search.py plan_store.py
-feedback.py invite.py _ragflow_team_api.py
+bundler.py authorizer.py query_builder.py keyword_search.py _ragflow_team_api.py
 
-#### src/ims-mcp-server/ims_mcp/tools/ — MCP tool implementations
+#### src/rosetta-mcp-server/rosetta_mcp/tools/ — MCP tool implementations
 
 instructions.py projects.py resources.py execution_controller.py feedback.py validation.py
 
-#### src/ims-mcp-server/ims_mcp/analytics/ — usage tracking
+#### src/rosetta-mcp-server/rosetta_mcp/analytics/ — usage tracking
 
 tracker.py user_context.py
 
-### src/ims-mcp-server/tests/ — unit tests (21 files)
+### src/rosetta-mcp-server/tests/ — unit tests (21 files)
 
 test_bundler_and_query_builder.py test_instructions.py test_execution_controller.py test_oauth.py
 test_analytics.py test_authorizer.py test_migrations.py test_resources.py
@@ -46,17 +45,17 @@ test_cache_ttl.py test_dataset_lookup.py test_document_client.py test_feedback_s
 test_keyword_search.py test_invite.py test_origin_middleware.py test_project_naming.py
 conftest.py
 
-### src/ims-mcp-server/validation/ — integration / end-to-end testing
+### src/rosetta-mcp-server/validation/ — integration / end-to-end testing
 
 verify_mcp.py
 
 ## src/rosetta-cli/ — CLI publisher package (rosetta-cli on PyPI)
 
-pyproject.toml README.md env.template ims_cli.py
+pyproject.toml README.md env.template cli_entry.py
 
 ### src/rosetta-cli/rosetta_cli/ — main Python package
 
-cli.py ims_publisher.py ragflow_client.py ims_config.py ims_auth.py typing_utils.py
+cli.py rosetta_publisher.py ragflow_client.py rosetta_config.py rosetta_auth.py typing_utils.py
 
 #### src/rosetta-cli/rosetta_cli/commands/ — CLI command implementations
 
@@ -68,7 +67,7 @@ document_service.py dataset_service.py auth_service.py document_data.py
 
 ### src/rosetta-cli/tests/ — unit tests (7 files)
 
-test_cli.py test_command_auth_order.py test_document_data.py test_ims_config_validate.py
+test_cli.py test_command_auth_order.py test_document_data.py test_rosetta_config_validate.py
 test_packaged_runtime_assumptions.py test_publish_domain_scoped_orphan_cleanup.py
 test_ragflow_client_upload_exception_handling.py
 

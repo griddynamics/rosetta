@@ -41,6 +41,6 @@ CLI always publishes the entire `/instructions` folder (`--force` for full repub
 
 - `instructions/r3/core/` — all OSS instructions
 - `instructions/r3/grid/` (if present) — enterprise extensions
-- `src/ims-mcp-server/ims_mcp/services/bundler.py` — merges layers at serve time
-- `src/ims-mcp-server/ims_mcp/config.py` — `INSTRUCTION_ROOT_FILTER` env var
+- `src/rosetta-mcp-server/rosetta_mcp/services/bundler.py` — merges layers at serve time
+- `src/rosetta-mcp-server/rosetta_mcp/config.py` — `INSTRUCTION_ROOT_FILTER` env var
 - `docs/ARCHITECTURE.md` — "Layered customization" section

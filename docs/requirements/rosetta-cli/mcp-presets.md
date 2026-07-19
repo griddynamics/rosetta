@@ -2,7 +2,7 @@
 
 <req id="FR-0004" type="FR" level="System" ticketId="" classification="technical">
   <title>Stdio MCP preset</title>
-  <statement>The Rosetta CLI shall provide a built-in `stdio` MCP preset containing default values for the command (`uvx`), package (`ims-mcp@latest`), Rosetta Server URL (`RAGFLOW_BASE_URL`), dataset name (`RAGFLOW_DATASET_DEFAULT`), and API key (`RAGFLOW_API_KEY`).</statement>
+  <statement>The Rosetta CLI shall provide a built-in `stdio` MCP preset containing default values for the command (`uvx`), package (`rosetta-mcp@latest`), Rosetta Server URL (`RAGFLOW_BASE_URL`), dataset name (`RAGFLOW_DATASET_DEFAULT`), and API key (`RAGFLOW_API_KEY`).</statement>
   <rationale>The stdio transport is the primary MCP connection method, requiring a complete set of defaults for zero-configuration use.</rationale>
   <source>INSTALLATION.md current defaults</source>
   <priority>Must</priority>
@@ -35,7 +35,7 @@
   <title>HTTP MCP preset</title>
   <statement>The Rosetta CLI shall provide a built-in `http` MCP preset containing default values for the MCP server URL, OAuth provider URL, client ID, and redirect URI.</statement>
   <rationale>Supports enterprise SSO authentication via OAuth 2.1 with MCP Auth flow over HTTP transport.</rationale>
-  <source>new-ims-mcp-p2.md (OAuth mode)</source>
+  <source>new-rosetta-mcp-p2.md (OAuth mode)</source>
   <priority>Should</priority>
   <status>Draft</status>
   <approved_by></approved_by>

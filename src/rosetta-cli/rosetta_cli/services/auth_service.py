@@ -8,25 +8,25 @@ Eliminates code duplication across commands.
 import time
 from typing import Any, Dict, Optional
 
-from ..ims_auth import IMSAuthManager
-from ..ims_config import IMSConfig
+from ..rosetta_auth import RosettaAuthManager
+from ..rosetta_config import RosettaConfig
 from ..ragflow_client import RAGFlowClient
 
 
 class AuthService:
     """Service for handling authentication operations"""
     
-    def __init__(self, client: RAGFlowClient, config: IMSConfig):
+    def __init__(self, client: RAGFlowClient, config: RosettaConfig):
         """
         Initialize AuthService.
         
         Args:
             client: RAGFlow client instance
-            config: IMS configuration
+            config: Rosetta configuration
         """
         self.client = client
         self.config = config
-        self.auth_manager = IMSAuthManager(client, config)
+        self.auth_manager = RosettaAuthManager(client, config)
     
     def verify_api_key(self) -> tuple[bool, float]:
         """
@@ -74,13 +74,13 @@ class AuthService:
         return success
     
     @staticmethod
-    def verify_or_exit(client: RAGFlowClient, config: IMSConfig) -> None:
+    def verify_or_exit(client: RAGFlowClient, config: RosettaConfig) -> None:
         """
         Verify API key and exit if verification fails.
         
         Args:
             client: RAGFlow client instance
-            config: IMS configuration
+            config: Rosetta configuration
             
         Raises:
             SystemExit: If verification fails

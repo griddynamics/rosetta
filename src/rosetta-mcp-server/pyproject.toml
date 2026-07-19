@@ -25,7 +25,24 @@ classifiers = [
 ]
 
 dependencies = [
-    "ims-mcp==3.0.0",
+    "ragflow-sdk>=0.25.1,<0.26.0",
+    "mcp>=1.26.0,<2.0.0",
+    "fastmcp>=3.4.0,<4",
+    "posthog>=7.0.0,<8.0.0",
+    "cryptography>=43.0.0",
+    "uuid7-standard>=1.0.0,<2.0.0",
+    "cachetools>=5.5.0,<6.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.0.0",
+    "twine>=4.0.0",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+redis = [
+    "py-key-value-aio[redis]>=0.4.4,<0.5.0",
 ]
 
 [project.urls]
@@ -34,4 +51,22 @@ Website = "https://griddynamics.github.io/rosetta/"
 Support = "https://github.com/griddynamics/rosetta/issues"
 
 [project.scripts]
-rosetta-mcp = "ims_mcp.server:main"
+rosetta-mcp = "rosetta_mcp.server:main"
+
+[tool.setuptools]
+packages = [
+    "rosetta_mcp",
+    "rosetta_mcp.auth",
+    "rosetta_mcp.clients",
+    "rosetta_mcp.services",
+    "rosetta_mcp.analytics",
+    "rosetta_mcp.tools",
+]
+
+[tool.setuptools.package-data]
+rosetta_mcp = ["py.typed", "resources/*.png"]
+
+[tool.uv]
+override-dependencies = [
+    "tiktoken>=0.12.0",
+]
