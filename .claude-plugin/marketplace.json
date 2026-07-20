@@ -14,5 +14,8 @@
       "source": "./plugins/core-claude",
       "description": "Rosetta for Claude - Software Engineering Accelerator instruction set, workflows, and guardrails."
     }
-  ]
+  ],
+  "renames": {
+    "core": "rosetta"
+  }
 }
