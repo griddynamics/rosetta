@@ -240,15 +240,15 @@ Given: dispatch returns {ok: false, error: "unknown_command: foo | valid: ...", 
 
 <req id="FR-ARCH-0015" type="FR" level="System">
   <title>Dangerous commands require --force flag</title>
-  <statement>Commands that perform destructive or irreversible actions SHALL require the --force flag. Without --force, the command SHALL refuse to execute and return an error explaining what the command does and that --force is required. Dangerous commands: uninstall.</statement>
-  <rationale>Prevents accidental destructive actions by AI agents and humans.</rationale>
+  <statement>Commands and subcommands that perform destructive or irreversible actions SHALL require the --force flag. Without --force, the action SHALL refuse to execute and return an error explaining what it does and that --force is required. This applies at the subcommand level as well as the top-level command level. Dangerous actions: the `uninstall` command and the `specs purge` subcommand (permanent removal of spec units, FR-SPECS-0016).</statement>
+  <rationale>Prevents accidental destructive actions by AI agents and humans. Extends to subcommands because a destructive action can live under an otherwise non-destructive command (e.g. specs purge).</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: rosettify uninstall without --force. Then: error explaining the action and requiring --force. Given: rosettify uninstall --force. Then: proceeds with uninstall.</criteria>
+    <criteria>Given: rosettify uninstall without --force. Then: error explaining the action and requiring --force. Given: rosettify uninstall --force. Then: proceeds with uninstall. Given: rosettify specs purge without --force. Then: error explaining the action and requiring --force. Given: rosettify specs purge --force. Then: proceeds with permanent removal.</criteria>
   </acceptance>
 </req>
 

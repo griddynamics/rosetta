@@ -10,6 +10,7 @@ Requirements for rosettify npm package: a unified tool runner for Rosetta with d
 |---|---|---|
 | [ARCH.md](ARCH.md) | Architecture | Approved |
 | [PLAN.md](PLAN.md) | Plan command | Approved |
+| [SPECS.md](SPECS.md) | Specs command | Approved |
 | [HELP.md](HELP.md) | Help command | Approved |
 | [CLI.md](CLI.md) | CLI frontend | Approved |
 | [MCP.md](MCP.md) | MCP frontend | Approved |
@@ -33,9 +34,10 @@ Requirements for rosettify npm package: a unified tool runner for Rosetta with d
 
 ## Summary
 
-- 8 approved requirement files, 1 draft (FUTURE.md — intentional placeholders)
+- 9 approved requirement files, 1 draft (FUTURE.md — intentional placeholders); SPECS.md is approved with one intentional Draft placeholder unit (semantic search)
 - Batch 1 (now): architecture, plan, help, CLI, MCP, packaging, shared, NFR
 - Batch 2+ (future): install, uninstall, upgrade, generate, handle
+- Batch 3 (now): specs command (specs = requirements; AI-native JSON engine complementing the requirements-authoring skill)
 
 ## Assets
 
