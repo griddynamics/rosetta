@@ -41,7 +41,7 @@ claude plugin install rosetta@rosetta
 > [!NOTE]
 > To add the plugin you need to have the appropriate Cursor plans, such as Teams and Enterprise. 
 
-To Import the Rosetta github repository to your team/compnay internal marketplace:
+To Import the Rosetta github repository to your team/company internal marketplace:
 * Use the following repository: https://github.com/griddynamics/rosetta
 
 For detailed setup instructions, see the Cursor documentation:
