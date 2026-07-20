@@ -35,7 +35,7 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 </prerequisites>
 
-<discovery phase="1" applies="MEDIUM,LARGE" subagent="discoverer" role="Context discoverer" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gpt-5.6-terra">
+<discovery phase="1" applies="if request is non-specific, unclear, ambiguous, or has gaps" subagent="discoverer" role="Context discoverer" subagent_required_model="claude-sonnet-5, gpt-5.4-medium, gemini-3.1-pro, grok-4.5, gpt-5.6-terra">
 
 1. Gather project context, affected areas, dependencies, constraints, requirements. SMALL: orchestrator handles inline.
 2. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: `discovery-notes.md` in FEATURE PLAN folder.
@@ -50,9 +50,9 @@ Validation: Each phase produces verifiable outputs; reviewer catches issues befo
 
 <design phase="2" applies="ALL" subagent="architect" role="Design architecture requirements and solution" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
 
-1. First: design architecture requirements to address user request fully.
-2. Second: design 3 best architecture solutions with pro/cons analysis.
-3. Third: select the best solution.
+1. Step 1: discover affected and related code to design architecture requirements to address user request fully.
+2. Step 2: design 3 best architecture solutions on high level with pro/cons analysis.
+3. Step 3: define the best solution, but concise, phrase-terse, compressed, etc.
 4. Input: user request + `CONTEXT.md` + `ARCHITECTURE.md` + `IMPLEMENTATION.md`. Output: concise `architecture-notes.md` in FEATURE PLAN folder.
 5. Required skills: `reasoning`
 6. Recommended skills: `questioning`

@@ -26,7 +26,7 @@ Prerequisite: Rosetta Prep Steps.
 - Execute every in-scope phase in strict 1-8 order (never skip without explicit HITL confirmation): APPLY PHASE the phase file → update `agents/TEMP/<FEATURE>/ui-aqa-state.md` → next; never start a phase until the previous is marked done in `ui-aqa-state.md`.
 - MUST follow JIT phase-by-phase: do not load/act IN ADVANCE.
 - Skip gates, transitions, and escalation → `<orchestration_and_escalation>`.
-- MUST use todo tasks; prioritize ACCURACY over SPEED.
+- MUST use todo tasks. Prioritize ACCURACY over SPEED. Proactively use available tools/MCPs, if question can be answered from code or MCP call - do that first.
 
 **No assumptions:**
 - NO ASSUMPTIONS: never assume selectors, flows, or data — ask the user when information is missing.

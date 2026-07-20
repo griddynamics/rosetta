@@ -2,6 +2,7 @@
 name: init-workspace-flow-patterns
 description: "Phase 5 Patterns of init-workspace-flow"
 tags: ["init", "workspace", "patterns", "phase"]
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---

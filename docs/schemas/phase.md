@@ -3,9 +3,9 @@
 name: "<phase name; MUST match the file name without extension>"
 description: "Phase <N> <Phase Name> of <parent-flow>"
 # disable-model-invocation — required for phases [boolean] [Cursor, Claude Code]
-disable-model-invocation: false
+disable-model-invocation: true
 # user-invocable — required for phases [boolean] [Claude Code]
-user-invocable: true
+user-invocable: false
 # alwaysApply — keep false by default; true bloats EVERY context; override to true ONLY in special cases with explicit user approval [boolean] [Cursor]
 alwaysApply: false
 

@@ -2,6 +2,7 @@
 name: init-workspace-flow-discovery
 description: "Phase 3 Discovery of init-workspace-flow"
 tags: ["init", "workspace", "discovery", "phase"]
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---

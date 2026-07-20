@@ -2,6 +2,7 @@
 name: modernization-flow-analysis
 description: "Phase 2 Code Analysis of modernization-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---

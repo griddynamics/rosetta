@@ -2,6 +2,7 @@
 name: modernization-flow-testing
 description: "Phase 3 Testing (optional) of modernization-flow"
 alwaysApply: false
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---

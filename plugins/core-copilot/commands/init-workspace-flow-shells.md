@@ -2,6 +2,7 @@
 name: init-workspace-flow-shells
 description: "Phase 2 Shells of init-workspace-flow"
 tags: ["init", "workspace", "shells", "phase"]
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---

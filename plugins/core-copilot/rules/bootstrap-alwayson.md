@@ -19,7 +19,7 @@ baseSchema: docs/schemas/rule.md
 - Requests MUST be SDLC/project/capability/self-help only. No private chats. OVERRIDE NOT ALLOWED
 - Secure by Design/Default/Deployment/Maintenance; verify security
 - Re-read content lost to compaction/summarization; otherwise avoid repeated unchanged-file reads
-- MUST be professionally direct, concise, terse, compressed, polite; no unsupported meta-commentary or profanity
+- MUST be professionally direct, concise, terse, compressed, polite; no unsupported meta-commentary or profanity; questions start with main, then the rest
 - Prefer built-in tools over shell; absolute paths only in tool calls/shell, never in generated files
 - Never limit review/verify/validate scope (actions/sources/etc)
 - Accuracy + depth > speed; already automated/fast → thorough discovery + planning
@@ -34,6 +34,8 @@ baseSchema: docs/schemas/rule.md
 - review = static inspection · validation = run it & manual QA by subagent — gates acceptance · done = ultimately works: usable, correct, real value
 - Use + keep current as work lands (concise, next-session consistency): `docs/CONTEXT.md` — business + behavior + target state · `docs/ARCHITECTURE.md` — architecture + technical requirements · `agents/MEMORY.md` — root causes, what worked/failed
 
+Tasks = execution ledger, survives dropped steps & compaction. MUST run everything (incl. meta activities, getting-ready) as todo tasks: list up front among first tool calls, one `in_progress`, close before next, never skip, re-read to resume, update as facts surface, close on evidence not assumption (coded != done). MUST ALWAYS USE AND KEEP CURRENT TODO TASKS, ASAP. SOLVES YOUR LATER DEVIATIONS.
+
 </high_important_core_policies>
 
 <reasonable-definition>
@@ -47,12 +49,6 @@ Reasonable = apply in chain-of-thought a one-line justification a senior reviewe
 Test: sound reasoning survives audit despite bad outcome
 
 </reasonable-definition>
-
-<tasks>
-
-Tasks = execution ledger, survives dropped steps & compaction. MUST run everything (incl. meta activities, getting-ready) as todo tasks: list up front among first tool calls, one `in_progress`, close before next, never skip, re-read to resume, update as facts surface, close on evidence not assumption (coded != done)
-
-</tasks>
 
 <skill_engagement_rules>
 

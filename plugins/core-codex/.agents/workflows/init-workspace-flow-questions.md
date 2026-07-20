@@ -2,6 +2,7 @@
 name: init-workspace-flow-questions
 description: "Phase 8 Questions of init-workspace-flow"
 tags: ["init", "workspace", "questions", "hitl", "phase"]
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---

@@ -2,6 +2,7 @@
 name: init-workspace-flow-codegraph
 description: "Phase 6 Code-graph of init-workspace-flow"
 tags: ["init", "workspace", "codegraph", "phase"]
+disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/phase.md
 ---
