@@ -26,7 +26,7 @@ Prerequisite: Rosetta Prep Steps.
 - **Phases 0→7 MUST run in order**; sanctioned skips per `<skip_rules>` only.
 - All Rosetta prep steps MUST be FULLY completed, SKILL `load-project-context` loaded and fully executed.
 - NO ASSUMPTIONS: never assume endpoints, payloads, auth mechanisms, or response schemas — ask the user when missing.
-- MUST use todo tasks. Prioritize ACCURACY over SPEED. Proactively use available tools/MCPs, if question can be answered from code or MCP call - do that first.
+- MUST ALWAYS use todo tasks ledger, ASAP. Prioritize ACCURACY over SPEED. Proactively use available tools/MCPs, if question can be answered from code or MCP call - do that first.
 - **Drive loop (owned by this workflow):** execute phases in order — for each: APPLY PHASE its phase file → update `agents/TEMP/<FEATURE>/api-aqa-state.md` → verify the phase-output gate → next; keep todos matched to the active phase; never batch-load future phases; never skip without approval (`<skip_rules>`). When a phase delegates work to subagents, dispatch per USE SKILL `orchestration`.
 - **Phase-output gate (verify before advancing):** each phase's mandatory artifact must exist and pass its phase-file completion gate before the next phase starts — notably **Phase 4: every `ATC-NNN` in `test-specs.md` traces to a Phase 3 source** (a `raw-data.md` test case and/or an `analysis.md` `G[N]`/`C[N]`/`A[N]` finding); also Phase 1 `raw-data.md`, Phase 2 `api-analysis.md`, and Phase 6 `execution-report.md` present and non-placeholder.
 
