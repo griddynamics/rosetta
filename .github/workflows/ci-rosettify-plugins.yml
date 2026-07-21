@@ -1,0 +1,43 @@
+name: CI Rosettify Plugins
+
+# Pre-merge gate: typecheck + build + tests for the rosettify-plugins package
+# on every PR that touches it. Complements publish-rosettify-plugins.yml, which
+# only runs on push to main (publish time) and is not a pre-merge gate. Mirrors
+# that workflow's validate/build/test steps.
+on:
+  pull_request:
+    paths:
+      - 'src/rosettify-plugins/**'
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '24'
+
+    - name: Install dependencies
+      working-directory: ./src/rosettify-plugins
+      run: npm ci
+
+    - name: Run type validation
+      working-directory: ./src/rosettify-plugins
+      run: npm run typecheck
+
+    - name: Build package
+      working-directory: ./src/rosettify-plugins
+      run: npm run build
+
+    - name: Run tests
+      working-directory: ./src/rosettify-plugins
+      run: npm run test

@@ -1,0 +1,43 @@
+name: CI Curiocity
+
+# Pre-merge gate: lint + build + tests for the curiocity package on every PR
+# that touches it. Complements publish-curiocity.yml, which only runs on push
+# to main (publish time) and is not a pre-merge gate. Mirrors that workflow's
+# validate/build/test steps so a green CI here means the publish job will pass.
+on:
+  pull_request:
+    paths:
+      - 'src/curiocity/**'
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '24'
+
+    - name: Install dependencies
+      working-directory: ./src/curiocity
+      run: npm ci
+
+    - name: Run type validation
+      working-directory: ./src/curiocity
+      run: npm run lint
+
+    - name: Build package
+      working-directory: ./src/curiocity
+      run: npm run build
+
+    - name: Run tests
+      working-directory: ./src/curiocity
+      run: npm run test
