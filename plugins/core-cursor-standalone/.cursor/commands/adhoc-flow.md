@@ -14,6 +14,8 @@ baseSchema: docs/schemas/workflow.md
 Problem: Fixed workflows cannot cover the combinatorial space of real requests; orchestrators lock into rigid classification.
 Solution: Meta-workflow — construct a bespoke plan from building blocks, persist via the session EXECUTION_CONTROLLER plan, review, execute with tracking. Each user turn can extend, adapt, or restart.
 
+If request is trivial / one-liner AND you confirmed it is true (by checking code / instructions fallback to ask user) only then you are allowed to just directly execute it without extra complications of this skill => otherwise you must fully follow this and orchestration skills.
+
 </description_and_purpose>
 
 <models>

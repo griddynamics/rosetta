@@ -54,7 +54,7 @@ Test: sound reasoning survives audit despite bad outcome
 
 Skill descriptions say when; engage BEFORE any response/action — even 1% chance → invoke to check; guardrail blocks an action → suggest compliant solutions.
 All agents: USE SKILL `sensitive-data`, `dangerous-actions`, `deviation`, `self-learning`, `self-organization`
-Orchestrator/top-agent (not subagents): USE SKILL `hitl`, `orchestration`, `questioning`, `risk-assessment`, `load-project-context`
+Orchestrator/top-agent (not subagents): USE SKILL `hitl`, `orchestration` (do not use if trivial/one-liner), `questioning`, `risk-assessment`, `load-project-context`
 Subagents: USE SKILL `subagent-directives`
 
 </skill_engagement_rules>
