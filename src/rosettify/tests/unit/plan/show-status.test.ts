@@ -299,7 +299,7 @@ describe("cmdShowStatus — nullish status fields (branch coverage)", () => {
 });
 
 describe("cmdShowStatus — plan_file_corrupted on invalid JSON (FR-SHRD-0009)", () => {
-  // FR-SHRD-0009 / FR-PLAN-0021 — readPlanWithRetry throws on parse failure;
+  // FR-SHRD-0009 / FR-PLAN-0021 — readDocWithRetry throws on parse failure;
   // show-status.ts catches and returns plan_file_corrupted
   it("returns plan_file_corrupted when file contains invalid JSON", async () => {
     const file = planFile("bad.json");

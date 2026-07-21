@@ -1,0 +1,586 @@
+/**
+ * Unit tests for commands/specs/core.ts — types, enums, validators, plain document I/O.
+ * FR-SPECS-0001..0007, 0040.
+ */
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+import {
+  ID_RE,
+  parseId,
+  validateIdFormat,
+  validateAreaRegistration,
+  autoRegisterAreas,
+  validateImmutableId,
+  validateType,
+  validateSource,
+  validatePriority,
+  validateVerification,
+  validateKnownFields,
+  validateRequired,
+  validateUniqueIds,
+  validateReferences,
+  validateDependsAcyclic,
+  validateSizeLimits,
+  stripGuarded,
+  loadSpecs,
+  saveSpecs,
+  newDocument,
+  GUARDED_FIELDS,
+} from "../../../src/commands/specs/core.js";
+import {
+  SPECS_MAX_SPECS,
+  SPECS_MAX_DEPENDENCIES_PER_SPEC,
+  SPECS_MAX_ACCEPTANCE_PER_SPEC,
+  SPECS_MAX_NAME_LENGTH,
+  SPECS_MAX_STRING_LENGTH,
+} from "../../../src/shared/constants.js";
+import { makeAcceptance, makeDoc, makeSpec } from "../../fixtures/specs.js";
+
+let tmpDir: string;
+
+beforeEach(() => {
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "rosettify-specs-core-"));
+});
+
+afterEach(() => {
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+function specsFile(name = "specs.json"): string {
+  return path.join(tmpDir, name);
+}
+
+// ---------------------------------------------------------------------------
+// ID_RE / parseId / validateIdFormat — FR-SPECS-0004
+// ---------------------------------------------------------------------------
+
+describe("ID_RE / validateIdFormat — FR-SPECS-0004", () => {
+  it.each([
+    ["FR-CHK-0001", true],
+    ["NFR-SPECS-0007", true],
+    ["INT-API-0123", true],
+    ["DATA-CORE-9999", true],
+  ])("accepts valid id %s", (id) => {
+    expect(ID_RE.test(id)).toBe(true);
+    expect(validateIdFormat(id)).toBeNull();
+  });
+
+  it("rejects a short/non-4-digit sequence (FR-SPECS-8)", () => {
+    expect(ID_RE.test("FR-SPECS-8")).toBe(false);
+    expect(validateIdFormat("FR-SPECS-8")).toBe("invalid_id_format");
+  });
+
+  it("rejects a non-4-digit (5-digit) sequence", () => {
+    expect(validateIdFormat("FR-SPECS-00001")).toBe("invalid_id_format");
+  });
+
+  it("rejects an unknown prefix", () => {
+    expect(validateIdFormat("GOAL-CHK-0001")).toBe("invalid_id_format");
+  });
+
+  it("rejects lowercase area", () => {
+    expect(validateIdFormat("FR-chk-0001")).toBe("invalid_id_format");
+  });
+
+  it("rejects missing area segment", () => {
+    expect(validateIdFormat("FR-0001")).toBe("invalid_id_format");
+  });
+});
+
+describe("parseId — FR-SPECS-0004", () => {
+  it("parses prefix/area/seq from a valid id", () => {
+    expect(parseId("FR-CHK-0012")).toEqual({ prefix: "FR", area: "CHK", seq: 12 });
+  });
+
+  it("returns null for a malformed id", () => {
+    expect(parseId("not-an-id")).toBeNull();
+  });
+
+  it("parses a multi-char area mnemonic", () => {
+    expect(parseId("NFR-SPECS-0001")).toEqual({ prefix: "NFR", area: "SPECS", seq: 1 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateAreaRegistration / autoRegisterAreas — FR-SPECS-0004
+// ---------------------------------------------------------------------------
+
+describe("validateAreaRegistration — FR-SPECS-0004", () => {
+  it("returns null when the area is registered", () => {
+    const doc = makeDoc({ areas: [{ code: "CHK", name: "Checkout" }] });
+    const spec = makeSpec({ id: "FR-CHK-0001" });
+    expect(validateAreaRegistration(spec, doc)).toBeNull();
+  });
+
+  it("returns unknown_area when the area is not registered", () => {
+    const doc = makeDoc({ areas: [] });
+    const spec = makeSpec({ id: "FR-XYZ-0001" });
+    expect(validateAreaRegistration(spec, doc)).toBe("unknown_area");
+  });
+
+  it("returns null (defers to validateIdFormat) for an unparseable id", () => {
+    const doc = makeDoc({ areas: [] });
+    const spec = makeSpec({ id: "not-an-id" });
+    expect(validateAreaRegistration(spec, doc)).toBeNull();
+  });
+});
+
+describe("autoRegisterAreas — FR-SPECS-0004 (add/migrate self-registration)", () => {
+  it("registers a brand-new area with name=code on a fresh document", () => {
+    const doc = makeDoc({ areas: [] });
+    autoRegisterAreas(doc, ["FR-CLI-0001"]);
+    expect(doc.areas).toEqual([{ code: "CLI", name: "CLI" }]);
+  });
+
+  it("leaves an already-registered area's areas array unchanged", () => {
+    const doc = makeDoc({ areas: [{ code: "CHK", name: "Checkout" }] });
+    autoRegisterAreas(doc, ["FR-CHK-0002"]);
+    expect(doc.areas).toEqual([{ code: "CHK", name: "Checkout" }]);
+  });
+
+  it("does not register duplicates for two ids sharing the same new area", () => {
+    const doc = makeDoc({ areas: [] });
+    autoRegisterAreas(doc, ["FR-CLI-0001", "FR-CLI-0002"]);
+    expect(doc.areas).toEqual([{ code: "CLI", name: "CLI" }]);
+  });
+
+  it("skips ids that fail ID_RE (left to validateIdFormat)", () => {
+    const doc = makeDoc({ areas: [] });
+    autoRegisterAreas(doc, ["not-an-id"]);
+    expect(doc.areas).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateImmutableId — FR-SPECS-0004
+// ---------------------------------------------------------------------------
+
+describe("validateImmutableId — FR-SPECS-0004", () => {
+  it("returns null when patch id matches target id", () => {
+    expect(validateImmutableId("FR-CHK-0001", "FR-CHK-0001")).toBeNull();
+  });
+
+  it("returns null when patch carries no id at all", () => {
+    expect(validateImmutableId(undefined, "FR-CHK-0001")).toBeNull();
+  });
+
+  it("returns immutable_id when patch id differs from target id", () => {
+    expect(validateImmutableId("FR-CHK-0002", "FR-CHK-0001")).toBe("immutable_id");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateType / validateSource / validatePriority / validateVerification — FR-SPECS-0001/0003
+// ---------------------------------------------------------------------------
+
+describe("validateType — FR-SPECS-0003", () => {
+  it.each(["FR", "NFR", "INT", "DATA"])("accepts %s", (t) => {
+    expect(validateType(t)).toBeNull();
+  });
+
+  it("rejects an unknown type", () => {
+    expect(validateType("GOAL")).toBe("invalid_type");
+  });
+
+  it("rejects a non-string type", () => {
+    expect(validateType(123)).toBe("invalid_type");
+  });
+});
+
+describe("validateSource — FR-SPECS-0001", () => {
+  it.each(["User", "Inferred", "Sources", "Documentation"])("accepts %s", (s) => {
+    expect(validateSource(s)).toBeNull();
+  });
+
+  it("rejects an unknown source", () => {
+    expect(validateSource("Magic")).toBe("invalid_source");
+  });
+});
+
+describe("validatePriority — FR-SPECS-0001", () => {
+  it.each(["Must", "Should", "Could", "Wont"])("accepts %s", (p) => {
+    expect(validatePriority(p)).toBeNull();
+  });
+
+  it("rejects an unknown priority", () => {
+    expect(validatePriority("Urgent")).toBe("invalid_priority");
+  });
+});
+
+describe("validateVerification — FR-SPECS-0001", () => {
+  it.each(["Test", "Analysis", "Inspection", "Demo"])("accepts %s", (v) => {
+    expect(validateVerification(v)).toBeNull();
+  });
+
+  it("rejects an unknown verification method", () => {
+    expect(validateVerification("Vibes")).toBe("invalid_verification");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateKnownFields / validateRequired — FR-SPECS-0001
+// ---------------------------------------------------------------------------
+
+describe("validateKnownFields — FR-SPECS-0001", () => {
+  it("returns null for an item with only known fields", () => {
+    expect(validateKnownFields({ id: "x", type: "FR" })).toBeNull();
+  });
+
+  it("returns invalid_spec_field for an unknown key", () => {
+    expect(validateKnownFields({ id: "x", foo: "bar" })).toBe("invalid_spec_field");
+  });
+});
+
+describe("validateRequired — FR-SPECS-0001", () => {
+  it("returns null for a fully-populated spec", () => {
+    expect(validateRequired(makeSpec())).toBeNull();
+  });
+
+  it.each(["id", "type", "title", "statement", "source", "priority", "verification"] as const)(
+    "returns missing_required_field when %s is empty",
+    (field) => {
+      const spec = makeSpec({ [field]: "" } as never);
+      expect(validateRequired(spec)).toBe("missing_required_field");
+    },
+  );
+
+  it("returns missing_required_field when a required field is undefined", () => {
+    const spec = makeSpec();
+    delete (spec as Record<string, unknown>)["title"];
+    expect(validateRequired(spec)).toBe("missing_required_field");
+  });
+
+  it("returns missing_required_field when acceptance is an empty array", () => {
+    const spec = makeSpec({ acceptance: [] });
+    expect(validateRequired(spec)).toBe("missing_required_field");
+  });
+
+  it("returns missing_required_field when acceptance is not an array", () => {
+    const spec = makeSpec({ acceptance: undefined as never });
+    expect(validateRequired(spec)).toBe("missing_required_field");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateUniqueIds — FR-SPECS-0005
+// ---------------------------------------------------------------------------
+
+describe("validateUniqueIds — FR-SPECS-0005", () => {
+  it("returns null when all ids are unique", () => {
+    const doc = makeDoc({ specs: [makeSpec({ id: "FR-CHK-0001" }), makeSpec({ id: "FR-CHK-0002" })] });
+    expect(validateUniqueIds(doc)).toBeNull();
+  });
+
+  it("returns duplicate_id when two specs share an id", () => {
+    const doc = makeDoc({ specs: [makeSpec({ id: "FR-CHK-0001" }), makeSpec({ id: "FR-CHK-0001" })] });
+    expect(validateUniqueIds(doc)).toBe("duplicate_id");
+  });
+
+  it("returns null for an empty specs array", () => {
+    const doc = makeDoc({ specs: [] });
+    expect(validateUniqueIds(doc)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateReferences — FR-SPECS-0005 (unknown_dependency over BOTH depends_on and related)
+// ---------------------------------------------------------------------------
+
+describe("validateReferences — FR-SPECS-0005", () => {
+  it("returns null when every depends_on/related target exists", () => {
+    const doc = makeDoc({
+      specs: [
+        makeSpec({ id: "FR-CHK-0001", depends_on: [], related: [] }),
+        makeSpec({ id: "FR-CHK-0002", depends_on: ["FR-CHK-0001"], related: ["FR-CHK-0001"] }),
+      ],
+    });
+    expect(validateReferences(doc)).toBeNull();
+  });
+
+  it("returns unknown_dependency when depends_on references a missing id", () => {
+    const doc = makeDoc({ specs: [makeSpec({ id: "FR-CHK-0001", depends_on: ["FR-CHK-9999"] })] });
+    expect(validateReferences(doc)).toBe("unknown_dependency");
+  });
+
+  it("returns unknown_dependency when related references a missing id", () => {
+    const doc = makeDoc({ specs: [makeSpec({ id: "FR-CHK-0001", related: ["FR-CHK-9999"] })] });
+    expect(validateReferences(doc)).toBe("unknown_dependency");
+  });
+
+  it("treats a soft-deleted (Removed) spec as a valid reference target", () => {
+    const doc = makeDoc({
+      specs: [
+        makeSpec({ id: "FR-CHK-0001", status: "Removed" }),
+        makeSpec({ id: "FR-CHK-0002", depends_on: ["FR-CHK-0001"] }),
+      ],
+    });
+    expect(validateReferences(doc)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateDependsAcyclic — FR-SPECS-0005 (depends_on cycle rejected; related NOT checked)
+// ---------------------------------------------------------------------------
+
+describe("validateDependsAcyclic — FR-SPECS-0005", () => {
+  it("returns null for an acyclic depends_on graph", () => {
+    const doc = makeDoc({
+      specs: [
+        makeSpec({ id: "FR-CHK-0001", depends_on: [] }),
+        makeSpec({ id: "FR-CHK-0002", depends_on: ["FR-CHK-0001"] }),
+      ],
+    });
+    expect(validateDependsAcyclic(doc)).toBeNull();
+  });
+
+  it("returns dependency_cycle for a two-node depends_on cycle", () => {
+    const doc = makeDoc({
+      specs: [
+        makeSpec({ id: "FR-CHK-0001", depends_on: ["FR-CHK-0002"] }),
+        makeSpec({ id: "FR-CHK-0002", depends_on: ["FR-CHK-0001"] }),
+      ],
+    });
+    expect(validateDependsAcyclic(doc)).toBe("dependency_cycle");
+  });
+
+  it("returns dependency_cycle for a self-dependency", () => {
+    const doc = makeDoc({ specs: [makeSpec({ id: "FR-CHK-0001", depends_on: ["FR-CHK-0001"] })] });
+    expect(validateDependsAcyclic(doc)).toBe("dependency_cycle");
+  });
+
+  it("returns null for a related cycle (related is excluded from cycle detection)", () => {
+    const doc = makeDoc({
+      specs: [
+        makeSpec({ id: "FR-CHK-0001", depends_on: [], related: ["FR-CHK-0002"] }),
+        makeSpec({ id: "FR-CHK-0002", depends_on: [], related: ["FR-CHK-0001"] }),
+      ],
+    });
+    expect(validateDependsAcyclic(doc)).toBeNull();
+  });
+
+  it("returns null for a self-related spec (related may self-reference)", () => {
+    const doc = makeDoc({ specs: [makeSpec({ id: "FR-CHK-0001", depends_on: [], related: ["FR-CHK-0001"] })] });
+    expect(validateDependsAcyclic(doc)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateSizeLimits — FR-SPECS-0007
+// ---------------------------------------------------------------------------
+
+describe("validateSizeLimits — FR-SPECS-0007", () => {
+  it("returns null for a document within all limits", () => {
+    const doc = makeDoc({ specs: [makeSpec()] });
+    expect(validateSizeLimits(doc)).toBeNull();
+  });
+
+  it(`returns size_limit_exceeded when specs.length exceeds ${SPECS_MAX_SPECS}`, () => {
+    const specs = Array.from({ length: SPECS_MAX_SPECS + 1 }, (_, i) => makeSpec({ id: `FR-CHK-${String(i).padStart(4, "0")}` }));
+    const doc = makeDoc({ specs });
+    expect(validateSizeLimits(doc)).toBe("size_limit_exceeded");
+  });
+
+  it(`returns size_limit_exceeded when depends_on exceeds ${SPECS_MAX_DEPENDENCIES_PER_SPEC}`, () => {
+    const deps = Array.from({ length: SPECS_MAX_DEPENDENCIES_PER_SPEC + 1 }, (_, i) => `FR-CHK-${String(i).padStart(4, "0")}`);
+    const doc = makeDoc({ specs: [makeSpec({ depends_on: deps })] });
+    expect(validateSizeLimits(doc)).toBe("size_limit_exceeded");
+  });
+
+  it(`returns size_limit_exceeded when related exceeds ${SPECS_MAX_DEPENDENCIES_PER_SPEC}`, () => {
+    const rel = Array.from({ length: SPECS_MAX_DEPENDENCIES_PER_SPEC + 1 }, (_, i) => `FR-CHK-${String(i).padStart(4, "0")}`);
+    const doc = makeDoc({ specs: [makeSpec({ related: rel })] });
+    expect(validateSizeLimits(doc)).toBe("size_limit_exceeded");
+  });
+
+  it(`returns size_limit_exceeded when acceptance exceeds ${SPECS_MAX_ACCEPTANCE_PER_SPEC}`, () => {
+    const acceptance = Array.from({ length: SPECS_MAX_ACCEPTANCE_PER_SPEC + 1 }, () => makeAcceptance());
+    const doc = makeDoc({ specs: [makeSpec({ acceptance })] });
+    expect(validateSizeLimits(doc)).toBe("size_limit_exceeded");
+  });
+
+  it(`returns size_limit_exceeded when title exceeds ${SPECS_MAX_NAME_LENGTH} characters`, () => {
+    const doc = makeDoc({ specs: [makeSpec({ title: "x".repeat(SPECS_MAX_NAME_LENGTH + 1) })] });
+    expect(validateSizeLimits(doc)).toBe("size_limit_exceeded");
+  });
+
+  it(`returns size_limit_exceeded when a long string field exceeds SPECS_MAX_STRING_LENGTH`, () => {
+    const doc = makeDoc({ specs: [makeSpec({ statement: "x".repeat(20_001) })] });
+    expect(validateSizeLimits(doc)).toBe("size_limit_exceeded");
+  });
+
+  it("returns null when title is exactly at the name length limit", () => {
+    const doc = makeDoc({ specs: [makeSpec({ title: "x".repeat(SPECS_MAX_NAME_LENGTH) })] });
+    expect(validateSizeLimits(doc)).toBeNull();
+  });
+
+  // Two-sided boundaries — each limit above only tests the "over the limit -> rejected" side;
+  // these pin the "exactly at the limit -> accepted" side too, so an off-by-one regression in
+  // either direction (> vs >=) would be caught.
+  it("returns null when specs.length is exactly at the limit", () => {
+    const specs = Array.from({ length: SPECS_MAX_SPECS }, (_, i) => makeSpec({ id: `FR-CHK-${String(i).padStart(4, "0")}` }));
+    const doc = makeDoc({ specs });
+    expect(validateSizeLimits(doc)).toBeNull();
+  });
+
+  it("returns null when depends_on length is exactly at the limit", () => {
+    const deps = Array.from({ length: SPECS_MAX_DEPENDENCIES_PER_SPEC }, (_, i) => `FR-CHK-${String(i).padStart(4, "0")}`);
+    const doc = makeDoc({ specs: [makeSpec({ depends_on: deps })] });
+    expect(validateSizeLimits(doc)).toBeNull();
+  });
+
+  it("returns null when acceptance length is exactly at the limit", () => {
+    const acceptance = Array.from({ length: SPECS_MAX_ACCEPTANCE_PER_SPEC }, () => makeAcceptance());
+    const doc = makeDoc({ specs: [makeSpec({ acceptance })] });
+    expect(validateSizeLimits(doc)).toBeNull();
+  });
+
+  it("returns null when a long string field is exactly at SPECS_MAX_STRING_LENGTH", () => {
+    const doc = makeDoc({ specs: [makeSpec({ statement: "x".repeat(SPECS_MAX_STRING_LENGTH) })] });
+    expect(validateSizeLimits(doc)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Defensive `?? []` fallbacks — undefined (not merely empty-array) optional fields
+// ---------------------------------------------------------------------------
+
+describe("validators — defensive fallback when optional array fields are literally undefined", () => {
+  it("validateAreaRegistration treats a doc with areas undefined as unregistered", () => {
+    const doc = { specs: [] } as unknown as Parameters<typeof validateAreaRegistration>[1];
+    expect(validateAreaRegistration(makeSpec({ id: "FR-CHK-0001" }), doc)).toBe("unknown_area");
+  });
+
+  it("autoRegisterAreas initializes doc.areas when it is undefined", () => {
+    const doc = {} as unknown as Parameters<typeof autoRegisterAreas>[0];
+    autoRegisterAreas(doc, ["FR-CHK-0001"]);
+    expect((doc as { areas: unknown[] }).areas).toEqual([{ code: "CHK", name: "CHK" }]);
+  });
+
+  it("validateUniqueIds treats a doc with specs undefined as empty (no error)", () => {
+    const doc = {} as unknown as Parameters<typeof validateUniqueIds>[0];
+    expect(validateUniqueIds(doc)).toBeNull();
+  });
+
+  it("validateReferences treats a doc with specs undefined as empty (no error)", () => {
+    const doc = {} as unknown as Parameters<typeof validateReferences>[0];
+    expect(validateReferences(doc)).toBeNull();
+  });
+
+  it("validateReferences treats a spec with depends_on/related undefined as empty", () => {
+    const spec = { id: "FR-CHK-0001" } as unknown as ReturnType<typeof makeSpec>;
+    const doc = { specs: [spec] } as unknown as Parameters<typeof validateReferences>[0];
+    expect(validateReferences(doc)).toBeNull();
+  });
+
+  it("validateDependsAcyclic treats a doc with specs undefined as empty (no error)", () => {
+    const doc = {} as unknown as Parameters<typeof validateDependsAcyclic>[0];
+    expect(validateDependsAcyclic(doc)).toBeNull();
+  });
+
+  it("validateDependsAcyclic treats a spec with depends_on undefined as no dependencies", () => {
+    const spec = { id: "FR-CHK-0001" } as unknown as ReturnType<typeof makeSpec>;
+    const doc = { specs: [spec] } as unknown as Parameters<typeof validateDependsAcyclic>[0];
+    expect(validateDependsAcyclic(doc)).toBeNull();
+  });
+
+  it("validateSizeLimits treats a doc with specs undefined as empty (no error)", () => {
+    const doc = {} as unknown as Parameters<typeof validateSizeLimits>[0];
+    expect(validateSizeLimits(doc)).toBeNull();
+  });
+
+  it("validateSizeLimits treats a spec with depends_on/related/acceptance undefined as empty", () => {
+    const spec = { id: "FR-CHK-0001", title: "x" } as unknown as ReturnType<typeof makeSpec>;
+    const doc = { specs: [spec] } as unknown as Parameters<typeof validateSizeLimits>[0];
+    expect(validateSizeLimits(doc)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// stripGuarded — FR-SPECS-0040
+// ---------------------------------------------------------------------------
+
+describe("stripGuarded — FR-SPECS-0040", () => {
+  it("drops all four guarded fields", () => {
+    const item = {
+      id: "FR-CHK-0001",
+      title: "x",
+      status: "Approved",
+      approved_by: "someone",
+      implementation: "Implemented",
+      changed_by: "someone",
+    };
+    const stripped = stripGuarded(item);
+    for (const field of GUARDED_FIELDS) {
+      expect(stripped).not.toHaveProperty(field);
+    }
+    expect(stripped["id"]).toBe("FR-CHK-0001");
+    expect(stripped["title"]).toBe("x");
+  });
+
+  it("leaves a non-guarded-only item unchanged (same keys/values)", () => {
+    const item = { id: "x", title: "y" };
+    expect(stripGuarded(item)).toEqual(item);
+  });
+
+  it("returns an empty object for an all-guarded item", () => {
+    expect(stripGuarded({ status: "Draft", approved_by: "", implementation: "NotStarted", changed_by: "" })).toEqual({});
+  });
+});
+
+// ---------------------------------------------------------------------------
+// loadSpecs / saveSpecs / newDocument — FR-SPECS-0002, 0071
+// ---------------------------------------------------------------------------
+
+describe("loadSpecs / saveSpecs — FR-SPECS-0002/0071", () => {
+  it("returns null for a nonexistent file", () => {
+    expect(loadSpecs(specsFile("nope.json"))).toBeNull();
+  });
+
+  it("round-trips a saved document", () => {
+    const file = specsFile();
+    const doc = makeDoc({ component: "checkout", specs: [makeSpec()] });
+    saveSpecs(file, doc);
+    const loaded = loadSpecs(file)!;
+    expect(loaded.component).toBe("checkout");
+    expect(loaded.specs).toHaveLength(1);
+  });
+
+  it("creates parent directories on save", () => {
+    const file = path.join(tmpDir, "nested", "dir", "specs.json");
+    saveSpecs(file, makeDoc());
+    expect(fs.existsSync(file)).toBe(true);
+  });
+
+  it("injects previous_version:null for a legacy document lacking the field", () => {
+    const file = specsFile();
+    const legacy = { component: "x", description: "", created_at: "t", updated_at: "t", areas: [], specs: [] };
+    fs.writeFileSync(file, JSON.stringify(legacy));
+    const loaded = loadSpecs(file)!;
+    expect(loaded.previous_version).toBeNull();
+  });
+
+  it("saveSpecs updates updated_at to the current time", () => {
+    const file = specsFile();
+    const doc = makeDoc({ updated_at: "2020-01-01T00:00:00.000Z" });
+    saveSpecs(file, doc);
+    const loaded = loadSpecs(file)!;
+    expect(loaded.updated_at).not.toBe("2020-01-01T00:00:00.000Z");
+  });
+});
+
+describe("newDocument — FR-SPECS-0002", () => {
+  it("returns an empty document with previous_version null", () => {
+    const doc = newDocument("checkout");
+    expect(doc.component).toBe("checkout");
+    expect(doc.previous_version).toBeNull();
+    expect(doc.areas).toEqual([]);
+    expect(doc.specs).toEqual([]);
+    expect(doc.created_at).toBe(doc.updated_at);
+  });
+
+  it("defaults component to empty string when omitted", () => {
+    expect(newDocument().component).toBe("");
+  });
+});

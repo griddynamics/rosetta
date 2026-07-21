@@ -6,7 +6,7 @@ import * as fs from "fs";
 import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
-import { atomicWriteWithBackup } from "../../shared/plan-io.js";
+import { atomicWriteWithBackup } from "../../shared/doc-io.js";
 import {
   type Plan,
   type Phase,
@@ -84,7 +84,7 @@ export async function cmdUpsert(
     // Special case: entire_plan on missing file — create new plan (first-create path).
     // FR-PLAN-0024 — no rename needed for first create.
     // Use fs.existsSync (NOT loadPlan) so a corrupted file falls through to the write cycle,
-    // which translates parse failure to FR-PLAN-0021 plan_file_corrupted via readPlanWithRetry.
+    // which translates parse failure to FR-PLAN-0021 plan_file_corrupted via readDocWithRetry.
     if (resolvedTargetId === "entire_plan" && !fs.existsSync(planFile)) {
       const now = new Date().toISOString();
       let plan: Plan = {

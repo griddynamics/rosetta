@@ -59,8 +59,8 @@ Each `AcceptanceCriterion` SHALL be the named object shape above (given/when/the
     <criteria>Given: an add call with a full valid spec object. When: executed. Then: the stored unit contains every field with defaults applied for omitted optional fields. Given: a spec object carrying an unknown field "foo". When: validated. Then: {error: "invalid_spec_field"}. Given: an acceptance entry missing "then". When: validated. Then: it is reported as an incomplete criterion (FR-SPECS-0021).</criteria>
   </acceptance>
   <depends>FR-SPECS-0004, FR-SPECS-0005, FR-SPECS-0006</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/core.ts, schemas.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0002 Specs Document Schema
@@ -97,8 +97,8 @@ The command operates on one specs document per invocation, addressed by a caller
     <criteria>Given: an add call against a non-existent document path. When: executed with create semantics. Then: the file and parent dirs are created with created_at, updated_at set, previous_version null, and the spec appended. Given: a document read back. When: parsed. Then: all fields conform to the schema. Given: a document file that is not valid JSON. When: read. Then: {error: "specs_file_corrupted"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0004, FR-SPECS-0070, FR-SPECS-0071</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/core.ts, write.ts, shared/doc-io.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0003 Spec Types
@@ -118,8 +118,8 @@ The command operates on one specs document per invocation, addressed by a caller
     <criteria>Given: a spec with type "GOAL". When: validated. Then: {error: "invalid_type"}. Given: a spec with type "NFR". When: added. Then: it is accepted and its statement is checked against the NFR content rule of FR-SPECS-0006.</criteria>
   </acceptance>
   <depends>FR-SPECS-0006</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/core.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0004 Identifier Format and Area Registration
@@ -139,8 +139,8 @@ The command operates on one specs document per invocation, addressed by a caller
     <criteria>Given: add for an FR in area SPECS with no id. Then: {error: "missing_id"}. Given: an id "FR-SPECS-8". When: validated. Then: {error: "invalid_id_format"}. Given: an id in area "XYZ" not registered and not registered by the call. Then: {error: "unknown_area"}. Given: an update patch body that changes id. Then: {error: "immutable_id"}. Given: info is called. Then: it reports the highest used NNNN per prefix+area.</criteria>
   </acceptance>
   <depends>FR-SPECS-0002, FR-SPECS-0024</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/core.ts, info.ts, add.ts, migrate.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0005 Uniqueness and Reference Integrity
@@ -160,8 +160,8 @@ The command operates on one specs document per invocation, addressed by a caller
     <criteria>Given: an add that reuses an existing id. Then: {error: "duplicate_id"}. Given: a spec with depends_on referencing a missing id. Then: {error: "unknown_dependency"}. Given: a spec with related referencing a missing id. Then: {error: "unknown_dependency"}. Given: a single batch that adds A and B where B depends_on A. Then: it succeeds. Given: A depends_on B and B depends_on A. Then: {error: "dependency_cycle"}. Given: a self-dependency A depends_on A. Then: {error: "dependency_cycle"}. Given: A related B and B related A. Then: it succeeds (related may cycle). Given: A related A. Then: it succeeds. Given: A depends_on B where B is soft-deleted (Removed) but present. Then: the reference is valid (no unknown_dependency).</criteria>
   </acceptance>
   <depends>FR-SPECS-0004, FR-SPECS-0030, FR-SPECS-0040, FR-SPECS-0070</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/core.ts, shared/graph.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0006 Statement and Acceptance Content Rules
@@ -181,8 +181,8 @@ The command operates on one specs document per invocation, addressed by a caller
     <criteria>Given: an FR statement "When the file is missing, the system shall return plan_not_found". When: validated. Then: it passes the EARS check. Given: an FR statement "The system handles errors nicely". When: validated. Then: EARS non-conformance is reported. Given: an NFR statement "validate shall complete within 500 ms for 1000 specs". When: validated. Then: it passes the measurable check. Given: a spec with an empty acceptance array. When: validated. Then: missing-acceptance is reported.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0021</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/rubric.ts, validate.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0007 Size Limits and Constants
@@ -202,8 +202,8 @@ The command operates on one specs document per invocation, addressed by a caller
     <criteria>Given: a document with 1001 specs after a batch. Then: {error: "size_limit_exceeded"}. Given: a title of 257 characters. Then: {error: "size_limit_exceeded"}. Given: a batch of 501 items. Then: {error: "size_limit_exceeded"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0060</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/core.ts, shared/constants.ts</implementationNotes>
 </req>
 
 ## Core Subcommands
@@ -214,7 +214,7 @@ Every subcommand in this section accepts one or more items (batch) and follows t
 
 <req id="FR-SPECS-0010" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
   <title>specs add subcommand</title>
-  <statement>specs add SHALL accept a specs document path and one or more spec objects (a JSON object or a JSON array of objects) and append each as a new spec unit. For each item: `id` is required and caller-provided (FR-SPECS-0004; an item without id is rejected with `missing_id`); field defaults are applied (FR-SPECS-0001); `status` defaults to Draft; `implementation` defaults to NotStarted; `changed` is set to the current UTC timestamp (FR-SPECS-0042) and `changed_by` to the resolved actor (FR-SPECS-0041); `approved_by` is forced to empty. Any `status`, `approved_by`, or `implementation` value supplied on an add item SHALL be ignored (guarded fields, FR-SPECS-0040) — a new spec always enters as Draft/NotStarted. If the document does not exist it SHALL be created (FR-SPECS-0002). All integrity checks (FR-SPECS-0005) and size limits (FR-SPECS-0007) SHALL run over the resulting document before writing. On success the result SHALL be the shared SpecWriteResult (FR-SPECS-0050). Errors: `missing_id`, `duplicate_id`, `invalid_id_format`, `unknown_area`, `invalid_type`, `invalid_spec_field`, `unknown_dependency`, `dependency_cycle`, `size_limit_exceeded`, `missing_required_field` (a required field per FR-SPECS-0001 is absent).</statement>
+  <statement>specs add SHALL accept a specs document path and one or more spec objects (a JSON object or a JSON array of objects) and append each as a new spec unit. For each item: `id` is required and caller-provided (FR-SPECS-0004; an item without id is rejected with `missing_id`); field defaults are applied (FR-SPECS-0001); `status` defaults to Draft; `implementation` defaults to NotStarted; `changed` is set to the current UTC timestamp (FR-SPECS-0042) and `changed_by` to the resolved actor (FR-SPECS-0041); `approved_by` is forced to empty. Any `status`, `approved_by`, or `implementation` value supplied on an add item SHALL be ignored (guarded fields, FR-SPECS-0040) — a new spec always enters as Draft/NotStarted. If the document does not exist it SHALL be created (FR-SPECS-0002). All integrity checks (FR-SPECS-0005) and size limits (FR-SPECS-0007) SHALL run over the resulting document before writing. On success the result SHALL be the shared SpecWriteResult (FR-SPECS-0050). Errors: `missing_id`, `duplicate_id`, `invalid_id_format`, `unknown_area`, `invalid_type`, `invalid_source`, `invalid_priority`, `invalid_verification`, `invalid_spec_field`, `unknown_dependency`, `dependency_cycle`, `size_limit_exceeded`, `missing_required_field` (a required field per FR-SPECS-0001 is absent).</statement>
   <rationale>add is the create path. Requiring a caller-provided id keeps id ownership with the authoring agent; forcing Draft/NotStarted makes new specs safe by default and keeps approval a deliberate, separate act. Accepting a single object or an array is the uniform batch shape.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -224,11 +224,11 @@ Every subcommand in this section accepts one or more items (batch) and follows t
   <changed>2026-07-20</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: add with one valid FR object including its id. When: executed. Then: status=Draft, implementation=NotStarted, changed and changed_by set, and the result is SpecWriteResult. Given: add with an item lacking id. Then: {error: "missing_id"}. Given: add with a two-element array. When: executed. Then: both are appended in one write. Given: add with status="Approved" set on the item. When: executed. Then: the stored status is Draft (supplied status ignored). Given: add against a missing document path. Then: the document is created. Given: add whose item omits `title`. Then: {error: "missing_required_field"}. Given: an item with an unknown field. Then: {error: "invalid_spec_field"}.</criteria>
+    <criteria>Given: add with one valid FR object including its id. When: executed. Then: status=Draft, implementation=NotStarted, changed and changed_by set, and the result is SpecWriteResult. Given: add with an item lacking id. Then: {error: "missing_id"}. Given: add with a two-element array. When: executed. Then: both are appended in one write. Given: add with status="Approved" set on the item. When: executed. Then: the stored status is Draft (supplied status ignored). Given: add against a missing document path. Then: the document is created. Given: add whose item omits `title`. Then: {error: "missing_required_field"}. Given: an item with an unknown field. Then: {error: "invalid_spec_field"}. Given: an item with an out-of-enum source, priority, or verification value. Then: {error: "invalid_source"}, {error: "invalid_priority"}, or {error: "invalid_verification"} respectively.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0004, FR-SPECS-0005, FR-SPECS-0007, FR-SPECS-0030, FR-SPECS-0040, FR-SPECS-0041, FR-SPECS-0042, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/add.ts, core.ts, write.ts, output.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0011 get
@@ -248,8 +248,8 @@ Every subcommand in this section accepts one or more items (batch) and follows t
     <criteria>Given: get with ["FR-SPECS-0001","FR-SPECS-9999"]. When: executed. Then: found=[the first unit], missing=["FR-SPECS-9999"]. Given: get for a soft-deleted id. Then: it appears in found (with status Removed). Given: the document file is missing. Then: {error: "specs_not_found"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/get.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0012 query
@@ -269,15 +269,15 @@ Every subcommand in this section accepts one or more items (batch) and follows t
     <criteria>Given: query `type:NFR status:Approved`. When: executed. Then: only Approved NFRs are returned and count matches. Given: query `area:CLI,MCP`. Then: specs in either area are returned. Given: query with no string. Then: all non-Removed specs are returned. Given: query `include_removed:true`. Then: Removed specs are included. Given: query `depends_on:FR-SPECS-0004`. Then: every returned spec lists FR-SPECS-0004 in its depends_on. Given: query `-status:Removed retry`. Then: non-Removed specs whose title or statement contains "retry" are returned. Given: an unknown filter key. Then: {error: "invalid_filter"}. Given: a malformed query string. Then: {error: "invalid_query"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/query.ts, query-filter.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0013 update
 
 <req id="FR-SPECS-0013" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
   <title>specs update subcommand</title>
-  <statement>specs update SHALL accept a specs document path and one or more patch objects, each identifying a target by `id` and carrying the fields to change, and SHALL merge-patch each target following RFC 7396 (null removes a key, nested objects merge, scalars and arrays replace). A patch whose `id` does not exist SHALL be rejected with `target_not_found`. update SHALL NOT change a spec's `id` (`immutable_id` if a patch attempts a different id in its body). The guarded fields `status`, `approved_by`, `implementation`, and `changed_by` in a patch SHALL be silently dropped — they change only via the lifecycle ops (approve/deprecate/restore FR-SPECS-0040, delete FR-SPECS-0014, implemented FR-SPECS-0015) and the actor resolver (FR-SPECS-0041). Every patched spec's `changed` (UTC, FR-SPECS-0042) and `changed_by` (resolved actor, FR-SPECS-0041) SHALL be set on write. When a patch changes an Approved spec's normative content — its `statement` or any `acceptance` criterion — the command SHALL set that spec's `status` to Modified and clear `approved_by`, so the change requires re-approval; a purely cosmetic edit (e.g. `notes`, `rationale`, `title`) SHALL leave `status` unchanged. When such a normative edit is applied to a spec whose `implementation` is Implemented, the command SHALL set `implementation` to ToBeModified so the implementation is revisited. All integrity checks (FR-SPECS-0005) and size limits (FR-SPECS-0007) SHALL run over the post-batch state before writing. On success the result SHALL be the shared SpecWriteResult (FR-SPECS-0050). Errors: `target_not_found`, `immutable_id`, `invalid_spec_field`, `unknown_dependency`, `dependency_cycle`, `duplicate_id`, `size_limit_exceeded`, `invalid_data`, `missing_data`.</statement>
+  <statement>specs update SHALL accept a specs document path and one or more patch objects, each identifying a target by `id` and carrying the fields to change, and SHALL merge-patch each target following RFC 7396 (null removes a key, nested objects merge, scalars and arrays replace). A patch whose `id` does not exist SHALL be rejected with `target_not_found`. update SHALL NOT change a spec's `id` (`immutable_id` if a patch attempts a different id in its body). The guarded fields `status`, `approved_by`, `implementation`, and `changed_by` in a patch SHALL be silently dropped — they change only via the lifecycle ops (approve/deprecate/restore FR-SPECS-0040, delete FR-SPECS-0014, implemented FR-SPECS-0015) and the actor resolver (FR-SPECS-0041). Every patched spec's `changed` (UTC, FR-SPECS-0042) and `changed_by` (resolved actor, FR-SPECS-0041) SHALL be set on write. When a patch changes an Approved spec's normative content — its `statement` or any `acceptance` criterion — the command SHALL set that spec's `status` to Modified and clear `approved_by`, so the change requires re-approval; a purely cosmetic edit (e.g. `notes`, `rationale`, `title`) SHALL leave `status` unchanged. When such a normative edit is applied to a spec whose `implementation` is Implemented, the command SHALL set `implementation` to ToBeModified so the implementation is revisited. All integrity checks (FR-SPECS-0005) and size limits (FR-SPECS-0007) SHALL run over the post-batch state before writing. On success the result SHALL be the shared SpecWriteResult (FR-SPECS-0050). Errors: `target_not_found`, `immutable_id`, `invalid_spec_field`, `unknown_dependency`, `dependency_cycle`, `duplicate_id`, `size_limit_exceeded`, `invalid_source`, `invalid_priority`, `invalid_verification`, `invalid_data`, `missing_data`.</statement>
   <rationale>update is the merge-patch edit path, mirroring plan upsert's proven RFC-7396 semantics and its silent-drop of guarded fields so approval and implementation state cannot be flipped mechanically. Moving an edited Approved spec to Modified (not fresh Draft) records that it was once approved but its contract changed, and forcing an Implemented spec to ToBeModified signals the code must be revisited — together these keep approval and implementation state honest against the current text, the core governance guarantee the skill needs the engine to uphold. Limiting the trigger to statement/acceptance edits avoids churn on cosmetic changes.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -287,11 +287,11 @@ Every subcommand in this section accepts one or more items (batch) and follows t
   <changed>2026-07-20</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: update {id:"FR-SPECS-0001", title:"New title"} on a Draft spec. When: executed. Then: title changes, other fields preserved, changed and changed_by set, result is SpecWriteResult. Given: a patch with status:"Approved". When: executed. Then: the status field is silently dropped. Given: a patch body with a different id than the target. Then: {error: "immutable_id"}. Given: a patch targeting a missing id. Then: {error: "target_not_found"}. Given: an edit to an Approved spec's statement. When: executed. Then: its status becomes Modified and approved_by is cleared. Given: a cosmetic edit (notes only) to an Approved spec. When: executed. Then: status stays Approved. Given: a statement edit to a spec whose implementation is Implemented. When: executed. Then: implementation becomes ToBeModified. Given: a null value in a patch. Then: that key is removed. Given: a patch that is not a JSON object (e.g. a string or number). Then: {error: "invalid_data"}. Given: an update call with no patch payload at all. Then: {error: "missing_data"}.</criteria>
+    <criteria>Given: update {id:"FR-SPECS-0001", title:"New title"} on a Draft spec. When: executed. Then: title changes, other fields preserved, changed and changed_by set, result is SpecWriteResult. Given: a patch with status:"Approved". When: executed. Then: the status field is silently dropped. Given: a patch body with a different id than the target. Then: {error: "immutable_id"}. Given: a patch targeting a missing id. Then: {error: "target_not_found"}. Given: an edit to an Approved spec's statement. When: executed. Then: its status becomes Modified and approved_by is cleared. Given: a cosmetic edit (notes only) to an Approved spec. When: executed. Then: status stays Approved. Given: a statement edit to a spec whose implementation is Implemented. When: executed. Then: implementation becomes ToBeModified. Given: a null value in a patch. Then: that key is removed. Given: a patch that is not a JSON object (e.g. a string or number). Then: {error: "invalid_data"}. Given: an update call with no patch payload at all. Then: {error: "missing_data"}. Given: a patch that leaves the merged spec with an out-of-enum source, priority, or verification value. Then: {error: "invalid_source"}, {error: "invalid_priority"}, or {error: "invalid_verification"} respectively.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0005, FR-SPECS-0007, FR-SPECS-0030, FR-SPECS-0040, FR-SPECS-0041, FR-SPECS-0042, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/update.ts, core.ts, write.ts, output.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0014 delete
@@ -311,8 +311,8 @@ Every subcommand in this section accepts one or more items (batch) and follows t
     <criteria>Given: delete ["FR-SPECS-0003"]. When: executed. Then: that spec's status=Removed, it remains in the document, removed=["FR-SPECS-0003"]. Given: delete an already-Removed id. Then: it succeeds (idempotent). Given: delete a non-existent id. Then: it appears in missing, no error. Given: a soft-deleted id. Then: it is never reused for a different spec and stays a valid reference target.</criteria>
   </acceptance>
   <depends>FR-SPECS-0004, FR-SPECS-0005, FR-SPECS-0016, FR-SPECS-0040, FR-SPECS-0041</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/delete.ts, write.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0015 implemented
@@ -332,8 +332,8 @@ Every subcommand in this section accepts one or more items (batch) and follows t
     <criteria>Given: implemented {id:"FR-SPECS-0001", implementation:"Implemented", implementation_notes:"done in commands/specs"}. When: executed. Then: implementation=Implemented, notes set, changed and changed_by set, status unchanged. Given: implementation:"Done". Then: {error: "invalid_implementation"}. Given: a missing target id. Then: {error: "target_not_found"}. Given: no implementation value. Then: {error: "missing_implementation"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0030, FR-SPECS-0040, FR-SPECS-0041, FR-SPECS-0042, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/implemented.ts, write.ts</implementationNotes>
 </req>
 
 ## Lifecycle Subcommands
@@ -357,8 +357,8 @@ Each subcommand in this section is a guarded-field setter: it is the ONLY operat
     <criteria>Given: purge without --force. Then: {error: "force_required"}. Given: purge --force of an unreferenced id. Then: it is removed and appears in purged. Given: purge --force of an id still referenced by another spec's depends_on. Then: {error: "referenced_by_others"} listing the referrer. Given: purge --force of a referenced id together with its referrer in one batch. Then: both are purged. Given: purge of a non-existent id. Then: it appears in missing, no error.</criteria>
   </acceptance>
   <depends>FR-SPECS-0005, FR-SPECS-0014</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/purge.ts, aggregate.ts, frontends/cli.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0017 approve
@@ -378,8 +378,8 @@ Each subcommand in this section is a guarded-field setter: it is the ONLY operat
     <criteria>Given: approve a Draft spec that passes validation. When: executed. Then: status=Approved, approved_by set to the resolved actor, changed set. Given: approve a spec with an error-level validation finding. Then: the whole batch is refused with `validation_failed` whose message text names the spec and its blocking problem(s), and nothing is approved. Given: approve an already-Approved spec. Then: idempotent success. Given: approve a Removed spec. Then: {error: "invalid_transition"}. Given: a missing id. Then: {error: "target_not_found"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0021, FR-SPECS-0040, FR-SPECS-0041, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/approve.ts, validate.ts, rubric.ts, aggregate.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0018 deprecate
@@ -399,8 +399,8 @@ Each subcommand in this section is a guarded-field setter: it is the ONLY operat
     <criteria>Given: deprecate an Approved spec. When: executed. Then: status=Deprecated, spec retained. Given: deprecate an already-Deprecated spec. Then: idempotent success. Given: deprecate a Removed spec. Then: {error: "invalid_transition"}. Given: a missing id. Then: {error: "target_not_found"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0040, FR-SPECS-0041, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/deprecate.ts, write.ts, output.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0019 restore
@@ -420,8 +420,8 @@ Each subcommand in this section is a guarded-field setter: it is the ONLY operat
     <criteria>Given: restore a Removed spec. When: executed. Then: status=Draft. Given: restore a Draft spec. Then: {error: "invalid_transition"}. Given: a missing id. Then: {error: "target_not_found"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0014, FR-SPECS-0040, FR-SPECS-0041, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/restore.ts, write.ts, output.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0020 reopen
@@ -441,8 +441,8 @@ Each subcommand in this section is a guarded-field setter: it is the ONLY operat
     <criteria>Given: reopen an Approved spec. When: executed. Then: status=Draft, approved_by cleared. Given: reopen a Draft spec. Then: {error: "invalid_transition"}. Given: a missing id. Then: {error: "target_not_found"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0013, FR-SPECS-0040, FR-SPECS-0041, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/reopen.ts, write.ts, output.ts</implementationNotes>
 </req>
 
 ## Analysis and Orientation Subcommands
@@ -466,8 +466,8 @@ These subcommands read the document (and, where noted, additional documents) and
     <criteria>Given: a document with one spec missing `title`. When: validate runs. Then: a SpecFinding {check: schema_completeness, severity: error} is returned and ok=false. Given: an FR whose statement matches no EARS pattern. Then: a warning finding, ok unaffected by warnings. Given: a depends_on cycle. Then: an error finding. Given: a clean document. Then: ok=true, findings=[]. Given: a filter scoping to one area. Then: only that area's specs are checked.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0004, FR-SPECS-0005, FR-SPECS-0006, FR-SPECS-0007, FR-SPECS-0012, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/validate.ts, rubric.ts, core.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0022 graph
@@ -487,8 +487,8 @@ These subcommands read the document (and, where noted, additional documents) and
     <criteria>Given: graph with target C where C depends_on B and B depends_on A. Then: dependencies=[B,A]. Given: graph with target A where B and C depend_on A. Then: dependents include B and C. Given: graph over a whole document with a cycle X→Y→X. Then: cycles contains that cycle. Given: a target whose depends_on references an id only present in an additional document path supplied. Then: it resolves and is not in unresolved. Given: a reference resolvable in no supplied document. Then: it appears in unresolved.</criteria>
   </acceptance>
   <depends>FR-SPECS-0005, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/graph.ts, shared/graph.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0023 render
@@ -508,8 +508,8 @@ These subcommands read the document (and, where noted, additional documents) and
     <criteria>Given: render with no filter. When: executed. Then: content is a markdown string grouping all non-Removed specs by area, timestamps in local time. Given: render format=text. Then: content is plain text. Given: render with a filter. Then: only matching specs appear. Given: format=pdf. Then: {error: "invalid_format"}. Given: any render call. Then: no file is written.</criteria>
   </acceptance>
   <depends>FR-SPECS-0012, FR-SPECS-0042, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/render.ts, query-filter.ts, shared/time.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0024 info
@@ -529,8 +529,8 @@ These subcommands read the document (and, where noted, additional documents) and
     <criteria>Given: a document with 3 areas and specs in each. When: info runs. Then: areas lists each code, name, and count; totals summarize by type/status/implementation; next_ids gives the suggested next id per prefix+area. Given: an area whose highest FR id is FR-SPECS-0012. Then: its SpecNextId.suggested is FR-SPECS-0013. Given: a missing document. Then: {error: "specs_not_found"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0004, FR-SPECS-0042, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/info.ts, shared/time.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0025 migrate
@@ -550,8 +550,8 @@ These subcommands read the document (and, where noted, additional documents) and
     <criteria>Given: a source markdown with three <req> blocks in split-tag form. When: migrate runs. Then: migrated=3 and the destination document contains the three specs with areas registered. Given: a <req> using the legacy bracketed implementation form. Then: it is normalized to implementation + implementation_notes. Given: an acceptance criteria string with Given/When/Then markers. Then: it is parsed into the structured array. Given: a criterion that cannot be split. Then: it is preserved in `then` and a warning is recorded. Given: a source path that does not exist. Then: {error: "source_not_found"}. Given: a source file whose content cannot be parsed at the file level. Then: {error: "migrate_parse_error"}. Given: an import that would push the document beyond the max specs limit. Then: {error: "size_limit_exceeded"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0002, FR-SPECS-0005, FR-SPECS-0007, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/migrate.ts, req-parser.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0026 Semantic Search (Future)
@@ -594,8 +594,8 @@ These subcommands read the document (and, where noted, additional documents) and
     <criteria>Given: an add batch of three where the second and third are invalid. When: executed. Then: nothing is written and the single error string names both failing items and each reason. Given: an update batch of two both valid. Then: a single write applies both. Given: a get of five ids where two are absent. Then: found has three, missing has two, no error. Given: a batch of 501 items. Then: {error: "size_limit_exceeded"} before processing. Given: a single object (not an array). Then: it is handled as a batch of one.</criteria>
   </acceptance>
   <depends>FR-SPECS-0005, FR-SPECS-0007, FR-SPECS-0070</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/index.ts, write.ts, aggregate.ts</implementationNotes>
 </req>
 
 ## Governance, Identity, and Time
@@ -617,8 +617,8 @@ These subcommands read the document (and, where noted, additional documents) and
     <criteria>Given: add or update with approved_by set by the caller. When: executed. Then: the value is dropped; approved_by is empty (add) or unchanged (update). Given: update with status or implementation set. Then: those are dropped. Given: approve. Then: approved_by is the resolved actor, not any caller-supplied string. Given: any write. Then: changed_by is the resolved actor.</criteria>
   </acceptance>
   <depends>FR-SPECS-0010, FR-SPECS-0013, FR-SPECS-0014, FR-SPECS-0015, FR-SPECS-0041</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/core.ts, write.ts, add.ts, update.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0041 Actor Identity Resolution
@@ -638,8 +638,8 @@ These subcommands read the document (and, where noted, additional documents) and
     <criteria>Given: ROSETTA_ACTOR set. When: any write runs. Then: changed_by equals that value. Given: no override but git user.email configured. Then: changed_by is the git email. Given: neither, but the OS user is available. Then: changed_by is the OS username. Given: nothing resolves. Then: changed_by is "unknown" and the write still succeeds. Given: approve. Then: approved_by uses the same resolution.</criteria>
   </acceptance>
   <depends>FR-SPECS-0040</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/shared/actor.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0042 UTC Storage, Local Display
@@ -659,8 +659,8 @@ These subcommands read the document (and, where noted, additional documents) and
     <criteria>Given: any write. When: the document is read back. Then: created_at/updated_at/changed are ISO8601 UTC with Z. Given: render or info. Then: displayed timestamps are in the caller's local timezone. Given: get or query. Then: returned timestamps are the stored UTC values.</criteria>
   </acceptance>
   <depends>FR-SPECS-0023, FR-SPECS-0024</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/shared/time.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0043 Caller Spec IDs Are Not Internal References
@@ -680,8 +680,8 @@ These subcommands read the document (and, where noted, additional documents) and
     <criteria>Given: the specs command help payload. When: scanned. Then: it contains no FR-SPECS-* id, no ticket id, and no internal path. Given: a get result for a spec whose id is FR-AUTH-0003 with depends_on [FR-AUTH-0001]. Then: those ids are returned verbatim, not redacted.</criteria>
   </acceptance>
   <depends>FR-SPECS-0060</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/help-content.ts, errors.ts</implementationNotes>
 </req>
 
 ## Output Shapes
@@ -707,8 +707,8 @@ The remaining named result types are: `Spec` and its member `AcceptanceCriterion
     <criteria>Given: add and update results. When: compared. Then: both are the one shared SpecWriteResult. Given: approve/deprecate/restore/reopen results. Then: all are the one shared SpecLifecycleResult. Given: any result walked to any depth. Then: every nested and array-items shape is a named type present in the schema dictionary; no anonymous shape. Given: a first write. Then: SpecWriteResult.document.previous_version is null; a later write gives the backup path.</criteria>
   </acceptance>
   <depends>FR-SPECS-0060, FR-SPECS-0070</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/output.ts, core.ts, schemas.ts</implementationNotes>
 </req>
 
 ## Help Content
@@ -741,8 +741,8 @@ All emitted help content SHALL obey FR-ARCH-0016 as scoped by FR-SPECS-0043: no 
     <criteria>Given: rosettify help specs. When: executed. Then: the content includes specs_file, concepts (including the full status lifecycle and depends_on-vs-related), one subcommand entry per registered subcommand each with a required-inputs statement and a tip-form and real-form example, the schemas dictionary per FR-SPECS-0050, limits, query_notation, notes, and next_steps_for_ai. Given: the emitted payload is scanned. Then: no requirement id, ticket id, internal path, or authoring rationale appears.</criteria>
   </acceptance>
   <depends>FR-SPECS-0007, FR-SPECS-0012, FR-SPECS-0043, FR-SPECS-0050, FR-SPECS-0061</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/help-content.ts, schemas.ts, index.ts, registry/index.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0061 Specs Help Notes Content
@@ -777,8 +777,8 @@ Every note SHALL be standalone directive guidance and SHALL NOT contain requirem
     <criteria>Given: rosettify help specs. When: executed. Then: notes contains every behavior listed above. Given: any note. Then: it is standalone directive guidance with no requirement id, ticket id, internal path, or authoring rationale.</criteria>
   </acceptance>
   <depends>FR-SPECS-0060</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/help-content.ts</implementationNotes>
 </req>
 
 ## File I/O
@@ -800,8 +800,8 @@ Every note SHALL be standalone directive guidance and SHALL NOT contain requirem
     <criteria>Given: a successful write on an existing document. Then: the prior file is renamed to <file>.bakNNN and previous_version points to it. Given: writes beyond the retention limit. Then: the oldest backups are pruned to the limit. Given: two concurrent writes. Then: the lock serializes them and neither is lost. Given: backup indexing exhausted. Then: {error: "backup_create_failed"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0002, FR-SPECS-0050</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/shared/doc-io.ts, commands/specs/write.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0071 Document Path and Read Resilience
@@ -821,6 +821,6 @@ Every note SHALL be standalone directive guidance and SHALL NOT contain requirem
     <criteria>Given: a nested path whose dirs do not exist. When: the first add runs. Then: parent dirs are created and the document is written. Given: the file is briefly absent mid-rename but a backup exists. When: read. Then: the read retries and succeeds. Given: a genuinely missing document. Then: {error: "specs_not_found"}. Given: a corrupted JSON file. Then: {error: "specs_file_corrupted"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0002, FR-SPECS-0070</depends>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/shared/doc-io.ts, commands/specs/core.ts</implementationNotes>
 </req>

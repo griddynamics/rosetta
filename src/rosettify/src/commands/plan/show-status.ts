@@ -1,10 +1,10 @@
 // Implements FR-PLAN-0013 (show_status subcommand).
-// Uses FR-SHRD-0009 (readPlanWithRetry) for read resilience.
+// Uses FR-SHRD-0009 (readDocWithRetry) for read resilience.
 
 import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
-import { readPlanWithRetry } from "../../shared/plan-io.js";
+import { readDocWithRetry } from "../../shared/doc-io.js";
 import { ERR_PLAN_FILE_CORRUPTED } from "./errors.js";
 import {
   type Plan,
@@ -63,7 +63,7 @@ export async function cmdShowStatus(
     // FR-SHRD-0009 — read with resilience
     let plan: Plan | null;
     try {
-      plan = await readPlanWithRetry<Plan>(planFile);
+      plan = await readDocWithRetry<Plan>(planFile);
     } catch {
       return err(ERR_PLAN_FILE_CORRUPTED);
     }

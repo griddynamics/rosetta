@@ -5,7 +5,7 @@
 import type { RunEnvelope } from "../../registry/types.js";
 import { err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
-import { atomicWriteWithBackup } from "../../shared/plan-io.js";
+import { atomicWriteWithBackup } from "../../shared/doc-io.js";
 import {
   type Plan,
   type Status,

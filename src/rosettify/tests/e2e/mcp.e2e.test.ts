@@ -661,3 +661,53 @@ describe("MCP — error cases", () => {
     expect((r.payload as { error: string }).error).toBe("plan_not_found");
   });
 });
+
+// ---------------------------------------------------------------------------
+// tools/call — specs (FR-SPECS-*) — one representative add->get round trip over MCP,
+// verifying the specs tool is reachable and its envelope unwraps the same way as plan's.
+// ---------------------------------------------------------------------------
+
+function specsFile(name = "specs.json"): string {
+  return path.join(tmpDir, name);
+}
+
+describe("MCP — specs tool registration", () => {
+  it("tools/list includes specs", async () => {
+    const tools = await client.listTools();
+    expect(tools.map((t) => t.name)).toContain("specs");
+  });
+});
+
+describe("MCP — specs add -> get round trip", () => {
+  it("add creates a spec, get retrieves it by id verbatim", async () => {
+    const file = specsFile();
+    const addRes = await client.callTool("specs", {
+      subcommand: "add",
+      specs_file: file,
+      data: {
+        id: "FR-CHK-0001",
+        type: "FR",
+        title: "Cart total",
+        statement: "When the cart changes, the system shall recompute the total.",
+        source: "User",
+        priority: "Must",
+        verification: "Test",
+        acceptance: [{ given: "an item is added", when: "the cart updates", then: "the total reflects it" }],
+      },
+    });
+    expect(addRes.isError).toBe(false);
+    const addPayload = addRes.payload as { affected: { id: string; status: string }[] };
+    expect(addPayload.affected).toEqual([{ id: "FR-CHK-0001", status: "Draft" }]);
+
+    const getRes = await client.callTool("specs", { subcommand: "get", specs_file: file, ids: ["FR-CHK-0001"] });
+    expect(getRes.isError).toBe(false);
+    const getPayload = getRes.payload as { found: { id: string }[] };
+    expect(getPayload.found[0]!.id).toBe("FR-CHK-0001"); // FR-SPECS-0043 — caller id verbatim
+  });
+
+  it("specs with an unknown subcommand returns unknown_command", async () => {
+    const r = await client.callTool("specs", { subcommand: "bogus", specs_file: specsFile() });
+    expect(r.isError).toBe(true);
+    expect((r.payload as { error: string }).error).toContain("unknown_command");
+  });
+});

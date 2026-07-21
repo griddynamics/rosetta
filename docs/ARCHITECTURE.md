@@ -137,6 +137,7 @@ Published on npm as `rosettify`. Invoked via `npx -y rosettify@latest <command> 
 **Key points:**
 - **Dual frontend.** One CLI and one MCP server backed by the same run delegates. Identical behavior in both modes.
 - **Plan management** (current feature). `npx -y rosettify@latest plan <subcommand> <plan_file>` — create, track, and advance execution plans as local JSON files. Subcommands: `create`, `next`, `update_status`, `show_status`, `query`, `upsert`, `create-with-template`, `upsert-with-template`, `list-templates`.
+- **Specs management** (current feature). `npx -y rosettify@latest specs <subcommand> <specs_file>` — author, query, validate, and approve a component's requirements as spec units stored in one JSON document per component. Subcommands: `add`, `get`, `query`, `update`, `delete`, `purge`, `implemented`, `approve`, `deprecate`, `restore`, `reopen`, `validate`, `graph`, `render`, `info`, `migrate`.
 - **Atomic write cycle with backup chain.** Every plan mutation uses a rename-as-guard cycle: rename the plan file to `<file>.bakNNN` as the atomic lock, then write the new content. The plan's `previous_version` field tracks the prior backup path. Up to 5 backups retained; bounded to 50 retries.
 - **Template registry.** Two compiled-in template kinds (`create`, `upsert`) with strict bidirectional placeholder matching. Seed templates ship with the package.
 - **Sequential phase enforcement.** `next` returns work from the earliest incomplete phase only; later phases are blocked until all earlier phases are done.

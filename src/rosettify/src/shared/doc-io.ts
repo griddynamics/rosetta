@@ -1,4 +1,7 @@
 // Implements FR-SHRD-0009 (read resilience with retry) and FR-PLAN-0024 (atomic write with rename-as-guard).
+// Generalized from plan-io.ts so both `plan` and `specs` share one file-IO implementation
+// (FR-SPECS-0070/0071) — bodies are unchanged except the error-code source, which is now an
+// optional parameter defaulting to plan's exact strings so plan behavior is byte-identical.
 
 import * as fs from "fs";
 import * as path from "path";
@@ -11,16 +14,23 @@ import {
   PLAN_READ_RETRY_DELAY_MS,
   PLAN_READ_MAX_RETRIES,
 } from "./constants.js";
-import {
-  ERR_PLAN_FILE_CORRUPTED,
-  ERR_BACKUP_CREATE_FAILED,
-} from "../commands/plan/errors.js";
+import { ERR_BACKUP_CREATE_FAILED } from "./errors.js";
+
+// ---------------------------------------------------------------------------
+// Error-code parameterization (§6.1) — plan callers pass no `errors` and get
+// byte-identical behavior; specs passes its own corrupted/not-found codes.
+// ---------------------------------------------------------------------------
+
+export interface DocIoErrors {
+  corrupted?: string;
+  notFound?: string;
+}
 
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-/** Returns all backup file names (just the basename, not full path) for a plan file. */
+/** Returns all backup file names (just the basename, not full path) for a document file. */
 function listBackups(dir: string, basename: string): string[] {
   try {
     const entries = fs.readdirSync(dir);
@@ -85,22 +95,22 @@ function pruneBackups(filePath: string, retention: number): void {
 // ---------------------------------------------------------------------------
 
 /**
- * Reads the plan file.
+ * Reads the document file.
  * - If file exists: parse and return it; injects previous_version=null if missing (back-compat).
  * - If file missing AND backup exists: sleep PLAN_READ_RETRY_DELAY_MS, retry up to PLAN_READ_MAX_RETRIES.
  * - If file missing AND no backup: return null immediately.
- * - If parse fails: throws (caller converts to plan_file_corrupted).
+ * - If parse fails: throws (caller converts to a corrupted-error code).
  */
-export async function readPlanWithRetry<Plan extends { previous_version?: string | null }>(
+export async function readDocWithRetry<Doc extends { previous_version?: string | null }>(
   filePath: string,
-): Promise<Plan | null> {
+): Promise<Doc | null> {
   const dir = path.dirname(filePath);
   const basename = path.basename(filePath);
 
   for (let attempt = 0; attempt <= PLAN_READ_MAX_RETRIES; attempt++) {
     if (fs.existsSync(filePath)) {
       // FR-SHRD-0009 — file present, parse it
-      const raw = JSON.parse(fs.readFileSync(filePath, "utf8")) as Plan;
+      const raw = JSON.parse(fs.readFileSync(filePath, "utf8")) as Doc;
       // FR-PLAN-0017 — back-compat: inject previous_version:null if absent
       if (!("previous_version" in raw)) {
         (raw as Record<string, unknown>)["previous_version"] = null;
@@ -121,7 +131,7 @@ export async function readPlanWithRetry<Plan extends { previous_version?: string
     }
 
     // FR-SHRD-0009 — backup exists, wait and retry
-    logger.info({ filePath, attempt }, "plan file missing but backup exists, retrying read");
+    logger.info({ filePath, attempt }, "document file missing but backup exists, retrying read");
     await new Promise<void>((resolve) => setTimeout(resolve, PLAN_READ_RETRY_DELAY_MS));
   }
 
@@ -133,24 +143,26 @@ export async function readPlanWithRetry<Plan extends { previous_version?: string
 // ---------------------------------------------------------------------------
 
 /**
- * Wraps a plan mutation in the rename-as-guard write cycle (FR-PLAN-0024).
+ * Wraps a document mutation in the rename-as-guard write cycle (FR-PLAN-0024).
  *
- * Used only when an existing plan file is being mutated. First-ever create writes
- * (file does not yet exist) bypass this helper and call savePlan directly with
- * previous_version=null, per FR-PLAN-0024 ("first-ever create: skip steps 1, 3, 5, 7").
+ * Used only when an existing document file is being mutated. First-ever create writes
+ * (file does not yet exist) bypass this helper and call the caller's save function directly
+ * with previous_version=null, per FR-PLAN-0024 ("first-ever create: skip steps 1, 3, 5, 7").
  *
  * Retry loop bounded to PLAN_BACKUP_MAX_RETRIES.
  * Any failure within the cycle restarts from step 1.
  * Mutation returning ok:false bubbles immediately (logic error, not a write failure).
  */
-export async function atomicWriteWithBackup<Plan extends { previous_version?: string | null; updated_at: string }, T>(
+export async function atomicWriteWithBackup<Doc extends { previous_version?: string | null; updated_at: string }, T>(
   filePath: string,
-  mutate: (plan: Plan) => { ok: true; result: T; updated: Plan } | { ok: false; error: string; include_help?: boolean },
-  savePlan: (filePath: string, plan: Plan) => void,
-  options?: { maxRetries?: number; retention?: number },
+  mutate: (doc: Doc) => { ok: true; result: T; updated: Doc } | { ok: false; error: string; include_help?: boolean },
+  saveDoc: (filePath: string, doc: Doc) => void,
+  options?: { maxRetries?: number; retention?: number; errors?: DocIoErrors },
 ): Promise<RunEnvelope<{ result: T; backupPath: string | null }>> {
   const maxRetries = options?.maxRetries ?? PLAN_BACKUP_MAX_RETRIES;
   const retention = options?.retention ?? PLAN_BACKUP_RETENTION;
+  const corruptedError = options?.errors?.corrupted ?? "plan_file_corrupted";
+  const notFoundError = options?.errors?.notFound ?? "plan_not_found";
 
   // FR-PLAN-0024 write cycle. The FR statement names rename-as-guard, but neither plain
   // renameSync (POSIX rename overwrites the target — clobbers another writer's bak) nor
@@ -195,15 +207,15 @@ export async function atomicWriteWithBackup<Plan extends { previous_version?: st
 
     try {
       // Step 1: Read with resilience
-      let current: Plan | null;
+      let current: Doc | null;
       try {
-        current = await readPlanWithRetry<Plan>(filePath);
+        current = await readDocWithRetry<Doc>(filePath);
       } catch (e) {
         // parse failure — treat as corrupted, bubble immediately
-        return err(ERR_PLAN_FILE_CORRUPTED);
+        return err(corruptedError);
       }
 
-      if (!current) return err("plan_not_found");
+      if (!current) return err(notFoundError);
 
       // Step 2: Apply mutation in memory
       const fnResult = mutate(current);
@@ -215,8 +227,8 @@ export async function atomicWriteWithBackup<Plan extends { previous_version?: st
       // Step 3: Compute next backup name (we hold the lock, so the directory scan is stable)
       const bakPath = nextBackupPath(filePath);
 
-      // Step 4: Set previous_version on the mutated plan
-      const toWrite = { ...fnResult.updated, previous_version: bakPath } as Plan;
+      // Step 4: Set previous_version on the mutated document
+      const toWrite = { ...fnResult.updated, previous_version: bakPath } as Doc;
 
       // Step 5: Move current file to backup. We hold the exclusive lock so renameSync
       // semantics are safe — bakPath cannot exist (we just computed max+1), and no other
@@ -229,9 +241,9 @@ export async function atomicWriteWithBackup<Plan extends { previous_version?: st
         continue;
       }
 
-      // Step 6: Write new plan content
+      // Step 6: Write new document content
       try {
-        savePlan(filePath, toWrite); // FR-PLAN-0026 — pretty-formatted on disk
+        saveDoc(filePath, toWrite); // FR-PLAN-0026 — pretty-formatted on disk
       } catch (writeErr) {
         // Roll back: rename the bak back to file path.
         try { fs.renameSync(bakPath, filePath); } catch { /* best-effort */ }

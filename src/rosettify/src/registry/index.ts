@@ -1,9 +1,11 @@
 import type { ToolDef } from "./types.js";
 import { planToolDef } from "../commands/plan/index.js";
+import { specsToolDef } from "../commands/specs/index.js";
 import { helpToolDef } from "../commands/help/index.js";
 
 export const registry: ReadonlyMap<string, ToolDef> = new Map<string, ToolDef>([
   [planToolDef.name, planToolDef as ToolDef],
+  [specsToolDef.name, specsToolDef as ToolDef],
   [helpToolDef.name, helpToolDef as ToolDef],
 ]);
 

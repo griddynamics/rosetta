@@ -52,6 +52,30 @@ export interface CommandInput {
   "phase-steps"?: string;
   /** FR-PLAN-0030 / FR-PLAN-0031 — template name to look up in the kind-scoped registry. */
   template?: string;
+
+  // specs command fields (FR-SPECS-*) — additive, mirrors plan's extension style.
+  /** Path to the specs document JSON file (FR-SPECS-0071). */
+  specs_file?: string;
+  /** One or more spec ids: get/delete/purge/approve/deprecate/restore/reopen (FR-SPECS-0011,0014,0016..0020); graph's optional target is carried as ids[0]. */
+  ids?: string[];
+  /** Query/validate/render scope filter string (FR-SPECS-0012). */
+  query?: string;
+  /** Required for purge — permanent removal refuses without it (FR-SPECS-0016, FR-ARCH-0015). */
+  force?: boolean;
+  /** Render output format: markdown | text (FR-SPECS-0023). */
+  format?: string;
+  /** graph — other specs documents to resolve cross-document references against (FR-SPECS-0022). */
+  additional_paths?: string[];
+  /** implemented — implementation enum value, when passed outside a data batch item (FR-SPECS-0015). */
+  implementation?: string;
+  /** implemented — implementation_notes value, when passed outside a data batch item (FR-SPECS-0015). */
+  implementation_notes?: string;
+  /** Explicit actor override (FR-SPECS-0041). */
+  actor?: string;
+  /** migrate — legacy markdown source paths (FR-SPECS-0025). */
+  sources?: string[];
+  /** query — include Removed specs even without an explicit status:Removed term (FR-SPECS-0011/0012). */
+  include_removed?: boolean;
 }
 
 // --- Run Delegate (FR-ARCH-0004) ---

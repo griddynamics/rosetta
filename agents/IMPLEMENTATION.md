@@ -130,6 +130,7 @@ For detailed change history, use git history and PRs instead of expanding this f
 - Envelope is internal: frontends extract payload via `extractOutput` and log failures via `logFailure` before output — consumers never see the raw envelope wrapper.
 - Follow-up help-clarity backlog (P1–P10) captured in `plans/rosettify/plan-help-improvements-proposal.md`.
 - Validated with `npm run typecheck` and `npm run test` (vitest, 90%+ line + branch coverage).
+- **specs command (2026-07-20)** — new `specs` command (`add`, `get`, `query`, `update`, `delete`, `purge`, `implemented`, `approve`, `deprecate`, `restore`, `reopen`, `validate`, `graph`, `render`, `info`, `migrate`) manages a component's requirements as spec units in one JSON document per component: two independent enums (approval `status`: Draft/Approved/Modified/Deprecated/Removed; `implementation`: NotStarted/Implemented/Planned/ToBeModified/ToBeRemoved), guarded fields settable only via lifecycle ops, `depends_on` (acyclic) vs `related` (may cycle), area-scoped caller-supplied ids, batch all-or-nothing writes with one aggregated error string, `purge` gated by `--force` (first `--force` in the codebase), and a query grammar (key:value AND/OR/NOT + free text) shared by `query`/`validate`/`render`. The shared plan write-path was generalized to support it without behavior change: `plan-io.ts` → `shared/doc-io.ts` (parameterized error codes) and `detectCycle` lifted into `shared/graph.ts` (plan re-exports it). Version bumped to `3.1.0-b01`.
 
 ### Instructions and Skills
 

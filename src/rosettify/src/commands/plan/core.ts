@@ -8,6 +8,13 @@ import {
   PLAN_MAX_STRING_LENGTH,
   PLAN_MAX_NAME_LENGTH,
 } from "../../shared/constants.js";
+import { detectCycle } from "../../shared/graph.js";
+
+// FR-SPECS-0005 — detectCycle lifted to shared/graph.ts (generic DFS cycle detector) so both
+// `plan` and `specs` import from `shared/` instead of one command importing from another.
+// Re-exported here so existing plan call sites (this file's own validateDependencies, and
+// tests importing from plan/core.js) keep resolving without change.
+export { detectCycle };
 
 // ---------------------------------------------------------------------------
 // Status Enum (FR-PLAN-0002)
@@ -329,34 +336,6 @@ export function validateUniqueIds(plan: Plan): string | null {
         if (seen.has(step.id)) return "duplicate_id";
         seen.add(step.id);
       }
-    }
-  }
-  return null;
-}
-
-export function detectCycle(
-  graph: Map<string, string[]>,
-): string | null {
-  const visited = new Set<string>();
-  const inStack = new Set<string>();
-
-  function dfs(node: string): boolean {
-    visited.add(node);
-    inStack.add(node);
-    for (const neighbor of graph.get(node) ?? []) {
-      if (!visited.has(neighbor)) {
-        if (dfs(neighbor)) return true;
-      } else if (inStack.has(neighbor)) {
-        return true;
-      }
-    }
-    inStack.delete(node);
-    return false;
-  }
-
-  for (const node of graph.keys()) {
-    if (!visited.has(node)) {
-      if (dfs(node)) return "dependency_cycle";
     }
   }
   return null;

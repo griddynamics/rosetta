@@ -7,8 +7,10 @@ import { registry } from "../registry/index.js";
 import { dispatch } from "../shared/dispatch.js";
 import { extractOutput, logFailure } from "../shared/envelope.js";
 import { planToolDef } from "../commands/plan/index.js";
+import { specsToolDef } from "../commands/specs/index.js";
 import { helpToolDef } from "../commands/help/index.js";
 import type { PlanInput } from "../commands/plan/core.js";
+import type { SpecInput } from "../commands/specs/core.js";
 import type { EnrichedEnvelope } from "../registry/types.js";
 import { logger } from "../shared/logger.js";
 import { VERSION } from "../shared/version.js";
@@ -254,6 +256,203 @@ export async function runCli(args: string[]): Promise<void> {
     }
   });
 
+  // ---------------------------------------------------------------------------------------
+  // Specs command — data-driven table (SPECS §14). Every subcommand shares the same 4-step
+  // action body (build input -> dispatch -> writeResult -> exit code); only the positional
+  // shape and flags differ per row, captured declaratively below instead of 16 hand-written
+  // action bodies.
+  // ---------------------------------------------------------------------------------------
+
+  interface SpecsSubRow {
+    name: string;
+    // The positional slot after <specs_file>, if any. "single" is one arg (required or
+    // optional); "variadic" collects one-or-more into an array; "none" (info) takes no
+    // further positional. Every row in SPECS §14 has at most one such slot.
+    positional?: { name: string; required: boolean; variadic?: boolean; desc: string };
+    flags?: Array<{ flag: string; desc: string }>;
+    buildInput: (specsFile: string, rest: string[], opts: Record<string, unknown>) => SpecInput;
+  }
+
+  const SPECS_SUB_ROWS: SpecsSubRow[] = [
+    {
+      name: "add",
+      positional: { name: "data", required: true, desc: "Spec JSON data (object or array)" },
+      buildInput: (specsFile, rest) => ({ subcommand: "add", specs_file: specsFile, data: rest[0] }),
+    },
+    {
+      name: "get",
+      positional: { name: "ids", required: true, variadic: true, desc: "Spec ids" },
+      buildInput: (specsFile, rest) => ({ subcommand: "get", specs_file: specsFile, ids: rest }),
+    },
+    {
+      name: "query",
+      positional: { name: "query", required: false, desc: "Filter query string" },
+      flags: [{ flag: "--include-removed", desc: "Include Removed specs" }],
+      buildInput: (specsFile, rest, opts) => ({
+        subcommand: "query",
+        specs_file: specsFile,
+        query: rest[0],
+        include_removed: !!opts["includeRemoved"],
+      }),
+    },
+    {
+      name: "update",
+      positional: { name: "data", required: true, desc: "Patch JSON data (object or array)" },
+      buildInput: (specsFile, rest) => ({ subcommand: "update", specs_file: specsFile, data: rest[0] }),
+    },
+    {
+      name: "delete",
+      positional: { name: "ids", required: true, variadic: true, desc: "Spec ids" },
+      buildInput: (specsFile, rest) => ({ subcommand: "delete", specs_file: specsFile, ids: rest }),
+    },
+    {
+      name: "purge",
+      positional: { name: "ids", required: true, variadic: true, desc: "Spec ids" },
+      flags: [{ flag: "--force", desc: "Required — permanent removal refuses without it" }],
+      buildInput: (specsFile, rest, opts) => ({
+        subcommand: "purge",
+        specs_file: specsFile,
+        ids: rest,
+        force: !!opts["force"],
+      }),
+    },
+    {
+      name: "implemented",
+      positional: { name: "data", required: true, desc: "Implemented-item JSON data (object or array)" },
+      buildInput: (specsFile, rest) => ({ subcommand: "implemented", specs_file: specsFile, data: rest[0] }),
+    },
+    {
+      name: "approve",
+      positional: { name: "ids", required: true, variadic: true, desc: "Spec ids" },
+      buildInput: (specsFile, rest) => ({ subcommand: "approve", specs_file: specsFile, ids: rest }),
+    },
+    {
+      name: "deprecate",
+      positional: { name: "ids", required: true, variadic: true, desc: "Spec ids" },
+      buildInput: (specsFile, rest) => ({ subcommand: "deprecate", specs_file: specsFile, ids: rest }),
+    },
+    {
+      name: "restore",
+      positional: { name: "ids", required: true, variadic: true, desc: "Spec ids" },
+      buildInput: (specsFile, rest) => ({ subcommand: "restore", specs_file: specsFile, ids: rest }),
+    },
+    {
+      name: "reopen",
+      positional: { name: "ids", required: true, variadic: true, desc: "Spec ids" },
+      buildInput: (specsFile, rest) => ({ subcommand: "reopen", specs_file: specsFile, ids: rest }),
+    },
+    {
+      name: "validate",
+      positional: { name: "query", required: false, desc: "Optional scope filter" },
+      buildInput: (specsFile, rest) => ({ subcommand: "validate", specs_file: specsFile, query: rest[0] }),
+    },
+    {
+      name: "graph",
+      positional: { name: "target_id", required: false, desc: "Optional single target spec id" },
+      flags: [{ flag: "--additional-paths <paths>", desc: "Comma-separated other specs document paths" }],
+      buildInput: (specsFile, rest, opts) => ({
+        subcommand: "graph",
+        specs_file: specsFile,
+        ids: rest[0] !== undefined ? [rest[0]] : undefined,
+        additional_paths:
+          typeof opts["additionalPaths"] === "string" ? (opts["additionalPaths"] as string).split(",") : undefined,
+      }),
+    },
+    {
+      name: "render",
+      positional: { name: "query", required: false, desc: "Optional scope filter" },
+      flags: [{ flag: "--format <fmt>", desc: "markdown (default) or text" }],
+      buildInput: (specsFile, rest, opts) => ({
+        subcommand: "render",
+        specs_file: specsFile,
+        query: rest[0],
+        format: opts["format"] as string | undefined,
+      }),
+    },
+    {
+      name: "info",
+      buildInput: (specsFile) => ({ subcommand: "info", specs_file: specsFile }),
+    },
+    {
+      name: "migrate",
+      positional: { name: "sources", required: true, variadic: true, desc: "Legacy markdown source paths" },
+      buildInput: (specsFile, rest) => ({ subcommand: "migrate", specs_file: specsFile, sources: rest }),
+    },
+  ];
+
+  // Uniform action body: build input -> dispatch(specsToolDef) -> writeResult -> exit code.
+  function registerSpecsSub(parent: Command, row: SpecsSubRow): void {
+    const cmd = parent.command(row.name).description(`specs ${row.name}`);
+    cmd.argument("<specs_file>", "Path to the specs document JSON file");
+    if (row.positional) {
+      const { name, required, variadic } = row.positional;
+      const inner = variadic ? `${name}...` : name;
+      const argStr = required ? `<${inner}>` : `[${inner}]`;
+      cmd.argument(argStr, row.positional.desc);
+    }
+    // FR-SPECS-0012 negation syntax (`-status:Removed`) starts with a bare `-`, which commander
+    // otherwise mistakes for an unrecognized option flag. query/validate/render all take a
+    // free-form query-string positional, so allow it through unparsed as a positional argument
+    // instead of requiring a `--` separator — FR-ARCH-0002 (CLI behavior must match MCP, which
+    // has no such option-parsing ambiguity at all). Every declared flag below (--force,
+    // --additional-paths, --format, etc.) is still recognized and parsed normally; only tokens
+    // that match none of a subcommand's own options fall through as positionals.
+    if (row.name === "query" || row.name === "validate" || row.name === "render") {
+      cmd.allowUnknownOption();
+    }
+    for (const f of row.flags ?? []) {
+      cmd.option(f.flag, f.desc);
+    }
+    cmd.action(async (...args: unknown[]) => {
+      // Commander calls the action with one parameter per declared <argument>, in order,
+      // followed by the parsed options object, then the Command instance itself.
+      const specsFile = args[0] as string;
+      const opts = (args[args.length - 2] ?? {}) as Record<string, unknown>;
+      const rest: string[] = row.positional
+        ? row.positional.variadic
+          ? ((args[1] as string[] | undefined) ?? [])
+          : args[1] !== undefined
+            ? [args[1] as string]
+            : []
+        : [];
+      const input = row.buildInput(specsFile, rest, opts);
+      const envelope = await dispatch(specsToolDef, input);
+      writeResult(specsToolDef.name, envelope);
+      process.exit(envelope.ok ? 0 : 1);
+    });
+  }
+
+  const specsCmd = program
+    .command("specs")
+    .description("Manage requirements/specs")
+    .helpOption(false)
+    .allowExcessArguments(true)
+    .option("--help", "Show specs help");
+
+  for (const row of SPECS_SUB_ROWS) {
+    registerSpecsSub(specsCmd, row);
+  }
+
+  // Handle specs with no subcommand, --help, or unknown subcommand (mirrors plan's fallthrough)
+  specsCmd.action(async (opts: { help?: boolean }, cmd: { args: string[] }) => {
+    if (opts.help) {
+      const envelope = await dispatch(helpToolDef, { subcommand: "specs" });
+      writeResult(helpToolDef.name, envelope);
+      process.exit(0);
+    } else if (cmd.args.length > 0) {
+      // Unknown subcommand — pass to specs run delegate, which returns a structured error
+      const input: SpecInput = { subcommand: cmd.args[0] };
+      const envelope = await dispatch(specsToolDef, input);
+      writeResult(specsToolDef.name, envelope);
+      process.exit(envelope.ok ? 0 : 1);
+    } else {
+      // No subcommand -> specs help
+      const envelope = await dispatch(specsToolDef, {});
+      writeResult(specsToolDef.name, envelope);
+      process.exit(envelope.ok ? 0 : 1);
+    }
+  });
+
   // Help command
   program
     .command("help")
@@ -282,6 +481,20 @@ export async function runCli(args: string[]): Promise<void> {
     )
   ) {
     const envelope = await dispatch(helpToolDef, { subcommand: "plan" });
+    writeResult(helpToolDef.name, envelope);
+    process.exit(0);
+  }
+
+  // Check if 'specs --help' is in args
+  const specsHelpIdx = args.indexOf("specs");
+  if (
+    specsHelpIdx >= 0 &&
+    args.includes("--help") &&
+    !args.slice(specsHelpIdx + 1).some(
+      (a) => !a.startsWith("-") && a !== "--help",
+    )
+  ) {
+    const envelope = await dispatch(helpToolDef, { subcommand: "specs" });
     writeResult(helpToolDef.name, envelope);
     process.exit(0);
   }

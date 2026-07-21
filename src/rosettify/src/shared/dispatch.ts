@@ -51,6 +51,7 @@ export function validateInput(
           if (!subType) return true;
           if (subType === "string" && typeof value === "string") return true;
           if (subType === "object" && typeof value === "object" && !Array.isArray(value)) return true;
+          if (subType === "array" && Array.isArray(value)) return true;
           return false;
         });
         if (!anyMatch) return `field ${key} did not match any allowed type`;

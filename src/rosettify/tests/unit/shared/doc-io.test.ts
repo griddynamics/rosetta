@@ -1,12 +1,12 @@
 /**
- * Unit tests for plan-io.ts — readPlanWithRetry and atomicWriteWithBackup.
+ * Unit tests for doc-io.ts — readDocWithRetry and atomicWriteWithBackup.
  * Implements FR-SHRD-0009 (read resilience) and FR-PLAN-0024 (atomic write with rename-as-guard).
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { readPlanWithRetry, atomicWriteWithBackup } from "../../../src/shared/plan-io.js";
+import { readDocWithRetry, atomicWriteWithBackup } from "../../../src/shared/doc-io.js";
 import type { Plan } from "../../../src/commands/plan/core.js";
 import { savePlan } from "../../../src/commands/plan/core.js";
 
@@ -48,15 +48,15 @@ function makePlan(overrides: Partial<Plan> = {}): Plan {
 }
 
 // ---------------------------------------------------------------------------
-// readPlanWithRetry — FR-SHRD-0009
+// readDocWithRetry — FR-SHRD-0009
 // ---------------------------------------------------------------------------
 
-describe("readPlanWithRetry — FR-SHRD-0009 happy path", () => {
+describe("readDocWithRetry — FR-SHRD-0009 happy path", () => {
   // FR-SHRD-0009 — file exists: parse and return it
   it("reads and returns plan when file exists", async () => {
     const file = planFile();
     savePlan(file, makePlan({ name: "Hello Plan" }));
-    const result = await readPlanWithRetry<Plan>(file);
+    const result = await readDocWithRetry<Plan>(file);
     expect(result).not.toBeNull();
     expect(result!.name).toBe("Hello Plan");
   });
@@ -74,7 +74,7 @@ describe("readPlanWithRetry — FR-SHRD-0009 happy path", () => {
       phases: [],
     };
     fs.writeFileSync(file, JSON.stringify(legacy, null, 2));
-    const result = await readPlanWithRetry<Plan>(file);
+    const result = await readDocWithRetry<Plan>(file);
     expect(result).not.toBeNull();
     expect(result!.previous_version).toBeNull();
   });
@@ -82,7 +82,7 @@ describe("readPlanWithRetry — FR-SHRD-0009 happy path", () => {
   // FR-SHRD-0009 — no backup: return null immediately (no retry)
   it("returns null immediately when file missing and no backup exists", async () => {
     const file = planFile("nonexistent.json");
-    const result = await readPlanWithRetry<Plan>(file);
+    const result = await readDocWithRetry<Plan>(file);
     expect(result).toBeNull();
   });
 
@@ -90,11 +90,11 @@ describe("readPlanWithRetry — FR-SHRD-0009 happy path", () => {
   it("throws on parse failure (invalid JSON)", async () => {
     const file = planFile();
     fs.writeFileSync(file, "{{not valid json{{");
-    await expect(readPlanWithRetry<Plan>(file)).rejects.toThrow();
+    await expect(readDocWithRetry<Plan>(file)).rejects.toThrow();
   });
 });
 
-describe("readPlanWithRetry — FR-SHRD-0009 retry on missing-but-bak-exists", () => {
+describe("readDocWithRetry — FR-SHRD-0009 retry on missing-but-bak-exists", () => {
   // FR-SHRD-0009 — file missing but backup exists: retry until file reappears.
   // We create a backup (to trigger retry), then write the actual plan file after a short
   // delay — simulating the write cycle completing while reads are retrying.
@@ -117,7 +117,7 @@ describe("readPlanWithRetry — FR-SHRD-0009 retry on missing-but-bak-exists", (
 
     // Start read — it will see backup exists, wait 100ms, then re-check
     const [result] = await Promise.all([
-      readPlanWithRetry<Plan>(file),
+      readDocWithRetry<Plan>(file),
       writePromise,
     ]);
 
@@ -138,9 +138,9 @@ describe("readPlanWithRetry — FR-SHRD-0009 retry on missing-but-bak-exists", (
       // Create a backup so retry is triggered, but never create the plan file.
       savePlan(bakFile, plan);
 
-      const result = await readPlanWithRetry<Plan>(file);
+      const result = await readDocWithRetry<Plan>(file);
 
-      // After PLAN_READ_MAX_RETRIES exhausted retries, readPlanWithRetry returns null.
+      // After PLAN_READ_MAX_RETRIES exhausted retries, readDocWithRetry returns null.
       // Caller subcommands translate null to plan_not_found (verified in next/show-status/query tests).
       expect(result).toBeNull();
     },
@@ -362,6 +362,54 @@ describe("atomicWriteWithBackup — FR-PLAN-0024 corrupted plan → plan_file_co
 
     expect(result.ok).toBe(false);
     expect(result.error).toBe("plan_file_corrupted");
+  });
+});
+
+describe("atomicWriteWithBackup — options.errors override param (FR-SPECS-0071 — specs' own error codes)", () => {
+  // specs passes its own { corrupted: specs_file_corrupted, notFound: specs_not_found } via
+  // write.ts (see applyBatchWrite) instead of the plan defaults exercised by every other test in
+  // this file. Exercised directly here against doc-io.ts itself, not just indirectly through a
+  // specs subcommand test.
+  it("uses options.errors.corrupted instead of the plan_file_corrupted default", async () => {
+    const file = planFile();
+    fs.writeFileSync(file, "{{invalid json{{");
+
+    const result = await atomicWriteWithBackup<Plan, string>(
+      file,
+      (plan) => ({ ok: true, result: "ok", updated: { ...plan, updated_at: new Date().toISOString() } }),
+      savePlan,
+      { errors: { corrupted: "custom_corrupted", notFound: "custom_not_found" } },
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("custom_corrupted");
+  });
+
+  it("uses options.errors.notFound instead of the plan_not_found default", async () => {
+    const file = planFile("nonexistent.json");
+
+    const result = await atomicWriteWithBackup<Plan, string>(
+      file,
+      (plan) => ({ ok: true, result: "ok", updated: { ...plan, updated_at: new Date().toISOString() } }),
+      savePlan,
+      { errors: { corrupted: "custom_corrupted", notFound: "custom_not_found" } },
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("custom_not_found");
+  });
+
+  it("falls back to the plan defaults when options.errors is omitted (byte-identical plan behavior)", async () => {
+    const file = planFile("nonexistent2.json");
+
+    const result = await atomicWriteWithBackup<Plan, string>(
+      file,
+      (plan) => ({ ok: true, result: "ok", updated: { ...plan, updated_at: new Date().toISOString() } }),
+      savePlan,
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("plan_not_found");
   });
 });
 

@@ -6,8 +6,12 @@
 /** FR-PLAN-0021 — plan file exists but cannot be parsed as valid JSON. */
 export const ERR_PLAN_FILE_CORRUPTED = "plan_file_corrupted";
 
-/** FR-PLAN-0021 / FR-PLAN-0024 — rename-as-guard write cycle exhausted retries. */
-export const ERR_BACKUP_CREATE_FAILED = "backup_create_failed";
+/**
+ * FR-PLAN-0021 / FR-PLAN-0024 — rename-as-guard write cycle exhausted retries.
+ * Re-exported from shared/errors.ts (generic, not plan-specific) so existing plan import
+ * sites keep resolving without change.
+ */
+export { ERR_BACKUP_CREATE_FAILED } from "../../shared/errors.js";
 
 /** FR-PLAN-0021 / FR-PLAN-0030 / FR-PLAN-0031 — template name not found in the requested kind's collection. */
 export const ERR_INVALID_TEMPLATE = "invalid_template";
