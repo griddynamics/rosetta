@@ -103,7 +103,7 @@ The conversation is:
   with only that step's exact reference text — never batched up front — so the
   model works each concern in turn: Inventory & Intent, Actors/Boundaries &
   Contracts, Execution & Delegation, Review/Validation & Failure Hardening,
-  Patterns & Simulation, Compression, Consistency & Minimality.
+  Patterns & Simulation, Aggressive Compression, Consistency & Minimality.
 - A **mid value-lost review** after step 3, restoring anything the proposals so
   far weakened.
 - **Finalize-draft**: materialize accepted proposals into complete files.

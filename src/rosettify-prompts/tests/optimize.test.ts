@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
 import {
   COMMON_CONTEXT,
+  OPTIMIZE_INVARIANT,
   OPTIMIZE_STEPS,
   STEP_REFERENCE_SECTIONS,
   type OptimizeContent,
@@ -193,6 +194,13 @@ describe('optimize prompts', () => {
     // "- No logical conflicts" appears in both final-consistency and hierarchy-priority; deduped to one.
     const hardening = STEP_REFERENCE_SECTIONS['consistency-minimality'].hardening ?? '';
     expect((hardening.match(/^- No logical conflicts$/gm) ?? []).length).toBe(1);
+    expect(STEP_REFERENCE_SECTIONS.compression.hardening).toContain('The pointer IS the content');
+    expect(STEP_REFERENCE_SECTIONS.compression.hardening).toContain('Never drop signal to hit the word cap');
+    expect(STEP_REFERENCE_SECTIONS.compression.patterns).toContain('<transform-passes>');
+    expect(OPTIMIZE_INVARIANT).toContain('COMMANDS + their args');
+    // compression = anti-slop (4 original + 12 ported) + compactness (7 original + 7 ported) merged,
+    // with zero duplicate lines between the two members (verified) so mergeUnique drops nothing: 30 lines.
+    expect(STEP_REFERENCE_SECTIONS.compression.hardening?.split('\n').filter(Boolean).length).toBe(30);
   });
 
   it('uses target/supporting/additional semantics and writes every target preserving relative paths', async () => {

@@ -30,7 +30,7 @@ export const OPTIMIZE_STEPS = [
   },
   {
     id: 'compression',
-    label: 'Compression',
+    label: 'Aggressive Compression',
     members: ['anti-slop', 'compactness'],
   },
   {
@@ -72,8 +72,18 @@ Line-purpose lens for every original line or block:
 
 Use source-specific guidance only when the target/supporting files are explicitly about that source system. Otherwise preserve the reusable principle and ignore source-only mechanics.`;
 
-export const OPTIMIZE_INVARIANT =
-  'Invariant: make surgical, compact, value-preserving changes only. Preserve every material requirement, constraint, workflow, role boundary, verification obligation, safety rule, mental hook, strategy, trick, unusual pattern, concrete anchor, and model-weight-sensitive phrase unless it is directly contradictory or unsafe. Default to no net growth: additions must replace weaker/duplicated text or be mandatory failure prevention.';
+export const OPTIMIZE_INVARIANT = `Invariant: make surgical, compact, value-preserving changes only. Preserve every material requirement, constraint, workflow, role boundary, verification obligation, safety rule, mental hook, strategy, trick, unusual pattern, concrete anchor, and model-weight-sensitive phrase unless it is directly contradictory or unsafe. Default to no net growth: additions must replace weaker/duplicated text or be mandatory failure prevention.
+
+Compression invariants (always-on, declare once, never re-assert per step):
+- Never trade a high-value token for a few saved words (unless reused often with net-positive value)
+- Word count is an outcome, never a target
+- Invariant != step: hoist always-on constraints once; never echo them per step
+- KEEP verbatim: COMMANDS + their args: file / skill / tool / model names, paths, section anchors
+- KEEP verbatim: CAPS markers (MUST, NEVER, DO NOT, HALT, WAIT, SELF-CHECK, HITL)
+- KEEP verbatim: required structural markers + nesting; per-scope instructions in their scope
+- KEEP verbatim: semantic distinctions (required vs recommended, blocking vs optional, default vs conditional)
+- Never drop CAPS, commands, per-step instructions, or distinctions to hit a number
+- Do not inject your own vocabulary, reasoning, IDs, or meta-notes into the output`;
 
 export const STEP_CHANGES_JSON = `STEP_CHANGES_JSON:
 {
@@ -361,7 +371,19 @@ const SUBSTEP_REFERENCE_SECTIONS: Record<OptimizeSubStepId, { objective: string;
     hardening: `- Avoid filler text
 - Avoid tautology
 - Avoid vague qualifiers
-- Remove non-operational clarifications (history, rationale, origin labels, change annotations), provenance, or explanatory meta-notes`,
+- Remove non-operational clarifications (history, rationale, origin labels, change annotations), provenance, or explanatory meta-notes
+- Tautology -> keep ONE authoritative copy, kill echoes
+- Pointer-echo: reachable via a named cite -> never re-assert inline
+- The pointer IS the content
+- Whole-scope echo -> cut the scope, not just its lines
+- Stale/orphaned item -> refs a scheme, attribute, or value no longer present
+- Load-bearing test: delete it -> agent behaves the same? cut
+- Audit each section, esp. references, examples, validation, pitfalls
+- Mandatory-but-echo section -> shrink to unique nugget
+- Lone nugget -> hoist to a load-bearing home, drop the wrapper
+- Repeated literals -> alias once, reuse everywhere
+- Keep process-adherence items; compress them, never drop
+- Shaving adjectives while duplication remains is not a fix`,
     patterns: `<work-curiosity-limit>
 
 - Intentionally limit AI to not do more or extra work and maintain boundaries
@@ -381,7 +403,33 @@ const SUBSTEP_REFERENCE_SECTIONS: Record<OptimizeSubStepId, { objective: string;
 - Prefer imperative/infinitive form
 - Prompt size target: <300 ideal, 300-500 acceptable
 - If 500+, split by layers/phases using progressive disclosure
-- Rephrase, restructure, compress for much more compact prompt without loosing value, including but not limited to removing useless words, duplication, abbreviation, using unicode characters and icons, phrases instead of full sentences (except user facing), never soften prompts, replace obvious facts AI already knows into one-two word nudges (topics, terms, abbreviations, etc), intrinsics (X is Y, A != B, C > D, F not G, etc), and steppers (A->B->C, etc.), remove meta-explanation (X is needed because Y, A no longer does B, etc), etc.`,
+- Rephrase, restructure, compress for much more compact prompt without loosing value, including but not limited to removing useless words, duplication, abbreviation, using unicode characters and icons, phrases instead of full sentences (except user facing), never soften prompts, replace obvious facts AI already knows into one-two word nudges (topics, terms, abbreviations, etc), intrinsics (X is Y, A != B, C > D, F not G, etc), and steppers (A->B->C, etc.), remove meta-explanation (X is needed because Y, A no longer does B, etc), etc.
+- Convert bullets to ordered lists when work is sequential
+- Group same-topic rules -> merge -> rephrase -> output as separate lines
+- Never drop signal to hit the word cap
+- Never split a line just to cheat the cap
+- Favor unicode connectives for density: -> for steps, != for contrast
+- Nudge actions, aspects, goals, reasons with single words
+- Maximum compression, not just low-hanging fruit`,
+    patterns: `<compression-mental-model>
+
+- Compress != shrink words; strip scaffolding, keep 100% signal
+- Scaffolding dilutes the executing agent's focus
+- Reader is capable AI: knows the domain + its conventions
+- Don't explain -> nudge with terms and acronyms
+
+</compression-mental-model>
+
+<transform-passes>
+
+- Run passes in order, skip none:
+- 1. CUT: load-bearing audit first, then line/rule cuts
+- 2. GROUP+REPHRASE: cluster same-topic -> merge -> output separate
+- 3. COMPRESS: densify
+- 4. HARD CAP: every line under the cap; never drop signal
+- Loop from pass 1 until a full pass changes nothing
+
+</transform-passes>`,
     aiIssues: `- Keep the concrete anchor — numbers, process, samples. They are the AI's grasp on reality; strip them and it hallucinates (F3).
 - F2 — Passive consumption over active construction.
 - Overloaded past about 5 items.`,
