@@ -12,7 +12,7 @@ baseSchema: docs/schemas/workflow.md
 
 Audience: developers and orchestrators exploring Rosetta-powered workspaces.
 Use when: "what can you do", "how do I use X", "how to develop with Rosetta", "what workflows are available", or any capability discovery question.
-Provides: guides user on how to use Rosetta and its capabilities; live overview of available skills, workflows, and agents; detailed guidance on matched capabilities; seamless handoff to any discovered workflow within the same session.
+Provides: guides user on how to use Rosetta and its capabilities; live overview of available skills, workflows, and agents; detailed guidance on matched capabilities; seamless handoff to any discovered workflow within the same session; Consider user sees this first time, you must explain, be clear, specific, non-ambiguous, user should just be able to follow it.
 
 </description_and_purpose>
 
@@ -115,6 +115,7 @@ Direct skill and subagent invocation is ONLY appropriate for targeted, self-cont
    - Matched: what it does, when to use, what to expect, how to invoke.
    - For "how to invoke": MUST follow the slash command pattern in `<invocation_guidance>` — show real examples using the QUICKSTART format.
    - Concrete next actions relevant to user request.
+   - Do not give templates => apply it yourself and give fully correct instruction
 2. Input: `Capability Catalog` + `Matched Capabilities` + user request. Output: guidance message.
 3. USE SKILL `natural-writing` for final user-facing output.
 4. Recommended skills: `reasoning`, and any currently useful.

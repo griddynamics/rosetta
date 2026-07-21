@@ -1,7 +1,7 @@
 {
   "name": "rosetta",
   "description": "Rosetta for Claude - Software Engineering Accelerator instruction set, workflows, and guardrails.",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "author": {
     "name": "Grid Dynamics",
     "email": "rosetta-support@griddynamics.com"
