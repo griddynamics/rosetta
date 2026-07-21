@@ -1,0 +1,45 @@
+name: CI Rosettify
+
+# Pre-merge gate: build + typecheck + coverage-gated tests for the rosettify
+# package on every PR that touches it. Complements publish-rosettify.yml, which
+# only runs on push to main (publish time) and is not a pre-merge gate.
+on:
+  pull_request:
+    paths:
+      - 'src/rosettify/**'
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '24'
+
+    - name: Install dependencies
+      working-directory: ./src/rosettify
+      run: npm ci
+
+    - name: Run type validation
+      working-directory: ./src/rosettify
+      run: npm run typecheck
+
+    - name: Build package
+      working-directory: ./src/rosettify
+      run: npm run build
+
+    # test:coverage enforces the global 90% lines/branches gate (vitest.config.ts).
+    # e2e tests spawn the built dist binary; the Build step above produced it, and
+    # the package's `pretest` hook rebuilds on any bare `npm test` invocation too.
+    - name: Run tests with coverage
+      working-directory: ./src/rosettify
+      run: npm run test:coverage
