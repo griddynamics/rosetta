@@ -39,7 +39,8 @@ This modernization process is designed to systematically analyze, specify, and i
 
 **Phase 0: Prerequisites** 
 1. All Rosetta prep steps MUST be FULLY completed
-2. MUST use todo tasks for reliability
+2. USE SKILL `load-project-context`, `orchestration`, `hitl`
+3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
 
 **Phase 1: Existing Library Analysis for Reusing in Target State** [modernization-flow-reuse.md]
 1. APPLY PHASE modernization-flow-reuse.md

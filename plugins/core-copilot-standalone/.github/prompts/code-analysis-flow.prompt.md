@@ -21,9 +21,9 @@ Validation: Output files exist under `docs/<feature>/`; every claim traces to co
 <prerequisites phase="0" applies="ALL">
 
 1. All Rosetta prep steps MUST be FULLY completed
-2. MUST use todo tasks for reliability
-3. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping
-4. Phases are sequential; module analysis in LARGE codebases runs in parallel via SKILL `large-workspace-handling`.
+2. USE SKILL `load-project-context`, `orchestration`, `hitl`
+3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel. Module analysis in LARGE codebases runs in parallel via SKILL `large-workspace-handling`.
+4. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping
 5. Orchestrator trusts skills to own execution internals; coordinates sequence, artifacts, state, and approvals only.
 6. State file: `agents/TEMP/<FEATURE>/code-analysis-flow-state.md` updated after each phase.
 7. Documentation principle: ground with links; no code generation, no suggestions, no speculation. See `best_practices` for sizing and diagram rules.

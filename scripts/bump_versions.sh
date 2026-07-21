@@ -22,24 +22,29 @@ get_json_version() {
     grep '"version"' "$1" | head -1 | sed 's/.*"version": "\(.*\)".*/\1/'
 }
 
+# bump_pre <version> [separator]
+# separator selects the target pre-release style, independent of the input:
+#   ""  -> PEP 440 (toml):        3.0.0b01
+#   "-" -> npm/semver (package):  3.0.0-b01
+# Accepts either style as input (3.0.0b01 or 3.0.0-b01).
 bump_pre() {
-    local version="$1"
-    if [[ "$version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)b([0-9]+)$ ]]; then
+    local version="$1" sep="${2:-}"
+    if [[ "$version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)-?b([0-9]+)$ ]]; then
         local base="${BASH_REMATCH[1]}"
         local pre="${BASH_REMATCH[2]}"
-        printf "%sb%02d" "$base" "$((10#$pre + 1))"
+        printf "%s%sb%02d" "$base" "$sep" "$((10#$pre + 1))"
     else
         # Normal version: bump patch, then introduce b00
         local bumped
         bumped="$(bump_semver "$version" patch)"
-        echo "${bumped}b00"
+        printf "%s%sb00" "$bumped" "$sep"
     fi
 }
 
 bump_semver() {
     local version="$1" type="$2"
-    # Strip pre-release suffix (e.g. 2.0.13b01 -> 2.0.13) before bumping
-    local base_version="${version%%b*}"
+    # Strip pre-release suffix (e.g. 2.0.13b01 or 3.1.0-b01 -> 3.1.0) before bumping
+    local base_version="${version%%[-b]*}"
     IFS='.' read -r major minor patch <<< "$base_version"
     case "$type" in
         major) echo "$((major + 1)).0.0" ;;
@@ -82,15 +87,16 @@ bump_file_toml() {
 
 bump_file_json() {
     local f="$1" default="$2"
-    local current new_version rel effective_type
+    local current new_version rel
     current="$(get_json_version "$f")"
     rel="${f#$ROOT/}"
-    # JSON files don't support pre-release; fall back to patch
-    effective_type="${bump_type/pre/patch}"
     if [[ "$bump_choice" == "4" ]]; then
         new_version="$CUSTOM_VERSION"
+    elif [[ "$bump_type" == "pre" ]]; then
+        # npm/semver pre-release uses a dash separator: 3.0.0-b01
+        new_version="$(bump_pre "$current" "-")"
     else
-        new_version="$(bump_semver "$current" "$effective_type")"
+        new_version="$(bump_semver "$current" "$bump_type")"
     fi
     if ask_yn "Bump $rel  ($current → $new_version)?" "$default"; then
         sedi "s/\"version\": \"${current}\"/\"version\": \"${new_version}\"/g" "$f"

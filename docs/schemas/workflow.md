@@ -29,10 +29,17 @@ baseSchema: docs/schemas/workflow.md
 
 <workflow_phases>
 
-- All Rosetta prep steps MUST be FULLY completed, load-context skill loaded and fully executed
-
 [Orchestrator may not have clear picture, instruct it to trust the system, skills define that, and it should NOT try to execute those itself]
 [Tell how phases and steps are executed: sequentially or parallel]
+
+<prerequisites phase="0" applies="ALL">
+
+1. All Rosetta prep steps MUST be FULLY completed
+2. USE SKILL `load-project-context`, `orchestration`, `hitl`
+3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
+4. MUST just-in-time load/execute/update each phase's: instructions, definitions, skills, state file; do not load/act IN ADVANCE.
+
+</prerequisites>
 
 <[phase_name] phase="N" [dimension]="[value]" subagent="[subagent name]" role="[subagent role with specialization to assume, brilliant and short]" subagent_required_model="[comma separate list of models]" [optional: must-be-subagent]>
 

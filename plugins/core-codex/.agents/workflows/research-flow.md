@@ -16,10 +16,10 @@ Orchestrates deep research via meta-prompting: craft an optimized research promp
 
 <prerequisites phase="0", applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-project-context` loaded and fully executed.
-2. MUST use todo tasks for reliability
-3. Orchestrator trusts the system and skills; coordinates sequence, artifacts, state, and approvals only.
-4. Execute phases sequentially.
+1. All Rosetta prep steps MUST be FULLY completed
+2. USE SKILL `load-project-context`, `orchestration`, `hitl`
+3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
+4. Orchestrator trusts the system and skills; coordinates sequence, artifacts, state, and approvals only.
 5. Agent state tracker file `research-flow-state.md` is stored in FEATURE TEMP folder.
 6. If `/goal` is set repeat phases 3-4 until goal is met.
 

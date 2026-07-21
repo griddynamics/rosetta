@@ -20,10 +20,10 @@ Validation: State file tracks every phase with file inventory; verification conf
 <prerequisites phase="0", applies="ALL">
 
 1. All Rosetta prep steps MUST be FULLY completed
-2. MUST use todo tasks for reliability
+2. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
 3. MUST FOLLOW THIS WORKFLOW EXACTLY AND FULLY.
 4. MUST extensively use subagents as this is a large workflow.
-5. Sequential phases. Each updates `agents/init-workspace-flow-state.md`. Optional phases marked as skipped. Keep state file very brief.
+5. Each phase updates `agents/init-workspace-flow-state.md`. Optional phases marked as skipped. Keep state file very brief.
 6. No rush, Take your time, Be thorough, ACCURACY > SPEED
 7. Dual-mode: every phase reads `state.mode` → check-exists → identify-gaps → create/update → preserve-human-content → report-changes.
 8. Composite workspace: documentation phases to create top-level index referencing sub-repository docs.

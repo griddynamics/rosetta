@@ -25,7 +25,8 @@ baseSchema: docs/schemas/workflow.md
 
 **Phase 0: Prerequsites**
 1. All Rosetta prep steps MUST be FULLY completed
-3. MUST use todo tasks for reliability
+2. USE SKILL `load-project-context`, `orchestration`, `hitl`
+3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
 
 **Phase 1: Discovery**
 1. Ask project path

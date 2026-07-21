@@ -18,9 +18,9 @@ Solution: Meta-workflow — construct a bespoke plan from building blocks, persi
 
 <models>
 
-- large (smart, slow): claude-opus-4-8, gpt-5.3-codex-high, gpt-5.4-high, gpt-5.5-high, gemini-3.1-pro-preview
-- medium (workhorse): claude-sonnet-5, gpt-5.3-codex-medium, gpt-5.4-medium, glm-5, kimi-k2.5, minimax-m2.5
-- small (fast): claude-haiku-4-5, gpt-5-mini, gemini-3.5-flash
+- large (smart, slow): claude-opus-4-8, gpt-5.3-codex-high, gpt-5.5-high, gpt-5.6-sol-high, gemini-3.1-pro-preview, kimi-k3, glm-5.2
+- medium (workhorse): claude-sonnet-5, gpt-5.3-codex-medium, gpt-5.4-medium, gpt-5.6-terra-medium, glm-5, kimi-k2.5, minimax-m2.5, grok-4.5
+- small (fast): claude-haiku-4-5, gpt-5.4-mini, gpt-5.6-luna-medium, gemini-3.5-flash
 
 Match to cognitive demand. Match to current tool.
 
@@ -34,7 +34,7 @@ MUST USE SKILL `orchestration` FULLY — including BOTH assets `o-team-manager.m
 
 <building_blocks>
 
-Compose these into plan phases/steps to build any execution workflow.
+Compose any of these (not limited) into plan phases/steps to build any execution workflow:
 
 - **discover-research**: scan project context and KB; research external knowledge if needed; deliver summarized references
 - **requirements-capture**: reverse-engineer or interrogate requirements; persist intent as source of truth
@@ -53,6 +53,8 @@ Compose these into plan phases/steps to build any execution workflow.
 - **draft-improve**: short core draft → improve one non-conflicting aspect at a time
 - **ralph-loop**: execute → review → update task memory with root causes → loop
 - **use**: use existing skills, agents, workflows
+- **plan-sessions**: create plan (one file, with refs to per-session files) and implementation specs for each session for workhorse model (sonnet 5, gpt-5.4, so you need to provide more details) in multiple files in order of execution, so that it can be given one-by-one in different sessions of subagents. 
+- **Do not duplicate**: existing files, instructions, protocols => instead use references "file-name:line-ranges". 
 
 </building_blocks>
 
@@ -60,9 +62,10 @@ Compose these into plan phases/steps to build any execution workflow.
 
 <prerequisites phase="1" applies="ALL">
 
-1. All Rosetta prep steps MUST be FULLY completed, SKILL `load-project-context` loaded and fully executed.
-2. MUST USE SKILL `orchestration` FULLY (team manager + session execution controller) for deterministic execution
-3. Use available skills and agents.
+1. All Rosetta prep steps MUST be FULLY completed
+2. MUST USE SKILL `load-project-context`, `orchestration` (with team manager and execution controller), `hitl`
+3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
+3. MUST use available MCPs, tools, skills and agents.
 4. You will FOR SURE run out of LLM context, leading to loss of information, delegate to subagents!
 5. If `/goal` is set repeat phases 4-5 until goal is met.
 

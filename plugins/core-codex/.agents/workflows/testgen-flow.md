@@ -21,7 +21,8 @@ Prerequisite: Rosetta Prep Steps.
 
 <workflow_phases>
 
-- All Rosetta prep steps MUST be FULLY completed, SKILL `load-project-context` loaded and fully executed.
+- All Rosetta prep steps MUST be FULLY completed
+- USE SKILL `load-project-context`, `orchestration`, `hitl`
 - **ONE PHASE AT A TIME:** APPLY PHASE the phase file, execute, update state, move to next. **JIT**: phase-by-phase: do not load/act IN ADVANCE.
 - **DO NOT SKIP PHASES:** Each builds on the previous. Skip gates: only with **explicit user instruction**, **or** when `testgen-state.md` marks the phase complete **and** its expected output file exists under `plans/testgen-{TICKET-KEY}/`; otherwise resume from the earliest incomplete phase. The **explicit user instruction** skip NEVER applies to the Phase 3 / Phase 6 HITL gates — those are rule 2 of `<orchestration_and_escalation>` and are never overridden.
 - **Phase-file load failure:** if APPLY PHASE for a phase file returns nothing, retry once, then HALT and report — do not improvise the phase.

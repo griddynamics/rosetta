@@ -23,12 +23,13 @@ Execute phases sequentially, do not skip!
 
 <prerequisites>
 
-1. All Rosetta prep steps MUST be FULLY completed before phase 1.
-2. Workflow execution starts only after prerequisites are satisfied.
-3. Orchestrator and subagents MUST USE SKILL `coding-agents-prompt-authoring`.
-4. MUST just-in-time load each phase's skills
-5. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping
-6. This workflow MUST be used with Fable, Opus, GPT-5.5+ class models => IF NOT - DEMAND USER TO SWITCH MODEL
+1. All Rosetta prep steps MUST be FULLY completed
+2. USE SKILL `load-project-context`, `orchestration`, `hitl`
+3. MUST ALWAYS use todo tasks ledger, ASAP. Phases are sequential. Independent tasks can run in parallel.
+4. MUST just-in-time load/execute/update each phase's: instructions, definitions, skills, state file.
+5. Orchestrator and subagents MUST USE SKILL `coding-agents-prompt-authoring`.
+6. No rush, take your time, MUST FOLLOW WORKFLOW ENTIRELY, no skipping.
+7. This workflow MUST be used with Fable, Opus, GPT-5.5+ class models => IF NOT - DEMAND USER TO SWITCH MODEL.
 
 </prerequisites>
 
