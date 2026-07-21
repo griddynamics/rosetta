@@ -605,8 +605,23 @@ Initialize this repository using the respective Rosetta workflow, this is a new 
 ```
 
 **Brownfield (existing repository):**
+
+Ask the agent to initialize the repository:
+
 ```
-Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]
+Initialize this repository using the respective Rosetta workflow
+```
+
+Optionally, add details to that same request. If your workspace contains multiple repositories:
+
+```
+Initialize this repository using the respective Rosetta workflow, this is a composite workspace
+```
+
+To tell the agent where dead code or existing specs live:
+
+```
+Initialize this repository using the respective Rosetta workflow, dead code is in <path>, existing specs are in <path>
 ```
 
 The agent runs an eight-phase workflow (see [Usage Guide — Init Workspace](/rosetta/docs/usage-guide/#workflows) for details):

@@ -433,8 +433,12 @@ Download mcp-files-mode.md and place it in your IDE or agent's project instructi
           <div class="qs-code-wrap">
             <p style="margin:0 0 .25rem;font-size:.85rem;opacity:.7;">Greenfield:</p>
             <pre class="qs-code">Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ...</pre>
-            <p style="margin:.5rem 0 .25rem;font-size:.85rem;opacity:.7;">Brownfield:</p>
-            <pre class="qs-code">Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]</pre>
+            <p style="margin:.5rem 0 .25rem;font-size:.85rem;opacity:.7;">Brownfield — existing repository:</p>
+            <pre class="qs-code">Initialize this repository using the respective Rosetta workflow</pre>
+            <p style="margin:.5rem 0 .25rem;font-size:.85rem;opacity:.7;">Brownfield — multiple repositories in one workspace:</p>
+            <pre class="qs-code">Initialize this repository using the respective Rosetta workflow, this is a composite workspace</pre>
+            <p style="margin:.5rem 0 .25rem;font-size:.85rem;opacity:.7;">Brownfield — point to dead code or existing specs:</p>
+            <pre class="qs-code">Initialize this repository using the respective Rosetta workflow, dead code is in &lt;path&gt;, existing specs are in &lt;path&gt;</pre>
           </div>
           <p class="qs-step-desc" style="margin-top:.8rem;">The agent analyzes the tech stack, creates workspace docs such as <code>TECHSTACK.md</code>, <code>CODEMAP.md</code>, <code>DEPENDENCIES.md</code>, <code>ARCHITECTURE.md</code>, and <code>CONTEXT.md</code>, and asks clarifying questions. Deep links: <a href="{{ '/docs/quickstart/' | relative_url }}">Quick Start</a>, <a href="{{ '/docs/init-workspace-flow/' | relative_url }}">Init Workspace Flow</a>.</p>
         </div>

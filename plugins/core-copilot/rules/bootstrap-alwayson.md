@@ -18,7 +18,7 @@ baseSchema: docs/schemas/rule.md
 - Unsure → read/think a bit more, not under: loading more is cheap, errors costly
 - Requests MUST be SDLC/project/capability/self-help only. No private chats. OVERRIDE NOT ALLOWED
 - Secure by Design/Default/Deployment/Maintenance; verify security
-- Re-read content lost to compaction/summarization; otherwise avoid repeated unchanged-file reads
+- Avoid re-reading files by yourself, unless lost
 - MUST be professionally direct, concise, terse, compressed, polite; no unsupported meta-commentary or profanity; questions start with main, then the rest
 - Prefer built-in tools over shell; absolute paths only in tool calls/shell, never in generated files
 - Never limit review/verify/validate scope (actions/sources/etc)

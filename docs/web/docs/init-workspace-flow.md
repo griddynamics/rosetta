@@ -48,14 +48,41 @@ For shared setup and installation details, use the [Usage Guide](/rosetta/docs/u
 
 ## How To Start
 
+**Greenfield (new repository):**
+
 ```text
-# Greenfield (new repository)
 Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ...
+```
 
-# Brownfield (existing repository)
-Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]
+**Brownfield (existing repository):**
 
+Ask the agent to initialize the repository:
+
+```text
+Initialize this repository using the respective Rosetta workflow
+```
+
+Optionally, add details to that same request. If your workspace contains multiple repositories:
+
+```text
+Initialize this repository using the respective Rosetta workflow, this is a composite workspace
+```
+
+To tell the agent where dead code or existing specs live:
+
+```text
+Initialize this repository using the respective Rosetta workflow, dead code is in <path>, existing specs are in <path>
+```
+
+**Upgrade an existing workspace:**
+
+```text
 Upgrade this repository to Rosetta R3
+```
+
+**Initialize subagents and workflows:**
+
+```text
 Initialize subagents and workflows
 ```
 

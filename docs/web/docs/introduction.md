@@ -62,9 +62,31 @@ Use [MCPs](/rosetta/docs/mcps/) for IDEs without a Rosetta plugin path, includin
 
 After installation, ask:
 
-**Greenfield (new repository):** *"Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ..."*
+**Greenfield (new repository):**
 
-**Brownfield (existing repository):** *"Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]"*
+```
+Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ...
+```
+
+**Brownfield (existing repository):**
+
+Ask the agent to initialize the repository:
+
+```
+Initialize this repository using the respective Rosetta workflow
+```
+
+Optionally, add details to that same request. If your workspace contains multiple repositories:
+
+```
+Initialize this repository using the respective Rosetta workflow, this is a composite workspace
+```
+
+To tell the agent where dead code or existing specs live:
+
+```
+Initialize this repository using the respective Rosetta workflow, dead code is in <path>, existing specs are in <path>
+```
 
 STDIO transport is available for environments with limited internet access. [All IDEs and detailed setup](/rosetta/docs/installation/). Read more in the [Quick Start](/rosetta/docs/quickstart/).
 

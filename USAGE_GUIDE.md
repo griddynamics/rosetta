@@ -42,15 +42,42 @@ Sets up a repository so AI coding agents can work with Rosetta context from the 
 
 **Expect:** built-in subagents for mode detection, discovery, pattern extraction, documentation, gap filling, and verification. Your responsibility is to answer domain and architecture questions, review generated docs, and restart the chat after initialization so new shell/context files are loaded.
 
+**Greenfield (new repository):**
+
 ```
-# Greenfield (new repository)
-"Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ..."
+Initialize this repository using the respective Rosetta workflow, this is a new repository, target tech stack: ..., target architecture: ..., business context: ...
+```
 
-# Brownfield (existing repository)
-"Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]"
+**Brownfield (existing repository):**
 
-"Upgrade this repository from Rosetta R1 to R3"
-"Initialize subagents and workflows"
+Ask the agent to initialize the repository:
+
+```
+Initialize this repository using the respective Rosetta workflow
+```
+
+Optionally, add details to that same request. If your workspace contains multiple repositories:
+
+```
+Initialize this repository using the respective Rosetta workflow, this is a composite workspace
+```
+
+To tell the agent where dead code or existing specs live:
+
+```
+Initialize this repository using the respective Rosetta workflow, dead code is in <path>, existing specs are in <path>
+```
+
+**Upgrade an existing workspace:**
+
+```
+Upgrade this repository from Rosetta R1 to R3
+```
+
+**Initialize subagents and workflows:**
+
+```
+Initialize subagents and workflows
 ```
 
 For composite workspaces, init each repository separately, then init at workspace level. The rules phase exists but is disabled by default.
@@ -515,7 +542,7 @@ What happens:
 
 **Brownfield (existing repository):**
 ```
-You: "Initialize this repository using the respective Rosetta workflow[, this is a composite workspace][, additional information]"
+You: "Initialize this repository using the respective Rosetta workflow"
 
 What happens:
 1. Agent scans your tech stack, dependencies, and project structure
@@ -523,6 +550,18 @@ What happens:
 3. Creates CONTEXT.md and ARCHITECTURE.md
 4. Asks clarifying questions about your project
 5. Verifies all generated docs
+```
+
+The command above works on its own. You can add details to the same request. If your workspace contains multiple repositories:
+
+```
+Initialize this repository using the respective Rosetta workflow, this is a composite workspace
+```
+
+To tell the agent where dead code or existing specs live:
+
+```
+Initialize this repository using the respective Rosetta workflow, dead code is in <path>, existing specs are in <path>
 ```
 
 ### Research
