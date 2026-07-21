@@ -79,6 +79,14 @@ Pick a **medium** model — **Sonnet 5**, **GPT-5.4-medium**, or **gemini-3.1-pr
 
 See the model guidance in [QUICKSTART.md](QUICKSTART.md).
 
+**How do I reduce token cost?**
+
+Save cost — add the line below to your workspace AGENTS.md/CLAUDE.md to cut model output tokens:
+
+`MUST ALWAYS think, reason, plan, chat, document in compressed/terse/unicode chars/terms/always/no hieroglyphs; Exclude final artifacts, any tool calls, all code, etc.`
+
+Second, use a flat-rate subscription (e.g. Claude Pro/Max, ChatGPT Plus/Pro) instead of pay-per-token API billing.
+
 ---
 
 ## Behavior & Modes

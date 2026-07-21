@@ -118,6 +118,10 @@ List the patterns the agent should reuse so generated code stays consistent — 
 - Install and configure plugins and extensions.
 - Install and configure AI coding agent CLIs (Copilot CLI, Claude, Codex, and so on).
 
+Save cost — add the line below to your workspace AGENTS.md/CLAUDE.md to cut model output tokens:
+
+`MUST ALWAYS think, reason, plan, chat, document in compressed/terse/unicode chars/terms/always/no hieroglyphs; Exclude final artifacts, any tool calls, all code, etc.`
+
 #### Recommended CLIs
 
 Prefer a CLI over the matching MCP when one exists — it costs no context.
