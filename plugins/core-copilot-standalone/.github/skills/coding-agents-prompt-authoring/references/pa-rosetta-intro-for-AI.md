@@ -8,16 +8,9 @@ Top-agent sessions receive `bootstrap-alwayson.md` plus exactly one mode file: `
 
 Rosetta predefines key folders and files in the `bootstrap_rosetta_files` XML tag inside SKILL `load-project-context`.
 
-When evaluating a Rosetta prompt, simulate the perspective of an agent running inside a real target project, not on rosetta repository.
-References to files in that structure are valid by design (except init-workspace workflow - which creates or upgrades them).
+Rosetta repo defines instructions that actually run on a different - real target project (think it was copy-pasted OR used plugins like in claude code), not on rosetta repository.
 
-Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` in current rosetta repo to better understand rosetta implementation itself. Remember that current and target repositories ARE DIFFERENT (this content is only available in this repo!).
-
-MUST USE SKILL `orchestration` for all subagent dispatches.
-MUST USE SKILL `coding-agents-prompt-authoring` to review and to harden the changes and at least must include pa-rosetta.md, pa-patterns, pa-hardening.md, pa-schemas.md.
-Subagents MUST USE SKILL `coding-agents-prompt-authoring` with references listed above (and more if they determine additional references are needed).
-
-Each orchestrator/subagent instance can handle at most 7 prompt files (hard cap). Apply the small/large split thresholds defined in the Workflow section; when splitting, group prompts by release (instructions/r*), then by their prompt families or usage patterns.
+Remember that Rosetta (rosetta, cto-ims-kb) and target repositories ARE DIFFERENT (this content is only available in this repo!).
 
 ## How to think about Rosetta
 
@@ -35,3 +28,17 @@ Context compaction destroys majority of knowledge (bootstraps, reasoning, origin
 You review original instructions so that they work properly within coding agents on the target repository. 
 Must distinguish repos, actors, prompts, etc as defined above.
 Use references `rosetta`, `cto-ims-kb`, `RulesOfPower` (all must be).
+
+## Evaluating Rosetta Prompts (this information is ONLY for REVIEW/EVALUATION mode)
+
+When evaluating a Rosetta prompt, simulate the perspective of an agent running inside a real target project USING rosetta instruction, not on rosetta repository.
+
+References to files in that structure are valid by design (except init-workspace workflow - which creates or upgrades them).
+
+Read `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` in current rosetta repo to better understand rosetta implementation itself. Remember that current and target repositories ARE DIFFERENT (this content is only available in this repo!).
+
+MUST USE SKILL `orchestration` for all subagent dispatches.
+MUST USE SKILL `coding-agents-prompt-authoring` to review and to harden the changes and at least must include pa-rosetta.md, pa-patterns, pa-hardening.md, pa-schemas.md.
+Subagents MUST USE SKILL `coding-agents-prompt-authoring` with references listed above (and more if they determine additional references are needed).
+
+Each orchestrator/subagent instance can handle at most 7 prompt files (hard cap). Apply the small/large split thresholds defined in the Workflow section; when splitting, group prompts by release (instructions/r*), then by their prompt families or usage patterns.
