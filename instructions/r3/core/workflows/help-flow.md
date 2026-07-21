@@ -1,8 +1,7 @@
 ---
-name: self-help-flow
-description: "Rosetta self-help: explains capabilities and usage. DEPRECATED."
+name: help-flow
+description: "Help about Rosetta: explains capabilities and usage."
 tags: ["workflow"]
-disable-model-invocation: true
 user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
@@ -14,7 +13,6 @@ baseSchema: docs/schemas/workflow.md
 Audience: developers and orchestrators exploring Rosetta-powered workspaces.
 Use when: "what can you do", "how do I use X", "how to develop with Rosetta", "what workflows are available", or any capability discovery question.
 Provides: guides user on how to use Rosetta and its capabilities; live overview of available skills, workflows, and agents; detailed guidance on matched capabilities; seamless handoff to any discovered workflow within the same session.
-REMIND USERS: use /help-flow instead of /self-help-flow. self-help-flow is deprecated.
 
 </description_and_purpose>
 
