@@ -14,11 +14,12 @@ const outDir = path.resolve(__dirname, '..', 'dist', 'bundles');
 const quiet = process.argv.includes('--quiet');
 
 const PLUGINS = [
-  { plugin: 'core-claude',   adapter: 'adapter-claude-code' },
-  { plugin: 'core-codex',    adapter: 'adapter-codex' },
-  { plugin: 'core-copilot',  adapter: 'adapter-copilot' },
-  { plugin: 'core-cursor',   adapter: 'adapter-cursor' },
-  { plugin: 'core-windsurf', adapter: 'adapter-windsurf' },
+  { plugin: 'core-claude',      adapter: 'adapter-claude-code' },
+  { plugin: 'core-codex',       adapter: 'adapter-codex' },
+  { plugin: 'core-copilot',     adapter: 'adapter-copilot' },
+  { plugin: 'core-cursor',      adapter: 'adapter-cursor' },
+  { plugin: 'core-windsurf',    adapter: 'adapter-windsurf' },
+  { plugin: 'core-antigravity', adapter: 'adapter-antigravity' },
 ];
 
 // Auto-discover hook entry points: every .ts file in src/hooks/.

@@ -21,7 +21,10 @@
 //   2. cursor       — CC fields + conversation_id + cursor_version
 //   3. claude-code  — CC fields (hook_event_name + tool_input + session_id)
 //   4. windsurf     — agent_action_name + trajectory_id + tool_info
-//   5. copilot      — toolName + timestamp + cwd (no hook_event_name)
+//   5. antigravity  — conversationId + workspacePaths (camelCase, distinct from cursor's
+//                     snake_case conversation_id) + one of toolCall/invocationNum/executionNum/
+//                     artifactDirectoryPath
+//   6. copilot      — toolName + timestamp + cwd (no hook_event_name)
 //
 // Public API:
 //   - readStdin, normalize, formatOutput — used by hook entrypoints (prod)
@@ -32,6 +35,7 @@ import { codex } from './adapters/codex';
 import { cursor } from './adapters/cursor';
 import { windsurf } from './adapters/windsurf';
 import { copilot } from './adapters/copilot';
+import { antigravity } from './adapters/antigravity';
 import { debugLogBranch } from './runtime/debug-log';
 
 import type { IdeAdapter, NormalizedInput, CanonicalOutput, AdapterApi } from './types';
@@ -39,13 +43,14 @@ export type { NormalizedInput, CanonicalOutput, IdeAdapter, AdapterApi } from '.
 
 // Detection is an ordered chain — a superset like codex must match before
 // claude-code, so this order is load-bearing and not derived from Object.keys.
-const DETECTION_ORDER = ['codex', 'cursor', 'claude-code', 'windsurf', 'copilot'] as const;
+const DETECTION_ORDER = ['codex', 'cursor', 'claude-code', 'windsurf', 'antigravity', 'copilot'] as const;
 
 const ADAPTERS = {
   codex,
   cursor,
   'claude-code': claudeCode,
   windsurf,
+  antigravity,
   copilot,
 } as Record<string, IdeAdapter>;
 
@@ -61,13 +66,17 @@ const hasVarWithPrefix = (env: Env, prefix: string): boolean =>
 // unambiguously and is checked FIRST; shape-based DETECTION_ORDER below is the fallback for
 // when none of these env vars are present (e.g. a sandboxed/stripped environment).
 // Ordered most-specific first: Cursor is a VS Code fork (carries VSCODE_* too), so its own
-// CURSOR_VERSION must be checked before the generic VSCODE_* Copilot catch-all.
+// CURSOR_VERSION must be checked before the generic VSCODE_* Copilot catch-all. Antigravity IDE is
+// ALSO a VS Code fork (carries VSCODE_* too) — its own ANTIGRAVITY_CONVERSATION_ID must likewise be
+// checked before that same catch-all, or Antigravity IDE traffic is misdetected as copilot (the
+// exact routing-bug class documented in docs/hooks-verify.md for Cursor/Copilot).
 const ENV_DETECTION_ORDER: ReadonlyArray<{ ide: string; test: (env: Env) => boolean }> = [
   { ide: 'cursor',      test: (env) => Boolean(env.CURSOR_VERSION) },
   { ide: 'claude-code', test: (env) => env.CLAUDECODE === '1' },
   { ide: 'codex',       test: (env) => Boolean(env.CODEX_MANAGED_BY_NPM) || Boolean(env.CODEX_MANAGED_PACKAGE_ROOT) },
   { ide: 'copilot',     test: (env) => env.COPILOT_CLI === '1' },
   { ide: 'windsurf',    test: (env) => hasVarWithPrefix(env, 'CODEIUM_') || hasVarWithPrefix(env, 'WINDSURF_') },
+  { ide: 'antigravity', test: (env) => Boolean(env.ANTIGRAVITY_CONVERSATION_ID) },
   { ide: 'copilot',     test: (env) => hasVarWithPrefix(env, 'VSCODE_') },
 ];
 

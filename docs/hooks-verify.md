@@ -46,6 +46,8 @@ For each IDE/agent, in this exact order:
 10. Make changes across all areas
 11. Update `hooks-verify.md` with post-change summary
 
+**Target for testing:** /Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql
+
 **Constraint:** ONE agent at a time. No jumping ahead.
 **HITL is mandatory at every gate (steps 2, 3, 8).** Do NOT proceed past a gate — and do NOT touch code, requirements, plugins, or configure guides — without the user's explicit approval. The live-hook test (step 3) is the proof step: never mark a spec "confirmed" from docs alone.
 
@@ -119,6 +121,7 @@ Contracts (events, I/O models, exit codes, matchers) live in the per-IDE specs �
 | GitHub Copilot | `docs/hooks/copilot.md` | COMPLETE; **change-phase DONE 2026-06-30** (Bug 2 + routing-bug fix + OI-3 + configure guide + FR-HOOK.md) | `adapters/copilot.ts` (now handles BOTH wire shapes) + `ide-rows/copilot.ts` |
 | Devin Desktop (Windsurf) | `docs/hooks/windsurf.md` | **SEALED 2026-07-01** — spec VERIFIED/COMPLETE; change-phase DONE (Action 9: deny reason routed to stderr via `IdeAdapter.stderrMessage`; `formatOutput`→`{}`; configure-guide Hooks section added r2+r3). Flat Cascade; `.devin/hooks.json` current, `.windsurf/` legacy alias. Only intentional non-match: no session-lifecycle events exist (documented-absent, not a gap). | `adapters/windsurf.ts` |
 | Devin CLI | `docs/hooks/devin-cli.md` | DRAFT — NOT validated (out of scope unless Rosetta targets the CLI) | — |
+| Google Antigravity (2.0 / CLI / IDE) | `docs/hooks/antigravity.md` | **VERIFIED 2026-07-23** — empirically confirmed on all 3 surfaces (CLI 1.1.5, IDE 2.1.1, 2.0 2.3.1), 3 different models. Deny + Stop-continue + `injectSteps.userMessage` reach model; `ephemeralMessage`/`additionalContext`/allow-reason do NOT; PascalCase tool args; detection `ANTIGRAVITY_CONVERSATION_ID`. One combined adapter; Gemini CLI excluded. | `adapters/antigravity.ts` + `ide-rows/antigravity.ts` + `entrypoints/adapter-antigravity.ts` (implemented 2026-07-23: registry, detection env-first `ANTIGRAVITY_CONVERSATION_ID` before VSCODE catch-all + shape fallback, PascalCase tool map w/ content extraction, deny→`{decision:deny,reason}`, Stop→`{decision:continue,reason}`, advise→`injectSteps.userMessage`; 1107/1107 tests, tsc clean, 48 bundles) |
 
 ### Change-phase findings (NOT in the specs)
 
@@ -435,8 +438,9 @@ The **repeatable methodology** is in "Verification Process" (below); the **probe
 | Cursor | `docs/hooks/cursor/hooks.json` | cursor | 1–4 | `cursor-logs.txt`, `cursor-run3-logs.txt`, `cursor-run4-logs.txt` |
 | Devin Desktop (Windsurf) | `docs/hooks/windsurf/hooks.json` (also placed at `.devin/hooks.json`) | windsurf | 1–4 | `windsurf-logs.txt` |
 | Devin CLI | `docs/hooks/devin/hooks.v1.json` (no-wrapper) | devin | not run | — |
+| Google Antigravity (2.0 / CLI / IDE) | `docs/hooks/antigravity/hooks.json` | antigravity | CLI 1.1.5, IDE 2.1.1, 2.0 2.3.1 (all verified) | `agy-cli-logs.txt`, `agy-ide-logs.txt`, `agy-2.0-logs.txt` |
 
-**Generic sanctioned-test prompt** (frame as a self-authored diagnostic so the model doesn't treat it as prompt-injection; adapt steps per IDE): (1) run `echo rosetta-hook-probe`; (2) read/`cat` `docs/hooks/HOOK-DENY-PROBE.txt` — the PreToolUse/`pre_*` deny should block it; quote the block verbatim and continue; (3) for injection-capable IDEs, ask **per-token YES/NO** recall of the planted markers (+ trailing `Report` code) — never "list/quote" (triggers a secret-refusal); (4) if a Stop-block is wired, run that prompt FIRST so its one-time block doesn't interrupt later steps. **Verify against the LOG, not the model's word.**
+**Generic sanctioned-test prompt** (frame as a self-authored diagnostic so the model doesn't treat it as prompt-injection; adapt steps per IDE). **(!) ALWAYS hand this to the user as a copy-pastable fenced code block, NEVER a blockquote — see Testing Methodology Lesson 10.** **(!) The prompt MUST open with the line: `MUST ALWAYS do all steps in order (CRITICAL - AS CONTEXT IS INJECTED ON TOOL CALLS)` — hooks inject context on tool calls, so skipping/reordering steps drops the very signals being probed.** Steps: (1) run `echo rosetta-hook-probe`; (2) read/`cat` `docs/hooks/HOOK-DENY-PROBE.txt` — the PreToolUse/`pre_*` deny should block it; quote the block verbatim and continue; (3) for injection-capable IDEs, ask **per-token YES/NO** recall of the planted markers (+ trailing `Report` code) — never "list/quote" (triggers a secret-refusal). **(!) The recall step MUST explicitly say "OUT OF YOUR CONTEXT ONLY — DO NOT READ, SEARCH, OR CALL ANY TOOLS"** — otherwise the model goes searching the filesystem/tools for the markers, pollutes the run, and the answer no longer reflects injected context; (4) if a Stop-block is wired, run that prompt FIRST so its one-time block doesn't interrupt later steps. **Verify against the LOG, not the model's word.**
 
 > **Devin Desktop note:** `.devin/hooks.json` (flat Cascade) and `.windsurf/hooks.json` are equivalent (Runs 1–2). `.devin/hooks.v1.json` (Claude-Code format) is **NOT read by Devin Desktop** (Runs 3–4) — it's the Devin CLI's file (`devin-cli.md`, non-validated).
 
@@ -476,6 +480,8 @@ How hooks are verified end-to-end. Reusable for every IDE/agent.
 8. **[GENERAL — a testing-tool discipline, not an IDE fact] (!) Dry-run new `tester.js` flag combinations against a synthetic payload BEFORE wiring them into `hooks.json` and spending a live IDE run.** (Incident: Cursor Run 4 — paired the UNCONDITIONAL `--exit-code <n>` flag with the CONDITIONAL `--deny-on-match`, so it would have forced exit-2 on every call, not just matched ones — caught only by re-reading the processor code after a confusing live result, not before.) `echo '{"...fixture..."}' | node docs/hooks/tester.js <flags>` locally catches flag-composition bugs for free, before they cost a live run, regardless of which IDE the flags target.
 
 9. **[CURSOR-SPECIFIC — `failClosed` is a Cursor-only field; no other IDE spec documents it] (!) A `failClosed:true` handler that returns EMPTY output on non-matching calls contaminates every OTHER probe registered on the same event.** (Cursor Run 4: one `failClosed` handler on `beforeShellExecution` blocked all 6 shell probes on the first attempt, because Cursor treats its own empty/no-decision response as a failure under `failClosed` — masking whatever the OTHER handler on that event actually did.) When testing `failClosed` alongside other conditional probes on the same event, the `failClosed` handler MUST emit an explicit decision (e.g. `{"permission":"allow"}`) on its own non-match path, or every other probe's result becomes unattributable. Re-apply this lesson only if/when another IDE is found to have an equivalent fail-closed-style flag.
+
+10. **[PRESENTATION — always] (!) Present the probe prompt (and ANY prompt/command block the user must paste or run) as a COPY-PASTABLE fenced code block — NEVER a markdown blockquote (`>`).** A blockquote renders a quote bar down the left edge and prefixes every line with `> `, so when the user copies it they get the `> ` junk and cannot paste it cleanly into the target agent. Use a plain ```-fenced block with the raw prompt text only. This applies to every hand-off, not just the first.
 
 ---
 

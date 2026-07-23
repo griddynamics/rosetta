@@ -16,10 +16,11 @@ const HOOK_FILES  = [
 
 // For each plugin, list IDE names that must NOT appear as string literals in its bundles.
 const FOREIGN: Record<string, string[]> = {
-  'core-copilot': ['cursor', 'windsurf', 'codex', 'claude-code'],
-  'core-cursor':  ['copilot', 'windsurf', 'codex'],
-  'core-claude':  ['copilot', 'cursor', 'windsurf', 'codex'],
-  'core-codex':   ['copilot', 'cursor', 'windsurf'],
+  'core-copilot':     ['cursor', 'windsurf', 'codex', 'claude-code', 'antigravity'],
+  'core-cursor':      ['copilot', 'windsurf', 'codex', 'antigravity'],
+  'core-claude':      ['copilot', 'cursor', 'windsurf', 'codex', 'antigravity'],
+  'core-codex':       ['copilot', 'cursor', 'windsurf', 'antigravity'],
+  'core-antigravity': ['copilot', 'cursor', 'windsurf', 'codex', 'claude-code'],
 };
 
 // Allowed occurrences: plugin → hookFile → IDE name → max allowed count.

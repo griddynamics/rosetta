@@ -1,0 +1,17 @@
+{
+  "_source": "captured-real-payload",
+  "_docs": "docs/hooks/agy-ide-logs.txt line 182 (PreToolUse, run_command, IDE surface — no modelName)",
+  "artifactDirectoryPath": "/Users/isolomatov/.gemini/antigravity-ide/brain/b3e702af-9b15-471d-be12-501be4fc9f36",
+  "conversationId": "b3e702af-9b15-471d-be12-501be4fc9f36",
+  "stepIdx": 7,
+  "toolCall": {
+    "args": {
+      "CommandLine": "echo rosetta-hook-probe",
+      "Cwd": "/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql",
+      "WaitMsBeforeAsync": 3000
+    },
+    "name": "run_command"
+  },
+  "transcriptPath": "/Users/isolomatov/.gemini/antigravity-ide/brain/b3e702af-9b15-471d-be12-501be4fc9f36/.system_generated/logs/transcript.jsonl",
+  "workspacePaths": ["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]
+}

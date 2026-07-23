@@ -3,7 +3,7 @@ import { EVENTS, reverseLookupEvent, TOOL_KINDS, reverseLookupToolKind, PROPERTI
 import ccWrite from '../fixtures/claude-code-post-tool-use-write.json';
 import wsWrite from '../fixtures/windsurf-post-tool-use-write.json';
 
-const IDES = ['claude-code', 'codex', 'cursor', 'windsurf', 'copilot'] as const;
+const IDES = ['claude-code', 'codex', 'cursor', 'windsurf', 'copilot', 'antigravity'] as const;
 
 describe('EVENTS — completeness', () => {
   test('PostToolUse exists for all IDEs (value or explicit null)', () => {
@@ -29,6 +29,12 @@ describe('reverseLookupEvent', () => {
     expect(reverseLookupEvent('cursor', 'stop')).toBe('Stop'));
   test('Stop — unsupported on windsurf (no session-level lifecycle events)', () =>
     expect(reverseLookupEvent('windsurf', 'Stop')).toBeNull());
+  test('PostToolUse — antigravity canonical name', () =>
+    expect(reverseLookupEvent('antigravity', 'PostToolUse')).toBe('PostToolUse'));
+  test('Stop — antigravity canonical name', () =>
+    expect(reverseLookupEvent('antigravity', 'Stop')).toBe('Stop'));
+  test('SessionStart — unsupported on antigravity (no such event)', () =>
+    expect(reverseLookupEvent('antigravity', 'SessionStart')).toBeNull());
 });
 
 describe('TOOL_KINDS — completeness', () => {
@@ -56,6 +62,14 @@ describe('reverseLookupToolKind', () => {
     expect(reverseLookupToolKind('claude-code', 'mcp__filesystem__write_file')).toBe('mcp-call'));
   test('mcp__ prefix works regardless of ide', () =>
     expect(reverseLookupToolKind('cursor', 'mcp__anything')).toBe('mcp-call'));
+  test('antigravity write_to_file → write', () =>
+    expect(reverseLookupToolKind('antigravity', 'write_to_file')).toBe('write'));
+  test('antigravity replace_file_content → edit', () =>
+    expect(reverseLookupToolKind('antigravity', 'replace_file_content')).toBe('edit'));
+  test('antigravity multi_replace_file_content → multi-edit', () =>
+    expect(reverseLookupToolKind('antigravity', 'multi_replace_file_content')).toBe('multi-edit'));
+  test('antigravity mcp__ prefixed tool name → mcp-call', () =>
+    expect(reverseLookupToolKind('antigravity', 'mcp__anything')).toBe('mcp-call'));
 });
 
 describe('PROPERTIES.filePath', () => {
@@ -68,5 +82,16 @@ describe('PROPERTIES.filePath', () => {
   });
   test('returns null (not undefined) when path absent', () => {
     expect(PROPERTIES.filePath['claude-code']({})).toBeNull();
+  });
+  test('antigravity extracts TargetFile for write_to_file', () => {
+    const raw = { toolCall: { name: 'write_to_file', args: { TargetFile: '/proj/a.txt' } } };
+    expect(PROPERTIES.filePath['antigravity'](raw)).toBe('/proj/a.txt');
+  });
+  test('antigravity cwd prefers run_command args.Cwd over workspacePaths[0]', () => {
+    const raw = { workspacePaths: ['/proj'], toolCall: { name: 'run_command', args: { Cwd: '/proj/sub' } } };
+    expect(PROPERTIES.cwd['antigravity'](raw)).toBe('/proj/sub');
+  });
+  test('antigravity sessionId ← conversationId', () => {
+    expect(PROPERTIES.sessionId['antigravity']({ conversationId: 'c1' })).toBe('c1');
   });
 });

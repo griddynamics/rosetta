@@ -78,10 +78,13 @@ function processBlock(block) {
 }
 
 // Match the session key in the input. Most agents emit `"session_id"`; Windsurf/Devin emits
-// `"trajectory_id"` instead — accept either so the ID arg works regardless of the agent.
+// `"trajectory_id"`; Antigravity (Google) emits `"conversationId"` — accept any so the ID arg
+// works regardless of the agent.
 const kept = blocks.filter((b) => {
   const t = b.join('\n');
-  return t.includes(`"session_id":"${SESSION_ID}"`) || t.includes(`"trajectory_id":"${SESSION_ID}"`);
+  return t.includes(`"session_id":"${SESSION_ID}"`)
+    || t.includes(`"trajectory_id":"${SESSION_ID}"`)
+    || t.includes(`"conversationId":"${SESSION_ID}"`);
 }).map(processBlock);
 
 const header =
