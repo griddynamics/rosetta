@@ -52,7 +52,7 @@ const runWithFilePath = async (fp: FilePathPredicate, file_path: string): Promis
 
 describe('runAsCli', () => {
   test('does nothing when require.main !== mod', () => {
-    const fakeMod = {} as NodeModule;
+    const fakeMod = {} as NodeJS.Module;
     const hook = defineHook({
       name: 'test',
       on: { event: 'PostToolUse', toolKinds: ['write'] },
