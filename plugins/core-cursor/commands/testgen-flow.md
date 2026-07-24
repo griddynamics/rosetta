@@ -1,9 +1,7 @@
 ---
 name: testgen-flow
 description: "Workflow for generating test cases from requirements (Issue Tracker / Wiki sources), exporting to a Test Management System, etc."
-alwaysApply: false
 tags: ["workflow"]
-user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

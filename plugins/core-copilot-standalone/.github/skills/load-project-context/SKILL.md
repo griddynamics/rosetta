@@ -2,7 +2,6 @@
 name: load-project-context
 description: "To load the project's business, behavioral, and technical context."
 license: Apache-2.0
-disable-model-invocation: false
 user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---

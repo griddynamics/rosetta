@@ -2,8 +2,6 @@
 name: coding-agents-hooks-authoring
 description: "To author, register, and test Rosetta hooks, add a SemanticKind, or debug a hook that won't fire."
 tags: [hooks, authoring, registration]
-disable-model-invocation: false
-user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

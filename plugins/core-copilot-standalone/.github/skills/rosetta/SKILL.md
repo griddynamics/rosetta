@@ -3,7 +3,6 @@ name: rosetta
 description: Rosetta identifies and routes user request to the most matching workflow
 license: Apache-2.0
 disable-model-invocation: true
-user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

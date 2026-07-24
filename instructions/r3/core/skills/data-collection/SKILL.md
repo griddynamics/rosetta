@@ -1,8 +1,7 @@
 ---
 name: data-collection
-description: "To gather QA source artifacts from issue tracker, wiki, TMS - AQA flows only"
+description: "To gather QA source artifacts from issue tracker, wiki, test management system"
 license: Apache-2.0
-disable-model-invocation: false
 user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---

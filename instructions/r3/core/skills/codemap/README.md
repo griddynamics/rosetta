@@ -8,7 +8,7 @@ Without this skill an agent dropped into an unfamiliar workspace either greps ar
 
 ## When to engage
 
-Not model-auto-invoked and not user-slash-invocable (`disable-model-invocation: true`, `user-invocable: false`) — it only runs when another instruction explicitly does `USE SKILL \`codemap\``. Any agent tier can trigger it this way: workflows (`init-workspace-flow.md`, `init-workspace-flow-discovery.md`, `init-workspace-flow-documentation.md`, `coding-flow.md`), and skills `reverse-engineering` and `coding` before/during structural discovery. `<when_to_use_skill>` is absent from SKILL.md — entry is purely via these external references, there is no self-contained trigger text to read.
+Not user-slash-invocable (`user-invocable: false`) — it only runs when another instruction explicitly does `USE SKILL \`codemap\``. Any agent tier can trigger it this way: workflows (`init-workspace-flow.md`, `init-workspace-flow-discovery.md`, `init-workspace-flow-documentation.md`, `coding-flow.md`), and skills `reverse-engineering` and `coding` before/during structural discovery. `<when_to_use_skill>` is absent from SKILL.md — entry is purely via these external references, there is no self-contained trigger text to read.
 
 ## How it works
 
@@ -38,7 +38,7 @@ No `references/` subfolder exists.
 ## Invariants — do not change
 
 - Frontmatter `name: codemap` matches the folder name and is registered in `docs/definitions/skills.md` (line with `- codemap`) — renaming either breaks that registration and every `USE SKILL \`codemap\`` reference below.
-- `disable-model-invocation: true` / `user-invocable: false` — deliberate: this is a routed-to helper, not a standalone entry point; flipping either changes who can trigger it and duplicates entry paths already owned by the callers listed above.
+- `user-invocable: false` — deliberate: this is a routed-to helper, not a standalone entry point; flipping it changes who can trigger it and duplicates entry paths already owned by the callers listed above.
 - `description: "To generate, populate, and use a project codemap for structural discovery."` — short, keyword-dense, matches the "To <verb>..." convention used elsewhere; since model-invocation is disabled it does not drive auto-activation here, but it still is what a human/agent reads when scanning the skill list, so keep it accurate.
 - Precedence order "LSPs > graphify > gitnexus > shell scripts" and the **REQUESTED**-gating — callers and the setup instructions for graphify/gitnexus assume this exact ordering.
 - Cross-skill references use intent form (`MUST USE SKILL \`graphify\``) never file paths; asset routing uses `MUST APPLY SKILL FILE \`assets/gitnexus-*.md\`` — per-file, never a bare skill name, since these are files inside this skill's own folder, not another skill.

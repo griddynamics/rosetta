@@ -14,7 +14,7 @@ alwaysApply: false
 # dependencies: "python>=3.8, pandas>=1.5.0"
 
 # Invocation & Discovery — disable-model-invocation and user-invocable are REQUIRED: always set explicitly, even when equal to the default
-# disable-model-invocation — true = runs only when explicitly invoked via /name, never auto-applied by context. If true budget is not applicable. Description must be user friendly. [boolean] [Cursor, Claude Code]
+# disable-model-invocation — true = the model can NEVER invoke it (not auto-applied by context, not via USE SKILL/direct mention); runs ONLY when the user explicitly invokes /name. If true budget is not applicable. Description must be user friendly. [boolean] [Cursor, Claude Code]
 disable-model-invocation: false
 # user-invocable — false = hidden from the / menu (background knowledge users shouldn't call directly) [boolean] [Claude Code]
 user-invocable: true

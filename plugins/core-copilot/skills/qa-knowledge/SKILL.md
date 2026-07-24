@@ -2,8 +2,6 @@
 name: qa-knowledge
 description: "To run QA engineering — requirements/gap analysis, scenario & spec design, test implementation, failure triage — over the QA knowledge base."
 license: Apache-2.0
-disable-model-invocation: false
-user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

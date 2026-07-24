@@ -7,8 +7,6 @@ tags:
   - plugins
   - java
   - extending
-disable-model-invocation: false
-user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

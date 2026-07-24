@@ -5,7 +5,7 @@ Read-only source-of-record collector that pulls issue/wiki/TMS artifacts into a 
 Without this skill, an agent doing intake work will quietly guess a vendor, improvise an output shape, treat a permission wall as "no data," paraphrase missing source text from memory, or pull sensitive comments straight into versioned artifacts. `data-collection` fixes that by making collection literal, contract-bound, provenance-aware, gap-preserving, and redaction-gated.
 
 ## When to engage
-Use when upstream orchestration has already resolved the vendor binding(s), output-artifact path, and section contract, and the current step needs to gather source artifacts from a system-of-record or codebase into that contract. This skill is read-only and non-user-invocable (`disable-model-invocation: true`, `user-invocable: false`): it is meant to be loaded by another skill or workflow, not by a user directly. Do not use it for generation, implementation, reconciliation, or source mutation.
+Use when upstream orchestration has already resolved the vendor binding(s), output-artifact path, and section contract, and the current step needs to gather source artifacts from a system-of-record or codebase into that contract. This skill is read-only and non-user-invocable (`disable-model-invocation: false`, `user-invocable: false`): it is meant to be loaded by another skill or workflow, not by a user directly. Do not use it for generation, implementation, reconciliation, or source mutation.
 
 ## How it works
 Single flat `SKILL.md` plus three role-named binding references in `references/`. Root `<data_collection>` contains `<role>`, `<when_to_use_skill>`, `<core_concepts>`, `<collection>`, `<validation_checklist>`, and `<pitfalls>`. The operative flow is four steps: receive resolved inputs; load the role-named binding reference (`issue-vendor-binding.md`, `tms-vendor-binding.md`, `documentation-vendor-binding.md`); extract and normalize field-by-field into the provided contract while preserving gaps/restrictions/failures; then run `sensitive-data` before writing. Multi-vendor runs repeat steps 2-4 per binding and emit into externally assigned sections; this skill does not reconcile across sources.
@@ -19,7 +19,7 @@ Single flat `SKILL.md` plus three role-named binding references in `references/`
 
 ## Invariants — do not change
 - `name: data-collection` must equal the folder name and the registration in [docs/definitions/skills.md](../../../../../docs/definitions/skills.md).
-- `disable-model-invocation: true` / `user-invocable: false` must stay: this is background helper behavior, not a user-facing command.
+- `disable-model-invocation: false` / `user-invocable: false` must stay: this is background helper behavior, not a user-facing command.
 - The role-named binding convention is load-bearing: issue tracker → `references/issue-vendor-binding.md`, TMS → `references/tms-vendor-binding.md`, documentation → `references/documentation-vendor-binding.md`.
 - `<restricted by permissions>` is semantic output, not cosmetic wording; changing it breaks the restricted-vs-empty distinction the skill is built around.
 - `sensitive-data` is a required dependency before writing captured content.

@@ -5,7 +5,7 @@ QA convention router: loads the right artifact skeletons, failure taxonomies, an
 Without this skill, an agent doing QA work will invent artifact shapes from memory, restate taxonomies inline, drop assertions or ATCs silently, or emit artifacts without rerunning the sensitive-data gate. `qa-knowledge` fixes that by centralizing QA-domain conventions and forcing point-of-use loading of the exact asset or reference the current step needs.
 
 ## When to engage
-Use when authoring, analyzing, or correcting backend-API or UI/E2E tests and you need QA conventions rather than path/layout rules. It is non-user-invocable helper knowledge (`disable-model-invocation: true`, `user-invocable: false`) intended to be loaded by QA workflows and adjacent skills. TestRail/Jira/Confluence are canonical examples only; adapt the conventions to the current case.
+Use when authoring, analyzing, or correcting backend-API or UI/E2E tests and you need QA conventions rather than path/layout rules. It is non-user-invocable helper knowledge (`disable-model-invocation: false`, `user-invocable: false`) intended to be loaded by QA workflows and adjacent skills. TestRail/Jira/Confluence are canonical examples only; adapt the conventions to the current case.
 
 ## How it works
 Single flat `SKILL.md` with `assets/` and `references/` subfolders. Root `<qa_knowledge>` contains `<when_to_use_skill>`, `<core_concepts>`, `<resources>`, and `<anti_patterns>`. The core behavior is routing: look at the current QA step, then READ SKILL FILE for exactly one template or taxonomy from the router table at point of use. Assets own skeletons and output formats; references own classification conventions. The skill explicitly refuses memory-based artifact authoring and silent assertion loss.
@@ -18,7 +18,7 @@ Single flat `SKILL.md` with `assets/` and `references/` subfolders. Root `<qa_kn
 
 ## Invariants — do not change
 - `name: qa-knowledge` must equal the folder name and the registration in [docs/definitions/skills.md](../../../../../docs/definitions/skills.md).
-- `disable-model-invocation: true` / `user-invocable: false` must stay: this skill is a routed helper, not a user-facing command.
+- `disable-model-invocation: false` / `user-invocable: false` must stay: this skill is a routed helper, not a user-facing command.
 - The asset/reference split is load-bearing: templates stay in `assets/`, conventions in `references/`.
 - The router table is the canonical entry point; if an artifact or taxonomy is added, wire it into `<resources>`.
 - The anti-pattern "silent ATC / assertion drop" is a hard behavioral rule, not just advice.

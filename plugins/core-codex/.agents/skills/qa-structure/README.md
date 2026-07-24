@@ -5,7 +5,7 @@ QA path and state-layout authority: resolves where QA artifacts live, how slugs 
 Without this skill, an agent doing QA setup will invent folder names, guess slugs, write session artifacts into shared `agents/` paths, or drift from the canonical state/config layout. `qa-structure` fixes that by making path resolution, slug rules, and state-file shape single-source and flow-specific.
 
 ## When to engage
-Use when you need to create a QA session folder, derive `{IDENTIFIER}` or `<test-name>`, resolve an artifact path, or seed/read the QA state/config files. It owns WHERE QA artifacts live, not HOW QA artifacts are authored or analyzed. Like `qa-knowledge`, it is helper-only (`disable-model-invocation: true`, `user-invocable: false`) and is expected to be loaded by QA workflows.
+Use when you need to create a QA session folder, derive `{IDENTIFIER}` or `<test-name>`, resolve an artifact path, or seed/read the QA state/config files. It owns WHERE QA artifacts live, not HOW QA artifacts are authored or analyzed. Like `qa-knowledge`, it is helper-only (`disable-model-invocation: false`, `user-invocable: false`) and is expected to be loaded by QA workflows.
 
 ## How it works
 Single flat `SKILL.md` with `assets/` and `references/` subfolders. Root `<qa_structure>` contains `<when_to_use_skill>`, `<core_concepts>`, `<resources>`, and `<anti_patterns>`. The central mechanic is progressive disclosure: load exactly one layout reference (`api-aqa-layout.md` XOR `ui-aqa-layout.md`) for the active flow, optionally load `config-schema.md` for config validation, then READ SKILL FILE for the matching template asset only when the current step needs it. Slug rules, reserved words, and the 8-row phase-status state-file shape are defined here and must be used verbatim.
@@ -18,7 +18,7 @@ Single flat `SKILL.md` with `assets/` and `references/` subfolders. Root `<qa_st
 
 ## Invariants — do not change
 - `name: qa-structure` must equal the folder name and the registration in [docs/definitions/skills.md](../../../../../docs/definitions/skills.md).
-- `disable-model-invocation: true` / `user-invocable: false` must stay: this is a support skill, not a direct user command.
+- `disable-model-invocation: false` / `user-invocable: false` must stay: this is a support skill, not a direct user command.
 - The slug contract is load-bearing: lowercase ASCII kebab-case, letters/digits/hyphens only, max 80 chars, reserved `state`, `index`, and the flow's `*-state` name.
 - The state-file shape rule ("header + `## Phase Completion Status` (8 rows) + per-phase append blocks") is canonical.
 - The flow-layout XOR rule and the per-session `plans/...` path rule are behavioral invariants, not convenience advice.

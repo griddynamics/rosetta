@@ -2,8 +2,6 @@
 name: orchestration
 description: "To delegate, prompt and manage subagents. MUST activate to spawn subagent with a quality prompt. MANDATORY unless trivial one-liner."
 license: Apache-2.0
-disable-model-invocation: false
-user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

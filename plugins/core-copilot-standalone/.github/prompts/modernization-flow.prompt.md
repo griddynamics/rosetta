@@ -1,9 +1,7 @@
 ---
 name: modernization-flow
 description: "Workflow for converting, modernizing, upgrading, or re-architecting code (e.g. C++→Java, monolith→microservices), etc."
-alwaysApply: false
 tags: ["workflow"]
-user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

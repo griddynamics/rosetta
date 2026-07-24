@@ -7,8 +7,6 @@ tags:
   - query
   - search
   - debugging
-disable-model-invocation: false
-user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

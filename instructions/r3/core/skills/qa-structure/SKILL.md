@@ -1,10 +1,8 @@
 ---
 name: qa-structure
-description: "To resolve session paths, identifiers/slugs, and state-file shape - AQA flows only"
+description: "To resolve QA session paths, identifiers/slugs, and state-file shape"
 license: Apache-2.0
-disable-model-invocation: false
 user-invocable: false
-tags: []
 baseSchema: docs/schemas/skill.md
 ---
 

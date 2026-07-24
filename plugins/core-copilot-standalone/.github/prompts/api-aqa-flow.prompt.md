@@ -1,9 +1,7 @@
 ---
 name: api-aqa-flow
 description: "Workflow for backend API test automation: TMS / Issue Tracker test cases → automated API tests, HITL-gated."
-alwaysApply: false
 tags: ["workflow"]
-user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

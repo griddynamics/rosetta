@@ -2,8 +2,6 @@
 name: post-mortem
 description: "Diagnose instruction defects and optionally submit Rosetta GitHub issue"
 license: Apache-2.0
-disable-model-invocation: false
-user-invocable: true
 argument-hint: "optional: skill/agent/workflow name or concern"
 baseSchema: docs/schemas/skill.md
 ---

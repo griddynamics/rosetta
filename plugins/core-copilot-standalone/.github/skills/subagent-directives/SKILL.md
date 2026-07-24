@@ -2,7 +2,6 @@
 name: subagent-directives
 description: "MUST duties for a spawned subagent"
 license: Apache-2.0
-disable-model-invocation: false
 user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---

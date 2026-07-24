@@ -2,7 +2,6 @@
 name: dangerous-actions
 description: "CRITICAL. MUST activate when action OR its consequence is potentially dangerous/irreversible/destructive, or HIGH RISK — even if it seems safe. Even a remote chance activate."
 license: Apache-2.0
-disable-model-invocation: false
 user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---

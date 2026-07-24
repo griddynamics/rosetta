@@ -2,7 +2,6 @@
 name: requirements-authoring-flow
 description: "Workflow for authoring requirements and specifications: drafting, review, validation, etc."
 tags: ["workflow"]
-user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 
