@@ -2,7 +2,6 @@
 name: self-organization
 description: "CRITICAL. MUST activate at 65%+ context usage, 2h / 15+ file / 350+ line scope, or large-file restructuring. Proactive planning, reorganization, stale-content cleanup."
 license: Apache-2.0
-disable-model-invocation: false
 user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---

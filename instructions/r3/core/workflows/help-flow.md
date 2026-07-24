@@ -2,7 +2,6 @@
 name: help-flow
 description: "Help about Rosetta: explains capabilities and usage."
 tags: ["workflow"]
-user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

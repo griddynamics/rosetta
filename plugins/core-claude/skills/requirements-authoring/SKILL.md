@@ -2,8 +2,6 @@
 name: requirements-authoring
 description: "To author, update, and validate functional/non-functional requirements as atomic units with user approval."
 license: Apache-2.0
-disable-model-invocation: false
-user-invocable: true
 argument-hint: request, existing-requirements?, scope?, constraints?, stakeholders?
 context: default
 agent: requirements-engineer, reviewer
@@ -477,7 +475,6 @@ HITL gates (use when):
 <resources>
 
 - READ FLOW `requirements-authoring-flow.md`
-- READ RULE `requirements-best-practices.md`
 - READ SKILL FILE `assets/ra-intent-capture.md`
 - READ SKILL FILE `assets/ra-requirement-unit.xml`
 - READ SKILL FILE `assets/ra-validation-rubric.md`

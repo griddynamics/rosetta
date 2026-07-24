@@ -8,7 +8,7 @@ Without this skill a model implementing a task would: skip impact analysis on "s
 
 ## When to engage
 
-`Use when implementing features, bug fixes, refactors, or any code changes including DevOps, IaC, and pipelines.` No actor restriction in frontmatter or in `instructions/bootstrap-alwayson.instructions.md`'s engagement lists — any agent (orchestrator or subagent) auto-engages via description match (`disable-model-invocation: false`) or explicit invocation (`user-invocable: true`). Prerequisite stated in the body: "All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed."
+`Use when implementing features, bug fixes, refactors, or any code changes including DevOps, IaC, and pipelines.` No actor restriction in frontmatter or in `instructions/bootstrap-alwayson.instructions.md`'s engagement lists — any agent (orchestrator or subagent) auto-engages via description match or explicit invocation. Prerequisite stated in the body: "All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed."
 
 ## How it works
 
@@ -31,8 +31,7 @@ Without this skill a model implementing a task would: skip impact analysis on "s
 ## Invariants — do not change
 
 - Frontmatter `name: coding` must equal the folder name and the `docs/definitions/skills.md` entry `- coding` (confirmed present).
-- `description: "To implement features, fix bugs, and refactor with KISS/SOLID/DRY and systematic validation."` — kept short and keyword-dense on purpose; it is always visible and drives auto-activation matching (`disable-model-invocation: false`).
-- `disable-model-invocation: false` / `user-invocable: true` — both must stay true/false as-is; flipping either removes auto-engagement or manual invocation.
+- `description: "To implement features, fix bugs, and refactor with KISS/SOLID/DRY and systematic validation."` — kept short and keyword-dense on purpose; it is always visible and drives auto-activation matching.
 - `MUST APPLY SKILL FILE \`assets/iac.md\`` — canonical alias form; "SKILL FILE" carries no skill name (the file is scoped by folder, not by name), unlike cross-skill references below.
 - Cross-skill references in `<resources>` (`skill \`codemap\``, `skill \`debugging\``, `skill \`planning\``, `skill \`tech-specs\``) use bare skill-name form, not file paths — per `docs/schemas/skill.md`, once a skill name is in context it's referenced directly rather than via `USE SKILL`. All four target skills exist.
 - The phrase `All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed` is a repo-wide canonical line (present verbatim across prompts/agents); do not reword it locally.
@@ -48,7 +47,5 @@ Safe to extend: `best_practices`, `pitfalls`, `resources` (add new cross-skill r
 Handle with care: `core_concepts`, `validation_checklist`, and anything in `assets/iac.md` — these carry the zero-tolerance/threshold/forced-sequence language quoted above; loosening wording here changes executor behavior, not just prose.
 
 New generic coding guidance belongs in `SKILL.md`. New IaC-specific procedure belongs in `assets/iac.md`, not inline in `SKILL.md` — keep the top-level file provider-agnostic and push tool-specific detail into the asset. Do not create a `references/` folder for this skill unless content stops being "always apply when IaC" and becomes "consult on demand" — `assets/iac.md` is mandatorily pulled, which is why it's an asset rather than a reference.
-
-Known adjacent artifact, not a coupling: `rules/coding-iac-best-practices.md` overlaps this skill's IaC scope but neither references nor is referenced by it — check before assuming it's wired in.
 
 Referenced by: `agents/engineer.agent.md`, `agents/validator.agent.md` (both `USE SKILL \`coding\``), `skills/testing/SKILL.md` (`skill \`coding\`` for implementation context), `prompts/init-workspace-flow-verification.prompt.md` (`skill \`coding\`` as file-creation reference).

@@ -1,0 +1,13 @@
+{
+  "_source": "captured-real-payload",
+  "_docs": "docs/hooks/agy-cli-logs.txt line 1278 (Stop)",
+  "artifactDirectoryPath": "/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf",
+  "conversationId": "9996e494-b3d9-4cf7-aabf-36acef4972bf",
+  "error": "",
+  "executionNum": 0,
+  "fullyIdle": true,
+  "modelName": "gemini-3.6-flash-high",
+  "terminationReason": "NO_TOOL_CALL",
+  "transcriptPath": "/Users/isolomatov/.gemini/antigravity-cli/brain/9996e494-b3d9-4cf7-aabf-36acef4972bf/.system_generated/logs/transcript_full.jsonl",
+  "workspacePaths": ["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]
+}

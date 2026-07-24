@@ -3,11 +3,14 @@ import path from 'path';
 import { describe, expect, test } from 'vitest';
 
 const ROOT = path.resolve(__dirname, '..', '..', '..', '..');
+// Templates are generator INPUT and live only under src/rosettify-plugins/plugins/;
+// they are no longer emitted into the generated plugins/ tree.
+const TEMPLATES = path.join(ROOT, 'src', 'rosettify-plugins', 'plugins');
 
 const CASES = [
   {
     name: 'claude template',
-    file: path.join(ROOT, 'plugins', 'core-claude', 'hooks', 'hooks.json.tmpl'),
+    file: path.join(TEMPLATES, 'core-claude', 'hooks', 'hooks.json.tmpl'),
     expected: [
       'read-once.js',
       'read-once-reset.js',
@@ -15,7 +18,7 @@ const CASES = [
   },
   {
     name: 'codex template',
-    file: path.join(ROOT, 'plugins', 'core-codex', '.codex-plugin', 'hooks.json.tmpl'),
+    file: path.join(TEMPLATES, 'core-codex', '.codex-plugin', 'hooks.json.tmpl'),
     expected: [
       'read-once.js',
       'read-once-reset.js',
@@ -23,7 +26,7 @@ const CASES = [
   },
   {
     name: 'cursor template',
-    file: path.join(ROOT, 'plugins', 'core-cursor', 'hooks', 'hooks.json.tmpl'),
+    file: path.join(TEMPLATES, 'core-cursor', 'hooks', 'hooks.json.tmpl'),
     expected: [
       'read-once.js',
       'read-once-reset.js',
@@ -31,7 +34,7 @@ const CASES = [
   },
   {
     name: 'cursor standalone template',
-    file: path.join(ROOT, 'plugins', 'core-cursor', 'hooks.json.tmpl'),
+    file: path.join(TEMPLATES, 'core-cursor', 'hooks.json.tmpl'),
     expected: [
       'read-once.js',
       'read-once-reset.js',
@@ -39,7 +42,7 @@ const CASES = [
   },
   {
     name: 'copilot template',
-    file: path.join(ROOT, 'plugins', 'core-copilot', 'hooks', 'hooks.json.tmpl'),
+    file: path.join(TEMPLATES, 'core-copilot', 'hooks', 'hooks.json.tmpl'),
     expected: [
       'read-once.js',
       'read-once-reset.js',
@@ -47,7 +50,7 @@ const CASES = [
   },
   {
     name: 'copilot standalone template',
-    file: path.join(ROOT, 'plugins', 'core-copilot', '.github', 'plugin', 'hooks.json.tmpl'),
+    file: path.join(TEMPLATES, 'core-copilot', '.github', 'plugin', 'hooks.json.tmpl'),
     expected: [
       'read-once.js',
       'read-once-reset.js',

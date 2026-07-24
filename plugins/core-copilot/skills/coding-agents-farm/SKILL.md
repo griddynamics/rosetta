@@ -2,8 +2,6 @@
 name: coding-agents-farm
 description: "To orchestrate parallel coding-agent farms (Claude, Codex, Copilot, Gemini, etc.) on isolated git worktrees."
 license: Apache-2.0
-disable-model-invocation: false
-user-invocable: true
 argument-hint: tasks-or-plan, cli-selection?, model-preferences?
 model: Claude Opus 4.8
 context: default

@@ -3,7 +3,6 @@ name: self-help-flow
 description: "Rosetta self-help: explains capabilities and usage. DEPRECATED."
 tags: ["workflow"]
 disable-model-invocation: true
-user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

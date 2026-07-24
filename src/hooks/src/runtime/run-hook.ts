@@ -36,7 +36,7 @@ const writeStderrMessage = (
   if (report.stderrMessage) stderr.write(report.stderrMessage);
 };
 
-export const runAsCli = (def: HookDefinition, mod: NodeModule): void => {
+export const runAsCli = (def: HookDefinition, mod: NodeJS.Module): void => {
   if (require.main !== mod) return;
   let exitReport: HookExecutionReport | null = null;
   process.once('exit', (actualExitCode) => {

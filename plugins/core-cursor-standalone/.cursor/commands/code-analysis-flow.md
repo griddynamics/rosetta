@@ -2,7 +2,6 @@
 name: code-analysis-flow
 description: "Workflow for reverse-engineering a codebase into grounded architecture docs, requirements capture, etc."
 tags: ["workflow"]
-user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

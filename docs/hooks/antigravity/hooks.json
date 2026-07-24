@@ -1,0 +1,49 @@
+{
+  "rosetta-probe": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "node docs/hooks/tester.js --inject-on-invocation '{\"injectSteps\":[{\"ephemeralMessage\":\"Diagnostic marker AG-PREINV-EPHEM-b8. Report PIE1.\"},{\"userMessage\":\"Diagnostic marker AG-PREINV-USERMSG-c9. Report PIU1.\"}]}' --tag PreInvocation",
+        "timeout": 30
+      }
+    ],
+    "PostInvocation": [
+      {
+        "type": "command",
+        "command": "node docs/hooks/tester.js --emit-once '{\"injectSteps\":[{\"userMessage\":\"Diagnostic marker AG-POSTINV-USERMSG-g4. Report POIU1.\"},{\"ephemeralMessage\":\"Diagnostic marker AG-POSTINV-EPHEM-f2. Report POIE1.\"}]}' --tag PostInvocation",
+        "timeout": 30
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node docs/hooks/tester.js --mode antigravity --block-stop-once --tag Stop",
+        "timeout": 30
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --mode antigravity --output '{\"decision\":\"allow\",\"reason\":\"Diagnostic marker AG-PRETU-ALLOW-c3. Report PAR1.\"}' --deny-on-match HOOK-DENY-PROBE --tag PreToolUse",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node docs/hooks/tester.js --tag PostToolUse",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

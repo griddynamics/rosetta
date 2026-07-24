@@ -2,8 +2,6 @@
 name: questioning
 description: "To ask targeted clarification questions only when high-impact unknowns block safe execution."
 license: Apache-2.0
-disable-model-invocation: false
-user-invocable: true
 context: default
 agent: planner, prompt-engineer
 metadata:

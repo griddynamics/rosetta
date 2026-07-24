@@ -9,6 +9,7 @@ import fxCodexPatch from './fixtures/codex-post-tool-use-apply_patch.json';
 import fxCursor   from './fixtures/cursor-post-tool-use-write.json';
 import fxWindsurf from './fixtures/windsurf-post-tool-use-write.json';
 import fxCopilot  from './fixtures/copilot-post-tool-use-write.json';
+import fxAntigravity from './fixtures/antigravity-pre-tool-use-bash.json';
 import fxUnknown  from './fixtures/unknown-ide-input.json';
 import ccMultiEdit from './fixtures/claude-code-pre-tool-use-multi-edit.json';
 
@@ -35,6 +36,10 @@ describe('detectIDE — all IDEs', () => {
 
   test('copilot detected', () => {
     expect(detectIDE(fxCopilot)).toBe('copilot');
+  });
+
+  test('antigravity detected', () => {
+    expect(detectIDE(fxAntigravity)).toBe('antigravity');
   });
 
   test('unknown IDE throws', () => {
@@ -94,6 +99,17 @@ describe('detectIDE — env-based detection (Copilot VS Code routing-bug fix)', 
 
   test('CODEIUM_* env → resolves to windsurf', () => {
     expect(detectIDE(ambiguousSnakeCasePayload, { CODEIUM_EDITOR_APP_ROOT: '/Applications/Devin.app' })).toBe('windsurf');
+  });
+
+  // Antigravity IDE is ALSO a VS Code fork (carries VSCODE_* too, docs/hooks/antigravity.md) —
+  // the exact same routing-bug class as Cursor. ANTIGRAVITY_CONVERSATION_ID must win over the
+  // generic VSCODE_* catch-all, or Antigravity IDE traffic is misdetected as copilot.
+  test('ANTIGRAVITY_CONVERSATION_ID env wins over generic VSCODE_* even though Antigravity IDE is a VS Code fork', () => {
+    expect(detectIDE(ambiguousSnakeCasePayload, { ANTIGRAVITY_CONVERSATION_ID: 'conv-1', VSCODE_PID: '123' })).toBe('antigravity');
+  });
+
+  test('ANTIGRAVITY_CONVERSATION_ID env → resolves to antigravity even against an ambiguous claude-code-shaped payload', () => {
+    expect(detectIDE(ambiguousSnakeCasePayload, { ANTIGRAVITY_CONVERSATION_ID: 'conv-1' })).toBe('antigravity');
   });
 
   test('no env (default {}) falls back to existing shape-based detection unchanged', () => {

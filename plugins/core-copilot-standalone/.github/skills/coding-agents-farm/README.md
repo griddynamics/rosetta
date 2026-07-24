@@ -8,7 +8,7 @@ Without this skill a model asked to "parallelize this across a few agents" would
 
 ## When to engage
 
-Triggers: parallelizable work — large features decomposable into independent subtasks, cross-model cross-validation, throughput-critical batches. Feature-size floor: "1h+ of AI work (10+ phases, 20+ subagent calls)" — below that, don't spin up a farm. `disable-model-invocation: false` + `user-invocable: true`: both auto-invocable by a model that judges the task fits, and directly runnable via `/coding-agents-farm`. Not referenced from any role's engagement list in `instructions/bootstrap-alwayson.instructions.md` (checked: absent from both the orchestrator-only and subagents-only lists) — it is never auto-pulled in as part of core bootstrap; it only activates via its own description match or explicit user invocation. Any agent role may act as Farm Leader; the CLIs it drives (`claude`/`codex`/`copilot`/`gemini`/`opencode`/`goose`) are external processes, not Rosetta subagents.
+Triggers: parallelizable work — large features decomposable into independent subtasks, cross-model cross-validation, throughput-critical batches. Feature-size floor: "1h+ of AI work (10+ phases, 20+ subagent calls)" — below that, don't spin up a farm. Both auto-invocable by a model that judges the task fits, and directly runnable via `/coding-agents-farm`. Not referenced from any role's engagement list in `instructions/bootstrap-alwayson.instructions.md` (checked: absent from both the orchestrator-only and subagents-only lists) — it is never auto-pulled in as part of core bootstrap; it only activates via its own description match or explicit user invocation. Any agent role may act as Farm Leader; the CLIs it drives (`claude`/`codex`/`copilot`/`gemini`/`opencode`/`goose`) are external processes, not Rosetta subagents.
 
 ## How it works
 
@@ -27,8 +27,7 @@ Single-file skill: SKILL.md only, no `assets/` or `references/`. Body order: `<r
 ## Invariants — do not change
 
 - `name: coding-agents-farm` must equal the folder name; it is registered verbatim in `docs/definitions/skills.md` (flat skill list, no description there).
-- `description: "To orchestrate parallel coding-agent farms (Claude, Codex, Copilot, Gemini, etc.) on isolated git worktrees."` — keyword-dense, ≤~25 tokens, drives auto-activation since `disable-model-invocation: false`.
-- `disable-model-invocation: false` and `user-invocable: true` together — both discovery paths (model auto-match and `/coding-agents-farm`) are live; flipping either changes who can reach this skill.
+- `description: "To orchestrate parallel coding-agent farms (Claude, Codex, Copilot, Gemini, etc.) on isolated git worktrees."` — keyword-dense, ≤~25 tokens, drives auto-activation.
 - Provider/CLI table (`claude`/`codex`/`copilot`/`gemini`/`opencode`/`goose` with their headless commands and model flags) and the auto-approve flags table are the load-bearing external contract; the skill's own stance is to distrust internal knowledge and trust only this table, so edits here must be verified against each CLI's current docs, not memory.
 - Worktree/branch naming pattern `worktrees/<cli>-<task-slug>` and `farm/<cli>-<task-slug>` — setup and cleanup steps both key off this exact pattern.
 - `<resources>` links are the canonical external doc URLs the skill points to; keep in sync with the provider table above them.

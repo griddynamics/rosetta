@@ -1,8 +1,7 @@
 ---
 name: subagent-directives
-description: "Duties of a spawned subagent executing a delegated orchestrator task."
+description: "MUST duties for a spawned subagent"
 license: Apache-2.0
-disable-model-invocation: true
 user-invocable: false
 baseSchema: docs/schemas/skill.md
 ---

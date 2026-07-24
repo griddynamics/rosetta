@@ -14,11 +14,15 @@ const outDir = path.resolve(__dirname, '..', 'dist', 'bundles');
 const quiet = process.argv.includes('--quiet');
 
 const PLUGINS = [
-  { plugin: 'core-claude',   adapter: 'adapter-claude-code' },
-  { plugin: 'core-codex',    adapter: 'adapter-codex' },
-  { plugin: 'core-copilot',  adapter: 'adapter-copilot' },
-  { plugin: 'core-cursor',   adapter: 'adapter-cursor' },
-  { plugin: 'core-windsurf', adapter: 'adapter-windsurf' },
+  { plugin: 'core-claude',      adapter: 'adapter-claude-code' },
+  { plugin: 'core-codex',       adapter: 'adapter-codex' },
+  { plugin: 'core-copilot',     adapter: 'adapter-copilot' },
+  { plugin: 'core-cursor',      adapter: 'adapter-cursor' },
+  { plugin: 'core-windsurf',    adapter: 'adapter-windsurf' },
+  // Antigravity has NO non-blocking delivery channel (docs/hooks/antigravity.md + hooks-verify.md):
+  // advise-only hooks can never reach the model there, so they are NOT bundled for it.
+  { plugin: 'core-antigravity', adapter: 'adapter-antigravity',
+    excludeHooks: ['lint-format-advisory.ts', 'md-file-advisory.ts', 'loose-files.ts'] },
 ];
 
 // Auto-discover hook entry points: every .ts file in src/hooks/.
@@ -29,10 +33,11 @@ const HOOK_SOURCES = readdirSync(hooksDir).filter(f => f.endsWith('.ts'));
 rmSync(outDir, { recursive: true, force: true });
 
 let bundleCount = 0;
-for (const { plugin, adapter } of PLUGINS) {
+for (const { plugin, adapter, excludeHooks = [] } of PLUGINS) {
   const adapterPath = path.join(srcDir, 'entrypoints', `${adapter}.ts`);
+  const hookSources = HOOK_SOURCES.filter((h) => !excludeHooks.includes(h));
 
-  for (const hookSource of HOOK_SOURCES) {
+  for (const hookSource of hookSources) {
     const outName = hookSource.replace('.ts', '.js');
     await esbuild.build({
       entryPoints: [path.join(hooksDir, hookSource)],

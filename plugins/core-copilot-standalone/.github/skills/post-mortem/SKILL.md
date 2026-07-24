@@ -2,8 +2,6 @@
 name: post-mortem
 description: "Diagnose instruction defects and optionally submit Rosetta GitHub issue"
 license: Apache-2.0
-disable-model-invocation: true
-user-invocable: true
 argument-hint: "optional: skill/agent/workflow name or concern"
 baseSchema: docs/schemas/skill.md
 ---
@@ -13,13 +11,13 @@ baseSchema: docs/schemas/skill.md
 <core_concepts>
 
 - All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
-- Explicit user invocation only; never auto-runs. Reviews the ENTIRE harness that produced the outcome — user prompt · workspace files (docs/rules/plans/memory) · repo-local instructions/config · Rosetta instructions (skills/agents/prompts/rules) · tooling — NOT the user's artifact.
+- Reviews the ENTIRE harness that produced the outcome — user prompt · workspace files (docs/rules/plans/memory) · repo-local instructions/config · Rosetta instructions (skills/agents/prompts/rules) · tooling — NOT the user's artifact.
 - Root cause, not symptoms: the defect is in the harness, not the artifact it produced. Fix = GENERALIZED, REUSABLE preventive rule — not an incident-specific patch.
 - Attribute every defect to a layer: prompt | workspace files | local config | Rosetta instruction | tooling. Most failures are local; do NOT default to blaming Rosetta.
 - Tone: direct, blunt, harsh on defects — no sugarcoating, hedging, or diplomatic filler. Call broken prompts, files, and instructions broken. Critique the harness, never people.
 - 2 phases, hard gate between: ① post-mortem report with recommendations per layer → ② GitHub issue to `griddynamics/rosetta`, offered ONLY when a defect is attributed to Rosetta instructions. ② NEVER starts without explicit opt-in.
 - Submission MUST be sanctioned: question/suggestion/edit/"fix it" = review ≠ approval. Unclear answer ≠ "no" → ASK AGAIN directly. Re-asking is allowed and expected; unsanctioned submitting is not.
-- Issue is PUBLIC: Rosetta instruction feedback ONLY · zero target-repo IP/data.
+- Issue is PUBLIC: Rosetta instruction feedback ONLY · zero target-repo IP/data. Anonymized.
 - Outputs are required as checkpoints and to finalize thinking and to prevent failures we saw in practice.
 - Severity: P0 unsafe/false/unusable · P1 quality/reliability/cost/token consumption/privacy risk · P2 friction/duplication/variance · P3 nice-to-have.
 

@@ -48,7 +48,47 @@ Markdown, invoked as `/workflow-name`; a workflow may call other workflows. IDE 
 
 ## Hooks
 
-See `docs/hooks/antigravity.md`. Summary: no `SessionStart` (use `PreInvocation` at `invocationNum:0`); `PostToolUse` output is ignored; deny is native (`{decision:"deny", reason}`).
+Command hooks intercept agent actions: JSON via stdin → JSON via stdout, camelCase fields, PascalCase tool args. Full contract and verification evidence: `docs/hooks/antigravity.md` (in-repo).
+
+**Locations** — `.agents/hooks.json` (workspace) · `~/.gemini/config/hooks.json` (user) · `~/.gemini/antigravity-cli/plugins/<name>/hooks.json` (CLI plugin).
+
+**Events** — `PreToolUse`, `PostToolUse`, `PreInvocation`, `PostInvocation`, `Stop`. No `SessionStart` — use `PreInvocation` at `invocationNum:0`.
+
+**Format** — tool events wrap handlers in `{matcher, hooks:[…]}`; non-tool events list handlers flat.
+
+```json
+{ "my-hook": {
+  "enabled": true,
+  "PreToolUse":    [ { "matcher": "run_command|view_file", "hooks": [ { "type": "command", "command": "…", "timeout": 30 } ] } ],
+  "PreInvocation": [ { "type": "command", "command": "…", "timeout": 30 } ]
+} }
+```
+
+**Inputs**
+
+| Field | Used on | Meaning |
+|---|---|---|
+| `conversationId`, `workspacePaths`, `transcriptPath`, `artifactDirectoryPath` | all | session id, workspace roots, transcript, artifact dir |
+| `toolCall` `{name, args}` | PreToolUse | tool name + PascalCase args (`CommandLine`, `TargetFile`+`CodeContent`, `ReplacementContent`, `ReplacementChunks[]`, `AbsolutePath`) |
+| `stepIdx` | Pre/PostToolUse | step index |
+| `error` | PostToolUse | tool error (`""` if none) |
+| `invocationNum`, `initialNumSteps` | Pre/PostInvocation | 0-indexed model call |
+| `executionNum`, `terminationReason`, `fullyIdle` | Stop | run counter, reason, idle flag |
+
+**Output schemas**
+
+| Field | Used on | Meaning |
+|---|---|---|
+| `decision:"deny"` + `reason` | PreToolUse | block the tool; `reason` reaches the model |
+| `decision:"allow"\|"ask"\|"force_ask"` | PreToolUse | permit / prompt user |
+| `injectSteps[].userMessage` | Pre/PostInvocation | inject context into the model |
+| `decision:"continue"` + `reason` | Stop | re-enter the loop; `reason` reaches the model |
+
+Strict schema — emit **only** the documented fields for the event; any extra field voids the whole output. `PostToolUse` output is ignored.
+
+**Matchers** — `PreToolUse`/`PostToolUse` only: `*`/empty (all tools), exact name, `a|b` alternation, or regex. Ignored on other events.
+
+**Exit codes** — always `0`; deny/continue are carried in the JSON body, there is no exit-code mechanism.
 
 ## Differences — CLI vs IDE/2.0
 

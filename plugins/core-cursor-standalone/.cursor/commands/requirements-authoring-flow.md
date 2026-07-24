@@ -2,7 +2,6 @@
 name: requirements-authoring-flow
 description: "Workflow for authoring requirements and specifications: drafting, review, validation, etc."
 tags: ["workflow"]
-user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 
@@ -141,12 +140,6 @@ Done when: artifacts are stored in target location and state file is complete.
 </finalization>
 
 </workflow_phases>
-
-<references>
-
-- READ RULE `requirements-best-practices.md` — requirements quality and process rules
-
-</references>
 
 <validation_checklist>
 

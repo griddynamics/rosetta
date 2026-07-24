@@ -52,7 +52,7 @@ const runWithFilePath = async (fp: FilePathPredicate, file_path: string): Promis
 
 describe('runAsCli', () => {
   test('does nothing when require.main !== mod', () => {
-    const fakeMod = {} as NodeModule;
+    const fakeMod = {} as NodeJS.Module;
     const hook = defineHook({
       name: 'test',
       on: { event: 'PostToolUse', toolKinds: ['write'] },
@@ -262,8 +262,18 @@ describe('resolveExitCode — Bug 1 decision tree', () => {
     expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'copilot')).toBe(0);
   });
 
+  // Antigravity has NO exitCode() override (docs/hooks/antigravity.md Exit Codes: deny is carried
+  // entirely in the JSON body — {"decision":"deny","reason"} — at exit 0, no exit-2 mechanism).
+  test('deny on Antigravity → 0 (no exitCode override; deny carried in JSON body)', () => {
+    expect(resolveExitCode(deny('no')!, DENY_CANONICAL, 'antigravity')).toBe(0);
+  });
+
   test('allow → 0 regardless of IDE', () => {
     expect(resolveExitCode(allow()!, ALLOW_CANONICAL, 'windsurf')).toBe(0);
+  });
+
+  test('allow on Antigravity → 0', () => {
+    expect(resolveExitCode(allow()!, ALLOW_CANONICAL, 'antigravity')).toBe(0);
   });
 
   test('_exitCode override bypasses deny-based resolution entirely', () => {

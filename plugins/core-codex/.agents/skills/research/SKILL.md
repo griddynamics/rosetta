@@ -2,8 +2,6 @@
 name: research
 description: "To run systematic deep research via meta-prompting — grounded references, incremental tracking, self-validation."
 license: Apache-2.0
-disable-model-invocation: false
-user-invocable: true
 argument-hint: feature, request, scope?
 model: gpt-5.5
 model_reasoning_effort: high

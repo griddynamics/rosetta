@@ -8,8 +8,6 @@ tags:
   - tagging
   - query-understanding
   - taxonomy
-disable-model-invocation: false
-user-invocable: true
 baseSchema: docs/schemas/skill.md
 ---
 

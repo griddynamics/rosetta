@@ -11,8 +11,8 @@
 // STDERR and exiting 2 ("The Cascade agent will see the error message from stderr").
 // Usage: <hook stdin> | node tester.js [--exit-code <n>] [--output <text>] [--tag <label>]
 //        [--deny-on-match <substr>] [--rewrite-command <match>::<newCmd>] [--block-stop-once]
-//        [--mode <copilot|codex|claude|cursor|gemini|windsurf|devin|...>]
-//        [--copilot-rewrite-result <match>::<newText>]
+//        [--mode <copilot|codex|claude|cursor|antigravity|windsurf|devin|...>]
+//        [--copilot-rewrite-result <match>::<newText>] [--inject-on-invocation <json>]
 //        [--exit-code-on-match <substr>] [--cursor-ask-on-match <substr>] [--cursor-crash-on-match <substr>]
 // tester.js is UNIVERSAL. Commands whose OUTPUT SHAPE differs per IDE take a `--mode <ide>` PARAMETER
 // (default: copilot) and emit THAT IDE's EXACT shape: Copilot emits fields at BOTH top-level AND nested
@@ -153,10 +153,44 @@ const PROCESSORS = {
           agent_message: reason + ' [agent-channel marker CURSOR-DENY-AGENT; Report DA1]',
         });
         break;
+      case 'antigravity': // Antigravity (2.0 / CLI / IDE): NATIVE PreToolUse deny = top-level
+        // {decision:"deny", reason}. NOT permissionDecision (Copilot) and NOT exit-2 (Windsurf).
+        // reason carries a distinct agent-facing marker so recall can attribute the deny channel.
+        output.text = JSON.stringify({
+          decision: 'deny',
+          reason: reason + ' [AG-DENY-AGENT marker; Report AGD1]',
+        });
+        break;
       case 'copilot':
       default: // Copilot: emit BOTH top-level AND nested (each runtime reads the one it honors).
         output.text = JSON.stringify({ permissionDecision: 'deny', permissionDecisionReason: reason, hookSpecificOutput: nested });
     }
+  },
+  // Emit the given JSON payload ONLY on the FIRST model invocation of the session
+  // (input.invocationNum === 0) — the Antigravity session-start analog. PreInvocation/PostInvocation
+  // fire per model call, so this invocationNum filter delivers once (like a SessionStart) and avoids
+  // per-invocation spam. No-op when invocationNum !== 0 or absent. The dump-first log still records
+  // EVERY invocation (incl. later ones) regardless, so firing/invocationNum sequence is still observed.
+  '--inject-on-invocation': (input, value, output) => {
+    if (typeof value !== 'string' || !input) return;
+    if (Number(input.invocationNum) !== 0) return;
+    output.text = value;
+  },
+  // Emit the given JSON payload EXACTLY ONCE per session (atomic marker keyed by session id + --tag),
+  // regardless of invocationNum. For events (e.g. PostInvocation) whose first fire is not invocationNum 0
+  // and which would loop if injected on every fire. No-op after the first. Reset: delete ~/.rosetta/.emit-once-*.
+  '--emit-once': (input, value, output, flags) => {
+    if (typeof value !== 'string' || !input) return;
+    const sid = String(input.conversationId || input.session_id || input.sessionId || 'global').replace(/[^A-Za-z0-9_.-]/g, '_');
+    const tag = String((flags && flags['--tag']) || 'x').replace(/[^A-Za-z0-9_.-]/g, '_');
+    const marker = path.join(LOG_DIR, `.emit-once-${tag}-${sid}`);
+    try {
+      fs.mkdirSync(LOG_DIR, { recursive: true });
+      fs.closeSync(fs.openSync(marker, 'wx'));
+    } catch (_) {
+      return;
+    }
+    output.text = value;
   },
   // PreToolUse arg-rewrite test. Arg: "<matchSubstr>::<newCommand>". If the input contains
   // <matchSubstr>, rewrite the command so we can see whether the runtime substitutes tool args
@@ -240,7 +274,7 @@ const PROCESSORS = {
   '--block-stop-once': (input, value, output, flags) => {
     if (!input) return;
     if (modeOf(flags) === 'windsurf') return; // Windsurf has NO Stop event; post-hooks cannot block — no-op.
-    const sid = String(input.session_id || input.sessionId || 'global').replace(/[^A-Za-z0-9_.-]/g, '_');
+    const sid = String(input.session_id || input.sessionId || input.conversationId || 'global').replace(/[^A-Za-z0-9_.-]/g, '_');
     const marker = path.join(LOG_DIR, `.block-stop-once-${sid}`);
     try {
       fs.mkdirSync(LOG_DIR, { recursive: true });
@@ -263,6 +297,15 @@ const PROCESSORS = {
       'HOOK TEST (Rosetta diagnostic): your turn-stop was blocked ONE TIME by a Stop hook to test ' +
       'prevention. Please tell the user verbatim that the Stop hook blocked once and quote this reason, ' +
       'then finish normally — it will NOT block again this session.';
+    if (modeOf(flags) === 'antigravity') {
+      // Antigravity Stop: {decision:"continue", reason} RE-ENTERS the execution loop (the block-the-stop
+      // analog; reason is injected as a system message). Any non-"continue"/omitted decision allows
+      // termination. Once-marker prevents an infinite continue loop.
+      obj.decision = 'continue';
+      obj.reason = reason + ' [AG-STOP-CONTINUE marker; Report AGS1]';
+      output.text = JSON.stringify(obj);
+      return;
+    }
     obj.decision = 'block';
     obj.reason = reason;
     // Codex / Claude Code / Devin: top-level {decision, reason} ONLY (Devin's Stop output is

@@ -2,8 +2,6 @@
 name: tech-specs
 description: "To define clear, testable tech specs from requirements — target-state architecture, contracts, interfaces."
 license: Apache-2.0
-disable-model-invocation: false
-user-invocable: true
 model: claude-4.8-opus-high, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol
 context: default
 agent: planner, architect

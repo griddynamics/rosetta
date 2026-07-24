@@ -307,7 +307,7 @@ When the source plugin contains a directory whose name matches the standalone's 
 
 Hooks are lightweight scripts that run in response to IDE tool calls (PostToolUse, PreToolUse). They inject advisory context into the AI's context window — nothing is displayed directly to the user.
 
-**Hook contracts — source of truth:** `docs/hooks/<ide>.md` (`claude-code`/`codex`/`cursor`/`copilot`/`windsurf`) — empirically verified per-IDE I/O, exit codes, matchers. Adapters + `instructions/*/configure/*.md` reconcile TO these specs, never the reverse; protocol in `docs/hooks-verify.md`.
+**Hook contracts — source of truth:** `docs/hooks/<ide>.md` (`claude-code`/`codex`/`cursor`/`copilot`/`windsurf`/`antigravity`) — empirically verified per-IDE I/O, exit codes, matchers. (`antigravity` is one combined adapter for all three Google Antigravity surfaces — 2.0/CLI/IDE — verified identical.) Adapters + `instructions/*/configure/*.md` reconcile TO these specs, never the reverse; protocol in `docs/hooks-verify.md`.
 
 Source lives in `src/hooks/` and is compiled per-IDE before sync:
 
@@ -343,7 +343,7 @@ Each hook is bundled separately per IDE via esbuild so each bundle contains only
 
 Cursor and Copilot are the only plugins that need two distinct templates because they have distinct standalone distributions. Templates: cursor — `hooks/hooks.json.tmpl` (plugin) + `hooks.json.tmpl` at root (standalone); copilot — `.github/plugin/hooks.json.tmpl` (plugin) + `hooks/hooks.json.tmpl` (standalone). Both are rendered during sync; the standalone generator's bulk-copy lands each at the right path inside the standalone subfolder.
 
-- **IDE normalization** — `src/adapter.ts` detects the IDE (env signature first, then stdin shape: codex > cursor > claude-code > windsurf > copilot) and normalizes to a canonical `NormalizedInput`, which MUST be fully mapped: a field is empty only when the value is genuinely absent from the raw input AND not derivable from the event name, another field, or the IDE's documented tool/event vocabulary
+- **IDE normalization** — `src/adapter.ts` detects the IDE (env signature first, then stdin shape: codex > cursor > claude-code > windsurf > antigravity > copilot; Antigravity IDE is a VS Code fork, so its `ANTIGRAVITY_CONVERSATION_ID` env signal is checked before the generic `VSCODE_*` copilot catch-all) and normalizes to a canonical `NormalizedInput`, which MUST be fully mapped: a field is empty only when the value is genuinely absent from the raw input AND not derivable from the event name, another field, or the IDE's documented tool/event vocabulary
 - **Per-IDE output** — each adapter's `formatOutput` converts canonical output back to the IDE's expected JSON schema
 
 `scripts/pre_commit.py` builds and tests hook bundles, then runs `npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false`; when deterministic hooks are enabled the generator syncs the bundles into each main plugin's hooks directory (`plugins/core-{claude,cursor,copilot}/hooks/`, `plugins/core-codex/.codex/hooks/`) before deriving the standalones. Do not edit those bundle locations directly — edit `src/hooks/src/` and re-run the script.

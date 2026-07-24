@@ -31,7 +31,7 @@ Single flat `SKILL.md`, no `assets/` or `references/` subfolders. Root `<self_or
 - The two literal output strings in step 3 (`WARNING!...`/`CRITICAL!...`) are exact user-visible strings; rewording them changes observable session behavior everywhere the thresholds are crossed.
 - Trigger split [decided 2026-07-11]: the `description` carries the compressed triggers (65%+ context, 2h / 15+ file / 350+ line scope, large-file restructuring); the 75% CRITICAL tier and file-size numbers (~500+ lines / 10K+ size) are body-only. Context thresholds are percentages ONLY — no absolute token counts (1M-context models) [decided 2026-07-11]. Changing a scope/context number requires syncing description and the matching `<process>` step; do not "fix" the split by adding body-only numbers to the description.
 - The `description` uses the guardrail form (`CRITICAL. MUST activate when <condition>` [decided 2026-07-11]) — it is the sole engagement trigger (no `<when_to_use_skill>` block); keep every remaining threshold keyword when editing.
-- `disable-model-invocation: false` and `user-invocable: false` must stay: proactive/model-invoked, hidden from the `/` menu, consistent with the other all-agents skills (`deviation`, `dangerous-actions`, `sensitive-data`, `self-learning`).
+- `user-invocable: false` must stay: proactive/model-invoked, hidden from the `/` menu, consistent with the other all-agents skills (`deviation`, `dangerous-actions`, `sensitive-data`, `self-learning`).
 
 ## Editing guide
 

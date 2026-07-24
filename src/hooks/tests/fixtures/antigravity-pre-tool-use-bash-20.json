@@ -1,0 +1,18 @@
+{
+  "_source": "captured-real-payload",
+  "_docs": "docs/hooks/agy-2.0-logs.txt line 103 (PreToolUse, run_command, Antigravity 2.0 surface — session be777993-927d-49ef-a024-3f87ca05e670, model gemini-3.5-flash-low)",
+  "artifactDirectoryPath": "/Users/isolomatov/.gemini/antigravity/brain/be777993-927d-49ef-a024-3f87ca05e670",
+  "conversationId": "be777993-927d-49ef-a024-3f87ca05e670",
+  "modelName": "gemini-3.5-flash-low",
+  "stepIdx": 5,
+  "toolCall": {
+    "args": {
+      "CommandLine": "echo rosetta-hook-probe",
+      "Cwd": "/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql",
+      "WaitMsBeforeAsync": 1000
+    },
+    "name": "run_command"
+  },
+  "transcriptPath": "/Users/isolomatov/.gemini/antigravity/brain/be777993-927d-49ef-a024-3f87ca05e670/.system_generated/logs/transcript_full.jsonl",
+  "workspacePaths": ["/Users/isolomatov/Sources/5-min-demo/spring-boot-react-mysql"]
+}

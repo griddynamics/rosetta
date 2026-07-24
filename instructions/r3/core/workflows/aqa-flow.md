@@ -1,9 +1,7 @@
 ---
 name: aqa-flow
 description: "Router workflow for test automation: routes to ui-aqa-flow, api-aqa-flow, or testgen-flow. Kept for backward compatibility."
-alwaysApply: false
 tags: ["workflow"]
-user-invocable: true
 baseSchema: docs/schemas/workflow.md
 ---
 

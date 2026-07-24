@@ -13,12 +13,12 @@ alwaysApply: false
 # dependencies — software packages the skill needs [string] [Claude Code]
 # dependencies: "python>=3.8, pandas>=1.5.0"
 
-# Invocation & Discovery — disable-model-invocation and user-invocable are REQUIRED: always set explicitly, even when equal to the default
-# disable-model-invocation — true = runs only when explicitly invoked via /name, never auto-applied by context. If true budget is not applicable. Description must be user friendly. [boolean] [Cursor, Claude Code]
-disable-model-invocation: false
-# user-invocable — false = hidden from the / menu (background knowledge users shouldn't call directly) [boolean] [Claude Code]
-user-invocable: true
-# argument-hint — autocomplete hint for expected args; ONLY include when user-invocable: true, REMOVE when user-invocable: false (Optional — uncomment to enable) [string] [Claude Code]
+# Invocation & Discovery — set disable-model-invocation and user-invocable ONLY when non-default; drop the line when it equals the default (Optional — uncomment to enable)
+# disable-model-invocation — default false. true = the model can NEVER invoke it (not auto-applied by context, not via USE SKILL/direct mention); runs ONLY when the user explicitly invokes /name. If true budget is not applicable. Description must be user friendly. [boolean] [Cursor, Claude Code]
+# disable-model-invocation: true
+# user-invocable — default true. false = hidden from the / menu (background knowledge users shouldn't call directly) [boolean] [Claude Code]
+# user-invocable: false
+# argument-hint — autocomplete hint for expected args; ONLY include when user-invocable is default/true, REMOVE when user-invocable: false (Optional — uncomment to enable) [string] [Claude Code]
 # argument-hint: "issue-number | filename"
 
 # Tools & Model Configuration (Optional — uncomment a line to enable)
