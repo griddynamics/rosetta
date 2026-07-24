@@ -462,7 +462,6 @@ HITL gates (use when):
 <resources>
 
 - READ FLOW `requirements-authoring-flow.md`
-- READ RULE `requirements-best-practices.md`
 - READ SKILL FILE `assets/ra-intent-capture.md`
 - READ SKILL FILE `assets/ra-requirement-unit.xml`
 - READ SKILL FILE `assets/ra-validation-rubric.md`

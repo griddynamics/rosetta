@@ -21,7 +21,6 @@ Single flat SKILL.md, no `assets/` or `references/`. Flow: `<role>` (senior rese
 ## Invariants — do not change
 - Frontmatter `name: research` equals the folder name and the registry entry at `docs/definitions/skills.md:4` — renaming either breaks registration.
 - `description` is one dense sentence under the ~25-token budget ("To run systematic deep research via meta-prompting — grounded references, incremental tracking, self-validation.").
-- `disable-model-invocation: false`, `user-invocable: true` — both model- and user-triggerable; `agents/researcher.md`'s `USE SKILL research` depends on model-invocability.
 - `agent: researcher` with `context: default` — intended; kept as affinity metadata (which subagent this skill serves). It only becomes a fork target under `context: fork`.
 - XML section names `<research>`, `<role>`, `<when_to_use_skill>`, `<core_concepts>`, `<process>` are structural anchors that other tooling may parse.
 - Two distinct, similarly-named state files: `research-state.md` (this skill, `agents/researcher.md`) is the skill-level tracker; `research-flow-state.md` (`skills/research-flow/SKILL.md`) is the workflow-level tracker — do not rename either without checking both call sites, and do not assume they are the same file.

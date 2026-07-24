@@ -1,6 +1,6 @@
 ---
 name: subagent-directives
-description: "Duties of a spawned subagent executing a delegated orchestrator task."
+description: "MUST duties for a spawned subagent"
 ---
 
 <subagent_directives>

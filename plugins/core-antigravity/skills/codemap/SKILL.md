@@ -1,6 +1,6 @@
 ---
 name: codemap
-description: "To generate, populate, and use a project codemap for structural discovery."
+description: "To generate, populate, and use a project codemap"
 ---
 
 <codemap>

@@ -23,7 +23,6 @@ SKILL.md is one flat XML pass: `role` → `when_to_use_skill` → `core_concepts
 ## Invariants — do not change
 - Frontmatter `name: tech-specs` equals the folder name; registered in `docs/definitions/skills.md` (line 9) — renaming either side breaks the registry link.
 - `description` sits at the schema's "~25 tokens, keyword-dense" budget (`docs/schemas/skill.md`); current text is already at that budget — do not pad it with explanation.
-- `disable-model-invocation: false`, `user-invocable: true` — matches `docs/stories/skills-refactoring.md`'s listing of `tech-specs` among `user-invocable: true` capability skills; flipping either changes menu/discovery behavior other files assume.
 - `agent: planner, architect` — `architect.md` is the actual USE SKILL invoker; `planner.md` only consumes the resulting spec ("approved intent/specs"), it does not itself invoke this skill. Don't assume symmetry between the two names.
 - The WHAT/HOW split with `planning` is authoritative on this side: `skills/planning/README.md` states "the authoritative statement of this contract lives on the `tech-specs` side, not here" — do not move that wording into `planning`.
 - Planning-mode persistence is NOT declared here; it lives in `rosetta/SKILL.md`: "In planning mode: `planning` + `tech-specs` outputs → store per system prompt, never `plans/` (read-only)". Don't add a conflicting local storage rule.

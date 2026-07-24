@@ -5,7 +5,7 @@ Reference sheet for authoring, registering, and debugging Rosetta's cross-IDE ho
 Without this skill a capable model would place a new hook helper file directly at the top level of `src/hooks/src/hooks/`, assume the bundler recurses into subdirectories, forget to add the hook to every plugin's `hooks.json.tmpl`, or widen a JSON matcher without also updating `lookupToolKind`/`toolKinds` — each of these produces a hook that silently never fires (or produces a dead bundle) with no error at authoring time, only a CI regression-test failure or a runtime no-op.
 
 ## When to engage
-Triggers: authoring or registering a Rosetta hook, adding a `SemanticKind`, or debugging a hook that won't fire (per `description`). No entry in `bootstrap-alwayson.md`'s engagement lists, so it is not restricted to orchestrator or subagents — `disable-model-invocation: false` + `user-invocable: true` means it both auto-engages on matching context and is directly callable by any agent. No declared `<prerequisites>` (schema section absent here).
+Triggers: authoring or registering a Rosetta hook, adding a `SemanticKind`, or debugging a hook that won't fire (per `description`). No entry in `bootstrap-alwayson.md`'s engagement lists, so it is not restricted to orchestrator or subagents — it both auto-engages on matching context and is directly callable by any agent. No declared `<prerequisites>` (schema section absent here).
 
 ## How it works
 Single flat `SKILL.md`; no `assets/` or `references/` subfolders — everything lives under one root `<hooks_authoring>` wrapper (a non-standard tag name; the skill does not use the schema's usual `<role>`/`<when_to_use_skill>`/`<core_concepts>`/`<process>` section split). Body is a sequence of plain `###` subsections: hook entry rule, helper placement, non-recursive build, adding a SemanticKind (4-step procedure), registration paths per plugin, platform-scoped events, tests, sync command, pitfalls, and a reference-files list.
@@ -22,7 +22,6 @@ Single flat `SKILL.md`; no `assets/` or `references/` subfolders — everything 
 
 ## Invariants — do not change
 - `name: coding-agents-hooks-authoring` must equal the folder name; registered in `docs/definitions/skills.md` (line 42) — renaming either breaks discovery.
-- `disable-model-invocation: false` / `user-invocable: true` are both explicit per `docs/schemas/skill.md`'s requirement that these two keys always be set even at default values.
 - Root `<hooks_authoring>` open/close tag pair — the schema convention is `<[the_skill_name]>` (matching the skill name), but this skill uses a distinct wrapper name; keep it internally consistent since nothing external parses it, but do not assume it equals the skill name when copying the schema template.
 - Exact file paths and line references quoted in the body (`src/hooks/scripts/build-bundles.mjs:24`, `src/hooks/src/runtime/run-hook.ts:98`, `hooks-registered.test.ts`) are load-bearing pointers into the real source tree; if the referenced code moves, these become silently stale documentation.
 - The 5 plugin `hooks.json.tmpl` paths listed under Registration are the canonical source list; the Windsurf caveat ("registration is not covered by the regression test... register manually if needed") is the one plugin without an automated safety net — do not drop that caveat when editing.

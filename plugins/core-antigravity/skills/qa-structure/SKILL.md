@@ -1,6 +1,6 @@
 ---
 name: qa-structure
-description: "To resolve QA session paths, identifiers/slugs, and state-file shape for test-automation flows."
+description: "To resolve QA session paths, identifiers/slugs, and state-file shape"
 ---
 
 <qa_structure>

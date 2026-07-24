@@ -1,6 +1,6 @@
 ---
 name: reasoning
-description: "To apply structured 8D meta-cognitive reasoning thinking to complex problems, then answer clearly with caveats. Must use when asked to think or reason."
+description: "To apply structured meta-cognitive thinking to complex problems. Invoke on explicit only."
 ---
 
 <reasoning>
