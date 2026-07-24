@@ -1,7 +1,7 @@
 {
   "name": "rosetta",
   "description": "Rosetta for Cursor - Software Engineering Accelerator instruction set, workflows, and guardrails.",
-  "version": "3.0.3",
+  "version": "3.1.0",
   "author": {
     "name": "Grid Dynamics",
     "email": "rosetta-support@griddynamics.com"

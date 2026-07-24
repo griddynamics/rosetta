@@ -112,6 +112,24 @@ For JetBrains IDEs, use the standalone installation package.
 
 </details>
 
+<details>
+<summary><b>Antigravity</b></summary>
+
+### Antigravity
+
+One plugin serves Antigravity 2.0, Antigravity CLI, and Antigravity IDE.
+
+#### Standalone
+
+1. Download `core-antigravity-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+2. Create the folder `.agents/plugins/rosetta/` at your workspace root.
+3. Extract the archive contents into it.
+4. Verify you can see a file `.agents/plugins/rosetta/plugin.json`. Ensure there are no `.agents/plugins/rosetta/core-antigravity` folders.
+
+For all workspaces instead of one, extract into `~/.gemini/config/plugins/rosetta/` — same contents.
+
+</details>
+
 ## Step 2: Verify
 
 Ask the agent:

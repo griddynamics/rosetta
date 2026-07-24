@@ -23,7 +23,7 @@ Self-hosted MCP is optional. Most organizations run Rosetta entirely through plu
 - Centrally-managed, always-fresh instructions with nothing copied into any repository
 - Cross-project intelligence — agents that see patterns across your whole portfolio, not just one repo
 - Organization-wide adoption tracking and usage analytics
-- An IDE with no Rosetta plugin (Windsurf, Junie, Antigravity, OpenCode, or another MCP-compatible agent)
+- An IDE with no Rosetta plugin (Windsurf, Junie, OpenCode, or another MCP-compatible agent)
 
 If none of these apply, use [Plugins](/rosetta/docs/plugins/) instead.
 

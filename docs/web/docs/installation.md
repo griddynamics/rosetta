@@ -141,6 +141,24 @@ For JetBrains IDEs, use the standalone installation package.
 
 </details>
 
+<details markdown="1">
+<summary><b>Antigravity</b></summary>
+
+### Antigravity
+
+One plugin serves Antigravity 2.0, Antigravity CLI, and Antigravity IDE.
+
+#### Standalone
+
+1. Download `core-antigravity-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest).
+2. Create the folder `.agents/plugins/rosetta/` at your workspace root.
+3. Extract the archive contents into it.
+4. Verify you can see a file `.agents/plugins/rosetta/plugin.json`. Ensure there are no `.agents/plugins/rosetta/core-antigravity` folders.
+
+For all workspaces instead of one, extract into `~/.gemini/config/plugins/rosetta/` — same contents.
+
+</details>
+
 ### HTTP Transport (MCP, optional)
 
 Use this only if your IDE has no Rosetta plugin, or you specifically need centrally-managed instructions — see [MCPs Installation](/rosetta/docs/mcps/).
@@ -551,7 +569,7 @@ Very rarely needed today — plugins cover the same "no server, no live connecti
 | VS Code / GitHub Copilot   | `.github/copilot-instructions.md`     |
 | GitHub Copilot (JetBrains) | `.github/copilot-instructions.md`     |
 | JetBrains Junie            | `.junie/guidelines.md`                |
-| Antigravity                | `.agent/rules/local-files-mode.md`    |
+| Antigravity                | `.agents/rules/local-files-mode.md`   |
 | OpenCode                   | `AGENTS.md`                           |
 
 ## Step 2: Add Bootstrap Rule (HTTP and STDIO modes ONLY)
@@ -570,7 +588,7 @@ Download [mcp-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/i
 | GitHub Copilot (JetBrains) | `.github/copilot-instructions.md`      |
 | JetBrains Junie            | `.junie/guidelines.md`                 |
 | Windsurf                   | `.windsurf/rules/mcp-files-mode.md`    |
-| Antigravity                | `.agent/rules/mcp-files-mode.md`       |
+| Antigravity                | `.agents/rules/mcp-files-mode.md`      |
 | OpenCode/Cursor            | `AGENTS.md`                            |
 
 > [!NOTE]

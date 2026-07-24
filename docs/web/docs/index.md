@@ -33,7 +33,7 @@ Rosetta is an open-source governance and context layer for AI coding agents. The
   <a href="/rosetta/docs/plugins/" class="docs-index-card">
     <p class="docs-index-card-cat">Getting Started</p>
     <p class="docs-index-card-title">Plugins</p>
-    <p class="docs-index-card-desc">Install local Rosetta instructions for Claude Code, Cursor, GitHub Copilot, and Codex.</p>
+    <p class="docs-index-card-desc">Install local Rosetta instructions for Claude Code, Cursor, GitHub Copilot, Codex, and Antigravity.</p>
   </a>
   <a href="/rosetta/docs/mcps/" class="docs-index-card">
     <p class="docs-index-card-cat">Getting Started</p>

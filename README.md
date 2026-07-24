@@ -58,7 +58,7 @@ Rosetta-guided work follows five phases — **Prepare → Research → Plan → 
 
 | Option                              | Best for                                                                       |
 | ----------------------------------- | ------------------------------------------------------------------------------ |
-| **[Plugins](PLUGINS.md)** — recommended | Everyone with a supported IDE (Claude Code · Cursor · Copilot · Codex). Files install locally — no server, no live connection needed. |
+| **[Plugins](PLUGINS.md)** — recommended | Everyone with a supported IDE (Claude Code · Cursor · Copilot · Codex · Antigravity). Files install locally — no server, no live connection needed. |
 | **[Hosted MCP](MCPs.md)** — evaluation only | Try Rosetta with zero setup, or use any other MCP-compatible agent (Devin/Windsurf · Junie · OpenCode). Public demo endpoint — do not point production or sensitive repos at it. |
 | **[Self-hosted MCP](docs/mcp/DEPLOYMENT_GUIDE.md)** — optional | MCP in production: your own MCP server and RAGFlow inside your perimeter. Only needed if you specifically require centrally-managed, always-fresh instructions with nothing copied into repos — most teams don't. |
 
@@ -90,7 +90,7 @@ flowchart LR
     C --> R["<b>Rosetta Runtime</b><br/>context engineering + instruction orchestration"]
     R --> AD["<b>Agent Adapters</b>"]
     AD --> G["<b>Guided Execution</b><br/>workflows • guardrails • validation"]
-    G --> T["Claude Code · Cursor · Copilot · Codex · Windsurf"]
+    G --> T["Claude Code · Cursor · Copilot · Codex · Antigravity"]
 
     classDef rosetta fill:#1f6feb,stroke:#1b4fb8,color:#ffffff;
     classDef yours fill:#2da44e,stroke:#1a7f37,color:#ffffff;

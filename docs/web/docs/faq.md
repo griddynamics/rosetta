@@ -42,7 +42,7 @@ Use the **plugin** when one is available for your IDE. Plugins bundle the bootst
 - Faster session start, no MCP OAuth expirations dropping the agent mid-task, no dependency on the Rosetta server being reachable from your network.
 - No outbound calls to an external service means no data-egress or privacy review — you're using local static instruction files. That's a much shorter conversation with security and compliance than authorizing a new external MCP endpoint.
 
-Use the **MCP** install when no plugin path exists for your IDE — e.g. Windsurf, Antigravity, OpenCode, or JetBrains Junie. See [PLUGINS.md](/rosetta/docs/plugins/) for the IDEs that currently ship a plugin, and [INSTALLATION.md](/rosetta/docs/installation/) for MCP setup.
+Use the **MCP** install when no plugin path exists for your IDE — e.g. Windsurf, OpenCode, or JetBrains Junie. See [PLUGINS.md](/rosetta/docs/plugins/) for the IDEs that currently ship a plugin, and [INSTALLATION.md](/rosetta/docs/installation/) for MCP setup.
 
 **I ran init — am I ready to go?**
 

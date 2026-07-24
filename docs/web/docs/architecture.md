@@ -33,7 +33,7 @@ Plugins are the primary delivery mode: instructions are generated once and shipp
 ```
 ┌─────────────────────────────────────────────────────────┐
 │              Target Repository + IDE                    │
-│  Claude Code · Cursor · Copilot · Codex                │
+│  Claude Code · Cursor · Copilot · Codex · Antigravity  │
 │  (plugin installed locally — no server, no live         │
 │   connection needed at request time)                    │
 └────────────────────────▲────────────────────────────────┘
@@ -277,6 +277,7 @@ Each plugin contains core instructions: 37 skills, 10 agents, 12 workflows, and 
 | `core-cursor` | Cursor | Plugin marketplace |
 | `core-copilot` | VS Code Copilot, JetBrains Copilot | Plugin marketplace |
 | `core-codex` | Codex | Plugin marketplace |
+| `core-antigravity` | Antigravity 2.0, Antigravity CLI, Antigravity IDE | Direct extraction into plugin folder (`.agents/plugins/rosetta/`) |
 | `core-cursor-standalone` | Cursor | Direct extraction into repo (`.cursor/`) |
 | `core-copilot-standalone` | VS Code Copilot, JetBrains Copilot | Direct extraction into repo (`.github/`) |
 

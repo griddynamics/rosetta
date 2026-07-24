@@ -235,7 +235,7 @@ permalink: /
               <button class="qs-tab" data-tab="cursor" data-mode="plugin" role="tab">Cursor</button>
               <button class="qs-tab" data-tab="copilot" data-mode="plugin" role="tab">Copilot</button>
               <button class="qs-tab" data-tab="codex" data-mode="plugin" role="tab">Codex</button>
-              <button class="qs-tab" data-tab="antigravity" data-mode="mcp" role="tab">Antigravity</button>
+              <button class="qs-tab" data-tab="antigravity" data-mode="plugin" role="tab">Antigravity</button>
               <button class="qs-tab" data-tab="windsurf" data-mode="mcp" role="tab">Windsurf/Devin</button>
               <button class="qs-tab" data-tab="opencode" data-mode="mcp" role="tab">OpenCode</button>
               <button class="qs-tab" data-tab="junie" data-mode="mcp" role="tab">JetBrains Junie</button>
@@ -293,10 +293,13 @@ Download core-copilot-standalone-*.zip from the <a href="https://github.com/grid
 
           <!-- Tab: Antigravity -->
           <div class="qs-content" data-tab-content="antigravity">
-            <p class="qs-content-hint">Add Rosetta MCP to Antigravity, then add the bootstrap rule. Deep links: <a href="{{ '/docs/mcps/#antigravity' | relative_url }}">MCPs Installation</a>, <a href="{{ '/docs/installation/#http-transport' | relative_url }}">Installation</a>.</p>
+            <p class="qs-content-hint">Extract the standalone Antigravity plugin package into the workspace plugin folder. One plugin serves Antigravity 2.0, CLI, and IDE. Deep links: <a href="{{ '/docs/plugins/#antigravity' | relative_url }}">Plugins</a>, <a href="{{ '/docs/installation/#plugin-based-installation' | relative_url }}">Installation</a>.</p>
             <div class="qs-code-wrap">
-              <pre class="qs-code">Antigravity does not implement MCP fully and does not support Authentication => Plugins in development and will be released soon.</pre>
-              <button class="qs-copy" data-copy='{"mcpServers":{"Rosetta":{"serverUrl":"https://mcp.rosetta.griddynamics.net/mcp"}}}'>Copy</button>
+              <pre class="qs-code">Download core-antigravity-*.zip from the <a href="https://github.com/griddynamics/rosetta/releases/latest">latest release</a> and extract it into .agents/plugins/rosetta/ at the workspace root.
+
+<span class="qs-comment"># All workspaces instead of one</span>
+~/.gemini/config/plugins/rosetta/</pre>
+              <button class="qs-copy" data-copy=".agents/plugins/rosetta/">Copy</button>
             </div>
           </div>
 

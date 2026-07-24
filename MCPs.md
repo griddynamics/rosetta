@@ -1,6 +1,6 @@
 # MCPs Installation
 
-**Who is this for?** Teams that specifically need MCP: your IDE has no Rosetta plugin (Windsurf, Junie, Antigravity, OpenCode, or another MCP-compatible agent), or you need centrally-managed, always-fresh instructions with nothing copied into the repo. If your IDE supports [Plugins](PLUGINS.md), start there instead — most teams don't need MCP.
+**Who is this for?** Teams that specifically need MCP: your IDE has no Rosetta plugin (Windsurf, Junie, OpenCode, or another MCP-compatible agent), or you need centrally-managed, always-fresh instructions with nothing copied into the repo. If your IDE supports [Plugins](PLUGINS.md), start there instead — most teams don't need MCP.
 **When should I read this?** When you've decided MCP is the right fit and want to go from zero to a working setup.
 
 ---
@@ -179,7 +179,7 @@ Download [mcp-files-mode.md](https://github.com/griddynamics/rosetta/blob/main/i
 | GitHub Copilot (JetBrains) | `.github/copilot-instructions.md`      |
 | JetBrains Junie            | `.junie/guidelines.md`                 |
 | Windsurf                   | `.windsurf/rules/mcp-files-mode.md`    |
-| Antigravity                | `.agent/rules/mcp-files-mode.md`       |
+| Antigravity                | `.agents/rules/mcp-files-mode.md`      |
 | OpenCode/Cursor            | `AGENTS.md`                            |
 
 ## Step 3: Verify

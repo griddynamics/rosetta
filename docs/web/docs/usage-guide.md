@@ -429,7 +429,7 @@ Add project-specific rules alongside Rosetta without touching its files.
 | GitHub Copilot | `.github/copilot-instructions.md` | |
 | Windsurf | `.windsurf/rules/*.md` | All `.md` files auto-load |
 | JetBrains (Junie + AI Assistant) | `.aiassistant/rules/agents.md` | `.junie/guidelines.md` |
-| Antigravity / Google IDX | `.agent/rules/agents.md` | `.agent/rules/*.md` |
+| Antigravity / Google IDX | `.agents/rules/agents.md` | `.agents/rules/*.md` |
 | OpenCode | `AGENTS.md` | `.opencode/agent/*.md` |
 
 ### Recommended MCP Servers

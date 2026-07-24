@@ -41,6 +41,12 @@ Create `.cursor` folder in the repository. Copy contents of `core-cursor` to `.c
 
 Copy `core-cursor-standalone` content to the root of the repository.
 
+# Antigravity
+
+**All three** surfaces must be tested: Antigravity 2.0, Antigravity CLI, Antigravity IDE — one plugin serves all.
+
+Create `.agents/plugins/rosetta` folder in the repository. Copy contents of `core-antigravity` to `.agents/plugins/rosetta` folder.
+
 # Prompts reliability
 
 ```

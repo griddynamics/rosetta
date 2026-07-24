@@ -119,14 +119,15 @@ describe('Antigravity E2E — real instructions/r3/core', () => {
   });
 
   describe('plugin.json schema (Antigravity strict, additionalProperties:false)', () => {
-    it('keys are a subset of {$schema, name, description} only; name matches /^[a-zA-Z0-9-_]+$/', () => {
+    it('keys are a subset of {$schema, name, description, version} only; name matches /^[a-zA-Z0-9-_]+$/', () => {
       const data = JSON.parse(fs.readFileSync(path.join(ag(), 'plugin.json'), 'utf-8'));
-      const allowed = new Set(['$schema', 'name', 'description']);
+      // `version` is allowed: the release workflow derives each archive name from the manifest's
+      // version (`<target>-<version>-<date>.zip`), so the Antigravity manifest carries one too.
+      const allowed = new Set(['$schema', 'name', 'description', 'version']);
       for (const key of Object.keys(data)) {
         expect(allowed.has(key), `unexpected key "${key}" in plugin.json`).toBe(true);
       }
       expect(data.name).toMatch(/^[a-zA-Z0-9-_]+$/);
-      expect(data.version).toBeUndefined();
       expect(data.author).toBeUndefined();
       expect(data.homepage).toBeUndefined();
       expect(data.keywords).toBeUndefined();
