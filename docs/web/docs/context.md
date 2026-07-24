@@ -112,7 +112,7 @@ Not reactive like gateways. Not static like prompt libraries. Verified, project-
 ## Domain and Operating Context
 
 - Rosetta operates across the full Software Development Lifecycle: planning, requirements, implementation, QA, release, and operations
-- Agent-agnostic: works with Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE — via a plugin where supported, via MCP otherwise. Native hook support is IDE-specific; Antigravity and OpenCode hooks are not currently supported or tested.
+- Agent-agnostic: works with Cursor, Claude Code, VS Code, Windsurf, JetBrains (Copilot, Junie), GitHub Copilot, Codex, Antigravity, OpenCode, and any MCP-compatible IDE — via a plugin where supported, via MCP otherwise. Native hook support is IDE-specific; OpenCode hooks are not currently supported or tested.
 - Security model: Rosetta is designed to only serve knowledge and instructions to agents — it does not see or process source code. No code leaves the organization's perimeter by design. Rosetta itself does not store any project data. Self-hosted MCP deployments can opt into additional features (cross-project intelligence, execution tracking, adoption analytics) — see [MCP Context](/rosetta/docs/mcp-context/) for what those involve and who's responsible for the data. None of them exist in plugin mode.
 - Grounded in production experience, not theory. Active feedback loop from real projects.
 

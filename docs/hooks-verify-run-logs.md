@@ -315,3 +315,20 @@ Tested whether Devin Desktop reads the Claude-Code-format `.devin/hooks.v1.json`
 - **Run 3 — no-`"hooks"`-wrapper** (Devin overview's literal example): **0 invocations** (`~/.rosetta/hooks.log` absent). Probe deny didn't block; injected markers not recalled.
 - **Run 4 — WITH `"hooks"` wrapper** (full Claude Code spec, `--mode claude`): **0 invocations** again. (Step-4 "YES" recall answers were FALSE POSITIVES — the prompt listed the tokens; the real signal, Report codes DS1/DU2/DP3, never appeared in any log.)
 ⇒ **Devin Desktop does NOT read `.devin/hooks.v1.json` in any format.** That Claude-format file is the **Devin CLI** product (`docs/hooks/devin-cli.md`); the changelog's "Desktop reads hooks.v1.json" claim is contradicted by this build. Desktop's contract = flat Cascade at `.devin/hooks.json` (`windsurf.md`).
+
+## Antigravity run logs (Runs 1–3, 2026-07-23; combined `antigravity` adapter, one contract across all 3 surfaces)
+
+Cleaned logs: `docs/hooks/agy-{cli,ide,2.0}-logs.txt`. Detection env: `ANTIGRAVITY_CONVERSATION_ID` (all surfaces); IDE also `ANTIGRAVITY_EDITOR_APP_ROOT`. Tool args are PascalCase (`CommandLine`; `TargetFile`+`CodeContent`; `ReplacementContent`/`TargetContent`; `ReplacementChunks[]`; `AbsolutePath`).
+
+### Run 1 — Antigravity CLI 1.1.5 (model `gemini-3.6-flash-high`, session `9996e494…`)
+- First attempt: **0 invocations** — malformed config. Non-tool events (`PreInvocation`/`PostInvocation`/`Stop`) must be a flat handler list `[{type,command,timeout}]`, NOT `{matcher,hooks:[…]}`; the CLI rewrote the file and nulled the unsupported `SessionStart`. By-the-book re-run succeeded.
+- `PreToolUse` deny `{decision:"deny",reason}` blocked the read; reason reached the model (AGD1). ✅
+- `Stop` `{decision:"continue",reason}` blocked turn-stop once; reason reached the model (AGS1). ✅
+- `PreInvocation.injectSteps.userMessage` reached the model as a `<USER_REQUEST>` block (PIU1). ✅ `ephemeralMessage` (PIE1), `additionalContext` top+nested, and `PreToolUse` allow+reason (PAR1) did NOT reach the model.
+- `PostToolUse` output ignored (`{}`); its `toolCall` is unreliable (populated for tool steps, null otherwise).
+
+### Run 2 — Antigravity IDE 2.1.1 (no `modelName` in payload, session `b3e702af…`)
+- Same contract. `injectSteps.userMessage` reached the model on BOTH `PreInvocation` (PIU1) and `PostInvocation` (POIU1). ✅ `ephemeralMessage` transient (visible only within its own invocation). Deny (AGD1) + Stop (AGS1) confirmed. IDE env adds `ANTIGRAVITY_EDITOR_APP_ROOT`.
+
+### Run 3 — Antigravity 2.0 / 2.3.1 (model `gemini-3.5-flash-low`, session `be777993…`)
+- Same contract. Ephemeral transience confirmed definitively: injected once at `invocationNum:0`, gone by recall after 13 elapsed invocations, while `userMessage` persisted. Deny (AGD1) + Stop (AGS1) confirmed.
