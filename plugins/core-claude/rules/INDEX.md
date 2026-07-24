@@ -3,7 +3,6 @@
 All paths are relative to Rosetta Plugin Path.
 
 - `rules/bootstrap-alwayson.md`: Minimal always-required LLM fixes.
-- `rules/coding-iac-best-practices.md`: Rules for authoring reliable IaC artifacts.
 - `rules/plugin-files-mode.md`: Rosetta Plugin Mode Bootstrap
 - `rules/prompt-best-practices.md`: Rules for authoring reliable, minimal, and clear prompts for AI agents. Apply when creating, refactoring, reviewing, or validating any prompt artifact.
 - `rules/requirements-best-practices.md`: Rules for authoring reliable, explicit, and traceable requirements with mandatory user back-and-forth and per-unit approval.

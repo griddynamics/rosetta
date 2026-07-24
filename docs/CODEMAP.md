@@ -104,7 +104,7 @@ requirements-authoring-flow.md research-flow.md self-help-flow.md testgen-flow.m
 
 #### instructions/r3/core/rules/ — 9 rule files
 
-bootstrap-alwayson.md coding-iac-best-practices.md
+bootstrap-alwayson.md
 local-files-mode.md mcp-files-mode.md plugin-files-mode.md prompt-best-practices.md
 requirements-best-practices.md requirements-use-best-practices.md speckit-integration-policy.md
 
