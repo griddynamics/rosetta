@@ -30,6 +30,6 @@ Single flat `SKILL.md`, no `assets/`/`references/`. Root `<post_mortem>` wraps: 
 
 ## Editing guide
 - Safe: prose inside `<core_concepts>`/`<process>` bullets that preserves the OUTPUT-checkpoint sequencing and Gate A/B semantics; template field order; `<pitfalls>` ordering.
-- Handle with care: the 10-step phase-① and 6-step phase-② numbering (removing an `OUTPUT` checkpoint changes behavior, not just cosmetics); the exact Gate B sentence; the frontmatter invocation flags; the P0-P3 severity taxonomy (consumed by both templates).
+- Handle with care: the 10-step phase-① and 6-step phase-② numbering (removing an `OUTPUT` checkpoint changes behavior, not just cosmetics); the exact Gate B sentence; the P0-P3 severity taxonomy (consumed by both templates).
 - New content belongs directly in `SKILL.md` — no `assets/`/`references/` split exists yet; if the templates or process grow, consider factoring per the split pattern hitl's own README flags for itself.
 - Referenced by: `deviation/SKILL.md`, `self-learning/SKILL.md` (recommend-only, never auto-invoke); `docs/definitions/skills.md` (registry); `hitl/README.md` (cites this skill's Gate B pattern).

@@ -23,8 +23,8 @@ Core flow: `USE SKILL reasoning` → derive EARS FRs → `APPLY SKILL FILE asset
 
 ## Invariants — do not change
 - Frontmatter `name: planning` matches the folder name and the registry entry in `docs/definitions/skills.md` (plain list, `- planning`).
-- `description`: "To build execution-ready plans from approved intent/specs with EARS, sequenced WBS, and HITL checkpoints." — generic form per `docs/schemas/skill.md`, dense/keyword-first, within the ~25-token shared budget; it is the auto-invocation trigger text (`disable-model-invocation: false`) — do not pad it.
-- `disable-model-invocation: false`, `user-invocable: true`, `argument-hint: "request, tech-spec?, constraints?, scope?"` — the trio encodes both auto- and user-invocation with a fixed argument shape; per schema, `argument-hint` must be removed if `user-invocable` is ever flipped to `false`.
+- `description`: "To build execution-ready plans from approved intent/specs with EARS, sequenced WBS, and HITL checkpoints." — generic form per `docs/schemas/skill.md`, dense/keyword-first, within the ~25-token shared budget; it is the auto-invocation trigger text — do not pad it.
+- `argument-hint: "request, tech-spec?, constraints?, scope?"` — per schema, `argument-hint` must be removed if `user-invocable` is ever set to `false`.
 - Alias grammar in the body follows `docs/schemas/skill.md`'s canonical set: `USE SKILL `reasoning`` (skill, named) vs `APPLY SKILL FILE`/`READ SKILL FILE` `assets/pl-*.md` (asset paths, nameless) — `<resources>` states this explicitly: "Use `INVOKE SUBAGENT` for agents, `USE SKILL` for skills." Do not rewrite asset references as `USE SKILL`.
 - Asset filenames `assets/pl-functional-requirements.md`, `assets/pl-wbs.md`, `assets/pl-risk-and-unknowns.md` are referenced by exact path from `<templates applies="LARGE">`; renaming any breaks that block.
 - `applies="LARGE"` on `<templates>` follows the size-band-gated-content convention used elsewhere in the repo (e.g. `workflows/code-analysis-flow.md`'s `applies="SMALL"`/`"LARGE"` phase attributes).

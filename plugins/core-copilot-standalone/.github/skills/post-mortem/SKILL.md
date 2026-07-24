@@ -11,7 +11,7 @@ baseSchema: docs/schemas/skill.md
 <core_concepts>
 
 - All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed
-- Explicit user invocation only; never auto-runs. Reviews the ENTIRE harness that produced the outcome — user prompt · workspace files (docs/rules/plans/memory) · repo-local instructions/config · Rosetta instructions (skills/agents/prompts/rules) · tooling — NOT the user's artifact.
+- Reviews the ENTIRE harness that produced the outcome — user prompt · workspace files (docs/rules/plans/memory) · repo-local instructions/config · Rosetta instructions (skills/agents/prompts/rules) · tooling — NOT the user's artifact.
 - Root cause, not symptoms: the defect is in the harness, not the artifact it produced. Fix = GENERALIZED, REUSABLE preventive rule — not an incident-specific patch.
 - Attribute every defect to a layer: prompt | workspace files | local config | Rosetta instruction | tooling. Most failures are local; do NOT default to blaming Rosetta.
 - Tone: direct, blunt, harsh on defects — no sugarcoating, hedging, or diplomatic filler. Call broken prompts, files, and instructions broken. Critique the harness, never people.

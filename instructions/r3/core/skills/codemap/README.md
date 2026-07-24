@@ -39,7 +39,7 @@ No `references/` subfolder exists.
 
 - Frontmatter `name: codemap` matches the folder name and is registered in `docs/definitions/skills.md` (line with `- codemap`) — renaming either breaks that registration and every `USE SKILL \`codemap\`` reference below.
 - `user-invocable: false` — deliberate: this is a routed-to helper, not a standalone entry point; flipping it changes who can trigger it and duplicates entry paths already owned by the callers listed above.
-- `description: "To generate, populate, and use a project codemap for structural discovery."` — short, keyword-dense, matches the "To <verb>..." convention used elsewhere; since model-invocation is disabled it does not drive auto-activation here, but it still is what a human/agent reads when scanning the skill list, so keep it accurate.
+- `description: "To generate, populate, and use a project codemap for structural discovery."` — short, keyword-dense, matches the "To <verb>..." convention used elsewhere; it is what a human/agent reads when scanning the skill list, so keep it accurate.
 - Precedence order "LSPs > graphify > gitnexus > shell scripts" and the **REQUESTED**-gating — callers and the setup instructions for graphify/gitnexus assume this exact ordering.
 - Cross-skill references use intent form (`MUST USE SKILL \`graphify\``) never file paths; asset routing uses `MUST APPLY SKILL FILE \`assets/gitnexus-*.md\`` — per-file, never a bare skill name, since these are files inside this skill's own folder, not another skill.
 - The six asset filenames (`codemap.sh.txt`, `codemap.ps1.txt`, `gitnexus-cli.md`, `gitnexus-examples.md`, `gitnexus-setup.md`, `gitnexus-use.md`) are referenced by exact path from SKILL.md — renaming any breaks its `READ`/`APPLY SKILL FILE` lines.

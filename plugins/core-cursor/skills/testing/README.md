@@ -8,7 +8,7 @@ Without this skill a model would treat "tests pass" as sufficient, with no cover
 
 ## When to engage
 
-Use when writing/updating tests, verifying implementation correctness, setting up test infrastructure, or browser-based testing. Actor: any agent, mainly `engineer` (`agents/engineer.md` names it explicitly in `skills_available` and process step 2); auto-activates via description match (`disable-model-invocation: false`) or manual `/testing` (`user-invocable: true`). Prerequisite: "All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed." Thresholds carried in the trigger line itself: coverage >= 80%, each test < 1s, no real external calls in unit tests, complex/high-level (services/orchestrators) scenarios require sequence diagrams.
+Use when writing/updating tests, verifying implementation correctness, setting up test infrastructure, or browser-based testing. Actor: any agent, mainly `engineer` (`agents/engineer.md` names it explicitly in `skills_available` and process step 2); auto-activates via description match or manual `/testing`. Prerequisite: "All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed." Thresholds carried in the trigger line itself: coverage >= 80%, each test < 1s, no real external calls in unit tests, complex/high-level (services/orchestrators) scenarios require sequence diagrams.
 
 ## How it works
 
@@ -27,8 +27,7 @@ Single-file skill — no `assets/` or `references/` subfolders exist. `SKILL.md`
 ## Invariants — do not change
 
 - Frontmatter `name: testing` matches the folder name and the `docs/definitions/skills.md` registry entry (`- testing`, confirmed present).
-- `description: "To write thorough, isolated, idempotent tests — 80%+ coverage, external-only mocking, scenario-driven."` — short and keyword-dense on purpose; it drives auto-activation matching since `disable-model-invocation: false`.
-- `disable-model-invocation: false` / `user-invocable: true` — keep both as-is; flipping either removes auto-engagement or the `/testing` manual entry point.
+- `description: "To write thorough, isolated, idempotent tests — 80%+ coverage, external-only mocking, scenario-driven."` — short and keyword-dense on purpose; it drives auto-activation matching.
 - Outer tag `<testing>` must keep matching `name: testing`.
 - Numeric thresholds `80%` coverage and `1-second` per-test timeout: no other r3/core file cites *this file's* values by reference. `80%` recurs independently in `configure/{windsurf,cursor,antigravity}.md` and several `modernization-flow*`/`testgen-flow*` files as a separate repo-wide convention, not a dependency on this skill; the `1-second` timeout is stated only here. Changing either number changes only this skill's own bar.
 - `resources` cross-skill references (`skill \`coding\``, `skill \`debugging\``) use bare skill-name form per `docs/schemas/skill.md`; both target skills exist.

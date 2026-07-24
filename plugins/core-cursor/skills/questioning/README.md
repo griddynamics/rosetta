@@ -23,7 +23,6 @@ Single flat `SKILL.md`, no `assets/`/`references/` subfolders. `<role>` casts th
 ## Invariants — do not change
 - `name: questioning` must equal the folder name; registered in `docs/definitions/skills.md` (line 8). `requirements-authoring/SKILL.md`: "USE SKILL `questioning` for Q&A." `requirements-use/SKILL.md`: "If requirements are missing or unclear, USE SKILL `questioning`." Both resolve the skill by this exact name.
 - `description`: "To ask targeted clarification questions only when high-impact unknowns block safe execution." — GENERIC form, within the shared ~25-token budget (`docs/schemas/skill.md`); dropping "high-impact" or "block safe execution" would blur the entry threshold callers rely on.
-- `disable-model-invocation: false` + `user-invocable: true` — both explicitly set per schema requirement; this pair is what lets `questioning` both auto-engage and be called directly.
 - Root `<questioning>` wrapper must match `name`, per the shared `<[the_skill_name]>` convention.
 - `rules/bootstrap-alwayson.mdc` hardcodes `` `questioning` `` by exact backtick name in the orchestrator-only engagement list — renaming breaks that gate.
 - Priority order "scope > security/privacy > UX > technical" is duplicated verbatim in `hitl`'s own Questioning process; changing the order here without updating `hitl` desyncs the two.

@@ -35,7 +35,6 @@ There is no `<process>` section: execution order is implied, not phased — conf
 ## Invariants — do not change
 
 - `name: natural-writing` must equal the folder name and matches the registration at `docs/definitions/skills.md:40` — renaming either breaks discovery.
-- `disable-model-invocation: false` and `user-invocable: true` are both explicitly set (schema requires these two always set, never left implicit).
 - `description` is the GENERIC form ("To rewrite text in a clear, natural, honest human tone — no AI slop, hype, or robotic phrasing.") and must stay within the shared ~25-token budget across skills.
 - XML section names (`<natural_writing>`, `<role>`, `<when_to_use_skill>`, `<core_concepts>`, `<validation_checklist>`, `<best_practices>`, `<pitfalls>`, `<resources>`, `<templates>`) follow `docs/schemas/skill.md` exactly; the outer wrapper tag must match `name`.
 - Inbound coupling: `instructions/r3/core/workflows/self-help-flow.md` invokes it by name — phase 3 ("guide") says "USE SKILL `natural-writing` for final user-facing output," and its invocation-guidance section uses `/natural-writing Rewrite the executive summary in docs/CONTEXT.md — ...` as the canonical GOOD example of a valid direct-skill slash invocation (specific artifact + explicit method + explicit scope). Changing the skill's name, invocation form, or removing it would break that workflow's guidance text and example.
