@@ -87,6 +87,30 @@ STDIO transport is available for environments with limited internet access. [All
 
 <video src="https://github.com/user-attachments/assets/fc0ef06a-2f9c-49fa-bc05-68001dadd286" controls width="100%"></video>
 
+## Top-5 Common Situations Where Rosetta Helps
+
+- **AI keeps making assumptions and goes too far before checking with you**
+  -> use `hitl` skill
+  -> the AI asks questions early, stays aligned during the task, and avoids costly rework later
+
+- **AI suggests fixes, but does not really debug the problem**
+  -> use `debugging` skill
+  -> the AI focuses on evidence, reproduction, and root cause instead of symptom-only patches
+
+- **The task is too large or too complex for one AI agent to handle reliably**
+  -> use `orchestration` skill
+  -> the AI can delegate work, then review, verify, and reconcile subagent results instead of trusting them blindly
+
+- **You want more than “generate code and hope”**
+  -> use `coding-flow` workflow
+  -> it adds the parts AI agents usually skip: context first, design before code, approval gates, fresh-context review, and real validation
+
+- **You need to modernize, migrate, or upgrade code without breaking what already works**
+  -> use `modernization-flow` workflow
+  -> AI agents often struggle with modernization because they rewrite too early and miss cross-project dependencies. This workflow makes them analyze first, map the current system to the target state, and implement in controlled phases
+
+Explore more Rosetta workflows and skills in the [Usage Guide](/rosetta/docs/usage-guide/).
+
 ## Supported IDEs and Agents
 
 - Cursor

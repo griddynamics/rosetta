@@ -108,6 +108,30 @@ Higher layers propagate to every project automatically; teams customize without 
 
 https://github.com/user-attachments/assets/fc0ef06a-2f9c-49fa-bc05-68001dadd286
 
+## Top-5 Common Situations Where Rosetta Helps
+
+- **AI keeps making assumptions and goes too far before checking with you**
+  -> use `hitl` skill 
+  -> the AI asks questions early, stays aligned during the task, and avoids costly rework later
+
+- **AI suggests fixes, but does not really debug the problem**
+  -> use `debugging` skill
+  -> the AI focuses on evidence, reproduction, and root cause instead of symptom-only patches
+
+- **The task is too large or too complex for one AI agent to handle reliably**
+  -> use `orchestration` skill
+  -> the AI can delegate work, then review, verify, and reconcile subagent results instead of trusting them blindly
+
+- **You want more than “generate code and hope”**
+  -> use `coding-flow` workflow
+  -> it adds the parts AI agents usually skips: context first, design before code, approval gates, fresh-context review, and real validation
+
+- **You need to modernize, migrate, or upgrade code without breaking what already works**
+  -> use `modernization-flow` workflow
+  -> AI agents often struggle with modernization because they rewrite too early and miss cross-project dependencies. This workflow makes them analyze first, map the current system to the target state, and implement in controlled phases
+
+Explore more Rosetta workflows and skills in [USAGE_GUIDE.md](USAGE_GUIDE.md).
+
 ## Why not just use IDE rules?
 
 IDE rules (`.cursorrules`, `CLAUDE.md`, Copilot custom instructions) are useful, but they are usually local to one tool, one repo, or one developer. Rosetta makes instructions layered, versioned, reusable, and portable across agents and IDEs — organization standards flow into every project, while project-specific context stays local and customizable. On top of that, Rosetta adds the workflows, guardrails, and approval gates that flat rules files do not provide.
