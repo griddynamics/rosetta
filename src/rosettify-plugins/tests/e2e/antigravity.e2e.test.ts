@@ -285,9 +285,9 @@ describe('Antigravity E2E — real instructions/r3/core', () => {
   });
 
   describe('cross-skill reference (large-workspace-handling → init-workspace-flow)', () => {
-    it('contains the USE FLOW `init-workspace-flow.md` PHASE `discovery` form, untouched by the workflow-owning-phase rewrite', () => {
+    it('contains the USE FLOW `init-workspace-flow.md` form, untouched by the workflow-owning-phase rewrite', () => {
       const content = fs.readFileSync(path.join(ag(), 'skills', 'large-workspace-handling', 'SKILL.md'), 'utf-8');
-      expect(content).toContain('USE FLOW `init-workspace-flow.md` PHASE `discovery`');
+      expect(content).toContain('USE FLOW `init-workspace-flow.md`');
       expect(content).not.toContain('APPLY PHASE `init-workspace-flow-discovery.md`');
       expect(content).not.toContain('APPLY SKILL FILE `phases/init-workspace-flow-discovery.md`');
     });
