@@ -1,0 +1,5 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "core-antigravity",
+  "description": "Sample fixture Antigravity plugin manifest for e2e tests."
+}

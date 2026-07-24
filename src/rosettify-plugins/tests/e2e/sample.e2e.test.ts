@@ -60,7 +60,7 @@ function buildFakeRepo(): string {
   // Copy sample plugin preserved sources
   const pluginsRoot = path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins');
   fs.mkdirSync(pluginsRoot, { recursive: true });
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex']) {
+  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex', 'core-antigravity']) {
     const src = path.join(SAMPLE_PLUGINS_DIR, target);
     if (fs.existsSync(src)) {
       const dest = path.join(pluginsRoot, target);
@@ -70,7 +70,7 @@ function buildFakeRepo(): string {
   }
 
   // Create r2 bundle dirs (empty — no .js for r2 needed, r2 doesn't copy bundles)
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex']) {
+  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex', 'core-antigravity']) {
     fs.mkdirSync(path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', target), { recursive: true });
   }
 
@@ -149,7 +149,7 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     expect(exitCode).toBe(0);
   });
 
-  it('produces output directories for all six targets', () => {
+  it('produces output directories for all seven targets', () => {
     const targets = [
       'core-claude',
       'core-cursor',
@@ -157,10 +157,28 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
       'core-codex',
       'core-cursor-standalone',
       'core-copilot-standalone',
+      'core-antigravity',
     ];
     for (const t of targets) {
       expect(fs.existsSync(path.join(outputDir, t)), `Missing output for ${t}`).toBe(true);
     }
+  });
+
+  it('core-antigravity: generates under r2 with plugin.json and no .tmpl in its output', () => {
+    // The sample fixtures run generate() with release 'r2'; core-antigravity is produced by
+    // buildAllSpecs() regardless of release (it is not release-gated), so it must appear here too.
+    const targetRoot = path.join(outputDir, 'core-antigravity');
+    expect(fs.existsSync(targetRoot), 'core-antigravity output dir must exist under r2').toBe(true);
+    expect(fs.existsSync(path.join(targetRoot, 'plugin.json')), 'core-antigravity/plugin.json must exist').toBe(true);
+    const files = listFilesRecursive(targetRoot);
+    const tmplFiles = files.filter((f) => f.endsWith('.tmpl'));
+    expect(tmplFiles, `core-antigravity output must contain no .tmpl files; found: ${tmplFiles.join(', ')}`).toHaveLength(0);
+  });
+
+  it('no *.tmpl file exists anywhere under the output dir, for any target', () => {
+    const allFiles = listFilesRecursive(outputDir);
+    const tmplFiles = allFiles.filter((f) => f.endsWith('.tmpl'));
+    expect(tmplFiles, `no .tmpl file may appear in generated output; found: ${tmplFiles.join(', ')}`).toHaveLength(0);
   });
 
   it('core-claude: rules/bootstrap-core-policy.md is present', () => {

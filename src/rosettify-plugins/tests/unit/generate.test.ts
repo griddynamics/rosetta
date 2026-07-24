@@ -50,7 +50,7 @@ function buildFakeRepo(): string {
 
   const pluginsRoot = path.join(tmpRepo, 'src', 'rosettify-plugins', 'plugins');
   fs.mkdirSync(pluginsRoot, { recursive: true });
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex']) {
+  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex', 'core-antigravity']) {
     const src = path.join(SAMPLE_PLUGINS_DIR, target);
     if (fs.existsSync(src)) {
       const dest = path.join(pluginsRoot, target);
@@ -59,7 +59,7 @@ function buildFakeRepo(): string {
     }
   }
 
-  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex']) {
+  for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex', 'core-antigravity']) {
     fs.mkdirSync(path.join(tmpRepo, 'src', 'hooks', 'dist', 'bundles', target), { recursive: true });
   }
 
@@ -246,7 +246,7 @@ describe('generate() — error coverage', () => {
     // r3 = deterministicHooks; bundles dir exists but files are missing → pluginSyncBundles → hard error
     const r3Repo = buildFakeRepo();
     // Create bundle dirs for r3 but populate only partial bundles (trigger missing-count error)
-    for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex', 'core-cursor-standalone', 'core-copilot-standalone']) {
+    for (const target of ['core-claude', 'core-cursor', 'core-copilot', 'core-codex', 'core-cursor-standalone', 'core-copilot-standalone', 'core-antigravity']) {
       const bundleDir = path.join(r3Repo, 'hooks', 'dist', 'bundles', target);
       fs.mkdirSync(bundleDir, { recursive: true });
       // Only 1 of 5 expected bundles — triggers missingCount > 0 hard error

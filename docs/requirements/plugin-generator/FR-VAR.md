@@ -336,7 +336,7 @@ One combined plugin serves all three Antigravity products (Antigravity, Antigrav
   <changed>2026-07-23</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: the preserved Antigravity `hooks.json.tmpl` When: rendered Then: a real `hooks.json` is produced in the output. (The preserved `.tmpl` is also copied into the output, as for every other target — the shared pipeline does not strip it.)</criteria>
+    <criteria>Given: the preserved Antigravity `hooks.json.tmpl` When: rendered Then: a real `hooks.json` is produced in the output and NO `.tmpl` remains in the output.</criteria>
     <criteria>Given: the rendered Antigravity `hooks.json` When: inspected Then: it contains no bootstrap payload and conforms to the shape in `docs/hooks/antigravity.md` (tool events wrapped in `{matcher, hooks:[…]}`; non-tool events a flat handler list).</criteria>
     <criteria>Given: the Antigravity variant When: generated Then: `hooks.json.tmpl` references none of `lint-format`, `md-file`, `loose-files`, and none of those bundles appear in the Antigravity `hooks/dist`.</criteria>
   </acceptance>

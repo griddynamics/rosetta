@@ -3,22 +3,23 @@
 ISO/IEC 25010 buckets. Metrics and conditions stated.
 
 <req id="NFR-0001" type="NFR" level="System" ticketId="" classification="technical">
-  <title>Byte-for-byte parity with current generator</title>
-  <statement>The re-implementation shall produce output that is byte-for-byte identical to the current generator for the same inputs (same release, domain, model vocabularies, and hook bundles): for every target, the set of generated files, their paths, and their exact bytes shall match the current generator's output. The generator shall control its own serialization (JSON for hooks/manifests, TOML for Codex subagents, Markdown for indexes) to reproduce the current byte layout exactly — key order, spacing, separators, escaping, and trailing newlines. This applies to all output that has a current-generator equivalent; output arising only from declared new behavior (e.g. `--domain` overlays, dry-run/verbose, clean-directory seeding) has no baseline and is excluded.</statement>
-  <rationale>A byte-exact rewrite makes parity trivially verifiable (an empty recursive diff is the test oracle) and eliminates any downstream IDE-behavior risk. Library choices (templating, JSON/TOML serialization, frontmatter) must not compromise byte-identity; where a library's default formatting differs, the generator supplies its own serialization to match.</rationale>
+  <title>Per-target structural parity</title>
+  <statement>For every target, the generator shall produce an output file-path set whose structure matches the layout derived from the instruction source tree and that target's mapping contract: the set of generated output file paths shall equal the set obtained by applying that target's documented mapping rules — folder placement, folder and file renames, source exclusions, generated folder indexes, rendered templates, preserved-file seeding, and alternate-name hook copies — to the current instruction source. Parity is defined over output file PATHS and folder layout only; it does not compare file content. Under `deterministicHooks:false` the output shall contain no `*.js` hook bundle, and no target output shall contain a `*.tmpl` file.</statement>
+  <rationale>Structure is the durable, content-agnostic acceptance surface: each target must lay out the correct files for whatever the current source contains. Deriving the expected path set from the actual source tree (not a frozen snapshot) makes the check self-updating, so the owner can add or remove skills, workflows, rules, or subagents and the gate stays valid without edits — a newly added source file appears in both the derived-expected and the generated-actual sets. Content correctness is verified separately (per-target unit and E2E tests); this requirement isolates the layout contract.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-07-23</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: release r2, domain core When: both generators run into separate output directories Then: a recursive byte-level diff of the two trees is empty (same files, same paths, same bytes).</criteria>
-    <criteria>Given: any generated `hooks.json`, `plugin.json`, Codex TOML, or `INDEX.md` When: compared to the current generator's output Then: it is byte-identical.</criteria>
+    <criteria>Given: release r3, domain core generated for any target When: its generated output file-path set is compared to the set derived from the instruction source and that target's mapping contract Then: the two sets are equal — no path is only-in-expected and none only-in-actual.</criteria>
+    <criteria>Given: a skill, workflow, rule, or agent added to or removed from the instruction source When: the target is regenerated Then: the derived-expected and generated-actual path sets change identically and remain equal, with no change to the parity test.</criteria>
+    <criteria>Given: any generated target output tree When: inspected Then: it contains no `*.tmpl` file, and under `deterministicHooks:false` it contains no `*.js` hook bundle.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
-  <notes>Supersedes the earlier functional-only parity stance; OQ-4 (hook-JSON byte-identity) is subsumed — byte-identity now applies to all equivalent output. Byte-parity is measured against a fixed snapshot of inputs (model maps, hook bundles per AC-3/AC-6 may change over time).</notes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: verified by src/rosettify-plugins/tests/e2e/parity.e2e.test.ts + tests/e2e/parity-derive-structure.ts — per-target derived-vs-generated path-set equality over all seven targets (r3/core, deterministicHooks:false), plus a robustness probe proving add/remove safety. The derivation is an independent restatement of STRUCTURES.md / FR-VAR-* / FR-COPY-* / FR-SEED-*, read from the live source, not from generator code.</implementationNotes>
+  <notes>Redefined from the former byte-for-byte parity stance: the previous generator (the byte-identity reference) was removed in r2, its snapshot baselines were gitignored and are no longer produced, so a content-diff oracle can no longer run. Parity is now structural (path/layout) per target; content is covered by the sample and Antigravity E2E suites and the unit tests.</notes>
 </req>
 
 <req id="NFR-0002" type="NFR" level="System" ticketId="" classification="technical">
@@ -164,7 +165,7 @@ ISO/IEC 25010 buckets. Metrics and conditions stated.
 
 <req id="NFR-0010" type="NFR" level="System" ticketId="" classification="technical">
   <title>Lightweight libraries, versions consistent with rosettify</title>
-  <statement>The re-implementation shall use robust, well-maintained libraries instead of hand-rolling solved problems, pinned to versions consistent with the rosettify package, targeting the same Node and TypeScript baseline (ESM, Node ≥ 22, TypeScript 6.x, vitest for tests). The selected concerns and libraries are: CLI parsing (`commander`), logging (`pino`), templating (`handlebars`), frontmatter parsing (`gray-matter` — not a hand-rolled regex parser), immutable state with structural sharing (`immer`, realizing FR-ARCH-0014), and glob matching for `SpecEntry` sources (`fast-glob`). Each library is subject to the selection criteria in NFR-0011, and any library whose default formatting differs from the current output shall be supplemented by generator-controlled serialization to preserve byte parity (NFR-0001).</statement>
+  <statement>The re-implementation shall use robust, well-maintained libraries instead of hand-rolling solved problems, pinned to versions consistent with the rosettify package, targeting the same Node and TypeScript baseline (ESM, Node ≥ 22, TypeScript 6.x, vitest for tests). The selected concerns and libraries are: CLI parsing (`commander`), logging (`pino`), templating (`handlebars`), frontmatter parsing (`gray-matter` — not a hand-rolled regex parser), immutable state with structural sharing (`immer`, realizing FR-ARCH-0014), and glob matching for `SpecEntry` sources (`fast-glob`). Each library is subject to the selection criteria in NFR-0011, and any library whose default formatting differs from the current output shall be supplemented by generator-controlled serialization to preserve structural parity (NFR-0001).</statement>
   <rationale>Maintainability: a sibling Node tool in the same repo must share toolchain and dependency versions to avoid drift, and must reuse vetted libraries for solved problems (frontmatter, immutability, globbing) rather than re-implementing them as the original Python did.</rationale>
   <source>User</source>
   <priority>Must</priority>

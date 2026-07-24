@@ -72,12 +72,14 @@ describe('pluginRenderTemplates', () => {
     expect(rendered).toBeDefined();
   });
 
-  it('keeps .tmpl frame for main targets (not standalone)', () => {
+  it('drops .tmpl frame for main targets (not standalone) — only the rendered sibling remains', () => {
     const tmpl = makeTmplFrame('hooks/hooks.json.tmpl', '{"test": true}');
     const p = makePluginFrame([tmpl], {});
     const result = pluginRenderTemplates(p);
     const tmplFrame = result.frames.find((f) => f.target === 'hooks/hooks.json.tmpl');
-    expect(tmplFrame).toBeDefined();
+    expect(tmplFrame).toBeUndefined();
+    const rendered = result.frames.find((f) => f.target === 'hooks/hooks.json');
+    expect(rendered).toBeDefined();
   });
 
   it('drops .tmpl frame for standalone targets (manifestOverride set)', () => {
@@ -101,9 +103,8 @@ describe('pluginRenderTemplates', () => {
     expect(result.frames[0]).toBe(frame);
   });
 
-  it('skips binary .tmpl frame for main target — no new frames, original p returned', () => {
-    // binary frame ending in .tmpl — not renderable, not producing new frames
-    // → hasNewFrames stays false → original p returned
+  it('drops binary .tmpl frame for main target — no sibling emitted, frames actually change', () => {
+    // binary frame ending in .tmpl — not renderable, dropped entirely (no sibling produced)
     const frame: FileProcessingFrame = {
       sourcePath: 'hooks/test.bin.tmpl',
       target: 'hooks/test.bin.tmpl',
@@ -113,14 +114,13 @@ describe('pluginRenderTemplates', () => {
     };
     const p = makePluginFrame([frame], {});
     const result = pluginRenderTemplates(p);
-    // Binary .tmpl on main target: no new renders → hasNewFrames=false → original p
-    expect(result).toBe(p);
+    // .tmpl dropped unconditionally → resultFrames differs from input → new frame returned
+    expect(result).not.toBe(p);
+    expect(result.frames.some((f) => f.target === 'hooks/test.bin.tmpl')).toBe(false);
     expect(result.frames.some((f) => f.target === 'hooks/test.bin')).toBe(false);
   });
 
-  it('standalone + binary .tmpl: no new frames → original p returned unchanged', () => {
-    // When only frame is binary .tmpl on standalone, hasNewFrames stays false → return original p
-    // The binary tmpl frame is "skipped" in resultFrames but p is returned as-is
+  it('drops binary .tmpl frame for standalone target — same behavior as main', () => {
     const frame: FileProcessingFrame = {
       sourcePath: '.cursor/hooks/test.bin.tmpl',
       target: '.cursor/hooks/test.bin.tmpl',
@@ -130,18 +130,19 @@ describe('pluginRenderTemplates', () => {
     };
     const p = makePluginFrame([frame], {}, true /* isStandalone */);
     const result = pluginRenderTemplates(p);
-    // No new rendered frames → hasNewFrames=false → original p returned
-    expect(result).toBe(p);
+    expect(result).not.toBe(p);
+    expect(result.frames.some((f) => f.target === '.cursor/hooks/test.bin.tmpl')).toBe(false);
   });
 
-  it('handles render error — keeps .tmpl frame for main target (FR-GEN-0010)', () => {
+  it('drops .tmpl frame even on render error — no sibling, soft error recorded (FR-GEN-0010)', () => {
     // Invalid Handlebars template that will throw on compile
     const tmpl = makeTmplFrame('hooks/bad.tmpl', '{{#if}}{{/each}}'); // mismatched block
     const p = makePluginFrame([tmpl], {});
-    // Should not throw, should return with original .tmpl frame
+    // Should not throw, should drop the .tmpl frame and record a soft error
     const result = pluginRenderTemplates(p);
-    // .tmpl frame kept for main target even on error
-    expect(result.frames.some((f) => f.target === 'hooks/bad.tmpl')).toBe(true);
+    expect(result.frames.some((f) => f.target === 'hooks/bad.tmpl')).toBe(false);
+    expect(result.frames.some((f) => f.target === 'hooks/bad')).toBe(false);
+    expect(result.errors.some((e) => e.kind === 'soft' && e.message.includes('Template render error'))).toBe(true);
   });
 
   it('returns original p when no tmpl frames at all', () => {

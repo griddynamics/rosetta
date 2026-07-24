@@ -75,6 +75,37 @@ describe('pluginCopy — main target (no manifestOverride)', () => {
     }
   });
 
+  it('does NOT write .tmpl files to disk in non-dry-run mode — only registers them as frames', () => {
+    // .tmpl files must never reach the output tree, for any target: the raw preserved-source
+    // copy must skip them, leaving only the rendered sibling (written later by pluginWrite from
+    // the registered frame) on disk.
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-notmpl-'));
+    try {
+      const preservedSource = path.join(tmp, 'preserved');
+      const outputDir = path.join(tmp, 'output');
+      fs.mkdirSync(path.join(preservedSource, 'hooks'), { recursive: true });
+      fs.writeFileSync(path.join(preservedSource, 'hooks', 'hooks.json.tmpl'), '{{content}}');
+      fs.writeFileSync(path.join(preservedSource, 'plugin.json'), '{}');
+
+      const spec: Partial<PluginSpec> = {
+        name: 'core-claude',
+        destination: 'core-claude',
+        preservedSource,
+      };
+      const result = pluginCopy(outputDir, false)(makePluginFrame(spec));
+
+      // Non-.tmpl file physically copied
+      expect(fs.existsSync(path.join(outputDir, 'core-claude', 'plugin.json'))).toBe(true);
+      // .tmpl file must NOT be physically copied to disk
+      expect(fs.existsSync(path.join(outputDir, 'core-claude', 'hooks', 'hooks.json.tmpl'))).toBe(false);
+      // But it is still registered as a frame for pluginRenderTemplates to render
+      const tmplFrame = result.frames.find((f: FileProcessingFrame) => f.target === 'hooks/hooks.json.tmpl');
+      expect(tmplFrame).toBeDefined();
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
   it('skips .DS_Store files during copy (FR-COPY-0010)', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pcopy-ds-'));
     try {

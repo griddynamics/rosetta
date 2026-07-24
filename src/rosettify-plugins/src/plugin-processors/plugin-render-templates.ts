@@ -7,7 +7,10 @@ import type { FileProcessingFrame, GenError, PluginProcessingFrame } from '../ty
 
 /**
  * pluginRenderTemplates: for each .tmpl frame, render via Handlebars → sibling (no .tmpl extension).
- * Missing template → warn+continue (FR-GEN-0010).
+ * The .tmpl frame itself is NEVER emitted to output, for any target — main or standalone — it is
+ * a source-only artifact; only the rendered sibling (e.g. `hooks.json`) reaches the output tree.
+ * Missing template / render error → warn+continue (FR-GEN-0010): the .tmpl frame is still dropped,
+ * no sibling is emitted, and a soft error is recorded.
  * Uses {{{raw}}} triple-stache for unescaped bootstrap payloads.
  * FR-ARCH-0048
  */
@@ -18,21 +21,20 @@ export function pluginRenderTemplates(
 
   // Compile templates and build rendered frames
   const resultFrames: FileProcessingFrame[] = [];
-  let hasNewFrames = false;
+  let changed = false;
   const renderErrors: GenError[] = [];
-
-  // Standalone targets (manifestOverride set) must NOT emit .tmpl files to disk.
-  // Main targets: .tmpl files are preserved (they exist in the plugin source and baseline).
-  const isStandalone = !!p.spec.manifestOverride;
 
   for (const frame of frames) {
     if (!frame.target.endsWith('.tmpl')) {
       resultFrames.push(frame);
       continue;
     }
+
+    // .tmpl frame is dropped unconditionally — never pushed to resultFrames.
+    changed = true;
+
     if (frame.isBinary || frame.target_contents === null) {
-      // Keep as-is if not renderable
-      if (!isStandalone) resultFrames.push(frame);
+      // Not renderable — dropped, no sibling emitted.
       continue;
     }
 
@@ -47,13 +49,7 @@ export function pluginRenderTemplates(
 
       const rendered = compiled(templateContext);
 
-      // For main targets: keep the .tmpl frame (baseline has .tmpl files)
-      // For standalone targets: drop the .tmpl frame (baseline has no .tmpl files)
-      if (!isStandalone) {
-        resultFrames.push(frame);
-      }
-
-      // Create rendered frame (sibling without .tmpl)
+      // Create rendered frame (sibling without .tmpl) — the only frame emitted for this input.
       const renderedFrame: FileProcessingFrame = {
         sourcePath: frame.sourcePath,
         target: outputTarget,
@@ -63,17 +59,15 @@ export function pluginRenderTemplates(
       };
 
       resultFrames.push(renderedFrame);
-      hasNewFrames = true;
     } catch (err) {
       // Missing template or render error → warn+continue (FR-GEN-0010)
-      // For main targets: keep the .tmpl frame even without rendered sibling
-      if (!isStandalone) resultFrames.push(frame);
+      // .tmpl frame already dropped above; no rendered sibling is emitted either.
       const msg = err instanceof Error ? err.message : String(err);
       renderErrors.push({ target: p.spec.name, file: outputTarget, message: `Template render error: ${msg}`, kind: 'soft' });
     }
   }
 
-  if (!hasNewFrames && renderErrors.length === 0) return p;
+  if (!changed && renderErrors.length === 0) return p;
 
   return updatePluginFrame(p, (draft) => {
     draft.frames = resultFrames as typeof draft.frames;

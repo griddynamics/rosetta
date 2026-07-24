@@ -176,4 +176,24 @@ describe('core-antigravity — generated output shape (FR-VAR-0080, FR-STRUCT-00
     const entries = fs.readdirSync(targetRoot);
     expect(entries.some((e) => e.startsWith('.'))).toBe(false);
   });
+
+  it('renders hooks.json from the preserved hooks.json.tmpl and emits NO .tmpl anywhere in output', () => {
+    // DATA-CFG-0005 / FR-VAR-0083: the preserved hooks.json.tmpl is source-only — the generator
+    // renders it to a real hooks.json and the .tmpl itself must never reach the output, for
+    // core-antigravity same as every other target.
+    expect(fs.existsSync(path.join(targetRoot, 'hooks.json'))).toBe(true);
+    expect(fs.existsSync(path.join(targetRoot, 'hooks.json.tmpl'))).toBe(false);
+
+    function listFilesRecursive(dir: string): string[] {
+      const out: string[] = [];
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) out.push(...listFilesRecursive(full));
+        else out.push(full);
+      }
+      return out;
+    }
+    const tmplFiles = listFilesRecursive(targetRoot).filter((f) => f.endsWith('.tmpl'));
+    expect(tmplFiles, `no .tmpl file may appear in core-antigravity output; found: ${tmplFiles.join(', ')}`).toHaveLength(0);
+  });
 });

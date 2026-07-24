@@ -115,6 +115,10 @@ function collectTmplFrames(
 
 /**
  * Copy preserved source directory to destination — disk writes only (skipped in dry-run).
+ * `.tmpl` files are excluded from this raw copy: their content is already collected into frames
+ * by `collectTmplFrames` above, rendered by `pluginRenderTemplates`, and written to disk by
+ * `pluginWrite` as the rendered sibling only — the `.tmpl` itself must never reach the output
+ * (all targets, not just standalones).
  * FR-ARCH-0053
  */
 function copyDirRecursive(
@@ -127,6 +131,7 @@ function copyDirRecursive(
   const entries = fs.readdirSync(srcDir, { withFileTypes: true });
   for (const entry of entries) {
     if (entry.name === '.DS_Store') continue; // FR-COPY-0010
+    if (entry.name.endsWith('.tmpl')) continue; // rendered sibling only reaches output
 
     const srcPath = path.join(srcDir, entry.name);
     const destPath = path.join(destDir, entry.name);
