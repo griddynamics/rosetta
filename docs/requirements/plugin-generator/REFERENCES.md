@@ -15,7 +15,7 @@ Any coding agent working on, or consuming, these requirements must treat the per
 | OpenCode | `instructions/r3/core/configure/opencode.md` | IDE configuration conventions |
 | Windsurf | `instructions/r3/core/configure/windsurf.md` | IDE configuration conventions |
 
-The generator currently produces targets for a subset (Claude, Cursor, Copilot, Codex + their standalones); the guides cover the broader set of IDEs Rosetta intends to support.
+The generator produces targets for a subset (Claude, Cursor, Copilot, Codex + their standalones, and Antigravity); the guides cover the broader set of IDEs Rosetta intends to support.
 
 ## Requirements
 

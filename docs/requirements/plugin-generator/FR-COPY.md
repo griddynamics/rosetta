@@ -289,3 +289,70 @@ The files a target keeps but never generates — the IDE manifest, hook template
   <implementationNotes></implementationNotes>
   <depends>FR-ARCH-0043, FR-ARCH-0035</depends>
 </req>
+
+## Antigravity-specific transforms
+
+These transforms apply to the `core-antigravity` target only; the other six targets are unaffected.
+
+<req id="FR-COPY-0080" type="FR" level="System" ticketId="138" classification="technical">
+  <title>Antigravity workflow-to-skill transform</title>
+  <statement>For the Antigravity target, the generator shall transform each Rosetta workflow document into an Antigravity skill: the workflow body shall become `skills/<name>/SKILL.md`, and each of the workflow's phase files shall be emitted under `skills/<name>/phases/`. Within the resulting `SKILL.md` and within every emitted phase file, the generator shall rewrite references to that workflow's ACTUAL phase file names only — never arbitrary `*.md` mentions — to the form `APPLY SKILL FILE \`phases/<phase>.md\``. The rewrite shall run in two ordered passes: (1) the full form `APPLY PHASE <name>` — where `<name>` may be bare or wrapped in a delimiter — with the `APPLY PHASE ` prefix consumed; then (2) the standalone short form, matched only when the phase name is wrapped in a matching delimiter (backtick, single quote, or double quote) on both sides. A bare name in the full form is bounded by the `APPLY PHASE ` prefix and a `.md` word boundary (so it cannot partial-match a longer sibling); the both-sides-delimiter requirement on the standalone form makes it immune to substring/nesting collisions, prevents re-matching the rewritten output, and never touches bare prose or unrelated `*.md` mentions. This transform applies to the Antigravity target only.</statement>
+  <rationale>Antigravity plugin packaging has no `workflows/` folder; skills are the procedural unit and are the correct home for a Rosetta workflow. A workflow's phases are discrete stages, emitted as files under `phases/`. Because those phase files move into the skill's `phases/` subfolder, references to them must be repointed to `phases/<phase>.md` with Antigravity's `APPLY SKILL FILE` phrasing. The rewrite is targeted to the known real phase names (not a blanket `*.md` substitution) so unrelated filenames are untouched, wrapper-aware so quoted/backticked references are caught, and ordered full-then-short with a non-overlap guarantee so the short pass never re-processes the full pass's output.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-07-23</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: the Rosetta workflow `coding-flow` When: generated for Antigravity Then: `skills/coding-flow/SKILL.md` exists and each phase appears as a file under `skills/coding-flow/phases/`.</criteria>
+    <criteria>Given: a workflow with no phase files When: generated for Antigravity Then: `skills/<name>/SKILL.md` is produced and no `phases/` folder is created.</criteria>
+    <criteria>Given: the real phase name `init-workspace-flow-discovery.md`, referenced as `APPLY PHASE \`init-workspace-flow-discovery.md\`` and as a bare/backticked/single-quoted/double-quoted `init-workspace-flow-discovery.md` When: transformed for Antigravity Then: every occurrence becomes `APPLY SKILL FILE \`phases/init-workspace-flow-discovery.md\``.</criteria>
+    <criteria>Given: a `*.md` mention that is NOT one of this workflow's real phase names When: transformed for Antigravity Then: it is left unchanged.</criteria>
+    <criteria>Given: the ordered passes (full form, then short form) When: applied to a reference Then: the result is rewritten exactly once — the short-form pass does not re-match the full-form pass's output (no double rewrite).</criteria>
+    <criteria>Given: a target other than Antigravity When: generated Then: this transform is not applied.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/file-processors/file-antigravity-workflow-to-skill.ts (workflow→skills/<root>/SKILL.md, phases→phases/; findWorkflowRoot uses shortest prefix-stem; rewritePhaseReferences: targeted real phase names, wrapper-aware, ordered full-then-short, non-overlapping via (?<!phases/) guard).</implementationNotes>
+  <depends>FR-ARCH-0043, FR-VAR-0081</depends>
+</req>
+
+<req id="FR-COPY-0081" type="FR" level="System" ticketId="138" classification="technical">
+  <title>Antigravity frontmatter reduction (name + description only)</title>
+  <statement>For the Antigravity target, the generator shall reduce the YAML frontmatter of every agent file and every skill `SKILL.md` to exactly two fields — `name` and `description` — removing all other frontmatter fields (including `model`, `mode`, `readonly`, `baseSchema`, and any others) and leaving the document body unchanged. This transform applies to the Antigravity target only.</statement>
+  <rationale>Antigravity agents and skills expect a minimal `name` + `description` frontmatter contract. Antigravity currently maps its selectable model tiers (flash_lite, flash, pro) to extremely old models, so any explicitly specified model is worse than none — the agent should use Antigravity's own current default. Every non-essential field, model foremost, is therefore dropped. This is the "drop" half of the model-handling rule; the "inherit" half is FR-COPY-0082.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-07-23</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: an agent file with frontmatter `name`, `description`, `model`, `mode`, `readonly`, `baseSchema` When: generated for Antigravity Then: only `name` and `description` remain and the body is unchanged.</criteria>
+    <criteria>Given: a skill `SKILL.md` carrying a `model:` field When: generated for Antigravity Then: `model:` is removed and only `name` and `description` remain.</criteria>
+    <criteria>Given: a target other than Antigravity When: generated Then: frontmatter is not reduced.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/plugin-processors/plugin-antigravity-reduce-frontmatter.ts (agents/* + **/SKILL.md → name+description only, after pluginGenerateIndexes); serialize/frontmatter.ts reduceFrontmatterToNameDescription (layout-preserving; throws on block-scalar name/description). Rules NOT reduced.</implementationNotes>
+  <depends>FR-VAR-0081</depends>
+</req>
+
+<req id="FR-COPY-0082" type="FR" level="System" ticketId="138" classification="technical">
+  <title>Antigravity subagent_required_model rewrite to inherit</title>
+  <statement>For the Antigravity target, the generator shall rewrite every `subagent_required_model="<any value>"` attribute occurrence in generated content to `subagent_required_model="inherit"`, regardless of the original value. This transform applies to the Antigravity target only; the other six targets shall retain the original attribute values.</statement>
+  <rationale>The `subagent_required_model` attribute tells the agent which model to spawn a subagent with. Antigravity cannot programmatically select current 3.x models for subagents — its selectable set maps flash_lite/flash/pro to extremely old models — so a subagent must instead inherit the user-selected mode; `inherit` is the only correct value. This is the "inherit" half of the model-handling rule; the "drop" half is FR-COPY-0081. Scope is Antigravity-only because the other six targets already route subagent models correctly.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-07-23</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: `subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol"` When: generated for Antigravity Then: it becomes `subagent_required_model="inherit"`.</criteria>
+    <criteria>Given: the same attribute When: generated for Claude, Cursor, Copilot, or Codex Then: its value is unchanged.</criteria>
+    <criteria>Given: `subagent_required_model="inherit"` already present When: generated for Antigravity Then: it remains `subagent_required_model="inherit"` (idempotent).</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/plugin-processors/plugin-antigravity-subagent-model.ts (rewrites every subagent_required_model="..." → "inherit" over non-binary/non-verbatim frames; idempotent; Antigravity pipeline only).</implementationNotes>
+  <depends>FR-ARCH-0049</depends>
+</req>

@@ -32,7 +32,7 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
   <changed>2026-06-09</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: the six variants When: each is generated Then: only its descriptor differs; the generation procedure is identical.</criteria>
+    <criteria>Given: the seven variants When: each is generated Then: only its descriptor differs; the generation procedure is identical.</criteria>
     <criteria>Given: any descriptor field When: inspected Then: it is a value, map, glob, path, or composed processor list — never an identity-discriminant flag enumerating IDE/target/case identities (FR-ARCH-0005).</criteria>
     <criteria>Given: a descriptor omitting an optional adaptation When: generated Then: that adaptation is skipped without error.</criteria>
   </acceptance>
@@ -41,22 +41,23 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
   <notes>Target-state descriptor = `PluginSpec` = descriptor fields (name, destination, baseSubfolder, preserved-file seed source, modelVocabulary, bootstrap manifest/inclusion flags, hook config) + `SpecEntry[]` + `PluginProcessor[]`. File-tier behavior lives in each `SpecEntry`'s `FileProcessor` pipeline (`fileRead`, `fileApplyOverrides`, `fileBundle`, per-vocabulary model-normalization processors, `fileRename`, `fileCodexAgentFormat`); plugin-tier behavior is `PluginProcessor`s (`pluginCleanup`, `pluginCopy`, `pluginProcessSpecEntries`, `pluginRewriteReferences`, `pluginGenerateIndexes`, `pluginInjectSections`, `pluginAssembleBootstrap`, `pluginRenderTemplates`, `pluginWrite`). The old Python flags `rename_folders` map to `SpecEntry` `target`s; `rename_files`/`rename_agents` to `fileRename()`; `pre_copy_folders` to an extra `SpecEntry` (FR-COPY-0033); `pre_move_files` to a relocation `SpecEntry`/`fileRename()` (FR-COPY-0034); runtime-layout moves to `SpecEntry` `target`s (FR-VAR-0030/0041). Implemented in `src/rosettify-plugins/src/spec/targets.ts`.</notes>
 </req>
 
-<req id="DATA-CFG-0003" type="DATA" level="System" ticketId="" classification="technical">
+<req id="DATA-CFG-0003" type="DATA" level="System" ticketId="138" classification="technical">
   <title>Target inventory</title>
-  <statement>The generator shall define exactly six targets: `core-claude`, `core-cursor`, `core-copilot`, `core-codex`, `core-cursor-standalone`, `core-copilot-standalone`.</statement>
-  <rationale>Fixed, known delivery set per supported IDE and mode.</rationale>
+  <statement>The generator shall define exactly seven targets: `core-claude`, `core-cursor`, `core-copilot`, `core-codex`, `core-cursor-standalone`, `core-copilot-standalone`, `core-antigravity`.</statement>
+  <rationale>Fixed, known delivery set per supported IDE and mode. Antigravity ships as a single combined plugin (no separate standalone target): the plugin and an in-repo extraction differ only by the presence of `plugin.json`, which the IDE ignores as an extra file, so one target serves both installation and in-repo use.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-07-23</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: a generation run When: complete Then: the output directory contains all six target folders.</criteria>
+    <criteria>Given: a generation run When: complete Then: the output directory contains all seven target folders.</criteria>
+    <criteria>Given: the target set When: inspected Then: `core-antigravity` is present and no `core-antigravity-standalone` target exists.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
-  <notes>Each main target's preserved config folder: core-claude `.claude-plugin`, core-cursor `.cursor-plugin`, core-copilot `.github`, core-codex `.codex-plugin`.</notes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/targets.ts — `buildAllSpecs` returns 7 targets incl. `coreAntigravity`; no `core-antigravity-standalone`.</implementationNotes>
+  <notes>Each main target's preserved config folder: core-claude `.claude-plugin`, core-cursor `.cursor-plugin`, core-copilot `.github`, core-codex `.codex-plugin`. `core-antigravity` has no dot-config folder — its manifest is `plugin.json` at the plugin root. The single Antigravity target covers all three Antigravity products (Antigravity, Antigravity CLI, Antigravity IDE), which all read `plugin.json`.</notes>
 </req>
 
 <req id="DATA-CFG-0004" type="DATA" level="System" ticketId="" classification="technical">
@@ -78,7 +79,7 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
   <notes>Mapping values (model version strings) are content/config, expected to change over time; the mapping mechanism is the requirement, not the specific strings.</notes>
 </req>
 
-<req id="DATA-CFG-0005" type="DATA" level="System" ticketId="" classification="technical">
+<req id="DATA-CFG-0005" type="DATA" level="System" ticketId="138" classification="technical">
   <title>Preserved-file source location</title>
   <statement>The generator shall hold a committed preserved-file source under `src/rosettify-plugins/plugins/<target>/`, mirroring the output-relative layout, that contains every file a target keeps but does not generate: the IDE manifest, hook templates, IDE config-folder contents, and any `.mcp.json`. Each main target's preserved files shall be sourced only from its own `src/rosettify-plugins/plugins/<target>/` location.</statement>
   <rationale>The preserved files have no derivation from the instruction source; a committed source is the only authority for them and is what makes generation into a clean output directory possible.</rationale>
@@ -86,14 +87,14 @@ The generator is data-driven: a future release, domain, or IDE is added by editi
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-07-23</changed>
   <verification>Inspection</verification>
   <acceptance>
     <criteria>Given: the preserved-file source When: inspected Then: `src/rosettify-plugins/plugins/<target>/` exists for each main target and holds that target's manifest, hook templates, and config-folder files at their output-relative paths.</criteria>
     <criteria>Given: a file generated from the instruction source When: inspected Then: it is absent from `src/rosettify-plugins/plugins/<target>/`.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/plugins/core-antigravity/ (plugin.json at root, hooks.json.tmpl) added alongside the existing per-target preserved dirs.</implementationNotes>
   <depends>DATA-CFG-0002, DATA-CFG-0003</depends>
-  <notes>Main-target preserved-file source sets (grounded in the current `plugins/` tree): core-claude → `.claude-plugin/plugin.json`, `hooks/hooks.json.tmpl`; core-cursor → `.cursor-plugin/plugin.json`, `hooks/hooks.json.tmpl`, `hooks.json.tmpl` (root, standalone-form template); core-copilot → `.github/plugin/plugin.json`, `.github/plugin/hooks.json.tmpl`, `hooks/hooks.json.tmpl` (and `.github/plugin/.mcp.json` where present); core-codex → `.codex-plugin/plugin.json`, `.codex-plugin/hooks.json.tmpl`. These mirror the per-target preserved set: `preserved_folder` plus `preserved_files` in DATA-CFG-0002/0003, minus the items the generator renders/syncs (rendered `hooks.json`, `*.js` bundles). Standalone preserved files are not stored here (FR-SEED-0002).</notes>
+  <notes>Main-target preserved-file source sets (grounded in the current `plugins/` tree): core-claude → `.claude-plugin/plugin.json`, `hooks/hooks.json.tmpl`; core-cursor → `.cursor-plugin/plugin.json`, `hooks/hooks.json.tmpl`, `hooks.json.tmpl` (root, standalone-form template); core-copilot → `.github/plugin/plugin.json`, `.github/plugin/hooks.json.tmpl`, `hooks/hooks.json.tmpl` (and `.github/plugin/.mcp.json` where present); core-codex → `.codex-plugin/plugin.json`, `.codex-plugin/hooks.json.tmpl`; core-antigravity → `plugin.json` (plugin root), `hooks.json.tmpl` (plugin root). These mirror the per-target preserved set: `preserved_folder` plus `preserved_files` in DATA-CFG-0002/0003, minus the items the generator renders/syncs (rendered `hooks.json`, `*.js` bundles). The `.tmpl` files are preserved source only; the generator renders each into a real file (e.g. `hooks.json`) in the output — the output never contains a `.tmpl`. Standalone preserved files are not stored here (FR-SEED-0002).</notes>
 </req>

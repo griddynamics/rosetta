@@ -87,6 +87,22 @@ core-copilot-standalone/
     hooks/hooks.json + hooks/*.js [G] ← nested standalone-form hooks (.github-rooted paths)
 ```
 
+## core-antigravity — combined plugin, all three products (bootstrap: always-on rule; NO session-start hook)
+One combined plugin (a superset of content). All three Antigravity products (Antigravity, Antigravity CLI, Antigravity IDE) read the root `plugin.json` and consume the components they support. No separate standalone target — in-repo use = extract this plugin (the extra `plugin.json` is ignored). No dot-prefixed config folder.
+```
+core-antigravity/
+  plugin.json                     [P] manifest (root; carries a name — satisfies the CLI's required-name rule)
+  hooks.json                      [G] ← rendered from hooks.json.tmpl [P]; PreInvocation form; NO bootstrap payload
+  rules/*.md + INDEX.md           [G] ← source rules + templates; frontmatter preserved as authored (trigger set by the rule author, NOT the generator); bootstrap rule is authored trigger: always_on
+  skills/<skill>/SKILL.md         [G] ← source skills; frontmatter reduced to name+description
+  skills/<workflow>/SKILL.md + phases/*.md  [G] ← source workflows (workflow→skill; phases under phases/; phase refs → APPLY SKILL FILE `phases/…`); frontmatter reduced to name+description
+  skills/INDEX.md                 [G] ← generated skills index (Antigravity analog of Claude's workflow index)
+  agents/*.md                     [G] ← source agents; frontmatter reduced to name+description only (model/mode/readonly/baseSchema dropped)
+  configure/*.md                  [G] ← source configure, verbatim (like every other target; IDE ignores it — AG-6)
+  hooks/*.js                      [G] ← synced from src/hooks/dist/bundles/core-antigravity; advisory hooks (lint-format, md-file, loose-files) excluded (FR-VAR-0083)
+```
+Note: no `model:` is emitted for Antigravity (FR-COPY-0081); every `subagent_required_model` is rewritten to `inherit` (FR-COPY-0082); no `workflows/` folder appears (FR-VAR-0081). All transforms above are Antigravity-only.
+
 ## Requirements
 
 <req id="FR-STRUCT-0010" type="FR" level="System" ticketId="" classification="technical">
@@ -124,4 +140,22 @@ core-copilot-standalone/
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
   <depends>FR-CLI-0040, FR-VAR-0050, FR-VAR-0051, FR-VAR-0070, FR-VAR-0072</depends>
+</req>
+
+<req id="FR-STRUCT-0030" type="FR" level="System" ticketId="138" classification="technical">
+  <title>Antigravity target structure</title>
+  <statement>The `core-antigravity` target shall produce the folder structure documented in its section above: a preserved `[P]` root `plugin.json`, a rendered `[G]` `hooks.json`, and generated `[G]` `rules/`, `skills/` (with workflow phases under `skills/<name>/phases/`), and `agents/` content — with agent and skill frontmatter reduced to `name`+`description`, every `subagent_required_model` rewritten to `inherit`, and no `workflows/` folder and no dot-prefixed config folder.</statement>
+  <rationale>The single combined Antigravity plugin is the on-disk surface all three Antigravity products load; this tree is its concrete acceptance surface.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-07-23</changed>
+  <verification>Inspection</verification>
+  <acceptance>
+    <criteria>Given: the `core-antigravity` target generated When: its tree is inspected Then: it matches the documented structure, with `plugin.json` preserved and all other content regenerated, and no `workflows/` folder present.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: verified on generated `core-antigravity/` output (rules/skills/agents/configure + rules&skills indexes; no workflows/ folder; no dot-config folder). Tests: tests/unit/spec/targets-antigravity-output.test.ts.</implementationNotes>
+  <depends>FR-VAR-0080, FR-VAR-0081, FR-VAR-0082, FR-VAR-0083, FR-COPY-0080, FR-COPY-0081, FR-COPY-0082</depends>
 </req>

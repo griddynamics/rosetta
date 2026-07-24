@@ -1,5 +1,27 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-07-23 — Add Antigravity target; deprecate Gemini CLI (ticket #138)
+
+**Files:** `MODEL.md`, `FR-VAR.md`, `FR-COPY.md`, `FR-CLI.md`, `SCOPE.md`, `REFERENCES.md`, `GLOSSARY.md`, `STRUCTURES.md`, `ASSUMPTIONS.md`, `INDEX.md`
+
+**Source:** User decisions (D1–D8, Group A–D) grounded in the authoritative antigravity.google documentation. Requirements authoring only; implementation, obsolete-guide rewrite, and joint testing deferred to a coding-flow.
+
+**Added — a single combined `core-antigravity` target** serving all three Antigravity products (Antigravity, Antigravity CLI, Antigravity IDE), which all read `plugin.json`. No separate standalone target (in-repo use = extract the plugin; the extra `plugin.json` is ignored).
+- `DATA-CFG-0003` — target inventory six → **seven** (+`core-antigravity`); status Approved → Draft pending re-approval.
+- `DATA-CFG-0005` — preserved-file set for `core-antigravity`: `plugin.json`, `hooks.json.tmpl` (both at plugin root); note that `.tmpl` renders to a real output file and never ships as `.tmpl`.
+- `FR-VAR-0080/0081/0082/0083` — combined-plugin output; content mapping (`rules`+`templates`→`rules/`; `workflows`+`skills`→`skills/`; `agents`→`agents/`; `configure`→`configure/` verbatim); bootstrap via `trigger: always_on` rule (no session-start hook); hook template (PreInvocation, no bootstrap payload) and exclusion of the advisory PostToolUse hooks `lint-format`/`md-file`/`loose-files` (Antigravity ignores hook output on PostToolUse — not synced to `hooks/dist`, not in `hooks.json.tmpl`). No `mcp_config.json` produced (no Rosetta MCP server for Antigravity).
+- `FR-COPY-0080/0081/0082` (Antigravity-only) — workflow→skill transform (phases under `skills/<name>/phases/`; phase references rewritten to `APPLY SKILL FILE \`phases/<file>.md\``); frontmatter reduction to `name`+`description` (drops `model`, `mode`, `readonly`, `baseSchema`); `subagent_required_model`→`inherit`.
+
+**Grounded in owner's verified work:** the Antigravity hooks contract is VERIFIED/COMPLETE (`docs/hooks/antigravity.md`, branch `feat/antigravity-hooks-138`) and confirmed identical across all three products — `SessionStart` is not an event (bootstrap uses an always-on rule), `PostToolUse` output is ignored (advisory hooks excluded). Additional decisions: rule frontmatter (including any authored `trigger:`) is preserved unchanged — the generator never sets activation (the human owns always-on vs not); `configure/` kept verbatim (an Antigravity install can author for other tools); workflows→skills is required because the CLI has no workflows and one combined plugin avoids engineers mis-selecting among separate plugins. Pending owner confirmation: folder-index generation (AG-5) and `mcp_config.json` omission.
+
+**Model handling rationale (user):** Antigravity maps its selectable model tiers (flash_lite/flash/pro) to extremely old models, so an explicit model is worse than none. Rule: the subagent-spawn attribute `subagent_required_model` → `inherit`; all other model references dropped. Antigravity-only; the other six targets are unchanged. No Antigravity model vocabulary is defined.
+
+**Deprecated — Gemini CLI** as a generator target (superseded by Antigravity CLI). Recorded as a note in `SCOPE.md`; no Gemini CLI product reference exists in the requirements or in `src/rosettify-plugins/` code today (only legitimate `gemini-*` model identifiers, retained).
+
+**CLI defaults (FR-CLI-0012):** `--deterministic-hooks` now defaults to `false`, so `npx -y rosettify-plugins@latest` (no flags) generates release `r3` with deterministic hooks off; opt in with `--deterministic-hooks true`. Trade-off: a no-flag run places no runtime hook bundles. Generator package minor version bumped 3.0.0 → 3.1.0. The `configure/antigravity.md` guide was rewritten from the antigravity.google documentation.
+
+---
+
 ## 2026-07-13 — Default release r2 → r3 (FR-CLI-0010)
 
 **Files:** `FR-CLI.md`

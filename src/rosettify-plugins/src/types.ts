@@ -168,6 +168,6 @@ export interface GenerateOptions {
   domain: string;
   dryRun: boolean;
   verbose: boolean;
-  deterministicHooks?: boolean; // FR-CLI-0012 — per-run override; undefined → release descriptor value
+  deterministicHooks?: boolean; // FR-CLI-0012 — per-run override; undefined → false (fixed default, not the release descriptor value)
   out?: Writable;               // FR-ARCH-0045/FR-CLI-0050 — dry-run output sink; defaults to process.stdout
 }

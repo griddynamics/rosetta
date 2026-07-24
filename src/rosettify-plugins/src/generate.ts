@@ -28,10 +28,11 @@ export async function generate(options: GenerateOptions): Promise<number> {
   }
 
   // FR-CLI-0012: effective deterministic-hooks value — CLI override when supplied,
-  // otherwise the release descriptor's value
+  // otherwise a fixed `false` default (NOT the release descriptor's native value). A no-argument
+  // invocation therefore always resolves to deterministic_hooks=false, regardless of release.
   const release =
     options.deterministicHooks === undefined
-      ? descriptor
+      ? { ...descriptor, deterministicHooks: false }
       : { ...descriptor, deterministicHooks: options.deterministicHooks };
 
   // Build VFS (FR-ARCH-0010–0014, FR-CLI-0030/0031)

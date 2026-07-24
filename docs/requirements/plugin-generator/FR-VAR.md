@@ -261,3 +261,87 @@ All content under `.github/`; bootstrap delivered via **auto-loaded instructions
   <implementationNotes></implementationNotes>
   <depends>FR-SEED-0002</depends>
 </req>
+
+## Antigravity (`core-antigravity`) — combined plugin (all three products)
+
+One combined plugin serves all three Antigravity products (Antigravity, Antigravity CLI, Antigravity IDE): they all read `plugin.json`, and each product consumes the components it supports. The plugin is a **superset** of Rosetta content — not a lowest-common-denominator intersection. There is no separate standalone target: in-repo use is achieved by extracting this plugin into the workspace (the IDE ignores the extra `plugin.json`). Bootstrap rides an always-on rule (Antigravity has no session-start hook). Install locations are documented for the user, not a generator concern.
+
+<req id="FR-VAR-0080" type="FR" level="System" ticketId="138" classification="technical">
+  <title>Antigravity combined-plugin output</title>
+  <statement>The Antigravity variant shall be a single plugin containing a preserved `plugin.json` at the plugin root, a rendered `hooks.json`, a `rules/` folder, a `skills/` folder, an `agents/` folder, and generated folder indexes as for Claude (a `rules` index and a `skills` index). It shall be the sole Antigravity target and shall carry no dot-prefixed IDE config folder.</statement>
+  <rationale>Antigravity plugins are identified by a root `plugin.json` and read the same package across all three products; a single superset plugin serves installation and in-repo extraction alike (the extra `plugin.json` is ignored when extracted natively), so no separate standalone target is warranted. The Antigravity contract is verified identical across all three products (`docs/hooks/antigravity.md`), and the plugin follows the same package pattern as every other target, so one package serves all three.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-07-23</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: the Antigravity variant When: generated Then: `plugin.json` and `hooks.json` exist at the plugin root, `rules/`, `skills/`, and `agents/` folders exist, and a rules index and a skills index are generated.</criteria>
+    <criteria>Given: the Antigravity variant When: generated Then: no dot-prefixed IDE config folder is emitted.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/targets.ts (`coreAntigravity` PluginSpec + `buildAllSpecs` returns 7). Root `plugin.json`+`hooks.json`, `rules/`/`skills/`/`agents/`, rules+skills indexes; no dot-config folder; no `mcp_config.json`.</implementationNotes>
+  <notes>MCP: Rosetta ships no MCP server for Antigravity, so no `mcp_config.json` is produced. If a preserved `mcp_config.json` is later added under `src/rosettify-plugins/plugins/core-antigravity/`, it is copied like any other preserved file (cf. Copilot `.mcp.json`).</notes>
+  <depends>DATA-CFG-0003, DATA-CFG-0005, FR-VAR-0081, FR-VAR-0082, FR-VAR-0083, INT-IDE-0002</depends>
+</req>
+
+<req id="FR-VAR-0081" type="FR" level="System" ticketId="138" classification="technical">
+  <title>Antigravity content mapping</title>
+  <statement>For the Antigravity variant the generator shall map Rosetta source folders to Antigravity components as follows: `rules` and `templates` shall be placed under `rules/` with their authored frontmatter preserved unchanged — including any `trigger:` activation field, which the rule author controls; the generator neither adds nor overrides it (rules are NOT subject to the frontmatter reduction that applies to agents and skills); `skills` and `workflows` shall be placed under `skills/`, where each workflow becomes a skill folder `skills/<name>/SKILL.md` and that workflow's phases are emitted as files under `skills/<name>/phases/` (FR-COPY-0080); `agents` shall be placed under `agents/`; `configure` shall be placed under `configure/` verbatim, as for every other target. No `workflows/` folder shall appear in the output.</statement>
+  <rationale>Antigravity plugin packaging exposes `skills/` and `rules/` (and, for the CLI, `agents/`); it has no `workflows/` folder. Rosetta workflows are procedural (step/phase) units, matching Antigravity skills; Rosetta rules and templates are persistent guidance, matching Antigravity rules. Agents map to the Antigravity subagent-templates folder — consumed by the CLI today and forward-compatible for the other products. `configure/` is carried verbatim exactly as every other target does (the plugin mirrors the Claude package pattern), and the IDE ignores it as an extra folder.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-07-23</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: a Rosetta workflow `coding-flow` When: generated for Antigravity Then: `skills/coding-flow/SKILL.md` exists and its phases appear under `skills/coding-flow/phases/`.</criteria>
+    <criteria>Given: Rosetta `templates/` content When: generated for Antigravity Then: it appears under `rules/`.</criteria>
+    <criteria>Given: the Antigravity output When: inspected Then: no `workflows/` folder exists.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/spec/targets.ts (coreAntigravity specEntries: rules+templates→rules/ frontmatter untouched, skills+workflows→skills/, agents→agents/, configure→configure/); file-processors/file-antigravity-workflow-to-skill.ts; plugin-processors/plugin-antigravity-reduce-frontmatter.ts.</implementationNotes>
+  <depends>FR-VAR-0080, FR-COPY-0080, FR-COPY-0081</depends>
+</req>
+
+<req id="FR-VAR-0082" type="FR" level="System" ticketId="138" classification="technical">
+  <title>Antigravity bootstrap via always-on rule</title>
+  <statement>The Antigravity variant shall deliver the bootstrap context through the source's natively auto-loaded bootstrap rule — authored with `trigger: always_on` (e.g. `bootstrap-alwayson.md`, `plugin-files-mode.md`) — and shall not deliver bootstrap through a session-start hook. The generator shall preserve that authored activation (it does not set triggers), assemble and size-check the bootstrap values uniformly (FR-VAR-0070), and omit the bootstrap placeholder from the Antigravity hook template.</statement>
+  <rationale>Antigravity has no session-start hook mechanism; its hooks are tool-event hooks. Delivery via a `trigger: always_on` rule is verified across the three products; it is the auto-loaded surface that carries bootstrap (Antigravity's `SessionStart`-analog, `PreInvocation`, is reserved for other hooks, not bootstrap). This is consistent with the FR-VAR-0070 principle that delivery is owned by the preserved templates/rules, not a generator strategy flag.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-07-23</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: the Antigravity variant When: generated Then: the bootstrap rule carries `trigger: always_on` and contains the bootstrap bodies.</criteria>
+    <criteria>Given: the Antigravity `hooks.json` When: inspected Then: it carries no bootstrap payload.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/src/plugin-processors/plugin-assemble-antigravity-bootstrap.ts (assemble+size-check, payload discarded); hooks.json.tmpl omits the bootstrap placeholder. Bootstrap rides the source's authored always-on rule (unchanged).</implementationNotes>
+  <depends>FR-VAR-0070, FR-VAR-0083, FR-HOOK-0001</depends>
+</req>
+
+<req id="FR-VAR-0083" type="FR" level="System" ticketId="138" classification="technical">
+  <title>Antigravity hook template and advisory-hook exclusion</title>
+  <statement>The Antigravity variant shall render its `hooks.json` from a preserved `hooks.json.tmpl` authored to the Antigravity hooks specification (PreInvocation event). The rendered `hooks.json` shall not inject the bootstrap payload. The Antigravity hook configuration shall exclude the advisory PostToolUse hooks `lint-format`, `md-file`, and `loose-files`: they shall neither be synced into the Antigravity hook bundle (`hooks/dist`) nor referenced in `hooks.json.tmpl`.</statement>
+  <rationale>The hook template is retained for future tool-event hook use and for the uniform render step, but bootstrap is delivered by the always-on rule (FR-VAR-0082), so the template deliberately omits the bootstrap placeholder — mirroring the Cursor template pattern in FR-VAR-0070. The `lint-format`, `md-file`, and `loose-files` hooks are advisory: they emit guidance for the agent to act on. Antigravity ignores hook output on PostToolUse (its protocol discards it), so shipping these hooks for Antigravity would consume runtime with no effect; they are excluded from both the synced bundle and the template. The precise PreInvocation `hooks.json` schema is owned by the Antigravity hooks guide `docs/hooks/antigravity.md`, with a reference config at `docs/hooks/antigravity/hooks.json`, per INT-IDE-0002.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-07-23</changed>
+  <verification>Inspection</verification>
+  <acceptance>
+    <criteria>Given: the preserved Antigravity `hooks.json.tmpl` When: rendered Then: a real `hooks.json` is produced in the output. (The preserved `.tmpl` is also copied into the output, as for every other target — the shared pipeline does not strip it.)</criteria>
+    <criteria>Given: the rendered Antigravity `hooks.json` When: inspected Then: it contains no bootstrap payload and conforms to the shape in `docs/hooks/antigravity.md` (tool events wrapped in `{matcher, hooks:[…]}`; non-tool events a flat handler list).</criteria>
+    <criteria>Given: the Antigravity variant When: generated Then: `hooks.json.tmpl` references none of `lint-format`, `md-file`, `loose-files`, and none of those bundles appear in the Antigravity `hooks/dist`.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Implemented: src/rosettify-plugins/plugins/core-antigravity/hooks.json.tmpl (PreInvocation, no bootstrap payload, no advisory hooks; deterministic-gated PreToolUse for dangerous-actions+read-once). NOTE: the `core-antigravity` hook bundle + adapter + build-bundles.mjs entry are delivered by the companion hooks PR; until synced into this repo, `--deterministic-hooks true` references not-yet-present `hooks/*.js` (the default false path is unaffected).</implementationNotes>
+  <depends>FR-VAR-0082, INT-IDE-0002</depends>
+  <notes>The advisory-hook exclusion applies to Antigravity only; other targets keep these hooks. Grounded facts (per `docs/hooks/antigravity.md`): `SessionStart` is not a valid Antigravity event (its analog is `PreInvocation @ invocationNum:0`); `PostToolUse` output is `{}` (ignored) — the reason the advisory hooks are excluded; bootstrap rides the always-on rule (FR-VAR-0082), not the PreInvocation hook. The Antigravity hook bundle at `src/hooks/dist/bundles/core-antigravity` ships `dangerous-actions`, `codemap-refresh`, and `read-once*`, and omits the advisory hooks.</notes>
+</req>

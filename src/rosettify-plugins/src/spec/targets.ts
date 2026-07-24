@@ -1,4 +1,4 @@
-// DATA-CFG-0002/0003 — the six PluginSpec values
+// DATA-CFG-0002/0003 — the seven PluginSpec values
 // FR-VAR-0010–0072, FR-SEED-0001/0002, FR-COPY-0011
 
 import path from 'path';
@@ -10,6 +10,7 @@ import {
   CURSOR_VOCABULARY,
   COPILOT_VOCABULARY,
   CODEX_VOCABULARY,
+  ANTIGRAVITY_VOCABULARY,
 } from './model-maps.js';
 import { BOOTSTRAP_MANIFEST_ORDER } from './bootstrap-manifest.js';
 import { fileRead } from '../file-processors/file-read.js';
@@ -21,6 +22,7 @@ import { fileNormalizeCopilotModels } from '../file-processors/file-normalize-co
 import { fileNormalizeCodexModels } from '../file-processors/file-normalize-codex-models.js';
 import { fileRename } from '../file-processors/file-rename.js';
 import { fileCodexAgentFormat } from '../file-processors/file-codex-agent.js';
+import { fileAntigravityWorkflowToSkill } from '../file-processors/file-antigravity-workflow-to-skill.js';
 import { pluginCleanup } from '../plugin-processors/plugin-cleanup.js';
 import { pluginCopy } from '../plugin-processors/plugin-copy.js';
 import { pluginProcessSpecEntries } from '../plugin-processors/plugin-process-spec-entries.js';
@@ -31,6 +33,9 @@ import { pluginAssembleClaudeBootstrap } from '../plugin-processors/plugin-assem
 import { pluginAssembleCursorBootstrap } from '../plugin-processors/plugin-assemble-cursor-bootstrap.js';
 import { pluginAssembleCopilotBootstrap } from '../plugin-processors/plugin-assemble-copilot-bootstrap.js';
 import { pluginAssembleCodexBootstrap } from '../plugin-processors/plugin-assemble-codex-bootstrap.js';
+import { pluginAssembleAntigravityBootstrap } from '../plugin-processors/plugin-assemble-antigravity-bootstrap.js';
+import { pluginAntigravitySubagentModel } from '../plugin-processors/plugin-antigravity-subagent-model.js';
+import { pluginAntigravityReduceFrontmatter } from '../plugin-processors/plugin-antigravity-reduce-frontmatter.js';
 import { pluginRenderTemplates } from '../plugin-processors/plugin-render-templates.js';
 import { pluginMirrorFiles } from '../plugin-processors/plugin-mirror-files.js';
 import { pluginSyncBundles } from '../plugin-processors/plugin-sync-bundles.js';
@@ -127,7 +132,7 @@ function makeTemplatesEntry(targetFolder = 'templates', normalizeModels?: FilePr
   };
 }
 
-// ─── Factory function for all six PluginSpecs ──────────────────────────────
+// ─── Factory function for all seven PluginSpecs ────────────────────────────
 
 export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
   const { pluginsSource, hooksSource, outputDir, release, dryRun = false, out = process.stdout } = ctx;
@@ -529,7 +534,93 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
     pluginProcessors: buildPipeline(hooksSource, outputDir, release, dryRun, pluginAssembleCopilotBootstrap, out),
   };
 
-  return [coreClaude, coreCursor, coreCopilot, coreCodex, coreCursorStandalone, coreCopilotStandalone];
+  // ── core-antigravity ──────────────────────────────────────────────────────
+  // DATA-CFG-0003: single combined plugin, no dot-prefixed config folder, no standalone target.
+  // FR-VAR-0080/0081: rules+templates→rules/ (frontmatter untouched); skills+workflows→skills/
+  // (workflow→skill transform, FR-COPY-0080); agents→agents/; configure→configure/ verbatim;
+  // no workflows/ folder. FR-COPY-0081/0082: agent+skill frontmatter reduced to name+description,
+  // subagent_required_model→inherit — both Antigravity-only, composed in below (no branching in
+  // shared processors: fileAntigravityWorkflowToSkill/fileAntigravityReduceFrontmatter are wired
+  // only into this spec's specEntries; pluginAntigravitySubagentModel only into this spec's
+  // pipeline). FR-VAR-0082/0083: bootstrap rides the source's authored always-on rule, not a
+  // session-start hook; hooks.json.tmpl omits the bootstrap placeholder (mirrors Cursor, FR-VAR-0070).
+  const coreAntigravity: PluginSpec = {
+    name: 'core-antigravity',
+    destination: 'core-antigravity',
+    baseSubfolder: '',
+    preservedSource: path.join(pluginsRoot, 'core-antigravity'),
+    modelVocabulary: ANTIGRAVITY_VOCABULARY, // AG-2: no model vocabulary
+    bootstrapManifest: [...BOOTSTRAP_MANIFEST_ORDER],
+    includeIndexEntries: true,
+    pluginRootPath: '',
+    indexes: [
+      { folder: 'rules', targetFolder: 'rules', heading: 'rules' },
+      // AG-5: "skills index" is the Antigravity analog of Claude's workflow index — it lists only
+      // the workflow-derived skills (tagged 'workflow'), not every plain skill.
+      { folder: 'skills', targetFolder: 'skills', requiredTag: 'workflow', heading: 'workflows' },
+    ],
+    injections: [],
+    // DATA-CFG-0002: hook folder and bundle config (bundleSource defaults to spec.name)
+    hookFolder: 'hooks',
+    specEntries: [
+      // FR-VAR-0081: rules — frontmatter (incl. any authored `trigger:`) preserved unchanged;
+      // NOT reduced (rules are excluded from FR-COPY-0081); no model normalization (AG-2).
+      {
+        source: 'rules/**',
+        target: 'rules',
+        exclude: RULES_EXCLUDES,
+        processors: [...BASE_PROCESSORS],
+      },
+      // FR-VAR-0081: templates join rules/ (same target folder as the rules entry above).
+      makeTemplatesEntry('rules'),
+      // FR-COPY-0080: each workflow doc → skills/<name>/SKILL.md; each phase file →
+      // skills/<name>/phases/<phase>.md; phase references rewritten within both.
+      // Frontmatter reduction (FR-COPY-0081) happens later, as a plugin-tier pass AFTER indexes
+      // are generated — the resulting SKILL.md's `tags: ["workflow"]` field must still be present
+      // when pluginGenerateIndexes builds the skills index (AG-5).
+      {
+        source: 'workflows/**',
+        target: 'skills',
+        exclude: [],
+        processors: [...BASE_PROCESSORS, fileAntigravityWorkflowToSkill],
+      },
+      // Real Rosetta skills → skills/ verbatim structure.
+      {
+        source: 'skills/**',
+        target: 'skills',
+        exclude: [],
+        processors: [...BASE_PROCESSORS],
+      },
+      {
+        source: 'agents/**',
+        target: 'agents',
+        exclude: [],
+        processors: [...BASE_PROCESSORS],
+      },
+      makeConfigureEntry(),
+    ],
+    pluginProcessors: buildPipeline(
+      hooksSource,
+      outputDir,
+      release,
+      dryRun,
+      pluginAssembleAntigravityBootstrap,
+      out,
+      // FR-COPY-0081/0082, Antigravity-only whole-plugin passes, run AFTER pluginGenerateIndexes
+      // (see plugin-antigravity-reduce-frontmatter.ts for why reduction must come after indexing).
+      [pluginAntigravityReduceFrontmatter, pluginAntigravitySubagentModel],
+    ),
+  };
+
+  return [
+    coreClaude,
+    coreCursor,
+    coreCopilot,
+    coreCodex,
+    coreCursorStandalone,
+    coreCopilotStandalone,
+    coreAntigravity,
+  ];
 }
 
 /**
@@ -537,6 +628,12 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
  * hooksSource: absolute path to hooks root (FR-CLI-0020); used by pluginSyncBundles.
  * dryRun threads through all disk-mutating processors (FR-CLI-0050, FR-ARCH-0045).
  * pluginMirrorFiles reads mirror pairs from spec.mirrors (data-driven, FR-ARCH-0035, DATA-CFG-0002).
+ * extraAfterIndexes: optional target-specific whole-plugin passes inserted right after
+ * pluginGenerateIndexes (composition point; empty for every target except where a caller supplies
+ * some — e.g. FR-COPY-0081/0082's Antigravity-only frontmatter-reduction/subagent-model passes).
+ * Inserted after indexing so index membership (e.g. a `tags: ["workflow"]` field) is still intact
+ * when indexes are built. This is data supplied by the caller, not a branch on target/IDE identity
+ * inside this function.
  * FR-ARCH-0032
  */
 function buildPipeline(
@@ -546,6 +643,7 @@ function buildPipeline(
   dryRun: boolean,
   bootstrapAssembler: PluginProcessor,
   out: Writable = process.stdout,
+  extraAfterIndexes: PluginProcessor[] = [],
 ) {
   const pipeline = [
     pluginCleanup(outputDir, dryRun),         // FR-CLI-0050: no-op in dry-run
@@ -553,6 +651,7 @@ function buildPipeline(
     pluginProcessSpecEntries(release),
     pluginRewriteReferences,
     pluginGenerateIndexes,
+    ...extraAfterIndexes,
     pluginInjectSections,
     bootstrapAssembler,
     pluginRenderTemplates,

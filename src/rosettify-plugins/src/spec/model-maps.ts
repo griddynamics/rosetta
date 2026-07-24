@@ -185,3 +185,10 @@ export const COPILOT_VOCABULARY: ModelVocabulary = {
 export const CODEX_VOCABULARY: ModelVocabulary = {
   map: {}, // not a simple map; normalizeCodex() handles the logic
 };
+
+// AG-2, DATA-CFG-0004: Antigravity carries no model vocabulary. Agent/skill frontmatter model
+// fields are dropped entirely (FR-COPY-0081), not normalized/mapped, so there is nothing to hold
+// here beyond an empty map — Antigravity never calls a normalize*() function.
+export const ANTIGRAVITY_VOCABULARY: ModelVocabulary = {
+  map: {},
+};

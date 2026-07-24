@@ -50,6 +50,17 @@ export function buildCursorBootstrapEntry(command: string): string {
 }
 
 /**
+ * Build an Antigravity bootstrap entry, shaped like an Antigravity PreInvocation `injectSteps`
+ * element (`docs/hooks/antigravity.md`: `injectSteps[].userMessage`).
+ * FR-VAR-0082: Antigravity bootstrap rides the always-on rule, not this hook payload — this
+ * entry is assembled only for the uniform size-check (NFR-0004) and is never injected into
+ * the Antigravity hooks.json.tmpl (no {{{bootstrap_hooks}}} placeholder there).
+ */
+export function buildAntigravityBootstrapEntry(userMessage: string): string {
+  return `{"userMessage": ${JSON.stringify(userMessage)}}`;
+}
+
+/**
  * Callback type for building one per-document bootstrap entry.
  * additionalContext: the rewritten body string (prefix-prepended for lead, folder-rewritten).
  * Returns the entry JSON object string, or null to skip this entry.

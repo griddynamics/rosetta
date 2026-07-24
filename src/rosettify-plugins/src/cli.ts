@@ -29,7 +29,7 @@ program
   .option('--pluginsSource <dir>', 'Override preserved-files source directory (default: <source>/src/rosettify-plugins/plugins)')
   .option('--hooksSource <dir>', 'Override hooks source directory (default: <source>/src/hooks)')
   .option('--output <dir>', 'Output directory (default: <source>/plugins)')
-  .option('--deterministic-hooks <bool>', "Override the release's deterministic_hooks value (true|false); default: the release descriptor value", parseBooleanArg)
+  .option('--deterministic-hooks <bool>', 'Override the deterministic_hooks value (true|false); default: false regardless of release (FR-CLI-0012)', parseBooleanArg)
   .option('--dry-run', 'Print what would be written, but do not write', false)
   .option('--verbose', 'Enable verbose logging', false);
 
@@ -52,15 +52,16 @@ Directives (in filenames, tilde-separated):
 Processor catalog:
   fileRead, fileApplyOverrides, fileBundle,
   fileNormalizeClaudeModels, fileNormalizeCursorModels, fileNormalizeCopilotModels, fileNormalizeCodexModels,
-  fileRename, fileCodexAgentFormat
+  fileRename, fileCodexAgentFormat, fileAntigravityWorkflowToSkill, fileAntigravityReduceFrontmatter
   pluginCleanup, pluginCopy, pluginProcessSpecEntries, pluginRewriteReferences,
   pluginGenerateIndexes, pluginInjectSections,
-  pluginAssembleClaudeBootstrap, pluginAssembleCursorBootstrap, pluginAssembleCopilotBootstrap, pluginAssembleCodexBootstrap,
+  pluginAssembleClaudeBootstrap, pluginAssembleCursorBootstrap, pluginAssembleCopilotBootstrap, pluginAssembleCodexBootstrap, pluginAssembleAntigravityBootstrap,
+  pluginAntigravitySubagentModel,
   pluginRenderTemplates, pluginSyncBundles, pluginWrite
 
 Spec model:
   Each target is a PluginSpec with specEntries, pluginProcessors, etc.
-  See src/spec/targets.ts for the six built-in targets.
+  See src/spec/targets.ts for the seven built-in targets.
 `);
 
 async function main(): Promise<void> {

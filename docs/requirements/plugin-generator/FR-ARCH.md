@@ -15,7 +15,7 @@ Architecture requirements: the configuration-driven generation model — uniform
   <changed>2026-06-04</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: the six targets When: inspected Then: each is described by a single named spec type (one shared `PluginSpec` interface) of identical shape, differing only in values held in `plugin-specs.ts`.</criteria>
+    <criteria>Given: the seven targets When: inspected Then: each is described by a single named spec type (one shared `PluginSpec` interface) of identical shape, differing only in values held in `plugin-specs.ts`.</criteria>
   </acceptance>
   <implementation>NotStarted</implementation>
   <implementationNotes></implementationNotes>
