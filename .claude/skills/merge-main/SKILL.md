@@ -23,3 +23,6 @@ If you learned something new, relevant to this shill, update `## Lessons learned
 ## Lessons learned (keep updating, first line is template, follow <instructions>):
 
 - **<key action item>** <concise: what happened, why, root cause, reasoning>.
+- **Check whether a doc reference survives the plugin boundary.** Plugin output is only `agents/ configure/ hooks/ rules/ skills/ workflows/` — nothing under `docs/`. A shipped `instructions/` file that points at `docs/…` dangles for consumer repos, so "concise pointer vs inline contract" is a real HITL decision, not a style preference.
+- **Hunt semantic conflicts after the textual merge; git flags none of them.** Three appeared here: main documented paths this branch had deleted, main asserted "no plugin directory yet" for a target this branch added, and main deleted `instructions/` rule files whose generated copies survived in a branch-only plugin. Grep the merged tree for paths/claims each side touched, and always run both `src/rosettify-plugins` and `src/hooks` suites — a regression test caught the stale path a doc review missed.
+- **Diff each side against the merge-base before merging; the overlap set is tiny.** `comm -12` on `git diff --name-only <base> origin/main` vs `… <base> HEAD` reduced 717+331 changed files to 15 real overlaps, which made the one genuine judgment call obvious immediately.
