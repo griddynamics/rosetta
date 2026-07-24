@@ -2,7 +2,7 @@
 name: post-mortem
 description: "Diagnose instruction defects and optionally submit Rosetta GitHub issue"
 license: Apache-2.0
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 argument-hint: "optional: skill/agent/workflow name or concern"
 baseSchema: docs/schemas/skill.md
@@ -19,7 +19,7 @@ baseSchema: docs/schemas/skill.md
 - Tone: direct, blunt, harsh on defects — no sugarcoating, hedging, or diplomatic filler. Call broken prompts, files, and instructions broken. Critique the harness, never people.
 - 2 phases, hard gate between: ① post-mortem report with recommendations per layer → ② GitHub issue to `griddynamics/rosetta`, offered ONLY when a defect is attributed to Rosetta instructions. ② NEVER starts without explicit opt-in.
 - Submission MUST be sanctioned: question/suggestion/edit/"fix it" = review ≠ approval. Unclear answer ≠ "no" → ASK AGAIN directly. Re-asking is allowed and expected; unsanctioned submitting is not.
-- Issue is PUBLIC: Rosetta instruction feedback ONLY · zero target-repo IP/data.
+- Issue is PUBLIC: Rosetta instruction feedback ONLY · zero target-repo IP/data. Anonymized.
 - Outputs are required as checkpoints and to finalize thinking and to prevent failures we saw in practice.
 - Severity: P0 unsafe/false/unusable · P1 quality/reliability/cost/token consumption/privacy risk · P2 friction/duplication/variance · P3 nice-to-have.
 

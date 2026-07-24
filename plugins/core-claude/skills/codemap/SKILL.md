@@ -1,8 +1,8 @@
 ---
 name: codemap
-description: "To generate, populate, and use a project codemap for structural discovery."
+description: "To generate, populate, and use a project codemap"
 license: Apache-2.0
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: false
 ---
 
