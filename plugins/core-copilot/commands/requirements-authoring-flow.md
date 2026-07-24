@@ -142,12 +142,6 @@ Done when: artifacts are stored in target location and state file is complete.
 
 </workflow_phases>
 
-<references>
-
-- READ RULE `requirements-best-practices.md` — requirements quality and process rules
-
-</references>
-
 <validation_checklist>
 
 - Every phase produced its artifact

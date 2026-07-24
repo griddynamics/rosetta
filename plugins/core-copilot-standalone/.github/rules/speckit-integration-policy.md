@@ -1,6 +1,6 @@
 ---
 name: bootstrap-speckit-policy
-description: Invoke if directly requested, provides integration with the speckit
+description: Invoke if directly requested and speckit is already in context
 alwaysApply: false
 trigger: model_decision
 tags: ["speckit", "integration", "policy"]
