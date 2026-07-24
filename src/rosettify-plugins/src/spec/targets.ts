@@ -460,12 +460,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
           ...RULES_EXCLUDES,
           // Non-bootstrap, non-plugin-files-mode rules are excluded from instructions/
           // They go to .github/rules/ via the entry below
-          'rules/coding-iac-best-practices.md',
-          'rules/prompt-best-practices.md',
-          'rules/requirements-best-practices.md',
-          'rules/requirements-use-best-practices.md',
           'rules/speckit-integration-policy.md',
-          'rules/todo-tasks-fallback.md',
         ],
         processors: [
           ...BASE_PROCESSORS,

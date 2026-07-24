@@ -60,7 +60,7 @@ from rosetta_mcp.server import mcp  # import the FastMCP instance directly
 def get_test_resource_paths() -> List[str]:
     """Return candidate resource_path values for the current release (hierarchical paths, r2+)."""
     return [
-        "rules/requirements-best-practices.md",
+        "rules/bootstrap-alwayson.md",
         "agents/prompt-engineer.md",
         "workflows/requirements-authoring-flow.md",
     ]

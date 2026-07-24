@@ -23,11 +23,7 @@
   "rules": [
     "./rules/bootstrap-alwayson.mdc",
     "./rules/plugin-files-mode.mdc",
-    "./rules/requirements-best-practices.mdc",
-    "./rules/requirements-use-best-practices.mdc",
-    "./rules/speckit-integration-policy.mdc",
-    "./rules/coding-iac-best-practices.mdc",
-    "./rules/prompt-best-practices.mdc"
+    "./rules/speckit-integration-policy.mdc"
   ],
   "hooks": "./hooks/hooks.json"
 }
