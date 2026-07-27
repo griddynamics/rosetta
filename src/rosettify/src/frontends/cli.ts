@@ -12,7 +12,7 @@ import { helpToolDef } from "../commands/help/index.js";
 import type { PlanInput } from "../commands/plan/core.js";
 import type { SpecInput } from "../commands/specs/core.js";
 import type { EnrichedEnvelope } from "../registry/types.js";
-import { logger } from "../shared/logger.js";
+import { enableVerboseLogging, logger } from "../shared/logger.js";
 import { VERSION } from "../shared/version.js";
 
 // FR-ARCH-0007 — all command output is valid JSON; FR-SHRD-0008 — dense (no indent)
@@ -26,6 +26,10 @@ function writeResult(toolName: string, envelope: EnrichedEnvelope<unknown>): voi
 }
 
 export async function runCli(args: string[]): Promise<void> {
+  if (args.includes("--verbose")) {
+    enableVerboseLogging();
+  }
+
   // Check for --mcp before commander processes
   if (args.includes("--mcp")) {
     process.stderr.write(
@@ -36,6 +40,7 @@ export async function runCli(args: string[]): Promise<void> {
 
   const program = new Command("rosettify");
   program.version(VERSION);
+  program.option("--verbose", "Write trace-level diagnostics to the log file");
 
   // Suppress commander's default help output
   program.helpOption(false);

@@ -46,8 +46,13 @@ interface SpawnResult {
   json: unknown;
 }
 
-function run(args: string[]): SpawnResult {
-  const result = spawnSync(NODE, [BIN, ...args], { encoding: "utf8", timeout: 15000 });
+function run(args: string[], options: { cwd?: string; env?: NodeJS.ProcessEnv } = {}): SpawnResult {
+  const result = spawnSync(NODE, [BIN, ...args], {
+    cwd: options.cwd,
+    env: options.env,
+    encoding: "utf8",
+    timeout: 15000,
+  });
   let json: unknown = null;
   const out = result.stdout ?? "";
   try {
@@ -61,6 +66,13 @@ function run(args: string[]): SpawnResult {
     status: result.status,
     json,
   };
+}
+
+function loggingEnv(homeDir: string): NodeJS.ProcessEnv {
+  const env = { ...process.env, HOME: homeDir };
+  delete env.ROSETTIFY_LOG;
+  delete env.ROSETTIFY_LOG_LEVEL;
+  return env;
 }
 
 // ---------------------------------------------------------------------------
@@ -98,6 +110,30 @@ describe("CLI — help command", () => {
     expect(r.status).toBe(0);
     const res = r.json as { tool: string };
     expect(res.tool).toBe("rosettify");
+  });
+});
+
+describe("CLI — logging", () => {
+  it("writes warning logs to the user's Rosetta directory by default", () => {
+    const homeDir = path.join(tmpDir, "home");
+    const r = run(["plan", "unknown"], { cwd: tmpDir, env: loggingEnv(homeDir) });
+
+    expect(r.status).toBe(1);
+    expect(r.stderr).toBe("");
+    const logFile = path.join(homeDir, ".rosetta", "rosettify.log");
+    expect(fs.readFileSync(logFile, "utf8")).toContain('"level":40');
+    expect(fs.existsSync(path.join(tmpDir, "rosettify.log"))).toBe(false);
+  });
+
+  it("writes trace-level diagnostics when --verbose is supplied", () => {
+    const homeDir = path.join(tmpDir, "home");
+    const r = run(["--verbose", "help"], { cwd: tmpDir, env: loggingEnv(homeDir) });
+
+    expect(r.status).toBe(0);
+    expect(r.stderr).toBe("");
+    const logContents = fs.readFileSync(path.join(homeDir, ".rosetta", "rosettify.log"), "utf8");
+    expect(logContents).toContain('"level":30');
+    expect(logContents).toContain("help top-level");
   });
 });
 
