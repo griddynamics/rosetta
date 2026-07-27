@@ -134,7 +134,7 @@ Internal architecture requirements for rosettify.
 
 <req id="FR-ARCH-0010" type="FR" level="System">
   <title>All logs written to log file, never to stdout/stderr</title>
-  <statement>Any diagnostic or debug logging SHALL be written to a log file only. Logs SHALL NOT go to stdout (reserved for protocol/results) or stderr (reserved for error output from frontends). Log file location shall be configurable.</statement>
+  <statement>Any diagnostic or debug logging SHALL be written to a log file only. The default location SHALL be `~/.rosetta/rosettify.log`; `ROSETTIFY_LOG` shall override it. Logs SHALL NOT go to stdout (reserved for protocol/results) or stderr (reserved for error output from frontends). The default log level SHALL be WARN, configurable through `ROSETTIFY_LOG_LEVEL`, and the CLI `--verbose` flag SHALL enable TRACE-level diagnostics for that invocation.</statement>
   <rationale>Keeps stdout/stderr clean for protocol and structured error output.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -142,7 +142,7 @@ Internal architecture requirements for rosettify.
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: rosettify with debug logging enabled. When: a command runs. Then: log entries appear in the log file. stdout and stderr contain no log lines.</criteria>
+    <criteria>Given: rosettify with `--verbose`. When: a command runs. Then: TRACE-level diagnostics are eligible for the default or configured log file. Given: rosettify without `--verbose` or a level override. Then: only WARN-and-higher records are eligible. In both cases, stdout and stderr contain no log lines.</criteria>
   </acceptance>
 </req>
 

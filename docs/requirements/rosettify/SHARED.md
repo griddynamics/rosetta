@@ -54,7 +54,7 @@ Cross-cutting concerns used by all commands. No command reimplements these.
 
 <req id="FR-SHRD-0005" type="FR" level="System">
   <title>Common logging to file only</title>
-  <statement>The common layer SHALL provide a logging facility using pino 10.3.1 that writes to a log file only (FR-ARCH-0010). All commands and shared code SHALL use this facility. Log level SHALL be configurable. No logging to stdout or stderr.</statement>
+  <statement>The common layer SHALL provide a logging facility using pino 10.3.1 that writes to a log file only (FR-ARCH-0010). All commands and shared code SHALL use this facility. By default it SHALL write to `~/.rosetta/rosettify.log`, creating the directory when absent, at WARN level. `ROSETTIFY_LOG` and `ROSETTIFY_LOG_LEVEL` SHALL override the default path and level. The CLI `--verbose` flag SHALL set the level to TRACE for that invocation. No logging to stdout or stderr.</statement>
   <rationale>Centralized logging keeps stdout/stderr clean per FR-ARCH-0008/0010.</rationale>
   <source>Inferred</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -62,7 +62,7 @@ Cross-cutting concerns used by all commands. No command reimplements these.
   <status>Approved</status>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: any command with logging enabled. When: executed. Then: log entries in the log file only. stdout and stderr contain no log lines.</criteria>
+    <criteria>Given: a command emits a warning with no log environment overrides. When: executed. Then: `~/.rosetta/rosettify.log` contains the warning, no `rosettify.log` is created in the working directory, and stdout/stderr contain no log lines. Given: the CLI is invoked with `--verbose`. Then: its logger level is TRACE for that invocation. Given: `ROSETTIFY_LOG` or `ROSETTIFY_LOG_LEVEL` is set. Then: the respective default is overridden.</criteria>
   </acceptance>
 </req>
 
