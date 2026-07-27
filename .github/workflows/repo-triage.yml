@@ -6,7 +6,8 @@ name: Rosetta GitHub Triage
 # /rosetta slash commands in comments.
 #
 # Required GitHub Secrets:
-#   - ANTHROPIC_API_KEY
+#   - BIFROST_HOST_NAME: Bifrost gateway hostname (no protocol/port/path), routes Anthropic API calls through Bifrost
+#   - BIFROST_API_KEY: Bifrost-issued API key
 #   - JIRA_API_KEY
 #   - CONFLUENCE_API_KEY
 #   - JIRA_CONFLUENCE_API_EMAIL
@@ -29,6 +30,8 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
+    env:
+      ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
     if: |
       !(github.event_name == 'pull_request_target' && (github.event.pull_request.draft == true || contains(github.event.pull_request.title, 'WIP') || contains(github.event.pull_request.title, '[WIP]'))) &&
       !(github.event_name == 'issue_comment' && !contains(github.event.comment.body, '/rosetta')) &&
@@ -63,7 +66,7 @@ jobs:
       - name: Triage
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          anthropic_api_key: ${{ secrets.BIFROST_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           path_to_bun_executable: ${{ steps.bun.outputs.bun-path }}
           plugin_marketplaces: |

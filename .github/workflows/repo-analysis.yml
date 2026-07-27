@@ -5,7 +5,8 @@ name: Rosetta Repo Analysis
 # and creates/updates stories automatically using Claude + Atlassian MCP.
 #
 # Required GitHub Secrets:
-#   - ANTHROPIC_API_KEY: Claude API key
+#   - BIFROST_HOST_NAME: Bifrost gateway hostname (no protocol/port/path), routes Anthropic API calls through Bifrost
+#   - BIFROST_API_KEY: Bifrost-issued API key
 #   - JIRA_API_KEY: Atlassian API token
 #   - CONFLUENCE_API_KEY: Atlassian API token (Confluence)
 #   - JIRA_CONFLUENCE_API_EMAIL: Atlassian account email for API auth
@@ -22,6 +23,8 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
 
     steps:
       - name: Checkout repository
@@ -42,7 +45,7 @@ jobs:
       - name: Run Claude
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          anthropic_api_key: ${{ secrets.BIFROST_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           path_to_bun_executable: ${{ steps.bun.outputs.bun-path }}
           prompt: "MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS, No HITL: .github/prompts/repo-analysis.md"
