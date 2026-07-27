@@ -54,6 +54,8 @@ jobs:
     timeout-minutes: 60
     env:
       ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
+      ENABLE_TOOL_SEARCH: "true"
+      CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
 
     strategy:
       matrix: ${{ fromJSON(needs.load-stories.outputs.matrix) }}

@@ -113,6 +113,8 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.BIFROST_API_KEY }}
           ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
+          ENABLE_TOOL_SEARCH: "true"
+          CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
           BASE_REF: ${{ steps.changed-files.outputs.base_ref }}
         run: |
           echo "Validating prompts..."
