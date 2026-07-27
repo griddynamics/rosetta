@@ -32,6 +32,37 @@ Rosetta-guided work follows five phases — **Prepare → Research → Plan → 
 > [!NOTE]
 > If you are effectively using your current setup, writing your own skills, and managing AI using your own processes, you probably don't need Rosetta.
 
+## [Top Workflows](USAGE_GUIDE.md#workflows)
+
+1. `coding-flow`: AI creates features, fixes defects, and performs refactoring, everything end-to-end. AI performs discovery, design, specs and a plan, user review, then AI implements and runs separate review and validation passes (including running application). Most useful for medium to large coding tasks, and for controlled component-by-component migration/modernization work.
+2. `requirements-authoring-flow`: AI works with user and raw artifacts to define entire-application requirements. AI discovers context and existing constraints, captures intent, drafts atomic requirement units, validates them, and finalizes traceability artifacts. This is the most efficient use of coding agents. Requirements then Coding.
+3. `testgen-flow`, `api-aqa-flow`, `ui-aqa-flow`: AI handles QA-related work such as generating test cases and creating API or UI automation tests. AI first collects project context, requirements, and existing QA assets, clarifies gaps, and only after that generates test cases or automation tests.
+4. `code-analysis-flow`: AI creates grounded analysis documents based on the codebase. AI first loads project context, asks clarification questions, then produces either one focused analysis document or parallel module analyses plus a summary.
+5. `help-flow`: AI explains available Rosetta workflows, skills, and agents. Most useful when the user is unsure which Rosetta capability to use.
+6. `init-workspace-flow`: AI sets up a repository for AI use in both brownfield and greenfield projects. AI first analyzes the workspace, builds baseline docs, asks gap-filling questions, and verifies the result. Use it once per repository as its purpose is to build context for subsequent sessions.
+
+If you prefer more vibe-coding, check the guardrails and useful skills below.
+
+## Top Guardrails
+
+1. Dangerous actions detection and handling: AI will think about blast radius and will not take unsafe actions without clear acceptance from a user.
+2. Sensitive data handling (Secrets, PCI, PHI, PII, etc): AI will not read, query, or distribute (affects itself), and it will code respecting that (affects code).
+3. Shared infrastructure understanding: AI will not behave as if the environment belongs only to it.
+4. Deviation control: AI will detect drift and will try to overcome that.
+5. Human-in-the-Loop: AI will ask for user review or approval whenever it is needed.
+6. Risk assessment: AI will review current workspace setup, if there is a chance AI can damage - it will report.
+7. Self-learning and organization: AI learns on mistakes (repo-level) and organizes its own work.
+
+## [Top Skills](USAGE_GUIDE.md)
+
+1. `planning`, `tech-specs`: Turn a request into a clear plan and actionable specs.
+2. `orchestration`: Coordinate an efficient team of subagents for large tasks (also request "team manager" capability for full experience).
+3. `questioning`, `hitl`: AI to work with human, not over or behind, to be more human-oriented.
+4. `research`, `reverse-engineering`: Repository grounded research and logical reverse engineering (business logic extraction).
+5. `coding`, `debugging`, `testing`: Implementation, debugging with root-cause analysis, and validation.
+6. `reasoning`: Requires AI to decompose and recompose the problem, boundaries, actors, roles, gaps, contradictions, and perform recursive tree-of-thoughts reasoning.
+7. `solr-*`: AI will help to build SOLR search-related artifacts.
+
 ## Without Rosetta / With Rosetta
 
 | Without Rosetta                                  | With Rosetta                                  |
@@ -108,34 +139,6 @@ Higher layers propagate to every project automatically; teams customize without 
 
 https://github.com/user-attachments/assets/fc0ef06a-2f9c-49fa-bc05-68001dadd286
 
-## Workflows
-
-1. `coding-flow`: AI creates features, fixes defects, and performs refactoring. AI first starts with deep discovery and design, produces specs and a plan, requires explicit approval before implementation, then runs separate review and validation passes. Most useful for medium to large coding tasks, and for controlled component-by-component migration/modernization work.
-2. `requirements-authoring-flow`: AI works with raw artifacts to define entire-application requirements or large feature requirements. AI first discovers context and existing constraints, then captures intent, approves structure, drafts atomic requirement units, validates them, and finalizes traceability artifacts. Most useful when requirements shoud be created to be the source of truth for later development. Tip: The most efficient use of coding agents.
-3. `testgen-flow`, `api-aqa-flow`, `ui-aqa-flow`: AI handles QA-related work such as generating test cases and creating API or UI automation tests. AI first collects project context, requirements, and existing QA assets, clarifies gaps, and only after it generate test cases or automation tests. 
-4. `code-analysis-flow` AI creates grounded analysis documents based on the codebase. AI first loads project context, asks clarification questions, then produces either one focused analysis document or parallel module analyses plus a summary. 
-5. `help-flow` AI explains available Rosetta workflows, skills, and agents. Most useful when the user is unsure which Rosetta capability to use.
-6. `init-workspace-flow`: AI sets up a repository for AI use in both brownfield and greenfield projects. AI first analyzes the workspace, builds baseline docs, asks gap-filling questions, and verifies the result. Use it once per repository.
-
-If you prefer more vibe-coding, check the guardrails and usefult skills bellow.
-
-## Guardrails
-
-1. Dangerous actions detection and handling: AI will not perform unsafe actions (e.g `git reset`) without clear acceptance from a user.
-2. Sensitive data handling: AI will not read secrets.
-3. Shared infrastructure understanding: AI will not behave as if the environment belongs only to it.
-4. Deviation control: AI will not drift away from the task.
-5. Human-in-the-Loop: AI will ask for user review or approval is needed.
-6. Risk assessment: AI will not ignore risks of planned action.
-7. Self-learning and organization: AI will not lose important context.
-
-## Skills
-
-1. `planning`, `tech-specs`: AI uses to turn a request into a clear plan and actionable specs.
-2. `orchestration`: AI uses to coordinate a team of subagents for large tasks.
-3. `questioning`, `hitl`: AI uses to be more human-oriented by asking questions and pausing for review.
-4. `research`, `reverse-engineering`: AI uses to investigate existing systems before acting.
-5. `coding`, `debugging`, `testing`: AI uses for implementation, root-cause analysis, and validation.
 
 ## Why not just use IDE rules?
 
