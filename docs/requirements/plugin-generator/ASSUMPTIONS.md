@@ -40,6 +40,12 @@
 - **OQ-4 — RESOLVED (subsumed).** The parity bar is per-target structural everywhere, not byte-for-byte (NFR-0001, AC-2): output file-path sets must equal the derived-expected set; content is not compared. Hook JSON is covered by this general structural rule like any other output.
 - **OQ-5 — RESOLVED.** The VFS is built from structure + filename directives only (FR-ARCH-0011); each file's `frontmatter` slot is populated by `fileRead()` during processing (FR-ARCH-0040), not at VFS-build time, consistent with content I/O being confined to `fileRead`/`pluginWrite` (FR-ARCH-0033). The post-`fileRead()` working state carries the populated frontmatter.
 
+## `core-codex` target — facts and decisions
+
+- **CX-1 — Workflows are skills.** For the `core-codex` target, the generator packages workflows under the existing manifest-declared `.agents/skills/` skills root and emits no `.agents/workflows/` folder (FR-VAR-0042).
+- **CX-2 — No workflows index.** For the `core-codex` target, the generator generates the rules index only; it emits no workflows index and includes no workflows index in the session-start hook payload (FR-VAR-0041).
+- **CX-3 — Target-specific behavior stays isolated.** For the `core-codex` target, the generator retains Codex model normalization and does not apply the `core-antigravity` frontmatter reduction, subagent-model rewriting, or advisory-hook exclusions in FR-VAR-0083 (FR-VAR-0042).
+
 ## Antigravity — facts and decisions
 
 Antigravity mirrors the Claude plugin package pattern except the exceptions below. Authoritative hooks reference: `docs/hooks/antigravity.md`; the hook contract is identical across all three products.
@@ -50,4 +56,5 @@ Antigravity mirrors the Claude plugin package pattern except the exceptions belo
 - **AG-4 — Rule activation is author-controlled.** The generator never sets or adds `trigger:`; source rules carry their authored activation (`bootstrap-alwayson.md`/`plugin-files-mode.md` = `always_on`; `speckit-integration-policy.md` = `model_decision`; `coding-iac-best-practices.md` = none). Rule frontmatter is copied unchanged (FR-VAR-0081).
 - **AG-5 — Indexes.** Folder indexes are generated as for Claude (a rules index and a skills index; FR-VAR-0080).
 - **AG-6 — `configure/` verbatim.** Kept exactly as every other target keeps it — an Antigravity install can itself author content for Claude Code or any other tool, so the per-IDE `configure/` guides belong in the package.
-- **AG-7 — workflows→skills.** The Antigravity CLI has no workflows; a single combined plugin carries workflows as skills (FR-COPY-0080).
+- **AG-7 — workflows→skills.** The Antigravity CLI has no workflows; for the `core-antigravity` target, the generator packages workflows as skills through the shared transform (FR-COPY-0080).
+- **AG-8 — Phase files are body-only.** For the `core-antigravity` and `core-codex` targets, the generator emits workflow phases without YAML frontmatter (FR-COPY-0080).

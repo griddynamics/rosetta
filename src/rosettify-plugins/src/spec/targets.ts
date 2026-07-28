@@ -22,7 +22,7 @@ import { fileNormalizeCopilotModels } from '../file-processors/file-normalize-co
 import { fileNormalizeCodexModels } from '../file-processors/file-normalize-codex-models.js';
 import { fileRename } from '../file-processors/file-rename.js';
 import { fileCodexAgentFormat } from '../file-processors/file-codex-agent.js';
-import { fileAntigravityWorkflowToSkill } from '../file-processors/file-antigravity-workflow-to-skill.js';
+import { fileWorkflowToSkill } from '../file-processors/file-workflow-to-skill.js';
 import { pluginCleanup } from '../plugin-processors/plugin-cleanup.js';
 import { pluginCopy } from '../plugin-processors/plugin-copy.js';
 import { pluginProcessSpecEntries } from '../plugin-processors/plugin-process-spec-entries.js';
@@ -261,7 +261,6 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
     pluginRootPath: '',
     indexes: [
       { folder: '.agents/rules', targetFolder: '.agents/rules', heading: 'rules' },
-      { folder: '.agents/workflows', targetFolder: '.agents/workflows', requiredTag: 'workflow', heading: 'workflows' },
     ],
     injections: [],
     // DATA-CFG-0002: hook folder and bundle config
@@ -273,11 +272,15 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         exclude: RULES_EXCLUDES,
         processors: [...BASE_PROCESSORS, fileNormalizeCodexModels],
       },
+      // FR-COPY-0080/FR-VAR-0041/0042: each workflow doc → .agents/skills/<name>/SKILL.md; each
+      // phase file → .agents/skills/<name>/phases/<phase>.md, frontmatter stripped. No
+      // .agents/workflows/ folder or index (removed above) — existing absent-document handling
+      // omits that payload entry. Model normalization precedes the shared transform.
       {
         source: 'workflows/**',
-        target: '.agents/workflows',
+        target: '.agents/skills',
         exclude: [],
-        processors: [...BASE_PROCESSORS, fileNormalizeCodexModels],
+        processors: [...BASE_PROCESSORS, fileNormalizeCodexModels, fileWorkflowToSkill],
       },
       {
         source: 'agents/**',
@@ -535,9 +538,9 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
   // (workflow→skill transform, FR-COPY-0080); agents→agents/; configure→configure/ verbatim;
   // no workflows/ folder. FR-COPY-0081/0082: agent+skill frontmatter reduced to name+description,
   // subagent_required_model→inherit — both Antigravity-only, composed in below (no branching in
-  // shared processors: fileAntigravityWorkflowToSkill/fileAntigravityReduceFrontmatter are wired
-  // only into this spec's specEntries; pluginAntigravitySubagentModel only into this spec's
-  // pipeline). FR-VAR-0082/0083: bootstrap rides the source's authored always-on rule, not a
+  // shared processors: fileWorkflowToSkill is shared with Codex; fileAntigravityReduceFrontmatter
+  // and pluginAntigravitySubagentModel are wired only into this spec's specEntries/pipeline).
+  // FR-VAR-0082/0083: bootstrap rides the source's authored always-on rule, not a
   // session-start hook; hooks.json.tmpl omits the bootstrap placeholder (mirrors Cursor, FR-VAR-0070).
   const coreAntigravity: PluginSpec = {
     name: 'core-antigravity',
@@ -577,7 +580,7 @@ export function buildAllSpecs(ctx: SpecBuildContext): PluginSpec[] {
         source: 'workflows/**',
         target: 'skills',
         exclude: [],
-        processors: [...BASE_PROCESSORS, fileAntigravityWorkflowToSkill],
+        processors: [...BASE_PROCESSORS, fileWorkflowToSkill],
       },
       // Real Rosetta skills → skills/ verbatim structure.
       {

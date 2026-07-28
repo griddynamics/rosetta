@@ -290,32 +290,37 @@ The files a target keeps but never generates — the IDE manifest, hook template
   <depends>FR-ARCH-0043, FR-ARCH-0035</depends>
 </req>
 
-## Antigravity-specific transforms
-
-These transforms apply to the `core-antigravity` target only; the other six targets are unaffected.
+## Workflow-to-skill transform
 
 <req id="FR-COPY-0080" type="FR" level="System" ticketId="138" classification="technical">
-  <title>Antigravity workflow-to-skill transform</title>
-  <statement>For the Antigravity target, the generator shall transform each Rosetta workflow document into an Antigravity skill: the workflow body shall become `skills/<name>/SKILL.md`, and each of the workflow's phase files shall be emitted under `skills/<name>/phases/`. Within the resulting `SKILL.md` and within every emitted phase file, the generator shall rewrite references to that workflow's ACTUAL phase file names only — never arbitrary `*.md` mentions — to the form `APPLY SKILL FILE \`phases/<phase>.md\``. The rewrite shall run in two ordered passes: (1) the full form `APPLY PHASE <name>` — where `<name>` may be bare or wrapped in a delimiter — with the `APPLY PHASE ` prefix consumed; then (2) the standalone short form, matched only when the phase name is wrapped in a matching delimiter (backtick, single quote, or double quote) on both sides. A bare name in the full form is bounded by the `APPLY PHASE ` prefix and a `.md` word boundary (so it cannot partial-match a longer sibling); the both-sides-delimiter requirement on the standalone form makes it immune to substring/nesting collisions, prevents re-matching the rewritten output, and never touches bare prose or unrelated `*.md` mentions. This transform applies to the Antigravity target only.</statement>
-  <rationale>Antigravity plugin packaging has no `workflows/` folder; skills are the procedural unit and are the correct home for a Rosetta workflow. A workflow's phases are discrete stages, emitted as files under `phases/`. Because those phase files move into the skill's `phases/` subfolder, references to them must be repointed to `phases/<phase>.md` with Antigravity's `APPLY SKILL FILE` phrasing. The rewrite is targeted to the known real phase names (not a blanket `*.md` substitution) so unrelated filenames are untouched, wrapper-aware so quoted/backticked references are caught, and ordered full-then-short with a non-overlap guarantee so the short pass never re-processes the full pass's output.</rationale>
+  <title>Workflow-to-skill transform</title>
+  <statement>For each target configured to package workflows as skills, the generator shall transform every Rosetta workflow document into a skill at the target's configured skills root: the workflow body shall become `<skills-root>/<name>/SKILL.md`, and each phase file shall be emitted without YAML frontmatter under `<skills-root>/<name>/phases/`. The generator shall assign a phase to the workflow whose document stem is the shortest hyphen-bounded prefix of the phase stem. Within the resulting `SKILL.md` and every emitted phase file, the generator shall rewrite references to that workflow's actual phase file names only — never arbitrary `*.md` mentions — to the form `APPLY SKILL FILE \`phases/<phase>.md\``. The rewrite shall run in two ordered passes: (1) the full form `APPLY PHASE <name>` — where `<name>` may be bare or wrapped in a delimiter — with the `APPLY PHASE ` prefix consumed; then (2) the standalone short form, matched only when the phase name is wrapped in a matching delimiter (backtick, single quote, or double quote) on both sides. A bare name in the full form shall be bounded by the `APPLY PHASE ` prefix and a `.md` word boundary. The standalone form shall require matching delimiters on both sides. The transform shall apply to `core-codex` with skills root `.agents/skills/` and to `core-antigravity` with skills root `skills/`.</statement>
+  <rationale>For the `core-codex` and `core-antigravity` targets, the generator packages reusable workflows as skills. A shared transform preserves the established workflow and phase mapping without target-specific duplication. Removing phase frontmatter leaves phase files as skill resources rather than independently discoverable skills. Exact phase-name matching prevents unrelated file references from changing.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-07-23</changed>
+  <changed>2026-07-27</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: the Rosetta workflow `coding-flow` When: generated for Antigravity Then: `skills/coding-flow/SKILL.md` exists and each phase appears as a file under `skills/coding-flow/phases/`.</criteria>
-    <criteria>Given: a workflow with no phase files When: generated for Antigravity Then: `skills/<name>/SKILL.md` is produced and no `phases/` folder is created.</criteria>
-    <criteria>Given: the real phase name `init-workspace-flow-discovery.md`, referenced as `APPLY PHASE \`init-workspace-flow-discovery.md\`` and as a bare/backticked/single-quoted/double-quoted `init-workspace-flow-discovery.md` When: transformed for Antigravity Then: every occurrence becomes `APPLY SKILL FILE \`phases/init-workspace-flow-discovery.md\``.</criteria>
-    <criteria>Given: a `*.md` mention that is NOT one of this workflow's real phase names When: transformed for Antigravity Then: it is left unchanged.</criteria>
+    <criteria>Given: the Rosetta workflow `coding-flow` and the `core-codex` target When: the generator processes the workflow Then: `.agents/skills/coding-flow/SKILL.md` exists and each phase appears under `.agents/skills/coding-flow/phases/`.</criteria>
+    <criteria>Given: the Rosetta workflow `coding-flow` and the `core-antigravity` target When: the generator processes the workflow Then: `skills/coding-flow/SKILL.md` exists and each phase appears under `skills/coding-flow/phases/`.</criteria>
+    <criteria>Given: a workflow with no phase files and the `core-codex` or `core-antigravity` target When: the generator processes the workflow Then: `<skills-root>/<name>/SKILL.md` is produced and no `phases/` folder is created.</criteria>
+    <criteria>Given: a phase file with YAML frontmatter and the `core-codex` or `core-antigravity` target When: the generator processes the phase Then: the emitted phase file contains the phase body and no YAML frontmatter.</criteria>
+    <criteria>Given: workflow `sample-flow.md` and phases `sample-flow-setup.md` and `sample-flow-setup-advanced.md` When: the generator processes them for a workflow-to-skill target Then: both phases are emitted under `<skills-root>/sample-flow/phases/`.</criteria>
+    <criteria>Given: the real phase name `init-workspace-flow-discovery.md`, referenced as `APPLY PHASE \`init-workspace-flow-discovery.md\`` and as a bare/backticked/single-quoted/double-quoted `init-workspace-flow-discovery.md` When: transformed Then: every occurrence becomes `APPLY SKILL FILE \`phases/init-workspace-flow-discovery.md\``.</criteria>
+    <criteria>Given: a `*.md` mention that is not one of the workflow's real phase names When: transformed Then: it is left unchanged.</criteria>
     <criteria>Given: the ordered passes (full form, then short form) When: applied to a reference Then: the result is rewritten exactly once — the short-form pass does not re-match the full-form pass's output (no double rewrite).</criteria>
-    <criteria>Given: a target other than Antigravity When: generated Then: this transform is not applied.</criteria>
+    <criteria>Given: a target other than `core-codex` or `core-antigravity` When: the generator processes that target Then: this transform is not applied.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: src/rosettify-plugins/src/file-processors/file-antigravity-workflow-to-skill.ts (workflow→skills/<root>/SKILL.md, phases→phases/; findWorkflowRoot uses shortest prefix-stem; rewritePhaseReferences: targeted real phase names, wrapper-aware, ordered full-then-short, non-overlapping via (?<!phases/) guard).</implementationNotes>
-  <depends>FR-ARCH-0043, FR-VAR-0081</depends>
+  <implementationNotes>`src/rosettify-plugins/src/file-processors/file-workflow-to-skill.ts` (renamed from `file-antigravity-workflow-to-skill.ts`): derives its target base from the incoming `frame.target` set by `computeTargetPath`, so `SpecEntry.target` owns placement and the processor takes no argument; shortest-hyphen-bounded-prefix ownership and the two-pass reference rewrite are unchanged; phase documents pass through `stripFrontmatter` while the main `SKILL.md` retains it. Composed in both the `core-codex` and `core-antigravity` workflow entries in `src/rosettify-plugins/src/spec/targets.ts`. Tests: `tests/unit/file-processors/file-workflow-to-skill.test.ts` (22 cases — both pre-targeted bases plus an arbitrary base, main/phase/zero-phase, nested and non-hyphen-bounded prefix stems, all reference forms, no double-rewrite, frame immutability, binary and null-content passthrough); `tests/e2e/sample.e2e.test.ts`; `tests/e2e/parity-derive-structure.ts` with an independent path oracle.</implementationNotes>
+  <depends>FR-ARCH-0043</depends>
 </req>
+
+## `core-antigravity`-specific transforms
+
+These transforms apply to the `core-antigravity` target only; the other six targets are unaffected.
 
 <req id="FR-COPY-0081" type="FR" level="System" ticketId="138" classification="technical">
   <title>Antigravity frontmatter reduction (name + description only)</title>

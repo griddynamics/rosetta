@@ -165,6 +165,21 @@ describe('pluginAssembleCursorBootstrap — plugin-root entry', () => {
     const payload = result.templateContext['bootstrap_hooks'] as string;
     expect(payload).toContain('}, {');
   });
+
+  it('exactly one entry carries the CURSOR_PROJECT_DIR plugin-root marker, and it is the final entry (FR-HOOK-0007)', () => {
+    const frames = [
+      makeDocFrame('plugin-files-mode', '\n# Lead\n'),
+      makeDocFrame('bootstrap-core-policy', '\n# Policy\n'),
+      makeDocFrame('bootstrap-guardrails', '\n# Guardrails\n'),
+    ];
+    const p = makePluginFrame(frames);
+    const result = pluginAssembleCursorBootstrap(p);
+    const payload = result.templateContext['bootstrap_hooks'] as string;
+    const entries = payload.split('}, {');
+    const entriesWithRootMarker = entries.filter((e) => e.includes('CURSOR_PROJECT_DIR'));
+    expect(entriesWithRootMarker.length).toBe(1);
+    expect(entries[entries.length - 1]).toContain('CURSOR_PROJECT_DIR');
+  });
 });
 
 // ─── NFR-0004: size > 10000 → soft error ─────────────────────────────────────

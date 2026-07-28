@@ -239,4 +239,196 @@ describe('buildRenamePairs', () => {
     expect(pairs.some(([f]) => f === 'agents/subagent.md')).toBe(false);
     expect(pairs.some(([f]) => f === 'rules/bootstrap.md')).toBe(false);
   });
+
+  // FR-ARCH-0049 (corrected 2026-07-28) — pure folder relocation vs. restructuring discriminant.
+  // A folder-level pair is emitted ONLY when every in-scope frame from the source folder lands
+  // directly in the target folder as ONE path segment (extension-only renames still qualify).
+  // A mapping that lands a document deeper (restructuring) emits no folder pair — only the exact
+  // per-document pairs apply, so a bare folder token is never rewritten into a path that doesn't
+  // exist and prose/glob mentions containing the token are never corrupted.
+  describe('pure relocation vs. restructuring discriminant', () => {
+    it('pure relocation (workflows/x.md -> commands/x.md): folder pair IS emitted', () => {
+      const frames: FileProcessingFrame[] = [
+        {
+          sourcePath: 'workflows/x.md',
+          target: 'commands/x.md',
+          isBinary: false,
+          target_contents: '# X',
+          source: [],
+        },
+      ];
+      const spec: any = {
+        baseSubfolder: '',
+        specEntries: [{ source: 'workflows/**', target: 'commands', exclude: [], processors: [] }],
+      };
+      const pairs = buildRenamePairs(frames, spec);
+      expect(pairs).toContainEqual(['workflows/', 'commands/']);
+      expect(pairs).toContainEqual(['workflows/x.md', 'commands/x.md']);
+    });
+
+    it('pure relocation: a bare workflows/ token is rewritten to commands/ via the full pipeline', () => {
+      const frames = [
+        makeFrame('workflows/x.md', 'commands/x.md', '# X'),
+        makeFrame('rules/note.md', 'rules/note.md', 'Browse the workflows/ folder for automation.'),
+      ];
+      const p = makePluginFrame(frames, [
+        { source: 'workflows/**', target: 'commands', exclude: [], processors: [] },
+      ]);
+      const result = pluginRewriteReferences(p);
+      expect(result.frames[1].target_contents).toBe('Browse the commands/ folder for automation.');
+    });
+
+    it('extension-only rename (.md -> .mdc) within a relocated folder still counts as pure relocation; folder pair still emitted', () => {
+      const frames: FileProcessingFrame[] = [
+        {
+          sourcePath: 'workflows/x.md',
+          target: 'commands/x.mdc',
+          isBinary: false,
+          target_contents: '# X',
+          source: [],
+        },
+      ];
+      const spec: any = {
+        baseSubfolder: '',
+        specEntries: [{ source: 'workflows/**', target: 'commands', exclude: [], processors: [] }],
+      };
+      const pairs = buildRenamePairs(frames, spec);
+      expect(pairs).toContainEqual(['workflows/', 'commands/']);
+      expect(pairs).toContainEqual(['workflows/x.md', 'commands/x.mdc']);
+    });
+
+    it('depth, NOT basename equality, is the discriminant: an unchanged basename landing one level deeper still suppresses the folder pair', () => {
+      // "x.md" stays "x.md" (basename unchanged) but lands nested under skills/x/ — one segment
+      // deeper than the target folder itself. If basename equality were the (wrong) discriminant,
+      // this would look like a "no-op" file rename and might wrongly appear eligible; it must
+      // still be classified as restructuring because the landing depth increased.
+      const frames: FileProcessingFrame[] = [
+        {
+          sourcePath: 'workflows/x.md',
+          target: 'skills/x/x.md',
+          isBinary: false,
+          target_contents: '# X',
+          source: [],
+        },
+      ];
+      const spec: any = {
+        baseSubfolder: '',
+        specEntries: [{ source: 'workflows/**', target: 'skills', exclude: [], processors: [] }],
+      };
+      const pairs = buildRenamePairs(frames, spec);
+      expect(pairs.some(([f, t]) => f === 'workflows/' && t === 'skills/')).toBe(false);
+      expect(pairs).toContainEqual(['workflows/x.md', 'skills/x/x.md']);
+    });
+
+    it('restructuring (workflows/x.md -> skills/x/SKILL.md): NO folder pair emitted; exact document pair still applies', () => {
+      const frames: FileProcessingFrame[] = [
+        {
+          sourcePath: 'workflows/x.md',
+          target: 'skills/x/SKILL.md',
+          isBinary: false,
+          target_contents: '# X',
+          source: [],
+        },
+      ];
+      const spec: any = {
+        baseSubfolder: '',
+        specEntries: [{ source: 'workflows/**', target: 'skills', exclude: [], processors: [] }],
+      };
+      const pairs = buildRenamePairs(frames, spec);
+      expect(pairs.some(([f]) => f === 'workflows/')).toBe(false);
+      expect(pairs).toContainEqual(['workflows/x.md', 'skills/x/SKILL.md']);
+    });
+
+    it('restructuring: exact document reference rewrites, but a bare workflows/ token is left UNCHANGED', () => {
+      const frames = [
+        makeFrame('workflows/x.md', 'skills/x/SKILL.md', '# X'),
+        makeFrame(
+          'rules/note.md',
+          'rules/note.md',
+          'See workflows/x.md for details, or browse the workflows/ folder.',
+        ),
+      ];
+      const p = makePluginFrame(frames, [
+        { source: 'workflows/**', target: 'skills', exclude: [], processors: [] },
+      ]);
+      const result = pluginRewriteReferences(p);
+      const out = result.frames[1].target_contents as string;
+      expect(out).toContain('skills/x/SKILL.md');
+      expect(out).not.toContain('workflows/x.md');
+      // Bare folder token: unchanged (no folder pair exists for a restructuring mapping).
+      expect(out).toContain('workflows/ folder');
+    });
+
+    it('restructuring: prose/glob mentions that merely contain the token are unchanged (real corruptions this fix addresses)', () => {
+      // Verbatim real-world corruptions found and fixed on 2026-07-28 (coding-flow-state.md):
+      // both lines merely mention the "workflows" token inside prose/glob text, not a genuine
+      // cross-reference, and must survive untouched under a restructuring mapping.
+      const frames = [
+        makeFrame('workflows/coding-flow.md', 'skills/coding-flow/SKILL.md', '# Coding Flow'),
+        makeFrame(
+          'rules/plugin-files-mode.md',
+          'rules/plugin-files-mode.md',
+          'WORKFLOW/COMMAND `workflows/*.md`\nSKILL `skills/*/SKILL.md`',
+        ),
+        makeFrame(
+          'skills/post-mortem/SKILL.md',
+          'skills/post-mortem/SKILL.md',
+          'Structure: (skills/agents/workflows/rules)',
+        ),
+      ];
+      const p = makePluginFrame(frames, [
+        { source: 'workflows/**', target: 'skills', exclude: [], processors: [] },
+      ]);
+      const result = pluginRewriteReferences(p);
+      expect(result.frames[1].target_contents).toContain('WORKFLOW/COMMAND `workflows/*.md`');
+      expect(result.frames[1].target_contents).toContain('SKILL `skills/*/SKILL.md`');
+      expect(result.frames[2].target_contents).toBe('Structure: (skills/agents/workflows/rules)');
+    });
+  });
+
+  // Regression guards: existing FR-ARCH-0049 behavior not exercised by the pure-relocation fix.
+  describe('regression guards', () => {
+    it('ghost frame (excluded source, null content) only forms a pair when the rename stays in the same folder', () => {
+      const sameFolderGhost: FileProcessingFrame = {
+        sourcePath: 'rules/dropped.md',
+        target: 'rules/dropped.mdc',
+        isBinary: false,
+        target_contents: null,
+        source: [],
+      };
+      const crossFolderGhost: FileProcessingFrame = {
+        sourcePath: 'rules/other.md',
+        target: 'instructions/other.md',
+        isBinary: false,
+        target_contents: null,
+        source: [],
+      };
+      const spec: any = { baseSubfolder: '', specEntries: [] };
+      const pairs = buildRenamePairs([sameFolderGhost, crossFolderGhost], spec);
+      expect(pairs).toContainEqual(['rules/dropped.md', 'rules/dropped.mdc']);
+      expect(pairs.some(([f]) => f === 'rules/other.md')).toBe(false);
+    });
+
+    it('sorts pairs longest-from-string first: the file-level pair precedes the folder-level pair', () => {
+      const frames: FileProcessingFrame[] = [
+        {
+          sourcePath: 'workflows/coding-flow.md',
+          target: 'commands/coding-flow.md',
+          isBinary: false,
+          target_contents: '# CF',
+          source: [],
+        },
+      ];
+      const spec: any = {
+        baseSubfolder: '',
+        specEntries: [{ source: 'workflows/**', target: 'commands', exclude: [], processors: [] }],
+      };
+      const pairs = buildRenamePairs(frames, spec);
+      const fileIdx = pairs.findIndex(([f]) => f === 'workflows/coding-flow.md');
+      const folderIdx = pairs.findIndex(([f]) => f === 'workflows/');
+      expect(fileIdx).toBeGreaterThanOrEqual(0);
+      expect(folderIdx).toBeGreaterThanOrEqual(0);
+      expect(fileIdx).toBeLessThan(folderIdx);
+    });
+  });
 });

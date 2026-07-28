@@ -63,11 +63,18 @@ export function applyFolderRewrites(
  *      Only frames whose target is under the baseSubfolder namespace are included.
  *      Frames placed outside the baseSubfolder (e.g. codex .codex/agents/) are disk-placement
  *      targets, not content-referenced files, and must not generate rewrite pairs.
- *   2. Unambiguous folder-level pairs from SpecEntry source to target folder mappings.
- *      A source folder is "unambiguous" when ALL its specEntries under the baseSubfolder namespace
- *      map to the SAME plugin-root-relative target folder. If a source folder maps to two different
- *      targets (e.g. rules -> instructions AND rules -> rules), no folder pair is emitted.
+ *   2. Unambiguous, pure-relocation folder-level pairs from SpecEntry source to target folder
+ *      mappings. A source folder is "unambiguous" when ALL its specEntries under the baseSubfolder
+ *      namespace map to the SAME plugin-root-relative target folder. If a source folder maps to two
+ *      different targets (e.g. rules -> instructions AND rules -> rules), no folder pair is emitted.
  *      Entries outside the baseSubfolder namespace are excluded from both mapping and pairs.
+ *      A folder pair is emitted ONLY when the mapping is a pure relocation: for every in-scope frame
+ *      whose sourcePath sits directly inside the source folder, its plugin-root-relative target must
+ *      land as exactly one path segment under the target folder (an extension-only rename such as
+ *      `.md`->`.mdc` still qualifies). If any such frame lands deeper (e.g. `workflows/x.md` ->
+ *      `skills/x/SKILL.md`), the mapping restructures document paths and no folder pair is emitted —
+ *      a bare folder token would carry no document identity there and would corrupt prose/glob text
+ *      that merely contains the token. Only the exact per-document pairs from step 1 apply.
  *
  * All paths are stripped of the spec's baseSubfolder prefix to give plugin-root-relative paths,
  * matching how document bodies reference sibling files (relative to plugin root, not output root).
@@ -95,6 +102,28 @@ export function buildRenamePairs(
   function isInScope(targetPath: string): boolean {
     if (!base) return true;
     return targetPath.startsWith(basePrefix);
+  }
+
+  // Helper: parent folder of a plugin-root-relative path (no trailing slash).
+  function parentOf(path: string): string {
+    const i = path.lastIndexOf('/');
+    return i >= 0 ? path.slice(0, i) : '';
+  }
+
+  // Discriminant (FR-ARCH-0049): a source-folder -> target-folder mapping is a pure folder
+  // relocation only if every in-scope frame whose sourcePath sits directly inside srcFolder
+  // lands as exactly one path segment under pluginRelTarget. Derived purely from frame data —
+  // no hardcoded folder/target literals (FR-ARCH-0004).
+  function isPureFolderRelocation(srcFolder: string, pluginRelTarget: string): boolean {
+    const tgtPrefix = pluginRelTarget + '/';
+    for (const frame of frames) {
+      if (!isInScope(frame.target)) continue;
+      if (parentOf(frame.sourcePath) !== srcFolder) continue;
+      const frameTarget = stripBase(frame.target);
+      if (!frameTarget.startsWith(tgtPrefix)) return false;
+      if (frameTarget.slice(tgtPrefix.length).includes('/')) return false;
+    }
+    return true;
   }
 
   // 1. File-level pairs from frames (FR-ARCH-0049)
@@ -146,6 +175,7 @@ export function buildRenamePairs(
     if (targets.size !== 1) continue; // ambiguous: multiple distinct targets for this source folder
     const [pluginRelTarget] = targets;
     if (srcFolder === pluginRelTarget) continue; // same name: no rewrite needed
+    if (!isPureFolderRelocation(srcFolder, pluginRelTarget)) continue; // restructuring: exact pairs only
 
     const key = 'folder:' + srcFolder + '/ ' + pluginRelTarget + '/';
     if (!seen.has(key)) {

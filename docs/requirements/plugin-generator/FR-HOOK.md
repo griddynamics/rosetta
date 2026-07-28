@@ -105,23 +105,25 @@
 <req id="FR-HOOK-0007" type="FR" level="System" ticketId="" classification="technical">
   <title>Plugin-path context entry</title>
   <statement>The generator shall append to each session-hook target's bootstrap payload exactly one additional, SEPARATE session-start entry (the final entry) that reports the resolved plugin root path to the agent. This entry is NOT folded into the lead document's body; it is its own entry appended after all bootstrap-document entries, so the payload entry count = (present bootstrap-manifest documents) + 1. The entry uses the IDE's command shape with a double-quoted `printf` form (to allow runtime env/var expansion), and any instruction-path reference inside it is reference-rewritten per target (FR-HOOK-0008). Hooks generated for all IDEs always, regardless those are used or not. Template engineer decides to include it or solve it differently.</statement>
-  <rationale>Agents need the plugin root to resolve instruction file paths at runtime. Baseline confirms it is a distinct trailing entry, not merged into the lead — claude/codex/copilot/cursor each emit 9 entries for r2 and 8 for r3 (= present docs + 1 plugin-root entry).</rationale>
+  <rationale>Agents need the plugin root to resolve instruction file paths at runtime. The entry remains distinct and final. For the `core-codex` target, the generator omits the workflows index document from the payload (FR-VAR-0041), so the payload has one fewer document entry than the Claude and Copilot payloads.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Draft</status>
-  <approved_by></approved_by>
-  <changed>2026-06-11</changed>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-07-27</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: any session-hook target When: assembled Then: its payload includes exactly one plugin-root path entry, appended last, in that IDE's shape.</criteria>
-    <criteria>Given: claude/codex/copilot for r2 When: assembled Then: the SessionStart payload has 9 entries (8 docs + 1 plugin-root); for r3, 8 entries.</criteria>
+    <criteria>Given: Claude or Copilot for r2 When: assembled Then: the SessionStart payload has 9 entries; for r3, 5 entries, because r3 consolidates the five split `bootstrap-*` rules into a single `bootstrap-alwayson.md` and the four absent basenames are skipped.</criteria>
+    <criteria>Given: the `core-codex` target for r2 When: the generator assembles the SessionStart payload Then: it has 8 entries; for r3, 4 entries — one fewer than Claude/Copilot at the same release, because the workflows index is absent.</criteria>
     <criteria>Given: the claude plugin-root entry When: inspected Then: command = `printf '%s' "{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Rosetta Plugin Path: ${CLAUDE_PLUGIN_ROOT}\"}}"` with `"once": true`.</criteria>
     <criteria>Given: the codex plugin-root entry When: inspected Then: it is a workspace-root probe resolving to `$workspace_root/.agents` with `statusMessage`+`timeout`; the copilot one is an agentPlugins-base probe (`commands/coding-flow.md`) resolving to `$root` with bash+powershell.</criteria>
     <criteria>Given: the copilot plugin-root entry When: inspected Then: its embedded JSON is `{"additionalContext":"Rosetta Plugin Path: <root>","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Rosetta Plugin Path: <root>"}}` — same merged top-level+nested requirement as FR-HOOK-0005's doc entries (docs/hooks/copilot.md).</criteria>
     <criteria>Given: cursor When: assembled Then: a plugin-root path entry is generated and included in the bootstrap payload; whether it is injected into output is decided by whether the cursor template includes the `{{{bootstrap_hooks}}}` placeholder.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/spec/bootstrap-manifest.ts (CURSOR_PLUGIN_ROOT_ENTRY added; COPILOT_PLUGIN_ROOT_BASH/POWERSHELL updated to the merged top-level+nested shape); src/rosettify-plugins/src/bootstrap/payload.ts (buildRootEntry callback; all 4 IDEs including cursor generate plugin-root entry). Cursor previously dropped via default:return null — fixed. Plugin-root is always the final separate entry; delivery to agent is template decision (FR-VAR-0070).</implementationNotes>
+  <implementationNotes>Bootstrap code is unchanged: `src/spec/bootstrap-manifest.ts` and `src/plugin-processors/plugin-assemble-codex-bootstrap.ts` were not edited. Removing the `core-codex` workflows-index declaration makes that manifest document absent, and the existing absent-document skip drops its payload entry, leaving the separate plugin-root entry final. The r3 counts in this record were corrected on 2026-07-28 — they had been overstated by three, because r3 consolidates the five split `bootstrap-*` rules into one `bootstrap-alwayson.md` and `BOOTSTRAP_MANIFEST_ORDER` skips the four absent basenames. Tests: `tests/e2e/bootstrap-session-start.e2e.test.ts` (6 cases against the real `instructions/` tree — Claude 9/5, Copilot 9/5 under the lowercase `sessionStart` key, Codex 8/4, each asserting the plugin-root entry is last); plus one case in each of the four `tests/unit/plugin-processors/plugin-assemble-{claude,cursor,copilot,codex}-bootstrap.test.ts` suites asserting exactly one final plugin-root entry on synthetic fixtures.</implementationNotes>
+  <depends>FR-VAR-0041</depends>
 </req>
 
 <req id="FR-HOOK-0008" type="FR" level="System" ticketId="" classification="technical">

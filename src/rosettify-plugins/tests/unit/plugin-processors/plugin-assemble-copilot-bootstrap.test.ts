@@ -206,6 +206,23 @@ describe('pluginAssembleCopilotBootstrap — plugin-root entry', () => {
     const payload = result.templateContext['bootstrap_hooks'] as string;
     expect(payload).toContain('}, {');
   });
+
+  it('exactly one entry carries the agentPlugins plugin-root marker, and it is the final entry (FR-HOOK-0007)', () => {
+    // agentPlugins appears TWICE within the single root entry (once in the bash field, once in
+    // the powershell field) — the discriminant is how many split ENTRIES contain the marker.
+    const frames = [
+      makeDocFrame('plugin-files-mode', '\n# Lead\n'),
+      makeDocFrame('bootstrap-core-policy', '\n# Policy\n'),
+      makeDocFrame('bootstrap-guardrails', '\n# Guardrails\n'),
+    ];
+    const p = makePluginFrame(frames);
+    const result = pluginAssembleCopilotBootstrap(p);
+    const payload = result.templateContext['bootstrap_hooks'] as string;
+    const entries = payload.split('}, {');
+    const entriesWithRootMarker = entries.filter((e) => e.includes('agentPlugins'));
+    expect(entriesWithRootMarker.length).toBe(1);
+    expect(entries[entries.length - 1]).toContain('agentPlugins');
+  });
 });
 
 // ─── NFR-0004: size > 10000 → soft error ─────────────────────────────────────

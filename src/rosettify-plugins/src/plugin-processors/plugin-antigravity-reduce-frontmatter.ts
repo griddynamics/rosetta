@@ -16,7 +16,7 @@ import type { FileProcessingFrame, PluginProcessingFrame } from '../types.js';
  * pluginAntigravityReduceFrontmatter: reduce frontmatter to exactly `name` + `description` for:
  *   - every agent file (final target under `agents/`), and
  *   - every skill `SKILL.md` (final target basename `SKILL.md` — this also covers workflow-
- *     derived skills, whose main doc fileAntigravityWorkflowToSkill has already renamed to
+ *     derived skills, whose main doc fileWorkflowToSkill has already renamed to
  *     `skills/<name>/SKILL.md`).
  * Left untouched: other skill-folder files (README.md, assets/*, references/*) and phase files
  * (`skills/<name>/phases/*.md`) — the requirement scopes reduction to agent files and SKILL.md

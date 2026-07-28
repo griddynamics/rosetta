@@ -152,6 +152,24 @@ describe('pluginAssembleCodexBootstrap — plugin-root entry (workspace-root tra
     const payload = result.templateContext['bootstrap_hooks'] as string;
     expect(payload).toContain('}, {');
   });
+
+  it('exactly one entry carries the workspace_root plugin-root marker, and it is the final entry (FR-HOOK-0007)', () => {
+    // CODEX_PLUGIN_ROOT_COMMAND repeats "workspace_root" several times WITHIN its own single
+    // entry — so the discriminant is how many split ENTRIES contain the marker, not raw
+    // substring-occurrence count.
+    const frames = [
+      makeDocFrame('plugin-files-mode', '\n# Lead\n'),
+      makeDocFrame('bootstrap-core-policy', '\n# Policy\n'),
+      makeDocFrame('bootstrap-guardrails', '\n# Guardrails\n'),
+    ];
+    const p = makePluginFrame(frames);
+    const result = pluginAssembleCodexBootstrap(p);
+    const payload = result.templateContext['bootstrap_hooks'] as string;
+    const entries = payload.split('}, {');
+    const entriesWithRootMarker = entries.filter((e) => e.includes('workspace_root'));
+    expect(entriesWithRootMarker.length).toBe(1);
+    expect(entries[entries.length - 1]).toContain('workspace_root');
+  });
 });
 
 // ─── NFR-0004: size > 10000 → soft error ─────────────────────────────────────

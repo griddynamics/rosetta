@@ -182,6 +182,12 @@ When scoping a hook to a single platform (e.g. claude-code only), add it to the 
 
 ## Discoveries
 
+### Workflows Reach Each Target By Three Different Mechanisms — Check `plugin.json`, Not Just The Folder Tree [ACTIVE]
+Do not conclude "target X keeps its `workflows/` folder" from a directory listing alone; the manifest may repoint it. (1) **Manifest pointer — Claude:** folder stays `workflows/` on disk and `.claude-plugin/plugin.json` declares `"commands": "./workflows/"`, so Claude Code reads slash commands from it; nothing is renamed, no rewrite pair exists or is needed. (2) **Pure folder relocation — Cursor (`commands/`), Copilot (`prompts/` + `*.prompt.md`):** documents keep their identity as one path segment, so exact refs AND bare folder tokens both rewrite. (3) **Restructuring into skills — Codex (`.agents/skills`), Antigravity (`skills`):** `workflows/<n>.md` → `skills/<n>/SKILL.md`, so a bare folder token has no document identity — rewrite exact document refs ONLY (FR-ARCH-0049). Getting this wrong corrupted the shipped bootstrap lead doc: `` WORKFLOW/COMMAND `workflows/*.md` `` became `` `skills/*.md` ``, contradicting the same line's `` SKILL `skills/*/SKILL.md` ``.
+
+### Folder-Level Reference Rewrites Are Only Valid For Pure Relocations [ACTIVE]
+`buildRenamePairs` (`plugin-rewrite-references.ts`) emits per-document pairs plus folder-level pairs. A folder pair is legitimate only when every in-scope frame from that source folder lands directly in the target folder as ONE path segment (extension-only renames like `.md`→`.mdc` still qualify). If any document lands deeper, the mapping restructures paths and the folder pair must be suppressed — otherwise it rewrites prose and glob text that merely contains the token. Depth is the discriminant, never basename equality. The requirement (FR-ARCH-0049) originally mandated the unqualified bare-token rewrite; the requirement was the defect, not just the code.
+
 ### Official GitHub Pages Setup And Deploy Actions Are Still Node 20 Upstream [ACTIVE]
 As of 2026-03-18, `actions/configure-pages@v5` and `actions/deploy-pages@v4` still declare `runs.using: node20`, so those warnings are not removable by a repo-local version bump.
 

@@ -234,6 +234,103 @@ describe('Sample E2E — generate() with self-owned fixtures', () => {
     expect(fs.existsSync(path.join(outputDir, 'core-codex', '.agents', 'rules'))).toBe(true);
   });
 
+  // ─── Dedicated additive fixture: workflow-skill-fixture-flow (+ -phase) ────────────────────
+  // tests/fixtures/sample-instructions/r2/core/workflows/workflow-skill-fixture-flow{,-phase}.md
+  // FR-COPY-0080, FR-VAR-0041, FR-VAR-0042, FR-HOOK-0007, FR-STRUCT-0010, FR-STRUCT-0030
+
+  it('core-codex: workflow-skill-fixture-flow emits under .agents/skills/ with rewritten phase reference and normalized model', () => {
+    const skillDoc = path.join(
+      outputDir,
+      'core-codex',
+      '.agents',
+      'skills',
+      'workflow-skill-fixture-flow',
+      'SKILL.md',
+    );
+    expect(fs.existsSync(skillDoc)).toBe(true);
+    const content = fs.readFileSync(skillDoc, 'utf-8');
+    expect(content).toContain('This is the dedicated additive fixture workflow for the workflow-to-skill transform.');
+    // FR-COPY-0080: phase reference rewritten to the shared APPLY SKILL FILE form
+    expect(content).toContain('APPLY SKILL FILE `phases/workflow-skill-fixture-flow-phase.md`');
+    expect(content).not.toContain('APPLY PHASE');
+    // FR-VAR-0042: fileNormalizeCodexModels ran on the main skill doc — gpt-* token found → split
+    expect(content).toContain('model: gpt-5.5');
+    expect(content).toContain('model_reasoning_effort: high');
+    expect(content).not.toContain('claude-4.8-opus-high');
+  });
+
+  it('core-codex: workflow-skill-fixture-flow-phase is body-only under phases/ (frontmatter stripped)', () => {
+    const phaseDoc = path.join(
+      outputDir,
+      'core-codex',
+      '.agents',
+      'skills',
+      'workflow-skill-fixture-flow',
+      'phases',
+      'workflow-skill-fixture-flow-phase.md',
+    );
+    expect(fs.existsSync(phaseDoc)).toBe(true);
+    const content = fs.readFileSync(phaseDoc, 'utf-8');
+    expect(content).not.toContain('---');
+    expect(content).not.toContain('name: workflow-skill-fixture-flow-phase');
+    expect(content).toContain('This is the distinct phase body for the workflow-skill-fixture-flow fixture.');
+  });
+
+  it('core-codex: NO .agents/workflows tree or index anywhere in output (FR-VAR-0041)', () => {
+    expect(fs.existsSync(path.join(outputDir, 'core-codex', '.agents', 'workflows'))).toBe(false);
+    const allFiles = listFilesRecursive(path.join(outputDir, 'core-codex'));
+    expect(allFiles.some((f) => f.split(path.sep).includes('workflows'))).toBe(false);
+    expect(fs.existsSync(path.join(outputDir, 'core-codex', '.agents', 'skills', 'INDEX.md'))).toBe(false);
+  });
+
+  it('core-codex: .codex-plugin and .codex/hooks.json mirror are present (FR-STRUCT-0010)', () => {
+    expect(fs.existsSync(path.join(outputDir, 'core-codex', '.codex-plugin', 'plugin.json'))).toBe(true);
+    expect(fs.existsSync(path.join(outputDir, 'core-codex', '.codex', 'hooks.json'))).toBe(true);
+  });
+
+  it('core-codex: .codex-plugin/hooks.json SessionStart hooks contain no "Rosetta Workflows Index" string (FR-VAR-0041, FR-HOOK-0007)', () => {
+    const hooksPath = path.join(outputDir, 'core-codex', '.codex-plugin', 'hooks.json');
+    expect(fs.existsSync(hooksPath)).toBe(true);
+    const content = fs.readFileSync(hooksPath, 'utf-8');
+    expect(content).not.toContain('Rosetta Workflows Index');
+    const parsed = JSON.parse(content);
+    expect(Array.isArray(parsed.hooks.SessionStart)).toBe(true);
+  });
+
+  it('core-antigravity: workflow-skill-fixture-flow emits under skills/ with rewritten phase reference and body-only phase', () => {
+    const skillDoc = path.join(
+      outputDir,
+      'core-antigravity',
+      'skills',
+      'workflow-skill-fixture-flow',
+      'SKILL.md',
+    );
+    const phaseDoc = path.join(
+      outputDir,
+      'core-antigravity',
+      'skills',
+      'workflow-skill-fixture-flow',
+      'phases',
+      'workflow-skill-fixture-flow-phase.md',
+    );
+    expect(fs.existsSync(skillDoc)).toBe(true);
+    expect(fs.existsSync(phaseDoc)).toBe(true);
+
+    const skillContent = fs.readFileSync(skillDoc, 'utf-8');
+    expect(skillContent).toContain('This is the dedicated additive fixture workflow for the workflow-to-skill transform.');
+    expect(skillContent).toContain('APPLY SKILL FILE `phases/workflow-skill-fixture-flow-phase.md`');
+    expect(skillContent).not.toContain('APPLY PHASE');
+
+    const phaseContent = fs.readFileSync(phaseDoc, 'utf-8');
+    expect(phaseContent).not.toContain('---');
+    expect(phaseContent).not.toContain('name: workflow-skill-fixture-flow-phase');
+    expect(phaseContent).toContain('This is the distinct phase body for the workflow-skill-fixture-flow fixture.');
+  });
+
+  it('core-antigravity: NO workflows/ folder anywhere in output (existing FR-STRUCT-0030 contract, unaffected by the new fixture)', () => {
+    expect(fs.existsSync(path.join(outputDir, 'core-antigravity', 'workflows'))).toBe(false);
+  });
+
   it('core-copilot: .github/plugin/hooks.json produced (rendered template)', () => {
     expect(fs.existsSync(path.join(outputDir, 'core-copilot', '.github', 'plugin', 'hooks.json'))).toBe(true);
   });

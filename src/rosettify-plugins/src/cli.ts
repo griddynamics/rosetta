@@ -52,7 +52,7 @@ Directives (in filenames, tilde-separated):
 Processor catalog:
   fileRead, fileApplyOverrides, fileBundle,
   fileNormalizeClaudeModels, fileNormalizeCursorModels, fileNormalizeCopilotModels, fileNormalizeCodexModels,
-  fileRename, fileCodexAgentFormat, fileAntigravityWorkflowToSkill, fileAntigravityReduceFrontmatter
+  fileRename, fileCodexAgentFormat, fileWorkflowToSkill, fileAntigravityReduceFrontmatter
   pluginCleanup, pluginCopy, pluginProcessSpecEntries, pluginRewriteReferences,
   pluginGenerateIndexes, pluginInjectSections,
   pluginAssembleClaudeBootstrap, pluginAssembleCursorBootstrap, pluginAssembleCopilotBootstrap, pluginAssembleCodexBootstrap, pluginAssembleAntigravityBootstrap,

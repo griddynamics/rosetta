@@ -1,5 +1,62 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-07-28 — `FR-VAR-0041`: preserved Codex config must not name the omitted workflows index
+
+**Files:** `FR-VAR.md`
+
+**Source:** Defect found while auditing target manifests. Requirement criterion added and the stale pointer corrected.
+
+- `.codex-plugin/plugin.json`'s `interface.defaultPrompt` instructed the agent to "consult rules/INDEX.md and workflows/INDEX.md", but `FR-VAR-0041` removes the Codex workflows index. Preserved config folders are byte-copied by `pluginCopyFiles` and never pass through `pluginRewriteReferences`, so the dangling pointer would ship silently.
+- Criterion added requiring the preserved `core-codex` config to name no workflows folder or workflows index.
+- Pointer corrected in `src/rosettify-plugins/plugins/core-codex/.codex-plugin/plugin.json` to reference the bundled skills instead.
+
+Audit note: `core-claude`'s `.claude-plugin/plugin.json` `"commands": "./workflows/"` is the only other manifest naming that folder and is correct — Claude exposes workflows as slash commands by manifest pointer without renaming the folder.
+
+---
+
+## 2026-07-28 — `FR-ARCH-0049`: folder-level rewrite restricted to pure folder relocations
+
+**Files:** `FR-ARCH.md`
+
+**Source:** User-directed correction. The requirement was under-specified and mandated behavior that is wrong for restructuring mappings.
+
+- `FR-ARCH-0049` previously required, without qualification, that a bare `workflows/` token be rewritten to the target folder. That is correct only for a pure folder relocation such as `workflows`→`commands`, where the document keeps its basename. It is wrong for a restructuring mapping such as `workflows/<name>.md`→`skills/<name>/SKILL.md`, where a bare folder token carries no document identity: rewriting it yields a path that does not exist and corrupts prose and glob mentions that merely contain the token.
+- The statement now emits a folder-level pair only when every in-scope frame from the source folder lands directly in the target folder as a single path segment (extension-only renames such as `.md`→`.mdc` still qualify). Restructuring mappings rewrite exact per-document references only.
+- Two acceptance criteria added covering the restructuring case and the prose/glob non-rewrite case; the existing bare-token criterion is now scoped to pure relocations.
+- Status moved to `ToBeModified` — `buildRenamePairs` requires the corresponding change.
+
+Observed corruption motivating this: `rules/plugin-files-mode.md` (the bootstrap lead document) rendered `` WORKFLOW/COMMAND `skills/*.md` ``, contradicting its own `` SKILL `skills/*/SKILL.md` `` entry, and `skills/post-mortem/SKILL.md` rendered `(skills/agents/skills/rules)`. Both already present in committed `core-antigravity` output.
+
+---
+
+## 2026-07-28 — Correct `FR-HOOK-0007` r3 session-start entry counts
+
+**Files:** `FR-HOOK.md`
+
+**Source:** User-approved correction of a pre-existing defect surfaced during Phase 8 code review. Requirements only.
+
+- `FR-HOOK-0007` — the r3 acceptance counts were derived on the assumption that r3 loses only the workflows index relative to r2. r3 in fact consolidates the five split `bootstrap-*` rules into a single `bootstrap-alwayson.md`, and `BOOTSTRAP_MANIFEST_ORDER` skips the four absent basenames, so every r3 count was overstated by three. Corrected Claude/Copilot r3 from 8 to 5 and `core-codex` r3 from 7 to 4. The r2 counts (9 and 8) were already correct and are unchanged.
+
+Counts verified empirically by generating both releases for all seven targets from `instructions/`.
+
+---
+
+## 2026-07-27 — Generate `core-codex` workflows as skills
+
+**Files:** `FR-COPY.md`, `FR-VAR.md`, `FR-HOOK.md`, `STRUCTURES.md`, `GLOSSARY.md`, `ASSUMPTIONS.md`, `INDEX.md`
+
+**Source:** User-approved requirements change. Requirements only; implementation and generated plugins are unchanged.
+
+- `FR-COPY-0080` — requires the generator to reuse the existing workflow-to-skill transform for the `core-codex` and `core-antigravity` targets; the configured roots are `.agents/skills/` and `skills/`; emitted phase files have no YAML frontmatter.
+- `FR-VAR-0041` — requires the generator to generate the rules index only for the `core-codex` target and omit the workflows index from its output and session-start hooks.
+- `FR-VAR-0042` — requires the generator to package `core-codex` workflows as skills, emit no `.agents/workflows/` folder, retain Codex normalization, and isolate `core-antigravity`-only transforms.
+- `FR-HOOK-0007` — reduces the generated `core-codex` session-start entry counts by one because the generator emits no workflows index for that target.
+- `FR-STRUCT-0010/0030` — updates the generated `core-codex` target tree to the skills-based layout and requires body-only phase files in the `core-codex` and `core-antigravity` outputs.
+
+All six affected requirement units were approved by the user on 2026-07-27.
+
+---
+
 ## 2026-07-23 — Add Antigravity target; deprecate Gemini CLI (ticket #138)
 
 **Files:** `MODEL.md`, `FR-VAR.md`, `FR-COPY.md`, `FR-CLI.md`, `SCOPE.md`, `REFERENCES.md`, `GLOSSARY.md`, `STRUCTURES.md`, `ASSUMPTIONS.md`, `INDEX.md`

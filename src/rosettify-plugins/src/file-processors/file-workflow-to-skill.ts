@@ -1,14 +1,17 @@
-// FR-COPY-0080, FR-VAR-0081 — Antigravity workflow→skill transform
-// Antigravity-only FileProcessor: wired into coreAntigravity's workflows→skills SpecEntry only
+// FR-COPY-0080 — Workflow→skill transform (Codex + Antigravity)
+// Shared FileProcessor: wired into each target's own workflows→skills SpecEntry
 // (composition, FR-ARCH — no target/IDE branching inside this function).
 //
-// Each Rosetta workflow document becomes an Antigravity skill: the workflow body becomes
-// `skills/<name>/SKILL.md`; each of that workflow's phase files becomes
-// `skills/<name>/phases/<phase>.md`. Workflow/phase membership is derived at runtime from the
-// full set of `workflows/**` VFS paths (via ctx.vfs) — no workflow/phase name is hardcoded
-// (FR-ARCH-0004).
+// Each Rosetta workflow document becomes a skill under the incoming frame's own already-computed
+// target base: the workflow body becomes `<target-base>/<name>/SKILL.md`; each of that workflow's
+// phase files becomes `<target-base>/<name>/phases/<phase>.md`, with frontmatter stripped. The
+// target base is recovered from `frame.target` (set by `computeTargetPath` from the composing
+// `SpecEntry.target`) BEFORE this function mutates it — `SpecEntry.target` remains the sole
+// placement owner (FR-ARCH). Workflow/phase membership is derived at runtime from the full set of
+// `workflows/**` VFS paths (via ctx.vfs) — no workflow/phase name is hardcoded (FR-ARCH-0004).
 
 import { updateFileFrame } from '../frames.js';
+import { stripFrontmatter } from '../serialize/frontmatter.js';
 import type { FileProcessingFrame, TargetContext } from '../types.js';
 
 const WORKFLOWS_FOLDER = 'workflows/';
@@ -94,11 +97,11 @@ function rewritePhaseReferences(content: string, phaseNames: readonly string[]):
 }
 
 /**
- * fileAntigravityWorkflowToSkill: rename this workflow-entry frame to its Antigravity skill
- * location and rewrite its own workflow's real phase-file references within the content.
- * FR-COPY-0080, FR-VAR-0081
+ * fileWorkflowToSkill: reshape this workflow-entry frame into its skill location under the
+ * composing SpecEntry's own target base, strip phase frontmatter, and rewrite its own workflow's
+ * real phase-file references within the content. FR-COPY-0080.
  */
-export function fileAntigravityWorkflowToSkill(
+export function fileWorkflowToSkill(
   frame: FileProcessingFrame,
   ctx: TargetContext,
 ): FileProcessingFrame {
@@ -109,15 +112,29 @@ export function fileAntigravityWorkflowToSkill(
   const stem = workflowStem(frame.sourcePath);
   const root = findWorkflowRoot(stem, allStems);
   const isMainDoc = root === stem;
-  const newTarget = isMainDoc ? `skills/${root}/SKILL.md` : `skills/${root}/phases/${stem}.md`;
+
+  // Recover the target base already selected by the composing SpecEntry (e.g. "skills" or
+  // ".agents/skills") from the incoming frame BEFORE mutating it — placement stays owned solely
+  // by SpecEntry.target, never re-derived or hardcoded here.
+  const lastSlash = frame.target.lastIndexOf('/');
+  const targetBase = lastSlash === -1 ? '' : frame.target.slice(0, lastSlash);
+  const newTarget = isMainDoc
+    ? `${targetBase}/${root}/SKILL.md`
+    : `${targetBase}/${root}/phases/${stem}.md`;
 
   // This workflow's own real phase basenames (siblings owned by the same root), excluding root itself.
   const phaseNames = allStems.filter((s) => s !== root && findWorkflowRoot(s, allStems) === root);
 
   return updateFileFrame(frame, (draft) => {
     draft.target = newTarget;
-    if (typeof draft.target_contents === 'string' && phaseNames.length > 0) {
-      draft.target_contents = rewritePhaseReferences(draft.target_contents, phaseNames);
+    if (typeof draft.target_contents === 'string') {
+      if (phaseNames.length > 0) {
+        draft.target_contents = rewritePhaseReferences(draft.target_contents, phaseNames);
+      }
+      if (!isMainDoc) {
+        // Phase documents lose their frontmatter; the main workflow SKILL.md keeps it.
+        draft.target_contents = stripFrontmatter(draft.target_contents);
+      }
     }
   });
 }

@@ -163,13 +163,20 @@ export function deriveExpectedPaths(target: Target, coreDir: string, pluginsDir:
       add('hooks.json'); // FR-VAR-0031 alternate-name copy of .github/plugin/hooks.json
       break;
     }
-    // FR-VAR-0040/0041: instruction folders under .agents/; agents→.codex/agents/*.toml;
-    // hook config mirrored to .codex/hooks.json.
+    // FR-VAR-0040/0041/0042, FR-COPY-0080: instruction folders under .agents/; agents→
+    // .codex/agents/*.toml; hook config mirrored to .codex/hooks.json. Workflows restructure into
+    // skills (same as Antigravity's mapping, target base ".agents/skills" instead of "skills"):
+    // each workflow→.agents/skills/<root>/SKILL.md, each owned phase→
+    // .agents/skills/<root>/phases/<phase>.md. NO .agents/workflows/ folder or index — the Codex
+    // workflows-index declaration was removed; existing absent-document handling omits that entry.
     case 'core-codex': {
       ruleStems.forEach((x) => add(`.agents/rules/${x}.md`));
       add('.agents/rules/INDEX.md');
-      workflows.forEach((w) => add(`.agents/workflows/${w}`));
-      add('.agents/workflows/INDEX.md');
+      for (const stem of workflowStems) {
+        const root = workflowRoot(stem, workflowStems);
+        if (stem === root) add(`.agents/skills/${root}/SKILL.md`);
+        else add(`.agents/skills/${root}/phases/${stem}.md`);
+      }
       skillFiles.forEach((f) => add(`.agents/${f}`));
       configureFiles.forEach((f) => add(`.agents/${f}`));
       agentStems.forEach((a) => add(`.codex/agents/${a}.toml`));

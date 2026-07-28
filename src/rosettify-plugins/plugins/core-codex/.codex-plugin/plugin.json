@@ -33,7 +33,7 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use the load-context skill first, then consult rules/INDEX.md and workflows/INDEX.md from the Rosetta plugin bundle when you need local Rosetta guidance.",
+      "Use the load-context skill first, then consult rules/INDEX.md and the bundled skills from the Rosetta plugin bundle when you need local Rosetta guidance.",
       "Use Rosetta for structured planning, coding, requirements, and validation workflows."
     ],
     "brandColor": "#0F766E"

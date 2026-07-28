@@ -1,6 +1,6 @@
 {
   "name": "rosettify-plugins",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Generate Rosetta IDE plugin outputs from instruction sources via CLI or library API",
   "license": "Apache-2.0",
   "author": "isolomatovgd",

@@ -56,7 +56,11 @@ core-codex/
   .codex-plugin/{plugin.json [P], hooks.json.tmpl [P], hooks.json [G]}
   .codex/agents/*.toml            [G] ← source agents → Codex subagent format; sandbox from readonly flag
   .codex/hooks/{hooks.json,*.js}  [G] ← mirrored hook config + src/hooks/dist
-  .agents/{rules,skills,workflows,configure,templates}/ + INDEX.md  [G] ← instruction folders moved under .agents (model→gpt-*+effort)
+  .agents/rules/*.md + INDEX.md   [G] ← source rules; rules index generated
+  .agents/skills/<skill>/         [G] ← source skills
+  .agents/skills/<workflow>/SKILL.md + phases/*.md
+                                  [G] ← source workflows; phase frontmatter removed; NO workflows index
+  .agents/{configure,templates}/  [G] ← source folders
 ```
 
 ## core-cursor-standalone — in-repo extraction (bootstrap: native rules; NO session-start bootstrap hook)
@@ -95,32 +99,33 @@ core-antigravity/
   hooks.json                      [G] ← rendered from hooks.json.tmpl [P]; PreInvocation form; NO bootstrap payload
   rules/*.md + INDEX.md           [G] ← source rules + templates; frontmatter preserved as authored (trigger set by the rule author, NOT the generator); bootstrap rule is authored trigger: always_on
   skills/<skill>/SKILL.md         [G] ← source skills; frontmatter reduced to name+description
-  skills/<workflow>/SKILL.md + phases/*.md  [G] ← source workflows (workflow→skill; phases under phases/; phase refs → APPLY SKILL FILE `phases/…`); frontmatter reduced to name+description
+  skills/<workflow>/SKILL.md + phases/*.md  [G] ← source workflows (workflow→skill; body-only phases; phase refs → APPLY SKILL FILE `phases/…`); SKILL frontmatter reduced to name+description
   skills/INDEX.md                 [G] ← generated skills index (Antigravity analog of Claude's workflow index)
   agents/*.md                     [G] ← source agents; frontmatter reduced to name+description only (model/mode/readonly/baseSchema dropped)
   configure/*.md                  [G] ← source configure, verbatim (like every other target; IDE ignores it — AG-6)
   hooks/*.js                      [G] ← synced from src/hooks/dist/bundles/core-antigravity; advisory hooks (lint-format, md-file, loose-files) excluded (FR-VAR-0083)
 ```
-Note: no `model:` is emitted for Antigravity (FR-COPY-0081); every `subagent_required_model` is rewritten to `inherit` (FR-COPY-0082); no `workflows/` folder appears (FR-VAR-0081). All transforms above are Antigravity-only.
+Note: for the `core-antigravity` target, the generator emits no `model:` (FR-COPY-0081), rewrites every `subagent_required_model` to `inherit` (FR-COPY-0082), and emits no `workflows/` folder (FR-VAR-0081). For the `core-codex` and `core-antigravity` targets, the generator removes workflow-phase frontmatter (FR-COPY-0080); the remaining adaptations apply only to `core-antigravity`.
 
 ## Requirements
 
 <req id="FR-STRUCT-0010" type="FR" level="System" ticketId="" classification="technical">
   <title>Marketplace target structures</title>
-  <statement>Each marketplace target (core-claude, core-cursor, core-copilot, core-codex) shall produce the folder structure documented in its section above, preserving the `[P]` config/manifest paths and generating the `[G]` content from the instruction source.</statement>
+  <statement>For each marketplace target (`core-claude`, `core-cursor`, `core-copilot`, `core-codex`), the generator shall produce the folder structure documented in its section above, preserving the `[P]` config/manifest paths and generating the `[G]` content from the instruction source.</statement>
   <rationale>The per-IDE on-disk layout is what each IDE loads; it is the concrete acceptance surface for generation.</rationale>
-  <source>Sources</source>
+  <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-07-27</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: a marketplace target generated When: its tree is inspected Then: it matches the documented structure, with `[P]` paths preserved and `[G]` paths regenerated.</criteria>
+    <criteria>Given: a marketplace target When: the generator completes generation and its tree is inspected Then: it matches the documented structure, with `[P]` paths preserved and `[G]` paths regenerated.</criteria>
+    <criteria>Given: the `core-codex` target When: the generator completes generation and its tree is inspected Then: workflows are skills under `.agents/skills/`, phase files have no frontmatter, and no `.agents/workflows/` folder or workflows index exists.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
-  <depends>FR-VAR-0010, FR-VAR-0020, FR-VAR-0030, FR-VAR-0031, FR-VAR-0041</depends>
+  <implementation>Implemented</implementation>
+  <implementationNotes>Generated `core-codex` structure now maps each workflow to `.agents/skills/&lt;name&gt;/SKILL.md` with owned phases under `phases/`, and emits no `.agents/workflows/` folder or index. `.agents/rules/INDEX.md`, `.codex-plugin/plugin.json`, `.codex-plugin/hooks.json`, the `.codex/hooks.json` mirror, `.codex/agents/*.toml`, and the plugin-root probe are all retained. Tests: `tests/unit/spec/targets-codex-output.test.ts`; `tests/e2e/parity.e2e.test.ts` consuming the independent oracle in `tests/e2e/parity-derive-structure.ts`, which re-derives expected paths locally and imports nothing from production. Verified on real r2 and r3 generation for all seven targets; the other five targets regenerate byte-identical to the committed tree.</implementationNotes>
+  <depends>FR-VAR-0010, FR-VAR-0020, FR-VAR-0030, FR-VAR-0031, FR-VAR-0041, FR-VAR-0042</depends>
 </req>
 
 <req id="FR-STRUCT-0020" type="FR" level="System" ticketId="" classification="technical">
@@ -144,18 +149,19 @@ Note: no `model:` is emitted for Antigravity (FR-COPY-0081); every `subagent_req
 
 <req id="FR-STRUCT-0030" type="FR" level="System" ticketId="138" classification="technical">
   <title>Antigravity target structure</title>
-  <statement>The `core-antigravity` target shall produce the folder structure documented in its section above: a preserved `[P]` root `plugin.json`, a rendered `[G]` `hooks.json`, and generated `[G]` `rules/`, `skills/` (with workflow phases under `skills/<name>/phases/`), and `agents/` content — with agent and skill frontmatter reduced to `name`+`description`, every `subagent_required_model` rewritten to `inherit`, and no `workflows/` folder and no dot-prefixed config folder.</statement>
+  <statement>For the `core-antigravity` target, the generator shall produce the folder structure documented in its section above: a preserved `[P]` root `plugin.json`, a rendered `[G]` `hooks.json`, and generated `[G]` `rules/`, `skills/` (with body-only workflow phases under `skills/<name>/phases/`), and `agents/` content — with agent and skill frontmatter reduced to `name`+`description`, every `subagent_required_model` rewritten to `inherit`, and no `workflows/` folder and no dot-prefixed config folder.</statement>
   <rationale>The single combined Antigravity plugin is the on-disk surface all three Antigravity products load; this tree is its concrete acceptance surface.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-07-23</changed>
+  <changed>2026-07-27</changed>
   <verification>Inspection</verification>
   <acceptance>
-    <criteria>Given: the `core-antigravity` target generated When: its tree is inspected Then: it matches the documented structure, with `plugin.json` preserved and all other content regenerated, and no `workflows/` folder present.</criteria>
+    <criteria>Given: the `core-antigravity` target When: the generator completes generation and its tree is inspected Then: it matches the documented structure, with `plugin.json` preserved and all other content regenerated, and no `workflows/` folder present.</criteria>
+    <criteria>Given: a workflow phase and the `core-antigravity` target When: the generator processes the phase Then: its emitted file under `skills/<name>/phases/` has no YAML frontmatter.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>Implemented: verified on generated `core-antigravity/` output (rules/skills/agents/configure + rules&skills indexes; no workflows/ folder; no dot-config folder). Tests: tests/unit/spec/targets-antigravity-output.test.ts.</implementationNotes>
+  <implementationNotes>The generated `core-antigravity` structure is unchanged — `skills/`, `rules/`, `agents/`, `configure/`, `hooks.json`, `plugin.json`, and the workflow-derived `skills/INDEX.md` all remain — and its workflow entry now composes the shared `fileWorkflowToSkill`, so emitted phase files carry no YAML frontmatter. Post-index frontmatter reduction to `name` + `description` and the subagent-model rewrite remain Antigravity-only. Tests: `tests/unit/spec/targets-antigravity-output.test.ts`; `tests/e2e/sample.e2e.test.ts`. Verified on real r3 output: the only diff against the committed tree is phase-frontmatter removal plus the four FR-ARCH-0049 prose corrections.</implementationNotes>
   <depends>FR-VAR-0080, FR-VAR-0081, FR-VAR-0082, FR-VAR-0083, FR-COPY-0080, FR-COPY-0081, FR-COPY-0082</depends>
 </req>

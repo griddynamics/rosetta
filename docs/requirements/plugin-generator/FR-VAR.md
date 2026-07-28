@@ -179,19 +179,44 @@ Agents → TOML subagents; instruction folders under the Codex agent-config root
 
 <req id="FR-VAR-0041" type="FR" level="System" ticketId="" classification="technical">
   <title>Codex directory layout</title>
-  <statement>The Codex variant shall place instruction folders under the Codex agent-config root (`.agents/…`) by `SpecEntry` `target` placement (with `fileRename()` where filenames also change) rather than a post-hoc move pass, mirror hook configuration to the Codex runtime location, generate `rules` and `workflows` indexes, and preserve a `.codex-plugin` config folder.</statement>
-  <rationale>Codex resolves instructions and hooks from specific reserved directories. Expressing the layout as each file's `fileRename()` target keeps it within the uniform pipeline (no `generate_codex_runtime_layout`-style imperative move of whole folders).</rationale>
-  <source>Sources</source>
+  <statement>For the `core-codex` target, the generator shall place instruction folders under the Codex agent-config root (`.agents/…`) by `SpecEntry` `target` placement (with `fileRename()` where filenames also change) rather than a post-hoc move pass, mirror hook configuration to the Codex runtime location, generate the rules index, omit the workflows index from both the output and the session-start hook payload, and preserve a `.codex-plugin` config folder.</statement>
+  <rationale>The Codex runtime resolves instructions and hooks from specific reserved directories. Expressing the layout as each file's `fileRename()` target keeps it within the uniform pipeline (no `generate_codex_runtime_layout`-style imperative move of whole folders).</rationale>
+  <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-07-27</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: the Codex variant When: generated Then: instruction folders reside under the Codex agent-config root and hook config is mirrored to the Codex runtime location.</criteria>
+    <criteria>Given: the `core-codex` target When: the generator completes generation Then: instruction folders reside under the Codex agent-config root and hook config is mirrored to the Codex runtime location.</criteria>
+    <criteria>Given: the `core-codex` target When: the generator completes generation Then: `.agents/rules/INDEX.md` exists and no workflows index exists.</criteria>
+    <criteria>Given: the session-start hook payload generated for `core-codex` When: inspected Then: it contains the rules index and no workflows index entry.</criteria>
+    <criteria>Given: the preserved `core-codex` config folder — `.codex-plugin/plugin.json` and any sibling static config — When: inspected Then: it names no workflows folder or workflows index. Preserved configs are byte-copied and never pass through `pluginRewriteReferences`, so a stale pointer there survives generation silently.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>`src/rosettify-plugins/src/spec/targets.ts`: the `core-codex` `.agents/workflows` index declaration was removed while `includeIndexEntries: true` and the rules-index declaration remain. Bootstrap code is untouched — `pluginGenerateIndexes` never emits the document, so `findIndexBody` returns null and the existing absent-document skip in `src/bootstrap/payload.ts` omits the payload entry. `plugins/core-codex/.codex-plugin/plugin.json` had a stale `workflows/INDEX.md` pointer in `interface.defaultPrompt`; corrected to reference the bundled skills, since preserved configs are byte-copied and never pass through `pluginRewriteReferences`. Tests: `tests/unit/spec/targets-codex-output.test.ts` (no workflows tree or index, rules index present, manifest carries no `workflows/` token, hooks mirror free of the workflows-index string); `tests/e2e/bootstrap-session-start.e2e.test.ts` (Codex r2=8, r3=4); `tests/e2e/sample.e2e.test.ts`.</implementationNotes>
+  <depends>FR-HOOK-0001, FR-VAR-0042</depends>
+</req>
+
+<req id="FR-VAR-0042" type="FR" level="System" ticketId="" classification="technical">
+  <title>`core-codex` workflows as skills</title>
+  <statement>For the `core-codex` target, the generator shall package each source workflow as a skill under `.agents/skills/` using the workflow-to-skill transform in FR-COPY-0080 and shall not emit a `.agents/workflows/` folder. The generator shall retain Codex model normalization for generated workflow skills. The generator shall not apply the `core-antigravity` frontmatter reduction, subagent-model rewriting, or advisory-hook exclusions from FR-VAR-0083 to the `core-codex` output.</statement>
+  <rationale>The Codex runtime consumes reusable workflows as skills. Reusing the shared structural transform lets the generator keep workflow behavior consistent while preserving `core-codex` processing and isolating `core-antigravity`-only adaptations.</rationale>
+  <source>User</source>
+  <priority>Must</priority>
+  <status>Approved</status>
+  <approved_by>User</approved_by>
+  <changed>2026-07-27</changed>
+  <verification>Test</verification>
+  <acceptance>
+    <criteria>Given: a source workflow, its phase files, and the `core-codex` target When: the generator processes the workflow Then: the workflow exists at `.agents/skills/<name>/SKILL.md` and its phases exist under `.agents/skills/<name>/phases/`.</criteria>
+    <criteria>Given: the `core-codex` target When: the generator completes generation and the output tree is inspected Then: no `.agents/workflows/` folder exists.</criteria>
+    <criteria>Given: a workflow skill generated for `core-codex` When: its frontmatter is inspected Then: the generator has applied Codex model normalization.</criteria>
+    <criteria>Given: the `core-codex` target When: the generator completes generation Then: the `core-antigravity` frontmatter reduction, subagent-model rewriting, and FR-VAR-0083 advisory-hook exclusions have not changed the `core-codex` content or hooks.</criteria>
+  </acceptance>
+  <implementation>Implemented</implementation>
+  <implementationNotes>`src/rosettify-plugins/src/spec/targets.ts`: the `core-codex` workflow `SpecEntry.target` moved from `.agents/workflows` to `.agents/skills`, with processors ordered `[...BASE_PROCESSORS, fileNormalizeCodexModels, fileWorkflowToSkill]` so model normalization sees full frontmatter before the transform. Antigravity-only processors (`fileAntigravityReduceFrontmatter`, `pluginAntigravitySubagentModel`) remain wired solely into the `coreAntigravity` spec, and `fileNormalizeCodexModels` remains Codex-only — no shared processor selects between them. Tests: `tests/unit/spec/targets-codex-output.test.ts` (skill and phase placement, main frontmatter model normalized to the split `model` / `model_reasoning_effort` form via a fixture carrying a `model:` field, non-model frontmatter preserved with no Antigravity reduction, agent TOML not rewritten to `inherit`); `tests/e2e/sample.e2e.test.ts`.</implementationNotes>
+  <depends>FR-COPY-0080, FR-COPY-0022</depends>
 </req>
 
 ## Cursor standalone (`core-cursor-standalone`) — in-repo extraction

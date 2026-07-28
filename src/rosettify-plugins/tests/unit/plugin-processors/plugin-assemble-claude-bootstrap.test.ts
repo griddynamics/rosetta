@@ -124,6 +124,25 @@ describe('pluginAssembleClaudeBootstrap — plugin-root entry', () => {
     expect(entries[entries.length - 1]).toContain('CLAUDE_PLUGIN_ROOT');
   });
 
+  it('CLAUDE_PLUGIN_ROOT marker occurs exactly once — exactly one final plugin-root entry (FR-HOOK-0007)', () => {
+    const frames = [
+      makeDocFrame('plugin-files-mode', '\n# Lead\n'),
+      makeDocFrame('bootstrap-core-policy', '\n# Policy\n'),
+      makeDocFrame('bootstrap-guardrails', '\n# Guardrails\n'),
+    ];
+    const p = makePluginFrame(frames);
+    const result = pluginAssembleClaudeBootstrap(p);
+    const payload = result.templateContext['bootstrap_hooks'] as string;
+    const occurrences = (payload.match(/CLAUDE_PLUGIN_ROOT/g) || []).length;
+    expect(occurrences).toBe(1);
+    const entries = payload.split('}, {');
+    expect(entries[entries.length - 1]).toContain('CLAUDE_PLUGIN_ROOT');
+    // ...and it does NOT appear in any earlier entry (genuinely last, not merely present).
+    for (const entry of entries.slice(0, -1)) {
+      expect(entry).not.toContain('CLAUDE_PLUGIN_ROOT');
+    }
+  });
+
   it('entries are joined by ", " separator', () => {
     const frames = [
       makeDocFrame('plugin-files-mode', '\n# Lead\n'),

@@ -143,6 +143,14 @@ describe('core-antigravity — generated output shape (FR-VAR-0080, FR-STRUCT-00
     expect(skillContent).not.toContain('APPLY PHASE');
   });
 
+  it('strips phase frontmatter but retains a distinct body (FR-STRUCT-0030: workflow phases contain no YAML frontmatter)', () => {
+    const phaseDoc = path.join(targetRoot, 'skills', 'demo-flow', 'phases', 'demo-flow-step.md');
+    const phaseContent = fs.readFileSync(phaseDoc, 'utf-8');
+    expect(phaseContent).not.toContain('---');
+    expect(phaseContent).not.toContain('name: demo-flow-step');
+    expect(phaseContent).toContain('Do the step.');
+  });
+
   it('preserves a real (non-workflow) skill under skills/ with its folder structure intact', () => {
     expect(fs.existsSync(path.join(targetRoot, 'skills', 'mytool', 'SKILL.md'))).toBe(true);
   });
