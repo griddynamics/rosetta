@@ -120,7 +120,7 @@ Reusing one long session for many unrelated tasks bloats context and degrades re
 
 **How does Rosetta compare to other AI agent tools (superpowers, GSD, etc.)?**
 
-Most similar tools focus on one meta-flow — usually coding. Rosetta covers ~12 SDLC workflows: coding, test generation, AQA, modernization, research, code analysis, requirements authoring, external library onboarding, workspace init, prompt authoring, and more. See [USAGE_GUIDE.md](USAGE_GUIDE.md) for the full list.
+Most similar tools focus on one meta-flow — usually coding. Rosetta covers ~13 SDLC workflows: coding, security review, test generation, AQA, modernization, research, code analysis, requirements authoring, external library onboarding, workspace init, prompt authoring, and more. See [USAGE_GUIDE.md](USAGE_GUIDE.md) for the full list.
 
 Rosetta also adds guardrails, HITL approval gates, sensitive-data handling, and risk assessment that apply across all workflows.
 

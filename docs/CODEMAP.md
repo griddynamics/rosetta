@@ -79,14 +79,14 @@ pyproject.toml README.md
 
 ### instructions/r3/core/ — OSS foundation layer (current release)
 
-#### instructions/r3/core/skills/ — 37 skill folders
+#### instructions/r3/core/skills/ — 38 skill folders
 
 codemap/ coding/ coding-agents-farm/ coding-agents-hooks-authoring/
 coding-agents-prompt-authoring/ dangerous-actions/ data-collection/ debugging/
 deviation/ hitl/ large-workspace-handling/ load-project-context/ natural-writing/
 orchestration/ planning/ post-mortem/ qa-knowledge/ qa-structure/ questioning/
 reasoning/ requirements-authoring/ requirements-use/ research/ reverse-engineering/
-risk-assessment/ rosetta/ self-learning/ self-organization/ sensitive-data/
+risk-assessment/ rosetta/ security/ self-learning/ self-organization/ sensitive-data/
 solr-extending/ solr-query/ solr-schema/ solr-semantic-search/ specflow-use/
 subagent-directives/ tech-specs/ testing/
 
@@ -95,14 +95,20 @@ subagent-directives/ tech-specs/ testing/
 architect.md discoverer.md engineer.md executor.md planner.md
 prompt-engineer.md requirements-engineer.md researcher.md reviewer.md validator.md
 
-#### instructions/r3/core/workflows/ — 12 top-level workflows (+ phase files)
+#### instructions/r3/core/workflows/ — 16 top-level workflow files, 13 request types (+ phase files)
 
-adhoc-flow.md aqa-flow.md code-analysis-flow.md coding-agents-prompting-flow.md
-coding-flow.md external-lib-flow.md init-workspace-flow.md modernization-flow.md
-requirements-authoring-flow.md research-flow.md self-help-flow.md testgen-flow.md
-(init-workspace-flow-*, aqa-flow-*, modernization-flow-*, testgen-flow-* phase files)
+adhoc-flow.md api-aqa-flow.md aqa-flow.md code-analysis-flow.md
+coding-agents-prompting-flow.md coding-flow.md external-lib-flow.md help-flow.md
+init-workspace-flow.md modernization-flow.md requirements-authoring-flow.md
+research-flow.md security-flow.md self-help-flow.md testgen-flow.md ui-aqa-flow.md
+(init-workspace-flow-*, aqa-flow-*, modernization-flow-*, security-flow-*,
+testgen-flow-* phase files)
 
-#### instructions/r3/core/rules/ — 9 rule files
+13 request types: ui-aqa-flow + api-aqa-flow are one QA-automation type, aqa-flow is a
+backward-compat router over them plus testgen-flow, and self-help-flow is the deprecated
+alias of help-flow.
+
+#### instructions/r3/core/rules/ — 5 rule files
 
 bootstrap-alwayson.md
 local-files-mode.md mcp-files-mode.md plugin-files-mode.md speckit-integration-policy.md

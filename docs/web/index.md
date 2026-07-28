@@ -120,7 +120,7 @@ permalink: /
       <div class="adds-num">4</div>
       <div class="adds-body">
         <strong>Request classification and source of truth.</strong>
-        Agents treat every request the same. Rosetta auto-classifies each request into one of twelve workflow types — coding, testing, research, requirements, modernization, and others — loading entirely different instructions for each. The agent maintains requirements traceability instead of mixing everything together.
+        Agents treat every request the same. Rosetta auto-classifies each request into one of thirteen workflow types — coding, security review, testing, research, requirements, modernization, and others — loading entirely different instructions for each. The agent maintains requirements traceability instead of mixing everything together.
       </div>
     </div>
 

@@ -177,6 +177,40 @@ Read full workflow: [Requirements Documentation Authoring Flow](/rosetta/docs/re
 </details>
 
 <details markdown="1">
+<summary><b>Security Review</b></summary>
+
+Runs an authorized, evidence-preserving security review and prepares concise remediation inputs for a later coding session. It does not fix findings or start `coding-flow`.
+
+**Use when:** review an application, repository, infrastructure definition, platform, interface, host, or AI system for security risk; threat-model a system; run an approved full review; or turn accepted findings into traceable remediation-task inputs.
+
+**Phases:**
+
+0. Readiness — inventory limited metadata and available tools, then run a filename-only secret gate before any target content enters model context
+1. Authorize — recommend scope, environment, exclusions, activities, tools, data flows, limits, and stop conditions for explicit approval
+2. Deterministic gates — for development, change, PR, and pipeline reviews, run approved local gates and preserve their source records unchanged
+3. Model and select — build a threat model and map every applicable, available, authorized activity and tool to planned evidence
+4. Inspect and test — inspect coherent security-area bundles and run only approved activities; active testing is bounded to pre-production
+5. Normalize and triage — convert findings losslessly, correlate without deleting source records, verify material findings, and group related fixes by shared strategy
+6. Independent review — a fresh reviewer challenges coverage, evidence, safety, certainty, and prioritization
+7. Report and package — sanitize the report and findings, obtain approval for the task index, and emit concise later-coding inputs
+
+**Expect:** eight canonical-subagent phases. The orchestrating agent reads only `security-flow.md`; it dispatches each applicable phase with the exact `INVOKE SUBAGENT <name>` to `APPLY PHASE <file>.md` contract, while detailed phase files remain assigned-subagent-only. Every declared subagent is mandatory, and full agents run their own approved tools rather than treating `executor` as a universal gateway.
+
+The secret gate returns filenames only, never matches or values. DEV/QA candidate files require explicit approval after recommended exclusions. Candidate files from above-QA or ambiguous environments stop the review and cannot be overridden. Active testing is permitted only on explicitly approved pre-production targets; production active testing is prohibited.
+
+With storage approval, sanitized artifacts are written under `docs/security/<run-id>/`. Task files are grouped by remediation area plus shared root cause or fix strategy, not by repository location. They are concise inputs for a later user-invoked coding flow; the security capability never invokes, coordinates, monitors, or validates remediation.
+
+```
+/security-flow Review this service and its infrastructure for security issues. Recommend a safe full-review scope and wait for approval before inspection.
+/security-flow Threat-model the checkout API and run all applicable, available, authorized read-only checks.
+/security-flow Review this pre-production web application. Propose explicit active-test bounds and stop conditions before testing.
+```
+
+Read full workflow: [Security Flow](/rosetta/docs/security-flow/)
+
+</details>
+
+<details markdown="1">
 <summary><b>Ad-hoc</b></summary>
 
 Builds a custom workflow when no fixed Rosetta workflow fits the request. It composes building blocks such as discovery, requirements capture, reasoning, planning, execution, review, validation, HITL gates, and memory updates.
@@ -490,7 +524,7 @@ Reusable units of work that workflows and subagents invoke. Each skill focuses o
 | **Prompt Diagnosis** | Diagnose and fix underperforming prompts |
 | **Research** | Systematic deep research using meta-prompting with grounded references and self-validation |
 | **Scenarios Generation** | Generate test scenarios from requirements |
-| **Security** | Security analysis and vulnerability assessment |
+| **Security** | Authorized security review with secret-first gates, bounded pre-production testing, lossless evidence, independent review, and later-remediation task inputs |
 | **Simulation** | Simulate prompt execution for validation |
 | **Technical Summarization** | Concise technical summaries of complex content |
 | **Template Execution** | Execute parameterized prompt templates |

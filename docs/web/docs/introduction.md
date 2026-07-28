@@ -34,10 +34,11 @@ Rosetta-guided work follows five phases: **Prepare** (load guardrails and contex
 
 1. `coding-flow`: AI creates features, fixes defects, and performs refactoring, everything end-to-end. AI performs discovery, design, specs and a plan, user review, then AI implements and runs separate review and validation passes (including running application). Most useful for medium to large coding tasks, and for controlled component-by-component migration/modernization work.
 2. `requirements-authoring-flow`: AI works with user and raw artifacts to define entire-application requirements. AI discovers context and existing constraints, captures intent, drafts atomic requirement units, validates them, and finalizes traceability artifacts. This is the most efficient use of coding agents. Requirements then Coding.
-3. `testgen-flow`, `api-aqa-flow`, `ui-aqa-flow`: AI handles QA-related work such as generating test cases and creating API or UI automation tests. AI first collects project context, requirements, and existing QA assets, clarifies gaps, and only after that generates test cases or automation tests.
-4. `code-analysis-flow`: AI creates grounded analysis documents based on the codebase. AI first loads project context, asks clarification questions, then produces either one focused analysis document or parallel module analyses plus a summary.
-5. `help-flow`: AI explains available Rosetta workflows, skills, and agents. Most useful when the user is unsure which Rosetta capability to use.
-6. `init-workspace-flow`: AI sets up a repository for AI use in both brownfield and greenfield projects. AI first analyzes the workspace, builds baseline docs, asks gap-filling questions, and verifies the result. Use it once per repository as its purpose is to build context for subsequent sessions.
+3. `security-flow`: AI runs an authorized, evidence-preserving security review through mandatory specialist subagents. It gates secret-bearing files before source ingestion, bounds active testing to approved pre-production targets, independently reviews evidence, and prepares concise inputs for a later coding flow without starting remediation.
+4. `testgen-flow`, `api-aqa-flow`, `ui-aqa-flow`: AI handles QA-related work such as generating test cases and creating API or UI automation tests. AI first collects project context, requirements, and existing QA assets, clarifies gaps, and only after that generates test cases or automation tests.
+5. `code-analysis-flow`: AI creates grounded analysis documents based on the codebase. AI first loads project context, asks clarification questions, then produces either one focused analysis document or parallel module analyses plus a summary.
+6. `help-flow`: AI explains available Rosetta workflows, skills, and agents. Most useful when the user is unsure which Rosetta capability to use.
+7. `init-workspace-flow`: AI sets up a repository for AI use in both brownfield and greenfield projects. AI first analyzes the workspace, builds baseline docs, asks gap-filling questions, and verifies the result. Use it once per repository as its purpose is to build context for subsequent sessions.
 
 If you prefer more vibe-coding, check the guardrails and useful skills below.
 
@@ -58,8 +59,9 @@ If you prefer more vibe-coding, check the guardrails and useful skills below.
 3. `questioning`, `hitl`: AI to work with human, not over or behind, to be more human-oriented.
 4. `research`, `reverse-engineering`: Repository grounded research and logical reverse engineering (business logic extraction).
 5. `coding`, `debugging`, `testing`: Implementation, debugging with root-cause analysis, and validation.
-6. `reasoning`: Requires AI to decompose and recompose the problem, boundaries, actors, roles, gaps, contradictions, and perform recursive tree-of-thoughts reasoning.
-7. `solr-*`: AI will help to build SOLR search-related artifacts.
+6. `security`: Run authorized security reviews with secret-first safety gates, bounded testing, lossless evidence, independent review, and remediation-task preparation.
+7. `reasoning`: Requires AI to decompose and recompose the problem, boundaries, actors, roles, gaps, contradictions, and perform recursive tree-of-thoughts reasoning.
+8. `solr-*`: AI will help to build SOLR search-related artifacts.
 
 ## Why use it
 
