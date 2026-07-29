@@ -84,7 +84,7 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 - **Common input adapter.** A single adapter normalizes the differing hook input schemas of Claude Code, Cursor, Copilot, Codex, and Windsurf into one canonical shape, so each hook is authored once and runs everywhere.
 - **Declarative hook framework.** Hooks declare their activation (event, tool kind, file predicates) and the runtime gates, throttles, and debounces them. Each hook is bundled per IDE with isolation guarantees so a bundle carries only its own adapter code.
-- **dangerous-actions safety gate (PreToolUse).** A deterministic, stateless last resort tripwire on destructive shell, file, and MCP operations, safe across worktrees and parallel sessions. Every match is `reconsider` — the agent may self-approve with a `Rosetta-AI-reviewed` marker in a user visible field after a blast radius check, so no pattern is an unconditional human-only block. Credential and key file overwrites get a separate non-blocking `advise` tier, reasoned around irreversibility rather than secrecy. A single traversal detection avoids policy divergence bypasses, and Windsurf agents receive the denial reason as actionable context.
+- **dangerous-actions safety gate (PreToolUse).** A deterministic, stateless last resort tripwire on destructive shell and MCP operations, safe across worktrees and parallel sessions. Every match is `reconsider` — the agent may self-approve with a `Rosetta-AI-reviewed` marker in a user visible field after a blast radius check, so no pattern is an unconditional human-only block. Credential and key file overwrites get a separate non-blocking `advise` tier, reasoned around irreversibility rather than secrecy. A single traversal detection avoids policy divergence bypasses, and Windsurf agents receive the denial reason as actionable context.
 - **Advisory hooks.** `md-file-advisory` nudges on stray markdown placement, `lint-format-advisory` prompts a syntax/type/lint/format step after code edits, and `loose-files` flags `.py`/`.js` files created without a module marker (on file creation events only).
 - **GitNexus refresh hook.** Detects a stale code graph index after source mutations and asks the agent to reindex, with trailing edge debouncing so only the last edit in a burst triggers work.
 - **Authoring skill.** A `hooks-authoring` skill documents entry rules, tool kind registration, and pitfalls for contributors adding new hooks.
@@ -116,33 +116,57 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
-### Week Mon 13.07 – Sun 19.07
+### Week Mon 20.07 – Sun 26.07
 
-The R3 cutover week. R3 flipped from dormant to the live, served release: the server now defaults to `VERSION=r3` and serves `aia-r3`, the plugins ship from `instructions/r3`, `verify_mcp.py` targets r3, and the docs and website were resynced to describe R3 as the current release. R2 steps back to previous-release status — still supported, but receiving backported fixes only. The plugin generator was bumped and now defaults to r3.
+The R3 publish week. The cutover batch that sat staged on `on-v3-release` merged as #130, and it carried more than what was staged: a whole new `specs` command in rosettify, per-package CI, and a `help-flow` workflow. R3 flipped from dormant to the live, served release, and R2 stepped back to support-only. Google Antigravity became the seventh supported target, with both a hook adapter and a plugin. The dangerous-actions hook matcher was narrowed to shell and MCP calls, and the generator's deterministic-hooks default flipped to false. Four rule files were deleted outright because the skills already covered them.
 
 **Highlights**
 
-- Server default release flipped to R3: `VERSION=r3`, serving the `aia-r3` dataset
-- Plugins regenerated from `instructions/r3` (SessionStart bootstrap only; deterministic advisory hooks available via the generator flag)
-- `verify_mcp.py` retargeted to r3
-- Docs and website resynced to R3-current; R2 documented as previous release, backports only
-- `rosettify-plugins` bumped to 1.0.10 with r3 as the default release
+- R3 published (#130): MCP cut to 3 read-only tools, `ims-mcp-server` renamed to `rosetta-mcp-server`/`rosetta_mcp`, `rosetta-cli` internals renamed `ims_*` → `rosetta_*`, plugins repositioned as the recommended install path, R1 retired and R2 moved to support-only
+- Server default release flipped to R3: `VERSION=r3`, serving the `aia-r3` dataset; `verify_mcp.py` retargeted to r3
+- New `npx rosettify specs` command: requirements stored as AI-native JSON, 17 subcommands, machine-checked acyclic dependency graphs, guarded Draft → Approved status transitions
+- Google Antigravity support: hook adapter for Antigravity 2.0 / CLI / IDE (#143) and `core-antigravity`, the seventh plugin target (#144)
+- `dangerous-actions` PreToolUse matcher narrowed to Bash and MCP calls across every IDE hook template; file writes and edits are no longer matched
+- `--deterministic-hooks` now defaults to false regardless of the release descriptor (FR-CLI-0012)
+- Four rule files deleted (420 lines): prompt, requirements, requirements-use, and coding-iac best-practices, all already covered by the matching skills
+- `disable-model-invocation` and `user-invocable` frontmatter flags dropped across every skill
+- New `help-flow` workflow replaces the deprecated `self-help-flow`; `adhoc-flow` simplified so the session execution controller is size-dependent instead of mandatory
+- Bootstrap: the todo-ledger rule promoted into core policies; `coding-flow` discovery now triggers on ambiguity rather than task size
+- Per-package CI for rosettify, rosettify-plugins, rosettify-prompts, and curiocity; `run-tests.sh` and `validate-types.sh` moved under `src/`
+- Package versions aligned on 3.x: rosetta-mcp-server 3.0.0, rosettify 3.1.0, rosettify-plugins 3.1.0
+- New `collect-github-stats` skill with the first repo snapshot; tech demo video back in the README; marketplace 2.0.17 renames the `core` plugin to `rosetta`
+- A Rosetta security skill was proposed in `docs/stories/security-proposal.md` — design only, nothing shipped
 - Versioning model: R3 is the final numbered release — changes now ship as incremental updates within `r3`, not as new release folders
 
-#### R3 becomes the served release
+#### R3 published (#130)
 
-- **Change.** `[Server]` Flipped the served release to R3 — the MCP server now defaults to `VERSION=r3` and serves the `aia-r3` dataset, with `aia-r2` retained as the previous release for N-1 support. `verify_mcp.py` was retargeted to r3 (`VERSION=r2` still runs when validating backports). (Igor Solomatov)
-- **Why it helps.** Teams pulling instructions now get the R3 model by default — lean always-on bootstrap plus on-demand skills — while R2 consumers keep working during migration.
+- **Change.** `[R3]` Merged the release-cutover batch that had been staged on `on-v3-release`. The self-hosted MCP server dropped its five write/state tools (`submit_feedback`, `query_project_context`, `store_project_context`, `discover_projects`, `plan_manager`) and their whole dependency graph, leaving exactly 3 read-only tools (`get_context_instructions`, `query_instructions`, `list_instructions`) plus one resource reader. The primary Python package was renamed `ims-mcp-server`/`ims_mcp` → `rosetta-mcp-server`/`rosetta_mcp`, with `ims-mcp-server` kept as a thin alias; `rosetta-cli` internals followed (`ims_auth` → `rosetta_auth`, `ims_config` → `rosetta_config`, and so on). `[Server]` The server now defaults to `VERSION=r3` and serves the `aia-r3` dataset, with `aia-r2` retained for N-1 support; `verify_mcp.py` was retargeted to r3 (`VERSION=r2` still runs when validating backports). `[Docs]` Documentation was restructured so plugins are the recommended, no-server install path and MCP is explicitly secondary — hosted MCP is marked evaluation-only, and MCP-specific content moved into `docs/MCP-ARCHITECTURE.md`, `docs/MCP-CONTEXT.md`, and a `docs/mcp/` folder. R1 was retired and R2 moved to support-only across docs vocabulary. (Igor Solomatov)
+- **Why it helps.** A shared instructions server that can also be written to is a real risk; read-only removes it. Teams pulling instructions now get the R3 model by default — lean always-on bootstrap plus on-demand skills — while R2 consumers keep working during migration. Steering users to plugins first also keeps production traffic off a demo-only hosted endpoint.
 
-#### Plugins and generator on r3
+#### `specs`: requirements as data, not markdown
 
-- **Change.** `[Tooling]` Plugins are now generated from `instructions/r3/core`; `pre_commit.py` pins `npx -y rosettify-plugins@latest --release r3 --deterministic-hooks false`, so shipped plugins carry the SessionStart bootstrap only, with deterministic advisory hooks available via the generator flag. `rosettify-plugins` was bumped to 1.0.10 and now defaults to `--release r3`. (Igor Solomatov)
-- **Why it helps.** Editing `instructions/r3/core` and committing regenerates every plugin from the current release automatically; r2 stays reachable via `--release r2` for backports.
+- **Change.** `[Tooling]` Added `npx rosettify specs`, a new command that stores requirements as AI-native JSON instead of hand-edited markdown. One document per component, 17 subcommands (`add`, `update`, `get`, `query`, `approve`, `deprecate`, `implemented`, `reopen`, `delete`, `restore`, `purge`, `graph`, `render`, `validate`, `migrate`, `rubric`, `info`), each spec unit carrying structured given/when/then acceptance criteria, MoSCoW priority, verification method, and actor-stamped status history. `depends_on` edges are walked and kept acyclic; `render` produces the human-readable view on demand, so there is no markdown mirror to drift. Backed by an 826-line requirement spec (`docs/requirements/rosettify/SPECS.md`) and roughly 5,000 lines of tests. Shipped in rosettify 3.1.0. (Igor Solomatov)
+- **Why it helps.** The `requirements-authoring` skill owns human judgment — intent capture, EARS phrasing, per-unit approval. What it lacked was a mechanical engine underneath: agents were hand-editing XML blocks in markdown, where duplicate identifiers, dangling dependencies, and incomplete acceptance criteria are invisible until someone reads carefully. Those are now machine-checkable, and batch edits stop being a text-surgery exercise.
 
-#### Docs and website resync
+#### Google Antigravity: the seventh target (#143, #144)
 
-- **Change.** `[Docs]` Resynced the knowledge dump (`llms-full.txt`), changelog, patterns, code map, tech stack, and definitions to describe R3 as the current release and R2 as the previous release receiving backports only. (Igor Solomatov)
-- **Why it helps.** The front-door and agent-facing docs now state current truth, so agents and readers stop treating R2 as the default.
+- **Change.** `[Hooks]` Added a Google Antigravity hook adapter covering all three surfaces — Antigravity 2.0, CLI, and IDE — with its own event mapping, IDE registry row, e2e suite, and captured session logs under `docs/hooks/` (#143). `[Tooling]` Added `core-antigravity`, a single combined plugin serving all three surfaces (#144). Antigravity has no workflow concept, so the generator maps workflows to skills (phases under `phases/`, with phase references rewritten), reduces skill and agent frontmatter to `name` + `description`, sets `subagent_required_model` to `inherit`, and emits an Antigravity-schema-compliant `plugin.json`. The obsolete `configure/antigravity.md` was rewritten from current vendor docs. (Igor Solomatov)
+- **Why it helps.** Antigravity users now get the same instruction set as Claude Code, Cursor, Copilot, and Codex users, instead of MCP-only integration. The other six plugin targets came out byte-identical apart from the shared hook-matcher change below, which is the evidence that the generator absorbed a new target without special-casing the existing ones.
+
+#### Hook defaults narrowed
+
+- **Change.** `[Hooks]` The `dangerous-actions` PreToolUse matcher went from `Bash|Write|Edit|MultiEdit|mcp__.*` to `Bash|mcp__.*` across every IDE hook template, so the gate no longer fires on file writes and edits. `[Tooling]` `--deterministic-hooks` now defaults to false regardless of what the release descriptor says (FR-CLI-0012). (Igor Solomatov)
+- **Why it helps.** The gate exists to catch destructive commands. Firing it on ordinary file edits was noise, which trains agents to stop reading the output.
+
+#### Instruction slimming and workflow tuning
+
+- **Change.** `[R3]` Deleted four rule files totalling 420 lines — `prompt-best-practices`, `requirements-best-practices`, `requirements-use-best-practices`, and `coding-iac-best-practices` — whose content already lives in the corresponding skills. Dropped the `disable-model-invocation` and `user-invocable` frontmatter flags from every skill. Added `help-flow`, replacing the now-deprecated `self-help-flow`. Simplified `adhoc-flow` so the session execution controller is engaged by task size rather than always. Promoted the todo-ledger rule from a separate `<tasks>` block into `bootstrap-alwayson`'s core policies, and added a line requiring questions to lead with the main question. Retuned workflows from live testing: `coding-flow`'s discovery phase now triggers on ambiguity instead of task size, its design phase became three explicit steps, and the AQA flows now say to answer from code or MCP before asking. (Igor Solomatov)
+- **Why it helps.** Four rules restating what a skill already says is four places to keep in sync and four chances for them to disagree. The frontmatter flags were carried per skill but never varied. Size-gated discovery was the wrong trigger — a one-line request can still be ambiguous, and a large one can be perfectly clear.
+
+#### Tooling, CI, and docs
+
+- **Change.** `[CI]` Added per-package CI workflows for rosettify, rosettify-plugins, rosettify-prompts, and curiocity, and moved `run-tests.sh`/`validate-types.sh` under `src/`. `[Tooling]` Aligned package versions on 3.x: rosetta-mcp-server 3.0.0, rosettify 3.1.0, rosettify-plugins 3.1.0. `[Docs]` Added a `collect-github-stats` skill plus the first repo snapshot in `docs/github-stats.json` — the script append-merges, because GitHub's traffic API only keeps a 14-day rolling window and deleted history is unrecoverable. Trimmed the README, quickstart, and website introduction, restored the tech demo video in the README, and bumped the marketplace to 2.0.17, which renames the installed plugin from `core` to `rosetta`. Resynced `llms-full.txt`, patterns, code map, tech stack, and definitions to R3-current. (Igor Solomatov)
+- **Why it helps.** Each package's tests now run on its own changes instead of riding one shared script. Aligned versions mean a reported version number identifies the release without a lookup table. The stats snapshot starts a history that the GitHub API itself will not keep, and the plugin rename matches what users actually call it.
 
 ### Week Mon 13.07 – Sun 19.07
 

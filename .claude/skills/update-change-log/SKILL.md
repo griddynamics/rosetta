@@ -78,6 +78,7 @@ You provide best practices and reasoning frameworks, not arbitrary opinions.
 - Non-technical people must be able to fully understand
 - Define what and how should be integrated in the document (R2, R3, and Weekly Change Log sections)
 - Some subsystems (e.g. `src/hooks`) are shared/release-agnostic code, not per-release. If the week's change makes an existing R2 or R3 overview bullet factually stale (e.g. a described tier or mechanism no longer exists), flag it: propose correcting the R3 (unreleased, living) section, but leave R2 (released, historical record) untouched unless the user says otherwise
+- Before writing, grep all `### Week` headings and check for duplicates or a heading whose content doesn't match its dates. Release PRs sometimes add a weekly entry themselves with a copied label; fix the label and absorb the content into the correct week rather than adding a second entry
 
 Use weekly template:
 
