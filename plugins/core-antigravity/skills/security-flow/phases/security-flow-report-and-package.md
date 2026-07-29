@@ -1,6 +1,6 @@
 ---
 name: security-flow-report-and-package
-description: "Phase 7 Report and Package of security-flow"
+description: "Phase 8 Report and Package of security-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -15,7 +15,7 @@ Produce sanitized review artifacts and concise remediation inputs.
 </description_and_purpose>
 
 <workflow_context>
-Phase 7. Final security phase; never starts downstream remediation.
+Phase 8. Final security phase; never starts downstream remediation.
 </workflow_context>
 
 <phase_steps>
@@ -25,7 +25,7 @@ Phase 7. Final security phase; never starts downstream remediation.
 4. Emit concise task files
 </phase_steps>
 
-<prepare_package step="7.1" subagent="engineer" role="Security reporter and remediation-input designer" subagent_required_model="inherit">
+<prepare_package step="8.1" subagent="engineer" role="Security reporter and remediation-input designer" subagent_required_model="inherit">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security` for report, run, finding, remediation-task, and task-INDEX contracts.
@@ -35,14 +35,15 @@ Phase 7. Final security phase; never starts downstream remediation.
 6. Never group by file, folder, repository, component, or location.
 7. Recommend membership, splits, priority, dependencies, order, and one-shot boundaries.
 8. Draft `tasks/INDEX.md`; do not create task files yet.
+9. Update `security-flow-state.md`.
 
 </prepare_package>
 
-<index_hitl step="7.2">
-The executing agent must USE SKILL `hitl` to present the INDEX recommendation and tradeoffs. Require explicit approval or amendments.
-</index_hitl>
+<index_handoff step="8.2">
+Return the drafted INDEX marked pending-approval, with grouping rationale and tradeoffs. The orchestrator runs the approval gate with the user.
+</index_handoff>
 
-<emit_tasks step="7.3" subagent="engineer" role="Concise coding-flow request author" subagent_required_model="inherit">
+<emit_tasks step="8.3" subagent="engineer" role="Concise coding-flow request author" subagent_required_model="inherit">
 
 1. Apply approved grouping exactly.
 2. Emit one concise `tasks/<task-id>.md` per one-shot group.
@@ -50,7 +51,9 @@ The executing agent must USE SKILL `hitl` to present the INDEX recommendation an
 4. Record dependencies; never execute them.
 5. With storage approval, write under `docs/security/<run-id>/`.
 6. Otherwise return sanitized artifacts without committing.
-7. Remove temporary raw scanner output after finalization.
+7. Keep raw scanner output in `docs/security/<run-id>/raw/`; never commit it.
+8. Ask the user to review and commit; never commit or delete on their behalf.
+9. Update `security-flow-state.md`.
 
 </emit_tasks>
 
@@ -59,7 +62,7 @@ The executing agent must USE SKILL `hitl` to present the INDEX recommendation an
 - Mark unverified claims as unverified.
 - Prepare only the minimum sanitized report and task package.
 - Require a new clean deterministic run after separate remediation.
-- Do not perform phases 3-6 retrospectively.
+- Do not re-run modeling, inspection, normalization, or independent review retrospectively.
 </deterministic_high_branch>
 
 <validation_checklist>

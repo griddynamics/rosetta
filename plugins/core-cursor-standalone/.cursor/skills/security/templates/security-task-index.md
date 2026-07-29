@@ -14,6 +14,8 @@ Status: Proposed — requires user approval before handoff.
 
 ## Approval
 
+Records the approval gate's outcome only; never fill it unless approval actually occurred.
+
 - Approved/amended by:
 - Time:
 - Amendments:

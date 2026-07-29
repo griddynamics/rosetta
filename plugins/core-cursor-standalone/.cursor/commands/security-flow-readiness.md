@@ -1,6 +1,6 @@
 ---
 name: security-flow-readiness
-description: "Phase 0 Readiness of security-flow"
+description: "Phase 1 Readiness of security-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -15,7 +15,7 @@ Establish minimal context and gate secret-bearing files before model source inge
 </description_and_purpose>
 
 <workflow_context>
-Phase 0. Mandatory `executor`; bounded metadata and commands only.
+Phase 1. Mandatory `executor`; bounded metadata and commands only.
 </workflow_context>
 
 <phase_steps>
@@ -25,7 +25,7 @@ Phase 0. Mandatory `executor`; bounded metadata and commands only.
 4. Return gate decision
 </phase_steps>
 
-<execute_readiness step="0.1" subagent="executor" role="Bounded readiness and secret-gate operator" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
+<execute_readiness step="1.1" subagent="executor" role="Bounded readiness and secret-gate operator" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security`.
@@ -36,15 +36,18 @@ Phase 0. Mandatory `executor`; bounded metadata and commands only.
 7. Otherwise USE SKILL `security` for its filename-only fallback.
 8. Return affected filenames only, never matches or content.
 9. Classify environment from approved metadata, not file values.
+10. Update `security-flow-state.md`.
 
 </execute_readiness>
 
-<gate step="0.2">
+<gate step="1.2">
+
+Return exactly one token:
 
 - No candidate files: PASS.
-- DEV/QA only: NEEDS-HITL; recommend exclusions.
+- DEV/QA envs only: NEEDS-HITL; recommend exclusions.
 - Above-QA or ambiguous: STOP-HIGH-RISK.
-- Scanner unusable: STOP; do not ingest source.
+- Scanner unusable or scanner exit 2: STOP-SCANNER-UNUSABLE; do not ingest source.
 
 </gate>
 

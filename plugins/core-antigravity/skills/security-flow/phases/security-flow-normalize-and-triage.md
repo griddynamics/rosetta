@@ -1,6 +1,6 @@
 ---
 name: security-flow-normalize-and-triage
-description: "Phase 5 Normalize and Triage of security-flow"
+description: "Phase 6 Normalize and Triage of security-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -15,7 +15,7 @@ Convert findings losslessly, then apply independent security judgment.
 </description_and_purpose>
 
 <workflow_context>
-Phase 5. Requires separate `executor` and `engineer` invocations.
+Phase 6. Requires separate `executor` and `engineer` invocations.
 </workflow_context>
 
 <phase_steps>
@@ -25,7 +25,7 @@ Phase 5. Requires separate `executor` and `engineer` invocations.
 4. Recommend dispositions and priority
 </phase_steps>
 
-<normalize step="5.1" subagent="executor" role="Lossless deterministic finding converter" subagent_required_model="inherit">
+<normalize step="6.1" subagent="executor" role="Lossless deterministic finding converter" subagent_required_model="inherit">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security` for its normalized-finding contract.
@@ -33,10 +33,11 @@ Phase 5. Requires separate `executor` and `engineer` invocations.
 4. Preserve source fields byte-for-byte where representable.
 5. Link evidence envelopes.
 6. Report conversion errors; never infer missing fields.
+7. Update `security-flow-state.md`.
 
 </normalize>
 
-<triage step="5.2" subagent="engineer" role="Security triager correlating evidence without loss" subagent_required_model="inherit">
+<triage step="6.2" subagent="engineer" role="Security triager correlating evidence without loss" subagent_required_model="inherit">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security`.
@@ -47,6 +48,7 @@ Phase 5. Requires separate `executor` and `engineer` invocations.
 7. Recommend P0-P3 using context.
 8. Explain every severity uplift/downgrade separately from source severity.
 9. Identify shared root cause and fix strategy.
+10. Update `security-flow-state.md`.
 
 </triage>
 

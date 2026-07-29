@@ -4,7 +4,7 @@
     "producer": "<tool-or-agent>",
     "source_id": "<unchanged>",
     "location": "<unchanged>",
-    "evidence_ref": "<unchanged>",
+    "evidence_ref": "<unchanged; carries the evidence envelope's evidence_id>",
     "severity": "<unchanged>",
     "rule": "<unchanged>"
   },

@@ -16,7 +16,11 @@ Candidate tools include OWASP ZAP, Burp Suite, Nuclei, and browser automation. V
 </tools>
 
 <safety>
-Never run active DAST against production. Bound identities, routes, methods, rates, payloads, duration, and stop conditions. Avoid destructive or persistent actions.
+Never run active DAST against production. Bound identities, routes, methods, rates, payloads, duration, and stop conditions. Prohibit destructive and persistent actions. Remove every artifact the test creates — uploaded files, stored payloads, test accounts — and retain cleanup proof.
 </safety>
+
+<evidence>
+Retain target/route identity, request/response class, payload class, control outcome, cleanup proof, and a bounded secret-free reproduction reference.
+</evidence>
 
 </security_web_dast>

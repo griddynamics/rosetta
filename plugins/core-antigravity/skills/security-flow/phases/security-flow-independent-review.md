@@ -1,6 +1,6 @@
 ---
 name: security-flow-independent-review
-description: "Phase 6 Independent Review of security-flow"
+description: "Phase 7 Independent Review of security-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -15,7 +15,7 @@ Independently challenge coverage, evidence, safety, and conclusions.
 </description_and_purpose>
 
 <workflow_context>
-Phase 6. Fresh `reviewer`; must not have produced reviewed artifacts.
+Phase 7. Fresh `reviewer`; must not have produced reviewed artifacts.
 </workflow_context>
 
 <phase_steps>
@@ -25,7 +25,7 @@ Phase 6. Fresh `reviewer`; must not have produced reviewed artifacts.
 4. Return required corrections
 </phase_steps>
 
-<review step="6.1" subagent="reviewer" role="Independent security evidence and coverage reviewer" subagent_required_model="inherit">
+<review step="7.1" subagent="reviewer" role="Independent security evidence and coverage reviewer" subagent_required_model="inherit">
 
 1. USE SKILL `subagent-directives`.
 2. USE SKILL `security`.
@@ -34,11 +34,12 @@ Phase 6. Fresh `reviewer`; must not have produced reviewed artifacts.
 5. Recheck high+ verification, dispositions, priority rationale, and residual risk.
 6. Return defects with severity, evidence, and required correction.
 7. Do not rewrite producing artifacts.
+8. Update `security-flow-state.md`.
 
 </review>
 
-<correction_gate step="6.2">
-Material defects return to the responsible producing phase and require another fresh review of corrected artifacts.
+<correction_gate step="7.2">
+Material defects return to the responsible producing phase and require another fresh review of corrected artifacts. Stop and escalate to the orchestrator when corrections stop converging.
 </correction_gate>
 
 <validation_checklist>

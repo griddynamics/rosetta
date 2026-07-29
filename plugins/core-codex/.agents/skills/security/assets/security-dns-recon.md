@@ -18,4 +18,8 @@ Prefer passive/local evidence. Candidate tools include dig, dnsx, subfinder, ama
 Ownership is a hard gate. Keep queries passive and bounded. Never expand from discovered names beyond approved domains.
 </safety>
 
+<evidence>
+Retain resolved record/name, authoritative source, delegation/DNSSEC observation, takeover or stale-service indicator, and the passive source reference.
+</evidence>
+
 </security_dns_recon>

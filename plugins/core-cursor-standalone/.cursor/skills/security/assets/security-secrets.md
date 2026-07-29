@@ -22,17 +22,21 @@ The filename-only fallback scanner MUST cover this floor:
 </secret_families>
 
 <handling>
-- Run before agent/model source ingestion.
-- Emit filenames only.
-- Never emit matches, lines, fragments, values, or file content.
-- No hits: continue.
-- DEV/QA hits: recommend exclusions; require approval.
-- Above-QA or ambiguous hits: stop, non-overridable.
-- When adding a family here, update and test the fallback scanner in the same change.
+1. Run the scanner before agent/model source ingestion.
+2. Emit filenames only.
+3. Never emit matches, lines, fragments, values, or file content.
+4. No hits: continue.
+5. DEV/QA-envs hits: recommend exclusions; require approval.
+6. Above-QA or ambiguous hits: stop, non-overridable.
+7. When adding a family here, update and test the fallback scanner in the same change.
 </handling>
 
 <tools>
-Prefer an approved local scanner configured for redaction-safe filename-only output. Otherwise READ SKILL FILE `assets/security-secret-scan.sh`.
+Prefer an approved local scanner configured for redaction-safe filename-only output. Otherwise APPLY SKILL FILE `assets/security-secret-scan.sh` against the approved roots. Exit 0: use the returned filename list. Exit 2: scanner unusable — stop; do not ingest source.
 </tools>
+
+<evidence>
+Return the scanner used, its exit status, the outcome, and the candidate filename list. Never return matches or content.
+</evidence>
 
 </security_secrets>
