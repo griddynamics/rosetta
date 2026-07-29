@@ -31,13 +31,13 @@ Questioning:
 
 Approval:
 
-11. Strict approval = explicit affirmative sentence: `Yes, I approve` · `Approve, the plan was reviewed`. Approve AND start an action → longer: `Yes, I reviewed the plan` · `Approve, the plan and specs were reviewed`.
-12. Short acks are NEVER approval: `ok` · `looks good` · `sure, go ahead` · 👍.
-13. High+ risk: pre-specify the EXACT sentence user must type (e.g. `Yes, I understand consequences`); tighten wording.
+11. Strict approval = explicit affirmative sentence: `Yes, I approve` · `Approve, the plan was reviewed` · similar.
+12. Short ambiguous acks or questions are NEVER approval: `ok` · `how it works?`.
+13. High+ risk: pre-specify the EXACT EXPLICIT sentence user must type (e.g. `Yes, I understand consequences`); tighten wording, keep short.
 14. Dangerous actions ALWAYS require explicit approval.
 15. Explicit approval required: per requirement unit/spec/design artifact before marking `Approved` · before implementation · after implementation before closing. Status `Draft` until approved. No next phase without it.
 16. Additional scope requires ADDITIONAL approval.
-17. By request size (sizing per `orchestration`): SMALL = HITL after specs; MEDIUM = full HITL; LARGE = full + major decisions.
+17. By request size (sizing per `orchestration`): SMALL = HITL after specs; MEDIUM = SMALL + phase HITL; LARGE = MEDIUM + any major decisions.
 18. Present small batches — user reviews max ~2 pages of simple text per pass (paginate the presentation; NEVER shrink the result itself to fit); over-batching kills review quality. TLDR first for long outputs.
 19. Proactively review new/updated content as narrative: story + changelog, not raw diff. Separate user-provided vs AI-inferred. USER may review via in-file comments.
 

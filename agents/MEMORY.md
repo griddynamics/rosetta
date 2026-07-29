@@ -7,6 +7,15 @@ Content: brief, grep-friendly, MECE across sections. Style: one-liner per entry,
 
 ## Preventive Rules
 
+### HITL Applies At Workflow Gates, Not Every Internal Mechanic [ACTIVE]
+Proceed through read-only discovery, analysis, delegation, retries, and draft refinement; ask only at the workflow's defined approval or material-risk gates.
+
+### Multi-File Patches Require Fresh Exact Context Per Target [ACTIVE]
+Before a multi-file patch, read each target's exact surrounding lines and split unrelated edits; one stale hunk otherwise rejects the entire patch.
+
+### Subagent Fork And Role Compatibility Must Be Resolved Before Dispatch [ACTIVE]
+Full-history forks cannot override `agent_type`; use a bounded/empty fork for a role override. Runtime role availability may be narrower than the advertised catalog, so use an untyped agent with the required role contract in its prompt when a named type is rejected.
+
 ### Fixing Someone's Artifact = Touch Only The Named Defect; Never Reword Their Notes Or Resolve Their Open Questions [ACTIVE]
 When asked to "fix issues/inconsistencies" in a user's artifact (diagram, doc, code), change ONLY the specific defects and preserve the author's wording, decided content, and especially their "to think/discuss"/open-question notes — verbatim. Their notes and questions are never mine to resolve or rephrase. A vague "fix it" is NOT license to rewrite in my voice or auto-resolve open questions; when scope is unclear do the minimal literal fix or ask, and never use `replace_all` on a shared label without confirming blast radius. Root cause: on a broad "fix inconsistencies" directive I rewrote the user's "To think/discuss" note and rephrased several diagram cells in my own words, mangling an un-versioned artifact. Rule: edit the named defect only; leave authored prose, notes, and questions untouched.
 

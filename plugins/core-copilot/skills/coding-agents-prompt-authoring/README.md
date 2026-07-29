@@ -8,7 +8,7 @@ Without this skill a capable model asked to "write a skill/agent/rule" drafts st
 User-invocable (`user-invocable: true`) and auto-activatable; primary executor is the `prompt-engineer` subagent (opus-tier), dispatched by `commands/coding-agents-prompting-flow.md` steps 2–7 (extract/intake, blueprint, draft, hardening, simulate, validate). `docs/stories/reduce-bootstrap.md` mandates it as required grounding whenever Rosetta authors or edits its own instructions. Trigger: author, refactor, review, edit, port, or migrate any skill/agent/subagent/workflow/rule/template/command/generic prompt. Subagent prerequisite: `bootstrap-alwayson.md` + dispatch prompt, `subagent-directives`, and task-needed skills.
 
 ## How it works
-SKILL.md: `<role>` (senior prompt-engineer persona) → `<when_to_use_skill>` → `<core_concepts>` (analyst-vs-target layering, prompt classification, actor boundaries, the READ/APPLY SKILL FILE routing list) → `<core_principles>` (SRP/DRY/KISS/YAGNI/MECE/MoSCoW/SMART) → `<resources>` (spec links + `pa-knowledge-base.md`) → `<templates>` (asset pointers).
+SKILL.md: `<role>` (senior prompt-engineer persona) → `<when_to_use_skill>` → `<core_concepts>` (analyst-vs-target layering, runtime skill/workflow/subagent model, prompt classification, actor boundaries, the READ/APPLY SKILL FILE routing list) → `<core_principles>` (SRP/DRY/KISS/YAGNI/MECE/MoSCoW/SMART) → `<resources>` (spec links + `pa-knowledge-base.md`) → `<templates>` (asset pointers).
 
 Routing list dispatches by task:
 - `pa-extract.md` (root tag `<reverse-engineer>`) — reverse-engineer requirements from an existing prompt
@@ -30,6 +30,7 @@ Assets (`<templates>`, READ SKILL FILE): `pa-prompt-brief.md` (XML brief: goals,
 Actors: user or orchestrator requests; `prompt-engineer` subagent executes internals through this skill; caller never sees this skill's internal reasoning.
 
 ## Mental hooks & unexpected rules
+- "Skill = reusable method; workflow = phase sequence + subagent assignments" — design what the future coding agent executes, then assign each phase to the canonical subagent prompt/model that fits it.
 - `<rosetta_overall_flow scope="Applies ONLY to Rosetta prompts itself, user may be authoring for other systems or projects">` (`pa-rosetta.md`) — one attribute is the master switch between Rosetta-only load-procedure/alias content and general-purpose prompt authoring for any other system.
 - "Analyst artifacts... vs target artifacts... are different layers, do not mix" / "Do not project analytical artifacts into generated target prompts" — brief/blueprint/change-log stay in the FEATURE PLAN folder; none of that reasoning may reach the delivered file.
 - "Skills can't call skills, Phase can't call phases, Subagents can't call subagents, Workflows can, and Rules can." — isolation is per-type, not uniform.

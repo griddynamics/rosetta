@@ -1,0 +1,42 @@
+{
+  "run_id": "<run-id>",
+  "started_at": "<ISO-8601>",
+  "finished_at": "<ISO-8601>",
+  "scope": {
+    "targets": ["<target>"],
+    "environment": "<environment>",
+    "exclusions": ["<exclusion>"],
+    "approval_ref": "<approval-ref>"
+  },
+  "policy": {
+    "activities": ["<activity>"],
+    "active_test_bounds": ["<bound>"],
+    "stop_conditions": ["<condition>"],
+    "storage_approved": "<true|false>"
+  },
+  "tools": [{
+    "name": "<tool>",
+    "version": "<version>",
+    "invocation_verified_at": "<ISO-8601>",
+    "license_category": "<category>",
+    "execution": "<local|network|saas|recommendation-only>",
+    "credentials": "<none-or-mechanism>",
+    "data_flow": "<description>"
+  }],
+  "statistics": {
+    "source_findings": 0,
+    "normalized_findings": 0,
+    "confirmed": 0,
+    "unverified": 0,
+    "false_positive": 0,
+    "accepted_risk": 0,
+    "suppressed": 0,
+    "fixed": 0,
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 0
+  },
+  "raw_output_disposition": "<removed-at-or-path>",
+  "limitations": ["<limitation>"]
+}

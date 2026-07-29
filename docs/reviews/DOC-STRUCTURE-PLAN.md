@@ -14,7 +14,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 | File | One-line job | Serves | Profile |
 |---|---|---|---|
 | `README.md` | Orientation + route to the right doc. | Anyone landing on the repo. | Front door (all) |
-| `ELEVATOR_SPEECH.md` | 30-second pitch for the unconvinced. | Someone asked "what is Rosetta?" in a hallway. | User |
+| `ELEVATOR_PITCH.md` | 30-second pitch for the unconvinced. | Someone asked "what is Rosetta?" in a hallway. | User |
 | `QUICKSTART.md` | Fastest path to a working setup. | A user who decided to try it. | User |
 | `INSTALLATION.md` | Complete setup reference, all modes and transports. | A user or org with a non-default setup. | User + Organization |
 | `PLUGINS.md` | Plugin install path, per IDE. Recommended default; never mentions MCP. | Users on the plugin install route (nearly everyone). | User |
@@ -47,7 +47,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** one-paragraph what-it-is, the value proposition in brief, the routing table ("I want to… → read X"), community/license pointers.
 - **Structure:** badges/hero → one-line what-it-is → value proposition → Quick Start teaser (links out) → "I want to… → read X" routing table → who-it's-for → community/license.
 - **Excludes:** full install steps (→ QUICKSTART/INSTALLATION), mental model and concepts (→ OVERVIEW), workflow how-tos (→ USAGE_GUIDE).
-- **Sources:** ELEVATOR_SPEECH + OVERVIEW (value prop), the live doc set (routing table), PyPI badges (`rosetta-mcp`, `rosetta-cli`).
+- **Sources:** ELEVATOR_PITCH + OVERVIEW (value prop), the live doc set (routing table), PyPI badges (`rosetta-mcp`, `rosetta-cli`).
 
 ### OVERVIEW.md
 - **Profile:** Contributor.
@@ -56,7 +56,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Owns:** problem statement, core mental model, key concepts/terminology, session lifecycle, the "what Rosetta does not do" boundary.
 - **Structure:** problem statement → core mental model → key concepts/terminology → session lifecycle → "what Rosetta does not do".
 - **Excludes:** install/setup steps (→ INSTALLATION/QUICKSTART), per-workflow how-tos (→ USAGE_GUIDE), code-level internals (→ ARCHITECTURE/DEVELOPER_GUIDE).
-- **Sources:** ELEVATOR_SPEECH (why), `workflows/` + `skills/` (concepts/terminology), ARCHITECTURE (session lifecycle).
+- **Sources:** ELEVATOR_PITCH (why), `workflows/` + `skills/` (concepts/terminology), ARCHITECTURE (session lifecycle).
 
 ### docs/CONTEXT.md
 - **Profile:** Contributor.
@@ -76,7 +76,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Excludes:** general business case (→ CONTEXT), technical internals (→ MCP-ARCHITECTURE), deployment steps (→ docs/mcp/DEPLOYMENT_GUIDE).
 - **Sources:** CONTEXT.md's opt-in-feature bullet, MCP-ARCHITECTURE.md, DEPLOYMENT_GUIDE.md.
 
-### ELEVATOR_SPEECH.md
+### ELEVATOR_PITCH.md
 - **Profile:** User.
 - **Audience:** an unconvinced colleague who asked in passing.
 - **Answers:** "Why does this exist, in 30 seconds?"
@@ -264,7 +264,7 @@ flowchart TD
     README["README<br/>front door + routing"]
 
     subgraph USER["User — use Rosetta"]
-        ELEV["ELEVATOR_SPEECH"]
+        ELEV["ELEVATOR_PITCH"]
         QS["QUICKSTART"]
         PLUG["PLUGINS<br/>(recommended)"]
         MCP["MCPs<br/>(optional, secondary)"]

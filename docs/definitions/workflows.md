@@ -12,5 +12,6 @@
 - coding-agents-prompting-flow
 - self-help-flow
 - coding-flow
+- security-flow
 - requirements-authoring-flow
 - testgen-flow

@@ -15,7 +15,7 @@
 - technical-summarization (not yet)
 - review (not yet)
 - design (not yet)
-- security (not yet)
+- security
 - simulation (not yet)
 - backward-compatibility (not yet)
 - data-generation (not yet)

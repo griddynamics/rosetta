@@ -14,6 +14,7 @@ All paths are relative to Rosetta Plugin Path.
 - `skills/modernization-flow/SKILL.md`: "Workflow for converting, modernizing, upgrading, or re-architecting code (e.g. C++→Java, monolith→microservices), etc."
 - `skills/requirements-authoring-flow/SKILL.md`: "Workflow for authoring requirements and specifications: drafting, review, validation, etc."
 - `skills/research-flow/SKILL.md`: "Workflow for deep project research with grounded references, parallel exploration, etc."
+- `skills/security-flow/SKILL.md`: "Workflow for authorized, evidence-preserving security review and remediation-task preparation."
 - `skills/self-help-flow/SKILL.md`: "Rosetta self-help: explains capabilities and usage. DEPRECATED."
 - `skills/testgen-flow/SKILL.md`: "Workflow for generating test cases from requirements (Issue Tracker / Wiki sources), exporting to a Test Management System, etc."
 - `skills/ui-aqa-flow/SKILL.md`: "Workflow for automated QA: integration and end-to-end UI test automation, page objects, etc."
