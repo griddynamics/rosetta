@@ -86,7 +86,9 @@ Instructions never call MCP tools directly. Rosetta defines command aliases that
 | `USE SKILL <name>` / `READ SKILL <name>` | Activate skill (loads `SKILL.md`, acts on it) / load content only |
 | `READ SKILL FILE <subpath>` / `APPLY SKILL FILE <subpath>` | Load / load+execute a file of the CURRENT skill; never names a skill (isolation is grammar-enforced) |
 | `USE FLOW <name>.md` / `READ FLOW <name>.md` | Invoke a whole workflow / load without executing |
-| `APPLY PHASE <file>.md` | Load + fully execute the next phase body of a running workflow |
+| `APPLY PHASE <file>.md` / `APPLY PHASE <file>.md STEP <names/ids>` | Load + fully execute the next phase body of a running workflow / execute only the named step blocks |
+| `USE FLOW <flow>.md TO APPLY PHASE <phase>.md` | Activate the flow's prerequisites and policy, then execute only that phase |
+| `INVOKE SUBAGENT <name> to APPLY PHASE <file>.md` | Spawn the subagent and have it execute the phase under its assigned identity |
 | `INVOKE SUBAGENT <name>` / `READ SUBAGENT <name>` | Spawn subagent / load its definition only |
 | `READ RULE <file>.md` / `APPLY RULE <file>.md` | Load / load+execute a rule |
 | `READ TEMPLATE <file>.md` | Load a template |

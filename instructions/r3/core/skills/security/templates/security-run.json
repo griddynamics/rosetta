@@ -28,8 +28,8 @@
     "normalized_findings": 0,
     "confirmed": 0,
     "unverified": 0,
-    "false_positive": 0,
-    "accepted_risk": 0,
+    "false-positive": 0,
+    "accepted-risk": 0,
     "suppressed": 0,
     "fixed": 0,
     "p0": 0,
@@ -37,6 +37,6 @@
     "p2": 0,
     "p3": 0
   },
-  "raw_output_disposition": "<removed-at-or-path>",
+  "raw_output_disposition": "<uncommitted-raw-path; awaiting user review and commit>",
   "limitations": ["<limitation>"]
 }

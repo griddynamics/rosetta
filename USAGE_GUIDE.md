@@ -171,18 +171,18 @@ Runs an authorized, evidence-preserving security review and prepares concise rem
 
 **Phases:**
 
-0. Readiness — inventory limited metadata and available tools, then run a filename-only secret gate before any target content enters model context
-1. Authorize — recommend scope, environment, exclusions, activities, tools, data flows, limits, and stop conditions for explicit approval
-2. Deterministic gates — for development, change, PR, and pipeline reviews, run approved local gates and preserve their source records unchanged
-3. Model and select — build a threat model and map every applicable, available, authorized activity and tool to planned evidence
-4. Inspect and test — inspect coherent security-area bundles and run only approved activities; active testing is bounded to pre-production
-5. Normalize and triage — convert findings losslessly, correlate without deleting source records, verify material findings, and group related fixes by shared strategy
-6. Independent review — a fresh reviewer challenges coverage, evidence, safety, certainty, and prioritization
-7. Report and package — sanitize the report and findings, obtain approval for the task index, and emit concise later-coding inputs
+1. Readiness — inventory limited metadata and available tools, then run a filename-only secret gate before any target content enters model context
+2. Authorize — recommend scope, environment, exclusions, activities, tools, data flows, limits, and stop conditions for explicit approval
+3. Deterministic gates — for development, change, PR, and pipeline reviews, run approved local gates and preserve their source records unchanged
+4. Model and select — build a threat model and map every applicable, available, authorized activity and tool to planned evidence
+5. Inspect and test — inspect coherent security-area bundles and run only approved activities; active testing is bounded to pre-production
+6. Normalize and triage — convert findings losslessly, correlate without deleting source records, verify material findings, and group related fixes by shared strategy
+7. Independent review — a fresh reviewer challenges coverage, evidence, safety, certainty, and prioritization
+8. Report and package — sanitize the report and findings, obtain approval for the task index, and emit concise later-coding inputs
 
-**Expect:** eight canonical-subagent phases. The orchestrating agent reads only `security-flow.md`; it dispatches each applicable phase with the exact `INVOKE SUBAGENT <name>` to `APPLY PHASE <file>.md` contract, while detailed phase files remain assigned-subagent-only. Every declared subagent is mandatory, and full agents run their own approved tools rather than treating `executor` as a universal gateway.
+**Expect:** eight canonical-subagent phases after prerequisites. The orchestrating agent reads only `security-flow.md`; it dispatches each applicable phase with the exact `INVOKE SUBAGENT <name>` to `APPLY PHASE <file>.md` contract, scoping repeated dispatches with `STEP`, while detailed phase files remain assigned-subagent-only. Every declared subagent is mandatory, and full agents run their own approved tools rather than routing them through a bounded mechanical role.
 
-The secret gate returns filenames only, never matches or values. DEV/QA candidate files require explicit approval after recommended exclusions. Candidate files from above-QA or ambiguous environments stop the review and cannot be overridden. Active testing is permitted only on explicitly approved pre-production targets; production active testing is prohibited.
+The secret gate returns filenames only, never matches or values. Candidate files in DEV/QA envs require explicit approval after recommended exclusions. Candidate files from above-QA or ambiguous environments stop the review and cannot be overridden. Active testing is permitted only on explicitly approved pre-production targets; production active testing is prohibited.
 
 With storage approval, sanitized artifacts are written under `docs/security/<run-id>/`. Task files are grouped by remediation area plus shared root cause or fix strategy, not by repository location. They are concise inputs for a later user-invoked coding flow; the security capability never invokes, coordinates, monitors, or validates remediation.
 

@@ -41,11 +41,12 @@ All invocation inputs are optional: authorized scope, workspace context, availab
 
 1. Run before agent/model source ingestion.
 2. Prefer an approved redaction-safe local scanner.
-3. Otherwise READ SKILL FILE `assets/security-secret-scan.sh`.
-4. Accept filenames only; never request matches.
-5. No hits: continue.
-6. DEV/QA hits: do not read values; recommend exclusions; require approval.
-7. Above-QA or ambiguous hits: stop, non-overridable.
+3. Otherwise APPLY SKILL FILE `assets/security-secret-scan.sh` against the approved roots.
+4. Exit 0: use the returned filename list. Exit 2: scanner unusable — stop; do not ingest source.
+5. Accept filenames only; never request matches.
+6. No hits: continue.
+7. DEV/QA-envs hits: do not read values; recommend exclusions; require approval.
+8. Above-QA or ambiguous hits: stop, non-overridable.
 
 READ SKILL FILE `assets/security-secrets.md` for secret families and handling.
 
@@ -66,6 +67,7 @@ Recommend enterprise-safe targets, environment, exclusions, coverage, limits, st
 
 <overall_flow>
 
+0. Prerequisites — load context and skills; keep run state.
 1. Readiness — inventory metadata/tools; gate secret-bearing files.
 2. Authorize — recommend scope/bounds; obtain user approval.
 3. Deterministic gates — lifecycle high+ → prepare tasks and stop.
@@ -95,8 +97,6 @@ Before relying on a tool, verify and record invocation, version, supported targe
 - Record disposition reason, actor/approver, time, and review/expiry.
 - Recommend P0-P3 contextually; explain uplifts and downgrades.
 
-READ SKILL FILE `templates/security-finding.json` and `templates/security-evidence-envelope.json`.
-
 </finding_integrity>
 
 <outputs>
@@ -111,9 +111,15 @@ With storage approval, write sanitized artifacts under `docs/security/<run-id>/`
 
 Group tasks by remediation area plus shared root cause/fix strategy, never by location. One task file is one concise, one-shot input for a later user-invoked coding session. Never invoke, coordinate, monitor, or validate remediation.
 
-Without storage approval, return sanitized results without committing artifacts. Keep raw scanner output temporary and outside version control; remove it after report finalization.
+Without storage approval, return sanitized results without committing artifacts. Keep raw scanner output under `docs/security/<run-id>/raw/`; never commit it. Ask the user to review and commit; never commit or delete on their behalf.
 
 </outputs>
+
+<templates>
+
+READ SKILL FILE `templates/security-report.md`, `templates/security-run.json`, `templates/security-finding.json`, `templates/security-evidence-envelope.json`, `templates/security-threat-model.md`, `templates/security-task-index.md`, `templates/security-remediation-task.md`.
+
+</templates>
 
 <asset_routing>
 
@@ -141,7 +147,7 @@ Without storage approval, return sanitized results without committing artifacts.
 
 <pitfalls>
 
-- Treating executor as a tool gateway.
+- Routing a full agent's own tool work through a bounded mechanical role.
 - Grouping tasks by repository layout.
 - Downgrading source severity silently.
 - Calling unverified tools operational.

@@ -81,43 +81,44 @@ Rosetta separates orchestration from phase execution:
 - Full agents use the tools required by their own bounded assignment. `executor` performs only bounded mechanical or noisy work and is not a universal tool gateway.
 - The reusable `security` skill supplies shared safety, tool, evidence, finding, and output contracts.
 
-The flow has eight canonical-subagent phases numbered 0 through 7. Phase 2 applies to development, change, PR, and pipeline reviews. A deterministic high-severity result follows its defined short branch to reporting and packaging; it does not retrospectively execute phases 3 through 6.
+After prerequisites (phase 0), the flow has eight canonical-subagent phases numbered 1 through 8. Deterministic gates (phase 3) applies to development, change, PR, and pipeline reviews. A deterministic high-severity result follows its defined short branch to reporting and packaging; it does not retrospectively run modeling, inspection, normalization, or independent review.
 
 ## Workflow At A Glance
 
 | Phase | Canonical subagent | What happens | Main gate or result |
 |---|---|---|---|
-| 0. Readiness | `executor` | Inventory limited metadata and tools; run the filename-only secret gate | `PASS`, `NEEDS-HITL`, or non-overridable `STOP-HIGH-RISK` |
-| 1. Authorize | `engineer` | Recommend scope, exclusions, activities, tools, data flows, bounds, and stop conditions | Explicit user approval or amendment |
-| 2. Deterministic gates | `executor` | Run approved local lifecycle gates and preserve source findings unchanged | `HIGH+`, `CLEAN`, or `ERROR` |
-| 3. Model and select | `architect` | Threat-model the target and map complete authorized coverage | Every applicable area included or justified |
-| 4. Inspect and test | `engineer` | Run bounded area bundles and capture evidence | Every planned area has evidence or a limitation |
-| 5. Normalize and triage | `executor`, then `engineer` | Convert losslessly, correlate, verify, disposition, and prioritize | Source records reconcile; high+ status remains explicit |
-| 6. Independent review | fresh `reviewer` | Challenge coverage, evidence, safety, certainty, and priority | Acceptance or required corrections and rereview |
-| 7. Report and package | `engineer` | Sanitize outputs, propose fix-similarity groups, obtain INDEX approval, emit tasks | Approved report and later-coding task package |
+| 1. Readiness | `executor` | Inventory limited metadata and tools; run the filename-only secret gate | `PASS`, `NEEDS-HITL`, non-overridable `STOP-HIGH-RISK`, or `STOP-SCANNER-UNUSABLE` |
+| 2. Authorize | `engineer` | Recommend scope, exclusions, activities, tools, data flows, bounds, and stop conditions | Explicit user approval or amendment |
+| 3. Deterministic gates | `executor` | Run approved local lifecycle gates and preserve source findings unchanged | `HIGH+`, `CLEAN`, or `ERROR` |
+| 4. Model and select | `architect` | Threat-model the target and map complete authorized coverage | Every applicable area included or justified |
+| 5. Inspect and test | `engineer` | Run bounded area bundles and capture evidence | Every planned area has evidence or a limitation |
+| 6. Normalize and triage | `executor`, then `engineer` | Convert losslessly, correlate, verify, disposition, and prioritize | Source records reconcile; high+ status remains explicit |
+| 7. Independent review | fresh `reviewer` | Challenge coverage, evidence, safety, certainty, and priority | Acceptance or required corrections and rereview |
+| 8. Report and package | `engineer` | Sanitize outputs, propose fix-similarity groups, obtain INDEX approval, emit tasks | Approved report and later-coding task package |
 
 ## Workflow Overview
 
 ```mermaid
 flowchart TD
-    A["Security review request"] --> B["0. Readiness<br/>metadata and filename-only secret gate"]
+    A["Security review request"] --> B["1. Readiness<br/>metadata and filename-only secret gate"]
     B --> C{"Gate state"}
-    C -- "DEV/QA candidates" --> D["Recommend exclusions<br/>request explicit approval"]
+    C -- "DEV/QA envs candidates" --> D["Recommend exclusions<br/>request explicit approval"]
     C -- "Above-QA or ambiguous candidates" --> X["Stop — non-overridable"]
-    C -- "Pass" --> E["1. Authorize<br/>recommend run contract"]
+    C -- "Scanner unusable" --> X
+    C -- "Pass" --> E["2. Authorize<br/>recommend run contract"]
     D -- "Approved" --> E
     E --> F{"Run contract approved"}
     F -- "No" --> E
-    F -- "Yes" --> G["2. Deterministic gates<br/>when lifecycle-applicable"]
+    F -- "Yes" --> G["3. Deterministic gates<br/>when lifecycle-applicable"]
     G --> H{"Gate result"}
-    H -- "High+" --> N["7. Minimal report and task package"]
-    H -- "Error" --> Y["Stop or approve revised plan"]
-    H -- "Clean or not applicable" --> I["3. Threat model and coverage plan"]
-    I --> J["4. Bounded inspection and testing"]
-    J --> K["5. Lossless normalization and triage"]
-    K --> L["6. Independent review"]
+    H -- "High+" --> N["8. Minimal report and task package"]
+    H -- "Error" --> Y["Stop and report the tool error"]
+    H -- "Clean or not applicable" --> I["4. Threat model and coverage plan"]
+    I --> J["5. Bounded inspection and testing"]
+    J --> K["6. Lossless normalization and triage"]
+    K --> L["7. Independent review"]
     L -- "Material defects" --> J
-    L -- "Accepted" --> M["7. Sanitized report and proposed task INDEX"]
+    L -- "Accepted" --> M["8. Sanitized report and proposed task INDEX"]
     M --> O{"INDEX approved"}
     O -- "Amend" --> M
     O -- "Approve" --> P["Emit concise task inputs"]
@@ -150,18 +151,18 @@ sequenceDiagram
     U-->>O: Approve or amend contract
     O->>S: Dispatch each applicable phase with its exact phase file
     S-->>O: Lossless evidence, findings, limitations, and review result
-    O->>S: INVOKE SUBAGENT engineer to APPLY PHASE security-flow-report-and-package.md
+    O->>S: INVOKE SUBAGENT engineer to APPLY PHASE security-flow-report-and-package.md STEP 8.1
     S-->>F: Sanitized report, findings, run record, and proposed INDEX
     O->>U: Request INDEX approval or amendment
     U-->>O: Approve grouping
-    O->>S: Reinvoke reporting phase to emit concise task files
+    O->>S: APPLY PHASE security-flow-report-and-package.md STEP 8.3 to emit concise task files
     S-->>F: Approved task package
     O-->>U: Return package and end without remediation
 ```
 
 ## Phases
 
-### 0. Readiness
+### 1. Readiness
 
 Goal: keep secret values out of model context and establish only the minimum metadata needed to proceed safely.
 
@@ -171,7 +172,7 @@ Goal: keep secret values out of model context and establish only the minimum met
 - Review expectation: no candidate files pass. DEV/QA candidates require recommended exclusions and explicit approval. Above-QA or ambiguous candidates stop non-overridably. An unusable scanner also stops the flow.
 - What to watch: any request for secret matches, values, or source content before the gate passes.
 
-### 1. Authorize
+### 2. Authorize
 
 Goal: turn the request and readiness evidence into an enterprise-safe run contract.
 
@@ -181,7 +182,7 @@ Goal: turn the request and readiness evidence into an enterprise-safe run contra
 - Review expectation: approve only when target, environment, exclusions, stop conditions, external data flows, and any active-test bounds are explicit.
 - What to watch: bundled approval for installation, SaaS access, credentials, licensing, or new data flow. Each requires a separate decision.
 
-### 2. Deterministic Gates
+### 3. Deterministic Gates
 
 Goal: run deterministic high-severity lifecycle gates before broader AI analysis.
 
@@ -193,7 +194,7 @@ Goal: run deterministic high-severity lifecycle gates before broader AI analysis
 
 After separate remediation, the workflow requires a new clean deterministic run. The security capability does not perform that remediation.
 
-### 3. Model and Select
+### 4. Model and Select
 
 Goal: map the real attack surface to complete, contextual, authorized coverage.
 
@@ -203,7 +204,7 @@ Goal: map the real attack surface to complete, contextual, authorized coverage.
 - Produced result: threat model, applicable-area and tool plan, exclusions, planned evidence, and residual risk.
 - What to watch: a generic checklist that does not trace threats to planned evidence.
 
-### 4. Inspect and Test
+### 5. Inspect and Test
 
 Goal: produce bounded evidence for every planned security area.
 
@@ -214,7 +215,7 @@ Goal: produce bounded evidence for every planned security area.
 - Produced result: evidence envelopes, candidate findings, limitations, anomalies, and unresolved coverage.
 - What to watch: scope drift, unexpected side effects, secret exposure, environment ambiguity, or a planned area with neither evidence nor a recorded limitation.
 
-### 5. Normalize and Triage
+### 6. Normalize and Triage
 
 Goal: make multiple sources comparable without erasing their identity or evidence.
 
@@ -225,7 +226,7 @@ Goal: make multiple sources comparable without erasing their identity or evidenc
 - Priority rule: P0-P3 recommendations are contextual. Any uplift or downgrade is explained separately from source severity.
 - What to watch: dropped duplicates, silent severity changes, or task grouping by repository location.
 
-### 6. Independent Review
+### 7. Independent Review
 
 Goal: challenge the producing work with a fresh perspective before reporting.
 
@@ -235,7 +236,7 @@ Goal: challenge the producing work with a fresh perspective before reporting.
 - Review expectation: the reviewer must not have produced the reviewed artifacts. Material defects return to the responsible phase and corrected artifacts receive another fresh review.
 - What to watch: a reviewer rewriting evidence or accepting unresolved material defects.
 
-### 7. Report and Package
+### 8. Report and Package
 
 Goal: deliver sanitized review artifacts and one-shot inputs for later remediation work.
 
