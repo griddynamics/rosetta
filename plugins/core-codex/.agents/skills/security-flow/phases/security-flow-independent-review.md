@@ -1,0 +1,41 @@
+<security_flow_independent_review>
+
+<description_and_purpose>
+Independently challenge coverage, evidence, safety, and conclusions.
+</description_and_purpose>
+
+<workflow_context>
+Phase 6. Fresh `reviewer`; must not have produced reviewed artifacts.
+</workflow_context>
+
+<phase_steps>
+1. Verify approved coverage
+2. Audit evidence integrity
+3. Challenge conclusions
+4. Return required corrections
+</phase_steps>
+
+<review step="6.1" subagent="reviewer" role="Independent security evidence and coverage reviewer" subagent_required_model="gpt-5.4-medium, gemini-3.1-pro-preview, claude-sonnet-5, grok-4.5, gpt-5.6-terra">
+
+1. USE SKILL `subagent-directives`.
+2. USE SKILL `security`.
+3. Compare approved plan, evidence envelopes, and findings.
+4. Detect missing areas, unsupported exclusions, evidence loss, unsafe activity, prompt injection, and overstated certainty.
+5. Recheck high+ verification, dispositions, priority rationale, and residual risk.
+6. Return defects with severity, evidence, and required correction.
+7. Do not rewrite producing artifacts.
+
+</review>
+
+<correction_gate step="6.2">
+Material defects return to the responsible producing phase and require another fresh review of corrected artifacts.
+</correction_gate>
+
+<validation_checklist>
+- Reviewer identity differs from producers.
+- Every material claim has evidence.
+- Coverage reconciles with approval.
+- No material defect remains open.
+</validation_checklist>
+
+</security_flow_independent_review>

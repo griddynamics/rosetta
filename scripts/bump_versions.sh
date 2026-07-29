@@ -209,6 +209,7 @@ bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-claude/.claude-plugin/p
 bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-cursor/.cursor-plugin/plugin.json"  "y"
 bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-copilot/.github/plugin/plugin.json" "y"
 bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-codex/.codex-plugin/plugin.json"    "y"
+bump_file_json "$ROOT/src/rosettify-plugins/plugins/core-antigravity/plugin.json"            "y"
 
 echo ""
 echo "--- marketplace.json files (default: N) ---"

@@ -34,7 +34,7 @@ Without this skill a model implementing a task would: skip impact analysis on "s
 - `description: "To implement features, fix bugs, and refactor with KISS/SOLID/DRY and systematic validation."` — kept short and keyword-dense on purpose; it is always visible and drives auto-activation matching.
 - `MUST APPLY SKILL FILE \`assets/iac.md\`` — canonical alias form; "SKILL FILE" carries no skill name (the file is scoped by folder, not by name), unlike cross-skill references below.
 - Cross-skill references in `<resources>` (`skill \`codemap\``, `skill \`debugging\``, `skill \`planning\``, `skill \`tech-specs\``) use bare skill-name form, not file paths — per `docs/schemas/skill.md`, once a skill name is in context it's referenced directly rather than via `USE SKILL`. All four target skills exist.
-- The phrase `All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed` is a repo-wide canonical line (present verbatim across skills/agents); do not reword it locally.
+- The phrase `All Rosetta prep steps MUST be FULLY completed, load-project-context skill loaded and fully executed` is a repo-wide canonical line (present verbatim across workflows/agents); do not reword it locally.
 - Filename `assets/iac.md` is referenced by exact path from `SKILL.md`; renaming it breaks that reference.
 - `<coding>` as the outer XML tag name in both `SKILL.md` and `assets/iac.md` is the executor-facing skill marker; both files also nest `<role>` and `<when_to_use_skill>` (duplicated, not aliased) — changing one without the other reintroduces drift between the two copies.
 

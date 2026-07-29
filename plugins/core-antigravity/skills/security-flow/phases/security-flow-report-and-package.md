@@ -1,13 +1,3 @@
----
-name: security-flow-report-and-package
-description: "Phase 7 Report and Package of security-flow"
-disable-model-invocation: true
-user-invocable: false
-alwaysApply: false
-tags: ["security", "workflow-phase"]
-baseSchema: docs/schemas/phase.md
----
-
 <security_flow_report_and_package>
 
 <description_and_purpose>

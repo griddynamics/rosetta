@@ -12,7 +12,7 @@ Frontmatter description: "To connect Rosetta with Grid Dynamics SpecFlow MCP; on
 
 ## How it works
 
-SKILL.md Quick Start: (1) detect `gain.json` at workspace root or up to 2 parents; (2) load and display it via the fenced `## SpecFlow Project Context` template; (3) APPLY `references/specflow-mcp-tools.md` to route the user into the right phase. Step 4 is conditional: only when SpecFlow returns a review report *and* the user wants to fix specs before re-iterating, delegate to `skills/requirements-authoring` / `workflows/requirements-authoring-flow.md`.
+SKILL.md Quick Start: (1) detect `gain.json` at workspace root or up to 2 parents; (2) load and display it via the fenced `## SpecFlow Project Context` template; (3) APPLY `references/specflow-mcp-tools.md` to route the user into the right phase. Step 4 is conditional: only when SpecFlow returns a review report *and* the user wants to fix specs before re-iterating, delegate to `skills/requirements-authoring` / `skills/requirements-authoring-flow/SKILL.md`.
 
 References split by verb, deliberately:
 - `specflow-mcp-tools.md` (APPLY) — the playbook: Pregeneration / Generation / Post-Run phase routing, which real MCP tools and fields gate each transition (`check_specification_completeness`, `run_planning`, `check_status`'s `can_run_generation`, `download_outputs`, `get_specflow_skills`), and the post-run skill-install mechanic.

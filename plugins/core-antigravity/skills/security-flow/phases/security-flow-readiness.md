@@ -1,13 +1,3 @@
----
-name: security-flow-readiness
-description: "Phase 0 Readiness of security-flow"
-disable-model-invocation: true
-user-invocable: false
-alwaysApply: false
-tags: ["security", "workflow-phase"]
-baseSchema: docs/schemas/phase.md
----
-
 <security_flow_readiness>
 
 <description_and_purpose>

@@ -1,13 +1,3 @@
----
-name: security-flow-deterministic-gates
-description: "Phase 2 Deterministic Gates of security-flow"
-disable-model-invocation: true
-user-invocable: false
-alwaysApply: false
-tags: ["security", "workflow-phase"]
-baseSchema: docs/schemas/phase.md
----
-
 <security_flow_deterministic_gates>
 
 <description_and_purpose>
