@@ -1,3 +1,13 @@
+---
+name: security-flow-inspect-and-test
+description: "Phase 4 Inspect and Test of security-flow"
+disable-model-invocation: true
+user-invocable: false
+alwaysApply: false
+tags: ["security", "workflow-phase"]
+baseSchema: docs/schemas/phase.md
+---
+
 <security_flow_inspect_and_test>
 
 <description_and_purpose>

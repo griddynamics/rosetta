@@ -16,7 +16,7 @@ Reusable security-review method for coding agents. The skill supplies safety gat
 - `assets/security-*.md` — progressively loaded area guidance.
 - `assets/security-secret-scan.sh` — filename-only fallback scanner.
 - `rules/security-*.md|json` — output contracts.
-- `../../workflows/security-flow*.md` — entry flow and phases.
+- `../../skills/security-flow*.md` — entry flow and phases.
 
 ## Extension
 

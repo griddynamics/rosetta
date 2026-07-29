@@ -1,3 +1,12 @@
+---
+name: testgen-flow-data-collection
+description: "Phase 1 Data Collection of testgen-flow"
+alwaysApply: false
+disable-model-invocation: true
+user-invocable: false
+baseSchema: docs/schemas/phase.md
+---
+
 <testgen_flow_data_collection>
 
 <description_and_purpose>

@@ -13,6 +13,6 @@ Rosetta bootstrap, release R3 of instructions itself (the tool developing this w
 
 Rosetta Prep Steps = execute once per session: USE SKILL `load-project-context`, `hitl`.
 
-PLUGIN FILES ONLY — any Rosetta/KB MCP mention resolves to local plugin files at plugin root, NEVER Rosetta MCP: RULE `rules/*.md`, SKILL `skills/*/SKILL.md`, AGENT/SUBAGENT `agents/*.md`, WORKFLOW/COMMAND `skills/*-flow/SKILL.md`, CONFIGURE `configure/*.md`. Load the actual plugin file; reconstruction/assumption != loading.
+PLUGIN FILES ONLY — any Rosetta/KB MCP mention resolves to local plugin files at plugin root, NEVER Rosetta MCP: RULE `rules/*.md`, SKILL `skills/*/SKILL.md`, AGENT/SUBAGENT `agents/*.md`, WORKFLOW/COMMAND `skills/*.md`, CONFIGURE `configure/*.md`. Load the actual plugin file; reconstruction/assumption != loading.
 
 </rosetta:plugin_files_mode>

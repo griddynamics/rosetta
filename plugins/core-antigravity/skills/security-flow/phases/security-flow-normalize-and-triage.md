@@ -1,3 +1,13 @@
+---
+name: security-flow-normalize-and-triage
+description: "Phase 5 Normalize and Triage of security-flow"
+disable-model-invocation: true
+user-invocable: false
+alwaysApply: false
+tags: ["security", "workflow-phase"]
+baseSchema: docs/schemas/phase.md
+---
+
 <security_flow_normalize_and_triage>
 
 <description_and_purpose>

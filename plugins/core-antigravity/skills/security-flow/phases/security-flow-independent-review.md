@@ -1,3 +1,13 @@
+---
+name: security-flow-independent-review
+description: "Phase 6 Independent Review of security-flow"
+disable-model-invocation: true
+user-invocable: false
+alwaysApply: false
+tags: ["security", "workflow-phase"]
+baseSchema: docs/schemas/phase.md
+---
+
 <security_flow_independent_review>
 
 <description_and_purpose>

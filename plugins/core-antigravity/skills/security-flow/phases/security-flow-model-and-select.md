@@ -1,3 +1,13 @@
+---
+name: security-flow-model-and-select
+description: "Phase 3 Model and Select of security-flow"
+disable-model-invocation: true
+user-invocable: false
+alwaysApply: false
+tags: ["security", "workflow-phase"]
+baseSchema: docs/schemas/phase.md
+---
+
 <security_flow_model_and_select>
 
 <description_and_purpose>
