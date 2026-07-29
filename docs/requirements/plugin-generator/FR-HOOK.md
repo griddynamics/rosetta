@@ -44,16 +44,16 @@
   <rationale>The prefix instructs the agent to read the full bootstrap context first. The designated lead must be deterministic and explicit (resolving the former order-sensitivity quirk QF-1).</rationale>
   <source>Sources</source>
   <priority>Must</priority>
-  <status>Approved</status>
+  <status>Deprecated</status>
   <approved_by>User</approved_by>
-  <changed>2026-06-04</changed>
+  <changed>2026-07-28</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a target's bootstrap files When: assembled Then: the prefix appears once, on the designated lead document.</criteria>
     <criteria>Given: the manifest When: inspected Then: the lead document is explicitly designated (e.g. `plugin-files-mode` first), not inferred from incidental ordering.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Removed</implementation>
+  <implementationNotes>2026-07-28 (Deprecated): the `BOOTSTRAP_PREFIX` string ("ALWAYS MUST FULLY READ THIS ENTIRE CONTEXT ... Rosetta get_context_instructions:") is obsolete now that session-start hooks are small and `get_context_instructions` is no longer used in this flow. The constant was removed from `src/spec/bootstrap-manifest.ts`; its application in `src/bootstrap/payload.ts` was removed (the lead document's body is now emitted as-is). The leading-newline strip for the lead document's body is retained (now driven by loop position — the first manifest entry actually found — not the removed `isLead` field). The `isLead` field was removed from `BootstrapEntryRef` (types.ts) and from all 9 `BOOTSTRAP_MANIFEST_ORDER` entries. Record kept per FR-HOOK-0009 (manifest order/lead-position semantics survive; only the prefix text is gone).</implementationNotes>
   <depends>FR-HOOK-0009</depends>
 </req>
 

@@ -75,6 +75,8 @@ export function applyFolderRewrites(
  *      `skills/x/SKILL.md`), the mapping restructures document paths and no folder pair is emitted —
  *      a bare folder token would carry no document identity there and would corrupt prose/glob text
  *      that merely contains the token. Only the exact per-document pairs from step 1 apply.
+ *      Correcting a prose/glob string that names such a mapping is not this processor's job —
+ *      that is `pluginReplaceLiterals` (FR-ARCH-0058), composed per spec.
  *
  * All paths are stripped of the spec's baseSubfolder prefix to give plugin-root-relative paths,
  * matching how document bodies reference sibling files (relative to plugin root, not output root).
@@ -183,6 +185,7 @@ export function buildRenamePairs(
       pairs.push([srcFolder + '/', pluginRelTarget + '/']);
     }
   }
+
 
   // Sort: longest from-string first (most-specific pair applied first to avoid partial overlaps)
   pairs.sort((a, b) => b[0].length - a[0].length);

@@ -69,11 +69,11 @@ ISO/IEC 25010 buckets. Metrics and conditions stated.
   <changed>2026-07-01</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: a document whose ORIGINAL content (after the bootstrap prefix and folder rewrites, before any IDE JSON wrapping) is over 10000 chars When: assembled for ANY IDE Then: a violation is reported naming the target and file, the output is still emitted, and exit status is non-zero.</criteria>
+    <criteria>Given: a document whose ORIGINAL content (after folder rewrites and, for the lead document, the leading-newline strip — the bootstrap prefix itself was removed, FR-HOOK-0003 Deprecated — before any IDE JSON wrapping) is over 10000 chars When: assembled for ANY IDE Then: a violation is reported naming the target and file, the output is still emitted, and exit status is non-zero.</criteria>
     <criteria>Given: a document whose original content is under 10000 chars but whose wrapped/escaped/IDE-specific entry (e.g. Copilot's merged top-level+nested emit, which duplicates the content) would exceed 10000 chars if measured post-wrapping When: assembled Then: NO violation is reported — the check is IDE-shape-independent.</criteria>
   </acceptance>
   <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify-plugins/src/bootstrap/payload.ts (assembleBootstrapPayload checks `rewrittenContext.length` — the additionalContext body, post-prefix/post-folder-rewrite, pre-JSON-wrapping); src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,codex,cursor,copilot}-bootstrap.ts (EntryBuilderFn callback signature).</implementationNotes>
+  <implementationNotes>src/rosettify-plugins/src/bootstrap/payload.ts (assembleBootstrapPayload checks `rewrittenContext.length` — the additionalContext body, post-folder-rewrite, pre-JSON-wrapping); src/rosettify-plugins/src/plugin-processors/plugin-assemble-{claude,codex,cursor,copilot}-bootstrap.ts (EntryBuilderFn callback signature). 2026-07-28: the bootstrap prefix was removed (FR-HOOK-0003 Deprecated); "post-prefix" no longer applies — only folder rewrites and the lead document's leading-newline strip precede the size check.</implementationNotes>
 </req>
 
 <req id="NFR-0005" type="NFR" level="System" ticketId="" classification="technical">

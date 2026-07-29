@@ -81,6 +81,53 @@ describe.each(BASES)('fileWorkflowToSkill — placement derives from incoming fr
   });
 });
 
+// Phase-file leading-newline trim: stripFrontmatter() returns gray-matter's body, which starts
+// with the newline that followed the closing `---` — the phase-write site trims it so phase
+// files don't begin with a blank line. Main SKILL.md keeps its frontmatter and is unaffected.
+describe.each(BASES)('fileWorkflowToSkill — phase-file leading-newline trim (base=%s)', (base) => {
+  it('a phase whose source frontmatter is followed by a blank line does NOT begin with a newline or blank line in the output', () => {
+    const ctx = makeCtx(['workflows/demo-flow.md', 'workflows/demo-flow-step.md']);
+    // Blank line between closing `---` and body — this is the shape that previously leaked a
+    // leading newline into the phase output.
+    const content = '---\nname: Step\ndescription: A step\n---\n\n# Step body\n\nMore content.\n';
+    const frame = makeFrame('workflows/demo-flow-step.md', base, content);
+    const result = fileWorkflowToSkill(frame, ctx);
+
+    const out = result.target_contents as string;
+    expect(out.startsWith('\n')).toBe(false);
+    expect(out.startsWith('# Step body')).toBe(true);
+    // Not over-trimmed: the rest of the body (including its own blank line) survives.
+    expect(out).toContain('# Step body\n\nMore content.');
+  });
+
+  it('a phase with NO frontmatter at all is handled correctly — content is not over-trimmed', () => {
+    const ctx = makeCtx(['workflows/demo-flow.md', 'workflows/demo-flow-step.md']);
+    // No frontmatter block: stripFrontmatter() is a no-op (gray-matter finds no `---` delimiters),
+    // so there is no leading newline to strip. Meaningful leading content must survive verbatim.
+    const content = '# Step body with no frontmatter\n\nSecond paragraph.\n';
+    const frame = makeFrame('workflows/demo-flow-step.md', base, content);
+    const result = fileWorkflowToSkill(frame, ctx);
+
+    const out = result.target_contents as string;
+    expect(out).toBe(content);
+    expect(out.startsWith('# Step body with no frontmatter')).toBe(true);
+  });
+
+  it('the main SKILL.md is unaffected by the phase trim and keeps its frontmatter (including any leading newline shape it already had)', () => {
+    const ctx = makeCtx(['workflows/demo-flow.md', 'workflows/demo-flow-step.md']);
+    const content = '---\nname: Demo Flow\ndescription: A demo\n---\n\n# Demo Flow\n\nBody.\n';
+    const frame = makeFrame('workflows/demo-flow.md', base, content);
+    const result = fileWorkflowToSkill(frame, ctx);
+
+    const out = result.target_contents as string;
+    expect(out).toContain('---\nname: Demo Flow\ndescription: A demo\n---');
+    expect(out).toContain('# Demo Flow');
+    // Main doc content is untouched by the phase-only trim: the frontmatter block itself is
+    // still present at the very start (it is not stripped, unlike a phase document).
+    expect(out.startsWith('---\nname: Demo Flow')).toBe(true);
+  });
+});
+
 describe('fileWorkflowToSkill — placement is never hardcoded (arbitrary/unusual incoming base)', () => {
   it('honors an unconventional incoming target base verbatim (main and phase)', () => {
     const oddBase = 'some/nested/custom-base';

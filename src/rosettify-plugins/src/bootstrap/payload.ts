@@ -1,14 +1,13 @@
 // FR-HOOK-0001-0009, NFR-0004 — bootstrap payload assembly
-// GT-2, GT-3 — per-IDE entry shapes, prefix on lead, absent→skip
+// GT-2, GT-3 — per-IDE entry shapes, absent→skip
 // FR-ARCH-0005: switch functions removed; IDE-specific behavior supplied via callbacks.
+// FR-HOOK-0003 deprecated: the BOOTSTRAP_PREFIX string was removed; the lead document's body is
+// emitted as-is (leading-newline strip only).
 
 import { buildHookPayloadJson } from '../escaping/json-string.js';
 import { wrapInPrintf } from '../escaping/shell.js';
 import { wrapInPsWriteOutput } from '../escaping/powershell.js';
-import {
-  BOOTSTRAP_PREFIX,
-  BOOTSTRAP_MANIFEST_ORDER,
-} from '../spec/bootstrap-manifest.js';
+import { BOOTSTRAP_MANIFEST_ORDER } from '../spec/bootstrap-manifest.js';
 import { stripFrontmatter } from '../serialize/frontmatter.js';
 import { applyFolderRewrites, buildRenamePairs } from '../plugin-processors/plugin-rewrite-references.js';
 import type { FileProcessingFrame, GenError, PluginProcessingFrame } from '../types.js';
@@ -62,7 +61,7 @@ export function buildAntigravityBootstrapEntry(userMessage: string): string {
 
 /**
  * Callback type for building one per-document bootstrap entry.
- * additionalContext: the rewritten body string (prefix-prepended for lead, folder-rewritten).
+ * additionalContext: the rewritten body string (folder-rewritten; leading newline stripped for lead).
  * Returns the entry JSON object string, or null to skip this entry.
  * FR-ARCH-0005: IDE-specific entry shape (and its own JSON payload) supplied by caller, not derived here.
  */
@@ -121,14 +120,11 @@ export function assembleBootstrapPayload(
       continue;
     }
 
-    // Apply prefix to lead document (FR-HOOK-0003)
-    let additionalContext: string;
-    if (ref.isLead) {
-      const cleanBody = body.startsWith('\n') ? body.slice(1) : body;
-      additionalContext = BOOTSTRAP_PREFIX + cleanBody;
-    } else {
-      additionalContext = body;
-    }
+    // Bodies come from stripFrontmatter (FR-HOOK-0002), which leaves a leading newline where
+    // frontmatter was removed. Drop it for EVERY entry so no entry opens with a blank line.
+    // There is no lead-specific handling: the former single-entry strip existed only to keep the
+    // removed BOOTSTRAP_PREFIX (FR-HOOK-0003, Deprecated) from being followed by a blank line.
+    const additionalContext = body.replace(/^\n+/, '');
 
     // Apply folder rewrites to payload (FR-HOOK-0008) — only for doc bodies, not INDEX bodies.
     const rewrittenContext = isIndex

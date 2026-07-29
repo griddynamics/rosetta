@@ -1,5 +1,36 @@
 # plugin-generator — Requirements Change Log
 
+## 2026-07-28 — `FR-HOOK-0003` Deprecated: bootstrap prefix removed
+
+**Files:** `FR-HOOK.md`, `GLOSSARY.md`, `ASSUMPTIONS.md`, `NFR.md`
+
+**Source:** User-approved fix found by inspecting real generated output. Hooks are now small and `get_context_instructions` is no longer used in this flow, making the fixed lead-in string obsolete.
+
+- `FR-HOOK-0003` marked `Deprecated` (`implementation: Removed`) with a note explaining hooks are now small and the prefix string is removed; the record is kept, not deleted, since `FR-HOOK-0009`'s manifest-order/lead-position semantics survive.
+- Removed the `BOOTSTRAP_PREFIX` constant from `src/spec/bootstrap-manifest.ts` and its application in `src/bootstrap/payload.ts`; the lead document's body is now emitted as-is, with only the pre-existing leading-newline strip retained (now driven by loop position rather than the removed `isLead` field).
+- Removed the now-orphaned `isLead` field from `BootstrapEntryRef` (`types.ts`) and from all 9 `BOOTSTRAP_MANIFEST_ORDER` entries.
+- `GLOSSARY.md`'s "Bootstrap prefix" term and the manifest-order line referencing it updated to reflect removal; `ASSUMPTIONS.md` QF-1 updated to note the prefix is now gone (not just resolved); `NFR.md` NFR-0004's criterion and implementation notes updated — "after the bootstrap prefix" no longer applies to the size-check pipeline.
+- Scope: only the prefix string. `get_context_instructions` remains a live MCP tool (`src/rosetta-mcp-server/`) and is untouched, as are all `instructions/` references to it.
+- Session-hook entry counts are unaffected (9/5 Claude, 9/5 Copilot, 8/4 Codex) — only the lead entry's content shrinks.
+
+---
+
+## 2026-07-28 — `FR-ARCH-0058`: standalone `pluginReplaceLiterals()` processor replaces reverted `PluginSpec.literalRewritePairs`
+
+**Files:** `FR-ARCH.md`
+
+**Source:** User-approved architecture correction, superseding the same day's earlier `FR-ARCH-0049` addendum below. `plugin-files-mode.md`'s glob-doc bullet for workflows still read `workflows/*.md` in Codex/Antigravity output even though those targets restructure `workflows/**` into `skills/<name>/SKILL.md` (`fileWorkflowToSkill`), because `FR-ARCH-0049` deliberately emits no folder-level pair for a restructuring mapping. The initial fix folded a spec-declared literal-pair lookup into `pluginRewriteReferences()` via a new optional `PluginSpec.literalRewritePairs` field; on review this was the wrong abstraction and was reverted in favor of a separate composed processor.
+
+- New `FR-ARCH-0058` — `pluginReplaceLiterals(pairs)`: a generic `PluginProcessor` factory taking `(from, to)` literal pairs as data and returning a named `pluginReplaceLiteralsProcessor` that performs exact, unconditional substring substitution over non-binary, non-null-content, non-`verbatim` frame contents. Deliberately NO boundary/regex/path-token semantics — it targets prose and glob-documentation strings, not path references, so `pluginRewriteReferences()`'s word-boundary and dot-directory guards (FR-ARCH-0037) would be actively wrong here.
+- `FR-ARCH-0049`'s addendum reverted: the spec-declared-literal-pairs sentence removed from its `<statement>`, the corresponding acceptance criterion removed, and the 2026-07-28 `literalRewritePairs` paragraph removed from its `implementationNotes` (replaced with a short pointer to `FR-ARCH-0058` and a note on why the field was reverted). All of `FR-ARCH-0049`'s pure-relocation-vs-restructuring discriminant work is unaffected.
+- `types.ts`: removed `PluginSpec.literalRewritePairs?: ReadonlyArray<readonly [string, string]>`. `plugin-rewrite-references.ts`: removed step 3 of `buildRenamePairs` (the literal-pair append/re-sort).
+- `spec/targets.ts`: `WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR` (`['WORKFLOW/COMMAND \`workflows/*.md\`', 'WORKFLOW/COMMAND \`skills/*-flow/SKILL.md\`']`, unchanged) is now supplied to `pluginReplaceLiterals()` and composed into the pipeline via `buildPipeline`'s existing `extraAfterIndexes` parameter — Codex: `[pluginReplaceLiterals([WORKFLOW_GLOB_TO_SKILLS_FLOW_LITERAL_PAIR])]`; Antigravity: the same call appended after `pluginAntigravityReduceFrontmatter, pluginAntigravitySubagentModel`. Runs after `pluginGenerateIndexes()` and before the bootstrap assembler, so hook payloads inherit the substitution. Still keyed on the long literal (including the `WORKFLOW/COMMAND ` prefix), not the bare `workflows/*.md` token, because that bare token also appears unrelated in `skills/rosetta/README.md`, which must stay unchanged.
+- Why reverted: (1) `PluginSpec` surface — a data field used by only 2 of 7 specs is a worse fit than a processor composed only where needed (FR-ARCH-0004/0005's "supply specificity as data at composition time" is better served by pipeline composition than by a spec-level field consumed inside a shared processor); (2) wrong semantics — folding the pair into `pluginRewriteReferences()`'s lookup meant it inherited (or had to specially bypass) that processor's complete-boundary-token/dot-directory matching rules, which are correct for path references but not for prose; (3) a global per-target lookup inside one processor is a worse fit than per-spec pipeline composition, which makes "which targets get this correction" visible directly in `spec/targets.ts` rather than as an implicit consequence of which specs happen to populate a field.
+- Companion fix (non-requirements, unchanged from the original entry): `instructions/r2/core/rules/plugin-files-mode.md`'s AGENT/WORKFLOW bullets normalized (`, ` → `/`, drop "in") to match r3's existing phrasing, so both releases carry the identical literal that the pair targets.
+- Generated output is byte-equivalent to the reverted field-based approach; only the internal composition mechanism changed.
+
+---
+
 ## 2026-07-28 — `FR-VAR-0041`: preserved Codex config must not name the omitted workflows index
 
 **Files:** `FR-VAR.md`

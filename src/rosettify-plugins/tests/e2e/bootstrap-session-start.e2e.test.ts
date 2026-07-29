@@ -203,4 +203,31 @@ describe('Bootstrap SessionStart real-instruction counts (FR-HOOK-0007)', () => 
       expect(last.command).toContain('Rosetta Plugin Path:');
     });
   });
+
+  // FR-HOOK-0003 (Deprecated) — the removed BOOTSTRAP_PREFIX must not appear in any real,
+  // fully-generated bootstrap payload, for any target, under either release. This runs against
+  // the SAME real-instruction generation as the counts above, so a regression that reintroduced
+  // the prefix would also be caught here without needing a separate generate() run.
+  describe('no removed BOOTSTRAP_PREFIX text in any generated payload (FR-HOOK-0003 Deprecated)', () => {
+    const payloadPaths: Array<[string, string]> = [
+      ['core-claude r2', path.join('core-claude', 'hooks', 'hooks.json')],
+      ['core-claude r3', path.join('core-claude', 'hooks', 'hooks.json')],
+      ['core-copilot r2', path.join('core-copilot', '.github', 'plugin', 'hooks.json')],
+      ['core-copilot r3', path.join('core-copilot', '.github', 'plugin', 'hooks.json')],
+      ['core-codex r2', path.join('core-codex', '.codex-plugin', 'hooks.json')],
+      ['core-codex r3', path.join('core-codex', '.codex-plugin', 'hooks.json')],
+    ];
+
+    it.each(payloadPaths)('%s payload does not contain the removed prefix sentence', (label, relPath) => {
+      // NOTE: real bootstrap content legitimately mentions "get_context_instructions" (an MCP
+      // tool name referenced in plugin-files-mode.md's own prose) — only the removed prefix
+      // SENTENCE ("ALWAYS MUST FULLY READ...") is a defect if it reappears; the bare tool-name
+      // substring is not distinctive enough to assert on here (see unit-level assemble-bootstrap
+      // suites for the "Rosetta get_context_instructions:" prefix-phrase-specific check against
+      // synthetic bodies that don't legitimately contain the phrase).
+      const outputDir = label.endsWith('r2') ? outR2 : outR3;
+      const raw = fs.readFileSync(path.join(outputDir, relPath), 'utf-8');
+      expect(raw).not.toContain('ALWAYS MUST FULLY READ THIS ENTIRE CONTEXT');
+    });
+  });
 });

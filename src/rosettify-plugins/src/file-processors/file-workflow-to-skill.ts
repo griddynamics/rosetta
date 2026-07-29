@@ -133,7 +133,12 @@ export function fileWorkflowToSkill(
       }
       if (!isMainDoc) {
         // Phase documents lose their frontmatter; the main workflow SKILL.md keeps it.
-        draft.target_contents = stripFrontmatter(draft.target_contents);
+        // stripFrontmatter() returns gray-matter's body, which starts with the newline that
+        // followed the closing `---` — trim it here (at the phase-write site) so phase files
+        // don't begin with a blank line. stripFrontmatter() itself is left unchanged: the
+        // bootstrap payload (src/bootstrap/payload.ts) depends on its current shape and hand-strips
+        // that same leading newline for the lead document.
+        draft.target_contents = stripFrontmatter(draft.target_contents).replace(/^\n+/, '');
       }
     }
   });

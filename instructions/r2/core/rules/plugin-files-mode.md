@@ -87,8 +87,8 @@ USE SKILL `load-context`, if available
 
 - RULE in `rules/*.md`
 - SKILL in `skills/*/SKILL.md`
-- AGENT, SUBAGENT in `agents/*.md`
-- WORKFLOW, COMMAND in `workflows/*.md`
+- AGENT/SUBAGENT `agents/*.md`
+- WORKFLOW/COMMAND `workflows/*.md`
 
 # PREP STEP 1:
 

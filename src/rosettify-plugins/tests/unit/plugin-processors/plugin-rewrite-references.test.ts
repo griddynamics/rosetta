@@ -432,3 +432,7 @@ describe('buildRenamePairs', () => {
     });
   });
 });
+
+// Scoping of the prose/glob-doc correction now lives in the pipeline composition, not on
+// PluginSpec data — see `pluginReplaceLiteralsProcessor composition (FR-ARCH-0058)` in
+// tests/unit/plugin-processors/plugin-replace-literals.test.ts.

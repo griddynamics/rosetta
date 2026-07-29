@@ -172,6 +172,31 @@ describe('pluginAssembleCodexBootstrap — plugin-root entry (workspace-root tra
   });
 });
 
+// ─── Lead document carries NO prefix (FR-HOOK-0003 Deprecated) ───────────────
+
+describe('pluginAssembleCodexBootstrap — lead document has no bootstrap prefix', () => {
+  it('payload does not contain the removed bootstrap prefix text', () => {
+    const frames = [makeDocFrame('plugin-files-mode', '\n# Bootstrap Content\n')];
+    const p = makePluginFrame(frames);
+    const result = pluginAssembleCodexBootstrap(p);
+    const payload = result.templateContext['bootstrap_hooks'] as string;
+    expect(payload).not.toContain('ALWAYS MUST FULLY');
+    expect(payload).not.toContain('get_context_instructions');
+  });
+
+  it("emits the lead document's body as-is, without a leading blank line", () => {
+    const frames = [makeDocFrame('plugin-files-mode', '\n# Bootstrap Content\n')];
+    const p = makePluginFrame(frames);
+    const result = pluginAssembleCodexBootstrap(p);
+    const payload = result.templateContext['bootstrap_hooks'] as string;
+    expect(payload).toContain('# Bootstrap Content');
+    // The leading-newline strip is retained after prefix removal (now driven by loop position,
+    // not the removed isLead field): the body must not begin with an escaped newline immediately
+    // after the additionalContext quote.
+    expect(payload).not.toContain('\\"additionalContext\\":\\"\\\\n');
+  });
+});
+
 // ─── NFR-0004: size > 10000 → soft error ─────────────────────────────────────
 
 describe('pluginAssembleCodexBootstrap — NFR-0004 soft error', () => {

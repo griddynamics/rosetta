@@ -182,6 +182,31 @@ describe('pluginAssembleCursorBootstrap — plugin-root entry', () => {
   });
 });
 
+// ─── Lead document carries NO prefix (FR-HOOK-0003 Deprecated) ───────────────
+
+describe('pluginAssembleCursorBootstrap — lead document has no bootstrap prefix', () => {
+  it('payload does not contain the removed bootstrap prefix text', () => {
+    const frames = [makeDocFrame('plugin-files-mode', '\n# Bootstrap Content\n')];
+    const p = makePluginFrame(frames);
+    const result = pluginAssembleCursorBootstrap(p);
+    const payload = result.templateContext['bootstrap_hooks'] as string;
+    expect(payload).not.toContain('ALWAYS MUST FULLY');
+    expect(payload).not.toContain('get_context_instructions');
+  });
+
+  it("emits the lead document's body as-is, without a leading blank line", () => {
+    const frames = [makeDocFrame('plugin-files-mode', '\n# Bootstrap Content\n')];
+    const p = makePluginFrame(frames);
+    const result = pluginAssembleCursorBootstrap(p);
+    const payload = result.templateContext['bootstrap_hooks'] as string;
+    expect(payload).toContain('# Bootstrap Content');
+    // Cursor uses additional_context (buildCursorHookPayloadJson) — same leading-newline-strip
+    // contract as the other targets, now driven by loop position rather than the removed isLead
+    // field.
+    expect(payload).not.toContain('\\"additional_context\\":\\"\\\\n');
+  });
+});
+
 // ─── NFR-0004: size > 10000 → soft error ─────────────────────────────────────
 
 describe('pluginAssembleCursorBootstrap — NFR-0004 soft error', () => {

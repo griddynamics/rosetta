@@ -38,7 +38,14 @@ function buildInstructionsTree(): string {
   writeFile(
     base,
     'rules/sample-rule.md',
-    '---\nname: sample-rule\ndescription: A sample rule\n---\n\n# Sample Rule\n\nBody text.\n',
+    '---\nname: sample-rule\ndescription: A sample rule\n---\n\n# Sample Rule\n\nBody text.\n' +
+      // FR-ARCH-0058: exercises the pluginReplaceLiterals correction on the
+      // WORKFLOW/COMMAND glob-doc string (workflows->skills restructures document paths, so no
+      // folder-level pair exists to rewrite it) alongside a bare `workflows/*.md` mention
+      // elsewhere in the SAME content, which must be left untouched — that is exactly why the
+      // literal pair keys on the long form.
+      'WORKFLOW/COMMAND `workflows/*.md`\n\n' +
+      'See also the unrelated glob `workflows/*.md` used elsewhere.\n',
   );
 
   writeFile(
@@ -220,5 +227,40 @@ describe('core-codex — generated output shape (FR-VAR-0041, FR-VAR-0042, FR-ST
 
   it('produces no dot-prefixed Antigravity-style plugin.json at the target root (structure stays under .agents/.codex)', () => {
     expect(fs.existsSync(path.join(targetRoot, 'plugin.json'))).toBe(false);
+  });
+
+  // FR-ARCH-0058 — pluginReplaceLiterals correction on the WORKFLOW/COMMAND
+  // glob-doc string, keyed on the long form so a bare `workflows/*.md` token elsewhere is
+  // untouched.
+  it('rewrites the WORKFLOW/COMMAND glob-doc string to the skills-flow form, leaving a bare workflows/*.md token elsewhere unchanged', () => {
+    const ruleDoc = path.join(targetRoot, '.agents', 'rules', 'sample-rule.md');
+    const content = fs.readFileSync(ruleDoc, 'utf-8');
+    expect(content).toContain('WORKFLOW/COMMAND `skills/*-flow/SKILL.md`');
+    expect(content).not.toContain('WORKFLOW/COMMAND `workflows/*.md`');
+    // Bare, unrelated mention of the same literal token survives untouched.
+    expect(content).toContain('unrelated glob `workflows/*.md`');
+  });
+
+  // FR-HOOK-0003 (Deprecated) — the preserved manifest and generated bootstrap payload no
+  // longer carry the removed BOOTSTRAP_PREFIX text.
+  it('preserved manifest carries the updated Rosetta 3 longDescription and $-prefixed example defaultPrompt entries', () => {
+    const manifestPath = path.join(targetRoot, '.codex-plugin', 'plugin.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as {
+      interface: { longDescription: string; defaultPrompt: string[] };
+    };
+    expect(manifest.interface.longDescription).toContain('Rosetta 3 for Codex');
+    expect(manifest.interface.defaultPrompt.length).toBeGreaterThan(0);
+    // Every prompt in the array is either the bare initializer line or a `$`-prefixed example.
+    for (const prompt of manifest.interface.defaultPrompt) {
+      expect(prompt === 'Initialize this repository using the respective Rosetta workflow' || prompt.startsWith('$')).toBe(true);
+    }
+    expect(manifest.interface.defaultPrompt.some((p) => p.startsWith('$'))).toBe(true);
+  });
+
+  it('generated bootstrap hooks payload contains no removed BOOTSTRAP_PREFIX text', () => {
+    const mirrorPath = path.join(targetRoot, '.codex', 'hooks.json');
+    const mirrored = fs.readFileSync(mirrorPath, 'utf-8');
+    expect(mirrored).not.toContain('ALWAYS MUST FULLY');
+    expect(mirrored).not.toContain('get_context_instructions');
   });
 });

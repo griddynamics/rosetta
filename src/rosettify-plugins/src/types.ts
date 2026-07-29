@@ -128,7 +128,6 @@ export interface PluginSpec {
 // FR-HOOK-0009 — one entry in the bootstrap manifest ordered list
 export interface BootstrapEntryRef {
   basename: string;   // filename without extension (e.g. "plugin-files-mode")
-  isLead: boolean;    // whether this entry gets the bootstrap prefix
 }
 
 export interface Frontmatter {
