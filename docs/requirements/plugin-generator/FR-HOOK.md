@@ -5,7 +5,7 @@
 <req id="FR-HOOK-0001" type="FR" level="System" ticketId="" classification="technical">
   <title>Assemble per-target bootstrap context entries</title>
   <statement>For each target, the `pluginAssembleBootstrap()` processor (FR-ARCH-0055) shall build session-start context entries from the target's present bootstrap files, taken in the order of the bootstrap-file manifest (FR-HOOK-0009), reading each file's body from the target's own `frames` (the per-file `FileProcessingFrame`s), and shall make these entries available to template rendering. Absent variants are skipped (but logged), not reordered.</statement>
-  <rationale>Each plugin injects the bootstrap rules into the agent's context at session start, in the IDE's hook format. The manifest order is what fixes the payload sequence and the prefix placement.</rationale>
+  <rationale>Each plugin injects the bootstrap rules into the agent's context at session start, in the IDE's hook format. The manifest order is what fixes the payload sequence.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -53,7 +53,7 @@
     <criteria>Given: the manifest When: inspected Then: the lead document is explicitly designated (e.g. `plugin-files-mode` first), not inferred from incidental ordering.</criteria>
   </acceptance>
   <implementation>Removed</implementation>
-  <implementationNotes>2026-07-28 (Deprecated): the `BOOTSTRAP_PREFIX` string ("ALWAYS MUST FULLY READ THIS ENTIRE CONTEXT ... Rosetta get_context_instructions:") is obsolete now that session-start hooks are small and `get_context_instructions` is no longer used in this flow. The constant was removed from `src/spec/bootstrap-manifest.ts`; its application in `src/bootstrap/payload.ts` was removed (the lead document's body is now emitted as-is). The leading-newline strip for the lead document's body is retained (now driven by loop position — the first manifest entry actually found — not the removed `isLead` field). The `isLead` field was removed from `BootstrapEntryRef` (types.ts) and from all 9 `BOOTSTRAP_MANIFEST_ORDER` entries. Record kept per FR-HOOK-0009 (manifest order/lead-position semantics survive; only the prefix text is gone).</implementationNotes>
+  <implementationNotes>2026-07-28 (Deprecated): the `BOOTSTRAP_PREFIX` string ("ALWAYS MUST FULLY READ THIS ENTIRE CONTEXT ... Rosetta get_context_instructions:") is obsolete now that session-start hooks are small and `get_context_instructions` is no longer used in this flow. The constant was removed from `src/spec/bootstrap-manifest.ts`; its application in `src/bootstrap/payload.ts` was removed, so every document's body is emitted as-is. The leading-newline strip is retained but now applies UNIFORMLY to every entry, not just the former lead: all bodies come from `stripFrontmatter` (FR-HOOK-0002) and therefore all carried a leading newline, so stripping only the first was arbitrary. With no prefix to place, `payload.ts` holds no lead concept at all; the `isLead` field was removed from `BootstrapEntryRef` (types.ts) and from all 9 `BOOTSTRAP_MANIFEST_ORDER` entries, and FR-HOOK-0009 was updated accordingly. Record kept because FR-HOOK-0009's manifest-order contract survives; only the prefix and the lead designation are gone.</implementationNotes>
   <depends>FR-HOOK-0009</depends>
 </req>
 
@@ -104,7 +104,7 @@
 
 <req id="FR-HOOK-0007" type="FR" level="System" ticketId="" classification="technical">
   <title>Plugin-path context entry</title>
-  <statement>The generator shall append to each session-hook target's bootstrap payload exactly one additional, SEPARATE session-start entry (the final entry) that reports the resolved plugin root path to the agent. This entry is NOT folded into the lead document's body; it is its own entry appended after all bootstrap-document entries, so the payload entry count = (present bootstrap-manifest documents) + 1. The entry uses the IDE's command shape with a double-quoted `printf` form (to allow runtime env/var expansion), and any instruction-path reference inside it is reference-rewritten per target (FR-HOOK-0008). Hooks generated for all IDEs always, regardless those are used or not. Template engineer decides to include it or solve it differently.</statement>
+  <statement>The generator shall append to each session-hook target's bootstrap payload exactly one additional, SEPARATE session-start entry (the final entry) that reports the resolved plugin root path to the agent. This entry is NOT folded into any document's body; it is its own entry appended after all bootstrap-document entries, so the payload entry count = (present bootstrap-manifest documents) + 1. The entry uses the IDE's command shape with a double-quoted `printf` form (to allow runtime env/var expansion), and any instruction-path reference inside it is reference-rewritten per target (FR-HOOK-0008). Hooks generated for all IDEs always, regardless those are used or not. Template engineer decides to include it or solve it differently.</statement>
   <rationale>Agents need the plugin root to resolve instruction file paths at runtime. The entry remains distinct and final. For the `core-codex` target, the generator omits the workflows index document from the payload (FR-VAR-0041), so the payload has one fewer document entry than the Claude and Copilot payloads.</rationale>
   <source>Sources</source>
   <priority>Must</priority>
@@ -147,8 +147,8 @@
 
 <req id="FR-HOOK-0009" type="FR" level="System" ticketId="" classification="technical">
   <title>Explicit, deterministic bootstrap-file order</title>
-  <statement>The generator shall assemble bootstrap context from an explicit ordered bootstrap-file manifest, and that order shall be significant and stable: it determines both the sequence of entries in the emitted payload and which document is the designated lead receiving the bootstrap prefix (FR-HOOK-0003). The `plugin-files-mode` document shall lead the manifest, followed by the `bootstrap-*` rule documents, followed by the index documents. The order shall not depend on filesystem enumeration.</statement>
-  <rationale>The agent must receive bootstrap context in a deliberate sequence (mode first, then policies, then indexes), and the prefix must land on the intended lead. The original relied on the position of the first match in an in-code list (`_BOOTSTRAP_FILES`), which silently moved the prefix if reordered — a fragility (QF-1) this unit removes by making the order an explicit, required contract.</rationale>
+  <statement>The generator shall assemble bootstrap context from an explicit ordered bootstrap-file manifest, and that order shall be significant and stable: it determines the sequence of entries in the emitted payload. The `plugin-files-mode` document shall lead the manifest, followed by the `bootstrap-*` rule documents, followed by the index documents. The order shall not depend on filesystem enumeration. No entry shall carry a per-entry lead designation: since the bootstrap prefix was removed (FR-HOOK-0003, Deprecated), no behavior distinguishes the first entry from the rest, and every entry's body is treated identically — including the leading-newline strip applied uniformly to all of them.</statement>
+  <rationale>The agent must receive bootstrap context in a deliberate sequence (mode first, then policies, then indexes). The original relied on the position of the first match in an in-code list (`_BOOTSTRAP_FILES`); the fragility that made this matter (QF-1) was that reordering silently moved the bootstrap prefix. With the prefix gone there is nothing position-sensitive left to protect, so the explicit `isLead` flag was removed rather than kept as a field no behavior reads. Manifest order remains a required contract for payload sequence and determinism.</rationale>
   <source>User</source>
   <priority>Must</priority>
   <status>Approved</status>
@@ -158,10 +158,10 @@
   <acceptance>
     <criteria>Given: a target's present bootstrap files When: the payload is assembled Then: entries appear in manifest order with `plugin-files-mode` first.</criteria>
     <criteria>Given: two runs over the same inputs When: compared Then: the entry order is identical and independent of directory listing order.</criteria>
-    <criteria>Given: the designated lead document When: assembled Then: it is the one that carries the bootstrap prefix.</criteria>
+    <criteria>Given: the assembled payload When: inspected Then: no entry is treated differently by virtue of its position, and no manifest entry carries a lead-designation flag.</criteria>
   </acceptance>
-  <implementation>NotStarted</implementation>
-  <implementationNotes></implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify-plugins/src/spec/bootstrap-manifest.ts (`BOOTSTRAP_MANIFEST_ORDER` — ordered basenames only; the `isLead` flag was removed from every entry on 2026-07-28 together with the prefix it existed to place). src/rosettify-plugins/src/types.ts (`BootstrapEntryRef` no longer carries `isLead`). src/rosettify-plugins/src/bootstrap/payload.ts iterates the manifest in order and applies the leading-newline strip uniformly to every entry; it holds no lead concept. Tests: tests/e2e/bootstrap-session-start.e2e.test.ts (real-instruction payload totals and plugin-root finality for both releases) and the four tests/unit/plugin-processors/plugin-assemble-*-bootstrap.test.ts suites (manifest-order entries, exactly one final plugin-root entry, no prefix on any entry).</implementationNotes>
   <depends>NFR-0002</depends>
 </req>
 
