@@ -15,7 +15,7 @@ Not user-slash-invocable (`user-invocable: false`) — it only runs when another
 SKILL.md is one flow with a tool-precedence gate up front (LSP > graphify > gitnexus > shell scripts, first one **REQUESTED** and available), then three tag groups:
 - `<lsp>` — use whatever LSP/semantic-search tools are already in context.
 - `<graphify>` — routes to `USE SKILL \`graphify\`` for querying/building the graph if graphify is already requested; otherwise gives setup steps.
-- `<gitnexus>` — routes to the four `assets/gitnexus-*.md` files by task (use, CLI, setup, examples) if gitnexus is already requested.
+- `<gitnexus>` — routes to the three `assets/gitnexus-*.md` files by task (use, CLI, examples) if gitnexus is already requested.
 
 Below that, `<core_concepts>` defines the CODEMAP.md contract, `<how_to_generate>` names the OS-specific script to read and run, and `<how_to_use_output>` tells the caller to treat CODEMAP.md as the discovery baseline and hands large workspaces to `large-workspace-handling`.
 
@@ -52,5 +52,5 @@ No `references/` subfolder exists.
 
 - Safe to change: the extension allowlists and `describe_dir`/`Get-DirDescription` heuristics inside the two generator scripts (stack-specific tuning), the gitnexus reference content when gitnexus's own CLI/MCP surface changes upstream.
 - Handle with care: the precedence block and the three `<lsp>`/`<graphify>`/`<gitnexus>` tags in SKILL.md — every caller assumes this exact routing; the `CODEMAP.md` heading format — external consumer (`large-workspace-handling`) depends on it verbatim.
-- New content: generic map-generation logic goes in the two script assets; gitnexus-specific reference material goes in the matching `assets/gitnexus-*.md` file by task (setup vs CLI vs MCP-usage vs examples), not into SKILL.md itself, which stays a thin router.
+- New content: generic map-generation logic goes in the two script assets; gitnexus-specific reference material goes in the matching `assets/gitnexus-*.md` file by task (CLI vs MCP-usage vs examples), not into SKILL.md itself, which stays a thin router.
 - Referenced by: workflows `init-workspace-flow.md`, `init-workspace-flow-discovery.md`, `init-workspace-flow-documentation.md`, `coding-flow.md`; skills `reverse-engineering`, `coding`; and (via the generated file only, not a skill reference) `large-workspace-handling`.
