@@ -16,21 +16,17 @@ assert spec.loader is not None
 spec.loader.exec_module(module)
 
 
-def issue(number, status=None, priority=None, repo="griddynamics/rosetta", type_="Issue"):
-    item = {
-        "id": f"item-{number}",
-        "content": {
-            "type": type_,
-            "number": number,
-            "title": f"issue {number}",
-            "repository": repo,
-        },
+def issue(number, status=None, priority=None, repo="griddynamics/rosetta", state="OPEN"):
+    """A board item in the shape load_board_items() normalises to."""
+    return {
+        "item_id": f"item-{number}",
+        "number": number,
+        "title": f"issue {number}",
+        "state": state,
+        "repository": repo,
+        "status": status,
+        "priority": priority,
     }
-    if status is not None:
-        item["status"] = status
-    if priority is not None:
-        item["priority"] = priority
-    return item
 
 
 # ── Priority gate (planner only) ────────────────────────────────────────────────
@@ -46,76 +42,77 @@ def test_unset_or_low_priority_is_not_plannable(priority):
 
 
 def test_priority_gate_applies_to_backlog_only():
-    plan, impl = module.collect_matrices({"items": [
+    plan, impl = module.collect_matrices([
         issue(1, status="Backlog", priority="P1"),
         issue(2, status="Backlog", priority="Low"),
         issue(3, status="Backlog"),                    # unset
         issue(4, status="Ready"),                      # unset, must still implement
         issue(5, status="Ready", priority="Low"),      # low, must still implement
-    ]})
+    ])
     assert [e["issue_number"] for e in plan] == [1]
     assert [e["issue_number"] for e in impl] == [4, 5]
-
-
-def test_require_priority_field_exits_when_missing():
-    with pytest.raises(SystemExit) as exc:
-        module.require_priority_field({"fields": [{"name": "Status"}]})
-    assert exc.value.code == 1
-
-
-def test_require_priority_field_passes_when_present():
-    assert module.require_priority_field(
-        {"fields": [{"name": "Status"}, {"name": "Priority"}]}
-    ) is None
 
 
 # ── Status selection ────────────────────────────────────────────────────────────
 
 def test_only_backlog_and_ready_are_selected():
-    plan, impl = module.collect_matrices({"items": [
+    plan, impl = module.collect_matrices([
         issue(1, status="Backlog", priority="P1"),
         issue(2, status="Ready"),
         issue(3, status="In progress", priority="P1"),
         issue(4, status="In review", priority="P1"),
         issue(5, status="Done", priority="P1"),
         issue(6, priority="P1"),                       # status unset
-    ]})
+    ])
     assert [e["issue_number"] for e in plan] == [1]
     assert [e["issue_number"] for e in impl] == [2]
 
 
 def test_status_match_is_case_and_whitespace_sensitive():
-    plan, impl = module.collect_matrices({"items": [
+    plan, impl = module.collect_matrices([
         issue(1, status="backlog", priority="P1"),
         issue(2, status="Backlog ", priority="P1"),
-    ]})
+    ])
     assert plan == [] and impl == []
 
 
 # ── Content filtering ───────────────────────────────────────────────────────────
 
-def test_pull_requests_and_drafts_are_excluded():
-    plan, impl = module.collect_matrices({"items": [
-        issue(1, status="Backlog", priority="P1", type_="PullRequest"),
-        issue(2, status="Ready", type_="DraftIssue"),
-    ]})
+def test_closed_issues_are_never_selected():
+    plan, impl = module.collect_matrices([
+        issue(1, status="Backlog", priority="P1", state="CLOSED"),
+        issue(2, status="Ready", state="CLOSED"),
+    ])
     assert plan == [] and impl == []
 
 
 def test_items_from_other_repositories_are_excluded():
-    plan, _ = module.collect_matrices({"items": [
+    plan, _ = module.collect_matrices([
         issue(1, status="Backlog", priority="P1", repo="griddynamics/other"),
-    ]})
+    ])
     assert plan == []
 
 
-def test_null_content_does_not_crash():
-    """gh emits "content": null for cards the token cannot resolve."""
-    plan, _ = module.collect_matrices({"items": [
-        {"id": "x", "content": None, "status": "Backlog"},
-        issue(1, status="Backlog", priority="P1"),
-    ]})
-    assert [e["issue_number"] for e in plan] == [1]
+def test_priority_is_read_from_the_issue_not_the_project_item():
+    """Priority is a native Issue field that the board surfaces as a derived column.
+    It is invisible to `gh project item-list`, so it must come from
+    Issue.issueFieldValues -- reading it off the project item skips every issue."""
+    content = {
+        "number": 1, "title": "t", "state": "OPEN",
+        "repository": {"nameWithOwner": "griddynamics/rosetta"},
+        "issueFieldValues": {"nodes": [{"name": "Urgent", "field": {"name": "Priority"}}]},
+    }
+    project_field_values = {"nodes": [{"name": "Backlog", "field": {"name": "Status"}}]}
+    assert module._single_select(content["issueFieldValues"], "Priority") == "Urgent"
+    assert module._single_select(project_field_values, "Status") == "Backlog"
+    assert module._single_select(project_field_values, "Priority") is None
+
+
+def test_single_select_tolerates_missing_and_null_nodes():
+    assert module._single_select(None, "Priority") is None
+    assert module._single_select({"nodes": []}, "Priority") is None
+    assert module._single_select({"nodes": [None]}, "Priority") is None
+    assert module._single_select({"nodes": [{"name": "x"}]}, "Priority") is None
 
 
 # ── Matrix shape ────────────────────────────────────────────────────────────────
@@ -126,15 +123,9 @@ def test_empty_matrix_emits_skip_sentinel():
 
 
 def test_title_is_truncated_and_sanitized():
-    plan, _ = module.collect_matrices({"items": [{
-        "id": "item-1",
-        "status": "Backlog",
-        "priority": "P1",
-        "content": {
-            "type": "Issue", "number": 1, "repository": "griddynamics/rosetta",
-            "title": 'a"b' + "\n" + "x" * 200,
-        },
-    }]})
+    item = issue(1, status="Backlog", priority="P1")
+    item["title"] = 'a"b' + "\n" + "x" * 200
+    plan, _ = module.collect_matrices([item])
     title = plan[0]["issue_title"]
     assert len(title) == 80
     assert '"' not in title and "\n" not in title
