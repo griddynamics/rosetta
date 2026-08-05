@@ -10,6 +10,10 @@ on:
       - 'src/curiocity/**'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-test:
     runs-on: ubuntu-latest
