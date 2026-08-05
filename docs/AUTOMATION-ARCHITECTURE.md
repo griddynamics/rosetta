@@ -161,23 +161,23 @@ mechanism.** To plan fewer issues, set Priority on fewer issues. To implement fe
 move fewer cards to `Scheduled`. Any out-of-band scoping input would be a second control
 surface that bypasses the board and diverges from what the board shows.
 
-## Future: trigger the planner on issue events instead of cron
+## Triggers
 
-Add `on: issues:` — every issue activity type, no filter — to both workflows, and keep
-cron as a backstop.
+Both workflows run on `on: issues:` — every activity type, unfiltered — plus a cron
+backstop.
 
-The event is a doorbell: the payload is ignored, the workflow loads the whole board as
-it does on a cron tick, and picks up everything eligible. So it is self-healing — a
-dropped event strands nothing, the next one of any kind drains the queue — and no
+The event is a doorbell: the payload is ignored, the workflow loads the whole board just
+as it does on a cron tick, and picks up everything eligible. That makes it self-healing
+— a dropped event strands nothing, the next one of any kind drains the queue — and no
 `types:` list has to be got right. It also covers the implementer, whose real gate
-(board `Status` → `Scheduled`) raises only the organization-scoped `projects_v2_item`
-that repository workflows cannot subscribe to.
+(board `Status` → `Scheduled`) raises only the organization-scoped `projects_v2_item`,
+which a repository workflow cannot subscribe to.
 
-For overlapping runs, have the load job exit early if another run of the same workflow
-is already in progress. Exiting is safe for the same reason the trigger works: the
-in-flight run or the next event will pick the work up. Prefer this to a `concurrency:`
-group, which either queues runs or cancels them mid-flight — and cancelling would kill
-an agent mid-work and strand its card in a working lane.
+Overlapping runs are handled by the load job exiting early when another run of the same
+workflow is in progress, rather than by a `concurrency:` group — queuing delays work, and
+`cancel-in-progress` would kill an agent mid-work and strand its card in a working lane.
+Exiting is safe for the same reason the trigger works: the in-flight run or the next
+event picks the work up.
 
 Note: `actionlint` accepts `on: projects_v2_item:`. That is a false positive from a
 permissive event list, not evidence it fires.

@@ -27,6 +27,11 @@ on:
   schedule:
     - cron: '30 */3 * * *'
     - cron: '0 3 * * *'
+  # Every issue activity type, unfiltered. The payload is ignored: the event is only a
+  # doorbell and the job loads the whole board, so this also picks up a card the user
+  # moved to Scheduled — board Status changes raise only the organization-scoped
+  # projects_v2_item, which a repository workflow cannot subscribe to.
+  issues:
   workflow_dispatch:
 
 jobs:
@@ -45,8 +50,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      # Issue events plus a 3-hourly schedule means runs can overlap, and the claim is
+      # not atomic — two runs could read the same card as Scheduled before either claims
+      # it and both would open a branch. Bail out instead: safe, because the in-flight run
+      # or the next event picks the work up. Preferred over a `concurrency:` group, which
+      # would either queue runs or cancel one mid-flight, stranding its card In progress.
+      - name: Skip if another run is already in progress
+        id: inflight
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          others=$(gh run list --workflow repo-implement.yml --status in_progress \
+                     --limit 100 --json databaseId \
+                     -q "[.[] | select(.databaseId != ${RUN_ID})] | length")
+          if [ "${others:-0}" -gt 0 ]; then
+            echo "busy=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$others other implementer run(s) in progress — skipping this one."
+          fi
+
       - name: Load board items
         id: load
+        if: steps.inflight.outputs.busy != 'true'
         env:
           GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
         run: python .github/scripts/load_stories.py
@@ -54,7 +80,11 @@ jobs:
       - name: Summary
         run: |
           echo "## Implementer — Board Load" >> $GITHUB_STEP_SUMMARY
-          echo "- Issues to implement: ${{ steps.load.outputs.impl_count }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.inflight.outputs.busy }}" = "true" ]; then
+            echo "- Skipped: another implementer run is in progress" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Issues to implement: ${{ steps.load.outputs.impl_count }}" >> $GITHUB_STEP_SUMMARY
+          fi
 
   # ── Implementation subagents (parallel, one per issue) ────────────────────────
   implement-story:
