@@ -36,8 +36,8 @@ To automate backend API tests effectively, I need the following project details:
    - How should tests authenticate? (test credentials, mock auth, service account)
    - ⚠️ Do NOT paste literal credential values (tokens, passwords, API keys) — describe the **mechanism + source** only (e.g. "Bearer JWT from AuthHelper; credentials in env var `AUTH_TOKEN`").
 
-6. **Backend Source Code** (optional — helps me analyze API routes and validation; I can also discover from ARCHITECTURE.md RefSrc references):
-   - In RefSrc/ folder (provide project name, e.g., RefSrc/my-backend/)
+6. **Backend Source Code** (optional — helps me analyze API routes and validation; I can also discover from ARCHITECTURE.md refsrc references):
+   - In refsrc/ folder (provide project name, e.g., refsrc/my-backend/)
    - In the current workspace (provide path, e.g., src/, backend/)
    - Not available (I will work from Swagger/docs only)
 

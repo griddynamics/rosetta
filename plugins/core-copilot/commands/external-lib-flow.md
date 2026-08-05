@@ -11,14 +11,14 @@ baseSchema: docs/schemas/workflow.md
 
 - Purpose: Onboard AI to external codebase for usage understanding
 - Tool: Repomix MCP to package codebase (compressed XML)
-- Target: Two documents in RefSrc folder and in Rosetta
+- Target: Two documents in refsrc folder and in Rosetta
   1. File: `{project-name}.xml` (compressed codebase, unmodified Repomix output)
   2. File: `{project-name}-onboarding.md` (brief Learning Flow with reference)
 - Files involved: Project path, README, package files for auto-detection
 - MUST generate brief Learning Flow (3-5 words per step, max 20 lines)
 - MUST use compressed XML (Tree-sitter) for small output
 - Onboarding document MUST specify KB title and search instructions
-- Update ARCHITECTURE.md based on template `MUST use RefSrc/{project-name}.xml and RefSrc/{project-name}-onboarding.md. MUST use grep or search with those, because those are big files.`. Combine this rule for multiple external dependencies.
+- Update ARCHITECTURE.md based on template `MUST use refsrc/{project-name}.xml and refsrc/{project-name}-onboarding.md. MUST use grep or search with those, because those are big files.`. Combine this rule for multiple external dependencies.
 - Workflow state MUST be saved to `agents/TEMP/<FEATURE>/external-lib-flow-state.md` file.
 
 ## Onboarding Flow

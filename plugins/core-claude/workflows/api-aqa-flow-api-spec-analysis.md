@@ -37,7 +37,7 @@ The phase supplies the skill two required inputs; the skill GATEs on both before
 
 <determine_spec_source step="2.1">
 
-Determine `{backend-source-path}` from Phase 1 raw data "Backend Source Code Analysis" section, or from project config "Backend Source Code" section, or from Rosetta docs at `RefSrc/{project-name}/docs/` (the backend-source scan lives in the data-collection phase's **Backend Source Code Analysis** section). If Rosetta docs exist for the backend project, read `ARCHITECTURE.md` and `CODEMAP.md` from `RefSrc/{project-name}/docs/` to understand API architecture before searching source code.
+Determine `{backend-source-path}` from Phase 1 raw data "Backend Source Code Analysis" section, or from project config "Backend Source Code" section, or from Rosetta docs at `refsrc/{project-name}/docs/` (the backend-source scan lives in the data-collection phase's **Backend Source Code Analysis** section). If Rosetta docs exist for the backend project, read `ARCHITECTURE.md` and `CODEMAP.md` from `refsrc/{project-name}/docs/` to understand API architecture before searching source code.
 
 Determine spec source in order:
 
