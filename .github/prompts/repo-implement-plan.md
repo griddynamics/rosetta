@@ -140,7 +140,13 @@ Reference other issues by `#<number>` (GitHub auto-links these) and files by the
    2nd-degree questions based on those answers.
 3. If the plan reveals dependencies on other issues, mention them by `#<number>` in the
    plan — GitHub auto-links these; no separate action needed.
-4. **Do not move the card past "In progress."** A human reviews the plan and manually
+4. **If the issue is not an implementable change** — a question, a research or
+   fact-check request, an investigation — do NOT invent a plan and do NOT write a
+   `## 🤖 Rosetta Plan` section. Answer in a comment, state plainly in that comment
+   that the issue is not implementable as written and needs a human to split it into
+   actionable tickets, and leave the card for that human. An empty plan section is
+   worse than none: the implementer treats it as approved work.
+5. **Do not move the card past "In progress."** A human reviews the plan and manually
    moves it to "Ready" when satisfied — the agent never promotes it itself. If the plan
    surfaces blockers that mean this issue should NOT proceed, say so explicitly in the
    comment so the human can move it back to "Backlog" or close it instead.
