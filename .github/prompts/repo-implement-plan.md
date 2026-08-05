@@ -13,17 +13,15 @@
 > commits, no pushes in this phase.
 >
 > **Subagent constraint**: one-shot headless session. Ending a turn without a tool
-> call kills the job in ~2s — no later turn, no notification, no wakeup.
+> call kills the job in ~2s — there is no later turn, notification, or wakeup.
 >
 > Pass `run_in_background: false` on every `Agent` call (omit only if the schema
-> lacks it), all calls in one assistant message. They run concurrently (verified)
-> and the turn stays open until every report returns — the only wait that works here.
-> ScheduleWakeup, Monitor, sleep and polling were each tested and fail silently.
-> Missing report → do that part yourself rather than wait.
+> lacks it), and put all calls in one assistant message: they run concurrently and
+> the turn stays open until every report returns. That is the only wait available.
+> Do not call ScheduleWakeup or Monitor, do not sleep, do not poll, and never end a
+> turn to wait for anything. If a report is missing, do that part yourself.
 >
 > Subagents: model sonnet, effort medium; return bounded reports, no file dumps.
-> A backgrounded subagent's report never arrives: the card is left claimed at
-> "In progress" with no plan on it, while CI reports success.
 
 You are an automated planning agent. Your job is to produce an implementation plan
 and tech specs for a single GitHub issue on the Rosetta Automation Board, write them
@@ -31,8 +29,7 @@ into the issue description, then move the board card to "In progress".
 
 ## Method — run `rosetta:coding-flow`, planning half only
 
-Invoke `rosetta:coding-flow` with the Skill tool. It is a workflow (slash command),
-not a skill file — if the Skill tool cannot resolve it, read
+Invoke `rosetta:coding-flow` with the Skill tool. If it does not resolve, read
 `instructions/r3/core/workflows/coding-flow.md` from this checkout and follow it
 directly. Run only the phases that produce the plan. This pipeline is split
 across two runs: you do the thinking, the implementer does the doing.

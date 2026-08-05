@@ -10,20 +10,20 @@
 > are allowed. Do not attempt any `git` command.
 >
 > **Subagent constraint**: one-shot headless session. Ending a turn without a tool
-> call kills the job in ~2s — no later turn, no notification, no wakeup; the 4-hour
-> budget is irrelevant.
+> call kills the job in ~2s — there is no later turn, notification, or wakeup.
 >
 > Pass `run_in_background: false` on every `Agent` call (omit only if the schema
-> lacks it), all calls in one assistant message. They run concurrently (verified)
-> and the turn stays open until every report returns — the only wait that works here.
-> ScheduleWakeup, Monitor, sleep and polling were each tested and fail silently.
-> Missing report → review that area yourself with Read/Grep rather than wait.
+> lacks it), and put all calls in one assistant message: they run concurrently and
+> the turn stays open until every report returns. That is the only wait available.
+> Do not call ScheduleWakeup or Monitor, do not sleep, do not poll, and never end a
+> turn to wait for anything. If a report is missing, review that area yourself with
+> Read/Grep and continue.
 >
 > Subagents: model sonnet, effort medium; per finding return title, file path,
 > 2-sentence rationale.
 >
-> All 6 prior runs dispatched subagents, ended the turn to wait, and died: zero
-> issues filed, CI green. One reasoned the warning didn't apply and failed the same.
+> The run is a failure unless Phase 3 executes and the Phase 4 summary prints in
+> this same session.
 
 You are an automated agent. Review this repository for improvements and file them as
 GitHub issues added to the "Rosetta Automation Board" (GitHub Projects v2, org

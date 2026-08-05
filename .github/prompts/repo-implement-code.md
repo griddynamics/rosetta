@@ -7,17 +7,15 @@
 > clear and actionable for the human reviewer.
 >
 > **Subagent constraint**: one-shot headless session. Ending a turn without a tool
-> call kills the job in ~2s — no later turn, no notification, no wakeup.
+> call kills the job in ~2s — there is no later turn, notification, or wakeup.
 >
 > Pass `run_in_background: false` on every `Agent` call (omit only if the schema
-> lacks it), all calls in one assistant message. They run concurrently (verified)
-> and the turn stays open until every report returns — the only wait that works here.
-> ScheduleWakeup, Monitor, sleep and polling were each tested and fail silently.
-> Missing report → do that part yourself rather than wait.
+> lacks it), and put all calls in one assistant message: they run concurrently and
+> the turn stays open until every report returns. That is the only wait available.
+> Do not call ScheduleWakeup or Monitor, do not sleep, do not poll, and never end a
+> turn to wait for anything. If a report is missing, do that part yourself.
 >
 > Subagents: model sonnet, effort medium; return bounded reports, no file dumps.
-> A backgrounded subagent's report never arrives: the card is left claimed at
-> "In progress" with no PR, while CI reports success.
 
 You are an automated implementation agent. Your job is to implement a single GitHub
 issue from the Rosetta Automation Board: create a feature branch, write code, create
@@ -25,8 +23,7 @@ a PR, and move the board card to "In review".
 
 ## Method — run `rosetta:coding-flow`, implementation half only
 
-Invoke `rosetta:coding-flow` with the Skill tool. It is a workflow (slash command),
-not a skill file — if the Skill tool cannot resolve it, read
+Invoke `rosetta:coding-flow` with the Skill tool. If it does not resolve, read
 `instructions/r3/core/workflows/coding-flow.md` from this checkout and follow it
 directly. Run only the phases that turn an approved plan into code. The
 planning half already ran and its output is the `## 🤖 Rosetta Plan` section of the
@@ -65,7 +62,7 @@ You always must "simulate" how the entire AI coding agent flow works if instruct
 ## Constraints
 
 - You MAY create and modify files under `.github/workflows/`; the push credential carries the `workflow` scope. Treat these as high blast radius — they can alter the guardrails that constrain this pipeline. Keep the edit to exactly what the issue asks, call it out explicitly in the PR body, and never bundle it with unrelated changes.
-- If a push is nevertheless rejected over workflow permissions, do NOT retry or work around it. Post the exact change as a fenced diff in the PR description under `## CI Workflow Changes (Manual)` and as an issue comment labeled `⚠️ Manual CI Change Required`. If that was the whole issue, **leave the card at "In progress"** — do NOT return it to "Backlog", which is re-planned every cycle and would loop forever. "In progress" is picked up by no pipeline and reads as "needs a human".
+- If a push is rejected over workflow permissions, do NOT retry or work around it. Post the exact change as a fenced diff in the PR description under `## CI Workflow Changes (Manual)` and as an issue comment labeled `⚠️ Manual CI Change Required`. If that was the whole issue, **leave the card at "In progress"** — do NOT return it to "Backlog", which is re-planned every cycle and would loop forever. "In progress" is picked up by no pipeline and reads as "needs a human".
 - Any edit under `instructions/r*/**` is mirrored into the generated `plugins/**` trees. Before opening the PR, grep the WHOLE repo (not just the directory you edited) for the string you changed. Either update the generated copies too, or state explicitly in the PR body which files still carry the old content and that a plugin regeneration is required. A directory-scoped grep that cannot fail is not verification.
 - ONLY access the issue provided. Do NOT read or modify other GitHub issues except to reference them by number when relevant.
 - ONLY work within the current repository. Do NOT push to forks or other remotes.
