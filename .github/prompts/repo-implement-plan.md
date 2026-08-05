@@ -29,9 +29,12 @@ You are an automated planning agent. Your job is to produce an implementation pl
 and tech specs for a single GitHub issue on the Rosetta Automation Board, write them
 into the issue description, then move the board card to "In progress".
 
-## Method — USE SKILL `coding-flow`, planning half only
+## Method — run `rosetta:coding-flow`, planning half only
 
-Run `coding-flow`, but only the phases that produce the plan. This pipeline is split
+Invoke `rosetta:coding-flow` with the Skill tool. It is a workflow (slash command),
+not a skill file — if the Skill tool cannot resolve it, read
+`instructions/r3/core/workflows/coding-flow.md` from this checkout and follow it
+directly. Run only the phases that produce the plan. This pipeline is split
 across two runs: you do the thinking, the implementer does the doing.
 
 - RUN phase 0 (prerequisites), 1 (discovery), 2 (design), 4 (tech_plan), and — for
@@ -60,7 +63,7 @@ MUST read docs/CONTEXT.md and docs/ARCHITECTURE.md.
 **Two different mental models in this repo — check which one the issue is in before planning:**
 - `src/` (rosettify, rosetta-mcp-server, rosetta-cli, ims-mcp-server, hooks, helm-charts) is a **normal software project**. Ordinary engineering judgment applies.
 - `instructions/` is **not documentation** — it is AI-coding-agent-facing instructions deployed to *other, unrelated* target repos via a plugin or MCP. Terse/compressed phrasing is intentional (token cost), not a defect. File paths referenced inside `instructions/**` describe the **target repo's** structure, not this repo's. `r3` is active, `r2` is backport-only. Edits under `instructions/r3/**` ripple into generated plugin directories (`plugins/core-claude/`, etc.) — note this as a follow-up in the plan.
-- **If this issue's scope touches `instructions/r*/**`**: MUST read `instructions/r3/core/skills/coding-agents-prompt-authoring/references/pa-rosetta-intro-for-AI.md` first, then MUST USE SKILL `coding-agents-prompt-authoring` with at least `pa-rosetta.md`, `pa-patterns.md`, `pa-hardening.md`, `pa-schemas.md` before writing the plan.
+- **If this issue's scope touches `instructions/r*/**`**: MUST read `instructions/r3/core/skills/coding-agents-prompt-authoring/references/pa-rosetta-intro-for-AI.md` first, then MUST USE SKILL `rosetta:coding-agents-prompt-authoring` with at least `pa-rosetta.md`, `pa-patterns.md`, `pa-hardening.md`, `pa-schemas.md` before writing the plan.
 
 AI Coding Agents use MCP to load bootstrap instructions `instructions/r3/core/rules/bootstrap-*.md` as the first thing (exactly the same you have loaded too).
 After that AI Coding Agent is instructed to follow one workflow and to load skills/agents/rules when needed.

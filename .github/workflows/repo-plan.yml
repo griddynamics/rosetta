@@ -113,7 +113,8 @@ jobs:
             MUST APPLY AND FULLY EXECUTE FULLY AUTONOMOUSLY WITHOUT ANY USER INTERACTION OR QUESTIONS, No HITL: .github/prompts/repo-implement-plan.md
           show_full_output: false
           claude_args: |
-            --allowedTools Read,Glob,Grep,Agent,Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh pr list:*),Bash(gh project item-list:*),Bash(gh project item-edit:*)
+            --allowedTools
+            "Read,Glob,Grep,Agent,Skill,Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh pr list:*),Bash(gh project item-list:*),Bash(gh project item-edit:*)"
             --disallowedTools ScheduleWakeup
             --model sonnet
             --effort medium

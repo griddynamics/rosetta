@@ -67,10 +67,10 @@ This guardrail applies to ALL activities and ALL `/rosetta` commands. No excepti
 If a PR changes `instructions/r*/**`, or an issue/comment is about Rosetta instructions, rules, skills, workflows, agents, prompts, bootstrap behavior, or prompt quality:
 
 1. MUST treat it as instruction-quality review, not ordinary documentation/code review.
-2. MUST USE SKILL `orchestration` before any subagent dispatch.
+2. MUST USE SKILL `rosetta:orchestration` before any subagent dispatch.
 3. MUST spawn at least one subagent with:
    - role: Rosetta prompt quality reviewer
-   - MUST USE SKILL `coding-agents-prompt-authoring`
+   - MUST USE SKILL `rosetta:coding-agents-prompt-authoring`
    - MUST load/use at minimum:
      - `pa-rosetta-intro-for-AI.md`
      - `pa-rosetta.md`

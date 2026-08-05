@@ -92,10 +92,10 @@ If a candidate from Phase 2 touches `instructions/r*/**`, or concerns Rosetta in
 skills, workflows, agents, prompts, bootstrap behavior, or prompt quality generally:
 
 1. MUST treat it as instruction-quality review, not an ordinary documentation/code improvement.
-2. MUST USE SKILL `orchestration` before any subagent dispatch.
+2. MUST USE SKILL `rosetta:orchestration` before any subagent dispatch.
 3. MUST spawn at least one subagent with:
    - role: Rosetta prompt quality reviewer
-   - MUST USE SKILL `coding-agents-prompt-authoring`
+   - MUST USE SKILL `rosetta:coding-agents-prompt-authoring`
    - MUST load/use at minimum:
      - `pa-rosetta-intro-for-AI.md`
      - `pa-rosetta.md`
