@@ -41,6 +41,17 @@ Neither lane an agent loads from (`Backlog`, `Scheduled`) is one anybody moves a
 into casually. `Scheduled` reads as a decision because that is what it is: moving a
 card there authorises writing code.
 
+## Debounce before claiming
+
+On any non-manual trigger, the workflow polls the issue's `updatedAt` and waits until
+it has been unchanged for 5 minutes before claiming the card. Editing an issue produces
+a stream of events and updates, so without this an agent can start against a
+half-written issue or a plan still being revised. Manual `workflow_dispatch` skips the
+wait — the user picked the moment.
+
+The loop is capped at six waits (30 minutes) and then proceeds with a warning rather
+than blocking forever; job timeouts allow for that on top of the agent's own run.
+
 ## The two gates are the user's
 
 - **`Ready` → `Scheduled`** is the plan-approval gate — coding-flow phase 6

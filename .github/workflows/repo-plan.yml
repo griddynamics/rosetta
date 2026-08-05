@@ -65,7 +65,8 @@ jobs:
     needs: load-stories
     if: needs.load-stories.outputs.has_work == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # 30 of these can go to the debounce loop before the agent starts.
+    timeout-minutes: 90
     env:
       ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
       ENABLE_TOOL_SEARCH: "true"
@@ -86,6 +87,29 @@ jobs:
         with:
           bun-version: 1.3.6
           token: ${{ github.token }}
+
+      # An auto-triggered run can fire while the issue is still being edited. Wait until
+      # it has been quiet for 5 minutes before claiming it, so the agent never plans a
+      # half-written issue. Manual dispatch skips this — the user chose the moment.
+      # (This is the runner's own shell; the agent-side sleep restrictions do not apply.)
+      - name: Debounce — wait for the issue to settle
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          ISSUE: ${{ matrix.issue_number }}
+        run: |
+          previous=""
+          for attempt in $(seq 1 6); do
+            current=$(gh issue view "$ISSUE" --json updatedAt -q .updatedAt)
+            if [ "$current" = "$previous" ]; then
+              echo "Issue #$ISSUE unchanged for 5 minutes (last update $current) — proceeding."
+              exit 0
+            fi
+            echo "Issue #$ISSUE updated at $current — waiting 5 minutes (attempt $attempt/6)."
+            previous="$current"
+            sleep 300
+          done
+          echo "::warning::Issue #$ISSUE still changing after 30 minutes — proceeding anyway."
 
       # Claiming needs no judgement, so it is done here rather than costing an agent
       # turn. jq -e fails the step if the board has no "Planning" option, instead of

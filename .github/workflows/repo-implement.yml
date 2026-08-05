@@ -99,6 +99,29 @@ jobs:
           git config user.name "github-actions[bot]"
           git remote set-url origin https://x-access-token:${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}@github.com/${{ github.repository }}
 
+      # An auto-triggered run can fire while the issue is still being edited. Wait until
+      # it has been quiet for 5 minutes before claiming it, so the agent never implements
+      # a half-written plan. Manual dispatch skips this — the user chose the moment.
+      # (This is the runner's own shell; the agent-side sleep restrictions do not apply.)
+      - name: Debounce — wait for the issue to settle
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          ISSUE: ${{ matrix.issue_number }}
+        run: |
+          previous=""
+          for attempt in $(seq 1 6); do
+            current=$(gh issue view "$ISSUE" --json updatedAt -q .updatedAt)
+            if [ "$current" = "$previous" ]; then
+              echo "Issue #$ISSUE unchanged for 5 minutes (last update $current) — proceeding."
+              exit 0
+            fi
+            echo "Issue #$ISSUE updated at $current — waiting 5 minutes (attempt $attempt/6)."
+            previous="$current"
+            sleep 300
+          done
+          echo "::warning::Issue #$ISSUE still changing after 30 minutes — proceeding anyway."
+
       # Claiming needs no judgement, so it is done here rather than costing an agent
       # turn. jq -e fails the step if the board has no "In progress" option, instead
       # of letting the agent run against a lane that does not exist.
