@@ -102,12 +102,24 @@ and the implementer holds `Bash(*)` with a PAT in the git remote URL.
 ## Terminal states
 
 - **In review** — PR open, waiting on a human.
-- **In progress with a `⚠️` comment** — needs a human and is deliberately picked up
-  by no pipeline. Used when an issue cannot be automated at all (e.g. its whole
-  scope is a `.github/workflows/` edit the agent may not push — the job has no
-  `workflows: write` and the PAT has no `workflow` scope, deliberately, so an agent
-  cannot rewrite the CI that constrains it). Returning such a
-  card to Backlog would re-plan it every cycle forever.
+- **In progress with a `⚠️` comment** — needs a human and is picked up by no
+  pipeline. Used when an issue cannot be automated (e.g. a `.github/workflows/`
+  edit rejected because the PAT lacks the `workflow` scope). Returning such a card
+  to Backlog would re-plan it every cycle forever.
+
+## Pushing workflow files
+
+The implementer may edit `.github/workflows/`. What governs this is the **PAT's
+`workflow` scope**, not the job's `permissions:` block — there is no `workflows`
+permission key (an earlier `workflows: write` line in this repo was invalid YAML and
+granted nothing), and the push uses `SELF_AUTOMATION_PROJECTS_TOKEN` via
+`git remote set-url`, not `GITHUB_TOKEN`.
+
+Consequence worth holding in mind: with `Bash(*)`, a `workflow`-scoped PAT, and no
+branch protection on `main`, this pipeline can rewrite the guardrails that constrain
+it — including `check_trace.py`, `scrub_trace.py` and `--disallowedTools`. Branch
+protection on `main` requiring a reviewed PR is the mitigation; the prompt asking
+nicely is not.
 
 ## Scoping a run
 
