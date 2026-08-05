@@ -89,9 +89,12 @@ This silently disabled `repo-plan` and `repo-triage` completely. Always quote it
 `background_tasks_changed` messages it receives — so a run that abandons its
 subagents and does nothing looks identical to a clean one.
 
-`.github/scripts/check_trace.py` runs after every pipeline and fails the job if the
-main agent backgrounded a subagent, if a dispatch never returned, or if nothing was
-mutated. It parses the trace **structurally** — substring greps do not work, because
+`.github/scripts/check_trace.py` runs after all four pipelines and fails the job if
+the main agent backgrounded a subagent or a dispatch never returned. It also fails
+when nothing was mutated — except under `--allow-no-op`, which triage uses: the
+board-driven pipelines are pulled by board state that guarantees work exists, so
+doing nothing is a failure there, while triage is event-driven and may legitimately
+have nothing to say about a PR. It parses the trace **structurally** — substring greps do not work, because
 the prompt text is echoed inside the trace via `Read` results, so
 `grep 'gh issue create'` matches on runs that never called it.
 

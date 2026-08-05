@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Post-run guard for the board-driven Claude pipelines.
+"""Post-run guard for the Claude pipelines.
 
-Fails the job on the two silent-failure modes the traces exposed:
-  1. the main agent backgrounded a subagent (report can never arrive in -p)
-  2. the run never attempted to create or update an issue
+Fails the job on the two silent-failure modes:
+  1. the main agent backgrounded a subagent (its report can never arrive in -p)
+  2. the run mutated nothing
+
+Check 2 is skipped with --allow-no-op. Board-driven pipelines (analysis, plan,
+implement) are pulled by board state that guarantees work exists, so doing nothing
+is a failure. Triage is event-driven and may legitimately have nothing to say
+about a PR, so only check 1 applies there.
 
 Both checks parse the SDK message array structurally. Substring greps do not
 work here: the prompt text is itself inside the trace (via Read tool_results),
@@ -15,7 +20,12 @@ import re
 import sys
 
 MUTATING = re.compile(
-    r"""^\s*gh\s+(issue\s+(create|edit|comment|close)|project\s+item-(add|edit))\b"""
+    r"""^\s*gh\s+(
+          issue\s+(create|edit|comment|close|reopen|lock)
+        | pr\s+(create|edit|comment|review|close|merge|ready)
+        | project\s+item-(add|edit|delete|archive)
+      )\b""",
+    re.VERBOSE,
 )
 
 
@@ -24,7 +34,7 @@ def blocks(msg):
     return content if isinstance(content, list) else []
 
 
-def main(path):
+def main(path, require_mutation=True):
     with open(path) as fh:
         msgs = json.load(fh)
 
@@ -72,10 +82,10 @@ def main(path):
             "while they were still running: %s"
             % (len(orphaned), "; ".join(orphaned))
         )
-    if not mutating:
+    if require_mutation and not mutating:
         failures.append(
-            "The run changed nothing: no gh issue create/edit/comment/close and no "
-            "gh project item-add/item-edit command was executed."
+            "The run changed nothing: no issue, pull-request or board mutation was "
+            "executed."
         )
 
     print("issue-mutating commands executed: %d" % len(mutating))
@@ -90,4 +100,5 @@ def main(path):
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1]))
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    sys.exit(main(args[0], require_mutation="--allow-no-op" not in sys.argv[1:]))

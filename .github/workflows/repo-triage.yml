@@ -104,6 +104,12 @@ jobs:
             ${{ secrets.BIFROST_API_KEY }}
         run: python3 .github/scripts/scrub_trace.py /home/runner/work/_temp/claude-execution-output.json
 
+      # Triage is event-driven, so a run that finds nothing to say is legitimate:
+      # --allow-no-op keeps the abandoned-subagent check and drops the did-it-mutate one.
+      - name: Verify the run did real work
+        if: always()
+        run: python3 .github/scripts/check_trace.py /home/runner/work/_temp/claude-execution-output.json --allow-no-op
+
       - name: Upload Claude execution trace
         if: always()
         uses: actions/upload-artifact@v6
