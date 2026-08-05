@@ -160,17 +160,28 @@ on:
     types: [field_added, field_removed, opened, reopened]
 ```
 
-The job still loads the board as it does today, so the event is only a wake-up: the
-`Backlog` + Priority gate stays the single source of truth and an event for an
-irrelevant issue costs one fast `load-stories` run that exits with `has_work=false`.
-Worth confirming against a live event which action fires when a Priority value is
-*changed* rather than first set, before relying on the `types` list above.
+**The event is a doorbell, not a work item.** The workflow ignores the payload and
+loads the whole board exactly as it does on a cron tick, so it picks up everything
+currently eligible — not just the issue that fired. Three things follow, and they are
+the reason to do it this way:
 
-The implementer cannot be triggered this way. Its gate is the board `Status` moving to
-`Scheduled`, which is a Projects v2 change, and `projects_v2_item` is an
-**organization**-scoped webhook that repository workflows cannot subscribe to.
-(`actionlint` accepts `on: projects_v2_item:` — that is a false positive from a
-permissive event list, not evidence it fires.) Options there are an org webhook relaying
-to `repository_dispatch`, or simply a shorter cron: `load-stories` exits in seconds when
-nothing matches and the agent jobs are gated on `has_work`, so a 15-minute cadence costs
-almost nothing.
+- **Self-healing.** A dropped or missed event strands nothing. The next event of any
+  kind drains the whole queue, and cron remains as a backstop if every event is lost.
+- **The `types:` list stops being load-bearing.** Since no run depends on *which* event
+  arrived, a broader trigger set is harmless and a missing action only delays work until
+  the next event or tick. Getting `field_added` versus `edited` exactly right — and the
+  open question of which fires when a Priority value is *changed* rather than first set
+  — costs nothing to get wrong.
+- **The implementer benefits too, without a relay.** Its gate is board `Status` moving
+  to `Scheduled`, which raises `projects_v2_item` — an **organization**-scoped webhook
+  that repository workflows cannot subscribe to. (`actionlint` accepts
+  `on: projects_v2_item:`; that is a false positive from a permissive event list, not
+  evidence it fires.) But triggering the implementer on `issues` as well means any issue
+  activity in the repo wakes it and it finds the `Scheduled` card. Not instant, but
+  self-healing and free, where a relay is neither.
+
+**Prerequisite: a `concurrency:` group on both workflows.** Neither has one. Under cron
+alone, runs are hours apart and overlap is unlikely. Event-driven, several can start
+within seconds of each other, and the deterministic claim is not atomic — two runs can
+both read a card as `Scheduled` before either claims it. Adding the trigger without the
+concurrency group would produce duplicate branches and duplicate plan sections.
