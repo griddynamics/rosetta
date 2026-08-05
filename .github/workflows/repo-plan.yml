@@ -26,11 +26,6 @@ on:
   #   - cron: '0 */2 * * *'
   #   - cron: '0 1 * * *'
   workflow_dispatch:
-    inputs:
-      only_issues:
-        description: 'Comma-separated issue numbers to scope this run (blank = whole board)'
-        required: false
-        default: ''
 
 permissions:
   contents: read
@@ -56,7 +51,6 @@ jobs:
         id: load
         env:
           GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
-          ONLY_ISSUES: ${{ inputs.only_issues }}
         run: python .github/scripts/load_stories.py
 
       - name: Summary
@@ -117,7 +111,7 @@ jobs:
             "Read,Glob,Grep,Agent,Skill,Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh pr list:*),Bash(gh project item-list:*),Bash(gh project item-edit:*)"
             --disallowedTools ScheduleWakeup
             --model sonnet
-            --effort medium
+            --effort high
 
       # The trace is a full tool transcript published as a downloadable artifact,
       # outside Actions log masking. Redact credentials before it leaves the runner.

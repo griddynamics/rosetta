@@ -26,11 +26,6 @@ on:
   #   - cron: '0 */4 * * *'
   #   - cron: '0 2 * * *'
   workflow_dispatch:
-    inputs:
-      only_issues:
-        description: 'Comma-separated issue numbers to scope this run (blank = whole board)'
-        required: false
-        default: ''
 
 jobs:
   # ── Orchestrator ─────────────────────────────────────────────────────────────
@@ -52,7 +47,6 @@ jobs:
         id: load
         env:
           GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
-          ONLY_ISSUES: ${{ inputs.only_issues }}
         run: python .github/scripts/load_stories.py
 
       - name: Summary

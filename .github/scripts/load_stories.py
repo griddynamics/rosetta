@@ -41,13 +41,6 @@ PROJECT_NUMBER = "57"
 LOW_PRIORITY_VALUES = {"low", "p3", "p4"}
 TARGET_REPO = os.environ.get("GITHUB_REPOSITORY", "griddynamics/rosetta")
 
-# Optional scoping for manual runs: ONLY_ISSUES="175,180" restricts the matrices to
-# those issue numbers. Applied before the priority gate, so a scoped run still shows
-# which of the named issues the gate would skip. Empty means the whole board.
-ONLY_ISSUES = {
-    int(n) for n in os.environ.get("ONLY_ISSUES", "").replace(",", " ").split() if n.strip()
-}
-
 
 def gh_json(*args: str) -> dict:
     result = subprocess.run(
@@ -191,8 +184,6 @@ def collect_matrices(items: list[dict]) -> tuple[list[dict], list[dict]]:
     skipped: list[tuple[int, str]] = []
 
     for item in items:
-        if ONLY_ISSUES and item["number"] not in ONLY_ISSUES:
-            continue
         if item.get("state") == "CLOSED":
             continue
         repo = item.get("repository") or ""
@@ -257,8 +248,6 @@ def main() -> None:
     write_output("has_impl", "true" if impl_items else "false")
     write_output("impl_count", str(len(impl_items)))
 
-    if ONLY_ISSUES:
-        print(f"::notice::Scoped run — only issues {sorted(ONLY_ISSUES)} considered")
     print(f"Board items to plan:      {len(plan_items)}")
     print(f"Board items to implement: {len(impl_items)}")
     for entry in plan_items:

@@ -104,12 +104,14 @@ and the implementer holds `Bash(*)` with a PAT in the git remote URL.
 - **In review** — PR open, waiting on a human.
 - **In progress with a `⚠️` comment** — needs a human and is deliberately picked up
   by no pipeline. Used when an issue cannot be automated at all (e.g. its whole
-  scope is a `.github/workflows/` edit the CI token may not push). Returning such a
+  scope is a `.github/workflows/` edit the agent may not push — the job has no
+  `workflows: write` and the PAT has no `workflow` scope, deliberately, so an agent
+  cannot rewrite the CI that constrains it). Returning such a
   card to Backlog would re-plan it every cycle forever.
 
-## Manual runs
+## Scoping a run
 
-Both `repo-plan` and `repo-implement` accept an `only_issues` dispatch input
-(comma-separated issue numbers) to scope a run without touching board data. It is
-applied before the priority gate, so a scoped run still reports which of the named
-issues the gate excluded.
+There is no dispatch input for this, deliberately. **The board is the scoping
+mechanism.** To plan fewer issues, set Priority on fewer issues. To implement fewer,
+move fewer cards to `Ready`. Any out-of-band scoping input would be a second control
+surface that bypasses the board and diverges from what the board shows.

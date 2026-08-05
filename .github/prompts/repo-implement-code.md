@@ -64,7 +64,7 @@ You always must "simulate" how the entire AI coding agent flow works if instruct
 
 ## Constraints
 
-- MUST NOT create or modify files under `.github/workflows/` — the CI token cannot push workflow files. Instead, include exact required changes as a fenced diff in the PR description under `## CI Workflow Changes (Manual)` and as an issue comment labeled `⚠️ Manual CI Change Required`.
+- MUST NOT create or modify files under `.github/workflows/` — deliberate: the job has no `workflows: write` permission and the PAT has no `workflow` scope, so an agent cannot rewrite the CI that constrains it. Instead, include exact required changes as a fenced diff in the PR description under `## CI Workflow Changes (Manual)` and as an issue comment labeled `⚠️ Manual CI Change Required`.
 - If the WHOLE issue is such a change and there is nothing else to implement, post that comment and then **leave the card at "In progress"**. Do NOT move it back to "Backlog": Backlog is re-planned every cycle, so a card that can never be automated would loop forever. "In progress" is picked up by no pipeline and reads as "needs a human", which is exactly right.
 - Any edit under `instructions/r*/**` is mirrored into the generated `plugins/**` trees. Before opening the PR, grep the WHOLE repo (not just the directory you edited) for the string you changed. Either update the generated copies too, or state explicitly in the PR body which files still carry the old content and that a plugin regeneration is required. A directory-scoped grep that cannot fail is not verification.
 - ONLY access the issue provided. Do NOT read or modify other GitHub issues except to reference them by number when relevant.
