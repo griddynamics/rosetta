@@ -10,6 +10,7 @@ on:
       - 'src/rosetta-mcp-server/pyproject.toml'
       - '.github/workflows/rosetta-mcp-dockerhub.yaml'
       - 'src/rosetta-mcp-server/Dockerfile'
+      - 'requirements.txt'
 
 permissions:
   contents: read

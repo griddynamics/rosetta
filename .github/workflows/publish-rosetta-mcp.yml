@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'src/rosetta-mcp-server/**'
+      - 'requirements.txt'
   workflow_dispatch:
 
 jobs:
