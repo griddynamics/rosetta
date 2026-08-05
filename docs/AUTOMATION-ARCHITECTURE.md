@@ -149,39 +149,21 @@ surface that bypasses the board and diverges from what the board shows.
 
 ## Future: trigger the planner on issue events instead of cron
 
-Setting Priority is what makes a `Backlog` card plannable, and Priority is a native
-**Issue** field — so the planner does not need to wait for a cron tick. The `issues`
-event is repository-scoped and a valid workflow trigger, and its activity types include
-`field_added` and `field_removed` for native field changes:
+Add `on: issues:` — every issue activity type, no filter — to both workflows, and keep
+cron as a backstop.
 
-```yaml
-on:
-  issues:
-    types: [field_added, field_removed, opened, reopened]
-```
+The event is a doorbell: the payload is ignored, the workflow loads the whole board as
+it does on a cron tick, and picks up everything eligible. So it is self-healing — a
+dropped event strands nothing, the next one of any kind drains the queue — and no
+`types:` list has to be got right. It also covers the implementer, whose real gate
+(board `Status` → `Scheduled`) raises only the organization-scoped `projects_v2_item`
+that repository workflows cannot subscribe to.
 
-**The event is a doorbell, not a work item.** The workflow ignores the payload and
-loads the whole board exactly as it does on a cron tick, so it picks up everything
-currently eligible — not just the issue that fired. Three things follow, and they are
-the reason to do it this way:
+For overlapping runs, have the load job exit early if another run of the same workflow
+is already in progress. Exiting is safe for the same reason the trigger works: the
+in-flight run or the next event will pick the work up. Prefer this to a `concurrency:`
+group, which either queues runs or cancels them mid-flight — and cancelling would kill
+an agent mid-work and strand its card in a working lane.
 
-- **Self-healing.** A dropped or missed event strands nothing. The next event of any
-  kind drains the whole queue, and cron remains as a backstop if every event is lost.
-- **The `types:` list stops being load-bearing.** Since no run depends on *which* event
-  arrived, a broader trigger set is harmless and a missing action only delays work until
-  the next event or tick. Getting `field_added` versus `edited` exactly right — and the
-  open question of which fires when a Priority value is *changed* rather than first set
-  — costs nothing to get wrong.
-- **The implementer benefits too, without a relay.** Its gate is board `Status` moving
-  to `Scheduled`, which raises `projects_v2_item` — an **organization**-scoped webhook
-  that repository workflows cannot subscribe to. (`actionlint` accepts
-  `on: projects_v2_item:`; that is a false positive from a permissive event list, not
-  evidence it fires.) But triggering the implementer on `issues` as well means any issue
-  activity in the repo wakes it and it finds the `Scheduled` card. Not instant, but
-  self-healing and free, where a relay is neither.
-
-**Prerequisite: a `concurrency:` group on both workflows.** Neither has one. Under cron
-alone, runs are hours apart and overlap is unlikely. Event-driven, several can start
-within seconds of each other, and the deterministic claim is not atomic — two runs can
-both read a card as `Scheduled` before either claims it. Adding the trigger without the
-concurrency group would produce duplicate branches and duplicate plan sections.
+Note: `actionlint` accepts `on: projects_v2_item:`. That is a false positive from a
+permissive event list, not evidence it fires.
