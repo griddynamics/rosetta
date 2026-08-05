@@ -146,3 +146,31 @@ There is no dispatch input for this, deliberately. **The board is the scoping
 mechanism.** To plan fewer issues, set Priority on fewer issues. To implement fewer,
 move fewer cards to `Scheduled`. Any out-of-band scoping input would be a second control
 surface that bypasses the board and diverges from what the board shows.
+
+## Future: trigger the planner on issue events instead of cron
+
+Setting Priority is what makes a `Backlog` card plannable, and Priority is a native
+**Issue** field — so the planner does not need to wait for a cron tick. The `issues`
+event is repository-scoped and a valid workflow trigger, and its activity types include
+`field_added` and `field_removed` for native field changes:
+
+```yaml
+on:
+  issues:
+    types: [field_added, field_removed, opened, reopened]
+```
+
+The job still loads the board as it does today, so the event is only a wake-up: the
+`Backlog` + Priority gate stays the single source of truth and an event for an
+irrelevant issue costs one fast `load-stories` run that exits with `has_work=false`.
+Worth confirming against a live event which action fires when a Priority value is
+*changed* rather than first set, before relying on the `types` list above.
+
+The implementer cannot be triggered this way. Its gate is the board `Status` moving to
+`Scheduled`, which is a Projects v2 change, and `projects_v2_item` is an
+**organization**-scoped webhook that repository workflows cannot subscribe to.
+(`actionlint` accepts `on: projects_v2_item:` — that is a false positive from a
+permissive event list, not evidence it fires.) Options there are an org webhook relaying
+to `repository_dispatch`, or simply a shorter cron: `load-stories` exits in seconds when
+nothing matches and the agent jobs are gated on `has_work`, so a 15-minute cadence costs
+almost nothing.
