@@ -43,11 +43,14 @@ card there authorises writing code.
 
 ## Debounce before claiming
 
-On any non-manual trigger, the workflow polls the issue's `updatedAt` and waits until
-it has been unchanged for 5 minutes before claiming the card. Editing an issue produces
-a stream of events and updates, so without this an agent can start against a
-half-written issue or a plan still being revised. Manual `workflow_dispatch` skips the
-wait — the user picked the moment.
+On an `issues`-triggered run only, the workflow polls the issue's `updatedAt` and waits
+until it has been unchanged for 5 minutes before claiming the card. Editing an issue
+produces a stream of events, so without this an agent starts against a half-written
+issue or a plan still being revised.
+
+A schedule fires on its own clock, unrelated to when anyone is typing, and manual
+dispatch means the user picked the moment — so neither waits. The step is dormant until
+the `issues` trigger above is added.
 
 The loop is capped at six waits (30 minutes) and then proceeds with a warning rather
 than blocking forever; job timeouts allow for that on top of the agent's own run.

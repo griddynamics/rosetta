@@ -99,12 +99,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git remote set-url origin https://x-access-token:${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}@github.com/${{ github.repository }}
 
-      # An auto-triggered run can fire while the issue is still being edited. Wait until
-      # it has been quiet for 5 minutes before claiming it, so the agent never implements
-      # a half-written plan. Manual dispatch skips this — the user chose the moment.
+      # An issue event fires while the issue is still being edited, so wait until it has
+      # been quiet for 5 minutes before claiming it — otherwise the agent implements a
+      # plan still being revised. Only issue events need this: a schedule fires on its
+      # own clock, and manual dispatch means the user picked the moment.
       # (This is the runner's own shell; the agent-side sleep restrictions do not apply.)
       - name: Debounce — wait for the issue to settle
-        if: github.event_name != 'workflow_dispatch'
+        if: github.event_name == 'issues'
         env:
           GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
           ISSUE: ${{ matrix.issue_number }}

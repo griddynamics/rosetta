@@ -88,12 +88,13 @@ jobs:
           bun-version: 1.3.6
           token: ${{ github.token }}
 
-      # An auto-triggered run can fire while the issue is still being edited. Wait until
-      # it has been quiet for 5 minutes before claiming it, so the agent never plans a
-      # half-written issue. Manual dispatch skips this — the user chose the moment.
+      # An issue event fires while the issue is still being edited, so wait until it has
+      # been quiet for 5 minutes before claiming it — otherwise the agent plans a
+      # half-written issue. Only issue events need this: a schedule fires on its own
+      # clock, and manual dispatch means the user picked the moment.
       # (This is the runner's own shell; the agent-side sleep restrictions do not apply.)
       - name: Debounce — wait for the issue to settle
-        if: github.event_name != 'workflow_dispatch'
+        if: github.event_name == 'issues'
         env:
           GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
           ISSUE: ${{ matrix.issue_number }}
