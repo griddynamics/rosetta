@@ -6,9 +6,15 @@ Board: "Rosetta Automation Board" — org griddynamics, project number 57
 https://github.com/orgs/griddynamics/projects/57
 
 Filtering logic:
-  - Status "Backlog" + Priority set and not low → plan_matrix
-  - Status "Ready"                              → impl_matrix  (no priority gate:
-    a human moving a card to "Ready" is the decision to build it)
+  - Status "Backlog"   + Priority set and not low → plan_matrix
+  - Status "Scheduled"                            → impl_matrix  (no priority gate:
+    the user moving a card to "Scheduled" is the decision to build it)
+
+Each pipeline loads one lane, claims into a working lane, and ends in a third:
+Backlog -> Planning -> Ready for the planner, Scheduled -> In progress -> In review
+for the implementer. A terminal lane is never an input lane, so nothing can be
+re-processed, and a crashed run parks its card in a working lane that no pipeline
+loads rather than looping.
 
 Status is a Projects v2 single-select field. Priority is NOT — it is a native
 GitHub *Issue* field surfaced on the board as a derived column, so it is invisible
@@ -203,8 +209,8 @@ def collect_matrices(items: list[dict]) -> tuple[list[dict], list[dict]]:
                 plan_items.append(entry)
             else:
                 skipped.append((item["number"], priority or "unset"))
-        elif item.get("status") == "Ready":
-            # No priority gate here: a human moving a card to "Ready" is the
+        elif item.get("status") == "Scheduled":
+            # No priority gate here: the user moving a card to "Scheduled" is the
             # decision to build it.
             impl_items.append(entry)
 

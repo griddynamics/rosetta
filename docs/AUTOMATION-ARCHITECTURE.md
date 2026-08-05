@@ -4,33 +4,50 @@ Four pipelines drive one GitHub Projects v2 board, **Rosetta Automation Board**
 (org `griddynamics`, project 57). Board membership is the scoping mechanism: only
 issues on the board are eligible for AI work.
 
+## Status lanes
+
+| lane | meaning | moved in by | picked up by |
+|---|---|---|---|
+| `Backlog` | needs planning | repo-analysis, or the user | **planner** — only if Priority is set and not `Low` |
+| `Planning` | planner claimed it, working | planner (start) | — |
+| `Ready` | plan written, awaiting user review | planner (end) | — |
+| `Scheduled` | user authorised implementation | **the user** | **implementer** — no priority filter |
+| `In progress` | implementer claimed it, working | implementer (start) | — |
+| `In review` | PR open, awaiting user review | implementer (end) | — |
+| `Done` | done | the user | — |
+
 ```
-repo-analysis ──files issues──▶ Backlog
-                                  │
-                    (human sets Priority on the issue)
-                                  │
-                repo-plan ────────┤ Backlog + Priority set and not Low
-                                  ▼
-                            In progress   ── plan written into the issue description
-                                  │
-                        (human reviews, moves the card)
-                                  ▼
-                                Ready
-                                  │
-             repo-implement ──────┤
-                                  ▼
-                            In progress ──▶ PR opened ──▶ In review
+Backlog ─▶ Planning ─▶ Ready ─▶ Scheduled ─▶ In progress ─▶ In review ─▶ Done
+└── planner: load, claim, end ──┘└── implementer: load, claim, end ──┘
+                                ▲                                    ▲
+                          user decides                         user decides
 ```
 
 `repo-triage` is separate: it reacts to PR/issue events and does not add cards.
 
-## The two gates are human
+## Why the lanes are shaped this way
 
-- **Backlog → Ready** is the plan-approval gate. It is coding-flow phase 6
-  (`user_review_plan`) expressed on the board. No agent may make this move.
-- **PR review** is coding-flow phase 10 (`user_review_impl`).
+Each pipeline gets three lanes — one it loads from, one it claims into, one it ends
+in — and its terminal lane is never its input lane. Re-processing is therefore
+structurally impossible: a planned card cannot be re-planned, nor an implemented card
+re-implemented, unless the user moves it back.
 
-Agents never promote their own work past either gate.
+The claim into the working lane is the concurrency lock and the only visible signal
+that a pipeline is running. A crashed run parks its card in a working lane
+(`Planning` / `In progress`), which no pipeline loads — so nothing loops, and the card
+is visibly waiting for the user.
+
+Neither lane an agent loads from (`Backlog`, `Scheduled`) is one anybody moves a card
+into casually. `Scheduled` reads as a decision because that is what it is: moving a
+card there authorises writing code.
+
+## The two gates are the user's
+
+- **`Ready` → `Scheduled`** is the plan-approval gate — coding-flow phase 6
+  (`user_review_plan`) expressed on the board.
+- **`In review` → `Done`** is PR review — coding-flow phase 10 (`user_review_impl`).
+
+Agents never make either move.
 
 ## Priority
 
@@ -40,7 +57,7 @@ so the loader reads it from `Issue.issueFieldValues` over GraphQL. Reading it of
 the project item returns `None` for every card and silently plans nothing.
 
 The gate applies **only** to the planner: unset or `Low` is never planned. There is
-no priority gate on the implementer — a human moving a card to `Ready` is the
+no priority gate on the implementer — the user moving a card to `Scheduled` is the
 decision to build it. Skips are logged, never silent.
 
 ## coding-flow is split across the two runs
@@ -104,11 +121,10 @@ and the implementer holds `Bash(*)` with a PAT in the git remote URL.
 
 ## Terminal states
 
-- **In review** — PR open, waiting on a human.
-- **In progress with a `⚠️` comment** — needs a human and is picked up by no
-  pipeline. Used when an issue cannot be automated (e.g. a `.github/workflows/`
-  edit rejected because the PAT lacks the `workflow` scope). Returning such a card
-  to Backlog would re-plan it every cycle forever.
+- **`In review`** — PR open, waiting on the user.
+- **A working lane (`Planning` / `In progress`) with a `⚠️` comment** — needs the
+  user. No pipeline loads a working lane, so the card waits instead of looping. Used
+  when a run cannot complete, or when an issue cannot be automated at all.
 
 ## Pushing workflow files
 
@@ -128,5 +144,5 @@ nicely is not.
 
 There is no dispatch input for this, deliberately. **The board is the scoping
 mechanism.** To plan fewer issues, set Priority on fewer issues. To implement fewer,
-move fewer cards to `Ready`. Any out-of-band scoping input would be a second control
+move fewer cards to `Scheduled`. Any out-of-band scoping input would be a second control
 surface that bypasses the board and diverges from what the board shows.

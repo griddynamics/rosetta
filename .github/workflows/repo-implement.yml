@@ -8,10 +8,12 @@ name: Rosetta Story Implementer
 # Board membership is the scoping mechanism (replaces the old Jira epic parent):
 # only issues added to that project are eligible for AI implementation.
 #
-# Status field flow on the board:
-#   Ready -> (implement-agent claims, moves to "In progress", implements, opens
-#             a PR referencing the issue) -> "In review" (moved automatically —
-#             this just reflects where the PR is, not a human decision)
+# Status field flow on the board (see docs/AUTOMATION-ARCHITECTURE.md):
+#   Scheduled -> In progress -> In review
+#   Loads "Scheduled" (no priority filter — the user moving a card there is the
+#   decision to build it). The workflow claims the card into "In progress" before
+#   invoking the agent; the agent implements, opens a PR referencing the issue, and
+#   moves the card to "In review" for the user to review.
 #
 # Required GitHub Secrets:
 #   - BIFROST_HOST_NAME: Bifrost gateway hostname (no protocol/port/path), routes Anthropic API calls through Bifrost
@@ -97,6 +99,23 @@ jobs:
           git config user.name "github-actions[bot]"
           git remote set-url origin https://x-access-token:${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}@github.com/${{ github.repository }}
 
+      # Claiming needs no judgement, so it is done here rather than costing an agent
+      # turn. jq -e fails the step if the board has no "In progress" option, instead
+      # of letting the agent run against a lane that does not exist.
+      - name: Claim — move card to In progress
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          ITEM_ID: ${{ matrix.item_id }}
+          ISSUE: ${{ matrix.issue_number }}
+          PROJECT_ID: ${{ needs.load-stories.outputs.project_id }}
+          FIELD_ID: ${{ needs.load-stories.outputs.status_field_id }}
+          OPTION_IDS: ${{ needs.load-stories.outputs.status_option_ids }}
+        run: |
+          option_id=$(printf '%s' "$OPTION_IDS" | jq -er '."In progress"')
+          gh project item-edit --id "$ITEM_ID" --project-id "$PROJECT_ID" \
+            --field-id "$FIELD_ID" --single-select-option-id "$option_id"
+          gh issue comment "$ISSUE" --body "🤖 Implementation started by AI agent."
+
       - name: Implement — issue #${{ matrix.issue_number }}
         uses: anthropics/claude-code-action@v1
         env:
@@ -149,3 +168,16 @@ jobs:
       - name: Verify the run did real work
         if: always()
         run: python3 .github/scripts/check_trace.py /home/runner/work/_temp/claude-execution-output.json
+
+      # The card stays in the In progress lane, which no pipeline loads, so a failed
+      # run waits for a human instead of being retried. Say so on the issue.
+      - name: Report failure on the issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          ISSUE: ${{ matrix.issue_number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$ISSUE" --body "⚠️ Implementation run failed — see [the run log]($RUN_URL).
+
+          The card is left at \`In progress\`, which no pipeline picks up, so it will not be retried automatically. Move it back to \`Scheduled\` to retry, or to \`Backlog\` to re-plan first."

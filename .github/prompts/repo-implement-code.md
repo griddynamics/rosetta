@@ -27,7 +27,7 @@ Invoke `rosetta:coding-flow` with the Skill tool. If it does not resolve, read
 `instructions/r3/core/workflows/coding-flow.md` from this checkout and follow it
 directly. Run only the phases that turn an approved plan into code. The
 planning half already ran and its output is the `## 🤖 Rosetta Plan` section of the
-issue description; a human approved it by moving the card to "Ready".
+issue description; the user approved it by moving the card to "Scheduled".
 
 - SKIP phases 1 (discovery), 2 (design), 4 (tech_plan) and 5 (review_plan). Do not
   re-plan, re-design, or re-specify. Treat that section as the approved output of
@@ -62,14 +62,14 @@ You always must "simulate" how the entire AI coding agent flow works if instruct
 ## Constraints
 
 - You MAY create and modify files under `.github/workflows/`; the push credential carries the `workflow` scope. Treat these as high blast radius — they can alter the guardrails that constrain this pipeline. Keep the edit to exactly what the issue asks, call it out explicitly in the PR body, and never bundle it with unrelated changes.
-- If a push is rejected over workflow permissions, do NOT retry or work around it. Post the exact change as a fenced diff in the PR description under `## CI Workflow Changes (Manual)` and as an issue comment labeled `⚠️ Manual CI Change Required`. If that was the whole issue, **leave the card at "In progress"** — do NOT return it to "Backlog", which is re-planned every cycle and would loop forever. "In progress" is picked up by no pipeline and reads as "needs a human".
+- If a push is rejected over workflow permissions, do NOT retry or work around it. Post the exact change as a fenced diff in the PR description under `## CI Workflow Changes (Manual)` and as an issue comment labeled `⚠️ Manual CI Change Required`. If that was the whole issue, **leave the card at "In progress"** — no pipeline loads that lane, so it waits for the user instead of being retried.
 - Any edit under `instructions/r*/**` is mirrored into the generated `plugins/**` trees. Before opening the PR, grep the WHOLE repo (not just the directory you edited) for the string you changed. Either update the generated copies too, or state explicitly in the PR body which files still carry the old content and that a plugin regeneration is required. A directory-scoped grep that cannot fail is not verification.
 - ONLY access the issue provided. Do NOT read or modify other GitHub issues except to reference them by number when relevant.
 - ONLY work within the current repository. Do NOT push to forks or other remotes.
-- The issue must currently be on the Rosetta Automation Board (project 57) with Status "Ready".
-- If the issue description has no `## 🤖 Rosetta Plan` section from the planning phase, post a comment asking for planning to be completed first, move the item back to "Backlog" via `gh project item-edit`, and stop.
+- The card is at Status "In progress": the workflow claimed it before invoking you. You move it to "In review" once the PR is open, and nowhere else.
+- If the issue description has no `## 🤖 Rosetta Plan` section from the planning phase, post a comment asking for planning to be completed first, move the item back to "Backlog" via `gh project item-edit` so the planner picks it up, and stop.
 
-## Phase 1 — Claim the Issue
+## Phase 1 — Read the Issue and the Plan
 
 1. ALWAYS read the issue in full before anything else — body AND every comment:
    `gh issue view <ISSUE_NUMBER> --json title,body,labels,comments`. The plan lives in
@@ -77,13 +77,7 @@ You always must "simulate" how the entire AI coding agent flow works if instruct
    clarifications and later corrections, so read them all and implement the latest
    agreed version.
 2. Check for existing work: run `gh pr list --search "#<ISSUE_NUMBER>" --state open`. If an open branch or PR already exists for this issue, post a comment with the existing branch/PR URL and stop — do not create a duplicate branch.
-3. Immediately claim the item by moving it to "In progress":
-   ```bash
-   gh project item-edit --id "<PROJECT_ITEM_ID>" --project-id "<PROJECT_ID>" \
-     --field-id "<STATUS_FIELD_ID>" --single-select-option-id "<IN_PROGRESS_OPTION_ID>"
-   ```
-4. Post a comment: `🤖 Implementation started by AI agent.`
-5. Read the `## 🤖 Rosetta Plan` section of the issue description. If missing, abort (see Constraints).
+3. Read the `## 🤖 Rosetta Plan` section of the issue description. If missing, abort (see Constraints).
 
 ## Phase 2 — Prepare Branch
 

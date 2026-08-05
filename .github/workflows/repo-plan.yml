@@ -8,10 +8,12 @@ name: Rosetta Story Planner
 # Board membership is the scoping mechanism (replaces the old Jira epic parent):
 # only issues added to that project are eligible for AI planning.
 #
-# Status field flow on the board:
-#   Backlog -> (plan-agent claims, writes plan as an issue comment, leaves at
-#               "In progress" — a human reviews the plan and manually moves
-#               the card to "Ready" when satisfied; the agent never does this)
+# Status field flow on the board (see docs/AUTOMATION-ARCHITECTURE.md):
+#   Backlog -> Planning -> Ready
+#   Loads "Backlog" (only when Priority is set and not Low). The workflow claims the
+#   card into "Planning" before invoking the agent; the agent writes the plan into the
+#   issue description and moves the card to "Ready".
+#   "Ready" -> "Scheduled" is the user's plan-approval gate. The agent never makes it.
 #
 # Required GitHub Secrets:
 #   - BIFROST_HOST_NAME: Bifrost gateway hostname (no protocol/port/path), routes Anthropic API calls through Bifrost
@@ -85,6 +87,23 @@ jobs:
           bun-version: 1.3.6
           token: ${{ github.token }}
 
+      # Claiming needs no judgement, so it is done here rather than costing an agent
+      # turn. jq -e fails the step if the board has no "Planning" option, instead of
+      # letting the agent run against a lane that does not exist.
+      - name: Claim — move card to Planning
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          ITEM_ID: ${{ matrix.item_id }}
+          ISSUE: ${{ matrix.issue_number }}
+          PROJECT_ID: ${{ needs.load-stories.outputs.project_id }}
+          FIELD_ID: ${{ needs.load-stories.outputs.status_field_id }}
+          OPTION_IDS: ${{ needs.load-stories.outputs.status_option_ids }}
+        run: |
+          option_id=$(printf '%s' "$OPTION_IDS" | jq -er '.Planning')
+          gh project item-edit --id "$ITEM_ID" --project-id "$PROJECT_ID" \
+            --field-id "$FIELD_ID" --single-select-option-id "$option_id"
+          gh issue comment "$ISSUE" --body "🤖 Planning started by AI agent."
+
       - name: Plan — issue #${{ matrix.issue_number }}
         uses: anthropics/claude-code-action@v1
         env:
@@ -137,3 +156,16 @@ jobs:
       - name: Verify the run did real work
         if: always()
         run: python3 .github/scripts/check_trace.py /home/runner/work/_temp/claude-execution-output.json
+
+      # The card stays in the Planning lane, which no pipeline loads, so a failed run
+      # waits for a human instead of being retried. Say so on the issue.
+      - name: Report failure on the issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+          ISSUE: ${{ matrix.issue_number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$ISSUE" --body "⚠️ Planning run failed — see [the run log]($RUN_URL).
+
+          The card is left at \`Planning\`, which no pipeline picks up, so it will not be retried automatically. Move it back to \`Backlog\` to re-plan."

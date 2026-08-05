@@ -45,9 +45,9 @@ def test_priority_gate_applies_to_backlog_only():
     plan, impl = module.collect_matrices([
         issue(1, status="Backlog", priority="P1"),
         issue(2, status="Backlog", priority="Low"),
-        issue(3, status="Backlog"),                    # unset
-        issue(4, status="Ready"),                      # unset, must still implement
-        issue(5, status="Ready", priority="Low"),      # low, must still implement
+        issue(3, status="Backlog"),                     # unset
+        issue(4, status="Scheduled"),                   # unset, must still implement
+        issue(5, status="Scheduled", priority="Low"),   # low, must still implement
     ])
     assert [e["issue_number"] for e in plan] == [1]
     assert [e["issue_number"] for e in impl] == [4, 5]
@@ -55,17 +55,40 @@ def test_priority_gate_applies_to_backlog_only():
 
 # ── Status selection ────────────────────────────────────────────────────────────
 
-def test_only_backlog_and_ready_are_selected():
+def test_only_backlog_and_scheduled_are_selected():
     plan, impl = module.collect_matrices([
         issue(1, status="Backlog", priority="P1"),
-        issue(2, status="Ready"),
-        issue(3, status="In progress", priority="P1"),
-        issue(4, status="In review", priority="P1"),
-        issue(5, status="Done", priority="P1"),
-        issue(6, priority="P1"),                       # status unset
+        issue(2, status="Scheduled"),
+        issue(3, status="Planning", priority="P1"),
+        issue(4, status="Ready", priority="P1"),
+        issue(5, status="In progress", priority="P1"),
+        issue(6, status="In review", priority="P1"),
+        issue(7, status="Done", priority="P1"),
+        issue(8, priority="P1"),                       # status unset
     ])
     assert [e["issue_number"] for e in plan] == [1]
     assert [e["issue_number"] for e in impl] == [2]
+
+
+def test_working_lanes_are_never_picked_up():
+    """Planning and In progress are the lanes a pipeline claims into. Loading either
+    would let a crashed run be retried forever, which is the whole reason the input
+    and terminal lanes are distinct."""
+    plan, impl = module.collect_matrices([
+        issue(1, status="Planning", priority="Urgent"),
+        issue(2, status="In progress", priority="Urgent"),
+    ])
+    assert plan == [] and impl == []
+
+
+def test_terminal_lanes_are_never_picked_up():
+    """Ready is the planner's terminal lane and In review the implementer's; loading
+    them would re-process finished work."""
+    plan, impl = module.collect_matrices([
+        issue(1, status="Ready", priority="Urgent"),
+        issue(2, status="In review", priority="Urgent"),
+    ])
+    assert plan == [] and impl == []
 
 
 def test_status_match_is_case_and_whitespace_sensitive():
@@ -81,7 +104,7 @@ def test_status_match_is_case_and_whitespace_sensitive():
 def test_closed_issues_are_never_selected():
     plan, impl = module.collect_matrices([
         issue(1, status="Backlog", priority="P1", state="CLOSED"),
-        issue(2, status="Ready", state="CLOSED"),
+        issue(2, status="Scheduled", state="CLOSED"),
     ])
     assert plan == [] and impl == []
 
