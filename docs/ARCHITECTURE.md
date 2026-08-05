@@ -6,6 +6,8 @@
 
 For terminology (workflow, skill, rule, subagent, bootstrap, etc.), see [OVERVIEW.md — Key Concepts](../OVERVIEW.md#key-concepts).
 
+For this repository's own GitHub automation (the board-driven analysis/plan/implement/triage pipelines), see [AUTOMATION-ARCHITECTURE.md](AUTOMATION-ARCHITECTURE.md).
+
 ---
 
 ## Two Repositories

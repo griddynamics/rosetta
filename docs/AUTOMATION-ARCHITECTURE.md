@@ -110,10 +110,10 @@ and the implementer holds `Bash(*)` with a PAT in the git remote URL.
 ## Pushing workflow files
 
 The implementer may edit `.github/workflows/`. What governs this is the **PAT's
-`workflow` scope**, not the job's `permissions:` block — there is no `workflows`
-permission key (an earlier `workflows: write` line in this repo was invalid YAML and
-granted nothing), and the push uses `SELF_AUTOMATION_PROJECTS_TOKEN` via
-`git remote set-url`, not `GITHUB_TOKEN`.
+`workflow` scope**, which `SELF_AUTOMATION_PROJECTS_TOKEN` carries — not the job's
+`permissions:` block. There is no `workflows` permission key at all (an earlier
+`workflows: write` line in this repo was invalid YAML and granted nothing), and the
+push uses the PAT via `git remote set-url`, not `GITHUB_TOKEN`.
 
 Consequence worth holding in mind: with `Bash(*)`, a `workflow`-scoped PAT, and no
 branch protection on `main`, this pipeline can rewrite the guardrails that constrain
