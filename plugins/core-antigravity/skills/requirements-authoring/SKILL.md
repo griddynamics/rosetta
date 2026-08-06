@@ -207,7 +207,7 @@ HITL gates (use when):
 
 - Use stable unique IDs
 - Use `FR-[AREA]-####` for FRs
-- Use `NFR-####` for NFRs
+- Use `NFR-[ISO]-####` for NFRs, where [ISO] is the ISO 25010 segment: PERF, SEC, REL, USE, MAIN, PORT, COMP, FUNC, SAFE
 - Use `INT-[AREA]-####` for interfaces
 - Use `DATA-[AREA]-####` for data
 - Never reuse retired IDs
@@ -217,27 +217,39 @@ HITL gates (use when):
 
 <requirement_unit_template>
 
+Every single-value field is an attribute; only prose and structured children are nodes.
+Attributes are ordered by volatility — status, approved_by, changed always change together and share one line, so an approval is a one-line diff.
+
 ```xml
-<req id="FR-AREA-0001" type="FR" level="System" ticketId="JIRA-0000" classification="business|technical">
-  <title>...</title>
-  <statement>...</statement>
-  <rationale>...</rationale>
-  <source>User|Inferred|Sources|Documentation</source>
-  <priority>Must|Should|Could|Wont</priority>
-  <status>Draft|Approved|Deprecated|Removed</status>
-  <approved_by>[user login approved]</approved_by>
-  <changed>[YYYY-MM-DD]</changed>
-  <verification>Test|Analysis|Inspection|Demo</verification>
+<req id="FR-[AREA]-####" type="FR|NFR|INT|DATA" level="System|Subsystem|Component"
+     ticketId="[tracker key]" classification="business|technical"
+     source="User|Inferred|Sources|Documentation"
+     priority="Must|Should|Could|Wont" verification="Test|Analysis|Inspection|Demo"
+     status="Draft|Approved|Deprecated|Removed" approved_by="[login or user name of the approver]" changed="[YYYY-MM-DD]"
+     depends="[comma-separated IDs]"
+     implementation="NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved">
+  <title>[the single outcome this unit governs; noun phrase, unique within the area]</title>
+  <statement>[the governing rule: what shall hold, over which cases, with its limits and explicit exclusions. NOT an EARS sentence, NOT a restatement of the criteria]</statement>
+  <rationale>[why this shape and not another: basis for each threshold, actor and boundary; alternatives rejected and why rejected]</rationale>
+  <evidence>[reverse-engineering only: path:line-range per source location]</evidence>
   <acceptance>
-    <criteria>Given: A When: B Then: C.</criteria>
-    <criteria>Given: X When: Y Then: Z.</criteria>
+    <criteria id="[req-id].AC1" ears="ubiquitous" system="[actor or component that responds]" shall="[outcome]"/>
+    <criteria id="[req-id].AC2" ears="event" when="[trigger]" system="[actor or component that responds]" shall="[outcome]"/>
+    <criteria id="[req-id].AC3" ears="state" while="[state]" system="[actor or component that responds]" shall="[outcome]"/>
+    <criteria id="[req-id].AC4" ears="optional" where="[feature is present]" system="[actor or component that responds]" shall="[outcome]"/>
+    <criteria id="[req-id].AC5" ears="unwanted" if="[fault]" system="[actor or component that responds]" shall="[mitigation]"/>
   </acceptance>
-  <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
-  <implementation>NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved</implementation>
   <implementationNotes>[CONCISE: Implemented: aggregated files affected, NotStarted/Planned/ToBeRemoved: nothing, ToBeModified: what was originally documented but now dropped]</implementationNotes>
-  <notes>...</notes>
+  <notes>[anything else; the rejection reason when status is Removed]</notes>
 </req>
 ```
+
+Grep contracts this shape enables:
+
+- `status="Draft"` — everything still unapproved
+- `ears="unwanted"` — every criterion covering error behaviour
+- `source="Inferred"` — everything AI generated rather than user-stated
+- `implementation="ToBeModified"` — drift between spec and code
 
 </requirement_unit_template>
 
@@ -269,7 +281,8 @@ HITL gates (use when):
 
 <functional_requirements>
 
-- Use EARS patterns
+- Statement carries the governing rule, the cases it reaches, and its explicit exclusions — what criteria cannot express, since criteria are samples. Normative `shall`, but not EARS shape: EARS is a one-trigger sentence grammar and cannot carry scope or exclusions
+- EARS lives on the criteria, one pattern each
 - Pick one pattern
 - Avoid multiple triggers
 - Avoid multiple responses
@@ -282,17 +295,16 @@ HITL gates (use when):
 
 <ears_patterns>
 
-- `<ubiq><S> shall <R>.</ubiq>`
-- `<event>When <T>, <S> shall <R>.</event>`
-- `<state>While <X>, <S> shall <R>.</state>`
-- `<optional>Where <O>, <S> shall <R>.</optional>`
-- `<unwanted>If <F>, <S> shall <M>.</unwanted>`
+`ears` lives on the criterion, not the `<req>` — one requirement normally carries criteria of several different EARS types, so a single value on the container would be meaningless.
+`ears` selects the form and the condition word must match it: ubiquitous→none · event→when · state→while · optional→where · unwanted→if.
+The statement is still one pattern, one trigger, one response; criteria decompose that grammar into attributes.
 
 </ears_patterns>
 
 <nonfunctional_requirements>
 
-- Use ISO 25010 buckets
+- Use ISO 25010 buckets, and sweep ALL NINE every time: PERF performance efficiency, SEC security, REL reliability, USE usability, MAIN maintainability, PORT portability, COMP compatibility, FUNC functional suitability, SAFE safety
+- A bucket with no requirements carries a written out-of-scope decision naming who confirmed it and when — never silence. The difference between "we have no portability requirements" and "nobody asked about portability" is the whole point of the sweep
 - Include metric and threshold
 - Include measurement conditions
 - Include measurement method
@@ -306,8 +318,17 @@ HITL gates (use when):
 
 <acceptance_criteria>
 
-- Use Given/When/Then format
-- Use `Given:<G> When:<W> Then:<T>.`
+- Criteria use EARS vocabulary, not a separate given/when/then grammar. The statement is the general rule; a criterion is one concrete instance of it
+- `<criteria id="<req-id>.AC#" shall="..."/>` — no condition, always true
+- `<criteria id="<req-id>.AC#" when="<trigger>" shall="..."/>`
+- `<criteria id="<req-id>.AC#" while="<state>" shall="..."/>`
+- `<criteria id="<req-id>.AC#" where="<feature is present>" shall="..."/>`
+- `<criteria id="<req-id>.AC#" if="<fault>" shall="..."/>`
+- Attribute order follows EARS reading order: `ears`, condition word, `system`, `shall`. `system` and `shall` are always required — a criterion with no named actor cannot be tested (SRP: one actor per action)
+- At most one condition word per criterion — the same one-trigger discipline the statement follows
+- One condition word per criterion, matching its `ears`
+- Give every criterion a stable sub-ID `<req-id>.AC#` — the addressable target tests claim later, and what the traceability matrix keys off
+- Criteria carry concrete values where the statement carries the rule. A criterion that only re-words its statement is vacuous; delete it
 - Keep criteria independently testable
 - Cover happy path
 - Cover unhappy path
@@ -434,7 +455,7 @@ HITL gates (use when):
 <best_practices>
 
 - Capture intent first, draft second
-- Use EARS for FR statements
+- Use EARS on criteria; statements carry rule, reach and exclusions
 - Use ISO 25010 for NFRs
 - Present small batches for review
 - Record assumptions and risks explicitly
@@ -463,7 +484,7 @@ HITL gates (use when):
 
 - READ FLOW `requirements-authoring-flow.md`
 - READ SKILL FILE `assets/ra-intent-capture.md`
-- READ SKILL FILE `assets/ra-requirement-unit.xml`
+- READ SKILL FILE `assets/ra-requirement-unit.md`
 - READ SKILL FILE `assets/ra-validation-rubric.md`
 - READ SKILL FILE `assets/ra-change-log.md`
 

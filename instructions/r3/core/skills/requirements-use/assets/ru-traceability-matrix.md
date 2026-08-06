@@ -22,7 +22,7 @@ One row per acceptance criterion, not per requirement — a requirement with thr
 ```markdown
 | Requirement ID | Ticket ID | Priority | Status | Task/Change Reference | Acceptance Criteria Ref | Test/Evidence Ref | Coverage Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| FR-AREA-0001 | JIRA-0000 | Must | Approved | [link/id] | [Given/When/Then ref] | [test or proof] | Covered/Partial/Gap | [risk/assumption] |
+| FR-AREA-0001 | JIRA-0000 | Must | Approved | [link/id] | FR-AREA-0001.AC1 | [test or proof] | Covered/Partial/Gap | [risk/assumption] |
 ```
 
 </template>

@@ -198,23 +198,26 @@ Every single-value field is an attribute; only prose and structured children are
 Read `implementation` and `implementationNotes` from the attributes and node respectively; write them back in place when status changes.
 
 ```xml
-<req id="FR-AREA-0001" type="FR" level="System" ears="event"
-     ticketId="JIRA-0000" classification="business|technical"
+<req id="FR-[AREA]-####" type="FR|NFR|INT|DATA" level="System|Subsystem|Component"
+     ticketId="[tracker key]" classification="business|technical"
      source="User|Inferred|Sources|Documentation"
      priority="Must|Should|Could|Wont" verification="Test|Analysis|Inspection|Demo"
-     status="Draft|Approved|Deprecated|Removed" approved_by="" changed="YYYY-MM-DD"
-     depends="FR-AREA-0000, NFR-PERF-0000, INT-AREA-0000"
+     status="Draft|Approved|Deprecated|Removed" approved_by="[login or user name of the approver]" changed="[YYYY-MM-DD]"
+     depends="[comma-separated IDs]"
      implementation="NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved">
-  <title>...</title>
-  <statement>...</statement>
-  <rationale>...</rationale>
+  <title>[the single outcome this unit governs; noun phrase, unique within the area]</title>
+  <statement>[the governing rule: what shall hold, over which cases, with its limits and explicit exclusions. NOT an EARS sentence, NOT a restatement of the criteria]</statement>
+  <rationale>[why this shape and not another: basis for each threshold, actor and boundary; alternatives rejected and why rejected]</rationale>
   <evidence>[reverse-engineering only: path:line-range per source location]</evidence>
   <acceptance>
-    <criteria id="FR-AREA-0001.AC1" given="A" when="B" then="C"/>
-    <criteria id="FR-AREA-0001.AC2" given="X" when="Y" then="Z"/>
+    <criteria id="[req-id].AC1" ears="ubiquitous" system="[actor or component that responds]" shall="[outcome]"/>
+    <criteria id="[req-id].AC2" ears="event" when="[trigger]" system="[actor or component that responds]" shall="[outcome]"/>
+    <criteria id="[req-id].AC3" ears="state" while="[state]" system="[actor or component that responds]" shall="[outcome]"/>
+    <criteria id="[req-id].AC4" ears="optional" where="[feature is present]" system="[actor or component that responds]" shall="[outcome]"/>
+    <criteria id="[req-id].AC5" ears="unwanted" if="[fault]" system="[actor or component that responds]" shall="[mitigation]"/>
   </acceptance>
   <implementationNotes>[CONCISE: Implemented: aggregated files affected, NotStarted/Planned/ToBeRemoved: nothing, ToBeModified: what was originally documented but now dropped]</implementationNotes>
-  <notes>...</notes>
+  <notes>[anything else; the rejection reason when status is Removed]</notes>
 </req>
 ```
 
