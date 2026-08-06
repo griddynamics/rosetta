@@ -2,7 +2,7 @@
 name: Agent / prompt behavior issue
 about: Report an AI coding agent behaving unexpectedly while using Rosetta instructions (skills, workflows, agents, rules)
 title: "[Agent]: "
-labels: documentation
+labels: instructions
 ---
 
 ## What Happened
