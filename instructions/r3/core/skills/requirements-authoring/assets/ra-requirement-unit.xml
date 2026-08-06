@@ -14,33 +14,47 @@ Atomic and independently testable requirement unit.
 <guidelines>
 
 Use one unit per need, keep implementation-free wording, and set `Approved` only after explicit user approval.
+Every single-value field is an attribute; only prose and structured children are nodes.
+Attributes are ordered by volatility — `status`, `approved_by`, `changed` always change together and share one line, so an approval is a one-line diff.
+`evidence` is present only for reverse-engineered units; a unit with no evidence cannot leave `Draft`.
 
 </guidelines>
 
 <template>
 
 ```xml
-<req id="FR-AREA-0001" type="FR" level="System" ticketId="JIRA-0000" classification="business|technical">
+<req id="FR-AREA-0001" type="FR" level="System" ears="event"
+     ticketId="JIRA-0000" classification="business|technical"
+     source="User|Inferred|Sources|Documentation"
+     priority="Must|Should|Could|Wont" verification="Test|Analysis|Inspection|Demo"
+     status="Draft|Approved|Deprecated|Removed" approved_by="" changed="YYYY-MM-DD"
+     depends="FR-AREA-0000, NFR-PERF-0000, INT-AREA-0000"
+     implementation="NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved">
   <title>...</title>
   <statement>...</statement>
   <rationale>...</rationale>
-  <source>User|Inferred|Sources|Documentation</source>
-  <priority>Must|Should|Could|Wont</priority>
-  <status>Draft|Approved|Deprecated|Removed</status>
-  <approved_by>[user login approved]</approved_by>
-  <changed>[YYYY-MM-DD]</changed>
-  <verification>Test|Analysis|Inspection|Demo</verification>
+  <evidence>[reverse-engineering only: path:line-range per source location]</evidence>
   <acceptance>
-    <criteria>Given: A When: B Then: C.</criteria>
-    <criteria>Given: X When: Y Then: Z.</criteria>
+    <criteria id="FR-AREA-0001.AC1" given="A" when="B" then="C"/>
+    <criteria id="FR-AREA-0001.AC2" given="X" when="Y" then="Z"/>
   </acceptance>
-  <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
-  <implementation>NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved</implementation>
   <implementationNotes>[CONCISE: Implemented: aggregated files affected, NotStarted/Planned/ToBeRemoved: nothing, ToBeModified: what was originally documented but now dropped]</implementationNotes>
   <notes>...</notes>
 </req>
 ```
 
 </template>
+
+<id_grammar>
+
+- `FR-[AREA]-####` functional
+- `NFR-[ISO]-####` non-functional, [ISO] in PERF SEC REL USE MAIN PORT COMP FUNC SAFE
+- `INT-[AREA]-####` interfaces
+- `DATA-[AREA]-####` data
+- `<req-id>.AC#` acceptance criteria
+
+Never reuse a retired ID. Never renumber an existing ID.
+
+</id_grammar>
 
 </ra-requirement-unit>

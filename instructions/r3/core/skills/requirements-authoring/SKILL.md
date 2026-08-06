@@ -220,7 +220,7 @@ HITL gates (use when):
 
 - Use stable unique IDs
 - Use `FR-[AREA]-####` for FRs
-- Use `NFR-####` for NFRs
+- Use `NFR-[ISO]-####` for NFRs, where [ISO] is the ISO 25010 segment: PERF, SEC, REL, USE, MAIN, PORT, COMP, FUNC, SAFE
 - Use `INT-[AREA]-####` for interfaces
 - Use `DATA-[AREA]-####` for data
 - Never reuse retired IDs
@@ -230,27 +230,36 @@ HITL gates (use when):
 
 <requirement_unit_template>
 
+Every single-value field is an attribute; only prose and structured children are nodes.
+Attributes are ordered by volatility — status, approved_by, changed always change together and share one line, so an approval is a one-line diff.
+
 ```xml
-<req id="FR-AREA-0001" type="FR" level="System" ticketId="JIRA-0000" classification="business|technical">
+<req id="FR-AREA-0001" type="FR" level="System" ears="event"
+     ticketId="JIRA-0000" classification="business|technical"
+     source="User|Inferred|Sources|Documentation"
+     priority="Must|Should|Could|Wont" verification="Test|Analysis|Inspection|Demo"
+     status="Draft|Approved|Deprecated|Removed" approved_by="" changed="YYYY-MM-DD"
+     depends="FR-AREA-0000, NFR-PERF-0000, INT-AREA-0000"
+     implementation="NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved">
   <title>...</title>
   <statement>...</statement>
   <rationale>...</rationale>
-  <source>User|Inferred|Sources|Documentation</source>
-  <priority>Must|Should|Could|Wont</priority>
-  <status>Draft|Approved|Deprecated|Removed</status>
-  <approved_by>[user login approved]</approved_by>
-  <changed>[YYYY-MM-DD]</changed>
-  <verification>Test|Analysis|Inspection|Demo</verification>
+  <evidence>[reverse-engineering only: path:line-range per source location]</evidence>
   <acceptance>
-    <criteria>Given: A When: B Then: C.</criteria>
-    <criteria>Given: X When: Y Then: Z.</criteria>
+    <criteria id="FR-AREA-0001.AC1" given="A" when="B" then="C"/>
+    <criteria id="FR-AREA-0001.AC2" given="X" when="Y" then="Z"/>
   </acceptance>
-  <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
-  <implementation>NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved</implementation>
   <implementationNotes>[CONCISE: Implemented: aggregated files affected, NotStarted/Planned/ToBeRemoved: nothing, ToBeModified: what was originally documented but now dropped]</implementationNotes>
   <notes>...</notes>
 </req>
 ```
+
+Grep contracts this shape enables:
+
+- `status="Draft"` — everything still unapproved
+- `ears="unwanted"` — every error-behaviour requirement
+- `source="Inferred"` — everything AI generated rather than user-stated
+- `implementation="ToBeModified"` — drift between spec and code
 
 </requirement_unit_template>
 
@@ -295,17 +304,20 @@ HITL gates (use when):
 
 <ears_patterns>
 
-- `<ubiq><S> shall <R>.</ubiq>`
-- `<event>When <T>, <S> shall <R>.</event>`
-- `<state>While <X>, <S> shall <R>.</state>`
-- `<optional>Where <O>, <S> shall <R>.</optional>`
-- `<unwanted>If <F>, <S> shall <M>.</unwanted>`
+Record the chosen pattern in the `ears=` attribute. One pattern, one trigger, one response per `<req>` — this makes those rules mechanically checkable in validation instead of a reviewer opinion.
+
+- `ears="ubiquitous"` — `<S> shall <R>.`
+- `ears="event"` — `When <T>, <S> shall <R>.`
+- `ears="state"` — `While <X>, <S> shall <R>.`
+- `ears="optional"` — `Where <O>, <S> shall <R>.`
+- `ears="unwanted"` — `If <F>, <S> shall <M>.`
 
 </ears_patterns>
 
 <nonfunctional_requirements>
 
-- Use ISO 25010 buckets
+- Use ISO 25010 buckets, and sweep ALL NINE every time: PERF performance efficiency, SEC security, REL reliability, USE usability, MAIN maintainability, PORT portability, COMP compatibility, FUNC functional suitability, SAFE safety
+- A bucket with no requirements carries a written out-of-scope decision naming who confirmed it and when — never silence. The difference between "we have no portability requirements" and "nobody asked about portability" is the whole point of the sweep
 - Include metric and threshold
 - Include measurement conditions
 - Include measurement method
@@ -319,8 +331,8 @@ HITL gates (use when):
 
 <acceptance_criteria>
 
-- Use Given/When/Then format
-- Use `Given:<G> When:<W> Then:<T>.`
+- Use attribute-shaped criteria: `<criteria id="<req-id>.AC#" given="<G>" when="<W>" then="<T>"/>`
+- Give every criterion a stable sub-ID `<req-id>.AC#` — this is the addressable target tests claim later, and the traceability matrix keys off it
 - Keep criteria independently testable
 - Cover happy path
 - Cover unhappy path

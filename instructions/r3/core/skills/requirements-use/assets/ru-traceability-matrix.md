@@ -13,7 +13,7 @@ Track coverage from requirements to planned work, implementation evidence, and v
 
 <guidelines>
 
-Every in-scope requirement ID must have one row. Never leave evidence and status implicit.
+One row per acceptance criterion, not per requirement — a requirement with three criteria is three rows, because coverage is claimed per criterion. Never leave evidence and status implicit.
 
 </guidelines>
 

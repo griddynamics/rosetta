@@ -194,27 +194,31 @@ HITL gates (use when):
 
 <requirement_unit_template>
 
+Every single-value field is an attribute; only prose and structured children are nodes.
+Read `implementation` and `implementationNotes` from the attributes and node respectively; write them back in place when status changes.
+
 ```xml
-<req id="FR-AREA-0001" type="FR" level="System" ticketId="JIRA-0000" classification="business|technical">
+<req id="FR-AREA-0001" type="FR" level="System" ears="event"
+     ticketId="JIRA-0000" classification="business|technical"
+     source="User|Inferred|Sources|Documentation"
+     priority="Must|Should|Could|Wont" verification="Test|Analysis|Inspection|Demo"
+     status="Draft|Approved|Deprecated|Removed" approved_by="" changed="YYYY-MM-DD"
+     depends="FR-AREA-0000, NFR-PERF-0000, INT-AREA-0000"
+     implementation="NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved">
   <title>...</title>
   <statement>...</statement>
   <rationale>...</rationale>
-  <source>User|Inferred|Sources|Documentation</source>
-  <priority>Must|Should|Could|Wont</priority>
-  <status>Draft|Approved|Deprecated|Removed</status>
-  <approved_by>[user login approved]</approved_by>
-  <changed>[YYYY-MM-DD]</changed>
-  <verification>Test|Analysis|Inspection|Demo</verification>
+  <evidence>[reverse-engineering only: path:line-range per source location]</evidence>
   <acceptance>
-    <criteria>Given: A When: B Then: C.</criteria>
-    <criteria>Given: X When: Y Then: Z.</criteria>
+    <criteria id="FR-AREA-0001.AC1" given="A" when="B" then="C"/>
+    <criteria id="FR-AREA-0001.AC2" given="X" when="Y" then="Z"/>
   </acceptance>
-  <depends>FR-AREA-0000, NFR-0000, INT-AREA-0000</depends>
-  <implementation>NotStarted|Implemented|Planned|ToBeModified|ToBeRemoved</implementation>
   <implementationNotes>[CONCISE: Implemented: aggregated files affected, NotStarted/Planned/ToBeRemoved: nothing, ToBeModified: what was originally documented but now dropped]</implementationNotes>
   <notes>...</notes>
 </req>
 ```
+
+Coverage queries this shape enables: `implementation="NotStarted"` for unbuilt scope, `implementation="ToBeModified"` for spec-vs-code drift, `status="Draft"` for anything not yet approved to build against.
 
 </requirement_unit_template>
 
