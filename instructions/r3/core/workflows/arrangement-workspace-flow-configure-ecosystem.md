@@ -1,6 +1,6 @@
 ---
 name: arrangement-workspace-flow-configure-ecosystem
-description: "Phase 5 Configure Ecosystem of arrangement-workspace-flow"
+description: "Phase 6 Configure Ecosystem of arrangement-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -15,7 +15,7 @@ Show MCP/CLI/plugin recommendations verbatim; guide install only if the user dec
 </description_and_purpose>
 
 <workflow_context>
-Phase 5 of 5 in `arrangement-workspace-flow`. No interview; guidance only, never self-install.
+Phase 6 of 6 in `arrangement-workspace-flow`. No interview; guidance only, never self-install.
 </workflow_context>
 
 <phase_steps>
@@ -23,7 +23,7 @@ Phase 5 of 5 in `arrangement-workspace-flow`. No interview; guidance only, never
 2. Guide user how to install only if user decides to
 </phase_steps>
 
-<present_guidance step="5.1">
+<present_guidance step="6.1">
 1. Show the user the content in `ecosystem_guidance` EXACTLY as written.
 </present_guidance>
 
@@ -75,7 +75,7 @@ MCPs are the eyes and hands of the AI — add them, but keep it balanced. Enable
 
 </ecosystem_guidance>
 
-<install_on_request step="5.2">
+<install_on_request step="6.2">
 1. Do NOT ask which MCPs/CLIs/plugins to install — no interview; installing is the user's own decision.
 2. If the user decides to install something — do NOT install, read, search, understand first, paying attention to IDE/coding agent and languages — then guide them step-by-step.
 3. You can also guide the user AFTER the entire workflow is completed, but do NOT install yourself.

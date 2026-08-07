@@ -33,21 +33,36 @@ TODO
 
 </subagent_policy>
 
-<business_context phase="1" subagent="requirements-engineer" role="Business-context interviewer and CONTEXT.md author" type="HITL" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
+<choose_workspace_layout phase="1" subagent="executor" role="Workspace-layout guide and setup helper" type="HITL" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
+1. Purpose: Present workspace layout options and guide the user through the chosen layout's setup actions.
+2. Input: repo/workspace structure, `arrangement-state.md`
+3. Output: chosen layout applied; `arrangement-state.md` records the layout
+4. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-choose-workspace-layout.md`.
+</choose_workspace_layout>
+
+<reference_source_code phase="2" optional="true" subagent="executor" role="Reference-source curator and refsrc/INDEX.md author" type="HITL" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
+1. Purpose: Onboard read-only external codebases the agent needs into `refsrc/`, documented in `refsrc/INDEX.md`.
+2. Applicability: only when `arrangement-state.md` records layout = Single Repo Workspace (Option 1); not applicable => skip this phase, record skip reason, proceed to next phase.
+3. Input: `arrangement-state.md`, existing `refsrc/`, `refsrc/INDEX.md`, `.gitignore`
+4. Output: validated/updated `refsrc/`, `refsrc/INDEX.md`, `.gitignore`, `arrangement-state.md`
+5. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-reference-source-code.md`.
+</reference_source_code>
+
+<business_context phase="3" subagent="requirements-engineer" role="Business-context interviewer and CONTEXT.md author" type="HITL" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
 1. Purpose: Capture non-technical and engineering behavior facts about the project in `docs/CONTEXT.md`.
 2. Input: existing `docs/CONTEXT.md` 
 3. Output: updated `docs/CONTEXT.md` 
 4. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-business-context.md`.
 </business_context>
 
-<technical_context phase="2" subagent="architect" role="Technical-context interviewer and ARCHITECTURE.md author" type="HITL" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
+<technical_context phase="4" subagent="architect" role="Technical-context interviewer and ARCHITECTURE.md author" type="HITL" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
 1. Purpose: Capture technical facts about the project in `docs/ARCHITECTURE.md`.
 2. Input: existing `docs/ARCHITECTURE.md` 
 3. Output: updated `docs/ARCHITECTURE.md`
 4. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-technical-context.md`.
 </technical_context>
 
-<modernization phase="3" optional="true" subagent="architect" role="Modernization strategist and CONTEXT.md/ARCHITECTURE.md author" type="HITL" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
+<modernization phase="5" optional="true" subagent="architect" role="Modernization strategist and CONTEXT.md/ARCHITECTURE.md author" type="HITL" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
 1. Purpose: Capture modernization goals, target architecture, and patterns in `docs/CONTEXT.md`/`docs/ARCHITECTURE.md`.
 2. Applicability: confirm with user that the project goal is modernization; not applicable => skip this phase, record skip reason in `arrangement-state.md`, proceed to next phase.
 3. Input: existing `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`
@@ -55,14 +70,7 @@ TODO
 5. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-modernization.md`.
 </modernization>
 
-<reference_source_code phase="4" subagent="executor" role="Reference-source curator and refsrc/INDEX.md author" type="HITL" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
-1. Purpose: Onboard read-only external codebases the agent needs into `refsrc/`, documented in `refsrc/INDEX.md`.
-2. Input: `docs/ARCHITECTURE.md`, `docs/CONTEXT.md`, existing `refsrc/`, `refsrc/INDEX.md`, `.gitignore`
-3. Output: validated/updated `refsrc/`, `refsrc/INDEX.md`, `.gitignore`, `arrangement-state.md`
-4. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-reference-source-code.md`.
-</reference_source_code>
-
-<configure_ecosystem phase="5" subagent="executor" role="Ecosystem guidance presenter and install helper" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
+<configure_ecosystem phase="6" subagent="executor" role="Ecosystem guidance presenter and install helper" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
 1. Purpose: Show MCP/CLI/plugin recommendations verbatim; guide install only if the user decides to.
 2. Input: `docs/CONTEXT.md`
 3. Output: user guided through ecosystem choices; `docs/CONTEXT.md` note of installs; `arrangement-state.md` updated

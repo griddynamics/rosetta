@@ -1,6 +1,6 @@
 ---
 name: arrangement-workspace-flow-modernization
-description: "Phase 3 Modernization of arrangement-workspace-flow"
+description: "Phase 5 Modernization of arrangement-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -15,7 +15,7 @@ Extend `CONTEXT.md`/`ARCHITECTURE.md`/`PATTERNS/` with modernization facts, patt
 </description_and_purpose>
 
 <workflow_context>
-Phase 3 of 5 in `arrangement-workspace-flow`. Optional — applies only when the project goal is modernization; otherwise skip.
+Phase 5 of 6 in `arrangement-workspace-flow`. Optional — applies only when the project goal is modernization; otherwise skip.
 </workflow_context>
 
 <phase_steps>
@@ -53,13 +53,13 @@ Phase 3 of 5 in `arrangement-workspace-flow`. Optional — applies only when the
 6. Keep facts concise, valuable, highly compressed, and phrased with common terms and patterns.
 </modernization_interview_style>
 
-<find_gaps step="3.1">
+<find_gaps step="5.1">
 1. Read existing `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and `docs/PATTERNS/INDEX.md`.
 2. Compare against `context_topics`, `architecture_topics`, and `patterns_topics`.
 3. Note which topics are already covered vs missing or partial.
 </find_gaps>
 
-<interview_gaps step="3.2">
+<interview_gaps step="5.2">
 1. USE SKILL `hitl`.
 2. USE SKILL `questioning`.
 3. Follow `modernization_interview_style` exactly across `context_topics`, `architecture_topics`, and `patterns_topics`.
@@ -78,12 +78,12 @@ Phase 3 of 5 in `arrangement-workspace-flow`. Optional — applies only when the
 - If state.composite = true, extract per sub-repository; top-level INDEX.md references sub-repo folders
 </patterns_contract>
 
-<edit_context step="3.3">
+<edit_context step="5.3">
 1. Follow `doc_contract` to extend `docs/CONTEXT.md` and `docs/ARCHITECTURE.md`, per user answers.
 2. Follow `patterns_contract` to update `docs/PATTERNS/`, per user answers.
 </edit_context>
 
-<reference_source step="3.4">
+<reference_source step="5.4">
 1. Ask the user where the old codebase lives (repo URL or local path).
 2. Guide the user to clone it into `refsrc/<name>` as a read-only subfolder.
 3. Recommend running `init-workspace-flow` on `refsrc/<name>` in a new chat, to avoid context limits.

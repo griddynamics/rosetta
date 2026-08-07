@@ -1,6 +1,6 @@
 ---
 name: arrangement-workspace-flow-business-context
-description: "Phase 1 Business context of arrangement-workspace-flow"
+description: "Phase 3 Business context of arrangement-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -15,7 +15,7 @@ Close `CONTEXT.md` gaps through one continuous gap-analysis and gap-only intervi
 </description_and_purpose>
 
 <workflow_context>
-Phase 1 of 5 in `arrangement-workspace-flow`. HITL; interview covers gaps only.
+Phase 3 of 6 in `arrangement-workspace-flow`. HITL; interview covers gaps only.
 </workflow_context>
 
 <phase_steps>
@@ -49,13 +49,13 @@ Read and record the non-technical and engineering behavior facts about the proje
 6. Keep facts concise, valuable, highly compressed, and phrased with common terms and patterns.
 </business_context_interview_style>
 
-<find_gaps step="1.2">
+<find_gaps step="3.2">
 1. Read existing `docs/CONTEXT.md` if present
 2. Compare existing `docs/CONTEXT.md` and repo evidence against `business_context_topics`.
 3. Note which topics are already covered vs missing or partial.
 </find_gaps>
 
-<interview_gaps step="1.3">
+<interview_gaps step="3.3">
 1. USE SKILL `hitl`.
 2. USE SKILL `questioning`.
 3. Follow `business_context_interview_style` exactly.
@@ -68,7 +68,7 @@ Read and record the non-technical and engineering behavior facts about the proje
 - Limit to 100 lines, if there is MORE => keep CONTEXT.md with core CONTEXT plus index to per-feature <FEATURE>-CONTEXT.md files with a set of terms what it contains.
 </context_contract>
 
-<edit_context step="1.4">
+<edit_context step="3.4">
 1. Follow `context_contract` to update `docs/CONTEXT.md` according to user answers.
 2. Update `arrangement-state.md`
 </edit_context>

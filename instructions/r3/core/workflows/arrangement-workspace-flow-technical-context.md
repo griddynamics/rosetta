@@ -1,6 +1,6 @@
 ---
 name: arrangement-workspace-flow-technical-context
-description: "Phase 2 Technical context of arrangement-workspace-flow"
+description: "Phase 4 Technical context of arrangement-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -15,7 +15,7 @@ Close `ARCHITECTURE.md` gaps through one continuous gap-analysis and gap-only in
 </description_and_purpose>
 
 <workflow_context>
-Phase 2 of 5 in `arrangement-workspace-flow`. HITL; interview covers gaps only.
+Phase 4 of 6 in `arrangement-workspace-flow`. HITL; interview covers gaps only.
 </workflow_context>
 
 <phase_steps>
@@ -51,13 +51,13 @@ Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
 6. Keep facts concise, valuable, highly compressed, and phrased with common terms and patterns.
 </technical_context_interview_style>
 
-<find_gaps step="2.2">
+<find_gaps step="4.2">
 1. Read existing `docs/ARCHITECTURE.md` if present
 2. Compare existing `docs/ARCHITECTURE.md` against `technical_context_topics`.
 3. Note which topics are already covered vs missing or partial.
 </find_gaps>
 
-<interview_gaps step="2.3">
+<interview_gaps step="4.3">
 1. USE SKILL `hitl`.
 2. USE SKILL `questioning`.
 3. Follow `technical_context_interview_style` exactly.
@@ -70,7 +70,7 @@ Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
 - Limit to 100 lines, if there is MORE => keep ARCHITECTURE.md with core ARCHITECTURE plus index to per-feature <FEATURE>-ARCHITECTURE.md files with a set of terms what it contains.
 </architecture_contract>
 
-<edit_context step="2.4">
+<edit_context step="4.4">
 1. Follow `architecture_contract` to update `docs/ARCHITECTURE.md` according to user answers.
 2. Update `arrangement-state.md`
 </edit_context>
