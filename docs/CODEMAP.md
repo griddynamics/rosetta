@@ -1,6 +1,6 @@
 Code map of the Rosetta workspace — modules, key files, and entry points, 3-4 levels deep.
 
-## / — repo root (512 files total)
+## / — repo root (519 files total)
 
 README.md OVERVIEW.md QUICKSTART.md USAGE_GUIDE.md DEVELOPER_GUIDE.md CONTRIBUTING.md
 INSTALLATION.md TROUBLESHOOTING.md REVIEW.md SECURITY.md
@@ -95,14 +95,14 @@ subagent-directives/ tech-specs/ testing/
 architect.md discoverer.md engineer.md executor.md planner.md
 prompt-engineer.md requirements-engineer.md researcher.md reviewer.md validator.md
 
-#### instructions/r3/core/workflows/ — 16 top-level workflow files, 13 request types (+ phase files)
+#### instructions/r3/core/workflows/ — 17 top-level workflow files, 14 request types (+ phase files)
 
-adhoc-flow.md api-aqa-flow.md aqa-flow.md code-analysis-flow.md
-coding-agents-prompting-flow.md coding-flow.md external-lib-flow.md help-flow.md
-init-workspace-flow.md modernization-flow.md requirements-authoring-flow.md
+adhoc-flow.md api-aqa-flow.md aqa-flow.md arrangement-workspace-flow.md
+code-analysis-flow.md coding-agents-prompting-flow.md coding-flow.md external-lib-flow.md
+help-flow.md init-workspace-flow.md modernization-flow.md requirements-authoring-flow.md
 research-flow.md security-flow.md self-help-flow.md testgen-flow.md ui-aqa-flow.md
-(init-workspace-flow-*, aqa-flow-*, modernization-flow-*, security-flow-*,
-testgen-flow-* phase files)
+(init-workspace-flow-*, aqa-flow-*, arrangement-workspace-flow-*, modernization-flow-*,
+security-flow-*, testgen-flow-* phase files)
 
 13 request types: ui-aqa-flow + api-aqa-flow are one QA-automation type, aqa-flow is a
 backward-compat router over them plus testgen-flow, and self-help-flow is the deprecated
