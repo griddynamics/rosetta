@@ -1,14 +1,14 @@
 ---
-name: arrangment-workspace-flow
-description: TODO
-tags: ["workflow"]
+name: arrangement-workspace-flow
+description: "Workflow for arranging a workspace: layout, reference source code, business/technical context, ecosystem setup."
+tags: ["workflow", "arrangement"]
 baseSchema: docs/schemas/workflow.md
 ---
 
 <arrangement-workspace-flow>
 
 <description_and_purpose>
-TODO
+Arrange a workspace: layout, reference source code, business/technical context. End with closed `docs/CONTEXT.md`/`docs/ARCHITECTURE.md` gaps and `arrangement-state.md` tracking every decision.
 </description_and_purpose>
 
 <workflow_phases>
@@ -18,7 +18,7 @@ TODO
 2. USE SKILL `load-project-context`, `orchestration`, `hitl`, `sensitive-data`.
 3. Every question and approval follows the loaded `hitl` skill.
 4. Flow state MUST be saved to AGENTS TEMP FEATURE folder as `arrangement-state.md`; every phase updates it before the next starts.
-<prerequisites>
+</prerequisites>
 
 <subagent_policy required="true" inline_execution="prohibited">
 
@@ -33,48 +33,58 @@ TODO
 
 </subagent_policy>
 
-<choose_workspace_layout phase="1" subagent="executor" role="Workspace-layout guide and setup helper" type="HITL" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
-1. Purpose: Present workspace layout options and guide the user through the chosen layout's setup actions.
-2. Input: repo/workspace structure, `arrangement-state.md`
-3. Output: chosen layout applied; `arrangement-state.md` records the layout
-4. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-choose-workspace-layout.md`.
+<choose_workspace_layout phase="1" applies="ALL" subagent="executor" role="Workspace-layout guide and setup helper" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna" type="HITL" must-be-subagent>
+- Purpose: Present workspace layout options and guide the user through the chosen layout's setup actions.
+- Input: repo/workspace structure; `arrangement-state.md`.
+- Output: chosen layout applied; `arrangement-state.md` records the layout.
+- INVOKE SUBAGENT `executor` to APPLY PHASE `arrangement-workspace-flow-choose-workspace-layout.md` + present layout options and guide setup.
+- Expect: chosen layout name (Option 1/2/3) and setup-actions completion state.
+- Control: Option 2/3 chosen → confirm `large-workspace-handling` skill was engaged before advancing; no choice recorded → re-ask, do not default.
 </choose_workspace_layout>
 
-<reference_source_code phase="2" optional="true" subagent="executor" role="Reference-source curator and refsrc/INDEX.md author" type="HITL" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
-1. Purpose: Onboard read-only external codebases the agent needs into `refsrc/`, documented in `refsrc/INDEX.md`.
-2. Applicability: only when `arrangement-state.md` records layout = Single Repo Workspace (Option 1); not applicable => skip this phase, record skip reason, proceed to next phase.
-3. Input: `arrangement-state.md`, existing `refsrc/`, `refsrc/INDEX.md`, `.gitignore`
-4. Output: validated/updated `refsrc/`, `refsrc/INDEX.md`, `.gitignore`, `arrangement-state.md`
-5. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-reference-source-code.md`.
+<reference_source_code phase="2" applies="Single Repo Workspace (Option 1)" subagent="executor" role="Reference-source curator and refsrc/INDEX.md author" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna" type="HITL" must-be-subagent>
+- Purpose: Onboard read-only external codebases the agent needs into `refsrc/`, documented in `refsrc/INDEX.md`.
+- Input: `arrangement-state.md`; existing `refsrc/`, `refsrc/INDEX.md`, `.gitignore`.
+- Output: validated/updated `refsrc/`, `refsrc/INDEX.md`, `.gitignore`, `arrangement-state.md`.
+- INVOKE SUBAGENT `executor` to APPLY PHASE `arrangement-workspace-flow-reference-source-code.md` + onboard/validate reference codebases into `refsrc/`.
+- Expect: layout recorded in `arrangement-state.md`; `refsrc/`/`.gitignore`/`refsrc/INDEX.md` state, or a no-op reason.
+- Control: layout ≠ Single Repo Workspace (Option 1) → skip, record skip reason, proceed to phase 3; layout = Option 1 → apply and validate before advancing.
 </reference_source_code>
 
-<business_context phase="3" subagent="requirements-engineer" role="Business-context interviewer and CONTEXT.md author" type="HITL" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
-1. Purpose: Capture non-technical and engineering behavior facts about the project in `docs/CONTEXT.md`.
-2. Input: existing `docs/CONTEXT.md` 
-3. Output: updated `docs/CONTEXT.md` 
-4. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-business-context.md`.
+<business_context phase="3" applies="ALL" subagent="requirements-engineer" role="Business-context interviewer and CONTEXT.md author" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol" type="HITL" must-be-subagent>
+- Purpose: Capture non-technical and engineering behavior facts about the project in `docs/CONTEXT.md`.
+- Input: existing `docs/CONTEXT.md`.
+- Output: updated `docs/CONTEXT.md`.
+- INVOKE SUBAGENT `requirements-engineer` to APPLY PHASE `arrangement-workspace-flow-business-context.md` + close gaps against required topics via gap-only interview.
+- Expect: `docs/CONTEXT.md` <=100 lines; gap-only interview completed.
+- Control: topics already covered → skip re-interview; `docs/CONTEXT.md` incomplete/missing → block advance until gaps closed.
 </business_context>
 
-<technical_context phase="4" subagent="architect" role="Technical-context interviewer and ARCHITECTURE.md author" type="HITL" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
-1. Purpose: Capture technical facts about the project in `docs/ARCHITECTURE.md`.
-2. Input: existing `docs/ARCHITECTURE.md` 
-3. Output: updated `docs/ARCHITECTURE.md`
-4. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-technical-context.md`.
+<technical_context phase="4" applies="ALL" subagent="architect" role="Technical-context interviewer and ARCHITECTURE.md author" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol" type="HITL" must-be-subagent>
+- Purpose: Capture technical facts about the project in `docs/ARCHITECTURE.md`.
+- Input: existing `docs/ARCHITECTURE.md`.
+- Output: updated `docs/ARCHITECTURE.md`.
+- INVOKE SUBAGENT `architect` to APPLY PHASE `arrangement-workspace-flow-technical-context.md` + close gaps against required topics via gap-only interview.
+- Expect: `docs/ARCHITECTURE.md` <=100 lines; gap-only interview completed.
+- Control: topics already covered → skip re-interview; `docs/ARCHITECTURE.md` incomplete/missing → block advance until gaps closed.
 </technical_context>
 
-<modernization phase="5" optional="true" subagent="architect" role="Modernization strategist and CONTEXT.md/ARCHITECTURE.md author" type="HITL" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol">
-1. Purpose: Capture modernization goals, target architecture, and patterns in `docs/CONTEXT.md`/`docs/ARCHITECTURE.md`.
-2. Applicability: confirm with user that the project goal is modernization; not applicable => skip this phase, record skip reason in `arrangement-state.md`, proceed to next phase.
-3. Input: existing `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`
-4. Output: extended `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`
-5. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-modernization.md`.
+<modernization phase="5" applies="modernization goal" subagent="architect" role="Modernization strategist and CONTEXT.md/ARCHITECTURE.md author" subagent_required_model="claude-opus-4-8, gpt-5.5-high, gemini-3.1-pro-high, gpt-5.6-sol" type="HITL" must-be-subagent>
+- Purpose: Capture modernization goals, target architecture, and patterns in `docs/CONTEXT.md`/`docs/ARCHITECTURE.md`/`docs/PATTERNS/`.
+- Input: existing `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/PATTERNS/INDEX.md`.
+- Output: extended `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/PATTERNS/`.
+- INVOKE SUBAGENT `architect` to APPLY PHASE `arrangement-workspace-flow-modernization.md` + confirm modernization goal, close gaps, capture old-code reference source.
+- Expect: confirmed goal or no-op reason; extended docs; old-codebase location captured when applicable.
+- Control: user confirms goal is not modernization → skip, record skip reason, proceed to phase 6; confirmed → apply and validate before advancing.
 </modernization>
 
-<configure_ecosystem phase="6" subagent="executor" role="Ecosystem guidance presenter and install helper" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna">
-1. Purpose: Show MCP/CLI/plugin recommendations verbatim; guide install only if the user decides to.
-2. Input: `docs/CONTEXT.md`
-3. Output: user guided through ecosystem choices; `docs/CONTEXT.md` note of installs; `arrangement-state.md` updated
-4. INVOKE SUBAGENT to APPLY PHASE `arrangement-workspace-flow-configure-ecosystem.md`.
+<configure_ecosystem phase="6" applies="ALL" subagent="executor" role="Ecosystem guidance presenter and install helper" subagent_required_model="claude-haiku-4-5, gpt-5.4-low, gemini-3-flash, composer-2.5, gpt-5.6-luna" must-be-subagent>
+- Purpose: Show MCP/CLI/plugin recommendations verbatim; guide install only if the user decides to.
+- Input: `docs/CONTEXT.md`.
+- Output: user guided through ecosystem choices; `docs/CONTEXT.md` note of installs; `arrangement-state.md` updated.
+- INVOKE SUBAGENT `executor` to APPLY PHASE `arrangement-workspace-flow-configure-ecosystem.md` + show guidance verbatim and guide install only on user request.
+- Expect: guidance shown verbatim; any installs noted in `docs/CONTEXT.md`.
+- Control: user declines install → no-op, workflow completes; user requests install → guide step-by-step, never install directly.
 </configure_ecosystem>
 
 </workflow_phases>
@@ -118,7 +128,10 @@ TODO
 </next_steps>
 
 <pitfalls>
-TODO
+- Confusing this with `init-workspace-flow`: this flow assumes Rosetta setup is done and only arranges layout/context/ecosystem, not shells/discovery/patterns/code-graph.
+- Orchestrator reading/executing a phase file itself instead of dispatching the assigned subagent (violates `subagent_policy`).
+- Ignoring a phase's `Control` branch (skip/apply/gate condition) instead of following it exactly.
+- Ending the flow without showing `next_steps` guidance to the user.
 </pitfalls>
 
-</arrangment-workspace-flow>
+</arrangement-workspace-flow>
