@@ -307,7 +307,7 @@ jobs:
 
       - name: Upload prompt validation artifacts
         if: always() && steps.changed-files.outputs.count > 0
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: prompt-validation-report
           retention-days: 5
