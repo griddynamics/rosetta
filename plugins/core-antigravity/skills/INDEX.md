@@ -5,6 +5,7 @@ All paths are relative to Rosetta Plugin Path.
 - `skills/adhoc-flow/SKILL.md`: "Workflow for the rest of tasks: lightweight documentation, build, track, synchronize, etc."
 - `skills/api-aqa-flow/SKILL.md`: "Workflow for backend API test automation: TMS / Issue Tracker test cases → automated API tests, HITL-gated."
 - `skills/aqa-flow/SKILL.md`: "Router workflow for test automation: routes to ui-aqa-flow, api-aqa-flow, or testgen-flow. Kept for backward compatibility."
+- `skills/arrangement-workspace-flow/SKILL.md`: "Workflow for arranging a workspace: layout, reference source code, business/technical context, ecosystem setup."
 - `skills/code-analysis-flow/SKILL.md`: "Workflow for reverse-engineering a codebase into grounded architecture docs, requirements capture, etc."
 - `skills/coding-agents-prompting-flow/SKILL.md`: "Workflow for authoring and adapting AI-agent prompts: skills, agents, workflows, rules, etc."
 - `skills/coding-flow/SKILL.md`: "Workflow for all coding: features, fixes, refactors, unit tests, etc.; scales small to large."
