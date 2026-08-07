@@ -54,6 +54,7 @@ class RAGFlowTeamAPI:
         return cls(
             base_url=_normalize_base_url(config.server_url),
             authorization=_extract_authorization(config),
+            timeout=config.ragflow_http_timeout,
         )
 
     def _request(
