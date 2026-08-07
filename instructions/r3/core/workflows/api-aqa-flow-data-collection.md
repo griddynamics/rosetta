@@ -38,7 +38,7 @@ Wiki scope: `api-aqa-project-config.md` + run evidence per `<workflow_context>`.
 - **Test Case Data** — from `data-collection` (role `TMS`, resolved provider); ≥1 test-case source required.
 - **Documentation / Wiki** — from `data-collection` (role `Wiki`, resolved provider) via step 1.2b when scoped; else `SKIPPED_NO_CONFIG` outcome row (per `<wiki_outcomes>`).
 - **Existing Test Patterns** — from `qa-knowledge` (`code_analysis` via `reverse-engineering`); framework, HTTP client, structure/assertion/auth conventions, utilities. Env-file: **path + variable names only**, never literal values.
-- **Backend Source Code Analysis** — path from config or `RefSrc/`; framework, routes, key dirs (else `N/A`).
+- **Backend Source Code Analysis** — path from config or `refsrc/`; framework, routes, key dirs (else `N/A`).
 - **API Endpoints Identified** — every row has Method + Source; partial rows tagged as gaps.
 - **Data Collection Summary** — counts + gap notes; delegated-skill stop → `Gap: <skill> stopped — <message>`, never fabricated over.
 

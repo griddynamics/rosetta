@@ -13,14 +13,14 @@ use). UI-AQA uses the same two.
 
 - [ ] Rosetta plugin installed and active -- exercise the workflow via the installed plugin (plugin mode), not the raw r3 instructions
 - [ ] Working dir lets you write under `plans/` and `agents/TEMP/`
-- [ ] Sample backend repo at `RefSrc/<project>/` **or** a Swagger URL handy
+- [ ] Sample backend repo at `refsrc/<project>/` **or** a Swagger URL handy
 - [ ] **External-system auth is optional** -- see *Auth-free / mock testing* below. For a full real run: the configured TMS / Wiki / Issue Tracker integrations authenticated (e.g. TestRail and Atlassian MCPs).
 
 ## Auth-free / mock testing
 
 You do **not** need real TMS/Wiki/Issue Tracker credentials to test this flow. The `data-collection` bindings only ever make *real* integration calls or stop with a gap -- they never fabricate. Two ways to run auth-free:
 
-- **Mode A: source out-of-scope / provided (no integration call).** In `plans/api-aqa-{IDENTIFIER}/api-aqa-project-config.md` leave the in-scope keys unset (`tms_base_url`, `wiki_base_url` → `N/A`). Phase 1 then resolves **`SKIPPED_NO_CONFIG`**, records the gap, and proceeds on what you supply directly (paste case fields / use the direct-description trigger, or a Swagger URL/`RefSrc` path for the API contract). Validates degradation + the whole downstream pipeline on your canned input. *Caveat:* the bindings have no "provided-inline retrieval" path, so if you **do** set an in-scope key, Phase 1 will attempt the real integration and stop on auth failure.
+- **Mode A: source out-of-scope / provided (no integration call).** In `plans/api-aqa-{IDENTIFIER}/api-aqa-project-config.md` leave the in-scope keys unset (`tms_base_url`, `wiki_base_url` → `N/A`). Phase 1 then resolves **`SKIPPED_NO_CONFIG`**, records the gap, and proceeds on what you supply directly (paste case fields / use the direct-description trigger, or a Swagger URL/`refsrc` path for the API contract). Validates degradation + the whole downstream pipeline on your canned input. *Caveat:* the bindings have no "provided-inline retrieval" path, so if you **do** set an in-scope key, Phase 1 will attempt the real integration and stop on auth failure.
 - **Mode B: stub integration (canned data).** Point the configured TMS/Wiki integration at a local stub that answers the capability calls (get issue / get page / get case, etc.) with fixture JSON. The binding treats the fixtures like a real integration, running the full extract → normalize → redact → write path with zero real auth. Guardrails permit this (*"User can override (mocked data)"*).
 
 > What Mode A actually validates: the **degradation** path (gap/skip, no fabrication), not the real data-pull. Use Mode B to exercise the pull logic without credentials.
@@ -32,13 +32,13 @@ Write backend API tests for TC-1234.
 Swagger: https://api.example.com/swagger.json
 ```
 ```
-Automate backend tests for PROJ-123 with Swagger from RefSrc/my-backend/docs/openapi.json
+Automate backend tests for PROJ-123 with Swagger from refsrc/my-backend/docs/openapi.json
 ```
 ```
 Create API tests for the user registration endpoint (no ticket, direct description).
 ```
 ```
-Generate API tests for POST /orders and GET /orders/{id} from RefSrc/orders-svc/. TestRail suite: S-42.
+Generate API tests for POST /orders and GET /orders/{id} from refsrc/orders-svc/. TestRail suite: S-42.
 ```
 ```
 Write contract tests for the auth endpoints (login / refresh / logout). Swagger: https://api.example.com/v2/openapi.yaml; Jira: PROJ-789.

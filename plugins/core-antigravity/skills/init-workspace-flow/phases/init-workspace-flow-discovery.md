@@ -46,7 +46,7 @@ Act as a senior workspace cartographer — fast, factual technical inventory. Wi
    - AVOID manually listing folder-by-folder, either hardcoded script it, or just list entire workspace with both filters to exclude noise folders and include only source code files, then you build map from context
 6. List direct dependencies (project, package, version) → write DEPENDENCIES
 7. Preserve human-added sections in existing files
-8. Update (or create only if missing) .gitignore in git root folder by adding lines according to `bootstrap_rosetta_files` (roster in SKILL `load-project-context`)
+8. Update (or create only if missing) `.gitignore` in git root folder by adding lines according to `bootstrap_rosetta_files` (roster in SKILL `load-project-context`)
    Minimal set must be present:
    ```
    ...
@@ -54,6 +54,13 @@ Act as a senior workspace cartographer — fast, factual technical inventory. Wi
    agents/TEMP/
    refsrc/
    !refsrc/INDEX.md
+   ```
+9. Update (or create only if missing) `.prettierignore` in git root folder by adding following lines:
+   ```
+   ...
+   # Rosetta
+   docs/*.md
+   docs/**/*.md
    ```
 
 </discovery_process>

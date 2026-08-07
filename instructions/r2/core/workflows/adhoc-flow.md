@@ -27,11 +27,11 @@ Match to cognitive demand. Match to current tool.
 
 <plan_manager>
 
-Execution plans are local JSON files driven via CLI: `npx -y rosettify@latest plan <subcommand> <plan_file>`. Always use full absolute paths for the plan file. Todo tasks/built-in planners are for tracking INSIDE step execution only.
+Execution plans are local JSON files driven via CLI: `npx rosettify plan <subcommand> <plan_file>`. Always use full absolute paths for the plan file. Todo tasks/built-in planners are for tracking INSIDE step execution only.
 
 Orchestrator:
 
-1. `npx -y rosettify@latest help plan` to confirm available subcommands and the plan JSON structure.
+1. `npx rosettify help plan` to confirm available subcommands and the plan JSON structure.
 2. Create plan: `plan create <plan_file> '<json>'` — plan ⊃ phases ⊃ steps. Use ONLY plain `create`/`upsert` — NEVER `create-with-template`/`upsert-with-template`: template-seeded prep steps reference skills by names that do not match this release's skills.
 3. Upsert phases and steps every time something new comes up; adapt continuously — reorder, re-analyze, add, re-scope as discovery/subagent returns shift reality.
 4. Delegate a target to a subagent — add to the subagent prompt, right after the `You are [role/specialization]...` line: `Plan: [absolute plan.json path]. Phase: [phase id]. [Step: [step id].]`, and include `<subagent_plan_manager_instructions>`. Subagent owns that target end-to-end. Decide which phases run in parallel — parallel subagents MUST each own a distinct phase (collision-free).
@@ -44,15 +44,15 @@ Orchestrator:
 <subagent_plan_manager_instructions>
 
 1. Receive your target from the prompt's `Plan: [absolute plan.json path]. Phase: [phase id]. [Step: [step id].]` line.
-2. `npx -y rosettify@latest plan next <plan_file> --target <phase_id>` (target = your phase, or step id if the prompt scopes to one) — pull the next step.
+2. `npx rosettify plan next <plan_file> --target <phase_id>` (target = your phase, or step id if the prompt scopes to one) — pull the next step.
    - `resume:true` → step is already `in_progress`; skip 3a, go to 3b.
    - `previously_blocked:true` / `previously_failed:true` → orchestrator cleared the path; verify preconditions carefully first, then 3a.
    - open → 3a.
    - `count:0` and `plan_status:complete` → target complete; go to step 4.
 3. For the returned step — ONE at a time:
-   a. `npx -y rosettify@latest plan update_status <plan_file> <step_id> in_progress`.
+   a. `npx rosettify plan update_status <plan_file> <step_id> in_progress`.
    b. Split the step's prompt into todo tasks (your own isolated list — invisible to other agents); order by dependencies; output `Tasks Created: [task ids]`; execute; close each on verifiable evidence.
-   c. `npx -y rosettify@latest plan update_status <plan_file> <step_id> <status>`:
+   c. `npx rosettify plan update_status <plan_file> <step_id> <status>`:
       - `complete` — done with verifiable evidence → back to step 2 for the next step.
       - `blocked` — cannot proceed → step 4, report reason.
       - `failed` — execution failed → step 4, report error + root cause.

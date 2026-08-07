@@ -32,7 +32,7 @@ The phase supplies these paths to the skill; defaults apply when not configured:
 | Project description | `project_description.md` (repo root) | Framework, language, structure, coding standards — read when present |
 | Project context | configured paths; canonical `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `agents/IMPLEMENTATION.md` | Architecture and conventions — read when present |
 | Optional user instructions | `agents/user-instructions/` | Test guidelines, custom matchers, style |
-| Optional frontend source | repo-specific (e.g. `RefSrc/<repo>/`) | Component files for selector / test-id discovery |
+| Optional frontend source | repo-specific (e.g. `refsrc/<repo>/`) | Component files for selector / test-id discovery |
 | Output | `plans/ui-aqa-<test-name>/code-analysis.md` | The report (this phase's contract, below) |
 
 **Input GATE.** Before analysis: test plan exists and is non-empty; `project_description.md`, `gain.json`, or one authoritative project-context file exists; codebase root is readable. Resolve file locations from `gain.json`, falling back to the canonical paths above. Any miss → stop Phase 3, record the gap in `ui-aqa-state.md`, ask the user. Do NOT infer framework from incidental file extensions.
@@ -57,7 +57,7 @@ After writing the report, update the test plan's `## Code Analysis` section with
 2. USE SKILL `reverse-engineering` and USE SKILL `qa-knowledge` (`code_analysis` mode — test-automation architecture analysis) with the phase-supplied bindings: inputs + defaults = `<input_contract>`; report structure + test-location rule = the skill's code-analysis report template; output path = `plans/ui-aqa-<test-name>/code-analysis.md`. USE SKILL `sensitive-data` before writing.
 3. **Conditional-input else-paths:**
    - If `agents/user-instructions/` is **absent or empty**: record `not available — see Coverage section` in report section 2 and `not available` in section 9; Phase 3 **continues**, does not stop.
-   - If a **frontend source path is not discoverable** (no `gain.json`/configured source reference, no `RefSrc/<repo>/`): skip frontend analysis, record the gap in section 9 per the coverage epistemic-honesty rule; Phase 3 **continues**.
+   - If a **frontend source path is not discoverable** (no `gain.json`/configured source reference, no `refsrc/<repo>/`): skip frontend analysis, record the gap in section 9 per the coverage epistemic-honesty rule; Phase 3 **continues**.
 4. Do not fabricate framework, page objects, or pass/fail data. Honor the read-only scope (`<workflow_context>`).
 5. **Post-analysis verification:** confirm the report exists with every section from the code-analysis report template and the test plan's `## Code Analysis` summary is added. If missing/incomplete: re-run once with the same bindings; if still failing, stop Phase 3, record `Phase 3 blocked: code-analysis report not produced/incomplete` in `agents/TEMP/<FEATURE>/ui-aqa-state.md`, ask the user.
 </execute_analysis>

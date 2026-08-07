@@ -20,7 +20,7 @@ Single flat `SKILL.md`, no `references/` subfolder. `<process>` is 9 steps: vali
 ## Invariants — do not change
 - `name: requirements-use` equals the folder name; registered in `docs/definitions/skills.md:26`.
 - Description ("To consume approved requirements for planning, implementation, and validation, with traceability and HITL.") fits the schema's ~25-token budget — unlike `hitl`, this skill claims no CRITICAL-form exception.
-- `<req id="FR-AREA-0001" .../>` ID scheme (`FR-AREA-NNNN`) is byte-identical to `requirements-authoring/assets/ra-requirement-unit.xml`; this skill consumes what `requirements-authoring` produces, so the two ID grammars must stay in lockstep.
+- `<req id="FR-AREA-0001" .../>` ID scheme (`FR-AREA-NNNN`) is byte-identical to `requirements-authoring/assets/ra-requirement-unit.md`; this skill consumes what `requirements-authoring` produces, so the two ID grammars must stay in lockstep.
 - Asset filenames `ru-traceability-matrix.md`, `ru-change-log.md` use the `ru-` prefix convention (mirrors `ra-` in `requirements-authoring`) — other files load them by exact path via `<resources>`.
 - `<resources>` uses the nameless canonical alias `READ SKILL FILE \`assets/...\`` (no separate alias name), the generic-schema grammar for a skill's own files.
 - No `USE FLOW`/workflow reference anywhere in this SKILL.md — it stays a leaf skill that workflows load via `USE SKILL \`requirements-use\``, never the reverse (effect observed; intent not documented).

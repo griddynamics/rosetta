@@ -38,7 +38,7 @@ Spec sections (adapt per request):
 2. Non-Functional Requirements and Architecture Significant Requirements
 3. Architecture & Component Design
 4. API Contracts
-5. Data Models & Schemas
+5. Data Models & Schemas & Feature Flags
 6. Error Handling Strategy
 7. Testing Strategy with Test Cases
 8. Security Considerations

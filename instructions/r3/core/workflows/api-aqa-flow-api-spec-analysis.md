@@ -37,7 +37,7 @@ Two required inputs; skill GATEs on both before any spec-location logic:
 
 <determine_spec_source step="2.1">
 
-`{backend-source-path}` source: Phase 1 "Backend Source Code Analysis", project config "Backend Source Code", or `RefSrc/{project-name}/docs/`. If `RefSrc/{project-name}/docs/` exists, read `ARCHITECTURE.md` and `CODEMAP.md` first.
+`{backend-source-path}` source: Phase 1 "Backend Source Code Analysis", project config "Backend Source Code", or `RefSrc/{project-name}/docs/`. If `refsrc/{project-name}/docs/` exists, read `ARCHITECTURE.md` and `CODEMAP.md` first.
 
 If `{backend-source-path}` NOT configured, search entire codebase for items 2–3 below.
 

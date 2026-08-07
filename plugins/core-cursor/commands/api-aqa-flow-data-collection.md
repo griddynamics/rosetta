@@ -35,7 +35,7 @@ This phase owns the raw-data aggregation artifact `plans/api-aqa-{IDENTIFIER}/ra
 - **Test Case Data** — from `data-collection` (role `TMS`, resolved provider); ≥1 test-case source required.
 - **Documentation / Wiki** — from `data-collection` (role `Wiki`, resolved provider) via step 1.2b when scoped; else the `SKIPPED_NO_CONFIG` outcome row (per `<wiki_outcomes>`).
 - **Existing Test Patterns** — from `qa-knowledge` (`code_analysis` mode — test-automation architecture analysis, via `reverse-engineering`); framework, HTTP client, structure/assertion/auth conventions, reusable utilities. Record env-file **path + variable names only**, never literal values.
-- **Backend Source Code Analysis** — backend path from config or discoverable `RefSrc/` docs; framework, route patterns, key dirs (or `N/A` when no path).
+- **Backend Source Code Analysis** — backend path from config or discoverable `refsrc/` docs; framework, route patterns, key dirs (or `N/A` when no path).
 - **API Endpoints Identified** — every row has Method + Source populated; partial rows tagged as gaps.
 - **Data Collection Summary** — counts + gap notes; a delegated-skill stop is recorded verbatim as `Gap: <skill> stopped — <message>`, never fabricated over.
 

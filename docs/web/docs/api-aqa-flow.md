@@ -32,7 +32,7 @@ This is a strict sequential workflow (phases 0–7). Phases build on each other,
 Prepare the inputs this workflow explicitly depends on:
 
 - A test case reference: TestRail ID, Jira ticket key/URL, or a direct description of the endpoints under test.
-- A Swagger/OpenAPI spec URL or file path, or a backend source path with route definitions (e.g. `RefSrc/my-backend/` or `src/`).
+- A Swagger/OpenAPI spec URL or file path, or a backend source path with route definitions (e.g. `refsrc/my-backend/` or `src/`).
 - Access to the repository's existing API tests, helpers, and conventions.
 - For first runs: answers for the config interview — document storage, spec availability and format, test-case source, test framework, auth mechanism (described as scheme + source, never literal credentials).
 - If TestRail/Jira/Confluence are in scope: the corresponding MCP access.
@@ -48,7 +48,7 @@ Typical prompts:
 ```
 
 ```text
-/api-aqa-flow Automate backend tests for PROJ-123 with Swagger from RefSrc/my-backend/docs/openapi.json
+/api-aqa-flow Automate backend tests for PROJ-123 with Swagger from refsrc/my-backend/docs/openapi.json
 ```
 
 ```text

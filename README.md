@@ -32,6 +32,14 @@ Rosetta-guided work follows five phases — **Prepare → Research → Plan → 
 > [!NOTE]
 > If you are effectively using your current setup, writing your own skills, and managing AI using your own processes, you probably don't need Rosetta.
 
+## [Quick Start](QUICKSTART.md)
+
+Overall Process: **Install** (plugin preferred) → **Initialize** workspace → **Configure** workspace ecosystem (tools, MCPs) → **Proceed** with Coding, Modernization, Analysis, etc.
+
+Please follow **[Quick Start Guide](QUICKSTART.md)** which will walk you through the process.
+
+Very detailed information on installation and configuration in all available modes is in [Installation Guide](INSTALLATION.md).
+
 ## [Top Workflows](USAGE_GUIDE.md#workflows)
 
 1. `coding-flow`: AI creates features, fixes defects, and performs refactoring, everything end-to-end. AI performs discovery, design, specs and a plan, user review, then AI implements and runs separate review and validation passes (including running application). Most useful for medium to large coding tasks, and for controlled component-by-component migration/modernization work.
@@ -84,33 +92,6 @@ If you prefer more vibe-coding, check the guardrails and useful skills below.
 | Misses the shared middleware pattern; duplicates the Redis client | Reuses the shared rate-limiter and Redis layer                |
 | No plan, no checkpoint                                       | Proposes a plan and asks for approval                              |
 | Ships without running tests                                  | Runs the integration tests, then a fresh-context reviewer validates |
-
-## Quick Start
-
-**1. Install** — pick the option that fits:
-
-| Option                              | Best for                                                                       |
-| ----------------------------------- | ------------------------------------------------------------------------------ |
-| **[Plugins](PLUGINS.md)** — recommended | Everyone with a supported IDE (Claude Code · Cursor · Copilot · Codex · Antigravity). Files install locally — no server, no live connection needed. |
-| **[Hosted MCP](MCPs.md)** — evaluation only | Try Rosetta with zero setup, or use any other MCP-compatible agent (Devin/Windsurf · Junie · OpenCode). Public demo endpoint — do not point production or sensitive repos at it. |
-| **[Self-hosted MCP](docs/mcp/DEPLOYMENT_GUIDE.md)** — optional | MCP in production: your own MCP server and RAGFlow inside your perimeter. Only needed if you specifically require centrally-managed, always-fresh instructions with nothing copied into repos — most teams don't. |
-
-MCP is a secondary, optional delivery mode. If your IDE supports plugins, start there.
-
-**2. Initialize** — ask the agent in chat once per repo, and Rosetta does the rest:
-
-```mermaid
-flowchart LR
-    D["ask to initialize<br/>in chat"] --> A["Rosetta detects mode<br/>and analyzes your repo"]
-    A --> W["creates workspace baseline<br/>TECHSTACK · CODEMAP · DEPENDENCIES · CONTEXT · ARCHITECTURE"]
-    W --> Q["asks gap-filling<br/>questions"]
-    Q --> S["you build with<br/>/coding-flow · /ui-aqa-flow · …"]
-
-    classDef step fill:#1f6feb,stroke:#1b4fb8,color:#ffffff;
-    class D,A,W,Q,S step
-```
-
-Full setup and initialization steps are in the [Quickstart](QUICKSTART.md) · [all IDEs and detailed setup](INSTALLATION.md).
 
 ## How it works
 

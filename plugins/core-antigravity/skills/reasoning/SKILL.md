@@ -43,7 +43,7 @@ Must apply fully canonical 8-point reasoning flow:
 4. DEVELOP
 - Use techniques: Multi-perspective, Constraint-based + precision focus, Few-shot examples + clear structure, Chain-of-thought + systematic frameworks
 - Extract systems, actors, roles, actions, events, data, models, and entities
-- Identify dependencies, edge cases, and constraints
+- Identify dependencies, edge cases, feature flags, and constraints
 - Address each sub-problem with explicit confidence (0.0-1.0)
 - Define acceptance criteria with the selected framework when relevant
 - Resolve assumptions and unknowns tied to public facts

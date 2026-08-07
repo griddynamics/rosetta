@@ -1,8 +1,5 @@
 name: Rosetta Repo Analysis
 
-# DISABLED: triggers are workflow_dispatch-only until a manual test run is
-# reviewed and the schedule is deliberately re-enabled.
-#
 # Reviews the codebase for improvements and files them as GitHub issues on the
 # "Rosetta Automation Board" (GitHub Projects v2, org griddynamics, project
 # number 57 — https://github.com/orgs/griddynamics/projects/57), added at
@@ -18,8 +15,8 @@ name: Rosetta Repo Analysis
 #     so this PAT is used for all gh operations in this workflow.
 
 on:
-  # schedule:
-  #   - cron: '0 0 * * *'
+  schedule:
+    - cron: '0 23 * * *'
   workflow_dispatch:
 
 permissions:
@@ -33,6 +30,7 @@ jobs:
       ANTHROPIC_BASE_URL: https://${{ secrets.BIFROST_HOST_NAME }}/anthropic
       ENABLE_TOOL_SEARCH: "true"
       CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
+      CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
 
     steps:
       - name: Checkout repository
@@ -45,8 +43,18 @@ jobs:
           bun-version: 1.3.6
           token: ${{ github.token }}
 
+      # Removes `run_in_background` from the Agent tool schema, so subagents cannot
+      # be backgrounded. A backgrounded subagent's report is delivered on a later
+      # turn, which a one-shot headless run never has: the report is lost and the
+      # job exits reporting success. Written via $GITHUB_ENV because the action's
+      # own step `env:` block shadows job-level env vars.
+      - name: Force synchronous subagents
+        run: echo "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1" >> "$GITHUB_ENV"
+
       - name: Run Claude
         uses: anthropics/claude-code-action@v1
+        env:
+          CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
         with:
           anthropic_api_key: ${{ secrets.BIFROST_API_KEY }}
           github_token: ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
@@ -59,9 +67,21 @@ jobs:
           show_full_output: false
           claude_args: >-
             --allowedTools
-            "Read,Glob,Grep,Bash(gh issue list:*),Bash(gh issue view:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh pr list:*),Bash(gh project view:*),Bash(gh project field-list:*),Bash(gh project item-list:*),Bash(gh project item-add:*),Bash(gh project item-edit:*)"
+            "Read,Glob,Grep,Agent,Bash(gh * list*),Bash(gh * status*),Bash(gh repo view*),Bash(gh issue view*),Bash(gh issue create*),Bash(gh issue edit*),Bash(gh issue close*),Bash(gh issue comment*),Bash(gh pr view*),Bash(gh project view*),Bash(gh project field-list*),Bash(gh project item-list*),Bash(gh project item-add*),Bash(gh project item-edit*),Bash(gh api graphql*),Bash(gh api repos/*/tags*),Bash(gh api repos/*/contents/*),Bash(gh api repos/*/git/trees/*),Bash(gh api repos/*/code-scanning/alerts*),Bash(gh api repos/*/code-scanning/analyses*),Bash(gh api repos/*/dependabot/alerts*),Bash(gh api repos/*/commits/*/check-runs*)"
             --model sonnet
             --effort medium
+            --disallowedTools
+            "ScheduleWakeup,Bash(* --show-token),Bash(* --show-token*)"
+
+      # The trace is a full tool transcript published as a downloadable artifact,
+      # outside Actions log masking. Redact credentials before it leaves the runner.
+      - name: Scrub credentials from execution trace
+        if: always()
+        env:
+          SCRUB_VALUES: |
+            ${{ secrets.SELF_AUTOMATION_PROJECTS_TOKEN }}
+            ${{ secrets.BIFROST_API_KEY }}
+        run: python3 .github/scripts/scrub_trace.py /home/runner/work/_temp/claude-execution-output.json
 
       - name: Upload Claude execution trace
         if: always()
@@ -70,3 +90,10 @@ jobs:
           name: claude-execution-trace
           path: /home/runner/work/_temp/claude-execution-output.json
           retention-days: 3
+
+      # claude-code-action decides success from `subtype`/`is_error` alone, so a run
+      # that abandons its subagents and files nothing is indistinguishable from a
+      # clean one. This inspects the trace and fails the job instead.
+      - name: Verify the run did real work
+        if: always()
+        run: python3 .github/scripts/check_trace.py /home/runner/work/_temp/claude-execution-output.json

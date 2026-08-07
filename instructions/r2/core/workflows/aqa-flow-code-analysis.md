@@ -81,11 +81,11 @@ Understand existing test architecture, identify reusable components, and determi
 **Actions**:
 1. Check if frontend source code is available:
    ```
-   Use: Glob to check for RefSrc/tools-st-frontend/
+   Use: Glob to check for refsrc/tools-st-frontend/
    ```
 2. If frontend code exists, analyze UI structure:
    - Search for React components related to the feature under test
-   - Identify component file structure in `RefSrc/tools-st-frontend/src/`
+   - Identify component file structure in `refsrc/tools-st-frontend/src/`
    - Note component props, interfaces, and data-testid attributes
    - Document UI flow and component hierarchy
    - Identify API calls and data models used
@@ -97,13 +97,13 @@ Understand existing test architecture, identify reusable components, and determi
    ```markdown
    ### Frontend Code Analysis
    
-   #### Component: DashboardComponent (RefSrc/tools-st-frontend/src/features/dashboard/Dashboard.tsx)
+   #### Component: DashboardComponent (refsrc/tools-st-frontend/src/features/dashboard/Dashboard.tsx)
    - data-testid attributes: "welcome-message", "dashboard-title"
    - Props: { userName: string, notifications: number }
    - API calls: fetchDashboardData()
    - Related components: NotificationBell, UserProfile
    
-   #### Component: SettingsPage (RefSrc/tools-st-frontend/src/features/settings/SettingsPage.tsx)
+   #### Component: SettingsPage (refsrc/tools-st-frontend/src/features/settings/SettingsPage.tsx)
    - data-testid attributes: "email-input", "save-button"
    - Form fields: email, notifications, preferences
    ```
@@ -236,7 +236,7 @@ Understand existing test architecture, identify reusable components, and determi
    - Naming Convention: [Pattern]
    
    ### Frontend Code Analysis (if available)
-   - Frontend Source: RefSrc/tools-st-frontend/
+   - Frontend Source: refsrc/tools-st-frontend/
    - Components Analyzed: [List]
    - Available data-testid attributes: [List]
    - Component Props: [Relevant props]

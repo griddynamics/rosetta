@@ -122,3 +122,4 @@ jobs:
 
           - **Files validated:** ${{ steps.changed.outputs.count }}
           - **Status:** $( [ "${{ steps.validate.outputs.status }}" = "failed" ] && echo ":x: Failed" || echo ":white_check_mark: Passed" )
+          EOF

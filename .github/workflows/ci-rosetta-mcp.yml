@@ -8,7 +8,12 @@ on:
   pull_request:
     paths:
       - 'src/rosetta-mcp-server/**'
+      - 'requirements.txt'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-test:

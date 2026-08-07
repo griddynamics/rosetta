@@ -198,7 +198,7 @@ Setup actions:
 - Initialize Rosetta (see [Quick Start](/rosetta/docs/quickstart/)).
 
 <details markdown="1">
-<summary><b>Detailed examples what should be in RefSrc folder</b></summary>
+<summary><b>Detailed examples what should be in refsrc folder</b></summary>
 
 1. Example what integration or e2e testing repository needs:
 
