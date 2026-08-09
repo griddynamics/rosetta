@@ -3,244 +3,372 @@
     <source media="(prefers-color-scheme: dark)" srcset="docs/web/assets/brand/rosetta-logo-full-color-white-text.png">
     <img src="docs/web/assets/brand/rosetta-logo-full-color-black-text.png" alt="Rosetta" width="200">
   </picture>
-  <p><strong>Engineering governance and context for AI coding agents — shared instructions, architecture, standards, workflows, and guardrails in every session.</strong></p>
+  <p><strong>An instruction layer for AI coding agents — your architecture, standards, workflows, and guardrails in every session.</strong></p>
   <p>
     <a href="https://pypi.org/project/rosetta-mcp/"><img src="https://img.shields.io/pypi/v/rosetta-mcp.svg" alt="MCP"></a>
     <a href="https://pypi.org/project/rosetta-mcp/"><img src="https://img.shields.io/pypi/dm/rosetta-mcp.svg" alt="Downloads"></a>
     <a href="https://pypi.org/project/rosetta-cli/"><img src="https://img.shields.io/pypi/v/rosetta-cli.svg" alt="CLI"></a>
-    <a href="https://pypi.org/project/rosetta-cli/"><img src="https://img.shields.io/pypi/dm/rosetta-cli.svg" alt="Downloads"></a>
     <a href="https://github.com/griddynamics/rosetta/actions/workflows/publish-rosetta-mcp.yml"><img src="https://github.com/griddynamics/rosetta/actions/workflows/publish-rosetta-mcp.yml/badge.svg" alt="Rosetta MCP"></a>
-    <a href="https://github.com/griddynamics/rosetta/actions/workflows/publish-rosetta-cli.yml"><img src="https://github.com/griddynamics/rosetta/actions/workflows/publish-rosetta-cli.yml/badge.svg" alt="Rosetta CLI"></a>
     <a href="https://github.com/griddynamics/rosetta/actions/workflows/publish-instructions.yml"><img src="https://github.com/griddynamics/rosetta/actions/workflows/publish-instructions.yml/badge.svg" alt="Instructions"></a>
     <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.12+-blue.svg" alt="Python 3.12+"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License: Apache-2.0"></a>
   </p>
+  <p>
+    <a href="#quick-start">Quick start</a> ·
+    <a href="#the-recommended-path">Recommended path</a> ·
+    <a href="#whats-inside-the-skill-library">Skills</a> ·
+    <a href="USAGE_GUIDE.md">Usage Guide</a> ·
+    <a href="https://griddynamics.github.io/rosetta/">Website</a>
+  </p>
 </div>
 
-## What is Rosetta
+Rosetta works with the agent you already use — Claude Code, Cursor, Copilot, Codex, Antigravity, or any
+MCP-compatible agent. It changes how the agent approaches a task: read your project context first, agree a
+plan with you, then prove the result by running it — instead of guessing from whichever files happen to be
+open and calling it done. **Teach agents how to think, not what to do.**
+
+Everything is markdown, versioned in Git, and runs inside your perimeter.
+
+<details>
+<summary><b>What is Rosetta — watch the intro</b></summary>
 
 https://github.com/user-attachments/assets/6df6e217-3e5c-4691-84ed-7440701a87de
 
-AI coding agents are great — until you try to use them across a real team. Everyone builds their own prompts and instructions, knowledge stays in silos, and the agent — not knowing your architecture or constraints — guesses from a few open files and confidently does the wrong thing.
+</details>
 
-That's why we built Rosetta — open-source engineering governance and context for AI coding agents. It's not another proprietary agent; it works with the tools you already use (Claude Code, Cursor, Copilot, Codex, and other MCP-compatible agents) and loads your team's shared engineering instructions into every session. Everything is versioned in Git and can run inside your perimeter.
+### Do you need it?
 
-**Teach agents how to think, not what to do.** The model already knows Python and React; what it lacks is your engineering discipline. That's what Rosetta encodes.
+You probably do if any of these sound like your week:
 
-Rosetta-guided work follows five phases — **Prepare → Research → Plan → Act → Validate** — with approval gates at the key decision points. Read more in the [Usage Guide](USAGE_GUIDE.md#workflows).
+- The agent writes plausible code that ignores a convention or a shared component you already have.
+- You re-explain the same project context in every new chat.
+- Everyone on the team has their own prompt file, and none of them agree.
+- The agent starts editing before you have agreed what to build, and you review a large diff afterwards.
+- It reports "done" without having run anything.
 
-> [!NOTE]
-> If you are effectively using your current setup, writing your own skills, and managing AI using your own processes, you probably don't need Rosetta.
+You probably don't if you already write your own skills, have a process you trust, and it works.
 
-## [Quick Start](QUICKSTART.md)
+---
 
-Overall Process: **Install** (plugin preferred) → **Initialize** workspace → **Configure** workspace ecosystem (tools, MCPs) → **Proceed** with Coding, Modernization, Analysis, etc.
+## Quick start
 
-Please follow **[Quick Start Guide](QUICKSTART.md)** which will walk you through the process.
+Four steps from an empty setup to your first workflow.
 
-Very detailed information on installation and configuration in all available modes is in [Installation Guide](INSTALLATION.md).
+> [!IMPORTANT]
+> **Two recommendations before you start.**
+> - **Model:** claude-sonnet-5, gpt-5.6-terra-medium, gemini-3.1-pro, grok-4.5, or newer, at **medium**
+>   reasoning effort. Avoid Auto selection and high-reasoning/Opus-class models — they burn tokens on
+>   reasoning that the workflows already structure for you.
+> - **One instruction system at a time:** Rosetta conflicts with JUXT, Superpowers, GSD, and AI-DevKit.
+>   Use whichever you know best, not several at once.
 
-## [Top Workflows](USAGE_GUIDE.md#workflows)
+### 1. Install
 
-1. `coding-flow`: AI creates features, fixes defects, and performs refactoring, everything end-to-end. AI performs discovery, design, specs and a plan, user review, then AI implements and runs separate review and validation passes (including running application). Most useful for medium to large coding tasks, and for controlled component-by-component migration/modernization work.
-2. `requirements-authoring-flow`: AI works with user and raw artifacts to define entire-application requirements. AI discovers context and existing constraints, captures intent, drafts atomic requirement units, validates them, and finalizes traceability artifacts. This is the most efficient use of coding agents. Requirements then Coding.
-3. `security-flow`: AI runs an authorized, evidence-preserving security review through mandatory specialist subagents. It gates secret-bearing files before source ingestion, bounds active testing to approved pre-production targets, independently reviews evidence, and prepares concise inputs for a later coding flow without starting remediation.
-4. `testgen-flow`, `api-aqa-flow`, `ui-aqa-flow`: AI handles QA-related work such as generating test cases and creating API or UI automation tests. AI first collects project context, requirements, and existing QA assets, clarifies gaps, and only after that generates test cases or automation tests.
-5. `code-analysis-flow`: AI creates grounded analysis documents based on the codebase. AI first loads project context, asks clarification questions, then produces either one focused analysis document or parallel module analyses plus a summary.
-6. `help-flow`: AI explains available Rosetta workflows, skills, and agents. Most useful when the user is unsure which Rosetta capability to use.
-7. `init-workspace-flow`: AI sets up a repository for AI use in both brownfield and greenfield projects. AI first analyzes the workspace, builds baseline docs, asks gap-filling questions, and verifies the result. Use it once per repository as its purpose is to build context for subsequent sessions.
+Pick one delivery mode. **Plugins are the recommended default** — files install locally, no server and no
+live connection required.
 
-If you prefer more vibe-coding, check the guardrails and useful skills below.
+| Mode | Use it when |
+| --- | --- |
+| **[Plugins](PLUGINS.md)** — recommended | You use Claude Code, Cursor, Copilot, Codex, or Antigravity. |
+| **[Hosted MCP](MCPs.md)** — evaluation only | You want zero setup, or use another MCP agent (Windsurf, Junie, OpenCode). Public demo endpoint — do not point production or sensitive repos at it. |
+| **[Self-hosted MCP](docs/mcp/DEPLOYMENT_GUIDE.md)** — optional | You specifically need centrally-managed, always-fresh instructions with nothing copied into repos. Most teams don't. |
 
-## Top Guardrails
+Then install the plugin for your IDE:
 
-1. Dangerous actions detection and handling: AI will think about blast radius and will not take unsafe actions without clear acceptance from a user.
-2. Sensitive data handling (Secrets, PCI, PHI, PII, etc): AI will not read, query, or distribute (affects itself), and it will code respecting that (affects code).
-3. Shared infrastructure understanding: AI will not behave as if the environment belongs only to it.
-4. Deviation control: AI will detect drift and will try to overcome that.
-5. Human-in-the-Loop: AI will ask for user review or approval whenever it is needed.
-6. Risk assessment: AI will review current workspace setup, if there is a chance AI can damage - it will report.
-7. Self-learning and organization: AI learns on mistakes (repo-level) and organizes its own work.
+| IDE | Install |
+| --- | --- |
+| **Claude Code** | `claude plugin marketplace add griddynamics/rosetta`<br>`claude plugin install rosetta@rosetta` |
+| **Cursor** | Plugins installed in Claude Code are picked up automatically. For a team marketplace, import `https://github.com/griddynamics/rosetta`. |
+| **GitHub Copilot** (VS Code, JetBrains) | Add `https://github.com/griddynamics/rosetta` to `chat.plugins.marketplaces`, then install `rosetta` from **Browse Marketplaces** in the Copilot chat customizations panel. |
+| **Codex, Antigravity, standalone** | Download the matching `core-*.zip` from the [latest release](https://github.com/griddynamics/rosetta/releases/latest) and extract it into your repository. |
 
-## [Top Skills](USAGE_GUIDE.md)
+**Verify the install.** Ask the agent `What can you do, Rosetta?` — a correct install answers with the
+Rosetta capability list.
 
-1. `planning`, `tech-specs`: Turn a request into a clear plan and actionable specs.
-2. `orchestration`: Coordinate an efficient team of subagents for large tasks (also request "team manager" capability for full experience).
-3. `questioning`, `hitl`: AI to work with human, not over or behind, to be more human-oriented.
-4. `research`, `reverse-engineering`: Repository grounded research and logical reverse engineering (business logic extraction).
-5. `coding`, `debugging`, `testing`: Implementation, debugging with root-cause analysis, and validation.
-6. `security`: Run authorized security reviews with secret-first safety gates, bounded testing, lossless evidence, independent review, and remediation-task preparation.
-7. `reasoning`: Requires AI to decompose and recompose the problem, boundaries, actors, roles, gaps, contradictions, and perform recursive tree-of-thoughts reasoning.
-8. `solr-*`: AI will help to build SOLR search-related artifacts.
+### 2. Initialize the repository (once)
 
-## Without Rosetta / With Rosetta
+Rosetta needs project context before it is useful. Ask the agent:
 
-| Without Rosetta                                  | With Rosetta                                  |
-| ------------------------------------------------ | --------------------------------------------- |
-| Each developer writes their own prompts and instructions | One versioned, shared source of truth   |
-| The agent guesses from a few open files          | It reads your architecture and conventions first |
-| Starts coding immediately                        | Prepare → research → plan → act → validate    |
-| Reviews its own work in the same context         | A fresh-context reviewer subagent checks it   |
-| "Generate and hope"                              | Validation with real execution evidence       |
-| Knowledge stuck in senior engineers' heads       | Captured once, reused everywhere              |
+```
+Initialize this repository using the respective Rosetta workflow
 
-### Example: "Add rate limiting to the checkout API"
-
-| Without Rosetta                                              | With Rosetta                                                       |
-| ------------------------------------------------------------ | ------------------------------------------------------------------ |
-| Jumps straight into editing the handler                      | Reads `ARCHITECTURE.md` and your existing conventions first        |
-| Misses the shared middleware pattern; duplicates the Redis client | Reuses the shared rate-limiter and Redis layer                |
-| No plan, no checkpoint                                       | Proposes a plan and asks for approval                              |
-| Ships without running tests                                  | Runs the integration tests, then a fresh-context reviewer validates |
-
-## How it works
-
-Rosetta layers your instructions at runtime — core, then organization, then project, each building on the one above — and adapts the result to whatever agent you use:
-
-```mermaid
-flowchart LR
-    A["<b>Core</b><br/>best practices & workflows"] --> B["<b>Organization</b><br/>standards, policies & guardrails"]
-    B --> C["<b>Project</b><br/>architecture, context & constraints"]
-    C --> R["<b>Rosetta Runtime</b><br/>context engineering + instruction orchestration"]
-    R --> AD["<b>Agent Adapters</b>"]
-    AD --> G["<b>Guided Execution</b><br/>workflows • guardrails • validation"]
-    G --> T["Claude Code · Cursor · Copilot · Codex · Antigravity"]
-
-    classDef rosetta fill:#1f6feb,stroke:#1b4fb8,color:#ffffff;
-    classDef yours fill:#2da44e,stroke:#1a7f37,color:#ffffff;
-    classDef third fill:#d0d7de,stroke:#8c959f,color:#1f2328;
-    class A,R,AD,G rosetta
-    class B,C yours
-    class T third
+# on a new repository, state the target in the same sentence:
+Initialize this repository using the respective Rosetta workflow, this is a new repository,
+target tech stack: ..., target architecture: ..., business context: ...
 ```
 
-**Legend:** 🟦 shipped with Rosetta (Core, Runtime, adapters, execution) · 🟩 authored by your org & project · ⬜ your existing AI tools (third-party).
+It analyzes your stack, asks gap-filling questions, and writes `docs/CONTEXT.md`,
+`ARCHITECTURE.md`, `TECHSTACK.md`, `DEPENDENCIES.md`, and `CODEMAP.md` —
+[what each one holds](INSTALLATION.md#workspace-files-created). **Your code stays yours:** Rosetta only
+serves instructions to your agent — it never receives, processes, or stores your source code. See
+[SECURITY.md](SECURITY.md).
 
-Higher layers propagate to every project automatically; teams customize without forking. Everything is authored in markdown and versioned in Git.
+### 3. Review and commit the generated files
 
-## Tech Demo: Init and Coding
+Every later session reads them, so they belong in Git like any other source of truth. Left uncommitted,
+every teammate starts from nothing again.
+
+```sh
+git add <the files the agent just generated>
+git commit -m "docs: add project context"
+```
+
+### 4. Run your first workflow
+
+Start a new chat session first — the generated context is only picked up by a fresh one.
+
+A workflow is a slash command plus plain language — `/<workflow> <what you want>`. Pick the one that
+matches what you are about to do:
+
+| You are about to... | Run |
+| --- | --- |
+| Work in code you don't know well | `/code-analysis-flow` |
+| Research a topic or an option, with references | `/research-flow` |
+| Use a private or external library the agent can't read | `/external-lib-flow` |
+| Figure out what the ticket really asks for | `/requirements-authoring-flow` |
+| Implement a feature, fix, or refactor | `/coding-flow` |
+| Add or fix tests | `/coding-flow` (unit) · `/ui-aqa-flow` · `/api-aqa-flow` · `/testgen-flow` |
+| Check a change is safe before it ships | `/security-flow` |
+| Move a whole service to something else | `/modernization-flow` |
+| Write or adapt prompts for coding agents | `/coding-agents-prompting-flow` |
+| Do a quick task — lightweight docs, build, tracking, sync | `/adhoc-flow` |
+
+Not sure? Ask `/help-flow` to walk you through the options, or let Rosetta choose with
+`/rosetta <your request>`.
+
+> [!TIP]
+> **Cut your token bill.** Add the line below to your workspace `AGENTS.md` / `CLAUDE.md`. It
+> compresses the agent's thinking, planning, and chat output while leaving final artifacts, tool calls, and
+> code untouched.
+>
+> ```
+> MUST ALWAYS think, reason, plan, chat, document in compressed/terse/unicode chars/terms/always/no hieroglyphs; Exclude final artifacts, any tool calls, all code, etc.
+> ```
+
+---
+
+## The recommended path
+
+This is how we recommend working a task through Rosetta, and the order the workflows are designed around.
+You do not have to follow all five steps for every ticket — but the further you skip ahead, the more the
+agent has to guess.
+
+Every workflow runs the same five phases internally — **Prepare → Research → Plan → Act → Validate** —
+with approval gates at the decisions that are expensive to get wrong.
+
+### Step 1 — Get the context in place
+
+The part most engineers do by reading for an hour, and most agents skip entirely. It comes in two sizes.
+
+**Once per project.** Initialization reads your code, so the agent has the technical picture. It cannot
+read your business — what the project is for, how a ticket becomes an implementation, which reference
+codebases the agent may learn from, which patterns are house style. Filling that in is what separates a
+decent result from a good one: [CONFIGURATION.md](CONFIGURATION.md) is the checklist.
+
+**Per task.** Before touching an unfamiliar area, have the agent map it first.
+
+| Workflow | Use it for |
+| --- | --- |
+| `/code-analysis-flow` | Grounded architecture and per-module analysis of what is already there — before refactoring, testing, or onboarding. Reads entry points first: APIs, webhooks, CLIs, cron. |
+| `/research-flow` | Deep, project-related research with references you can check. |
+| `/external-lib-flow` | Teach agents an external or private codebase they have no source access to. |
+
+```
+/code-analysis-flow Analyze the checkout module and document how orders move through it
+```
+
+### Step 2 — Pin down what to build
+
+| Workflow | Use it for |
+| --- | --- |
+| `/requirements-authoring-flow` | Turn a vague ticket into atomic, testable requirements (EARS) with per-unit approval, measurable NFR thresholds, and traceability back to the source. On brownfield, start by extracting the requirements the code already implements. |
+
+Requirements are the source of truth for both the code and the tests, so this is the highest-leverage
+place to spend agent time. Requirements first, then coding.
+
+```
+/requirements-authoring-flow extract high-level business and technical requirements at endpoint level
+for controllers matching <glob>, using subagents. Once done, spawn a subagent to validate and repeat
+until no issues remain.
+```
+
+### Step 3 — Implement it
+
+| Workflow | Use it for |
+| --- | --- |
+| `/coding-flow` | Features, bug fixes, refactoring, unit-test coverage. Discovery → specs and plan → **your approval** → implementation → a reviewer subagent with fresh context → a validator that runs the build and tests. This is the flow you will use most. |
+| `/adhoc-flow` | Nothing fits — compose a custom pipeline from discovery, planning, execution, and review blocks. |
+
+```
+/coding-flow Implement the sidebar on the home page, reuse the existing layout components
+/coding-flow Identify and implement a fix for the race condition in payment processing
+/coding-flow Improve unit test coverage to 85% for <module>
+```
+
+### Step 4 — Test it
+
+Unit tests are part of `/coding-flow`. The flows below are for QA work that starts from a test case or a
+specification rather than from code you just wrote.
+
+| Workflow | Use it for |
+| --- | --- |
+| `/testgen-flow` | Structured requirements and TestRail-ready test cases from Jira and Confluence. |
+| `/ui-aqa-flow` | Automated UI tests from a test case — reuses your Page Objects, never guesses selectors. |
+| `/api-aqa-flow` | Automated API tests — contracts come from OpenAPI or your routes, schemas are never invented. |
+
+Each one collects project context, requirements, and existing QA assets first, clarifies gaps with you,
+and only then writes anything.
+
+```
+/ui-aqa-flow Automate the test case for the checkout flow, ...
+/api-aqa-flow Implement automation for the API test cases in suite ...
+```
+
+### Step 5 — Check it before it ships
+
+| Workflow | Use it for |
+| --- | --- |
+| `/security-flow` | Authorized, evidence-preserving security review through mandatory specialist subagents. Gates secret-bearing files before anything enters the model's context, bounds active testing to approved pre-production targets, reviews its own evidence independently, and prepares inputs for a later coding flow. It never starts remediation itself. |
+
+### The path on real work
+
+<details>
+<summary><b>Init and coding</b></summary>
 
 https://github.com/user-attachments/assets/fc0ef06a-2f9c-49fa-bc05-68001dadd286
 
-## Tech Demo: Frontend Migration
+</details>
+
+<details>
+<summary><b>Frontend migration</b></summary>
 
 https://github.com/user-attachments/assets/8a48ce2e-a8f6-4d80-a208-4e808ab502df
 
-## Why not just use IDE rules?
+</details>
 
-IDE rules (`.cursorrules`, `CLAUDE.md`, Copilot custom instructions) are useful, but they are usually local to one tool, one repo, or one developer. Rosetta makes instructions layered, versioned, reusable, and portable across agents and IDEs — organization standards flow into every project, while project-specific context stays local and customizable. On top of that, Rosetta adds the workflows, guardrails, and approval gates that flat rules files do not provide.
+Full phase-by-phase reference for every workflow: [USAGE_GUIDE.md](USAGE_GUIDE.md#workflows).
 
-## Why use it
+---
 
-| For builders | For organizations |
-| --- | --- |
-| **Deep project context** — reads your architecture and conventions, not a few open files | **One standard** across every team, tool, model, and repo |
-| **Plain-language tasks** — a slash command, no prompt scaffolding or new syntax | **No vendor lock-in** — one instruction set across Claude Code, Cursor, Copilot, Codex; engineers keep their IDEs |
-| **Ready-made flows** — coding, testing, AQA, research, and more | **Versioned control** — review, approve, and roll back instructions in Git |
-| **Plans and approval gates** before code, not after the damage | **Knowledge captured once** — out of senior engineers' heads |
-| **Fresh-context review** and execution-backed validation | **Cross-project intelligence** _(opt-in)_ — agents see the system, not just one repo |
-| **Less babysitting** — fewer wrong turns to catch and re-prompt | **Runs inside your perimeter** — works with limited internet access; no source code leaves |
+## What's inside: the skill library
 
-See [how Rosetta fits your workflow](OVERVIEW.md#how-rosetta-fits-into-your-workflow) and [how it protects you](USAGE_GUIDE.md#how-rosetta-protects-you).
+The path above is the process. Skills are what that process is made of — a workflow decides which phases
+run and where you approve, and the skills decide how each phase is actually done. The agent loads only the
+ones the current work needs.
+
+This is the full library shipped with Rosetta, grouped by what it is for.
+
+### Core engineering
+
+- **`planning`** — execution-ready work breakdown from specs, with HITL gates.
+- **`tech-specs`** — testable target-state architecture, contracts, and interfaces.
+- **`coding`** — KISS/SOLID/DRY, multi-environment awareness, systematic validation.
+- **`debugging`** — root-cause analysis before any fix.
+- **`testing`** — isolated, idempotent tests, ≥80% coverage, external dependencies mocked only.
+- **`codemap`** — keeps the code map accurate as the project changes.
+
+### Thinking and working with you
+
+- **`reasoning`** — decompose and recompose the problem: boundaries, actors, roles, gaps, contradictions, with recursive tree-of-thoughts reasoning.
+- **`questioning`** — batched, prioritized, single-decision questions instead of shallow ones.
+- **`hitl`** — work *with* the human, not over or behind them.
+- **`orchestration`** — coordinate an efficient team of subagents on large tasks.
+- **`subagent-directives`** — the input contract every subagent must receive.
+- **`natural-writing`** — plain output, no filler.
+
+### Requirements, research, analysis
+
+- **`requirements-authoring`** — EARS units, per-unit approval, traceability.
+- **`requirements-use`** — treat approved requirements as the source of truth.
+- **`research`** — repository-grounded research with references.
+- **`reverse-engineering`** — extract business logic from existing code.
+- **`data-collection`** — gather inputs from code, tickets, and docs before work starts.
+- **`post-mortem`** — diagnose a failed run and draft an issue from it.
+
+### Security
+
+- **`security`** — authorized reviews with a filename-only secret gate before ingestion, a tool contract before reliance, lossless finding integrity with dispositions, sanitized `docs/security/<run-id>/` output, and fix-similarity task inputs for a later coding flow.
+
+### QA
+
+- **`qa-knowledge`** — QA practice and terminology for test design.
+- **`qa-structure`** — where test assets live and how they are organized.
+- **`specflow-use`** — SpecFlow conventions.
+
+### Prompt and agent engineering
+
+- **`coding-agents-prompt-authoring`** — author and adapt prompts for coding agents.
+- **`coding-agents-hooks-authoring`** — author hooks.
+- **`coding-agents-farm`** — run parallel agents on isolated Git worktrees.
+
+### Domain integrations
+
+- **`solr-query`**, **`solr-schema`**, **`solr-extending`**, **`solr-semantic-search`** — build Solr search artifacts: queries, schemas, extensions, semantic search.
+
+### Always active
+
+These load at bootstrap and apply to every request in every workflow.
+
+- **`rosetta`** — classify the request and select the right workflow.
+- **`load-project-context`** — read project context before acting.
+- **`risk-assessment`** — review the workspace setup and report where the agent could cause damage.
+- **`dangerous-actions`** — assess blast radius; no unsafe action without your explicit acceptance.
+- **`sensitive-data`** — never read, query, log, or distribute secrets, PCI, PHI, or PII, and generate code that respects that.
+- **`deviation`** — detect drift from the plan and correct it.
+- **`self-learning`** — record root causes and lessons in `agents/MEMORY.md`, and consult them during planning.
+- **`self-organization`** — reorganize working files and clean up as work spans sessions.
+- **`large-workspace-handling`** — keep context lean on big repositories.
+
+Two guardrails come from the workflows rather than a single skill: **shared infrastructure** — the agent
+does not act as if the environment belongs only to it — and **human-in-the-loop approval gates** at the
+points where a wrong turn is expensive.
+
+---
+
+## Go deeper
+
+Everything above is the short version. Rosetta is documented in full — each document answers one question
+for one reader.
 
 <details>
-<summary><b>What Rosetta Adds to AI Coding Agents</b></summary>
+<summary><b>All documentation, and what each one is for</b></summary>
 
-## What Rosetta Adds to AI Coding Agents
-
-AI coding agents can read code, generate code, and run commands. But that is only part of what makes software engineering reliable — they are missing much of the discipline a professional engineer brings. Each point below addresses a real, repeatedly observed failure mode, not a theoretical concern.
-
-**Why these problems exist.** LLMs generate tokens sequentially from their current context. If the model passes a point where it should weigh a specific concern — security, an existing convention, an assumption it made three steps ago — it does not reliably circle back. This is not merely a temporary limitation; it is rooted in how autoregressive generation works. A coding agent's system prompt only ensures the model calls the right tools in the right format — it can't carry your project's guardrails, workflows, or quality standards, because it has no idea what you are building: a PoC, a pet project, or enterprise software with regulated data. Rosetta provides that guidance, and tells the agent how and when to load project-specific context so the model acts on it instead of skipping it.
-
-**Why this list is long.** Ask any coding agent to design a full feature workflow and it will give you two or three steps — "write code," "run tests," maybe "make a plan." It rarely thinks to load context first, classify the request, assess risk, separate specs from plans, get approval before implementing, review with fresh eyes, or record lessons learned. Every point below is something agents consistently skip.
-
-1. **Deep project context instead of blind guessing.** Without structured context, coding agents read a few line ranges around the problem and guess the rest. They do not know the architecture, the business rules, the conventions, or the dependencies. They assume. The result is code that appears correct on the surface but violates constraints the agent never knew existed. Imagine hiring a developer from outside your organization, handing them ten lines of code with zero documentation, and asking them to fix the system properly. That is how every coding agent works by default. Planning mode partially addresses this — at much higher token cost — and the agent still has to guess the purpose and target because it has no business context.
-
-   Rosetta instructions reverse this. During repository initialization, the agent — guided by Rosetta — reverse-engineers the project's architecture, tech stack, business context, coding patterns, and dependencies into structured workspace files. The agent reads these before every task. Context loads progressively — bootstrap rules first, then project context, then only the skills and workflow the current task needs. Context stays lean. Reasoning stays sharp. Token efficiency is high because the agent is not loading irrelevant material or re-discovering the project from scratch on every request.
-
-2. **Guardrails and enforced safe behavior.** Coding agents rarely question their own actions. They do not question their understanding. They do not think about whether something is right or wrong. They just do it. They do not reliably assess what they have access to — databases, cloud services, S3 buckets. They do not handle sensitive data with care. They can copy personal data, credentials, and regulated information into logs, messages, and outputs without a second thought. They rarely evaluate whether an action is dangerous or irreversible.
-
-   Rosetta instructions require the agent to: critically review every user request before execution, assess risk of the current environment and available tools, detect and block dangerous and potentially dangerous actions, mask sensitive data and never log or share it, follow transparency rules and behavior boundaries, respect orchestration contracts between agents, and handle deviations when execution diverges from intent. These guardrails load at bootstrap and are treated as required execution constraints — not suggestions the agent can quietly skip.
-
-3. **Human-in-the-loop at decision points, not after the damage.** AI coding agents fully and unconditionally trust user input — even when it is factually incorrect. At the same time, they almost never ask deep questions. When they do ask, the questions are shallow and few. This is the reverse of how collaboration should work. Users are biased, forget to mention critical requirements, provide information without much thought, and rely on common project knowledge that the agent does not have. Once implementation starts, the agent never stops — even when real conflicts or blockers exist in the code. It gets carried away, burns tokens, hallucinates to fill gaps, and delivers the wrong result. There are no checkpoints. There is no pause to verify understanding.
-
-   Rosetta workflows define approval gates at critical decision points: after specs, after plans, before risky actions, before test work continues. The agent batches questions (5–10 per round), prioritizes by impact, and targets a single decision per question. When something is unclear, the agent — instructed by Rosetta — stops and asks instead of guessing. It is almost always cheaper to stop and ask one question than to redo hours of wrong implementation.
-
-4. **Source of truth and request classification.** AI does not establish or maintain a source of truth. It does the opposite — it mixes everything together, confuses its own outputs with ground truth, leaks abstractions, and blends responsibilities. It does not take time to think about systems, actors, relationships, and actions at a foundational level. On brownfield projects this is catastrophic: the agent cannot tell if the existing code is wrong, if the test is wrong, or if the user's request contradicts the actual system behavior. It just tries to make things fit.
-
-   Rosetta instructions require the agent to handle requirements with traceability. Before any work begins, the agent — following Rosetta's bootstrap — auto-classifies every request into one of thirteen workflow types: coding, security review, testing, research, requirements, initialization, modernization, code analysis, QA automation, and others. Each type loads entirely different instructions, subagents, skills, and approval gates. A "fix this bug" request follows a completely different path than "analyze this architecture" or "write requirements for checkout." Classification eliminates the guessing that agents do when they receive an unstructured prompt and try to figure out on the fly what kind of work this is.
-
-5. **Analysis before execution.** The majority of AI coding agents are optimized to start implementation as fast as possible. This is the opposite of quality. This is the opposite of enterprise software development, where the cost of an error is extremely high. A bug caught during development costs minutes. The same bug caught after release costs the combined time of the engineer who debugs it, the lead who triages it, QA who verifies the fix, the manager who tracks it, and every person involved in the review, release, and retest cycle. Even a small bug amplifies the total cost by an order of magnitude once it escapes local development.
-
-   Rosetta workflows define explicit preparation, research, planning, and approval phases before any code is written. They instruct the agent to apply SMART, MECE, DRY, and SOLID principles during planning. They separate plans from specs — the plan says what to do and in what order; the spec says what the target state looks like and why. The process scales by task size: small tasks get lightweight planning, medium tasks get full planning with subagents, large tasks get extensive planning with heavy delegation. It is much cheaper to burn 2x tokens and spend a few extra minutes on analysis than to pay for the cascade of rework a missed defect triggers.
-
-6. **Review by separate agent with fresh context.** AI makes mistakes. Sometimes it makes a lot of mistakes. The majority of those mistakes are trivially caught by review — but only if the reviewer has not been part of the implementation. A model reviewing its own work in the same context window rubber-stamps its own decisions. It cannot see its own blind spots. The accumulated assumptions, false starts, and iterative workarounds all feel correct because the model generated them.
-
-   Rosetta workflows instruct the agent to delegate review to a separate subagent with a fresh context window. The reviewer has never seen the debugging session, the failed attempts, or the rationalizations. It inspects the implementation against the original specs and intent. This separation is what makes review actually catch problems instead of confirming the implementer's biases.
-
-7. **Validation with real execution evidence.** Without validation requirements, AI changes multiple files, runs nothing, and declares success. Then it spends three times the original effort trying to fix cascading failures it could have caught immediately. It builds dependent artifacts on top of broken foundations.
-
-   Rosetta instructions require the agent to build, run, and execute real tests at each foundation level before creating dependent work. The validator subagent runs in a clean context with actual execution evidence. This requirement — prove it works before moving on — is simple, and it transforms AI coding from "generate and hope" into "generate, verify, continue."
-
-8. **Workflows designed from observed failure modes.** Ask any AI to create a complete coding workflow from scratch. It will produce something superficial — a few obvious steps that cover maybe 20% of what actually matters. It will focus on one or two concerns and completely forget about everything else. This is not a failure of intelligence. It is a failure of experience. The model has never watched itself fail across hundreds of real tasks and identified the patterns.
-
-   Rosetta contains workflows created by humans who used AI extensively, observed every category of failure, identified root causes, and encoded solutions as structured processes. These workflows cover thirteen SDLC activities. Each defines phases, subagents, skills, HITL gates, and artifact expectations. The agent with Rosetta workflows does not become smarter — it stops skipping the steps that matter. It discovers knowledge, conventions, and dependencies it would otherwise miss entirely. It installs the package that another project in the same solution already uses. It distinguishes planning from specs. It performs reviews and checkpoints at the moments where they catch the most errors.
-
-9. **Self-learning and self-organization.** AI coding agents are only now getting basic memory features, but self-learning is not just memory. Self-organization is equally important. AI is fully capable of reorganizing files, restructuring its approach, cleaning up stale information, and adapting based on past mistakes — but it does not do any of this because it was never instructed to. It treats reorganization as deviation from the task. It treats cleanup as out of scope. It treats learning as someone else's job.
-
-   Rosetta instructs the agent to maintain `agents/MEMORY.md` — root causes of errors, actions tried, lessons learned. The agent consults this during planning and records new lessons after failures. It is instructed to reorganize working files when context grows large, and to proactively clean up when work spans many files or sessions.
-
-10. **State persistence turns crashes into checkpoints.** AI coding sessions are fragile. Context loss, timeout, or a crash means starting over. For anything beyond a small fix, this wastes significant time and money. The agent has no memory of what it already completed.
-
-    Rosetta instructs the agent to write execution state — plans, specs, phase progress, flow status — to disk files. If a session fails, the next session resumes from the last recorded checkpoint. Medium and large tasks become resumable multi-session workflows instead of all-or-nothing gambles.
-
-11. **Security by design — no source code leaves your perimeter.** Instruction delivery is deterministic: the agent requests content by tag, not by sending source code for analysis. There is no semantic search over your codebase. No code transfers to Rosetta servers. Write mode is disabled by default and requires explicit deployment configuration to enable. Schema-strict input validation rejects any unexpected payloads. The architecture works with limited internet access and runs entirely inside your organization's perimeter.
-
-12. **One system, every AI tool, customizable at every level.** Rosetta works across Cursor, Claude Code, VS Code, JetBrains, Windsurf, Codex, Antigravity, OpenCode, and any MCP-compatible IDE. Instructions are written once and adapt to each environment. Organizations that switch between AI tools or use multiple tools simultaneously keep their entire instruction investment intact. No vendor lock-in. No per-tool maintenance.
-
-    Three layers merge at runtime: core (universal best practices shipped with Rosetta), organization (your company's conventions and policies), and project (local constraints and context). Teams customize without forking. Improvements to higher layers propagate to every project automatically. Instructions are versioned in place: R3 is the current release and evolves through incremental, reviewed updates without breaking agents on it. Rollback is immediate. AI behavior is authored in markdown, version-controlled in Git, reviewed in pull requests, and approved before deployment — the same engineering rigor applied to the instructions that control your AI agents.
+| Document | What it is for |
+| --- | --- |
+| [PLUGINS.md](PLUGINS.md) | Installing the plugin, per IDE, with screenshots. |
+| [MCPs.md](MCPs.md) | Installing over MCP — optional, for agents with no plugin path. |
+| [INSTALLATION.md](INSTALLATION.md) | Every install mode and transport, and every file initialization creates. |
+| [CONFIGURATION.md](CONFIGURATION.md) | Setting up the workspace after install. What makes output good rather than passable. |
+| [USAGE_GUIDE.md](USAGE_GUIDE.md) | Every workflow phase by phase, plus the full skill and subagent inventory. |
+| [FAQ.md](FAQ.md) | Fast answers to recurring questions. |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Recovering when setup or a run breaks. |
+| [CHANGELOG.md](CHANGELOG.md) | What changed between releases. |
+| [OVERVIEW.md](OVERVIEW.md) | The mental model, and what Rosetta deliberately does not do. |
+| [ELEVATOR_PITCH.md](ELEVATOR_PITCH.md) | The 30-second version, for explaining it to someone else. |
+| [docs/CONTEXT.md](docs/CONTEXT.md) | Why Rosetta exists and who it serves. No technical detail. |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System structure, and how instructions reach your agent. |
+| [SECURITY.md](SECURITY.md) | The security posture, the data boundary, and how to report a vulnerability. |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Making a correct contribution. Start here. |
+| [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) | Navigating and building the codebase. |
+| [REVIEW.md](REVIEW.md) | The standards a change is evaluated against. |
+| [docs/MCP-ARCHITECTURE.md](docs/MCP-ARCHITECTURE.md) | `rosetta-mcp` server internals. Only if you touch the server. |
+| [docs/mcp/DEPLOYMENT_GUIDE.md](docs/mcp/DEPLOYMENT_GUIDE.md) | Self-hosting MCP and RAGFlow. Rare — most organizations never need it. |
+| [llms-full.txt](https://griddynamics.github.io/rosetta/llms-full.txt) | The whole project in one machine-readable file, for AI agents. |
 
 </details>
 
-## Contributing
-
-Use Rosetta plugins to develop Rosetta.
-
-Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and expectations.
-
-## Documentation
-
-| I want to...                                         | Read                                       |
-| ---------------------------------------------------- | ------------------------------------------ |
-| Set up Rosetta                                       | [QUICKSTART.md](QUICKSTART.md)             |
-| Install as a plugin (recommended)                    | [PLUGINS.md](PLUGINS.md)                   |
-| Connect over MCP (optional, secondary)               | [MCPs.md](MCPs.md)                         |
-| Configure your coding-agent workspace                | [CONFIGURATION.md](CONFIGURATION.md)       |
-| Understand what Rosetta is and how to think about it | [OVERVIEW.md](OVERVIEW.md)                 |
-| Learn how to use Rosetta flows                       | [USAGE_GUIDE.md](USAGE_GUIDE.md)           |
-| Understand the system architecture                   | [ARCHITECTURE.md](docs/ARCHITECTURE.md)    |
-| Navigate the codebase                                | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)   |
-| Contribute a change                                  | [CONTRIBUTING.md](CONTRIBUTING.md)         |
-| Debug a problem                                      | [TROUBLESHOOTING.md](TROUBLESHOOTING.md)   |
-| See release history                                  | [CHANGELOG.md](CHANGELOG.md)               |
-| Security Policy                                      | [SECURITY.md](SECURITY.md)                 |
-| Self-host MCP for my organization (optional, rare)   | [DEPLOYMENT_GUIDE.md](docs/mcp/DEPLOYMENT_GUIDE.md) |
+---
 
 ## Community
 
-- [Website](https://griddynamics.github.io/rosetta/)
-- [rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com)
+Questions, ideas, and everything else — [GitHub Discussions](https://github.com/griddynamics/rosetta/discussions).
 
-## Notice
+## Commercial services
 
-> [!WARNING]
-> Rosetta is intended for legitimate software engineering workflows.
-> Users are responsible for ensuring their use complies with applicable laws, regulations, and contractual obligations.
-
-## For AI Only
-
-Full information: https://griddynamics.github.io/rosetta/llms-full.txt
+Rosetta is Apache-2.0 and free to use, on your own, forever. If you are rolling it out across an
+enterprise and would benefit from commercial support, additional tooling, or help with adoption, write to
+[rosetta-support@griddynamics.com](mailto:rosetta-support@griddynamics.com).
 
 ## License
 
-See [LICENSE](LICENSE) for details.
+Apache-2.0 — see [LICENSE](LICENSE).
