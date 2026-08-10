@@ -374,7 +374,7 @@ Cursor and Copilot are the only plugins that need two distinct templates because
 ## Pipelines
 
 We use `.github/workflows` pipelines to build and release: MCP PyPi package, Docker Image, Publish Instructions, Publish website.
-Triggers on push to `main` or manual dispatch.
+Triggers on push to `main` or manual dispatch. Use actionlint.
 
 Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages.
 
