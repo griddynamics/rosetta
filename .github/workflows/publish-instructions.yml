@@ -42,6 +42,10 @@ on:
 permissions:
   contents: write  # Required for creating releases
 
+concurrency:
+  group: publish-instructions-main
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
