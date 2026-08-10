@@ -1,9 +1,15 @@
-// Implements FR-SPECS-0025 (migrate subcommand). Parses legacy `<req>` XML-in-markdown sources
-// via req-parser.ts, maps each block to a spec, registers new areas, and appends via
-// applyBatchWrite (allowCreate — the destination may not exist yet). Report-don't-drop: a
-// whole-source failure (missing file, zero parseable blocks) excludes just that source (recorded
-// in `skipped`) rather than aborting every other source in the same call; a per-<req> issue
-// (including a missing id, which excludes just that one block) is recorded in `warnings`.
+// Implements FR-SPECS-0025 (migrate subcommand). Reads requirement units held as markup via
+// req-parser.ts, maps each unit to a spec, registers areas, and appends via applyBatchWrite
+// (allowCreate — the destination may not exist yet).
+//
+// CANONICAL FORM ONLY. A unit that is not in the canonical shape is skipped with a stated reason
+// and is never reconstructed by inference; `migrated` counts the canonical units alone. Skips are
+// recorded per unit, not per file: two skipped units from one source produce two entries sharing
+// that source, and each entry names its unit inside the reason. A whole-source failure (missing
+// file, zero locatable units) is recorded the same way, against the source itself.
+//
+// Report-don't-drop: one failing source never aborts the others in the same call, and every parse
+// issue is reported rather than short-circuiting on the first.
 //
 // Resolution (ambiguity — FR-SPECS-0025's own acceptance criteria phrase a missing/unparseable
 // source as a bare top-level `{error: "source_not_found"}` / `{error: "migrate_parse_error"}`,
@@ -23,24 +29,28 @@ import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
 import { logger } from "../../shared/logger.js";
 import { type BatchBuild, applyBatchWrite } from "./write.js";
-import { autoRegisterAreas, type Spec } from "./core.js";
+import { autoRegisterAreas, ensureReservedAreas, type Spec } from "./core.js";
 import { describeError, ERR_MIGRATE_PARSE_ERROR, ERR_SOURCE_NOT_FOUND } from "./errors.js";
 import type { SpecFinding, SpecMigrateResult, SpecSkipped } from "./output.js";
 import { mapToSpec, scanReqBlocks } from "./req-parser.js";
 
-/** Fills every Spec field a mapped `<req>` block may have left unset. migrate imports historical
- * state as-is (req-parser's mapToSpec does not strip guarded fields — see its own header
- * comment), so this only supplies safe defaults for fields the source genuinely omitted. */
+/** Fills every Spec field a mapped unit may have left unset. migrate imports historical state
+ * as-is (req-parser's mapToSpec does not strip guarded fields — see its own header comment), so
+ * this only supplies safe defaults for fields the source genuinely omitted. An empty
+ * subsystem/component means the source did not say, never that none applies. */
 function toFullSpec(partial: Partial<Spec>): Spec {
   return {
     id: partial.id!,
     type: partial.type ?? "FR",
     level: partial.level || "System",
+    subsystem: partial.subsystem ?? "",
+    component: partial.component ?? "",
     ...(partial.ticket_id ? { ticket_id: partial.ticket_id } : {}),
     ...(partial.classification ? { classification: partial.classification } : {}),
     title: partial.title ?? "",
     statement: partial.statement ?? "",
     rationale: partial.rationale ?? "",
+    evidence: partial.evidence ?? [],
     source: partial.source ?? "User",
     priority: partial.priority ?? "Must",
     status: partial.status ?? "Draft",
@@ -91,17 +101,24 @@ export async function cmdMigrate(sources: string[], specsFile: string, actor?: s
       }
 
       for (const block of blocks) {
-        const { spec, warnings: blockWarnings } = mapToSpec(block);
+        const { spec, warnings: blockWarnings, skip } = mapToSpec(block);
         warnings.push(...blockWarnings);
-        if (!spec.id) continue; // missing id already reported (error-severity finding above); report-don't-drop
+        if (skip) {
+          // FR-SPECS-0025 — one entry per skipped unit, sharing this source; the unit is named
+          // inside the reason. Nothing about the unit is guessed at.
+          skipped.push({ source, reason: skip });
+          continue;
+        }
         pending.push(toFullSpec(spec));
       }
     }
 
-    // FR-SPECS-0025 acceptance: "Given: a source path that does not exist. Then: {error:
-    // source_not_found}" — when nothing was parseable BECAUSE every source failed at the file
-    // level, this is a hard top-level error, not a silent ok(migrated:0). A partial batch (some
-    // sources ok) still falls through to the write below and stays report-don't-drop.
+    // FR-SPECS-0025 acceptance: if a source path does not exist, or a source cannot be parsed at
+    // the file level, the call is rejected with that code — so when nothing was parseable BECAUSE
+    // every source failed at the file level, this is a hard top-level error, not a silent
+    // ok(migrated:0). A batch where only SOME sources failed still falls through to the write
+    // below and stays report-don't-drop. A source whose units were all skipped as non-canonical
+    // is not a file-level failure and does not reach here.
     if (pending.length === 0 && firstFailureCode) {
       logger.info({ sources: (sources ?? []).length, skipped: skipped.length }, "specs migrate: all sources failed");
       return err(firstFailureCode);
@@ -113,6 +130,7 @@ export async function cmdMigrate(sources: string[], specsFile: string, actor?: s
     }
 
     const build: BatchBuild<SpecMigrateResult> = (doc) => {
+      ensureReservedAreas(doc); // FR-SPECS-0004 — an existing destination is never re-created, so the pre-registered codes are backfilled here
       autoRegisterAreas(doc, pending.map((s) => s.id)); // FR-SPECS-0025 — areas encountered in ids are registered
       doc.specs = [...(doc.specs ?? []), ...pending];
       // affected:[] — migrate imports historical changed/changed_by as-is, never auto-stamped.

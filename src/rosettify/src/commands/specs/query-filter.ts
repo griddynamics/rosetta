@@ -38,9 +38,19 @@ export const FILTER_KEYS = [
   "related",
   "title",
   "statement",
+  // FR-SPECS-0012 — the requirement-unit fields added with the criterion model.
+  "level",
+  "subsystem",
+  "component",
+  "ears",
+  "evidence",
 ] as const;
 export type FilterKey = (typeof FILTER_KEYS)[number];
 const KNOWN_KEYS: ReadonlySet<string> = new Set<string>([...FILTER_KEYS, "include_removed"]);
+
+/** FR-SPECS-0012 — the only two values `evidence:` accepts. Compared case-insensitively, as
+ * `include_removed:true` already is. */
+const EVIDENCE_VALUES: ReadonlySet<string> = new Set(["present", "absent"]);
 
 export type FilterTerm =
   | { kind: "field"; key: FilterKey; values: string[]; negate: boolean; quoted: boolean }
@@ -216,6 +226,14 @@ export function parseQuery(q: string | undefined): Filter | { error: string } {
       return { error: ERR_INVALID_QUERY }; // "any other value -> invalid_query"
     }
 
+    // FR-SPECS-0012 — `evidence` takes a closed two-value vocabulary, so a value outside it is a
+    // malformed value on a KNOWN key: invalid_query, never invalid_filter. Checked here rather
+    // than in matchFieldValue, which can only answer true/false. Negation stays legal.
+    if (parsed.kind === "field" && parsed.key === "evidence") {
+      const legal = parsed.values.every((v) => EVIDENCE_VALUES.has(v.toLowerCase()));
+      if (!legal) return { error: ERR_INVALID_QUERY };
+    }
+
     if (parsed.kind === "field") {
       terms.push({ kind: "field", key: parsed.key as FilterKey, values: parsed.values, negate: parsed.negate, quoted: parsed.quoted });
     } else {
@@ -268,6 +286,19 @@ function matchFieldValue(spec: Spec, key: FilterKey, value: string, quoted: bool
       return matchesSubstring(spec.title ?? "", value, quoted);
     case "statement":
       return matchesSubstring(spec.statement ?? "", value, quoted);
+    case "level":
+      return matchesExact(spec.level, value, quoted);
+    case "subsystem":
+      return matchesExact(spec.subsystem ?? "", value, quoted);
+    case "component":
+      return matchesExact(spec.component ?? "", value, quoted);
+    // FR-SPECS-0012 — `ears` matches the unit when ANY of its criteria declares that pattern:
+    // the field lives on the criterion, and a filter over units can only ask whether one exists.
+    case "ears":
+      return (spec.acceptance ?? []).some((c) => matchesExact(c?.ears ?? "", value, quoted));
+    // Value vocabulary is enforced at parse time (parseQuery), so only present/absent reach here.
+    case "evidence":
+      return value.toLowerCase() === "present" ? (spec.evidence ?? []).length > 0 : (spec.evidence ?? []).length === 0;
   }
 }
 
