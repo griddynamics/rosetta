@@ -64,7 +64,8 @@ export async function cmdInfo(specsFile: string): Promise<RunEnvelope<SpecInfoRe
     if (!doc) return err(ERR_SPECS_NOT_FOUND);
 
     return ok({
-      component: doc.component,
+      system: doc.system, // FR-SPECS-0002 — a document holds one system's requirements
+
       description: doc.description,
       areas: computeAreas(doc),
       totals: computeTotals(doc),

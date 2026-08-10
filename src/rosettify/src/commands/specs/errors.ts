@@ -23,6 +23,8 @@ export const ERR_INVALID_ID_FORMAT = "invalid_id_format";
 export const ERR_UNKNOWN_AREA = "unknown_area";
 /** FR-SPECS-0003 — a spec's `type` is not one of FR, NFR, INT, DATA. */
 export const ERR_INVALID_TYPE = "invalid_type";
+/** FR-SPECS-0001 — a spec's `level` is not one of System, Subsystem, Component. */
+export const ERR_INVALID_LEVEL = "invalid_level";
 /** FR-SPECS-0001 — a spec's `source` is not one of User, Inferred, Sources, Documentation. */
 export const ERR_INVALID_SOURCE = "invalid_source";
 /** FR-SPECS-0001 — a spec's `priority` is not one of Must, Should, Could, Wont. */
@@ -33,14 +35,20 @@ export const ERR_INVALID_VERIFICATION = "invalid_verification";
 export const ERR_INVALID_SPEC_FIELD = "invalid_spec_field";
 /** FR-SPECS-0001 — a required field is absent or empty. */
 export const ERR_MISSING_REQUIRED_FIELD = "missing_required_field";
+/** FR-SPECS-0001 — an acceptance criterion's `ears` is not one of the five patterns. */
+export const ERR_INVALID_EARS = "invalid_ears";
+/** FR-SPECS-0001 — two acceptance criteria within one spec unit carry the same id. */
+export const ERR_DUPLICATE_CRITERION_ID = "duplicate_criterion_id";
 /** FR-SPECS-0005 — a depends_on/related entry references an id absent from the document. */
 export const ERR_UNKNOWN_DEPENDENCY = "unknown_dependency";
 /** FR-SPECS-0005 — a depends_on reference would create a cycle (or a spec depends on itself). */
 export const ERR_DEPENDENCY_CYCLE = "dependency_cycle";
 /** FR-SPECS-0007 — a configured size limit was exceeded. */
 export const ERR_SIZE_LIMIT_EXCEEDED = "size_limit_exceeded";
-/** FR-SPECS-0004 — a patch attempted to change a spec's id. */
+/** FR-SPECS-0004, FR-SPECS-0009 — a patch attempted to change a spec's id. */
 export const ERR_IMMUTABLE_ID = "immutable_id";
+/** FR-SPECS-0009 — a spec's `type` disagrees with the prefix of its own id (add and update alike). */
+export const ERR_ID_TYPE_MISMATCH = "id_type_mismatch";
 /** FR-SPECS-0013 — a target spec id does not exist in the document. */
 export const ERR_TARGET_NOT_FOUND = "target_not_found";
 /** FR-SPECS-0015 — implementation value is not one of the allowed enum values. */
@@ -59,7 +67,7 @@ export const ERR_REFERENCED_BY_OTHERS = "referenced_by_others";
 export const ERR_INVALID_FILTER = "invalid_filter";
 /** FR-SPECS-0012 — query string is malformed. */
 export const ERR_INVALID_QUERY = "invalid_query";
-/** FR-SPECS-0023 — requested render format is not markdown|text. */
+/** FR-SPECS-0023 — requested render format is not markdown|text|xml. */
 export const ERR_INVALID_FORMAT = "invalid_format";
 /** FR-SPECS-0025 — a migrate source path does not exist. */
 export const ERR_SOURCE_NOT_FOUND = "source_not_found";
@@ -89,15 +97,19 @@ export const TEMPLATES: Readonly<Record<string, string>> = {
   [ERR_INVALID_ID_FORMAT]: "A spec id does not match the required <PREFIX>-<AREA>-<NNNN> format.",
   [ERR_UNKNOWN_AREA]: "A spec's area is not registered in this document.",
   [ERR_INVALID_TYPE]: "A spec's type is not one of FR, NFR, INT, DATA.",
+  [ERR_INVALID_LEVEL]: "A spec's level is not one of System, Subsystem, Component.",
   [ERR_INVALID_SOURCE]: "A spec's source is not one of User, Inferred, Sources, Documentation.",
   [ERR_INVALID_PRIORITY]: "A spec's priority is not one of Must, Should, Could, Wont.",
   [ERR_INVALID_VERIFICATION]: "A spec's verification is not one of Test, Analysis, Inspection, Demo.",
   [ERR_INVALID_SPEC_FIELD]: "A spec item carries a field that is not part of the spec schema.",
   [ERR_MISSING_REQUIRED_FIELD]: "A spec item is missing a required field.",
+  [ERR_INVALID_EARS]: "An acceptance criterion declares a pattern that is not one of ubiquitous, event, state, optional, unwanted.",
+  [ERR_DUPLICATE_CRITERION_ID]: "Two acceptance criteria within one spec unit carry the same id.",
   [ERR_UNKNOWN_DEPENDENCY]: "A depends_on or related reference points to an id that does not exist in this document.",
   [ERR_DEPENDENCY_CYCLE]: "A depends_on reference would create a cycle.",
   [ERR_SIZE_LIMIT_EXCEEDED]: "A configured size limit was exceeded.",
   [ERR_IMMUTABLE_ID]: "A patch attempted to change a spec's id.",
+  [ERR_ID_TYPE_MISMATCH]: "A spec's type does not agree with the prefix of its own id.",
   [ERR_TARGET_NOT_FOUND]: "A target spec id does not exist in this document.",
   [ERR_INVALID_IMPLEMENTATION]: "The implementation value is not one of the allowed values.",
   [ERR_MISSING_IMPLEMENTATION]: "No implementation value was supplied.",

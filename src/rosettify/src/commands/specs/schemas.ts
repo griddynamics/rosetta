@@ -7,20 +7,43 @@
 // $ref convention: { $ref: "<DictKey>" } — string key into specsSchemasDict.
 // Array of named shape: { type:"array", items:{ $ref:"<DictKey>" } }.
 
-import { SOURCES, MOSCOW, SPEC_TYPES, STATUSES, IMPLS, VERIFS } from "./core.js";
+import { SOURCES, MOSCOW, SPEC_TYPES, STATUSES, IMPLS, VERIFS, LEVELS, EARS_PATTERNS } from "./core.js";
+import { SPEC_FIELD_GUIDE } from "./field-guide.js";
+
+// ---------------------------------------------------------------------------
+// Field descriptions (FR-SPECS-0008 AC3) — every Spec and AcceptanceCriterion property below takes
+// its `description` from SPEC_FIELD_GUIDE by lookup, never by a second hand-written copy, so the
+// schema dictionary and the help field_guide section are the same strings by construction.
+// A field with no registered guidance throws at module load rather than silently emitting nothing,
+// which is what keeps the two surfaces incapable of drifting apart.
+// ---------------------------------------------------------------------------
+
+const GUIDANCE_BY_FIELD: ReadonlyMap<string, string> = new Map(SPEC_FIELD_GUIDE.map((g) => [g.field, g.guidance]));
+
+function guidance(field: string): string {
+  const text = GUIDANCE_BY_FIELD.get(field);
+  if (text === undefined) throw new Error(`No authoring guidance is registered for the field: ${field}`);
+  return text;
+}
 
 // ---------------------------------------------------------------------------
 // Shared named schemas — every nested/array-items shape is its own dict entry (FR-HELP-0002).
 // ---------------------------------------------------------------------------
 
-// AcceptanceCriterion — one Given/When/Then criterion (core.ts)
+// AcceptanceCriterion — one EARS criterion (core.ts). Criterion guidance is registered under the
+// path the caller addresses it by, so its `id` does not collide with the spec unit's own `id`.
 const acceptanceCriterionSchema = {
   type: "object" as const,
   description: "One acceptance criterion",
   properties: {
-    given: { type: "string" as const },
-    when: { type: "string" as const },
-    then: { type: "string" as const },
+    id: { type: "string" as const, description: guidance("acceptance.id") },
+    ears: { type: "string" as const, enum: EARS_PATTERNS as unknown as string[], description: guidance("acceptance.ears") },
+    when: { type: "string" as const, description: guidance("acceptance.when") },
+    while: { type: "string" as const, description: guidance("acceptance.while") },
+    where: { type: "string" as const, description: guidance("acceptance.where") },
+    if: { type: "string" as const, description: guidance("acceptance.if") },
+    system: { type: "string" as const, description: guidance("acceptance.system") },
+    shall: { type: "string" as const, description: guidance("acceptance.shall") },
   },
 };
 
@@ -29,27 +52,43 @@ const specSchema = {
   type: "object" as const,
   description: "A full spec unit",
   properties: {
-    id: { type: "string" as const, description: "<PREFIX>-<AREA>-<NNNN>, e.g. FR-CHK-0001" },
-    type: { type: "string" as const, enum: SPEC_TYPES as unknown as string[] },
-    level: { type: "string" as const },
-    ticket_id: { type: "string" as const },
-    classification: { type: "string" as const },
-    title: { type: "string" as const },
-    statement: { type: "string" as const },
-    rationale: { type: "string" as const },
-    source: { type: "string" as const, enum: SOURCES as unknown as string[] },
-    priority: { type: "string" as const, enum: MOSCOW as unknown as string[] },
-    status: { type: "string" as const, enum: STATUSES as unknown as string[], description: "guarded — settable only via lifecycle ops" },
-    approved_by: { type: "string" as const, description: "guarded" },
-    changed: { type: "string" as const, description: "guarded — UTC timestamp of the last write that touched this spec" },
-    changed_by: { type: "string" as const, description: "guarded — resolved actor" },
-    verification: { type: "string" as const, enum: VERIFS as unknown as string[] },
-    acceptance: { type: "array" as const, items: { $ref: "AcceptanceCriterion" as const } },
-    depends_on: { type: "array" as const, items: { type: "string" as const }, description: "directional, must stay acyclic" },
-    related: { type: "array" as const, items: { type: "string" as const }, description: "associative, may cycle" },
-    implementation: { type: "string" as const, enum: IMPLS as unknown as string[], description: "guarded — settable only via implemented" },
-    implementation_notes: { type: "string" as const },
-    notes: { type: "string" as const },
+    id: { type: "string" as const, description: guidance("id") },
+    type: { type: "string" as const, enum: SPEC_TYPES as unknown as string[], description: guidance("type") },
+    level: { type: "string" as const, enum: LEVELS as unknown as string[], description: guidance("level") },
+    subsystem: { type: "string" as const, description: guidance("subsystem") },
+    component: { type: "string" as const, description: guidance("component") },
+    ticket_id: { type: "string" as const, description: guidance("ticket_id") },
+    classification: { type: "string" as const, description: guidance("classification") },
+    title: { type: "string" as const, description: guidance("title") },
+    statement: { type: "string" as const, description: guidance("statement") },
+    rationale: { type: "string" as const, description: guidance("rationale") },
+    evidence: { type: "array" as const, items: { type: "string" as const }, description: guidance("evidence") },
+    source: { type: "string" as const, enum: SOURCES as unknown as string[], description: guidance("source") },
+    priority: { type: "string" as const, enum: MOSCOW as unknown as string[], description: guidance("priority") },
+    status: { type: "string" as const, enum: STATUSES as unknown as string[], description: guidance("status") },
+    approved_by: { type: "string" as const, description: guidance("approved_by") },
+    changed: { type: "string" as const, description: guidance("changed") },
+    changed_by: { type: "string" as const, description: guidance("changed_by") },
+    verification: { type: "string" as const, enum: VERIFS as unknown as string[], description: guidance("verification") },
+    acceptance: { type: "array" as const, items: { $ref: "AcceptanceCriterion" as const }, description: guidance("acceptance") },
+    depends_on: { type: "array" as const, items: { type: "string" as const }, description: guidance("depends_on") },
+    related: { type: "array" as const, items: { type: "string" as const }, description: guidance("related") },
+    implementation: { type: "string" as const, enum: IMPLS as unknown as string[], description: guidance("implementation") },
+    implementation_notes: { type: "string" as const, description: guidance("implementation_notes") },
+    notes: { type: "string" as const, description: guidance("notes") },
+  },
+};
+
+// SpecFieldGuide — one field's authoring guidance (output.ts), emitted as the help field_guide section
+const specFieldGuideSchema = {
+  type: "object" as const,
+  description: "Authoring guidance for one field of the spec unit or of an acceptance criterion",
+  properties: {
+    field: { type: "string" as const },
+    type: { type: "string" as const },
+    required: { type: "boolean" as const },
+    default: { type: "string" as const },
+    guidance: { type: "string" as const },
   },
 };
 
@@ -79,9 +118,9 @@ const specRefSchema = {
 // SpecDocumentSummary — nested shape for SpecWriteResult.document (output.ts)
 const specDocumentSummarySchema = {
   type: "object" as const,
-  description: "Compact document snapshot after a write: component, total spec count, backup path",
+  description: "Compact document snapshot after a write: system, total spec count, backup path",
   properties: {
-    component: { type: "string" as const },
+    system: { type: "string" as const },
     total: { type: "integer" as const },
     previous_version: { type: ["string", "null"] as const, description: "backup path captured at this write, or null on first write" },
   },
@@ -222,7 +261,7 @@ const specRenderResultSchema = {
   type: "object" as const,
   description: "Result of render: the rendered document string and the format used",
   properties: {
-    format: { type: "string" as const, enum: ["markdown", "text"] },
+    format: { type: "string" as const, enum: ["markdown", "text", "xml"] },
     content: { type: "string" as const },
   },
 };
@@ -267,7 +306,7 @@ const specInfoResultSchema = {
   type: "object" as const,
   description: "Result of info: an orientation summary (no full spec bodies)",
   properties: {
-    component: { type: "string" as const },
+    system: { type: "string" as const },
     description: { type: "string" as const },
     areas: { type: "array" as const, items: { $ref: "SpecAreaInfo" as const } },
     totals: { $ref: "SpecTotals" as const },
@@ -280,7 +319,7 @@ const specInfoResultSchema = {
 // SpecSkipped — nested shape for SpecMigrateResult.skipped (output.ts)
 const specSkippedSchema = {
   type: "object" as const,
-  description: "A whole migrate source excluded (not found, or contained no parseable spec blocks)",
+  description: "One migrate exclusion with its reason: a whole source, or a single unit not in the canonical shape",
   properties: {
     source: { type: "string" as const },
     reason: { type: "string" as const },
@@ -408,7 +447,7 @@ export const renderInputSchema = {
   properties: {
     specs_file: specsFileProp,
     query: { type: "string" as const, description: "Optional scope filter" },
-    format: { type: "string" as const, enum: ["markdown", "text"], description: "Default markdown" },
+    format: { type: "string" as const, enum: ["markdown", "text", "xml"], description: "Default markdown" },
   },
 };
 export const renderOutputSchema = { $ref: "SpecRenderResult" as const };
@@ -497,4 +536,5 @@ export const specsSchemasDict: Record<string, unknown> = {
   SpecTotals: specTotalsSchema,
   SpecNextId: specNextIdSchema,
   SpecSkipped: specSkippedSchema,
+  SpecFieldGuide: specFieldGuideSchema,
 };
