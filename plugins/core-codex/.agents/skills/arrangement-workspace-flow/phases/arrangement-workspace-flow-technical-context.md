@@ -32,15 +32,6 @@ Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
 - Architecture defines how to build/lint/test/run overall solution in concise unambigous manner.
 </technical_context_topics>
 
-<technical_context_interview_style>
-1. Interview the user relentlessly until there is full shared understanding.
-2. Walk each design branch one-by-one and resolve dependencies between decisions.
-3. For each question, provide recommended and alternative answers that are enterprise-ready, strict, specific, and best-practice.
-4. Ask questions one at a time.
-5. If a question can be answered by web search or workspace exploration, do that first.
-6. Keep facts concise, valuable, highly compressed, and phrased with common terms and patterns.
-</technical_context_interview_style>
-
 <find_gaps step="4.2">
 1. Read existing `docs/ARCHITECTURE.md` if present
 2. Compare existing `docs/ARCHITECTURE.md` against `technical_context_topics`.
@@ -50,8 +41,7 @@ Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
 <interview_gaps step="4.3">
 1. USE SKILL `hitl`.
 2. USE SKILL `questioning`.
-3. Follow `technical_context_interview_style` exactly.
-4. Interview only on missing or partial topics; skip covered topics.
+3. Interview only on missing or partial topics; skip covered topics.
 </interview_gaps>
 
 <architecture_contract>

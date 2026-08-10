@@ -30,15 +30,6 @@ Read and record the non-technical and engineering behavior facts about the proje
 - Example DoD: ACs fully met, all builds are without errors and warnings, changes covered with unit+integration+e2e tests at 85%+, database correct and migration present, backend starts and succeeds with expected responses for affected areas validated directly, frontend/mobile/app starts and affected areas fully functional validated directly, validation perform using manual QA by AI using fresh subagent.
 </business_context_topics>
 
-<business_context_interview_style>
-1. Interview the user relentlessly until there is full shared understanding.
-2. Walk each design branch one-by-one and resolve dependencies between decisions.
-3. For each question, provide recommended and alternative answers that are enterprise-ready, strict, specific, and best-practice.
-4. Ask questions one at a time.
-5. If a question can be answered by web search or workspace exploration, do that first.
-6. Keep facts concise, valuable, highly compressed, and phrased with common terms and patterns.
-</business_context_interview_style>
-
 <find_gaps step="3.2">
 1. Read existing `docs/CONTEXT.md` if present
 2. Compare existing `docs/CONTEXT.md` and repo evidence against `business_context_topics`.
@@ -48,8 +39,7 @@ Read and record the non-technical and engineering behavior facts about the proje
 <interview_gaps step="3.3">
 1. USE SKILL `hitl`.
 2. USE SKILL `questioning`.
-3. Follow `business_context_interview_style` exactly.
-4. Interview only on missing or partial topics; skip covered topics.
+3. Interview only on missing or partial topics; skip covered topics.
 </interview_gaps>
 
 <context_contract>

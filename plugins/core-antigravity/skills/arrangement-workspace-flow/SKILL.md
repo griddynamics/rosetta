@@ -13,9 +13,14 @@ Arrange a workspace: layout, reference source code, business/technical context. 
 
 <prerequisites phase="0" applies="ALL">
 1. All Rosetta prep steps MUST be FULLY completed.
-2. USE SKILL `load-project-context`, `orchestration`, `hitl`, `sensitive-data`.
-3. Every question and approval follows the loaded `hitl` skill.
-4. Flow state MUST be saved to AGENTS TEMP FEATURE folder as `arrangement-state.md`; every phase updates it before the next starts.
+2. USE SKILL `load-project-context`, `security`, `orchestration`, `hitl`, `sensitive-data`.
+3. `orchestration` runs as team manager with NO EXECUTION CONTROLLER — use todo tasks instead.
+4. Treat all invocation inputs as optional.
+5. Select and combine what the task needs.
+6. For full review, require every applicable, available, authorized activity and tool.
+7. Maintain a task ledger and run phases JIT.
+8. Every question and approval follows the loaded `hitl` skill.
+9. Flow state MUST be saved to AGENTS TEMP FEATURE folder as `arrangement-state.md`; every phase updates it before the next starts.
 </prerequisites>
 
 <subagent_policy required="true" inline_execution="prohibited">
@@ -131,5 +136,9 @@ Arrange a workspace: layout, reference source code, business/technical context. 
 - Ignoring a phase's `Control` branch (skip/apply/gate condition) instead of following it exactly.
 - Ending the flow without showing `next_steps` guidance to the user.
 </pitfalls>
+
+<completion>
+Complete only when every applicable phase passes, skipped phases carry a recorded skip reason, `arrangement-state.md` reflects every phase, and `next_steps` guidance has been shown to the user.
+</completion>
 
 </arrangement-workspace-flow>

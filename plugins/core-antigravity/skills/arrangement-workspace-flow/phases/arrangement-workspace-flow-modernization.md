@@ -34,15 +34,6 @@ Phase 5 of 6 in `arrangement-workspace-flow`. Optional — applies only when the
 - Old -> new ("to be") equivalent for every pattern in `docs/PATTERNS/INDEX.md`, and what concretely changes.
 </patterns_topics>
 
-<modernization_interview_style>
-1. Interview the user relentlessly until there is full shared understanding.
-2. Walk each design branch one-by-one and resolve dependencies between decisions.
-3. For each question, provide recommended and alternative answers that are enterprise-ready, strict, specific, and best-practice.
-4. Ask questions one at a time.
-5. If a question can be answered by web search or workspace exploration, do that first.
-6. Keep facts concise, valuable, highly compressed, and phrased with common terms and patterns.
-</modernization_interview_style>
-
 <find_gaps step="5.1">
 1. Read existing `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and `docs/PATTERNS/INDEX.md`.
 2. Compare against `context_topics`, `architecture_topics`, and `patterns_topics`.
@@ -52,7 +43,7 @@ Phase 5 of 6 in `arrangement-workspace-flow`. Optional — applies only when the
 <interview_gaps step="5.2">
 1. USE SKILL `hitl`.
 2. USE SKILL `questioning`.
-3. Follow `modernization_interview_style` exactly across `context_topics`, `architecture_topics`, and `patterns_topics`.
+3. Cover `context_topics`, `architecture_topics`, and `patterns_topics`.
 4. Interview only on missing or partial topics; skip covered topics.
 </interview_gaps>
 
@@ -65,7 +56,7 @@ Phase 5 of 6 in `arrangement-workspace-flow`. Optional — applies only when the
 - Record the old -> to-be mapping inside the existing `docs/PATTERNS/<pattern>.md`; if the pattern is net-new, create the file plus its `docs/PATTERNS/INDEX.md` entry.
 - Write docs/PATTERNS/INDEX.md — all patterns with one-line descriptions, one header per each pattern `## Pattern Name - short description`
 - Write docs/PATTERNS/CHANGES.md — created/updated/skipped, one header per each change `## [YYYY-MM-DD] Brief changes made`
-- If state.composite = true, extract per sub-repository; top-level INDEX.md references sub-repo folders
+- If `arrangement-state.md` records a Composite Workspace layout (Option 2 or 3), extract per sub-repository; top-level `INDEX.md` references sub-repo folders
 </patterns_contract>
 
 <edit_context step="5.3">
