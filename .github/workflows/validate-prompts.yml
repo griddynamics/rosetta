@@ -49,6 +49,13 @@ jobs:
           ref: main
           fetch-depth: 0 # Fetch all history to compare with base branch
 
+      # Fork content lands in pr/ as data the auditor READS -- nothing here builds,
+      # installs or executes from that tree, and the allowlist below grants only
+      # Read(pr/**) plus read-only git subcommands over it. That is why opting out
+      # of the checkout guardrail is safe; persist-credentials must stay off so the
+      # base repo's GITHUB_TOKEN is never written into pr/.git/config, which
+      # Read(pr/**) would otherwise expose. The base fetch below re-adds its own
+      # unauthenticated remote, so nothing depends on the persisted credential.
       - name: Checkout PR content
         if: github.event_name == 'pull_request_target'
         uses: actions/checkout@v5
@@ -57,6 +64,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           path: pr
           fetch-depth: 0
+          allow-unsafe-pr-checkout: true
+          persist-credentials: false
 
       - name: Install Claude Code CLI
         run: |

@@ -48,6 +48,12 @@ jobs:
         with:
           ref: main
 
+      # Fork content lands in pr/ as data the agent READS -- nothing here builds,
+      # installs or executes from that tree, and the allowlist below grants only
+      # Read plus read-only git subcommands over it. That is why opting out of the
+      # checkout guardrail is safe; persist-credentials must stay off so the base
+      # repo's GITHUB_TOKEN is never written into pr/.git/config where the agent,
+      # if a fork's content ever prompt-injects it, could read it back out.
       - name: Checkout PR content
         if: github.event_name == 'pull_request_target'
         uses: actions/checkout@v5
@@ -55,6 +61,8 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.sha }}
           path: pr
+          allow-unsafe-pr-checkout: true
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
