@@ -78,11 +78,7 @@ Create `plans/api-aqa-{IDENTIFIER}/api-analysis.md`. Per-endpoint contract entry
 `api-analysis.md` is **tracked + downstream-fed** — PUBLIC by default. USE SKILL `sensitive-data`: scan rendered artifact BEFORE writing, **fail-closed** (no scan → no emit); record each redaction in `Notes / Discrepancies`. Scan `securitySchemes`, example bodies, citation snippets — specs and code embed real secrets there.
 </redaction_contract>
 
-<validate_findings step="2.4">
-1. Run `<validation_checklist>` against output.
-</validate_findings>
-
-<update_state step="2.5">
+<update_state step="2.4">
 1. Update `agents/TEMP/<FEATURE>/api-aqa-state.md`:
    - Endpoints Analyzed: [count]
    - HTTP Methods: [GET/POST/PUT/DELETE/PATCH counts]
@@ -101,6 +97,9 @@ Create `plans/api-aqa-{IDENTIFIER}/api-analysis.md`. Per-endpoint contract entry
 - **Error coverage:** `200`-only requires both sources lack others; else missing `401`/`403`/`404`/`500` → Notes gap
 - **N/A discipline:** every `N/A` one-line reason; bare `N/A` forbidden
 - **Redaction gate:** `sensitive-data` scan ran against rendered artifact; no credentials/tokens/PII remain
+- **Contract fields:** request/response schemas, auth, data dependencies documented from spec/code (or `TBD` + `## Assumptions` per zero-source fallback)
+- **Backend source:** `{backend-source-path}` configured → route definitions analyzed; not analyzed → reason recorded
+- **Artifact complete:** `api-analysis.md` exists with all 6 `<produce_output>` sections populated, none blank; endpoints per template + Analysis Summary metrics
 </validation_checklist>
 
 </api_aqa_flow_api_spec_analysis>
