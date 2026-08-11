@@ -67,7 +67,10 @@ const ITEM_1 = JSON.stringify({
   source: "User",
   priority: "Must",
   verification: "Test",
-  acceptance: [{ given: "an item is added", when: "the cart updates", then: "the total reflects it" }],
+  level: "Component",
+  subsystem: "checkout",
+  component: "cart",
+  acceptance: [{ ears: "event", when: "an item is added", system: "the checkout service", shall: "recompute the total" }],
 });
 
 // ---------------------------------------------------------------------------
@@ -232,7 +235,7 @@ describe("CLI — specs full lifecycle flow", () => {
       source: "User",
       priority: "Must",
       verification: "Test",
-      acceptance: [{ given: "g", when: "w", then: "t" }],
+      acceptance: [{ ears: "ubiquitous", system: "the checkout service", shall: "depend on the cart total" }],
       depends_on: ["FR-CHK-0001"],
     });
     run(["specs", "add", file, dependent]);
@@ -294,13 +297,39 @@ describe("CLI — specs full lifecycle flow", () => {
     expect((getR.json as { missing: string[] }).missing).toEqual(["FR-CHK-0001"]);
   });
 
-  it("migrate imports a legacy markdown source into a fresh document", () => {
-    const src = path.join(tmpDir, "legacy.md");
+  it("migrate imports a canonical markup source into a fresh document", () => {
+    const src = path.join(tmpDir, "units.md");
     fs.writeFileSync(
       src,
-      `<req id="FR-CHK-0009" type="FR" level="System">
-        <title>Legacy</title>
-        <statement>The system shall import legacy specs.</statement>
+      `<req id="FR-CHK-0009" type="FR" level="System"
+            source="User"
+            priority="Must" verification="Test"
+            status="Draft" approved_by="" changed="2026-03-15"
+            implementation="NotStarted">
+        <title>Imported</title>
+        <statement>The system shall import requirement units.</statement>
+        <acceptance>
+          <criteria id="FR-CHK-0009.AC1" ears="ubiquitous" system="the system" shall="import the unit"/>
+        </acceptance>
+      </req>`,
+    );
+    const dest = specsFile("migrated.json");
+    const r = run(["specs", "migrate", dest, src]);
+    expect(r.status).toBe(0);
+    const res = r.json as { migrated: number; skipped: unknown[] };
+    expect(res.migrated).toBe(1);
+    expect(res.skipped).toEqual([]);
+    expect(fs.existsSync(dest)).toBe(true);
+  });
+
+  // FR-SPECS-0025 — a unit in a superseded shape is reported with a stated reason rather than
+  // reconstructed by inference, and the call still succeeds.
+  it("migrate skips a unit written in the superseded shape and states why", () => {
+    const src = path.join(tmpDir, "old-shape.md");
+    fs.writeFileSync(
+      src,
+      `<req id="FR-CHK-0009" type="FR">
+        <title>Legacy</title><statement>The system shall import legacy specs.</statement>
         <source>User</source><priority>Must</priority><verification>Test</verification>
         <acceptance><criteria>Given: a When: b Then: c</criteria></acceptance>
       </req>`,
@@ -308,9 +337,22 @@ describe("CLI — specs full lifecycle flow", () => {
     const dest = specsFile("migrated.json");
     const r = run(["specs", "migrate", dest, src]);
     expect(r.status).toBe(0);
-    const res = r.json as { migrated: number };
-    expect(res.migrated).toBe(1);
-    expect(fs.existsSync(dest)).toBe(true);
+    const res = r.json as { migrated: number; skipped: { source: string; reason: string }[] };
+    expect(res.migrated).toBe(0);
+    expect(res.skipped).toHaveLength(1);
+    expect(res.skipped[0]!.reason).toContain("rather than reconstructed by inference");
+  });
+
+  // FR-SPECS-0023 — render emits the canonical markup that migrate reads.
+  it("render returns the canonical markup when format=xml", () => {
+    const file = specsFile();
+    run(["specs", "add", file, ITEM_1]);
+    const r = run(["specs", "render", file, "--format", "xml"]);
+    expect(r.status).toBe(0);
+    const res = r.json as { format: string; content: string };
+    expect(res.format).toBe("xml");
+    expect(res.content).toContain('<req id="FR-CHK-0001"');
+    expect(res.content).toContain('ears="event"');
   });
 });
 

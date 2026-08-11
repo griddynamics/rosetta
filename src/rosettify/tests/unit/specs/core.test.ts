@@ -14,6 +14,12 @@ import {
   autoRegisterAreas,
   validateImmutableId,
   validateType,
+  validateLevel,
+  validateEars,
+  validateIdTypeConsistency,
+  validateCriteria,
+  assignCriterionIds,
+  ensureReservedAreas,
   validateSource,
   validatePriority,
   validateVerification,
@@ -28,11 +34,16 @@ import {
   saveSpecs,
   newDocument,
   GUARDED_FIELDS,
+  EARS_PATTERNS,
+  EARS_CONDITION_WORD,
+  LEVELS,
+  RESERVED_NFR_AREAS,
 } from "../../../src/commands/specs/core.js";
 import {
   SPECS_MAX_SPECS,
   SPECS_MAX_DEPENDENCIES_PER_SPEC,
   SPECS_MAX_ACCEPTANCE_PER_SPEC,
+  SPECS_MAX_EVIDENCE_PER_SPEC,
   SPECS_MAX_NAME_LENGTH,
   SPECS_MAX_STRING_LENGTH,
 } from "../../../src/shared/constants.js";
@@ -125,6 +136,14 @@ describe("validateAreaRegistration — FR-SPECS-0004", () => {
     const spec = makeSpec({ id: "not-an-id" });
     expect(validateAreaRegistration(spec, doc)).toBeNull();
   });
+
+  // FR-SPECS-0004 AC4 — the nine reserved codes count as registered even in a legacy document
+  // whose registry has not materialised them, so a read-only pass stays clean.
+  it.each(RESERVED_NFR_AREAS.map((a) => a.code))("returns null for reserved code %s even when areas is empty", (code) => {
+    const doc = makeDoc({ areas: [] });
+    const spec = makeSpec({ id: `NFR-${code}-0001`, type: "NFR" });
+    expect(validateAreaRegistration(spec, doc)).toBeNull();
+  });
 });
 
 describe("autoRegisterAreas — FR-SPECS-0004 (add/migrate self-registration)", () => {
@@ -186,6 +205,277 @@ describe("validateType — FR-SPECS-0003", () => {
 
   it("rejects a non-string type", () => {
     expect(validateType(123)).toBe("invalid_type");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateLevel / validateEars / validateIdTypeConsistency — FR-SPECS-0001, 0009
+// ---------------------------------------------------------------------------
+
+describe("validateLevel — FR-SPECS-0001", () => {
+  it.each(["System", "Subsystem", "Component"])("accepts %s", (l) => {
+    expect(validateLevel(l)).toBeNull();
+  });
+
+  it("exposes exactly the three levels", () => {
+    expect(LEVELS).toEqual(["System", "Subsystem", "Component"]);
+  });
+
+  it("rejects an unknown level", () => {
+    expect(validateLevel("Module")).toBe("invalid_level");
+  });
+
+  it("rejects a level differing only in case", () => {
+    expect(validateLevel("system")).toBe("invalid_level");
+  });
+
+  it("rejects a non-string level", () => {
+    expect(validateLevel(1)).toBe("invalid_level");
+  });
+
+  it("rejects an omitted level", () => {
+    expect(validateLevel(undefined)).toBe("invalid_level");
+  });
+});
+
+describe("validateEars — FR-SPECS-0001", () => {
+  it.each(["ubiquitous", "event", "state", "optional", "unwanted"])("accepts %s", (e) => {
+    expect(validateEars(e)).toBeNull();
+  });
+
+  it("exposes exactly the five EARS patterns", () => {
+    expect(EARS_PATTERNS).toEqual(["ubiquitous", "event", "state", "optional", "unwanted"]);
+  });
+
+  it("rejects a pattern outside the enum", () => {
+    expect(validateEars("continuous")).toBe("invalid_ears");
+  });
+
+  it("rejects a non-string ears", () => {
+    expect(validateEars(null)).toBe("invalid_ears");
+  });
+
+  // FR-SPECS-0006 — the condition word each pattern names, the single source shared by the write
+  // check, the validate check and the markup round trip.
+  it("maps each EARS pattern to exactly the condition word it names", () => {
+    expect(EARS_CONDITION_WORD).toEqual({
+      ubiquitous: null,
+      event: "when",
+      state: "while",
+      optional: "where",
+      unwanted: "if",
+    });
+  });
+
+  it("covers every pattern in EARS_PATTERNS with a condition-word entry", () => {
+    for (const pattern of EARS_PATTERNS) {
+      expect(EARS_CONDITION_WORD).toHaveProperty(pattern);
+    }
+  });
+});
+
+describe("validateIdTypeConsistency — FR-SPECS-0009", () => {
+  it.each([
+    ["FR-CHK-0001", "FR"],
+    ["NFR-PERF-0001", "NFR"],
+    ["INT-CHK-0001", "INT"],
+    ["DATA-CHK-0001", "DATA"],
+  ])("returns null when %s agrees with type %s", (id, type) => {
+    expect(validateIdTypeConsistency(id, type)).toBeNull();
+  });
+
+  it("returns id_type_mismatch when the id prefix disagrees with the type", () => {
+    expect(validateIdTypeConsistency("FR-CHK-0001", "NFR")).toBe("id_type_mismatch");
+  });
+
+  it("does not confuse the NFR prefix with the FR prefix", () => {
+    expect(validateIdTypeConsistency("NFR-PERF-0001", "FR")).toBe("id_type_mismatch");
+  });
+
+  it("returns null (defers to validateIdFormat) for an unparseable id", () => {
+    expect(validateIdTypeConsistency("not-an-id", "FR")).toBeNull();
+  });
+
+  it("returns null (defers to validateType) for a type outside the enum", () => {
+    expect(validateIdTypeConsistency("FR-CHK-0001", "GOAL")).toBeNull();
+  });
+
+  it("returns null (defers to validateType) for a non-string type", () => {
+    expect(validateIdTypeConsistency("FR-CHK-0001", 42)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateCriteria / assignCriterionIds — FR-SPECS-0001 AC3..AC6
+// ---------------------------------------------------------------------------
+
+describe("validateCriteria — FR-SPECS-0001 AC4/AC5/AC6", () => {
+  it("returns null for a well-formed criterion", () => {
+    expect(validateCriteria(makeSpec())).toBeNull();
+  });
+
+  it("returns null for a spec whose acceptance is literally undefined", () => {
+    expect(validateCriteria(makeSpec({ acceptance: undefined as never }))).toBeNull();
+  });
+
+  it("returns invalid_ears when a criterion declares a pattern outside the enum", () => {
+    const spec = makeSpec({ acceptance: [makeAcceptance({ ears: "continuous" as never })] });
+    expect(validateCriteria(spec)).toBe("invalid_ears");
+  });
+
+  it("returns invalid_ears when a criterion omits ears entirely", () => {
+    const spec = makeSpec({ acceptance: [makeAcceptance({ ears: undefined as never })] });
+    expect(validateCriteria(spec)).toBe("invalid_ears");
+  });
+
+  it.each(["system", "shall"] as const)("returns missing_required_field when %s is empty", (field) => {
+    const spec = makeSpec({ acceptance: [makeAcceptance({ [field]: "" })] });
+    expect(validateCriteria(spec)).toBe("missing_required_field");
+  });
+
+  it.each(["system", "shall"] as const)("returns missing_required_field when %s is whitespace only", (field) => {
+    const spec = makeSpec({ acceptance: [makeAcceptance({ [field]: "   " })] });
+    expect(validateCriteria(spec)).toBe("missing_required_field");
+  });
+
+  it.each(["system", "shall"] as const)("returns missing_required_field when %s is absent", (field) => {
+    const criterion = makeAcceptance();
+    delete (criterion as Record<string, unknown>)[field];
+    expect(validateCriteria(makeSpec({ acceptance: [criterion] }))).toBe("missing_required_field");
+  });
+
+  it("returns duplicate_criterion_id when two criteria in one unit share an id", () => {
+    const spec = makeSpec({
+      acceptance: [makeAcceptance({ id: "FR-CHK-0001.AC1" }), makeAcceptance({ id: "FR-CHK-0001.AC1" })],
+    });
+    expect(validateCriteria(spec)).toBe("duplicate_criterion_id");
+  });
+
+  it("accepts two criteria carrying distinct ids", () => {
+    const spec = makeSpec({
+      acceptance: [makeAcceptance({ id: "FR-CHK-0001.AC1" }), makeAcceptance({ id: "FR-CHK-0001.AC2" })],
+    });
+    expect(validateCriteria(spec)).toBeNull();
+  });
+
+  it("does not treat two id-less criteria as duplicates (the write path assigns their ids)", () => {
+    const spec = makeSpec({
+      acceptance: [makeAcceptance({ id: "" }), makeAcceptance({ id: "" })],
+    });
+    expect(validateCriteria(spec)).toBeNull();
+  });
+
+  // FR-SPECS-0006 — a condition word disagreeing with the declared pattern is a validate finding,
+  // deliberately NOT a write refusal, so the two reports never collide on one item.
+  it("accepts a criterion whose condition word disagrees with its pattern (validate's concern)", () => {
+    const spec = makeSpec({
+      acceptance: [makeAcceptance({ ears: "state", when: "an action occurs", while: undefined })],
+    });
+    expect(validateCriteria(spec)).toBeNull();
+  });
+});
+
+describe("assignCriterionIds — FR-SPECS-0001 AC3", () => {
+  it("fills an omitted id with <specId>.AC1", () => {
+    const assigned = assignCriterionIds("FR-CHK-0001", [makeAcceptance({ id: "" })]);
+    expect(assigned[0]!.id).toBe("FR-CHK-0001.AC1");
+  });
+
+  it("numbers several omitted ids in array order", () => {
+    const assigned = assignCriterionIds("FR-CHK-0001", [
+      makeAcceptance({ id: "" }),
+      makeAcceptance({ id: "" }),
+      makeAcceptance({ id: "" }),
+    ]);
+    expect(assigned.map((c) => c.id)).toEqual(["FR-CHK-0001.AC1", "FR-CHK-0001.AC2", "FR-CHK-0001.AC3"]);
+  });
+
+  it("never renumbers a supplied id", () => {
+    const assigned = assignCriterionIds("FR-CHK-0001", [makeAcceptance({ id: "FR-CHK-0001.AC7" })]);
+    expect(assigned[0]!.id).toBe("FR-CHK-0001.AC7");
+  });
+
+  it("skips numbers already claimed by a supplied id, whatever the array order", () => {
+    const assigned = assignCriterionIds("FR-CHK-0001", [
+      makeAcceptance({ id: "" }),
+      makeAcceptance({ id: "FR-CHK-0001.AC1" }),
+      makeAcceptance({ id: "" }),
+    ]);
+    expect(assigned.map((c) => c.id)).toEqual(["FR-CHK-0001.AC2", "FR-CHK-0001.AC1", "FR-CHK-0001.AC3"]);
+  });
+
+  it("treats a whitespace-only id as omitted", () => {
+    const assigned = assignCriterionIds("FR-CHK-0001", [makeAcceptance({ id: "   " })]);
+    expect(assigned[0]!.id).toBe("FR-CHK-0001.AC1");
+  });
+
+  it("derives the prefix from the spec id it is given", () => {
+    const assigned = assignCriterionIds("NFR-PERF-0009", [makeAcceptance({ id: "" })]);
+    expect(assigned[0]!.id).toBe("NFR-PERF-0009.AC1");
+  });
+
+  it("preserves every other field of the criterion it fills", () => {
+    const criterion = makeAcceptance({ id: "", ears: "unwanted", when: undefined, if: "the card is declined" });
+    const assigned = assignCriterionIds("FR-CHK-0001", [criterion]);
+    expect(assigned[0]).toEqual({ ...criterion, id: "FR-CHK-0001.AC1" });
+  });
+
+  it("is pure — it neither mutates nor returns the input array", () => {
+    const input = [makeAcceptance({ id: "" })];
+    const assigned = assignCriterionIds("FR-CHK-0001", input);
+    expect(assigned).not.toBe(input);
+    expect(input[0]!.id).toBe("");
+  });
+
+  it("returns an empty array for an empty input", () => {
+    expect(assignCriterionIds("FR-CHK-0001", [])).toEqual([]);
+  });
+
+  it("returns an empty array when the input is literally undefined", () => {
+    expect(assignCriterionIds("FR-CHK-0001", undefined as never)).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ensureReservedAreas — FR-SPECS-0004 AC4/AC7
+// ---------------------------------------------------------------------------
+
+describe("ensureReservedAreas — FR-SPECS-0004 AC7", () => {
+  it("registers all nine quality-characteristic codes on a document that has none", () => {
+    const doc = makeDoc({ areas: [] });
+    ensureReservedAreas(doc);
+    expect(doc.areas).toEqual([...RESERVED_NFR_AREAS]);
+  });
+
+  it("pre-registers exactly the nine expected codes", () => {
+    expect(RESERVED_NFR_AREAS.map((a) => a.code)).toEqual(["PERF", "SEC", "REL", "USE", "MAIN", "PORT", "COMP", "FUNC", "SAFE"]);
+  });
+
+  it("preserves an existing unrelated area and appends the nine after it", () => {
+    const doc = makeDoc({ areas: [{ code: "CHK", name: "Checkout" }] });
+    ensureReservedAreas(doc);
+    expect(doc.areas[0]).toEqual({ code: "CHK", name: "Checkout" });
+    expect(doc.areas).toHaveLength(1 + RESERVED_NFR_AREAS.length);
+  });
+
+  it("keeps a document's own name for a reserved code it already renamed", () => {
+    const doc = makeDoc({ areas: [{ code: "SEC", name: "our security bucket" }] });
+    ensureReservedAreas(doc);
+    expect(doc.areas.filter((a) => a.code === "SEC")).toEqual([{ code: "SEC", name: "our security bucket" }]);
+  });
+
+  it("is idempotent — a second call adds nothing", () => {
+    const doc = makeDoc({ areas: [] });
+    ensureReservedAreas(doc);
+    const afterFirst = [...doc.areas];
+    ensureReservedAreas(doc);
+    expect(doc.areas).toEqual(afterFirst);
+  });
+
+  it("initializes doc.areas when it is literally undefined", () => {
+    const doc = {} as unknown as Parameters<typeof ensureReservedAreas>[0];
+    ensureReservedAreas(doc);
+    expect(doc.areas).toEqual([...RESERVED_NFR_AREAS]);
   });
 });
 
@@ -280,6 +570,24 @@ describe("validateUniqueIds — FR-SPECS-0005", () => {
 
   it("returns null for an empty specs array", () => {
     const doc = makeDoc({ specs: [] });
+    expect(validateUniqueIds(doc)).toBeNull();
+  });
+
+  // FR-SPECS-0009/0016 — purge erases a spec's content, deliberately not its identity: a purged
+  // id is never reusable, and this is the single enforcement point every write path reaches.
+  it("returns duplicate_id when a live id collides with a purged one", () => {
+    const doc = makeDoc({ purged_ids: ["FR-CHK-0001"], specs: [makeSpec({ id: "FR-CHK-0001" })] });
+    expect(validateUniqueIds(doc)).toBe("duplicate_id");
+  });
+
+  it("returns null when a live id differs from every purged one", () => {
+    const doc = makeDoc({ purged_ids: ["FR-CHK-0009"], specs: [makeSpec({ id: "FR-CHK-0001" })] });
+    expect(validateUniqueIds(doc)).toBeNull();
+  });
+
+  it("treats a doc whose purged_ids is literally undefined as an empty registry", () => {
+    const doc = makeDoc({ specs: [makeSpec()] });
+    delete (doc as Record<string, unknown>)["purged_ids"];
     expect(validateUniqueIds(doc)).toBeNull();
   });
 });
@@ -398,6 +706,45 @@ describe("validateSizeLimits — FR-SPECS-0007", () => {
     const acceptance = Array.from({ length: SPECS_MAX_ACCEPTANCE_PER_SPEC + 1 }, () => makeAcceptance());
     const doc = makeDoc({ specs: [makeSpec({ acceptance })] });
     expect(validateSizeLimits(doc)).toBe("size_limit_exceeded");
+  });
+
+  it(`returns size_limit_exceeded when evidence exceeds ${SPECS_MAX_EVIDENCE_PER_SPEC}`, () => {
+    const evidence = Array.from({ length: SPECS_MAX_EVIDENCE_PER_SPEC + 1 }, (_, i) => `src/cart.ts:${i + 1}-${i + 2}`);
+    const doc = makeDoc({ specs: [makeSpec({ evidence })] });
+    expect(validateSizeLimits(doc)).toBe("size_limit_exceeded");
+  });
+
+  it("returns null when evidence length is exactly at the limit", () => {
+    const evidence = Array.from({ length: SPECS_MAX_EVIDENCE_PER_SPEC }, (_, i) => `src/cart.ts:${i + 1}-${i + 2}`);
+    const doc = makeDoc({ specs: [makeSpec({ evidence })] });
+    expect(validateSizeLimits(doc)).toBeNull();
+  });
+
+  it("treats a spec whose evidence is literally undefined as empty", () => {
+    const spec = makeSpec();
+    delete (spec as Record<string, unknown>)["evidence"];
+    expect(validateSizeLimits(makeDoc({ specs: [spec] }))).toBeNull();
+  });
+
+  // FR-SPECS-0007 — purged_ids is deliberately uncapped: its growth is bounded by deliberate
+  // human action, not by input size.
+  it("does not cap purged_ids", () => {
+    const purged = Array.from({ length: SPECS_MAX_SPECS + 1 }, (_, i) => `FR-CHK-${String(i).padStart(4, "0")}`);
+    expect(validateSizeLimits(makeDoc({ purged_ids: purged }))).toBeNull();
+  });
+
+  it(`returns size_limit_exceeded when the document's system name exceeds ${SPECS_MAX_NAME_LENGTH} characters`, () => {
+    expect(validateSizeLimits(makeDoc({ system: "x".repeat(SPECS_MAX_NAME_LENGTH + 1) }))).toBe("size_limit_exceeded");
+  });
+
+  it(`returns size_limit_exceeded when a criterion's system name exceeds ${SPECS_MAX_NAME_LENGTH} characters`, () => {
+    const acceptance = [makeAcceptance({ system: "x".repeat(SPECS_MAX_NAME_LENGTH + 1) })];
+    expect(validateSizeLimits(makeDoc({ specs: [makeSpec({ acceptance })] }))).toBe("size_limit_exceeded");
+  });
+
+  it(`returns size_limit_exceeded when a criterion's shall exceeds ${SPECS_MAX_STRING_LENGTH} characters`, () => {
+    const acceptance = [makeAcceptance({ shall: "x".repeat(SPECS_MAX_STRING_LENGTH + 1) })];
+    expect(validateSizeLimits(makeDoc({ specs: [makeSpec({ acceptance })] }))).toBe("size_limit_exceeded");
   });
 
   it(`returns size_limit_exceeded when title exceeds ${SPECS_MAX_NAME_LENGTH} characters`, () => {
@@ -540,11 +887,26 @@ describe("loadSpecs / saveSpecs — FR-SPECS-0002/0071", () => {
 
   it("round-trips a saved document", () => {
     const file = specsFile();
-    const doc = makeDoc({ component: "checkout", specs: [makeSpec()] });
+    const doc = makeDoc({ system: "checkout", specs: [makeSpec()] });
     saveSpecs(file, doc);
     const loaded = loadSpecs(file)!;
-    expect(loaded.component).toBe("checkout");
+    expect(loaded.system).toBe("checkout");
     expect(loaded.specs).toHaveLength(1);
+  });
+
+  it("round-trips a spec's new location, evidence and criterion fields verbatim", () => {
+    const file = specsFile();
+    const spec = makeSpec({
+      level: "Component",
+      subsystem: "checkout",
+      component: "cart",
+      evidence: ["src/cart.ts:10-24", "src/total.ts:3-8"],
+      acceptance: [makeAcceptance({ id: "FR-CHK-0001.AC1", ears: "unwanted", when: undefined, if: "the card is declined" })],
+    });
+    saveSpecs(file, makeDoc({ specs: [spec], purged_ids: ["FR-CHK-0999"] }));
+    const loaded = loadSpecs(file)!;
+    expect(loaded.specs[0]).toEqual(spec);
+    expect(loaded.purged_ids).toEqual(["FR-CHK-0999"]);
   });
 
   it("creates parent directories on save", () => {
@@ -555,10 +917,25 @@ describe("loadSpecs / saveSpecs — FR-SPECS-0002/0071", () => {
 
   it("injects previous_version:null for a legacy document lacking the field", () => {
     const file = specsFile();
-    const legacy = { component: "x", description: "", created_at: "t", updated_at: "t", areas: [], specs: [] };
+    const legacy = { system: "x", description: "", created_at: "t", updated_at: "t", areas: [], specs: [] };
     fs.writeFileSync(file, JSON.stringify(legacy));
     const loaded = loadSpecs(file)!;
     expect(loaded.previous_version).toBeNull();
+  });
+
+  // FR-SPECS-0002 — legacy documents predate the purged-id registry; the read boundary normalises
+  // the shape once so no downstream site has to guard for its absence.
+  it("injects purged_ids:[] for a legacy document lacking the field", () => {
+    const file = specsFile();
+    const legacy = { system: "x", description: "", created_at: "t", updated_at: "t", previous_version: null, areas: [], specs: [] };
+    fs.writeFileSync(file, JSON.stringify(legacy));
+    expect(loadSpecs(file)!.purged_ids).toEqual([]);
+  });
+
+  it("preserves a stored purged_ids registry rather than resetting it", () => {
+    const file = specsFile();
+    saveSpecs(file, makeDoc({ purged_ids: ["FR-CHK-0001"] }));
+    expect(loadSpecs(file)!.purged_ids).toEqual(["FR-CHK-0001"]);
   });
 
   it("saveSpecs updates updated_at to the current time", () => {
@@ -573,14 +950,28 @@ describe("loadSpecs / saveSpecs — FR-SPECS-0002/0071", () => {
 describe("newDocument — FR-SPECS-0002", () => {
   it("returns an empty document with previous_version null", () => {
     const doc = newDocument("checkout");
-    expect(doc.component).toBe("checkout");
+    expect(doc.system).toBe("checkout");
     expect(doc.previous_version).toBeNull();
-    expect(doc.areas).toEqual([]);
     expect(doc.specs).toEqual([]);
     expect(doc.created_at).toBe(doc.updated_at);
   });
 
-  it("defaults component to empty string when omitted", () => {
-    expect(newDocument().component).toBe("");
+  it("defaults system to empty string when omitted", () => {
+    expect(newDocument().system).toBe("");
+  });
+
+  // FR-SPECS-0004 AC7 — the nine quality-characteristic codes are pre-registered in every
+  // document, so a freshly created one is never area-empty.
+  it("pre-registers the nine quality-characteristic areas", () => {
+    expect(newDocument().areas).toEqual([...RESERVED_NFR_AREAS]);
+  });
+
+  it("starts the purged-id registry empty", () => {
+    expect(newDocument().purged_ids).toEqual([]);
+  });
+
+  it("accepts an NFR against a reserved area with no further registration", () => {
+    const doc = newDocument("checkout");
+    expect(validateAreaRegistration(makeSpec({ id: "NFR-PERF-0001", type: "NFR" }), doc)).toBeNull();
   });
 });

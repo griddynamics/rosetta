@@ -4,72 +4,248 @@
  */
 import { describe, it, expect } from "vitest";
 import {
-  checkEars,
+  checkAcceptanceComplete,
+  checkCriterionEars,
+  checkCriterionIdFormat,
+  checkEvidencePresence,
   checkMeasurableNfr,
   checkModalVerbs,
+  checkRecommendedNfrArea,
+  checkSingleConditionWord,
   findDuplicateStatements,
-  checkAcceptanceComplete,
+  findLocationGaps,
 } from "../../../src/commands/specs/rubric.js";
+import { EARS_CONDITION_WORD, EARS_PATTERNS, RESERVED_NFR_AREAS } from "../../../src/commands/specs/core.js";
 import { makeAcceptance, makeSpec } from "../../fixtures/specs.js";
 
 // ---------------------------------------------------------------------------
-// checkEars — FR-SPECS-0006 ordered matching
+// checkCriterionEars — FR-SPECS-0006 AC1/AC2. EARS conformance is decided per acceptance
+// criterion from its declared `ears` and the condition word it carries; the statement text is no
+// longer pattern-matched at all (the former statement-level `checkEars` is gone with the model).
 // ---------------------------------------------------------------------------
 
-describe("checkEars — event pattern (When X, Y shall Z)", () => {
-  it("matches", () => {
-    expect(checkEars("When the file is missing, the system shall return plan_not_found.")).toBe(true);
+describe("checkCriterionEars — the declared pattern's condition word", () => {
+  it.each([
+    ["event", "when"],
+    ["state", "while"],
+    ["optional", "where"],
+    ["unwanted", "if"],
+  ] as const)("passes %s carrying '%s'", (ears, word) => {
+    const c = makeAcceptance({ ears, when: undefined, [word]: "some condition" });
+    expect(checkCriterionEars(c)).toBe(true);
   });
 
-  it("classifies as event, not ubiquitous, per ordered matching", () => {
-    // A statement matching the event keyword form must not ALSO be treated as failing —
-    // the ordered-matching contract guarantees this returns true via the event branch.
-    expect(checkEars("When X, Y shall Z")).toBe(true);
+  it.each([
+    ["event", "while"],
+    ["state", "when"],
+    ["optional", "if"],
+    ["unwanted", "where"],
+  ] as const)("fails %s carrying '%s' instead of the word its pattern names", (ears, word) => {
+    const c = makeAcceptance({ ears, when: undefined, [word]: "some condition" });
+    expect(checkCriterionEars(c)).toBe(false);
+  });
+
+  it.each(["event", "state", "optional", "unwanted"] as const)("fails %s carrying no condition word at all", (ears) => {
+    expect(checkCriterionEars(makeAcceptance({ ears, when: undefined }))).toBe(false);
+  });
+
+  it("passes ubiquitous carrying no condition word", () => {
+    expect(checkCriterionEars(makeAcceptance({ ears: "ubiquitous", when: undefined }))).toBe(true);
+  });
+
+  it.each(["when", "while", "where", "if"] as const)("fails ubiquitous carrying '%s'", (word) => {
+    expect(checkCriterionEars(makeAcceptance({ ears: "ubiquitous", when: undefined, [word]: "x" }))).toBe(false);
+  });
+
+  it("treats a whitespace-only condition word as absent", () => {
+    expect(checkCriterionEars(makeAcceptance({ ears: "event", when: "   " }))).toBe(false);
+  });
+
+  it("passes ubiquitous whose condition word is present but whitespace-only", () => {
+    expect(checkCriterionEars(makeAcceptance({ ears: "ubiquitous", when: "   " }))).toBe(true);
+  });
+
+  // The write path owns `invalid_ears` (core.ts validateCriteria) and FR-SPECS-0021 lists no
+  // validate finding for it, so a pattern outside the enum deliberately passes here — the two
+  // reports must not collide on one item.
+  it("passes an ears outside the enum (that is the write path's invalid_ears)", () => {
+    expect(checkCriterionEars(makeAcceptance({ ears: "continuous" as never }))).toBe(true);
+  });
+
+  it("passes a criterion whose ears is absent", () => {
+    expect(checkCriterionEars(makeAcceptance({ ears: undefined as never }))).toBe(true);
+  });
+
+  it("agrees with EARS_CONDITION_WORD for every declared pattern", () => {
+    for (const ears of EARS_PATTERNS) {
+      const word = EARS_CONDITION_WORD[ears];
+      const c = word === null ? makeAcceptance({ ears, when: undefined }) : makeAcceptance({ ears, when: undefined, [word]: "x" });
+      expect(checkCriterionEars(c)).toBe(true);
+    }
   });
 });
 
-describe("checkEars — state pattern (While X, Y shall Z)", () => {
-  it("matches", () => {
-    expect(checkEars("While the cache is warm, the system shall serve from memory.")).toBe(true);
+describe("checkSingleConditionWord — FR-SPECS-0006 AC3", () => {
+  it("passes a criterion carrying exactly one condition word", () => {
+    expect(checkSingleConditionWord(makeAcceptance({ ears: "event", when: "x" }))).toBe(true);
+  });
+
+  it("passes a criterion carrying none", () => {
+    expect(checkSingleConditionWord(makeAcceptance({ ears: "ubiquitous", when: undefined }))).toBe(true);
+  });
+
+  it("fails a criterion carrying two condition words", () => {
+    expect(checkSingleConditionWord(makeAcceptance({ ears: "event", when: "x", while: "y" }))).toBe(false);
+  });
+
+  it("fails a criterion carrying all four", () => {
+    expect(checkSingleConditionWord(makeAcceptance({ ears: "event", when: "a", while: "b", where: "c", if: "d" }))).toBe(false);
+  });
+
+  it("does not count a whitespace-only second word", () => {
+    expect(checkSingleConditionWord(makeAcceptance({ ears: "event", when: "x", while: "  " }))).toBe(true);
   });
 });
 
-describe("checkEars — optional pattern (Where X, Y shall Z)", () => {
-  it("matches", () => {
-    expect(checkEars("Where telemetry is enabled, the system shall emit metrics.")).toBe(true);
+// ---------------------------------------------------------------------------
+// checkCriterionIdFormat — FR-SPECS-0021
+// ---------------------------------------------------------------------------
+
+describe("checkCriterionIdFormat", () => {
+  it("passes an id reading <specId>.AC<n>", () => {
+    expect(checkCriterionIdFormat("FR-CHK-0001", makeAcceptance({ id: "FR-CHK-0001.AC1" }))).toBe(true);
+  });
+
+  it("passes a multi-digit criterion number", () => {
+    expect(checkCriterionIdFormat("FR-CHK-0001", makeAcceptance({ id: "FR-CHK-0001.AC12" }))).toBe(true);
+  });
+
+  it("fails an id belonging to a different spec", () => {
+    expect(checkCriterionIdFormat("FR-CHK-0001", makeAcceptance({ id: "FR-CHK-0002.AC1" }))).toBe(false);
+  });
+
+  it("fails an id with no .AC segment", () => {
+    expect(checkCriterionIdFormat("FR-CHK-0001", makeAcceptance({ id: "FR-CHK-0001" }))).toBe(false);
+  });
+
+  it("fails an id whose suffix is not numeric", () => {
+    expect(checkCriterionIdFormat("FR-CHK-0001", makeAcceptance({ id: "FR-CHK-0001.ACx" }))).toBe(false);
+  });
+
+  it("fails an empty id", () => {
+    expect(checkCriterionIdFormat("FR-CHK-0001", makeAcceptance({ id: "" }))).toBe(false);
+  });
+
+  it("fails an id that is literally undefined (no crash)", () => {
+    expect(checkCriterionIdFormat("FR-CHK-0001", makeAcceptance({ id: undefined as never }))).toBe(false);
+  });
+
+  // The spec id is compared literally rather than spliced into a pattern, so metacharacters in it
+  // cannot widen the match.
+  it("compares the spec id literally, so a regex metacharacter cannot alter the match", () => {
+    expect(checkCriterionIdFormat("FR-C.K-0001", makeAcceptance({ id: "FR-CXK-0001.AC1" }))).toBe(false);
   });
 });
 
-describe("checkEars — unwanted pattern (If X, Y shall Z)", () => {
-  it("matches", () => {
-    expect(checkEars("If the disk is full, the system shall reject the write.")).toBe(true);
+// ---------------------------------------------------------------------------
+// findLocationGaps — FR-SPECS-0006 AC10-AC12. Empty means the author did not know the name,
+// never that it does not apply, so an absence is always reported.
+// ---------------------------------------------------------------------------
+
+describe("findLocationGaps", () => {
+  it("reports nothing for a Component naming both subsystem and component", () => {
+    expect(findLocationGaps(makeSpec({ level: "Component" }))).toEqual([]);
+  });
+
+  it("reports both names as errors for a Component naming neither", () => {
+    const gaps = findLocationGaps(makeSpec({ level: "Component", subsystem: "", component: "" }));
+    expect(gaps).toEqual([
+      { field: "subsystem", severity: "error" },
+      { field: "component", severity: "error" },
+    ]);
+  });
+
+  it("reports only the missing name for a Component naming one of the two", () => {
+    expect(findLocationGaps(makeSpec({ level: "Component", subsystem: "" }))).toEqual([{ field: "subsystem", severity: "error" }]);
+  });
+
+  it("reports a subsystem error for a Subsystem naming none", () => {
+    expect(findLocationGaps(makeSpec({ level: "Subsystem", subsystem: "", component: "" }))).toEqual([
+      { field: "subsystem", severity: "error" },
+    ]);
+  });
+
+  it("does not require a component name at Subsystem level", () => {
+    expect(findLocationGaps(makeSpec({ level: "Subsystem", component: "" }))).toEqual([]);
+  });
+
+  it("warns once for a System naming neither name", () => {
+    expect(findLocationGaps(makeSpec({ level: "System", subsystem: "", component: "" }))).toEqual([
+      { field: "subsystem", severity: "warning" },
+    ]);
+  });
+
+  it.each(["subsystem", "component"] as const)("clears the System recommendation when only %s is named", (field) => {
+    const spec = makeSpec({ level: "System", subsystem: "", component: "", [field]: "named" });
+    expect(findLocationGaps(spec)).toEqual([]);
+  });
+
+  it("treats a whitespace-only name as absent", () => {
+    expect(findLocationGaps(makeSpec({ level: "Subsystem", subsystem: "   " }))).toEqual([{ field: "subsystem", severity: "error" }]);
+  });
+
+  it("treats names that are literally undefined as absent", () => {
+    const spec = makeSpec({ level: "Component" });
+    delete (spec as Record<string, unknown>)["subsystem"];
+    delete (spec as Record<string, unknown>)["component"];
+    expect(findLocationGaps(spec)).toHaveLength(2);
+  });
+
+  // A gap measured against an unknown level would be noise — that defect belongs to level_enum.
+  it("reports no gap for a level outside the enum", () => {
+    expect(findLocationGaps(makeSpec({ level: "Module" as never, subsystem: "", component: "" }))).toEqual([]);
   });
 });
 
-describe("checkEars — ubiquitous pattern (fallback, <subject> shall <response>)", () => {
-  it("matches a plain shall statement with no keyword", () => {
-    expect(checkEars("The system shall log every write.")).toBe(true);
+// ---------------------------------------------------------------------------
+// checkEvidencePresence — FR-SPECS-0021 AC4
+// ---------------------------------------------------------------------------
+
+describe("checkEvidencePresence", () => {
+  it("fails a Sources-derived spec whose evidence is empty", () => {
+    expect(checkEvidencePresence(makeSpec({ source: "Sources", evidence: [] }))).toBe(false);
+  });
+
+  it("passes a Sources-derived spec citing a location", () => {
+    expect(checkEvidencePresence(makeSpec({ source: "Sources", evidence: ["src/cart.ts:10-24"] }))).toBe(true);
+  });
+
+  it.each(["User", "Inferred", "Documentation"] as const)("passes a %s-sourced spec with empty evidence", (source) => {
+    expect(checkEvidencePresence(makeSpec({ source, evidence: [] }))).toBe(true);
+  });
+
+  it("fails a Sources-derived spec whose evidence is literally undefined", () => {
+    const spec = makeSpec({ source: "Sources" });
+    delete (spec as Record<string, unknown>)["evidence"];
+    expect(checkEvidencePresence(spec)).toBe(false);
   });
 });
 
-describe("checkEars — non-conformant statements", () => {
-  it("fails a statement with no 'shall' at all", () => {
-    expect(checkEars("The system handles errors nicely.")).toBe(false);
+// ---------------------------------------------------------------------------
+// checkRecommendedNfrArea — FR-SPECS-0004. The nine codes are recommended, never mandatory.
+// ---------------------------------------------------------------------------
+
+describe("checkRecommendedNfrArea", () => {
+  it.each(RESERVED_NFR_AREAS.map((a) => a.code))("passes an NFR in recommended area %s", (code) => {
+    expect(checkRecommendedNfrArea(makeSpec({ id: `NFR-${code}-0001`, type: "NFR" }))).toBe(true);
   });
 
-  it("fails an empty statement", () => {
-    expect(checkEars("")).toBe(false);
+  it("fails an NFR in an area outside the nine", () => {
+    expect(checkRecommendedNfrArea(makeSpec({ id: "NFR-CHK-0001", type: "NFR" }))).toBe(false);
   });
 
-  it("fails a keyword-led statement missing the required comma (regression guard for the ubiquitous negative lookahead)", () => {
-    // SPECS §11.2: the ubiquitous pattern's negative lookahead exists specifically so a
-    // keyword-led statement that FAILS its own keyword pattern (here: no comma between the
-    // "When ..." clause and "the system shall ...") does NOT fall through and get incorrectly
-    // matched by the permissive ubiquitous fallback. Without the lookahead, this statement would
-    // wrongly return true (it has "shall" and no comma-requirement of its own) — asserting false
-    // here is what actually exercises the guard; every other test in this file would still pass
-    // even with the lookahead deleted.
-    expect(checkEars("When the disk is full the system shall reject the write.")).toBe(false);
+  it("passes an unparseable id (that is the id_format finding's concern)", () => {
+    expect(checkRecommendedNfrArea(makeSpec({ id: "not-an-id" }))).toBe(true);
   });
 });
 
@@ -157,12 +333,24 @@ describe("checkAcceptanceComplete", () => {
     expect(checkAcceptanceComplete(makeSpec({ acceptance: [] }))).toBe(false);
   });
 
-  it("fails a spec whose criterion is missing 'then'", () => {
-    expect(checkAcceptanceComplete(makeSpec({ acceptance: [makeAcceptance({ then: "" })] }))).toBe(false);
+  it("fails a spec whose criterion is missing its outcome ('shall')", () => {
+    expect(checkAcceptanceComplete(makeSpec({ acceptance: [makeAcceptance({ shall: "" })] }))).toBe(false);
   });
 
-  it("fails a spec whose criterion has whitespace-only 'given'", () => {
-    expect(checkAcceptanceComplete(makeSpec({ acceptance: [makeAcceptance({ given: "   " })] }))).toBe(false);
+  it("fails a spec whose criterion has a whitespace-only responder ('system')", () => {
+    expect(checkAcceptanceComplete(makeSpec({ acceptance: [makeAcceptance({ system: "   " })] }))).toBe(false);
+  });
+
+  it("fails when only one of several criteria is incomplete", () => {
+    const acceptance = [makeAcceptance({ id: "FR-CHK-0001.AC1" }), makeAcceptance({ id: "FR-CHK-0001.AC2", shall: "" })];
+    expect(checkAcceptanceComplete(makeSpec({ acceptance }))).toBe(false);
+  });
+
+  // A criterion carrying no condition word is complete: `ubiquitous` names none, and the
+  // condition word is not part of completeness.
+  it("passes a ubiquitous criterion carrying no condition word", () => {
+    const acceptance = [makeAcceptance({ ears: "ubiquitous", when: undefined })];
+    expect(checkAcceptanceComplete(makeSpec({ acceptance }))).toBe(true);
   });
 
   it("fails a spec with acceptance literally undefined (no crash)", () => {

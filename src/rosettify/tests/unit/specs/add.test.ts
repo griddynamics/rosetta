@@ -6,7 +6,8 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { cmdAdd } from "../../../src/commands/specs/add.js";
-import { loadSpecs, saveSpecs } from "../../../src/commands/specs/core.js";
+import { loadSpecs, saveSpecs, RESERVED_NFR_AREAS } from "../../../src/commands/specs/core.js";
+import { SPECS_MAX_EVIDENCE_PER_SPEC } from "../../../src/shared/constants.js";
 import { makeAddItem, makeDoc, makeSpec } from "../../fixtures/specs.js";
 import type { SpecWriteResult } from "../../../src/commands/specs/output.js";
 
@@ -74,7 +75,7 @@ describe("cmdAdd — happy path", () => {
     const file = specsFile();
     const result = await cmdAdd(file, [makeAddItem()]);
     const write = result.result as SpecWriteResult;
-    expect(write.document.component).toBe("");
+    expect(write.document.system).toBe("");
     expect(write.document.total).toBe(1);
     expect(write.document.previous_version).toBeNull();
   });
@@ -111,6 +112,71 @@ describe("cmdAdd — field defaulting edge cases", () => {
     expect(doc.specs[0]!.level).toBe("Component");
   });
 
+  // FR-SPECS-0001 AC3 — the command assigns an omitted criterion id, so a caller may supply some
+  // and leave the rest to the tool; a supplied id is never renumbered, only checked.
+  it("assigns <spec-id>.AC<n> to a criterion supplied without an id", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [makeAddItem()]);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.specs[0]!.acceptance[0]!.id).toBe("FR-CHK-0001.AC1");
+  });
+
+  it("numbers several id-less criteria in order", async () => {
+    const file = specsFile();
+    const criterion = { ears: "ubiquitous", system: "the system", shall: "act" };
+    const result = await cmdAdd(file, [makeAddItem({ acceptance: [criterion, { ...criterion }] })]);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.specs[0]!.acceptance.map((c) => c.id)).toEqual(["FR-CHK-0001.AC1", "FR-CHK-0001.AC2"]);
+  });
+
+  it("never renumbers a criterion id the caller supplied", async () => {
+    const file = specsFile();
+    const supplied = { id: "FR-CHK-0001.AC5", ears: "ubiquitous", system: "the system", shall: "act" };
+    const bare = { ears: "event", when: "a trigger arrives", system: "the system", shall: "respond" };
+    const result = await cmdAdd(file, [makeAddItem({ acceptance: [supplied, bare] })]);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.specs[0]!.acceptance.map((c) => c.id)).toEqual(["FR-CHK-0001.AC5", "FR-CHK-0001.AC1"]);
+  });
+
+  it("stores a criterion's condition word alongside its pattern", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [
+      makeAddItem({ acceptance: [{ ears: "unwanted", if: "the card is declined", system: "the system", shall: "hold the order" }] }),
+    ]);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.specs[0]!.acceptance[0]).toEqual({
+      id: "FR-CHK-0001.AC1",
+      ears: "unwanted",
+      if: "the card is declined",
+      system: "the system",
+      shall: "hold the order",
+    });
+  });
+
+  // FR-SPECS-0001 — an empty subsystem/component means the author did not know the location,
+  // never that none applies, so both default to empty rather than being required.
+  it("defaults subsystem, component and evidence when they are omitted", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [makeAddItem()]);
+    expect(result.ok).toBe(true);
+    const spec = loadSpecs(file)!.specs[0]!;
+    expect(spec.subsystem).toBe("");
+    expect(spec.component).toBe("");
+    expect(spec.evidence).toEqual([]);
+  });
+
+  it("carries subsystem, component and evidence through when supplied", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [
+      makeAddItem({ level: "Component", subsystem: "checkout", component: "cart", evidence: ["src/cart.ts:10-24"] }),
+    ]);
+    expect(result.ok).toBe(true);
+    const spec = loadSpecs(file)!.specs[0]!;
+    expect(spec.subsystem).toBe("checkout");
+    expect(spec.component).toBe("cart");
+    expect(spec.evidence).toEqual(["src/cart.ts:10-24"]);
+  });
+
   it("carries through ticket_id and classification when supplied", async () => {
     const file = specsFile();
     const result = await cmdAdd(file, [makeAddItem({ ticket_id: "CTORNDGAIN-9999", classification: "business" })]);
@@ -142,7 +208,7 @@ describe("cmdAdd — field defaulting edge cases", () => {
     const file = specsFile();
     fs.writeFileSync(
       file,
-      JSON.stringify({ component: "x", description: "", created_at: "t", updated_at: "t", areas: [{ code: "CHK", name: "CHK" }] }),
+      JSON.stringify({ system: "x", description: "", created_at: "t", updated_at: "t", areas: [{ code: "CHK", name: "CHK" }] }),
     );
     const result = await cmdAdd(file, [makeAddItem()]);
     expect(result.ok).toBe(true);
@@ -160,13 +226,32 @@ describe("cmdAdd — area self-registration (FR-SPECS-0004)", () => {
     expect(doc.areas).toContainEqual({ code: "CLI", name: "CLI" });
   });
 
-  it("leaves areas unchanged when the area is already registered", async () => {
+  it("does not re-register or rename an area that is already registered", async () => {
     const file = specsFile();
     saveSpecs(file, makeDoc({ areas: [{ code: "CHK", name: "Checkout" }] }));
     const result = await cmdAdd(file, [makeAddItem({ id: "FR-CHK-0002" })]);
     expect(result.ok).toBe(true);
     const doc = loadSpecs(file)!;
-    expect(doc.areas).toEqual([{ code: "CHK", name: "Checkout" }]);
+    // The author's own name for CHK survives, and the code appears exactly once — autoRegisterAreas
+    // must not append a second {code:"CHK", name:"CHK"} beside it.
+    expect(doc.areas.filter((a) => a.code === "CHK")).toEqual([{ code: "CHK", name: "Checkout" }]);
+  });
+
+  // FR-SPECS-0004 AC7 — an existing document is never re-created, so the write path backfills the
+  // nine pre-registered quality-characteristic codes onto it.
+  it("backfills the nine reserved areas onto an existing document that lacks them", async () => {
+    const file = specsFile();
+    saveSpecs(file, makeDoc({ areas: [{ code: "CHK", name: "Checkout" }] }));
+    await cmdAdd(file, [makeAddItem({ id: "FR-CHK-0002" })]);
+    const doc = loadSpecs(file)!;
+    expect(doc.areas).toEqual([{ code: "CHK", name: "Checkout" }, ...RESERVED_NFR_AREAS]);
+  });
+
+  it("accepts an NFR against a reserved area without registering anything new", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [makeAddItem({ id: "NFR-PERF-0001", type: "NFR" })]);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.areas).toEqual([...RESERVED_NFR_AREAS]);
   });
 });
 
@@ -230,6 +315,86 @@ describe("cmdAdd — validation errors", () => {
     const result = await cmdAdd(file, [makeAddItem({ verification: "Vibes" })]);
     expect(result.ok).toBe(false);
     expect(result.error).toContain("invalid_verification");
+  });
+
+  // FR-SPECS-0001 — a supplied level is held to the enum exactly like `type`, so a typo is
+  // refused rather than silently laundered into the "System" default.
+  it("returns invalid_level for a level outside the enum", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [makeAddItem({ level: "Module" })]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("invalid_level");
+    expect(result.error).toContain("FR-CHK-0001");
+  });
+
+  it("defaults level to System when it is omitted entirely", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [makeAddItem()]);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.specs[0]!.level).toBe("System");
+  });
+
+  it("defaults level to System when it is supplied as an empty string", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [makeAddItem({ level: "" })]);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.specs[0]!.level).toBe("System");
+  });
+
+  // FR-SPECS-0009 — the id prefix and `type` must agree, because the id can never change
+  // afterwards and a disagreeing pair could only be deleted and re-authored.
+  it("returns id_type_mismatch when the type disagrees with the id prefix", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [makeAddItem({ id: "NFR-PERF-0001", type: "FR" })]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("id_type_mismatch");
+  });
+
+  it("returns invalid_ears when a criterion declares a pattern outside the five", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [
+      makeAddItem({ acceptance: [{ ears: "continuous", system: "the system", shall: "act" }] }),
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("invalid_ears");
+  });
+
+  it("returns missing_required_field when a criterion names no responder", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [makeAddItem({ acceptance: [{ ears: "ubiquitous", system: "", shall: "act" }] })]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("missing_required_field");
+  });
+
+  it("returns missing_required_field when a criterion names no outcome", async () => {
+    const file = specsFile();
+    const result = await cmdAdd(file, [makeAddItem({ acceptance: [{ ears: "ubiquitous", system: "the system", shall: "" }] })]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("missing_required_field");
+  });
+
+  it("returns duplicate_criterion_id when two criteria in one unit share an id", async () => {
+    const file = specsFile();
+    const criterion = { id: "FR-CHK-0001.AC1", ears: "ubiquitous", system: "the system", shall: "act" };
+    const result = await cmdAdd(file, [makeAddItem({ acceptance: [criterion, { ...criterion }] })]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("duplicate_criterion_id");
+  });
+
+  it("returns size_limit_exceeded when a spec cites more than the maximum evidence locations", async () => {
+    const file = specsFile();
+    const evidence = Array.from({ length: SPECS_MAX_EVIDENCE_PER_SPEC + 1 }, (_, i) => `src/cart.ts:${i + 1}-${i + 2}`);
+    const result = await cmdAdd(file, [makeAddItem({ evidence })]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("size_limit_exceeded");
+  });
+
+  it("accepts a spec citing exactly the maximum evidence locations", async () => {
+    const file = specsFile();
+    const evidence = Array.from({ length: SPECS_MAX_EVIDENCE_PER_SPEC }, (_, i) => `src/cart.ts:${i + 1}-${i + 2}`);
+    const result = await cmdAdd(file, [makeAddItem({ evidence })]);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.specs[0]!.evidence).toHaveLength(SPECS_MAX_EVIDENCE_PER_SPEC);
   });
 
   it("returns duplicate_id when the id already exists in the document", async () => {
