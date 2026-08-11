@@ -68,21 +68,43 @@ describe("runSpecs — central data JSON parsing", () => {
 
   it("accepts data already as an object (non-string, e.g. from MCP)", async () => {
     const file = specsFile();
-    const result = await specsToolDef.run({ subcommand: "add", specs_file: file, data: makeAddItem() });
+    const result = await specsToolDef.run({ subcommand: "add", specs_file: file, data: makeAddItem(), system: "checkout" });
     expect(result.ok).toBe(true);
   });
 
   it("accepts data as a JSON string", async () => {
     const file = specsFile();
-    const result = await specsToolDef.run({ subcommand: "add", specs_file: file, data: JSON.stringify(makeAddItem()) });
+    const result = await specsToolDef.run({
+      subcommand: "add",
+      specs_file: file,
+      data: JSON.stringify(makeAddItem()),
+      system: "checkout",
+    });
     expect(result.ok).toBe(true);
+  });
+});
+
+describe("runSpecs — system plumbing (FR-SPECS-0002)", () => {
+  it("rejects add without a system when the call would create the document", async () => {
+    const file = specsFile();
+    const result = await specsToolDef.run({ subcommand: "add", specs_file: file, data: makeAddItem() });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("missing_system");
+  });
+
+  it("flows the system input field through to the created document", async () => {
+    const file = specsFile();
+    const result = await specsToolDef.run({ subcommand: "add", specs_file: file, data: makeAddItem(), system: "checkout" });
+    expect(result.ok).toBe(true);
+    const write = result.result as { document: { system: string } };
+    expect(write.document.system).toBe("checkout");
   });
 });
 
 describe("runSpecs — batch normalization and size limit", () => {
   it("normalizes a single object into a batch of one for add", async () => {
     const file = specsFile();
-    const result = await specsToolDef.run({ subcommand: "add", specs_file: file, data: makeAddItem() });
+    const result = await specsToolDef.run({ subcommand: "add", specs_file: file, data: makeAddItem(), system: "checkout" });
     expect(result.ok).toBe(true);
     const write = result.result as { affected: unknown[] };
     expect(write.affected).toHaveLength(1);
@@ -240,7 +262,7 @@ describe("runSpecs — full routing coverage (specsFile+required-args present, e
         `<acceptance><criteria>Given: a When: b Then: c</criteria></acceptance></req>`,
     );
     const dest = specsFile();
-    const result = await specsToolDef.run({ subcommand: "migrate", specs_file: dest, sources: [src] });
+    const result = await specsToolDef.run({ subcommand: "migrate", specs_file: dest, sources: [src], system: "checkout" });
     expect(result.ok).toBe(true);
   });
 });

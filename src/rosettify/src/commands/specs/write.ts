@@ -18,7 +18,7 @@ import {
   validateReferences,
   validateDependsAcyclic,
 } from "./core.js";
-import { ERR_SPECS_FILE_CORRUPTED, ERR_SPECS_NOT_FOUND } from "./errors.js";
+import { ERR_MISSING_SYSTEM, ERR_SPECS_FILE_CORRUPTED, ERR_SPECS_NOT_FOUND, ERR_SYSTEM_MISMATCH } from "./errors.js";
 
 /**
  * A pure in-memory mutator over a working copy of the document. Returns the ids it touched
@@ -37,24 +37,39 @@ type MutateOutcome<T> =
  * Applies one write-path batch to a specs document (SPECS §7 algorithm):
  * 1. Resolve actor once (opts.actor, else the env/git/OS fallback chain) and the write
  *    timestamp once, so every affected spec in this batch shares identical stamps.
- * 2. Run `build` over the in-memory doc; on success, stamp every affected id's
+ * 2. Reconcile opts.system (when supplied) against the doc's stored `system` (FR-SPECS-0002):
+ *    a stored empty name adopts the supplied one, an identical name is a no-op, and a
+ *    different one is rejected with system_mismatch — before `build` runs.
+ * 3. Run `build` over the in-memory doc; on success, stamp every affected id's
  *    changed/changed_by, then run the post-batch integrity chain (FR-SPECS-0005/0007) in the
  *    order required by SPECS §5: size limits → unique ids → references → depends-acyclic.
- * 3. If `opts.allowCreate` and the file does not yet exist, bypass the atomic write cycle
+ * 4. If `opts.allowCreate` and the file does not yet exist, bypass the atomic write cycle
  *    entirely (mirrors plan's upsert first-create bypass) — build over a fresh document and
- *    save it directly; previous_version stays null.
- * 4. Otherwise route through the shared atomicWriteWithBackup (lock + backup + rename), with
+ *    save it directly; previous_version stays null. Creating without opts.system is rejected
+ *    with missing_system (FR-SPECS-0002) before the fresh document is even constructed.
+ * 5. Otherwise route through the shared atomicWriteWithBackup (lock + backup + rename), with
  *    specs' own not-found/corrupted error codes, and surface its backupPath as previous_version.
  */
 export async function applyBatchWrite<T>(
   file: string,
   build: BatchBuild<T>,
-  opts?: { allowCreate?: boolean; actor?: string },
+  opts?: { allowCreate?: boolean; actor?: string; system?: string },
 ): Promise<RunEnvelope<{ result: T; previous_version: string | null }>> {
   const actor = resolveActor(opts?.actor); // FR-SPECS-0041
   const ts = nowUtcZ(); // FR-SPECS-0042 — resolved once per call, shared by every affected spec
 
   function mutateFn(doc: SpecsDocument): MutateOutcome<T> {
+    // FR-SPECS-0002 — reconcile a supplied system name against what is stored, before `build`
+    // runs: an empty stored name adopts the supplied one (a legacy document's only path to
+    // acquire one), an identical name is accepted as a no-op, and a different one is rejected.
+    if (opts?.system) {
+      if (!doc.system) {
+        doc.system = opts.system;
+      } else if (doc.system !== opts.system) {
+        return { ok: false, error: ERR_SYSTEM_MISMATCH };
+      }
+    }
+
     const built = build(doc);
     if (!built.ok) return { ok: false, error: built.error };
 
@@ -79,7 +94,8 @@ export async function applyBatchWrite<T>(
 
   // FR-SPECS-0002 — first-ever create bypasses the rename-as-guard cycle (nothing to rename yet).
   if (opts?.allowCreate && !fs.existsSync(file)) {
-    const outcome = mutateFn(newDocument());
+    if (!opts?.system) return err(ERR_MISSING_SYSTEM, true); // absent-argument usage error, like missing_data
+    const outcome = mutateFn(newDocument(opts.system));
     if (!outcome.ok) return err(outcome.error);
     saveSpecs(file, outcome.updated); // previous_version stays null on first create
     return ok({ result: outcome.result, previous_version: null });

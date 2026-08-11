@@ -16,7 +16,6 @@ import {
 } from "../../shared/constants.js";
 import {
   ERR_INVALID_ID_FORMAT,
-  ERR_UNKNOWN_AREA,
   ERR_INVALID_TYPE,
   ERR_INVALID_SOURCE,
   ERR_INVALID_PRIORITY,
@@ -26,7 +25,6 @@ import {
   ERR_DUPLICATE_ID,
   ERR_UNKNOWN_DEPENDENCY,
   ERR_SIZE_LIMIT_EXCEEDED,
-  ERR_IMMUTABLE_ID,
   ERR_INVALID_LEVEL,
   ERR_INVALID_EARS,
   ERR_DUPLICATE_CRITERION_ID,
@@ -253,20 +251,23 @@ export function validateIdFormat(id: string): string | null {
 }
 
 /**
- * FR-SPECS-0004 — AREA must be registered in doc.areas. Callers that auto-register new areas
- * (add, migrate) MUST call autoRegisterAreas() over the batch's ids before this check, so a
- * new AREA introduced by the same call is not rejected. An id that fails ID_RE is not this
- * function's concern (validateIdFormat covers it) — an unparseable id is treated as passing
- * here so the two errors don't collide on the same item.
+ * FR-SPECS-0004/0021 — true when spec's AREA is not registered in doc.areas. validate-only: on
+ * every write path (add, migrate) autoRegisterAreas() registers a brand-new AREA before this
+ * would ever run, so a write is never refused for introducing one (registration on first use).
+ * What remains reachable is a hand-edited or externally-assembled document naming an area the
+ * registry does not hold, which validate (FR-SPECS-0021) reports as an `area_registration`
+ * finding at error severity. An id that fails ID_RE is not this function's concern
+ * (validateIdFormat covers it) — an unparseable id is treated as registered so the two checks
+ * don't collide on the same item.
  */
-export function validateAreaRegistration(spec: Spec, doc: SpecsDocument): string | null {
+export function validateAreaRegistration(spec: Spec, doc: SpecsDocument): boolean {
   const parsed = parseId(spec.id);
-  if (!parsed) return null;
+  if (!parsed) return false;
   // FR-SPECS-0004 AC4 — the nine reserved codes count as registered even when a legacy document's
   // registry has not yet materialised them, so a read-only pass over such a document stays clean.
-  if (RESERVED_NFR_AREAS.some((a) => a.code === parsed.area)) return null;
+  if (RESERVED_NFR_AREAS.some((a) => a.code === parsed.area)) return false;
   const registered = (doc.areas ?? []).some((a) => a.code === parsed.area);
-  return registered ? null : ERR_UNKNOWN_AREA;
+  return !registered;
 }
 
 /**
@@ -285,10 +286,9 @@ export function ensureReservedAreas(doc: SpecsDocument): void {
 }
 
 /**
- * FR-SPECS-0004 — for each id whose AREA is not yet in doc.areas, registers it with the
- * default name (name = code). add/migrate call this BEFORE validateAreaRegistration so a
- * batch introducing a brand-new area succeeds instead of being rejected unknown_area.
- * update never calls this — it introduces no new ids.
+ * FR-SPECS-0004 — for each id whose AREA is not yet in doc.areas, registers it with the default
+ * name (name = code), so a write introducing a brand-new area is never refused (registration on
+ * first use). update never calls this — it introduces no new ids.
  */
 export function autoRegisterAreas(doc: SpecsDocument, ids: string[]): void {
   doc.areas = doc.areas ?? [];
@@ -299,12 +299,6 @@ export function autoRegisterAreas(doc: SpecsDocument, ids: string[]): void {
       doc.areas.push({ code: parsed.area, name: parsed.area });
     }
   }
-}
-
-/** FR-SPECS-0004 — update/patch MUST NOT change a spec's id. Reuses the plan pattern. */
-export function validateImmutableId(patchId: string | undefined, targetId: string): string | null {
-  if (patchId !== undefined && patchId !== targetId) return ERR_IMMUTABLE_ID;
-  return null;
 }
 
 /** FR-SPECS-0003 — `type` must be one of SPEC_TYPES. */

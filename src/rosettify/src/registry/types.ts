@@ -72,6 +72,8 @@ export interface CommandInput {
   implementation_notes?: string;
   /** Explicit actor override (FR-SPECS-0041). */
   actor?: string;
+  /** Caller-supplied system name for add/migrate when the call would create the document (FR-SPECS-0002). */
+  system?: string;
   /** migrate — legacy markdown source paths (FR-SPECS-0025). */
   sources?: string[];
   /** query — include Removed specs even without an explicit status:Removed term (FR-SPECS-0011/0012). */

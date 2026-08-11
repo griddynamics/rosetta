@@ -22,7 +22,6 @@ import {
   stripGuarded,
   validateCriteria,
   validateIdTypeConsistency,
-  validateImmutableId,
   validateKnownFields,
   validateLevel,
   validatePriority,
@@ -83,17 +82,12 @@ export async function cmdUpdate(specsFile: string, patches: unknown[], actor?: s
         }
         const existing = doc.specs[idx]!;
 
-        // FR-SPECS-0013 — a patch body carrying a different id is rejected. This is
-        // STRUCTURALLY UNREACHABLE in this design: targetId (the lookup key used just above to
-        // find `existing`) IS patch["id"] itself, so validateImmutableId(targetId, existing.id)
-        // always compares targetId to itself and can never observe a mismatch. Kept anyway per
-        // SPECS §10 and the plan-upsert precedent it mirrors — a cheap defensive net that costs
-        // nothing and guards against a future refactor that changes how the target is resolved.
-        const immutableErr = validateImmutableId(targetId, existing.id);
-        if (immutableErr) {
-          rejects.push({ ref: targetId, reason: immutableErr });
-          return;
-        }
+        // FR-SPECS-0009 — a patch can never carry a different id than the one it targets: `id`
+        // is excluded from the merge below (immutable) and targetId (the lookup key used just
+        // above to find `existing`) IS patch["id"] itself, so there is no field through which a
+        // patch body could disagree with its own target. No immutable-id check runs here because
+        // there is nothing left for one to observe (see tests/unit/specs/update.test.ts's test
+        // proving the real-world guarantee directly).
 
         // FR-SPECS-0040 — guarded fields silently dropped; `id` is excluded from the merge
         // itself (immutable), never passed to mergePatch at all.

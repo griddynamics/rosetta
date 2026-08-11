@@ -684,6 +684,9 @@ describe("MCP — specs add -> get round trip", () => {
     const addRes = await client.callTool("specs", {
       subcommand: "add",
       specs_file: file,
+      // FR-SPECS-0002 — creating a document over MCP requires a caller-supplied system, exactly
+      // like the CLI's --system flag; this is the MCP-side evidence for that plumbing.
+      system: "checkout",
       data: {
         id: "FR-CHK-0001",
         type: "FR",

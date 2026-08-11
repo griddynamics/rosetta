@@ -22,7 +22,6 @@ import {
   autoRegisterAreas,
   ensureReservedAreas,
   stripGuarded,
-  validateAreaRegistration,
   validateCriteria,
   validateIdFormat,
   validateIdTypeConsistency,
@@ -134,7 +133,12 @@ function prepareItem(raw: unknown, index: number): { spec: Spec } | { reject: Re
  * code-based; the aggregate's leading `code` reuses the first violation's own code, since SPECS
  * §13 names no separate umbrella code for a mixed-cause batch rejection.
  */
-export async function cmdAdd(specsFile: string, items: unknown[], actor?: string): Promise<RunEnvelope<SpecWriteResult>> {
+export async function cmdAdd(
+  specsFile: string,
+  items: unknown[],
+  actor?: string,
+  system?: string,
+): Promise<RunEnvelope<SpecWriteResult>> {
   try {
     if (!items || items.length === 0) return err(ERR_MISSING_DATA, true);
 
@@ -161,13 +165,11 @@ export async function cmdAdd(specsFile: string, items: unknown[], actor?: string
       // alone would never reach it; backfilling here on the write path is what makes the guarantee
       // hold for a pre-existing document. Idempotent, and it never renames an existing entry.
       ensureReservedAreas(doc);
-      // FR-SPECS-0004 — register any new AREA before the registration check below, so a batch
-      // introducing a brand-new area succeeds instead of being rejected unknown_area.
+      // FR-SPECS-0004 — a write naming an area the registry does not hold registers it, taking
+      // the code itself as the name, so a write is never refused for introducing an area
+      // (registration on first use). validateAreaRegistration is validate-only (FR-SPECS-0021):
+      // it exists to flag a hand-edited document naming an area this call never registered.
       autoRegisterAreas(doc, newIds);
-      for (const spec of prepared) {
-        const areaErr = validateAreaRegistration(spec, doc);
-        if (areaErr) return { ok: false, error: aggregate(areaErr, [{ ref: spec.id, reason: areaErr }]) };
-      }
 
       doc.specs = [...(doc.specs ?? []), ...prepared];
       // previous_version is a placeholder here — the real backup path is only known after
@@ -176,7 +178,7 @@ export async function cmdAdd(specsFile: string, items: unknown[], actor?: string
       return { ok: true, affected: newIds, result };
     };
 
-    const writeResult = await applyBatchWrite(specsFile, build, { allowCreate: true, actor });
+    const writeResult = await applyBatchWrite(specsFile, build, { allowCreate: true, actor, system });
     if (!writeResult.ok) {
       return { ok: false, result: null, error: writeResult.error, include_help: writeResult.include_help };
     }

@@ -156,11 +156,11 @@ describe("cmdUpdate — mergePatch recursion edge cases (RFC 7396 generic merge)
 
 describe("cmdUpdate — errors", () => {
   it("never changes a spec's id — the patch's id is always the lookup key, so the stored id is untouched by the patch body", async () => {
-    // FR-SPECS-0013's immutable_id error is structurally unreachable under id-as-target
-    // addressing (see update.ts's comment at the validateImmutableId call site): the patch's
-    // `id` IS how the target is found, so there is no way to author a patch whose body carries
-    // a "different" id than the one it targeted. What update.ts actually guarantees — and what
-    // this test verifies directly — is the real-world contract: after any successful update,
+    // FR-SPECS-0009's immutable-id guarantee is structurally enforced, not checked, under
+    // id-as-target addressing (see update.ts's comment where the target is resolved): the
+    // patch's `id` IS how the target is found, so there is no way to author a patch whose body
+    // carries a "different" id than the one it targeted. What update.ts actually guarantees — and
+    // what this test verifies directly — is the real-world contract: after any successful update,
     // the spec's id is exactly what it was before.
     const file = seedOne();
     const result = await cmdUpdate(file, [{ id: "FR-CHK-0001", title: "changed the title, not the id" }]);

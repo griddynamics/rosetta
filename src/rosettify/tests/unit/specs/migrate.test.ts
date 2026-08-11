@@ -35,6 +35,12 @@ function sourceFile(name: string, content: string): string {
   return file;
 }
 
+// FR-SPECS-0002 — creating a destination document now requires a caller-supplied system; every
+// call below that actually reaches the write path against a fresh destination carries this
+// constant. Calls that short-circuit before any write (source_not_found, migrate_parse_error, or
+// a batch with nothing to migrate) never touch document creation and need no system.
+const SYSTEM = "checkout";
+
 /** One unit in the canonical shape: single-value fields as attributes, prose as child elements,
  * the criterion self-closing with pattern attributes. */
 function canonicalUnit(id: string, title: string, extraAttrs = ""): string {
@@ -58,7 +64,7 @@ describe("cmdMigrate — happy path (canonical form)", () => {
   it("migrates three units and registers the encountered area", async () => {
     const src = sourceFile("units.md", THREE_REQ_SOURCE);
     const dest = specsFile();
-    const result = await cmdMigrate([src], dest);
+    const result = await cmdMigrate([src], dest, undefined, SYSTEM);
     expect(result.ok).toBe(true);
     expect(result.result!.migrated).toBe(3);
     const doc = loadSpecs(dest)!;
@@ -69,14 +75,14 @@ describe("cmdMigrate — happy path (canonical form)", () => {
   it("creates the destination document when it does not exist", async () => {
     const src = sourceFile("units.md", THREE_REQ_SOURCE);
     const dest = specsFile("new.json");
-    const result = await cmdMigrate([src], dest);
+    const result = await cmdMigrate([src], dest, undefined, SYSTEM);
     expect(result.ok).toBe(true);
     expect(fs.existsSync(dest)).toBe(true);
   });
 
   it("reports no skips and no warnings for canonical sources", async () => {
     const src = sourceFile("units.md", THREE_REQ_SOURCE);
-    const result = await cmdMigrate([src], specsFile());
+    const result = await cmdMigrate([src], specsFile(), undefined, SYSTEM);
     expect(result.result!.skipped).toEqual([]);
     expect(result.result!.warnings).toEqual([]);
   });
@@ -84,7 +90,7 @@ describe("cmdMigrate — happy path (canonical form)", () => {
   it("carries each unit's fields through to the stored spec", async () => {
     const src = sourceFile("units.md", canonicalUnit("FR-CHK-0001", "One"));
     const dest = specsFile();
-    await cmdMigrate([src], dest);
+    await cmdMigrate([src], dest, undefined, SYSTEM);
     const spec = loadSpecs(dest)!.specs[0]!;
     expect(spec.title).toBe("One");
     expect(spec.statement).toBe("The system shall do One.");
@@ -96,7 +102,7 @@ describe("cmdMigrate — happy path (canonical form)", () => {
   it("carries a criterion through with its pattern and condition word intact", async () => {
     const src = sourceFile("units.md", canonicalUnit("FR-CHK-0001", "One"));
     const dest = specsFile();
-    await cmdMigrate([src], dest);
+    await cmdMigrate([src], dest, undefined, SYSTEM);
     expect(loadSpecs(dest)!.specs[0]!.acceptance).toEqual([
       { id: "FR-CHK-0001.AC1", ears: "event", when: "a trigger arrives", system: "the system", shall: "respond" },
     ]);
@@ -112,7 +118,7 @@ describe("cmdMigrate — happy path (canonical form)", () => {
       </req>`,
     );
     const dest = specsFile();
-    await cmdMigrate([src], dest);
+    await cmdMigrate([src], dest, undefined, SYSTEM);
     expect(loadSpecs(dest)!.specs[0]!.evidence).toEqual(["src/cart.ts:10-24", "src/total.ts:3-8"]);
   });
 
@@ -131,7 +137,7 @@ describe("cmdMigrate — happy path (canonical form)", () => {
   it("leaves changed_by empty rather than stamping the migrating actor", async () => {
     const src = sourceFile("units.md", canonicalUnit("FR-CHK-0001", "One"));
     const dest = specsFile();
-    await cmdMigrate([src], dest, "alice");
+    await cmdMigrate([src], dest, "alice", SYSTEM);
     expect(loadSpecs(dest)!.specs[0]!.changed_by).toBe("");
   });
 });
@@ -158,7 +164,7 @@ describe("cmdMigrate — source_not_found", () => {
   it("skips a nonexistent source but still migrates the rest, recording it in skipped", async () => {
     const src = sourceFile("units.md", THREE_REQ_SOURCE);
     const dest = specsFile();
-    const result = await cmdMigrate([specsFile("missing.md"), src], dest);
+    const result = await cmdMigrate([specsFile("missing.md"), src], dest, undefined, SYSTEM);
     expect(result.ok).toBe(true);
     expect(result.result!.migrated).toBe(3);
     expect(result.result!.skipped).toHaveLength(1);
@@ -254,7 +260,7 @@ describe("cmdMigrate — ticket_id and classification carried through when prese
   it("includes ticket_id/classification on the mapped spec when the source supplies them", async () => {
     const src = sourceFile("with-ticket.md", canonicalUnit("FR-CHK-0001", "X", `ticketId="CTORNDGAIN-9999" classification="business"`));
     const dest = specsFile();
-    const result = await cmdMigrate([src], dest);
+    const result = await cmdMigrate([src], dest, undefined, SYSTEM);
     expect(result.ok).toBe(true);
     const doc = loadSpecs(dest)!;
     expect(doc.specs[0]!.ticket_id).toBe("CTORNDGAIN-9999");
@@ -270,7 +276,7 @@ describe("cmdMigrate — a non-canonical unit is skipped, never reconstructed", 
   it("excludes only the id-less unit, migrating the rest and recording the exclusion", async () => {
     const src = sourceFile("mixed.md", `<req type="FR"><title>No id</title></req>` + canonicalUnit("FR-CHK-0001", "Has id"));
     const dest = specsFile();
-    const result = await cmdMigrate([src], dest);
+    const result = await cmdMigrate([src], dest, undefined, SYSTEM);
     expect(result.ok).toBe(true);
     expect(result.result!.migrated).toBe(1);
     expect(result.result!.skipped).toHaveLength(1);
@@ -285,7 +291,7 @@ describe("cmdMigrate — a non-canonical unit is skipped, never reconstructed", 
       `<req id="FR-CHK-0007"><type>FR</type><source>User</source><title>Old shape</title></req>` +
         canonicalUnit("FR-CHK-0001", "New shape"),
     );
-    const result = await cmdMigrate([src], specsFile());
+    const result = await cmdMigrate([src], specsFile(), undefined, SYSTEM);
     expect(result.result!.migrated).toBe(1);
     expect(result.result!.skipped[0]!.reason).toContain("single-value fields as child elements");
     expect(result.result!.skipped[0]!.reason).toContain("FR-CHK-0007");
@@ -339,7 +345,7 @@ describe("cmdMigrate — per-unit warnings on units that were still imported", (
       </req>`,
     );
     const dest = specsFile();
-    const result = await cmdMigrate([src], dest);
+    const result = await cmdMigrate([src], dest, undefined, SYSTEM);
     expect(result.ok).toBe(true);
     expect(result.result!.migrated).toBe(1);
     expect(result.result!.warnings.some((w) => w.check === "migrate_unparseable_changed")).toBe(true);

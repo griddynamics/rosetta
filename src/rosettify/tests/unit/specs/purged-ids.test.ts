@@ -58,10 +58,15 @@ function readDoc(file: string): SpecsDocument {
   return doc!;
 }
 
+// FR-SPECS-0002 — creating a document now requires a caller-supplied system. Every test below
+// creates its document with the first cmdAdd call in the test body; only that first call needs
+// this constant — every later call in the same test targets the now-existing file.
+const SYSTEM = "checkout";
+
 describe("purge records the id so it can never be reused (FR-SPECS-0009 AC4 / FR-SPECS-0016)", () => {
   it("writes the purged id into the document's purged_ids registry", async () => {
     const file = specsFile();
-    expect((await cmdAdd(file, [specInput("FR-CHK-0001")])).ok).toBe(true);
+    expect((await cmdAdd(file, [specInput("FR-CHK-0001")], undefined, SYSTEM)).ok).toBe(true);
     expect(readDoc(file).purged_ids).toEqual([]);
 
     const purge = await cmdPurge(file, ["FR-CHK-0001"], true);
@@ -75,7 +80,7 @@ describe("purge records the id so it can never be reused (FR-SPECS-0009 AC4 / FR
 
   it("rejects a later add that reuses a purged id, as duplicate_id", async () => {
     const file = specsFile();
-    expect((await cmdAdd(file, [specInput("FR-CHK-0001")])).ok).toBe(true);
+    expect((await cmdAdd(file, [specInput("FR-CHK-0001")], undefined, SYSTEM)).ok).toBe(true);
     expect((await cmdPurge(file, ["FR-CHK-0001"], true)).ok).toBe(true);
 
     const readd = await cmdAdd(file, [specInput("FR-CHK-0001", { title: "a different unit entirely" })]);
@@ -89,7 +94,7 @@ describe("purge records the id so it can never be reused (FR-SPECS-0009 AC4 / FR
 
   it("rejects the reuse even when the reusing item is only one of several in the batch", async () => {
     const file = specsFile();
-    expect((await cmdAdd(file, [specInput("FR-CHK-0001")])).ok).toBe(true);
+    expect((await cmdAdd(file, [specInput("FR-CHK-0001")], undefined, SYSTEM)).ok).toBe(true);
     expect((await cmdPurge(file, ["FR-CHK-0001"], true)).ok).toBe(true);
 
     const batch = await cmdAdd(file, [specInput("FR-CHK-0002"), specInput("FR-CHK-0001")]);
@@ -101,7 +106,7 @@ describe("purge records the id so it can never be reused (FR-SPECS-0009 AC4 / FR
 
   it("still admits a neighbouring id that was never purged", async () => {
     const file = specsFile();
-    expect((await cmdAdd(file, [specInput("FR-CHK-0001")])).ok).toBe(true);
+    expect((await cmdAdd(file, [specInput("FR-CHK-0001")], undefined, SYSTEM)).ok).toBe(true);
     expect((await cmdPurge(file, ["FR-CHK-0001"], true)).ok).toBe(true);
 
     const added = await cmdAdd(file, [specInput("FR-CHK-0002")]);
@@ -111,7 +116,7 @@ describe("purge records the id so it can never be reused (FR-SPECS-0009 AC4 / FR
 
   it("keeps every purged id, across separate purges, and never duplicates an entry", async () => {
     const file = specsFile();
-    expect((await cmdAdd(file, [specInput("FR-CHK-0001"), specInput("FR-CHK-0002")])).ok).toBe(true);
+    expect((await cmdAdd(file, [specInput("FR-CHK-0001"), specInput("FR-CHK-0002")], undefined, SYSTEM)).ok).toBe(true);
     expect((await cmdPurge(file, ["FR-CHK-0001"], true)).ok).toBe(true);
     expect((await cmdPurge(file, ["FR-CHK-0002"], true)).ok).toBe(true);
     // a repeat purge of an id already gone reports it missing and must not double-register it
@@ -131,7 +136,7 @@ describe("a refused purge leaves the registry untouched (FR-SPECS-0016)", () => 
     const added = await cmdAdd(file, [
       specInput("FR-CHK-0001"),
       specInput("FR-CHK-0002", { depends_on: ["FR-CHK-0001"] }),
-    ]);
+    ], undefined, SYSTEM);
     expect(added.ok).toBe(true);
 
     const before = readDoc(file);
@@ -153,7 +158,7 @@ describe("a refused purge leaves the registry untouched (FR-SPECS-0016)", () => 
 
   it("records nothing when the purge is refused for want of force", async () => {
     const file = specsFile();
-    expect((await cmdAdd(file, [specInput("FR-CHK-0001")])).ok).toBe(true);
+    expect((await cmdAdd(file, [specInput("FR-CHK-0001")], undefined, SYSTEM)).ok).toBe(true);
     const before = readDoc(file);
 
     const purge = await cmdPurge(file, ["FR-CHK-0001"], false);
@@ -167,7 +172,7 @@ describe("a refused purge leaves the registry untouched (FR-SPECS-0016)", () => 
 
   it("registers nothing for a target that does not exist", async () => {
     const file = specsFile();
-    expect((await cmdAdd(file, [specInput("FR-CHK-0001")])).ok).toBe(true);
+    expect((await cmdAdd(file, [specInput("FR-CHK-0001")], undefined, SYSTEM)).ok).toBe(true);
 
     const purge = await cmdPurge(file, ["FR-CHK-9999"], true);
     expect(purge.ok).toBe(true);
@@ -183,7 +188,7 @@ describe("a refused purge leaves the registry untouched (FR-SPECS-0016)", () => 
     const file = specsFile();
     expect(
       (
-        await cmdAdd(file, [specInput("FR-CHK-0001"), specInput("FR-CHK-0002", { depends_on: ["FR-CHK-0001"] })])
+        await cmdAdd(file, [specInput("FR-CHK-0001"), specInput("FR-CHK-0002", { depends_on: ["FR-CHK-0001"] })], undefined, SYSTEM)
       ).ok,
     ).toBe(true);
 
@@ -199,7 +204,7 @@ describe("a refused purge leaves the registry untouched (FR-SPECS-0016)", () => 
 describe("a soft-deleted id collides naturally (FR-SPECS-0009)", () => {
   it("is refused as a duplicate without any registry entry, because the removed spec stays in the document", async () => {
     const file = specsFile();
-    expect((await cmdAdd(file, [specInput("FR-CHK-0001")])).ok).toBe(true);
+    expect((await cmdAdd(file, [specInput("FR-CHK-0001")], undefined, SYSTEM)).ok).toBe(true);
 
     const del = await cmdDelete(file, ["FR-CHK-0001"]);
     expect(del.ok).toBe(true);
@@ -220,7 +225,7 @@ describe("a soft-deleted id collides naturally (FR-SPECS-0009)", () => {
 
   it("stays taken after the removed spec is purged too — now via the registry", async () => {
     const file = specsFile();
-    expect((await cmdAdd(file, [specInput("FR-CHK-0001")])).ok).toBe(true);
+    expect((await cmdAdd(file, [specInput("FR-CHK-0001")], undefined, SYSTEM)).ok).toBe(true);
     expect((await cmdDelete(file, ["FR-CHK-0001"])).ok).toBe(true);
     expect((await cmdPurge(file, ["FR-CHK-0001"], true)).ok).toBe(true);
 

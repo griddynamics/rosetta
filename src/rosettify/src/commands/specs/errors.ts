@@ -19,8 +19,6 @@ export const ERR_MISSING_ID = "missing_id";
 export const ERR_DUPLICATE_ID = "duplicate_id";
 /** FR-SPECS-0004 — a spec id does not match the `<PREFIX>-<AREA>-<NNNN>` format. */
 export const ERR_INVALID_ID_FORMAT = "invalid_id_format";
-/** FR-SPECS-0004 — a spec's AREA is not registered in the document and the call does not register it. */
-export const ERR_UNKNOWN_AREA = "unknown_area";
 /** FR-SPECS-0003 — a spec's `type` is not one of FR, NFR, INT, DATA. */
 export const ERR_INVALID_TYPE = "invalid_type";
 /** FR-SPECS-0001 — a spec's `level` is not one of System, Subsystem, Component. */
@@ -45,8 +43,6 @@ export const ERR_UNKNOWN_DEPENDENCY = "unknown_dependency";
 export const ERR_DEPENDENCY_CYCLE = "dependency_cycle";
 /** FR-SPECS-0007 — a configured size limit was exceeded. */
 export const ERR_SIZE_LIMIT_EXCEEDED = "size_limit_exceeded";
-/** FR-SPECS-0004, FR-SPECS-0009 — a patch attempted to change a spec's id. */
-export const ERR_IMMUTABLE_ID = "immutable_id";
 /** FR-SPECS-0009 — a spec's `type` disagrees with the prefix of its own id (add and update alike). */
 export const ERR_ID_TYPE_MISMATCH = "id_type_mismatch";
 /** FR-SPECS-0013 — a target spec id does not exist in the document. */
@@ -73,6 +69,10 @@ export const ERR_INVALID_FORMAT = "invalid_format";
 export const ERR_SOURCE_NOT_FOUND = "source_not_found";
 /** FR-SPECS-0025 — a migrate source contained no parseable spec blocks. */
 export const ERR_MIGRATE_PARSE_ERROR = "migrate_parse_error";
+/** FR-SPECS-0002 — add/migrate would create a document but named no system. */
+export const ERR_MISSING_SYSTEM = "missing_system";
+/** FR-SPECS-0002 — a caller-supplied system name disagrees with the document's stored one. */
+export const ERR_SYSTEM_MISMATCH = "system_mismatch";
 
 /**
  * FR-SPECS-0070 — rename-as-guard write cycle exhausted retries. Shared with `plan` (not
@@ -95,7 +95,6 @@ export const TEMPLATES: Readonly<Record<string, string>> = {
   [ERR_MISSING_ID]: "A spec item is missing its required id.",
   [ERR_DUPLICATE_ID]: "A spec id is already used by another spec in this document.",
   [ERR_INVALID_ID_FORMAT]: "A spec id does not match the required <PREFIX>-<AREA>-<NNNN> format.",
-  [ERR_UNKNOWN_AREA]: "A spec's area is not registered in this document.",
   [ERR_INVALID_TYPE]: "A spec's type is not one of FR, NFR, INT, DATA.",
   [ERR_INVALID_LEVEL]: "A spec's level is not one of System, Subsystem, Component.",
   [ERR_INVALID_SOURCE]: "A spec's source is not one of User, Inferred, Sources, Documentation.",
@@ -108,7 +107,6 @@ export const TEMPLATES: Readonly<Record<string, string>> = {
   [ERR_UNKNOWN_DEPENDENCY]: "A depends_on or related reference points to an id that does not exist in this document.",
   [ERR_DEPENDENCY_CYCLE]: "A depends_on reference would create a cycle.",
   [ERR_SIZE_LIMIT_EXCEEDED]: "A configured size limit was exceeded.",
-  [ERR_IMMUTABLE_ID]: "A patch attempted to change a spec's id.",
   [ERR_ID_TYPE_MISMATCH]: "A spec's type does not agree with the prefix of its own id.",
   [ERR_TARGET_NOT_FOUND]: "A target spec id does not exist in this document.",
   [ERR_INVALID_IMPLEMENTATION]: "The implementation value is not one of the allowed values.",
@@ -122,6 +120,8 @@ export const TEMPLATES: Readonly<Record<string, string>> = {
   [ERR_INVALID_FORMAT]: "The requested render format is not supported.",
   [ERR_SOURCE_NOT_FOUND]: "A migration source path does not exist.",
   [ERR_MIGRATE_PARSE_ERROR]: "A migration source contained no parseable spec blocks.",
+  [ERR_MISSING_SYSTEM]: "Creating a document requires a system name.",
+  [ERR_SYSTEM_MISMATCH]: "The supplied system name does not match the one already stored in this document.",
 };
 
 /** Returns the generic template for a code, or the code itself if it has no authored template. */

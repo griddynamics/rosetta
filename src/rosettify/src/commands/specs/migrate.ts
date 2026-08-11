@@ -67,7 +67,12 @@ function toFullSpec(partial: Partial<Spec>): Spec {
   };
 }
 
-export async function cmdMigrate(sources: string[], specsFile: string, actor?: string): Promise<RunEnvelope<SpecMigrateResult>> {
+export async function cmdMigrate(
+  sources: string[],
+  specsFile: string,
+  actor?: string,
+  system?: string,
+): Promise<RunEnvelope<SpecMigrateResult>> {
   try {
     const warnings: SpecFinding[] = [];
     const skipped: SpecSkipped[] = [];
@@ -137,7 +142,7 @@ export async function cmdMigrate(sources: string[], specsFile: string, actor?: s
       return { ok: true, affected: [], result: { migrated: pending.length, sources: sources ?? [], warnings, skipped } };
     };
 
-    const writeResult = await applyBatchWrite(specsFile, build, { allowCreate: true, actor });
+    const writeResult = await applyBatchWrite(specsFile, build, { allowCreate: true, actor, system });
     if (!writeResult.ok) {
       return { ok: false, result: null, error: writeResult.error, include_help: writeResult.include_help };
     }

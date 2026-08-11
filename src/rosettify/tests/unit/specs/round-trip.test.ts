@@ -23,6 +23,9 @@ import { cmdValidate } from "../../../src/commands/specs/validate.js";
 import { loadSpecs, type Spec, type SpecsDocument } from "../../../src/commands/specs/core.js";
 
 const ACTOR = "round-trip-actor";
+// FR-SPECS-0002 — creating a document now requires a caller-supplied system; every helper below
+// that creates a fresh document (via cmdAdd/cmdMigrate) carries this constant.
+const SYSTEM = "checkout";
 
 let tmpDir: string;
 
@@ -78,7 +81,7 @@ async function roundTrip(sourceFile: string): Promise<SpecsDocument> {
   fs.writeFileSync(markupFile, rendered.result!.content, "utf8");
 
   const destination = path.join(pass, "round-tripped.json");
-  const migrated = await cmdMigrate([markupFile], destination, ACTOR);
+  const migrated = await cmdMigrate([markupFile], destination, ACTOR, SYSTEM);
   expect(migrated.ok, `migrate failed: ${migrated.error}`).toBe(true);
   expect(migrated.result!.skipped, "nothing rendered by this command should be unreadable by it").toEqual([]);
   return readDoc(destination);
@@ -134,7 +137,7 @@ describe("render -> migrate is an exact inverse (FR-SPECS-0023/0025)", () => {
   /** Builds a document holding one fully populated, approved, implemented unit plus its target. */
   async function buildRichDocument(): Promise<{ file: string; original: Spec }> {
     const file = tmp("specs.json");
-    const added = await cmdAdd(file, [plainSpec("FR-CHK-0002"), richSpec("FR-CHK-0001", "FR-CHK-0002")], ACTOR);
+    const added = await cmdAdd(file, [plainSpec("FR-CHK-0002"), richSpec("FR-CHK-0001", "FR-CHK-0002")], ACTOR, SYSTEM);
     expect(added.ok, `add failed: ${added.error}`).toBe(true);
 
     // approve fills approved_by and moves status, so the round trip covers the approval group.
@@ -254,6 +257,7 @@ describe("special characters survive escaping and unescaping (FR-SPECS-0023/0025
         },
       ],
       ACTOR,
+      SYSTEM,
     );
     expect(added.ok, `add failed: ${added.error}`).toBe(true);
     return { file, original: specById(readDoc(file), "FR-CHK-0007") };
@@ -318,7 +322,7 @@ describe("a criterion whose condition word disagrees with its pattern is importe
     const source = tmp("mismatched.md");
     fs.writeFileSync(source, MISMATCHED, "utf8");
     const destination = tmp("specs.json");
-    const migrated = await cmdMigrate([source], destination, ACTOR);
+    const migrated = await cmdMigrate([source], destination, ACTOR, SYSTEM);
     expect(migrated.ok, `migrate failed: ${migrated.error}`).toBe(true);
     expect(migrated.result!.migrated).toBe(1);
     expect(migrated.result!.skipped).toEqual([]);
@@ -396,7 +400,7 @@ describe("a non-canonical unit is skipped with a stated reason, never inferred (
     const source = tmp("mixed.md");
     fs.writeFileSync(source, SOURCE, "utf8");
     const destination = tmp("specs.json");
-    const migrated = await cmdMigrate([source], destination, ACTOR);
+    const migrated = await cmdMigrate([source], destination, ACTOR, SYSTEM);
     expect(migrated.ok, `migrate failed: ${migrated.error}`).toBe(true);
     expect(migrated.result!.migrated).toBe(1); // only the canonical one counts
     return { destination, reasons: migrated.result!.skipped.map((s) => s.reason) };
@@ -440,7 +444,7 @@ describe("a non-canonical unit is skipped with a stated reason, never inferred (
   it("records one skip entry per unit, each naming the source it came from", async () => {
     const source = tmp("mixed.md");
     fs.writeFileSync(source, SOURCE, "utf8");
-    const migrated = await cmdMigrate([source], tmp("specs.json"), ACTOR);
+    const migrated = await cmdMigrate([source], tmp("specs.json"), ACTOR, SYSTEM);
     expect(migrated.result!.skipped).toHaveLength(2);
     for (const entry of migrated.result!.skipped) expect(entry.source).toBe(source);
   });
@@ -467,6 +471,7 @@ describe("an empty condition-word attribute is not emitted (FR-SPECS-0023)", () 
         },
       ],
       ACTOR,
+      SYSTEM,
     );
     expect(added.ok, `add failed: ${added.error}`).toBe(true);
 
@@ -508,6 +513,7 @@ describe("an empty condition-word attribute is not emitted (FR-SPECS-0023)", () 
             },
           ],
           ACTOR,
+          SYSTEM,
         )
       ).ok,
     ).toBe(true);

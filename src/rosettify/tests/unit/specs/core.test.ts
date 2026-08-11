@@ -12,7 +12,6 @@ import {
   validateIdFormat,
   validateAreaRegistration,
   autoRegisterAreas,
-  validateImmutableId,
   validateType,
   validateLevel,
   validateEars,
@@ -118,31 +117,34 @@ describe("parseId — FR-SPECS-0004", () => {
 // validateAreaRegistration / autoRegisterAreas — FR-SPECS-0004
 // ---------------------------------------------------------------------------
 
-describe("validateAreaRegistration — FR-SPECS-0004", () => {
-  it("returns null when the area is registered", () => {
+// FR-SPECS-0021 — validate-only now: on every write path autoRegisterAreas() registers a
+// brand-new area before this could ever fire, so the boolean it returns is read only by
+// validate's area_registration check (see validate.test.ts for that reachable path).
+describe("validateAreaRegistration — FR-SPECS-0004/0021", () => {
+  it("returns false when the area is registered", () => {
     const doc = makeDoc({ areas: [{ code: "CHK", name: "Checkout" }] });
     const spec = makeSpec({ id: "FR-CHK-0001" });
-    expect(validateAreaRegistration(spec, doc)).toBeNull();
+    expect(validateAreaRegistration(spec, doc)).toBe(false);
   });
 
-  it("returns unknown_area when the area is not registered", () => {
+  it("returns true when the area is not registered", () => {
     const doc = makeDoc({ areas: [] });
     const spec = makeSpec({ id: "FR-XYZ-0001" });
-    expect(validateAreaRegistration(spec, doc)).toBe("unknown_area");
+    expect(validateAreaRegistration(spec, doc)).toBe(true);
   });
 
-  it("returns null (defers to validateIdFormat) for an unparseable id", () => {
+  it("returns false (defers to validateIdFormat) for an unparseable id", () => {
     const doc = makeDoc({ areas: [] });
     const spec = makeSpec({ id: "not-an-id" });
-    expect(validateAreaRegistration(spec, doc)).toBeNull();
+    expect(validateAreaRegistration(spec, doc)).toBe(false);
   });
 
   // FR-SPECS-0004 AC4 — the nine reserved codes count as registered even in a legacy document
   // whose registry has not materialised them, so a read-only pass stays clean.
-  it.each(RESERVED_NFR_AREAS.map((a) => a.code))("returns null for reserved code %s even when areas is empty", (code) => {
+  it.each(RESERVED_NFR_AREAS.map((a) => a.code))("returns false for reserved code %s even when areas is empty", (code) => {
     const doc = makeDoc({ areas: [] });
     const spec = makeSpec({ id: `NFR-${code}-0001`, type: "NFR" });
-    expect(validateAreaRegistration(spec, doc)).toBeNull();
+    expect(validateAreaRegistration(spec, doc)).toBe(false);
   });
 });
 
@@ -169,24 +171,6 @@ describe("autoRegisterAreas — FR-SPECS-0004 (add/migrate self-registration)", 
     const doc = makeDoc({ areas: [] });
     autoRegisterAreas(doc, ["not-an-id"]);
     expect(doc.areas).toEqual([]);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// validateImmutableId — FR-SPECS-0004
-// ---------------------------------------------------------------------------
-
-describe("validateImmutableId — FR-SPECS-0004", () => {
-  it("returns null when patch id matches target id", () => {
-    expect(validateImmutableId("FR-CHK-0001", "FR-CHK-0001")).toBeNull();
-  });
-
-  it("returns null when patch carries no id at all", () => {
-    expect(validateImmutableId(undefined, "FR-CHK-0001")).toBeNull();
-  });
-
-  it("returns immutable_id when patch id differs from target id", () => {
-    expect(validateImmutableId("FR-CHK-0002", "FR-CHK-0001")).toBe("immutable_id");
   });
 });
 
@@ -796,7 +780,7 @@ describe("validateSizeLimits — FR-SPECS-0007", () => {
 describe("validators — defensive fallback when optional array fields are literally undefined", () => {
   it("validateAreaRegistration treats a doc with areas undefined as unregistered", () => {
     const doc = { specs: [] } as unknown as Parameters<typeof validateAreaRegistration>[1];
-    expect(validateAreaRegistration(makeSpec({ id: "FR-CHK-0001" }), doc)).toBe("unknown_area");
+    expect(validateAreaRegistration(makeSpec({ id: "FR-CHK-0001" }), doc)).toBe(true);
   });
 
   it("autoRegisterAreas initializes doc.areas when it is undefined", () => {
@@ -972,6 +956,6 @@ describe("newDocument — FR-SPECS-0002", () => {
 
   it("accepts an NFR against a reserved area with no further registration", () => {
     const doc = newDocument("checkout");
-    expect(validateAreaRegistration(makeSpec({ id: "NFR-PERF-0001", type: "NFR" }), doc)).toBeNull();
+    expect(validateAreaRegistration(makeSpec({ id: "NFR-PERF-0001", type: "NFR" }), doc)).toBe(false);
   });
 });

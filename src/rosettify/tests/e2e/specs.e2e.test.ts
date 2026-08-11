@@ -113,7 +113,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("add creates the document and returns SpecWriteResult", () => {
     const file = specsFile();
-    const r = run(["specs", "add", file, ITEM_1]);
+    const r = run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     expect(r.status).toBe(0);
     expect((r.json as any).ok).toBeUndefined();
     const res = r.json as { document: { total: number; previous_version: unknown }; affected: { id: string; status: string }[] };
@@ -125,7 +125,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("info with specs present reports areas/totals/next_ids (not just the empty-document shape)", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r = run(["specs", "info", file]);
     expect(r.status).toBe(0);
     const res = r.json as {
@@ -140,7 +140,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("get retrieves the added spec by id, caller id not redacted", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r = run(["specs", "get", file, "FR-CHK-0001"]);
     expect(r.status).toBe(0);
     const res = r.json as { found: { id: string; title: string }[]; missing: string[] };
@@ -151,7 +151,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("query with a key:value filter and a leading '-' NOT term", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r1 = run(["specs", "query", file, "type:FR"]);
     expect(r1.status).toBe(0);
     expect((r1.json as { count: number }).count).toBe(1);
@@ -167,7 +167,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("validate reports a clean scope (ok=true)", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r = run(["specs", "validate", file]);
     expect(r.status).toBe(0);
     const res = r.json as { ok: boolean; error_count: number };
@@ -177,7 +177,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("approve moves the spec to Approved", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r = run(["specs", "approve", file, "FR-CHK-0001"]);
     expect(r.status).toBe(0);
     const res = r.json as { updated: { id: string; status: string }[] };
@@ -186,7 +186,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("implemented sets the implementation enum value", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const payload = JSON.stringify({ id: "FR-CHK-0001", implementation: "Implemented" });
     const r = run(["specs", "implemented", file, payload]);
     expect(r.status).toBe(0);
@@ -196,7 +196,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("deprecate moves the spec to Deprecated", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r = run(["specs", "deprecate", file, "FR-CHK-0001"]);
     expect(r.status).toBe(0);
     const res = r.json as { updated: { id: string; status: string }[] };
@@ -205,7 +205,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("reopen withdraws approval, moving an Approved spec back to Draft", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     run(["specs", "approve", file, "FR-CHK-0001"]);
     const r = run(["specs", "reopen", file, "FR-CHK-0001"]);
     expect(r.status).toBe(0);
@@ -215,7 +215,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("update on an Approved spec's statement moves it to Modified", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     run(["specs", "approve", file, "FR-CHK-0001"]);
     const patch = JSON.stringify({ id: "FR-CHK-0001", statement: "The system shall recompute totals differently." });
     const r = run(["specs", "update", file, patch]);
@@ -226,7 +226,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("graph on the target returns dependency closures", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const dependent = JSON.stringify({
       id: "FR-CHK-0002",
       type: "FR",
@@ -248,7 +248,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("render returns a markdown document containing the spec's id and title", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r = run(["specs", "render", file]);
     expect(r.status).toBe(0);
     const res = r.json as { format: string; content: string };
@@ -259,7 +259,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("delete soft-removes the spec (status=Removed, retained)", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r = run(["specs", "delete", file, "FR-CHK-0001"]);
     expect(r.status).toBe(0);
     const res = r.json as { removed: string[]; missing: string[] };
@@ -270,7 +270,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("restore brings a Removed spec back to Draft", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     run(["specs", "delete", file, "FR-CHK-0001"]);
     const r = run(["specs", "restore", file, "FR-CHK-0001"]);
     expect(r.status).toBe(0);
@@ -280,7 +280,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("purge without --force refuses with force_required", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r = run(["specs", "purge", file, "FR-CHK-0001"]);
     expect(r.status).toBe(1);
     expect((r.json as { error: string }).error).toBe("force_required");
@@ -288,7 +288,7 @@ describe("CLI — specs full lifecycle flow", () => {
 
   it("purge --force permanently removes the spec", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r = run(["specs", "purge", file, "FR-CHK-0001", "--force"]);
     expect(r.status).toBe(0);
     const res = r.json as { purged: string[] };
@@ -314,7 +314,7 @@ describe("CLI — specs full lifecycle flow", () => {
       </req>`,
     );
     const dest = specsFile("migrated.json");
-    const r = run(["specs", "migrate", dest, src]);
+    const r = run(["specs", "migrate", dest, src, "--system", "checkout"]);
     expect(r.status).toBe(0);
     const res = r.json as { migrated: number; skipped: unknown[] };
     expect(res.migrated).toBe(1);
@@ -335,7 +335,7 @@ describe("CLI — specs full lifecycle flow", () => {
       </req>`,
     );
     const dest = specsFile("migrated.json");
-    const r = run(["specs", "migrate", dest, src]);
+    const r = run(["specs", "migrate", dest, src, "--system", "checkout"]);
     expect(r.status).toBe(0);
     const res = r.json as { migrated: number; skipped: { source: string; reason: string }[] };
     expect(res.migrated).toBe(0);
@@ -346,7 +346,7 @@ describe("CLI — specs full lifecycle flow", () => {
   // FR-SPECS-0023 — render emits the canonical markup that migrate reads.
   it("render returns the canonical markup when format=xml", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r = run(["specs", "render", file, "--format", "xml"]);
     expect(r.status).toBe(0);
     const res = r.json as { format: string; content: string };
@@ -364,7 +364,7 @@ describe("CLI — specs full lifecycle flow", () => {
 describe("CLI — specs actor identity via ROSETTA_ACTOR", () => {
   it("stamps changed_by with ROSETTA_ACTOR on add", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1], { ROSETTA_ACTOR: "e2e-actor" });
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"], { ROSETTA_ACTOR: "e2e-actor" });
     const r = run(["specs", "get", file, "FR-CHK-0001"]);
     expect(r.status).toBe(0);
     const res = r.json as { found: { changed_by: string }[] };
@@ -373,7 +373,7 @@ describe("CLI — specs actor identity via ROSETTA_ACTOR", () => {
 
   it("stamps approved_by with ROSETTA_ACTOR on approve", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1], { ROSETTA_ACTOR: "e2e-actor" });
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"], { ROSETTA_ACTOR: "e2e-actor" });
     run(["specs", "approve", file, "FR-CHK-0001"], { ROSETTA_ACTOR: "e2e-actor" });
     const r = run(["specs", "get", file, "FR-CHK-0001"]);
     expect(r.status).toBe(0);
@@ -397,7 +397,7 @@ describe("CLI — specs error cases", () => {
 
   it("query returns invalid_filter for an unknown filter key", () => {
     const file = specsFile();
-    run(["specs", "add", file, ITEM_1]);
+    run(["specs", "add", file, ITEM_1, "--system", "checkout"]);
     const r = run(["specs", "query", file, "bogus:value"]);
     expect(r.status).toBe(1);
     expect((r.json as { error: string }).error).toBe("invalid_filter");
@@ -406,7 +406,7 @@ describe("CLI — specs error cases", () => {
   it("add with an item missing id returns an aggregated missing_id error", () => {
     const file = specsFile();
     const badItem = JSON.stringify({ type: "FR" });
-    const r = run(["specs", "add", file, badItem]);
+    const r = run(["specs", "add", file, badItem, "--system", "checkout"]);
     expect(r.status).toBe(1);
     expect((r.json as { error: string }).error).toContain("missing_id");
   });
