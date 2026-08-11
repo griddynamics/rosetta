@@ -147,18 +147,28 @@ Full descriptions, what each produces, and what you will be asked to approve: **
 
 ## Documentation
 
+<details>
+<summary><b>Every document, and when to read it</b></summary>
+
 | Read this | When |
 | --- | --- |
 | **[QUICKSTART.md](QUICKSTART.md)** | You are installing it now |
-| **[OVERVIEW.md](OVERVIEW.md)** | You want the mental model and the design principles |
-| **[USAGE_GUIDE.md](USAGE_GUIDE.md)** | You are using it day to day |
+| **[PLUGINS.md](PLUGINS.md)** · **[MCPs.md](MCPs.md)** | You are picking a delivery mode, or installing one |
+| **[INSTALLATION.md](INSTALLATION.md)** | You need every install mode and transport, and every file initialization creates |
 | **[CONFIGURATION.md](CONFIGURATION.md)** | You are wiring it to your tools and MCPs |
+| **[USAGE_GUIDE.md](USAGE_GUIDE.md)** | You are using it day to day |
+| **[OVERVIEW.md](OVERVIEW.md)** | You want the mental model and the design principles |
+| **[docs/CONTEXT.md](docs/CONTEXT.md)** | You want why it exists and who it serves, with no technical detail |
+| **[ELEVATOR_PITCH.md](ELEVATOR_PITCH.md)** | You are explaining Rosetta to someone else |
 | **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** · **[FAQ.md](FAQ.md)** | Something is not working |
+| **[CHANGELOG.md](CHANGELOG.md)** | You want to know what changed between releases |
 | **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** · **[docs/MCP-ARCHITECTURE.md](docs/MCP-ARCHITECTURE.md)** | You want to know how it is built |
+| **[docs/mcp/DEPLOYMENT_GUIDE.md](docs/mcp/DEPLOYMENT_GUIDE.md)** | You are self-hosting MCP and RAGFlow |
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** · **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** | You are contributing |
+| **[REVIEW.md](REVIEW.md)** | You want the standards a change is evaluated against |
 | **[SECURITY.md](SECURITY.md)** | You are reporting a vulnerability, or reviewing our posture |
 
-Not here: instruction content under [`instructions/`](instructions/), per-plugin details under [`plugins/`](plugins/), and working material under `plans/` and `archive/`.
+</details>
 
 ## Community and support
 
