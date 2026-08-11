@@ -2,7 +2,7 @@
 
 **Who is this for?** Engineers setting up a workspace (in the VS Code sense) for the first time, so AI coding agents work well in it.
 
-**When should I read this?** After Rosetta is installed and the repository is initialized, and before you start real coding or modernization work.
+**When should I read this?** After you connect Rosetta (see [Quick Start](QUICKSTART.md)), and before you start real coding or modernization work.
 
 ---
 
@@ -10,21 +10,20 @@
 
 AI agents do not see your source code or your business. They only know what the workspace tells them. Good setup gives the agent three things: business context, technical context, and reference code it can read. With these, the agent makes fewer wrong guesses and produces more consistent, correct code. This page is the checklist to provide them.
 
-If you are migrating or modernizing a codebase, do the steps below first, then read [Modernization Additional Setup](#3-modernization-additional-setup) for the extra steps.
-
-**What you will do, once per repository**
-
-1. [Capture business context in `CONTEXT.md`](#step-1--capture-business-context-in-contextmd)
-2. [Capture technical context in `ARCHITECTURE.md`](#step-2--capture-technical-context-in-architecturemd)
-3. [Provide reference source code](#step-3--provide-reference-source-code)
-4. [Define reusable patterns](#step-4--define-reusable-patterns)
-5. [Configure the ecosystem](#step-5--configure-the-ecosystem)
-
-Then [choose a workspace layout](#2-choose-a-workspace-layout), and if you are migrating or modernizing, work through [Modernization Additional Setup](#3-modernization-additional-setup).
+If you are migrating or modernizing a codebase, do the steps below first, then read [Modernization Additional Setup](#4-modernization-additional-setup) for the extra steps.
 
 ---
 
-## 1. Set Up the Repository
+## 1. Install and Onboard
+
+1. Connect Rosetta to your IDE — follow the [Quick Start](QUICKSTART.md).
+2. Onboard the repository to Rosetta (Quick Start, Step 2). This is required before the steps below.
+
+---
+
+## 2. Set Up the Repository
+
+Work through these five steps once per repository.
 
 ### Step 1 — Capture business context in `CONTEXT.md`
 
@@ -164,7 +163,7 @@ Use **either Playwright or Chrome DevTools, not both.**
 
 ---
 
-## 2. Choose a Workspace Layout
+## 3. Choose a Workspace Layout
 
 Pick the layout that fits your project. These options apply to any multi-repository project — regular development, microservices, or modernization:
 
@@ -190,7 +189,7 @@ Setup actions:
 
 - Open the repository in your IDE.
 - Clone any read-only reference codebases into `refsrc/` as subfolders.
-- Initialize Rosetta.
+- Initialize Rosetta (see [Quick Start](QUICKSTART.md)).
 
 <details>
 <summary><b>Detailed examples what should be in RefSrc folder</b></summary>
@@ -329,7 +328,7 @@ Setup actions:
 
 - Create a new empty git repository to serve as the composite workspace envelope.
 - Request AI to add each sub-repository (code, infra, QA, frontend, shared libraries, etc.) as a git submodule and clone them into the envelope.
-- Initialize Rosetta in the envelope workspace, telling it this is a composite workspace and that `ARCHITECTURE.md` must record that submodules are used for dynamic and optionally sparse-checkout.
+- Initialize Rosetta in the envelope workspace, telling it this is a composite workspace and that `ARCHITECTURE.md` must record that submodules are used for dynamic and optionally sparse-checkout (see [Quick Start](QUICKSTART.md)).
 - Development teams can then use sparse-checkout on modules and/or they can select submodules they need.
 - AI can dynamically check out a missing submodule at any point: `git submodule update --init <name>`.
 
@@ -370,11 +369,11 @@ Setup actions:
 - Create a new empty git repository to serve as the composite workspace envelope.
 - Clone each sub-repository (code, infra, QA, frontend, shared libraries, etc.) into the envelope as a plain folder.
 - Add each cloned folder to `.gitignore` so it is excluded from the envelope's git tracking.
-- Initialize Rosetta in the envelope workspace, telling it this is a composite workspace.
+- Initialize Rosetta in the envelope workspace, telling it this is a composite workspace (see [Quick Start](QUICKSTART.md)).
 
 ---
 
-## 3. Modernization Additional Setup
+## 4. Modernization Additional Setup
 
 Read this section only if you are converting, migrating, upgrading, or re-architecting a codebase. These steps are **in addition to** Section 2 — do those first.
 
