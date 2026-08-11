@@ -26,18 +26,18 @@ The whole point is to stop the agent from drafting too early. It confirms **inte
 
 ```mermaid
 flowchart TB
-    Start(["/requirements-authoring-flow + request"]) --> Disc["Discovery<br>existing reqs, constraints, scope"]
-    Disc --> Research["Research<br>(standards, patterns — optional)"]
-    Research --> G1{"You approve<br>the intent"}
+    Start(["/requirements-authoring-flow + request"]) --> Disc["Discovery <br>existing reqs, constraints, scope"]
+    Disc --> Research["Research <br>(standards, patterns — optional)"]
+    Research --> G1{"You approve <br>the intent"}
     G1 -->|revise| Research
     G1 -->|approve| Outline["Propose structure & IDs"]
-    Outline --> G2{"You approve<br>the outline"}
+    Outline --> G2{"You approve <br>the outline"}
     G2 -->|revise| Outline
-    G2 -->|approve| Draft["Draft atomic requirements<br>in small batches"]
-    Draft --> Val["Validation: conflicts, gaps,<br>traceability"]
-    Val --> VOK{"Conflicts<br>or gaps?"}
+    G2 -->|approve| Draft["Draft atomic requirements <br>in small batches"]
+    Draft --> Val["Validation: conflicts, gaps, <br>traceability"]
+    Val --> VOK{"Conflicts <br>or gaps?"}
     VOK -->|yes| Draft
-    VOK -->|no| G3{"You review<br>each requirement"}
+    VOK -->|no| G3{"You review <br>each requirement"}
     G3 -->|request changes| Draft
     G3 -->|more batches| Draft
     G3 -->|all approved| Final["Finalize: index, matrix, change log"]

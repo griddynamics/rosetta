@@ -22,18 +22,18 @@ Instead of a fixed set of phases, it composes one from building blocks (discover
 
 ```mermaid
 flowchart TB
-    Start(["/adhoc-flow + request"]) --> Triv{"Trivial<br>one-liner?"}
+    Start(["/adhoc-flow + request"]) --> Triv{"Trivial <br>one-liner?"}
     Triv -->|yes| Do["Just do it"]
     Do --> Done(["Task done"])
     Triv -->|no| Build["Build a plan from building blocks"]
-    Build --> Size{"Medium<br>or large?"}
-    Size -->|yes| G1{"You approve<br>the plan"}
+    Build --> Size{"Medium <br>or large?"}
+    Size -->|yes| G1{"You approve <br>the plan"}
     Size -->|no| Exec["Execute step by step"]
     G1 -->|request changes| Build
     G1 -->|approve| Exec
     Exec --> More{"More steps?"}
     More -->|yes| Exec
-    More -->|no| Intent{"Matches<br>your intent?"}
+    More -->|no| Intent{"Matches <br>your intent?"}
     Intent -->|no| Exec
     Intent -->|yes| Done
 

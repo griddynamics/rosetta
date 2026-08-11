@@ -24,10 +24,10 @@ The twist is **meta-prompting**: the agent doesn't research off your one-line qu
 flowchart TB
     Start(["/research-flow + question"]) --> Ctx["Load project context"]
     Ctx --> Craft["Craft a research prompt"]
-    Craft --> G1{"You approve<br>the research prompt"}
+    Craft --> G1{"You approve <br>the research prompt"}
     G1 -->|revise| Craft
-    G1 -->|approve| Run["Run the research pass<br>(&ge;3 options, grounded)"]
-    Run --> SV{"Self-validation:<br>gaps remaining?"}
+    G1 -->|approve| Run["Run the research pass <br>(&ge;3 options, grounded)"]
+    Run --> SV{"Self-validation: <br>gaps remaining?"}
     SV -->|yes| Run
     SV -->|no| Final["Finalize the write-up"]
     Final --> Done(["docs/&lt;feature&gt;-research.md"])

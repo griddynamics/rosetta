@@ -10,9 +10,9 @@ Find your task on the left, follow the arrows to a command. Open any command's s
 
 ```mermaid
 flowchart TB
-    Work(["New work<br>or a question"]) --> Q{"What do I<br>want to do?"}
+    Work(["New work <br>or a question"]) --> Q{"What do I <br>want to do?"}
 
-    Q -->|"set up a repo for AI"| Init["Initialize workspace<br>(ask in plain language)"]
+    Q -->|"set up a repo for AI"| Init["Initialize workspace <br>(ask in plain language)"]
     Q -->|"not sure"| Help["/help-flow"]
 
     Q ==>|"build or change something"| Build{{"Build / change"}}
@@ -62,13 +62,13 @@ Whichever scenario you pick, the work follows the same five phases — **Prepare
 
 ```mermaid
 flowchart LR
-    Prep["Prepare<br><small>once, at setup</small>"] --> Classify["Classify<br>your request"]
-    Classify --> Research["Research<br>gather context"]
-    Research --> Plan["Plan<br>specs &amp; approach"]
-    Plan --> G1{"You approve<br>the plan"}
-    G1 -->|approve| Act["Act<br>implement"]
-    Act --> Validate["Validate<br>review &amp; actually run it"]
-    Validate --> G2{"You approve<br>the result"}
+    Prep["Prepare <br><small>once, at setup</small>"] --> Classify["Classify <br>your request"]
+    Classify --> Research["Research <br>gather context"]
+    Research --> Plan["Plan <br>specs &amp; approach"]
+    Plan --> G1{"You approve <br>the plan"}
+    G1 -->|approve| Act["Act <br>implement"]
+    Act --> Validate["Validate <br>review &amp; actually run it"]
+    Validate --> G2{"You approve <br>the result"}
     G2 -->|approve| Done(["Shipped"])
     G2 -->|issues found| Research
 
