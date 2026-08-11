@@ -15,7 +15,7 @@ import {
   findDuplicateStatements,
   findLocationGaps,
 } from "../../../src/commands/specs/rubric.js";
-import { EARS_CONDITION_WORD, EARS_PATTERNS, RESERVED_NFR_AREAS } from "../../../src/commands/specs/core.js";
+import { RESERVED_NFR_AREAS } from "../../../src/commands/specs/core.js";
 import { makeAcceptance, makeSpec } from "../../fixtures/specs.js";
 
 // ---------------------------------------------------------------------------
@@ -76,12 +76,15 @@ describe("checkCriterionEars — the declared pattern's condition word", () => {
     expect(checkCriterionEars(makeAcceptance({ ears: undefined as never }))).toBe(true);
   });
 
-  it("agrees with EARS_CONDITION_WORD for every declared pattern", () => {
-    for (const ears of EARS_PATTERNS) {
-      const word = EARS_CONDITION_WORD[ears];
-      const c = word === null ? makeAcceptance({ ears, when: undefined }) : makeAcceptance({ ears, when: undefined, [word]: "x" });
-      expect(checkCriterionEars(c)).toBe(true);
-    }
+  // The per-pattern behaviour is pinned by the it.each cases above, whose condition words are
+  // written out by hand. Building a criterion here from EARS_CONDITION_WORD — the very map the
+  // matcher reads — could only ever fail by crashing, never by disagreeing.
+  it("passes each pattern carrying the condition word written out here", () => {
+    expect(checkCriterionEars(makeAcceptance({ ears: "ubiquitous", when: undefined }))).toBe(true);
+    expect(checkCriterionEars(makeAcceptance({ ears: "event", when: "the cart changes" }))).toBe(true);
+    expect(checkCriterionEars(makeAcceptance({ ears: "state", when: undefined, while: "a promotion runs" }))).toBe(true);
+    expect(checkCriterionEars(makeAcceptance({ ears: "optional", when: undefined, where: "tax is present" }))).toBe(true);
+    expect(checkCriterionEars(makeAcceptance({ ears: "unwanted", when: undefined, if: "a price is missing" }))).toBe(true);
   });
 });
 

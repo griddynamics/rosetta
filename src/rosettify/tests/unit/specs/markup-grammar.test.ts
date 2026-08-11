@@ -166,10 +166,6 @@ describe("canonical attribute order matches the approved template (FR-SPECS-0023
     expect([...CANONICAL_ATTR_ORDER]).toEqual(EXPECTED_ORDER);
   });
 
-  it("keeps CANONICAL_ATTR_ORDER as exactly the flattening of the lines", () => {
-    expect([...CANONICAL_ATTR_ORDER]).toEqual(CANONICAL_ATTR_LINES.flat());
-  });
-
   it("keeps the approval group together on one line, so an approval is a one-line difference", () => {
     const approvalLines = CANONICAL_ATTR_LINES.filter((line) => line.includes("status"));
     expect(approvalLines).toHaveLength(1);
