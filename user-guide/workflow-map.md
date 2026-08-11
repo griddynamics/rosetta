@@ -84,20 +84,47 @@ flowchart LR
 
 ## 3. Jump to a scenario
 
+### Build & change
+
 | Scenario | Command |
 | --- | --- |
 | [Write or change code](scenarios/coding.md) | `/coding-flow` |
 | [Author requirements](scenarios/requirements.md) | `/requirements-authoring-flow` |
+| [Ad-hoc task](scenarios/adhoc-task.md) | `/adhoc-flow` |
+
+### Test & QA
+
+| Scenario | Command |
+| --- | --- |
 | [Generate test cases](scenarios/generate-test-cases.md) | `/testgen-flow` |
 | [Automate UI tests](scenarios/automate-ui-tests.md) | `/ui-aqa-flow` |
 | [Automate API tests](scenarios/automate-api-tests.md) | `/api-aqa-flow` |
+
+### Understand
+
+| Scenario | Command |
+| --- | --- |
 | [Analyze a codebase](scenarios/analyze-a-codebase.md) | `/code-analysis-flow` |
 | [Research a question](scenarios/research.md) | `/research-flow` |
+
+### Transform
+
+| Scenario | Command |
+| --- | --- |
 | [Modernize / migrate](scenarios/modernize.md) | `/modernization-flow` |
-| [Review security](scenarios/security-review.md) | `/security-flow` |
 | [Onboard a library](scenarios/onboard-a-library.md) | `/external-lib-flow` |
+
+### Govern quality
+
+| Scenario | Command |
+| --- | --- |
+| [Review security](scenarios/security-review.md) | `/security-flow` |
 | [Author agent prompts](scenarios/author-agent-prompts.md) | `/coding-agents-prompting-flow` |
-| [Ad-hoc task](scenarios/adhoc-task.md) | `/adhoc-flow` |
+
+### Not sure?
+
+| Scenario | Command |
+| --- | --- |
 | [Get help](scenarios/get-help.md) | `/help-flow` |
 
 ---

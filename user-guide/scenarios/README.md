@@ -8,21 +8,48 @@ Not sure which one you need? Open the **[visual workflow map](../workflow-map.md
 
 ## Pick your task
 
-| I want to…                                          | Scenario                                        | Command                          |
-| --------------------------------------------------- | ----------------------------------------------- | -------------------------------- |
-| Write a feature, fix a bug, refactor, add tests     | [Write or change code](coding.md)               | `/coding-flow`                   |
-| Define what to build before building it             | [Author requirements](requirements.md)          | `/requirements-authoring-flow`   |
-| Design test cases from a ticket and push to a TMS   | [Generate test cases](generate-test-cases.md)   | `/testgen-flow`                  |
-| Automate a UI / browser test                        | [Automate UI tests](automate-ui-tests.md)       | `/ui-aqa-flow`                   |
-| Automate a backend API test                         | [Automate API tests](automate-api-tests.md)     | `/api-aqa-flow`                  |
-| Understand and document an existing codebase        | [Analyze a codebase](analyze-a-codebase.md)     | `/code-analysis-flow`            |
-| Investigate options or compare technologies         | [Research a question](research.md)              | `/research-flow`                 |
-| Migrate or upgrade a system in controlled phases    | [Modernize / migrate](modernize.md)             | `/modernization-flow`            |
-| Run an authorized security review                   | [Review security](security-review.md)           | `/security-flow`                 |
-| Teach the agent an external / private library       | [Onboard a library](onboard-a-library.md)       | `/external-lib-flow`             |
-| Author or adapt prompts for coding agents           | [Author agent prompts](author-agent-prompts.md) | `/coding-agents-prompting-flow`  |
-| Do a small or unusual task that fits none of these  | [Ad-hoc task](adhoc-task.md)                     | `/adhoc-flow`                    |
-| Discover what Rosetta can do / choose a workflow     | [Get help](get-help.md)                          | `/help-flow`                     |
+### Build & change
+
+| I want to…                                          | Scenario                               | Command                        |
+| --------------------------------------------------- | -------------------------------------- | ------------------------------ |
+| Write a feature, fix a bug, refactor, add tests     | [Write or change code](coding.md)      | `/coding-flow`                 |
+| Define what to build before building it             | [Author requirements](requirements.md) | `/requirements-authoring-flow` |
+| Do a small or unusual task that fits none of these  | [Ad-hoc task](adhoc-task.md)           | `/adhoc-flow`                  |
+
+### Test & QA
+
+| I want to…                                          | Scenario                                      | Command         |
+| --------------------------------------------------- | --------------------------------------------- | --------------- |
+| Design test cases from a ticket and push to a TMS   | [Generate test cases](generate-test-cases.md) | `/testgen-flow` |
+| Automate a UI / browser test                        | [Automate UI tests](automate-ui-tests.md)     | `/ui-aqa-flow`  |
+| Automate a backend API test                         | [Automate API tests](automate-api-tests.md)   | `/api-aqa-flow` |
+
+### Understand
+
+| I want to…                                          | Scenario                                    | Command               |
+| --------------------------------------------------- | ------------------------------------------- | --------------------- |
+| Understand and document an existing codebase        | [Analyze a codebase](analyze-a-codebase.md) | `/code-analysis-flow` |
+| Investigate options or compare technologies         | [Research a question](research.md)          | `/research-flow`      |
+
+### Transform
+
+| I want to…                                          | Scenario                                  | Command               |
+| --------------------------------------------------- | ----------------------------------------- | --------------------- |
+| Migrate or upgrade a system in controlled phases    | [Modernize / migrate](modernize.md)       | `/modernization-flow` |
+| Teach the agent an external / private library       | [Onboard a library](onboard-a-library.md) | `/external-lib-flow`  |
+
+### Govern quality
+
+| I want to…                                          | Scenario                                        | Command                         |
+| --------------------------------------------------- | ----------------------------------------------- | ------------------------------- |
+| Run an authorized security review                   | [Review security](security-review.md)           | `/security-flow`                |
+| Author or adapt prompts for coding agents           | [Author agent prompts](author-agent-prompts.md) | `/coding-agents-prompting-flow` |
+
+### Not sure?
+
+| I want to…                                          | Scenario                | Command      |
+| --------------------------------------------------- | ----------------------- | ------------ |
+| Discover what Rosetta can do / choose a workflow    | [Get help](get-help.md) | `/help-flow` |
 
 ## How to read a scenario page
 

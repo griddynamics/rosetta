@@ -42,22 +42,50 @@ That's the whole loop. Everything else in this guide is detail on those three st
 
 ## Scenarios at a glance
 
-Each task has its own page — see the full [scenarios index](scenarios/README.md) or jump straight in:
+Each task has its own page — see the full [scenarios index](scenarios/README.md) or jump straight in.
 
-| I want to…                                   | Scenario                                                     | Command                          |
-| -------------------------------------------- | ------------------------------------------------------------ | -------------------------------- |
-| Write a feature, fix a bug, add tests        | [Write or change code](scenarios/coding.md)                  | `/coding-flow`                   |
-| Define what to build first                    | [Author requirements](scenarios/requirements.md)             | `/requirements-authoring-flow`   |
-| Design test cases from a ticket               | [Generate test cases](scenarios/generate-test-cases.md)      | `/testgen-flow`                  |
-| Automate a UI or API test                     | [UI](scenarios/automate-ui-tests.md) · [API](scenarios/automate-api-tests.md) | `/ui-aqa-flow` · `/api-aqa-flow` |
-| Understand an existing codebase               | [Analyze a codebase](scenarios/analyze-a-codebase.md)        | `/code-analysis-flow`            |
-| Investigate or compare options                | [Research a question](scenarios/research.md)                 | `/research-flow`                 |
-| Migrate or upgrade a system                   | [Modernize / migrate](scenarios/modernize.md)                | `/modernization-flow`            |
-| Run a security review                         | [Review security](scenarios/security-review.md)              | `/security-flow`                 |
-| Teach the agent a library                     | [Onboard a library](scenarios/onboard-a-library.md)          | `/external-lib-flow`             |
-| Author or adapt agent prompts                 | [Author agent prompts](scenarios/author-agent-prompts.md)    | `/coding-agents-prompting-flow`  |
-| Handle a small or unusual task                | [Ad-hoc task](scenarios/adhoc-task.md)                       | `/adhoc-flow`                    |
-| Find the right workflow                        | [Get help](scenarios/get-help.md)                            | `/help-flow`                     |
+### Build & change
+
+| I want to…                             | Scenario                                                  | Command                        |
+| -------------------------------------- | --------------------------------------------------------- | ------------------------------ |
+| Write a feature, fix a bug, add tests  | [Write or change code](scenarios/coding.md)               | `/coding-flow`                 |
+| Define what to build first             | [Author requirements](scenarios/requirements.md)          | `/requirements-authoring-flow` |
+| Handle a small or unusual task         | [Ad-hoc task](scenarios/adhoc-task.md)                    | `/adhoc-flow`                  |
+
+### Test & QA
+
+| I want to…                             | Scenario                                                  | Command          |
+| -------------------------------------- | --------------------------------------------------------- | ---------------- |
+| Design test cases from a ticket        | [Generate test cases](scenarios/generate-test-cases.md)   | `/testgen-flow`  |
+| Automate a UI test                     | [Automate UI tests](scenarios/automate-ui-tests.md)       | `/ui-aqa-flow`   |
+| Automate an API test                   | [Automate API tests](scenarios/automate-api-tests.md)     | `/api-aqa-flow`  |
+
+### Understand
+
+| I want to…                             | Scenario                                                  | Command               |
+| -------------------------------------- | --------------------------------------------------------- | --------------------- |
+| Understand an existing codebase        | [Analyze a codebase](scenarios/analyze-a-codebase.md)     | `/code-analysis-flow` |
+| Investigate or compare options         | [Research a question](scenarios/research.md)              | `/research-flow`      |
+
+### Transform
+
+| I want to…                             | Scenario                                                  | Command               |
+| -------------------------------------- | --------------------------------------------------------- | --------------------- |
+| Migrate or upgrade a system            | [Modernize / migrate](scenarios/modernize.md)             | `/modernization-flow` |
+| Teach the agent a library              | [Onboard a library](scenarios/onboard-a-library.md)       | `/external-lib-flow`  |
+
+### Govern quality
+
+| I want to…                             | Scenario                                                  | Command                         |
+| -------------------------------------- | --------------------------------------------------------- | ------------------------------- |
+| Run a security review                  | [Review security](scenarios/security-review.md)           | `/security-flow`                |
+| Author or adapt agent prompts          | [Author agent prompts](scenarios/author-agent-prompts.md) | `/coding-agents-prompting-flow` |
+
+### Not sure?
+
+| I want to…                             | Scenario                                                  | Command      |
+| -------------------------------------- | --------------------------------------------------------- | ------------ |
+| Find the right workflow                | [Get help](scenarios/get-help.md)                         | `/help-flow` |
 
 ## Getting help
 
