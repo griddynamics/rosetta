@@ -8,6 +8,16 @@
 
 **Not for:** writing application code ([Write or change code](coding.md)).
 
+## Running it
+
+```text
+/coding-agents-prompting-flow Author a new skill for API contract testing
+/coding-agents-prompting-flow Refactor the debugging skill for brevity and stronger gates
+/coding-agents-prompting-flow Adapt this Claude prompt for Cursor
+```
+
+> Like requirements authoring, this expects a strong model (Opus / GPT-5.5-class or similar). The agent will ask you to switch if yours is too small.
+
 ## How it works
 
 It treats prompts like software. It extracts a **Prompt Brief** you approve, designs a blueprint, then drafts and hardens each prompt one at a time, simulates realistic runs, and validates that the result traces back to your intent.
@@ -39,16 +49,6 @@ flowchart TB
 ```
 
 The draft/harden/edit loop is an automated review pass (not something you sit through). Adaptation requests — porting between agents or rule formats — load extra guidance for that.
-
-## Running it
-
-```text
-/coding-agents-prompting-flow Author a new skill for API contract testing
-/coding-agents-prompting-flow Refactor the debugging skill for brevity and stronger gates
-/coding-agents-prompting-flow Adapt this Claude prompt for Cursor
-```
-
-> Like requirements authoring, this expects a strong model (Opus / GPT-5.5-class or similar). The agent will ask you to switch if yours is too small.
 
 ## What you'll be asked to do
 

@@ -8,6 +8,16 @@
 
 **Not for:** writing requirements first ([Author requirements](requirements.md)), understanding code without changing it ([Analyze a codebase](analyze-a-codebase.md)), or big migrations ([Modernize](modernize.md)).
 
+## Running it
+
+```text
+/coding-flow Add password reset to the auth service
+/coding-flow Identify and fix the race condition in payment processing
+/coding-flow Improve unit test coverage to 85% for the billing module
+```
+
+Be specific — clear acceptance criteria mean fewer clarifying questions and a tighter plan. If you already have requirements, mention them and the agent will treat them as constraints and tag code with their IDs.
+
 ## How it works
 
 The agent doesn't just start editing. It proposes a **design**, then a **plan**, and stops for your approval at each — plus once more before it moves on to tests. In the diagram, **amber diamonds are decision points** (including the gates where it waits for you), and arrows that loop back show where it revises and re-checks — for example, when review or validation finds issues it returns to implementation rather than pushing ahead.
@@ -48,16 +58,6 @@ flowchart TB
 The work is split across specialist subagents — a *discoverer* to gather context, an *architect* to design and plan, an *engineer* to implement and test, and independent *reviewer* and *validator* subagents that check the work in fresh context (so nothing reviews its own output). Validation includes actually building and running things, not just reading the diff.
 
 **It scales to the task.** A small change merges the checkpoints and skips the heavier review/validation phases; medium and large tasks get the full sequence, and large tasks add a structured reasoning step during planning.
-
-## Running it
-
-```text
-/coding-flow Add password reset to the auth service
-/coding-flow Identify and fix the race condition in payment processing
-/coding-flow Improve unit test coverage to 85% for the billing module
-```
-
-Be specific — clear acceptance criteria mean fewer clarifying questions and a tighter plan. If you already have requirements, mention them and the agent will treat them as constraints and tag code with their IDs.
 
 ## What you'll be asked to do
 

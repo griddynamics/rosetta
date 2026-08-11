@@ -8,6 +8,14 @@
 
 **Not for:** UI/browser tests ([Automate UI tests](automate-ui-tests.md)) or designing cases without code ([Generate test cases](generate-test-cases.md)).
 
+## Running it
+
+```text
+/api-aqa-flow Automate API tests for the orders service
+/api-aqa-flow Write API tests from these TestRail cases for the /payments endpoint
+/api-aqa-flow Fix the failing API tests in the users module
+```
+
 ## How it works
 
 It extracts the real endpoint contracts (from Swagger/OpenAPI or code), resolves gaps with you, writes **Given-When-Then** specs for your approval, implements them, and triages your execution results. Like the UI flow, **it never assumes endpoints, payloads, auth, or response schemas.**
@@ -41,14 +49,6 @@ flowchart TB
 ```
 
 Every test spec (`ATC-NNN`) traces back to a source case or a documented gap, and your repository's own conventions win over any generic defaults.
-
-## Running it
-
-```text
-/api-aqa-flow Automate API tests for the orders service
-/api-aqa-flow Write API tests from these TestRail cases for the /payments endpoint
-/api-aqa-flow Fix the failing API tests in the users module
-```
 
 ## What you'll be asked to do
 

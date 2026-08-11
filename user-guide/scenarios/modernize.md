@@ -8,6 +8,24 @@
 
 **Not for:** ordinary feature work ([Write or change code](coding.md) — which this flow calls internally for the actual implementation).
 
+## Before you start
+
+Set the stage in your repo so the flow has what it needs:
+
+- Document the modernization goals in `docs/CONTEXT.md` and the target design in `docs/ARCHITECTURE.md`.
+- Say where new source should live.
+- Populate `refsrc/` with reference material — old code, target/new code, reusable libraries, config, and docs.
+
+## Running it
+
+You typically name the phase in the request:
+
+```text
+/modernization-flow Perform modernization phase 2 to analyze the billing service module
+/modernization-flow Migrate the billing module from Java 8 to Java 21, one phase at a time
+/modernization-flow Perform phase 8 for the orders service using coding-flow to implement
+```
+
 ## How it works
 
 This is the most disciplined flow. Phases run **one at a time**, and the agent waits for your confirmation before moving to the next. Analysis phases document *facts only* — no recommendations, no implementation code — until the mapping phase, where the target design is decided and reviewed.
@@ -41,24 +59,6 @@ flowchart TB
 ```
 
 Every phase spawns a validation subagent to check the work is grounded and complete. Backward compatibility is treated as a requirement. **You confirm each phase transition**, and the implementation phase needs your explicit approval of the target specs before any code is written. Small in-place upgrades use just the old-code analysis and mapping phases; full cross-technology migrations use them all.
-
-## Before you start
-
-Set the stage in your repo so the flow has what it needs:
-
-- Document the modernization goals in `docs/CONTEXT.md` and the target design in `docs/ARCHITECTURE.md`.
-- Say where new source should live.
-- Populate `refsrc/` with reference material — old code, target/new code, reusable libraries, config, and docs.
-
-## Running it
-
-You typically name the phase in the request:
-
-```text
-/modernization-flow Perform modernization phase 2 to analyze the billing service module
-/modernization-flow Migrate the billing module from Java 8 to Java 21, one phase at a time
-/modernization-flow Perform phase 8 for the orders service using coding-flow to implement
-```
 
 ## What you'll be asked to do
 

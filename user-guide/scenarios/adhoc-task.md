@@ -8,6 +8,14 @@
 
 **Not for:** real coding features/fixes ([Write or change code](coding.md)), requirements ([Author requirements](requirements.md)), or codebase analysis ([Analyze a codebase](analyze-a-codebase.md)) — use the dedicated scenario, which is more thorough.
 
+## Running it
+
+```text
+/adhoc-flow Write a quick script to parse these CSV files
+/adhoc-flow Refactor logging across the payments, orders, and billing services
+/adhoc-flow Sync the CHANGELOG with the last 10 merged PRs
+```
+
 ## How it works
 
 Instead of a fixed set of phases, it composes one from building blocks (discovery, planning, execution, review, validation, and so on) sized to the task, then loops through the plan — adapting it as it learns.
@@ -38,14 +46,6 @@ flowchart TB
 ```
 
 For a genuinely trivial one-liner it can just do the task after confirming it's trivial; anything bigger gets a plan you approve first. The plan is a living artifact — the agent updates it mid-run as things change.
-
-## Running it
-
-```text
-/adhoc-flow Write a quick script to parse these CSV files
-/adhoc-flow Refactor logging across the payments, orders, and billing services
-/adhoc-flow Sync the CHANGELOG with the last 10 merged PRs
-```
 
 ## What you'll be asked to do
 

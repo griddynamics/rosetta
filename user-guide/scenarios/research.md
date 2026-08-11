@@ -8,6 +8,14 @@
 
 **Not for:** simple lookups or single-source questions — just ask the agent directly.
 
+## Running it
+
+```text
+/research-flow Compare event sourcing vs CRUD for our order service
+/research-flow Investigate OAuth 2.0 implementation options for our stack
+/research-flow Research vector database options for our RAG pipeline
+```
+
 ## How it works
 
 The twist is **meta-prompting**: the agent doesn't research off your one-line question. It crafts a focused research prompt, shows it to you (because that prompt controls what gets answered), and only then runs a dedicated research pass that weighs multiple options.
@@ -33,14 +41,6 @@ flowchart TB
 ```
 
 It prioritizes accuracy over speed, compares at least three options, and ends with a self-validation pass. It won't touch your `CONTEXT.md` / `ARCHITECTURE.md` — it only produces the research document.
-
-## Running it
-
-```text
-/research-flow Compare event sourcing vs CRUD for our order service
-/research-flow Investigate OAuth 2.0 implementation options for our stack
-/research-flow Research vector database options for our RAG pipeline
-```
 
 ## What you'll be asked to do
 

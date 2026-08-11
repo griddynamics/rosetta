@@ -8,6 +8,14 @@
 
 **Not for:** fixing findings (it hands off task inputs for a later [coding](coding.md) session) or any unauthorized/production active testing.
 
+## Running it
+
+```text
+/security-flow Review this service and its infrastructure. Recommend a safe full-review scope and wait for approval before inspection.
+/security-flow Review the payment-service PR on this branch, read-only, pre-production only.
+/security-flow Threat-model the checkout API and run all applicable authorized read-only checks.
+```
+
 ## How it works
 
 Safety is built into the order of operations. Before any source is read, a **secret gate** scans filenames only. The agent proposes a scope you must approve, does the review within those bounds, has an independent reviewer challenge it, and packages sanitized results.
@@ -54,14 +62,6 @@ flowchart TB
 - **Active testing is pre-production only.** Testing against production is prohibited.
 - **New tools, network access, or credentials need separate approval.**
 - **It never remediates.** Findings are grouped by root cause and emitted as task inputs for a later, separate coding session.
-
-## Running it
-
-```text
-/security-flow Review this service and its infrastructure. Recommend a safe full-review scope and wait for approval before inspection.
-/security-flow Review the payment-service PR on this branch, read-only, pre-production only.
-/security-flow Threat-model the checkout API and run all applicable authorized read-only checks.
-```
 
 ## What you'll be asked to do
 

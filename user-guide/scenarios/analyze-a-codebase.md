@@ -8,6 +8,14 @@
 
 **Not for:** changing code ([Write or change code](coding.md)) or authoring net-new requirements from scratch ([Author requirements](requirements.md)).
 
+## Running it
+
+```text
+/code-analysis-flow Explain how the authentication system works
+/code-analysis-flow Document the architecture of the payment module
+/code-analysis-flow Reverse-engineer requirements from the billing module
+```
+
 ## How it works
 
 It loads project context, sizes the job, asks only the questions that actually affect accuracy, then produces documentation — a single analysis for a small scope, or parallel per-module docs plus a summary for a large one.
@@ -43,14 +51,6 @@ flowchart TB
 The output is strictly grounded: components, data models, flows, edge cases, and Mermaid diagrams — with file-and-line references, never generated code, refactor suggestions, or speculation. Diagrams are colored to stay readable in both light and dark themes. A *reviewer* subagent checks that every claim links back to actual code.
 
 Optionally (only if you ask), it runs a **requirements branch** that extracts testable requirements from the code into `docs/REQUIREMENTS/`.
-
-## Running it
-
-```text
-/code-analysis-flow Explain how the authentication system works
-/code-analysis-flow Document the architecture of the payment module
-/code-analysis-flow Reverse-engineer requirements from the billing module
-```
 
 ## What you'll be asked to do
 

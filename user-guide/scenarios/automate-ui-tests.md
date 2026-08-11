@@ -8,6 +8,14 @@
 
 **Not for:** backend API tests ([Automate API tests](automate-api-tests.md)) or designing test cases without code ([Generate test cases](generate-test-cases.md)).
 
+## Running it
+
+```text
+/ui-aqa-flow Automate the test case for the checkout flow
+/ui-aqa-flow Add E2E Playwright tests for the dashboard
+/ui-aqa-flow Fix the failing UI test for user registration
+```
+
 ## How it works
 
 The defining rule: **it never guesses selectors, flows, or data.** It reads your frontend code to find selectors, and if it can't, it asks you for the page source. You run the test; it analyzes the report and proposes fixes for your approval.
@@ -42,14 +50,6 @@ flowchart TB
 ```
 
 It reuses your existing page objects and helpers before creating new ones, and every assertion traces back to a requirement. If the feature or elements simply don't exist yet, it stops rather than inventing them — and offers you options (point it at the real feature, author the missing UI as a separate task, or mark the test pending).
-
-## Running it
-
-```text
-/ui-aqa-flow Automate the test case for the checkout flow
-/ui-aqa-flow Add E2E Playwright tests for the dashboard
-/ui-aqa-flow Fix the failing UI test for user registration
-```
 
 ## What you'll be asked to do
 

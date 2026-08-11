@@ -6,6 +6,14 @@
 
 **Use this when** you're not sure what's available or which scenario fits: *"what can you do?"*, *"how do I run a security review?"*, *"what workflows are there for testing?"*
 
+## Running it
+
+```text
+/help-flow What can you do?
+/help-flow How do I run a security review with Rosetta?
+/help-flow What workflows are available for testing?
+```
+
 ## How it works
 
 It's a conversation, not an implementation. It lists the available workflows, skills, and agents, matches them to what you're asking, explains how to use the best fit, and can switch directly into that workflow when you decide to act.
@@ -30,14 +38,6 @@ flowchart TB
 ```
 
 When a workflow and a skill overlap, it recommends the **workflow** — that's the intended entry point for real work.
-
-## Running it
-
-```text
-/help-flow What can you do?
-/help-flow How do I run a security review with Rosetta?
-/help-flow What workflows are available for testing?
-```
 
 ## A note on the command
 

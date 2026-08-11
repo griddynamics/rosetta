@@ -8,6 +8,15 @@
 
 **Not for:** writing runnable tests — use [Automate UI tests](automate-ui-tests.md) or [Automate API tests](automate-api-tests.md) for that.
 
+## Running it
+
+```text
+/testgen-flow Generate test cases for PROJ-123
+/testgen-flow Create test scenarios from EPIC-789 and export to TestRail
+```
+
+You can also just give it the bare ticket key or a full ticket URL.
+
 ## How it works
 
 It pulls the source material together, finds the contradictions and gaps, and — importantly — **stops and asks you to answer them** before it writes anything. You confirm the requirements and scenarios, and you decide when to export.
@@ -38,15 +47,6 @@ flowchart TB
 ```
 
 It reads the Jira ticket and its linked Confluence pages (including child pages, which often hold the real detail), and the requirements document it produces traces back to that source material and to your answers.
-
-## Running it
-
-```text
-/testgen-flow Generate test cases for PROJ-123
-/testgen-flow Create test scenarios from EPIC-789 and export to TestRail
-```
-
-You can also just give it the bare ticket key or a full ticket URL.
 
 ## What you'll be asked to do
 

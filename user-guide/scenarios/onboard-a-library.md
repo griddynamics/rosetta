@@ -8,6 +8,15 @@
 
 **Not for:** modernizing or rewriting the library ([Modernize](modernize.md)) — this is usage-understanding only.
 
+## Running it
+
+```text
+/external-lib-flow Teach AI about our internal authentication library at ../vendor/auth-sdk
+/external-lib-flow Onboard the shared utilities package at ./libs/reporting-engine
+```
+
+The only thing it needs from you is the project path.
+
 ## How it works
 
 It's a short, mostly hands-off routine: point it at the library, it detects the basics, packages the codebase into a compressed reference file, publishes a brief onboarding guide, and verifies the agent can find it later.
@@ -30,15 +39,6 @@ flowchart TB
 ```
 
 The library is packaged into a compressed XML file (built for the agent to grep, not for humans to read), and a short learning guide tells the agent how to look things up. An architecture rule is added so future sessions know to consult the reference instead of guessing.
-
-## Running it
-
-```text
-/external-lib-flow Teach AI about our internal authentication library at ../vendor/auth-sdk
-/external-lib-flow Onboard the shared utilities package at ./libs/reporting-engine
-```
-
-The only thing it needs from you is the project path.
 
 ## What you'll be asked to do
 

@@ -10,6 +10,16 @@
 
 Going requirements-first is the single most effective way to use a coding agent — it prevents scope creep and gives you a clean acceptance baseline.
 
+## Running it
+
+```text
+/requirements-authoring-flow Define requirements for the checkout flow covering discount codes, tax, and payment retries
+/requirements-authoring-flow Review and refactor the auth requirements for conflicts
+/requirements-authoring-flow Reverse-engineer requirements from the existing orders service
+```
+
+> This flow expects a strong model (Opus / GPT-5.5-class or similar). If yours is too small, the agent will ask you to switch.
+
 ## How it works
 
 The whole point is to stop the agent from drafting too early. It confirms **intent**, agrees an **outline** with you, then drafts requirements in small batches — and nothing becomes "approved" without your say-so.
@@ -42,16 +52,6 @@ flowchart TB
 ```
 
 Functional requirements are written in the EARS style; non-functional ones get measurable thresholds. A *requirements-engineer* subagent drafts, and an independent *reviewer* checks for conflicts, gaps, and end-to-end traceability (source → goal → requirement → test). When reverse-engineering an app, the agent spawns several narrow-scope subagents — one per screen, page, or endpoint — specifically to avoid hallucinating behavior.
-
-## Running it
-
-```text
-/requirements-authoring-flow Define requirements for the checkout flow covering discount codes, tax, and payment retries
-/requirements-authoring-flow Review and refactor the auth requirements for conflicts
-/requirements-authoring-flow Reverse-engineer requirements from the existing orders service
-```
-
-> This flow expects a strong model (Opus / GPT-5.5-class or similar). If yours is too small, the agent will ask you to switch.
 
 ## What you'll be asked to do
 
