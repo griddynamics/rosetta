@@ -58,8 +58,8 @@ jobs:
             git fetch origin badges --depth=1
             git switch --force badges
           else
+            # git switch --orphan starts with an empty tree, unlike git checkout --orphan
             git switch --orphan badges
-            git rm -rf . --quiet || true
           fi
 
           cp -f "$RUNNER_TEMP"/badges/*.json .
