@@ -27,7 +27,7 @@ Suggests user to install LSPs xor Code graphs only.
 4. Update state with phase status
 </phase_steps>
 
-<check_state step="6.1">
+<check_mode step="6.1">
 
 1. Read `agents/init-workspace-flow-state.md`
 2. Check if LSPs or GitNexus or Graphify is already installed 

@@ -24,7 +24,7 @@ ID grammar: `FR-[AREA]-####` (functional), `NFR-####` (no area segment), `INT-[A
 - "If a sentence would not survive in a spec that was never revised, delete it." — the meta-leak test, phrased as a thought experiment rather than a rule to check off.
 - "Check if grouping of multiple requirements is a requirement itself" — a grouping heading can silently smuggle in an unreviewed requirement disguised as file organization; repeated in `validation_rules` and `pitfalls`.
 - "User is not always right" / "Challenge new requirements reasonably" — the skill must push back, not transcribe.
-- "Defer by keeping Draft status" — the default escape hatch: never invent an answer, leave the unit `Draft`.
+- "Defer an approval decision by keeping Draft status" — the default escape hatch for an unresolved *approval*, not for an unfinished unit: never invent an answer, leave the unit `Draft`. A `Draft` is still complete and ready for review.
 - "Refactor above 300 lines" — a hard split trigger for requirement files, far stricter than this SKILL.md's own ~490 lines.
 - `requirements_graph` tells the model to "Proactively ask to generate and show a graph of requirements" via Graphviz, unprompted.
 

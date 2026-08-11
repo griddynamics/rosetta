@@ -24,6 +24,8 @@ Attributes are ordered by volatility — `status`, `approved_by`, `changed` alwa
 
 ```xml
 <req id="FR-[AREA]-####" type="FR|NFR|INT|DATA" level="System|Subsystem|Component"
+     subsystem="[name; required when level is Subsystem or Component; otherwise fill when known]"
+     component="[name; required when level is Component; otherwise fill when known]"
      ticketId="[tracker key]" classification="business|technical"
      source="User|Inferred|Sources|Documentation"
      priority="Must|Should|Could|Wont" verification="Test|Analysis|Inspection|Demo"
@@ -35,7 +37,7 @@ Attributes are ordered by volatility — `status`, `approved_by`, `changed` alwa
   <rationale>[why this shape and not another: basis for each threshold, actor and boundary; alternatives rejected and why rejected]</rationale>
   <evidence>[reverse-engineering only: path:line-range per source location]</evidence>
   <acceptance>
-    <criteria id="[req-id].AC1" ears="ubiquitous" system="[actor or component that responds]" shall="[outcome]"/>
+    <criteria id="[req-id].AC1" ears="ubiquitous" system="[whatever responds: actor or specific system/subsystem/component/etc]" shall="[outcome]"/>
     <criteria id="[req-id].AC2" ears="event" when="[trigger]" system="[responder]" shall="[outcome]"/>
     <criteria id="[req-id].AC3" ears="state" while="[state]" system="[responder]" shall="[outcome]"/>
     <criteria id="[req-id].AC4" ears="optional" where="[feature is present]" system="[responder]" shall="[outcome]"/>
