@@ -118,8 +118,8 @@ The command operates on one specs document per invocation, addressed by a caller
     <criteria>Given: an add call against a non-existent document path, naming a system. When: executed with create semantics. Then: the file and parent dirs are created with system set to the supplied name, created_at, updated_at set, previous_version null, and the spec appended. Given: an add or migrate call that would create a document without a system. Then: {error: "missing_system"}. Given: a call naming a system against a document whose stored system is empty. When: executed. Then: the supplied name is stored. Given: a call naming a system that differs from the stored one. Then: {error: "system_mismatch"}. Given: a call naming the same system as the stored one, or naming none. When: executed. Then: it succeeds and the stored system is unchanged. Given: a document read back. When: parsed. Then: all fields conform to the schema. Given: a document file that is not valid JSON. When: read. Then: {error: "specs_file_corrupted"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0004, FR-SPECS-0070, FR-SPECS-0071</depends>
-  <implementation>ToBeModified</implementation>
-  <implementationNotes>Implemented except the caller-supplied `system`: src/rosettify/src/commands/specs/core.ts, write.ts, shared/doc-io.ts</implementationNotes>
+  <implementation>Implemented</implementation>
+  <implementationNotes>src/rosettify/src/commands/specs/core.ts, write.ts, add.ts, migrate.ts, errors.ts, index.ts, src/frontends/cli.ts, src/registry/types.ts, src/shared/doc-io.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0003 Spec Types
@@ -151,7 +151,7 @@ The command operates on one specs document per invocation, addressed by a caller
      priority="Must" verification="Test"
      status="Approved" approved_by="isolomatov-gd" changed="2026-08-11"
      depends="FR-SPECS-0002, FR-SPECS-0021, FR-SPECS-0024"
-     implementation="ToBeModified">
+     implementation="Implemented">
   <title>Identifier format, area registration, and caller-chosen numbers</title>
   <statement>A spec id SHALL read `<PREFIX>-<AREA>-<NNNN>`: PREFIX is the type prefix (FR, NFR, INT, DATA), AREA is an uppercase mnemonic naming the cross-cutting concern the requirement belongs to, and NNNN is a four-digit zero-padded number. An id in any other shape SHALL be rejected with `invalid_id_format`.
 
@@ -172,7 +172,7 @@ Criterion sub-ids are governed by FR-SPECS-0001 and identifier stability by FR-S
     <criteria id="FR-SPECS-0004.AC6" ears="event" when="info is called" system="the specs command" shall="report the highest used NNNN per prefix and area"/>
     <criteria id="FR-SPECS-0004.AC7" ears="ubiquitous" system="the specs command" shall="register each of the nine quality-characteristic codes with the name of the characteristic it denotes"/>
   </acceptance>
-  <implementationNotes>src/rosettify/src/commands/specs/core.ts, add.ts, update.ts, errors.ts, migrate.ts</implementationNotes>
+  <implementationNotes>src/rosettify/src/commands/specs/core.ts, add.ts, update.ts, errors.ts, migrate.ts, validate.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0009 Identifier Stability
@@ -183,7 +183,7 @@ Criterion sub-ids are governed by FR-SPECS-0001 and identifier stability by FR-S
      priority="Must" verification="Test"
      status="Approved" approved_by="isolomatov-gd" changed="2026-08-11"
      depends="FR-SPECS-0004, FR-SPECS-0014, FR-SPECS-0016"
-     implementation="ToBeModified">
+     implementation="Implemented">
   <title>Identifiers never change and are never reused</title>
   <statement>A spec id SHALL never change and SHALL never be reused. No subcommand SHALL offer a way to change an id: `update` (FR-SPECS-0013) addresses its target by `id`, so an id is the key of the edit rather than a field the edit can carry, and no other subcommand writes one. An id belonging to a soft-deleted (FR-SPECS-0014) or purged (FR-SPECS-0016) spec SHALL NOT be given to a different spec. A soft-deleted spec remains in the document, so its id collides naturally; a purged spec does not, so purge SHALL retain its id in the document's `purged_ids` registry (FR-SPECS-0002) and the uniqueness check SHALL span that registry (FR-SPECS-0005).
 
@@ -195,7 +195,7 @@ Because an id can never change, a spec's `type` SHALL stay consistent with the p
     <criteria id="FR-SPECS-0009.AC3" ears="unwanted" if="an update would set type to NFR on a spec whose id begins FR" system="the specs command" shall="reject the write with id_type_mismatch"/>
     <criteria id="FR-SPECS-0009.AC4" ears="unwanted" if="an add carries the id of a purged spec" system="the specs command" shall="reject the write with duplicate_id"/>
   </acceptance>
-  <implementationNotes>src/rosettify/src/commands/specs/core.ts, add.ts, update.ts, errors.ts</implementationNotes>
+  <implementationNotes>src/rosettify/src/commands/specs/core.ts, add.ts, update.ts, errors.ts, purge.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0005 Uniqueness and Reference Integrity
@@ -396,10 +396,10 @@ Every subcommand in this section accepts one or more items (batch) and follows t
   <changed>2026-08-11</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: update {id:"FR-SPECS-0001", title:"New title"} on a Draft spec. When: executed. Then: title changes, other fields preserved, changed and changed_by set, result is SpecWriteResult. Given: a patch with status:"Approved". When: executed. Then: the status field is silently dropped. Given: a patch targeting a missing id. Then: {error: "target_not_found"}. Given: a patch that would leave a required field empty, an out-of-enum ears or level, or two criteria sharing an id. Then: {error: "missing_required_field"}, {error: "invalid_ears"}, {error: "invalid_level"}, or {error: "duplicate_criterion_id"} respectively. Given: an edit to an Approved spec's statement. When: executed. Then: its status becomes Modified and approved_by is cleared. Given: a cosmetic edit (notes only) to an Approved spec. When: executed. Then: status stays Approved. Given: a statement edit to a spec whose implementation is Implemented. When: executed. Then: implementation becomes ToBeModified. Given: a null value in a patch. Then: that key is removed. Given: a patch that is not a JSON object (e.g. a string or number). Then: {error: "invalid_data"}. Given: an update call with no patch payload at all. Then: {error: "missing_data"}. Given: a patch that leaves the merged spec with an out-of-enum source, priority, or verification value. Then: {error: "invalid_source"}, {error: "invalid_priority"}, or {error: "invalid_verification"} respectively.</criteria>
+    <criteria>Given: update {id:"FR-SPECS-0001", title:"New title"} on a Draft spec. When: executed. Then: title changes, other fields preserved, changed and changed_by set, result is SpecWriteResult. Given: a patch with status:"Approved". When: executed. Then: the status field is silently dropped. Given: a patch targeting a missing id. Then: {error: "target_not_found"}. Given: a patch replacing acceptance with a criterion that names no responder or outcome. Then: {error: "missing_required_field"}. Given: a patch leaving an out-of-enum level, a criterion with an out-of-enum ears, or two criteria sharing an id. Then: {error: "invalid_level"}, {error: "invalid_ears"}, or {error: "duplicate_criterion_id"} respectively. Given: an edit to an Approved spec's statement. When: executed. Then: its status becomes Modified and approved_by is cleared. Given: a cosmetic edit (notes only) to an Approved spec. When: executed. Then: status stays Approved. Given: a statement edit to a spec whose implementation is Implemented. When: executed. Then: implementation becomes ToBeModified. Given: a null value in a patch. Then: that key is removed. Given: a patch that is not a JSON object (e.g. a string or number). Then: {error: "invalid_data"}. Given: an update call with no patch payload at all. Then: {error: "missing_data"}. Given: a patch that leaves the merged spec with an out-of-enum source, priority, or verification value. Then: {error: "invalid_source"}, {error: "invalid_priority"}, or {error: "invalid_verification"} respectively.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0005, FR-SPECS-0007, FR-SPECS-0030, FR-SPECS-0040, FR-SPECS-0041, FR-SPECS-0042, FR-SPECS-0050</depends>
-  <implementation>ToBeModified</implementation>
+  <implementation>Implemented</implementation>
   <implementationNotes>src/rosettify/src/commands/specs/update.ts, core.ts, write.ts, output.ts</implementationNotes>
 </req>
 
