@@ -117,7 +117,7 @@ The command operates on one specs document per invocation, addressed by a caller
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0004, FR-SPECS-0070, FR-SPECS-0071</depends>
   <implementation>ToBeModified</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/core.ts, write.ts, shared/doc-io.ts</implementationNotes>
+  <implementationNotes>Implemented except the required non-empty `system`: nothing supplies it, so every created document carries an empty one — src/rosettify/src/commands/specs/core.ts, write.ts, shared/doc-io.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0003 Spec Types
@@ -170,7 +170,7 @@ Criterion sub-ids are governed by FR-SPECS-0001 and identifier stability by FR-S
     <criteria id="FR-SPECS-0004.AC6" ears="event" when="info is called" system="the specs command" shall="report the highest used NNNN per prefix and area"/>
     <criteria id="FR-SPECS-0004.AC7" ears="ubiquitous" system="the specs command" shall="register each of the nine quality-characteristic codes with the name of the characteristic it denotes"/>
   </acceptance>
-  <implementationNotes>Currently implemented without the pre-registered quality-characteristic codes: src/rosettify/src/commands/specs/core.ts, add.ts, update.ts, errors.ts, migrate.ts</implementationNotes>
+  <implementationNotes>Implemented except AC3: an unregistered area registers itself on first use, so `unknown_area` never fires — src/rosettify/src/commands/specs/core.ts, add.ts, update.ts, errors.ts, migrate.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0009 Identifier Stability
@@ -193,7 +193,7 @@ Because an id can never change, a spec's `type` SHALL stay consistent with the p
     <criteria id="FR-SPECS-0009.AC3" ears="unwanted" if="an update would set type to NFR on a spec whose id begins FR" system="the specs command" shall="reject the write with id_type_mismatch"/>
     <criteria id="FR-SPECS-0009.AC4" ears="unwanted" if="an add carries the id of a purged spec" system="the specs command" shall="reject the write with duplicate_id"/>
   </acceptance>
-  <implementationNotes>Currently implemented without the type-and-prefix consistency rule, and update.ts validates no type at all: src/rosettify/src/commands/specs/core.ts, add.ts, update.ts, errors.ts</implementationNotes>
+  <implementationNotes>Implemented except AC1: an update patch's id is also its lookup key, so a patch can never carry a different id and `immutable_id` never fires — src/rosettify/src/commands/specs/core.ts, add.ts, update.ts, errors.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0005 Uniqueness and Reference Integrity
@@ -398,7 +398,7 @@ Every subcommand in this section accepts one or more items (batch) and follows t
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0005, FR-SPECS-0007, FR-SPECS-0030, FR-SPECS-0040, FR-SPECS-0041, FR-SPECS-0042, FR-SPECS-0050</depends>
   <implementation>ToBeModified</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/update.ts, core.ts, write.ts, output.ts</implementationNotes>
+  <implementationNotes>Implemented, but the statement's error list is behind the code: `immutable_id` cannot be produced, while `invalid_ears`, `invalid_level`, `duplicate_criterion_id` and `missing_required_field` are enforced and unlisted — src/rosettify/src/commands/specs/update.ts, core.ts, write.ts, output.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0014 delete
