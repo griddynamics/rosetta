@@ -366,7 +366,7 @@ export async function runCli(args: string[]): Promise<void> {
     {
       name: "render",
       positional: { name: "query", required: false, desc: "Optional scope filter" },
-      flags: [{ flag: "--format <fmt>", desc: "markdown (default) or text" }],
+      flags: [{ flag: "--format <fmt>", desc: "markdown (default), text, or xml markup" }],
       buildInput: (specsFile, rest, opts) => ({
         subcommand: "render",
         specs_file: specsFile,

@@ -212,7 +212,7 @@ export const specsToolDef: ToolDef<SpecInput, unknown> = {
   name: "specs",
   brief: "Manage requirements/specs (add, query, validate, approve, and more)",
   description:
-    "Manages a component's requirements as spec units stored in one JSON document per component. " +
+    "Manages a system's requirements as spec units stored in one JSON document per system. " +
     `Subcommands: ${VALID_SUBCOMMANDS_STR}.`,
   inputSchema: {
     type: "object",
@@ -247,7 +247,7 @@ export const specsToolDef: ToolDef<SpecInput, unknown> = {
       },
       format: {
         type: "string",
-        description: "Render output format: markdown | text",
+        description: "render — output format: markdown (default) | text | xml",
       },
       additional_paths: {
         type: "array",
