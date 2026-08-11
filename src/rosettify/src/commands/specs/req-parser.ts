@@ -43,7 +43,6 @@ import {
   CANONICAL_ATTR_ORDER,
   CONDITION_ATTRS,
   CRITERION_ELEMENT,
-  EARS_CONDITION_WORD,
   ELEMENT_FIELDS,
   EVIDENCE_ELEMENT,
   EVIDENCE_SEPARATOR,
@@ -277,22 +276,22 @@ function readCriterion(element: RawElement): { criterion: AcceptanceCriterion } 
     return { reason: "carries a criterion that names no responder or no outcome" };
   }
 
-  const expected = EARS_CONDITION_WORD[ears as EarsEnum];
-  const present = CONDITION_ATTRS.filter((word) => (attrs[word] ?? "").trim().length > 0);
-  if (expected === null && present.length > 0) {
-    return { reason: "carries a criterion whose pattern takes no condition but that names one anyway" };
-  }
-  if (expected !== null && (present.length !== 1 || present[0] !== expected)) {
-    return { reason: "carries a criterion whose condition word does not match its pattern" };
-  }
-
+  // FR-SPECS-0025 draws the canonical-shape line at fields-as-attributes and pattern-attribute
+  // criteria (checked above); which condition word a criterion carries relative to its declared
+  // `ears` is a content rule owned by FR-SPECS-0006 and enforced by validate.ts's
+  // checkCriterionEars/checkSingleConditionWord — this reader does not gate on it. Every attribute
+  // here is explicit, so carrying a present-but-mismatched (or absent) condition word across is not
+  // inference; it is imported as-is for validate to flag.
   const criterion: AcceptanceCriterion = {
     id: (attrs["id"] ?? "").trim(),
     ears: ears as EarsEnum,
     system,
     shall,
   };
-  if (expected !== null) criterion[expected] = (attrs[expected] ?? "").trim();
+  for (const word of CONDITION_ATTRS) {
+    const value = (attrs[word] ?? "").trim();
+    if (value) criterion[word] = value;
+  }
   return { criterion };
 }
 

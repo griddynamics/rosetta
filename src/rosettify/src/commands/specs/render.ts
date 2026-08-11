@@ -204,7 +204,7 @@ function renderCriterion(c: AcceptanceCriterion, indent: string): string {
     system: c.system,
     shall: c.shall,
   };
-  if (word) values[word] = c[word] ?? "";
+  if (word && c[word]) values[word] = c[word]!;
 
   const attrs = CRITERION_ATTR_ORDER.filter((name) => values[name] !== undefined)
     .map((name) => `${name}="${escapeAttr(values[name]!)}"`)
