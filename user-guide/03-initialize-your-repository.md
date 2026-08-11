@@ -88,4 +88,4 @@ A few habits that noticeably improve results:
 
 ## Next step
 
-Your repo is ready. Time to do actual work — [pick a scenario →](scenarios/README.md), or open the visual [workflow map](workflow-map.html).
+Your repo is ready. Time to do actual work — [pick a scenario →](scenarios/README.md), or open the visual [workflow map](workflow-map.md).

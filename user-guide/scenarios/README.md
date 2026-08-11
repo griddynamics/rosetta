@@ -4,7 +4,7 @@
 
 Rosetta organizes work into **scenarios** — one guided workflow per kind of task. Each has its own page below with a diagram of how it works, the exact command, what you'll be asked to approve, and what files it produces.
 
-Not sure which one you need? Open the **[visual workflow map](../workflow-map.html)** — it starts from *"what do I want to do?"* and points you to the right scenario. Or just ask your agent: `/help-flow What should I use to <describe your task>?`
+Not sure which one you need? Open the **[visual workflow map](../workflow-map.md)** — it starts from *"what do I want to do?"* and points you to the right scenario. Or just ask your agent: `/help-flow What should I use to <describe your task>?`
 
 ## Pick your task
 

@@ -51,7 +51,7 @@ Nothing — it's purely informational. The workflow it hands off to owns any fil
 
 ## Related
 
-The full menu is the [Scenarios index](README.md) and the visual [workflow map](../workflow-map.html).
+The full menu is the [Scenarios index](README.md) and the visual [workflow map](../workflow-map.md).
 
 ## Sources
 

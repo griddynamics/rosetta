@@ -75,4 +75,4 @@ Honest answer: if you already have a polished personal setup — your own prompt
 
 ---
 
-*Next: [Install Rosetta →](02-install.md) · Or jump to the visual [workflow map](workflow-map.html).*
+*Next: [Install Rosetta →](02-install.md) · Or jump to the visual [workflow map](workflow-map.md).*

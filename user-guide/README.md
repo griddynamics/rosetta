@@ -20,7 +20,7 @@ Read these in order the first time. After that, jump to whatever you need.
 
 ## See it visually
 
-Open the **[workflow map](workflow-map.html)** — an interactive diagram that starts from *"what do I want to do?"*, routes you to the right command, and shows the shape every workflow shares. It's the fastest way to get oriented.
+Open the **[workflow map](workflow-map.md)** — an diagram that starts from *"what do I want to do?"*, routes you to the right command, and shows the shape every workflow shares. It's the fastest way to get oriented.
 
 ## The 60-second path
 
