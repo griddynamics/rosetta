@@ -1,0 +1,73 @@
+name: Download Badges
+
+# Refreshes the PyPI monthly-download badges shown in README.md.
+#
+# Why this exists: shields.io's own `pypi/dm` badge reads pypistats.org's
+# `/recent` endpoint, which is aggressively rate limited. When it refuses,
+# shields renders "rate limited by upstream service" and GitHub's camo proxy
+# caches that error image, so the badge stays broken long after the upstream
+# recovers. This job reads `/overall` instead, which answers reliably, and
+# publishes a shields endpoint JSON to the orphan `badges` branch.
+#
+# Counts exclude mirrors, matching what shields.io reports.
+#
+# No secrets required: pushes with the default GITHUB_TOKEN.
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/download-badges.yml'
+      - '.github/scripts/download_badges.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: download-badges
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build badge JSON
+        run: |
+          mkdir -p "$RUNNER_TEMP/badges"
+          python .github/scripts/download_badges.py "$RUNNER_TEMP/badges"
+
+      - name: Publish to badges branch
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin badges >/dev/null 2>&1; then
+            git fetch origin badges --depth=1
+            git switch --force badges
+          else
+            git switch --orphan badges
+            git rm -rf . --quiet || true
+          fi
+
+          cp -f "$RUNNER_TEMP"/badges/*.json .
+
+          git add ./*.json
+          if git diff --cached --quiet; then
+            echo "No change in download counts; nothing to publish."
+          else
+            git commit -m "chore: refresh download badges"
+            git push origin badges
+          fi
