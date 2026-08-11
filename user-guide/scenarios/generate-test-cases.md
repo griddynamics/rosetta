@@ -26,14 +26,14 @@ flowchart TB
     Start(["/testgen-flow + ticket key"]) --> Load["Load config + parse ticket"]
     Load --> Collect["Collect ticket + wiki data"]
     Collect --> Gaps["Find gaps & contradictions"]
-    Gaps --> G1{"You answer<br/>the questions"}
+    Gaps --> G1{"You answer<br>the questions"}
     G1 --> Reqs["Generate requirements doc"]
-    Reqs --> RC{"You confirm<br/>the requirements?"}
+    Reqs --> RC{"You confirm<br>the requirements?"}
     RC -->|changes| Reqs
     RC -->|confirm| Cases["Design manual test cases"]
-    Cases --> CC{"You confirm<br/>the cases?"}
+    Cases --> CC{"You confirm<br>the cases?"}
     CC -->|changes| Cases
-    CC -->|confirm| Exp{"Export to<br/>your TMS?"}
+    CC -->|confirm| Exp{"Export to<br>your TMS?"}
     Exp -->|not now| Local(["Cases saved locally"])
     Exp -->|export| TMS["Push cases to your TMS"]
     TMS --> Done(["Cases in TestRail + report"])

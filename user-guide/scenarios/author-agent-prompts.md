@@ -25,18 +25,18 @@ It treats prompts like software. It extracts a **Prompt Brief** you approve, des
 ```mermaid
 flowchart TB
     Start(["/coding-agents-prompting-flow + request"]) --> Disc["Discover context & references"]
-    Disc --> G1{"You approve<br/>the Prompt Brief"}
+    Disc --> G1{"You approve<br>the Prompt Brief"}
     G1 -->|revise| Disc
     G1 -->|approve| Blue["Blueprint the structure"]
     Blue --> Draft["Draft a prompt"]
     Draft --> Harden["Harden & edit"]
-    Harden --> Pass{"Passes<br/>review?"}
+    Harden --> Pass{"Passes<br>review?"}
     Pass -->|no| Harden
     Pass -->|more prompts| Draft
     Pass -->|all done| Sim["Simulate realistic runs"]
-    Sim --> Risk{"Major<br/>risk?"}
+    Sim --> Risk{"Major<br>risk?"}
     Risk -->|yes| Blue
-    Risk -->|no| G2{"You give<br/>final approval"}
+    Risk -->|no| G2{"You give<br>final approval"}
     G2 -->|request changes| Draft
     G2 -->|approve| Done(["Validated prompt set"])
 

@@ -23,10 +23,10 @@ It's a short, mostly hands-off routine: point it at the library, it detects the 
 
 ```mermaid
 flowchart TB
-    Start(["/external-lib-flow + path"]) --> Discover["Detect name, version, stack<br/>(asks for the path)"]
-    Discover --> Analyze["Package codebase (compressed)<br/>+ extract entry points"]
+    Start(["/external-lib-flow + path"]) --> Discover["Detect name, version, stack<br>(asks for the path)"]
+    Discover --> Analyze["Package codebase (compressed)<br>+ extract entry points"]
     Analyze --> Publish["Publish reference + onboarding doc"]
-    Publish --> Verify{"Agent can<br/>find & search it?"}
+    Publish --> Verify{"Agent can<br>find & search it?"}
     Verify -->|no| Publish
     Verify -->|yes| Done(["Agent can use the library"])
 

@@ -22,26 +22,26 @@ Safety is built into the order of operations. Before any source is read, a **sec
 
 ```mermaid
 flowchart TB
-    Start(["/security-flow + authorized scope"]) --> Ready["Readiness + secret gate<br/>(filenames only)"]
-    Ready --> SG{"Secret-gate<br/>result?"}
-    SG -->|stop / high-risk| Halt(["Review halts —<br/>cannot be overridden"])
+    Start(["/security-flow + authorized scope"]) --> Ready["Readiness + secret gate<br>(filenames only)"]
+    Ready --> SG{"Secret-gate<br>result?"}
+    SG -->|stop / high-risk| Halt(["Review halts —<br>cannot be overridden"])
     SG -->|needs approval| Auth["Recommend run scope"]
     SG -->|pass| Auth
-    Auth --> G1{"You approve<br/>the run scope"}
+    Auth --> G1{"You approve<br>the run scope"}
     G1 -->|adjust| Auth
-    G1 -->|approve| DG{"PR / pipeline<br/>review?"}
+    G1 -->|approve| DG{"PR / pipeline<br>review?"}
     DG -->|yes| Gates["Run deterministic gates"]
     DG -->|no| Model["Threat model + coverage plan"]
     Gates --> GR{"High+ findings?"}
     GR -->|yes| Package["Report & package"]
     GR -->|no| Model
-    Model --> Inspect["Inspect & test<br/>(pre-production only)"]
+    Model --> Inspect["Inspect & test<br>(pre-production only)"]
     Inspect --> Triage["Normalize & triage findings"]
     Triage --> Indep["Independent reviewer"]
-    Indep --> IR{"Review<br/>accepted?"}
+    Indep --> IR{"Review<br>accepted?"}
     IR -->|corrections| Triage
     IR -->|accepted| Package
-    Package --> G2{"You approve<br/>the task index"}
+    Package --> G2{"You approve<br>the task index"}
     G2 -->|request changes| Package
     G2 -->|approve| Done(["Sanitized report + remediation tasks"])
 

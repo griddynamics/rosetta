@@ -23,8 +23,8 @@ It loads project context, sizes the job, asks only the questions that actually a
 ```mermaid
 flowchart TB
     Start(["/code-analysis-flow + scope"]) --> Ctx["Load context, find entry points"]
-    Ctx --> G1{"You answer<br/>key questions"}
-    G1 --> ReqB{"Extract requirements?<br/>(only if you ask)"}
+    Ctx --> G1{"You answer<br>key questions"}
+    G1 --> ReqB{"Extract requirements?<br>(only if you ask)"}
     ReqB -->|yes| ReqDocs["docs/REQUIREMENTS/"]
     ReqB -->|no| Size{"Scope size?"}
     ReqDocs --> Size
@@ -33,10 +33,10 @@ flowchart TB
     Large --> Sum["Combined summary.md"]
     Small --> Review["Groundedness review"]
     Sum --> Review
-    Review --> Grounded{"Every claim<br/>grounded?"}
+    Review --> Grounded{"Every claim<br>grounded?"}
     Grounded -->|no| Revise["Revise the analysis"]
     Revise --> Review
-    Grounded -->|yes| G2{"You review<br/>the analysis"}
+    Grounded -->|yes| G2{"You review<br>the analysis"}
     G2 -->|request changes| Revise
     G2 -->|approve| Done(["Grounded architecture docs"])
 

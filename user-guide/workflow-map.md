@@ -10,9 +10,9 @@ Find your task on the left, follow the arrows to a command. Open any command's s
 
 ```mermaid
 flowchart TB
-    Work(["New work<br/>or a question"]) --> Q{"What do I<br/>want to do?"}
+    Work(["New work<br>or a question"]) --> Q{"What do I<br>want to do?"}
 
-    Q -->|"set up a repo for AI"| Init["Initialize workspace<br/>(ask in plain language)"]
+    Q -->|"set up a repo for AI"| Init["Initialize workspace<br>(ask in plain language)"]
     Q -->|"not sure"| Help["/help-flow"]
 
     Q ==>|"build or change something"| Build{{"Build / change"}}
@@ -62,13 +62,13 @@ Whichever scenario you pick, the work follows the same five phases — **Prepare
 
 ```mermaid
 flowchart LR
-    Prep["Prepare<br/><small>once, at setup</small>"] --> Classify["Classify<br/>your request"]
-    Classify --> Research["Research<br/>gather context"]
-    Research --> Plan["Plan<br/>specs &amp; approach"]
-    Plan --> G1{"You approve<br/>the plan"}
-    G1 -->|approve| Act["Act<br/>implement"]
-    Act --> Validate["Validate<br/>review &amp; actually run it"]
-    Validate --> G2{"You approve<br/>the result"}
+    Prep["Prepare<br><small>once, at setup</small>"] --> Classify["Classify<br>your request"]
+    Classify --> Research["Research<br>gather context"]
+    Research --> Plan["Plan<br>specs &amp; approach"]
+    Plan --> G1{"You approve<br>the plan"}
+    G1 -->|approve| Act["Act<br>implement"]
+    Act --> Validate["Validate<br>review &amp; actually run it"]
+    Validate --> G2{"You approve<br>the result"}
     G2 -->|approve| Done(["Shipped"])
     G2 -->|issues found| Research
 
@@ -81,51 +81,6 @@ flowchart LR
 ```
 
 > Bigger tasks add independent reviewer and validator subagents and more gates; small tasks collapse the gates and skip the heavy checks. The agent won't move past an amber gate without a clear go-ahead from you.
-
-## 3. Jump to a scenario
-
-### Build & change
-
-| Scenario | Command |
-| --- | --- |
-| [Write or change code](scenarios/coding.md) | `/coding-flow` |
-| [Author requirements](scenarios/requirements.md) | `/requirements-authoring-flow` |
-| [Ad-hoc task](scenarios/adhoc-task.md) | `/adhoc-flow` |
-
-### Test & QA
-
-| Scenario | Command |
-| --- | --- |
-| [Generate test cases](scenarios/generate-test-cases.md) | `/testgen-flow` |
-| [Automate UI tests](scenarios/automate-ui-tests.md) | `/ui-aqa-flow` |
-| [Automate API tests](scenarios/automate-api-tests.md) | `/api-aqa-flow` |
-
-### Understand
-
-| Scenario | Command |
-| --- | --- |
-| [Analyze a codebase](scenarios/analyze-a-codebase.md) | `/code-analysis-flow` |
-| [Research a question](scenarios/research.md) | `/research-flow` |
-
-### Transform
-
-| Scenario | Command |
-| --- | --- |
-| [Modernize / migrate](scenarios/modernize.md) | `/modernization-flow` |
-| [Onboard a library](scenarios/onboard-a-library.md) | `/external-lib-flow` |
-
-### Govern quality
-
-| Scenario | Command |
-| --- | --- |
-| [Review security](scenarios/security-review.md) | `/security-flow` |
-| [Author agent prompts](scenarios/author-agent-prompts.md) | `/coding-agents-prompting-flow` |
-
-### Not sure?
-
-| Scenario | Command |
-| --- | --- |
-| [Get help](scenarios/get-help.md) | `/help-flow` |
 
 ---
 

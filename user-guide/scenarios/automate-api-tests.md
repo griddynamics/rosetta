@@ -22,21 +22,21 @@ It extracts the real endpoint contracts (from Swagger/OpenAPI or code), resolves
 
 ```mermaid
 flowchart TB
-    Start(["/api-aqa-flow + test cases"]) --> Cfg{"Project config<br/>exists?"}
+    Start(["/api-aqa-flow + test cases"]) --> Cfg{"Project config<br>exists?"}
     Cfg -->|no| Info["You provide project info"]
     Info --> Collect["Collect cases + docs"]
     Cfg -->|yes| Collect
     Collect --> Spec["Extract API contracts"]
-    Spec --> G1{"You answer<br/>clarifying questions"}
+    Spec --> G1{"You answer<br>clarifying questions"}
     G1 --> Cases["Write Given-When-Then specs"]
-    Cases --> G2{"You approve<br/>the specs"}
+    Cases --> G2{"You approve<br>the specs"}
     G2 -->|request changes| Cases
     G2 -->|approve| Impl["Implement test files"]
-    Impl --> Run["You run the tests<br/>& share results"]
+    Impl --> Run["You run the tests<br>& share results"]
     Run --> Pass{"Tests pass?"}
     Pass -->|yes| Done(["Passing API tests"])
     Pass -->|no| Root["Analyze failures"]
-    Root --> G3{"You approve<br/>the fixes"}
+    Root --> G3{"You approve<br>the fixes"}
     G3 -->|refine| Root
     G3 -->|approve| Impl
 

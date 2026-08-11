@@ -32,21 +32,21 @@ This is the most disciplined flow. Phases run **one at a time**, and the agent w
 
 ```mermaid
 flowchart TB
-    Start(["/modernization-flow + phase"]) --> Which{"Which phases<br/>apply?"}
+    Start(["/modernization-flow + phase"]) --> Which{"Which phases<br>apply?"}
     Which --> P1["1. Analyze reusable libraries"]
     P1 --> P2["2. Analyze the old code"]
-    P2 --> TC{"Add test coverage?<br/>(optional)"}
+    P2 --> TC{"Add test coverage?<br>(optional)"}
     TC -->|yes| P3["3. Baseline test coverage"]
     TC -->|no| P4["4. Group classes / contexts"]
     P3 --> P4
     P4 --> P5["5. Cross-project analysis"]
     P5 --> P6["6. Map to the target design"]
-    P6 --> G1{"7. Final review:<br/>specs approved?"}
+    P6 --> G1{"7. Final review:<br>specs approved?"}
     G1 -->|request changes| P6
     G1 -->|approve| P8["8. Implement (via /coding-flow)"]
-    P8 --> V{"Behavior<br/>validated?"}
+    P8 --> V{"Behavior<br>validated?"}
     V -->|no| P8
-    V -->|yes| More{"More projects<br/>to migrate?"}
+    V -->|yes| More{"More projects<br>to migrate?"}
     More -->|yes| P6
     More -->|no| Done(["Migrated, validated code"])
 

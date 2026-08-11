@@ -25,25 +25,25 @@ The agent doesn't just start editing. It proposes a **design**, then a **plan**,
 ```mermaid
 flowchart TB
     Start(["/coding-flow + your request"]) --> Clear{"Request clear?"}
-    Clear -->|no| Disc["Discovery<br/>agent: discoverer"]
-    Clear -->|yes| Design["Design — 3 options<br/>agent: architect"]
+    Clear -->|no| Disc["Discovery<br>agent: discoverer"]
+    Clear -->|yes| Design["Design — 3 options<br>agent: architect"]
     Disc --> Design
-    Design --> G1{"You review<br/>the design"}
+    Design --> G1{"You review<br>the design"}
     G1 -->|request changes| Design
-    G1 -->|approve| Plan["Tech plan: specs + plan<br/>agent: architect"]
+    G1 -->|approve| Plan["Tech plan: specs + plan<br>agent: architect"]
     Plan --> Size{"Task size?"}
-    Size -->|medium / large| RevPlan["Plan review<br/>agent: reviewer"]
-    Size -->|small| G2{"You review<br/>the plan"}
+    Size -->|medium / large| RevPlan["Plan review<br>agent: reviewer"]
+    Size -->|small| G2{"You review<br>the plan"}
     RevPlan --> G2
     G2 -->|request changes| Plan
-    G2 -->|approve| Impl["Implementation<br/>agent: engineer"]
-    Impl --> RevCode["Code review + validation<br/>reviewer + validator"]
+    G2 -->|approve| Impl["Implementation<br>agent: engineer"]
+    Impl --> RevCode["Code review + validation<br>reviewer + validator"]
     RevCode --> Issues{"Issues found?"}
     Issues -->|yes| Impl
-    Issues -->|no| G3{"You approve<br/>the implementation"}
+    Issues -->|no| G3{"You approve<br>the implementation"}
     G3 -->|request changes| Impl
-    G3 -->|approve| Tests["Write & run tests<br/>agent: engineer"]
-    Tests --> Final{"Tests pass &<br/>final check clean?"}
+    G3 -->|approve| Tests["Write & run tests<br>agent: engineer"]
+    Tests --> Final{"Tests pass &<br>final check clean?"}
     Final -->|no| Impl
     Final -->|yes| Done(["Shipped: working, tested code"])
 

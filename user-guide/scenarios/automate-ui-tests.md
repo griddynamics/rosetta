@@ -23,19 +23,19 @@ The defining rule: **it never guesses selectors, flows, or data.** It reads your
 ```mermaid
 flowchart TB
     Start(["/ui-aqa-flow + test case"]) --> Collect["Collect test case + context"]
-    Collect --> G1{"You answer<br/>clarifying questions"}
-    G1 --> Feas{"Feature & elements<br/>actually exist?"}
-    Feas -->|no| Stop(["Hard stop —<br/>you choose how to proceed"])
+    Collect --> G1{"You answer<br>clarifying questions"}
+    G1 --> Feas{"Feature & elements<br>actually exist?"}
+    Feas -->|no| Stop(["Hard stop —<br>you choose how to proceed"])
     Feas -->|yes| Analyze["Analyze code & page objects"]
-    Analyze --> Sel{"Selectors<br/>found in code?"}
-    Sel -->|no| Ask["You provide<br/>page source"]
+    Analyze --> Sel{"Selectors<br>found in code?"}
+    Sel -->|no| Ask["You provide<br>page source"]
     Ask --> Impl["Implement page objects + test"]
     Sel -->|yes| Impl
-    Impl --> Run["You run the test<br/>& share the report"]
+    Impl --> Run["You run the test<br>& share the report"]
     Run --> Pass{"Test passes?"}
     Pass -->|yes| Done(["Passing UI test"])
     Pass -->|no| Root["Root-cause the failures"]
-    Root --> G2{"You approve<br/>the fixes"}
+    Root --> G2{"You approve<br>the fixes"}
     G2 -->|refine| Root
     G2 -->|approve| Impl
 
