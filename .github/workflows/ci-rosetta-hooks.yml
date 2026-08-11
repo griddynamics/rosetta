@@ -37,10 +37,6 @@ jobs:
       working-directory: ./src/hooks
       run: npm run check
 
-    - name: Build package
-      working-directory: ./src/hooks
-      run: npm run build
-
     - name: Run tests
       working-directory: ./src/hooks
       run: npm run test
