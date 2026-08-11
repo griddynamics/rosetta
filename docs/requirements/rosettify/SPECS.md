@@ -6,26 +6,38 @@ The command mirrors the shared rosettify architecture: it is one registry tool w
 
 Note: All "result" references describe the `result` field contents of the common output envelope (FR-ARCH-0011). Envelope wrapping ({ok, result, error, include_help}) is handled by common functionality. Run delegates never touch stdin/stdout/stderr (FR-ARCH-0008).
 
-Canonical storage is JSON only: one specs document JSON file per component. There is no maintained markdown mirror; a human-readable view is produced on demand by the `render` subcommand (FR-SPECS-0023).
+Canonical storage is JSON only: one specs document JSON file per system. There is no maintained markdown mirror; a human-readable view is produced on demand by the `render` subcommand (FR-SPECS-0023).
 
 ## Data Model
 
 ### FR-SPECS-0001 Spec Unit Schema
 
-<req id="FR-SPECS-0001" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
+<req id="FR-SPECS-0001" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0004, FR-SPECS-0005, FR-SPECS-0006, FR-SPECS-0008"
+     implementation="ToBeModified">
   <title>JSON schema of a single spec unit</title>
-  <statement>A spec unit SHALL be a JSON object with the following fields:
+  <statement>A spec unit SHALL be a JSON object carrying exactly the fields below and no others. The field set SHALL be the JSON rendering of the canonical requirement unit — one model in two notations — so that a caller authoring through this command never needs the markup form. This unit governs field names, types, defaults, and which fields are required:
 
 ```
 spec:
   id: str                       # required, caller-provided, unique across the document (FR-SPECS-0004)
   type: SpecType                # required; FR | NFR | INT | DATA
-  level: str                    # required; e.g. "System" (default "System")
+  level: LevelEnum              # required; System | Subsystem | Component; default System
+  subsystem: str                # default ""; the subsystem this requirement concerns; required when
+                                #   level is Subsystem or Component, otherwise filled when known
+  component: str                # default ""; the component this requirement concerns; required when
+                                #   level is Component, otherwise filled when known
   ticket_id: str                # optional; issue-tracker id
   classification: str           # optional; "business" | "technical"
   title: str                    # required, non-empty
-  statement: str                # required, non-empty; EARS phrasing for FR (FR-SPECS-0006)
+  statement: str                # required, non-empty; the governing rule (FR-SPECS-0006)
   rationale: str                # default ""
+  evidence: [str]               # default []; one "path:line-range" per source location backing a
+                                #   reverse-engineered unit; empty for units authored from intent
   source: SourceEnum            # required; User | Inferred | Sources | Documentation
   priority: MoscowEnum          # required; Must | Should | Could | Wont
   status: StatusEnum            # guarded; Draft | Approved | Modified | Deprecated | Removed (FR-SPECS-0040)
@@ -41,41 +53,48 @@ spec:
   notes: str                    # default ""
 
 AcceptanceCriterion:
-  given: str                    # required, non-empty
-  when: str                     # required, non-empty
-  then: str                     # required, non-empty
+  id: str                       # required; "<spec-id>.AC<n>", unique within the unit; assigned by the
+                                #   command when omitted, validated when supplied
+  ears: EarsEnum                # required; ubiquitous | event | state | optional | unwanted
+  when: str                     # the trigger; carried when ears is event
+  while: str                    # the state; carried when ears is state
+  where: str                    # the feature that is present; carried when ears is optional
+  if: str                       # the fault; carried when ears is unwanted
+  system: str                   # required, non-empty; whatever responds — an actor, or a specific
+                                #   system, subsystem, or component
+  shall: str                    # required, non-empty; the outcome, or the mitigation when ears is unwanted
 ```
 
-Each `AcceptanceCriterion` SHALL be the named object shape above (given/when/then), not a free-form string, so that criteria completeness is machine-checkable (FR-SPECS-0021). Unknown fields on a spec unit SHALL be rejected with `invalid_spec_field`. This schema is the single source of truth for the spec-unit format, help content (FR-SPECS-0060), and validation (FR-SPECS-0021).</statement>
-  <rationale>Encodes the requirements-authoring `<req>` unit as native JSON so AI agents author by passing objects, not hand-editing XML. Structured given/when/then replaces the single criteria string so the validate op can prove all three parts are present. The split implementation/implementation_notes fields, approved_by, changed, ticket_id, and classification match the skill's canonical unit schema.</rationale>
-  <source>User</source>
-  <ticketId>CTORNDGAIN-1333</ticketId>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
-  <verification>Test</verification>
+Each `AcceptanceCriterion` SHALL be the named object shape above, not a free-form string, so that criterion completeness and EARS conformance are machine-checkable (FR-SPECS-0021). A field the schema does not define SHALL be rejected with `invalid_spec_field`, a missing required field with `missing_required_field`, an out-of-enum `ears` with `invalid_ears`, an out-of-enum `level` with `invalid_level`, and two criteria sharing an id within one unit with `duplicate_criterion_id`. `evidence` records where a unit came from rather than what it requires: changing it SHALL NOT count as a normative edit and SHALL NOT move a unit to Modified or its implementation to ToBeModified (FR-SPECS-0013). Which condition word a criterion may carry for its `ears`, and every other rule about what these fields may say, is governed by FR-SPECS-0006; the caller-facing guidance for each field is governed by FR-SPECS-0008. This schema is the single source of truth for the spec-unit format, help content (FR-SPECS-0060), rendering (FR-SPECS-0023), and validation (FR-SPECS-0021).</statement>
+  <rationale>Encodes the canonical requirement unit as native JSON so AI agents author by passing objects rather than hand-editing markup. EARS attributes on the criterion replace the given/when/then triple because the canonical unit puts EARS on the criteria and the statement carries the rule: a criterion built from `ears` plus one condition word plus `system` and `shall` is checkable field by field, while a Given/When/Then prose triple can only be checked for presence. `evidence` is a list rather than one string because a reverse-engineered unit is normally backed by several locations, and keeping them separate lets each be checked and re-pointed independently. Criterion ids are stored rather than derived so a test or traceability row can claim a stable target that survives reordering. The command assigns them when omitted because, unlike a spec id, a criterion id encodes nothing but position.</rationale>
   <acceptance>
-    <criteria>Given: an add call with a full valid spec object. When: executed. Then: the stored unit contains every field with defaults applied for omitted optional fields. Given: a spec object carrying an unknown field "foo". When: validated. Then: {error: "invalid_spec_field"}. Given: an acceptance entry missing "then". When: validated. Then: it is reported as an incomplete criterion (FR-SPECS-0021).</criteria>
+    <criteria id="FR-SPECS-0001.AC1" ears="event" when="an add call carries a spec object whose fields all match this schema" system="the specs command" shall="store the unit with defaults applied for every omitted optional field"/>
+    <criteria id="FR-SPECS-0001.AC2" ears="unwanted" if="a spec object carries a field this schema does not define" system="the specs command" shall="reject the write with invalid_spec_field and name the offending field"/>
+    <criteria id="FR-SPECS-0001.AC3" ears="event" when="a criterion omits its id" system="the specs command" shall="assign the next free &lt;spec-id&gt;.AC&lt;n&gt; within that unit"/>
+    <criteria id="FR-SPECS-0001.AC4" ears="unwanted" if="a criterion omits system or shall" system="the specs command" shall="reject the write with missing_required_field"/>
+    <criteria id="FR-SPECS-0001.AC5" ears="unwanted" if="two criteria within one unit carry the same id" system="the specs command" shall="reject the write with duplicate_criterion_id"/>
+    <criteria id="FR-SPECS-0001.AC6" ears="unwanted" if="a criterion declares an ears value outside the five patterns" system="the specs command" shall="reject the write with invalid_ears"/>
+    <criteria id="FR-SPECS-0001.AC7" ears="event" when="a unit omits level" system="the specs command" shall="store level System"/>
+    <criteria id="FR-SPECS-0001.AC9" ears="event" when="a unit names a subsystem and a component" system="the specs command" shall="store both alongside its level"/>
+    <criteria id="FR-SPECS-0001.AC8" ears="event" when="a unit is added without evidence" system="the specs command" shall="store evidence as an empty list"/>
   </acceptance>
-  <depends>FR-SPECS-0004, FR-SPECS-0005, FR-SPECS-0006</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/core.ts, schemas.ts</implementationNotes>
+  <implementationNotes>Currently implemented against the superseded given/when/then criterion shape and without evidence: src/rosettify/src/commands/specs/core.ts, schemas.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0002 Specs Document Schema
 
 <req id="FR-SPECS-0002" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
-  <title>Per-component specs document (the addressing unit)</title>
-  <statement>Specs SHALL be stored one document per component as a JSON file. The document SHALL conform to:
+  <title>Per-system specs document (the addressing unit)</title>
+  <statement>Specs SHALL be stored one document per system as a JSON file. The document SHALL conform to:
 
 ```
 specs_document:
-  component: str                # required, non-empty; the component name
+  system: str                   # required, non-empty; the system whose requirements this document holds
   description: str              # default ""
   created_at: ISO8601           # UTC; set on create (FR-SPECS-0042)
   updated_at: ISO8601           # UTC; updated on every write (FR-SPECS-0042)
   previous_version: str|null    # default null; path of the backup captured at write time (FR-SPECS-0070)
+  purged_ids: [spec-id]         # default []; ids of purged specs, retained so an id is never reused (FR-SPECS-0009, FR-SPECS-0016)
   areas: AreaEntry[]            # default []; registered area codes for this document
   specs: spec[]                 # array of spec units (FR-SPECS-0001), default []
 
@@ -85,19 +104,19 @@ AreaEntry:
 ```
 
 The command operates on one specs document per invocation, addressed by a caller-supplied file path (FR-SPECS-0071). Area is a field of each spec's id (FR-SPECS-0004), and `areas` is the document-level registry of the codes in use; the document holds a flat `specs` array, and grouping by area is a rendering concern (FR-SPECS-0023). Parent directories SHALL be created when the file is written.</statement>
-  <rationale>One document per component keeps the write path a single-file atomic operation (matching the plan command) while areas remain an internal grouping field, per the approved storage decision. Storing specs as a flat array with an area registry avoids duplicating area names on every unit and lets render group without a nested storage shape.</rationale>
+  <rationale>One document per system keeps the write path a single-file atomic operation (matching the plan command) while areas remain an internal grouping field, per the approved storage decision. Storing specs as a flat array with an area registry avoids duplicating area names on every unit and lets render group without a nested storage shape.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
+  <changed>2026-08-10</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: an add call against a non-existent document path. When: executed with create semantics. Then: the file and parent dirs are created with created_at, updated_at set, previous_version null, and the spec appended. Given: a document read back. When: parsed. Then: all fields conform to the schema. Given: a document file that is not valid JSON. When: read. Then: {error: "specs_file_corrupted"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0004, FR-SPECS-0070, FR-SPECS-0071</depends>
-  <implementation>Implemented</implementation>
+  <implementation>ToBeModified</implementation>
   <implementationNotes>src/rosettify/src/commands/specs/core.ts, write.ts, shared/doc-io.ts</implementationNotes>
 </req>
 
@@ -124,30 +143,64 @@ The command operates on one specs document per invocation, addressed by a caller
 
 ### FR-SPECS-0004 Identifier Format and Area Registration
 
-<req id="FR-SPECS-0004" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
-  <title>Stable, caller-provided area-scoped identifiers</title>
-  <statement>A spec id SHALL follow the format `<PREFIX>-<AREA>-<NNNN>`, where PREFIX is the type prefix (FR, NFR, INT, DATA), AREA is an uppercase mnemonic registered in the document's `areas` (FR-SPECS-0002), and NNNN is a zero-padded 4-digit sequence. Every spec id SHALL be supplied by the caller; the command SHALL NOT auto-generate ids. On write the command SHALL validate each id's format (`invalid_id_format` otherwise) and its area registration (`unknown_area` if AREA is not in `areas` and the same call does not register it). Ids SHALL be stable: an update SHALL NOT change a spec's id (`immutable_id` if a patch body carries a different id), and a soft-deleted or purged id SHALL NOT be reused for a different spec. The caller chooses the next free number; the `info` subcommand (FR-SPECS-0024) reports the highest used NNNN per prefix+area so the authoring agent can pick ids in advance without collision. A spec whose id is absent on add SHALL be rejected with `missing_id`.</statement>
-  <rationale>Caller-supplied ids keep the command deterministic and let the authoring agent decide ids up front, which the user found easier than server-side minting. The info subcommand orients the agent to the next free number. Verbatim ids support migration and stable cross-references; never reusing a retired number preserves traceability.</rationale>
-  <source>User</source>
-  <ticketId>CTORNDGAIN-1333</ticketId>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
-  <verification>Test</verification>
+<req id="FR-SPECS-0004" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0002, FR-SPECS-0021, FR-SPECS-0024"
+     implementation="ToBeModified">
+  <title>Identifier format, area registration, and caller-chosen numbers</title>
+  <statement>A spec id SHALL read `<PREFIX>-<AREA>-<NNNN>`: PREFIX is the type prefix (FR, NFR, INT, DATA), AREA is an uppercase mnemonic naming the cross-cutting concern the requirement belongs to, and NNNN is a four-digit zero-padded number. An id in any other shape SHALL be rejected with `invalid_id_format`.
+
+Every AREA SHALL be registered in the document's area registry (FR-SPECS-0002). A write naming an unregistered area SHALL be rejected with `unknown_area`, unless the same call registers it.
+
+For a spec of type NFR the nine quality-characteristic codes PERF, SEC, REL, USE, MAIN, PORT, COMP, FUNC, and SAFE SHALL be pre-registered in every document, each carrying the name of the characteristic it denotes — performance efficiency, security, reliability, usability, maintainability, portability, compatibility, functional suitability, safety — and SHALL be recommended, so that an author reaching for one never has to register it. They SHALL NOT be mandatory: any registered area is legal on any type, and an NFR whose area falls outside the nine SHALL be accepted and reported as a recommendation not followed (FR-SPECS-0021).
+
+Every spec id SHALL be supplied by the caller; the command SHALL NOT generate one. An add without an id SHALL be rejected with `missing_id`. The `info` subcommand (FR-SPECS-0024) SHALL report the highest number used per prefix and area, so the caller can choose the next free one without collision.
+
+Criterion sub-ids are governed by FR-SPECS-0001 and identifier stability by FR-SPECS-0009; neither is governed here.</statement>
+  <rationale>Caller-supplied ids keep the command deterministic and let the authoring agent decide ids up front, which the user found easier than server-side minting; the info subcommand orients it to the next free number. The nine quality characteristics are pre-registered and recommended rather than enforced because the command and the authoring instructions work at different levels: the instructions prescribe how to author well, while the command serves any project and must accept the vocabulary that project already uses. A tool that refused a registered area because it was unconventional would be broken, so the recommendation is carried by a warning instead of a refusal. FR, INT, and DATA areas were never constrained for the same reason — no fixed vocabulary can enumerate the concerns of an arbitrary system.</rationale>
   <acceptance>
-    <criteria>Given: add for an FR in area SPECS with no id. Then: {error: "missing_id"}. Given: an id "FR-SPECS-8". When: validated. Then: {error: "invalid_id_format"}. Given: an id in area "XYZ" not registered and not registered by the call. Then: {error: "unknown_area"}. Given: an update patch body that changes id. Then: {error: "immutable_id"}. Given: info is called. Then: it reports the highest used NNNN per prefix+area.</criteria>
+    <criteria id="FR-SPECS-0004.AC1" ears="unwanted" if="an add call for an FR in area SPECS carries no id" system="the specs command" shall="reject the write with missing_id"/>
+    <criteria id="FR-SPECS-0004.AC2" ears="event" when="an id reads FR-SPECS-8" system="the specs command" shall="reject the write with invalid_id_format"/>
+    <criteria id="FR-SPECS-0004.AC3" ears="unwanted" if="an id names area XYZ, which is neither registered nor registered by the same call" system="the specs command" shall="reject the write with unknown_area"/>
+    <criteria id="FR-SPECS-0004.AC4" ears="event" when="an NFR is written with id NFR-PERF-0001 against a document whose registry was never edited" system="the specs command" shall="accept the write"/>
+    <criteria id="FR-SPECS-0004.AC5" ears="event" when="an NFR is written with id NFR-CLI-0001 in a registered area" system="the specs command" shall="accept the write and leave validate to report a recommendation not followed"/>
+    <criteria id="FR-SPECS-0004.AC6" ears="event" when="info is called" system="the specs command" shall="report the highest used NNNN per prefix and area"/>
+    <criteria id="FR-SPECS-0004.AC7" ears="ubiquitous" system="the specs command" shall="register each of the nine quality-characteristic codes with the name of the characteristic it denotes"/>
   </acceptance>
-  <depends>FR-SPECS-0002, FR-SPECS-0024</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/core.ts, info.ts, add.ts, migrate.ts</implementationNotes>
+  <implementationNotes>Currently implemented without the pre-registered quality-characteristic codes: src/rosettify/src/commands/specs/core.ts, add.ts, update.ts, errors.ts, migrate.ts</implementationNotes>
+</req>
+
+### FR-SPECS-0009 Identifier Stability
+
+<req id="FR-SPECS-0009" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0004, FR-SPECS-0014, FR-SPECS-0016"
+     implementation="ToBeModified">
+  <title>Identifiers never change and are never reused</title>
+  <statement>A spec id SHALL never change and SHALL never be reused. An update carrying an id other than its target's SHALL be rejected with `immutable_id`. An id belonging to a soft-deleted (FR-SPECS-0014) or purged (FR-SPECS-0016) spec SHALL NOT be given to a different spec. A soft-deleted spec remains in the document, so its id collides naturally; a purged spec does not, so purge SHALL retain its id in the document's `purged_ids` registry (FR-SPECS-0002) and the uniqueness check SHALL span that registry (FR-SPECS-0005).
+
+Because an id can never change, a spec's `type` SHALL stay consistent with the prefix of its own id: a write that would leave the two disagreeing SHALL be rejected with `id_type_mismatch`, on add and on update alike.</statement>
+  <rationale>Stable identifiers are what every cross-reference, test claim, and traceability row depends on; a renumbered or recycled id silently repoints all of them. Consistency between `type` and the id prefix is enforced at the same place because the id is immutable: a spec whose id says FR while its type says NFR could never be repaired, only deleted and re-authored, so the only useful moment to catch it is the write that would create it. Both write paths are named explicitly because an add can introduce the mismatch just as easily as an update.</rationale>
+  <acceptance>
+    <criteria id="FR-SPECS-0009.AC1" ears="event" when="an update patch body carries an id other than its target" system="the specs command" shall="reject the write with immutable_id"/>
+    <criteria id="FR-SPECS-0009.AC2" ears="unwanted" if="an add carries type NFR under an id beginning FR" system="the specs command" shall="reject the write with id_type_mismatch"/>
+    <criteria id="FR-SPECS-0009.AC3" ears="unwanted" if="an update would set type to NFR on a spec whose id begins FR" system="the specs command" shall="reject the write with id_type_mismatch"/>
+    <criteria id="FR-SPECS-0009.AC4" ears="unwanted" if="an add carries the id of a purged spec" system="the specs command" shall="reject the write with duplicate_id"/>
+  </acceptance>
+  <implementationNotes>Currently implemented without the type-and-prefix consistency rule, and update.ts validates no type at all: src/rosettify/src/commands/specs/core.ts, add.ts, update.ts, errors.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0005 Uniqueness and Reference Integrity
 
 <req id="FR-SPECS-0005" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
   <title>Unique ids, valid references, and acyclic dependencies</title>
-  <statement>Every spec id in a document SHALL be unique; any operation that would introduce a duplicate id SHALL be rejected with `duplicate_id`. Every entry in a spec's `depends_on` and `related` SHALL reference an id that exists in the same document; a reference to a non-existent id SHALL be rejected with `unknown_dependency` on write, unless the missing id is created in the same batch (FR-SPECS-0030). The `depends_on` graph expresses directional prerequisites and SHALL be acyclic: an operation that would create a `depends_on` cycle SHALL be rejected with `dependency_cycle`, and a spec SHALL NOT `depends_on` itself. The `related` graph expresses non-directional association and MAY contain cycles (including mutual `related` links and, by nature, bidirectional "see also" relationships); it SHALL NOT be subject to cycle rejection. Soft-deleted specs (status Removed, FR-SPECS-0040) SHALL remain in the document and SHALL still count as valid reference targets so existing links do not dangle. All of these checks SHALL run over the resulting document state after a batch is applied in memory and before any file is written.</statement>
+  <statement>Every spec id in a document SHALL be unique across both its live specs and its `purged_ids` registry (FR-SPECS-0002); any operation that would introduce a duplicate of either SHALL be rejected with `duplicate_id`. Every entry in a spec's `depends_on` and `related` SHALL reference an id that exists in the same document; a reference to a non-existent id SHALL be rejected with `unknown_dependency` on write, unless the missing id is created in the same batch (FR-SPECS-0030). The `depends_on` graph expresses directional prerequisites and SHALL be acyclic: an operation that would create a `depends_on` cycle SHALL be rejected with `dependency_cycle`, and a spec SHALL NOT `depends_on` itself. The `related` graph expresses non-directional association and MAY contain cycles (including mutual `related` links and, by nature, bidirectional "see also" relationships); it SHALL NOT be subject to cycle rejection. Soft-deleted specs (status Removed, FR-SPECS-0040) SHALL remain in the document and SHALL still count as valid reference targets so existing links do not dangle. All of these checks SHALL run over the resulting document state after a batch is applied in memory and before any file is written.</statement>
   <rationale>Unique identifiers and a walkable, acyclic dependency graph are the integrity guarantees the user called out as impossible under prose authoring. Distinguishing directional `depends_on` (acyclic prerequisites) from associative `related` links (which legitimately form cycles because "related" is a two-way, non-hierarchical relationship) lets authors express cross-references without tripping cycle detection, while preserving true dependency integrity. Validating the post-batch state lets a batch introduce a spec and a dependent on it in one call. Retaining soft-deleted specs as reference targets keeps the graph consistent.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -160,50 +213,95 @@ The command operates on one specs document per invocation, addressed by a caller
     <criteria>Given: an add that reuses an existing id. Then: {error: "duplicate_id"}. Given: a spec with depends_on referencing a missing id. Then: {error: "unknown_dependency"}. Given: a spec with related referencing a missing id. Then: {error: "unknown_dependency"}. Given: a single batch that adds A and B where B depends_on A. Then: it succeeds. Given: A depends_on B and B depends_on A. Then: {error: "dependency_cycle"}. Given: a self-dependency A depends_on A. Then: {error: "dependency_cycle"}. Given: A related B and B related A. Then: it succeeds (related may cycle). Given: A related A. Then: it succeeds. Given: A depends_on B where B is soft-deleted (Removed) but present. Then: the reference is valid (no unknown_dependency).</criteria>
   </acceptance>
   <depends>FR-SPECS-0004, FR-SPECS-0030, FR-SPECS-0040, FR-SPECS-0070</depends>
-  <implementation>Implemented</implementation>
+  <implementation>ToBeModified</implementation>
   <implementationNotes>src/rosettify/src/commands/specs/core.ts, shared/graph.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0006 Statement and Acceptance Content Rules
 
-<req id="FR-SPECS-0006" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
-  <title>EARS statements, measurable NFRs, and Given/When/Then acceptance</title>
-  <statement>For a spec of type FR, `statement` SHALL match exactly one EARS pattern: ubiquitous (`<subject> shall <response>`), event (`When <trigger>, <subject> shall <response>`), state (`While <state>, <subject> shall <response>`), optional (`Where <feature>, <subject> shall <response>`), or unwanted (`If <condition>, <subject> shall <response>`). For a spec of type NFR, `statement` SHALL contain a quantified metric with a threshold and a measurement condition. Every spec's `acceptance` array SHALL contain at least one `AcceptanceCriterion`, and each criterion SHALL have non-empty `given`, `when`, and `then`. Statements SHALL use `shall` for mandatory, `should` for preferred, `may` for optional behavior. These are validation rules surfaced by the validate op (FR-SPECS-0021) and enforced as errors only where noted; add/update SHALL NOT silently rewrite a statement.</statement>
-  <rationale>Carries the EARS and measurable-NFR discipline from the requirements-authoring skill into machine-checkable form. Keeping most of these as validate findings (not hard write errors) lets an author stage a Draft and fix phrasing before approval, matching the skill's Draft-first flow.</rationale>
-  <source>Sources</source>
-  <ticketId>CTORNDGAIN-1333</ticketId>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
-  <verification>Test</verification>
+<req id="FR-SPECS-0006" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="Documentation"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0001, FR-SPECS-0021"
+     implementation="ToBeModified">
+  <title>Governing-rule statements, EARS criteria, and measurable NFRs</title>
+  <statement>A `statement` SHALL carry the governing rule of its unit: what shall hold, over which cases it holds, and which cases it explicitly excludes. A statement SHALL NOT be required to take an EARS shape and SHALL NOT restate its criteria — the criteria are samples of the rule and the statement is the rule. Statements SHALL use `shall` for mandatory, `should` for preferred, and `may` for optional behavior. A statement of type NFR SHALL additionally carry a quantified metric, its threshold, and the condition under which it is measured.
+
+`level` SHALL state the depth at which a requirement binds, and `subsystem` and `component` SHALL state where it sits. Those two SHALL carry whatever the author knows, not only what the level demands: a requirement binding the whole system may still name the subsystem it concerns, and leaving a name empty SHALL mean the author did not know it rather than that it does not apply. `level` Subsystem SHALL require a `subsystem` name; `level` Component SHALL require both a `subsystem` and a `component` name, because a component always sits inside a subsystem and naming one without the other discards information the author held. Where a name is not required it SHALL be recommended, and its absence SHALL be reported as a warning (FR-SPECS-0021).
+
+Every unit SHALL carry at least one criterion. Each criterion SHALL select exactly one EARS pattern through `ears` and SHALL carry exactly the condition word that pattern names — ubiquitous none, event `when`, state `while`, optional `where`, unwanted `if` — together with a named `system` and a `shall` outcome. A criterion SHALL NOT carry more than one condition word. Criterion ids SHALL read `<spec-id>.AC<n>` and SHALL be unique within their unit, so that a test or a traceability row can claim one addressable criterion.
+
+Enforcement SHALL split on kind: a field-level violation (a missing required field, an out-of-enum value, a duplicate criterion id, an unregistered area, or a `type` disagreeing with its own id prefix) SHALL be rejected on write, while a cross-field, phrasing, or recommendation violation (a condition word contradicting its `ears`, more than one condition word, a location missing for the level, a non-measurable NFR, a missing modal verb, an area outside the recommended quality-characteristic codes on a non-functional requirement) SHALL be reported by the validate op (FR-SPECS-0021) rather than rejected, so that one call names every remaining problem at once instead of a write failing on the first. A unit at status Draft is expected to be complete and ready for review, carrying its level, its locations, its statement, and its criteria; Draft SHALL NOT be treated as a place to park an unfinished unit, and validate is how an author confirms a Draft is ready rather than a licence to store one that is not. Neither add nor update SHALL autocorrect, reword, or reformat a statement or a criterion the caller supplied; a content violation SHALL be reported rather than repaired. Whether a statement's exclusions are complete, and whether a criterion says anything its statement did not already say, are reviewer judgments and are excluded from this unit.</statement>
+  <rationale>Carries the discipline of the canonical requirement unit into machine-checkable form. The statement stops being an EARS sentence because EARS is a one-trigger grammar: it can express a single trigger and response, but not the scope a rule covers or the cases it excludes, which is exactly what a governing rule must state. Moving EARS onto the criteria loses nothing — a unit normally needs several patterns at once, one per case it is sampled by — and gains a per-field check where the old prose match could only pattern-match a sentence. Splitting enforcement between write and validate serves reporting, not tolerance: a caller can never store a structurally broken object, and the cross-field and phrasing rules are collected into one validate response so an author sees every remaining problem at once rather than discovering them one failed write at a time. A Draft is still expected to satisfy them all — it is a unit awaiting review, not a unit awaiting completion.</rationale>
   <acceptance>
-    <criteria>Given: an FR statement "When the file is missing, the system shall return plan_not_found". When: validated. Then: it passes the EARS check. Given: an FR statement "The system handles errors nicely". When: validated. Then: EARS non-conformance is reported. Given: an NFR statement "validate shall complete within 500 ms for 1000 specs". When: validated. Then: it passes the measurable check. Given: a spec with an empty acceptance array. When: validated. Then: missing-acceptance is reported.</criteria>
+    <criteria id="FR-SPECS-0006.AC1" ears="event" when="a criterion declares ears event and carries when" system="validate" shall="report no EARS finding for that criterion"/>
+    <criteria id="FR-SPECS-0006.AC2" ears="unwanted" if="a criterion declares ears state but carries when" system="validate" shall="report a condition-word mismatch at error severity"/>
+    <criteria id="FR-SPECS-0006.AC3" ears="unwanted" if="a criterion carries both when and if" system="validate" shall="report more than one condition word at error severity"/>
+    <criteria id="FR-SPECS-0006.AC4" ears="event" when="an NFR statement reads &quot;validate shall complete within 500 ms for a document of 1000 specs&quot;" system="validate" shall="report no measurable finding"/>
+    <criteria id="FR-SPECS-0006.AC5" ears="event" when="an NFR statement reads &quot;validate shall be fast&quot;" system="validate" shall="report a non-measurable NFR at warning severity"/>
+    <criteria id="FR-SPECS-0006.AC6" ears="unwanted" if="a unit is written with an empty acceptance array" system="validate" shall="report missing acceptance at error severity"/>
+    <criteria id="FR-SPECS-0006.AC7" ears="event" when="a statement reads &quot;The command handles errors nicely&quot;" system="validate" shall="report a missing modal verb at warning severity and report no EARS finding"/>
+    <criteria id="FR-SPECS-0006.AC8" ears="state" while="a unit sits at status Draft with a condition-word mismatch" system="the specs command" shall="keep accepting writes to that unit and keep reporting the mismatch until it is corrected"/>
+    <criteria id="FR-SPECS-0006.AC9" ears="event" when="an update supplies a non-measurable NFR statement" system="the specs command" shall="store that statement verbatim and leave its correction to validate"/>
+    <criteria id="FR-SPECS-0006.AC10" ears="event" when="a unit declares level Component and names no component" system="validate" shall="report a missing location at error severity"/>
+    <criteria id="FR-SPECS-0006.AC11" ears="event" when="a unit declares level Component and names a component but no subsystem" system="validate" shall="report a missing location at error severity"/>
+    <criteria id="FR-SPECS-0006.AC12" ears="event" when="a unit declares level System and names neither a subsystem nor a component" system="validate" shall="report an unstated location at warning severity"/>
   </acceptance>
-  <depends>FR-SPECS-0001, FR-SPECS-0021</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/rubric.ts, validate.ts</implementationNotes>
+  <implementationNotes>Currently implemented against the superseded EARS-on-statement rule and the given/when/then criterion: src/rosettify/src/commands/specs/rubric.ts, validate.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0007 Size Limits and Constants
 
-<req id="FR-SPECS-0007" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
+<req id="FR-SPECS-0007" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="Documentation"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0060"
+     implementation="ToBeModified">
   <title>Document size limits with runtime enforcement</title>
-  <statement>The command SHALL enforce: max 1000 specs per document, max 50 dependencies per spec, max 50 acceptance criteria per spec, max 20000 characters per string field, max 256 characters per name/title/id field, and max 500 items per batch. A violation SHALL be rejected with `size_limit_exceeded`. These constants SHALL appear in the help content limits section (FR-SPECS-0060).</statement>
-  <rationale>Bounds protect the single-file read-modify-write path and give AI callers explicit limits to avoid trial-and-error, matching the plan command's constants approach.</rationale>
-  <source>Documentation</source>
-  <ticketId>CTORNDGAIN-1333</ticketId>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
-  <verification>Test</verification>
+  <statement>The command SHALL enforce: max 10000 specs per document, max 50 dependencies per spec, max 50 acceptance criteria per spec, max 50 evidence locations per spec, max 20000 characters per string field, max 256 characters per name/title/id field, and max 500 items per batch. The fields of an acceptance criterion SHALL fall under these same two character caps rather than introduce their own: `id` and `system` under the name cap, and `shall` and the condition word under the string cap. A violation SHALL be rejected with `size_limit_exceeded`. These constants SHALL appear in the help content limits section (FR-SPECS-0060).</statement>
+  <rationale>Bounds protect the single-file read-modify-write path and give AI callers explicit limits to avoid trial-and-error, matching the plan command's constants approach. Criterion fields reuse the two existing caps instead of gaining their own because they are the same two kinds of value — a short name and a sentence — and a third set of numbers would be one more thing for a caller to learn and for help to state.</rationale>
   <acceptance>
-    <criteria>Given: a document with 1001 specs after a batch. Then: {error: "size_limit_exceeded"}. Given: a title of 257 characters. Then: {error: "size_limit_exceeded"}. Given: a batch of 501 items. Then: {error: "size_limit_exceeded"}.</criteria>
+    <criteria id="FR-SPECS-0007.AC1" ears="event" when="a batch would leave the document holding 10001 specs" system="the specs command" shall="reject the write with size_limit_exceeded"/>
+    <criteria id="FR-SPECS-0007.AC2" ears="event" when="a title of 257 characters is written" system="the specs command" shall="reject the write with size_limit_exceeded"/>
+    <criteria id="FR-SPECS-0007.AC3" ears="event" when="a criterion carries a system of 257 characters" system="the specs command" shall="reject the write with size_limit_exceeded"/>
+    <criteria id="FR-SPECS-0007.AC4" ears="event" when="a batch of 501 items is submitted" system="the specs command" shall="reject the write with size_limit_exceeded"/>
+    <criteria id="FR-SPECS-0007.AC5" ears="event" when="a spec is written with 51 prerequisites" system="the specs command" shall="reject the write with size_limit_exceeded"/>
+    <criteria id="FR-SPECS-0007.AC6" ears="event" when="a spec is written with 51 acceptance criteria" system="the specs command" shall="reject the write with size_limit_exceeded"/>
+    <criteria id="FR-SPECS-0007.AC7" ears="event" when="a spec is written with 51 evidence locations" system="the specs command" shall="reject the write with size_limit_exceeded"/>
+    <criteria id="FR-SPECS-0007.AC8" ears="event" when="a criterion carries an outcome of 20001 characters" system="the specs command" shall="reject the write with size_limit_exceeded"/>
+    <criteria id="FR-SPECS-0007.AC9" ears="ubiquitous" system="the limits section of the specs help content" shall="state every constant this unit names"/>
   </acceptance>
-  <depends>FR-SPECS-0060</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/core.ts, shared/constants.ts</implementationNotes>
+  <implementationNotes>Currently implemented without the evidence-location limit and without the criterion-field cap statement: src/rosettify/src/commands/specs/core.ts, shared/constants.ts</implementationNotes>
+</req>
+
+### FR-SPECS-0008 Field Authoring Guidance
+
+<req id="FR-SPECS-0008" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0001, FR-SPECS-0006, FR-SPECS-0043, FR-SPECS-0050, FR-SPECS-0060"
+     implementation="NotStarted">
+  <title>Per-field caller guidance emitted through help</title>
+  <statement>Every field of the spec unit and of the acceptance criterion (FR-SPECS-0001) SHALL carry one line of guidance telling the caller what to put in it, and the command SHALL emit that guidance so a caller can author a complete unit from the command's own help alone, without consulting any external template. Guidance SHALL state what the value must contain, not what the field is named: the single outcome the unit governs, as a noun phrase unique within its area, for `title`; the governing rule with the cases it reaches and the cases it excludes for `statement`; the depth at which the rule binds for `level`, and for `subsystem` and `component` the place it concerns, filled whenever the author knows it and not only when the level demands it; why this shape and not another, including the basis for each threshold and the alternatives rejected, for `rationale`; one `path:line-range` per source location backing a reverse-engineered unit for `evidence`; whatever responds — an actor or a specific system, subsystem, or component — for `system`; the trigger, state, feature, or fault for the condition word its `ears` names; the outcome, or the mitigation for an unwanted pattern, for `shall`; the files affected once implementation is Implemented for `implementation_notes`; and the rejection reason once status is Removed for `notes`.
+
+The guidance SHALL be emitted in both of the places a caller looks: as the description of each field in the help schema dictionary (FR-SPECS-0060), and as a `field_guide` section of the specs help content listing every field as the named type `SpecFieldGuide` = { field, type, required, default, guidance } (FR-SPECS-0050). Guidance SHALL read as directive instruction addressed to the caller and SHALL NOT name a markup notation, a file format, a requirement identifier, a ticket id, an internal path, or the reasoning behind the field's design (FR-SPECS-0043). Which values a field admits and whether it is required are stated by FR-SPECS-0001 and reported alongside the guidance; the rules the guidance summarizes are governed by FR-SPECS-0006. This unit does not govern subcommand help entries, which FR-SPECS-0060 owns.</statement>
+  <rationale>A field name carries almost none of what an author needs: "title" does not say the value must be a noun phrase naming one outcome and unique within its area, and "system" does not say it must name the responding actor. That knowledge exists today only in the canonical unit template, which a caller of this command never sees — so without this unit the command is authorable only by someone who already knows the template, which defeats the point of having a command. Emitting the same guidance in two places is deliberate: a caller inspecting the schema dictionary to build one object and a caller reading help sections to learn the model are different callers, and neither should have to find the other's surface. A single prose block was rejected because a caller fixing one field would have to read all of it.</rationale>
+  <acceptance>
+    <criteria id="FR-SPECS-0008.AC1" ears="ubiquitous" system="the specs help content" shall="carry one field_guide entry for every field of the spec unit and of the acceptance criterion"/>
+    <criteria id="FR-SPECS-0008.AC2" ears="ubiquitous" system="every field_guide entry" shall="state the field name, its type, whether it is required, its default, and its guidance"/>
+    <criteria id="FR-SPECS-0008.AC3" ears="event" when="a caller reads the help schema dictionary" system="each field of the spec and criterion schemas" shall="carry the same guidance as its field_guide entry"/>
+    <criteria id="FR-SPECS-0008.AC4" ears="event" when="a caller reads the guidance for system" system="the field_guide" shall="tell the caller to name whatever responds, an actor or a specific system, subsystem, or component"/>
+    <criteria id="FR-SPECS-0008.AC5" ears="event" when="a caller reads the guidance for evidence" system="the field_guide" shall="tell the caller to give one path and line range per source location"/>
+    <criteria id="FR-SPECS-0008.AC6" ears="ubiquitous" system="the specs command" shall="emit no guidance line naming a markup notation, a file format, a requirement identifier, a ticket id, or an internal path"/>
+    <criteria id="FR-SPECS-0008.AC7" ears="ubiquitous" system="the specs command" shall="emit a guidance line for every field it accepts, including any field added later"/>
+  </acceptance>
+  <implementationNotes></implementationNotes>
 </req>
 
 ## Core Subcommands
@@ -214,20 +312,20 @@ Every subcommand in this section accepts one or more items (batch) and follows t
 
 <req id="FR-SPECS-0010" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
   <title>specs add subcommand</title>
-  <statement>specs add SHALL accept a specs document path and one or more spec objects (a JSON object or a JSON array of objects) and append each as a new spec unit. For each item: `id` is required and caller-provided (FR-SPECS-0004; an item without id is rejected with `missing_id`); field defaults are applied (FR-SPECS-0001); `status` defaults to Draft; `implementation` defaults to NotStarted; `changed` is set to the current UTC timestamp (FR-SPECS-0042) and `changed_by` to the resolved actor (FR-SPECS-0041); `approved_by` is forced to empty. Any `status`, `approved_by`, or `implementation` value supplied on an add item SHALL be ignored (guarded fields, FR-SPECS-0040) — a new spec always enters as Draft/NotStarted. If the document does not exist it SHALL be created (FR-SPECS-0002). All integrity checks (FR-SPECS-0005) and size limits (FR-SPECS-0007) SHALL run over the resulting document before writing. On success the result SHALL be the shared SpecWriteResult (FR-SPECS-0050). Errors: `missing_id`, `duplicate_id`, `invalid_id_format`, `unknown_area`, `invalid_type`, `invalid_source`, `invalid_priority`, `invalid_verification`, `invalid_spec_field`, `unknown_dependency`, `dependency_cycle`, `size_limit_exceeded`, `missing_required_field` (a required field per FR-SPECS-0001 is absent).</statement>
+  <statement>specs add SHALL accept a specs document path and one or more spec objects (a JSON object or a JSON array of objects) and append each as a new spec unit. For each item: `id` is required and caller-provided (FR-SPECS-0004; an item without id is rejected with `missing_id`); field defaults are applied (FR-SPECS-0001); `status` defaults to Draft; `implementation` defaults to NotStarted; `changed` is set to the current UTC timestamp (FR-SPECS-0042) and `changed_by` to the resolved actor (FR-SPECS-0041); `approved_by` is forced to empty. Any `status`, `approved_by`, or `implementation` value supplied on an add item SHALL be ignored (guarded fields, FR-SPECS-0040) — a new spec always enters as Draft/NotStarted. If the document does not exist it SHALL be created (FR-SPECS-0002). All integrity checks (FR-SPECS-0005) and size limits (FR-SPECS-0007) SHALL run over the resulting document before writing. On success the result SHALL be the shared SpecWriteResult (FR-SPECS-0050). Errors: `missing_id`, `duplicate_id`, `invalid_id_format`, `unknown_area`, `invalid_type`, `invalid_source`, `invalid_priority`, `invalid_verification`, `invalid_spec_field`, `unknown_dependency`, `dependency_cycle`, `size_limit_exceeded`, `missing_required_field` (a required field per FR-SPECS-0001 is absent), `invalid_ears`, `invalid_level`, `duplicate_criterion_id`, `id_type_mismatch`.</statement>
   <rationale>add is the create path. Requiring a caller-provided id keeps id ownership with the authoring agent; forcing Draft/NotStarted makes new specs safe by default and keeps approval a deliberate, separate act. Accepting a single object or an array is the uniform batch shape.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
+  <changed>2026-08-10</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: add with one valid FR object including its id. When: executed. Then: status=Draft, implementation=NotStarted, changed and changed_by set, and the result is SpecWriteResult. Given: add with an item lacking id. Then: {error: "missing_id"}. Given: add with a two-element array. When: executed. Then: both are appended in one write. Given: add with status="Approved" set on the item. When: executed. Then: the stored status is Draft (supplied status ignored). Given: add against a missing document path. Then: the document is created. Given: add whose item omits `title`. Then: {error: "missing_required_field"}. Given: an item with an unknown field. Then: {error: "invalid_spec_field"}. Given: an item with an out-of-enum source, priority, or verification value. Then: {error: "invalid_source"}, {error: "invalid_priority"}, or {error: "invalid_verification"} respectively.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0004, FR-SPECS-0005, FR-SPECS-0007, FR-SPECS-0030, FR-SPECS-0040, FR-SPECS-0041, FR-SPECS-0042, FR-SPECS-0050</depends>
-  <implementation>Implemented</implementation>
+  <implementation>ToBeModified</implementation>
   <implementationNotes>src/rosettify/src/commands/specs/add.ts, core.ts, write.ts, output.ts</implementationNotes>
 </req>
 
@@ -254,30 +352,39 @@ Every subcommand in this section accepts one or more items (batch) and follows t
 
 ### FR-SPECS-0012 query
 
-<req id="FR-SPECS-0012" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
+<req id="FR-SPECS-0012" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0001"
+     implementation="ToBeModified">
   <title>specs query subcommand</title>
-  <statement>specs query SHALL accept a specs document path and an optional query string in `key:value` filter notation and return the matching spec units. Notation: space-separated terms combine with AND; a comma-separated value list matches any of its values (OR within a field, e.g. `area:CLI,MCP`); a term prefixed with `-` negates it (NOT, e.g. `-status:Removed`); a quoted value (`title:"exact phrase"`) matches literally; a bare term with no `key:` is free-text matched case-insensitively as a substring over `title` and `statement`. Filterable keys: `type`, `area`, `status`, `priority`, `implementation`, `verification`, `source`, `depends_on` (specs that depend on the given id), `related` (specs related to the given id), `title`, `statement`. When no query is given, query SHALL return all specs. query SHALL exclude soft-deleted (Removed) specs unless the query includes `include_removed:true` or explicitly matches `status:Removed`. The result SHALL be the named type `SpecQueryResult` = { specs: Spec[], count: int }, where `count` equals `specs.length`. Errors: `invalid_filter` (an unknown filter key), `invalid_query` (a malformed query string), `specs_not_found`, `specs_file_corrupted`. Natural-language semantic search over the same surface is a future capability (FR-SPECS-0026) and is out of scope for the initial implementation.</statement>
-  <rationale>query is the discovery path over the whole document by attributes, complementing get's by-id path. A `key:value` string is the notation the user selected as easy to state and widely recognized (issue-tracker / code-search style). Excluding Removed by default keeps normal listings clean while allowing history retrieval on request. Keeping one string surface leaves room for a future semantic operator without a second query shape.</rationale>
-  <source>User</source>
-  <ticketId>CTORNDGAIN-1333</ticketId>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
-  <verification>Test</verification>
+  <statement>specs query SHALL accept a specs document path and an optional query string in `key:value` filter notation and return the matching spec units. Notation: space-separated terms combine with AND; a comma-separated value list matches any of its values (OR within a field, e.g. `area:CLI,MCP`); a term prefixed with `-` negates it (NOT, e.g. `-status:Removed`); a quoted value (`title:"exact phrase"`) matches literally; a bare term with no `key:` is free-text matched case-insensitively as a substring over `title` and `statement`. Filterable keys: `type`, `area`, `level`, `subsystem`, `component`, `status`, `priority`, `implementation`, `verification`, `source`, `depends_on` (specs that depend on the given id), `related` (specs related to the given id), `ears` (specs carrying at least one criterion of the named EARS pattern), `evidence` (`present` or `absent`), `title`, `statement`. When no query is given, query SHALL return all specs. query SHALL exclude soft-deleted (Removed) specs unless the query includes `include_removed:true` or explicitly matches `status:Removed`. The result SHALL be the named type `SpecQueryResult` = { specs: Spec[], count: int }, where `count` equals `specs.length`. Errors: `invalid_filter` (an unknown filter key), `invalid_query` (a malformed query string), `specs_not_found`, `specs_file_corrupted`. Natural-language semantic search over the same surface is a future capability (FR-SPECS-0026) and is out of scope for the initial implementation.</statement>
+  <rationale>query is the discovery path over the whole document by attributes, complementing get's by-id path. A `key:value` string is the notation the user selected as easy to state and widely recognized (issue-tracker / code-search style). Excluding Removed by default keeps normal listings clean while allowing history retrieval on request. Keeping one string surface leaves room for a future semantic operator without a second query shape. `ears` and `evidence` are filterable because the questions they answer — which requirements cover failure, which reverse-engineered ones are unsupported — were answerable by text search while requirements lived as markup and would otherwise be lost now that they live as data; every other question of that kind (unapproved work, AI-generated units, code that drifted from its spec) is already answered by `status`, `source`, and `implementation`.</rationale>
   <acceptance>
-    <criteria>Given: query `type:NFR status:Approved`. When: executed. Then: only Approved NFRs are returned and count matches. Given: query `area:CLI,MCP`. Then: specs in either area are returned. Given: query with no string. Then: all non-Removed specs are returned. Given: query `include_removed:true`. Then: Removed specs are included. Given: query `depends_on:FR-SPECS-0004`. Then: every returned spec lists FR-SPECS-0004 in its depends_on. Given: query `-status:Removed retry`. Then: non-Removed specs whose title or statement contains "retry" are returned. Given: an unknown filter key. Then: {error: "invalid_filter"}. Given: a malformed query string. Then: {error: "invalid_query"}.</criteria>
+    <criteria id="FR-SPECS-0012.AC1" ears="event" when="query runs with `type:NFR status:Approved`" system="specs query" shall="return only Approved NFRs with count equal to the number returned"/>
+    <criteria id="FR-SPECS-0012.AC2" ears="event" when="query runs with `area:CLI,MCP`" system="specs query" shall="return specs in either area"/>
+    <criteria id="FR-SPECS-0012.AC3" ears="event" when="query runs with no query string" system="specs query" shall="return every spec that is not Removed"/>
+    <criteria id="FR-SPECS-0012.AC4" ears="event" when="query runs with `include_removed:true`" system="specs query" shall="include Removed specs"/>
+    <criteria id="FR-SPECS-0012.AC5" ears="event" when="query runs with `depends_on:FR-SPECS-0004`" system="specs query" shall="return only specs listing FR-SPECS-0004 among their prerequisites"/>
+    <criteria id="FR-SPECS-0012.AC6" ears="event" when="query runs with `ears:unwanted`" system="specs query" shall="return only specs carrying at least one unwanted-pattern criterion"/>
+    <criteria id="FR-SPECS-0012.AC7" ears="event" when="query runs with `evidence:absent source:Sources`" system="specs query" shall="return only reverse-engineered specs that cite no source location"/>
+    <criteria id="FR-SPECS-0012.AC8" ears="event" when="query runs with `-status:Removed retry`" system="specs query" shall="return specs that are not Removed and whose title or statement contains retry"/>
+    <criteria id="FR-SPECS-0012.AC9" ears="unwanted" if="a query names a filter key the notation does not define" system="specs query" shall="reject the call with invalid_filter"/>
+    <criteria id="FR-SPECS-0012.AC10" ears="unwanted" if="a query string is malformed" system="specs query" shall="reject the call with invalid_query"/>
+    <criteria id="FR-SPECS-0012.AC11" ears="event" when="query runs with `related:FR-SPECS-0001`" system="specs query" shall="return only specs listing FR-SPECS-0001 among their associative links"/>
+    <criteria id="FR-SPECS-0012.AC12" ears="event" when="query runs with a quoted title value" system="specs query" shall="match that title literally rather than as a substring"/>
+    <criteria id="FR-SPECS-0012.AC13" ears="event" when="query runs with `component:req-parser`" system="specs query" shall="return only specs naming that component, whatever their level"/>
   </acceptance>
-  <depends>FR-SPECS-0001</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/query.ts, query-filter.ts</implementationNotes>
+  <implementationNotes>Currently implemented without the ears and evidence filter keys: src/rosettify/src/commands/specs/query.ts, query-filter.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0013 update
 
 <req id="FR-SPECS-0013" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
   <title>specs update subcommand</title>
-  <statement>specs update SHALL accept a specs document path and one or more patch objects, each identifying a target by `id` and carrying the fields to change, and SHALL merge-patch each target following RFC 7396 (null removes a key, nested objects merge, scalars and arrays replace). A patch whose `id` does not exist SHALL be rejected with `target_not_found`. update SHALL NOT change a spec's `id` (`immutable_id` if a patch attempts a different id in its body). The guarded fields `status`, `approved_by`, `implementation`, and `changed_by` in a patch SHALL be silently dropped — they change only via the lifecycle ops (approve/deprecate/restore FR-SPECS-0040, delete FR-SPECS-0014, implemented FR-SPECS-0015) and the actor resolver (FR-SPECS-0041). Every patched spec's `changed` (UTC, FR-SPECS-0042) and `changed_by` (resolved actor, FR-SPECS-0041) SHALL be set on write. When a patch changes an Approved spec's normative content — its `statement` or any `acceptance` criterion — the command SHALL set that spec's `status` to Modified and clear `approved_by`, so the change requires re-approval; a purely cosmetic edit (e.g. `notes`, `rationale`, `title`) SHALL leave `status` unchanged. When such a normative edit is applied to a spec whose `implementation` is Implemented, the command SHALL set `implementation` to ToBeModified so the implementation is revisited. All integrity checks (FR-SPECS-0005) and size limits (FR-SPECS-0007) SHALL run over the post-batch state before writing. On success the result SHALL be the shared SpecWriteResult (FR-SPECS-0050). Errors: `target_not_found`, `immutable_id`, `invalid_spec_field`, `unknown_dependency`, `dependency_cycle`, `duplicate_id`, `size_limit_exceeded`, `invalid_source`, `invalid_priority`, `invalid_verification`, `invalid_data`, `missing_data`.</statement>
+  <statement>specs update SHALL accept a specs document path and one or more patch objects, each identifying a target by `id` and carrying the fields to change, and SHALL merge-patch each target following RFC 7396 (null removes a key, nested objects merge, scalars and arrays replace). A patch whose `id` does not exist SHALL be rejected with `target_not_found`. update SHALL NOT change a spec's `id` (`immutable_id` if a patch attempts a different id in its body). The guarded fields `status`, `approved_by`, `implementation`, and `changed_by` in a patch SHALL be silently dropped — they change only via the lifecycle ops (approve/deprecate/restore FR-SPECS-0040, delete FR-SPECS-0014, implemented FR-SPECS-0015) and the actor resolver (FR-SPECS-0041). Every patched spec's `changed` (UTC, FR-SPECS-0042) and `changed_by` (resolved actor, FR-SPECS-0041) SHALL be set on write. When a patch changes an Approved spec's normative content — its `statement` or any `acceptance` criterion — the command SHALL set that spec's `status` to Modified and clear `approved_by`, so the change requires re-approval; a purely cosmetic edit (e.g. `notes`, `rationale`, `title`) SHALL leave `status` unchanged. When such a normative edit is applied to a spec whose `implementation` is Implemented, the command SHALL set `implementation` to ToBeModified so the implementation is revisited. All integrity checks (FR-SPECS-0005) and size limits (FR-SPECS-0007) SHALL run over the post-batch state before writing. On success the result SHALL be the shared SpecWriteResult (FR-SPECS-0050). Errors: `target_not_found`, `immutable_id`, `invalid_spec_field`, `unknown_dependency`, `dependency_cycle`, `duplicate_id`, `size_limit_exceeded`, `invalid_source`, `invalid_priority`, `invalid_verification`, `invalid_type`, `id_type_mismatch`, `invalid_data`, `missing_data`.</statement>
   <rationale>update is the merge-patch edit path, mirroring plan upsert's proven RFC-7396 semantics and its silent-drop of guarded fields so approval and implementation state cannot be flipped mechanically. Moving an edited Approved spec to Modified (not fresh Draft) records that it was once approved but its contract changed, and forcing an Implemented spec to ToBeModified signals the code must be revisited — together these keep approval and implementation state honest against the current text, the core governance guarantee the skill needs the engine to uphold. Limiting the trigger to statement/acceptance edits avoids churn on cosmetic changes.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
@@ -290,7 +397,7 @@ Every subcommand in this section accepts one or more items (batch) and follows t
     <criteria>Given: update {id:"FR-SPECS-0001", title:"New title"} on a Draft spec. When: executed. Then: title changes, other fields preserved, changed and changed_by set, result is SpecWriteResult. Given: a patch with status:"Approved". When: executed. Then: the status field is silently dropped. Given: a patch body with a different id than the target. Then: {error: "immutable_id"}. Given: a patch targeting a missing id. Then: {error: "target_not_found"}. Given: an edit to an Approved spec's statement. When: executed. Then: its status becomes Modified and approved_by is cleared. Given: a cosmetic edit (notes only) to an Approved spec. When: executed. Then: status stays Approved. Given: a statement edit to a spec whose implementation is Implemented. When: executed. Then: implementation becomes ToBeModified. Given: a null value in a patch. Then: that key is removed. Given: a patch that is not a JSON object (e.g. a string or number). Then: {error: "invalid_data"}. Given: an update call with no patch payload at all. Then: {error: "missing_data"}. Given: a patch that leaves the merged spec with an out-of-enum source, priority, or verification value. Then: {error: "invalid_source"}, {error: "invalid_priority"}, or {error: "invalid_verification"} respectively.</criteria>
   </acceptance>
   <depends>FR-SPECS-0001, FR-SPECS-0005, FR-SPECS-0007, FR-SPECS-0030, FR-SPECS-0040, FR-SPECS-0041, FR-SPECS-0042, FR-SPECS-0050</depends>
-  <implementation>Implemented</implementation>
+  <implementation>ToBeModified</implementation>
   <implementationNotes>src/rosettify/src/commands/specs/update.ts, core.ts, write.ts, output.ts</implementationNotes>
 </req>
 
@@ -344,8 +451,8 @@ Each subcommand in this section is a guarded-field setter: it is the ONLY operat
 
 <req id="FR-SPECS-0016" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
   <title>specs purge subcommand (permanent removal)</title>
-  <statement>specs purge SHALL accept a specs document path and one or more spec ids and SHALL permanently remove each spec unit from the document. purge SHALL require the `--force` flag (FR-ARCH-0015); without `--force` it SHALL refuse and return `force_required` with an explanation that permanent removal is irreversible. To preserve reference integrity (FR-SPECS-0005), purge SHALL refuse with `referenced_by_others`, whose message is a single human-readable string listing the referencing ids, when any remaining spec references a target id in its `depends_on` or `related`, unless every such referencing spec is also purged in the same batch. A target id that does not exist SHALL be reported in `missing`, not error the batch. The result SHALL be the named type `SpecPurgeResult` = { purged: [spec-id], missing: [spec-id] }. Errors: `force_required`, `referenced_by_others`, `specs_not_found`, `specs_file_corrupted`.</statement>
-  <rationale>Permanent removal is the one destructive spec operation; gating it behind --force and behind a dangling-reference guard keeps the store recoverable and the graph consistent. Soft-delete (FR-SPECS-0014) remains the default; purge is the deliberate exception.</rationale>
+  <statement>specs purge SHALL accept a specs document path and one or more spec ids and SHALL permanently remove each spec unit from the document while recording its id in the document's `purged_ids` registry (FR-SPECS-0002), so that purge erases a spec's content but never frees its identifier for reuse (FR-SPECS-0009). purge SHALL require the `--force` flag (FR-ARCH-0015); without `--force` it SHALL refuse and return `force_required` with an explanation that permanent removal is irreversible. To preserve reference integrity (FR-SPECS-0005), purge SHALL refuse with `referenced_by_others`, whose message is a single human-readable string listing the referencing ids, when any remaining spec references a target id in its `depends_on` or `related`, unless every such referencing spec is also purged in the same batch. A target id that does not exist SHALL be reported in `missing`, not error the batch. The result SHALL be the named type `SpecPurgeResult` = { purged: [spec-id], missing: [spec-id] }. Errors: `force_required`, `referenced_by_others`, `specs_not_found`, `specs_file_corrupted`.</statement>
+  <rationale>Permanent removal is the one destructive spec operation; gating it behind --force and behind a dangling-reference guard keeps the store recoverable and the graph consistent. Soft-delete (FR-SPECS-0014) remains the default; purge is the deliberate exception. Retaining the identifier is what keeps never-reuse enforceable rather than merely advised: once the spec itself is gone there is nothing else left for a duplicate check to collide with, so purge is a complete erase of content and deliberately not of identity.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Should</priority>
@@ -354,11 +461,11 @@ Each subcommand in this section is a guarded-field setter: it is the ONLY operat
   <changed>2026-07-20</changed>
   <verification>Test</verification>
   <acceptance>
-    <criteria>Given: purge without --force. Then: {error: "force_required"}. Given: purge --force of an unreferenced id. Then: it is removed and appears in purged. Given: purge --force of an id still referenced by another spec's depends_on. Then: {error: "referenced_by_others"} listing the referrer. Given: purge --force of a referenced id together with its referrer in one batch. Then: both are purged. Given: purge of a non-existent id. Then: it appears in missing, no error.</criteria>
+    <criteria>Given: purge without --force. Then: {error: "force_required"}. Given: purge --force of an unreferenced id. Then: it is removed and appears in purged. Given: purge --force of an id still referenced by another spec's depends_on. Then: {error: "referenced_by_others"} listing the referrer. Given: purge --force of a referenced id together with its referrer in one batch. Then: both are purged. Given: purge of a non-existent id. Then: it appears in missing, no error. Given: an add reusing the id of a previously purged spec. Then: {error: "duplicate_id"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0005, FR-SPECS-0014</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/purge.ts, aggregate.ts, frontends/cli.ts</implementationNotes>
+  <implementation>ToBeModified</implementation>
+  <implementationNotes>Currently implemented without the purged-id registry: src/rosettify/src/commands/specs/purge.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0017 approve
@@ -451,37 +558,48 @@ These subcommands read the document (and, where noted, additional documents) and
 
 ### FR-SPECS-0021 validate
 
-<req id="FR-SPECS-0021" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
+<req id="FR-SPECS-0021" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0001, FR-SPECS-0004, FR-SPECS-0005, FR-SPECS-0006, FR-SPECS-0007, FR-SPECS-0012, FR-SPECS-0050"
+     implementation="ToBeModified">
   <title>specs validate subcommand</title>
-  <statement>specs validate SHALL accept a specs document path and an optional query filter (FR-SPECS-0012) scoping which specs to check, and SHALL return machine-checkable findings without mutating the document. It SHALL run these checks: schema completeness (all required fields per FR-SPECS-0001 present and non-empty); id format, area registration, and uniqueness (FR-SPECS-0004, FR-SPECS-0005); reference integrity (every `depends_on`/`related` target exists); `depends_on` acyclicity (FR-SPECS-0005); EARS-pattern conformance for FR statements (FR-SPECS-0006); measurable metric+threshold for NFR statements (FR-SPECS-0006); acceptance completeness (at least one criterion, each with non-empty given/when/then); modal-verb usage (shall/should/may); duplicate-statement detection; and size limits (FR-SPECS-0007). Each finding SHALL be the named type `SpecFinding` = { id, check, severity, message }, severity one of error | warning | info. Structural violations (missing required field, invalid id format, duplicate id, unknown reference, dependency cycle, size limit) SHALL be `error`; phrasing issues (EARS, measurable NFR, modal verbs, duplicate statement) SHALL be `warning`. The result SHALL be the named type `SpecValidateResult` = { ok: bool, findings: SpecFinding[], error_count: int, warning_count: int }, where `ok` is true when error_count is 0. validate SHALL NOT assess subjective qualities (unambiguity, absence of scope creep, completeness against intent); those remain the reviewer's responsibility and are out of scope for the command. Errors: `specs_not_found`, `specs_file_corrupted`, `invalid_filter`.</statement>
-  <rationale>validate is the integrity surface the user said prose authoring could never guarantee. Classifying structural problems as errors and phrasing as warnings lets approval gate on errors (FR-SPECS-0017) while leaving stylistic refinement advisory. Explicitly excluding subjective checks keeps the boundary between the command (mechanical) and the skill/human (judgment) honest.</rationale>
-  <source>User</source>
-  <ticketId>CTORNDGAIN-1333</ticketId>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
-  <verification>Test</verification>
+  <statement>specs validate SHALL accept a specs document path and an optional query filter (FR-SPECS-0012) scoping which specs to check, and SHALL return machine-checkable findings without mutating the document. It SHALL run these checks: schema completeness (all required fields per FR-SPECS-0001 present and non-empty); id format, area registration, and uniqueness (FR-SPECS-0004, FR-SPECS-0005, FR-SPECS-0009); reference integrity (every `depends_on`/`related` target exists); `depends_on` acyclicity (FR-SPECS-0005); criterion id format and uniqueness within the unit (FR-SPECS-0001); location completeness against level — a required `subsystem` or `component` name absent at error severity, a recommended one absent at warning severity (FR-SPECS-0006); criterion EARS conformance — the condition word matches the declared `ears`, no criterion carries more than one condition word, and `system` and `shall` are non-empty (FR-SPECS-0006); acceptance completeness (at least one criterion); measurable metric, threshold, and measurement condition for NFR statements (FR-SPECS-0006); modal-verb usage (shall/should/may); evidence provenance (a spec whose `source` is Sources carries at least one evidence location); quality-characteristic recommendation (an NFR whose area falls outside the nine pre-registered codes, FR-SPECS-0004); duplicate-statement detection; and size limits (FR-SPECS-0007). Each finding SHALL be the named type `SpecFinding` = { id, check, severity, message }, severity one of error | warning | info. Structural violations (missing required field, invalid id format, duplicate id or duplicate criterion id, unknown reference, dependency cycle, criterion EARS non-conformance, missing acceptance, size limit) SHALL be `error`; phrasing, provenance, and recommendation issues (non-measurable NFR, modal verbs, missing evidence, an NFR area outside the nine, duplicate statement) SHALL be `warning`.
+
+The error checks SHALL be decided from the stored fields alone, so that an error is always a fact about the data. The warning checks SHALL be text heuristics over the stored strings, aimed at the omission an author is most likely to have made: `no quantity` looks for a numeric quantity and a unit or threshold token, `duplicate statement` compares statement text after normalizing whitespace and case, `modal verb` looks for shall, should, or may, and `missing evidence` reports that `source` names existing code while `evidence` is empty. Each SHALL be reported as the omission it detects and SHALL NOT be reported as a judgment of quality or provenance: passing a warning check means the text carries the expected token, not that the requirement is measurable, distinct, or truly derived from the code it cites. Because they cannot be exact, warnings SHALL never block approval (FR-SPECS-0017). The result SHALL be the named type `SpecValidateResult` = { ok: bool, findings: SpecFinding[], error_count: int, warning_count: int }, where `ok` is true when error_count is 0. validate SHALL NOT assess subjective qualities — whether a statement is unambiguous, whether its exclusions are complete, whether a criterion restates its statement, whether a unit reflects the intent behind it, or whether a cited evidence location genuinely supports its unit; those remain the reviewer's responsibility and are out of scope for the command. Errors: `specs_not_found`, `specs_file_corrupted`, `invalid_filter`.</statement>
+  <rationale>validate is the integrity surface the user said prose authoring could never guarantee. Classifying structural problems as errors and phrasing as warnings lets approval gate on errors (FR-SPECS-0017) while leaving stylistic refinement advisory. Criterion EARS conformance sits on the error side because it is decidable from the fields themselves — a `while` under an event pattern is wrong with no judgment involved — whereas a missing evidence location is a warning because whether a unit was truly derived from code is something only its author knows. Duplicate statements stay a warning despite being a genuine authoring defect rather than a style one, because two units can legitimately state the same rule at different levels, and only a reader can tell that case from a copy-paste. Explicitly excluding subjective checks, and naming evidence-quality among them, keeps the boundary between the command (mechanical) and the reviewer (judgment) honest.</rationale>
   <acceptance>
-    <criteria>Given: a document with one spec missing `title`. When: validate runs. Then: a SpecFinding {check: schema_completeness, severity: error} is returned and ok=false. Given: an FR whose statement matches no EARS pattern. Then: a warning finding, ok unaffected by warnings. Given: a depends_on cycle. Then: an error finding. Given: a clean document. Then: ok=true, findings=[]. Given: a filter scoping to one area. Then: only that area's specs are checked.</criteria>
+    <criteria id="FR-SPECS-0021.AC1" ears="event" when="a document holds a spec with no title" system="specs validate" shall="return a schema-completeness finding at error severity and report ok false"/>
+    <criteria id="FR-SPECS-0021.AC2" ears="event" when="a criterion declares ears event but carries while" system="specs validate" shall="return a criterion EARS finding at error severity"/>
+    <criteria id="FR-SPECS-0021.AC3" ears="event" when="two criteria in one unit share the id FR-AREA-0001.AC1" system="specs validate" shall="return a duplicate criterion id finding at error severity"/>
+    <criteria id="FR-SPECS-0021.AC4" ears="event" when="a spec whose source names existing code carries no evidence location" system="specs validate" shall="return a missing-evidence finding at warning severity naming the empty field rather than asserting the requirement is unfounded"/>
+    <criteria id="FR-SPECS-0021.AC13" ears="event" when="an NFR statement carries a numeric quantity and a unit token but states no genuine threshold" system="specs validate" shall="return no quantity finding, because the heuristic reports the token and not the measurability"/>
+    <criteria id="FR-SPECS-0021.AC5" ears="event" when="a statement is phrased without a modal verb and no other check fails" system="specs validate" shall="return a warning finding and report ok true"/>
+    <criteria id="FR-SPECS-0021.AC6" ears="event" when="a document contains a prerequisite cycle" system="specs validate" shall="return a finding at error severity"/>
+    <criteria id="FR-SPECS-0021.AC7" ears="event" when="every spec in a document satisfies every check" system="specs validate" shall="report ok true with no findings"/>
+    <criteria id="FR-SPECS-0021.AC8" ears="event" when="validate runs with a filter scoping to one area" system="specs validate" shall="check only the specs of that area"/>
+    <criteria id="FR-SPECS-0021.AC9" ears="ubiquitous" system="specs validate" shall="leave the document unchanged"/>
+    <criteria id="FR-SPECS-0021.AC10" ears="unwanted" if="the named document does not exist" system="specs validate" shall="reject the call with specs_not_found"/>
+    <criteria id="FR-SPECS-0021.AC11" ears="unwanted" if="the named document cannot be parsed" system="specs validate" shall="reject the call with specs_file_corrupted"/>
+    <criteria id="FR-SPECS-0021.AC12" ears="unwanted" if="the supplied filter names a key the notation does not define" system="specs validate" shall="reject the call with invalid_filter"/>
   </acceptance>
-  <depends>FR-SPECS-0001, FR-SPECS-0004, FR-SPECS-0005, FR-SPECS-0006, FR-SPECS-0007, FR-SPECS-0012, FR-SPECS-0050</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/validate.ts, rubric.ts, core.ts</implementationNotes>
+  <implementationNotes>Currently implemented against the superseded statement-EARS and given/when/then checks, and without the criterion-id, criterion-EARS, and evidence checks: src/rosettify/src/commands/specs/validate.ts, rubric.ts, core.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0022 graph
 
 <req id="FR-SPECS-0022" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
   <title>specs graph subcommand (dependency-graph walking)</title>
-  <statement>specs graph SHALL accept a specs document path, an optional target id, and an optional list of additional document paths, and SHALL walk the `depends_on` and `related` graphs. For a target id it SHALL return: `dependencies` (transitive `depends_on` closure of the target), `dependents` (transitive reverse-`depends_on` closure — the impact set of changing the target), and `related` (direct associative links). For the whole document (no target) it SHALL return the full edge list and a `cycles` array reporting every `depends_on` cycle found. When additional document paths are supplied, references that resolve to ids in those documents SHALL be included so the graph spans components on request (FR-SPECS-0005 keeps single-document writes acyclic; cross-document analysis is read-only here). A reference that cannot be resolved in any provided document SHALL be reported in an `unresolved` list. The result SHALL be the named type `SpecGraphResult` = { dependencies?: [spec-id], dependents?: [spec-id], related?: [spec-id], edges?: SpecEdge[], cycles: SpecEdge[][], unresolved: [spec-id] }, where `SpecEdge` = { from, to, kind } and kind is `depends_on` | `related`. Errors: `target_not_found`, `specs_not_found`, `specs_file_corrupted`.</statement>
+  <statement>specs graph SHALL accept a specs document path, an optional target id, and an optional list of additional document paths, and SHALL walk the `depends_on` and `related` graphs. For a target id it SHALL return: `dependencies` (transitive `depends_on` closure of the target), `dependents` (transitive reverse-`depends_on` closure — the impact set of changing the target), and `related` (direct associative links). For the whole document (no target) it SHALL return the full edge list and a `cycles` array reporting every `depends_on` cycle found. When additional document paths are supplied, references that resolve to ids in those documents SHALL be included so the graph spans systems on request (FR-SPECS-0005 keeps single-document writes acyclic; cross-document analysis is read-only here). A reference that cannot be resolved in any provided document SHALL be reported in an `unresolved` list. The result SHALL be the named type `SpecGraphResult` = { dependencies?: [spec-id], dependents?: [spec-id], related?: [spec-id], edges?: SpecEdge[], cycles: SpecEdge[][], unresolved: [spec-id] }, where `SpecEdge` = { from, to, kind } and kind is `depends_on` | `related`. Errors: `target_not_found`, `specs_not_found`, `specs_file_corrupted`.</statement>
   <rationale>Graph walking — dependencies, dependents (impact), and cycle reporting — is the second integrity capability the user called out. Making cross-document resolution opt-in via extra paths matches the approved dep-graph scope (within-document on writes, cross-document on request) and keeps the common case cheap.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
+  <changed>2026-08-10</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: graph with target C where C depends_on B and B depends_on A. Then: dependencies=[B,A]. Given: graph with target A where B and C depend_on A. Then: dependents include B and C. Given: graph over a whole document with a cycle X→Y→X. Then: cycles contains that cycle. Given: a target whose depends_on references an id only present in an additional document path supplied. Then: it resolves and is not in unresolved. Given: a reference resolvable in no supplied document. Then: it appears in unresolved.</criteria>
@@ -493,65 +611,82 @@ These subcommands read the document (and, where noted, additional documents) and
 
 ### FR-SPECS-0023 render
 
-<req id="FR-SPECS-0023" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
+<req id="FR-SPECS-0023" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0001, FR-SPECS-0012, FR-SPECS-0042, FR-SPECS-0050"
+     implementation="ToBeModified">
   <title>specs render subcommand</title>
-  <statement>specs render SHALL accept a specs document path, an optional query filter (FR-SPECS-0012) scoping which specs to include, and an optional `format` (markdown | text, default markdown), and SHALL return a human-readable rendering of the selected specs as a string in the result — it SHALL NOT write any file (storage is JSON only). The rendering SHALL group specs by area, present each spec's human-relevant fields (id, title, statement, priority, status, acceptance, depends_on, related), and display all timestamps in the caller's local timezone (FR-SPECS-0042). The result SHALL be the named type `SpecRenderResult` = { format, content }. Errors: `specs_not_found`, `specs_file_corrupted`, `invalid_filter`, `invalid_format`.</statement>
-  <rationale>Because storage is JSON only, render is how humans and the HITL narrative review read specs. Returning a string (not writing a file) keeps JSON the single source of truth and avoids a stale markdown mirror. Local-time display makes timestamps readable while UTC stays canonical.</rationale>
-  <source>User</source>
-  <ticketId>CTORNDGAIN-1333</ticketId>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
-  <verification>Test</verification>
+  <statement>specs render SHALL accept a specs document path, an optional query filter (FR-SPECS-0012) scoping which specs to include, and an optional `format` (markdown | text | xml, default markdown), and SHALL return a rendering of the selected specs as a string in the result — it SHALL NOT write any file (storage is JSON only).
+
+The markdown and text renderings SHALL group specs by area, present each spec's human-relevant fields (id, title, statement, level with its subsystem and component, priority, status, acceptance, evidence, depends_on, related) with each criterion read in the order pattern, condition, responder, outcome, and display all timestamps in the caller's local timezone (FR-SPECS-0042).
+
+The xml rendering SHALL reproduce the canonical unit markup so that a document held as JSON can be written back out as a requirements document without hand editing. In it: every single-value field SHALL be an attribute and only prose and structured children SHALL be elements; attributes SHALL be ordered by how often they change, ending with the approval group `status`, `approved_by`, `changed` on one line so that an approval is a one-line difference; `subsystem` and `component` SHALL be emitted as attributes following `level` and SHALL be omitted when empty; `depends_on` SHALL be emitted as the `depends` attribute and `related` as its own attribute; `changed` SHALL be rendered as a UTC calendar date; each criterion SHALL be a self-closing element carrying id, pattern, its condition word, responder, and outcome in that order; and `evidence` SHALL be emitted as a single element joining the stored locations and SHALL be omitted entirely when there are none. The result SHALL be the named type `SpecRenderResult` = { format, content }. Errors: `specs_not_found`, `specs_file_corrupted`, `invalid_filter`, `invalid_format`.</statement>
+  <rationale>Because storage is JSON only, render is how humans and the HITL narrative review read specs. Returning a string (not writing a file) keeps JSON the single source of truth and avoids a stale markdown mirror. Local-time display makes timestamps readable while UTC stays canonical. The xml rendering exists because requirements are consumed by people and by version control as documents, not only by this command: without it, a document imported into JSON could never be published back, and the store would be a one-way trip. Ordering attributes by volatility and keeping the approval group on one line is what makes an approval reviewable as a one-line change instead of a reformatted block, and the calendar date is used there because an approval is dated, not timed.</rationale>
   <acceptance>
-    <criteria>Given: render with no filter. When: executed. Then: content is a markdown string grouping all non-Removed specs by area, timestamps in local time. Given: render format=text. Then: content is plain text. Given: render with a filter. Then: only matching specs appear. Given: format=pdf. Then: {error: "invalid_format"}. Given: any render call. Then: no file is written.</criteria>
+    <criteria id="FR-SPECS-0023.AC1" ears="event" when="render runs with no filter" system="specs render" shall="return markdown grouping every spec that is not Removed by area, with timestamps in local time"/>
+    <criteria id="FR-SPECS-0023.AC2" ears="event" when="render runs with format text" system="specs render" shall="return plain text"/>
+    <criteria id="FR-SPECS-0023.AC3" ears="event" when="render runs with format xml" system="specs render" shall="return the canonical unit markup with single-value fields as attributes and prose as elements"/>
+    <criteria id="FR-SPECS-0023.AC4" ears="event" when="render runs with format xml over a spec that was approved" system="specs render" shall="emit status, approved_by, and changed on one line with changed as a calendar date"/>
+    <criteria id="FR-SPECS-0023.AC5" ears="event" when="render runs with format xml over a spec carrying no evidence" system="specs render" shall="omit the evidence element"/>
+    <criteria id="FR-SPECS-0023.AC6" ears="event" when="render runs with format xml over a spec with two prerequisites" system="specs render" shall="emit them as a depends attribute listing both"/>
+    <criteria id="FR-SPECS-0023.AC7" ears="event" when="render runs with a filter" system="specs render" shall="include only matching specs"/>
+    <criteria id="FR-SPECS-0023.AC8" ears="unwanted" if="render is asked for format pdf" system="specs render" shall="reject the call with invalid_format"/>
+    <criteria id="FR-SPECS-0023.AC9" ears="ubiquitous" system="specs render" shall="write no file"/>
+    <criteria id="FR-SPECS-0023.AC10" ears="ubiquitous" system="each criterion in the markdown and text renderings" shall="read in the order pattern, condition, responder, outcome"/>
+    <criteria id="FR-SPECS-0023.AC11" ears="event" when="render runs with format xml over a spec naming a subsystem and a component" system="specs render" shall="emit both as attributes following level"/>
   </acceptance>
-  <depends>FR-SPECS-0012, FR-SPECS-0042, FR-SPECS-0050</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/render.ts, query-filter.ts, shared/time.ts</implementationNotes>
+  <implementationNotes>Currently implemented with markdown and text only, and against the superseded criterion shape: src/rosettify/src/commands/specs/render.ts, query-filter.ts, shared/time.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0024 info
 
 <req id="FR-SPECS-0024" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
   <title>specs info subcommand (orientation)</title>
-  <statement>specs info SHALL accept a specs document path and return an orientation summary of the document without listing full spec bodies. The result SHALL be the named type `SpecInfoResult` = { component, description, areas: SpecAreaInfo[], totals: SpecTotals, next_ids: SpecNextId[], created_at, updated_at }. `SpecAreaInfo` = { code, name, count }. `SpecTotals` = { by_type, by_status, by_implementation, total } (each a map of value to count). `SpecNextId` = { prefix, area, highest, suggested } where `highest` is the highest used NNNN for that prefix+area and `suggested` is the next free id string, so the authoring agent can choose ids in advance without collision (FR-SPECS-0004). Timestamps SHALL be shown in local time (FR-SPECS-0042). Errors: `specs_not_found`, `specs_file_corrupted`.</statement>
+  <statement>specs info SHALL accept a specs document path and return an orientation summary of the document without listing full spec bodies. The result SHALL be the named type `SpecInfoResult` = { system, description, areas: SpecAreaInfo[], totals: SpecTotals, next_ids: SpecNextId[], created_at, updated_at }. `SpecAreaInfo` = { code, name, count }. `SpecTotals` = { by_type, by_status, by_implementation, total } (each a map of value to count). `SpecNextId` = { prefix, area, highest, suggested } where `highest` is the highest used NNNN for that prefix+area and `suggested` is the next free id string, so the authoring agent can choose ids in advance without collision (FR-SPECS-0004). Timestamps SHALL be shown in local time (FR-SPECS-0042). Errors: `specs_not_found`, `specs_file_corrupted`.</statement>
   <rationale>info is the orientation the user asked for: it tells an agent which areas exist, how many specs of each kind and status there are, and — critically — the next free id per area, which is what makes caller-provided ids practical.</rationale>
   <source>User</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
+  <changed>2026-08-10</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a document with 3 areas and specs in each. When: info runs. Then: areas lists each code, name, and count; totals summarize by type/status/implementation; next_ids gives the suggested next id per prefix+area. Given: an area whose highest FR id is FR-SPECS-0012. Then: its SpecNextId.suggested is FR-SPECS-0013. Given: a missing document. Then: {error: "specs_not_found"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0004, FR-SPECS-0042, FR-SPECS-0050</depends>
-  <implementation>Implemented</implementation>
+  <implementation>ToBeModified</implementation>
   <implementationNotes>src/rosettify/src/commands/specs/info.ts, shared/time.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0025 migrate
 
-<req id="FR-SPECS-0025" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
-  <title>specs migrate subcommand (import legacy XML-in-markdown)</title>
-  <statement>specs migrate SHALL accept one or more source markdown paths (files containing `<req>` XML units) and a destination specs document path, and SHALL parse every `<req>` block, map its fields to the spec unit schema (FR-SPECS-0001), and write the resulting specs document (FR-SPECS-0002). Field mapping SHALL handle both the split-tag form (`<implementation>` + `<implementationNotes>`) and the legacy bracketed single-tag form (`<implementation>[Status: X] [Additional Notes: Y]</implementation>`), normalizing to the split JSON fields. The single-string `<acceptance><criteria>` form SHALL be parsed into the structured given/when/then array where the Given/When/Then markers are present; a criterion that cannot be split SHALL be preserved verbatim in `then` and flagged as a warning. Areas encountered in ids SHALL be registered in the document's `areas`. After parsing, all integrity checks (FR-SPECS-0005) and size limits (FR-SPECS-0007) SHALL run over the assembled document; migrate SHALL report every parse issue and integrity finding rather than silently dropping data. The result SHALL be the named type `SpecMigrateResult` = { migrated: int, sources: [path], warnings: SpecFinding[], skipped: [{ source, reason }] }. Errors: `source_not_found`, `migrate_parse_error` (a source is unparseable at the file level), `specs_file_corrupted`.</statement>
-  <rationale>migrate is the one-time bridge that moves today's `<req>` XML-in-markdown into the JSON store so nothing is lost when the format changes. Handling both implementation-field forms and reporting (not dropping) anything it cannot cleanly map preserves fidelity and surfaces exactly what a human must reconcile.</rationale>
-  <source>User</source>
-  <ticketId>CTORNDGAIN-1333</ticketId>
-  <priority>Should</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
-  <verification>Test</verification>
+<req id="FR-SPECS-0025" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="User"
+     priority="Should" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0001, FR-SPECS-0002, FR-SPECS-0005, FR-SPECS-0007, FR-SPECS-0023, FR-SPECS-0050"
+     implementation="ToBeModified">
+  <title>specs migrate subcommand (import requirement units held as markup)</title>
+  <statement>specs migrate SHALL accept one or more source markdown paths holding requirement units as markup and a destination specs document path, and SHALL parse every unit, map its fields to the spec unit schema (FR-SPECS-0001), and write the resulting specs document (FR-SPECS-0002). It SHALL read the canonical unit shape only — single-value fields as attributes, prose as elements, and each criterion as a self-closing element carrying its pattern, condition word, responder, and outcome. Field mapping SHALL fold the attribute names onto the JSON field names, including `depends` onto `depends_on`, `ticketId` onto `ticket_id`, and `implementationNotes` onto `implementation_notes`, and SHALL split a multi-location evidence element into one entry per location. A unit that is not in the canonical shape — fields carried as elements rather than attributes, or a criterion written as prose rather than as pattern attributes — SHALL be skipped with a stated reason and SHALL NOT be reconstructed by inference. Areas encountered in ids SHALL be registered in the document's `areas`. After parsing, all integrity checks (FR-SPECS-0005) and size limits (FR-SPECS-0007) SHALL run over the assembled document; migrate SHALL report every parse issue and integrity finding rather than silently dropping data. The result SHALL be the named type `SpecMigrateResult` = { migrated: int, sources: [path], warnings: SpecFinding[], skipped: [{ source, reason }] }. Errors: `source_not_found`, `migrate_parse_error` (a source is unparseable at the file level), `specs_file_corrupted`.</statement>
+  <rationale>migrate is the bridge that moves requirement units held as markup into the JSON store, and the inverse of the xml rendering (FR-SPECS-0023) — together they make the store a round trip rather than a one-way import. It reads only the canonical shape because guessing at an older shape is how a requirement acquires content nobody wrote: a criterion recovered from prose would need its responder invented, and an invented responder in an approved requirement is worse than a skipped unit a human must carry across by hand. Reporting each skipped unit with its reason, rather than dropping it, is what keeps that hand-off honest.</rationale>
   <acceptance>
-    <criteria>Given: a source markdown with three <req> blocks in split-tag form. When: migrate runs. Then: migrated=3 and the destination document contains the three specs with areas registered. Given: a <req> using the legacy bracketed implementation form. Then: it is normalized to implementation + implementation_notes. Given: an acceptance criteria string with Given/When/Then markers. Then: it is parsed into the structured array. Given: a criterion that cannot be split. Then: it is preserved in `then` and a warning is recorded. Given: a source path that does not exist. Then: {error: "source_not_found"}. Given: a source file whose content cannot be parsed at the file level. Then: {error: "migrate_parse_error"}. Given: an import that would push the document beyond the max specs limit. Then: {error: "size_limit_exceeded"}.</criteria>
+    <criteria id="FR-SPECS-0025.AC1" ears="event" when="a source holds three units in the canonical shape" system="specs migrate" shall="report three migrated and write all three into the destination with their areas registered"/>
+    <criteria id="FR-SPECS-0025.AC2" ears="event" when="a unit carries a depends attribute listing two ids" system="specs migrate" shall="store both as prerequisites"/>
+    <criteria id="FR-SPECS-0025.AC3" ears="event" when="a unit carries an evidence element naming two source locations" system="specs migrate" shall="store one evidence entry per location"/>
+    <criteria id="FR-SPECS-0025.AC4" ears="event" when="a unit carries its fields as elements rather than attributes" system="specs migrate" shall="skip that unit and report the reason"/>
+    <criteria id="FR-SPECS-0025.AC5" ears="event" when="a unit carries a criterion written as prose" system="specs migrate" shall="skip that unit and report the reason rather than infer a pattern or a responder"/>
+    <criteria id="FR-SPECS-0025.AC6" ears="unwanted" if="a source path does not exist" system="specs migrate" shall="reject the call with source_not_found"/>
+    <criteria id="FR-SPECS-0025.AC7" ears="unwanted" if="a source file cannot be parsed at the file level" system="specs migrate" shall="reject the call with migrate_parse_error"/>
+    <criteria id="FR-SPECS-0025.AC8" ears="unwanted" if="an import would carry the document past the maximum number of specs" system="specs migrate" shall="reject the call with size_limit_exceeded"/>
+    <criteria id="FR-SPECS-0025.AC9" ears="event" when="a unit carries a tracker key and implementation notes under their markup names" system="specs migrate" shall="store them under the corresponding spec fields"/>
+    <criteria id="FR-SPECS-0025.AC10" ears="event" when="one source holds both canonical and non-canonical units" system="specs migrate" shall="import the canonical ones, count only those as migrated, and list each skipped unit with its reason"/>
   </acceptance>
-  <depends>FR-SPECS-0001, FR-SPECS-0002, FR-SPECS-0005, FR-SPECS-0007, FR-SPECS-0050</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/migrate.ts, req-parser.ts</implementationNotes>
+  <implementationNotes>Currently implemented against the superseded element-based unit shape, including its bracketed implementation field and prose criteria: src/rosettify/src/commands/specs/migrate.ts, req-parser.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0026 Semantic Search (Future)
@@ -688,97 +823,109 @@ These subcommands read the document (and, where noted, additional documents) and
 
 ### FR-SPECS-0050 Named Result Types
 
-<req id="FR-SPECS-0050" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
+<req id="FR-SPECS-0050" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0008, FR-SPECS-0060, FR-SPECS-0070"
+     implementation="ToBeModified">
   <title>All results are named, recursively-defined types with shared write and lifecycle shapes</title>
   <statement>Every subcommand result SHALL be a named exported type, and per the recursive naming rule (FR-HELP-0002) every nested object and every array `items` shape SHALL itself be a named type referenced by name — no anonymous shape at any depth. Structurally identical shapes SHALL be defined once and reused (SRP+DRY).
 
-The write subcommands add (FR-SPECS-0010) and update (FR-SPECS-0013) SHALL return the shared type `SpecWriteResult` = { document: SpecDocumentSummary, affected: SpecRef[] }, where `SpecDocumentSummary` = { component, total, previous_version } gives a compact post-write snapshot (with `previous_version` the backup path captured at this write, or null on first write, FR-SPECS-0070), and `SpecRef` = { id, status } lists the specs the write created or changed. The approval-lifecycle ops (approve, deprecate, restore, reopen) SHALL return the shared type `SpecLifecycleResult` = { updated: SpecRef[] }.
+The write subcommands add (FR-SPECS-0010) and update (FR-SPECS-0013) SHALL return the shared type `SpecWriteResult` = { document: SpecDocumentSummary, affected: SpecRef[] }, where `SpecDocumentSummary` = { system, total, previous_version } gives a compact post-write snapshot (with `previous_version` the backup path captured at this write, or null on first write, FR-SPECS-0070), and `SpecRef` = { id, status } lists the specs the write created or changed. The approval-lifecycle ops (approve, deprecate, restore, reopen) SHALL return the shared type `SpecLifecycleResult` = { updated: SpecRef[] }.
 
-The remaining named result types are: `Spec` and its member `AcceptanceCriterion`; `AreaEntry`; `SpecGetResult`; `SpecQueryResult`; `SpecDeleteResult`; `SpecPurgeResult`; `SpecImplementedResult`; `SpecValidateResult` with member `SpecFinding`; `SpecGraphResult` with member `SpecEdge`; `SpecRenderResult`; `SpecInfoResult` with members `SpecAreaInfo`, `SpecTotals`, `SpecNextId`; and `SpecMigrateResult`. Each type SHALL be sourced from the code's type declaration, never a hand-authored duplicate, and SHALL be present in the help schema dictionary (FR-SPECS-0060).</statement>
-  <rationale>Named, recursively-defined types let an AI caller resolve every field of every result without meeting an anonymous shape, matching the plan command's schema discipline. One shared SpecWriteResult and one shared SpecLifecycleResult avoid a proliferation of structurally identical per-subcommand types. Surfacing previous_version in the write result makes the backup link self-discoverable.</rationale>
-  <source>User</source>
-  <ticketId>CTORNDGAIN-1333</ticketId>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
-  <verification>Test</verification>
+The remaining named types are: `Spec` and its member `AcceptanceCriterion`; `AreaEntry`; `SpecFieldGuide` (FR-SPECS-0008); `SpecGetResult`; `SpecQueryResult`; `SpecDeleteResult`; `SpecPurgeResult`; `SpecImplementedResult`; `SpecValidateResult` with member `SpecFinding`; `SpecGraphResult` with member `SpecEdge`; `SpecRenderResult`; `SpecInfoResult` with members `SpecAreaInfo`, `SpecTotals`, `SpecNextId`; and `SpecMigrateResult`. Each type SHALL be sourced from the code's type declaration, never a hand-authored duplicate, and SHALL be present in the help schema dictionary (FR-SPECS-0060).</statement>
+  <rationale>Named, recursively-defined types let an AI caller resolve every field of every result without meeting an anonymous shape, matching the plan command's schema discipline. One shared SpecWriteResult and one shared SpecLifecycleResult avoid a proliferation of structurally identical per-subcommand types. Surfacing previous_version in the write result makes the backup link self-discoverable. The field guide is named here rather than left as an inline shape in help because the recursive naming rule admits no exception for content the caller reads.</rationale>
   <acceptance>
-    <criteria>Given: add and update results. When: compared. Then: both are the one shared SpecWriteResult. Given: approve/deprecate/restore/reopen results. Then: all are the one shared SpecLifecycleResult. Given: any result walked to any depth. Then: every nested and array-items shape is a named type present in the schema dictionary; no anonymous shape. Given: a first write. Then: SpecWriteResult.document.previous_version is null; a later write gives the backup path.</criteria>
+    <criteria id="FR-SPECS-0050.AC1" ears="event" when="the results of add and update are compared" system="the specs command" shall="return the one shared write result type from both"/>
+    <criteria id="FR-SPECS-0050.AC2" ears="event" when="the results of approve, deprecate, restore, and reopen are compared" system="the specs command" shall="return the one shared lifecycle result type from all four"/>
+    <criteria id="FR-SPECS-0050.AC3" ears="ubiquitous" system="every nested object and array member of every result, at any depth" shall="be a named type present in the help schema dictionary"/>
+    <criteria id="FR-SPECS-0050.AC4" ears="event" when="the first write to a document completes" system="the write result" shall="report no previous version, and report the backup path on every later write"/>
+    <criteria id="FR-SPECS-0050.AC5" ears="ubiquitous" system="the criterion type in the schema dictionary" shall="carry the pattern, condition-word, responder, and outcome fields of the stored criterion"/>
+    <criteria id="FR-SPECS-0050.AC6" ears="ubiquitous" system="the specs command" shall="emit no result shape that lacks a named type in the schema dictionary"/>
   </acceptance>
-  <depends>FR-SPECS-0060, FR-SPECS-0070</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/output.ts, core.ts, schemas.ts</implementationNotes>
+  <implementationNotes>Currently implemented against the superseded criterion shape and without the field-guide type: src/rosettify/src/commands/specs/output.ts, core.ts, schemas.ts</implementationNotes>
 </req>
 
 ## Help Content
 
 ### FR-SPECS-0060 Specs Help Content
 
-<req id="FR-SPECS-0060" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
+<req id="FR-SPECS-0060" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0007, FR-SPECS-0008, FR-SPECS-0012, FR-SPECS-0043, FR-SPECS-0050, FR-SPECS-0061"
+     implementation="ToBeModified">
   <title>Help content registered for the specs command</title>
   <statement>The specs command SHALL register help content that the help system (FR-HELP-0002) returns when queried. The content SHALL include:
 
-- specs_file convention (one document per component; the documented path form)
-- concepts: the spec unit and its fields; areas and area-scoped ids; the status lifecycle (Draft, Approved, Modified, Deprecated, Removed) and every transition and which op performs it; depends_on (directional, acyclic) versus related (associative, may cycle); guarded fields and why add/update strip them; the validate-then-approve flow
+- specs_file convention (one document per system; the documented path form)
+- terms: `system` — a solution with its own boundaries, serving one business reason, which may contain many microservices, backends, and frontends, and whose requirements one specs document holds; `subsystem` — a named division inside a system, carrying its own contracts, delivered as part of the system; `component` — a part inside a system or subsystem; `area` — a cross-cutting concern of a system, spanning subsystems and components rather than sitting inside one, carried as the second segment of every id; `level` — the depth at which a requirement binds, independent of area; and a criterion's `system` — whatever responds, an actor or a specific system, subsystem, or component. The section SHALL state that a large solution is decomposed into several systems, one per business reason.
+- concepts: the spec unit and its fields; areas and area-scoped ids, including the nine quality-characteristic codes pre-registered and recommended for non-functional ids; the statement as the governing rule and the criteria as its samples; the five criterion patterns, the condition word each one takes, and the responder-and-outcome pair every criterion carries; criterion sub-ids; evidence and when a unit needs it; the status lifecycle (Draft, Approved, Modified, Deprecated, Removed) and every transition and which op performs it, with Draft meaning complete and ready for review rather than unfinished; depends_on (directional, acyclic) versus related (associative, may cycle); guarded fields and why add/update strip them; the validate-then-approve flow
+- field_guide: the per-field guidance of FR-SPECS-0008
 - subcommands: one entry per registered subcommand (add, get, query, update, delete, purge, implemented, approve, deprecate, restore, reopen, validate, graph, render, info, migrate), each with name, brief, usage, args, description, a statement of which inputs are required (conditional requirements stated), and an examples block with both a tip-form example (bracketed self-explanatory hints) and a real-form example (concrete JSON producing a working invocation)
-- schemas: the named-type dictionary of FR-SPECS-0050, keyed by type name, every nested/array shape named (FR-HELP-0002)
+- schemas: the named-type dictionary of FR-SPECS-0050, keyed by type name, every nested/array shape named (FR-HELP-0002), each field carrying its guidance as its description (FR-SPECS-0008)
 - limits: the constants of FR-SPECS-0007
 - query_notation: the key:value filter grammar (FR-SPECS-0012)
 - notes: the caller-facing behaviors defined in FR-SPECS-0061
 - next_steps_for_ai: directive guidance to orient with info, author with add (ids chosen from info), validate, fix errors, then approve
 
-All emitted help content SHALL obey FR-ARCH-0016 as scoped by FR-SPECS-0043: no requirement identifier, ticket id, internal path, internal module name, or authoring rationale; every note reads as standalone directive guidance.</statement>
-  <rationale>AI agents need one self-describing payload that teaches the spec model, the lifecycle, the guarded-field rules, the query grammar, and correct invocations without trial and error, and without leaking the command's own authoring bookkeeping.</rationale>
-  <source>User</source>
-  <ticketId>CTORNDGAIN-1333</ticketId>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
-  <verification>Test</verification>
+All emitted help content SHALL obey FR-ARCH-0016 as scoped by FR-SPECS-0043: no requirement identifier, ticket id, internal path, internal module name, or authoring rationale; every note reads as standalone directive guidance. Help SHALL teach the model in the command's own terms and SHALL NOT direct the caller to any external template or document to complete a unit.</statement>
+  <rationale>AI agents need one self-describing payload that teaches the spec model, the lifecycle, the guarded-field rules, the query grammar, and correct invocations without trial and error, and without leaking the command's own authoring bookkeeping. Making the payload self-sufficient is the point: a caller who has to go read a template elsewhere to learn what a field wants is a caller who will guess instead.</rationale>
   <acceptance>
-    <criteria>Given: rosettify help specs. When: executed. Then: the content includes specs_file, concepts (including the full status lifecycle and depends_on-vs-related), one subcommand entry per registered subcommand each with a required-inputs statement and a tip-form and real-form example, the schemas dictionary per FR-SPECS-0050, limits, query_notation, notes, and next_steps_for_ai. Given: the emitted payload is scanned. Then: no requirement id, ticket id, internal path, or authoring rationale appears.</criteria>
+    <criteria id="FR-SPECS-0060.AC1" ears="event" when="help is requested for the specs command" system="the help system" shall="return the specs_file convention, terms, concepts, field_guide, one entry per registered subcommand, the schema dictionary, limits, the query notation, notes, and next steps"/>
+    <criteria id="FR-SPECS-0060.AC7" ears="ubiquitous" system="the terms section" shall="define system, subsystem, component, area, level, and a criterion's responder, and state that a large solution is decomposed into several systems"/>
+    <criteria id="FR-SPECS-0060.AC2" ears="ubiquitous" system="each subcommand entry" shall="state which inputs are required and carry both a tip-form and a real-form example"/>
+    <criteria id="FR-SPECS-0060.AC3" ears="ubiquitous" system="the concepts section" shall="name the five criterion patterns with the condition word each one takes"/>
+    <criteria id="FR-SPECS-0060.AC4" ears="ubiquitous" system="the concepts section" shall="name the nine quality-characteristic codes recommended for non-functional ids and state that any registered area is accepted"/>
+    <criteria id="FR-SPECS-0060.AC5" ears="event" when="the emitted payload is scanned" system="the payload" shall="contain no requirement identifier, ticket id, internal path, or authoring rationale"/>
+    <criteria id="FR-SPECS-0060.AC6" ears="ubiquitous" system="the specs command" shall="emit no help section that directs the caller to an external template to complete a unit"/>
   </acceptance>
-  <depends>FR-SPECS-0007, FR-SPECS-0012, FR-SPECS-0043, FR-SPECS-0050, FR-SPECS-0061</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/help-content.ts, schemas.ts, index.ts, registry/index.ts</implementationNotes>
+  <implementationNotes>Currently implemented without the field_guide section and without the criterion-pattern and quality-characteristic concepts: src/rosettify/src/commands/specs/help-content.ts, schemas.ts, index.ts, registry/index.ts</implementationNotes>
 </req>
 
 ### FR-SPECS-0061 Specs Help Notes Content
 
-<req id="FR-SPECS-0061" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
+<req id="FR-SPECS-0061" type="FR" level="System" subsystem="specs"
+     ticketId="CTORNDGAIN-1333" classification="technical"
+     source="User"
+     priority="Must" verification="Test"
+     status="Approved" approved_by="isolomatov-gd" changed="2026-08-10"
+     depends="FR-SPECS-0060"
+     implementation="ToBeModified">
   <title>Notes array content for specs help</title>
   <statement>The specs command's help content SHALL include a `notes` string array documenting the behaviors that affect the caller upfront. The notes SHALL include at minimum:
 
 - JSON-bearing arguments are passed as inline JSON strings, not file paths
 - ids are caller-provided; run info to get the suggested next id per area before add
+- a non-functional id should use one of the nine recommended quality-characteristic codes, which need no registration; any other registered area is still accepted and only reported as a recommendation not followed
+- the statement carries the rule, the cases it covers, and the cases it excludes; it is not written as a one-trigger sentence and does not repeat the criteria
+- each criterion names one pattern, carries only that pattern's condition word, and always names a responder and an outcome
+- criterion sub-ids are assigned automatically when omitted and are the stable target a test claims
+- evidence lists one path and line range per source location and is expected on a unit derived from existing code
+- render returns markup as well as markdown, so a document held here can be published back out
 - new specs always enter as Draft/NotStarted; supplied status/approved_by/implementation on add or update are dropped
 - guarded fields (status, approved_by, implementation, changed_by) change only through the lifecycle ops (approve, deprecate, restore, reopen, delete, implemented) and the actor resolver
 - editing an Approved spec's statement or acceptance moves it to Modified and clears approval; editing an Implemented spec's contract sets it to ToBeModified
 - approve runs validation first and refuses on error-level findings; fix errors, then approve
-- delete is a reversible soft-delete (status Removed, restore to undo); purge permanently removes and needs --force and no remaining references
+- delete is a reversible soft-delete (status Removed, restore to undo); purge permanently removes the spec and needs --force and no remaining references, but keeps its id taken forever, so no later spec can reuse it
 - writes are all-or-nothing: a batch that has any invalid item writes nothing and names the failing item
 - query grammar: key:value terms, space = AND, comma = OR within a field, - prefix = NOT, bare term = text over title/statement; Removed excluded unless include_removed:true
 - timestamps are stored in UTC and shown in local time by render and info
-- migrate is a one-time import of legacy markdown specs into the JSON document
+- migrate imports requirement units already written in the shape render emits; a unit in any other shape is skipped and reported
 - error responses are a single human-readable string that aggregates every problem at once (missing fields, limits, failing items), so a batch or approval failure reports all issues in one message rather than one at a time
 
 Every note SHALL be standalone directive guidance and SHALL NOT contain requirement identifiers, ticket ids, internal paths, internal module names, or authoring rationale (FR-ARCH-0016, FR-SPECS-0043).</statement>
-  <rationale>Splitting the notes out makes them independently testable and is the home for the surprising, caller-affecting behavior an AI must know: guarded fields, the Draft-first/validate-then-approve flow, soft-delete versus purge, all-or-nothing batches, the query grammar, and UTC/local time.</rationale>
-  <source>User</source>
-  <ticketId>CTORNDGAIN-1333</ticketId>
-  <priority>Must</priority>
-  <status>Approved</status>
-  <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
-  <verification>Test</verification>
+  <rationale>Splitting the notes out makes them independently testable and is the home for the surprising, caller-affecting behavior an AI must know: guarded fields, the Draft-first/validate-then-approve flow, soft-delete versus purge, all-or-nothing batches, the query grammar, and UTC/local time. The notes about the statement, the criteria, and the reserved non-functional codes are here rather than left to the field guide because they are the rules a caller most often gets wrong on a first attempt, and a note is read before a field is filled.</rationale>
   <acceptance>
-    <criteria>Given: rosettify help specs. When: executed. Then: notes contains every behavior listed above. Given: any note. Then: it is standalone directive guidance with no requirement id, ticket id, internal path, or authoring rationale.</criteria>
+    <criteria id="FR-SPECS-0061.AC1" ears="event" when="help is requested for the specs command" system="the notes array" shall="carry every behavior this unit lists"/>
+    <criteria id="FR-SPECS-0061.AC2" ears="ubiquitous" system="every note" shall="read as standalone directive guidance carrying no requirement identifier, ticket id, internal path, or authoring rationale"/>
+    <criteria id="FR-SPECS-0061.AC3" ears="event" when="a caller reads the notes before writing a first unit" system="the notes array" shall="state that the statement carries the rule and its exclusions and that each criterion names one pattern, a responder, and an outcome"/>
   </acceptance>
-  <depends>FR-SPECS-0060</depends>
-  <implementation>Implemented</implementation>
-  <implementationNotes>src/rosettify/src/commands/specs/help-content.ts</implementationNotes>
+  <implementationNotes>Currently implemented without the notes covering criterion patterns, statements, reserved non-functional codes, evidence, sub-ids, and markup rendering: src/rosettify/src/commands/specs/help-content.ts</implementationNotes>
 </req>
 
 ## File I/O
@@ -808,19 +955,19 @@ Every note SHALL be standalone directive guidance and SHALL NOT contain requirem
 
 <req id="FR-SPECS-0071" type="FR" level="System" ticketId="CTORNDGAIN-1333" classification="technical">
   <title>Caller-supplied path with resilient reads</title>
-  <statement>The specs document path SHALL be supplied by the caller on every invocation. The recommended convention is `docs/REQUIREMENTS/<component>/specs.json`, documented in help but not enforced. Parent directories SHALL be created on first write (FR-SPECS-0002). On read, if the document file is missing but at least one backup exists, the command SHALL retry — 100 milliseconds per attempt, up to 50 attempts, consistent with the shared read-resilience mechanism (FR-SHRD-0009) — before concluding the document is absent; a truly missing document SHALL return `specs_not_found`, and a file that exists but does not parse as valid JSON conforming to the document schema SHALL return `specs_file_corrupted`.</statement>
+  <statement>The specs document path SHALL be supplied by the caller on every invocation. The recommended convention is `docs/REQUIREMENTS/<system>/specs.json`, documented in help but not enforced. Parent directories SHALL be created on first write (FR-SPECS-0002). On read, if the document file is missing but at least one backup exists, the command SHALL retry — 100 milliseconds per attempt, up to 50 attempts, consistent with the shared read-resilience mechanism (FR-SHRD-0009) — before concluding the document is absent; a truly missing document SHALL return `specs_not_found`, and a file that exists but does not parse as valid JSON conforming to the document schema SHALL return `specs_file_corrupted`.</statement>
   <rationale>A caller-supplied path mirrors the plan command's simple addressing. Retrying when only a backup is present tolerates the brief window during an atomic rename, preventing spurious not-found errors under concurrency; reusing the shared read-resilience count/interval avoids a second, divergent retry policy.</rationale>
   <source>Sources</source>
   <ticketId>CTORNDGAIN-1333</ticketId>
   <priority>Must</priority>
   <status>Approved</status>
   <approved_by>isolomatov-gd</approved_by>
-  <changed>2026-07-20</changed>
+  <changed>2026-08-10</changed>
   <verification>Test</verification>
   <acceptance>
     <criteria>Given: a nested path whose dirs do not exist. When: the first add runs. Then: parent dirs are created and the document is written. Given: the file is briefly absent mid-rename but a backup exists. When: read. Then: the read retries and succeeds. Given: a genuinely missing document. Then: {error: "specs_not_found"}. Given: a corrupted JSON file. Then: {error: "specs_file_corrupted"}.</criteria>
   </acceptance>
   <depends>FR-SPECS-0002, FR-SPECS-0070</depends>
-  <implementation>Implemented</implementation>
+  <implementation>ToBeModified</implementation>
   <implementationNotes>src/rosettify/src/shared/doc-io.ts, commands/specs/core.ts</implementationNotes>
 </req>
