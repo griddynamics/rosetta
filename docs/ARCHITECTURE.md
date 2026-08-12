@@ -130,6 +130,14 @@ Requests are classified only when the user invokes `/rosetta`; a plain request l
 
 ---
 
+## Versioning
+
+Each individual solution component follows its own version (except major).
+
+All plugins follow the same version.
+
+---
+
 ## Rosettify
 
 Local CLI/MCP utility for AI coding agents and users. Purpose: deterministic local AI coding workflow execution and single entry point for Rosetta tooling in any project. All data and IP stays local — zero network calls during operation.
