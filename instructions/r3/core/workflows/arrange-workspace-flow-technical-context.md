@@ -11,11 +11,13 @@ baseSchema: docs/schemas/phase.md
 <arrange_workspace_technical_context>
 
 <description_and_purpose>
-Capture technical knowledge code can't reveal: close `ARCHITECTURE.md` gaps, resolve contradictions, mine undocumented decisions — one continuous exploratory pass.
+Close `ARCHITECTURE.md` gaps, resolve contradictions, mine undocumented decisions — one continuous exploratory pass.
 </description_and_purpose>
 
 <workflow_context>
-Phase 4 of 6 in `arrange-workspace-flow`. HITL; interview covers findings only.
+- Phase 4 of 6 in `arrange-workspace-flow`
+- Input: existing `docs/ARCHITECTURE.md`, source code
+- Output: updated `docs/ARCHITECTURE.md` 
 </workflow_context>
 
 <phase_steps>

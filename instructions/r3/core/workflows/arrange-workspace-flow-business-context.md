@@ -11,11 +11,13 @@ baseSchema: docs/schemas/phase.md
 <arrange_workspace_business_context>
 
 <description_and_purpose>
-Capture business knowledge code can't reveal: close `CONTEXT.md` gaps, resolve contradictions, mine undocumented process — one continuous exploratory pass.
+Close `CONTEXT.md` gaps, resolve contradictions, mine undocumented process — one continuous exploratory pass.
 </description_and_purpose>
 
 <workflow_context>
-Phase 3 of 6 in `arrange-workspace-flow`. HITL; interview covers findings only.
+- Phase 3 of 6 in `arrange-workspace-flow`
+- Input: existing `docs/CONTEXT.md`
+- Output: updated `docs/CONTEXT.md` 
 </workflow_context>
 
 <phase_steps>

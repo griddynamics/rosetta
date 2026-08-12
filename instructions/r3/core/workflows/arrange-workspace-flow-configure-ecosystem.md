@@ -15,7 +15,9 @@ Show MCP/CLI/plugin recommendations verbatim; guide install only if the user dec
 </description_and_purpose>
 
 <workflow_context>
-Phase 6 of 6 in `arrange-workspace-flow`. No interview; guidance only, never self-install.
+- Phase 6 of 6 in `arrange-workspace-flow`
+- Input: `docs/CONTEXT.md`
+- Output: `docs/CONTEXT.md` updated if user installs anything
 </workflow_context>
 
 <phase_steps>

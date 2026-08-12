@@ -15,7 +15,9 @@ Extend `CONTEXT.md`/`ARCHITECTURE.md`/`PATTERNS/` with modernization facts, patt
 </description_and_purpose>
 
 <workflow_context>
-Phase 5 of 6 in `arrange-workspace-flow`. Optional — applies only when the project goal is modernization; otherwise skip.
+- Phase 5 of 6 in `arrange-workspace-flow`. Skip unless modernization goal
+- Input: `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/PATTERNS/`
+- Output: modernization extensions to docs
 </workflow_context>
 
 <phase_steps>

@@ -15,7 +15,9 @@ Show the workspace layout options verbatim, help the user pick one, and guide it
 </description_and_purpose>
 
 <workflow_context>
-Phase 1 of 6 in `arrange-workspace-flow`. Decision + guided setup. Option 1's `refsrc/` onboarding happens next, in the Reference Source Code phase.
+- Phase 1 of 6 in `arrange-workspace-flow`
+- Input: none (first phase)
+- Output: layout choice recorded in `arrange-state.md`
 </workflow_context>
 
 <phase_steps>

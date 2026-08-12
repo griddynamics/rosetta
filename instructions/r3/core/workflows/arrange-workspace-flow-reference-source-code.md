@@ -15,7 +15,9 @@ Onboard read-only reference code the agent cannot otherwise see into `refsrc/`, 
 </description_and_purpose>
 
 <workflow_context>
-Phase 2 of 6. Optional — applies only when `arrangement-state.md` records layout = Single Repo Workspace (Option 1); otherwise skip. Validates and updates `refsrc/`, `refsrc/INDEX.md`, `.gitignore`.
+- Phase 2 of 6 in `arrange-workspace-flow`. Skip unless layout = Option 1
+- Input: layout choice from phase 1
+- Output: `refsrc/` populated, `refsrc/INDEX.md` updated, `.gitignore` verified
 </workflow_context>
 
 <phase_steps>
