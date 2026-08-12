@@ -49,9 +49,7 @@ Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
 </find_gaps>
 
 <interview_findings step="4.3">
-1. USE SKILL `hitl`.
-2. USE SKILL `questioning`.
-3. Interview only on findings (gaps, contradictions, tacit knowledge); skip fully covered topics.
+1. Interview only on findings (gaps, contradictions, tacit knowledge); skip fully covered topics.
 </interview_findings>
 
 <architecture_contract>

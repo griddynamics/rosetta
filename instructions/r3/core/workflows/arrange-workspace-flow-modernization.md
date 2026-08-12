@@ -51,10 +51,8 @@ Phase 5 of 6 in `arrange-workspace-flow`. Optional — applies only when the pro
 </find_gaps>
 
 <interview_gaps step="5.2">
-1. USE SKILL `hitl`.
-2. USE SKILL `questioning`.
-3. Cover `context_topics`, `architecture_topics`, and `patterns_topics`.
-4. Interview only on missing or partial topics; skip covered topics.
+1. Cover `context_topics`, `architecture_topics`, and `patterns_topics`.
+2. Interview only on missing or partial topics; skip covered topics.
 </interview_gaps>
 
 <doc_contract>

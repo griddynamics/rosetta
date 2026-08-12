@@ -140,10 +140,9 @@ Setup actions:
 </layout_guidance>
 
 <choose_and_setup step="1.2">
-1. USE SKILL `hitl`.
-2. Ask the user which option fits.
-3. If the project already has evidence of a chosen layout (existing submodules, existing `refsrc/`), confirm it rather than re-asking.
-4. If Option 2 or 3 is chosen: USE SKILL `large-workspace-handling`.
+1. Ask the user which option fits.
+2. If the project already has evidence of a chosen layout (existing submodules, existing `refsrc/`), confirm it rather than re-asking.
+3. If Option 2 or 3 is chosen: USE SKILL `large-workspace-handling`.
 </choose_and_setup>
 
 <apply_setup step="1.3">

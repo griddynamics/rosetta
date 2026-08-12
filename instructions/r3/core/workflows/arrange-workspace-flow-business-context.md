@@ -47,9 +47,7 @@ Read and record the non-technical and engineering behavior facts about the proje
 </find_findings>
 
 <interview_findings step="3.3">
-1. USE SKILL `hitl`.
-2. USE SKILL `questioning`.
-3. Interview only on findings (gaps, contradictions, tacit knowledge); skip fully covered topics.
+1. Interview only on findings (gaps, contradictions, tacit knowledge); skip fully covered topics.
 </interview_findings>
 
 <context_contract>
