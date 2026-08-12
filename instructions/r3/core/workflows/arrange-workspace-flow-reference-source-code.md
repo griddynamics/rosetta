@@ -1,6 +1,6 @@
 ---
-name: arrangement-workspace-flow-reference-source-code
-description: "Phase 2 Reference Source Code of arrangement-workspace-flow"
+name: arrange-workspace-flow-reference-source-code
+description: "Phase 2 Reference Source Code of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -8,7 +8,7 @@ tags: ["arrangement", "workspace", "refsrc", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 
-<arrangement_workspace_reference_source_code>
+<arrange_workspace_reference_source_code>
 
 <description_and_purpose>
 Onboard read-only reference code the agent cannot otherwise see into `refsrc/`, documented in `refsrc/INDEX.md`.
@@ -42,23 +42,20 @@ refsrc/
 </validate_existing>
 
 <ask_for_reference_code step="2.3">
-1. USE SKILL `hitl`.
-2. Tell the user, briefly: the agent can't see code outside this repo — reference code (backend for a frontend repo, corporate/private libraries, a recently-changed public framework) lets it read without writing to it.
-3. Ask if there is reference code to add; if not, record no-op and stop.
-4. If yes, ask repo URL/path per codebase; guide: clone read-only into `refsrc/<name>`.
+1. Tell the user, briefly: the agent can't see code outside this repo — reference code (backend for a frontend repo, corporate/private libraries, a recently-changed public framework) lets it read without writing to it.
+2. Ask if there is reference code to add; if not, record no-op and stop.
+3. If yes, ask repo URL/path per codebase; guide: clone read-only into `refsrc/<name>`.
 </ask_for_reference_code>
 
-<finalize_new_code step="2.4">
+<review_reference step="2.4">
 1. Confirm each newly cloned codebase sits under `refsrc/<name>` and stays read-only.
 2. Re-apply `validate_existing` checks (gitignore + `refsrc/INDEX.md`) for the new entries.
-3. Update `arrangement-state.md`.
-</finalize_new_code>
+</review_reference>
 
 <validation_checklist>
 - `.gitignore` carries all three refsrc exceptions.
 - Every `refsrc/*` folder has a `refsrc/INDEX.md` entry, and vice versa.
 - User was asked about additional reference code.
-- `arrangement-state.md` updated.
 </validation_checklist>
 
 <pitfalls>
@@ -66,4 +63,4 @@ refsrc/
 - Writing to a `refsrc/` folder instead of the writable workspace.
 </pitfalls>
 
-</arrangement_workspace_reference_source_code>
+</arrange_workspace_reference_source_code>

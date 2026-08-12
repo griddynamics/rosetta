@@ -1,6 +1,6 @@
 ---
-name: arrangement-workspace-flow-choose-workspace-layout
-description: "Phase 1 Choose Workspace Layout of arrangement-workspace-flow"
+name: arrange-workspace-flow-choose-workspace-layout
+description: "Phase 1 Choose Workspace Layout of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -8,14 +8,14 @@ tags: ["arrangement", "workspace", "layout", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 
-<arrangement_workspace_choose_workspace_layout>
+<arrange_workspace_choose_workspace_layout>
 
 <description_and_purpose>
 Show the workspace layout options verbatim, help the user pick one, and guide its setup actions.
 </description_and_purpose>
 
 <workflow_context>
-Phase 1 of 6 in `arrangement-workspace-flow`. Decision + guided setup. Option 1's `refsrc/` onboarding happens next, in the Reference Source Code phase.
+Phase 1 of 6 in `arrange-workspace-flow`. Decision + guided setup. Option 1's `refsrc/` onboarding happens next, in the Reference Source Code phase.
 </workflow_context>
 
 <phase_steps>
@@ -149,13 +149,13 @@ Setup actions:
 <apply_setup step="1.3">
 1. Guide the user through the chosen option's `Setup actions` from `layout_guidance`, exactly.
 2. If Option 1 was chosen: tell the user `refsrc/` reference code is onboarded next, in the Reference Source Code phase — do not clone into `refsrc/` here.
-3. Record the chosen layout (option number and name, for example `Option 1 - Single Repo Workspace`) in `arrangement-state.md`.
+3. Record the chosen layout (option number and name, for example `Option 1 - Single Repo Workspace`) in `arrange-state.md`.
 </apply_setup>
 
 <validation_checklist>
 - Layout options shown to the user verbatim, unabridged.
 - That option's setup actions were completed, or explicitly deferred with a reason.
-- `arrangement-state.md` records the chosen layout.
+- `arrange-state.md` records the chosen layout.
 </validation_checklist>
 
 <pitfalls>
@@ -164,4 +164,4 @@ Setup actions:
 - Cloning into `refsrc/` here — that's the Reference Source Code phase's job.
 </pitfalls>
 
-</arrangement_workspace_choose_workspace_layout>
+</arrange_workspace_choose_workspace_layout>

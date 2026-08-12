@@ -1,6 +1,6 @@
 ---
-name: arrangement-workspace-flow-configure-ecosystem
-description: "Phase 6 Configure Ecosystem of arrangement-workspace-flow"
+name: arrange-workspace-flow-configure-ecosystem
+description: "Phase 6 Configure Ecosystem of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -8,14 +8,14 @@ tags: ["arrangement", "workspace", "ecosystem", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 
-<arrangement_workspace_configure_ecosystem>
+<arrange_workspace_configure_ecosystem>
 
 <description_and_purpose>
 Show MCP/CLI/plugin recommendations verbatim; guide install only if the user decides to.
 </description_and_purpose>
 
 <workflow_context>
-Phase 6 of 6 in `arrangement-workspace-flow`. No interview; guidance only, never self-install.
+Phase 6 of 6 in `arrange-workspace-flow`. No interview; guidance only, never self-install.
 </workflow_context>
 
 <phase_steps>
@@ -80,14 +80,14 @@ MCPs are the eyes and hands of the AI — add them, but keep it balanced. Enable
 2. If the user decides to install something — do NOT install, read, search, understand first, paying attention to IDE/coding agent and languages — then guide them step-by-step.
 3. You can also guide the user AFTER the entire workflow is completed, but do NOT install yourself.
 4. Add a note to `docs/CONTEXT.md` on what got installed, nothing else.
-5. Update `arrangement-state.md`.
+5. Update `arrange-state.md`.
 </install_on_request>
 
 <validation_checklist>
 - Guidance shown to user 
 - No install-choice interview happened; any install was the user's own initiative.
 - `docs/CONTEXT.md` reflects what was installed, if anything.
-- `arrangement-state.md` updated.
+- `arrange-state.md` updated.
 </validation_checklist>
 
 <pitfalls>
@@ -95,4 +95,4 @@ MCPs are the eyes and hands of the AI — add them, but keep it balanced. Enable
 - Giving install guidance before understanding the user's IDE/coding agent and languages.
 </pitfalls>
 
-</arrangement_workspace_configure_ecosystem>
+</arrange_workspace_configure_ecosystem>

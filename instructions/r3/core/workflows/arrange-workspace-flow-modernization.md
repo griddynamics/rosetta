@@ -1,6 +1,6 @@
 ---
-name: arrangement-workspace-flow-modernization
-description: "Phase 5 Modernization of arrangement-workspace-flow"
+name: arrange-workspace-flow-modernization
+description: "Phase 5 Modernization of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -8,14 +8,14 @@ tags: ["arrangement", "workspace", "modernization", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 
-<arrangement_workspace_modernization>
+<arrange_workspace_modernization>
 
 <description_and_purpose>
 Extend `CONTEXT.md`/`ARCHITECTURE.md`/`PATTERNS/` with modernization facts, pattern mapping, and old-code reference-source onboarding.
 </description_and_purpose>
 
 <workflow_context>
-Phase 5 of 6 in `arrangement-workspace-flow`. Optional — applies only when the project goal is modernization; otherwise skip.
+Phase 5 of 6 in `arrange-workspace-flow`. Optional — applies only when the project goal is modernization; otherwise skip.
 </workflow_context>
 
 <phase_steps>
@@ -66,7 +66,7 @@ Phase 5 of 6 in `arrangement-workspace-flow`. Optional — applies only when the
 - Record the old -> to-be mapping inside the existing `docs/PATTERNS/<pattern>.md`; if the pattern is net-new, create the file plus its `docs/PATTERNS/INDEX.md` entry.
 - Write docs/PATTERNS/INDEX.md — all patterns with one-line descriptions, one header per each pattern `## Pattern Name - short description`
 - Write docs/PATTERNS/CHANGES.md — created/updated/skipped, one header per each change `## [YYYY-MM-DD] Brief changes made`
-- If `arrangement-state.md` records a Composite Workspace layout (Option 2 or 3), extract per sub-repository; top-level `INDEX.md` references sub-repo folders
+- If `arrange-state.md` records a Composite Workspace layout (Option 2 or 3), extract per sub-repository; top-level `INDEX.md` references sub-repo folders
 </patterns_contract>
 
 <edit_context step="5.3">
@@ -78,18 +78,18 @@ Phase 5 of 6 in `arrangement-workspace-flow`. Optional — applies only when the
 1. Ask the user where the old codebase lives (repo URL or local path).
 2. Guide the user to clone it into `refsrc/<name>` as a read-only subfolder.
 3. Recommend running `init-workspace-flow` on `refsrc/<name>` in a new chat, to avoid context limits.
-4. Update `arrangement-state.md`.
+4. Update `arrange-state.md`.
 </reference_source>
 
 <validation_checklist>
 - `docs/CONTEXT.md` and `docs/ARCHITECTURE.md` carry modernization facts.
 - `docs/CONTEXT.md`/`docs/ARCHITECTURE.md` stay <=100 lines, or are an index to `docs/*-CONTEXT.md`/`docs/*-ARCHITECTURE.md` files.
 - Old codebase location captured; clone into `refsrc/<name>` and new-chat init recommended.
-- `arrangement-state.md` is updated.
+- `arrange-state.md` is updated.
 </validation_checklist>
 
 <pitfalls>
 - Re-interviewing topics already covered in `docs/CONTEXT.md`/`docs/ARCHITECTURE.md`/`docs/PATTERNS/`.
 </pitfalls>
 
-</arrangement_workspace_modernization>
+</arrange_workspace_modernization>

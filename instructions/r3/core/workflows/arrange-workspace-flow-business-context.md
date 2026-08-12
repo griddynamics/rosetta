@@ -1,6 +1,6 @@
 ---
-name: arrangement-workspace-flow-business-context
-description: "Phase 3 Business context of arrangement-workspace-flow"
+name: arrange-workspace-flow-business-context
+description: "Phase 3 Business context of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -8,19 +8,19 @@ tags: ["arrangement", "workspace", "context", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 
-<arrangement_workspace_business_context>
+<arrange_workspace_business_context>
 
 <description_and_purpose>
-Close `CONTEXT.md` gaps through one continuous gap-analysis and gap-only interview pass.
+Capture business knowledge code can't reveal: close `CONTEXT.md` gaps, resolve contradictions, mine undocumented process — one continuous exploratory pass.
 </description_and_purpose>
 
 <workflow_context>
-Phase 3 of 6 in `arrangement-workspace-flow`. HITL; interview covers gaps only.
+Phase 3 of 6 in `arrange-workspace-flow`. HITL; interview covers findings only.
 </workflow_context>
 
 <phase_steps>
-1. Find gaps against required topics in `CONTEXT.md`
-2. Interview user on gaps only
+1. Find gaps, contradictions, tacit knowledge vs required topics
+2. Interview user on findings only
 3. Update `CONTEXT.md`
 </phase_steps>
 
@@ -40,17 +40,17 @@ Read and record the non-technical and engineering behavior facts about the proje
 - Example DoD: ACs fully met, all builds are without errors and warnings, changes covered with unit+integration+e2e tests at 85%+, database correct and migration present, backend starts and succeeds with expected responses for affected areas validated directly, frontend/mobile/app starts and affected areas fully functional validated directly, validation perform using manual QA by AI using fresh subagent.
 </business_context_topics>
 
-<find_gaps step="3.2">
+<find_findings step="3.2">
 1. Read existing `docs/CONTEXT.md` if present
 2. Compare existing `docs/CONTEXT.md` and repo evidence against `business_context_topics`.
 3. Note which topics are already covered vs missing or partial.
-</find_gaps>
+</find_findings>
 
-<interview_gaps step="3.3">
+<interview_findings step="3.3">
 1. USE SKILL `hitl`.
 2. USE SKILL `questioning`.
-3. Interview only on missing or partial topics; skip covered topics.
-</interview_gaps>
+3. Interview only on findings (gaps, contradictions, tacit knowledge); skip fully covered topics.
+</interview_findings>
 
 <context_contract>
 - Bulleted business context, purpose, domain — stakeholder perspective
@@ -60,19 +60,19 @@ Read and record the non-technical and engineering behavior facts about the proje
 
 <edit_context step="3.4">
 1. Follow `context_contract` to update `docs/CONTEXT.md` according to user answers.
-2. Update `arrangement-state.md`
+2. Update `arrange-state.md`
 </edit_context>
 
 <validation_checklist>
 - `docs/CONTEXT.md` exists and is non-empty.
 - `docs/CONTEXT.md` is <=100 lines, or it is an index to `docs/*-CONTEXT.md` files.
-- `arrangement-state.md` is updated
+- `arrange-state.md` is updated
 </validation_checklist>
 
 <pitfalls>
 - Re-interviewing topics already covered in `docs/CONTEXT.md`.
 - Mixing business context with technical architecture.
-- Editing `docs/CONTEXT.md` before gap coverage is complete.
+- Editing `docs/CONTEXT.md` before findings coverage is complete.
 </pitfalls>
 
-</arrangement_workspace_business_context>
+</arrange_workspace_business_context>

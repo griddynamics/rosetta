@@ -1,6 +1,6 @@
 ---
-name: arrangement-workspace-flow-technical-context
-description: "Phase 4 Technical context of arrangement-workspace-flow"
+name: arrange-workspace-flow-technical-context
+description: "Phase 4 Technical context of arrange-workspace-flow"
 disable-model-invocation: true
 user-invocable: false
 alwaysApply: false
@@ -8,19 +8,19 @@ tags: ["arrangement", "workspace", "architecture", "phase"]
 baseSchema: docs/schemas/phase.md
 ---
 
-<arrangement_workspace_technical_context>
+<arrange_workspace_technical_context>
 
 <description_and_purpose>
-Close `ARCHITECTURE.md` gaps through one continuous gap-analysis and gap-only interview pass.
+Capture technical knowledge code can't reveal: close `ARCHITECTURE.md` gaps, resolve contradictions, mine undocumented decisions — one continuous exploratory pass.
 </description_and_purpose>
 
 <workflow_context>
-Phase 4 of 6 in `arrangement-workspace-flow`. HITL; interview covers gaps only.
+Phase 4 of 6 in `arrange-workspace-flow`. HITL; interview covers findings only.
 </workflow_context>
 
 <phase_steps>
-1. Find gaps against required topics in `ARCHITECTURE.md`
-2. Interview user on gaps only
+1. Find gaps, contradictions, tacit knowledge vs required topics
+2. Interview user on findings only
 3. Update `ARCHITECTURE.md`
 </phase_steps>
 
@@ -48,11 +48,11 @@ Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
 3. Note which topics are already covered vs missing or partial.
 </find_gaps>
 
-<interview_gaps step="4.3">
+<interview_findings step="4.3">
 1. USE SKILL `hitl`.
 2. USE SKILL `questioning`.
-3. Interview only on missing or partial topics; skip covered topics.
-</interview_gaps>
+3. Interview only on findings (gaps, contradictions, tacit knowledge); skip fully covered topics.
+</interview_findings>
 
 <architecture_contract>
 - Bulleted technical context, architecture, constraints — engineering perspective
@@ -62,21 +62,21 @@ Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
 
 <edit_context step="4.4">
 1. Follow `architecture_contract` to update `docs/ARCHITECTURE.md` according to user answers.
-2. Update `arrangement-state.md`
+2. Update `arrange-state.md`
 </edit_context>
 
 <validation_checklist>
 - `docs/ARCHITECTURE.md` exists and is non-empty.
 - `docs/ARCHITECTURE.md` is <=100 lines, or it is an index to `docs/*-ARCHITECTURE.md` files.
-- `arrangement-state.md` is updated
+- `arrange-state.md` is updated
 </validation_checklist>
 
 <pitfalls>
 - Re-interviewing topics already covered in `ARCHITECTURE.md`.
 - Mixing technical context with business context.
-- Editing `ARCHITECTURE.md` before gap coverage is complete.
+- Editing `ARCHITECTURE.md` before findings are resolved.
 - Letting `ARCHITECTURE.md` become a changelog or requirements dump.
 - Inventing artifact hand-off contracts steps don't need.
 </pitfalls>
 
-</arrangement_workspace_technical_context>
+</arrange_workspace_technical_context>
