@@ -135,7 +135,7 @@ Done when: artifacts are stored in target location and state file is complete.
 3. Update the change log using the `requirements-authoring` skill's change-log asset
 4. Mark state as complete
 5. Required skills: `requirements-authoring`
-6. Coding must be performed using `coding-flow` (ask, recommend, switch)
+6. Coding must be performed using `coding-flow` (ask, recommend, switch), on switch do not load `requirements-use` skill, as `requirements-authoring` is superior already.
 
 </finalization>
 
