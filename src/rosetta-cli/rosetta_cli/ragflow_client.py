@@ -565,7 +565,7 @@ class RAGFlowClient:
         
         # Resolve dataset name
         resolved_name = self._resolve_dataset_name(
-            dataset_template if "{release}" in dataset_template else (dataset_name or dataset_template),
+            dataset_template if metadata.release and "{release}" in dataset_template else (dataset_name or dataset_template),
             metadata.release
         )
         
