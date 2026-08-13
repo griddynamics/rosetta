@@ -42,7 +42,7 @@ Read and record the non-technical and engineering behavior facts about the proje
 3. Note which topics are already covered vs missing or partial.
 </find_findings>
 
-<interview_findings step="3.3">
+<interview_findings step="3.3" type="HITL">
 1. Interview only on findings (gaps, contradictions, tacit knowledge); skip fully covered topics.
 </interview_findings>
 

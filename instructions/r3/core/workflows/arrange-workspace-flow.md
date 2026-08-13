@@ -15,12 +15,12 @@ Guide user through workspace arrangement: layout, reference code, business/techn
 
 <prerequisites phase="0" applies="ALL">
 1. All Rosetta prep steps MUST be FULLY completed.
-2. USE SKILL `load-project-context`, `hitl`, `questioning`.
-3. MUST maintain a task ledger. Phases run JIT: load phase → execute → update status → load next phase.
-4. Flow state MUST be saved to AGENTS TEMP FEATURE folder as `arrange-state.md`; every phase updates it before the next starts.
+2. USE SKILL `load-project-context`, `hitl`.
+3. MUST maintain a task ledger. Phases MUST run JIT: load phase → execute → update state file → load next phase.
+4. Flow state MUST be saved to `agents/TEMP/<FEATURE>/arrange-state.md`.
 </prerequisites>
 
-<choose_workspace_layout phase="1" applies="ALL" type="HITL">
+<choose_workspace_layout phase="1" applies="ALL">
 
 1. Show layout options verbatim, help user pick one, guide setup actions.
 2. APPLY PHASE `arrange-workspace-flow-choose-workspace-layout.md` 
@@ -29,7 +29,7 @@ Guide user through workspace arrangement: layout, reference code, business/techn
 
 </choose_workspace_layout>
 
-<reference_source_code phase="2" applies="Single Repo Workspace (Option 1)" type="HITL">
+<reference_source_code phase="2" applies="Single Repo Workspace (Option 1)">
 1. Onboard read-only reference code into `refsrc/`, documented in `refsrc/INDEX.md`.
 2. Layout ≠ Single Repo Workspace (Option 1) → skip, record skip reason, proceed to phase 3.
 3. APPLY PHASE `arrange-workspace-flow-reference-source-code.md`
@@ -37,26 +37,26 @@ Guide user through workspace arrangement: layout, reference code, business/techn
 
 </reference_source_code>
 
-<business_context phase="3" applies="ALL" type="HITL">
+<business_context phase="3" applies="ALL">
 1. Audit `CONTEXT.md` against required business topics; interview user on findings to improve.
 2. APPLY PHASE `arrange-workspace-flow-business-context.md`
 3. Update `arrange-state.md`.
 </business_context>
 
-<technical_context phase="4" applies="ALL" type="HITL">
+<technical_context phase="4" applies="ALL">
 1. Audit `ARCHITECTURE.md` against required technical topics; interview user on findings to improve.
 2. APPLY PHASE `arrange-workspace-flow-technical-context.md`
 3. Update `arrange-state.md`.
 </technical_context>
 
-<modernization phase="5" applies="modernization goal" type="HITL">
+<modernization phase="5" applies="modernization goal">
 1. Extend `CONTEXT.md`/`ARCHITECTURE.md`/`PATTERNS/` with modernization facts and pattern mapping.
 2. Project goal ≠ modernization → skip, record skip reason, proceed to phase 6.
 3. APPLY PHASE `arrange-workspace-flow-modernization.md`
 4. Update `arrange-state.md`.
 </modernization>
 
-<configure_ecosystem phase="6" applies="ALL" type="HITL">
+<configure_ecosystem phase="6" applies="ALL">
 1. Show MCP/CLI/plugin recommendations; guide install only if user decides to.
 2. APPLY PHASE `arrange-workspace-flow-configure-ecosystem.md`
 3. Update `arrange-state.md`.

@@ -37,7 +37,7 @@ refsrc/
 3. Flag any `refsrc/INDEX.md` entry with no matching folder.
 </validate_existing>
 
-<ask_for_reference_code step="2.3">
+<ask_for_reference_code step="2.3" type="HITL">
 1. Tell the user, briefly: the agent can't see code outside this repo — reference code (backend for a frontend repo, corporate/private libraries, a recently-changed public framework) lets it read without writing to it.
 2. Ask if there is reference code to add; if not, record no-op and stop.
 3. If yes, ask repo URL/path per codebase; guide: clone read-only into `refsrc/<name>`.

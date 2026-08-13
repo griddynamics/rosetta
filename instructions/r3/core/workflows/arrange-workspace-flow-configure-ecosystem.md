@@ -71,7 +71,7 @@ MCPs are the eyes and hands of the AI — add them, but keep it balanced. Enable
 
 </ecosystem_guidance>
 
-<install_on_request step="6.2">
+<install_on_request step="6.2" type="HITL">
 1. Do NOT ask which MCPs/CLIs/plugins to install — no interview; installing is the user's own decision.
 2. If the user decides to install something — do NOT install, read, search, understand first, paying attention to IDE/coding agent and languages — then guide them step-by-step.
 3. You can also guide the user AFTER the entire workflow is completed, but do NOT install yourself.

@@ -44,7 +44,7 @@ Read and record the technical facts about the project in `docs/ARCHITECTURE.md`:
 3. Note which topics are already covered vs missing or partial.
 </find_gaps>
 
-<interview_findings step="4.3">
+<interview_findings step="4.3" type="HITL">
 1. Interview only on findings (gaps, contradictions, tacit knowledge); skip fully covered topics.
 </interview_findings>
 

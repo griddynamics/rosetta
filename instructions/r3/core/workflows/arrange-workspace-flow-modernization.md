@@ -46,7 +46,7 @@ Extend `CONTEXT.md`/`ARCHITECTURE.md`/`PATTERNS/` with modernization facts, patt
 3. Note which topics are already covered vs missing or partial.
 </find_gaps>
 
-<interview_gaps step="5.2">
+<interview_gaps step="5.2" type="HITL">
 1. Cover `context_topics`, `architecture_topics`, and `patterns_topics`.
 2. Interview only on missing or partial topics; skip covered topics.
 </interview_gaps>

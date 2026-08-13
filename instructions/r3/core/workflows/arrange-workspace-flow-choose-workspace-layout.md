@@ -135,7 +135,7 @@ Setup actions:
 
 </layout_guidance>
 
-<choose_and_setup step="1.2">
+<choose_and_setup step="1.2" type="HITL">
 1. Ask the user which option fits.
 2. If the project already has evidence of a chosen layout (existing submodules, existing `refsrc/`), confirm it rather than re-asking.
 3. If Option 2 or 3 is chosen: USE SKILL `large-workspace-handling`.
