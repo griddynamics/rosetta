@@ -56,7 +56,6 @@ refsrc/
 
 <pitfalls>
 - Treating composite-workspace sibling submodules/folders as `refsrc/` candidates.
-- Writing to a `refsrc/` folder instead of the writable workspace.
 </pitfalls>
 
 </arrange_workspace_reference_source_code>
