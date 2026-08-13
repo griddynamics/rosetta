@@ -38,13 +38,13 @@ Guide user through workspace arrangement: layout, reference code, business/techn
 </reference_source_code>
 
 <business_context phase="3" applies="ALL">
-1. Audit `CONTEXT.md` against required business topics; interview user on findings to improve.
+1. Interview user to gather missing business context into `CONTEXT.md`.
 2. APPLY PHASE `arrange-workspace-flow-business-context.md`
 3. Update `arrange-state.md`.
 </business_context>
 
 <technical_context phase="4" applies="ALL">
-1. Audit `ARCHITECTURE.md` against required technical topics; interview user on findings to improve.
+1. Interview user to gather missing technical context into `ARCHITECTURE.md`.
 2. APPLY PHASE `arrange-workspace-flow-technical-context.md`
 3. Update `arrange-state.md`.
 </technical_context>
