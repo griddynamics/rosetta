@@ -21,7 +21,7 @@ Interview user to gather non-technical and engineering behavior facts about the 
 </phase_steps>
 
 <starter_topics>
-Starter topics (non-exhaustive — add project-specific questions as needed):
+Starter topics (add project-specific questions as needed):
 - Its overall goal.
 - What it does in the client's wider ecosystem.
 - The source and the target of the work.
@@ -32,8 +32,38 @@ Starter topics (non-exhaustive — add project-specific questions as needed):
 - Any compliance or regulatory requirements.
 - Accepted SDLC, DoD, and processes related to the project.
 - References to documentation and ways to access it (example, acli or mcp for atlassian).
-- etc.
-Example DoD: ACs fully met, all builds are without errors and warnings, changes covered with unit+integration+e2e tests at 85%+, database correct and migration present, backend starts and succeeds with expected responses for affected areas validated directly, frontend/mobile/app starts and affected areas fully functional validated directly, validation perform using manual QA by AI using fresh subagent.
+
+# Universal Starter Definition of Done
+
+## Outcome
+
+- [ ] Intent, ACs, and expected outcomes met
+- [ ] User and business value proven end to end
+- [ ] Scope complete with no known regressions
+
+## Verification
+
+- [ ] Build, lint, type, and static checks pass without errors or warnings
+- [ ] Relevant unit + integration + E2E tests created and pass; changed code coverage ≥85%
+- [ ] Affected components start and pass direct functional checks fully
+- [ ] Fresh AI subagent completed direct manual QA and pass
+- [ ] Security and privacy checks pass with no medium or higher findings
+- [ ] Performance and reliability meet best practices
+- [ ] UX and accessibility meet applicable standards
+- [ ] Applicable laws, regulations, standards, policies, and licenses met
+- [ ] Specific to project area, domain, technology best practices pass 
+
+## Delivery
+
+- [ ] Data and schema changes correct; migrations tested, safe, and reversible
+- [ ] Dependencies, configuration, infrastructure, CI/CD, and deployment assets updated
+- [ ] Observability, documentation, runbooks, and release notes updated
+- [ ] Compatibility, deployment, rollback, and recovery verified
+
+## Closure
+
+- [ ] Known defects, risks, smells, and TODOs resolved or accepted and tracked
+- [ ] Evidence linked and final acceptance recorded
 </starter_topics>
 
 <context_contract>

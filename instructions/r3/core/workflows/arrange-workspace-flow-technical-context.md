@@ -21,7 +21,7 @@ Interview user to gather technical and architectural facts about the project not
 </phase_steps>
 
 <starter_topics>
-Starter topics (non-exhaustive — add project-specific questions as needed):
+Starter topics (add project-specific questions as needed):
 - How to start the application(s) locally.
 - Where and when integration tests and e2e tests are created.
 - Any AI agentic harnesses to use.
@@ -34,7 +34,6 @@ Starter topics (non-exhaustive — add project-specific questions as needed):
 - The build and CI/CD pipeline.
 - Name standards for coding, linting, formatting (e.g. Google Java Style, Microsoft .NET code style) — not the rules!
 - Architecture defines how to build/lint/test/run overall solution in concise unambiguous manner.
-- etc.
 </starter_topics>
 
 <architecture_contract>
