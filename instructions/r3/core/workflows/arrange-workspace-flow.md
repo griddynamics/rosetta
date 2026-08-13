@@ -15,7 +15,7 @@ Guide user through workspace arrangement: layout, reference code, business/techn
 
 <prerequisites phase="0" applies="ALL">
 1. All Rosetta prep steps MUST be FULLY completed.
-2. USE SKILL `load-project-context`, `hitl`, `questioning`, `sensitive-data`.
+2. USE SKILL `load-project-context`, `hitl`, `questioning`.
 3. MUST maintain a task ledger. Phases run JIT: load phase → execute → update status → load next phase.
 4. Flow state MUST be saved to AGENTS TEMP FEATURE folder as `arrange-state.md`; every phase updates it before the next starts.
 </prerequisites>
