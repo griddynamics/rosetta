@@ -50,7 +50,7 @@ Guide user through workspace arrangement: layout, reference code, business/techn
 </technical_context>
 
 <modernization phase="5" applies="modernization goal">
-1. Extend `CONTEXT.md`/`ARCHITECTURE.md`/`PATTERNS/` with modernization facts and pattern mapping.
+1. Interview user to gather modernization facts into `CONTEXT.md`/`ARCHITECTURE.md`/`PATTERNS/`.
 2. Project goal ≠ modernization → skip, record skip reason, proceed to phase 6.
 3. APPLY PHASE `arrange-workspace-flow-modernization.md`
 4. Update `arrange-state.md`.
