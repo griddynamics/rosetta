@@ -14,12 +14,6 @@ baseSchema: docs/schemas/phase.md
 Onboard read-only reference code the agent cannot otherwise see into `refsrc/`, documented in `refsrc/INDEX.md`.
 </description_and_purpose>
 
-<workflow_context>
-- Phase 2 of 6 in `arrange-workspace-flow`. Skip unless layout = Option 1
-- Input: layout choice from phase 1
-- Output: `refsrc/` populated, `refsrc/INDEX.md` updated, `.gitignore` verified
-</workflow_context>
-
 <phase_steps>
 1. Identify existing reference source code
 2. Validate it is defined correctly, fix gaps

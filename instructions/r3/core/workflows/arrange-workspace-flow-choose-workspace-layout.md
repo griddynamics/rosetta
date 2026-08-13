@@ -14,12 +14,6 @@ baseSchema: docs/schemas/phase.md
 Show the workspace layout options verbatim, help the user pick one, and guide its setup actions.
 </description_and_purpose>
 
-<workflow_context>
-- Phase 1 of 6 in `arrange-workspace-flow`
-- Input: none (first phase)
-- Output: layout choice recorded in `arrange-state.md`
-</workflow_context>
-
 <phase_steps>
 1. Show layout options
 2. Ask the user to pick one

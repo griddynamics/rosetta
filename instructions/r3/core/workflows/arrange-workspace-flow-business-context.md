@@ -14,12 +14,6 @@ baseSchema: docs/schemas/phase.md
 Close `CONTEXT.md` gaps, resolve contradictions, mine undocumented process — one continuous exploratory pass.
 </description_and_purpose>
 
-<workflow_context>
-- Phase 3 of 6 in `arrange-workspace-flow`
-- Input: existing `docs/CONTEXT.md`
-- Output: updated `docs/CONTEXT.md` 
-</workflow_context>
-
 <phase_steps>
 1. Find gaps, contradictions, tacit knowledge vs required topics
 2. Interview user on findings only

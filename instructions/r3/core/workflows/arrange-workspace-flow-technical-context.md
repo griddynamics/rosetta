@@ -14,12 +14,6 @@ baseSchema: docs/schemas/phase.md
 Close `ARCHITECTURE.md` gaps, resolve contradictions, mine undocumented decisions — one continuous exploratory pass.
 </description_and_purpose>
 
-<workflow_context>
-- Phase 4 of 6 in `arrange-workspace-flow`
-- Input: existing `docs/ARCHITECTURE.md`, source code
-- Output: updated `docs/ARCHITECTURE.md` 
-</workflow_context>
-
 <phase_steps>
 1. Find gaps, contradictions, tacit knowledge vs required topics
 2. Interview user on findings only

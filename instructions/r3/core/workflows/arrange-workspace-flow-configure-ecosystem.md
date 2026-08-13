@@ -14,12 +14,6 @@ baseSchema: docs/schemas/phase.md
 Show MCP/CLI/plugin recommendations verbatim; guide install only if the user decides to.
 </description_and_purpose>
 
-<workflow_context>
-- Phase 6 of 6 in `arrange-workspace-flow`
-- Input: `docs/CONTEXT.md`
-- Output: `docs/CONTEXT.md` updated if user installs anything
-</workflow_context>
-
 <phase_steps>
 1. Show ecosystem guidance 
 2. Guide user how to install only if user decides to

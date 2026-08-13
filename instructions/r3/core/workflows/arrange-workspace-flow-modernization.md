@@ -14,12 +14,6 @@ baseSchema: docs/schemas/phase.md
 Extend `CONTEXT.md`/`ARCHITECTURE.md`/`PATTERNS/` with modernization facts, pattern mapping, and old-code reference-source onboarding.
 </description_and_purpose>
 
-<workflow_context>
-- Phase 5 of 6 in `arrange-workspace-flow`. Skip unless modernization goal
-- Input: `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/PATTERNS/`
-- Output: modernization extensions to docs
-</workflow_context>
-
 <phase_steps>
 1. Find gaps against required topics
 2. Interview user on gaps only
