@@ -16,7 +16,7 @@ Interview user to gather non-technical and engineering behavior facts about the 
 
 <phase_steps>
 1. Interview user about what's missing in `docs/CONTEXT.md` — use `starter_topics`. Follow Questioning process in `hitl` SKILL.
-2. Record new knowledge to `docs/CONTEXT.md` per `context_contract`
+2. Record confirmed answers to `docs/CONTEXT.md` per `context_contract`. Unconfirmed inferences → `docs/ASSUMPTIONS.md`.
 3. Update `arrange-state.md`.
 </phase_steps>
 

@@ -16,7 +16,7 @@ Interview user to gather technical and architectural facts about the project not
 
 <phase_steps>
 1. Interview user about what's missing in `docs/ARCHITECTURE.md` — use `starter_topics`. Follow Questioning process in `hitl` SKILL.
-2. Record new knowledge to `docs/ARCHITECTURE.md` per `architecture_contract`.
+2. Record confirmed answers to `docs/ARCHITECTURE.md` per `architecture_contract`. Unconfirmed inferences → `docs/ASSUMPTIONS.md`.
 3. Update `arrange-state.md`.
 </phase_steps>
 
