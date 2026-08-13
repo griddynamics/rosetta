@@ -1,6 +1,9 @@
-// Implements FR-SPECS-0060 (specs help content), FR-SPECS-0061 (notes), FR-SPECS-0043/FR-ARCH-0016
-// (no internal-traceability leakage in any authored string below — no requirement id, ticket id,
-// internal path, internal module name, or authoring rationale). Mirrors commands/plan/help-content.ts.
+// Implements FR-SPECS-0060 (specs help content), FR-SPECS-0061 (notes), FR-SPECS-0002 (system as
+// the document's scope), FR-SPECS-0004 (recommended quality-characteristic codes), FR-SPECS-0007
+// (limits), FR-SPECS-0008 (field guidance), FR-SPECS-0012 (query keys), FR-SPECS-0023 (render
+// formats), FR-SPECS-0071 (documented path form), FR-SPECS-0043/FR-ARCH-0016 (no internal-
+// traceability leakage in any authored string below — no requirement id, ticket id, internal path,
+// internal module name, or authoring rationale). Mirrors commands/plan/help-content.ts.
 //
 // Resolution (ambiguity — the leakage rule (FR-ARCH-0016/FR-SPECS-0043) forbids requirement
 // identifiers in authored strings, yet FR-SPECS-0060 separately requires a "real-form example
@@ -15,25 +18,35 @@ import {
   SPECS_MAX_SPECS,
   SPECS_MAX_DEPENDENCIES_PER_SPEC,
   SPECS_MAX_ACCEPTANCE_PER_SPEC,
+  SPECS_MAX_EVIDENCE_PER_SPEC,
   SPECS_MAX_STRING_LENGTH,
   SPECS_MAX_NAME_LENGTH,
   SPECS_MAX_BATCH_SIZE,
 } from "../../shared/constants.js";
 import { specsSchemasDict } from "./schemas.js";
+// FR-SPECS-0008 — the field_guide section is the guidance array itself, not a copy of it: the same
+// array also fills every schema property description, so the two surfaces cannot drift apart.
+import { SPEC_FIELD_GUIDE } from "./field-guide.js";
 
-// FR-SPECS-0061 — the 12 caller-facing behaviors, each standalone directive guidance
+// FR-SPECS-0061 — the caller-facing behaviors, each standalone directive guidance
 export const specsNotes: string[] = [
   "the JSON-bearing argument (data) is passed as an inline JSON string, not a file path — a single object or an array (batch)",
   "ids are caller-provided, never server-minted; run info first to get the suggested next id per area before add",
+  "a non-functional id should use one of the nine recommended quality-characteristic codes — PERF, SEC, REL, USE, MAIN, PORT, COMP, FUNC, SAFE — which are pre-registered in every document and need no registration; any other registered area is still accepted and is only reported as a recommendation not followed",
+  "the statement carries the rule: what shall hold, the cases it covers, and the cases it excludes — write it as the governing rule, not as a one-trigger sentence, and do not repeat the criteria in it",
+  "each criterion names exactly one pattern (ubiquitous, event, state, optional, unwanted), carries only that pattern's condition word (none, when, while, where, if respectively), and always names a responder and an outcome",
+  "criterion sub-ids read <spec-id>.AC<n> and are assigned automatically when omitted; supply one when you want to keep the stable target a test or a traceability row claims",
+  "evidence lists one path and line range per source location and is expected on a spec derived from existing code; a spec authored from intent leaves it empty",
+  "render returns markup as well as markdown and plain text, so a document held here can be published back out and read back in by migrate",
   "a new spec always enters as Draft/NotStarted; any status, approved_by, or implementation supplied on add or update is silently dropped",
   "guarded fields (status, approved_by, implementation, changed_by) change only through the lifecycle ops (approve, deprecate, restore, reopen, delete, implemented) and the actor resolver — never through add or update directly",
   "editing an Approved spec's statement or acceptance moves it to Modified and clears its approval; editing an Implemented spec's contract sets its implementation to ToBeModified",
   "approve runs validation first and refuses on any error-level finding; fix the reported errors, then approve again",
-  "delete is a reversible soft-delete (status becomes Removed; restore undoes it); purge permanently removes a spec and requires --force plus no remaining references from other specs",
+  "delete is a reversible soft-delete (status becomes Removed; restore undoes it); purge permanently removes a spec and requires --force plus no remaining references from other specs — and a purged id stays taken forever, so no later spec may reuse it",
   "writes are all-or-nothing — a batch with any invalid item writes nothing and the error names every rejected item",
   "query grammar: key:value terms; space between terms means AND; a comma inside one term's value list means OR; a leading - negates a term; a bare word searches title and statement; Removed specs are excluded unless include_removed:true or an explicit status:Removed term is present",
   "timestamps are stored in UTC and shown in local time by render and info; get and query return the stored UTC value verbatim",
-  "migrate is a one-time import of legacy markdown spec blocks into the JSON document",
+  "migrate imports requirement units already written in the shape render emits as markup; a unit in any other shape is skipped and reported with the reason, and the rest of that source still imports",
   "every error response is a single human-readable string that aggregates every problem at once — a batch or approval failure names every failing item in one message rather than stopping at the first",
 ];
 
@@ -41,27 +54,75 @@ export const specsHelpContent = {
   name: "specs",
   brief: "Manage requirements/specs (add, query, validate, approve, and more)",
   description:
-    "The specs command manages a component's requirements as spec units stored in one JSON document. " +
+    "The specs command manages a system's requirements as spec units stored in one JSON document. " +
     "Write subcommands return a shared SpecWriteResult or SpecLifecycleResult snapshot of the affected specs.",
 
-  // FR-SPECS-0060 — specs_file convention
+  // FR-SPECS-0060 — specs_file convention. FR-SPECS-0071 — the documented path form, recommended
+  // and never enforced: any caller-supplied path is accepted.
   specs_file: {
-    convention: "one JSON document per component",
-    note: "specs_file is the path to that component's specs document",
+    convention: "one JSON document per system",
+    note: "specs_file is the path to that system's specs document, and it is supplied on every call",
+    path_form:
+      "docs/REQUIREMENTS/<system>/specs.json is the recommended path form — a recommendation only, " +
+      "not enforced; any path you supply is accepted, and its parent directories are created on the first write",
+  },
+
+  // FR-SPECS-0060 AC7 — the vocabulary the rest of the payload is written in. Every definition is
+  // stated for any caller's own solution, never for the project this command happens to live in.
+  terms: {
+    system:
+      "A solution with its own boundaries, serving one business reason, which may contain many microservices, " +
+      "backends, and frontends, and whose requirements one specs document holds. A large solution is decomposed " +
+      "into several systems, one per business reason — each with its own document.",
+    subsystem: "A named division inside a system, carrying its own contracts, delivered as part of that system.",
+    component: "A part inside a system or a subsystem.",
+    area:
+      "A cross-cutting concern of a system, spanning subsystems and components rather than sitting inside one. " +
+      "It is carried as the second segment of every id.",
+    level:
+      "The depth at which a requirement binds — System, Subsystem, or Component — independent of the area it belongs to.",
+    criterion_system:
+      "Inside a criterion, system names whatever responds: an actor, or a specific system, subsystem, or component.",
   },
 
   // FR-SPECS-0060 — core concepts
   concepts: {
     spec_unit:
-      "A spec is one requirement: id, type (FR|NFR|INT|DATA), level, title, statement, rationale, source, priority, " +
-      "status, approved_by, changed, changed_by, verification, acceptance (Given/When/Then criteria), depends_on, related, " +
-      "implementation, implementation_notes, notes.",
+      "A spec is one requirement: id, type (FR|NFR|INT|DATA), level, subsystem, component, ticket_id, classification, " +
+      "title, statement, rationale, evidence, source, priority, status, approved_by, changed, changed_by, verification, " +
+      "acceptance (criteria), depends_on, related, implementation, implementation_notes, notes.",
+    statement_vs_criteria:
+      "The statement carries the governing rule: what shall hold, which cases it reaches, and which cases it " +
+      "explicitly excludes. It is not written as a single-trigger sentence and it does not repeat the criteria. " +
+      "The criteria sample that rule — add one per case the rule must be checkable on, rather than one restating " +
+      "the whole rule.",
+    criterion_patterns:
+      "Every criterion names exactly one pattern in ears and carries only that pattern's condition word: " +
+      "ubiquitous takes no condition word (the criterion always holds); event takes when (the response follows a " +
+      "trigger); state takes while (the response holds throughout a state); optional takes where (the response " +
+      "applies where a feature is present); unwanted takes if (the response answers a fault). Whichever pattern it " +
+      "uses, every criterion also names its responder in system and its outcome in shall.",
+    criterion_ids:
+      "Each criterion carries its own sub-id reading <spec-id>.AC<n> (e.g. FR-CHK-0001.AC1). Omit it and one is " +
+      "assigned in order; supply it to keep the stable target a test or a traceability row claims. A supplied " +
+      "sub-id is never renumbered, and two criteria of the same spec may not share one.",
+    evidence:
+      "evidence lists the source locations backing a unit recovered from existing code — one path and line range " +
+      "per location. A unit derived from existing code is expected to carry it; a unit authored from intent leaves " +
+      "it empty.",
     areas:
-      "An id has the form <PREFIX>-<AREA>-<NNNN> (e.g. FR-CHK-0001). AREA groups related specs and is registered in the " +
-      "document the first time it appears in an add or migrate call — it does not need to be declared separately.",
+      "An id has the form <PREFIX>-<AREA>-<NNNN> (e.g. FR-CHK-0001). AREA names the cross-cutting concern the spec " +
+      "belongs to and is registered in the document the first time it appears in an add or migrate call — it does " +
+      "not need to be declared separately. Nine quality-characteristic codes are pre-registered in every document " +
+      "and need no registration: PERF (performance efficiency), SEC (security), REL (reliability), USE (usability), " +
+      "MAIN (maintainability), PORT (portability), COMP (compatibility), FUNC (functional suitability), SAFE " +
+      "(safety). A non-functional id should use one of them. They are recommended, not mandatory: any registered " +
+      "area is accepted on any type, and a non-functional spec in an area outside the nine is written normally and " +
+      "only reported by validate as a recommendation not followed.",
     status_lifecycle:
       "Statuses: Draft, Approved, Modified, Deprecated, Removed. " +
-      "add creates a spec as Draft. " +
+      "add creates a spec as Draft — Draft means the unit is complete and ready for review, not a scratchpad for " +
+      "unfinished work. " +
       "approve moves Draft or Modified to Approved (idempotent if already Approved); refuses if the spec is Removed or Deprecated. " +
       "A normative edit (statement or acceptance) to an Approved spec via update auto-moves it to Modified and clears approval. " +
       "deprecate moves Draft, Modified, or Approved to Deprecated (idempotent); refuses if Removed. " +
@@ -97,7 +158,7 @@ export const specsHelpContent = {
         "to Draft/''/NotStarted. The whole batch is rejected together if any item is invalid. Returns SpecWriteResult.",
       examples: {
         tip: "rosettify specs add [specs_file] '[spec-json-object-or-array]'",
-        real: "rosettify specs add specs/checkout/specs.json '{\"id\":\"FR-CHK-0001\",\"type\":\"FR\",\"title\":\"Cart total\",\"statement\":\"When the cart changes, the system shall recompute the total.\",\"source\":\"User\",\"priority\":\"Must\",\"verification\":\"Test\",\"acceptance\":[{\"given\":\"an item is added\",\"when\":\"the cart updates\",\"then\":\"the total reflects the new item\"}]}'",
+        real: "rosettify specs add specs/checkout/specs.json '{\"id\":\"FR-CHK-0001\",\"type\":\"FR\",\"level\":\"System\",\"title\":\"Cart total\",\"statement\":\"The cart total shall equal the sum of its line totals after every change to the cart contents, including a removal; it does not cover taxes or shipping.\",\"source\":\"User\",\"priority\":\"Must\",\"verification\":\"Test\",\"acceptance\":[{\"id\":\"FR-CHK-0001.AC1\",\"ears\":\"event\",\"when\":\"an item is added to the cart\",\"system\":\"the checkout system\",\"shall\":\"recompute the total to include the new item\"},{\"ears\":\"unwanted\",\"if\":\"a line total is unavailable\",\"system\":\"the checkout system\",\"shall\":\"leave the previous total in place and report the failure\"}]}'",
       },
     },
     {
@@ -250,10 +311,13 @@ export const specsHelpContent = {
       args: { query: "optional scope filter (see query_notation); omit to validate every non-Removed spec" },
       required: "specs_file is required; query is optional",
       description:
-        "Read-only. Structural findings (schema completeness, id format, area registration, uniqueness, reference " +
-        "integrity, acyclic depends_on, size limits, acceptance completeness) are severity error and block approve; " +
-        "phrasing findings (EARS pattern, measurable NFR, modal verbs, duplicate statements) are severity warning, " +
-        "advisory only. Returns SpecValidateResult.",
+        "Read-only, and never changes the document. Structural findings (schema completeness, id and criterion-id " +
+        "format, enum values including level, area registration, uniqueness, reference integrity, acyclic " +
+        "depends_on, one condition word per criterion, acceptance completeness, a missing subsystem or component " +
+        "for the level claimed, size limits) are severity error and block approve; advisory findings (an " +
+        "unquantified non-functional statement, missing modal verbs, evidence missing on a spec taken from existing " +
+        "sources, a non-functional area outside the nine recommended codes, duplicate statements, and no location " +
+        "named at all on a system-level spec) are severity warning, advisory only. Returns SpecValidateResult.",
       examples: {
         tip: "rosettify specs validate [specs_file] '[optional-scope-query]'",
         real: "rosettify specs validate specs/checkout/specs.json 'area:CHK'",
@@ -279,16 +343,19 @@ export const specsHelpContent = {
     },
     {
       name: "render",
-      brief: "Render a human-readable document (markdown or text)",
+      brief: "Render the scoped specs as markdown, plain text, or markup",
       usage: "rosettify specs render <specs_file> [query] [--format <fmt>]",
       args: {
         query: "optional scope filter (see query_notation); omit to render every non-Removed spec",
-        "--format": "markdown (default) or text",
+        "--format": "markdown (default) | text | xml",
       },
       required: "specs_file is required; query and --format are optional",
-      description: "Read-only; renders the scoped specs grouped by area, with local-time timestamps. No file is written. Returns SpecRenderResult.",
+      description:
+        "Read-only; renders the scoped specs grouped by area, with local-time timestamps. markdown and text are " +
+        "for reading; xml returns the markup form of each unit, which migrate reads back, so a document held here " +
+        "can be published back out. No file is written. Returns SpecRenderResult.",
       examples: {
-        tip: "rosettify specs render [specs_file] '[optional-scope-query]' --format [markdown|text]",
+        tip: "rosettify specs render [specs_file] '[optional-scope-query]' --format [markdown|text|xml]",
         real: "rosettify specs render specs/checkout/specs.json 'status:Approved'",
       },
     },
@@ -309,18 +376,19 @@ export const specsHelpContent = {
     },
     {
       name: "migrate",
-      brief: "One-time import of legacy markdown spec blocks",
+      brief: "Import requirement units written in the markup form render emits",
       usage: "rosettify specs migrate <specs_file> <sources...>",
-      args: { sources: "one or more legacy markdown source file paths" },
+      args: { sources: "one or more source file paths holding requirement units in the markup form render emits" },
       required: "specs_file and at least one source are required",
       description:
-        "Creates the document if it does not exist yet. Parses legacy spec blocks out of each source and appends them. " +
-        "A source that does not exist or contains no parseable blocks is excluded and reported in skipped; a per-block " +
-        "issue (including a missing id) is reported in warnings without dropping the rest of that source. " +
-        "Returns SpecMigrateResult.",
+        "Creates the document if it does not exist yet. Reads every requirement unit written in the shape render " +
+        "emits out of each source and appends it. A source that does not exist or holds no such unit is excluded " +
+        "and reported in skipped; a unit in any other shape is skipped with its reason, sharing that source, " +
+        "without dropping the rest of it, and a per-unit issue that did not stop the import is reported in " +
+        "warnings. Returns SpecMigrateResult.",
       examples: {
-        tip: "rosettify specs migrate [specs_file] [legacy-source-1.md] [legacy-source-2.md ...]",
-        real: "rosettify specs migrate specs/checkout/specs.json docs/legacy/checkout-requirements.md",
+        tip: "rosettify specs migrate [specs_file] [source-1.md] [source-2.md ...]",
+        real: "rosettify specs migrate specs/checkout/specs.json specs/checkout/incoming-requirements.md",
       },
     },
   ],
@@ -328,11 +396,17 @@ export const specsHelpContent = {
   // FR-HELP-0002 — flat schemas dict sourced from per-subcommand declarations (not hand-authored)
   schemas: specsSchemasDict,
 
+  // FR-SPECS-0008 / FR-SPECS-0060 — per-field guidance, emitted from the one guidance array the
+  // schema descriptions are also built from. Criterion entries are qualified `acceptance.<name>`
+  // because a criterion's id would otherwise collide with the unit's id in a flat key space.
+  field_guide: SPEC_FIELD_GUIDE,
+
   // FR-SPECS-0007 / FR-SPECS-0060 — limits
   limits: {
     max_specs: SPECS_MAX_SPECS,
     max_dependencies_per_spec: SPECS_MAX_DEPENDENCIES_PER_SPEC,
     max_acceptance_per_spec: SPECS_MAX_ACCEPTANCE_PER_SPEC,
+    max_evidence_per_spec: SPECS_MAX_EVIDENCE_PER_SPEC,
     max_string_length: SPECS_MAX_STRING_LENGTH,
     max_name_length: SPECS_MAX_NAME_LENGTH,
     max_batch_size: SPECS_MAX_BATCH_SIZE,
@@ -341,9 +415,13 @@ export const specsHelpContent = {
   // FR-SPECS-0012 / FR-SPECS-0060 — query grammar
   query_notation: {
     grammar: "query := term ( term)*; term := [\"-\"] (key:value[,value...] | free-text)",
-    keys: "type, area, status, priority, implementation, verification, source, depends_on, related, title, statement",
+    keys:
+      "type, area, status, priority, implementation, verification, source, depends_on, related, title, statement, " +
+      "level, subsystem, component, ears, evidence",
     semantics:
       "Terms AND-combine. Within one field, comma-separated values OR-combine. A leading - negates the whole term. " +
+      "ears matches a spec when any one of its criteria carries that pattern. evidence takes only present or " +
+      "absent — any other value is rejected. " +
       "A bare (non key:value) term is free text, matched case-insensitively as a substring of title or statement. " +
       "Quote a value to force an exact case-sensitive match instead of a case-insensitive substring/equality match, " +
       "or to include whitespace or a colon in free text. The pseudo-key include_removed:true includes Removed specs " +

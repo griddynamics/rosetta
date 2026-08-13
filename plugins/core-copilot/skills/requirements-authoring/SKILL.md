@@ -76,10 +76,7 @@ HITL gates (use when):
 
 <core_principles_to_enforce>
 
-- Follow SRP always
-- Follow DRY always
-- Follow KISS always
-- Follow YAGNI always
+- Follow SRP, DRY, KISS, YAGNI always
 - Enforce MECE always
 - Enforce MoSCoW always
 - Keep requirement units short
@@ -90,7 +87,8 @@ HITL gates (use when):
 - User is not always right
 - HITL Required with unit-level approval
 - Review new and updated requirements proactively
-- Defer by keeping Draft status
+- `Draft` means complete, self-consistent, and ready for review — never a scratchpad. A unit missing its level, locations, statement, or criteria is not a Draft
+- Defer an approval decision by keeping `Draft` status; never park an unfinished unit there
 - Clearly define what requirements user told and what AI generated
 - Explain reviews as narrative when asked
 - No AI slop
@@ -102,8 +100,9 @@ HITL gates (use when):
 - Use strong success criteria
 - Avoid implementation details unless requested
 - Keep project terms and contracts explicit
-- Spec statements contain only requirements — never explanations of why a previous draft was wrong, how the author arrived at the wording, or definitions of concepts the reader should already know.
-- If a sentence would not survive in a spec that was never revised, delete it.
+- Spec statements contain only requirements — never explanations of why a previous draft was wrong, how the author arrived at the wording, or definitions of concepts the reader should already know
+- If a sentence would not survive in a spec that was never revised, delete it
+- Proactively show and resolve gaps, issues, inconsistencies, conflicts logically not mechanically
 
 </core_principles_to_enforce>
 
@@ -235,6 +234,8 @@ Attributes are ordered by volatility — status, approved_by, changed always cha
 
 ```xml
 <req id="FR-[AREA]-####" type="FR|NFR|INT|DATA" level="System|Subsystem|Component"
+     subsystem="[name; required when level is Subsystem or Component; otherwise fill when known]"
+     component="[name; required when level is Component; otherwise fill when known]"
      ticketId="[tracker key]" classification="business|technical"
      source="User|Inferred|Sources|Documentation"
      priority="Must|Should|Could|Wont" verification="Test|Analysis|Inspection|Demo"
@@ -246,7 +247,7 @@ Attributes are ordered by volatility — status, approved_by, changed always cha
   <rationale>[why this shape and not another: basis for each threshold, actor and boundary; alternatives rejected and why rejected]</rationale>
   <evidence>[reverse-engineering only: path:line-range per source location]</evidence>
   <acceptance>
-    <criteria id="[req-id].AC1" ears="ubiquitous" system="[actor or component that responds]" shall="[outcome]"/>
+    <criteria id="[req-id].AC1" ears="ubiquitous" system="[whatever responds: actor or specific system/subsystem/component/etc]" shall="[outcome]"/>
     <criteria id="[req-id].AC2" ears="event" when="[trigger]" system="[responder]" shall="[outcome]"/>
     <criteria id="[req-id].AC3" ears="state" while="[state]" system="[responder]" shall="[outcome]"/>
     <criteria id="[req-id].AC4" ears="optional" where="[feature is present]" system="[responder]" shall="[outcome]"/>

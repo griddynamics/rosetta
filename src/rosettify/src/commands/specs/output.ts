@@ -13,7 +13,7 @@ export interface SpecRef {
 
 // FR-SPECS-0050 — nested shape for SpecWriteResult.document.
 export interface SpecDocumentSummary {
-  component: string;
+  system: string; // FR-SPECS-0002 — a document holds one system's requirements
   total: number;
   previous_version: string | null;
 }
@@ -42,7 +42,7 @@ function toSpecRefs(doc: SpecsDocument, ids: string[]): SpecRef[] {
 }
 
 /**
- * Builds the SpecWriteResult for add/update: document summary (component, total count,
+ * Builds the SpecWriteResult for add/update: document summary (system, total count,
  * previous_version — the backup path from FR-SPECS-0070, null on first create) plus the
  * affected specs' post-write {id,status}.
  */
@@ -53,7 +53,7 @@ export function buildSpecWriteResult(
 ): SpecWriteResult {
   return {
     document: {
-      component: doc.component,
+      system: doc.system,
       total: (doc.specs ?? []).length,
       previous_version: previousVersion,
     },
@@ -122,9 +122,13 @@ export interface SpecGraphResult {
   unresolved: string[];
 }
 
-/** FR-SPECS-0023 — cmdRender's result: the rendered document string plus the format it used. */
+/**
+ * FR-SPECS-0023 — cmdRender's result: the rendered document string plus the format it used.
+ * The union stays inline: a string union is named only when more than one declaration references
+ * it, and this one appears here alone.
+ */
 export interface SpecRenderResult {
-  format: "markdown" | "text";
+  format: "markdown" | "text" | "xml";
   content: string;
 }
 
@@ -154,6 +158,19 @@ export interface SpecDeleteResult {
 export interface SpecPurgeResult {
   purged: string[];
   missing: string[];
+}
+
+/**
+ * FR-SPECS-0008/0050 — one field's authoring guidance, emitted both as the field's description in
+ * the help schema dictionary and as an entry of the help content's field_guide section. The data
+ * itself lives in field-guide.ts, which both surfaces read so they cannot diverge.
+ */
+export interface SpecFieldGuide {
+  field: string;
+  type: string;
+  required: boolean;
+  default: string;
+  guidance: string;
 }
 
 /** FR-SPECS-0015 — nested shape for SpecImplementedResult.updated. */
@@ -201,7 +218,7 @@ export interface SpecNextId {
 /** FR-SPECS-0024 — cmdInfo's result: orientation summary (no full spec bodies). Timestamps are
  * local-time display strings (FR-SPECS-0042), not the stored UTC value. */
 export interface SpecInfoResult {
-  component: string;
+  system: string; // FR-SPECS-0002 — a document holds one system's requirements
   description: string;
   areas: SpecAreaInfo[];
   totals: SpecTotals;
@@ -210,17 +227,22 @@ export interface SpecInfoResult {
   updated_at: string;
 }
 
-/** FR-SPECS-0025 — nested shape for SpecMigrateResult.skipped: a whole source file excluded
- * (source_not_found | migrate_parse_error), as opposed to a per-<req> issue (which goes in
- * `warnings` instead — report-don't-drop at the finest grain available). */
+/**
+ * FR-SPECS-0025 — nested shape for SpecMigrateResult.skipped: one exclusion with the reason it was
+ * excluded. An entry covers either a whole source that could not be read or parsed, or a single
+ * unit within a source that was not in the canonical shape and was therefore skipped rather than
+ * reconstructed by inference. Two skipped units from one source produce two entries sharing a
+ * `source`, and the unit is identified inside `reason` — the shape stays exactly two fields, with
+ * no unit-id field.
+ */
 export interface SpecSkipped {
   source: string;
   reason: string;
 }
 
-/** FR-SPECS-0025 — cmdMigrate's result. `warnings` carries every per-<req> parse/mapping issue
- * (including a missing id, which excludes just that one block from `migrated`); `skipped` carries
- * whole-source exclusions. */
+/** FR-SPECS-0025 — cmdMigrate's result. `warnings` carries every per-unit parse/mapping issue on a
+ * unit that was still imported; `skipped` carries exclusions — whole sources and individual
+ * non-canonical units alike. `migrated` counts canonical units only. */
 export interface SpecMigrateResult {
   migrated: number;
   sources: string[];

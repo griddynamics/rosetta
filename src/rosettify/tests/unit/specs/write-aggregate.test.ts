@@ -62,11 +62,12 @@ describe("applyBatchWrite — first-create bypass (allowCreate)", () => {
       doc.specs = [...(doc.specs ?? []), makeSpec({ id: "FR-CHK-0001" })];
       return { ok: true, affected: ["FR-CHK-0001"], result: "created" };
     };
-    const result = await applyBatchWrite(file, build, { allowCreate: true, actor: "tester" });
+    const result = await applyBatchWrite(file, build, { allowCreate: true, actor: "tester", system: "Checkout" });
     expect(result.ok).toBe(true);
     expect(result.result!.previous_version).toBeNull();
     expect(fs.existsSync(file)).toBe(true);
     const doc = loadSpecs(file)!;
+    expect(doc.system).toBe("Checkout");
     expect(doc.specs).toHaveLength(1);
     expect(doc.specs[0]!.changed_by).toBe("tester");
   });
@@ -81,6 +82,70 @@ describe("applyBatchWrite — first-create bypass (allowCreate)", () => {
     const result = await applyBatchWrite(file, build, { allowCreate: true });
     expect(result.ok).toBe(true);
     expect(result.result!.previous_version).not.toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// applyBatchWrite — caller-supplied `system` (FR-SPECS-0002, 0010, 0025)
+// ---------------------------------------------------------------------------
+
+describe("applyBatchWrite — system reconciliation (FR-SPECS-0002)", () => {
+  it("rejects a create call with missing_system when no system is supplied", async () => {
+    const file = specsFile("new.json");
+    const build: BatchBuild<string> = (doc) => {
+      doc.specs = [...(doc.specs ?? []), makeSpec({ id: "FR-CHK-0001" })];
+      return { ok: true, affected: [], result: "created" };
+    };
+    const result = await applyBatchWrite(file, build, { allowCreate: true });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("missing_system");
+    expect(result.include_help).toBe(true);
+    expect(fs.existsSync(file)).toBe(false);
+  });
+
+  it("creates the document with the supplied system when creating", async () => {
+    const file = specsFile("new.json");
+    const build: BatchBuild<string> = (doc) => ({ ok: true, affected: [], result: "ok" });
+    const result = await applyBatchWrite(file, build, { allowCreate: true, system: "Checkout" });
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.system).toBe("Checkout");
+  });
+
+  it("adopts the supplied name when the stored system is empty", async () => {
+    const file = specsFile();
+    saveSpecs(file, makeDoc({ system: "" }));
+    const build: BatchBuild<string> = () => ({ ok: true, affected: [], result: "ok" });
+    const result = await applyBatchWrite(file, build, { system: "Checkout" });
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.system).toBe("Checkout");
+  });
+
+  it("accepts a supplied name identical to the stored one, unchanged", async () => {
+    const file = specsFile();
+    saveSpecs(file, makeDoc({ system: "Checkout" }));
+    const build: BatchBuild<string> = () => ({ ok: true, affected: [], result: "ok" });
+    const result = await applyBatchWrite(file, build, { system: "Checkout" });
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.system).toBe("Checkout");
+  });
+
+  it("rejects with system_mismatch when the supplied name differs from the stored one", async () => {
+    const file = specsFile();
+    saveSpecs(file, makeDoc({ system: "Checkout" }));
+    const build: BatchBuild<string> = () => ({ ok: true, affected: [], result: "ok" });
+    const result = await applyBatchWrite(file, build, { system: "Billing" });
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("system_mismatch");
+    expect(loadSpecs(file)!.system).toBe("Checkout"); // unchanged
+  });
+
+  it("leaves the stored system unchanged when none is supplied", async () => {
+    const file = specsFile();
+    saveSpecs(file, makeDoc({ system: "Checkout" }));
+    const build: BatchBuild<string> = () => ({ ok: true, affected: [], result: "ok" });
+    const result = await applyBatchWrite(file, build);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.system).toBe("Checkout");
   });
 });
 

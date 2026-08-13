@@ -49,7 +49,15 @@ def blocks(msg):
 
 
 def main(path, require_mutation=True):
-    with open(path) as fh:
+    # No trace means the agent step never produced one -- it was skipped or the
+    # job failed earlier. Still a failure, but report it as one line: a traceback
+    # here reads like a fault in the guard and hides the real error further up.
+    try:
+        fh = open(path)
+    except FileNotFoundError:
+        print("::error::trace file missing at %s -- the Claude step did not run" % path)
+        return 1
+    with fh:
         msgs = json.load(fh)
     if not isinstance(msgs, list):
         msgs = [msgs]

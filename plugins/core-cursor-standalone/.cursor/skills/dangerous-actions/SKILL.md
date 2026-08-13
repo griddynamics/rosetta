@@ -27,9 +27,9 @@ Examples (not limited):
 
 Exceptions (only after blast radius):
 
-6. Application code itself.
-7. Just-created data you CAN fully recover.
-8. Temporary data without side-effects.
+1. Application code itself.
+2. Just-created data you CAN fully recover.
+3. Temporary data without side-effects.
 
 </process>
 

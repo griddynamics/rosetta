@@ -138,7 +138,7 @@ Ask the agent:
 What can you do, Rosetta?
 ```
 
-The agent will follow Rosetta prompts and show Rosetta workflows and execute `self-help-flow` (see screenshots from different tools below):
+The agent will follow Rosetta prompts and show Rosetta workflows and execute `help-flow` (see screenshots from different tools below):
 
 **Claude Code:**
 
@@ -159,5 +159,6 @@ See [INSTALLATION.md#upgrading](INSTALLATION.md#upgrading) for upgrade instructi
 
 Once the plugin is verified:
 
+- **Use Rosetta day to day** — see the [User Guide](user-guide/README.md).
 - **Run your first session and initialize the repo** — see [QUICKSTART.md](QUICKSTART.md).
 - **Explore the workflows** (coding, requirements authoring, modernization, and more) — see [USAGE_GUIDE.md — Workflows](USAGE_GUIDE.md#workflows).

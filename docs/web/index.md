@@ -15,6 +15,7 @@ permalink: /
   </p>
   <div class="hero-actions">
     <a href="#hero" class="button">Get Started</a>
+    <a href="{{ '/user-guide/' | relative_url }}" class="button button-userguide">User Guide</a>
     <a href="{{ '/overview/' | relative_url }}" class="button-ghost">See it in action</a>
     <a href="{{ '/docs/introduction/' | relative_url }}" class="button-ghost">Documentation</a>
     <a href="https://github.com/griddynamics/rosetta" class="button-ghost" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -387,7 +388,7 @@ Download mcp-files-mode.md and place it in your IDE or agent's project instructi
             <pre class="qs-code">What can you do, Rosetta?</pre>
           </div>
           <div class="qs-mode-content active" data-mode-content="plugin">
-            <p class="qs-step-desc" style="margin-top:.8rem;">A working plugin setup follows Rosetta prompts, shows available workflows, and runs <code>self-help-flow</code> instead of giving a generic model answer.</p>
+            <p class="qs-step-desc" style="margin-top:.8rem;">A working plugin setup follows Rosetta prompts, shows available workflows, and runs <code>help-flow</code> instead of giving a generic model answer.</p>
             <div class="qs-shot-grid" aria-label="Plugin verification examples">
               <button class="qs-shot" type="button" data-full="{{ '/assets/images/Rosetta-ProperResponse.png' | relative_url }}" aria-label="Expand Claude Code plugin verification example">
                 <img src="{{ '/assets/images/Rosetta-ProperResponse.png' | relative_url }}" alt="Claude Code plugin verification example">

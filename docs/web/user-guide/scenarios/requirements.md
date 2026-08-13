@@ -1,0 +1,80 @@
+---
+layout: user-guide
+title: Author requirements
+permalink: /user-guide/scenarios/requirements/
+---
+
+# Author requirements
+**Command:** `/requirements-authoring-flow` · *[← All scenarios](/rosetta/user-guide/#scenarios-at-a-glance) · [User guide](/rosetta/user-guide/)*
+
+> Capture what should be built *before* building it — as small, atomic, testable requirement units, each one approved by you.
+
+**Use this when** behavior is unclear, high-impact, or needs traceability: drafting new requirements, editing or reviewing existing ones, or reverse-engineering requirements out of an existing app.
+
+**Not for:** implementation (that's [Write or change code](/rosetta/user-guide/scenarios/coding/), which this flow hands off to when you're ready) or general architecture docs ([Analyze a codebase](/rosetta/user-guide/scenarios/analyze-a-codebase/)).
+
+Going requirements-first is the single most effective way to use a coding agent — it prevents scope creep and gives you a clean acceptance baseline.
+
+## Running it
+
+```text
+/requirements-authoring-flow Define requirements for the checkout flow covering discount codes, tax, and payment retries
+/requirements-authoring-flow Review and refactor the auth requirements for conflicts
+/requirements-authoring-flow Reverse-engineer requirements from the existing orders service
+```
+
+> This flow expects a strong model (Opus / GPT-5.5-class or similar). If yours is too small, the agent will ask you to switch.
+
+## How it works
+
+The whole point is to stop the agent from drafting too early. It confirms **intent**, agrees an **outline** with you, then drafts requirements in small batches — and nothing becomes "approved" without your say-so.
+
+{% raw %}
+```mermaid
+flowchart TB
+    Start(["/requirements-authoring-flow + request"]) --> Disc["Discovery <br>existing reqs, constraints, scope"]
+    Disc --> Research["Research <br>(standards, patterns — optional)"]
+    Research --> Intent["Capture intent, assumptions, questions"]
+    Intent --> G1{"You approve <br>the intent"}
+    G1 -->|revise| Intent
+    G1 -->|approve| Outline["Propose structure & IDs"]
+    Outline --> G2{"You approve <br>the outline"}
+    G2 -->|revise| Outline
+    G2 -->|approve| Draft["Draft atomic requirements <br>in small batches"]
+    Draft --> Val["Validation: conflicts, gaps, <br>traceability"]
+    Val --> VOK{"Conflicts <br>or gaps?"}
+    VOK -->|yes| Draft
+    VOK -->|no| G3{"You review <br>each requirement"}
+    G3 -->|request changes| Draft
+    G3 -->|more batches| Draft
+    G3 -->|all approved| Final["Finalize: index, change log"]
+    Final --> Done(["Approved requirements set"])
+
+    classDef step fill:#dae8ff,stroke:#3674b5,color:#102a43;
+    classDef gate fill:#fff2cc,stroke:#b58b00,color:#493800;
+    classDef done fill:#e5f7e8,stroke:#35834a,color:#153b20;
+    class Disc,Research,Intent,Outline,Draft,Val,Final step;
+    class G1,G2,VOK,G3 gate;
+    class Start,Done done;
+```
+{% endraw %}
+
+Functional requirements are written in the EARS style; non-functional ones get measurable thresholds. A *requirements-engineer* subagent drafts, and an independent *reviewer* checks for conflicts, gaps, and end-to-end traceability (source → goal → requirement → test). When reverse-engineering an app, the agent spawns several narrow-scope subagents — one per screen, page, or endpoint — specifically to avoid hallucinating behavior.
+
+## What you'll be asked to do
+
+Approve the **intent**, the **outline**, the **validation findings**, and then **each requirement unit**. Along the way, supply the actors, goals, scope boundaries, non-goals, priorities, and any measurable thresholds. The agent walks you through the finished set as a plain-language story (per actor where possible) so you can confirm it matches what you meant.
+
+## What it creates
+
+A state file under `agents/TEMP/<feature>/`, then the deliverables under `docs/REQUIREMENTS/`: the approved requirements set, a validation pack, and a change log — with an index you can grep.
+
+## Related
+
+[Write or change code](/rosetta/user-guide/scenarios/coding/) once requirements are set · [Analyze a codebase](/rosetta/user-guide/scenarios/analyze-a-codebase/) to extract requirements from existing code · [Generate test cases](/rosetta/user-guide/scenarios/generate-test-cases/) from a ticket instead.
+
+## Sources
+
+- Workflow: [`instructions/r3/core/workflows/requirements-authoring-flow.md`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/workflows/requirements-authoring-flow.md?plain=1)
+- Skills: [`requirements-authoring`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/requirements-authoring/SKILL.md?plain=1), [`reverse-engineering`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/reverse-engineering/SKILL.md?plain=1), [`hitl`](https://github.com/griddynamics/rosetta/blob/main/instructions/r3/core/skills/hitl/SKILL.md?plain=1)
+

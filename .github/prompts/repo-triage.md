@@ -44,7 +44,7 @@ You will fetch all content yourself via the `gh` CLI.
 
 MUST read `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, and `instructions/r3/core/skills/coding-agents-prompt-authoring/references/pa-rosetta-intro-for-AI.md` (excluding `Evaluating Rosetta Prompts`, if instructions/* were modified).
 REMEMBER: `instructions` folder contains AI coding agent **instructions**, it is **not documentation**.
-AI Coding Agents uses MCP to load bootstrap instructions `instructions/r3/core/rules/bootstrap-alwayson.md` plus mode-specific file as first thing (exactly the same you have loaded too).
+AI Coding Agents use plugins or MCP to load `instructions/r3/core/rules/bootstrap-alwayson.md` plus mode-specific file as first thing (exactly the same you have loaded too).
 After that AI Coding Agent instructed to follow one workflow and to load skills/agents/rules when needed.
 You always must "simulate" how entire AI coding agent flow works if instructions are modified.
 Keep project hygiene.

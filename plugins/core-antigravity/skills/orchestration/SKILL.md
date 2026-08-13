@@ -15,6 +15,7 @@ Prerequisites: USE SKILL `hitl`, `load-project-context`
 4. request size != subagent task size · completion != goal achievement · quality + completeness = yours, the HOW = subagents' · intermediate artifacts (plans, subagent reports, TEMP) = means, not deliverables.
 5. Proactively use available skills, tools, MCPs — incorporate in plan.
 6. Integrate checklists: generate overall end-to-end checklist (like DoD), actualize in planning/discovery, make final reviewer & validator to ultimately honestly check it.
+7. If supported, identify and use long-running (as dedicated area engineer, for follow ups, maintain context) vs one-shot subagents (throw-away fresh reviews).
 
 </context>
 

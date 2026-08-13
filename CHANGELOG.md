@@ -118,6 +118,52 @@ R3 advances Rosetta from governed assistance to deterministic, self-guarding exe
 
 *Release scope: **R3** is the live, served release. **R2** is the previous release, receiving backports only. Other tags are release-agnostic: **Tooling** (plugin generator, rosettify), **Server** (MCP server, Helm), **Hooks**, **CI**, **Docs**.*
 
+### Week Mon 03.08 – Sun 09.08
+
+The AI now writes requirements that say something different at every level. It used to state the rule as an EARS sentence, then restate it as Given/When/Then acceptance criteria, paying for the same fact three times on every turn. It now states the rule once, with the cases it covers and what it excludes, and spends the criteria on concrete, separately addressable cases. You get far more specification out of the same context, and your tests can claim coverage of exactly one criterion.
+
+You can also take work from idea to merged pull request without opening an editor. You move a card to approve a plan, you answer comments, you review the pull request. The AI does everything in between. A full end-to-end implementation now runs from a phone.
+
+**Highlights**
+
+- The AI states a requirement rule once and spends acceptance criteria on distinct cases (#204)
+- Your tests claim one criterion at a time, so a coverage gap shows up as a missing row
+- The AI sweeps all nine ISO 25010 quality buckets and writes down why it leaves any of them out of scope
+- The AI asks which feature flags exist before it designs, and writes code that holds in every flag state
+- Your Rosetta docs survive a format pass now: workspace init keeps them out of Prettier's way
+- The AI spends less on every session by not re-fetching its CLI helpers from the registry on each call
+- You drive development from the board: approve a plan, answer comments, review the pull request
+- The AI filed 18 issues across two runs on 05.08, and six reached merge the same day
+- The AI finds your reference sources on case-sensitive filesystems, where a capitalized folder used to come back empty (#190)
+- Anyone filing an issue gets a template that asks for what a maintainer needs (#202, from #201 by omaiesh)
+- You can read how the automation is wired in the new `docs/AUTOMATION-ARCHITECTURE.md`
+- Plugins 3.1.8 carries all of the above
+
+#### The AI writes requirements that say more (#204)
+
+- **Change.** `[R3]` The AI no longer writes a requirement statement as an EARS sentence. It states the governing rule, the cases it reaches, and what it explicitly excludes. It then writes each acceptance criterion as a distinct, separately identified case carrying its own EARS pattern, so a test can claim exactly one of them. For non-functional work it sweeps all nine ISO 25010 quality buckets every time and records a decision when it leaves one out of scope. It tracks coverage per criterion rather than per requirement. (Igor Solomatov)
+- **Why it helps.** EARS carries one trigger and one response, so a statement written in it had nowhere to put scope or exclusions, and the criteria could only echo it back. You now get strictly more specification out of the same context. You can also ask questions of a whole requirements set: which criteria cover error paths, which requirements the AI inferred rather than you stating them, where the spec has drifted from the code.
+
+#### You drive development from the board
+
+- **Change.** `[CI]` `[Docs]` You now approve a plan by moving a card, and you review the result as a pull request. The AI files the issue, writes the plan into it, claims it, implements it, and opens the pull request, and it cannot promote its own work past either of your two decisions. When a run cannot finish, it leaves the card where nothing will pick it up again and tells you on the issue. It also holds back security-alert detail from public issues, referencing an alert by URL and severity only. You can read the whole design in `docs/AUTOMATION-ARCHITECTURE.md`. (Igor Solomatov)
+- **Why it helps.** You no longer need a checkout, an editor, or a laptop to get work merged. Two card moves and a few comment replies are the entire human interface, so an end-to-end implementation runs from a phone. The AI now also fails a run that produced nothing, so you learn about it the same day rather than after a week of green checkmarks.
+
+#### The AI shipped six of its own fixes
+
+- **Change.** `[CI]` `[Server]` `[R3]` Six issues the AI filed on 05.08 went through planning, your approval, and merge the same day. It made CI cancel stale runs, taught the MCP pipelines to notice a dependency change, brought the last workflow onto the current Node action, covered the instruction cache with tests, fixed reference-source lookups on case-sensitive filesystems, and dropped a stale invariant pointing at a file nobody ships (#183, #184, #186, #188, #189, #190). (Igor Solomatov)
+- **Why it helps.** These are the fixes a repository accumulates and nobody schedules. Getting them merged with you approving each plan and each pull request is what makes the loop trustworthy for real work.
+
+#### The AI works cleaner inside your workspace
+
+- **Change.** `[R3]` `[Tooling]` The AI asks which feature flags exist before it designs, and writes code that holds whether a flag is on or off. It keeps your Rosetta docs out of Prettier's way, so the headers it navigates by survive a format pass. It stops re-fetching its CLI helpers from the registry on every call. It finds your reference sources on case-sensitive filesystems. And when it authors instructions for other agents, it states the rule instead of describing it. All of this reaches you in plugins 3.1.8. (Igor Solomatov)
+- **Why it helps.** A flag your spec never named is a branch the implementation never covered, and you meet it in production instead of review. The registry lookup ran several times per step, so dropping it saves real time and money on every session.
+
+#### Docs
+
+- **Change.** `[Docs]` Anyone landing on the repository gets one Quick Start instead of two competing ones, plus a second demo showing a frontend migration end to end. Copilot users on JetBrains can install from the Marketplace, with the standalone package presented as the fallback it is. Anyone filing an issue gets a template that asks for what a maintainer needs (#201 by omaiesh, #202). GitNexus licensing is stated plainly as paid. (Igor Solomatov)
+- **Why it helps.** The README answered "how do I install this?" twice, and the duplicate went stale first. JetBrains users were being sent down the harder path for no reason.
+
 ### Week Mon 27.07 – Sun 02.08
 
 An external open-source review of Rosetta was published on 25.07. This week closed most of what it flagged: CodeQL analysis, PR CI for `src/hooks` (the one item the review called genuinely missing), per-package pipelines for `rosetta-cli` and `rosetta-mcp`, and 7 Dependabot alerts patched. The larger delivery is `security-flow`, a full security review workflow with eight mandatory-subagent phases, a filename-only secret gate that runs before any target content reaches a model, and active testing bounded to pre-production. Repo automation dropped Atlassian entirely for GitHub Projects v2. Every CI workflow now routes its model calls through the Bifrost gateway instead of a raw Anthropic key.

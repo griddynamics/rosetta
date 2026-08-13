@@ -9,10 +9,10 @@ import { makeDoc, makeSpec } from "../../fixtures/specs.js";
 
 describe("buildSpecWriteResult", () => {
   it("builds document summary and resolves affected ids to their post-write {id,status}", () => {
-    const doc = makeDoc({ component: "checkout", specs: [makeSpec({ id: "FR-CHK-0001", status: "Draft" })] });
+    const doc = makeDoc({ system: "checkout", specs: [makeSpec({ id: "FR-CHK-0001", status: "Draft" })] });
     const result = buildSpecWriteResult(doc, ["FR-CHK-0001"], "backup/path.bak000");
     expect(result).toEqual({
-      document: { component: "checkout", total: 1, previous_version: "backup/path.bak000" },
+      document: { system: "checkout", total: 1, previous_version: "backup/path.bak000" },
       affected: [{ id: "FR-CHK-0001", status: "Draft" }],
     });
   });
@@ -24,7 +24,7 @@ describe("buildSpecWriteResult", () => {
   });
 
   it("treats a doc with specs missing entirely as zero total / no affected", () => {
-    const doc = { component: "x" } as unknown as Parameters<typeof buildSpecWriteResult>[0];
+    const doc = { system: "x" } as unknown as Parameters<typeof buildSpecWriteResult>[0];
     const result = buildSpecWriteResult(doc, ["FR-CHK-0001"], null);
     expect(result.document.total).toBe(0);
     expect(result.affected).toEqual([]);

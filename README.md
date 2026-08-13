@@ -63,6 +63,8 @@ It reads your stack and writes `TECHSTACK.md`, `CODEMAP.md`, `DEPENDENCIES.md`, 
 
 Before you begin, two things worth knowing. Use a *medium* reasoning model rather than "Auto" — it changes both quality and cost substantially. And if you already run JUXT, Superpowers, GSD or AI-DevKit, they conflict with Rosetta; stay with the one you know.
 
+New to Rosetta? The **[User Guide](user-guide/README.md)** walks through installing, setting up a repository, and one worked scenario per kind of task, with no internals.
+
 ## Why this exists
 
 ### #1: Everyone on the team prompts differently
@@ -152,11 +154,12 @@ Full descriptions, what each produces, and what you will be asked to approve: **
 
 | Read this | When |
 | --- | --- |
+| **[user-guide/](user-guide/README.md)** | You are learning to use Rosetta, task by task |
 | **[QUICKSTART.md](QUICKSTART.md)** | You are installing it now |
 | **[PLUGINS.md](PLUGINS.md)** · **[MCPs.md](MCPs.md)** | You are picking a delivery mode, or installing one |
 | **[INSTALLATION.md](INSTALLATION.md)** | You need every install mode and transport, and every file initialization creates |
 | **[CONFIGURATION.md](CONFIGURATION.md)** | You are wiring it to your tools and MCPs |
-| **[USAGE_GUIDE.md](USAGE_GUIDE.md)** | You are using it day to day |
+| **[USAGE_GUIDE.md](USAGE_GUIDE.md)** | You need the full reference: every workflow phase by phase |
 | **[OVERVIEW.md](OVERVIEW.md)** | You want the mental model and the design principles |
 | **[docs/CONTEXT.md](docs/CONTEXT.md)** | You want why it exists and who it serves, with no technical detail |
 | **[ELEVATOR_PITCH.md](ELEVATOR_PITCH.md)** | You are explaining Rosetta to someone else |

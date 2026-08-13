@@ -282,7 +282,13 @@ export async function runCli(args: string[]): Promise<void> {
     {
       name: "add",
       positional: { name: "data", required: true, desc: "Spec JSON data (object or array)" },
-      buildInput: (specsFile, rest) => ({ subcommand: "add", specs_file: specsFile, data: rest[0] }),
+      flags: [{ flag: "--system <name>", desc: "Required the first time this call would create the document" }],
+      buildInput: (specsFile, rest, opts) => ({
+        subcommand: "add",
+        specs_file: specsFile,
+        data: rest[0],
+        system: opts["system"] as string | undefined,
+      }),
     },
     {
       name: "get",
@@ -366,7 +372,7 @@ export async function runCli(args: string[]): Promise<void> {
     {
       name: "render",
       positional: { name: "query", required: false, desc: "Optional scope filter" },
-      flags: [{ flag: "--format <fmt>", desc: "markdown (default) or text" }],
+      flags: [{ flag: "--format <fmt>", desc: "markdown (default), text, or xml markup" }],
       buildInput: (specsFile, rest, opts) => ({
         subcommand: "render",
         specs_file: specsFile,
@@ -381,7 +387,13 @@ export async function runCli(args: string[]): Promise<void> {
     {
       name: "migrate",
       positional: { name: "sources", required: true, variadic: true, desc: "Legacy markdown source paths" },
-      buildInput: (specsFile, rest) => ({ subcommand: "migrate", specs_file: specsFile, sources: rest }),
+      flags: [{ flag: "--system <name>", desc: "Required the first time this call would create the destination document" }],
+      buildInput: (specsFile, rest, opts) => ({
+        subcommand: "migrate",
+        specs_file: specsFile,
+        sources: rest,
+        system: opts["system"] as string | undefined,
+      }),
     },
   ];
 

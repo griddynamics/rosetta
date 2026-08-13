@@ -93,7 +93,7 @@ Read full workflow: [Init Workspace Flow](/rosetta/docs/init-workspace-flow/)
 </details>
 
 <details markdown="1">
-<summary><b>Self Help</b></summary>
+<summary><b>Help</b></summary>
 
 Explains what Rosetta can do and how to use it in the current workspace. It is a conversational discovery workflow, not an implementation workflow, but it can hand off to a real workflow when you decide to act.
 
@@ -108,12 +108,12 @@ Explains what Rosetta can do and how to use it in the current workspace. It is a
 **Expect:** no persistent files. A discoverer subagent may prepare the catalog and matching. Your responsibility is to state the outcome you want and explicitly approve any handoff into execution.
 
 ```
-/self-help-flow What workflows are available?
-/self-help-flow How do I use the research flow?
-/self-help-flow What can Rosetta help me with?
+/help-flow What workflows are available?
+/help-flow How do I use the research flow?
+/help-flow What can Rosetta help me with?
 ```
 
-Read full workflow: [Self Help Workflow](/rosetta/docs/self-help-flow/)
+Read full workflow: [Help Workflow](/rosetta/docs/help-flow/)
 
 </details>
 
@@ -374,7 +374,7 @@ Large migration workflow for code conversions, platform upgrades, framework upgr
 /modernization-flow Re-architect monolith to microservices
 ```
 
-Read full workflow: [Modernization Flow](/rosetta/docs/modernization-flow/)
+Read full workflow: [Modernization Flow](/rosetta/docs/modernization-flow/). For principles, red flags, process, and start prompt templates: [Modernization Guide](/rosetta/docs/modernization/).
 
 </details>
 

@@ -26,7 +26,7 @@ The hard approvals are the `Prompt Brief` gate and the final approval before per
 
 - Do not use it for implementation work. Use [Coding Flow](/rosetta/docs/coding-flow/).
 - Do not use it for product or system requirements authoring. Use [Requirements Documentation Authoring Flow](/rosetta/docs/requirements-authoring-flow/).
-- Do not use it for general Rosetta capability questions. Use [Self Help Workflow](/rosetta/docs/self-help-flow/) or [Usage Guide](/rosetta/docs/usage-guide/).
+- Do not use it for general Rosetta capability questions. Use [Help Workflow](/rosetta/docs/help-flow/) or [Usage Guide](/rosetta/docs/usage-guide/).
 - Do not use it to onboard an external codebase for later reuse. Use [External Library Flow](/rosetta/docs/external-lib-flow/).
 
 ## Before You Start

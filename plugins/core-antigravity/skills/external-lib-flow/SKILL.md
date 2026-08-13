@@ -8,7 +8,7 @@ description: "Workflow for onboarding an external private library so AI can use 
 ## Context
 
 - Purpose: Onboard AI to external codebase for usage understanding
-- Tool: Repomix MCP to package codebase (compressed XML)
+- Tool: Repomix (MCP or CLI) to package codebase (compressed XML)
 - Target: Two documents in refsrc folder and in Rosetta
   1. File: `{project-name}.xml` (compressed codebase, unmodified Repomix output)
   2. File: `{project-name}-onboarding.md` (brief Learning Flow with reference)
@@ -103,7 +103,7 @@ Use Repomix to package codebase with compression enabled (Tree-sitter). Generate
 
 ### Key Points
 
-- MUST use `mcp_repomix_pack_codebase` with `compress: true`
+- MUST use `mcp_repomix_pack_codebase` or repomix cli with `compress: true`
 - XML output is for AI consumption, not humans
 - Extract signatures + structure, NOT implementation details
 - Generate Learning Flow: phases with 3-5 word steps
@@ -112,7 +112,7 @@ Use Repomix to package codebase with compression enabled (Tree-sitter). Generate
 
 ### Steps
 
-1. Use `mcp_repomix_pack_codebase`:
+1. Use `mcp_repomix_pack_codebase` (or repomix cli):
    - directory: detected project path
    - compress: true (ALWAYS enabled)
    - style: "xml"

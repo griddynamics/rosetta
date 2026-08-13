@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <script>
+    (function(){
+      var t = localStorage.getItem('rosetta-theme');
+      if (!t && window.matchMedia) {
+        t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      }
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <title>{% if page.title %}{{ page.title }} | {{ site.seo_title | default: site.title }}{% else %}{{ site.seo_title | default: site.title }}{% endif %}</title>
+  <meta name="description" content="Rosetta User Guide — install Rosetta, set up your repository, and run real engineering tasks with an AI coding agent.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Sans:wght@400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ '/assets/styles.css' | relative_url }}">
+  <link rel="icon" type="image/png" href="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}">
+  <link rel="apple-touch-icon" href="{{ '/assets/brand/rosetta-favicon.png' | relative_url }}">
+</head>
+<body class="docs-layout">
+<a href="#main-content" class="skip-to-content">Skip to content</a>
+{% include nav.html %}
+<div class="docs-wrap">
+  <aside class="docs-sidebar" aria-label="User guide navigation">
+    <div class="docs-search">
+      <input type="search" id="docs-search-input" placeholder="Search the guide…" autocomplete="off" aria-label="Search the user guide">
+      <ul id="docs-search-results" class="docs-search-results" role="listbox" hidden></ul>
+    </div>
+    <p class="docs-sidebar-cat">Start here</p>
+    <a href="{{ '/user-guide/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/' %} active{% endif %}">User Guide</a>
+    <a href="{{ '/user-guide/what-is-rosetta/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/what-is-rosetta/' %} active{% endif %}">1. What is Rosetta?</a>
+    <a href="{{ '/user-guide/install/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/install/' %} active{% endif %}">2. Install Rosetta</a>
+    <a href="{{ '/user-guide/initialize/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/initialize/' %} active{% endif %}">3. Set up your repository</a>
+    <a href="{{ '/user-guide/configure/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/configure/' %} active{% endif %}">4. Configure your ecosystem</a>
+    <a href="{{ '/user-guide/tips/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/tips/' %} active{% endif %}">5. Tips &amp; troubleshooting</a>
+    <a href="{{ '/user-guide/workflow-map/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/workflow-map/' %} active{% endif %}">Workflow map</a>
+
+    <p class="docs-sidebar-cat">Build &amp; change</p>
+    <a href="{{ '/user-guide/scenarios/coding/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/coding/' %} active{% endif %}">Write or change code</a>
+    <a href="{{ '/user-guide/scenarios/requirements/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/requirements/' %} active{% endif %}">Author requirements</a>
+    <a href="{{ '/user-guide/scenarios/adhoc-task/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/adhoc-task/' %} active{% endif %}">Ad-hoc task</a>
+
+    <p class="docs-sidebar-cat">Test &amp; QA</p>
+    <a href="{{ '/user-guide/scenarios/generate-test-cases/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/generate-test-cases/' %} active{% endif %}">Generate test cases</a>
+    <a href="{{ '/user-guide/scenarios/automate-ui-tests/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/automate-ui-tests/' %} active{% endif %}">Automate UI tests</a>
+    <a href="{{ '/user-guide/scenarios/automate-api-tests/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/automate-api-tests/' %} active{% endif %}">Automate API tests</a>
+
+    <p class="docs-sidebar-cat">Understand</p>
+    <a href="{{ '/user-guide/scenarios/analyze-a-codebase/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/analyze-a-codebase/' %} active{% endif %}">Analyze a codebase</a>
+    <a href="{{ '/user-guide/scenarios/research/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/research/' %} active{% endif %}">Research a question</a>
+
+    <p class="docs-sidebar-cat">Transform</p>
+    <a href="{{ '/user-guide/scenarios/modernize/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/modernize/' %} active{% endif %}">Modernize / migrate</a>
+    <a href="{{ '/user-guide/scenarios/onboard-a-library/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/onboard-a-library/' %} active{% endif %}">Onboard a library</a>
+
+    <p class="docs-sidebar-cat">Govern quality</p>
+    <a href="{{ '/user-guide/scenarios/security-review/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/security-review/' %} active{% endif %}">Review security</a>
+    <a href="{{ '/user-guide/scenarios/author-agent-prompts/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/author-agent-prompts/' %} active{% endif %}">Author agent prompts</a>
+
+    <p class="docs-sidebar-cat">Not sure?</p>
+    <a href="{{ '/user-guide/scenarios/get-help/' | relative_url }}" class="docs-sidebar-link{% if page.url == '/user-guide/scenarios/get-help/' %} active{% endif %}">Get help</a>
+
+    <p class="docs-sidebar-cat">Reference</p>
+    <a href="{{ '/docs/introduction/' | relative_url }}" class="docs-sidebar-link">Developer docs →</a>
+  </aside>
+  <main id="main-content" class="docs-content">
+    {{ content }}
+  </main>
+  <aside class="docs-toc" aria-label="On this page">
+    <p class="docs-toc-title">On this page</p>
+    <ul class="docs-toc-list" id="docs-toc-list"></ul>
+  </aside>
+</div>
+<footer>
+  <div class="footer-wrap">
+    <span>Copyright &copy; {{ 'now' | date: '%Y' }} Grid Dynamics. All rights reserved.</span>
+    <nav class="footer-nav" aria-label="Footer navigation">
+      <a href="{{ '/overview/' | relative_url }}">Overview</a>
+      <a href="{{ '/docs/usage-guide/' | relative_url }}">Usage</a>
+      <a href="{{ '/roadmap/' | relative_url }}">Roadmap</a>
+      <a href="{{ '/contribute/' | relative_url }}">Contribute</a>
+      <a href="https://github.com/griddynamics/rosetta" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="mailto:rosetta-support@griddynamics.com">Contact Us</a>
+    </nav>
+  </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.2/dist/svg-pan-zoom.min.js"></script>
+<style>
+  .docs-mermaid { position: relative; }
+  .docs-mermaid-expand {
+    position: absolute; top: .5rem; right: .5rem; z-index: 2;
+    width: 32px; height: 32px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(15,23,42,.55); color: #fff;
+    border: 1px solid rgba(255,255,255,.25); border-radius: 6px;
+    cursor: pointer; font-size: 16px; line-height: 1;
+    opacity: 0; transition: opacity .15s ease, background .15s ease;
+  }
+  [data-theme="light"] .docs-mermaid-expand {
+    background: rgba(255,255,255,.85); color: #111827;
+    border-color: rgba(0,0,0,.18);
+  }
+  .docs-mermaid:hover .docs-mermaid-expand,
+  .docs-mermaid:focus-within .docs-mermaid-expand,
+  .docs-mermaid-expand:focus { opacity: 1; }
+  .docs-mermaid-expand:hover { background: rgba(15,23,42,.85); }
+  [data-theme="light"] .docs-mermaid-expand:hover { background: #ffffff; }
+
+  .docs-mermaid-modal {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,.78);
+    display: flex; align-items: stretch; justify-content: stretch;
+    padding: 2rem;
+  }
+  .docs-mermaid-modal-inner {
+    position: relative;
+    flex: 1;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  [data-theme="dark"] .docs-mermaid-modal-inner { background: #0f172a; }
+  .docs-mermaid-modal-close {
+    position: absolute; top: .5rem; right: .5rem; z-index: 3;
+    width: 36px; height: 36px;
+    background: transparent; color: inherit;
+    border: 1px solid currentColor; border-radius: 50%;
+    cursor: pointer; font-size: 20px; line-height: 1;
+    opacity: .7;
+  }
+  .docs-mermaid-modal-close:hover { opacity: 1; }
+  .docs-mermaid-modal-stage {
+    flex: 1; min-height: 0; min-width: 0;
+    display: flex; align-items: stretch; justify-content: stretch;
+  }
+  .docs-mermaid-modal-stage svg { display: block; width: 100%; height: 100%; }
+</style>
+<script>
+(function() {
+  var content = document.querySelector('.docs-content');
+  if (!content || !window.mermaid) return;
+
+  var lastTheme = null;
+  var renderToken = 0;
+
+  function getPageTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+  }
+
+  function ensureWrappers() {
+    var codes = content.querySelectorAll('pre > code.language-mermaid');
+    Array.prototype.forEach.call(codes, function(code) {
+      var pre = code.parentElement;
+      if (!pre || pre.closest('.docs-mermaid')) return;
+      var source = code.textContent.replace(/^(?:\s*\n)+/, '').replace(/(?:\n\s*)+$/, '');
+      var wrapper = document.createElement('div');
+      wrapper.className = 'docs-mermaid';
+      wrapper.dataset.mermaidSource = source;
+      pre.replaceWith(wrapper);
+    });
+  }
+
+  function attachExpandButton(wrapper) {
+    if (wrapper.querySelector('.docs-mermaid-expand')) return;
+    var svg = wrapper.querySelector('svg');
+    if (!svg) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'docs-mermaid-expand';
+    btn.setAttribute('aria-label', 'Open diagram in larger view');
+    btn.title = 'Open larger (pan and zoom)';
+    btn.textContent = '⤢';
+    btn.addEventListener('click', function() { openLightbox(svg); });
+    wrapper.appendChild(btn);
+  }
+
+  function openLightbox(originalSvg) {
+    var overlay = document.createElement('div');
+    overlay.className = 'docs-mermaid-modal';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+
+    var inner = document.createElement('div');
+    inner.className = 'docs-mermaid-modal-inner';
+
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'docs-mermaid-modal-close';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.textContent = '×';
+
+    var stage = document.createElement('div');
+    stage.className = 'docs-mermaid-modal-stage';
+
+    inner.appendChild(closeBtn);
+    inner.appendChild(stage);
+    overlay.appendChild(inner);
+    document.body.appendChild(overlay);
+    var prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    var svgClone = originalSvg.cloneNode(true);
+    svgClone.removeAttribute('width');
+    svgClone.removeAttribute('height');
+    svgClone.style.maxWidth = '';
+    svgClone.style.height = '';
+    stage.appendChild(svgClone);
+
+    var pz = null;
+    if (window.svgPanZoom) {
+      try {
+        pz = window.svgPanZoom(svgClone, {
+          controlIconsEnabled: true,
+          zoomEnabled: true,
+          panEnabled: true,
+          fit: true,
+          center: true,
+          minZoom: 0.2,
+          maxZoom: 20
+        });
+      } catch (e) {
+        (console.error || console.log).call(console, e);
+      }
+    }
+
+    function close() {
+      document.removeEventListener('keydown', onKey);
+      if (pz) { try { pz.destroy(); } catch (_) {} }
+      overlay.remove();
+      document.body.style.overflow = prevOverflow;
+    }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+
+    document.addEventListener('keydown', onKey);
+    closeBtn.addEventListener('click', close);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
+    closeBtn.focus();
+  }
+
+  function render() {
+    var theme = getPageTheme();
+    var token = ++renderToken;
+    var wrappers = content.querySelectorAll('.docs-mermaid[data-mermaid-source]');
+    var targets = [];
+
+    Array.prototype.forEach.call(wrappers, function(wrapper) {
+      var target = document.createElement('pre');
+      target.className = 'mermaid';
+      target.textContent = wrapper.dataset.mermaidSource;
+      wrapper.replaceChildren(target);
+      targets.push(target);
+    });
+
+    if (!targets.length) return Promise.resolve();
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose',
+      theme: theme
+    });
+
+    return Promise.resolve(window.mermaid.run({ nodes: targets })).then(function() {
+      if (token !== renderToken) return;
+      lastTheme = theme;
+      Array.prototype.forEach.call(wrappers, attachExpandButton);
+    });
+  }
+
+  ensureWrappers();
+  render().catch(function(e) { (console.error || console.log).call(console, e); });
+
+  new MutationObserver(function() {
+    if (getPageTheme() === lastTheme) return;
+    render().catch(function(e) { (console.error || console.log).call(console, e); });
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+</script>
+<script>
+(function(){
+  var calloutMap = {
+    'NOTE':      { cls: 'note',      icon: 'ℹ️',  label: 'Note' },
+    'TIP':       { cls: 'tip',       icon: '💡', label: 'Tip' },
+    'WARNING':   { cls: 'warning',   icon: '⚠️',  label: 'Warning' },
+    'IMPORTANT': { cls: 'important', icon: '📌', label: 'Important' },
+    'CAUTION':   { cls: 'caution',   icon: '🔥', label: 'Caution' }
+  };
+
+  // Transform GitHub-style callouts: > [!TYPE]
+  document.querySelectorAll('.docs-content blockquote').forEach(function(bq) {
+    var first = bq.querySelector('p:first-child');
+    if (!first) return;
+    var text = first.textContent.trim();
+    var match = text.match(/^\[!(NOTE|TIP|WARNING|IMPORTANT|CAUTION)\]/i);
+    if (!match) return;
+    var type = match[1].toUpperCase();
+    var cfg = calloutMap[type];
+    // Remove the [!TYPE] line
+    var rest = text.slice(match[0].length).trim();
+    if (rest) { first.textContent = rest; } else { first.remove(); }
+    // Build callout
+    var div = document.createElement('div');
+    div.className = 'docs-callout docs-callout--' + cfg.cls;
+    div.innerHTML = '<div class="docs-callout-header">'
+      + '<span class="docs-callout-icon">' + cfg.icon + '</span>'
+      + '<span class="docs-callout-title">' + cfg.label + '</span>'
+      + '</div>'
+      + '<div class="docs-callout-body">' + bq.innerHTML + '</div>';
+    bq.parentNode.replaceChild(div, bq);
+  });
+
+  // Remove duplicate h1 if it matches the page <title>
+  var h1 = document.querySelector('.docs-content h1:first-child');
+  if (h1) {
+    var titleText = document.title.split('|')[0].trim().toLowerCase();
+    if (h1.textContent.trim().toLowerCase() === titleText) {
+      h1.remove();
+    }
+  }
+})();
+</script>
+<script src="https://unpkg.com/lunr/lunr.js"></script>
+<script>
+(function() {
+  var input = document.getElementById('docs-search-input');
+  var results = document.getElementById('docs-search-results');
+  var index = null;
+  var data = null;
+  var pending = null;
+
+  fetch('{{ '/search.json' | relative_url }}')
+    .then(function(r) { return r.json(); })
+    .then(function(docs) {
+      data = docs;
+      index = lunr(function() {
+        this.ref('url');
+        this.field('title', { boost: 10 });
+        this.field('content');
+        docs.forEach(function(d) { this.add(d); }, this);
+      });
+      if (pending !== null) { render(pending); pending = null; }
+    });
+
+  function render(query) {
+    if (!query) { results.hidden = true; return; }
+    if (!index) { pending = query; return; }
+    var hits;
+    try {
+      // Index terms are stemmed; wildcard queries are not. Search both the plain
+      // (stemmed) form and the prefix form so "security" matches the stem "secur".
+      var terms = query.split(/\s+/).filter(Boolean).map(function(t) { return t + ' ' + t + '*'; }).join(' ');
+      hits = index.search(terms);
+    } catch(e) { hits = []; }
+    if (!hits.length) {
+      results.innerHTML = '<li class="docs-search-empty">No results</li>';
+    } else {
+      results.innerHTML = hits.slice(0, 8).map(function(h) {
+        var doc = data.find(function(d) { return d.url === h.ref; });
+        return '<li><a href="' + h.ref + '">' + doc.title + '</a></li>';
+      }).join('');
+    }
+    results.hidden = false;
+  }
+
+  input.addEventListener('input', function() { render(this.value.trim()); });
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { results.hidden = true; input.value = ''; }
+  });
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.docs-search')) results.hidden = true;
+  });
+})();
+</script>
+<script>
+(function() {
+  var toc = document.getElementById('docs-toc-list');
+  var tocAside = toc && toc.closest('.docs-toc');
+  if (!toc || !tocAside) return;
+
+  var content = document.querySelector('.docs-content');
+  if (!content) return;
+
+  var headings = Array.prototype.slice.call(content.querySelectorAll('h2, h3'));
+  if (headings.length < 2) { tocAside.hidden = true; return; }
+
+  var fragment = document.createDocumentFragment();
+  headings.forEach(function(h) {
+    if (!h.id) {
+      h.id = h.textContent.trim().toLowerCase()
+        .replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+    }
+    var li = document.createElement('li');
+    li.className = 'docs-toc-item docs-toc-item--' + h.tagName.toLowerCase();
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.className = 'docs-toc-link';
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    li.appendChild(a);
+    fragment.appendChild(li);
+  });
+  toc.appendChild(fragment);
+
+  var links = Array.prototype.slice.call(toc.querySelectorAll('.docs-toc-link'));
+  var activeIdx = -1;
+
+  function setActive(idx) {
+    if (idx === activeIdx) return;
+    if (activeIdx >= 0) links[activeIdx].classList.remove('active');
+    activeIdx = idx;
+    if (activeIdx >= 0) links[activeIdx].classList.add('active');
+  }
+
+  if (window.IntersectionObserver) {
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (!entry.isIntersecting) return;
+        var idx = headings.indexOf(entry.target);
+        if (idx >= 0) setActive(idx);
+      });
+    }, { rootMargin: '0px 0px -70% 0px', threshold: 0 });
+    headings.forEach(function(h) { io.observe(h); });
+  }
+})();
+</script>
+</body>
+</html>

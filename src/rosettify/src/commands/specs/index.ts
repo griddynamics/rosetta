@@ -67,6 +67,7 @@ async function runSpecs(input: SpecInput): Promise<RunEnvelope<unknown>> {
     format,
     additional_paths: additionalPaths,
     actor,
+    system,
     sources,
     include_removed: includeRemoved,
   } = input;
@@ -114,7 +115,7 @@ async function runSpecs(input: SpecInput): Promise<RunEnvelope<unknown>> {
     case "add": {
       if (!specsFile) return err("missing specs_file", true);
       if (!items || items.length === 0) return err(ERR_MISSING_DATA, true);
-      return cmdAdd(specsFile, items, actor);
+      return cmdAdd(specsFile, items, actor, system);
     }
 
     case "get": {
@@ -200,7 +201,7 @@ async function runSpecs(input: SpecInput): Promise<RunEnvelope<unknown>> {
     case "migrate": {
       if (!specsFile) return err("missing specs_file", true);
       if (!sources || sources.length === 0) return err("missing sources", true);
-      return cmdMigrate(sources, specsFile, actor);
+      return cmdMigrate(sources, specsFile, actor, system);
     }
 
     default:
@@ -212,7 +213,7 @@ export const specsToolDef: ToolDef<SpecInput, unknown> = {
   name: "specs",
   brief: "Manage requirements/specs (add, query, validate, approve, and more)",
   description:
-    "Manages a component's requirements as spec units stored in one JSON document per component. " +
+    "Manages a system's requirements as spec units stored in one JSON document per system. " +
     `Subcommands: ${VALID_SUBCOMMANDS_STR}.`,
   inputSchema: {
     type: "object",
@@ -247,7 +248,7 @@ export const specsToolDef: ToolDef<SpecInput, unknown> = {
       },
       format: {
         type: "string",
-        description: "Render output format: markdown | text",
+        description: "render — output format: markdown (default) | text | xml",
       },
       additional_paths: {
         type: "array",
@@ -265,6 +266,11 @@ export const specsToolDef: ToolDef<SpecInput, unknown> = {
       actor: {
         type: "string",
         description: "Explicit actor override",
+      },
+      system: {
+        type: "string",
+        description:
+          "add/migrate — name of the system this document holds requirements for; required the first time a call would create the document, optional (and reconciled against the stored name) against one that already exists",
       },
       sources: {
         type: "array",

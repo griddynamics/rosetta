@@ -23,7 +23,7 @@ Use Research Flow when you need grounded project research before making a techni
 
 - Do not use it for implementation. Use [Coding Flow](/rosetta/docs/coding-flow/).
 - Do not use it to author requirements from scratch. Use [Requirements Authoring Flow](/rosetta/docs/requirements-authoring-flow/).
-- Do not use it for broad Rosetta capability questions. Use [Usage Guide](/rosetta/docs/usage-guide/) or Self Help.
+- Do not use it for broad Rosetta capability questions. Use [Usage Guide](/rosetta/docs/usage-guide/) or [Help](/rosetta/docs/help-flow/).
 - Do not use it when the answer is already known and you only need execution.
 
 ## Before You Start

@@ -99,7 +99,7 @@ describe("cmdUpdate — Approved -> Modified auto-transition (normative edit)", 
   it("moves an Approved spec's acceptance edit to Modified as well", async () => {
     const file = seedOne({ status: "Approved", approved_by: "alice" });
     const result = await cmdUpdate(file, [
-      { id: "FR-CHK-0001", acceptance: [{ given: "g", when: "w", then: "t" }] },
+      { id: "FR-CHK-0001", acceptance: [{ ears: "event", when: "an item is added", system: "the system", shall: "recompute" }] },
     ]);
     expect(result.ok).toBe(true);
     const doc = loadSpecs(file)!;
@@ -156,11 +156,11 @@ describe("cmdUpdate — mergePatch recursion edge cases (RFC 7396 generic merge)
 
 describe("cmdUpdate — errors", () => {
   it("never changes a spec's id — the patch's id is always the lookup key, so the stored id is untouched by the patch body", async () => {
-    // FR-SPECS-0013's immutable_id error is structurally unreachable under id-as-target
-    // addressing (see update.ts's comment at the validateImmutableId call site): the patch's
-    // `id` IS how the target is found, so there is no way to author a patch whose body carries
-    // a "different" id than the one it targeted. What update.ts actually guarantees — and what
-    // this test verifies directly — is the real-world contract: after any successful update,
+    // FR-SPECS-0009's immutable-id guarantee is structurally enforced, not checked, under
+    // id-as-target addressing (see update.ts's comment where the target is resolved): the
+    // patch's `id` IS how the target is found, so there is no way to author a patch whose body
+    // carries a "different" id than the one it targeted. What update.ts actually guarantees — and
+    // what this test verifies directly — is the real-world contract: after any successful update,
     // the spec's id is exactly what it was before.
     const file = seedOne();
     const result = await cmdUpdate(file, [{ id: "FR-CHK-0001", title: "changed the title, not the id" }]);
@@ -219,6 +219,95 @@ describe("cmdUpdate — errors", () => {
     expect(result.error).toContain("invalid_source");
   });
 
+  // FR-SPECS-0001 — `level` is a fixed value set, so a patch that leaves the merged spec outside
+  // the enum is rejected rather than persisted.
+  it("returns invalid_level for a patch that leaves an invalid level value", async () => {
+    const file = seedOne();
+    const result = await cmdUpdate(file, [{ id: "FR-CHK-0001", level: "Module" }]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("invalid_level");
+  });
+
+  it("accepts a patch that moves the spec to a valid level", async () => {
+    const file = seedOne();
+    const result = await cmdUpdate(file, [{ id: "FR-CHK-0001", level: "Subsystem" }]);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.specs[0]!.level).toBe("Subsystem");
+  });
+
+  // FR-SPECS-0009 — the id can never change, so a patch may not leave `type` disagreeing with the
+  // spec's own id prefix; such a pair could only be deleted and re-authored.
+  it("returns id_type_mismatch for a patch whose type disagrees with the immutable id prefix", async () => {
+    const file = seedOne();
+    const result = await cmdUpdate(file, [{ id: "FR-CHK-0001", type: "NFR" }]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("id_type_mismatch");
+  });
+
+  it("returns invalid_ears when a replacement criterion declares a pattern outside the five", async () => {
+    const file = seedOne();
+    const result = await cmdUpdate(file, [
+      { id: "FR-CHK-0001", acceptance: [{ ears: "continuous", system: "the system", shall: "act" }] },
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("invalid_ears");
+  });
+
+  it("returns duplicate_criterion_id when a patch supplies two criteria sharing an id", async () => {
+    const file = seedOne();
+    const criterion = { id: "FR-CHK-0001.AC1", ears: "ubiquitous", system: "the system", shall: "act" };
+    const result = await cmdUpdate(file, [{ id: "FR-CHK-0001", acceptance: [criterion, { ...criterion }] }]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("duplicate_criterion_id");
+  });
+
+  it("returns missing_required_field when a replacement criterion names no outcome", async () => {
+    const file = seedOne();
+    const result = await cmdUpdate(file, [
+      { id: "FR-CHK-0001", acceptance: [{ ears: "ubiquitous", system: "the system", shall: "" }] },
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("missing_required_field");
+  });
+
+  // `acceptance` replaces wholesale under merge-patch, so a patch that carried it gets the same id
+  // assignment as on add.
+  it("assigns ids to the criteria a patch supplies without them", async () => {
+    const file = seedOne();
+    const result = await cmdUpdate(file, [
+      {
+        id: "FR-CHK-0001",
+        acceptance: [
+          { ears: "ubiquitous", system: "the system", shall: "act" },
+          { ears: "event", when: "a trigger arrives", system: "the system", shall: "respond" },
+        ],
+      },
+    ]);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.specs[0]!.acceptance.map((c) => c.id)).toEqual(["FR-CHK-0001.AC1", "FR-CHK-0001.AC2"]);
+  });
+
+  // A patch that left `acceptance` alone is deliberately not re-validated — a partial patch is not
+  // an authoring event, and completeness checks belong to add.
+  it("does not re-validate stored criteria when the patch did not touch acceptance", async () => {
+    const file = seedOne({ acceptance: [{ id: "hand-edited", ears: "ubiquitous", system: "the system", shall: "act" }] });
+    const result = await cmdUpdate(file, [{ id: "FR-CHK-0001", notes: "just a note" }]);
+    expect(result.ok).toBe(true);
+    expect(loadSpecs(file)!.specs[0]!.acceptance[0]!.id).toBe("hand-edited");
+  });
+
+  it("patches subsystem, component and evidence like any other field", async () => {
+    const file = seedOne({ subsystem: "", component: "", evidence: [] });
+    const result = await cmdUpdate(file, [
+      { id: "FR-CHK-0001", subsystem: "checkout", component: "cart", evidence: ["src/cart.ts:10-24"] },
+    ]);
+    expect(result.ok).toBe(true);
+    const spec = loadSpecs(file)!.specs[0]!;
+    expect(spec.subsystem).toBe("checkout");
+    expect(spec.component).toBe("cart");
+    expect(spec.evidence).toEqual(["src/cart.ts:10-24"]);
+  });
+
   it("all-or-nothing: a batch with one bad patch writes nothing", async () => {
     const file = specsFile();
     saveSpecs(file, makeDoc({ specs: [makeSpec({ id: "FR-CHK-0001", title: "original" })] }));
@@ -233,7 +322,7 @@ describe("cmdUpdate — errors", () => {
 
   it("treats a document with specs missing from disk as having no targets (target_not_found)", async () => {
     const file = specsFile();
-    fs.writeFileSync(file, JSON.stringify({ component: "x", description: "", created_at: "t", updated_at: "t", areas: [] }));
+    fs.writeFileSync(file, JSON.stringify({ system: "x", description: "", created_at: "t", updated_at: "t", areas: [] }));
     const result = await cmdUpdate(file, [{ id: "FR-CHK-0001", title: "x" }]);
     expect(result.ok).toBe(false);
     expect(result.error).toContain("target_not_found");

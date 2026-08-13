@@ -71,7 +71,7 @@ Initialize this repository using the respective Rosetta workflow, dead code is i
 **Upgrade an existing workspace:**
 
 ```
-Upgrade this repository from Rosetta R1 to R3
+Upgrade this repository from Rosetta R2 to R3
 ```
 
 **Initialize subagents and workflows:**
@@ -100,9 +100,9 @@ Explains what Rosetta can do and how to use it in the current workspace. It is a
 **Expect:** usually no files. A discoverer subagent may prepare the catalog and matching. Your responsibility is to state the outcome you want and explicitly approve any handoff into execution.
 
 ```
-/self-help-flow What workflows are available?
-/self-help-flow How do I use the research flow?
-/self-help-flow What can Rosetta help me with?
+/help-flow What workflows are available?
+/help-flow How do I use the research flow?
+/help-flow What can Rosetta help me with?
 ```
 
 </details>
@@ -611,6 +611,8 @@ What happens:
 ```
 
 </details>
+
+<a id="how-rosetta-protects-you"></a>
 
 <details>
 <summary><b>How Rosetta Protects You</b></summary>

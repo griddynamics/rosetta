@@ -684,6 +684,9 @@ describe("MCP — specs add -> get round trip", () => {
     const addRes = await client.callTool("specs", {
       subcommand: "add",
       specs_file: file,
+      // FR-SPECS-0002 — creating a document over MCP requires a caller-supplied system, exactly
+      // like the CLI's --system flag; this is the MCP-side evidence for that plumbing.
+      system: "checkout",
       data: {
         id: "FR-CHK-0001",
         type: "FR",
@@ -692,7 +695,7 @@ describe("MCP — specs add -> get round trip", () => {
         source: "User",
         priority: "Must",
         verification: "Test",
-        acceptance: [{ given: "an item is added", when: "the cart updates", then: "the total reflects it" }],
+        acceptance: [{ ears: "event", when: "an item is added", system: "the checkout service", shall: "recompute the total" }],
       },
     });
     expect(addRes.isError).toBe(false);
@@ -701,8 +704,18 @@ describe("MCP — specs add -> get round trip", () => {
 
     const getRes = await client.callTool("specs", { subcommand: "get", specs_file: file, ids: ["FR-CHK-0001"] });
     expect(getRes.isError).toBe(false);
-    const getPayload = getRes.payload as { found: { id: string }[] };
+    const getPayload = getRes.payload as { found: { id: string; acceptance: unknown[] }[] };
     expect(getPayload.found[0]!.id).toBe("FR-CHK-0001"); // FR-SPECS-0043 — caller id verbatim
+    // FR-SPECS-0001 AC3 — the command assigned the criterion's sub-id on the way in.
+    expect(getPayload.found[0]!.acceptance).toEqual([
+      {
+        id: "FR-CHK-0001.AC1",
+        ears: "event",
+        when: "an item is added",
+        system: "the checkout service",
+        shall: "recompute the total",
+      },
+    ]);
   });
 
   it("specs with an unknown subcommand returns unknown_command", async () => {

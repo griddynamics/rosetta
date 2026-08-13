@@ -408,3 +408,5 @@ The old code in `refsrc/` keeps its own `docs/CONTEXT.md` and `docs/ARCHITECTURE
 
 - Use `/requirements-authoring-flow` or `Allium` to generate specs from the existing old code.
 - Use `/coding-flow` for unit tests and `/ui-aqa-flow` for e2e tests to cover the old code before you change it.
+
+For migration principles, red flags, process, and start prompt templates, see [Modernization Guide](/rosetta/docs/modernization/). For the Rosetta phase workflow, see [Modernization Flow](/rosetta/docs/modernization-flow/).

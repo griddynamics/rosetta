@@ -28,17 +28,28 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v6
 
+      # Builds with the site's own Gemfile (Jekyll 4.x) instead of actions/jekyll-build-pages
+      # (github-pages gem, Jekyll 3.10) so CI and local `bundle exec jekyll serve` use one engine.
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          working-directory: docs/web
+
       - name: Stage llms-full.txt for site
         run: cp llms-full.txt docs/web/llms-full.txt
 
       - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./docs/web
-          destination: ./_site
+        run: bundle exec jekyll build --trace
+        working-directory: docs/web
+        env:
+          JEKYLL_ENV: production
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/web/_site
 
   deploy:
     needs: build

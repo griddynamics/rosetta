@@ -17,3 +17,4 @@ If you don't have Bundler/Jekyll locally, GitHub Actions builds and deploys auto
 Workflow: `.github/workflows/pages.yml`
 - Source: `docs/web`
 - Output: GitHub Pages
+- Builds with this folder's `Gemfile` (`bundle exec jekyll build`), so gem changes affect the deploy

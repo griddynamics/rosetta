@@ -348,6 +348,11 @@ a.button:hover,
   color: #09090b;
 }
 
+a.button.button-userguide,
+.button.button-userguide {
+  background: #5CB3D9;
+}
+
 /* ===== FOOTER ===== */
 footer {
   border-top: 1px solid var(--line);

@@ -1,14 +1,15 @@
 // Implements FR-SPECS-0013 (update subcommand). Batch RFC 7396 merge-patch; guarded fields
 // silently dropped; an Approved spec's normative edit (statement/acceptance) auto-transitions to
 // Modified (+ clears approved_by), and if its implementation was Implemented, to ToBeModified.
-// All-or-nothing (FR-SPECS-0030). Resolution: update's authoritative error catalog (SPECS.md
-// FR-SPECS-0013) is exactly {target_not_found, immutable_id, invalid_spec_field,
-// unknown_dependency, dependency_cycle, duplicate_id, size_limit_exceeded, invalid_data,
-// missing_data} — deliberately NOT invalid_type/missing_required_field (those are add-only,
-// SPECS FR-SPECS-0010), so a patch is not re-validated against the full add-time schema. The one
-// exception: source/priority/verification enum membership (FR-SPECS-0001) IS enforced on the
-// merged spec — those are structural (a fixed value set, not an add-time completeness check),
-// so leaving them unchecked would let a patch persist a spec no read path could rely on.
+// All-or-nothing (FR-SPECS-0030). A patch is deliberately NOT re-validated against the full
+// add-time schema — completeness checks belong to add, and a partial patch is not an authoring
+// event. What IS enforced here is everything structural about the MERGED spec: the fixed value
+// sets (type/source/priority/verification/level, FR-SPECS-0001), the agreement between the id
+// prefix and `type` (FR-SPECS-0009), and, when the patch replaced `acceptance`, the criterion
+// rules (FR-SPECS-0001). Leaving any of those unchecked would let a patch persist a spec no read
+// path could rely on, and the id can never be changed to repair a mismatch afterwards. So both
+// invalid_type and missing_required_field ARE reachable from this path, alongside the criterion
+// codes — the earlier claim that they were add-only no longer holds.
 
 import type { RunEnvelope } from "../../registry/types.js";
 import { ok, err } from "../../shared/envelope.js";
@@ -17,11 +18,15 @@ import { type BatchBuild, applyBatchWrite } from "./write.js";
 import { aggregate, type RejectRef } from "./aggregate.js";
 import {
   type Spec,
+  assignCriterionIds,
   stripGuarded,
-  validateImmutableId,
+  validateCriteria,
+  validateIdTypeConsistency,
   validateKnownFields,
+  validateLevel,
   validatePriority,
   validateSource,
+  validateType,
   validateVerification,
 } from "./core.js";
 import { type SpecWriteResult, buildSpecWriteResult, withPreviousVersion } from "./output.js";
@@ -77,17 +82,12 @@ export async function cmdUpdate(specsFile: string, patches: unknown[], actor?: s
         }
         const existing = doc.specs[idx]!;
 
-        // FR-SPECS-0013 — a patch body carrying a different id is rejected. This is
-        // STRUCTURALLY UNREACHABLE in this design: targetId (the lookup key used just above to
-        // find `existing`) IS patch["id"] itself, so validateImmutableId(targetId, existing.id)
-        // always compares targetId to itself and can never observe a mismatch. Kept anyway per
-        // SPECS §10 and the plan-upsert precedent it mirrors — a cheap defensive net that costs
-        // nothing and guards against a future refactor that changes how the target is resolved.
-        const immutableErr = validateImmutableId(targetId, existing.id);
-        if (immutableErr) {
-          rejects.push({ ref: targetId, reason: immutableErr });
-          return;
-        }
+        // FR-SPECS-0009 — a patch can never carry a different id than the one it targets: `id`
+        // is excluded from the merge below (immutable) and targetId (the lookup key used just
+        // above to find `existing`) IS patch["id"] itself, so there is no field through which a
+        // patch body could disagree with its own target. No immutable-id check runs here because
+        // there is nothing left for one to observe (see tests/unit/specs/update.test.ts's test
+        // proving the real-world guarantee directly).
 
         // FR-SPECS-0040 — guarded fields silently dropped; `id` is excluded from the merge
         // itself (immutable), never passed to mergePatch at all.
@@ -118,6 +118,35 @@ export async function cmdUpdate(specsFile: string, patches: unknown[], actor?: s
         if (verificationErr) {
           rejects.push({ ref: targetId, reason: verificationErr });
           return;
+        }
+        // FR-SPECS-0009 — `type` gets the same structural treatment as the enums above, and must
+        // still agree with the prefix of the spec's own immutable id after the merge.
+        const typeErr = validateType(merged.type);
+        if (typeErr) {
+          rejects.push({ ref: targetId, reason: typeErr });
+          return;
+        }
+        const idTypeErr = validateIdTypeConsistency(existing.id, merged.type);
+        if (idTypeErr) {
+          rejects.push({ ref: targetId, reason: idTypeErr });
+          return;
+        }
+        // FR-SPECS-0001 — `level` is a fixed value set like the enums above.
+        const levelErr = validateLevel(merged.level);
+        if (levelErr) {
+          rejects.push({ ref: targetId, reason: levelErr });
+          return;
+        }
+        // FR-SPECS-0001 — `acceptance` replaces wholesale under merge-patch, so when the patch
+        // carried it the resulting criteria are the caller's and get the same id assignment and
+        // field checks as on add. A patch that left it alone is not re-validated.
+        if (patchWithoutId["acceptance"] !== undefined) {
+          merged.acceptance = assignCriterionIds(existing.id, merged.acceptance ?? []);
+          const criteriaErr = validateCriteria(merged);
+          if (criteriaErr) {
+            rejects.push({ ref: targetId, reason: criteriaErr });
+            return;
+          }
         }
 
         // FR-SPECS-0013 — normative edit (statement|acceptance) on an Approved spec forces

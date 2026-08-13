@@ -8,6 +8,13 @@
  */
 import { describe, it, expect } from "vitest";
 import { specsSchemasDict } from "../../../src/commands/specs/schemas.js";
+import { EARS_PATTERNS, LEVELS } from "../../../src/commands/specs/core.js";
+
+/** The `properties` map of a dict entry, as a plain record. */
+function propsOf(typeName: string): Record<string, { type?: string; enum?: string[]; items?: unknown }> {
+  const entry = specsSchemasDict[typeName] as { properties?: Record<string, never> };
+  return (entry.properties ?? {}) as Record<string, { type?: string; enum?: string[]; items?: unknown }>;
+}
 
 /** Recursively collects every `$ref` value reachable from `node` (properties, array `items`,
  * `oneOf` branches — walked generically, no schema-shape assumptions beyond "plain object/array"). */
@@ -59,6 +66,79 @@ describe("specsSchemasDict — FR-SPECS-0050 required type list", () => {
       type: "object",
       properties: { code: { type: "string" }, name: { type: "string" } },
     });
+  });
+});
+
+// The dictionary is what tells a caller how to author a spec unit. Presence of the type NAME says
+// nothing about its published FIELDS, so the criterion model's shape is pinned here directly:
+// a schema that drifted from core.ts would otherwise ship wrong authoring instructions silently.
+describe("specsSchemasDict — the published AcceptanceCriterion shape (FR-SPECS-0001)", () => {
+  const props = () => propsOf("AcceptanceCriterion");
+
+  it("publishes exactly the criterion's fields", () => {
+    expect(Object.keys(props()).sort()).toEqual(["ears", "id", "if", "shall", "system", "when", "where", "while"]);
+  });
+
+  it("publishes no Given/When/Then field from the superseded model", () => {
+    expect(props()).not.toHaveProperty("given");
+    expect(props()).not.toHaveProperty("then");
+  });
+
+  it("constrains ears to the five EARS patterns, sourced from the same enum core.ts uses", () => {
+    expect(props()["ears"]!.enum).toEqual([...EARS_PATTERNS]);
+  });
+
+  it.each(["when", "while", "where", "if"])("publishes the condition word '%s' as a string", (word) => {
+    expect(props()[word]!.type).toBe("string");
+  });
+
+  it.each(["system", "shall"])("publishes the required %s field as a string", (field) => {
+    expect(props()[field]!.type).toBe("string");
+  });
+});
+
+describe("specsSchemasDict — the published Spec shape (FR-SPECS-0001)", () => {
+  const props = () => propsOf("Spec");
+
+  it.each(["level", "subsystem", "component", "evidence"])("publishes the %s field added with the model", (field) => {
+    expect(props()).toHaveProperty(field);
+  });
+
+  it("constrains level to the three levels, sourced from the same enum core.ts uses", () => {
+    expect(props()["level"]!.enum).toEqual([...LEVELS]);
+  });
+
+  it("publishes evidence as an array of strings, one per source location", () => {
+    expect(props()["evidence"]!.type).toBe("array");
+    expect(props()["evidence"]!.items).toEqual({ type: "string" });
+  });
+
+  it.each(["subsystem", "component"])("publishes %s as a string", (field) => {
+    expect(props()[field]!.type).toBe("string");
+  });
+
+  it("refs the named AcceptanceCriterion for acceptance items rather than inlining the shape", () => {
+    expect(props()["acceptance"]!.items).toEqual({ $ref: "AcceptanceCriterion" });
+  });
+});
+
+// FR-SPECS-0002 — the document holds one system's requirements; the summary names it `system`.
+describe("specsSchemasDict — the published SpecDocumentSummary shape (FR-SPECS-0002)", () => {
+  it("publishes the document's system, not the superseded component", () => {
+    const props = propsOf("SpecDocumentSummary");
+    expect(props).toHaveProperty("system");
+    expect(props).not.toHaveProperty("component");
+  });
+});
+
+// FR-SPECS-0008 AC3 — every property takes its description from SPEC_FIELD_GUIDE by lookup, so the
+// schema dictionary and the help field_guide section are the same strings by construction.
+describe("specsSchemasDict — every published field carries authoring guidance", () => {
+  it.each(["Spec", "AcceptanceCriterion"])("gives every %s property a non-empty description", (typeName) => {
+    const undescribed = Object.entries(propsOf(typeName))
+      .filter(([, schema]) => typeof (schema as { description?: string }).description !== "string" || (schema as { description: string }).description.trim() === "")
+      .map(([name]) => name);
+    expect(undescribed).toEqual([]);
   });
 });
 

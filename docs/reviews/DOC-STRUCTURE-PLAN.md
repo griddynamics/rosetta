@@ -21,6 +21,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 | `MCPs.md` | MCP install path — optional, secondary. | Users with no plugin path for their IDE, or a specific centrally-managed-instructions need. | User |
 | `CONFIGURATION.md` | Post-install workspace setup (includes refsrc examples). | A user asking "now what?". | User |
 | `USAGE_GUIDE.md` | How to run the workflows day to day. | A configured user doing real work. | User |
+| `docs/MODERNIZATION.md` | Migration methodology: principles, red flags, process, start prompt templates. | A user running modernization/migration work. | User |
 | `FAQ.md` | Fast answers to recurring real questions. | Anyone scanning before a full guide. | User |
 | `TROUBLESHOOTING.md` | Recover when setup or runtime breaks. | A user who hit an error. | User |
 | `CHANGELOG.md` | Release history. | Existing users checking what moved. | User |
@@ -127,7 +128,7 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Answers:** "How do I set up my workspace so Rosetta works well here?"
 - **Owns:** capturing CONTEXT.md / ARCHITECTURE.md, providing refsrc, defining patterns, choosing a workspace layout, ecosystem config.
 - **Structure:** capture CONTEXT.md / ARCHITECTURE.md → provide refsrc → define patterns → choose a workspace layout → ecosystem (MCPs/CLIs) config.
-- **Excludes:** install steps (→ INSTALLATION), first-run happy path (→ QUICKSTART), running workflows (→ USAGE_GUIDE).
+- **Excludes:** install steps (→ INSTALLATION), first-run happy path (→ QUICKSTART), running workflows (→ USAGE_GUIDE), migration principles/prompts (→ docs/MODERNIZATION.md).
 - **Sources:** `gain.json` schema, the Rosetta file set (CONTEXT.md / ARCHITECTURE.md / refsrc), pattern templates.
 
 ### USAGE_GUIDE.md
@@ -136,8 +137,21 @@ Four reader types. Every doc serves one primary profile. README is the shared fr
 - **Answers:** "How do I run each workflow (coding, requirements, QA, modernization, research)?"
 - **Owns:** workflow catalog, greenfield/brownfield paths, customization, recommended MCP servers, best practices.
 - **Structure:** how to invoke a workflow (slash-command) → when to use each → workflow catalog table (links into each workflow doc) → greenfield vs brownfield → recommended MCP servers → best practices.
-- **Excludes:** install/config steps (→ INSTALLATION/CONFIGURATION), the full internal definition of each workflow (→ its own workflow doc), contributor/dev process (→ CONTRIBUTING/DEVELOPER_GUIDE).
+- **Excludes:** install/config steps (→ INSTALLATION/CONFIGURATION), the full internal definition of each workflow (→ its own workflow doc), contributor/dev process (→ CONTRIBUTING/DEVELOPER_GUIDE), migration methodology and start prompt templates (→ docs/MODERNIZATION.md).
 - **Sources:** `workflows/` (slash-commands + the actual workflow list), the recommended-MCP list.
+
+### Guides
+
+Practice guides for high-stakes work. Distinct from workflow pages (how Rosetta runs a flow) and from CONFIGURATION (workspace setup).
+
+#### docs/MODERNIZATION.md
+- **Profile:** User.
+- **Audience:** a user converting, migrating, upgrading, or re-architecting a codebase with AI agents.
+- **Answers:** "What principles, red flags, process, and start prompts should I use for modernization/migration?"
+- **Owns:** key principles, red flags, source/target process steps, copy-paste start prompt templates (Prompt 0-4).
+- **Structure:** key principles → red flags → process → start prompt templates (0 stage rule → 1 mandate → 2 archetype mapping → 3 test strategy → 4 session plans).
+- **Excludes:** workspace file setup steps (→ CONFIGURATION modernization section), Rosetta `/modernization-flow` phase mechanics and artifacts (→ modernization-flow workflow doc / web page), ordinary coding how-to (→ USAGE_GUIDE / coding-flow).
+- **Sources:** field modernization practice, `docs/prompts/modernization-prompts-raw.md`, CONFIGURATION modernization setup, modernization-flow workflow.
 
 ### FAQ.md
 - **Profile:** User.

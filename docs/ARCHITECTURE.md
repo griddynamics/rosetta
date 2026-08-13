@@ -130,6 +130,14 @@ Requests are classified only when the user invokes `/rosetta`; a plain request l
 
 ---
 
+## Versioning
+
+Each individual solution component follows its own version (except major).
+
+All plugins follow the same version.
+
+---
+
 ## Rosettify
 
 Local CLI/MCP utility for AI coding agents and users. Purpose: deterministic local AI coding workflow execution and single entry point for Rosetta tooling in any project. All data and IP stays local — zero network calls during operation.
@@ -374,9 +382,9 @@ Cursor and Copilot are the only plugins that need two distinct templates because
 ## Pipelines
 
 We use `.github/workflows` pipelines to build and release: MCP PyPi package, Docker Image, Publish Instructions, Publish website.
-Triggers on push to `main` or manual dispatch.
+Triggers on push to `main` or manual dispatch. Use actionlint.
 
-Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages.
+Website: builds the Jekyll website from `docs/web/`, deploys to GitHub Pages. Original web content is not generated, but adapted and synchronized. Jekyll uses that content to build the website. The one exception is `docs/web/user-guide/`, which is synchronized from `user-guide/` by `scripts/sync_user_guide_web.py` (rewrites relative links to permalinks, `instructions/**` refs to GitHub blob URLs, and wraps mermaid blocks in `{% raw %}` so Liquid does not consume `{{"..."}}` hexagon nodes).
 
 **Plugin distribution.** The publish-instructions pipeline zips each plugin folder and attaches the archives to a GitHub Release alongside `instructions.zip`. See [Plugins](#plugins) for how plugin files are generated.
 

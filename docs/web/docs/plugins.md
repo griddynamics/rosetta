@@ -143,7 +143,7 @@ Ask the agent:
 What can you do, Rosetta?
 ```
 
-The agent will follow Rosetta prompts and show Rosetta workflows and execute `self-help-flow` (see screenshots from different tools below):
+The agent will follow Rosetta prompts and show Rosetta workflows and execute `help-flow` (see screenshots from different tools below):
 
 **Claude Code:**
 
